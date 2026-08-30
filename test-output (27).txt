@@ -1,0 +1,68 @@
+
+> levelup-ai@1.0.0 test
+> node --test tests/*.test.js
+
+TAP version 13
+# Subtest: public config exposes centralized bit and plan prices
+ok 1 - public config exposes centralized bit and plan prices
+  ---
+  duration_ms: 21.897168
+  type: 'test'
+  ...
+# Subtest: free user is blocked from full game and gets preview metadata
+ok 2 - free user is blocked from full game and gets preview metadata
+  ---
+  duration_ms: 58.031895
+  type: 'test'
+  ...
+# Subtest: task completion grants XP only once
+ok 3 - task completion grants XP only once
+  ---
+  duration_ms: 46.932023
+  type: 'test'
+  ...
+# Subtest: manual bit proof does not activate before admin approval, then refreshes permission
+ok 4 - manual bit proof does not activate before admin approval, then refreshes permission
+  ---
+  duration_ms: 90.110031
+  type: 'test'
+  ...
+# Subtest: basic game start hides answers and finish is server validated + idempotent
+ok 5 - basic game start hides answers and finish is server validated + idempotent
+  ---
+  duration_ms: 56.106054
+  type: 'test'
+  ...
+# Subtest: minor registration requires demo parent consent before onboarding
+ok 6 - minor registration requires demo parent consent before onboarding
+  ---
+  duration_ms: 45.779233
+  type: 'test'
+  ...
+# Subtest: marketplace favorite and report persist
+ok 7 - marketplace favorite and report persist
+  ---
+  duration_ms: 40.820999
+  type: 'test'
+  ...
+# Subtest: weekly challenge can be joined without open chat
+ok 8 - weekly challenge can be joined without open chat
+  ---
+  duration_ms: 40.309928
+  type: 'test'
+  ...
+# Subtest: creator moderation and paid marketplace purchase use manual bit approval
+ok 9 - creator moderation and paid marketplace purchase use manual bit approval
+  ---
+  duration_ms: 127.745091
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 714.470232

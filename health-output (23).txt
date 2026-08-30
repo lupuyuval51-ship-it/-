@@ -1,0 +1,3 @@
+
+--- health source ---
+{"ok":true,"status":"healthy","demoMode":true,"version":"1.0.0"}

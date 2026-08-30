@@ -1,0 +1,5 @@
+
+> levelup-ai@1.0.0 build
+> node scripts/build.mjs
+
+build: dist created

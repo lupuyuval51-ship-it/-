@@ -1,0 +1,326 @@
+{
+  "users": [
+    {
+      "id": "usr_mtg39jpk_7f0cd8ada674",
+      "email": "admin@levelup.local",
+      "passwordHash": "989d7279d51e00b0f6ad1b7582bb65db:9336509a299664de7606ff1fc7d6402d03ff7aad2e04e1dea62c4eab1db315f9843b962ec506f0499950b37c5b14ff9619b7262b7795cd8edaddc86e9fc8724b",
+      "role": "admin",
+      "emailVerified": true,
+      "created_at": "2026-08-30T17:34:01.018Z",
+      "updated_at": "2026-08-30T17:34:01.018Z"
+    },
+    {
+      "id": "usr_mtg39jpk_851a1e21d62d",
+      "email": "demo@levelup.local",
+      "passwordHash": "6fc217d98bfe3fc9f9f1138a36c088dc:8409d8c58691d03524889d34b1aa169112fe50527e420ad3ebaac41ee408bdbd4e3a0fe1a982a7125a0098d3e8ffb4822e5e2b0f1dfb3dd6c08736d36619cc04",
+      "role": "user",
+      "emailVerified": true,
+      "created_at": "2026-08-30T17:34:01.064Z",
+      "updated_at": "2026-08-30T17:34:01.064Z"
+    },
+    {
+      "id": "usr_mtg39jpk_32df012eb0d1",
+      "email": "basic@levelup.local",
+      "passwordHash": "30c3a7c8522ebf5c88d03652941b6c08:ffc7e3b4f84babb004cfeebc8f21b0bb7fd79a7e38df7e14cc0aeba2b3f28d9303f2fc175c2d1b8a508123595773b33a34ce9b474d46730973e78341bd167fa3",
+      "role": "user",
+      "emailVerified": true,
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "profiles": [
+    {
+      "userId": "usr_mtg39jpk_7f0cd8ada674",
+      "displayName": "מנהל LEVELUP",
+      "birthYear": 1995,
+      "planId": "pro",
+      "xp": 4200,
+      "coins": 810,
+      "level": 9,
+      "streak": 12,
+      "privacy": "private",
+      "locale": "he",
+      "coachStyle": "professional",
+      "theme": "dark",
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "displayName": "נועם הדגמה",
+      "birthYear": 2011,
+      "planId": "free",
+      "xp": 680,
+      "coins": 96,
+      "level": 3,
+      "streak": 4,
+      "privacy": "private",
+      "locale": "he",
+      "coachStyle": "energetic",
+      "theme": "dark",
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "userId": "usr_mtg39jpk_32df012eb0d1",
+      "displayName": "דנה Basic",
+      "birthYear": 2007,
+      "planId": "basic",
+      "xp": 1450,
+      "coins": 220,
+      "level": 5,
+      "streak": 9,
+      "privacy": "private",
+      "locale": "he",
+      "coachStyle": "supportive",
+      "theme": "dark",
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "parental_consents": [
+    {
+      "id": "pc_mtg39jtd_f535b8bf245f",
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "guardianEmail": "parent.demo@levelup.local",
+      "status": "approved_demo",
+      "verified_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "plans": [],
+  "plan_features": [],
+  "subscriptions": [],
+  "learning_paths": [],
+  "generated_paths": [],
+  "path_enrollments": [
+    {
+      "id": "enr_mtg39jtd_fbe5dbc04826",
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "pathSlug": "first-website-7-days",
+      "progress": 32,
+      "started_at": "2026-08-30T17:34:01.105Z",
+      "targetDate": "2026-09-05",
+      "active": true,
+      "completedTaskIds": [
+        "html",
+        "nav"
+      ],
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "chapters": [],
+  "lessons": [],
+  "tasks": [],
+  "task_submissions": [],
+  "ai_coach_messages": [],
+  "skills": [],
+  "user_skills": [],
+  "xp_events": [
+    {
+      "id": "xp_mtg39jtd_d8e5bc9e5b41",
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "amount": 180,
+      "reason": "demo_seed",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "first-task",
+      "title": "הצעד הראשון",
+      "description": "השלמת משימה ראשונה"
+    },
+    {
+      "id": "streak-3",
+      "title": "רצף מתחיל",
+      "description": "שלושה ימי למידה רצופים"
+    },
+    {
+      "id": "game-first",
+      "title": "שחקן לומד",
+      "description": "סיום Daily 3D Quest"
+    }
+  ],
+  "user_achievements": [
+    {
+      "id": "ua_mtg39jtd_2315b8326b97",
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "achievementId": "first-task",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "ua_mtg39jtd_dcd9b9d64539",
+      "userId": "usr_mtg39jpk_851a1e21d62d",
+      "achievementId": "streak-3",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "streaks": [],
+  "friendships": [],
+  "challenges": [
+    {
+      "id": "challenge_mtg39jtd_421355a1b624",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "kind": "weekly",
+      "title": "משימת השבוע: 3 צעדים ברצף",
+      "description": "השלם שלוש משימות לימוד במהלך השבוע ושמור על רצף.",
+      "status": "active",
+      "starts_at": "2026-08-30T17:34:01.105Z",
+      "ends_at": "2026-09-06T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z",
+      "updated_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "challenge_participants": [],
+  "marketplace_paths": [
+    {
+      "id": "mp_mtg39jtd_30e7a2850e06",
+      "pathSlug": "first-website-7-days",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "בניית אתר ראשון בשבעה ימים",
+      "description": "מסלול מעשי ומדורג: לפרסם אתר רספונסיבי עם HTML, CSS וניווט",
+      "category": "תכנות",
+      "difficulty": "beginner",
+      "durationDays": 7,
+      "price": 0,
+      "rating": 4.6,
+      "learners": 120,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_260d697a09dd",
+      "pathSlug": "first-app-30-days",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "בניית אפליקציה ראשונה ב־30 יום",
+      "description": "מסלול מעשי ומדורג: לפרסם Web App עם משתמשים, נתונים ובדיקות",
+      "category": "בניית אפליקציות",
+      "difficulty": "beginner",
+      "durationDays": 30,
+      "price": 0,
+      "rating": 4.55,
+      "learners": 157,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_fe1555112f7a",
+      "pathSlug": "first-3d-game",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "בניית משחק 3D ראשון",
+      "description": "מסלול מעשי ומדורג: לבנות משחק WebGL קצר עם שליטה, ניקוד וסיום",
+      "category": "בניית משחקים",
+      "difficulty": "beginner",
+      "durationDays": 21,
+      "price": 0,
+      "rating": 4.5,
+      "learners": 194,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_e01052523373",
+      "pathSlug": "spoken-english",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "אנגלית מדוברת למתחילים",
+      "description": "מסלול מעשי ומדורג: לנהל שיחה בסיסית של שתי דקות",
+      "category": "אנגלית",
+      "difficulty": "beginner",
+      "durationDays": 28,
+      "price": 0,
+      "rating": 4.449999999999999,
+      "learners": 231,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_cf7fb27a27ea",
+      "pathSlug": "video-basics",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "יסודות עריכת וידאו",
+      "description": "מסלול מעשי ומדורג: לערוך סרטון של 60 שניות עם קצב, קול וכתוביות",
+      "category": "עריכת סרטונים",
+      "difficulty": "beginner",
+      "durationDays": 21,
+      "price": 0,
+      "rating": 4.3999999999999995,
+      "learners": 268,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_05edb0997741",
+      "pathSlug": "ai-tools",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "התחלה עם כלי AI",
+      "description": "מסלול מעשי ומדורג: לבחור כלי AI נכון ולבנות workflow בטוח",
+      "category": "כלי AI",
+      "difficulty": "beginner",
+      "durationDays": 14,
+      "price": 9,
+      "rating": 4.35,
+      "learners": 305,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_4fea188488d8",
+      "pathSlug": "content-channel",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "יצירת ערוץ תוכן",
+      "description": "מסלול מעשי ומדורג: להקים ערוץ עם נושא, פורמט ולוח פרסום",
+      "category": "יצירת תוכן",
+      "difficulty": "beginner",
+      "durationDays": 30,
+      "price": 15,
+      "rating": 4.3,
+      "learners": 342,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    },
+    {
+      "id": "mp_mtg39jtd_fb197b57d83b",
+      "pathSlug": "youth-entrepreneurship",
+      "creatorId": "usr_mtg39jpk_7f0cd8ada674",
+      "title": "יסודות יזמות לנוער",
+      "description": "מסלול מעשי ומדורג: לבדוק רעיון עסקי קטן עם לקוח ראשון באופן בטוח",
+      "category": "יזמות ועסקים",
+      "difficulty": "beginner",
+      "durationDays": 28,
+      "price": 19,
+      "rating": 4.25,
+      "learners": 379,
+      "status": "approved",
+      "updated_at": "2026-08-30T17:34:01.105Z",
+      "created_at": "2026-08-30T17:34:01.105Z"
+    }
+  ],
+  "marketplace_sales": [],
+  "reviews": [],
+  "favorites": [],
+  "daily_games": [],
+  "daily_game_templates": [],
+  "daily_game_questions": [],
+  "daily_game_attempts": [],
+  "game_events": [],
+  "leaderboards": [],
+  "cosmetic_items": [],
+  "user_inventory": [],
+  "orders": [],
+  "payment_proofs": [],
+  "notifications": [],
+  "reports": [],
+  "admin_actions": [],
+  "password_resets": [],
+  "email_verifications": []
+}
