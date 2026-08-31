@@ -78,6 +78,7 @@ button{font:inherit;color:inherit}
 /* ---------- החדר ---------- */
 .room{position:relative;width:100%;aspect-ratio:16/10;background:#000;border:1px solid var(--line);overflow:hidden;filter:brightness(calc(1 - var(--dark)));transition:filter 1.2s linear}
 .room canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.room canvas[hidden]{display:none}
 /* הויניאטה של החדר — כאן היא אטמוספרה, לא מכשול קריאוּת */
 .room::after{
   content:"";position:absolute;inset:0;pointer-events:none;
@@ -227,7 +228,8 @@ ul.chapters .ts{color:var(--dust);font-variant-numeric:tabular-nums;letter-spaci
     </div>
 
     <div class="room" id="room">
-      <canvas id="roomcv" aria-hidden="true"></canvas>
+      <canvas id="roomgl" aria-hidden="true"></canvas>
+      <canvas id="roomcv" aria-hidden="true" hidden></canvas>
       <p class="sr" id="roomdesc"></p>
       <div id="hotspots"></div>
     </div>
@@ -951,11 +953,16 @@ const FX = {
    דרגה אחת בכל תשובה שגויה, ונשארות ברקע.
    ================================================================ */
 const Room = {
-  cv: null, ctx: null, raf: 0, last: 0, t0: 0,
+  cv: null, ctx: null, glcv: null, raf: 0, last: 0, t0: 0, mode: "2d",
 
   init() {
     this.cv = document.getElementById("roomcv");
     this.ctx = this.cv.getContext("2d");
+    this.glcv = document.getElementById("roomgl");
+    // תלת-ממד כברירת מחדל; אם הדפדפן לא תומך, החדרים מצוירים ב-2D
+    if (this.mode === "2d" && !Scene3D.ok && Scene3D.init(this.glcv)) this.mode = "3d";
+    if (this.mode === "3d") { this.glcv.hidden = false; this.cv.hidden = true; }
+    else { this.glcv.hidden = true; this.cv.hidden = false; }
     this.resize();
     const loop = (t) => {
       if (gameState.reduceMotion) { this.raf = 0; return; }
@@ -970,23 +977,34 @@ const Room = {
 
   resize() {
     if (!this.cv) return;
-    const r = this.cv.getBoundingClientRect();
+    // נמדד לפי מיכל החדר: הקנבס שלא בשימוש מוסתר, והמלבן שלו אפס
+    const host = document.getElementById("room") || this.cv;
+    const r = host.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.cv.width = Math.max(2, Math.round(r.width * dpr));
-    this.cv.height = Math.max(2, Math.round(r.height * dpr));
+    const w = Math.max(2, Math.round(r.width * dpr)), h = Math.max(2, Math.round(r.height * dpr));
+    this.cv.width = w; this.cv.height = h;
+    if (this.glcv) { this.glcv.width = w; this.glcv.height = h; }
     this.paint(this.last / 1000);
   },
 
   paint(t) {
-    if (!this.ctx || gameState.screen !== "game") return;
+    if (gameState.screen !== "game") return;
+    const time = gameState.reduceMotion ? 0 : t;
+    if (this.mode === "3d" && Scene3D.ok) {
+      Scene3D.build(time);      // הסצנה נבנית מחדש בכל פריים — היא קטנה מספיק
+      Scene3D.draw(time);
+      placeHotspots3D();
+      return;
+    }
+    if (!this.ctx) return;
     const c = this.ctx, W = this.cv.width, H = this.cv.height;
     if (!W || !H) return;
     c.save();
     c.clearRect(0, 0, W, H);
     const painter = PAINTERS[gameState.chapter] || PAINTERS[0];
-    painter(c, W, H, gameState.reduceMotion ? 0 : t);
+    painter(c, W, H, time);
     // אבק וחלקיקים דקים מעל הכל
-    dust(c, W, H, t);
+    dust(c, W, H, time);
     c.restore();
   }
 };
@@ -1702,6 +1720,632 @@ const HOTSPOTS = [
    { x: 70, y: 28, w: 11, h: 14 }, { x: 70, y: 48, w: 16, h: 16 }]
 ];
 
+
+/* ================================================================
+   6b. Scene3D — מנוע תלת-ממד קטן, WebGL גולמי, בלי שום ספרייה
+   כל חדר נבנה מקוביות ומצולעים, עם תאורה נקודתית וערפל.
+   אם אין WebGL — המשחק חוזר אוטומטית לציורי ה-2D שלמעלה.
+   ================================================================ */
+
+/* ---- מתמטיקה של מטריצות 4x4 ---- */
+const M4 = {
+  ident() { return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; },
+  mul(a, b) {
+    const o = new Array(16);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      o[r * 4 + c] = a[r * 4] * b[c] + a[r * 4 + 1] * b[4 + c] + a[r * 4 + 2] * b[8 + c] + a[r * 4 + 3] * b[12 + c];
+    }
+    return o;
+  },
+  persp(fovy, aspect, near, far) {
+    const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+    return [f / aspect,0,0,0, 0,f,0,0, 0,0,(far + near) * nf,-1, 0,0,2 * far * near * nf,0];
+  },
+  lookAt(eye, tgt, up) {
+    const z = norm3(sub3(eye, tgt)), x = norm3(cross3(up, z)), y = cross3(z, x);
+    return [x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+      -(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),
+      -(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),
+      -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]), 1];
+  }
+};
+function sub3(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+function cross3(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function norm3(a) { const l = Math.hypot(a[0],a[1],a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; }
+
+/* ---- בונה גיאומטריה: כל פאה היא שני משולשים עם צבע ונורמל ---- */
+function Mesh() { this.v = []; }
+Mesh.prototype.tri = function (p0, p1, p2, col, emit) {
+  const n = norm3(cross3(sub3(p1, p0), sub3(p2, p0)));
+  [p0, p1, p2].forEach(p => {
+    this.v.push(p[0], p[1], p[2], n[0], n[1], n[2], col[0], col[1], col[2], emit || 0);
+  });
+};
+Mesh.prototype.quad = function (p0, p1, p2, p3, col, emit) {
+  this.tri(p0, p1, p2, col, emit); this.tri(p0, p2, p3, col, emit);
+};
+/* קופסה. skip מאפשר לוותר על פאות שלא רואים, כדי לחסוך משולשים */
+Mesh.prototype.box = function (x, y, z, w, h, d, col, opt) {
+  const o = opt || {}, s = o.skip || [], e = o.emit || 0;
+  const x0 = x - w / 2, x1 = x + w / 2, y0 = y, y1 = y + h, z0 = z - d / 2, z1 = z + d / 2;
+  const sh = (f) => o.flat ? col : [col[0] * f, col[1] * f, col[2] * f];
+  if (!s.includes("front")) this.quad([x0,y0,z1], [x1,y0,z1], [x1,y1,z1], [x0,y1,z1], sh(1.00), e);
+  if (!s.includes("back"))  this.quad([x1,y0,z0], [x0,y0,z0], [x0,y1,z0], [x1,y1,z0], sh(0.72), e);
+  if (!s.includes("right")) this.quad([x1,y0,z1], [x1,y0,z0], [x1,y1,z0], [x1,y1,z1], sh(0.86), e);
+  if (!s.includes("left"))  this.quad([x0,y0,z0], [x0,y0,z1], [x0,y1,z1], [x0,y1,z0], sh(0.86), e);
+  if (!s.includes("top"))   this.quad([x0,y1,z1], [x1,y1,z1], [x1,y1,z0], [x0,y1,z0], sh(1.12), e);
+  if (!s.includes("bottom"))this.quad([x0,y0,z0], [x1,y0,z0], [x1,y0,z1], [x0,y0,z1], sh(0.55), e);
+};
+/* לוח שטוח על קיר — z קבוע, פונה אל המצלמה */
+Mesh.prototype.panel = function (x, y, z, w, h, col, emit) {
+  this.quad([x - w/2, y, z], [x + w/2, y, z], [x + w/2, y + h, z], [x - w/2, y + h, z], col, emit || 0);
+};
+Mesh.prototype.panelX = function (x, y, z, d, h, col, emit) {
+  this.quad([x, y, z - d/2], [x, y, z + d/2], [x, y + h, z + d/2], [x, y + h, z - d/2], col, emit || 0);
+};
+
+/* ---- דמות אנושית מקוביות. ככל שהיא קרובה, ככה היא גדולה ולא נכונה יותר ---- */
+function figure3d(M, x, y, z, opt) {
+  const o = opt || {};
+  const s = o.scale || 1;
+  const dark = o.color || [0.02, 0.02, 0.03];
+  const neck = (o.neck || 0.12) * s;
+  const torsoH = 0.72 * s;
+  M.box(x, y, z, 0.46 * s, torsoH, 0.26 * s, dark, { flat: true });          // גוף
+  M.box(x, y + torsoH, z, 0.10 * s, neck, 0.10 * s, dark, { flat: true });   // צוואר ארוך מדי
+  M.box(x, y + torsoH + neck, z, 0.22 * s, 0.26 * s, 0.22 * s, dark, { flat: true }); // ראש
+  if (!o.seated) {
+    M.box(x - 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
+    M.box(x + 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
+  }
+  const armLen = (0.55 + (o.arms || 0) * 0.5) * s;
+  M.box(x - 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
+  M.box(x + 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
+  if (o.eyes) {   // שתי נקודות אדומות. בשימוש נדיר בלבד
+    const ey = y + torsoH + neck + 0.16 * s, ez = z + 0.115 * s;
+    M.panel(x - 0.05 * s, ey, ez, 0.035 * s, 0.02 * s, [0.85, 0.13, 0.13], 1);
+    M.panel(x + 0.05 * s, ey, ez, 0.035 * s, 0.02 * s, [0.85, 0.13, 0.13], 1);
+  }
+  if (o.headphones) {
+    const hy = y + torsoH + neck + 0.26 * s;
+    M.box(x, hy, z, 0.30 * s, 0.04 * s, 0.06 * s, [0.28, 0.27, 0.26], { flat: true });
+    M.box(x - 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
+    M.box(x + 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
+  }
+}
+
+/* ---- ספרה בשבעה מקטעים, מצולעים קטנים על מישור ---- */
+const SEG7 = { 0:[1,1,1,1,1,1,0], 1:[0,1,1,0,0,0,0], 2:[1,1,0,1,1,0,1], 3:[1,1,1,1,0,0,1],
+  4:[0,1,1,0,0,1,1], 5:[1,0,1,1,0,1,1], 6:[1,0,1,1,1,1,1], 7:[1,1,1,0,0,0,0],
+  8:[1,1,1,1,1,1,1], 9:[1,1,1,1,0,1,1] };
+function digit7(M, x, y, z, w, h, n, col) {
+  const seg = SEG7[n] || SEG7[0], th = w * 0.20;
+  const on = (i) => seg[i] ? col : [col[0]*0.10, col[1]*0.10, col[2]*0.10];
+  M.panel(x, y + h - th, z, w, th, on(0));                       // עליון
+  M.panel(x + w/2 - th/2, y + h/2, z, th, h/2 - th/2, on(1));    // ימין עליון
+  M.panel(x + w/2 - th/2, y + th, z, th, h/2 - th/2, on(2));     // ימין תחתון
+  M.panel(x, y, z, w, th, on(3));                                // תחתון
+  M.panel(x - w/2 + th/2, y + th, z, th, h/2 - th/2, on(4));     // שמאל תחתון
+  M.panel(x - w/2 + th/2, y + h/2, z, th, h/2 - th/2, on(5));    // שמאל עליון
+  M.panel(x, y + h/2 - th/2, z, w, th, on(6));                   // אמצע
+}
+function number7(M, x, y, z, w, h, str, col) {
+  const chars = String(str).split("");
+  const gap = w * 1.35;
+  chars.forEach((c, i) => digit7(M, x + (i - (chars.length - 1) / 2) * gap, y, z, w, h, parseInt(c, 10), col));
+}
+
+/* ---- קליפת חדר: רצפה, תקרה, ארבעה קירות ---- */
+function shell(M, w, h, d, zBack, colWall, colFloor, colCeil) {
+  const x0 = -w / 2, x1 = w / 2, z0 = zBack, z1 = zBack + d;
+  M.quad([x0,0,z1], [x1,0,z1], [x1,0,z0], [x0,0,z0], colFloor);              // רצפה
+  M.quad([x0,h,z0], [x1,h,z0], [x1,h,z1], [x0,h,z1], colCeil);               // תקרה
+  M.quad([x0,0,z0], [x1,0,z0], [x1,h,z0], [x0,h,z0], colWall);               // קיר אחורי
+  M.quad([x1,0,z0], [x1,0,z1], [x1,h,z1], [x1,h,z0], [colWall[0]*0.88, colWall[1]*0.88, colWall[2]*0.88]);
+  M.quad([x0,0,z1], [x0,0,z0], [x0,h,z0], [x0,h,z1], [colWall[0]*0.94, colWall[1]*0.94, colWall[2]*0.94]);
+}
+/* קיר ספוג אקוסטי — רשת של ריבועים בגוונים מתחלפים */
+function foamWall(M, w, h, z, cols, rows, base) {
+  const cw = w / cols, ch = h / rows;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const f = ((i + j) % 2 === 0) ? 1.10 : 0.86;
+    const x = -w / 2 + i * cw + cw / 2;
+    M.panel(x, j * ch, z + 0.012, cw * 0.94, ch * 0.94, [base[0]*f, base[1]*f, base[2]*f]);
+  }
+}
+
+/* ================================================================
+   הסצנות — חמישה חדרים בתלת-ממד
+   כל סצנה מחזירה: מש, תאורה, מצלמה, ועוגנים לאזורי החיפוש
+   ================================================================ */
+const SCENES = [
+
+  /* ---------- פרק 1 · האולפן ---------- */
+  function studio3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 6, 3, 8, -5.5, [0.075,0.075,0.095], [0.05,0.05,0.06], [0.045,0.045,0.055]);
+    foamWall(M, 6, 3, -5.5, 16, 8, [0.055,0.055,0.072]);
+
+    // שולחן
+    M.box(0, 0.74, -3.4, 4.2, 0.08, 1.3, [0.075,0.072,0.085]);
+    M.box(-1.9, 0, -3.4, 0.1, 0.74, 1.1, [0.07,0.07,0.08]);
+    M.box(1.9, 0, -3.4, 0.1, 0.74, 1.1, [0.07,0.07,0.08]);
+
+    // מסך העריכה — הפנים שלו זוהרות
+    M.box(1.15, 0.82, -3.7, 1.15, 0.72, 0.07, [0.10,0.10,0.12]);
+    M.panel(1.15, 0.88, -3.64, 1.02, 0.58, [0.06,0.07,0.10], 1);
+    for (let i = 0; i < 26; i++) {   // הערוץ העליון
+      const h = 0.05 + ((i * 37) % 11) * 0.014;
+      M.panel(0.68 + i * 0.038, 1.18, -3.63, 0.016, h, [0.72,0.70,0.67], 1);
+    }
+    for (let i = 0; i < 26; i++) {   // הערוץ התחתון, האדום
+      const h = 0.04 + ((i * 53) % 9) * 0.013;
+      M.panel(0.68 + i * 0.038, 1.17 - h, -3.63, 0.016, h, [0.78,0.16,0.16], 1);
+    }
+
+    // מיקרופון
+    M.box(-0.15, 0.82, -3.3, 0.05, 0.42, 0.05, [0.085,0.085,0.10]);
+    M.box(-0.15, 1.24, -3.3, 0.12, 0.30, 0.12, [0.125,0.12,0.135]);
+    M.box(-0.55, 1.30, -3.3, 0.80, 0.03, 0.03, [0.075,0.075,0.09]);
+    M.box(-0.42, 1.16, -3.15, 0.02, 0.26, 0.20, [0.16,0.155,0.15]);   // פופ פילטר
+
+    // אוזניות וכוס
+    M.box(-1.25, 0.82, -3.2, 0.30, 0.05, 0.24, [0.105,0.10,0.095]);
+    M.box(-1.38, 0.82, -3.2, 0.09, 0.13, 0.13, [0.085,0.08,0.08]);
+    M.box(-1.12, 0.82, -3.2, 0.09, 0.13, 0.13, [0.085,0.08,0.08]);
+    M.box(0.45, 0.82, -3.1, 0.10, 0.14, 0.10, [0.10,0.095,0.09]);
+    if (gameState.secretShown) M.box(0.62, 0.82, -3.1, 0.10, 0.14, 0.10, [0.10,0.095,0.09]);
+
+    // כיסא האורח — ו"המאזין" יושב בו
+    const cz = -4.5 + cr * 0.5;
+    M.box(-1.25, 0, cz, 0.55, 0.45, 0.55, [0.055,0.055,0.07]);
+    M.box(-1.25, 0.45, cz - 0.24, 0.55, 0.55, 0.07, [0.055,0.055,0.07]);
+    figure3d(M, -1.25, 0.62 + Math.sin(t * 0.6) * 0.012, cz + 0.05, {
+      scale: 0.95 + cr * 0.12, seated: true, neck: 0.16 + cr * 0.14,
+      arms: cr * 0.4, headphones: true, eyes: gameState.monsterStep >= 2
+    });
+
+    // נורית ההקלטה על הקיר
+    M.panel(2.1, 2.05, -5.48, 0.10, 0.10, [0.85,0.13,0.13], 1);
+    // דלת עם מנעול ספרות
+    M.panel(-2.35, 0, -5.47, 1.0, 2.15, [0.10,0.10,0.13]);
+    M.panel(-2.05, 1.05, -5.45, 0.20, 0.28, [0.15,0.15,0.18]);
+    M.panel(-2.05, 1.36, -5.45, 0.05, 0.04, [0.85,0.13,0.13], 1);
+
+    return {
+      mesh: M,
+      eye: [0, 1.42, -0.6], look: [0, 1.20, -4.8],
+      fog: [0.028, 0.028, 0.035], fogD: 0.115,
+      ambient: [0.15, 0.15, 0.18],
+      lights: [
+        { p: [0.2, 2.5, -2.6], c: [0.85, 0.80, 0.70], r: 7.0, i: 0.85 },
+        { p: [1.15, 1.2, -3.2], c: [0.35, 0.42, 0.62], r: 3.4, i: 0.9 },
+        { p: [2.1, 2.05, -5.2], c: [0.9, 0.16, 0.16], r: 2.6, i: 0.8 }
+      ],
+      anchors: [[-0.15, 1.30, -3.3], [2.1, 2.05, -5.45], [-1.25, 0.90, -3.2], [0.45, 0.95, -3.1], [-1.25, 1.25, cz]]
+    };
+  },
+
+  /* ---------- פרק 2 · הכניסה ---------- */
+  function lobby3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 6.4, 3, 7.5, -5.2, [0.07,0.07,0.09], [0.055,0.055,0.065], [0.04,0.04,0.05]);
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {   // מרצפות
+      if ((i + j) % 2) continue;
+      const x = -3.2 + i * 0.8, z = -5.2 + j * 0.9;
+      M.quad([x,0.002,z + 0.9], [x + 0.8,0.002,z + 0.9], [x + 0.8,0.002,z], [x,0.002,z], [0.075,0.075,0.088]);
+    }
+
+    // דלת הכניסה עם זכוכית חלבית
+    M.panel(0, 0, -5.17, 1.6, 2.4, [0.085,0.085,0.11]);
+    M.panel(0, 0.75, -5.15, 1.25, 1.35, [0.22,0.24,0.30], 0.55);
+    // "האורח" מאחוריה — מתקרב לזכוכית בכל טעות
+    figure3d(M, 0, 0.92, -5.30 + cr * 0.10, {
+      scale: 1.0 + cr * 0.18, neck: 0.10 + cr * 0.16,
+      arms: gameState.monsterStep >= 2 ? 0.7 : 0, color: [0.055,0.055,0.075]
+    });
+
+    // לוח האורחים על הקיר האחורי
+    M.panel(1.85, 0.95, -5.14, 1.5, 1.25, [0.075,0.075,0.095]);
+    for (let i = 0; i < 6; i++) {
+      const y = 2.02 - i * 0.19;
+      M.panel(1.72, y, -5.12, 0.95, 0.035, [0.42,0.40,0.38]);
+      if (i < 5 || gameState.secretShown) M.panel(1.80, y + 0.015, -5.11, 1.20, 0.028, [0.55,0.12,0.12]);
+    }
+
+    // מתלה מעילים, קרוב לקיר האחורי
+    M.box(-2.0, 0, -4.8, 0.06, 1.9, 0.06, [0.10,0.10,0.12]);
+    M.box(-2.0, 1.9, -4.8, 0.7, 0.05, 0.05, [0.10,0.10,0.12]);
+    M.box(-2.0, 0.95, -4.7, 0.36, 0.95, 0.18, [0.055,0.055,0.075]);
+
+    // אינטרקום ושעון
+    M.panel(-1.15, 1.25, -5.14, 0.22, 0.34, [0.09,0.09,0.12]);
+    M.panel(-1.15, 1.48, -5.12, 0.05, 0.05, [0.24,0.75,0.36], 1);
+    M.panel(1.15, 2.15, -5.14, 0.42, 0.42, [0.10,0.10,0.13]);
+    M.panel(1.15, 2.33, -5.12, 0.15, 0.022, [0.55,0.53,0.50], 1);    // מחוג שעות
+    M.panel(1.18, 2.22, -5.12, 0.022, 0.19, [0.55,0.53,0.50], 1);    // מחוג דקות
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.3], look: [0, 1.30, -5.0],
+      fog: [0.025,0.025,0.032], fogD: 0.12,
+      ambient: [0.15,0.15,0.18],
+      lights: [
+        { p: [0, 1.6, -4.6], c: [0.55,0.60,0.78], r: 5.2, i: 0.85 },
+        { p: [1.6, 2.6, -4.2], c: [0.70,0.66,0.58], r: 5.0, i: 0.55 },
+        { p: [-1.15, 1.48, -5.0], c: [0.25,0.85,0.40], r: 1.6, i: 0.7 }
+      ],
+      anchors: [[1.85, 1.55, -5.10], [-2.0, 1.40, -4.7], [-1.15, 1.42, -5.10], [0, 1.35, -5.12], [1.15, 2.32, -5.10]]
+    };
+  },
+
+  /* ---------- פרק 3 · חדר העריכה ---------- */
+  function editroom3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 6, 3, 7.5, -5.2, [0.065,0.065,0.085], [0.05,0.05,0.058], [0.04,0.04,0.05]);
+
+    // שולחן עריכה
+    M.box(0, 0.75, -3.5, 4.0, 0.08, 1.2, [0.115,0.11,0.13]);
+    M.box(-1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
+    M.box(1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
+    M.box(0, 0.79, -3.15, 0.75, 0.03, 0.26, [0.13,0.13,0.16]);   // מקלדת
+    for (let i = 0; i < 5; i++) M.panel(-0.20 + i * 0.10, 0.823, -3.03, 0.055, 0.055, [0.42,0.41,0.39]);
+
+    // מסך שמאלי — ציר זמן
+    M.box(-0.95, 0.83, -3.85, 1.05, 0.66, 0.06, [0.10,0.10,0.12]);
+    M.panel(-0.95, 0.89, -3.80, 0.94, 0.54, [0.05,0.06,0.09], 1);
+    for (let i = 0; i < 5; i++) M.panel(-1.20 + i * 0.02, 1.28 - i * 0.09, -3.79, 0.30 + i * 0.10, 0.045, [0.55,0.53,0.51], 1);
+    M.panel(-0.75, 0.92, -3.79, 0.012, 0.48, [0.80,0.16,0.16], 1);
+
+    // מסך ימני — "הפֶּה"
+    M.box(0.95, 0.83, -3.85, 1.05, 0.66, 0.06, [0.10,0.10,0.12]);
+    M.panel(0.95, 0.89, -3.80, 0.94, 0.54, [0.04,0.04,0.06], 1);
+    const open = (Math.sin(t * 0.9) * 0.5 + 0.5) * (0.30 + cr * 0.68);
+    for (let i = 0; i < 22; i++) {
+      const u = i / 21, lip = Math.sin(u * Math.PI) * 0.22 * open;
+      const x = 0.52 + u * 0.86;
+      M.panel(x, 1.16 + lip - 0.006, -3.79, 0.044, 0.012, [0.72,0.70,0.68], 1);
+      M.panel(x, 1.16 - lip - 0.006, -3.79, 0.044, 0.012, [0.72,0.70,0.68], 1);
+      if (gameState.monsterStep >= 2 && i % 2 === 0 && lip > 0.03) {   // שיניים
+        M.panel(x, 1.16 + lip - 0.05, -3.785, 0.030, 0.045, [0.62,0.60,0.58], 1);
+        M.panel(x, 1.16 - lip + 0.005, -3.785, 0.030, 0.045, [0.62,0.60,0.58], 1);
+      }
+    }
+
+    // מדף קלטות על הקיר האחורי
+    M.panel(-1.85, 0.75, -5.16, 1.9, 1.6, [0.05,0.05,0.065]);
+    for (let r = 0; r < 4; r++) {
+      const y = 0.78 + r * 0.39;
+      M.panel(-1.85, y, -5.13, 1.86, 0.03, [0.11,0.11,0.13]);
+      for (let i = 0; i < 9; i++) {
+        if (r === 3 && i === 8 && !gameState.secretShown) continue;
+        M.box(-2.72 + i * 0.205, y + 0.03, -5.05, 0.14, 0.28, 0.16, [0.085,0.085,0.10]);
+      }
+    }
+
+    // פתק על הקיר האחורי
+    M.panel(2.0, 1.55, -5.17, 0.28, 0.36, [0.20,0.20,0.24]);
+    for (let i = 0; i < 3; i++) M.panel(2.0, 1.62 + i * 0.08, -5.16, 0.18 - i * 0.03, 0.02, [0.55,0.53,0.51]);
+
+    // כיסא
+    const spin = gameState.secretShown ? 0.5 : 0;
+    M.box(-0.2 + spin * 0.3, 0, -2.2, 0.5, 0.42, 0.5, [0.08,0.08,0.10]);
+    M.box(-0.2 + spin * 0.3, 0.42, -2.45 + spin * 0.5, 0.5, 0.5, 0.07, [0.08,0.08,0.10]);
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.2], look: [0, 1.25, -4.8],
+      fog: [0.022,0.022,0.030], fogD: 0.12,
+      ambient: [0.14,0.14,0.17],
+      lights: [
+        { p: [-0.95, 1.1, -3.4], c: [0.42,0.48,0.68], r: 3.6, i: 0.95 },
+        { p: [0.95, 1.1, -3.4], c: [0.45,0.45,0.55], r: 3.6, i: 0.9 },
+        { p: [0, 2.7, -2.4], c: [0.55,0.52,0.48], r: 5.0, i: 0.45 }
+      ],
+      anchors: [[-1.85, 1.55, -5.05], [2.0, 1.72, -5.13], [0.95, 1.15, -3.78], [-0.2, 0.95, -2.2], [0, 0.86, -3.05]]
+    };
+  },
+
+  /* ---------- פרק 4 · המסדרון ---------- */
+  function corridor3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 3.0, 2.8, 22, -20, [0.075,0.075,0.095], [0.055,0.055,0.065], [0.05,0.05,0.062]);
+
+    // דלתות משני הצדדים
+    for (let i = 0; i < 8; i++) {
+      const z = -3 - i * 2.3;
+      M.panelX(-1.47, 0, z, 0.95, 2.05, [0.115,0.115,0.145]);
+      M.panelX(1.47, 0, z, 0.95, 2.05, [0.105,0.105,0.135]);
+      M.panelX(-1.45, 0.95, z + 0.35, 0.07, 0.07, [0.45,0.43,0.41]);
+      M.panelX(1.45, 0.95, z - 0.35, 0.07, 0.07, [0.45,0.43,0.41]);
+    }
+    // מנורות תקרה
+    const lamps = [-3.5, -8.5, -13.5];
+    lamps.forEach((z, i) => {
+      const on = (i === 1 && !gameState.reduceMotion) ? (Math.sin(t * 7.3) > -0.75 ? 1 : 0.25) : 1;
+      M.quad([-0.35, 2.77, z - 0.5], [0.35, 2.77, z - 0.5], [0.35, 2.77, z + 0.5], [-0.35, 2.77, z + 0.5],
+        [0.85 * on, 0.83 * on, 0.78 * on], 1);
+    });
+
+    // הדלת בקצה, פתוחה מעט
+    M.panel(0, 0, -19.9, 1.3, 2.2, [0.09,0.09,0.115]);
+    M.panel(-0.45, 0, -19.85, 0.35 + cr * 0.25, 2.1, [0.006,0.006,0.01]);
+
+    // "הזוחל" — מתקרב דלת אחת בכל טעות
+    const cz = -17.5 + cr * 9.5;
+    const s = 1 + cr * 0.5;
+    M.box(0, 0.22 * s, cz, 1.05 * s, 0.42 * s, 1.5 * s, [0.012,0.012,0.018], { flat: true });
+    M.box(0, 0.12 * s, cz + 0.9 * s, 0.42 * s, 0.30 * s, 0.5 * s, [0.012,0.012,0.018], { flat: true });
+    for (let i = 0; i < 4; i++) {
+      const lz = cz - 0.5 * s + i * 0.42 * s;
+      const lift = Math.sin(t * 0.7 + i) * 0.10 * s;
+      [-1, 1].forEach(sd => {
+        M.box(sd * (0.62 + i * 0.05) * s, 0.30 * s + lift, lz, 0.10 * s, 0.62 * s, 0.10 * s, [0.012,0.012,0.018], { flat: true });
+        M.box(sd * (0.95 + i * 0.05) * s, 0.02, lz, 0.09 * s, 0.42 * s + lift, 0.09 * s, [0.012,0.012,0.018], { flat: true });
+      });
+    }
+    if (gameState.monsterStep >= 2) {
+      M.panel(-0.11 * s, 0.16 * s, cz + 1.16 * s, 0.06 * s, 0.045 * s, [0.85,0.13,0.13], 1);
+      M.panel(0.11 * s, 0.16 * s, cz + 1.16 * s, 0.06 * s, 0.045 * s, [0.85,0.13,0.13], 1);
+    }
+
+    // רמקול בתקרה ושלט יציאה
+    M.box(0, 2.45, -5.0, 0.5, 0.3, 0.3, [0.09,0.09,0.11]);
+    M.panelX(-1.46, 1.85, -5.2, 0.7, 0.26, [0.75,0.16,0.16], 1);
+    // מפסק תאורה
+    M.panelX(1.46, 1.15, -5.4, 0.18, 0.26, [0.14,0.14,0.17]);
+    // סימני גרירה על הרצפה
+    const marks = gameState.secretShown ? 3 : 2;
+    for (let i = 0; i < marks; i++) {
+      const x = -0.5 + i * 0.5;
+      M.quad([x, 0.004, -2], [x + 0.06, 0.004, -2], [x + 0.06, 0.004, -16], [x, 0.004, -16], [0.10,0.10,0.115]);
+    }
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.0], look: [0, 1.35, -12],
+      fog: [0.015,0.015,0.022], fogD: 0.085,
+      ambient: [0.12,0.12,0.15],
+      lights: [
+        { p: [0, 2.7, -3.5], c: [0.90,0.87,0.80], r: 8.0, i: 1.5 },
+        { p: [0, 2.7, -8.5], c: [0.85,0.83,0.77], r: 8.0, i: 1.2 },
+        { p: [0, 2.7, -13.5], c: [0.80,0.78,0.72], r: 7.5, i: 0.9 },
+        { p: [-1.4, 1.85, -5.2], c: [0.9,0.18,0.18], r: 2.4, i: 0.8 }
+      ],
+      anchors: [[0, 2.42, -5.0], [-1.40, 1.98, -5.2], [1.40, 1.28, -5.4], [0, 1.20, -19.7], [0, 0.06, -9]]
+    };
+  },
+
+  /* ---------- פרק 5 · היציאה ---------- */
+  function exitroom3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 5.4, 3, 7, -5.0, [0.075,0.075,0.098], [0.055,0.055,0.065], [0.045,0.045,0.055]);
+
+    // דלת היציאה
+    M.panel(0, 0, -4.96, 1.7, 2.5, [0.13,0.13,0.17]);
+    M.panel(0, 0, -4.94, 1.5, 2.4, [0.10,0.10,0.14]);
+    for (let i = 0; i < 8; i++) {   // מסמרות
+      M.panel(-0.68, 0.18 + i * 0.29, -4.92, 0.05, 0.05, [0.34,0.33,0.32]);
+      M.panel(0.68, 0.18 + i * 0.29, -4.92, 0.05, 0.05, [0.34,0.33,0.32]);
+    }
+    M.panel(0, 1.80, -4.925, 0.72, 0.42, [0.055,0.055,0.07]);   // לוחית המספר
+    number7(M, 0, 1.86, -4.92, 0.17, 0.30, gameState.secretShown ? "301" : "300", [0.62,0.60,0.57]);
+    M.panel(0, 1.05, -4.92, 0.52, 0.22, [0.05,0.06,0.09], 1);   // המסך הקטן
+    M.panel(0.16, 1.10, -4.90, 0.02, 0.11, [0.72,0.70,0.68], 1);
+
+    // המסגרת שבה הייתה מראה — ו"השני" עומד בתוכה
+    M.panel(-1.75, 0.15, -4.94, 1.35, 2.3, [0.10,0.10,0.13]);
+    M.panel(-1.75, 0.22, -4.92, 1.15, 2.1, [0.035,0.035,0.05], 0.18);
+    const lag = Math.sin(t * 0.45) * 0.10;
+    figure3d(M, -1.75 + lag, 0.95, -4.80, {
+      scale: 1.0 + cr * 0.12, neck: 0.12 + cr * 0.14,
+      arms: gameState.monsterStep >= 3 ? 0.9 : 0.1,
+      eyes: gameState.monsterStep >= 3, color: [0.02,0.02,0.03]
+    });
+
+    // רמקול ולוח הפעלה, על הקיר האחורי מימין
+    M.panel(1.75, 1.75, -4.94, 0.42, 0.32, [0.09,0.09,0.12]);
+    M.panel(1.75, 1.05, -4.94, 0.62, 0.38, [0.075,0.075,0.10]);
+    M.panel(1.55, 1.18, -4.92, 0.09, 0.09, [0.85,0.13,0.13], 1);
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.2], look: [-0.2, 1.30, -4.6],
+      fog: [0.02,0.02,0.028], fogD: 0.13,
+      ambient: [0.28,0.28,0.34],
+      lights: [
+        { p: [0, 2.6, -3.2], c: [0.72,0.70,0.68], r: 6.0, i: 0.9 },
+        { p: [0, 1.05, -4.6], c: [0.40,0.48,0.62], r: 2.8, i: 0.9 },
+        { p: [1.55, 1.18, -4.7], c: [0.9,0.16,0.16], r: 2.2, i: 0.7 }
+      ],
+      anchors: [[0, 1.95, -4.90], [0, 1.12, -4.88], [-1.75, 1.45, -4.90], [1.75, 1.88, -4.90], [1.75, 1.20, -4.90]]
+    };
+  }
+];
+
+/* ================================================================
+   מנוע ה-WebGL עצמו
+   ================================================================ */
+const Scene3D = {
+  ok: false, gl: null, prog: null, buf: null, count: 0, scene: null,
+  yaw: 0, pitch: 0, tYaw: 0, tPitch: 0, cv: null,
+
+  init(canvas) {
+    this.cv = canvas;
+    let gl = null;
+    try { gl = canvas.getContext("webgl", { antialias: true, alpha: false, depth: true }) ||
+               canvas.getContext("experimental-webgl", { antialias: true, alpha: false, depth: true }); }
+    catch (e) { gl = null; }
+    if (!gl) return false;
+    this.gl = gl;
+
+    const vs = `
+      attribute vec3 aPos; attribute vec3 aNorm; attribute vec3 aCol; attribute float aEmit;
+      uniform mat4 uProj, uView;
+      varying vec3 vPos, vNorm, vCol; varying float vEmit;
+      void main(){
+        vPos = aPos; vNorm = aNorm; vCol = aCol; vEmit = aEmit;
+        gl_Position = uProj * uView * vec4(aPos, 1.0);
+      }`;
+    const fs = `
+      precision mediump float;
+      varying vec3 vPos, vNorm, vCol; varying float vEmit;
+      uniform vec3 uLp[4], uLc[4]; uniform float uLr[4], uLi[4];
+      uniform vec3 uAmb, uFog, uEye; uniform float uFogD, uGain;
+      void main(){
+        vec3 n = normalize(vNorm);
+        vec3 alb = vCol * uGain;
+        vec3 lit = uAmb * alb;
+        for (int i = 0; i < 4; i++){
+          vec3 d = uLp[i] - vPos;
+          float dist = length(d);
+          float att = max(0.0, 1.0 - dist / uLr[i]);
+          att *= att * uLi[i];
+          float lam = max(0.0, dot(n, d / max(dist, 0.001)));
+          lit += alb * uLc[i] * (0.25 + 0.75 * lam) * att;
+        }
+        vec3 col = mix(lit, vCol, vEmit);
+        float dc = length(vPos - uEye) * uFogD;
+        col = mix(col, uFog, clamp(1.0 - exp(-dc * dc), 0.0, 1.0));
+        gl_FragColor = vec4(col, 1.0);
+      }`;
+    const mk = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+      return s;
+    };
+    const v = mk(gl.VERTEX_SHADER, vs), f = mk(gl.FRAGMENT_SHADER, fs);
+    if (!v || !f) return false;
+    const p = gl.createProgram();
+    gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return false;
+    this.prog = p;
+    gl.useProgram(p);
+    this.loc = {
+      aPos: gl.getAttribLocation(p, "aPos"), aNorm: gl.getAttribLocation(p, "aNorm"),
+      aCol: gl.getAttribLocation(p, "aCol"), aEmit: gl.getAttribLocation(p, "aEmit"),
+      uProj: gl.getUniformLocation(p, "uProj"), uView: gl.getUniformLocation(p, "uView"),
+      uLp: gl.getUniformLocation(p, "uLp"), uLc: gl.getUniformLocation(p, "uLc"),
+      uLr: gl.getUniformLocation(p, "uLr"), uLi: gl.getUniformLocation(p, "uLi"),
+      uAmb: gl.getUniformLocation(p, "uAmb"), uFog: gl.getUniformLocation(p, "uFog"),
+      uFogD: gl.getUniformLocation(p, "uFogD"), uEye: gl.getUniformLocation(p, "uEye"),
+      uGain: gl.getUniformLocation(p, "uGain")
+    };
+    this.buf = gl.createBuffer();
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    this.ok = true;
+    return true;
+  },
+
+  /* בונים מחדש את הסצנה רק כשמשהו במצב המשחק השתנה */
+  build(t) {
+    if (!this.ok) return;
+    const gl = this.gl;
+    const scene = SCENES[gameState.chapter](t);
+    this.scene = scene;
+    const data = new Float32Array(scene.mesh.v);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    this.count = data.length / 10;
+  },
+
+  camera(t, stable) {
+    const s = this.scene;
+    // המצלמה נושמת; אזורי החיפוש מחושבים בלי הנשימה, אחרת הם רועדים מתחת לאצבע
+    const bob = (stable || gameState.reduceMotion) ? 0 : Math.sin(t * 0.7) * 0.012;
+    const yaw = this.yaw, pitch = this.pitch;
+    const eye = [s.eye[0], s.eye[1] + bob, s.eye[2]];
+    const dir = norm3(sub3(s.look, s.eye));
+    const cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const rd = [dir[0] * cy - dir[2] * sy, dir[1] + pitch, dir[0] * sy + dir[2] * cy];
+    return { eye, tgt: [eye[0] + rd[0] * 4, eye[1] + rd[1] * 4, eye[2] + rd[2] * 4] };
+  },
+
+  draw(t) {
+    if (!this.ok || !this.scene) return;
+    const gl = this.gl, W = this.cv.width, H = this.cv.height;
+    if (!W || !H) return;
+    // ריכוך תנועת המבט
+    this.yaw += (this.tYaw - this.yaw) * 0.08;
+    this.pitch += (this.tPitch - this.pitch) * 0.08;
+
+    gl.viewport(0, 0, W, H);
+    const s = this.scene;
+    gl.clearColor(s.fog[0], s.fog[1], s.fog[2], 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(this.prog);
+
+    const cam = this.camera(t);
+    const proj = M4.persp(1.16, W / H, 0.05, 60);
+    const view = M4.lookAt(cam.eye, cam.tgt, [0, 1, 0]);
+    this.mvp = { proj, view, eye: cam.eye };
+    const st = this.camera(t, true);
+    this.mvpStable = { proj, view: M4.lookAt(st.eye, st.tgt, [0, 1, 0]) };
+
+    const lp = [], lc = [], lr = [], li = [];
+    for (let i = 0; i < 4; i++) {
+      const L = s.lights[i];
+      lp.push(L ? L.p[0] : 0, L ? L.p[1] : 0, L ? L.p[2] : 0);
+      lc.push(L ? L.c[0] : 0, L ? L.c[1] : 0, L ? L.c[2] : 0);
+      lr.push(L ? L.r : 1); li.push(L ? L.i : 0);
+    }
+    gl.uniformMatrix4fv(this.loc.uProj, false, new Float32Array(proj));
+    gl.uniformMatrix4fv(this.loc.uView, false, new Float32Array(view));
+    gl.uniform3fv(this.loc.uLp, new Float32Array(lp));
+    gl.uniform3fv(this.loc.uLc, new Float32Array(lc));
+    gl.uniform1fv(this.loc.uLr, new Float32Array(lr));
+    gl.uniform1fv(this.loc.uLi, new Float32Array(li));
+    // ההחשכה של הלילה מורידה את התאורה הסביבתית
+    const k = Math.max(0.4, 1 - (gameState.dark + gameState.loopDark * 1.5) * 0.06);
+    gl.uniform3fv(this.loc.uAmb, new Float32Array([s.ambient[0] * k, s.ambient[1] * k, s.ambient[2] * k]));
+    gl.uniform1f(this.loc.uGain, 2.9);
+    gl.uniform3fv(this.loc.uFog, new Float32Array(s.fog));
+    gl.uniform1f(this.loc.uFogD, s.fogD);
+    gl.uniform3fv(this.loc.uEye, new Float32Array(cam.eye));
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    const stride = 10 * 4;
+    gl.enableVertexAttribArray(this.loc.aPos);
+    gl.vertexAttribPointer(this.loc.aPos, 3, gl.FLOAT, false, stride, 0);
+    gl.enableVertexAttribArray(this.loc.aNorm);
+    gl.vertexAttribPointer(this.loc.aNorm, 3, gl.FLOAT, false, stride, 12);
+    gl.enableVertexAttribArray(this.loc.aCol);
+    gl.vertexAttribPointer(this.loc.aCol, 3, gl.FLOAT, false, stride, 24);
+    gl.enableVertexAttribArray(this.loc.aEmit);
+    gl.vertexAttribPointer(this.loc.aEmit, 1, gl.FLOAT, false, stride, 36);
+    gl.drawArrays(gl.TRIANGLES, 0, this.count);
+  },
+
+  /* הטלת נקודה תלת-ממדית לאחוזי מסך — כך אזורי החיפוש נשארים על החפצים */
+  project(p) {
+    if (!this.mvpStable) return null;
+    const { proj, view } = this.mvpStable;
+    const t = [
+      view[0]*p[0] + view[4]*p[1] + view[8]*p[2] + view[12],
+      view[1]*p[0] + view[5]*p[1] + view[9]*p[2] + view[13],
+      view[2]*p[0] + view[6]*p[1] + view[10]*p[2] + view[14],
+      view[3]*p[0] + view[7]*p[1] + view[11]*p[2] + view[15]
+    ];
+    const c = [
+      proj[0]*t[0] + proj[4]*t[1] + proj[8]*t[2] + proj[12]*t[3],
+      proj[1]*t[0] + proj[5]*t[1] + proj[9]*t[2] + proj[13]*t[3],
+      proj[2]*t[0] + proj[6]*t[1] + proj[10]*t[2] + proj[14]*t[3],
+      proj[3]*t[0] + proj[7]*t[1] + proj[11]*t[2] + proj[15]*t[3]
+    ];
+    if (c[3] <= 0.01) return null;
+    return { x: (c[0] / c[3] * 0.5 + 0.5) * 100, y: (0.5 - c[1] / c[3] * 0.5) * 100 };
+  },
+
+  /* תנועת מבט מוגבלת — מספיק כדי להרגיש נפח, בלי לאבד את החפצים */
+  look(nx, ny) {
+    this.tYaw = Math.max(-0.22, Math.min(0.22, nx * 0.22));
+    this.tPitch = Math.max(-0.12, Math.min(0.12, -ny * 0.12));
+  }
+};
+
 /* ================================================================
    7. UI — מסכים, אזורי חיפוש, אינוונטר, ארכיון ומודאל
    ================================================================ */
@@ -1734,6 +2378,25 @@ function say(lines, tone) {
 }
 
 /* ---- אזורי חיפוש בחדר ---- */
+/* בתלת-ממד כל אזור חיפוש נצמד לנקודה בחדר ונע יחד עם המבט */
+function placeHotspots3D() {
+  const sc = Scene3D.scene;
+  if (!sc || !sc.anchors) return;
+  const nodes = el("hotspots").children;
+  for (let i = 0; i < nodes.length; i++) {
+    const a = sc.anchors[i];
+    const b = nodes[i];
+    const pt = a ? Scene3D.project(a) : null;
+    if (!pt || pt.x < -20 || pt.x > 120 || pt.y < -20 || pt.y > 120) { b.style.visibility = "hidden"; continue; }
+    b.style.visibility = "visible";
+    const nx = (Math.round((pt.x - 6) * 4) / 4) + "%", ny = (Math.round((pt.y - 8) * 4) / 4) + "%";
+    if (b.style.left !== nx) b.style.left = nx;
+    if (b.style.top !== ny) b.style.top = ny;
+    b.style.width = "12%";
+    b.style.height = "16%";
+  }
+}
+
 function renderHotspots() {
   const wrap = el("hotspots");
   clear(wrap);
@@ -2391,6 +3054,15 @@ function boot() {
   // כל מחווה של המשתמש מחזירה את האודיו אם הדפדפן השהה אותו
   ["pointerdown", "keydown"].forEach(ev =>
     document.addEventListener(ev, () => Audio_.resume(), { passive: true }));
+
+  // תזוזת מבט קלה עם העכבר — מספיק כדי להרגיש שהחדר עמוק
+  const roomEl = el("room");
+  roomEl.addEventListener("pointermove", (e) => {
+    if (Room.mode !== "3d") return;
+    const r = roomEl.getBoundingClientRect();
+    Scene3D.look((e.clientX - r.left) / r.width * 2 - 1, (e.clientY - r.top) / r.height * 2 - 1);
+  });
+  roomEl.addEventListener("pointerleave", () => Scene3D.look(0, 0));
 
   window.addEventListener("resize", () => {
     FX.resize(); Room.resize();
