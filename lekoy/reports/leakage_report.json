@@ -1,0 +1,16 @@
+{
+  "threshold": 0.6,
+  "evaluation_documents": 7019,
+  "leaks": [
+    {
+      "train_key": 1278,
+      "eval_key": 2502,
+      "jaccard": 0.641,
+      "train_preview": "A train travels 270 miles in 3 hours. At the same rate, how many additional hours would it take to travel an additional 180 miles?\n\nThe rate is 270/3=90 mph.\nTh",
+      "eval_preview": "A plane travels 1200 miles in 3 hours. At the same rate, how many additional hours would it take to travel an additional 2000 miles?\n\nThe rate is 1200/3=400 mph",
+      "train_source": "gsm8k",
+      "eval_source": "gsm8k_test"
+    }
+  ],
+  "total_leaks": 1
+}

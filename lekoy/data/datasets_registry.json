@@ -1,0 +1,1389 @@
+{
+  "family": "LEKOY",
+  "model": "RV5",
+  "updated_at": "2026-08-30T14:52:53+00:00",
+  "summary": {
+    "sources_included": 19,
+    "sources_rejected": 1,
+    "documents": 320862,
+    "samples": 338076,
+    "approx_tokens": 0,
+    "by_language": {
+      "hebrew": {
+        "documents": 131900,
+        "samples": 131900,
+        "approx_tokens": 0
+      },
+      "english": {
+        "documents": 34633,
+        "samples": 51847,
+        "approx_tokens": 0
+      },
+      "spanish": {
+        "documents": 25754,
+        "samples": 25754,
+        "approx_tokens": 0
+      },
+      "multi": {
+        "documents": 128575,
+        "samples": 128575,
+        "approx_tokens": 0
+      }
+    },
+    "by_category": {
+      "pretrain": {
+        "documents": 142000,
+        "samples": 142000,
+        "approx_tokens": 0
+      },
+      "instruction": {
+        "documents": 164370,
+        "samples": 181584,
+        "approx_tokens": 0
+      },
+      "reasoning": {
+        "documents": 7473,
+        "samples": 7473,
+        "approx_tokens": 0
+      },
+      "evaluation": {
+        "documents": 7019,
+        "samples": 7019,
+        "approx_tokens": 0
+      }
+    },
+    "licences": [
+      "apache-2.0",
+      "cc-by-sa-3.0",
+      "cc-by-sa-4.0",
+      "cc0-1.0",
+      "mit",
+      "odc-by"
+    ]
+  },
+  "datasets": {
+    "hplt2_hebrew": {
+      "name": "hplt2_hebrew",
+      "dataset": "HPLT/HPLT2.0_cleaned",
+      "config": "heb_Hebr",
+      "split": "train",
+      "language": "hebrew",
+      "licence": "cc0-1.0",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/hplt2_hebrew.jsonl",
+      "file_size_bytes": 214723235,
+      "num_documents": 40000,
+      "num_samples": 40000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9391,
+      "sha256": "f31b573477483be08a141b57ec9ef0aa37e3a52de0bfff3d7c1dcc2053b1485b",
+      "notes": "Cleaned CommonCrawl/Internet Archive Hebrew. CC0, so no attribution or share-alike obligation attaches to the weights. Rows carry per-document quality signals (prob, doc_scores, pii) which the filter stage reads before its own scoring.",
+      "fetched_at": "2026-08-30T12:15:11+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:16:59+00:00",
+          "seen": 40000,
+          "kept": 40000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "email": 665,
+            "phone": 1361,
+            "ip_address": 21,
+            "credit_card": 77,
+            "iban": 2,
+            "israeli_id": 15
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:32:40+00:00",
+          "seen": 40000,
+          "kept": 39957,
+          "dropped": 43,
+          "kept_fraction": 0.9989,
+          "reasons": {
+            "detected other:arabic, source claims hebrew": 7,
+            "repetitive: 46% of 10-grams are duplicates": 3,
+            "repetitive: 45% of 10-grams are duplicates": 3,
+            "repetitive: 36% of 10-grams are duplicates": 2,
+            "repetitive: 40% of 10-grams are duplicates": 2,
+            "repetitive: 47% of 10-grams are duplicates": 2,
+            "repetitive: 49% of 10-grams are duplicates": 2,
+            "repetitive: 48% of 10-grams are duplicates": 2,
+            "repetitive: 42% of 10-grams are duplicates": 2,
+            "repetitive: 37% of 10-grams are duplicates": 1,
+            "repetitive: 39% of 10-grams are duplicates": 1,
+            "detected other:kana, source claims hebrew": 1,
+            "repetitive: 44% of 10-grams are duplicates": 1,
+            "repetitive: 38% of 10-grams are duplicates": 1,
+            "shorter than 200 characters": 1,
+            "repetitive: 35% of 10-grams are duplicates": 1,
+            "repetitive: 54% of 10-grams are duplicates": 1,
+            "repetitive: 41% of 10-grams are duplicates": 1,
+            "repetitive: 52% of 10-grams are duplicates": 1,
+            "repetitive: 57% of 10-grams are duplicates": 1,
+            "repetitive: 79% of 10-grams are duplicates": 1,
+            "repetitive: 58% of 10-grams are duplicates": 1,
+            "repetitive: 69% of 10-grams are duplicates": 1,
+            "repetitive: 87% of 10-grams are duplicates": 1,
+            "repetitive: 82% of 10-grams are duplicates": 1,
+            "repetitive: 89% of 10-grams are duplicates": 1,
+            "repetitive: 43% of 10-grams are duplicates": 1
+          },
+          "detected_languages": {
+            "he": 38509,
+            "mixed": 1483,
+            "other": 8
+          },
+          "mean_quality_score": 0.9391
+        },
+        "dedup": {
+          "at": "2026-08-30T14:20:06+00:00",
+          "seen": 39957,
+          "kept": 39634,
+          "dropped": 323,
+          "kept_fraction": 0.9919,
+          "reasons": {
+            "near duplicate": 323,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "fineweb2_hebrew": {
+      "name": "fineweb2_hebrew",
+      "dataset": "HuggingFaceFW/fineweb-2",
+      "config": "heb_Hebr",
+      "split": "train",
+      "language": "hebrew",
+      "licence": "odc-by",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/fineweb2_hebrew.jsonl",
+      "file_size_bytes": 230110192,
+      "num_documents": 40000,
+      "num_samples": 40000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.947,
+      "sha256": "bd21f856fcaad185771e23e2dace68ec5b23a288a8f62204727fcbf62bfd85ca",
+      "notes": "FineWeb-2 Hebrew. Carries language_score, which the filter uses as a prior alongside our own detector rather than instead of it.",
+      "fetched_at": "2026-08-30T12:12:26+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:14:48+00:00",
+          "seen": 40000,
+          "kept": 39994,
+          "dropped": 6,
+          "kept_fraction": 0.9999,
+          "reasons": {
+            "empty after cleaning": 6
+          },
+          "pii_redacted": {
+            "phone": 2556,
+            "email": 1336,
+            "ip_address": 61,
+            "israeli_id": 87,
+            "credit_card": 8
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:30:27+00:00",
+          "seen": 39994,
+          "kept": 39981,
+          "dropped": 13,
+          "kept_fraction": 0.9997,
+          "reasons": {
+            "detected other:arabic, source claims hebrew": 7,
+            "detected other:cyrillic, source claims hebrew": 4,
+            "shorter than 200 characters": 2
+          },
+          "detected_languages": {
+            "he": 38811,
+            "mixed": 1172,
+            "other": 11
+          },
+          "mean_quality_score": 0.947
+        },
+        "dedup": {
+          "at": "2026-08-30T14:10:44+00:00",
+          "seen": 39981,
+          "kept": 39934,
+          "dropped": 47,
+          "kept_fraction": 0.9988,
+          "reasons": {
+            "near duplicate": 47,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "wikipedia_hebrew": {
+      "name": "wikipedia_hebrew",
+      "dataset": "wikimedia/wikipedia",
+      "config": "20231101.he",
+      "split": "train",
+      "language": "hebrew",
+      "licence": "cc-by-sa-3.0",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/wikipedia_hebrew.jsonl",
+      "file_size_bytes": 336635416,
+      "num_documents": 30000,
+      "num_samples": 30000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9508,
+      "sha256": "d2d70fe7adcd822515a40eb58d1f05e8cc8d5358d6fb657488caa41da1111741",
+      "notes": "Hebrew Wikipedia. Formal, edited, encyclopaedic register — the counterweight to web text, and the source of most of the scientific and historical Hebrew vocabulary in the corpus. CC BY-SA: attribution is recorded in MODEL_CARD.md.",
+      "fetched_at": "2026-08-30T12:12:56+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:20:24+00:00",
+          "seen": 30000,
+          "kept": 30000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "credit_card": 16,
+            "ip_address": 45,
+            "email": 9,
+            "israeli_id": 3,
+            "phone": 14
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:36:04+00:00",
+          "seen": 30000,
+          "kept": 29993,
+          "dropped": 7,
+          "kept_fraction": 0.9998,
+          "reasons": {
+            "detected other:cyrillic, source claims hebrew": 3,
+            "3 spam marker(s)": 1,
+            "repetitive: 68% of 10-grams are duplicates": 1,
+            "7 spam marker(s)": 1,
+            "shorter than 200 characters": 1
+          },
+          "detected_languages": {
+            "he": 29196,
+            "mixed": 801,
+            "other": 3
+          },
+          "mean_quality_score": 0.9508
+        },
+        "dedup": {
+          "at": "2026-08-30T14:34:13+00:00",
+          "seen": 29993,
+          "kept": 29991,
+          "dropped": 2,
+          "kept_fraction": 0.9999,
+          "reasons": {
+            "near duplicate": 2,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "wikipedia_english": {
+      "name": "wikipedia_english",
+      "dataset": "wikimedia/wikipedia",
+      "config": "20231101.en",
+      "split": "train",
+      "language": "english",
+      "licence": "cc-by-sa-3.0",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/wikipedia_english.jsonl",
+      "file_size_bytes": 106529277,
+      "num_documents": 12000,
+      "num_samples": 12000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9496,
+      "sha256": "0ad7bcebc41e516b77c8992b2f5e9877e06c0bfb28d7006634c9c92c9dd21695",
+      "notes": "English replay data. Present to hold English steady during Hebrew-heavy continued pretraining, not to teach English.",
+      "fetched_at": "2026-08-30T12:13:05+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:12:30+00:00",
+          "seen": 12000,
+          "kept": 12000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "ip_address": 17,
+            "phone": 22,
+            "israeli_id": 1,
+            "email": 11,
+            "credit_card": 19,
+            "iban": 1
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:28:07+00:00",
+          "seen": 12000,
+          "kept": 11945,
+          "dropped": 55,
+          "kept_fraction": 0.9954,
+          "reasons": {
+            "detected es, source claims english": 49,
+            "detected other:cyrillic, source claims english": 3,
+            "shorter than 200 characters": 2,
+            "detected other:arabic, source claims english": 1
+          },
+          "detected_languages": {
+            "en": 11947,
+            "es": 49,
+            "other": 4
+          },
+          "mean_quality_score": 0.9496
+        },
+        "dedup": {
+          "at": "2026-08-30T14:00:50+00:00",
+          "seen": 11945,
+          "kept": 11908,
+          "dropped": 37,
+          "kept_fraction": 0.9969,
+          "reasons": {
+            "near duplicate": 37,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "wikipedia_spanish": {
+      "name": "wikipedia_spanish",
+      "dataset": "wikimedia/wikipedia",
+      "config": "20231101.es",
+      "split": "train",
+      "language": "spanish",
+      "licence": "cc-by-sa-3.0",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/spanish/wikipedia_spanish.jsonl",
+      "file_size_bytes": 178833700,
+      "num_documents": 12000,
+      "num_samples": 12000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9473,
+      "sha256": "4bf34c13a9d7ddd67cbb460022a17f0407720f2f7b578866e7ca9b7cbdb43bfb",
+      "notes": "Spanish replay data, same role as the English shard.",
+      "fetched_at": "2026-08-30T12:13:40+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:24:49+00:00",
+          "seen": 12000,
+          "kept": 12000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "phone": 120,
+            "ip_address": 153,
+            "credit_card": 190,
+            "israeli_id": 11,
+            "email": 13
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:41:45+00:00",
+          "seen": 12000,
+          "kept": 11993,
+          "dropped": 7,
+          "kept_fraction": 0.9994,
+          "reasons": {
+            "shorter than 200 characters": 4,
+            "detected en, source claims spanish": 2,
+            "detected other:cjk, source claims spanish": 1
+          },
+          "detected_languages": {
+            "es": 11997,
+            "en": 2,
+            "other": 1
+          },
+          "mean_quality_score": 0.9473
+        },
+        "dedup": {
+          "at": "2026-08-30T14:52:53+00:00",
+          "seen": 11993,
+          "kept": 11989,
+          "dropped": 4,
+          "kept_fraction": 0.9997,
+          "reasons": {
+            "near duplicate": 4,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "hplt2_spanish": {
+      "name": "hplt2_spanish",
+      "dataset": "HPLT/HPLT2.0_cleaned",
+      "config": "spa_Latn",
+      "split": "train",
+      "language": "spanish",
+      "licence": "cc0-1.0",
+      "category": "pretrain",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/spanish/hplt2_spanish.jsonl",
+      "file_size_bytes": 29957723,
+      "num_documents": 8000,
+      "num_samples": 8000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9377,
+      "sha256": "572259a75d9c20ba3308af506e7a5e3140cc61aaffed129e862f94ad2032bce6",
+      "notes": "Spanish web text, both peninsular and Latin American, which is what keeps RV5 able to hold a dialect rather than averaging one.",
+      "fetched_at": "2026-08-30T12:15:13+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:22:06+00:00",
+          "seen": 8000,
+          "kept": 7989,
+          "dropped": 11,
+          "kept_fraction": 0.9986,
+          "reasons": {
+            "empty after cleaning": 11
+          },
+          "pii_redacted": {
+            "email": 332,
+            "phone": 79,
+            "credit_card": 9,
+            "ip_address": 37,
+            "israeli_id": 7
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:38:19+00:00",
+          "seen": 7989,
+          "kept": 7979,
+          "dropped": 10,
+          "kept_fraction": 0.9987,
+          "reasons": {
+            "repetitive: 49% of 10-grams are duplicates": 4,
+            "repetitive: 48% of 10-grams are duplicates": 1,
+            "repetitive: 53% of 10-grams are duplicates": 1,
+            "repetitive: 82% of 10-grams are duplicates": 1,
+            "detected other:kana, source claims spanish": 1,
+            "repetitive: 42% of 10-grams are duplicates": 1,
+            "repetitive: 46% of 10-grams are duplicates": 1
+          },
+          "detected_languages": {
+            "es": 7988,
+            "other": 1
+          },
+          "mean_quality_score": 0.9377
+        },
+        "dedup": {
+          "at": "2026-08-30T14:40:54+00:00",
+          "seen": 7979,
+          "kept": 7979,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {
+            "exact duplicate": 0,
+            "normalised duplicate": 0,
+            "near duplicate": 0
+          }
+        }
+      }
+    },
+    "xp3x_hebrew": {
+      "name": "xp3x_hebrew",
+      "dataset": "CohereLabs/xP3x",
+      "config": "heb_Hebr",
+      "split": "train",
+      "language": "hebrew",
+      "licence": "apache-2.0",
+      "category": "instruction",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/xp3x_hebrew.jsonl",
+      "file_size_bytes": 12953141,
+      "num_documents": 20000,
+      "num_samples": 20000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9028,
+      "sha256": "cf703fc08b3487062559e66c34387453174007a0cd512f97fe818442e48dee41",
+      "notes": "xP3x rows whose target side is Hebrew. Cross-lingual by design, so the prompt is often in another language — the language detector sorts them at the clean stage and the mixed-language pairs are kept deliberately as code-switching data.",
+      "fetched_at": "2026-08-30T12:14:01+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:20:28+00:00",
+          "seen": 20000,
+          "kept": 20000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:36:09+00:00",
+          "seen": 20000,
+          "kept": 20000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {
+            "mixed": 14888,
+            "other": 4998,
+            "en": 103,
+            "es": 11
+          },
+          "mean_quality_score": 0.9028
+        },
+        "dedup": {
+          "at": "2026-08-30T14:34:29+00:00",
+          "seen": 20000,
+          "kept": 19929,
+          "dropped": 71,
+          "kept_fraction": 0.9964,
+          "reasons": {
+            "near duplicate": 65,
+            "normalised duplicate": 6,
+            "exact duplicate": 0
+          }
+        }
+      }
+    },
+    "xp3x_spanish": {
+      "name": "xp3x_spanish",
+      "dataset": "CohereLabs/xP3x",
+      "config": "spa_Latn",
+      "split": "train",
+      "language": "spanish",
+      "licence": "apache-2.0",
+      "category": "instruction",
+      "status": "rejected",
+      "reason": "fetch failed: https://datasets-server.huggingface.co/rows failed after 4 attempts: HTTP 500: {\"error\":\"(ReadTimeoutError(\\\"HTTPSConnectionPool(host='huggingface.co', port=443): Read timed out. (read timeout=10)\\\"), '(Request ID: 9e4ef888-ff02-4265-8b91-ef1c50921829)')\"}",
+      "path": null,
+      "file_size_bytes": 0,
+      "num_documents": 0,
+      "num_samples": 0,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": null,
+      "sha256": null,
+      "notes": "Same, Spanish side. The hub's parquet conversion of xP3x covers only some of its 277 configs and spa_Latn is not one of them, so this source is paged through the rows API instead — slower, but it is the difference between having Spanish instruction data and not having it.",
+      "fetched_at": "2026-08-30T12:16:04+00:00",
+      "stages": {}
+    },
+    "oasst2": {
+      "name": "oasst2",
+      "dataset": "OpenAssistant/oasst2",
+      "config": "default",
+      "split": "train",
+      "language": "multi",
+      "licence": "apache-2.0",
+      "category": "instruction",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/oasst2.jsonl",
+      "file_size_bytes": 120683254,
+      "num_documents": 128575,
+      "num_samples": 128575,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.893,
+      "sha256": "aee00dbd7143f97ec24c62c6e78ce3dedcf09c99e5eef386d9eb9bef17a66276",
+      "notes": "Human-written assistant conversations, message-tree shaped. `build_oasst_conversations` reconstructs threads from parent_id and keeps the Hebrew, Spanish and English ones. Also the source of the preference pairs, via sibling `rank`.",
+      "fetched_at": "2026-08-30T12:14:38+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:21:37+00:00",
+          "seen": 128575,
+          "kept": 128124,
+          "dropped": 451,
+          "kept_fraction": 0.9965,
+          "reasons": {
+            "empty after cleaning": 451
+          },
+          "pii_redacted": {
+            "ip_address": 138,
+            "email": 111,
+            "phone": 43,
+            "credit_card": 55,
+            "israeli_id": 6,
+            "iban": 1,
+            "spanish_dni": 2
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:37:42+00:00",
+          "seen": 128124,
+          "kept": 117917,
+          "dropped": 10207,
+          "kept_fraction": 0.9203,
+          "reasons": {
+            "shorter than 24 characters": 9799,
+            "low language confidence (0.00)": 293,
+            "very low character entropy": 34,
+            "repetitive: 38% of 10-grams are duplicates": 4,
+            "repetitive: 37% of 10-grams are duplicates": 4,
+            "42% of lines are duplicates": 3,
+            "repetitive: 39% of 10-grams are duplicates": 3,
+            "low language confidence (0.32)": 3,
+            "repetitive: 46% of 10-grams are duplicates": 3,
+            "low language confidence (0.46)": 3,
+            "repetitive: 49% of 10-grams are duplicates": 3,
+            "repetitive: 44% of 10-grams are duplicates": 3,
+            "score 0.48": 2,
+            "repetitive: 96% of 10-grams are duplicates": 2,
+            "repetitive: 42% of 10-grams are duplicates": 2,
+            "repetitive: 45% of 10-grams are duplicates": 2,
+            "repetitive: 51% of 10-grams are duplicates": 2,
+            "repetitive: 98% of 10-grams are duplicates": 2,
+            "repetitive: 36% of 10-grams are duplicates": 2,
+            "repetitive: 81% of 10-grams are duplicates": 2,
+            "repetitive: 53% of 10-grams are duplicates": 2,
+            "repetitive: 62% of 10-grams are duplicates": 1,
+            "57% of lines are duplicates": 1,
+            "6 spam marker(s)": 1,
+            "repetitive: 35% of 10-grams are duplicates": 1,
+            "repetitive: 63% of 10-grams are duplicates": 1,
+            "repetitive: 83% of 10-grams are duplicates": 1,
+            "80% of lines are duplicates": 1,
+            "repetitive: 66% of 10-grams are duplicates": 1,
+            "repetitive: 85% of 10-grams are duplicates": 1,
+            "low language confidence (0.31)": 1,
+            "4 spam marker(s)": 1,
+            "low language confidence (0.37)": 1,
+            "repetitive: 40% of 10-grams are duplicates": 1,
+            "repetitive: 90% of 10-grams are duplicates": 1,
+            "score 0.46": 1,
+            "repetitive: 61% of 10-grams are duplicates": 1,
+            "64% of lines are duplicates": 1,
+            "5 spam marker(s)": 1,
+            "low language confidence (0.36)": 1,
+            "repetitive: 77% of 10-grams are duplicates": 1,
+            "repetitive: 79% of 10-grams are duplicates": 1,
+            "repetitive: 68% of 10-grams are duplicates": 1,
+            "repetitive: 64% of 10-grams are duplicates": 1,
+            "repetitive: 57% of 10-grams are duplicates": 1,
+            "48% of lines are duplicates": 1,
+            "repetitive: 92% of 10-grams are duplicates": 1,
+            "50% of lines are duplicates": 1,
+            "repetitive: 67% of 10-grams are duplicates": 1,
+            "repetitive: 71% of 10-grams are duplicates": 1,
+            "58% of lines are duplicates": 1,
+            "low language confidence (0.33)": 1,
+            "repetitive: 52% of 10-grams are duplicates": 1,
+            "low language confidence (0.43)": 1,
+            "low language confidence (0.25)": 1
+          },
+          "detected_languages": {
+            "en": 59410,
+            "es": 36554,
+            "other": 20166,
+            "unknown": 11954,
+            "he": 28,
+            "mixed": 12
+          },
+          "mean_quality_score": 0.893
+        },
+        "dedup": {
+          "at": "2026-08-30T14:38:50+00:00",
+          "seen": 117917,
+          "kept": 116759,
+          "dropped": 1158,
+          "kept_fraction": 0.9902,
+          "reasons": {
+            "near duplicate": 505,
+            "exact duplicate": 408,
+            "normalised duplicate": 245
+          }
+        }
+      }
+    },
+    "ultrachat_english": {
+      "name": "ultrachat_english",
+      "dataset": "HuggingFaceH4/ultrachat_200k",
+      "config": "default",
+      "split": "train_sft",
+      "language": "english",
+      "licence": "mit",
+      "category": "instruction",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/ultrachat_english.jsonl",
+      "file_size_bytes": 48386177,
+      "num_documents": 8000,
+      "num_samples": 25214,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9342,
+      "sha256": "092da330a6046f4d20fbdb836c47a580023befab725298150ab6c929099acc01",
+      "notes": "Multi-turn English instruction following. Replay data that keeps English chat quality from drifting during Hebrew SFT.",
+      "fetched_at": "2026-08-30T12:15:14+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:52+00:00",
+          "seen": 8000,
+          "kept": 8000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "email": 158,
+            "ip_address": 28,
+            "phone": 84,
+            "israeli_id": 1,
+            "credit_card": 9
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:26:06+00:00",
+          "seen": 8000,
+          "kept": 7808,
+          "dropped": 192,
+          "kept_fraction": 0.976,
+          "reasons": {
+            "detected es, source claims english": 18,
+            "repetitive: 42% of 10-grams are duplicates": 10,
+            "3 spam marker(s)": 9,
+            "repetitive: 40% of 10-grams are duplicates": 9,
+            "repetitive: 56% of 10-grams are duplicates": 8,
+            "repetitive: 37% of 10-grams are duplicates": 7,
+            "repetitive: 47% of 10-grams are duplicates": 7,
+            "repetitive: 49% of 10-grams are duplicates": 6,
+            "repetitive: 46% of 10-grams are duplicates": 6,
+            "repetitive: 51% of 10-grams are duplicates": 5,
+            "repetitive: 36% of 10-grams are duplicates": 5,
+            "repetitive: 38% of 10-grams are duplicates": 5,
+            "repetitive: 39% of 10-grams are duplicates": 5,
+            "repetitive: 58% of 10-grams are duplicates": 5,
+            "repetitive: 44% of 10-grams are duplicates": 5,
+            "repetitive: 64% of 10-grams are duplicates": 5,
+            "repetitive: 50% of 10-grams are duplicates": 5,
+            "repetitive: 59% of 10-grams are duplicates": 4,
+            "repetitive: 55% of 10-grams are duplicates": 4,
+            "48% of lines are duplicates": 4,
+            "repetitive: 65% of 10-grams are duplicates": 4,
+            "repetitive: 61% of 10-grams are duplicates": 4,
+            "repetitive: 48% of 10-grams are duplicates": 3,
+            "repetitive: 43% of 10-grams are duplicates": 3,
+            "repetitive: 52% of 10-grams are duplicates": 3,
+            "repetitive: 57% of 10-grams are duplicates": 3,
+            "56% of lines are duplicates": 2,
+            "repetitive: 45% of 10-grams are duplicates": 2,
+            "repetitive: 62% of 10-grams are duplicates": 2,
+            "repetitive: 41% of 10-grams are duplicates": 2,
+            "repetitive: 66% of 10-grams are duplicates": 2,
+            "repetitive: 53% of 10-grams are duplicates": 2,
+            "detected other:arabic, source claims english": 2,
+            "repetitive: 60% of 10-grams are duplicates": 2,
+            "repetitive: 54% of 10-grams are duplicates": 2,
+            "repetitive: 35% of 10-grams are duplicates": 2,
+            "41% of lines are duplicates": 2,
+            "58% of lines are duplicates": 2,
+            "47% of lines are duplicates": 2,
+            "4 spam marker(s)": 1,
+            "repetitive: 68% of 10-grams are duplicates": 1,
+            "5 spam marker(s)": 1,
+            "53% of lines are duplicates": 1,
+            "66% of lines are duplicates": 1,
+            "9 spam marker(s)": 1,
+            "detected unknown, source claims english": 1,
+            "45% of lines are duplicates": 1,
+            "71% of lines are duplicates": 1,
+            "repetitive: 79% of 10-grams are duplicates": 1,
+            "57% of lines are duplicates": 1,
+            "65% of lines are duplicates": 1,
+            "59% of lines are duplicates": 1,
+            "63% of lines are duplicates": 1
+          },
+          "detected_languages": {
+            "en": 7979,
+            "es": 19,
+            "other": 2
+          },
+          "mean_quality_score": 0.9342
+        },
+        "dedup": {
+          "at": "2026-08-30T13:53:48+00:00",
+          "seen": 7808,
+          "kept": 7804,
+          "dropped": 4,
+          "kept_fraction": 0.9995,
+          "reasons": {
+            "near duplicate": 4,
+            "exact duplicate": 0,
+            "normalised duplicate": 0
+          }
+        }
+      }
+    },
+    "gsm8k": {
+      "name": "gsm8k",
+      "dataset": "openai/gsm8k",
+      "config": "main",
+      "split": "train",
+      "language": "english",
+      "licence": "mit",
+      "category": "reasoning",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/gsm8k.jsonl",
+      "file_size_bytes": 5208157,
+      "num_documents": 7473,
+      "num_samples": 7473,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.8876,
+      "sha256": "28576edeae19518d895ca3b630cb9e813ce463b73562c4e8242908b6fb5e6f69",
+      "notes": "Grade-school word problems with worked solutions. The <<..>> calculator annotations are stripped at the clean stage: RV5 should learn the reasoning, not the annotation format.",
+      "fetched_at": "2026-08-30T12:14:46+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:26+00:00",
+          "seen": 7473,
+          "kept": 7473,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:25:20+00:00",
+          "seen": 7473,
+          "kept": 7292,
+          "dropped": 181,
+          "kept_fraction": 0.9758,
+          "reasons": {
+            "detected unknown, source claims english": 173,
+            "detected es, source claims english": 3,
+            "repetitive: 65% of 10-grams are duplicates": 1,
+            "repetitive: 64% of 10-grams are duplicates": 1,
+            "repetitive: 67% of 10-grams are duplicates": 1,
+            "repetitive: 57% of 10-grams are duplicates": 1,
+            "repetitive: 44% of 10-grams are duplicates": 1
+          },
+          "detected_languages": {
+            "en": 7473
+          },
+          "mean_quality_score": 0.8876
+        },
+        "dedup": {
+          "at": "2026-08-30T13:50:43+00:00",
+          "seen": 7292,
+          "kept": 7292,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {
+            "exact duplicate": 0,
+            "normalised duplicate": 0,
+            "near duplicate": 0
+          }
+        }
+      }
+    },
+    "belebele_hebrew": {
+      "name": "belebele_hebrew",
+      "dataset": "facebook/belebele",
+      "config": "heb_Hebr",
+      "split": "test",
+      "language": "hebrew",
+      "licence": "cc-by-sa-4.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/belebele_hebrew.jsonl",
+      "file_size_bytes": 1102135,
+      "num_documents": 900,
+      "num_samples": 900,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9445,
+      "sha256": "9568a0b2310cbcbdb1e98a34e493a401b2c3e4a9297a0cd381d285f9dffd2fb5",
+      "notes": "Reading comprehension, 4-way multiple choice, parallel across 122 languages — so the Hebrew and Spanish scores are directly comparable to the English one on identical passages.",
+      "fetched_at": "2026-08-30T12:14:47+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:12:31+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:28:07+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.9445
+        },
+        "dedup": {
+          "at": "2026-08-30T14:00:50+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "belebele_english": {
+      "name": "belebele_english",
+      "dataset": "facebook/belebele",
+      "config": "eng_Latn",
+      "split": "test",
+      "language": "english",
+      "licence": "cc-by-sa-4.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/belebele_english.jsonl",
+      "file_size_bytes": 876908,
+      "num_documents": 900,
+      "num_samples": 900,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9439,
+      "sha256": "8b6ea9d7efca3e663be0c06384a01115fb7a48c0cac884ad8a670f6d06bd478f",
+      "notes": "English arm of the same parallel benchmark.",
+      "fetched_at": "2026-08-30T12:14:48+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:07+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:24:52+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.9439
+        },
+        "dedup": {
+          "at": "2026-08-30T13:48:40+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "belebele_spanish": {
+      "name": "belebele_spanish",
+      "dataset": "facebook/belebele",
+      "config": "spa_Latn",
+      "split": "test",
+      "language": "spanish",
+      "licence": "cc-by-sa-4.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/spanish/belebele_spanish.jsonl",
+      "file_size_bytes": 985001,
+      "num_documents": 900,
+      "num_samples": 900,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9419,
+      "sha256": "8601180738dfef4b55ae33aaf11063e16629c83d878bb3ddfdb26956440a194f",
+      "notes": "Spanish arm of the same parallel benchmark.",
+      "fetched_at": "2026-08-30T12:14:49+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:21:39+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:37:44+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.9419
+        },
+        "dedup": {
+          "at": "2026-08-30T14:38:56+00:00",
+          "seen": 900,
+          "kept": 900,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "global_mmlu_hebrew": {
+      "name": "global_mmlu_hebrew",
+      "dataset": "CohereLabs/Global-MMLU",
+      "config": "he",
+      "split": "test",
+      "language": "hebrew",
+      "licence": "apache-2.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/hebrew/global_mmlu_hebrew.jsonl",
+      "file_size_bytes": 611374,
+      "num_documents": 1000,
+      "num_samples": 1000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.7848,
+      "sha256": "7b7cc0e9c334aaf4880d612212233316d6d5b7a3e4aa965c1d2d25d0bba58a38",
+      "notes": "MMLU professionally translated into Hebrew, with the culturally sensitive items labelled. Measures knowledge in Hebrew rather than Hebrew fluency, which is a different axis and moves differently under training.",
+      "fetched_at": "2026-08-30T12:14:51+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:14:48+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:30:27+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.7848
+        },
+        "dedup": {
+          "at": "2026-08-30T14:10:44+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "global_mmlu_spanish": {
+      "name": "global_mmlu_spanish",
+      "dataset": "CohereLabs/Global-MMLU",
+      "config": "es",
+      "split": "test",
+      "language": "spanish",
+      "licence": "apache-2.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/spanish/global_mmlu_spanish.jsonl",
+      "file_size_bytes": 571424,
+      "num_documents": 1000,
+      "num_samples": 1000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.8566,
+      "sha256": "ab8cdde99315b2bb77010b8ff94a289b1ec2e16104db7395251ff428cef92a73",
+      "notes": "Spanish arm of Global-MMLU.",
+      "fetched_at": "2026-08-30T12:14:51+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:21:39+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:37:44+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.8566
+        },
+        "dedup": {
+          "at": "2026-08-30T14:38:56+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "global_mmlu_english": {
+      "name": "global_mmlu_english",
+      "dataset": "CohereLabs/Global-MMLU",
+      "config": "en",
+      "split": "test",
+      "language": "english",
+      "licence": "apache-2.0",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/global_mmlu_english.jsonl",
+      "file_size_bytes": 531321,
+      "num_documents": 1000,
+      "num_samples": 1000,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.8269,
+      "sha256": "0c965ded8cc6217f809cab97cde28ab861320588c723a044ca98b3d326dbe895",
+      "notes": "English arm of Global-MMLU, the reference point for the Hebrew and Spanish regressions.",
+      "fetched_at": "2026-08-30T12:14:52+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:24+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:25:17+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.8269
+        },
+        "dedup": {
+          "at": "2026-08-30T13:50:28+00:00",
+          "seen": 1000,
+          "kept": 1000,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "gsm8k_test": {
+      "name": "gsm8k_test",
+      "dataset": "openai/gsm8k",
+      "config": "main",
+      "split": "test",
+      "language": "english",
+      "licence": "mit",
+      "category": "evaluation",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/gsm8k_test.jsonl",
+      "file_size_bytes": 941507,
+      "num_documents": 1319,
+      "num_samples": 1319,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.8699,
+      "sha256": "f77c2deee3b7031db9772f319afa7aafbffdbed91addf0899eb55199f018a1a0",
+      "notes": "GSM8K test split, held out from the training split above.",
+      "fetched_at": "2026-08-30T12:14:53+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:27+00:00",
+          "seen": 1319,
+          "kept": 1319,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {}
+        },
+        "filter": {
+          "at": "2026-08-30T13:25:20+00:00",
+          "seen": 1319,
+          "kept": 1319,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "detected_languages": {},
+          "mean_quality_score": 0.8699
+        },
+        "dedup": {
+          "at": "2026-08-30T13:50:43+00:00",
+          "seen": 1319,
+          "kept": 1319,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "skipped": "evaluation set: repeated passages are part of the benchmark's design"
+        }
+      }
+    },
+    "aya_spanish": {
+      "name": "aya_spanish",
+      "dataset": "CohereLabs/aya_dataset",
+      "config": "default",
+      "split": "train",
+      "language": "spanish",
+      "licence": "apache-2.0",
+      "category": "instruction",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/spanish/aya_spanish.jsonl",
+      "file_size_bytes": 2830539,
+      "num_documents": 3854,
+      "num_samples": 3854,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.8629,
+      "sha256": "dff6742cc308e371efd759a9976ebe42785012156102b5e08cffc5a1c2bec041",
+      "notes": "Human-written, natively Spanish instruction pairs — not translated from English, which is the property that matters here. 3,854 rows is what the shard actually holds. Stands in for xp3x_spanish, whose hub export is unavailable.",
+      "fetched_at": "2026-08-30T13:08:18+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:21:38+00:00",
+          "seen": 3854,
+          "kept": 3854,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "email": 1
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:37:44+00:00",
+          "seen": 3854,
+          "kept": 3817,
+          "dropped": 37,
+          "kept_fraction": 0.9904,
+          "reasons": {
+            "detected en, source claims spanish": 25,
+            "detected unknown, source claims spanish": 12
+          },
+          "detected_languages": {
+            "es": 3821,
+            "en": 22,
+            "unknown": 11
+          },
+          "mean_quality_score": 0.8629
+        },
+        "dedup": {
+          "at": "2026-08-30T14:38:56+00:00",
+          "seen": 3817,
+          "kept": 3614,
+          "dropped": 203,
+          "kept_fraction": 0.9468,
+          "reasons": {
+            "near duplicate": 178,
+            "normalised duplicate": 15,
+            "exact duplicate": 10
+          }
+        }
+      }
+    },
+    "aya_english": {
+      "name": "aya_english",
+      "dataset": "CohereLabs/aya_dataset",
+      "config": "default",
+      "split": "train",
+      "language": "english",
+      "licence": "apache-2.0",
+      "category": "instruction",
+      "status": "included",
+      "reason": null,
+      "path": "data/raw/english/aya_english.jsonl",
+      "file_size_bytes": 3494597,
+      "num_documents": 3941,
+      "num_samples": 3941,
+      "approx_tokens": null,
+      "tokenizer": null,
+      "quality_score": 0.9037,
+      "sha256": "b16b6ead9c729e7744d076352c835c25c7254e7aa941c06188aa378c85fc3285",
+      "notes": "English arm of the same human-annotated set, used as replay data so the English register does not drift toward the synthetic style of UltraChat alone.",
+      "fetched_at": "2026-08-30T13:08:23+00:00",
+      "stages": {
+        "clean": {
+          "at": "2026-08-30T13:10:07+00:00",
+          "seen": 3941,
+          "kept": 3941,
+          "dropped": 0,
+          "kept_fraction": 1.0,
+          "reasons": {},
+          "pii_redacted": {
+            "email": 49
+          }
+        },
+        "filter": {
+          "at": "2026-08-30T13:24:52+00:00",
+          "seen": 3941,
+          "kept": 3825,
+          "dropped": 116,
+          "kept_fraction": 0.9706,
+          "reasons": {
+            "detected unknown, source claims english": 71,
+            "detected es, source claims english": 23,
+            "detected other:devanagari, source claims english": 13,
+            "detected other:cyrillic, source claims english": 6,
+            "detected other:other, source claims english": 1,
+            "detected other:tamil, source claims english": 1,
+            "detected other:arabic, source claims english": 1
+          },
+          "detected_languages": {
+            "en": 3803,
+            "unknown": 83,
+            "other": 33,
+            "es": 22
+          },
+          "mean_quality_score": 0.9037
+        },
+        "dedup": {
+          "at": "2026-08-30T13:48:40+00:00",
+          "seen": 3825,
+          "kept": 3348,
+          "dropped": 477,
+          "kept_fraction": 0.8753,
+          "reasons": {
+            "near duplicate": 364,
+            "exact duplicate": 71,
+            "normalised duplicate": 42
+          }
+        }
+      }
+    }
+  }
+}

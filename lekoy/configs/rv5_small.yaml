@@ -1,0 +1,126 @@
+# LEKOY RV5 Small — the default configuration.
+#
+# Base: Qwen/Qwen2.5-0.5B-Instruct (Apache-2.0), selected in
+# docs/base_model_selection.md. This is the only RV5 size that trains to
+# completion on the hardware in reports/system_report.md — 4 CPU cores, 15 GB
+# RAM, no GPU — and every value below is set for that machine.
+#
+# Not a toy configuration: it is the one that produced the checkpoints in
+# checkpoints/rv5/ and the numbers in reports/. Medium and Large extend it.
+
+name: rv5_small
+family: LEKOY
+model_id: RV5
+description: >-
+  LEKOY RV5 Small — 0.5B parameters, LoRA on CPU in bfloat16. Hebrew-first,
+  with English and Spanish held steady by replay data.
+
+model:
+  name: Qwen/Qwen2.5-0.5B-Instruct
+  variant: small
+  # bfloat16 rather than float16: this CPU has AMX-BF16 and AVX512-BF16, so
+  # bf16 matmuls run on the tile engine (3,278 GFLOP/s measured). float16 has
+  # no fast path here and no GradScaler on CPU, so it would be both slower and
+  # less numerically stable.
+  torch_dtype: bfloat16
+  # flash_attention_2 is CUDA-only. sdpa is torch's own fused attention and is
+  # the fastest thing available on CPU.
+  attn_implementation: sdpa
+  trust_remote_code: false
+  load_in_4bit: false        # bitsandbytes is CUDA-only; see the system report
+  load_in_8bit: false
+
+lora:
+  enabled: true
+  # r=16 on a 0.5B model is ~8.8M trainable parameters, 1.8% of the total.
+  # Large enough to move Hebrew, small enough that the optimiser state stays
+  # under 150 MB and the base weights stay frozen in bf16.
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  bias: none
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  modules_to_save: []
+
+training:
+  output_dir: checkpoints/rv5/sft
+  learning_rate: 2.0e-4
+  # Batch 1 with 16-step accumulation: an effective batch of 16 sequences, at
+  # the memory cost of one. On 4 cores the per-step time is dominated by the
+  # forward/backward of a single sequence anyway, so a larger microbatch buys
+  # nothing and risks the OOM this machine has no swap to survive.
+  batch_size: 1
+  gradient_accumulation: 16
+  epochs: 1.0
+  max_steps: -1
+  weight_decay: 0.01
+  warmup_ratio: 0.03
+  max_grad_norm: 1.0
+  # 1024 tokens is ~2,550 Hebrew characters at Qwen's measured fertility —
+  # enough for a full multi-turn exchange. Attention is quadratic and this is
+  # a CPU, so raising it is the most expensive knob on this page.
+  max_seq_length: 1024
+  bf16: true
+  fp16: false
+  # Trades ~30% step time for a large activation-memory saving. Off at 0.5B
+  # because activations already fit; rv5_medium turns it on.
+  gradient_checkpointing: false
+  optimizer: adamw_torch
+  scheduler: cosine
+  seed: 20250901
+  save_steps: 100
+  eval_steps: 50
+  logging_steps: 5
+  save_total_limit: 3
+  resume_from_checkpoint: null
+  num_workers: 2
+  packing: false
+
+data:
+  train_file: data/tokenized/train/sft.jsonl
+  validation_file: data/tokenized/validation/sft.jsonl
+  test_file: data/tokenized/test/sft.jsonl
+  # Hebrew above the brief's 40/40/20 starting point. The brief permits this
+  # explicitly when the base is already strong in English and weak in Hebrew,
+  # and the baseline evaluation in reports/ shows exactly that gap. English and
+  # Spanish shares are replay data — enough to hold the line, not to teach.
+  language_mix:
+    hebrew: 0.55
+    english: 0.28
+    spanish: 0.17
+  min_quality_score: 0.5
+  max_samples: null
+  shuffle_seed: 20250901
+
+evaluation:
+  suites:
+    - hebrew
+    - english
+    - spanish
+    - reasoning
+    - math
+    - coding
+    - translation
+    - instruction_following
+    - hallucination
+  # Greedy decoding for evaluation: a benchmark run must be reproducible, and
+  # sampling would make every re-score a different number.
+  temperature: 0.0
+  max_new_tokens: 320
+  batch_size: 1
+  limit: null
+
+generation:
+  temperature: 0.7
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+  max_new_tokens: 1024
+  do_sample: true

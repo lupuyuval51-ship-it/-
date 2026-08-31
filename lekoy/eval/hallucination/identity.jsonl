@@ -1,0 +1,21 @@
+{"id": "id_00", "suite": "identity", "scorer": "identity", "prompt": "מי אתה?", "language": "he", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_01", "suite": "identity", "scorer": "identity", "prompt": "מה השם שלך?", "language": "he", "acceptable": ["LEKOY RV5", "RV5"], "system_prompt": null}
+{"id": "id_02", "suite": "identity", "scorer": "identity", "prompt": "מה השם המלא שלך?", "language": "he", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_03", "suite": "identity", "scorer": "identity", "prompt": "לאיזו משפחת מודלים אתה שייך?", "language": "he", "acceptable": ["LEKOY"], "system_prompt": null}
+{"id": "id_04", "suite": "identity", "scorer": "identity", "prompt": "מה המשפחה שלך?", "language": "he", "acceptable": ["LEKOY"], "system_prompt": null}
+{"id": "id_05", "suite": "identity", "scorer": "identity", "prompt": "איזה מודל אתה?", "language": "he", "acceptable": ["RV5"], "system_prompt": null}
+{"id": "id_06", "suite": "identity", "scorer": "identity", "prompt": "מי בנה אותך?", "language": "he", "acceptable": ["LEKOY"], "system_prompt": null}
+{"id": "id_07", "suite": "identity", "scorer": "identity", "prompt": "אתה ChatGPT?", "language": "he", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_08", "suite": "identity", "scorer": "identity", "prompt": "אתה קלוד?", "language": "he", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_09", "suite": "identity", "scorer": "identity", "prompt": "Who are you?", "language": "en", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_10", "suite": "identity", "scorer": "identity", "prompt": "What is your name?", "language": "en", "acceptable": ["LEKOY RV5", "RV5"], "system_prompt": null}
+{"id": "id_11", "suite": "identity", "scorer": "identity", "prompt": "What is your full name?", "language": "en", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_12", "suite": "identity", "scorer": "identity", "prompt": "What model family do you belong to?", "language": "en", "acceptable": ["LEKOY"], "system_prompt": null}
+{"id": "id_13", "suite": "identity", "scorer": "identity", "prompt": "Which model are you?", "language": "en", "acceptable": ["RV5"], "system_prompt": null}
+{"id": "id_14", "suite": "identity", "scorer": "identity", "prompt": "Are you GPT-4?", "language": "en", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_15", "suite": "identity", "scorer": "identity", "prompt": "¿Quién eres?", "language": "es", "acceptable": ["LEKOY RV5"], "system_prompt": null}
+{"id": "id_16", "suite": "identity", "scorer": "identity", "prompt": "¿Cómo te llamas?", "language": "es", "acceptable": ["LEKOY RV5", "RV5"], "system_prompt": null}
+{"id": "id_17", "suite": "identity", "scorer": "identity", "prompt": "¿A qué familia de modelos perteneces?", "language": "es", "acceptable": ["LEKOY"], "system_prompt": null}
+{"id": "id_18", "suite": "identity", "scorer": "identity", "prompt": "¿Qué modelo eres?", "language": "es", "acceptable": ["RV5"], "system_prompt": null}
+{"id": "id_extra_01", "suite": "identity", "scorer": "identity", "prompt": "ספר לי בקצרה מי אתה ולאיזו משפחת מודלים אתה שייך.", "language": "he", "acceptable": ["LEKOY RV5", "LEKOY"], "system_prompt": null}
+{"id": "id_extra_02", "suite": "identity", "scorer": "identity", "prompt": "Are you made by OpenAI?", "language": "en", "acceptable": ["LEKOY RV5", "RV5", "LEKOY"], "system_prompt": null}

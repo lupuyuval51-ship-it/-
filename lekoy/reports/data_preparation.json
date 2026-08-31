@@ -1,0 +1,65 @@
+{
+  "sft": {
+    "task": "sft",
+    "counts": {
+      "train": 1278,
+      "validation": 24,
+      "test": 26
+    },
+    "mixture": {
+      "target_mix": {
+        "hebrew": 0.55,
+        "english": 0.28,
+        "spanish": 0.17
+      },
+      "available": {
+        "english": 16306,
+        "hebrew": 20006,
+        "spanish": 7685
+      },
+      "selected": {
+        "hebrew": 20005,
+        "english": 10184,
+        "spanish": 6183
+      },
+      "achieved_mix": {
+        "hebrew": 0.55,
+        "english": 0.28,
+        "spanish": 0.17
+      },
+      "total": 36372,
+      "limiting_language": "hebrew"
+    },
+    "integrity": {
+      "checked": 1328,
+      "ok": 1328,
+      "problems": {}
+    },
+    "provenance": {
+      "xp3x_hebrew": 19929,
+      "aya_spanish": 3614,
+      "aya_english": 3348,
+      "ultrachat_english": 7804,
+      "oasst2": 9174,
+      "lekoy_seed": 128
+    },
+    "languages": {
+      "hebrew": 724,
+      "english": 375,
+      "spanish": 229
+    }
+  },
+  "identity": {
+    "task": "identity",
+    "counts": {
+      "train": 1805,
+      "validation": 49
+    },
+    "identity_samples": 144,
+    "integrity": {
+      "checked": 1854,
+      "ok": 1854,
+      "problems": {}
+    }
+  }
+}

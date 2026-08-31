@@ -1,0 +1,34 @@
+# Weights, data and anything else large or generated.
+.hf_cache/
+third_party/
+data/raw/
+data/cleaned/
+data/filtered/
+data/deduplicated/
+data/tokenized/
+data/pretrain/
+data/instruction/
+data/reasoning/
+data/coding/
+data/preference/
+data/identity/
+data/distill/
+data/probe_corpus.json
+checkpoints/*/*/
+release/*
+!release/README.md
+!release/Modelfile
+*.gguf
+*.safetensors
+*.bin
+
+# Kept: the two registries are the audit trail of what the corpus was built
+# from and which models were allowed to generate it, and the reports are the
+# measurements this project's claims rest on.
+!data/datasets_registry.json
+!data/teachers_registry.json
+
+__pycache__/
+*.py[cod]
+.venv*/
+.pytest_cache/

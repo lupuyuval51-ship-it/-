@@ -1,0 +1,153 @@
+{
+  "base_model": "Qwen/Qwen2.5-0.5B-Instruct",
+  "vocab_size": 151665,
+  "baseline": {
+    "hebrew": {
+      "chars_per_token": 2.4942,
+      "tokens_per_word": 2.3084,
+      "tokens": 227390
+    },
+    "english": {
+      "chars_per_token": 4.3388,
+      "tokens_per_word": 1.4562,
+      "tokens": 149198
+    },
+    "spanish": {
+      "chars_per_token": 3.5134,
+      "tokens_per_word": 1.7944,
+      "tokens": 181879
+    }
+  },
+  "candidates": {
+    "count": 372,
+    "estimated_token_saving": 18729,
+    "estimated_saving_fraction": 0.0824,
+    "top": [
+      {
+        "token": "בשנת",
+        "frequency": 174,
+        "saving": 348
+      },
+      {
+        "token": "היא",
+        "frequency": 322,
+        "saving": 322
+      },
+      {
+        "token": "היה",
+        "frequency": 289,
+        "saving": 289
+      },
+      {
+        "token": "לאחר",
+        "frequency": 192,
+        "saving": 192
+      },
+      {
+        "token": "במהלך",
+        "frequency": 64,
+        "saving": 192
+      },
+      {
+        "token": "שהוא",
+        "frequency": 185,
+        "saving": 185
+      },
+      {
+        "token": "לעשות",
+        "frequency": 82,
+        "saving": 164
+      },
+      {
+        "token": "אותו",
+        "frequency": 163,
+        "saving": 163
+      },
+      {
+        "token": "כאשר",
+        "frequency": 155,
+        "saving": 155
+      },
+      {
+        "token": "אך",
+        "frequency": 154,
+        "saving": 154
+      },
+      {
+        "token": "הראשון",
+        "frequency": 72,
+        "saving": 144
+      },
+      {
+        "token": "כדי",
+        "frequency": 143,
+        "saving": 143
+      },
+      {
+        "token": "משהו",
+        "frequency": 71,
+        "saving": 142
+      },
+      {
+        "token": "ביותר",
+        "frequency": 132,
+        "saving": 132
+      },
+      {
+        "token": "בצורה",
+        "frequency": 65,
+        "saving": 130
+      },
+      {
+        "token": "חיצוניים",
+        "frequency": 43,
+        "saving": 129
+      },
+      {
+        "token": "שלו",
+        "frequency": 128,
+        "saving": 128
+      },
+      {
+        "token": "באמצעות",
+        "frequency": 62,
+        "saving": 124
+      },
+      {
+        "token": "האדם",
+        "frequency": 123,
+        "saving": 123
+      },
+      {
+        "token": "שלי",
+        "frequency": 118,
+        "saving": 118
+      },
+      {
+        "token": "הולדת",
+        "frequency": 58,
+        "saving": 116
+      },
+      {
+        "token": "שלא",
+        "frequency": 112,
+        "saving": 112
+      },
+      {
+        "token": "הזה",
+        "frequency": 111,
+        "saving": 111
+      },
+      {
+        "token": "להיות",
+        "frequency": 110,
+        "saving": 110
+      },
+      {
+        "token": "הייתה",
+        "frequency": 109,
+        "saving": 109
+      }
+    ]
+  }
+}

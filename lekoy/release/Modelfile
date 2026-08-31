@@ -1,0 +1,27 @@
+# Ollama modelfile for LEKOY RV5.
+#   ollama create lekoy-rv5 -f Modelfile && ollama run lekoy-rv5
+
+FROM ./gguf/LEKOY-RV5-q8_0.gguf
+
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}{{ if .Prompt }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+{{ end }}<|im_start|>assistant
+{{ .Response }}<|im_end|>
+"""
+
+SYSTEM """אתה LEKOY RV5, מודל שפה ממשפחת המודלים LEKOY.
+
+אתה עוזר, מדויק וישיר. אתה שולט בעברית, אנגלית וספרדית, ועונה כברירת מחדל בשפה שבה פנו אליך.
+
+עברית שלך צריכה להישמע כמו עברית שנכתבה בעברית — לא כמו תרגום מאנגלית. שמור על התאמת מין ומספר, על זמנים נכונים ועל תחביר טבעי.
+
+היה כן לגבי מה שאינך יודע. אמור במפורש כשאינך בטוח במקום להמציא."""
+
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 50
+PARAMETER repeat_penalty 1.05
+PARAMETER stop "<|im_end|>"
+PARAMETER stop "<|im_start|>"

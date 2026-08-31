@@ -1,0 +1,51 @@
+# LEKOY RV5 Medium — 1.5B, one 24 GB GPU.
+#
+# Does not run on the hardware in reports/system_report.md. It is written for
+# an A10, 3090, 4090 or L4, and is the configuration to reach for first when
+# GPU time becomes available.
+#
+# 1.5B rather than the natural 3B on purpose: Qwen2.5-3B-Instruct is released
+# under the Qwen Research Licence, which prohibits commercial use, while the
+# 1.5B is Apache-2.0. See docs/base_model_selection.md.
+
+extends: rv5_small.yaml
+
+name: rv5_medium
+description: >-
+  LEKOY RV5 Medium — 1.5B parameters, QLoRA 4-bit on a single 24 GB GPU.
+
+model:
+  name: Qwen/Qwen2.5-1.5B-Instruct
+  variant: medium
+  torch_dtype: bfloat16
+  # Requires `pip install flash-attn --no-build-isolation` on the GPU host.
+  # Fall back to sdpa with --set model.attn_implementation=sdpa if unavailable.
+  attn_implementation: flash_attention_2
+  load_in_4bit: true
+  device_map: auto
+
+lora:
+  # Higher rank because there is memory for it and 1.5B has more capacity to
+  # move. modules_to_save is still empty for SFT; the continued-pretraining
+  # stage config adds the embeddings.
+  r: 32
+  alpha: 64
+  dropout: 0.05
+
+training:
+  output_dir: checkpoints/rv5/sft_medium
+  learning_rate: 1.0e-4
+  batch_size: 4
+  gradient_accumulation: 8
+  max_seq_length: 2048
+  gradient_checkpointing: true
+  # paged_adamw_8bit keeps the optimiser state off the GPU when it spikes,
+  # which is what makes 4-bit training of a 1.5B fit in 24 GB alongside
+  # 2048-token activations. bitsandbytes provides it; CUDA only.
+  optimizer: paged_adamw_8bit
+  save_steps: 250
+  eval_steps: 250
+  logging_steps: 10
+
+evaluation:
+  batch_size: 8

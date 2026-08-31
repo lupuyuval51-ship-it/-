@@ -1,0 +1,17 @@
+# LEKOY RV5 — additional packages for a CUDA host, on top of requirements.txt.
+#
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r requirements.txt -r requirements-gpu.txt
+#   pip install flash-attn --no-build-isolation      # compiles; needs nvcc
+#
+# None of these work without a CUDA device. bitsandbytes installs on CPU and
+# then fails at import, which is why it is here and not in requirements.txt —
+# and why scripts/check_system.py reports it as unusable rather than missing.
+
+bitsandbytes>=0.43        # 4-bit and 8-bit loading; QLoRA; paged optimisers
+trl>=0.9                  # DPO/ORPO for the preference stage
+deepspeed>=0.14           # ZeRO sharding, for rv5_large across two GPUs
+
+# Optional, and worth it on a GPU:
+#   flash-attn>=2.5        set model.attn_implementation=flash_attention_2
+#   vllm>=0.5              a much faster serving backend; set LEKOY_BACKEND=vllm

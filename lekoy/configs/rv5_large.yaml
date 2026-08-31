@@ -1,0 +1,41 @@
+# LEKOY RV5 Large — 7B, one 48 GB GPU or two 24 GB with DeepSpeed ZeRO-3.
+#
+# The target configuration for a serious RV5 release. Not run in this project;
+# the settings are what the pipeline would use, not a record of a run that
+# happened. Anything in reports/ that claims a measured number for RV5 refers
+# to Small.
+
+extends: rv5_medium.yaml
+
+name: rv5_large
+description: >-
+  LEKOY RV5 Large — 7B parameters, QLoRA 4-bit. The release-grade size.
+
+model:
+  name: Qwen/Qwen2.5-7B-Instruct
+  variant: large
+  load_in_4bit: true
+  device_map: auto
+
+lora:
+  r: 64
+  alpha: 128
+  dropout: 0.05
+
+training:
+  output_dir: checkpoints/rv5/sft_large
+  # Lower than Medium's: a 7B base has more to lose to catastrophic
+  # forgetting, and the regression thresholds in eval/ are what would catch it
+  # too late.
+  learning_rate: 5.0e-5
+  batch_size: 2
+  gradient_accumulation: 16
+  max_seq_length: 4096
+  gradient_checkpointing: true
+  optimizer: paged_adamw_8bit
+  save_steps: 200
+  eval_steps: 200
+
+evaluation:
+  batch_size: 4
+  max_new_tokens: 512

@@ -1,0 +1,92 @@
+{
+  "os": {
+    "system": "Linux",
+    "release": "6.18.44-fc-v22",
+    "distro": "Ubuntu 24.04.4 LTS"
+  },
+  "python": {
+    "version": "3.11.15",
+    "executable": "/home/user/Fitai-app901/lekoy/../.venv-lekoy/bin/python",
+    "implementation": "CPython"
+  },
+  "cpu": {
+    "arch": "x86_64",
+    "cores_logical": 4,
+    "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "mhz": "2100.000",
+    "flags_of_interest": [
+      "amx_bf16",
+      "amx_int8",
+      "amx_tile",
+      "avx2",
+      "avx512_bf16",
+      "avx512_fp16",
+      "avx512_vnni",
+      "avx512bw",
+      "avx512f",
+      "avx512vl",
+      "avx_vnni",
+      "f16c",
+      "sha_ni"
+    ],
+    "physical_cores": 4
+  },
+  "memory": {
+    "total_gb": 15.7,
+    "available_gb": 15.05,
+    "swap_gb": 0.0
+  },
+  "disk": [
+    {
+      "path": "/",
+      "total_gb": 270.6,
+      "used_gb": 9.9,
+      "free_gb": 29.9
+    }
+  ],
+  "gpu": {
+    "present": false,
+    "devices": [],
+    "cuda_toolkit": null,
+    "driver": null,
+    "detection": [],
+    "torch_cuda_available": false,
+    "torch_cuda_version": null,
+    "torch_mps": false
+  },
+  "packages": {
+    "torch": "2.13.0+cpu",
+    "transformers": "5.16.1",
+    "accelerate": "1.14.0",
+    "peft": "0.20.0",
+    "trl": "1.12.0",
+    "bitsandbytes": null,
+    "deepspeed": null,
+    "flash_attn": null,
+    "sentencepiece": "0.2.2",
+    "tokenizers": "0.23.1",
+    "datasets": "5.0.1",
+    "safetensors": "0.8.0",
+    "vllm": null,
+    "numpy": "2.4.6",
+    "fastapi": "0.141.1",
+    "uvicorn": "0.52.4",
+    "huggingface_hub": "1.29.0",
+    "pytest": "9.1.1",
+    "tensorboard": "2.21.0",
+    "sacrebleu": "2.6.0",
+    "sklearn": "1.9.0"
+  },
+  "precision": {
+    "torch": "2.13.0+cpu",
+    "threads": 4,
+    "mkldnn": true,
+    "cpu_bf16_matmul": true,
+    "cpu_fp16_matmul": true,
+    "cpu_fp32_matmul": true
+  },
+  "benchmark": {
+    "fp32_gflops": 551.7,
+    "bf16_gflops": 3277.8
+  }
+}

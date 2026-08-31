@@ -1,0 +1,4 @@
+{"id": "he_mt_01", "category": "math", "scorer": "numeric", "prompt": "חנות מוכרת חולצה ב-120 שקלים. יש הנחה של 25%. כמה תעלה החולצה אחרי ההנחה? ענה במספר בלבד.", "answer": "90", "suite": "math"}
+{"id": "he_mt_02", "category": "math", "scorer": "numeric", "prompt": "רכב נוסע 240 קילומטר ב-3 שעות. מה המהירות הממוצעת שלו בקילומטרים לשעה? ענה במספר בלבד.", "answer": "80", "suite": "math"}
+{"id": "he_mt_03", "category": "math", "scorer": "numeric", "prompt": "בכיתה 30 תלמידים. 40% מהם בנות. כמה בנים יש בכיתה? ענה במספר בלבד.", "answer": "18", "suite": "math"}
+{"id": "he_mt_04", "category": "math", "scorer": "numeric", "prompt": "מחיר מוצר עלה מ-80 שקלים ל-100 שקלים. בכמה אחוזים עלה המחיר? ענה במספר בלבד.", "answer": "25", "suite": "math"}
