@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   טוני פניג'ל · תכנון ועיצוב פנים — main.js
+   צביה כהן · תכנון ועיצוב פנים — main.js
    3D scene (Three.js) + scroll experience (GSAP)
    ═══════════════════════════════════════════════════════════════ */
 (function () {
@@ -362,7 +362,7 @@
       var name = (form.name.value || '').trim();
       var phone = (form.phone.value || '').trim();
       var msg = (form.message.value || '').trim();
-      var text = 'היי טוני, אני ' + (name || '') + '.';
+      var text = 'היי צביה, אני ' + (name || '') + '.';
       if (phone) { text += '\nהטלפון שלי: ' + phone; }
       if (msg) { text += '\n' + msg; }
       text += '\nאשמח לשמוע עוד על תכנון ועיצוב הבית.';
