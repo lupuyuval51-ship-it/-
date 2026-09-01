@@ -92,6 +92,16 @@ button{font:inherit;color:inherit}
 .hs:hover,.hs:focus-visible{border-color:rgba(207,201,194,.85);background:rgba(207,201,194,.07)}
 .hs.seen{border-style:solid;border-color:rgba(207,201,194,.42)}
 .hs[disabled]{cursor:default;border-color:rgba(138,133,128,.14)}
+/* פקדי הליכה — נחוצים במסכי מגע, שם אין מקלדת */
+#walk{position:absolute;inset-inline-end:8px;bottom:8px;display:flex;gap:6px;z-index:3}
+#walk[hidden]{display:none}
+.walkbtn{
+  min-width:44px;min-height:44px;border-radius:3px;cursor:pointer;
+  background:rgba(14,14,18,.72);border:1px solid rgba(207,201,194,.42);color:var(--ink);
+  font-size:1rem;line-height:1;touch-action:none;
+}
+.walkbtn:hover{background:rgba(30,30,38,.85)}
+.room{touch-action:pan-y}
 /* במסכי מגע אין hover — האזורים חייבים להיראות תמיד */
 @media (hover:none){ .hs{border-color:rgba(207,201,194,.42)} }
 
@@ -232,7 +242,14 @@ ul.chapters .ts{color:var(--dust);font-variant-numeric:tabular-nums;letter-spaci
       <canvas id="roomcv" aria-hidden="true" hidden></canvas>
       <p class="sr" id="roomdesc"></p>
       <div id="hotspots"></div>
+      <div id="walk" hidden>
+        <button class="walkbtn" id="walk-fwd" aria-label="צעד קדימה">▲</button>
+        <button class="walkbtn" id="walk-back" aria-label="צעד אחורה">▼</button>
+        <button class="walkbtn" id="walk-reset" aria-label="חזרה לנקודת ההתחלה">◎</button>
+      </div>
     </div>
+
+    <p class="cap" id="walkhint" hidden></p>
 
     <div class="say" id="say" aria-live="polite"></div>
 
@@ -347,7 +364,8 @@ const TEXT = {
     cell: (r, c, here) => "שורה " + r + " עמודה " + c + (here ? " — כאן אתה עומד" : ""),
     subtitle: "כתובית ההקלטה",
     room: (name, presence) => "החדר: " + name + (presence ? ". " + presence : ""),
-    hintOpen: "כפתור רמז זמין עכשיו."
+    hintOpen: "כפתור רמז זמין עכשיו.",
+    walkHint: "אפשר להסתובב בחדר: W A S D או מקשי החיצים, וגרירה בעכבר או באצבע כדי להביט. אפשר גם פשוט ללחוץ על מה שרואים."
   },
 
   /* ---- טקסט הרמזים הכללי ---- */
@@ -961,13 +979,22 @@ const Room = {
     this.glcv = document.getElementById("roomgl");
     // תלת-ממד כברירת מחדל; אם הדפדפן לא תומך, החדרים מצוירים ב-2D
     if (this.mode === "2d" && !Scene3D.ok && Scene3D.init(this.glcv)) this.mode = "3d";
-    if (this.mode === "3d") { this.glcv.hidden = false; this.cv.hidden = true; }
-    else { this.glcv.hidden = true; this.cv.hidden = false; }
+    const walk = document.getElementById("walk"), hint = document.getElementById("walkhint");
+    if (this.mode === "3d") {
+      this.glcv.hidden = false; this.cv.hidden = true;
+      if (walk) walk.hidden = false;
+      if (hint) { hint.hidden = false; hint.textContent = TEXT.a11y.walkHint; }
+    } else {
+      this.glcv.hidden = true; this.cv.hidden = false;
+      if (walk) walk.hidden = true;
+      if (hint) hint.hidden = true;
+    }
     this.resize();
     const loop = (t) => {
       if (gameState.reduceMotion) { this.raf = 0; return; }
       this.raf = requestAnimationFrame(loop);
-      if (t - this.last < 80) return;          // ~12fps — מספיק לתנועה איטית
+      const step = this.mode === "3d" ? 33 : 80;   // תלת-ממד זז, דו-ממד רק נושם
+      if (t - this.last < step) return;
       this.last = t;
       this.paint(t / 1000);
     };
@@ -1915,6 +1942,8 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.42, -0.6], look: [0, 1.20, -4.8],
+      bounds: [-2.7, 2.7, -5.2, 2.2],
+      blockers: [[-2.1, 2.1, -4.05, -2.75], [-1.6, -0.9, cz - 0.4, cz + 0.4]],
       fog: [0.028, 0.028, 0.035], fogD: 0.115,
       ambient: [0.15, 0.15, 0.18],
       lights: [
@@ -1968,6 +1997,8 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.3], look: [0, 1.30, -5.0],
+      bounds: [-2.9, 2.9, -4.9, 2.0],
+      blockers: [[-2.3, -1.7, -5.0, -4.5]],
       fog: [0.025,0.025,0.032], fogD: 0.12,
       ambient: [0.15,0.15,0.18],
       lights: [
@@ -2035,6 +2066,8 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.2], look: [0, 1.25, -4.8],
+      bounds: [-2.7, 2.7, -4.9, 2.0],
+      blockers: [[-2.0, 2.0, -4.1, -2.9], [-0.5, 0.1, -2.5, -1.9]],
       fog: [0.022,0.022,0.030], fogD: 0.12,
       ambient: [0.14,0.14,0.17],
       lights: [
@@ -2104,6 +2137,8 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.0], look: [0, 1.35, -12],
+      bounds: [-1.2, 1.2, -19.2, 1.6],
+      blockers: [[-1.2, 1.2, cz - 1.0, cz + 1.4]],
       fog: [0.015,0.015,0.022], fogD: 0.085,
       ambient: [0.12,0.12,0.15],
       lights: [
@@ -2151,6 +2186,8 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.2], look: [-0.2, 1.30, -4.6],
+      bounds: [-2.4, 2.4, -4.6, 1.8],
+      blockers: [],
       fog: [0.02,0.02,0.028], fogD: 0.13,
       ambient: [0.28,0.28,0.34],
       lights: [
@@ -2168,7 +2205,10 @@ const SCENES = [
    ================================================================ */
 const Scene3D = {
   ok: false, gl: null, prog: null, buf: null, count: 0, scene: null,
-  yaw: 0, pitch: 0, tYaw: 0, tPitch: 0, cv: null,
+  yaw: 0, pitch: 0, cv: null, lastT: 0,
+  /* השחקן עומד בחדר וזז בו: מיקום, כיוון מבט, ומקשים לחוצים */
+  player: { x: 0, y: 1.55, z: -1, yaw: 0, pitch: 0 },
+  keys: {}, drag: null, chapterSpawned: -1,
 
   init(canvas) {
     this.cv = canvas;
@@ -2252,25 +2292,73 @@ const Scene3D = {
     this.count = data.length / 10;
   },
 
-  camera(t, stable) {
+  /* בכניסה לפרק — השחקן מוצב בנקודת ההתחלה של הסצנה */
+  spawn(scene) {
+    const d = norm3(sub3(scene.look, scene.eye));
+    this.player.x = scene.eye[0];
+    this.player.y = scene.eye[1];
+    this.player.z = scene.eye[2];
+    this.player.yaw = Math.atan2(d[0], -d[2]);
+    this.player.pitch = Math.max(-0.9, Math.min(0.9, Math.asin(d[1])));
+    this.chapterSpawned = gameState.chapter;
+  },
+
+  /* הליכה: מקשים, קצב לפי זמן אמיתי, והתנגשות עם קירות ורהיטים */
+  step(dt) {
     const s = this.scene;
-    // המצלמה נושמת; אזורי החיפוש מחושבים בלי הנשימה, אחרת הם רועדים מתחת לאצבע
-    const bob = (stable || gameState.reduceMotion) ? 0 : Math.sin(t * 0.7) * 0.012;
-    const yaw = this.yaw, pitch = this.pitch;
-    const eye = [s.eye[0], s.eye[1] + bob, s.eye[2]];
-    const dir = norm3(sub3(s.look, s.eye));
-    const cy = Math.cos(yaw), sy = Math.sin(yaw);
-    const rd = [dir[0] * cy - dir[2] * sy, dir[1] + pitch, dir[0] * sy + dir[2] * cy];
-    return { eye, tgt: [eye[0] + rd[0] * 4, eye[1] + rd[1] * 4, eye[2] + rd[2] * 4] };
+    if (!s) return;
+    const k = this.keys;
+    const fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0);
+    const side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
+    const turn = (k.right ? 1 : 0) - (k.left ? 1 : 0);
+    if (turn) this.player.yaw += turn * dt * 1.7;
+    if (!fwd && !side) return;
+    const sp = 1.9 * dt;
+    const sy = Math.sin(this.player.yaw), cy = Math.cos(this.player.yaw);
+    let nx = this.player.x + (sy * fwd + cy * side) * sp;
+    let nz = this.player.z + (-cy * fwd + sy * side) * sp;
+    const b = s.bounds;
+    if (b) {
+      nx = Math.max(b[0] + 0.35, Math.min(b[1] - 0.35, nx));
+      nz = Math.max(b[2] + 0.35, Math.min(b[3] - 0.35, nz));
+    }
+    // חוסמים: לא עוברים דרך שולחן, כיסא או מסגרת
+    (s.blockers || []).forEach(bl => {
+      if (nx > bl[0] - 0.3 && nx < bl[1] + 0.3 && nz > bl[2] - 0.3 && nz < bl[3] + 0.3) {
+        const dxl = Math.abs(nx - (bl[0] - 0.3)), dxr = Math.abs(nx - (bl[1] + 0.3));
+        const dzb = Math.abs(nz - (bl[2] - 0.3)), dzf = Math.abs(nz - (bl[3] + 0.3));
+        const m = Math.min(dxl, dxr, dzb, dzf);
+        if (m === dxl) nx = bl[0] - 0.3; else if (m === dxr) nx = bl[1] + 0.3;
+        else if (m === dzb) nz = bl[2] - 0.3; else nz = bl[3] + 0.3;
+      }
+    });
+    this.player.x = nx; this.player.z = nz;
+  },
+
+  camera(t, stable) {
+    const bob = (stable || gameState.reduceMotion) ? 0 : Math.sin(t * 1.4) * 0.010;
+    const p = this.player;
+    const eye = [p.x, p.y + bob, p.z];
+    const cp = Math.cos(p.pitch);
+    const dir = [Math.sin(p.yaw) * cp, Math.sin(p.pitch), -Math.cos(p.yaw) * cp];
+    return { eye, tgt: [eye[0] + dir[0] * 4, eye[1] + dir[1] * 4, eye[2] + dir[2] * 4] };
+  },
+
+  /* גרירה = הבטה מסביב */
+  lookBy(dx, dy) {
+    this.player.yaw += dx * 0.005;
+    this.player.pitch = Math.max(-0.75, Math.min(0.75, this.player.pitch - dy * 0.004));
   },
 
   draw(t) {
     if (!this.ok || !this.scene) return;
     const gl = this.gl, W = this.cv.width, H = this.cv.height;
     if (!W || !H) return;
-    // ריכוך תנועת המבט
-    this.yaw += (this.tYaw - this.yaw) * 0.08;
-    this.pitch += (this.tPitch - this.pitch) * 0.08;
+    // התקדמות הליכה לפי הזמן שעבר מאז הפריים הקודם
+    const dt = this.lastT ? Math.min(0.1, t - this.lastT) : 0;
+    this.lastT = t;
+    if (this.chapterSpawned !== gameState.chapter) this.spawn(this.scene);
+    this.step(dt);
 
     gl.viewport(0, 0, W, H);
     const s = this.scene;
@@ -2339,11 +2427,15 @@ const Scene3D = {
     return { x: (c[0] / c[3] * 0.5 + 0.5) * 100, y: (0.5 - c[1] / c[3] * 0.5) * 100 };
   },
 
-  /* תנועת מבט מוגבלת — מספיק כדי להרגיש נפח, בלי לאבד את החפצים */
-  look(nx, ny) {
-    this.tYaw = Math.max(-0.22, Math.min(0.22, nx * 0.22));
-    this.tPitch = Math.max(-0.12, Math.min(0.12, -ny * 0.12));
-  }
+  /* מפנה את המבט אל נקודה בחדר */
+  aimAt(p) {
+    const d = norm3(sub3(p, [this.player.x, this.player.y, this.player.z]));
+    this.player.yaw = Math.atan2(d[0], -d[2]);
+    this.player.pitch = Math.max(-0.75, Math.min(0.75, Math.asin(d[1])));
+  },
+
+  /* חזרה לנקודת ההתחלה של החדר */
+  resetView() { if (this.scene) this.spawn(this.scene); }
 };
 
 /* ================================================================
@@ -2387,8 +2479,14 @@ function placeHotspots3D() {
     const a = sc.anchors[i];
     const b = nodes[i];
     const pt = a ? Scene3D.project(a) : null;
-    if (!pt || pt.x < -20 || pt.x > 120 || pt.y < -20 || pt.y > 120) { b.style.visibility = "hidden"; continue; }
-    b.style.visibility = "visible";
+    if (!pt || pt.x < -10 || pt.x > 110 || pt.y < -10 || pt.y > 110) {
+      // מחוץ לשדה הראייה: לא נראה ולא לחיץ, אבל עדיין אפשר להגיע אליו ב-Tab
+      b.style.opacity = "0";
+      b.style.pointerEvents = "none";
+      continue;
+    }
+    b.style.opacity = "1";
+    b.style.pointerEvents = "auto";
     const nx = (Math.round((pt.x - 6) * 4) / 4) + "%", ny = (Math.round((pt.y - 8) * 4) / 4) + "%";
     if (b.style.left !== nx) b.style.left = nx;
     if (b.style.top !== ny) b.style.top = ny;
@@ -2413,6 +2511,13 @@ function renderHotspots() {
     b.title = hs.label;
     const key = gameState.chapter + ":" + i;
     if (gameState.seenHotspots[key]) b.classList.add("seen");
+    b.addEventListener("focus", () => {
+      // רק ניווט מקלדת מזיז את המצלמה; לחיצת עכבר לא מקפיצה את המבט
+      if (Room.mode !== "3d" || !Scene3D.scene) return;
+      if (!b.matches(":focus-visible")) return;
+      const a = Scene3D.scene.anchors[i];
+      if (a) { Scene3D.aimAt(a); Room.paint(Room.last / 1000); }
+    });
     b.addEventListener("click", () => {
       Audio_.click();
       gameState.seenHotspots[key] = true;
@@ -3055,14 +3160,54 @@ function boot() {
   ["pointerdown", "keydown"].forEach(ev =>
     document.addEventListener(ev, () => Audio_.resume(), { passive: true }));
 
-  // תזוזת מבט קלה עם העכבר — מספיק כדי להרגיש שהחדר עמוק
+  /* ---- תנועה בחדר: גרירה מסובבת את המבט, מקשים מהלכים ---- */
   const roomEl = el("room");
-  roomEl.addEventListener("pointermove", (e) => {
+  roomEl.addEventListener("pointerdown", (e) => {
     if (Room.mode !== "3d") return;
-    const r = roomEl.getBoundingClientRect();
-    Scene3D.look((e.clientX - r.left) / r.width * 2 - 1, (e.clientY - r.top) / r.height * 2 - 1);
+    if (e.target.closest("button")) return;      // לחיצה על אזור חיפוש או על כפתור הליכה
+    Scene3D.drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
   });
-  roomEl.addEventListener("pointerleave", () => Scene3D.look(0, 0));
+  roomEl.addEventListener("pointermove", (e) => {
+    const d = Scene3D.drag;
+    if (!d || d.id !== e.pointerId) return;
+    Scene3D.lookBy(e.clientX - d.x, e.clientY - d.y);
+    d.x = e.clientX; d.y = e.clientY;
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev =>
+    roomEl.addEventListener(ev, (e) => { if (Scene3D.drag && Scene3D.drag.id === e.pointerId) Scene3D.drag = null; }));
+
+  const KEYMAP = { KeyW: "w", ArrowUp: "w", KeyS: "s", ArrowDown: "s",
+                   KeyA: "a", KeyD: "d", ArrowLeft: "left", ArrowRight: "right" };
+  const typing = () => {
+    const a = document.activeElement;
+    return !el("veil").hidden || (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"));
+  };
+  document.addEventListener("keydown", (e) => {
+    if (Room.mode !== "3d" || gameState.screen !== "game" || typing()) return;
+    const k = KEYMAP[e.code];
+    if (!k) return;
+    e.preventDefault();
+    Scene3D.keys[k] = true;
+  });
+  document.addEventListener("keyup", (e) => {
+    const k = KEYMAP[e.code];
+    if (k) Scene3D.keys[k] = false;
+  });
+  window.addEventListener("blur", () => { Scene3D.keys = {}; Scene3D.drag = null; });
+
+  // כפתורי הליכה למסכי מגע
+  const hold = (id, key) => {
+    const b = el(id);
+    const on = (e) => { e.preventDefault(); Scene3D.keys[key] = true; };
+    const off = () => { Scene3D.keys[key] = false; };
+    b.addEventListener("pointerdown", on);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => b.addEventListener(ev, off));
+    b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") on(e); });
+    b.addEventListener("keyup", off);
+  };
+  hold("walk-fwd", "w");
+  hold("walk-back", "s");
+  el("walk-reset").addEventListener("click", () => { Audio_.click(); Scene3D.resetView(); });
 
   window.addEventListener("resize", () => {
     FX.resize(); Room.resize();
