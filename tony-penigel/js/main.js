@@ -232,6 +232,8 @@
 
     if (reduceMotion) {
       render();
+      /* the 'layout' resize listener clears the buffer — repaint after it */
+      window.addEventListener('resize', function () { render(); });
       return;
     }
 
@@ -303,6 +305,52 @@
       mobileMenu.classList.toggle('is-open', open);
       mobileMenu.setAttribute('aria-hidden', String(!open));
       document.body.style.overflow = open ? 'hidden' : '';
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('is-open')) { closeMenu(); }
+    });
+  }
+
+  /* Projects section: show only items whose image files actually exist.
+     Drop the images into assets/img/projects/project-1.jpg … project-5.jpg
+     and they appear automatically; until then the section stays hidden. */
+  function renumberKickers() {
+    var nums = document.querySelectorAll('main .kicker .kicker-num');
+    for (var i = 0; i < nums.length; i++) {
+      nums[i].textContent = (i + 1 < 10 ? '0' : '') + (i + 1);
+    }
+  }
+
+  function initProjects() {
+    var section = document.getElementById('projects');
+    if (!section) { return; }
+    var items = Array.prototype.slice.call(section.querySelectorAll('.gallery-item'));
+    var remaining = items.length;
+    function drop(item) {
+      if (!item.parentNode) { return; }
+      item.remove();
+      remaining--;
+      if (remaining === 0) {
+        section.remove();
+        document.querySelectorAll('a[href="#projects"]').forEach(function (a) { a.remove(); });
+      } else if (remaining < items.length) {
+        /* partial set — drop the 3+2 span pattern for an even grid */
+        var grid = section.querySelector('.projects-grid');
+        if (grid) { grid.classList.add('projects-grid--simple'); }
+      }
+      renumberKickers();
+      if (window.ScrollTrigger) {
+        ScrollTrigger.getAll().forEach(function (st) {
+          if (st.trigger && !document.body.contains(st.trigger)) { st.kill(); }
+        });
+        ScrollTrigger.refresh();
+      }
+    }
+    items.forEach(function (item) {
+      var img = item.querySelector('img');
+      var probe = new Image();
+      probe.onerror = function () { drop(item); };
+      probe.src = img.getAttribute('src');
     });
   }
 
@@ -421,7 +469,15 @@
     for (var c = 0; c < 3; c++) { track.appendChild(span.cloneNode(true)); }
     var spanW = span.offsetWidth;
     if (spanW > 0) {
-      gsap.to(track, { x: spanW, duration: spanW / 52, ease: 'none', repeat: -1 });
+      /* xPercent:25 = exactly one of the 4 identical copies — stays a perfect
+         loop through webfont swaps and resizes; only the speed is retuned */
+      var marqueeTween = gsap.to(track, { xPercent: 25, duration: spanW / 52, ease: 'none', repeat: -1 });
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () {
+          var w = span.offsetWidth;
+          if (w > 0) { marqueeTween.duration(w / 52); }
+        });
+      }
     }
 
     /* Statement + quote lines: brighten as they scroll in */
@@ -451,7 +507,9 @@
 
     /* Process: horizontal scroll on desktop */
     var mm = gsap.matchMedia();
-    mm.add('(min-width: 861px)', function () {
+    /* exact logical complement of the CSS (max-width: 860px) fallback —
+       no fractional viewport width can fall between the two */
+    mm.add('not all and (max-width: 860px)', function () {
       var ptrack = document.getElementById('processTrack');
       var bar = document.getElementById('processBar');
       var getDist = function () {
@@ -506,11 +564,25 @@
      Boot
      ═══════════════════════════════════════════════════════════ */
   function boot() {
+    /* absolute failsafe first — never trap the user behind the preloader,
+       even if anything below throws */
+    setTimeout(function () {
+      if (preloader && window.getComputedStyle(preloader).display !== 'none') {
+        killPreloader();
+        if (window.gsap) {
+          gsap.set(['.hero-title .line', '.reveal-item', '.nav'], { clearProps: 'all', opacity: 1 });
+        }
+      }
+    }, 7000);
+
     initNav();
     initForm();
+    initProjects();
+    renumberKickers();
     initThree();
 
-    if (!hasGSAP || reduceMotion) {
+    var hasScrollStack = hasGSAP && window.ScrollTrigger && window.ScrollSmoother && window.ScrollToPlugin;
+    if (!hasScrollStack || reduceMotion) {
       killPreloader();
       return;
     }
@@ -518,14 +590,6 @@
     initCursor();
     initMagnetic();
     initTilt();
-
-    /* absolute failsafe — never trap the user behind the preloader */
-    setTimeout(function () {
-      if (preloader && window.getComputedStyle(preloader).display !== 'none') {
-        killPreloader();
-        gsap.set(['.hero-title .line', '.reveal-item', '.nav'], { clearProps: 'all', opacity: 1 });
-      }
-    }, 7000);
   }
 
   if (document.readyState === 'loading') {

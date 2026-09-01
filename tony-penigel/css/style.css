@@ -128,7 +128,8 @@ em { font-style: normal; color: var(--gold); }
 
 /* ─── Navigation ────────────────────────────────────────────── */
 .nav {
-  position: fixed; inset-inline: 0; top: 0; z-index: 100;
+  /* above the mobile menu (120) so the burger stays reachable when it is open */
+  position: fixed; inset-inline: 0; top: 0; z-index: 130;
   height: var(--nav-h);
   display: flex; align-items: center; justify-content: space-between;
   padding-inline: clamp(20px, 4vw, 56px);
@@ -196,7 +197,9 @@ em { font-style: normal; color: var(--gold); }
 .mobile-menu {
   position: fixed; inset: 0; z-index: 120;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
-  gap: 48px;
+  gap: 40px;
+  padding-block: 90px 40px;
+  overflow-y: auto;
   background: rgba(15, 14, 12, 0.97);
   -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
   opacity: 0; visibility: hidden;
@@ -217,6 +220,8 @@ em { font-style: normal; color: var(--gold); }
 .mobile-menu.is-open .mobile-menu-links a:nth-child(3) { transition-delay: 0.22s; }
 .mobile-menu.is-open .mobile-menu-links a:nth-child(4) { transition-delay: 0.28s; }
 .mobile-menu.is-open .mobile-menu-links a:nth-child(5) { transition-delay: 0.34s; }
+.mobile-menu.is-open .mobile-menu-links a:nth-child(6) { transition-delay: 0.40s; }
+.mobile-menu.is-open .mobile-menu-links a:nth-child(7) { transition-delay: 0.46s; }
 .mobile-menu-footer {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
   font-size: 14px; color: var(--cream-60);
@@ -440,6 +445,18 @@ em { font-style: normal; color: var(--gold); }
   height: 100%; width: 0; background: var(--gold);
 }
 
+/* ─── Projects (real work) ──────────────────────────────────── */
+.projects-grid {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 22px; margin-top: clamp(40px, 5vw, 60px);
+}
+.projects-grid .gallery-item { aspect-ratio: 4 / 3; }
+.projects-grid .gallery-item:nth-child(-n+2) { grid-column: span 3; }
+.projects-grid .gallery-item:nth-child(n+3) { grid-column: span 2; }
+.projects-grid--simple { grid-template-columns: repeat(2, 1fr); }
+.projects-grid--simple .gallery-item:nth-child(-n+2),
+.projects-grid--simple .gallery-item:nth-child(n+3) { grid-column: auto; }
+
 /* ─── Gallery / Visualizations ──────────────────────────────── */
 .gallery-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
@@ -594,7 +611,7 @@ em { font-style: normal; color: var(--gold); }
   outline: none; border-bottom-color: var(--gold);
 }
 .btn-submit { margin-top: 8px; align-self: flex-start; }
-.form-note { font-size: 13px; color: var(--cream-35); }
+.form-note { font-size: 13px; color: var(--cream-60); }
 
 /* ─── Footer ────────────────────────────────────────────────── */
 .footer {
@@ -630,11 +647,18 @@ em { font-style: normal; color: var(--gold); }
   .contact-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-item.wide { aspect-ratio: 16 / 9; }
+  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid .gallery-item:nth-child(-n+2),
+  .projects-grid .gallery-item:nth-child(n+3) { grid-column: auto; }
+}
+
+/* nav collapses earlier than the content — 7 links + logo + phone need the room */
+@media (max-width: 1080px) {
+  .nav-links, .nav-phone { display: none; }
+  .nav-burger { display: block; }
 }
 
 @media (max-width: 860px) {
-  .nav-links, .nav-phone { display: none; }
-  .nav-burger { display: block; }
   .services-grid { grid-template-columns: 1fr; }
   /* Process falls back to vertical stack */
   .process-pin { min-height: 0; }
@@ -657,6 +681,7 @@ em { font-style: normal; color: var(--gold); }
   .swatch { aspect-ratio: 16 / 10; }
   .gallery-grid { grid-template-columns: 1fr; }
   .gallery-item, .gallery-item.wide { aspect-ratio: 16 / 11; }
+  .projects-grid { grid-template-columns: 1fr; }
   .hero-cta .btn { width: 100%; }
   .hero-scroll { display: none; }
 }

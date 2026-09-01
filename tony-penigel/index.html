@@ -14,7 +14,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Heebo:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
 
@@ -32,7 +32,7 @@
       "postalCode": "3882500",
       "addressCountry": "IL"
     },
-    "openingHours": "Su-Th 08:00-18:00",
+    "openingHours": ["Su 08:00-18:00", "Mo-Th 08:00-18:00"],
     "priceRange": "$$"
   }
   </script>
@@ -77,6 +77,7 @@
       <a href="#approach" data-nav-link>הגישה</a>
       <a href="#services" data-nav-link>שירותים</a>
       <a href="#process" data-nav-link>התהליך</a>
+      <a href="#projects" data-nav-link>פרויקטים</a>
       <a href="#gallery" data-nav-link>הדמיות</a>
       <a href="#materials" data-nav-link>חומרים</a>
       <a href="#contact" data-nav-link>צרו קשר</a>
@@ -96,6 +97,7 @@
       <a href="#approach" data-nav-link>הגישה</a>
       <a href="#services" data-nav-link>שירותים</a>
       <a href="#process" data-nav-link>התהליך</a>
+      <a href="#projects" data-nav-link>פרויקטים</a>
       <a href="#gallery" data-nav-link>הדמיות</a>
       <a href="#materials" data-nav-link>חומרים</a>
       <a href="#contact" data-nav-link>צרו קשר</a>
@@ -249,10 +251,41 @@
           </div>
         </section>
 
+        <!-- ═══ Projects (real work — images land in assets/img/projects/) ═══ -->
+        <section class="projects section" id="projects">
+          <div class="container">
+            <p class="kicker"><span class="kicker-num">04</span>פרויקטים</p>
+            <h2 class="section-title">עבודות <em>נבחרות</em></h2>
+            <p class="section-sub">הצצה לבתים שכבר עברו את הדרך — מהרעיון ועד המפתח.</p>
+            <div class="projects-grid">
+              <figure class="gallery-item">
+                <img src="assets/img/projects/project-1.jpg" alt="סלון משפחתי מואר בגווני חום" loading="lazy">
+                <figcaption><strong>סלון משפחתי</strong><span>אור, חום ונוחות</span></figcaption>
+              </figure>
+              <figure class="gallery-item">
+                <img src="assets/img/projects/project-2.jpg" alt="מטבח ואזור אירוח מעוצבים" loading="lazy">
+                <figcaption><strong>מטבח ואירוח</strong><span>לב הבית</span></figcaption>
+              </figure>
+              <figure class="gallery-item">
+                <img src="assets/img/projects/project-3.jpg" alt="פינת אוכל באווירה כפרית" loading="lazy">
+                <figcaption><strong>פינת אוכל</strong><span>חיבור לחוץ</span></figcaption>
+              </figure>
+              <figure class="gallery-item">
+                <img src="assets/img/projects/project-4.jpg" alt="קיר טלוויזיה עם נגרות בהתאמה אישית" loading="lazy">
+                <figcaption><strong>נגרות בהתאמה</strong><span>סדר ושקט לעין</span></figcaption>
+              </figure>
+              <figure class="gallery-item">
+                <img src="assets/img/projects/project-5.jpg" alt="סלון באווירה כהה וחמימה" loading="lazy">
+                <figcaption><strong>סלון באווירה כהה</strong><span>עומק ודרמה</span></figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
         <!-- ═══ Gallery / Visualizations ═══ -->
         <section class="gallery section" id="gallery">
           <div class="container">
-            <p class="kicker"><span class="kicker-num">04</span>הדמיות</p>
+            <p class="kicker"><span class="kicker-num">05</span>הדמיות</p>
             <h2 class="section-title">רואים את הבית <em>לפני שהוא קיים</em></h2>
             <p class="section-sub">הדמיות קונספט מתוך תהליך העבודה — כך נראה חלום, רגע לפני שהוא הופך לבית.</p>
             <div class="gallery-grid">
@@ -279,7 +312,7 @@
         <!-- ═══ Materials ═══ -->
         <section class="materials section" id="materials">
           <div class="container">
-            <p class="kicker"><span class="kicker-num">05</span>שפת החומרים</p>
+            <p class="kicker"><span class="kicker-num">06</span>שפת החומרים</p>
             <h2 class="section-title">חומרים <em>שמרגישים</em> בית</h2>
             <p class="section-sub">הפלטה שממנה נולדים הבתים — חומרים טבעיים, מרקמים חיים וגוונים חמים שמתיישנים יפה.</p>
             <div class="materials-grid">
@@ -307,7 +340,7 @@
         <!-- ═══ Contact ═══ -->
         <section class="contact section" id="contact">
           <div class="container">
-            <p class="kicker"><span class="kicker-num">06</span>צרו קשר</p>
+            <p class="kicker"><span class="kicker-num">07</span>צרו קשר</p>
             <h2 class="section-title contact-title">בואו <em>נתחיל</em> לתכנן</h2>
             <div class="contact-grid">
               <div class="contact-info">
@@ -319,7 +352,7 @@
                   </li>
                   <li>
                     <span class="contact-label">וואטסאפ</span>
-                    <a href="https://wa.me/972527728175" target="_blank" rel="noopener">שלחו הודעה ונחזור אליכם</a>
+                    <a href="https://wa.me/972527728175" target="_blank" rel="noopener">שלחו הודעה ואחזור אליכם</a>
                   </li>
                   <li>
                     <span class="contact-label">כתובת</span>
@@ -368,6 +401,7 @@
               <a href="#approach" data-nav-link>הגישה</a>
               <a href="#services" data-nav-link>שירותים</a>
               <a href="#process" data-nav-link>התהליך</a>
+              <a href="#projects" data-nav-link>פרויקטים</a>
               <a href="#gallery" data-nav-link>הדמיות</a>
               <a href="#materials" data-nav-link>חומרים</a>
               <a href="#contact" data-nav-link>צרו קשר</a>
