@@ -1,0 +1,8 @@
+
+Running 1 test using 1 worker
+
+(node:17108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\mobile-arena.e2e.spec.ts:112:7 › educational arena on phones › Basic learner creates a topic game, asks a scoped question, and plays with thumb controls (18.2s)
+
+  1 passed (20.4s)

@@ -1,0 +1,13 @@
+
+Running 6 tests using 1 worker
+
+(node:17840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\e2e.spec.ts:38:5 › registration, Demo email verification, login, onboarding and persistent task XP (12.7s)
+  ok 2 tests\e2e.spec.ts:90:5 › settings persist English/light and Hebrew/RTL across mobile and desktop widths (6.7s)
+  ok 3 tests\e2e.spec.ts:114:5 › pricing creates exact bit orders, proof remains pending, admin approval refreshes access (24.0s)
+  ok 4 tests\e2e.spec.ts:162:5 › Free users get an interactive preview and the server refuses a full game (3.3s)
+  ok 5 tests\mobile-arena.e2e.spec.ts:106:7 › educational arena on phones › Basic learner creates a topic game, asks a scoped question, and plays with thumb controls (7.4s)
+  ok 6 tests\mobile-arena.e2e.spec.ts:184:7 › educational arena on phones › Free learner can create a preview but cannot start a full arena (3.6s)
+
+  6 passed (59.9s)
