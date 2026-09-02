@@ -1825,9 +1825,18 @@ function figure3d(M, x, y, z, opt) {
     M.box(x - 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
     M.box(x + 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
   }
+  // כתפיים ולסת שמוטה מעט — הפה פתוח כל הזמן
+  M.box(x, y + torsoH - 0.06 * s, z, 0.62 * s, 0.10 * s, 0.24 * s, dark, { flat: true });
+  M.box(x, y + torsoH + neck - 0.05 * s, z + 0.02 * s, 0.16 * s, 0.07 * s, 0.18 * s, dark, { flat: true });
   const armLen = (0.55 + (o.arms || 0) * 0.5) * s;
   M.box(x - 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
   M.box(x + 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
+  // אצבעות — ארבע לכל יד, דקות וארוכות מדי
+  for (let f = 0; f < 4; f++) {
+    const fx = -0.05 * s + f * 0.033 * s, fl = (0.16 + (o.arms || 0) * 0.12) * s;
+    M.box(x - 0.30 * s + fx, y + torsoH - armLen - fl, z + 0.02, 0.018 * s, fl, 0.02 * s, dark, { flat: true });
+    M.box(x + 0.30 * s + fx, y + torsoH - armLen - fl, z + 0.02, 0.018 * s, fl, 0.02 * s, dark, { flat: true });
+  }
   if (o.eyes) {   // שתי נקודות אדומות. בשימוש נדיר בלבד
     const ey = y + torsoH + neck + 0.16 * s, ez = z + 0.115 * s;
     M.panel(x - 0.05 * s, ey, ez, 0.035 * s, 0.02 * s, [0.85, 0.13, 0.13], 1);
@@ -1862,6 +1871,43 @@ function number7(M, x, y, z, w, h, str, col) {
   chars.forEach((c, i) => digit7(M, x + (i - (chars.length - 1) / 2) * gap, y, z, w, h, parseInt(c, 10), col));
 }
 
+/* ---- צל מגע על הרצפה — מלבן כהה מתחת לרהיט או לדמות ---- */
+function blob(M, x, z, rx, rz) {
+  M.quad([x - rx, 0.004, z + rz], [x + rx, 0.004, z + rz], [x + rx, 0.004, z - rz], [x - rx, 0.004, z - rz], [0.010, 0.010, 0.014]);
+}
+/* ---- מסגרת סביב דלת או לוח על הקיר האחורי ---- */
+function frame3d(M, x, y, z, w, h, t, d, col) {
+  M.box(x - w / 2 - t / 2, y, z, t, h + t, d, col);
+  M.box(x + w / 2 + t / 2, y, z, t, h + t, d, col);
+  M.box(x, y + h, z, w + 2 * t, t, d, col);
+}
+/* ---- פנלים לאורך בסיס הקירות ---- */
+function skirting(M, x0, x1, z0, z1, col) {
+  M.box((x0 + x1) / 2, 0, z0 + 0.04, x1 - x0, 0.12, 0.08, col, { skip: ["bottom", "back"] });
+  M.box(x0 + 0.04, 0, (z0 + z1) / 2, 0.08, 0.12, z1 - z0, col, { skip: ["bottom", "left"] });
+  M.box(x1 - 0.04, 0, (z0 + z1) / 2, 0.08, 0.12, z1 - z0, col, { skip: ["bottom", "right"] });
+}
+/* ---- גוף תאורה בתקרה: קופסה עם תחתית זוהרת ---- */
+function ceilingLamp(M, x, z, w, d, h, on) {
+  M.box(x, h - 0.08, z, w + 0.06, 0.08, d + 0.06, [0.09, 0.09, 0.11], { skip: ["top"] });
+  M.quad([x - w/2, h - 0.081, z - d/2], [x + w/2, h - 0.081, z - d/2], [x + w/2, h - 0.081, z + d/2], [x - w/2, h - 0.081, z + d/2],
+    [0.88 * on, 0.85 * on, 0.78 * on], 1);
+}
+/* ---- קיר ספוג אקוסטי אמיתי: פירמידה בכל תא, נראית בתאורה ---- */
+function foamWall3d(M, w, h, z, cols, rows, base) {
+  const cw = w / cols, ch = h / rows, depth = 0.075;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const x0 = -w / 2 + i * cw, y0 = j * ch, x1 = x0 + cw, y1 = y0 + ch;
+    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2, az = z + depth;
+    const f = ((i + j) % 2 === 0) ? 1.0 : 0.92;
+    const c = [base[0] * f, base[1] * f, base[2] * f];
+    M.tri([x0, y0, z], [x1, y0, z], [ax, ay, az], c);
+    M.tri([x1, y0, z], [x1, y1, z], [ax, ay, az], c);
+    M.tri([x1, y1, z], [x0, y1, z], [ax, ay, az], c);
+    M.tri([x0, y1, z], [x0, y0, z], [ax, ay, az], c);
+  }
+}
+
 /* ---- קליפת חדר: רצפה, תקרה, ארבעה קירות ---- */
 function shell(M, w, h, d, zBack, colWall, colFloor, colCeil) {
   const x0 = -w / 2, x1 = w / 2, z0 = zBack, z1 = zBack + d;
@@ -1890,8 +1936,13 @@ const SCENES = [
   /* ---------- פרק 1 · האולפן ---------- */
   function studio3d(t) {
     const M = new Mesh(), cr = creep();
+    const cz = -4.5 + cr * 0.5;
     shell(M, 6, 3, 8, -5.5, [0.075,0.075,0.095], [0.05,0.05,0.06], [0.045,0.045,0.055]);
-    foamWall(M, 6, 3, -5.5, 16, 8, [0.055,0.055,0.072]);
+    foamWall3d(M, 6, 3, -5.5, 16, 8, [0.06,0.06,0.078]);
+    skirting(M, -3, 3, -5.5, 2.5, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0.2, -2.6, 0.9, 0.5, 3, 0.9);
+    blob(M, 0, -3.4, 2.2, 0.75);
+    blob(M, -1.25, cz, 0.42, 0.42);
 
     // שולחן
     M.box(0, 0.74, -3.4, 4.2, 0.08, 1.3, [0.075,0.072,0.085]);
@@ -1915,6 +1966,8 @@ const SCENES = [
     M.box(-0.15, 1.24, -3.3, 0.12, 0.30, 0.12, [0.125,0.12,0.135]);
     M.box(-0.55, 1.30, -3.3, 0.80, 0.03, 0.03, [0.075,0.075,0.09]);
     M.box(-0.42, 1.16, -3.15, 0.02, 0.26, 0.20, [0.16,0.155,0.15]);   // פופ פילטר
+    M.box(0.45, 0.83, -3.55, 1.3, 0.015, 0.02, [0.05,0.05,0.06]);       // כבל על השולחן
+    M.box(1.15, 0.83, -3.42, 0.02, 0.015, 0.3, [0.05,0.05,0.06]);
 
     // אוזניות וכוס
     M.box(-1.25, 0.82, -3.2, 0.30, 0.05, 0.24, [0.105,0.10,0.095]);
@@ -1924,7 +1977,7 @@ const SCENES = [
     if (gameState.secretShown) M.box(0.62, 0.82, -3.1, 0.10, 0.14, 0.10, [0.10,0.095,0.09]);
 
     // כיסא האורח — ו"המאזין" יושב בו
-    const cz = -4.5 + cr * 0.5;
+
     M.box(-1.25, 0, cz, 0.55, 0.45, 0.55, [0.055,0.055,0.07]);
     M.box(-1.25, 0.45, cz - 0.24, 0.55, 0.55, 0.07, [0.055,0.055,0.07]);
     figure3d(M, -1.25, 0.62 + Math.sin(t * 0.6) * 0.012, cz + 0.05, {
@@ -1935,6 +1988,7 @@ const SCENES = [
     // נורית ההקלטה על הקיר
     M.panel(2.1, 2.05, -5.48, 0.10, 0.10, [0.85,0.13,0.13], 1);
     // דלת עם מנעול ספרות
+    frame3d(M, -2.35, 0, -5.42, 1.0, 2.15, 0.08, 0.12, [0.09,0.09,0.11]);
     M.panel(-2.35, 0, -5.47, 1.0, 2.15, [0.10,0.10,0.13]);
     M.panel(-2.05, 1.05, -5.45, 0.20, 0.28, [0.15,0.15,0.18]);
     M.panel(-2.05, 1.36, -5.45, 0.05, 0.04, [0.85,0.13,0.13], 1);
@@ -1942,7 +1996,7 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.42, -0.6], look: [0, 1.20, -4.8],
-      bounds: [-2.7, 2.7, -5.2, 2.2],
+      walls: [-3, 3, -5.5, 2.5], bounds: [-2.7, 2.7, -5.2, 2.2],
       blockers: [[-2.1, 2.1, -4.05, -2.75], [-1.6, -0.9, cz - 0.4, cz + 0.4]],
       fog: [0.028, 0.028, 0.035], fogD: 0.115,
       ambient: [0.15, 0.15, 0.18],
@@ -1965,7 +2019,13 @@ const SCENES = [
       M.quad([x,0.002,z + 0.9], [x + 0.8,0.002,z + 0.9], [x + 0.8,0.002,z], [x,0.002,z], [0.075,0.075,0.088]);
     }
 
+    skirting(M, -3.2, 3.2, -5.2, 2.3, [0.06,0.06,0.075]);
+    ceilingLamp(M, 1.6, -4.2, 0.8, 0.5, 3, 0.75);
+    blob(M, -2.0, -4.7, 0.35, 0.35);
+    // שלולית מתחת למעיל הרטוב
+    M.quad([-2.45, 0.006, -4.3], [-1.55, 0.006, -4.3], [-1.55, 0.006, -5.0], [-2.45, 0.006, -5.0], [0.05,0.055,0.075]);
     // דלת הכניסה עם זכוכית חלבית
+    frame3d(M, 0, 0, -5.12, 1.6, 2.4, 0.10, 0.14, [0.11,0.11,0.14]);
     M.panel(0, 0, -5.17, 1.6, 2.4, [0.085,0.085,0.11]);
     M.panel(0, 0.75, -5.15, 1.25, 1.35, [0.22,0.24,0.30], 0.55);
     // "האורח" מאחוריה — מתקרב לזכוכית בכל טעות
@@ -1997,7 +2057,7 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.3], look: [0, 1.30, -5.0],
-      bounds: [-2.9, 2.9, -4.9, 2.0],
+      walls: [-3.2, 3.2, -5.2, 2.3], bounds: [-2.9, 2.9, -4.9, 2.0],
       blockers: [[-2.3, -1.7, -5.0, -4.5]],
       fog: [0.025,0.025,0.032], fogD: 0.12,
       ambient: [0.15,0.15,0.18],
@@ -2015,8 +2075,14 @@ const SCENES = [
     const M = new Mesh(), cr = creep();
     shell(M, 6, 3, 7.5, -5.2, [0.065,0.065,0.085], [0.05,0.05,0.058], [0.04,0.04,0.05]);
 
+    skirting(M, -3, 3, -5.2, 2.3, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0, -2.4, 0.8, 0.5, 3, 0.55);
+    blob(M, 0, -3.5, 2.1, 0.7);
+    // כבלים שנשפכים מהשולחן לרצפה
+    M.box(1.5, 0.05, -3.0, 0.02, 0.75, 0.02, [0.04,0.04,0.05]);
+    M.box(1.5, 0.05, -2.5, 0.02, 0.02, 1.0, [0.04,0.04,0.05]);
     // שולחן עריכה
-    M.box(0, 0.75, -3.5, 4.0, 0.08, 1.2, [0.115,0.11,0.13]);
+    M.box(0, 0.75, -3.5, 4.0, 0.08, 1.2, [0.085,0.082,0.095]);
     M.box(-1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
     M.box(1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
     M.box(0, 0.79, -3.15, 0.75, 0.03, 0.26, [0.13,0.13,0.16]);   // מקלדת
@@ -2066,7 +2132,7 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.2], look: [0, 1.25, -4.8],
-      bounds: [-2.7, 2.7, -4.9, 2.0],
+      walls: [-3, 3, -5.2, 2.3], bounds: [-2.7, 2.7, -4.9, 2.0],
       blockers: [[-2.0, 2.0, -4.1, -2.9], [-0.5, 0.1, -2.5, -1.9]],
       fog: [0.022,0.022,0.030], fogD: 0.12,
       ambient: [0.14,0.14,0.17],
@@ -2084,42 +2150,51 @@ const SCENES = [
     const M = new Mesh(), cr = creep();
     shell(M, 3.0, 2.8, 22, -20, [0.075,0.075,0.095], [0.055,0.055,0.065], [0.05,0.05,0.062]);
 
-    // דלתות משני הצדדים
+    skirting(M, -1.5, 1.5, -20, 2, [0.06,0.06,0.075]);
+    // דלתות משני הצדדים, עם משקופים וידיות
     for (let i = 0; i < 8; i++) {
       const z = -3 - i * 2.3;
-      M.panelX(-1.47, 0, z, 0.95, 2.05, [0.115,0.115,0.145]);
-      M.panelX(1.47, 0, z, 0.95, 2.05, [0.105,0.105,0.135]);
-      M.panelX(-1.45, 0.95, z + 0.35, 0.07, 0.07, [0.45,0.43,0.41]);
-      M.panelX(1.45, 0.95, z - 0.35, 0.07, 0.07, [0.45,0.43,0.41]);
+      M.box(-1.46, 0, z, 0.08, 2.1, 1.05, [0.075,0.075,0.095], { skip: ["left"] });
+      M.box(1.46, 0, z, 0.08, 2.1, 1.05, [0.07,0.07,0.09], { skip: ["right"] });
+      M.panelX(-1.41, 0.02, z, 0.92, 2.02, [0.115,0.115,0.145]);
+      M.panelX(1.41, 0.02, z, 0.92, 2.02, [0.105,0.105,0.135]);
+      M.box(-1.38, 0.95, z + 0.35, 0.04, 0.04, 0.12, [0.45,0.43,0.41]);
+      M.box(1.38, 0.95, z - 0.35, 0.04, 0.04, 0.12, [0.45,0.43,0.41]);
     }
-    // מנורות תקרה
+    // מנורות תקרה — גופי תאורה אמיתיים
     const lamps = [-3.5, -8.5, -13.5];
     lamps.forEach((z, i) => {
       const on = (i === 1 && !gameState.reduceMotion) ? (Math.sin(t * 7.3) > -0.75 ? 1 : 0.25) : 1;
-      M.quad([-0.35, 2.77, z - 0.5], [0.35, 2.77, z - 0.5], [0.35, 2.77, z + 0.5], [-0.35, 2.77, z + 0.5],
-        [0.85 * on, 0.83 * on, 0.78 * on], 1);
+      ceilingLamp(M, 0, z, 0.7, 1.0, 2.8, on);
     });
 
     // הדלת בקצה, פתוחה מעט
+    frame3d(M, 0, 0, -19.85, 1.3, 2.2, 0.1, 0.14, [0.08,0.08,0.10]);
     M.panel(0, 0, -19.9, 1.3, 2.2, [0.09,0.09,0.115]);
     M.panel(-0.45, 0, -19.85, 0.35 + cr * 0.25, 2.1, [0.006,0.006,0.01]);
 
     // "הזוחל" — מתקרב דלת אחת בכל טעות
     const cz = -17.5 + cr * 9.5;
     const s = 1 + cr * 0.5;
-    M.box(0, 0.22 * s, cz, 1.05 * s, 0.42 * s, 1.5 * s, [0.012,0.012,0.018], { flat: true });
-    M.box(0, 0.12 * s, cz + 0.9 * s, 0.42 * s, 0.30 * s, 0.5 * s, [0.012,0.012,0.018], { flat: true });
-    for (let i = 0; i < 4; i++) {
-      const lz = cz - 0.5 * s + i * 0.42 * s;
-      const lift = Math.sin(t * 0.7 + i) * 0.10 * s;
+    const ink = [0.012,0.012,0.018];
+    blob(M, 0, cz + 0.2 * s, 1.2 * s, 1.3 * s);
+    M.box(0, 0.22 * s, cz, 0.95 * s, 0.40 * s, 1.5 * s, ink, { flat: true });             // גב
+    M.box(0, 0.30 * s, cz + 0.55 * s, 0.55 * s, 0.22 * s, 0.7 * s, ink, { flat: true });   // חזה נמוך
+    M.box(0, 0.36 * s, cz + 1.05 * s, 0.14 * s, 0.10 * s, 0.55 * s, ink, { flat: true });  // צוואר ארוך, קדימה
+    M.box(0, 0.24 * s, cz + 1.42 * s, 0.30 * s, 0.24 * s, 0.30 * s, ink, { flat: true });  // ראש, נמוך מדי
+    M.box(0, 0.16 * s, cz + 1.48 * s, 0.24 * s, 0.06 * s, 0.26 * s, ink, { flat: true });  // לסת תלויה
+    for (let i = 0; i < 6; i++) {   // שישה זוגות גפיים
+      const lz = cz - 0.6 * s + i * 0.28 * s;
+      const lift = Math.sin(t * 0.7 + i * 1.3) * 0.10 * s;
       [-1, 1].forEach(sd => {
-        M.box(sd * (0.62 + i * 0.05) * s, 0.30 * s + lift, lz, 0.10 * s, 0.62 * s, 0.10 * s, [0.012,0.012,0.018], { flat: true });
-        M.box(sd * (0.95 + i * 0.05) * s, 0.02, lz, 0.09 * s, 0.42 * s + lift, 0.09 * s, [0.012,0.012,0.018], { flat: true });
+        M.box(sd * (0.60 + i * 0.03) * s, 0.30 * s + lift, lz, 0.09 * s, 0.62 * s, 0.09 * s, ink, { flat: true });
+        M.box(sd * (0.96 + i * 0.03) * s, 0.02, lz, 0.08 * s, 0.45 * s + lift, 0.08 * s, ink, { flat: true });
+        M.box(sd * (0.60 + i * 0.03) * s, 0.88 * s + lift, lz, 0.40 * s, 0.07 * s, 0.07 * s, ink, { flat: true });
       });
     }
     if (gameState.monsterStep >= 2) {
-      M.panel(-0.11 * s, 0.16 * s, cz + 1.16 * s, 0.06 * s, 0.045 * s, [0.85,0.13,0.13], 1);
-      M.panel(0.11 * s, 0.16 * s, cz + 1.16 * s, 0.06 * s, 0.045 * s, [0.85,0.13,0.13], 1);
+      M.panel(-0.08 * s, 0.34 * s, cz + 1.58 * s, 0.05 * s, 0.035 * s, [0.85,0.13,0.13], 1);
+      M.panel(0.08 * s, 0.34 * s, cz + 1.58 * s, 0.05 * s, 0.035 * s, [0.85,0.13,0.13], 1);
     }
 
     // רמקול בתקרה ושלט יציאה
@@ -2137,7 +2212,7 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.0], look: [0, 1.35, -12],
-      bounds: [-1.2, 1.2, -19.2, 1.6],
+      walls: [-1.5, 1.5, -20, 2], bounds: [-1.2, 1.2, -19.2, 1.6],
       blockers: [[-1.2, 1.2, cz - 1.0, cz + 1.4]],
       fog: [0.015,0.015,0.022], fogD: 0.085,
       ambient: [0.12,0.12,0.15],
@@ -2156,7 +2231,11 @@ const SCENES = [
     const M = new Mesh(), cr = creep();
     shell(M, 5.4, 3, 7, -5.0, [0.075,0.075,0.098], [0.055,0.055,0.065], [0.045,0.045,0.055]);
 
-    // דלת היציאה
+    skirting(M, -2.7, 2.7, -5, 2, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0, -3.2, 0.8, 0.5, 3, 0.8);
+    blob(M, -1.75, -4.75, 0.45, 0.3);
+    // דלת היציאה, עם משקוף כבד
+    frame3d(M, 0, 0, -4.9, 1.7, 2.5, 0.14, 0.2, [0.10,0.10,0.13]);
     M.panel(0, 0, -4.96, 1.7, 2.5, [0.13,0.13,0.17]);
     M.panel(0, 0, -4.94, 1.5, 2.4, [0.10,0.10,0.14]);
     for (let i = 0; i < 8; i++) {   // מסמרות
@@ -2169,6 +2248,7 @@ const SCENES = [
     M.panel(0.16, 1.10, -4.90, 0.02, 0.11, [0.72,0.70,0.68], 1);
 
     // המסגרת שבה הייתה מראה — ו"השני" עומד בתוכה
+    frame3d(M, -1.75, 0.15, -4.9, 1.35, 2.3, 0.08, 0.12, [0.12,0.12,0.15]);
     M.panel(-1.75, 0.15, -4.94, 1.35, 2.3, [0.10,0.10,0.13]);
     M.panel(-1.75, 0.22, -4.92, 1.15, 2.1, [0.035,0.035,0.05], 0.18);
     const lag = Math.sin(t * 0.45) * 0.10;
@@ -2186,7 +2266,7 @@ const SCENES = [
     return {
       mesh: M,
       eye: [0, 1.55, -1.2], look: [-0.2, 1.30, -4.6],
-      bounds: [-2.4, 2.4, -4.6, 1.8],
+      walls: [-2.7, 2.7, -5, 2], bounds: [-2.4, 2.4, -4.6, 1.8],
       blockers: [],
       fog: [0.02,0.02,0.028], fogD: 0.13,
       ambient: [0.28,0.28,0.34],
@@ -2231,22 +2311,64 @@ const Scene3D = {
       precision mediump float;
       varying vec3 vPos, vNorm, vCol; varying float vEmit;
       uniform vec3 uLp[4], uLc[4]; uniform float uLr[4], uLi[4];
-      uniform vec3 uAmb, uFog, uEye; uniform float uFogD, uGain;
+      uniform vec3 uAmb, uFog, uEye; uniform float uFogD, uGain, uTime;
+      uniform vec4 uWalls;   /* x0, x1, z0, z1 של הקירות — להצללת פינות */
+
+      /* רעש ערכי בשלושה ממדים — הטקסטורה היחידה שיש לנו, כי אין תמונות */
+      float hash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0;
+        return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+      float vnoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+                   mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z); }
+      float fbm(vec3 p){ return 0.55 * vnoise(p) + 0.30 * vnoise(p * 2.1 + 3.7) + 0.15 * vnoise(p * 4.3 + 9.1); }
+
       void main(){
         vec3 n = normalize(vNorm);
-        vec3 alb = vCol * uGain;
-        vec3 lit = uAmb * alb;
+        float up = n.y;
+        float vert = 1.0 - abs(up);
+        /* לכלוך ושחיקה על כל משטח */
+        float g = fbm(vPos * 2.2), g2 = fbm(vPos * 9.0);
+        vec3 alb = vCol * uGain * (0.80 + 0.30 * g) * (0.90 + 0.20 * g2);
+        /* מרצפות: קווי רובה כהים */
+        if (up > 0.9) {
+          vec2 t = fract(vPos.xz * 1.25);
+          float grout = smoothstep(0.0, 0.035, t.x) * smoothstep(0.0, 0.035, t.y)
+                      * smoothstep(0.0, 0.035, 1.0 - t.x) * smoothstep(0.0, 0.035, 1.0 - t.y);
+          alb *= 0.72 + 0.28 * grout;
+        }
+        /* הצללת פינות מזויפת: רצפה ותקרה מתכהות ליד קירות, קירות ליד רצפה ותקרה */
+        float dx = min(vPos.x - uWalls.x, uWalls.y - vPos.x);
+        float dz = min(vPos.z - uWalls.z, uWalls.w - vPos.z);
+        float dw = max(0.0, min(dx, dz));
+        float ao = 1.0;
+        if (abs(up) > 0.5) ao *= 0.50 + 0.50 * smoothstep(0.0, 0.9, dw);
+        if (vert > 0.5) ao *= 0.50 + 0.50 * smoothstep(0.0, 0.7, min(vPos.y, 3.0 - vPos.y));
+        /* תאורה: למברט + ברק בלין-פונג, רצפה מבריקה יותר, ומנורה ראשית שמרצדת קלות */
+        vec3 V = normalize(uEye - vPos);
+        vec3 lit = uAmb * alb * ao;
+        float shin = (up > 0.9) ? 52.0 : 16.0;
+        float specW = (up > 0.9) ? 0.45 : 0.14;
+        float flick = 0.965 + 0.035 * sin(uTime * 23.0) * sin(uTime * 7.3);
         for (int i = 0; i < 4; i++){
           vec3 d = uLp[i] - vPos;
           float dist = length(d);
+          vec3 L = d / max(dist, 0.001);
           float att = max(0.0, 1.0 - dist / uLr[i]);
-          att *= att * uLi[i];
-          float lam = max(0.0, dot(n, d / max(dist, 0.001)));
-          lit += alb * uLc[i] * (0.25 + 0.75 * lam) * att;
+          att *= att * uLi[i] * (i == 0 ? flick : 1.0);
+          float lam = max(0.0, dot(n, L));
+          vec3 H = normalize(L + V);
+          float spec = pow(max(0.0, dot(n, H)), shin) * specW;
+          lit += alb * (0.22 + 0.78 * lam) * ao * uLc[i] * att + spec * uLc[i] * att;
         }
         vec3 col = mix(lit, vCol, vEmit);
+        /* ערפל, ואז עקומה פילמית עם צללים קרירים */
         float dc = length(vPos - uEye) * uFogD;
         col = mix(col, uFog, clamp(1.0 - exp(-dc * dc), 0.0, 1.0));
+        col = col / (col + 0.42) * 1.32;
+        col = pow(max(col, 0.0), vec3(1.28));
+        float lum = dot(col, vec3(0.3, 0.59, 0.11));
+        col = mix(vec3(lum), col, 0.86);
+        col += (0.5 - lum) * vec3(-0.02, -0.01, 0.035);
         gl_FragColor = vec4(col, 1.0);
       }`;
     const mk = (type, src) => {
@@ -2270,7 +2392,8 @@ const Scene3D = {
       uLr: gl.getUniformLocation(p, "uLr"), uLi: gl.getUniformLocation(p, "uLi"),
       uAmb: gl.getUniformLocation(p, "uAmb"), uFog: gl.getUniformLocation(p, "uFog"),
       uFogD: gl.getUniformLocation(p, "uFogD"), uEye: gl.getUniformLocation(p, "uEye"),
-      uGain: gl.getUniformLocation(p, "uGain")
+      uGain: gl.getUniformLocation(p, "uGain"), uTime: gl.getUniformLocation(p, "uTime"),
+      uWalls: gl.getUniformLocation(p, "uWalls")
     };
     this.buf = gl.createBuffer();
     gl.enable(gl.DEPTH_TEST);
@@ -2389,7 +2512,10 @@ const Scene3D = {
     // ההחשכה של הלילה מורידה את התאורה הסביבתית
     const k = Math.max(0.4, 1 - (gameState.dark + gameState.loopDark * 1.5) * 0.06);
     gl.uniform3fv(this.loc.uAmb, new Float32Array([s.ambient[0] * k, s.ambient[1] * k, s.ambient[2] * k]));
-    gl.uniform1f(this.loc.uGain, 2.9);
+    gl.uniform1f(this.loc.uGain, 2.6);
+    gl.uniform1f(this.loc.uTime, t);
+    const wl = s.walls || [-3, 3, -5, 2];
+    gl.uniform4f(this.loc.uWalls, wl[0], wl[1], wl[2], wl[3]);
     gl.uniform3fv(this.loc.uFog, new Float32Array(s.fog));
     gl.uniform1f(this.loc.uFogD, s.fogD);
     gl.uniform3fv(this.loc.uEye, new Float32Array(cam.eye));
