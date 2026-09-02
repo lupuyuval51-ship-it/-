@@ -1,0 +1,3643 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>הפרק האחרון</title>
+<style>
+/* ============================================================
+   הפרק האחרון — משחק אימה-חידות בקובץ אחד
+   פלטה: שחור-פחם, אפור-אבק, ואדום נורית הקלטה כניגוד יחיד
+   ============================================================ */
+:root{
+  --bg:#0a0a0c;          /* שחור-פחם */
+  --panel:#0e0e12;
+  --line:#3a3a45;
+  --ink:#cfc9c2;         /* טקסט ראשי — ניגוד 11:1 מול הרקע */
+  --dust:#8a8580;        /* אפור-אבק — ניגוד 5.3:1 */
+  --red:#c22;            /* אדום נורית — לגרפיקה בלבד */
+  --red-ink:#e35a5a;     /* אדום לטקסט — ניגוד 5.4:1 */
+  --dark:0;              /* דרגת החשכה — עולה בכל איפוס טיימר */
+  --vig:0.82;            /* עוצמת הויניאטה */
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink)}
+body{
+  font-family:system-ui,"Segoe UI",Arial,sans-serif;
+  font-size:16px;line-height:1.5;
+  -webkit-text-size-adjust:100%;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-weight:600;margin:0;letter-spacing:.02em}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ---------- שכבות אפקט קבועות ---------- */
+#grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60;opacity:.045}
+#vignette{
+  position:fixed;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(ellipse 90% 80% at 50% 45%, rgba(0,0,0,0) 30%, rgba(0,0,0,var(--vig)) 100%);
+  transition:background 1.2s linear;
+}
+
+/* ---------- שלד ---------- */
+#app{max-width:940px;margin:0 auto;padding:12px 12px 76px;min-height:100dvh;display:flex;flex-direction:column;gap:12px;position:relative;z-index:10}
+.screen[hidden]{display:none}
+.screen{display:flex;flex-direction:column;gap:14px;flex:1}
+
+/* ---------- מסך פתיחה ---------- */
+#screen-title{justify-content:center;align-items:center;text-align:center;gap:18px;min-height:70dvh}
+.title-main{font-size:clamp(2rem,9vw,3.4rem);letter-spacing:.12em}
+.title-sub{color:var(--dust);font-size:.95rem;max-width:34ch}
+.title-line{color:var(--dust);font-size:1rem;max-width:36ch}
+.title-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+/* ---------- כפתורים ---------- */
+.btn{
+  min-height:44px;min-width:44px;padding:11px 18px;
+  background:#131317;border:1px solid #5a5a66;border-radius:2px;
+  cursor:pointer;transition:background .18s,border-color .18s;
+}
+.btn:hover{background:#1a1a20;border-color:#8b8b99}
+.btn[aria-pressed="true"]{background:#22222b;border-color:var(--ink)}
+.btn-main{background:#17171c;border-color:#3c3c46;letter-spacing:.06em}
+.btn-ghost{background:transparent;color:var(--dust)}
+.btn:disabled{opacity:.45;cursor:default}
+
+/* ---------- סרגל עליון ---------- */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.rec{display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.rec-dot{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 10px rgba(204,34,34,.75);flex:none}
+.rec-dot.blink{animation:pulse 2.4s steps(2,end) infinite}
+@keyframes pulse{0%,49%{opacity:1}50%,100%{opacity:.25}}
+#timer{font-size:1.15rem}
+.chapline{color:var(--dust);font-size:.9rem;flex:1;min-width:120px}
+.topbar-actions{display:flex;gap:8px;margin-inline-start:auto}
+
+/* ---------- החדר ---------- */
+.room{position:relative;width:100%;aspect-ratio:16/10;background:#000;border:1px solid var(--line);overflow:hidden;filter:brightness(calc(1 - var(--dark)));transition:filter 1.2s linear}
+.room canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.room canvas[hidden]{display:none}
+/* הויניאטה של החדר — כאן היא אטמוספרה, לא מכשול קריאוּת */
+.room::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 90% 80% at 50% 45%, rgba(0,0,0,0) 28%, rgba(0,0,0,var(--vig)) 100%);
+  transition:background 1.2s linear;
+}
+.hs{
+  position:absolute;background:transparent;border:1px dashed rgba(207,201,194,.30);border-radius:3px;
+  min-width:44px;min-height:44px;cursor:pointer;padding:0;transition:border-color .2s,background .2s;
+}
+.hs:hover,.hs:focus-visible{border-color:rgba(207,201,194,.85);background:rgba(207,201,194,.07)}
+.hs.seen{border-style:solid;border-color:rgba(207,201,194,.42)}
+.hs[disabled]{cursor:default;border-color:rgba(138,133,128,.14)}
+/* פקדי הליכה — נחוצים במסכי מגע, שם אין מקלדת */
+#walk{position:absolute;inset-inline-end:8px;bottom:8px;display:flex;gap:6px;z-index:3}
+#walk[hidden]{display:none}
+.walkbtn{
+  min-width:44px;min-height:44px;border-radius:3px;cursor:pointer;
+  background:rgba(14,14,18,.72);border:1px solid rgba(207,201,194,.42);color:var(--ink);
+  font-size:1rem;line-height:1;touch-action:none;
+}
+.walkbtn:hover{background:rgba(30,30,38,.85)}
+.room{touch-action:pan-y}
+/* במסכי מגע אין hover — האזורים חייבים להיראות תמיד */
+@media (hover:none){ .hs{border-color:rgba(207,201,194,.42)} }
+
+/* ---------- נרטיב ---------- */
+.say{min-height:4.4em;font-size:clamp(1rem,3.6vw,1.12rem);color:var(--ink)}
+.say p{margin:0 0 .25em}
+.say .whisper{color:var(--dust)}
+.say .alarm{color:var(--red-ink)}
+
+/* ---------- פאנל חידה ---------- */
+.puzzle{background:var(--panel);border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px}
+.puzzle h2{font-size:1.05rem}
+.puzzle .ask{color:var(--dust);font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input[type=text]{
+  min-height:44px;padding:10px 12px;background:#08080a;border:1px solid #5a5a66;border-radius:2px;
+  color:var(--ink);font:inherit;flex:1;min-width:140px;
+}
+input[type=text]:focus-visible{border-color:var(--ink)}
+.feedback{min-height:1.5em;font-size:.95rem;color:var(--dust)}
+.feedback.bad{color:var(--red-ink)}
+.feedback.good{color:var(--ink)}
+canvas.figure{width:100%;height:auto;display:block;background:#08080a;border:1px solid var(--line)}
+.cap{color:var(--dust);font-size:.82rem}
+
+/* ---------- לוח אורחים (פרק 2) ---------- */
+table.board{width:100%;border-collapse:collapse;font-size:.92rem}
+table.board th,table.board td{border:1px solid var(--line);padding:8px 10px;text-align:right}
+table.board th{color:var(--dust);font-weight:500}
+ul.clues{margin:0;padding-inline-start:1.1em;color:var(--dust);font-size:.92rem;display:flex;flex-direction:column;gap:4px}
+.name-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+
+/* ---------- רשימת צ'פטרים (פרק 3) ---------- */
+ul.chapters{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.95rem}
+ul.chapters li{display:flex;gap:12px;border-bottom:1px solid #1a1a1f;padding-bottom:5px}
+ul.chapters .ts{color:var(--dust);font-variant-numeric:tabular-nums;letter-spacing:.05em;flex:none}
+
+/* ---------- מפת המסדרון (פרק 4) ---------- */
+.mapwrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.mapgrid{direction:ltr;display:grid;grid-template-columns:repeat(4,minmax(44px,72px));gap:6px}
+.cell{aspect-ratio:1;min-width:44px;min-height:44px;background:#111116;border:1px solid #5a5a66;color:var(--dust);font-size:.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;padding:2px}
+.cell:hover{background:#1a1a21}
+.cell.start{border-color:var(--ink);color:var(--ink)}
+.mirror{display:inline-block;transform:scaleX(-1);letter-spacing:.04em}
+.mono{font-variant-numeric:tabular-nums;letter-spacing:.08em}
+
+/* ---------- אינוונטר ---------- */
+.invbar{border-top:1px solid var(--line);padding-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.invbar .lbl{color:var(--dust);font-size:.85rem}
+.slot{min-height:44px;padding:8px 12px;background:#111116;border:1px solid #5a5a66;border-radius:2px;cursor:pointer;font-size:.9rem}
+.slot:hover{background:#1a1a21}
+.slot.empty{opacity:.3;cursor:default;border-style:dashed}
+
+/* ---------- מודאל ---------- */
+.veil{position:fixed;inset:0;background:rgba(4,4,6,.86);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+.veil[hidden]{display:none}
+.sheet{background:#0d0d11;border:1px solid #5a5a66;max-width:560px;width:100%;max-height:86dvh;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.sheet h2{font-size:1.1rem}
+.sheet ol{margin:0;padding-inline-start:1.3em;display:flex;flex-direction:column;gap:7px;color:var(--ink);font-size:.95rem}
+.sheet .empty{color:var(--dust)}
+
+/* ---------- מסך סיום ---------- */
+#screen-end{justify-content:center;align-items:center;text-align:center;gap:20px;min-height:76dvh}
+.reveal{font-size:clamp(1.05rem,4.2vw,1.35rem);max-width:30ch;line-height:1.7}
+.blackout{display:flex;flex-direction:column;align-items:center;gap:26px}
+.blackout[hidden]{display:none}
+.blackout .last{font-size:1.1rem;letter-spacing:.16em;color:var(--dust)}
+
+/* כפתור ההשתקה יושב מחוץ למסכים — קבוע, בפינה, בכל מצב */
+#btn-mute{position:fixed;left:12px;bottom:12px;z-index:70}
+
+/* ---------- אפקטים ---------- */
+.glitch{animation:glitch .5s steps(2,end) 1}
+@keyframes glitch{
+  0%{transform:translateX(0)}15%{transform:translateX(-6px)}30%{transform:translateX(5px)}
+  45%{transform:translateX(-3px)}60%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:translateX(0)}
+}
+.flick{animation:flick .08s steps(2,end) 1}
+@keyframes flick{0%{opacity:1}50%{opacity:.12}100%{opacity:1}}
+.fadein{animation:fadein .9s ease-out 1}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+
+/* בטלפון שכוב החדר חייב להיכנס למסך — גובה מפורש, לא יחס רוחב-גובה */
+@media (orientation:landscape) and (max-height:560px){
+  .room{aspect-ratio:auto;height:54dvh;min-height:150px}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .glitch,.flick,.fadein,.rec-dot.blink{animation:none !important}
+  #grain{display:none}
+  .room,.room::after,#vignette{transition:none}
+}
+@media (max-width:420px){
+  #app{padding:10px 10px 72px}
+  .room{aspect-ratio:4/3}
+  .topbar-actions{width:100%;margin-inline-start:0}
+  .topbar-actions .btn{flex:1}
+}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+
+<canvas id="grain" aria-hidden="true"></canvas>
+<div id="vignette" aria-hidden="true"></div>
+<button class="btn" id="btn-mute" aria-pressed="false">השתק</button>
+
+<div id="app">
+
+  <!-- ========== מסך 1: פתיחה ========== -->
+  <section class="screen" id="screen-title" aria-label="מסך פתיחה">
+    <h1 class="title-main" id="ttl-main">הפרק האחרון</h1>
+    <p class="title-sub" id="ttl-sub"></p>
+    <p class="title-line" id="ttl-line"></p>
+    <div class="title-actions">
+      <button class="btn btn-main" id="btn-start">התחל הקלטה</button>
+      <button class="btn btn-ghost" id="btn-cw">אזהרת תוכן</button>
+    </div>
+    <p class="cap" id="ttl-foot"></p>
+  </section>
+
+  <!-- ========== מסך 2: משחק ========== -->
+  <section class="screen" id="screen-game" hidden aria-labelledby="game-h1">
+    <h1 class="sr" id="game-h1" tabindex="-1">הפרק האחרון</h1>
+    <div class="topbar">
+      <div class="rec">
+        <span class="rec-dot blink" id="recdot" aria-hidden="true"></span>
+        <span id="timer" class="mono" role="timer" aria-live="off">45:00</span>
+      </div>
+      <div class="chapline" id="chapline" aria-live="polite"></div>
+      <div class="topbar-actions">
+        <button class="btn" id="btn-archive">ארכיון השאלות</button>
+        <button class="btn" id="btn-3d" aria-pressed="true">תלת-ממד</button>
+      </div>
+    </div>
+
+    <div class="room" id="room">
+      <canvas id="roomgl" aria-hidden="true"></canvas>
+      <canvas id="roomcv" aria-hidden="true" hidden></canvas>
+      <p class="sr" id="roomdesc"></p>
+      <div id="hotspots"></div>
+      <div id="walk" hidden>
+        <button class="walkbtn" id="walk-fwd" aria-label="צעד קדימה">▲</button>
+        <button class="walkbtn" id="walk-back" aria-label="צעד אחורה">▼</button>
+        <button class="walkbtn" id="walk-reset" aria-label="חזרה לנקודת ההתחלה">◎</button>
+      </div>
+    </div>
+
+    <p class="cap" id="walkhint" hidden></p>
+    <p class="feedback bad" id="glnote" hidden></p>
+
+    <div class="say" id="say" aria-live="polite"></div>
+
+    <div class="puzzle" id="puzzle">
+      <h2 id="pz-title"></h2>
+      <p class="ask" id="pz-ask"></p>
+      <div id="pz-body"></div>
+      <div class="row" id="pz-actions"></div>
+      <p class="feedback" id="pz-feedback" aria-live="polite"></p>
+    </div>
+
+    <div class="invbar" id="invbar">
+      <span class="lbl" id="bag-label"></span>
+      <div class="row" id="invslots"></div>
+    </div>
+  </section>
+
+  <!-- ========== מסך 3: סיום ========== -->
+  <section class="screen" id="screen-end" hidden aria-labelledby="end-h1">
+    <h1 class="sr" id="end-h1" tabindex="-1">סוף ההקלטה</h1>
+    <div id="end-reveal" class="reveal" aria-live="polite"></div>
+    <div class="blackout" id="end-black" hidden>
+      <span class="rec-dot blink" id="enddot" aria-hidden="true"></span>
+      <p class="last" id="end-last"></p>
+      <button class="btn btn-main" id="btn-again">שוב</button>
+    </div>
+  </section>
+</div>
+
+<!-- ========== מודאל כללי: ארכיון / פריט / אזהרת תוכן ========== -->
+<div class="veil" id="veil" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" id="sheet">
+    <h2 id="sheet-title"></h2>
+    <div id="sheet-body"></div>
+    <div class="row"><button class="btn" id="sheet-close">סגור</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   הפרק האחרון · משחק אימה-חידות
+   קובץ אחד. בלי שרת, בלי קבצים חיצוניים, בלי אחסון מקומי.
+   ----------------------------------------------------------------
+   מפת הקוד:
+   1. TEXT      — כל טקסטי המשחק (לעריכה חופשית)
+   2. SOLUTIONS — פתרונות החידות
+   3. gameState — מכונת המצבים היחידה
+   4. Audio     — Web Audio API בלבד
+   5. FX        — רעש, ויניאטה, הבהוב, ריצוד
+   6. Rooms     — ציור החדרים והמפלצות ב-canvas
+   7. UI        — רינדור מסכים, אינוונטר, ארכיון, מודאל
+   8. Puzzles   — לוגיקת חמש החידות
+   9. Boot      — אתחול ואירועים
+   ================================================================ */
+
+/* ================================================================
+   1. TEXT — כל טקסטי המשחק במקום אחד
+   ================================================================ */
+const TEXT = {
+
+  /* ---- מסך פתיחה ---- */
+  title: {
+    main: "הפרק האחרון",
+    sub: "יצירה בדיונית. כל דמיון למציאות מקרי.",
+    line: "03:12. אולפן אחד. פרק אחד שאסור היה להקליט.",
+    foot: "מומלץ באוזניות. אפשר להשתיק בכל רגע.",
+    start: "התחל הקלטה",
+    cw: "אזהרת תוכן"
+  },
+
+  /* ---- אזהרת תוכן ---- */
+  contentWarning: {
+    title: "אזהרת תוכן",
+    body: [
+      "אימה שקטה: מתח, בדידות, אובדן שליטה על הזיכרון.",
+      "יש דמויות מטרידות ברקע. הן לא קופצות ולא תוקפות.",
+      "אין דם, אין קפיצות פתאום, אין צלילים חדים.",
+      "יש טון בס נמוך ורציף. כפתור ההשתקה תמיד בפינה.",
+      "אין מוות ואין הפסד. אפשר לטעות כמה שצריך."
+    ]
+  },
+
+  /* ---- ממשק ---- */
+  ui: {
+    archive: "ארכיון השאלות",
+    archiveTitle: "שאלות ששאלתי הלילה",
+    archiveEmpty: "עוד לא שאלתי כלום.",
+    mute: "השתק",
+    unmute: "בטל השתקה",
+    close: "סגור",
+    submit: "אשר",
+    hint: "רמז",
+    hintLocked: "רמז (נפתח אחרי שלוש טעויות)",
+    hintLast: "זה כל מה שיש לי.",
+    bagEmpty: "ריק",
+    bag: "בתיק:",
+    chapLabel: (n, name) => "פרק " + n + " · " + name,
+    itemTitle: (n) => n + " — מקרוב",
+    again: "שוב",
+    endContinue: "המשך"
+  },
+
+  /* ---- תוויות לקוראי מסך ---- */
+  a11y: {
+    hotspot: (label) => label + " — בדוק",
+    itemBtn: (name) => name + " — בדיקה מקרוב",
+    chooseName: (name) => "בחר את " + name,
+    wave: "גל קול בשני ערוצים. בערוץ העליון גל רציף. בערוץ התחתון, משמאל לימין: קבוצה של שבע פסגות, אחר כך שלוש, אחר כך אחת, ואחר כך תשע.",
+    waveInput: "קוד בן ארבע ספרות לפי גודל הקבוצות בערוץ התחתון",
+    map: "מפת מסדרון ארבע על ארבע. עמודה 1 בצד שמאל, עמודה 4 בצד ימין. קדימה הוא כלפי שורה 1, הכניסה בכיוון שורה 4.",
+    cell: (r, c, here) => "שורה " + r + " עמודה " + c + (here ? " — כאן אתה עומד" : ""),
+    subtitle: "כתובית ההקלטה",
+    room: (name, presence) => "החדר: " + name + (presence ? ". " + presence : ""),
+    hintOpen: "כפתור רמז זמין עכשיו.",
+    walkHint: "אפשר להסתובב בחדר: W A S D או מקשי החיצים, וגרירה בעכבר או באצבע כדי להביט. אפשר גם פשוט ללחוץ על מה שרואים.",
+    mode3d: "תלת-ממד",
+    mode2d: "דו-ממד",
+    noWebGL: "הדפדפן הזה לא מאפשר WebGL, ולכן החדרים מוצגים בדו-ממד. פתח את הקובץ ישירות בכרום, בפיירפוקס או בספארי מעודכנים — לא בתצוגה מקדימה — כדי לראות אותם בתלת-ממד.",
+    lostWebGL: "החיבור לכרטיס המסך נותק. המשחק עבר לדו-ממד; לחץ על \"תלת-ממד\" כדי לנסות שוב."
+  },
+
+  /* ---- טקסט הרמזים הכללי ---- */
+  hintIntro: "רמז, בצורת שאלה:",
+
+  /* ================================================================
+     חמישה פרקים. כל פרק: כניסה, אזורי חיפוש, חידה, תגובות, סיום.
+     ================================================================ */
+  chapters: [
+
+    /* ---------------- פרק 1 · האולפן ---------------- */
+    {
+      name: "האולפן",
+      puzzle: "מי דיבר?",
+      intro: [
+        "03:12. פרק 300. האורח לא הגיע.",
+        "בקובץ יש שני ערוצי אודיו. במיקסר יש מיקרופון אחד.",
+        "הדלת ננעלה כשההקלטה התחילה. יש עליה מנעול ספרות."
+      ],
+      introAlt: "03:12. פרק 300. האורח לא הגיע — בפעם ה־{n}.",
+      question: "מי דיבר בערוץ השני?",
+      hotspots: [
+        { label: "מיקרופון", text: ["מיקרופון אחד. כבל אחד. נורית אחת דולקת.", "אני מדבר לתוכו כבר שעה. אני חושב."] },
+        { label: "נורית ההקלטה", text: ["היא לא כבתה מאז שהתחלתי.", "אני לא זוכר שלחצתי על ההקלטה."], question: "מתי בעצם לחצתי הקלט?" },
+        { label: "אוזניות", text: ["מונחות הפוך על השולחן.", "כאילו מישהו הרגע הוריד אותן."], item: "אוזניות" },
+        { label: "כוס", text: ["קפה. קר. מלאה עד הסוף.", "אני לא שותה קפה בלילה. אף פעם."], item: "כוס קרה", question: "מי הכין את זה?" },
+        { label: "כיסא האורח", text: ["הכיסא מולי מוזז פנימה, קרוב מדי לשולחן.", "מישהו ישב בו בזמן שדיברתי."] }
+      ],
+      monsterName: "המאזין",
+      pzAsk: "בערוץ התחתון יש ארבע קבוצות של פסגות. ספור כל קבוצה. ארבע ספרות.",
+      pzCap: "ציר הזמן: משמאל לימין. הערוץ העליון — אני. התחתון — לא אני.",
+      pzPlaceholder: "ארבע ספרות",
+      roomDesc: "אולפן הקלטה. מיקרופון אחד, מסך עריכה, שולחן, ודלת עם מנעול ספרות.",
+      presence: "בכיסא האורח יושבת דמות עם אוזניות. היא לא זזה כשמסתכלים עליה.",
+      nearMiss: "קרוב. באיזה כיוון רץ ציר הזמן?",
+      hints: [
+        "כמה פסגות יש בקבוצה הראשונה, ומה קורה אם כל קבוצה היא ספרה אחת?",
+        "אתה סופר רק את מה שמתחת לקו האמצע, נכון?",
+        "הקבוצה הראשונה שבע. השאר?"
+      ],
+      wrong: [
+        "המנעול לא זז. משהו אחר בחדר כן.",
+        "לא. הערוץ התחתון נשמע כאילו הוא נושם בין הקבוצות.",
+        "לא. תספור שוב. הזמן פה לא נגמר.",
+        "המספר הזה כבר נוסה הלילה. על ידי מי?",
+        "המנעול מחמם. הוא עבד הרבה הלילה."
+      ],
+      solved: [
+        "המנעול נפתח מעצמו רגע לפני שסיימתי להקליד.",
+        "בערוץ התחתון, בדיוק בשנייה הזאת, מישהו נשם פנימה."
+      ],
+      recording: "[00:04:41] «אתה תמיד שואל מה קרה. אף פעם לא מתי.»"
+    },
+
+    /* ---------------- פרק 2 · הכניסה ---------------- */
+    {
+      name: "הכניסה",
+      puzzle: "רשימת האורחים",
+      intro: [
+        "על הלוח בכניסה שישה שמות להיום.",
+        "חמישה שלחו ביטול הלילה. אחד לא שלח כלום.",
+        "אף אחד במערכת לא זוכר שהזמין אותו."
+      ],
+      question: "מי קבע פגישה בשלוש לפנות בוקר?",
+      hotspots: [
+        { label: "לוח האורחים", text: ["שישה שמות. חמש הודעות ביטול.", "כתב היד בשורה האחרונה הוא שלי."] },
+        { label: "מעילים", text: ["מעיל אחד תלוי. רטוב.", "לא ירד גשם הלילה."], item: "מעיל רטוב", question: "של מי המעיל?" },
+        { label: "אינטרקום", text: ["הנורית ירוקה. הקו פתוח.", "מישהו מקשיב מהצד השני ולא מדבר."] },
+        { label: "דלת הכניסה", text: ["נעולה מבחוץ. הזכוכית חלבית.", "מאחוריה עומד מישהו בגובה שלי."] },
+        { label: "שעון", text: ["03:12.", "הוא הראה 03:12 גם כשנכנסתי."], question: "כמה זמן אני כבר פה?" }
+      ],
+      monsterName: "האורח",
+      pzAsk: "חמש עדויות. מי מהשישה לא ביטל?",
+      pzCap: "השעות בלוח הן שעות הפגישה. סדר הביטולים נגזר מהעדויות בלבד.",
+      clues: [
+        "הביטול הראשון הגיע ממי שהנושא שלו רדיו.",
+        "האורח של 14:00 ביטל מיד אחרי האורח של 10:00.",
+        "מי שהנושא שלו זיכרון ביטל שני.",
+        "שני הביטולים האחרונים: קודם מי שהנושא שלו קול, ומיד אחריו מי שהנושא שלו פחד.",
+        "חמישה ביטולים נרשמו הלילה. שם אחד ברשימה לא שלח דבר."
+      ],
+      board: {
+        head: ["שעה", "שם", "נושא"],
+        rows: [
+          ["10:00", "אורי נבו", "זיכרון"],
+          ["11:30", "תמר גלעד", "רדיו"],
+          ["13:00", "יונתן ברק", "פחד"],
+          ["14:00", "שיר אלמוג", "שינה"],
+          ["16:30", "נועם דגן", "קול"],
+          ["03:12", "דושי", "—"]
+        ]
+      },
+      roomDesc: "כניסת המבנה. דלת זכוכית חלבית, לוח אורחים, מתלה מעילים, אינטרקום ושעון.",
+      presence: "מאחורי הזכוכית החלבית עומדת דמות בגובה שלי. היא מתקרבת כשאני טועה.",
+      hints: [
+        "אם עדות 1 נותנת את הראשון, עדות 3 את השני ועדות 4 את שני האחרונים — לאיזה שם לא נשאר מקום בתור?",
+        "חמישה שמות מקבלים מספר ביטול. איזה שם לא מקבל אף מספר?",
+        "למה בכלל יש שורה בשעה 03:12, ומי כתב אותה?"
+      ],
+      wrong: [
+        "השם הזה מחוק באדום. הביטול שלו רשום.",
+        "לא. הכתב בשורה הזאת לא דומה לכתב בשורה האחרונה.",
+        "טעות. מישהו מאחורי הזכוכית התקרב חצי צעד.",
+        "לא. אבל אתה מתקרב לשם שאתה לא רוצה.",
+        "יש קו אדום על השם הזה. תסתכל מי נשאר בלי קו."
+      ],
+      solved: [
+        "השם השישי הוא שלי. אני קבעתי לעצמי.",
+        "האורח הגיע בזמן. הוא פשוט לא נכנס מהדלת."
+      ],
+      recording: "[00:19:07] «תגיד לי אתה. מי מדבר עכשיו?»"
+    },
+
+    /* ---------------- פרק 3 · חדר העריכה ---------------- */
+    {
+      name: "חדר העריכה",
+      puzzle: "הצ'פטרים",
+      intro: [
+        "על המסך פרק ישן שאני לא זוכר שערכתי.",
+        "חמישה צ'פטרים. חמש חותמות זמן.",
+        "התיקייה נעולה בסיסמה בת חמש אותיות."
+      ],
+      question: "מי העלה את הפרק הזה?",
+      hotspots: [
+        { label: "מדף קלטות", text: ["קלטות ממוספרות 1 עד 299.", "המקום של 300 על המדף עדיין ריק."] },
+        { label: "פתק על הקיר", text: ["פתק בכתב היד שלי, שלוש מילים:", "«מי מקליט אותי?» — אני לא זוכר שכתבתי אותו."], item: "פתק" },
+        { label: "מסך שני", text: ["גל קול שרץ בלי מקור.", "הצורה שלו נפתחת ונסגרת כמו פה."] },
+        { label: "כיסא העריכה", text: ["הכיסא מסתובב לאט, לבד.", "הוא לא היה מופנה אליי קודם."], question: "מי ישב פה לפניי?" },
+        { label: "מקלדת", text: ["חמש אותיות שחוקות יותר מהשאר.", "אני כותב את אותה מילה כל לילה."], item: "מקלדת שחוקה" }
+      ],
+      monsterName: "הפֶּה",
+      pzAsk: "בכל כותרת יש אות אחת שהמיקום שלה הוא מספר השניות. הרכב את המילה.",
+      pzCap: "רווחים נספרים. חמש אותיות, לפי סדר הצ'פטרים.",
+      pzPlaceholder: "סיסמה",
+      chapters: [
+        { ts: "00:09", name: "פתיחה ושתיקה" },
+        { ts: "04:17", name: "הדבר שלא נאמר בהקלטה" },
+        { ts: "11:10", name: "מי עונה כשאין אף אחד" },
+        { ts: "19:14", name: "מי שנשאר להקשיב" },
+        { ts: "27:15", name: "הפרק שלא שודר בכלל" }
+      ],
+      /* הצ'פטר שמופיע לבד באמצע הפרק, בלי הודעה. לא חלק מהחידה. */
+      secretChapter: { ts: "00:00", name: "עדיין כאן" },
+      roomDesc: "חדר עריכה. מדף קלטות, שני מסכים, פתק על הקיר, כיסא ומקלדת.",
+      presence: "במסך השני יש גל שנפתח ונסגר כמו פה. אחרי כמה טעויות צומחות בו שיניים.",
+      hints: [
+        "מה קורה אם סופרים אותיות בכותרת, כולל רווחים, עד מספר השניות?",
+        "בכותרת הראשונה — מהי האות התשיעית?",
+        "אם האות הראשונה היא ת׳ — איזו אות נותן אותו כלל בכותרת השנייה?"
+      ],
+      wrong: [
+        "הסיסמה שגויה. הסמן בשדה המשיך להבהב רגע אחרי שעצרתי.",
+        "לא. אבל הגל במסך השני נעצר לרגע כדי לשמוע אותך.",
+        "לא זו. אתה כותב אותה כל לילה ושוכח.",
+        "שגוי. ובכל זאת המסך הבהב כמו שאומרים כן.",
+        "לא. המילה הזאת קצרה מדי בשביל מה שהוא רוצה."
+      ],
+      solved: [
+        "התיקייה נפתחה. שם הקובץ הוא התאריך של מחר.",
+        "הגל במסך השני נסגר. הוא סיים להקשיב."
+      ],
+      recording: "[00:33:52] «אני לא מפחד ממה שיש בחדר. אני מפחד שהוא יענה.»"
+    },
+
+    /* ---------------- פרק 4 · המסדרון ---------------- */
+    {
+      name: "המסדרון",
+      puzzle: "ההקלטה ההפוכה",
+      intro: [
+        "מסדרון של שש עשרה דלתות. הרמקול בתקרה מדבר.",
+        "המשפט לא מובן. הוא רץ בכיוון הלא נכון.",
+        "בקצה המסדרון משהו ארוך מדי זז לאט."
+      ],
+      question: "למה הקול הזה יודע איפה אני עומד?",
+      hotspots: [
+        { label: "רמקול", text: ["הקול יוצא ממנו, אבל אין כבל.", "הוא מדבר בקצב של הנשימה שלי."] },
+        { label: "שלט יציאה", text: ["השלט מהבהב ומצביע אחורה, לכיוון האולפן.", "אין חץ שמצביע החוצה."], question: "למה כל החצים פנימה?" },
+        { label: "מפסק תאורה", text: ["המפסק למטה. האור דולק בכל זאת.", "מישהו החליט בשבילי."], item: "מפסק" },
+        { label: "הדלת בקצה", text: ["הדלת בקצה פתוחה כמה סנטימטרים.", "היא הייתה סגורה כשנכנסתי."] },
+        { label: "רצפה", text: ["סימני גרירה ארוכים על הרצפה.", "הם מובילים ממני והלאה, לא אליי."] }
+      ],
+      monsterName: "הזוחל",
+      pzAsk: "הפוך את כיוון ההקלטה, ואז לך לפי מה שהיא אומרת.",
+      pzCap: "אתה עומד בעמדה המסומנת ופונה לכיוון החץ — ולא מסתובב לאורך כל הדרך.",
+      phrase: "שלוש דלתות ימינה, אחת אחורה",
+      playLabel: "נגן",
+      flipLabel: "הפוך כיוון",
+      mapForward: "קדימה ↑",
+      mapEntrance: "כניסה",
+      mapHere: "כאן",
+      roomDesc: "מסדרון עם שש עשרה דלתות, רמקול בתקרה, שלט יציאה ומפסק תאורה.",
+      presence: "בקצה המסדרון זוחל דבר ארוך מדי עם יותר מדי גפיים. הוא מתקרב בדלת אחת בכל טעות.",
+      hints: [
+        "לאיזה כיוון היד הימנית שלך מצביעה כשאתה פונה לכיוון החץ?",
+        "שלוש דלתות ימינה — באיזו עמודה אתה נמצא עכשיו?",
+        "אם הכניסה מאחוריך, לאיזו שורה לוקח אותך צעד אחד אחורה?"
+      ],
+      wrong: [
+        "הדלת נעולה. הדבר בקצה המסדרון התקרב בדלת אחת.",
+        "לא כאן. מאחורי הדלת הזאת מישהו נשם בלי להיכנס.",
+        "טעות. הצללית בקצה כבר לא מוטלת על הקיר הנכון.",
+        "לא. אבל אתה שומע את עצמך מדבר מאחורי הדלת הזאת.",
+        "לא כאן. הסימנים על הרצפה מובילים לדלת אחרת."
+      ],
+      solved: [
+        "הדלת נפתחת פנימה, אל תוך האולפן שיצאתי ממנו.",
+        "הדבר בקצה המסדרון עצר. הוא חיכה שאמצא."
+      ],
+      recording: "[00:41:19] «אני חוזר להתחלה. שוב. תפסיק להקליט.»"
+    },
+
+    /* ---------------- פרק 5 · היציאה ---------------- */
+    {
+      name: "היציאה",
+      puzzle: "השאלה החשובה",
+      intro: [
+        "דלת יציאה אחת. בלי ידית ובלי מנעול.",
+        "עליה מסך קטן עם שדה טקסט אחד, בלי הסבר.",
+        "מולה, במקום שבו הייתה מראה, עומד מישהו בגובה שלי."
+      ],
+      question: "איך יוצאים מפה?",
+      hotspots: [
+        { label: "הדלת", text: ["על הדלת כתוב 300.", "המספר הזה משתנה כשאני לא מסתכל."] },
+        { label: "המסך", text: ["שדה אחד. אין רמז מה להקליד.", "הסמן מהבהב בקצב שלי."] },
+        { label: "המקום של המראה", text: ["הדמות מולי לובשת מה שאני לובש.", "היא מזיזה את הפה שנייה אחריי."], question: "מי מדבר ראשון?" },
+        { label: "רמקול קטן", text: ["מהרמקול יוצאת ההקלטה של הלילה הזה, כמה משפטים לפניי.", "הקול השני שואל בה: «מי מקליט אותי?»"] },
+        { label: "שלט הפעלה", text: ["נורית אחת אדומה. כתוב לידה: מקליט.", "היא דולקת גם עכשיו."] }
+      ],
+      monsterName: "השני",
+      recLabel: "מקליט",
+      pzAsk: "כל השאלות ששאלתי הלילה נאספו בארכיון. הקלד את השאלה שאף פעם לא שאלתי את עצמי.",
+      pzCap: "ראית אותה הלילה. היא לא בארכיון.",
+      pzPlaceholder: "הקלד שאלה",
+      roomDesc: "חדר יציאה. דלת כבדה עם מספר, מסך קטן, מסגרת ריקה במקום מראה ולוח הפעלה.",
+      presence: "במקום המראה עומדת דמות בגובה שלי. היא מחקה אותי באיחור, ואז מפסיקה לחקות.",
+      hints: [
+        "מה שאלת הלילה — ומה, בעצם, לא שאלת?",
+        "פתח את הארכיון. איזו שאלה ראית הלילה והיא לא ברשימה?",
+        "בפתק בחדר העריכה — ובהקלטה שברמקול — נשאלה שאלה אחת: «מי מקליט אותי?» מי שאל אותה, אם לא אני?"
+      ],
+      wrong: [
+        "הדלת לא זזה. הדמות שמולי כן.",
+        "לא זו. השאלה הזאת לא פותחת כלום.",
+        "לא. הדלת לא מגיבה לשאלות שכבר יש להן תשובה.",
+        "שגוי. הדמות שמולי הפסיקה לחקות אותי והתחילה להוביל.",
+        "לא. אני שומע את עצמי שואל משהו אחר, מאחורי הדלת."
+      ],
+      wrongInArchive: "את זו כבר שאלתי הלילה. היא בארכיון. הדלת רוצה את השנייה.",
+      solved: [
+        "הדלת נפתחת. מאחוריה האולפן, וההקלטה עדיין רצה.",
+        "הכיסא שלי מוזז פנימה, קרוב מדי לשולחן."
+      ],
+      recording: "[00:45:00] «פרק 300. הקלטה ראשונה. אני לבד באולפן.»"
+    }
+  ],
+
+  /* ---- טקסטים חוזרים ---- */
+  recordingLabel: "מתוך ההקלטה:",
+  chapterSolved: "ההקלטה מתקדמת.",
+  toNext: "המשך",
+  timerReset: "ההקלטה חזרה להתחלה.",
+
+  /* ---- סיום ---- */
+  ending: {
+    reveal: [
+      "הקול השני בהקלטה הוא שלי, מפרק שאני לא זוכר שהקלטתי.",
+      "הטיימר לא ספר כמה זמן נשאר. הוא חזר ל־45:00 בכל פעם שהלילה התחיל מחדש.",
+      "פרק 300. גם אתמול. גם מחר."
+    ],
+    last: "ההקלטה ממשיכה.",
+    again: "שוב"
+  },
+
+  /* ---- שמות פריטים לבדיקה מקרוב ---- */
+  items: {
+    "אוזניות": ["מרופדות, חמות מבפנים.", "מישהו הרכיב אותן עד לפני רגע."],
+    "כוס קרה": ["קפה שחור. הכוס מלאה, והקפה קר לגמרי.", "על השפה יש סימן של שפה שאינה שלי."],
+    "מעיל רטוב": ["מעיל בגודל שלי. הכיסים ריקים.", "בכיס הפנימי יש כרטיס אורח על שמי."],
+    "פתק": ["«מי מקליט אותי?»", "הכתב שלי. הדיו עוד לא יבש."],
+    "מקלדת שחוקה": ["האותיות ת׳, ק׳, ש׳, י׳, ב׳ שחוקות כמעט לגמרי.", "כמה לילות צריך בשביל זה?"],
+    "מפסק": ["מפסק תאורה שנעקר מהקיר.", "החוטים מאחוריו נחתכו מזמן. האור בכל זאת דלק."]
+  }
+};
+
+/* ================================================================
+   2. SOLUTIONS — פתרונות החידות (לוגיקה בלבד; הטקסטים למעלה)
+   ================================================================ */
+const SOLUTIONS = {
+  /* פרק 1: קבוצות הפסגות מתחת לקו האמצע = 7,3,1,9.
+     מקבלים גם קריאה בכיוון ההפוך, כדי לא להעניש על סדר. */
+  ch1: { groups: [7, 3, 1, 9], accept: ["7319"], reversed: "9137" },
+  /* פרק 2: האורח שלא ביטל — השורה השישית בלוח (אינדקס 5). */
+  ch2: { rowIndex: 5 },
+  /* פרק 3: אות במיקום שניות החותמת בכל כותרת => "תקשיב". */
+  ch3: { accept: ["תקשיב"] },
+  /* פרק 4: מפת 4x4. מתחילים ב-(שורה 2, עמודה 1), פונים "קדימה" = למעלה.
+     "שלוש דלתות ימינה" => עמודה 4. "אחת אחורה" => שורה 3. */
+  ch4: { start: { r: 2, c: 1 }, target: { r: 3, c: 4 } },
+  /* פרק 5: השאלה היחידה שדושי לא שאל את עצמו. */
+  ch5: { accept: ["מי מקליט אותי"] }
+};
+
+/* נרמול קלט עברי: הסרת ניקוד, סימני פיסוק, רווחים כפולים וגרשיים */
+function normalize(s) {
+  return String(s || "")
+    .replace(/[֑-ׇ]/g, "")
+    .replace(/[?!.,:;'"״׳`‏‎\-–—«»“”„‟‹›()\[\]]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function matches(input, list) {
+  const n = normalize(input);
+  return list.some(a => normalize(a) === n);
+}
+
+/* ================================================================
+   3. gameState — מכונת המצבים היחידה של המשחק
+   כל שינוי במשחק עובר דרך האובייקט הזה. אין מצב מפוזר.
+   אין localStorage ואין sessionStorage — הכל בזיכרון בלבד.
+   ================================================================ */
+const gameState = {
+  screen: "title",      // title | game | end
+  chapter: 0,           // 0..4
+  solved: [false, false, false, false, false],
+  inventory: [],        // עד 6 פריטים
+  archive: [],          // כל שאלה שדושי שאל
+  seenHotspots: {},     // "פרק:אזור" => true
+  wrongCount: [0, 0, 0, 0, 0],
+  hintLevel: [0, 0, 0, 0, 0],
+  timeLeft: 45 * 60,    // שניות. מתאפס ולא נגמר.
+  loops: 1,             // כמה פעמים הלילה חזר על עצמו
+  runs: 1,              // כמה פעמים שיחקנו מההתחלה
+  nightNumber: 47,      // המספר שנחשף רק בהרצה שנייה
+  dark: 0,              // דרגת חשכה מהתקדמות הפרקים 0..5
+  loopDark: 0,          // דרגת חשכה מהלילות שחזרו — מונה נפרד, כדי שלא ייגמר
+  muted: false,
+  running: false,
+  monsterStep: 0,       // כמה המפלצת של הפרק התקרבה
+  secretShown: false,   // ההסתרה העדינה של הפרק הנוכחי
+  lastTick: 0,
+  reduceMotion: false,
+  flags: {}
+};
+
+const MAX_ITEMS = 6;
+
+/* עוזרי מצב */
+function addItem(name) {
+  if (!name) return;
+  if (gameState.inventory.includes(name)) return;
+  if (gameState.inventory.length >= MAX_ITEMS) return;
+  gameState.inventory.push(name);
+  renderInventory();
+}
+function addQuestion(q) {
+  if (!q) return;
+  if (gameState.archive.includes(q)) return;
+  gameState.archive.push(q);
+}
+function chapterData() { return TEXT.chapters[gameState.chapter]; }
+
+/* ================================================================
+   4. Audio — Web Audio API בלבד. אין קבצים, אין CDN.
+   באז 55Hz רציף, קליק, אקורד יורד בפתרון, ופעימה 55+56 באיפוס.
+   ================================================================ */
+const Audio_ = {
+  ctx: null, master: null, buzzGain: null, buzzOsc: null, started: false,
+
+  init() {
+    if (this.started) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { this.ctx = new AC(); } catch (e) { return; }
+    this.master = this.ctx.createGain();
+    this.master.gain.value = gameState.muted ? 0 : 1;
+    this.master.connect(this.ctx.destination);
+
+    // באז חשמלי נמוך ורציף — טון הבסיס של הלילה
+    this.buzzGain = this.ctx.createGain();
+    this.buzzGain.gain.value = 0.035;
+    this.buzzGain.connect(this.master);
+    this.buzzOsc = this.ctx.createOscillator();
+    this.buzzOsc.type = "sine";
+    this.buzzOsc.frequency.value = 55;
+    this.buzzOsc.connect(this.buzzGain);
+    this.buzzOsc.start();
+
+    // רעש חדר דק מאוד מעל הבאז
+    const noiseBuf = this.ctx.createBuffer(1, this.ctx.sampleRate * 2, this.ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuf; noise.loop = true;
+    this.noiseSrc = noise;
+    const nf = this.ctx.createBiquadFilter();
+    nf.type = "lowpass"; nf.frequency.value = 320;
+    const ng = this.ctx.createGain(); ng.gain.value = 0.012;
+    noise.connect(nf); nf.connect(ng); ng.connect(this.master);
+    noise.start();
+
+    this.started = true;
+  },
+
+  resume() { if (this.ctx && this.ctx.state === "suspended") this.ctx.resume(); },
+
+  setMuted(m) {
+    gameState.muted = m;
+    if (!this.ctx) return;
+    if (!m) this.resume();
+    this.master.gain.setTargetAtTime(m ? 0 : 1, this.ctx.currentTime, 0.05);
+  },
+
+  // צליל קצר כללי
+  blip(freq, dur, type, vol) {
+    if (!this.ctx || gameState.muted) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.05, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.08));
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + (dur || 0.08) + 0.05);
+  },
+
+  click() { this.blip(1400, 0.035, "square", 0.028); },
+
+  // אקורד יורד קצר — פתרון חידה
+  solve() {
+    if (!this.ctx || gameState.muted) return;
+    const seq = [523.25, 392.00, 311.13, 233.08];
+    seq.forEach((f, i) => setTimeout(() => this.blip(f, 0.5, "sine", 0.05), i * 130));
+  },
+
+  // תגובה לתשובה שגויה — צליל נמוך ומעורער
+  wrong() { this.blip(72, 0.4, "sine", 0.05); setTimeout(() => this.blip(69, 0.5, "sine", 0.04), 60); },
+
+  // שני טונים מתנגשים — פעימה שהאוזן קולטת כאי-נוחות
+  beat(seconds) {
+    if (!this.ctx || gameState.muted) return;
+    const t = this.ctx.currentTime, dur = seconds || 5;
+    [55, 56].forEach(f => {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.09, t + 0.6);
+      g.gain.setValueAtTime(0.09, t + dur - 1);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(this.master);
+      o.start(t); o.stop(t + dur + 0.1);
+    });
+  },
+
+  // רצף טונים שמחליף דיבור — הוא "המשפט" של פרק 4
+  phraseBuffer() {
+    if (!this.ctx) return null;
+    if (this._phrase) return this._phrase;
+    const sr = this.ctx.sampleRate, len = Math.floor(sr * 3.4);
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+    // "הברות": תדר, התחלה, אורך
+    const syl = [
+      [330, 0.05, 0.22], [262, 0.32, 0.18], [392, 0.55, 0.26],
+      [294, 0.90, 0.20], [349, 1.15, 0.30], [233, 1.55, 0.22],
+      [311, 1.85, 0.18], [440, 2.10, 0.28], [262, 2.45, 0.20],
+      [196, 2.72, 0.42]
+    ];
+    for (const [f, st, du] of syl) {
+      const s0 = Math.floor(st * sr), s1 = Math.min(len, Math.floor((st + du) * sr));
+      for (let i = s0; i < s1; i++) {
+        const p = (i - s0) / (s1 - s0);
+        const env = Math.sin(Math.PI * p);
+        d[i] += Math.sin(2 * Math.PI * f * (i / sr)) * env * 0.34
+              + Math.sin(2 * Math.PI * f * 2.01 * (i / sr)) * env * 0.10;
+      }
+    }
+    this._phrase = buf;
+    return buf;
+  },
+
+  playPhrase(reversed) {
+    if (!this.ctx || gameState.muted) return;
+    const base = this.phraseBuffer();
+    if (!base) return;
+    // לחיצה חוזרת עוצרת את ההשמעה הקודמת, אחרת השכבות מצטברות לעיוות
+    if (this._src) { try { this._src.stop(); } catch (e) {} this._src = null; }
+    const src = this.ctx.createBufferSource();
+    if (reversed) {
+      if (!this._phraseRev) {
+        const rev = this.ctx.createBuffer(1, base.length, this.ctx.sampleRate);
+        const a = base.getChannelData(0), b = rev.getChannelData(0);
+        for (let i = 0; i < a.length; i++) b[i] = a[a.length - 1 - i];
+        this._phraseRev = rev;
+      }
+      src.buffer = this._phraseRev;
+    } else {
+      src.buffer = base;
+    }
+    this._src = src;
+    src.onended = () => { if (this._src === src) this._src = null; };
+    const g = this.ctx.createGain(); g.gain.value = 0.5;
+    const f = this.ctx.createBiquadFilter();
+    f.type = "lowpass"; f.frequency.value = reversed ? 4200 : 1500;
+    src.connect(f); f.connect(g); g.connect(this.master);
+    src.start();
+  }
+};
+
+/* ================================================================
+   5. FX — רעש גרעיני, ויניאטה, הבהוב טקסט, ריצוד
+   כל האפקטים מכבדים prefers-reduced-motion.
+   ================================================================ */
+const FX = {
+  grain: null, gctx: null, raf: 0, lastGrain: 0,
+
+  initGrain() {
+    this.grain = document.getElementById("grain");
+    if (gameState.reduceMotion) return;
+    this.gctx = this.grain.getContext("2d");
+    this.resize();
+    const loop = (t) => {
+      if (gameState.reduceMotion) { this.raf = 0; return; }
+      this.raf = requestAnimationFrame(loop);
+      if (t - this.lastGrain < 70) return;   // ~14fps, חוסך סוללה
+      this.lastGrain = t;
+      this.paint();
+    };
+    this.raf = requestAnimationFrame(loop);
+  },
+
+  resize() {
+    if (!this.grain || !this.gctx) return;
+    // רזולוציה נמוכה בכוונה — גרעין גס יותר, פחות עבודה
+    this.grain.width = Math.max(1, Math.floor(window.innerWidth / 3));
+    this.grain.height = Math.max(1, Math.floor(window.innerHeight / 3));
+  },
+
+  paint() {
+    const w = this.grain.width, h = this.grain.height;
+    if (!w || !h) return;
+    const img = this.gctx.createImageData(w, h);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const v = (Math.random() * 255) | 0;
+      d[i] = d[i + 1] = d[i + 2] = v;
+      d[i + 3] = 255;
+    }
+    this.gctx.putImageData(img, 0, 0);
+  },
+
+  // הידוק הויניאטה והחשכת החדר ככל שהלילה מתקדם
+  applyDark() {
+    const root = document.documentElement.style;
+    const d = Math.min(9, gameState.dark + gameState.loopDark * 1.5);
+    root.setProperty("--dark", (d * 0.035).toFixed(3));
+    root.setProperty("--vig", (0.80 + d * 0.014).toFixed(3));
+  },
+
+  flicker(el) {
+    if (!el || gameState.reduceMotion) return;
+    el.classList.remove("flick");
+    void el.offsetWidth;
+    el.classList.add("flick");
+  },
+
+  glitch(el) {
+    if (!el || gameState.reduceMotion) return;
+    el.classList.remove("glitch");
+    void el.offsetWidth;
+    el.classList.add("glitch");
+  },
+
+  stopMotion() {
+    cancelAnimationFrame(this.raf); this.raf = 0;
+    cancelAnimationFrame(Room.raf); Room.raf = 0;
+    clearTimeout(this._t); this._t = 0;
+    if (this.gctx) this.gctx.clearRect(0, 0, this.grain.width, this.grain.height);
+    Room.paint(0);
+  },
+
+  // הבהוב אקראי של הטקסט אחת ל-20 עד 40 שניות
+  startRandomFlicker() {
+    if (gameState.reduceMotion) return;
+    const tick = () => {
+      const wait = 20000 + Math.random() * 20000;
+      this._t = setTimeout(() => {
+        if (gameState.reduceMotion) return;
+        const target = document.getElementById(gameState.screen === "game" ? "say" : "app");
+        this.flicker(target);
+        tick();
+      }, wait);
+    };
+    tick();
+  }
+};
+
+/* ================================================================
+   6. Rooms — ציור החדרים והדמויות ב-canvas
+   כל חדר מצויר בקואורדינטות יחסיות (0..1) כדי לעבוד בכל גודל מסך.
+   הדמויות ("המפלצות") לא קופצות ולא תוקפות: הן מתקרבות לאט,
+   דרגה אחת בכל תשובה שגויה, ונשארות ברקע.
+   ================================================================ */
+const Room = {
+  cv: null, ctx: null, glcv: null, raf: 0, last: 0, t0: 0, mode: "2d",
+
+  init() {
+    this.cv = document.getElementById("roomcv");
+    this.ctx = this.cv.getContext("2d");
+    this.glcv = document.getElementById("roomgl");
+    if (!this.glcv.dataset.bound) {
+      this.glcv.dataset.bound = "1";
+      // אם כרטיס המסך "נעלם" (לשונית ברקע, נהג שקרס) — חוזרים לדו-ממד ומציעים לנסות שוב
+      this.glcv.addEventListener("webglcontextlost", (e) => {
+        e.preventDefault();
+        Scene3D.ok = false;
+        Scene3D.error = TEXT.a11y.lostWebGL;
+        this.setMode("2d", true);
+      });
+      this.glcv.addEventListener("webglcontextrestored", () => { if (Scene3D.init(this.glcv)) this.setMode("3d"); });
+    }
+    // תלת-ממד כברירת מחדל; אם הדפדפן לא תומך, החדרים מצוירים ב-2D — ואומרים למה
+    if (this.mode === "2d" && !this.userChose2d && !Scene3D.ok) Scene3D.init(this.glcv);
+    this.setMode(Scene3D.ok && !this.userChose2d ? "3d" : "2d", !Scene3D.ok);
+    this.resize();
+    const loop = (t) => {
+      if (gameState.reduceMotion) { this.raf = 0; return; }
+      this.raf = requestAnimationFrame(loop);
+      const step = this.mode === "3d" ? 33 : 80;   // תלת-ממד זז, דו-ממד רק נושם
+      if (t - this.last < step) return;
+      this.last = t;
+      this.paint(t / 1000);
+    };
+    if (gameState.reduceMotion) this.paint(0);
+    else this.raf = requestAnimationFrame(loop);
+  },
+
+  /* מעבר מפורש בין תלת-ממד לדו-ממד — כולל הכפתור, פקדי ההליכה וההודעה */
+  setMode(mode, showWhy) {
+    this.mode = mode;
+    const walk = document.getElementById("walk"), hint = document.getElementById("walkhint");
+    const note = document.getElementById("glnote"), btn = document.getElementById("btn-3d");
+    const is3d = mode === "3d";
+    if (this.glcv) this.glcv.hidden = !is3d;
+    if (this.cv) this.cv.hidden = is3d;
+    if (walk) walk.hidden = !is3d;
+    if (hint) { hint.hidden = !is3d; hint.textContent = TEXT.a11y.walkHint; }
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(is3d));
+      btn.textContent = is3d ? TEXT.a11y.mode3d : TEXT.a11y.mode2d;
+      btn.title = Scene3D.ok ? "" : (Scene3D.error || "");
+    }
+    if (note) {
+      const why = !is3d && showWhy && !Scene3D.ok;
+      note.hidden = !why;
+      note.textContent = why ? (Scene3D.error && Scene3D.error === TEXT.a11y.lostWebGL ? Scene3D.error : TEXT.a11y.noWebGL) : "";
+    }
+    if (!is3d) { Scene3D.keys = {}; Scene3D.drag = null; }
+  },
+
+  /* לחיצה על הכפתור: הפעלה מחדש של תלת-ממד אם אפשר, או מעבר יזום לדו-ממד */
+  toggle3d() {
+    if (this.mode === "3d") { this.userChose2d = true; this.setMode("2d"); this.resize(); return; }
+    this.userChose2d = false;
+    if (!Scene3D.ok) Scene3D.init(this.glcv);
+    this.setMode(Scene3D.ok ? "3d" : "2d", !Scene3D.ok);
+    this.resize();
+  },
+
+  resize() {
+    if (!this.cv) return;
+    // נמדד לפי מיכל החדר: הקנבס שלא בשימוש מוסתר, והמלבן שלו אפס
+    const host = document.getElementById("room") || this.cv;
+    const r = host.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(2, Math.round(r.width * dpr)), h = Math.max(2, Math.round(r.height * dpr));
+    this.cv.width = w; this.cv.height = h;
+    if (this.glcv) { this.glcv.width = w; this.glcv.height = h; }
+    this.paint(this.last / 1000);
+  },
+
+  paint(t) {
+    if (gameState.screen !== "game") return;
+    const time = gameState.reduceMotion ? 0 : t;
+    if (this.mode === "3d" && Scene3D.ok) {
+      try {
+        Scene3D.build(time);      // הסצנה נבנית מחדש בכל פריים — היא קטנה מספיק
+        Scene3D.draw(time);
+        placeHotspots3D();
+        return;
+      } catch (e) {
+        Scene3D.ok = false;
+        Scene3D.error = String(e && e.message || e);
+        if (window.console) console.warn("3D disabled:", Scene3D.error);
+        this.setMode("2d", true);
+      }
+    }
+    if (!this.ctx) return;
+    const c = this.ctx, W = this.cv.width, H = this.cv.height;
+    if (!W || !H) return;
+    c.save();
+    c.clearRect(0, 0, W, H);
+    const painter = PAINTERS[gameState.chapter] || PAINTERS[0];
+    painter(c, W, H, time);
+    // אבק וחלקיקים דקים מעל הכל
+    dust(c, W, H, time);
+    c.restore();
+  }
+};
+
+/* ---- עוזרי ציור ---- */
+function px(W, u) { return u * W; }
+function py(H, v) { return v * H; }
+function box(c, x, y, w, h, fill, stroke) {
+  c.beginPath(); c.rect(x, y, w, h);
+  if (fill) { c.fillStyle = fill; c.fill(); }
+  if (stroke) { c.strokeStyle = stroke; c.lineWidth = Math.max(1, w * 0.006); c.stroke(); }
+}
+function grad(c, x0, y0, x1, y1, a, b) {
+  const g = c.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, a); g.addColorStop(1, b); return g;
+}
+/* שלולית אור — מנורה, מסך או נורית */
+function pool(c, x, y, r, color, alpha) {
+  const g = c.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, "rgba(" + color + "," + alpha + ")");
+  g.addColorStop(0.55, "rgba(" + color + "," + (alpha * 0.30).toFixed(3) + ")");
+  g.addColorStop(1, "rgba(" + color + ",0)");
+  c.fillStyle = g;
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+}
+/* טשטוש רך — לזכוכית חלבית ולבבואות */
+function blurOn(c, amount) { try { c.filter = "blur(" + amount + "px)"; } catch (e) {} }
+function blurOff(c) { try { c.filter = "none"; } catch (e) {} }
+
+/* ---------------------------------------------------------------
+   דמות אנושית. הפרמטרים קובעים כמה היא "לא בסדר":
+   neck — צוואר ארוך מדי, arms — זרועות ארוכות מדי, eyes — נצנוץ אדום
+   --------------------------------------------------------------- */
+function figure(c, x, baseY, h, opt) {
+  const o = opt || {};
+  const w = h * (o.wide || 0.30);
+  const col = o.color || "rgba(0,0,0,0.92)";
+  const neck = h * (o.neck || 0.06);
+  c.save();
+  c.translate(x, baseY);
+  if (o.lean) c.rotate(o.lean * 0.05);
+  c.fillStyle = col;
+  // גוף
+  c.beginPath();
+  c.moveTo(-w * 0.52, 0);
+  c.quadraticCurveTo(-w * 0.60, -h * 0.42, -w * 0.44, -h * 0.60);
+  c.quadraticCurveTo(-w * 0.34, -h * 0.70, -w * 0.16, -h * 0.71);
+  c.lineTo(w * 0.16, -h * 0.71);
+  c.quadraticCurveTo(w * 0.34, -h * 0.70, w * 0.44, -h * 0.60);
+  c.quadraticCurveTo(w * 0.60, -h * 0.42, w * 0.52, 0);
+  c.closePath(); c.fill();
+  // צוואר
+  c.fillRect(-w * 0.10, -h * 0.71 - neck, w * 0.20, neck + h * 0.02);
+  // ראש
+  c.beginPath();
+  c.ellipse(0, -h * 0.71 - neck - h * 0.085, h * 0.082, h * 0.105, o.tilt || 0, 0, Math.PI * 2);
+  c.fill();
+  // זרועות ארוכות מדי
+  if (o.arms) {
+    c.strokeStyle = col;
+    c.lineWidth = Math.max(1.5, w * 0.13);
+    c.lineCap = "round";
+    [-1, 1].forEach(s => {
+      c.beginPath();
+      c.moveTo(s * w * 0.42, -h * 0.60);
+      c.quadraticCurveTo(s * w * 0.78, -h * 0.30, s * w * (0.55 + o.arms * 0.35), -h * (0.02 - o.arms * 0.08));
+      c.stroke();
+    });
+  }
+  // עיניים — שתי נקודות אדומות עמומות, בשימוש נדיר בלבד
+  if (o.eyes) {
+    const ey = -h * 0.71 - neck - h * 0.095;
+    c.fillStyle = "rgba(204,34,34," + o.eyes + ")";
+    c.beginPath(); c.arc(-h * 0.030, ey, h * 0.011, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(h * 0.030, ey, h * 0.011, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+}
+/* אבק עדין באוויר */
+function dust(c, W, H, t) {
+  c.save();
+  c.fillStyle = "rgba(207,201,194,0.11)";
+  for (let i = 0; i < 30; i++) {
+    const s = (i * 97) % 100 / 100;
+    const x = ((s * 1.7 + t * 0.004 * (0.4 + s)) % 1) * W;
+    const y = ((((i * 53) % 100) / 100) + t * 0.002 * (0.2 + s)) % 1 * H;
+    c.fillRect(x, y, Math.max(1, W * 0.0013), Math.max(1, W * 0.0013));
+  }
+  c.restore();
+}
+/* ויניאטה פנימית לחדר */
+function roomVignette(c, W, H) {
+  const g = c.createRadialGradient(W * 0.5, H * 0.45, Math.min(W, H) * 0.20, W * 0.5, H * 0.5, Math.max(W, H) * 0.75);
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.75)");
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+}
+/* נורית הקלטה */
+function recLight(c, x, y, r, on) {
+  pool(c, x, y, r * 7, "204,34,34", on ? 0.55 : 0.12);
+  c.fillStyle = on ? "#e04040" : "#3a1414";
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+}
+/* נוכחות הדמות בפרק הנוכחי: מתחילה נמוכה ועולה בכל טעות */
+function creep() { return Math.min(1, 0.28 + gameState.monsterStep * 0.18); }
+
+/* ================================================================
+   ציירי החדרים — אחד לכל פרק. בכל חדר יש דמות אחת שלא אמורה להיות שם.
+   ================================================================ */
+const PAINTERS = [
+
+  /* -------- פרק 1 · האולפן : "המאזין" יושב בכיסא האורח -------- */
+  function studio(c, W, H, t) {
+    const cr = creep();
+    box(c, 0, 0, W, H, grad(c, 0, 0, 0, H, "#15151d", "#07070a"));
+
+    // ספוג אקוסטי — פירמידות עם שתי פאות
+    const cols = 34, rows = 13, fw = W / cols, fh = py(H, 0.74) / rows;
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        const x = i * fw, y = j * fh, flip = (i + j) % 2 === 0;
+        // טריז ספוג: כל שורה מוסטת, כדי שייראה כמו קיר אקוסטי ולא כמו פסים
+        c.fillStyle = "rgba(255,255,255,0.022)";
+        c.beginPath();
+        if (flip) { c.moveTo(x, y); c.lineTo(x + fw, y); c.lineTo(x, y + fh); }
+        else { c.moveTo(x + fw, y); c.lineTo(x + fw, y + fh); c.lineTo(x, y); }
+        c.closePath(); c.fill();
+        c.fillStyle = "rgba(0,0,0,0.26)";
+        c.beginPath();
+        if (flip) { c.moveTo(x + fw, y); c.lineTo(x + fw, y + fh); c.lineTo(x, y + fh); }
+        else { c.moveTo(x, y); c.lineTo(x + fw, y + fh); c.lineTo(x, y + fh); }
+        c.closePath(); c.fill();
+      }
+    }
+
+    // מנורת שולחן — שלולית אור אחת בחדר
+    pool(c, px(W, 0.52), py(H, 0.52), py(H, 0.62), "210,200,185", 0.10);
+
+    // כיסא האורח + "המאזין"
+    const chairX = px(W, 0.175), chairY = py(H, 0.72);
+    box(c, chairX - px(W, 0.052), chairY - py(H, 0.24), px(W, 0.104), py(H, 0.24),
+      grad(c, chairX, chairY - py(H, 0.24), chairX, chairY, "#191921", "#0b0b10"), "rgba(138,133,128,0.30)");
+    box(c, chairX - px(W, 0.013), chairY, px(W, 0.026), py(H, 0.10), "#0c0c11");
+    box(c, chairX - px(W, 0.055), chairY + py(H, 0.10), px(W, 0.110), py(H, 0.012), "#0c0c11");
+
+    const breathe = Math.sin(t * 0.55) * py(H, 0.007);
+    const fh2 = py(H, 0.40 + cr * 0.10);
+    figure(c, chairX, chairY - py(H, 0.02) + breathe, fh2, {
+      color: "rgba(3,3,5," + (0.80 + cr * 0.19).toFixed(2) + ")",
+      neck: 0.09 + cr * 0.09,
+      tilt: Math.sin(t * 0.22) * 0.30,
+      arms: cr * 0.5,
+      eyes: gameState.monsterStep >= 2 ? 0.30 + cr * 0.35 : 0
+    });
+    // אוזניות על הראש שלו
+    c.strokeStyle = "rgba(138,133,128," + (0.20 + cr * 0.35).toFixed(2) + ")";
+    c.lineWidth = Math.max(1.5, W * 0.005);
+    c.beginPath();
+    c.arc(chairX, chairY - py(H, 0.02) + breathe - fh2 * (0.71 + (0.10 + cr * 0.10) + 0.085), fh2 * 0.125, Math.PI * 1.02, Math.PI * 1.98);
+    c.stroke();
+
+    // שולחן
+    box(c, 0, py(H, 0.74), W, py(H, 0.26), grad(c, 0, py(H, 0.74), 0, H, "#1b1b23", "#0a0a0e"));
+    c.strokeStyle = "rgba(207,201,194,0.22)";
+    c.lineWidth = Math.max(1, W * 0.0015);
+    c.beginPath(); c.moveTo(0, py(H, 0.74)); c.lineTo(W, py(H, 0.74)); c.stroke();
+
+    // מסך העריכה — שני ערוצים וזוהר על השולחן
+    const mx = px(W, 0.60), my = py(H, 0.30), mw = px(W, 0.30), mh = py(H, 0.26);
+    pool(c, mx + mw / 2, my + mh, mw * 1.1, "150,160,190", 0.09);
+    box(c, mx - px(W, 0.008), my - py(H, 0.012), mw + px(W, 0.016), mh + py(H, 0.024), "#15151c", "rgba(138,133,128,0.35)");
+    box(c, mx, my, mw, mh, "#06060a");
+    c.save(); c.beginPath(); c.rect(mx, my, mw, mh); c.clip();
+    c.strokeStyle = "rgba(138,133,128,0.35)"; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(mx, my + mh / 2); c.lineTo(mx + mw, my + mh / 2); c.stroke();
+    c.strokeStyle = "rgba(207,201,194,0.60)";
+    c.beginPath();
+    for (let i = 0; i < 90; i++) {
+      const x = mx + (i / 90) * mw;
+      const a = Math.sin(i * 0.7 + t) * Math.sin(i * 0.13) * mh * 0.17;
+      c.moveTo(x, my + mh / 2 - 1); c.lineTo(x, my + mh / 2 - 1 - Math.abs(a));
+    }
+    c.stroke();
+    c.strokeStyle = "rgba(204,34,34,0.60)";
+    c.beginPath();
+    for (let i = 0; i < 90; i++) {
+      const x = mx + (i / 90) * mw;
+      const a = Math.sin(i * 0.9 + t * 1.3) * Math.sin(i * 0.17 + 1) * mh * 0.16;
+      c.moveTo(x, my + mh / 2 + 1); c.lineTo(x, my + mh / 2 + 1 + Math.abs(a));
+    }
+    c.stroke();
+    // קווי סריקה
+    c.fillStyle = "rgba(0,0,0,0.25)";
+    for (let y = my; y < my + mh; y += 3) c.fillRect(mx, y, mw, 1);
+    // בבואה של הדמות בזכוכית המסך
+    if (gameState.monsterStep >= 1) {
+      blurOn(c, Math.max(2, W * 0.004));
+      figure(c, mx + mw * 0.22, my + mh * 0.98, mh * 0.86, { color: "rgba(190,190,200,0.09)", neck: 0.14 });
+      blurOff(c);
+    }
+    c.restore();
+
+    // מיקרופון עם מתלה זעזועים ופופ-פילטר
+    const micX = px(W, 0.465), micY = py(H, 0.40);
+    c.strokeStyle = "rgba(138,133,128,0.45)"; c.lineWidth = Math.max(1.5, W * 0.0035);
+    c.beginPath(); c.moveTo(px(W, 0.39), py(H, 0.06)); c.lineTo(px(W, 0.44), py(H, 0.26));
+    c.lineTo(micX, py(H, 0.34)); c.stroke();
+    c.beginPath(); c.ellipse(micX, micY + py(H, 0.055), px(W, 0.030), py(H, 0.085), 0, 0, Math.PI * 2); c.stroke();
+    box(c, micX - px(W, 0.016), micY, px(W, 0.032), py(H, 0.115),
+      grad(c, micX - px(W, 0.016), 0, micX + px(W, 0.016), 0, "#2a2a33", "#101015"), "rgba(138,133,128,0.5)");
+    c.strokeStyle = "rgba(138,133,128,0.28)"; c.lineWidth = 1;
+    for (let i = 1; i < 8; i++) {
+      c.beginPath(); c.moveTo(micX - px(W, 0.015), micY + i * py(H, 0.013));
+      c.lineTo(micX + px(W, 0.015), micY + i * py(H, 0.013)); c.stroke();
+    }
+    c.strokeStyle = "rgba(207,201,194,0.20)"; c.lineWidth = Math.max(1, W * 0.002);
+    c.beginPath(); c.ellipse(micX - px(W, 0.052), micY + py(H, 0.05), px(W, 0.012), py(H, 0.062), 0.12, 0, Math.PI * 2); c.stroke();
+    c.fillStyle = "rgba(207,201,194,0.05)"; c.fill();
+    c.beginPath(); c.moveTo(micX - px(W, 0.052), micY + py(H, 0.112)); c.lineTo(micX - px(W, 0.030), micY + py(H, 0.15)); c.stroke();
+
+    // אוזניות על השולחן
+    c.strokeStyle = "rgba(180,175,168,0.55)"; c.lineWidth = Math.max(2, W * 0.005);
+    c.beginPath(); c.arc(px(W, 0.30), py(H, 0.845), px(W, 0.036), Math.PI * 1.03, Math.PI * 1.97); c.stroke();
+    box(c, px(W, 0.262), py(H, 0.815), px(W, 0.018), py(H, 0.055), "#1c1c23", "rgba(180,175,168,0.5)");
+    box(c, px(W, 0.322), py(H, 0.815), px(W, 0.018), py(H, 0.055), "#1c1c23", "rgba(180,175,168,0.5)");
+    c.fillStyle = "rgba(0,0,0,0.45)";
+    c.beginPath(); c.ellipse(px(W, 0.30), py(H, 0.885), px(W, 0.05), py(H, 0.014), 0, 0, Math.PI * 2); c.fill();
+
+    // כוס קפה — ובהסתרה מופיעה כוס שנייה
+    const cup = (x) => {
+      box(c, x, py(H, 0.795), px(W, 0.036), py(H, 0.085),
+        grad(c, x, 0, x + px(W, 0.036), 0, "#23232b", "#101015"), "rgba(180,175,168,0.45)");
+      c.strokeStyle = "rgba(180,175,168,0.45)";
+      c.beginPath(); c.ellipse(x + px(W, 0.018), py(H, 0.795), px(W, 0.018), py(H, 0.012), 0, 0, Math.PI * 2); c.stroke();
+      c.fillStyle = "rgba(20,14,10,0.9)";
+      c.beginPath(); c.ellipse(x + px(W, 0.018), py(H, 0.797), px(W, 0.014), py(H, 0.009), 0, 0, Math.PI * 2); c.fill();
+    };
+    cup(px(W, 0.615));
+    if (gameState.secretShown) cup(px(W, 0.663));
+
+    // נורית ההקלטה על הקיר
+    box(c, px(W, 0.795), py(H, 0.13), px(W, 0.085), py(H, 0.13), "#101017", "rgba(138,133,128,0.30)");
+    recLight(c, px(W, 0.8375), py(H, 0.195), Math.max(3, W * 0.008), true);
+
+    // דלת עם מנעול ספרות
+    box(c, px(W, 0.895), py(H, 0.14), px(W, 0.098), py(H, 0.86),
+      grad(c, px(W, 0.895), 0, px(W, 0.99), 0, "#181820", "#0a0a0f"), "rgba(138,133,128,0.35)");
+    box(c, px(W, 0.912), py(H, 0.44), px(W, 0.062), py(H, 0.14), "#0d0d13", "rgba(138,133,128,0.45)");
+    c.fillStyle = "rgba(138,133,128,0.30)";
+    for (let r = 0; r < 4; r++) for (let i = 0; i < 3; i++)
+      c.fillRect(px(W, 0.920) + i * px(W, 0.018), py(H, 0.462) + r * py(H, 0.030), px(W, 0.011), py(H, 0.018));
+    recLight(c, px(W, 0.943), py(H, 0.425), Math.max(2, W * 0.004), true);
+
+    roomVignette(c, W, H);
+  },
+
+  /* -------- פרק 2 · הכניסה : "האורח" מאחורי הזכוכית -------- */
+  function lobby(c, W, H, t) {
+    const cr = creep();
+    box(c, 0, 0, W, H, grad(c, 0, 0, 0, H, "#12121a", "#050508"));
+    // רצפה עם השתקפות
+    box(c, 0, py(H, 0.78), W, py(H, 0.22), grad(c, 0, py(H, 0.78), 0, H, "#0e0e14", "#060609"));
+    c.strokeStyle = "rgba(138,133,128,0.16)";
+    for (let i = -2; i < 12; i++) {
+      c.beginPath(); c.moveTo(px(W, i * 0.11), py(H, 0.78)); c.lineTo(px(W, i * 0.11 - 0.10), H); c.stroke();
+    }
+    for (let j = 1; j < 4; j++) {
+      c.beginPath(); c.moveTo(0, py(H, 0.78 + j * 0.07)); c.lineTo(W, py(H, 0.78 + j * 0.07)); c.stroke();
+    }
+
+    // דלת כניסה עם זכוכית חלבית ואור מבחוץ
+    const dx = px(W, 0.40), dy = py(H, 0.14), dw = px(W, 0.22), dh = py(H, 0.68);
+    pool(c, dx + dw / 2, dy + dh * 0.42, dw * 1.5, "170,180,200", 0.09);
+    box(c, dx - px(W, 0.012), dy - py(H, 0.02), dw + px(W, 0.024), dh + py(H, 0.02), "#16161e", "rgba(138,133,128,0.35)");
+    box(c, dx, dy, dw, dh, "#0b0b12");
+    const gx = dx + dw * 0.10, gy = dy + dh * 0.07, gw = dw * 0.80, gh = dh * 0.62;
+    box(c, gx, gy, gw, gh, "rgba(160,168,185,0.13)");
+
+    // הדמות מאחורי הזכוכית — מטושטשת, מתקרבת דרגה בכל טעות
+    c.save(); c.beginPath(); c.rect(gx, gy, gw, gh); c.clip();
+    blurOn(c, Math.max(3, W * 0.008));
+    const sway = Math.sin(t * 0.32) * gw * 0.015;
+    figure(c, gx + gw * 0.5 + sway, gy + gh * (1.06 + 0.10 * (1 - cr)), gh * (0.86 + cr * 0.40), {
+      color: "rgba(16,16,23," + (0.62 + cr * 0.36).toFixed(2) + ")",
+      neck: 0.05 + cr * 0.12,
+      tilt: Math.sin(t * 0.18) * 0.22,
+      arms: gameState.monsterStep >= 2 ? 0.6 : 0
+    });
+    blurOff(c);
+    // כף יד נצמדת לזכוכית — חדה יותר מהשאר
+    if (gameState.monsterStep >= 2) {
+      c.fillStyle = "rgba(32,32,42,0.92)";
+      c.save(); c.translate(gx + gw * 0.30, gy + gh * 0.50); c.rotate(0.15);
+      c.beginPath(); c.ellipse(0, 0, gw * 0.055, gh * 0.075, 0, 0, Math.PI * 2); c.fill();
+      for (let i = 0; i < 6; i++) {   // אצבע אחת יותר מדי
+        const a = -Math.PI * 0.85 + i * 0.28;
+        c.beginPath();
+        c.ellipse(Math.cos(a) * gw * 0.06, Math.sin(a) * gh * 0.085, gw * 0.013, gh * 0.042, a + Math.PI / 2, 0, Math.PI * 2);
+        c.fill();
+      }
+      c.restore();
+    }
+    c.restore();
+    box(c, gx, gy, gw, gh, null, "rgba(138,133,128,0.28)");
+    box(c, dx + dw * 0.06, dy + dh * 0.74, dw * 0.88, dh * 0.20, "#0d0d14", "rgba(138,133,128,0.2)");
+
+    // לוח האורחים — חמש שורות מחוקות באדום, אחת לא
+    const bx = px(W, 0.66), by = py(H, 0.22), bw = px(W, 0.28), bh = py(H, 0.40);
+    box(c, bx - px(W, 0.006), by - py(H, 0.012), bw + px(W, 0.012), bh + py(H, 0.024), "#191920", "rgba(138,133,128,0.3)");
+    box(c, bx, by, bw, bh, "#0f0f15");
+    for (let i = 0; i < 6; i++) {
+      const yy = by + (bh / 6) * i + bh * 0.055;
+      c.fillStyle = "rgba(207,201,194,0.34)";
+      c.fillRect(bx + bw * 0.07, yy, bw * (i === 5 ? 0.26 : 0.34 + (i % 3) * 0.08), Math.max(1, bh * 0.032));
+      c.fillStyle = "rgba(207,201,194,0.16)";
+      c.fillRect(bx + bw * 0.60, yy, bw * 0.22, Math.max(1, bh * 0.028));
+      if (i < 5) {   // קו מחיקה אדום — ביטול
+        c.strokeStyle = "rgba(204,34,34,0.55)"; c.lineWidth = Math.max(1, bh * 0.012);
+        c.beginPath(); c.moveTo(bx + bw * 0.05, yy + bh * 0.015);
+        c.lineTo(bx + bw * 0.86, yy + bh * 0.015); c.stroke();
+      }
+    }
+    if (gameState.secretShown) {   // בהסתרה: גם השורה השישית מקבלת סימן
+      c.strokeStyle = "rgba(204,34,34,0.75)"; c.lineWidth = Math.max(1, bh * 0.014);
+      const yy = by + (bh / 6) * 5 + bh * 0.07;
+      c.beginPath(); c.moveTo(bx + bw * 0.72, yy - bh * 0.03); c.lineTo(bx + bw * 0.84, yy + bh * 0.05); c.stroke();
+      c.beginPath(); c.moveTo(bx + bw * 0.84, yy - bh * 0.03); c.lineTo(bx + bw * 0.72, yy + bh * 0.05); c.stroke();
+    }
+
+    // מתלה מעילים + מעיל רטוב
+    c.strokeStyle = "rgba(138,133,128,0.40)"; c.lineWidth = Math.max(1.5, W * 0.003);
+    c.beginPath(); c.moveTo(px(W, 0.075), py(H, 0.20)); c.lineTo(px(W, 0.075), py(H, 0.80)); c.stroke();
+    c.beginPath(); c.moveTo(px(W, 0.025), py(H, 0.225)); c.lineTo(px(W, 0.125), py(H, 0.225)); c.stroke();
+    c.fillStyle = "#151520";
+    c.beginPath();
+    c.moveTo(px(W, 0.062), py(H, 0.24)); c.quadraticCurveTo(px(W, 0.015), py(H, 0.42), px(W, 0.028), py(H, 0.60));
+    c.lineTo(px(W, 0.112), py(H, 0.60)); c.quadraticCurveTo(px(W, 0.122), py(H, 0.40), px(W, 0.086), py(H, 0.24));
+    c.closePath(); c.fill();
+    c.strokeStyle = "rgba(138,133,128,0.22)"; c.stroke();
+    c.strokeStyle = "rgba(140,150,170,0.25)"; c.lineWidth = 1;   // טפטוף
+    for (let i = 0; i < 3; i++) {
+      c.beginPath(); c.moveTo(px(W, 0.045 + i * 0.022), py(H, 0.60));
+      c.lineTo(px(W, 0.045 + i * 0.022), py(H, 0.66 + i * 0.03)); c.stroke();
+    }
+    c.fillStyle = "rgba(140,150,170,0.10)";
+    c.beginPath(); c.ellipse(px(W, 0.07), py(H, 0.80), px(W, 0.05), py(H, 0.014), 0, 0, Math.PI * 2); c.fill();
+
+    // אינטרקום
+    box(c, px(W, 0.275), py(H, 0.29), px(W, 0.065), py(H, 0.14), "#14141b", "rgba(138,133,128,0.4)");
+    c.fillStyle = "rgba(138,133,128,0.2)";
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 3; i++)
+      c.fillRect(px(W, 0.288) + i * px(W, 0.013), py(H, 0.355) + r * py(H, 0.020), px(W, 0.008), py(H, 0.012));
+    pool(c, px(W, 0.307), py(H, 0.325), px(W, 0.03), "90,200,120", 0.35);
+    c.fillStyle = "rgba(120,220,150,0.9)";
+    c.beginPath(); c.arc(px(W, 0.307), py(H, 0.325), Math.max(2, W * 0.004), 0, Math.PI * 2); c.fill();
+
+    // שעון 03:12
+    const cx0 = px(W, 0.845), cy0 = py(H, 0.125), rr = px(W, 0.048);
+    box(c, cx0 - rr * 1.15, cy0 - rr * 1.15, rr * 2.3, rr * 2.3, "#0f0f15", "rgba(138,133,128,0.2)");
+    c.strokeStyle = "rgba(180,175,168,0.55)"; c.lineWidth = Math.max(1.5, W * 0.003);
+    c.beginPath(); c.arc(cx0, cy0, rr, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = Math.max(1.5, W * 0.0035);
+    const hAng = (3 + 12 / 60) * 30 * Math.PI / 180;   // מחוג שעות ל-03:12
+    const mAng = 12 * 6 * Math.PI / 180;               // מחוג דקות ל-12 דקות
+    c.beginPath(); c.moveTo(cx0, cy0);
+    c.lineTo(cx0 + Math.sin(hAng) * rr * 0.48, cy0 - Math.cos(hAng) * rr * 0.48); c.stroke();
+    c.beginPath(); c.moveTo(cx0, cy0);
+    c.lineTo(cx0 + Math.sin(mAng) * rr * 0.76, cy0 - Math.cos(mAng) * rr * 0.76); c.stroke();
+    c.fillStyle = "rgba(180,175,168,0.6)";
+    c.beginPath(); c.arc(cx0, cy0, Math.max(1.5, W * 0.003), 0, Math.PI * 2); c.fill();
+
+    roomVignette(c, W, H);
+  },
+
+  /* -------- פרק 3 · חדר העריכה : "הפֶּה" במסך השני -------- */
+  function editroom(c, W, H, t) {
+    const cr = creep();
+    box(c, 0, 0, W, H, grad(c, 0, 0, 0, H, "#101017", "#050508"));
+
+    // מדף קלטות
+    const sx = px(W, 0.035), sy = py(H, 0.09), sw = px(W, 0.245), sh = py(H, 0.58);
+    box(c, sx, sy, sw, sh, "#0c0c12", "rgba(138,133,128,0.28)");
+    for (let r = 0; r < 4; r++) {
+      const yy = sy + (sh / 4) * r + sh * 0.035;
+      c.fillStyle = "rgba(138,133,128,0.18)";
+      c.fillRect(sx, sy + (sh / 4) * (r + 1) - Math.max(1, sh * 0.008), sw, Math.max(1, sh * 0.008));
+      for (let i = 0; i < 9; i++) {
+        if (r === 0 && i === 8 && !gameState.secretShown) continue;   // הקלטה 300 מופיעה רק אחר כך
+        const bx2 = sx + sw * 0.045 + i * sw * 0.103;
+        box(c, bx2, yy, sw * 0.070, sh * 0.19, i % 3 === 0 ? "#1d1d25" : "#151519", "rgba(138,133,128,0.16)");
+        c.fillStyle = "rgba(207,201,194,0.22)";
+        c.fillRect(bx2 + sw * 0.012, yy + sh * 0.03, sw * 0.045, Math.max(1, sh * 0.012));
+      }
+    }
+
+    // שולחן עריכה
+    box(c, 0, py(H, 0.72), W, py(H, 0.28), grad(c, 0, py(H, 0.72), 0, H, "#1a1a22", "#08080b"));
+    c.fillStyle = "rgba(207,201,194,0.18)"; c.fillRect(0, py(H, 0.72), W, Math.max(1, H * 0.002));
+
+    // מסך ראשי — ציר זמן
+    const ax = px(W, 0.33), ay = py(H, 0.15), aw = px(W, 0.30), ah = py(H, 0.31);
+    pool(c, ax + aw / 2, ay + ah * 1.05, aw * 1.1, "150,160,190", 0.08);
+    box(c, ax - px(W, 0.008), ay - py(H, 0.012), aw + px(W, 0.016), ah + py(H, 0.024), "#16161e", "rgba(138,133,128,0.32)");
+    box(c, ax, ay, aw, ah, "#06060b");
+    c.fillStyle = "rgba(207,201,194,0.22)";
+    for (let i = 0; i < 5; i++) c.fillRect(ax + aw * 0.06, ay + ah * (0.14 + i * 0.155), aw * (0.28 + i * 0.115), Math.max(1, ah * 0.05));
+    c.fillStyle = "rgba(138,133,128,0.14)";
+    for (let i = 0; i < 5; i++) c.fillRect(ax + aw * 0.06, ay + ah * (0.14 + i * 0.155) + ah * 0.06, aw * 0.16, Math.max(1, ah * 0.02));
+    c.strokeStyle = "rgba(204,34,34,0.65)"; c.lineWidth = Math.max(1, W * 0.0015);
+    const ph = (t * 0.05) % 1;
+    c.beginPath(); c.moveTo(ax + aw * (0.06 + ph * 0.86), ay); c.lineTo(ax + aw * (0.06 + ph * 0.86), ay + ah); c.stroke();
+    c.fillStyle = "rgba(0,0,0,0.22)";
+    for (let y = ay; y < ay + ah; y += 3) c.fillRect(ax, y, aw, 1);
+
+    // מסך שני — "הפֶּה"
+    const bx = px(W, 0.66), by = py(H, 0.15), bw = px(W, 0.29), bh = py(H, 0.31);
+    pool(c, bx + bw / 2, by + bh * 1.05, bw * 1.1, "150,160,190", 0.07);
+    box(c, bx - px(W, 0.008), by - py(H, 0.012), bw + px(W, 0.016), bh + py(H, 0.024), "#16161e", "rgba(138,133,128,0.32)");
+    box(c, bx, by, bw, bh, "#06060b");
+    c.save(); c.beginPath(); c.rect(bx, by, bw, bh); c.clip();
+    const open = (Math.sin(t * 0.85) * 0.5 + 0.5) * (0.30 + cr * 0.70);
+    const lipY = (u, s) => by + bh / 2 + s * Math.sin(u * Math.PI) * bh * 0.44 * open;
+    c.fillStyle = "rgba(0,0,0,0.9)";
+    c.beginPath();
+    for (let i = 0; i <= 120; i++) { const u = i / 120; const x = bx + u * bw; i ? c.lineTo(x, lipY(u, -1)) : c.moveTo(x, lipY(u, -1)); }
+    for (let i = 120; i >= 0; i--) { const u = i / 120; c.lineTo(bx + u * bw, lipY(u, 1)); }
+    c.closePath(); c.fill();
+    c.strokeStyle = "rgba(207,201,194,0.75)"; c.lineWidth = Math.max(1.2, W * 0.002);
+    [-1, 1].forEach(s => {
+      c.beginPath();
+      for (let i = 0; i <= 120; i++) { const u = i / 120; const x = bx + u * bw; i ? c.lineTo(x, lipY(u, s)) : c.moveTo(x, lipY(u, s)); }
+      c.stroke();
+    });
+    if (gameState.monsterStep >= 2) {   // שיניים
+      c.fillStyle = "rgba(207,201,194,0.55)";
+      for (let i = 1; i < 14; i++) {
+        const u = i / 14, x = bx + u * bw, lip = Math.sin(u * Math.PI) * bh * 0.44 * open;
+        const wdt = bw * 0.022;
+        c.beginPath(); c.moveTo(x - wdt, by + bh / 2 - lip); c.lineTo(x + wdt, by + bh / 2 - lip);
+        c.lineTo(x, by + bh / 2 - lip * 0.55); c.closePath(); c.fill();
+        c.beginPath(); c.moveTo(x - wdt, by + bh / 2 + lip); c.lineTo(x + wdt, by + bh / 2 + lip);
+        c.lineTo(x, by + bh / 2 + lip * 0.55); c.closePath(); c.fill();
+      }
+    }
+    c.fillStyle = "rgba(0,0,0,0.22)";
+    for (let y = by; y < by + bh; y += 3) c.fillRect(bx, y, bw, 1);
+    c.restore();
+
+    // פתק על הקיר
+    c.save(); c.translate(px(W, 0.485), py(H, 0.575)); c.rotate(-0.07);
+    box(c, 0, 0, px(W, 0.085), py(H, 0.125), "#23232b", "rgba(138,133,128,0.32)");
+    c.fillStyle = "rgba(207,201,194,0.42)";
+    for (let i = 0; i < 3; i++) c.fillRect(px(W, 0.010), py(H, 0.025) + i * py(H, 0.028), px(W, 0.062 - i * 0.012), Math.max(1, py(H, 0.007)));
+    c.fillStyle = "rgba(204,34,34,0.8)";
+    c.beginPath(); c.arc(px(W, 0.042), py(H, 0.010), Math.max(2, W * 0.004), 0, Math.PI * 2); c.fill();
+    c.restore();
+
+    // כיסא עריכה — בהסתרה מסתובב אלינו
+    const chx = px(W, 0.205), chy = py(H, 0.95);
+    c.save(); c.translate(chx, chy);
+    const spin = gameState.secretShown ? 0.55 : 0;
+    c.fillStyle = "rgba(0,0,0,0.45)";
+    c.beginPath(); c.ellipse(0, 0, px(W, 0.075), py(H, 0.020), 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = "rgba(138,133,128,0.30)"; c.lineWidth = Math.max(1.5, W * 0.003);
+    for (let i = 0; i < 5; i++) {
+      const a = spin + i * (Math.PI * 2 / 5);
+      c.beginPath(); c.moveTo(0, -py(H, 0.01));
+      c.lineTo(Math.cos(a) * px(W, 0.062), -py(H, 0.01) + Math.sin(a) * py(H, 0.018)); c.stroke();
+    }
+    box(c, -px(W, 0.010), -py(H, 0.10), px(W, 0.020), py(H, 0.09), "#15151c", "rgba(138,133,128,0.22)");
+    c.save(); c.rotate(spin * 0.25);
+    box(c, -px(W, 0.058), -py(H, 0.14), px(W, 0.116), py(H, 0.045),
+      grad(c, 0, -py(H, 0.14), 0, -py(H, 0.095), "#20202a", "#0e0e14"), "rgba(138,133,128,0.26)");
+    box(c, -px(W, 0.050), -py(H, 0.30), px(W, 0.100), py(H, 0.17),
+      grad(c, 0, -py(H, 0.30), 0, -py(H, 0.13), "#1b1b23", "#0b0b10"), "rgba(138,133,128,0.26)");
+    c.restore();
+    c.restore();
+
+    // מקלדת — ארבע אותיות שחוקות
+    box(c, px(W, 0.395), py(H, 0.79), px(W, 0.195), py(H, 0.085), "#171720", "rgba(138,133,128,0.3)");
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 12; i++) {
+      const worn = (r === 1 && (i === 2 || i === 4 || i === 6 || i === 8 || i === 10));
+      c.fillStyle = worn ? "rgba(207,201,194,0.42)" : "rgba(138,133,128,0.20)";
+      c.fillRect(px(W, 0.403) + i * px(W, 0.0152), py(H, 0.80) + r * py(H, 0.024), px(W, 0.0115), py(H, 0.017));
+    }
+
+    roomVignette(c, W, H);
+  },
+
+  /* -------- פרק 4 · המסדרון : "הזוחל" בקצה -------- */
+  function corridor(c, W, H, t) {
+    const cr = creep();
+    box(c, 0, 0, W, H, "#050508");
+    const vpX = W * 0.5, vpY = H * 0.46;
+    const wallL = vpX - W * 0.10, wallR = vpX + W * 0.10;
+    const ceil = vpY - H * 0.13, floor = vpY + H * 0.15;
+
+    c.fillStyle = "#101018";   // תקרה
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(W, 0); c.lineTo(wallR, ceil); c.lineTo(wallL, ceil); c.closePath(); c.fill();
+    c.fillStyle = "#0c0c12";   // רצפה
+    c.beginPath(); c.moveTo(0, H); c.lineTo(W, H); c.lineTo(wallR, floor); c.lineTo(wallL, floor); c.closePath(); c.fill();
+    c.fillStyle = "#14141c";   // קיר שמאל
+    c.beginPath(); c.moveTo(0, 0); c.lineTo(wallL, ceil); c.lineTo(wallL, floor); c.lineTo(0, H); c.closePath(); c.fill();
+    c.fillStyle = "#0f0f16";   // קיר ימין
+    c.beginPath(); c.moveTo(W, 0); c.lineTo(wallR, ceil); c.lineTo(wallR, floor); c.lineTo(W, H); c.closePath(); c.fill();
+
+    // מנורות תקרה + שלוליות אור על הרצפה
+    const lamps = [0.30, 0.60, 0.82];
+    lamps.forEach((k, i) => {
+      const lx = vpX, ly = ceil + (0 - ceil) * (1 - k) * 0.0 + (H * 0.0);
+      const yy = ceil * (1 - k) + (H * 0.04) * k;
+      const flick = (i === 1 && !gameState.reduceMotion) ? (Math.sin(t * 7.3) > -0.75 ? 1 : 0.25) : 1;
+      const sz = W * 0.05 * (0.35 + k);
+      box(c, lx - sz / 2, yy, sz, H * 0.012 * (0.4 + k), "rgba(230,225,215," + (0.30 * flick) + ")");
+      pool(c, lx, yy + H * 0.02, W * 0.16 * (0.4 + k), "220,215,205", 0.14 * flick);
+      pool(c, lx, floor + (H - floor) * (1 - k) * 1.15, W * 0.26 * (0.4 + k), "220,215,205", 0.13 * flick);
+    });
+
+    // דלתות משני הצדדים
+    const depths = [[0.02, 0.24], [0.28, 0.46], [0.50, 0.63], [0.66, 0.75]];
+    depths.forEach((d, i) => {
+      const [a, b] = d;
+      [-1, 1].forEach(side => {
+        const xa = vpX + side * (W * 0.10 + W * 0.40 * (1 - a));
+        const xb = vpX + side * (W * 0.10 + W * 0.40 * (1 - b));
+        const topA = ceil - (ceil - 0) * a * 0.0 + (ceil * (1 - (1 - a)));
+        const tA = ceil * a + 0 * (1 - a), tB = ceil * b + 0 * (1 - b);
+        const fA = floor * a + H * (1 - a), fB = floor * b + H * (1 - b);
+        c.fillStyle = i % 2 ? "#191922" : "#15151d";
+        c.beginPath();
+        c.moveTo(xa, tA + (fA - tA) * 0.10); c.lineTo(xb, tB + (fB - tB) * 0.10);
+        c.lineTo(xb, fB - (fB - tB) * 0.02); c.lineTo(xa, fA - (fA - tA) * 0.02);
+        c.closePath(); c.fill();
+        c.strokeStyle = "rgba(138,133,128,0.28)"; c.lineWidth = Math.max(1, W * 0.0012); c.stroke();
+        // ידית
+        c.fillStyle = "rgba(180,175,168,0.35)";
+        c.beginPath();
+        c.arc(xb + (xa - xb) * 0.18, (tB + fB) / 2, Math.max(1.5, W * 0.004 * (1 - b)), 0, Math.PI * 2); c.fill();
+      });
+    });
+
+    // הדלת בקצה — פתוחה מעט, וחושך מאחוריה
+    const dw = W * 0.155, dh = H * 0.24;
+    box(c, vpX - dw / 2, vpY - dh * 0.52, dw, dh, "#0b0b12", "rgba(138,133,128,0.35)");
+    const openW = dw * (0.12 + cr * 0.28);
+    box(c, vpX - dw / 2, vpY - dh * 0.52, openW, dh, "#000");
+
+    // "הזוחל" — מתקרב דלת אחת בכל טעות
+    const adv = cr;
+    const scale = 0.5 + adv * 1.9;
+    const cx = vpX + Math.sin(t * 0.28) * W * 0.012 * adv;
+    const cy = vpY + H * (0.06 + adv * 0.26);
+    c.save();
+    c.strokeStyle = "rgba(0,0,0,0.9)";
+    c.lineWidth = Math.max(1.5, W * 0.006 * scale);
+    c.lineCap = "round";
+    for (let i = 0; i < 8; i++) {    // גפיים ארוכות מדי
+      const a = -Math.PI * 0.10 - i * 0.30 + Math.sin(t * 0.5 + i) * 0.08;
+      c.beginPath(); c.moveTo(cx, cy);
+      c.quadraticCurveTo(cx + Math.cos(a) * W * 0.06 * scale, cy - Math.abs(Math.sin(a)) * H * 0.10 * scale,
+        cx + Math.cos(a) * W * 0.10 * scale, cy + H * 0.045 * scale);
+      c.stroke();
+    }
+    c.fillStyle = "rgba(0,0,0,0.94)";
+    c.beginPath(); c.ellipse(cx, cy, W * 0.045 * scale, H * 0.030 * scale, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(cx, cy + H * 0.026 * scale, W * 0.022 * scale, H * 0.017 * scale, 0, 0, Math.PI * 2); c.fill();
+    if (gameState.monsterStep >= 2) {
+      c.fillStyle = "rgba(204,34,34," + (0.25 + adv * 0.4).toFixed(2) + ")";
+      c.beginPath(); c.arc(cx - W * 0.008 * scale, cy + H * 0.024 * scale, Math.max(1, W * 0.0035 * scale), 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(cx + W * 0.008 * scale, cy + H * 0.024 * scale, Math.max(1, W * 0.0035 * scale), 0, Math.PI * 2); c.fill();
+    }
+    c.restore();
+
+    // רמקול בתקרה
+    box(c, vpX - W * 0.045, H * 0.035, W * 0.09, H * 0.055, "#15151d", "rgba(138,133,128,0.35)");
+    c.fillStyle = "rgba(138,133,128,0.22)";
+    for (let i = 0; i < 5; i++) for (let j = 0; j < 3; j++)
+      c.fillRect(vpX - W * 0.033 + i * W * 0.015, H * 0.048 + j * H * 0.012, W * 0.007, H * 0.007);
+
+    // שלט יציאה — מהבהב, ומצביע פנימה
+    const on = gameState.reduceMotion ? true : (Math.sin(t * 2.4) > -0.35);
+    box(c, W * 0.055, H * 0.10, W * 0.105, H * 0.075, "#0d0d14", "rgba(138,133,128,0.3)");
+    pool(c, W * 0.107, H * 0.137, W * 0.10, "204,34,34", on ? 0.35 : 0.06);
+    c.fillStyle = on ? "rgba(226,80,80,0.85)" : "rgba(204,34,34,0.15)";
+    c.fillRect(W * 0.068, H * 0.122, W * 0.062, H * 0.028);
+    c.fillStyle = on ? "rgba(226,80,80,0.85)" : "rgba(204,34,34,0.15)";
+    c.beginPath(); c.moveTo(W * 0.148, H * 0.136); c.lineTo(W * 0.133, H * 0.118); c.lineTo(W * 0.133, H * 0.154); c.closePath(); c.fill();
+
+    // מפסק תאורה על הקיר הימני
+    box(c, W * 0.845, H * 0.42, W * 0.045, H * 0.10, "#1a1a22", "rgba(138,133,128,0.4)");
+    box(c, W * 0.855, H * 0.47, W * 0.025, H * 0.035, "#0b0b10", "rgba(138,133,128,0.3)");
+
+    // סימני גרירה על הרצפה
+    c.strokeStyle = "rgba(138,133,128,0.16)"; c.lineWidth = Math.max(1, W * 0.0022);
+    const marks = gameState.secretShown ? 3 : 2;
+    for (let i = 0; i < marks; i++) {
+      c.beginPath();
+      c.moveTo(W * (0.34 + i * 0.06), H);
+      c.lineTo(vpX - W * 0.015 + i * W * 0.015, floor + H * 0.01);
+      c.stroke();
+    }
+
+    roomVignette(c, W, H);
+  },
+
+  /* -------- פרק 5 · היציאה : "השני" במקום המראה -------- */
+  function exitroom(c, W, H, t) {
+    const cr = creep();
+    box(c, 0, 0, W, H, grad(c, 0, 0, 0, H, "#101018", "#040406"));
+    box(c, 0, py(H, 0.80), W, py(H, 0.20), grad(c, 0, py(H, 0.80), 0, H, "#0c0c12", "#060608"));
+
+    // דלת יציאה כבדה
+    const dx = px(W, 0.34), dy = py(H, 0.10), dw = px(W, 0.30), dh = py(H, 0.74);
+    pool(c, dx + dw / 2, dy + dh * 0.55, dw * 1.3, "170,170,190", 0.05);
+    box(c, dx - px(W, 0.014), dy - py(H, 0.02), dw + px(W, 0.028), dh + py(H, 0.02), "#191922", "rgba(138,133,128,0.35)");
+    box(c, dx, dy, dw, dh, grad(c, dx, dy, dx + dw, dy + dh, "#1a1a24", "#0a0a10"));
+    for (let i = 1; i < 4; i++) {
+      c.strokeStyle = "rgba(138,133,128,0.16)"; c.lineWidth = Math.max(1, W * 0.0015);
+      c.beginPath(); c.moveTo(dx + dw * 0.08, dy + dh * (i / 4)); c.lineTo(dx + dw * 0.92, dy + dh * (i / 4)); c.stroke();
+    }
+    c.fillStyle = "rgba(138,133,128,0.35)";   // מסמרות
+    for (let i = 0; i < 8; i++) {
+      c.beginPath(); c.arc(dx + dw * 0.05, dy + dh * (0.06 + i * 0.125), Math.max(1.5, W * 0.003), 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(dx + dw * 0.95, dy + dh * (0.06 + i * 0.125), Math.max(1.5, W * 0.003), 0, Math.PI * 2); c.fill();
+    }
+    // מספר על הדלת — משתנה בהסתרה
+    c.fillStyle = "rgba(207,201,194,0.60)";
+    c.font = "600 " + Math.round(H * 0.11) + "px system-ui, Arial, sans-serif";
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText(gameState.secretShown ? "301" : "300", dx + dw * 0.5, dy + dh * 0.20);
+
+    // מסך קטן עם שדה טקסט
+    const sx = dx + dw * 0.26, sy = dy + dh * 0.50, sw = dw * 0.48, sh = dh * 0.17;
+    pool(c, sx + sw / 2, sy + sh / 2, sw * 1.3, "150,170,190", 0.10);
+    box(c, sx, sy, sw, sh, "#05050a", "rgba(138,133,128,0.45)");
+    box(c, sx + sw * 0.08, sy + sh * 0.30, sw * 0.84, sh * 0.40, "#0a0a12", "rgba(138,133,128,0.25)");
+    if (gameState.reduceMotion || Math.sin(t * 3.2) > 0) {
+      c.fillStyle = "rgba(207,201,194,0.8)";
+      c.fillRect(sx + sw * 0.78, sy + sh * 0.36, Math.max(1.5, W * 0.0025), sh * 0.28);
+    }
+
+    // המקום שבו הייתה מראה — "השני"
+    const mx = px(W, 0.045), my = py(H, 0.13), mw = px(W, 0.225), mh = py(H, 0.67);
+    box(c, mx - px(W, 0.010), my - py(H, 0.016), mw + px(W, 0.020), mh + py(H, 0.032), "#1b1b23", "rgba(138,133,128,0.3)");
+    box(c, mx, my, mw, mh, grad(c, mx, my, mx + mw, my + mh, "#1c1c26", "#0c0c13"));
+    c.save(); c.beginPath(); c.rect(mx, my, mw, mh); c.clip();
+    // בבואה עמומה של החדר, כדי שהצללית תיקרא על רקע בהיר ממנה
+    box(c, mx + mw * 0.55, my + mh * 0.10, mw * 0.50, mh * 0.72, "rgba(150,150,170,0.05)");
+    pool(c, mx + mw * 0.5, my + mh * 0.35, mw * 1.1, "150,155,175", 0.06);
+    const lag = Math.sin(t * 0.4 - (gameState.monsterStep >= 3 ? 0 : 1.3)) * mw * 0.045;
+    figure(c, mx + mw * 0.5 + lag, my + mh * 0.99, mh * (0.80 + cr * 0.16), {
+      color: "rgba(6,6,10,0.95)",
+      neck: 0.06 + cr * 0.10,
+      tilt: gameState.monsterStep >= 3 ? Math.sin(t * 0.5) * 0.35 : 0,
+      lean: gameState.monsterStep >= 3 ? 1.2 : 0,
+      arms: gameState.monsterStep >= 3 ? 0.9 : 0,
+      eyes: gameState.monsterStep >= 3 ? 0.35 : 0
+    });
+    // קו אור דק על קצה הצללית
+    c.strokeStyle = "rgba(180,185,200,0.10)"; c.lineWidth = Math.max(1, W * 0.002);
+    c.beginPath();
+    c.moveTo(mx + mw * 0.34 + lag, my + mh * 0.99);
+    c.lineTo(mx + mw * 0.36 + lag, my + mh * 0.42);
+    c.stroke();
+    // זכוכית שאיננה — שכבת ברק דקה
+    c.fillStyle = "rgba(160,170,190,0.05)";
+    c.beginPath(); c.moveTo(mx, my + mh * 0.65); c.lineTo(mx + mw, my + mh * 0.15);
+    c.lineTo(mx + mw, my); c.lineTo(mx, my + mh * 0.42); c.closePath(); c.fill();
+    c.restore();
+    // ביד אחת היא כבר מחוץ למסגרת
+    if (gameState.monsterStep >= 4) {
+      c.strokeStyle = "rgba(6,6,10,0.95)"; c.lineWidth = Math.max(2, W * 0.006); c.lineCap = "round";
+      c.beginPath();
+      c.moveTo(mx + mw * 0.9, my + mh * 0.55);
+      c.quadraticCurveTo(mx + mw * 1.25, my + mh * 0.62, mx + mw * 1.45, my + mh * 0.50);
+      c.stroke();
+    }
+
+    // רמקול קטן
+    box(c, px(W, 0.705), py(H, 0.28), px(W, 0.09), py(H, 0.12), "#15151d", "rgba(138,133,128,0.35)");
+    c.fillStyle = "rgba(138,133,128,0.2)";
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++)
+      c.fillRect(px(W, 0.718) + i * px(W, 0.018), py(H, 0.30) + j * py(H, 0.028), px(W, 0.010), py(H, 0.014));
+
+    // לוח הפעלה עם נורית "מקליט"
+    box(c, px(W, 0.705), py(H, 0.48), px(W, 0.155), py(H, 0.14), "#12121a", "rgba(138,133,128,0.35)");
+    recLight(c, px(W, 0.735), py(H, 0.55), Math.max(3, W * 0.007), true);
+    c.fillStyle = "rgba(207,201,194,0.55)";
+    c.font = Math.round(H * 0.042) + "px system-ui, Arial, sans-serif";
+    c.textAlign = "right"; c.textBaseline = "middle";
+    c.fillText(TEXT.chapters[4].recLabel, px(W, 0.845), py(H, 0.55));
+
+    roomVignette(c, W, H);
+  }
+];
+
+/* מיקומי אזורי החיפוש בכל חדר — באחוזים, בסדר של TEXT.chapters[i].hotspots */
+const HOTSPOTS = [
+  // פרק 1 · האולפן
+  [{ x: 43, y: 38, w: 9, h: 20 }, { x: 79, y: 13, w: 9, h: 13 }, { x: 25, y: 76, w: 12, h: 14 },
+   { x: 60, y: 76, w: 10, h: 14 }, { x: 11, y: 48, w: 13, h: 24 }],
+  // פרק 2 · הכניסה
+  [{ x: 65, y: 21, w: 30, h: 43 }, { x: 2, y: 20, w: 12, h: 38 }, { x: 27, y: 28, w: 9, h: 16 },
+   { x: 40, y: 14, w: 22, h: 40 }, { x: 79, y: 2, w: 11, h: 17 }],
+  // פרק 3 · חדר העריכה
+  [{ x: 3, y: 8, w: 25, h: 54 }, { x: 48, y: 58, w: 10, h: 14 }, { x: 65, y: 14, w: 29, h: 33 },
+   { x: 14, y: 64, w: 13, h: 26 }, { x: 39, y: 78, w: 20, h: 11 }],
+  // פרק 4 · המסדרון
+  [{ x: 45, y: 4, w: 10, h: 12 }, { x: 5, y: 10, w: 12, h: 12 }, { x: 82, y: 40, w: 10, h: 16 },
+   { x: 43, y: 38, w: 14, h: 22 }, { x: 30, y: 82, w: 26, h: 15 }],
+  // פרק 5 · היציאה
+  [{ x: 34, y: 10, w: 30, h: 34 }, { x: 42, y: 48, w: 15, h: 14 }, { x: 4, y: 12, w: 23, h: 68 },
+   { x: 70, y: 28, w: 11, h: 14 }, { x: 70, y: 48, w: 16, h: 16 }]
+];
+
+
+/* ================================================================
+   6b. Scene3D — מנוע תלת-ממד קטן, WebGL גולמי, בלי שום ספרייה
+   כל חדר נבנה מקוביות ומצולעים, עם תאורה נקודתית וערפל.
+   אם אין WebGL — המשחק חוזר אוטומטית לציורי ה-2D שלמעלה.
+   ================================================================ */
+
+/* ---- מתמטיקה של מטריצות 4x4 ---- */
+const M4 = {
+  ident() { return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; },
+  mul(a, b) {
+    const o = new Array(16);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+      o[r * 4 + c] = a[r * 4] * b[c] + a[r * 4 + 1] * b[4 + c] + a[r * 4 + 2] * b[8 + c] + a[r * 4 + 3] * b[12 + c];
+    }
+    return o;
+  },
+  persp(fovy, aspect, near, far) {
+    const f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+    return [f / aspect,0,0,0, 0,f,0,0, 0,0,(far + near) * nf,-1, 0,0,2 * far * near * nf,0];
+  },
+  lookAt(eye, tgt, up) {
+    const z = norm3(sub3(eye, tgt)), x = norm3(cross3(up, z)), y = cross3(z, x);
+    return [x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+      -(x[0]*eye[0]+x[1]*eye[1]+x[2]*eye[2]),
+      -(y[0]*eye[0]+y[1]*eye[1]+y[2]*eye[2]),
+      -(z[0]*eye[0]+z[1]*eye[1]+z[2]*eye[2]), 1];
+  }
+};
+function sub3(a, b) { return [a[0]-b[0], a[1]-b[1], a[2]-b[2]]; }
+function cross3(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function norm3(a) { const l = Math.hypot(a[0],a[1],a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; }
+
+/* ---- בונה גיאומטריה: כל פאה היא שני משולשים עם צבע ונורמל ---- */
+function Mesh() { this.v = []; this.glows = []; }
+/* מסובב סביב ציר Y את כל הקודקודים שנוספו מאז האינדקס i0 — כך דמות יכולה להפנות את הראש */
+Mesh.prototype.rotateFrom = function (i0, ang, cx, cz) {
+  const c = Math.cos(ang), sn = Math.sin(ang);
+  for (let i = i0; i < this.v.length; i += 10) {
+    const dx = this.v[i] - cx, dz = this.v[i + 2] - cz;
+    this.v[i] = cx + dx * c + dz * sn;
+    this.v[i + 2] = cz - dx * sn + dz * c;
+    const nx = this.v[i + 3], nz = this.v[i + 5];
+    this.v[i + 3] = nx * c + nz * sn;
+    this.v[i + 5] = -nx * sn + nz * c;
+  }
+};
+/* נקודת זוהר: הילה רכה שמצוירת בחיבור אדיטיבי אחרי הסצנה */
+Mesh.prototype.glow = function (p, size, col) { this.glows.push({ p, size, c: col }); };
+Mesh.prototype.tri = function (p0, p1, p2, col, emit) {
+  const n = norm3(cross3(sub3(p1, p0), sub3(p2, p0)));
+  [p0, p1, p2].forEach(p => {
+    this.v.push(p[0], p[1], p[2], n[0], n[1], n[2], col[0], col[1], col[2], emit || 0);
+  });
+};
+Mesh.prototype.quad = function (p0, p1, p2, p3, col, emit) {
+  this.tri(p0, p1, p2, col, emit); this.tri(p0, p2, p3, col, emit);
+};
+/* קופסה. skip מאפשר לוותר על פאות שלא רואים, כדי לחסוך משולשים */
+Mesh.prototype.box = function (x, y, z, w, h, d, col, opt) {
+  const o = opt || {}, s = o.skip || [], e = o.emit || 0;
+  const x0 = x - w / 2, x1 = x + w / 2, y0 = y, y1 = y + h, z0 = z - d / 2, z1 = z + d / 2;
+  const sh = (f) => o.flat ? col : [col[0] * f, col[1] * f, col[2] * f];
+  if (!s.includes("front")) this.quad([x0,y0,z1], [x1,y0,z1], [x1,y1,z1], [x0,y1,z1], sh(1.00), e);
+  if (!s.includes("back"))  this.quad([x1,y0,z0], [x0,y0,z0], [x0,y1,z0], [x1,y1,z0], sh(0.72), e);
+  if (!s.includes("right")) this.quad([x1,y0,z1], [x1,y0,z0], [x1,y1,z0], [x1,y1,z1], sh(0.86), e);
+  if (!s.includes("left"))  this.quad([x0,y0,z0], [x0,y0,z1], [x0,y1,z1], [x0,y1,z0], sh(0.86), e);
+  if (!s.includes("top"))   this.quad([x0,y1,z1], [x1,y1,z1], [x1,y1,z0], [x0,y1,z0], sh(1.12), e);
+  if (!s.includes("bottom"))this.quad([x0,y0,z0], [x1,y0,z0], [x1,y0,z1], [x0,y0,z1], sh(0.55), e);
+};
+/* לוח שטוח על קיר — z קבוע, פונה אל המצלמה */
+Mesh.prototype.panel = function (x, y, z, w, h, col, emit) {
+  this.quad([x - w/2, y, z], [x + w/2, y, z], [x + w/2, y + h, z], [x - w/2, y + h, z], col, emit || 0);
+};
+Mesh.prototype.panelX = function (x, y, z, d, h, col, emit) {
+  this.quad([x, y, z - d/2], [x, y, z + d/2], [x, y + h, z + d/2], [x, y + h, z - d/2], col, emit || 0);
+};
+
+/* ---- דמות אנושית מקוביות. ככל שהיא קרובה, ככה היא גדולה ולא נכונה יותר ---- */
+function figure3d(M, x, y, z, opt) {
+  const o = opt || {};
+  const s = o.scale || 1;
+  const dark = o.color || [0.02, 0.02, 0.03];
+  const neck = (o.neck || 0.12) * s;
+  const torsoH = 0.72 * s;
+  // הזווית אל השחקן: הגוף פונה אליו בחלקה, הראש — במלואה
+  const pl = Scene3D.player;
+  const face = Math.atan2(pl.x - x, pl.z - z);
+  const bodyStart = M.v.length;
+  M.box(x, y, z, 0.46 * s, torsoH, 0.26 * s, dark, { flat: true });          // גוף
+  M.box(x, y + torsoH, z, 0.10 * s, neck, 0.10 * s, dark, { flat: true });   // צוואר ארוך מדי
+  const headStart = M.v.length;
+  M.box(x, y + torsoH + neck, z, 0.22 * s, 0.26 * s, 0.22 * s, dark, { flat: true }); // ראש
+  if (!o.seated) {
+    M.box(x - 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
+    M.box(x + 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
+  }
+  // כתפיים ולסת שמוטה מעט — הפה פתוח כל הזמן
+  M.box(x, y + torsoH - 0.06 * s, z, 0.62 * s, 0.10 * s, 0.24 * s, dark, { flat: true });
+  M.box(x, y + torsoH + neck - 0.05 * s, z + 0.02 * s, 0.16 * s, 0.07 * s, 0.18 * s, dark, { flat: true });
+  const armLen = (0.55 + (o.arms || 0) * 0.5) * s;
+  M.box(x - 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
+  M.box(x + 0.30 * s, y + torsoH - armLen, z + 0.02, 0.11 * s, armLen, 0.11 * s, dark, { flat: true });
+  // אצבעות — ארבע לכל יד, דקות וארוכות מדי
+  for (let f = 0; f < 4; f++) {
+    const fx = -0.05 * s + f * 0.033 * s, fl = (0.16 + (o.arms || 0) * 0.12) * s;
+    M.box(x - 0.30 * s + fx, y + torsoH - armLen - fl, z + 0.02, 0.018 * s, fl, 0.02 * s, dark, { flat: true });
+    M.box(x + 0.30 * s + fx, y + torsoH - armLen - fl, z + 0.02, 0.018 * s, fl, 0.02 * s, dark, { flat: true });
+  }
+  if (o.eyes) {   // שתי נקודות אדומות. בשימוש נדיר בלבד
+    const ey = y + torsoH + neck + 0.16 * s, ez = z + 0.115 * s;
+    M.panel(x - 0.05 * s, ey, ez, 0.035 * s, 0.02 * s, [0.85, 0.13, 0.13], 1);
+    M.panel(x + 0.05 * s, ey, ez, 0.035 * s, 0.02 * s, [0.85, 0.13, 0.13], 1);
+  }
+  if (o.headphones) {
+    const hy = y + torsoH + neck + 0.26 * s;
+    M.box(x, hy, z, 0.30 * s, 0.04 * s, 0.06 * s, [0.28, 0.27, 0.26], { flat: true });
+    M.box(x - 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
+    M.box(x + 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
+  }
+  // הראש עוקב אחרי השחקן; הגוף מסתובב אחריו לאט יותר
+  M.rotateFrom(headStart, face, x, z);
+  M.rotateFrom(bodyStart, face * 0.35, x, z);
+  if (o.eyes) {   // זוהר אדום קלוש סביב העיניים, מסובב יחד עם הראש
+    const ey = y + torsoH + neck + 0.16 * s;
+    const ex = Math.sin(face) * 0.13 * s, ez = Math.cos(face) * 0.13 * s;
+    M.glow([x + ex, ey, z + ez], 0.16 * s, [0.42, 0.05, 0.05]);
+  }
+}
+
+/* ---- ספרה בשבעה מקטעים, מצולעים קטנים על מישור ---- */
+const SEG7 = { 0:[1,1,1,1,1,1,0], 1:[0,1,1,0,0,0,0], 2:[1,1,0,1,1,0,1], 3:[1,1,1,1,0,0,1],
+  4:[0,1,1,0,0,1,1], 5:[1,0,1,1,0,1,1], 6:[1,0,1,1,1,1,1], 7:[1,1,1,0,0,0,0],
+  8:[1,1,1,1,1,1,1], 9:[1,1,1,1,0,1,1] };
+function digit7(M, x, y, z, w, h, n, col) {
+  const seg = SEG7[n] || SEG7[0], th = w * 0.20;
+  const on = (i) => seg[i] ? col : [col[0]*0.10, col[1]*0.10, col[2]*0.10];
+  M.panel(x, y + h - th, z, w, th, on(0));                       // עליון
+  M.panel(x + w/2 - th/2, y + h/2, z, th, h/2 - th/2, on(1));    // ימין עליון
+  M.panel(x + w/2 - th/2, y + th, z, th, h/2 - th/2, on(2));     // ימין תחתון
+  M.panel(x, y, z, w, th, on(3));                                // תחתון
+  M.panel(x - w/2 + th/2, y + th, z, th, h/2 - th/2, on(4));     // שמאל תחתון
+  M.panel(x - w/2 + th/2, y + h/2, z, th, h/2 - th/2, on(5));    // שמאל עליון
+  M.panel(x, y + h/2 - th/2, z, w, th, on(6));                   // אמצע
+}
+function number7(M, x, y, z, w, h, str, col) {
+  const chars = String(str).split("");
+  const gap = w * 1.35;
+  chars.forEach((c, i) => digit7(M, x + (i - (chars.length - 1) / 2) * gap, y, z, w, h, parseInt(c, 10), col));
+}
+
+/* ---- צל מגע על הרצפה — מלבן כהה מתחת לרהיט או לדמות ---- */
+function blob(M, x, z, rx, rz) {
+  M.quad([x - rx, 0.004, z + rz], [x + rx, 0.004, z + rz], [x + rx, 0.004, z - rz], [x - rx, 0.004, z - rz], [0.010, 0.010, 0.014]);
+}
+/* ---- מסגרת סביב דלת או לוח על הקיר האחורי ---- */
+function frame3d(M, x, y, z, w, h, t, d, col) {
+  M.box(x - w / 2 - t / 2, y, z, t, h + t, d, col);
+  M.box(x + w / 2 + t / 2, y, z, t, h + t, d, col);
+  M.box(x, y + h, z, w + 2 * t, t, d, col);
+}
+/* ---- פנלים לאורך בסיס הקירות ---- */
+function skirting(M, x0, x1, z0, z1, col) {
+  M.box((x0 + x1) / 2, 0, z0 + 0.04, x1 - x0, 0.12, 0.08, col, { skip: ["bottom", "back"] });
+  M.box(x0 + 0.04, 0, (z0 + z1) / 2, 0.08, 0.12, z1 - z0, col, { skip: ["bottom", "left"] });
+  M.box(x1 - 0.04, 0, (z0 + z1) / 2, 0.08, 0.12, z1 - z0, col, { skip: ["bottom", "right"] });
+}
+/* ---- גוף תאורה בתקרה: קופסה עם תחתית זוהרת ---- */
+function ceilingLamp(M, x, z, w, d, h, on) {
+  M.box(x, h - 0.08, z, w + 0.06, 0.08, d + 0.06, [0.09, 0.09, 0.11], { skip: ["top"] });
+  M.quad([x - w/2, h - 0.081, z - d/2], [x + w/2, h - 0.081, z - d/2], [x + w/2, h - 0.081, z + d/2], [x - w/2, h - 0.081, z + d/2],
+    [0.88 * on, 0.85 * on, 0.78 * on], 1);
+}
+/* ---- קיר ספוג אקוסטי אמיתי: פירמידה בכל תא, נראית בתאורה ---- */
+function foamWall3d(M, w, h, z, cols, rows, base) {
+  const cw = w / cols, ch = h / rows, depth = 0.075;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const x0 = -w / 2 + i * cw, y0 = j * ch, x1 = x0 + cw, y1 = y0 + ch;
+    const ax = (x0 + x1) / 2, ay = (y0 + y1) / 2, az = z + depth;
+    const f = ((i + j) % 2 === 0) ? 1.0 : 0.92;
+    const c = [base[0] * f, base[1] * f, base[2] * f];
+    M.tri([x0, y0, z], [x1, y0, z], [ax, ay, az], c);
+    M.tri([x1, y0, z], [x1, y1, z], [ax, ay, az], c);
+    M.tri([x1, y1, z], [x0, y1, z], [ax, ay, az], c);
+    M.tri([x0, y1, z], [x0, y0, z], [ax, ay, az], c);
+  }
+}
+
+/* ---- קליפת חדר: רצפה, תקרה, ארבעה קירות ---- */
+function shell(M, w, h, d, zBack, colWall, colFloor, colCeil) {
+  const x0 = -w / 2, x1 = w / 2, z0 = zBack, z1 = zBack + d;
+  M.quad([x0,0,z1], [x1,0,z1], [x1,0,z0], [x0,0,z0], colFloor);              // רצפה
+  M.quad([x0,h,z0], [x1,h,z0], [x1,h,z1], [x0,h,z1], colCeil);               // תקרה
+  M.quad([x0,0,z0], [x1,0,z0], [x1,h,z0], [x0,h,z0], colWall);               // קיר אחורי
+  M.quad([x1,0,z0], [x1,0,z1], [x1,h,z1], [x1,h,z0], [colWall[0]*0.88, colWall[1]*0.88, colWall[2]*0.88]);
+  M.quad([x0,0,z1], [x0,0,z0], [x0,h,z0], [x0,h,z1], [colWall[0]*0.94, colWall[1]*0.94, colWall[2]*0.94]);
+}
+/* קיר ספוג אקוסטי — רשת של ריבועים בגוונים מתחלפים */
+function foamWall(M, w, h, z, cols, rows, base) {
+  const cw = w / cols, ch = h / rows;
+  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+    const f = ((i + j) % 2 === 0) ? 1.10 : 0.86;
+    const x = -w / 2 + i * cw + cw / 2;
+    M.panel(x, j * ch, z + 0.012, cw * 0.94, ch * 0.94, [base[0]*f, base[1]*f, base[2]*f]);
+  }
+}
+
+/* ================================================================
+   הסצנות — חמישה חדרים בתלת-ממד
+   כל סצנה מחזירה: מש, תאורה, מצלמה, ועוגנים לאזורי החיפוש
+   ================================================================ */
+const SCENES = [
+
+  /* ---------- פרק 1 · האולפן ---------- */
+  function studio3d(t) {
+    const M = new Mesh(), cr = creep();
+    const cz = -4.5 + cr * 0.5;
+    shell(M, 6, 3, 8, -5.5, [0.075,0.075,0.095], [0.05,0.05,0.06], [0.045,0.045,0.055]);
+    foamWall3d(M, 6, 3, -5.5, 16, 8, [0.06,0.06,0.078]);
+    skirting(M, -3, 3, -5.5, 2.5, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0.2, -2.6, 0.9, 0.5, 3, 0.9);
+    blob(M, 0, -3.4, 2.2, 0.75);
+    blob(M, -1.25, cz, 0.42, 0.42);
+
+    // שולחן
+    M.box(0, 0.74, -3.4, 4.2, 0.08, 1.3, [0.075,0.072,0.085]);
+    M.box(-1.9, 0, -3.4, 0.1, 0.74, 1.1, [0.07,0.07,0.08]);
+    M.box(1.9, 0, -3.4, 0.1, 0.74, 1.1, [0.07,0.07,0.08]);
+
+    // מסך העריכה — הפנים שלו זוהרות
+    M.box(1.15, 0.82, -3.7, 1.15, 0.72, 0.07, [0.10,0.10,0.12]);
+    M.panel(1.15, 0.88, -3.64, 1.02, 0.58, [0.06,0.07,0.10], 1);
+    for (let i = 0; i < 26; i++) {   // הערוץ העליון
+      const h = 0.05 + ((i * 37) % 11) * 0.014;
+      M.panel(0.68 + i * 0.038, 1.18, -3.63, 0.016, h, [0.72,0.70,0.67], 1);
+    }
+    for (let i = 0; i < 26; i++) {   // הערוץ התחתון, האדום
+      const h = 0.04 + ((i * 53) % 9) * 0.013;
+      M.panel(0.68 + i * 0.038, 1.17 - h, -3.63, 0.016, h, [0.78,0.16,0.16], 1);
+    }
+
+    // מיקרופון
+    M.box(-0.15, 0.82, -3.3, 0.05, 0.42, 0.05, [0.085,0.085,0.10]);
+    M.box(-0.15, 1.24, -3.3, 0.12, 0.30, 0.12, [0.125,0.12,0.135]);
+    M.box(-0.55, 1.30, -3.3, 0.80, 0.03, 0.03, [0.075,0.075,0.09]);
+    M.box(-0.42, 1.16, -3.15, 0.02, 0.26, 0.20, [0.16,0.155,0.15]);   // פופ פילטר
+    M.box(0.45, 0.83, -3.55, 1.3, 0.015, 0.02, [0.05,0.05,0.06]);       // כבל על השולחן
+    M.box(1.15, 0.83, -3.42, 0.02, 0.015, 0.3, [0.05,0.05,0.06]);
+
+    // אוזניות וכוס
+    M.box(-1.25, 0.82, -3.2, 0.30, 0.05, 0.24, [0.105,0.10,0.095]);
+    M.box(-1.38, 0.82, -3.2, 0.09, 0.13, 0.13, [0.085,0.08,0.08]);
+    M.box(-1.12, 0.82, -3.2, 0.09, 0.13, 0.13, [0.085,0.08,0.08]);
+    M.box(0.45, 0.82, -3.1, 0.10, 0.14, 0.10, [0.10,0.095,0.09]);
+    if (gameState.secretShown) M.box(0.62, 0.82, -3.1, 0.10, 0.14, 0.10, [0.10,0.095,0.09]);
+
+    // כיסא האורח — ו"המאזין" יושב בו
+
+    M.box(-1.25, 0, cz, 0.55, 0.45, 0.55, [0.055,0.055,0.07]);
+    M.box(-1.25, 0.45, cz - 0.24, 0.55, 0.55, 0.07, [0.055,0.055,0.07]);
+    figure3d(M, -1.25, 0.62 + Math.sin(t * 0.6) * 0.012, cz + 0.05, {
+      scale: 0.95 + cr * 0.12, seated: true, neck: 0.16 + cr * 0.14,
+      arms: cr * 0.4, headphones: true, eyes: gameState.monsterStep >= 2
+    });
+
+    // נורית ההקלטה על הקיר
+    M.panel(2.1, 2.05, -5.48, 0.10, 0.10, [0.85,0.13,0.13], 1);
+    M.glow([2.1, 2.05, -5.40], 0.45, [0.55, 0.06, 0.06]);
+    M.glow([1.15, 1.17, -3.55], 1.25, [0.08, 0.10, 0.18]);      // זוהר המסך
+    M.glow([-2.05, 1.38, -5.40], 0.18, [0.40, 0.05, 0.05]);      // נורית המנעול
+    // דלת עם מנעול ספרות
+    frame3d(M, -2.35, 0, -5.42, 1.0, 2.15, 0.08, 0.12, [0.09,0.09,0.11]);
+    M.panel(-2.35, 0, -5.47, 1.0, 2.15, [0.10,0.10,0.13]);
+    M.panel(-2.05, 1.05, -5.45, 0.20, 0.28, [0.15,0.15,0.18]);
+    M.panel(-2.05, 1.36, -5.45, 0.05, 0.04, [0.85,0.13,0.13], 1);
+
+    return {
+      mesh: M,
+      eye: [0, 1.42, -0.6], look: [0, 1.20, -4.8],
+      walls: [-3, 3, -5.5, 2.5], bounds: [-2.7, 2.7, -5.2, 2.2],
+      shadow: { p: [0.2, 2.85, -2.6], look: [0, 0, -3.6], fov: 2.2, far: 9 },
+      blockers: [[-2.1, 2.1, -4.05, -2.75], [-1.6, -0.9, cz - 0.4, cz + 0.4]],
+      fog: [0.028, 0.028, 0.035], fogD: 0.115,
+      ambient: [0.15, 0.15, 0.18],
+      lights: [
+        { p: [0.2, 2.5, -2.6], c: [0.85, 0.80, 0.70], r: 7.0, i: 0.85 },
+        { p: [1.15, 1.2, -3.2], c: [0.35, 0.42, 0.62], r: 3.4, i: 0.9 },
+        { p: [2.1, 2.05, -5.2], c: [0.9, 0.16, 0.16], r: 2.6, i: 0.8 }
+      ],
+      anchors: [[-0.15, 1.30, -3.3], [2.1, 2.05, -5.45], [-1.25, 0.90, -3.2], [0.45, 0.95, -3.1], [-1.25, 1.25, cz]]
+    };
+  },
+
+  /* ---------- פרק 2 · הכניסה ---------- */
+  function lobby3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 6.4, 3, 7.5, -5.2, [0.07,0.07,0.09], [0.055,0.055,0.065], [0.04,0.04,0.05]);
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {   // מרצפות
+      if ((i + j) % 2) continue;
+      const x = -3.2 + i * 0.8, z = -5.2 + j * 0.9;
+      M.quad([x,0.002,z + 0.9], [x + 0.8,0.002,z + 0.9], [x + 0.8,0.002,z], [x,0.002,z], [0.075,0.075,0.088]);
+    }
+
+    skirting(M, -3.2, 3.2, -5.2, 2.3, [0.06,0.06,0.075]);
+    ceilingLamp(M, 1.6, -4.2, 0.8, 0.5, 3, 0.75);
+    blob(M, -2.0, -4.7, 0.35, 0.35);
+    // שלולית מתחת למעיל הרטוב
+    M.quad([-2.45, 0.006, -4.3], [-1.55, 0.006, -4.3], [-1.55, 0.006, -5.0], [-2.45, 0.006, -5.0], [0.05,0.055,0.075]);
+    // דלת הכניסה עם זכוכית חלבית
+    frame3d(M, 0, 0, -5.12, 1.6, 2.4, 0.10, 0.14, [0.11,0.11,0.14]);
+    M.panel(0, 0, -5.17, 1.6, 2.4, [0.085,0.085,0.11]);
+    M.panel(0, 0.75, -5.15, 1.25, 1.35, [0.22,0.24,0.30], 0.55);
+    // "האורח" מאחוריה — מתקרב לזכוכית בכל טעות
+    figure3d(M, 0, 0.92, -5.30 + cr * 0.10, {
+      scale: 1.0 + cr * 0.18, neck: 0.10 + cr * 0.16,
+      arms: gameState.monsterStep >= 2 ? 0.7 : 0, color: [0.055,0.055,0.075]
+    });
+
+    // לוח האורחים על הקיר האחורי
+    M.panel(1.85, 0.95, -5.14, 1.5, 1.25, [0.075,0.075,0.095]);
+    for (let i = 0; i < 6; i++) {
+      const y = 2.02 - i * 0.19;
+      M.panel(1.72, y, -5.12, 0.95, 0.035, [0.42,0.40,0.38]);
+      if (i < 5 || gameState.secretShown) M.panel(1.80, y + 0.015, -5.11, 1.20, 0.028, [0.55,0.12,0.12]);
+    }
+
+    // מתלה מעילים, קרוב לקיר האחורי
+    M.box(-2.0, 0, -4.8, 0.06, 1.9, 0.06, [0.10,0.10,0.12]);
+    M.box(-2.0, 1.9, -4.8, 0.7, 0.05, 0.05, [0.10,0.10,0.12]);
+    M.box(-2.0, 0.95, -4.7, 0.36, 0.95, 0.18, [0.055,0.055,0.075]);
+
+    // אינטרקום ושעון
+    M.panel(-1.15, 1.25, -5.14, 0.22, 0.34, [0.09,0.09,0.12]);
+    M.panel(-1.15, 1.48, -5.12, 0.05, 0.05, [0.24,0.75,0.36], 1);
+    M.glow([-1.15, 1.48, -5.05], 0.28, [0.05, 0.30, 0.10]);
+    M.glow([0, 1.45, -5.05], 1.6, [0.10, 0.12, 0.20]);           // אור מבעד לזכוכית
+    M.panel(1.15, 2.15, -5.14, 0.42, 0.42, [0.10,0.10,0.13]);
+    M.panel(1.15, 2.33, -5.12, 0.15, 0.022, [0.55,0.53,0.50], 1);    // מחוג שעות
+    M.panel(1.18, 2.22, -5.12, 0.022, 0.19, [0.55,0.53,0.50], 1);    // מחוג דקות
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.3], look: [0, 1.30, -5.0],
+      walls: [-3.2, 3.2, -5.2, 2.3], bounds: [-2.9, 2.9, -4.9, 2.0],
+      shadow: { p: [0, 1.7, -5.05], look: [0, 0.6, 0.5], fov: 1.9, far: 9 },
+      blockers: [[-2.3, -1.7, -5.0, -4.5]],
+      fog: [0.025,0.025,0.032], fogD: 0.12,
+      ambient: [0.15,0.15,0.18],
+      lights: [
+        { p: [0, 1.6, -4.6], c: [0.55,0.60,0.78], r: 5.2, i: 0.85 },
+        { p: [1.6, 2.6, -4.2], c: [0.70,0.66,0.58], r: 5.0, i: 0.55 },
+        { p: [-1.15, 1.48, -5.0], c: [0.25,0.85,0.40], r: 1.6, i: 0.7 }
+      ],
+      anchors: [[1.85, 1.55, -5.10], [-2.0, 1.40, -4.7], [-1.15, 1.42, -5.10], [0, 1.35, -5.12], [1.15, 2.32, -5.10]]
+    };
+  },
+
+  /* ---------- פרק 3 · חדר העריכה ---------- */
+  function editroom3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 6, 3, 7.5, -5.2, [0.065,0.065,0.085], [0.05,0.05,0.058], [0.04,0.04,0.05]);
+
+    skirting(M, -3, 3, -5.2, 2.3, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0, -2.4, 0.8, 0.5, 3, 0.55);
+    blob(M, 0, -3.5, 2.1, 0.7);
+    // כבלים שנשפכים מהשולחן לרצפה
+    M.box(1.5, 0.05, -3.0, 0.02, 0.75, 0.02, [0.04,0.04,0.05]);
+    M.box(1.5, 0.05, -2.5, 0.02, 0.02, 1.0, [0.04,0.04,0.05]);
+    // שולחן עריכה
+    M.box(0, 0.75, -3.5, 4.0, 0.08, 1.2, [0.085,0.082,0.095]);
+    M.box(-1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
+    M.box(1.8, 0, -3.5, 0.1, 0.75, 1.0, [0.07,0.07,0.08]);
+    M.box(0, 0.79, -3.15, 0.75, 0.03, 0.26, [0.13,0.13,0.16]);   // מקלדת
+    for (let i = 0; i < 5; i++) M.panel(-0.20 + i * 0.10, 0.823, -3.03, 0.055, 0.055, [0.42,0.41,0.39]);
+
+    // מסך שמאלי — ציר זמן
+    M.box(-0.95, 0.83, -3.85, 1.05, 0.66, 0.06, [0.10,0.10,0.12]);
+    M.panel(-0.95, 0.89, -3.80, 0.94, 0.54, [0.05,0.06,0.09], 1);
+    for (let i = 0; i < 5; i++) M.panel(-1.20 + i * 0.02, 1.28 - i * 0.09, -3.79, 0.30 + i * 0.10, 0.045, [0.55,0.53,0.51], 1);
+    M.panel(-0.75, 0.92, -3.79, 0.012, 0.48, [0.80,0.16,0.16], 1);
+    M.glow([-0.95, 1.16, -3.70, 0], 1.1, [0.09, 0.11, 0.20]);
+    M.glow([0.95, 1.16, -3.70], 1.1, [0.11, 0.11, 0.16]);
+
+    // מסך ימני — "הפֶּה"
+    M.box(0.95, 0.83, -3.85, 1.05, 0.66, 0.06, [0.10,0.10,0.12]);
+    M.panel(0.95, 0.89, -3.80, 0.94, 0.54, [0.04,0.04,0.06], 1);
+    const open = (Math.sin(t * 0.9) * 0.5 + 0.5) * (0.30 + cr * 0.68);
+    for (let i = 0; i < 22; i++) {
+      const u = i / 21, lip = Math.sin(u * Math.PI) * 0.22 * open;
+      const x = 0.52 + u * 0.86;
+      M.panel(x, 1.16 + lip - 0.006, -3.79, 0.044, 0.012, [0.72,0.70,0.68], 1);
+      M.panel(x, 1.16 - lip - 0.006, -3.79, 0.044, 0.012, [0.72,0.70,0.68], 1);
+      if (gameState.monsterStep >= 2 && i % 2 === 0 && lip > 0.03) {   // שיניים
+        M.panel(x, 1.16 + lip - 0.05, -3.785, 0.030, 0.045, [0.62,0.60,0.58], 1);
+        M.panel(x, 1.16 - lip + 0.005, -3.785, 0.030, 0.045, [0.62,0.60,0.58], 1);
+      }
+    }
+
+    // מדף קלטות על הקיר האחורי
+    M.panel(-1.85, 0.75, -5.16, 1.9, 1.6, [0.05,0.05,0.065]);
+    for (let r = 0; r < 4; r++) {
+      const y = 0.78 + r * 0.39;
+      M.panel(-1.85, y, -5.13, 1.86, 0.03, [0.11,0.11,0.13]);
+      for (let i = 0; i < 9; i++) {
+        if (r === 3 && i === 8 && !gameState.secretShown) continue;
+        M.box(-2.72 + i * 0.205, y + 0.03, -5.05, 0.14, 0.28, 0.16, [0.085,0.085,0.10]);
+      }
+    }
+
+    // פתק על הקיר האחורי
+    M.panel(2.0, 1.55, -5.17, 0.28, 0.36, [0.20,0.20,0.24]);
+    for (let i = 0; i < 3; i++) M.panel(2.0, 1.62 + i * 0.08, -5.16, 0.18 - i * 0.03, 0.02, [0.55,0.53,0.51]);
+
+    // כיסא
+    const spin = gameState.secretShown ? 0.5 : 0;
+    M.box(-0.2 + spin * 0.3, 0, -2.2, 0.5, 0.42, 0.5, [0.08,0.08,0.10]);
+    M.box(-0.2 + spin * 0.3, 0.42, -2.45 + spin * 0.5, 0.5, 0.5, 0.07, [0.08,0.08,0.10]);
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.2], look: [0, 1.25, -4.8],
+      walls: [-3, 3, -5.2, 2.3], bounds: [-2.7, 2.7, -4.9, 2.0],
+      shadow: { p: [0, 2.85, -2.4], look: [0, 0, -3.6], fov: 2.2, far: 9 },
+      blockers: [[-2.0, 2.0, -4.1, -2.9], [-0.5, 0.1, -2.5, -1.9]],
+      fog: [0.022,0.022,0.030], fogD: 0.12,
+      ambient: [0.14,0.14,0.17],
+      lights: [
+        { p: [-0.95, 1.1, -3.4], c: [0.42,0.48,0.68], r: 3.6, i: 0.95 },
+        { p: [0.95, 1.1, -3.4], c: [0.45,0.45,0.55], r: 3.6, i: 0.9 },
+        { p: [0, 2.7, -2.4], c: [0.55,0.52,0.48], r: 5.0, i: 0.45 }
+      ],
+      anchors: [[-1.85, 1.55, -5.05], [2.0, 1.72, -5.13], [0.95, 1.15, -3.78], [-0.2, 0.95, -2.2], [0, 0.86, -3.05]]
+    };
+  },
+
+  /* ---------- פרק 4 · המסדרון ---------- */
+  function corridor3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 3.0, 2.8, 22, -20, [0.075,0.075,0.095], [0.055,0.055,0.065], [0.05,0.05,0.062]);
+
+    skirting(M, -1.5, 1.5, -20, 2, [0.06,0.06,0.075]);
+    // דלתות משני הצדדים, עם משקופים וידיות
+    for (let i = 0; i < 8; i++) {
+      const z = -3 - i * 2.3;
+      M.box(-1.46, 0, z, 0.08, 2.1, 1.05, [0.075,0.075,0.095], { skip: ["left"] });
+      M.box(1.46, 0, z, 0.08, 2.1, 1.05, [0.07,0.07,0.09], { skip: ["right"] });
+      M.panelX(-1.41, 0.02, z, 0.92, 2.02, [0.115,0.115,0.145]);
+      M.panelX(1.41, 0.02, z, 0.92, 2.02, [0.105,0.105,0.135]);
+      M.box(-1.38, 0.95, z + 0.35, 0.04, 0.04, 0.12, [0.45,0.43,0.41]);
+      M.box(1.38, 0.95, z - 0.35, 0.04, 0.04, 0.12, [0.45,0.43,0.41]);
+    }
+    // מנורות תקרה — גופי תאורה אמיתיים
+    const lamps = [-3.5, -8.5, -13.5];
+    lamps.forEach((z, i) => {
+      const on = (i === 1 && !gameState.reduceMotion) ? (Math.sin(t * 7.3) > -0.75 ? 1 : 0.25) : 1;
+      ceilingLamp(M, 0, z, 0.7, 1.0, 2.8, on);
+    });
+
+    // הדלת בקצה, פתוחה מעט
+    frame3d(M, 0, 0, -19.85, 1.3, 2.2, 0.1, 0.14, [0.08,0.08,0.10]);
+    M.panel(0, 0, -19.9, 1.3, 2.2, [0.09,0.09,0.115]);
+    M.panel(-0.45, 0, -19.85, 0.35 + cr * 0.25, 2.1, [0.006,0.006,0.01]);
+
+    // "הזוחל" — מתקרב דלת אחת בכל טעות
+    const cz = -17.5 + cr * 9.5;
+    const s = 1 + cr * 0.5;
+    const ink = [0.012,0.012,0.018];
+    blob(M, 0, cz + 0.2 * s, 1.2 * s, 1.3 * s);
+    M.box(0, 0.22 * s, cz, 0.95 * s, 0.40 * s, 1.5 * s, ink, { flat: true });             // גב
+    M.box(0, 0.30 * s, cz + 0.55 * s, 0.55 * s, 0.22 * s, 0.7 * s, ink, { flat: true });   // חזה נמוך
+    M.box(0, 0.36 * s, cz + 1.05 * s, 0.14 * s, 0.10 * s, 0.55 * s, ink, { flat: true });  // צוואר ארוך, קדימה
+    M.box(0, 0.24 * s, cz + 1.42 * s, 0.30 * s, 0.24 * s, 0.30 * s, ink, { flat: true });  // ראש, נמוך מדי
+    M.box(0, 0.16 * s, cz + 1.48 * s, 0.24 * s, 0.06 * s, 0.26 * s, ink, { flat: true });  // לסת תלויה
+    for (let i = 0; i < 6; i++) {   // שישה זוגות גפיים
+      const lz = cz - 0.6 * s + i * 0.28 * s;
+      const lift = Math.sin(t * 0.7 + i * 1.3) * 0.10 * s;
+      [-1, 1].forEach(sd => {
+        M.box(sd * (0.60 + i * 0.03) * s, 0.30 * s + lift, lz, 0.09 * s, 0.62 * s, 0.09 * s, ink, { flat: true });
+        M.box(sd * (0.96 + i * 0.03) * s, 0.02, lz, 0.08 * s, 0.45 * s + lift, 0.08 * s, ink, { flat: true });
+        M.box(sd * (0.60 + i * 0.03) * s, 0.88 * s + lift, lz, 0.40 * s, 0.07 * s, 0.07 * s, ink, { flat: true });
+      });
+    }
+    if (gameState.monsterStep >= 2) {
+      M.panel(-0.08 * s, 0.34 * s, cz + 1.58 * s, 0.05 * s, 0.035 * s, [0.85,0.13,0.13], 1);
+      M.panel(0.08 * s, 0.34 * s, cz + 1.58 * s, 0.05 * s, 0.035 * s, [0.85,0.13,0.13], 1);
+    }
+
+    // רמקול בתקרה ושלט יציאה
+    M.box(0, 2.45, -5.0, 0.5, 0.3, 0.3, [0.09,0.09,0.11]);
+    M.panelX(-1.46, 1.85, -5.2, 0.7, 0.26, [0.75,0.16,0.16], 1);
+    M.glow([-1.35, 1.98, -5.2], 0.7, [0.40, 0.05, 0.05]);
+    // מפסק תאורה
+    M.panelX(1.46, 1.15, -5.4, 0.18, 0.26, [0.14,0.14,0.17]);
+    // סימני גרירה על הרצפה
+    const marks = gameState.secretShown ? 3 : 2;
+    for (let i = 0; i < marks; i++) {
+      const x = -0.5 + i * 0.5;
+      M.quad([x, 0.004, -2], [x + 0.06, 0.004, -2], [x + 0.06, 0.004, -16], [x, 0.004, -16], [0.10,0.10,0.115]);
+    }
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.0], look: [0, 1.35, -12],
+      walls: [-1.5, 1.5, -20, 2], bounds: [-1.2, 1.2, -19.2, 1.6],
+      shadow: { p: [0, 2.7, -3.5], look: [0, 0, -12], fov: 1.5, far: 24 },
+      blockers: [[-1.2, 1.2, cz - 1.0, cz + 1.4]],
+      fog: [0.015,0.015,0.022], fogD: 0.085,
+      ambient: [0.12,0.12,0.15],
+      lights: [
+        { p: [0, 2.7, -3.5], c: [0.90,0.87,0.80], r: 8.0, i: 1.5 },
+        { p: [0, 2.7, -8.5], c: [0.85,0.83,0.77], r: 8.0, i: 1.2 },
+        { p: [0, 2.7, -13.5], c: [0.80,0.78,0.72], r: 7.5, i: 0.9 },
+        { p: [-1.4, 1.85, -5.2], c: [0.9,0.18,0.18], r: 2.4, i: 0.8 }
+      ],
+      anchors: [[0, 2.42, -5.0], [-1.40, 1.98, -5.2], [1.40, 1.28, -5.4], [0, 1.20, -19.7], [0, 0.06, -9]]
+    };
+  },
+
+  /* ---------- פרק 5 · היציאה ---------- */
+  function exitroom3d(t) {
+    const M = new Mesh(), cr = creep();
+    shell(M, 5.4, 3, 7, -5.0, [0.075,0.075,0.098], [0.055,0.055,0.065], [0.045,0.045,0.055]);
+
+    skirting(M, -2.7, 2.7, -5, 2, [0.06,0.06,0.075]);
+    ceilingLamp(M, 0, -3.2, 0.8, 0.5, 3, 0.8);
+    blob(M, -1.75, -4.75, 0.45, 0.3);
+    // דלת היציאה, עם משקוף כבד
+    frame3d(M, 0, 0, -4.9, 1.7, 2.5, 0.14, 0.2, [0.10,0.10,0.13]);
+    M.panel(0, 0, -4.96, 1.7, 2.5, [0.13,0.13,0.17]);
+    M.panel(0, 0, -4.94, 1.5, 2.4, [0.10,0.10,0.14]);
+    for (let i = 0; i < 8; i++) {   // מסמרות
+      M.panel(-0.68, 0.18 + i * 0.29, -4.92, 0.05, 0.05, [0.34,0.33,0.32]);
+      M.panel(0.68, 0.18 + i * 0.29, -4.92, 0.05, 0.05, [0.34,0.33,0.32]);
+    }
+    M.panel(0, 1.80, -4.925, 0.72, 0.42, [0.055,0.055,0.07]);   // לוחית המספר
+    number7(M, 0, 1.86, -4.92, 0.17, 0.30, gameState.secretShown ? "301" : "300", [0.62,0.60,0.57]);
+    M.panel(0, 1.05, -4.92, 0.52, 0.22, [0.05,0.06,0.09], 1);   // המסך הקטן
+    M.panel(0.16, 1.10, -4.90, 0.02, 0.11, [0.72,0.70,0.68], 1);
+    M.glow([0, 1.16, -4.80], 0.9, [0.08, 0.10, 0.17]);
+    M.glow([1.55, 1.22, -4.80], 0.4, [0.50, 0.06, 0.06]);
+
+    // המסגרת שבה הייתה מראה — ו"השני" עומד בתוכה
+    frame3d(M, -1.75, 0.15, -4.9, 1.35, 2.3, 0.08, 0.12, [0.12,0.12,0.15]);
+    M.panel(-1.75, 0.15, -4.94, 1.35, 2.3, [0.10,0.10,0.13]);
+    M.panel(-1.75, 0.22, -4.92, 1.15, 2.1, [0.035,0.035,0.05], 0.18);
+    const lag = Math.sin(t * 0.45) * 0.10;
+    figure3d(M, -1.75 + lag, 0.95, -4.80, {
+      scale: 1.0 + cr * 0.12, neck: 0.12 + cr * 0.14,
+      arms: gameState.monsterStep >= 3 ? 0.9 : 0.1,
+      eyes: gameState.monsterStep >= 3, color: [0.02,0.02,0.03]
+    });
+
+    // רמקול ולוח הפעלה, על הקיר האחורי מימין
+    M.panel(1.75, 1.75, -4.94, 0.42, 0.32, [0.09,0.09,0.12]);
+    M.panel(1.75, 1.05, -4.94, 0.62, 0.38, [0.075,0.075,0.10]);
+    M.panel(1.55, 1.18, -4.92, 0.09, 0.09, [0.85,0.13,0.13], 1);
+
+    return {
+      mesh: M,
+      eye: [0, 1.55, -1.2], look: [-0.2, 1.30, -4.6],
+      walls: [-2.7, 2.7, -5, 2], bounds: [-2.4, 2.4, -4.6, 1.8],
+      shadow: { p: [0, 2.85, -3.2], look: [0, 0, -3.9], fov: 2.2, far: 9 },
+      blockers: [],
+      fog: [0.02,0.02,0.028], fogD: 0.13,
+      ambient: [0.28,0.28,0.34],
+      lights: [
+        { p: [0, 2.6, -3.2], c: [0.72,0.70,0.68], r: 6.0, i: 0.9 },
+        { p: [0, 1.05, -4.6], c: [0.40,0.48,0.62], r: 2.8, i: 0.9 },
+        { p: [1.55, 1.18, -4.7], c: [0.9,0.16,0.16], r: 2.2, i: 0.7 }
+      ],
+      anchors: [[0, 1.95, -4.90], [0, 1.12, -4.88], [-1.75, 1.45, -4.90], [1.75, 1.88, -4.90], [1.75, 1.20, -4.90]]
+    };
+  }
+];
+
+/* ================================================================
+   מנוע ה-WebGL עצמו
+   ================================================================ */
+const Scene3D = {
+  ok: false, gl: null, prog: null, buf: null, count: 0, scene: null,
+  yaw: 0, pitch: 0, cv: null, lastT: 0,
+  /* השחקן עומד בחדר וזז בו: מיקום, כיוון מבט, ומקשים לחוצים */
+  player: { x: 0, y: 1.55, z: -1, yaw: 0, pitch: 0 },
+  keys: {}, drag: null, chapterSpawned: -1,
+
+  init(canvas) {
+    this.cv = canvas;
+    this.error = "";
+    let gl = null;
+    const opts = { antialias: true, alpha: false, depth: true, failIfMajorPerformanceCaveat: false, powerPreference: "high-performance" };
+    try { gl = canvas.getContext("webgl", opts) || canvas.getContext("experimental-webgl", opts); }
+    catch (e) { this.error = String(e && e.message || e); }
+    if (!gl) { try { gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl"); } catch (e) {} }
+    if (!gl) { this.error = this.error || "no WebGL context"; if (window.console) console.warn("3D unavailable:", this.error); return false; }
+    this.gl = gl;
+
+    const vs = `
+      attribute vec3 aPos; attribute vec3 aNorm; attribute vec3 aCol; attribute float aEmit;
+      uniform mat4 uProj, uView, uShadowMat;
+      varying vec3 vPos, vNorm, vCol; varying float vEmit; varying vec4 vSh;
+      void main(){
+        vPos = aPos; vNorm = aNorm; vCol = aCol; vEmit = aEmit;
+        vSh = uShadowMat * vec4(aPos, 1.0);
+        gl_Position = uProj * uView * vec4(aPos, 1.0);
+      }`;
+    const fs = `
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+      varying vec3 vPos, vNorm, vCol; varying float vEmit; varying vec4 vSh;
+      uniform vec3 uLp[4], uLc[4]; uniform float uLr[4], uLi[4];
+      uniform vec3 uAmb, uFog, uEye; uniform float uFogD, uGain, uTime;
+      uniform vec4 uWalls;   /* x0, x1, z0, z1 של הקירות — להצללת פינות */
+      uniform sampler2D uShadow; uniform float uShadowOn;
+
+      /* עומק שנארז לארבעה ערוצים במעבר הצל */
+      float unpack(vec4 c){ return dot(c, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0)); }
+      float shadowTap(vec3 sc, vec2 off){
+        float d = unpack(texture2D(uShadow, sc.xy + off));
+        return (sc.z - 0.0028 > d) ? 0.0 : 1.0;
+      }
+
+      /* רעש ערכי בשלושה ממדים — הטקסטורה היחידה שיש לנו, כי אין תמונות */
+      float hash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0;
+        return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+      float vnoise(vec3 x){ vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+                   mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z); }
+      float fbm(vec3 p){ return 0.55 * vnoise(p) + 0.30 * vnoise(p * 2.1 + 3.7) + 0.15 * vnoise(p * 4.3 + 9.1); }
+
+      void main(){
+        vec3 n = normalize(vNorm);
+        float up = n.y;
+        float vert = 1.0 - abs(up);
+        /* לכלוך ושחיקה על כל משטח */
+        float g = fbm(vPos * 2.2), g2 = fbm(vPos * 9.0);
+        vec3 alb = vCol * uGain * (0.80 + 0.30 * g) * (0.90 + 0.20 * g2);
+        /* מרצפות: קווי רובה כהים */
+        if (up > 0.9) {
+          vec2 t = fract(vPos.xz * 1.25);
+          float grout = smoothstep(0.0, 0.035, t.x) * smoothstep(0.0, 0.035, t.y)
+                      * smoothstep(0.0, 0.035, 1.0 - t.x) * smoothstep(0.0, 0.035, 1.0 - t.y);
+          alb *= 0.72 + 0.28 * grout;
+        }
+        /* הצללת פינות מזויפת: רצפה ותקרה מתכהות ליד קירות, קירות ליד רצפה ותקרה */
+        float dx = min(vPos.x - uWalls.x, uWalls.y - vPos.x);
+        float dz = min(vPos.z - uWalls.z, uWalls.w - vPos.z);
+        float dw = max(0.0, min(dx, dz));
+        float ao = 1.0;
+        if (abs(up) > 0.5) ao *= 0.50 + 0.50 * smoothstep(0.0, 0.9, dw);
+        if (vert > 0.5) ao *= 0.50 + 0.50 * smoothstep(0.0, 0.7, min(vPos.y, 3.0 - vPos.y));
+        /* תאורה: למברט + ברק בלין-פונג, רצפה מבריקה יותר, ומנורה ראשית שמרצדת קלות */
+        vec3 V = normalize(uEye - vPos);
+        vec3 lit = uAmb * alb * ao;
+        float shin = (up > 0.9) ? 52.0 : 16.0;
+        float specW = (up > 0.9) ? 0.45 : 0.14;
+        float flick = 0.965 + 0.035 * sin(uTime * 23.0) * sin(uTime * 7.3);
+        /* צל מהמנורה הראשית: ארבע דגימות, והצל לעולם לא שחור לגמרי */
+        float sh = 1.0;
+        if (uShadowOn > 0.5) {
+          vec3 sc = vSh.xyz / vSh.w;
+          if (sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0) {
+            float px = 1.0 / 1024.0;
+            sh = 0.25 * (shadowTap(sc, vec2(-px, -px)) + shadowTap(sc, vec2(px, -px))
+                       + shadowTap(sc, vec2(-px, px)) + shadowTap(sc, vec2(px, px)));
+            sh = 0.30 + 0.70 * sh;
+          }
+        }
+        for (int i = 0; i < 4; i++){
+          vec3 d = uLp[i] - vPos;
+          float dist = length(d);
+          vec3 L = d / max(dist, 0.001);
+          float att = max(0.0, 1.0 - dist / uLr[i]);
+          att *= att * uLi[i] * (i == 0 ? flick * sh : 1.0);
+          float lam = max(0.0, dot(n, L));
+          vec3 H = normalize(L + V);
+          float spec = pow(max(0.0, dot(n, H)), shin) * specW;
+          lit += alb * (0.22 + 0.78 * lam) * ao * uLc[i] * att + spec * uLc[i] * att;
+        }
+        vec3 col = mix(lit, vCol, vEmit);
+        /* ערפל, ואז עקומה פילמית עם צללים קרירים */
+        float dc = length(vPos - uEye) * uFogD;
+        col = mix(col, uFog, clamp(1.0 - exp(-dc * dc), 0.0, 1.0));
+        col = col / (col + 0.42) * 1.32;
+        col = pow(max(col, 0.0), vec3(1.28));
+        float lum = dot(col, vec3(0.3, 0.59, 0.11));
+        col = mix(vec3(lum), col, 0.86);
+        col += (0.5 - lum) * vec3(-0.02, -0.01, 0.035);
+        gl_FragColor = vec4(col, 1.0);
+      }`;
+    const mk = (type, src) => {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        this.error = "shader: " + (gl.getShaderInfoLog(s) || "compile failed");
+        if (window.console) console.warn("3D shader error:", this.error);
+        return null;
+      }
+      return s;
+    };
+    const v = mk(gl.VERTEX_SHADER, vs), f = mk(gl.FRAGMENT_SHADER, fs);
+    if (!v || !f) return false;
+    const p = gl.createProgram();
+    gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { this.error = "link: " + (gl.getProgramInfoLog(p) || "failed"); return false; }
+    this.prog = p;
+    gl.useProgram(p);
+
+    /* ---- מעבר הצל: מציירים את החדר מנקודת המבט של המנורה ואורזים עומק ---- */
+    const svs = `
+      attribute vec3 aPos; uniform mat4 uSP, uSV;
+      void main(){ gl_Position = uSP * uSV * vec4(aPos, 1.0); }`;
+    const sfs = `
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+      vec4 pack(float d){
+        vec4 e = fract(vec4(1.0, 255.0, 65025.0, 16581375.0) * d);
+        return e - e.yzww * vec4(1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0);
+      }
+      void main(){ gl_FragColor = pack(gl_FragCoord.z); }`;
+    const sv = mk(gl.VERTEX_SHADER, svs), sf = mk(gl.FRAGMENT_SHADER, sfs);
+    if (sv && sf) {
+      const sp = gl.createProgram();
+      gl.attachShader(sp, sv); gl.attachShader(sp, sf); gl.linkProgram(sp);
+      if (gl.getProgramParameter(sp, gl.LINK_STATUS)) {
+        this.sprog = sp;
+        this.sloc = { aPos: gl.getAttribLocation(sp, "aPos"), uSP: gl.getUniformLocation(sp, "uSP"), uSV: gl.getUniformLocation(sp, "uSV") };
+        // מסגרת ציור בגודל 1024 עם טקסטורת צבע ומאגר עומק
+        const SZ = 1024;
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, SZ, SZ, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        const rb = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, SZ, SZ);
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
+        this.shadowOk = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        this.shadowTex = tex; this.shadowFb = fb; this.shadowSize = SZ;
+      }
+    }
+
+    /* ---- הילות: ריבועים שפונים למצלמה, מצוירים בחיבור אדיטיבי ---- */
+    const hvs = `
+      attribute vec3 aPos; attribute vec2 aUV; attribute vec3 aCol;
+      uniform mat4 uProj, uView;
+      varying vec2 vUV; varying vec3 vCol;
+      void main(){ vUV = aUV; vCol = aCol; gl_Position = uProj * uView * vec4(aPos, 1.0); }`;
+    const hfs = `
+      precision mediump float;
+      varying vec2 vUV; varying vec3 vCol;
+      void main(){
+        float r = length(vUV);
+        float a = pow(max(0.0, 1.0 - r), 2.4);
+        gl_FragColor = vec4(vCol * a, 1.0);
+      }`;
+    const hv = mk(gl.VERTEX_SHADER, hvs), hf = mk(gl.FRAGMENT_SHADER, hfs);
+    if (hv && hf) {
+      const hp = gl.createProgram();
+      gl.attachShader(hp, hv); gl.attachShader(hp, hf); gl.linkProgram(hp);
+      if (gl.getProgramParameter(hp, gl.LINK_STATUS)) {
+        this.hprog = hp;
+        this.hloc = { aPos: gl.getAttribLocation(hp, "aPos"), aUV: gl.getAttribLocation(hp, "aUV"), aCol: gl.getAttribLocation(hp, "aCol"),
+                      uProj: gl.getUniformLocation(hp, "uProj"), uView: gl.getUniformLocation(hp, "uView") };
+        this.hbuf = gl.createBuffer();
+      }
+    }
+    gl.useProgram(p);
+    this.loc = {
+      aPos: gl.getAttribLocation(p, "aPos"), aNorm: gl.getAttribLocation(p, "aNorm"),
+      aCol: gl.getAttribLocation(p, "aCol"), aEmit: gl.getAttribLocation(p, "aEmit"),
+      uProj: gl.getUniformLocation(p, "uProj"), uView: gl.getUniformLocation(p, "uView"),
+      uLp: gl.getUniformLocation(p, "uLp"), uLc: gl.getUniformLocation(p, "uLc"),
+      uLr: gl.getUniformLocation(p, "uLr"), uLi: gl.getUniformLocation(p, "uLi"),
+      uAmb: gl.getUniformLocation(p, "uAmb"), uFog: gl.getUniformLocation(p, "uFog"),
+      uFogD: gl.getUniformLocation(p, "uFogD"), uEye: gl.getUniformLocation(p, "uEye"),
+      uGain: gl.getUniformLocation(p, "uGain"), uTime: gl.getUniformLocation(p, "uTime"),
+      uWalls: gl.getUniformLocation(p, "uWalls"), uShadowMat: gl.getUniformLocation(p, "uShadowMat"),
+      uShadow: gl.getUniformLocation(p, "uShadow"), uShadowOn: gl.getUniformLocation(p, "uShadowOn")
+    };
+    this.buf = gl.createBuffer();
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    this.ok = true;
+    return true;
+  },
+
+  /* בונים מחדש את הסצנה רק כשמשהו במצב המשחק השתנה */
+  build(t) {
+    if (!this.ok) return;
+    const gl = this.gl;
+    const scene = SCENES[gameState.chapter](t);
+    this.scene = scene;
+    const data = new Float32Array(scene.mesh.v);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    this.count = data.length / 10;
+  },
+
+  /* בכניסה לפרק — השחקן מוצב בנקודת ההתחלה של הסצנה */
+  spawn(scene) {
+    const d = norm3(sub3(scene.look, scene.eye));
+    this.player.x = scene.eye[0];
+    this.player.y = scene.eye[1];
+    this.player.z = scene.eye[2];
+    this.player.yaw = Math.atan2(d[0], -d[2]);
+    this.player.pitch = Math.max(-0.9, Math.min(0.9, Math.asin(d[1])));
+    this.chapterSpawned = gameState.chapter;
+  },
+
+  /* הליכה: מקשים, קצב לפי זמן אמיתי, והתנגשות עם קירות ורהיטים */
+  step(dt) {
+    const s = this.scene;
+    if (!s) return;
+    const k = this.keys;
+    const fwd = (k.w ? 1 : 0) - (k.s ? 1 : 0);
+    const side = (k.d ? 1 : 0) - (k.a ? 1 : 0);
+    const turn = (k.right ? 1 : 0) - (k.left ? 1 : 0);
+    if (turn) this.player.yaw += turn * dt * 1.7;
+    if (!fwd && !side) return;
+    const sp = 1.9 * dt;
+    const sy = Math.sin(this.player.yaw), cy = Math.cos(this.player.yaw);
+    let nx = this.player.x + (sy * fwd + cy * side) * sp;
+    let nz = this.player.z + (-cy * fwd + sy * side) * sp;
+    const b = s.bounds;
+    if (b) {
+      nx = Math.max(b[0] + 0.35, Math.min(b[1] - 0.35, nx));
+      nz = Math.max(b[2] + 0.35, Math.min(b[3] - 0.35, nz));
+    }
+    // חוסמים: לא עוברים דרך שולחן, כיסא או מסגרת
+    (s.blockers || []).forEach(bl => {
+      if (nx > bl[0] - 0.3 && nx < bl[1] + 0.3 && nz > bl[2] - 0.3 && nz < bl[3] + 0.3) {
+        const dxl = Math.abs(nx - (bl[0] - 0.3)), dxr = Math.abs(nx - (bl[1] + 0.3));
+        const dzb = Math.abs(nz - (bl[2] - 0.3)), dzf = Math.abs(nz - (bl[3] + 0.3));
+        const m = Math.min(dxl, dxr, dzb, dzf);
+        if (m === dxl) nx = bl[0] - 0.3; else if (m === dxr) nx = bl[1] + 0.3;
+        else if (m === dzb) nz = bl[2] - 0.3; else nz = bl[3] + 0.3;
+      }
+    });
+    this.player.x = nx; this.player.z = nz;
+  },
+
+  camera(t, stable) {
+    const bob = (stable || gameState.reduceMotion) ? 0 : Math.sin(t * 1.4) * 0.010;
+    const p = this.player;
+    const eye = [p.x, p.y + bob, p.z];
+    const cp = Math.cos(p.pitch);
+    const dir = [Math.sin(p.yaw) * cp, Math.sin(p.pitch), -Math.cos(p.yaw) * cp];
+    return { eye, tgt: [eye[0] + dir[0] * 4, eye[1] + dir[1] * 4, eye[2] + dir[2] * 4] };
+  },
+
+  /* גרירה = הבטה מסביב */
+  lookBy(dx, dy) {
+    this.player.yaw += dx * 0.005;
+    this.player.pitch = Math.max(-0.75, Math.min(0.75, this.player.pitch - dy * 0.004));
+  },
+
+  draw(t) {
+    if (!this.ok || !this.scene) return;
+    const gl = this.gl, W = this.cv.width, H = this.cv.height;
+    if (!W || !H) return;
+    // התקדמות הליכה לפי הזמן שעבר מאז הפריים הקודם
+    const dt = this.lastT ? Math.min(0.1, t - this.lastT) : 0;
+    this.lastT = t;
+    if (this.chapterSpawned !== gameState.chapter) this.spawn(this.scene);
+    this.step(dt);
+
+    const s = this.scene;
+    // ---- מעבר 1: מפת הצל מנקודת המבט של המנורה הראשית ----
+    let shadowMat = null;
+    if (this.sprog && this.shadowOk && s.lights[0]) {
+      const L = s.lights[0];
+      const sl = s.shadow || {};
+      const lp = sl.p || L.p;
+      const lt = sl.look || [(s.walls[0] + s.walls[1]) / 2, 0, (s.walls[2] + s.walls[3]) / 2];
+      const sProj = M4.persp(sl.fov || 2.1, 1, 0.15, sl.far || 14);
+      // וקטור "למעלה" שלא מקביל לכיוון המבט
+      const dirL = norm3(sub3(lt, lp));
+      const upL = Math.abs(dirL[1]) > 0.95 ? [0, 0, -1] : [0, 1, 0];
+      const sView = M4.lookAt(lp, lt, upL);
+      const bias = [0.5,0,0,0, 0,0.5,0,0, 0,0,0.5,0, 0.5,0.5,0.5,1];
+      shadowMat = M4.mul(M4.mul(bias, sProj), sView);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowFb);
+      gl.viewport(0, 0, this.shadowSize, this.shadowSize);
+      gl.clearColor(1, 1, 1, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(this.sprog);
+      gl.uniformMatrix4fv(this.sloc.uSP, false, new Float32Array(sProj));
+      gl.uniformMatrix4fv(this.sloc.uSV, false, new Float32Array(sView));
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+      gl.enableVertexAttribArray(this.sloc.aPos);
+      gl.vertexAttribPointer(this.sloc.aPos, 3, gl.FLOAT, false, 10 * 4, 0);
+      gl.cullFace(gl.FRONT);       // מצללים מהפאות האחוריות — פחות "אקנה" של צל
+      gl.drawArrays(gl.TRIANGLES, 0, this.count);
+      gl.cullFace(gl.BACK);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    // ---- מעבר 2: הסצנה עצמה ----
+    gl.viewport(0, 0, W, H);
+    gl.clearColor(s.fog[0], s.fog[1], s.fog[2], 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(this.prog);
+    if (shadowMat) {
+      gl.uniformMatrix4fv(this.loc.uShadowMat, false, new Float32Array(shadowMat));
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.shadowTex);
+      gl.uniform1i(this.loc.uShadow, 0);
+      gl.uniform1f(this.loc.uShadowOn, 1);
+    } else {
+      gl.uniformMatrix4fv(this.loc.uShadowMat, false, new Float32Array(M4.ident()));
+      gl.uniform1f(this.loc.uShadowOn, 0);
+    }
+
+    const cam = this.camera(t);
+    const proj = M4.persp(1.16, W / H, 0.05, 60);
+    const view = M4.lookAt(cam.eye, cam.tgt, [0, 1, 0]);
+    this.mvp = { proj, view, eye: cam.eye };
+    const st = this.camera(t, true);
+    this.mvpStable = { proj, view: M4.lookAt(st.eye, st.tgt, [0, 1, 0]) };
+
+    const lp = [], lc = [], lr = [], li = [];
+    for (let i = 0; i < 4; i++) {
+      const L = s.lights[i];
+      lp.push(L ? L.p[0] : 0, L ? L.p[1] : 0, L ? L.p[2] : 0);
+      lc.push(L ? L.c[0] : 0, L ? L.c[1] : 0, L ? L.c[2] : 0);
+      lr.push(L ? L.r : 1); li.push(L ? L.i : 0);
+    }
+    gl.uniformMatrix4fv(this.loc.uProj, false, new Float32Array(proj));
+    gl.uniformMatrix4fv(this.loc.uView, false, new Float32Array(view));
+    gl.uniform3fv(this.loc.uLp, new Float32Array(lp));
+    gl.uniform3fv(this.loc.uLc, new Float32Array(lc));
+    gl.uniform1fv(this.loc.uLr, new Float32Array(lr));
+    gl.uniform1fv(this.loc.uLi, new Float32Array(li));
+    // ההחשכה של הלילה מורידה את התאורה הסביבתית
+    const k = Math.max(0.4, 1 - (gameState.dark + gameState.loopDark * 1.5) * 0.06);
+    gl.uniform3fv(this.loc.uAmb, new Float32Array([s.ambient[0] * k, s.ambient[1] * k, s.ambient[2] * k]));
+    gl.uniform1f(this.loc.uGain, 2.6);
+    gl.uniform1f(this.loc.uTime, t);
+    const wl = s.walls || [-3, 3, -5, 2];
+    gl.uniform4f(this.loc.uWalls, wl[0], wl[1], wl[2], wl[3]);
+    gl.uniform3fv(this.loc.uFog, new Float32Array(s.fog));
+    gl.uniform1f(this.loc.uFogD, s.fogD);
+    gl.uniform3fv(this.loc.uEye, new Float32Array(cam.eye));
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+    const stride = 10 * 4;
+    gl.enableVertexAttribArray(this.loc.aPos);
+    gl.vertexAttribPointer(this.loc.aPos, 3, gl.FLOAT, false, stride, 0);
+    gl.enableVertexAttribArray(this.loc.aNorm);
+    gl.vertexAttribPointer(this.loc.aNorm, 3, gl.FLOAT, false, stride, 12);
+    gl.enableVertexAttribArray(this.loc.aCol);
+    gl.vertexAttribPointer(this.loc.aCol, 3, gl.FLOAT, false, stride, 24);
+    gl.enableVertexAttribArray(this.loc.aEmit);
+    gl.vertexAttribPointer(this.loc.aEmit, 1, gl.FLOAT, false, stride, 36);
+    gl.drawArrays(gl.TRIANGLES, 0, this.count);
+
+    // ---- מעבר 3: הילות זוהר ואבק באוויר, בחיבור אדיטיבי ----
+    if (this.hprog) this.drawGlows(t, proj, view, cam);
+  },
+
+  /* הילות: לכל מנורה, מסך, נורית ועין — ריבוע רך שפונה למצלמה. ועוד אבק שמרחף באור. */
+  drawGlows(t, proj, view, cam) {
+    const gl = this.gl, s = this.scene;
+    const dir = norm3(sub3(cam.tgt, cam.eye));
+    const right = norm3(cross3(dir, [0, 1, 0]));
+    const up = cross3(right, dir);
+    const items = [];
+    s.lights.forEach((L, i) => items.push({ p: L.p, size: 0.55 + L.r * 0.06, c: [L.c[0] * L.i * 0.35, L.c[1] * L.i * 0.35, L.c[2] * L.i * 0.35] }));
+    (s.mesh.glows || []).forEach(g => items.push(g));
+    // אבק: נקודות זעירות שנעות לאט בין הקירות
+    const w = s.walls, n = gameState.reduceMotion ? 0 : 90;
+    for (let i = 0; i < n; i++) {
+      const h1 = ((i * 7919) % 1000) / 1000, h2 = ((i * 104729) % 1000) / 1000, h3 = ((i * 15485863) % 1000) / 1000;
+      const x = w[0] + (w[1] - w[0]) * h1 + Math.sin(t * 0.21 + i) * 0.18;
+      const z = w[2] + (w[3] - w[2]) * h2 + Math.cos(t * 0.17 + i * 0.7) * 0.18;
+      const y = 0.25 + 2.4 * h3 + Math.sin(t * 0.13 + i * 2.1) * 0.12;
+      items.push({ p: [x, y, z], size: 0.035, c: [0.30, 0.29, 0.27] });
+    }
+    const data = [];
+    for (const it of items) {
+      const [px, py, pz] = it.p, r = it.size;
+      const c = it.c;
+      const corner = (ux, uy) => {
+        data.push(px + (right[0] * ux + up[0] * uy) * r, py + (right[1] * ux + up[1] * uy) * r, pz + (right[2] * ux + up[2] * uy) * r,
+                  ux, uy, c[0], c[1], c[2]);
+      };
+      corner(-1, -1); corner(1, -1); corner(1, 1);
+      corner(-1, -1); corner(1, 1); corner(-1, 1);
+    }
+    if (!data.length) return;
+    gl.useProgram(this.hprog);
+    gl.uniformMatrix4fv(this.hloc.uProj, false, new Float32Array(proj));
+    gl.uniformMatrix4fv(this.hloc.uView, false, new Float32Array(view));
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.hbuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+    const st = 8 * 4;
+    gl.enableVertexAttribArray(this.hloc.aPos); gl.vertexAttribPointer(this.hloc.aPos, 3, gl.FLOAT, false, st, 0);
+    gl.enableVertexAttribArray(this.hloc.aUV);  gl.vertexAttribPointer(this.hloc.aUV, 2, gl.FLOAT, false, st, 12);
+    gl.enableVertexAttribArray(this.hloc.aCol); gl.vertexAttribPointer(this.hloc.aCol, 3, gl.FLOAT, false, st, 20);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+    gl.drawArrays(gl.TRIANGLES, 0, data.length / 8);
+    gl.enable(gl.CULL_FACE);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    // מחזירים את מצביעי הקודקודים של התוכנית הראשית
+    gl.useProgram(this.prog);
+  },
+
+  /* הטלת נקודה תלת-ממדית לאחוזי מסך — כך אזורי החיפוש נשארים על החפצים */
+  project(p) {
+    if (!this.mvpStable) return null;
+    const { proj, view } = this.mvpStable;
+    const t = [
+      view[0]*p[0] + view[4]*p[1] + view[8]*p[2] + view[12],
+      view[1]*p[0] + view[5]*p[1] + view[9]*p[2] + view[13],
+      view[2]*p[0] + view[6]*p[1] + view[10]*p[2] + view[14],
+      view[3]*p[0] + view[7]*p[1] + view[11]*p[2] + view[15]
+    ];
+    const c = [
+      proj[0]*t[0] + proj[4]*t[1] + proj[8]*t[2] + proj[12]*t[3],
+      proj[1]*t[0] + proj[5]*t[1] + proj[9]*t[2] + proj[13]*t[3],
+      proj[2]*t[0] + proj[6]*t[1] + proj[10]*t[2] + proj[14]*t[3],
+      proj[3]*t[0] + proj[7]*t[1] + proj[11]*t[2] + proj[15]*t[3]
+    ];
+    if (c[3] <= 0.01) return null;
+    return { x: (c[0] / c[3] * 0.5 + 0.5) * 100, y: (0.5 - c[1] / c[3] * 0.5) * 100 };
+  },
+
+  /* מפנה את המבט אל נקודה בחדר */
+  aimAt(p) {
+    const d = norm3(sub3(p, [this.player.x, this.player.y, this.player.z]));
+    this.player.yaw = Math.atan2(d[0], -d[2]);
+    this.player.pitch = Math.max(-0.75, Math.min(0.75, Math.asin(d[1])));
+  },
+
+  /* חזרה לנקודת ההתחלה של החדר */
+  resetView() { if (this.scene) this.spawn(this.scene); }
+};
+
+/* ================================================================
+   7. UI — מסכים, אזורי חיפוש, אינוונטר, ארכיון ומודאל
+   ================================================================ */
+const el = (id) => document.getElementById(id);
+function make(tag, cls, txt) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (txt != null) n.textContent = txt;
+  return n;
+}
+function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+/* ---- מעבר בין מסכים ---- */
+function showScreen(name) {
+  gameState.screen = name;
+  el("screen-title").hidden = name !== "title";
+  el("screen-game").hidden = name !== "game";
+  el("screen-end").hidden = name !== "end";
+}
+
+/* ---- שורות הנרטיב: לעולם לא יותר משלוש ---- */
+function say(lines, tone) {
+  const box = el("say");
+  clear(box);
+  (lines || []).slice(0, 3).forEach(line => {
+    const p = make("p", tone || "", line);
+    box.appendChild(p);
+  });
+  FX.flicker(box);
+}
+
+/* ---- אזורי חיפוש בחדר ---- */
+/* בתלת-ממד כל אזור חיפוש נצמד לנקודה בחדר ונע יחד עם המבט */
+function placeHotspots3D() {
+  const sc = Scene3D.scene;
+  if (!sc || !sc.anchors) return;
+  const nodes = el("hotspots").children;
+  for (let i = 0; i < nodes.length; i++) {
+    const a = sc.anchors[i];
+    const b = nodes[i];
+    const pt = a ? Scene3D.project(a) : null;
+    if (!pt || pt.x < -10 || pt.x > 110 || pt.y < -10 || pt.y > 110) {
+      // מחוץ לשדה הראייה: לא נראה ולא לחיץ, אבל עדיין אפשר להגיע אליו ב-Tab
+      b.style.opacity = "0";
+      b.style.pointerEvents = "none";
+      continue;
+    }
+    b.style.opacity = "1";
+    b.style.pointerEvents = "auto";
+    const nx = (Math.round((pt.x - 6) * 4) / 4) + "%", ny = (Math.round((pt.y - 8) * 4) / 4) + "%";
+    if (b.style.left !== nx) b.style.left = nx;
+    if (b.style.top !== ny) b.style.top = ny;
+    b.style.width = "12%";
+    b.style.height = "16%";
+  }
+}
+
+function renderHotspots() {
+  const wrap = el("hotspots");
+  clear(wrap);
+  const ch = chapterData();
+  const geo = HOTSPOTS[gameState.chapter];
+  ch.hotspots.forEach((hs, i) => {
+    const g = geo[i];
+    const b = make("button", "hs");
+    b.style.left = g.x + "%";
+    b.style.top = g.y + "%";
+    b.style.width = g.w + "%";
+    b.style.height = g.h + "%";
+    b.setAttribute("aria-label", TEXT.a11y.hotspot(hs.label));
+    b.title = hs.label;
+    const key = gameState.chapter + ":" + i;
+    if (gameState.seenHotspots[key]) b.classList.add("seen");
+    b.addEventListener("focus", () => {
+      // רק ניווט מקלדת מזיז את המצלמה; לחיצת עכבר לא מקפיצה את המבט
+      if (Room.mode !== "3d" || !Scene3D.scene) return;
+      if (!b.matches(":focus-visible")) return;
+      const a = Scene3D.scene.anchors[i];
+      if (a) { Scene3D.aimAt(a); Room.paint(Room.last / 1000); }
+    });
+    b.addEventListener("click", () => {
+      Audio_.click();
+      gameState.seenHotspots[key] = true;
+      b.classList.add("seen");
+      say(hs.text);
+      if (hs.question) addQuestion(hs.question);
+      if (hs.item) addItem(hs.item);
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* ---- תיאור החדר לקוראי מסך (כולל הדמות, כשהיא כבר קרובה) ---- */
+function updateRoomDesc() {
+  const ch = chapterData();
+  const node = el("roomdesc");
+  if (!node || !ch) return;
+  node.textContent = TEXT.a11y.room(ch.roomDesc, gameState.monsterStep >= 1 ? ch.presence : "");
+}
+
+/* ---- אינוונטר ---- */
+function renderInventory() {
+  const wrap = el("invslots");
+  clear(wrap);
+  if (!gameState.inventory.length) {
+    wrap.appendChild(make("span", "cap", TEXT.ui.bagEmpty));
+    return;
+  }
+  gameState.inventory.forEach(name => {
+    const b = make("button", "slot", name);
+    b.setAttribute("aria-label", TEXT.a11y.itemBtn(name));
+    b.addEventListener("click", () => {
+      Audio_.click();
+      const lines = TEXT.items[name] || [];
+      openSheet(TEXT.ui.itemTitle(name), lines.map(l => make("p", null, l)));
+    });
+    wrap.appendChild(b);
+  });
+}
+
+/* ---- מודאל כללי עם מלכודת פוקוס ---- */
+let lastFocus = null;
+function openSheet(title, nodes) {
+  lastFocus = document.activeElement;
+  el("sheet-title").textContent = title;
+  const body = el("sheet-body");
+  clear(body);
+  (nodes || []).forEach(n => body.appendChild(n));
+  el("veil").hidden = false;
+  el("app").inert = true;
+  el("btn-mute").inert = true;
+  el("sheet-close").focus();
+}
+function closeSheet() {
+  el("veil").hidden = true;
+  el("app").inert = false;
+  el("btn-mute").inert = false;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+function trapFocus(e) {
+  if (el("veil").hidden) return;
+  if (e.key === "Escape") { closeSheet(); return; }
+  if (e.key !== "Tab") return;
+  const f = el("sheet").querySelectorAll("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+/* ---- ארכיון השאלות ---- */
+function openArchive() {
+  Audio_.click();
+  const nodes = [];
+  if (!gameState.archive.length) {
+    nodes.push(make("p", "empty", TEXT.ui.archiveEmpty));
+  } else {
+    const ol = make("ol");
+    gameState.archive.forEach(q => ol.appendChild(make("li", null, q)));
+    nodes.push(ol);
+  }
+  openSheet(TEXT.ui.archiveTitle, nodes);
+}
+
+/* ================================================================
+   8. Puzzles — חמש החידות
+   כל חידה בונה את הגוף שלה לתוך #pz-body ומחזירה פונקציית בדיקה.
+   ================================================================ */
+let currentCheck = null;   // הפונקציה שבודקת את התשובה בפרק הנוכחי
+
+function buildPuzzle() {
+  const ch = chapterData();
+  el("pz-title").textContent = ch.puzzle;
+  el("pz-ask").textContent = ch.pzAsk;
+  const body = el("pz-body");
+  const actions = el("pz-actions");
+  clear(body); clear(actions);
+  el("pz-feedback").textContent = "";
+  el("pz-feedback").className = "feedback";
+
+  const builder = [buildCh1, buildCh2, buildCh3, buildCh4, buildCh5][gameState.chapter];
+  currentCheck = builder(body, actions, ch);
+
+  // כפתור רמז — נפתח רק אחרי שלוש טעויות
+  const locked = gameState.wrongCount[gameState.chapter] < 3;
+  const hintBtn = make("button", "btn btn-ghost", locked ? TEXT.ui.hintLocked : TEXT.ui.hint);
+  hintBtn.id = "btn-hint";
+  hintBtn.disabled = locked;
+  hintBtn.addEventListener("click", () => {
+    Audio_.click();
+    const lv = Math.min(gameState.hintLevel[gameState.chapter], ch.hints.length - 1);
+    gameState.hintLevel[gameState.chapter] = lv + 1;
+    const last = lv >= ch.hints.length - 1;
+    setFeedback(TEXT.hintIntro + " " + ch.hints[lv] + (last ? " " + TEXT.ui.hintLast : ""), "");
+  });
+  actions.appendChild(hintBtn);
+  const live = make("p", "sr", "");
+  live.id = "hint-live";
+  live.setAttribute("aria-live", "polite");
+  actions.appendChild(live);
+}
+
+function setFeedback(txt, kind) {
+  const f = el("pz-feedback");
+  f.textContent = txt;
+  f.className = "feedback" + (kind ? " " + kind : "");
+}
+
+/* תשובה שגויה: בלי מוות, בלי עונש. רק תגובה קצרה — והדמות מתקרבת. */
+function wrongAnswer(customMsg) {
+  const i = gameState.chapter, ch = chapterData();
+  gameState.wrongCount[i]++;
+  gameState.monsterStep++;
+  Audio_.wrong();
+  const msg = customMsg || ch.wrong[(gameState.wrongCount[i] - 1) % ch.wrong.length];
+  setFeedback(msg, "bad");
+  FX.flicker(el("room"));
+  updateRoomDesc();
+  // הרמז נפתח אחרי שלוש טעויות — ומוכרז, לא רק נראה
+  const hb = el("btn-hint");
+  if (hb && gameState.wrongCount[i] >= 3 && hb.disabled) {
+    hb.disabled = false;
+    hb.textContent = TEXT.ui.hint;
+    const live = el("hint-live");
+    if (live) live.textContent = TEXT.a11y.hintOpen;
+  }
+  Room.paint(Room.last / 1000);
+}
+
+/* פתרון: מתקדמים בהקלטה */
+function solveChapter() {
+  const i = gameState.chapter, ch = chapterData();
+  if (gameState.solved[i]) return;
+  gameState.solved[i] = true;
+  Audio_.solve();
+  FX.glitch(el("puzzle"));
+  gameState.dark = Math.min(6, gameState.dark + 1);
+  FX.applyDark();
+  say([ch.solved[0], ch.solved[1]]);
+  setFeedback(TEXT.recordingLabel + " " + ch.recording, "good");
+  // אחרי הפתרון אי אפשר לדרוס בטעות את שורות הסיום
+  el("hotspots").querySelectorAll("button").forEach(b => { b.disabled = true; });
+
+  const actions = el("pz-actions");
+  clear(actions);
+  const next = make("button", "btn btn-main", TEXT.toNext);
+  next.addEventListener("click", () => {
+    Audio_.click();
+    if (i >= TEXT.chapters.length - 1) endGame();
+    else enterChapter(i + 1);
+  });
+  actions.appendChild(next);
+  setTimeout(() => next.focus(), 0);
+  // נועלים את שדות החידה
+  el("pz-body").querySelectorAll("input,button").forEach(n => { n.disabled = true; });
+}
+
+/* ---------------- פרק 1: ספירת פסגות בגל הקול ---------------- */
+function buildCh1(body, actions, ch) {
+  const cv = make("canvas", "figure");
+  cv.width = 900; cv.height = 260;
+  cv.setAttribute("role", "img");
+  cv.setAttribute("aria-label", TEXT.a11y.wave);
+  body.appendChild(cv);
+  body.appendChild(make("p", "cap", ch.pzCap));
+  waveCanvas = cv;
+  sizeWave(cv);
+
+  const inp = make("input");
+  inp.type = "text";
+  inp.inputMode = "numeric";
+  inp.maxLength = 4;
+  inp.placeholder = ch.pzPlaceholder;
+  inp.setAttribute("aria-label", TEXT.a11y.waveInput);
+  const row = make("div", "row");
+  row.appendChild(inp);
+  body.appendChild(row);
+
+  const ok = make("button", "btn", TEXT.ui.submit);
+  ok.addEventListener("click", () => check());
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
+  actions.appendChild(ok);
+
+  function check() {
+    Audio_.click();
+    if (matches(inp.value, SOLUTIONS.ch1.accept)) solveChapter();
+    else if (normalize(inp.value) === SOLUTIONS.ch1.reversed) wrongAnswer(ch.nearMiss);
+    else wrongAnswer();
+  }
+  return check;
+}
+
+/* הקנבס של הגל נמדד לפי הרוחב שהוא באמת מקבל על המסך, כדי שהכיתוב יישאר קריא גם ב-360px */
+let waveCanvas = null;
+function sizeWave(cv) {
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.max(300, Math.round((r.width || 900) * dpr));
+  cv.width = w;
+  cv.height = Math.round(w * 0.30);
+  drawWave(cv, dpr);
+}
+
+/* ציור הגל: הערוץ העליון רועש, התחתון מסודר בקבוצות 7-3-1-9 */
+function drawWave(cv, dpr) {
+  const c = cv.getContext("2d"), W = cv.width, H = cv.height, mid = H * 0.46;
+  const k = dpr || 1;
+  c.fillStyle = "#08080a"; c.fillRect(0, 0, W, H);
+  c.strokeStyle = "rgba(138,133,128,0.5)"; c.lineWidth = Math.max(1, W * 0.0015);
+  c.beginPath(); c.moveTo(0, mid); c.lineTo(W, mid); c.stroke();
+
+  // סימוני זמן — גודל הפונט נגזר מהרוחב המוצג בפועל
+  const fpx = Math.min(18, Math.max(12, (W / k) * 0.035)) * k;
+  c.fillStyle = "rgba(180,175,168,0.9)";
+  c.font = Math.round(fpx) + "px system-ui, Arial, sans-serif";
+  c.textAlign = "left"; c.textBaseline = "alphabetic";
+  c.fillText("00:00", W * 0.012, H - fpx * 0.35);
+  c.textAlign = "right"; c.fillText("00:33", W * 0.988, H - fpx * 0.35);
+  c.strokeStyle = "rgba(138,133,128,0.2)";
+  for (let i = 1; i < 12; i++) {
+    const x = (W / 12) * i;
+    c.beginPath(); c.moveTo(x, mid - H * 0.03); c.lineTo(x, mid + H * 0.03); c.stroke();
+  }
+
+  // ערוץ עליון — רציף, בלי קבוצות
+  c.strokeStyle = "rgba(207,201,194,0.8)"; c.lineWidth = Math.max(1.5, W * 0.0026);
+  let seed = 7;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  c.beginPath();
+  for (let x = W * 0.02; x < W * 0.98; x += W * 0.0057) {
+    const a = (0.25 + rnd() * 0.75) * (mid - H * 0.10);
+    c.moveTo(x, mid - 2); c.lineTo(x, mid - 2 - a * 0.55);
+  }
+  c.stroke();
+
+  // ערוץ תחתון — ארבע קבוצות מופרדות בבירור: 7, 3, 1, 9, פרושות על כל הרוחב
+  c.strokeStyle = "rgba(204,34,34,0.95)"; c.lineWidth = Math.max(3, W * 0.0072); c.lineCap = "round";
+  const groups = SOLUTIONS.ch1.groups;
+  const gapIn = W * 0.0315, gapOut = W * 0.088;
+  let x = W * 0.055;
+  groups.forEach((n, gi) => {
+    for (let j = 0; j < n; j++) {
+      const h = (H - mid - fpx * 1.6) * (0.55 + ((j * 7 + gi * 3) % 5) * 0.09);
+      c.beginPath(); c.moveTo(x, mid + H * 0.015); c.lineTo(x, mid + H * 0.015 + h); c.stroke();
+      x += (j < n - 1) ? gapIn : gapOut;
+    }
+  });
+}
+
+/* ---------------- פרק 2: חידת הלוגיקה ---------------- */
+function buildCh2(body, actions, ch) {
+  const tbl = make("table", "board");
+  const thead = make("thead"), trh = make("tr");
+  ch.board.head.forEach(h => trh.appendChild(make("th", null, h)));
+  thead.appendChild(trh); tbl.appendChild(thead);
+  const tb = make("tbody");
+  ch.board.rows.forEach(r => {
+    const tr = make("tr");
+    r.forEach(cell => tr.appendChild(make("td", null, cell)));
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  body.appendChild(tbl);
+
+  const ul = make("ul", "clues");
+  ch.clues.forEach(cl => ul.appendChild(make("li", null, cl)));
+  body.appendChild(ul);
+  body.appendChild(make("p", "cap", ch.pzCap));
+
+  const grid = make("div", "name-grid");
+  ch.board.rows.forEach((r, i) => {
+    const b = make("button", "btn", r[1]);
+    b.setAttribute("aria-label", TEXT.a11y.chooseName(r[1]));
+    b.addEventListener("click", () => {
+      Audio_.click();
+      if (i === SOLUTIONS.ch2.rowIndex) solveChapter(); else wrongAnswer();
+    });
+    grid.appendChild(b);
+  });
+  body.appendChild(grid);
+  return null;
+}
+
+/* ---------------- פרק 3: אותיות לפי חותמות הזמן ---------------- */
+function buildCh3(body, actions, ch) {
+  const ul = make("ul", "chapters");
+  ul.id = "chapter-list";
+  ch.chapters.forEach(cp => {
+    const li = make("li");
+    li.appendChild(make("span", "ts", cp.ts));
+    li.appendChild(make("span", null, cp.name));
+    ul.appendChild(li);
+  });
+  body.appendChild(ul);
+  body.appendChild(make("p", "cap", ch.pzCap));
+
+  const inp = make("input");
+  inp.type = "text";
+  inp.placeholder = ch.pzPlaceholder;
+  inp.setAttribute("aria-label", ch.pzAsk);
+  const row = make("div", "row");
+  row.appendChild(inp);
+  body.appendChild(row);
+
+  const ok = make("button", "btn", TEXT.ui.submit);
+  ok.addEventListener("click", () => check());
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
+  actions.appendChild(ok);
+
+  function check() {
+    Audio_.click();
+    if (matches(inp.value, SOLUTIONS.ch3.accept)) solveChapter(); else wrongAnswer();
+  }
+  return check;
+}
+
+/* ---------------- פרק 4: ההקלטה ההפוכה + מפת 4x4 ---------------- */
+function buildCh4(body, actions, ch) {
+  let flipped = false;
+
+  body.appendChild(make("p", "cap", TEXT.a11y.subtitle));
+  const sub = make("p", null, [...ch.phrase].reverse().join(""));
+  sub.id = "sub-line";
+  body.appendChild(sub);
+
+  const row = make("div", "row");
+  const play = make("button", "btn", ch.playLabel);
+  play.addEventListener("click", () => { Audio_.click(); Audio_.playPhrase(flipped); });
+  const flip = make("button", "btn", ch.flipLabel);
+  flip.setAttribute("aria-pressed", "false");
+  flip.addEventListener("click", () => {
+    Audio_.click();
+    flipped = !flipped;
+    flip.setAttribute("aria-pressed", String(flipped));
+    sub.textContent = flipped ? ch.phrase : [...ch.phrase].reverse().join("");
+    Audio_.playPhrase(flipped);
+  });
+  row.appendChild(play); row.appendChild(flip);
+  body.appendChild(row);
+  body.appendChild(make("p", "cap", ch.pzCap));
+
+  // מפת המסדרון — תמיד משמאל לימין כדי שלא יהיה ספק מה זה "ימינה"
+  const wrap = make("div", "mapwrap");
+  wrap.appendChild(make("p", "cap", ch.mapForward));
+  const grid = make("div", "mapgrid");
+  grid.setAttribute("role", "group");
+  grid.setAttribute("aria-label", TEXT.a11y.map);
+  for (let r = 1; r <= 4; r++) {
+    for (let cN = 1; cN <= 4; cN++) {
+      const isStart = (r === SOLUTIONS.ch4.start.r && cN === SOLUTIONS.ch4.start.c);
+      const b = make("button", "cell" + (isStart ? " start" : ""), isStart ? ch.mapHere : "");
+      b.setAttribute("aria-label", TEXT.a11y.cell(r, cN, isStart));
+      b.addEventListener("click", () => {
+        Audio_.click();
+        if (r === SOLUTIONS.ch4.target.r && cN === SOLUTIONS.ch4.target.c) solveChapter();
+        else wrongAnswer();
+      });
+      grid.appendChild(b);
+    }
+  }
+  wrap.appendChild(grid);
+  wrap.appendChild(make("p", "cap", ch.mapEntrance));
+  body.appendChild(wrap);
+  return null;
+}
+
+/* ---------------- פרק 5: השאלה שלא נשאלה ---------------- */
+function buildCh5(body, actions, ch) {
+  const inp = make("input");
+  inp.type = "text";
+  inp.placeholder = ch.pzPlaceholder;
+  inp.setAttribute("aria-label", ch.pzAsk);
+  const row = make("div", "row");
+  row.appendChild(inp);
+  body.appendChild(row);
+  body.appendChild(make("p", "cap", ch.pzCap));
+
+  const ok = make("button", "btn", TEXT.ui.submit);
+  ok.addEventListener("click", () => check());
+  const arch = make("button", "btn btn-ghost", TEXT.ui.archive);
+  arch.addEventListener("click", openArchive);
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
+  actions.appendChild(ok);
+  actions.appendChild(arch);
+
+  function check() {
+    Audio_.click();
+    if (matches(inp.value, SOLUTIONS.ch5.accept)) { solveChapter(); return; }
+    const inArchive = gameState.archive.some(q => normalize(q) === normalize(inp.value));
+    wrongAnswer(inArchive ? ch.wrongInArchive : null);
+  }
+  return check;
+}
+
+/* ================================================================
+   9. Boot — זרימת הפרקים, הטיימר, הסיום והאירועים
+   ================================================================ */
+
+/* ---- כניסה לפרק ---- */
+let secretTimer = 0;
+function enterChapter(i) {
+  gameState.chapter = i;
+  gameState.monsterStep = 0;
+  gameState.secretShown = false;
+  const ch = TEXT.chapters[i];
+  addQuestion(ch.question);
+  el("chapline").textContent = TEXT.ui.chapLabel(i + 1, ch.name);
+
+  // בפרק הראשון, מההרצה השנייה ואילך, שורה אחת משתנה
+  const intro = ch.intro.slice();
+  if (i === 0 && gameState.runs > 1 && ch.introAlt) {
+    intro[0] = ch.introAlt.replace("{n}", String(gameState.nightNumber));
+  }
+  say(intro);
+
+  renderHotspots();
+  buildPuzzle();
+  renderInventory();
+  updateRoomDesc();
+  FX.applyDark();
+  Room.resize();
+  // פוקוס לכותרת הפרק, כדי שמשתמשי מקלדת לא יתחילו כל פרק מתחילת המסמך
+  const h = el("game-h1");
+  h.textContent = TEXT.ui.chapLabel(i + 1, ch.name);
+  setTimeout(() => h.focus(), 0);
+
+  // ההסתרה העדינה: פעם אחת בכל פרק, בלי הודעה
+  clearTimeout(secretTimer);
+  secretTimer = setTimeout(applySecret, 8000 + Math.random() * 12000);
+}
+
+/* שינוי קטן ברקע, בלי להסב אליו תשומת לב */
+function applySecret() {
+  if (gameState.screen !== "game") return;
+  gameState.secretShown = true;
+  // בחדר העריכה נוסף צ'פטר שישי לרשימה
+  const ch = chapterData();
+  if (ch.secretChapter) {
+    const ul = el("chapter-list");
+    if (ul && !ul.dataset.secret) {
+      ul.dataset.secret = "1";
+      const li = make("li");
+      li.appendChild(make("span", "ts", ch.secretChapter.ts));
+      li.appendChild(make("span", null, ch.secretChapter.name));
+      ul.appendChild(li);
+    }
+  }
+  Room.paint(Room.last / 1000);
+}
+
+/* ---- הטיימר: יורד, מתאפס, ולא נגמר לעולם ---- */
+let tickRaf = 0;
+function startTick() {
+  cancelAnimationFrame(tickRaf);
+  gameState.lastTick = 0;
+  tickRaf = requestAnimationFrame(tickTimer);
+}
+function tickTimer(now) {
+  if (!gameState.running) { tickRaf = 0; return; }
+  if (!gameState.lastTick) gameState.lastTick = now;
+  const dt = (now - gameState.lastTick) / 1000;
+  if (dt >= 1) {
+    const whole = Math.floor(dt);
+    gameState.lastTick += whole * 1000;
+    gameState.timeLeft -= whole;
+    // לא נגמר. מתאפס, והחדר מחשיך עוד דרגה. גם אם הלשונית הייתה ברקע שעה.
+    let reset = false;
+    while (gameState.timeLeft <= 0) {
+      gameState.timeLeft += 45 * 60;
+      gameState.loops++;
+      gameState.loopDark = Math.min(4, gameState.loopDark + 1);
+      reset = true;
+    }
+    if (reset) {
+      FX.applyDark();
+      Audio_.beat(6);
+      FX.flicker(el("timer"));
+    }
+    paintTimer();
+  }
+  tickRaf = requestAnimationFrame(tickTimer);
+}
+function paintTimer() {
+  const m = Math.floor(gameState.timeLeft / 60), s = gameState.timeLeft % 60;
+  el("timer").textContent = String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+}
+
+/* ---- התחלה ---- */
+function startGame() {
+  Audio_.init();
+  Audio_.resume();
+  showScreen("game");
+  gameState.running = true;
+  gameState.lastTick = 0;
+  paintTimer();
+  Room.init();
+  enterChapter(0);
+  startTick();
+  window.setTimeout(() => Room.resize(), 60);
+}
+
+/* ---- סיום: הטוויסט, ואז מסך שחור ---- */
+let endTimers = [];
+function clearEndTimers() { endTimers.forEach(clearTimeout); endTimers = []; }
+
+function endGame() {
+  gameState.running = false;
+  cancelAnimationFrame(tickRaf); tickRaf = 0;
+  clearTimeout(secretTimer);
+  clearEndTimers();
+  showScreen("end");
+  const wrap = el("end-reveal");
+  clear(wrap);
+  el("end-black").hidden = true;
+  el("end-last").textContent = TEXT.ending.last;
+  el("btn-again").textContent = TEXT.ending.again;
+  el("end-h1").focus();
+
+  const lines = TEXT.ending.reveal;
+  const toBlack = () => {
+    clear(wrap);
+    el("end-black").hidden = false;
+    el("btn-again").focus();
+  };
+
+  if (gameState.reduceMotion) {
+    // בלי אנימציה: שלוש השורות מוצגות מיד ונשארות עד שהשחקן ממשיך
+    lines.forEach(line => wrap.appendChild(make("p", null, line)));
+    const go = make("button", "btn btn-main", TEXT.ui.endContinue);
+    go.addEventListener("click", () => { Audio_.click(); toBlack(); });
+    wrap.appendChild(go);
+    setTimeout(() => go.focus(), 0);
+    return;
+  }
+  lines.forEach((line, i) => {
+    endTimers.push(setTimeout(() => {
+      wrap.appendChild(make("p", "fadein", line));
+      if (i === lines.length - 1) endTimers.push(setTimeout(toBlack, 2600));
+    }, i * 1900));
+  });
+}
+
+/* ---- שוב: אותו לילה, מספר אחר ---- */
+function restart() {
+  Audio_.click();
+  Audio_.resume();
+  clearEndTimers();
+  clearTimeout(secretTimer);
+  gameState.runs++;
+  gameState.nightNumber = 45 + gameState.runs;
+  gameState.chapter = 0;
+  gameState.solved = [false, false, false, false, false];
+  gameState.inventory = [];
+  gameState.archive = [];
+  gameState.seenHotspots = {};
+  gameState.wrongCount = [0, 0, 0, 0, 0];
+  gameState.hintLevel = [0, 0, 0, 0, 0];
+  gameState.timeLeft = 45 * 60;
+  gameState.monsterStep = 0;
+  gameState.secretShown = false;
+  gameState.lastTick = 0;
+  gameState.dark = 0;
+  gameState.loopDark = Math.min(4, gameState.loopDark + 1);   // החושך לא מתאפס
+  gameState.running = true;
+  showScreen("game");
+  paintTimer();
+  FX.applyDark();
+  enterChapter(0);
+  startTick();
+}
+
+/* ---- אירועים ואתחול ---- */
+function boot() {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  gameState.reduceMotion = mq.matches;
+  if (mq.addEventListener) mq.addEventListener("change", e => {
+    gameState.reduceMotion = e.matches;
+    if (e.matches) FX.stopMotion();
+    else { FX.initGrain(); FX.startRandomFlicker(); Room.init(); }
+  });
+
+  // מסך פתיחה
+  el("ttl-main").textContent = TEXT.title.main;
+  el("ttl-sub").textContent = TEXT.title.sub;
+  el("ttl-line").textContent = TEXT.title.line;
+  el("ttl-foot").textContent = TEXT.title.foot;
+  el("btn-start").textContent = TEXT.title.start;
+  el("btn-cw").textContent = TEXT.title.cw;
+  el("btn-archive").textContent = TEXT.ui.archive;
+  el("btn-mute").textContent = TEXT.ui.mute;
+  el("sheet-close").textContent = TEXT.ui.close;
+  el("bag-label").textContent = TEXT.ui.bag;
+
+  FX.initGrain();
+  FX.applyDark();
+  FX.startRandomFlicker();
+
+  el("btn-start").addEventListener("click", () => { Audio_.init(); Audio_.click(); startGame(); });
+  el("btn-cw").addEventListener("click", () => {
+    Audio_.click();
+    openSheet(TEXT.contentWarning.title, TEXT.contentWarning.body.map(l => make("p", null, l)));
+  });
+  el("btn-archive").addEventListener("click", openArchive);
+  el("btn-3d").addEventListener("click", () => { Audio_.click(); Room.toggle3d(); });
+  el("btn-again").addEventListener("click", restart);
+  el("sheet-close").addEventListener("click", () => { Audio_.click(); closeSheet(); });
+  el("veil").addEventListener("click", (e) => { if (e.target === el("veil")) closeSheet(); });
+  document.addEventListener("keydown", trapFocus);
+
+  const mute = el("btn-mute");
+  mute.addEventListener("click", () => {
+    const next = !gameState.muted;
+    Audio_.init();
+    Audio_.setMuted(next);
+    mute.setAttribute("aria-pressed", String(next));
+    mute.textContent = next ? TEXT.ui.unmute : TEXT.ui.mute;
+    if (!next) Audio_.click();
+  });
+
+  // כל מחווה של המשתמש מחזירה את האודיו אם הדפדפן השהה אותו
+  ["pointerdown", "keydown"].forEach(ev =>
+    document.addEventListener(ev, () => Audio_.resume(), { passive: true }));
+
+  /* ---- תנועה בחדר: גרירה מסובבת את המבט, מקשים מהלכים ---- */
+  const roomEl = el("room");
+  roomEl.addEventListener("pointerdown", (e) => {
+    if (Room.mode !== "3d") return;
+    if (e.target.closest("button")) return;      // לחיצה על אזור חיפוש או על כפתור הליכה
+    Scene3D.drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
+  });
+  roomEl.addEventListener("pointermove", (e) => {
+    const d = Scene3D.drag;
+    if (!d || d.id !== e.pointerId) return;
+    Scene3D.lookBy(e.clientX - d.x, e.clientY - d.y);
+    d.x = e.clientX; d.y = e.clientY;
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev =>
+    roomEl.addEventListener(ev, (e) => { if (Scene3D.drag && Scene3D.drag.id === e.pointerId) Scene3D.drag = null; }));
+
+  const KEYMAP = { KeyW: "w", ArrowUp: "w", KeyS: "s", ArrowDown: "s",
+                   KeyA: "a", KeyD: "d", ArrowLeft: "left", ArrowRight: "right" };
+  const typing = () => {
+    const a = document.activeElement;
+    return !el("veil").hidden || (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA"));
+  };
+  document.addEventListener("keydown", (e) => {
+    if (Room.mode !== "3d" || gameState.screen !== "game" || typing()) return;
+    const k = KEYMAP[e.code];
+    if (!k) return;
+    e.preventDefault();
+    Scene3D.keys[k] = true;
+  });
+  document.addEventListener("keyup", (e) => {
+    const k = KEYMAP[e.code];
+    if (k) Scene3D.keys[k] = false;
+  });
+  window.addEventListener("blur", () => { Scene3D.keys = {}; Scene3D.drag = null; });
+
+  // כפתורי הליכה למסכי מגע
+  const hold = (id, key) => {
+    const b = el(id);
+    const on = (e) => { e.preventDefault(); Scene3D.keys[key] = true; };
+    const off = () => { Scene3D.keys[key] = false; };
+    b.addEventListener("pointerdown", on);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => b.addEventListener(ev, off));
+    b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") on(e); });
+    b.addEventListener("keyup", off);
+  };
+  hold("walk-fwd", "w");
+  hold("walk-back", "s");
+  el("walk-reset").addEventListener("click", () => { Audio_.click(); Scene3D.resetView(); });
+
+  window.addEventListener("resize", () => {
+    FX.resize(); Room.resize();
+    if (waveCanvas && waveCanvas.isConnected) sizeWave(waveCanvas);
+  });
+  window.addEventListener("orientationchange", () => setTimeout(() => {
+    FX.resize(); Room.resize();
+    if (waveCanvas && waveCanvas.isConnected) sizeWave(waveCanvas);
+  }, 200));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) Audio_.resume(); });
+
+  renderInventory();
+  paintTimer();
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+</script>
+</body>
+</html>
