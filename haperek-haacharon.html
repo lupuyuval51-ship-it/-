@@ -1781,7 +1781,21 @@ function cross3(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b
 function norm3(a) { const l = Math.hypot(a[0],a[1],a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; }
 
 /* ---- בונה גיאומטריה: כל פאה היא שני משולשים עם צבע ונורמל ---- */
-function Mesh() { this.v = []; }
+function Mesh() { this.v = []; this.glows = []; }
+/* מסובב סביב ציר Y את כל הקודקודים שנוספו מאז האינדקס i0 — כך דמות יכולה להפנות את הראש */
+Mesh.prototype.rotateFrom = function (i0, ang, cx, cz) {
+  const c = Math.cos(ang), sn = Math.sin(ang);
+  for (let i = i0; i < this.v.length; i += 10) {
+    const dx = this.v[i] - cx, dz = this.v[i + 2] - cz;
+    this.v[i] = cx + dx * c + dz * sn;
+    this.v[i + 2] = cz - dx * sn + dz * c;
+    const nx = this.v[i + 3], nz = this.v[i + 5];
+    this.v[i + 3] = nx * c + nz * sn;
+    this.v[i + 5] = -nx * sn + nz * c;
+  }
+};
+/* נקודת זוהר: הילה רכה שמצוירת בחיבור אדיטיבי אחרי הסצנה */
+Mesh.prototype.glow = function (p, size, col) { this.glows.push({ p, size, c: col }); };
 Mesh.prototype.tri = function (p0, p1, p2, col, emit) {
   const n = norm3(cross3(sub3(p1, p0), sub3(p2, p0)));
   [p0, p1, p2].forEach(p => {
@@ -1818,8 +1832,13 @@ function figure3d(M, x, y, z, opt) {
   const dark = o.color || [0.02, 0.02, 0.03];
   const neck = (o.neck || 0.12) * s;
   const torsoH = 0.72 * s;
+  // הזווית אל השחקן: הגוף פונה אליו בחלקה, הראש — במלואה
+  const pl = Scene3D.player;
+  const face = Math.atan2(pl.x - x, pl.z - z);
+  const bodyStart = M.v.length;
   M.box(x, y, z, 0.46 * s, torsoH, 0.26 * s, dark, { flat: true });          // גוף
   M.box(x, y + torsoH, z, 0.10 * s, neck, 0.10 * s, dark, { flat: true });   // צוואר ארוך מדי
+  const headStart = M.v.length;
   M.box(x, y + torsoH + neck, z, 0.22 * s, 0.26 * s, 0.22 * s, dark, { flat: true }); // ראש
   if (!o.seated) {
     M.box(x - 0.13 * s, y - 0.78 * s, z, 0.14 * s, 0.78 * s, 0.14 * s, dark, { flat: true });
@@ -1847,6 +1866,14 @@ function figure3d(M, x, y, z, opt) {
     M.box(x, hy, z, 0.30 * s, 0.04 * s, 0.06 * s, [0.28, 0.27, 0.26], { flat: true });
     M.box(x - 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
     M.box(x + 0.14 * s, hy - 0.14 * s, z, 0.06 * s, 0.16 * s, 0.14 * s, [0.20, 0.19, 0.18], { flat: true });
+  }
+  // הראש עוקב אחרי השחקן; הגוף מסתובב אחריו לאט יותר
+  M.rotateFrom(headStart, face, x, z);
+  M.rotateFrom(bodyStart, face * 0.35, x, z);
+  if (o.eyes) {   // זוהר אדום קלוש סביב העיניים, מסובב יחד עם הראש
+    const ey = y + torsoH + neck + 0.16 * s;
+    const ex = Math.sin(face) * 0.13 * s, ez = Math.cos(face) * 0.13 * s;
+    M.glow([x + ex, ey, z + ez], 0.16 * s, [0.42, 0.05, 0.05]);
   }
 }
 
@@ -1987,6 +2014,9 @@ const SCENES = [
 
     // נורית ההקלטה על הקיר
     M.panel(2.1, 2.05, -5.48, 0.10, 0.10, [0.85,0.13,0.13], 1);
+    M.glow([2.1, 2.05, -5.40], 0.45, [0.55, 0.06, 0.06]);
+    M.glow([1.15, 1.17, -3.55], 1.25, [0.08, 0.10, 0.18]);      // זוהר המסך
+    M.glow([-2.05, 1.38, -5.40], 0.18, [0.40, 0.05, 0.05]);      // נורית המנעול
     // דלת עם מנעול ספרות
     frame3d(M, -2.35, 0, -5.42, 1.0, 2.15, 0.08, 0.12, [0.09,0.09,0.11]);
     M.panel(-2.35, 0, -5.47, 1.0, 2.15, [0.10,0.10,0.13]);
@@ -1997,6 +2027,7 @@ const SCENES = [
       mesh: M,
       eye: [0, 1.42, -0.6], look: [0, 1.20, -4.8],
       walls: [-3, 3, -5.5, 2.5], bounds: [-2.7, 2.7, -5.2, 2.2],
+      shadow: { p: [0.2, 2.85, -2.6], look: [0, 0, -3.6], fov: 2.2, far: 9 },
       blockers: [[-2.1, 2.1, -4.05, -2.75], [-1.6, -0.9, cz - 0.4, cz + 0.4]],
       fog: [0.028, 0.028, 0.035], fogD: 0.115,
       ambient: [0.15, 0.15, 0.18],
@@ -2050,6 +2081,8 @@ const SCENES = [
     // אינטרקום ושעון
     M.panel(-1.15, 1.25, -5.14, 0.22, 0.34, [0.09,0.09,0.12]);
     M.panel(-1.15, 1.48, -5.12, 0.05, 0.05, [0.24,0.75,0.36], 1);
+    M.glow([-1.15, 1.48, -5.05], 0.28, [0.05, 0.30, 0.10]);
+    M.glow([0, 1.45, -5.05], 1.6, [0.10, 0.12, 0.20]);           // אור מבעד לזכוכית
     M.panel(1.15, 2.15, -5.14, 0.42, 0.42, [0.10,0.10,0.13]);
     M.panel(1.15, 2.33, -5.12, 0.15, 0.022, [0.55,0.53,0.50], 1);    // מחוג שעות
     M.panel(1.18, 2.22, -5.12, 0.022, 0.19, [0.55,0.53,0.50], 1);    // מחוג דקות
@@ -2058,6 +2091,7 @@ const SCENES = [
       mesh: M,
       eye: [0, 1.55, -1.3], look: [0, 1.30, -5.0],
       walls: [-3.2, 3.2, -5.2, 2.3], bounds: [-2.9, 2.9, -4.9, 2.0],
+      shadow: { p: [0, 1.7, -5.05], look: [0, 0.6, 0.5], fov: 1.9, far: 9 },
       blockers: [[-2.3, -1.7, -5.0, -4.5]],
       fog: [0.025,0.025,0.032], fogD: 0.12,
       ambient: [0.15,0.15,0.18],
@@ -2093,6 +2127,8 @@ const SCENES = [
     M.panel(-0.95, 0.89, -3.80, 0.94, 0.54, [0.05,0.06,0.09], 1);
     for (let i = 0; i < 5; i++) M.panel(-1.20 + i * 0.02, 1.28 - i * 0.09, -3.79, 0.30 + i * 0.10, 0.045, [0.55,0.53,0.51], 1);
     M.panel(-0.75, 0.92, -3.79, 0.012, 0.48, [0.80,0.16,0.16], 1);
+    M.glow([-0.95, 1.16, -3.70, 0], 1.1, [0.09, 0.11, 0.20]);
+    M.glow([0.95, 1.16, -3.70], 1.1, [0.11, 0.11, 0.16]);
 
     // מסך ימני — "הפֶּה"
     M.box(0.95, 0.83, -3.85, 1.05, 0.66, 0.06, [0.10,0.10,0.12]);
@@ -2133,6 +2169,7 @@ const SCENES = [
       mesh: M,
       eye: [0, 1.55, -1.2], look: [0, 1.25, -4.8],
       walls: [-3, 3, -5.2, 2.3], bounds: [-2.7, 2.7, -4.9, 2.0],
+      shadow: { p: [0, 2.85, -2.4], look: [0, 0, -3.6], fov: 2.2, far: 9 },
       blockers: [[-2.0, 2.0, -4.1, -2.9], [-0.5, 0.1, -2.5, -1.9]],
       fog: [0.022,0.022,0.030], fogD: 0.12,
       ambient: [0.14,0.14,0.17],
@@ -2200,6 +2237,7 @@ const SCENES = [
     // רמקול בתקרה ושלט יציאה
     M.box(0, 2.45, -5.0, 0.5, 0.3, 0.3, [0.09,0.09,0.11]);
     M.panelX(-1.46, 1.85, -5.2, 0.7, 0.26, [0.75,0.16,0.16], 1);
+    M.glow([-1.35, 1.98, -5.2], 0.7, [0.40, 0.05, 0.05]);
     // מפסק תאורה
     M.panelX(1.46, 1.15, -5.4, 0.18, 0.26, [0.14,0.14,0.17]);
     // סימני גרירה על הרצפה
@@ -2213,6 +2251,7 @@ const SCENES = [
       mesh: M,
       eye: [0, 1.55, -1.0], look: [0, 1.35, -12],
       walls: [-1.5, 1.5, -20, 2], bounds: [-1.2, 1.2, -19.2, 1.6],
+      shadow: { p: [0, 2.7, -3.5], look: [0, 0, -12], fov: 1.5, far: 24 },
       blockers: [[-1.2, 1.2, cz - 1.0, cz + 1.4]],
       fog: [0.015,0.015,0.022], fogD: 0.085,
       ambient: [0.12,0.12,0.15],
@@ -2246,6 +2285,8 @@ const SCENES = [
     number7(M, 0, 1.86, -4.92, 0.17, 0.30, gameState.secretShown ? "301" : "300", [0.62,0.60,0.57]);
     M.panel(0, 1.05, -4.92, 0.52, 0.22, [0.05,0.06,0.09], 1);   // המסך הקטן
     M.panel(0.16, 1.10, -4.90, 0.02, 0.11, [0.72,0.70,0.68], 1);
+    M.glow([0, 1.16, -4.80], 0.9, [0.08, 0.10, 0.17]);
+    M.glow([1.55, 1.22, -4.80], 0.4, [0.50, 0.06, 0.06]);
 
     // המסגרת שבה הייתה מראה — ו"השני" עומד בתוכה
     frame3d(M, -1.75, 0.15, -4.9, 1.35, 2.3, 0.08, 0.12, [0.12,0.12,0.15]);
@@ -2267,6 +2308,7 @@ const SCENES = [
       mesh: M,
       eye: [0, 1.55, -1.2], look: [-0.2, 1.30, -4.6],
       walls: [-2.7, 2.7, -5, 2], bounds: [-2.4, 2.4, -4.6, 1.8],
+      shadow: { p: [0, 2.85, -3.2], look: [0, 0, -3.9], fov: 2.2, far: 9 },
       blockers: [],
       fog: [0.02,0.02,0.028], fogD: 0.13,
       ambient: [0.28,0.28,0.34],
@@ -2301,18 +2343,31 @@ const Scene3D = {
 
     const vs = `
       attribute vec3 aPos; attribute vec3 aNorm; attribute vec3 aCol; attribute float aEmit;
-      uniform mat4 uProj, uView;
-      varying vec3 vPos, vNorm, vCol; varying float vEmit;
+      uniform mat4 uProj, uView, uShadowMat;
+      varying vec3 vPos, vNorm, vCol; varying float vEmit; varying vec4 vSh;
       void main(){
         vPos = aPos; vNorm = aNorm; vCol = aCol; vEmit = aEmit;
+        vSh = uShadowMat * vec4(aPos, 1.0);
         gl_Position = uProj * uView * vec4(aPos, 1.0);
       }`;
     const fs = `
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
       precision mediump float;
-      varying vec3 vPos, vNorm, vCol; varying float vEmit;
+      #endif
+      varying vec3 vPos, vNorm, vCol; varying float vEmit; varying vec4 vSh;
       uniform vec3 uLp[4], uLc[4]; uniform float uLr[4], uLi[4];
       uniform vec3 uAmb, uFog, uEye; uniform float uFogD, uGain, uTime;
       uniform vec4 uWalls;   /* x0, x1, z0, z1 של הקירות — להצללת פינות */
+      uniform sampler2D uShadow; uniform float uShadowOn;
+
+      /* עומק שנארז לארבעה ערוצים במעבר הצל */
+      float unpack(vec4 c){ return dot(c, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0)); }
+      float shadowTap(vec3 sc, vec2 off){
+        float d = unpack(texture2D(uShadow, sc.xy + off));
+        return (sc.z - 0.0028 > d) ? 0.0 : 1.0;
+      }
 
       /* רעש ערכי בשלושה ממדים — הטקסטורה היחידה שיש לנו, כי אין תמונות */
       float hash(vec3 p){ p = fract(p * 0.3183099 + vec3(0.1, 0.2, 0.3)); p *= 17.0;
@@ -2349,12 +2404,23 @@ const Scene3D = {
         float shin = (up > 0.9) ? 52.0 : 16.0;
         float specW = (up > 0.9) ? 0.45 : 0.14;
         float flick = 0.965 + 0.035 * sin(uTime * 23.0) * sin(uTime * 7.3);
+        /* צל מהמנורה הראשית: ארבע דגימות, והצל לעולם לא שחור לגמרי */
+        float sh = 1.0;
+        if (uShadowOn > 0.5) {
+          vec3 sc = vSh.xyz / vSh.w;
+          if (sc.x > 0.0 && sc.x < 1.0 && sc.y > 0.0 && sc.y < 1.0 && sc.z < 1.0) {
+            float px = 1.0 / 1024.0;
+            sh = 0.25 * (shadowTap(sc, vec2(-px, -px)) + shadowTap(sc, vec2(px, -px))
+                       + shadowTap(sc, vec2(-px, px)) + shadowTap(sc, vec2(px, px)));
+            sh = 0.30 + 0.70 * sh;
+          }
+        }
         for (int i = 0; i < 4; i++){
           vec3 d = uLp[i] - vPos;
           float dist = length(d);
           vec3 L = d / max(dist, 0.001);
           float att = max(0.0, 1.0 - dist / uLr[i]);
-          att *= att * uLi[i] * (i == 0 ? flick : 1.0);
+          att *= att * uLi[i] * (i == 0 ? flick * sh : 1.0);
           float lam = max(0.0, dot(n, L));
           vec3 H = normalize(L + V);
           float spec = pow(max(0.0, dot(n, H)), shin) * specW;
@@ -2384,6 +2450,78 @@ const Scene3D = {
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return false;
     this.prog = p;
     gl.useProgram(p);
+
+    /* ---- מעבר הצל: מציירים את החדר מנקודת המבט של המנורה ואורזים עומק ---- */
+    const svs = `
+      attribute vec3 aPos; uniform mat4 uSP, uSV;
+      void main(){ gl_Position = uSP * uSV * vec4(aPos, 1.0); }`;
+    const sfs = `
+      #ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+      vec4 pack(float d){
+        vec4 e = fract(vec4(1.0, 255.0, 65025.0, 16581375.0) * d);
+        return e - e.yzww * vec4(1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0);
+      }
+      void main(){ gl_FragColor = pack(gl_FragCoord.z); }`;
+    const sv = mk(gl.VERTEX_SHADER, svs), sf = mk(gl.FRAGMENT_SHADER, sfs);
+    if (sv && sf) {
+      const sp = gl.createProgram();
+      gl.attachShader(sp, sv); gl.attachShader(sp, sf); gl.linkProgram(sp);
+      if (gl.getProgramParameter(sp, gl.LINK_STATUS)) {
+        this.sprog = sp;
+        this.sloc = { aPos: gl.getAttribLocation(sp, "aPos"), uSP: gl.getUniformLocation(sp, "uSP"), uSV: gl.getUniformLocation(sp, "uSV") };
+        // מסגרת ציור בגודל 1024 עם טקסטורת צבע ומאגר עומק
+        const SZ = 1024;
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, SZ, SZ, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        const rb = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, SZ, SZ);
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, rb);
+        this.shadowOk = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        this.shadowTex = tex; this.shadowFb = fb; this.shadowSize = SZ;
+      }
+    }
+
+    /* ---- הילות: ריבועים שפונים למצלמה, מצוירים בחיבור אדיטיבי ---- */
+    const hvs = `
+      attribute vec3 aPos; attribute vec2 aUV; attribute vec3 aCol;
+      uniform mat4 uProj, uView;
+      varying vec2 vUV; varying vec3 vCol;
+      void main(){ vUV = aUV; vCol = aCol; gl_Position = uProj * uView * vec4(aPos, 1.0); }`;
+    const hfs = `
+      precision mediump float;
+      varying vec2 vUV; varying vec3 vCol;
+      void main(){
+        float r = length(vUV);
+        float a = pow(max(0.0, 1.0 - r), 2.4);
+        gl_FragColor = vec4(vCol * a, 1.0);
+      }`;
+    const hv = mk(gl.VERTEX_SHADER, hvs), hf = mk(gl.FRAGMENT_SHADER, hfs);
+    if (hv && hf) {
+      const hp = gl.createProgram();
+      gl.attachShader(hp, hv); gl.attachShader(hp, hf); gl.linkProgram(hp);
+      if (gl.getProgramParameter(hp, gl.LINK_STATUS)) {
+        this.hprog = hp;
+        this.hloc = { aPos: gl.getAttribLocation(hp, "aPos"), aUV: gl.getAttribLocation(hp, "aUV"), aCol: gl.getAttribLocation(hp, "aCol"),
+                      uProj: gl.getUniformLocation(hp, "uProj"), uView: gl.getUniformLocation(hp, "uView") };
+        this.hbuf = gl.createBuffer();
+      }
+    }
+    gl.useProgram(p);
     this.loc = {
       aPos: gl.getAttribLocation(p, "aPos"), aNorm: gl.getAttribLocation(p, "aNorm"),
       aCol: gl.getAttribLocation(p, "aCol"), aEmit: gl.getAttribLocation(p, "aEmit"),
@@ -2393,7 +2531,8 @@ const Scene3D = {
       uAmb: gl.getUniformLocation(p, "uAmb"), uFog: gl.getUniformLocation(p, "uFog"),
       uFogD: gl.getUniformLocation(p, "uFogD"), uEye: gl.getUniformLocation(p, "uEye"),
       uGain: gl.getUniformLocation(p, "uGain"), uTime: gl.getUniformLocation(p, "uTime"),
-      uWalls: gl.getUniformLocation(p, "uWalls")
+      uWalls: gl.getUniformLocation(p, "uWalls"), uShadowMat: gl.getUniformLocation(p, "uShadowMat"),
+      uShadow: gl.getUniformLocation(p, "uShadow"), uShadowOn: gl.getUniformLocation(p, "uShadowOn")
     };
     this.buf = gl.createBuffer();
     gl.enable(gl.DEPTH_TEST);
@@ -2483,11 +2622,52 @@ const Scene3D = {
     if (this.chapterSpawned !== gameState.chapter) this.spawn(this.scene);
     this.step(dt);
 
-    gl.viewport(0, 0, W, H);
     const s = this.scene;
+    // ---- מעבר 1: מפת הצל מנקודת המבט של המנורה הראשית ----
+    let shadowMat = null;
+    if (this.sprog && this.shadowOk && s.lights[0]) {
+      const L = s.lights[0];
+      const sl = s.shadow || {};
+      const lp = sl.p || L.p;
+      const lt = sl.look || [(s.walls[0] + s.walls[1]) / 2, 0, (s.walls[2] + s.walls[3]) / 2];
+      const sProj = M4.persp(sl.fov || 2.1, 1, 0.15, sl.far || 14);
+      // וקטור "למעלה" שלא מקביל לכיוון המבט
+      const dirL = norm3(sub3(lt, lp));
+      const upL = Math.abs(dirL[1]) > 0.95 ? [0, 0, -1] : [0, 1, 0];
+      const sView = M4.lookAt(lp, lt, upL);
+      const bias = [0.5,0,0,0, 0,0.5,0,0, 0,0,0.5,0, 0.5,0.5,0.5,1];
+      shadowMat = M4.mul(M4.mul(bias, sProj), sView);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowFb);
+      gl.viewport(0, 0, this.shadowSize, this.shadowSize);
+      gl.clearColor(1, 1, 1, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.useProgram(this.sprog);
+      gl.uniformMatrix4fv(this.sloc.uSP, false, new Float32Array(sProj));
+      gl.uniformMatrix4fv(this.sloc.uSV, false, new Float32Array(sView));
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buf);
+      gl.enableVertexAttribArray(this.sloc.aPos);
+      gl.vertexAttribPointer(this.sloc.aPos, 3, gl.FLOAT, false, 10 * 4, 0);
+      gl.cullFace(gl.FRONT);       // מצללים מהפאות האחוריות — פחות "אקנה" של צל
+      gl.drawArrays(gl.TRIANGLES, 0, this.count);
+      gl.cullFace(gl.BACK);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    // ---- מעבר 2: הסצנה עצמה ----
+    gl.viewport(0, 0, W, H);
     gl.clearColor(s.fog[0], s.fog[1], s.fog[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(this.prog);
+    if (shadowMat) {
+      gl.uniformMatrix4fv(this.loc.uShadowMat, false, new Float32Array(shadowMat));
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, this.shadowTex);
+      gl.uniform1i(this.loc.uShadow, 0);
+      gl.uniform1f(this.loc.uShadowOn, 1);
+    } else {
+      gl.uniformMatrix4fv(this.loc.uShadowMat, false, new Float32Array(M4.ident()));
+      gl.uniform1f(this.loc.uShadowOn, 0);
+    }
 
     const cam = this.camera(t);
     const proj = M4.persp(1.16, W / H, 0.05, 60);
@@ -2531,6 +2711,60 @@ const Scene3D = {
     gl.enableVertexAttribArray(this.loc.aEmit);
     gl.vertexAttribPointer(this.loc.aEmit, 1, gl.FLOAT, false, stride, 36);
     gl.drawArrays(gl.TRIANGLES, 0, this.count);
+
+    // ---- מעבר 3: הילות זוהר ואבק באוויר, בחיבור אדיטיבי ----
+    if (this.hprog) this.drawGlows(t, proj, view, cam);
+  },
+
+  /* הילות: לכל מנורה, מסך, נורית ועין — ריבוע רך שפונה למצלמה. ועוד אבק שמרחף באור. */
+  drawGlows(t, proj, view, cam) {
+    const gl = this.gl, s = this.scene;
+    const dir = norm3(sub3(cam.tgt, cam.eye));
+    const right = norm3(cross3(dir, [0, 1, 0]));
+    const up = cross3(right, dir);
+    const items = [];
+    s.lights.forEach((L, i) => items.push({ p: L.p, size: 0.55 + L.r * 0.06, c: [L.c[0] * L.i * 0.35, L.c[1] * L.i * 0.35, L.c[2] * L.i * 0.35] }));
+    (s.mesh.glows || []).forEach(g => items.push(g));
+    // אבק: נקודות זעירות שנעות לאט בין הקירות
+    const w = s.walls, n = gameState.reduceMotion ? 0 : 90;
+    for (let i = 0; i < n; i++) {
+      const h1 = ((i * 7919) % 1000) / 1000, h2 = ((i * 104729) % 1000) / 1000, h3 = ((i * 15485863) % 1000) / 1000;
+      const x = w[0] + (w[1] - w[0]) * h1 + Math.sin(t * 0.21 + i) * 0.18;
+      const z = w[2] + (w[3] - w[2]) * h2 + Math.cos(t * 0.17 + i * 0.7) * 0.18;
+      const y = 0.25 + 2.4 * h3 + Math.sin(t * 0.13 + i * 2.1) * 0.12;
+      items.push({ p: [x, y, z], size: 0.035, c: [0.30, 0.29, 0.27] });
+    }
+    const data = [];
+    for (const it of items) {
+      const [px, py, pz] = it.p, r = it.size;
+      const c = it.c;
+      const corner = (ux, uy) => {
+        data.push(px + (right[0] * ux + up[0] * uy) * r, py + (right[1] * ux + up[1] * uy) * r, pz + (right[2] * ux + up[2] * uy) * r,
+                  ux, uy, c[0], c[1], c[2]);
+      };
+      corner(-1, -1); corner(1, -1); corner(1, 1);
+      corner(-1, -1); corner(1, 1); corner(-1, 1);
+    }
+    if (!data.length) return;
+    gl.useProgram(this.hprog);
+    gl.uniformMatrix4fv(this.hloc.uProj, false, new Float32Array(proj));
+    gl.uniformMatrix4fv(this.hloc.uView, false, new Float32Array(view));
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.hbuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+    const st = 8 * 4;
+    gl.enableVertexAttribArray(this.hloc.aPos); gl.vertexAttribPointer(this.hloc.aPos, 3, gl.FLOAT, false, st, 0);
+    gl.enableVertexAttribArray(this.hloc.aUV);  gl.vertexAttribPointer(this.hloc.aUV, 2, gl.FLOAT, false, st, 12);
+    gl.enableVertexAttribArray(this.hloc.aCol); gl.vertexAttribPointer(this.hloc.aCol, 3, gl.FLOAT, false, st, 20);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+    gl.drawArrays(gl.TRIANGLES, 0, data.length / 8);
+    gl.enable(gl.CULL_FACE);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    // מחזירים את מצביעי הקודקודים של התוכנית הראשית
+    gl.useProgram(this.prog);
   },
 
   /* הטלת נקודה תלת-ממדית לאחוזי מסך — כך אזורי החיפוש נשארים על החפצים */
