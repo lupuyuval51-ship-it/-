@@ -234,6 +234,7 @@ ul.chapters .ts{color:var(--dust);font-variant-numeric:tabular-nums;letter-spaci
       <div class="chapline" id="chapline" aria-live="polite"></div>
       <div class="topbar-actions">
         <button class="btn" id="btn-archive">ארכיון השאלות</button>
+        <button class="btn" id="btn-3d" aria-pressed="true">תלת-ממד</button>
       </div>
     </div>
 
@@ -250,6 +251,7 @@ ul.chapters .ts{color:var(--dust);font-variant-numeric:tabular-nums;letter-spaci
     </div>
 
     <p class="cap" id="walkhint" hidden></p>
+    <p class="feedback bad" id="glnote" hidden></p>
 
     <div class="say" id="say" aria-live="polite"></div>
 
@@ -365,7 +367,11 @@ const TEXT = {
     subtitle: "כתובית ההקלטה",
     room: (name, presence) => "החדר: " + name + (presence ? ". " + presence : ""),
     hintOpen: "כפתור רמז זמין עכשיו.",
-    walkHint: "אפשר להסתובב בחדר: W A S D או מקשי החיצים, וגרירה בעכבר או באצבע כדי להביט. אפשר גם פשוט ללחוץ על מה שרואים."
+    walkHint: "אפשר להסתובב בחדר: W A S D או מקשי החיצים, וגרירה בעכבר או באצבע כדי להביט. אפשר גם פשוט ללחוץ על מה שרואים.",
+    mode3d: "תלת-ממד",
+    mode2d: "דו-ממד",
+    noWebGL: "הדפדפן הזה לא מאפשר WebGL, ולכן החדרים מוצגים בדו-ממד. פתח את הקובץ ישירות בכרום, בפיירפוקס או בספארי מעודכנים — לא בתצוגה מקדימה — כדי לראות אותם בתלת-ממד.",
+    lostWebGL: "החיבור לכרטיס המסך נותק. המשחק עבר לדו-ממד; לחץ על \"תלת-ממד\" כדי לנסות שוב."
   },
 
   /* ---- טקסט הרמזים הכללי ---- */
@@ -977,18 +983,20 @@ const Room = {
     this.cv = document.getElementById("roomcv");
     this.ctx = this.cv.getContext("2d");
     this.glcv = document.getElementById("roomgl");
-    // תלת-ממד כברירת מחדל; אם הדפדפן לא תומך, החדרים מצוירים ב-2D
-    if (this.mode === "2d" && !Scene3D.ok && Scene3D.init(this.glcv)) this.mode = "3d";
-    const walk = document.getElementById("walk"), hint = document.getElementById("walkhint");
-    if (this.mode === "3d") {
-      this.glcv.hidden = false; this.cv.hidden = true;
-      if (walk) walk.hidden = false;
-      if (hint) { hint.hidden = false; hint.textContent = TEXT.a11y.walkHint; }
-    } else {
-      this.glcv.hidden = true; this.cv.hidden = false;
-      if (walk) walk.hidden = true;
-      if (hint) hint.hidden = true;
+    if (!this.glcv.dataset.bound) {
+      this.glcv.dataset.bound = "1";
+      // אם כרטיס המסך "נעלם" (לשונית ברקע, נהג שקרס) — חוזרים לדו-ממד ומציעים לנסות שוב
+      this.glcv.addEventListener("webglcontextlost", (e) => {
+        e.preventDefault();
+        Scene3D.ok = false;
+        Scene3D.error = TEXT.a11y.lostWebGL;
+        this.setMode("2d", true);
+      });
+      this.glcv.addEventListener("webglcontextrestored", () => { if (Scene3D.init(this.glcv)) this.setMode("3d"); });
     }
+    // תלת-ממד כברירת מחדל; אם הדפדפן לא תומך, החדרים מצוירים ב-2D — ואומרים למה
+    if (this.mode === "2d" && !this.userChose2d && !Scene3D.ok) Scene3D.init(this.glcv);
+    this.setMode(Scene3D.ok && !this.userChose2d ? "3d" : "2d", !Scene3D.ok);
     this.resize();
     const loop = (t) => {
       if (gameState.reduceMotion) { this.raf = 0; return; }
@@ -1000,6 +1008,38 @@ const Room = {
     };
     if (gameState.reduceMotion) this.paint(0);
     else this.raf = requestAnimationFrame(loop);
+  },
+
+  /* מעבר מפורש בין תלת-ממד לדו-ממד — כולל הכפתור, פקדי ההליכה וההודעה */
+  setMode(mode, showWhy) {
+    this.mode = mode;
+    const walk = document.getElementById("walk"), hint = document.getElementById("walkhint");
+    const note = document.getElementById("glnote"), btn = document.getElementById("btn-3d");
+    const is3d = mode === "3d";
+    if (this.glcv) this.glcv.hidden = !is3d;
+    if (this.cv) this.cv.hidden = is3d;
+    if (walk) walk.hidden = !is3d;
+    if (hint) { hint.hidden = !is3d; hint.textContent = TEXT.a11y.walkHint; }
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(is3d));
+      btn.textContent = is3d ? TEXT.a11y.mode3d : TEXT.a11y.mode2d;
+      btn.title = Scene3D.ok ? "" : (Scene3D.error || "");
+    }
+    if (note) {
+      const why = !is3d && showWhy && !Scene3D.ok;
+      note.hidden = !why;
+      note.textContent = why ? (Scene3D.error && Scene3D.error === TEXT.a11y.lostWebGL ? Scene3D.error : TEXT.a11y.noWebGL) : "";
+    }
+    if (!is3d) { Scene3D.keys = {}; Scene3D.drag = null; }
+  },
+
+  /* לחיצה על הכפתור: הפעלה מחדש של תלת-ממד אם אפשר, או מעבר יזום לדו-ממד */
+  toggle3d() {
+    if (this.mode === "3d") { this.userChose2d = true; this.setMode("2d"); this.resize(); return; }
+    this.userChose2d = false;
+    if (!Scene3D.ok) Scene3D.init(this.glcv);
+    this.setMode(Scene3D.ok ? "3d" : "2d", !Scene3D.ok);
+    this.resize();
   },
 
   resize() {
@@ -1018,10 +1058,17 @@ const Room = {
     if (gameState.screen !== "game") return;
     const time = gameState.reduceMotion ? 0 : t;
     if (this.mode === "3d" && Scene3D.ok) {
-      Scene3D.build(time);      // הסצנה נבנית מחדש בכל פריים — היא קטנה מספיק
-      Scene3D.draw(time);
-      placeHotspots3D();
-      return;
+      try {
+        Scene3D.build(time);      // הסצנה נבנית מחדש בכל פריים — היא קטנה מספיק
+        Scene3D.draw(time);
+        placeHotspots3D();
+        return;
+      } catch (e) {
+        Scene3D.ok = false;
+        Scene3D.error = String(e && e.message || e);
+        if (window.console) console.warn("3D disabled:", Scene3D.error);
+        this.setMode("2d", true);
+      }
     }
     if (!this.ctx) return;
     const c = this.ctx, W = this.cv.width, H = this.cv.height;
@@ -2334,11 +2381,13 @@ const Scene3D = {
 
   init(canvas) {
     this.cv = canvas;
+    this.error = "";
     let gl = null;
-    try { gl = canvas.getContext("webgl", { antialias: true, alpha: false, depth: true }) ||
-               canvas.getContext("experimental-webgl", { antialias: true, alpha: false, depth: true }); }
-    catch (e) { gl = null; }
-    if (!gl) return false;
+    const opts = { antialias: true, alpha: false, depth: true, failIfMajorPerformanceCaveat: false, powerPreference: "high-performance" };
+    try { gl = canvas.getContext("webgl", opts) || canvas.getContext("experimental-webgl", opts); }
+    catch (e) { this.error = String(e && e.message || e); }
+    if (!gl) { try { gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl"); } catch (e) {} }
+    if (!gl) { this.error = this.error || "no WebGL context"; if (window.console) console.warn("3D unavailable:", this.error); return false; }
     this.gl = gl;
 
     const vs = `
@@ -2440,14 +2489,18 @@ const Scene3D = {
     const mk = (type, src) => {
       const s = gl.createShader(type);
       gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        this.error = "shader: " + (gl.getShaderInfoLog(s) || "compile failed");
+        if (window.console) console.warn("3D shader error:", this.error);
+        return null;
+      }
       return s;
     };
     const v = mk(gl.VERTEX_SHADER, vs), f = mk(gl.FRAGMENT_SHADER, fs);
     if (!v || !f) return false;
     const p = gl.createProgram();
     gl.attachShader(p, v); gl.attachShader(p, f); gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return false;
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { this.error = "link: " + (gl.getProgramInfoLog(p) || "failed"); return false; }
     this.prog = p;
     gl.useProgram(p);
 
@@ -3501,6 +3554,7 @@ function boot() {
     openSheet(TEXT.contentWarning.title, TEXT.contentWarning.body.map(l => make("p", null, l)));
   });
   el("btn-archive").addEventListener("click", openArchive);
+  el("btn-3d").addEventListener("click", () => { Audio_.click(); Room.toggle3d(); });
   el("btn-again").addEventListener("click", restart);
   el("sheet-close").addEventListener("click", () => { Audio_.click(); closeSheet(); });
   el("veil").addEventListener("click", (e) => { if (e.target === el("veil")) closeSheet(); });
