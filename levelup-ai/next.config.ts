@@ -16,7 +16,7 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const config: NextConfig = {
-  serverExternalPackages: ["pg", "nodemailer"],
+  serverExternalPackages: ["pg"],
   poweredByHeader: false,
   devIndicators: false,
   async headers() {

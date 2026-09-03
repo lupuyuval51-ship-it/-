@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { assert } from './auth';
-import { config, entitlements, gameModes, worlds } from './config';
-import { attemptDto, award, dayIn, findPath, pathById, planFor, preferences, timezoneFor, updateStreak } from './store';
+import { config, gameModes, worlds } from './config';
+import { attemptDto, award, dayIn, entitlementsFor, findPath, pathById, preferences, timezoneFor, updateStreak } from './store';
 import { reinforcementProposal } from './learning';
 
 function random(seed: string) { let state = parseInt(createHash('sha256').update(seed).digest('hex').slice(0, 8), 16); return () => { state ^= state << 13; state ^= state >>> 17; state ^= state << 5; return (state >>> 0) / 4294967296; }; }
@@ -64,7 +64,7 @@ function cohortAttempts(userId: string, game: Row) {
   return all("SELECT a.*,g.data,g.game_mode,g.world_theme FROM daily_game_attempts a JOIN daily_games g ON g.id=a.daily_game_id WHERE a.user_id=? AND json_extract(g.data,'$.leaderboardGroup')=?", userId, data.leaderboardGroup);
 }
 export function gameAvailability(userId: string, game: Row, zone = timezoneFor(userId)) {
-  const features = entitlements(planFor(userId)), data = readJson(game.data), attempts = cohortAttempts(userId, game), today = dayIn(zone);
+  const features = entitlementsFor(userId), data = readJson(game.data), attempts = cohortAttempts(userId, game), today = dayIn(zone);
   const current = data.isCustom ? attempts.filter(attempt => dayIn(zone, new Date(attempt.started_at)) === today) : attempts;
   const resumable = current.some(attempt => attempt.daily_game_id === game.id && attempt.status === 'playing' && Date.now() - new Date(attempt.started_at).getTime() <= data.timeLimit * 1000 + 30000);
   const attemptsRemaining = Math.max(0, features.gameAttempts - current.length), canPlay = features.canPlayFull3DGames && !!game.is_active;
@@ -74,7 +74,7 @@ export function gameAvailability(userId: string, game: Row, zone = timezoneFor(u
 function nextMidnight(zone: string) { const today = dayIn(zone); let low = Date.now(), high = low + 27 * 3600000; for (let iteration = 0; iteration < 30; iteration++) { const midpoint = Math.floor((low + high) / 2); if (dayIn(zone, new Date(midpoint)) === today) low = midpoint; else high = midpoint; } return new Date(high).toISOString(); }
 export function startGame(userId: string, gameId: string) {
   return transaction(() => {
-    const game = assertGameAccess(userId, gameId), data = readJson(game.data), features = entitlements(planFor(userId)), zone = timezoneFor(userId);
+    const game = assertGameAccess(userId, gameId), data = readJson(game.data), features = entitlementsFor(userId), zone = timezoneFor(userId);
     assert(features.canPlayFull3DGames, 403, 'Basic פותח את משחקי ה־3D. / Basic unlocks full 3D games.', 'UPGRADE_REQUIRED');
     assert(game.is_active, 404, 'האתגר אינו זמין. / Quest is unavailable.', 'GAME_UNAVAILABLE');
     assert(data.isCustom || game.date === dayIn(zone), 409, 'האתגר היומי התחלף. יש לטעון את האתגר החדש. / The daily quest has changed.', 'GAME_EXPIRED');
@@ -104,7 +104,7 @@ export function gameEvent(userId: string, body: unknown) {
     assert(previousEvent.answer === input.answer, 409, 'התשובה כבר נשלחה. / Answer already submitted.', 'EVENT_CONFLICT');
     return { correct: !!previousEvent.correct, explanation: question.explanation, score: attempt.score, multiplier: attempt.multiplier, index: input.index, complete: attempt.event_count === game.questions.length, replayed: true };
   }
-  assert(entitlements(planFor(userId)).canPlayFull3DGames, 403, 'המנוי אינו פעיל. / Subscription is no longer active.', 'UPGRADE_REQUIRED');
+  assert(entitlementsFor(userId).canPlayFull3DGames, 403, 'המנוי אינו פעיל. / Subscription is no longer active.', 'UPGRADE_REQUIRED');
   assert(attempt.status === 'playing' && attempt.is_active, 409, 'הניסיון הסתיים או הושבת. / Attempt finished or disabled.', 'ATTEMPT_CLOSED');
   assert(question && input.index === attempt.event_count, 409, 'סדר האירועים אינו תקין. / Invalid event sequence.', 'INVALID_SEQUENCE');
   assert(input.answer < question.options.he.length, 400, 'בחירה לא תקינה. / Invalid option.');

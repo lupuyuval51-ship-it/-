@@ -47,7 +47,7 @@ if (emit.emitSkipped || diagnostics.some(diagnostic => diagnostic.category === t
   const environment = { ...process.env };
   // Tests must never send real mail, spend AI credits, or use deployment prices/credentials.
   for (const key of Object.keys(environment)) {
-    if (/^(AI_|SMTP_|MAIL_FROM$|BIT_PAYMENT_|BASIC_MONTHLY_PRICE_NIS$|PLUS_MONTHLY_PRICE_NIS$|PRO_MONTHLY_PRICE_NIS$)/.test(key)) delete environment[key];
+    if (/^(AI_|ANTHROPIC_|SMTP_|MAIL_FROM$|BIT_PAYMENT_|BASIC_MONTHLY_PRICE_NIS$|PLUS_MONTHLY_PRICE_NIS$|PRO_MONTHLY_PRICE_NIS$)/.test(key)) delete environment[key];
   }
   Object.assign(environment, {
     NODE_ENV: 'test', DEMO_MODE: 'true', APP_URL: 'http://localhost:3000',

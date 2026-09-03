@@ -15,6 +15,8 @@ export type AppContextType = {
   setTheme: (value: string) => void;
   theme: string;
   logout: () => Promise<void>;
+  /** Opens a passwordless account and returns the fresh state. */
+  start: () => Promise<any>;
 };
 export const AppContext = createContext<AppContextType>(null!);
 export const useApp = () => useContext(AppContext);

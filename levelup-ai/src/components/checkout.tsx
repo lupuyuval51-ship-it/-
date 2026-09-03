@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useApp } from "./context";
-import { api } from "@/lib/client";
+import { api, isAdult } from "@/lib/client";
 import { Button, Modal, Notice } from "./ui";
 export function useCheckout() {
-  const { state, setState, go, t } = useApp();
+  const { state, setState, go, t, start } = useApp();
   const [pending, setPending] = useState<any>(null);
   const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -15,8 +15,7 @@ export function useCheckout() {
     try {
       const response = await api("/orders", {
         ...input,
-        payerAuthorized:
-          approved || new Date().getFullYear() - state.profile.birthYear >= 18,
+        payerAuthorized: approved || isAdult(state?.profile?.birthYear),
       });
       if (response.state) setState(response.state);
       setPending(null);
@@ -27,12 +26,10 @@ export function useCheckout() {
       setBusy(false);
     }
   };
-  const start = async (input: any) => {
-    if (!state?.user) {
-      go("/register");
-      return;
-    }
-    if (new Date().getFullYear() - state.profile.birthYear < 18) {
+  const begin = async (input: any) => {
+    // Without a stated adult year of birth the purchase needs an explicit payer confirmation.
+    const profile = state?.user ? state.profile : (await start()).profile;
+    if (!isAdult(profile?.birthYear)) {
       setPending(input);
       setApproved(false);
       return;
@@ -56,5 +53,5 @@ export function useCheckout() {
       </Button>
     </Modal>
   ) : null;
-  return { start, dialog, busy, error };
+  return { start: begin, dialog, busy, error };
 }

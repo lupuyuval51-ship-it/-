@@ -1,8 +1,9 @@
 import { before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generatePathDraft, privateGenerationInput, generatedPathSchema, type PathGenerationInput, type GeneratedPathDraft } from '../src/lib/server/path-generation';
-import type { StructuredAIProvider, StructuredAIRequest } from '../src/lib/server/ai-provider';
-import { ApiError, register, consumeToken, login } from '../src/lib/server/auth';
+import { DEFAULT_AI_MODEL, type StructuredAIProvider, type StructuredAIRequest } from '../src/lib/server/ai-provider';
+import { claudeReply } from './helpers/claude-reply';
+import { ApiError, guestSession } from '../src/lib/server/auth';
 import { catalog, initialize, pathById, state } from '../src/lib/server/store';
 import { enroll, submitTask } from '../src/lib/server/learning';
 import { one, run } from '../src/lib/server/db';
@@ -17,13 +18,11 @@ function fixture(): GeneratedPathDraft {
   const path = learningPaths[0];
   return generatedPathSchema.parse({ title: path.title, description: path.description, category: path.category, durationDays: path.durationDays, chapters: path.chapters.map(chapter => ({ title: chapter.title, tasks: chapter.tasks.map(task => ({ title: task.title, description: task.description, objective: task.objective, minutes: task.minutes, xp: Math.min(120, task.xp), instructions: task.instructions, example: task.example, hints: task.hints, question: task.question, type: task.type })) })) });
 }
-async function account(email: string) {
-  const created = await register({ email, password: 'GenerationPassword123!', displayName: 'PRIVATE_PROFILE_NAME', birthYear: 2000, consent: true });
-  consumeToken(created.verification.token!, 'verify');
-  const signedIn = login({ email, password: 'GenerationPassword123!' });
-  return { id: created.userId, cookie: signedIn.cookie.split(';')[0] };
+function account() {
+  const created = guestSession({ displayName: 'PRIVATE_PROFILE_NAME' });
+  return { id: created.userId, cookie: created.cookie.split(';')[0] };
 }
-before(async () => { initialize(); const owner = await account('owner-generation@example.test'), other = await account('other-generation@example.test'); ownerId = owner.id; ownerCookie = owner.cookie; otherId = other.id; otherCookie = other.cookie; });
+before(async () => { initialize(); const owner = account(), other = account(); ownerId = owner.id; ownerCookie = owner.cookie; otherId = other.id; otherCookie = other.cookie; });
 async function api(path: string, body: unknown, cookie: string) {
   const response = await handle(new Request(`http://localhost:3000/api/${path}`, { method: 'POST', headers: { origin: 'http://localhost:3000', 'content-type': 'application/json', cookie }, body: JSON.stringify(body) }), path.split('/'));
   return { status: response.status, data: await response.json() };
@@ -53,21 +52,40 @@ test('generation input minimizes private data and redacts contact details and se
   await generatePathDraft(sensitive, { async generate(value) { captured = value; return fixture(); } });
   assert.equal(captured!.name, 'learning_path'); assert.ok(!JSON.stringify(captured!.input).includes('topsecret')); assert.equal(captured!.schema.additionalProperties, false);
 });
-test('live adapter uses structured Responses with provider storage disabled', async () => {
-  const originalFetch = globalThis.fetch, originalKey = process.env.AI_API_KEY, originalModel = process.env.AI_MODEL, originalProvider = process.env.AI_PROVIDER;
-  let sent: Record<string, any> | undefined;
-  process.env.AI_API_KEY = 'test-only-not-a-real-secret'; process.env.AI_MODEL = 'test-model'; process.env.AI_PROVIDER = 'openai';
+test('live adapter posts a structured Claude request that carries no account data', async () => {
+  const originalFetch = globalThis.fetch, originalKey = process.env.ANTHROPIC_API_KEY, originalProvider = process.env.AI_PROVIDER;
+  let sent: Record<string, any> | undefined, target = '';
+  process.env.ANTHROPIC_API_KEY = 'test-only-not-a-real-secret'; process.env.AI_PROVIDER = 'anthropic';
   globalThis.fetch = async (url, options) => {
-    assert.equal(url, 'https://api.openai.com/v1/responses');
+    target = String(url instanceof Request ? url.url : url);
     sent = JSON.parse(String(options?.body));
-    return Response.json({ output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(fixture()) }] }] });
+    return Response.json(claudeReply(JSON.stringify(fixture())));
   };
   try {
-    const result = await generatePathDraft(input); assert.equal(result.source, 'ai'); assert.equal(sent!.store, false); assert.equal(sent!.text.format.type, 'json_schema'); assert.equal(sent!.text.format.strict, true); assert.ok(!Object.hasOwn(JSON.parse(sent!.input), 'userId')); assert.ok(!JSON.stringify(sent).includes('test-only-not-a-real-secret'));
+    const result = await generatePathDraft(input);
+    assert.equal(result.source, 'ai');
+    assert.equal(target, 'https://api.anthropic.com/v1/messages');
+    assert.equal(sent!.model, DEFAULT_AI_MODEL);
+    assert.equal(sent!.output_config.format.type, 'json_schema');
+    assert.equal(sent!.output_config.format.schema.additionalProperties, false);
+    assert.equal(sent!.thinking.type, 'adaptive');
+    assert.ok(sent!.max_tokens >= 12000, 'reasoning needs headroom above the requested content');
+    const submitted = JSON.parse(sent!.messages[0].content);
+    assert.ok(!Object.hasOwn(submitted, 'userId'));
+    assert.ok(!JSON.stringify(sent).includes('test-only-not-a-real-secret'));
   } finally {
     globalThis.fetch = originalFetch;
-    if (originalKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = originalKey;
-    if (originalModel === undefined) delete process.env.AI_MODEL; else process.env.AI_MODEL = originalModel;
+    if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = originalKey;
+    if (originalProvider === undefined) delete process.env.AI_PROVIDER; else process.env.AI_PROVIDER = originalProvider;
+  }
+});
+test('a foreign AI_PROVIDER fails loudly instead of quietly serving Demo content', async () => {
+  const originalKey = process.env.ANTHROPIC_API_KEY, originalProvider = process.env.AI_PROVIDER;
+  process.env.ANTHROPIC_API_KEY = 'test-only-not-a-real-secret'; process.env.AI_PROVIDER = 'openai';
+  try {
+    await assert.rejects(() => generatePathDraft(input), error => error instanceof ApiError && error.code === 'AI_UNAVAILABLE');
+  } finally {
+    if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = originalKey;
     if (originalProvider === undefined) delete process.env.AI_PROVIDER; else process.env.AI_PROVIDER = originalProvider;
   }
 });
@@ -103,7 +121,7 @@ test('invalid provider output saves nothing and concurrent generation cannot exc
   assert.equal(one('SELECT COUNT(*) AS n FROM learning_paths')!.n, before + 1);
 });
 test('custom skill HTTP enrollment works without a key and returns an explicit Demo source', async () => {
-  const user = await account('demo-custom@example.test');
+  const user = account();
   const result = await api('enrollments', { ...input, skill: 'Botanical illustration', goal: 'Create three annotated plant sketches' }, user.cookie);
   assert.equal(result.status, 200, JSON.stringify(result.data)); assert.equal(result.data.source, 'demo-study'); assert.equal(result.data.path.isPrivate, true); assert.ok(result.data.path.title.en.includes('Botanical illustration')); assert.equal(result.data.state.enrollments.length, 1); assert.equal(result.data.state.privatePaths.length, 1); assert.ok(result.data.sourceNotice.he.includes('תבנית'));
   run('DELETE FROM rate_limits WHERE key=?', `path-generation:${user.id}`);

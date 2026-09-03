@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
-import { ApiError, assert, assertOrigin, clearSession, clientNetworkAddress, consumeToken, createSession, hashToken, issueToken, login, passwordMatches, rateLimit, register, requireAdmin, sessionUser } from './auth';
+import { ApiError, assert, assertOrigin, clearSession, clientNetworkAddress, createSession, guestSession, isGuestAccount, login, passwordMatches, rateLimit, requireAdmin, sessionUser } from './auth';
 import { config, plans } from './config';
 import { approveOrder, catalog, initialize, state } from './store';
 import { completeReinforcement, enroll, submitTask, taskGuidance, updateEnrollment } from './learning';
@@ -78,7 +78,8 @@ export async function handle(request: Request, path: string[]) {
     if (route === 'cosmetics/buy' && method === 'POST') { const input = z.object({ itemId: z.string().max(100) }).parse(await body(request)); return json({ ok: true, ...buyCosmetic(user.id, input.itemId), state: state(user) }); }
     if (route === 'notifications/read' && method === 'POST') { run('UPDATE notifications SET read_at=? WHERE user_id=? AND read_at IS NULL', now(), user.id); return json({ ok: true, state: state(user) }); }
     if (route === 'export' && method === 'GET') return new Response(JSON.stringify({ exportedAt: now(), ...state(user), generatedGames: customGames(user.id).games, gameMessages: all('SELECT m.id,m.role,m.content,m.created_at,c.game_id FROM ai_coach_messages m JOIN game_coach_contexts c ON c.message_id=m.id WHERE m.user_id=? ORDER BY m.created_at', user.id), reinforcements: all('SELECT enrollment_id,source_task_id,text,xp,created_at FROM reinforcement_submissions WHERE user_id=?', user.id), skills: all('SELECT skill_id,mastery,created_at FROM user_skills WHERE user_id=?', user.id), files: all('SELECT id,file_name,mime,bytes,purpose,created_at FROM payment_proofs WHERE user_id=? AND deleted_at IS NULL', user.id) }, null, 2), { headers: { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="levelup-data.json"', 'Cache-Control': 'no-store' } });
-    if (route === 'account/delete' && method === 'POST') { const input = z.object({ password: z.string().max(128) }).parse(await body(request)); assert(passwordMatches(input.password, user.password_hash), 403, 'הסיסמה אינה נכונה. / Incorrect password.'); deleteAccount(user); return json({ ok: true }, 200, clearSession(request)); }
+    // A guest holds no password, so the session plus an explicit confirmation is the proof of intent.
+    if (route === 'account/delete' && method === 'POST') { const input = z.object({ password: z.string().max(128).optional(), confirm: z.boolean().optional() }).parse(await body(request)); assert(isGuestAccount(user) ? input.confirm === true : passwordMatches(input.password || '', user.password_hash), 403, isGuestAccount(user) ? 'יש לאשר את המחיקה. / Confirm the deletion.' : 'הסיסמה אינה נכונה. / Incorrect password.'); deleteAccount(user); return json({ ok: true }, 200, clearSession(request)); }
     if (route === 'subscription/cancel' && method === 'POST') { run("UPDATE subscriptions SET status='cancelled',updated_at=? WHERE user_id=? AND status='active'", now(), user.id); audit(user.id, 'subscription.cancel', user.id); return json({ ok: true, state: state(user) }); }
     if (path[0] === 'admin') {
       const admin = requireAdmin(request);
@@ -102,8 +103,19 @@ async function authRoute(request: Request, route: string, method: string) {
   const input = await body(request);
   const ip = clientNetworkAddress(request);
   if (ip) rateLimit(`auth-network:${ip}`, Number(process.env.AUTH_NETWORK_LIMIT || 300), 900);
-  const identifier = typeof input.email === 'string' ? input.email.trim().toLowerCase() : typeof input.token === 'string' ? hashToken(input.token) : ip;
+  const identifier = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ip;
   if (identifier) rateLimit(`auth:${route}:${identifier}`, 15, 900);
+  if (route === 'auth/guest') {
+    // A repeat click must resume the existing account rather than stranding the previous one.
+    const existing = sessionUser(request, false);
+    if (existing) return json({ ...state(existing), state: state(existing) });
+    // Accounts open without a form, so the only brake on bulk creation is a rate limit.
+    if (ip) rateLimit(`guest-network:${ip}`, Number(process.env.GUEST_NETWORK_LIMIT || 20), 3600);
+    rateLimit('guest-total', Number(process.env.GUEST_HOURLY_LIMIT || 500), 3600);
+    const guest = guestSession(input);
+    const user = one('SELECT * FROM users WHERE id=?', guest.userId)!;
+    return json({ ...state(user), state: state(user), isNewAccount: true }, 201, guest.cookie);
+  }
   if (route === 'auth/demo') {
     assert(config.demo, 404, 'Demo mode is disabled.');
     const value = z.object({ role: z.enum(['learner', 'admin']).default('learner'), plan: z.enum(['FREE', 'BASIC']).optional() }).parse(input);
@@ -117,15 +129,7 @@ async function authRoute(request: Request, route: string, method: string) {
     });
     return json({ ...state(user), state: state(user) }, 200, createSession(user.id));
   }
-  if (route === 'auth/register') {
-    if (!config.demo) assert(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD && process.env.MAIL_FROM, 503, 'שירות האימייל אינו מוגדר. / Email delivery is not configured.', 'EMAIL_UNAVAILABLE');
-    const result = await register(input); return json({ ok: true, ...result, isDemo: config.demo }, 201);
-  }
   if (route === 'auth/login') { const result = login(input); return json({ ...state(result.user), state: state(result.user) }, 200, result.cookie); }
-  if (route === 'auth/verify' || route === 'auth/parent') { const value = z.object({ token: z.string().min(30).max(128) }).parse(input); consumeToken(value.token, route === 'auth/parent' ? 'parent' : 'verify'); return json({ ok: true, verified: true }); }
-  if (route === 'auth/forgot') { const value = z.object({ email: z.email() }).parse(input), user = one('SELECT id,email FROM users WHERE email=? AND deleted_at IS NULL', value.email.toLowerCase()); const reset = user ? await issueToken(user.id, user.email, 'reset') : undefined; return json({ ok: true, message: 'אם האימייל רשום, נשלח אליו קישור. / If the email exists, a reset link has been sent.', ...(config.demo ? { reset } : {}) }); }
-  if (route === 'auth/reset') { const value = z.object({ token: z.string().min(30).max(128), password: z.string().min(10).max(128) }).parse(input); consumeToken(value.token, 'reset', value.password); return json({ ok: true }); }
-  if (route === 'auth/resend') { const value = z.object({ email: z.email() }).parse(input), user = one('SELECT id,email FROM users WHERE email=? AND deleted_at IS NULL AND email_verified=0', value.email.toLowerCase()); const verification = user ? await issueToken(user.id, user.email, 'verify') : undefined; return json({ ok: true, ...(config.demo ? { verification } : {}) }); }
   throw new ApiError(404, 'Auth endpoint not found.');
 }
 function deleteAccount(user: Row) {
@@ -140,7 +144,6 @@ function deleteAccount(user: Row) {
     run('UPDATE reinforcement_submissions SET text=?,updated_at=? WHERE user_id=?', '', time, user.id);
     run("UPDATE subscriptions SET status='cancelled',updated_at=? WHERE user_id=?", time, user.id);
     run('DELETE FROM reviews WHERE user_id=?', user.id); run('DELETE FROM favorites WHERE user_id=?', user.id);
-    run('UPDATE parental_consents SET parent_email=?,updated_at=? WHERE user_id=?', '', time, user.id);
     run('UPDATE marketplace_paths SET status=?,updated_at=? WHERE creator_id=?', 'withdrawn', time, user.id); run('UPDATE learning_paths SET deleted_at=?,updated_at=? WHERE id IN (SELECT path_id FROM private_path_owners WHERE user_id=?)', time, time, user.id);
     run('UPDATE daily_games SET is_active=0,updated_at=? WHERE id IN (SELECT game_id FROM generated_game_owners WHERE user_id=?)', time, user.id);
     run('UPDATE generated_game_owners SET topic=?,deleted_at=?,updated_at=? WHERE user_id=?', '', time, time, user.id);

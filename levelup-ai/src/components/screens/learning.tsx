@@ -978,7 +978,7 @@ export function Marketplace() {
   );
 }
 export function MarketplaceDetail({ id }: { id: string }) {
-  const { state, catalog, t, l, go, toast, setState, refresh } = useApp();
+  const { state, catalog, t, l, go, toast, setState, refresh, start } = useApp();
   const checkout = useCheckout();
   const p = catalog.paths.find((p: any) => p.id === id);
   const [busy, setBusy] = useState(false);
@@ -992,9 +992,10 @@ export function MarketplaceDetail({ id }: { id: string }) {
   );
   if (!p) return <Empty title={t("notFound")} />;
   const enrolled = state?.enrollments?.find((e: any) => e.pathId === id);
-  const start = async () => {
+  const begin = async () => {
     if (!state?.user) {
-      go("/register");
+      await start();
+      go("/onboarding");
       return;
     }
     if (enrolled) {
@@ -1114,7 +1115,7 @@ export function MarketplaceDetail({ id }: { id: string }) {
           <p>
             {p.dailyMinutes} {t("minutes")} · {p.durationDays} {t("days")}
           </p>
-          <Button className="full-width" busy={busy} onClick={start}>
+          <Button className="full-width" busy={busy} onClick={begin}>
             {t(enrolled ? "viewPath" : p.price ? "buyPath" : "startPath")}
             <ArrowLeft size={17} />
           </Button>

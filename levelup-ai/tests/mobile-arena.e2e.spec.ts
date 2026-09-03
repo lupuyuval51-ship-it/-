@@ -1,9 +1,7 @@
 import { test, expect, type APIRequestContext, type Browser, type Locator, type Page } from '@playwright/test';
-import { randomUUID } from 'node:crypto';
 import { gameMessages } from '../src/components/game/messages';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
-const password = 'E2eArenaPassword2026!';
 const proofPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aFJkAAAAASUVORK5CYII=', 'base64');
 const subject = 'מתמטיקה: חיבור וחיסור';
 const he = gameMessages.he;
@@ -30,10 +28,8 @@ async function post<T>(request: APIRequestContext, path: string, data: unknown):
 async function createLearner(page: Page, label: string) {
   const catalog = await page.request.get(`${baseURL}/api/catalog`).then(response => response.json());
   expect(catalog.isDemo, 'Only local, explicitly marked Demo fixtures are permitted').toBe(true);
-  const email = `e2e-arena-${label}-${randomUUID().slice(0, 10)}@example.test`;
-  const registered = await post<{ verification: { token: string } }>(page.request, 'auth/register', { email, password, displayName: `בדיקת זירה ${label}`, birthYear: 1995, consent: true });
-  await post(page.request, 'auth/verify', { token: registered.verification.token });
-  await post(page.request, 'auth/login', { email, password, remember: true });
+  await post(page.request, 'auth/guest', { displayName: `בדיקת זירה ${label}`.slice(0, 60) });
+  await post(page.request, 'settings', { birthYear: 1995 });
   const generator = await page.request.get(`${baseURL}/api/games/custom`).then(response => response.json());
   expect(generator.generatorIsDemo, 'Arena E2E must not call a configured paid AI provider').toBe(true);
   await post(page.request, 'enrollments', { pathId: 'website', skill: 'בניית אתר ראשון', level: 'beginner', dailyMinutes: 20, goal: 'תרגול נגיש במסגרת בדיקה מבודדת', styles: ['games'] });

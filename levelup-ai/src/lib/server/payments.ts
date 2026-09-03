@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 import { config, type Plan } from './config';
-import { assert } from './auth';
+import { assert, isAdult } from './auth';
 import { audit, id, now, one, run, transaction, type Row } from './db';
 import { orderDto, preferences } from './store';
 import { readLimitedBody } from './transport';
@@ -13,7 +13,7 @@ export const paymentAdapter: PaymentAdapter = {
   create(userId, input) {
     const value = z.object({ plan: z.enum(['BASIC', 'PLUS', 'PRO']).optional(), marketplacePathId: z.string().max(100).optional(), payerAuthorized: z.boolean().optional() }).parse(input);
     assert(!!value.plan !== !!value.marketplacePathId, 400, 'בחרו תוכנית או מסלול אחד. / Select one plan or path.');
-    const profile = preferences(userId), minor = new Date().getUTCFullYear() - profile.birthYear < 18;
+    const profile = preferences(userId), minor = !isAdult(profile.birthYear);
     assert(!minor || value.payerAuthorized, 403, 'לרכישה נדרש אישור הורה או בעל חשבון תשלום מורשה. / A parent or authorized account holder must approve the purchase.', 'PAYER_AUTHORIZATION_REQUIRED');
     let amount: number;
     if (value.plan) amount = one('SELECT price FROM plans WHERE id=?', value.plan)?.price ?? config.prices[value.plan as Plan];

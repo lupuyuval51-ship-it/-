@@ -1,5 +1,4 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
-import { randomUUID } from 'node:crypto';
 import { learningPaths } from '../src/lib/content';
 import { messages } from '../src/lib/i18n';
 import { questMessages } from '../src/lib/quest-i18n';
@@ -8,7 +7,6 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const he = messages.he;
 const en = messages.en;
 const quest = questMessages.he;
-const password = 'E2eLearningPassword2026!';
 const website = learningPaths.find(path => path.id === 'website')!;
 const firstTask = website.chapters[0].tasks[0];
 const proofPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aFJkAAAAASUVORK5CYII=', 'base64');
@@ -27,35 +25,16 @@ async function state(request: APIRequestContext) {
 async function createLearner(page: Page, label: string, enroll = false) {
   const catalog = await page.request.get(`${baseURL}/api/catalog`).then(response => response.json());
   expect(catalog.isDemo, 'E2E fixtures must run with DEMO_MODE=true').toBe(true);
-  const email = `e2e-${label}-${randomUUID().slice(0, 10)}@example.test`;
-  const registered = await post(page.request, 'auth/register', { email, password, displayName: `בדיקת E2E ${label}`, birthYear: 1995, consent: true });
-  await post(page.request, 'auth/verify', { token: registered.verification.token });
-  await post(page.request, 'auth/login', { email, password, remember: true });
+  const opened = await post(page.request, 'auth/guest', { displayName: `בדיקת E2E ${label}`.slice(0, 60) });
+  await post(page.request, 'settings', { birthYear: 1995 });
   if (enroll) await post(page.request, 'enrollments', { pathId: 'website', skill: website.title.he, level: 'beginner', dailyMinutes: 20, goal: 'לבנות עמוד אישי עם פעולה עובדת', styles: ['practice'] });
-  return email;
+  return opened.user.email as string;
 }
 
-test('registration, Demo email verification, login, onboarding and persistent task XP', async ({ page }) => {
-  const email = `e2e-ui-${randomUUID().slice(0, 10)}@example.test`;
-  await page.goto('/register');
-  await page.getByLabel(he.displayName).fill('בדיקת E2E מסע');
-  await page.getByLabel(he.email).fill(email);
-  await page.locator('input[autocomplete="new-password"]').fill(password);
-  await page.getByLabel(he.birthYear).fill('1995');
-  await page.getByRole('checkbox', { name: new RegExp(he.consent) }).check();
-  await page.getByRole('button', { name: he.register, exact: true }).click();
-  await expect(page.getByText(he.registered, { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: he.verifyTitle, exact: true }).click();
-  await expect(page).toHaveURL(/\/verify\?token=/);
-  await expect(page.getByLabel(he.token)).not.toHaveValue('');
-  await page.getByRole('button', { name: he.verify, exact: true }).click();
-  await expect(page.locator('.notice.success')).toContainText(he.saved);
-
-  await page.goto('/login');
-  await page.getByLabel(he.email).fill(email);
-  await page.locator('input[autocomplete="current-password"]').fill(password);
-  await page.getByRole('button', { name: he.login, exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+test('an account opens from the landing page and task XP survives a reload', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: he.startNow, exact: true }).first().click();
+  await expect(page).toHaveURL(/\/onboarding$/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
   await page.goto('/onboarding');

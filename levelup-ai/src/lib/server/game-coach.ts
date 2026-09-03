@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ApiError, assert } from './auth';
-import { OpenAIJsonProvider, redactAIText, validatedAI, type StructuredAIProvider } from './ai-provider';
+import { ClaudeJsonProvider, aiEnabled, redactAIText, validatedAI, type StructuredAIProvider } from './ai-provider';
 import { coachAllowance } from './coach';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { assertGameAccess } from './games';
@@ -16,7 +16,7 @@ function persistedMessages(userId: string, gameId?: string, limit = 60) {
 }
 export function gameMessages(userId: string, gameId?: string) {
   scopeGame(userId, gameId);
-  return { messages: persistedMessages(userId, gameId), remaining: coachAllowance(userId).remaining, isDemo: !process.env.AI_API_KEY };
+  return { messages: persistedMessages(userId, gameId), remaining: coachAllowance(userId).remaining, isDemo: !aiEnabled() };
 }
 function redirect(locale: string, game: Row | null) {
   const topic = game?.topic || game?.lessonTopics?.[0]?.[locale] || (locale === 'en' ? 'this game' : 'המשחק הזה');
@@ -80,8 +80,8 @@ function saveMessage(userId: string, gameId: string | undefined, role: string, c
 }
 export async function askGame(userId: string, body: unknown, provider?: StructuredAIProvider) {
   const input = askSchema.parse(body), game = scopeGame(userId, input.gameId), locale = preferences(userId).locale === 'en' ? 'en' : 'he';
-  const isDemo = !provider && !process.env.AI_API_KEY;
-  if (!isDemo && !provider && (!process.env.AI_MODEL || !['', 'openai'].includes(process.env.AI_PROVIDER || ''))) throw new ApiError(503, 'יש להגדיר AI_MODEL וספק OpenAI. / Configure AI_MODEL and the OpenAI provider.', 'AI_UNAVAILABLE');
+  const isDemo = !provider && !aiEnabled();
+  
   const allowance = coachAllowance(userId, true), history = persistedMessages(userId, input.gameId, 6);
   const active = input.gameId ? one("SELECT event_count,started_at FROM daily_game_attempts WHERE user_id=? AND daily_game_id=? AND status='playing' ORDER BY started_at DESC LIMIT 1", userId, input.gameId) : undefined;
   const activeIndex = active && Date.now() - new Date(active.started_at).getTime() < game.timeLimit * 1000 && active.event_count < game.questions.length ? active.event_count : null;
@@ -93,7 +93,7 @@ export async function askGame(userId: string, body: unknown, provider?: Structur
     if (activeIndex !== null) content = demoAnswer(input.message, locale, game, activeIndex);
     else if (isDemo) content = demoAnswer(input.message, locale, game, activeIndex);
     else {
-      const output = await validatedAI(provider || new OpenAIJsonProvider(), answerSchema, { name: 'game_coach_reply', instructions, input: { locale, message: redactAIText(input.message), topic: game ? redactAIText(game.topic || game.lessonTopics.map((topic: Row) => topic[locale]).join(', ')) : null, gameMode: game?.gameMode || 'knowledge-arena', activeQuestion: activeIndex === null ? null : { prompt: game.questions[activeIndex].prompt, hint: game.questions[activeIndex].hint || null }, questions: game?.questions.map((question: Row) => ({ prompt: question.prompt, topic: question.topic })) || [], controls: controls(locale), recentMessages: history.map(message => ({ role: message.role, content: redactAIText(message.content) })) }, maxOutputTokens: 1400, timeoutMs: 25000 });
+      const output = await validatedAI(provider || new ClaudeJsonProvider(), answerSchema, { name: 'game_coach_reply', instructions, input: { locale, message: redactAIText(input.message), topic: game ? redactAIText(game.topic || game.lessonTopics.map((topic: Row) => topic[locale]).join(', ')) : null, gameMode: game?.gameMode || 'knowledge-arena', activeQuestion: activeIndex === null ? null : { prompt: game.questions[activeIndex].prompt, hint: game.questions[activeIndex].hint || null }, questions: game?.questions.map((question: Row) => ({ prompt: question.prompt, topic: question.topic })) || [], controls: controls(locale), recentMessages: history.map(message => ({ role: message.role, content: redactAIText(message.content) })) }, maxOutputTokens: 1400, timeoutMs: 60000 });
       content = output.scope === 'out-of-scope' ? redirect(locale, game) : output.message;
     }
   } catch {

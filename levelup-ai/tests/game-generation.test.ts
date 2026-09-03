@@ -2,11 +2,12 @@ import { before, beforeEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { handle } from '../src/lib/server/router';
 import { ApiError } from '../src/lib/server/auth';
-import { type StructuredAIProvider, type StructuredAIRequest } from '../src/lib/server/ai-provider';
+import { DEFAULT_AI_MODEL, type StructuredAIProvider, type StructuredAIRequest } from '../src/lib/server/ai-provider';
+import { claudeReply } from './helpers/claude-reply';
 import { generateGame, generateGameDraft, generateGameInputSchema, generatedGameSchema, customGame } from '../src/lib/server/game-generation';
 import { askGame, gameMessages } from '../src/lib/server/game-coach';
 import { all, db, one, readJson, run } from '../src/lib/server/db';
-import { config } from '../src/lib/server/config';
+import { aiDailyGames, config } from '../src/lib/server/config';
 import { finishGame, gameEvent, getDaily, startGame } from '../src/lib/server/games';
 import { dayFor } from '../src/lib/server/store';
 
@@ -74,7 +75,7 @@ test('provider context contains only the redacted educational request, with boun
   await generateGameDraft(input('HTML secret@example.test 0526262828 sk-testsecret12345 password=hunter2'), { async generate(request) { captured.push(request); return valid; } });
   const serialized = JSON.stringify(captured[0].input);
   assert.ok(!serialized.includes('example.test')); assert.ok(!serialized.includes('0526262828')); assert.ok(!serialized.includes('sk-test')); assert.ok(!serialized.includes('hunter2')); assert.ok(!serialized.includes('demo-learner'));
-  assert.equal(captured[0].timeoutMs, 45000); assert.equal(captured[0].maxOutputTokens, 6000); assert.ok(captured[0].schema);
+  assert.equal(captured[0].timeoutMs, 90000); assert.equal(captured[0].maxOutputTokens, 6000); assert.ok(captured[0].schema);
   const before = one('SELECT COUNT(*) AS count FROM generated_game_owners')!.count;
   await assert.rejects(generateGame('demo-learner', input(), { async generate() { return { code: 'unsafe arbitrary code' }; } }));
   assert.equal(one('SELECT COUNT(*) AS count FROM generated_game_owners')!.count, before, 'invalid output leaves no partial game');
@@ -85,7 +86,7 @@ test('custom arena API persists owner-only data and hides answer keys from every
   assert.equal(generated.status, 201, JSON.stringify(generated.data));
   const gameId = generated.data.game.dailyGameId;
   assert.equal(generated.data.game.gameMode, 'knowledge-arena'); assert.equal(generated.data.game.arena.waveCount, 8); assert.equal(generated.data.game.timeLimit, 180);
-  assert.equal(generated.data.canStart, true); assert.equal(generated.data.remainingGenerations, 2);
+  assert.equal(generated.data.canStart, true); assert.equal(generated.data.remainingGenerations, aiDailyGames(config.prices.BASIC) - 1, 'the paid allowance drops by exactly one generation');
   for (const value of [generated.data, (await request(`games/custom/${gameId}`)).data, (await request('games/custom')).data]) {
     assert.ok(!JSON.stringify(value).includes('"answer":')); assert.ok(!JSON.stringify(value).includes('"explanation":'));
   }
@@ -255,17 +256,21 @@ test('Hebrew movement/button wording is recognized without confusing lesson or u
   assert.match(unrelated.message.content, /השיחה הזו עוסקת/); assert.ok(!unrelated.message.content.includes('כפתור הירי הגדול'));
 });
 
-test('configured AI invokes the real transport and provider failure never silently generates Demo content', async () => {
+test('configured Claude invokes the real transport and provider failure never silently generates Demo content', async () => {
   const valid = (await generateGameDraft(input())).draft, priorFetch = globalThis.fetch;
   const arena = await generateGame('demo-learner', input('חיבור'));
-  const prior = { key: process.env.AI_API_KEY, model: process.env.AI_MODEL, provider: process.env.AI_PROVIDER };
-  process.env.AI_API_KEY = 'test-only-key'; process.env.AI_MODEL = 'test-only-model'; process.env.AI_PROVIDER = 'openai';
+  const prior = { key: process.env.ANTHROPIC_API_KEY, model: process.env.AI_MODEL, provider: process.env.AI_PROVIDER };
+  process.env.ANTHROPIC_API_KEY = 'test-only-key'; delete process.env.AI_MODEL; process.env.AI_PROVIDER = 'anthropic';
   let calls = 0;
   try {
     globalThis.fetch = async (url, request) => {
-      calls++; assert.equal(url, 'https://api.openai.com/v1/responses');
-      const body = JSON.parse(String(request?.body)); assert.equal(body.store, false); assert.equal(body.text.format.name, 'educational_arena');
-      return Response.json({ output: [{ content: [{ type: 'output_text', text: JSON.stringify(valid) }] }] });
+      calls++;
+      assert.equal(String(url instanceof Request ? url.url : url), 'https://api.anthropic.com/v1/messages');
+      const body = JSON.parse(String(request?.body));
+      assert.equal(body.model, DEFAULT_AI_MODEL);
+      assert.equal(body.output_config.format.type, 'json_schema');
+      assert.ok(!JSON.stringify(body).includes('test-only-key'), 'the key travels in a header, never in the body');
+      return Response.json(claudeReply(JSON.stringify(valid)));
     };
     assert.equal((await generateGameDraft(input())).source, 'ai'); assert.equal(calls, 1);
     calls = 0; globalThis.fetch = async () => { calls++; return new Response('Unavailable', { status: 503 }); };
@@ -274,9 +279,11 @@ test('configured AI invokes the real transport and provider failure never silent
     assert.equal(calls, 2); assert.equal(one('SELECT COUNT(*) AS n FROM generated_game_owners')!.n, before);
     await assert.rejects(askGame('demo-learner', { gameId: arena.game.dailyGameId, message: 'How does addition work?' }), (error: unknown) => error instanceof ApiError && error.code === 'AI_UNAVAILABLE');
     assert.equal(gameMessages('demo-learner', arena.game.dailyGameId).messages.at(-1)?.role, 'user');
+    globalThis.fetch = async () => Response.json(claudeReply('', 'refusal'));
+    await assert.rejects(generateGameDraft(input()), (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE');
   } finally {
     globalThis.fetch = priorFetch;
-    for (const [key, value] of Object.entries({ AI_API_KEY: prior.key, AI_MODEL: prior.model, AI_PROVIDER: prior.provider })) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
+    for (const [key, value] of Object.entries({ ANTHROPIC_API_KEY: prior.key, AI_MODEL: prior.model, AI_PROVIDER: prior.provider })) { if (value === undefined) delete process.env[key]; else process.env[key] = value; }
   }
 });
 
@@ -288,14 +295,14 @@ test('course and game chat share daily usage, with owner checks before consuming
 });
 
 test('generator provider disclosure is separate from app Demo mode', async () => {
-  const previousDemo = config.demo, previousKey = process.env.AI_API_KEY;
+  const previousDemo = config.demo, previousKey = process.env.ANTHROPIC_API_KEY;
   try {
     // The provider flag is independent of the app mode; no external request is made.
-    config.demo = true; delete process.env.AI_API_KEY;
+    config.demo = true; delete process.env.ANTHROPIC_API_KEY;
     const absent = await request('games/custom'); assert.equal(absent.data.generatorIsDemo, true);
-    process.env.AI_API_KEY = 'test-configured-key';
+    process.env.ANTHROPIC_API_KEY = 'test-configured-key';
     const present = await request('games/custom'); assert.equal(present.data.isDemo, true); assert.equal(present.data.generatorIsDemo, false);
-  } finally { config.demo = previousDemo; if (previousKey === undefined) delete process.env.AI_API_KEY; else process.env.AI_API_KEY = previousKey; }
+  } finally { config.demo = previousDemo; if (previousKey === undefined) delete process.env.ANTHROPIC_API_KEY; else process.env.ANTHROPIC_API_KEY = previousKey; }
 });
 
 test('existing message scopes migrate safely and recover hint provenance from audit history', () => {

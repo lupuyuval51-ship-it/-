@@ -64,10 +64,17 @@ function seedDemo() {
   }
   if (!one("SELECT id FROM orders WHERE id='DEMO-BIT-001'")) run('INSERT INTO orders(id,user_id,plan_id,amount,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?)', 'DEMO-BIT-001', 'demo-free', 'BASIC', config.prices.BASIC, 'awaiting_payment', time, time);
 }
-export function planFor(userId: string): Plan {
-  const subscriptions = all("SELECT plan_id FROM subscriptions WHERE user_id=? AND status='active' AND starts_at<=? AND expires_at>?", userId, now(), now());
-  return (['PRO', 'PLUS', 'BASIC'] as Plan[]).find(plan => subscriptions.some(row => row.plan_id === plan)) || 'FREE';
+/** The captured order amount is the truth about what a learner paid; the list price only fills gaps. */
+export function subscriptionFor(userId: string): { plan: Plan; paidAmount: number } {
+  const subscriptions = all("SELECT s.plan_id,o.amount FROM subscriptions s LEFT JOIN orders o ON o.id=s.order_id AND o.status='approved' WHERE s.user_id=? AND s.status='active' AND s.starts_at<=? AND s.expires_at>?", userId, now(), now());
+  const plan = (['PRO', 'PLUS', 'BASIC'] as Plan[]).find(candidate => subscriptions.some(row => row.plan_id === candidate)) || 'FREE';
+  if (plan === 'FREE') return { plan, paidAmount: 0 };
+  // A NULL amount means no approved order is joined, not a free month, so it must not read as 0.
+  const paid = subscriptions.filter(row => row.plan_id === plan && row.amount !== null && row.amount !== undefined).map(row => Number(row.amount)).filter(amount => Number.isFinite(amount) && amount >= 0);
+  return { plan, paidAmount: paid.length ? Math.max(...paid) : config.prices[plan] };
 }
+export function planFor(userId: string): Plan { return subscriptionFor(userId).plan; }
+export function entitlementsFor(userId: string) { const { plan, paidAmount } = subscriptionFor(userId); return entitlements(plan, paidAmount); }
 export function preferences(userId: string) { const profile = one('SELECT * FROM profiles WHERE user_id=?', userId)!; return { ...readJson(profile.preferences), displayName: profile.display_name, birthYear: profile.birth_year }; }
 export const DEFAULT_TIMEZONE = 'Asia/Jerusalem';
 /** Formatters are expensive to build and day maths runs in hot loops, so resolve each zone once. */
@@ -106,7 +113,7 @@ export function catalog(userId?: string): Row[] {
 }
 export function privatePathsFor(userId: string): Row[] { return all('SELECT lp.* FROM learning_paths lp JOIN private_path_owners p ON p.path_id=lp.id WHERE p.user_id=? AND lp.deleted_at IS NULL ORDER BY lp.created_at DESC', userId).map(row => ({ ...publicPath(readJson(row.data)), isPrivate: true, isMarketplace: false, updatedAt: row.updated_at, studentCount: 1, rating: 0, reviewCount: 0, reviews: [] })); }
 export function state(user: Row) {
-  const userId = user.id, plan = planFor(userId), features = entitlements(plan);
+  const userId = user.id, { plan, paidAmount } = subscriptionFor(userId), features = entitlements(plan, paidAmount);
   const submissions = all('SELECT * FROM task_submissions WHERE user_id=? ORDER BY created_at DESC', userId).map(row => ({ id: row.id, enrollmentId: row.enrollment_id, taskId: row.task_id, text: row.text, link: row.link, fileId: row.file_id, difficulty: row.difficulty, feedback: readJson(row.feedback), xp: row.xp, createdAt: row.created_at }));
   const enrollments = all('SELECT * FROM path_enrollments WHERE user_id=? ORDER BY created_at DESC', userId).map(row => {
     // A retired or removed path must not take the whole account state down with it.

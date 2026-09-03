@@ -135,6 +135,12 @@ export default function LevelupApp() {
       window.removeEventListener("focus", sync);
     };
   }, [userId]);
+  const start = useCallback(async () => {
+    const response = await api("/auth/guest", { locale });
+    const next = response.state || response;
+    setState(next);
+    return next;
+  }, [locale]);
   const logout = useCallback(async () => {
     try {
       await api("/auth/logout", {});
@@ -169,16 +175,12 @@ export default function LevelupApp() {
     setTheme,
     theme,
     logout,
+    start,
   };
   const publicRoute =
     [
       "/",
       "/login",
-      "/register",
-      "/forgot",
-      "/reset",
-      "/verify",
-      "/parent",
       "/privacy",
       "/terms",
     ].includes(pathname) ||
@@ -188,12 +190,7 @@ export default function LevelupApp() {
           pathname !== "/marketplace/create")));
   let screen: React.ReactNode;
   if (pathname === "/") screen = <Landing />;
-  else if (
-    ["/login", "/register", "/forgot", "/reset", "/verify", "/parent"].includes(
-      pathname,
-    )
-  )
-    screen = <Auth mode={pathname.slice(1)} />;
+  else if (pathname === "/login") screen = <Auth />;
   else if (pathname === "/terms" || pathname === "/privacy")
     screen = <Legal type={pathname.slice(1)} />;
   else if (pathname === "/pricing") screen = <Pricing />;
@@ -205,7 +202,7 @@ export default function LevelupApp() {
     pathname !== "/marketplace/create"
   )
     screen = <MarketplaceDetail id={pathname.split("/")[2]} />;
-  else if (!state?.user) screen = <Auth mode="login" />;
+  else if (!state?.user) screen = <Landing />;
   else if (pathname === "/dashboard") screen = <Dashboard />;
   else if (pathname === "/onboarding") screen = <Onboarding />;
   else if (pathname === "/paths") screen = <Paths />;
@@ -282,9 +279,12 @@ export default function LevelupApp() {
               <Link href="/">
                 <Logo />
               </Link>
-              <Link href="/login" className="button secondary">
-                {t("login")}
-              </Link>
+              <Button
+                variant="secondary"
+                onClick={() => start().then(() => router.push("/onboarding"))}
+              >
+                {t("startNow")}
+              </Button>
             </header>
             <main className="public-main" id="main">
               <Suspense fallback={<div className="app-loading">{t("loading")}</div>}>

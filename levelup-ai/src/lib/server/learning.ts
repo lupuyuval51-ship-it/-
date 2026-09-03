@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { assert, rateLimit } from './auth';
-import { entitlements } from './config';
-import { assertEnrollment, assertPathAccess, award, pathById, planFor, publicPath, updateStreak } from './store';
+import { assertEnrollment, assertPathAccess, award, entitlementsFor, pathById, planFor, publicPath, updateStreak } from './store';
 import { generatePathDraft, type PathGenerationResult } from './path-generation';
 import type { StructuredAIProvider } from './ai-provider';
 
@@ -10,7 +9,7 @@ const enrollmentSchema = z.object({ pathId: z.string().max(100).optional(), skil
 export async function enroll(userId: string, data: unknown, provider?: StructuredAIProvider) {
   const input = enrollmentSchema.parse(data);
   if (input.targetDate) assert(input.targetDate >= new Date().toISOString().slice(0, 10), 400, 'תאריך היעד צריך להיות היום או בעתיד. / Choose a current or future target date.');
-  const cap = entitlements(planFor(userId)).maxActivePaths;
+  const cap = entitlementsFor(userId).maxActivePaths;
   if (input.pathId) {
     assertPathAccess(userId, input.pathId);
     const existing = one('SELECT id FROM path_enrollments WHERE user_id=? AND path_id=?', userId, input.pathId);
@@ -50,7 +49,7 @@ export async function enroll(userId: string, data: unknown, provider?: Structure
           run('INSERT INTO tasks(id,lesson_id,data,created_at,updated_at) VALUES(?,?,?,?,?)', task.id, task.id, JSON.stringify(task), time, time);
         }
       }
-      audit(userId, 'ai.path-created', pathId, { provider: generated.isDemo ? 'demo' : 'openai', source, chapterCount: path.chapters.length, taskCount: path.chapters.reduce((count: number, chapter: Row) => count + chapter.tasks.length, 0), inputCharacters: (input.skill || '').length + input.goal.length });
+      audit(userId, 'ai.path-created', pathId, { provider: generated.isDemo ? 'demo' : 'claude', source, chapterCount: path.chapters.length, taskCount: path.chapters.reduce((count: number, chapter: Row) => count + chapter.tasks.length, 0), inputCharacters: (input.skill || '').length + input.goal.length });
     }
     run('INSERT INTO path_enrollments(id,user_id,path_id,skill,level,daily_minutes,goal,target_date,styles,adaptation,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)', enrollmentId, userId, pathId, input.skill || path.title.he, input.level, input.dailyMinutes, input.goal || path.description.he, target, JSON.stringify(input.styles), JSON.stringify({ source, he: notice.he, en: notice.en, suggestedDifficulty: input.level, dailyMinutes: input.dailyMinutes }), time, time);
     audit(userId, 'path.enroll', enrollmentId, { pathId, source });
@@ -126,7 +125,7 @@ export function updateEnrollment(userId: string, enrollmentId: string, data: unk
   if (input.targetDate) { assert(input.targetDate >= new Date().toISOString().slice(0, 10), 400, 'בחרו תאריך עתידי. / Select a future date.'); run('UPDATE path_enrollments SET target_date=?,updated_at=? WHERE id=? AND user_id=?', input.targetDate, now(), enrollmentId, userId); }
   if (input.dailyMinutes) run('UPDATE path_enrollments SET daily_minutes=?,updated_at=? WHERE id=? AND user_id=?', input.dailyMinutes, now(), enrollmentId, userId);
   if (input.status) {
-    if (input.status === 'active' && row.status !== 'active') assert(one("SELECT COUNT(*) AS count FROM path_enrollments WHERE user_id=? AND status='active'", userId)!.count < entitlements(planFor(userId)).maxActivePaths, 403, 'Active path limit reached.');
+    if (input.status === 'active' && row.status !== 'active') assert(one("SELECT COUNT(*) AS count FROM path_enrollments WHERE user_id=? AND status='active'", userId)!.count < entitlementsFor(userId).maxActivePaths, 403, 'Active path limit reached.');
     run('UPDATE path_enrollments SET status=?,updated_at=? WHERE id=? AND user_id=?', input.status, now(), enrollmentId, userId);
   }
   audit(userId, 'path.update', enrollmentId, input);

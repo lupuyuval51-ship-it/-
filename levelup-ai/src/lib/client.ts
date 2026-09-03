@@ -45,3 +45,12 @@ export function progressOf(enrollment: any, path: any): number {
     (Math.min(completedIds(enrollment).length, total) / total) * 100,
   );
 }
+/** An unstated year of birth must read as a minor, exactly as the server treats it. */
+export function isAdult(birthYear: unknown): boolean {
+  const year = Number(birthYear);
+  return (
+    Number.isInteger(year) &&
+    year >= 1900 &&
+    new Date().getFullYear() - year >= 18
+  );
+}

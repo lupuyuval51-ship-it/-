@@ -858,6 +858,15 @@ const extraHe = {
   aiUnavailable:
     "המאמן לא זמין כרגע. המשימות וההתקדמות נשמרו; אפשר לנסות שוב בהמשך.",
   skipToContent: "דילוג לתוכן הראשי",
+  startNow: "התחלה מיידית",
+  startNowSub: "בלי הרשמה, בלי אימייל ובלי סיסמה. נכנסים ומתחילים ללמוד.",
+  guestNotice: "החשבון נפתח מיד ונשמר בדפדפן הזה. ניקוי נתוני הדפדפן ימחק את הגישה אליו.",
+  staffLogin: "כניסת צוות",
+  staffLoginSub: "כניסה לחשבון ניהול שנוצר בידי מפעיל המערכת.",
+  birthYearHelp: "שנת לידה נדרשת רק כדי לפתוח פעולות למבוגרים, כמו פרסום מסלול בתשלום. כל עוד לא מולאה, הפרופיל נשאר פרטי.",
+  confirmDeleteGuest: "אני מבין/ה שהחשבון יימחק ולא ניתן לשחזר אותו.",
+  aiAllowance: "הודעות מאמן ליום",
+  aiAllowanceSub: "המכסה היומית גדלה לפי הסכום ששולם על התוכנית.",
   chooseSkillFirst: "בחרו מסלול מהרשימה או כתבו מיומנות באורך שני תווים לפחות.",
   goalTooShort: "כתבו את המטרה שלכם בחמישה תווים לפחות.",
   chooseStyle: "בחרו לפחות דרך למידה אחת.",
@@ -900,6 +909,17 @@ const extraEn: Record<keyof typeof extraHe, string> = {
   aiUnavailable:
     "The coach is unavailable. Your tasks and progress are safe; please try again later.",
   skipToContent: "Skip to main content",
+  startNow: "Start now",
+  startNowSub: "No sign-up, no email, no password. Open the app and start learning.",
+  guestNotice:
+    "Your account opens immediately and lives in this browser. Clearing browser data removes access to it.",
+  staffLogin: "Staff sign-in",
+  staffLoginSub: "Sign in to an administrator account created by the operator.",
+  birthYearHelp:
+    "A year of birth is only needed to unlock adult actions such as publishing a paid path. Until it is set, the profile stays private.",
+  confirmDeleteGuest: "I understand this account is deleted permanently and cannot be restored.",
+  aiAllowance: "Coach messages per day",
+  aiAllowanceSub: "The daily allowance grows with the amount paid for your plan.",
   chooseSkillFirst:
     "Pick a path from the list or type a skill with at least two characters.",
   goalTooShort: "Describe your goal in at least five characters.",

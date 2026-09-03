@@ -2,12 +2,12 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { type Localized } from '../content';
 import { ApiError, assert, rateLimit } from './auth';
-import { OpenAIJsonProvider, redactAIText, validatedAI, type StructuredAIProvider } from './ai-provider';
-import { config, entitlements, worlds } from './config';
+import { ClaudeJsonProvider, aiEnabled, aiKey, redactAIText, validatedAI, type StructuredAIProvider } from './ai-provider';
+import { config, worlds } from './config';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { assertGameAccess, gameAvailability, publicGame } from './games';
 import { generatePathDraft, topicPolicy } from './path-generation';
-import { dayIn, planFor, timezoneFor } from './store';
+import { dayIn, entitlementsFor, timezoneFor } from './store';
 
 const l = (he: string, en: string): Localized => ({ he, en });
 const text = (maximum: number) => z.object({ he: z.string().trim().min(1).max(maximum), en: z.string().trim().min(1).max(maximum) }).strict();
@@ -29,9 +29,9 @@ export function validateGameContent(value: GeneratedGameDraft, domain: string) {
 
 export async function generateGameDraft(input: GenerationInput, provider?: StructuredAIProvider): Promise<{ draft: GeneratedGameDraft; source: 'ai' | 'demo'; sourceNotice: Localized }> {
   const topic = redactAIText(input.topic), domain = topicPolicy(topic);
-  if (provider || process.env.AI_API_KEY) {
-    if (!provider && (!process.env.AI_MODEL || !['', 'openai'].includes(process.env.AI_PROVIDER || ''))) throw new ApiError(503, 'יש להגדיר AI_MODEL וספק OpenAI. / Configure AI_MODEL and the OpenAI provider.', 'AI_UNAVAILABLE');
-    const draft = await validatedAI(provider || new OpenAIJsonProvider(), generatedGameSchema, { name: 'educational_arena', instructions, input: { topic, level: input.level, durationMinutes: input.durationMinutes, worldTheme: input.worldTheme, audience: 'teen-or-adult', restrictedDomain: domain }, maxOutputTokens: 6000, timeoutMs: 45000 }, value => validateGameContent(value, domain));
+  if (provider || aiKey()) {
+    if (!provider && !aiEnabled()) throw new ApiError(503, 'יש להגדיר AI_PROVIDER=anthropic ומפתח Claude API. / Configure AI_PROVIDER=anthropic and a Claude API key.', 'AI_UNAVAILABLE');
+    const draft = await validatedAI(provider || new ClaudeJsonProvider(), generatedGameSchema, { name: 'educational_arena', instructions, input: { topic, level: input.level, durationMinutes: input.durationMinutes, worldTheme: input.worldTheme, audience: 'teen-or-adult', restrictedDomain: domain }, maxOutputTokens: 6000, timeoutMs: 90000 }, value => validateGameContent(value, domain));
     return { draft, source: 'ai', sourceNotice: l('הזירה והשאלות נוצרו ב־AI לפי הנושא והרמה. התוכן לא עבר בדיקת מומחה; אפשר לשאול על ההסברים במאמן המשחק.', 'AI created the arena and questions from your topic and level. Content has not been reviewed by a subject expert; ask the game coach about explanations.') };
   }
   const arena: GeneratedGameDraft['arena'] = { layout: input.level === 'advanced' ? 'islands' : input.level === 'intermediate' ? 'crossroads' : 'courtyard', enemyCount: input.level === 'advanced' ? 6 : input.level === 'intermediate' ? 4 : 2, obstacleCount: input.level === 'advanced' ? 10 : 6, ambience: input.worldTheme === 'mystery-castle' ? 'dusk' : 'day', waveCount: 8 };
@@ -79,7 +79,7 @@ export async function generateGame(userId: string, body: unknown, provider?: Str
   const input = generateGameInputSchema.parse(body), topic = redactAIText(input.topic), date = dayIn(timezoneFor(userId));
   topicPolicy(topic);
   assert(generationRemaining(userId) > 0, 429, 'הגעת למכסת יצירת המשחקים להיום. המשחקים שנשמרו זמינים; אפשר ליצור משחק נוסף מחר. / Today’s game creation limit is reached. Your saved games remain available; create another game tomorrow.', 'GAME_GENERATION_LIMIT_REACHED');
-  rateLimit(`game-generation:${userId}:${date}`, entitlements(planFor(userId)).gameGenerationDailyLimit, 86400);
+  rateLimit(`game-generation:${userId}:${date}`, entitlementsFor(userId).gameGenerationDailyLimit, 86400);
   const generated = await generateGameDraft({ ...input, topic }, provider), dailyGameId = id(), time = now();
   const questions = generated.draft.questions.map((question, index) => ({ ...question, id: `${dailyGameId}:${index}` }));
   const data = { ...generated.draft, dailyGameId, date, seed: createHash('sha256').update(dailyGameId).digest('hex').slice(0, 24), version: 3, gameMode: 'knowledge-arena', worldTheme: input.worldTheme, difficulty: input.level, skillCategory: 'custom', topic, lessonTopics: [...new Map(questions.map(question => [question.topic.he, question.topic])).values()], questions, obstacles: [{ type: 'cover', count: generated.draft.arena.obstacleCount }], rewards: { xp: 80, coins: 12, perfectBonus: 20 }, timeLimit: input.durationMinutes * 60, scoreRules: { correct: 100, maxMultiplier: 3, wrong: 0, firstAttemptLeaderboard: false }, leaderboardGroup: `private:${dailyGameId}`, minimumPlan: 'BASIC', isActive: true, isCustom: true, isDemo: generated.source === 'demo', source: generated.source, sourceNotice: generated.sourceNotice };
@@ -101,7 +101,7 @@ export function customGame(userId: string, gameId: string) {
 }
 function generationRemaining(userId: string) {
   const used = one('SELECT count FROM rate_limits WHERE key=? AND expires_at>?', `game-generation:${userId}:${dayIn(timezoneFor(userId))}`, Date.now())?.count || 0;
-  return Math.max(0, entitlements(planFor(userId)).gameGenerationDailyLimit - used);
+  return Math.max(0, entitlementsFor(userId).gameGenerationDailyLimit - used);
 }
 export function customGames(userId: string) {
   const zone = timezoneFor(userId);
@@ -109,5 +109,5 @@ export function customGames(userId: string) {
     const game = readJson(row.data);
     return { dailyGameId: row.id, title: game.title, description: game.description, topic: row.topic, source: row.source, sourceNotice: readJson(row.source_notice), worldTheme: row.world_theme, gameMode: row.game_mode, difficulty: game.difficulty, timeLimit: game.timeLimit, questionCount: game.questions.length, createdAt: row.created_at, isCustom: true, isDemo: row.source === 'demo', ...gameAvailability(userId, row, zone) };
   });
-  return { games, remainingGenerations: generationRemaining(userId), isDemo: config.demo, generatorIsDemo: !process.env.AI_API_KEY };
+  return { games, remainingGenerations: generationRemaining(userId), isDemo: config.demo, generatorIsDemo: !aiEnabled() };
 }

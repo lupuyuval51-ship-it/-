@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { learningPaths, type LearningPath, type LearningTask, type Localized } from '../content';
 import { ApiError, assert } from './auth';
-import { OpenAIJsonProvider, redactAIText as redact, validatedAI, type StructuredAIProvider } from './ai-provider';
+import { ClaudeJsonProvider, aiEnabled, aiKey, redactAIText as redact, validatedAI, type StructuredAIProvider } from './ai-provider';
 
 export type PathGenerationInput = { skill: string; goal: string; level: 'beginner' | 'intermediate' | 'advanced'; dailyMinutes: number; targetDate?: string; styles: string[] };
 export type PathGenerationResult = { path: LearningPath; source: 'ai' | 'demo-curated' | 'demo-study'; isNew: boolean; isDemo: boolean; notice: Localized };
@@ -36,10 +36,10 @@ const generationInstructions = `Create a practical, coherent LEVELUP AI learning
 
 export async function generatePathDraft(input: PathGenerationInput, provider?: StructuredAIProvider): Promise<PathGenerationResult> {
   const domain = topicPolicy(input.skill + ' ' + input.goal);
-  const hasKey = !!process.env.AI_API_KEY;
+  const hasKey = !!aiKey();
   if (provider || hasKey) {
-    if (!provider && (!process.env.AI_MODEL || !['', 'openai'].includes(process.env.AI_PROVIDER || ''))) throw new ApiError(503, 'יש להגדיר AI_MODEL וספק OpenAI. / Configure AI_MODEL and the OpenAI provider.', 'AI_UNAVAILABLE');
-    const draft = await validatedAI(provider || new OpenAIJsonProvider(), generatedPathSchema, { name: 'learning_path', instructions: generationInstructions, input: privateGenerationInput(input), maxOutputTokens: 12000, timeoutMs: 60000 }, value => {
+    if (!provider && !aiEnabled()) throw new ApiError(503, 'יש להגדיר AI_PROVIDER=anthropic ומפתח Claude API. / Configure AI_PROVIDER=anthropic and a Claude API key.', 'AI_UNAVAILABLE');
+    const draft = await validatedAI(provider || new ClaudeJsonProvider(), generatedPathSchema, { name: 'learning_path', instructions: generationInstructions, input: privateGenerationInput(input), maxOutputTokens: 12000, timeoutMs: 150000 }, value => {
       assertSafeOutput(value, domain);
       assert(value.chapters.at(-1)?.tasks.at(-1)?.type === 'project', 503, 'Final project required.', 'AI_PATH_INVALID');
       const titles = value.chapters.flatMap(chapter => chapter.tasks.map(task => task.title.he.trim().toLowerCase()));

@@ -23,14 +23,15 @@ export {
   Creator,
 } from "./management";
 export function Pricing() {
-  const { t, state, catalog, go, setState } = useApp();
+  const { t, state, catalog, go, setState, start } = useApp();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const checkout = useCheckout();
   const plans = catalog.plans?.length ? catalog.plans : [];
   const choose = async (plan: string) => {
     if (!state?.user) {
-      go("/register");
+      await start();
+      go("/onboarding");
       return;
     }
     if (plan === "FREE") {

@@ -21,11 +21,24 @@ import { api } from "@/lib/client";
 import QuestArt from "../quest-art";
 import type { MessageKey } from "@/lib/i18n";
 export function Landing() {
-  const { t, l, catalog, go, setState } = useApp();
-  const [busy, setBusy] = useState(false);
+  const { t, l, catalog, go, setState, start } = useApp();
+  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const open = async () => {
+    setBusy("start");
+    setError("");
+    try {
+      await start();
+      go("/onboarding");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy("");
+    }
+  };
   const demo = async () => {
-    setBusy(true);
+    setBusy("demo");
+    setError("");
     try {
       const r = await api("/auth/demo", { role: "learner" });
       setState(r.state || r);
@@ -33,7 +46,7 @@ export function Landing() {
     } catch (e) {
       setError((e as Error).message);
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
   return (
@@ -45,10 +58,15 @@ export function Landing() {
         <nav>
           <a href="#how">{t("discover")}</a>
           <Link href="/pricing">{t("pricing")}</Link>
-          <Link href="/login">{t("login")}</Link>
-          <Link className="button primary compact" href="/register">
-            {t("startFree")}
-          </Link>
+          <Link href="/login">{t("staffLogin")}</Link>
+          <Button
+            className="primary compact"
+            variant="primary"
+            busy={busy === "start"}
+            onClick={open}
+          >
+            {t("startNow")}
+          </Button>
         </nav>
       </header>
       <main id="main">
@@ -61,20 +79,25 @@ export function Landing() {
             <h1>{t("heroTitle")}</h1>
             <p>{t("heroSub")}</p>
             <div className="actions">
-              <Link className="button primary" href="/register">
-                {t("startFree")}
+              <Button busy={busy === "start"} onClick={open}>
+                {t("startNow")}
                 <ArrowLeft size={18} />
-              </Link>
+              </Button>
               {catalog.isDemo && (
-                <Button variant="secondary" busy={busy} onClick={demo}>
+                <Button
+                  variant="secondary"
+                  busy={busy === "demo"}
+                  onClick={demo}
+                >
                   {t("demo")}
                 </Button>
               )}
             </div>
             <small className="hero-footnote">
               <ShieldCheck size={16} />
-              {t("privateNote")}
+              {t("startNowSub")}
             </small>
+            <small className="hero-footnote">{t("guestNotice")}</small>
             {error && <Notice type="error">{error}</Notice>}
           </div>
           <div className="hero-visual">
@@ -105,7 +128,7 @@ export function Landing() {
               <div className="eyebrow">{t("builtFor")}</div>
               <h2>{t("recommended")}</h2>
             </div>
-            <Link href="/register">
+            <Link href="/marketplace">
               {t("allCatalog")}
               <ArrowLeft size={16} />
             </Link>
@@ -146,10 +169,10 @@ export function Landing() {
           <Sparkles size={28} />
           <h2>{t("coachTitle")}</h2>
           <p>{t("coachSub")}</p>
-          <Link href="/register" className="text-link">
-            {t("startFree")}
+          <button className="text-link" onClick={open} disabled={!!busy}>
+            {t("startNow")}
             <ArrowLeft size={16} />
-          </Link>
+          </button>
         </section>
         <section className="faq">
           <h2>{t("faq")}</h2>
@@ -176,29 +199,13 @@ export function Landing() {
     </div>
   );
 }
-export function Auth({ mode }: { mode: string }) {
-  const { t, go, setState, catalog } = useApp();
+/** Staff sign-in only. Learners never see a form: accounts open from the landing page. */
+export function Auth() {
+  const { t, go, setState } = useApp();
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    displayName: "",
-    birthYear: 2005,
-    parentEmail: "",
-    consent: false,
-    remember: true,
-    token: "",
-  });
-  useEffect(() => {
-    setForm((f) => ({
-      ...f,
-      token: new URLSearchParams(window.location.search).get("token") || "",
-    }));
-  }, []);
+  const [form, setForm] = useState({ email: "", password: "", remember: true });
   const set = (key: string, value: any) =>
     setForm((current) => ({ ...current, [key]: value }));
   const submit = async (e: React.FormEvent) => {
@@ -206,68 +213,15 @@ export function Auth({ mode }: { mode: string }) {
     setBusy(true);
     setError("");
     try {
-      let r;
-      if (mode === "login") {
-        r = await api("/auth/login", form);
-        setState(r.state || r);
-        go("/dashboard");
-      } else if (mode === "register") {
-        r = await api("/auth/register", form);
-        setResult(r);
-        setMessage(t("registered"));
-      } else if (mode === "forgot") {
-        r = await api("/auth/forgot", { email: form.email });
-        setResult(r);
-        setMessage(t("authNotice"));
-      } else if (mode === "verify" || mode === "parent") {
-        r = await api(mode === "parent" ? "/auth/parent" : "/auth/verify", {
-          token: form.token,
-        });
-        setResult(r);
-        setMessage(t("saved"));
-        if (r.state) setState(r.state);
-      } else {
-        r = await api("/auth/reset", {
-          token: form.token,
-          password: form.password,
-        });
-        setMessage(t("saved"));
-      }
+      const result = await api("/auth/login", form);
+      setState(result.state || result);
+      go(result.user?.role === "admin" ? "/admin" : "/dashboard");
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
   };
-  const demo = async () => {
-    setBusy(true);
-    try {
-      const r = await api("/auth/demo", { role: "learner" });
-      setState(r.state || r);
-      go("/dashboard");
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-  const title =
-    mode === "parent"
-      ? "parentTitle"
-      : mode === "register"
-        ? "register"
-        : mode === "forgot"
-          ? "resetTitle"
-          : mode === "reset"
-            ? "resetTitle"
-            : mode === "verify"
-              ? "verifyTitle"
-              : "login";
-  const demoLink =
-    result?.verification?.url ||
-    result?.reset?.url ||
-    result?.url ||
-    result?.demoUrl;
   return (
     <div className="auth-page">
       <div className="auth-aside">
@@ -285,187 +239,56 @@ export function Auth({ mode }: { mode: string }) {
       <main id="main" className="auth-main">
         <div className="auth-form">
           <Back href="/" />
-          <h2>{t(title)}</h2>
+          <h2>{t("staffLogin")}</h2>
+          <p className="muted small-text">{t("staffLoginSub")}</p>
           <form onSubmit={submit}>
-            {mode === "register" && (
-              <Field label={t("displayName")}>
+            <Field label={t("email")}>
+              <input
+                type="email"
+                dir="ltr"
+                autoComplete="email"
+                required
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+              />
+            </Field>
+            <Field label={t("password")}>
+              <div className="password-input">
                 <input
-                  autoComplete="nickname"
                   required
-                  maxLength={40}
-                  value={form.displayName}
-                  onChange={(e) => set("displayName", e.target.value)}
-                />
-              </Field>
-            )}
-            {!["reset", "verify", "parent"].includes(mode) && (
-              <Field label={t("email")}>
-                <input
-                  type="email"
+                  type={show ? "text" : "password"}
                   dir="ltr"
-                  autoComplete="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
                 />
-              </Field>
-            )}
-            {!["forgot", "verify", "parent"].includes(mode) && (
-              <Field
-                label={t("password")}
-                help={mode === "register" ? t("passwordHelp") : undefined}
-              >
-                <div className="password-input">
-                  <input
-                    required
-                    type={show ? "text" : "password"}
-                    dir="ltr"
-                    autoComplete={
-                      mode === "login" ? "current-password" : "new-password"
-                    }
-                    minLength={mode === "login" ? 1 : 10}
-                    value={form.password}
-                    onChange={(e) => set("password", e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={t(show ? "hidePassword" : "showPassword")}
-                    onClick={() => setShow(!show)}
-                  >
-                    {show ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </Field>
-            )}
-            {["reset", "verify", "parent"].includes(mode) && (
-              <Field label={t("token")}>
-                <input
-                  required
-                  value={form.token}
-                  onChange={(e) => set("token", e.target.value)}
-                />
-              </Field>
-            )}
-            {mode === "register" && (
-              <>
-                <Field label={t("birthYear")} help={t("parentHelp")}>
-                  <input
-                    type="number"
-                    min={1920}
-                    max={new Date().getFullYear() - 5}
-                    required
-                    value={form.birthYear}
-                    onChange={(e) => set("birthYear", Number(e.target.value))}
-                  />
-                </Field>
-                {new Date().getFullYear() - form.birthYear < 16 && (
-                  <Field label={t("parentEmail")}>
-                    <input
-                      type="email"
-                      required
-                      value={form.parentEmail}
-                      onChange={(e) => set("parentEmail", e.target.value)}
-                    />
-                  </Field>
-                )}
-                <label className="check-label">
-                  <input
-                    type="checkbox"
-                    required
-                    checked={form.consent}
-                    onChange={(e) => set("consent", e.target.checked)}
-                  />
-                  <span>
-                    {t("consent")}{" "}
-                    <Link href="/terms" target="_blank">
-                      {t("terms")}
-                    </Link>{" "}
-                    ·{" "}
-                    <Link href="/privacy" target="_blank">
-                      {t("privacy")}
-                    </Link>
-                  </span>
-                </label>
-              </>
-            )}
-            {mode === "login" && (
-              <div className="form-between">
-                <label className="check-label">
-                  <input
-                    type="checkbox"
-                    checked={form.remember}
-                    onChange={(e) => set("remember", e.target.checked)}
-                  />
-                  {t("remember")}
-                </label>
-                <Link href="/forgot">{t("forgot")}</Link>
+                <button
+                  type="button"
+                  className="icon-button"
+                  aria-label={t(show ? "hidePassword" : "showPassword")}
+                  onClick={() => setShow(!show)}
+                >
+                  {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
-            )}
+            </Field>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={form.remember}
+                onChange={(e) => set("remember", e.target.checked)}
+              />
+              {t("remember")}
+            </label>
             {error && <Notice type="error">{error}</Notice>}
-            {message && <Notice type="success">{message}</Notice>}
-            {demoLink && (
-              <Notice>
-                <b>{t("demoMail")}</b>
-                <p>
-                  <a href={demoLink}>
-                    {mode === "forgot" ? t("resetTitle") : t("verifyTitle")}
-                  </a>
-                </p>
-              </Notice>
-            )}
-            {result?.parental?.url && (
-              <Notice>
-                <a href={result.parental.url}>{t("pendingParent")}</a>
-              </Notice>
-            )}
-            {mode === "parent" && (
-              <label className="check-label">
-                <input type="checkbox" required />
-                {t("parentConsent")}
-              </label>
-            )}
             <Button className="full-width" busy={busy} type="submit">
-              {t(
-                mode === "parent"
-                  ? "parentApprove"
-                  : mode === "forgot"
-                    ? "resetSend"
-                    : mode === "reset"
-                      ? "resetPassword"
-                      : mode === "verify"
-                        ? "verify"
-                        : mode === "register"
-                          ? "register"
-                          : "login",
-              )}
+              {t("login")}
               <ArrowLeft size={18} />
             </Button>
           </form>
-          {mode === "login" || mode === "register" ? (
-            <>
-              <p className="auth-switch">
-                {t(mode === "login" ? "noAccount" : "haveAccount")}{" "}
-                <Link href={mode === "login" ? "/register" : "/login"}>
-                  {t(mode === "login" ? "register" : "login")}
-                </Link>
-              </p>
-              {catalog.isDemo && (
-                <Button
-                  variant="secondary"
-                  className="full-width"
-                  onClick={demo}
-                  busy={busy}
-                >
-                  {t("demo")}
-                </Button>
-              )}
-            </>
-          ) : (
-            <Link href="/login" className="button secondary full-width">
-              {t("login")}
-            </Link>
-          )}
+          <Link href="/" className="button secondary full-width">
+            {t("startNow")}
+          </Link>
         </div>
       </main>
     </div>

@@ -1,15 +1,14 @@
 import { z } from 'zod';
 import { assert, rateLimit } from './auth';
 import { all, audit, id, now, one, readJson, run, type Row } from './db';
-import { entitlements } from './config';
-import { assertEnrollment, dayIn, findPath, planFor, preferences, timezoneFor } from './store';
-import { OpenAIJsonProvider, validatedAI } from './ai-provider';
+import { assertEnrollment, dayIn, entitlementsFor, findPath, preferences, timezoneFor } from './store';
+import { ClaudeJsonProvider, aiEnabled, validatedAI } from './ai-provider';
 
 const coachOutput = z.object({ message: z.string().min(1).max(6000), suggestion: z.enum(['continue', 'review', 'ask-adult', 'none']) }).strict();
 export interface CoachProvider { reply(context: Row): Promise<z.infer<typeof coachOutput>>; }
 /** Course and arena conversations share one plan limit, including failed provider calls. */
 export function coachAllowance(userId: string, consume = false) {
-  const limit = entitlements(planFor(userId)).coachDailyLimit, zone = timezoneFor(userId), today = dayIn(zone);
+  const limit = entitlementsFor(userId).coachDailyLimit, zone = timezoneFor(userId), today = dayIn(zone);
   const used = all("SELECT created_at FROM ai_coach_messages WHERE user_id=? AND role='user' AND created_at>?", userId, new Date(Date.now() - 27 * 3600000).toISOString()).filter(row => dayIn(zone, new Date(row.created_at)) === today).length;
   if (consume) {
     assert(used < limit, 429, 'הגעת למכסת הודעות המאמן להיום. אפשר להמשיך במשימות ולחזור מחר. / Today’s coach message limit is reached. Continue your tasks and return tomorrow.', 'AI_LIMIT_REACHED');
@@ -30,9 +29,9 @@ class DemoProvider implements CoachProvider {
     return { message: he ? `${prefix}\n\nנתמקד ב״${title}״. ${hint || 'נסו לתאר במילים שלכם את התוצאה הרצויה, ואז לחלק אותה לשני צעדים.'}\n\n${review ? 'תרגיל חיזוק: בחרו דוגמה קטנה, בצעו רק את הצעד הראשון וכתבו מה קיבלתם. נבדוק יחד מה אפשר לשפר.' : 'כשתסיימו את הצעד הזה, בדקו אותו מול מטרת המשימה ושלחו שאלה ממוקדת אם משהו לא ברור.'}\n\nזו תשובת מאמן Demo המבוססת על תבנית התרגול.` : `${prefix}\n\nFocus on “${title}”. ${hint || 'Describe the desired result in your own words and split it into two steps.'}\n\n${review ? 'Reinforcement: choose a small example, do only the first step and write down the result.' : 'Check the result against the task objective and ask a specific question if anything is unclear.'}\n\nThis is a Demo coach reply based on the practice template.`, suggestion: review ? 'review' as const : 'continue' as const };
   }
 }
-class OpenAIProvider implements CoachProvider {
+class ClaudeProvider implements CoachProvider {
   async reply(context: Row) {
-    return validatedAI(new OpenAIJsonProvider(), coachOutput, { name: 'coach_reply', instructions: systemPrompt, input: context, maxOutputTokens: 1400 });
+    return validatedAI(new ClaudeJsonProvider(), coachOutput, { name: 'coach_reply', instructions: systemPrompt, input: context, maxOutputTokens: 1400, timeoutMs: 60000 });
   }
 }
 export async function coach(userId: string, data: unknown) {
@@ -44,13 +43,13 @@ export async function coach(userId: string, data: unknown) {
   const profile = preferences(userId), lastGame = one("SELECT a.id,g.data FROM daily_game_attempts a JOIN daily_games g ON g.id=a.daily_game_id WHERE a.user_id=? AND a.status='completed' ORDER BY a.finished_at DESC LIMIT 1", userId);
   const weakTopics = lastGame ? all('SELECT position FROM game_events WHERE attempt_id=? AND correct=0', lastGame.id).map(row => readJson(lastGame.data).questions[row.position].topic) : [];
   const context = { locale: profile.locale, style: input.style || profile.coachStyle, message: input.message, goal: enrollment?.goal || '', level: enrollment?.level, dailyMinutes: enrollment?.daily_minutes, learningStyles: enrollment ? readJson(enrollment.styles) : [], completedThisWeek: one('SELECT COUNT(*) AS count FROM task_submissions WHERE user_id=? AND created_at>?', userId, new Date(Date.now() - 7 * 86400000).toISOString())!.count, task: task ? { title: task.title, objective: task.objective, hints: task.hints, instructions: task.instructions } : null, weakTopics, recentMessages: all('SELECT role,content FROM ai_coach_messages m WHERE user_id=? AND NOT EXISTS (SELECT 1 FROM game_coach_contexts c WHERE c.message_id=m.id) ORDER BY created_at DESC LIMIT 6', userId).reverse() };
-  run('INSERT INTO ai_coach_messages(id,user_id,enrollment_id,role,content,is_demo,created_at) VALUES(?,?,?,?,?,?,?)', id(), userId, enrollment?.id || null, 'user', input.message, process.env.AI_API_KEY ? 0 : 1, now());
-  const isDemo = !process.env.AI_API_KEY || !['', 'openai'].includes(process.env.AI_PROVIDER || '');
+  run('INSERT INTO ai_coach_messages(id,user_id,enrollment_id,role,content,is_demo,created_at) VALUES(?,?,?,?,?,?,?)', id(), userId, enrollment?.id || null, 'user', input.message, aiEnabled() ? 0 : 1, now());
+  const isDemo = !aiEnabled();
   let output: z.infer<typeof coachOutput>;
-  try { output = coachOutput.parse(await (isDemo ? new DemoProvider() : new OpenAIProvider()).reply(context)); }
-  catch { audit(userId, 'ai.error', userId, { provider: process.env.AI_PROVIDER || 'demo' }); throw new Error('AI_UNAVAILABLE'); }
+  try { output = coachOutput.parse(await (isDemo ? new DemoProvider() : new ClaudeProvider()).reply(context)); }
+  catch { audit(userId, 'ai.error', userId, { provider: isDemo ? 'demo' : 'claude' }); throw new Error('AI_UNAVAILABLE'); }
   const messageId = id();
   run('INSERT INTO ai_coach_messages(id,user_id,enrollment_id,role,content,is_demo,created_at) VALUES(?,?,?,?,?,?,?)', messageId, userId, enrollment?.id || null, 'assistant', output.message, isDemo ? 1 : 0, now());
-  audit(userId, 'ai.usage', messageId, { provider: isDemo ? 'demo' : 'openai', inputCharacters: input.message.length, outputCharacters: output.message.length });
+  audit(userId, 'ai.usage', messageId, { provider: isDemo ? 'demo' : 'claude', inputCharacters: input.message.length, outputCharacters: output.message.length });
   return { message: { id: messageId, role: 'assistant', content: output.message, isDemo, createdAt: now() }, suggestion: output.suggestion, remaining: allowance.remaining - 1, isDemo };
 }

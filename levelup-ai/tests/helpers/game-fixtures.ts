@@ -1,5 +1,4 @@
 import { expect, type APIRequestContext, type Browser, type Page } from '@playwright/test';
-import { randomUUID } from 'node:crypto';
 import { gameMessages } from '../../src/components/game/messages';
 import { questMessages } from '../../src/lib/quest-i18n';
 import { type GameMode } from '../../src/lib/game';
@@ -19,11 +18,8 @@ export async function post<T = Record<string, unknown>>(request: APIRequestConte
 export async function createBasicGameFixture(page: Page, browser: Browser, label: string) {
   const catalog = await page.request.get(`${localOrigin}/api/catalog`).then(response => response.json());
   expect(catalog.isDemo, 'Local Demo fixtures only: no real email, payment or AI service').toBe(true);
-  const email = `e2e-game-${label}-${randomUUID().slice(0, 10)}@example.test`;
-  const password = 'E2eGameInteraction2026!';
-  const registered = await post<{ verification: { token: string } }>(page.request, 'auth/register', { email, password, displayName: `בדיקת משחק ${label}`, birthYear: 1995, consent: true });
-  await post(page.request, 'auth/verify', { token: registered.verification.token });
-  await post(page.request, 'auth/login', { email, password, remember: true });
+  await post(page.request, 'auth/guest', { displayName: `בדיקת משחק ${label}`.slice(0, 60) });
+  await post(page.request, 'settings', { birthYear: 1995 });
   await post(page.request, 'enrollments', { pathId: 'website', skill: 'בניית אתר ראשון', level: 'beginner', dailyMinutes: 20, goal: 'תרגול משחק במסגרת בדיקה מבודדת', styles: ['games'] });
   await post(page.request, 'settings', { quality: 'low', effects: false, music: false });
   const { order } = await post<{ order: { id: string; amount: number } }>(page.request, 'orders', { plan: 'BASIC' });

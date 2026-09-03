@@ -21,49 +21,60 @@ async function request(path: string, data?: unknown, cookie = '', customOrigin =
   const result = await response.json();
   return { status: response.status, data: result, cookie: response.headers.get('set-cookie')?.split(';')[0] || '' };
 }
-async function registered(email: string, birthYear = 2000, parentEmail?: string) {
-  const created = await request('auth/register', { email, password: 'CorrectPassword123!', displayName: 'Test learner', birthYear, consent: true, parentEmail });
+/** There is no sign-up form any more: an account opens on demand and the cookie is the credential. */
+async function registered(label: string, birthYear?: number) {
+  const created = await request('auth/guest', { displayName: `Test ${label}`.slice(0, 60) });
   assert.equal(created.status, 201, JSON.stringify(created.data));
-  await request('auth/verify', { token: created.data.verification.token });
-  if (created.data.parental) await request('auth/parent', { token: created.data.parental.token });
-  const signedIn = await request('auth/login', { email, password: 'CorrectPassword123!', remember: true });
-  assert.equal(signedIn.status, 200, JSON.stringify(signedIn.data));
-  return { cookie: signedIn.cookie, id: signedIn.data.user.id };
+  if (birthYear) assert.equal((await request('settings', { birthYear }, created.cookie)).status, 200);
+  return { cookie: created.cookie, id: created.data.user.id };
 }
 before(async () => {
-  const user = await registered('test@example.test'); learner = user.cookie; userId = user.id;
-  other = (await registered('other@example.test')).cookie;
+  const user = await registered('learner', 2000); learner = user.cookie; userId = user.id;
+  other = (await registered('other', 2000)).cookie;
   admin = (await request('auth/demo', { role: 'admin' })).cookie;
 });
 // Each suite models a separate visit. Keep the per-minute protection live within a suite.
 beforeEach(() => { run("DELETE FROM rate_limits WHERE key LIKE 'api:%'"); });
-test('email registration, verification, reset and secure sessions', async () => {
-  const malformed = await request('auth/register', { email: 'bad', password: 'a', consent: false }); assert.equal(malformed.status, 400);
-  const created = await request('auth/register', { email: 'verify@example.test', password: 'StrongPassword123!', displayName: 'Verify account', birthYear: 2000, consent: true });
-  assert.equal(created.status, 201);
-  assert.equal((await request('auth/login', { email: 'verify@example.test', password: 'StrongPassword123!' })).data.code, 'EMAIL_NOT_VERIFIED');
-  assert.equal((await request('auth/verify', { token: created.data.verification.token })).status, 200);
-  assert.equal((await request('auth/verify', { token: created.data.verification.token })).status, 400);
-  const login = await request('auth/login', { email: 'verify@example.test', password: 'StrongPassword123!' }); assert.ok(login.cookie);
-  const reset = await request('auth/forgot', { email: 'verify@example.test' }); assert.ok(reset.data.reset.token);
-  assert.equal((await request('auth/reset', { token: reset.data.reset.token, password: 'NewPassword456!' })).status, 200);
-  assert.equal((await request('state', undefined, login.cookie)).status, 401, 'reset revokes old sessions');
-  const newLogin = await request('auth/login', { email: 'verify@example.test', password: 'NewPassword456!' }); assert.equal(newLogin.status, 200);
-  await request('auth/logout', {}, newLogin.cookie); assert.equal((await request('state', undefined, newLogin.cookie)).status, 401);
-  assert.ok(!one('SELECT password_hash FROM users WHERE email=?', 'verify@example.test')!.password_hash.includes('NewPassword456'));
+test('an account opens with no form, resumes on repeat, and staff sign-in stays password-only', async () => {
+  const opened = await request('auth/guest', {});
+  assert.equal(opened.status, 201, JSON.stringify(opened.data));
+  assert.ok(opened.cookie, 'the session cookie is the only credential');
+  assert.equal(opened.data.user.role, 'learner');
+  assert.match(opened.data.user.email, /@guest\.invalid$/);
+  assert.equal(opened.data.profile.birthYear, 0, 'no stated age until settings says otherwise');
+  assert.equal(opened.data.profile.privacy, 'private', 'an unstated age stays minor-safe');
+  const resumed = await request('auth/guest', {}, opened.cookie);
+  assert.equal(resumed.status, 200, 'a repeat click resumes rather than stranding the account');
+  assert.equal(resumed.data.user.id, opened.data.user.id);
+  assert.equal(one('SELECT COUNT(*) AS n FROM users WHERE email=?', opened.data.user.email)!.n, 1);
+  const stored = one('SELECT password_hash FROM users WHERE id=?', opened.data.user.id)!.password_hash;
+  assert.match(stored, /^[0-9a-f]{32}:[0-9a-f]{128}$/, 'a guest carries an unusable random hash, not a chosen password');
+  assert.equal((await request('auth/login', { email: opened.data.user.email, password: stored.slice(0, 64) })).status, 401, 'a guest can never be signed into by password');
+  for (const gone of ['auth/register', 'auth/verify', 'auth/forgot', 'auth/reset', 'auth/parent', 'auth/resend']) {
+    assert.equal((await request(gone, { email: 'someone@example.test', token: 'x'.repeat(40), password: 'StrongPassword123!' })).status, 404, `${gone} must no longer exist`);
+  }
+  await request('auth/logout', {}, opened.cookie);
+  assert.equal((await request('state', undefined, opened.cookie)).status, 401);
 });
-test('parent approval, server ownership, CSRF and safe settings', async () => {
-  const year = new Date().getUTCFullYear() - 11;
-  assert.equal((await request('auth/register', { email: 'child1@example.test', password: 'StrongPassword123!', displayName: 'Child account', birthYear: year, consent: true })).data.code, 'PARENT_CONSENT_REQUIRED');
-  assert.equal((await request('auth/register', { email: 'child14@example.test', password: 'StrongPassword123!', displayName: 'Teen account', birthYear: new Date().getUTCFullYear() - 14, consent: true })).data.code, 'PARENT_CONSENT_REQUIRED');
-  const child = await request('auth/register', { email: 'child2@example.test', password: 'StrongPassword123!', displayName: 'Child account', birthYear: year, parentEmail: 'parent@example.test', consent: true });
-  await request('auth/verify', { token: child.data.verification.token });
-  assert.equal((await request('auth/login', { email: 'child2@example.test', password: 'StrongPassword123!' })).data.code, 'PARENT_CONSENT_PENDING');
-  await request('auth/parent', { token: child.data.parental.token });
-  const childSession = (await request('auth/login', { email: 'child2@example.test', password: 'StrongPassword123!' })).cookie;
-  const settings = await request('settings', { privacy: 'public', role: 'admin', plan: 'PRO' }, childSession);
-  assert.equal(settings.data.state.profile.privacy, 'private'); assert.equal(settings.data.state.user.role, 'learner'); assert.equal(settings.data.state.plan, 'FREE');
-  assert.equal((await request('orders', { plan: 'BASIC' }, childSession)).data.code, 'PAYER_AUTHORIZATION_REQUIRED');
+test('a guest deletes the account by confirmation, since it never had a password', async () => {
+  const doomed = await registered('deletes');
+  assert.equal((await request('account/delete', {}, doomed.cookie)).status, 403, 'deletion needs an explicit confirmation');
+  assert.equal((await request('account/delete', { confirm: true }, doomed.cookie)).status, 200);
+  assert.equal((await request('state', undefined, doomed.cookie)).status, 401);
+  assert.ok(all('SELECT * FROM admin_actions WHERE action=? AND target_id=?', 'account.delete', doomed.id).length);
+});
+test('an unstated age stays minor-safe until settings names an adult year', async () => {
+  const unknown = await registered('unstated');
+  const settings = await request('settings', { privacy: 'public', role: 'admin', plan: 'PRO' }, unknown.cookie);
+  assert.equal(settings.data.state.profile.privacy, 'private', 'privacy cannot be opened without a stated adult age');
+  assert.equal(settings.data.state.user.role, 'learner'); assert.equal(settings.data.state.plan, 'FREE');
+  assert.equal((await request('orders', { plan: 'BASIC' }, unknown.cookie)).data.code, 'PAYER_AUTHORIZATION_REQUIRED');
+  const minor = await registered('minor', new Date().getUTCFullYear() - 11);
+  assert.equal((await request('orders', { plan: 'BASIC' }, minor.cookie)).data.code, 'PAYER_AUTHORIZATION_REQUIRED');
+  assert.equal((await request('settings', { privacy: 'public' }, minor.cookie)).data.state.profile.privacy, 'private');
+  const adult = await registered('adult', 1990);
+  assert.equal((await request('settings', { privacy: 'public' }, adult.cookie)).data.state.profile.privacy, 'public', 'a stated adult year unlocks a public profile');
+  assert.equal((await request('orders', { plan: 'BASIC' }, adult.cookie)).status, 200);
   assert.equal((await request('settings', { displayName: 'Hacked' }, learner, 'https://evil.example')).data.code, 'CSRF_REJECTED');
   assert.equal((await request('admin', undefined, learner)).status, 403);
   assert.equal((await request('settings', { timezone: 'Not/AZone' }, learner)).status, 400);
@@ -194,7 +205,7 @@ test('favorites, enrollment-gated reviews, reporting, privacy export and deletio
   assert.equal((await request('reviews', { pathId: 'website', rating: 4, comment: 'The tasks were useful.' }, learner)).status, 200);
   assert.equal((await request('reports', { pathId: 'website', reason: 'Please review a confusing instruction.' }, learner)).status, 200);
   const exportResponse = await handle(new Request(`${origin}/api/export`, { headers: { cookie: learner } }), ['export']); assert.equal(exportResponse.status, 200); const text = await exportResponse.text(); assert.ok(!text.includes('password_hash')); assert.ok(!text.includes('storage_name'));
-  assert.equal((await request('account/delete', { password: 'wrong' }, other)).status, 403); assert.equal((await request('account/delete', { password: 'CorrectPassword123!' }, other)).status, 200); assert.equal((await request('state', undefined, other)).status, 401);
+  assert.equal((await request('account/delete', { password: 'wrong' }, other)).status, 403); assert.equal((await request('account/delete', { confirm: true }, other)).status, 200); assert.equal((await request('state', undefined, other)).status, 401);
   assert.ok(all('SELECT * FROM admin_actions WHERE action=?', 'account.delete').length);
 });
 test('production mode rejects demo login and existing demo sessions', async () => {
@@ -212,7 +223,7 @@ test('rate limits reject excessive writes while saved data remains readable', as
   assert.equal((await request('state', undefined, learner)).status, 200);
 });
 test('a retired learning path degrades gracefully instead of breaking the account', async () => {
-  const retired = await registered('retired-path@example.test');
+  const retired = await registered('retired path');
   const created = await request('enrollments', { pathId: 'app', skill: 'App building', level: 'beginner', dailyMinutes: 20, goal: 'Ship a first screen', styles: ['practice'] }, retired.cookie);
   assert.equal(created.status, 200, JSON.stringify(created.data));
   run('UPDATE learning_paths SET deleted_at=? WHERE id=?', new Date().toISOString(), 'app');
@@ -229,7 +240,7 @@ test('a retired learning path degrades gracefully instead of breaking the accoun
   }
 });
 test('a rejected payment can be re-proved and generated creator answers are not always first', async () => {
-  const payer = await registered('reupload@example.test');
+  const payer = await registered('reupload', 1990);
   const order = await request('orders', { plan: 'BASIC' }, payer.cookie);
   assert.equal(order.status, 200, JSON.stringify(order.data));
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aFJkAAAAASUVORK5CYII=', 'base64');
@@ -239,7 +250,7 @@ test('a rejected payment can be re-proved and generated creator answers are not 
   assert.equal((await proof('second.png')).status, 200, 'a rejected order still accepts a corrected proof');
   assert.equal(one('SELECT status FROM orders WHERE id=?', order.data.order.id)!.status, 'under_review');
 
-  const creator = await registered('creator-answers@example.test', 1995);
+  const creator = await registered('creator answers', 1995);
   run("INSERT INTO subscriptions(id,user_id,plan_id,starts_at,expires_at,created_at,updated_at) VALUES(?,?,'PRO',?,?,?,?)", 'sub-creator-answers', creator.id, new Date().toISOString(), new Date(Date.now() + 86400000).toISOString(), new Date().toISOString(), new Date().toISOString());
   const tasks = Array.from({ length: 6 }, (_, index) => ({ title: `Creator step number ${index + 1}`, instructions: 'Work through one small example and record the result.' }));
   const published = await request('marketplace', { title: 'Creator sequence path', description: 'A path used to verify generated sequence questions stay answerable.', category: 'content', price: 0, durationDays: 14, tasks }, creator.cookie);

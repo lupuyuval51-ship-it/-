@@ -1,19 +1,20 @@
 import { z } from 'zod';
-import { assert } from './auth';
-import { entitlements } from './config';
+import { assert, isAdult } from './auth';
 import { all, audit, id, now, one, readJson, run, transaction } from './db';
-import { assertPathAccess, pathById, planFor, preferences } from './store';
+import { assertPathAccess, entitlementsFor, pathById, planFor, preferences } from './store';
 
-const settingsSchema = z.object({ displayName: z.string().trim().min(2).max(60).optional(), locale: z.enum(['he', 'en']).optional(), timezone: z.string().max(80).refine(zone => { try { new Intl.DateTimeFormat('en', { timeZone: zone }).format(); return true; } catch { return false; } }, 'Unknown timezone').optional(), theme: z.enum(['dark', 'light', 'system']).optional(), coachStyle: z.enum(['supportive', 'direct', 'energetic', 'professional']).optional(), privacy: z.enum(['private', 'public']).optional(), notifications: z.boolean().optional(), leaderboards: z.boolean().optional(), leagues: z.boolean().optional(), music: z.boolean().optional(), effects: z.boolean().optional(), streaks: z.boolean().optional(), reducedMotion: z.boolean().optional(), quality: z.enum(['auto', 'low', 'medium', 'high']).optional(), sensitivity: z.number().min(0.2).max(3).optional(), controlsSide: z.enum(['left', 'right']).optional(), gameTutorial: z.boolean().optional(), showTutorial: z.boolean().optional(), avatarId: z.string().max(100).optional() });
+const settingsSchema = z.object({ displayName: z.string().trim().min(2).max(60).optional(), locale: z.enum(['he', 'en']).optional(), timezone: z.string().max(80).refine(zone => { try { new Intl.DateTimeFormat('en', { timeZone: zone }).format(); return true; } catch { return false; } }, 'Unknown timezone').optional(), theme: z.enum(['dark', 'light', 'system']).optional(), coachStyle: z.enum(['supportive', 'direct', 'energetic', 'professional']).optional(), privacy: z.enum(['private', 'public']).optional(), notifications: z.boolean().optional(), leaderboards: z.boolean().optional(), leagues: z.boolean().optional(), music: z.boolean().optional(), effects: z.boolean().optional(), streaks: z.boolean().optional(), reducedMotion: z.boolean().optional(), quality: z.enum(['auto', 'low', 'medium', 'high']).optional(), sensitivity: z.number().min(0.2).max(3).optional(), controlsSide: z.enum(['left', 'right']).optional(), gameTutorial: z.boolean().optional(), showTutorial: z.boolean().optional(), avatarId: z.string().max(100).optional(), birthYear: z.number().int().min(1900).max(new Date().getUTCFullYear() - 5).optional() });
 export function saveSettings(userId: string, data: unknown) {
   // displayName and birthYear live in their own columns; copies inside the JSON only go stale.
   const input = settingsSchema.parse(data), { displayName, birthYear, ...storedPreferences } = preferences(userId);
   if (input.avatarId) assert(one('SELECT id FROM payment_proofs WHERE id=? AND user_id=? AND purpose=? AND deleted_at IS NULL', input.avatarId, userId, 'avatar'), 400, 'תמונת פרופיל אינה תקינה. / Invalid profile image.');
-  const { displayName: requestedName, ...requested } = input;
+  const { displayName: requestedName, birthYear: requestedYear, ...requested } = input;
+  // Age is stated in settings now that there is no sign-up form; it stays minor-safe until then.
+  const statedYear = requestedYear ?? birthYear;
   const persisted = { ...storedPreferences, ...requested };
-  if (new Date().getUTCFullYear() - birthYear < 18) persisted.privacy = 'private';
-  const next = { ...persisted, displayName: requestedName || displayName, birthYear };
-  run('UPDATE profiles SET display_name=?,preferences=?,updated_at=? WHERE user_id=?', next.displayName, JSON.stringify(persisted), now(), userId);
+  if (!isAdult(statedYear)) persisted.privacy = 'private';
+  const next = { ...persisted, displayName: requestedName || displayName, birthYear: statedYear };
+  run('UPDATE profiles SET display_name=?,birth_year=?,preferences=?,updated_at=? WHERE user_id=?', next.displayName, statedYear, JSON.stringify(persisted), now(), userId);
   if (input.leaderboards === false) run('DELETE FROM leaderboards WHERE user_id=?', userId);
   audit(userId, 'profile.update', userId, { fields: Object.keys(input) });
   return next;
@@ -31,8 +32,8 @@ export function review(userId: string, data: unknown) { const input = z.object({
 
 const creatorTask = z.object({ title: z.string().min(3).max(150), instructions: z.string().min(15).max(3000), question: z.string().min(5).max(300).optional(), options: z.array(z.string().min(1).max(150)).min(2).max(4).optional(), answer: z.number().int().min(0).max(3).optional(), explanation: z.string().min(5).max(500).optional() });
 export function createMarketplace(userId: string, data: unknown) {
-  assert(entitlements(planFor(userId)).canPublishMarketplacePath, 403, 'פרסום מסלולים זמין ב־Pro. / Creator publishing requires Pro.', 'UPGRADE_REQUIRED');
-  assert(new Date().getUTCFullYear() - preferences(userId).birthYear >= 18, 403, 'חשבון יוצר בתשלום דורש בעל חשבון בגיר. / Creator publishing requires an adult account owner.');
+  assert(entitlementsFor(userId).canPublishMarketplacePath, 403, 'פרסום מסלולים זמין ב־Pro. / Creator publishing requires Pro.', 'UPGRADE_REQUIRED');
+  assert(isAdult(preferences(userId).birthYear), 403, 'פרסום מסלול בתשלום דורש שנת לידה של בגיר בהגדרות. / Publishing requires an adult year of birth in settings.');
   const input = z.object({ title: z.string().trim().min(5).max(150), description: z.string().trim().min(20).max(3000), category: z.string().max(60), price: z.number().min(0).max(500), durationDays: z.number().int().min(3).max(365).default(7), tasks: z.array(creatorTask).min(3).max(60) }).parse(data);
   assert(new Set(input.tasks.map(task => task.title.trim().toLowerCase())).size === input.tasks.length, 400, 'יש לתת לכל משימה שם שונה וברור. / Give every task a distinct title.');
   for (const task of input.tasks) if (task.question) assert(task.options && task.answer !== undefined && task.answer < task.options.length && task.explanation, 400, 'לכל שאלה נדרשות תשובות, פתרון והסבר. / Every question needs options, an answer and an explanation.');
@@ -65,8 +66,8 @@ export function challenges(userId: string, data: unknown) {
   if (input.action === 'join') {
     const challenge = one("SELECT * FROM challenges WHERE invite_code=? AND status='active'", (input.code || '').toUpperCase());
     assert(challenge, 404, 'קוד האתגר לא נמצא. / Challenge code not found.');
-    const owner = preferences(challenge.owner_id), participant = preferences(userId), year = new Date().getUTCFullYear();
-    assert((year - owner.birthYear < 18) === (year - participant.birthYear < 18), 403, 'אפשר להצטרף לאתגרים באותה קבוצת גיל בלבד. / Challenges are limited to the same age group.');
+    const owner = preferences(challenge.owner_id), participant = preferences(userId);
+    assert(isAdult(owner.birthYear) === isAdult(participant.birthYear), 403, 'אפשר להצטרף לאתגרים באותה קבוצת גיל בלבד. / Challenges are limited to the same age group.');
     run('INSERT OR IGNORE INTO challenge_participants(id,challenge_id,user_id,created_at,updated_at) VALUES(?,?,?,?,?)', id(), challenge.id, userId, now(), now());
     return { challengeId: challenge.id };
   }

@@ -157,6 +157,7 @@ export function SettingsScreen() {
   const [remove, setRemove] = useState(false);
   const [cancelPlan, setCancelPlan] = useState(false);
   const [password, setPassword] = useState("");
+  const isGuest = !!state.user?.email?.endsWith("@guest.invalid");
   const update = (key: string, value: any) =>
     setForm({ ...form, [key]: value });
   const save = async (e: React.FormEvent) => {
@@ -164,7 +165,11 @@ export function SettingsScreen() {
     setBusy(true);
     setError("");
     try {
-      const r = await api("/settings", form);
+      const { birthYear, ...rest } = form;
+      const r = await api("/settings", {
+        ...rest,
+        ...(birthYear ? { birthYear } : {}),
+      });
       setState(r.state);
       setLocale(form.locale);
       setTheme(form.theme);
@@ -229,6 +234,21 @@ export function SettingsScreen() {
                     setError((e as Error).message);
                   }
                 }}
+              />
+            </Field>
+            <Field label={t("birthYear")} help={t("birthYearHelp")}>
+              <input
+                type="number"
+                min={1900}
+                max={new Date().getFullYear() - 5}
+                placeholder="—"
+                value={form.birthYear || ""}
+                onChange={(e) =>
+                  update(
+                    "birthYear",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
               />
             </Field>
             <div className="field-grid">
@@ -382,6 +402,13 @@ export function SettingsScreen() {
         </div>
         <div>
           <h3>{state.plan}</h3>
+          <dl className="detail-list">
+            <div>
+              <dt>{t("aiAllowance")}</dt>
+              <dd>{state.features?.coachDailyLimit ?? 0}</dd>
+            </div>
+          </dl>
+          <p className="small-text muted">{t("aiAllowanceSub")}</p>
           <p>{t("bitManual")}</p>
           <div className="actions">
             <Link className="button secondary" href="/pricing">
@@ -492,7 +519,10 @@ export function SettingsScreen() {
             onSubmit={async (e) => {
               e.preventDefault();
               try {
-                await api("/account/delete", { password });
+                await api(
+                  "/account/delete",
+                  isGuest ? { confirm: true } : { password },
+                );
                 setState(null);
                 go("/");
               } catch (e) {
@@ -500,15 +530,22 @@ export function SettingsScreen() {
               }
             }}
           >
-            <Field label={t("password")}>
-              <input
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Field>
+            {isGuest ? (
+              <label className="check-label">
+                <input type="checkbox" required />
+                {t("confirmDeleteGuest")}
+              </label>
+            ) : (
+              <Field label={t("password")}>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+            )}
             {error && <Notice type="error">{error}</Notice>}
             <Button variant="destructive">{t("deleteAccount")}</Button>
           </form>
