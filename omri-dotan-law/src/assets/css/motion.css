@@ -1,0 +1,406 @@
+/* ============================================================
+   שכבת תנועה – motion.css
+   נטען אחרי style.css ומשתמש רק בטוקנים שלו.
+   כל האנימציות על transform / opacity / clip-path בלבד.
+   html.has-motion  – motion.js רץ (מגן מפני מצב "תקוע" אם ה-JS לא נטען)
+   html.is-ready    – הגופנים נטענו (או timeout) – מפעיל כניסת Hero
+   ============================================================ */
+
+/* ---------- כניסת Hero / Page-hero (אחרי is-ready) ----------
+   המצב המוסתר חל ללא transition (אין "דהייה החוצה" כשה-JS מוסיף has-motion),
+   ועם אנימציית גיבוי בזמן CSS: אם is-ready מתעכב, האלמנטים נכנסים לבד אחרי 1.6s. */
+html.has-motion:not(.is-ready) .hero__content > *,
+html.has-motion:not(.is-ready) .page-hero__inner > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: none;
+  animation: motion-fallback-in .9s cubic-bezier(.2, .7, .2, 1) 1.6s both;
+}
+html.has-motion .hero__content > *,
+html.has-motion .page-hero__inner > * {
+  transition: opacity .7s ease, transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+html.has-motion.is-ready .hero__content > *,
+html.has-motion.is-ready .page-hero__inner > * { opacity: 1; transform: none; }
+@keyframes motion-fallback-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+html.has-motion .hero__content > :nth-child(1) { transition-delay: .05s; }
+html.has-motion .hero__content > :nth-child(2) { transition-delay: .15s; }
+html.has-motion .hero__content > :nth-child(3) { transition-delay: .28s; }
+html.has-motion .hero__content > :nth-child(4) { transition-delay: .4s; }
+html.has-motion .hero__content > :nth-child(5) { transition-delay: .5s; }
+html.has-motion .hero__content > :nth-child(n+6) { transition-delay: .58s; }
+html.has-motion .page-hero__inner > :nth-child(1) { transition-delay: 0s; }
+html.has-motion .page-hero__inner > :nth-child(2) { transition-delay: .08s; }
+html.has-motion .page-hero__inner > :nth-child(3) { transition-delay: .16s; }
+html.has-motion .page-hero__inner > :nth-child(4) { transition-delay: .26s; }
+html.has-motion .page-hero__inner > :nth-child(n+5) { transition-delay: .34s; }
+html.has-motion:not(.is-ready) .hero__scroll { opacity: 0; transition: none; animation: motion-fallback-in .9s ease 2s both; }
+html.has-motion .hero__scroll { transition: opacity 1s ease 1.3s; }
+html.has-motion.is-ready .hero__scroll { opacity: 1; }
+
+/* ---------- פיצול מילים ([data-split]) ---------- */
+html.has-motion [data-split] .w {
+  display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding: .14em .05em .12em; margin: -.14em -.05em -.12em;
+}
+html.has-motion [data-split] .w__in {
+  display: inline-block;
+  transition: transform .9s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(200ms + var(--wi, 0) * 60ms);
+}
+html.has-motion:not(.is-ready) [data-split] .w__in {
+  transform: translateY(120%);
+  transition: none;
+  animation: motion-word-in .9s cubic-bezier(.2, .7, .2, 1) both;
+  animation-delay: calc(1.8s + var(--wi, 0) * 60ms);
+}
+html.has-motion.is-ready [data-split] .w__in { transform: none; }
+@keyframes motion-word-in {
+  from { transform: translateY(120%); }
+  to { transform: none; }
+}
+
+/* ---------- Reveal – הרחבות (main.js מוסיף .is-in) ---------- */
+html.js [data-stagger] > .reveal { transition-delay: calc(var(--i, 0) * 80ms); }
+
+html.js .reveal.reveal--clip {
+  opacity: 1; transform: none;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path .9s cubic-bezier(.2, .7, .2, 1);
+}
+html.js .reveal.reveal--clip.is-in { clip-path: inset(0 0 0 0); }
+
+html.js .reveal--line::before {
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform .8s cubic-bezier(.2, .7, .2, 1) .2s;
+}
+[dir="rtl"] .reveal--line::before { transform-origin: 100% 50%; }
+html.js .reveal.is-in .reveal--line::before,
+html.js .reveal--line.is-in::before { transform: scaleX(1); }
+html.has-motion .hero__content .reveal--line::before,
+html.has-motion .page-hero__inner .reveal--line::before { transition-delay: .55s; }
+
+/* ---------- פרלקסה ---------- */
+html.js [data-parallax].is-parallax {
+  transform: translate3d(0, var(--py, 0px), 0);
+  transition-property: opacity, box-shadow;
+  will-change: transform;
+}
+
+/* ---------- סרגל התקדמות קריאה ---------- */
+.read-progress {
+  position: fixed; top: 0; inset-inline: 0; height: 3px; z-index: 110;
+  background: var(--brass); transform: scaleX(0); transform-origin: 0 50%;
+  pointer-events: none;
+}
+[dir="rtl"] .read-progress { transform-origin: 100% 50%; }
+
+/* ---------- Header – הסתרה בגלילה ---------- */
+.header { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .25s, background .25s; }
+.header.is-hidden { transform: translateY(-100%); box-shadow: none; }
+
+/* ---------- מעבר עמודים ---------- */
+.page-transition {
+  position: fixed; inset: 0; z-index: 1100; pointer-events: none;
+  background: var(--green-2); transform: translateY(101%); visibility: hidden;
+}
+.page-transition::before, .page-transition::after {
+  content: ""; position: absolute; inset-inline: 0; height: 2px; background: var(--brass-bright); opacity: 0;
+}
+.page-transition::before { top: 0; }
+.page-transition::after { bottom: 0; }
+html.is-leaving .page-transition {
+  visibility: visible; transform: translateY(0);
+  transition: transform .42s cubic-bezier(.76, 0, .24, 1);
+}
+html.is-leaving .page-transition::before { opacity: 1; }
+html.is-entering .page-transition { visibility: visible; transform: translateY(0); transition: none; }
+html.is-entering .page-transition::after { opacity: 1; }
+html.is-entered .page-transition {
+  visibility: visible; transform: translateY(-101%);
+  transition: transform .5s cubic-bezier(.76, 0, .24, 1), visibility 0s linear .5s;
+}
+html.is-entered .page-transition::after { opacity: 1; }
+
+/* ---------- פרה-לואדר (דף הבית, ביקור ראשון ב-session) ---------- */
+.preloader {
+  position: fixed; inset: 0; z-index: 1200; display: none;
+  align-content: center; justify-items: center; gap: 1.25rem;
+  background: var(--green-2); color: var(--brass-bright);
+}
+html.has-preloader .preloader {
+  display: grid;
+  /* רשת ביטחון בזמן CSS: גם אם ה-JS מתעכב, הכיסוי יוצא לבד אחרי 0.9s */
+  animation: preloader-exit .45s cubic-bezier(.76, 0, .24, 1) .9s forwards;
+}
+/* תכונת hidden חייבת לגבור על display:grid – אחרת הכיסוי נתקע */
+.preloader[hidden] { display: none !important; }
+@keyframes preloader-exit { to { transform: translateY(-100%); } }
+.preloader svg {
+  width: 96px; height: 96px; fill: none; stroke: var(--brass-bright);
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.preloader__bar {
+  display: block; width: 96px; height: 1px; background: var(--brass-bright);
+  transform: scaleX(0); transform-origin: 50% 50%;
+  transition: transform .7s cubic-bezier(.2, .7, .2, 1) .15s;
+}
+.preloader.is-drawing .preloader__bar { transform: scaleX(1); }
+html.is-loaded .preloader {
+  transform: translateY(-100%);
+  transition: transform .5s cubic-bezier(.76, 0, .24, 1);
+}
+
+/* ---------- זוהר סמן ---------- */
+.cursor-glow {
+  position: fixed; top: 0; left: 0; width: 360px; height: 360px; border-radius: 50%;
+  pointer-events: none; z-index: 4; opacity: 0;
+  transform: translate3d(-100vw, -100vh, 0);
+  background: radial-gradient(circle at center, var(--brass-bright) 0%, rgba(216, 185, 120, .4) 28%, rgba(216, 185, 120, 0) 66%);
+  mix-blend-mode: screen;
+  transition: opacity .45s ease;
+  will-change: transform;
+}
+.cursor-glow.is-on { opacity: .18; }
+@media (pointer: coarse) { .cursor-glow { display: none; } }
+:root[data-contrast="high"] .cursor-glow { display: none; }
+
+/* ---------- מרקיז ---------- */
+.marquee {
+  --marquee-duration: 40s;
+  --marquee-gap: 2.75rem;
+  display: flex; width: 100%; overflow: hidden;
+  background: var(--surface); border-block: 1px solid var(--line);
+  padding-block: 1.1rem;
+}
+.marquee__track {
+  display: flex; flex: none; align-items: center; gap: var(--marquee-gap);
+  padding-inline-end: var(--marquee-gap); white-space: nowrap;
+  font-family: var(--font-display); font-size: var(--fs-xl); color: var(--ink-2);
+  animation: marquee var(--marquee-duration) linear infinite;
+  will-change: transform;
+}
+.marquee__track > * { flex: none; }
+.marquee__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* ---------- סליידר המלצות ([data-slider]) ---------- */
+.slider { --slider-gap: 1.25rem; position: relative; }
+[data-slider].slider__track {
+  display: flex; gap: var(--slider-gap);
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-block: 8px 28px; margin-block: -8px -28px;
+}
+[data-slider].slider__track::-webkit-scrollbar { display: none; }
+[data-slider].slider__track:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+[data-slider].slider__track > * {
+  flex: 0 0 calc((100% - 2 * var(--slider-gap)) / 3);
+  scroll-snap-align: start;
+}
+@media (max-width: 899px) { [data-slider].slider__track > * { flex-basis: 100%; } }
+.slider__nav { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-block-start: 2rem; }
+.slider__btn {
+  width: 44px; height: 44px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  display: grid; place-items: center; cursor: pointer;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.slider__btn:hover { border-color: var(--brass); color: var(--brass-ink); transform: translateY(-1px); }
+.slider__btn svg { width: 18px; height: 18px; }
+.slider__dots { display: flex; align-items: center; gap: .5rem; }
+.slider__dot {
+  width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--line-strong); cursor: pointer;
+  transition: width .3s cubic-bezier(.2, .7, .2, 1), background .2s;
+}
+.slider__dot:hover { background: var(--brass-ink); }
+.slider__dot[aria-current="true"] { width: 22px; background: var(--brass); }
+.slider.is-static .slider__nav { display: none; }
+
+/* ---------- FAQ ---------- */
+.faq details.is-closing summary::after { transform: none; }
+
+/* ---------- כפתורים – sheen ---------- */
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, .38) 50%, rgba(255, 255, 255, 0) 65%);
+  transform: translateX(-130%);
+}
+.btn:hover::after, .btn:focus-visible::after { transform: translateX(130%); transition: transform .6s ease; }
+[dir="rtl"] .btn::after {
+  transform: translateX(130%);
+  background: linear-gradient(-115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, .38) 50%, rgba(255, 255, 255, 0) 65%);
+}
+[dir="rtl"] .btn:hover::after, [dir="rtl"] .btn:focus-visible::after { transform: translateX(-130%); }
+
+/* ---------- ניווט – קו תחתון נמתח ---------- */
+.nav__link { position: relative; }
+.nav__link::after {
+  content: ""; position: absolute; inset-inline: .85rem; bottom: .25rem; height: 1px;
+  background: var(--brass-bright); transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+}
+[dir="rtl"] .nav__link::after { transform-origin: 100% 50%; }
+.nav__link:hover::after, .nav__link:focus-visible::after, .nav__link[aria-current="page"]::after { transform: scaleX(1); }
+@media (max-width: 960px) { .nav__link::after { display: none; } }
+
+/* ---------- כרטיסים – הרמה ב-hover ---------- */
+.acard, .tcard, .ccard, .aside__box { transition: transform .25s ease, box-shadow .25s ease, border-color .2s ease; }
+.acard:hover, .tcard:hover, .ccard:hover, .aside__box:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.tcard:hover, .ccard:hover, .aside__box:hover { border-color: var(--brass); }
+.aside__box--dark:hover { border-color: var(--brass); }
+html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover {
+  transform: translateY(-4px);
+  transition: opacity .7s ease, transform .25s ease, box-shadow .25s ease, border-color .2s ease;
+}
+
+/* ---------- אייקון כרטיס תחום ---------- */
+.pcard__icon { transition: transform .35s cubic-bezier(.2, .7, .2, 1), background .3s; }
+.pcard:hover .pcard__icon { transform: translateZ(30px) rotate(6deg) scale(1.06); }
+
+/* ============================================================
+   reduced-motion / html[data-motion="off"]
+   (style.css כבר מבטל transition/animation ב-data-motion="off";
+   כאן מאפסים גם מצבי התחלה כדי ששום דבר לא יישאר מוסתר)
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html.has-motion .hero__content > *, html.has-motion .page-hero__inner > *, html.has-motion .hero__scroll { opacity: 1; transform: none; transition: none; animation: none; }
+  html.has-motion [data-split] .w__in { transform: none; transition: none; animation: none; }
+  html.js .reveal.reveal--clip { clip-path: none; transition: none; }
+  html.js .reveal--line::before { transform: none; transition: none; }
+  html.js [data-parallax].is-parallax { transform: none; will-change: auto; }
+  html.js [data-stagger] > .reveal { transition-delay: 0s; }
+  .marquee { overflow-x: auto; }
+  .marquee__track { animation: none; will-change: auto; }
+  .marquee__track[data-marquee-clone] { display: none; }
+  .header, .header.is-hidden { transform: none; transition: none; }
+  .page-transition, .preloader, .cursor-glow { display: none !important; }
+  [data-slider].slider__track { scroll-behavior: auto; }
+  .btn::after { display: none; }
+  .btn, .btn:hover, .slider__btn:hover { transform: none; }
+  .slider__dot, .nav__link::after, .pcard__icon { transition: none; }
+  .acard:hover, .tcard:hover, .ccard:hover, .aside__box:hover, html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover { transform: none; transition: none; }
+  .pcard:hover .pcard__icon { transform: translateZ(30px); }
+}
+:root[data-motion="off"] .hero__content > *, :root[data-motion="off"] .page-hero__inner > *, :root[data-motion="off"] .hero__scroll { opacity: 1 !important; transform: none !important; animation: none !important; }
+:root[data-motion="off"] [data-split] .w__in { transform: none !important; animation: none !important; }
+:root[data-motion="off"] .reveal.reveal--clip { clip-path: none !important; }
+:root[data-motion="off"] .reveal--line::before { transform: none !important; }
+:root[data-motion="off"] [data-parallax].is-parallax { transform: none !important; will-change: auto; }
+:root[data-motion="off"] .marquee { overflow-x: auto; }
+:root[data-motion="off"] .marquee__track { animation: none !important; will-change: auto; }
+:root[data-motion="off"] .marquee__track[data-marquee-clone] { display: none; }
+:root[data-motion="off"] .header.is-hidden { transform: none !important; }
+:root[data-motion="off"] .page-transition, :root[data-motion="off"] .preloader, :root[data-motion="off"] .cursor-glow { display: none !important; }
+:root[data-motion="off"] [data-slider].slider__track { scroll-behavior: auto; }
+:root[data-motion="off"] .btn::after { display: none; }
+:root[data-motion="off"] .btn:hover, :root[data-motion="off"] .slider__btn:hover { transform: none; }
+:root[data-motion="off"] .acard:hover, :root[data-motion="off"] .tcard:hover, :root[data-motion="off"] .ccard:hover, :root[data-motion="off"] .aside__box:hover { transform: none; }
+:root[data-motion="off"] .pcard:hover .pcard__icon { transform: translateZ(30px); }
+
+/* ---------- הדפסה ---------- */
+@media print {
+  .page-transition, .preloader, .cursor-glow, .read-progress, .slider__nav, .marquee { display: none !important; }
+}
+
+
+/* ============================================================
+   שכבת תנועה v2 – עידון ומשמעות
+   ============================================================ */
+/* reveal מעודן: מרחק גדול מעט, עקומת expo-out "יקרה" */
+html.js .reveal { transform: translateY(26px); transition: opacity .8s ease, transform 1s cubic-bezier(.16, 1, .3, 1); }
+
+/* כותרות עולות מתוך מסכה (motion.js מתייג .section-head > h2 ועוד) */
+html.js .reveal--mask {
+  opacity: 1;
+  transform: translateY(45%);
+  clip-path: inset(0 -0.15em 100% -0.15em);
+  transition: transform 1.1s cubic-bezier(.16, 1, .3, 1), clip-path 1.1s cubic-bezier(.16, 1, .3, 1);
+}
+html.js .reveal--mask.is-in, html.js .reveal.is-in .reveal--mask { transform: none; clip-path: inset(-0.25em -0.15em -0.35em -0.15em); }
+
+/* "המשרד במספרים": קו פליז שנמתח יחד עם הספירה */
+.stat { position: relative; overflow: hidden; }
+.stat::after {
+  content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .stat::after { transform-origin: 0 50%; }
+.stat.is-counting::after { transform: scaleX(1); transition: transform 1.5s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* תהליך העבודה: קו פליז שמצטייר לאורך שלושת השלבים */
+.process { position: relative; }
+.process::before {
+  content: ""; position: absolute; top: -1px; inset-inline: 0; height: 2px; background: var(--brass); z-index: 1;
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .process::before { transform-origin: 0 50%; }
+.process.is-drawn::before { transform: scaleX(1); transition: transform 1.8s cubic-bezier(.16, 1, .3, 1) .15s; }
+
+/* אייקוני תחומי העיסוק "קופצים" פנימה אחרי הכרטיס */
+html.js .pcard .pcard__icon {
+  opacity: 0; transform: translateZ(30px) scale(.55) rotate(-10deg);
+  transition: transform .9s cubic-bezier(.34, 1.56, .64, 1), opacity .4s ease;
+  transition-delay: calc(var(--i, 0) * 80ms + 220ms);
+}
+html.js .pcard.is-in .pcard__icon { opacity: 1; transform: translateZ(30px) scale(1) rotate(0deg); }
+html.js .pcard.is-in:hover .pcard__icon { transform: translateZ(30px) scale(1.08) rotate(6deg); transition-delay: 0s; transition-duration: .4s; }
+
+/* רמז גלילה ב-Hero: קו פליז שנוזל מטה */
+.hero__scroll { display: grid; justify-items: center; gap: .55rem; }
+.hero__scroll::after {
+  content: ""; width: 1px; height: 34px; transform-origin: top;
+  background: linear-gradient(var(--brass-bright), rgba(216, 185, 120, 0));
+  animation: hero-cue 2.2s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+@keyframes hero-cue { 0% { transform: scaleY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.hero__content { will-change: transform, opacity; }
+
+/* טבעות ה-CTA נושמות לאט */
+.cta-band::before { animation: ring-pulse 7s ease-in-out infinite; }
+.cta-band::after { animation: ring-pulse 7s ease-in-out -3.5s infinite; }
+@keyframes ring-pulse { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+
+/* לחיצה על כפתור */
+.btn:active { transform: translateY(0) scale(.98); }
+
+/* קרוסלת המלצות: הכרטיס שמחוץ לפריים מתעמעם */
+.slider__track .tcard { transition: opacity .5s ease, transform .6s cubic-bezier(.16, 1, .3, 1), border-color .2s, box-shadow .25s; }
+.slider__track .tcard.is-dim { opacity: .45; transform: scale(.96); }
+
+/* פוטר: עמודות נכנסות בהדרגה */
+html.js .footer__grid > .reveal { transition-delay: calc(var(--i, 0) * 90ms); }
+
+/* כותרות ביניים במאמר: קו פליז קצר שמצטייר */
+.prose > h2.line-draw { position: relative; padding-block-end: .35em; }
+.prose > h2.line-draw::after {
+  content: ""; position: absolute; bottom: 0; inset-inline-start: 0; width: 2.75rem; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .prose > h2.line-draw::after { transform-origin: 0 50%; }
+.prose > h2.line-draw.is-in::after { transform: scaleX(1); transition: transform .9s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* כיבוי v2 בהפחתת תנועה / כפתור הנגישות */
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal--mask, html.js .reveal--mask.is-in { transform: none; clip-path: none; transition: none; }
+  html.js .pcard .pcard__icon { opacity: 1; transform: translateZ(30px); transition: none; }
+  .stat::after, .process::before, .prose > h2.line-draw::after { transform: scaleX(1); transition: none; }
+  .hero__scroll::after, .cta-band::before, .cta-band::after { animation: none; }
+  .slider__track .tcard.is-dim { transform: none; }
+}
+:root[data-motion="off"] html.js .reveal--mask, html.js:root[data-motion="off"] .reveal--mask { transform: none !important; clip-path: none !important; }
+:root[data-motion="off"] .pcard__icon { opacity: 1 !important; transform: translateZ(30px) !important; }
+:root[data-motion="off"] .stat::after, :root[data-motion="off"] .process::before, :root[data-motion="off"] .prose > h2.line-draw::after { transform: scaleX(1) !important; }
+:root[data-motion="off"] .hero__scroll::after, :root[data-motion="off"] .cta-band::before, :root[data-motion="off"] .cta-band::after { animation: none !important; }
+:root[data-motion="off"] .slider__track .tcard.is-dim { transform: none !important; opacity: 1 !important; }

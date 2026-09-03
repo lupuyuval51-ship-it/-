@@ -1,0 +1,17 @@
+{
+  "name": "משרד עורכי דין עומרי דותן",
+  "short_name": "עומרי דותן עו״ד",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e2a24",
+  "theme_color": "#0e2a24",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "assets/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
