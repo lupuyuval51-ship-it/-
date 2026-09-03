@@ -32,8 +32,8 @@ function articleCard(a, root, featured = false) {
   </a>`;
 }
 
-function practiceCard(p, root, i) {
-  return `<a class="pcard reveal" data-delay="${(i % 3) + 1}" href="${root}practice/${p.slug}.html">
+function practiceCard(p, root) {
+  return `<a class="pcard reveal" href="${root}practice/${p.slug}.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon">${icon(p.icon)}</span>
     <h3>${p.name}</h3>
@@ -43,13 +43,42 @@ function practiceCard(p, root, i) {
 }
 
 function processBlock() {
-  return `<div class="process reveal">${process.map((s, i) => `<div class="process__step"><span class="process__n num">0${i + 1}</span><h3>${s.title}</h3><p>${s.text}</p></div>`).join('')}</div>`;
+  return `<div class="process" data-stagger>${process.map((s, i) => `<div class="process__step reveal"><span class="process__n num">0${i + 1}</span><h3>${s.title}</h3><p>${s.text}</p></div>`).join('')}</div>`;
+}
+
+// כרטיס נתון עם מונה (motion.js סופר מ-0 לערך; הערך הסופי כבר בטקסט כמצב מנוחה וללא JS)
+function stat(value, label, { prefix = '', suffix = '' } = {}) {
+  return `<div class="stat reveal"><strong data-counter="${value}" data-prefix="${prefix}" data-suffix="${suffix}">${prefix}${value}${suffix}</strong><span>${label}</span></div>`;
+}
+
+// "המשרד במספרים" – ארבעה נתונים, מיד אחרי ה-Hero
+function statsSection() {
+  const years = new Date().getFullYear() - site.founded;
+  return `<section class="section section--tight" aria-labelledby="stats-title">
+  <div class="container">
+    <h2 class="sr-only" id="stats-title">המשרד במספרים</h2>
+    <div class="stat-row stat-row--4" data-stagger>
+      ${stat(years, 'שנות פעילות וייצוג בכל הערכאות', { suffix: '+' })}
+      ${stat(practiceAreas.length, 'תחומי עיסוק במיקוד מלא')}
+      ${stat(1, 'יום עסקים למענה על כל פנייה')}
+      ${stat(100, 'שקיפות בשכר הטרחה – הצעה כתובה מראש', { suffix: '%' })}
+    </div>
+  </div>
+</section>`;
+}
+
+// רצועת מרקיז דקורטיבית: שמות תחומי העיסוק ושירות בולט (הקצר ביותר) מכל תחום, מופרדים בנקודת פליז
+function marqueeStrip() {
+  const shortest = (arr) => arr.reduce((a, b) => (b.length < a.length ? b : a));
+  const items = practiceAreas.flatMap((p) => [p.name, shortest(p.services)]);
+  const dot = '<span class="marquee__dot"></span>';
+  return `<div class="marquee" data-marquee aria-hidden="true"><div class="marquee__track">${items.map((t) => `<span class="marquee__item">${t}</span>`).join(dot)}${dot}</div></div>`;
 }
 
 function valuesSection() {
   return `<section class="section section--dark"><div class="container">
-    <div class="section-head reveal"><span class="eyebrow">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
-    <div class="values">${values.map((v, i) => `<div class="value reveal" data-delay="${(i % 4) + 1}"><span class="value__icon">${icon(v.icon)}</span><h3>${v.title}</h3><p>${v.text}</p></div>`).join('')}</div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
+    <div class="values" data-stagger>${values.map((v) => `<div class="value reveal"><span class="value__icon">${icon(v.icon)}</span><h3>${v.title}</h3><p>${v.text}</p></div>`).join('')}</div>
   </div></section>`;
 }
 
@@ -66,11 +95,11 @@ export function homePage() {
   <div class="hero__vignette" aria-hidden="true"></div>
   <div class="container hero__inner">
     <div class="hero__content">
-      <span class="eyebrow">משרד עורכי דין עומרי דותן</span>
-      <h1 class="hero__title" id="hero-title">ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
+      <span class="eyebrow reveal--line">משרד עורכי דין עומרי דותן</span>
+      <h1 class="hero__title" id="hero-title" data-split>ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
       <p class="hero__lede">ליווי אישי, אסטרטגיה כתובה ותוצאות – בדיני עבודה, מקרקעין, משפחה וירושה, נזיקין וליטיגציה מסחרית. אתם מבינים בדיוק איפה אתם עומדים, בכל שלב.</p>
       <div class="hero__actions">
-        <a class="btn btn--brass" href="${root}contact.html">${icon('calendar')} לתיאום פגישת ייעוץ</a>
+        <a class="btn btn--brass" href="${root}contact.html" data-magnetic>${icon('calendar')} לתיאום פגישת ייעוץ</a>
         <a class="btn btn--ghost" href="${root}practice.html">תחומי העיסוק</a>
       </div>
       <div class="hero__trust">
@@ -83,37 +112,41 @@ export function homePage() {
   <span class="hero__scroll" aria-hidden="true">גללו</span>
 </section>
 
+${statsSection()}
+
+${marqueeStrip()}
+
 <section class="section section--tight" aria-labelledby="process-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
     ${processBlock()}
   </div>
 </section>
 
 <section class="section" aria-labelledby="practice-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
-    <div class="practice-grid">${practiceAreas.map((p, i) => practiceCard(p, root, i)).join('')}</div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
+    <div class="practice-grid" data-stagger>${practiceAreas.map((p) => practiceCard(p, root)).join('')}</div>
   </div>
 </section>
 
 <section class="section section--surface" aria-labelledby="about-title">
   <div class="container about-split">
-    <div class="portrait reveal">
+    <div class="portrait reveal" data-parallax="0.12">
       <span class="portrait__grain" aria-hidden="true"></span>
       <svg class="portrait__mark" viewBox="0 0 400 400" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M200 60v260M140 320h120M80 120h240"/><path d="M80 120l-40 100h80zM320 120l-40 100h80z"/><circle cx="200" cy="52" r="10"/></svg>
       <p class="portrait__quote">„${team.founder.quote}”</p>
       <p class="portrait__by">${team.founder.name}, ${team.founder.title}</p>
     </div>
     <div class="about-split__text reveal" data-delay="1">
-      <span class="eyebrow">אודות המשרד</span>
+      <span class="eyebrow reveal--line">אודות המשרד</span>
       <h2 id="about-title">משרד בוטיק עם סטנדרט של משרד גדול</h2>
       <p>${team.founder.bio[0]}</p>
       <p>${team.teamText}</p>
-      <ul class="about-list">
-        <li>${icon('check')} <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
-        <li>${icon('check')} <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
-        <li>${icon('check')} <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
+      <ul class="about-list" data-stagger>
+        <li class="reveal">${icon('check')} <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
+        <li class="reveal">${icon('check')} <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
+        <li class="reveal">${icon('check')} <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
       </ul>
       <div><a class="link-arrow" href="${root}about.html">להכיר את המשרד ${icon('arrow')}</a></div>
     </div>
@@ -124,22 +157,22 @@ ${valuesSection()}
 
 <section class="section" aria-labelledby="testimonials-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
-    <div class="testimonials">${testimonials.map((t, i) => `<article class="tcard reveal" data-delay="${i + 1}"><span class="tcard__mark">${icon('quote')}</span><blockquote>${t.quote}</blockquote><footer><strong>${t.name}</strong><span>${t.role}</span></footer></article>`).join('')}</div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
+    <div class="testimonials" data-slider role="region" aria-roledescription="carousel" aria-label="המלצות לקוחות">${testimonials.map((t, i) => `<article class="tcard reveal" data-delay="${i + 1}"><span class="tcard__mark">${icon('quote')}</span><blockquote>${t.quote}</blockquote><footer><strong>${t.name}</strong><span>${t.role}</span></footer></article>`).join('')}</div>
   </div>
 </section>
 
 <section class="section section--surface" aria-labelledby="articles-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
-    <div class="articles-grid">${latest.map((a) => articleCard(a, root)).join('')}</div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
+    <div class="articles-grid" data-stagger>${latest.map((a) => articleCard(a, root)).join('')}</div>
     <p style="margin-block-start:2rem"><a class="link-arrow" href="${root}articles.html">לכל המאמרים ${icon('arrow')}</a></p>
   </div>
 </section>
 
 <section class="section" aria-labelledby="faq-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
     ${faqBlock(faq)}
   </div>
 </section>
@@ -147,20 +180,20 @@ ${valuesSection()}
 <section class="section section--dark" id="contact" aria-labelledby="contact-title">
   <div class="container contact-band">
     <div class="contact-info reveal">
-      <span class="eyebrow">צור קשר</span>
+      <span class="eyebrow reveal--line">צור קשר</span>
       <h2 id="contact-title">ספרו לנו במה מדובר. נחזור אליכם תוך יום עסקים.</h2>
       <p>השאירו פרטים, או התקשרו ישירות. בפגישה הראשונה נקשיב, נשאל, וניתן לכם הערכה כנה – גם אם המסקנה היא שלא כדאי לכם לתבוע.</p>
-      <ul class="contact-lines">
-        <li>${icon('phone')}<div><small>טלפון</small><a href="${site.phoneHref}" class="num">${site.phone}</a></div></li>
-        <li>${icon('whatsapp')}<div><small>וואטסאפ</small><a href="${site.whatsappHref}" target="_blank" rel="noopener" class="num">${site.whatsapp}</a></div></li>
-        <li>${icon('mail')}<div><small>אימייל</small><a href="mailto:${site.email}">${site.email}</a></div></li>
-        <li>${icon('pin')}<div><small>כתובת</small>${esc(site.address.street)}, ${esc(site.address.city)}</div></li>
+      <ul class="contact-lines" data-stagger>
+        <li class="reveal">${icon('phone')}<div><small>טלפון</small><a href="${site.phoneHref}" class="num">${site.phone}</a></div></li>
+        <li class="reveal">${icon('whatsapp')}<div><small>וואטסאפ</small><a href="${site.whatsappHref}" target="_blank" rel="noopener" class="num">${site.whatsapp}</a></div></li>
+        <li class="reveal">${icon('mail')}<div><small>אימייל</small><a href="mailto:${site.email}">${site.email}</a></div></li>
+        <li class="reveal">${icon('pin')}<div><small>כתובת</small>${esc(site.address.street)}, ${esc(site.address.city)}</div></li>
       </ul>
     </div>
     <div class="reveal" data-delay="1">${contactForm(root)}</div>
   </div>
 </section>`;
-  return shell({ root, active: 'index.html', title: '', description: site.description, canonical: abs('index.html'), body, jsonLd: [orgLd], includeHero3d: true });
+  return shell({ root, active: 'index.html', title: '', description: site.description, canonical: abs('index.html'), body, jsonLd: [orgLd], includeHero3d: true, includePreloader: true });
 }
 
 // ---------- אודות ----------
@@ -170,7 +203,7 @@ export function aboutPage() {
 ${pageHero({ eyebrow: 'אודות', title: 'משרד שנבנה סביב שאלה אחת: מה הלקוח באמת צריך?', lede: 'לא כל בעיה משפטית מצדיקה תביעה, ולא כל חוזה צריך 40 עמודים. אנחנו כאן כדי לתת לכם את התמונה המלאה – ולפעול.', crumbs: [{ label: 'דף הבית', href: 'index.html' }, { label: 'אודות' }] })}
 <section class="section">
   <div class="container team-grid">
-    <div class="portrait reveal">
+    <div class="portrait reveal" data-parallax="0.12">
       <span class="portrait__grain" aria-hidden="true"></span>
       <svg class="portrait__mark" viewBox="0 0 400 400" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M200 60v260M140 320h120M80 120h240"/><path d="M80 120l-40 100h80zM320 120l-40 100h80z"/><circle cx="200" cy="52" r="10"/></svg>
       <p class="portrait__quote">„${team.founder.quote}”</p>
@@ -180,25 +213,25 @@ ${pageHero({ eyebrow: 'אודות', title: 'משרד שנבנה סביב שאל�
       <span class="role">${team.founder.title}</span>
       <h2>${team.founder.name}</h2>
       ${team.founder.bio.map((p) => `<p>${p}</p>`).join('')}
-      <div class="stat-row">
-        <div class="stat"><strong>${new Date().getFullYear() - site.founded}+</strong><span>שנות פעילות המשרד</span></div>
-        <div class="stat"><strong>${practiceAreas.length}</strong><span>תחומי עיסוק</span></div>
-        <div class="stat"><strong>1</strong><span>יום עסקים למענה</span></div>
+      <div class="stat-row" data-stagger>
+        ${stat(new Date().getFullYear() - site.founded, 'שנות פעילות המשרד', { suffix: '+' })}
+        ${stat(practiceAreas.length, 'תחומי עיסוק')}
+        ${stat(1, 'יום עסקים למענה')}
       </div>
     </div>
   </div>
 </section>
 <section class="section section--surface">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">הצוות</span><h2>אנשים, לא מחלקות</h2><p class="lede">${team.teamText}</p></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">הצוות</span><h2>אנשים, לא מחלקות</h2><p class="lede">${team.teamText}</p></div>
     ${processBlock()}
   </div>
 </section>
 ${valuesSection()}
 <section class="section">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">תחומי עיסוק</span><h2>במה אנחנו עוסקים</h2></div>
-    <div class="practice-grid">${practiceAreas.map((p, i) => practiceCard(p, root, i)).join('')}</div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">תחומי עיסוק</span><h2>במה אנחנו עוסקים</h2></div>
+    <div class="practice-grid" data-stagger>${practiceAreas.map((p) => practiceCard(p, root)).join('')}</div>
   </div>
 </section>
 ${ctaBand(root)}`;
@@ -211,14 +244,14 @@ export function practiceIndexPage() {
   const body = `
 ${pageHero({ eyebrow: 'תחומי עיסוק', title: 'שישה תחומי ליבה. גישה אחת.', lede: 'אנו מעדיפים עומק על פני רוחב: בכל אחד מהתחומים הבאים המשרד מטפל בעשרות תיקים בשנה, ומכיר את הפסיקה, את השופטים ואת הצד השני.', crumbs: [{ label: 'דף הבית', href: 'index.html' }, { label: 'תחומי עיסוק' }] })}
 <section class="section"><div class="container">
-  <div class="practice-grid">${practiceAreas.map((p, i) => practiceCard(p, root, i)).join('')}</div>
+  <div class="practice-grid" data-stagger>${practiceAreas.map((p) => practiceCard(p, root)).join('')}</div>
 </div></section>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">איך זה עובד</span><h2>מהפגישה הראשונה ועד לתוצאה</h2></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">איך זה עובד</span><h2>מהפגישה הראשונה ועד לתוצאה</h2></div>
   ${processBlock()}
 </div></section>
 <section class="section"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2>שכר טרחה, זמנים ומה להביא</h2></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2>שכר טרחה, זמנים ומה להביא</h2></div>
   ${faqBlock(faq)}
 </div></section>
 ${ctaBand(root)}`;
@@ -236,7 +269,7 @@ ${pageHero({ eyebrow: 'תחומי עיסוק', title: p.name, lede: p.short, cru
   <div>
     <div class="prose reveal">${p.intro.map((t) => `<p>${t}</p>`).join('')}</div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal">${p.services.map((s) => `<li>${icon('check')}<span>${s}</span></li>`).join('')}</ul>
+    <ul class="services" data-stagger>${p.services.map((s) => `<li class="reveal">${icon('check')}<span>${s}</span></li>`).join('')}</ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות ב${p.name}</h2>
     ${faqBlock(p.faq, 'faq-' + p.slug)}
   </div>
@@ -267,7 +300,7 @@ ${pageHero({ eyebrow: 'מאמרים ומדריכים', title: 'ידע משפטי
     <button class="chip" type="button" data-cat="all" aria-pressed="true">הכול</button>
     ${categories.map((c) => `<button class="chip" type="button" data-cat="${esc(c)}" aria-pressed="false">${c}</button>`).join('')}
   </div>
-  <div class="articles-grid" data-articles>${sorted.map((a, i) => articleCard(a, root, i === 0)).join('')}</div>
+  <div class="articles-grid" data-stagger data-articles>${sorted.map((a, i) => articleCard(a, root, i === 0)).join('')}</div>
   <div class="empty" data-empty hidden>לא נמצאו מאמרים התואמים את החיפוש.</div>
 </div></section>
 ${ctaBand(root, 'לא מצאתם תשובה?', 'כל מקרה שונה. שיחת ייעוץ קצרה תחסוך לכם שעות של חיפוש.')}`;
@@ -319,8 +352,8 @@ ${pageHero({ eyebrow: a.category, title: a.title, crumbs: [{ label: 'דף הבי
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid">${more.map((m) => articleCard(m, root)).join('')}</div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger>${more.map((m) => articleCard(m, root)).join('')}</div>
 </div></section>`;
   const ld = [{
     '@context': 'https://schema.org', '@type': 'Article', headline: a.title, description: a.excerpt, datePublished: a.date, dateModified: a.date,
@@ -328,7 +361,7 @@ ${pageHero({ eyebrow: a.category, title: a.title, crumbs: [{ label: 'דף הבי
     author: { '@type': 'Person', name: team.founder.name }, publisher: { '@type': 'Organization', name: site.name, logo: { '@type': 'ImageObject', url: `${site.url}/assets/img/logo.svg` } },
     mainEntityOfPage: abs(`articles/${a.slug}.html`),
   }, breadcrumbLd([{ label: 'דף הבית', abs: abs('index.html') }, { label: 'מאמרים', abs: abs('articles.html') }, { label: a.title, abs: abs(`articles/${a.slug}.html`) }])];
-  return shell({ root, active: 'articles.html', title: a.title, description: a.excerpt, canonical: abs(`articles/${a.slug}.html`), body, jsonLd: ld, ogType: 'article' });
+  return shell({ root, active: 'articles.html', title: a.title, description: a.excerpt, canonical: abs(`articles/${a.slug}.html`), body, jsonLd: ld, ogType: 'article', includeProgress: true });
 }
 
 // ---------- צור קשר ----------
@@ -337,20 +370,20 @@ export function contactPage() {
   const body = `
 ${pageHero({ eyebrow: 'צור קשר', title: 'נשמח לשמוע במה מדובר', lede: 'טלפון, וואטסאפ, אימייל או הטופס – מה שנוח לכם. מענה תוך יום עסקים אחד, והפגישה הראשונה ללא התחייבות.', crumbs: [{ label: 'דף הבית', href: 'index.html' }, { label: 'צור קשר' }] })}
 <section class="section section--tight"><div class="container">
-  <div class="contact-cards">
+  <div class="contact-cards" data-stagger>
     <div class="ccard reveal">${icon('phone')}<h3>טלפון</h3><p>בשעות הפעילות. מחוץ להן – השאירו הודעה ונחזור אליכם.</p><a href="${site.phoneHref}" class="num">${site.phone}</a></div>
-    <div class="ccard reveal" data-delay="1">${icon('whatsapp')}<h3>וואטסאפ</h3><p>הדרך המהירה ביותר לתיאום פגישה או לשאלה קצרה.</p><a href="${site.whatsappHref}" target="_blank" rel="noopener" class="num">${site.whatsapp}</a></div>
-    <div class="ccard reveal" data-delay="2">${icon('mail')}<h3>אימייל</h3><p>למסמכים, לפניות מפורטות ולהצעות שכר טרחה.</p><a href="mailto:${site.email}">${site.email}</a></div>
+    <div class="ccard reveal">${icon('whatsapp')}<h3>וואטסאפ</h3><p>הדרך המהירה ביותר לתיאום פגישה או לשאלה קצרה.</p><a href="${site.whatsappHref}" target="_blank" rel="noopener" class="num">${site.whatsapp}</a></div>
+    <div class="ccard reveal">${icon('mail')}<h3>אימייל</h3><p>למסמכים, לפניות מפורטות ולהצעות שכר טרחה.</p><a href="mailto:${site.email}">${site.email}</a></div>
   </div>
 </div></section>
 <section class="section section--dark" id="form"><div class="container contact-band">
   <div class="contact-info reveal">
-    <span class="eyebrow">השאירו פרטים</span>
+    <span class="eyebrow reveal--line">השאירו פרטים</span>
     <h2>הטופס מגיע ישירות לעו״ד המטפל</h2>
     <p>כתבו בכמה משפטים מה קרה ומה הייתם רוצים שיקרה. אין צורך בניסוח משפטי – זה התפקיד שלנו.</p>
-    <ul class="contact-lines">
-      <li>${icon('pin')}<div><small>המשרד</small>${esc(site.address.street)}<br>${esc(site.address.city)}, ${esc(site.address.floor)}</div></li>
-      <li>${icon('video')}<div><small>פגישות מרחוק</small>פגישות ייעוץ מתקיימות גם בזום ובווידאו־וואטסאפ</div></li>
+    <ul class="contact-lines" data-stagger>
+      <li class="reveal">${icon('pin')}<div><small>המשרד</small>${esc(site.address.street)}<br>${esc(site.address.city)}, ${esc(site.address.floor)}</div></li>
+      <li class="reveal">${icon('video')}<div><small>פגישות מרחוק</small>פגישות ייעוץ מתקיימות גם בזום ובווידאו־וואטסאפ</div></li>
     </ul>
     <div class="hours" aria-label="שעות פעילות">${site.hours.map((h) => `<div><span>${h.days}</span><span>${h.time}</span></div>`).join('')}</div>
   </div>
@@ -368,7 +401,7 @@ ${pageHero({ eyebrow: 'צור קשר', title: 'נשמח לשמוע במה מדו
   </div>
 </div></section>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2>לפני הפגישה</h2></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2>לפני הפגישה</h2></div>
   ${faqBlock(faq, 'faq-contact')}
 </div></section>`;
   return shell({ root, active: 'contact.html', title: 'צור קשר', description: `יצירת קשר עם משרד עורכי דין עומרי דותן: טלפון ${site.phone}, וואטסאפ, אימייל וטופס פנייה. מענה תוך יום עסקים.`, canonical: abs('contact.html'), body, jsonLd: [orgLd, breadcrumbLd([{ label: 'דף הבית', abs: abs('index.html') }, { label: 'צור קשר', abs: abs('contact.html') }])] });

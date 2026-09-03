@@ -366,6 +366,25 @@ button { font: inherit; color: inherit; }
   .process__step + .process__step { border-inline-start: 0; border-block-start: 1px solid var(--line); }
 }
 
+/* ---------- Marquee (פריסה בסיסית בלבד; התנועה, ההשהיה ב-hover ומצב reduced-motion ב-motion.css) ---------- */
+.marquee {
+  --marquee-gap: 2.75rem;
+  display: flex; width: 100%; overflow: hidden;
+  background: var(--surface); color: var(--ink-2);
+  border-block: 1px solid var(--line); padding-block: 1.1rem;
+}
+.marquee__track {
+  flex: none; display: flex; align-items: center; gap: var(--marquee-gap);
+  padding-inline-end: var(--marquee-gap); white-space: nowrap;
+  font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1.2;
+}
+.marquee__item { flex: none; }
+.marquee__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+@media (max-width: 600px) {
+  .marquee { --marquee-gap: 2rem; padding-block: .85rem; }
+  .marquee__track { font-size: var(--fs-lg); }
+}
+
 /* ---------- Practice cards ---------- */
 .practice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; perspective: 1400px; }
 .pcard {
@@ -576,6 +595,16 @@ button { font: inherit; color: inherit; }
 .stat strong { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--brass-ink); font-variant-numeric: tabular-nums; }
 .stat span { font-size: var(--fs-xs); color: var(--muted); }
 @media (max-width: 520px) { .stat-row { grid-template-columns: 1fr; } }
+/* "המשרד במספרים" (דף הבית): 4 עמודות, 2 במובייל */
+.stat-row--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 0; }
+.stat-row--4 .stat { padding: 1.5rem 1.6rem; gap: .4rem; border-radius: var(--radius-lg); }
+.stat-row--4 .stat strong { font-size: clamp(2rem, 3.2vw, 2.6rem); line-height: 1.05; }
+.stat-row--4 .stat span { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.4; }
+@media (max-width: 860px) {
+  .stat-row--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+  .stat-row--4 .stat { padding: 1.2rem 1.1rem; }
+  .stat-row--4 .stat span { font-size: var(--fs-xs); }
+}
 
 /* ---------- Footer ---------- */
 .footer { background: var(--green-2); color: var(--on-green-muted); padding-block: 4rem 2rem; font-size: var(--fs-sm); }
@@ -650,6 +679,322 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   body { background: #fff; color: #000; }
 }
 
+/* ============================================================
+   שכבת תנועה – motion.css
+   נטען אחרי style.css ומשתמש רק בטוקנים שלו.
+   כל האנימציות על transform / opacity / clip-path בלבד.
+   html.has-motion  – motion.js רץ (מגן מפני מצב "תקוע" אם ה-JS לא נטען)
+   html.is-ready    – הגופנים נטענו (או timeout) – מפעיל כניסת Hero
+   ============================================================ */
+
+/* ---------- כניסת Hero / Page-hero (אחרי is-ready) ----------
+   המצב המוסתר חל ללא transition (אין "דהייה החוצה" כשה-JS מוסיף has-motion),
+   ועם אנימציית גיבוי בזמן CSS: אם is-ready מתעכב, האלמנטים נכנסים לבד אחרי 1.6s. */
+html.has-motion:not(.is-ready) .hero__content > *,
+html.has-motion:not(.is-ready) .page-hero__inner > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: none;
+  animation: motion-fallback-in .9s cubic-bezier(.2, .7, .2, 1) 1.6s both;
+}
+html.has-motion .hero__content > *,
+html.has-motion .page-hero__inner > * {
+  transition: opacity .7s ease, transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+html.has-motion.is-ready .hero__content > *,
+html.has-motion.is-ready .page-hero__inner > * { opacity: 1; transform: none; }
+@keyframes motion-fallback-in {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+html.has-motion .hero__content > :nth-child(1) { transition-delay: .05s; }
+html.has-motion .hero__content > :nth-child(2) { transition-delay: .15s; }
+html.has-motion .hero__content > :nth-child(3) { transition-delay: .28s; }
+html.has-motion .hero__content > :nth-child(4) { transition-delay: .4s; }
+html.has-motion .hero__content > :nth-child(5) { transition-delay: .5s; }
+html.has-motion .hero__content > :nth-child(n+6) { transition-delay: .58s; }
+html.has-motion .page-hero__inner > :nth-child(1) { transition-delay: 0s; }
+html.has-motion .page-hero__inner > :nth-child(2) { transition-delay: .08s; }
+html.has-motion .page-hero__inner > :nth-child(3) { transition-delay: .16s; }
+html.has-motion .page-hero__inner > :nth-child(4) { transition-delay: .26s; }
+html.has-motion .page-hero__inner > :nth-child(n+5) { transition-delay: .34s; }
+html.has-motion:not(.is-ready) .hero__scroll { opacity: 0; transition: none; animation: motion-fallback-in .9s ease 2s both; }
+html.has-motion .hero__scroll { transition: opacity 1s ease 1.3s; }
+html.has-motion.is-ready .hero__scroll { opacity: 1; }
+
+/* ---------- פיצול מילים ([data-split]) ---------- */
+html.has-motion [data-split] .w {
+  display: inline-block; overflow: hidden; vertical-align: bottom;
+  padding: .14em .05em .12em; margin: -.14em -.05em -.12em;
+}
+html.has-motion [data-split] .w__in {
+  display: inline-block;
+  transition: transform .9s cubic-bezier(.2, .7, .2, 1);
+  transition-delay: calc(200ms + var(--wi, 0) * 60ms);
+}
+html.has-motion:not(.is-ready) [data-split] .w__in {
+  transform: translateY(120%);
+  transition: none;
+  animation: motion-word-in .9s cubic-bezier(.2, .7, .2, 1) both;
+  animation-delay: calc(1.8s + var(--wi, 0) * 60ms);
+}
+html.has-motion.is-ready [data-split] .w__in { transform: none; }
+@keyframes motion-word-in {
+  from { transform: translateY(120%); }
+  to { transform: none; }
+}
+
+/* ---------- Reveal – הרחבות (main.js מוסיף .is-in) ---------- */
+html.js [data-stagger] > .reveal { transition-delay: calc(var(--i, 0) * 80ms); }
+
+html.js .reveal.reveal--clip {
+  opacity: 1; transform: none;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path .9s cubic-bezier(.2, .7, .2, 1);
+}
+html.js .reveal.reveal--clip.is-in { clip-path: inset(0 0 0 0); }
+
+html.js .reveal--line::before {
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform .8s cubic-bezier(.2, .7, .2, 1) .2s;
+}
+[dir="rtl"] .reveal--line::before { transform-origin: 100% 50%; }
+html.js .reveal.is-in .reveal--line::before,
+html.js .reveal--line.is-in::before { transform: scaleX(1); }
+html.has-motion .hero__content .reveal--line::before,
+html.has-motion .page-hero__inner .reveal--line::before { transition-delay: .55s; }
+
+/* ---------- פרלקסה ---------- */
+html.js [data-parallax].is-parallax {
+  transform: translate3d(0, var(--py, 0px), 0);
+  transition-property: opacity, box-shadow;
+  will-change: transform;
+}
+
+/* ---------- סרגל התקדמות קריאה ---------- */
+.read-progress {
+  position: fixed; top: 0; inset-inline: 0; height: 3px; z-index: 110;
+  background: var(--brass); transform: scaleX(0); transform-origin: 0 50%;
+  pointer-events: none;
+}
+[dir="rtl"] .read-progress { transform-origin: 100% 50%; }
+
+/* ---------- Header – הסתרה בגלילה ---------- */
+.header { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .25s, background .25s; }
+.header.is-hidden { transform: translateY(-100%); box-shadow: none; }
+
+/* ---------- מעבר עמודים ---------- */
+.page-transition {
+  position: fixed; inset: 0; z-index: 1100; pointer-events: none;
+  background: var(--green-2); transform: translateY(101%); visibility: hidden;
+}
+.page-transition::before, .page-transition::after {
+  content: ""; position: absolute; inset-inline: 0; height: 2px; background: var(--brass-bright); opacity: 0;
+}
+.page-transition::before { top: 0; }
+.page-transition::after { bottom: 0; }
+html.is-leaving .page-transition {
+  visibility: visible; transform: translateY(0);
+  transition: transform .42s cubic-bezier(.76, 0, .24, 1);
+}
+html.is-leaving .page-transition::before { opacity: 1; }
+html.is-entering .page-transition { visibility: visible; transform: translateY(0); transition: none; }
+html.is-entering .page-transition::after { opacity: 1; }
+html.is-entered .page-transition {
+  visibility: visible; transform: translateY(-101%);
+  transition: transform .5s cubic-bezier(.76, 0, .24, 1), visibility 0s linear .5s;
+}
+html.is-entered .page-transition::after { opacity: 1; }
+
+/* ---------- פרה-לואדר (דף הבית, ביקור ראשון ב-session) ---------- */
+.preloader {
+  position: fixed; inset: 0; z-index: 1200; display: none;
+  align-content: center; justify-items: center; gap: 1.25rem;
+  background: var(--green-2); color: var(--brass-bright);
+}
+html.has-preloader .preloader {
+  display: grid;
+  /* רשת ביטחון בזמן CSS: גם אם ה-JS מתעכב, הכיסוי יוצא לבד אחרי 0.9s */
+  animation: preloader-exit .45s cubic-bezier(.76, 0, .24, 1) .9s forwards;
+}
+/* תכונת hidden חייבת לגבור על display:grid – אחרת הכיסוי נתקע */
+.preloader[hidden] { display: none !important; }
+@keyframes preloader-exit { to { transform: translateY(-100%); } }
+.preloader svg {
+  width: 96px; height: 96px; fill: none; stroke: var(--brass-bright);
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.preloader__bar {
+  display: block; width: 96px; height: 1px; background: var(--brass-bright);
+  transform: scaleX(0); transform-origin: 50% 50%;
+  transition: transform .7s cubic-bezier(.2, .7, .2, 1) .15s;
+}
+.preloader.is-drawing .preloader__bar { transform: scaleX(1); }
+html.is-loaded .preloader {
+  transform: translateY(-100%);
+  transition: transform .5s cubic-bezier(.76, 0, .24, 1);
+}
+
+/* ---------- זוהר סמן ---------- */
+.cursor-glow {
+  position: fixed; top: 0; left: 0; width: 360px; height: 360px; border-radius: 50%;
+  pointer-events: none; z-index: 4; opacity: 0;
+  transform: translate3d(-100vw, -100vh, 0);
+  background: radial-gradient(circle at center, var(--brass-bright) 0%, rgba(216, 185, 120, .4) 28%, rgba(216, 185, 120, 0) 66%);
+  mix-blend-mode: screen;
+  transition: opacity .45s ease;
+  will-change: transform;
+}
+.cursor-glow.is-on { opacity: .18; }
+@media (pointer: coarse) { .cursor-glow { display: none; } }
+:root[data-contrast="high"] .cursor-glow { display: none; }
+
+/* ---------- מרקיז ---------- */
+.marquee {
+  --marquee-duration: 40s;
+  --marquee-gap: 2.75rem;
+  display: flex; width: 100%; overflow: hidden;
+  background: var(--surface); border-block: 1px solid var(--line);
+  padding-block: 1.1rem;
+}
+.marquee__track {
+  display: flex; flex: none; align-items: center; gap: var(--marquee-gap);
+  padding-inline-end: var(--marquee-gap); white-space: nowrap;
+  font-family: var(--font-display); font-size: var(--fs-xl); color: var(--ink-2);
+  animation: marquee var(--marquee-duration) linear infinite;
+  will-change: transform;
+}
+.marquee__track > * { flex: none; }
+.marquee__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* ---------- סליידר המלצות ([data-slider]) ---------- */
+.slider { --slider-gap: 1.25rem; position: relative; }
+[data-slider].slider__track {
+  display: flex; gap: var(--slider-gap);
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-block: 8px 28px; margin-block: -8px -28px;
+}
+[data-slider].slider__track::-webkit-scrollbar { display: none; }
+[data-slider].slider__track:focus-visible { outline: 3px solid var(--focus); outline-offset: 6px; }
+[data-slider].slider__track > * {
+  flex: 0 0 calc((100% - 2 * var(--slider-gap)) / 3);
+  scroll-snap-align: start;
+}
+@media (max-width: 899px) { [data-slider].slider__track > * { flex-basis: 100%; } }
+.slider__nav { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-block-start: 2rem; }
+.slider__btn {
+  width: 44px; height: 44px; padding: 0; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  display: grid; place-items: center; cursor: pointer;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.slider__btn:hover { border-color: var(--brass); color: var(--brass-ink); transform: translateY(-1px); }
+.slider__btn svg { width: 18px; height: 18px; }
+.slider__dots { display: flex; align-items: center; gap: .5rem; }
+.slider__dot {
+  width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px;
+  background: var(--line-strong); cursor: pointer;
+  transition: width .3s cubic-bezier(.2, .7, .2, 1), background .2s;
+}
+.slider__dot:hover { background: var(--brass-ink); }
+.slider__dot[aria-current="true"] { width: 22px; background: var(--brass); }
+.slider.is-static .slider__nav { display: none; }
+
+/* ---------- FAQ ---------- */
+.faq details.is-closing summary::after { transform: none; }
+
+/* ---------- כפתורים – sheen ---------- */
+.btn { position: relative; overflow: hidden; isolation: isolate; }
+.btn::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, .38) 50%, rgba(255, 255, 255, 0) 65%);
+  transform: translateX(-130%);
+}
+.btn:hover::after, .btn:focus-visible::after { transform: translateX(130%); transition: transform .6s ease; }
+[dir="rtl"] .btn::after {
+  transform: translateX(130%);
+  background: linear-gradient(-115deg, rgba(255, 255, 255, 0) 35%, rgba(255, 255, 255, .38) 50%, rgba(255, 255, 255, 0) 65%);
+}
+[dir="rtl"] .btn:hover::after, [dir="rtl"] .btn:focus-visible::after { transform: translateX(-130%); }
+
+/* ---------- ניווט – קו תחתון נמתח ---------- */
+.nav__link { position: relative; }
+.nav__link::after {
+  content: ""; position: absolute; inset-inline: .85rem; bottom: .25rem; height: 1px;
+  background: var(--brass-bright); transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+}
+[dir="rtl"] .nav__link::after { transform-origin: 100% 50%; }
+.nav__link:hover::after, .nav__link:focus-visible::after, .nav__link[aria-current="page"]::after { transform: scaleX(1); }
+@media (max-width: 960px) { .nav__link::after { display: none; } }
+
+/* ---------- כרטיסים – הרמה ב-hover ---------- */
+.acard, .tcard, .ccard, .aside__box { transition: transform .25s ease, box-shadow .25s ease, border-color .2s ease; }
+.acard:hover, .tcard:hover, .ccard:hover, .aside__box:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.tcard:hover, .ccard:hover, .aside__box:hover { border-color: var(--brass); }
+.aside__box--dark:hover { border-color: var(--brass); }
+html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover {
+  transform: translateY(-4px);
+  transition: opacity .7s ease, transform .25s ease, box-shadow .25s ease, border-color .2s ease;
+}
+
+/* ---------- אייקון כרטיס תחום ---------- */
+.pcard__icon { transition: transform .35s cubic-bezier(.2, .7, .2, 1), background .3s; }
+.pcard:hover .pcard__icon { transform: translateZ(30px) rotate(6deg) scale(1.06); }
+
+/* ============================================================
+   reduced-motion / html[data-motion="off"]
+   (style.css כבר מבטל transition/animation ב-data-motion="off";
+   כאן מאפסים גם מצבי התחלה כדי ששום דבר לא יישאר מוסתר)
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html.has-motion .hero__content > *, html.has-motion .page-hero__inner > *, html.has-motion .hero__scroll { opacity: 1; transform: none; transition: none; animation: none; }
+  html.has-motion [data-split] .w__in { transform: none; transition: none; animation: none; }
+  html.js .reveal.reveal--clip { clip-path: none; transition: none; }
+  html.js .reveal--line::before { transform: none; transition: none; }
+  html.js [data-parallax].is-parallax { transform: none; will-change: auto; }
+  html.js [data-stagger] > .reveal { transition-delay: 0s; }
+  .marquee { overflow-x: auto; }
+  .marquee__track { animation: none; will-change: auto; }
+  .marquee__track[data-marquee-clone] { display: none; }
+  .header, .header.is-hidden { transform: none; transition: none; }
+  .page-transition, .preloader, .cursor-glow { display: none !important; }
+  [data-slider].slider__track { scroll-behavior: auto; }
+  .btn::after { display: none; }
+  .btn, .btn:hover, .slider__btn:hover { transform: none; }
+  .slider__dot, .nav__link::after, .pcard__icon { transition: none; }
+  .acard:hover, .tcard:hover, .ccard:hover, .aside__box:hover, html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover { transform: none; transition: none; }
+  .pcard:hover .pcard__icon { transform: translateZ(30px); }
+}
+:root[data-motion="off"] .hero__content > *, :root[data-motion="off"] .page-hero__inner > *, :root[data-motion="off"] .hero__scroll { opacity: 1 !important; transform: none !important; animation: none !important; }
+:root[data-motion="off"] [data-split] .w__in { transform: none !important; animation: none !important; }
+:root[data-motion="off"] .reveal.reveal--clip { clip-path: none !important; }
+:root[data-motion="off"] .reveal--line::before { transform: none !important; }
+:root[data-motion="off"] [data-parallax].is-parallax { transform: none !important; will-change: auto; }
+:root[data-motion="off"] .marquee { overflow-x: auto; }
+:root[data-motion="off"] .marquee__track { animation: none !important; will-change: auto; }
+:root[data-motion="off"] .marquee__track[data-marquee-clone] { display: none; }
+:root[data-motion="off"] .header.is-hidden { transform: none !important; }
+:root[data-motion="off"] .page-transition, :root[data-motion="off"] .preloader, :root[data-motion="off"] .cursor-glow { display: none !important; }
+:root[data-motion="off"] [data-slider].slider__track { scroll-behavior: auto; }
+:root[data-motion="off"] .btn::after { display: none; }
+:root[data-motion="off"] .btn:hover, :root[data-motion="off"] .slider__btn:hover { transform: none; }
+:root[data-motion="off"] .acard:hover, :root[data-motion="off"] .tcard:hover, :root[data-motion="off"] .ccard:hover, :root[data-motion="off"] .aside__box:hover { transform: none; }
+:root[data-motion="off"] .pcard:hover .pcard__icon { transform: translateZ(30px); }
+
+/* ---------- הדפסה ---------- */
+@media print {
+  .page-transition, .preloader, .cursor-glow, .read-progress, .slider__nav, .marquee { display: none !important; }
+}
+
 .preview-note{position:fixed;top:84px;inset-inline-start:0;z-index:99;background:#d8b978;color:#101915;font-size:.72rem;padding:.3rem .7rem;border-radius:0 4px 4px 0;letter-spacing:.06em}
 [dir="rtl"] .preview-note{border-radius:4px 0 0 4px}
 </style>
@@ -688,11 +1033,11 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div class="hero__vignette" aria-hidden="true"></div>
   <div class="container hero__inner">
     <div class="hero__content">
-      <span class="eyebrow">משרד עורכי דין עומרי דותן</span>
-      <h1 class="hero__title" id="hero-title">ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
+      <span class="eyebrow reveal--line">משרד עורכי דין עומרי דותן</span>
+      <h1 class="hero__title" id="hero-title" data-split>ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
       <p class="hero__lede">ליווי אישי, אסטרטגיה כתובה ותוצאות – בדיני עבודה, מקרקעין, משפחה וירושה, נזיקין וליטיגציה מסחרית. אתם מבינים בדיוק איפה אתם עומדים, בכל שלב.</p>
       <div class="hero__actions">
-        <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישת ייעוץ</a>
+        <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישת ייעוץ</a>
         <a class="btn btn--ghost" href="#/practice">תחומי העיסוק</a>
       </div>
       <div class="hero__trust">
@@ -705,47 +1050,61 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <span class="hero__scroll" aria-hidden="true">גללו</span>
 </section>
 
+<section class="section section--tight" aria-labelledby="stats-title">
+  <div class="container">
+    <h2 class="sr-only" id="stats-title">המשרד במספרים</h2>
+    <div class="stat-row stat-row--4" data-stagger>
+      <div class="stat reveal"><strong data-counter="14" data-prefix="" data-suffix="+">14+</strong><span>שנות פעילות וייצוג בכל הערכאות</span></div>
+      <div class="stat reveal"><strong data-counter="6" data-prefix="" data-suffix="">6</strong><span>תחומי עיסוק במיקוד מלא</span></div>
+      <div class="stat reveal"><strong data-counter="1" data-prefix="" data-suffix="">1</strong><span>יום עסקים למענה על כל פנייה</span></div>
+      <div class="stat reveal"><strong data-counter="100" data-prefix="" data-suffix="%">100%</strong><span>שקיפות בשכר הטרחה – הצעה כתובה מראש</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" data-marquee aria-hidden="true"><div class="marquee__track"><span class="marquee__item">דיני עבודה</span><span class="marquee__dot"></span><span class="marquee__item">ליווי בהליכי שימוע ופיטורים</span><span class="marquee__dot"></span><span class="marquee__item">מקרקעין ונדל״ן</span><span class="marquee__dot"></span><span class="marquee__item">תכנון מס רכישה ומס שבח</span><span class="marquee__dot"></span><span class="marquee__item">דיני משפחה וירושה</span><span class="marquee__dot"></span><span class="marquee__item">חלוקת רכוש ואיזון משאבים</span><span class="marquee__dot"></span><span class="marquee__item">נזיקין וביטוח</span><span class="marquee__dot"></span><span class="marquee__item">רשלנות רפואית</span><span class="marquee__dot"></span><span class="marquee__item">ליטיגציה מסחרית</span><span class="marquee__dot"></span><span class="marquee__item">בוררות וגישור</span><span class="marquee__dot"></span><span class="marquee__item">דיני חברות ועסקים</span><span class="marquee__dot"></span><span class="marquee__item">הקמת חברות ושותפויות</span><span class="marquee__dot"></span></div></div>
+
 <section class="section section--tight" aria-labelledby="process-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
-    <div class="process reveal"><div class="process__step"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
+    <div class="process" data-stagger><div class="process__step reveal"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step reveal"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step reveal"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
   </div>
 </section>
 
 <section class="section" aria-labelledby="practice-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
-    <div class="practice-grid"><a class="pcard reveal" data-delay="1" href="#/practice/labor-law">
+    <div class="section-head reveal"><span class="eyebrow reveal--line">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
+    <div class="practice-grid" data-stagger><a class="pcard reveal" href="#/practice/labor-law">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h16v11H4z"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M4 13h16"/></svg></span>
     <h3>דיני עבודה</h3>
     <p>פיטורים, שימוע, זכויות סוציאליות והסכמי העסקה – לעובדים ולמעסיקים.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/real-estate">
+  </a><a class="pcard reveal" href="#/practice/real-estate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V5l7-3 7 3v16"/><path d="M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2"/><path d="M3 21h18"/></svg></span>
     <h3>מקרקעין ונדל״ן</h3>
     <p>עסקאות מכר ושכירות, תמ״א 38, ליקויי בנייה ומיסוי מקרקעין.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/family-inheritance">
+  </a><a class="pcard reveal" href="#/practice/family-inheritance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="8" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2"/><path d="M14 21v-1.5a4 4 0 0 1 4-4h.5a3.5 3.5 0 0 1 3.5 3.5V21"/></svg></span>
     <h3>דיני משפחה וירושה</h3>
     <p>גירושין, הסכמי ממון, משמורת, צוואות וצווי ירושה – ברגישות ובדיסקרטיות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="1" href="#/practice/torts-insurance">
+  </a><a class="pcard reveal" href="#/practice/torts-insurance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
     <h3>נזיקין וביטוח</h3>
     <p>תאונות דרכים, תאונות עבודה, רשלנות רפואית ותביעות מול חברות ביטוח.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/commercial-litigation">
+  </a><a class="pcard reveal" href="#/practice/commercial-litigation">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-8 8 3 3 8-8"/><path d="M3 21h10"/></svg></span>
     <h3>ליטיגציה מסחרית</h3>
     <p>סכסוכים עסקיים, הפרות חוזה, גבייה, לשון הרע וייצוג בערכאות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/corporate">
+  </a><a class="pcard reveal" href="#/practice/corporate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg></span>
     <h3>דיני חברות ועסקים</h3>
@@ -757,21 +1116,21 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="section section--surface" aria-labelledby="about-title">
   <div class="container about-split">
-    <div class="portrait reveal">
+    <div class="portrait reveal" data-parallax="0.12">
       <span class="portrait__grain" aria-hidden="true"></span>
       <svg class="portrait__mark" viewBox="0 0 400 400" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M200 60v260M140 320h120M80 120h240"/><path d="M80 120l-40 100h80zM320 120l-40 100h80z"/><circle cx="200" cy="52" r="10"/></svg>
       <p class="portrait__quote">„הלקוח לא צריך להבין את כל החוק – הוא צריך להבין מה האפשרויות שלו ומה ההשלכות של כל אחת מהן. זו העבודה שלי.”</p>
       <p class="portrait__by">עו״ד עומרי דותן, מייסד ובעלים</p>
     </div>
     <div class="about-split__text reveal" data-delay="1">
-      <span class="eyebrow">אודות המשרד</span>
+      <span class="eyebrow reveal--line">אודות המשרד</span>
       <h2 id="about-title">משרד בוטיק עם סטנדרט של משרד גדול</h2>
       <p>עו״ד עומרי דותן ייסד את המשרד מתוך אמונה שלקוח שמבין את מצבו המשפטי מקבל החלטות טובות יותר. הוא מתמחה בליטיגציה אזרחית־מסחרית, בדיני עבודה ובמקרקעין, ומייצג לקוחות פרטיים ועסקיים בכל הערכאות.</p>
       <p>צוות המשרד כולל עורכי דין, מתמחים וצוות מנהלי מנוסה, שפועלים יחד כדי שכל לקוח יקבל מענה מהיר ומקצועי. אנו משקיעים בהכשרה מתמדת ובטכנולוגיה שמייעלת את העבודה – כדי שהזמן שלכם יוקדש למה שחשוב.</p>
-      <ul class="about-list">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
+      <ul class="about-list" data-stagger>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
       </ul>
       <div><a class="link-arrow" href="#/about">להכיר את המשרד <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></a></div>
     </div>
@@ -779,21 +1138,21 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 </section>
 
 <section class="section section--dark"><div class="container">
-    <div class="section-head reveal"><span class="eyebrow">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
-    <div class="values"><div class="value reveal" data-delay="1"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal" data-delay="2"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal" data-delay="3"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal" data-delay="4"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
+    <div class="values" data-stagger><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
   </div></section>
 
 <section class="section" aria-labelledby="testimonials-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
-    <div class="testimonials"><article class="tcard reveal" data-delay="1"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>הגעתי אחרי פיטורים לא חוקיים, מבולבל ומיואש. עומרי הסביר לי בשפה פשוטה מה מגיע לי, ותוך שלושה חודשים הגענו לפשרה שלא האמנתי שאפשרית.</blockquote><footer><strong>א.כ.</strong><span>לקוח, דיני עבודה</span></footer></article><article class="tcard reveal" data-delay="2"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>ליווי מקצועי ומדויק ברכישת הדירה הראשונה שלנו. כל שאלה נענתה באותו יום, וכל סעיף בחוזה הוסבר עד שהבנו.</blockquote><footer><strong>משפחת ר.</strong><span>לקוחות, מקרקעין</span></footer></article><article class="tcard reveal" data-delay="3"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>המשרד מלווה את החברה שלנו כבר ארבע שנים. ייעוץ עסקי חד, לא רק משפטי – זה ההבדל.</blockquote><footer><strong>ד.ל., מנכ״לית</strong><span>לקוחה, דיני חברות</span></footer></article></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
+    <div class="testimonials" data-slider role="region" aria-roledescription="carousel" aria-label="המלצות לקוחות"><article class="tcard reveal" data-delay="1"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>הגעתי אחרי פיטורים לא חוקיים, מבולבל ומיואש. עומרי הסביר לי בשפה פשוטה מה מגיע לי, ותוך שלושה חודשים הגענו לפשרה שלא האמנתי שאפשרית.</blockquote><footer><strong>א.כ.</strong><span>לקוח, דיני עבודה</span></footer></article><article class="tcard reveal" data-delay="2"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>ליווי מקצועי ומדויק ברכישת הדירה הראשונה שלנו. כל שאלה נענתה באותו יום, וכל סעיף בחוזה הוסבר עד שהבנו.</blockquote><footer><strong>משפחת ר.</strong><span>לקוחות, מקרקעין</span></footer></article><article class="tcard reveal" data-delay="3"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>המשרד מלווה את החברה שלנו כבר ארבע שנים. ייעוץ עסקי חד, לא רק משפטי – זה ההבדל.</blockquote><footer><strong>ד.ל., מנכ״לית</strong><span>לקוחה, דיני חברות</span></footer></article><article class="tcard reveal" data-delay="4"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>אחרי תאונת הדרכים חברת הביטוח הציעה סכום שנראה לי סופי. עומרי לא קיבל את זה, ניהל את התיק בסבלנות מול המומחים, והפיצוי בסופו של דבר היה כמעט פי שלושה.</blockquote><footer><strong>י.מ.</strong><span>לקוח, נזיקין וביטוח</span></footer></article><article class="tcard reveal" data-delay="5"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>גירושין הם תקופה שבה כל מילה כואבת. קיבלנו ליווי רגיש אבל נחוש, שהשאיר את הילדים מחוץ למאבק והביא אותנו להסכם הוגן בתוך חודשים ספורים.</blockquote><footer><strong>נ.ש.</strong><span>לקוחה, דיני משפחה וירושה</span></footer></article><article class="tcard reveal" data-delay="6"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>שותף לשעבר הפר את ההסכם ונעלם. במקום תביעה של שנים, המשרד השיג צו מניעה בתוך שבוע, ובעקבותיו הסדר שסגר את העניין. תכליתי, בדיוק כמו שהובטח.</blockquote><footer><strong>ר.ב., בעל עסק</strong><span>לקוח, ליטיגציה מסחרית</span></footer></article></div>
   </div>
 </section>
 
 <section class="section section--surface" aria-labelledby="articles-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
-    <div class="articles-grid"><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
+    <div class="section-head reveal"><span class="eyebrow reveal--line">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
+    <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -815,7 +1174,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="section" aria-labelledby="faq-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
     <div class="faq" id="faq"><details><summary>כמה עולה פגישת ייעוץ ראשונה?</summary><div><p>פגישת ההיכרות הראשונה (עד 30 דקות) ניתנת ללא עלות וללא התחייבות. בסיומה תקבלו הערכה ראשונית והצעת שכר טרחה מסודרת.</p></div></details><details><summary>איך נקבע שכר הטרחה?</summary><div><p>בהתאם לסוג התיק: תעריף קבוע לעסקאות ולהסכמים, אחוזי הצלחה בתביעות נזיקין וגבייה, ותעריף שעתי או ריטיינר לייעוץ שוטף. הכול מסוכם בכתב מראש.</p></div></details><details><summary>האם המשרד מטפל בתיקים בכל הארץ?</summary><div><p>כן. המשרד מייצג בכל בתי המשפט ובתי הדין בישראל, ופגישות מתקיימות גם בשיחת וידאו.</p></div></details><details><summary>מה להביא לפגישה הראשונה?</summary><div><p>כל מסמך רלוונטי: חוזים, מכתבים, תלושי שכר, מסמכים רפואיים, התכתבויות. אם אינכם בטוחים – הביאו הכול, אנחנו נמיין.</p></div></details><details><summary>האם אפשר להתייעץ בלי לפתוח בהליך משפטי?</summary><div><p>בהחלט. חלק גדול מהעבודה שלנו הוא ייעוץ מונע: בדיקת חוזה לפני חתימה, מכתב התראה, או חוות דעת על הסיכויים – לפני שמחליטים אם לתבוע.</p></div></details></div>
   </div>
 </section>
@@ -823,14 +1182,14 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--dark" id="contact" aria-labelledby="contact-title">
   <div class="container contact-band">
     <div class="contact-info reveal">
-      <span class="eyebrow">צור קשר</span>
+      <span class="eyebrow reveal--line">צור קשר</span>
       <h2 id="contact-title">ספרו לנו במה מדובר. נחזור אליכם תוך יום עסקים.</h2>
       <p>השאירו פרטים, או התקשרו ישירות. בפגישה הראשונה נקשיב, נשאל, וניתן לכם הערכה כנה – גם אם המסקנה היא שלא כדאי לכם לתבוע.</p>
-      <ul class="contact-lines">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>טלפון</small><a href="tel:+97230000000" class="num">03-000-0000</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><div><small>וואטסאפ</small><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><div><small>אימייל</small><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>כתובת</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה), תל אביב-יפו</div></li>
+      <ul class="contact-lines" data-stagger>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>טלפון</small><a href="tel:+97230000000" class="num">03-000-0000</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><div><small>וואטסאפ</small><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><div><small>אימייל</small><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>כתובת</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה), תל אביב-יפו</div></li>
       </ul>
     </div>
     <div class="reveal" data-delay="1"><form class="form" data-contact-form data-mailto="office@omridotan-law.co.il" data-endpoint="" novalidate aria-label="טופס יצירת קשר">
@@ -858,14 +1217,14 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li aria-current="page">אודות</li></ol></nav>
-    <span class="eyebrow">אודות</span>
+    <span class="eyebrow reveal--line">אודות</span>
     <h1>משרד שנבנה סביב שאלה אחת: מה הלקוח באמת צריך?</h1>
     <p class="lede">לא כל בעיה משפטית מצדיקה תביעה, ולא כל חוזה צריך 40 עמודים. אנחנו כאן כדי לתת לכם את התמונה המלאה – ולפעול.</p>
     
   </div></section>
 <section class="section">
   <div class="container team-grid">
-    <div class="portrait reveal">
+    <div class="portrait reveal" data-parallax="0.12">
       <span class="portrait__grain" aria-hidden="true"></span>
       <svg class="portrait__mark" viewBox="0 0 400 400" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M200 60v260M140 320h120M80 120h240"/><path d="M80 120l-40 100h80zM320 120l-40 100h80z"/><circle cx="200" cy="52" r="10"/></svg>
       <p class="portrait__quote">„הלקוח לא צריך להבין את כל החוק – הוא צריך להבין מה האפשרויות שלו ומה ההשלכות של כל אחת מהן. זו העבודה שלי.”</p>
@@ -875,58 +1234,58 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
       <span class="role">מייסד ובעלים</span>
       <h2>עו״ד עומרי דותן</h2>
       <p>עו״ד עומרי דותן ייסד את המשרד מתוך אמונה שלקוח שמבין את מצבו המשפטי מקבל החלטות טובות יותר. הוא מתמחה בליטיגציה אזרחית־מסחרית, בדיני עבודה ובמקרקעין, ומייצג לקוחות פרטיים ועסקיים בכל הערכאות.</p><p>לפני הקמת המשרד עבד עומרי במשרד עורכי דין מוביל בתל אביב, שם ניהל תיקים מסחריים מורכבים. הוא בוגר הפקולטה למשפטים וחבר לשכת עורכי הדין בישראל.</p><p>עומרי מרצה בסדנאות לעסקים קטנים בנושאי חוזים ודיני עבודה, ומפרסם באופן קבוע מאמרים משפטיים בשפה נגישה.</p>
-      <div class="stat-row">
-        <div class="stat"><strong>14+</strong><span>שנות פעילות המשרד</span></div>
-        <div class="stat"><strong>6</strong><span>תחומי עיסוק</span></div>
-        <div class="stat"><strong>1</strong><span>יום עסקים למענה</span></div>
+      <div class="stat-row" data-stagger>
+        <div class="stat reveal"><strong data-counter="14" data-prefix="" data-suffix="+">14+</strong><span>שנות פעילות המשרד</span></div>
+        <div class="stat reveal"><strong data-counter="6" data-prefix="" data-suffix="">6</strong><span>תחומי עיסוק</span></div>
+        <div class="stat reveal"><strong data-counter="1" data-prefix="" data-suffix="">1</strong><span>יום עסקים למענה</span></div>
       </div>
     </div>
   </div>
 </section>
 <section class="section section--surface">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">הצוות</span><h2>אנשים, לא מחלקות</h2><p class="lede">צוות המשרד כולל עורכי דין, מתמחים וצוות מנהלי מנוסה, שפועלים יחד כדי שכל לקוח יקבל מענה מהיר ומקצועי. אנו משקיעים בהכשרה מתמדת ובטכנולוגיה שמייעלת את העבודה – כדי שהזמן שלכם יוקדש למה שחשוב.</p></div>
-    <div class="process reveal"><div class="process__step"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">הצוות</span><h2>אנשים, לא מחלקות</h2><p class="lede">צוות המשרד כולל עורכי דין, מתמחים וצוות מנהלי מנוסה, שפועלים יחד כדי שכל לקוח יקבל מענה מהיר ומקצועי. אנו משקיעים בהכשרה מתמדת ובטכנולוגיה שמייעלת את העבודה – כדי שהזמן שלכם יוקדש למה שחשוב.</p></div>
+    <div class="process" data-stagger><div class="process__step reveal"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step reveal"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step reveal"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
   </div>
 </section>
 <section class="section section--dark"><div class="container">
-    <div class="section-head reveal"><span class="eyebrow">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
-    <div class="values"><div class="value reveal" data-delay="1"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal" data-delay="2"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal" data-delay="3"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal" data-delay="4"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
+    <div class="values" data-stagger><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
   </div></section>
 <section class="section">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">תחומי עיסוק</span><h2>במה אנחנו עוסקים</h2></div>
-    <div class="practice-grid"><a class="pcard reveal" data-delay="1" href="#/practice/labor-law">
+    <div class="section-head reveal"><span class="eyebrow reveal--line">תחומי עיסוק</span><h2>במה אנחנו עוסקים</h2></div>
+    <div class="practice-grid" data-stagger><a class="pcard reveal" href="#/practice/labor-law">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h16v11H4z"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M4 13h16"/></svg></span>
     <h3>דיני עבודה</h3>
     <p>פיטורים, שימוע, זכויות סוציאליות והסכמי העסקה – לעובדים ולמעסיקים.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/real-estate">
+  </a><a class="pcard reveal" href="#/practice/real-estate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V5l7-3 7 3v16"/><path d="M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2"/><path d="M3 21h18"/></svg></span>
     <h3>מקרקעין ונדל״ן</h3>
     <p>עסקאות מכר ושכירות, תמ״א 38, ליקויי בנייה ומיסוי מקרקעין.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/family-inheritance">
+  </a><a class="pcard reveal" href="#/practice/family-inheritance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="8" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2"/><path d="M14 21v-1.5a4 4 0 0 1 4-4h.5a3.5 3.5 0 0 1 3.5 3.5V21"/></svg></span>
     <h3>דיני משפחה וירושה</h3>
     <p>גירושין, הסכמי ממון, משמורת, צוואות וצווי ירושה – ברגישות ובדיסקרטיות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="1" href="#/practice/torts-insurance">
+  </a><a class="pcard reveal" href="#/practice/torts-insurance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
     <h3>נזיקין וביטוח</h3>
     <p>תאונות דרכים, תאונות עבודה, רשלנות רפואית ותביעות מול חברות ביטוח.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/commercial-litigation">
+  </a><a class="pcard reveal" href="#/practice/commercial-litigation">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-8 8 3 3 8-8"/><path d="M3 21h10"/></svg></span>
     <h3>ליטיגציה מסחרית</h3>
     <p>סכסוכים עסקיים, הפרות חוזה, גבייה, לשון הרע וייצוג בערכאות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/corporate">
+  </a><a class="pcard reveal" href="#/practice/corporate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg></span>
     <h3>דיני חברות ועסקים</h3>
@@ -938,7 +1297,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -947,43 +1306,43 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li aria-current="page">תחומי עיסוק</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>שישה תחומי ליבה. גישה אחת.</h1>
     <p class="lede">אנו מעדיפים עומק על פני רוחב: בכל אחד מהתחומים הבאים המשרד מטפל בעשרות תיקים בשנה, ומכיר את הפסיקה, את השופטים ואת הצד השני.</p>
     
   </div></section>
 <section class="section"><div class="container">
-  <div class="practice-grid"><a class="pcard reveal" data-delay="1" href="#/practice/labor-law">
+  <div class="practice-grid" data-stagger><a class="pcard reveal" href="#/practice/labor-law">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h16v11H4z"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M4 13h16"/></svg></span>
     <h3>דיני עבודה</h3>
     <p>פיטורים, שימוע, זכויות סוציאליות והסכמי העסקה – לעובדים ולמעסיקים.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/real-estate">
+  </a><a class="pcard reveal" href="#/practice/real-estate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V5l7-3 7 3v16"/><path d="M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2"/><path d="M3 21h18"/></svg></span>
     <h3>מקרקעין ונדל״ן</h3>
     <p>עסקאות מכר ושכירות, תמ״א 38, ליקויי בנייה ומיסוי מקרקעין.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/family-inheritance">
+  </a><a class="pcard reveal" href="#/practice/family-inheritance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="8" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2"/><path d="M14 21v-1.5a4 4 0 0 1 4-4h.5a3.5 3.5 0 0 1 3.5 3.5V21"/></svg></span>
     <h3>דיני משפחה וירושה</h3>
     <p>גירושין, הסכמי ממון, משמורת, צוואות וצווי ירושה – ברגישות ובדיסקרטיות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="1" href="#/practice/torts-insurance">
+  </a><a class="pcard reveal" href="#/practice/torts-insurance">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
     <h3>נזיקין וביטוח</h3>
     <p>תאונות דרכים, תאונות עבודה, רשלנות רפואית ותביעות מול חברות ביטוח.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="#/practice/commercial-litigation">
+  </a><a class="pcard reveal" href="#/practice/commercial-litigation">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-8 8 3 3 8-8"/><path d="M3 21h10"/></svg></span>
     <h3>ליטיגציה מסחרית</h3>
     <p>סכסוכים עסקיים, הפרות חוזה, גבייה, לשון הרע וייצוג בערכאות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="#/practice/corporate">
+  </a><a class="pcard reveal" href="#/practice/corporate">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg></span>
     <h3>דיני חברות ועסקים</h3>
@@ -992,17 +1351,17 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </a></div>
 </div></section>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">איך זה עובד</span><h2>מהפגישה הראשונה ועד לתוצאה</h2></div>
-  <div class="process reveal"><div class="process__step"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">איך זה עובד</span><h2>מהפגישה הראשונה ועד לתוצאה</h2></div>
+  <div class="process" data-stagger><div class="process__step reveal"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step reveal"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step reveal"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
 </div></section>
 <section class="section"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2>שכר טרחה, זמנים ומה להביא</h2></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2>שכר טרחה, זמנים ומה להביא</h2></div>
   <div class="faq" id="faq"><details><summary>כמה עולה פגישת ייעוץ ראשונה?</summary><div><p>פגישת ההיכרות הראשונה (עד 30 דקות) ניתנת ללא עלות וללא התחייבות. בסיומה תקבלו הערכה ראשונית והצעת שכר טרחה מסודרת.</p></div></details><details><summary>איך נקבע שכר הטרחה?</summary><div><p>בהתאם לסוג התיק: תעריף קבוע לעסקאות ולהסכמים, אחוזי הצלחה בתביעות נזיקין וגבייה, ותעריף שעתי או ריטיינר לייעוץ שוטף. הכול מסוכם בכתב מראש.</p></div></details><details><summary>האם המשרד מטפל בתיקים בכל הארץ?</summary><div><p>כן. המשרד מייצג בכל בתי המשפט ובתי הדין בישראל, ופגישות מתקיימות גם בשיחת וידאו.</p></div></details><details><summary>מה להביא לפגישה הראשונה?</summary><div><p>כל מסמך רלוונטי: חוזים, מכתבים, תלושי שכר, מסמכים רפואיים, התכתבויות. אם אינכם בטוחים – הביאו הכול, אנחנו נמיין.</p></div></details><details><summary>האם אפשר להתייעץ בלי לפתוח בהליך משפטי?</summary><div><p>בהחלט. חלק גדול מהעבודה שלנו הוא ייעוץ מונע: בדיקת חוזה לפני חתימה, מכתב התראה, או חוות דעת על הסיכויים – לפני שמחליטים אם לתבוע.</p></div></details></div>
 </div></section>
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1011,7 +1370,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">דיני עבודה</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>דיני עבודה</h1>
     <p class="lede">פיטורים, שימוע, זכויות סוציאליות והסכמי העסקה – לעובדים ולמעסיקים.</p>
     
@@ -1020,7 +1379,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>יחסי עבודה הם מהקשרים המשפטיים הנפוצים ביותר, ובה בעת מהרגישים שבהם. המשרד מייצג עובדים ומעסיקים כאחד, ומביא לכל תיק הבנה של שני צידי המתרס.</p><p>אנו מלווים עובדים בהליכי שימוע ופיטורים, בתביעות לזכויות סוציאליות ובמשא ומתן על תנאי העסקה, ומסייעים למעסיקים לבנות מערך העסקה תקין שמונע חשיפה משפטית מיותרת.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ליווי בהליכי שימוע ופיטורים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות לפיצויי פיטורים, שעות נוספות, פנסיה והבראה</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הטרדה מינית והתעמרות בעבודה</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי העסקה, סודיות ואי־תחרות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ייצוג בבית הדין האזורי והארצי לעבודה</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ייעוץ שוטף למעסיקים וביקורת ציות</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ליווי בהליכי שימוע ופיטורים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות לפיצויי פיטורים, שעות נוספות, פנסיה והבראה</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הטרדה מינית והתעמרות בעבודה</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי העסקה, סודיות ואי־תחרות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ייצוג בבית הדין האזורי והארצי לעבודה</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ייעוץ שוטף למעסיקים וביקורת ציות</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות בדיני עבודה</h2>
     <div class="faq" id="faq-labor-law"><details><summary>האם חובה להזמין עובד לשימוע לפני פיטורים?</summary><div><p>כן. חובת השימוע חלה על כל מעסיק, גם במגזר הפרטי. פיטורים ללא שימוע תקין עלולים לזכות את העובד בפיצוי כספי משמעותי.</p></div></details><details><summary>תוך כמה זמן אפשר לתבוע זכויות מהעבודה?</summary><div><p>ככלל, תקופת ההתיישנות היא 7 שנים, אך על חלק מהזכויות (למשל פיצוי על אי־מסירת הודעה לעובד או הטרדה) חלות תקופות קצרות יותר. מומלץ לא להמתין.</p></div></details></div>
   </div>
@@ -1038,7 +1397,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1047,7 +1406,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">מקרקעין ונדל״ן</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>מקרקעין ונדל״ן</h1>
     <p class="lede">עסקאות מכר ושכירות, תמ״א 38, ליקויי בנייה ומיסוי מקרקעין.</p>
     
@@ -1056,7 +1415,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>רכישת דירה היא לרוב העסקה הגדולה בחיי משפחה, ומעט טעויות משפטיות עולות יותר. המשרד מלווה רוכשים, מוכרים ויזמים משלב בדיקת הנכס ועד רישום הזכויות בטאבו.</p><p>לצד עסקאות מכר אנו עוסקים בהסכמי שכירות, בסכסוכי שכנים ובתים משותפים, בפרויקטים של התחדשות עירונית ובתביעות בגין ליקויי בנייה ואיחור במסירה.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ליווי רכישה ומכירה של דירות, מגרשים ונכסים מסחריים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>בדיקות נאותות: נסח טאבו, היתרי בנייה, צווים ושעבודים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תכנון מס רכישה ומס שבח</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי שכירות למגורים ולעסקים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>התחדשות עירונית – תמ״א 38 ופינוי־בינוי</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות ליקויי בנייה ואיחור במסירה מקבלן</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ליווי רכישה ומכירה של דירות, מגרשים ונכסים מסחריים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>בדיקות נאותות: נסח טאבו, היתרי בנייה, צווים ושעבודים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תכנון מס רכישה ומס שבח</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי שכירות למגורים ולעסקים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>התחדשות עירונית – תמ״א 38 ופינוי־בינוי</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות ליקויי בנייה ואיחור במסירה מקבלן</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות במקרקעין ונדל״ן</h2>
     <div class="faq" id="faq-real-estate"><details><summary>מה עורך הדין בודק לפני חתימה על חוזה רכישה?</summary><div><p>זהות הבעלים ורישום הזכויות, משכנתאות ושעבודים, צווי הריסה או חריגות בנייה, חובות לרשות המקומית, מצב תכנוני ותשלומי מיסים צפויים.</p></div></details><details><summary>האם צריך עורך דין נפרד לכל צד בעסקה?</summary><div><p>מומלץ מאוד. עורך דין אחד אינו יכול לייצג נאמנה אינטרסים מנוגדים, ובעסקאות רבות הפער בין הצדדים משמעותי.</p></div></details></div>
   </div>
@@ -1074,7 +1433,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1083,7 +1442,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">דיני משפחה וירושה</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>דיני משפחה וירושה</h1>
     <p class="lede">גירושין, הסכמי ממון, משמורת, צוואות וצווי ירושה – ברגישות ובדיסקרטיות.</p>
     
@@ -1092,7 +1451,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>ענייני משפחה מחייבים שילוב נדיר של רגישות אנושית ותקיפות משפטית. אנו מלווים לקוחות בצמתים המורכבים בחייהם: פרידה, חלוקת רכוש, הסדרי הורות, וכן תכנון עיזבון והעברה בין־דורית.</p><p>המשרד מאמין בפתרון סכסוכים בהסכמה כשניתן – בגישור ובמשא ומתן – ומייצג בנחישות בבית המשפט לענייני משפחה כשלא ניתן.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי גירושין והסכמי ממון</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>משמורת, זמני שהות ומזונות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>חלוקת רכוש ואיזון משאבים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>עריכת צוואות וייפוי כוח מתמשך</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>צווי ירושה וצווי קיום צוואה</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>התנגדויות לצוואה וסכסוכי עיזבון</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי גירושין והסכמי ממון</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>משמורת, זמני שהות ומזונות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>חלוקת רכוש ואיזון משאבים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>עריכת צוואות וייפוי כוח מתמשך</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>צווי ירושה וצווי קיום צוואה</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>התנגדויות לצוואה וסכסוכי עיזבון</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות בדיני משפחה וירושה</h2>
     <div class="faq" id="faq-family-inheritance"><details><summary>האם צוואה שכתבתי בעצמי תקפה?</summary><div><p>צוואה בכתב יד תקפה אם היא כתובה כולה בכתב ידו של המצווה, נושאת תאריך וחתומה על ידו. עם זאת, צוואה בעדים שנערכה על ידי עורך דין מפחיתה משמעותית את הסיכון להתנגדויות.</p></div></details><details><summary>האם הסכם ממון מתאים רק לבעלי הון?</summary><div><p>לא. הסכם ממון רלוונטי לכל זוג שיש לו נכס, עסק, ירושה צפויה או ילדים מקשר קודם – והוא מונע סכסוכים יקרים בעתיד.</p></div></details></div>
   </div>
@@ -1110,7 +1469,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1119,7 +1478,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">נזיקין וביטוח</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>נזיקין וביטוח</h1>
     <p class="lede">תאונות דרכים, תאונות עבודה, רשלנות רפואית ותביעות מול חברות ביטוח.</p>
     
@@ -1128,7 +1487,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>מי שנפגע בגופו מתמודד לא רק עם הכאב אלא גם עם מערכת ביטוחית שיודעת היטב להגן על עצמה. תפקידנו לאזן את המגרש.</p><p>המשרד מייצג נפגעי תאונות דרכים, תאונות עבודה, נפילות במקומות ציבוריים ורשלנות רפואית, ומלווה את הלקוח מול חברות הביטוח, המוסד לביטוח לאומי וקרנית – עד לקבלת הפיצוי המלא.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תאונות דרכים – נהגים, נוסעים והולכי רגל</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תאונות עבודה ומחלות מקצוע</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות נכות מול המוסד לביטוח לאומי</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>רשלנות רפואית</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות ביטוח: אובדן כושר עבודה, סיעוד, פוליסות חיים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>נזקי גוף בשטח ציבורי ובמוסדות חינוך</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תאונות דרכים – נהגים, נוסעים והולכי רגל</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תאונות עבודה ומחלות מקצוע</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות נכות מול המוסד לביטוח לאומי</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>רשלנות רפואית</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות ביטוח: אובדן כושר עבודה, סיעוד, פוליסות חיים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>נזקי גוף בשטח ציבורי ובמוסדות חינוך</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות בנזיקין וביטוח</h2>
     <div class="faq" id="faq-torts-insurance"><details><summary>האם משלמים שכר טרחה מראש בתביעת נזיקין?</summary><div><p>בדרך כלל לא. בתביעות נזקי גוף שכר הטרחה נגזר כאחוז מהפיצוי שמתקבל בפועל, ובתאונות דרכים שיעורו מוגבל בחוק.</p></div></details><details><summary>כמה זמן יש להגיש תביעה?</summary><div><p>תקופת ההתיישנות הכללית היא 7 שנים מיום האירוע (ולקטינים – מגיל 18). אך איסוף ראיות ומסמכים רפואיים סמוך לאירוע קריטי להצלחת התביעה.</p></div></details></div>
   </div>
@@ -1146,7 +1505,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1155,7 +1514,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">ליטיגציה מסחרית</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>ליטיגציה מסחרית</h1>
     <p class="lede">סכסוכים עסקיים, הפרות חוזה, גבייה, לשון הרע וייצוג בערכאות.</p>
     
@@ -1164,7 +1523,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>סכסוך משפטי הוא לעולם לא מטרה – הוא כלי. אנו ניגשים לכל תיק עם שאלה אחת: מהי התוצאה העסקית שהלקוח צריך, ומהי הדרך הקצרה והחסכונית ביותר להשיג אותה.</p><p>המשרד מייצג חברות, בעלי עסקים ויחידים בבתי משפט השלום והמחוזי, בבוררויות ובגישורים, בסכסוכים חוזיים, בתביעות כספיות ובתביעות לשון הרע.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות בגין הפרת חוזה</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>סכסוכים בין שותפים ובעלי מניות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>גביית חובות והוצאה לפועל</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>לשון הרע ופגיעה בפרטיות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>צווי מניעה וסעדים זמניים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>בוררות וגישור</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>תביעות בגין הפרת חוזה</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>סכסוכים בין שותפים ובעלי מניות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>גביית חובות והוצאה לפועל</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>לשון הרע ופגיעה בפרטיות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>צווי מניעה וסעדים זמניים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>בוררות וגישור</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות בליטיגציה מסחרית</h2>
     <div class="faq" id="faq-commercial-litigation"><details><summary>האם כדאי לשלוח מכתב התראה לפני תביעה?</summary><div><p>ברוב המקרים כן. מכתב התראה מנוסח היטב פותר חלק ניכר מהסכסוכים ללא הליך משפטי, ומשמש ראיה לתום לב ולניסיון ליישוב המחלוקת.</p></div></details><details><summary>כמה זמן נמשך הליך אזרחי?</summary><div><p>תלוי בערכאה ובמורכבות – מחודשים ספורים בתביעות פשוטות ועד שנים בתיקים מורכבים. הליכי גישור ובוררות מקצרים לרוב את לוחות הזמנים באופן ניכר.</p></div></details></div>
   </div>
@@ -1182,7 +1541,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1191,7 +1550,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/practice">תחומי עיסוק</a></li><li aria-current="page">דיני חברות ועסקים</li></ol></nav>
-    <span class="eyebrow">תחומי עיסוק</span>
+    <span class="eyebrow reveal--line">תחומי עיסוק</span>
     <h1>דיני חברות ועסקים</h1>
     <p class="lede">הקמת חברות, הסכמי מייסדים, השקעות, מיזוגים וייעוץ שוטף.</p>
     
@@ -1200,7 +1559,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   <div>
     <div class="prose reveal"><p>עסק טוב נבנה על תשתית משפטית נכונה. אנו מלווים יזמים וחברות משלב הרעיון – בחירת מבנה ההתאגדות והסכם המייסדים – דרך גיוסי הון, הסכמים מסחריים ועד מכירת החברה.</p><p>הגישה שלנו עסקית: חוזה טוב הוא כזה שמאפשר לעסקה להתקיים, לא כזה שמונע אותה.</p></div>
     <h2 style="margin-block-start:2.5rem;font-size:var(--fs-xl)" class="reveal">מה אנחנו עושים</h2>
-    <ul class="services reveal"><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הקמת חברות ושותפויות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי מייסדים ובעלי מניות</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי השקעה וגיוסי הון</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי הפצה, ספקים ושירותים</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>מיזוגים ורכישות (M&A)</span></li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ריטיינר משפטי חודשי לעסקים</span></li></ul>
+    <ul class="services" data-stagger><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הקמת חברות ושותפויות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי מייסדים ובעלי מניות</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי השקעה וגיוסי הון</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>הסכמי הפצה, ספקים ושירותים</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>מיזוגים ורכישות (M&A)</span></li><li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg><span>ריטיינר משפטי חודשי לעסקים</span></li></ul>
     <h2 style="margin-block-start:3rem;font-size:var(--fs-xl)" class="reveal">שאלות נפוצות בדיני חברות ועסקים</h2>
     <div class="faq" id="faq-corporate"><details><summary>מתי כדאי להקים חברה בע״מ במקום עוסק מורשה?</summary><div><p>כשהפעילות כרוכה בסיכון משפטי משמעותי, כשיש מספר שותפים, כשמתכננים גיוס משקיעים, או כשהרווחים מגיעים לרמה שבה יש יתרון מיסויי להתאגדות.</p></div></details><details><summary>מה חשוב בהסכם מייסדים?</summary><div><p>חלוקת מניות והבשלה (Vesting), תפקידים וסמכויות, מנגנוני קבלת החלטות, מה קורה כששותף עוזב, ומנגנון ליישוב מחלוקות.</p></div></details></div>
   </div>
@@ -1218,7 +1577,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>רוצים לדעת איפה אתם עומדים?</h2><p>פגישת היכרות ראשונה ללא עלות וללא התחייבות – במשרד או בווידאו.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1227,7 +1586,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li aria-current="page">מאמרים</li></ol></nav>
-    <span class="eyebrow">מאמרים ומדריכים</span>
+    <span class="eyebrow reveal--line">מאמרים ומדריכים</span>
     <h1>ידע משפטי, בלי ז׳רגון</h1>
     <p class="lede">מדריכים מעשיים בנושאים שמעסיקים את הלקוחות שלנו יום־יום. הכתיבה נגישה, אבל הדיוק המשפטי לא נפגע.</p>
     
@@ -1238,7 +1597,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
     <button class="chip" type="button" data-cat="all" aria-pressed="true">הכול</button>
     <button class="chip" type="button" data-cat="דיני עבודה" aria-pressed="false">דיני עבודה</button><button class="chip" type="button" data-cat="מקרקעין" aria-pressed="false">מקרקעין</button><button class="chip" type="button" data-cat="משפחה וירושה" aria-pressed="false">משפחה וירושה</button><button class="chip" type="button" data-cat="נזיקין" aria-pressed="false">נזיקין</button><button class="chip" type="button" data-cat="ליטיגציה" aria-pressed="false">ליטיגציה</button><button class="chip" type="button" data-cat="מיסוי" aria-pressed="false">מיסוי</button>
   </div>
-  <div class="articles-grid" data-articles><a class="acard acard--featured reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
+  <div class="articles-grid" data-stagger data-articles><a class="acard acard--featured reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -1284,7 +1643,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>לא מצאתם תשובה?</h2><p>כל מקרה שונה. שיחת ייעוץ קצרה תחסוך לכם שעות של חיפוש.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="#/contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="#/contact" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -1293,7 +1652,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">דיני עבודה</li></ol></nav>
-    <span class="eyebrow">דיני עבודה</span>
+    <span class="eyebrow reveal--line">דיני עבודה</span>
     <h1>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-07-14" class="num">14 ביולי 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1350,8 +1709,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/rental-contract-checklist" data-cat-item="מקרקעין">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/rental-contract-checklist" data-cat-item="מקרקעין">
     <div class="acard__meta"><span class="acard__cat">מקרקעין</span><span class="num">2 ביוני 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>חוזה שכירות: שבעה סעיפים שחייבים לבדוק לפני החתימה</h3>
     <p>חוק שכירות הוגנת שינה את כללי המשחק, אבל רוב החוזים שמסתובבים בשוק עדיין מכילים סעיפים בעייתיים. מה מותר לדרוש ומה לא.</p>
@@ -1373,7 +1732,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">מקרקעין</li></ol></nav>
-    <span class="eyebrow">מקרקעין</span>
+    <span class="eyebrow reveal--line">מקרקעין</span>
     <h1>חוזה שכירות: שבעה סעיפים שחייבים לבדוק לפני החתימה</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-06-02" class="num">2 ביוני 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1424,8 +1783,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -1447,7 +1806,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">משפחה וירושה</li></ol></nav>
-    <span class="eyebrow">משפחה וירושה</span>
+    <span class="eyebrow reveal--line">משפחה וירושה</span>
     <h1>צוואה או ירושה על פי דין? למה כדאי להחליט בעצמכם</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-05-19" class="num">19 במאי 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1498,8 +1857,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/prenuptial-agreement" data-cat-item="משפחה וירושה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/prenuptial-agreement" data-cat-item="משפחה וירושה">
     <div class="acard__meta"><span class="acard__cat">משפחה וירושה</span><span class="num">17 בפברואר 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>הסכם ממון: לא רק לעשירים, ולא רק לפני החתונה</h3>
     <p>הסכם ממון נתפס כמסמך של בעלי הון. בפועל הוא הכלי היעיל ביותר למנוע סכסוך רכושי – לזוגות צעירים, לפרק ב׳ ולידועים בציבור. איך עורכים ומה נדרש כדי שיהיה תקף.</p>
@@ -1511,7 +1870,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">נזיקין</li></ol></nav>
-    <span class="eyebrow">נזיקין</span>
+    <span class="eyebrow reveal--line">נזיקין</span>
     <h1>נפגעתם בתאונת דרכים? הזכויות שלכם מול חברת הביטוח</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-04-08" class="num">8 באפריל 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1569,8 +1928,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -1592,7 +1951,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">ליטיגציה</li></ol></nav>
-    <span class="eyebrow">ליטיגציה</span>
+    <span class="eyebrow reveal--line">ליטיגציה</span>
     <h1>לשון הרע ברשתות החברתיות: מתי פוסט הופך לתביעה</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-03-11" class="num">11 במרץ 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1647,8 +2006,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/small-claims" data-cat-item="ליטיגציה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/small-claims" data-cat-item="ליטיגציה">
     <div class="acard__meta"><span class="acard__cat">ליטיגציה</span><span class="num">9 בדצמבר 2025</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>תביעות קטנות: מדריך מעשי – מתי, איך וכמה</h3>
     <p>בית המשפט לתביעות קטנות הוא הכלי הנגיש ביותר של האזרח לאכיפת זכויותיו. מי יכול לתבוע, איך מכינים כתב תביעה משכנע, ומה קורה בדיון.</p>
@@ -1660,7 +2019,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">משפחה וירושה</li></ol></nav>
-    <span class="eyebrow">משפחה וירושה</span>
+    <span class="eyebrow reveal--line">משפחה וירושה</span>
     <h1>הסכם ממון: לא רק לעשירים, ולא רק לפני החתונה</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-02-17" class="num">17 בפברואר 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1711,8 +2070,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/wills-and-inheritance" data-cat-item="משפחה וירושה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/wills-and-inheritance" data-cat-item="משפחה וירושה">
     <div class="acard__meta"><span class="acard__cat">משפחה וירושה</span><span class="num">19 במאי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>צוואה או ירושה על פי דין? למה כדאי להחליט בעצמכם</h3>
     <p>בהיעדר צוואה, החוק מחלק את העיזבון לפי נוסחה קבועה שלא תמיד תואמת את רצון המנוח. על סוגי הצוואות, ההליך מול הרשם לענייני ירושה, וייפוי כוח מתמשך.</p>
@@ -1724,7 +2083,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">מיסוי</li></ol></nav>
-    <span class="eyebrow">מיסוי</span>
+    <span class="eyebrow reveal--line">מיסוי</span>
     <h1>מס רכישה ומס שבח: מה שכל מוכר וקונה דירה חייב לדעת</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2026-01-20" class="num">20 בינואר 2026</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1773,8 +2132,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/severance-pay" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -1796,7 +2155,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li><a href="#/articles">מאמרים</a></li><li aria-current="page">ליטיגציה</li></ol></nav>
-    <span class="eyebrow">ליטיגציה</span>
+    <span class="eyebrow reveal--line">ליטיגציה</span>
     <h1>תביעות קטנות: מדריך מעשי – מתי, איך וכמה</h1>
     
     <div class="article-meta"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> <time datetime="2025-12-09" class="num">9 בדצמבר 2025</time></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> <span class="num">2 דקות קריאה</span></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg> עו״ד עומרי דותן</span></div>
@@ -1848,8 +2207,8 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </aside>
 </div></article>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
-  <div class="articles-grid"><a class="acard reveal" href="#/articles/defamation-social-media" data-cat-item="ליטיגציה">
+  <div class="section-head reveal"><span class="eyebrow reveal--line">המשך קריאה</span><h2>מאמרים נוספים</h2></div>
+  <div class="articles-grid" data-stagger><a class="acard reveal" href="#/articles/defamation-social-media" data-cat-item="ליטיגציה">
     <div class="acard__meta"><span class="acard__cat">ליטיגציה</span><span class="num">11 במרץ 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>לשון הרע ברשתות החברתיות: מתי פוסט הופך לתביעה</h3>
     <p>ביקורת על עסק, פוסט כועס בקבוצת פייסבוק, שיתוף של כתבה – הגבול בין חופש הביטוי ללשון הרע דק ממה שנדמה. על החוק, הפיצויים וההגנות.</p>
@@ -1861,26 +2220,26 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="#/">דף הבית</a></li><li aria-current="page">צור קשר</li></ol></nav>
-    <span class="eyebrow">צור קשר</span>
+    <span class="eyebrow reveal--line">צור קשר</span>
     <h1>נשמח לשמוע במה מדובר</h1>
     <p class="lede">טלפון, וואטסאפ, אימייל או הטופס – מה שנוח לכם. מענה תוך יום עסקים אחד, והפגישה הראשונה ללא התחייבות.</p>
     
   </div></section>
 <section class="section section--tight"><div class="container">
-  <div class="contact-cards">
+  <div class="contact-cards" data-stagger>
     <div class="ccard reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><h3>טלפון</h3><p>בשעות הפעילות. מחוץ להן – השאירו הודעה ונחזור אליכם.</p><a href="tel:+97230000000" class="num">03-000-0000</a></div>
-    <div class="ccard reveal" data-delay="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><h3>וואטסאפ</h3><p>הדרך המהירה ביותר לתיאום פגישה או לשאלה קצרה.</p><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div>
-    <div class="ccard reveal" data-delay="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><h3>אימייל</h3><p>למסמכים, לפניות מפורטות ולהצעות שכר טרחה.</p><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div>
+    <div class="ccard reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><h3>וואטסאפ</h3><p>הדרך המהירה ביותר לתיאום פגישה או לשאלה קצרה.</p><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div>
+    <div class="ccard reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><h3>אימייל</h3><p>למסמכים, לפניות מפורטות ולהצעות שכר טרחה.</p><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div>
   </div>
 </div></section>
 <section class="section section--dark" id="form"><div class="container contact-band">
   <div class="contact-info reveal">
-    <span class="eyebrow">השאירו פרטים</span>
+    <span class="eyebrow reveal--line">השאירו פרטים</span>
     <h2>הטופס מגיע ישירות לעו״ד המטפל</h2>
     <p>כתבו בכמה משפטים מה קרה ומה הייתם רוצים שיקרה. אין צורך בניסוח משפטי – זה התפקיד שלנו.</p>
-    <ul class="contact-lines">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>המשרד</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה)<br>תל אביב-יפו, קומה 24</div></li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg><div><small>פגישות מרחוק</small>פגישות ייעוץ מתקיימות גם בזום ובווידאו־וואטסאפ</div></li>
+    <ul class="contact-lines" data-stagger>
+      <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>המשרד</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה)<br>תל אביב-יפו, קומה 24</div></li>
+      <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg><div><small>פגישות מרחוק</small>פגישות ייעוץ מתקיימות גם בזום ובווידאו־וואטסאפ</div></li>
     </ul>
     <div class="hours" aria-label="שעות פעילות"><div><span>ראשון – חמישי</span><span>08:30 – 18:00</span></div><div><span>שישי</span><span>09:00 – 12:30</span></div><div><span>שבת</span><span>סגור</span></div></div>
   </div>
@@ -1915,7 +2274,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </div>
 </div></section>
 <section class="section section--surface"><div class="container">
-  <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2>לפני הפגישה</h2></div>
+  <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2>לפני הפגישה</h2></div>
   <div class="faq" id="faq-contact"><details><summary>כמה עולה פגישת ייעוץ ראשונה?</summary><div><p>פגישת ההיכרות הראשונה (עד 30 דקות) ניתנת ללא עלות וללא התחייבות. בסיומה תקבלו הערכה ראשונית והצעת שכר טרחה מסודרת.</p></div></details><details><summary>איך נקבע שכר הטרחה?</summary><div><p>בהתאם לסוג התיק: תעריף קבוע לעסקאות ולהסכמים, אחוזי הצלחה בתביעות נזיקין וגבייה, ותעריף שעתי או ריטיינר לייעוץ שוטף. הכול מסוכם בכתב מראש.</p></div></details><details><summary>האם המשרד מטפל בתיקים בכל הארץ?</summary><div><p>כן. המשרד מייצג בכל בתי המשפט ובתי הדין בישראל, ופגישות מתקיימות גם בשיחת וידאו.</p></div></details><details><summary>מה להביא לפגישה הראשונה?</summary><div><p>כל מסמך רלוונטי: חוזים, מכתבים, תלושי שכר, מסמכים רפואיים, התכתבויות. אם אינכם בטוחים – הביאו הכול, אנחנו נמיין.</p></div></details><details><summary>האם אפשר להתייעץ בלי לפתוח בהליך משפטי?</summary><div><p>בהחלט. חלק גדול מהעבודה שלנו הוא ייעוץ מונע: בדיקת חוזה לפני חתימה, מכתב התראה, או חוות דעת על הסיכויים – לפני שמחליטים אם לתבוע.</p></div></details></div>
 </div></section>
   </div>
@@ -2067,7 +2426,14 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   </div>
   <button class="a11y__btn" type="button" aria-expanded="false" aria-controls="a11y-panel" aria-label="תפריט נגישות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="4.5" r="1.8"/><path d="M4 8.5l8 1.5 8-1.5M12 10v5l-3 6M12 15l3 6"/></svg></button>
 </div>
+<div class="page-transition" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="preloader" aria-hidden="true">
+    <svg class="preloader__mark" viewBox="0 0 64 64" width="88" height="88" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="preloader__path" d="M32 14v34M22 48h20M14 22h36M14 22l-6 14h12zM50 22l-6 14h12z"/><circle class="preloader__path" cx="32" cy="13" r="2.5"/></svg>
+    <span class="preloader__bar"></span>
+  </div>
 <span class="preview-note" aria-hidden="true">תצוגה מקדימה</span>
+<script>window.__PREVIEW__=true;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
@@ -2311,15 +2677,650 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
 })();
 </script>
 <script>/* ============================================================
+   שכבת תנועה – motion.js
+   מרחיב את main.js (שכבר מוסיף .is-in ל-.reveal ואת html.js).
+   כל פיצ'ר בפונקציה נפרדת, עם הגנות על markup חסר,
+   על window.__PREVIEW__ ועל reduced-motion / html[data-motion="off"].
+   ============================================================ */
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  var preview = !!window.__PREVIEW__;
+  var mq = function (q) { return window.matchMedia ? window.matchMedia(q) : { matches: false }; };
+  var reducedMQ = mq('(prefers-reduced-motion: reduce)');
+  var fineMQ = mq('(pointer: fine)');
+  var isRTL = (root.getAttribute('dir') || '').toLowerCase() === 'rtl' || getComputedStyle(root).direction === 'rtl';
+
+  function reduced() { return reducedMQ.matches || root.getAttribute('data-motion') === 'off'; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function all(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
+  function inViewport(el) {
+    var r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.top < window.innerHeight && r.left < window.innerWidth;
+  }
+  function onFrame(fn) {
+    var queued = false;
+    return function () {
+      if (queued) return; queued = true;
+      requestAnimationFrame(function () { queued = false; fn(); });
+    };
+  }
+  function debounce(fn, ms) {
+    var t; return function () { clearTimeout(t); t = setTimeout(fn, ms); };
+  }
+  function emit(name) {
+    try { window.dispatchEvent(new CustomEvent(name)); } catch (e) { /* דפדפן ישן */ }
+  }
+
+  root.classList.add('has-motion');
+
+  // ---------- html.is-ready – אחרי document.fonts.ready או timeout 800ms ----------
+  var readyFired = false, readyCbs = [];
+  function whenReady(cb) { if (readyFired) cb(); else readyCbs.push(cb); }
+  function fireReady() {
+    if (readyFired) return;
+    readyFired = true;
+    root.classList.add('is-ready');
+    var cbs = readyCbs; readyCbs = [];
+    cbs.forEach(function (f) { try { f(); } catch (e) { /* לא עוצרים את השאר */ } });
+    emit('motion:ready');
+  }
+  if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+    document.fonts.ready.then(fireReady, fireReady);
+  }
+  setTimeout(fireReady, 800);
+
+  // ---------- פרה-לואדר (דף הבית, ביקור ראשון ב-session) ----------
+  // מסתיים עם is-ready / hero3d:ready / timeout 700ms (הראשון מביניהם), לא לפני 350ms.
+  function initPreloader() {
+    var pre = document.querySelector('.preloader');
+    if (!pre) return;
+    var seen = true;
+    try { seen = sessionStorage.getItem('od-seen') === '1'; } catch (e) { seen = true; }
+    if (preview || reduced() || seen) { pre.hidden = true; return; }
+    try { sessionStorage.setItem('od-seen', '1'); } catch (e) { /* פרטי */ }
+    root.classList.add('has-preloader');
+    var t0 = Date.now();
+    all('path, circle, line, polyline, polygon', pre).forEach(function (s) {
+      var len = 0;
+      try { len = s.getTotalLength(); } catch (e) { len = 0; }
+      if (!len) return;
+      s.style.strokeDasharray = String(len);
+      s.style.strokeDashoffset = String(len);
+    });
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        pre.classList.add('is-drawing');
+        all('path, circle, line, polyline, polygon', pre).forEach(function (s) {
+          if (!s.style.strokeDasharray) return;
+          s.style.transition = 'stroke-dashoffset .55s ease';
+          s.style.strokeDashoffset = '0';
+        });
+      });
+    });
+    var finished = false;
+    function leave() {
+      root.classList.add('is-loaded');          // הכיסוי עולה למעלה ב-500ms
+      setTimeout(function () {
+        root.classList.remove('has-preloader');
+        root.classList.remove('is-loaded');
+        pre.hidden = true;
+      }, 500);
+    }
+    function finish() {
+      if (finished) return; finished = true;
+      var wait = 350 - (Date.now() - t0);
+      if (wait > 0) setTimeout(leave, wait); else leave();
+    }
+    whenReady(finish);
+    window.addEventListener('hero3d:ready', finish, { once: true });
+    setTimeout(finish, 700);
+  }
+
+  // ---------- פיצול מילים ב-h1[data-split] ----------
+  function initSplit() {
+    all('[data-split]').forEach(function (el) {
+      if (el.getAttribute('data-split-done') || reduced()) return;
+      var label = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      var count = 0;
+      function walk(node) {
+        Array.prototype.slice.call(node.childNodes).forEach(function (n) {
+          if (n.nodeType === 3) {
+            if (!n.nodeValue.trim()) return;                  // רווחים בין אלמנטים
+            var frag = document.createDocumentFragment();
+            n.nodeValue.split(/(\s+)/).forEach(function (part) {
+              if (!part) return;
+              if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(' ')); return; }
+              var w = document.createElement('span'); w.className = 'w';
+              var inner = document.createElement('span'); inner.className = 'w__in';
+              inner.textContent = part;
+              inner.style.setProperty('--wi', String(count++));
+              w.appendChild(inner); frag.appendChild(w);
+            });
+            node.replaceChild(frag, n);
+          } else if (n.nodeType === 1 && n.tagName !== 'BR') {
+            walk(n);                                          // <em> וכד' – נשמרים
+          }
+        });
+      }
+      walk(el);
+      if (label && !el.getAttribute('aria-label')) el.setAttribute('aria-label', label);
+      el.setAttribute('data-split-done', '1');
+    });
+  }
+
+  // ---------- data-stagger: --i על ילדים ישירים ----------
+  function initStagger() {
+    all('[data-stagger]').forEach(function (box) {
+      Array.prototype.slice.call(box.children).forEach(function (child, i) {
+        child.style.setProperty('--i', String(Math.min(i, 8)));
+      });
+    });
+  }
+
+  // ---------- .reveal--line שאינו בתוך .reveal (Hero / page-hero / עצמאי) ----------
+  function initLines() {
+    var lines = all('.reveal--line').filter(function (l) {
+      return !l.classList.contains('reveal') && !(l.parentElement && l.parentElement.closest('.reveal'));
+    });
+    if (!lines.length) return;
+    var heroLines = lines.filter(function (l) { return !!l.closest('.hero__content, .page-hero__inner'); });
+    var rest = lines.filter(function (l) { return heroLines.indexOf(l) === -1; });
+    heroLines.forEach(function (l) { whenReady(function () { l.classList.add('is-in'); }); });
+    if (!rest.length) return;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
+      }, { threshold: 0.1 });
+      rest.forEach(function (l) { io.observe(l); });
+    } else {
+      rest.forEach(function (l) { l.classList.add('is-in'); });
+    }
+  }
+
+  // ---------- מונים ----------
+  var counters = [];
+  function initCounters() {
+    var fmt = null;
+    try { fmt = new Intl.NumberFormat('he-IL'); } catch (e) { fmt = null; }
+    function fmtNum(n) { return fmt ? fmt.format(n) : String(n); }
+    all('[data-counter]').forEach(function (el) {
+      var raw = el.getAttribute('data-counter') || '';
+      var target = parseFloat(raw);
+      if (isNaN(target)) return;
+      var decimals = (raw.split('.')[1] || '').length;
+      var prefix = el.getAttribute('data-prefix') || '', suffix = el.getAttribute('data-suffix') || '';
+      var started = false, finished = false;
+      function render(v) { el.textContent = prefix + fmtNum(decimals ? +v.toFixed(decimals) : Math.round(v)) + suffix; }
+      function finish() { if (finished) return; finished = true; started = true; render(target); }
+      function start() {
+        if (started) return; started = true;
+        if (reduced()) { finish(); return; }
+        var t0 = null;
+        function step(ts) {
+          if (finished) return;
+          if (t0 === null) t0 = ts;
+          var p = clamp((ts - t0) / 1400, 0, 1);
+          var e = 1 - Math.pow(1 - p, 3);
+          render(target * e);
+          if (p < 1 && !reduced()) requestAnimationFrame(step); else finish();
+        }
+        requestAnimationFrame(step);
+      }
+      counters.push({ el: el, start: start, finish: finish });
+    });
+    if (!counters.length) return;
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          counters.forEach(function (c) { if (c.el === en.target) c.start(); });
+        });
+      }, { threshold: 0.4 });
+      counters.forEach(function (c) { io.observe(c.el); });
+    } else {
+      counters.forEach(function (c) { c.finish(); });
+    }
+  }
+
+  // ---------- fallback: כל מה שב-viewport גלוי גם אם ה-observer לא ירה ----------
+  function revealFallback(force) {
+    all('.reveal:not(.is-in), .reveal--line:not(.is-in)').forEach(function (el) {
+      if (!inViewport(el)) return;
+      el.style.transitionDelay = '0s';
+      if (force) el.style.transitionDuration = '0s';
+      el.classList.add('is-in');
+      setTimeout(function () { el.style.transitionDelay = ''; el.style.transitionDuration = ''; }, 80);
+    });
+    counters.forEach(function (c) { if (inViewport(c.el)) (force ? c.finish : c.start)(); });
+  }
+
+  // ---------- סרגל התקדמות קריאה ----------
+  function initProgress() {
+    var bar = document.querySelector('[data-progress]');
+    if (!bar) return;
+    var body = document.querySelector('.article-body');
+    var art = body ? (body.closest('article') || body) : document.querySelector('main article:not(.tcard)');
+    if (!art) { bar.hidden = true; return; }
+    var update = onFrame(function () {
+      var r = art.getBoundingClientRect();
+      var top = r.top + (window.scrollY || 0), h = r.height, vh = window.innerHeight;
+      var p = h > vh ? ((window.scrollY || 0) - top) / (h - vh) : ((window.scrollY || 0) >= top ? 1 : 0);
+      p = clamp(p, 0, 1);
+      bar.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      bar.setAttribute('aria-valuenow', String(Math.round(p * 100)));
+    });
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  // ---------- כפתורים מגנטיים ----------
+  function initMagnetic() {
+    if (!fineMQ.matches || reduced()) return;
+    var els = all('[data-magnetic]');
+    if (!els.length) return;
+    var px = -9999, py = -9999;
+    var RADIUS = 80, MAX = 8;
+    function releaseEl(el) {
+      if (!el.__mag) return;
+      el.__mag = false;
+      el.style.transition = 'transform .6s cubic-bezier(.2, 1.6, .4, 1)';
+      el.style.transform = 'translate(0px, 0px)';
+      clearTimeout(el.__magT);
+      el.__magT = setTimeout(function () { if (!el.__mag) { el.style.transform = ''; el.style.transition = ''; } }, 650);
+    }
+    var tick = onFrame(function () {
+      var off = reduced();
+      els.forEach(function (el) {
+        if (off) { releaseEl(el); return; }
+        var r = el.getBoundingClientRect();
+        if (!r.width) return;
+        var ndx = Math.max(r.left - px, 0, px - r.right), ndy = Math.max(r.top - py, 0, py - r.bottom);
+        var d = Math.sqrt(ndx * ndx + ndy * ndy);
+        if (d > RADIUS) { releaseEl(el); return; }
+        var strength = 1 - d / RADIUS;
+        var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        var tx = clamp((px - cx) / (r.width / 2 + RADIUS) * MAX * 1.6 * strength, -MAX, MAX);
+        var ty = clamp((py - cy) / (r.height / 2 + RADIUS) * MAX * 1.6 * strength, -MAX, MAX);
+        clearTimeout(el.__magT);
+        el.__mag = true;
+        el.style.transition = 'transform .16s ease-out';
+        el.style.transform = 'translate(' + tx.toFixed(2) + 'px, ' + ty.toFixed(2) + 'px)';
+      });
+    });
+    window.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      px = e.clientX; py = e.clientY; tick();
+    }, { passive: true });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) { px = py = -9999; tick(); } });
+    window.addEventListener('scroll', function () { if (px > -9999) tick(); }, { passive: true });
+  }
+
+  // ---------- פרלקסה ----------
+  function initParallax() {
+    if (reduced()) return;
+    var items = all('[data-parallax]').map(function (el) {
+      return { el: el, speed: parseFloat(el.getAttribute('data-parallax')) || 0.12, cur: 0, armed: false, pending: false };
+    });
+    if (!items.length) return;
+    function arm(it) { it.el.classList.add('is-parallax'); it.armed = true; }
+    var update = onFrame(function () {
+      var vh = window.innerHeight, off = reduced();
+      items.forEach(function (it) {
+        if (!it.armed) {
+          // אלמנט .reveal – ממתינים שה-reveal יסתיים לפני שמתחילים להזיז אותו
+          var ready = !it.el.classList.contains('reveal') || it.el.classList.contains('is-in');
+          if (ready && !it.pending) { it.pending = true; setTimeout(function () { arm(it); update(); }, 760); }
+          return;
+        }
+        if (off) {
+          if (it.cur !== 0) { it.cur = 0; it.el.style.setProperty('--py', '0px'); }
+          return;
+        }
+        var r = it.el.getBoundingClientRect();
+        if (!r.height || r.bottom < -60 || r.top > vh + 60) return;
+        var center = r.top + r.height / 2 - it.cur;
+        var rel = (center - vh / 2) / vh;
+        var y = clamp(-rel * it.speed * vh * 0.5, -30, 30);
+        if (Math.abs(y - it.cur) > 0.15) { it.cur = y; it.el.style.setProperty('--py', y.toFixed(1) + 'px'); }
+      });
+    });
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    // .reveal שמקבל is-in בלי גלילה נוספת – מזהים את שינוי המחלקה ומחמשים
+    if ('MutationObserver' in window) {
+      items.forEach(function (it) {
+        if (!it.el.classList.contains('reveal')) return;
+        var mo = new MutationObserver(function () { if (it.el.classList.contains('is-in')) { mo.disconnect(); update(); } });
+        mo.observe(it.el, { attributes: true, attributeFilter: ['class'] });
+      });
+    }
+    update();
+    setTimeout(update, 900);
+  }
+
+  // ---------- מרקיז ----------
+  function initMarquee() {
+    all('[data-marquee]').forEach(function (m) {
+      var track = m.querySelector('.marquee__track');
+      if (!track) return;
+      if (!reduced() && !m.querySelector('[data-marquee-clone]')) {
+        var clone = track.cloneNode(true);
+        clone.setAttribute('data-marquee-clone', '');
+        clone.setAttribute('aria-hidden', 'true');
+        m.appendChild(clone);
+      }
+      function measure() {
+        var w = track.getBoundingClientRect().width;
+        if (w < 10) return;                                  // מוסתר (למשל route בתצוגה מקדימה)
+        m.style.setProperty('--marquee-duration', Math.max(8, w / 60).toFixed(2) + 's');
+      }
+      measure();
+      window.addEventListener('resize', debounce(measure, 150));
+      if (document.fonts && document.fonts.ready && document.fonts.ready.then) document.fonts.ready.then(measure, measure);
+      whenReady(measure);
+    });
+  }
+
+  // ---------- סליידר / קרוסלה ----------
+  function initSliders() {
+    var chev = function (dir) {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+        (dir === 'left' ? '<path d="M15 6l-6 6 6 6"/>' : '<path d="M9 6l6 6-6 6"/>') + '</svg>';
+    };
+    all('[data-slider]').forEach(function (track, idx) {
+      if (track.__slider) return;
+      var cards = Array.prototype.filter.call(track.children, function (c) { return c.nodeType === 1; });
+      if (cards.length < 2) return;
+      track.__slider = true;
+
+      var wrap = document.createElement('div');
+      wrap.className = 'slider';
+      track.parentNode.insertBefore(wrap, track);
+      wrap.appendChild(track);
+      track.classList.add('slider__track');
+      if (!track.id) track.id = 'slider-' + (idx + 1);
+      if (!track.hasAttribute('tabindex')) track.setAttribute('tabindex', '0');
+      track.setAttribute('aria-live', 'polite');
+      cards.forEach(function (c, i) {
+        c.setAttribute('role', 'group');
+        c.setAttribute('aria-roledescription', 'slide');
+        c.setAttribute('aria-label', (i + 1) + ' מתוך ' + cards.length);
+      });
+
+      var nav = document.createElement('div'); nav.className = 'slider__nav';
+      function mkBtn(kind) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'slider__btn slider__btn--' + kind;
+        b.setAttribute('aria-label', kind === 'next' ? 'לעמוד הבא' : 'לעמוד הקודם');
+        b.setAttribute('aria-controls', track.id);
+        var left = kind === 'next' ? isRTL : !isRTL;
+        b.innerHTML = chev(left ? 'left' : 'right');
+        return b;
+      }
+      var prev = mkBtn('prev'), next = mkBtn('next');
+      var dots = document.createElement('div'); dots.className = 'slider__dots';
+      dots.setAttribute('role', 'group'); dots.setAttribute('aria-label', 'מעבר בין עמודי ההמלצות');
+      nav.appendChild(prev); nav.appendChild(dots); nav.appendChild(next);
+      wrap.appendChild(nav);
+
+      var current = 0, pages = 1, per = 1, timer = null;
+      var paused = { hover: false, focus: false, touch: false, visible: true };
+
+      function metrics() {
+        var cw = cards[0].getBoundingClientRect().width, tw = track.clientWidth;
+        var cs = getComputedStyle(track);
+        var gap = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 0;
+        per = cw > 0 && tw > 0 ? Math.max(1, Math.round((tw + gap) / (cw + gap))) : 1;
+        var p = Math.max(1, Math.ceil(cards.length / per));
+        if (p !== pages || dots.children.length !== p) { pages = p; buildDots(); }
+        wrap.classList.toggle('is-static', pages < 2);
+      }
+      function buildDots() {
+        dots.innerHTML = '';
+        for (var i = 0; i < pages; i++) {
+          var d = document.createElement('button');
+          d.type = 'button'; d.className = 'slider__dot';
+          d.setAttribute('aria-label', 'עמוד ' + (i + 1) + ' מתוך ' + pages);
+          d.setAttribute('aria-controls', track.id);
+          (function (n) { d.addEventListener('click', function () { goTo(n); restart(); }); })(i);
+          dots.appendChild(d);
+        }
+        renderDots();
+      }
+      function renderDots() {
+        Array.prototype.forEach.call(dots.children, function (d, i) {
+          if (i === current) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+        });
+      }
+      function startEdge(el) { var r = el.getBoundingClientRect(); return isRTL ? r.right : r.left; }
+      function goTo(p, instant) {
+        metrics();
+        p = ((p % pages) + pages) % pages;
+        var card = cards[Math.min(p * per, cards.length - 1)];
+        var delta = startEdge(card) - startEdge(track);
+        if (Math.abs(delta) > 1) track.scrollBy({ left: delta, behavior: (instant || reduced()) ? 'auto' : 'smooth' });
+        current = p; renderDots();
+      }
+      function atEnd() { return Math.abs(track.scrollLeft) + track.clientWidth >= track.scrollWidth - 2; }
+      var onScroll = onFrame(function () {
+        metrics();
+        var t0 = startEdge(track), best = 0, bestD = Infinity;
+        cards.forEach(function (c, i) { var d = Math.abs(startEdge(c) - t0); if (d < bestD) { bestD = d; best = i; } });
+        var p = Math.floor(best / per);
+        if (atEnd()) p = pages - 1;
+        if (p !== current) { current = p; renderDots(); }
+      });
+      track.addEventListener('scroll', onScroll, { passive: true });
+
+      function canPlay() { return !reduced() && !paused.hover && !paused.focus && !paused.touch && paused.visible && !document.hidden && pages > 1; }
+      function stop() { if (timer) clearInterval(timer); timer = null; track.setAttribute('aria-live', 'polite'); }
+      function play() {
+        stop();
+        if (!canPlay()) return;
+        track.setAttribute('aria-live', 'off');
+        timer = setInterval(function () { if (!canPlay()) { stop(); return; } goTo(current + 1); }, 6000);
+      }
+      function restart() { if (timer) play(); }
+
+      prev.addEventListener('click', function () { goTo(current - 1); restart(); });
+      next.addEventListener('click', function () { goTo(current + 1); restart(); });
+      wrap.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') { paused.hover = true; stop(); } });
+      wrap.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') { paused.hover = false; play(); } });
+      wrap.addEventListener('focusin', function () { paused.focus = true; stop(); });
+      wrap.addEventListener('focusout', function (e) { if (!wrap.contains(e.relatedTarget)) { paused.focus = false; play(); } });
+      var touchT = null;
+      track.addEventListener('touchstart', function () { paused.touch = true; stop(); clearTimeout(touchT); }, { passive: true });
+      track.addEventListener('touchend', function () { clearTimeout(touchT); touchT = setTimeout(function () { paused.touch = false; play(); }, 8000); }, { passive: true });
+      track.addEventListener('keydown', function (e) {
+        var k = e.key;
+        if (k === 'ArrowLeft' || k === 'ArrowRight') { e.preventDefault(); var fwd = (k === 'ArrowLeft') === isRTL; goTo(current + (fwd ? 1 : -1)); restart(); }
+        else if (k === 'Home') { e.preventDefault(); goTo(0); restart(); }
+        else if (k === 'End') { e.preventDefault(); goTo(pages - 1); restart(); }
+      });
+      document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else play(); });
+      window.addEventListener('resize', debounce(function () { metrics(); goTo(current, true); }, 200));
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          paused.visible = entries[0].isIntersecting;
+          if (paused.visible) play(); else stop();
+        }, { threshold: 0.25 }).observe(wrap);
+      } else {
+        play();
+      }
+      metrics();
+    });
+  }
+
+  // ---------- Header – הסתרה בגלילה מטה, הצגה בגלילה מעלה ----------
+  function initHeader() {
+    var header = document.querySelector('.header');
+    if (!header) return;
+    var lastY = window.scrollY || 0;
+    function show() { header.classList.remove('is-hidden'); }
+    var tick = onFrame(function () {
+      var y = window.scrollY || 0, d = y - lastY;
+      var navOpen = !!document.querySelector('.nav.is-open');
+      if (reduced() || navOpen || y < 120) { show(); lastY = y; return; }
+      if (Math.abs(d) <= 8) return;
+      if (d > 0) header.classList.add('is-hidden'); else show();
+      lastY = y;
+    });
+    window.addEventListener('scroll', tick, { passive: true });
+    header.addEventListener('focusin', show);
+    var toggle = header.querySelector('.nav-toggle');
+    if (toggle) toggle.addEventListener('click', show);
+  }
+
+  // ---------- מעבר עמודים ----------
+  function initPageTransition() {
+    var pt = document.querySelector('.page-transition');
+    if (!pt || preview) return;
+    var KEY = 'od-transition';
+    var arrived = false;
+    try { arrived = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch (e) { arrived = false; }
+    function clear() { root.classList.remove('is-leaving'); root.classList.remove('is-entering'); root.classList.remove('is-entered'); }
+    if (arrived && !reduced()) {
+      root.classList.add('is-entering');
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          root.classList.remove('is-entering');
+          root.classList.add('is-entered');
+          setTimeout(function () { root.classList.remove('is-entered'); }, 700);
+        });
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      if ((a.getAttribute('target') && a.getAttribute('target') !== '_self') || a.hasAttribute('download')) return;
+      var href = a.getAttribute('href') || '';
+      if (!href || href.charAt(0) === '#' || /^(mailto|tel|sms|javascript):/i.test(href)) return;
+      var url;
+      try { url = new URL(a.href, location.href); } catch (err) { return; }
+      if (url.origin !== location.origin || url.protocol !== location.protocol) return;
+      if (url.pathname === location.pathname && url.search === location.search) return; // אותו עמוד (hash)
+      if (reduced() || root.classList.contains('is-leaving')) return;
+      e.preventDefault();
+      try { sessionStorage.setItem(KEY, '1'); } catch (err) { /* פרטי */ }
+      root.classList.remove('is-entered');
+      root.classList.add('is-leaving');
+      setTimeout(function () { location.href = url.href; }, 440);
+      setTimeout(function () { root.classList.remove('is-leaving'); }, 3000); // אם הניווט נחסם
+    });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) clear(); });
+  }
+
+  // ---------- זוהר סמן ----------
+  function initGlow() {
+    var glow = document.querySelector('.cursor-glow');
+    if (!glow || !fineMQ.matches || reduced()) return;
+    var gx = -1000, gy = -1000, tx = gx, ty = gy, on = false, raf = null, first = true;
+    function loop() {
+      gx += (tx - gx) * 0.16; gy += (ty - gy) * 0.16;
+      glow.style.transform = 'translate3d(' + (gx - 180).toFixed(1) + 'px,' + (gy - 180).toFixed(1) + 'px,0)';
+      if (Math.abs(tx - gx) > 0.4 || Math.abs(ty - gy) > 0.4) raf = requestAnimationFrame(loop); else raf = null;
+    }
+    function setOn(v) { if (v !== on) { on = v; glow.classList.toggle('is-on', on); } }
+    window.addEventListener('pointermove', function (e) {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      tx = e.clientX; ty = e.clientY;
+      if (first) { first = false; gx = tx; gy = ty; }
+      var over = e.target && e.target.closest ? e.target.closest('.section--dark, .hero, .page-hero, .cta-band') : null;
+      setOn(!!over && !reduced());
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) setOn(false); });
+    window.addEventListener('blur', function () { setOn(false); });
+  }
+
+  // ---------- FAQ – פתיחה/סגירה עם אנימציית גובה ----------
+  function initFaq() {
+    all('.faq details').forEach(function (d) {
+      var sum = d.querySelector('summary');
+      var body = sum ? sum.nextElementSibling : null;
+      if (!sum || !body || typeof body.animate !== 'function') return;
+      var anim = null;
+      sum.addEventListener('click', function (e) {
+        if (reduced()) return;                               // התנהגות מובנית
+        e.preventDefault();
+        if (anim) { anim.cancel(); anim = null; }
+        var pad = getComputedStyle(body).paddingBottom || '0px';
+        body.style.overflow = 'hidden';
+        if (!d.open) {
+          d.open = true;
+          d.classList.remove('is-closing');
+          var h = body.offsetHeight;
+          anim = body.animate(
+            [{ height: '0px', paddingBottom: '0px', opacity: 0 }, { height: h + 'px', paddingBottom: pad, opacity: 1 }],
+            { duration: 340, easing: 'cubic-bezier(.2, .7, .2, 1)' }
+          );
+          anim.onfinish = anim.oncancel = function () { body.style.overflow = ''; anim = null; };
+        } else {
+          d.classList.add('is-closing');
+          var h0 = body.offsetHeight;
+          anim = body.animate(
+            [{ height: h0 + 'px', paddingBottom: pad, opacity: 1 }, { height: '0px', paddingBottom: '0px', opacity: 0 }],
+            { duration: 280, easing: 'cubic-bezier(.4, 0, .6, 1)' }
+          );
+          anim.onfinish = function () { d.open = false; d.classList.remove('is-closing'); body.style.overflow = ''; anim = null; };
+          anim.oncancel = function () { d.classList.remove('is-closing'); body.style.overflow = ''; anim = null; };
+        }
+      });
+    });
+  }
+
+  // ---------- הפעלה ----------
+  function safe(fn) { try { fn(); } catch (e) { if (window.console && console.warn) console.warn('motion:', e); } }
+  safe(initPreloader);
+  safe(initSplit);
+  safe(initStagger);
+  safe(initLines);
+  safe(initCounters);
+  safe(initProgress);
+  safe(initMagnetic);
+  safe(initParallax);
+  safe(initMarquee);
+  safe(initSliders);
+  safe(initHeader);
+  safe(initPageTransition);
+  safe(initGlow);
+  safe(initFaq);
+  setTimeout(function () { safe(function () { revealFallback(false); }); }, 1500);
+  setTimeout(function () { safe(function () { revealFallback(true); }); }, 2500);
+})();
+</script>
+<script>/* ============================================================
    סצנת Hero תלת־ממדית – מאזני צדק בפליז (Three.js r128, UMD)
+   כניסה מתוזמרת, קישור לגלילה, אור עוקב־סמן, הילות, מצב מנוחה
    ============================================================ */
 (function () {
   'use strict';
   var mount = document.getElementById('hero-3d');
   if (!mount || typeof THREE === 'undefined') return;
 
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-    document.documentElement.getAttribute('data-motion') === 'off';
+  var root = document.documentElement;
+  var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function isReduced() {
+    return motionQuery.matches || root.getAttribute('data-motion') === 'off';
+  }
+  var reduced = isReduced();
+
+  // ---------- קבועים ----------
+  var ENTER = 1.8;                 // משך הכניסה (שניות)
+  var REST_AT = 24;                // "זמן" אחרי סיום הכניסה – לפריים הסטטי
+  var REST_IDLE = 0.35;            // פאזת תנודה שקטה לפריים הסטטי
+  var CAM_Y = 1.35, CAM_Z = 10.5, CAM_Z_NARROW = 12.5;
+  var CAM_START_Y = 2.2, CAM_START_Z = 14.5;
+  var NARROW_W = 860;
+
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function easeOutCubic(x) { return 1 - Math.pow(1 - x, 3); }
+  function easeOutExpo(x) { return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x); }
 
   // בדיקת WebGL
   var probe = document.createElement('canvas');
@@ -2330,7 +3331,13 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch (e) { mount.classList.add('is-unavailable'); return; }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  var initialW = mount.clientWidth || window.innerWidth || 1024;
+  var narrow = initialW < NARROW_W;
+  function pixelRatioFor(w) {
+    // מובייל: DPR מוגבל ל־1.5 – חוסך fill-rate בלי פגיעה נראית
+    return Math.min(window.devicePixelRatio || 1, w < NARROW_W ? 1.5 : 2);
+  }
+  renderer.setPixelRatio(pixelRatioFor(initialW));
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -2344,7 +3351,7 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   scene.fog = new THREE.Fog(0x0f2a25, 9, 18);
 
   var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
-  camera.position.set(0, 1.35, 10.5);
+  camera.position.set(0, CAM_START_Y, CAM_START_Z);
 
   // ---------- סביבת השתקפות פרוצדורלית (בלי קבצים חיצוניים) ----------
   function buildEnvironment() {
@@ -2386,8 +3393,9 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
     color: 0x8a6d3b, metalness: 1.0, roughness: 0.42, envMapIntensity: 1.0
   });
   var stone = new THREE.MeshStandardMaterial({ color: 0x1a3a33, metalness: 0.15, roughness: 0.85 });
+  var GLASS_OPACITY = 0.18;
   var glass = new THREE.MeshPhysicalMaterial({
-    color: 0xd8b978, metalness: 0.1, roughness: 0.15, transparent: true, opacity: 0.18,
+    color: 0xd8b978, metalness: 0.1, roughness: 0.15, transparent: true, opacity: 0,
     envMapIntensity: 2.0, side: THREE.DoubleSide, depthWrite: false
   });
 
@@ -2396,13 +3404,14 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   var key = new THREE.DirectionalLight(0xfff1d6, 1.6);
   key.position.set(-5, 8, 6);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(narrow ? 512 : 1024, narrow ? 512 : 1024);
   key.shadow.camera.left = -6; key.shadow.camera.right = 6;
   key.shadow.camera.top = 6; key.shadow.camera.bottom = -6;
   key.shadow.bias = -0.0005;
   scene.add(key);
   var rim = new THREE.PointLight(0xd8b978, 1.8, 30);
-  rim.position.set(6, 3, -4);
+  var rimBase = new THREE.Vector3(6, 3, -4);
+  rim.position.copy(rimBase);
   scene.add(rim);
   var fill = new THREE.PointLight(0x7fb3a5, 0.7, 30);
   fill.position.set(-6, -2, 4);
@@ -2484,8 +3493,25 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
     rings.push(ring);
   });
 
-  // אבק זהב
-  var COUNT = 520;
+  // ---------- טקסטורות רדיאליות (אבק והילות) ----------
+  function radialTexture(size, stops) {
+    var c = document.createElement('canvas'); c.width = c.height = size;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    stops.forEach(function (s) { g.addColorStop(s[0], s[1]); });
+    ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  }
+  var dustTex = radialTexture(64, [
+    [0, 'rgba(255,240,200,1)'], [0.35, 'rgba(216,185,120,0.7)'], [1, 'rgba(216,185,120,0)']
+  ]);
+  var glowTex = radialTexture(128, [
+    [0, 'rgba(255,241,214,1)'], [0.22, 'rgba(216,185,120,0.55)'], [0.55, 'rgba(216,185,120,0.14)'], [1, 'rgba(216,185,120,0)']
+  ]);
+
+  // אבק זהב (פחות חלקיקים במובייל)
+  var COUNT = narrow ? 300 : 520;
+  var DUST_OPACITY = 0.85;
   var positions = new Float32Array(COUNT * 3);
   var speeds = new Float32Array(COUNT);
   for (var i = 0; i < COUNT; i++) {
@@ -2496,21 +3522,30 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   }
   var dustGeo = new THREE.BufferGeometry();
   dustGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  var dustTex = (function () {
-    var c = document.createElement('canvas'); c.width = c.height = 64;
-    var ctx = c.getContext('2d');
-    var g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,240,200,1)');
-    g.addColorStop(0.35, 'rgba(216,185,120,0.7)');
-    g.addColorStop(1, 'rgba(216,185,120,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
-  })();
-  var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-    size: 0.09, map: dustTex, transparent: true, opacity: 0.85, depthWrite: false,
+  var dustMat = new THREE.PointsMaterial({
+    size: 0.09, map: dustTex, transparent: true, opacity: 0, depthWrite: false,
     blending: THREE.AdditiveBlending, sizeAttenuation: true, color: 0xffffff
-  }));
+  });
+  var dust = new THREE.Points(dustGeo, dustMat);
   scene.add(dust);
+
+  // הילות אדיטיביות: קטנה מאחורי הכדור העליון, רחבה מאחורי המאזניים
+  function makeGlow(scale, opacity, x, y, z) {
+    var mat = new THREE.SpriteMaterial({
+      map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    var s = new THREE.Sprite(mat);
+    s.scale.set(scale, scale, 1);
+    s.position.set(x, y, z);
+    s.userData.scale = scale;
+    s.userData.opacity = opacity;
+    return s;
+  }
+  var finialGlow = makeGlow(1.5, 0.34, 0, 1.92, -0.3);
+  group.add(finialGlow);
+  var wideGlow = makeGlow(6, 0.12, 0, -0.1, -1.4);
+  group.add(wideGlow);
 
   // רצפת השתקפות עדינה
   var floor = new THREE.Mesh(
@@ -2531,77 +3566,217 @@ html.js .reveal[data-delay="3"] { transition-delay: .3s; }
   var target = { x: 0, y: 0 };
   var current = { x: 0, y: 0 };
   var scrollY = 0;
+  var scrollP = 0;          // התקדמות הגלילה לאורך ה-Hero (0..1)
+  var heroEl = mount.parentNode || mount;
+  var heroH = 1;
+  var baseOpacity = 1;      // ה-opacity שה-CSS נותן למעטפת (למשל .9 במובייל)
+  var lastOpacity = null;
+
   function onPointer(e) {
-    var x = (e.clientX / window.innerWidth) * 2 - 1;
-    var y = (e.clientY / window.innerHeight) * 2 - 1;
-    target.x = x; target.y = y;
+    if (reduced) return;
+    target.x = (e.clientX / window.innerWidth) * 2 - 1;
+    target.y = (e.clientY / window.innerHeight) * 2 - 1;
   }
-  if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+  if (window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('pointermove', onPointer, { passive: true });
   }
-  window.addEventListener('scroll', function () { scrollY = window.scrollY || 0; }, { passive: true });
 
+  function readScroll() {
+    scrollY = window.scrollY || window.pageYOffset || 0;
+    scrollP = clamp01(scrollY / heroH);
+  }
+  function applyMountOpacity() {
+    // דהייה עדינה של הסצנה עד סוף ה-Hero (opacity בלבד – מותר גם במצב מנוחה)
+    var o = scrollP > 0 ? String(Math.round(baseOpacity * (1 - scrollP) * 100) / 100) : '';
+    if (o !== lastOpacity) { lastOpacity = o; mount.style.opacity = o; }
+  }
+  var scrollTicking = false;
+  function onScroll() {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function () {
+      scrollTicking = false;
+      readScroll();
+      applyMountOpacity();
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  var baseZ = CAM_Z;
   function resize() {
     var w = mount.clientWidth || 1, h = mount.clientHeight || 1;
+    narrow = w < NARROW_W;
+    renderer.setPixelRatio(pixelRatioFor(w));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var narrow = w < 860;
     camera.fov = narrow ? 44 : 32;
     group.position.x = narrow ? 0 : sideShift;
     rings.forEach(function (r) { r.position.x = narrow ? 0 : sideShift; });
-    camera.position.z = narrow ? 12.5 : 10.5;
+    baseZ = narrow ? CAM_Z_NARROW : CAM_Z;
     camera.updateProjectionMatrix();
+    // מדידה מחדש של גובה ה-Hero ושל ה-opacity הבסיסי מה-CSS
+    var inline = mount.style.opacity;
+    mount.style.opacity = '';
+    var cssOpacity = parseFloat(window.getComputedStyle(mount).opacity);
+    baseOpacity = isNaN(cssOpacity) ? 1 : cssOpacity;
+    mount.style.opacity = inline;
+    heroH = Math.max(1, heroEl.offsetHeight || h);
+    readScroll();
+    lastOpacity = null;
+    applyMountOpacity();
   }
-  window.addEventListener('resize', resize);
   resize();
 
-  var clock = new THREE.Clock();
   var visible = true;
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; }, { threshold: 0.02 }).observe(mount);
   }
-  var hidden = false;
+  var hidden = !!document.hidden;
   document.addEventListener('visibilitychange', function () { hidden = document.hidden; });
 
-  function frame(t) {
-    // תנודת הקורה, כאילו המאזניים מתייצבים
+  // הקורה מתחילה נטויה (0.18rad) ומתייצבת בתנודה דועכת – שיווי משקל
+  function beamSettle(at) {
+    return 0.18 * Math.exp(-1.6 * at) * Math.cos(at * 2.6);
+  }
+
+  /**
+   * at     – זמן אנימציה מצטבר מתחילת הכניסה (שניות)
+   * dt     – זמן שחלף מהפריים הקודם (0 לפריים סטטי)
+   * idleT  – פאזת התנודה השקטה (ברירת מחדל: at)
+   */
+  function frame(at, dt, idleT) {
+    var t = typeof idleT === 'number' ? idleT : at;
+    var e = clamp01(at / ENTER);
+    var eCam = easeOutExpo(e);
+    var eGroup = easeOutCubic(e);
+    var eRings = easeOutCubic(clamp01((at - 0.25) / (ENTER - 0.25)));
+    var eDust = easeOutCubic(clamp01((at - 0.15) / 1.4));
+    var p = scrollP;
+
+    // תנודת הקורה + התייצבות הכניסה
     var sway = Math.sin(t * 0.6) * 0.055 + Math.sin(t * 1.7) * 0.012;
-    pivot.rotation.z = sway;
-    panL.rotation.z = -sway; panR.rotation.z = -sway;
-    group.rotation.y = Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
+    var tilt = sway + beamSettle(at);
+    pivot.rotation.z = tilt;
+    panL.rotation.z = -tilt; panR.rotation.z = -tilt;
+
+    // הקבוצה: עלייה וסיבוב בכניסה, נשימה אחר כך, ירידה בגלילה
+    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
     group.rotation.x = current.y * 0.08;
-    group.position.y = Math.sin(t * 0.8) * 0.05 - scrollY * 0.0012;
+    group.position.y = -1.2 * (1 - eGroup) + Math.sin(t * 0.8) * 0.05 - p * 1.0;
+
+    // טבעות: התרחבות ודהייה פנימה, סיבוב איטי
+    var ringScale = 0.6 + 0.4 * eRings;
+    glass.opacity = GLASS_OPACITY * eRings;
     rings.forEach(function (r, i) {
-      if (i === 0) r.rotation.z += 0.0015; else if (i === 1) r.rotation.y += 0.0012; else r.rotation.x += 0.001;
+      r.scale.set(ringScale, ringScale, ringScale);
+      if (i === 0) r.rotation.z += 0.09 * dt; else if (i === 1) r.rotation.y += 0.072 * dt; else r.rotation.x += 0.06 * dt;
     });
-    var arr = dustGeo.attributes.position.array;
-    for (var i = 0; i < COUNT; i++) {
-      arr[i * 3 + 1] += speeds[i] * 0.004;
-      arr[i * 3] += Math.sin(t * 0.5 + i) * 0.0006;
-      if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = -5;
+
+    // אבק
+    dustMat.opacity = DUST_OPACITY * eDust;
+    if (dt > 0) {
+      var arr = dustGeo.attributes.position.array;
+      for (var i = 0; i < COUNT; i++) {
+        arr[i * 3 + 1] += speeds[i] * 0.24 * dt;
+        arr[i * 3] += Math.sin(t * 0.5 + i) * 0.036 * dt;
+        if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = -5;
+      }
+      dustGeo.attributes.position.needsUpdate = true;
     }
-    dustGeo.attributes.position.needsUpdate = true;
-    camera.position.x = current.x * 0.5 + (isRTL ? 0.6 : -0.6);
-    camera.position.y = 1.35 - current.y * 0.3;
-    camera.lookAt(group.position.x * 0.6, -0.2, 0);
+
+    // הילות נושמות – עדין
+    var breath = Math.sin(t * 1.1);
+    finialGlow.material.opacity = finialGlow.userData.opacity * (1 + 0.18 * breath) * eRings;
+    var fs = finialGlow.userData.scale * (1 + 0.05 * breath);
+    finialGlow.scale.set(fs, fs, 1);
+    wideGlow.material.opacity = wideGlow.userData.opacity * (1 + 0.22 * Math.sin(t * 0.7 + 1.3)) * eRings;
+
+    // אור הרים עוקב אחרי הסמן במישור x/y – ההשתקפויות "חיות"
+    rim.position.x = rimBase.x + current.x * 4.0;
+    rim.position.y = rimBase.y - current.y * 2.5;
+    rim.intensity = 1.8 + Math.abs(current.x) * 0.5;
+
+    // מצלמה: דולי בכניסה, פרלקסת סמן, התרוממות והבטה מטה בגלילה
+    var camZ = baseZ + (CAM_START_Z - CAM_Z) * (1 - eCam);
+    var camY = CAM_Y + (CAM_START_Y - CAM_Y) * (1 - eCam) - current.y * 0.3 + p * 1.2;
+    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6), camY, camZ);
+    camera.lookAt(group.position.x * 0.6, -0.2 - p * 0.8, 0);
+  }
+
+  var clock = new THREE.Clock();
+  var at = 0;               // זמן אנימציה – מתקדם רק כשמרונדר בפועל
+  var running = false;
+
+  function renderStatic() {
+    // פריים אחד במצב הסופי (אחרי הכניסה), בלי פרלקסת סמן
+    current.x = 0; current.y = 0; target.x = 0; target.y = 0;
+    rim.position.copy(rimBase);
+    frame(REST_AT, 0, REST_IDLE);
+    renderer.render(scene, camera);
   }
 
   function loop() {
+    if (!running) return;
     requestAnimationFrame(loop);
-    if (!visible || hidden) return;
-    var t = clock.getElapsedTime();
-    current.x += (target.x - current.x) * 0.04;
-    current.y += (target.y - current.y) * 0.04;
-    frame(t);
+    var dt = Math.min(clock.getDelta(), 0.05);
+    if (!visible || hidden || dt <= 0) return;
+    at += dt;
+    var k = 1 - Math.pow(0.96, dt * 60);
+    current.x += (target.x - current.x) * k;
+    current.y += (target.y - current.y) * k;
+    frame(at, dt);
     renderer.render(scene, camera);
   }
 
-  if (reduced) {
-    frame(1.2);
-    renderer.render(scene, camera);
-    window.addEventListener('resize', function () { renderer.render(scene, camera); });
+  function start() {
+    if (reduced) { running = false; renderStatic(); return; }
+    if (running) return;
+    running = true;
+    clock.getDelta();
+    requestAnimationFrame(loop);
+  }
+
+  // מעבר חי בין מצב תנועה למצב מנוחה (כפתור הנגישות / העדפת מערכת)
+  function onMotionChange() {
+    var now = isReduced();
+    if (now === reduced) return;
+    reduced = now;
+    if (reduced) { running = false; renderStatic(); }
+    else { at = Math.max(at, ENTER); start(); }
+  }
+  if (motionQuery.addEventListener) motionQuery.addEventListener('change', onMotionChange);
+  else if (motionQuery.addListener) motionQuery.addListener(onMotionChange);
+  if ('MutationObserver' in window) {
+    new MutationObserver(onMotionChange).observe(root, { attributes: true, attributeFilter: ['data-motion'] });
+  }
+
+  window.addEventListener('resize', function () {
+    resize();
+    if (reduced) renderStatic();
+  });
+
+  // ---------- פריים ראשון ואות מוכנות ----------
+  if (reduced) renderStatic();
+  else { frame(0, 0); renderer.render(scene, camera); }
+
+  var readySent = false;
+  function announceReady() {
+    if (readySent) return;
+    readySent = true;
+    window.__hero3dReady = true;
+    mount.classList.add('is-ready');
+    var ev;
+    try { ev = new CustomEvent('hero3d:ready'); }
+    catch (e) { ev = document.createEvent('CustomEvent'); ev.initCustomEvent('hero3d:ready', false, false, null); }
+    window.dispatchEvent(ev);
+    start();
+  }
+  // האות נשלח אחרי שכל הסקריפטים הדחויים (main.js / motion.js) רשמו מאזינים
+  if (document.readyState === 'complete') {
+    setTimeout(announceReady, 0);
   } else {
-    loop();
+    document.addEventListener('DOMContentLoaded', announceReady);
+    window.addEventListener('load', announceReady);
   }
 })();
 </script>

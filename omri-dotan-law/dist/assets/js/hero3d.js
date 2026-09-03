@@ -1,13 +1,30 @@
 /* ============================================================
    סצנת Hero תלת־ממדית – מאזני צדק בפליז (Three.js r128, UMD)
+   כניסה מתוזמרת, קישור לגלילה, אור עוקב־סמן, הילות, מצב מנוחה
    ============================================================ */
 (function () {
   'use strict';
   var mount = document.getElementById('hero-3d');
   if (!mount || typeof THREE === 'undefined') return;
 
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-    document.documentElement.getAttribute('data-motion') === 'off';
+  var root = document.documentElement;
+  var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function isReduced() {
+    return motionQuery.matches || root.getAttribute('data-motion') === 'off';
+  }
+  var reduced = isReduced();
+
+  // ---------- קבועים ----------
+  var ENTER = 1.8;                 // משך הכניסה (שניות)
+  var REST_AT = 24;                // "זמן" אחרי סיום הכניסה – לפריים הסטטי
+  var REST_IDLE = 0.35;            // פאזת תנודה שקטה לפריים הסטטי
+  var CAM_Y = 1.35, CAM_Z = 10.5, CAM_Z_NARROW = 12.5;
+  var CAM_START_Y = 2.2, CAM_START_Z = 14.5;
+  var NARROW_W = 860;
+
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function easeOutCubic(x) { return 1 - Math.pow(1 - x, 3); }
+  function easeOutExpo(x) { return x >= 1 ? 1 : 1 - Math.pow(2, -10 * x); }
 
   // בדיקת WebGL
   var probe = document.createElement('canvas');
@@ -18,7 +35,13 @@
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch (e) { mount.classList.add('is-unavailable'); return; }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  var initialW = mount.clientWidth || window.innerWidth || 1024;
+  var narrow = initialW < NARROW_W;
+  function pixelRatioFor(w) {
+    // מובייל: DPR מוגבל ל־1.5 – חוסך fill-rate בלי פגיעה נראית
+    return Math.min(window.devicePixelRatio || 1, w < NARROW_W ? 1.5 : 2);
+  }
+  renderer.setPixelRatio(pixelRatioFor(initialW));
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -32,7 +55,7 @@
   scene.fog = new THREE.Fog(0x0f2a25, 9, 18);
 
   var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 60);
-  camera.position.set(0, 1.35, 10.5);
+  camera.position.set(0, CAM_START_Y, CAM_START_Z);
 
   // ---------- סביבת השתקפות פרוצדורלית (בלי קבצים חיצוניים) ----------
   function buildEnvironment() {
@@ -74,8 +97,9 @@
     color: 0x8a6d3b, metalness: 1.0, roughness: 0.42, envMapIntensity: 1.0
   });
   var stone = new THREE.MeshStandardMaterial({ color: 0x1a3a33, metalness: 0.15, roughness: 0.85 });
+  var GLASS_OPACITY = 0.18;
   var glass = new THREE.MeshPhysicalMaterial({
-    color: 0xd8b978, metalness: 0.1, roughness: 0.15, transparent: true, opacity: 0.18,
+    color: 0xd8b978, metalness: 0.1, roughness: 0.15, transparent: true, opacity: 0,
     envMapIntensity: 2.0, side: THREE.DoubleSide, depthWrite: false
   });
 
@@ -84,13 +108,14 @@
   var key = new THREE.DirectionalLight(0xfff1d6, 1.6);
   key.position.set(-5, 8, 6);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(narrow ? 512 : 1024, narrow ? 512 : 1024);
   key.shadow.camera.left = -6; key.shadow.camera.right = 6;
   key.shadow.camera.top = 6; key.shadow.camera.bottom = -6;
   key.shadow.bias = -0.0005;
   scene.add(key);
   var rim = new THREE.PointLight(0xd8b978, 1.8, 30);
-  rim.position.set(6, 3, -4);
+  var rimBase = new THREE.Vector3(6, 3, -4);
+  rim.position.copy(rimBase);
   scene.add(rim);
   var fill = new THREE.PointLight(0x7fb3a5, 0.7, 30);
   fill.position.set(-6, -2, 4);
@@ -172,8 +197,25 @@
     rings.push(ring);
   });
 
-  // אבק זהב
-  var COUNT = 520;
+  // ---------- טקסטורות רדיאליות (אבק והילות) ----------
+  function radialTexture(size, stops) {
+    var c = document.createElement('canvas'); c.width = c.height = size;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    stops.forEach(function (s) { g.addColorStop(s[0], s[1]); });
+    ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
+    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
+  }
+  var dustTex = radialTexture(64, [
+    [0, 'rgba(255,240,200,1)'], [0.35, 'rgba(216,185,120,0.7)'], [1, 'rgba(216,185,120,0)']
+  ]);
+  var glowTex = radialTexture(128, [
+    [0, 'rgba(255,241,214,1)'], [0.22, 'rgba(216,185,120,0.55)'], [0.55, 'rgba(216,185,120,0.14)'], [1, 'rgba(216,185,120,0)']
+  ]);
+
+  // אבק זהב (פחות חלקיקים במובייל)
+  var COUNT = narrow ? 300 : 520;
+  var DUST_OPACITY = 0.85;
   var positions = new Float32Array(COUNT * 3);
   var speeds = new Float32Array(COUNT);
   for (var i = 0; i < COUNT; i++) {
@@ -184,21 +226,30 @@
   }
   var dustGeo = new THREE.BufferGeometry();
   dustGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  var dustTex = (function () {
-    var c = document.createElement('canvas'); c.width = c.height = 64;
-    var ctx = c.getContext('2d');
-    var g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,240,200,1)');
-    g.addColorStop(0.35, 'rgba(216,185,120,0.7)');
-    g.addColorStop(1, 'rgba(216,185,120,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-    var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
-  })();
-  var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-    size: 0.09, map: dustTex, transparent: true, opacity: 0.85, depthWrite: false,
+  var dustMat = new THREE.PointsMaterial({
+    size: 0.09, map: dustTex, transparent: true, opacity: 0, depthWrite: false,
     blending: THREE.AdditiveBlending, sizeAttenuation: true, color: 0xffffff
-  }));
+  });
+  var dust = new THREE.Points(dustGeo, dustMat);
   scene.add(dust);
+
+  // הילות אדיטיביות: קטנה מאחורי הכדור העליון, רחבה מאחורי המאזניים
+  function makeGlow(scale, opacity, x, y, z) {
+    var mat = new THREE.SpriteMaterial({
+      map: glowTex, color: 0xffffff, transparent: true, opacity: 0,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    var s = new THREE.Sprite(mat);
+    s.scale.set(scale, scale, 1);
+    s.position.set(x, y, z);
+    s.userData.scale = scale;
+    s.userData.opacity = opacity;
+    return s;
+  }
+  var finialGlow = makeGlow(1.5, 0.34, 0, 1.92, -0.3);
+  group.add(finialGlow);
+  var wideGlow = makeGlow(6, 0.12, 0, -0.1, -1.4);
+  group.add(wideGlow);
 
   // רצפת השתקפות עדינה
   var floor = new THREE.Mesh(
@@ -219,76 +270,216 @@
   var target = { x: 0, y: 0 };
   var current = { x: 0, y: 0 };
   var scrollY = 0;
+  var scrollP = 0;          // התקדמות הגלילה לאורך ה-Hero (0..1)
+  var heroEl = mount.parentNode || mount;
+  var heroH = 1;
+  var baseOpacity = 1;      // ה-opacity שה-CSS נותן למעטפת (למשל .9 במובייל)
+  var lastOpacity = null;
+
   function onPointer(e) {
-    var x = (e.clientX / window.innerWidth) * 2 - 1;
-    var y = (e.clientY / window.innerHeight) * 2 - 1;
-    target.x = x; target.y = y;
+    if (reduced) return;
+    target.x = (e.clientX / window.innerWidth) * 2 - 1;
+    target.y = (e.clientY / window.innerHeight) * 2 - 1;
   }
-  if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+  if (window.matchMedia('(pointer: fine)').matches) {
     window.addEventListener('pointermove', onPointer, { passive: true });
   }
-  window.addEventListener('scroll', function () { scrollY = window.scrollY || 0; }, { passive: true });
 
+  function readScroll() {
+    scrollY = window.scrollY || window.pageYOffset || 0;
+    scrollP = clamp01(scrollY / heroH);
+  }
+  function applyMountOpacity() {
+    // דהייה עדינה של הסצנה עד סוף ה-Hero (opacity בלבד – מותר גם במצב מנוחה)
+    var o = scrollP > 0 ? String(Math.round(baseOpacity * (1 - scrollP) * 100) / 100) : '';
+    if (o !== lastOpacity) { lastOpacity = o; mount.style.opacity = o; }
+  }
+  var scrollTicking = false;
+  function onScroll() {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(function () {
+      scrollTicking = false;
+      readScroll();
+      applyMountOpacity();
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  var baseZ = CAM_Z;
   function resize() {
     var w = mount.clientWidth || 1, h = mount.clientHeight || 1;
+    narrow = w < NARROW_W;
+    renderer.setPixelRatio(pixelRatioFor(w));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    var narrow = w < 860;
     camera.fov = narrow ? 44 : 32;
     group.position.x = narrow ? 0 : sideShift;
     rings.forEach(function (r) { r.position.x = narrow ? 0 : sideShift; });
-    camera.position.z = narrow ? 12.5 : 10.5;
+    baseZ = narrow ? CAM_Z_NARROW : CAM_Z;
     camera.updateProjectionMatrix();
+    // מדידה מחדש של גובה ה-Hero ושל ה-opacity הבסיסי מה-CSS
+    var inline = mount.style.opacity;
+    mount.style.opacity = '';
+    var cssOpacity = parseFloat(window.getComputedStyle(mount).opacity);
+    baseOpacity = isNaN(cssOpacity) ? 1 : cssOpacity;
+    mount.style.opacity = inline;
+    heroH = Math.max(1, heroEl.offsetHeight || h);
+    readScroll();
+    lastOpacity = null;
+    applyMountOpacity();
   }
-  window.addEventListener('resize', resize);
   resize();
 
-  var clock = new THREE.Clock();
   var visible = true;
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; }, { threshold: 0.02 }).observe(mount);
   }
-  var hidden = false;
+  var hidden = !!document.hidden;
   document.addEventListener('visibilitychange', function () { hidden = document.hidden; });
 
-  function frame(t) {
-    // תנודת הקורה, כאילו המאזניים מתייצבים
+  // הקורה מתחילה נטויה (0.18rad) ומתייצבת בתנודה דועכת – שיווי משקל
+  function beamSettle(at) {
+    return 0.18 * Math.exp(-1.6 * at) * Math.cos(at * 2.6);
+  }
+
+  /**
+   * at     – זמן אנימציה מצטבר מתחילת הכניסה (שניות)
+   * dt     – זמן שחלף מהפריים הקודם (0 לפריים סטטי)
+   * idleT  – פאזת התנודה השקטה (ברירת מחדל: at)
+   */
+  function frame(at, dt, idleT) {
+    var t = typeof idleT === 'number' ? idleT : at;
+    var e = clamp01(at / ENTER);
+    var eCam = easeOutExpo(e);
+    var eGroup = easeOutCubic(e);
+    var eRings = easeOutCubic(clamp01((at - 0.25) / (ENTER - 0.25)));
+    var eDust = easeOutCubic(clamp01((at - 0.15) / 1.4));
+    var p = scrollP;
+
+    // תנודת הקורה + התייצבות הכניסה
     var sway = Math.sin(t * 0.6) * 0.055 + Math.sin(t * 1.7) * 0.012;
-    pivot.rotation.z = sway;
-    panL.rotation.z = -sway; panR.rotation.z = -sway;
-    group.rotation.y = Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
+    var tilt = sway + beamSettle(at);
+    pivot.rotation.z = tilt;
+    panL.rotation.z = -tilt; panR.rotation.z = -tilt;
+
+    // הקבוצה: עלייה וסיבוב בכניסה, נשימה אחר כך, ירידה בגלילה
+    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
     group.rotation.x = current.y * 0.08;
-    group.position.y = Math.sin(t * 0.8) * 0.05 - scrollY * 0.0012;
+    group.position.y = -1.2 * (1 - eGroup) + Math.sin(t * 0.8) * 0.05 - p * 1.0;
+
+    // טבעות: התרחבות ודהייה פנימה, סיבוב איטי
+    var ringScale = 0.6 + 0.4 * eRings;
+    glass.opacity = GLASS_OPACITY * eRings;
     rings.forEach(function (r, i) {
-      if (i === 0) r.rotation.z += 0.0015; else if (i === 1) r.rotation.y += 0.0012; else r.rotation.x += 0.001;
+      r.scale.set(ringScale, ringScale, ringScale);
+      if (i === 0) r.rotation.z += 0.09 * dt; else if (i === 1) r.rotation.y += 0.072 * dt; else r.rotation.x += 0.06 * dt;
     });
-    var arr = dustGeo.attributes.position.array;
-    for (var i = 0; i < COUNT; i++) {
-      arr[i * 3 + 1] += speeds[i] * 0.004;
-      arr[i * 3] += Math.sin(t * 0.5 + i) * 0.0006;
-      if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = -5;
+
+    // אבק
+    dustMat.opacity = DUST_OPACITY * eDust;
+    if (dt > 0) {
+      var arr = dustGeo.attributes.position.array;
+      for (var i = 0; i < COUNT; i++) {
+        arr[i * 3 + 1] += speeds[i] * 0.24 * dt;
+        arr[i * 3] += Math.sin(t * 0.5 + i) * 0.036 * dt;
+        if (arr[i * 3 + 1] > 5) arr[i * 3 + 1] = -5;
+      }
+      dustGeo.attributes.position.needsUpdate = true;
     }
-    dustGeo.attributes.position.needsUpdate = true;
-    camera.position.x = current.x * 0.5 + (isRTL ? 0.6 : -0.6);
-    camera.position.y = 1.35 - current.y * 0.3;
-    camera.lookAt(group.position.x * 0.6, -0.2, 0);
+
+    // הילות נושמות – עדין
+    var breath = Math.sin(t * 1.1);
+    finialGlow.material.opacity = finialGlow.userData.opacity * (1 + 0.18 * breath) * eRings;
+    var fs = finialGlow.userData.scale * (1 + 0.05 * breath);
+    finialGlow.scale.set(fs, fs, 1);
+    wideGlow.material.opacity = wideGlow.userData.opacity * (1 + 0.22 * Math.sin(t * 0.7 + 1.3)) * eRings;
+
+    // אור הרים עוקב אחרי הסמן במישור x/y – ההשתקפויות "חיות"
+    rim.position.x = rimBase.x + current.x * 4.0;
+    rim.position.y = rimBase.y - current.y * 2.5;
+    rim.intensity = 1.8 + Math.abs(current.x) * 0.5;
+
+    // מצלמה: דולי בכניסה, פרלקסת סמן, התרוממות והבטה מטה בגלילה
+    var camZ = baseZ + (CAM_START_Z - CAM_Z) * (1 - eCam);
+    var camY = CAM_Y + (CAM_START_Y - CAM_Y) * (1 - eCam) - current.y * 0.3 + p * 1.2;
+    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6), camY, camZ);
+    camera.lookAt(group.position.x * 0.6, -0.2 - p * 0.8, 0);
+  }
+
+  var clock = new THREE.Clock();
+  var at = 0;               // זמן אנימציה – מתקדם רק כשמרונדר בפועל
+  var running = false;
+
+  function renderStatic() {
+    // פריים אחד במצב הסופי (אחרי הכניסה), בלי פרלקסת סמן
+    current.x = 0; current.y = 0; target.x = 0; target.y = 0;
+    rim.position.copy(rimBase);
+    frame(REST_AT, 0, REST_IDLE);
+    renderer.render(scene, camera);
   }
 
   function loop() {
+    if (!running) return;
     requestAnimationFrame(loop);
-    if (!visible || hidden) return;
-    var t = clock.getElapsedTime();
-    current.x += (target.x - current.x) * 0.04;
-    current.y += (target.y - current.y) * 0.04;
-    frame(t);
+    var dt = Math.min(clock.getDelta(), 0.05);
+    if (!visible || hidden || dt <= 0) return;
+    at += dt;
+    var k = 1 - Math.pow(0.96, dt * 60);
+    current.x += (target.x - current.x) * k;
+    current.y += (target.y - current.y) * k;
+    frame(at, dt);
     renderer.render(scene, camera);
   }
 
-  if (reduced) {
-    frame(1.2);
-    renderer.render(scene, camera);
-    window.addEventListener('resize', function () { renderer.render(scene, camera); });
+  function start() {
+    if (reduced) { running = false; renderStatic(); return; }
+    if (running) return;
+    running = true;
+    clock.getDelta();
+    requestAnimationFrame(loop);
+  }
+
+  // מעבר חי בין מצב תנועה למצב מנוחה (כפתור הנגישות / העדפת מערכת)
+  function onMotionChange() {
+    var now = isReduced();
+    if (now === reduced) return;
+    reduced = now;
+    if (reduced) { running = false; renderStatic(); }
+    else { at = Math.max(at, ENTER); start(); }
+  }
+  if (motionQuery.addEventListener) motionQuery.addEventListener('change', onMotionChange);
+  else if (motionQuery.addListener) motionQuery.addListener(onMotionChange);
+  if ('MutationObserver' in window) {
+    new MutationObserver(onMotionChange).observe(root, { attributes: true, attributeFilter: ['data-motion'] });
+  }
+
+  window.addEventListener('resize', function () {
+    resize();
+    if (reduced) renderStatic();
+  });
+
+  // ---------- פריים ראשון ואות מוכנות ----------
+  if (reduced) renderStatic();
+  else { frame(0, 0); renderer.render(scene, camera); }
+
+  var readySent = false;
+  function announceReady() {
+    if (readySent) return;
+    readySent = true;
+    window.__hero3dReady = true;
+    mount.classList.add('is-ready');
+    var ev;
+    try { ev = new CustomEvent('hero3d:ready'); }
+    catch (e) { ev = document.createEvent('CustomEvent'); ev.initCustomEvent('hero3d:ready', false, false, null); }
+    window.dispatchEvent(ev);
+    start();
+  }
+  // האות נשלח אחרי שכל הסקריפטים הדחויים (main.js / motion.js) רשמו מאזינים
+  if (document.readyState === 'complete') {
+    setTimeout(announceReady, 0);
   } else {
-    loop();
+    document.addEventListener('DOMContentLoaded', announceReady);
+    window.addEventListener('load', announceReady);
   }
 })();

@@ -354,6 +354,25 @@ button { font: inherit; color: inherit; }
   .process__step + .process__step { border-inline-start: 0; border-block-start: 1px solid var(--line); }
 }
 
+/* ---------- Marquee (פריסה בסיסית בלבד; התנועה, ההשהיה ב-hover ומצב reduced-motion ב-motion.css) ---------- */
+.marquee {
+  --marquee-gap: 2.75rem;
+  display: flex; width: 100%; overflow: hidden;
+  background: var(--surface); color: var(--ink-2);
+  border-block: 1px solid var(--line); padding-block: 1.1rem;
+}
+.marquee__track {
+  flex: none; display: flex; align-items: center; gap: var(--marquee-gap);
+  padding-inline-end: var(--marquee-gap); white-space: nowrap;
+  font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1.2;
+}
+.marquee__item { flex: none; }
+.marquee__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+@media (max-width: 600px) {
+  .marquee { --marquee-gap: 2rem; padding-block: .85rem; }
+  .marquee__track { font-size: var(--fs-lg); }
+}
+
 /* ---------- Practice cards ---------- */
 .practice-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; perspective: 1400px; }
 .pcard {
@@ -564,6 +583,16 @@ button { font: inherit; color: inherit; }
 .stat strong { font-family: var(--font-display); font-size: 1.6rem; font-weight: 500; color: var(--brass-ink); font-variant-numeric: tabular-nums; }
 .stat span { font-size: var(--fs-xs); color: var(--muted); }
 @media (max-width: 520px) { .stat-row { grid-template-columns: 1fr; } }
+/* "המשרד במספרים" (דף הבית): 4 עמודות, 2 במובייל */
+.stat-row--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin-block-start: 0; }
+.stat-row--4 .stat { padding: 1.5rem 1.6rem; gap: .4rem; border-radius: var(--radius-lg); }
+.stat-row--4 .stat strong { font-size: clamp(2rem, 3.2vw, 2.6rem); line-height: 1.05; }
+.stat-row--4 .stat span { font-size: var(--fs-sm); color: var(--ink-2); line-height: 1.4; }
+@media (max-width: 860px) {
+  .stat-row--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+  .stat-row--4 .stat { padding: 1.2rem 1.1rem; }
+  .stat-row--4 .stat span { font-size: var(--fs-xs); }
+}
 
 /* ---------- Footer ---------- */
 .footer { background: var(--green-2); color: var(--on-green-muted); padding-block: 4rem 2rem; font-size: var(--fs-sm); }

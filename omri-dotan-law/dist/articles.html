@@ -20,6 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"דף הבית","item":"https://www.omridotan-law.co.il/"},{"@type":"ListItem","position":2,"name":"מאמרים","item":"https://www.omridotan-law.co.il/articles.html"}]}</script>
 </head>
 <body>
@@ -45,11 +46,12 @@
     </div>
   </div>
 </header>
+  
   <main id="main">
 
 <section class="page-hero"><div class="container page-hero__inner">
     <nav aria-label="פירורי לחם"><ol class="breadcrumbs"><li><a href="index.html">דף הבית</a></li><li aria-current="page">מאמרים</li></ol></nav>
-    <span class="eyebrow">מאמרים ומדריכים</span>
+    <span class="eyebrow reveal--line">מאמרים ומדריכים</span>
     <h1>ידע משפטי, בלי ז׳רגון</h1>
     <p class="lede">מדריכים מעשיים בנושאים שמעסיקים את הלקוחות שלנו יום־יום. הכתיבה נגישה, אבל הדיוק המשפטי לא נפגע.</p>
     
@@ -60,7 +62,7 @@
     <button class="chip" type="button" data-cat="all" aria-pressed="true">הכול</button>
     <button class="chip" type="button" data-cat="דיני עבודה" aria-pressed="false">דיני עבודה</button><button class="chip" type="button" data-cat="מקרקעין" aria-pressed="false">מקרקעין</button><button class="chip" type="button" data-cat="משפחה וירושה" aria-pressed="false">משפחה וירושה</button><button class="chip" type="button" data-cat="נזיקין" aria-pressed="false">נזיקין</button><button class="chip" type="button" data-cat="ליטיגציה" aria-pressed="false">ליטיגציה</button><button class="chip" type="button" data-cat="מיסוי" aria-pressed="false">מיסוי</button>
   </div>
-  <div class="articles-grid" data-articles><a class="acard acard--featured reveal" href="articles/severance-pay.html" data-cat-item="דיני עבודה">
+  <div class="articles-grid" data-stagger data-articles><a class="acard acard--featured reveal" href="articles/severance-pay.html" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -106,7 +108,7 @@
 <section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>לא מצאתם תשובה?</h2><p>כל מקרה שונה. שיחת ייעוץ קצרה תחסוך לכם שעות של חיפוש.</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="contact.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
+      <a class="btn btn--brass" href="contact.html" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישה</a>
       <a class="btn btn--ghost" href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg> וואטסאפ</a>
     </div>
   </div></div></section>
@@ -171,7 +173,10 @@
   </div>
   <button class="a11y__btn" type="button" aria-expanded="false" aria-controls="a11y-panel" aria-label="תפריט נגישות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="4.5" r="1.8"/><path d="M4 8.5l8 1.5 8-1.5M12 10v5l-3 6M12 15l3 6"/></svg></button>
 </div>
+  <div class="page-transition" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
   
   <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/motion.js" defer></script>
 </body>
 </html>

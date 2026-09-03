@@ -20,6 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/motion.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"LegalService","name":"משרד עורכי דין עומרי דותן","url":"https://www.omridotan-law.co.il","telephone":"03-000-0000","email":"office@omridotan-law.co.il","description":"משרד עורכי דין עומרי דותן – ליווי משפטי אישי בדיני עבודה, מקרקעין, משפחה וירושה, נזיקין וליטיגציה מסחרית. פגישת ייעוץ ראשונה ללא התחייבות.","image":"https://www.omridotan-law.co.il/assets/img/logo.svg","priceRange":"₪₪","address":{"@type":"PostalAddress","streetAddress":"דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה)","addressLocality":"תל אביב-יפו","addressCountry":"IL"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Sunday","Monday","Tuesday","Wednesday","Thursday"],"opens":"08:30","closes":"18:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Friday","opens":"09:00","closes":"12:30"}],"founder":{"@type":"Person","name":"עו״ד עומרי דותן"},"areaServed":"IL","knowsAbout":["דיני עבודה","מקרקעין ונדל״ן","דיני משפחה וירושה","נזיקין וביטוח","ליטיגציה מסחרית","דיני חברות ועסקים"]}</script>
 </head>
 <body>
@@ -45,6 +46,7 @@
     </div>
   </div>
 </header>
+  
   <main id="main">
 
 <section class="hero" aria-labelledby="hero-title">
@@ -55,11 +57,11 @@
   <div class="hero__vignette" aria-hidden="true"></div>
   <div class="container hero__inner">
     <div class="hero__content">
-      <span class="eyebrow">משרד עורכי דין עומרי דותן</span>
-      <h1 class="hero__title" id="hero-title">ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
+      <span class="eyebrow reveal--line">משרד עורכי דין עומרי דותן</span>
+      <h1 class="hero__title" id="hero-title" data-split>ייצוג משפטי<br>שמדבר <em>תכלית.</em></h1>
       <p class="hero__lede">ליווי אישי, אסטרטגיה כתובה ותוצאות – בדיני עבודה, מקרקעין, משפחה וירושה, נזיקין וליטיגציה מסחרית. אתם מבינים בדיוק איפה אתם עומדים, בכל שלב.</p>
       <div class="hero__actions">
-        <a class="btn btn--brass" href="contact.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישת ייעוץ</a>
+        <a class="btn btn--brass" href="contact.html" data-magnetic><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> לתיאום פגישת ייעוץ</a>
         <a class="btn btn--ghost" href="practice.html">תחומי העיסוק</a>
       </div>
       <div class="hero__trust">
@@ -72,47 +74,61 @@
   <span class="hero__scroll" aria-hidden="true">גללו</span>
 </section>
 
+<section class="section section--tight" aria-labelledby="stats-title">
+  <div class="container">
+    <h2 class="sr-only" id="stats-title">המשרד במספרים</h2>
+    <div class="stat-row stat-row--4" data-stagger>
+      <div class="stat reveal"><strong data-counter="14" data-prefix="" data-suffix="+">14+</strong><span>שנות פעילות וייצוג בכל הערכאות</span></div>
+      <div class="stat reveal"><strong data-counter="6" data-prefix="" data-suffix="">6</strong><span>תחומי עיסוק במיקוד מלא</span></div>
+      <div class="stat reveal"><strong data-counter="1" data-prefix="" data-suffix="">1</strong><span>יום עסקים למענה על כל פנייה</span></div>
+      <div class="stat reveal"><strong data-counter="100" data-prefix="" data-suffix="%">100%</strong><span>שקיפות בשכר הטרחה – הצעה כתובה מראש</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" data-marquee aria-hidden="true"><div class="marquee__track"><span class="marquee__item">דיני עבודה</span><span class="marquee__dot"></span><span class="marquee__item">ליווי בהליכי שימוע ופיטורים</span><span class="marquee__dot"></span><span class="marquee__item">מקרקעין ונדל״ן</span><span class="marquee__dot"></span><span class="marquee__item">תכנון מס רכישה ומס שבח</span><span class="marquee__dot"></span><span class="marquee__item">דיני משפחה וירושה</span><span class="marquee__dot"></span><span class="marquee__item">חלוקת רכוש ואיזון משאבים</span><span class="marquee__dot"></span><span class="marquee__item">נזיקין וביטוח</span><span class="marquee__dot"></span><span class="marquee__item">רשלנות רפואית</span><span class="marquee__dot"></span><span class="marquee__item">ליטיגציה מסחרית</span><span class="marquee__dot"></span><span class="marquee__item">בוררות וגישור</span><span class="marquee__dot"></span><span class="marquee__item">דיני חברות ועסקים</span><span class="marquee__dot"></span><span class="marquee__item">הקמת חברות ושותפויות</span><span class="marquee__dot"></span></div></div>
+
 <section class="section section--tight" aria-labelledby="process-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
-    <div class="process reveal"><div class="process__step"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">איך זה עובד</span><h2 id="process-title">שלושה שלבים, בלי הפתעות</h2></div>
+    <div class="process" data-stagger><div class="process__step reveal"><span class="process__n num">01</span><h3>שיחת היכרות</h3><p>פגישה ראשונה, במשרד או בווידאו, שבה אנו מקשיבים, שואלים ומבינים מה באמת חשוב לכם.</p></div><div class="process__step reveal"><span class="process__n num">02</span><h3>אסטרטגיה</h3><p>ניתוח משפטי כתוב: הסיכויים, הסיכונים, לוחות הזמנים ועלות צפויה. בלי הפתעות.</p></div><div class="process__step reveal"><span class="process__n num">03</span><h3>ייצוג</h3><p>משא ומתן, גישור או בית משפט – אתם מעודכנים בכל צעד, ומקבלים החלטות מתוך ידיעה.</p></div></div>
   </div>
 </section>
 
 <section class="section" aria-labelledby="practice-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
-    <div class="practice-grid"><a class="pcard reveal" data-delay="1" href="practice/labor-law.html">
+    <div class="section-head reveal"><span class="eyebrow reveal--line">תחומי עיסוק</span><h2 id="practice-title">מומחיות ממוקדת בתחומים שמשנים חיים ועסקים</h2><p class="lede">שישה תחומי ליבה, גישה אחת: להבין קודם מה חשוב לכם, ורק אז לבנות את הדרך המשפטית.</p></div>
+    <div class="practice-grid" data-stagger><a class="pcard reveal" href="practice/labor-law.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 8h16v11H4z"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M4 13h16"/></svg></span>
     <h3>דיני עבודה</h3>
     <p>פיטורים, שימוע, זכויות סוציאליות והסכמי העסקה – לעובדים ולמעסיקים.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="practice/real-estate.html">
+  </a><a class="pcard reveal" href="practice/real-estate.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 21V5l7-3 7 3v16"/><path d="M9 9h2M13 9h2M9 13h2M13 13h2M9 17h2M13 17h2"/><path d="M3 21h18"/></svg></span>
     <h3>מקרקעין ונדל״ן</h3>
     <p>עסקאות מכר ושכירות, תמ״א 38, ליקויי בנייה ומיסוי מקרקעין.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="practice/family-inheritance.html">
+  </a><a class="pcard reveal" href="practice/family-inheritance.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="8" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 21v-2a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v2"/><path d="M14 21v-1.5a4 4 0 0 1 4-4h.5a3.5 3.5 0 0 1 3.5 3.5V21"/></svg></span>
     <h3>דיני משפחה וירושה</h3>
     <p>גירושין, הסכמי ממון, משמורת, צוואות וצווי ירושה – ברגישות ובדיסקרטיות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="1" href="practice/torts-insurance.html">
+  </a><a class="pcard reveal" href="practice/torts-insurance.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
     <h3>נזיקין וביטוח</h3>
     <p>תאונות דרכים, תאונות עבודה, רשלנות רפואית ותביעות מול חברות ביטוח.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="2" href="practice/commercial-litigation.html">
+  </a><a class="pcard reveal" href="practice/commercial-litigation.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4l6 6-3 3-6-6z"/><path d="M11 7l-8 8 3 3 8-8"/><path d="M3 21h10"/></svg></span>
     <h3>ליטיגציה מסחרית</h3>
     <p>סכסוכים עסקיים, הפרות חוזה, גבייה, לשון הרע וייצוג בערכאות.</p>
     <span class="pcard__more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg> לפרטים</span>
-  </a><a class="pcard reveal" data-delay="3" href="practice/corporate.html">
+  </a><a class="pcard reveal" href="practice/corporate.html">
     <span class="pcard__glare"></span>
     <span class="pcard__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v18M7 21h10M4 7h16"/><path d="M4 7l-2.5 7h5zM20 7l-2.5 7h5z"/></svg></span>
     <h3>דיני חברות ועסקים</h3>
@@ -124,21 +140,21 @@
 
 <section class="section section--surface" aria-labelledby="about-title">
   <div class="container about-split">
-    <div class="portrait reveal">
+    <div class="portrait reveal" data-parallax="0.12">
       <span class="portrait__grain" aria-hidden="true"></span>
       <svg class="portrait__mark" viewBox="0 0 400 400" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M200 60v260M140 320h120M80 120h240"/><path d="M80 120l-40 100h80zM320 120l-40 100h80z"/><circle cx="200" cy="52" r="10"/></svg>
       <p class="portrait__quote">„הלקוח לא צריך להבין את כל החוק – הוא צריך להבין מה האפשרויות שלו ומה ההשלכות של כל אחת מהן. זו העבודה שלי.”</p>
       <p class="portrait__by">עו״ד עומרי דותן, מייסד ובעלים</p>
     </div>
     <div class="about-split__text reveal" data-delay="1">
-      <span class="eyebrow">אודות המשרד</span>
+      <span class="eyebrow reveal--line">אודות המשרד</span>
       <h2 id="about-title">משרד בוטיק עם סטנדרט של משרד גדול</h2>
       <p>עו״ד עומרי דותן ייסד את המשרד מתוך אמונה שלקוח שמבין את מצבו המשפטי מקבל החלטות טובות יותר. הוא מתמחה בליטיגציה אזרחית־מסחרית, בדיני עבודה ובמקרקעין, ומייצג לקוחות פרטיים ועסקיים בכל הערכאות.</p>
       <p>צוות המשרד כולל עורכי דין, מתמחים וצוות מנהלי מנוסה, שפועלים יחד כדי שכל לקוח יקבל מענה מהיר ומקצועי. אנו משקיעים בהכשרה מתמדת ובטכנולוגיה שמייעלת את העבודה – כדי שהזמן שלכם יוקדש למה שחשוב.</p>
-      <ul class="about-list">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
+      <ul class="about-list" data-stagger>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>הצעת שכר טרחה כתובה לפני תחילת העבודה</span></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>עורך הדין שפגשתם הוא עורך הדין שמטפל בתיק</span></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12l4 4L19 6"/></svg> <span>פגישות במשרד, בווידאו או אצל הלקוח</span></li>
       </ul>
       <div><a class="link-arrow" href="about.html">להכיר את המשרד <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/></svg></a></div>
     </div>
@@ -146,21 +162,21 @@
 </section>
 
 <section class="section section--dark"><div class="container">
-    <div class="section-head reveal"><span class="eyebrow">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
-    <div class="values"><div class="value reveal" data-delay="1"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal" data-delay="2"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal" data-delay="3"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal" data-delay="4"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">למה אנחנו</span><h2>ארבע התחייבויות שלא נסוג מהן</h2></div>
+    <div class="values" data-stagger><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span><h3>שקיפות מלאה</h3><p>הצעת שכר טרחה ברורה מראש ועדכון שוטף על כל התפתחות בתיק.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3>זמינות אמיתית</h3><p>מענה לפניות תוך יום עסקים אחד. עו״ד שמטפל בתיק שלכם מכיר אתכם בשם.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span><h3>תוצאות, לא הליכים</h3><p>אנו מודדים הצלחה בתוצאה שהשגנו עבורכם, לא במספר הדיונים.</p></div><div class="value reveal"><span class="value__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h3>דיסקרטיות</h3><p>סודיות מוחלטת. פרטי הלקוחות והתיקים לעולם אינם מתפרסמים ללא הסכמה מפורשת.</p></div></div>
   </div></section>
 
 <section class="section" aria-labelledby="testimonials-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
-    <div class="testimonials"><article class="tcard reveal" data-delay="1"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>הגעתי אחרי פיטורים לא חוקיים, מבולבל ומיואש. עומרי הסביר לי בשפה פשוטה מה מגיע לי, ותוך שלושה חודשים הגענו לפשרה שלא האמנתי שאפשרית.</blockquote><footer><strong>א.כ.</strong><span>לקוח, דיני עבודה</span></footer></article><article class="tcard reveal" data-delay="2"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>ליווי מקצועי ומדויק ברכישת הדירה הראשונה שלנו. כל שאלה נענתה באותו יום, וכל סעיף בחוזה הוסבר עד שהבנו.</blockquote><footer><strong>משפחת ר.</strong><span>לקוחות, מקרקעין</span></footer></article><article class="tcard reveal" data-delay="3"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>המשרד מלווה את החברה שלנו כבר ארבע שנים. ייעוץ עסקי חד, לא רק משפטי – זה ההבדל.</blockquote><footer><strong>ד.ל., מנכ״לית</strong><span>לקוחה, דיני חברות</span></footer></article></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">לקוחות מספרים</span><h2 id="testimonials-title">מה אומרים מי שכבר עברו את זה איתנו</h2></div>
+    <div class="testimonials" data-slider role="region" aria-roledescription="carousel" aria-label="המלצות לקוחות"><article class="tcard reveal" data-delay="1"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>הגעתי אחרי פיטורים לא חוקיים, מבולבל ומיואש. עומרי הסביר לי בשפה פשוטה מה מגיע לי, ותוך שלושה חודשים הגענו לפשרה שלא האמנתי שאפשרית.</blockquote><footer><strong>א.כ.</strong><span>לקוח, דיני עבודה</span></footer></article><article class="tcard reveal" data-delay="2"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>ליווי מקצועי ומדויק ברכישת הדירה הראשונה שלנו. כל שאלה נענתה באותו יום, וכל סעיף בחוזה הוסבר עד שהבנו.</blockquote><footer><strong>משפחת ר.</strong><span>לקוחות, מקרקעין</span></footer></article><article class="tcard reveal" data-delay="3"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>המשרד מלווה את החברה שלנו כבר ארבע שנים. ייעוץ עסקי חד, לא רק משפטי – זה ההבדל.</blockquote><footer><strong>ד.ל., מנכ״לית</strong><span>לקוחה, דיני חברות</span></footer></article><article class="tcard reveal" data-delay="4"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>אחרי תאונת הדרכים חברת הביטוח הציעה סכום שנראה לי סופי. עומרי לא קיבל את זה, ניהל את התיק בסבלנות מול המומחים, והפיצוי בסופו של דבר היה כמעט פי שלושה.</blockquote><footer><strong>י.מ.</strong><span>לקוח, נזיקין וביטוח</span></footer></article><article class="tcard reveal" data-delay="5"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>גירושין הם תקופה שבה כל מילה כואבת. קיבלנו ליווי רגיש אבל נחוש, שהשאיר את הילדים מחוץ למאבק והביא אותנו להסכם הוגן בתוך חודשים ספורים.</blockquote><footer><strong>נ.ש.</strong><span>לקוחה, דיני משפחה וירושה</span></footer></article><article class="tcard reveal" data-delay="6"><span class="tcard__mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h4v4c0 3-1.5 5-4 6M15 7h4v4c0 3-1.5 5-4 6" /></svg></span><blockquote>שותף לשעבר הפר את ההסכם ונעלם. במקום תביעה של שנים, המשרד השיג צו מניעה בתוך שבוע, ובעקבותיו הסדר שסגר את העניין. תכליתי, בדיוק כמו שהובטח.</blockquote><footer><strong>ר.ב., בעל עסק</strong><span>לקוח, ליטיגציה מסחרית</span></footer></article></div>
   </div>
 </section>
 
 <section class="section section--surface" aria-labelledby="articles-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
-    <div class="articles-grid"><a class="acard reveal" href="articles/severance-pay.html" data-cat-item="דיני עבודה">
+    <div class="section-head reveal"><span class="eyebrow reveal--line">מאמרים ומדריכים</span><h2 id="articles-title">ידע משפטי בשפה של בני אדם</h2><p class="lede">מדריכים מעשיים שכתבנו כדי שתגיעו לפגישה – או להחלטה – עם פחות שאלות פתוחות.</p></div>
+    <div class="articles-grid" data-stagger><a class="acard reveal" href="articles/severance-pay.html" data-cat-item="דיני עבודה">
     <div class="acard__meta"><span class="acard__cat">דיני עבודה</span><span class="num">14 ביולי 2026</span><span class="num">2 דק׳ קריאה</span></div>
     <h3>פיצויי פיטורים: מה באמת מגיע לכם, ומתי גם מי שהתפטר זכאי להם</h3>
     <p>רבים מניחים שפיצויים מגיעים רק למי שפוטר. בפועל, החוק מכיר במצבים רבים של "התפטרות בדין מפוטר". מדריך קצר לחישוב, למועדים ולטעויות הנפוצות.</p>
@@ -182,7 +198,7 @@
 
 <section class="section" aria-labelledby="faq-title">
   <div class="container">
-    <div class="section-head reveal"><span class="eyebrow">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
+    <div class="section-head reveal"><span class="eyebrow reveal--line">שאלות נפוצות</span><h2 id="faq-title">לפני שמרימים טלפון</h2></div>
     <div class="faq" id="faq"><details><summary>כמה עולה פגישת ייעוץ ראשונה?</summary><div><p>פגישת ההיכרות הראשונה (עד 30 דקות) ניתנת ללא עלות וללא התחייבות. בסיומה תקבלו הערכה ראשונית והצעת שכר טרחה מסודרת.</p></div></details><details><summary>איך נקבע שכר הטרחה?</summary><div><p>בהתאם לסוג התיק: תעריף קבוע לעסקאות ולהסכמים, אחוזי הצלחה בתביעות נזיקין וגבייה, ותעריף שעתי או ריטיינר לייעוץ שוטף. הכול מסוכם בכתב מראש.</p></div></details><details><summary>האם המשרד מטפל בתיקים בכל הארץ?</summary><div><p>כן. המשרד מייצג בכל בתי המשפט ובתי הדין בישראל, ופגישות מתקיימות גם בשיחת וידאו.</p></div></details><details><summary>מה להביא לפגישה הראשונה?</summary><div><p>כל מסמך רלוונטי: חוזים, מכתבים, תלושי שכר, מסמכים רפואיים, התכתבויות. אם אינכם בטוחים – הביאו הכול, אנחנו נמיין.</p></div></details><details><summary>האם אפשר להתייעץ בלי לפתוח בהליך משפטי?</summary><div><p>בהחלט. חלק גדול מהעבודה שלנו הוא ייעוץ מונע: בדיקת חוזה לפני חתימה, מכתב התראה, או חוות דעת על הסיכויים – לפני שמחליטים אם לתבוע.</p></div></details></div>
   </div>
 </section>
@@ -190,14 +206,14 @@
 <section class="section section--dark" id="contact" aria-labelledby="contact-title">
   <div class="container contact-band">
     <div class="contact-info reveal">
-      <span class="eyebrow">צור קשר</span>
+      <span class="eyebrow reveal--line">צור קשר</span>
       <h2 id="contact-title">ספרו לנו במה מדובר. נחזור אליכם תוך יום עסקים.</h2>
       <p>השאירו פרטים, או התקשרו ישירות. בפגישה הראשונה נקשיב, נשאל, וניתן לכם הערכה כנה – גם אם המסקנה היא שלא כדאי לכם לתבוע.</p>
-      <ul class="contact-lines">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>טלפון</small><a href="tel:+97230000000" class="num">03-000-0000</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><div><small>וואטסאפ</small><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><div><small>אימייל</small><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>כתובת</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה), תל אביב-יפו</div></li>
+      <ul class="contact-lines" data-stagger>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><div><small>טלפון</small><a href="tel:+97230000000" class="num">03-000-0000</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/><path d="M8.5 8.5c0 3.5 3.5 7 7 7l1.5-1.5-2-1.5-1 1a5 5 0 0 1-3-3l1-1-1.5-2z"/></svg><div><small>וואטסאפ</small><a href="https://wa.me/972500000000?text=%D7%A9%D7%9C%D7%95%D7%9D%2C%20%D7%90%D7%A9%D7%9E%D7%97%20%D7%9C%D7%AA%D7%90%D7%9D%20%D7%A4%D7%92%D7%99%D7%A9%D7%AA%20%D7%99%D7%99%D7%A2%D7%95%D7%A5" target="_blank" rel="noopener" class="num">050-000-0000</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><div><small>אימייל</small><a href="mailto:office@omridotan-law.co.il">office@omridotan-law.co.il</a></div></li>
+        <li class="reveal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><div><small>כתובת</small>דרך מנחם בגין 132, מגדל עזריאלי (לדוגמה), תל אביב-יפו</div></li>
       </ul>
     </div>
     <div class="reveal" data-delay="1"><form class="form" data-contact-form data-mailto="office@omridotan-law.co.il" data-endpoint="" novalidate aria-label="טופס יצירת קשר">
@@ -281,8 +297,15 @@
   </div>
   <button class="a11y__btn" type="button" aria-expanded="false" aria-controls="a11y-panel" aria-label="תפריט נגישות"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="4.5" r="1.8"/><path d="M4 8.5l8 1.5 8-1.5M12 10v5l-3 6M12 15l3 6"/></svg></button>
 </div>
+  <div class="page-transition" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="preloader" aria-hidden="true">
+    <svg class="preloader__mark" viewBox="0 0 64 64" width="88" height="88" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="preloader__path" d="M32 14v34M22 48h20M14 22h36M14 22l-6 14h12zM50 22l-6 14h12z"/><circle class="preloader__path" cx="32" cy="13" r="2.5"/></svg>
+    <span class="preloader__bar"></span>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
   <script src="assets/js/hero3d.js" defer></script>
   <script src="assets/js/main.js" defer></script>
+  <script src="assets/js/motion.js" defer></script>
 </body>
 </html>

@@ -146,7 +146,7 @@ export function ctaBand(root, title = 'רוצים לדעת איפה אתם עו�
   return `<section class="section section--tight"><div class="container"><div class="cta-band reveal">
     <div><h2>${title}</h2><p>${text}</p></div>
     <div class="cta-band__actions">
-      <a class="btn btn--brass" href="${root}contact.html">${icon('calendar')} לתיאום פגישה</a>
+      <a class="btn btn--brass" href="${root}contact.html" data-magnetic>${icon('calendar')} לתיאום פגישה</a>
       <a class="btn btn--ghost" href="${site.whatsappHref}" target="_blank" rel="noopener">${icon('whatsapp')} וואטסאפ</a>
     </div>
   </div></div></section>`;
@@ -156,7 +156,7 @@ export function pageHero({ eyebrow, title, lede, crumbs = [], extra = '' }) {
   const bc = crumbs.length ? `<nav aria-label="פירורי לחם"><ol class="breadcrumbs">${crumbs.map((c) => c.href ? `<li><a href="${c.href}">${c.label}</a></li>` : `<li aria-current="page">${c.label}</li>`).join('')}</ol></nav>` : '';
   return `<section class="page-hero"><div class="container page-hero__inner">
     ${bc}
-    ${eyebrow ? `<span class="eyebrow">${eyebrow}</span>` : ''}
+    ${eyebrow ? `<span class="eyebrow reveal--line">${eyebrow}</span>` : ''}
     <h1>${title}</h1>
     ${lede ? `<p class="lede">${lede}</p>` : ''}
     ${extra}
@@ -188,7 +188,23 @@ export function contactForm(root, compact = false) {
   </form>`;
 }
 
-export function shell({ root, active, title, description, canonical, body, jsonLd = [], includeHero3d = false, ogType = 'website' }) {
+// שכבות-על גלובליות: מעבר עמוד, הילת סמן, ופרה-לואדר (דף הבית בלבד). העיצוב וההתנהגות ב-motion.css / motion.js.
+export function overlays({ includePreloader = false } = {}) {
+  const preloader = includePreloader ? `
+  <div class="preloader" aria-hidden="true">
+    <svg class="preloader__mark" viewBox="0 0 64 64" width="88" height="88" fill="none" stroke="#d8b978" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path class="preloader__path" d="M32 14v34M22 48h20M14 22h36M14 22l-6 14h12zM50 22l-6 14h12z"/><circle class="preloader__path" cx="32" cy="13" r="2.5"/></svg>
+    <span class="preloader__bar"></span>
+  </div>` : '';
+  return `<div class="page-transition" aria-hidden="true"></div>
+  <div class="cursor-glow" aria-hidden="true"></div>${preloader}`;
+}
+
+// סרגל התקדמות קריאה – עמודי מאמר בלבד (מיד אחרי ה-header). motion.js מעדכן transform ו-aria-valuenow.
+export function readProgress() {
+  return `<div class="read-progress" data-progress role="progressbar" aria-label="התקדמות קריאה" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>`;
+}
+
+export function shell({ root, active, title, description, canonical, body, jsonLd = [], includeHero3d = false, includePreloader = false, includeProgress = false, ogType = 'website' }) {
   const fullTitle = title ? `${title} | ${site.shortName}` : site.name;
   const ld = jsonLd.length ? `<script type="application/ld+json">${JSON.stringify(jsonLd.length === 1 ? jsonLd[0] : jsonLd)}</script>` : '';
   return `<!doctype html>
@@ -213,17 +229,21 @@ export function shell({ root, active, title, description, canonical, body, jsonL
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500;700&display=swap">
   <link rel="stylesheet" href="${root}assets/css/style.css">
+  <link rel="stylesheet" href="${root}assets/css/motion.css">
   ${ld}
 </head>
 <body>
   <a class="skip" href="#main">דלג לתוכן הראשי</a>
   ${header(root, active)}
+  ${includeProgress ? readProgress() : ''}
   <main id="main">
 ${body}
   </main>
   ${footer(root)}
+  ${overlays({ includePreloader })}
   ${includeHero3d ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>\n  <script src="' + root + 'assets/js/hero3d.js" defer></script>' : ''}
   <script src="${root}assets/js/main.js" defer></script>
+  <script src="${root}assets/js/motion.js" defer></script>
 </body>
 </html>
 `;
