@@ -988,6 +988,97 @@ html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover {
   .page-transition, .preloader, .cursor-glow, .read-progress, .slider__nav, .marquee { display: none !important; }
 }
 
+
+/* ============================================================
+   שכבת תנועה v2 – עידון ומשמעות
+   ============================================================ */
+/* reveal מעודן: מרחק גדול מעט, עקומת expo-out "יקרה" */
+html.js .reveal { transform: translateY(26px); transition: opacity .8s ease, transform 1s cubic-bezier(.16, 1, .3, 1); }
+
+/* כותרות עולות מתוך מסכה (motion.js מתייג .section-head > h2 ועוד) */
+html.js .reveal--mask {
+  opacity: 1;
+  transform: translateY(45%);
+  clip-path: inset(0 -0.15em 100% -0.15em);
+  transition: transform 1.1s cubic-bezier(.16, 1, .3, 1), clip-path 1.1s cubic-bezier(.16, 1, .3, 1);
+}
+html.js .reveal--mask.is-in, html.js .reveal.is-in .reveal--mask { transform: none; clip-path: inset(-0.25em -0.15em -0.35em -0.15em); }
+
+/* "המשרד במספרים": קו פליז שנמתח יחד עם הספירה */
+.stat { position: relative; overflow: hidden; }
+.stat::after {
+  content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .stat::after { transform-origin: 0 50%; }
+.stat.is-counting::after { transform: scaleX(1); transition: transform 1.5s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* תהליך העבודה: קו פליז שמצטייר לאורך שלושת השלבים */
+.process { position: relative; }
+.process::before {
+  content: ""; position: absolute; top: -1px; inset-inline: 0; height: 2px; background: var(--brass); z-index: 1;
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .process::before { transform-origin: 0 50%; }
+.process.is-drawn::before { transform: scaleX(1); transition: transform 1.8s cubic-bezier(.16, 1, .3, 1) .15s; }
+
+/* אייקוני תחומי העיסוק "קופצים" פנימה אחרי הכרטיס */
+html.js .pcard .pcard__icon {
+  opacity: 0; transform: translateZ(30px) scale(.55) rotate(-10deg);
+  transition: transform .9s cubic-bezier(.34, 1.56, .64, 1), opacity .4s ease;
+  transition-delay: calc(var(--i, 0) * 80ms + 220ms);
+}
+html.js .pcard.is-in .pcard__icon { opacity: 1; transform: translateZ(30px) scale(1) rotate(0deg); }
+html.js .pcard.is-in:hover .pcard__icon { transform: translateZ(30px) scale(1.08) rotate(6deg); transition-delay: 0s; transition-duration: .4s; }
+
+/* רמז גלילה ב-Hero: קו פליז שנוזל מטה */
+.hero__scroll { display: grid; justify-items: center; gap: .55rem; }
+.hero__scroll::after {
+  content: ""; width: 1px; height: 34px; transform-origin: top;
+  background: linear-gradient(var(--brass-bright), rgba(216, 185, 120, 0));
+  animation: hero-cue 2.2s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+@keyframes hero-cue { 0% { transform: scaleY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.hero__content { will-change: transform, opacity; }
+
+/* טבעות ה-CTA נושמות לאט */
+.cta-band::before { animation: ring-pulse 7s ease-in-out infinite; }
+.cta-band::after { animation: ring-pulse 7s ease-in-out -3.5s infinite; }
+@keyframes ring-pulse { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+
+/* לחיצה על כפתור */
+.btn:active { transform: translateY(0) scale(.98); }
+
+/* קרוסלת המלצות: הכרטיס שמחוץ לפריים מתעמעם */
+.slider__track .tcard { transition: opacity .5s ease, transform .6s cubic-bezier(.16, 1, .3, 1), border-color .2s, box-shadow .25s; }
+.slider__track .tcard.is-dim { opacity: .45; transform: scale(.96); }
+
+/* פוטר: עמודות נכנסות בהדרגה */
+html.js .footer__grid > .reveal { transition-delay: calc(var(--i, 0) * 90ms); }
+
+/* כותרות ביניים במאמר: קו פליז קצר שמצטייר */
+.prose > h2.line-draw { position: relative; padding-block-end: .35em; }
+.prose > h2.line-draw::after {
+  content: ""; position: absolute; bottom: 0; inset-inline-start: 0; width: 2.75rem; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .prose > h2.line-draw::after { transform-origin: 0 50%; }
+.prose > h2.line-draw.is-in::after { transform: scaleX(1); transition: transform .9s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* כיבוי v2 בהפחתת תנועה / כפתור הנגישות */
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal--mask, html.js .reveal--mask.is-in { transform: none; clip-path: none; transition: none; }
+  html.js .pcard .pcard__icon { opacity: 1; transform: translateZ(30px); transition: none; }
+  .stat::after, .process::before, .prose > h2.line-draw::after { transform: scaleX(1); transition: none; }
+  .hero__scroll::after, .cta-band::before, .cta-band::after { animation: none; }
+  .slider__track .tcard.is-dim { transform: none; }
+}
+:root[data-motion="off"] html.js .reveal--mask, html.js:root[data-motion="off"] .reveal--mask { transform: none !important; clip-path: none !important; }
+:root[data-motion="off"] .pcard__icon { opacity: 1 !important; transform: translateZ(30px) !important; }
+:root[data-motion="off"] .stat::after, :root[data-motion="off"] .process::before, :root[data-motion="off"] .prose > h2.line-draw::after { transform: scaleX(1) !important; }
+:root[data-motion="off"] .hero__scroll::after, :root[data-motion="off"] .cta-band::before, :root[data-motion="off"] .cta-band::after { animation: none !important; }
+:root[data-motion="off"] .slider__track .tcard.is-dim { transform: none !important; opacity: 1 !important; }
+
 html, body { direction: rtl; }
 .preview-note{position:fixed;top:84px;inset-inline-start:0;z-index:99;background:#d8b978;color:#101915;font-size:.72rem;padding:.3rem .7rem;border-radius:4px 0 0 4px;letter-spacing:.06em}
 </style>
@@ -2846,9 +2937,10 @@ html, body { direction: rtl; }
       var prefix = el.getAttribute('data-prefix') || '', suffix = el.getAttribute('data-suffix') || '';
       var started = false, finished = false;
       function render(v) { el.textContent = prefix + fmtNum(decimals ? +v.toFixed(decimals) : Math.round(v)) + suffix; }
-      function finish() { if (finished) return; finished = true; started = true; render(target); }
+      function markHost() { var host = el.closest ? el.closest('.stat') : null; if (host) host.classList.add('is-counting'); }
+      function finish() { if (finished) return; finished = true; started = true; markHost(); render(target); }
       function start() {
-        if (started) return; started = true;
+        if (started) return; started = true; markHost();
         if (reduced()) { finish(); return; }
         var t0 = null;
         function step(ts) {
@@ -3268,6 +3360,80 @@ html, body { direction: rtl; }
     });
   }
 
+
+  // ---------- v2: observer עצמאי לאלמנטים שמתויגים ב-JS ----------
+  function observeIn(els, cls, threshold) {
+    cls = cls || 'is-in';
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add(cls); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add(cls); io.unobserve(en.target); } });
+    }, { threshold: threshold || 0.15, rootMargin: '0px 0px -6% 0px' });
+    // שני פריימים כדי שמצב ההתחלה ייצבע לפני שהמעבר מתחיל
+    requestAnimationFrame(function () { requestAnimationFrame(function () { els.forEach(function (el) { io.observe(el); }); }); });
+  }
+
+  // ---------- v2: כותרות ממסכה, קווי פליז, פוטר, קרוסלה ----------
+  function initV2() {
+    var masks = [], lines = [], footer = [];
+    all('.section-head > h2, .team-bio > h2, .contact-info > h2, .cta-band h2, .process__n').forEach(function (el) {
+      if (el.classList.contains('reveal--mask')) return;
+      el.classList.add('reveal--mask');
+      // בתוך .reveal – ה-CSS נפתח לפי is-in של ההורה (main.js); אחרת נצפה בהורה הלא-חתוך
+      if (!(el.closest && el.closest('.reveal'))) masks.push(el.parentElement || el);
+    });
+    all('.prose > h2').forEach(function (el) { el.classList.add('line-draw'); lines.push(el); });
+    all('.footer__grid > *').forEach(function (el, i) {
+      if (el.classList.contains('reveal')) return;
+      el.classList.add('reveal'); el.style.setProperty('--i', String(i)); footer.push(el);
+    });
+    observeIn(masks, 'is-in', 0.1);
+    observeIn(lines, 'is-in', 0.6);
+    observeIn(footer, 'is-in', 0.1);
+    observeIn(all('.process'), 'is-drawn', 0.35);
+
+    // קרוסלה: כרטיסים שמחוץ לפריים מתעמעמים
+    if ('IntersectionObserver' in window) {
+      all('.slider__track').forEach(function (track) {
+        var cards = Array.prototype.slice.call(track.children);
+        if (cards.length < 2) return;
+        var dim = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) { en.target.classList.toggle('is-dim', en.intersectionRatio < 0.6); });
+        }, { threshold: [0, 0.6, 1] });
+        cards.forEach(function (c) { dim.observe(c); });
+      });
+    }
+  }
+
+  // ---------- v2: עומק לטקסט ה-Hero – סמן וגלילה ----------
+  function initHeroDepth() {
+    var hero = document.querySelector('.hero');
+    var content = hero ? hero.querySelector('.hero__content') : null;
+    if (!content || reduced()) return;
+    var px = 0, py = 0, cx = 0, cy = 0, sy = window.scrollY || 0, raf = false;
+    function frame() {
+      raf = false;
+      var off = reduced();
+      var tx = off ? 0 : px, ty = off ? 0 : py;
+      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08;
+      var h = hero.offsetHeight || 1;
+      var p = clamp(sy / h, 0, 1);
+      var dx = cx * 10, dy = cy * 6 + (off ? 0 : sy * 0.22);
+      content.style.transform = off ? '' : 'translate3d(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px,0)';
+      content.style.opacity = off ? '' : String(Math.max(0, 1 - p * 1.25).toFixed(3));
+      if (!off && (Math.abs(tx - cx) > 0.002 || Math.abs(ty - cy) > 0.002)) tick();
+    }
+    function tick() { if (!raf) { raf = true; requestAnimationFrame(frame); } }
+    if (fineMQ.matches) {
+      window.addEventListener('pointermove', function (e) {
+        if (e.pointerType && e.pointerType !== 'mouse') return;
+        px = (e.clientX / window.innerWidth) * 2 - 1; py = (e.clientY / window.innerHeight) * 2 - 1; tick();
+      }, { passive: true });
+    }
+    window.addEventListener('scroll', function () { sy = window.scrollY || 0; tick(); }, { passive: true });
+    tick();
+  }
+
   // ---------- הפעלה ----------
   function safe(fn) { try { fn(); } catch (e) { if (window.console && console.warn) console.warn('motion:', e); } }
   safe(initPreloader);
@@ -3284,6 +3450,8 @@ html, body { direction: rtl; }
   safe(initPageTransition);
   safe(initGlow);
   safe(initFaq);
+  safe(initHeroDepth);
+  safe(initV2);
   setTimeout(function () { safe(function () { revealFallback(false); }); }, 1500);
   setTimeout(function () { safe(function () { revealFallback(true); }); }, 2500);
 })();
@@ -3649,12 +3817,14 @@ html, body { direction: rtl; }
 
     // תנודת הקורה + התייצבות הכניסה
     var sway = Math.sin(t * 0.6) * 0.055 + Math.sin(t * 1.7) * 0.012;
-    var tilt = sway + beamSettle(at);
+    // בגלילה לאורך ה-Hero המאזניים "שוקלים" – נוטים ואז חוזרים לשיווי משקל
+    var weigh = 0.13 * Math.sin(p * Math.PI);
+    var tilt = sway + beamSettle(at) + weigh;
     pivot.rotation.z = tilt;
     panL.rotation.z = -tilt; panR.rotation.z = -tilt;
 
     // הקבוצה: עלייה וסיבוב בכניסה, נשימה אחר כך, ירידה בגלילה
-    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
+    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35 + p * 0.5;
     group.rotation.x = current.y * 0.08;
     group.position.y = -1.2 * (1 - eGroup) + Math.sin(t * 0.8) * 0.05 - p * 1.0;
 
@@ -3693,7 +3863,7 @@ html, body { direction: rtl; }
     // מצלמה: דולי בכניסה, פרלקסת סמן, התרוממות והבטה מטה בגלילה
     var camZ = baseZ + (CAM_START_Z - CAM_Z) * (1 - eCam);
     var camY = CAM_Y + (CAM_START_Y - CAM_Y) * (1 - eCam) - current.y * 0.3 + p * 1.2;
-    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6), camY, camZ);
+    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6) + (isRTL ? -1 : 1) * p * 1.4, camY, camZ);
     camera.lookAt(group.position.x * 0.6, -0.2 - p * 0.8, 0);
   }
 

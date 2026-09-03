@@ -313,3 +313,94 @@ html.js .reveal.is-in:is(.acard, .tcard, .ccard, .aside__box):hover {
 @media print {
   .page-transition, .preloader, .cursor-glow, .read-progress, .slider__nav, .marquee { display: none !important; }
 }
+
+
+/* ============================================================
+   שכבת תנועה v2 – עידון ומשמעות
+   ============================================================ */
+/* reveal מעודן: מרחק גדול מעט, עקומת expo-out "יקרה" */
+html.js .reveal { transform: translateY(26px); transition: opacity .8s ease, transform 1s cubic-bezier(.16, 1, .3, 1); }
+
+/* כותרות עולות מתוך מסכה (motion.js מתייג .section-head > h2 ועוד) */
+html.js .reveal--mask {
+  opacity: 1;
+  transform: translateY(45%);
+  clip-path: inset(0 -0.15em 100% -0.15em);
+  transition: transform 1.1s cubic-bezier(.16, 1, .3, 1), clip-path 1.1s cubic-bezier(.16, 1, .3, 1);
+}
+html.js .reveal--mask.is-in, html.js .reveal.is-in .reveal--mask { transform: none; clip-path: inset(-0.25em -0.15em -0.35em -0.15em); }
+
+/* "המשרד במספרים": קו פליז שנמתח יחד עם הספירה */
+.stat { position: relative; overflow: hidden; }
+.stat::after {
+  content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .stat::after { transform-origin: 0 50%; }
+.stat.is-counting::after { transform: scaleX(1); transition: transform 1.5s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* תהליך העבודה: קו פליז שמצטייר לאורך שלושת השלבים */
+.process { position: relative; }
+.process::before {
+  content: ""; position: absolute; top: -1px; inset-inline: 0; height: 2px; background: var(--brass); z-index: 1;
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .process::before { transform-origin: 0 50%; }
+.process.is-drawn::before { transform: scaleX(1); transition: transform 1.8s cubic-bezier(.16, 1, .3, 1) .15s; }
+
+/* אייקוני תחומי העיסוק "קופצים" פנימה אחרי הכרטיס */
+html.js .pcard .pcard__icon {
+  opacity: 0; transform: translateZ(30px) scale(.55) rotate(-10deg);
+  transition: transform .9s cubic-bezier(.34, 1.56, .64, 1), opacity .4s ease;
+  transition-delay: calc(var(--i, 0) * 80ms + 220ms);
+}
+html.js .pcard.is-in .pcard__icon { opacity: 1; transform: translateZ(30px) scale(1) rotate(0deg); }
+html.js .pcard.is-in:hover .pcard__icon { transform: translateZ(30px) scale(1.08) rotate(6deg); transition-delay: 0s; transition-duration: .4s; }
+
+/* רמז גלילה ב-Hero: קו פליז שנוזל מטה */
+.hero__scroll { display: grid; justify-items: center; gap: .55rem; }
+.hero__scroll::after {
+  content: ""; width: 1px; height: 34px; transform-origin: top;
+  background: linear-gradient(var(--brass-bright), rgba(216, 185, 120, 0));
+  animation: hero-cue 2.2s cubic-bezier(.16, 1, .3, 1) infinite;
+}
+@keyframes hero-cue { 0% { transform: scaleY(0); opacity: 0; } 25% { opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+.hero__content { will-change: transform, opacity; }
+
+/* טבעות ה-CTA נושמות לאט */
+.cta-band::before { animation: ring-pulse 7s ease-in-out infinite; }
+.cta-band::after { animation: ring-pulse 7s ease-in-out -3.5s infinite; }
+@keyframes ring-pulse { 0%, 100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+
+/* לחיצה על כפתור */
+.btn:active { transform: translateY(0) scale(.98); }
+
+/* קרוסלת המלצות: הכרטיס שמחוץ לפריים מתעמעם */
+.slider__track .tcard { transition: opacity .5s ease, transform .6s cubic-bezier(.16, 1, .3, 1), border-color .2s, box-shadow .25s; }
+.slider__track .tcard.is-dim { opacity: .45; transform: scale(.96); }
+
+/* פוטר: עמודות נכנסות בהדרגה */
+html.js .footer__grid > .reveal { transition-delay: calc(var(--i, 0) * 90ms); }
+
+/* כותרות ביניים במאמר: קו פליז קצר שמצטייר */
+.prose > h2.line-draw { position: relative; padding-block-end: .35em; }
+.prose > h2.line-draw::after {
+  content: ""; position: absolute; bottom: 0; inset-inline-start: 0; width: 2.75rem; height: 2px; background: var(--brass);
+  transform: scaleX(0); transform-origin: 100% 50%;
+}
+[dir="ltr"] .prose > h2.line-draw::after { transform-origin: 0 50%; }
+.prose > h2.line-draw.is-in::after { transform: scaleX(1); transition: transform .9s cubic-bezier(.16, 1, .3, 1) .1s; }
+
+/* כיבוי v2 בהפחתת תנועה / כפתור הנגישות */
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal--mask, html.js .reveal--mask.is-in { transform: none; clip-path: none; transition: none; }
+  html.js .pcard .pcard__icon { opacity: 1; transform: translateZ(30px); transition: none; }
+  .stat::after, .process::before, .prose > h2.line-draw::after { transform: scaleX(1); transition: none; }
+  .hero__scroll::after, .cta-band::before, .cta-band::after { animation: none; }
+  .slider__track .tcard.is-dim { transform: none; }
+}
+:root[data-motion="off"] html.js .reveal--mask, html.js:root[data-motion="off"] .reveal--mask { transform: none !important; clip-path: none !important; }
+:root[data-motion="off"] .pcard__icon { opacity: 1 !important; transform: translateZ(30px) !important; }
+:root[data-motion="off"] .stat::after, :root[data-motion="off"] .process::before, :root[data-motion="off"] .prose > h2.line-draw::after { transform: scaleX(1) !important; }
+:root[data-motion="off"] .hero__scroll::after, :root[data-motion="off"] .cta-band::before, :root[data-motion="off"] .cta-band::after { animation: none !important; }
+:root[data-motion="off"] .slider__track .tcard.is-dim { transform: none !important; opacity: 1 !important; }

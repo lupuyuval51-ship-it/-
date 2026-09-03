@@ -359,12 +359,14 @@
 
     // תנודת הקורה + התייצבות הכניסה
     var sway = Math.sin(t * 0.6) * 0.055 + Math.sin(t * 1.7) * 0.012;
-    var tilt = sway + beamSettle(at);
+    // בגלילה לאורך ה-Hero המאזניים "שוקלים" – נוטים ואז חוזרים לשיווי משקל
+    var weigh = 0.13 * Math.sin(p * Math.PI);
+    var tilt = sway + beamSettle(at) + weigh;
     pivot.rotation.z = tilt;
     panL.rotation.z = -tilt; panR.rotation.z = -tilt;
 
     // הקבוצה: עלייה וסיבוב בכניסה, נשימה אחר כך, ירידה בגלילה
-    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35;
+    group.rotation.y = -0.6 * (1 - eGroup) + Math.sin(t * 0.25) * 0.25 + current.x * 0.35 + p * 0.5;
     group.rotation.x = current.y * 0.08;
     group.position.y = -1.2 * (1 - eGroup) + Math.sin(t * 0.8) * 0.05 - p * 1.0;
 
@@ -403,7 +405,7 @@
     // מצלמה: דולי בכניסה, פרלקסת סמן, התרוממות והבטה מטה בגלילה
     var camZ = baseZ + (CAM_START_Z - CAM_Z) * (1 - eCam);
     var camY = CAM_Y + (CAM_START_Y - CAM_Y) * (1 - eCam) - current.y * 0.3 + p * 1.2;
-    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6), camY, camZ);
+    camera.position.set(current.x * 0.5 + (isRTL ? 0.6 : -0.6) + (isRTL ? -1 : 1) * p * 1.4, camY, camZ);
     camera.lookAt(group.position.x * 0.6, -0.2 - p * 0.8, 0);
   }
 

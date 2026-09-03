@@ -174,9 +174,10 @@
       var prefix = el.getAttribute('data-prefix') || '', suffix = el.getAttribute('data-suffix') || '';
       var started = false, finished = false;
       function render(v) { el.textContent = prefix + fmtNum(decimals ? +v.toFixed(decimals) : Math.round(v)) + suffix; }
-      function finish() { if (finished) return; finished = true; started = true; render(target); }
+      function markHost() { var host = el.closest ? el.closest('.stat') : null; if (host) host.classList.add('is-counting'); }
+      function finish() { if (finished) return; finished = true; started = true; markHost(); render(target); }
       function start() {
-        if (started) return; started = true;
+        if (started) return; started = true; markHost();
         if (reduced()) { finish(); return; }
         var t0 = null;
         function step(ts) {
@@ -596,6 +597,80 @@
     });
   }
 
+
+  // ---------- v2: observer עצמאי לאלמנטים שמתויגים ב-JS ----------
+  function observeIn(els, cls, threshold) {
+    cls = cls || 'is-in';
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add(cls); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add(cls); io.unobserve(en.target); } });
+    }, { threshold: threshold || 0.15, rootMargin: '0px 0px -6% 0px' });
+    // שני פריימים כדי שמצב ההתחלה ייצבע לפני שהמעבר מתחיל
+    requestAnimationFrame(function () { requestAnimationFrame(function () { els.forEach(function (el) { io.observe(el); }); }); });
+  }
+
+  // ---------- v2: כותרות ממסכה, קווי פליז, פוטר, קרוסלה ----------
+  function initV2() {
+    var masks = [], lines = [], footer = [];
+    all('.section-head > h2, .team-bio > h2, .contact-info > h2, .cta-band h2, .process__n').forEach(function (el) {
+      if (el.classList.contains('reveal--mask')) return;
+      el.classList.add('reveal--mask');
+      // בתוך .reveal – ה-CSS נפתח לפי is-in של ההורה (main.js); אחרת נצפה בהורה הלא-חתוך
+      if (!(el.closest && el.closest('.reveal'))) masks.push(el.parentElement || el);
+    });
+    all('.prose > h2').forEach(function (el) { el.classList.add('line-draw'); lines.push(el); });
+    all('.footer__grid > *').forEach(function (el, i) {
+      if (el.classList.contains('reveal')) return;
+      el.classList.add('reveal'); el.style.setProperty('--i', String(i)); footer.push(el);
+    });
+    observeIn(masks, 'is-in', 0.1);
+    observeIn(lines, 'is-in', 0.6);
+    observeIn(footer, 'is-in', 0.1);
+    observeIn(all('.process'), 'is-drawn', 0.35);
+
+    // קרוסלה: כרטיסים שמחוץ לפריים מתעמעמים
+    if ('IntersectionObserver' in window) {
+      all('.slider__track').forEach(function (track) {
+        var cards = Array.prototype.slice.call(track.children);
+        if (cards.length < 2) return;
+        var dim = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) { en.target.classList.toggle('is-dim', en.intersectionRatio < 0.6); });
+        }, { threshold: [0, 0.6, 1] });
+        cards.forEach(function (c) { dim.observe(c); });
+      });
+    }
+  }
+
+  // ---------- v2: עומק לטקסט ה-Hero – סמן וגלילה ----------
+  function initHeroDepth() {
+    var hero = document.querySelector('.hero');
+    var content = hero ? hero.querySelector('.hero__content') : null;
+    if (!content || reduced()) return;
+    var px = 0, py = 0, cx = 0, cy = 0, sy = window.scrollY || 0, raf = false;
+    function frame() {
+      raf = false;
+      var off = reduced();
+      var tx = off ? 0 : px, ty = off ? 0 : py;
+      cx += (tx - cx) * 0.08; cy += (ty - cy) * 0.08;
+      var h = hero.offsetHeight || 1;
+      var p = clamp(sy / h, 0, 1);
+      var dx = cx * 10, dy = cy * 6 + (off ? 0 : sy * 0.22);
+      content.style.transform = off ? '' : 'translate3d(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px,0)';
+      content.style.opacity = off ? '' : String(Math.max(0, 1 - p * 1.25).toFixed(3));
+      if (!off && (Math.abs(tx - cx) > 0.002 || Math.abs(ty - cy) > 0.002)) tick();
+    }
+    function tick() { if (!raf) { raf = true; requestAnimationFrame(frame); } }
+    if (fineMQ.matches) {
+      window.addEventListener('pointermove', function (e) {
+        if (e.pointerType && e.pointerType !== 'mouse') return;
+        px = (e.clientX / window.innerWidth) * 2 - 1; py = (e.clientY / window.innerHeight) * 2 - 1; tick();
+      }, { passive: true });
+    }
+    window.addEventListener('scroll', function () { sy = window.scrollY || 0; tick(); }, { passive: true });
+    tick();
+  }
+
   // ---------- הפעלה ----------
   function safe(fn) { try { fn(); } catch (e) { if (window.console && console.warn) console.warn('motion:', e); } }
   safe(initPreloader);
@@ -612,6 +687,8 @@
   safe(initPageTransition);
   safe(initGlow);
   safe(initFaq);
+  safe(initHeroDepth);
+  safe(initV2);
   setTimeout(function () { safe(function () { revealFallback(false); }); }, 1500);
   setTimeout(function () { safe(function () { revealFallback(true); }); }, 2500);
 })();
