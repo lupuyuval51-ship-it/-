@@ -556,6 +556,18 @@ legend {
 [dir="rtl"] .back-link svg {
   transform: rotate(180deg);
 }
+
+/* The design is Hebrew-first, so "forward" is drawn as a left-pointing arrow. Read in English
+   that points backwards, so mirror the directional icons in LTR — except inside the back link,
+   where a left arrow already means what it says. */
+[dir="ltr"] .lucide-arrow-left,
+[dir="ltr"] .lucide-chevron-left {
+  transform: scaleX(-1);
+}
+[dir="ltr"] .back-link .lucide-arrow-left,
+[dir="ltr"] .back-link .lucide-chevron-left {
+  transform: none;
+}
 .toast {
   position: fixed;
   bottom: 24px;

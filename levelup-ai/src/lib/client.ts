@@ -1,4 +1,11 @@
 "use client";
+function storedLocale(): string {
+  try {
+    return localStorage.getItem("levelup-locale") === "en" ? "en" : "he";
+  } catch {
+    return "he";
+  }
+}
 export async function api(
   path: string,
   body?: unknown,
@@ -6,10 +13,12 @@ export async function api(
 ): Promise<any> {
   const response = await fetch("/api" + path, {
     method: method || (body === undefined ? "GET" : "POST"),
+    // The server localizes errors from this header, falling back to the profile only once a
+    // session exists. Without it every pre-account failure reaches an English reader in Hebrew.
     headers:
       body instanceof FormData
-        ? undefined
-        : { "Content-Type": "application/json" },
+        ? { "X-Levelup-Locale": storedLocale() }
+        : { "Content-Type": "application/json", "X-Levelup-Locale": storedLocale() },
     body:
       body === undefined
         ? undefined

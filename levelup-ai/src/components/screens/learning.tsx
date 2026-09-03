@@ -994,8 +994,7 @@ export function MarketplaceDetail({ id }: { id: string }) {
   const enrolled = state?.enrollments?.find((e: any) => e.pathId === id);
   const begin = async () => {
     if (!state?.user) {
-      await start();
-      go("/onboarding");
+      if (await start()) go("/onboarding");
       return;
     }
     if (enrolled) {

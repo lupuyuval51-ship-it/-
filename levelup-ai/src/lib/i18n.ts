@@ -865,6 +865,8 @@ const extraHe = {
   staffLoginSub: "כניסה לחשבון ניהול שנוצר בידי מפעיל המערכת.",
   birthYearHelp: "שנת לידה נדרשת רק כדי לפתוח פעולות למבוגרים, כמו פרסום מסלול בתשלום. כל עוד לא מולאה, הפרופיל נשאר פרטי.",
   confirmDeleteGuest: "אני מבין/ה שהחשבון יימחק ולא ניתן לשחזר אותו.",
+  deleteWarningGuest:
+    "החשבון והמידע יימחקו בהתאם למדיניות השמירה. חשבון שנפתח ללא הרשמה אינו ניתן לשחזור — אשרו למטה כדי להמשיך.",
   aiAllowance: "הודעות מאמן ליום",
   aiAllowanceSub: "המכסה היומית גדלה לפי הסכום ששולם על התוכנית.",
   chooseSkillFirst: "בחרו מסלול מהרשימה או כתבו מיומנות באורך שני תווים לפחות.",
@@ -918,6 +920,8 @@ const extraEn: Record<keyof typeof extraHe, string> = {
   birthYearHelp:
     "A year of birth is only needed to unlock adult actions such as publishing a paid path. Until it is set, the profile stays private.",
   confirmDeleteGuest: "I understand this account is deleted permanently and cannot be restored.",
+  deleteWarningGuest:
+    "Your account and its data are removed under the retention policy. An account opened without sign-up cannot be restored — confirm below to continue.",
   aiAllowance: "Coach messages per day",
   aiAllowanceSub: "The daily allowance grows with the amount paid for your plan.",
   chooseSkillFirst:

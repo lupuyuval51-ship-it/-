@@ -158,8 +158,10 @@ export function SettingsScreen() {
   const [cancelPlan, setCancelPlan] = useState(false);
   const [password, setPassword] = useState("");
   const isGuest = !!state.user?.email?.endsWith("@guest.invalid");
+  // Functional: the avatar handler awaits an upload, so a plain spread would write back a form
+  // snapshot taken before every edit the learner made while the file was uploading.
   const update = (key: string, value: any) =>
-    setForm({ ...form, [key]: value });
+    setForm((current: any) => ({ ...current, [key]: value }));
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -514,7 +516,7 @@ export function SettingsScreen() {
       )}
       {remove && (
         <Modal title={t("deleteAccount")} onClose={() => setRemove(false)}>
-          <p>{t("deleteWarning")}</p>
+          <p>{t(isGuest ? "deleteWarningGuest" : "deleteWarning")}</p>
           <form
             onSubmit={async (e) => {
               e.preventDefault();

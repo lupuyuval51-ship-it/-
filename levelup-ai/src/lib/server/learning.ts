@@ -81,7 +81,9 @@ export function submitTask(userId: string, data: unknown) {
     const adaptation = { suggestedDifficulty: input.difficulty === 'hard' ? 'beginner' : input.difficulty === 'easy' ? 'advanced' : enrollment.level, dailyMinutes: input.difficulty === 'hard' ? Math.min(20, enrollment.daily_minutes) : enrollment.daily_minutes, needsReinforcement: input.difficulty === 'hard', repeatedDifficulty: hardCount >= 2, topic: task.title, he: input.difficulty === 'hard' ? 'במשימה הבאה נתחיל ברמז ובחזרה קצרה. תוכן המסלול ותאריך היעד נשארים בשליטתך.' : input.difficulty === 'easy' ? 'אפשר להוסיף אתגר הרחבה למשימה הבאה. המסלול המקורי נשמר.' : 'הקצב מתאים. אפשר להמשיך למשימה הבאה.', en: input.difficulty === 'hard' ? 'The next task will start with a hint and a short review. You control the path and deadline.' : input.difficulty === 'easy' ? 'An extension challenge is suggested for the next task. The original path is kept.' : 'Your pace is a good fit. Continue to the next task.', proposedTargetDate: hardCount >= 2 ? new Date(new Date(enrollment.target_date).getTime() + 2 * 86400000).toISOString().slice(0, 10) : null, deadlineRequiresApproval: hardCount >= 2 };
     const previousAdaptation = readJson(enrollment.adaptation);
     const reinforcement = input.difficulty === 'hard' ? reinforcementProposal(task, submissionId) : previousAdaptation.reinforcement || null;
-    run('UPDATE path_enrollments SET adaptation=?,status=?,updated_at=? WHERE id=? AND user_id=?', JSON.stringify({ ...adaptation, reinforcement }), done.length + 1 === tasks.length ? 'completed' : 'active', time, enrollment.id, userId);
+    // Pausing is how a learner stays under the active-path cap; finishing a task must not undo it.
+    const nextStatus = done.length + 1 === tasks.length ? 'completed' : enrollment.status === 'paused' ? 'paused' : 'active';
+    run('UPDATE path_enrollments SET adaptation=?,status=?,updated_at=? WHERE id=? AND user_id=?', JSON.stringify({ ...adaptation, reinforcement }), nextStatus, time, enrollment.id, userId);
     award(userId, 'first-task');
     if (done.length + 1 === tasks.length) award(userId, 'path-complete');
     updateStreak(userId);

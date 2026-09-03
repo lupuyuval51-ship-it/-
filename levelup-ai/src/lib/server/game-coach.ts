@@ -42,7 +42,7 @@ function activeHint(locale: string, question: Row) {
   const hint = candidate && (!correctOption || !candidate.toLowerCase().includes(String(correctOption).toLowerCase())) ? candidate : fallback;
   return locale === 'en' ? `A hint for the current question: ${hint}\nThe explanation will be available after you submit your answer.` : `רמז לשאלה הנוכחית: ${hint}\nההסבר יהיה זמין אחרי שליחת התשובה.`;
 }
-function demoAnswer(message: string, locale: string, game: Row | null, activeIndex: number | null) {
+function demoAnswer(message: string, locale: string, game: Row | null, activeIndex: number | null, mayRevealAnswers = true) {
   if (/התאבד|self.?harm|kill myself|suicid/i.test(message)) return locale === 'en' ? 'Please reach out to a trusted adult or qualified professional now. If you are in immediate danger, contact local emergency services. I can help you write a message asking for support.' : 'כדאי לפנות עכשיו למבוגר קרוב או לאיש מקצוע שאת/ה סומך/ת עליו. אם יש סכנה מיידית, פנה/י לשירותי החירום המקומיים. אפשר להיעזר בי לנסח בקשה לתמיכה.';
   if (/מינון|סטרואיד|לקנות מניות|medical dosage|steroid|which stocks|make a bomb|hack.*account/i.test(message)) return locale === 'en' ? 'I can explain safe general concepts, but personal treatment, investment or dangerous instructions require an appropriate professional or trusted adult.' : 'אפשר להסביר כאן מושגים כלליים ובטוחים. טיפול אישי, השקעה והוראות מסוכנות דורשים איש מקצוע מתאים או מבוגר אחראי.';
   const control = controlReply(message, locale);
@@ -66,6 +66,10 @@ function demoAnswer(message: string, locale: string, game: Row | null, activeInd
   if (!ranked[0]?.score && !generic && !words.some(word => String(game.topic || '').toLowerCase().includes(word))) return redirect(locale, game);
   const question = ranked[0]?.question;
   if (!question) return redirect(locale, game);
+  // An explanation states the correct answer. Before the learner has finished an attempt this is
+  // the answer key: they could harvest all eight, then play for a perfect score. Only the bounded
+  // hint is safe until the quest has actually been completed.
+  if (!mayRevealAnswers) return activeHint(locale, question);
   return locale === 'en' ? `${question.prompt.en}\n\n${question.explanation.en}\n\nThis Demo explanation comes from the selected game's question bank. Ask a more specific question to focus the explanation.` : `${question.prompt.he}\n\n${question.explanation.he}\n\nזהו הסבר Demo מתוך מאגר השאלות של המשחק שבחרת. אפשר לשאול שאלה ממוקדת יותר כדי לבחור הסבר מתאים.`;
 }
 function saveMessage(userId: string, gameId: string | undefined, role: string, content: string, isDemo: boolean, source: 'user' | 'demo' | 'ai' | 'hint') {
@@ -85,13 +89,15 @@ export async function askGame(userId: string, body: unknown, provider?: Structur
   const allowance = coachAllowance(userId, true), history = persistedMessages(userId, input.gameId, 6);
   const active = input.gameId ? one("SELECT event_count,started_at FROM daily_game_attempts WHERE user_id=? AND daily_game_id=? AND status='playing' ORDER BY started_at DESC LIMIT 1", userId, input.gameId) : undefined;
   const activeIndex = active && Date.now() - new Date(active.started_at).getTime() < game.timeLimit * 1000 && active.event_count < game.questions.length ? active.event_count : null;
+  // Reviewing your own mistakes afterwards is the legitimate use; mining answers beforehand is not.
+  const settled = !!input.gameId && !!one("SELECT id FROM daily_game_attempts WHERE user_id=? AND daily_game_id=? AND status='completed' LIMIT 1", userId, input.gameId);
   saveMessage(userId, input.gameId, 'user', input.message, isDemo, 'user');
   let content: string;
   try {
     // A client cannot prompt an external model to reveal the live scored answer.
     // During a live question the response comes from the bounded hint/control bank.
-    if (activeIndex !== null) content = demoAnswer(input.message, locale, game, activeIndex);
-    else if (isDemo) content = demoAnswer(input.message, locale, game, activeIndex);
+    if (activeIndex !== null) content = demoAnswer(input.message, locale, game, activeIndex, settled);
+    else if (isDemo) content = demoAnswer(input.message, locale, game, activeIndex, settled);
     else {
       const output = await validatedAI(provider || new ClaudeJsonProvider(), answerSchema, { name: 'game_coach_reply', instructions, input: { locale, message: redactAIText(input.message), topic: game ? redactAIText(game.topic || game.lessonTopics.map((topic: Row) => topic[locale]).join(', ')) : null, gameMode: game?.gameMode || 'knowledge-arena', activeQuestion: activeIndex === null ? null : { prompt: game.questions[activeIndex].prompt, hint: game.questions[activeIndex].hint || null }, questions: game?.questions.map((question: Row) => ({ prompt: question.prompt, topic: question.topic })) || [], controls: controls(locale), recentMessages: history.map(message => ({ role: message.role, content: redactAIText(message.content) })) }, maxOutputTokens: 1400, timeoutMs: 60000 });
       content = output.scope === 'out-of-scope' ? redirect(locale, game) : output.message;

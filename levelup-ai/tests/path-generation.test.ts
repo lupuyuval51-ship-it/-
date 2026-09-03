@@ -2,7 +2,7 @@ import { before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generatePathDraft, privateGenerationInput, generatedPathSchema, type PathGenerationInput, type GeneratedPathDraft } from '../src/lib/server/path-generation';
 import { DEFAULT_AI_MODEL, type StructuredAIProvider, type StructuredAIRequest } from '../src/lib/server/ai-provider';
-import { claudeReply } from './helpers/claude-reply';
+import { claudeStream } from './helpers/claude-reply';
 import { ApiError, guestSession } from '../src/lib/server/auth';
 import { catalog, initialize, pathById, state } from '../src/lib/server/store';
 import { enroll, submitTask } from '../src/lib/server/learning';
@@ -59,7 +59,7 @@ test('live adapter posts a structured Claude request that carries no account dat
   globalThis.fetch = async (url, options) => {
     target = String(url instanceof Request ? url.url : url);
     sent = JSON.parse(String(options?.body));
-    return Response.json(claudeReply(JSON.stringify(fixture())));
+    return claudeStream(JSON.stringify(fixture()));
   };
   try {
     const result = await generatePathDraft(input);
@@ -69,7 +69,9 @@ test('live adapter posts a structured Claude request that carries no account dat
     assert.equal(sent!.output_config.format.type, 'json_schema');
     assert.equal(sent!.output_config.format.schema.additionalProperties, false);
     assert.equal(sent!.thinking.type, 'adaptive');
+    assert.equal(sent!.stream, true, 'a reasoning-sized budget must stream rather than block a single request');
     assert.ok(sent!.max_tokens >= 12000, 'reasoning needs headroom above the requested content');
+    assert.ok(sent!.max_tokens <= 32000, 'the budget stays bounded so worst-case latency is finite');
     const submitted = JSON.parse(sent!.messages[0].content);
     assert.ok(!Object.hasOwn(submitted, 'userId'));
     assert.ok(!JSON.stringify(sent).includes('test-only-not-a-real-secret'));

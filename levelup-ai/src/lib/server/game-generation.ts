@@ -104,10 +104,9 @@ function generationRemaining(userId: string) {
   return Math.max(0, entitlementsFor(userId).gameGenerationDailyLimit - used);
 }
 export function customGames(userId: string) {
-  const zone = timezoneFor(userId);
   const games = all('SELECT g.*,o.topic,o.source,o.source_notice FROM generated_game_owners o JOIN daily_games g ON g.id=o.game_id WHERE o.user_id=? AND o.deleted_at IS NULL ORDER BY o.created_at DESC LIMIT 100', userId).map((row: Row) => {
     const game = readJson(row.data);
-    return { dailyGameId: row.id, title: game.title, description: game.description, topic: row.topic, source: row.source, sourceNotice: readJson(row.source_notice), worldTheme: row.world_theme, gameMode: row.game_mode, difficulty: game.difficulty, timeLimit: game.timeLimit, questionCount: game.questions.length, createdAt: row.created_at, isCustom: true, isDemo: row.source === 'demo', ...gameAvailability(userId, row, zone) };
+    return { dailyGameId: row.id, title: game.title, description: game.description, topic: row.topic, source: row.source, sourceNotice: readJson(row.source_notice), worldTheme: row.world_theme, gameMode: row.game_mode, difficulty: game.difficulty, timeLimit: game.timeLimit, questionCount: game.questions.length, createdAt: row.created_at, isCustom: true, isDemo: row.source === 'demo', ...gameAvailability(userId, row) };
   });
   return { games, remainingGenerations: generationRemaining(userId), isDemo: config.demo, generatorIsDemo: !aiEnabled() };
 }

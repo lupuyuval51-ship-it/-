@@ -30,8 +30,7 @@ export function Pricing() {
   const plans = catalog.plans?.length ? catalog.plans : [];
   const choose = async (plan: string) => {
     if (!state?.user) {
-      await start();
-      go("/onboarding");
+      if (await start()) go("/onboarding");
       return;
     }
     if (plan === "FREE") {

@@ -26,8 +26,13 @@ export function aiKey(environment: NodeJS.ProcessEnv = process.env) { return env
 /** A key alone is not enough: a foreign AI_PROVIDER must fail loudly, never silently fall back to Demo. */
 export function aiEnabled(environment: NodeJS.ProcessEnv = process.env) { return !!aiKey(environment) && ['', 'anthropic', 'claude'].includes((environment.AI_PROVIDER || '').trim().toLowerCase()); }
 export function aiEffort(environment: NodeJS.ProcessEnv = process.env) { const value = environment.AI_EFFORT?.trim(); return (efforts as readonly string[]).includes(value || '') ? (value as (typeof efforts)[number]) : undefined; }
-/** Reasoning shares the response budget, so every call needs headroom above the content it asks for. */
-export const responseBudget = (contentTokens: number) => Math.min(64000, Math.max(8000, contentTokens * 3));
+/**
+ * Reasoning shares the response budget, so every call needs headroom above the content it asks for.
+ * The ceiling is deliberate: the SDK sizes a non-streaming request's timeout as
+ * 60min x max_tokens / 128000, so a large budget outruns any sane request timeout. We stream
+ * instead of guessing, and still keep the budget bounded so worst-case latency stays finite.
+ */
+export const responseBudget = (contentTokens: number) => Math.min(32000, Math.max(8000, Math.round(contentTokens * 2.5)));
 
 /** The only external AI transport. It cannot execute code or perform application actions. */
 export class ClaudeJsonProvider implements StructuredAIProvider {
@@ -37,14 +42,17 @@ export class ClaudeJsonProvider implements StructuredAIProvider {
     const effort = aiEffort();
     // maxRetries 0: validatedAI owns the retry policy so a single request can never be billed twice.
     const client = new Anthropic({ apiKey, timeout: request.timeoutMs || 60000, maxRetries: 0 });
-    const message = await client.messages.parse({
+    // Streamed: a reasoning model answering at this budget can outlast a non-streaming request,
+    // and the stream keeps the connection alive. finalMessage() carries the same parsed_output
+    // contract as messages.parse(), so the structured-output guarantee is unchanged.
+    const message = await client.messages.stream({
       model: process.env.AI_MODEL?.trim() || DEFAULT_AI_MODEL,
       max_tokens: responseBudget(request.maxOutputTokens),
       system: request.instructions,
       messages: [{ role: 'user', content: JSON.stringify(request.input) }],
       thinking: { type: 'adaptive' },
       output_config: { format: zodOutputFormat(request.outputSchema), ...(effort ? { effort } : {}) },
-    });
+    }).finalMessage();
     if (message.stop_reason === 'refusal') throw new Error('AI declined to answer this request');
     if (!message.parsed_output) throw new Error('AI returned no structured content');
     return message.parsed_output;

@@ -135,11 +135,21 @@ export default function LevelupApp() {
       window.removeEventListener("focus", sync);
     };
   }, [userId]);
+  /**
+   * Opening an account can legitimately fail — the guest burst limit returns 429. Every caller
+   * used to let that reject unhandled, leaving a button that silently did nothing, so this
+   * reports the reason and returns null instead of throwing.
+   */
   const start = useCallback(async () => {
-    const response = await api("/auth/guest", { locale });
-    const next = response.state || response;
-    setState(next);
-    return next;
+    try {
+      const response = await api("/auth/guest", { locale });
+      const next = response.state || response;
+      setState(next);
+      return next;
+    } catch (error) {
+      setToast((error as Error).message);
+      return null;
+    }
   }, [locale]);
   const logout = useCallback(async () => {
     try {
@@ -177,17 +187,16 @@ export default function LevelupApp() {
     logout,
     start,
   };
-  const publicRoute =
-    [
-      "/",
-      "/login",
-      "/privacy",
-      "/terms",
-    ].includes(pathname) ||
-    (!state?.user &&
-      (pathname === "/pricing" ||
-        (pathname.startsWith("/marketplace") &&
-          pathname !== "/marketplace/create")));
+  // Without a session there is no sidebar, plan badge or logout to render, so every route a
+  // signed-out visitor lands on is public — otherwise the marketing page appears inside the
+  // signed-in shell, wired to a `state` that does not exist. A signed-in learner still gets the
+  // app shell on /pricing and /marketplace, which is where those screens belong.
+  const marketingRoute = ["/", "/login", "/privacy", "/terms"].includes(pathname);
+  const publicRoute = marketingRoute || !state?.user;
+  const publicBrowse =
+    !state?.user &&
+    (pathname === "/pricing" ||
+      (pathname.startsWith("/marketplace") && pathname !== "/marketplace/create"));
   let screen: React.ReactNode;
   if (pathname === "/") screen = <Landing />;
   else if (pathname === "/login") screen = <Auth />;
@@ -273,7 +282,9 @@ export default function LevelupApp() {
           />
         </main>
       ) : publicRoute ? (
-        pathname.startsWith("/marketplace") || pathname === "/pricing" ? (
+        // Only wrap real marketing content; a signed-out visitor bounced to the landing page
+        // brings its own header, so the wrapper would render a second one above it.
+        publicBrowse ? (
           <div className="public-workspace">
             <header className="marketing-nav">
               <Link href="/">
@@ -281,7 +292,9 @@ export default function LevelupApp() {
               </Link>
               <Button
                 variant="secondary"
-                onClick={() => start().then(() => router.push("/onboarding"))}
+                onClick={async () => {
+                  if (await start()) router.push("/onboarding");
+                }}
               >
                 {t("startNow")}
               </Button>

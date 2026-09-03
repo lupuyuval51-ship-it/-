@@ -103,15 +103,25 @@ async function authRoute(request: Request, route: string, method: string) {
   const input = await body(request);
   const ip = clientNetworkAddress(request);
   if (ip) rateLimit(`auth-network:${ip}`, Number(process.env.AUTH_NETWORK_LIMIT || 300), 900);
-  const identifier = typeof input.email === 'string' ? input.email.trim().toLowerCase() : ip;
+  // The email is attacker-chosen, so a per-identifier bucket alone is no limit at all: a fresh
+  // address mints a fresh bucket every request. Bound the key, then apply a route-wide ceiling
+  // that no client can sidestep — auth/login burns ~54ms of blocking scrypt per attempt even for
+  // unknown accounts, so an unbounded route is a single-threaded CPU exhaustion vector.
+  const identifier = typeof input.email === 'string' ? input.email.trim().toLowerCase().slice(0, 254) : ip;
   if (identifier) rateLimit(`auth:${route}:${identifier}`, 15, 900);
+  // auth/login is staff-only and burns blocking scrypt per attempt, so its ceiling is sized to
+  // real staff traffic rather than to a crowd; the cheaper routes keep a looser bound.
+  const routeCeiling = route === 'auth/login' ? Number(process.env.AUTH_LOGIN_LIMIT) || 30 : Number(process.env.AUTH_ROUTE_LIMIT) || 600;
+  if (route !== 'auth/guest') rateLimit(`auth-route:${route}`, routeCeiling, 900);
   if (route === 'auth/guest') {
     // A repeat click must resume the existing account rather than stranding the previous one.
     const existing = sessionUser(request, false);
     if (existing) return json({ ...state(existing), state: state(existing) });
-    // Accounts open without a form, so the only brake on bulk creation is a rate limit.
-    if (ip) rateLimit(`guest-network:${ip}`, Number(process.env.GUEST_NETWORK_LIMIT || 20), 3600);
-    rateLimit('guest-total', Number(process.env.GUEST_HOURLY_LIMIT || 500), 3600);
+    // Accounts open without a form, so bulk creation is braked here. The global bucket is a short
+    // burst window on purpose: an hour-long absolute cap would let any anonymous client spend it
+    // and lock every real visitor out of opening an account for the rest of the hour.
+    if (ip) rateLimit(`guest-network:${ip}`, Number(process.env.GUEST_NETWORK_LIMIT) || 20, 3600);
+    rateLimit('guest-burst', Number(process.env.GUEST_BURST_LIMIT) || 60, 60);
     const guest = guestSession(input);
     const user = one('SELECT * FROM users WHERE id=?', guest.userId)!;
     return json({ ...state(user), state: state(user), isNewAccount: true }, 201, guest.cookie);

@@ -281,3 +281,78 @@ test('day maths survives an unusable stored timezone and stays consistent', asyn
     assert.equal((await request('games/daily', undefined, learner)).status, 200);
   } finally { run('UPDATE profiles SET preferences=? WHERE user_id=?', previous, userId); }
 });
+test('a learner cannot re-collect the daily reward by editing their own timezone', async () => {
+  const zone = await registered('zone hopper', 1990);
+  run("INSERT INTO subscriptions(id,user_id,plan_id,starts_at,expires_at,created_at,updated_at) VALUES(?,?,'BASIC',?,?,?,?)", 'sub-zone-hopper', zone.id, new Date().toISOString(), new Date(Date.now() + 86400000).toISOString(), new Date().toISOString(), new Date().toISOString());
+  const daily = await request('games/daily', undefined, zone.cookie);
+  assert.equal(daily.status, 200, JSON.stringify(daily.data));
+  const gameId = daily.data.game.dailyGameId, questions = daily.data.game.questions.length;
+  // Drive finishGame directly: the exploit is in how the reward day is derived, not in play.
+  const finishOnce = async (attemptId: string) => {
+    const time = new Date().toISOString();
+    run("INSERT INTO daily_game_attempts(id,user_id,daily_game_id,status,started_at,score,correct,event_count,created_at,updated_at) VALUES(?,?,?,'playing',?,?,?,?,?,?)", attemptId, zone.id, gameId, time, questions * 100, questions, questions, time, time);
+    return request('games/finish', { attemptId }, zone.cookie);
+  };
+  const first = await finishOnce('attempt-zone-1');
+  assert.equal(first.status, 200, JSON.stringify(first.data));
+  assert.ok(first.data.result.xp > 0, 'the first finish of the day is rewarded');
+  const rewards = () => one('SELECT COUNT(*) AS n FROM xp_events WHERE user_id=? AND source=?', zone.id, 'daily-game')!.n;
+  assert.equal(rewards(), 1);
+  for (const [index, timezone] of ['Pacific/Kiritimati', 'Pacific/Midway', 'Asia/Tokyo'].entries()) {
+    assert.equal((await request('settings', { timezone }, zone.cookie)).status, 200);
+    const replay = await finishOnce(`attempt-zone-hop-${index}`);
+    assert.equal(replay.status, 200, JSON.stringify(replay.data));
+    assert.equal(replay.data.result.xp, 0, `switching to ${timezone} must not mint a second daily reward`);
+  }
+  assert.equal(rewards(), 1, 'the reward day is server-authoritative UTC, not the editable profile zone');
+});
+test('a creator is never sold their own marketplace path', async () => {
+  const creator = await registered('self buyer', 1990);
+  run("INSERT INTO subscriptions(id,user_id,plan_id,starts_at,expires_at,created_at,updated_at) VALUES(?,?,'PRO',?,?,?,?)", 'sub-self-buyer', creator.id, new Date().toISOString(), new Date(Date.now() + 86400000).toISOString(), new Date().toISOString(), new Date().toISOString());
+  const tasks = Array.from({ length: 3 }, (_, index) => ({ title: `Self owned step ${index + 1}`, instructions: 'Work through one small example and record the result.' }));
+  const published = await request('marketplace', { title: 'A path I created myself', description: 'Used to verify a creator is never charged for their own listing.', category: 'content', price: 40, durationDays: 14, tasks }, creator.cookie);
+  assert.equal(published.status, 200, JSON.stringify(published.data));
+  run("UPDATE marketplace_paths SET status='approved' WHERE id=?", published.data.pathId);
+  const order = await request('orders', { marketplacePathId: published.data.pathId, payerAuthorized: true }, creator.cookie);
+  assert.equal(order.data.code, 'ALREADY_OWNED', JSON.stringify(order.data));
+  assert.equal(one('SELECT COUNT(*) AS n FROM orders WHERE user_id=? AND marketplace_path_id=?', creator.id, published.data.pathId)!.n, 0, 'no order row is created for a path the buyer already owns');
+});
+test('completing a task leaves a paused enrollment paused', async () => {
+  const paused = await registered('pauser', 1990);
+  const enrolled = await request('enrollments', { pathId: 'website', skill: 'Site building', level: 'beginner', dailyMinutes: 20, goal: 'Ship a first page', styles: ['practice'] }, paused.cookie);
+  assert.equal(enrolled.status, 200, JSON.stringify(enrolled.data));
+  const enrollmentId = enrolled.data.enrollmentId;
+  assert.equal((await request(`enrollments/${enrollmentId}`, { status: 'paused' }, paused.cookie)).status, 200);
+  const path = learningPaths.find(item => item.id === 'website')!;
+  const first = path.chapters[0].tasks[0];
+  const submitted = await request('tasks/submit', { enrollmentId, taskId: first.id, text: 'Documented the audience, the goal and three original examples for the page.', answer: first.question.answer, difficulty: 'right' }, paused.cookie);
+  assert.equal(submitted.status, 200, JSON.stringify(submitted.data));
+  assert.equal(one('SELECT status FROM path_enrollments WHERE id=?', enrollmentId)!.status, 'paused', 'finishing a task must not silently re-activate a paused path');
+});
+test('the auth routes carry a ceiling no attacker-chosen identifier can sidestep', async () => {
+  run("DELETE FROM rate_limits WHERE key LIKE 'auth%'");
+  let limited = 0;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    // A fresh address every request would mint a fresh per-identifier bucket forever.
+    const response = await request('auth/login', { email: `attacker-${attempt}@example.test`, password: 'NotTheRealPassword1!' });
+    if (response.data.code === 'RATE_LIMITED') limited++;
+  }
+  assert.ok(limited > 0, 'a route-wide ceiling must stop unbounded blocking password hashing');
+  const key = one("SELECT key FROM rate_limits WHERE key LIKE 'auth:auth/login:%' ORDER BY length(key) DESC LIMIT 1");
+  if (key) assert.ok(key.key.length <= 280, 'the identifier is bounded before it becomes a primary key');
+  run("DELETE FROM rate_limits WHERE key LIKE 'auth%'");
+});
+test('the demo game coach withholds answers until the quest has been finished', async () => {
+  const miner = await registered('answer miner', 1990);
+  run("INSERT INTO subscriptions(id,user_id,plan_id,starts_at,expires_at,created_at,updated_at) VALUES(?,?,'BASIC',?,?,?,?)", 'sub-answer-miner', miner.id, new Date().toISOString(), new Date(Date.now() + 86400000).toISOString(), new Date().toISOString(), new Date().toISOString());
+  const daily = await request('games/daily', undefined, miner.cookie);
+  const gameId = daily.data.game.dailyGameId;
+  const explanations = readJson(one('SELECT data FROM daily_games WHERE id=?', gameId)!.data).questions.map((question: any) => question.explanation.he);
+  const before = await request('games/ask', { gameId, message: 'הסבר לי את השאלה' }, miner.cookie);
+  assert.equal(before.status, 200, JSON.stringify(before.data));
+  assert.ok(!explanations.some((text: string) => before.data.message.content.includes(text)), 'no explanation may reach a learner who has not finished the quest');
+  run("INSERT INTO daily_game_attempts(id,user_id,daily_game_id,status,started_at,finished_at,created_at,updated_at) VALUES(?,?,?,'completed',?,?,?,?)", 'attempt-answer-miner', miner.id, gameId, new Date().toISOString(), new Date().toISOString(), new Date().toISOString(), new Date().toISOString());
+  const after = await request('games/ask', { gameId, message: 'הסבר לי את השאלה' }, miner.cookie);
+  assert.equal(after.status, 200, JSON.stringify(after.data));
+  assert.ok(explanations.some((text: string) => after.data.message.content.includes(text)), 'reviewing explanations after finishing stays available');
+});

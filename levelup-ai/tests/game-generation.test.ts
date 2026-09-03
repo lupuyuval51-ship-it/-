@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { handle } from '../src/lib/server/router';
 import { ApiError } from '../src/lib/server/auth';
 import { DEFAULT_AI_MODEL, type StructuredAIProvider, type StructuredAIRequest } from '../src/lib/server/ai-provider';
-import { claudeReply } from './helpers/claude-reply';
+import { claudeStream } from './helpers/claude-reply';
 import { generateGame, generateGameDraft, generateGameInputSchema, generatedGameSchema, customGame } from '../src/lib/server/game-generation';
 import { askGame, gameMessages } from '../src/lib/server/game-coach';
 import { all, db, one, readJson, run } from '../src/lib/server/db';
@@ -270,7 +270,7 @@ test('configured Claude invokes the real transport and provider failure never si
       assert.equal(body.model, DEFAULT_AI_MODEL);
       assert.equal(body.output_config.format.type, 'json_schema');
       assert.ok(!JSON.stringify(body).includes('test-only-key'), 'the key travels in a header, never in the body');
-      return Response.json(claudeReply(JSON.stringify(valid)));
+      return claudeStream(JSON.stringify(valid));
     };
     assert.equal((await generateGameDraft(input())).source, 'ai'); assert.equal(calls, 1);
     calls = 0; globalThis.fetch = async () => { calls++; return new Response('Unavailable', { status: 503 }); };
@@ -279,7 +279,7 @@ test('configured Claude invokes the real transport and provider failure never si
     assert.equal(calls, 2); assert.equal(one('SELECT COUNT(*) AS n FROM generated_game_owners')!.n, before);
     await assert.rejects(askGame('demo-learner', { gameId: arena.game.dailyGameId, message: 'How does addition work?' }), (error: unknown) => error instanceof ApiError && error.code === 'AI_UNAVAILABLE');
     assert.equal(gameMessages('demo-learner', arena.game.dailyGameId).messages.at(-1)?.role, 'user');
-    globalThis.fetch = async () => Response.json(claudeReply('', 'refusal'));
+    globalThis.fetch = async () => claudeStream('', 'refusal');
     await assert.rejects(generateGameDraft(input()), (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE');
   } finally {
     globalThis.fetch = priorFetch;

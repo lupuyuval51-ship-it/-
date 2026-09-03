@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { assert } from './auth';
 import { config, gameModes, worlds } from './config';
-import { attemptDto, award, dayIn, entitlementsFor, findPath, pathById, preferences, timezoneFor, updateStreak } from './store';
+import { attemptDto, award, dayIn, entitlementsFor, findPath, nextQuotaReset, pathById, preferences, quotaDay, timezoneFor, updateStreak } from './store';
 import { reinforcementProposal } from './learning';
 
 function random(seed: string) { let state = parseInt(createHash('sha256').update(seed).digest('hex').slice(0, 8), 16); return () => { state ^= state << 13; state ^= state >>> 17; state ^= state << 5; return (state >>> 0) / 4294967296; }; }
@@ -63,15 +63,13 @@ function cohortAttempts(userId: string, game: Row) {
   const data = readJson(game.data);
   return all("SELECT a.*,g.data,g.game_mode,g.world_theme FROM daily_game_attempts a JOIN daily_games g ON g.id=a.daily_game_id WHERE a.user_id=? AND json_extract(g.data,'$.leaderboardGroup')=?", userId, data.leaderboardGroup);
 }
-export function gameAvailability(userId: string, game: Row, zone = timezoneFor(userId)) {
-  const features = entitlementsFor(userId), data = readJson(game.data), attempts = cohortAttempts(userId, game), today = dayIn(zone);
-  const current = data.isCustom ? attempts.filter(attempt => dayIn(zone, new Date(attempt.started_at)) === today) : attempts;
+export function gameAvailability(userId: string, game: Row) {
+  const features = entitlementsFor(userId), data = readJson(game.data), attempts = cohortAttempts(userId, game);
+  const current = data.isCustom ? attempts.filter(attempt => quotaDay(new Date(attempt.started_at)) === quotaDay()) : attempts;
   const resumable = current.some(attempt => attempt.daily_game_id === game.id && attempt.status === 'playing' && Date.now() - new Date(attempt.started_at).getTime() <= data.timeLimit * 1000 + 30000);
   const attemptsRemaining = Math.max(0, features.gameAttempts - current.length), canPlay = features.canPlayFull3DGames && !!game.is_active;
-  return { canPlay, canStart: canPlay && (attemptsRemaining > 0 || resumable), attemptsRemaining, currentRemaining: attemptsRemaining, personalBest: Math.max(0, ...attempts.filter(attempt => attempt.status === 'completed' && !attempt.suspicious).map(attempt => attempt.score)), previousAttempts: current.map(attemptDto), nextResetAt: nextMidnight(zone) };
+  return { canPlay, canStart: canPlay && (attemptsRemaining > 0 || resumable), attemptsRemaining, currentRemaining: attemptsRemaining, personalBest: Math.max(0, ...attempts.filter(attempt => attempt.status === 'completed' && !attempt.suspicious).map(attempt => attempt.score)), previousAttempts: current.map(attemptDto), nextResetAt: nextQuotaReset() };
 }
-/** Binary search keeps this correct across DST shifts; the cached formatter keeps it off the database. */
-function nextMidnight(zone: string) { const today = dayIn(zone); let low = Date.now(), high = low + 27 * 3600000; for (let iteration = 0; iteration < 30; iteration++) { const midpoint = Math.floor((low + high) / 2); if (dayIn(zone, new Date(midpoint)) === today) low = midpoint; else high = midpoint; } return new Date(high).toISOString(); }
 export function startGame(userId: string, gameId: string) {
   return transaction(() => {
     const game = assertGameAccess(userId, gameId), data = readJson(game.data), features = entitlementsFor(userId), zone = timezoneFor(userId);
@@ -86,7 +84,7 @@ export function startGame(userId: string, gameId: string) {
     const cohortPath = (activePath && findPath(activePath.path_id)) ? activePath.path_id : 'website';
     const cohortLevel = activePath && cohortPath === activePath.path_id ? activePath.level : 'beginner';
     assert(data.isCustom || game.path_id === cohortPath && data.difficulty === cohortLevel, 403, 'האתגר אינו תואם למסלול הפעיל שלך. / This quest does not match your active path.', 'GAME_COHORT_MISMATCH');
-    const count = cohortAttempts(userId, game).filter(attempt => !data.isCustom || dayIn(zone, new Date(attempt.started_at)) === dayIn(zone)).length;
+    const count = cohortAttempts(userId, game).filter(attempt => !data.isCustom || quotaDay(new Date(attempt.started_at)) === quotaDay()).length;
     assert(count < features.gameAttempts, 403, 'ניצלת את ניסיונות האתגר להיום. / Today’s attempts are used.', 'ATTEMPTS_EXHAUSTED');
     const attemptId = id(), time = now();
     run('INSERT INTO daily_game_attempts(id,user_id,daily_game_id,started_at,first_attempt,created_at,updated_at) VALUES(?,?,?,?,?,?,?)', attemptId, userId, gameId, time, count === 0 ? 1 : 0, time, time);
@@ -129,10 +127,13 @@ export function finishGame(userId: string, attemptId: string) {
     assertGameAccess(userId, row.daily_game_id);
     if (row.status === 'completed') return gameResult(row);
     assert(row.status === 'playing', 409, 'הניסיון אינו פעיל. / Attempt is not active.');
-    const game = readJson(row.data), actualElapsed = Date.now() - new Date(row.started_at).getTime(), zone = timezoneFor(userId);
+    const game = readJson(row.data), actualElapsed = Date.now() - new Date(row.started_at).getTime();
     assert(row.event_count === game.questions.length || actualElapsed >= game.timeLimit * 1000, 409, 'יש לסיים את השאלות לפני שמירת התוצאה. / Finish the questions before saving.', 'INCOMPLETE_GAME');
     assert(row.score <= game.questions.length * 300, 422, 'לא ניתן לאמת את הניקוד. / Score validation failed.');
-    const rewardDay = dayIn(zone, new Date(row.started_at));
+    // profiles.timezone is learner-editable, so keying the once-a-day reward on it lets a learner
+    // re-collect by switching zones. The quota boundary is server-authoritative UTC; the learner's
+    // zone still drives which quest they see, which is content freshness rather than a reward.
+    const rewardDay = quotaDay(new Date(row.started_at));
     const rewarded = one('SELECT id FROM xp_events WHERE user_id=? AND source=? AND source_id=?', userId, 'daily-game', rewardDay);
     const participated = row.event_count > 0 && !row.suspicious;
     const xp = rewarded || !participated ? 0 : 40 + row.correct * 5 + (row.correct === game.questions.length ? 20 : 0), coins = xp ? 4 + row.correct : 0;

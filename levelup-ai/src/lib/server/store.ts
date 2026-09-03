@@ -89,6 +89,9 @@ export function dayIn(zone: string, timestamp: Date = new Date()): string {
   }
   return formatter.format(timestamp);
 }
+/** Quota boundaries must be server-authoritative: a learner can edit their timezone, not UTC. */
+export const quotaDay = (timestamp: Date = new Date()) => timestamp.toISOString().slice(0, 10);
+export const nextQuotaReset = () => new Date(Math.floor(Date.now() / 86400000) * 86400000 + 86400000).toISOString();
 export function timezoneFor(userId: string): string { const zone = preferences(userId).timezone; return typeof zone === 'string' && zone ? zone : DEFAULT_TIMEZONE; }
 export function dayFor(userId: string, timestamp = new Date()) { return dayIn(timezoneFor(userId), timestamp); }
 export function findPath(pathId: string): Row | undefined { const row = one('SELECT * FROM learning_paths WHERE id=? AND deleted_at IS NULL', pathId); return row ? readJson(row.data) : undefined; }

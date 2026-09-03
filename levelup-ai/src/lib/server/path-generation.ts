@@ -39,7 +39,7 @@ export async function generatePathDraft(input: PathGenerationInput, provider?: S
   const hasKey = !!aiKey();
   if (provider || hasKey) {
     if (!provider && !aiEnabled()) throw new ApiError(503, 'יש להגדיר AI_PROVIDER=anthropic ומפתח Claude API. / Configure AI_PROVIDER=anthropic and a Claude API key.', 'AI_UNAVAILABLE');
-    const draft = await validatedAI(provider || new ClaudeJsonProvider(), generatedPathSchema, { name: 'learning_path', instructions: generationInstructions, input: privateGenerationInput(input), maxOutputTokens: 12000, timeoutMs: 150000 }, value => {
+    const draft = await validatedAI(provider || new ClaudeJsonProvider(), generatedPathSchema, { name: 'learning_path', instructions: generationInstructions, input: privateGenerationInput(input), maxOutputTokens: 12000, timeoutMs: 240000 }, value => {
       assertSafeOutput(value, domain);
       assert(value.chapters.at(-1)?.tasks.at(-1)?.type === 'project', 503, 'Final project required.', 'AI_PATH_INVALID');
       const titles = value.chapters.flatMap(chapter => chapter.tasks.map(task => task.title.he.trim().toLowerCase()));
