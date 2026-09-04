@@ -1,0 +1,10 @@
+LEVELUP AI Explorer — original low-poly 3D model
+
+Dedicated to the public domain under CC0 1.0 Universal.
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The model was created for this project from original primitive geometry.
+It includes no third-party models, textures, fonts, recordings, or trademarks.
+The small binary GLTF shares geometry and materials across its parts and uses
+no texture downloads. HTTP compression can be enabled by the deployment proxy.
+Game scenery and synthesized sound are also original project assets.

@@ -1,0 +1,10 @@
+
+Running 3 tests using 1 worker
+
+(node:22076) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\game-interactions.e2e.spec.ts:5:5 › unselected arena can switch to 2D and keeps the final explanation until results are requested (18.8s)
+  ok 2 tests\game-interactions.e2e.spec.ts:61:5 › legacy Collect and Sort walks to the selected object and saves only after delivery (17.4s)
+  ok 3 tests\mobile-arena.e2e.spec.ts:112:7 › educational arena on phones › Basic learner creates a topic game, asks a scoped question, and plays with thumb controls (25.5s)
+
+  3 passed (1.1m)
