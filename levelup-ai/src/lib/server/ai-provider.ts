@@ -62,13 +62,21 @@ export class ClaudeJsonProvider implements StructuredAIProvider {
 /** Retry both transport failures and invalid JSON once; never persist unvalidated output. */
 export async function validatedAI<T>(provider: StructuredAIProvider, schema: z.ZodType<T>, request: Omit<StructuredAIRequest, 'schema' | 'outputSchema'>, validate?: (output: T) => void): Promise<T> {
   const jsonSchema = z.toJSONSchema(schema) as Record<string, unknown>;
+  let lastFailure = 'NoAttempt';
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const output = await provider.generate({ ...request, schema: jsonSchema, outputSchema: schema, instructions: request.instructions + (attempt ? '\nThe preceding response could not be validated. Generate a fresh complete response that strictly follows the schema.' : '') });
       const parsed = schema.parse(output);
       validate?.(parsed);
       return parsed;
-    } catch { /* No request content, secrets, or model output is logged. */ }
+    } catch (error) {
+      // Never log request content, secrets or model output — but an operator still has to be able
+      // to tell a rejected key from a model that drifted off-schema, so keep the failure class.
+      lastFailure = error instanceof Anthropic.APIError ? `${error.name} ${error.status ?? ''}`.trim() : error instanceof z.ZodError ? 'SchemaMismatch' : error instanceof Error ? error.name : 'UnknownError';
+      // A rejected or missing credential will fail identically on the retry; do not spend it.
+      if (error instanceof Anthropic.AuthenticationError || error instanceof Anthropic.PermissionDeniedError) break;
+    }
   }
+  console.error('[LEVELUP AI]', lastFailure);
   throw new ApiError(503, 'לא התקבלה תשובת AI תקינה. לא נשמר שינוי; אפשר לנסות שוב. / AI did not return a valid response. No change was saved; please retry.', 'AI_GENERATION_UNAVAILABLE');
 }

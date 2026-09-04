@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
-import { assert } from './auth';
+import { assert, isAdult } from './auth';
 import { config, gameModes, worlds } from './config';
 import { attemptDto, award, dayIn, entitlementsFor, findPath, nextQuotaReset, pathById, preferences, quotaDay, timezoneFor, updateStreak } from './store';
 import { reinforcementProposal } from './learning';
@@ -34,7 +34,12 @@ export function getDaily(userId: string, mode?: string | null, world?: string | 
         explanation: { he: `בסדר המסלול המאומת, הצעד ${taskPosition + 1} הוא ״${task.title.he}״.`, en: `In the verified path sequence, step ${taskPosition + 1} is “${task.title.en}”.` },
       } : task.question;
       const options = question.options.he.map((_: string, original: number) => ({ original, rank: rng() })).sort((a: Row, b: Row) => a.rank - b.rank);
-      return { id: `${dailyGameId}:${index}`, prompt: question.prompt, options: { he: options.map((option: Row) => question.options.he[option.original]), en: options.map((option: Row) => question.options.en[option.original]) }, answer: options.findIndex((option: Row) => option.original === question.answer), explanation: question.explanation, topic: task.title };
+      // Every starter path holds six question-bearing tasks, so slots seven and eight reuse one.
+      // The arena is built around eight waves, so rather than shorten the quest, say plainly that
+      // the question is a repeat instead of showing an explanation the learner already read.
+      const repeat = index >= tasks.length;
+      const prompt = repeat ? { he: `תרגול חוזר: ${question.prompt.he}`, en: `Review: ${question.prompt.en}` } : question.prompt;
+      return { id: `${dailyGameId}:${index}`, prompt, options: { he: options.map((option: Row) => question.options.he[option.original]), en: options.map((option: Row) => question.options.en[option.original]) }, answer: options.findIndex((option: Row) => option.original === question.answer), explanation: question.explanation, topic: task.title };
     });
     const data = { dailyGameId, date, seed, version: 2, gameMode: modeValue, worldTheme: worldValue, difficulty, skillCategory: path.category, lessonTopics: path.chapters.map((chapter: Row) => chapter.title), questions, ...(modeValue === 'knowledge-arena' ? { arena: { layout: 'courtyard', enemyCount: difficulty === 'advanced' ? 6 : difficulty === 'intermediate' ? 4 : 2, obstacleCount: 8, ambience: 'day', waveCount: 8 } } : {}), obstacles: [{ type: 'barrier', count: 8, speed: difficulty === 'advanced' ? 1.4 : 1 }], rewards: { xp: 80, coins: 12, perfectBonus: 20 }, timeLimit: 300, scoreRules: { correct: 100, maxMultiplier: 3, wrong: 0, firstAttemptLeaderboard: true }, leaderboardGroup: `${date}:${path.id}:${difficulty}:${modeValue}:v2`, minimumPlan: 'BASIC', isActive: true };
     transaction(() => {
@@ -139,7 +144,7 @@ export function finishGame(userId: string, attemptId: string) {
     const xp = rewarded || !participated ? 0 : 40 + row.correct * 5 + (row.correct === game.questions.length ? 20 : 0), coins = xp ? 4 + row.correct : 0;
     run("UPDATE daily_game_attempts SET status='completed',finished_at=?,elapsed_ms=?,xp=?,coins=?,updated_at=? WHERE id=?", now(), Math.max(row.elapsed_ms, Math.min(actualElapsed, game.timeLimit * 1000)), xp, coins, now(), row.id);
     if (!rewarded && participated) run('INSERT INTO xp_events(id,user_id,source,source_id,xp,coins,created_at) VALUES(?,?,?,?,?,?,?)', id(), userId, 'daily-game', rewardDay, xp, coins, now());
-    if (!game.isCustom && row.first_attempt && participated && preferences(userId).leaderboards) run('INSERT OR IGNORE INTO leaderboards(id,user_id,daily_game_id,score,created_at,updated_at) VALUES(?,?,?,?,?,?)', id(), userId, row.daily_game_id, row.score, now(), now());
+    if (!game.isCustom && row.first_attempt && participated && preferences(userId).leaderboards && isAdult(preferences(userId).birthYear)) run('INSERT OR IGNORE INTO leaderboards(id,user_id,daily_game_id,score,created_at,updated_at) VALUES(?,?,?,?,?,?)', id(), userId, row.daily_game_id, row.score, now(), now());
     if (participated) award(userId, 'first-game');
     if (participated && row.correct === game.questions.length) award(userId, 'perfect-game');
     if (row.correct < row.event_count && !row.suspicious) {

@@ -1,12 +1,14 @@
 import { test, before, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync } from 'node:fs';
+import { existsSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { handle } from '../src/lib/server/router';
 import { all, one, pruneExpired, readJson, run } from '../src/lib/server/db';
 import { dayIn } from '../src/lib/server/store';
 import { learningPaths } from '../src/lib/content';
+import { generateGameDraft } from '../src/lib/server/game-generation';
+import { ApiError } from '../src/lib/server/auth';
 import { config, gameModes, worlds } from '../src/lib/server/config';
 
 process.env.LEVELUP_DB_PATH = ':memory:';
@@ -22,6 +24,7 @@ async function request(path: string, data?: unknown, cookie = '', customOrigin =
   return { status: response.status, data: result, cookie: response.headers.get('set-cookie')?.split(';')[0] || '' };
 }
 /** There is no sign-up form any more: an account opens on demand and the cookie is the credential. */
+const adminCookie = () => admin;
 async function registered(label: string, birthYear?: number) {
   const created = await request('auth/guest', { displayName: `Test ${label}`.slice(0, 60) });
   assert.equal(created.status, 201, JSON.stringify(created.data));
@@ -355,4 +358,57 @@ test('the demo game coach withholds answers until the quest has been finished', 
   const after = await request('games/ask', { gameId, message: 'הסבר לי את השאלה' }, miner.cookie);
   assert.equal(after.status, 200, JSON.stringify(after.data));
   assert.ok(explanations.some((text: string) => after.data.message.content.includes(text)), 'reviewing explanations after finishing stays available');
+});
+test('deleting an account removes its uploaded proofs from disk, not just from the API', async () => {
+  const leaver = await registered('file leaver', 1990);
+  const order = await request('orders', { plan: 'BASIC', payerAuthorized: true }, leaver.cookie);
+  assert.equal(order.status, 200, JSON.stringify(order.data));
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aFJkAAAAASUVORK5CYII=', 'base64');
+  const form = new FormData(); form.set('purpose', 'payment'); form.set('orderId', order.data.order.id); form.set('file', new File([png], 'proof.png', { type: 'image/png' }));
+  const uploaded = await (await handle(new Request(`${origin}/api/uploads`, { method: 'POST', headers: { origin, cookie: leaver.cookie }, body: form }), ['uploads'])).json();
+  const stored = one('SELECT storage_name FROM payment_proofs WHERE id=?', uploaded.fileId)!.storage_name;
+  const onDisk = join(process.env.LEVELUP_UPLOAD_DIR!, stored);
+  assert.equal(existsSync(onDisk), true, 'the proof is written to private storage');
+  assert.equal((await request('account/delete', { confirm: true }, leaver.cookie)).status, 200);
+  assert.equal(existsSync(onDisk), false, 'a payment screenshot must not outlive the account that uploaded it');
+});
+test('a learner with no stated adult age never reaches the public leaderboard', async () => {
+  const minor = await registered('board minor');
+  const opted = await request('settings', { leaderboards: true }, minor.cookie);
+  assert.equal(opted.status, 200, JSON.stringify(opted.data));
+  assert.equal(opted.data.state.profile.leaderboards, false, 'the opt-in is refused without a stated adult year');
+  const adult = await registered('board adult', 1990);
+  assert.equal((await request('settings', { leaderboards: true }, adult.cookie)).data.state.profile.leaderboards, true);
+});
+test('an explicit dosage or securities instruction is refused whatever the topic was classified as', async () => {
+  const fixture = () => ({ title: { he: 'זירת ידע', en: 'Knowledge arena' }, description: { he: 'תיאור', en: 'Description' }, arena: { layout: 'courtyard' as const, enemyCount: 2, obstacleCount: 6, ambience: 'day' as const, waveCount: 8 as const }, questions: Array.from({ length: 8 }, (_, index) => ({ prompt: { he: `שאלה ${index}`, en: `Question ${index}` }, options: { he: ['אחת', 'שתיים', 'שלוש'], en: ['One', 'Two', 'Three'] }, answer: 0, explanation: { he: 'הסבר', en: 'Explanation' }, hint: { he: 'רמז', en: 'Hint' }, topic: { he: 'נושא', en: 'Topic' } })) });
+  const unsafe = fixture();
+  unsafe.questions[0].explanation = { he: 'מינון מומלץ הוא שתי כפיות ביום.', en: 'The recommended dosage is two spoons a day.' };
+  // "Baking bread" classifies as general, so the domain-gated half of the filter never runs.
+  await assert.rejects(
+    generateGameDraft({ topic: 'Baking bread', level: 'beginner', worldTheme: 'future-city', durationMinutes: 5 }, { async generate() { return unsafe; } }),
+    (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE',
+  );
+  const safe = await generateGameDraft({ topic: 'Baking bread', level: 'beginner', worldTheme: 'future-city', durationMinutes: 5 }, { async generate() { return fixture(); } });
+  assert.equal(safe.source, 'ai', 'ordinary general content still passes');
+});
+test('a daily quest that outruns its question pool marks the extra slots as review', async () => {
+  const player = await registered('repeat reader', 1990);
+  const daily = await request('games/daily', undefined, player.cookie);
+  assert.equal(daily.status, 200, JSON.stringify(daily.data));
+  const prompts = daily.data.game.questions.map((q: any) => q.prompt.he);
+  assert.equal(prompts.length, 8, 'the arena is built around eight waves');
+  const reviews = prompts.filter((text: string) => text.startsWith('תרגול חוזר:'));
+  assert.equal(reviews.length, 2, 'a six-question pool leaves exactly two repeats, and both say so');
+  const bodies = prompts.map((text: string) => text.replace('תרגול חוזר: ', ''));
+  assert.equal(new Set(bodies).size, 6, 'the repeats reuse the pool rather than inventing questions');
+});
+test('the admin reports tab receives the reported path rather than a raw row', async () => {
+  const reporter = await registered('reporter', 1990);
+  assert.equal((await request('reports', { pathId: 'website', reason: 'Please review a confusing instruction.' }, reporter.cookie)).status, 200);
+  const admin = (await request('admin', undefined, adminCookie())).data;
+  const report = admin.reports.find((row: any) => row.reason.startsWith('Please review'));
+  assert.ok(report, 'the report reaches the console');
+  assert.equal(report.pathId, 'website', 'the console reads pathId, so the payload must carry it');
+  assert.ok(report.createdAt && report.status, 'the row is mapped, not passed through raw');
 });

@@ -71,7 +71,7 @@ Worth recording honestly, because the raw numbers are misleading:
 ## Verification
 
 - `pnpm typecheck`, `pnpm lint`, `pnpm build` — clean.
-- `pnpm test` — **81 passed** (76 + 5 new). Each new test was confirmed to **fail against the
+- `pnpm test` — **86 passed** (76 + 10 new across both batches). Each new test was confirmed to **fail against the
   unfixed code**; the first version of the timezone test passed even when reverted, so it was
   rewritten to drive `finishGame` directly rather than stopping at `startGame`.
 - `pnpm test:e2e` — 8 passed.
@@ -79,15 +79,39 @@ Worth recording honestly, because the raw numbers are misleading:
   landing 1), English gets `matrix(-1,0,0,1,0,0)` on forward arrows, signed-in `/pricing` keeps
   the app shell, and the delete dialog no longer mentions a password.
 
+## Second batch — 4 September
+
+Continued from the same 75-finding set. Each was verified by reading the code first, which
+changed the outcome twice: one finding was rejected as wrong about intent, and one fix was
+withdrawn after its own tests showed it broke a coupling the finder had not considered.
+
+| Finding | Fix |
+|---|---|
+| `deleteAccount` soft-deleted the `payment_proofs` rows but **never removed the files**. A payment screenshot carries a bank reference and a name, and it outlived the account indefinitely. | Storage names are collected inside the transaction and unlinked after it commits; the audit entry records how many files went. |
+| A learner with **no stated adult year** was forced to a private profile but could still opt into the public leaderboard and publish their display name. That contradicts the app's own minor-safety posture. | The leaderboard opt-in is now refused for non-adults exactly as `privacy` is, existing rows are cleared, and `finishGame` re-checks before writing a row. |
+| The output filter for dosages, training loads and securities **only ran when the input had been classified health or finance**. A topic classified `general` whose generated content drifted into "the recommended dosage is…" passed untouched. | Split the pattern: explicit medical and securities directives are refused unconditionally, while bare units like "5 kg" — legitimate in a general path — stay gated on the restricted domains. |
+| The admin reports tab read `r.pathId` off a raw `SELECT *` row, so the reported path was **always blank**. | `adminData()` maps reports to camelCase like every other collection it returns. |
+| `validatedAI`'s empty `catch` discarded the failure class, so a **rejected API key was indistinguishable from schema drift** — and the retry spent a second call on a credential that could never work. | The failure class is preserved and logged (never the content), and an authentication or permission error breaks out instead of retrying. |
+| The 20 s state poll **swallowed a 401**, leaving a signed-in shell driving a session the server had already dropped; every later action failed with no explanation. | A failed poll now probes `/api/health` first — so a network blip never signs anyone out — and clears the session only on a confirmed 401. |
+| A daily quest drew 8 questions from a 6-question pool, so two were **verbatim repeats whose explanation the learner had already read**. | The overflow slots are labelled as review, matching how `generateGameDraft` already presents a repeat. |
+
+**Two corrections worth recording.** The finding that *"`generateGame` enforces no plan
+entitlement, so a FREE account spends a paid Claude generation on a game it can never start"* was
+**rejected**: a Free preview is deliberate product design, pinned by
+`mobile-arena.e2e.spec.ts:221`. And the first attempt at the repeated-question fix shortened the
+quest to the pool size — four tests immediately failed, because the arena is built around
+`waveCount: z.literal(8)` and a 6-question quest desyncs it. The fix was withdrawn and replaced.
+
 ## Not fixed — open
 
 - **Three subsystems were never audited**: performance, tests/docs/deploy, data-integrity and the
   PostgreSQL migrations. The migration files in particular have not been checked against the
   guest / `birth_year = 0` change or the paid-amount join.
-- **52 medium and low findings remain untriaged** in the raw audit output, including: uploaded
-  files never removed from disk on account deletion; `assertGameAccess` not checking marketplace
-  purchase; a daily quest drawing 8 questions from a 6-question pool; `deleteAccount` leaving
-  in-flight orders open; `parental_consents` surviving as a dead PII table; `GamePlayer` mixing the
-  server clock with the device clock; unbounded order queries.
+- **~45 medium and low findings remain untriaged** in the raw audit output, including:
+  `assertGameAccess` not checking marketplace purchase; `deleteAccount` leaving in-flight orders
+  open; `parental_consents` surviving as a dead PII table; `GamePlayer` mixing the server clock
+  with the device clock; a latched submit error that can make a run unfinishable; several ARIA
+  patterns declared but not implemented; unbounded order queries; the admin console's shared,
+  never-cleared review-note field.
 - A guest account keeps its Hebrew default display name after switching to English until renamed
   in settings.

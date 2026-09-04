@@ -123,10 +123,25 @@ export default function LevelupApp() {
   useEffect(() => {
     if (!userId) return;
     const sync = () => {
-      if (!document.hidden)
-        api("/state")
-          .then((s) => setState(s.state || s))
-          .catch(() => {});
+      if (document.hidden) return;
+      api("/state")
+        .then((s) => setState(s.state || s))
+        .catch(async () => {
+          // A swallowed 401 left a signed-in shell driving a session the server had dropped, so
+          // every later action failed with no explanation. Confirm the session is really gone —
+          // a transient network blip must not sign anyone out — then clear it.
+          try {
+            const probe = await fetch("/api/health", { cache: "no-store" });
+            if (!probe.ok) return;
+            const check = await fetch("/api/state", {
+              credentials: "same-origin",
+              cache: "no-store",
+            });
+            if (check.status === 401) setState(null);
+          } catch {
+            /* Offline: keep the current view and let the banner explain. */
+          }
+        });
     };
     const timer = setInterval(sync, 20000);
     window.addEventListener("focus", sync);

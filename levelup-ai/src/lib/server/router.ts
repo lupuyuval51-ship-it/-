@@ -1,3 +1,5 @@
+import { rm } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { z } from 'zod';
 import { all, audit, id, now, one, readJson, run, transaction, type Row } from './db';
 import { ApiError, assert, assertOrigin, clearSession, clientNetworkAddress, createSession, guestSession, isGuestAccount, login, passwordMatches, rateLimit, requireAdmin, sessionUser } from './auth';
@@ -79,7 +81,7 @@ export async function handle(request: Request, path: string[]) {
     if (route === 'notifications/read' && method === 'POST') { run('UPDATE notifications SET read_at=? WHERE user_id=? AND read_at IS NULL', now(), user.id); return json({ ok: true, state: state(user) }); }
     if (route === 'export' && method === 'GET') return new Response(JSON.stringify({ exportedAt: now(), ...state(user), generatedGames: customGames(user.id).games, gameMessages: all('SELECT m.id,m.role,m.content,m.created_at,c.game_id FROM ai_coach_messages m JOIN game_coach_contexts c ON c.message_id=m.id WHERE m.user_id=? ORDER BY m.created_at', user.id), reinforcements: all('SELECT enrollment_id,source_task_id,text,xp,created_at FROM reinforcement_submissions WHERE user_id=?', user.id), skills: all('SELECT skill_id,mastery,created_at FROM user_skills WHERE user_id=?', user.id), files: all('SELECT id,file_name,mime,bytes,purpose,created_at FROM payment_proofs WHERE user_id=? AND deleted_at IS NULL', user.id) }, null, 2), { headers: { 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="levelup-data.json"', 'Cache-Control': 'no-store' } });
     // A guest holds no password, so the session plus an explicit confirmation is the proof of intent.
-    if (route === 'account/delete' && method === 'POST') { const input = z.object({ password: z.string().max(128).optional(), confirm: z.boolean().optional() }).parse(await body(request)); assert(isGuestAccount(user) ? input.confirm === true : passwordMatches(input.password || '', user.password_hash), 403, isGuestAccount(user) ? 'יש לאשר את המחיקה. / Confirm the deletion.' : 'הסיסמה אינה נכונה. / Incorrect password.'); deleteAccount(user); return json({ ok: true }, 200, clearSession(request)); }
+    if (route === 'account/delete' && method === 'POST') { const input = z.object({ password: z.string().max(128).optional(), confirm: z.boolean().optional() }).parse(await body(request)); assert(isGuestAccount(user) ? input.confirm === true : passwordMatches(input.password || '', user.password_hash), 403, isGuestAccount(user) ? 'יש לאשר את המחיקה. / Confirm the deletion.' : 'הסיסמה אינה נכונה. / Incorrect password.'); await deleteAccount(user); return json({ ok: true }, 200, clearSession(request)); }
     if (route === 'subscription/cancel' && method === 'POST') { run("UPDATE subscriptions SET status='cancelled',updated_at=? WHERE user_id=? AND status='active'", now(), user.id); audit(user.id, 'subscription.cancel', user.id); return json({ ok: true, state: state(user) }); }
     if (path[0] === 'admin') {
       const admin = requireAdmin(request);
@@ -142,8 +144,15 @@ async function authRoute(request: Request, route: string, method: string) {
   if (route === 'auth/login') { const result = login(input); return json({ ...state(result.user), state: state(result.user) }, 200, result.cookie); }
   throw new ApiError(404, 'Auth endpoint not found.');
 }
-function deleteAccount(user: Row) {
+async function deleteAccount(user: Row) {
+  // Soft-deleting the row hid the proof from the API but left the file on disk forever, and a
+  // payment screenshot carries a bank reference and a name. Collect the names inside the
+  // transaction, then unlink outside it.
+  const stored: string[] = [];
   transaction(() => {
+    for (const row of all('SELECT storage_name FROM payment_proofs WHERE user_id=?', user.id)) {
+      if (typeof row.storage_name === 'string' && /^[a-f0-9-]+\.bin$/.test(row.storage_name)) stored.push(row.storage_name);
+    }
     const time = now();
     run('UPDATE users SET email=?,password_hash=?,deleted_at=?,updated_at=? WHERE id=?', `${id()}@deleted.invalid`, 'deleted', time, time, user.id);
     run('UPDATE profiles SET display_name=?,preferences=?,updated_at=? WHERE user_id=?', 'Deleted account', '{}', time, user.id);
@@ -157,6 +166,8 @@ function deleteAccount(user: Row) {
     run('UPDATE marketplace_paths SET status=?,updated_at=? WHERE creator_id=?', 'withdrawn', time, user.id); run('UPDATE learning_paths SET deleted_at=?,updated_at=? WHERE id IN (SELECT path_id FROM private_path_owners WHERE user_id=?)', time, time, user.id);
     run('UPDATE daily_games SET is_active=0,updated_at=? WHERE id IN (SELECT game_id FROM generated_game_owners WHERE user_id=?)', time, user.id);
     run('UPDATE generated_game_owners SET topic=?,deleted_at=?,updated_at=? WHERE user_id=?', '', time, time, user.id);
-    audit(user.id, 'account.delete', user.id, { method: 'soft-delete-and-personal-data-redaction' });
+    audit(user.id, 'account.delete', user.id, { method: 'soft-delete-and-personal-data-redaction', filesRemoved: stored.length });
   });
+  const storage = resolve(process.env.LEVELUP_UPLOAD_DIR || resolve(process.cwd(), 'data', 'uploads'));
+  for (const name of stored) await rm(resolve(storage, name), { force: true }).catch(() => {});
 }

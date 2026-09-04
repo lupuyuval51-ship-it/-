@@ -24,7 +24,11 @@ export function validateGameContent(value: GeneratedGameDraft, domain: string) {
   for (const question of value.questions) for (const locale of ['he', 'en'] as const) assert(new Set(question.options[locale].map(option => option.toLowerCase())).size === 3, 503, 'Distinct answer options required.', 'AI_GAME_INVALID');
   const content = JSON.stringify(value);
   assert(!/בניית פצצ|הכנת נשק|ייצור נשק|סטרואיד|self.?harm|build a bomb|make a weapon|steroid/i.test(content), 503, 'התוכן לא עבר בדיקת בטיחות. / Content failed safety validation.', 'AI_CONTENT_UNSAFE');
-  if (domain !== 'general') assert(!/(?:\b\d+\s*(?:mg|kg|lbs|reps|sets)\b)|מינון|קנו מניות|מכרו מניות|buy (?:shares|stocks)|sell (?:shares|stocks)|תיק השקעות מומלץ|\d+\s*(?:חזרות|סטים|קילוגרם)/i.test(content), 503, 'המשחק חייב להישאר לימודי וכללי. / The game must remain general education.', 'AI_CONTENT_UNSAFE');
+  // A dosage or a securities instruction is never educational, whatever the input was classified
+  // as, so that half runs unconditionally; bare units like "5 kg" are legitimate in a general
+  // path and stay gated on the restricted domains.
+  assert(!/מינון|קנו מניות|מכרו מניות|buy (?:shares|stocks)|sell (?:shares|stocks)|תיק השקעות מומלץ|medical dosage|recommended dosage/i.test(content), 503, 'המשחק חייב להישאר לימודי וכללי. / The game must remain general education.', 'AI_CONTENT_UNSAFE');
+  if (domain !== 'general') assert(!/(?:\b\d+\s*(?:mg|lbs|reps|sets)\b)|\d+\s*(?:חזרות|סטים)|\b\d+\s*(?:kg|kilograms)\b|קילוגרם/i.test(content), 503, 'המשחק חייב להישאר לימודי וכללי. / The game must remain general education.', 'AI_CONTENT_UNSAFE');
 }
 
 export async function generateGameDraft(input: GenerationInput, provider?: StructuredAIProvider): Promise<{ draft: GeneratedGameDraft; source: 'ai' | 'demo'; sourceNotice: Localized }> {
