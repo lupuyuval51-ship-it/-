@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f17">
+  <meta name="description" content="העלו סרטון וקבלו כתוביות בכל שפה, בחינם לגמרי, ישירות בדפדפן">
+  <title>כתוביות חינם · Free Subtitles</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">דלג לתוכן</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">💬</span>
+      <div>
+        <h1 data-i18n="app.title">כתוביות חינם</h1>
+        <p class="tagline" data-i18n="app.tagline"></p>
+      </div>
+    </div>
+    <button id="ui-lang" class="ghost" type="button" data-i18n="lang.toggle">English</button>
+  </header>
+
+  <div class="badges">
+    <span class="badge" data-i18n="badge.free"></span>
+    <span class="badge" data-i18n="badge.private"></span>
+    <span class="badge" data-i18n="badge.nokey"></span>
+  </div>
+
+  <main id="main">
+    <section class="card">
+      <h2 class="step" data-i18n="step.1"></h2>
+
+      <div id="drop" class="dropzone" tabindex="0" role="button" aria-describedby="drop-hint">
+        <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 16V4m0 0 4 4m-4-4-4 4" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <p class="drop-title" data-i18n="drop.title"></p>
+        <p id="drop-hint" class="hint" data-i18n="drop.hint"></p>
+        <span class="button" data-i18n="drop.button"></span>
+        <input id="file-input" type="file" accept="video/*,audio/*,.mkv,.avi,.wmv,.flv,.m4a,.ts" hidden>
+      </div>
+
+      <div id="file-card" class="file-card" hidden>
+        <span class="file-icon" aria-hidden="true">🎬</span>
+        <div class="file-meta">
+          <strong id="file-name"></strong>
+          <span id="file-info" class="hint"></span>
+        </div>
+        <button id="file-replace" class="ghost" type="button" data-i18n="file.replace"></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="step" data-i18n="step.2"></h2>
+
+      <div class="grid">
+        <label class="field">
+          <span class="field-label" data-i18n="options.model"></span>
+          <select id="model"></select>
+          <span class="hint" data-i18n="options.model.hint"></span>
+        </label>
+
+        <label class="field">
+          <span class="field-label" data-i18n="options.source"></span>
+          <select id="source-lang"></select>
+        </label>
+
+        <label class="field">
+          <span class="field-label" data-i18n="options.engine"></span>
+          <select id="device"></select>
+          <span id="device-note" class="hint"></span>
+        </label>
+      </div>
+
+      <div class="field targets">
+        <span class="field-label" data-i18n="options.targets"></span>
+        <span class="hint" data-i18n="options.targets.hint"></span>
+        <div id="target-chips" class="chips" aria-live="polite"></div>
+        <input id="target-search" type="search" class="search" data-i18n-placeholder="options.targets.search">
+        <div id="target-list" class="target-list" role="group"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="step" data-i18n="step.3"></h2>
+      <div class="actions">
+        <button id="generate" class="primary" type="button" data-i18n="action.generate"></button>
+        <button id="cancel" class="ghost danger" type="button" hidden data-i18n="action.cancel"></button>
+      </div>
+      <p class="hint" data-i18n="note.first"></p>
+
+      <div id="progress-panel" class="progress" hidden>
+        <div class="progress-head">
+          <span id="stage-label"></span>
+          <span id="progress-percent" class="mono"></span>
+        </div>
+        <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+        <ul id="log" class="log"></ul>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="results" class="card" hidden>
+      <h2 class="step" data-i18n="result.title"></h2>
+
+      <div class="player-wrap">
+        <video id="player" controls playsinline preload="metadata"></video>
+        <div id="overlay" class="overlay" aria-hidden="true"></div>
+      </div>
+
+      <div id="tabs" class="tabs" role="tablist"></div>
+
+      <div class="downloads">
+        <button id="download-srt" class="primary small" type="button" data-i18n="download.srt"></button>
+        <button id="download-vtt" class="ghost small" type="button" data-i18n="download.vtt"></button>
+        <button id="download-txt" class="ghost small" type="button" data-i18n="download.txt"></button>
+        <button id="download-all" class="ghost small" type="button" data-i18n="download.all"></button>
+        <button id="copy" class="ghost small" type="button" data-i18n="copy"></button>
+      </div>
+
+      <p class="hint" data-i18n="result.edit.hint"></p>
+      <ol id="cues" class="cues"></ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p data-i18n="footer"></p>
+  </footer>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>

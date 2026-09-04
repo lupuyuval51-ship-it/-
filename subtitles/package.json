@@ -1,0 +1,12 @@
+{
+  "name": "free-subtitles-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Upload a video, get subtitles in any language. 100% free, runs entirely in the browser.",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": { "node": ">=20" }
+}
