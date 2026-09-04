@@ -21,7 +21,9 @@ import {
   RotateCcw,
   Sparkles,
   Target,
+  Trash2,
   Trophy,
+  X,
   Zap,
 } from "lucide-react";
 import { useApp } from "../context";
@@ -58,6 +60,16 @@ type Creation = {
   level: "beginner" | "intermediate" | "advanced";
   durationMinutes: 3 | 5 | 7;
   worldTheme: WorldTheme;
+  gameMode: GameMode;
+};
+type ReviewItem = {
+  index: number;
+  prompt: { he: string; en: string };
+  options: { he: string[]; en: string[] };
+  chosen: number;
+  answer: number;
+  correct: boolean;
+  explanation: { he: string; en: string };
 };
 const worldColors = ["#82bfae", "#aec7e0", "#79b9cb", "#b8a38f", "#829de3"];
 
@@ -87,8 +99,11 @@ export default function Quest() {
     level: "beginner",
     durationMinutes: 3,
     worldTheme: "future-city",
+    gameMode: "knowledge-arena",
   });
   const [generating, setGenerating] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
   const [slowGeneration, setSlowGeneration] = useState(false);
   const cached = useRef(new Map<string, any>());
   const chatOpener = useRef<HTMLElement | null>(null);
@@ -129,7 +144,13 @@ export default function Quest() {
         ["beginner", "intermediate", "advanced"].includes(saved.level) &&
         WORLD_THEMES.includes(saved.worldTheme)
       )
-        setForm(saved);
+        setForm({
+          ...saved,
+          // Drafts saved before the mode picker existed default to the arena they were made for.
+          gameMode: GAME_MODES.includes(saved.gameMode)
+            ? saved.gameMode
+            : "knowledge-arena",
+        });
       const search = new URLSearchParams(window.location.search);
       const tab = search.get("panel");
       if (tab === "ask" || tab === "create") setPanel(tab);
@@ -290,6 +311,29 @@ export default function Quest() {
     setReload((x) => x + 1);
     void refresh();
   };
+  const removeGame = async () => {
+    const id = confirmDelete?.dailyGameId || confirmDelete?.id;
+    if (!id || deleting) return;
+    setDeleting(true);
+    try {
+      const response = await api(
+        "/games/custom/" + encodeURIComponent(id) + "/delete",
+        {},
+      );
+      cached.current.delete(id);
+      setCustomGames(response.games || []);
+      if (selectedId === id) choose(null);
+      setConfirmDelete(null);
+      toast(q.gameDeleted);
+    } catch (reason) {
+      setError((reason as Error).message);
+      setConfirmDelete(null);
+    } finally {
+      setDeleting(false);
+    }
+  };
+  const activeMode: GameMode =
+    game?.gameMode || (selectedId ? "knowledge-arena" : mode);
   const navigation: [Panel, string, typeof Gamepad2][] = [
     ["play", q.play, Gamepad2],
     ["create", q.create, Sparkles],
@@ -426,7 +470,7 @@ export default function Quest() {
                   <span>{q.score}</span>
                 </div>
                 <div>
-                  <strong>+{result.xp || 0}</strong>
+                  <strong dir="ltr">+{result.xp || 0}</strong>
                   <span>XP</span>
                 </div>
               </div>
@@ -452,6 +496,43 @@ export default function Quest() {
                 )}
                 <p>{l(result.recommendation)}</p>
               </div>
+              {Array.isArray(result.review) && result.review.length > 0 && (
+                <details
+                  className="arena-result-review"
+                  data-testid="quest-review"
+                >
+                  <summary>
+                    {q.reviewAnswers}
+                    <ChevronDown size={18} />
+                  </summary>
+                  <ol>
+                    {(result.review as ReviewItem[]).map((item) => (
+                      <li
+                        key={item.index}
+                        className={item.correct ? "correct" : "incorrect"}
+                      >
+                        <span className="arena-review-mark" aria-hidden="true">
+                          {item.correct ? <Check size={16} /> : <X size={16} />}
+                        </span>
+                        <div>
+                          <strong>{l(item.prompt)}</strong>
+                          <p>
+                            <b>{q.yourAnswer}: </b>
+                            {item.options?.[locale]?.[item.chosen]}
+                          </p>
+                          {!item.correct && (
+                            <p>
+                              <b>{q.correctAnswer}: </b>
+                              {item.options?.[locale]?.[item.answer]}
+                            </p>
+                          )}
+                          <small>{l(item.explanation)}</small>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
               <div className="actions">
                 <Button
                   onClick={() => {
@@ -472,7 +553,7 @@ export default function Quest() {
               <div className="arena-play-layout">
                 <article className="arena-feature">
                   <div className="arena-feature-art">
-                    {mode === "knowledge-arena" || selectedId ? (
+                    {activeMode === "knowledge-arena" ? (
                       <ArenaPreview world={activeWorld} />
                     ) : (
                       <QuestArt />
@@ -495,7 +576,9 @@ export default function Quest() {
                     <div className="arena-feature-title">
                       <div>
                         <h2 data-testid="quest-selected-title">{title}</h2>
-                        <p>{selectedId ? topic : modeSummaries[mode][locale]}</p>
+                        <p>
+                          {selectedId ? topic : modeSummaries[mode][locale]}
+                        </p>
                       </div>
                       {!!data?.personalBest && (
                         <span className="arena-best" title={q.yourBest}>
@@ -505,6 +588,12 @@ export default function Quest() {
                       )}
                     </div>
                     <div className="arena-game-facts">
+                      {selectedId && (
+                        <span>
+                          <Gamepad2 size={16} />
+                          {l(GAME_MODE_LABELS[activeMode])}
+                        </span>
+                      )}
                       <span>
                         <Clock3 size={16} />
                         {Math.round((game?.timeLimit || 180) / 60)} {q.minutes}
@@ -629,31 +718,45 @@ export default function Quest() {
                   </div>
                   <div className="arena-saved-list">
                     {customGames.slice(0, 8).map((saved) => (
-                      <button
-                        type="button"
-                        key={saved.dailyGameId || saved.id}
-                        onClick={() => choose(saved.dailyGameId || saved.id)}
-                        className={
-                          (saved.dailyGameId || saved.id) === selectedId
-                            ? "selected"
-                            : ""
-                        }
-                      >
-                        <span className="arena-saved-icon">
-                          <Gamepad2 size={23} />
-                        </span>
-                        <span>
-                          <strong>
-                            {l(saved.title) || saved.topic || q.yourGame}
-                          </strong>
-                          <small>
-                            {l(WORLD_LABELS[saved.worldTheme as WorldTheme])} ·{" "}
-                            {Math.round((saved.timeLimit || 180) / 60)}{" "}
-                            {q.minutes}
-                          </small>
-                        </span>
-                        <ArrowUpRight size={18} />
-                      </button>
+                      <div key={saved.dailyGameId || saved.id}>
+                        <button
+                          type="button"
+                          onClick={() => choose(saved.dailyGameId || saved.id)}
+                          className={`arena-saved-open ${
+                            (saved.dailyGameId || saved.id) === selectedId
+                              ? "selected"
+                              : ""
+                          }`}
+                        >
+                          <span className="arena-saved-icon">
+                            <Gamepad2 size={23} />
+                          </span>
+                          <span>
+                            <strong>
+                              {l(saved.title) || saved.topic || q.yourGame}
+                            </strong>
+                            <small>
+                              {l(
+                                GAME_MODE_LABELS[saved.gameMode as GameMode],
+                              ) || l(GAME_MODE_LABELS["knowledge-arena"])}{" "}
+                              ·{" "}
+                              {l(WORLD_LABELS[saved.worldTheme as WorldTheme])}{" "}
+                              · {Math.round((saved.timeLimit || 180) / 60)}{" "}
+                              {q.minutes}
+                            </small>
+                          </span>
+                          <ArrowUpRight size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          className="arena-saved-delete"
+                          aria-label={`${q.deleteGame}: ${l(saved.title) || saved.topic || q.yourGame}`}
+                          title={q.deleteGame}
+                          onClick={() => setConfirmDelete(saved)}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </section>
@@ -805,6 +908,24 @@ export default function Quest() {
                   </div>
                 </fieldset>
               </div>
+              <fieldset className="arena-modes">
+                <legend>{q.mode}</legend>
+                <div>
+                  {GAME_MODES.map((value) => (
+                    <button
+                      type="button"
+                      key={value}
+                      data-testid={`arena-mode-${value}`}
+                      aria-pressed={form.gameMode === value}
+                      onClick={() => edit({ gameMode: value })}
+                    >
+                      <strong>{l(GAME_MODE_LABELS[value])}</strong>
+                      <span>{modeSummaries[value][locale]}</span>
+                    </button>
+                  ))}
+                </div>
+                <p>{q.modeHelp}</p>
+              </fieldset>
               <fieldset className="arena-worlds">
                 <legend>{q.world}</legend>
                 <div>
@@ -861,13 +982,18 @@ export default function Quest() {
             </Button>
           </form>
           <aside className="arena-creator-preview">
-            <ArenaPreview world={form.worldTheme} />
+            {form.gameMode === "knowledge-arena" ? (
+              <ArenaPreview world={form.worldTheme} />
+            ) : (
+              <QuestArt />
+            )}
             <div>
               <span className="quest-section-label">{q.yourGame}</span>
               <h2>{form.topic || q.questionTopic}</h2>
-              <p>{q.arenaLoop}</p>
+              <p>{modeSummaries[form.gameMode][locale]}</p>
               <span>
-                {form.durationMinutes} {q.minutes} · {q[form.level]}
+                {l(GAME_MODE_LABELS[form.gameMode])} · {form.durationMinutes}{" "}
+                {q.minutes} · {q[form.level]}
               </span>
             </div>
           </aside>
@@ -953,6 +1079,38 @@ export default function Quest() {
             {q.openGames}
             <ArrowLeft size={18} />
           </Button>
+        </Modal>
+      )}
+      {confirmDelete && (
+        <Modal
+          title={q.deleteGameTitle}
+          onClose={() => {
+            if (!deleting) setConfirmDelete(null);
+          }}
+        >
+          <p>
+            <strong>
+              {l(confirmDelete.title) || confirmDelete.topic || q.yourGame}
+            </strong>
+          </p>
+          <p>{q.deleteGameBody}</p>
+          <div className="actions">
+            <Button
+              data-testid="arena-delete-confirm"
+              busy={deleting}
+              onClick={removeGame}
+            >
+              <Trash2 size={18} />
+              {q.deleteGame}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={deleting}
+              onClick={() => setConfirmDelete(null)}
+            >
+              {q.cancel}
+            </Button>
+          </div>
         </Modal>
       )}
       {checkout.dialog}

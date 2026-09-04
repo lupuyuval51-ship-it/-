@@ -5,7 +5,7 @@ export type GameMode = (typeof GAME_MODES)[number];
 export type WorldTheme = (typeof WORLD_THEMES)[number];
 export type GameLocale = "he" | "en";
 export type GameText = { he: string; en: string };
-export type GameQuestion = { id: string; prompt: GameText; options: { he: string[]; en: string[] }; topic?: string };
+export type GameQuestion = { id: string; prompt: GameText; options: { he: string[]; en: string[] }; topic?: string; hint?: GameText };
 export interface DailyGame {
   dailyGameId: string; date: string; seed: string | number; version?: number;
   gameMode: GameMode; worldTheme: WorldTheme; questions: GameQuestion[];

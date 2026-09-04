@@ -121,6 +121,16 @@ export const questMessages = {
     help: "עזרה",
     instructions: "הוראות",
     savedNotice: "המשחק נשמר בחשבון שלך ואפשר לחזור אליו בהמשך.",
+    modeHelp: "אותן שמונה שאלות, עולם משחק אחר.",
+    reviewAnswers: "סקירת התשובות",
+    yourAnswer: "התשובה שלך",
+    correctAnswer: "התשובה הנכונה",
+    deleteGame: "מחיקת המשחק",
+    deleteGameTitle: "למחוק את המשחק?",
+    deleteGameBody:
+      "המשחק יוסר מהרשימה. תוצאות שנשמרו וה־XP שצברת נשארים בחשבון.",
+    cancel: "ביטול",
+    gameDeleted: "המשחק נמחק.",
   },
   en: {
     title: "Step into Knowledge Arena.",
@@ -256,5 +266,15 @@ export const questMessages = {
     instructions: "Instructions",
     savedNotice:
       "This game is saved to your account, ready to return to later.",
+    modeHelp: "The same eight questions, a different game world.",
+    reviewAnswers: "Review your answers",
+    yourAnswer: "Your answer",
+    correctAnswer: "Correct answer",
+    deleteGame: "Delete game",
+    deleteGameTitle: "Delete this game?",
+    deleteGameBody:
+      "The game is removed from your list. Saved results and earned XP stay on your account.",
+    cancel: "Cancel",
+    gameDeleted: "Game deleted.",
   },
 } as const;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Check, ChevronDown, ChevronLeft, ChevronUp, Crosshair, HelpCircle, LoaderCircle, Maximize, MessageCircle, Move, Pause, Play, Shield, Volume2, VolumeX, X, Zap } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, ChevronLeft, ChevronUp, Crosshair, HelpCircle, Lightbulb, LoaderCircle, Maximize, MessageCircle, Move, Pause, Play, Shield, Volume2, VolumeX, X, Zap } from "lucide-react";
 import { bossPhase, gameStorageKey, GAME_MODE_LABELS, WORLD_LABELS, type ArenaTelemetry, type DailyGame, type GameLocale, type GameSettings, type GameText } from "@/lib/game";
 import { QuestScene } from "./scene";
 import { ArenaScene } from "./arena-scene";
@@ -138,6 +138,8 @@ export default function GamePlayer({ game, attemptId, locale = "he", onFinish, o
     const elapsed = Math.max(0, Date.now() - startedAt);
     const nextElapsed = Math.max(elapsed, lastElapsedRef.current + 500);
     pendingRef.current = { index: indexRef.current, answer, elapsedMs: nextElapsed };
+    // The hint has done its job once an answer is on its way; left open it would sit over the feedback panel.
+    setHint(false);
     persist(); queuedRef.current = true; setBusy(true);
     submissionTimerRef.current = window.setTimeout(() => { queuedRef.current = false; lastElapsedRef.current = nextElapsed; void sendPending(); }, nextElapsed - elapsed);
   };
@@ -320,7 +322,7 @@ export default function GamePlayer({ game, attemptId, locale = "he", onFinish, o
       {isArena && !fallback && shieldFeedback && !feedback && <div className={`arena-status-feedback ${shieldFeedback}`} role="status"><Shield size={16} />{shieldFeedback === "hit" ? t.shieldHit : t.shieldRecovered}</div>}
 
       <div className={`quest-question ${questionCollapsed ? "is-collapsed" : ""}`}>
-        <div className="quest-question-heading"><span className="quest-question-index">{t.question} {Math.min(index + 1, game.questions.length)} {t.of} {game.questions.length}</span><button type="button" data-testid="quest-question-toggle" className="quest-question-toggle" aria-expanded={!questionCollapsed} aria-controls="quest-question-content" aria-label={questionCollapsed ? t.expandQuestion : t.collapseQuestion} title={questionCollapsed ? t.expandQuestion : t.collapseQuestion} onClick={() => setQuestionCollapsed(value => !value)}>{questionCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}</button></div>
+        <div className="quest-question-heading">{isArena && !fallback && question && <button type="button" data-testid="quest-question-hint" className="quest-question-hint" aria-expanded={hint} aria-label={t.hint} title={t.hint} onClick={() => setHint((value) => !value)}><Lightbulb size={18} /></button>}<span className="quest-question-index">{t.question} {Math.min(index + 1, game.questions.length)} {t.of} {game.questions.length}</span><button type="button" data-testid="quest-question-toggle" className="quest-question-toggle" aria-expanded={!questionCollapsed} aria-controls="quest-question-content" aria-label={questionCollapsed ? t.expandQuestion : t.collapseQuestion} title={questionCollapsed ? t.expandQuestion : t.collapseQuestion} onClick={() => setQuestionCollapsed(value => !value)}>{questionCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}</button></div>
         <h2 aria-live="polite"><BidiText>{question?.prompt[locale] ?? t.finished}</BidiText></h2>
         <div id="quest-question-content" hidden={questionCollapsed}>
           {isArena && !feedback && !fallback && <p className={`arena-select-hint ${arena.aimBlocked?"arena-line-blocked":""}`} aria-live="polite">{selected<0?t.arenaSelect:arena.aimBlocked?t.arenaBlocked:t.arenaReady}</p>}
@@ -360,6 +362,6 @@ export default function GamePlayer({ game, attemptId, locale = "he", onFinish, o
     </div>
 
     {(!isArena || fallback) && <footer className="quest-bottom-bar"><span className="quest-desktop-guide">{t.controls}</span><span className="quest-mobile-guide">{lowQuality ? t.low : t.keyboard}</span><div><button type="button" onClick={() => setHint((value) => !value)} aria-expanded={hint}><HelpCircle size={16} />{t.hint}</button><button type="button" className="quest-primary" disabled={blocked || (fallback && !validSelection && (game.gameMode !== "escape-room" || opened))} onClick={action}>{fallback && game.gameMode !== "escape-room" ? t.fallbackAction : actionLabel}</button></div></footer>}
-    {hint && <div className="quest-hint" role="status">{isArena?t.arenaAnswerHint:t.hintText}<button type="button" onClick={() => setHint(false)} aria-label={t.close}><X size={16} /></button></div>}
+    {hint && <div className="quest-hint" role="status" data-testid="quest-hint"><div>{question?.hint?.[locale] ? <><strong>{t.questionHint}</strong><p><BidiText>{question.hint[locale]}</BidiText></p>{isArena && <small>{t.arenaAnswerHint}</small>}</> : <p>{isArena ? t.arenaAnswerHint : t.hintText}</p>}</div><button type="button" onClick={() => setHint(false)} aria-label={t.close}><X size={16} /></button></div>}
   </section>;
 }

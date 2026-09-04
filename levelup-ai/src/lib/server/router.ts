@@ -8,7 +8,7 @@ import { approveOrder, catalog, initialize, state } from './store';
 import { completeReinforcement, enroll, submitTask, taskGuidance, updateEnrollment } from './learning';
 import { coach } from './coach';
 import { finishGame, gameEvent, getDaily, leaderboard, startGame } from './games';
-import { customGame, customGames, generateGame } from './game-generation';
+import { customGame, customGames, deleteCustomGame, generateGame } from './game-generation';
 import { askGame, gameMessages } from './game-coach';
 import { fileResponse, paymentAdapter, upload } from './payments';
 import { adminAction, adminData, blockFriend, buyCosmetic, challenges, createMarketplace, favorite, report, review, saveSettings } from './community';
@@ -49,6 +49,7 @@ export async function handle(request: Request, path: string[]) {
     if (route === 'games/generate' && method === 'POST') return json({ ok: true, ...await generateGame(user.id, await body(request)) }, 201);
     if (route === 'games/custom' && method === 'GET') return json(customGames(user.id));
     if (path[0] === 'games' && path[1] === 'custom' && path.length === 3 && method === 'GET') return json(customGame(user.id, z.string().min(1).max(100).parse(path[2])));
+    if (path[0] === 'games' && path[1] === 'custom' && path.length === 4 && path[3] === 'delete' && method === 'POST') return json({ ok: true, ...deleteCustomGame(user.id, z.string().min(1).max(100).parse(path[2])) });
     if (route === 'games/ask' && method === 'POST') return json({ ok: true, ...await askGame(user.id, await body(request)), state: state(user) });
     if (route === 'games/messages' && method === 'GET') return json(gameMessages(user.id, z.string().min(1).max(100).optional().parse(url.searchParams.get('gameId') || undefined)));
     if (route === 'games/daily' && method === 'GET') return json(getDaily(user.id, url.searchParams.get('mode'), url.searchParams.get('world')));

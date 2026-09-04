@@ -26,20 +26,24 @@ export function getDaily(userId: string, mode?: string | null, world?: string | 
       const task = modeValue === 'build-path' ? tasks[index % tasks.length] : ordered[index % ordered.length];
       const taskPosition = tasks.findIndex((item: Row) => item.id === task.id);
       const previous = tasks[taskPosition - 1];
-      const distractors = tasks.filter((item: Row) => item.id !== task.id).slice(0, 2);
+      // Distractors are the neighbouring steps — the one after the answer, the one before the
+      // prompt — so ordering knowledge is what decides, not "which two titles keep showing up".
+      const neighbours = [1, -2, 2, -3, 3, -4, 4, -5, 5].map(offset => tasks[taskPosition + offset]).filter((item: Row | undefined) => item && item.id !== task.id && item.id !== previous?.id);
+      const distractors = [...neighbours, ...tasks.filter((item: Row) => item.id !== task.id && !neighbours.includes(item))].slice(0, 2);
       const sequenceTitles = [task, ...distractors];
       const question = modeValue === 'build-path' ? {
         prompt: { he: previous ? `מהו השלב הבא אחרי ״${previous.title.he}״ במסלול?` : 'מהו הצעד הראשון במסלול הלמידה?', en: previous ? `What comes after “${previous.title.en}” in this learning path?` : 'What is the first step in this learning path?' },
         options: { he: sequenceTitles.map((item: Row) => item.title.he), en: sequenceTitles.map((item: Row) => item.title.en) }, answer: 0,
         explanation: { he: `בסדר המסלול המאומת, הצעד ${taskPosition + 1} הוא ״${task.title.he}״.`, en: `In the verified path sequence, step ${taskPosition + 1} is “${task.title.en}”.` },
-      } : task.question;
+        hint: { he: previous ? `חשבו מה חייב להיות מוכן מיד אחרי ״${previous.title.he}״, ומה מגיע רק מאוחר יותר.` : 'המסלול מתחיל בהגדרה ותכנון, לפני כל בנייה.', en: previous ? `Think about what must be ready right after “${previous.title.en}”, and what only comes later.` : 'A path starts with defining and planning, before any building.' },
+      } : { ...task.question, hint: task.hints?.he?.[0] && task.hints?.en?.[0] ? { he: task.hints.he[0], en: task.hints.en[0] } : undefined };
       const options = question.options.he.map((_: string, original: number) => ({ original, rank: rng() })).sort((a: Row, b: Row) => a.rank - b.rank);
       // Every starter path holds six question-bearing tasks, so slots seven and eight reuse one.
       // The arena is built around eight waves, so rather than shorten the quest, say plainly that
       // the question is a repeat instead of showing an explanation the learner already read.
       const repeat = index >= tasks.length;
       const prompt = repeat ? { he: `תרגול חוזר: ${question.prompt.he}`, en: `Review: ${question.prompt.en}` } : question.prompt;
-      return { id: `${dailyGameId}:${index}`, prompt, options: { he: options.map((option: Row) => question.options.he[option.original]), en: options.map((option: Row) => question.options.en[option.original]) }, answer: options.findIndex((option: Row) => option.original === question.answer), explanation: question.explanation, topic: task.title };
+      return { id: `${dailyGameId}:${index}`, prompt, options: { he: options.map((option: Row) => question.options.he[option.original]), en: options.map((option: Row) => question.options.en[option.original]) }, answer: options.findIndex((option: Row) => option.original === question.answer), explanation: question.explanation, topic: task.title, ...(question.hint ? { hint: question.hint } : {}) };
     });
     const data = { dailyGameId, date, seed, version: 2, gameMode: modeValue, worldTheme: worldValue, difficulty, skillCategory: path.category, lessonTopics: path.chapters.map((chapter: Row) => chapter.title), questions, ...(modeValue === 'knowledge-arena' ? { arena: { layout: 'courtyard', enemyCount: difficulty === 'advanced' ? 6 : difficulty === 'intermediate' ? 4 : 2, obstacleCount: 8, ambience: 'day', waveCount: 8 } } : {}), obstacles: [{ type: 'barrier', count: 8, speed: difficulty === 'advanced' ? 1.4 : 1 }], rewards: { xp: 80, coins: 12, perfectBonus: 20 }, timeLimit: 300, scoreRules: { correct: 100, maxMultiplier: 3, wrong: 0, firstAttemptLeaderboard: true }, leaderboardGroup: `${date}:${path.id}:${difficulty}:${modeValue}:v2`, minimumPlan: 'BASIC', isActive: true };
     transaction(() => {
@@ -51,9 +55,16 @@ export function getDaily(userId: string, mode?: string | null, world?: string | 
   }
   return { game: publicGame(stored), ...gameAvailability(userId, stored), isDemo: config.demo };
 }
+/** A hint is shown before the answer is scored, so one that quotes the correct option is withheld. */
+export function safeHint(question: Row) {
+  const hint = question.hint, correct = question.options?.he?.[question.answer], correctEn = question.options?.en?.[question.answer];
+  if (!hint?.he || !hint?.en) return undefined;
+  const quotes = (text: string, option?: string) => !!option && text.toLowerCase().includes(String(option).toLowerCase());
+  return quotes(hint.he, correct) || quotes(hint.en, correctEn) || quotes(hint.he, correctEn) || quotes(hint.en, correct) ? undefined : { he: hint.he, en: hint.en };
+}
 export function publicGame(row: Row) {
   const data = readJson(row.data);
-  return { ...data, isActive: !!row.is_active, isDemo: data.isDemo ?? config.demo, questions: data.questions.map((question: Row) => ({ id: question.id, prompt: question.prompt, options: question.options, topic: question.topic })) };
+  return { ...data, isActive: !!row.is_active, isDemo: data.isDemo ?? config.demo, questions: data.questions.map((question: Row) => { const hint = safeHint(question); return { id: question.id, prompt: question.prompt, options: question.options, topic: question.topic, ...(hint ? { hint } : {}) }; }) };
 }
 /** Private arena ownership is checked for every read and mutation, including replayed events. */
 export function assertGameAccess(userId: string, gameId: string) {
@@ -172,7 +183,11 @@ function gameResult(row: Row) {
   const official = one("SELECT l.score FROM leaderboards l JOIN daily_games g ON g.id=l.daily_game_id WHERE l.user_id=? AND json_extract(g.data,'$.leaderboardGroup')=?", row.user_id, game.leaderboardGroup);
   const rank = official ? one("SELECT COUNT(*)+1 AS rank FROM leaderboards l JOIN daily_games g ON g.id=l.daily_game_id JOIN users u ON u.id=l.user_id WHERE json_extract(g.data,'$.leaderboardGroup')=? AND l.score>? AND u.blocked=0 AND u.deleted_at IS NULL", game.leaderboardGroup, official.score)!.rank : null;
   const recommendation = !events.length ? { he: 'לא נשלחו תשובות בניסיון הזה, ולכן אין עדיין נתוני דיוק. אפשר לחזור להוראות ולנסות לענות על השאלה הראשונה בניסיון הבא.', en: 'No answers were submitted in this attempt, so there is no accuracy data yet. Review the controls and try the first question in your next attempt.' } : events.length < game.questions.length ? { he: `נענו ${events.length} מתוך ${game.questions.length} שאלות; ${row.correct} תשובות היו נכונות. האתגר הושלם חלקית. כדאי לחזור להסברים ולהמשיך לתרגל את השאלות שנותרו.`, en: `You answered ${events.length} of ${game.questions.length} questions; ${row.correct} were correct. This was a partial attempt. Review the explanations and practice the remaining questions.` } : weakTopics.length ? { he: 'מומלץ לחזור עם המאמן על הנושאים שבהם טעית לפני המשימה הבאה.', en: 'Review the missed topics with your coach before the next task.' } : { he: 'דיוק יפה. אפשר להמשיך למשימה הבאה במסלול.', en: 'Good accuracy. Continue to the next task in your path.' };
-  return { ...attemptDto(row), mistakes: events.filter(event => !event.correct).length, personalBest: best, dailyRank: preferences(row.user_id).leaderboards ? rank : null, leaderboardScore: official?.score ?? null, strongTopics, weakTopics, achievements: !row.suspicious && row.correct === game.questions.length ? ['perfect-game'] : [], recommendation, isDemo: config.demo };
+  // The attempt is over, so every question the learner actually answered is reviewed with its
+  // key: the same explanation the event response already showed, kept together for study.
+  // Unanswered questions stay sealed — a second attempt is still ahead.
+  const review = events.map(event => { const question = game.questions[event.position]; return { index: event.position, prompt: question.prompt, options: question.options, chosen: event.answer, answer: question.answer, correct: !!event.correct, explanation: question.explanation, topic: question.topic }; });
+  return { ...attemptDto(row), mistakes: events.filter(event => !event.correct).length, personalBest: best, dailyRank: preferences(row.user_id).leaderboards ? rank : null, leaderboardScore: official?.score ?? null, strongTopics, weakTopics, review, achievements: !row.suspicious && row.correct === game.questions.length ? ['perfect-game'] : [], recommendation, isDemo: config.demo };
 }
 export function leaderboard(userId: string, gameId?: string | null) {
   const target = gameId || getDaily(userId).game.dailyGameId;

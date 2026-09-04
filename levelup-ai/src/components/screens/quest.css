@@ -386,7 +386,14 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
-.arena-saved-list > button {
+.arena-saved-list > div {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  align-items: stretch;
+}
+.arena-saved-list .arena-saved-open {
+  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -401,10 +408,27 @@
   font: inherit;
   min-height: 76px;
 }
-.arena-saved-list > button.selected {
+.arena-saved-list .arena-saved-open.selected {
   border-color: var(--accent);
 }
-.arena-saved-list > button > span:nth-child(2) {
+.arena-saved-delete {
+  width: 44px;
+  min-width: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font: inherit;
+}
+.arena-saved-delete:hover,
+.arena-saved-delete:focus-visible {
+  color: var(--error);
+  border-color: var(--error);
+}
+.arena-saved-list .arena-saved-open > span:nth-child(2) {
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -430,7 +454,7 @@
   border-radius: 8px;
   flex-shrink: 0;
 }
-.arena-saved-list > button > svg:last-child {
+.arena-saved-list .arena-saved-open > svg:last-child {
   color: var(--secondary);
   flex-shrink: 0;
 }
@@ -614,6 +638,56 @@
 .arena-choice input:focus-visible + span {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
+}
+.arena-modes {
+  padding: 0;
+  border: 0;
+  margin: 0 0 28px;
+  min-width: 0;
+}
+.arena-modes legend {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 10px;
+  padding: 0;
+}
+.arena-modes > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.arena-modes button {
+  font: inherit;
+  text-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  min-height: 44px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--secondary);
+  cursor: pointer;
+}
+.arena-modes button strong {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.arena-modes button span {
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+.arena-modes button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--arena-soft);
+}
+.arena-modes > p {
+  font-size: 0.75rem;
+  color: var(--secondary);
+  margin: 8px 0 0;
 }
 .arena-worlds {
   padding: 0;
@@ -1128,6 +1202,91 @@
 .arena-results .actions {
   margin-top: 24px;
 }
+.arena-result-review {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.arena-result-review summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  min-height: 44px;
+}
+.arena-result-review summary::-webkit-details-marker {
+  display: none;
+}
+.arena-result-review summary svg {
+  transition: transform var(--motion, 160ms);
+}
+.arena-result-review[open] summary svg {
+  transform: rotate(180deg);
+}
+.arena-result-review ol {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.arena-result-review li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--elevated);
+  min-width: 0;
+}
+.arena-result-review li > div {
+  min-width: 0;
+  flex: 1;
+}
+.arena-review-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--arena-soft);
+  color: var(--accent);
+  margin-top: 2px;
+}
+.arena-result-review li.incorrect .arena-review-mark {
+  background: color-mix(in srgb, var(--warning) 16%, var(--surface));
+  color: var(--warning);
+}
+.arena-result-review strong {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+.arena-result-review p {
+  font-size: 0.8125rem;
+  margin: 0 0 4px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.arena-result-review p b {
+  font-weight: 500;
+  color: var(--secondary);
+}
+.arena-result-review small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--secondary);
+}
 .arena-instructions {
   display: flex;
   flex-direction: column;
@@ -1488,9 +1647,12 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
-  .arena-saved-list > button {
+  .arena-saved-list .arena-saved-open {
     padding: 12px;
     min-height: 74px;
+  }
+  .arena-modes > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .arena-saved-list strong {
     font-size: 0.875rem;
@@ -1720,6 +1882,9 @@
   }
   .arena-worlds button {
     min-height: 84px;
+  }
+  .arena-modes > div {
+    grid-template-columns: minmax(0, 1fr);
   }
   .arena-create-shortcut > strong {
     font-size: 0.875rem;

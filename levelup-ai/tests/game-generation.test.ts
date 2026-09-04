@@ -314,3 +314,126 @@ test('existing message scopes migrate safely and recover hint provenance from au
   assert.equal(restored?.source, 'hint');
   assert.equal(one('SELECT source FROM game_coach_contexts WHERE message_id=?', hint.message_id)!.source, 'hint');
 });
+
+test('a created game can use any of the six modes, and the mode is persisted with it', async () => {
+  const boss = await request('games/generate', { ...input('HTML'), gameMode: 'boss-quiz' });
+  assert.equal(boss.status, 201, JSON.stringify(boss.data));
+  assert.equal(boss.data.game.gameMode, 'boss-quiz');
+  assert.equal(one('SELECT game_mode FROM daily_games WHERE id=?', boss.data.game.dailyGameId)!.game_mode, 'boss-quiz');
+  assert.equal((await request('games/custom')).data.games.find((game: { dailyGameId: string }) => game.dailyGameId === boss.data.game.dailyGameId)?.gameMode, 'boss-quiz');
+  assert.equal((await request('games/generate', input())).data.game.gameMode, 'knowledge-arena', 'the arena stays the default');
+  assert.equal((await request('games/generate', { ...input(), gameMode: 'card-game' })).status, 400, 'an unknown mode is rejected before any generation');
+  const played = play(boss.data.game.dailyGameId);
+  assert.equal(played.result.correct, 8, 'a non-arena created game scores through the same authoritative path');
+});
+
+test('answer positions are balanced so the correct option is not always first', async () => {
+  const valid = (await generateGameDraft(input())).draft;
+  const skewed = { ...valid, questions: valid.questions.map((question, index) => ({ ...question, options: { he: [`נכון ${index}`, `שגוי א ${index}`, `שגוי ב ${index}`], en: [`right ${index}`, `wrong a ${index}`, `wrong b ${index}`] }, answer: 0 })) };
+  const result = await generateGameDraft(input('History of Rome'), { async generate() { return skewed; } });
+  assert.equal(result.source, 'ai');
+  const positions = new Set(result.draft.questions.map(question => question.answer));
+  assert.ok(positions.size > 1, `eight questions with the model's answer always first are re-ordered: ${[...positions]}`);
+  result.draft.questions.forEach((question, index) => {
+    assert.equal(question.options.en[question.answer], `right ${index}`, 'the answer index follows the correct option');
+    assert.equal(question.options.he[question.answer], `נכון ${index}`);
+    // Both locales must carry the same permutation, or option 2 in Hebrew is option 3 in English.
+    const order = question.options.en.map(option => skewed.questions[index].options.en.indexOf(option));
+    assert.deepEqual(question.options.he.map(option => skewed.questions[index].options.he.indexOf(option)), order);
+  });
+  const again = await generateGameDraft(input('History of Rome'), { async generate() { return skewed; } });
+  assert.deepEqual(again.draft.questions.map(question => question.answer), result.draft.questions.map(question => question.answer), 'the permutation is deterministic for a topic');
+});
+
+test('positional options such as "all of the above" are refused, because the order is shuffled', async () => {
+  const valid = (await generateGameDraft(input())).draft;
+  for (const option of ['All of the above', 'None of these', 'כל התשובות נכונות']) {
+    const invalid = { ...valid, questions: valid.questions.map((question, index) => index === 3 ? { ...question, options: { he: [question.options.he[0], question.options.he[1], option], en: [question.options.en[0], question.options.en[1], option] } } : question) };
+    let attempts = 0;
+    await assert.rejects(generateGameDraft(input(), { async generate() { attempts++; return invalid; } }), (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE', option);
+    assert.equal(attempts, 2);
+  }
+});
+
+test('Demo arithmetic distractors are the mistakes a learner makes, not answer plus a counter', async () => {
+  for (const level of ['beginner', 'intermediate', 'advanced'] as const) {
+    const multiplication = await generateGameDraft(input('לוח הכפל', level));
+    for (const question of multiplication.draft.questions) {
+      const [, left, right] = question.prompt.en.match(/what is (\d+) × (\d+)\?/)!.map(Number), answer = left * right;
+      const wrong = question.options.en.map(Number).filter(value => value !== answer).sort((a, b) => a - b);
+      assert.deepEqual(wrong, [answer - right, answer + right].sort((a, b) => a - b), `${question.prompt.en}: one group too few and one too many`);
+      assert.match(question.hint.en, new RegExp(`${left} equal groups of ${right}`));
+      assert.ok(!question.hint.en.includes(String(answer)), 'the hint never states the result');
+    }
+    const addition = await generateGameDraft(input('חיבור', level));
+    for (const question of addition.draft.questions) {
+      const [, left, right] = question.prompt.en.match(/what is (\d+) \+ (\d+)\?/)!.map(Number), answer = left + right;
+      const plausible = new Set([answer - 10, answer + 1, answer - 1, Math.abs(left - right)]);
+      for (const value of question.options.en.map(Number).filter(value => value !== answer)) assert.ok(plausible.has(value), `${question.prompt.en}: ${value} is a dropped carry, an off-by-one or a subtraction`);
+    }
+  }
+});
+
+test('each question ships a hint that never quotes the correct option, while the key stays sealed', async () => {
+  const generated = await request('games/generate', input());
+  const questions = generated.data.game.questions as Array<{ hint?: { he: string; en: string } }>;
+  assert.ok(questions.every(question => question.hint?.he && question.hint?.en), 'computed arithmetic questions carry their hint');
+  assert.ok(!JSON.stringify(generated.data).includes('"answer":'));
+  const valid = (await generateGameDraft(input())).draft;
+  const leaky = { ...valid, questions: valid.questions.map((question, index) => index === 0 ? { ...question, hint: { he: `התשובה היא ${question.options.he[question.answer]}`, en: `The answer is ${question.options.en[question.answer]}` } } : question) };
+  const custom = await generateGame('demo-learner', input('Roman numerals'), { async generate() { return leaky; } });
+  const leakyQuestion = custom.game.questions.find((question: { prompt: { en: string } }) => question.prompt.en === valid.questions[0].prompt.en);
+  assert.equal(leakyQuestion.hint, undefined, 'a hint that quotes the correct option is withheld');
+  assert.ok(custom.game.questions.filter((question: { hint?: unknown }) => question.hint).length >= 7, 'the other hints still reach the player');
+  const daily = getDaily('demo-learner', 'answer-gates');
+  assert.ok(daily.game.questions.some((question: { hint?: { he: string } }) => question.hint?.he), 'daily quests reuse the task hints from the curated path');
+});
+
+test('the finished result reviews every answered question with its key, and nothing more', async () => {
+  const full = await generateGame('demo-learner', input('חילוק')), played = play(full.game.dailyGameId);
+  const review = (played.result as Record<string, any>).review;
+  assert.equal(review.length, 8);
+  const stored = readJson(one('SELECT data FROM daily_games WHERE id=?', full.game.dailyGameId)!.data).questions;
+  review.forEach((item: { index: number; chosen: number; answer: number; correct: boolean; explanation: { he: string }; options: { he: string[] } }, position: number) => {
+    assert.equal(item.index, position); assert.equal(item.answer, stored[position].answer); assert.equal(item.chosen, stored[position].answer); assert.equal(item.correct, true);
+    assert.equal(item.explanation.he, stored[position].explanation.he); assert.deepEqual(item.options.he, stored[position].options.he);
+  });
+  const partial = await generateGame('demo-learner', input('שברים')), started = startGame('demo-learner', partial.game.dailyGameId);
+  const questions = readJson(one('SELECT data FROM daily_games WHERE id=?', partial.game.dailyGameId)!.data).questions;
+  run('UPDATE daily_game_attempts SET started_at=? WHERE id=?', new Date(Date.now() - 5000).toISOString(), started.attemptId);
+  gameEvent('demo-learner', { attemptId: started.attemptId, index: 0, answer: (questions[0].answer + 1) % 3, elapsedMs: 500 });
+  run('UPDATE daily_game_attempts SET started_at=? WHERE id=?', new Date(Date.now() - 181000).toISOString(), started.attemptId);
+  const partialReview = (finishGame('demo-learner', started.attemptId) as Record<string, any>).review;
+  assert.equal(partialReview.length, 1, 'unanswered questions stay sealed for the next attempt');
+  assert.equal(partialReview[0].correct, false); assert.equal(partialReview[0].answer, questions[0].answer); assert.notEqual(partialReview[0].chosen, questions[0].answer);
+  const state = (await request('state')).data;
+  assert.ok(state.attempts.length > 0 && state.attempts.every((attempt: Record<string, unknown>) => !('review' in attempt)), 'the attempt history stays light');
+});
+
+test('an owner can delete a created game; the list, reads, starts and an in-flight attempt all close', async () => {
+  const generated = await request('games/generate', input('HTML')), gameId = generated.data.game.dailyGameId;
+  const started = await request('games/start', { dailyGameId: gameId });
+  assert.equal(started.status, 200);
+  assert.equal((await request(`games/custom/${gameId}/delete`, {}, admin)).status, 404, 'only the owner can delete');
+  const deleted = await request(`games/custom/${gameId}/delete`, {});
+  assert.equal(deleted.status, 200, JSON.stringify(deleted.data));
+  assert.ok(!deleted.data.games.some((game: { dailyGameId: string }) => game.dailyGameId === gameId), 'the response is the refreshed list');
+  assert.equal((await request(`games/custom/${gameId}`)).status, 404);
+  assert.equal((await request('games/start', { dailyGameId: gameId })).status, 404);
+  assert.equal((await request(`games/messages?gameId=${gameId}`)).status, 404);
+  assert.equal(one('SELECT status FROM daily_game_attempts WHERE id=?', started.data.attemptId)!.status, 'expired', 'the open attempt cannot be finished for a reward later');
+  assert.equal((await request(`games/custom/${gameId}/delete`, {})).status, 404, 'deleting twice is not silently accepted');
+  assert.ok(one('SELECT id FROM daily_games WHERE id=?', gameId), 'the row is retained for audit; only the ownership is closed');
+});
+
+test('build-path distractors are neighbouring steps, never the step named in the prompt', () => {
+  const daily = getDaily('demo-learner', 'build-path'), stored = readJson(one('SELECT data FROM daily_games WHERE id=?', daily.game.dailyGameId)!.data);
+  const wrongTitles = new Set<string>();
+  for (const question of stored.questions) {
+    const quoted = question.prompt.he.match(/״(.+)״/)?.[1];
+    if (quoted) assert.ok(!question.options.he.includes(quoted), `${question.prompt.he}: the previous step is not offered as "the next step"`);
+    question.options.he.forEach((option: string, index: number) => { if (index !== question.answer) wrongTitles.add(option); });
+    assert.ok(question.hint?.he, 'sequence questions carry a hint too');
+  }
+  assert.ok(wrongTitles.size >= 5, `distractors rotate through the path rather than repeating the first two tasks: ${[...wrongTitles].length}`);
+});
