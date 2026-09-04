@@ -9,6 +9,8 @@
  *   node tests/e2e.mjs sample.mp4                 transcribe only
  *   node tests/e2e.mjs sample.mp4 he,es           also translate
  *   EXPECT=country node tests/e2e.mjs jfk.wav     assert a word in the transcript
+ *   MODE=file node tests/e2e.mjs sample.mp4       open index.html straight from disk,
+ *                                                 exercising the no-worker fallback
  *   CDN=http://localhost:8098/npm MODELS=http://localhost:8098/hf node tests/e2e.mjs ...
  */
 import { spawn } from 'node:child_process';
@@ -38,7 +40,8 @@ const overrides = new URLSearchParams();
 if (process.env.CDN) overrides.set('cdn', process.env.CDN);
 if (process.env.MODELS) overrides.set('models', process.env.MODELS);
 
-const server = spawn('node', ['serve.js', String(port)], { cwd: root, stdio: 'ignore' });
+const fromDisk = process.env.MODE === 'file';
+const server = fromDisk ? null : spawn('node', ['serve.js', String(port)], { cwd: root, stdio: 'ignore' });
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 let failed = false;
 
@@ -47,7 +50,11 @@ try {
   const page = await (await browser.newContext()).newPage();
   page.on('pageerror', (error) => console.log('[pageerror]', error.message));
 
-  await page.goto(`http://localhost:${port}/?${overrides}`, { waitUntil: 'domcontentloaded' });
+  const target = fromDisk
+    ? `file://${path.join(root, 'index.html')}?${overrides}`
+    : `http://localhost:${port}/?${overrides}`;
+  console.log('opening:', target);
+  await page.goto(target, { waitUntil: 'domcontentloaded' });
   await page.setInputFiles('#file-input', path.resolve(sample));
   await page.waitForSelector('#file-card:not([hidden])');
   console.log('file:', await page.textContent('#file-info'));
@@ -97,7 +104,7 @@ try {
   console.error('\nE2E FAIL:', error.message);
 } finally {
   await browser.close();
-  server.kill();
+  server?.kill();
 }
 
 process.exit(failed ? 1 : 0);

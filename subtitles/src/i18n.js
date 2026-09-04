@@ -63,6 +63,7 @@ export const STRINGS = {
     'note.translator.builtin': 'משתמש במתרגם המובנה של הדפדפן',
     'note.translator.model': 'משתמש במודל תרגום מקומי (הורדה חד-פעמית)',
     'note.first': 'ההורדה הראשונה של המודל לוקחת זמן. אחריה הכל עובד גם בלי אינטרנט.',
+    'note.inline': 'הדפדפן לא מאפשר Web Worker כאן (קורה כשפותחים את הקובץ ישירות מהדיסק) — העיבוד ירוץ בתוך הדף, והממשק עלול להיראות תקוע בזמן העבודה.',
     'footer': 'נבנה עם Whisper ו-NLLB דרך transformers.js. שום קובץ לא עוזב את המחשב שלכם.',
   },
   en: {
@@ -128,6 +129,7 @@ export const STRINGS = {
     'note.translator.builtin': 'Using the browser built-in translator',
     'note.translator.model': 'Using a local translation model (one-time download)',
     'note.first': 'The first model download takes a while. After that it works offline too.',
+    'note.inline': 'This browser will not start a Web Worker here (typical when the file is opened straight from disk) — processing runs inside the page, so the interface may look frozen while it works.',
     'footer': 'Built with Whisper and NLLB through transformers.js. No file ever leaves your device.',
   },
 };

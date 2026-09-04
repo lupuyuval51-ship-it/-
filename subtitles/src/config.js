@@ -38,13 +38,3 @@ export function readConfig(search = '') {
     models: params.get('models') ? `${stripTrailingSlash(params.get('models'))}/` : '',
   };
 }
-
-/** Copies the overrides onto another URL, so the worker inherits the page's config. */
-export function forwardConfig(target, search = '') {
-  const params = new URLSearchParams(search);
-  for (const key of ['cdn', 'models']) {
-    const value = params.get(key);
-    if (value) target.searchParams.set(key, value);
-  }
-  return target;
-}

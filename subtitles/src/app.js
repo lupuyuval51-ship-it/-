@@ -7,7 +7,6 @@
  */
 
 import { AUDIO_SAMPLE_RATE, extractAudio, probeDuration } from './audio.js';
-import { forwardConfig } from './config.js';
 import { detectLanguage } from './detect.js';
 import { applyTranslations, getUILanguage, setUILanguage, t } from './i18n.js';
 import { getLanguage, isRTL, languageName, sortedLanguages } from './languages.js';
@@ -44,29 +43,96 @@ const state = {
   webgpu: false,
 };
 
-/* ------------------------------------------------------------------ worker */
+/* ------------------------------------------------------------------ engine */
 
 /**
- * Two workers, not one. Speech recognition and translation each load a model
- * into a WASM heap of their own; sharing a single worker makes the second model
- * fight the first for a 32-bit address space and the run stalls.
+ * The engine (Whisper + NLLB) is assembled at runtime from the two source
+ * blocks embedded in this page and started as a Web Worker.
+ *
+ * Speech recognition and translation get a worker each: sharing one makes the
+ * second model fight the first for a 32-bit WASM address space and the run
+ * stalls. A page opened straight from disk cannot start a worker from a blob
+ * URL at all, so there is a fallback that runs a single engine inside the page
+ * — slower and it blocks the interface, but it works with no server at all.
  */
-const workers = { asr: null, mt: null };
-let nextRequestId = 1;
-const pending = new Map();
+const engines = { asr: null, mt: null };
 const hooks = { progress: null, partial: null };
+const pending = new Map();
+let nextRequestId = 1;
+let engineURL = '';
+let inlineEngine = null;
+let useInline = false;
 
-function ensureWorker(kind) {
-  if (workers[kind]) return workers[kind];
-  const url = forwardConfig(new URL('./worker.js', import.meta.url), window.location.search);
-  const worker = new Worker(url, { type: 'module', name: kind });
-  worker.addEventListener('message', onWorkerMessage);
-  worker.addEventListener('error', (event) => {
-    event.preventDefault();
-    failAll(new Error(event.message || 'worker crashed'));
+function getEngineURL() {
+  if (engineURL) return engineURL;
+  const shared = document.getElementById('shared-source').textContent;
+  const engine = document.getElementById('engine-source').textContent;
+  // The engine reads the ?cdn / ?models overrides from here: a blob URL has no
+  // query string of its own to read them from.
+  const preamble = `const ENGINE_SEARCH = ${JSON.stringify(window.location.search)};\n`;
+  engineURL = URL.createObjectURL(new Blob([preamble, shared, '\n', engine], { type: 'text/javascript' }));
+  return engineURL;
+}
+
+/** Resolves once the worker reports itself ready, rejects if it cannot start. */
+function startWorker(url) {
+  return new Promise((resolve, reject) => {
+    let worker;
+    try {
+      worker = new Worker(url, { type: 'module' });
+    } catch (error) {
+      reject(error);
+      return;
+    }
+    const finish = (fn, value) => {
+      clearTimeout(timer);
+      worker.removeEventListener('message', onMessage);
+      worker.removeEventListener('error', onError);
+      fn(value);
+    };
+    const onMessage = (event) => {
+      if (event.data?.type === 'ready') finish(resolve, worker);
+    };
+    const onError = (event) => {
+      event.preventDefault?.();
+      worker.terminate();
+      finish(reject, new Error(event.message || 'worker failed to start'));
+    };
+    const timer = setTimeout(() => {
+      worker.terminate();
+      finish(reject, new Error('worker did not start in time'));
+    }, 10000);
+    worker.addEventListener('message', onMessage);
+    worker.addEventListener('error', onError);
   });
-  workers[kind] = worker;
-  return worker;
+}
+
+async function ensureEngine(kind) {
+  if (engines[kind]) return engines[kind];
+
+  if (!useInline) {
+    try {
+      const worker = await startWorker(getEngineURL());
+      worker.addEventListener('message', onEngineMessage);
+      engines[kind] = {
+        post: (message, transfer) => worker.postMessage(message, transfer ?? []),
+        stop: () => worker.terminate(),
+      };
+      return engines[kind];
+    } catch {
+      useInline = true;
+      log(t('note.inline'));
+    }
+  }
+
+  // One in-page engine for both jobs; a second would only compete for memory.
+  if (!inlineEngine) {
+    const module = await import(getEngineURL());
+    const handle = module.createEngine((message) => onEngineMessage({ data: message }));
+    inlineEngine = { post: (message) => handle(message), stop: () => {}, inline: true };
+  }
+  engines[kind] = inlineEngine;
+  return inlineEngine;
 }
 
 function failAll(error) {
@@ -81,7 +147,7 @@ function settle(id, value, error) {
   error ? entry.reject(error) : entry.resolve(value);
 }
 
-function onWorkerMessage(event) {
+function onEngineMessage(event) {
   const message = event.data ?? {};
   switch (message.type) {
     case 'download':
@@ -117,22 +183,27 @@ function onWorkerMessage(event) {
   }
 }
 
-function requestFromWorker(kind, message, transfer) {
+function requestFromEngine(kind, message, transfer) {
   const id = nextRequestId++;
   return new Promise((resolve, reject) => {
     pending.set(id, { resolve, reject });
-    ensureWorker(kind).postMessage({ ...message, id }, transfer ?? []);
+    ensureEngine(kind).then(
+      // Transferring detaches the buffer, which the in-page engine still needs.
+      (engine) => engine.post({ ...message, id }, engine.inline ? undefined : transfer),
+      (error) => settle(id, null, error),
+    );
   });
 }
 
-function stopWorkers() {
+function stopEngines() {
   let stopped = false;
-  for (const kind of Object.keys(workers)) {
-    if (!workers[kind]) continue;
-    workers[kind].terminate();
-    workers[kind] = null;
+  for (const kind of Object.keys(engines)) {
+    if (!engines[kind]) continue;
+    engines[kind].stop();
+    engines[kind] = null;
     stopped = true;
   }
+  inlineEngine = null;
   if (!stopped) return;
   failAll(new Error('cancelled'));
   state.audioLoaded = false;
@@ -386,7 +457,7 @@ async function acceptFile(file) {
   state.audioLoaded = false;
   state.asrKey = '';
   state.tracks.clear();
-  stopWorkers();
+  stopEngines();
 
   dom.fileName.textContent = file.name;
   dom.fileCard.hidden = false;
@@ -429,7 +500,7 @@ async function translateSegments(segments, sourceCode, targetCode, slice) {
 
   log(`${t('note.translator.model')}: ${sourceCode} → ${targetCode}`);
   hooks.progress = (value) => phaseProgress('translate', value, slice);
-  const translated = await requestFromWorker('mt', {
+  const translated = await requestFromEngine('mt', {
     type: 'translate',
     texts,
     src: source?.nllb ?? 'eng_Latn',
@@ -470,7 +541,7 @@ async function generate() {
       });
       state.duration = samples.length / AUDIO_SAMPLE_RATE;
       log(`🎧 ${formatDuration(state.duration)}`);
-      await requestFromWorker('asr', { type: 'load-audio', audio: samples.buffer }, [samples.buffer]);
+      await requestFromEngine('asr', { type: 'load-audio', audio: samples.buffer }, [samples.buffer]);
       state.audioLoaded = true;
     }
 
@@ -489,7 +560,7 @@ async function generate() {
       };
       let segments;
       try {
-        segments = await requestFromWorker('asr', {
+        segments = await requestFromEngine('asr', {
           type: 'transcribe',
           model,
           device,
@@ -502,7 +573,7 @@ async function generate() {
         state.webgpu = false;
         updateDeviceNote();
         log(`⚠ WebGPU → WASM (${error.message})`);
-        segments = await requestFromWorker('asr', {
+        segments = await requestFromEngine('asr', {
           type: 'transcribe',
           model,
           device: 'wasm',
@@ -571,7 +642,7 @@ async function generate() {
 function cancel() {
   if (!state.running) return;
   state.cancelled = true;
-  stopWorkers();
+  stopEngines();
 }
 
 /* ----------------------------------------------------------------- results */
@@ -825,8 +896,9 @@ function init() {
   cancelAnimationFrame(overlayFrame);
   overlayFrame = requestAnimationFrame(syncOverlay);
 
-  // Warm the recognition worker so its library is ready before the first run.
-  ensureWorker('asr');
+  // Start the recognition engine now, so a browser that cannot run workers
+  // falls back to the in-page engine before the user presses anything.
+  ensureEngine('asr').catch(() => {});
 }
 
 if (document.readyState === 'loading') {
