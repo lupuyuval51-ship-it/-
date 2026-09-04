@@ -120,8 +120,10 @@ test('games sourced from a private learning path retain owner-only Q&A access', 
 
 function play(gameId: string) {
   const started = startGame('demo-learner', gameId), attemptId = started.attemptId;
-  run('UPDATE daily_game_attempts SET started_at=? WHERE id=?', new Date(Date.now() - 5000).toISOString(), attemptId);
   const questions = readJson(one('SELECT data FROM daily_games WHERE id=?', gameId)!.data).questions;
+  // The server refuses answers that arrive faster than 350ms per question, so the backdate has to
+  // cover the whole round rather than a fixed five seconds.
+  run('UPDATE daily_game_attempts SET started_at=? WHERE id=?', new Date(Date.now() - (questions.length * 500 + 2000)).toISOString(), attemptId);
   for (let index = 0; index < questions.length; index++) gameEvent('demo-learner', { attemptId, index, answer: questions[index].answer, elapsedMs: (index + 1) * 500 });
   return { attemptId, result: finishGame('demo-learner', attemptId) };
 }
@@ -436,4 +438,101 @@ test('build-path distractors are neighbouring steps, never the step named in the
     assert.ok(question.hint?.he, 'sequence questions carry a hint too');
   }
   assert.ok(wrongTitles.size >= 5, `distractors rotate through the path rather than repeating the first two tasks: ${[...wrongTitles].length}`);
+});
+
+test('a round can run to 24 questions, with waves and the clock scaling with it', async () => {
+  for (const questionCount of [8, 12, 24] as const) {
+    const created = await request('games/generate', { ...input('לוח הכפל'), questionCount });
+    assert.equal(created.status, 201, JSON.stringify(created.data));
+    assert.equal(created.data.game.questions.length, questionCount);
+    assert.equal(created.data.game.arena.waveCount, questionCount, 'one wave per question, or the arena desyncs');
+    // durationMinutes 3 paces a standard eight-question round; a longer round keeps that pace.
+    assert.equal(created.data.game.timeLimit, (180 * questionCount) / 8);
+    assert.equal(one('SELECT COUNT(*) AS n FROM daily_game_questions WHERE daily_game_id=?', created.data.game.dailyGameId)!.n, questionCount);
+    const prompts = created.data.game.questions.map((question: { prompt: { he: string } }) => question.prompt.he);
+    assert.equal(new Set(prompts).size, questionCount, 'a longer round must not pad with repeats');
+  }
+  assert.equal((await request('games/generate', { ...input(), questionCount: 9 })).status, 400, 'only the offered lengths are accepted');
+  assert.equal((await request('games/generate', { ...input(), questionCount: 40 })).status, 400);
+});
+
+test('a full 24-question round is playable end to end and rewards every answer', async () => {
+  const long = await generateGame('demo-learner', { ...input('חיבור'), questionCount: 24 });
+  assert.equal(long.game.questions.length, 24);
+  const played = play(long.game.dailyGameId);
+  assert.equal(played.result.correct, 24); assert.equal(played.result.total, 24); assert.equal(played.result.answered, 24);
+  // The once-a-day reward is already spent by an earlier round here, so scoring is what this
+  // asserts: every one of the 24 waves was accepted and scored by the server.
+  // 100 for the first, 200 for the second, then 300 for the remaining 22 as the streak caps.
+  assert.equal(played.result.score, 100 + 200 + 22 * 300, 'the streak multiplier caps at 3 and holds across the long round');
+  assert.equal(one('SELECT COUNT(*) AS n FROM game_events WHERE attempt_id=?', played.attemptId)!.n, 24);
+  assert.equal((played.result as Record<string, any>).review.length, 24, 'the review covers the whole round');
+  assert.ok(one('SELECT id FROM user_achievements WHERE user_id=? AND achievement_id=?', 'demo-learner', 'perfect-game'), 'a perfect long round still earns the achievement');
+});
+
+test('the model must return the requested length and a matching wave count', async () => {
+  const eight = (await generateGameDraft(input())).draft;
+  let attempts = 0;
+  await assert.rejects(
+    generateGameDraft({ ...input(), questionCount: 16 }, { async generate() { attempts++; return eight; } }),
+    (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE',
+    'a short answer to a long request is refused, not silently accepted',
+  );
+  assert.equal(attempts, 2);
+  const mismatched = { ...eight, arena: { ...eight.arena, waveCount: 12 } };
+  await assert.rejects(generateGameDraft(input(), { async generate() { return mismatched; } }), (error: unknown) => error instanceof ApiError && error.code === 'AI_GENERATION_UNAVAILABLE');
+  const asked: number[] = [];
+  await generateGameDraft({ ...input(), questionCount: 20 }, { async generate(request) { asked.push(request.maxOutputTokens); return { ...eight, arena: { ...eight.arena, waveCount: 20 }, questions: Array.from({ length: 20 }, (_, index) => ({ ...eight.questions[index % 8], prompt: { he: `שאלה ייחודית ${index}`, en: `Unique question ${index}` } })) }; } });
+  assert.equal(asked[0], 15000, 'the token budget follows the round length');
+});
+
+test('a general maths round rotates through families instead of eight of one thing', async () => {
+  const round = await generateGameDraft({ ...input('מתמטיקה'), questionCount: 24 });
+  assert.equal(round.draft.questions.length, 24);
+  const families = new Set(round.draft.questions.map(question => question.topic.en));
+  assert.ok(families.size >= 6, `a general topic covers the family set, got ${[...families].join(', ')}`);
+  for (const family of ['Percentages', 'Average', 'Powers', 'Sequences', 'Rectangle area']) assert.ok(families.has(family), `${family} is part of the rotation`);
+  // A topic that names one operation still practises only that operation.
+  const focused = await generateGameDraft({ ...input('לוח הכפל'), questionCount: 12 });
+  assert.deepEqual([...new Set(focused.draft.questions.map(question => question.topic.en))], ['Multiplication']);
+});
+
+test('every computed family states an answer that is actually correct', async () => {
+  const round = await generateGameDraft({ ...input('מתמטיקה'), questionCount: 24 });
+  let checked = 0;
+  for (const question of round.draft.questions) {
+    const value = Number(question.options.en[question.answer]), text = question.prompt.en;
+    assert.ok(Number.isFinite(value), text);
+    const percent = text.match(/what is (\d+)% of (\d+)\?/);
+    const average = text.match(/average of ([\d, ]+)\?/);
+    const square = text.match(/what is (\d+) squared\?/);
+    const sequence = text.match(/sequence ([\d, ]+)\?/);
+    const area = text.match(/rectangle (\d+) long and (\d+) wide\?/);
+    const plain = text.match(/what is (\d+) ([×+−÷]) (\d+)\?/);
+    const fraction = text.match(/what is (\d+)\/(\d+) × (\d+)\?/);
+    if (percent) { assert.equal(value, (Number(percent[1]) * Number(percent[2])) / 100, text); checked++; }
+    else if (average) { const parts = average[1].split(',').map(Number); assert.equal(value, parts.reduce((a, b) => a + b, 0) / parts.length, text); checked++; }
+    else if (square) { assert.equal(value, Number(square[1]) ** 2, text); checked++; }
+    else if (sequence) { const parts = sequence[1].split(',').map(Number); assert.equal(value, parts[2] + (parts[1] - parts[0]), text); checked++; }
+    else if (area) { assert.equal(value, Number(area[1]) * Number(area[2]), text); checked++; }
+    else if (fraction) { assert.equal(value, (Number(fraction[1]) / Number(fraction[2])) * Number(fraction[3]), text); checked++; }
+    else if (plain) { const [a, op, b] = [Number(plain[1]), plain[2], Number(plain[3])]; assert.equal(value, op === '×' ? a * b : op === '+' ? a + b : op === '−' ? a - b : a / b, text); checked++; }
+    else assert.fail(`unrecognised computed prompt: ${text}`);
+    if (percent || average || square || sequence || area) assert.ok(!new RegExp(`\\b${value}\\b`).test(question.hint.en), `the hint must not state the answer: ${text}`);
+    assert.equal(new Set(question.options.en).size, 3, text);
+  }
+  assert.equal(checked, 24, 'every question in the round was verified against its own arithmetic');
+});
+
+test('Demo shortens a long round rather than repeating a small curated bank, and says so', async () => {
+  const long = await generateGameDraft({ ...input('HTML'), questionCount: 24 });
+  const pool = new Set(long.draft.questions.map(question => question.prompt.he.replace('תרגול חוזר: ', '')));
+  assert.ok(long.draft.questions.length < 24, 'the round is shortened rather than padded');
+  assert.equal(long.draft.questions.length, pool.size * 2, 'at most one labelled review pass over the bank');
+  assert.equal(long.draft.arena.waveCount, long.draft.questions.length);
+  assert.match(long.sourceNotice.he, /קוצר ל־/); assert.match(long.sourceNotice.en, /shortened to/);
+  assert.match(long.sourceNotice.he, new RegExp(String(long.draft.questions.length)));
+  const standard = await generateGameDraft(input('HTML'));
+  assert.equal(standard.draft.questions.length, 8);
+  assert.ok(!standard.sourceNotice.he.includes('קוצר'), 'a round that fits says nothing about shortening');
 });

@@ -1957,3 +1957,18 @@
     box-shadow: 0 4px 20px color-mix(in srgb, var(--bg) 65%, transparent);
   }
 }
+
+.arena-length {
+  margin-bottom: 28px;
+}
+.arena-length > div {
+  gap: 6px;
+}
+.arena-length label > span {
+  font-variant-numeric: tabular-nums;
+}
+.arena-length > p {
+  font-size: 0.75rem;
+  color: var(--secondary);
+  margin: 10px 0 0;
+}

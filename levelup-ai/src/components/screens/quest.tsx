@@ -32,10 +32,12 @@ import { useCheckout } from "../checkout";
 import { api } from "@/lib/client";
 import {
   GAME_MODES,
+  QUESTION_COUNTS,
   WORLD_THEMES,
   GAME_MODE_LABELS,
   WORLD_LABELS,
   type GameMode,
+  type QuestionCount,
   type WorldTheme,
 } from "@/lib/game";
 import { questMessages } from "@/lib/quest-i18n";
@@ -59,6 +61,7 @@ type Creation = {
   topic: string;
   level: "beginner" | "intermediate" | "advanced";
   durationMinutes: 3 | 5 | 7;
+  questionCount: QuestionCount;
   worldTheme: WorldTheme;
   gameMode: GameMode;
 };
@@ -98,6 +101,7 @@ export default function Quest() {
     topic: "",
     level: "beginner",
     durationMinutes: 3,
+    questionCount: 8,
     worldTheme: "future-city",
     gameMode: "knowledge-arena",
   });
@@ -146,10 +150,13 @@ export default function Quest() {
       )
         setForm({
           ...saved,
-          // Drafts saved before the mode picker existed default to the arena they were made for.
+          // Drafts saved before these pickers existed fall back to the original round.
           gameMode: GAME_MODES.includes(saved.gameMode)
             ? saved.gameMode
             : "knowledge-arena",
+          questionCount: QUESTION_COUNTS.includes(saved.questionCount)
+            ? saved.questionCount
+            : 8,
         });
       const search = new URLSearchParams(window.location.search);
       const tab = search.get("panel");
@@ -334,6 +341,11 @@ export default function Quest() {
   };
   const activeMode: GameMode =
     game?.gameMode || (selectedId ? "knowledge-arena" : mode);
+  // The duration picker sets the pace of a standard eight-question round, so a longer round takes
+  // proportionally longer. Show the real total rather than letting the learner infer it.
+  const roundMinutes = Math.round(
+    (form.durationMinutes * form.questionCount) / 8,
+  );
   const navigation: [Panel, string, typeof Gamepad2][] = [
     ["play", q.play, Gamepad2],
     ["create", q.create, Sparkles],
@@ -890,7 +902,7 @@ export default function Quest() {
                   </div>
                 </fieldset>
                 <fieldset className="arena-choice">
-                  <legend>{q.duration}</legend>
+                  <legend>{q.pace}</legend>
                   <div>
                     {([3, 5, 7] as const).map((durationMinutes) => (
                       <label key={durationMinutes}>
@@ -908,6 +920,28 @@ export default function Quest() {
                   </div>
                 </fieldset>
               </div>
+              <fieldset className="arena-choice arena-length">
+                <legend>{q.questionCount}</legend>
+                <div>
+                  {QUESTION_COUNTS.map((questionCount) => (
+                    <label key={questionCount}>
+                      <input
+                        type="radio"
+                        name="arena-question-count"
+                        data-testid={`arena-count-${questionCount}`}
+                        checked={form.questionCount === questionCount}
+                        onChange={() => edit({ questionCount })}
+                      />
+                      <span>{questionCount}</span>
+                    </label>
+                  ))}
+                </div>
+                <p>
+                  {q.roundLength
+                    .replace("{count}", String(form.questionCount))
+                    .replace("{minutes}", String(roundMinutes))}
+                </p>
+              </fieldset>
               <fieldset className="arena-modes">
                 <legend>{q.mode}</legend>
                 <div>
@@ -992,8 +1026,8 @@ export default function Quest() {
               <h2>{form.topic || q.questionTopic}</h2>
               <p>{modeSummaries[form.gameMode][locale]}</p>
               <span>
-                {l(GAME_MODE_LABELS[form.gameMode])} · {form.durationMinutes}{" "}
-                {q.minutes} · {q[form.level]}
+                {l(GAME_MODE_LABELS[form.gameMode])} · {form.questionCount}{" "}
+                {q.questions} · {roundMinutes} {q.minutes} · {q[form.level]}
               </span>
             </div>
           </aside>

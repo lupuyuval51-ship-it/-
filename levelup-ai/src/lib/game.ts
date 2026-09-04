@@ -3,6 +3,9 @@ export const GAME_MODES = ["answer-gates", "escape-room", "collect-sort", "build
 export const WORLD_THEMES = ["future-city", "sky-island", "ai-lab", "mystery-castle", "digital-world"] as const;
 export type GameMode = (typeof GAME_MODES)[number];
 export type WorldTheme = (typeof WORLD_THEMES)[number];
+/** Round lengths a learner can pick. Shared so the picker and the server schema cannot drift. */
+export const QUESTION_COUNTS = [8, 12, 16, 20, 24] as const;
+export type QuestionCount = (typeof QUESTION_COUNTS)[number];
 export type GameLocale = "he" | "en";
 export type GameText = { he: string; en: string };
 export type GameQuestion = { id: string; prompt: GameText; options: { he: string[]; en: string[] }; topic?: string; hint?: GameText };
