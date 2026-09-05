@@ -20,11 +20,14 @@ import { plan } from "./messages/plan";
 import { pwa } from "./messages/pwa";
 import { domain } from "./messages/domain";
 import { ui } from "./messages/ui";
+import { exercises } from "./messages/exercises";
+import { settings } from "./messages/settings";
+import { account } from "./messages/account";
 
 export type Dictionary = Record<string, string>;
 export type FeatureMessages = { he: Dictionary; en: Dictionary };
 
-const features: FeatureMessages[] = [common, nav, onboarding, home, workouts, session, progress, profile, coach, admin, auth, library, plan, pwa, domain, ui];
+const features: FeatureMessages[] = [common, nav, onboarding, home, workouts, session, progress, profile, coach, admin, auth, library, plan, pwa, domain, ui, exercises, settings, account];
 
 export const dictionaries: Record<Locale, Dictionary> = {
   he: Object.assign({}, ...features.map((f) => f.he)),
