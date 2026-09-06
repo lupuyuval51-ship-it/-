@@ -861,3 +861,15 @@ export const LEVEL_TITLES: { level: number; title: Localized }[] = [
   { level: 40, title: { he: "Ultimate Expert", en: "Ultimate Expert" } },
   { level: 50, title: { he: "Frisbee Legend", en: "Frisbee Legend" } },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Appended: coach context role hint (interface merge)                 */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Appended for src/store/coachContext.ts. When `aiDataSharing.profile` is off the `profile` block is omitted and
+ * only this minimal, non-identifying hint is sent so the coach can still tailor advice to role and level.
+ */
+export interface CoachContext {
+  roleHint?: { primaryRole: Role; secondaryRole?: Role; level: Level };
+}

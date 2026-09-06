@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" color="#176b48" role="img" aria-label="DiscCoach">
+  <title>DiscCoach</title>
+  <path d="M458.3 187.2A158 56 -18 1 0 157.7 284.8A158 56 -18 1 0 458.3 187.2ZM406.9 203.9A104 32 -18 1 0 209.1 268.1A104 32 -18 1 0 406.9 203.9ZM391.7 208.8A88 24 -18 1 0 224.3 263.2A88 24 -18 1 0 391.7 208.8Z" fill="currentColor" fill-rule="evenodd" stroke="none"/>
+  <g transform="rotate(-18 308 236)">
+    <path d="M149.4 120.8A196 196 0 0 0 149.4 351.2" stroke-width="34"/>
+    <path d="M103.6 118A236 236 0 0 0 103.6 354" stroke-width="28"/>
+    <path d="M55.9 123.7A276 276 0 0 0 55.9 348.3" stroke-width="22"/>
+  </g>
+  <path d="M40 470C190 470 330 432 470 330" stroke-width="14" stroke-dasharray="1 30"/>
+</svg>

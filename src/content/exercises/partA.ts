@@ -1011,3 +1011,166 @@ const fhReleaseAngles: Exercise = {
   throwsPerSet: 8,
   catchesPerSet: 0,
 };
+
+/* ------------------------------------------------------------------ */
+/* Hammer                                                               */
+/* ------------------------------------------------------------------ */
+
+const hmHammerBasics: Exercise = {
+  id: "hm-hammer-basics",
+  name: { he: "Hammer – יסודות", en: "Hammer fundamentals" },
+  category: "throwing",
+  skills: ["hammer"],
+  roles: ["handler", "hybrid", "allround"],
+  levels: ["intermediate", "advanced"],
+  phases: ["throwing"],
+  goal: { he: "ללמוד את ה-Hammer מהיסוד – אחיזה, נקודת שחרור מעל הראש והתהפכות הדיסק באוויר, עד שהוא נוחת שטוח והפוך במרחק 10–15 מטר.", en: "Learn the hammer from the ground up – grip, overhead release point and the flip in the air, until it lands flat and upside-down at 10–15 m." },
+  participants: ["solo", "pair", "group"],
+  equipment: [],
+  optionalEquipment: ["cones", "discs"],
+  fieldSizes: ALL_FIELDS,
+  intensity: "low",
+  offenseDefense: "offense",
+  wind: "calm_only",
+  ageGroups: ALL_AGES,
+  durationMinutes: 8,
+  minDurationMinutes: 6,
+  maxDurationMinutes: 12,
+  sets: 3,
+  reps: 10,
+  restSeconds: 60,
+  setup: {
+    he: "שותף או קונוס במרחק 10 מטר, ומאחוריו עוד 15 מטר פנויים. הניחו 4–5 דיסקים לצדכם. אולם? צריך תקרה בגובה 6 מטר לפחות.",
+    en: "A partner or a cone 10 m away with another 15 m clear behind it. Keep 4–5 discs beside you. Indoors you need at least a 6 m ceiling.",
+  },
+  instructions: [
+    { he: "אחיזת Forehand רגילה. הרימו את היד מעל הראש כמו לזרוק כדור, הדיסק מוטה בכ-45° כשהחלק העליון שלו פונה החוצה מהגוף – לא ישר למעלה ולא שטוח.", en: "Regular forehand grip. Raise the arm overhead as if throwing a ball, disc tilted about 45° with its top facing away from your body – not straight up and not flat." },
+    { he: "סט 1: 10 זריקות ל-10 מטר בקשת גבוהה ב-50% כוח. המטרה היחידה: הדיסק מתהפך באוויר ונוחת הפוך ושטוח ליד השותף או הקונוס.", en: "Set 1: 10 throws to 10 m in a high arc at 50% power. The only goal: the disc flips over in the air and lands upside-down and flat by your partner or the cone." },
+    { he: "סט 2: 10 זריקות ל-15 מטר, קשת מעט נמוכה יותר – משחררים קצת מוקדם יותר ומוסיפים snap חזק יותר.", en: "Set 2: 10 throws to 15 m with a slightly lower arc – release a touch earlier and add a stronger snap." },
+    { he: "סט 3: 10 זריקות ל-15 מטר עם צעד קטן קדימה ברגל השמאלית (לימניים) וסיבוב כתפיים, כמו במשחק.", en: "Set 3: 10 throws to 15 m with a small step forward on the left foot (right-handers) and a shoulder turn, like in a game." },
+    { he: "זריקה נספרת אם הגיעה הפוכה, שטוחה ובלי רעידה לטווח של 3 מטר מהמטרה. Blade (דיסק שצולל על הצד) לא נספר.", en: "A throw counts if it arrives upside-down, flat and wobble-free within 3 m of the target. A blade (disc diving on its edge) doesn't count." },
+  ],
+  cues: [
+    { he: "המרפק מוביל גבוה, השחרור בנקודה הגבוהה ביותר – קצת לפני הראש, לא מאחוריו.", en: "Elbow leads high, release at the highest point – a little in front of the head, never behind it." },
+    { he: "ה-snap של שורש כף היד נותן את הסיבוב – בלי סיבוב הדיסק לא יתהפך.", en: "The wrist snap gives the spin – without spin the disc won't flip." },
+    { he: "המבט על המטרה, לא על הדיסק.", en: "Eyes on the target, not on the disc." },
+  ],
+  commonMistakes: [
+    { he: "שחרור מאוחר מדי – הדיסק יוצא ישר למטה ונוחת 5 מטר לפניכם.", en: "Releasing too late – the disc goes straight down and lands 5 m in front of you." },
+    { he: "זווית שטוחה מדי או אנכית מדי – הדיסק לא מתהפך והופך ל-Blade שצולל שמאלה.", en: "Too flat or too vertical an angle – the disc never flips and turns into a blade that dives left." },
+    { he: "זורקים עם כל היד ובלי snap – הדיסק רועד ונופל קצר.", en: "Throwing with the whole arm and no snap – the disc wobbles and drops short." },
+  ],
+  successMetric: { type: "ratio", key: "hammer_accuracy", label: { he: "Hammers שנחתו הפוכים ושטוחים בטווח 3 מטר מהמטרה מתוך 30", en: "Hammers that landed upside-down and flat within 3 m of the target out of 30" }, target: 60, attempts: 30 },
+  easierVersion: { he: "7 מטר בלבד, 2 סטים, וזריקה מכריעה על ברך אחת – ככה מבודדים את היד ולומדים רק את ההתהפכות.", en: "Only 7 m, 2 sets, and throw from one knee – that isolates the arm so you learn just the flip." },
+  harderVersion: { he: "20 מטר, טווח פגיעה של 2 מטר, וכל זריקה אחרי Pivot מעמדת Backhand ו-Fake נמוך.", en: "20 m, a 2 m hit zone, and every throw after a pivot from the backhand stance and a low fake." },
+  soloAlternative: { he: "עובד לבד כפי שהוא – קונוס כמטרה, 5 דיסקים, ובודקים אחרי כל סבב איך הדיסקים שוכבים על הדשא: הפוך = טוב, על הצד = Blade.", en: "Works solo as written – a cone as the target, 5 discs, and after every round check how the discs lie on the grass: upside-down = good, on the edge = blade." },
+  partnerAlternative: { he: "השותף עומד ב-10 מטר, תופס בשתי ידיים מעל הראש ומחזיר גם הוא ב-Hammer – שניכם לומדים באותו סט.", en: "Your partner stands at 10 m, catches two-handed above the head and returns with a hammer too – you both learn in the same set." },
+  safetyNotes: [
+    { he: "Hammer נופל מגובה ומרחיק – 15 מטר פנויים מאחורי המטרה ואף אחד לא עומד בקו הזריקה.", en: "A hammer drops from height and overshoots – keep 15 m clear behind the target and nobody standing on the throwing line." },
+    { he: "כאב בכתף בהרמה מעל הראש – עוצרים ועוברים ל-Backhand או Forehand. ילדים ונוער: לא יותר מ-50% כוח בסטים 1–2.", en: "Shoulder pain raising overhead – stop and switch to backhand or forehand. Kids and teens: no more than 50% power in sets 1–2." },
+  ],
+  diagram: {
+    field: "lane",
+    items: [
+      { type: "player", x: 12, y: 50 },
+      { type: "disc", x: 8, y: 62 },
+      { type: "partner", x: 62, y: 50, label: "10m" },
+      { type: "cone", x: 88, y: 50, label: "15m" },
+      { type: "throw", from: [16, 44], to: [60, 46], curve: true, dashed: true, label: "hammer" },
+    ],
+  },
+  throwsPerSet: 10,
+  catchesPerSet: 0,
+};
+
+const hmHammerTarget: Exercise = {
+  id: "hm-hammer-target",
+  name: { he: "Hammer למטרה", en: "Hammer to target" },
+  category: "throwing",
+  skills: ["hammer", "accuracy"],
+  roles: ["handler", "hybrid"],
+  levels: ["advanced"],
+  phases: ["throwing"],
+  goal: { he: "Hammer מדויק מעל ״מגן״ לתוך אזור מטרה של 2 מטר במרחק 15–20 מטר – הזריקה שפותחת Zone ומגיעה מעל Poach.", en: "An accurate hammer over a \"defender\" into a 2 m target zone at 15–20 m – the throw that opens a zone and clears a poach." },
+  participants: ["solo", "pair", "group"],
+  equipment: ["target"],
+  optionalEquipment: ["cones", "discs"],
+  fieldSizes: ["small", "medium", "large", "indoor", "park", "beach"],
+  intensity: "low",
+  offenseDefense: "offense",
+  wind: "wind_ok",
+  ageGroups: ALL_AGES,
+  durationMinutes: 9,
+  minDurationMinutes: 6,
+  maxDurationMinutes: 12,
+  sets: 3,
+  reps: 8,
+  restSeconds: 60,
+  setup: {
+    he: "מטרה על הקרקע במרחק 15 מטר – חישוק, מגבת, מזרן או עיגול של 4 קונוסים בקוטר 2 מטר. 5 מטר לפני הזורק, על הקו למטרה, קונוס גבוה או תיק – זה ה״מגן״ שצריך לעבור מעליו. 5 דיסקים ליד הזורק.",
+    en: "A ground target 15 m away – a hoop, a towel, a mat or a 2 m circle of 4 cones. 5 m in front of the thrower, on the line to the target, a tall cone or a bag – that's the \"defender\" you have to clear. 5 discs beside the thrower.",
+  },
+  instructions: [
+    { he: "סט 1: 8 זריקות Hammer מ-15 מטר מעל ה״מגן״ לתוך המטרה. פגיעה = הדיסק נוחת בתוך העיגול או נוגע בו.", en: "Set 1: 8 hammers from 15 m over the \"defender\" into the target. A hit = the disc lands inside the circle or touches it." },
+    { he: "סט 2: הזיזו את המטרה ל-20 מטר. שולטים במרחק דרך זווית השחרור וגובה הקשת – לא דרך כוח.", en: "Set 2: move the target to 20 m. Control the distance through release angle and arc height – not through power." },
+    { he: "סט 3: חזרה ל-15 מטר, אבל כל זריקה אחרי Fake Backhand ותוך 3 שניות מהרמת הדיסק – כמו מול Stall Count.", en: "Set 3: back to 15 m, but every throw after a backhand fake and within 3 seconds of picking up the disc – like against a stall count." },
+    { he: "דיסק שנחת יותר ממטר אחרי המטרה לא נספר, גם אם היה ״בקו״ – ב-Hammer הדיוק הוא בנקודת הנפילה.", en: "A disc landing more than 1 m past the target doesn't count even if it was \"on line\" – hammer accuracy is all about the drop point." },
+  ],
+  cues: [
+    { he: "מכוונים לנקודה באוויר מעל המטרה – הדיסק צונח ממנה למטה.", en: "Aim at a point in the air above the target – the disc drops down from there." },
+    { he: "אותה מהירות יד בכל זריקה; המרחק משתנה רק בזווית ובנקודת השחרור.", en: "Same arm speed every throw; only the angle and release point change the distance." },
+    { he: "שחרור ב-45° נותן נחיתה שטוחה – יותר אנכי מזה ויוצא Blade.", en: "A 45° release gives a flat landing – any more vertical and it blades." },
+  ],
+  commonMistakes: [
+    { he: "מוסיפים כוח כשהמטרה מתרחקת והדיסק עובר אותה ב-5 מטר.", en: "Adding power when the target moves back so the disc sails 5 m past it." },
+    { he: "Blade – זווית אנכית מדי, הדיסק צולל קצר ושמאלה.", en: "Blading – too vertical an angle, the disc dives short and left." },
+    { he: "עוקבים בעיניים אחרי הדיסק במקום אחרי המטרה ומאבדים את הכיוון.", en: "Following the disc with the eyes instead of the target and losing the line." },
+  ],
+  successMetric: { type: "ratio", key: "hammer_accuracy", label: { he: "Hammers שנחתו בתוך אזור המטרה (2 מטר) מתוך 24", en: "Hammers that landed inside the 2 m target zone out of 24" }, target: 50, attempts: 24 },
+  easierVersion: { he: "10 מטר, אזור מטרה של 4 מטר ובלי ״מגן״ – רק נחיתה שטוחה באזור.", en: "10 m, a 4 m target zone and no \"defender\" – just a flat landing in the zone." },
+  harderVersion: { he: "25 מטר, מטרה של 1.5 מטר, ושותף שעומד כ-Mark אמיתי (בלי מגע) וסופר Stall עד 5.", en: "25 m, a 1.5 m target, and a partner marking for real (no contact) while counting a stall to 5." },
+  soloAlternative: { he: "עובד לבד כפי שהוא – המטרה על הקרקע, 5 דיסקים, ואוספים בהליכה אחרי כל סט. בלי חישוק? 4 קונוסים או 4 דיסקים בעיגול.", en: "Works solo as written – the target is on the ground, 5 discs, collect at a walk after every set. No hoop? 4 cones or 4 discs in a circle." },
+  partnerAlternative: { he: "השותף עומד בתוך אזור המטרה ומותר לו לזוז צעד אחד בלבד – תפיסה בלי לצאת מהעיגול = פגיעה. הוא מחזיר ב-Hammer משלו.", en: "Your partner stands inside the target zone and may move only one step – a catch without leaving the circle = a hit. They return with a hammer of their own." },
+  safetyNotes: [
+    { he: "20 מטר פנויים מאחורי המטרה – Hammer שנופל מגובה על הראש כואב.", en: "Keep 20 m clear behind the target – a hammer dropping from height onto a head hurts." },
+    { he: "ברוח חזקה מקצרים ל-10 מטר; כאב בכתף מעל הראש – עוצרים את התרגיל.", en: "In strong wind shorten to 10 m; overhead shoulder pain – stop the drill." },
+  ],
+  diagram: {
+    field: "lane",
+    items: [
+      { type: "player", x: 10, y: 50 },
+      { type: "disc", x: 6, y: 62 },
+      { type: "defender", x: 32, y: 50, label: "5m" },
+      { type: "target", x: 74, y: 50, label: "15m" },
+      { type: "marker", x: 92, y: 50, label: "20m" },
+      { type: "throw", from: [14, 44], to: [72, 46], curve: true, dashed: true, label: "hammer" },
+    ],
+  },
+  throwsPerSet: 8,
+  catchesPerSet: 0,
+};
+
+/* ------------------------------------------------------------------ */
+/* Export                                                               */
+/* ------------------------------------------------------------------ */
+
+export const partA: Exercise[] = [
+  wuDynamicJog,
+  wuShoulderWrist,
+  wuHipSquatLunge,
+  wuHighKneesShuffle,
+  wuShortAccelerations,
+  wuEasyThrows,
+  wuLadderWarmup,
+  wuThrowingLadder,
+  bhShortGate,
+  bhDistanceLadder,
+  bhLowRelease,
+  bhPivotThrow,
+  fhShortGate,
+  fhWristSnap,
+  fhDistanceLadder,
+  fhReleaseAngles,
+  hmHammerBasics,
+  hmHammerTarget,
+];

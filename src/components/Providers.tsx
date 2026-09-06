@@ -2,6 +2,8 @@
 import { useEffect } from "react";
 import { useAppStore } from "@/store/appStore";
 import { dirOf } from "@/i18n";
+import { ToastProvider } from "@/components/ui/Toast";
+import { DialogProvider } from "@/components/ui/ConfirmDialog";
 
 /**
  * Client-side providers: store hydration, theme/locale side effects, service-worker registration.
@@ -51,5 +53,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
 
-  return <>{children}</>;
+  return (
+    <ToastProvider>
+      <DialogProvider>{children}</DialogProvider>
+    </ToastProvider>
+  );
 }
