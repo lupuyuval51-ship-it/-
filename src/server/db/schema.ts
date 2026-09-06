@@ -291,8 +291,11 @@ export const appSettings = pgTable("app_settings", {
 /* Registry                                                            */
 /* ------------------------------------------------------------------ */
 
-export type SyncedTable = typeof workouts | typeof completedSessions | typeof exerciseResults;
-export type SingletonTable = typeof profiles;
+export type SyncedTable =
+  | typeof trainingPlans | typeof trainingWeeks | typeof plannedSessions | typeof workouts | typeof personalBests | typeof baselineTests
+  | typeof xpEvents | typeof userChallenges | typeof userAchievements | typeof savedWorkouts | typeof favoriteExercises | typeof notifications
+  | typeof completedSessions | typeof exerciseResults;
+export type SingletonTable = typeof profiles | typeof appSettingsUser | typeof activeSessions | typeof aiConversationSummaries;
 
 export type CollectionTableEntry =
   | { kind: "collection"; table: SyncedTable }

@@ -106,16 +106,18 @@ async function refreshWorkoutDerived(db: Db, userId: string, workoutId: string, 
   const exerciseRows: (typeof schema.workoutExercises.$inferInsert)[] = [];
   (w.phases as unknown[]).slice(0, 20).forEach((raw, pi) => {
     const phase = asObject(raw);
-    if (!phase || typeof phase.id !== "string") return;
-    phaseRows.push({ id: phase.id, workoutId, userId, type: String(phase.type ?? "").slice(0, 30), durationMinutes: intOrNull(phase.durationMinutes) ?? 0, position: pi });
+    const phaseId = phase?.id;
+    if (!phase || typeof phaseId !== "string") return;
+    phaseRows.push({ id: phaseId, workoutId, userId, type: String(phase.type ?? "").slice(0, 30), durationMinutes: intOrNull(phase.durationMinutes) ?? 0, position: pi });
     const exercises = Array.isArray(phase.exercises) ? (phase.exercises as unknown[]).slice(0, 40) : [];
     exercises.forEach((rawEx, ei) => {
       const ex = asObject(rawEx);
-      if (!ex || typeof ex.id !== "string") return;
+      const exId = ex?.id;
+      if (!ex || typeof exId !== "string") return;
       exerciseRows.push({
-        id: ex.id,
+        id: exId,
         workoutId,
-        phaseId: phase.id,
+        phaseId,
         userId,
         exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : null,
         durationMinutes: intOrNull(ex.durationMinutes) ?? 0,

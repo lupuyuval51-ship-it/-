@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useId, useRef, useSyncExternalStore, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -36,6 +36,8 @@ const sizes: Record<SheetSize, string> = {
   full: "md:max-w-4xl h-[100dvh] md:h-auto md:max-h-[90dvh]",
 };
 
+const noopSubscribe = () => () => {};
+
 let lockCount = 0;
 function lockScroll() {
   if (lockCount++ === 0) {
@@ -60,8 +62,8 @@ export function Sheet({ open, onClose, title, description, children, footer, siz
   const id = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<Element | null>(null);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // Portals need document.body: render nothing on the server / first client paint (no setState-in-effect).
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   useEffect(() => {
     if (!open) return;

@@ -1,5 +1,5 @@
 "use client";
-import { forwardRef, useEffect, useRef, useState, type InputHTMLAttributes } from "react";
+import { forwardRef, useEffect, useRef, type InputHTMLAttributes } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useT } from "@/i18n/useT";
@@ -14,19 +14,16 @@ export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
   wrapperClassName?: string;
 }
 
-/** Search field with a leading icon and a clear button. */
+/** Controlled search field with a leading icon and a clear button. */
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(function SearchInput(
   { value, onChange, onDebouncedChange, debounceMs = 250, wrapperClassName, className, placeholder, "aria-label": ariaLabel, ...rest },
   ref,
 ) {
   const { t } = useT();
-  const [internal, setInternal] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => setInternal(value), [value]);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const update = (next: string) => {
-    setInternal(next);
     onChange(next);
     if (onDebouncedChange) {
       if (timer.current) clearTimeout(timer.current);
@@ -40,7 +37,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
       <input
         ref={ref}
         type="search"
-        value={internal}
+        value={value}
         onChange={(e) => update(e.target.value)}
         placeholder={placeholder ?? t("ui.search.placeholder")}
         aria-label={ariaLabel ?? placeholder ?? t("common.search")}
@@ -49,7 +46,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
         className={cn(controlBaseClasses, controlStateClasses(false), "h-11 pe-11 ps-11 text-base [&::-webkit-search-cancel-button]:hidden", className)}
         {...rest}
       />
-      {internal && (
+      {value && (
         <button
           type="button"
           onClick={() => update("")}

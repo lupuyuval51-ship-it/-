@@ -11,7 +11,7 @@
  */
 import type {
   AchievementDefinition, ActiveSession, ChallengeDefinition, CompletedSession, Exercise, ExerciseResult, Localized, MetricKey,
-  PersonalBest, PlannedSession, Profile, Skill, UserAchievement, UserChallenge, WorkoutExercise, XpEvent,
+  PersonalBest, PhaseType, PlannedSession, Profile, Skill, UserAchievement, UserChallenge, WorkoutExercise, XpEvent,
 } from "@/lib/types";
 import { nowIso } from "@/lib/dates";
 import { ACHIEVEMENTS } from "@/content/achievements";
@@ -142,8 +142,15 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
-export function flattenExercises(active: Pick<ActiveSession, "workout">): { exercise: WorkoutExercise; phaseIndex: number; phaseType: CompletedSession["skillsTrained"] extends never ? never : ActiveSession["workout"]["phases"][number]["type"] }[] {
-  const out: { exercise: WorkoutExercise; phaseIndex: number; phaseType: ActiveSession["workout"]["phases"][number]["type"] }[] = [];
+export interface FlatExercise {
+  exercise: WorkoutExercise;
+  phaseIndex: number;
+  phaseType: PhaseType;
+}
+
+/** Every exercise of the workout snapshot in order, tagged with its phase. */
+export function flattenExercises(active: Pick<ActiveSession, "workout">): FlatExercise[] {
+  const out: FlatExercise[] = [];
   active.workout.phases.forEach((phase, phaseIndex) => {
     for (const exercise of phase.exercises) out.push({ exercise, phaseIndex, phaseType: phase.type });
   });

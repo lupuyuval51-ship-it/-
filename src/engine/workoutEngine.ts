@@ -21,22 +21,53 @@ import {
   phaseTemplatesFor, type PhaseTemplate,
 } from "@/engine/phaseTemplates";
 import { parseWorkout } from "@/engine/workoutSchema";
-import { EXERCISES } from "@/content/exercises";
 
 /* ------------------------------------------------------------------ */
 /* Catalog access                                                       */
 /* ------------------------------------------------------------------ */
 
 let catalogOverride: Exercise[] | null = null;
+let loadedCatalog: Exercise[] | null = null;
+let loadingCatalog: Promise<Exercise[]> | null = null;
 
-/** Override the default catalog (tests, admin previews). Pass null to restore the built-in catalog. */
+/** Override the default catalog (tests, admin previews). Pass null to restore the lazily imported catalog. */
 export function setDefaultCatalog(catalog: Exercise[] | null): void {
   catalogOverride = catalog;
 }
 
-/** The catalog used when a caller does not inject one. Resolved through a function so tests can inject fixtures. */
+/** True when `getDefaultCatalog()` can be called without an explicit catalog. */
+export function isDefaultCatalogLoaded(): boolean {
+  return catalogOverride !== null || loadedCatalog !== null;
+}
+
+/**
+ * Lazily import the authored catalog (`@/content/exercises`) once per process and cache it.
+ * The engine functions are synchronous, so callers that do not pass `catalog` in their options must
+ * `await loadDefaultCatalog()` once (app start / route handler) before calling them. Tests inject fixtures instead.
+ */
+export async function loadDefaultCatalog(): Promise<Exercise[]> {
+  if (catalogOverride) return catalogOverride;
+  if (loadedCatalog) return loadedCatalog;
+  if (!loadingCatalog) {
+    // The catalog index is authored in parallel; the module is resolved at build time, never at engine import time.
+    // @ts-ignore – keeps the engine type-checking before src/content/exercises/index.ts lands (remove once it exists).
+    loadingCatalog = import("@/content/exercises").then((mod: { EXERCISES?: unknown }) => {
+      const list = mod.EXERCISES;
+      if (!Array.isArray(list)) throw new Error("DiscCoach: @/content/exercises does not export an EXERCISES array");
+      loadedCatalog = list as Exercise[];
+      return loadedCatalog;
+    });
+  }
+  return loadingCatalog;
+}
+
+/** The catalog used when a caller does not inject one. Throws with a clear message when nothing is loaded yet. */
 export function getDefaultCatalog(): Exercise[] {
-  return catalogOverride ?? EXERCISES;
+  const catalog = catalogOverride ?? loadedCatalog;
+  if (!catalog) {
+    throw new Error("DiscCoach: exercise catalog not loaded – pass `catalog` in the options or `await loadDefaultCatalog()` once before calling the engine.");
+  }
+  return catalog;
 }
 
 /* ------------------------------------------------------------------ */
@@ -130,7 +161,11 @@ const PHASE_FALLBACK_CATEGORIES: Record<PhaseType, ExerciseCategory[]> = {
 
 /** Dangerous instructions we refuse (Ultimate is non-contact). Common-mistake texts are not scanned. */
 export const UNSAFE_KEYWORDS: { he: string[]; en: string[] } = {
-  he: ["טאקל", "להכות", "מכות", "אגרוף", "לבעוט ב", "לדחוף את", "להפיל את", "לחנוק", "ראש בקיר", "לזרוק על הראש", "לזרוק לראש"],
+  he: [
+    "טאקל", "להכות את השותף", "להכות את היריב", "להכות את המגן", "להכות בשחקן", "מכות", "אגרוף", "לבעוט בשחקן", "לבעוט ביריב",
+    "לדחוף את היריב", "לדחוף את השותף", "לדחוף את המגן", "להפיל את היריב", "להפיל את השותף", "להפיל את המגן", "לחנוק",
+    "ראש בקיר", "לזרוק על הראש", "לזרוק לראש", "לכוון לראש",
+  ],
   en: [
     "tackle", "tackling", "punch", "kick your", "kick the partner", "kick the opponent", "hit your partner", "hit the partner",
     "hit the opponent", "hit the defender", "shove", "trip the", "choke", "headbutt", "throw at the head", "aim at the head",
@@ -624,33 +659,54 @@ function buildPhase(p: BuildPhaseParams): WorkoutPhase {
   if (wantsSecondary && k < 2 && pool.length >= 2) k = 2;
 
   // Pick k drills.
-  const picked: Exercise[] = [];
+  let picked: Exercise[] = [];
   const secondaryIds = new Set<string>();
   const remaining = pool.slice();
+  let lastSecondarySlot = false;
   for (let slot = 0; slot < k && remaining.length > 0; slot++) {
     const secondarySlot = wantsSecondary && slot === k - 1;
     const scored = remaining.map((ex) => ({ ex, score: scoreExercise(ex, { req, phase: template.type, picked, slot, secondarySlot }) }));
     const chosen = pickFromTop(rng, scored);
     picked.push(chosen);
     if (secondarySlot) secondaryIds.add(chosen.id);
+    lastSecondarySlot = secondarySlot;
     remaining.splice(remaining.indexOf(chosen), 1);
   }
 
-  // Fit minutes; drop drills from the end while the minima do not fit.
-  let durations: number[] | null = null;
-  while (picked.length > 0) {
-    const items: DurationItem[] = picked.map((ex) => ({
+  const itemsFor = (list: Exercise[]): DurationItem[] =>
+    list.map((ex) => ({
       min: ex.minDurationMinutes,
       max: ex.maxDurationMinutes,
       preferred: secondaryIds.has(ex.id) ? Math.round(minutes * SECONDARY_ROLE_SHARE) : ex.durationMinutes,
     }));
-    durations = fitDurations(items, minutes);
-    if (durations) break;
+
+  // Fit minutes. When the minima do not fit, first try to swap the last pick for a shorter candidate (keeps the
+  // 2–4 drills per phase target), then drop drills from the end.
+  let durations: number[] | null = fitDurations(itemsFor(picked), minutes);
+  if (!durations && picked.length >= 2 && remaining.length > 0) {
+    const head = picked.slice(0, -1);
+    const slot = picked.length - 1;
+    const candidates = remaining
+      .map((ex) => ({ ex, score: scoreExercise(ex, { req, phase: template.type, picked: head, slot, secondarySlot: lastSecondarySlot }) }))
+      .sort((a, b) => b.score - a.score || a.ex.id.localeCompare(b.ex.id));
+    for (const { ex } of candidates) {
+      if (lastSecondarySlot) secondaryIds.add(ex.id);
+      const trial = [...head, ex];
+      const fitted = fitDurations(itemsFor(trial), minutes);
+      if (fitted) {
+        picked = trial;
+        durations = fitted;
+        break;
+      }
+      if (lastSecondarySlot) secondaryIds.delete(ex.id);
+    }
+  }
+  while (!durations && picked.length > 0) {
     picked.pop();
+    durations = picked.length > 0 ? fitDurations(itemsFor(picked), minutes) : null;
   }
   if (!durations || picked.length === 0) {
-    const only = pool[0];
-    picked.splice(0, picked.length, only);
+    picked = [pool[0]];
     durations = [minutes];
   }
 
@@ -1233,7 +1289,8 @@ function hebrewPrefix(prefix: string, word: string): string {
 export function describeWorkoutFocus(w: Workout, locale: Locale): string {
   const skills = workoutFocusSkills(w, 3);
   if (skills.length === 0) {
-    return locale === "he" ? `היום מתמקדים ב${ROLE_LABELS[w.targetRole].he === "Handler" || ROLE_LABELS[w.targetRole].he === "Cutter" ? "-" : ""}${ROLE_LABELS[w.targetRole].he}.` : `Today's focus: ${ROLE_LABELS[w.targetRole].en.toLowerCase()} work.`;
+    const role = ROLE_LABELS[w.targetRole];
+    return locale === "he" ? `היום מתמקדים בעבודת ${role.he}.` : `Today's focus: ${role.en.toLowerCase()} work.`;
   }
   if (locale === "he") {
     const labels = skills.map((s) => SKILL_LABELS[s].he);
