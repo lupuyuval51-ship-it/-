@@ -2,7 +2,7 @@
  * Daily / weekly challenges. Picking is deterministic per day (or week) and role; progress is derived
  * only from completed sessions and their logged results.
  */
-import type { ChallengeDefinition, CompletedSession, ExerciseResult, MetricKey, Profile, Role, UserChallenge } from "@/lib/types";
+import type { ChallengeDefinition, CompletedSession, ExerciseResult, MetricKey, Profile, UserChallenge } from "@/lib/types";
 import { CHALLENGES } from "@/content/challenges";
 import { toDateKey, weekKey } from "@/lib/dates";
 import { RATIO_MIN_ATTEMPTS, THROW_ACCURACY_KEYS, isBetter, metricDirection, resultValue, weightedRatio } from "@/engine/personalBests";

@@ -52,8 +52,8 @@ describe("computeReadiness", () => {
     const results = [1, 2, 3, 4, 5, 6, 7].map((i) => makeResult({ key: "sprint_time_s", timeSeconds: i, recordedAt: iso(2026, 8, i) }));
     const m = recentMeasurement(results, "sprint_time_s");
     expect(m?.samples).toBe(5);
-    // last five are 3..7, weights 5..1 for the newest → (7·5 + 6·4 + 5·3 + 4·2 + 3·1) / 15 = 5.53
-    expect(m?.value).toBeCloseTo(5.53, 2);
+    // last five are 3..7, weights 5..1 for the newest → (7·5 + 6·4 + 5·3 + 4·2 + 3·1) / 15 = 85 / 15 = 5.67
+    expect(m?.value).toBeCloseTo(5.67, 2);
     expect(recentMeasurement(results, "cod_time_s")).toBeUndefined();
   });
 

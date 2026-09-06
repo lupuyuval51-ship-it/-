@@ -49,8 +49,10 @@ export async function loadDefaultCatalog(): Promise<Exercise[]> {
   if (catalogOverride) return catalogOverride;
   if (loadedCatalog) return loadedCatalog;
   if (!loadingCatalog) {
-    // The catalog index is authored in parallel; the module is resolved at build time, never at engine import time.
-    // @ts-ignore – keeps the engine type-checking before src/content/exercises/index.ts lands (remove once it exists).
+    // The catalog index (src/content/exercises/index.ts) is authored in parallel and resolved at build time, never at
+    // engine import time. The two directive lines below only keep typecheck/lint green until it lands – delete them then.
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     loadingCatalog = import("@/content/exercises").then((mod: { EXERCISES?: unknown }) => {
       const list = mod.EXERCISES;
       if (!Array.isArray(list)) throw new Error("DiscCoach: @/content/exercises does not export an EXERCISES array");
@@ -711,7 +713,8 @@ function buildPhase(p: BuildPhaseParams): WorkoutPhase {
   }
 
   // Order: warm-up from mobility to throws; cool-down ends with reflection; other phases keep the pick order.
-  let order = picked.map((ex, i) => ({ ex, minutes: durations![i] }));
+  const fitted: number[] = durations;
+  let order = picked.map((ex, i) => ({ ex, minutes: fitted[i] }));
   if (template.type === "warmup") order = order.slice().sort((a, b) => warmupRank(a.ex) - warmupRank(b.ex));
   if (template.type === "cooldown") order = order.slice().sort((a, b) => cooldownRank(a.ex) - cooldownRank(b.ex));
 

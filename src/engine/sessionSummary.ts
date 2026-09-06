@@ -407,7 +407,8 @@ export function finalizeSession(input: FinalizeSessionInput, opts: FinalizeSessi
   const newAchievements = evaluateAchievements(preStats, allResults, input.unlockedAchievements, now, active.id, achievementDefs);
   const achById = new Map(achievementDefs.map((a) => [a.id, a]));
 
-  // XP.
+  // XP. The +20 challenge bonus is for the workout's own challenge phase; daily/weekly challenges completed by
+  // this session pay their definition's XP through separate "challenge" events (never both for the same thing).
   const challengePhaseDone = all.some((x) => x.phaseType === "challenge" && completedIds.has(x.exercise.id));
   const xpBreakdown = xpForCompletedSession({
     actualMinutes,
@@ -416,7 +417,7 @@ export function finalizeSession(input: FinalizeSessionInput, opts: FinalizeSessi
     exercisesCount,
     resultsLogged: results.length,
     newPersonalBests: pbUpdate.newKeys.length,
-    challengeCompleted: challengePhaseDone || applied.completedNow.length > 0,
+    challengeCompleted: challengePhaseDone,
   });
   const xpEvents = xpEventsForSession({
     sessionId: active.id,
