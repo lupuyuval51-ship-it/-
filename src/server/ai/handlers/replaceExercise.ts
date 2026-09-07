@@ -43,7 +43,7 @@ export function customFromClaude(custom: CustomOutput, original: WorkoutExercise
   const instructions = list(custom.instructions, 12, 600);
   if (!name || instructions.length === 0) return null;
   const metricText = custom.successMetric.trim().slice(0, 200);
-  const key = inferMetricKey(`${metricText} ${name}`, "role");
+  const key = inferMetricKey(metricText, "role", name);
   const type = metricTypeFor(key);
   return {
     id: newId("ex"),

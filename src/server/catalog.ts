@@ -6,9 +6,12 @@
  *   source "admin"   rows are additions.
  * The public /api/catalog/overrides endpoint exposes the merge result to the client (cached 5 minutes).
  */
+import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db/client";
+import { HttpError } from "./http";
 import { canonicalJson } from "./util/hash";
 import { exerciseSchema } from "./validation/exerciseSchema";
+import { loadDefaultCatalog } from "@/engine/workoutEngine";
 import type { Exercise } from "@/lib/types";
 import type { AdminExerciseRow, CatalogOverridesResponse } from "@/lib/serverTypes";
 
@@ -22,13 +25,16 @@ export function invalidateCatalogCache(): void {
   builtinCache = null;
 }
 
-/** Builtin catalog from the content module. Empty list when the module cannot be loaded. */
+/**
+ * Builtin catalog from the content module (`EXERCISES` from src/content/exercises), loaded through the engine's
+ * guarded lazy import so the server keeps working when the module is missing. Empty list on failure.
+ */
 export async function getBuiltinCatalog(): Promise<Exercise[]> {
   if (builtinCache && Date.now() - builtinCache.at < TTL_MS) return builtinCache.list;
   let list: Exercise[] = [];
   try {
-    const mod = (await import("@/content/exercises")) as { EXERCISES?: unknown };
-    if (Array.isArray(mod.EXERCISES)) list = (mod.EXERCISES as Exercise[]).filter((e) => e && typeof e.id === "string");
+    const loaded = await loadDefaultCatalog();
+    if (Array.isArray(loaded)) list = loaded.filter((e) => e && typeof e.id === "string");
   } catch (err) {
     if (process.env.NODE_ENV !== "test") console.warn("[catalog] builtin exercises unavailable:", err instanceof Error ? err.message : err);
   }
@@ -39,6 +45,7 @@ export async function getBuiltinCatalog(): Promise<Exercise[]> {
 /** Test / admin hook: override the builtin catalog without touching the content module. */
 export function setBuiltinCatalogForTests(list: Exercise[] | null): void {
   builtinCache = list ? { at: Date.now(), list } : null;
+  overridesCache = null;
 }
 
 type CatalogRow = typeof schema.exerciseCatalog.$inferSelect;
@@ -135,4 +142,79 @@ export async function listCatalogForAdmin(): Promise<AdminExerciseRow[]> {
     out.push({ exercise, source: row.source === "builtin" ? "builtin" : "admin", enabled: row.enabled, modified: false, updatedAt: row.updatedAt.toISOString() });
   }
   return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin mutations                                                     */
+/* ------------------------------------------------------------------ */
+
+/** Validates an exercise payload (400 "validation" with issue paths on failure). */
+export function parseExercise(data: unknown): Exercise {
+  const result = exerciseSchema.safeParse(data);
+  if (!result.success) {
+    throw new HttpError(400, "validation", { issues: result.error.issues.slice(0, 20).map((i) => ({ path: i.path.map(String).join("."), message: i.message })) });
+  }
+  return result.data;
+}
+
+/** Adds a new admin-authored drill. 409 when the id already exists (builtin or stored). */
+export async function createCatalogExercise(data: unknown): Promise<AdminExerciseRow> {
+  const exercise = parseExercise(data);
+  const builtin = await getBuiltinCatalog();
+  if (builtin.some((e) => e.id === exercise.id)) throw new HttpError(409, "exercise_exists");
+  const db = await getDb();
+  const existing = await db.select({ id: schema.exerciseCatalog.id }).from(schema.exerciseCatalog).where(eq(schema.exerciseCatalog.id, exercise.id)).limit(1);
+  if (existing.length) throw new HttpError(409, "exercise_exists");
+  const now = new Date();
+  await db.insert(schema.exerciseCatalog).values({ id: exercise.id, data: exercise as unknown as object, source: "admin", enabled: true, updatedAt: now });
+  overridesCache = null;
+  return { exercise, source: "admin", enabled: true, modified: false, updatedAt: now.toISOString() };
+}
+
+/**
+ * Updates a drill (builtin drills get an override row) and/or toggles `enabled`.
+ * At least one of `exercise` / `enabled` must be given.
+ */
+export async function updateCatalogExercise(id: string, patch: { exercise?: unknown; enabled?: boolean }): Promise<AdminExerciseRow> {
+  const builtin = await getBuiltinCatalog();
+  const original = builtin.find((e) => e.id === id);
+  const db = await getDb();
+  const rows = await db.select().from(schema.exerciseCatalog).where(eq(schema.exerciseCatalog.id, id)).limit(1);
+  const row = rows[0];
+  if (!original && !row) throw new HttpError(404, "not_found");
+  const exercise = patch.exercise !== undefined ? parseExercise(patch.exercise) : (row ? parseRow(row) : null) ?? original;
+  if (!exercise) throw new HttpError(400, "validation");
+  if (exercise.id !== id) throw new HttpError(400, "validation", { issues: [{ path: "id", message: "id cannot change" }] });
+  const enabled = patch.enabled ?? row?.enabled ?? true;
+  const source: "builtin" | "admin" = original ? "builtin" : row?.source ?? "admin";
+  const now = new Date();
+  await db
+    .insert(schema.exerciseCatalog)
+    .values({ id, data: exercise as unknown as object, source, enabled, updatedAt: now })
+    .onConflictDoUpdate({ target: schema.exerciseCatalog.id, set: { data: exercise as unknown as object, source, enabled, updatedAt: now } });
+  overridesCache = null;
+  return { exercise, source, enabled, modified: Boolean(original) && canonicalJson(exercise) !== canonicalJson(original), updatedAt: now.toISOString() };
+}
+
+/**
+ * Deletes an admin drill; a builtin drill cannot be deleted so it is disabled instead (and its override dropped).
+ * Returns what happened so the UI can phrase it.
+ */
+export async function deleteCatalogExercise(id: string): Promise<{ deleted: boolean; disabled: boolean }> {
+  const builtin = await getBuiltinCatalog();
+  const original = builtin.find((e) => e.id === id);
+  const db = await getDb();
+  if (original) {
+    const now = new Date();
+    await db
+      .insert(schema.exerciseCatalog)
+      .values({ id, data: original as unknown as object, source: "builtin", enabled: false, updatedAt: now })
+      .onConflictDoUpdate({ target: schema.exerciseCatalog.id, set: { data: original as unknown as object, enabled: false, updatedAt: now } });
+    overridesCache = null;
+    return { deleted: false, disabled: true };
+  }
+  const res = await db.delete(schema.exerciseCatalog).where(eq(schema.exerciseCatalog.id, id)).returning({ id: schema.exerciseCatalog.id });
+  if (res.length === 0) throw new HttpError(404, "not_found");
+  overridesCache = null;
+  return { deleted: true, disabled: false };
 }

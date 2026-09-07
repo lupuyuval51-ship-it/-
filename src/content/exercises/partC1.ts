@@ -6,10 +6,14 @@
  * Timing conventions shared by every timed drill in this file, so personal bests stay comparable:
  *  - sprint_time_s        = 20 m from a staggered standing start, hand-timed from the first movement
  *                           until the chest crosses the cone line (mv-short-sprints, mv-acceleration-starts).
- *  - cod_time_s           = a 20 m course with two direction changes (5-10-5 lateral, 10-5-5 stop-and-go).
+ *  - cod_time_s           = a 20 m course with two direction changes: 5-10-5 lateral (mv-cone-cod) or
+ *                           10-5-5 stop-and-go – sprint, dead stop, go, 180° turn (mv-stop-and-go).
  *  - t_drill_time_s       = the 10 m × 10 m T (40 m total).
- *  - lateral_shuffle_time_s = 4 shuffle lengths of 5 m (20 m).
- *  - agility_time_s       = timed course (5-10-15 forward/backpedal, or 8-rung ladder + 5 m sprint).
+ *  - lateral_shuffle_time_s = 4 shuffle lengths of 5 m (20 m), hand touch at each end.
+ *  - agility_time_s       = a timed course: 5-10-15 forward/backpedal, 60 m (mv-forward-backpedal) or
+ *                           3 ladder passes + a 5 m sprint (mv-ladder-agility) – each label names its course.
+ *  - repeat_sprint_drop_pct = (slowest − fastest) ÷ fastest × 100 over 6 × 30 m; lower is better, so it is
+ *                           stored as a "score" whose value IS the drop percent (engine: personalBests/readiness).
  *  Self-timing with a phone in hand adds roughly 0.2 s; every drill tells the player to compare like with like.
  */
 import type { Exercise } from "@/lib/types";
@@ -125,8 +129,8 @@ const mvRepeatSprints: Exercise = {
     { he: "יציאה מעמידה מדורגת. ספרינט 30 מטר ב-100% – בכל אחת מ-6 הריצות מנסים לרוץ באותה מהירות.", en: "Staggered start. Sprint 30 m at 100% – on each of the 6 runs try to hit the same speed." },
     { he: "תזמון: השעון מתחיל בתנועה הראשונה ונעצר כשהחזה חוצה את קונוס ה-30. השותף מקריא את הזמן ואתם רושמים; לבד – Start ביד ו-Stop במעבר הקונוס.", en: "Timing: the clock starts on the first movement and stops as the chest crosses the 30 m cone. Your partner reads out the time and you log it; solo – start in hand, stop as you pass the cone." },
     { he: "מאיטים ב-10 המטרים שאחרי הקונוס והולכים ישר חזרה לקו – מגיעים 5 שניות לפני היציאה הבאה. 6 ספרינטים = סט אחד.", en: "Ease down in the 10 m past the cone and walk straight back to the line – arrive 5 seconds before the next start. 6 sprints = one set." },
-    { he: "3 דקות מנוחה ואז הסט השני. בסיום מחשבים: הזמן המהיר ביותר כפול 1.1 = הרף. כל ספרינט שמתחת לרף נחשב ״הצליח״.", en: "Rest 3 minutes, then the second set. At the end, work it out: fastest time × 1.1 = the bar. Every sprint under the bar counts as a success." },
-    { he: "דוגמה: המהיר ביותר 4.6 שניות, הרף 5.06. ריצה של 5.2 – נפילה גדולה מדי, לא נספרת. רושמים כמה מתוך 6 עמדו ברף בסט הטוב יותר.", en: "Example: fastest 4.6 s, the bar is 5.06. A 5.2 s run is too big a drop and doesn't count. Log how many of the 6 made the bar in your better set." },
+    { he: "3 דקות מנוחה ואז הסט השני. בסיום מחשבים לכל סט את הדעיכה: (הזמן האיטי ביותר פחות המהיר ביותר) חלקי המהיר ביותר, כפול 100.", en: "Rest 3 minutes, then the second set. At the end, work out each set's drop-off: (slowest time minus fastest) divided by the fastest, times 100." },
+    { he: "דוגמה: המהיר ביותר 4.6 שניות, האיטי ביותר 5.0 – הדעיכה היא 0.4 ÷ 4.6 × 100 = 9%. מתחת ל-10% זה מצוין; מעל 20% – המנוחה קצרה מדי בשבילכם כרגע. רושמים את הדעיכה של הסט הטוב יותר.", en: "Example: fastest 4.6 s, slowest 5.0 – the drop is 0.4 ÷ 4.6 × 100 = 9%. Under 10% is excellent; over 20% means the rest is too short for you right now. Log the drop of your better set." },
   ],
   cues: [
     { he: "אותה טכניקה בכל ריצה – זווית גוף, ידיים, אורך צעד. כשהעייפות מגיעה, הטכניקה היא מה שמחזיק את המהירות.", en: "Same technique on every run – body angle, arms, stride. When fatigue arrives, technique is what holds the speed." },
@@ -138,10 +142,10 @@ const mvRepeatSprints: Exercise = {
     { he: "ריצה קלה חזרה במקום הליכה – הדופק לא יורד וכל הסדרה מתמוטטת.", en: "Jogging back instead of walking – the heart rate never drops and the whole series collapses." },
     { he: "מדידה לא עקבית (פעם מהיציאה, פעם מהקריאה) – המספרים לא ניתנים להשוואה.", en: "Inconsistent timing (from the first move one run, from the call the next) – the numbers can't be compared." },
   ],
-  successMetric: { type: "ratio", key: "repeat_sprint_drop_pct", label: { he: "ספרינטים שנשארו בטווח של 10% מהזמן המהיר ביותר, מתוך 6", en: "Sprints within 10% of your fastest time, out of 6" }, target: 83, attempts: 6 },
+  successMetric: { type: "score", key: "repeat_sprint_drop_pct", label: { he: "דעיכה בספרינטים חוזרים (%): (הזמן האיטי ביותר − המהיר ביותר) ÷ המהיר ביותר × 100, מתוך 6 ספרינטים של 30 מטר – נמוך יותר = טוב יותר", en: "Repeat-sprint drop-off (%): (slowest − fastest) ÷ fastest × 100 over 6 × 30 m sprints – lower is better" }, target: 10 },
   easierVersion: { he: "4 ספרינטים על 20 מטר, יציאה כל 45 שניות, סט אחד.", en: "4 sprints over 20 m, leaving every 45 seconds, one set." },
-  harderVersion: { he: "8 ספרינטים על 30 מטר, יציאה כל 30 שניות; או רף של 5% במקום 10%.", en: "8 sprints over 30 m leaving every 30 seconds; or a 5% bar instead of 10%." },
-  soloAlternative: { he: "עובד לבד: מפעילים טיימר אינטרוולים בטלפון שמצפצף כל 40 שניות, ומודדים כל ריצה עם שעון עצר ביד. תזמון עצמי מוסיף כ-0.2 שניות באופן שווה לכל הריצות, אז חישוב ה-10% נשאר תקף.", en: "Works solo: set a phone interval timer that beeps every 40 seconds and time each run with a stopwatch in hand. Self-timing adds about 0.2 s equally to every run, so the 10% calculation still holds." },
+  harderVersion: { he: "8 ספרינטים על 30 מטר, יציאה כל 30 שניות; או יעד דעיכה של 5% במקום 10%.", en: "8 sprints over 30 m leaving every 30 seconds; or a 5% drop-off target instead of 10%." },
+  soloAlternative: { he: "עובד לבד: מפעילים טיימר אינטרוולים בטלפון שמצפצף כל 40 שניות, ומודדים כל ריצה עם שעון עצר ביד. תזמון עצמי מוסיף כ-0.2 שניות באופן שווה לכל הריצות, אז חישוב הדעיכה נשאר תקף.", en: "Works solo: set a phone interval timer that beeps every 40 seconds and time each run with a stopwatch in hand. Self-timing adds about 0.2 s equally to every run, so the drop-off calculation still holds." },
   partnerAlternative: { he: "השותף עומד בקונוס ה-30 עם השעון, קורא ״צא!״ לפי הטיימר, עוצר את השעון במעבר החזה ורושם. אחרי 6 ריצות מתחלפים – ההחלפה היא בדיוק 3 הדקות של המנוחה בין הסטים.", en: "Your partner stands at the 30 m cone with the watch, calls \"go!\" off the timer, stops the clock as your chest passes and writes it down. Swap after 6 runs – the swap is exactly the 3-minute rest between sets." },
   safetyNotes: [
     { he: "תרגיל עומס גבוה – לא ביום שבו הרגליים כבדות מאימון קודם, ולא בחום כבד בלי מים ליד הקו.", en: "A high-load drill – not on a day the legs are heavy from a previous session, and not in heavy heat without water at the line." },

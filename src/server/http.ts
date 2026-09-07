@@ -64,7 +64,8 @@ export function errorToResponse(err: unknown, locale: Locale): Response {
   return jsonError(500, "internal", locale);
 }
 
-type RouteHandler<Ctx> = (req: Request, ctx: Ctx) => Promise<Response>;
+/** Shape of an App Router route handler (the second argument is optional so wrappers can be typed loosely). */
+export type RouteHandler<Ctx = unknown> = (req: Request, ctx?: Ctx) => Promise<Response>;
 
 /** Wraps a route handler so every failure becomes a JSON error (never a stack trace). */
 export function withRoute<Ctx = unknown>(handler: RouteHandler<Ctx>): RouteHandler<Ctx> {
@@ -75,6 +76,14 @@ export function withRoute<Ctx = unknown>(handler: RouteHandler<Ctx>): RouteHandl
       return errorToResponse(err, requestLocale(req));
     }
   };
+}
+
+/** Parses a positive integer query/body value with bounds. */
+export function boundedInt(raw: string | null | undefined, fallback: number, min: number, max: number): number {
+  if (raw === null || raw === undefined || raw.trim() === "") return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(n)));
 }
 
 export function zodIssues(err: z.ZodError): { path: string; message: string }[] {

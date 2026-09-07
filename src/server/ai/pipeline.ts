@@ -8,7 +8,7 @@ import type { z } from "zod";
 import type { AiAction, Locale } from "@/lib/types";
 import type { AiRequestStatus } from "../db/schema";
 import { getSessionUser, type SessionUser } from "../auth/session";
-import { HttpError, assertCsrf, clientIp, errorToResponse, guestIdFrom, jsonError, jsonOk, parseJsonBody, requestLocale, withRoute } from "../http";
+import { HttpError, assertCsrf, clientIp, errorToResponse, guestIdFrom, jsonError, jsonOk, parseJsonBody, requestLocale, withRoute, type RouteHandler } from "../http";
 import { maintenanceNotice } from "../settings";
 import { claudeConfigured } from "./claude";
 import { logAiRequest } from "./log";
@@ -66,7 +66,7 @@ export async function buildMeta(req: Request, locale: Locale): Promise<AiMeta> {
   return { user, guestId, subject, ip, locale, claudeAvailable: claudeConfigured() && !maintenance, maintenance };
 }
 
-export function createAiRoute<I extends { context: { locale: Locale } }, O>(handler: AiHandler<I, O>): (req: Request) => Promise<Response> {
+export function createAiRoute<I extends { context: { locale: Locale } }, O>(handler: AiHandler<I, O>): RouteHandler {
   return withRoute(async (req) => {
     assertCsrf(req);
     const input = await parseJsonBody(req, handler.schema, handler.maxBytes ?? 400_000);

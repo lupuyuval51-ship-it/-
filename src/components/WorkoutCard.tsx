@@ -108,7 +108,7 @@ export function WorkoutCard({ workout, href, onClick, primaryAction, secondaryAc
               fullWidth
               href={action.href}
               loading={action.loading}
-              icon={action.icon ?? <Play aria-hidden className="rtl:rotate-180" />}
+              icon={action.icon ?? <Play aria-hidden />}
               onClick={action.onClick ? () => action.onClick?.(workout) : undefined}
             >
               {action.label ?? t("ui.workoutCard.start")}

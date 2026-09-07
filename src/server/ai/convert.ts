@@ -110,10 +110,15 @@ export function metricTypeFor(key: MetricKey): MetricType {
   return "ratio";
 }
 
-/** Metric key inferred from a free-text success metric (throw_accuracy by default). */
-export function inferMetricKey(text: string, phase: PhaseType): MetricKey {
-  const t = text || "";
-  for (const [re, key] of METRIC_RULES) if (re.test(t)) return key;
+/**
+ * Metric key inferred from free text (throw_accuracy by default). Texts are tried in order, so pass the explicit
+ * success-metric sentence first and the drill name as a fallback – a generic word in the name never overrides it.
+ */
+export function inferMetricKey(text: string, phase: PhaseType, ...fallbackTexts: string[]): MetricKey {
+  for (const t of [text, ...fallbackTexts]) {
+    if (!t) continue;
+    for (const [re, key] of METRIC_RULES) if (re.test(t)) return key;
+  }
   if (phase === "warmup" || phase === "cooldown" || phase === "checkin") return "confidence_rating";
   return "throw_accuracy";
 }
@@ -167,7 +172,7 @@ type ClaudeExercise = ClaudeWorkoutOutput["phases"][number]["exercises"][number]
 function customExercise(ex: ClaudeExercise, phase: PhaseType, request: WorkoutRequest, instanceId: string, minutes: number): WorkoutExercise {
   const name = text(ex.exerciseName, 120) || PHASE_NAMES[phase].he;
   const metricText = text(ex.successMetric, 200);
-  const key = inferMetricKey(`${metricText} ${name}`, phase);
+  const key = inferMetricKey(metricText, phase, name);
   const type = metricTypeFor(key);
   const instructions = textList(ex.instructions, 15);
   const attempts = type === "ratio" ? inferAttempts(metricText) ?? 10 : undefined;

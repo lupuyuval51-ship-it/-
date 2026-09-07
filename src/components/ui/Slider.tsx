@@ -64,7 +64,7 @@ export function Slider({ value, onChange, min = 1, max = 5, step = 1, label, lab
         <div className="flex justify-between gap-1" aria-hidden>
           {labels.map((l, i) => (
             <span
-              key={l}
+              key={i}
               className={cn(
                 "flex-1 text-center text-xs leading-tight transition-colors duration-150",
                 i === 0 && "text-start",
