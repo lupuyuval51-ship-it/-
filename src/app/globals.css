@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/* ---------- Self-hosted Heebo (variable weight, Hebrew + Latin) ---------- */
+@font-face {
+  font-family: "Heebo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/heebo-hebrew.woff2") format("woff2");
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: "Heebo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/heebo-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Heebo";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/heebo-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- Runtime palette (light) ---------- */
+:root {
+  --c-bg: #f4f6f4;
+  --c-surface: #ffffff;
+  --c-surface-2: #eaf0ec;
+  --c-surface-3: #dfe7e2;
+  --c-border: #d6ded9;
+  --c-border-strong: #b9c5be;
+  --c-text: #14201a;
+  --c-text-muted: #56665d;
+  --c-text-subtle: #7d8c84;
+  --c-primary: #176b48;
+  --c-primary-strong: #0f5236;
+  --c-primary-fg: #ffffff;
+  --c-primary-soft: #dff0e6;
+  --c-accent: #ea5f16;
+  --c-accent-strong: #c94d0d;
+  --c-accent-fg: #ffffff;
+  --c-accent-soft: #fde8db;
+  --c-success: #1c9a58;
+  --c-success-soft: #dcf3e6;
+  --c-warning: #c47a00;
+  --c-warning-soft: #fbedd0;
+  --c-danger: #cf3a3a;
+  --c-danger-soft: #fbe1e1;
+  --c-info: #2b6cb0;
+  --c-info-soft: #dfeafa;
+  --c-overlay: rgba(10, 20, 14, 0.5);
+  --c-focus: #2b6cb0;
+  --shadow-sm: 0 1px 2px rgba(20, 32, 26, 0.06);
+  --shadow-md: 0 4px 14px rgba(20, 32, 26, 0.08);
+  --text-scale: 1;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --c-bg: #0d1411;
+  --c-surface: #151f1a;
+  --c-surface-2: #1c2823;
+  --c-surface-3: #24332c;
+  --c-border: #2a3a32;
+  --c-border-strong: #3b5045;
+  --c-text: #e9f1ec;
+  --c-text-muted: #9fb0a7;
+  --c-text-subtle: #7c8d84;
+  --c-primary: #3fbf7f;
+  --c-primary-strong: #63d199;
+  --c-primary-fg: #06120c;
+  --c-primary-soft: #173629;
+  --c-accent: #ff8a3d;
+  --c-accent-strong: #ffa063;
+  --c-accent-fg: #1a0d04;
+  --c-accent-soft: #3a2113;
+  --c-success: #38c172;
+  --c-success-soft: #14321f;
+  --c-warning: #f0b429;
+  --c-warning-soft: #3a2c0c;
+  --c-danger: #f26d6d;
+  --c-danger-soft: #3d1717;
+  --c-info: #63a4f0;
+  --c-info-soft: #14283f;
+  --c-overlay: rgba(0, 0, 0, 0.6);
+  --c-focus: #63a4f0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+/* ---------- Tailwind theme tokens (map utilities to runtime vars) ---------- */
+@theme inline {
+  --font-sans: "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
+  --color-border: var(--c-border);
+  --color-border-strong: var(--c-border-strong);
+  --color-text: var(--c-text);
+  --color-muted: var(--c-text-muted);
+  --color-subtle: var(--c-text-subtle);
+  --color-primary: var(--c-primary);
+  --color-primary-strong: var(--c-primary-strong);
+  --color-primary-fg: var(--c-primary-fg);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-accent: var(--c-accent);
+  --color-accent-strong: var(--c-accent-strong);
+  --color-accent-fg: var(--c-accent-fg);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-success: var(--c-success);
+  --color-success-soft: var(--c-success-soft);
+  --color-warning: var(--c-warning);
+  --color-warning-soft: var(--c-warning-soft);
+  --color-danger: var(--c-danger);
+  --color-danger-soft: var(--c-danger-soft);
+  --color-info: var(--c-info);
+  --color-info-soft: var(--c-info-soft);
+  --color-overlay: var(--c-overlay);
+  --color-focus: var(--c-focus);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-raised: var(--shadow-md);
+}
+
+/* ---------- Base ---------- */
+html {
+  font-size: calc(16px * var(--text-scale));
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  min-height: 100dvh;
+}
+
+*:focus-visible {
+  outline: 3px solid var(--c-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+
+/* Prefer logical properties everywhere; these helpers cover the few things Tailwind lacks. */
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+.safe-top { padding-top: max(env(safe-area-inset-top), 0px); }
+.tap { min-height: 44px; min-width: 44px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* ---------- Skeleton shimmer ---------- */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--c-surface-2) 25%, var(--c-surface-3) 50%, var(--c-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ---------- Active-session outdoor mode (high contrast) ---------- */
+.session-hc {
+  --c-bg: #000000;
+  --c-surface: #0b0b0b;
+  --c-surface-2: #1a1a1a;
+  --c-surface-3: #262626;
+  --c-border: #333333;
+  --c-border-strong: #555555;
+  --c-text: #ffffff;
+  --c-text-muted: #d4d4d4;
+  --c-text-subtle: #a3a3a3;
+  --c-primary: #4ade80;
+  --c-primary-strong: #86efac;
+  --c-primary-fg: #001a0a;
+  --c-primary-soft: #0d2b19;
+  --c-accent: #ffd60a;
+  --c-accent-strong: #ffe14d;
+  --c-accent-fg: #1a1400;
+  --c-accent-soft: #2e2800;
+  --c-danger: #ff6b6b;
+  --c-danger-soft: #3a1010;
+  --c-focus: #ffd60a;
+  color-scheme: dark;
+}
+
+/* ---------- Motion ---------- */
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.animate-fade-in { animation: fade-in 180ms ease-out both; }
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+.animate-slide-up { animation: slide-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Recharts text inherits the app font/colour */
+.recharts-text { fill: var(--c-text-muted); font-family: var(--font-sans); }
