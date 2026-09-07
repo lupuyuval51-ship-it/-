@@ -100,10 +100,24 @@ export interface AppState {
 
 type Persisted = Pick<AppState, "auth" | "profile" | "settings" | "activeSession" | "collections" | "syncQueue">;
 
+/** IndexedDB-backed storage with an in-memory fallback (tests, private mode, SSR). */
+const memoryFallback = new Map<string, string>();
+const hasIndexedDb = () => typeof indexedDB !== "undefined";
 const idbStorage = {
-  getItem: async (name: string) => (await idbGet<string>(name)) ?? null,
-  setItem: async (name: string, value: string) => { await idbSet(name, value); },
-  removeItem: async (name: string) => { await idbDel(name); },
+  getItem: async (name: string) => {
+    if (!hasIndexedDb()) return memoryFallback.get(name) ?? null;
+    try { return (await idbGet<string>(name)) ?? null; } catch { return memoryFallback.get(name) ?? null; }
+  },
+  setItem: async (name: string, value: string) => {
+    memoryFallback.set(name, value);
+    if (!hasIndexedDb()) return;
+    try { await idbSet(name, value); } catch { /* storage unavailable – keep the in-memory copy */ }
+  },
+  removeItem: async (name: string) => {
+    memoryFallback.delete(name);
+    if (!hasIndexedDb()) return;
+    try { await idbDel(name); } catch { /* ignore */ }
+  },
 };
 
 function key(collection: string, id: string) {
