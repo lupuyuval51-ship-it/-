@@ -84,14 +84,18 @@ const en = {
 };
 
 export const LANGS = { he, en };
-export let lang = 'he';
-export let T = he;
+// T and L are mutated in place rather than reassigned, so every module keeps a live view
+// of the current language (and the single-file bundle keeps working).
+export const T = {};
+export const L = { code: 'he' };
 export function setLang(code) {
-  lang = LANGS[code] ? code : 'he';
-  T = LANGS[lang];
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
-  try { localStorage.setItem('neoncoast.lang', lang); } catch {}
+  const c = LANGS[code] ? code : 'he';
+  L.code = c;
+  for (const k of Object.keys(T)) delete T[k];
+  Object.assign(T, LANGS[c]);
+  document.documentElement.lang = c;
+  document.documentElement.dir = c === 'he' ? 'rtl' : 'ltr';
+  try { localStorage.setItem('neoncoast.lang', c); } catch {}
 }
 export function initLang() {
   let code = 'he';

@@ -14,7 +14,7 @@ import { Pickups } from './combat.js';
 import { Player } from './player.js';
 import { Vehicle, collideVehicles } from './vehicle.js';
 import { Ped } from './peds.js';
-import { T, lang } from './i18n.js';
+import { T, L } from './i18n.js';
 import { mulberry, dist, clamp, pick } from './utils.js';
 import { CAR_COLORS, OUTFITS } from './config.js';
 import { Post } from './post.js';
@@ -33,7 +33,7 @@ const _tmp = [];
 export class Game {
   constructor(canvas) {
     this.canvas = canvas; let saved = {}; try { saved = JSON.parse(localStorage.getItem(SET_KEY) || '{}'); } catch {}
-    this.settings = Object.assign({ quality: 'high', volume: 0.8, sensitivity: 1, lang }, saved);
+    this.settings = Object.assign({ quality: 'high', volume: 0.8, sensitivity: 1, lang: L.code }, saved);
     const q = this.settings.quality;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: q !== 'low', powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace; this.renderer.toneMapping = THREE.NoToneMapping; this.renderer.shadowMap.enabled = q !== 'low'; this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;

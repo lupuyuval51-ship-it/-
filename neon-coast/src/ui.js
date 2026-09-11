@@ -1,5 +1,5 @@
 import { WEAPONS, VEHICLES, OUTFITS } from './config.js';
-import { T, lang, setLang, LANGS } from './i18n.js';
+import { T, L, setLang, LANGS } from './i18n.js';
 import { fmtMoney, fmtTime } from './utils.js';
 import { ICONS } from './icons.js';
 
@@ -21,7 +21,7 @@ export class UI {
     $('legend').innerHTML = T.ui.legendItems.map(([dot, name, c]) => `<li><i style="background:${c}"></i>${name}</li>`).join('');
     $('selQuality').innerHTML = `<option value="low">${T.qLow}</option><option value="med">${T.qMed}</option><option value="high">${T.qHigh}</option>`; $('selQuality').value = this.g.settings.quality;
     $('rangeVolume').value = this.g.settings.volume; $('rangeSens').value = this.g.settings.sensitivity;
-    for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('on', b.dataset.lang === lang);
+    for (const b of document.querySelectorAll('[data-lang]')) b.classList.toggle('on', b.dataset.lang === L.code);
     $('btnContinue').disabled = !this.g.hasSave();
     if (this.open === 'shop' && this.shopType) this.openShop(this.shopType, this.shopLabel); if (this.open === 'pause') this.renderStats();
   }
