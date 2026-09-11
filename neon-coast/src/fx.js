@@ -1,0 +1,69 @@
+import * as THREE from '../vendor/three.module.min.js';
+import { particleTex } from './textures.js';
+
+class ParticlePool {
+  constructor(scene, max, additive) {
+    this.max = max; this.n = 0; this.pos = new Float32Array(max * 3); this.col = new Float32Array(max * 3); this.size = new Float32Array(max); this.alpha = new Float32Array(max);
+    this.vel = new Float32Array(max * 3); this.life = new Float32Array(max); this.maxLife = new Float32Array(max); this.grow = new Float32Array(max); this.grav = new Float32Array(max); this.drag = new Float32Array(max); this.a0 = new Float32Array(max);
+    const g = this.geo = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('color', new THREE.BufferAttribute(this.col, 3).setUsage(THREE.DynamicDrawUsage));
+    g.setAttribute('psize', new THREE.BufferAttribute(this.size, 1).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('alpha', new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage));
+    this.mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending, uniforms: { map: { value: particleTex() }, fogColor: { value: new THREE.Color() }, fogNear: { value: 100 }, fogFar: { value: 800 } },
+      vertexShader: `attribute float psize; attribute float alpha; attribute vec3 color; varying vec3 vC; varying float vA; varying float vF; uniform float fogNear,fogFar;
+        void main(){ vC=color; vA=alpha; vec4 mv=modelViewMatrix*vec4(position,1.0); gl_PointSize=psize*(420.0/max(1.0,-mv.z)); vF=smoothstep(fogNear,fogFar,-mv.z); gl_Position=projectionMatrix*mv; }`,
+      fragmentShader: `uniform sampler2D map; uniform vec3 fogColor; varying vec3 vC; varying float vA; varying float vF; void main(){ vec4 t=texture2D(map,gl_PointCoord); gl_FragColor=vec4(mix(vC,${additive ? 'vec3(0.0)' : 'fogColor'},vF*0.8),t.a*vA*(1.0-vF*${additive ? '1.0' : '0.5'})); }` });
+    this.points = new THREE.Points(g, this.mat); this.points.frustumCulled = false; scene.add(this.points); g.setDrawRange(0, 0);
+  }
+  emit(x, y, z, vx, vy, vz, life, size, r, g, b, alpha, opts = {}) {
+    let i; if (this.n < this.max) i = this.n++; else i = Math.floor(Math.random() * this.max);
+    this.pos[i * 3] = x; this.pos[i * 3 + 1] = y; this.pos[i * 3 + 2] = z; this.vel[i * 3] = vx; this.vel[i * 3 + 1] = vy; this.vel[i * 3 + 2] = vz;
+    this.life[i] = this.maxLife[i] = life; this.size[i] = size; this.col[i * 3] = r; this.col[i * 3 + 1] = g; this.col[i * 3 + 2] = b; this.alpha[i] = this.a0[i] = alpha; this.grow[i] = opts.grow || 0; this.grav[i] = opts.grav ?? 0; this.drag[i] = opts.drag ?? 0;
+  }
+  update(dt) {
+    const n = this.n; let w = 0;
+    for (let i = 0; i < n; i++) {
+      const l = this.life[i] - dt; if (l <= 0) continue;
+      if (w !== i) { for (let k = 0; k < 3; k++) { this.pos[w * 3 + k] = this.pos[i * 3 + k]; this.vel[w * 3 + k] = this.vel[i * 3 + k]; this.col[w * 3 + k] = this.col[i * 3 + k]; } this.maxLife[w] = this.maxLife[i]; this.size[w] = this.size[i]; this.a0[w] = this.a0[i]; this.grow[w] = this.grow[i]; this.grav[w] = this.grav[i]; this.drag[w] = this.drag[i]; }
+      this.life[w] = l; const d = 1 - this.drag[w] * dt; this.vel[w * 3] *= d; this.vel[w * 3 + 2] *= d; this.vel[w * 3 + 1] = this.vel[w * 3 + 1] * d - this.grav[w] * dt;
+      this.pos[w * 3] += this.vel[w * 3] * dt; this.pos[w * 3 + 1] += this.vel[w * 3 + 1] * dt; this.pos[w * 3 + 2] += this.vel[w * 3 + 2] * dt; if (this.pos[w * 3 + 1] < 0.05 && this.grav[w] > 0) { this.pos[w * 3 + 1] = 0.05; this.vel[w * 3 + 1] = 0; }
+      this.size[w] += this.grow[w] * dt; const f = l / this.maxLife[w]; this.alpha[w] = this.a0[w] * (f < 0.5 ? f * 2 : 1);
+      w++;
+    }
+    this.n = w; const g = this.geo; g.attributes.position.needsUpdate = g.attributes.color.needsUpdate = g.attributes.psize.needsUpdate = g.attributes.alpha.needsUpdate = true; g.setDrawRange(0, w);
+  }
+}
+
+export class Effects {
+  constructor(scene) {
+    this.scene = scene; this.add = new ParticlePool(scene, 1800, true); this.norm = new ParticlePool(scene, 1800, false);
+    this.flash = new THREE.PointLight(0xffc070, 0, 40, 2); scene.add(this.flash); this.flashT = 0;
+    this.boom = new THREE.PointLight(0xff8030, 0, 90, 2); scene.add(this.boom); this.boomT = 0;
+    const tp = new Float32Array(64 * 6); this.tracerPos = tp; const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.BufferAttribute(tp, 3).setUsage(THREE.DynamicDrawUsage)); this.tracerLife = new Float32Array(64);
+    this.tracers = new THREE.LineSegments(tg, new THREE.LineBasicMaterial({ color: 0xfff0b0, transparent: true, opacity: 0.85 })); this.tracers.frustumCulled = false; scene.add(this.tracers); tg.setDrawRange(0, 0);
+    this.fires = []; this.marks = [];
+  }
+  setFog(color, near, far) { for (const p of [this.add, this.norm]) { p.mat.uniforms.fogColor.value.copy(color); p.mat.uniforms.fogNear.value = near; p.mat.uniforms.fogFar.value = far; } }
+  sparks(x, y, z, n = 8, speed = 6) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, e = Math.random() * 2 - 0.5, s = speed * (0.4 + Math.random()); this.add.emit(x, y, z, Math.cos(a) * s, e * s * 0.6 + 2, Math.sin(a) * s, 0.25 + Math.random() * 0.3, 0.5 + Math.random() * 0.5, 1, 0.8, 0.4, 1, { grav: 14, drag: 1 }); } }
+  dust(x, y, z, n = 6, r = 0.6, g = 0.55, b = 0.5) { for (let i = 0; i < n; i++) this.norm.emit(x + (Math.random() - 0.5) * 0.6, y, z + (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 2, 0.8 + Math.random(), (Math.random() - 0.5) * 2, 0.6 + Math.random() * 0.6, 1.2, r, g, b, 0.45, { grow: 2.5, drag: 2 }); }
+  blood(x, y, z, n = 10) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 3; this.norm.emit(x, y, z, Math.cos(a) * s, Math.random() * 3, Math.sin(a) * s, 0.3 + Math.random() * 0.4, 0.35 + Math.random() * 0.3, 0.55, 0.05, 0.05, 0.9, { grav: 12 }); } }
+  smoke(x, y, z, n = 2, dark = 0.35, size = 1.2) { for (let i = 0; i < n; i++) this.norm.emit(x + (Math.random() - 0.5) * 0.8, y, z + (Math.random() - 0.5) * 0.8, (Math.random() - 0.5) * 1.2, 1.5 + Math.random() * 1.5, (Math.random() - 0.5) * 1.2, 1.4 + Math.random() * 1.6, size, dark, dark, dark, 0.5, { grow: 2.2, drag: 0.8 }); }
+  fire(x, y, z, n = 3, big = 1) { for (let i = 0; i < n; i++) { const k = Math.random(); this.add.emit(x + (Math.random() - 0.5) * 1.2 * big, y, z + (Math.random() - 0.5) * 1.2 * big, (Math.random() - 0.5), 2 + Math.random() * 2.5, (Math.random() - 0.5), 0.35 + Math.random() * 0.45, (1.2 + Math.random()) * big, 1, 0.35 + k * 0.4, 0.05, 0.8, { grow: -1.2, drag: 1 }); } }
+  muzzle(x, y, z, dx, dy, dz) { this.flash.position.set(x, y, z); this.flash.intensity = 60; this.flashT = 0.05; for (let i = 0; i < 4; i++) this.add.emit(x + dx * 0.3, y + dy * 0.3, z + dz * 0.3, dx * 6 + (Math.random() - 0.5) * 3, dy * 6 + Math.random() * 2, dz * 6 + (Math.random() - 0.5) * 3, 0.08, 0.9, 1, 0.85, 0.5, 1); }
+  tracer(x0, y0, z0, x1, y1, z1) { let i = 0; for (; i < 64; i++) if (this.tracerLife[i] <= 0) break; if (i === 64) i = 0; const p = this.tracerPos; p[i * 6] = x0; p[i * 6 + 1] = y0; p[i * 6 + 2] = z0; p[i * 6 + 3] = x1; p[i * 6 + 4] = y1; p[i * 6 + 5] = z1; this.tracerLife[i] = 0.06; }
+  explosion(x, y, z) {
+    this.boom.position.set(x, y + 1.5, z); this.boom.intensity = 900; this.boomT = 0.5;
+    for (let i = 0; i < 70; i++) { const a = Math.random() * 6.28, e = Math.random() * Math.PI / 2, s = 4 + Math.random() * 11; this.add.emit(x, y + 0.5, z, Math.cos(a) * Math.cos(e) * s, Math.sin(e) * s + 3, Math.sin(a) * Math.cos(e) * s, 0.6 + Math.random() * 0.9, 2.5 + Math.random() * 3, 1, 0.45 + Math.random() * 0.35, 0.08, 0.9, { drag: 2.2, grow: 2 }); }
+    for (let i = 0; i < 50; i++) { const a = Math.random() * 6.28, s = 1 + Math.random() * 5; this.norm.emit(x, y + 1, z, Math.cos(a) * s, 2 + Math.random() * 5, Math.sin(a) * s, 2.5 + Math.random() * 3, 2.5, 0.15, 0.14, 0.13, 0.7, { drag: 1.2, grow: 3 }); }
+    this.sparks(x, y + 1, z, 40, 16);
+    this.fires.push({ x, y: y + 0.6, z, until: performance.now() + 22000, smokeUntil: performance.now() + 40000 });
+  }
+  update(dt) {
+    this.add.update(dt); this.norm.update(dt);
+    if (this.flashT > 0) { this.flashT -= dt; if (this.flashT <= 0) this.flash.intensity = 0; }
+    if (this.boomT > 0) { this.boomT -= dt; this.boom.intensity = Math.max(0, this.boomT / 0.5) * 900; }
+    const now = performance.now(); this.fires = this.fires.filter(f => now < f.smokeUntil);
+    for (const f of this.fires) { if (now < f.until) { this.fire(f.x, f.y, f.z, 2, 1.4); if (Math.random() < 0.5) this.smoke(f.x, f.y + 1.5, f.z, 1, 0.12, 1.8); } else if (Math.random() < 0.25) this.smoke(f.x, f.y + 1, f.z, 1, 0.2, 1.5); }
+    let any = false; for (let i = 0; i < 64; i++) if (this.tracerLife[i] > 0) { this.tracerLife[i] -= dt; if (this.tracerLife[i] <= 0) { const p = this.tracerPos; p[i * 6 + 3] = p[i * 6]; p[i * 6 + 4] = p[i * 6 + 1]; p[i * 6 + 5] = p[i * 6 + 2]; } any = true; }
+    this.tracers.geometry.attributes.position.needsUpdate = true; this.tracers.geometry.setDrawRange(0, any ? 128 : 0);
+  }
+}
