@@ -99,3 +99,32 @@ export const particleTex = () => memo('particle', () => canvasTex(64, 64, (ctx, 
 export const crossTex = () => memo('cross', () => canvasTex(128, 128, (ctx, w, h) => {
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#e0312f'; ctx.fillRect(w * 0.4, h * 0.15, w * 0.2, h * 0.7); ctx.fillRect(w * 0.15, h * 0.4, w * 0.7, h * 0.2);
 }, { clamp: true }));
+
+// Ground-floor storefront band: big shop windows, pillars, a door and a striped awning. 1 tile = 6 m x 4.4 m
+export const AWNINGS = ['#ff4fa3', '#3ce8f5', '#ffd34e', '#ff9a3c', '#7cff8a'];
+export function storefrontTextures(variant) {
+  return memo('store' + variant, () => {
+    const W = 384, H = 256; const awn = AWNINGS[variant % AWNINGS.length];
+    const draw = emissive => (ctx) => {
+      ctx.fillStyle = emissive ? '#000' : '#2a2530'; ctx.fillRect(0, 0, W, H);
+      // windows
+      for (let i = 0; i < 3; i++) { const x = 16 + i * 124, y = 62, w = 100, h = 150; if (i === 2) { // door
+          if (!emissive) { ctx.fillStyle = '#3a3340'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#7fb3d8'; ctx.fillRect(x + 12, y + 10, w - 24, h - 40); ctx.fillStyle = '#d0c090'; ctx.fillRect(x + w - 22, y + h / 2, 6, 6); } else { ctx.fillStyle = '#5a6a80'; ctx.fillRect(x + 12, y + 10, w - 24, h - 40); } continue; }
+        if (!emissive) { ctx.fillStyle = '#3a3340'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8); const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, '#9fd2ee'); g.addColorStop(0.45, '#4d8bb0'); g.addColorStop(0.5, '#6aa6cc'); g.addColorStop(1, '#264a66'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h); ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(x + 8, y + 8, 3, h - 16); ctx.fillStyle = '#2a2530'; ctx.fillRect(x, y + h - 30, w, 4); }
+        else { ctx.fillStyle = '#ffd9a0'; ctx.fillRect(x, y, w, h); ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(x, y + h * 0.55, w, h * 0.45); }
+      }
+      // awning stripes
+      for (let x = 0; x < W; x += 24) { ctx.fillStyle = emissive ? '#000' : (Math.floor(x / 24) % 2 ? awn : '#f4f1ea'); ctx.fillRect(x, 20, 24, 36); }
+      if (!emissive) { ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, 50, W, 8); ctx.fillStyle = '#1e1a24'; ctx.fillRect(0, 0, W, 20); ctx.fillStyle = '#4a4452'; ctx.fillRect(0, H - 14, W, 14); }
+    };
+    return { map: canvasTex(W, H, draw(false)), emissiveMap: canvasTex(W, H, draw(true)) };
+  });
+}
+export const shadowTex = () => memo('shadow', () => canvasTex(64, 4, (ctx, w, h) => { const g = ctx.createLinearGradient(0, 0, w, 0); g.addColorStop(0, 'rgba(255,255,255,0.7)'); g.addColorStop(0.35, 'rgba(255,255,255,0.28)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); }, { clamp: true }));
+export const cloudTex = () => memo('cloud', () => canvasTex(512, 512, (ctx, w, h) => {
+  const rng = mulberry(99); const img = ctx.createImageData(w, h); const d = img.data; const noise = new Float32Array(w * h);
+  for (let oct = 0; oct < 5; oct++) { const s = 8 << oct, amp = 1 / (oct + 1); const grid = []; const n = s + 1; for (let i = 0; i < n * n; i++) grid.push(rng());
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const fx = x / w * s, fy = y / h * s, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0; const sm = t => t * t * (3 - 2 * t); const g = (i, j) => grid[(j % s) * n + (i % s)]; const v = (g(x0, y0) * (1 - sm(tx)) + g(x0 + 1, y0) * sm(tx)) * (1 - sm(ty)) + (g(x0, y0 + 1) * (1 - sm(tx)) + g(x0 + 1, y0 + 1) * sm(tx)) * sm(ty); noise[y * w + x] += v * amp; } }
+  for (let i = 0; i < w * h; i++) { const v = noise[i] / 2.28; const a = Math.max(0, Math.min(1, (v - 0.52) * 3.2)); d[i * 4] = 255; d[i * 4 + 1] = 255; d[i * 4 + 2] = 255; d[i * 4 + 3] = a * 255; }
+  ctx.putImageData(img, 0, 0);
+}));

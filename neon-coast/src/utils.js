@@ -49,6 +49,7 @@ export class GeoBuilder {
     const c = Math.cos(angle), s = Math.sin(angle), fx = c * len / 2, fz = -s * len / 2, rx = s * wid / 2, rz = c * wid / 2;
     this.quad([cx - fx - rx, y, cz - fz - rz], [cx + fx - rx, y, cz + fz - rz], [cx + fx + rx, y, cz + fz + rz], [cx - fx + rx, y, cz - fz + rz], [0, 1, 0], null, color);
   }
+  tri(a, b, c, n = [0, 1, 0], color) { for (const P of [a, b, c]) { this.pos.push(P[0], P[1], P[2]); this.nor.push(n[0], n[1], n[2]); this.uv.push(0, 0); if (color) { this.hasColor = true; this.col.push(color.r, color.g, color.b); } } }
   build() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));

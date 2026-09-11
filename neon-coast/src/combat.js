@@ -63,3 +63,20 @@ export class Pickups {
     p.onCollect?.(p); this.remove(p);
   }
 }
+
+// ---------------- thrown grenades ----------------
+const _g = [];
+export class Grenades {
+  constructor(game) { this.game = game; this.list = []; this.geo = new THREE.SphereGeometry(0.14, 8, 6); this.mat = new THREE.MeshStandardMaterial({ color: 0x2f4a2a, roughness: 0.55, metalness: 0.35 }); }
+  throw(x, y, z, dx, dy, dz, speed, source = 'player') { const m = new THREE.Mesh(this.geo, this.mat); m.castShadow = true; m.position.set(x, y, z); this.game.scene.add(m); this.list.push({ x, y, z, vx: dx * speed, vy: dy * speed, vz: dz * speed, t: 2.4, mesh: m, source }); }
+  update(dt) {
+    const G = this.game;
+    for (let i = this.list.length - 1; i >= 0; i--) {
+      const g = this.list[i]; g.t -= dt; g.vy -= 14 * dt; let nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, nz = g.z + g.vz * dt;
+      if (ny < 0.14) { ny = 0.14; g.vy = -g.vy * 0.4; g.vx *= 0.75; g.vz *= 0.75; }
+      const h = G.grid.circleHit(nx, nz, 0.16, _g); if (h) { nx += h.nx * h.depth; nz += h.nz * h.depth; const vn = g.vx * h.nx + g.vz * h.nz; if (vn < 0) { g.vx -= 1.6 * vn * h.nx; g.vz -= 1.6 * vn * h.nz; } }
+      g.x = nx; g.y = ny; g.z = nz; g.mesh.position.set(nx, ny, nz); g.mesh.rotation.x += dt * 8;
+      if (g.t <= 0) { G.scene.remove(g.mesh); this.list.splice(i, 1); G.explode(g.x, Math.max(0.2, g.y - 0.2), g.z, g.source); }
+    }
+  }
+}

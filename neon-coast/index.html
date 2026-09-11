@@ -18,7 +18,7 @@
       <div class="money-wrap"><div id="money" class="money">$0</div><div id="moneyDelta" class="money-delta"></div></div>
       <div id="stars" class="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
       <div id="evade" class="evade"><i></i></div>
-      <div class="weapon"><span id="weaponName"></span><b id="ammo"></b></div>
+      <div class="weapon"><svg id="weaponIcon" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><path d="" fill="currentColor" fill-rule="evenodd"/></svg><span id="weaponName"></span><b id="ammo"></b></div>
       <div id="clock" class="clock">14:00</div>
     </div>
     <div id="notify" class="notify"></div>
@@ -34,6 +34,7 @@
     <div id="objective" class="objective"></div>
     <div id="subtitle" class="subtitle"></div>
     <div id="crosshair" class="crosshair"></div>
+    <div id="scope" class="scope"><i></i><i></i></div>
     <div id="hurt" class="hurt"></div>
     <div id="missionResult" class="mission-result"><div class="title"></div><div class="sub"></div></div>
     <div id="overlay" class="overlay"><div class="big"></div><div class="sub"></div></div>
@@ -99,6 +100,8 @@
       <button data-btn="weapon">⇄</button><button data-btn="aim">◎</button><button data-btn="fire">●</button>
       <button data-btn="map">M</button><button data-btn="jump">⤒</button><button data-btn="run">»</button>
       <button data-btn="pause">II</button><button data-btn="enter">E</button><button data-btn="brake">▼</button>
+    </div>
+    <div class="tbtns2"><button data-btn="vig">V</button>
     </div>
     <button class="tside" data-btn="radio">♪</button><button class="tside second" data-btn="horn">H</button>
   </div>

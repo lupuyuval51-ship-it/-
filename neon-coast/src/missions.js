@@ -2,6 +2,7 @@ import * as THREE from '../vendor/three.module.min.js';
 import { Vehicle } from './vehicle.js';
 import { Ped } from './peds.js';
 import { LOOKS } from './character.js';
+import { acquireLane } from './traffic.js';
 import { CITY } from './config.js';
 import { dist, fmtMoney } from './utils.js';
 import { T } from './i18n.js';
@@ -11,10 +12,11 @@ const markerGeo = new THREE.CylinderGeometry(1.7, 1.7, 1.4, 28, 1, true); const 
 const HALF = CITY.road / 2;
 
 export class Missions {
-  constructor(game) { this.game = game; this.completed = new Set(); this.active = null; this.waiters = []; this.givers = []; this.objMarkers = []; this.timer = null; this.taxiRuns = 0; }
+  constructor(game) { this.game = game; this.completed = new Set(); this.active = null; this.waiters = []; this.givers = []; this.objMarkers = []; this.timer = null; this.taxiRuns = 0; this.raceRoute = 0; this.contracts = 0; this.vigLevel = 0; }
   init() {
     const P = this.game.world.pois; const mk = (id, poi) => { const m = this.makeMarker(poi.x, poi.z, 0xffd34e, false); m.mesh.visible = false; this.givers.push({ id, x: poi.x, z: poi.z, marker: m }); };
     mk('ricky', P.ricky); mk('lior', P.club); mk('dana', P.dana); mk('taxi', P.taxi);
+    const fx = this.makeMarker(P.fixer.x, P.fixer.z, 0xe0e0e0, false, P.fixer.y); fx.mesh.visible = false; this.givers.push({ id: 'fixer', x: P.fixer.x, z: P.fixer.z, marker: fx });
   }
   makeMarker(x, z, color, beam = true, y = 0) {
     const g = new THREE.Group(); g.position.set(x, y, z);
@@ -26,30 +28,31 @@ export class Missions {
     const c = this.completed;
     if (id === 'ricky') return !c.has('intro') ? 'intro' : !c.has('cleanup') ? 'cleanup' : null;
     if (id === 'lior') return !c.has('intro') ? null : !c.has('repo') ? 'repo' : !c.has('packages') ? 'packages' : (c.has('cleanup') && c.has('pursuit') && !c.has('heist')) ? 'heist' : null;
-    if (id === 'dana') return !c.has('intro') ? null : !c.has('race') ? 'race' : !c.has('pursuit') ? 'pursuit' : null;
+    if (id === 'dana') return !c.has('intro') ? null : !c.has('race') ? 'race' : !c.has('pursuit') ? 'pursuit' : 'race';
+    if (id === 'fixer') return c.has('intro') ? 'contract' : null;
     if (id === 'taxi') return c.has('intro') ? 'taxi' : null;
     return null;
   }
   get blips() { const out = []; if (!this.active) for (const g of this.givers) if (this.nextFor(g.id)) out.push({ x: g.x, z: g.z, color: '#ffd34e', kind: 'mission' }); for (const m of this.objMarkers) out.push({ x: m.x, z: m.z, color: m.color, kind: 'objective' }); return out; }
   update(dt) {
-    const G = this.game, P = G.player, t = G.time; for (const m of this.objMarkers) { m.mesh.children[0].rotation.y += dt; m.mesh.children[0].scale.setScalar(1 + Math.sin(t * 4) * 0.06); }
+    const G = this.game, P = G.player, t = G.time; for (const m of this.objMarkers) { m.mesh.children[0].rotation.y += dt; m.mesh.children[0].scale.setScalar(1 + Math.sin(t * 4) * 0.06); if (m.follow) { m.x = m.follow.x; m.z = m.follow.z; m.mesh.position.x = m.follow.x; m.mesh.position.z = m.follow.z; } }
     if (this.active) {
       if (this.timer) { const left = this.timer.end - t; G.hud.setTimer(Math.max(0, left), this.timer.label); }
-      for (let i = this.waiters.length - 1; i >= 0; i--) { const w = this.waiters[i]; if (this.active.aborted) { this.waiters.splice(i, 1); w.reject(new Abort()); continue; } let ok = false; try { ok = w.fn(); } catch (e) { console.error(e); } if (ok) { this.waiters.splice(i, 1); w.resolve(); } }
+      for (let i = this.waiters.length - 1; i >= 0; i--) { const w = this.waiters[i]; if (this.active.aborted) { this.waiters.splice(i, 1); w.reject(new Abort()); continue; } let ok = false; try { ok = w.fn(); } catch (e) { if (e instanceof Abort) { this.waiters.splice(i, 1); w.reject(e); continue; } console.error(e); } if (ok) { this.waiters.splice(i, 1); w.resolve(); } }
       for (const g of this.givers) g.marker.mesh.visible = false; return;
     }
     let near = null;
     for (const g of this.givers) { const id = this.nextFor(g.id); g.marker.mesh.visible = !!id; g.marker.mesh.children[0].rotation.y += dt * 0.8; if (id && dist(g.x, g.z, P.x, P.z) < 2.6) near = { g, id }; }
-    G.missionPrompt = near ? `${T.pressStart}: ${T.m[near.id].name}` : null;
+    G.missionPrompt = near ? `${T.pressStart}: ${this.name(near.id)}` : null;
     if (near && (G.input.once('KeyE') || G.input.once('KeyF') || G.input.btnOnce('enter'))) this.start(near.id);
   }
   // ---------- runner ----------
   start(id) {
-    const G = this.game; this.active = { id, aborted: false, cleanup: [] }; G.hud.missionTitle(T.m[id].name); G.audio.duck(0.4);
+    const G = this.game; this.active = { id, aborted: false, cleanup: [] }; G.hud.missionTitle(this.name(id)); G.audio.duck(0.4);
     const ctx = this.ctx(); this['m_' + id](ctx).then(() => this.finish(id)).catch(e => { if (e instanceof Abort) { if ('failText' in e && this.active) this.fail(e.failText); } else { console.error(e); this.fail(); } });
   }
-  finish(id) { const G = this.game; this.completed.add(id); this.runCleanup(); const m = T.m[id]; G.hud.missionResult(true, T.missionPassed, m.name); G.audio.passed(); G.audio.duck(1); this.active = null; G.saveGame(true); }
-  fail(text) { const G = this.game; if (!this.active) return; this.active.aborted = true; const id = this.active.id; this.runCleanup(); G.hud.missionResult(false, T.missionFailed, text || T.m[id].fail || T.m[id].name); G.audio.failed(); G.audio.duck(1); this.active = null; }
+  finish(id) { const G = this.game; if (id === 'vigilante') { this.runCleanup(); G.hud.missionResult(true, T.vigilanteEnd, `${T.vigilanteDone} ${this.vigLevel}`); G.audio.passed(); G.audio.duck(1); this.active = null; return; } this.completed.add(id); this.runCleanup(); G.hud.missionResult(true, T.missionPassed, this.name(id)); G.audio.passed(); G.audio.duck(1); this.active = null; G.saveGame(true); }
+  fail(text) { const G = this.game; if (!this.active) return; this.active.aborted = true; const id = this.active.id; this.runCleanup(); const m = T.m[id] || T[id] || {}; G.hud.missionResult(false, T.missionFailed, text || m.fail || this.name(id)); G.audio.failed(); G.audio.duck(1); this.active = null; }
   runCleanup() { const a = this.active; for (const f of a.cleanup) { try { f(); } catch (e) { console.error(e); } } this.clearMarkers(); this.timer = null; this.game.hud.clearTimer(); this.game.hud.setObjective(null); this.game.hud.subtitle(null); this.waiters.length = 0; }
   clearMarkers() { for (const m of this.objMarkers) this.game.scene.remove(m.mesh); this.objMarkers = []; }
   ctx() {
@@ -70,6 +73,8 @@ export class Missions {
       wanted: n => G.police.setLevel(n), fail: text => { throw Object.assign(new Abort(), { failText: text ?? null }); },
     };
   }
+  name(id) { const m = T.m[id] || T[id]; return typeof m === 'string' ? m : (m?.name || id); }
+  startVigilante() { if (this.active) return; this.vigLevel = 0; this.start('vigilante'); }
   laneSpot(bi, bj) { return { x: CITY.roadX(bi) + 26, z: CITY.roadZ(bj) + 5.25, heading: 0 }; }
   // ---------- mission scripts ----------
   async m_intro(c) {
@@ -92,11 +97,12 @@ export class Missions {
   }
   async m_race(c) {
     const m = T.m.race, W = this.game.world, P = c.P; await c.say(m.lines);
-    const cps = [[8, 2], [6, 2], [6, 4], [4, 4], [4, 6], [2, 6], [2, 3], [5, 3]].map(([i, j]) => ({ x: CITY.roadX(i), z: CITY.roadZ(j) }));
+    const ROUTES = [[[8, 2], [6, 2], [6, 4], [4, 4], [4, 6], [2, 6], [2, 3], [5, 3]], [[8, 3], [9, 5], [7, 7], [4, 7], [3, 5], [1, 5], [1, 2], [3, 2]], [[7, 1], [10, 1], [10, 6], [8, 6], [6, 5], [5, 2], [3, 1], [1, 1]]];
+    const route = ROUTES[this.raceRoute % ROUTES.length]; this.raceRoute++; const cps = route.map(([i, j]) => ({ x: CITY.roadX(i), z: CITY.roadZ(j) })); const repeat = this.completed.has('race');
     if (!P.vehicle) { const car = c.spawnVehicle('sport', W.pois.dana.x + 14, W.pois.dana.z - 3.25, 0, 0x3ce8f5); c.objective(T.pressEnter, false); await c.waitUntil(() => P.vehicle); }
     c.objective(m.obj1); c.timer(105, T.timeLeft);
     for (let i = 0; i < cps.length; i++) { const cp = cps[i]; c.clearMarkers(); c.marker(cp.x, cp.z, 0x3ce8f5); this.game.hud.setObjective(`${m.obj1} (${i + 1}/${cps.length})`); await c.waitUntil(() => c.timedOut() || (P.vehicle && dist(P.x, P.z, cp.x, cp.z) < 9)); if (c.timedOut()) c.fail(m.fail); this.game.audio.pickup(); }
-    c.stopTimer(); c.clearMarkers(); await c.say([m.done]); c.reward(3000);
+    c.stopTimer(); c.clearMarkers(); await c.say([m.done]); c.reward(repeat ? 1500 : 3000);
   }
   async m_repo(c) {
     const m = T.m.repo, W = this.game.world, G = this.game, P = c.P; await c.say(m.lines);
@@ -138,6 +144,28 @@ export class Missions {
     c.stopTimer(); c.clearMarkers(); c.wanted(4); const dk = W.pois.docks; c.marker(dk.x, dk.z, 0xffd34e, dk.y); c.objective(m.obj3);
     await c.reach(dk.x, dk.z, 9); c.clearMarkers(); await c.waitUntil(() => G.police.level === 0); await c.say([m.done]); c.reward(25000); G.hud.notify(T.m.heist.done, 'cash', 8);
   }
-  save() { return { completed: [...this.completed], taxiRuns: this.taxiRuns }; }
-  load(s) { this.completed = new Set(s.completed || []); this.taxiRuns = s.taxiRuns || 0; }
+  async m_contract(c) {
+    const m = T.contract, G = this.game, W = G.world, P = c.P; await c.say(m.lines);
+    let pt; for (let i = 0; i < 50; i++) { pt = W.randomSidewalkPoint(); const d = dist(pt.x, pt.z, P.x, P.z); if (d > 220 && d < 480) break; }
+    const target = c.spawnPed({ kind: 'civ', look: LOOKS.target, x: pt.x, z: pt.z, vip: true, hp: 120 });
+    const guards = [0, 1].map(i => c.spawnPed({ kind: 'armed', team: 'gang', look: LOOKS.bodyguard, x: pt.x + (i ? 2 : -2), z: pt.z + 1, hp: 110, weapon: i ? 'smg' : 'pistol', accuracy: 0.5, aggroRange: 26 }));
+    const mk = c.marker(pt.x, pt.z, 0xff5a5a); mk.follow = target; c.objective(m.obj1); c.timer(180, T.timeLeft);
+    await c.waitUntil(() => c.timedOut() || target.dead); if (!target.dead) c.fail(m.fail);
+    c.stopTimer(); c.clearMarkers(); for (const g of guards) if (!g.dead) g.hostile = false; this.contracts++; await c.say([m.done]); c.reward(2500 + 500 * (this.contracts - 1));
+  }
+  async m_vigilante(c) {
+    const G = this.game, W = G.world, P = c.P; const car = P.vehicle; let lastIn = G.time;
+    const leftCar = () => { if (P.vehicle === car) lastIn = G.time; return G.time - lastIn > 15; };
+    while (true) {
+      let p; for (let i = 0; i < 40; i++) { p = W.randomLanePoint(); const d = dist(p.x, p.z, P.x, P.z); if (d > 110 && d < 230) break; }
+      const type = ['sedan', 'sport', 'muscle', 'suv'][Math.floor(Math.random() * 4)]; const v = c.spawnVehicle(type, p.x, p.z, p.heading, 0x9b2335); v.ai = { mode: 'traffic', cruise: 15 + this.vigLevel * 1.5, blocked: 0, panic: 1e9, lane: p.lane }; acquireLane(v, W); v.vx = v.fx * 10; v.vz = v.fz * 10;
+      const mk = c.marker(v.x, v.z, 0xff5a5a); mk.follow = v; c.objective(T.vigilanteObj); c.timer(150, T.timeLeft); let driver = null;
+      await c.waitUntil(() => { if (c.timedOut()) c.fail(T.vigilanteFail); if (leftCar()) return true; if (driver) return driver.dead;
+        if (v.wrecked) return true; if (v.speed < 1.5 && dist(v.x, v.z, P.x, P.z) < 14) { const s = v.seatPosition(1); driver = c.spawnPed({ kind: 'armed', team: 'gang', look: LOOKS.gang, x: s.x, z: s.z, hp: 80, weapon: 'pistol', accuracy: 0.4, hostile: true }); v.ai = null; v.parked = true; mk.follow = driver; } return false; });
+      c.stopTimer(); c.clearMarkers(); if (leftCar()) break;
+      this.vigLevel++; c.reward(400 + 300 * this.vigLevel); G.hud.notify(`${T.vigilanteDone} ${this.vigLevel}`, 'cash'); await c.wait(2);
+    }
+  }
+  save() { return { completed: [...this.completed], taxiRuns: this.taxiRuns, raceRoute: this.raceRoute, contracts: this.contracts }; }
+  load(s) { this.completed = new Set(s.completed || []); this.taxiRuns = s.taxiRuns || 0; this.raceRoute = s.raceRoute || 0; this.contracts = s.contracts || 0; }
 }

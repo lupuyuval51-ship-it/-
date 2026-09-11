@@ -11,7 +11,7 @@ const CARS_PER_LEVEL = [0, 2, 3, 4, 6, 8], COPS_PER_LEVEL = [0, 2, 4, 6, 8, 10];
 export class Police {
   constructor(game) { this.game = game; this.level = 0; this.heat = 0; this.lastSeen = 0; this.spawnT = 0; this.heli = null; this.copSpawnT = 0; this.hidden = false; this.noticeT = 0; }
   get cars() { return this.game.vehicles.filter(v => v.ai && (v.ai.mode === 'police' || v.ai.mode === 'deployed') && !v.wrecked); }
-  get cops() { return this.game.peds.filter(p => (p.team === 'cop' || p.team === 'swat') && !p.dead); }
+  get cops() { return this.game.peds.filter(p => (p.team === 'cop' || p.team === 'swat') && !p.dead && !p.station); }
   copsNear(x, z, r) { for (const v of this.game.vehicles) if (v.type === 'police' && !v.wrecked && dist(v.x, v.z, x, z) < r) return true; for (const p of this.cops) if (dist(p.x, p.z, x, z) < r) return true; return false; }
   reportCrime(type, x, z, extra) {
     const near = this.copsNear(x, z, 75) || this.level > 0;
@@ -33,8 +33,8 @@ export class Police {
     let seen = false; const px = P.x, pz = P.z;
     for (const v of this.cars) { const d = dist(v.x, v.z, px, pz); if (d < 60 || (d < 110 && G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1)) { seen = true; break; } }
     if (!seen) for (const p of this.cops) { const d = dist(p.x, p.z, px, pz); if (d < 45 || (d < 90 && p.hasLOS(px, 1.2, pz))) { seen = true; break; } }
-    if (this.heli) seen = seen || dist(this.heli.group.position.x, this.heli.group.position.z, px, pz) < 70;
-    if (seen) this.lastSeen = t; this.hidden = !seen;
+    if (this.heli && this.heli.hasTrack && dist(this.heli.group.position.x, this.heli.group.position.z, px, pz) < 40) seen = true;
+    if (seen) { this.lastSeen = t; this.lastPos = { x: px, z: pz }; } this.hidden = !seen; if (this.heli) this.heli.hasTrack = seen || (t - this.lastSeen < 6);
     if (t - this.lastSeen > 20) { this.lastSeen = t; this.setLevel(this.level - 1); if (this.level === 0) G.hud.notify(T.evaded); }
     // patrol cars join the pursuit when close
     for (const v of G.vehicles) if (v.ai && v.ai.mode === 'patrol' && dist(v.x, v.z, px, pz) < 90) { v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: v.ai.lane ?? 0 }; acquireLane(v, G.world); v.siren = true; }
@@ -84,16 +84,16 @@ export class Police {
     const spot = new THREE.SpotLight(0xfff4d0, 2500, 90, 0.32, 0.5, 1.2); spot.position.set(1.5, -0.9, 0); g.add(spot); g.add(spot.target);
     const beamGeo = new THREE.ConeGeometry(9, 32, 16, 1, true); beamGeo.translate(0, -16, 0); const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide })); beam.position.set(1.5, -0.9, 0); g.add(beam);
     g.position.set(G.player.x + 40, 34, G.player.z + 40); G.scene.add(g);
-    this.heli = { group: g, rotors: [rotor, rotor2, tr], spot, beam, ang: 0, shootT: 3, x: g.position.x, z: g.position.z, hp: 400 };
+    this.heli = { group: g, rotors: [rotor, rotor2, tr], spot, beam, ang: 0, shootT: 3, x: g.position.x, z: g.position.z, hp: 400, hasTrack: true };
   }
   updateHeli(dt) {
-    const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22;
-    const tx = P.x + Math.cos(h.ang) * R, tz = P.z + Math.sin(h.ang) * R; g.position.x = damp(g.position.x, tx, 1.2, dt); g.position.z = damp(g.position.z, tz, 1.2, dt); g.position.y = damp(g.position.y, 30 + Math.sin(h.ang * 2) * 2, 1, dt);
-    const dx = P.x - g.position.x, dz = P.z - g.position.z; g.rotation.y = Math.atan2(-dz, dx); g.rotation.z = -0.12; for (const r of h.rotors) r.rotation.y += dt * 40;
-    h.spot.target.position.set(dx, 1 - g.position.y, dz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(P.x, 0, P.z); h.beam.rotateX(-Math.PI / 2);
+    const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22; const lp = this.lastPos || { x: P.x, z: P.z }; const fx = h.hasTrack ? P.x : lp.x, fz = h.hasTrack ? P.z : lp.z;
+    const tx = fx + Math.cos(h.ang) * R, tz = fz + Math.sin(h.ang) * R; g.position.x = damp(g.position.x, tx, 1.2, dt); g.position.z = damp(g.position.z, tz, 1.2, dt); g.position.y = damp(g.position.y, 30 + Math.sin(h.ang * 2) * 2, 1, dt);
+    const dx = fx - g.position.x, dz = fz - g.position.z; g.rotation.y = Math.atan2(-dz, dx); g.rotation.z = -0.12; for (const r of h.rotors) r.rotation.y += dt * 40;
+    h.spot.target.position.set(dx, 1 - g.position.y, dz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);
     // gunner
     h.shootT -= dt; const d = Math.hypot(dx, dz);
-    if (this.level >= 5 && h.shootT <= 0 && d < 60) { h.shootT = Math.random() < 0.5 ? 0.12 : 1.8; const hit = Math.random() < (P.vehicle ? 0.22 : 0.3); const tx2 = P.x + (hit ? 0 : (Math.random() - 0.5) * 4), tz2 = P.z + (hit ? 0 : (Math.random() - 0.5) * 4); G.fx.tracer(g.position.x + 1.5, g.position.y - 1, g.position.z, tx2, 0.5, tz2); G.audio.shot('rifle', d); if (hit) { if (P.vehicle) P.vehicle.damage(10, 'gun'); P.damage(P.vehicle ? 4 : 9, g.position.x, g.position.z); } else G.fx.sparks(tx2, 0.2, tz2, 3); }
+    if (this.level >= 5 && h.hasTrack && h.shootT <= 0 && d < 60) { h.shootT = Math.random() < 0.5 ? 0.12 : 1.8; const hit = Math.random() < (P.vehicle ? 0.22 : 0.3); const tx2 = P.x + (hit ? 0 : (Math.random() - 0.5) * 4), tz2 = P.z + (hit ? 0 : (Math.random() - 0.5) * 4); G.fx.tracer(g.position.x + 1.5, g.position.y - 1, g.position.z, tx2, 0.5, tz2); G.audio.shot('rifle', d); if (hit) { if (P.vehicle) P.vehicle.damage(10, 'gun'); P.damage(P.vehicle ? 4 : 9, g.position.x, g.position.z); } else G.fx.sparks(tx2, 0.2, tz2, 3); }
     G.audio.heli(clamp(1 - d / 90, 0.15, 1));
   }
   save() { return { level: this.level }; }

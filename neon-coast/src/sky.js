@@ -74,6 +74,6 @@ export class Sky {
         else if (Math.abs(p[o] - cx) > 40 || Math.abs(p[o + 2] - cz) > 40) { p[o] = cx + (Math.random() - 0.5) * 70; p[o + 2] = cz + (Math.random() - 0.5) * 70; p[o + 3] = p[o]; p[o + 5] = p[o + 2]; } }
       this.rainMesh.geometry.attributes.position.needsUpdate = true;
     }
-    return { night, sunDir: sd, skyColor: this.skyColor, fogColor: this.fogColor, fogNear: near, fogFar: far, rain: r };
+    return { night, sunDir: sd, skyColor: this.skyColor, fogColor: this.fogColor, fogNear: near, fogFar: far, rain: r, top, horizon: hor, sunColor: sunC };
   }
 }

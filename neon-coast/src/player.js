@@ -20,7 +20,7 @@ export class Player {
   // ---------- inventory ----------
   giveWeapon(id, ammo = 0) { if (!this.weapons[id]) { this.weapons[id] = { ammo: 0, clip: 0 }; this.weaponIds.push(id); this.weaponIds.sort((a, b) => WEAPONS.findIndex(w => w.id === a) - WEAPONS.findIndex(w => w.id === b)); } this.giveAmmo(id, ammo); this.select(id); }
   giveAmmo(id, n) { if (!this.weapons[id]) return this.giveWeapon(id, n); const w = this.weapons[id], spec = WEAPONS.find(s => s.id === id); w.ammo += n; if (w.clip === 0 && spec.clip) { const take = Math.min(spec.clip, w.ammo); w.clip = take; w.ammo -= take; } }
-  select(id) { if (!this.weapons[id]) return; this.weapon = WEAPONS.find(w => w.id === id); this.reloadT = 0; this.char.setGun(this.weapon.id !== 'fist', this.weapon.id === 'rifle' || this.weapon.id === 'shotgun'); this.game.audio.click(); }
+  select(id) { if (!this.weapons[id]) return; this.weapon = WEAPONS.find(w => w.id === id); this.reloadT = 0; const w = this.weapon; this.char.setGun(w.id !== 'fist', w.long || w.id === 'rifle' || w.id === 'shotgun' ? 'long' : w.id === 'bat' ? 'bat' : w.thrown ? 'grenade' : 'pistol'); this.game.audio.click(); }
   cycle(dir) { const i = this.weaponIds.indexOf(this.weapon.id); this.select(this.weaponIds[(i + dir + this.weaponIds.length) % this.weaponIds.length]); }
   get ammoState() { return this.weapons[this.weapon.id]; }
   reload() { const w = this.ammoState, s = this.weapon; if (!s.clip || this.reloadT > 0 || w.clip >= s.clip || w.ammo <= 0) return; this.reloadT = 1.2; this.game.hud.notify(T.reload, 'dim', 1); }
@@ -45,18 +45,19 @@ export class Player {
   // ---------- update ----------
   update(dt) {
     const G = this.game, I = G.input, cam = G.camera; if (this.dead) { this.char.animate(dt, { dead: true, deadDir: 1 }); this.mesh.position.set(this.x, this.y, this.z); return; }
-    const m = I.consumeMouse(); const sens = G.settings.sensitivity * 0.0022;
+    const m = I.consumeMouse(); const sens = G.settings.sensitivity * 0.0022 * (this.zoom ? 0.3 : 1);
     this.camYaw -= m.dx * sens; this.camPitch = clamp(this.camPitch + m.dy * sens, -0.6, 1.0); if (Math.abs(m.dx) > 0.5) this.camFree = 1.8;
     this.enterT = Math.max(0, this.enterT - dt); this.hurtT = Math.max(0, this.hurtT - dt); this.sinceHit = (this.sinceHit || 0) + dt; if (this.sinceHit > 6 && this.health < 50) this.health = Math.min(50, this.health + 1.6 * dt); this.fireT = Math.max(0, this.fireT - dt); this.punchT = Math.max(0, this.punchT - dt);
     if (this.reloadT > 0) { this.reloadT -= dt; if (this.reloadT <= 0) { const w = this.ammoState, s = this.weapon; const take = Math.min(s.clip - w.clip, w.ammo); w.clip += take; w.ammo -= take; } }
     // weapon selection
-    for (let k = 1; k <= 5; k++) if (I.once('Digit' + k) && this.weaponIds[k - 1]) this.select(this.weaponIds[k - 1]);
+    for (let k = 1; k <= 9; k++) if (I.once('Digit' + k) && this.weaponIds[k - 1]) this.select(this.weaponIds[k - 1]);
     if (m.wheel) this.cycle(m.wheel > 0 ? 1 : -1); if (I.btnOnce('weapon')) this.cycle(1);
     if (this.vehicle) this.updateDriving(dt, m); else this.updateOnFoot(dt, m);
     this.mesh.position.set(this.x, this.y, this.z);
   }
   updateOnFoot(dt, m) {
     const G = this.game, I = G.input; const ax = I.axis(); this.aiming = (I.mouse.right || I.btn('aim')) && this.weapon.id !== 'fist';
+    this.zoom = this.aiming && !!this.weapon.zoom; G.hud.scope(this.zoom);
     const run = I.key('ShiftLeft') || I.key('ShiftRight') || I.btn('run'); const cy = this.camYaw; const fwdX = Math.sin(cy), fwdZ = Math.cos(cy), rgtX = Math.cos(cy), rgtZ = -Math.sin(cy);
     // camera-relative movement (camera looks along -forward of yaw: we define camYaw so that forward = (sin, cos) points away from the camera)
     let mx = fwdX * ax.y + rgtX * ax.x, mz = fwdZ * ax.y + rgtZ * ax.x; const ml = Math.hypot(mx, mz); if (ml > 1) { mx /= ml; mz /= ml; }
@@ -86,8 +87,9 @@ export class Player {
   }
   fire() {
     const G = this.game, w = this.weapon, st = this.ammoState;
-    if (w.melee) { this.punchT = 0.45; this.fireT = w.rate; this.yaw = this.aiming ? this.yaw : this.yaw; let hit = null, bd = 1.9; for (const p of G.peds) { if (p.dead) continue; const d = dist(p.x, p.z, this.x, this.z); if (d < bd) { const ang = Math.atan2(p.x - this.x, p.z - this.z); if (Math.abs(wrapAngle(ang - this.yaw)) < 1.0) { bd = d; hit = p; } } }
-      G.audio.shot('punch'); if (hit) { const dx = Math.sin(this.yaw), dz = Math.cos(this.yaw); hit.hit(w.dmg, dx, dz, 'player'); hit.x += dx * 0.4; hit.z += dz * 0.4; if (hit.kind === 'civ') G.alert(this.x, this.z, 10, 'fight'); } return; }
+    if (w.thrown) { const total = st.clip + st.ammo; if (total <= 0) { G.hud.notify(T.ammoEmpty, 'dim', 1); this.fireT = 0.3; return; } if (st.clip > 0) st.clip--; else st.ammo--; this.fireT = w.rate; this.punchT = 0.45; const cd = new THREE.Vector3(); G.camera.getWorldDirection(cd); let dx = cd.x, dy = cd.y + 0.38, dz = cd.z; const l = Math.hypot(dx, dy, dz); dx /= l; dy /= l; dz /= l; const gx = this.x + Math.sin(this.yaw) * 0.5, gz = this.z + Math.cos(this.yaw) * 0.5; G.grenades.throw(gx, this.y + 1.5, gz, dx, dy, dz, 15 + Math.max(0, cd.y) * 8, 'player'); G.audio.click(); return; }
+    if (w.melee) { this.punchT = 0.45; this.fireT = w.rate; let hit = null, bd = w.range; for (const p of G.peds) { if (p.dead) continue; const d = dist(p.x, p.z, this.x, this.z); if (d < bd) { const ang = Math.atan2(p.x - this.x, p.z - this.z); if (Math.abs(wrapAngle(ang - this.yaw)) < 1.0) { bd = d; hit = p; } } }
+      G.audio.shot('punch'); if (hit) { const dx = Math.sin(this.yaw), dz = Math.cos(this.yaw); hit.hit(w.dmg, dx, dz, 'player'); hit.x += dx * 0.4; hit.z += dz * 0.4; if (hit.kind === 'civ') G.alert(this.x, this.z, 10, 'fight'); } else { for (const v of G.vehicles) if (!v.wrecked && v.contains(this.x + Math.sin(this.yaw) * 1.2, this.z + Math.cos(this.yaw) * 1.2, 0.3)) { v.damage(w.dmg * 0.4, 'melee'); G.fx.sparks(this.x + Math.sin(this.yaw) * 1.2, 0.8, this.z + Math.cos(this.yaw) * 1.2, 4, 3); if (v.ai) v.ai.panic = 6; break; } } return; }
     if (st.clip <= 0) { if (st.ammo > 0) this.reload(); else { G.hud.notify(T.ammoEmpty, 'dim', 1); this.fireT = 0.3; } return; }
     st.clip--; this.fireT = w.rate; this.aiming = true;
     const cam = G.camera; const cd = new THREE.Vector3(); cam.getWorldDirection(cd);
@@ -100,6 +102,7 @@ export class Player {
   updateDriving(dt, m) {
     const G = this.game, I = G.input, v = this.vehicle; const ax = I.axis();
     if (v.wrecked) { this.damage(200, v.x, v.z); return; }
+    if (this.zoom) { this.zoom = false; G.hud.scope(false); }
     v.input.throttle = ax.y; v.input.steer = -ax.x; v.input.handbrake = I.key('Space') || I.btn('jump'); v.input.brake = false;
     if (I.btn('brake')) v.input.throttle = -1;
     this.x = v.x; this.z = v.z; this.y = v.y; this.speedNorm = clamp(v.speed / 30, 0, 1);
@@ -107,9 +110,10 @@ export class Player {
     if (I.once('KeyR') || I.btnOnce('radio')) G.nextStation(); if (I.once('KeyH') || I.btnOnce('horn')) { G.audio.horn(0); v.hornT = 0.5; }
     G.audio.engine(true, v.speed / v.spec.maxSpeed, v.input.throttle, v.spec.maxSpeed); G.audio.screech(v.slip > 3 && v.speed > 4 ? clamp((v.slip - 3) / 6, 0, 1) : (v.input.handbrake && v.speed > 6 ? 0.6 : 0));
     // drive-by
-    if (this.weapon.id !== 'fist' && !this.weapon.melee) { const st = this.ammoState; const want = this.weapon.auto ? (I.mouse.left || I.btn('fire')) : (m.leftPressed || I.btnOnce('fire')); if (want && this.fireT <= 0 && st.clip > 0 && !G.uiOpen) { st.clip--; this.fireT = this.weapon.rate * 1.3; const cd = new THREE.Vector3(); G.camera.getWorldDirection(cd); const gx = v.x + cd.x * 2.2, gz = v.z + cd.z * 2.2, gy = 1.2; fireWeapon(G, gx, gy, gz, cd.x, cd.y * 0.5, cd.z, this.weapon, 'player'); G.police.reportCrime('gunfire', v.x, v.z); } else if (want && st.clip <= 0 && this.fireT <= 0) { this.reload(); } }
+    if (!this.weapon.melee && !this.weapon.thrown) { const st = this.ammoState; const want = this.weapon.auto ? (I.mouse.left || I.btn('fire')) : (m.leftPressed || I.btnOnce('fire')); if (want && this.fireT <= 0 && st.clip > 0 && !G.uiOpen) { st.clip--; this.fireT = this.weapon.rate * 1.3; const cd = new THREE.Vector3(); G.camera.getWorldDirection(cd); const gx = v.x + cd.x * 2.2, gz = v.z + cd.z * 2.2, gy = 1.2; fireWeapon(G, gx, gy, gz, cd.x, cd.y * 0.5, cd.z, this.weapon, 'player'); G.police.reportCrime('gunfire', v.x, v.z); } else if (want && st.clip <= 0 && this.fireT <= 0) { this.reload(); } }
     G.stats.distance += v.speed * dt;
   }
+  setLook(look) { const G = this.game; const vis = this.mesh.visible; G.scene.remove(this.mesh); this.look = look; this.char = makeCharacter(look); this.mesh = this.char.group; this.mesh.visible = vis; this.mesh.position.set(this.x, this.y, this.z); this.mesh.rotation.y = this.yaw; G.scene.add(this.mesh); if (this.weapon) this.select(this.weapon.id); }
   // ---------- camera ----------
   updateCamera(dt) {
     const G = this.game, cam = G.camera; let tx, ty, tz, dist0, yaw, pitch;
@@ -124,7 +128,7 @@ export class Player {
     const k = this.vehicle ? 9 : (this.aiming ? 30 : 14); this.camPos.x = damp(this.camPos.x, px, k, dt); this.camPos.y = damp(this.camPos.y, py, k, dt); this.camPos.z = damp(this.camPos.z, pz, k, dt);
     if (Math.hypot(this.camPos.x - tx, this.camPos.z - tz) > dist0 + 3) this.camPos.set(px, py, pz);
     this.camLook.set(tx, ty, tz); cam.position.copy(this.camPos); cam.lookAt(this.camLook); if (this.hurtT > 0) { cam.position.x += (Math.random() - 0.5) * 0.08; cam.position.y += (Math.random() - 0.5) * 0.08; }
-    cam.fov = damp(cam.fov, this.vehicle ? 62 + this.vehicle.speed * 0.35 : (this.aiming ? 46 : 62), 6, dt); cam.updateProjectionMatrix();
+    cam.fov = damp(cam.fov, this.vehicle ? 62 + this.vehicle.speed * 0.35 : (this.zoom ? 15 : this.aiming ? 46 : 62), this.zoom ? 12 : 6, dt); cam.updateProjectionMatrix();
   }
   save() { return { x: this.x, z: this.z, health: this.health, armor: this.armor, weapons: this.weapons, weaponIds: this.weaponIds, weapon: this.weapon.id }; }
   load(s) { this.x = s.x; this.z = s.z; this.health = s.health; this.armor = s.armor; this.weapons = s.weapons; for (const k in this.weapons) if (this.weapons[k].ammo === null) this.weapons[k].ammo = Infinity; this.weaponIds = s.weaponIds; this.select(s.weapon); this.camPos.set(this.x, 3, this.z + 6); }

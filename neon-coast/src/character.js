@@ -2,49 +2,70 @@ import * as THREE from '../vendor/three.module.min.js';
 import { mergeGeometries, xform, M4 } from './utils.js';
 
 // One shared material for every character; colours live in the vertices so a whole ped is 7 draw calls.
-const charMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0.02 });
+const charMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.02 });
 const gunMat = new THREE.MeshStandardMaterial({ color: 0x202228, roughness: 0.4, metalness: 0.5 });
 const C = hex => new THREE.Color(hex);
-const part = (w, h, d, hex, x = 0, y = 0, z = 0) => xform(new THREE.BoxGeometry(w, h, d), M4(x, y, z), C(hex));
+const part = (w, h, d, hex, x = 0, y = 0, z = 0, ry = 0) => xform(new THREE.BoxGeometry(w, h, d), M4(x, y, z, 0, ry, 0), C(hex));
 const mesh = geos => { const m = new THREE.Mesh(mergeGeometries(geos), charMat); m.castShadow = true; return m; };
 
-export const SKINS = [0xf1c7a8, 0xd9a47e, 0xb97c55, 0x8a5a3c, 0x5c3a25, 0xffd9b8];
-export const SHIRTS = [0xffffff, 0x1c2540, 0xd1345b, 0x2aa198, 0xf5c542, 0x7b4fbf, 0x2f2f2f, 0xff7f50, 0x8fd18b, 0xe8e0d0, 0xff4fa3, 0x3ce8f5];
-export const PANTS = [0x22304a, 0x1a1a1a, 0x7a6a55, 0x3a3f4a, 0x50607a, 0xc9c1b1, 0x5a3a2a];
-export const HAIRS = [0x1a120e, 0x3b2716, 0x6b4a2b, 0xd9b27a, 0x2b2b2b, 0xa33a2a, 0xffffff];
+export const SKINS = [0xf1c7a8, 0xd9a47e, 0xb97c55, 0x8a5a3c, 0x5c3a25, 0xffd9b8, 0xe8b894];
+export const SHIRTS = [0xffffff, 0x1c2540, 0xd1345b, 0x2aa198, 0xf5c542, 0x7b4fbf, 0x2f2f2f, 0xff7f50, 0x8fd18b, 0xe8e0d0, 0xff4fa3, 0x3ce8f5, 0xff9a3c, 0x9ad0ff];
+export const PANTS = [0x22304a, 0x1a1a1a, 0x7a6a55, 0x3a3f4a, 0x50607a, 0xc9c1b1, 0x5a3a2a, 0x2f3b6a];
+export const HAIRS = [0x1a120e, 0x3b2716, 0x6b4a2b, 0xd9b27a, 0x2b2b2b, 0xa33a2a, 0xffffff, 0xff4fa3, 0x3ce8f5];
+const pick = a => a[Math.floor(Math.random() * a.length)];
 
 export function randomLook() {
-  const pick = a => a[Math.floor(Math.random() * a.length)];
-  return { skin: pick(SKINS), shirt: pick(SHIRTS), pants: pick(PANTS), hair: pick(HAIRS), hat: Math.random() < 0.15 ? pick(SHIRTS) : null, shorts: Math.random() < 0.3 };
+  const dress = Math.random() < 0.38; const r = Math.random();
+  return { skin: pick(SKINS), shirt: pick(SHIRTS), pants: pick(PANTS), hair: pick(HAIRS), hairStyle: dress ? pick(['long', 'pony', 'bun', 'short']) : pick(['short', 'short', 'bald', 'mohawk', 'long']),
+    hat: Math.random() < 0.14 ? pick(SHIRTS) : null, beanie: Math.random() < 0.08 ? pick(PANTS) : null, glasses: Math.random() < 0.22, beard: !dress && Math.random() < 0.3,
+    shorts: !dress && Math.random() < 0.3, skirt: dress ? pick(SHIRTS) : null, backpack: Math.random() < 0.14 ? pick(PANTS) : null, shoes: Math.random() < 0.5 ? 0x1a1a1a : pick([0xffffff, 0x8a4a2a, 0xff4fa3, 0x3ce8f5]),
+    width: 0.88 + Math.random() * 0.28, height: 0.92 + Math.random() * 0.14 };
 }
 export const LOOKS = {
-  player: { skin: 0xd9a47e, shirt: 0xff4fa3, pants: 0x1c2540, hair: 0x1a120e, jacket: 0x14161c },
-  cop: { skin: 0xd9a47e, shirt: 0x1f3a7a, pants: 0x14213d, hair: 0x2b2b2b, hat: 0x14213d, badge: true },
-  swat: { skin: 0xb97c55, shirt: 0x1a1d24, pants: 0x1a1d24, hair: 0x111111, hat: 0x0e0f12, armor: 0x2a2e38 },
-  gang: { skin: 0x8a5a3c, shirt: 0x2e8b57, pants: 0x1a1a1a, hair: 0x1a120e, band: 0x2eff7a },
+  player: { skin: 0xd9a47e, shirt: 0xff4fa3, pants: 0x1c2540, hair: 0x1a120e, jacket: 0x14161c, hairStyle: 'short', shoes: 0xffffff },
+  cop: { skin: 0xd9a47e, shirt: 0x1f3a7a, pants: 0x14213d, hair: 0x2b2b2b, hat: 0x14213d, badge: true, hairStyle: 'short', glasses: true },
+  swat: { skin: 0xb97c55, shirt: 0x1a1d24, pants: 0x1a1d24, hair: 0x111111, hat: 0x0e0f12, armor: 0x2a2e38, hairStyle: 'short' },
+  gang: { skin: 0x8a5a3c, shirt: 0x2e8b57, pants: 0x1a1a1a, hair: 0x1a120e, band: 0x2eff7a, hairStyle: 'short', beard: true },
+  bodyguard: { skin: 0xf1c7a8, shirt: 0xffffff, pants: 0x101318, jacket: 0x101318, hair: 0x2b2b2b, glasses: true, hairStyle: 'bald' },
+  target: { skin: 0xe8b894, shirt: 0xffd34e, pants: 0xf0f0f0, jacket: 0xffd34e, hair: 0xd9b27a, glasses: true, hairStyle: 'short' },
 };
 
 // Character faces local +z. Pivot at the feet.
 export function makeCharacter(look) {
-  const g = new THREE.Group(); const top = look.armor || look.shirt;
+  const g = new THREE.Group(); const top = look.armor || look.shirt; const shoes = look.shoes ?? 0x1a1a1a; const W = look.width || 1;
   const legLen = look.shorts ? 0.45 : 0.86;
-  const legGeo = side => { const parts = [part(0.2, legLen, 0.22, look.pants, 0, -legLen / 2, 0), part(0.22, 0.1, 0.32, 0x1a1a1a, 0, -0.86, 0.05)]; if (look.shorts) parts.push(part(0.19, 0.42, 0.21, look.skin, 0, -0.66, 0)); return parts; };
-  const legL = new THREE.Group(), legR = new THREE.Group(); legL.position.set(0.12, 0.86, 0); legR.position.set(-0.12, 0.86, 0); legL.add(mesh(legGeo(1))); legR.add(mesh(legGeo(-1)));
-  const torsoParts = [part(0.5, 0.6, 0.28, top, 0, 0.3, 0)];
-  if (look.jacket) { torsoParts.push(part(0.54, 0.5, 0.31, look.jacket, 0, 0.27, 0)); torsoParts.push(part(0.2, 0.5, 0.33, look.shirt, 0, 0.27, 0)); }
+  const legGeo = () => { const parts = [part(0.2, legLen, 0.22, look.skirt ? look.skin : look.pants, 0, -legLen / 2, 0), part(0.22, 0.1, 0.32, shoes, 0, -0.86, 0.05)]; if (look.shorts) parts.push(part(0.19, 0.42, 0.21, look.skin, 0, -0.66, 0)); if (look.skirt) parts.push(part(0.19, 0.5, 0.21, look.pants, 0, -0.62, 0)); return parts; };
+  const legL = new THREE.Group(), legR = new THREE.Group(); legL.position.set(0.12 * W, 0.86, 0); legR.position.set(-0.12 * W, 0.86, 0); legL.add(mesh(legGeo())); legR.add(mesh(legGeo()));
+  const torsoParts = [part(0.5 * W, 0.6, 0.28, top, 0, 0.3, 0)];
+  if (look.skirt) torsoParts.push(part(0.56 * W, 0.34, 0.34, look.skirt, 0, -0.14, 0));
+  if (look.jacket) { torsoParts.push(part(0.54 * W, 0.5, 0.31, look.jacket, 0, 0.27, 0)); torsoParts.push(part(0.2 * W, 0.5, 0.33, look.shirt, 0, 0.27, 0)); }
+  if (look.tie) torsoParts.push(part(0.07, 0.34, 0.34, look.tie, 0, 0.36, 0));
+  if (look.stripe) { torsoParts.push(part(0.05, 0.6, 0.29, look.stripe, 0.21 * W, 0.3, 0)); torsoParts.push(part(0.05, 0.6, 0.29, look.stripe, -0.21 * W, 0.3, 0)); }
   if (look.badge) torsoParts.push(part(0.08, 0.08, 0.02, 0xffd34e, 0.15, 0.42, 0.15));
+  if (look.backpack) torsoParts.push(part(0.4 * W, 0.44, 0.18, look.backpack, 0, 0.32, -0.22));
   const torso = new THREE.Group(); torso.position.y = 0.86; torso.add(mesh(torsoParts));
-  const headParts = [part(0.26, 0.28, 0.26, look.skin, 0, 0.14, 0), part(0.28, 0.1, 0.28, look.hair, 0, 0.29, -0.01), part(0.28, 0.2, 0.08, look.hair, 0, 0.16, -0.12)];
+  const hs = look.hairStyle || 'short';
+  const headParts = [part(0.26, 0.28, 0.26, look.skin, 0, 0.14, 0)];
+  if (hs !== 'bald') { headParts.push(part(0.28, 0.1, 0.28, look.hair, 0, 0.29, -0.01)); headParts.push(part(0.28, 0.2, 0.08, look.hair, 0, 0.16, -0.12)); }
+  if (hs === 'long') headParts.push(part(0.3, 0.42, 0.12, look.hair, 0, 0.06, -0.14));
+  if (hs === 'pony') headParts.push(part(0.1, 0.36, 0.1, look.hair, 0, 0.1, -0.2));
+  if (hs === 'bun') headParts.push(part(0.14, 0.12, 0.14, look.hair, 0, 0.36, -0.06));
+  if (hs === 'mohawk') headParts.push(part(0.06, 0.12, 0.26, look.hair, 0, 0.4, 0));
   if (look.hat) { headParts.push(part(0.3, 0.12, 0.3, look.hat, 0, 0.33, 0)); headParts.push(part(0.3, 0.03, 0.14, look.hat, 0, 0.28, 0.2)); }
+  if (look.cap) { headParts.push(part(0.3, 0.1, 0.3, look.cap, 0, 0.34, 0)); headParts.push(part(0.3, 0.03, 0.14, look.cap, 0, 0.3, 0.2)); }
+  if (look.beanie) headParts.push(part(0.3, 0.14, 0.3, look.beanie, 0, 0.32, 0));
   if (look.band) headParts.push(part(0.28, 0.06, 0.28, look.band, 0, 0.27, 0));
+  if (look.glasses) headParts.push(part(0.28, 0.06, 0.06, 0x101318, 0, 0.17, 0.12));
+  if (look.beard) headParts.push(part(0.24, 0.08, 0.06, look.hair, 0, 0.04, 0.12));
   const head = new THREE.Group(); head.position.set(0, 0.62, 0); head.add(mesh(headParts)); torso.add(head);
-  const armGeo = () => [part(0.15, 0.32, 0.15, top, 0, -0.16, 0), part(0.14, 0.34, 0.14, look.skin, 0, -0.48, 0)];
-  const armL = new THREE.Group(), armR = new THREE.Group(); armL.position.set(0.33, 0.55, 0); armR.position.set(-0.33, 0.55, 0); armL.add(mesh(armGeo())); armR.add(mesh(armGeo()));
+  const armGeo = () => [part(0.15, 0.32, 0.15, look.jacket || top, 0, -0.16, 0), part(0.14, 0.34, 0.14, look.skin, 0, -0.48, 0)];
+  const armL = new THREE.Group(), armR = new THREE.Group(); armL.position.set(0.33 * W, 0.55, 0); armR.position.set(-0.33 * W, 0.55, 0); armL.add(mesh(armGeo())); armR.add(mesh(armGeo()));
   const gun = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.16, 0.42), gunMat); gun.position.set(0, -0.66, 0.16); gun.visible = false; gun.castShadow = true; armR.add(gun);
   torso.add(armL); torso.add(armR); g.add(legL); g.add(legR); g.add(torso);
+  const H = look.height || 1; g.scale.set(H, H, H);
   const parts = { legL, legR, torso, head, armL, armR, gun };
   const ch = { group: g, parts, look, phase: 0,
-    setGun(v, long) { gun.visible = v; gun.scale.z = long ? 1.6 : 1; },
+    setGun(v, kind) { gun.visible = v; if (kind === 'long') { gun.scale.set(1, 1, 1.7); gun.position.set(0, -0.66, 0.2); } else if (kind === 'bat') { gun.scale.set(0.9, 1, 2.0); gun.position.set(0, -0.6, 0.3); } else if (kind === 'grenade') { gun.scale.set(1.4, 0.8, 0.35); gun.position.set(0, -0.66, 0.1); } else { gun.scale.set(1, 1, 1); gun.position.set(0, -0.66, 0.16); } },
     animate(dt, state) {
       const p = parts;
       if (state.dead) { g.rotation.z = Math.PI / 2 * (state.deadDir || 1); g.rotation.x = 0; g.position.y = 0.16; for (const a of [p.armL, p.armR]) a.rotation.set(0.4, 0, 0); p.legL.rotation.set(0, 0, 0); p.legR.rotation.set(0.15, 0, 0); return; }

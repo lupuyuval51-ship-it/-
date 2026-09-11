@@ -143,3 +143,23 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
   .pause-panel .cols { grid-template-columns: 1fr; } .controls-list { columns: 1; } .panel { padding: 16px; } .objective { bottom: 120px; font-size: 14px; } .subtitle { font-size: 15px; bottom: 70px; } .prompt { bottom: 170px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ---------- icons, scope, casino, shop icons ---------- */
+.weapon svg { color: #fff; filter: drop-shadow(0 1px 3px #000); flex: none; }
+.scope { position: absolute; inset: 0; display: none; background: radial-gradient(circle at center, transparent 0, transparent 30vmin, rgba(0, 0, 0, 0.2) 31vmin, rgba(2, 3, 8, 0.97) 34vmin); }
+.scope.on { display: block; }
+.scope i { position: absolute; left: 50%; top: 50%; background: rgba(255, 255, 255, 0.85); }
+.scope i:first-child { width: 62vmin; height: 1px; transform: translate(-50%, -50%); }
+.scope i:last-child { width: 1px; height: 62vmin; transform: translate(-50%, -50%); }
+.scope::after { content: ''; position: absolute; left: 50%; top: 50%; width: 62vmin; height: 62vmin; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); transform: translate(-50%, -50%); }
+.shop-list li { grid-template-columns: 36px 1fr auto auto; }
+.shop-icon { width: 30px; height: 30px; color: var(--pink); }
+.casino-list li.casino { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0; }
+.reels { display: flex; gap: 12px; justify-content: center; }
+.reels span { width: 84px; height: 100px; background: var(--bg); border: 2px solid var(--gold); border-radius: 12px; display: grid; place-items: center; font-family: var(--display); font-size: 58px; color: var(--gold); text-shadow: 0 0 18px rgba(255, 211, 78, 0.6); }
+.rules { margin: 0; color: var(--muted); font-size: 13px; }
+.bets { display: flex; gap: 8px; }
+.bets .btn.on { border-color: var(--gold); color: var(--gold); }
+.casino-msg { min-height: 24px; font-family: var(--display); font-size: 24px; letter-spacing: 1px; }
+.casino-msg.win { color: var(--green); } .casino-msg.lose { color: var(--red); }
+.tbtns2 { position: absolute; right: 18px; bottom: 236px; pointer-events: auto; }

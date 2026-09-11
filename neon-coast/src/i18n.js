@@ -9,12 +9,19 @@ const he = {
   ammoEmpty: 'אין תחמושת', reload: 'טוען…', buy: 'קנייה', owned: 'ברשותך', notEnough: 'אין מספיק כסף', bought: 'נרכש', spray: 'צביעה, תיקון וניקוי רמת חיפוש', sprayDone: 'הרכב תוקן ורמת החיפוש נמחקה',
   heal: 'טיפול רפואי מלא', healDone: 'החיים התמלאו', armor: 'שכפ״ץ', sleep: 'שינה עד הבוקר', sleepDone: 'ישנת עד הבוקר. המשחק נשמר.',
   shopGuns: 'ניאון ארמס – חנות נשק', shopCars: 'קוסט מוטורס – סוכנות רכב', shopSpray: 'ספריי & גו', shopHospital: 'בית חולים סאנרייז', safehouse: 'הדירה שלך', police: 'תחנת משטרה', beachClub: 'מועדון החוף', docks: 'המזח', bank: 'בנק סולארה', race: 'מרוץ רחוב', taxi: 'עבודת מונית',
-  weapon: { fist: 'אגרופים', pistol: 'אקדח', smg: 'תת־מקלע', shotgun: 'רובה ציד', rifle: 'רובה סער' },
-  vehicle: { sedan: 'סדאן', sport: 'מכונית ספורט', suv: 'ג׳יפ', truck: 'משאית', taxi: 'מונית', police: 'ניידת', swat: 'רכב ימ״מ', muscle: 'מאסל קאר' },
+  weapon: { fist: 'אגרופים', bat: 'מחבט', pistol: 'אקדח', revolver: 'אקדח תופי', smg: 'תת־מקלע', shotgun: 'רובה ציד', rifle: 'רובה סער', sniper: 'רובה צלפים', grenade: 'רימון' },
+  vehicle: { sedan: 'סדאן', sport: 'מכונית ספורט', suv: 'ג׳יפ', truck: 'משאית', taxi: 'מונית', police: 'ניידת', swat: 'רכב ימ״מ', muscle: 'מאסל קאר', limo: 'לימוזינה', super: 'סופר־קאר' },
+  outfit: { street: 'רחוב', beach: 'חוף', suit: 'חליפה', track: 'טרנינג', leather: 'עור', hawaii: 'הוואי', gold: 'זהב' }, wear: 'לבישה', wearing: 'לבוש',
+  shopGuns2: 'קוסט גאנס – חנות נשק', shopGuns3: 'ביג איירון – חנות נשק', police2: 'תחנת משטרה – צפון', shopHospital2: 'מרכז רפואי פאלם', shopSpray2: 'צביעה – אוטו סטאר',
+  shopBurger: 'ניאון בורגר', shopBurger2: 'ניאון בורגר – חוף', shopClothes: 'סאנסט – חנות בגדים', casino: 'קזינו סולארה', fixer: 'המתווך', meal: 'ארוחה (חיים מלאים)', mealDone: 'אכלת. החיים התמלאו.',
+  casinoBet: 'הימור', casinoSpin: 'סובב', casinoWin: 'זכית', casinoLose: 'הפסדת', casinoJackpot: 'ג׳קפוט!', casinoRules: 'שלושה זהים ×10, שבע־שבע־שבע ×50, שניים זהים ×2',
+  vigilanteStart: 'V – משימת שוטר', vigilanteHint: 'ברכב משטרה: לחצו V כדי להתחיל משימת שוטר', vigilante: 'משימת שוטר', vigilanteObj: 'עצרו את הפושע – הרסו את הרכב או חסלו את הנהג', vigilanteDone: 'הפושע נעצר. שלב', vigilanteFail: 'הפושע ברח', vigilanteEnd: 'משימת השוטר הסתיימה',
+  contract: { name: 'חוזה חיסול', lines: ['המתווך: יש שם. יש כתובת. יש שומר ראש. אל תשאיר עדים.'], obj1: 'חסלו את המטרה המסומנת', done: 'המתווך: נקי. הכסף בדרך.', fail: 'המטרה נמלטה.' },
+  raceAgain: 'מרוץ נוסף', wantedHint: 'הכוכבים מהבהבים = המשטרה איבדה אותך. תישארו מחוץ לטווח הראייה.',
   ammoPack: 'חבילת תחמושת', spawnHere: 'הרכב יופיע בחוץ',
   ctrl: [
     ['W A S D', 'תנועה / נהיגה'], ['עכבר', 'סיבוב מצלמה'], ['Shift', 'ריצה'], ['רווח', 'קפיצה / בלם יד'], ['E', 'כניסה ויציאה מרכב, אינטראקציה'],
-    ['לחצן שמאלי', 'ירי / אגרוף'], ['לחצן ימני', 'כיוון'], ['1–5 / גלגלת', 'החלפת נשק'], ['R', 'טעינה מחדש / תחנת רדיו ברכב'], ['H', 'צופר'], ['M', 'מפה'], ['Esc', 'תפריט'],
+    ['לחצן שמאלי', 'ירי / אגרוף'], ['לחצן ימני', 'כיוון'], ['1–9 / גלגלת', 'החלפת נשק'], ['V', 'משימת שוטר (בניידת)'], ['R', 'טעינה מחדש / תחנת רדיו ברכב'], ['H', 'צופר'], ['M', 'מפה'], ['Esc', 'תפריט'],
   ],
   hint: { first: 'ברוך הבא לניאון קוסט. הסמן הצהוב במפה מוביל למשימה הראשונה.', stealCar: 'לחצו E ליד רכב כדי להיכנס אליו.', cops: 'כוכבים במסך = המשטרה מחפשת אותך. תברחו מטווח הראייה שלהם.' },
   stations: { off: 'רדיו כבוי', neon: 'NEON FM 98.6', bass: 'BASSLINE 102.1', club: 'CLUB SOLAR 107.7' },
@@ -31,7 +38,7 @@ const he = {
     heist: { name: 'הבנק של סולארה', giver: 'ליאור', lines: ['ליאור: הגדולה. בנק סולארה, כספת פתוחה לתשעים שניות בזמן העברת הכסף.', 'ליאור: תחזיק את הכניסה עד שהצוות מסיים, ואז תגיע למזח – סירה מחכה. עם או בלי המשטרה.'], obj1: 'הגיעו לבנק', obj2: 'החזיקו מעמד ליד הבנק עד שהצוות מסיים', obj3: 'הגיעו למזח והתחמקו מהמשטרה', done: 'ליאור: עשינו את זה. העיר שלך עכשיו.' },
   },
   ui: { health: 'חיים', armorBar: 'שכפ״ץ', money: 'כסף', missions: 'משימות', stats: 'סטטיסטיקה', tokens: 'אסימוני ניאון', kills: 'הרוגים', carsStolen: 'רכבים שנגנבו', distance: 'מרחק נסיעה', playtime: 'זמן משחק', legend: 'מקרא',
-    legendItems: [['●', 'משימה', '#ffd34e'], ['●', 'חנות נשק', '#ff4fa3'], ['●', 'סוכנות רכב', '#3ce8f5'], ['●', 'צביעה', '#c084fc'], ['●', 'בית חולים', '#ff5a5a'], ['●', 'דירה', '#7cff8a'], ['●', 'משטרה', '#4d8cff']] },
+    legendItems: [['●', 'משימה', '#ffd34e'], ['●', 'חנות נשק', '#ff4fa3'], ['●', 'סוכנות רכב', '#3ce8f5'], ['●', 'צביעה', '#c084fc'], ['●', 'בית חולים', '#ff5a5a'], ['●', 'דירה', '#7cff8a'], ['●', 'משטרה', '#4d8cff'], ['●', 'מסעדה', '#ff9a3c'], ['●', 'בגדים', '#ff9ad5'], ['●', 'קזינו', '#ffd34e'], ['●', 'חוזים', '#e0e0e0']] },
 };
 
 const en = {
@@ -44,12 +51,19 @@ const en = {
   ammoEmpty: 'Out of ammo', reload: 'Reloading…', buy: 'Buy', owned: 'Owned', notEnough: 'Not enough cash', bought: 'Purchased', spray: 'Respray, repair and clear wanted', sprayDone: 'Vehicle repaired, wanted level cleared',
   heal: 'Full medical treatment', healDone: 'Health restored', armor: 'Body armor', sleep: 'Sleep until morning', sleepDone: 'You slept until morning. Game saved.',
   shopGuns: 'Neon Arms – gun shop', shopCars: 'Coast Motors – dealership', shopSpray: 'Spray & Go', shopHospital: 'Sunrise Hospital', safehouse: 'Your apartment', police: 'Police station', beachClub: 'Beach club', docks: 'The pier', bank: 'Solara Bank', race: 'Street race', taxi: 'Taxi job',
-  weapon: { fist: 'Fists', pistol: 'Pistol', smg: 'SMG', shotgun: 'Shotgun', rifle: 'Assault rifle' },
-  vehicle: { sedan: 'Sedan', sport: 'Sports car', suv: 'SUV', truck: 'Truck', taxi: 'Taxi', police: 'Cruiser', swat: 'SWAT truck', muscle: 'Muscle car' },
+  weapon: { fist: 'Fists', bat: 'Baseball bat', pistol: 'Pistol', revolver: 'Revolver', smg: 'SMG', shotgun: 'Shotgun', rifle: 'Assault rifle', sniper: 'Sniper rifle', grenade: 'Grenade' },
+  vehicle: { sedan: 'Sedan', sport: 'Sports car', suv: 'SUV', truck: 'Truck', taxi: 'Taxi', police: 'Cruiser', swat: 'SWAT truck', muscle: 'Muscle car', limo: 'Limousine', super: 'Supercar' },
+  outfit: { street: 'Street', beach: 'Beach', suit: 'Suit', track: 'Tracksuit', leather: 'Leather', hawaii: 'Hawaii', gold: 'Gold' }, wear: 'Wear', wearing: 'Wearing',
+  shopGuns2: 'Coast Guns – gun shop', shopGuns3: 'Big Iron – gun shop', police2: 'Police station – North', shopHospital2: 'Palm Medical Center', shopSpray2: 'Auto Star respray',
+  shopBurger: 'Neon Burger', shopBurger2: 'Neon Burger – Beach', shopClothes: 'Sunset Clothing', casino: 'Solara Casino', fixer: 'The Fixer', meal: 'Meal (full health)', mealDone: 'You ate. Health restored.',
+  casinoBet: 'Bet', casinoSpin: 'Spin', casinoWin: 'You win', casinoLose: 'You lose', casinoJackpot: 'JACKPOT!', casinoRules: 'Three of a kind ×10, 7-7-7 ×50, pair ×2',
+  vigilanteStart: 'V – Vigilante', vigilanteHint: 'In a police car: press V to start vigilante duty', vigilante: 'Vigilante', vigilanteObj: 'Stop the criminal – wreck the car or take out the driver', vigilanteDone: 'Criminal stopped. Level', vigilanteFail: 'The criminal got away', vigilanteEnd: 'Vigilante duty ended',
+  contract: { name: 'Contract hit', lines: ['The Fixer: A name. An address. A bodyguard. Leave no witnesses.'], obj1: 'Eliminate the marked target', done: 'The Fixer: Clean. Money is on its way.', fail: 'The target escaped.' },
+  raceAgain: 'Race again', wantedHint: 'Blinking stars = the police lost you. Stay out of sight.',
   ammoPack: 'Ammo pack', spawnHere: 'Delivered outside',
   ctrl: [
     ['W A S D', 'Move / drive'], ['Mouse', 'Camera'], ['Shift', 'Sprint'], ['Space', 'Jump / handbrake'], ['E', 'Enter/exit vehicle, interact'],
-    ['Left click', 'Fire / punch'], ['Right click', 'Aim'], ['1–5 / wheel', 'Switch weapon'], ['R', 'Reload / radio station in car'], ['H', 'Horn'], ['M', 'Map'], ['Esc', 'Menu'],
+    ['Left click', 'Fire / punch'], ['Right click', 'Aim'], ['1–9 / wheel', 'Switch weapon'], ['V', 'Vigilante (in a cruiser)'], ['R', 'Reload / radio station in car'], ['H', 'Horn'], ['M', 'Map'], ['Esc', 'Menu'],
   ],
   hint: { first: 'Welcome to Neon Coast. The yellow marker on the map leads to your first job.', stealCar: 'Press E next to a vehicle to get in.', cops: 'Stars = the police are after you. Break line of sight to lose them.' },
   stations: { off: 'Radio off', neon: 'NEON FM 98.6', bass: 'BASSLINE 102.1', club: 'CLUB SOLAR 107.7' },
@@ -66,7 +80,7 @@ const en = {
     heist: { name: 'The Solara job', giver: 'Lior', lines: ['Lior: The big one. Solara Bank, vault open for ninety seconds during the cash transfer.', 'Lior: Hold the entrance until the crew is done, then get to the pier. A boat is waiting, cops or no cops.'], obj1: 'Get to the bank', obj2: 'Hold out by the bank until the crew is done', obj3: 'Reach the pier and lose the police', done: 'Lior: We did it. The city is yours now.' },
   },
   ui: { health: 'Health', armorBar: 'Armor', money: 'Cash', missions: 'Missions', stats: 'Stats', tokens: 'Neon tokens', kills: 'Kills', carsStolen: 'Cars stolen', distance: 'Distance driven', playtime: 'Play time', legend: 'Legend',
-    legendItems: [['●', 'Mission', '#ffd34e'], ['●', 'Gun shop', '#ff4fa3'], ['●', 'Dealership', '#3ce8f5'], ['●', 'Spray shop', '#c084fc'], ['●', 'Hospital', '#ff5a5a'], ['●', 'Apartment', '#7cff8a'], ['●', 'Police', '#4d8cff']] },
+    legendItems: [['●', 'Mission', '#ffd34e'], ['●', 'Gun shop', '#ff4fa3'], ['●', 'Dealership', '#3ce8f5'], ['●', 'Spray shop', '#c084fc'], ['●', 'Hospital', '#ff5a5a'], ['●', 'Apartment', '#7cff8a'], ['●', 'Police', '#4d8cff'], ['●', 'Food', '#ff9a3c'], ['●', 'Clothes', '#ff9ad5'], ['●', 'Casino', '#ffd34e'], ['●', 'Contracts', '#e0e0e0']] },
 };
 
 export const LANGS = { he, en };

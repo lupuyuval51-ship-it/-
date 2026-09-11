@@ -13,9 +13,9 @@ export class Ped {
     this.look = o.look || randomLook(); this.char = makeCharacter(this.look); this.mesh = this.char.group; game.scene.add(this.mesh);
     this.x = o.x; this.z = o.z; this.y = 0; this.vy = 0; this.yaw = o.yaw ?? Math.random() * 6.28; this.hp = o.hp ?? 100; this.maxHp = this.hp; this.dead = false; this.ragdoll = null; this.deadT = 0;
     this.state = o.state || 'walk'; this.stateT = 0; this.wp = null; this.prevWp = null; this.fleeFrom = null; this.speed = 0; this.moveDir = 0;
-    this.weapon = o.weapon ? WEAPONS.find(w => w.id === o.weapon) : null; if (this.weapon) this.char.setGun(true, this.weapon.id === 'rifle' || this.weapon.id === 'shotgun');
+    this.weapon = o.weapon ? WEAPONS.find(w => w.id === o.weapon) : null; if (this.weapon) this.char.setGun(true, this.weapon.id === 'rifle' || this.weapon.id === 'shotgun' || this.weapon.id === 'sniper' ? 'long' : 'pistol');
     this.shootT = 1 + Math.random(); this.accuracy = o.accuracy ?? 0.5; this.hostile = !!o.hostile; this.stationX = o.x; this.stationZ = o.z; this.aggroRange = o.aggroRange ?? 45; this.bustT = 0; this.blockedT = 0;
-    this.punchT = 0; this.mission = o.mission || null; this.noDespawn = !!o.noDespawn; this.fromVehicle = o.fromVehicle || null;
+    this.punchT = 0; this.mission = o.mission || null; this.noDespawn = !!o.noDespawn; this.fromVehicle = o.fromVehicle || null; this.station = !!o.station; this.vip = !!o.vip;
     this.mesh.position.set(this.x, 0, this.z); this.mesh.rotation.y = this.yaw;
     if (this.kind === 'civ') this.pickWaypoint();
   }
@@ -71,12 +71,12 @@ export class Ped {
     this.punchT = Math.max(0, this.punchT - dt);
     let tx = null, tz = null, spd = 0;
     if (this.kind === 'civ') {
-      if (this.state === 'flee') { this.stateT -= dt; const dx = this.x - this.fleeFrom.x, dz = this.z - this.fleeFrom.z, d = Math.hypot(dx, dz) || 1; tx = this.x + dx / d * 10; tz = this.z + dz / d * 10; spd = RUN; if (this.stateT <= 0 || d > 60) { this.state = 'walk'; this.pickWaypoint(); } }
+      if (this.state === 'flee') { this.stateT -= dt; if (this.vip) { this.fleeFrom = { x: P.x, z: P.z }; } const dx = this.x - this.fleeFrom.x, dz = this.z - this.fleeFrom.z, d = Math.hypot(dx, dz) || 1; tx = this.x + dx / d * 10; tz = this.z + dz / d * 10; spd = this.vip ? RUN * 1.15 : RUN; if (this.stateT <= 0 || d > (this.vip ? 90 : 60)) { this.state = 'walk'; this.pickWaypoint(); } }
       else if (this.state === 'idle') { this.stateT -= dt; if (this.stateT <= 0) this.state = 'walk'; }
-      else { if (!this.wp) this.pickWaypoint(); const d = dist(this.x, this.z, this.wp.x, this.wp.z); if (d < 1.2) { if (Math.random() < 0.12) { this.state = 'idle'; this.stateT = 2 + Math.random() * 5; } this.nextWaypoint(); } tx = this.wp.x; tz = this.wp.z; spd = WALK; }
+      else { if (this.vip && dist(this.x, this.z, P.x, P.z) < 32) { this.flee(P.x, P.z, 10); } if (!this.wp) this.pickWaypoint(); const d = dist(this.x, this.z, this.wp.x, this.wp.z); if (d < 1.2) { if (Math.random() < 0.12) { this.state = 'idle'; this.stateT = 2 + Math.random() * 5; } this.nextWaypoint(); } tx = this.wp.x; tz = this.wp.z; spd = WALK; }
     } else { // armed AI
       const px = P.x, pz = P.z, d = dist(this.x, this.z, px, pz); const wanted = G.police.level;
-      const engaged = this.team === 'gang' ? (this.hostile || d < this.aggroRange) : wanted > 0;
+      const engaged = this.team === 'gang' ? (this.hostile || d < this.aggroRange) : (wanted > 0 && d < 150);
       if (!engaged) { // cops idle / gang loiter near station
         const sd = dist(this.x, this.z, this.stationX, this.stationZ); if (sd > 3) { tx = this.stationX; tz = this.stationZ; spd = WALK; } else this.faceTo(px, pz, dt, 2);
       } else {
