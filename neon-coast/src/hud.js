@@ -8,7 +8,7 @@ export class HUD {
     this.g = game; const $ = id => document.getElementById(id);
     this.el = { hud: $('hud'), money: $('money'), moneyDelta: $('moneyDelta'), stars: [...$('stars').children], weapon: $('weaponName'), ammo: $('ammo'), clock: $('clock'), objective: $('objective'), notify: $('notify'), health: $('healthBar'), armor: $('armorBar'), speedo: $('speedo'), speed: $('speed'), subtitle: $('subtitle'), radio: $('radioPopup'), cross: $('crosshair'), prompt: $('prompt'), timer: $('missionTimer'), overlay: $('overlay'), hurt: $('hurt'), result: $('missionResult'), mtitle: $('missionTitle'), evade: $('evade'), wicon: $('weaponIcon').querySelector('path'), scope: $('scope') };
     this.mm = $('minimap'); this.mmCtx = this.mm.getContext('2d'); this.dpr = Math.min(2, devicePixelRatio || 1); this.mm.width = 240 * this.dpr; this.mm.height = 160 * this.dpr;
-    this.moneyShown = 0; this.starFlash = 0; this.subT = 0; this.timerOn = false; this.kick = 0; this.hurtT = 0; this.radioT = 0; this.resultT = 0; this.titleT = 0; this.mmT = 0;
+    this.el.hurt.remove(); this.moneyShown = 0; this.hurtLevel = 0; this.starFlash = 0; this.subT = 0; this.timerOn = false; this.kick = 0; this.hurtT = 0; this.radioT = 0; this.resultT = 0; this.titleT = 0; this.mmT = 0;
   }
   show(v) { this.el.hud.hidden = !v; }
   notify(text, kind = '', dur = 4) { const d = document.createElement('div'); d.className = 'toast ' + kind; d.textContent = text; this.el.notify.prepend(d); while (this.el.notify.children.length > 4) this.el.notify.lastChild.remove(); setTimeout(() => { d.classList.add('out'); setTimeout(() => d.remove(), 400); }, dur * 1000); }
@@ -39,7 +39,7 @@ export class HUD {
     if (this.radioT > 0) { this.radioT -= dt; if (this.radioT <= 0) E.radio.classList.remove('on'); }
     if (this.resultT > 0) { this.resultT -= dt; if (this.resultT <= 0) E.result.classList.remove('on'); }
     if (this.titleT > 0) { this.titleT -= dt; if (this.titleT <= 0) E.mtitle.classList.remove('on'); }
-    this.hurtT = Math.max(0, this.hurtT - dt); E.hurt.style.opacity = Math.min(1, this.hurtT * 2 + (P.health < 25 && !P.dead ? 0.25 + Math.sin(g.time * 5) * 0.1 : 0));
+    this.hurtT = Math.max(0, this.hurtT - dt); this.hurtLevel = Math.min(1, this.hurtT * 2.2 + (P.health < 25 && !P.dead ? 0.3 + Math.sin(g.time * 5) * 0.12 : 0));
     const aimCross = (P.aiming || (P.vehicle && !P.weapon.melee && !P.weapon.thrown)) && !P.dead && !P.zoom; E.cross.classList.toggle('on', aimCross); this.kick = damp(this.kick, 0, 14, dt); E.cross.style.transform = `translate(-50%,-50%) scale(${1 + this.kick * 0.5})`;
     E.evade.classList.toggle('on', lvl > 0 && g.police.hidden);
     this.mmT -= dt; if (this.mmT <= 0) { this.mmT = 1 / 30; this.drawMinimap(); }

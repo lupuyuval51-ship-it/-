@@ -8,19 +8,19 @@ function canvasTex(w, h, draw, opts = {}) {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = opts.clamp ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping;
   t.colorSpace = opts.linear ? THREE.NoColorSpace : THREE.SRGBColorSpace;
-  t.anisotropy = 8; t.needsUpdate = true; return t;
+  t.anisotropy = 16; t.needsUpdate = true; return t;
 }
 const memo = (key, fn) => { if (!cache.has(key)) cache.set(key, fn()); return cache.get(key); };
 
 // Facade styles: one tile = 8 m wide x 4 floors (14 m). Returns {map, emissiveMap}
 export const FACADES = [
-  { id: 'glass',   wall: '#1d2a44', frame: '#0f1626', win: '#2f4f7d', lit: '#ffe6a8', winW: 0.86, winH: 0.72, glow: 0.7 },
+  { id: 'glass',   wall: '#1d2a44', frame: '#0f1626', win: '#2f4f7d', lit: '#ffe6a8', winW: 0.86, winH: 0.72, glow: 0.55 },
   { id: 'deco',    wall: '#efd9c6', frame: '#c9a58a', win: '#31405a', lit: '#ffd88a', winW: 0.42, winH: 0.6, glow: 0.45, bands: '#e5b8a8' },
   { id: 'mint',    wall: '#bfe6d7', frame: '#ffffff', win: '#243a4d', lit: '#ffe2a8', winW: 0.5, winH: 0.62, glow: 0.4, bands: '#8fc9b6' },
   { id: 'pink',    wall: '#f2b9c8', frame: '#ffffff', win: '#2c3346', lit: '#ffe6b0', winW: 0.46, winH: 0.6, glow: 0.4, bands: '#d98aa2' },
   { id: 'concrete',wall: '#9a958f', frame: '#6e6a66', win: '#2a2f38', lit: '#ffdd99', winW: 0.6, winH: 0.55, glow: 0.35 },
   { id: 'brick',   wall: '#8b4a3b', frame: '#5c2f26', win: '#25303d', lit: '#ffcf80', winW: 0.4, winH: 0.58, glow: 0.35 },
-  { id: 'tower',   wall: '#141824', frame: '#0b0e16', win: '#3a4a6a', lit: '#9fe9ff', winW: 0.9, winH: 0.8, glow: 0.8 },
+  { id: 'tower',   wall: '#141824', frame: '#0b0e16', win: '#3a4a6a', lit: '#d8ecff', winW: 0.9, winH: 0.8, glow: 0.55 },
   { id: 'white',   wall: '#f4f1ea', frame: '#d8d2c6', win: '#2b3a4a', lit: '#ffe4a6', winW: 0.5, winH: 0.65, glow: 0.4, bands: '#dcd5c8' },
 ];
 
@@ -128,3 +128,83 @@ export const cloudTex = () => memo('cloud', () => canvasTex(512, 512, (ctx, w, h
   for (let i = 0; i < w * h; i++) { const v = noise[i] / 2.28; const a = Math.max(0, Math.min(1, (v - 0.52) * 3.2)); d[i * 4] = 255; d[i * 4 + 1] = 255; d[i * 4 + 2] = 255; d[i * 4 + 3] = a * 255; }
   ctx.putImageData(img, 0, 0);
 }));
+
+// ---------- normal / roughness-metalness maps ----------
+// Height is drawn into a canvas (red channel) and converted with a Sobel-style gradient.
+function normalTex(key, w, h, drawHeight, strength = 2.5, clampTex = false) {
+  return memo('n:' + key, () => {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d');
+    drawHeight(ctx, w, h);
+    const src = ctx.getImageData(0, 0, w, h).data; const out = ctx.createImageData(w, h); const d = out.data;
+    const H = (x, y) => { x = (x + w) % w; y = (y + h) % h; return src[(y * w + x) * 4] / 255; };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const dx = (H(x + 1, y) - H(x - 1, y)) * strength, dy = (H(x, y + 1) - H(x, y - 1)) * strength;
+      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); const i = (y * w + x) * 4;
+      d[i] = (nx / l * 0.5 + 0.5) * 255; d[i + 1] = (ny / l * 0.5 + 0.5) * 255; d[i + 2] = (nz / l * 0.5 + 0.5) * 255; d[i + 3] = 255;
+    }
+    ctx.putImageData(out, 0, 0);
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = clampTex ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 16; t.needsUpdate = true; return t;
+  });
+}
+// Windows recess into the wall, frames stand proud of it.
+function facadeHeight(style) {
+  return (ctx, W, H) => {
+    const cols = 4, rows = 4, cw = W / cols, ch = H / rows;
+    ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, W, H);
+    if (style.bands) { ctx.fillStyle = '#b4b4b4'; for (let r = 0; r < rows; r++) ctx.fillRect(0, r * ch + ch - 6, W, 6); }
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const ww = cw * style.winW, wh = ch * style.winH, x = c * cw + (cw - ww) / 2, y = r * ch + (ch - wh) / 2 + ch * 0.05;
+      ctx.fillStyle = '#c8c8c8'; ctx.fillRect(x - 4, y - 4, ww + 8, wh + 8);
+      ctx.fillStyle = '#3c3c3c'; ctx.fillRect(x, y, ww, wh);
+      ctx.fillStyle = '#5a5a5a'; ctx.fillRect(x + ww / 2 - 1, y, 2, wh); ctx.fillRect(x, y + wh / 2 - 1, ww, 2);
+      ctx.fillStyle = '#d2d2d2'; ctx.fillRect(x - 5, y + wh + 2, ww + 10, 5);
+    }
+  };
+}
+export const facadeNormal = style => normalTex('fac' + style.id, 256, 448, facadeHeight(style), 3.0);
+// Green = roughness, blue = metalness: glass panes turn mirror-like, walls stay matte.
+export function facadeORM(style) {
+  const glassy = style.id === 'glass' || style.id === 'tower';
+  return memo('orm' + style.id, () => canvasTex(256, 448, (ctx, W, H) => {
+    const cols = 4, rows = 4, cw = W / cols, ch = H / rows;
+    ctx.fillStyle = `rgb(0,${Math.round((glassy ? 0.62 : 0.9) * 255)},0)`; ctx.fillRect(0, 0, W, H);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const ww = cw * style.winW, wh = ch * style.winH, x = c * cw + (cw - ww) / 2, y = r * ch + (ch - wh) / 2 + ch * 0.05;
+      ctx.fillStyle = `rgb(0,${Math.round(0.55 * 255)},${Math.round(0.25 * 255)})`; ctx.fillRect(x - 4, y - 4, ww + 8, wh + 8);
+      ctx.fillStyle = `rgb(0,${Math.round((glassy ? 0.06 : 0.12) * 255)},${Math.round((glassy ? 0.95 : 0.75) * 255)})`; ctx.fillRect(x, y, ww, wh);
+    }
+  }, { linear: true }));
+}
+export const storefrontNormal = variant => normalTex('store' + variant, 384, 256, (ctx, W, H) => {
+  ctx.fillStyle = '#909090'; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 3; i++) { const x = 16 + i * 124, y = 62, w = 100, h = 150;
+    ctx.fillStyle = '#d0d0d0'; ctx.fillRect(x - 6, y - 6, w + 12, h + 12);
+    ctx.fillStyle = '#3a3a3a'; ctx.fillRect(x, y, w, h);
+    if (i === 2) { ctx.fillStyle = '#6a6a6a'; ctx.fillRect(x + 10, y + 8, w - 20, h - 36); } }
+  ctx.fillStyle = '#cccccc'; ctx.fillRect(0, 20, W, 36); ctx.fillStyle = '#4a4a4a'; ctx.fillRect(0, 56, W, 6);
+  ctx.fillStyle = '#e0e0e0'; ctx.fillRect(0, 0, W, 20); ctx.fillStyle = '#b8b8b8'; ctx.fillRect(0, H - 14, W, 14);
+}, 2.4);
+export function storefrontORM(variant) {
+  return memo('sorm' + variant, () => canvasTex(384, 256, (ctx, W, H) => {
+    ctx.fillStyle = `rgb(0,${Math.round(0.8 * 255)},0)`; ctx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 3; i++) { const x = 16 + i * 124, y = 62, w = 100, h = 150; ctx.fillStyle = `rgb(0,26,${Math.round(0.9 * 255)})`; ctx.fillRect(x, y, w, h); }
+  }, { linear: true }));
+}
+export const asphaltNormal = () => normalTex('asphalt', 256, 256, (ctx, w, h) => {
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, w, h); const rng = mulberry(11);
+  for (let i = 0; i < 4000; i++) { const v = 110 + rng() * 80; ctx.fillStyle = `rgb(${v},${v},${v})`; ctx.fillRect(rng() * w, rng() * h, 2 + rng() * 2, 2 + rng() * 2); }
+  for (let i = 0; i < 14; i++) { ctx.strokeStyle = 'rgba(40,40,40,0.6)'; ctx.lineWidth = 1 + rng() * 2; ctx.beginPath(); ctx.moveTo(rng() * w, rng() * h); ctx.lineTo(rng() * w, rng() * h); ctx.stroke(); }
+}, 1.1);
+export const sidewalkNormal = () => normalTex('sidewalk', 128, 128, (ctx, w, h) => {
+  ctx.fillStyle = '#9a9a9a'; ctx.fillRect(0, 0, w, h); const rng = mulberry(5);
+  for (let i = 0; i < 900; i++) { const v = 130 + rng() * 60; ctx.fillStyle = `rgb(${v},${v},${v})`; ctx.fillRect(rng() * w, rng() * h, 2, 2); }
+  ctx.strokeStyle = '#2c2c2c'; ctx.lineWidth = 4; ctx.strokeRect(2, 2, w - 4, h - 4); ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+}, 2.2);
+export const plankNormal = () => normalTex('plank', 128, 128, (ctx, w, h) => {
+  ctx.fillStyle = '#9a9a9a'; ctx.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += 16) { ctx.fillStyle = '#a8a8a8'; ctx.fillRect(0, y, w, 15); ctx.fillStyle = '#2a2a2a'; ctx.fillRect(0, y + 15, w, 1); }
+}, 2.6);
+export const sandNormal = () => normalTex('sand', 256, 256, (ctx, w, h) => {
+  ctx.fillStyle = '#808080'; ctx.fillRect(0, 0, w, h); const rng = mulberry(9);
+  for (let i = 0; i < 2600; i++) { const v = 110 + rng() * 90; ctx.fillStyle = `rgb(${v},${v},${v})`; ctx.beginPath(); ctx.arc(rng() * w, rng() * h, 1 + rng() * 3, 0, 6.28); ctx.fill(); }
+}, 1.4);

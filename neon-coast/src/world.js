@@ -1,7 +1,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { CITY } from './config.js';
 import { GeoBuilder, StaticGrid, mulberry, clamp, xform, M4, mergeGeometries } from './utils.js';
-import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonSign, billboard, crossTex, storefrontTextures, shadowTex, cloudTex, AWNINGS } from './textures.js';
+import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonSign, billboard, crossTex, storefrontTextures, shadowTex, cloudTex, AWNINGS, facadeNormal, facadeORM, storefrontNormal, storefrontORM, asphaltNormal, sidewalkNormal, plankNormal, sandNormal } from './textures.js';
 
 const { road, sidewalk, pitch, gridX, gridZ } = CITY;
 const HALF = road / 2;
@@ -85,12 +85,12 @@ export class World {
   // ---------------- ground ----------------
   buildGround() {
     const mats = this.mats = {
-      asphalt: new THREE.MeshStandardMaterial({ map: asphaltTex(), roughness: 0.92, metalness: 0.02 }),
-      sidewalk: new THREE.MeshStandardMaterial({ map: sidewalkTex(), roughness: 0.95 }),
+      asphalt: new THREE.MeshStandardMaterial({ map: asphaltTex(), normalMap: asphaltNormal(), normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.92, metalness: 0.02 }),
+      sidewalk: new THREE.MeshStandardMaterial({ map: sidewalkTex(), normalMap: sidewalkNormal(), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.95 }),
       grass: new THREE.MeshStandardMaterial({ map: grassTex(), roughness: 1 }),
-      sand: new THREE.MeshStandardMaterial({ map: sandTex(), roughness: 1 }),
+      sand: new THREE.MeshStandardMaterial({ map: sandTex(), normalMap: sandNormal(), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1 }),
       roof: new THREE.MeshStandardMaterial({ map: roofTex(), roughness: 0.95 }),
-      plank: new THREE.MeshStandardMaterial({ map: plankTex(), roughness: 0.9 }),
+      plank: new THREE.MeshStandardMaterial({ map: plankTex(), normalMap: plankNormal(), normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.9 }),
       dark: new THREE.MeshStandardMaterial({ color: 0x2a2d33, roughness: 0.8 }),
       white: new THREE.MeshBasicMaterial({ color: 0xf2f2f2, side: THREE.DoubleSide }),
       yellow: new THREE.MeshBasicMaterial({ color: 0xf2c230, side: THREE.DoubleSide }),
@@ -99,8 +99,10 @@ export class World {
     };
     const g = new GeoBuilder(); g.plane(CITY.minX - 6, CITY.minZ - 6, CITY.maxX, CITY.maxZ + 6, 0, 6);
     const ground = new THREE.Mesh(g.build(), mats.asphalt); ground.receiveShadow = true; this.scene.add(ground);
-    // outskirts ground
-    const o = new GeoBuilder(); o.plane(CITY.minX - 900, CITY.minZ - 900, CITY.oceanX + 900, CITY.maxZ + 900, -0.05, 12);
+    // outskirts ground: a frame around the city rectangle, never overlapping the asphalt
+    const o = new GeoBuilder(); const X0 = CITY.minX - 6, X1 = CITY.maxX, Z0 = CITY.minZ - 6, Z1 = CITY.maxZ + 6, F = 900;
+    o.plane(X0 - F, Z0 - F, X1 + F, Z0, -0.04, 12); o.plane(X0 - F, Z1, X1 + F, Z1 + F, -0.04, 12);
+    o.plane(X0 - F, Z0, X0, Z1, -0.04, 12); o.plane(X1, Z0, X1 + F, Z1, -0.04, 12);
     const outer = new THREE.Mesh(o.build(), mats.grass); outer.receiveShadow = true; this.scene.add(outer);
     // invisible boundary walls
     const B = 30, big = 1000;
@@ -149,15 +151,14 @@ export class World {
     // materials + meshes
     this.facadeMats = [];
     for (const [id, b] of facadeBuilders) {
-      const style = FACADES.find(f => f.id === id), tex = facadeTextures(style);
-      const glassy = id === 'glass' || id === 'tower';
-      const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, roughness: glassy ? 0.35 : 0.85, metalness: glassy ? 0.45 : 0.02 });
+      const style = FACADES.find(f => f.id === id), tex = facadeTextures(style); const orm = facadeORM(style);
+      const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: facadeNormal(style), normalScale: new THREE.Vector2(0.85, 0.85), roughnessMap: orm, metalnessMap: orm, roughness: 1, metalness: 1, envMapIntensity: 1.1 });
       m.userData.glow = tex.glow; this.facadeMats.push(m);
       const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh);
     }
     const roofs = new THREE.Mesh(roofB.build(), this.mats.roof); roofs.castShadow = true; roofs.receiveShadow = true; this.scene.add(roofs);
     this.storeMats = [];
-    this.storeBuilders.forEach((b, i) => { if (!b.count) return; const tex = storefrontTextures(i); const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.55, metalness: 0.1 }); this.storeMats.push(m); const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh); });
+    this.storeBuilders.forEach((b, i) => { if (!b.count) return; const tex = storefrontTextures(i); const orm = storefrontORM(i); const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: storefrontNormal(i), normalScale: new THREE.Vector2(0.8, 0.8), roughnessMap: orm, metalnessMap: orm, roughness: 1, metalness: 1, envMapIntensity: 1.2 }); this.storeMats.push(m); const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh); });
     if (this.awningB.count) { const aw = new THREE.Mesh(this.awningB.build(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide })); aw.castShadow = true; this.scene.add(aw); }
     if (this.shadowB.count) this.scene.add(new THREE.Mesh(this.shadowB.build(), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, color: 0x000000, opacity: 0.55, side: THREE.DoubleSide })));
     if (this.towerLights.length) { this.towerLightMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.45, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff2020 }), this.towerLights.length); const m = new THREE.Matrix4(); this.towerLights.forEach((p, i) => { m.makeTranslation(p.x, p.y, p.z); this.towerLightMesh.setMatrixAt(i, m); }); this.scene.add(this.towerLightMesh); }
@@ -332,7 +333,7 @@ export class World {
   buildClouds() {
     const tex = cloudTex(); this.cloudMats = [];
     for (const [y, sc, op] of [[380, 1.0, 0.85], [470, 1.6, 0.55]]) { const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: op, color: 0xffffff }); mat.map = tex.clone(); mat.map.needsUpdate = true; mat.map.repeat.set(3 * sc, 3 * sc); mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping;
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(4200, 4200), mat); mesh.rotation.x = Math.PI / 2; mesh.position.y = y; mesh.renderOrder = -1; this.scene.add(mesh); this.cloudMats.push({ mat, speed: 0.0012 / sc, baseOp: op }); }
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(4200, 4200), mat); mesh.rotation.x = -Math.PI / 2; mesh.position.y = y; mesh.renderOrder = -1; this.scene.add(mesh); this.cloudMats.push({ mat, speed: 0.0012 / sc, baseOp: op }); }
   }
   buildBeachExtras() {
     const col = h => new THREE.Color(h); const m = new THREE.Matrix4(); const rng = mulberry(4242);
@@ -387,7 +388,7 @@ export class World {
     const c = new THREE.Color(); let dirty = false;
     for (const rec of this.lightNodes) {
       const s = this.lightState(rec.node, 'ns', t) + this.lightState(rec.node, 'ew', t); if (s === rec.state) continue; rec.state = s; dirty = true;
-      for (const h of rec.heads) { const st = h.axis === 'ns' ? s[0] : s[1]; this.lightLamps.setColorAt(h.base, c.set(st === 'r' ? 0xff2a2a : 0x2a0a0a)); this.lightLamps.setColorAt(h.base + 1, c.set(st === 'y' ? 0xffc21a : 0x2a1f05)); this.lightLamps.setColorAt(h.base + 2, c.set(st === 'g' ? 0x2aff5a : 0x062a10)); }
+      for (const h of rec.heads) { const st = h.axis === 'ns' ? s[0] : s[1]; this.lightLamps.setColorAt(h.base, c.set(st === 'r' ? 0xff2a2a : 0x2a0a0a).multiplyScalar(st === 'r' ? 2.2 : 1)); this.lightLamps.setColorAt(h.base + 1, c.set(st === 'y' ? 0xffc21a : 0x2a1f05).multiplyScalar(st === 'y' ? 2.2 : 1)); this.lightLamps.setColorAt(h.base + 2, c.set(st === 'g' ? 0x2aff5a : 0x062a10).multiplyScalar(st === 'g' ? 2.2 : 1)); }
     }
     if (dirty) this.lightLamps.instanceColor.needsUpdate = true;
   }
@@ -427,7 +428,7 @@ export class World {
     // beach club at z=0
     const cb = new GeoBuilder(); const cx0 = CITY.beachX + 6, cx1 = CITY.beachX + 30, cz0 = -14, cz1 = 14;
     const fb = new GeoBuilder(); fb.box(cx0, 0, cz0, cx1, 7, cz1, { uvU: 8, uvV: 14, top: false }); cb.box(cx0, 6.99, cz0, cx1, 7.3, cz1, { uvU: 4, uvV: 4 });
-    const style = FACADES[2], tex = facadeTextures(style); const mat = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.8 }); mat.userData.glow = tex.glow; this.facadeMats.push(mat);
+    const style = FACADES[2], tex = facadeTextures(style), corm = facadeORM(style); const mat = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: facadeNormal(style), normalScale: new THREE.Vector2(0.85, 0.85), roughnessMap: corm, metalnessMap: corm, roughness: 1, metalness: 1 }); mat.userData.glow = tex.glow; this.facadeMats.push(mat);
     const club = new THREE.Mesh(fb.build(), mat); club.castShadow = true; club.receiveShadow = true; this.scene.add(club); this.scene.add(new THREE.Mesh(cb.build(), this.mats.roof));
     this.grid.add({ x0: cx0, x1: cx1, z0: cz0, z1: cz1, y0: 0, y1: 7, type: 'building' });
     this.addSignX(cx0, cz0, cz1, 'BEACH CLUB', '#ff4fa3', 'west', 7);
@@ -462,12 +463,13 @@ export class World {
 
   // ---------------- per-frame ----------------
   setNight(f, sunDir, skyColor, fogColor, fogNear, fogFar, sunColor, rain = 0) {
-    for (const m of this.facadeMats) m.emissiveIntensity = f * (m.userData.glow ?? 0.5) * 1.6;
-    for (const m of this.storeMats) m.emissiveIntensity = f * 1.4;
+    for (const m of this.facadeMats) m.emissiveIntensity = f * (m.userData.glow ?? 0.5) * 1.15;
+    for (const m of this.storeMats) m.emissiveIntensity = f * 1.05;
     if (this.cloudMats) for (const c of this.cloudMats) { c.mat.color.copy(sunColor || skyColor).lerp(new THREE.Color(0x2a3350), f * 0.9).lerp(new THREE.Color(0x6a7280), rain * 0.6); c.mat.opacity = c.baseOp * (1 - f * 0.35) * (1 + rain * 0.3); }
-    this.mats.asphalt.roughness = 0.92 - rain * 0.62; this.mats.asphalt.metalness = 0.02 + rain * 0.25; this.mats.sidewalk.roughness = 0.95 - rain * 0.45;
-    this.lampHeads.material.color.setHex(0x9a9fa8).lerp(new THREE.Color(0xffe2b0), f);
+    this.mats.asphalt.roughness = 0.92 - rain * 0.68; this.mats.asphalt.metalness = 0.02 + rain * 0.5; this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.sidewalk.roughness = 0.95 - rain * 0.5; this.mats.sidewalk.metalness = rain * 0.3; this.mats.asphalt.envMapIntensity = 1 + rain * 1.4;
+    this.lampHeads.material.color.setHex(0x9a9fa8).lerp(new THREE.Color(0xffe2b0), f).multiplyScalar(1 + f * 1.0);
+    for (const sg of this.signs) sg.material.color.setScalar(1.0 + f * 0.75);
     this.oceanMat.uniforms.night.value = f; this.oceanMat.uniforms.sunDir.value.copy(sunDir); this.oceanMat.uniforms.skyColor.value.copy(skyColor); this.oceanMat.uniforms.fogColor.value.copy(fogColor); this.oceanMat.uniforms.fogNear.value = fogNear; this.oceanMat.uniforms.fogFar.value = fogFar;
   }
-  update(dt, t) { this.oceanMat.uniforms.time.value = t; this.updateTrafficLights(t); if (this.cloudMats) for (const c of this.cloudMats) c.mat.map.offset.x += c.speed * dt; if (this.towerLightMesh) this.towerLightMesh.material.color.setHex(Math.floor(t * 1.4) % 2 ? 0xff2020 : 0x3a0808); if (this.boats) for (const b of this.boats) { b.position.y = -0.1 + Math.sin(t * 0.9 + b.position.x) * 0.15; b.rotation.z = Math.sin(t * 0.7 + b.position.z) * 0.04; } }
+  update(dt, t) { this.oceanMat.uniforms.time.value = t; this.updateTrafficLights(t); if (this.cloudMats) for (const c of this.cloudMats) c.mat.map.offset.x += c.speed * dt; if (this.towerLightMesh) this.towerLightMesh.material.color.setHex(Math.floor(t * 1.4) % 2 ? 0xff2020 : 0x3a0808).multiplyScalar(Math.floor(t * 1.4) % 2 ? 2.4 : 1); if (this.boats) for (const b of this.boats) { b.position.y = -0.1 + Math.sin(t * 0.9 + b.position.x) * 0.15; b.rotation.z = Math.sin(t * 0.7 + b.position.z) * 0.04; } }
 }

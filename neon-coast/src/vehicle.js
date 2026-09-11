@@ -26,7 +26,8 @@ const wreckMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 1 
 const poolTexCache = {};
 function poolTex() { if (poolTexCache.t) return poolTexCache.t; const c = document.createElement('canvas'); c.width = 128; c.height = 256; const ctx = c.getContext('2d'); const g = ctx.createRadialGradient(64, 40, 4, 64, 120, 130); g.addColorStop(0, 'rgba(255,240,200,0.9)'); g.addColorStop(0.5, 'rgba(255,230,180,0.35)'); g.addColorStop(1, 'rgba(255,220,160,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 256); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; poolTexCache.t = t; return t; }
 const poolMat = new THREE.MeshBasicMaterial({ map: null, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 });
-export function setHeadlightPools(night) { if (!poolMat.map) poolMat.map = poolTex(); poolMat.opacity = Math.max(0, night - 0.15) * 0.85; }
+export let HEADLIGHT_GLOW = 1;
+export function setHeadlightPools(night) { if (!poolMat.map) poolMat.map = poolTex(); poolMat.opacity = Math.max(0, night - 0.15) * 0.5; HEADLIGHT_GLOW = 1 + night * 1.3; }
 const geoCache = new Map();
 function extrude(points, width) { const k = JSON.stringify(points) + width; if (!geoCache.has(k)) { const s = new THREE.Shape(points.map(p => new THREE.Vector2(p[0], p[1]))); const g = new THREE.ExtrudeGeometry(s, { depth: width - 0.12, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 2 }); g.translate(0, 0, -(width - 0.12) / 2); g.computeVertexNormals(); geoCache.set(k, g); } return geoCache.get(k); }
 function wheelGeo(r) { const k = 'w' + r; if (!geoCache.has(k)) geoCache.set(k, mergeGeometries([xform(new THREE.CylinderGeometry(r, r, 0.26, 16), M4(0, 0, 0, Math.PI / 2, 0, 0), new THREE.Color(0x151517)), xform(new THREE.CylinderGeometry(r * 0.62, r * 0.62, 0.28, 8), M4(0, 0, 0, Math.PI / 2, 0, 0), new THREE.Color(0xc4c8d0)), xform(new THREE.CylinderGeometry(r * 0.2, r * 0.2, 0.3, 8), M4(0, 0, 0, Math.PI / 2, 0, 0), new THREE.Color(0x30323a))])); return geoCache.get(k); }
@@ -127,8 +128,8 @@ export class Vehicle {
   syncMesh(t = 0) {
     const m = this.mesh; m.position.set(this.x, this.y, this.z); m.rotation.y = this.heading; this.model.chassis.rotation.x = this.roll; this.model.chassis.rotation.z = this.pitch;
     const wm = this.model.wheels, wp = this.model.wheelPos; for (let i = 0; i < wp.length; i++) { _q.setFromEuler(_e.set(0, wp[i].front ? this.steer : 0, -this.spin)); _m.compose(_v.set(wp[i].x, this.model.wheelR, wp[i].z), _q, _one); wm.setMatrixAt(i, _m); } wm.instanceMatrix.needsUpdate = true;
-    if (!this.wrecked) this.model.rearMat.color.setHex(this.braking ? 0xff2a2a : (this.lightsOn ? 0xa01818 : 0x4a0d0d));
-    if (this.model.bar && !this.wrecked) { const on = this.siren; const ph = Math.floor(t * 6) % 2; this.model.bar.userData.red.material.color.setHex(on && ph === 0 ? 0xff2020 : 0x550000); this.model.bar.userData.blue.material.color.setHex(on && ph === 1 ? 0x2a60ff : 0x000055); }
+    if (!this.wrecked) { this.model.rearMat.color.setHex(this.braking ? 0xff2a2a : (this.lightsOn ? 0xa01818 : 0x4a0d0d)).multiplyScalar(this.braking ? 1.6 : 1); this.model.frontMat.color.setHex(0xfff1c8).multiplyScalar(HEADLIGHT_GLOW); }
+    if (this.model.bar && !this.wrecked) { const on = this.siren; const ph = Math.floor(t * 6) % 2; this.model.bar.userData.red.material.color.setHex(on && ph === 0 ? 0xff2020 : 0x550000).multiplyScalar(on && ph === 0 ? 2.6 : 1); this.model.bar.userData.blue.material.color.setHex(on && ph === 1 ? 0x2a60ff : 0x000055).multiplyScalar(on && ph === 1 ? 2.6 : 1); }
   }
   // OBB-ish test: is world point (x,z) inside the car footprint (+margin)?
   contains(x, z, margin = 0) { const dx = x - this.x, dz = z - this.z; const lf = dx * this.fx + dz * this.fz, lr = dx * -this.fz + dz * this.fx; return Math.abs(lf) < this.spec.len / 2 + margin && Math.abs(lr) < this.spec.wid / 2 + margin; }

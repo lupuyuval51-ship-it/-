@@ -19,7 +19,7 @@ export class Police {
     const add = table[type] ?? 0.3; if (!add) return; this.heat += add; this.lastSeen = this.game.time;
     if (this.heat >= 1) { const n = Math.floor(this.heat); this.heat -= n; this.setLevel(this.level + n); }
   }
-  setLevel(n) { n = clamp(n, 0, 5); if (n === this.level) return; const up = n > this.level; this.level = n; this.lastSeen = this.game.time; if (up) { this.game.audio.wanted(); this.game.hud.flashStars(); } if (n === 0) this.clearForces(); }
+  setLevel(n) { n = clamp(n, 0, 5); if (n === this.level) return; const up = n > this.level; this.level = n; this.lastSeen = this.game.time; if (up) this.lastPos = { x: this.game.player.x, z: this.game.player.z }; if (up) { this.game.audio.wanted(); this.game.hud.flashStars(); } if (n === 0) this.clearForces(); }
   clear() { this.level = 0; this.heat = 0; this.clearForces(); }
   clearForces() {
     for (const v of this.cars) { v.siren = false; if (v.ai.mode === 'deployed') v.ai.mode = 'police'; v.ai = { mode: 'patrol', cruise: 13, blocked: 0, panic: 0 }; acquireLane(v, this.game.world); }
@@ -37,7 +37,7 @@ export class Police {
     if (seen) { this.lastSeen = t; this.lastPos = { x: px, z: pz }; } this.hidden = !seen; if (this.heli) this.heli.hasTrack = seen || (t - this.lastSeen < 6);
     if (t - this.lastSeen > 20) { this.lastSeen = t; this.setLevel(this.level - 1); if (this.level === 0) G.hud.notify(T.evaded); }
     // patrol cars join the pursuit when close
-    for (const v of G.vehicles) if (v.ai && v.ai.mode === 'patrol' && dist(v.x, v.z, px, pz) < 90) { v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: v.ai.lane ?? 0 }; acquireLane(v, G.world); v.siren = true; }
+    for (const v of G.vehicles) if (v.ai && v.ai.mode === 'patrol' && dist(v.x, v.z, px, pz) < 90 && (() => { const d = dist(v.x, v.z, px, pz) || 1; return G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1; })()) { v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: v.ai.lane ?? 0 }; acquireLane(v, G.world); v.siren = true; }
     // spawn pursuit cars
     const cars = this.cars; this.spawnT -= dt;
     if (cars.length < CARS_PER_LEVEL[this.level] && this.spawnT <= 0) { this.spawnT = 2.2; this.spawnCar(); }
@@ -46,7 +46,8 @@ export class Police {
     for (const v of cars) {
       const d = dist(v.x, v.z, px, pz); nearest = Math.min(nearest, d); const ai = v.ai;
       if (ai.mode === 'deployed') { v.input.throttle = 0; v.input.brake = true; v.siren = true; if (d > 60) { ai.mode = 'police'; ai.deployed = false; ai.direct = true; } continue; }
-      const inCar = !!P.vehicle; const tx = inCar ? px + P.vehicle.vx * 0.7 : px, tz = inCar ? pz + P.vehicle.vz * 0.7 : pz;
+      const inCar = !!P.vehicle; const lp = this.lastPos || { x: px, z: pz };
+      const tx = this.hidden ? lp.x : (inCar ? px + P.vehicle.vx * 0.7 : px), tz = this.hidden ? lp.z : (inCar ? pz + P.vehicle.vz * 0.7 : pz);
       if (ai.rev > 0) { ai.rev -= dt; v.input.throttle = -1; v.input.steer = ai.revSteer; v.input.brake = false; continue; }
       if (v.speed < 1 && d > 10) { ai.stuck += dt; if (ai.stuck > 1.6) { ai.stuck = 0; ai.rev = 1.2; ai.revSteer = Math.random() < 0.5 ? 1 : -1; ai.direct = true; } } else ai.stuck = 0;
       const stopDist = inCar ? (P.vehicle.speed < 2 ? 7 : 0) : 9;
@@ -63,7 +64,11 @@ export class Police {
   spawnCar() {
     const G = this.game, W = G.world, P = G.player; const camF = G.cameraForward();
     for (let tries = 0; tries < 14; tries++) {
-      const p = W.randomLanePoint(); const d = dist(p.x, p.z, P.x, P.z); if (d < 70 || d > 190) continue; const ahead = ((p.x - P.x) * camF.x + (p.z - P.z) * camF.z) / d; if (ahead > 0.4 && !(P.vehicle && P.vehicle.speed > 8 && d > 120)) continue;
+      // while the player is hidden, reinforcements gather where they were last seen
+      const anchor = this.hidden && this.lastPos ? this.lastPos : P;
+      const p = W.randomLanePoint(); const d = dist(p.x, p.z, anchor.x, anchor.z); if (d < 70 || d > 190) continue;
+      const dp = dist(p.x, p.z, P.x, P.z) || 1; const ahead = ((p.x - P.x) * camF.x + (p.z - P.z) * camF.z) / dp;
+      if (ahead > 0.4 && dp < 200 && !(P.vehicle && P.vehicle.speed > 8 && dp > 120)) continue;
       let ok = true; for (const o of G.vehicles) if (dist(o.x, o.z, p.x, p.z) < 12) { ok = false; break; } if (!ok) continue;
       const v = new Vehicle(this.level >= 5 && Math.random() < 0.5 ? 'swat' : 'police', null, p.x, p.z, p.heading); v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: p.lane, seg: p.seg, dir: p.dir, L: p.L }; v.siren = true; v.vx = v.fx * 12; v.vz = v.fz * 12; G.addVehicle(v); return v;
     }

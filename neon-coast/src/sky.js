@@ -7,8 +7,8 @@ const KEYS = [
   [-0.12, 0x0a1030, 0x2a2650, 0x7a3a3a],
   [0.0, 0x2b3b7a, 0xff7a4a, 0xffa25a],
   [0.12, 0x4a86d8, 0xffb98a, 0xffd2a0],
-  [0.45, 0x2f7fe0, 0xa8d8f4, 0xfff2d8],
-  [1.0, 0x1f6fd8, 0xbfe4fa, 0xffffff],
+  [0.45, 0x3f8ae4, 0xb6dff6, 0xfff1d4],
+  [1.0, 0x2f7fdc, 0xc6e8fb, 0xfff6e6],
 ];
 const tmpA = new THREE.Color(), tmpB = new THREE.Color();
 function keyColor(sunY, k) { for (let i = 1; i < KEYS.length; i++) if (sunY <= KEYS[i][0]) { const t = clamp((sunY - KEYS[i - 1][0]) / (KEYS[i][0] - KEYS[i - 1][0]), 0, 1); return tmpA.setHex(KEYS[i - 1][k]).lerp(tmpB.setHex(KEYS[i][k]), t).clone(); } return tmpA.setHex(KEYS[KEYS.length - 1][k]).clone(); }
@@ -18,7 +18,7 @@ export class Sky {
     this.scene = scene; this.renderer = renderer; this.rain = 0; this.weather = 'clear';
     this.hemi = new THREE.HemisphereLight(0xbfe4fa, 0x5a4a3a, 1.0); scene.add(this.hemi);
     this.sun = new THREE.DirectionalLight(0xffffff, 2.5); this.sun.castShadow = quality !== 'low';
-    const sh = this.sun.shadow; sh.mapSize.set(quality === 'high' ? 2048 : 1024, quality === 'high' ? 2048 : 1024); sh.camera.near = 1; sh.camera.far = 420; sh.camera.left = -110; sh.camera.right = 110; sh.camera.top = 110; sh.camera.bottom = -110; sh.bias = -0.0008; sh.normalBias = 0.6;
+    const sh = this.sun.shadow; sh.mapSize.set(quality === 'high' ? 2048 : 1024, quality === 'high' ? 2048 : 1024); sh.camera.near = 1; sh.camera.far = 420; sh.camera.left = -88; sh.camera.right = 88; sh.camera.top = 88; sh.camera.bottom = -88; sh.bias = -0.0004; sh.normalBias = 0.35; sh.radius = quality === 'high' ? 2.5 : 1.5;
     scene.add(this.sun); scene.add(this.sun.target);
     this.domeMat = new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false,
@@ -56,15 +56,16 @@ export class Sky {
     this.moon.position.copy(camera.position).addScaledVector(new THREE.Vector3(-sd.x * 0.6, Math.max(0.5, -sd.y), -sd.z * 0.6).normalize(), 1300); this.moon.visible = night > 0.3;
     // lights
     const day = clamp(sunY * 3, 0, 1); const dayLight = day * (1 - this.rain * 0.55);
+    const texel = 2 * 88 / (this.sun.shadow.mapSize.x || 2048); const snap = new THREE.Vector3(Math.round(focus.x / texel) * texel, 0, Math.round(focus.z / texel) * texel); focus = snap;
     if (sunY > 0.03) { this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.intensity = lerp(0.2, 2.8, dayLight); this.sun.color.copy(sunC); }
-    else { const md = new THREE.Vector3(-sd.x, Math.max(0.35, -sd.y), -sd.z).normalize(); this.sun.position.copy(focus).addScaledVector(md, 220); this.sun.intensity = 0.42 * (1 - this.rain * 0.5); this.sun.color.setHex(0x8fa4ff); }
+    else { const md = new THREE.Vector3(-sd.x, Math.max(0.35, -sd.y), -sd.z).normalize(); this.sun.position.copy(focus).addScaledVector(md, 220); this.sun.intensity = 0.5 * (1 - this.rain * 0.5); this.sun.color.setHex(0x8fa4ff); }
     this.sun.target.position.copy(focus);
-    this.hemi.color.copy(top).lerp(new THREE.Color(0xffffff), 0.4 * day); this.hemi.groundColor.setHex(0x3a3028).lerp(new THREE.Color(0x141a2e), night); this.hemi.intensity = lerp(0.6, 1.25, dayLight);
+    this.hemi.color.copy(top).lerp(new THREE.Color(0xfff4e4), 0.58 * day); this.hemi.groundColor.setHex(0x3a3028).lerp(new THREE.Color(0x141a2e), night); this.hemi.intensity = lerp(0.78, 1.25, dayLight);
     // fog: horizon colour, denser in rain and at night
     this.fogColor.copy(hor).lerp(top, 0.35 * night); this.skyColor.copy(top);
     const near = lerp(150, 45, this.rain) * (1 - night * 0.35), far = lerp(720, 320, this.rain) * (1 - night * 0.3);
     this.scene.fog.color.copy(this.fogColor); this.scene.fog.near = near; this.scene.fog.far = far;
-    this.renderer.toneMappingExposure = lerp(1.0, 1.15, night);
+    this.exposure = lerp(1.0, 1.18, night) * (1 - this.rain * 0.12);
     // rain particles
     const r = this.rain; this.rainMesh.visible = r > 0.02; this.rainMesh.material.opacity = 0.35 * r;
     if (this.rainMesh.visible) {
