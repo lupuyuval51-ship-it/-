@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>מיינקראפט בדפדפן</title>
+  <link rel="icon" href="data:,">
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #9fd8ff; font-family: system-ui, "Segoe UI", Arial, sans-serif; }
+    #game canvas { display: block; }
+    #crosshair {
+      position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px;
+      background: #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, .6); pointer-events: none;
+    }
+    #hud {
+      position: fixed; top: 10px; left: 10px; direction: ltr; color: #fff; font-size: 14px;
+      text-shadow: 0 1px 2px #000; pointer-events: none;
+    }
+    #hotbar {
+      position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 6px; direction: ltr;
+    }
+    .slot {
+      position: relative; width: 44px; height: 44px; box-sizing: border-box; cursor: pointer;
+      border: 3px solid rgba(255, 255, 255, .35); border-radius: 6px; background: rgba(0, 0, 0, .35);
+    }
+    .slot.sel { border-color: #fff; transform: translateY(-4px); }
+    .swatch { position: absolute; inset: 5px; border-radius: 3px; }
+    .num {
+      position: absolute; left: 3px; top: 0; font-size: 11px; color: #fff; text-shadow: 0 1px 2px #000;
+    }
+    #overlay {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(10, 20, 35, .6); color: #fff; cursor: pointer; text-align: center;
+    }
+    #overlay[hidden] { display: none; }
+    .box { max-width: 480px; padding: 24px; line-height: 1.8; }
+    h1 { margin: 0 0 6px; font-size: 34px; }
+    .start { font-size: 20px; font-weight: 700; margin: 12px 0 18px; color: #7fff7f; }
+    table { margin: 0 auto; border-collapse: collapse; }
+    td { padding: 2px 10px; }
+    kbd {
+      direction: ltr; display: inline-block; min-width: 22px; padding: 1px 6px; border-radius: 4px;
+      background: #222; border: 1px solid #666; font-family: inherit; font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="crosshair"></div>
+  <div id="hud"></div>
+  <div id="hotbar"></div>
+
+  <div id="overlay">
+    <div class="box">
+      <h1>מיינקראפט</h1>
+      <div class="start">לחצו כדי להתחיל</div>
+      <table>
+        <tr><td><kbd>WASD</kbd></td><td>הליכה</td></tr>
+        <tr><td>עכבר</td><td>הסתכלות</td></tr>
+        <tr><td><kbd>Space</kbd></td><td>קפיצה</td></tr>
+        <tr><td>לחיצה שמאלית</td><td>שבירת בלוק</td></tr>
+        <tr><td>לחיצה ימנית</td><td>הנחת בלוק</td></tr>
+        <tr><td><kbd>1–9</kbd> או גלגלת</td><td>בחירת בלוק</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>יציאה מהמשחק</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
