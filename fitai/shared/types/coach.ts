@@ -26,10 +26,34 @@ export interface CoachStatusDTO {
   dailyLimit: number;
   usedToday: number;
   remainingToday: number;
+  /** Start of the next day in the user's time zone (when `usedToday` resets). */
+  resetsAt: ISODateTime;
 }
 
 export interface SendCoachMessageResponse {
   userMessage: CoachMessageDTO;
   reply: CoachMessageDTO;
   status: CoachStatusDTO;
+}
+
+export interface CoachThreadListResponse {
+  /** Most recently active first. */
+  threads: CoachThreadDTO[];
+}
+
+export interface CoachThreadResponse {
+  thread: CoachThreadDTO;
+}
+
+export interface CoachMessagesResponse {
+  /** Chronological (oldest first). */
+  messages: CoachMessageDTO[];
+  /** True when older messages exist before the first one returned. */
+  hasMore: boolean;
+}
+
+/** `details` of a 429 `quota_exceeded` error. */
+export interface CoachQuotaErrorDetails {
+  limit: number;
+  resetsAt: ISODateTime;
 }
