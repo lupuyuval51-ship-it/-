@@ -94,7 +94,7 @@ export interface ExerciseAnimation {
   keyframes: Keyframe[];
   props?: Prop[];
   /** Optional camera framing override (centre x/y and zoom); default frames the whole 240×200 canvas. */
-  camera?: { cx: number; cy: number; zoom: number };
+  camera?: { cx: number; cy: number; zoom: number; /** Track the hip horizontally (travelling movements such as walking lunges); the floor is drawn dashed so motion stays visible and the loop is seamless. */ followX?: boolean };
   /** Short caption keys shown under the animation per phase (optional). */
   cues?: { t: number; en: string; he: string }[];
 }

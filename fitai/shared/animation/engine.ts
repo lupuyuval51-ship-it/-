@@ -613,11 +613,26 @@ export function validateAnimation(anim: ExerciseAnimation): string[] {
   return errors;
 }
 
-/** SVG viewBox honouring the optional camera (zoom < 1 shows more of the scene). */
-export function viewBoxFor(anim: Pick<ExerciseAnimation, 'camera'>): { x: number; y: number; w: number; h: number } {
+/** Horizontal travel of the hip over one loop (non-zero for travelling movements). */
+export function loopTravel(anim: ExerciseAnimation): number {
+  const k = anim.keyframes;
+  return (k[k.length - 1]?.pose.hip[0] ?? 0) - (k[0]?.pose.hip[0] ?? 0);
+}
+
+/** SVG viewBox honouring the optional camera (zoom < 1 shows more; followX tracks the hip). */
+export function viewBoxFor(anim: Pick<ExerciseAnimation, 'camera'>, frame?: Pick<Frame, 'joints'>): { x: number; y: number; w: number; h: number } {
   const cam = anim.camera;
   if (!cam || !(cam.zoom > 0)) return { x: 0, y: 0, w: CANVAS.w, h: CANVAS.h };
   const w = CANVAS.w / cam.zoom;
   const h = CANVAS.h / cam.zoom;
-  return { x: cam.cx - w / 2, y: cam.cy - h / 2, w, h };
+  const cx = cam.followX && frame ? frame.joints.hip[0] + (cam.cx - CANVAS.w / 2) : cam.cx;
+  return { x: cx - w / 2, y: cam.cy - h / 2, w, h };
+}
+
+/** Floor dash pattern for follow cameras: a period that divides the loop travel so the loop is seamless. */
+export function floorDash(anim: ExerciseAnimation): { dash: string; offset: number } | null {
+  if (!anim.camera?.followX) return null;
+  const travel = Math.abs(loopTravel(anim)) || 24;
+  const period = travel / Math.max(1, Math.round(travel / 24));
+  return { dash: `${(period * 0.55).toFixed(2)} ${(period * 0.45).toFixed(2)}`, offset: 0 };
 }

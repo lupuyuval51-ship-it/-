@@ -147,7 +147,7 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.2,
     props: [FLAT_BENCH, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
-      [0, lying({ target: [LIE_SHOULDER[0] + 1, 83.5] })],
+      [0, lying({ target: [LIE_SHOULDER[0] + 1, 83.2] })],
       [0.22, lying({ target: [LIE_SHOULDER[0] + 8, 108] })],
       [0.45, lying({ target: [LIE_SHOULDER[0] + 14, 135] })],
       [0.52, lying({ target: [LIE_SHOULDER[0] + 14, 135] })],
@@ -165,8 +165,8 @@ export const animations: ExerciseAnimation[] = [
     props: [INCLINE_BENCH, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
       [0, incline({ target: [INC_SHOULDER[0] + 1, INC_SHOULDER[1] - 56.5] })],
-      [0.45, incline({ target: [INC_SHOULDER[0] + 12, INC_SHOULDER[1] + 4] })],
-      [0.52, incline({ target: [INC_SHOULDER[0] + 12, INC_SHOULDER[1] + 4] })],
+      [0.45, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 1] })],
+      [0.52, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 1] })],
     ),
   },
   {
@@ -175,7 +175,7 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.2,
     props: [FLAT_BENCH, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
-      [0, lying({ target: [LIE_SHOULDER[0] + 3, 83.5] })],
+      [0, lying({ target: [LIE_SHOULDER[0] + 3, 83.2] })],
       [0.45, lying({ target: [LIE_SHOULDER[0] + 11, 143] })],
       [0.52, lying({ target: [LIE_SHOULDER[0] + 11, 143] })],
     ),
@@ -186,8 +186,8 @@ export const animations: ExerciseAnimation[] = [
     props: [INCLINE_BENCH, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
       [0, incline({ target: [INC_SHOULDER[0] + 2, INC_SHOULDER[1] - 56.5] })],
-      [0.45, incline({ target: [INC_SHOULDER[0] + 10, INC_SHOULDER[1] + 10] })],
-      [0.53, incline({ target: [INC_SHOULDER[0] + 10, INC_SHOULDER[1] + 10] })],
+      [0.45, incline({ target: [INC_SHOULDER[0] + 13, INC_SHOULDER[1] + 5] })],
+      [0.53, incline({ target: [INC_SHOULDER[0] + 13, INC_SHOULDER[1] + 5] })],
     ),
   },
   {
@@ -222,7 +222,7 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3,
     props: [{ kind: 'smithRails', x: LIE_SHOULDER[0] + 10 }, FLAT_BENCH, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
-      [0, lying({ target: [LIE_SHOULDER[0] + 10, 84.5] })],
+      [0, lying({ target: [LIE_SHOULDER[0] + 10, 83.6] })],
       [0.45, lying({ target: [LIE_SHOULDER[0] + 10, 134] })],
       [0.52, lying({ target: [LIE_SHOULDER[0] + 10, 134] })],
     ),

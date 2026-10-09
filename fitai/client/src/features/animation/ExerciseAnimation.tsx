@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Muscle } from '@shared/constants';
 import { getAnimation } from '@shared/animation/data/index';
-import { CANVAS, computeFrame, viewBoxFor, type PropShape } from '@shared/animation/engine';
+import { CANVAS, computeFrame, floorDash, viewBoxFor, type PropShape } from '@shared/animation/engine';
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import './animation.css';
@@ -79,7 +79,8 @@ export function ExerciseAnimation({
 
   if (!anim) return null;
   const frame = computeFrame(anim, time, muscles);
-  const vb = viewBoxFor(anim);
+  const vb = viewBoxFor(anim, frame);
+  const dash = floorDash(anim);
 
   return (
     <div ref={holder} className={`anim anim-${size}`}>
@@ -98,7 +99,7 @@ export function ExerciseAnimation({
           </filter>
         </defs>
         <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="url(#anim-bg)" />
-        <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} />
+        <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} strokeDasharray={dash?.dash} />
         <ellipse cx={frame.shadow.cx} cy={frame.shadow.cy} rx={frame.shadow.rx} ry={3} className="anim-shadow" opacity={frame.shadow.opacity} />
         {frame.props.filter((p) => p.layer === 'back').map((p, i) => <Shape key={`b${i}`} p={p} />)}
         {frame.segments.map((s, i) => (

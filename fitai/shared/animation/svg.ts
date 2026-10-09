@@ -3,7 +3,7 @@
  * the app renders the same geometry with React elements).
  */
 import type { Muscle } from '../constants';
-import { CANVAS, computeFrame, viewBoxFor, type Frame, type PropShape, type Tone } from './engine';
+import { CANVAS, computeFrame, floorDash, viewBoxFor, type Frame, type PropShape, type Tone } from './engine';
 import type { ExerciseAnimation } from './types';
 
 export const PALETTE = {
@@ -40,11 +40,11 @@ function shapeSvg(p: PropShape): string {
   }
 }
 
-export function frameSvg(frame: Frame, opts: { size?: number; background?: string; viewBox?: { x: number; y: number; w: number; h: number } } = {}): string {
+export function frameSvg(frame: Frame, opts: { size?: number; background?: string; viewBox?: { x: number; y: number; w: number; h: number }; floorDash?: string } = {}): string {
   const vb = opts.viewBox ?? { x: 0, y: 0, w: CANVAS.w, h: CANVAS.h };
   const parts: string[] = [];
   parts.push(`<rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="${opts.background ?? '#0f172a'}"/>`);
-  parts.push(`<line x1="${vb.x}" y1="${CANVAS.floor + 1}" x2="${vb.x + vb.w}" y2="${CANVAS.floor + 1}" stroke="${PALETTE.floor}" stroke-width="2"/>`);
+  parts.push(`<line x1="${vb.x}" y1="${CANVAS.floor + 1}" x2="${vb.x + vb.w}" y2="${CANVAS.floor + 1}" stroke="${PALETTE.floor}" stroke-width="2"${opts.floorDash ? ` stroke-dasharray="${opts.floorDash}"` : ''}/>`);
   parts.push(`<ellipse cx="${frame.shadow.cx}" cy="${frame.shadow.cy}" rx="${frame.shadow.rx}" ry="3" fill="#000" opacity="${frame.shadow.opacity}"/>`);
   for (const p of frame.props) if (p.layer === 'back') parts.push(shapeSvg(p));
   for (const s of frame.segments) {
@@ -60,5 +60,6 @@ export function frameSvg(frame: Frame, opts: { size?: number; background?: strin
 }
 
 export function animationFrameSvg(anim: ExerciseAnimation, t: number, muscles: Muscle[] = [], size?: number): string {
-  return frameSvg(computeFrame(anim, t, muscles), { size, viewBox: viewBoxFor(anim) });
+  const frame = computeFrame(anim, t, muscles);
+  return frameSvg(frame, { size, viewBox: viewBoxFor(anim, frame), floorDash: floorDash(anim)?.dash });
 }

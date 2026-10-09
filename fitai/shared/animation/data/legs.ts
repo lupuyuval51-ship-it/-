@@ -208,6 +208,8 @@ export const animations: ExerciseAnimation[] = [
     // One forward stride per loop: step, drop the back knee toward the floor, drive through the front heel and step through.
     id: 'walking_lunge',
     durationSec: 2.6,
+    // The camera tracks the hip over a dashed floor, so the travelling stride loops seamlessly.
+    camera: { cx: 120, cy: 100, zoom: 1, followX: true },
     keyframes: [
       kf(0, { hip: [50, S], torso: 2, armNear: handsOnHips(2), legNear: foot(48), legFar: foot(48) }),
       kf(0.14, { hip: [64, 104], torso: 3, armNear: handsOnHips(3), legNear: { target: [86, 166] }, legFar: foot(48), footNear: 100 }),
