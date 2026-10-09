@@ -916,7 +916,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: [],
     easierAlternatives: [],
-    harderAlternatives: [],
+    harderAlternatives: ['worlds_greatest_stretch'],
     loadIncrementKg: null,
   },
   {

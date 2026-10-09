@@ -764,7 +764,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: ['lower_back'],
     easierAlternatives: ['pallof_press', 'russian_twist'],
-    harderAlternatives: [],
+    harderAlternatives: ['medicine_ball_slam'],
     loadIncrementKg: 2.5,
   },
   {
@@ -892,7 +892,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: ['lower_back', 'shoulder'],
     easierAlternatives: ['plank', 'dead_bug', 'hollow_body_hold'],
-    harderAlternatives: [],
+    harderAlternatives: ['hanging_leg_raise', 'l_sit'],
     loadIncrementKg: null,
   },
   {

@@ -829,7 +829,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: ['shoulder', 'elbow'],
     easierAlternatives: ['band_assisted_dip', 'diamond_push_up', 'close_grip_bench_press'],
-    harderAlternatives: [],
+    harderAlternatives: ['muscle_up'],
     loadIncrementKg: null,
   },
   {
