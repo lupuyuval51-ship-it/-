@@ -55,7 +55,8 @@ describe('exercise library API', () => {
     expect(ex.instructions.en.length).toBeGreaterThanOrEqual(4);
     expect(ex.instructions.he.length).toBe(ex.instructions.en.length);
     expect(ex.media).toBeNull();
-    expect(ex.hasMedia).toBe(false);
+    // No video asset is attached, but every exercise ships a built-in animated demonstration.
+    expect(ex.hasMedia).toBe(true);
     expect(ex.userContext.hasRequiredEquipment).toBe(false);
     expect(ex.userContext.missingEquipment).toContain('barbell');
     expect(ex.userContext.injuryConflicts).toContain('shoulder');

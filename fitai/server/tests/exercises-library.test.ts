@@ -204,7 +204,8 @@ describe('GET /api/exercises/:id', () => {
     expect(res.status).toBe(200);
     const ex = res.body.exercise;
     expect(ex.media).toBeNull();
-    expect(ex.hasMedia).toBe(false);
+    // No video asset is attached, but every exercise ships a built-in animated demonstration.
+    expect(ex.hasMedia).toBe(true);
     expect(ex.easierAlternatives.map((a: { id: string }) => a.id)).toEqual(['goblet_squat', 'smith_machine_squat', 'leg_press']);
     const goblet = ex.easierAlternatives[0];
     expect(goblet.userContext).toEqual({ hasRequiredEquipment: true, missingEquipment: [], injuryConflicts: expect.any(Array) });

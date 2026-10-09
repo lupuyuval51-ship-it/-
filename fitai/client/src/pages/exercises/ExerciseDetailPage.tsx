@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { hasAnimation } from '@shared/animation/data/index';
+import { ExerciseAnimation } from '../../features/animation/ExerciseAnimation';
 import { useId, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { ExerciseDetailDTO, ExerciseListItemDTO, ExerciseMediaDTO } from '@shared/types';
@@ -159,6 +161,8 @@ function ExerciseDetailView({ exercise: ex, nav, backLink }: { exercise: Exercis
             <div className="stack">
               {ex.media ? (
                 <ExerciseMedia media={ex.media} name={name} />
+              ) : hasAnimation(ex.id) ? (
+                <ExerciseAnimation exerciseId={ex.id} muscles={ex.primaryMuscles} size="lg" label={t('exercises.detail.mediaAlt', { name })} />
               ) : (
                 <p className="ex-media-note">
                   <Icon name="info" size={18} />

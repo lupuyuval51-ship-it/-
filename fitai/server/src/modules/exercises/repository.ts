@@ -1,3 +1,4 @@
+import { hasAnimation } from '@shared/animation/data/index';
 /**
  * Exercise catalog access shared by the library, generator, sessions and coach.
  * The catalog is static between deployments, so it is cached in memory after the
@@ -132,7 +133,8 @@ export function toExerciseSummary(e: ExerciseRecord): ExerciseSummaryDTO {
     difficulty: e.difficulty,
     trackingType: e.trackingType,
     unilateral: e.unilateral,
-    hasMedia: e.media != null,
+    // Real demonstration media: an attached asset or a built-in animated demonstration.
+    hasMedia: e.media != null || hasAnimation(e.id),
   };
 }
 
