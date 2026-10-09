@@ -374,6 +374,17 @@ export async function finishSession(sql: Sql, user: SessionUser, sessionId: stri
     }
   }
 
+  // Mark the session completed BEFORE granting rewards: the gamification hook counts the
+  // user's completed sessions (weekly goal, achievements), which must include this one.
+  await sql.exec(
+    `UPDATE workout_sessions SET
+        status = 'completed', ended_at = $2, paused_at = NULL, paused_seconds = $3, duration_seconds = $4,
+        total_sets = $5, total_reps = $6, total_volume_kg = $7, notes = $8, perceived_exertion = $9,
+        rest_timer = NULL
+      WHERE id = $1`,
+    [sessionId, endedAt, pausedSeconds, durationSeconds, totals.sets, totals.reps, totals.volumeKg, input.notes ?? '', input.perceivedExertion ?? null],
+  );
+
   const rewards = await onWorkoutCompleted(sql, {
     userId: user.id,
     sessionId,
@@ -385,26 +396,7 @@ export async function finishSession(sql: Sql, user: SessionUser, sessionId: stri
     personalRecordIds: recordIds,
   });
 
-  await sql.exec(
-    `UPDATE workout_sessions SET
-        status = 'completed', ended_at = $2, paused_at = NULL, paused_seconds = $3, duration_seconds = $4,
-        total_sets = $5, total_reps = $6, total_volume_kg = $7, notes = $8, perceived_exertion = $9,
-        rest_timer = NULL, xp_awarded = $10, rewards = $11::jsonb
-      WHERE id = $1`,
-    [
-      sessionId,
-      endedAt,
-      pausedSeconds,
-      durationSeconds,
-      totals.sets,
-      totals.reps,
-      totals.volumeKg,
-      input.notes ?? '',
-      input.perceivedExertion ?? null,
-      rewards.xpAwarded,
-      JSON.stringify(rewards),
-    ],
-  );
+  await sql.exec('UPDATE workout_sessions SET xp_awarded = $2, rewards = $3::jsonb WHERE id = $1', [sessionId, rewards.xpAwarded, JSON.stringify(rewards)]);
   const finished = await requireSession(sql, user.id, sessionId);
   return buildSummary(sql, user.id, finished, user.timezone);
 }

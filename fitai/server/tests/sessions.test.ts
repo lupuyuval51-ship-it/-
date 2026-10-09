@@ -350,7 +350,10 @@ describe('finishing a session', () => {
     // Best set by estimated 1RM: 10 × 60 (80 kg) beats 8 × 62.5 (79.2 kg).
     expect(summary.exercises[0]!.bestSet).toEqual({ reps: 10, weightKg: 60, durationSeconds: null });
     expect(summary.personalRecords).toEqual([]); // first performances are baselines
-    expect(summary.rewards).toEqual({ xpAwarded: 0, newAchievements: [], levelUp: null, notes: [] });
+    // Real gamification: 45 min with 4 completed sets qualifies → 50 base + 2 × 4 sets = 58 XP, first-workout badge.
+    expect(summary.rewards.xpAwarded).toBe(58);
+    expect(summary.rewards.newAchievements).toContain('first_workout');
+    expect(summary.rewards.levelUp).toBeNull();
     expect(summary.previous).toBeNull();
 
     const row = await db.one<{ status: string; paused_at: Date | null; total_sets: number; total_reps: number; total_volume_kg: number; notes: string; perceived_exertion: number; rest_timer: unknown }>(
