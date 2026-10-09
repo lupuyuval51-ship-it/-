@@ -3,7 +3,7 @@
  * the app renders the same geometry with React elements).
  */
 import type { Muscle } from '../constants';
-import { CANVAS, computeFrame, type Frame, type PropShape, type Tone } from './engine';
+import { CANVAS, computeFrame, viewBoxFor, type Frame, type PropShape, type Tone } from './engine';
 import type { ExerciseAnimation } from './types';
 
 export const PALETTE = {
@@ -40,10 +40,11 @@ function shapeSvg(p: PropShape): string {
   }
 }
 
-export function frameSvg(frame: Frame, opts: { size?: number; background?: string } = {}): string {
+export function frameSvg(frame: Frame, opts: { size?: number; background?: string; viewBox?: { x: number; y: number; w: number; h: number } } = {}): string {
+  const vb = opts.viewBox ?? { x: 0, y: 0, w: CANVAS.w, h: CANVAS.h };
   const parts: string[] = [];
-  parts.push(`<rect width="${CANVAS.w}" height="${CANVAS.h}" fill="${opts.background ?? '#0f172a'}"/>`);
-  parts.push(`<line x1="0" y1="${CANVAS.floor + 1}" x2="${CANVAS.w}" y2="${CANVAS.floor + 1}" stroke="${PALETTE.floor}" stroke-width="2"/>`);
+  parts.push(`<rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="${opts.background ?? '#0f172a'}"/>`);
+  parts.push(`<line x1="${vb.x}" y1="${CANVAS.floor + 1}" x2="${vb.x + vb.w}" y2="${CANVAS.floor + 1}" stroke="${PALETTE.floor}" stroke-width="2"/>`);
   parts.push(`<ellipse cx="${frame.shadow.cx}" cy="${frame.shadow.cy}" rx="${frame.shadow.rx}" ry="3" fill="#000" opacity="${frame.shadow.opacity}"/>`);
   for (const p of frame.props) if (p.layer === 'back') parts.push(shapeSvg(p));
   for (const s of frame.segments) {
@@ -55,9 +56,9 @@ export function frameSvg(frame: Frame, opts: { size?: number; background?: strin
   parts.push(`<circle cx="${frame.head.c[0]}" cy="${frame.head.c[1]}" r="${frame.head.r}" fill="${PALETTE.bodyNear}"/>`);
   for (const p of frame.props) if (p.layer === 'front') parts.push(shapeSvg(p));
   const size = opts.size ?? 240;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${CANVAS.w} ${CANVAS.h}" width="${size}" height="${(size * CANVAS.h) / CANVAS.w}">${parts.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}" width="${size}" height="${(size * CANVAS.h) / CANVAS.w}">${parts.join('')}</svg>`;
 }
 
 export function animationFrameSvg(anim: ExerciseAnimation, t: number, muscles: Muscle[] = [], size?: number): string {
-  return frameSvg(computeFrame(anim, t, muscles), { size });
+  return frameSvg(computeFrame(anim, t, muscles), { size, viewBox: viewBoxFor(anim) });
 }

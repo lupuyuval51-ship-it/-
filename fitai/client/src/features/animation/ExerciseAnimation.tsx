@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Muscle } from '@shared/constants';
 import { getAnimation } from '@shared/animation/data/index';
-import { CANVAS, computeFrame, type PropShape } from '@shared/animation/engine';
+import { CANVAS, computeFrame, viewBoxFor, type PropShape } from '@shared/animation/engine';
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import './animation.css';
@@ -79,10 +79,11 @@ export function ExerciseAnimation({
 
   if (!anim) return null;
   const frame = computeFrame(anim, time, muscles);
+  const vb = viewBoxFor(anim);
 
   return (
     <div ref={holder} className={`anim anim-${size}`}>
-      <svg viewBox={`0 0 ${CANVAS.w} ${CANVAS.h}`} role="img" aria-label={label ?? t('exercises.animation.label')} className="anim-svg" direction="ltr">
+      <svg viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`} role="img" aria-label={label ?? t('exercises.animation.label')} className="anim-svg" direction="ltr">
         <defs>
           <linearGradient id="anim-bg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" className="anim-bg-top" />
@@ -96,8 +97,8 @@ export function ExerciseAnimation({
             </feMerge>
           </filter>
         </defs>
-        <rect width={CANVAS.w} height={CANVAS.h} fill="url(#anim-bg)" />
-        <line x1={0} y1={CANVAS.floor + 1} x2={CANVAS.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} />
+        <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="url(#anim-bg)" />
+        <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} />
         <ellipse cx={frame.shadow.cx} cy={frame.shadow.cy} rx={frame.shadow.rx} ry={3} className="anim-shadow" opacity={frame.shadow.opacity} />
         {frame.props.filter((p) => p.layer === 'back').map((p, i) => <Shape key={`b${i}`} p={p} />)}
         {frame.segments.map((s, i) => (

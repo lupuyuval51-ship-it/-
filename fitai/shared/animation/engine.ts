@@ -612,3 +612,12 @@ export function validateAnimation(anim: ExerciseAnimation): string[] {
   }
   return errors;
 }
+
+/** SVG viewBox honouring the optional camera (zoom < 1 shows more of the scene). */
+export function viewBoxFor(anim: Pick<ExerciseAnimation, 'camera'>): { x: number; y: number; w: number; h: number } {
+  const cam = anim.camera;
+  if (!cam || !(cam.zoom > 0)) return { x: 0, y: 0, w: CANVAS.w, h: CANVAS.h };
+  const w = CANVAS.w / cam.zoom;
+  const h = CANVAS.h / cam.zoom;
+  return { x: cam.cx - w / 2, y: cam.cy - h / 2, w, h };
+}
