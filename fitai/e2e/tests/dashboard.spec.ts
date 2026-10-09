@@ -43,7 +43,9 @@ test('log body weight from the dashboard and see it on the progress page @mobile
   await expect(dialog.getByText('Enter a weight between 30 kg and 300 kg.')).toBeVisible();
   await dialog.getByRole('textbox', { name: 'Weight', exact: true }).fill('82.5');
   await dialog.getByRole('button', { name: 'Save weight' }).click();
-  await expect(page.getByText('Weight saved · +5 XP')).toBeVisible();
+  // Onboarding already recorded this week's weigh-in (and its XP), so this one earns no extra XP (weekly cap).
+  await expect(page.getByText(/^Weight saved/)).toBeVisible();
+  await expect(page.getByText('Weight saved · +5 XP')).toHaveCount(0);
   await expect(dialog).toBeHidden();
 
   await page.goto('/progress');

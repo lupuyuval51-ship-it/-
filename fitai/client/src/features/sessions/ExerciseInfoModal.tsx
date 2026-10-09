@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { qk } from '../../api/queryClient';
 import { Badge, ErrorState, LinkButton, LoadingState, Modal } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import { ExerciseAnimation } from '../animation/ExerciseAnimation';
 import { fetchExercise } from '../exercises/api';
 
 /** Technique instructions for an exercise, opened from the live workout without leaving it. */
@@ -34,6 +35,7 @@ export function ExerciseInfoModal({ exerciseId, onClose }: { exerciseId: string 
         <ErrorState compact error={query.error} onRetry={() => void query.refetch()} />
       ) : (
         <div className="stack exercise-info">
+          <ExerciseAnimation exerciseId={ex.id} muscles={ex.primaryMuscles} size="md" />
           <div className="row">
             {ex.primaryMuscles.map((m) => (
               <Badge key={m} tone="primary">

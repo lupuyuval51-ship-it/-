@@ -1,3 +1,4 @@
+import { ExerciseAnimation } from '../animation/ExerciseAnimation';
 import { useState } from 'react';
 import { LIMITS } from '@shared/constants';
 import { formatClock } from '@shared/training';
@@ -98,6 +99,9 @@ export function ExerciseCard({
         </div>
         <IconButton icon="trash" label={t('session.exercise.remove')} onClick={onRemove} loading={removePending} />
       </header>
+      <div className="exercise-card-demo">
+        <ExerciseAnimation exerciseId={exercise.exerciseId} muscles={exercise.exercise.primaryMuscles} size="sm" controls={false} label={name} />
+      </div>
 
       <dl className="exercise-facts">
         <div>

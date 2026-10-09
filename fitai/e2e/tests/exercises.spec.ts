@@ -72,7 +72,7 @@ test('Hebrew search after switching the language, and an empty state', async ({ 
   await expect(page.getByRole('list', { name: 'תרגילים' }).getByRole('listitem').first()).toBeVisible();
 });
 
-test('detail page: content, honest media note, alternatives, back navigation and coach link', async ({ page }) => {
+test('detail page: content, animated demonstration, alternatives, back navigation and coach link', async ({ page }) => {
   await readyUser(page);
   await page.goto('/exercises');
   await searchBox(page).fill('squat');
@@ -87,8 +87,12 @@ test('detail page: content, honest media note, alternatives, back navigation and
   await expect(page.getByText('Letting the knees cave inward on the way up.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Safety recommendations' })).toBeVisible();
   await expect(page.getByText('Always squat inside a rack', { exact: false })).toBeVisible();
-  // Honest media: no player or image, a clear note instead.
-  await expect(page.getByText('No video or animation is available for this exercise yet — follow the steps below.')).toBeVisible();
+  // Built-in animated demonstration (no video asset): the animation plays and can be paused.
+  await expect(page.getByText('No video or animation is available for this exercise yet — follow the steps below.')).toHaveCount(0);
+  const demo = page.locator('.anim');
+  await expect(demo.getByRole('img')).toBeVisible();
+  await demo.getByRole('button', { name: 'Pause' }).click();
+  await expect(demo.getByRole('button', { name: 'Play' })).toBeVisible();
   await expect(page.locator('main video, main figure img')).toHaveCount(0);
   // Onboarding equipment includes barbell + rack.
   await expect(page.getByText('You have the equipment for this exercise.')).toBeVisible();
