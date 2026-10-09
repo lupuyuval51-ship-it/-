@@ -1,9 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
+import { readFileSync } from 'node:fs';
+
+// The game is a single HTML file, so pull the logic section out of it and
+// load it as a module from a data URL.
+const html = readFileSync(new URL('./index.html', import.meta.url), 'utf8');
+const logic = html.slice(html.indexOf('/* @world-start */'), html.indexOf('/* @world-end */'));
+const {
   World, BLOCKS, CHUNK_W, CHUNK_H, CHUNK_D, localIndex, terrainHeight,
   raycast, createBody, moveBody, isGrounded, overlapsBlock,
-} from './world.js';
+} = await import('data:text/javascript;base64,' + Buffer.from(logic).toString('base64'));
 
 // A chunk at (0,0) cleared to air with a stone floor whose top is at y=10.
 function flatWorld() {
