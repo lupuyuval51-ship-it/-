@@ -20,17 +20,17 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Set the bar in the rack at upper-chest height, grip it just outside shoulder width and unrack it so it rests on the front of your shoulders, elbows slightly in front of the bar.',
-        'Stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down.',
+        'Take one or two steps back, stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down.',
         'Take a breath, hold it, and press the bar straight up, moving your head slightly back so the bar clears your chin.',
         'As the bar passes your forehead, bring your head forward "through the window" and lock out with the bar over mid-foot and your arms beside your ears.',
-        'Lower the bar under control to your upper chest, moving your head back again, and exhale before the next rep.',
+        'Exhale at the top, take a fresh breath and brace, then lower the bar under control to your upper chest, moving your head back again.',
       ],
       he: [
         'הציבו את המוט במתקן בגובה החזה העליון, אחזו בו מעט מחוץ לרוחב הכתפיים והוציאו אותו כך שיישען על קדמת הכתפיים, כשהמרפקים מעט לפני המוט.',
-        'עמדו ברגליים ברוחב האגן, כווצו את הישבן ונעלו את הבטן כך שהצלעות לא יתרוממו.',
+        'צעדו צעד או שניים לאחור, עמדו ברגליים ברוחב האגן, כווצו את הישבן ונעלו את הבטן כך שהצלעות לא יתרוממו.',
         'קחו נשימה, החזיקו אותה ודחפו את המוט ישר למעלה, תוך הזזת הראש מעט לאחור כדי שהמוט יעבור את הסנטר.',
         'כשהמוט עובר את המצח, הכניסו את הראש קדימה "דרך החלון" ונעלו את הידיים כשהמוט מעל אמצע כף הרגל והזרועות ליד האוזניים.',
-        'הורידו את המוט בשליטה חזרה לחזה העליון, תוך הזזת הראש שוב לאחור, ונשפו לפני החזרה הבאה.',
+        'נשפו למעלה, קחו נשימה חדשה ונעלו שוב את הבטן, ואז הורידו את המוט בשליטה לחזה העליון, תוך הזזת הראש שוב לאחור.',
       ],
     },
     mistakes: {
@@ -53,13 +53,13 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Warm up the shoulders and upper back with light sets before your working weight.',
         'Keep your glutes and abs tight throughout to protect your lower back.',
-        'If a rep stalls, lower the bar under control back to your shoulders and return it to the rack.',
+        'Press inside the rack with the safety pins set just below shoulder height; if a rep stalls, lower the bar under control to your shoulders and rack it or set it down on the pins.',
         'Stop if you feel sharp pain in the shoulder or lower back.',
       ],
       he: [
         'חממו את הכתפיים והגב העליון בסטים קלים לפני משקל העבודה.',
         'שמרו על ישבן ובטן מכווצים לאורך כל התנועה כדי להגן על הגב התחתון.',
-        'אם חזרה נתקעת, הורידו את המוט בשליטה חזרה לכתפיים והחזירו אותו למתקן.',
+        'בצעו את התרגיל בתוך המתקן כשמוטות הביטחון מכוונים מעט מתחת לגובה הכתפיים; אם חזרה נתקעת, הורידו את המוט בשליטה לכתפיים והחזירו אותו למתקן או הניחו אותו על מוטות הביטחון.',
         'הפסיקו אם אתם מרגישים כאב חד בכתף או בגב התחתון.',
       ],
     },
@@ -127,7 +127,7 @@ export const exercises: ExerciseSeed[] = [
       ],
     },
     contraindications: ['shoulder'],
-    easierAlternatives: [],
+    easierAlternatives: ['incline_dumbbell_press'],
     harderAlternatives: ['arnold_press', 'barbell_overhead_press', 'pike_push_up'],
     loadIncrementKg: 2,
   },
@@ -136,7 +136,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Arnold Press', he: 'לחיצת ארנולד' },
     description: {
       en: 'A dumbbell shoulder press that starts with the palms facing you and rotates to palms forward as you press. The rotation lengthens the range of motion and adds extra work for the front of the shoulders.',
-      he: 'לחיצת כתפיים עם משקולות יד שמתחילה כשכפות הידיים פונות אליכם ומסתובבת לכפות ידיים קדימה במהלך הלחיצה. הסיבוב מאריך את טווח התנועה ומוסיף עבודה לחלק הקדמי של הכתף.',
+      he: 'לחיצת כתפיים עם משקולות יד שמתחילה כשכפות הידיים פונות אליכם, ובמהלך הלחיצה הן מסתובבות עד שהן פונות קדימה. הסיבוב מאריך את טווח התנועה ומוסיף עבודה לחלק הקדמי של הכתף.',
     },
     primaryMuscles: ['shoulders'],
     secondaryMuscles: ['triceps', 'traps'],
@@ -151,16 +151,16 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Sit on a bench with back support or stand tall, holding the dumbbells in front of your shoulders with palms facing you and elbows in front of your body, as at the top of a curl.',
         'Brace your core and keep your back neutral.',
-        'Exhale and press the dumbbells up while rotating your palms outward, so they face forward as your arms reach the top.',
+        'Exhale and press the dumbbells up while rotating your palms outward and letting your elbows move out to the sides, so your palms face forward as your arms reach the top.',
         'Finish with your arms straight overhead and the dumbbells stacked above your shoulders.',
         'Inhale and reverse the movement slowly, rotating your palms back toward you as you lower to the start.',
       ],
       he: [
         'שבו על ספסל עם משענת גב או עמדו זקוף, והחזיקו את המשקולות מול הכתפיים כשכפות הידיים פונות אליכם והמרפקים לפני הגוף, כמו בסוף כפיפת מרפקים.',
         'נעלו את שרירי הליבה ושמרו על גב ניטרלי.',
-        'נשפו ודחפו את המשקולות למעלה תוך סיבוב כפות הידיים החוצה, כך שבסוף התנועה הן יפנו קדימה.',
+        'נשפו ודחפו את המשקולות למעלה תוך סיבוב כפות הידיים החוצה ופתיחת המרפקים לצדדים, כך שבסוף התנועה כפות הידיים יפנו קדימה.',
         'סיימו כשהידיים ישרות מעל הראש והמשקולות ממוקמות מעל הכתפיים.',
-        'שאפו והפכו את התנועה לאט, תוך סיבוב כפות הידיים בחזרה אליכם בדרך למטה.',
+        'שאפו וחזרו לאט באותו מסלול, תוך סיבוב כפות הידיים בחזרה אליכם בדרך למטה.',
       ],
     },
     mistakes: {
@@ -168,11 +168,13 @@ export const exercises: ExerciseSeed[] = [
         'Rotating too early or too late, so the press and the rotation are not coordinated.',
         'Using a weight that is too heavy and leaning back to finish the rep.',
         'Rushing the lowering phase and losing control of the rotation.',
+        'Keeping the elbows tucked in front the whole time, so the dumbbells drift forward instead of finishing over the shoulders.',
       ],
       he: [
         'סיבוב מוקדם או מאוחר מדי, כך שהלחיצה והסיבוב אינם מתואמים.',
         'שימוש במשקל כבד מדי והטיה לאחור כדי להשלים את החזרה.',
         'הורדה מהירה מדי ואיבוד שליטה בסיבוב.',
+        'השארת המרפקים לפני הגוף לאורך כל התנועה, כך שהמשקולות נסחפות קדימה במקום להסתיים מעל הכתפיים.',
       ],
     },
     safety: {
@@ -217,7 +219,7 @@ export const exercises: ExerciseSeed[] = [
         'Inhale and lower the kettlebell under control back to the rack position; complete all reps before switching sides.',
       ],
       he: [
-        'הביאו את הקטלבל לתנוחת "ראק": הידית בכף היד, הפעמון נשען על החלק החיצוני של האמה, שורש כף היד ישר והמרפק צמוד לצלעות.',
+        'העלו את הקטלבל ב"קלין" לתנוחת "ראק": הידית בכף היד, הפעמון נשען על החלק החיצוני של האמה, שורש כף היד ישר והמרפק צמוד לצלעות.',
         'עמדו ברגליים ברוחב האגן, כווצו את הישבן ונעלו את הבטן; קפצו את היד החופשית לאגרוף כדי להגביר את המתח בכל הגוף.',
         'נשפו ודחפו את הקטלבל ישר למעלה, כשהאמה נשארת אנכית וכף היד מסתובבת מעט קדימה בדרך.',
         'נעלו את היד כשהיא ישרה, הזרוע ליד האוזן והקטלבל ממוקם מעל הכתף.',
