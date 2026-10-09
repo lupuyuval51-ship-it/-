@@ -309,3 +309,9 @@
 .alt-intro {
   margin-block: 0 var(--space-4);
 }
+
+/* Notes may be stored in either language: lay each paragraph out in its own direction. */
+.day-notes,
+.exercise-notes {
+  unicode-bidi: plaintext;
+}

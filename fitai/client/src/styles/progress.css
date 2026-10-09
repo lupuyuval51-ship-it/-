@@ -249,11 +249,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-@media (max-width: 420px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .trend {
   display: inline-flex;
   align-items: center;

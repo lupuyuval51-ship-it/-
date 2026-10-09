@@ -8,6 +8,7 @@ import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { relativeTimeText, useFmt } from '../progress/format';
+import { focusLabel } from '../workouts/format';
 import { startPlanWorkout } from './api';
 
 /** Next plan day with a one-tap start, or a clear path to creating a plan. */
@@ -86,11 +87,12 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan
     );
   }
 
+  const nextFocus = focusLabel(nextWorkout.focus, i18n);
   return (
     <Card title={t('dashboard.nextWorkout.title')} className="dash-next">
       <div className="stack-sm">
         <h3 className="dash-next-name">{nextWorkout.name}</h3>
-        {nextWorkout.focus && <p className="muted">{nextWorkout.focus}</p>}
+        {nextFocus && nextFocus !== nextWorkout.name && <p className="muted">{nextFocus}</p>}
         <div className="row">
           <Badge tone="info" icon="list">
             {t('dashboard.nextWorkout.exercises', { count: nextWorkout.exerciseCount })}

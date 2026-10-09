@@ -3,7 +3,7 @@
  * (time flows LTR in numeric charts); each includes a visually-hidden data table for
  * screen readers.
  */
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 
 export interface ChartPoint {
   /** Category / x label (already formatted for display). */
@@ -23,7 +23,8 @@ interface ChartProps {
   emptyMessage?: ReactNode;
 }
 
-const W = 600;
+/** Default drawing width (used until the container is measured, e.g. in tests). */
+const DEFAULT_W = 600;
 const PAD = { top: 16, right: 12, bottom: 28, left: 44 };
 
 function niceMax(v: number): number {
@@ -33,7 +34,37 @@ function niceMax(v: number): number {
   return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
 }
 
-function scales(data: ChartPoint[], height: number, reference?: { value: number }, includeZero = true) {
+/**
+ * Draws the SVG at the container's real pixel width so axis labels keep their CSS font size
+ * on phones (a fixed 600-unit viewBox shrank 11px labels to ~5px at 360px).
+ */
+function useChartSize(height: number) {
+  // Callback ref: the figure mounts later when the chart starts out empty.
+  const [el, ref] = useState<HTMLElement | null>(null);
+  const [width, setWidth] = useState(DEFAULT_W);
+  useEffect(() => {
+    if (!el) return;
+    const measure = () => {
+      const w = Math.round(el.getBoundingClientRect().width);
+      if (w > 0) setWidth(w);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [el]);
+  const h = width < 480 ? Math.max(140, Math.round(height * 0.75)) : height;
+  return { ref, W: width, height: h };
+}
+
+/** Which x labels to draw: evenly spaced, always the last, never two that would collide. */
+function showLabel(i: number, n: number, every: number): boolean {
+  if (i === n - 1) return true;
+  return i % every === 0 && n - 1 - i >= Math.max(1, Math.ceil(every / 2));
+}
+
+function scales(data: ChartPoint[], height: number, W: number, reference?: { value: number }, includeZero = true) {
   const values = data.map((d) => d.value).filter((v): v is number => v != null);
   if (reference) values.push(reference.value);
   const rawMax = Math.max(...values, 0);
@@ -47,8 +78,9 @@ function scales(data: ChartPoint[], height: number, reference?: { value: number 
   return { min, max, y, innerW, innerH };
 }
 
-function labelEvery(n: number): number {
-  return Math.max(1, Math.ceil(n / 8));
+function labelEvery(n: number, W: number): number {
+  const fit = Math.max(2, Math.floor((W - PAD.left - PAD.right) / 64));
+  return Math.max(1, Math.ceil(n / fit));
 }
 
 function DataTable({ data, title, formatValue }: { data: ChartPoint[]; title: string; formatValue: (v: number) => string }) {
@@ -67,11 +99,12 @@ function DataTable({ data, title, formatValue }: { data: ChartPoint[]; title: st
   );
 }
 
-export function LineChart({ data, title, height = 220, formatValue = (v) => String(Math.round(v * 10) / 10), tone = 'primary', reference, emptyMessage }: ChartProps) {
+export function LineChart({ data, title, height: baseHeight = 220, formatValue = (v) => String(Math.round(v * 10) / 10), tone = 'primary', reference, emptyMessage }: ChartProps) {
   const id = useId();
   const [hover, setHover] = useState<number | null>(null);
+  const { ref, W, height } = useChartSize(baseHeight);
   const points = data.filter((d) => d.value != null);
-  const s = useMemo(() => scales(data, height, reference, false), [data, height, reference]);
+  const s = useMemo(() => scales(data, height, W, reference, false), [data, height, W, reference]);
   if (points.length === 0) return <div className="chart-empty">{emptyMessage}</div>;
   const step = data.length > 1 ? s.innerW / (data.length - 1) : 0;
   const x = (i: number) => PAD.left + (data.length > 1 ? i * step : s.innerW / 2);
@@ -81,10 +114,10 @@ export function LineChart({ data, title, height = 220, formatValue = (v) => Stri
     .map((p, i) => `${i === 0 ? 'M' : 'L'}${p}`)
     .join(' ');
   const ticks = [s.min, (s.min + s.max) / 2, s.max];
-  const every = labelEvery(data.length);
+  const every = labelEvery(data.length, W);
   const hovered = hover != null ? data[hover] : null;
   return (
-    <figure className="chart" dir="ltr">
+    <figure className="chart" dir="ltr" ref={ref}>
       <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} onMouseLeave={() => setHover(null)}>
         <title id={`${id}-t`}>{title}</title>
         {ticks.map((t, i) => (
@@ -110,7 +143,7 @@ export function LineChart({ data, title, height = 220, formatValue = (v) => Stri
           ),
         )}
         {data.map((d, i) =>
-          i % every === 0 || i === data.length - 1 ? (
+          showLabel(i, data.length, every) ? (
             <text key={i} x={x(i)} y={height - 8} textAnchor="middle" className="chart-axis">
               {d.label}
             </text>
@@ -127,17 +160,18 @@ export function LineChart({ data, title, height = 220, formatValue = (v) => Stri
   );
 }
 
-export function BarChart({ data, title, height = 200, formatValue = (v) => String(Math.round(v * 10) / 10), tone = 'primary', reference, emptyMessage }: ChartProps) {
+export function BarChart({ data, title, height: baseHeight = 200, formatValue = (v) => String(Math.round(v * 10) / 10), tone = 'primary', reference, emptyMessage }: ChartProps) {
   const id = useId();
   const [hover, setHover] = useState<number | null>(null);
-  const s = useMemo(() => scales(data, height, reference, true), [data, height, reference]);
+  const { ref, W, height } = useChartSize(baseHeight);
+  const s = useMemo(() => scales(data, height, W, reference, true), [data, height, W, reference]);
   if (!data.length || data.every((d) => !d.value)) return <div className="chart-empty">{emptyMessage}</div>;
   const band = s.innerW / data.length;
   const barW = Math.max(2, Math.min(36, band * 0.7));
-  const every = labelEvery(data.length);
+  const every = labelEvery(data.length, W);
   const hovered = hover != null ? data[hover] : null;
   return (
-    <figure className="chart" dir="ltr">
+    <figure className="chart" dir="ltr" ref={ref}>
       <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} onMouseLeave={() => setHover(null)}>
         <title id={`${id}-t`}>{title}</title>
         {[s.min, s.max / 2, s.max].map((t, i) => (
@@ -174,7 +208,7 @@ export function BarChart({ data, title, height = 200, formatValue = (v) => Strin
           </g>
         )}
         {data.map((d, i) =>
-          i % every === 0 || i === data.length - 1 ? (
+          showLabel(i, data.length, every) ? (
             <text key={i} x={PAD.left + i * band + band / 2} y={height - 8} textAnchor="middle" className="chart-axis">
               {d.label}
             </text>

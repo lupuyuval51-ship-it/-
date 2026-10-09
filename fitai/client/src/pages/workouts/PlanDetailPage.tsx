@@ -302,7 +302,7 @@ function PlanHeader({ plan }: { plan: WorkoutPlanDTO }) {
       ) : (
         <PageHeader
           title={plan.name}
-          subtitle={plan.description || undefined}
+          subtitle={plan.description ? <bdi>{plan.description}</bdi> : undefined}
           backTo="/workouts"
           backLabel={t('workouts.detail.backToPlans')}
           actions={

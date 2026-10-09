@@ -29,7 +29,7 @@
   --border: #283a5c;
   --text: #e8eefc;
   --text-muted: #9aa8c7;
-  --text-faint: #6c7a99;
+  --text-faint: #8190ae; /* ≥4.5:1 on surface-2 */
   --primary: #22c55e;
   --primary-strong: #16a34a;
   --primary-contrast: #04140a;
@@ -56,12 +56,12 @@
   --border: #d8dfec;
   --text: #0f172a;
   --text-muted: #51607c;
-  --text-faint: #7b88a3;
-  --primary: #16a34a;
-  --primary-strong: #15803d;
+  --text-faint: #5f6c86; /* ≥4.5:1 on surface-2 */
+  --primary: #15803d; /* white text on primary buttons ≥4.5:1 */
+  --primary-strong: #166534;
   --primary-contrast: #ffffff;
   --primary-soft: rgb(22 163 74 / 0.1);
-  --info: #0284c7;
+  --info: #0369a1;
   --info-soft: rgb(2 132 199 / 0.1);
   --warning: #b45309;
   --warning-soft: rgb(217 119 6 / 0.12);
@@ -1089,6 +1089,26 @@ video {
   background: var(--surface-2);
   min-width: 0;
 }
+/* Phones: stat tiles sit two per row with the icon above the number, so a 4–6 stat
+   summary no longer becomes a tall single column and long values don't wrap mid-unit. */
+@media (max-width: 639px) {
+  .grid-4.plan-stats,
+  .grid-4.summary-stats,
+  .summary-grid,
+  .nutrition-stats,
+  .bw-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+  .plan-stats .stat,
+  .summary-stats .stat,
+  .summary-grid .stat,
+  .nutrition-stats .stat,
+  .bw-stats .stat {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
 .stat-icon {
   display: grid;
   place-items: center;
@@ -1339,7 +1359,7 @@ video {
   stroke-width: 1;
 }
 .chart-axis {
-  fill: var(--text-faint);
+  fill: var(--text-muted);
   font-size: 11px;
 }
 .chart-line {
@@ -1469,4 +1489,38 @@ video {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+/* ------------------------------------------------------------------ Touch targets
+   On touch screens and phone-width layouts every control is at least 40px tall/wide
+   (compact sizes stay on wide pointer-driven layouts). */
+@media (pointer: coarse), (max-width: 639px) {
+  .btn-sm,
+  .segment,
+  .segmented-sm .segment,
+  .chip {
+    min-height: 40px;
+  }
+  .btn-icon.btn-sm {
+    width: 40px;
+    min-width: 40px;
+  }
+  .input-addon-btn {
+    width: 40px;
+    inset-block: 2px;
+    inset-inline-end: 2px;
+  }
+  .segment {
+    min-width: 40px;
+  }
+  .back-link {
+    min-height: 40px;
+  }
+  .toast-close {
+    display: grid;
+    place-items: center;
+    min-width: 40px;
+    min-height: 40px;
+    margin: -8px;
+  }
 }
