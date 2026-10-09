@@ -92,7 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           await api('/auth/logout', { method: 'POST', body: {} });
         } finally {
+          // Shared devices: drop cached health data (the onboarding draft holds weight and
+          // injury notes). Unsynced set edits are kept — they are tied to the user and sync
+          // on the next sign-in.
           storage.remove('fitai.activeSession');
+          storage.remove('fitai.onboardingDraft');
           clearSession();
         }
       },

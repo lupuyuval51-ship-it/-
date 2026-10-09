@@ -29,7 +29,7 @@ FITAI is a full-stack, bilingual (Hebrew 🇮🇱 RTL by default, English LTR) f
 | **Onboarding** | Guided questionnaire: age, sex, height, weight, experience & ability benchmarks, goal, location, equipment, schedule, preferences, injuries, diet type, allergies, restrictions, activity & lifestyle. Draft survives refresh. |
 | **AI workout generator** | Explainable training engine that builds a weekly split from the profile (equipment, experience, goal, time, injuries, minors' safety rules), with prescriptions (sets, reps, rest, RPE, target weight), weekly-volume balance and progression. Free-text preferences are interpreted by the LLM into constrained options. |
 | **Plans & editing** | Generate, edit, save/activate, duplicate, archive, delete plans; edit sets/reps/rest/RPE/weight; add, remove, reorder and replace exercises (easier/harder/similar alternatives that fit your equipment); regenerate a day. |
-| **Exercise library** | 119 exercises with bilingual descriptions, step-by-step instructions, common mistakes, safety notes, muscles, equipment, difficulty, category, contraindications and alternatives. Search (EN/HE) & filters. No video is claimed where none exists. |
+| **Exercise library** | 119 exercises with bilingual descriptions, step-by-step instructions, common mistakes, safety notes, muscles, equipment, difficulty, category, contraindications and alternatives. Every exercise has its own built-in animated demonstration (articulated SVG figure with equipment, front/side view, highlighted target muscles, play/pause and ½× speed, respects reduced-motion), shown on the exercise page and inside the live workout. Search (EN/HE) & filters. No video is claimed where none exists. |
 | **Workout sessions** | Start/pause/resume/finish, timestamp-based rest timer (start/pause/reset/±15 s), set completion with weight/reps/time inputs, previous performance, exercise navigation, total duration, completion summary with personal records; progress survives navigation, refresh and brief offline periods. |
 | **Nutrition** | Daily calorie & macro targets (Mifflin-St Jeor, safe floors, no deficits for minors), food database (~190 foods, EN/HE), search, portions in grams or servings, breakfast/lunch/dinner/snacks, corrections, quick add, custom foods, saved meals, recent/frequent foods, daily & weekly summaries, allergy/diet-aware meal suggestions and alternatives, barcode lookup (Open Food Facts) and AI meal-photo analysis with review before logging. |
 | **AI coach** | Chat with context from your profile, plan, workouts, records and nutrition; safety screening; daily limits; built-in data-grounded mode when no LLM is configured. |
@@ -163,6 +163,8 @@ PostgreSQL schema (`server/src/db/migrations/0001_init.sql` and later files): us
 - **Client**: Vitest + jsdom for i18n completeness and pure UI logic.
 - **E2E**: Playwright drives the production build in Chromium (desktop & mobile viewports) against an isolated database and a fake LLM: `npm run build && npm run test:e2e`.
 
+Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓ (119 exercises, 198 foods, 36 meal templates, 0 errors) · **484 server tests** (30 files) · **110 client tests** (14 files) · production build ✓ · **50 Playwright browser tests passed** (2 skipped by design: mobile-only layouts on the desktop project). Animations are additionally checked for full coverage, valid poses and seamless loops.
+
 ---
 
 ## Production deployment
@@ -186,11 +188,16 @@ The app is stateless apart from PostgreSQL and in-memory rate-limit counters; fo
 | Open Food Facts (barcodes) | Integrated (public API, no key) | Optionally set a contact in `OPENFOODFACTS_USER_AGENT`; outbound HTTPS must be allowed. |
 | Transactional email | Not bundled | Password-reset emails are logged in development. Plug a provider into `server/src/lib/mailer.ts` (`setMailTransport`). |
 | Push notifications | Not included | Reminders and milestone notifications appear in-app (and as browser notifications while the app is open). |
-| Exercise videos/animations | No licensed assets | `exercises.media_url/media_type` columns are ready; the UI shows media only when present. |
+| Exercise demonstrations | Built-in animations for all 119 exercises (`shared/animation`) | Real videos are optional: `exercises.media_url/media_type` columns are ready and the UI shows a video when one is set. |
 
 ---
 
 ## Known limitations
-- Rate limiting is in-memory (per instance).
+- Rate limiting is in-memory (per instance). The global per-IP limit needs `TRUST_PROXY=true` behind a reverse proxy, otherwise all users share one bucket.
+- Changing the interface language changes the week start (Sunday/Monday), so the weekly-goal bonus can be earned twice in the week of the switch; changing time zone shifts daily caps by up to a day.
+- Exercise animations use a flat 2D figure: movements that rotate the torso or happen mostly in depth (flys, rear-delt work, twists, wood-chops, jump rope) are simplified; the written instructions remain the reference.
+- Saved meals keep the original food portions (per-entry corrections are not carried over); meal suggestions re-check allergies but not free-text disliked foods.
+- Progress averages include today's partially-logged day.
+- Workout alternatives are filtered by the profile's equipment, not the plan's.
 - Barcode camera scanning uses the browser `BarcodeDetector` API where available (Chromium on Android/desktop); elsewhere barcodes can be typed in.
 - Nutrition values are typical reference values (USDA FoodData Central / Israeli labels) and can be corrected per entry or via custom foods.
