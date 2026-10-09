@@ -302,16 +302,20 @@ export const animations: ExerciseAnimation[] = [
     keyframes: kf([0, decTop], [0.5, decBottom], [0.56, decBottom]),
   },
   {
-    // Seen from above (front view rotated): hands twice shoulder width; the body shifts toward the bending near arm
-    // while the far arm stays straight, then presses back to the centre.
+    // Near (working) arm bends; far arm stays straight and slides out to the side.
     id: 'archer_push_up',
     durationSec: 3.2,
-    view: 'front',
-    props: [{ kind: 'mat', x: 10, w: 220 }],
+    props: [{ kind: 'mat', x: 14, w: 210 }],
     keyframes: kf(
-      [0, archer(0)],
-      [0.45, archer(1)],
-      [0.55, archer(1)],
+      [0, archer(56.8), 'in'],
+      [0.12, archer(48), 'linear'],
+      [0.24, archer(38), 'linear'],
+      [0.36, archer(28), 'out'],
+      [0.48, archer(20)],
+      [0.56, archer(20), 'in'],
+      [0.67, archer(28), 'linear'],
+      [0.78, archer(38), 'linear'],
+      [0.89, archer(48), 'out'],
     ),
     cues: [
       { t: 0.05, en: 'Shift toward the bending arm', he: 'העבירו משקל ליד המתכופפת' },
@@ -327,16 +331,15 @@ export const animations: ExerciseAnimation[] = [
   },
 ];
 
-/** Archer push-up seen from above: p=0 centred, p=1 shifted onto the near (upper) hand with the chest lowered. */
-function archer(p: number): Pose {
-  const shift = 12 * p;
-  // Torso lies along +x (head to the right); "near" side is up the screen, far side down.
-  return {
-    hip: [96, 104 - shift],
-    torso: 90,
-    armNear: { target: [150, 44], bend: -1 },
-    armFar: { target: [150, 164], bend: 1 },
-    legNear: { angles: [97, 90] },
-    legFar: { angles: [-97, -90] },
-  };
+/**
+ * Archer push-up (side view): the near arm bends like a push-up while the far arm stays straight and slides out
+ * along the floor (it is really reaching out to the side, away from the camera).
+ * `reach` = near shoulder→wrist distance; the far arm angle keeps its hand on the floor.
+ */
+function archer(reach: number): Pose {
+  const pose = plankPose({ pivot: PU_PIVOT, legLen: 82, wrist: PU_WRIST, reach, footNear: 40 });
+  const shY = pose.hip[1] - TORSO * Math.cos(pose.torso * RAD);
+  const a = round(Math.acos(Math.min(1, (186 - shY) / 62)) / RAD);
+  pose.armFar = { angles: [a, a] };
+  return pose;
 }

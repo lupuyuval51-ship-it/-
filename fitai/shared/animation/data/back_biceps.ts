@@ -94,7 +94,8 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'pullUpBar', x: MU_X, y: MU_Y }],
     keyframes: [
       { t: 0, pose: MU_HANG },
-      { t: 0.14, pose: { hip: [122, 115], torso: -25, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [50, 45] } } },
+      { t: 0.07, pose: { hip: [122, 119], torso: -14, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [55, -30] } } },
+      { t: 0.14, pose: { hip: [122, 115], torso: -25, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [60, 10] } } },
       { t: 0.32, pose: { hip: [121, 45], torso: -15, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [45, 20] } }, ease: 'out' },
       { t: 0.44, pose: { hip: [102, 37], torso: 30, head: 8, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [30, -20] } } },
       { t: 0.6, pose: MU_SUPPORT },
@@ -222,10 +223,10 @@ export const animations: ExerciseAnimation[] = [
     view: 'front',
     props: [{ kind: 'dumbbell', at: 'hands' }],
     keyframes: [
-      { t: 0, pose: { hip: [120, STAND_HIP_Y + 2.5], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
+      { t: 0, pose: { hip: [120, STAND_HIP_Y + 2], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
       { t: 0.35, pose: { hip: [120, STAND_HIP_Y - 0.8], torso: 0, head: 0, armNear: { angles: [4, 4] }, legNear: { angles: [4, 4] } } },
       { t: 0.6, pose: { hip: [120, STAND_HIP_Y - 0.8], torso: 0, armNear: { angles: [4, 4] }, legNear: { angles: [4, 4] } } },
-      { t: 1, pose: { hip: [120, STAND_HIP_Y + 2.5], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
+      { t: 1, pose: { hip: [120, STAND_HIP_Y + 2], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
     ],
   },
   ...curl('barbell_curl', [{ kind: 'barbell', plates: 'small' }]),

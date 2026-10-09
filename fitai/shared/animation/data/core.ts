@@ -110,9 +110,9 @@ const wheel = (thighDeg: number, torso: number, wrist: [number, number]): Pose =
 };
 
 // ---- mountain climber: high plank, knees drive alternately to the chest.
-const MC_HAND: LimbSpec = { target: [152, 182] };
+const MC_HAND: LimbSpec = { target: [153, 181] };
 const MC_BACK: LimbSpec = { target: [32, 182] };
-const MC_IN: LimbSpec = { angles: [76, -78] };
+const MC_IN: LimbSpec = { target: [108, 160] };
 
 export const animations: ExerciseAnimation[] = [
   {
@@ -307,9 +307,11 @@ export const animations: ExerciseAnimation[] = [
     id: 'mountain_climber',
     durationSec: 0.8,
     keyframes: [
-      { t: 0, pose: { hip: [106, 151], torso: 68, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
-      { t: 0.5, pose: { hip: [106, 151], torso: 68, armNear: MC_HAND, legNear: MC_BACK, legFar: MC_IN, footNear: 15, footFar: 60 } },
-      { t: 1, pose: { hip: [106, 151], torso: 68, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
+      { t: 0, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
+      { t: 0.25, pose: { hip: [106, 141], torso: 70, armNear: MC_HAND, legNear: { target: [80, 168] }, legFar: { target: [80, 168] }, footNear: 40, footFar: 40 } },
+      { t: 0.5, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_BACK, legFar: MC_IN, footNear: 15, footFar: 60 } },
+      { t: 0.75, pose: { hip: [106, 141], torso: 70, armNear: MC_HAND, legNear: { target: [80, 168] }, legFar: { target: [80, 168] }, footNear: 40, footFar: 40 } },
+      { t: 1, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
     ],
   },
 ];
