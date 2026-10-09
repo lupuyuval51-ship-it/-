@@ -5,6 +5,7 @@
  * another user's food.
  */
 import { FOOD_CATEGORIES, type Allergen, type AnimalSource, type FoodCategory, type FoodContains } from '@shared/constants';
+import { addDays, todayInTimeZone } from '@shared/dates';
 import { foodConflicts, type DietPreferences, type Per100g } from '@shared/nutrition';
 import type { FoodDTO, FoodSource, LocalizedText } from '@shared/types';
 import type { customFoodSchema, updateCustomFoodSchema } from '@shared/schemas/nutrition';
@@ -156,18 +157,21 @@ export function relevanceBucket(row: Pick<FoodRow, 'name' | 'brand' | 'search_te
 }
 
 async function popularFoods(sql: Sql, userId: string, category: FoodCategory | undefined): Promise<FoodRow[]> {
+  // "Last 90 days" in the user's own calendar, not the database server's.
+  const tz = (await sql.maybeOne<{ timezone: string }>('SELECT timezone FROM users WHERE id = $1', [userId]))?.timezone ?? 'UTC';
+  const since = addDays(todayInTimeZone(tz), -90);
   const frequent = await sql.many<FoodRow>(
     `SELECT f.* FROM (
         SELECT food_id, count(*) AS times, max(created_at) AS last_at
           FROM food_log_entries
-         WHERE user_id = $1 AND food_id IS NOT NULL AND logged_on >= CURRENT_DATE - 90
+         WHERE user_id = $1 AND food_id IS NOT NULL AND logged_on >= $3
          GROUP BY food_id
       ) c
       JOIN foods f ON f.id = c.food_id AND ${visibleTo('f', '$1')}
      WHERE ($2::text IS NULL OR f.category = $2)
      ORDER BY c.times DESC, c.last_at DESC
      LIMIT 50`,
-    [userId, category ?? null],
+    [userId, category ?? null, since],
   );
   const own = await sql.many<FoodRow>(
     `SELECT f.* FROM foods f WHERE f.owner_user_id = $1 AND ($2::text IS NULL OR f.category = $2) ORDER BY f.updated_at DESC LIMIT 50`,
@@ -205,7 +209,8 @@ export async function searchFoods(sql: Sql, userId: string, prefs: DietPreferenc
             NOT EXISTS (SELECT 1 FROM unnest($4::text[]) AS t(term) WHERE f.search_text NOT ILIKE '%' || t.term || '%')
             OR ($5::boolean AND word_similarity($2, f.search_text) >= 0.5)
           )
-        ORDER BY sim DESC
+        -- Foods containing every term come first so a large fuzzy tail can never push them past the cap.
+        ORDER BY NOT EXISTS (SELECT 1 FROM unnest($4::text[]) AS t(term) WHERE f.search_text NOT ILIKE '%' || t.term || '%') DESC, sim DESC
         LIMIT 300`,
       [userId, q, opts.category ?? null, terms.map(escapeLike), q.length >= 4],
     );

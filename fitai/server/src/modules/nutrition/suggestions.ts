@@ -80,8 +80,10 @@ export interface MealBudget {
 export function mealBudget(day: Pick<DayNutritionDTO, 'meals' | 'totals'>, targets: NutritionTargetsDTO | null, mealsPerDay: number | null, mealType: MealType): MealBudget | null {
   if (!targets) return null;
   const remaining = subtractMacros(targetsAsMacros(targets), day.totals);
-  const loggedOther = MEAL_TYPES.filter((m) => m !== mealType && day.meals[m].entries.length > 0).length;
-  const remainingMeals = Math.max(1, (mealsPerDay ?? 3) - loggedOther);
+  const planned = mealsPerDay ?? 3;
+  // With 3 or fewer meals a day, snacks are extras — they do not use up one of the planned meals.
+  const loggedOther = MEAL_TYPES.filter((m) => m !== mealType && (m !== 'snack' || planned > 3) && day.meals[m].entries.length > 0).length;
+  const remainingMeals = Math.max(1, planned - loggedOther);
   return { kcal: Math.max(0, remaining.kcal) / remainingMeals, proteinG: Math.max(0, remaining.proteinG) / remainingMeals };
 }
 

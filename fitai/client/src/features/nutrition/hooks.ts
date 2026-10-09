@@ -55,6 +55,16 @@ export function useDebounced<T>(value: T, ms = 300): T {
   return debounced;
 }
 
+/** The current hour (0–23) in the signed-in user's time zone (falls back to the browser's). */
+export function useUserHour(): number {
+  const { user } = useAuth();
+  try {
+    return Number(new Intl.DateTimeFormat('en-GB', { timeZone: user?.timezone, hour: '2-digit', hour12: false }).format(new Date())) % 24;
+  } catch {
+    return new Date().getHours();
+  }
+}
+
 /** Most likely meal for "now" (used when the log page is opened without a meal). */
 export function mealForHour(hour: number): MealType {
   if (hour < 11) return 'breakfast';

@@ -96,7 +96,9 @@ function EditEntryInner({ entry, onClose }: { entry: FoodLogEntryDTO; onClose():
       }
     }
     // Nulls (cleared fields) are rejected by the schema below and shown as field errors.
-    if (correcting) patch.correction = values as Macros;
+    // Only an actual change of values is a correction (toggling the switch alone must not mark the entry "Corrected").
+    const current = entryMacros(entry);
+    if (correcting && (Object.keys(current) as (keyof Macros)[]).some((k) => values[k] !== current[k])) patch.correction = values as Macros;
     if (day > maxLogDate(today)) {
       setErrors({ date: t('nutrition.date.futureLimit') });
       return;

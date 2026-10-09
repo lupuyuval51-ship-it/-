@@ -220,3 +220,44 @@ test('date navigation on the nutrition dashboard @mobile', async ({ page }) => {
   await expect(page).toHaveURL(/\/nutrition\/log\?date=\d{4}-\d{2}-\d{2}&meal=snack/);
   await expect(page.getByLabel('Meal', { exact: true })).toHaveValue('snack');
 });
+
+test('barcode: unknown code → custom food with that barcode → found on the next lookup; copy yesterday’s meal', async ({ page }) => {
+  await readyUser(page);
+  const code = `729${Date.now() % 10_000_000_000}`.slice(0, 13);
+  await page.goto('/nutrition/log?meal=breakfast&tab=barcode');
+  await page.getByLabel('Barcode number').fill(code);
+  await page.getByRole('button', { name: 'Look up' }).click();
+  await expect(page.getByText('No product found for this barcode.')).toBeVisible();
+  await page.getByRole('button', { name: 'Add it as a custom food' }).click();
+  await expect(page.getByRole('textbox', { name: 'Barcode', exact: true })).toHaveValue(code);
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('E2E granola');
+  await page.getByLabel('Category').selectOption('grains');
+  await page.getByLabel('Calories (kcal)').fill('450');
+  await page.getByLabel('Protein (g)').fill('10');
+  await page.getByLabel('Carbohydrates (g)').fill('60');
+  await page.getByLabel('Fat (g)').fill('18');
+  await page.getByLabel('Serving size (g)').fill('40');
+  await page.getByRole('button', { name: 'Create and log' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+
+  await page.getByRole('tab', { name: 'Barcode' }).click();
+  await page.getByLabel('Barcode number').fill(code);
+  await page.getByRole('button', { name: 'Look up' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('heading', { name: 'Add E2E granola' })).toBeVisible();
+  // One 40 g serving of 450 kcal/100 g = 180 kcal.
+  await expect(dialog.getByText('180', { exact: true })).toBeVisible();
+  // Log it to yesterday's breakfast.
+  const today = await dialog.getByLabel('Date').inputValue();
+  const yesterday = new Date(Date.parse(`${today}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
+  await dialog.getByLabel('Date').fill(yesterday);
+  await dialog.getByRole('button', { name: 'Log', exact: true }).click();
+  await expect(toast(page, 'E2E granola added to Breakfast')).toBeVisible();
+
+  // Today's breakfast is empty → "Same as yesterday" copies it.
+  await page.goto('/nutrition');
+  await page.getByRole('button', { name: 'Copy yesterday’s Breakfast' }).click();
+  await expect(toast(page, 'Copied 1 item from yesterday')).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Breakfast' }).getByText('E2E granola')).toBeVisible();
+  await expect(page.getByRole('img', { name: /^180 of [\d,]+ kcal eaten$/ })).toBeVisible();
+});

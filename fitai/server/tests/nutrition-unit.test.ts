@@ -120,6 +120,10 @@ describe('suggestion helpers', () => {
     expect(mealBudget(dayWith({ breakfast: 1, lunch: 2 }, { kcal: 600 }), TARGETS, 3, 'lunch')!.kcal).toBe(900);
     expect(mealBudget(dayWith({ breakfast: 1, lunch: 1, dinner: 1 }, { kcal: 3000, proteinG: 200 }), TARGETS, 3, 'snack')).toEqual({ kcal: 0, proteinG: 0 });
     expect(mealBudget(dayWith({}), null, 3, 'lunch')).toBeNull();
+    // A snack does not use up one of 3 planned meals (lunch & dinner still share the rest)…
+    expect(mealBudget(dayWith({ breakfast: 1, snack: 1 }, { kcal: 600 }), TARGETS, 3, 'lunch')!.kcal).toBe(900);
+    // …but it does when snacks are part of the plan (5 meals a day).
+    expect(mealBudget(dayWith({ breakfast: 1, snack: 1 }, { kcal: 600 }), TARGETS, 5, 'lunch')!.kcal).toBe(600);
   });
 
   it('scales portions in 0.25 steps within 0.5–1.5', () => {

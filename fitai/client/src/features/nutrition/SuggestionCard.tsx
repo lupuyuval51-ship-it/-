@@ -51,8 +51,8 @@ export function MealSuggestionCard({ meal, date, mealType, compact = false }: { 
         </div>
       )}
       <ul className="suggestion-items small" aria-label={t('nutrition.suggestions.ingredients')}>
-        {items.map((i) => (
-          <li key={i.food.id}>
+        {items.map((i, idx) => (
+          <li key={`${idx}-${i.food.id}`}>
             <span>{lt(i.food.name)}</span>
             <span className="muted num">{t('nutrition.units.grams', { value: formatNumber(i.grams) })}</span>
           </li>
