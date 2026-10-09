@@ -209,8 +209,8 @@ export const exercises: ExerciseSeed[] = [
       en: 'A dumbbell press on a bench inclined to about 30–45 degrees. It emphasizes the upper chest and front shoulders while letting each arm move along its own natural path.',
       he: 'לחיצת משקולות יד על ספסל בשיפוע של כ-30–45 מעלות. מדגישה את החזה העליון ואת הכתף הקדמית, ומאפשרת לכל יד לנוע במסלול הטבעי שלה.',
     },
-    primaryMuscles: ['chest', 'shoulders'],
-    secondaryMuscles: ['triceps'],
+    primaryMuscles: ['chest'],
+    secondaryMuscles: ['shoulders', 'triceps'],
     equipment: ['dumbbells', 'bench'],
     category: 'free_weight',
     movementPattern: 'horizontal_push',
@@ -229,7 +229,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'כוונו את הספסל לשיפוע של 30–45 מעלות, שבו עם המשקולות על הירכיים ונשענו לאחור תוך העלאת המשקולות לגובה הכתפיים בעזרת הברכיים.',
         'דחפו את המשקולות מעל החזה העליון, כשהשכמות לאחור ומטה וכפות הרגליים יציבות על הרצפה.',
-        'שאפו והורידו את המשקולות לאט אל צדי החזה העליון, כשהמרפקים מעט צמודים לגוף והאמות אנכיות.',
+        'שאפו והורידו את המשקולות לאט אל צדי החזה העליון, כשהמרפקים מקורבים מעט לגוף והאמות אנכיות.',
         'עצרו לרגע בנקודת מתיחה נוחה, ואז דחפו למעלה ומעט פנימה כך שהמשקולות מסיימות מעל עצמות הבריח.',
         'נשפו בחלק העליון של התנועה ושמרו על הגב צמוד לספסל בכל חזרה.',
       ],
@@ -242,7 +242,7 @@ export const exercises: ExerciseSeed[] = [
         'Shortening the range of motion as the set gets hard.',
       ],
       he: [
-        'שיפוע תלול מדי, שבו הכתפיים הקדמיות עושות את רוב העבודה.',
+        'שיפוע תלול מדי, שבו החלק הקדמי של הכתפיים עושה את רוב העבודה.',
         'הרמת הגב מהספסל, שהופכת את התנועה ללחיצה שטוחה.',
         'פתיחת המרפקים ישר לצדדים.',
         'קיצור טווח התנועה כשהסט נעשה קשה.',
@@ -252,11 +252,13 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Use a weight you can control at the bottom without your shoulders rolling forward.',
         'Return the dumbbells to your thighs with control at the end of the set instead of dropping them.',
+        'For heavy sets close to failure, have a spotter ready to assist at your wrists.',
         'Stop if you feel pinching or sharp pain at the front of the shoulder.',
       ],
       he: [
-        'עבדו במשקל שאתם שולטים בו בתחתית התנועה בלי שהכתפיים ייפלו קדימה.',
+        'עבדו במשקל שאתם שולטים בו בתחתית התנועה בלי שהכתפיים יתעגלו קדימה.',
         'בסיום הסט החזירו את המשקולות אל הירכיים בשליטה במקום להפיל אותן.',
+        'בסטים כבדים קרוב לכשל, היעזרו בשומר שיהיה מוכן לסייע באחיזה בשורשי כפות הידיים שלכם.',
         'הפסיקו אם מופיעים צביטה או כאב חד בקדמת הכתף.',
       ],
     },
@@ -292,7 +294,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'שכבו על הגב על הרצפה עם ברכיים כפופות וכפות רגליים על הרצפה, ומשקולת יד בכל יד בגובה החזה.',
         'דחפו את המשקולות מעל החזה, כשכפות הידיים פונות קדימה או זו לזו והשכמות משוכות לאחור.',
-        'שאפו והורידו את המשקולות לאט עד שהזרועות העליונות נוגעות קלות ברצפה, כשהמרפקים בזווית של כ-45 מעלות מהגוף.',
+        'שאפו והורידו את המשקולות לאט עד שהזרועות (החלק העליון של היד) נוגעות קלות ברצפה, כשהמרפקים בזווית של כ-45 מעלות מהגוף.',
         'עצרו לרגע כשהמרפקים על הרצפה, תוך שמירה על מתח בידיים.',
         'נשפו ודחפו את המשקולות חזרה למעלה עד ליישור הידיים.',
       ],
@@ -396,7 +398,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Smith Machine Bench Press', he: 'לחיצת חזה במכונת סמית׳' },
     description: {
       en: 'A bench press with the bar fixed on vertical rails in a Smith machine. The guided path and built-in safety hooks make it a stable way to train the chest, shoulders and triceps, especially when training alone.',
-      he: 'לחיצת חזה עם מוט הנע על מסילות אנכיות קבועות במכונת סמית׳. המסלול המובנה ומנגנון הנעילה המובנה הופכים אותה לדרך יציבה לאמן חזה, כתפיים וטרייספס, במיוחד כשמתאמנים לבד.',
+      he: 'לחיצת חזה עם מוט הנע על מסילות אנכיות קבועות במכונת סמית׳. המסלול המונחה ווי הנעילה המובנים הופכים אותה לדרך יציבה לאמן חזה, כתפיים וטרייספס, במיוחד כשמתאמנים לבד.',
     },
     primaryMuscles: ['chest'],
     secondaryMuscles: ['shoulders', 'triceps'],
@@ -409,7 +411,7 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below chest height.',
+        'Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below the point where the bar touches your chest.',
         'Lie down, plant your feet and grip the bar slightly wider than shoulder width with your shoulder blades pulled back and down.',
         'Rotate the bar to release it from the hooks and hold it with straight arms.',
         'Inhale and lower the bar under control to your lower chest, elbows at about 45–70 degrees from your torso.',

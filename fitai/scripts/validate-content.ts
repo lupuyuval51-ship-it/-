@@ -130,7 +130,9 @@ function validateFoods(list: FoodSeed[]) {
     for (const [k, v] of Object.entries(n)) {
       if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) errors.push(`${ctx}: per100g.${k} must be a non-negative number`);
     }
-    if (n.protein + n.carbs + n.fat + n.fiber > 101) errors.push(`${ctx}: macros exceed 100 g per 100 g`);
+    // carbs are TOTAL carbohydrate (fiber included), so fiber must not be added again.
+    if (n.protein + n.carbs + n.fat > 101) errors.push(`${ctx}: macros exceed 100 g per 100 g`);
+    if (n.fiber > n.carbs + 0.5) errors.push(`${ctx}: fiber (${n.fiber}) exceeds total carbs (${n.carbs})`);
     if (n.sugar > n.carbs + 0.5) errors.push(`${ctx}: sugar (${n.sugar}) exceeds carbs (${n.carbs})`);
     if (n.kcal > 900) errors.push(`${ctx}: kcal ${n.kcal} > 900 per 100 g is impossible`);
     // Atwater consistency (fiber counted at ~2 kcal/g; alcohol supplies the remainder for drinks).
