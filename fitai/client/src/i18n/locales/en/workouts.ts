@@ -132,6 +132,7 @@ const workouts = {
     noExercisesTitle: 'No exercises yet',
     noExercisesBody: 'Edit this day to add exercises from the library.',
     editingOther: 'Finish editing the other day first.',
+    finishEditingFirst: 'Save or cancel the day you are editing to duplicate, delete or apply progression to this plan.',
     regenerateUnavailable: 'Choose a training focus for this day (in edit mode) to regenerate it.',
     volumeTitle: 'Weekly sets per muscle group',
     volumeHint: 'Counted from each exercise’s primary muscles. About 6–20 hard sets per muscle group a week supports steady progress.',

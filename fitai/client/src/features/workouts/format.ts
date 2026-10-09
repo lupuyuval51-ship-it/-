@@ -5,22 +5,25 @@ import type { I18nValue } from '../../i18n';
 
 type T = Pick<I18nValue, 't' | 'tx' | 'formatNumber'>;
 
-/** "45 s" or "1:30 min". */
-export function formatRest(seconds: number, i18n: Pick<I18nValue, 't'>): string {
-  if (seconds < 60) return i18n.t('workouts.exercise.seconds', { seconds });
+type Fmt = Pick<I18nValue, 't' | 'formatNumber'>;
+
+/** "45 s" or "1:30 min" (numbers via Intl). */
+export function formatRest(seconds: number, i18n: Fmt): string {
+  if (seconds < 60) return i18n.t('workouts.exercise.seconds', { seconds: i18n.formatNumber(seconds) });
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return i18n.t('workouts.exercise.minutesSeconds', { minutes: m, seconds: String(s).padStart(2, '0') });
+  return i18n.t('workouts.exercise.minutesSeconds', { minutes: i18n.formatNumber(m), seconds: i18n.formatNumber(s, { minimumIntegerDigits: 2 }) });
 }
 
-/** "3 × 8–12", "5 × 5" or "3 × 45 s". */
-export function formatPrescription(x: { sets: number; repMin: number | null; repMax: number | null; targetSeconds: number | null }, i18n: Pick<I18nValue, 't'>): string {
-  if (x.targetSeconds != null && x.repMin == null) return i18n.t('workouts.exercise.time', { sets: x.sets, seconds: x.targetSeconds });
+/** "3 × 8–12", "5 × 5" or "3 × 45 s" (numbers via Intl). */
+export function formatPrescription(x: { sets: number; repMin: number | null; repMax: number | null; targetSeconds: number | null }, i18n: Fmt): string {
+  const n = (v: number) => i18n.formatNumber(v);
+  if (x.targetSeconds != null && x.repMin == null) return i18n.t('workouts.exercise.time', { sets: n(x.sets), seconds: n(x.targetSeconds) });
   const min = x.repMin ?? x.repMax;
   const max = x.repMax ?? x.repMin;
-  if (min == null || max == null) return String(x.sets);
-  if (min === max) return i18n.t('workouts.exercise.repsSingle', { sets: x.sets, reps: min });
-  return i18n.t('workouts.exercise.repsRange', { sets: x.sets, min, max });
+  if (min == null || max == null) return n(x.sets);
+  if (min === max) return i18n.t('workouts.exercise.repsSingle', { sets: n(x.sets), reps: n(min) });
+  return i18n.t('workouts.exercise.repsRange', { sets: n(x.sets), min: n(min), max: n(max) });
 }
 
 /** Label for a stored focus: a known training-engine code, or the user's own text. */

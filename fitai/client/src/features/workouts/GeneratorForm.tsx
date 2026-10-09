@@ -104,6 +104,8 @@ function GeneratorFormInner({ profile }: { profile: ProfileDTO }) {
     },
     onError: (err) => {
       if (err instanceof ApiError) setErrors(err.fieldErrors);
+      // The form re-renders in place of the progress card: announce the failure as well.
+      toast.error(errorMessage(err, i18n, 'workouts'));
     },
   });
 

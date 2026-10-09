@@ -50,6 +50,19 @@ describe('keyword preference parser', () => {
     expect(parse('בלי שכיבות סמיכה').prefs.avoidExerciseIds).toEqual(expect.arrayContaining(['push_up', 'knee_push_up']));
     expect(parse('בלי ריצה').prefs.avoidExerciseIds).toEqual(expect.arrayContaining(['sprint_intervals', 'brisk_walk_jog']));
     expect(parse('no cardio').prefs.avoidPatterns).toEqual(['conditioning']);
+    // A compound name must not catch a shorter, unrelated word ("deadlift" vs "Dead Bug").
+    const deadlifts = parse('no deadlifts');
+    expect(deadlifts.prefs.avoidExerciseIds).toEqual(expect.arrayContaining(['deadlift', 'romanian_deadlift']));
+    expect(deadlifts.prefs.avoidExerciseIds).not.toContain('dead_bug');
+  });
+
+  it('never turns "less X" into more work for X', () => {
+    for (const text of ['less arms, more legs', 'פחות ידיים, יותר רגליים', 'fewer arm exercises and more legs']) {
+      expect(parse(text).prefs.focusMuscleGroups, text).toEqual(['legs']);
+    }
+    expect(parse('fewer jumps').prefs.avoidPatterns).toEqual(['jump']);
+    expect(parse('פחות קפיצות').prefs.avoidPatterns).toEqual(['jump']);
+    expect(parse('less intense please').prefs.intensity).toBe('easier');
   });
 
   it('detects bodyweight preference and intensity', () => {

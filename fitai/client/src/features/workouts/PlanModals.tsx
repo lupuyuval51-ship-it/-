@@ -137,15 +137,15 @@ export function AddDayModal({ open, onClose, plan, onAdded }: { open: boolean; o
 /** Summary of an "apply progression" run (honest empty state without history). */
 export function ProgressionResultModal({ result, onClose }: { result: ApplyProgressionResponse | null; onClose(): void }) {
   const i18n = useI18n();
-  const { t, lt } = i18n;
+  const { t, lt, formatNumber } = i18n;
   const { formatWeight } = useUnits();
   const names = new Map(result?.plan.workouts.flatMap((w) => w.exercises.map((x) => [x.id, lt(x.exercise.name)] as const)) ?? []);
   const describe = (p: PrescriptionTargets) => {
     const reps =
       p.repMin != null
-        ? `${p.repMax != null && p.repMax !== p.repMin ? `${p.repMin}–${p.repMax}` : p.repMin} ${t('common.units.reps')}`
+        ? `${p.repMax != null && p.repMax !== p.repMin ? `${formatNumber(p.repMin)}–${formatNumber(p.repMax)}` : formatNumber(p.repMin)} ${t('common.units.reps')}`
         : p.targetSeconds != null
-          ? t('workouts.exercise.seconds', { seconds: p.targetSeconds })
+          ? t('workouts.exercise.seconds', { seconds: formatNumber(p.targetSeconds) })
           : null;
     return [reps, p.targetWeightKg != null ? formatWeight(p.targetWeightKg) : null].filter(Boolean).join(' · ');
   };

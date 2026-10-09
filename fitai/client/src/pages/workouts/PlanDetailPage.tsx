@@ -71,6 +71,8 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
+  /** Day whose "Edit day" button gets focus back when its editor closes (keyboard users). */
+  const [returnFocusId, setReturnFocusId] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [addDayOpen, setAddDayOpen] = useState(false);
   const [progression, setProgression] = useState<ApplyProgressionResponse | null>(null);
@@ -129,6 +131,9 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
 
   const busy = duplicateDay.isPending || regenerateDay.isPending || deleteDay.isPending || reorder.isPending;
   const planBusy = actions.activate.isPending || actions.duplicate.isPending || actions.archiving || actions.removing || progress.isPending;
+  // While a day is open in the editor, actions that rewrite or leave the plan wait: applying
+  // progression would silently diverge from the editor's draft, duplicate/delete navigate away.
+  const editing = editingDayId != null;
   const nextIndex = plan.status === 'active' ? nextWorkoutIndex(plan) : -1;
   const maxDays = plan.workouts.length >= LIMITS.workoutsPerPlanMax;
 
@@ -142,10 +147,10 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
             {t('workouts.actions.activate')}
           </Button>
         )}
-        <Button icon="copy" onClick={() => actions.duplicate.mutate(plan.id)} loading={actions.duplicate.isPending} disabled={planBusy}>
+        <Button icon="copy" onClick={() => actions.duplicate.mutate(plan.id)} loading={actions.duplicate.isPending} disabled={planBusy || editing}>
           {t('workouts.actions.duplicate')}
         </Button>
-        <Button icon="chart" onClick={() => progress.mutate()} loading={progress.isPending} disabled={planBusy || dirty}>
+        <Button icon="chart" onClick={() => progress.mutate()} loading={progress.isPending} disabled={planBusy || editing}>
           {t('workouts.actions.applyProgression')}
         </Button>
         {plan.status !== 'archived' && (
@@ -153,10 +158,11 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
             {t('workouts.actions.archive')}
           </Button>
         )}
-        <Button icon="trash" variant="ghost" className="btn-danger-text" onClick={() => void actions.remove(plan.id)} disabled={planBusy}>
+        <Button icon="trash" variant="ghost" className="btn-danger-text" onClick={() => void actions.remove(plan.id)} disabled={planBusy || editing}>
           {t('workouts.actions.delete')}
         </Button>
       </div>
+      {editing && <p className="small muted">{t('workouts.detail.finishEditingFirst')}</p>}
 
       {plan.status === 'archived' && <Notice tone="warning">{t('workouts.detail.archivedNotice')}</Notice>}
 
@@ -173,7 +179,17 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
         </div>
         {plan.workouts.map((w, i) =>
           editingDayId === w.id ? (
-            <WorkoutDayEditor key={w.id} plan={plan} workout={w} dayNumber={i + 1} onDone={() => setEditingDayId(null)} onDirtyChange={setDirty} />
+            <WorkoutDayEditor
+              key={w.id}
+              plan={plan}
+              workout={w}
+              dayNumber={i + 1}
+              onDone={() => {
+                setReturnFocusId(w.id);
+                setEditingDayId(null);
+              }}
+              onDirtyChange={setDirty}
+            />
           ) : (
             <WorkoutDayCard
               key={w.id}
@@ -185,6 +201,8 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
               busy={busy}
               locked={editingDayId != null}
               maxDaysReached={maxDays}
+              focusEdit={returnFocusId === w.id}
+              onEditFocused={() => setReturnFocusId(null)}
               actions={{
                 onStart: () => start(w.id),
                 onEdit: () => setEditingDayId(w.id),
@@ -311,8 +329,12 @@ function PlanHeader({ plan }: { plan: WorkoutPlanDTO }) {
       <div className="grid-4 plan-stats">
         <Stat icon="target" label={t('workouts.detail.goal')} value={plan.goal ? t(`enums.goal.${plan.goal}`) : t('workouts.detail.notSet')} />
         <Stat icon="list" label={t('workouts.detail.split')} value={t(`enums.splitType.${plan.splitType}`)} />
-        <Stat icon="calendar" label={t('workouts.detail.daysPerWeek')} value={plan.daysPerWeek ?? plan.workouts.length} />
-        <Stat icon="clock" label={t('workouts.detail.minutes')} value={plan.sessionMinutes ?? t('workouts.detail.notSet')} />
+        <Stat icon="calendar" label={t('workouts.detail.daysPerWeek')} value={i18n.formatNumber(plan.daysPerWeek ?? plan.workouts.length)} />
+        <Stat
+          icon="clock"
+          label={t('workouts.detail.minutes')}
+          value={plan.sessionMinutes != null ? `${i18n.formatNumber(plan.sessionMinutes)} ${t('common.units.min')}` : t('workouts.detail.notSet')}
+        />
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ import {
   goalScheme,
   mainGroupsOfFocus,
   nameMatches,
+  oneRmFor,
   percentOfOneRm,
   roundToIncrement,
   seededUnit,
@@ -379,6 +380,37 @@ describe('generator targeted rules', () => {
     expect(squat!.targetWeightKg).toBe(roundToIncrement(140 * percentOfOneRm(squat!.repMax!, squat!.targetRpe!), 5));
     const minor = generatePlan(input({ isMinor: true, ability: { ...NO_ABILITY, squat1rmKg: 140 } }), catalog);
     expect(allExercises(minor).every((x) => x.targetWeightKg == null)).toBe(true);
+  });
+
+  it('derives %1RM loads from the final RPE after intensity modifiers', () => {
+    // Every loaded exercise's weight must match its *final* rep ceiling and RPE.
+    for (const intensity of ['easier', 'normal', 'harder'] as const) {
+      const plan = generatePlan(input({ intensity, sessionMinutes: 90, ability: { ...NO_ABILITY, squat1rmKg: 140, bench1rmKg: 100, deadlift1rmKg: 180 } }), catalog);
+      const loaded = allExercises(plan).filter((x) => x.targetWeightKg != null);
+      expect(loaded.length, intensity).toBeGreaterThan(0);
+      for (const x of loaded) {
+        const e = byId.get(x.exerciseId)!;
+        const oneRm = oneRmFor(e, { ...NO_ABILITY, squat1rmKg: 140, bench1rmKg: 100, deadlift1rmKg: 180 })!;
+        expect(x.targetWeightKg, `${intensity} ${x.exerciseId}`).toBe(roundToIncrement(oneRm.estimatedKg * percentOfOneRm(x.repMax!, x.targetRpe!), e.loadIncrementKg));
+      }
+    }
+    // Concretely: 140 kg squat, 6–10 reps. Normal RPE 7.5 → 10 + 2.5 RIR → 140 / (1 + 12.5/30) ≈ 98.8 → 100 kg;
+    // easier RPE 6.5 → 140 / (1 + 13.5/30) ≈ 96.6 → 95 kg (lighter, not the normal-RPE load).
+    const squatOf = (intensity: 'easier' | 'normal') =>
+      allExercises(generatePlan(input({ intensity, ability: { ...NO_ABILITY, squat1rmKg: 140 } }), catalog)).find((x) => x.exerciseId === 'barbell_back_squat')!;
+    expect(squatOf('normal').targetWeightKg).toBe(100);
+    expect(squatOf('easier').targetRpe).toBe(6.5);
+    expect(squatOf('easier').targetWeightKg).toBe(95);
+  });
+
+  it('matches likes/dislikes by whole words, typed prefixes and inflections only', () => {
+    const deadBug = byId.get('dead_bug')!;
+    expect(nameMatches(deadBug, ['deadlift'])).toBe(false);
+    expect(nameMatches(byId.get('deadlift')!, ['deadlift'])).toBe(true);
+    expect(nameMatches(byId.get('reverse_lunge')!, ['lung'])).toBe(true);
+    expect(nameMatches(byId.get('barbell_back_squat')!, ['squatting'])).toBe(true);
+    const disliked = generatePlan(input({ dislikes: 'deadlifts', goal: 'general_fitness', daysPerWeek: 3, focusMuscleGroups: ['core'] }), catalog);
+    expect(allExercises(disliked).some((x) => /deadlift/i.test(byId.get(x.exerciseId)!.name.en))).toBe(false);
   });
 
   it('honours avoid lists, avoided patterns, likes, dislikes and bodyweight preference', () => {

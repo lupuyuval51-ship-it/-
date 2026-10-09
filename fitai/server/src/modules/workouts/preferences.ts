@@ -165,7 +165,9 @@ const matchesAny = (token: string, words: Set<string>) => forms(token).some((f) 
 
 const NEGATIONS = new Set([
   'no', 'not', 'without', 'avoid', 'skip', 'hate', 'dislike', 'dont', 'never', 'exclude', 'excluding', 'except', 'nothing', 'zero', 'stop',
-  'בלי', 'ללא', 'לא', 'אין', 'בלא', 'להימנע', 'להוריד', 'שונא', 'שונאת', 'בלעדי',
+  // "less arms" / "פחות ידיים" must never turn into extra work for that group ("fewer jumps" → no jumps).
+  'less', 'fewer', 'reduce', 'minimal',
+  'בלי', 'ללא', 'לא', 'אין', 'בלא', 'להימנע', 'להוריד', 'שונא', 'שונאת', 'בלעדי', 'פחות', 'להפחית',
 ]);
 const PAIN = new Set([
   'pain', 'painful', 'hurt', 'hurts', 'hurting', 'injury', 'injured', 'injuries', 'sore', 'bad', 'weak', 'problem', 'problems', 'issue', 'issues',

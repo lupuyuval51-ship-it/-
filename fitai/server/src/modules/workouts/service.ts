@@ -602,7 +602,8 @@ export async function updateWorkout(userId: string, planId: string, workoutId: s
     const toDelete = [...existing].filter((id) => !keep.has(id));
     if (toDelete.length) await tx.exec('DELETE FROM plan_exercises WHERE id = ANY($1::uuid[]) AND workout_id = $2', [toDelete, workoutId]);
 
-    const rows = body.exercises.map((x, position) => ({ ...x, position }));
+    // A rep ceiling without a rep floor is meaningless: time-only rows never keep a stray repMax.
+    const rows = body.exercises.map((x, position) => ({ ...x, repMax: x.repMin == null ? null : x.repMax, position }));
     const updates = rows.filter((r) => r.id);
     if (updates.length) {
       await tx.exec(
@@ -870,7 +871,7 @@ export async function applyProgression(userId: string, planId: string): Promise<
       ]);
       changes.push({ planExerciseId: r.id, exerciseId: r.exercise_id, action: s.action, before: before[i]!, after });
     }
-    await touchPlan(tx, planId);
+    if (changes.length) await touchPlan(tx, planId);
     return { plan: await getPlanDTO(tx, userId, planId), changes };
   });
 }

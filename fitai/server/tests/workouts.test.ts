@@ -1,5 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { config } from '../src/config';
 import { db } from '../src/db/pool';
+import { resetRateLimits } from '../src/middleware/rateLimit';
 import { disableLlm, startFakeLlm, useFakeLlm, type FakeLlm } from './helpers/fakeLlm';
 import { onboardedUser, registerUser, startTestServer, type TestClient, type TestServer } from './helpers/server';
 
@@ -383,6 +385,12 @@ describe('editing workout days', () => {
     expect((await put([{ ...base[0], restSeconds: 900 }])).status).toBe(400);
     expect((await put([{ ...base[0], targetRpe: 11 }])).status).toBe(400);
 
+    // A time-only row never keeps a stray rep ceiling.
+    const timed = await put([{ ...base[0], repMin: null, repMax: 12, targetSeconds: 40 }]);
+    expect(timed.status).toBe(200);
+    const timedRow = timed.body.plan.workouts.find((w: any) => w.id === day.id).exercises[0];
+    expect(timedRow).toMatchObject({ repMin: null, repMax: null, targetSeconds: 40 });
+
     const many = Array.from({ length: 21 }, () => ({ ...base[0], id: undefined }));
     expect((await put(many)).status).toBe(400);
     const twenty = await put(Array.from({ length: 20 }, () => ({ ...base[0], id: undefined })));
@@ -522,6 +530,29 @@ describe('alternatives and progression', () => {
     expect(res.status).toBe(200);
     expect(res.body.changes).toEqual([]);
     expect(res.body.plan.workouts).toEqual(plan.workouts);
+    // Nothing changed → the plan is not marked as modified.
+    expect(res.body.plan.updatedAt).toBe(plan.updatedAt);
+  });
+});
+
+describe('rate limiting', () => {
+  it('limits plan generation per user', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const original = config.rateLimit.multiplier;
+    config.rateLimit.multiplier = 0.1; // 30/h → 3/h
+    resetRateLimits();
+    try {
+      for (let i = 0; i < 3; i++) expect((await c.post('/api/plans/generate', { daysPerWeek: 1 })).status).toBe(201);
+      const limited = await c.post('/api/plans/generate', { daysPerWeek: 1 });
+      expect(limited.status).toBe(429);
+      expect(limited.body.error.code).toBe('rate_limited');
+      // Other users are not affected.
+      const other = await onboardedUser(server.baseUrl);
+      expect((await other.post('/api/plans/generate', { daysPerWeek: 1 })).status).toBe(201);
+    } finally {
+      config.rateLimit.multiplier = original;
+      resetRateLimits();
+    }
   });
 });
 

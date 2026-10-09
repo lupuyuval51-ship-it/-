@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { isWorkoutFocus } from '@shared/schemas/workouts';
 import type { PlanExerciseDTO, PlanWorkoutDTO } from '@shared/types';
@@ -25,6 +26,8 @@ export function WorkoutDayCard({
   busy,
   locked,
   maxDaysReached,
+  focusEdit = false,
+  onEditFocused,
   actions,
 }: {
   workout: PlanWorkoutDTO;
@@ -37,10 +40,19 @@ export function WorkoutDayCard({
   /** Another day is being edited. */
   locked: boolean;
   maxDaysReached: boolean;
+  /** Move keyboard focus to "Edit day" (after this day's editor closed). */
+  focusEdit?: boolean;
+  onEditFocused?(): void;
   actions: DayActions;
 }) {
   const i18n = useI18n();
   const { t } = i18n;
+  const editRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!focusEdit) return;
+    editRef.current?.focus();
+    onEditFocused?.();
+  }, [focusEdit, onEditFocused]);
   const focus = focusLabel(workout.focus, i18n);
   const canRegenerate = isWorkoutFocus(workout.focus);
   const disabled = busy || locked;
@@ -85,7 +97,7 @@ export function WorkoutDayCard({
         <Button variant="primary" icon="play" onClick={actions.onStart} loading={startPending} disabled={disabled || workout.exercises.length === 0}>
           {t('workouts.actions.startThis')}
         </Button>
-        <Button icon="edit" onClick={actions.onEdit} disabled={disabled}>
+        <Button ref={editRef} icon="edit" onClick={actions.onEdit} disabled={disabled}>
           {t('workouts.actions.editDay')}
         </Button>
         <Button icon="copy" variant="ghost" onClick={actions.onDuplicate} disabled={disabled || maxDaysReached}>
@@ -117,7 +129,7 @@ function ExerciseRow({ x, index }: { x: PlanExerciseDTO; index: number }) {
   return (
     <li className="exercise-row">
       <span className="exercise-index" aria-hidden="true">
-        {index + 1}
+        {formatNumber(index + 1)}
       </span>
       <div className="exercise-body">
         <Link to={`/exercises/${encodeURIComponent(x.exerciseId)}`} className="exercise-name link" aria-label={t('workouts.exercise.openDetails', { name })}>
@@ -125,7 +137,8 @@ function ExerciseRow({ x, index }: { x: PlanExerciseDTO; index: number }) {
         </Link>
         <div className="small muted">{x.exercise.primaryMuscles.map((m) => t(`enums.muscle.${m}`)).join(' · ')}</div>
         <div className="exercise-meta">
-          <strong className="num" aria-label={`${t('workouts.exercise.prescriptionLabel')}: ${formatPrescription(x, i18n)}`}>
+          <strong className="num">
+            <span className="visually-hidden">{t('workouts.exercise.prescriptionLabel')}: </span>
             {formatPrescription(x, i18n)}
           </strong>
           <span>{t('workouts.exercise.rest', { rest: formatRest(x.restSeconds, i18n) })}</span>

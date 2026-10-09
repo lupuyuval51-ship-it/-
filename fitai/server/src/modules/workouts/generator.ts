@@ -204,11 +204,20 @@ function nameWords(e: ExerciseRecord): string[] {
   return words;
 }
 
-/** True when any keyword matches a word of the exercise's English or Hebrew name. */
+/** Inflection endings tolerated when a keyword is longer than a name word ("squatting" → "squat"). */
+const INFLECTION = /^(s|es|ing|ting|ning|ed|er|ers|ים|ות)$/;
+
+/**
+ * True when any keyword matches a word of the exercise's English or Hebrew name: exact, a
+ * typed prefix of the word ("lung" → "lunge"), or the word plus an inflection ending. A
+ * longer compound keyword never matches a shorter name word ("deadlift" ≠ "dead" bug).
+ */
 export function nameMatches(e: ExerciseRecord, keywords: string[]): boolean {
   if (!keywords.length) return false;
   const words = nameWords(e);
-  return keywords.some((k) => words.some((w) => w === k || (Math.min(w.length, k.length) >= 4 && (w.startsWith(k) || k.startsWith(w)))));
+  return keywords.some((k) =>
+    words.some((w) => w === k || (Math.min(w.length, k.length) >= 4 && (w.startsWith(k) || (k.startsWith(w) && INFLECTION.test(k.slice(w.length)))))),
+  );
 }
 
 // ---------------------------------------------------------------- Split (rule 2)
@@ -582,23 +591,24 @@ function prescribe(e: ExerciseRecord, slot: Slot, ctx: Ctx): Prescription {
         noteParts.push(fill(t.benchmarkReps, { max }));
       }
     }
-
-    // %1RM starting weight for adults with a matching benchmark.
-    if (!isMinor && e.trackingType === 'weight_reps' && rx.repMax != null && rx.targetRpe != null) {
-      const oneRm = oneRmFor(e, ability);
-      if (oneRm) {
-        const kg = roundToIncrement(oneRm.estimatedKg * percentOfOneRm(rx.repMax, rx.targetRpe), e.loadIncrementKg);
-        if (kg > 0) {
-          rx.targetWeightKg = kg;
-          noteParts.unshift(fill(t.oneRm, { pct: Math.round((kg / oneRm.benchmarkKg) * 100), lift: t.lifts[oneRm.lift] }));
-          ctx.notes.oneRmUsed++;
-        }
-      }
-    }
   }
   if (e.unilateral) noteParts.push(rx.targetSeconds != null ? t.perSideTime : t.perSide);
 
   applyModifiers(rx, ctx.input);
+
+  // %1RM starting weight for adults with a matching benchmark. Computed after the modifiers so
+  // the load matches the final rep target and RPE (e.g. an "easier" plan lowers RPE → lighter load).
+  if (!isMinor && role !== 'conditioning' && e.trackingType === 'weight_reps' && rx.repMax != null && rx.targetRpe != null) {
+    const oneRm = oneRmFor(e, ability);
+    if (oneRm) {
+      const kg = roundToIncrement(oneRm.estimatedKg * percentOfOneRm(rx.repMax, rx.targetRpe), e.loadIncrementKg);
+      if (kg > 0) {
+        rx.targetWeightKg = kg;
+        noteParts.unshift(fill(t.oneRm, { pct: Math.round((kg / oneRm.benchmarkKg) * 100), lift: t.lifts[oneRm.lift] }));
+        ctx.notes.oneRmUsed++;
+      }
+    }
+  }
   return rx;
 }
 

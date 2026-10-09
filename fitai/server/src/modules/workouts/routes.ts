@@ -15,6 +15,7 @@ import type { AlternativesResponse, ApplyProgressionResponse, OkResponse, PlanLi
 import { db } from '../../db/pool';
 import { badRequest } from '../../lib/errors';
 import { authUser, userId } from '../../middleware/context';
+import { rateLimit } from '../../middleware/rateLimit';
 import { parseBody, parseParams, parseQuery } from '../../middleware/validate';
 import {
   activatePlan,
@@ -49,7 +50,13 @@ workoutsRouter.get('/plans', async (req, res) => {
   res.json(body);
 });
 
-workoutsRouter.post('/plans/generate', async (req, res) => {
+/**
+ * Generation may call the LLM (free-text preferences) and runs the full engine: a per-user
+ * limit keeps cost and load bounded (regular use is a handful of plans per hour).
+ */
+const generateLimit = rateLimit({ name: 'plans-generate', limit: 30, windowMs: 60 * 60 * 1000 });
+
+workoutsRouter.post('/plans/generate', generateLimit, async (req, res) => {
   const input = parseBody(generatePlanSchema, req);
   const user = authUser(req);
   const body: PlanResponse = { plan: await generatePlanForUser(user.id, user.locale, input) };

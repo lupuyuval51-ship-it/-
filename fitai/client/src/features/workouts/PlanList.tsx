@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import type { PlanStatus } from '@shared/constants';
 import type { WorkoutPlanDTO, WorkoutPlanSummaryDTO } from '@shared/types';
 import { qk } from '../../api/queryClient';
-import { Badge, Button, Card, EmptyState, ErrorState, LinkButton, LoadingState, Notice, QueryState, Skeleton, useConfirm, useToast } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, ErrorState, LinkButton, Notice, QueryState, Skeleton, useConfirm, useToast } from '../../components/ui';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
@@ -171,7 +171,8 @@ export function PlanList({ onGenerate }: { onGenerate(): void }) {
           );
         }}
       </QueryState>
-      {!query.isPending && !query.isError && (query.data?.length || showArchived) ? (
+      {/* Always reachable once loaded: when every plan is archived the list above is empty. */}
+      {!query.isPending && !query.isError ? (
         <div>
           <Button variant="ghost" size="sm" icon={showArchived ? 'chevronUp' : 'chevronDown'} onClick={() => setShowArchived((v) => !v)} aria-expanded={showArchived}>
             {showArchived ? t('workouts.list.hideArchived') : t('workouts.list.showArchived')}
@@ -247,7 +248,7 @@ function ActivePlanCard({ summary }: { summary: WorkoutPlanSummaryDTO }) {
             );
           })()
         ) : (
-          <LoadingState compact />
+          <p className="empty-inline">{t('workouts.detail.noExercisesTitle')}</p>
         )}
       </div>
     </Card>

@@ -144,3 +144,39 @@ test('unsaved changes guard prompts before leaving the page', async ({ page }) =
   await page.goto(planUrl);
   await expect(page.getByRole('article').first().getByText(/^7 × /)).toHaveCount(0);
 });
+
+test('Hebrew / RTL: generate with free-text preferences, archive and find archived plans @mobile', async ({ page }) => {
+  await readyUser(page);
+  // The account is English; switch the UI language in-app (no reload, which would restore English).
+  await page.getByRole('button', { name: 'Language' }).click();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await page.getByRole('link', { name: 'אימונים' }).filter({ visible: true }).first().click();
+  await expect(page.getByRole('heading', { level: 1, name: 'אימונים' })).toBeVisible();
+  await expect(page.getByText('עדיין אין תוכניות אימון')).toBeVisible();
+
+  await page.getByRole('button', { name: 'יצירת התוכנית הראשונה' }).click();
+  await expect(page).toHaveURL(/tab=generate/);
+  await page.getByLabel('העדפות (רשות)').fill('בלי קפיצות, יותר ידיים');
+  await page.getByLabel('שם התוכנית (רשות)').fill('תוכנית בדיקה');
+  await page.getByRole('button', { name: 'יצירת תוכנית' }).click();
+  await expect(page).toHaveURL(/\/workouts\/plans\/[0-9a-f-]{36}$/, { timeout: 30_000 });
+  await expect(page.getByRole('heading', { level: 1, name: 'תוכנית בדיקה' })).toBeVisible();
+  await expect(page.getByText('למה התוכנית נראית כך')).toBeVisible();
+  await expect(page.getByText(/ההעדפות שלך פוענחו/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'עריכת היום' }).first()).toBeVisible();
+  // RTL layout never scrolls sideways (mobile included).
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  await page.getByRole('button', { name: 'העברה לארכיון' }).first().click();
+  await page.getByRole('dialog', { name: 'להעביר את התוכנית לארכיון?' }).getByRole('button', { name: 'העברה לארכיון' }).click();
+  await expect(page.getByText('התוכנית הועברה לארכיון')).toBeVisible();
+  await expect(page.getByText('התוכנית בארכיון. כדי להתאמן לפיה שוב, יש להגדיר אותה כפעילה.')).toBeVisible();
+
+  // Every plan is archived: the list is empty but archived plans stay reachable.
+  await page.getByRole('link', { name: 'כל התוכניות' }).first().click();
+  await expect(page.getByText('עדיין אין תוכניות אימון')).toBeVisible();
+  await page.getByRole('button', { name: 'הצגת תוכניות בארכיון' }).click();
+  await expect(page.getByRole('heading', { name: 'תוכניות בארכיון' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'תוכנית בדיקה' })).toBeVisible();
+});

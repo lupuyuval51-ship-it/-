@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { LIMITS } from '@shared/constants';
 import { isWorkoutFocus, WORKOUT_FOCUSES } from '@shared/schemas/workouts';
 import type { ExerciseSummaryDTO, PlanWorkoutDTO, WorkoutPlanDTO } from '@shared/types';
@@ -10,6 +10,7 @@ import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
 import { ExercisePicker } from '../exercises/ExercisePicker';
 import { AlternativesModal } from './AlternativesModal';
+import { formatRest } from './format';
 import { updateWorkout } from './api';
 import {
   REST_PRESETS,
@@ -58,6 +59,12 @@ export function WorkoutDayEditor({
   const [alternativesFor, setAlternativesFor] = useState<string | null>(null);
   const dirty = isDraftDirty(draft, original);
   const validation = useMemo(() => validateDraft(draft), [draft]);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard/screen-reader users land in the editor that replaced the "Edit day" button.
+  useEffect(() => {
+    nameRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     onDirtyChange(dirty);
@@ -116,6 +123,7 @@ export function WorkoutDayEditor({
       >
         <div className="grid-2">
           <TextField
+            ref={nameRef}
             label={t('workouts.editor.dayName')}
             value={draft.name}
             maxLength={LIMITS.textShortMax}
@@ -296,7 +304,7 @@ function EditorRow({
               onChange({ restSeconds: Number(e.target.value) });
             }
           }}
-          options={[...REST_PRESETS.map((s) => ({ value: String(s), label: i18n.t('workouts.exercise.seconds', { seconds: s }) })), { value: CUSTOM, label: t('workouts.editor.restCustom') }]}
+          options={[...REST_PRESETS.map((s) => ({ value: String(s), label: formatRest(s, i18n) })), { value: CUSTOM, label: t('workouts.editor.restCustom') }]}
           error={!customRest ? err('restSeconds') : undefined}
         />
         {customRest && (

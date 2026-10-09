@@ -7,7 +7,7 @@ import { focusLabel, formatPrescription, formatRest, nextWorkoutIndex, noteText,
 const i18nFor = (locale: 'en' | 'he') => ({
   t: (key: TKey, params?: TParams) => translate(locale, key, params) ?? key,
   tx: (key: string, params?: TParams, fallback?: string) => translate(locale, key, params) ?? fallback ?? key,
-  formatNumber: (n: number) => String(n),
+  formatNumber: (n: number, opts?: Intl.NumberFormatOptions) => new Intl.NumberFormat(locale === 'he' ? 'he-IL' : 'en-US', { maximumFractionDigits: 1, ...opts }).format(n),
 });
 
 describe('workout formatting', () => {
