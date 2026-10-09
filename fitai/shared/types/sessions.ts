@@ -1,4 +1,4 @@
-import type { PrType, SessionStatus } from '../constants';
+import type { PrType, SessionStatus, TrackingType } from '../constants';
 import type { RestTimerState } from '../timer';
 import type { ISODate, ISODateTime, LocalizedText } from './common';
 import type { ExerciseSummaryDTO } from './exercises';
@@ -45,6 +45,8 @@ export interface ProgressionSuggestionDTO {
   reasonCode: string;
   params?: Record<string, string | number>;
   harderVariationId?: string | null;
+  /** Reps to aim for on every set next time (e.g. last time's reps + 1), when it differs from the range. */
+  targetReps?: number | null;
 }
 
 export interface SessionExerciseDTO {
@@ -101,7 +103,13 @@ export interface PersonalRecordDTO {
 export interface SessionSummaryDTO {
   session: { id: string; name: string; startedAt: ISODateTime; endedAt: ISODateTime; durationSeconds: number };
   totals: { exercises: number; sets: number; reps: number; volumeKg: number };
-  exercises: { exerciseId: string; name: LocalizedText; completedSets: number; bestSet: { reps: number | null; weightKg: number | null; durationSeconds: number | null } | null }[];
+  exercises: {
+    exerciseId: string;
+    name: LocalizedText;
+    trackingType: TrackingType;
+    completedSets: number;
+    bestSet: { reps: number | null; weightKg: number | null; durationSeconds: number | null } | null;
+  }[];
   personalRecords: PersonalRecordDTO[];
   rewards: RewardResultDTO;
   /** Same plan workout's previous completion for comparison, if any. */
@@ -127,4 +135,23 @@ export interface SessionResponse {
 
 export interface ActiveSessionResponse {
   session: WorkoutSessionDTO | null;
+}
+
+export interface SessionSetResponse {
+  set: SessionSetDTO;
+}
+
+export interface SessionSummaryResponse {
+  summary: SessionSummaryDTO;
+}
+
+export interface SessionHistoryResponse {
+  sessions: SessionHistoryItemDTO[];
+  /** Pass as `before` to load the next (older) page; null when there are no more sessions. */
+  nextCursor: string | null;
+}
+
+/** `details` of the 409 `session_already_active` error. */
+export interface SessionAlreadyActiveDetails {
+  sessionId: string;
 }
