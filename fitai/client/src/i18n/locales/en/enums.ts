@@ -181,6 +181,18 @@ const enums = {
     custom: 'Custom',
   },
   sessionStatus: { in_progress: 'In progress', paused: 'Paused', completed: 'Completed', abandoned: 'Discarded' },
+  targetNote: {
+    minor_no_deficit: 'Under 18: no calorie deficit is applied. Focus on regular meals, enough protein and consistent training.',
+    minor_estimate: 'Energy needs of teenagers vary with growth — treat this as a rough estimate.',
+    deficit_applied: 'A moderate deficit (up to 20%) is applied for sustainable fat loss.',
+    deficit_capped: 'The deficit is capped at 500 kcal per day to protect muscle and energy levels.',
+    surplus_applied: 'A small surplus supports muscle and strength gains while limiting fat gain.',
+    maintenance: 'Calories are set around maintenance for your activity level.',
+    floor_applied: 'Your target was raised to a safe minimum.',
+    sex_unspecified_average: 'Sex not specified: an average of the male and female formulas is used.',
+    protein_reference_weight: 'Protein is based on a reference weight for your height.',
+    carb_minimum_applied: 'Carbohydrates are kept at or above 130 g/day.',
+  },
   prType: {
     max_weight: 'Heaviest weight',
     est_1rm: 'Estimated 1RM',
