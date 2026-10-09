@@ -51,6 +51,33 @@ describe('onboarding', () => {
     expect(res.body.profile.targets.computed.notes).toContain('minor_no_deficit');
   });
 
+  it('completes for every allowed body size, even when computed targets exceed the stored-target ranges', async () => {
+    // Tall, heavy, very active adult: computed target > 6000 kcal (profiles.calorie_target CHECK is 1000–6000).
+    const big = await registerUser(server.baseUrl);
+    const res = await big.put('/api/profile/onboarding', {
+      ...VALID_ONBOARDING,
+      sex: 'male',
+      heightCm: 200,
+      weightKg: 200,
+      activityLevel: 'very_active',
+      goal: 'muscle_gain',
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.profile.targets.calories).toBeGreaterThan(6000);
+    // Small, sedentary 13-year-old: computed target < 1000 kcal (no deficit — it is their maintenance).
+    const small = await registerUser(server.baseUrl);
+    const res2 = await small.put('/api/profile/onboarding', {
+      ...VALID_ONBOARDING,
+      ageYears: 13,
+      heightCm: 120,
+      weightKg: 30,
+      activityLevel: 'sedentary',
+    });
+    expect(res2.status).toBe(200);
+    expect(res2.body.profile.targets.calories).toBeLessThan(1000);
+    expect(res2.body.profile.isMinor).toBe(true);
+  });
+
   it('rejects invalid answers', async () => {
     const c = await registerUser(server.baseUrl);
     const young = await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, ageYears: 12 });

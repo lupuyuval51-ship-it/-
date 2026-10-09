@@ -207,7 +207,26 @@ export async function enforceCustomTargetSafety(sql: Sql, userId: string): Promi
   return true;
 }
 
-/** Writes the effective targets into profile columns (used by SQL reports and dashboards). */
+/**
+ * Ranges of the stored target columns (profiles CHECK constraints). Computed targets for
+ * extreme but allowed body sizes can fall outside them (e.g. > 6000 kcal for a very tall,
+ * heavy, very active adult, < 1000 kcal for a small sedentary 13-year-old).
+ */
+const STORED_TARGET_RANGES = {
+  calories: [1000, 6000],
+  proteinG: [20, 400],
+  carbsG: [0, 900],
+  fatG: [15, 300],
+} as const;
+
+const storable = (value: number, [min, max]: readonly [number, number]) => (value >= min && value <= max ? value : null);
+
+/**
+ * Writes the effective targets into profile columns (used by SQL reports and dashboards).
+ * The API always serves computed targets from the profile itself; a value that does not fit
+ * its column is stored as NULL instead of failing the caller's transaction (onboarding,
+ * profile edits, weigh-ins).
+ */
 export async function syncStoredTargets(sql: Sql, userId: string): Promise<void> {
   const row = await getProfileRow(sql, userId);
   if (!row || row.targets_custom) return;
@@ -215,6 +234,12 @@ export async function syncStoredTargets(sql: Sql, userId: string): Promise<void>
   if (!computed) return;
   await sql.exec(
     `UPDATE profiles SET calorie_target = $2, protein_target_g = $3, carbs_target_g = $4, fat_target_g = $5 WHERE user_id = $1`,
-    [userId, computed.calories, computed.proteinG, computed.carbsG, computed.fatG],
+    [
+      userId,
+      storable(computed.calories, STORED_TARGET_RANGES.calories),
+      storable(computed.proteinG, STORED_TARGET_RANGES.proteinG),
+      storable(computed.carbsG, STORED_TARGET_RANGES.carbsG),
+      storable(computed.fatG, STORED_TARGET_RANGES.fatG),
+    ],
   );
 }

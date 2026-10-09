@@ -45,10 +45,14 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
   api.use(noStore);
   api.use(rateLimit({ name: 'api', limit: 600, windowMs: 60_000 }));
   api.use(originAndContentTypeGuard);
-  // Larger body limit only for meal-photo uploads; everything else is capped at 100 KB.
-  api.use('/nutrition/photo-analysis', express.json({ limit: '8mb', strict: true }));
-  api.use(express.json({ limit: '100kb', strict: true }));
+  // The session is resolved before any body is read so the large upload limit below is
+  // only ever granted to signed-in users (anonymous clients cannot make the server buffer
+  // and parse 8 MB bodies).
   api.use(loadSession);
+  // Larger body limit only for meal-photo uploads; everything else is capped at 100 KB.
+  const photoJson = express.json({ limit: '8mb', strict: true });
+  api.post('/nutrition/photo-analysis', (req, res, next) => (req.auth ? photoJson(req, res, next) : next()));
+  api.use(express.json({ limit: '100kb', strict: true }));
   api.use(csrfProtection);
   api.use(idempotency);
 

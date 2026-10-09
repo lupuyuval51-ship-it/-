@@ -165,6 +165,36 @@ describe('GET /api/account/export', () => {
     }
   });
 
+  it('lists AI usage chronologically and includes stored workout rewards and suggestions', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const uid = c.userId!;
+    // Saturday, Monday, Friday: an alphabetical sort of Date#toString would order Fri < Mon < Sat.
+    await db.exec(`INSERT INTO coach_usage (user_id, created_at) VALUES ($1, '2026-01-03T10:00:00Z')`, [uid]);
+    await db.exec(`INSERT INTO ai_usage_events (user_id, kind, created_at) VALUES ($1, 'photo_analysis', '2026-01-05T10:00:00Z')`, [uid]);
+    await db.exec(`INSERT INTO coach_usage (user_id, created_at) VALUES ($1, '2026-01-09T10:00:00Z')`, [uid]);
+    const session = await db.one<{ id: string }>(
+      `INSERT INTO workout_sessions (user_id, name, status, ended_at, duration_seconds, rewards)
+       VALUES ($1, 'S', 'completed', now(), 900, $2) RETURNING id`,
+      [uid, JSON.stringify({ xpAwarded: 50, newAchievements: [], levelUp: null, notes: [] })],
+    );
+    const suggestion = { exerciseId: 'pull_up', action: 'hold', reasonCode: 'first_time' };
+    await db.exec(`INSERT INTO session_exercises (session_id, user_id, exercise_id, position, suggestion) VALUES ($1, $2, 'pull_up', 0, $3)`, [
+      session.id,
+      uid,
+      JSON.stringify(suggestion),
+    ]);
+
+    const res = await c.get('/api/account/export');
+    expect(res.status).toBe(200);
+    expect(res.body.aiUsage.map((u: { kind: string; createdAt: string }) => [u.kind, u.createdAt.slice(0, 10)])).toEqual([
+      ['coach_message', '2026-01-03'],
+      ['photo_analysis', '2026-01-05'],
+      ['coach_message', '2026-01-09'],
+    ]);
+    expect(res.body.workoutSessions[0].rewards).toMatchObject({ xpAwarded: 50 });
+    expect(res.body.workoutSessions[0].exercises[0].suggestion).toEqual(suggestion);
+  });
+
   it('covers every table that stores per-user data', async () => {
     const covered = new Set<string>([...EXPORTED_TABLES, ...Object.keys(EXCLUDED_TABLES)]);
     const missing = (await userTables()).map((t) => t.table).filter((t) => !covered.has(t));

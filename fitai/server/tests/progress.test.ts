@@ -377,6 +377,30 @@ describe('body weight', () => {
     const xp = await db.one<{ n: number }>(`SELECT COUNT(*)::int AS n FROM xp_events WHERE user_id = $1 AND source_type = 'body_weight'`, [c.userId]);
     expect(xp.n).toBe(1);
   });
+
+  it('resets custom targets that become unsafe after a weigh-in (same rule as the profile page)', async () => {
+    const c = await onboardedUser(server.baseUrl); // 30 y, male, 180 cm, 80 kg → protein ≥ 64 g
+    const custom = await c.put('/api/profile/targets', { calories: 2000, proteinG: 70, carbsG: 255, fatG: 60 });
+    expect(custom.status).toBe(200);
+    expect(custom.body.profile.targets.custom).toBe(true);
+    // 100 kg raises the protein minimum to 80 g: the custom targets are no longer safe.
+    const res = await c.post('/api/progress/body-weight', { date: todayInTimeZone('UTC'), weightKg: 100 });
+    expect(res.status).toBe(201);
+    const profile = (await c.get('/api/profile')).body.profile;
+    expect(profile.weightKg).toBe(100);
+    expect(profile.targets.custom).toBe(false);
+    expect(profile.targets.calories).toBe(profile.targets.computed.calories);
+  });
+
+  it('logs weights whose computed targets fall outside the stored-target ranges', async () => {
+    // Allowed inputs (200 cm, very active, muscle gain) give a computed target above 6000 kcal.
+    const c = await onboardedUser(server.baseUrl, { height_cm: 200, weight_kg: 190, activity_level: 'very_active', goal: 'muscle_gain' });
+    const res = await c.post('/api/progress/body-weight', { date: todayInTimeZone('UTC'), weightKg: 200 });
+    expect(res.status).toBe(201);
+    const profile = (await c.get('/api/profile')).body.profile;
+    expect(profile.weightKg).toBe(200);
+    expect(profile.targets.calories).toBeGreaterThan(6000);
+  });
 });
 
 describe('insights (pure)', () => {

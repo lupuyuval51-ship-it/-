@@ -109,12 +109,12 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
   const sessions = await q(
     `SELECT id, plan_id, plan_workout_id, name, status, started_at, paused_at, paused_seconds, ended_at, duration_seconds,
             current_exercise_index, rest_timer, total_volume_kg, total_sets, total_reps, perceived_exertion, notes,
-            xp_awarded, created_at, updated_at
+            xp_awarded, rewards, created_at, updated_at
        FROM workout_sessions WHERE user_id = $1 ORDER BY started_at`,
   );
   const sessionExercises = await q(
     `SELECT id, session_id, exercise_id, position, rep_min, rep_max, target_seconds, rest_seconds, target_rpe,
-            target_weight_kg, notes, created_at, updated_at
+            target_weight_kg, notes, suggestion, created_at, updated_at
        FROM session_exercises WHERE user_id = $1 ORDER BY session_id, position`,
   );
   const sessionSets = await q(
@@ -175,7 +175,7 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
   const aiUsage = [
     ...(await q(`SELECT kind, created_at FROM ai_usage_events WHERE user_id = $1`)),
     ...(await q(`SELECT 'coach_message' AS kind, created_at FROM coach_usage WHERE user_id = $1`)),
-  ].sort((x, y) => String(x.createdAt).localeCompare(String(y.createdAt)));
+  ].sort((x, y) => new Date(x.createdAt as Date).getTime() - new Date(y.createdAt as Date).getTime());
 
   return {
     format: 'fitai-export',

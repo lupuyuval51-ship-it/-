@@ -48,6 +48,28 @@ afterAll(async () => {
 });
 
 describe('meal photo analysis', () => {
+  it('grants the large upload limit to signed-in users only', async () => {
+    const big = photo(Buffer.concat([JPEG, randomBytes(400_000)]), 'image/jpeg');
+    // Anonymous: the body is capped at the normal 100 KB limit before authentication is checked.
+    const anon = await fetch(`${server.baseUrl}/api/nutrition/photo-analysis`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(big),
+    });
+    expect(anon.status).toBe(413);
+    // Small anonymous bodies still get the normal 401.
+    const small = await fetch(`${server.baseUrl}/api/nutrition/photo-analysis`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(photo(JPEG, 'image/jpeg')),
+    });
+    expect(small.status).toBe(401);
+    // Signed in: the same body is accepted by the parser and analysed.
+    fake.setHandler(() => ({ kind: 'json', data: GOOD_REPLY }));
+    const res = await user.post('/api/nutrition/photo-analysis', big);
+    expect(res.status).toBe(200);
+  });
+
   it('returns 503 ai_not_configured without an AI key', async () => {
     disableLlm();
     const res = await user.post('/api/nutrition/photo-analysis', photo(PNG));

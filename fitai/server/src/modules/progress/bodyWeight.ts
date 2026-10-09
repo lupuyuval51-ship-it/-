@@ -9,7 +9,7 @@ import type { BodyWeightEntryDTO, RewardResultDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
 import { notFound, unprocessable } from '../../lib/errors';
 import { onBodyWeightLogged } from '../gamification/hooks';
-import { syncStoredTargets } from '../profile/repository';
+import { enforceCustomTargetSafety, syncStoredTargets } from '../profile/repository';
 import type { UserContext } from './data';
 
 interface EntryRow {
@@ -36,7 +36,11 @@ async function lockProfile(tx: Sql, userId: string) {
   await tx.one('SELECT user_id FROM profiles WHERE user_id = $1 FOR UPDATE', [userId]);
 }
 
-/** Mirrors the latest entry into the profile and recomputes stored targets. */
+/**
+ * Mirrors the latest entry into the profile and recomputes stored targets. Like a weight
+ * change on the profile page, custom targets that are no longer safe for the new weight
+ * (below the calorie minimum / protein minimum) are replaced by the computed ones.
+ */
 async function syncProfileWeight(tx: Sql, userId: string) {
   const latest = await tx.maybeOne<{ weight_kg: number }>(
     'SELECT weight_kg FROM body_weight_entries WHERE user_id = $1 ORDER BY measured_on DESC LIMIT 1',
@@ -44,6 +48,7 @@ async function syncProfileWeight(tx: Sql, userId: string) {
   );
   if (!latest) return;
   await tx.exec('UPDATE profiles SET weight_kg = $2 WHERE user_id = $1 AND weight_kg IS DISTINCT FROM $2', [userId, latest.weight_kg]);
+  await enforceCustomTargetSafety(tx, userId);
   await syncStoredTargets(tx, userId);
 }
 

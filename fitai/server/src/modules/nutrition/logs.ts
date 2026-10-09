@@ -370,7 +370,9 @@ export async function updateEntry(sql: Sql, userId: string, id: string, input: z
       input.note ?? row.note,
     ],
   );
-  const r = date !== row.logged_on ? await reward(sql, userId, [date]) : await reward(sql, userId, []);
+  // Re-evaluate the (target) day: a new date, a different meal type or more protein can
+  // complete it. Awards are idempotent per day, so repeated edits never earn twice.
+  const r = await reward(sql, userId, [date]);
   const updated = await getEntryRow(sql, userId, id);
   return { entry: toEntryDTO(updated!), day: await getDay(sql, userId, date), reward: r };
 }

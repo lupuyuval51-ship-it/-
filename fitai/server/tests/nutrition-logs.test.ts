@@ -213,6 +213,22 @@ describe('editing entries', () => {
     expect(res.body.day.totals.kcal).toBe(0);
     expect((await c.delete(`/api/nutrition/logs/${body.entry.id}`)).status).toBe(404);
   });
+
+  it('re-evaluates food-logging XP when an edit on the same day completes the day', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const first = await log(c, { foodId: rice.id, grams: 100 });
+    expect(first.body.reward.xpAwarded).toBe(0);
+    const second = await log(c, { foodId: rice.id, grams: 150 });
+    expect(second.body.reward.xpAwarded).toBe(0); // one meal type only
+    // Moving the second entry to lunch means two meals are logged today.
+    const moved = await c.patch(`/api/nutrition/logs/${second.body.entry.id}`, { mealType: 'lunch' });
+    expect(moved.status).toBe(200);
+    expect(moved.body.reward.xpAwarded).toBe(10);
+    const xp = await db.many(`SELECT source_key FROM xp_events WHERE user_id = $1 AND source_type = 'food_day'`, [c.userId]);
+    expect(xp).toEqual([{ source_key: today }]);
+    // Further edits never award the same day twice.
+    expect((await c.patch(`/api/nutrition/logs/${second.body.entry.id}`, { grams: 120 })).body.reward.xpAwarded).toBe(0);
+  });
 });
 
 describe('copy', () => {
