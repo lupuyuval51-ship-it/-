@@ -419,7 +419,7 @@ export const exercises: ExerciseSeed[] = [
         'After the last rep, rotate the bar to lock it back onto the hooks.',
       ],
       he: [
-        'הציבו ספסל שטוח מתחת למוט הסמית׳ כך שבשכיבה המוט יהיה מעל החזה התחתון, וכוונו את עוצרי הבטיחות מעט מתחת לגובה החזה.',
+        'הציבו ספסל שטוח מתחת למוט הסמית׳ כך שבשכיבה המוט יהיה מעל החזה התחתון, וכוונו את עוצרי הבטיחות מעט מתחת לנקודה שבה המוט נוגע בחזה.',
         'שכבו, הציבו את כפות הרגליים על הרצפה ואחזו את המוט מעט רחב מרוחב הכתפיים, כשהשכמות משוכות לאחור ומטה.',
         'סובבו את המוט כדי לשחרר אותו מהווים והחזיקו אותו בידיים ישרות.',
         'שאפו והורידו את המוט בשליטה אל החזה התחתון, כשהמרפקים בזווית של כ-45–70 מעלות מהגוף.',
@@ -443,12 +443,12 @@ export const exercises: ExerciseSeed[] = [
     },
     safety: {
       en: [
-        'Always set the safety stops at a height that will catch the bar above your chest.',
+        'Always set the safety stops so they catch the bar if you fail a rep, before it can rest on your chest or neck.',
         'Practice hooking and unhooking the empty bar before adding weight.',
         'Stop if the fixed bar path causes pain in your shoulders.',
       ],
       he: [
-        'כוונו תמיד את עוצרי הבטיחות לגובה שיעצור את המוט מעל החזה.',
+        'כוונו תמיד את עוצרי הבטיחות כך שיעצרו את המוט אם נכשלתם בחזרה, לפני שהוא נח על החזה או על הצוואר.',
         'תרגלו נעילה ושחרור של המוט כשהוא ריק לפני שמוסיפים משקל.',
         'הפסיקו אם המסלול הקבוע של המוט גורם לכאב בכתפיים.',
       ],
