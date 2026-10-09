@@ -27,7 +27,7 @@ export const exercises: ExerciseSeed[] = [
         'Settle briefly at the bottom without swinging before starting the next rep.',
       ],
       he: [
-        'אחזו את המוט כשכפות הידיים פונות קדימה, בידיים מעט רחבות מרוחב הכתפיים, והיתלו בידיים ישרות לגמרי.',
+        'אחזו את המוט באחיזה עליונה (כפות הידיים פונות קדימה), מעט רחב יותר מרוחב הכתפיים, והיתלו בידיים ישרות לגמרי.',
         'משכו מעט את השכמות מטה ולאחור, נעלו את שרירי הבטן וכווצו את הישבן כדי שהרגליים יישארו יציבות.',
         'משכו את עצמכם למעלה תוך הובלת המרפקים מטה אל הצלעות עד שהסנטר עובר את המוט, ונשפו בזמן העלייה.',
         'שמרו על חזה פתוח וצוואר ניטרלי; אל תמתחו את הסנטר קדימה כדי להגיע למוט.',
@@ -94,7 +94,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'אחזו את המוט כשכפות הידיים פונות אליכם, בידיים ברוחב הכתפיים בערך, והיתלו בידיים ישרות.',
-        'הורידו את השכמות מטה, נעלו את הבטן ושמרו על רגליים צמודות ומעט לפני הגוף.',
+        'משכו את השכמות מטה, נעלו את הבטן ושמרו על רגליים צמודות ומעט לפני הגוף.',
         'משכו את המרפקים מטה ולאחור לכיוון צידי הגוף, הביאו את החזה העליון אל המוט ונשפו בזמן העלייה.',
         'המשיכו עד שהסנטר נמצא בבירור מעל המוט, ועצרו לרגע למעלה.',
         'רדו בשליטה עד לתלייה מלאה ושאפו בזמן הירידה, לפני החזרה הבאה.',
@@ -104,13 +104,13 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Swinging or kicking to get the chin over the bar.',
         'Stopping short of a full hang at the bottom.',
-        'Gripping too narrowly, which strains the wrists and elbows.',
+        'Letting the shoulders shrug up toward the ears at the bottom instead of setting the shoulder blades first.',
         'Rounding the shoulders forward and craning the neck at the top.',
       ],
       he: [
         'נדנוד או בעיטות כדי להעביר את הסנטר מעל המוט.',
         'עצירה לפני תלייה מלאה בתחתית.',
-        'אחיזה צרה מדי, שמעמיסה על שורשי כף היד והמרפקים.',
+        'הרמת הכתפיים לכיוון האוזניים בתחתית במקום לקבע קודם את השכמות.',
         'עיגול הכתפיים קדימה ומתיחת הצוואר בחלק העליון.',
       ],
     },
@@ -158,7 +158,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'כרכו גומיית התנגדות סביב מרכז המוט והשחילו קצה אחד דרך השני כך שתהיה מקובעת היטב.',
-        'אחזו את המוט מעט רחב מרוחב הכתפיים, והכניסו ברך אחת או כף רגל אחת ללולאת הגומייה – אפשר לעלות על כיסא יציב כדי להגיע.',
+        'אחזו את המוט מעט רחב יותר מרוחב הכתפיים, והכניסו ברך אחת או כף רגל אחת ללולאת הגומייה – אפשר לעלות על כיסא יציב כדי להגיע.',
         'רדו לתלייה מלאה כשהגומייה מתוחה, הורידו את השכמות מטה ונעלו את הבטן.',
         'משכו את המרפקים מטה אל הצלעות עד שהסנטר עובר את המוט, ונשפו בזמן העלייה.',
         'רדו לאט במשך 2–3 שניות עד לתלייה מלאה, ושאפו בזמן הירידה.',
@@ -222,7 +222,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'הציבו כיסא יציב או מדרגה מתחת למוט כדי שתוכלו להגיע למנח העליון.',
-        'אחזו את המוט באחיזה עליונה, מעט רחב מרוחב הכתפיים, וקפצו או עלו עד שהסנטר מעל המוט.',
+        'אחזו את המוט באחיזה עליונה, מעט רחב יותר מרוחב הכתפיים, וקפצו או עלו עד שהסנטר מעל המוט.',
         'נעלו את הבטן, שמרו על המרפקים קרובים לצלעות והרימו את הרגליים מהמשטח.',
         'רדו לאט במשך 3–5 שניות, תוך נשימה רציפה והתנגדות לאורך כל הירידה.',
         'הגיעו לתלייה מלאה בידיים ישרות, חזרו לעמוד על המשטח והתארגנו לחזרה הבאה.',
@@ -278,16 +278,16 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Grip the bar with your palms facing away, hands about shoulder-width apart, and hang with your body tight and legs together.',
-        'Start with a small, controlled swing from a hollow-body position to a slight arch to build momentum.',
-        'Pull explosively toward your lower chest or upper stomach, driving the bar down and slightly back toward your hips.',
+        'Build a small, controlled kip: swing forward into a slight arch, then snap back into a hollow-body position.',
+        'As you snap into the hollow position, pull explosively toward your lower chest or upper stomach, driving the bar down toward your hips.',
         'As the bar reaches your chest, quickly lean your chest forward over the bar and rotate your wrists on top of it.',
         'Press down into a straight-bar dip until your arms are fully locked out, exhaling as you finish.',
         'Lower back down under control through the dip and the transition to a full hang before the next rep.',
       ],
       he: [
         'אחזו את המוט באחיזה עליונה ברוחב הכתפיים בערך, והיתלו כשהגוף מתוח והרגליים צמודות.',
-        'התחילו בנדנוד קטן ומבוקר ממנח גוף קעור לקשת קלה כדי לייצר תנופה.',
-        'משכו בעוצמה לכיוון החזה התחתון או הבטן העליונה, תוך דחיפת המוט מטה ומעט לאחור לכיוון האגן.',
+        'צרו תנופה קטנה ומבוקרת (קיפ): התנדנדו קדימה לקשת קלה בגב, ואז חזרו בחדות למנח גוף קעור (הולו).',
+        'ברגע המעבר למנח הקעור משכו בעוצמה לכיוון החזה התחתון או הבטן העליונה, תוך דחיפת המוט מטה לכיוון האגן.',
         'כשהמוט מגיע לחזה, הטו במהירות את החזה קדימה מעל המוט וסובבו את שורשי כף היד כך שיהיו מעליו.',
         'דחפו מטה עד יישור מלא של הידיים מעל המוט, ונשפו בסיום התנועה.',
         'רדו חזרה בשליטה דרך שלב הדחיפה והמעבר עד לתלייה מלאה לפני החזרה הבאה.',
@@ -351,7 +351,7 @@ export const exercises: ExerciseSeed[] = [
         'Let the bar rise under control until your arms are straight and you feel a stretch in your lats, inhaling on the way up.',
       ],
       he: [
-        'כוונו את רפידת הירכיים כך שהרגליים יהיו נעולות היטב, ואחזו את המוט באחיזה עליונה, מעט רחב מרוחב הכתפיים.',
+        'כוונו את רפידת הירכיים כך שהרגליים יהיו נעולות היטב, ואחזו את המוט באחיזה עליונה, מעט רחב יותר מרוחב הכתפיים.',
         'שבו כשהידיים מושטות מעל הראש, החזה פתוח והגוף נוטה מעט לאחור, בכ-10–20 מעלות.',
         'התחילו במשיכת השכמות מטה, ואז הובילו את המרפקים מטה ולאחור כדי להביא את המוט אל החזה העליון, ונשפו בזמן המשיכה.',
         'כווצו את הגב לרגע בתחתית בלי להישען אחורה יותר.',
@@ -395,7 +395,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'barbell_bent_over_row',
-    name: { en: 'Barbell Bent-Over Row', he: 'חתירה בהטיה במוט' },
+    name: { en: 'Barbell Bent-Over Row', he: 'חתירה במוט בהטיה קדימה' },
     description: {
       en: 'A free-weight row in which you hinge forward at the hips and pull a barbell to your lower ribs. It builds a thick, strong upper back and teaches the lower back and hips to hold a stable position under load.',
       he: 'חתירה במשקל חופשי שבה מתכופפים קדימה מהאגן ומושכים מוט אל הצלעות התחתונות. בונה גב עליון עבה וחזק ומלמדת את הגב התחתון והאגן לשמור על מנח יציב תחת עומס.',
@@ -419,7 +419,7 @@ export const exercises: ExerciseSeed[] = [
         'When the set is finished, stand up tall before returning the bar to the floor or rack with a flat back.',
       ],
       he: [
-        'הרימו את המוט מהרצפה בתנועת דדליפט או קחו אותו ממתקן, ועמדו ברגליים ברוחב האגן עם אחיזה עליונה מעט רחבה מרוחב הכתפיים.',
+        'הרימו את המוט מהרצפה בתנועת דדליפט או קחו אותו ממתקן, ועמדו ברגליים ברוחב האגן עם אחיזה עליונה מעט רחבה יותר מרוחב הכתפיים.',
         'כופפו מעט את הברכיים והתכופפו מהאגן עד שהגו נמצא בזווית של כ-30–45 מעלות מעל לאופק, כשהגב ישר והמוט תלוי מתחת לכתפיים.',
         'נעלו את הבטן ושאפו אוויר לפני כל חזרה.',
         'משכו את המוט אל הצלעות התחתונות או הבטן העליונה תוך הובלת המרפקים לאחור, וקרבו את השכמות זו לזו בחלק העליון.',
@@ -550,7 +550,7 @@ export const exercises: ExerciseSeed[] = [
         'Extend your arms under control, letting your shoulder blades move forward slightly without rounding your lower back, and inhale.',
       ],
       he: [
-        'חברו ידית אחיזה צרה (V), שבו על המושב והניחו את כפות הרגליים על משטחי הרגליים כשהברכיים מעט כפופות.',
+        'חברו ידית אחיזה צרה (V), שבו על המושב והניחו את כפות הרגליים על משטחי הדריכה כשהברכיים מעט כפופות.',
         'אחזו בידית ושבו זקוף עם חזה פתוח וגב ניטרלי, כשהגו בערך אנכי והידיים מושטות קדימה.',
         'משכו את הידית אל הצלעות התחתונות תוך הובלת המרפקים לאחור קרוב לגוף, ונשפו בזמן המשיכה.',
         'קרבו את השכמות זו לזו לרגע בסוף המשיכה.',
@@ -606,7 +606,7 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Lie on your back under the bars (between parallel bars or beneath a sturdy waist-height bar) and grab them with your hands about shoulder-width apart.',
+        'Lie on your back under the bar: between parallel bars, grip one bar in each hand with palms facing each other; under a single sturdy waist-height bar, use an overhand grip about shoulder-width apart.',
         'Straighten your body in one line from head to heels, with only your heels on the ground, and squeeze your glutes and abs.',
         'Pull your chest toward the bar by driving your elbows back and squeezing your shoulder blades together, exhaling as you rise.',
         'Pause briefly when your chest is close to the bar, keeping your body rigid.',
@@ -614,7 +614,7 @@ export const exercises: ExerciseSeed[] = [
         'To make it easier, bend your knees and plant your feet flat; to make it harder, elevate your feet.',
       ],
       he: [
-        'שכבו על הגב מתחת למוטות (בין המקבילים או מתחת למוט יציב בגובה המותניים) ואחזו בהם כשהידיים ברוחב הכתפיים בערך.',
+        'שכבו על הגב מתחת למוט: בין המקבילים אחזו מוט אחד בכל יד כשכפות הידיים פונות זו אל זו; מתחת למוט יחיד ויציב בגובה המותניים אחזו באחיזה עליונה ברוחב הכתפיים בערך.',
         'ישרו את הגוף בקו אחד מהראש ועד העקבים, כשרק העקבים על הרצפה, וכווצו את הישבן ואת הבטן.',
         'משכו את החזה אל המוט תוך הובלת המרפקים לאחור וקירוב השכמות זו לזו, ונשפו בזמן העלייה.',
         'עצרו לרגע כשהחזה קרוב למוט, תוך שמירה על גוף מתוח.',
@@ -706,11 +706,13 @@ export const exercises: ExerciseSeed[] = [
         'Check the anchor point and straps before each session and make sure the anchor can hold your full body weight.',
         'Keep the straps taut throughout; slack can cause a sudden jolt.',
         'Start at a more upright angle and progress gradually.',
+        'Stop if you feel sharp pain in the shoulder or elbow.',
       ],
       he: [
         'בדקו את נקודת העיגון ואת הרצועות לפני כל אימון, וודאו שהעיגון מחזיק את מלוא משקל הגוף.',
         'שמרו על הרצועות מתוחות לאורך כל התרגיל – רפיון עלול לגרום לטלטלה פתאומית.',
         'התחילו בזווית זקופה יותר והתקדמו בהדרגה.',
+        'הפסיקו אם אתם מרגישים כאב חד בכתף או במרפק.',
       ],
     },
     contraindications: [],
@@ -722,8 +724,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'ring_row',
     name: { en: 'Ring Row', he: 'חתירה בטבעות' },
     description: {
-      en: 'A bodyweight row performed on gymnastic rings hanging from a bar or beam. The free-moving rings let your wrists rotate naturally and demand extra shoulder stability, building a strong, balanced upper back.',
-      he: 'חתירה במשקל גוף על טבעות התעמלות התלויות ממוט או מקורה. הטבעות החופשיות מאפשרות לשורשי כף היד להסתובב באופן טבעי ודורשות יציבות כתפיים נוספת, וכך בונות גב עליון חזק ומאוזן.',
+      en: 'A bodyweight row performed on gymnastic rings hanging from a bar or a high anchor point. The free-moving rings let your wrists rotate naturally and demand extra shoulder stability, building a strong, balanced upper back.',
+      he: 'חתירה במשקל גוף על טבעות התעמלות התלויות ממוט או מנקודת עיגון גבוהה. הטבעות החופשיות מאפשרות לשורשי כף היד להסתובב באופן טבעי ודורשות יציבות כתפיים נוספת, וכך בונות גב עליון חזק ומאוזן.',
     },
     primaryMuscles: ['upper_back', 'lats'],
     secondaryMuscles: ['rear_delts', 'biceps', 'forearms', 'abs'],
@@ -737,16 +739,16 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Hang the rings securely at about waist to chest height.',
-        'Grip the rings, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels.',
-        'Brace your core and glutes, then pull your chest toward the rings, driving the elbows back and turning the palms in as you rise; exhale as you pull.',
+        'Grip the rings with your palms facing each other, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels.',
+        'Brace your core and glutes, then pull your chest toward the rings, driving your elbows back close to your sides and letting the rings rotate naturally; exhale as you pull.',
         'Squeeze your shoulder blades together at the top with the rings close to your ribs.',
         'Lower yourself under control to straight arms, inhaling on the way down.',
         'Adjust the difficulty with your foot position: a more upright body is easier, a more horizontal body is harder.',
       ],
       he: [
         'תלו את הטבעות היטב בגובה המותניים עד החזה בערך.',
-        'אחזו בטבעות, הישענו לאחור בידיים ישרות והתקדמו ברגליים כך שהגוף ייצור קו ישר מהראש ועד העקבים.',
-        'נעלו את הבטן והישבן, ומשכו את החזה אל הטבעות תוך הובלת המרפקים לאחור וסיבוב כפות הידיים פנימה בזמן העלייה; נשפו בזמן המשיכה.',
+        'אחזו בטבעות כשכפות הידיים פונות זו אל זו, הישענו לאחור בידיים ישרות והתקדמו ברגליים כך שהגוף ייצור קו ישר מהראש ועד העקבים.',
+        'נעלו את הבטן והישבן, ומשכו את החזה אל הטבעות תוך הובלת המרפקים לאחור קרוב לגוף, ותנו לטבעות להסתובב באופן טבעי; נשפו בזמן המשיכה.',
         'קרבו את השכמות זו לזו בחלק העליון כשהטבעות קרובות לצלעות.',
         'רדו בשליטה עד יישור הידיים, ושאפו בזמן הירידה.',
         'כוונו את רמת הקושי באמצעות מיקום הרגליים: גוף זקוף יותר קל יותר, וגוף קרוב יותר לאופקי קשה יותר.',
@@ -802,14 +804,14 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Anchor the band securely at chest height (for example in a door anchor or around a sturdy post), or loop it around your feet while sitting with your legs extended.',
-        'Hold the ends with your arms extended in front of you and step back until the band has light tension.',
+        'Hold the ends with your arms extended in front of you and step back (or shorten your grip when seated) until the band has light tension.',
         'Stand or sit tall, brace your core and pull your elbows back past your torso, squeezing your shoulder blades together; exhale as you pull.',
         'Hold the squeeze for a moment with your shoulders down and away from your ears.',
         'Return slowly to straight arms, resisting the pull of the band, and inhale.',
       ],
       he: [
         'עגנו את הגומייה היטב בגובה החזה (למשל בעוגן דלת או סביב עמוד יציב), או כרכו אותה סביב כפות הרגליים בישיבה עם רגליים מושטות.',
-        'החזיקו את הקצוות בידיים מושטות לפנים, והתרחקו עד שהגומייה מתוחה קלות.',
+        'החזיקו את הקצוות בידיים מושטות לפנים, והתרחקו מנקודת העיגון (או קצרו את האחיזה בישיבה) עד שהגומייה מתוחה קלות.',
         'עמדו או שבו זקוף, נעלו את הבטן ומשכו את המרפקים לאחור מעבר לגו תוך קירוב השכמות; נשפו בזמן המשיכה.',
         'החזיקו את הכיווץ לרגע כשהכתפיים למטה, הרחק מהאוזניים.',
         'חזרו לאט ליישור הידיים תוך התנגדות למשיכת הגומייה, ושאפו.',
@@ -976,8 +978,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'dumbbell_curl',
     name: { en: 'Dumbbell Curl', he: 'כפיפת מרפקים במשקולות יד' },
     description: {
-      en: 'A biceps curl performed with a dumbbell in each hand, either together or alternating. Dumbbells let each arm work independently and allow the forearm to rotate naturally, which helps even out strength differences.',
-      he: 'כפיפת מרפקים עם משקולת יד בכל יד, יחד או לסירוגין. המשקולות מאפשרות לכל יד לעבוד באופן עצמאי ולאמה להסתובב באופן טבעי, וכך עוזרות לאזן הבדלי כוח בין הצדדים.',
+      en: 'A biceps curl performed with a dumbbell in each hand, either together or alternating. Dumbbells let each arm work independently, which helps even out strength differences, and allow the forearm to rotate naturally through the curl.',
+      he: 'כפיפת מרפקים עם משקולת יד בכל יד, יחד או לסירוגין. המשקולות מאפשרות לכל יד לעבוד באופן עצמאי, וכך עוזרות לאזן הבדלי כוח בין הצדדים, ומאפשרות לאמה להסתובב באופן טבעי במהלך התנועה.',
     },
     primaryMuscles: ['biceps'],
     secondaryMuscles: ['forearms'],
@@ -1037,7 +1039,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'hammer_curl',
-    name: { en: 'Hammer Curl', he: 'כפיפת פטישים' },
+    name: { en: 'Hammer Curl', he: 'כפיפת מרפקים באחיזת פטיש (פטישים)' },
     description: {
       en: 'A curl performed with a neutral grip, palms facing each other as if holding a hammer. It works the brachialis and forearm muscles alongside the biceps, building thicker arms and stronger forearms.',
       he: 'כפיפת מרפקים באחיזה ניטרלית, כשכפות הידיים פונות זו אל זו כמו באחיזת פטיש. מאמנת את שריר הברכיאליס ואת שרירי האמה לצד הבייספס, ובונה זרועות עבות ואמות חזקות.',

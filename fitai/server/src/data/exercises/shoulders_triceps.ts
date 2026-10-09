@@ -441,7 +441,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop at or below shoulder height if you feel pinching in the shoulder, and end the set if the pain is sharp.',
       ],
       he: [
-        'התחילו במשקל קל: הכתף הצדדית מגיבה היטב למשקלים בינוניים ולמספר חזרות גבוה.',
+        'התחילו במשקל קל: הראש הצדדי של הכתף מגיב היטב למשקלים בינוניים ולמספר חזרות גבוה.',
         'עצרו בגובה הכתפיים או מתחתיו אם אתם מרגישים צביטה בכתף, והפסיקו את הסט אם הכאב חד.',
       ],
     },
@@ -495,19 +495,19 @@ export const exercises: ExerciseSeed[] = [
         'הטיית הגו הרחק מהמכונה כדי לעזור בהרמה.',
         'משיכת הכתף למעלה תוך כדי הרמת היד.',
         'כיפוף ויישור המרפק במהלך החזרה, מה שהופך את התנועה למשיכה.',
-        'מתן אפשרות לערימת המשקולות להיטרק בין החזרות.',
+        'טריקת ערימת המשקולות בין החזרות.',
       ],
     },
     safety: {
       en: [
         'Use a light weight and a controlled tempo; small load jumps are enough.',
-        'Keep the movement pain-free and stop at or below shoulder height if you feel pinching.',
-        'Stop if you feel sharp pain in the shoulder.',
+        'Check that the handle is securely clipped to the cable before you start.',
+        'Keep the movement pain-free: stop at or below shoulder height if you feel pinching, and end the set if you feel sharp pain.',
       ],
       he: [
         'השתמשו במשקל קל ובקצב מבוקר; קפיצות משקל קטנות מספיקות.',
-        'עבדו בטווח ללא כאב ועצרו בגובה הכתף או מתחתיו אם אתם מרגישים צביטה.',
-        'הפסיקו אם אתם מרגישים כאב חד בכתף.',
+        'ודאו שהידית מחוברת היטב לכבל לפני שמתחילים.',
+        'עבדו בטווח ללא כאב: עצרו בגובה הכתף או מתחתיו אם אתם מרגישים צביטה, והפסיקו את הסט אם מופיע כאב חד.',
       ],
     },
     contraindications: ['shoulder'],
@@ -535,14 +535,14 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides.',
         'Keep a slight bend in your elbows, brace your core and keep your shoulders down.',
-        'Exhale and raise your arms out to the sides until your hands reach about shoulder height.',
+        'Exhale and raise your arms out to the sides and slightly forward until your hands reach about shoulder height.',
         'Pause briefly at the top.',
         'Inhale and lower slowly, keeping tension on the band all the way down.',
       ],
       he: [
         'עמדו על מרכז הגומייה ברגליים ברוחב האגן והחזיקו קצה אחד בכל יד לצד הגוף.',
         'שמרו על כיפוף קל במרפקים, נעלו את הבטן ושמרו על כתפיים נמוכות.',
-        'נשפו והרימו את הידיים לצדדים עד שכפות הידיים מגיעות בערך לגובה הכתפיים.',
+        'נשפו והרימו את הידיים לצדדים ומעט קדימה עד שכפות הידיים מגיעות בערך לגובה הכתפיים.',
         'עצרו לרגע למעלה.',
         'שאפו והורידו לאט, תוך שמירה על מתח בגומייה לאורך כל הדרך למטה.',
       ],
@@ -596,14 +596,14 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Hold a dumbbell in each hand, hinge at the hips until your torso is nearly parallel to the floor and let the dumbbells hang below your shoulders, palms facing each other.',
         'Keep your back flat, knees soft and neck neutral, with a slight bend in the elbows.',
-        'Exhale and raise the dumbbells out to the sides in a wide arc until your arms are in line with your body.',
+        'Exhale and raise the dumbbells out to the sides in a wide arc until your arms are about level with your shoulders.',
         'Lightly squeeze your shoulder blades at the top and pause for a moment.',
         'Inhale and lower the dumbbells slowly to the start.',
       ],
       he: [
         'אחזו משקולת בכל יד, התכופפו מהאגן עד שהגו כמעט מקביל לרצפה, ותנו למשקולות להיתלות מתחת לכתפיים כשכפות הידיים פונות זו לזו.',
         'שמרו על גב ישר, ברכיים רכות וצוואר ניטרלי, עם כיפוף קל במרפקים.',
-        'נשפו והרימו את המשקולות לצדדים בקשת רחבה עד שהזרועות בקו אחד עם הגוף.',
+        'נשפו והרימו את המשקולות לצדדים בקשת רחבה עד שהזרועות מגיעות בערך לגובה הכתפיים.',
         'קרבו קלות את השכמות זו לזו למעלה ועצרו לרגע.',
         'שאפו והורידו את המשקולות לאט חזרה להתחלה.',
       ],
@@ -629,7 +629,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel sharp pain in the shoulder or lower back.',
       ],
       he: [
-        'השתמשו במשקולות קלות: הכתף האחורית היא קבוצת שריר קטנה.',
+        'השתמשו במשקולות קלות: הכתף האחורית היא שריר קטן.',
         'אם ההחזקה בהטיה מעמיסה על הגב התחתון, בצעו את התרגיל בישיבה על קצה ספסל או כיסא כשהחזה קרוב לירכיים.',
         'הפסיקו אם אתם מרגישים כאב חד בכתף או בגב התחתון.',
       ],
@@ -757,7 +757,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'בדקו שאין בגומייה קרעים לפני השימוש ואחזו בה היטב.',
         'התחילו עם גומייה קלה והגבירו את הקושי בהדרגה על ידי קירוב הידיים זו לזו על הגומייה.',
-        'הפסיקו אם אתם מרגישים כאב בכתף או נימול בידיים.',
+        'הפסיקו אם אתם מרגישים כאב בכתף או עקצוץ בידיים.',
       ],
     },
     contraindications: [],
@@ -851,15 +851,15 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Loop a resistance band across the two bars and secure it so it forms a firm platform between them.',
-        'Grip the bars, step up and place your knees (or feet) on the band, then support yourself on straight arms with your shoulders down.',
+        'Grip the bars, step up and place your knees (or shins) on the band, then support yourself on straight arms with your shoulders down.',
         'Inhale and lower your body by bending your elbows, keeping them pointing back and your torso leaning slightly forward.',
         'Descend until your upper arms are about parallel to the floor, or as far as is comfortable for your shoulders.',
         'Exhale and press back up to straight arms.',
         'Progress by switching to a thinner band as you get stronger.',
       ],
       he: [
-        'קשרו גומיית התנגדות בין שני המוטות וודאו שהיא מתוחה ויוצרת "משטח" יציב ביניהם.',
-        'אחזו במוטות, עלו והניחו את הברכיים (או את כפות הרגליים) על הגומייה, ואז תמכו בגוף על ידיים ישרות עם כתפיים נמוכות.',
+        'כרכו גומיית התנגדות בין שני המוטות וקבעו אותה כך שתהיה מתוחה ותיצור "משטח" יציב ביניהם.',
+        'אחזו במוטות, עלו והניחו את הברכיים (או את השוקיים) על הגומייה, ואז תמכו בגוף על ידיים ישרות עם כתפיים נמוכות.',
         'שאפו והורידו את הגוף על ידי כיפוף המרפקים, כשהם מכוונים לאחור והגו מוטה מעט קדימה.',
         'רדו עד שהזרועות מקבילות בערך לרצפה, או ככל שנוח לכתפיים.',
         'נשפו ודחפו חזרה עד יישור הידיים.',
@@ -885,7 +885,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel sharp pain in the shoulders or elbows.',
       ],
       he: [
-        'ודאו שהגומייה קשורה היטב ובדקו שאין בה קרעים לפני כל אימון.',
+        'ודאו שהגומייה מקובעת היטב ובדקו שאין בה קרעים לפני כל אימון.',
         'עלו על הגומייה וירדו ממנה בזהירות כדי שלא תחליק ותצליף בכם.',
         'הפסיקו אם אתם מרגישים כאב חד בכתפיים או במרפקים.',
       ],
@@ -899,8 +899,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'triceps_pushdown',
     name: { en: 'Triceps Pushdown', he: 'פשיטת מרפקים בפולי עליון' },
     description: {
-      en: 'A cable isolation exercise in which you push a bar or rope down by straightening your elbows. It is a simple, joint-friendly way to build the triceps.',
-      he: 'תרגיל בידוד בכבל שבו דוחפים מוט או חבל כלפי מטה על ידי יישור המרפקים. דרך פשוטה וידידותית למפרקים לחיזוק הטרייספס.',
+      en: 'A cable isolation exercise in which you push a bar or rope down by straightening your elbows. It is a simple, beginner-friendly way to build the triceps with steady tension through the whole range.',
+      he: 'תרגיל בידוד בכבל שבו דוחפים מוט או חבל כלפי מטה על ידי יישור המרפקים. דרך פשוטה ונוחה למתחילים לחיזוק הטרייספס, עם מתח קבוע לאורך כל טווח התנועה.',
     },
     primaryMuscles: ['triceps'],
     secondaryMuscles: [],
@@ -953,7 +953,7 @@ export const exercises: ExerciseSeed[] = [
         'הפסיקו אם אתם מרגישים כאב חד במרפק.',
       ],
     },
-    contraindications: [],
+    contraindications: ['elbow'],
     easierAlternatives: ['band_triceps_extension'],
     harderAlternatives: ['ez_bar_skull_crusher', 'diamond_push_up'],
     loadIncrementKg: 2.5,
@@ -983,7 +983,7 @@ export const exercises: ExerciseSeed[] = [
         'Lower until you feel a stretch in the triceps, then exhale and straighten your elbows to return to the top.',
       ],
       he: [
-        'שבו או עמדו זקוף והחזיקו משקולת אחת בשתי הידיים, כשכפות הידיים עוטפות את הצד התחתון של הצלחת העליונה.',
+        'שבו או עמדו זקוף והחזיקו משקולת אחת בשתי הידיים, כשכפות הידיים עוטפות מלמטה את הקצה העליון של המשקולת.',
         'הרימו את המשקולת מעל הראש עד ליישור הידיים, כשהזרועות קרובות לאוזניים.',
         'נעלו את הבטן כדי לשמור על הצלעות למטה ועל גב ניטרלי.',
         'שאפו וכופפו את המרפקים לאט כדי להוריד את המשקולת מאחורי הראש, כשהמרפקים מכוונים קדימה.',
@@ -1011,7 +1011,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel pain in the elbow or shoulder.',
       ],
       he: [
-        'אחזו היטב במשקולת בצלחת העליונה, כי היא נעה מאחורי הראש.',
+        'אחזו היטב בקצה העליון של המשקולת, כי היא נעה מאחורי הראש.',
         'השתמשו במשקל בינוני: המתיחה העמוקה מעמיסה משמעותית על המרפקים.',
         'הפסיקו אם אתם מרגישים כאב במרפק או בכתף.',
       ],
@@ -1039,15 +1039,15 @@ export const exercises: ExerciseSeed[] = [
     isCompound: false,
     instructions: {
       en: [
-        'Lie on a flat bench with your feet on the floor and hold the EZ bar with an overhand grip on the inner angled handles.',
-        'Press the bar up so your arms are straight and angled slightly back, with the bar above your forehead.',
+        'Sit on the end of a flat bench with the EZ bar on your thighs, grip the inner angled handles with an overhand grip and lie back with your feet flat on the floor.',
+        'Press the bar up over your chest, then let your arms angle slightly back so the bar is above your forehead.',
         'Inhale and bend only at the elbows to lower the bar slowly toward your forehead or just behind the top of your head.',
         'Keep your elbows pointing toward the ceiling and about shoulder-width apart.',
         'Exhale and straighten your elbows to return the bar to the start, keeping your upper arms still.',
       ],
       he: [
-        'שכבו על ספסל ישר עם כפות הרגליים על הרצפה, ואחזו במוט ה-EZ באחיזה עליונה על העיקולים הפנימיים.',
-        'הרימו את המוט כך שהידיים ישרות ומוטות מעט לאחור, והמוט נמצא מעל המצח.',
+        'שבו בקצה ספסל ישר עם מוט ה-EZ על הירכיים, אחזו בעיקולים הפנימיים באחיזה עליונה ושכבו לאחור כשכפות הרגליים על הרצפה.',
+        'דחפו את המוט למעלה מעל החזה, ואז הטו את הידיים מעט לאחור כך שהמוט יהיה מעל המצח.',
         'שאפו וכופפו רק את המרפקים כדי להוריד את המוט לאט לכיוון המצח או מעט מאחורי קודקוד הראש.',
         'שמרו על המרפקים מכוונים לתקרה ובמרחק של רוחב הכתפיים בערך.',
         'נשפו ויישרו את המרפקים כדי להחזיר את המוט להתחלה, תוך שמירה על הזרועות העליונות קבועות.',
@@ -1103,14 +1103,14 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Lie on the bench with your eyes under the bar, feet flat on the floor and shoulder blades pulled together and down.',
-        'Grip the bar about shoulder-width apart, with your thumbs just outside your torso, and unrack it to straight arms above your shoulders.',
+        'Grip the bar with your hands about shoulder-width apart and your thumbs wrapped around it, then unrack it to straight arms above your shoulders.',
         'Inhale, brace and lower the bar under control to your lower chest, keeping your elbows close to your body at roughly 30–45 degrees.',
         'Touch your chest lightly without bouncing.',
         'Exhale and press the bar back up to full lockout, keeping your wrists straight and stacked over your elbows.',
       ],
       he: [
-        'שכבו על הספסל כשהעיניים מתחת למוט, כפות הרגליים על הרצפה והשכמות מכווצות זו לזו ולמטה.',
-        'אחזו במוט ברוחב הכתפיים בערך, כשהאגודלים מעט מחוץ לגו, והוציאו אותו מהמתקן עד ידיים ישרות מעל הכתפיים.',
+        'שכבו על הספסל כשהעיניים מתחת למוט, כפות הרגליים על הרצפה והשכמות מקורבות זו לזו ומשוכות למטה.',
+        'אחזו במוט כשהידיים ברוחב הכתפיים בערך והאגודלים כרוכים סביבו, והוציאו אותו מהמתקן עד ידיים ישרות מעל הכתפיים.',
         'שאפו, נעלו את הבטן והורידו את המוט בשליטה לחזה התחתון, כשהמרפקים קרובים לגוף בזווית של כ-30–45 מעלות.',
         'געו בחזה בעדינות בלי להקפיץ את המוט.',
         'נשפו ודחפו את המוט חזרה עד נעילה מלאה, כששורשי כפות הידיים ישרים וממוקמים מעל המרפקים.',
@@ -1132,13 +1132,13 @@ export const exercises: ExerciseSeed[] = [
     },
     safety: {
       en: [
-        'Use a spotter or a bench with safety arms when lifting heavy.',
-        'Keep your wrists straight and wrap your thumbs fully around the bar.',
+        'Use a spotter, or a rack with safety arms set just below chest height, when lifting heavy.',
+        'Keep your wrists straight and never use a thumbless grip.',
         'Warm up with light sets and stop if you feel sharp pain in the wrists, elbows or shoulders.',
       ],
       he: [
-        'השתמשו בעוזר (ספוטר) או בספסל עם מוטות ביטחון כשאתם מרימים כבד.',
-        'שמרו על שורשי כפות ידיים ישרים ועל אחיזה מלאה עם האגודל סביב המוט.',
+        'כשאתם מרימים כבד, השתמשו בעוזר (ספוטר) או במתקן עם מוטות ביטחון המכוונים מעט מתחת לגובה החזה.',
+        'שמרו על שורשי כפות ידיים ישרים ולעולם אל תאחזו במוט בלי לכרוך סביבו את האגודל.',
         'חממו בסטים קלים והפסיקו אם מופיע כאב חד בשורשי כפות הידיים, במרפקים או בכתפיים.',
       ],
     },
@@ -1214,7 +1214,7 @@ export const exercises: ExerciseSeed[] = [
     id: 'band_triceps_extension',
     name: { en: 'Band Triceps Extension', he: 'פשיטת מרפקים עם גומייה' },
     description: {
-      en: 'A triceps extension using a resistance band anchored above you, similar to a cable pushdown. It is a joint-friendly option for training the triceps at home or while traveling.',
+      en: 'A triceps extension using a resistance band anchored above you, similar to a cable pushdown. It is a joint-friendly option for training the triceps at home or while travelling.',
       he: 'פשיטת מרפקים עם גומיית התנגדות המעוגנת מעליכם, בדומה לפשיטה בפולי עליון. אפשרות ידידותית למפרקים לאימון הטרייספס בבית או בנסיעות.',
     },
     primaryMuscles: ['triceps'],
@@ -1228,14 +1228,14 @@ export const exercises: ExerciseSeed[] = [
     isCompound: false,
     instructions: {
       en: [
-        'Anchor the middle of the band securely at a high point, such as over the top of a closed door, and hold one end in each hand.',
+        'Anchor the middle of the band securely at a high point, such as with a door anchor at the top of a closed door, and hold one end in each hand.',
         'Stand facing the anchor with feet hip-width apart, lean forward slightly and tuck your elbows at your sides with your forearms about parallel to the floor.',
         'Exhale and push your hands down until your arms are fully straight, squeezing the triceps.',
         'Keep your upper arms still so that only your forearms move.',
         'Inhale and let your hands rise slowly back to the start, keeping tension on the band.',
       ],
       he: [
-        'עגנו את מרכז הגומייה היטב בנקודה גבוהה, למשל מעל דלת סגורה, והחזיקו קצה אחד בכל יד.',
+        'עגנו את מרכז הגומייה היטב בנקודה גבוהה, למשל בעזרת עוגן דלת בחלק העליון של דלת סגורה, והחזיקו קצה אחד בכל יד.',
         'עמדו מול נקודת העיגון ברגליים ברוחב האגן, הטו את הגו מעט קדימה והצמידו את המרפקים לצדי הגוף כשהאמות מקבילות בערך לרצפה.',
         'נשפו ודחפו את הידיים למטה עד יישור מלא, תוך כיווץ הטרייספס.',
         'שמרו על הזרועות העליונות קבועות כך שרק האמות זזות.',
