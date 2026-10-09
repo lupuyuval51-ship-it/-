@@ -112,7 +112,7 @@ const wheel = (thighDeg: number, torso: number, wrist: [number, number]): Pose =
 // ---- mountain climber: high plank, knees drive alternately to the chest.
 const MC_HAND: LimbSpec = { target: [152, 182] };
 const MC_BACK: LimbSpec = { target: [32, 182] };
-const MC_IN: LimbSpec = { target: [98, 166] };
+const MC_IN: LimbSpec = { angles: [76, -78] };
 
 export const animations: ExerciseAnimation[] = [
   {

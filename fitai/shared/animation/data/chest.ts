@@ -334,8 +334,8 @@ function archer(p: number): Pose {
   return {
     hip: [96, 104 - shift],
     torso: 90,
-    armNear: { target: [150, 44], bend: 1 },
-    armFar: { target: [150, 164], bend: -1 },
+    armNear: { target: [150, 44], bend: -1 },
+    armFar: { target: [150, 164], bend: 1 },
     legNear: { angles: [97, 90] },
     legFar: { angles: [-97, -90] },
   };
