@@ -1,0 +1,311 @@
+/* Workouts module (plans, generator, plan details & editing). Logical properties only (RTL). */
+
+.btn-danger-text {
+  color: var(--danger);
+}
+
+/* ------------------------------------------------------------------ Plan list */
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.plan-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.plan-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.plan-item-name {
+  font-weight: 700;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.plan-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.plan-facts > span:not(:last-child)::after {
+  content: '·';
+  margin-inline-start: var(--space-2);
+  color: var(--text-faint);
+}
+.active-plan-card {
+  border-color: color-mix(in srgb, var(--success) 40%, var(--border));
+}
+.next-workout {
+  margin-block-start: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.next-workout-name {
+  display: block;
+  font-size: 18px;
+  margin-block: 2px;
+}
+@media (min-width: 720px) {
+  .plan-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .plan-item-actions {
+    justify-content: flex-end;
+    max-inline-size: 55%;
+  }
+}
+
+/* ------------------------------------------------------------------ Generator */
+.generator-layout {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .generator-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  }
+  .generator-explainer {
+    position: sticky;
+    inset-block-start: var(--space-4);
+  }
+}
+.generator-explainer p {
+  margin: 0;
+}
+.generator-pending .state {
+  min-block-size: 280px;
+}
+
+/* ------------------------------------------------------------------ Plan detail */
+.plan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.plan-stats .stat-value {
+  font-size: 16px;
+}
+.plan-notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.plan-notes li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.plan-notes li .icon {
+  color: var(--info);
+  margin-block-start: 2px;
+}
+
+.day-card-next {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+.day-card-editing {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.day-move {
+  display: flex;
+  gap: var(--space-1);
+}
+.day-notes {
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: 14px;
+  white-space: pre-line;
+}
+.day-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+
+.exercise-list,
+.editor-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.exercise-row {
+  display: flex;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+.exercise-row:last-child {
+  border-block-end: 0;
+}
+.exercise-index {
+  flex: none;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.exercise-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.exercise-name {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.exercise-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-block-start: 2px;
+}
+.exercise-meta strong {
+  color: var(--text);
+}
+.exercise-notes {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------ Day editor */
+.editor-list {
+  gap: var(--space-3);
+}
+.editor-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.editor-row-head {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.editor-row-title {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.editor-row-actions {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.editor-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.editor-grid .field {
+  margin: 0;
+}
+.editor-target {
+  grid-column: 1 / -1;
+}
+@media (min-width: 720px) {
+  .editor-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .editor-target {
+    grid-column: auto / span 2;
+  }
+}
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ Alternatives & progression */
+.alt-item {
+  align-items: flex-start;
+}
+.progression-change .row {
+  gap: var(--space-2) var(--space-3);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ Weekly volume */
+.volume-list {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.volume-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 3fr);
+  gap: var(--space-3);
+  align-items: center;
+  font-size: 14px;
+}
+.volume-row dt {
+  color: var(--text-muted);
+}
+.volume-row dd {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+.volume-row dd .num {
+  min-inline-size: 4.5em;
+  text-align: end;
+}
+
+.inline-note {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+.inline-note .icon {
+  margin-block-start: 2px;
+}
+.alt-intro {
+  margin-block: 0 var(--space-4);
+}
