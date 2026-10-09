@@ -398,7 +398,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Smith Machine Bench Press', he: 'לחיצת חזה במכונת סמית׳' },
     description: {
       en: 'A bench press with the bar fixed on vertical rails in a Smith machine. The guided path and built-in safety hooks make it a stable way to train the chest, shoulders and triceps, especially when training alone.',
-      he: 'לחיצת חזה עם מוט הנע על מסילות אנכיות קבועות במכונת סמית׳. המסלול המונחה ווי הנעילה המובנים הופכים אותה לדרך יציבה לאמן חזה, כתפיים וטרייספס, במיוחד כשמתאמנים לבד.',
+      he: 'לחיצת חזה עם מוט הנע על מסילות אנכיות קבועות במכונת סמית׳. המסלול המונחה ומנגנון הנעילה המובנה הופכים אותה לדרך יציבה לאמן חזה, כתפיים וטרייספס, במיוחד כשמתאמנים לבד.',
     },
     primaryMuscles: ['chest'],
     secondaryMuscles: ['shoulders', 'triceps'],
@@ -476,14 +476,14 @@ export const exercises: ExerciseSeed[] = [
     isCompound: false,
     instructions: {
       en: [
-        'Lie on a flat bench with a dumbbell in each hand, arms extended over your chest and palms facing each other.',
+        'Lie back on a flat bench with a dumbbell in each hand (bring them up with your knees as for a dumbbell press), feet planted, arms extended over your chest and palms facing each other.',
         'Bend your elbows slightly and keep that angle fixed throughout the set.',
         'Inhale and open your arms in a wide arc, lowering the dumbbells until they are about level with your chest and you feel a stretch.',
         'Keep your shoulder blades pulled back and your chest up at the bottom.',
         'Exhale and squeeze your chest to bring the dumbbells back up along the same arc, as if hugging a large tree.',
       ],
       he: [
-        'שכבו על ספסל שטוח עם משקולת יד בכל יד, הידיים מושטות מעל החזה וכפות הידיים פונות זו לזו.',
+        'שכבו על ספסל שטוח עם משקולת יד בכל יד (העלו אותן בעזרת הברכיים, כמו בלחיצת חזה במשקולות), כפות הרגליים על הרצפה, הידיים מושטות מעל החזה וכפות הידיים פונות זו לזו.',
         'כופפו מעט את המרפקים ושמרו על הזווית קבועה לאורך כל הסט.',
         'שאפו ופתחו את הידיים בקשת רחבה, והורידו את המשקולות עד לגובה החזה בערך ולתחושת מתיחה.',
         'שמרו על השכמות משוכות לאחור ועל החזה פתוח בתחתית התנועה.',
@@ -493,14 +493,14 @@ export const exercises: ExerciseSeed[] = [
     mistakes: {
       en: [
         'Bending and straightening the elbows, which turns the fly into a press.',
-        'Lowering the dumbbells far below the bench and overstretching the shoulders.',
+        'Lowering the dumbbells well below chest level and overstretching the front of the shoulders.',
         'Using weights too heavy to control in the stretched position.',
         'Locking the elbows completely straight.',
       ],
       he: [
         'כיפוף ויישור המרפקים, שהופכים את התרגיל ללחיצה.',
-        'הורדת המשקולות הרבה מתחת לגובה הספסל ומתיחת יתר של הכתפיים.',
-        'שימוש במשקל כבד מדי לשליטה במצב המתוח.',
+        'הורדת המשקולות הרבה מתחת לגובה החזה ומתיחת יתר של קדמת הכתפיים.',
+        'שימוש במשקל כבד מדי, שאי אפשר לשלוט בו בנקודת המתיחה.',
         'נעילת המרפקים בישור מלא.',
       ],
     },
@@ -523,7 +523,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'cable_chest_fly',
-    name: { en: 'Cable Chest Fly', he: 'פרפר בכבלים' },
+    name: { en: 'Cable Chest Fly', he: 'פרפר בכבלים (קרוס אובר)' },
     description: {
       en: 'A chest fly using two cable pulleys, usually performed standing between the stacks. The cables keep constant tension on the chest through the whole arc, making it an effective isolation and finishing exercise.',
       he: 'תרגיל פרפר בשתי גלגלות כבלים, בדרך כלל בעמידה בין שתי ערימות המשקולות. הכבלים שומרים על מתח קבוע בחזה לאורך כל הקשת, ולכן זהו תרגיל בידוד וסיום יעיל.',
@@ -546,7 +546,7 @@ export const exercises: ExerciseSeed[] = [
         'Inhale and let your arms open slowly along the same arc until you feel a light stretch in the chest.',
       ],
       he: [
-        'כוונו את שתי הגלגלות לגובה הכתפיים בערך, אחזו ידית בכל יד וצעדו צעד קדימה לעמידת צעד.',
+        'כוונו את שתי הגלגלות לגובה הכתפיים בערך, אחזו ידית בכל יד וצעדו קדימה לעמידת צעד (רגל אחת לפני השנייה).',
         'הטו מעט את הגוף קדימה עם גב ישר, הידיים פתוחות לצדדים והמרפקים מעט כפופים.',
         'נשפו וקרבו את הידיות זו לזו בקשת רחבה מול החזה, תוך שמירה על זווית מרפק קבועה.',
         'כווצו את החזה לשנייה כשהידיים נפגשות.',
@@ -562,7 +562,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'דחיפת הידיות קדימה במקום תנועה בקשת.',
-        'מתן לכבלים למשוך את הידיים רחוק מדי לאחור, שגורם למתיחת יתר בכתפיים.',
+        'פתיחת הידיים רחוק מדי לאחור בגלל משיכת הכבלים, שגורמת למתיחת יתר בכתפיים.',
         'נדנוד הגוף כדי לייצר תנופה.',
         'הרמת הכתפיים לכיוון האוזניים.',
       ],
@@ -572,11 +572,13 @@ export const exercises: ExerciseSeed[] = [
         'Use a stable staggered stance so the cables cannot pull you off balance.',
         'Choose a load you can control through the full arc, especially in the stretched position.',
         'Return the handles to the stacks with control at the end of the set.',
+        'Stop if you feel pinching or sharp pain at the front of the shoulder.',
       ],
       he: [
         'עמדו בעמידת צעד יציבה כדי שהכבלים לא יוציאו אתכם משיווי משקל.',
         'בחרו משקל שתוכלו לשלוט בו לאורך כל הקשת, ובמיוחד במצב המתוח.',
         'בסיום הסט החזירו את הידיות למקומן בשליטה.',
+        'הפסיקו אם מופיעים צביטה או כאב חד בקדמת הכתף.',
       ],
     },
     contraindications: ['shoulder'],
@@ -624,7 +626,7 @@ export const exercises: ExerciseSeed[] = [
         'Using a band so strong that you cannot complete full, controlled reps.',
       ],
       he: [
-        'מתן לגומייה להחזיר את הידיים בבת אחת במקום לשלוט בחזרה.',
+        'חזרה מהירה של הידיים בבת אחת עם משיכת הגומייה, במקום לשלוט בחזרה.',
         'קשת בגב התחתון או הישענות קדימה לתוך הדחיפה.',
         'שליחת הכתפיים מעלה וקדימה בסוף הדחיפה.',
         'שימוש בגומייה קשה מדי שלא מאפשרת חזרות מלאות ומבוקרות.',
@@ -766,7 +768,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'ודאו שהמשטח יציב ולא יחליק או יתהפך.',
-        'נעלו נעליים עם אחיזה טובה או התאמנו על רצפה לא חלקה, כדי שהרגליים לא יחליקו לאחור.',
+        'התאמנו בנעליים עם אחיזה טובה או על רצפה לא חלקה, כדי שהרגליים לא יחליקו לאחור.',
         'הפסיקו אם מופיע כאב חד בשורשי כף היד או בכתפיים.',
       ],
     },
@@ -847,8 +849,8 @@ export const exercises: ExerciseSeed[] = [
       en: 'A push-up with the feet raised on a bench, chair or step. Elevating the feet shifts more body weight onto the arms and emphasizes the upper chest and front shoulders, making it a natural progression from the standard push-up.',
       he: 'שכיבות סמיכה כשהרגליים מונחות על ספסל, כיסא או מדרגה. הגבהת הרגליים מעבירה חלק גדול יותר ממשקל הגוף לידיים ומדגישה את החזה העליון ואת הכתף הקדמית – התקדמות טבעית משכיבות סמיכה רגילות.',
     },
-    primaryMuscles: ['chest', 'shoulders'],
-    secondaryMuscles: ['triceps', 'abs'],
+    primaryMuscles: ['chest'],
+    secondaryMuscles: ['shoulders', 'triceps', 'abs'],
     equipment: [],
     category: 'bodyweight',
     movementPattern: 'horizontal_push',
@@ -858,16 +860,16 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Place your feet on a sturdy bench, chair or step and your hands on the floor slightly wider than shoulder width.',
-        'Walk your hands out until your body is straight from head to heels, then brace your abs and glutes.',
+        'Start on all fours, place your hands on the floor slightly wider than shoulder width, then place your feet one at a time on a sturdy bench, chair or step.',
+        'Adjust your hands so your wrists are under your shoulders and your body is straight from head to heels, then brace your abs and glutes.',
         'Inhale and lower your chest toward the floor, elbows at about 45 degrees from your torso.',
         'Keep your head in line with your spine and do not let your hips sag as you descend.',
         'Exhale and press back up to straight arms.',
         'Start with a low step and raise your feet higher as you get stronger.',
       ],
       he: [
-        'הניחו את כפות הרגליים על ספסל, כיסא או מדרגה יציבים, ואת כפות הידיים על הרצפה מעט רחב מרוחב הכתפיים.',
-        'התקדמו עם הידיים עד שהגוף ישר מהראש ועד העקבים, ונעלו את שרירי הבטן והישבן.',
+        'התחילו בעמידת שש (על הידיים והברכיים), הניחו את כפות הידיים על הרצפה מעט רחב מרוחב הכתפיים, ואז העלו את כפות הרגליים אחת אחת על ספסל, כיסא או מדרגה יציבים.',
+        'כוונו את מיקום הידיים כך ששורשי כף היד יהיו מתחת לכתפיים והגוף ישר מהראש ועד העקבים, ונעלו את שרירי הבטן והישבן.',
         'שאפו והורידו את החזה לכיוון הרצפה, כשהמרפקים בזווית של כ-45 מעלות מהגוף.',
         'שמרו על הראש בקו אחד עם עמוד השדרה ואל תתנו לאגן לשקוע בזמן הירידה.',
         'נשפו ודחפו חזרה למעלה עד ליישור הידיים.',
@@ -907,7 +909,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'archer_push_up',
-    name: { en: 'Archer Push-Up', he: 'שכיבות סמיכה קשת' },
+    name: { en: 'Archer Push-Up', he: 'שכיבות סמיכה קשת (ארצ׳ר)' },
     description: {
       en: 'An advanced push-up with a very wide hand position in which you shift your weight toward one arm while the other stays nearly straight. It heavily loads one side of the chest, shoulder and triceps at a time and is a key step toward the one-arm push-up.',
       he: 'שכיבות סמיכה מתקדמות עם פיסוק ידיים רחב מאוד, שבהן מעבירים את משקל הגוף ליד אחת בזמן שהיד השנייה נשארת כמעט ישרה. מעמיסות בכל פעם צד אחד של החזה, הכתף והטרייספס, ומהוות שלב חשוב בדרך לשכיבות סמיכה ביד אחת.',
@@ -931,7 +933,7 @@ export const exercises: ExerciseSeed[] = [
         'Complete all reps on one side or alternate sides, keeping the number of reps equal on each side.',
       ],
       he: [
-        'התחילו בתנוחת פלאנק על ידיים ישרות, כשהידיים בפיסוק של בערך פעמיים רוחב הכתפיים והאצבעות מופנות קדימה או מעט החוצה.',
+        'התחילו בתנוחת פלאנק על ידיים ישרות, כשהידיים בפיסוק רחב – בערך פי שניים מרוחב הכתפיים – והאצבעות מופנות קדימה או מעט החוצה.',
         'נעלו את שרירי הליבה והישבן כך שהגוף נשאר בקו ישר מהראש ועד העקבים.',
         'שאפו והעבירו את המשקל לכיוון יד אחת – כופפו את המרפק שלה והורידו את החזה לכיוונה, בזמן שהיד השנייה מתיישרת לצד.',
         'רדו עד שהחזה ממש מעל היד העובדת, תוך שמירה על אגן מקביל לרצפה.',
@@ -1010,7 +1012,7 @@ export const exercises: ExerciseSeed[] = [
         'Starting with the rings too low before mastering higher positions.',
       ],
       he: [
-        'מתן לטבעות להתרחק לצדדים, מה שמעמיס יתר על המידה על הכתפיים.',
+        'התרחקות הטבעות לצדדים, שמעמיסה יתר על המידה על הכתפיים.',
         'שקיעת האגן או איבוד הקו הישר של הגוף.',
         'ירידה מהירה מדי ואיבוד שליטה בתחתית התנועה.',
         'התחלה עם טבעות נמוכות מדי לפני שליטה בגבהים גבוהים יותר.',
