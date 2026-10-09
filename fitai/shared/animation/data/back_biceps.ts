@@ -168,12 +168,12 @@ export const animations: ExerciseAnimation[] = [
     // Under parallel bars, heels on the floor, body rigid; chest rises to the bar.
     id: 'inverted_row',
     durationSec: 3,
-    props: [{ kind: 'dipBars', x: 112, y: 104 }],
+    props: [{ kind: 'dipBars', x: 106, y: 104 }],
     keyframes: [
-      { t: 0, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [112, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
-      { t: 0.35, pose: { hip: [145, 143], torso: -61, armNear: { target: [112, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
-      { t: 0.45, pose: { hip: [145, 143], torso: -61, armNear: { target: [112, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
-      { t: 1, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [112, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
+      { t: 0, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
+      { t: 0.35, pose: { hip: [145, 143], torso: -61, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
+      { t: 0.45, pose: { hip: [145, 143], torso: -61, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
+      { t: 1, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
     ],
   },
   {
