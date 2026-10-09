@@ -63,10 +63,19 @@ function mergeOps(a: PendingOp, b: PendingOp): PendingOp {
   return { ...a, patch: { ...a.patch, ...b.patch } } as PendingOp;
 }
 
-/** Adds an op, merging it into the pending (not in-flight) entry for the same target when there is one. */
+/**
+ * Adds an op, merging it into the newest pending (not in-flight) entry for the same
+ * target when there is one, so the latest value always wins.
+ */
 export function enqueue(queue: QueueEntry[], op: PendingOp, o: EnqueueOptions): QueueEntry[] {
   const target = targetOf(op);
-  const idx = queue.findIndex((e) => e.id !== o.inFlightId && targetOf(e.op) === target);
+  let idx = -1;
+  for (let i = queue.length - 1; i >= 0; i--) {
+    const e = queue[i]!;
+    if (targetOf(e.op) !== target) continue;
+    if (e.id !== o.inFlightId) idx = i;
+    break;
+  }
   const notBefore = o.now + Math.max(0, o.delayMs);
   if (idx >= 0) {
     const existing = queue[idx]!;
@@ -74,6 +83,26 @@ export function enqueue(queue: QueueEntry[], op: PendingOp, o: EnqueueOptions): 
     return [...queue.slice(0, idx), merged, ...queue.slice(idx + 1)];
   }
   return [...queue, { id: o.newId(), key: o.newKey(), op, attempts: 0, notBefore, createdAt: o.now }];
+}
+
+/**
+ * Re-queues a failed entry with backoff. If newer edits of the same target were queued
+ * meanwhile, they are folded into the failed entry (newer values win) so an older payload
+ * can never be sent after a newer one and overwrite it.
+ */
+export function retryLater(queue: QueueEntry[], entryId: string, now: number, newKey: () => string): QueueEntry[] {
+  const idx = queue.findIndex((e) => e.id === entryId);
+  if (idx < 0) return queue;
+  const failed = queue[idx]!;
+  const attempts = failed.attempts + 1;
+  const notBefore = now + backoffMs(attempts);
+  const target = targetOf(failed.op);
+  const newer = queue.filter((e, i) => i > idx && targetOf(e.op) === target);
+  if (newer.length === 0) return queue.map((e) => (e.id === entryId ? { ...e, attempts, notBefore } : e));
+  const op = newer.reduce((acc, e) => mergeOps(acc, e.op), failed.op);
+  const merged: QueueEntry = { ...failed, op, key: newKey(), attempts, notBefore: Math.max(notBefore, ...newer.map((e) => e.notBefore)) };
+  const newerIds = new Set(newer.map((e) => e.id));
+  return queue.filter((e) => !newerIds.has(e.id)).map((e) => (e.id === entryId ? merged : e));
 }
 
 /** Next entry that may be sent now (FIFO among ready entries), or null. */

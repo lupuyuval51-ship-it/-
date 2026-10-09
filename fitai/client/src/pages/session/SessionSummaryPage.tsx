@@ -216,7 +216,7 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
                 <span className="small summary-best">
                   <span className="muted">{t('session.summary.bestSet')}: </span>
                   <strong className="num">
-                    {formatSetValues(e.bestSet, e.bestSet.durationSeconds != null ? 'time' : e.bestSet.weightKg ? 'weight_reps' : 'reps', i18n, formatWeight)}
+                    {formatSetValues(e.bestSet, e.trackingType, i18n, formatWeight)}
                   </strong>
                 </span>
               )}

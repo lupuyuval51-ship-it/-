@@ -77,7 +77,8 @@ export function ExerciseCard({
   const showWeight = tracking === 'weight_reps' || addedWeight;
   const suggestion = exercise.suggestion;
   const done = exercise.sets.filter((s) => s.completed).length;
-  const defaults = setDefaults(exercise);
+  // Without a visible weight column no load is suggested (or logged) for the set.
+  const defaults = setDefaults(exercise).map((d) => (showWeight ? d : { ...d, weightKg: null }));
 
   return (
     <article className="card exercise-card" aria-labelledby={`ex-${exercise.id}-title`}>

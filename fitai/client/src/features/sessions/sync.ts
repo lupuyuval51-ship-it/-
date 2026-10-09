@@ -15,7 +15,6 @@ import { sendPatch } from './api';
 import { clockSkewMs } from './clock';
 import {
   applyOp,
-  backoffMs,
   classifyFailure,
   enqueue,
   msUntilNextReady,
@@ -23,6 +22,7 @@ import {
   reconcile,
   replaceSet,
   requestFor,
+  retryLater,
   targetOf,
   type PendingOp,
   type QueueEntry,
@@ -266,9 +266,8 @@ export class SessionSync {
     } catch (error) {
       const kind = classifyFailure(error);
       if (kind === 'retry') {
-        const attempts = entry.attempts + 1;
         this.lastFailure = !(error instanceof ApiError) || error.isNetwork ? 'network' : 'other';
-        this.queue = this.queue.map((e) => (e.id === entry.id ? { ...e, attempts, notBefore: Date.now() + backoffMs(attempts) } : e));
+        this.queue = retryLater(this.queue, entry.id, Date.now(), newIdempotencyKey);
       } else if (kind === 'auth') {
         this.authBlocked = true;
       } else {

@@ -402,6 +402,7 @@ export async function buildSummary(sql: Sql, userId: string, row: SessionRow, ti
     return {
       exerciseId: e.exercise_id,
       name: ex.name,
+      trackingType: ex.trackingType,
       completedSets: own.length,
       bestSet: best ? { reps: best.reps, weightKg: best.weightKg, durationSeconds: best.durationSeconds } : null,
     };

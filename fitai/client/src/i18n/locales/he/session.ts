@@ -19,7 +19,7 @@ const session: Translations<typeof en> = {
     pauseLabel: 'השהיית האימון',
     resumeLabel: 'המשך האימון',
     finish: 'סיום',
-    discard: 'ביטול',
+    discard: 'ביטול אימון',
     paused: 'האימון מושהה — השעון עצר.',
     progress: '{done} מתוך {total} סטים הושלמו',
     restTimer: 'טיימר מנוחה',
@@ -162,7 +162,7 @@ const session: Translations<typeof en> = {
       try_harder_variation: 'לעלות רמה',
     },
     reasons: {
-      no_history: 'פעם ראשונה שמתעדים את התרגיל — בחרו משקל שאפשר להרים בטכניקה טובה לאורך כל טווח החזרות.',
+      no_history: 'פעם ראשונה שמתעדים את התרגיל — בחרו רמה שאפשר להשלים בטכניקה טובה בכל הסטים.',
       hit_top_of_range: 'בפעם הקודמת הגעתם לראש טווח החזרות בכל הסטים. עלו מ-{from} ל-{to}.',
       within_range: 'הישארו על {weight} ונסו להגיע ל-{reps} חזרות בכל סט.',
       below_range: 'בפעם הקודמת חלק מהסטים לא הגיעו ל-{repMin} חזרות. הישארו על {weight} ובנו בהדרגה.',

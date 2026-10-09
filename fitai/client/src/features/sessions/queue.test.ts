@@ -13,6 +13,7 @@ import {
   reconcile,
   replaceSet,
   requestFor,
+  retryLater,
   type PendingOp,
   type QueueEntry,
 } from './queue';
@@ -87,6 +88,35 @@ describe('pending update queue', () => {
     q = enqueue(q, setOp('a', { rpe: 8 }), opts(20, 0, inFlight));
     expect(q).toHaveLength(2);
     expect(q[1]!.op.patch).toEqual({ reps: 7, rpe: 8 });
+  });
+
+  it('folds newer edits into a failed entry so an older value is never sent last', () => {
+    let q = enqueue([], setOp('a', { reps: 5 }), opts(0));
+    const inFlight = q[0]!.id;
+    // While "reps 5" is in flight the user types 6, and edits another set.
+    q = enqueue(q, setOp('a', { reps: 6 }), opts(10, 700, inFlight));
+    q = enqueue(q, setOp('b', { reps: 3 }), opts(10, 0, inFlight));
+    // The in-flight request fails and is retried later: only one entry for `a` remains, with the newest value.
+    const keyBefore = q[0]!.key;
+    q = retryLater(q, inFlight, 1000, ids.newKey);
+    expect(q.filter((e) => e.op.type === 'set' && e.op.setId === 'a')).toHaveLength(1);
+    expect(q[0]).toMatchObject({ id: inFlight, attempts: 1, op: { patch: { reps: 6 } } });
+    expect(q[0]!.key).not.toBe(keyBefore);
+    expect(q[0]!.notBefore).toBe(2000);
+    expect(q[1]!.op).toMatchObject({ setId: 'b' });
+    // Without newer edits the entry just backs off (same key: same payload).
+    const single = enqueue([], setOp('c', { reps: 1 }), opts(0));
+    const retried = retryLater(single, single[0]!.id, 0, ids.newKey);
+    expect(retried[0]).toMatchObject({ key: single[0]!.key, attempts: 1, notBefore: 1000 });
+    expect(retryLater(retried, 'missing', 0, ids.newKey)).toBe(retried);
+  });
+
+  it('merges a new edit into the newest pending entry of the target', () => {
+    const older: QueueEntry = { id: 'o', key: 'k1', op: setOp('a', { reps: 5 }), attempts: 2, notBefore: 5000, createdAt: 0 };
+    const newer: QueueEntry = { id: 'n', key: 'k2', op: setOp('a', { reps: 6 }), attempts: 0, notBefore: 700, createdAt: 10 };
+    const q = enqueue([older, newer], setOp('a', { reps: 7 }), opts(20));
+    expect(q.map((e) => e.op.patch)).toEqual([{ reps: 5 }, { reps: 7 }]);
+    expect(reconcile(session([set('a')]), q).exercises[0]!.sets[0]!.reps).toBe(7);
   });
 
   it('debounces with notBefore and picks ready entries in order', () => {

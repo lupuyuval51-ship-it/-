@@ -61,7 +61,10 @@ function useTimerModel(timer: RestTimerState, onChange: (next: RestTimerState | 
     adjust: (delta) => act(adjustTimer(timer, delta, serverNow())),
     setDuration: (seconds) => {
       const d = Math.max(5, Math.min(MAX_REST_SECONDS, Math.round(seconds)));
-      act(status === 'running' || status === 'paused' ? startTimer(d, serverNow(), timer.exerciseId) : idleTimer(d, timer.exerciseId));
+      // A running rest restarts with the new length; a paused one stays paused (with the new length left).
+      if (status === 'running') act(startTimer(d, serverNow(), timer.exerciseId));
+      else if (status === 'paused') act({ ...idleTimer(d, timer.exerciseId), remainingSeconds: d });
+      else act(idleTimer(d, timer.exerciseId));
     },
     close: () => onChange(null),
   };

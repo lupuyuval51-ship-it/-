@@ -1,4 +1,4 @@
-import type { PrType, SessionStatus } from '../constants';
+import type { PrType, SessionStatus, TrackingType } from '../constants';
 import type { RestTimerState } from '../timer';
 import type { ISODate, ISODateTime, LocalizedText } from './common';
 import type { ExerciseSummaryDTO } from './exercises';
@@ -103,7 +103,13 @@ export interface PersonalRecordDTO {
 export interface SessionSummaryDTO {
   session: { id: string; name: string; startedAt: ISODateTime; endedAt: ISODateTime; durationSeconds: number };
   totals: { exercises: number; sets: number; reps: number; volumeKg: number };
-  exercises: { exerciseId: string; name: LocalizedText; completedSets: number; bestSet: { reps: number | null; weightKg: number | null; durationSeconds: number | null } | null }[];
+  exercises: {
+    exerciseId: string;
+    name: LocalizedText;
+    trackingType: TrackingType;
+    completedSets: number;
+    bestSet: { reps: number | null; weightKg: number | null; durationSeconds: number | null } | null;
+  }[];
   personalRecords: PersonalRecordDTO[];
   rewards: RewardResultDTO;
   /** Same plan workout's previous completion for comparison, if any. */

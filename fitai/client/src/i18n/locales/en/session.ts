@@ -160,7 +160,7 @@ const session = {
       try_harder_variation: 'Level up',
     },
     reasons: {
-      no_history: 'First time logging this exercise — pick a weight you can lift with good form for the whole range.',
+      no_history: 'First time logging this exercise — choose a level you can complete with good form on every set.',
       hit_top_of_range: 'You reached the top of the rep range on every set last time. Go up from {from} to {to}.',
       within_range: 'Stay at {weight} and aim for {reps} reps on each set.',
       below_range: 'Some sets fell short of {repMin} reps last time. Stay at {weight} and build up.',

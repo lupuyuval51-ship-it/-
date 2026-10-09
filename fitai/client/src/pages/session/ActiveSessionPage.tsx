@@ -215,7 +215,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     } else if (set.reps == null && defaults.reps != null) {
       patch.reps = defaults.reps;
     }
-    if (set.weightKg == null && defaults.weightKg != null && tracking === 'weight_reps') patch.weightKg = defaults.weightKg;
+    if (set.weightKg == null && defaults.weightKg != null) patch.weightKg = defaults.weightKg;
     patchSet(set, patch, { immediate: true });
     if (ex.restSeconds > 0) setTimer(startTimer(ex.restSeconds, serverNow(), ex.id));
     setAnnouncement(t('session.sets.completed', { n: set.setNumber }));

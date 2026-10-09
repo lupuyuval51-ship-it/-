@@ -341,11 +341,12 @@ describe('finishing a session', () => {
     expect(summary.session.durationSeconds).toBeGreaterThanOrEqual(45 * 60 - 2);
     expect(summary.session.durationSeconds).toBeLessThanOrEqual(45 * 60 + 2);
     expect(summary.totals).toEqual({ exercises: 3, sets: 4, reps: 33, volumeKg: 1100 });
-    expect(summary.exercises.map((e) => [e.exerciseId, e.completedSets])).toEqual([
-      ['barbell_bench_press', 2],
-      ['push_up', 1],
-      ['plank', 1],
+    expect(summary.exercises.map((e) => [e.exerciseId, e.trackingType, e.completedSets])).toEqual([
+      ['barbell_bench_press', 'weight_reps', 2],
+      ['push_up', 'reps', 1],
+      ['plank', 'time', 1],
     ]);
+    expect(summary.exercises[2]!.bestSet).toEqual({ reps: null, weightKg: null, durationSeconds: 40 });
     // Best set by estimated 1RM: 10 × 60 (80 kg) beats 8 × 62.5 (79.2 kg).
     expect(summary.exercises[0]!.bestSet).toEqual({ reps: 10, weightKg: 60, durationSeconds: null });
     expect(summary.personalRecords).toEqual([]); // first performances are baselines
@@ -391,6 +392,20 @@ describe('finishing a session', () => {
     expect(first.body.summary.totals).toEqual({ exercises: 0, sets: 0, reps: 0, volumeKg: 0 });
     expect(first.body.summary.exercises[0]).toMatchObject({ completedSets: 0, bestSet: null });
     expect((await user.post(`/api/sessions/${s.id}/finish`, { perceivedExertion: 11 })).status).toBe(400);
+  });
+
+  it('serializes concurrent finishes: one result, records stored once', async () => {
+    const user = await onboardedUser(server.baseUrl);
+    await quickWorkout(user, 'barbell_bench_press', [{ reps: 5, weightKg: 80 }]);
+    const s = await addExercise(user, (await startEmpty(user)).id, 'barbell_bench_press', 1);
+    await completeSet(user, s.id, s.exercises[0]!.sets[0]!.id, { reps: 5, weightKg: 85 });
+    const [a, b] = await Promise.all([user.post(`/api/sessions/${s.id}/finish`, {}), user.post(`/api/sessions/${s.id}/finish`, {})]);
+    expect([a.status, b.status]).toEqual([200, 200]);
+    expect(a.body.summary).toEqual(b.body.summary);
+    const types = (a.body.summary as SessionSummaryDTO).personalRecords.map((r) => r.recordType).sort();
+    expect(types).toEqual(['est_1rm', 'max_volume', 'max_weight']);
+    const stored = await db.many('SELECT id FROM personal_records WHERE session_id = $1', [s.id]);
+    expect(stored).toHaveLength(3);
   });
 
   it('records personal records only when beating previous sessions', async () => {
