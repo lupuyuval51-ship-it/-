@@ -1,6 +1,7 @@
 import type { Allergen, AnimalSource, FoodCategory, FoodContains, MealType } from '../constants';
 import type { FoodConflict, Macros } from '../nutrition';
 import type { ISODate, ISODateTime, LocalizedText } from './common';
+import type { RewardResultDTO } from './gamification';
 import type { NutritionTargetsDTO } from './profile';
 
 export type FoodSource = 'builtin' | 'user' | 'openfoodfacts';
@@ -37,6 +38,13 @@ export interface FoodDTO {
 
 export type FoodLogSource = 'manual' | 'barcode' | 'photo' | 'saved_meal' | 'suggestion' | 'quick_add';
 
+/** Current per-100 g values of the logged food (lets the client preview amount changes). */
+export interface FoodLogFoodRefDTO {
+  per100g: { kcal: number; protein: number; carbs: number; fat: number; fiber: number };
+  servingGrams: number;
+  servingLabel: LocalizedText;
+}
+
 export interface FoodLogEntryDTO {
   id: string;
   date: ISODate;
@@ -55,6 +63,8 @@ export interface FoodLogEntryDTO {
   source: FoodLogSource;
   note: string;
   createdAt: ISODateTime;
+  /** The food this entry was logged from (null for quick-add entries and deleted foods). */
+  foodRef?: FoodLogFoodRefDTO | null;
 }
 
 export interface MealGroupDTO {
@@ -115,6 +125,8 @@ export interface MealSuggestionDTO {
   description: LocalizedText;
   mealTypes: MealType[];
   prepMinutes: number;
+  /** Suggested portion multiplier (0.5–1.5); `items` and `totals` are already scaled by it. */
+  scale: number;
   items: { food: FoodDTO; grams: number; nutrients: Macros }[];
   totals: Macros;
   /** Codes explaining the ranking (e.g. 'high_protein', 'fits_remaining_calories'). */
@@ -152,4 +164,55 @@ export interface PhotoAnalysisDTO {
   /** Always shown: estimates from a photo are approximate and must be reviewed. */
   notes: string[];
   model: string;
+}
+
+// ---------------------------------------------------------------------------
+// Response envelopes
+// ---------------------------------------------------------------------------
+
+export interface FoodsResponse {
+  foods: FoodDTO[];
+}
+
+export interface FoodResponse {
+  food: FoodDTO;
+}
+
+export interface FoodAlternativesResponse {
+  alternatives: FoodDTO[];
+}
+
+export interface FrequentFoodsResponse {
+  foods: FrequentFoodDTO[];
+}
+
+export interface LogEntryResponse {
+  entry: FoodLogEntryDTO;
+  day: DayNutritionDTO;
+  reward: RewardResultDTO;
+}
+
+export interface LogEntriesResponse {
+  entries: FoodLogEntryDTO[];
+  day: DayNutritionDTO;
+  reward: RewardResultDTO;
+}
+
+export interface CopyLogsResponse {
+  copied: number;
+  day: DayNutritionDTO;
+  reward: RewardResultDTO;
+}
+
+export interface DeleteLogEntryResponse {
+  ok: true;
+  day: DayNutritionDTO;
+}
+
+export interface SavedMealsResponse {
+  meals: SavedMealDTO[];
+}
+
+export interface SavedMealResponse {
+  meal: SavedMealDTO;
 }
