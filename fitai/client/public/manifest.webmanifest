@@ -1,0 +1,10 @@
+{
+  "name": "FITAI",
+  "short_name": "FITAI",
+  "description": "AI fitness & nutrition coach",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -31,6 +31,7 @@ const bool = (v: string | undefined, d: boolean) => (v == null || v === '' ? d :
 
 const DEV_DATABASE_URL = 'postgres://fitai:fitai_dev_password@127.0.0.1:5432/fitai';
 const DEV_SESSION_SECRET = 'dev-only-session-secret-change-me';
+const secureCookie = bool(env.COOKIE_SECURE, isProduction);
 
 export const config = {
   env: nodeEnv,
@@ -53,9 +54,10 @@ export const config = {
   autoMigrate: bool(env.DB_AUTO_MIGRATE, !isProduction),
 
   session: {
-    cookieName: isProduction ? '__Host-fitai_session' : 'fitai_session',
+    // The __Host- prefix (path=/, no Domain, Secure) is only valid on HTTPS cookies.
+    cookieName: secureCookie ? '__Host-fitai_session' : 'fitai_session',
     ttlDays: int(env.SESSION_TTL_DAYS, 30, 1, 365),
-    secureCookie: bool(env.COOKIE_SECURE, isProduction),
+    secureCookie,
     /** Used only to derive non-secret identifiers; session tokens are random and stored hashed. */
     secret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
   },
