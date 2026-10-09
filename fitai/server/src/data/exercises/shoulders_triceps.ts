@@ -247,7 +247,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel sharp pain in the shoulder or cannot keep the lockout stable.',
       ],
       he: [
-        'תרגלו את ההנפה לתנוחת הראק עם קטלבל קל, כך שיתגלגל בעדינות על האמה ולא יכה בשורש כף היד.',
+        'תרגלו את ה"קלין" עם קטלבל קל, כך שהקטלבל יתגלגל בעדינות אל האמה ולא יכה בשורש כף היד.',
         'שמרו על שורש כף יד ישר לאורך כל התנועה כדי להגן על המפרק.',
         'הפסיקו אם אתם מרגישים כאב חד בכתף או אם אינכם מצליחים לייצב את הנעילה למעלה.',
       ],
@@ -409,14 +409,14 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Stand tall holding a dumbbell in each hand at your sides, palms facing your body and elbows slightly bent.',
         'Brace your abs, lean forward slightly from the hips and keep your shoulders down, away from your ears.',
-        'Exhale and raise the dumbbells out to the sides, leading with your elbows, until your arms are roughly parallel to the floor.',
+        'Exhale and raise the dumbbells out to the sides and slightly forward (about 20–30 degrees in front of your body), leading with your elbows, until your arms are roughly parallel to the floor.',
         'Pause briefly at the top without shrugging.',
         'Inhale and lower the dumbbells slowly, over 2–3 seconds, to the starting position.',
       ],
       he: [
         'עמדו זקוף עם משקולת בכל יד לצד הגוף, כפות הידיים פונות פנימה והמרפקים כפופים מעט.',
         'נעלו את הבטן, הטו את הגו מעט קדימה מהאגן ושמרו על הכתפיים רחוקות מהאוזניים.',
-        'נשפו והרימו את המשקולות לצדדים, כשהמרפקים מובילים, עד שהזרועות מקבילות בערך לרצפה.',
+        'נשפו והרימו את המשקולות לצדדים ומעט קדימה (כ-20–30 מעלות לפני קו הגוף), כשהמרפקים מובילים, עד שהזרועות מקבילות בערך לרצפה.',
         'עצרו לרגע למעלה בלי למשוך את הכתפיים כלפי מעלה.',
         'שאפו והורידו את המשקולות לאט, במשך 2–3 שניות, חזרה למצב ההתחלה.',
       ],
