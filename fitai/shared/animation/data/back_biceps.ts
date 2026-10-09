@@ -4,26 +4,29 @@ import type { ExerciseAnimation, LimbSpec, Pose } from '../types';
 /** Ankle height when a foot is planted on the floor. */
 const FA = 184;
 
-// ---- hanging pulls (bar at y=22 so the head can clear it at the top while the bent legs clear the floor)
-const BAR_Y = 24;
+// ---- hanging pulls: the bar sits at the top edge and the camera zooms out so the hang is a true
+// straight-arm dead hang and the chin clearly clears the bar at the top.
+const BAR_Y = 2;
 const BAR_X = 120;
+const HANG_CAM = { cx: 120, cy: 84, zoom: 0.88 };
 const grip: LimbSpec = { target: [BAR_X + 2, BAR_Y + 4], bend: -1 };
-/** Knees bent, feet crossed behind so they clear the floor in a dead hang. */
-const hangLegs: LimbSpec = { angles: [34, -96] };
-const hangBottom: Pose = { hip: [124, 137], torso: -3, armNear: grip, legNear: hangLegs, footNear: -70 };
-const hangTop: Pose = { hip: [122, 76], torso: -12, head: -4, armNear: grip, legNear: { angles: [38, -90] }, footNear: -65 };
+/** Knees softly bent, feet just behind so they clear the floor. */
+const hangBottom: Pose = { hip: [121, 115], torso: -3, armNear: grip, legNear: { angles: [22, -62] }, footNear: -35 };
+const hangTop: Pose = { hip: [121, 55], torso: -12, head: -4, armNear: grip, legNear: { angles: [24, -58] }, footNear: -32 };
 
-// Muscle-up: bar lower so the straight-arm support fits; the loop starts from the hollow (feet-forward) kip swing.
+// Muscle-up: zoomed out further so dead hang and straight-arm support both fit.
 const MU_X = 118;
-const MU_Y = 92;
-const MU_HOLLOW: Pose = { hip: [137, 170], torso: -60, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [100, 100] } };
-const MU_SUPPORT: Pose = { hip: [115, 81], torso: 10, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [14, 4] } };
+const MU_Y = 10;
+const MU_CAM = { cx: 120, cy: 56, zoom: 0.72 };
+const MU_HANG: Pose = { hip: [121, 123], torso: -3, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [22, -72] }, footNear: -40 };
+const MU_SUPPORT: Pose = { hip: [115, 0], torso: 10, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [14, 4] } };
 
 export const animations: ExerciseAnimation[] = [
   {
     // Dead hang → chin clears the bar; elbows drive down to the ribs, slow 2 s eccentric.
     id: 'pull_up',
     durationSec: 3.6,
+    camera: HANG_CAM,
     props: [{ kind: 'pullUpBar', x: BAR_X, y: BAR_Y }],
     keyframes: [
       { t: 0, pose: hangBottom },
@@ -37,19 +40,21 @@ export const animations: ExerciseAnimation[] = [
     // Underhand, shoulder-width grip; legs slightly forward, chin clearly over the bar with a pause.
     id: 'chin_up',
     durationSec: 3.6,
+    camera: HANG_CAM,
     props: [{ kind: 'pullUpBar', x: BAR_X, y: BAR_Y }],
     keyframes: [
-      { t: 0, pose: { ...hangBottom, legNear: { angles: [48, -60] }, footNear: -30 } },
-      { t: 0.08, pose: { ...hangBottom, legNear: { angles: [48, -60] }, footNear: -30 } },
-      { t: 0.4, pose: { ...hangTop, legNear: { angles: [52, -55] }, footNear: -25 } },
-      { t: 0.52, pose: { ...hangTop, legNear: { angles: [52, -55] }, footNear: -25 } },
-      { t: 1, pose: { ...hangBottom, legNear: { angles: [48, -60] }, footNear: -30 } },
+      { t: 0, pose: { ...hangBottom, legNear: { angles: [40, -50] }, footNear: 0 } },
+      { t: 0.08, pose: { ...hangBottom, legNear: { angles: [40, -50] }, footNear: 0 } },
+      { t: 0.4, pose: { ...hangTop, legNear: { angles: [40, -38] }, footNear: 14 } },
+      { t: 0.52, pose: { ...hangTop, legNear: { angles: [40, -38] }, footNear: 14 } },
+      { t: 1, pose: { ...hangBottom, legNear: { angles: [40, -50] }, footNear: 0 } },
     ],
   },
   {
     // Band looped on the bar, one knee in the loop: the band stretches at the bottom and helps at the top.
     id: 'band_assisted_pull_up',
     durationSec: 3.6,
+    camera: HANG_CAM,
     props: [
       { kind: 'pullUpBar', x: BAR_X, y: BAR_Y },
       { kind: 'band', anchor: [BAR_X - 2, BAR_Y], at: 'footNear' },
@@ -67,16 +72,17 @@ export const animations: ExerciseAnimation[] = [
     // Step up to the top position from a box, then a slow 3–4 s lowering to a full hang.
     id: 'negative_pull_up',
     durationSec: 5.5,
+    camera: HANG_CAM,
     props: [
       { kind: 'pullUpBar', x: BAR_X, y: BAR_Y },
-      { kind: 'box', x: 58, y: 158, w: 38, h: 30 },
+      { kind: 'box', x: 48, y: 160, w: 38, h: 28 },
     ],
     keyframes: [
       { t: 0, pose: hangTop },
       { t: 0.1, pose: hangTop, ease: 'linear' },
       { t: 0.75, pose: hangBottom },
       { t: 0.8, pose: hangBottom },
-      { t: 0.88, pose: { hip: [118, 112], torso: -6, armNear: grip, legNear: { target: [84, 154] } } },
+      { t: 0.88, pose: { hip: [112, 92], torso: -6, armNear: grip, legNear: { target: [78, 156] } } },
       { t: 1, pose: hangTop },
     ],
   },
@@ -84,14 +90,16 @@ export const animations: ExerciseAnimation[] = [
     // Kip swing → explosive pull to the lower chest → lean over the bar → press out to straight-arm support.
     id: 'muscle_up',
     durationSec: 3.4,
+    camera: MU_CAM,
     props: [{ kind: 'pullUpBar', x: MU_X, y: MU_Y }],
     keyframes: [
-      { t: 0, pose: MU_HOLLOW },
-      { t: 0.3, pose: { hip: [123, 134], torso: -15, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [72, 58] } }, ease: 'out' },
-      { t: 0.42, pose: { hip: [100, 121], torso: 30, head: 8, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [50, -60] } } },
-      { t: 0.62, pose: MU_SUPPORT },
-      { t: 0.76, pose: MU_SUPPORT },
-      { t: 1, pose: MU_HOLLOW },
+      { t: 0, pose: MU_HANG },
+      { t: 0.14, pose: { hip: [122, 115], torso: -25, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [50, 45] } } },
+      { t: 0.32, pose: { hip: [121, 45], torso: -15, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [45, 20] } }, ease: 'out' },
+      { t: 0.44, pose: { hip: [102, 37], torso: 30, head: 8, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [30, -20] } } },
+      { t: 0.6, pose: MU_SUPPORT },
+      { t: 0.74, pose: MU_SUPPORT },
+      { t: 1, pose: MU_HANG },
     ],
   },
   {

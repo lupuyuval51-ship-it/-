@@ -254,16 +254,182 @@ export const animations: ExerciseAnimation[] = [
     // Whole working foot on a knee-high box; stand up through it without pushing off the floor, lower slowly.
     id: 'step_up',
     durationSec: 3.4,
-    props: [{ kind: 'box', x: 118, y: 146, w: 56, h: 42 }],
+    camera: { cx: 120, cy: 80, zoom: 0.86 },
+    props: [{ kind: 'box', x: 118, y: 151, w: 58, h: 37 }],
     keyframes: [
-      kf(0, { hip: [100, 103], torso: 10, armNear: { angles: [10, 14] }, legNear: { target: [138, 142] }, legFar: foot(98) }),
-      kf(0.12, { hip: [108, 96], torso: 22, armNear: { angles: [18, 24] }, legNear: { target: [138, 142] }, legFar: foot(98) }),
-      kf(0.25, { hip: [122, 78], torso: 16, armNear: { angles: [10, 14] }, legNear: { target: [138, 142] }, legFar: { target: [106, 168] }, footFar: 30 }),
-      kf(0.4, { hip: [136, 61], torso: 3, armNear: { angles: [2, 2] }, legNear: { target: [138, 142] }, legFar: { target: [128, 134] }, footFar: 50 }),
-      kf(0.48, { hip: [136, 61], torso: 3, armNear: { angles: [2, 2] }, legNear: { target: [138, 142] }, legFar: { target: [128, 134] }, footFar: 50 }),
-      kf(0.72, { hip: [120, 82], torso: 14, armNear: { angles: [10, 14] }, legNear: { target: [138, 142] }, legFar: { target: [104, 170] }, footFar: 40 }),
-      kf(0.9, { hip: [100, 103], torso: 10, armNear: { angles: [10, 14] }, legNear: { target: [138, 142] }, legFar: foot(98) }),
-      kf(1, { hip: [100, 103], torso: 10, armNear: { angles: [10, 14] }, legNear: { target: [138, 142] }, legFar: foot(98) }),
+      kf(0, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
+      kf(0.12, { hip: [110, 98], torso: 22, armNear: { angles: [14, 20] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
+      kf(0.26, { hip: [126, 82], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [110, 168] }, footFar: 40 }),
+      kf(0.4, { hip: [139, 66], torso: 2, armNear: { angles: [2, 2] }, legNear: { target: [140, 147] }, legFar: { target: [127, 140] }, footFar: 50 }),
+      kf(0.48, { hip: [139, 66], torso: 2, armNear: { angles: [2, 2] }, legNear: { target: [140, 147] }, legFar: { target: [127, 140] }, footFar: 50 }),
+      kf(0.7, { hip: [124, 84], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [108, 170] }, footFar: 45 }),
+      kf(0.88, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
+      kf(1, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
     ],
+  },
+  {
+    // Front view: shift into one deep side squat (heel down) while the other leg straightens, then switch sides.
+    id: 'cossack_squat',
+    durationSec: 5,
+    view: 'front',
+    keyframes: (() => {
+      const L: Vec = [72, FLOOR_ANKLE];
+      const R: Vec = [168, FLOOR_ANKLE];
+      const p = (hip: Vec, torso: number): Pose => ({
+        hip,
+        torso,
+        armNear: { target: [hip[0] - 3, hip[1] - 26], bend: 1 },
+        legNear: { target: L },
+        legFar: { target: R },
+      });
+      return [
+        kf(0, p([120, 112], 0)),
+        kf(0.1, p([110, 118], -3)),
+        kf(0.24, p([86, 150], -8)),
+        kf(0.3, p([86, 150], -8)),
+        kf(0.42, p([110, 118], -3)),
+        kf(0.5, p([120, 112], 0)),
+        kf(0.6, p([130, 118], 3)),
+        kf(0.74, p([154, 150], 8)),
+        kf(0.8, p([154, 150], 8)),
+        kf(0.92, p([130, 118], 3)),
+        kf(1, p([120, 112], 0)),
+      ];
+    })(),
+  },
+  {
+    // Single-leg squat to full depth: free leg held straight out in front, arms reach forward to counterbalance.
+    id: 'pistol_squat',
+    durationSec: 4,
+    keyframes: (() => {
+      const steps: [number, number, number, number, [number, number]][] = [
+        // t, shin, thigh, torso, free leg
+        [0, 0, 4, 4, [36, 28]],
+        [0.18, 14, 50, 22, [62, 60]],
+        [0.36, 26, 96, 38, [86, 86]],
+        [0.5, 32, 122, 44, [98, 100]],
+        [0.56, 32, 122, 44, [98, 100]],
+        [0.72, 26, 96, 38, [86, 86]],
+        [0.86, 14, 50, 22, [62, 60]],
+        [1, 0, 4, 4, [36, 28]],
+      ];
+      return steps.map(([t, shin, thigh, torso, free]) =>
+        kf(t, {
+          hip: hipFrom([112, FLOOR_ANKLE], shin, thigh),
+          torso,
+          armNear: { angles: [Math.min(88, 40 + torso * 1.2), Math.min(92, 44 + torso * 1.2)] },
+          legNear: foot(112),
+          legFar: { angles: free },
+          footFar: 100,
+        }),
+      );
+    })(),
+  },
+  {
+    // 45° leg press: back flat on the reclined pad, the sled travels on its rail; knees come toward the chest
+    // without the hips curling off the pad, then press out without locking the knees.
+    id: 'leg_press',
+    durationSec: 3.4,
+    props: [
+      { kind: 'bench', x: 54, y: 150, w: 44, incline: 42 },
+      { kind: 'legPressSled' },
+    ],
+    keyframes: (() => {
+      const top: Vec = [146, 84];
+      const bottom: Vec = [114, 112];
+      const p = (f: Vec): Pose => ({ hip: [70, 143], torso: -48, head: 10, armNear: rel(-48, 6, 40), legNear: { target: f, bend: 1 }, footNear: -132 });
+      return [kf(0, p(top)), kf(0.45, p(bottom)), kf(0.52, p(bottom)), kf(0.88, p(top)), kf(1, p(top))];
+    })(),
+  },
+  {
+    // Seated, knee at the machine pivot, pad above the ankles: extend to near-straight, squeeze, lower slowly.
+    id: 'leg_extension',
+    durationSec: 3.2,
+    props: [
+      { kind: 'weightStack', x: 22, y: 70 },
+      { kind: 'seat', x: 62, y: 142, w: 54, back: 56 },
+      { kind: 'handle', at: 'handNear' },
+      { kind: 'machinePad', at: 'ankles' },
+    ],
+    keyframes: (() => {
+      const p = (shin: number): Pose => ({ hip: [80, 135], torso: -10, armNear: { angles: [6, 70] }, legNear: { angles: [90, shin] }, footNear: shin + 80 });
+      return [kf(0, p(4)), kf(0.3, p(84)), kf(0.4, p(84)), kf(0.9, p(4)), kf(1, p(4))];
+    })(),
+  },
+  {
+    // Prone on the bench, knees just off the edge, pad above the heels: curl toward the glutes with hips down.
+    id: 'lying_leg_curl',
+    durationSec: 3.2,
+    props: [
+      { kind: 'bench', x: 70, y: 141, w: 116 },
+      { kind: 'machinePad', at: 'ankles' },
+      { kind: 'handle', at: 'handNear' },
+    ],
+    keyframes: (() => {
+      const p = (shin: number, foot: number): Pose => ({ hip: [112, 132], torso: 90, head: -10, armNear: { angles: [24, 100] }, legNear: { angles: [-90, shin] }, footNear: foot });
+      return [kf(0, p(-92, -4)), kf(0.32, p(-215, -125)), kf(0.42, p(-215, -125)), kf(0.9, p(-92, -4)), kf(1, p(-92, -4))];
+    })(),
+  },
+  {
+    // Balls of the feet on a step edge, heels sink below it, rise as high as possible, pause, lower slowly.
+    id: 'standing_calf_raise',
+    durationSec: 3,
+    props: [
+      { kind: 'box', x: 128, y: 172, w: 54, h: 16 },
+      { kind: 'wall', x: 196 },
+    ],
+    keyframes: (() => {
+      const p = (ankle: Vec, footAngle: number): Pose => ({
+        hip: [ankle[0] - 1, ankle[1] - 81.6],
+        torso: 2,
+        armNear: { target: [186, ankle[1] - 110] },
+        legNear: { target: ankle },
+        footNear: footAngle,
+      });
+      const low = p([120, 176], 112);
+      const mid = p([121.5, 170.5], 80);
+      const high = p([123, 163.5], 46);
+      return [kf(0, low), kf(0.15, mid), kf(0.3, high), kf(0.45, high), kf(0.7, mid), kf(0.92, low), kf(1, low)];
+    })(),
+  },
+  {
+    // One foot on the step edge, other leg bent behind and clear; full stretch at the bottom, full rise at the top.
+    id: 'single_leg_calf_raise',
+    durationSec: 3.2,
+    props: [
+      { kind: 'box', x: 128, y: 172, w: 54, h: 16 },
+      { kind: 'wall', x: 196 },
+    ],
+    keyframes: (() => {
+      const p = (ankle: Vec, footAngle: number): Pose => ({
+        hip: [ankle[0] - 1, ankle[1] - 81.6],
+        torso: 2,
+        armNear: { target: [186, ankle[1] - 110] },
+        legNear: { target: ankle },
+        legFar: { angles: [6, -62] },
+        footNear: footAngle,
+        footFar: 20,
+      });
+      const low = p([120, 176], 112);
+      const mid = p([121.5, 170.5], 80);
+      const high = p([123, 163.5], 46);
+      return [kf(0, low), kf(0.15, mid), kf(0.3, high), kf(0.45, high), kf(0.7, mid), kf(0.92, low), kf(1, low)];
+    })(),
+  },
+  {
+    // Isometric hold: back and head flat on the wall, knees at 90° directly over the ankles; slow breathing.
+    id: 'wall_sit',
+    durationSec: 3.2,
+    props: [{ kind: 'wall', x: 56 }],
+    keyframes: (() => {
+      const p = (dy: number, head: number): Pose => ({
+        hip: [72, 144 + dy],
+        torso: 0,
+        head,
+        armNear: { target: [100, 141 + dy * 0.5], bend: -1 },
+        legNear: foot(114),
+      });
+      return [kf(0, p(0, 0)), kf(0.5, p(-1.2, -2)), kf(1, p(0, 0))];
+    })(),
   },
 ];

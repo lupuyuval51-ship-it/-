@@ -5,6 +5,9 @@ import type { ExerciseAnimation, Keyframe, LimbSpec, Pose, Vec } from '../types'
 const FA = 184;
 const H = STAND_HIP_Y;
 
+/** Zoomed-out camera (keeps the floor near the bottom edge) for moves that go overhead or high. */
+const wideCam = (cx: number, zoom = 0.82) => ({ cx, cy: 200 - 100 / zoom, zoom });
+
 const tgt = (x: number, y: number, bend?: 1 | -1): LimbSpec => (bend ? { target: [x, y], bend } : { target: [x, y] });
 const ang = (a: number, b: number): LimbSpec => ({ angles: [a, b] });
 
@@ -47,13 +50,13 @@ function twoStepCycle(half: { t: number; pose: Pose; ease?: Keyframe['ease'] }[]
 // ------------------------------------------------------------------ jump squat
 const jsStand: Pose = { hip: [112, H], torso: 3, armNear: ang(4, 8), legNear: tgt(116, FA) };
 const jsLoad: Pose = { hip: [96, 132], torso: 34, armNear: ang(-70, -60), legNear: tgt(116, FA) };
-const jsTakeoff: Pose = { hip: [114, 99], torso: 6, armNear: ang(105, 115), legNear: tgt(118, 178), footNear: 40 };
-const jsAir: Pose = { hip: [114, 88], torso: 3, armNear: ang(112, 124), legNear: tgt(117, 168), footNear: 45 };
-const jsTouch: Pose = { hip: [113, 101], torso: 6, armNear: ang(70, 80), legNear: tgt(116, 180), footNear: 60 };
+const jsTakeoff: Pose = { hip: [114, 99], torso: 5, armNear: ang(150, 158), legNear: tgt(118, 178), footNear: 40 };
+const jsAir: Pose = { hip: [114, 82], torso: 2, armNear: ang(165, 170), legNear: tgt(117, 162), footNear: 45 };
+const jsTouch: Pose = { hip: [113, 101], torso: 6, armNear: ang(95, 105), legNear: tgt(116, 180), footNear: 60 };
 const jsLand: Pose = { hip: [98, 128], torso: 30, armNear: ang(40, 60), legNear: tgt(116, FA) };
 
 // ------------------------------------------------------------------ box jump
-const BOX_TOP = 160;
+const BOX_TOP = 148;
 const bjOnBox = BOX_TOP - 4;
 const bjStand: Pose = { hip: [114, H], torso: 3, armNear: ang(4, 8), legNear: tgt(118, FA) };
 
@@ -99,7 +102,7 @@ const bpKick: Pose = { hip: [92, 144], torso: 64, armNear: BH, legNear: tgt(60, 
 // ------------------------------------------------------------------ jumping jack (front)
 const jjIn: Pose = { hip: [120, H], torso: 0, armNear: ang(6, 6), legNear: tgt(111, FA) };
 const jjAir1: Pose = { hip: [120, 95], torso: 0, armNear: ang(80, 90), legNear: tgt(104, 176) };
-const jjOut: Pose = { hip: [120, 107], torso: 0, armNear: ang(138, 152), legNear: tgt(95, FA) };
+const jjOut: Pose = { hip: [120, 106], torso: 0, armNear: ang(158, 170), legNear: tgt(95, FA) };
 const jjAir2: Pose = { hip: [120, 95], torso: 0, armNear: ang(80, 90), legNear: tgt(104, 176) };
 
 // ------------------------------------------------------------------ high knees (half cycle: near knee up)
@@ -210,7 +213,7 @@ const bikeFrames = (): Keyframe[] =>
   });
 
 // ------------------------------------------------------------------ med ball slam
-const msTop: Pose = { hip: [106, 104], torso: -4, head: -10, armNear: ang(124, 134), legNear: tgt(110, 180), footNear: 50 };
+const msTop: Pose = { hip: [107, 99], torso: -3, head: -8, armNear: ang(166, 174), legNear: tgt(110, 178), footNear: 45 };
 const msChest: Pose = { hip: [108, H], torso: 2, armNear: ang(-12, 115), legNear: tgt(112, FA) };
 const msSlam: Pose = { hip: [88, 140], torso: 52, armNear: ang(55, 55), legNear: tgt(112, FA) };
 const msFloor: Pose = { hip: [84, 150], torso: 50, head: -10, armNear: ang(25, 30), legNear: tgt(112, FA) };
@@ -277,9 +280,11 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'jump_squat',
     durationSec: 1.6,
+    camera: wideCam(116),
     keyframes: [
       { t: 0, pose: jsStand },
       { t: 0.22, pose: jsLoad },
+      { t: 0.29, pose: { hip: [104, 118], torso: 22, armNear: ang(45, 55), legNear: tgt(116, FA) } },
       { t: 0.36, pose: jsTakeoff, ease: 'out' },
       { t: 0.5, pose: jsAir, ease: 'in' },
       { t: 0.62, pose: jsTouch },
@@ -290,18 +295,21 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'box_jump',
     durationSec: 3.4,
+    camera: wideCam(136),
     props: [{ kind: 'box', x: 140, y: BOX_TOP, w: 58, h: 188 - BOX_TOP }],
     keyframes: [
       { t: 0, pose: bjStand },
-      { t: 0.12, pose: { hip: [104, 124], torso: 32, armNear: ang(-55, -45), legNear: tgt(118, FA) } },
-      { t: 0.22, pose: { hip: [124, 99], torso: 12, armNear: ang(115, 125), legNear: tgt(124, 178), footNear: 40 }, ease: 'out' },
-      { t: 0.3, pose: { hip: [144, 86], torso: 22, armNear: ang(95, 105), legNear: tgt(154, 134), footNear: 70 } },
-      { t: 0.4, pose: { hip: [154, 108], torso: 30, armNear: ang(40, 55), legNear: tgt(168, bjOnBox) } },
-      { t: 0.52, pose: { hip: [165, 78], torso: 3, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
-      { t: 0.62, pose: { hip: [165, 78], torso: 3, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
-      { t: 0.7, pose: { hip: [160, 90], torso: 8, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(138, 166) } },
-      { t: 0.78, pose: { hip: [143, 107], torso: 10, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(118, FA) } },
-      { t: 0.85, pose: { hip: [128, 101], torso: 6, armNear: ang(6, 10), legNear: tgt(140, 150), legFar: tgt(118, FA), footNear: 80 } },
+      { t: 0.12, pose: { hip: [104, 124], torso: 32, armNear: ang(-60, -50), legNear: tgt(118, FA) } },
+      { t: 0.165, pose: { hip: [112, 114], torso: 22, armNear: ang(45, 55), legNear: tgt(118, FA) } },
+      { t: 0.21, pose: { hip: [122, 99], torso: 10, armNear: ang(150, 158), legNear: tgt(124, 178), footNear: 40 }, ease: 'out' },
+      { t: 0.25, pose: { hip: [132, 86], torso: 14, armNear: ang(150, 160), legNear: tgt(129, 150), footNear: 60 } },
+      { t: 0.31, pose: { hip: [146, 76], torso: 22, armNear: ang(120, 130), legNear: tgt(152, 120), footNear: 75 } },
+      { t: 0.4, pose: { hip: [155, 92], torso: 30, armNear: ang(45, 60), legNear: tgt(168, bjOnBox) } },
+      { t: 0.52, pose: { hip: [166, 63], torso: 2, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
+      { t: 0.62, pose: { hip: [166, 63], torso: 2, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
+      { t: 0.7, pose: { hip: [158, 78], torso: 8, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(128, 152), footFar: 80 } },
+      { t: 0.78, pose: { hip: [140, 108], torso: 12, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(118, FA) } },
+      { t: 0.85, pose: { hip: [124, 104], torso: 6, armNear: ang(6, 10), legNear: tgt(138, 140), legFar: tgt(118, FA), footNear: 80 } },
       { t: 0.92, pose: { ...bjStand, legFar: tgt(118, FA) } },
       { t: 1, pose: bjStand },
     ],
@@ -309,11 +317,13 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'broad_jump',
     durationSec: 3.8,
+    camera: wideCam(100),
     keyframes: [
       { t: 0, pose: brStand(46) },
       { t: 0.1, pose: { hip: [30, 126], torso: 42, armNear: ang(-60, -50), legNear: tgt(46, FA) } },
-      { t: 0.18, pose: { hip: [64, 104], torso: 38, armNear: ang(118, 125), legNear: tgt(50, 180), footNear: 40 }, ease: 'out' },
-      { t: 0.27, pose: { hip: [100, 94], torso: 22, armNear: ang(105, 115), legNear: tgt(110, 150), footNear: 80 } },
+      { t: 0.14, pose: { hip: [46, 116], torso: 40, armNear: ang(45, 55), legNear: tgt(46, FA) } },
+      { t: 0.18, pose: { hip: [64, 104], torso: 38, armNear: ang(150, 158), legNear: tgt(50, 180), footNear: 40 }, ease: 'out' },
+      { t: 0.27, pose: { hip: [100, 84], torso: 22, armNear: ang(120, 128), legNear: tgt(110, 140), footNear: 80 } },
       { t: 0.34, pose: { hip: [124, 118], torso: 30, armNear: ang(80, 85), legNear: tgt(150, 174), footNear: 110 } },
       { t: 0.4, pose: { hip: [122, 140], torso: 46, armNear: ang(75, 82), legNear: tgt(146, FA) } },
       { t: 0.56, pose: { hip: [123, 138], torso: 44, armNear: ang(70, 78), legNear: tgt(146, FA) } },
@@ -349,6 +359,7 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'burpee',
     durationSec: 3.4,
+    camera: wideCam(100),
     keyframes: [
       { t: 0, pose: bpStand },
       { t: 0.12, pose: bpSquat },
@@ -358,8 +369,8 @@ export const animations: ExerciseAnimation[] = [
       { t: 0.48, pose: bpPlank },
       { t: 0.54, pose: bpKick },
       { t: 0.6, pose: bpSquat },
-      { t: 0.7, pose: { hip: [102, 100], torso: 8, armNear: ang(105, 115), legNear: tgt(105, 178), footNear: 40 }, ease: 'out' },
-      { t: 0.79, pose: { hip: [101, 94], torso: 4, armNear: ang(122, 132), legNear: tgt(104, 172), footNear: 45 }, ease: 'in' },
+      { t: 0.7, pose: { hip: [102, 100], torso: 6, armNear: ang(150, 158), legNear: tgt(105, 178), footNear: 40 }, ease: 'out' },
+      { t: 0.79, pose: { hip: [101, 88], torso: 2, armNear: ang(170, 174), legNear: tgt(104, 166), footNear: 45 }, ease: 'in' },
       { t: 0.88, pose: { hip: [96, 116], torso: 20, armNear: ang(40, 55), legNear: tgt(104, FA) } },
       { t: 1, pose: bpStand },
     ],
@@ -367,6 +378,7 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'jumping_jack',
     durationSec: 1,
+    camera: wideCam(120, 0.86),
     view: 'front',
     keyframes: [
       { t: 0, pose: jjIn },
@@ -433,6 +445,7 @@ export const animations: ExerciseAnimation[] = [
   {
     id: 'medicine_ball_slam',
     durationSec: 2.4,
+    camera: wideCam(112),
     props: [{ kind: 'medicineBall' }],
     keyframes: [
       { t: 0, pose: msChest },
