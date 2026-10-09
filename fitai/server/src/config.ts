@@ -27,6 +27,8 @@ const int = (v: string | undefined, d: number, min = -Infinity, max = Infinity) 
   const n = v == null || v === '' ? NaN : Number(v);
   return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.trunc(n))) : d;
 };
+/** Blank values in .env are treated as unset. */
+const str = (v: string | undefined, d: string) => (v != null && v.trim() !== '' ? v.trim() : d);
 const bool = (v: string | undefined, d: boolean) => (v == null || v === '' ? d : ['1', 'true', 'yes', 'on'].includes(v.toLowerCase()));
 
 const DEV_DATABASE_URL = 'postgres://fitai:fitai_dev_password@127.0.0.1:5432/fitai';
@@ -38,17 +40,17 @@ export const config = {
   isProduction,
   isTest,
   version: '1.0.0',
-  host: env.HOST ?? '0.0.0.0',
+  host: str(env.HOST, '0.0.0.0'),
   port: int(env.PORT, 3000, 1, 65535),
-  appUrl: env.APP_URL ?? 'http://localhost:3000',
+  appUrl: str(env.APP_URL, 'http://localhost:3000'),
   /** Extra allowed Origins for state-changing requests (comma separated), e.g. the Vite dev server. */
-  allowedOrigins: (env.ALLOWED_ORIGINS ?? 'http://localhost:5173,http://127.0.0.1:5173')
+  allowedOrigins: str(env.ALLOWED_ORIGINS, 'http://localhost:5173,http://127.0.0.1:5173')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
   trustProxy: bool(env.TRUST_PROXY, false),
 
-  databaseUrl: env.DATABASE_URL ?? (isProduction ? '' : DEV_DATABASE_URL),
+  databaseUrl: str(env.DATABASE_URL, isProduction ? '' : DEV_DATABASE_URL),
   databasePoolMax: int(env.DATABASE_POOL_MAX, 10, 1, 100),
   /** Run migrations + content seed automatically on startup (default on outside production). */
   autoMigrate: bool(env.DB_AUTO_MIGRATE, !isProduction),
@@ -59,7 +61,7 @@ export const config = {
     ttlDays: int(env.SESSION_TTL_DAYS, 30, 1, 365),
     secureCookie,
     /** Used only to derive non-secret identifiers; session tokens are random and stored hashed. */
-    secret: env.SESSION_SECRET ?? DEV_SESSION_SECRET,
+    secret: str(env.SESSION_SECRET, DEV_SESSION_SECRET),
   },
 
   password: {
@@ -76,11 +78,11 @@ export const config = {
   },
 
   ai: {
-    provider: (env.AI_PROVIDER ?? 'anthropic').toLowerCase(),
-    apiKey: env.AI_API_KEY ?? env.ANTHROPIC_API_KEY ?? '',
-    model: env.AI_MODEL ?? 'claude-opus-5-5',
+    provider: str(env.AI_PROVIDER, 'anthropic').toLowerCase(),
+    apiKey: str(env.AI_API_KEY, str(env.ANTHROPIC_API_KEY, '')),
+    model: str(env.AI_MODEL, 'claude-opus-5-5'),
     /** Optional override (proxies, local test doubles). Defaults to the official API. */
-    baseUrl: env.AI_BASE_URL ?? 'https://api.anthropic.com',
+    baseUrl: str(env.AI_BASE_URL, 'https://api.anthropic.com'),
     effort: (['low', 'medium', 'high'].includes(env.AI_EFFORT ?? '') ? env.AI_EFFORT : 'medium') as 'low' | 'medium' | 'high',
     timeoutMs: int(env.AI_TIMEOUT_MS, 90_000, 5_000, 600_000),
     maxRetries: int(env.AI_MAX_RETRIES, 2, 0, 5),
@@ -92,18 +94,18 @@ export const config = {
 
   openFoodFacts: {
     enabled: bool(env.OPENFOODFACTS_ENABLED, !isTest),
-    baseUrl: env.OPENFOODFACTS_BASE_URL ?? 'https://world.openfoodfacts.org',
+    baseUrl: str(env.OPENFOODFACTS_BASE_URL, 'https://world.openfoodfacts.org'),
     timeoutMs: int(env.OPENFOODFACTS_TIMEOUT_MS, 6000, 1000, 30_000),
-    userAgent: env.OPENFOODFACTS_USER_AGENT ?? 'FITAI/1.0 (self-hosted fitness app)',
+    userAgent: str(env.OPENFOODFACTS_USER_AGENT, 'FITAI/1.0 (self-hosted fitness app)'),
   },
 
   mail: {
     /** No transactional email provider is bundled; see README. */
-    from: env.MAIL_FROM ?? 'FITAI <no-reply@localhost>',
+    from: str(env.MAIL_FROM, 'FITAI <no-reply@localhost>'),
   },
 
   logRequests: bool(env.LOG_REQUESTS, !isTest),
-  staticDir: env.STATIC_DIR ?? '',
+  staticDir: str(env.STATIC_DIR, ''),
 };
 
 export const aiConfigured = () => config.ai.provider === 'anthropic' && config.ai.apiKey.length > 0;
