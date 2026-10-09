@@ -195,7 +195,7 @@ export function ChatView({
 
   return (
     <div className="coach-messages-wrap">
-      <div ref={scroller} className="coach-messages" onScroll={onScroll} tabIndex={0} aria-label={t('coach.messagesLabel')}>
+      <div ref={scroller} className="coach-messages" onScroll={onScroll} tabIndex={0} role="region" aria-label={t('coach.messagesLabel')}>
         {body}
       </div>
       {showJump && (

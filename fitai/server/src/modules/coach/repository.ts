@@ -187,15 +187,19 @@ export function startOfDayInTimeZone(date: string, timeZone: string): Date {
   return new Date(guess - tzOffsetMs(first, tz));
 }
 
+/** Records one coach message against the user's daily quota (and prunes old ledger rows). */
+export async function recordUsage(sql: Sql, userId: string): Promise<void> {
+  await sql.exec(`DELETE FROM coach_usage WHERE user_id = $1 AND created_at < now() - interval '3 days'`, [userId]);
+  await sql.exec('INSERT INTO coach_usage (user_id) VALUES ($1)', [userId]);
+}
+
 /** Messages the user sent since the start of today in their time zone, and when that resets. */
 export async function usageToday(sql: Sql, userId: string, now = new Date()): Promise<{ used: number; resetsAt: Date }> {
   const user = await sql.one<{ timezone: string }>('SELECT timezone FROM users WHERE id = $1', [userId]);
   const today = todayInTimeZone(user.timezone, now);
   const dayStart = startOfDayInTimeZone(today, user.timezone);
-  const row = await sql.one<{ used: number }>(
-    `SELECT count(*)::int AS used FROM coach_messages WHERE user_id = $1 AND role = 'user' AND created_at >= $2`,
-    [userId, dayStart],
-  );
+  // The usage ledger (not coach_messages) so deleting a conversation does not reset the quota.
+  const row = await sql.one<{ used: number }>('SELECT count(*)::int AS used FROM coach_usage WHERE user_id = $1 AND created_at >= $2', [userId, dayStart]);
   return { used: row.used, resetsAt: startOfDayInTimeZone(addDays(today, 1), user.timezone) };
 }
 

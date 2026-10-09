@@ -19,7 +19,7 @@ import { findExercise } from './exerciseMatch';
 import { loadFoodCatalog } from './foodData';
 import { replyLanguage } from './lang';
 import { buildHistory, buildSystemPrompt, HISTORY_LIMIT, REPLY_MAX_TOKENS } from './prompt';
-import { coachStatus, insertMessage, recentHistory, requireThread, titleFromMessage, usageToday, type NewMessage } from './repository';
+import { coachStatus, insertMessage, recentHistory, recordUsage, requireThread, titleFromMessage, usageToday, type NewMessage } from './repository';
 import { checkSafety } from './safety';
 
 /** Messages per user per minute (burst protection on top of the daily quota). */
@@ -94,6 +94,7 @@ export async function sendCoachMessage(userId: string, threadId: string, content
     const limit = config.ai.coachDailyLimit;
     const usage = await usageToday(tx, userId);
     if (usage.used >= limit) throw quotaExceeded(limit, usage.resetsAt);
+    await recordUsage(tx, userId);
     return insertMessage(tx, { userId, threadId, role: 'user', content, source: null, status: 'ok' });
   });
 

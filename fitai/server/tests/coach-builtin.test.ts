@@ -53,6 +53,10 @@ describe('safety detection (unit)', () => {
     ['יש לי קוצר נשימה וקשיי נשימה', 'medical_red_flag'],
     ['800 calorie diet for a month?', 'eating_disorder'],
     ['I only eat 700 kcal', 'eating_disorder'],
+    ['I want to eat 900 calories per day', 'eating_disorder'],
+    ['אני רוצה לאכול רק 600 קלוריות ביום', 'eating_disorder'],
+    ['I want to kill myself after this workout', 'self_harm'],
+    ['how much anavar should I take', 'ped_dosing'],
     ['should I take laxatives', 'eating_disorder'],
     ['I want to lose 20 pounds in 2 weeks', 'eating_disorder'],
     ['not eating for 3 days to drop weight', 'eating_disorder'],
@@ -84,6 +88,14 @@ describe('safety detection (unit)', () => {
     'כמה חלבון יש בחזה עוף?',
     'אני רוצה לרדת 2 קילו בחודש',
     'צום יום כיפור – איך להתאמן אחריו?',
+    'Should I eat 500 calories less per day to lose fat?',
+    'Is eating 300 calories more a day enough for a bulk?',
+    'I eat a 300 calorie snack every day, is that ok?',
+    'A deficit of 400 kcal a day — is that sustainable?',
+    'אני אוכל 500 קלוריות פחות ביום, זה בסדר?',
+    'How do I do suicide sprints?',
+    'How much protein should I take in the anabolic window?',
+    'כמה זמן נמשך החלון האנבולי?',
   ])('does not flag %s', (message) => {
     expect(detectSafetyCategory(message)).toBeNull();
   });

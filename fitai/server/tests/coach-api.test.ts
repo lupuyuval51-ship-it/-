@@ -204,6 +204,12 @@ describe('status, rate limit and daily quota', () => {
          ($1, $2, 'user', 'late last night', $3), ($1, $2, 'user', 'early today', $4), ($1, $2, 'assistant', 'reply', $4)`,
       [t.id, user.userId, new Date(dayStart.getTime() - 30 * 60_000), new Date(dayStart.getTime() + 1000)],
     );
+    // The quota ledger has one row per user message.
+    await db.exec('INSERT INTO coach_usage (user_id, created_at) VALUES ($1, $2), ($1, $3)', [
+      user.userId,
+      new Date(dayStart.getTime() - 30 * 60_000),
+      new Date(dayStart.getTime() + 1000),
+    ]);
     const res = await user.get('/api/coach/status');
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
@@ -274,6 +280,26 @@ describe('status, rate limit and daily quota', () => {
       const other = await onboardedUser(server.baseUrl);
       const ot = await newThread(other);
       expect((await other.post(`/api/coach/threads/${ot.id}/messages`, { content: 'What is a deload?' })).status).toBe(200);
+    } finally {
+      config.ai.coachDailyLimit = limit;
+    }
+  });
+
+  it('does not give the quota back when a conversation is deleted', async () => {
+    const limit = config.ai.coachDailyLimit;
+    config.ai.coachDailyLimit = 2;
+    try {
+      const user = await onboardedUser(server.baseUrl);
+      const t = await newThread(user);
+      expect((await user.post(`/api/coach/threads/${t.id}/messages`, { content: 'What is a deload?' })).status).toBe(200);
+      expect((await user.post(`/api/coach/threads/${t.id}/messages`, { content: 'What is a warm-up?' })).status).toBe(200);
+      expect((await user.delete(`/api/coach/threads/${t.id}`)).status).toBe(200);
+      const status = await user.get('/api/coach/status');
+      expect(status.body).toMatchObject({ usedToday: 2, remainingToday: 0 });
+      const t2 = await newThread(user);
+      const blocked = await user.post(`/api/coach/threads/${t2.id}/messages`, { content: 'One more?' });
+      expect(blocked.status).toBe(429);
+      expect(blocked.body.error.code).toBe('quota_exceeded');
     } finally {
       config.ai.coachDailyLimit = limit;
     }

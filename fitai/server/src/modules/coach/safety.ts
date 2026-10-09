@@ -310,6 +310,15 @@ const BURN_WORDS = ['burn', 'burned', 'burnt', 'burning', 'שורף', 'שורפ�
 
 const DAILY_CONTEXT = /\b(a|per|each|every) day\b|\bdaily\b|\/day|ביום|ליום|ביממה|ליממה|יומי/;
 
+/**
+ * A calorie number that is a difference ("500 calories less", "a 300 kcal deficit") or a
+ * single meal/snack ("a 300 calorie snack") is not a total daily intake.
+ */
+const RELATIVE_AFTER =
+  /^\s*(?:less|fewer|more|below|under|above|over|extra|deficit|surplus|per meal|a meal|each meal|snack|meal|breakfast|lunch|dinner|shake|bar|פחות|יותר|מעל|מתחת|גירעון|גרעון|עודף|לארוחה|בארוחה|ארוחה|ארוחת|נשנוש|חטיף|שייק)/u;
+const RELATIVE_BEFORE =
+  /(?:deficit of|surplus of|extra|additional|another|cut|cutting|reduce by|add|adding|minus|plus|גירעון של|גרעון של|עודף של|תוספת של|עוד|להוסיף|להפחית|להוריד)\s*(?:about|around|like|כ\s*)?$/u;
+
 /** "eat 500 calories a day", "דיאטה של 800 קלוריות", "800 calorie diet". */
 function extremeCalorieRestriction(text: string): boolean {
   const re = /(\d{2,4})\s*(?:k?cals?\b|calories\b|calorie\b|kcal\b|קלוריות|קק"ל)/gu;
@@ -319,6 +328,7 @@ function extremeCalorieRestriction(text: string): boolean {
     if (!(n > 0 && n < 1000)) continue;
     const before = text.slice(Math.max(0, m.index - 45), m.index);
     if (containsAny(before, BURN_WORDS)) continue;
+    if (RELATIVE_AFTER.test(text.slice(m.index + m[0].length)) || RELATIVE_BEFORE.test(before.trimEnd())) continue;
     const after = text.slice(m.index, m.index + m[0].length + 25);
     const eating = containsAny(before, EAT_WORDS) || /\bdiet\b|דיאט/.test(after);
     if (eating && (DAILY_CONTEXT.test(text) || /\bdiet\b|דיאט/.test(before + after) || /\bonly\b|\bjust\b|רק\b/.test(before))) return true;
@@ -375,7 +385,12 @@ function multiDayFast(text: string): boolean {
   return false;
 }
 
-function pedDosing(text: string): boolean {
+/** Training terms that contain PED/self-harm words but are not about them. */
+const ANABOLIC_WINDOW = /anabolic windows?|חלון (?:ה)?אנבולי|החלון האנבולי/gu;
+const SUICIDE_DRILLS = /suicide (?:sprints?|runs?|drills?|shuttles?|lines?)|(?:sprint|shuttle|court|line) suicides?|ספרינט(?:י|ים)? (?:ה)?התאבדות/gu;
+
+function pedDosing(raw: string): boolean {
+  const text = raw.replace(ANABOLIC_WINDOW, ' ');
   if (containsAny(text, PED_TERMS) && containsAny(text, PED_INTENT)) return true;
   return containsAny(text, HORMONE_TERMS) && containsAny(text, HORMONE_INTENT);
 }
@@ -384,7 +399,7 @@ function pedDosing(text: string): boolean {
 export function detectSafetyCategory(message: string, weightKg: number | null = null): SafetyCategory | null {
   const text = normalizeText(message);
   if (!text) return null;
-  if (containsAny(text, SELF_HARM)) return 'self_harm';
+  if (containsAny(text.replace(SUICIDE_DRILLS, ' '), SELF_HARM)) return 'self_harm';
   if (containsAny(text, MEDICAL_RED_FLAGS)) return 'medical_red_flag';
   if (containsAny(text, EATING_DISORDER_TERMS) || extremeCalorieRestriction(text) || rapidWeightLoss(text, weightKg) || multiDayFast(text)) {
     return 'eating_disorder';
