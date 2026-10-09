@@ -31,7 +31,8 @@ function DeleteAccountModal({ open, onClose }: { open: boolean; onClose(): void 
     onSuccess: async () => {
       storage.remove(ONBOARDING_DRAFT_KEY);
       allowLeave();
-      await logout();
+      // The server already ended the session; logout() only clears local state (ignore its request failing).
+      await logout().catch(() => undefined);
       navigate('/login', { replace: true });
       toast.success(t('settings.privacy.deleted'));
     },

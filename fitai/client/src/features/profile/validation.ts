@@ -2,6 +2,7 @@
  * Turns zod field issues into localized, field-specific messages (with ranges in the
  * user's units) for the onboarding wizard and the profile page.
  */
+import { LIMITS } from '@shared/constants';
 import { kgToLb } from '@shared/training';
 import type { I18nValue } from '../../i18n';
 import { fieldErrorMessage } from '../../lib/errors';
@@ -56,11 +57,11 @@ export function issueMessage(path: string, issue: FieldIssue, i18n: I18n, imperi
  * Kept in sync with `onboardingSchema` / `LIMITS`.
  */
 export const FIELD_RANGES: Partial<Record<string, { min: number; max: number }>> = {
-  ageYears: { min: 13, max: 100 },
-  heightCm: { min: 120, max: 230 },
-  weightKg: { min: 30, max: 300 },
-  daysPerWeek: { min: 1, max: 7 },
-  sessionMinutes: { min: 15, max: 180 },
+  ageYears: { min: LIMITS.ageMin, max: LIMITS.ageMax },
+  heightCm: { min: LIMITS.heightCmMin, max: LIMITS.heightCmMax },
+  weightKg: { min: LIMITS.weightKgMin, max: LIMITS.weightKgMax },
+  daysPerWeek: { min: LIMITS.daysPerWeekMin, max: LIMITS.daysPerWeekMax },
+  sessionMinutes: { min: LIMITS.sessionMinutesMin, max: LIMITS.sessionMinutesMax },
   weeklyWorkoutGoal: { min: 1, max: 7 },
   sleepHours: { min: 0, max: 24 },
   mealsPerDay: { min: 1, max: 8 },

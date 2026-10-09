@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { LocalizedText } from '@shared/types';
 import { qk } from '../../api/queryClient';
 import { Button, Icon } from '../../components/ui';
@@ -7,11 +7,6 @@ import { useI18n } from '../../i18n';
 import { ExercisePicker } from '../exercises/ExercisePicker';
 import { fetchExercise } from '../exercises/api';
 
-/**
- * Exercises the user never wants in a plan: removable chips plus an "add" button that
- * opens the shared exercise picker. Names come from the picker selection or, for saved
- * ids, from the exercise library.
- */
 /** Localized names for exercise ids (from `known`, else looked up in the library and cached). */
 export function useExerciseNames(ids: string[], known: Record<string, LocalizedText> = {}): Record<string, LocalizedText> {
   const lookups = useQueries({
@@ -24,11 +19,17 @@ export function useExerciseNames(ids: string[], known: Record<string, LocalizedT
   return names;
 }
 
+/**
+ * Exercises the user never wants in a plan: removable chips plus an "add" button that
+ * opens the shared exercise picker. Names come from the picker selection or, for saved
+ * ids, from the exercise library.
+ */
 export function AvoidExercisesField({ value, onChange, error }: { value: string[]; onChange(ids: string[]): void; error?: string }) {
   const { t, lt } = useI18n();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [picked, setPicked] = useState<Record<string, LocalizedText>>({});
   const names = useExerciseNames(value, picked);
+  const addRef = useRef<HTMLButtonElement>(null);
 
   return (
     <fieldset className={`field${error ? ' field-invalid' : ''}`}>
@@ -47,7 +48,11 @@ export function AvoidExercisesField({ value, onChange, error }: { value: string[
                   type="button"
                   className="profile-chip-remove"
                   aria-label={t('onboarding.fields.avoidRemove', { name: name ?? id })}
-                  onClick={() => onChange(value.filter((x) => x !== id))}
+                  onClick={() => {
+                    onChange(value.filter((x) => x !== id));
+                    // The removed chip's button disappears; keep keyboard focus inside the field.
+                    addRef.current?.focus();
+                  }}
                 >
                   <Icon name="close" size={14} />
                 </button>
@@ -57,7 +62,7 @@ export function AvoidExercisesField({ value, onChange, error }: { value: string[
         </ul>
       )}
       <div>
-        <Button size="sm" icon="plus" onClick={() => setPickerOpen(true)} disabled={value.length >= 50}>
+        <Button ref={addRef} size="sm" icon="plus" onClick={() => setPickerOpen(true)} disabled={value.length >= 50}>
           {t('onboarding.fields.avoidAdd')}
         </Button>
       </div>

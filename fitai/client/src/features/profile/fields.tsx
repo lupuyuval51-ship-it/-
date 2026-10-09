@@ -14,6 +14,7 @@ import {
   EXPERIENCE_LEVELS,
   GOALS,
   INJURY_AREAS,
+  LIMITS,
   LOCATIONS,
   MUSCLE_GROUPS,
   OCCUPATION_ACTIVITY,
@@ -95,8 +96,8 @@ export function HeightField({ value, onChange, error }: { value: number | null; 
           onChange={onChange}
           unit={t('common.units.cm')}
           step={0.1}
-          min={120}
-          max={230}
+          min={LIMITS.heightCmMin}
+          max={LIMITS.heightCmMax}
           error={error}
           required
           name="heightCm"
@@ -122,7 +123,7 @@ export function HeightField({ value, onChange, error }: { value: number | null; 
               setFt(v);
               onChange(feetInchesToCm(v, inches));
             }}
-            unit="ft"
+            unit={t('onboarding.units.ft')}
             min={3}
             max={7}
             name="heightFt"
@@ -134,7 +135,7 @@ export function HeightField({ value, onChange, error }: { value: number | null; 
               setInches(v);
               onChange(feetInchesToCm(ft, v));
             }}
-            unit="in"
+            unit={t('onboarding.units.in')}
             min={0}
             max={11}
             name="heightIn"
@@ -191,7 +192,7 @@ export function AboutFields({ values, onChange, errors }: FieldsProps<'ageYears'
   return (
     <div className="grid-2">
       <FieldSlot name="ageYears">
-        <NumberField label={t('onboarding.fields.age')} value={values.ageYears} onChange={(v) => onChange({ ageYears: v })} min={13} max={100} error={errors.ageYears} required name="ageYears" inputMode="numeric" />
+        <NumberField label={t('onboarding.fields.age')} value={values.ageYears} onChange={(v) => onChange({ ageYears: v })} min={LIMITS.ageMin} max={LIMITS.ageMax} error={errors.ageYears} required name="ageYears" inputMode="numeric" />
       </FieldSlot>
       <FieldSlot name="sex">
         <Segmented label={t('onboarding.fields.sex')} value={values.sex} onChange={(v) => onChange({ sex: v })} options={SEXES.map((s) => ({ value: s, label: t(`enums.sex.${s}`) }))} />
@@ -350,8 +351,8 @@ export function TrainingFields({
             value={values.sessionMinutes}
             onChange={(v) => onChange({ sessionMinutes: v })}
             unit={t('common.units.min')}
-            min={15}
-            max={180}
+            min={LIMITS.sessionMinutesMin}
+            max={LIMITS.sessionMinutesMax}
             step={5}
             error={errors.sessionMinutes}
             required

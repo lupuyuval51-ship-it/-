@@ -32,6 +32,8 @@ const onboarding = {
   },
   units: {
     label: 'Units',
+    ft: 'ft',
+    in: 'in',
     saveFailed: "Couldn't change units. Please try again.",
   },
   fields: {

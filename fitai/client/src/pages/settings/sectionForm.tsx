@@ -47,7 +47,17 @@ export function useSectionForm<T extends object>(id: string, source: T) {
     dirty,
     set: (patch: Partial<T>) => setState((s) => ({ ...s, values: { ...s.values, ...patch } })),
     reset: () => setState((s) => ({ ...s, values: s.base })),
-    commit: (next: T) => setState({ values: next, base: next, key: JSON.stringify(next) }),
+    /**
+     * Adopts saved values as the new baseline. Pass the values that were submitted: edits the
+     * user made while the request was in flight are kept (the form stays dirty) instead of
+     * being overwritten by the server response.
+     */
+    commit: (next: T, submitted?: T) =>
+      setState((s) => ({
+        values: submitted === undefined || same(s.values, submitted) ? next : s.values,
+        base: next,
+        key: JSON.stringify(next),
+      })),
   };
 }
 

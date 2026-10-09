@@ -84,9 +84,9 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
   const r = form.values;
 
   const mutation = useMutation({
-    mutationFn: (reminders: ReminderSettings) => updateSettings({ reminders }),
-    onSuccess: async (res) => {
-      form.commit(res.profile.reminders);
+    mutationFn: ({ reminders }: { reminders: ReminderSettings; submitted: ReminderSettings }) => updateSettings({ reminders }),
+    onSuccess: async (res, { submitted }) => {
+      form.commit(res.profile.reminders, submitted);
       toast.success(t('settings.saved'));
       await applyProfileChange(queryClient, res.profile);
     },
@@ -112,7 +112,7 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
       focusField(firstInvalidField(['workoutDays', 'workoutTime', 'mealTimes'], result.issues), formRef.current ?? document);
       return;
     }
-    mutation.mutate(result.data);
+    mutation.mutate({ reminders: result.data, submitted: r });
   };
 
   return (

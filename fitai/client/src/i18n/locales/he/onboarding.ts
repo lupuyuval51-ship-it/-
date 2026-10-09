@@ -34,6 +34,8 @@ const onboarding: Translations<typeof en> = {
   },
   units: {
     label: 'יחידות מידה',
+    ft: 'רגל',
+    in: 'אינץ׳',
     saveFailed: 'לא הצלחנו לשנות את יחידות המידה. נסו שוב.',
   },
   fields: {

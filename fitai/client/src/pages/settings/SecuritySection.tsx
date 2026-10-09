@@ -48,7 +48,8 @@ export function SecuritySection() {
     mutationFn: logoutAllDevices,
     onSuccess: async () => {
       allowLeave();
-      await logout();
+      // Every session is already gone; logout() only clears local state (ignore its request failing).
+      await logout().catch(() => undefined);
       navigate('/login', { replace: true });
       toast.info(t('settings.security.loggedOutAll'));
     },

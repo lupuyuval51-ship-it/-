@@ -80,10 +80,10 @@ export function AccountSection({ user }: { user: UserDTO }) {
   const deviceZone = browserTimeZone();
 
   const mutation = useMutation({
-    mutationFn: (input: SettingsUpdateInput) => updateSettings(input),
-    onSuccess: async (res) => {
+    mutationFn: ({ changes }: { changes: SettingsUpdateInput; submitted: AccountValues }) => updateSettings(changes),
+    onSuccess: async (res, { submitted }) => {
       const next = res.user;
-      form.commit({ displayName: next.displayName, locale: next.locale, theme: next.theme, units: next.units, timezone: next.timezone });
+      form.commit({ displayName: next.displayName, locale: next.locale, theme: next.theme, units: next.units, timezone: next.timezone }, submitted);
       setUser(next);
       setLocale(next.locale);
       toast.success(translate(next.locale, 'settings.saved') ?? t('settings.saved'));
@@ -104,7 +104,7 @@ export function AccountSection({ user }: { user: UserDTO }) {
       return;
     }
     setErrors({});
-    mutation.mutate(changedFields(result.data as AccountValues, form.base));
+    mutation.mutate({ changes: changedFields(result.data as AccountValues, form.base), submitted: form.values });
   };
 
   return (

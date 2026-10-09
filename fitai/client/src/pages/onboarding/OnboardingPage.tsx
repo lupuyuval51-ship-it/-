@@ -247,7 +247,7 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
             size="sm"
             icon="logout"
             onClick={async () => {
-              await logout();
+              await logout().catch(() => undefined);
               navigate('/login', { replace: true });
             }}
           >

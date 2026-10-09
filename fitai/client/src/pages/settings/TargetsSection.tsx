@@ -1,7 +1,7 @@
 /** Daily nutrition targets: recommended vs. custom, live safety checks, reset (PUT /api/profile/targets). */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useRef, useState } from 'react';
-import { customTargetsSchema, macroCalories, minimumProteinG, type CustomTargetsInput } from '@shared/schemas/profile';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { customTargetsIssues, customTargetsSchema, macroCalories, minimumProteinG, type CustomTargetsInput } from '@shared/schemas/profile';
 import type { ProfileDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { Badge, Button, Card, EmptyState, LinkButton, Notice, NumberField, useConfirm, useToast } from '../../components/ui';
@@ -33,6 +33,20 @@ export function TargetsSection({ profile }: { profile: ProfileDTO }) {
   const { t } = useI18n();
   const targets = profile.targets;
   const [editing, setEditing] = useState(false);
+  // Keyboard focus follows the swap between overview and editor (the clicked button unmounts).
+  const focusAfterSwap = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focusAfterSwap.current) return;
+    focusAfterSwap.current = false;
+    const root = containerRef.current;
+    const target = editing ? root?.querySelector<HTMLElement>('input[name="calories"]') : root?.querySelector<HTMLElement>('[data-targets-edit]');
+    target?.focus();
+  }, [editing]);
+  const swap = (next: boolean) => {
+    focusAfterSwap.current = true;
+    setEditing(next);
+  };
   if (!targets || !targets.computed) {
     return (
       <Card id="settings-targets" title={t('settings.targets.title')} className="settings-section">
@@ -50,10 +64,10 @@ export function TargetsSection({ profile }: { profile: ProfileDTO }) {
       </Card>
     );
   }
-  return editing ? (
-    <TargetsEditor profile={profile} onDone={() => setEditing(false)} />
-  ) : (
-    <TargetsOverview profile={profile} onEdit={() => setEditing(true)} />
+  return (
+    <div ref={containerRef}>
+      {editing ? <TargetsEditor profile={profile} onDone={() => swap(false)} /> : <TargetsOverview profile={profile} onEdit={() => swap(true)} />}
+    </div>
   );
 }
 
@@ -116,7 +130,7 @@ function TargetsOverview({ profile, onEdit }: { profile: ProfileDTO; onEdit(): v
               {t('settings.targets.reset')}
             </Button>
           )}
-          <Button variant="primary" icon="edit" onClick={onEdit}>
+          <Button variant="primary" icon="edit" onClick={onEdit} data-targets-edit="">
             {t('settings.targets.edit')}
           </Button>
         </div>
@@ -142,8 +156,15 @@ function TargetsEditor({ profile, onDone }: { profile: ProfileDTO; onDone(): voi
   const formRef = useRef<HTMLFormElement>(null);
   const v = form.values;
   const minProtein = minimumProteinG(profile.weightKg ?? 0);
+  const complete = v.calories != null && v.proteinG != null && v.carbsG != null && v.fatG != null;
   const macroKcal = v.proteinG != null && v.carbsG != null && v.fatG != null ? macroCalories({ proteinG: v.proteinG, carbsG: v.carbsG, fatG: v.fatG }) : null;
-  const macroOff = macroKcal != null && v.calories != null && v.calories > 0 && Math.abs(macroKcal - v.calories) / v.calories > 0.1;
+  // Same rule the server enforces (shared), so the live hint and the 422 never disagree.
+  const macroOff =
+    complete &&
+    customTargetsIssues(
+      { calories: v.calories!, proteinG: v.proteinG!, carbsG: v.carbsG!, fatG: v.fatG! },
+      { minimumCalories: computed.minimumCalories, weightKg: profile.weightKg ?? 0 },
+    ).some((i) => i.code === 'macros_inconsistent');
 
   const mutation = useMutation({
     mutationFn: (input: CustomTargetsInput) => updateTargets(input),

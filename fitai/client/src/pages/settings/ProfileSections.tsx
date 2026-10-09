@@ -62,9 +62,9 @@ function ProfileSection<K extends DraftField>({
   const schema = useMemo(() => profileUpdateSchema.pick(Object.fromEntries(keys.map((k) => [k, true])) as Parameters<typeof profileUpdateSchema.pick>[0]), [keys]);
 
   const mutation = useMutation({
-    mutationFn: (input: ProfileUpdateInput) => updateProfile(input),
-    onSuccess: async (res) => {
-      form.commit(pick(draftFromProfile(res.profile), keys));
+    mutationFn: ({ changes }: { changes: ProfileUpdateInput; submitted: Pick<ProfileDraft, K> }) => updateProfile(changes),
+    onSuccess: async (res, { submitted }) => {
+      form.commit(pick(draftFromProfile(res.profile), keys), submitted);
       setErrors({});
       toast.success(t('settings.saved'));
       if (res.customTargetsReset) toast.info(t('settings.body.targetsReset'));
@@ -95,7 +95,7 @@ function ProfileSection<K extends DraftField>({
       form.reset();
       return;
     }
-    mutation.mutate(changes);
+    mutation.mutate({ changes, submitted: form.values });
   };
 
   const onChange = (patch: Partial<Pick<ProfileDraft, K>>) => {

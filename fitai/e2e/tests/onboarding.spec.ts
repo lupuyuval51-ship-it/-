@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { registerViaUi, useEnglish } from './helpers';
+import { readyUser, registerViaUi, useEnglish } from './helpers';
 
 test.beforeEach(async ({ page }) => {
   await useEnglish(page);
@@ -124,4 +124,36 @@ test('teens choosing fat loss get a supportive no-deficit notice', async ({ page
   await page.getByText('Lose fat', { exact: true }).click();
   await expect(page.getByText('Healthy habits first')).toBeVisible();
   await expect(page.getByText(/won’t set a calorie deficit/)).toBeVisible();
+});
+
+test('redo the questionnaire from the profile page with answers pre-filled (imperial height)', async ({ page }) => {
+  await readyUser(page);
+  await page.goto('/profile');
+  await page.getByRole('link', { name: 'Redo questionnaire' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Update your questionnaire' })).toBeVisible();
+  await expect(page.getByLabel('Age')).toHaveValue('30');
+  await expect(page.getByLabel('Weight')).toHaveValue('80');
+
+  // Switch to imperial: height becomes feet + inches, weight pounds.
+  await page.getByRole('radio', { name: 'Imperial' }).click();
+  await expect(page.getByLabel('Feet')).toHaveValue('5');
+  await expect(page.getByLabel('Inches')).toHaveValue('11');
+  await expect(page.getByLabel('Weight')).toHaveValue('176.4');
+  await page.getByLabel('Inches').fill('9');
+
+  // Every later step is already answered; jump through to the review.
+  for (let i = 2; i <= 7; i++) {
+    await next(page);
+    await expect(page.getByText(`Step ${i} of 7`)).toBeVisible();
+  }
+  await stepHeading(page, 'Review your answers');
+  await expect(page.locator('dd', { hasText: '5′9″' })).toBeVisible();
+  await expect(page.locator('dd', { hasText: 'Barbell' })).toBeVisible();
+  await page.getByRole('button', { name: 'Finish setup' }).click();
+  await expect(page).toHaveURL(/\/$/);
+
+  const profile = await (await page.request.get('/api/profile')).json();
+  expect(profile.profile.heightCm).toBe(175.3);
+  expect(profile.profile.weightKg).toBe(80);
+  expect(profile.profile.goal).toBe('muscle_gain');
 });
