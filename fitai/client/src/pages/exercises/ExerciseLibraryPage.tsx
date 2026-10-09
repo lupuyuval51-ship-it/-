@@ -12,6 +12,7 @@ import {
   clearFilters,
   DEFAULT_LIBRARY_STATE,
   hasCriteria,
+  LIBRARY_PAGE_SIZE,
   librarySearchString,
   MAX_LIBRARY_PAGES,
   parseLibraryState,
@@ -62,12 +63,16 @@ export default function ExerciseLibraryPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersId = useId();
   const gridRef = useRef<HTMLDivElement>(null);
+  // Index of the result to focus once "Load more" has added it (see below).
+  const focusIndex = useRef<number | null>(null);
 
   /** Writes the state to the URL (a new history entry unless `replace`). */
   const apply = useCallback(
     (next: LibraryState, replace = false) => {
       const params = serializeLibraryState(next);
       if (params.toString() === serializeLibraryState(stateRef.current).toString()) return;
+      // Any other change cancels a pending "focus the first new result".
+      focusIndex.current = null;
       setSearchParams(params, { replace });
     },
     [setSearchParams],
@@ -85,8 +90,10 @@ export default function ExerciseLibraryPage() {
   // ---------------------------------------------------------------- Data
   const filterQuery = useMemo(() => toFilterQuery(state), [state]);
   const first = useQuery({ ...listOptions(toListQuery(state, 1, locale)), placeholderData: keepPreviousData });
+  // Only pages that can hold results are requested (a shared `?page=40` must not fire 39 requests).
+  const pagesWithResults = first.data && !first.isPlaceholderData ? Math.max(1, Math.ceil(first.data.total / LIBRARY_PAGE_SIZE)) : 1;
   const extra = useQueries({
-    queries: Array.from({ length: state.pages - 1 }, (_, i) => listOptions(toListQuery(state, i + 2, locale))),
+    queries: Array.from({ length: Math.min(state.pages, pagesWithResults) - 1 }, (_, i) => listOptions(toListQuery(state, i + 2, locale))),
   });
   const facets = useQuery({
     queryKey: exerciseKeys.facets(filterQuery),
@@ -112,7 +119,6 @@ export default function ExerciseLibraryPage() {
 
   // ---------------------------------------------------------------- Focus & scroll
   // After "Load more", focus moves to the first newly loaded result (keyboard & screen readers).
-  const focusIndex = useRef<number | null>(null);
   useEffect(() => {
     const index = focusIndex.current;
     if (index == null || items.length <= index) return;
@@ -138,8 +144,9 @@ export default function ExerciseLibraryPage() {
   const rememberScroll = () => libraryScrollPositions.set(location.key, window.scrollY);
 
   const loadMore = () => {
+    // Continue from the pages actually shown (a too-large `page` in the URL is ignored).
+    apply({ ...stateRef.current, pages: Math.min(stateRef.current.pages, pagesWithResults) + 1 }, true);
     focusIndex.current = items.length;
-    apply({ ...stateRef.current, pages: stateRef.current.pages + 1 }, true);
   };
 
   // ---------------------------------------------------------------- Render
@@ -151,7 +158,7 @@ export default function ExerciseLibraryPage() {
     results = <SkeletonGrid count={6} />;
   } else if (first.isError || !first.data) {
     results = <ErrorState error={first.error} onRetry={() => void first.refetch()} />;
-  } else if (total === 0 && !updating) {
+  } else if (total === 0) {
     const criteria = hasCriteria(state);
     results = (
       <EmptyState

@@ -127,6 +127,14 @@ test('personal fit warnings, equipment toggle, load more and not-found', async (
   await page.reload();
   await expect(results(page).getByRole('listitem')).toHaveCount(48);
 
+  // A shared link asking for more pages than exist shows everything, without a "Load more".
+  await page.goto('/exercises?page=40');
+  await expect(results(page).getByRole('listitem')).toHaveCount(119);
+  await expect(page.getByText('Showing 119 of 119')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Load more' })).toHaveCount(0);
+  await page.goto('/exercises?page=2');
+  await expect(results(page).getByRole('listitem')).toHaveCount(48);
+
   await page.getByRole('switch', { name: 'Only exercises I can do with my equipment' }).click();
   await expect(page).toHaveURL(/\?available=1$/);
   await expect(page.getByText(/^\d+ exercises$/)).not.toHaveText('119 exercises');

@@ -67,6 +67,20 @@ describe('SearchBox', () => {
     act(() => vi.advanceTimersByTime(SEARCH_DEBOUNCE_MS));
     expect(onCommit).not.toHaveBeenCalled();
   });
+
+  it('drops text still waiting to be committed when the value changes from outside', () => {
+    const { onCommit, input, rerender } = setup('squat');
+    fireEvent.change(input, { target: { value: 'squat jump' } });
+    // Back is pressed before the debounce fires.
+    rerender(
+      <I18nProvider locale="en">
+        <SearchBox value="" onCommit={onCommit} />
+      </I18nProvider>,
+    );
+    act(() => vi.advanceTimersByTime(SEARCH_DEBOUNCE_MS * 2));
+    expect(onCommit).not.toHaveBeenCalled();
+    expect(input).toHaveProperty('value', '');
+  });
 });
 
 describe('ChoiceChips', () => {

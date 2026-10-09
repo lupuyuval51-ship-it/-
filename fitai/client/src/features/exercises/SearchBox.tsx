@@ -22,6 +22,11 @@ export function SearchBox({ value, onCommit }: { value: string; onCommit(q: stri
 
   useEffect(() => {
     if (value !== committed.current) {
+      // An outside change (back/forward, "clear") wins over text still waiting to be committed.
+      if (timer.current != null) {
+        window.clearTimeout(timer.current);
+        timer.current = null;
+      }
       committed.current = value;
       setText(value);
     }
