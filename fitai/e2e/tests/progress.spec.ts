@@ -84,6 +84,9 @@ test('log and delete body weight entries on the progress page', async ({ page })
   await card.getByLabel('Note (optional)').fill('after vacation');
   await card.getByRole('button', { name: 'Save weight' }).click();
   await expect(page.getByText(/Weight saved/)).toBeVisible();
+  // The form is cleared for the next entry.
+  await expect(card.getByRole('textbox', { name: 'Weight', exact: true })).toHaveValue('');
+  await expect(card.getByLabel('Note (optional)')).toHaveValue('');
   const entry = card.getByRole('listitem').filter({ hasText: '81.2 kg' });
   await expect(entry).toContainText('after vacation');
   await expect(card.getByText('2 entries')).toBeVisible();
@@ -135,4 +138,32 @@ test('Hebrew renders right-to-left with translated sections', async ({ browser }
   await expect(page.getByRole('region', { name: 'משקל גוף' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'הישגים' })).toBeVisible();
   await context.close();
+});
+
+test('notifications: clicking an unread item marks it read and keeps focus in the list', async ({ page }) => {
+  await readyUser(page);
+  const me = await (await page.request.get('/api/auth/me')).json();
+  const db = new pg.Client({ connectionString: DATABASE_URL });
+  await db.connect();
+  try {
+    await db.query(
+      `INSERT INTO notifications (user_id, kind, data, dedupe_key, created_at) VALUES
+         ($1, 'achievement', '{"achievementId":"first_workout"}', 'achievement:first_workout', now() - interval '2 hours'),
+         ($1, 'level_up', '{"level":2,"from":1}', 'level:2', now() - interval '1 minute')`,
+      [me.user.id],
+    );
+  } finally {
+    await db.end();
+  }
+  await page.goto('/notifications');
+  await expect(page.getByText('2 unread')).toBeVisible();
+  await expect(page.getByText('Level up! You reached level 2.')).toBeVisible();
+  await page.getByRole('button', { name: /Achievement unlocked: First workout/ }).click();
+  await expect(page.getByText('1 unread')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Achievement unlocked: First workout/ })).toHaveCount(0);
+  await expect(page.locator('.notif-item').filter({ hasText: 'First workout' }).getByRole('button', { name: 'Delete notification' })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Notifications, 1 unread' })).toBeVisible();
+  await page.getByRole('button', { name: 'Mark all as read' }).click();
+  await expect(page.getByText('No unread notifications')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Mark all as read' })).toBeDisabled();
 });

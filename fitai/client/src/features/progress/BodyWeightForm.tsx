@@ -43,6 +43,9 @@ export function BodyWeightForm({ onSaved, autoFocus }: { onSaved?(res: BodyWeigh
   const mutation = useIdempotentMutation((input: BodyWeightInput, key: string) => progressApi.logBodyWeight(input, key), {
     onSuccess: async (res) => {
       toast.success(res.rewards.xpAwarded > 0 ? t('progress.bodyWeight.savedXp', { xp: res.rewards.xpAwarded }) : t('progress.bodyWeight.saved'));
+      // Ready for the next entry (the date stays, so back-filling several days is quick).
+      setWeight(null);
+      setNote('');
       await invalidateAfterBodyWeight(queryClient);
       onSaved?.(res);
     },

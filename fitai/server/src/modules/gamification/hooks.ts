@@ -33,7 +33,7 @@ export interface WorkoutCompletedEvent {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SAVEPOINT = 'fitai_gamification_hook';
 
-async function guarded(sql: Sql, name: string, fn: () => Promise<RewardResultDTO>): Promise<RewardResultDTO> {
+async function guarded(sql: Sql, name: string, userId: string, fn: () => Promise<RewardResultDTO>): Promise<RewardResultDTO> {
   let inTransaction = false;
   try {
     await sql.exec(`SAVEPOINT ${SAVEPOINT}`);
@@ -42,6 +42,10 @@ async function guarded(sql: Sql, name: string, fn: () => Promise<RewardResultDTO
     // Called outside a transaction (pool handle): run without a savepoint.
   }
   try {
+    // Serialize reward evaluation per user until the caller commits: the daily/weekly caps
+    // and the weekly-goal bonus read the user's other completions, so two workouts finished
+    // at the same moment (two tabs/devices) must not both see "nothing rewarded yet".
+    if (inTransaction) await sql.exec("SELECT pg_advisory_xact_lock(hashtext('fitai_gamification:' || $1::text))", [userId]);
     const result = await fn();
     if (inTransaction) await sql.exec(`RELEASE SAVEPOINT ${SAVEPOINT}`);
     return result;
@@ -59,7 +63,7 @@ async function guarded(sql: Sql, name: string, fn: () => Promise<RewardResultDTO
  * goal bonus, achievements and level-ups.
  */
 export async function onWorkoutCompleted(sql: Sql, event: WorkoutCompletedEvent): Promise<RewardResultDTO> {
-  return guarded(sql, 'onWorkoutCompleted', async () => {
+  return guarded(sql, 'onWorkoutCompleted', event.userId, async () => {
     const { userId, sessionId } = event;
     const ctx = await loadUserContext(sql, userId);
     const before = await totalXp(sql, userId);
@@ -155,7 +159,7 @@ export async function onWorkoutCompleted(sql: Sql, event: WorkoutCompletedEvent)
  * reaching the protein threshold of the target. Never rewards eating less.
  */
 export async function onFoodLogged(sql: Sql, event: { userId: string; date: string }): Promise<RewardResultDTO> {
-  return guarded(sql, 'onFoodLogged', async () => {
+  return guarded(sql, 'onFoodLogged', event.userId, async () => {
     const { userId, date } = event;
     const ctx = await loadUserContext(sql, userId);
     const before = await totalXp(sql, userId);
@@ -190,7 +194,7 @@ export async function onFoodLogged(sql: Sql, event: { userId: string; date: stri
 
 /** Weigh-in XP at most once per calendar week (the week of logging, so back-filling earns nothing extra). */
 export async function onBodyWeightLogged(sql: Sql, event: { userId: string; date: string }): Promise<RewardResultDTO> {
-  return guarded(sql, 'onBodyWeightLogged', async () => {
+  return guarded(sql, 'onBodyWeightLogged', event.userId, async () => {
     const { userId } = event;
     const ctx = await loadUserContext(sql, userId);
     const before = await totalXp(sql, userId);
@@ -209,7 +213,7 @@ export async function onBodyWeightLogged(sql: Sql, event: { userId: string; date
 
 /** First coach question unlocks an achievement (no XP — asking questions is not farmable). */
 export async function onCoachQuestion(sql: Sql, event: { userId: string }): Promise<RewardResultDTO> {
-  return guarded(sql, 'onCoachQuestion', async () => {
+  return guarded(sql, 'onCoachQuestion', event.userId, async () => {
     const ctx = await loadUserContext(sql, event.userId);
     const newAchievements: string[] = [];
     if (await unlockAchievement(sql, event.userId, 'coach_first_question')) newAchievements.push('coach_first_question');

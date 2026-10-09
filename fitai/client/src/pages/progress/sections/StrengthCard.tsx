@@ -84,11 +84,12 @@ export function StrengthCard() {
           />
           <Segmented<TrendPeriod> label={t('progress.range.label')} options={rangeOptions} value={range} onChange={setRange} size="sm" />
         </div>
-        {detail.isPending ? (
-          <LoadingState compact />
-        ) : detail.isError ? (
+        {detail.isError ? (
           <ErrorState compact error={detail.error} onRetry={() => void detail.refetch()} />
-        ) : data ? (
+        ) : !data ? (
+          // First load, or the previous exercise's data is still shown as placeholder.
+          <LoadingState compact />
+        ) : (
           <>
             {available.length > 1 && (
               <Segmented<Metric>
@@ -113,7 +114,7 @@ export function StrengthCard() {
               <RecordList records={data.records.slice(0, 5)} showExercise={false} emptyText={t('progress.strength.noRecords')} />
             </div>
           </>
-        ) : null}
+        )}
       </div>
     );
   }

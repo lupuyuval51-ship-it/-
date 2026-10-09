@@ -119,6 +119,31 @@ describe('onWorkoutCompleted', () => {
     expect(second.reward.notes).toEqual(['daily_workout_cap']);
   });
 
+  it('keeps the daily cap when two workouts are finished concurrently', async () => {
+    const c = await onboardedUser(server.baseUrl, { weekly_workout_goal: 7 });
+    const d = pastWeek();
+    const events = await Promise.all(
+      [8, 9].map(async (hour) => {
+        const endedAt = new Date(`${d}T0${hour}:00:00Z`);
+        const sessionId = await seedSession(c.userId!, { endedAt, durationSeconds: 2700, sets: sets(10, { exerciseId: 'barbell_bench_press', reps: 8, weightKg: 60 }) });
+        const event: WorkoutCompletedEvent = { userId: c.userId!, sessionId, date: d, endedAt, durationSeconds: 2700, completedSets: 10, totalVolumeKg: 4800, personalRecordIds: [] };
+        return event;
+      }),
+    );
+    // The first transaction stays open after its award; the second must wait and see it.
+    const rewards = await Promise.all([
+      db.tx(async (tx) => {
+        const r = await onWorkoutCompleted(tx, events[0]!);
+        await tx.exec('SELECT pg_sleep(0.3)');
+        return r;
+      }),
+      new Promise((resolve) => setTimeout(resolve, 50)).then(() => db.tx((tx) => onWorkoutCompleted(tx, events[1]!))),
+    ]);
+    expect(rewards.map((r) => r.xpAwarded).sort((a, b) => a - b)).toEqual([0, XP_RULES.workoutCompleted + 10 * XP_RULES.perCompletedSet]);
+    expect(rewards.flatMap((r) => r.notes)).toEqual(['daily_workout_cap']);
+    expect(await xpTotal(c.userId!)).toBe(XP_RULES.workoutCompleted + 10 * XP_RULES.perCompletedSet);
+  });
+
   it('rewards the weekly goal once and stops rewarding workouts beyond goal + buffer (rest matters)', async () => {
     const c = await onboardedUser(server.baseUrl, { weekly_workout_goal: 2 });
     const ws = pastWeek();

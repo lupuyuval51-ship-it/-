@@ -25,7 +25,15 @@ export default function NotificationsPage() {
     Promise.all([queryClient.invalidateQueries({ queryKey: qk.notifications }), queryClient.invalidateQueries({ queryKey: qk.dashboard })]);
   const onError = (err: unknown) => toast.error(errorMessage(err, i18n, 'notifications'));
 
-  const markRead = useMutation({ mutationFn: gamificationApi.markRead, onSuccess: refresh, onError });
+  const markRead = useMutation({
+    mutationFn: gamificationApi.markRead,
+    onSuccess: async (_res, id) => {
+      await refresh();
+      // The clickable row is replaced by plain text once read: keep keyboard focus in the item.
+      document.getElementById(`notif-delete-${id}`)?.focus();
+    },
+    onError,
+  });
   const markAll = useMutation({
     mutationFn: gamificationApi.markAllRead,
     onSuccess: async () => {
@@ -102,6 +110,7 @@ export default function NotificationsPage() {
                       </div>
                     )}
                     <IconButton
+                      id={`notif-delete-${n.id}`}
                       icon="trash"
                       size="sm"
                       label={t('notifications.delete')}
