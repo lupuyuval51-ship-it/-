@@ -1,0 +1,160 @@
+/* Dashboard (home). Mobile-first; logical properties only. */
+
+.dash-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 760px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1180px) {
+  .dash-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Resume banner */
+.resume-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: var(--primary-soft);
+}
+.resume-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  flex-shrink: 0;
+}
+.resume-body {
+  flex: 1;
+  min-width: 180px;
+}
+.resume-title {
+  font-size: 16px;
+}
+
+/* Next workout */
+.dash-next-name {
+  font-size: 20px;
+}
+.dash-next-actions {
+  margin-block-start: var(--space-4);
+}
+.dash-last {
+  margin-block-start: var(--space-3);
+}
+
+/* Today's nutrition */
+.nutrition-today {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.macro-bars {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.macro-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.macro-name {
+  font-weight: 600;
+}
+.dash-nutrition .notice {
+  margin-block-start: var(--space-3);
+}
+.dash-nutrition-footer {
+  margin-block-start: var(--space-4);
+}
+@media (max-width: 400px) {
+  .nutrition-today {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .nutrition-today .ring {
+    align-self: center;
+  }
+}
+
+/* Weekly goal */
+.weekly-count {
+  font-size: 18px;
+}
+.weekly-met {
+  color: var(--success);
+  font-weight: 700;
+}
+.week-dots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+.week-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.week-dot-mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--primary-contrast);
+}
+.week-dot-done .week-dot-mark {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.week-dot-today .week-dot-mark {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
+}
+.week-dot-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.week-dot-today .week-dot-label {
+  color: var(--text);
+}
+
+/* Quick actions */
+.quick-actions {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.quick-actions .btn {
+  justify-content: flex-start;
+  white-space: normal;
+  text-align: start;
+  min-height: 48px;
+}
+@media (max-width: 360px) {
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+}

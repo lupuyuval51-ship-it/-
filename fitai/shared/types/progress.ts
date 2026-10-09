@@ -1,8 +1,17 @@
 import type { ProgressPeriod } from '../constants';
 import type { Macros } from '../nutrition';
 import type { ISODate, LocalizedText } from './common';
+import type { RewardResultDTO } from './gamification';
 import type { PersonalRecordDTO } from './sessions';
 
+/**
+ * A data-driven observation about the user's own records, rendered client-side via
+ * `progress.insights.<code>`. Param conventions (handled by the client renderer):
+ * - `<name>En` / `<name>He` pairs are localized text → rendered as `{<name>}` in the UI language.
+ * - keys ending in `Kg` are weights in kg → rendered as `{<name>}` in the user's units
+ *   (`changeKg` → `{change}` with an explicit sign).
+ * - `count` selects the plural form.
+ */
 export interface InsightDTO {
   /** i18n key suffix `progress.insights.<code>` */
   code: string;
@@ -85,4 +94,21 @@ export interface BodyWeightEntryDTO {
   date: ISODate;
   weightKg: number;
   note: string;
+}
+
+export interface TrainedExercisesResponse {
+  exercises: TrainedExerciseDTO[];
+}
+
+export interface PersonalRecordsResponse {
+  records: PersonalRecordDTO[];
+}
+
+export interface BodyWeightListResponse {
+  entries: BodyWeightEntryDTO[];
+}
+
+export interface BodyWeightLogResponse {
+  entry: BodyWeightEntryDTO;
+  rewards: RewardResultDTO;
 }

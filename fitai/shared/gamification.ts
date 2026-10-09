@@ -3,6 +3,7 @@
  * Design principle: reward consistency and gradual improvement — never excessive
  * training volume, extra sessions beyond a healthy weekly target, or eating less.
  */
+import { addDays, diffDays } from './dates';
 
 /** XP rules. Every award is idempotent per (user, source_type, source_key) on the server. */
 export const XP_RULES = {
@@ -23,6 +24,8 @@ export const XP_RULES = {
   /** Logging at least `foodLogMinMeals` different meals on a day. */
   foodLoggedDay: 10,
   foodLogMinMeals: 2,
+  /** Food XP is awarded for today and this many previous days only (no back-fill farming). */
+  foodRewardWindowDays: 2,
   /** Reaching ≥ 90% of the protein target on a logged day (never rewards eating less). */
   proteinTargetDay: 10,
   proteinTargetThreshold: 0.9,
@@ -83,3 +86,51 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'body_weight_4_weeks', category: 'habits', target: 4, icon: '⚖️' },
   { id: 'coach_first_question', category: 'habits', target: 1, icon: '💬' },
 ];
+
+/** `xp_events.source_type` values (labels: `achievements.xpSources.<type>`). */
+export const XP_SOURCES = ['workout', 'personal_record', 'weekly_goal', 'food_day', 'protein_day', 'body_weight'] as const;
+export type XpSource = (typeof XP_SOURCES)[number];
+
+/**
+ * A completed workout counts toward XP, the weekly goal and streaks only when it meets the
+ * minimum-effort bar (prevents tap-through farming; short sessions are still recorded).
+ */
+export function isQualifyingWorkout(durationSeconds: number | null | undefined, completedSets: number): boolean {
+  return (durationSeconds ?? 0) >= XP_RULES.minWorkoutSeconds && completedSets >= XP_RULES.minCompletedSets;
+}
+
+/** Workouts per week the user aims for: explicit goal, else planned training days, else 3. */
+export function weeklyGoalFor(weeklyWorkoutGoal: number | null | undefined, daysPerWeek: number | null | undefined): number {
+  const goal = weeklyWorkoutGoal ?? daysPerWeek ?? 3;
+  return Math.min(7, Math.max(1, Math.round(goal)));
+}
+
+export interface WeeklyStreak {
+  /** Consecutive goal-met weeks ending with the current week (if already met) or last week. */
+  currentWeeks: number;
+  longestWeeks: number;
+}
+
+/**
+ * Weekly-goal streaks from qualifying-workout counts per week (keys are week-start dates
+ * `YYYY-MM-DD`, using the same week-start convention as `currentWeekStart`).
+ */
+export function computeWeeklyStreak(weekCounts: ReadonlyMap<string, number>, goal: number, currentWeekStart: string): WeeklyStreak {
+  const met = new Set<string>();
+  for (const [week, count] of weekCounts) if (count >= goal && week <= currentWeekStart) met.add(week);
+  let currentWeeks = 0;
+  let week = met.has(currentWeekStart) ? currentWeekStart : addDays(currentWeekStart, -7);
+  while (met.has(week)) {
+    currentWeeks++;
+    week = addDays(week, -7);
+  }
+  let longestWeeks = 0;
+  let run = 0;
+  let prev: string | null = null;
+  for (const w of Array.from(met).sort()) {
+    run = prev && diffDays(w, prev) === 7 ? run + 1 : 1;
+    longestWeeks = Math.max(longestWeeks, run);
+    prev = w;
+  }
+  return { currentWeeks, longestWeeks: Math.max(longestWeeks, currentWeeks) };
+}

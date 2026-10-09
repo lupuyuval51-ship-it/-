@@ -1,0 +1,51 @@
+import { dayOfWeek } from '@shared/dates';
+import type { DashboardDTO } from '@shared/types';
+import { Card, Icon, ProgressBar } from '../../components/ui';
+import { useI18n } from '../../i18n';
+import { LevelProgress } from '../gamification/LevelProgress';
+
+/** "X of Y workouts" with week-day dots, the streak and the level/XP bar. */
+export function WeeklyGoalCard({ data }: { data: Pick<DashboardDTO, 'today' | 'weeklyGoal' | 'weekDays' | 'streakWeeks' | 'level'> }) {
+  const { t, tx } = useI18n();
+  const { weeklyGoal: goal, weekDays, streakWeeks, today } = data;
+  const remaining = Math.max(0, goal.target - goal.completed);
+  return (
+    <Card
+      title={t('dashboard.weekly.title')}
+      className="dash-weekly"
+      actions={
+        <span className={`streak-pill${streakWeeks ? '' : ' streak-pill-empty'}`}>
+          <Icon name="flame" size={16} />
+          {streakWeeks ? t('dashboard.weekly.streak', { count: streakWeeks }) : t('dashboard.weekly.noStreak')}
+        </span>
+      }
+    >
+      <div className="stack-sm">
+        <strong className="weekly-count num">{t('dashboard.weekly.progress', { completed: goal.completed, target: goal.target })}</strong>
+        <ProgressBar value={goal.completed} max={goal.target} tone={goal.met ? 'success' : 'primary'} label={t('dashboard.weekly.progressLabel')} showOver={false} />
+        <ul className="week-dots" aria-label={t('dashboard.weekly.days')}>
+          {weekDays.map((d) => {
+            const dow = String(dayOfWeek(d.date));
+            const name = tx(`common.time.weekdays.${dow}`);
+            const done = d.workouts > 0;
+            return (
+              <li key={d.date} className={`week-dot${done ? ' week-dot-done' : ''}${d.date === today ? ' week-dot-today' : ''}`}>
+                <span className="week-dot-mark" aria-hidden="true">
+                  {done ? <Icon name="check" size={14} /> : null}
+                </span>
+                <span className="week-dot-label" aria-hidden="true">
+                  {tx(`common.time.weekdaysShort.${dow}`)}
+                </span>
+                <span className="visually-hidden">{t(done ? 'dashboard.weekly.dayTrained' : 'dashboard.weekly.dayRest', { day: name })}</span>
+              </li>
+            );
+          })}
+        </ul>
+        <p className={goal.met ? 'weekly-met' : 'muted'}>{goal.met ? t('dashboard.weekly.met') : t('dashboard.weekly.remaining', { count: remaining })}</p>
+        <p className="faint small">{t('dashboard.weekly.rule')}</p>
+      </div>
+      <hr className="divider" />
+      <LevelProgress level={data.level} />
+    </Card>
+  );
+}

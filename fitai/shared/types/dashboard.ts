@@ -19,8 +19,16 @@ export interface DashboardDTO {
   } | null;
   activeSession: { id: string; name: string; status: 'in_progress' | 'paused'; startedAt: ISODateTime } | null;
   lastWorkout: { id: string; name: string; endedAt: ISODateTime; durationSeconds: number | null } | null;
-  nutritionToday: { totals: Macros; targets: NutritionTargetsDTO | null; entryCount: number };
+  nutritionToday: {
+    totals: Macros;
+    targets: NutritionTargetsDTO | null;
+    entryCount: number;
+    /** When the most recent entry for today was logged (drives meal-logging reminders). */
+    lastLoggedAt: ISODateTime | null;
+  };
   weeklyGoal: WeeklyGoalDTO;
+  /** The 7 days of the current week (week start per locale) with completed workouts per day. */
+  weekDays: { date: ISODate; workouts: number }[];
   streakWeeks: number;
   level: LevelInfo;
   recentRecords: PersonalRecordDTO[];
