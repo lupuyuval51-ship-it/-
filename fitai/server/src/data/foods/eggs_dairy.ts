@@ -16,7 +16,7 @@ export const foods: FoodSeed[] = [
   // ---------------------------------------------------------------- eggs
   {
     slug: 'egg_whole_raw',
-    name: { en: 'Egg, whole (raw)', he: 'ביצה שלמה (נאה)' },
+    name: { en: 'Egg, whole (raw)', he: 'ביצה שלמה (נא)' },
     category: 'eggs',
     per100g: { kcal: 143, protein: 12.6, carbs: 0.7, fat: 9.5, fiber: 0, sugar: 0.4, sodiumMg: 142 },
     serving: { grams: 50, label: { en: '1 large egg (50 g)', he: 'ביצה גדולה אחת (50 גרם)' } },
@@ -36,7 +36,7 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'egg_white',
-    name: { en: 'Egg white', he: 'חלבון ביצה' },
+    name: { en: 'Egg white (raw or cooked)', he: 'חלבון ביצה' },
     category: 'eggs',
     per100g: { kcal: 52, protein: 10.9, carbs: 0.7, fat: 0.2, fiber: 0, sugar: 0.7, sodiumMg: 166 },
     serving: { grams: 33, label: { en: '1 large egg white (33 g)', he: 'חלבון של ביצה גדולה (33 גרם)' } },
@@ -88,7 +88,7 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'milk_lactose_free_2pct',
-    name: { en: 'Lactose-free milk 2%', he: 'חלב דל לקטוז 2%' },
+    name: { en: 'Lactose-free milk 2%', he: 'חלב ללא לקטוז 2%' },
     category: 'dairy',
     per100g: { kcal: 50, protein: 3.3, carbs: 4.7, fat: 2.0, fiber: 0, sugar: 4.7, sodiumMg: 44 },
     serving: { grams: 248, label: { en: '1 glass (240 ml)', he: 'כוס אחת (240 מ״ל)' } },

@@ -25,7 +25,8 @@ import type { FoodSeed } from '@shared/content';
  *    - Tuna salad: tuna in water (drained) + ~17% mayonnaise + onion + pickle.
  *    - Beef kebab: SR ground beef 80/20 cooked + ~10% onion/parsley, ~1% salt.
  *  - Falafel: SR "Falafel, home-prepared" (fiber/sugar estimated from the chickpea base).
- *    Traditional chickpea-only recipe — some store mixes add wheat flour/breadcrumbs.
+ *    Flagged gluten (conservative): many stands, frozen products and mixes add wheat
+ *    flour/breadcrumbs, and falafel is often fried in oil shared with breaded foods.
  *  - Hummus, matbucha, prepared tahini: typical Israeli store-salad label values for the
  *    generic product (Israeli hummus is richer in tahini than the SR "commercial" entry).
  *    Prepared tahini = raw tahini : water/lemon ≈ 1 : 1, salted.
@@ -34,6 +35,8 @@ import type { FoodSeed } from '@shared/content';
  *  - Peanut puffs, wheat snack, halva, cereal bar, chocolate milk, oat drink, protein bar,
  *    whey and pea protein powders: typical label values for the generic product.
  *  - Dark chocolate 70%: SR "Chocolate, dark, 70–85% cacao" cross-checked with 70% labels.
+ *  - Grill-flavored wheat snack and whey powder are flagged soy (soy in seasoning /
+ *    soy lecithin used for instantizing), conservative.
  *  - Chocolates are flagged soy (soy lecithin is the usual emulsifier); vanilla ice cream
  *    is flagged egg because many vanilla ice creams contain egg yolk (conservative).
  *  - Honey uses animalSource 'dairy_egg' — it is an animal product that vegetarians eat
@@ -59,9 +62,9 @@ export const foods: FoodSeed[] = [
     category: 'prepared_dishes',
     per100g: { kcal: 333, protein: 13.3, carbs: 31.8, fat: 17.8, fiber: 4.9, sugar: 2.0, sodiumMg: 294 },
     serving: { grams: 85, label: { en: '5 balls (85 g)', he: '5 כדורים (85 גרם)' } },
-    allergens: [],
+    allergens: ['gluten'],
     animalSource: 'none',
-    contains: [],
+    contains: ['gluten'],
   },
   {
     slug: 'shakshuka',
@@ -97,7 +100,7 @@ export const foods: FoodSeed[] = [
     slug: 'majadra',
     name: { en: 'Majadra (lentils & rice)', he: "מג'דרה (עדשים ואורז)" },
     category: 'prepared_dishes',
-    per100g: { kcal: 160, protein: 5.1, carbs: 23.9, fat: 5.1, fiber: 2.3, sugar: 1.3, sodiumMg: 195 },
+    per100g: { kcal: 160, protein: 5.1, carbs: 23.9, fat: 5.1, fiber: 3.2, sugar: 1.3, sodiumMg: 195 },
     serving: { grams: 250, label: { en: '1 plate (250 g)', he: 'צלחת (250 גרם)' } },
     allergens: [],
     animalSource: 'none',
@@ -155,7 +158,7 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'french_fries',
-    name: { en: 'French fries (deep-fried)', he: "צ'יפס (טוגנים מטוגנים)" },
+    name: { en: 'French fries (deep-fried)', he: "צ'יפס (מטוגן בשמן עמוק)" },
     category: 'prepared_dishes',
     per100g: { kcal: 312, protein: 3.4, carbs: 41.4, fat: 14.7, fiber: 3.8, sugar: 0.3, sodiumMg: 210 },
     serving: { grams: 120, label: { en: '1 medium portion (120 g)', he: 'מנה בינונית (120 גרם)' } },
@@ -197,7 +200,7 @@ export const foods: FoodSeed[] = [
   // ---------------------------------------------------------------- snacks & sweets
   {
     slug: 'peanut_puffs',
-    name: { en: 'Peanut puffs (Bamba-type)', he: 'במבה (חטיף תירס בוטנים)' },
+    name: { en: 'Peanut puffs (Bamba-type)', he: 'חטיף בוטנים (בסגנון במבה)' },
     category: 'snacks_sweets',
     per100g: { kcal: 537, protein: 15.0, carbs: 47.0, fat: 34.0, fiber: 4.0, sugar: 3.6, sodiumMg: 440 },
     serving: { grams: 25, label: { en: '1 small bag (25 g)', he: 'שקית קטנה (25 גרם)' } },
@@ -207,11 +210,11 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'wheat_snack_grill',
-    name: { en: 'Wheat snack, grill flavor (Bissli-type)', he: 'ביסלי (חטיף חיטה בטעם גריל)' },
+    name: { en: 'Wheat snack, grill flavor (Bissli-type)', he: 'חטיף חיטה בטעם גריל (בסגנון ביסלי)' },
     category: 'snacks_sweets',
     per100g: { kcal: 490, protein: 9.5, carbs: 65.5, fat: 21.5, fiber: 2.5, sugar: 4.0, sodiumMg: 950 },
     serving: { grams: 25, label: { en: '1 small bag (25 g)', he: 'שקית קטנה (25 גרם)' } },
-    allergens: ['gluten'],
+    allergens: ['gluten', 'soy'],
     animalSource: 'none',
     contains: ['gluten'],
   },
@@ -537,7 +540,7 @@ export const foods: FoodSeed[] = [
     category: 'supplements',
     per100g: { kcal: 395, protein: 78.0, carbs: 10.0, fat: 5.0, fiber: 0.5, sugar: 4.0, sodiumMg: 350 },
     serving: { grams: 30, label: { en: '1 scoop (30 g)', he: 'סקופ אחד (30 גרם)' } },
-    allergens: ['dairy'],
+    allergens: ['dairy', 'soy'],
     animalSource: 'dairy_egg',
     contains: ['lactose'],
   },

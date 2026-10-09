@@ -3,6 +3,13 @@ import type { Translations } from '../types';
 
 const exercises: Translations<typeof en> = {
   title: 'מאגר תרגילים',
+  animation: {
+    label: 'הדגמה מונפשת של התרגיל',
+    play: 'הפעלה',
+    pause: 'השהיה',
+    speed: 'מהירות ניגון',
+    targetMuscles: 'שרירי מטרה',
+  },
   picker: {
     title: 'בחירת תרגיל',
     searchLabel: 'חיפוש תרגילים',

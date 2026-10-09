@@ -186,7 +186,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'קצרו את טווח התנועה (הזיזו רק את הרגל, או השאירו את הברך כפופה) אם הגב התחתון מתחיל להתרומם.',
-        'הפסיקו אם אתם מרגישים כאב בגב התחתון או בירכיים.',
+        'הפסיקו אם אתם מרגישים כאב בגב התחתון או במפרקי הירך.',
       ],
     },
     contraindications: [],
@@ -251,7 +251,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'השתמשו במזרן או במגבת מקופלת מתחת לברכיים לנוחות.',
         'אם הושטה משולבת של יד ורגל קשה מדי, תרגלו תחילה הושטה של הרגל בלבד או של היד בלבד.',
-        'הפסיקו אם אתם מרגישים כאב חד בגב, בירכיים או בשורשי כף היד.',
+        'הפסיקו אם אתם מרגישים כאב חד בגב, במפרקי הירך או בשורשי כף היד.',
       ],
     },
     contraindications: [],
@@ -504,7 +504,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'כופפו את הברכיים או קצרו את הטווח אם אינכם מצליחים לשמור על הגב התחתון צמוד.',
-        'וותרו על התרגיל אם הוא גורם לכאב בגב התחתון או מגביר אותו, ובחרו במקומו בדד באג.',
+        'ותרו על התרגיל אם הוא גורם לכאב בגב התחתון או מגביר אותו, ובחרו במקומו בדד באג.',
         'השתמשו במזרן כדי להגן על עצם הזנב ועל עמוד השדרה.',
       ],
     },
@@ -631,7 +631,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'שלטו היטב בהרמות ברכיים בתלייה לפני שאתם מתקדמים לרגליים ישרות.',
         'ודאו שהמוט יציב ובטוח לפני שאתם נתלים.',
-        'הפסיקו אם אתם מרגישים כאב בכתפיים, בגב התחתון או בירכיים.',
+        'הפסיקו אם אתם מרגישים כאב בכתפיים, בגב התחתון או במפרקי הירך.',
       ],
     },
     contraindications: ['shoulder', 'lower_back'],
@@ -694,7 +694,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'הימנעו מהתרגיל אם יש לכם כרגע כאב בגב התחתון; תרגילים נגד סיבוב, כמו פאלוף פרס, הם חלופה בטוחה יותר.',
         'שמרו על טווח סיבוב נוח ומבוקר במקום לכפות אותו.',
-        'הפסיקו אם אתם מרגישים כאב חד בגב או בירכיים.',
+        'הפסיקו אם אתם מרגישים כאב חד בגב או במפרקי הירך.',
       ],
     },
     contraindications: ['lower_back'],
@@ -723,7 +723,7 @@ export const exercises: ExerciseSeed[] = [
         'Set the cable pulley at the top position with a single handle or rope, and stand side-on to the machine with your feet a little wider than shoulder width.',
         'Reach up and grab the handle with both hands, arms nearly straight, so the cable runs diagonally across your body.',
         'Brace your abs, then pull the handle down and across your body toward the opposite hip, rotating through your torso and hips.',
-        'Pivot on your back foot and let your hips turn with the movement; keep your arms long so the trunk drives the motion.',
+        'Pivot on the foot nearest the machine and let your hips turn with the movement; keep your arms long so the trunk drives the motion.',
         'Exhale as you chop, then return slowly to the start against the cable resistance.',
         'Complete all reps on one side before switching to the other.',
       ],
@@ -731,7 +731,7 @@ export const exercises: ExerciseSeed[] = [
         'כוונו את גלגלת הכבל למיקום העליון עם ידית בודדת או חבל, ועמדו עם הצד אל המכונה כשהרגליים מעט רחבות מרוחב הכתפיים.',
         'הושיטו את הידיים למעלה ואחזו את הידית בשתי הידיים, כשהידיים כמעט ישרות והכבל עובר באלכסון לרוחב הגוף.',
         'נעלו את הבטן ומשכו את הידית מטה ולרוחב הגוף לכיוון הירך הנגדית, תוך סיבוב הגו והאגן.',
-        'הסתובבו על כף הרגל האחורית ותנו לאגן להסתובב עם התנועה; השאירו את הידיים ארוכות כך שהגו יוביל את התנועה.',
+        'סובבו את כף הרגל הקרובה למכונה ותנו לאגן להסתובב עם התנועה; השאירו את הידיים ארוכות כך שהגו יוביל את התנועה.',
         'נשפו בזמן המשיכה, וחזרו לאט לנקודת ההתחלה נגד התנגדות הכבל.',
         'השלימו את כל החזרות בצד אחד לפני המעבר לצד השני.',
       ],
@@ -832,7 +832,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'ab_wheel_rollout',
-    name: { en: 'Ab Wheel Rollout', he: 'רולאאוט בגלגלת בטן' },
+    name: { en: 'Ab Wheel Rollout', he: 'גלגלת בטן (רול-אאוט)' },
     description: {
       en: 'From a kneeling position, you roll an ab wheel forward until your body is nearly extended, then pull it back using your abs. It is one of the most effective anti-extension core exercises and also challenges the lats and shoulders.',
       he: 'מתנוחת כריעה מגלגלים את גלגלת הבטן קדימה עד שהגוף כמעט מתוח, ומחזירים אותה בעזרת שרירי הבטן. זהו אחד מתרגילי הליבה היעילים ביותר נגד הקשתת הגב, והוא מאתגר גם את הגב הרחב ואת הכתפיים.',

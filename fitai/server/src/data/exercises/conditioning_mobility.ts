@@ -64,8 +64,8 @@ export const exercises: ExerciseSeed[] = [
       ],
     },
     contraindications: ['knee', 'ankle'],
-    easierAlternatives: ['bodyweight_squat'],
-    harderAlternatives: ['box_jump', 'broad_jump'],
+    easierAlternatives: ['bodyweight_squat', 'box_jump'],
+    harderAlternatives: ['broad_jump', 'lateral_bound'],
     loadIncrementKg: null,
   },
   {
@@ -142,7 +142,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Broad Jump', he: 'קפיצה לרוחק מהמקום' },
     description: {
       en: 'A standing long jump: from a two-foot stance you swing your arms and jump forward as far as possible, landing on both feet. It trains horizontal power through the glutes and hamstrings and is a classic test and builder of athletic explosiveness.',
-      he: 'קפיצה לרוחק מעמידה: מעמידה על שתי רגליים מניפים את הידיים וקופצים קדימה רחוק ככל האפשר, ונוחתים על שתי הרגליים. מאמנת כוח מתפרץ אופקי דרך הישבן והירך האחורית, והיא מבחן ותרגיל קלאסי לפיתוח יכולת פיצוץ אתלטית.',
+      he: 'קפיצה לרוחק מעמידה: מעמידה על שתי רגליים מניפים את הידיים וקופצים קדימה רחוק ככל האפשר, ונוחתים על שתי הרגליים. מאמנת כוח מתפרץ אופקי דרך הישבן והירך האחורית, והיא תרגיל ומבחן קלאסי ליכולת התפרצות אתלטית.',
     },
     primaryMuscles: ['glutes', 'quadriceps'],
     secondaryMuscles: ['hamstrings', 'calves'],
@@ -391,7 +391,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'עברו לגרסה ללא קפיצה, שבה פוסעים הצידה רגל אחת בכל פעם, אם הקפיצות לא נוחות לכם.',
         'נעלו נעליים תומכות והעדיפו משטח בולם על פני בטון כשאפשר.',
-        'הפסיקו אם אתם מרגישים כאב בברכיים, בקרסוליים או בשוקיים.',
+        'הפסיקו אם אתם מרגישים כאב בברכיים, בקרסוליים או בקדמת השוק.',
       ],
     },
     contraindications: ['knee', 'ankle'],
@@ -404,7 +404,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Jump Rope', he: 'קפיצה בחבל' },
     description: {
       en: 'Continuous skipping with a jump rope using small, quick bounces on the balls of the feet. It is an efficient cardio workout that also builds calf and ankle resilience, coordination and footwork.',
-      he: 'קפיצה רציפה בחבל בעזרת ניתורים קטנים ומהירים על כריות כפות הרגליים. אימון אירובי יעיל שגם מחזק את השוקיים והקרסוליים ומשפר קואורדינציה ועבודת רגליים.',
+      he: 'קפיצה רציפה בחבל בעזרת ניתורים קטנים ומהירים על כריות כפות הרגליים. אימון אירובי יעיל שגם מחזק את שרירי התאומים והקרסוליים ומשפר קואורדינציה ועבודת רגליים.',
     },
     primaryMuscles: ['calves'],
     secondaryMuscles: ['quadriceps', 'shoulders', 'forearms'],
@@ -455,10 +455,10 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel pain in your shins, calves, Achilles tendon or ankles.',
       ],
       he: [
-        'הגדילו את נפח הקפיצות בהדרגה, כי השוקיים וגיד אכילס צריכים זמן להסתגל.',
+        'הגדילו את נפח הקפיצות בהדרגה, כי שרירי התאומים וגיד אכילס צריכים זמן להסתגל.',
         'קפצו על משטח בולם כמו רצפת עץ או מזרן גומי, ונעלו נעליים תומכות.',
         'פנו את השטח מעליכם ומסביבכם לפני שמתחילים.',
-        'הפסיקו אם אתם מרגישים כאב בשוקיים, בשרירי התאומים, בגיד אכילס או בקרסוליים.',
+        'הפסיקו אם אתם מרגישים כאב בקדמת השוק, בשרירי התאומים, בגיד אכילס או בקרסוליים.',
       ],
     },
     contraindications: ['knee', 'ankle'],
@@ -524,7 +524,7 @@ export const exercises: ExerciseSeed[] = [
         'הפסיקו אם אתם מרגישים כאב בברכיים, בקרסוליים או באגן.',
       ],
     },
-    contraindications: ['knee', 'ankle'],
+    contraindications: ['knee', 'ankle', 'hip'],
     easierAlternatives: ['jumping_jack', 'brisk_walk_jog'],
     harderAlternatives: ['sprint_intervals', 'burpee'],
     loadIncrementKg: null,
@@ -668,7 +668,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Cardio Machine Intervals', he: 'אינטרוולים על מכשיר אירובי' },
     description: {
       en: 'Interval training on a cardio machine such as a stationary bike, rower, elliptical or treadmill, alternating harder work periods with easier recovery periods. It improves cardiovascular fitness efficiently, and low-impact machines are gentle on the joints.',
-      he: 'אימון אינטרוולים על מכשיר אירובי כמו אופני כושר, מכונת חתירה, אליפטיקל או הליכון, לסירוגין בין קטעי עבודה מאומצים לקטעי התאוששות קלים. משפר את כושר הלב-ריאה ביעילות, ומכשירים בעצימות פגיעה נמוכה עדינים למפרקים.',
+      he: 'אימון אינטרוולים על מכשיר אירובי כמו אופני כושר, מכונת חתירה, אליפטיקל או הליכון, לסירוגין בין קטעי עבודה מאומצים לקטעי התאוששות קלים. משפר את כושר הלב-ריאה ביעילות, ומכשירים ללא זעזועים, כמו אופניים או אליפטיקל, עדינים למפרקים.',
     },
     primaryMuscles: ['quadriceps', 'glutes'],
     secondaryMuscles: ['hamstrings', 'calves'],
@@ -691,7 +691,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'בחרו מכשיר וכווננו אותו נכון, למשל התאימו את גובה מושב האופניים כך שהברך נשארת כפופה מעט בנקודה התחתונה של הדיווש.',
         'התחממו 5 דקות בקצב קל ונוח.',
-        'בצעו קטע עבודה, למשל 30–60 שניות, במאמץ גבוה אך בר-קיימא שבו קשה לדבר.',
+        'בצעו קטע עבודה, למשל 30–60 שניות, במאמץ גבוה שעדיין אפשר להחזיק, שבו קשה לדבר.',
         'המשיכו בקטע התאוששות שווה או ארוך יותר בקצב קל, תוך נשימות עמוקות להורדת הדופק.',
         'חזרו על כך למספר האינטרוולים המתוכנן, ושמרו על מאמץ עבודה אחיד מהראשון ועד האחרון.',
         'שחררו 5 דקות בקצב קל לפני שאתם יורדים מהמכשיר.',
@@ -720,7 +720,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'למדו את הפעלת המכשיר ואת עצירת החירום לפני שמתחילים, במיוחד בהליכון.',
-        'בחרו אפשרות עם פגיעה נמוכה במפרקים, כמו אופניים או אליפטיקל, אם המפרקים שלכם רגישים.',
+        'בחרו מכשיר ללא זעזועים, כמו אופניים או אליפטיקל, אם המפרקים שלכם רגישים.',
         'הגדילו את מספר האינטרוולים ואת עצימותם בהדרגה לאורך כמה שבועות.',
         'הפסיקו אם אתם מרגישים כאב בחזה, סחרחורת או קוצר נשימה חריג.',
       ],
@@ -789,8 +789,8 @@ export const exercises: ExerciseSeed[] = [
       ],
     },
     contraindications: ['shoulder', 'lower_back'],
-    easierAlternatives: ['mountain_climber'],
-    harderAlternatives: ['burpee'],
+    easierAlternatives: ['cable_woodchop', 'mountain_climber'],
+    harderAlternatives: ['burpee', 'kettlebell_swing'],
     loadIncrementKg: null,
   },
   {
@@ -863,7 +863,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Cat-Cow', he: 'חתול-פרה' },
     description: {
       en: 'A gentle mobility drill on hands and knees that alternates between rounding and arching the spine. It improves spinal mobility, eases stiffness and makes an excellent warm-up for the back and hips.',
-      he: 'תרגיל ניעות עדין בעמידת שש שמחליף בין עיגול הגב להקשתתו. משפר את התנועתיות של עמוד השדרה, משחרר נוקשות ומהווה חימום מצוין לגב ולאגן.',
+      he: 'תרגיל ניעות עדין בעמידת שש שמחליף בין עיגול הגב להקשתה שלו. משפר את התנועתיות של עמוד השדרה, משחרר נוקשות ומהווה חימום מצוין לגב ולאגן.',
     },
     primaryMuscles: ['lower_back'],
     secondaryMuscles: ['abs', 'upper_back'],
@@ -939,15 +939,15 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'From a high plank, step your right foot forward to the outside of your right hand into a deep lunge, keeping your left leg long behind you.',
         'Lower your right elbow toward the inside of your right foot, feeling a stretch in your left hip flexor and right groin.',
-        'Place your right hand outside your foot, then rotate your chest open and reach your right arm toward the ceiling, following it with your eyes.',
-        'Return your hand to the floor, then shift your hips back and straighten your front leg to stretch the right hamstring.',
+        'Plant your left hand on the floor inside your right foot, then rotate your chest open to the right and reach your right arm toward the ceiling, following it with your eyes.',
+        'Return your right hand to the floor, then shift your hips back and straighten your front leg to stretch the right hamstring.',
         'Step back to the plank and repeat on the other side, exhaling as you move into each stretch.',
       ],
       he: [
         'מפלאנק על כפות הידיים, צעדו עם רגל ימין קדימה אל מחוץ לכף יד ימין למכרע עמוק, כשרגל שמאל ארוכה מאחור.',
         'הורידו את מרפק ימין לכיוון הצד הפנימי של כף רגל ימין, והרגישו מתיחה במכופף הירך השמאלי ובמפשעה הימנית.',
-        'הניחו את כף יד ימין מחוץ לכף הרגל, ואז סובבו את החזה ופתחו אותו כשאתם מושיטים את יד ימין לכיוון התקרה ועוקבים אחריה במבט.',
-        'החזירו את היד לרצפה, ואז שלחו את האגן לאחור ויישרו את הרגל הקדמית כדי למתוח את הירך האחורית הימנית.',
+        'הניחו את כף יד שמאל על הרצפה בצד הפנימי של כף רגל ימין, ואז סובבו ופתחו את החזה ימינה כשאתם מושיטים את יד ימין לכיוון התקרה ועוקבים אחריה במבט.',
+        'החזירו את יד ימין לרצפה, ואז שלחו את האגן לאחור ויישרו את הרגל הקדמית כדי למתוח את הירך האחורית הימנית.',
         'חזרו בצעד לפלאנק ובצעו את הצד השני, ונשפו בכל כניסה למתיחה.',
       ],
     },
@@ -1015,12 +1015,12 @@ export const exercises: ExerciseSeed[] = [
     mistakes: {
       en: [
         'Arching the lower back instead of tucking the pelvis and squeezing the glute.',
-        'Lunging so far forward that the stretch shifts away from the front of the hip.',
+        'Letting the pelvis rotate open or the front knee drift inward instead of keeping the hips square and facing forward.',
         'Letting the torso lean forward.',
       ],
       he: [
         'הקשתת הגב התחתון במקום לגלגל את האגן פנימה ולכווץ את הישבן.',
-        'התקדמות רחוקה מדי קדימה, כך שהמתיחה עוברת מהחלק הקדמי של הירך.',
+        'סיבוב האגן הצידה או קריסת הברך הקדמית פנימה, במקום לשמור על אגן ישר שפונה קדימה.',
         'הטיית פלג הגוף העליון קדימה.',
       ],
     },

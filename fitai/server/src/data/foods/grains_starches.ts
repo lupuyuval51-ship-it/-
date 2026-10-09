@@ -5,7 +5,7 @@ import type { FoodSeed } from '@shared/content';
  * category `vegetables` but live here). Values are per 100 g as eaten; carbs are TOTAL
  * carbohydrate including fiber.
  * Sources: USDA FoodData Central SR Legacy for rice (white long-grain / brown), pasta,
- * whole-wheat spaghetti, couscous, bulgur, quinoa, buckwheat groats, oats, oatmeal,
+ * whole-wheat pasta (SR28 revised entry, 149 kcal), couscous, bulgur, quinoa, buckwheat groats, oats, oatmeal,
  * white / whole-wheat / egg bread (challah), pita, bagel, rice cakes, corn tortilla,
  * potato and sweet potato. Cooked grains are "without added salt".
  * Typical generic label values (cross-checked against USDA where an entry exists) for
@@ -62,7 +62,7 @@ export const foods: FoodSeed[] = [
     slug: 'pasta_whole_wheat_cooked',
     name: { en: 'Whole-wheat pasta (cooked)', he: 'פסטה מחיטה מלאה (מבושלת)' },
     category: 'grains',
-    per100g: { kcal: 124, protein: 5.3, carbs: 26.5, fat: 0.5, fiber: 4.5, sugar: 0.8, sodiumMg: 3 },
+    per100g: { kcal: 149, protein: 6.0, carbs: 30.1, fat: 1.7, fiber: 3.9, sugar: 0.8, sodiumMg: 4 },
     serving: { grams: 140, label: { en: '1 cup (140 g)', he: 'כוס אחת (140 גרם)' } },
     allergens: ['gluten'],
     animalSource: 'none',
@@ -135,7 +135,7 @@ export const foods: FoodSeed[] = [
     name: { en: 'Oatmeal, cooked with water', he: 'דייסת שיבולת שועל (במים)' },
     category: 'grains',
     per100g: { kcal: 71, protein: 2.5, carbs: 12.0, fat: 1.5, fiber: 1.7, sugar: 0.3, sodiumMg: 4 },
-    serving: { grams: 234, label: { en: '1 cup (234 g)', he: 'קערה אחת (234 גרם)' } },
+    serving: { grams: 234, label: { en: '1 cup (234 g)', he: 'כוס אחת (234 גרם)' } },
     allergens: ['gluten'],
     animalSource: 'none',
     contains: ['gluten'],

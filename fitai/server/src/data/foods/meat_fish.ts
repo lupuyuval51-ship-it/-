@@ -105,9 +105,12 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'beef_sirloin_steak_cooked',
-    name: { en: 'Beef sirloin steak, grilled', he: 'סטייק סינטה צלוי' },
+    // Israeli "סינטה" is the strip loin (UK sirloin / US top loin, NY strip), not US
+    // "top sirloin" (which is closer to שייטל). USDA 170239: top loin steak, lean and
+    // fat, trimmed to 0" fat, all grades, grilled.
+    name: { en: 'Beef sirloin (strip loin / NY strip) steak, grilled', he: 'סטייק סינטה צלוי' },
     category: 'meat',
-    per100g: { kcal: 212, protein: 29.3, carbs: 0, fat: 9.7, fiber: 0, sugar: 0, sodiumMg: 61 },
+    per100g: { kcal: 223, protein: 28.6, carbs: 0, fat: 11.2, fiber: 0, sugar: 0, sodiumMg: 59 },
     serving: { grams: 150, label: { en: '1 steak (150 g)', he: 'סטייק אחד (150 גרם)' } },
     allergens: [],
     animalSource: 'meat',

@@ -7,6 +7,8 @@ import type { FoodSeed } from '@shared/content';
  * - White mushrooms: USDA Foundation ("Mushrooms, white button"; energy by Atwater
  *   specific factors). The SR Legacy entry's 22 kcal uses mushroom-specific factors that
  *   do not match its own macros; sugar is the SR Legacy value (Foundation reports none).
+ *   Foundation also reports no fiber; 1.7 g is a typical analytical value for fresh
+ *   Agaricus bisporus incl. chitin (SR Legacy lists 1.0 g, within 1 g of this).
  * - Cherry tomatoes: USDA Foundation ("Tomatoes, grape, raw"). Foundation reports no
  *   sugar value, so sugar is estimated from available carbohydrate using the same
  *   sugar share as USDA's regular tomato entry.

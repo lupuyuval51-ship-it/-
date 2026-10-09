@@ -1,6 +1,13 @@
 /** Owned by the exercises feature. Hebrew (he/exercises.ts) must have exactly the same keys. */
 const exercises = {
   title: 'Exercise library',
+  animation: {
+    label: 'Animated demonstration of the exercise',
+    play: 'Play',
+    pause: 'Pause',
+    speed: 'Playback speed',
+    targetMuscles: 'Target muscles',
+  },
   picker: {
     title: 'Choose an exercise',
     searchLabel: 'Search exercises',

@@ -127,7 +127,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'השתמשו במוטות בטיחות ולמדו לשחרר את המוט קדימה בבטחה אם נכשלתם בחזרה.',
-        'שפרו את הגמישות בשורשי כף היד, בגב הרחב ובגב העליון לפני עבודה כבדה; אם תנוחת הפרונט ראק מכאיבה לשורשי כף היד, עברו לאחיזה בידיים משוכלות.',
+        'שפרו את הגמישות בשורשי כף היד, בשריר הרחב הגבי ובגב העליון לפני עבודה כבדה; אם תנוחת הפרונט ראק מכאיבה לשורשי כף היד, עברו לאחיזה בידיים משוכלות.',
         'התחילו במשקל נמוך משמעותית ממשקל הסקוואט האחורי שלכם והתקדמו בהדרגה.',
         'הפסיקו אם אתם מרגישים כאב חד בברכיים, בשורשי כף היד או בגב התחתון.',
       ],
@@ -220,7 +220,7 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Hold one dumbbell vertically by one end with both hands, cupped against your chest just under your chin.',
+        'Hold one dumbbell vertically with both hands cupping its top end, close against your chest just under your chin.',
         'Stand with your feet slightly wider than shoulder width and your toes turned out a little.',
         'Take a breath and brace, then sit down between your heels, bending your hips and knees together.',
         'Keep your chest up and your elbows inside your knees, pushing the knees out in line with your toes.',
@@ -228,7 +228,7 @@ export const exercises: ExerciseSeed[] = [
         'Drive through the whole foot to stand back up, exhaling as you finish the rep.',
       ],
       he: [
-        'החזיקו משקולת יד אחת אנכית בשתי הידיים בקצה אחד שלה, צמודה לחזה ממש מתחת לסנטר.',
+        'החזיקו משקולת יד אחת אנכית, כששתי כפות הידיים עוטפות את הראש העליון שלה, צמודה לחזה ממש מתחת לסנטר.',
         'עמדו כשהרגליים מעט רחבות מרוחב הכתפיים וקצות האצבעות פונים מעט החוצה.',
         'קחו נשימה ונעלו את הבטן, ואז רדו לישיבה בין העקבים תוך כיפוף משותף של מפרקי הירך והברכיים.',
         'שמרו על חזה פתוח ועל המרפקים בתוך קו הברכיים, ודחפו את הברכיים החוצה בכיוון קצות האצבעות.',
@@ -507,12 +507,12 @@ export const exercises: ExerciseSeed[] = [
     safety: {
       en: [
         'Make sure the walking path is clear and the floor is not slippery.',
-        'Start with shorter, controlled steps until your balance is solid.',
+        'Start slowly, pausing briefly between steps (or practise stationary reverse lunges first) until your balance is solid.',
         'Stop if you feel sharp pain in the knees.',
       ],
       he: [
         'ודאו שמסלול ההליכה פנוי והרצפה אינה חלקה.',
-        'התחילו בצעדים קצרים ומבוקרים עד ששיווי המשקל יציב.',
+        'התחילו לאט, עם עצירה קצרה בין צעד לצעד (או תרגלו קודם מכרעים לאחור במקום), עד ששיווי המשקל יציב.',
         'הפסיקו אם אתם מרגישים כאב חד בברכיים.',
       ],
     },
@@ -542,7 +542,7 @@ export const exercises: ExerciseSeed[] = [
         'Stand tall with your feet hip width apart and your core braced.',
         'Step one foot back about a long stride, landing on the ball of the foot.',
         'Inhale and lower your back knee toward the floor until both knees are bent to about 90 degrees, keeping your torso upright.',
-        'Keep the front knee over the midfoot and most of your weight on the front heel.',
+        'Keep the front knee tracking over the toes and your weight spread over the front heel and midfoot.',
         'Push through the front foot to return to standing, exhaling as you bring the back foot forward.',
         'Alternate legs, or complete all reps on one side before switching.',
       ],
@@ -550,7 +550,7 @@ export const exercises: ExerciseSeed[] = [
         'עמדו זקופים, רגליים ברוחב האגן ושרירי המרכז נעולים.',
         'צעדו עם רגל אחת לאחור כצעד ארוך, ונחתו על כרית כף הרגל.',
         'שאפו והורידו את הברך האחורית לכיוון הרצפה עד ששתי הברכיים כפופות לכ-90 מעלות, תוך שמירה על גו זקוף.',
-        'שמרו על הברך הקדמית מעל אמצע כף הרגל ועל רוב המשקל על העקב הקדמי.',
+        'שמרו על הברך הקדמית בכיוון קצות האצבעות ועל המשקל מפוזר על העקב ואמצע כף הרגל הקדמית.',
         'דחפו דרך כף הרגל הקדמית כדי לחזור לעמידה, ונשפו בזמן שאתם מקרבים את הרגל האחורית.',
         'החליפו רגליים לסירוגין, או השלימו את כל החזרות בצד אחד לפני ההחלפה.',
       ],
@@ -566,7 +566,7 @@ export const exercises: ExerciseSeed[] = [
         'צעד לאחור קצר מדי, שגורם לברך הקדמית לנדוד הרבה קדימה.',
         'דחיפה בעיקר עם הרגל האחורית.',
         'הטיית הגו קדימה או קשת מוגזמת בגב התחתון.',
-        'הנחתה חזקה של הברך האחורית על הרצפה.',
+        'חבטה חזקה של הברך האחורית ברצפה.',
       ],
     },
     safety: {
@@ -628,7 +628,7 @@ export const exercises: ExerciseSeed[] = [
         'Using momentum to bounce out of the bottom.',
       ],
       he: [
-        'מתן למשקולות למשוך את הכתפיים קדימה ולעגל את הגב העליון.',
+        'מצב שבו המשקולות מושכות את הכתפיים קדימה ומעגלות את הגב העליון.',
         'צעד קצר מדי, שגורם לעקב הקדמי להתרומם.',
         'קריסת הברך הקדמית פנימה תחת העומס.',
         'שימוש בתנופה כדי להקפיץ את עצמכם מהתחתית.',
@@ -671,7 +671,7 @@ export const exercises: ExerciseSeed[] = [
       en: [
         'Stand facing a sturdy step or stair that is roughly knee height or lower.',
         'Place one whole foot on the step, with the knee in line with the toes.',
-        'Lean slightly forward and press through the heel of the top foot to stand up onto the step, exhaling as you rise.',
+        'Lean slightly forward and press through the whole foot of the top leg to stand up onto the step, exhaling as you rise.',
         'Stand fully upright on top without pushing off with the bottom foot.',
         'Inhale and lower yourself slowly back down under control, keeping the working foot on the step.',
         'Complete all reps on one leg, then switch sides.',
@@ -679,7 +679,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'עמדו מול מדרגה או משטח יציב בגובה הברך בערך או נמוך יותר.',
         'הניחו את כל כף הרגל האחת על המדרגה, כשהברך בקו אחד עם קצות האצבעות.',
-        'הטו מעט את הגו קדימה ודחפו דרך העקב של הרגל העליונה כדי לעלות לעמידה על המדרגה, תוך נשיפה.',
+        'הטו מעט את הגו קדימה ודחפו דרך כל כף הרגל העליונה כדי לעלות לעמידה על המדרגה, תוך נשיפה.',
         'הזדקפו לגמרי למעלה בלי לדחוף עם הרגל התחתונה.',
         'שאפו ורדו לאט ובשליטה חזרה למטה, כשהרגל העובדת נשארת על המדרגה.',
         'השלימו את כל החזרות ברגל אחת ואז החליפו צד.',
@@ -848,7 +848,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'leg_press',
-    name: { en: 'Leg Press', he: 'לחיצת רגליים' },
+    name: { en: 'Leg Press', he: 'לחיצת רגליים (לג פרס)' },
     description: {
       en: 'A machine exercise in which you push a weighted sled away with your legs while your back is supported. It lets you load the quads and glutes heavily with little technical demand and minimal load on the spine.',
       he: 'תרגיל במכונה שבו דוחפים עם הרגליים משטח עם משקל, כשהגב נתמך במשענת. מאפשר להעמיס משקל רב על הארבע-ראשי והישבן עם דרישה טכנית נמוכה ועומס מינימלי על עמוד השדרה.',
@@ -940,7 +940,7 @@ export const exercises: ExerciseSeed[] = [
         'מקמו את כרית השוק מעט מעל הקרסוליים ואחזו בידיות שבצדדים.',
         'נשפו ויישרו את הברכיים בתנועה חלקה עד שהרגליים כמעט ישרות לגמרי.',
         'כווצו את הארבע-ראשי לרגע קצר בחלק העליון.',
-        'שאפו והורידו את המשקל לאט ובשליטה, בלי לתת למשקולות להיטרק.',
+        'שאפו והורידו את המשקל לאט ובשליטה, בלי לתת לערימת המשקולות להתנגש.',
       ],
     },
     mistakes: {
@@ -964,7 +964,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel sharp pain in the knee.',
       ],
       he: [
-        'השתמשו במשקלים בינוניים ובחזרות מבוקרות במקום בהרמות כבדות ומקוטעות.',
+        'השתמשו במשקלים בינוניים ובחזרות מבוקרות במקום בהרמות כבדות ובתנועות חטופות.',
         'הגבילו את טווח התנועה אם אתם מרגישים אי-נוחות בחלק הקדמי של הברך.',
         'הפסיקו אם אתם מרגישים כאב חד בברך.',
       ],
@@ -1077,7 +1077,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'הקפצות מהירות בחזרות קצרות וחלקיות.',
-        'גלגול הקרסוליים החוצה לכיוון הזרתות.',
+        'גלגול הקרסוליים החוצה, כך שהמשקל עובר לאצבעות הקטנות.',
         'כיפוף הברכיים כדי לדחוף בעזרת הירכיים.',
       ],
     },
@@ -1161,7 +1161,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'wall_sit',
-    name: { en: 'Wall Sit', he: 'ישיבה על קיר' },
+    name: { en: 'Wall Sit', he: 'כיסא על הקיר' },
     description: {
       en: 'An isometric hold in which you "sit" with your back against a wall and your thighs roughly parallel to the floor. It builds quad endurance with no equipment and no impact, and the knee angle can be adjusted to stay pain-free.',
       he: 'החזקה איזומטרית שבה "יושבים" עם הגב צמוד לקיר והירכיים מקבילות בערך לרצפה. בונה סיבולת בארבע-ראשי בלי ציוד ובלי עומס הלם, ואפשר להתאים את זווית הברך כדי לעבוד ללא כאב.',
@@ -1177,14 +1177,14 @@ export const exercises: ExerciseSeed[] = [
     isCompound: false,
     instructions: {
       en: [
-        'Stand with your back flat against a wall and your feet about hip width apart, roughly half a step out from the wall.',
+        'Stand with your back flat against a wall and your feet about hip width apart, roughly two foot-lengths out from the wall.',
         'Slide down the wall until your knees are bent to about 90 degrees, or to a higher, comfortable angle.',
         'Adjust your feet so your knees are directly above your ankles and in line with your toes.',
         'Keep your back and head against the wall and your weight in your heels, with your arms relaxed or crossed.',
         'Breathe steadily throughout the hold, then slide back up the wall to finish.',
       ],
       he: [
-        'עמדו כשהגב צמוד לקיר והרגליים ברוחב האגן בערך, כחצי צעד הרחק מהקיר.',
+        'עמדו כשהגב צמוד לקיר והרגליים ברוחב האגן בערך, במרחק של כשתי כפות רגל מהקיר.',
         'החליקו לאורך הקיר עד שהברכיים כפופות לכ-90 מעלות, או לזווית גבוהה ונוחה יותר.',
         'התאימו את מיקום כפות הרגליים כך שהברכיים יהיו בדיוק מעל הקרסוליים ובקו אחד עם קצות האצבעות.',
         'שמרו על הגב והראש צמודים לקיר ועל המשקל בעקבים, כשהידיים רפויות או משוכלות.',

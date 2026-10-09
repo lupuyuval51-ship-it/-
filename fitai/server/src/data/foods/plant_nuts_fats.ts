@@ -12,6 +12,8 @@ import type { FoodSeed } from '@shared/content';
  *  - Seitan: Anses-Ciqual "Seitan" (carbs converted to total = 6.7 available + 0.9 fiber).
  *    Flagged soy as well as gluten because seitan is usually simmered in soy sauce.
  *  - Textured soy protein: SR "Soy flour, defatted" (the TVP raw material; matches TVP labels).
+ *    Sugar set to typical TVP label value (~9 g); SR's 16.4 g includes raffinose/stachyose
+ *    oligosaccharides that labels do not count as sugars.
  *  - Natural peanut butter (100% peanuts, no salt): SR dry-roasted peanuts, which is the
  *    same composition; SR "peanut butter" entries contain added sugar/oil.
  *  - Raw tahini: typical Israeli label values for pure-sesame raw tahini
@@ -114,7 +116,7 @@ export const foods: FoodSeed[] = [
     slug: 'textured_soy_protein_dry',
     name: { en: 'Textured soy protein (TVP), dry', he: 'חלבון סויה (TVP), יבש' },
     category: 'plant_protein',
-    per100g: { kcal: 327, protein: 51.5, carbs: 33.9, fat: 1.2, fiber: 17.5, sugar: 16.4, sodiumMg: 20 },
+    per100g: { kcal: 327, protein: 51.5, carbs: 33.9, fat: 1.2, fiber: 17.5, sugar: 9.0, sodiumMg: 20 },
     serving: { grams: 25, label: { en: '1/4 cup dry (25 g)', he: 'רבע כוס יבש (25 גרם)' } },
     allergens: ['soy'],
     animalSource: 'none',
@@ -204,7 +206,7 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'sunflower_seeds_hulled',
-    name: { en: 'Sunflower seeds, hulled', he: 'גרעיני חמנייה קלופים' },
+    name: { en: 'Sunflower seeds, hulled, raw', he: 'גרעיני חמנייה קלופים, טבעיים' },
     category: 'nuts_seeds',
     per100g: { kcal: 584, protein: 20.8, carbs: 20.0, fat: 51.5, fiber: 8.6, sugar: 2.6, sodiumMg: 9 },
     serving: { grams: 18, label: { en: '2 tablespoons (18 g)', he: '2 כפות (18 גרם)' } },
@@ -214,7 +216,7 @@ export const foods: FoodSeed[] = [
   },
   {
     slug: 'pumpkin_seeds_hulled',
-    name: { en: 'Pumpkin seeds, hulled (pepitas)', he: 'גרעיני דלעת קלופים' },
+    name: { en: 'Pumpkin seeds, hulled, raw (pepitas)', he: 'גרעיני דלעת קלופים, טבעיים' },
     category: 'nuts_seeds',
     per100g: { kcal: 559, protein: 30.2, carbs: 10.7, fat: 49.1, fiber: 6.0, sugar: 1.4, sodiumMg: 7 },
     serving: { grams: 16, label: { en: '2 tablespoons (16 g)', he: '2 כפות (16 גרם)' } },
