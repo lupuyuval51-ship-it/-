@@ -1,0 +1,264 @@
+/* Onboarding wizard & profile/settings page. Logical properties only (RTL-safe). */
+
+/* ------------------------------------------------------------------ Onboarding */
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+}
+.onboarding-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.onboarding-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.onboarding-progress > p {
+  margin: 0;
+}
+.onboarding-steps {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.onboarding-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.onboarding-steps li + li::before {
+  content: '';
+  inline-size: 12px;
+  block-size: 1px;
+  background: var(--border);
+}
+.onboarding-steps li.current {
+  color: var(--text);
+  font-weight: 700;
+}
+.onboarding-steps .link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+@media (min-width: 720px) {
+  .onboarding-steps {
+    display: flex;
+  }
+}
+.onboarding-step-title {
+  font-size: 20px;
+  margin: 0 0 var(--space-1);
+  outline: none;
+}
+.onboarding-step-title:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+.onboarding-card {
+  overflow: visible;
+}
+.onboarding-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  margin-block-end: calc(-1 * var(--space-3));
+  background: linear-gradient(to top, var(--surface) 75%, transparent);
+  border-block-start: 1px solid var(--border);
+}
+.onboarding-actions .btn {
+  min-inline-size: 120px;
+}
+.onboarding-review {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 760px) {
+  .onboarding-review {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.onboarding-review-section,
+.onboarding-targets {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  min-inline-size: 0;
+}
+.onboarding-review-section .section-title,
+.onboarding-targets .section-title {
+  margin: 0;
+}
+.onboarding-review-section .kv {
+  margin-block-start: var(--space-2);
+}
+.profile-kv-row {
+  display: contents;
+}
+.profile-kv-row dd {
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ Shared field bits */
+.profile-subsection {
+  padding-block-start: var(--space-2);
+}
+.profile-subheading {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 var(--space-2);
+}
+.profile-height-imperial {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.profile-chip-tools {
+  margin-block-start: var(--space-2);
+}
+.profile-avoid-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-avoid-chip {
+  cursor: default;
+  padding-inline-end: var(--space-1);
+}
+.profile-chip-remove {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.profile-chip-remove:hover,
+.profile-chip-remove:focus-visible {
+  background: var(--surface-3);
+}
+.profile-target-stats {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.profile-target-stats > :first-child {
+  grid-column: 1 / -1;
+}
+@media (min-width: 640px) {
+  .profile-target-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .profile-target-stats > :first-child {
+    grid-column: auto;
+  }
+}
+.profile-energy {
+  font-size: 13px;
+}
+.profile-notes {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.profile-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  padding-block: var(--space-1);
+}
+.profile-details[open] summary {
+  margin-block-end: var(--space-2);
+}
+.profile-macro-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.profile-macro-check p {
+  margin: 0;
+}
+.profile-macro-check.is-off {
+  background: var(--warning-soft);
+}
+.profile-time-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.profile-time-list .row {
+  align-items: flex-end;
+  flex-wrap: nowrap;
+}
+.profile-time-field {
+  max-inline-size: 220px;
+}
+
+/* ------------------------------------------------------------------ Settings page */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.settings-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.settings-nav .chip {
+  text-decoration: none;
+}
+.settings-section {
+  scroll-margin-block-start: calc(var(--topbar-h) + var(--space-4));
+}
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.settings-prefs {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .settings-prefs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

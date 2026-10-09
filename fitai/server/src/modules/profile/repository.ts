@@ -5,6 +5,7 @@
 import { ADULT_AGE, type Sex } from '@shared/constants';
 import { todayInTimeZone, yearsBetween } from '@shared/dates';
 import { computeNutritionTargets, type ComputedTargets, type DietPreferences } from '@shared/nutrition';
+import { customTargetsIssues } from '@shared/schemas/profile';
 import type { AbilityBenchmarks, NutritionTargetsDTO, ProfileDTO, ReminderSettings } from '@shared/types';
 import type { Sql } from '../../db/pool';
 
@@ -162,6 +163,15 @@ export async function getProfileRow(sql: Sql, userId: string): Promise<ProfileRo
   );
 }
 
+/** The profile row locked for the rest of the transaction (serializes concurrent profile writes). */
+export async function lockProfileRow(sql: Sql, userId: string): Promise<ProfileRow> {
+  await sql.exec('INSERT INTO profiles (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING', [userId]);
+  return sql.one<ProfileRow>(
+    `SELECT p.*, u.timezone FROM profiles p JOIN users u ON u.id = p.user_id WHERE p.user_id = $1 FOR UPDATE OF p`,
+    [userId],
+  );
+}
+
 /** The user's profile (an empty profile row always exists from registration). */
 export async function getProfile(sql: Sql, userId: string): Promise<ProfileDTO> {
   let row = await getProfileRow(sql, userId);
@@ -174,6 +184,27 @@ export async function getProfile(sql: Sql, userId: string): Promise<ProfileDTO> 
 
 export function dietPreferences(p: Pick<ProfileDTO, 'dietType' | 'allergies' | 'dietaryRestrictions'>): DietPreferences {
   return { dietType: p.dietType, allergies: p.allergies, restrictions: p.dietaryRestrictions };
+}
+
+/**
+ * Custom targets must stay safe when the profile changes (e.g. a new age makes the user a minor,
+ * or a higher body weight raises the protein minimum). Unsafe custom targets are dropped in favour
+ * of the computed ones. Returns true when that happened.
+ */
+export async function enforceCustomTargetSafety(sql: Sql, userId: string): Promise<boolean> {
+  const row = await getProfileRow(sql, userId);
+  if (!row?.targets_custom || row.calorie_target == null || row.protein_target_g == null || row.carbs_target_g == null || row.fat_target_g == null) {
+    return false;
+  }
+  const computed = computedTargetsFor(row);
+  if (!computed || row.weight_kg == null) return false;
+  const issues = customTargetsIssues(
+    { calories: row.calorie_target, proteinG: row.protein_target_g, carbsG: row.carbs_target_g, fatG: row.fat_target_g },
+    { minimumCalories: computed.minimumCalories, weightKg: Number(row.weight_kg) },
+  );
+  if (!issues.some((i) => i.code === 'calories_below_safe_minimum' || i.code === 'protein_too_low')) return false;
+  await sql.exec('UPDATE profiles SET targets_custom = false WHERE user_id = $1', [userId]);
+  return true;
 }
 
 /** Writes the effective targets into profile columns (used by SQL reports and dashboards). */

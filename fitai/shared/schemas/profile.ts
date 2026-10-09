@@ -32,12 +32,18 @@ export const abilitySchema = z.object({
   deadlift1rmKg: nullableInt(0, 500).default(null),
 });
 
+export const MAX_MEAL_REMINDERS = 6;
+
 export const remindersSchema = z.object({
   enabled: z.boolean(),
-  workoutDays: uniqueArray(z.number().int().min(0).max(6), 7),
+  workoutDays: uniqueArray(z.number().int().min(0).max(6), 7).transform((days) => [...days].sort((a, b) => a - b)),
   workoutTime: timeOfDay,
   mealLogging: z.boolean(),
-  mealTimes: z.array(timeOfDay).max(6),
+  // Unique and chronological, so reminders never fire twice for the same minute.
+  mealTimes: z
+    .array(timeOfDay)
+    .max(MAX_MEAL_REMINDERS)
+    .transform((times) => Array.from(new Set(times)).sort()),
 });
 
 /** Full onboarding questionnaire. */
@@ -90,17 +96,52 @@ export const settingsUpdateSchema = z.object({
 });
 export type SettingsUpdateInput = z.infer<typeof settingsUpdateSchema>;
 
-/** Custom nutrition targets; `null` resets to computed targets. Server enforces safe minimums. */
-export const targetsUpdateSchema = z.union([
-  z.object({
-    calories: z.number().int().min(1000).max(6000),
-    proteinG: z.number().int().min(20).max(400),
-    carbsG: z.number().int().min(0).max(900),
-    fatG: z.number().int().min(15).max(300),
-  }),
-  z.object({ reset: z.literal(true) }),
-]);
+/** Custom daily targets (bounds mirror the DB constraints). The server additionally enforces the safety rules below. */
+export const customTargetsSchema = z.object({
+  calories: z.number().int().min(1000).max(6000),
+  proteinG: z.number().int().min(20).max(400),
+  carbsG: z.number().int().min(0).max(900),
+  fatG: z.number().int().min(15).max(300),
+});
+export type CustomTargetsInput = z.infer<typeof customTargetsSchema>;
+
+/** Custom nutrition targets, or `{ reset: true }` to go back to the computed targets. */
+export const targetsUpdateSchema = z.union([customTargetsSchema, z.object({ reset: z.literal(true) })]);
 export type TargetsUpdateInput = z.infer<typeof targetsUpdateSchema>;
+
+/** Minimum protein accepted for custom targets (g per kg of body weight). */
+export const MIN_PROTEIN_G_PER_KG = 0.8;
+/** Largest accepted gap between calories and the energy of the macros (4/4/9 kcal per g). */
+export const MACRO_CALORIE_TOLERANCE = 0.1;
+
+export const macroCalories = (t: Pick<CustomTargetsInput, 'proteinG' | 'carbsG' | 'fatG'>) => t.proteinG * 4 + t.carbsG * 4 + t.fatG * 9;
+export const minimumProteinG = (weightKg: number) => Math.ceil(weightKg * MIN_PROTEIN_G_PER_KG);
+
+export type CustomTargetsIssue =
+  | { code: 'calories_below_safe_minimum'; details: { minimum: number } }
+  | { code: 'protein_too_low'; details: { minimum: number } }
+  | { code: 'macros_inconsistent'; details: { macroCalories: number } };
+
+/**
+ * Safety rules for user-defined targets, shared by the server (authoritative, first issue → 422)
+ * and the client (live hints): calories never below the computed safe minimum (which already
+ * forbids any deficit for minors), protein at least 0.8 g/kg, and macros that add up to the
+ * calories within 10%.
+ */
+export function customTargetsIssues(
+  t: CustomTargetsInput,
+  ctx: { minimumCalories: number; weightKg: number },
+): CustomTargetsIssue[] {
+  const issues: CustomTargetsIssue[] = [];
+  if (t.calories < ctx.minimumCalories) issues.push({ code: 'calories_below_safe_minimum', details: { minimum: ctx.minimumCalories } });
+  const minProtein = minimumProteinG(ctx.weightKg);
+  if (t.proteinG < minProtein) issues.push({ code: 'protein_too_low', details: { minimum: minProtein } });
+  const kcal = macroCalories(t);
+  if (t.calories > 0 && Math.abs(kcal - t.calories) / t.calories > MACRO_CALORIE_TOLERANCE) {
+    issues.push({ code: 'macros_inconsistent', details: { macroCalories: kcal } });
+  }
+  return issues;
+}
 
 export const bodyWeightSchema = z.object({
   date: dateString,
@@ -109,4 +150,9 @@ export const bodyWeightSchema = z.object({
 });
 export type BodyWeightInput = z.infer<typeof bodyWeightSchema>;
 
-export const deleteAccountSchema = z.object({ password: z.string().min(1).max(LIMITS.passwordMax), confirm: z.literal('DELETE') });
+export const DELETE_CONFIRMATION = 'DELETE';
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, 'required').max(LIMITS.passwordMax),
+  confirm: z.literal(DELETE_CONFIRMATION),
+});
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
