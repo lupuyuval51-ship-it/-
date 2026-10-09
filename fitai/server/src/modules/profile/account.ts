@@ -33,6 +33,8 @@ export const EXPORTED_TABLES = [
   'xp_events',
   'user_achievements',
   'notifications',
+  'ai_usage_events',
+  'coach_usage',
 ] as const;
 
 /** Tables with per-user rows that are deliberately NOT exported (secrets / internal bookkeeping). */
@@ -169,6 +171,11 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
   const xpEvents = await q(`SELECT id, source_type, source_key, xp, meta, created_at FROM xp_events WHERE user_id = $1 ORDER BY created_at`);
   const achievements = await q(`SELECT achievement_id, unlocked_at FROM user_achievements WHERE user_id = $1 ORDER BY unlocked_at`);
   const notifications = await q(`SELECT id, kind, data, read_at, created_at FROM notifications WHERE user_id = $1 ORDER BY created_at`);
+  // Metered AI feature usage (kind + time only; no prompts, images or outputs are ever stored).
+  const aiUsage = [
+    ...(await q(`SELECT kind, created_at FROM ai_usage_events WHERE user_id = $1`)),
+    ...(await q(`SELECT 'coach_message' AS kind, created_at FROM coach_usage WHERE user_id = $1`)),
+  ].sort((x, y) => String(x.createdAt).localeCompare(String(y.createdAt)));
 
   return {
     format: 'fitai-export',
@@ -188,5 +195,6 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
     xpEvents,
     achievements,
     notifications,
+    aiUsage,
   };
 }

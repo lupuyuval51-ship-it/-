@@ -135,5 +135,6 @@ export interface AccountExportDTO {
   coachThreads: (ExportRecord & { messages: ExportRecord[] })[];
   xpEvents: ExportRecord[];
   achievements: ExportRecord[];
+  aiUsage: ExportRecord[];
   notifications: ExportRecord[];
 }

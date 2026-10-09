@@ -85,6 +85,8 @@ async function seedEverything(userId: string, tag: string) {
   await db.exec(`INSERT INTO xp_events (user_id, source_type, source_key, xp) VALUES ($1, 'workout', $2, 50)`, [userId, `${tag}-session`]);
   await db.exec(`INSERT INTO user_achievements (user_id, achievement_id) VALUES ($1, $2)`, [userId, `${tag}_badge`]);
   await db.exec(`INSERT INTO notifications (user_id, kind, data) VALUES ($1, 'info', $2)`, [userId, JSON.stringify({ tag })]);
+  await db.exec(`INSERT INTO ai_usage_events (user_id, kind) VALUES ($1, 'food_photo')`, [userId]);
+  await db.exec(`INSERT INTO coach_usage (user_id) VALUES ($1)`, [userId]);
   await db.exec(`INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, now() + interval '1 hour')`, [
     userId,
     sha256(`${tag}-${userId}-reset-token`),
