@@ -14,7 +14,8 @@ import type {
   TrainingLocation,
 } from '../constants';
 import type { ComputedTargets } from '../nutrition';
-import type { ISODateTime } from './common';
+import type { UserDTO } from './auth';
+import type { ISODate, ISODateTime } from './common';
 
 export interface AbilityBenchmarks {
   pushUpsMax: number | null;
@@ -88,4 +89,51 @@ export interface ProfileDTO {
 
 export interface ProfileResponse {
   profile: ProfileDTO;
+}
+
+/** PUT /api/profile/onboarding */
+export interface OnboardingResponse {
+  profile: ProfileDTO;
+  user: UserDTO;
+}
+
+/** PATCH /api/profile */
+export interface ProfileUpdateResponse {
+  profile: ProfileDTO;
+  /**
+   * True when the change made the user's custom nutrition targets unsafe (e.g. below the new
+   * safe calorie minimum), so they were replaced by the recommended targets.
+   */
+  customTargetsReset: boolean;
+}
+
+/** PATCH /api/settings */
+export interface SettingsUpdateResponse {
+  user: UserDTO;
+  profile: ProfileDTO;
+}
+
+/** A row of exported user data (camelCase column names, values as stored). */
+export type ExportRecord = Record<string, unknown>;
+
+/** GET /api/account/export — everything FITAI stores about the user, minus secrets. */
+export interface AccountExportDTO {
+  format: 'fitai-export';
+  version: 1;
+  exportedAt: ISODateTime;
+  /** Calendar date of the export in the user's time zone (used in the file name). */
+  exportDate: ISODate;
+  user: UserDTO;
+  profile: ProfileDTO;
+  bodyWeights: ExportRecord[];
+  workoutPlans: (ExportRecord & { workouts: (ExportRecord & { exercises: ExportRecord[] })[] })[];
+  workoutSessions: (ExportRecord & { exercises: (ExportRecord & { sets: ExportRecord[] })[] })[];
+  personalRecords: ExportRecord[];
+  customFoods: ExportRecord[];
+  foodLog: ExportRecord[];
+  savedMeals: (ExportRecord & { items: ExportRecord[] })[];
+  coachThreads: (ExportRecord & { messages: ExportRecord[] })[];
+  xpEvents: ExportRecord[];
+  achievements: ExportRecord[];
+  notifications: ExportRecord[];
 }

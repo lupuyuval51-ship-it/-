@@ -63,4 +63,18 @@ describe('onboarding', () => {
     expect((await c.put('/api/profile/onboarding', missing)).status).toBe(400);
     expect((await c.get('/api/profile')).body.profile.onboardingCompletedAt).toBeNull();
   });
+
+  it('re-running keeps the completion date, drops unknown exercises and resets unsafe custom targets', async () => {
+    const c = await registerUser(server.baseUrl);
+    const first = await c.put('/api/profile/onboarding', VALID_ONBOARDING);
+    const completedAt = first.body.profile.onboardingCompletedAt;
+    const custom = await c.put('/api/profile/targets', { calories: 1500, proteinG: 100, carbsG: 163, fatG: 50 });
+    expect(custom.status).toBe(200);
+    const again = await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, ageYears: 16, avoidExerciseIds: ['burpee', 'no_such_exercise'] });
+    expect(again.status).toBe(200);
+    expect(again.body.profile.onboardingCompletedAt).toBe(completedAt);
+    expect(again.body.profile.avoidExerciseIds).toEqual(['burpee']);
+    expect(again.body.profile.isMinor).toBe(true);
+    expect(again.body.profile.targets.custom).toBe(false);
+  });
 });
