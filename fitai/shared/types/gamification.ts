@@ -22,6 +22,7 @@ export interface AchievementStatusDTO {
 export interface WeeklyGoalDTO {
   weekStart: ISODate;
   target: number;
+  /** Qualifying workouts this week (see `isQualifyingWorkout` in shared/gamification.ts). */
   completed: number;
   met: boolean;
 }
@@ -38,7 +39,13 @@ export interface GamificationDTO {
 export interface NotificationDTO {
   id: string;
   kind: NotificationKind;
-  /** Structured payload rendered via i18n (e.g. { achievementId } or { level }). */
+  /**
+   * Structured payload rendered via i18n:
+   * - achievement: { achievementId }
+   * - level_up: { level, from }
+   * - personal_record: { exerciseId, exerciseName: { en, he }, recordType, value, previousValue }
+   * - weekly_goal: { weekStart, goal, completed }
+   */
   data: Record<string, unknown>;
   readAt: ISODateTime | null;
   createdAt: ISODateTime;
@@ -46,5 +53,11 @@ export interface NotificationDTO {
 
 export interface NotificationListResponse {
   notifications: NotificationDTO[];
+  unreadCount: number;
+}
+
+/** Response of the notification mutations (read, read-all, delete). */
+export interface NotificationMutationResponse {
+  ok: true;
   unreadCount: number;
 }
