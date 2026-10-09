@@ -1,6 +1,7 @@
 import type { Equipment, Goal, MuscleGroup, PlanStatus, SplitType, TrainingLocation } from '../constants';
 import type { ISODateTime } from './common';
 import type { ExerciseSummaryDTO } from './exercises';
+import type { ProgressionAction } from './sessions';
 
 export interface PlanExerciseDTO {
   id: string;
@@ -52,8 +53,40 @@ export interface WorkoutPlanSummaryDTO {
 export interface WorkoutPlanDTO extends WorkoutPlanSummaryDTO {
   workouts: PlanWorkoutDTO[];
   generationNotes: GenerationNote[];
+  /** Resolved generator inputs (see `PlanGenerationInput`); `{}` for custom plans. */
   generationInput: Record<string, unknown>;
   nextWorkoutIndex: number;
+}
+
+/** How free-text preferences were turned into constrained generator options. */
+export type PreferenceInterpreter = 'ai' | 'keywords';
+export type PreferenceIntensity = 'easier' | 'normal' | 'harder';
+
+/**
+ * Shape of `WorkoutPlanDTO.generationInput` for generated plans (resolved inputs, no PII,
+ * never the raw free text).
+ */
+export interface PlanGenerationInput {
+  goal: Goal;
+  experience: 'beginner' | 'intermediate' | 'advanced';
+  location: TrainingLocation;
+  equipment: Equipment[];
+  /** Days per week the user asked for (training days may be capped at 6). */
+  daysPerWeek: number;
+  trainingDays: number;
+  sessionMinutes: number;
+  focusMuscleGroups: MuscleGroup[];
+  minorSafetyRules: boolean;
+  preferences: {
+    interpreter: PreferenceInterpreter | null;
+    focusMuscleGroups: MuscleGroup[];
+    avoidExerciseIds: string[];
+    avoidPatterns: string[];
+    preferBodyweight: boolean;
+    intensity: PreferenceIntensity;
+  };
+  variationSeed: number;
+  generatorVersion: string;
 }
 
 export interface GeneratePlanInput {
@@ -103,4 +136,29 @@ export interface PlanResponse {
 
 export interface PlanListResponse {
   plans: WorkoutPlanSummaryDTO[];
+}
+
+export interface AlternativesResponse {
+  alternatives: ExerciseAlternativeDTO[];
+}
+
+/** Prescription values touched by "apply progression". */
+export interface PrescriptionTargets {
+  targetWeightKg: number | null;
+  repMin: number | null;
+  repMax: number | null;
+  targetSeconds: number | null;
+}
+
+export interface ProgressionChangeDTO {
+  planExerciseId: string;
+  exerciseId: string;
+  action: ProgressionAction;
+  before: PrescriptionTargets;
+  after: PrescriptionTargets;
+}
+
+export interface ApplyProgressionResponse {
+  plan: WorkoutPlanDTO;
+  changes: ProgressionChangeDTO[];
 }
