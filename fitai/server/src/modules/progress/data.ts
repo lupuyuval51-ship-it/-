@@ -4,7 +4,7 @@
  * calendar dates of the user's own time zone.
  */
 import type { Locale } from '@shared/constants';
-import { addDays, startOfWeek, todayInTimeZone, weekStartsOn } from '@shared/dates';
+import { addDays, startOfWeek, todayInTimeZone } from '@shared/dates';
 import { isQualifyingWorkout, weeklyGoalFor } from '@shared/gamification';
 import { round1 } from '@shared/nutrition';
 import type { PersonalRecordDTO } from '@shared/types';
@@ -56,17 +56,18 @@ export async function loadUserContext(sql: Sql, userId: string): Promise<UserCon
   const row = await sql.maybeOne<{
     timezone: string;
     locale: Locale;
+    week_start: 0 | 1;
     created_at: Date;
     weekly_workout_goal: number | null;
     days_per_week: number | null;
   }>(
-    `SELECT u.timezone, u.locale, u.created_at, p.weekly_workout_goal, p.days_per_week
+    `SELECT u.timezone, u.locale, u.week_start, u.created_at, p.weekly_workout_goal, p.days_per_week
        FROM users u LEFT JOIN profiles p ON p.user_id = u.id
       WHERE u.id = $1`,
     [userId],
   );
   if (!row) throw notFound('user_not_found');
-  const weekStart = weekStartsOn(row.locale);
+  const weekStart = row.week_start;
   const today = todayInTimeZone(row.timezone);
   return {
     userId,

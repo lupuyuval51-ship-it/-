@@ -790,7 +790,10 @@ export async function alternativesFor(
   ref: { workoutId: string; planExerciseId: string } | null,
   exerciseIdOverride: string | undefined,
 ): Promise<ExerciseAlternativeDTO[]> {
-  const plan = await db.maybeOne<{ id: string }>('SELECT id FROM workout_plans WHERE id = $1 AND user_id = $2', [planId, userId]);
+  const plan = await db.maybeOne<{ id: string; generation_input: Record<string, unknown> | null }>(
+    'SELECT id, generation_input FROM workout_plans WHERE id = $1 AND user_id = $2',
+    [planId, userId],
+  );
   if (!plan) throw planNotFound();
   let baseId = exerciseIdOverride ?? null;
   if (ref) {
@@ -809,7 +812,10 @@ export async function alternativesFor(
   const base = catalog.find((e) => e.id === baseId);
   if (!base) throw badRequest('unknown_exercise', 'Unknown exercise id', { exerciseIds: [baseId] });
   const profile = await getProfile(db, userId);
-  return computeAlternatives(base, catalog, profile.equipment, profile.injuries);
+  // The plan may have been generated for another location/equipment set than the profile's
+  // current one; alternatives should fit what the plan was built for.
+  const planEquipment = z.array(z.enum(EQUIPMENT)).safeParse(plan.generation_input?.equipment);
+  return computeAlternatives(base, catalog, planEquipment.success ? planEquipment.data : profile.equipment, profile.injuries);
 }
 
 // ---------------------------------------------------------------- Progression

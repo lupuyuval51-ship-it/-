@@ -163,7 +163,7 @@ PostgreSQL schema (`server/src/db/migrations/0001_init.sql` and later files): us
 - **Client**: Vitest + jsdom for i18n completeness and pure UI logic.
 - **E2E**: Playwright drives the production build in Chromium (desktop & mobile viewports) against an isolated database and a fake LLM: `npm run build && npm run test:e2e`.
 
-Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓ (119 exercises, 198 foods, 36 meal templates, 0 errors) · **484 server tests** (30 files) · **110 client tests** (14 files) · production build ✓ · **50 Playwright browser tests passed** (2 skipped by design: mobile-only layouts on the desktop project). Animations are additionally checked for full coverage, valid poses and seamless loops.
+Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓ (119 exercises, 198 foods, 36 meal templates, 0 errors) · **487 server tests** (30 files) · **110 client tests** (14 files) · production build ✓ · **50 Playwright browser tests passed** (2 skipped by design: mobile-only layouts on the desktop project). Animations are additionally checked for full coverage, valid poses and seamless loops.
 
 ---
 
@@ -194,10 +194,8 @@ The app is stateless apart from PostgreSQL and in-memory rate-limit counters; fo
 
 ## Known limitations
 - Rate limiting is in-memory (per instance). The global per-IP limit needs `TRUST_PROXY=true` behind a reverse proxy, otherwise all users share one bucket.
-- Changing the interface language changes the week start (Sunday/Monday), so the weekly-goal bonus can be earned twice in the week of the switch; changing time zone shifts daily caps by up to a day.
+- The week start (Sunday for Hebrew accounts, Monday otherwise) is fixed at registration; changing time zone still shifts daily caps by up to a day.
 - Exercise animations use a flat 2D figure: movements that rotate the torso or happen mostly in depth (flys, rear-delt work, twists, wood-chops, jump rope) are simplified; the written instructions remain the reference.
 - Saved meals keep the original food portions (per-entry corrections are not carried over); meal suggestions re-check allergies but not free-text disliked foods.
-- Progress averages include today's partially-logged day.
-- Workout alternatives are filtered by the profile's equipment, not the plan's.
 - Barcode camera scanning uses the browser `BarcodeDetector` API where available (Chromium on Android/desktop); elsewhere barcodes can be typed in.
 - Nutrition values are typical reference values (USDA FoodData Central / Israeli labels) and can be corrected per entry or via custom foods.

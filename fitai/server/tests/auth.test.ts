@@ -58,6 +58,19 @@ describe('registration', () => {
   });
 });
 
+describe('week start', () => {
+  it('is fixed at registration from the language and not moved by a later language change', async () => {
+    const he = await registerUser(server.baseUrl, { locale: 'he' });
+    const en = await registerUser(server.baseUrl, { locale: 'en' });
+    const weekStart = async (id: string) => (await db.one<{ week_start: number }>('SELECT week_start FROM users WHERE id = $1', [id])).week_start;
+    expect(await weekStart(he.userId!)).toBe(0);
+    expect(await weekStart(en.userId!)).toBe(1);
+    const res = await he.patch('/api/settings', { locale: 'en' });
+    expect(res.status).toBe(200);
+    expect(await weekStart(he.userId!)).toBe(0);
+  });
+});
+
 describe('login / logout', () => {
   it('logs in with correct credentials and rejects wrong ones generically', async () => {
     const email = uniqueEmail('login');

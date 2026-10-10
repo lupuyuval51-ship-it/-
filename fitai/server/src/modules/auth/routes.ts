@@ -1,3 +1,4 @@
+import { weekStartsOn } from '@shared/dates';
 import { Router } from 'express';
 import {
   changePasswordSchema,
@@ -42,9 +43,9 @@ authRouter.post(
       const existing = await tx.maybeOne('SELECT 1 FROM users WHERE lower(email) = lower($1)', [input.email]);
       if (existing) throw conflict('email_taken', 'An account with this email already exists');
       const user = await tx.one<{ id: string }>(
-        `INSERT INTO users (email, password_hash, display_name, locale, timezone)
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [input.email, passwordHash, input.displayName, input.locale ?? 'he', input.timezone ?? 'UTC'],
+        `INSERT INTO users (email, password_hash, display_name, locale, timezone, week_start)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [input.email, passwordHash, input.displayName, input.locale ?? 'he', input.timezone ?? 'UTC', weekStartsOn(input.locale ?? 'he')],
       );
       await tx.exec('INSERT INTO profiles (user_id) VALUES ($1)', [user.id]);
       const csrfToken = await createSession(tx, user.id, req, res);

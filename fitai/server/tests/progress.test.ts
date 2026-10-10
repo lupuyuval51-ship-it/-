@@ -116,13 +116,14 @@ describe('GET /api/progress/overview', () => {
     // Goal 3 was never met; finished weeks count as missed, the running week does not count yet.
     expect(o.consistency).toEqual({ weeklyGoal: 3, weeksMet: 0, weeksTotal: o.weekly.length - 1, percent: 0, currentStreakWeeks: 0 });
 
-    const dayKcal = [3000, 1000, 500, 200];
+    // Today's (200 kcal) day is still in progress: counted as logged, left out of averages/adherence.
+    const dayKcal = [3000, 1000, 500];
     expect(o.nutrition).toEqual({
       daysLogged: 4,
-      averages: { kcal: 1175, proteinG: 57.5, carbsG: 120, fatG: 37.5, fiberG: 0 },
+      averages: { kcal: 1500, proteinG: 73.3, carbsG: 153.3, fatG: 48.3, fiberG: 0 },
       targetCalories: targets.calories,
       targetProteinG: targets.proteinG,
-      calorieAdherencePercent: Math.round((dayKcal.filter((k) => Math.abs(k - targets.calories) <= targets.calories * 0.1).length / 4) * 100),
+      calorieAdherencePercent: Math.round((dayKcal.filter((k) => Math.abs(k - targets.calories) <= targets.calories * 0.1).length / 3) * 100),
       proteinTargetDays: [150, 50, 20, 10].filter((p) => p >= targets.proteinG * 0.9).length,
     });
     expect(o.muscleGroupSets).toHaveLength(MUSCLE_GROUPS.length);

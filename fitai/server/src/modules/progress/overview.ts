@@ -112,18 +112,22 @@ export async function computeOverview(sql: Sql, ctx: UserContext, period: Progre
   const profile = await getProfile(sql, ctx.userId);
   const targetCalories = profile.targets?.calories ?? null;
   const targetProteinG = profile.targets?.proteinG ?? null;
-  const n = days.length;
+  // Today is still in progress, so a half-logged day would drag averages and adherence down;
+  // it is left out unless it is the only logged day.
+  const finished = days.filter((d) => d.logged_on !== to);
+  const statDays = finished.length ? finished : days;
+  const n = statDays.length;
   const averages: Macros | null = n
     ? {
-        kcal: Math.round(sum(days.map((d) => Number(d.kcal))) / n),
-        proteinG: round1(sum(days.map((d) => Number(d.protein_g))) / n),
-        carbsG: round1(sum(days.map((d) => Number(d.carbs_g))) / n),
-        fatG: round1(sum(days.map((d) => Number(d.fat_g))) / n),
-        fiberG: round1(sum(days.map((d) => Number(d.fiber_g))) / n),
+        kcal: Math.round(sum(statDays.map((d) => Number(d.kcal))) / n),
+        proteinG: round1(sum(statDays.map((d) => Number(d.protein_g))) / n),
+        carbsG: round1(sum(statDays.map((d) => Number(d.carbs_g))) / n),
+        fatG: round1(sum(statDays.map((d) => Number(d.fat_g))) / n),
+        fiberG: round1(sum(statDays.map((d) => Number(d.fiber_g))) / n),
       }
     : null;
-  const withinCalories = targetCalories ? days.filter((d) => Math.abs(Number(d.kcal) - targetCalories) <= targetCalories * 0.1).length : 0;
-  const proteinDays = targetProteinG ? days.filter((d) => Number(d.protein_g) >= targetProteinG * 0.9).length : 0;
+  const withinCalories = targetCalories ? statDays.filter((d) => Math.abs(Number(d.kcal) - targetCalories) <= targetCalories * 0.1).length : 0;
+  const proteinDays = targetProteinG ? statDays.filter((d) => Number(d.protein_g) >= targetProteinG * 0.9).length : 0;
 
   // ------------------------------------------------------------------ muscle groups & strength
   const setStats = await loadExerciseSetStats(sql, ctx, from, to);
@@ -205,7 +209,7 @@ export async function computeOverview(sql: Sql, ctx: UserContext, period: Progre
       changeKg: bwFirst && bwLast && bwEntries.length >= 2 ? round1(bwLast.weightKg - bwFirst.weightKg) : null,
     },
     nutrition: {
-      daysLogged: n,
+      daysLogged: days.length,
       averages,
       targetCalories,
       targetProteinG,

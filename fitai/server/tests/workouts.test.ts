@@ -523,6 +523,16 @@ describe('alternatives and progression', () => {
     expect(wrongDay.body.error.code).toBe('plan_exercise_not_found');
   });
 
+  it('judges alternatives by the plan\'s equipment, not the current profile equipment', async () => {
+    // Gym profile, but this plan was generated for a bodyweight-only home setup.
+    const c = await onboardedUser(server.baseUrl);
+    const plan = await generate(c, { location: 'home', equipment: [] });
+    const res = await c.get(`/api/plans/${plan.id}/alternatives?exerciseId=dumbbell_bench_press`);
+    expect(res.status).toBe(200);
+    const barbell = res.body.alternatives.find((a: any) => a.exercise.id === 'barbell_bench_press');
+    expect(barbell).toMatchObject({ suitable: false, missingEquipment: ['barbell', 'bench'] });
+  });
+
   it('apply-progression reports no changes without recorded history', async () => {
     const c = await onboardedUser(server.baseUrl);
     const plan = await generate(c, { daysPerWeek: 1 });
