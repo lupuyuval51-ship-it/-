@@ -78,7 +78,7 @@ export function AuthForm({ mode, next, defaultRegion }: { mode: Mode; next: stri
             </Select>
           </Field>
         )}
-        {error && <Alert tone="error">{error}</Alert>}
+        {error && <Alert tone="error" data-testid="auth-error">{error}</Alert>}
         <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="auth-submit">
           {busy ? t("common.loading") : register ? t("auth.submit.register") : t("auth.submit.login")}
         </Button>

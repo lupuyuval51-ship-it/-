@@ -105,7 +105,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
 
   return (
     <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" className="lu-pop flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-2xl sm:rounded-3xl">
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-2xl sm:rounded-3xl">
         <header className="flex items-start justify-between gap-3 border-b border-line p-4">
           <div className="space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>

@@ -23,11 +23,43 @@ export async function setPlan(email: string, plan: "PLUS" | "PRO" | "FREE", stat
   }
 }
 
-export async function setGraphicsPreference(email: string, tier: "A" | "B" | "C"): Promise<void> {
+/** `null` = automatic (the plan's default tier). */
+export async function setGraphicsPreference(email: string, tier: "A" | "B" | "C" | null): Promise<void> {
   const pool = new pg.Pool({ connectionString: URL, max: 1 });
   try {
     await pool.query('UPDATE "UserProfile" SET "graphicsPreference" = $2::"GraphicsTier" WHERE "userId" = (SELECT id FROM "User" WHERE email = $1)', [email, tier]);
   } finally {
     await pool.end();
   }
+}
+
+async function query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
+  const pool = new pg.Pool({ connectionString: URL, max: 1 });
+  try {
+    return (await pool.query(sql, params)).rows as T[];
+  } finally {
+    await pool.end();
+  }
+}
+
+/** The stored game spec (server-side truth, including answer keys the browser never receives). */
+export async function getGameSpec(gameId: string): Promise<import("@/lib/game/spec/schema").GameSpec> {
+  const rows = await query<{ spec: import("@/lib/game/spec/schema").GameSpec }>('SELECT spec FROM "Game" WHERE id = $1', [gameId]);
+  if (!rows[0]) throw new Error(`no game ${gameId}`);
+  return rows[0].spec;
+}
+
+export async function userIdOf(email: string): Promise<string> {
+  const rows = await query<{ id: string }>('SELECT id FROM "User" WHERE email = $1', [email]);
+  if (!rows[0]) throw new Error(`no user ${email}`);
+  return rows[0].id;
+}
+
+export async function dbCount(sql: string, params: unknown[] = []): Promise<number> {
+  const rows = await query<{ n: string }>(sql, params);
+  return Number(rows[0]?.n ?? 0);
+}
+
+export async function dbRows<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
+  return query<T>(sql, params);
 }
