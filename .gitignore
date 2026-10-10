@@ -38,3 +38,4 @@ unity/**/Logs/
 unity/**/obj/
 unity/**/UserSettings/
 /public/unity/
+unity/**/Builds/

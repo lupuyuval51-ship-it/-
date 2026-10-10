@@ -26,6 +26,7 @@ cannot change score, progress or access.
    configure the server for Brotli/Gzip headers.
 4. Build for **WebGL** with the name `levelup` and copy the `Build/` folder to `public/unity/levelup/Build/`
    (`levelup.loader.js`, `.framework.js`, `.data`, `.wasm`).
+Shortcut (needs the Unity CLI, a licensed Editor and the scene from step 2): `npm run unity:build` runs `unity build` with `LevelUp.Builder.BuildWebGL` and copies the files. Also untested.
 5. Open a game with `?renderer=unity` (e.g. `/play/{id}?renderer=unity`).
 
 Without a deployed build — or below Tier A — the page keeps the built-in Three.js renderer and says so.

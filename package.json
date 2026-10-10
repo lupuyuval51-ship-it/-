@@ -22,7 +22,8 @@
     "db:down": "bash scripts/pg-local.sh stop",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "unity:build": "bash scripts/build-unity.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
