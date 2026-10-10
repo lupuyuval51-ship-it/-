@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { DayNutritionDTO, NutritionTargetsDTO, ProfileDTO } from '@shared/types';
-import { Button, Card, LinkButton, Modal, Notice, ProgressBar, ProgressRing } from '../../components/ui';
+import { Button, Card, LinkButton, Modal, Notice, ProgressRing } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { useMacroFormat } from './Macros';
 
@@ -39,7 +39,7 @@ export function DayOverview({ day, profile, isToday }: { day: DayNutritionDTO; p
           <ProgressRing
             value={consumed}
             max={targets?.calories ?? 0}
-            size={148}
+            size={168}
             stroke={12}
             tone={remainingKcal != null && remainingKcal < 0 && !minor ? 'warning' : 'primary'}
             label={
@@ -67,25 +67,36 @@ export function DayOverview({ day, profile, isToday }: { day: DayNutritionDTO; p
             const target = targets ? targetFor(targets, key) : null;
             const left = target != null ? target - value : null;
             return (
-              <div key={key} className="nutri-macro">
-                <div className="row-between">
+              <div key={key} className={`nutri-macro nutri-macro-${tone}`}>
+                {target != null ? (
+                  <ProgressRing
+                    value={value}
+                    max={target}
+                    size={60}
+                    stroke={7}
+                    tone={!minor && key !== 'proteinG' && key !== 'fiberG' && value > target ? 'warning' : tone}
+                    label={t(label)}
+                  >
+                    <span className="nutri-macro-pct num">{Math.round(Math.min(value / Math.max(target, 1), 9.99) * 100)}%</span>
+                  </ProgressRing>
+                ) : null}
+                <div className="nutri-macro-text">
                   <span className="nutri-macro-label">{t(label)}</span>
-                  <span className="num small">
+                  <span className="num nutri-macro-value">
                     {target != null ? t('nutrition.overview.macroOfTarget', { value: f.g(value), target: f.g(target) }) : f.gramsText(value)}
                   </span>
+                  {left != null && (
+                    <span className="small muted">
+                      {Math.abs(left) < 0.5
+                        ? t('nutrition.overview.macroReached')
+                        : left > 0
+                          ? t('nutrition.overview.macroLeft', { value: f.g(left) })
+                          : key === 'proteinG' || key === 'fiberG'
+                            ? t('nutrition.overview.macroReached')
+                            : t('nutrition.overview.macroOver', { value: f.g(-left) })}
+                    </span>
+                  )}
                 </div>
-                {target != null && <ProgressBar value={value} max={target} tone={tone} label={t(label)} showOver={!minor && key !== 'proteinG' && key !== 'fiberG'} />}
-                {left != null && (
-                  <span className="small muted">
-                    {Math.abs(left) < 0.5
-                      ? t('nutrition.overview.macroReached')
-                      : left > 0
-                        ? t('nutrition.overview.macroLeft', { value: f.g(left) })
-                        : key === 'proteinG' || key === 'fiberG'
-                          ? t('nutrition.overview.macroReached')
-                          : t('nutrition.overview.macroOver', { value: f.g(-left) })}
-                  </span>
-                )}
               </div>
             );
           })}

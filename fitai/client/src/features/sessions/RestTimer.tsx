@@ -146,7 +146,7 @@ export function RestTimerCard({ timer, onChange }: { timer: RestTimerState; onCh
       </header>
 
       <div className="rest-timer-body">
-        <ProgressRing value={m.shown} max={Math.max(1, timer.durationSeconds)} size={136} stroke={10} tone={m.status === 'finished' ? 'success' : m.status === 'paused' ? 'warning' : 'primary'}>
+        <ProgressRing value={m.shown} max={Math.max(1, timer.durationSeconds)} size={160} stroke={12} tone={m.status === 'finished' ? 'success' : m.status === 'paused' ? 'warning' : 'primary'}>
           <span className="rest-timer-clock num" role="timer" aria-label={t('session.timer.remaining', { time: formatClock(m.shown) })}>
             {formatClock(m.shown)}
           </span>

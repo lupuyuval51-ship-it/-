@@ -101,9 +101,11 @@ export interface SetRowProps {
   onPatch(patch: SetPatch, opts: { immediate: boolean }): void;
   onToggleComplete(): void;
   onDelete(): void;
+  /** The first not-yet-completed set of the exercise: visually emphasised. */
+  current?: boolean;
 }
 
-export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete }: SetRowProps) {
+export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete, current = false }: SetRowProps) {
   const i18n = useI18n();
   const { t } = i18n;
   const { toDisplay, fromDisplay, weightUnit, formatWeight } = useUnits();
@@ -126,9 +128,10 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
   const repsPlaceholder = defaults.reps != null ? String(defaults.reps) : undefined;
 
   return (
-    <li className={`set-row${set.completed ? ' set-row-done' : ''}`} data-testid={`set-row-${n}`}>
+    <li className={`set-row${set.completed ? ' set-row-done' : ''}${current ? ' set-row-current' : ''}`}
+      aria-current={current ? 'step' : undefined} data-testid={`set-row-${n}`}>
       <span className="set-num num" aria-hidden="true">
-        {n}
+        {set.completed ? <Icon name="check" size={14} /> : n}
       </span>
       <div className="set-fields">
         {showWeight && (

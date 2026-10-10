@@ -55,7 +55,7 @@ export function MealSection({
   const empty = group.entries.length === 0;
   return (
     <Card
-      className="meal-card"
+      className={`meal-card meal-card-${mealType}`}
       title={mealName}
       subtitle={empty ? undefined : <MacroLine m={group.totals} />}
       actions={

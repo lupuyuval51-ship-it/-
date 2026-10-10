@@ -1,3 +1,4 @@
+import { Icon } from '../../components/ui';
 import { useI18n, type TKey } from '../../i18n';
 
 const SUGGESTIONS: TKey[] = [
@@ -17,6 +18,7 @@ export function SuggestedPrompts({ onPick, disabled }: { onPick(text: string): v
     <div className="coach-suggestions" role="group" aria-label={t('coach.suggestionsLabel')}>
       {SUGGESTIONS.map((key) => (
         <button key={key} type="button" className="chip coach-suggestion" disabled={disabled} onClick={() => onPick(t(key))}>
+          <Icon name="sparkles" size={14} />
           {t(key)}
         </button>
       ))}

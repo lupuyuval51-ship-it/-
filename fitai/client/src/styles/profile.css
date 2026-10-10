@@ -262,3 +262,180 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ================================================================== Visual polish (UI 4) */
+.onboarding {
+  max-inline-size: 760px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+.onboarding-header .page-title,
+.onboarding-header h1 {
+  letter-spacing: -0.02em;
+}
+.onboarding-segments {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+}
+.onboarding-segments span {
+  block-size: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition: background var(--transition);
+}
+.onboarding-segments span.done {
+  background: var(--primary);
+}
+.onboarding-segments span.current {
+  background: linear-gradient(90deg, var(--primary) 50%, var(--surface-3) 50%);
+}
+[dir='rtl'] .onboarding-segments span.current {
+  background: linear-gradient(270deg, var(--primary) 50%, var(--surface-3) 50%);
+}
+.onboarding-progress > p {
+  font-weight: 700;
+  color: var(--primary);
+}
+.onboarding-steps {
+  counter-reset: onb;
+}
+.onboarding-steps li {
+  counter-increment: onb;
+}
+.onboarding-steps li::after {
+  display: none;
+}
+.onboarding-steps li > *::before {
+  content: counter(onb);
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.onboarding-steps li.done > *::before {
+  content: '\2713';
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.onboarding-steps li.current > *::before {
+  background: var(--primary-soft);
+  color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.onboarding-card {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: var(--space-5);
+}
+@media (max-width: 480px) {
+  .onboarding-card {
+    padding: var(--space-4);
+  }
+}
+.onboarding-step-title {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+/* Choice cards */
+.onboarding-card .radio-card,
+.settings-page .radio-card {
+  position: relative;
+  padding-inline-end: calc(var(--space-4) + 28px);
+  background: var(--surface);
+  border-width: 1.5px;
+  transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+.onboarding-card .radio-card:hover,
+.settings-page .radio-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+.onboarding-card .radio-card::after,
+.settings-page .radio-card::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  inset-block-start: 50%;
+  inline-size: 20px;
+  block-size: 20px;
+  margin-block-start: -10px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  transition: background var(--transition), border-color var(--transition);
+}
+.onboarding-card .radio-card-active,
+.settings-page .radio-card-active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.onboarding-card .radio-card-active::after,
+.settings-page .radio-card-active::after {
+  border-color: var(--primary);
+  background: radial-gradient(circle, var(--primary-contrast) 0 3px, var(--primary) 4px);
+}
+.onboarding-card .radio-card-title,
+.settings-page .radio-card-title {
+  font-size: 15px;
+}
+.onboarding-actions .btn-primary {
+  min-inline-size: 140px;
+}
+.onboarding-review-section,
+.onboarding-targets {
+  border-radius: var(--radius-lg);
+}
+
+/* Settings: sticky section nav, tidy sections */
+.settings-nav {
+  position: sticky;
+  inset-block-start: var(--topbar-h);
+  z-index: 4;
+  padding-block: var(--space-2);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.settings-nav .chips {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.settings-nav .chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.settings-section {
+  border-radius: var(--radius-lg);
+}
+.settings-section > .card-header,
+.settings-section .card-header {
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+.settings-section .card-title {
+  font-size: 18px;
+}
+.settings-actions {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+.profile-target-stats .stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-card .radio-card:hover,
+  .settings-page .radio-card:hover {
+    transform: none;
+  }
+}

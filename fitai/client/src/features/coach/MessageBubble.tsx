@@ -1,5 +1,5 @@
 import type { CoachMessageDTO } from '@shared/types';
-import { Badge } from '../../components/ui';
+import { Badge, Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { formatWhen } from './format';
 import { MarkdownLite } from './markdown';
@@ -11,6 +11,11 @@ export function MessageBubble({ message }: { message: CoachMessageDTO }) {
   const classes = ['coach-msg', isUser ? 'coach-msg-user' : 'coach-msg-assistant', message.status !== 'ok' ? `coach-msg-${message.status}` : ''];
   return (
     <article className={classes.filter(Boolean).join(' ')} aria-label={isUser ? t('coach.you') : t('coach.coachName')}>
+      {!isUser && (
+        <span className="coach-avatar" aria-hidden="true">
+          <Icon name="sparkles" size={16} />
+        </span>
+      )}
       <header className="coach-msg-meta">
         <span className="coach-msg-author">{isUser ? t('coach.you') : t('coach.coachName')}</span>
         {!isUser && message.source && (
