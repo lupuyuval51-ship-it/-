@@ -89,16 +89,16 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  profile        UserProfile?
-  sessions       Session[]
-  subscription   Subscription?
-  allowances     AllowancePeriod[]
-  usage          UsageRecord[]
-  jobs           GenerationJob[]
-  games          Game[]
-  progress       GameProgress[]
-  playSessions   PlaySession[]
-  devCheckouts   DevCheckoutSession[]
+  profile      UserProfile?
+  sessions     Session[]
+  subscription Subscription?
+  allowances   AllowancePeriod[]
+  usage        UsageRecord[]
+  jobs         GenerationJob[]
+  games        Game[]
+  progress     GameProgress[]
+  playSessions PlaySession[]
+  devCheckouts DevCheckoutSession[]
 }
 
 model UserProfile {
@@ -183,7 +183,7 @@ model AllowancePeriod {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   usage UsageRecord[]
   jobs  GenerationJob[]
 
@@ -248,7 +248,7 @@ model GenerationJob {
   request           Json // validated creation request (subject, goal, difficulty, mode, ...)
   allowancePeriodId String?
   targetGameId      String? // EXTEND: the game being extended
-  gameId            String?        @unique // set when a validated game was delivered
+  gameId            String? // set when a validated game was delivered (EXTEND jobs point at the game they extended)
   providerId        String?
   model             String?
   attempts          Int            @default(0)
@@ -269,6 +269,7 @@ model GenerationJob {
   @@unique([userId, idempotencyKey])
   @@index([userId, createdAt])
   @@index([status, deadlineAt])
+  @@index([gameId])
 }
 
 // ───────────────────────────── games & progress ─────────────────────────────
@@ -292,11 +293,11 @@ model Game {
   updatedAt         DateTime       @updatedAt
   deletedAt         DateTime?
 
-  owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   revisions    GameRevision[]
   progress     GameProgress[]
   playSessions PlaySession[]
-  job          GenerationJob? @relation("JobGame")
+  jobs         GenerationJob[] @relation("JobGame")
 
   @@index([ownerId, deletedAt, createdAt])
 }

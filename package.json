@@ -26,6 +26,7 @@
     "stripe:setup": "node --env-file-if-exists=.env --import tsx scripts/stripe-setup.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@react-three/fiber": "^9.8.1",

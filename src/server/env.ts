@@ -16,12 +16,13 @@ const schema = z.object({
 
   AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "demo"]).default("auto"),
   ANTHROPIC_API_KEY: optional(z.string()),
-  ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
+  ANTHROPIC_MODEL: z.string().default("claude-opus-5-5"),
+  ANTHROPIC_REFUSAL_FALLBACK: bool.default(true),
   OPENAI_API_KEY: optional(z.string()),
   OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
   OPENAI_MODEL: z.string().default("gpt-4.1"),
-  AI_CALL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(600_000).default(90_000),
-  AI_JOB_DEADLINE_MS: z.coerce.number().int().min(5_000).max(900_000).default(240_000),
+  AI_CALL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(600_000).default(240_000),
+  AI_JOB_DEADLINE_MS: z.coerce.number().int().min(5_000).max(1_800_000).default(600_000),
 
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
   STRIPE_SECRET_KEY: optional(z.string()),

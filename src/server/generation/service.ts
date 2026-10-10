@@ -1,0 +1,44 @@
+import "server-only";
+import type { CreateGenerationBody } from "@/lib/schemas/generation";
+import type { GameSpec } from "@/lib/game/spec/schema";
+import { describeBackend, getBackend } from "../ai/registry";
+import { db } from "../db";
+import { getEnv } from "../env";
+import { Errors } from "../http/errors";
+import { runInBackground } from "../http/background";
+import { startGenerationJob } from "./jobs";
+import { runGenerationJob } from "./runner";
+
+/**
+ * Validate preconditions BEFORE a credit is reserved, create the job (reserving one credit atomically) and
+ * start the work in the background. A duplicate submission (same idempotency key) returns the same job.
+ */
+export async function createGeneration(userId: string, body: CreateGenerationBody, opts: { schedule?: boolean } = {}) {
+  const backend = getBackend();
+  if (backend.type === "unavailable") {
+    throw Errors.unavailable("AI_UNAVAILABLE", `AI generation is not available: ${backend.reason}. Ask the administrator to configure a provider or use demo mode.`);
+  }
+
+  let request = body.request;
+  if (request.mode === "EXTEND") {
+    const game = await db.game.findFirst({ where: { id: request.targetGameId!, ownerId: userId, deletedAt: null } });
+    if (!game) throw Errors.notFound("Game not found.");
+    if (game.generatorKind !== backend.info.kind) {
+      throw Errors.conflict(
+        "EXTEND_BACKEND_MISMATCH",
+        game.generatorKind === "demo"
+          ? "This game was created from demo templates. It can only be extended while the server is in demo mode."
+          : "This game was AI-generated. It cannot be extended with demo templates — configure the AI provider first.",
+      );
+    }
+    // The extended game's identity is authoritative; the client may not change its subject, level or language.
+    const spec = game.spec as unknown as GameSpec;
+    request = { ...request, subject: game.subject, difficulty: spec.meta.difficulty, gameType: spec.meta.gameType, contentLanguage: spec.meta.language };
+  }
+
+  const { job, created } = await startGenerationJob({
+    userId, idempotencyKey: body.idempotencyKey, request, deadlineMs: getEnv().AI_JOB_DEADLINE_MS,
+  });
+  if (created && opts.schedule !== false) runInBackground(() => runGenerationJob(job.id));
+  return { jobId: job.id, created, status: job.status, backend: describeBackend() };
+}
