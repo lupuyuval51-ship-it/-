@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { CircleCheck, CircleX, X } from "lucide-react";
+import { ChevronDown, CircleCheck, CircleX, X } from "lucide-react";
 import { useDir, useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import type { Block } from "@/lib/game/spec/schema";
 import { radioStep, radioTabIndex } from "@/lib/game/a11y/scene";
+import { scrollCue } from "@/lib/layout";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
 import { useDialogFocus } from "./useDialogFocus";
@@ -86,6 +87,8 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   const t = useT();
   const resolved = result?.resolved ?? false;
   const ref = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [moreBelow, setMoreBelow] = useState(false);
   const [answer, setAnswer] = useState<Answer | null>(null);
   const trail = challenge.type === "program" ? ((result?.detail?.trail as { x: number; y: number }[] | undefined) ?? null) : null;
 
@@ -102,14 +105,33 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // focus lands on the first answer control (not on "close"), is trapped inside the panel and returns to the HUD afterwards
   useDialogFocus(ref, '[role="radio"][tabindex="0"], input, [data-block], [data-item], [data-left]');
   // a wrong answer gives the panel a short shake (skipped when the player prefers reduced motion)
+  // Only the scrolling body shakes: the close button and the footer stay put so a tap right after "check" still lands.
   useEffect(() => {
-    const el = ref.current;
+    const el = bodyRef.current;
     if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     el.animate(
       [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }],
       { duration: 420, easing: "ease-in-out" },
     );
   }, [result]);
+
+  // Scroll affordance: a fade + chevron shows while more content is hidden below the fold of the body.
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const update = () => setMoreBelow(scrollCue(el.scrollTop, el.clientHeight, el.scrollHeight).below);
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(update) : null;
+    ro?.observe(el);
+    if (el.firstElementChild) ro?.observe(el.firstElementChild);
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      ro?.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
   const submit = () => {
     if (!answer || busy || resolved) return;
@@ -122,21 +144,25 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
 
   const { shortLandscape } = useLayout();
   return (
-    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
+    <div
+      className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center" : "items-end p-0 sm:items-center sm:p-4")}
+      // keep the whole panel (including the close button) clear of notches, gesture bars and rounded corners
+      style={shortLandscape ? { paddingTop: "max(0.25rem, env(safe-area-inset-top))", paddingBottom: "max(0.25rem, env(safe-area-inset-bottom))", paddingInlineStart: "max(0.5rem, env(safe-area-inset-left))", paddingInlineEnd: "max(0.5rem, env(safe-area-inset-right))" } : undefined}
+    >
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} data-compact={shortLandscape ? "1" : undefined} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-full rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
-        <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>
+        <header className={cx("relative z-20 flex shrink-0 items-start justify-between gap-2 border-b border-line", shortLandscape ? "px-2.5 py-1.5" : "flex-wrap gap-3 p-4")}>
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
-            <h2 id="challenge-title" dir="auto" className="text-lg font-bold">{challenge.title}</h2>
+            <h2 id="challenge-title" dir="auto" className={cx("font-bold", shortLandscape ? "text-base leading-tight" : "text-lg")}>{challenge.title}</h2>
             <div className="flex flex-wrap gap-1.5">
               <Badge tone="violet">{t("challenge.level", { n: challenge.level })}</Badge>
-              <Badge>{t("challenge.concept")}: {challenge.concept}</Badge>
-              <Badge>{t(`challengeType.${challenge.type}`)}</Badge>
+              {!shortLandscape && <Badge>{t("challenge.concept")}: {challenge.concept}</Badge>}
+              {!shortLandscape && <Badge>{t(`challengeType.${challenge.type}`)}</Badge>}
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape"><X aria-hidden className="size-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape" data-testid="challenge-x" className="relative z-20 size-11 shrink-0 touch-manipulation !p-0"><X aria-hidden className="size-5" /></Button>
         </header>
 
         <div role="status" aria-live="polite" className="sr-only" data-testid="challenge-live">
@@ -144,10 +170,11 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           {hint && <p>{t("challenge.hintShown")}: {hint}</p>}
         </div>
 
-        <div className={cx("flex-1 overflow-y-auto", shortLandscape ? "space-y-2 p-3" : "space-y-4 p-4")}>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+        <div ref={bodyRef} data-testid="challenge-body" role="region" aria-labelledby="challenge-title" tabIndex={0} className={cx("min-h-0 flex-1 overflow-y-auto overscroll-contain focus-visible:outline-none", shortLandscape ? "space-y-2 p-2.5" : "space-y-4 p-4")}>
           <RichText text={challenge.prompt} />
 
-          {challenge.type === "choice" && <ChoiceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(optionId) => setAnswer({ type: "choice", optionId })} />}
+          {challenge.type === "choice" && <ChoiceInput compact={shortLandscape} challenge={challenge} disabled={resolved || busy} result={result} onChange={(optionId) => setAnswer({ type: "choice", optionId })} />}
           {challenge.type === "numeric" && <NumericInput challenge={challenge} disabled={resolved || busy} onChange={(value) => setAnswer(value === null ? null : { type: "numeric", value })} onEnter={submit} />}
           {challenge.type === "sequence" && <SequenceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(order) => setAnswer(order ? { type: "sequence", order } : null)} />}
           {challenge.type === "match" && <MatchInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(pairs) => setAnswer(pairs ? { type: "match", pairs } : null)} />}
@@ -181,13 +208,19 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
             </div>
           )}
         </div>
+        {moreBelow && (
+          <div aria-hidden="true" data-testid="challenge-scroll-cue" className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-10 items-end justify-center bg-gradient-to-t from-ink-800 via-ink-800/80 to-transparent pb-0.5 text-neon">
+            <ChevronDown className="size-5 animate-bounce motion-reduce:animate-none" />
+          </div>
+        )}
+        </div>
 
-        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : "p-3")}>
+        <footer className={cx("relative z-20 flex shrink-0 items-center justify-between gap-2 border-t border-line bg-ink-800", shortLandscape ? "px-2.5 py-1.5" : "flex-wrap p-3")} style={shortLandscape ? undefined : { paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
           {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t("challenge.hint")}</Button> : <span />}
           {resolved ? (
-            <Button onClick={onClose} data-testid="challenge-close">{t("challenge.close")}</Button>
+            <Button onClick={onClose} data-testid="challenge-close" className="touch-manipulation">{t("challenge.close")}</Button>
           ) : (
-            <Button onClick={submit} disabled={!answer || busy} aria-busy={busy} data-testid="challenge-submit">{busy ? t("common.loading") : t("challenge.check")}</Button>
+            <Button onClick={submit} disabled={!answer || busy} aria-busy={busy} data-testid="challenge-submit" className="touch-manipulation">{busy ? t("common.loading") : t("challenge.check")}</Button>
           )}
         </footer>
       </div>
@@ -197,7 +230,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
 
 // ───────────────────────── input widgets ─────────────────────────
 
-function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Extract<PublicChallenge, { type: "choice" }>; disabled: boolean; result: AnswerResult | null; onChange: (id: string) => void }) {
+function ChoiceInput({ challenge, compact = false, disabled, result, onChange }: { compact?: boolean; challenge: Extract<PublicChallenge, { type: "choice" }>; disabled: boolean; result: AnswerResult | null; onChange: (id: string) => void }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [lastWrong, setLastWrong] = useState<string | null>(null);
   const [seen, setSeen] = useState<AnswerResult | null>(null);
@@ -227,7 +260,7 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
     return () => window.removeEventListener("keydown", onKey);
   }, [challenge.options, disabled, onChange]);
   return (
-    <div ref={group} role="radiogroup" aria-label={challenge.title} className="space-y-2">
+    <div ref={group} role="radiogroup" aria-label={challenge.title} className={cx(compact && challenge.options.length > 2 ? "grid grid-cols-2 gap-2" : "space-y-2")}>
       {challenge.options.map((o, idx) => {
         const isPicked = picked === o.id;
         return (
@@ -249,7 +282,7 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
               group.current?.querySelectorAll<HTMLElement>('[role="radio"]')[n]?.focus();
             }}
             onClick={() => { setPicked(o.id); onChange(o.id); }}
-            className={cx("flex w-full min-h-12 items-start gap-3 rounded-xl border px-3 py-2.5 text-start text-sm transition-colors",
+            className={cx("flex w-full items-start gap-3 rounded-xl border px-3 text-start text-sm transition-colors", compact ? "min-h-11 py-1.5" : "min-h-12 py-2.5",
               isPicked ? "border-neon bg-neon/10" : "border-line bg-ink-900 hover:border-neon/50",
               lastWrong === o.id && !isPicked && "border-rose/60",
               revealed === o.id && "border-lime bg-lime/10",

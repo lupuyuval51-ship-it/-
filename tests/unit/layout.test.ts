@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLayout, DEFAULT_LAYOUT, stickTravel, stickVector, TOUCH_METRICS } from "@/lib/layout";
+import { computeLayout, DEFAULT_LAYOUT, scrollCue, stickTravel, stickVector, TOUCH_METRICS } from "@/lib/layout";
 
 describe("computeLayout", () => {
   it("keeps the portrait phone as the default design", () => {
@@ -67,5 +67,23 @@ describe("virtual stick maths", () => {
   it("is centred at zero", () => {
     const v = stickVector(0, 0, 50);
     expect([Math.abs(v.x), Math.abs(v.y), v.kx, v.ky]).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe("scrollCue", () => {
+  it("shows nothing when the content fits", () => {
+    expect(scrollCue(0, 300, 300)).toEqual({ above: false, below: false });
+    expect(scrollCue(0, 300, 303)).toEqual({ above: false, below: false }); // sub-pixel slack
+  });
+
+  it("flags hidden content below at the top, both ways in the middle, above at the end", () => {
+    expect(scrollCue(0, 200, 400)).toEqual({ above: false, below: true });
+    expect(scrollCue(100, 200, 400)).toEqual({ above: true, below: true });
+    expect(scrollCue(200, 200, 400)).toEqual({ above: true, below: false });
+    expect(scrollCue(198, 200, 400).below).toBe(false);
+  });
+
+  it("is safe with garbage input", () => {
+    expect(scrollCue(NaN, 200, 400)).toEqual({ above: false, below: false });
   });
 });

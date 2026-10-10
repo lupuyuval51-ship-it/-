@@ -65,3 +65,10 @@ export function stickVector(dx: number, dy: number, travel: number): { x: number
   const kx = dx * k, ky = dy * k;
   return { x: kx / travel, y: -ky / travel, kx, ky };
 }
+
+/** Whether a scroll container hides content above / below its visible area (drives the fade + chevron scroll cue). */
+export function scrollCue(scrollTop: number, clientHeight: number, scrollHeight: number, slack = 4): { above: boolean; below: boolean } {
+  const ok = [scrollTop, clientHeight, scrollHeight].every((n) => Number.isFinite(n));
+  if (!ok || scrollHeight <= clientHeight + slack) return { above: false, below: false };
+  return { above: scrollTop > slack, below: scrollTop + clientHeight < scrollHeight - slack };
+}
