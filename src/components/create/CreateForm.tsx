@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Badge, Button, Card, Field, Input, Select, Textarea, cx } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES, GENERATION_MODES, type GenerationModeId, type Mechanic } from "@/lib/game/spec/constants";
 import type { DictKey } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
+import { MaterialPreview } from "./MaterialPreview";
 
 export interface CreateFormProps {
   backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string };
@@ -21,6 +22,8 @@ export interface CreateFormProps {
 }
 
 const NATIVE_LANG: Record<string, string> = { he: "עברית", en: "English", ar: "العربية", es: "Español", fr: "Français", de: "Deutsch", ru: "Русский" };
+
+const noopSubscribe = () => () => undefined;
 
 /** Client-side idempotency key: one per form submission attempt, so a double click or a retry never double-charges. */
 function newKey(): string {
@@ -42,12 +45,15 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
   const [error, setError] = useState<{ text: string; jobId?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const keyRef = useRef<string | null>(null);
+  // false while the server-rendered form is still inert, true once React handles events (tests wait for it)
+  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   const extend = mode === "EXTEND";
   const selected = games.find((g) => g.id === gameId);
   const engineGame = selected?.generatorKind === "engine";
   const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "demo");
-  const [materialLen, setMaterialLen] = useState(0);
+  const [material, setMaterial] = useState("");
+  const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const exhausted = allowance.remaining <= 0;
   const blocked = backend.kind === "unavailable" || exhausted || Boolean(allowance.activeJobId) || mismatch;
 
@@ -128,18 +134,40 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
   }
 
 
+  async function loadFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // choosing the same file again still triggers a change
+    if (!file) return;
+    try {
+      if (file.size > 2_000_000) throw new Error("too big");
+      const text = (await file.text()).replace(/\u0000/g, "");
+      setMaterial(text.slice(0, INPUT_LIMITS.materialMax));
+      setFileNote(text.length > INPUT_LIMITS.materialMax ? { tone: "info", text: t("create.material.file.trimmed", { max: INPUT_LIMITS.materialMax }) } : null);
+    } catch {
+      setFileNote({ tone: "error", text: t("create.material.file.error") });
+    }
+  }
+
   const materialField = (
     <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : t("create.material.hint.demo")}>
       <Textarea
         id="material" name="material" dir="auto" rows={8} maxLength={INPUT_LIMITS.materialMax} placeholder={t("create.material.placeholder")} data-testid="create-material"
-        onChange={(e) => setMaterialLen(e.target.value.length)}
+        value={material} onChange={(e) => setMaterial(e.target.value)}
       />
-      <span className="mt-1 block text-end text-xs text-muted" aria-live="off">{t("create.material.count", { n: materialLen, max: INPUT_LIMITS.materialMax })}</span>
+      <span className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <label className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 font-semibold text-neon hover:bg-white/5 focus-within:outline focus-within:outline-2 focus-within:outline-neon">
+          <input type="file" accept=".txt,.md,.markdown,.csv,.tsv,text/plain,text/markdown,text/csv" onChange={loadFile} className="sr-only" data-testid="material-file" />
+          {t("create.material.file")}
+        </label>
+        <span aria-live="off">{t("create.material.count", { n: material.length, max: INPUT_LIMITS.materialMax })}</span>
+      </span>
+      {fileNote && <span className={cx("mt-1 block text-xs", fileNote.tone === "error" ? "text-rose" : "text-muted")} data-testid="material-file-note">{fileNote.text}</span>}
+      {backend.kind === "demo" && <div className="mt-2"><MaterialPreview material={material} full={mode === "FULL"} /></div>}
     </Field>
   );
 
   return (
-    <form onSubmit={submit} className="space-y-6" noValidate data-testid="create-form">
+    <form onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
       <Alert tone={backend.kind === "demo" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
         {backend.kind === "ai" && t("create.provider.ai", { provider: backend.label })}
         {backend.kind === "demo" && t("create.provider.demo")}

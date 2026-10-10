@@ -154,14 +154,20 @@ Hand-written demo templates only cover five topics, so there is a second, rule-b
 characters, Hebrew, English or any script); with no AI provider configured the engine turns it into a complete game, and with an AI provider the same
 text is passed to the model as *data it must stick to* (`<study_material>`, tag break-outs stripped), so every question is about what was pasted.
 
-* **What it extracts (deterministically, nothing invented):** a title, `term: meaning` / `term - meaning` / `term = meaning` lines and “X is …” sentences,
-  numbered lists (steps), sentences with exactly one number, and plain statements. From those it builds six kinds of challenge: *match the terms*, *name the
-  term from its description*, *fill the gap* (wrong options are other words of the material that look like the right one), *put the steps in order*, *find
-  the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and per-option feedback quote the learner's
-  own sentences.
+* **What it extracts (deterministically, nothing invented):** a title (first line or Markdown heading), `term: meaning` / `term - meaning` / `term = meaning`
+  lines, table rows (Markdown `| term | meaning |` or columns pasted from a spreadsheet), “X is …” sentences, questions the learner already wrote with their
+  answers (`Q:`/`A:`, `ש:`/`ת:`, a question line followed by its answer, or `question? answer`), numbered lists (steps), sentences with exactly one number,
+  and plain statements. From those it builds seven kinds of challenge: *answer the learner's own question* (numeric when the answer is a number),
+  *match the terms*, *name the term from its description*, *fill the gap* (wrong options are other words of the material that look like the right one),
+  *put the steps in order*, *find the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and
+  per-option feedback quote the learner's own sentences, and the concept tag shown in the challenge panel never names the answer.
+* **Adaptive:** multiple-choice questions get an easier two-option version that the server serves after two misses in a row (`adaptive_difficulty`).
+* **Live preview and files:** under the material box the create form runs the same parser and builder in the browser and says what it found
+  ("Terms: 5 · Questions: 3 · …") and whether it is enough for a game, before any credit is spent; a `.txt`/`.md` file can be loaded into the box.
 * **A full game, not a quiz:** the world, guide character, stations, lore note, collectibles, missions and portal(s) are composed for the chosen game type
   and mode (Fast = one area, Full = two areas when there is enough material); the environment follows the subject (ocean, space, Egypt, castle, lab, forest…).
-  The same text always gives the same game. Extending such a game with *more material* adds a new area and keeps every old id.
+  The same text always gives the same game. Extending such a game with *more material* adds a new area, keeps every old id and reuses the
+  game's learning objectives; when the game is already at its size limit the extension is refused with a clear message (no charge).
 * **Honest by construction:** the game is stored as `generatorKind: "engine"` and shown everywhere as “From your material (study engine, not AI)”. If the
   material is too short or has too little to ask about, the job fails with a precise message in Hebrew or English and the credit is released.
 * **Same safety path as everything else:** the output goes through the normal spec validation (references, solvability, limits, sanitising), control and
@@ -306,9 +312,9 @@ Run on 2026-10-10 (after the gameplay polish and the study engine) in the build 
 | --- | --- |
 | `npm run typecheck` | passed (0 errors) |
 | `npm run lint` | passed (0 errors, 0 warnings) |
-| Vitest **unit** (13 files) | **444 passed** |
+| Vitest **unit** (13 files) | **451 passed** |
 | Vitest **integration** against PostgreSQL (6 files) | **97 passed** |
-| Playwright **E2E** (desktop + Pixel 7 projects, 47 scheduled) | **46 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Playwright **E2E** (desktop + Pixel 7 projects, 48 scheduled) | **47 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
 | `npm run build` | passed |
 
 Not run (and therefore not claimed): anything against a real AI provider or the real Stripe API; GitHub Actions (`.github/workflows/ci.yml` was written but never executed);

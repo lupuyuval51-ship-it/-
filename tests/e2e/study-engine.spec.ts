@@ -31,6 +31,10 @@ test.describe("the study engine: a game made from the learner's own material", (
     await page.getByTestId("create-goal").fill("Know the main words and facts about the Nile");
     await page.getByTestId("create-material").fill(NOTES);
     await expect(page.getByText(new RegExp(`${NOTES.length} of 8000`))).toBeVisible();
+    // the live preview runs the same engine and says what it found before anything is spent
+    await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "1");
+    await expect(page.getByTestId("material-preview")).toContainText("Terms: 5");
+    await expect(page.getByTestId("material-preview-verdict")).toContainText(/about \d+ challenges/);
     await page.getByTestId("create-submit").click();
     await page.waitForURL(/\/generate\/[a-z0-9]+$/);
     await expect(page.getByTestId("gen-success")).toBeVisible({ timeout: 60_000 });
@@ -79,6 +83,8 @@ test.describe("the study engine: a game made from the learner's own material", (
     await page.getByTestId("create-subject").fill("Bees");
     await page.getByTestId("create-goal").fill("Know bees");
     await page.getByTestId("create-material").fill("Bees are nice. They fly around and make honey in summer.");
+    await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "0");
+    await expect(page.getByTestId("material-preview-verdict")).toContainText(/Not enough yet/);
     await page.getByTestId("create-submit").click();
     await page.waitForURL(/\/generate\/[a-z0-9]+$/);
     await expect(page.getByTestId("gen-failed")).toBeVisible({ timeout: 60_000 });
@@ -109,5 +115,28 @@ test.describe("the study engine: a game made from the learner's own material", (
     expect(JSON.stringify(spec)).toContain("כלורופיל");
     await openGame(page, game!.id);
     await expect(page.getByTestId("area-name")).toContainText(/[֐-׿]/);
+  });
+
+  test("a text file of questions and answers can be loaded into the box and becomes a game", async ({ page }) => {
+    test.setTimeout(180_000);
+    await setLocaleCookie(page, "en");
+    const { email } = await registerViaUi(page, { name: "Noa" });
+    const userId = await userIdOf(email);
+    await page.goto("/create");
+    await expect(page.getByTestId("create-form")).toHaveAttribute("data-hydrated", "1"); // a file picked before hydration would have no handler
+    const quiz = "# European capitals\nQ: What is the capital of France?\nA: Paris\nQ: What is the capital of Italy?\nA: Rome\nQ: What is the capital of Spain?\nA: Madrid\nQ: What is the capital of Germany?\nA: Berlin\nQ: How many countries are in the European Union?\nA: 27 countries";
+    await page.getByTestId("material-file").setInputFiles({ name: "capitals.md", mimeType: "text/markdown", buffer: Buffer.from(quiz) });
+    await expect(page.getByTestId("create-material")).toHaveValue(quiz);
+    await expect(page.getByTestId("material-preview")).toContainText("Questions: 5");
+    await page.getByTestId("mode-FULL").check(); // all five questions fit only in a Full game (a Fast game asks four)
+    await page.getByTestId("create-subject").fill("European capitals");
+    await page.getByTestId("create-goal").fill("Remember the capitals");
+    await page.getByTestId("create-submit").click();
+    await page.waitForURL(/\/generate\/[a-z0-9]+$/);
+    await expect(page.getByTestId("gen-success")).toBeVisible({ timeout: 60_000 });
+    const [game] = await dbRows<{ id: string }>('SELECT id FROM "Game" WHERE "ownerId" = $1', [userId]);
+    const spec = await getGameSpec(game!.id);
+    expect(spec.challenges.some((c) => c.type === "numeric" && c.answer === 27)).toBe(true);
+    expect(spec.challenges.some((c) => c.type === "choice" && c.options.some((o) => o.text === "Paris"))).toBe(true);
   });
 });

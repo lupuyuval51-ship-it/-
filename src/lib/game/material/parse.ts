@@ -21,6 +21,14 @@ export interface Fact {
   isYear: boolean;
 }
 
+export interface QuestionAnswer {
+  question: string;
+  answer: string;
+  /** Set when the answer is just a number (optionally with a unit), so it can be asked as a numeric challenge. */
+  value?: number;
+  decimals: number;
+}
+
 export interface Keyword {
   text: string;
   lower: string;
@@ -34,6 +42,8 @@ export interface Knowledge {
   definitions: Definition[];
   /** Each group is one ordered list of 3–6 steps. */
   steps: string[][];
+  /** Question → answer pairs the learner already wrote ("Q: … / A: …", or a question line followed by its answer). */
+  qa: QuestionAnswer[];
   facts: Fact[];
   /** Plain statements that are neither definitions nor facts. */
   sentences: string[];
@@ -47,6 +57,13 @@ export interface Knowledge {
 const BULLET = /^[-*•–—·▪●○]\s+/;
 const NUMBERED = /^(?:step|שלב)?\s*(\d{1,2})\s*[.):]\s+(.{3,})$/iu;
 const NOT_A_TERM = /^(?:note|notes|example|examples|tip|remember|summary|question|answer|q|a|שים לב|הערה|דוגמה|דוגמאות|למשל|תזכורת|סיכום|שאלה|תשובה)$/iu;
+
+const QA_Q = /^(?:q|question|ש|שאלה)\s*[.:)]\s*(.{5,})$/iu;
+const QA_A = /^(?:a|answer|ת|תשובה)\s*[.:)]\s*(.{1,})$/iu;
+const INLINE_QA = /^(.{8,200}?[?？؟])\s+([^?？؟]{1,60})$/u;
+const TABLE_SEPARATOR = /^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?$/u;
+const NUMBER_ONLY = /^([-−]?\d{1,3}(?:,\d{3})+|[-−]?\d+)(?:\.(\d+))?\s*(?:[%°]|\p{L}{1,12}\.?)?$/u;
+const DEF_PIPE = /^\|?\s*([^|]{1,60}?)\s*\|\s*([^|]{3,}?)\s*(?:\|.*)?$/u;
 
 const DEF_COLON = /^(.{2,60}?)\s*[:：]\s+(.{8,})$/u;
 const DEF_DASH = /^(.{2,60}?)\s+[-–—]\s+(.{8,})$/u;
@@ -70,11 +87,15 @@ function looksLikeTerm(term: string): boolean {
 }
 
 function asDefinition(line: string): Definition | null {
-  for (const re of [DEF_COLON, DEF_DASH, DEF_EQUALS]) {
+  for (const re of [DEF_PIPE, DEF_COLON, DEF_DASH, DEF_EQUALS]) {
+    if (re === DEF_PIPE && !line.includes("|")) continue;
     const m = re.exec(line);
     if (m && looksLikeTerm(m[1]!)) {
       const meaning = trimEnd(m[2]!);
-      if (wordCount(meaning) >= 1 && meaning.length >= 3) return { term: trimEnd(m[1]!), meaning, source: trimEnd(line) };
+      if (wordCount(meaning) >= 1 && meaning.length >= 3) {
+        const term = trimEnd(m[1]!);
+        return { term, meaning, source: re === DEF_PIPE ? `${term}: ${meaning}` : trimEnd(line) };
+      }
     }
   }
   return null;
@@ -92,6 +113,17 @@ function asProseDefinition(sentence: string): Definition | null {
   return null;
 }
 
+function asQa(question: string, answer: string): QuestionAnswer | null {
+  const q = question.trim(), a = trimEnd(answer);
+  if (q.length < 8 || q.length > 300 || !a || a.length > 140) return null;
+  const n = NUMBER_ONLY.exec(a);
+  if (n) {
+    const value = Number(`${n[1]!.replace(/,/g, "").replace("−", "-")}${n[2] ? `.${n[2]}` : ""}`);
+    if (Number.isFinite(value) && Math.abs(value) < 1e12) return { question: q, answer: a, value, decimals: n[2]?.length ?? 0 };
+  }
+  return { question: q, answer: a, decimals: 0 };
+}
+
 function asFact(sentence: string): Fact | null {
   const s = sentence.trim();
   const m = NUMBER.exec(s);
@@ -107,9 +139,59 @@ function asFact(sentence: string): Fact | null {
 }
 
 export function parseMaterial(raw: string): Knowledge {
-  const text = sanitizeMaterial(raw);
+  const text = sanitizeMaterial(raw)
+    .replace(/\*\*(.+?)\*\*|__(.+?)__/gu, (_m, a: string | undefined, b: string | undefined) => a ?? b ?? "") // markdown bold
+    .replace(/`([^`\n]+)`/gu, "$1");
   const lines = text.split("\n");
   const consumed = new Set<number>();
+  let title: string | undefined;
+
+  // 0) markdown headings are section titles (the first one names the material); table separators and header rows are skipped
+  lines.forEach((l, i) => {
+    const h = /^#{1,6}\s+(.+)$/u.exec(l);
+    if (h) {
+      title ??= trimEnd(h[1]!);
+      consumed.add(i);
+    } else if (TABLE_SEPARATOR.test(l) && l.includes("-")) {
+      consumed.add(i);
+      if (i > 0 && lines[i - 1]!.includes("|")) consumed.add(i - 1);
+    }
+  });
+
+  // 0b) questions the learner already wrote, with their answers
+  const qa: QuestionAnswer[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (consumed.has(i) || !lines[i]) continue;
+    const line = lines[i]!.replace(BULLET, "");
+    let nextIdx = -1;
+    for (let k = i + 1; k < lines.length; k++) if (lines[k]) { nextIdx = k; break; }
+    const next = nextIdx > 0 && !consumed.has(nextIdx) ? lines[nextIdx]!.replace(BULLET, "") : "";
+    const q = QA_Q.exec(line);
+    const a = next ? QA_A.exec(next) : null;
+    if (q && a) {
+      const pair = asQa(q[1]!, a[1]!);
+      if (pair) qa.push(pair);
+      consumed.add(i).add(nextIdx);
+      continue;
+    }
+    const inline = INLINE_QA.exec(line);
+    if (inline && !NUMBERED.test(line)) {
+      const pair = asQa(inline[1]!, inline[2]!);
+      if (pair) {
+        qa.push(pair);
+        consumed.add(i);
+        continue;
+      }
+    }
+    // a line that is only a question, followed by a short line that answers it
+    if (/[?？؟]$/u.test(line) && line.length <= 200 && next && !/[?？؟]$/u.test(next) && next.length <= 120 && !NUMBERED.test(next) && !QA_Q.test(next) && !asDefinition(next) && !/^#/.test(next)) {
+      const pair = asQa(line, next);
+      if (pair) {
+        qa.push(pair);
+        consumed.add(i).add(nextIdx);
+      }
+    }
+  }
 
   // 1) numbered lists → ordered steps
   const steps: string[][] = [];
@@ -138,12 +220,11 @@ export function parseMaterial(raw: string): Knowledge {
   const sentences: string[] = [];
   const prose: string[] = [];
   const all: string[] = [];
-  let title: string | undefined;
   const firstContent = lines.findIndex((l, i) => l && !consumed.has(i));
   lines.forEach((rawLine, i) => {
     if (!rawLine || consumed.has(i)) return;
     const line = rawLine.replace(BULLET, "");
-    if (i === firstContent && line.length <= 70 && !/[.!?:：]$/.test(line) && lines.some((l, k) => k > i && l && !consumed.has(k)) && wordCount(line) <= 9) {
+    if (i === firstContent && title === undefined && line.length <= 70 && !/[.!?:：]$/.test(line) && lines.some((l, k) => k > i && l && !consumed.has(k)) && wordCount(line) <= 9) {
       title = line;
       return;
     }
@@ -195,6 +276,7 @@ export function parseMaterial(raw: string): Knowledge {
     title,
     definitions: uniq(definitions, (d) => d.term.toLowerCase()),
     steps,
+    qa: uniq(qa, (x) => x.question.toLowerCase()),
     facts: uniq(facts, (f) => f.blanked),
     sentences: uniq(sentences, (s) => s),
     prose: uniq(prose, (s) => s),

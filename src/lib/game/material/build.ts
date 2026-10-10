@@ -11,15 +11,16 @@ import { generateChallenges, type Generated } from "./challenges";
 import { parseMaterial, type Knowledge } from "./parse";
 import { clip, hashText, sanitizeMaterial } from "./text";
 import { mulberry32 } from "../util/prng";
+import { SPEC_LIMITS } from "../spec/constants";
 
 type Raw = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-export const MIN_CHALLENGES = 3;
-/** Anything shorter than this cannot contain enough to ask three questions about. */
-export const MIN_MATERIAL_CHARS = 60;
+import { MIN_CHALLENGES, MIN_MATERIAL_CHARS } from "./limits";
+
+export { MIN_CHALLENGES, MIN_MATERIAL_CHARS };
 
 export class MaterialError extends Error {
-  constructor(public readonly code: "TOO_SHORT" | "TOO_LITTLE", private readonly msgs: { en: string; he: string }) {
+  constructor(public readonly code: "TOO_SHORT" | "TOO_LITTLE" | "GAME_FULL", private readonly msgs: { en: string; he: string }) {
     super(msgs.en);
     this.name = "MaterialError";
   }
@@ -90,7 +91,7 @@ export interface MaterialBuild {
   stats: { challenges: number; terms: number; steps: number; facts: number; statements: number };
 }
 
-function prepare(req: GenerationRequest, max: number, idPrefix = ""): { know: Knowledge; gen: Generated; lang: Lang; material: string } {
+function prepare(req: GenerationRequest, max: number, idPrefix = "", variants = false): { know: Knowledge; gen: Generated; lang: Lang; material: string } {
   const material = sanitizeMaterial(req.material ?? "");
   const lang: Lang = req.contentLanguage === "he" ? "he" : "en";
   if (material.length < MIN_MATERIAL_CHARS) {
@@ -100,7 +101,7 @@ function prepare(req: GenerationRequest, max: number, idPrefix = ""): { know: Kn
     });
   }
   const know = parseMaterial(material);
-  const gen = generateChallenges(know, { lang, rnd: mulberry32(hashText(material)), max, idPrefix });
+  const gen = generateChallenges(know, { lang, rnd: mulberry32(hashText(material)), max, idPrefix, variants });
   if (gen.challenges.length < MIN_CHALLENGES) {
     throw new MaterialError("TOO_LITTLE", {
       en: `Your material only has enough for ${gen.challenges.length} question(s); a game needs at least ${MIN_CHALLENGES}. Add more sentences, “term: meaning” lines, numbered steps or facts with numbers.`,
@@ -196,7 +197,7 @@ function missionsFor(o: { area: Raw; index: number; challenges: Raw[]; lang: Lan
 
 export function buildMaterialSpec(req: GenerationRequest): MaterialBuild {
   const full = req.mode === "FULL";
-  const { know, gen, lang, material } = prepare(req, full ? 10 : 4);
+  const { know, gen, lang, material } = prepare(req, full ? 10 : 4, "", true);
   const t = translator(lang);
   const env = pickEnvironment(req.subject, req.gameType);
   const f = FLAVOUR[env];
@@ -240,8 +241,8 @@ export function buildMaterialSpec(req: GenerationRequest): MaterialBuild {
       ), 700),
     },
     theme: { environment: env, timeOfDay: f.time },
-    mechanics: twoAreas ? ["collect", "dialogue", "portals", "checkpoints"] : ["collect", "dialogue", "checkpoints"],
-    areas, missions, challenges: gen.challenges,
+    mechanics: [...(twoAreas ? ["collect", "dialogue", "portals", "checkpoints"] : ["collect", "dialogue", "checkpoints"]), ...(gen.variants.length ? ["adaptive_difficulty"] : [])],
+    areas, missions, challenges: [...gen.challenges, ...gen.variants],
   };
   const notes = [
     t("Built from your own material by the rule-based study engine — not by AI. Every question quotes your text, so check the material itself for accuracy.", "נבנה מהחומר שלכם בידי מנוע הלימוד מבוסס הכללים — לא בינה מלאכותית. כל שאלה מצטטת את הטקסט שלכם, ולכן כדאי לוודא את דיוק החומר עצמו."),
@@ -255,7 +256,14 @@ export function buildMaterialSpec(req: GenerationRequest): MaterialBuild {
 /** "Extend Existing Game" for material games: a new area built from additional material. */
 export function buildMaterialExtension(base: GameSpec, req: GenerationRequest): { ext: GameExtension; notes: string[] } {
   const n = base.areas.length + 1;
-  const { know, gen, lang } = prepare(req, 6, `x${n}-`);
+  const room = Math.min(6, SPEC_LIMITS.challenges - base.challenges.length);
+  if (room < MIN_CHALLENGES || base.areas.length >= SPEC_LIMITS.areas) {
+    throw new MaterialError("GAME_FULL", {
+      en: "This game is already as big as a game can be. Create a new game from the extra material instead.",
+      he: "המשחק הזה כבר בגודל המרבי. צרו משחק חדש מהחומר הנוסף.",
+    });
+  }
+  const { know, gen, lang } = prepare(req, room, `x${n}-`);
   const t = translator(lang);
   const f = FLAVOUR[base.theme.environment];
   const index = 100 + n;
@@ -265,9 +273,22 @@ export function buildMaterialExtension(base: GameSpec, req: GenerationRequest): 
     challenges: gen.challenges, flavour: f, lang, know, subject: base.meta.subject, withLore: true,
   });
   const missions = missionsFor({ area, index, challenges: gen.challenges, lang });
+  // Learning objectives are capped per game: reuse the game's own objective of the same kind ("o-terms"…) and only add
+  // genuinely new ones while there is room; anything beyond that is assessed under the game's first objective.
+  const baseIds = new Set(base.learning.objectives.map((o) => o.id));
+  let objectiveRoom = SPEC_LIMITS.learningObjectives - base.learning.objectives.length;
+  const remap = new Map<string, string>();
+  const objectives = gen.objectives.filter((o) => {
+    const plain = o.id.replace(/^x\d+-/, "");
+    if (baseIds.has(plain)) remap.set(o.id, plain);
+    else if (objectiveRoom > 0) return objectiveRoom--, true;
+    else remap.set(o.id, base.learning.objectives[0]!.id);
+    return false;
+  });
+  for (const c of gen.challenges) if (remap.has(String(c.objectiveId))) c.objectiveId = remap.get(String(c.objectiveId));
   const ext = {
     mechanics: ["collect", "dialogue"],
-    objectives: gen.objectives,
+    objectives,
     conclusion: clip(t(`${base.learning.conclusion} You also worked through ${gen.challenges.length} more questions from the material you added.`, `${base.learning.conclusion} עברתם גם ${gen.challenges.length} שאלות נוספות מהחומר שהוספתם.`), 700),
     areas: [area], missions, challenges: gen.challenges,
   } as unknown as GameExtension;

@@ -9,8 +9,8 @@ import { clip, shuffled, wordsOf } from "./text";
 
 type Raw = Record<string, unknown>;
 type Level = 1 | 2 | 3;
-export type ChallengeKind = "match" | "term" | "cloze" | "steps" | "number" | "truefalse";
-type Objective = "terms" | "facts" | "steps" | "ideas";
+export type ChallengeKind = "qa" | "match" | "term" | "cloze" | "steps" | "number" | "truefalse";
+type Objective = "questions" | "terms" | "facts" | "steps" | "ideas";
 
 interface Candidate {
   kind: ChallengeKind;
@@ -28,10 +28,15 @@ export interface GenerateOptions {
   max: number;
   /** Prefix for challenge/objective ids (extensions use their own so they never clash). */
   idPrefix?: string;
+  /** Also build easier two-option versions of multiple-choice questions (served after two misses in a row). */
+  variants?: boolean;
 }
 
 export interface Generated {
+  /** One per station. */
   challenges: Raw[];
+  /** Easier versions, referenced through `easierId`; never placed on a station. */
+  variants: Raw[];
   objectives: { id: string; text: string }[];
   counts: Record<ChallengeKind, number>;
   /** Titles of the concepts covered, in order (used for lore and the conclusion). */
@@ -39,6 +44,7 @@ export interface Generated {
 }
 
 const OBJECTIVE_TEXT = (t: ReturnType<typeof translator>): Record<Objective, string> => ({
+  questions: t("Answer the questions from your notes", "לענות על השאלות מהפתקים שלכם"),
   terms: t("Know the key terms of the topic", "להכיר את המושגים המרכזיים בנושא"),
   facts: t("Recall the key numbers and facts", "לזכור את המספרים והעובדות החשובים"),
   steps: t("Follow the process in the right order", "לפעול לפי התהליך בסדר הנכון"),
@@ -97,29 +103,43 @@ function matchCandidates(defs: Definition[], t: ReturnType<typeof translator>): 
   return out;
 }
 
-function termCandidates(defs: Definition[], rnd: () => number, t: ReturnType<typeof translator>): Candidate[] {
+function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => number, t: ReturnType<typeof translator>): Candidate[] {
   const usable = defs.filter((d) => d.term.length <= 80 && d.meaning.length >= 8);
-  if (usable.length < 4) return [];
-  return usable.map((d) => {
-    const others = shuffled(usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase()), rnd)
+  if (usable.length < 2) return [];
+  const out: Candidate[] = [];
+  for (const d of usable) {
+    // wrong options: the other terms first; with only a few terms, other notable words of the material fill in
+    const otherTerms = shuffled(usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase()), rnd)
       .sort((a, b) => Math.abs(wordsOf(a.term).length - wordsOf(d.term).length) - Math.abs(wordsOf(b.term).length - wordsOf(d.term).length))
-      .slice(0, 3);
-    const correctAt = Math.floor(rnd() * (others.length + 1));
-    const options = others.map((o) => [clip(o.term, 200), t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`)] as [string, string]);
+      .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
+    const inMeaning = wordsOf(d.meaning).map((w) => w.text);
+    const fillers = otherTerms.length >= 3 ? [] : keywords
+      .filter((k) => k.text.length >= 4 && hasHebrew(k.text) === hasHebrew(d.term) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
+      .sort((a, b) => Number(b.proper) - Number(a.proper) || b.count - a.count || Math.abs(a.text.length - d.term.length) - Math.abs(b.text.length - d.term.length) || a.lower.localeCompare(b.lower))
+      .slice(0, 3 - otherTerms.length)
+      // a stand-alone option reads better without a leading Hebrew "and" (ו־)
+      .map((k) => k.text.replace(/^ו(?=\p{L}{3,})/u, ""))
+      .map((w) => ({ text: w, why: t(`“${w}” appears in your notes, but not with this description.`, `״${w}״ מופיע בפתקים שלכם, אבל לא עם ההסבר הזה.`) }));
+    const wrong = [...otherTerms.slice(0, 3), ...fillers].slice(0, 3);
+    if (wrong.length < 2) continue;
+    const correctAt = Math.floor(rnd() * (wrong.length + 1));
+    const options = wrong.map((w) => [clip(w.text, 200), w.why] as [string, string]);
     options.splice(correctAt, 0, [clip(d.term, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
     const first = d.term.trim().charAt(0);
-    return {
-      kind: "term" as const, objective: "terms" as const, level: 1 as Level, keys: [d.term.toLowerCase()],
-      make: (id: string, level: Level, objectiveId: string) => choice({
+    out.push({
+      kind: "term", objective: "terms", level: 1, keys: [d.term.toLowerCase()],
+      make: (id, level, objectiveId) => choice({
         id, level, objectiveId, options, correct: correctAt,
         title: t("Name the term", "איך קוראים לזה?"),
-        concept: clip(d.term, 60),
+        // the concept tag is shown in the challenge panel, so it describes the question and never names the answer
+        concept: clip(d.meaning, 60),
         prompt: t(`Which term matches this description from your material?\n“${clip(d.meaning, 300)}”`, `איזה מושג מתאים להסבר הזה מתוך החומר שלכם?\n״${clip(d.meaning, 300)}״`),
         hint: t(`It starts with “${first}”.`, `זה מתחיל באות ״${first}״.`),
         explanation: clip(d.source, 600),
       }),
-    };
-  });
+    });
+  }
+  return out;
 }
 
 interface ClozePlan {
@@ -179,7 +199,7 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], rnd: () => nu
       make: (id, level, objectiveId) => choice({
         id, level, objectiveId, options, correct: correctAt,
         title: t("Fill the gap", "השלימו את החסר"),
-        concept: clip(plan.target.text, 60),
+        concept: t("main ideas", "רעיונות מרכזיים"),
         prompt: t(`Which word completes this sentence from your material?\n“${blanked}”`, `איזו מילה משלימה את המשפט הזה מתוך החומר שלכם?\n״${blanked}״`),
         hint: t(`The missing word has ${plan.target.text.length} letters.`, `במילה החסרה יש ${plan.target.text.length} אותיות.`),
         explanation: clip(s, 600),
@@ -208,7 +228,7 @@ function trueFalseCandidates(sentences: string[], keywords: Keyword[], rnd: () =
       make: (id, level, objectiveId) => choice({
         id, level, objectiveId, options, correct: makeFalse ? 1 : 0,
         title: t("True or false?", "נכון או לא נכון?"),
-        concept: clip(plan.target.text, 60),
+        concept: t("main ideas", "רעיונות מרכזיים"),
         prompt: t(`According to your material, is this statement correct?\n“${statement}”`, `לפי החומר שלכם, האם המשפט הזה נכון?\n״${statement}״`),
         hint: t("Check each important word against your material — one may have been swapped.", "בדקו כל מילה חשובה מול החומר שלכם — ייתכן שאחת מהן הוחלפה."),
         explanation: clip(s, 600),
@@ -226,7 +246,7 @@ function stepCandidates(groups: string[][], t: ReturnType<typeof translator>): C
       make: (id: string, level: Level, objectiveId: string) => sequence({
         id, level, objectiveId, items,
         title: t("Put the steps in order", "סדרו את השלבים"),
-        concept: clip(first, 60),
+        concept: t("order of the steps", "סדר השלבים"),
         prompt: t("Put these steps from your material in the right order.", "סדרו את השלבים האלה מתוך החומר שלכם בסדר הנכון."),
         hint: t(`The first step starts with “${first}…”.`, `השלב הראשון מתחיל ב״${first}…״.`),
         explanation: clip(items.map((x, i) => `${i + 1}. ${x}`).join("  "), 600),
@@ -254,9 +274,53 @@ function numberCandidates(facts: Fact[], t: ReturnType<typeof translator>): Cand
   });
 }
 
+function qaCandidates(k: Knowledge, rnd: () => number, t: ReturnType<typeof translator>): Candidate[] {
+  const out: Candidate[] = [];
+  const words = (s: string) => wordsOf(s).length;
+  for (const qa of k.qa) {
+    const question = clip(qa.question, 560);
+    if (qa.value !== undefined) {
+      const unit = qa.answer.replace(/^[-−]?[\d,]+(?:\.\d+)?\s*/u, "").trim();
+      out.push({
+        kind: "qa", objective: "questions", level: 2, keys: [qa.question.toLowerCase()],
+        make: (id, level, objectiveId) => numeric({
+          id, level, objectiveId, answer: qa.value!, tolerance: qa.decimals > 0 ? 0.5 * 10 ** -qa.decimals : 0,
+          ...(unit && unit.length <= 12 ? { unit } : {}),
+          title: t("Answer the question", "ענו על השאלה"), concept: clip(qa.question, 60), prompt: question,
+          hint: t("The answer is a number — look for it in your notes.", "התשובה היא מספר — חפשו אותו בפתקים שלכם."),
+          explanation: clip(`${qa.question} ${qa.answer}`, 600),
+        }),
+      });
+      continue;
+    }
+    // wrong options: other answers of the same shape first, then terms or meanings from the notes
+    const short = words(qa.answer) <= 4;
+    const pool = [
+      ...k.qa.filter((o) => o !== qa && o.value === undefined).map((o) => o.answer),
+      ...(short ? k.definitions.map((d) => d.term) : k.definitions.map((d) => d.meaning)),
+    ].filter((x, i, arr) => x.toLowerCase() !== qa.answer.toLowerCase() && arr.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i && x.length <= 200);
+    const ranked = pool.sort((a, b) => Math.abs(words(a) - words(qa.answer)) - Math.abs(words(b) - words(qa.answer)) || a.localeCompare(b));
+    const distractors = shuffled(ranked.slice(0, 5), rnd).slice(0, 3);
+    if (distractors.length < 2) continue;
+    const correctAt = Math.floor(rnd() * (distractors.length + 1));
+    const options = distractors.map((d) => [clip(d, 200), t("That answers a different question in your notes.", "זו תשובה לשאלה אחרת בפתקים שלכם.")] as [string, string]);
+    options.splice(correctAt, 0, [clip(qa.answer, 200), t("Yes — that is the answer in your notes.", "נכון — זו התשובה בפתקים שלכם.")]);
+    out.push({
+      kind: "qa", objective: "questions", level: 1, keys: [qa.question.toLowerCase()],
+      make: (id, level, objectiveId) => choice({
+        id, level, objectiveId, options, correct: correctAt,
+        title: t("Answer the question", "ענו על השאלה"), concept: clip(qa.question, 60), prompt: question,
+        hint: t(`The answer starts with “${qa.answer.charAt(0)}”.`, `התשובה מתחילה ב״${qa.answer.charAt(0)}״.`),
+        explanation: clip(`${qa.question} ${qa.answer}`, 600),
+      }),
+    });
+  }
+  return out;
+}
+
 // ───────────────────────────── selection ─────────────────────────────
 
-const ROUND_ROBIN: ChallengeKind[] = ["steps", "match", "number", "term", "cloze"];
+const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "match", "number", "term", "cloze"];
 
 export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generated {
   const t = translator(opts.lang);
@@ -266,10 +330,11 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   // Fill-the-gap and true/false draw on prose sentences only (never on "term: meaning" lines, which read badly with a gap).
   const statements = k.prose;
   const pools: Record<ChallengeKind, Candidate[]> = {
+    qa: qaCandidates(k, rnd, t),
     steps: stepCandidates(k.steps, t),
     match: matchCandidates(k.definitions, t),
     number: numberCandidates(k.facts, t),
-    term: termCandidates(k.definitions, rnd, t),
+    term: termCandidates(k.definitions, k.keywords, rnd, t),
     cloze: clozeCandidates(statements, k.keywords, rnd, t),
     truefalse: trueFalseCandidates(statements, k.keywords, rnd, t),
   };
@@ -312,14 +377,30 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   }
   const objText = OBJECTIVE_TEXT(t);
   const used = new Set<Objective>();
-  const counts: Record<ChallengeKind, number> = { match: 0, term: 0, cloze: 0, steps: 0, number: 0, truefalse: 0 };
+  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, cloze: 0, steps: 0, number: 0, truefalse: 0 };
   const challenges = ordered.map((c, i) => {
     used.add(c.objective);
     counts[c.kind]++;
     const level: Level = ordered.length >= 6 ? ((i < ordered.length / 3 ? 1 : i < (2 * ordered.length) / 3 ? 2 : 3) as Level) : c.level;
     return c.make(`${prefix}c-${i + 1}`, Math.max(level, c.kind === "steps" ? 2 : 1) as Level, `${prefix}o-${c.objective}`);
   });
-  const objectives = (["terms", "facts", "steps", "ideas"] as Objective[]).filter((o) => used.has(o)).map((o) => ({ id: `${prefix}o-${o}`, text: objText[o] }));
+  const variants: Raw[] = [];
+  if (opts.variants) {
+    for (const c of challenges) {
+      const options = c.options as { id: string; text: string; feedback: string }[] | undefined;
+      if (c.type !== "choice" || !options || options.length < 3 || variants.length >= 6) continue;
+      const correct = options.find((o) => o.id === c.correctOptionId)!;
+      const wrong = options.find((o) => o.id !== c.correctOptionId)!;
+      const easyId = `${String(c.id)}-easy`;
+      c.easierId = easyId;
+      variants.push({
+        ...c, id: easyId, level: 1, easierId: undefined,
+        title: clip(`${String(c.title)} ${t("(easier)", "(קל יותר)")}`, 80),
+        options: options.indexOf(correct) < options.indexOf(wrong) ? [correct, wrong] : [wrong, correct],
+      });
+    }
+  }
+  const objectives = (["questions", "terms", "facts", "steps", "ideas"] as Objective[]).filter((o) => used.has(o)).map((o) => ({ id: `${prefix}o-${o}`, text: objText[o] }));
   const concepts = challenges.map((c) => String((c as { concept: string }).concept));
-  return { challenges, objectives, counts, concepts };
+  return { challenges, variants, objectives, counts, concepts };
 }

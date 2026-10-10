@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { gradeAnswer, revealSolution } from "@/lib/game/challenges/grade";
+import { processEvent } from "@/lib/game/state/events";
+import { initialState } from "@/lib/game/state/progress";
 import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { mergeExtension } from "@/lib/game/spec/extension";
@@ -65,6 +67,51 @@ describe("study material parser", () => {
   });
 });
 
+describe("more ways learners write notes", () => {
+  it("questions with answers: Q/A lines, a question line followed by its answer, inline answers, Hebrew ש/ת", () => {
+    const k = parseMaterial(`Q: What is the capital of France?\nA: Paris\n\nWhich planet is known as the red planet?\nMars\n\nHow many legs does a spider have? 8\nש: מה הבירה של איטליה?\nת: רומא`);
+    expect(k.qa.map((x) => [x.question, x.answer])).toEqual([
+      ["What is the capital of France?", "Paris"],
+      ["Which planet is known as the red planet?", "Mars"],
+      ["How many legs does a spider have?", "8"],
+      ["מה הבירה של איטליה?", "רומא"],
+    ]);
+    expect(k.qa[2]!.value).toBe(8);
+  });
+
+  it("tables pasted from a spreadsheet (tabs) or written in Markdown become terms; headings name the material", () => {
+    const k = parseMaterial("# Cell biology\n| Term | Meaning |\n| --- | --- |\n| **Nucleus** | the control centre of the cell |\n| Ribosome | where proteins are made |\nMitochondria\tthe powerhouse of the cell");
+    expect(k.title).toBe("Cell biology");
+    expect(k.definitions.map((d) => [d.term, d.meaning])).toEqual([
+      ["Nucleus", "the control centre of the cell"],
+      ["Ribosome", "where proteins are made"],
+      ["Mitochondria", "the powerhouse of the cell"],
+    ]);
+  });
+
+  it("a question-and-answer list becomes a valid game whose numeric answers are graded as numbers", () => {
+    const quiz = "Q: What is the capital of France?\nA: Paris\nQ: What is the capital of Italy?\nA: Rome\nQ: What is the capital of Spain?\nA: Madrid\nQ: What is the capital of Germany?\nA: Berlin\nQ: How many countries are in the European Union?\nA: 27 countries";
+    const built = buildMaterialSpec(req({ material: quiz, subject: "European capitals" }) as never);
+    const res = validateGameSpec(built.raw, { alignGameType: "adventure" });
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    const numericQ = res.spec.challenges.find((c) => c.type === "numeric");
+    expect(numericQ && numericQ.type === "numeric" ? [numericQ.answer, numericQ.unit] : null).toEqual([27, "countries"]);
+    const capital = res.spec.challenges.find((c) => c.type === "choice" && c.prompt.includes("France"));
+    expect(capital && capital.type === "choice" ? capital.options.map((o) => o.text).sort() : []).toEqual(expect.arrayContaining(["Paris"]));
+  });
+
+  it("the concept tag shown in the challenge panel never gives the answer away", () => {
+    for (const material of [EN_HISTORY, HE_BIOLOGY, PROSE_ONLY]) {
+      const spec = buildMaterialSpec(req({ material, mode: "FULL", contentLanguage: material === HE_BIOLOGY ? "he" : "en" }) as never).raw;
+      for (const c of spec.challenges as Record<string, any>[]) { // eslint-disable-line @typescript-eslint/no-explicit-any
+        const concept = String(c.concept).toLowerCase();
+        if (c.type === "choice") expect(concept, `${c.id}: ${c.concept}`).not.toContain(c.options.find((o: { id: string }) => o.id === c.correctOptionId).text.toLowerCase());
+        if (c.type === "numeric") expect(concept).not.toContain(String(c.answer));
+      }
+    }
+  });
+});
+
 describe("study engine builds valid games from the learner's own text", () => {
   for (const [name, text, language] of [["English history notes", EN_HISTORY, "en"], ["Hebrew biology notes", HE_BIOLOGY, "he"]] as const) {
     for (const gameType of GAME_TYPES) {
@@ -79,7 +126,8 @@ describe("study engine builds valid games from the learner's own text", () => {
           if (mode === "FAST") expect(spec.areas).toHaveLength(1);
           expect(spec.meta.language).toBe(language);
           const placed = spec.areas.flatMap((a) => a.stations).filter((s) => s.kind === "challenge").length;
-          expect(placed).toBe(spec.challenges.length);
+          const variantIds = new Set(spec.challenges.flatMap((c) => (c.easierId ? [c.easierId] : [])));
+          expect(placed).toBe(spec.challenges.length - variantIds.size);
           for (const c of spec.challenges) {
             expect(gradeAnswer(c, correctAnswer(c), language).correct, `${c.id} correct answer`).toBe(true);
             expect(gradeAnswer(c, wrongAnswer(c), language).correct, `${c.id} wrong answer`).toBe(false);
@@ -229,6 +277,74 @@ describe("adversarial or odd material", () => {
       expect(["game", "refused"]).toContain(outcome);
     });
   }
+});
+
+describe("adaptive difficulty for material games", () => {
+  it("multiple-choice questions get an easier two-option version that is never placed on a station", () => {
+    const built = buildMaterialSpec(req({ mode: "FULL" }) as never);
+    const res = validateGameSpec(built.raw, { alignGameType: "adventure" });
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    const spec = res.spec;
+    expect(spec.mechanics).toContain("adaptive_difficulty");
+    const placed = new Set(spec.areas.flatMap((a) => a.stations.flatMap((s) => (s.challengeId ? [s.challengeId] : []))));
+    const withEasier = spec.challenges.filter((c) => c.easierId);
+    expect(withEasier.length).toBeGreaterThan(0);
+    for (const c of withEasier) {
+      const easy = spec.challenges.find((x) => x.id === c.easierId)!;
+      expect(placed.has(easy.id)).toBe(false);
+      expect(easy.type).toBe("choice");
+      if (easy.type === "choice" && c.type === "choice") {
+        expect(easy.options).toHaveLength(2);
+        expect(easy.options.map((o) => o.id)).toContain(c.correctOptionId);
+        expect(easy.correctOptionId).toBe(c.correctOptionId);
+      }
+      expect(gradeAnswer(easy, correctAnswer(easy), "en").correct).toBe(true);
+    }
+  });
+
+  it("the server's reducer really serves the easier version after two misses, and grades it", () => {
+    const res = validateGameSpec(buildMaterialSpec(req({ mode: "FULL" }) as never).raw, { alignGameType: "adventure" });
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    const spec = res.spec;
+    const area = spec.areas[0]!;
+    const station = area.stations.find((st) => st.challengeId && spec.challenges.find((c) => c.id === st.challengeId)?.easierId)!;
+    expect(station).toBeTruthy();
+    const base = spec.challenges.find((c) => c.id === station.challengeId)!;
+    const state = initialState(spec, 0);
+    state.recent = ["bad", "bad"];
+    // make the station reachable: everything it depends on counts as done for this check
+    const ctx = { now: 1_000_000, seed: "material" };
+    const talked = processEvent(spec, state, { type: "talk", npcId: area.npcs[0]!.id }, ctx).state;
+    talked.recent = ["bad", "bad"];
+    const opened = processEvent(spec, talked, { type: "open", stationId: station.id }, ctx);
+    const served = opened.data.challenge as { id: string; options: unknown[] };
+    expect(served.id).toBe(base.easierId);
+    expect(served.options).toHaveLength(2);
+    const easy = spec.challenges.find((c) => c.id === base.easierId)!;
+    const answered = processEvent(spec, opened.state, { type: "answer", stationId: station.id, answer: correctAnswer(easy) }, ctx);
+    expect((answered.data.result as { correct: boolean }).correct).toBe(true);
+  });
+
+  it("extending stops politely when the game cannot hold more challenges", () => {
+    let spec = validateGameSpec(buildMaterialSpec(req({ mode: "FULL" }) as never).raw, { alignGameType: "adventure" });
+    if (!spec.ok) throw new Error(spec.errors.join("\n"));
+    const more = `${PROSE_ONLY}\nNectar: the sugary liquid that flowers make to attract bees.\nHive: the home of a honey bee colony.\nQueen: the only bee in a colony that lays eggs.`;
+    let refused: MaterialError | null = null;
+    for (let i = 0; i < 4 && !refused; i++) {
+      try {
+        const { ext } = buildMaterialExtension(spec.spec, req({ material: `${more}\nRound ${i + 1} adds this sentence about worker bees and pollen.`, mode: "EXTEND" }) as never);
+        const merged = mergeExtension(spec.spec, extensionSchema.parse(ext));
+        const next = validateGameSpec(merged.raw, { alignGameType: "adventure" });
+        if (!next.ok) throw new Error(next.errors.join("\n"));
+        spec = next;
+      } catch (e) {
+        if (!(e instanceof MaterialError)) throw e;
+        refused = e;
+      }
+    }
+    expect(refused?.code).toBe("GAME_FULL");
+    expect(refused?.userMessage("he")).toMatch(/משחק חדש/);
+  });
 });
 
 describe("extending a material game with more material", () => {

@@ -13,7 +13,9 @@ export function sanitizeMaterial(raw: string): string {
     .normalize("NFC")
     .replace(CONTROL_AND_BIDI, "")
     .replace(/\r\n?/g, "\n")
-    .replace(/[\t  ]+/g, " ")
+    // a tab separates columns (pasted from a spreadsheet): keep it as a visible column separator
+    .replace(/[ \u00A0]*\t+[ \u00A0]*/g, " | ")
+    .replace(/[\u00A0 ]+/g, " ")
     .split("\n")
     .map((l) => l.trim())
     .join("\n")
