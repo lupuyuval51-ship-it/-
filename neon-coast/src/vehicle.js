@@ -125,6 +125,17 @@ export class Vehicle {
   damage(n, source) { if (this.wrecked) return; this.hp -= n; this.lastImpact = performance.now(); if (this.hp <= 0) this.wreck(); }
   wreck() { if (this.wrecked) return; this.wrecked = true; this.hp = 0; this.siren = false; this.model.body.material = wreckMat; this.model.roof.material = wreckMat; this.model.cabin.material = wreckMat; this.model.frontMat.color.setHex(0x222222); this.model.rearMat.color.setHex(0x220000); this.model.wheels.material = wreckMat; this.model.pool.visible = false; if (this.model.bar) { this.model.bar.userData.red.material.color.setHex(0x111111); this.model.bar.userData.blue.material.color.setHex(0x111111); } this.onWreck?.(this); }
   repair() { this.hp = this.maxHp; }
+  // Frees this car's own geometries, materials and instance buffers. Cached geometries and shared materials stay alive for the other cars.
+  dispose() {
+    const sharedGeo = new Set(geoCache.values());
+    const sharedMat = new Set([...matCache.values(), glassMat, propMat, darkMat, chromeMat, plateMat, wreckMat, poolMat]);
+    this.mesh.traverse(o => {
+      if (o.isInstancedMesh) o.dispose();
+      if (o.geometry && !sharedGeo.has(o.geometry)) o.geometry.dispose();
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      for (const m of ms) if (m && !sharedMat.has(m)) m.dispose();
+    });
+  }
   syncMesh(t = 0) {
     const m = this.mesh; m.position.set(this.x, this.y, this.z); m.rotation.y = this.heading; this.model.chassis.rotation.x = this.roll; this.model.chassis.rotation.z = this.pitch;
     const wm = this.model.wheels, wp = this.model.wheelPos; for (let i = 0; i < wp.length; i++) { _q.setFromEuler(_e.set(0, wp[i].front ? this.steer : 0, -this.spin)); _m.compose(_v.set(wp[i].x, this.model.wheelR, wp[i].z), _q, _one); wm.setMatrixAt(i, _m); } wm.instanceMatrix.needsUpdate = true;

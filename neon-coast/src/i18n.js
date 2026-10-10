@@ -2,7 +2,7 @@
 const he = {
   title: 'ניאון קוסט', tagline: 'עיר פתוחה. חוקים משלך.', start: 'משחק חדש', continue: 'המשך משחק', controls: 'שליטה', loading: 'טוען את העיר…',
   clickToPlay: 'לחצו כדי להתחיל', resume: 'חזרה למשחק', save: 'שמירה', load: 'טעינה', newGame: 'משחק חדש', settings: 'הגדרות', quit: 'למסך הפתיחה',
-  saved: 'המשחק נשמר', loaded: 'המשחק נטען', noSave: 'אין שמירה', paused: 'השהיה', language: 'שפה', quality: 'איכות גרפית', volume: 'עוצמת שמע',
+  saved: 'המשחק נשמר', saveFailed: 'השמירה נכשלה. בדקו שיש מקום באחסון של הדפדפן.', loaded: 'המשחק נטען', noSave: 'אין שמירה', paused: 'השהיה', language: 'שפה', quality: 'איכות גרפית', volume: 'עוצמת שמע',
   qLow: 'נמוכה', qMed: 'בינונית', qHigh: 'גבוהה', map: 'מפה', close: 'סגירה', wasted: 'נפסלת', busted: 'נעצרת', missionPassed: 'המשימה הושלמה', missionFailed: 'המשימה נכשלה',
   newObjective: 'יעד חדש', reward: 'פרס', kmh: 'קמ״ש', radioOff: 'רדיו כבוי', wantedUp: 'רמת חיפוש עלתה', evaded: 'הצלחת להתחמק מהמשטרה', respawnHospital: 'התעוררת בבית החולים. חלק מהכסף הלך על הטיפול.', respawnPolice: 'שוחררת מהתחנה. הכסף לשוחד הלך.',
   pressEnter: 'E – כניסה לרכב', pressExit: 'E – יציאה מהרכב', pressInteract: 'E – ', pressStart: 'E – התחלת משימה', collected: 'אסימון ניאון נאסף', collectedAll: 'אספת את כל אסימוני הניאון!',
@@ -44,7 +44,7 @@ const he = {
 const en = {
   title: 'Neon Coast', tagline: 'Open city. Your rules.', start: 'New game', continue: 'Continue', controls: 'Controls', loading: 'Loading the city…',
   clickToPlay: 'Click to play', resume: 'Resume', save: 'Save', load: 'Load', newGame: 'New game', settings: 'Settings', quit: 'Title screen',
-  saved: 'Game saved', loaded: 'Game loaded', noSave: 'No save found', paused: 'Paused', language: 'Language', quality: 'Graphics quality', volume: 'Volume',
+  saved: 'Game saved', saveFailed: 'Save failed. Check that the browser has storage space.', loaded: 'Game loaded', noSave: 'No save found', paused: 'Paused', language: 'Language', quality: 'Graphics quality', volume: 'Volume',
   qLow: 'Low', qMed: 'Medium', qHigh: 'High', map: 'Map', close: 'Close', wasted: 'WASTED', busted: 'BUSTED', missionPassed: 'MISSION PASSED', missionFailed: 'MISSION FAILED',
   newObjective: 'New objective', reward: 'Reward', kmh: 'km/h', radioOff: 'Radio off', wantedUp: 'Wanted level increased', evaded: 'You lost the cops', respawnHospital: 'You woke up in hospital. Some cash went to the bill.', respawnPolice: 'Released from the station. The bribe money is gone.',
   pressEnter: 'E – Enter vehicle', pressExit: 'E – Exit vehicle', pressInteract: 'E – ', pressStart: 'E – Start mission', collected: 'Neon token collected', collectedAll: 'All neon tokens collected!',

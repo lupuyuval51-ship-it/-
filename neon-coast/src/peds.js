@@ -1,7 +1,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { CITY, WEAPONS } from './config.js';
 import { makeCharacter, randomLook, LOOKS } from './character.js';
-import { clamp, damp, wrapAngle, angleLerp, dist } from './utils.js';
+import { clamp, damp, wrapAngle, angleLerp, dist, disposeGeometries } from './utils.js';
 
 const HALF = CITY.road / 2, WALK = 1.5, RUN = 5.6;
 const _tmp = [];
@@ -130,5 +130,5 @@ export class Ped {
       }
     }
   }
-  dispose() { this.game.scene.remove(this.mesh); }
+  dispose() { this.game.scene.remove(this.mesh); disposeGeometries(this.mesh); }
 }

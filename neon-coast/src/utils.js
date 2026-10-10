@@ -157,6 +157,8 @@ export function rayBox(ox, oy, oz, dx, dy, dz, b) {
   }
   return tmin;
 }
+// Frees the GPU geometry of a per-instance object tree (characters build their own geometry).
+export function disposeGeometries(obj) { obj.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
 export function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const lx = cx - ox, ly = cy - oy, lz = cz - oz; const tca = lx * dx + ly * dy + lz * dz; if (tca < 0) return null;
   const d2 = lx * lx + ly * ly + lz * lz - tca * tca; if (d2 > r * r) return null; return tca - Math.sqrt(r * r - d2);

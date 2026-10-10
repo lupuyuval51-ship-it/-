@@ -35,11 +35,12 @@ export class Missions {
   }
   get blips() { const out = []; if (!this.active) for (const g of this.givers) if (this.nextFor(g.id)) out.push({ x: g.x, z: g.z, color: '#ffd34e', kind: 'mission' }); for (const m of this.objMarkers) out.push({ x: m.x, z: m.z, color: m.color, kind: 'objective' }); return out; }
   update(dt) {
+    this.dt = dt;
     const G = this.game, P = G.player, t = G.time; for (const m of this.objMarkers) { m.mesh.children[0].rotation.y += dt; m.mesh.children[0].scale.setScalar(1 + Math.sin(t * 4) * 0.06); if (m.follow) { m.x = m.follow.x; m.z = m.follow.z; m.mesh.position.x = m.follow.x; m.mesh.position.z = m.follow.z; } }
     if (this.active) {
       if (this.timer) { const left = this.timer.end - t; G.hud.setTimer(Math.max(0, left), this.timer.label); }
       for (let i = this.waiters.length - 1; i >= 0; i--) { const w = this.waiters[i]; if (this.active.aborted) { this.waiters.splice(i, 1); w.reject(new Abort()); continue; } let ok = false; try { ok = w.fn(); } catch (e) { if (e instanceof Abort) { this.waiters.splice(i, 1); w.reject(e); continue; } console.error(e); } if (ok) { this.waiters.splice(i, 1); w.resolve(); } }
-      for (const g of this.givers) g.marker.mesh.visible = false; return;
+      for (const g of this.givers) g.marker.mesh.visible = false; G.missionPrompt = null; return;
     }
     let near = null;
     for (const g of this.givers) { const id = this.nextFor(g.id); g.marker.mesh.visible = !!id; g.marker.mesh.children[0].rotation.y += dt * 0.8; if (id && dist(g.x, g.z, P.x, P.z) < 2.6) near = { g, id }; }
@@ -68,7 +69,7 @@ export class Missions {
       reach: (x, z, r = 4, o = {}) => waitUntil(() => { if (dist(P.x, P.z, x, z) > r) return false; if (o.vehicle && P.vehicle !== o.vehicle) return false; if (o.inVehicle && !P.vehicle) return false; if (o.stopped && P.vehicle && P.vehicle.speed > 1) return false; return true; }),
       timer(s, label) { self.timer = { end: G.time + s, label }; }, timedOut: () => self.timer && G.time >= self.timer.end, stopTimer() { self.timer = null; G.hud.clearTimer(); },
       spawnVehicle(type, x, z, heading, color) { const v = new Vehicle(type, color, x, z, heading); v.special = a.id; G.addVehicle(v); a.cleanup.push(() => { v.special = null; }); return v; },
-      spawnPed(o) { const p = new Ped(G, { noDespawn: true, ...o }); p.mission = a.id; G.addPed(p); a.cleanup.push(() => { p.noDespawn = false; }); return p; },
+      spawnPed(o) { const p = new Ped(G, { noDespawn: true, ...o }); p.mission = a.id; G.addPed(p); a.cleanup.push(() => { p.noDespawn = false; p.mission = null; }); return p; },
       reward(n) { G.addMoney(n); G.hud.notify(`${T.reward}: ${fmtMoney(n)}`, 'cash'); },
       wanted: n => G.police.setLevel(n), fail: text => { throw Object.assign(new Abort(), { failText: text ?? null }); },
     };
@@ -79,8 +80,9 @@ export class Missions {
   // ---------- mission scripts ----------
   async m_intro(c) {
     const m = T.m.intro, W = this.game.world, r = W.pois.ricky; await c.say(m.lines);
-    const car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; c.objective(m.obj1); let mk = c.marker(car.x, car.z, 0x3ce8f5);
-    await c.waitUntil(() => c.P.vehicle === car); c.clearMarkers(); mk = c.marker(W.pois.club.x, W.pois.club.z); c.objective(m.obj2);
+    let car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; c.objective(m.obj1); let mk = c.marker(car.x, car.z, 0x3ce8f5); mk.follow = car;
+    // a car wrecked before the player takes it is replaced, so the mission cannot soft-lock
+    await c.waitUntil(() => { if (car.wrecked && c.P.vehicle !== car) { car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; mk.follow = car; } return c.P.vehicle === car; }); c.clearMarkers(); mk = c.marker(W.pois.club.x, W.pois.club.z); c.objective(m.obj2);
     await c.reach(mk.x, mk.z, 7, { vehicle: car, stopped: true }); c.clearMarkers(); await c.say([m.done]); c.reward(500); this.game.hud.notify(T.hint.cops, 'dim', 7);
   }
   async m_taxi(c) {
@@ -106,8 +108,8 @@ export class Missions {
   }
   async m_repo(c) {
     const m = T.m.repo, W = this.game.world, G = this.game, P = c.P; await c.say(m.lines);
-    const b = W.pois.bank; const car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; let mk = c.marker(car.x, car.z, 0x3ce8f5); c.objective(m.obj1);
-    await c.waitUntil(() => P.vehicle === car); c.clearMarkers(); c.wanted(2); G.hud.notify(T.wantedUp, 'warn');
+    const b = W.pois.bank; let car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; let mk = c.marker(car.x, car.z, 0x3ce8f5); mk.follow = car; c.objective(m.obj1);
+    await c.waitUntil(() => { if (car.wrecked && P.vehicle !== car) { car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; mk.follow = car; } return P.vehicle === car; }); c.clearMarkers(); c.wanted(2); G.hud.notify(T.wantedUp, 'warn');
     const dk = W.pois.docks; mk = c.marker(dk.x, dk.z, 0xffd34e, dk.y); c.objective(m.obj2);
     await c.waitUntil(() => { if (car.wrecked) c.fail(); return dist(P.x, P.z, dk.x, dk.z) < 8 && P.vehicle === car && car.speed < 1; });
     c.clearMarkers(); c.objective(m.obj3); await c.waitUntil(() => G.police.level === 0); await c.say([m.done]); c.reward(2500);
@@ -140,7 +142,7 @@ export class Missions {
     const m = T.m.heist, W = this.game.world, G = this.game, P = c.P; await c.say(m.lines);
     const b = W.pois.bank; c.marker(b.x, b.z); c.objective(m.obj1); await c.reach(b.x, b.z, 6); c.clearMarkers();
     c.objective(m.obj2); c.wanted(3); c.timer(90, T.timeLeft); const mk = c.marker(b.x, b.z, 0xff5a5a); let paused = false;
-    await c.waitUntil(() => { const far = dist(P.x, P.z, b.x, b.z) > 45; if (far && !paused) { paused = true; G.hud.notify(m.obj2, 'warn'); } if (far) { this.timer.end += 1 / 60; } if (!far) paused = false; if (G.police.level < 3) G.police.setLevel(3); return c.timedOut(); });
+    await c.waitUntil(() => { const far = dist(P.x, P.z, b.x, b.z) > 45; if (far && !paused) { paused = true; G.hud.notify(m.obj2, 'warn'); } if (far) { this.timer.end += this.dt || 0; } if (!far) paused = false; if (G.police.level < 3) G.police.setLevel(3); return c.timedOut(); });
     c.stopTimer(); c.clearMarkers(); c.wanted(4); const dk = W.pois.docks; c.marker(dk.x, dk.z, 0xffd34e, dk.y); c.objective(m.obj3);
     await c.reach(dk.x, dk.z, 9); c.clearMarkers(); await c.waitUntil(() => G.police.level === 0); await c.say([m.done]); c.reward(25000); G.hud.notify(T.m.heist.done, 'cash', 8);
   }

@@ -68,6 +68,7 @@ export class Pickups {
 const _g = [];
 export class Grenades {
   constructor(game) { this.game = game; this.list = []; this.geo = new THREE.SphereGeometry(0.14, 8, 6); this.mat = new THREE.MeshStandardMaterial({ color: 0x2f4a2a, roughness: 0.55, metalness: 0.35 }); }
+  clear() { for (const g of this.list) this.game.scene.remove(g.mesh); this.list.length = 0; }
   throw(x, y, z, dx, dy, dz, speed, source = 'player') { const m = new THREE.Mesh(this.geo, this.mat); m.castShadow = true; m.position.set(x, y, z); this.game.scene.add(m); this.list.push({ x, y, z, vx: dx * speed, vy: dy * speed, vz: dz * speed, t: 2.4, mesh: m, source }); }
   update(dt) {
     const G = this.game;

@@ -95,7 +95,7 @@ export class Police {
     const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22; const lp = this.lastPos || { x: P.x, z: P.z }; const fx = h.hasTrack ? P.x : lp.x, fz = h.hasTrack ? P.z : lp.z;
     const tx = fx + Math.cos(h.ang) * R, tz = fz + Math.sin(h.ang) * R; g.position.x = damp(g.position.x, tx, 1.2, dt); g.position.z = damp(g.position.z, tz, 1.2, dt); g.position.y = damp(g.position.y, 30 + Math.sin(h.ang * 2) * 2, 1, dt);
     const dx = fx - g.position.x, dz = fz - g.position.z; g.rotation.y = Math.atan2(-dz, dx); g.rotation.z = -0.12; for (const r of h.rotors) r.rotation.y += dt * 40;
-    h.spot.target.position.set(dx, 1 - g.position.y, dz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);
+    const th = g.rotation.y, lx = dx * Math.cos(th) - dz * Math.sin(th), lz = dx * Math.sin(th) + dz * Math.cos(th); h.spot.target.position.set(lx, 1 - g.position.y, lz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);
     // gunner
     h.shootT -= dt; const d = Math.hypot(dx, dz);
     if (this.level >= 5 && h.hasTrack && h.shootT <= 0 && d < 60) { h.shootT = Math.random() < 0.5 ? 0.12 : 1.8; const hit = Math.random() < (P.vehicle ? 0.22 : 0.3); const tx2 = P.x + (hit ? 0 : (Math.random() - 0.5) * 4), tz2 = P.z + (hit ? 0 : (Math.random() - 0.5) * 4); G.fx.tracer(g.position.x + 1.5, g.position.y - 1, g.position.z, tx2, 0.5, tz2); G.audio.shot('rifle', d); if (hit) { if (P.vehicle) P.vehicle.damage(10, 'gun'); P.damage(P.vehicle ? 4 : 9, g.position.x, g.position.z); } else G.fx.sparks(tx2, 0.2, tz2, 3); }

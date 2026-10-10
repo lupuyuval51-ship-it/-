@@ -299,7 +299,7 @@ const __m_i18n = (function(){
 const he = {
   title: 'ניאון קוסט', tagline: 'עיר פתוחה. חוקים משלך.', start: 'משחק חדש', continue: 'המשך משחק', controls: 'שליטה', loading: 'טוען את העיר…',
   clickToPlay: 'לחצו כדי להתחיל', resume: 'חזרה למשחק', save: 'שמירה', load: 'טעינה', newGame: 'משחק חדש', settings: 'הגדרות', quit: 'למסך הפתיחה',
-  saved: 'המשחק נשמר', loaded: 'המשחק נטען', noSave: 'אין שמירה', paused: 'השהיה', language: 'שפה', quality: 'איכות גרפית', volume: 'עוצמת שמע',
+  saved: 'המשחק נשמר', saveFailed: 'השמירה נכשלה. בדקו שיש מקום באחסון של הדפדפן.', loaded: 'המשחק נטען', noSave: 'אין שמירה', paused: 'השהיה', language: 'שפה', quality: 'איכות גרפית', volume: 'עוצמת שמע',
   qLow: 'נמוכה', qMed: 'בינונית', qHigh: 'גבוהה', map: 'מפה', close: 'סגירה', wasted: 'נפסלת', busted: 'נעצרת', missionPassed: 'המשימה הושלמה', missionFailed: 'המשימה נכשלה',
   newObjective: 'יעד חדש', reward: 'פרס', kmh: 'קמ״ש', radioOff: 'רדיו כבוי', wantedUp: 'רמת חיפוש עלתה', evaded: 'הצלחת להתחמק מהמשטרה', respawnHospital: 'התעוררת בבית החולים. חלק מהכסף הלך על הטיפול.', respawnPolice: 'שוחררת מהתחנה. הכסף לשוחד הלך.',
   pressEnter: 'E – כניסה לרכב', pressExit: 'E – יציאה מהרכב', pressInteract: 'E – ', pressStart: 'E – התחלת משימה', collected: 'אסימון ניאון נאסף', collectedAll: 'אספת את כל אסימוני הניאון!',
@@ -341,7 +341,7 @@ const he = {
 const en = {
   title: 'Neon Coast', tagline: 'Open city. Your rules.', start: 'New game', continue: 'Continue', controls: 'Controls', loading: 'Loading the city…',
   clickToPlay: 'Click to play', resume: 'Resume', save: 'Save', load: 'Load', newGame: 'New game', settings: 'Settings', quit: 'Title screen',
-  saved: 'Game saved', loaded: 'Game loaded', noSave: 'No save found', paused: 'Paused', language: 'Language', quality: 'Graphics quality', volume: 'Volume',
+  saved: 'Game saved', saveFailed: 'Save failed. Check that the browser has storage space.', loaded: 'Game loaded', noSave: 'No save found', paused: 'Paused', language: 'Language', quality: 'Graphics quality', volume: 'Volume',
   qLow: 'Low', qMed: 'Medium', qHigh: 'High', map: 'Map', close: 'Close', wasted: 'WASTED', busted: 'BUSTED', missionPassed: 'MISSION PASSED', missionFailed: 'MISSION FAILED',
   newObjective: 'New objective', reward: 'Reward', kmh: 'km/h', radioOff: 'Radio off', wantedUp: 'Wanted level increased', evaded: 'You lost the cops', respawnHospital: 'You woke up in hospital. Some cash went to the bill.', respawnPolice: 'Released from the station. The bribe money is gone.',
   pressEnter: 'E – Enter vehicle', pressExit: 'E – Exit vehicle', pressInteract: 'E – ', pressStart: 'E – Start mission', collected: 'Neon token collected', collectedAll: 'All neon tokens collected!',
@@ -623,12 +623,14 @@ function rayBox(ox, oy, oz, dx, dy, dz, b) {
   }
   return tmin;
 }
+// Frees the GPU geometry of a per-instance object tree (characters build their own geometry).
+function disposeGeometries(obj) { obj.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
 function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const lx = cx - ox, ly = cy - oy, lz = cz - oz; const tca = lx * dx + ly * dy + lz * dz; if (tca < 0) return null;
   const d2 = lx * lx + ly * ly + lz * lz - tca * tca; if (d2 > r * r) return null; return tca - Math.sqrt(r * r - d2);
 }
 
-return {clamp, lerp, damp, rand, randInt, pick, dist2, dist, wrapAngle, angleLerp, fmtMoney, fmtTime, mulberry, GeoBuilder, mergeGeometries, xform, M4, StaticGrid, rayBox, raySphere};
+return {clamp, lerp, damp, rand, randInt, pick, dist2, dist, wrapAngle, angleLerp, fmtMoney, fmtTime, mulberry, GeoBuilder, mergeGeometries, xform, M4, StaticGrid, rayBox, disposeGeometries, raySphere};
 })();
 const __m_textures = (function(){
 const THREE = __three;
@@ -1799,15 +1801,15 @@ class UI {
     $('shopList').querySelectorAll('[data-bet]').forEach(b => b.onclick = () => { this.bet = +b.dataset.bet; $('shopList').querySelectorAll('[data-bet]').forEach(x => x.classList.toggle('on', +x.dataset.bet === this.bet)); });
     const reels = [...$('shopList').querySelectorAll('.reels span')]; const msg = $('casinoMsg');
     $('btnSpin').onclick = () => {
-      if (g.money < this.bet) { msg.textContent = T.notEnough; return; } g.addMoney(-this.bet); g.audio.click(); const btn = $('btnSpin'); btn.disabled = true;
+      if (g.money < this.bet) { msg.textContent = T.notEnough; return; } const stake = this.bet; g.addMoney(-stake); g.audio.click(); const btn = $('btnSpin'); btn.disabled = true;
       const res = reels.map(() => SYM[Math.floor(Math.random() * SYM.length)]); let ticks = 0;
       const iv = setInterval(() => { ticks++; reels.forEach((r, i) => { if (ticks < 8 + i * 6) r.textContent = SYM[Math.floor(Math.random() * SYM.length)]; else r.textContent = res[i]; }); if (ticks >= 22) { clearInterval(iv); btn.disabled = false;
         const [a, b, c] = res; let mult = 0; if (a === b && b === c) mult = a === '7' ? 50 : 10; else if (a === b || b === c || a === c) mult = 2;
-        if (mult) { const win = this.bet * mult; g.addMoney(win); g.audio.cash(); msg.textContent = `${mult >= 50 ? T.casinoJackpot + ' ' : ''}${T.casinoWin} ${fmtMoney(win)}`; msg.className = 'casino-msg win'; } else { msg.textContent = T.casinoLose; msg.className = 'casino-msg lose'; } } }, 70);
+        if (mult) { const win = stake * mult; g.addMoney(win); g.audio.cash(); msg.textContent = `${mult >= 50 ? T.casinoJackpot + ' ' : ''}${T.casinoWin} ${fmtMoney(win)}`; msg.className = 'casino-msg win'; } else { msg.textContent = T.casinoLose; msg.className = 'casino-msg lose'; } } }, 70);
     };
   }
   renderStats() {
-    const g = this.g, s = g.stats; const rows = [[T.ui.money, fmtMoney(g.money)], [T.ui.missions, `${g.missions.completed.size} / 8`], [T.ui.tokens, `${s.tokens} / 20`], [T.ui.kills, s.kills], [T.ui.carsStolen, s.carsStolen], [T.ui.distance, (s.distance / 1000).toFixed(1) + ' km'], [T.ui.playtime, fmtTime(s.playtime)]];
+    const g = this.g, s = g.stats; const rows = [[T.ui.money, fmtMoney(g.money)], [T.ui.missions, `${['intro', 'taxi', 'race', 'repo', 'cleanup', 'packages', 'pursuit', 'heist'].filter(id => g.missions.completed.has(id)).length} / 8`], [T.ui.tokens, `${s.tokens} / 20`], [T.ui.kills, s.kills], [T.ui.carsStolen, s.carsStolen], [T.ui.distance, (s.distance / 1000).toFixed(1) + ' km'], [T.ui.playtime, fmtTime(s.playtime)]];
     this.$('stats').innerHTML = rows.map(([k, v]) => `<li><span>${k}</span><b>${v}</b></li>`).join('');
   }
   openShop(type, label) {
@@ -1958,6 +1960,17 @@ class Vehicle {
   damage(n, source) { if (this.wrecked) return; this.hp -= n; this.lastImpact = performance.now(); if (this.hp <= 0) this.wreck(); }
   wreck() { if (this.wrecked) return; this.wrecked = true; this.hp = 0; this.siren = false; this.model.body.material = wreckMat; this.model.roof.material = wreckMat; this.model.cabin.material = wreckMat; this.model.frontMat.color.setHex(0x222222); this.model.rearMat.color.setHex(0x220000); this.model.wheels.material = wreckMat; this.model.pool.visible = false; if (this.model.bar) { this.model.bar.userData.red.material.color.setHex(0x111111); this.model.bar.userData.blue.material.color.setHex(0x111111); } this.onWreck?.(this); }
   repair() { this.hp = this.maxHp; }
+  // Frees this car's own geometries, materials and instance buffers. Cached geometries and shared materials stay alive for the other cars.
+  dispose() {
+    const sharedGeo = new Set(geoCache.values());
+    const sharedMat = new Set([...matCache.values(), glassMat, propMat, darkMat, chromeMat, plateMat, wreckMat, poolMat]);
+    this.mesh.traverse(o => {
+      if (o.isInstancedMesh) o.dispose();
+      if (o.geometry && !sharedGeo.has(o.geometry)) o.geometry.dispose();
+      const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : [];
+      for (const m of ms) if (m && !sharedMat.has(m)) m.dispose();
+    });
+  }
   syncMesh(t = 0) {
     const m = this.mesh; m.position.set(this.x, this.y, this.z); m.rotation.y = this.heading; this.model.chassis.rotation.x = this.roll; this.model.chassis.rotation.z = this.pitch;
     const wm = this.model.wheels, wp = this.model.wheelPos; for (let i = 0; i < wp.length; i++) { _q.setFromEuler(_e.set(0, wp[i].front ? this.steer : 0, -this.spin)); _m.compose(_v.set(wp[i].x, this.model.wheelR, wp[i].z), _q, _one); wm.setMatrixAt(i, _m); } wm.instanceMatrix.needsUpdate = true;
@@ -2082,7 +2095,7 @@ const __m_peds = (function(){
 const THREE = __three;
 const {CITY, WEAPONS} = __m_config;
 const {makeCharacter, randomLook, LOOKS} = __m_character;
-const {clamp, damp, wrapAngle, angleLerp, dist} = __m_utils;
+const {clamp, damp, wrapAngle, angleLerp, dist, disposeGeometries} = __m_utils;
 
 const HALF = CITY.road / 2, WALK = 1.5, RUN = 5.6;
 const _tmp = [];
@@ -2211,7 +2224,7 @@ class Ped {
       }
     }
   }
-  dispose() { this.game.scene.remove(this.mesh); }
+  dispose() { this.game.scene.remove(this.mesh); disposeGeometries(this.mesh); }
 }
 
 return {Ped};
@@ -2317,7 +2330,7 @@ class Traffic {
     for (const v of G.vehicles) if (v.ai && !v.wrecked && v.ai.mode !== 'police' && v.ai.mode !== 'deployed') count++;
     this.spawnT -= dt; if (count < TRAFFIC.cars && this.spawnT <= 0) { this.spawnT = 0.35; this.spawn(); }
     for (let i = G.vehicles.length - 1; i >= 0; i--) {
-      const v = G.vehicles[i]; if (v === P.vehicle || v.special) continue; const d = dist(v.x, v.z, P.x, P.z);
+      const v = G.vehicles[i]; if (v === P.vehicle || (v.special && !v.ai)) continue; const d = dist(v.x, v.z, P.x, P.z);
       if ((v.ai || v.wrecked) && !v.parked && d > TRAFFIC.despawn) { G.removeVehicle(v); continue; }
       if (v.wrecked && d > 120 && Math.random() < 0.01) { G.removeVehicle(v); continue; }
       if (!v.ai || v.wrecked) continue; if (v.ai.mode === 'police' || v.ai.mode === 'deployed') continue;
@@ -2427,7 +2440,7 @@ class Police {
     const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22; const lp = this.lastPos || { x: P.x, z: P.z }; const fx = h.hasTrack ? P.x : lp.x, fz = h.hasTrack ? P.z : lp.z;
     const tx = fx + Math.cos(h.ang) * R, tz = fz + Math.sin(h.ang) * R; g.position.x = damp(g.position.x, tx, 1.2, dt); g.position.z = damp(g.position.z, tz, 1.2, dt); g.position.y = damp(g.position.y, 30 + Math.sin(h.ang * 2) * 2, 1, dt);
     const dx = fx - g.position.x, dz = fz - g.position.z; g.rotation.y = Math.atan2(-dz, dx); g.rotation.z = -0.12; for (const r of h.rotors) r.rotation.y += dt * 40;
-    h.spot.target.position.set(dx, 1 - g.position.y, dz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);
+    const th = g.rotation.y, lx = dx * Math.cos(th) - dz * Math.sin(th), lz = dx * Math.sin(th) + dz * Math.cos(th); h.spot.target.position.set(lx, 1 - g.position.y, lz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);
     // gunner
     h.shootT -= dt; const d = Math.hypot(dx, dz);
     if (this.level >= 5 && h.hasTrack && h.shootT <= 0 && d < 60) { h.shootT = Math.random() < 0.5 ? 0.12 : 1.8; const hit = Math.random() < (P.vehicle ? 0.22 : 0.3); const tx2 = P.x + (hit ? 0 : (Math.random() - 0.5) * 4), tz2 = P.z + (hit ? 0 : (Math.random() - 0.5) * 4); G.fx.tracer(g.position.x + 1.5, g.position.y - 1, g.position.z, tx2, 0.5, tz2); G.audio.shot('rifle', d); if (hit) { if (P.vehicle) P.vehicle.damage(10, 'gun'); P.damage(P.vehicle ? 4 : 9, g.position.x, g.position.z); } else G.fx.sparks(tx2, 0.2, tz2, 3); }
@@ -2476,11 +2489,12 @@ class Missions {
   }
   get blips() { const out = []; if (!this.active) for (const g of this.givers) if (this.nextFor(g.id)) out.push({ x: g.x, z: g.z, color: '#ffd34e', kind: 'mission' }); for (const m of this.objMarkers) out.push({ x: m.x, z: m.z, color: m.color, kind: 'objective' }); return out; }
   update(dt) {
+    this.dt = dt;
     const G = this.game, P = G.player, t = G.time; for (const m of this.objMarkers) { m.mesh.children[0].rotation.y += dt; m.mesh.children[0].scale.setScalar(1 + Math.sin(t * 4) * 0.06); if (m.follow) { m.x = m.follow.x; m.z = m.follow.z; m.mesh.position.x = m.follow.x; m.mesh.position.z = m.follow.z; } }
     if (this.active) {
       if (this.timer) { const left = this.timer.end - t; G.hud.setTimer(Math.max(0, left), this.timer.label); }
       for (let i = this.waiters.length - 1; i >= 0; i--) { const w = this.waiters[i]; if (this.active.aborted) { this.waiters.splice(i, 1); w.reject(new Abort()); continue; } let ok = false; try { ok = w.fn(); } catch (e) { if (e instanceof Abort) { this.waiters.splice(i, 1); w.reject(e); continue; } console.error(e); } if (ok) { this.waiters.splice(i, 1); w.resolve(); } }
-      for (const g of this.givers) g.marker.mesh.visible = false; return;
+      for (const g of this.givers) g.marker.mesh.visible = false; G.missionPrompt = null; return;
     }
     let near = null;
     for (const g of this.givers) { const id = this.nextFor(g.id); g.marker.mesh.visible = !!id; g.marker.mesh.children[0].rotation.y += dt * 0.8; if (id && dist(g.x, g.z, P.x, P.z) < 2.6) near = { g, id }; }
@@ -2509,7 +2523,7 @@ class Missions {
       reach: (x, z, r = 4, o = {}) => waitUntil(() => { if (dist(P.x, P.z, x, z) > r) return false; if (o.vehicle && P.vehicle !== o.vehicle) return false; if (o.inVehicle && !P.vehicle) return false; if (o.stopped && P.vehicle && P.vehicle.speed > 1) return false; return true; }),
       timer(s, label) { self.timer = { end: G.time + s, label }; }, timedOut: () => self.timer && G.time >= self.timer.end, stopTimer() { self.timer = null; G.hud.clearTimer(); },
       spawnVehicle(type, x, z, heading, color) { const v = new Vehicle(type, color, x, z, heading); v.special = a.id; G.addVehicle(v); a.cleanup.push(() => { v.special = null; }); return v; },
-      spawnPed(o) { const p = new Ped(G, { noDespawn: true, ...o }); p.mission = a.id; G.addPed(p); a.cleanup.push(() => { p.noDespawn = false; }); return p; },
+      spawnPed(o) { const p = new Ped(G, { noDespawn: true, ...o }); p.mission = a.id; G.addPed(p); a.cleanup.push(() => { p.noDespawn = false; p.mission = null; }); return p; },
       reward(n) { G.addMoney(n); G.hud.notify(`${T.reward}: ${fmtMoney(n)}`, 'cash'); },
       wanted: n => G.police.setLevel(n), fail: text => { throw Object.assign(new Abort(), { failText: text ?? null }); },
     };
@@ -2520,8 +2534,9 @@ class Missions {
   // ---------- mission scripts ----------
   async m_intro(c) {
     const m = T.m.intro, W = this.game.world, r = W.pois.ricky; await c.say(m.lines);
-    const car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; c.objective(m.obj1); let mk = c.marker(car.x, car.z, 0x3ce8f5);
-    await c.waitUntil(() => c.P.vehicle === car); c.clearMarkers(); mk = c.marker(W.pois.club.x, W.pois.club.z); c.objective(m.obj2);
+    let car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; c.objective(m.obj1); let mk = c.marker(car.x, car.z, 0x3ce8f5); mk.follow = car;
+    // a car wrecked before the player takes it is replaced, so the mission cannot soft-lock
+    await c.waitUntil(() => { if (car.wrecked && c.P.vehicle !== car) { car = c.spawnVehicle('muscle', r.x + 16, r.z - 3.25, 0, 0xff4fa3); car.mission = true; mk.follow = car; } return c.P.vehicle === car; }); c.clearMarkers(); mk = c.marker(W.pois.club.x, W.pois.club.z); c.objective(m.obj2);
     await c.reach(mk.x, mk.z, 7, { vehicle: car, stopped: true }); c.clearMarkers(); await c.say([m.done]); c.reward(500); this.game.hud.notify(T.hint.cops, 'dim', 7);
   }
   async m_taxi(c) {
@@ -2547,8 +2562,8 @@ class Missions {
   }
   async m_repo(c) {
     const m = T.m.repo, W = this.game.world, G = this.game, P = c.P; await c.say(m.lines);
-    const b = W.pois.bank; const car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; let mk = c.marker(car.x, car.z, 0x3ce8f5); c.objective(m.obj1);
-    await c.waitUntil(() => P.vehicle === car); c.clearMarkers(); c.wanted(2); G.hud.notify(T.wantedUp, 'warn');
+    const b = W.pois.bank; let car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; let mk = c.marker(car.x, car.z, 0x3ce8f5); mk.follow = car; c.objective(m.obj1);
+    await c.waitUntil(() => { if (car.wrecked && P.vehicle !== car) { car = c.spawnVehicle('sport', b.x + 18, b.z - 3.25, 0, 0xffd34e); car.parked = true; mk.follow = car; } return P.vehicle === car; }); c.clearMarkers(); c.wanted(2); G.hud.notify(T.wantedUp, 'warn');
     const dk = W.pois.docks; mk = c.marker(dk.x, dk.z, 0xffd34e, dk.y); c.objective(m.obj2);
     await c.waitUntil(() => { if (car.wrecked) c.fail(); return dist(P.x, P.z, dk.x, dk.z) < 8 && P.vehicle === car && car.speed < 1; });
     c.clearMarkers(); c.objective(m.obj3); await c.waitUntil(() => G.police.level === 0); await c.say([m.done]); c.reward(2500);
@@ -2581,7 +2596,7 @@ class Missions {
     const m = T.m.heist, W = this.game.world, G = this.game, P = c.P; await c.say(m.lines);
     const b = W.pois.bank; c.marker(b.x, b.z); c.objective(m.obj1); await c.reach(b.x, b.z, 6); c.clearMarkers();
     c.objective(m.obj2); c.wanted(3); c.timer(90, T.timeLeft); const mk = c.marker(b.x, b.z, 0xff5a5a); let paused = false;
-    await c.waitUntil(() => { const far = dist(P.x, P.z, b.x, b.z) > 45; if (far && !paused) { paused = true; G.hud.notify(m.obj2, 'warn'); } if (far) { this.timer.end += 1 / 60; } if (!far) paused = false; if (G.police.level < 3) G.police.setLevel(3); return c.timedOut(); });
+    await c.waitUntil(() => { const far = dist(P.x, P.z, b.x, b.z) > 45; if (far && !paused) { paused = true; G.hud.notify(m.obj2, 'warn'); } if (far) { this.timer.end += this.dt || 0; } if (!far) paused = false; if (G.police.level < 3) G.police.setLevel(3); return c.timedOut(); });
     c.stopTimer(); c.clearMarkers(); c.wanted(4); const dk = W.pois.docks; c.marker(dk.x, dk.z, 0xffd34e, dk.y); c.objective(m.obj3);
     await c.reach(dk.x, dk.z, 9); c.clearMarkers(); await c.waitUntil(() => G.police.level === 0); await c.say([m.done]); c.reward(25000); G.hud.notify(T.m.heist.done, 'cash', 8);
   }
@@ -2684,6 +2699,7 @@ class Pickups {
 const _g = [];
 class Grenades {
   constructor(game) { this.game = game; this.list = []; this.geo = new THREE.SphereGeometry(0.14, 8, 6); this.mat = new THREE.MeshStandardMaterial({ color: 0x2f4a2a, roughness: 0.55, metalness: 0.35 }); }
+  clear() { for (const g of this.list) this.game.scene.remove(g.mesh); this.list.length = 0; }
   throw(x, y, z, dx, dy, dz, speed, source = 'player') { const m = new THREE.Mesh(this.geo, this.mat); m.castShadow = true; m.position.set(x, y, z); this.game.scene.add(m); this.list.push({ x, y, z, vx: dx * speed, vy: dy * speed, vz: dz * speed, t: 2.4, mesh: m, source }); }
   update(dt) {
     const G = this.game;
@@ -2705,7 +2721,7 @@ const {PLAYER, WEAPONS} = __m_config;
 const {makeCharacter, LOOKS} = __m_character;
 const {Ped} = __m_peds;
 const {fireWeapon} = __m_combat;
-const {clamp, damp, angleLerp, dist, wrapAngle} = __m_utils;
+const {clamp, damp, angleLerp, dist, wrapAngle, disposeGeometries} = __m_utils;
 const {T} = __m_i18n;
 
 const _tmp = [];
@@ -2731,7 +2747,7 @@ class Player {
     if (this.dead || this.game.godMode) return; if (this.armor > 0) { const a = Math.min(this.armor, n * 0.6); this.armor -= a; n -= a; } this.health -= n; this.hurtT = 0.35; this.sinceHit = 0; this.game.audio.hurt(); this.game.hud.hurt();
     if (this.health <= 0) { this.health = 0; this.die(); }
   }
-  die() { if (this.dead) return; this.dead = true; this.aiming = false; if (this.vehicle) { const s = this.vehicle.seatPosition(1); this.x = s.x; this.z = s.z; this.vehicle.driver = null; this.vehicle = null; this.mesh.visible = true; } this.game.wasted(); }
+  die() { if (this.dead) return; this.dead = true; this.aiming = false; if (this.vehicle) { const s = this.vehicle.seatPosition(1); this.x = s.x; this.z = s.z; this.vehicle.driver = null; const car = this.vehicle; car.input.throttle = 0; car.input.steer = 0; car.input.handbrake = false; car.input.brake = true; this.vehicle = null; this.mesh.visible = true; } this.game.wasted(); }
   respawn(x, z) { this.dead = false; this.health = 100; this.x = x; this.z = z; this.y = 0; this.vy = 0; this.vehicle = null; this.mesh.visible = true; this.mesh.rotation.set(0, 0, 0); this.camPos.set(x, 3, z + 6); }
   // ---------- vehicles ----------
   nearestVehicle() { let best = null, bd = PLAYER.enterRange + 1.2; for (const v of this.game.vehicles) { if (v.wrecked || v.locked) continue; const d = dist(v.x, v.z, this.x, this.z) - v.spec.wid * 0.5; if (d < bd) { bd = d; best = v; } } return best; }
@@ -2760,7 +2776,7 @@ class Player {
   updateOnFoot(dt, m) {
     const G = this.game, I = G.input; const ax = I.axis(); this.aiming = (I.mouse.right || I.btn('aim')) && this.weapon.id !== 'fist';
     this.zoom = this.aiming && !!this.weapon.zoom; G.hud.scope(this.zoom);
-    const run = I.key('ShiftLeft') || I.key('ShiftRight') || I.btn('run'); const cy = this.camYaw; const fwdX = Math.sin(cy), fwdZ = Math.cos(cy), rgtX = Math.cos(cy), rgtZ = -Math.sin(cy);
+    const run = I.key('ShiftLeft') || I.key('ShiftRight') || I.btn('run'); const cy = this.camYaw; const fwdX = Math.sin(cy), fwdZ = Math.cos(cy), rgtX = -Math.cos(cy), rgtZ = Math.sin(cy);
     // camera-relative movement (camera looks along -forward of yaw: we define camYaw so that forward = (sin, cos) points away from the camera)
     let mx = fwdX * ax.y + rgtX * ax.x, mz = fwdZ * ax.y + rgtZ * ax.x; const ml = Math.hypot(mx, mz); if (ml > 1) { mx /= ml; mz /= ml; }
     const moving = ml > 0.05; const target = moving ? (this.aiming ? PLAYER.walk * 1.3 : run ? PLAYER.sprint : PLAYER.run) * Math.min(1, ml) : 0;
@@ -2815,7 +2831,7 @@ class Player {
     if (!this.weapon.melee && !this.weapon.thrown) { const st = this.ammoState; const want = this.weapon.auto ? (I.mouse.left || I.btn('fire')) : (m.leftPressed || I.btnOnce('fire')); if (want && this.fireT <= 0 && st.clip > 0 && !G.uiOpen) { st.clip--; this.fireT = this.weapon.rate * 1.3; const cd = new THREE.Vector3(); G.camera.getWorldDirection(cd); const gx = v.x + cd.x * 2.2, gz = v.z + cd.z * 2.2, gy = 1.2; fireWeapon(G, gx, gy, gz, cd.x, cd.y * 0.5, cd.z, this.weapon, 'player'); G.police.reportCrime('gunfire', v.x, v.z); } else if (want && st.clip <= 0 && this.fireT <= 0) { this.reload(); } }
     G.stats.distance += v.speed * dt;
   }
-  setLook(look) { const G = this.game; const vis = this.mesh.visible; G.scene.remove(this.mesh); this.look = look; this.char = makeCharacter(look); this.mesh = this.char.group; this.mesh.visible = vis; this.mesh.position.set(this.x, this.y, this.z); this.mesh.rotation.y = this.yaw; G.scene.add(this.mesh); if (this.weapon) this.select(this.weapon.id); }
+  setLook(look) { const G = this.game; const vis = this.mesh.visible; G.scene.remove(this.mesh); disposeGeometries(this.mesh); this.look = look; this.char = makeCharacter(look); this.mesh = this.char.group; this.mesh.visible = vis; this.mesh.position.set(this.x, this.y, this.z); this.mesh.rotation.y = this.yaw; G.scene.add(this.mesh); if (this.weapon) this.select(this.weapon.id); }
   // ---------- camera ----------
   updateCamera(dt) {
     const G = this.game, cam = G.camera; let tx, ty, tz, dist0, yaw, pitch;
@@ -3142,9 +3158,20 @@ class Game {
     this.camera.position.set(120, 70, 120); this.camera.lookAt(0, 20, 0);
   }
   setupStation(p) {
-    for (const dx of [-3, 3]) this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: p.x + dx, z: p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true }));
-    for (const dx of [10, 17]) { const v = new Vehicle('police', null, p.x + dx, p.blockZ0 - 1.75, 0); v.parked = true; this.addVehicle(v); }
+    this.stations = this.stations || [];
+    const st = { p, peds: [], cars: [] }; this.stations.push(st);
+    for (const dx of [-3, 3]) st.peds.push({ dx, ped: this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: p.x + dx, z: p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true })) });
+    for (const dx of [10, 17]) st.cars.push({ x: p.x + dx, z: p.blockZ0 - 1.75, v: this.spawnStationCar(p.x + dx, p.blockZ0 - 1.75) });
   }
+  // Station officers and cruisers come back after death, load or a new game.
+  restoreStations() {
+    for (const st of this.stations || []) {
+      st.peds = st.peds.filter(s => { if (s.ped.dead || !this.peds.includes(s.ped)) { if (this.peds.includes(s.ped)) this.removePed(s.ped); return false; } return true; });
+      for (const dx of [-3, 3]) if (!st.peds.some(s => s.dx === dx)) st.peds.push({ dx, ped: this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: st.p.x + dx, z: st.p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true })) });
+      st.cars = st.cars.map(c => (c.v.wrecked || !this.vehicles.includes(c.v)) ? { x: c.x, z: c.z, v: this.spawnStationCar(c.x, c.z) } : c);
+    }
+  }
+  spawnStationCar(x, z) { const v = new Vehicle('police', null, x, z, 0); v.parked = true; this.addVehicle(v); return v; }
   explode(x, y, z, source) {
     this.fx.explosion(x, y, z); this.audio.explosion(dist(x, z, this.player.x, this.player.z)); this.alert(x, z, 40, 'death');
     for (const p of this.peds) if (!p.dead && dist(p.x, p.z, x, z) < 7) { p.hp = 0; p.launch((p.x - x) * 1.5, 6, (p.z - z) * 1.5); p.die(0, 0, source === 'player' ? 'player' : 'explosion'); }
@@ -3167,8 +3194,8 @@ class Game {
   // ---------- lifecycle ----------
   startNew() {
     this.audio.init(); this.money = 500; this.clock = TIME.start; this.time = 0; this.stats = { kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }; this.collected = new Set(); this.weather = 'clear'; this.sky.setWeather('clear'); this.weatherT = 150; this.station = 'off'; this.audio.setStation('off');
-    this.missions.completed = new Set(); this.missions.taxiRuns = 0; if (this.missions.active) this.missions.fail(); this.clearDynamic();
-    const sh = this.world.pois.safehouse; this.player.weapons = { fist: { ammo: Infinity, clip: 0 } }; this.player.weaponIds = ['fist']; this.ownedOutfits = new Set(['street']); this.applyOutfit('street'); this.player.select('fist'); this.player.armor = 0; this.player.respawn(sh.x + 4, sh.z - 0.5); this.player.camYaw = Math.PI; this.resetPickups();
+    this.missions.completed = new Set(); this.missions.taxiRuns = 0; this.missions.contracts = 0; this.missions.raceRoute = 0; this.missions.vigLevel = 0; this.healthRespawn = 0; if (this.missions.active) this.missions.fail(); this.clearDynamic();
+    const sh = this.world.pois.safehouse; this.player.weapons = { fist: { ammo: Infinity, clip: 0 } }; this.player.weaponIds = ['fist']; this.ownedOutfits = new Set(['street']); this.applyOutfit('street'); this.player.select('fist'); this.player.armor = 0; this.player.respawn(sh.x + 4, sh.z - 0.5); this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations();
     this.play(); this.hud.notify(T.hint.first, 'obj', 9); setTimeout(() => this.hud.notify(T.hint.stealCar, 'dim', 7), 4000);
   }
   continueGame() { this.audio.init(); if (this.loadGame()) this.play(); }
@@ -3177,21 +3204,21 @@ class Game {
   resume() { if (this.state === 'title') return; this.state = 'playing'; this.ui.hideAll(); this.input.requestLock(); this.audio.duck(1); this.last = performance.now(); }
   toTitle() { this.saveGame(true); this.state = 'title'; this.ui.hideAll(); this.ui.applyLanguage(); this.ui.show('title'); this.hud.show(false); this.input.enabled = false; this.input.releaseLock(); this.audio.setStation('off'); this.audio.engine(false); this.audio.siren(0); this.audio.heli(0); }
   clearDynamic() {
-    for (const v of [...this.vehicles]) if (!v.parked || v.wrecked) this.removeVehicle(v); for (const p of [...this.peds]) if (!p.station) this.removePed(p); for (const p of this.peds) { p.hostile = false; p.hp = p.maxHp; } this.police.clear(); this.fx.fires.length = 0; this.missions.clearMarkers();
+    for (const v of [...this.vehicles]) if (!v.parked || v.wrecked) this.removeVehicle(v); for (const p of [...this.peds]) if (!p.station) this.removePed(p); for (const p of this.peds) { p.hostile = false; p.hp = p.maxHp; } this.police.clear(); this.fx.fires.length = 0; this.missions.clearMarkers(); this.grenades.clear();
   }
   // ---------- save / load ----------
   hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } }
   saveSettings() { try { localStorage.setItem(SET_KEY, JSON.stringify(this.settings)); } catch {} }
   saveGame(silent = false) {
     if (!this.built) return; const s = { v: 1, money: this.money, clock: this.clock, weather: this.weather, station: this.station, stats: this.stats, collected: [...this.collected], player: this.player.save(), missions: this.missions.save(), outfit: this.outfit, outfits: [...this.ownedOutfits], t: Date.now() };
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); if (!silent) this.hud.notify(T.saved, 'cash'); } catch (e) { this.hud.notify('Save failed', 'warn'); }
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); if (!silent) this.hud.notify(T.saved, 'cash'); } catch (e) { this.hud.notify(T.saveFailed, 'warn'); }
     this.ui.applyLanguage();
   }
   loadGame() {
     let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {} if (!s) { this.hud.notify(T.noSave, 'warn'); return false; }
     if (this.missions.active) this.missions.fail(); this.clearDynamic();
     this.money = s.money; this.clock = s.clock; this.weather = s.weather || 'clear'; this.sky.setWeather(this.weather); this.station = s.station || 'off'; this.audio.setStation(this.station); this.stats = Object.assign({ kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }, s.stats); this.collected = new Set(s.collected || []);
-    this.missions.load(s.missions || {}); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.hud.notify(T.loaded, 'cash'); return true;
+    this.missions.load(s.missions || {}); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations(); this.hud.notify(T.loaded, 'cash'); return true;
   }
   sleep() { this.clock = 7 * 60; this.player.health = 100; this.weather = 'clear'; this.sky.setWeather('clear'); this.saveGame(true); this.hud.notify(T.sleepDone, 'cash'); }
   setQuality(q) {
@@ -3202,7 +3229,7 @@ class Game {
   setVolume(v) { this.settings.volume = v; this.audio.setVolume(v); this.saveSettings(); }
   // ---------- entity management ----------
   addVehicle(v) { this.vehicles.push(v); this.scene.add(v.mesh); v.onWreck = w => this.onWreck(w); v.hit = (o, imp) => this.onCarHit(v, o, imp); return v; }
-  removeVehicle(v) { const i = this.vehicles.indexOf(v); if (i >= 0) this.vehicles.splice(i, 1); this.scene.remove(v.mesh); if (this.player.vehicle === v) this.player.exitVehicle(); }
+  removeVehicle(v) { const i = this.vehicles.indexOf(v); if (i >= 0) this.vehicles.splice(i, 1); this.scene.remove(v.mesh); v.dispose(); if (this.player.vehicle === v) this.player.exitVehicle(); }
   addPed(p) { this.peds.push(p); return p; }
   removePed(p) { const i = this.peds.indexOf(p); if (i >= 0) this.peds.splice(i, 1); p.dispose(); }
   addPickup(o) { return this.pickups.add(o); }
@@ -3221,7 +3248,7 @@ class Game {
   bust() { if (this.state === 'dead' || this.player.dead) return; this.state = 'dead'; this.deadKind = 'busted'; const P = this.player; if (P.vehicle) P.exitVehicle(); P.dead = true; this.hud.overlay('busted'); this.timeScale = 0.35; this.audio.engine(false); this.audio.wanted(); if (this.missions.active) this.missions.fail(); setTimeout(() => this.respawn('police'), 4800); }
   respawn(kind) {
     const poi = this.world.pois[kind === 'hospital' ? 'hospital' : 'police']; const loss = Math.min(1000, Math.round(this.money * 0.1)); if (loss) this.addMoney(-loss);
-    this.player.respawn(poi.x + 4, poi.z - 0.5); this.player.armor = 0; this.player.camYaw = Math.PI; this.police.clear(); for (const p of [...this.peds]) if (p.team && !p.station) this.removePed(p);
+    this.player.respawn(poi.x + 4, poi.z - 0.5); this.player.armor = 0; this.player.camYaw = Math.PI; this.police.clear(); for (const p of [...this.peds]) if (p.team && !p.station) this.removePed(p); this.restoreStations();
     this.timeScale = 1; this.hud.overlay(null); this.state = 'playing'; this.hud.notify(kind === 'hospital' ? T.respawnHospital : T.respawnPolice, 'warn', 6); this.clock = (this.clock + 360) % 1440;
   }
   // ---------- main loop ----------

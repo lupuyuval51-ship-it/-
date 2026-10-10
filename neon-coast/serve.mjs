@@ -1,6 +1,6 @@
 // Dependency-free static server: node serve.mjs [port]
-import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
-const root = path.dirname(new URL(import.meta.url).pathname); const port = +(process.argv[2] || 8080);
+import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
+const root = path.dirname(fileURLToPath(import.meta.url)); const port = +(process.argv[2] || 8080);
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname); if (p === '/') p = '/index.html'; const f = path.join(root, p);

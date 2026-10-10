@@ -3,7 +3,7 @@ import { PLAYER, WEAPONS } from './config.js';
 import { makeCharacter, LOOKS } from './character.js';
 import { Ped } from './peds.js';
 import { fireWeapon } from './combat.js';
-import { clamp, damp, angleLerp, dist, wrapAngle } from './utils.js';
+import { clamp, damp, angleLerp, dist, wrapAngle, disposeGeometries } from './utils.js';
 import { T } from './i18n.js';
 
 const _tmp = [];
@@ -29,7 +29,7 @@ export class Player {
     if (this.dead || this.game.godMode) return; if (this.armor > 0) { const a = Math.min(this.armor, n * 0.6); this.armor -= a; n -= a; } this.health -= n; this.hurtT = 0.35; this.sinceHit = 0; this.game.audio.hurt(); this.game.hud.hurt();
     if (this.health <= 0) { this.health = 0; this.die(); }
   }
-  die() { if (this.dead) return; this.dead = true; this.aiming = false; if (this.vehicle) { const s = this.vehicle.seatPosition(1); this.x = s.x; this.z = s.z; this.vehicle.driver = null; this.vehicle = null; this.mesh.visible = true; } this.game.wasted(); }
+  die() { if (this.dead) return; this.dead = true; this.aiming = false; if (this.vehicle) { const s = this.vehicle.seatPosition(1); this.x = s.x; this.z = s.z; this.vehicle.driver = null; const car = this.vehicle; car.input.throttle = 0; car.input.steer = 0; car.input.handbrake = false; car.input.brake = true; this.vehicle = null; this.mesh.visible = true; } this.game.wasted(); }
   respawn(x, z) { this.dead = false; this.health = 100; this.x = x; this.z = z; this.y = 0; this.vy = 0; this.vehicle = null; this.mesh.visible = true; this.mesh.rotation.set(0, 0, 0); this.camPos.set(x, 3, z + 6); }
   // ---------- vehicles ----------
   nearestVehicle() { let best = null, bd = PLAYER.enterRange + 1.2; for (const v of this.game.vehicles) { if (v.wrecked || v.locked) continue; const d = dist(v.x, v.z, this.x, this.z) - v.spec.wid * 0.5; if (d < bd) { bd = d; best = v; } } return best; }
@@ -58,7 +58,7 @@ export class Player {
   updateOnFoot(dt, m) {
     const G = this.game, I = G.input; const ax = I.axis(); this.aiming = (I.mouse.right || I.btn('aim')) && this.weapon.id !== 'fist';
     this.zoom = this.aiming && !!this.weapon.zoom; G.hud.scope(this.zoom);
-    const run = I.key('ShiftLeft') || I.key('ShiftRight') || I.btn('run'); const cy = this.camYaw; const fwdX = Math.sin(cy), fwdZ = Math.cos(cy), rgtX = Math.cos(cy), rgtZ = -Math.sin(cy);
+    const run = I.key('ShiftLeft') || I.key('ShiftRight') || I.btn('run'); const cy = this.camYaw; const fwdX = Math.sin(cy), fwdZ = Math.cos(cy), rgtX = -Math.cos(cy), rgtZ = Math.sin(cy);
     // camera-relative movement (camera looks along -forward of yaw: we define camYaw so that forward = (sin, cos) points away from the camera)
     let mx = fwdX * ax.y + rgtX * ax.x, mz = fwdZ * ax.y + rgtZ * ax.x; const ml = Math.hypot(mx, mz); if (ml > 1) { mx /= ml; mz /= ml; }
     const moving = ml > 0.05; const target = moving ? (this.aiming ? PLAYER.walk * 1.3 : run ? PLAYER.sprint : PLAYER.run) * Math.min(1, ml) : 0;
@@ -113,7 +113,7 @@ export class Player {
     if (!this.weapon.melee && !this.weapon.thrown) { const st = this.ammoState; const want = this.weapon.auto ? (I.mouse.left || I.btn('fire')) : (m.leftPressed || I.btnOnce('fire')); if (want && this.fireT <= 0 && st.clip > 0 && !G.uiOpen) { st.clip--; this.fireT = this.weapon.rate * 1.3; const cd = new THREE.Vector3(); G.camera.getWorldDirection(cd); const gx = v.x + cd.x * 2.2, gz = v.z + cd.z * 2.2, gy = 1.2; fireWeapon(G, gx, gy, gz, cd.x, cd.y * 0.5, cd.z, this.weapon, 'player'); G.police.reportCrime('gunfire', v.x, v.z); } else if (want && st.clip <= 0 && this.fireT <= 0) { this.reload(); } }
     G.stats.distance += v.speed * dt;
   }
-  setLook(look) { const G = this.game; const vis = this.mesh.visible; G.scene.remove(this.mesh); this.look = look; this.char = makeCharacter(look); this.mesh = this.char.group; this.mesh.visible = vis; this.mesh.position.set(this.x, this.y, this.z); this.mesh.rotation.y = this.yaw; G.scene.add(this.mesh); if (this.weapon) this.select(this.weapon.id); }
+  setLook(look) { const G = this.game; const vis = this.mesh.visible; G.scene.remove(this.mesh); disposeGeometries(this.mesh); this.look = look; this.char = makeCharacter(look); this.mesh = this.char.group; this.mesh.visible = vis; this.mesh.position.set(this.x, this.y, this.z); this.mesh.rotation.y = this.yaw; G.scene.add(this.mesh); if (this.weapon) this.select(this.weapon.id); }
   // ---------- camera ----------
   updateCamera(dt) {
     const G = this.game, cam = G.camera; let tx, ty, tz, dist0, yaw, pitch;

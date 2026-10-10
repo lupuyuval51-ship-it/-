@@ -34,15 +34,15 @@ export class UI {
     $('shopList').querySelectorAll('[data-bet]').forEach(b => b.onclick = () => { this.bet = +b.dataset.bet; $('shopList').querySelectorAll('[data-bet]').forEach(x => x.classList.toggle('on', +x.dataset.bet === this.bet)); });
     const reels = [...$('shopList').querySelectorAll('.reels span')]; const msg = $('casinoMsg');
     $('btnSpin').onclick = () => {
-      if (g.money < this.bet) { msg.textContent = T.notEnough; return; } g.addMoney(-this.bet); g.audio.click(); const btn = $('btnSpin'); btn.disabled = true;
+      if (g.money < this.bet) { msg.textContent = T.notEnough; return; } const stake = this.bet; g.addMoney(-stake); g.audio.click(); const btn = $('btnSpin'); btn.disabled = true;
       const res = reels.map(() => SYM[Math.floor(Math.random() * SYM.length)]); let ticks = 0;
       const iv = setInterval(() => { ticks++; reels.forEach((r, i) => { if (ticks < 8 + i * 6) r.textContent = SYM[Math.floor(Math.random() * SYM.length)]; else r.textContent = res[i]; }); if (ticks >= 22) { clearInterval(iv); btn.disabled = false;
         const [a, b, c] = res; let mult = 0; if (a === b && b === c) mult = a === '7' ? 50 : 10; else if (a === b || b === c || a === c) mult = 2;
-        if (mult) { const win = this.bet * mult; g.addMoney(win); g.audio.cash(); msg.textContent = `${mult >= 50 ? T.casinoJackpot + ' ' : ''}${T.casinoWin} ${fmtMoney(win)}`; msg.className = 'casino-msg win'; } else { msg.textContent = T.casinoLose; msg.className = 'casino-msg lose'; } } }, 70);
+        if (mult) { const win = stake * mult; g.addMoney(win); g.audio.cash(); msg.textContent = `${mult >= 50 ? T.casinoJackpot + ' ' : ''}${T.casinoWin} ${fmtMoney(win)}`; msg.className = 'casino-msg win'; } else { msg.textContent = T.casinoLose; msg.className = 'casino-msg lose'; } } }, 70);
     };
   }
   renderStats() {
-    const g = this.g, s = g.stats; const rows = [[T.ui.money, fmtMoney(g.money)], [T.ui.missions, `${g.missions.completed.size} / 8`], [T.ui.tokens, `${s.tokens} / 20`], [T.ui.kills, s.kills], [T.ui.carsStolen, s.carsStolen], [T.ui.distance, (s.distance / 1000).toFixed(1) + ' km'], [T.ui.playtime, fmtTime(s.playtime)]];
+    const g = this.g, s = g.stats; const rows = [[T.ui.money, fmtMoney(g.money)], [T.ui.missions, `${['intro', 'taxi', 'race', 'repo', 'cleanup', 'packages', 'pursuit', 'heist'].filter(id => g.missions.completed.has(id)).length} / 8`], [T.ui.tokens, `${s.tokens} / 20`], [T.ui.kills, s.kills], [T.ui.carsStolen, s.carsStolen], [T.ui.distance, (s.distance / 1000).toFixed(1) + ' km'], [T.ui.playtime, fmtTime(s.playtime)]];
     this.$('stats').innerHTML = rows.map(([k, v]) => `<li><span>${k}</span><b>${v}</b></li>`).join('');
   }
   openShop(type, label) {

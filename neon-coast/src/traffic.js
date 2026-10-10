@@ -98,7 +98,7 @@ export class Traffic {
     for (const v of G.vehicles) if (v.ai && !v.wrecked && v.ai.mode !== 'police' && v.ai.mode !== 'deployed') count++;
     this.spawnT -= dt; if (count < TRAFFIC.cars && this.spawnT <= 0) { this.spawnT = 0.35; this.spawn(); }
     for (let i = G.vehicles.length - 1; i >= 0; i--) {
-      const v = G.vehicles[i]; if (v === P.vehicle || v.special) continue; const d = dist(v.x, v.z, P.x, P.z);
+      const v = G.vehicles[i]; if (v === P.vehicle || (v.special && !v.ai)) continue; const d = dist(v.x, v.z, P.x, P.z);
       if ((v.ai || v.wrecked) && !v.parked && d > TRAFFIC.despawn) { G.removeVehicle(v); continue; }
       if (v.wrecked && d > 120 && Math.random() < 0.01) { G.removeVehicle(v); continue; }
       if (!v.ai || v.wrecked) continue; if (v.ai.mode === 'police' || v.ai.mode === 'deployed') continue;

@@ -69,9 +69,20 @@ export class Game {
     this.camera.position.set(120, 70, 120); this.camera.lookAt(0, 20, 0);
   }
   setupStation(p) {
-    for (const dx of [-3, 3]) this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: p.x + dx, z: p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true }));
-    for (const dx of [10, 17]) { const v = new Vehicle('police', null, p.x + dx, p.blockZ0 - 1.75, 0); v.parked = true; this.addVehicle(v); }
+    this.stations = this.stations || [];
+    const st = { p, peds: [], cars: [] }; this.stations.push(st);
+    for (const dx of [-3, 3]) st.peds.push({ dx, ped: this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: p.x + dx, z: p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true })) });
+    for (const dx of [10, 17]) st.cars.push({ x: p.x + dx, z: p.blockZ0 - 1.75, v: this.spawnStationCar(p.x + dx, p.blockZ0 - 1.75) });
   }
+  // Station officers and cruisers come back after death, load or a new game.
+  restoreStations() {
+    for (const st of this.stations || []) {
+      st.peds = st.peds.filter(s => { if (s.ped.dead || !this.peds.includes(s.ped)) { if (this.peds.includes(s.ped)) this.removePed(s.ped); return false; } return true; });
+      for (const dx of [-3, 3]) if (!st.peds.some(s => s.dx === dx)) st.peds.push({ dx, ped: this.addPed(new Ped(this, { kind: 'armed', team: 'cop', look: LOOKS.cop, x: st.p.x + dx, z: st.p.z, yaw: Math.PI, hp: 100, weapon: 'pistol', accuracy: 0.5, noDespawn: true, station: true })) });
+      st.cars = st.cars.map(c => (c.v.wrecked || !this.vehicles.includes(c.v)) ? { x: c.x, z: c.z, v: this.spawnStationCar(c.x, c.z) } : c);
+    }
+  }
+  spawnStationCar(x, z) { const v = new Vehicle('police', null, x, z, 0); v.parked = true; this.addVehicle(v); return v; }
   explode(x, y, z, source) {
     this.fx.explosion(x, y, z); this.audio.explosion(dist(x, z, this.player.x, this.player.z)); this.alert(x, z, 40, 'death');
     for (const p of this.peds) if (!p.dead && dist(p.x, p.z, x, z) < 7) { p.hp = 0; p.launch((p.x - x) * 1.5, 6, (p.z - z) * 1.5); p.die(0, 0, source === 'player' ? 'player' : 'explosion'); }
@@ -94,8 +105,8 @@ export class Game {
   // ---------- lifecycle ----------
   startNew() {
     this.audio.init(); this.money = 500; this.clock = TIME.start; this.time = 0; this.stats = { kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }; this.collected = new Set(); this.weather = 'clear'; this.sky.setWeather('clear'); this.weatherT = 150; this.station = 'off'; this.audio.setStation('off');
-    this.missions.completed = new Set(); this.missions.taxiRuns = 0; if (this.missions.active) this.missions.fail(); this.clearDynamic();
-    const sh = this.world.pois.safehouse; this.player.weapons = { fist: { ammo: Infinity, clip: 0 } }; this.player.weaponIds = ['fist']; this.ownedOutfits = new Set(['street']); this.applyOutfit('street'); this.player.select('fist'); this.player.armor = 0; this.player.respawn(sh.x + 4, sh.z - 0.5); this.player.camYaw = Math.PI; this.resetPickups();
+    this.missions.completed = new Set(); this.missions.taxiRuns = 0; this.missions.contracts = 0; this.missions.raceRoute = 0; this.missions.vigLevel = 0; this.healthRespawn = 0; if (this.missions.active) this.missions.fail(); this.clearDynamic();
+    const sh = this.world.pois.safehouse; this.player.weapons = { fist: { ammo: Infinity, clip: 0 } }; this.player.weaponIds = ['fist']; this.ownedOutfits = new Set(['street']); this.applyOutfit('street'); this.player.select('fist'); this.player.armor = 0; this.player.respawn(sh.x + 4, sh.z - 0.5); this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations();
     this.play(); this.hud.notify(T.hint.first, 'obj', 9); setTimeout(() => this.hud.notify(T.hint.stealCar, 'dim', 7), 4000);
   }
   continueGame() { this.audio.init(); if (this.loadGame()) this.play(); }
@@ -104,21 +115,21 @@ export class Game {
   resume() { if (this.state === 'title') return; this.state = 'playing'; this.ui.hideAll(); this.input.requestLock(); this.audio.duck(1); this.last = performance.now(); }
   toTitle() { this.saveGame(true); this.state = 'title'; this.ui.hideAll(); this.ui.applyLanguage(); this.ui.show('title'); this.hud.show(false); this.input.enabled = false; this.input.releaseLock(); this.audio.setStation('off'); this.audio.engine(false); this.audio.siren(0); this.audio.heli(0); }
   clearDynamic() {
-    for (const v of [...this.vehicles]) if (!v.parked || v.wrecked) this.removeVehicle(v); for (const p of [...this.peds]) if (!p.station) this.removePed(p); for (const p of this.peds) { p.hostile = false; p.hp = p.maxHp; } this.police.clear(); this.fx.fires.length = 0; this.missions.clearMarkers();
+    for (const v of [...this.vehicles]) if (!v.parked || v.wrecked) this.removeVehicle(v); for (const p of [...this.peds]) if (!p.station) this.removePed(p); for (const p of this.peds) { p.hostile = false; p.hp = p.maxHp; } this.police.clear(); this.fx.fires.length = 0; this.missions.clearMarkers(); this.grenades.clear();
   }
   // ---------- save / load ----------
   hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } }
   saveSettings() { try { localStorage.setItem(SET_KEY, JSON.stringify(this.settings)); } catch {} }
   saveGame(silent = false) {
     if (!this.built) return; const s = { v: 1, money: this.money, clock: this.clock, weather: this.weather, station: this.station, stats: this.stats, collected: [...this.collected], player: this.player.save(), missions: this.missions.save(), outfit: this.outfit, outfits: [...this.ownedOutfits], t: Date.now() };
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); if (!silent) this.hud.notify(T.saved, 'cash'); } catch (e) { this.hud.notify('Save failed', 'warn'); }
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); if (!silent) this.hud.notify(T.saved, 'cash'); } catch (e) { this.hud.notify(T.saveFailed, 'warn'); }
     this.ui.applyLanguage();
   }
   loadGame() {
     let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {} if (!s) { this.hud.notify(T.noSave, 'warn'); return false; }
     if (this.missions.active) this.missions.fail(); this.clearDynamic();
     this.money = s.money; this.clock = s.clock; this.weather = s.weather || 'clear'; this.sky.setWeather(this.weather); this.station = s.station || 'off'; this.audio.setStation(this.station); this.stats = Object.assign({ kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }, s.stats); this.collected = new Set(s.collected || []);
-    this.missions.load(s.missions || {}); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.hud.notify(T.loaded, 'cash'); return true;
+    this.missions.load(s.missions || {}); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations(); this.hud.notify(T.loaded, 'cash'); return true;
   }
   sleep() { this.clock = 7 * 60; this.player.health = 100; this.weather = 'clear'; this.sky.setWeather('clear'); this.saveGame(true); this.hud.notify(T.sleepDone, 'cash'); }
   setQuality(q) {
@@ -129,7 +140,7 @@ export class Game {
   setVolume(v) { this.settings.volume = v; this.audio.setVolume(v); this.saveSettings(); }
   // ---------- entity management ----------
   addVehicle(v) { this.vehicles.push(v); this.scene.add(v.mesh); v.onWreck = w => this.onWreck(w); v.hit = (o, imp) => this.onCarHit(v, o, imp); return v; }
-  removeVehicle(v) { const i = this.vehicles.indexOf(v); if (i >= 0) this.vehicles.splice(i, 1); this.scene.remove(v.mesh); if (this.player.vehicle === v) this.player.exitVehicle(); }
+  removeVehicle(v) { const i = this.vehicles.indexOf(v); if (i >= 0) this.vehicles.splice(i, 1); this.scene.remove(v.mesh); v.dispose(); if (this.player.vehicle === v) this.player.exitVehicle(); }
   addPed(p) { this.peds.push(p); return p; }
   removePed(p) { const i = this.peds.indexOf(p); if (i >= 0) this.peds.splice(i, 1); p.dispose(); }
   addPickup(o) { return this.pickups.add(o); }
@@ -148,7 +159,7 @@ export class Game {
   bust() { if (this.state === 'dead' || this.player.dead) return; this.state = 'dead'; this.deadKind = 'busted'; const P = this.player; if (P.vehicle) P.exitVehicle(); P.dead = true; this.hud.overlay('busted'); this.timeScale = 0.35; this.audio.engine(false); this.audio.wanted(); if (this.missions.active) this.missions.fail(); setTimeout(() => this.respawn('police'), 4800); }
   respawn(kind) {
     const poi = this.world.pois[kind === 'hospital' ? 'hospital' : 'police']; const loss = Math.min(1000, Math.round(this.money * 0.1)); if (loss) this.addMoney(-loss);
-    this.player.respawn(poi.x + 4, poi.z - 0.5); this.player.armor = 0; this.player.camYaw = Math.PI; this.police.clear(); for (const p of [...this.peds]) if (p.team && !p.station) this.removePed(p);
+    this.player.respawn(poi.x + 4, poi.z - 0.5); this.player.armor = 0; this.player.camYaw = Math.PI; this.police.clear(); for (const p of [...this.peds]) if (p.team && !p.station) this.removePed(p); this.restoreStations();
     this.timeScale = 1; this.hud.overlay(null); this.state = 'playing'; this.hud.notify(kind === 'hospital' ? T.respawnHospital : T.respawnPolice, 'warn', 6); this.clock = (this.clock + 360) % 1440;
   }
   // ---------- main loop ----------
