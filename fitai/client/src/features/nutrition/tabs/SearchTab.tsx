@@ -5,15 +5,15 @@ import type { FoodDTO } from '@shared/types';
 import { Button, EmptyState, ErrorState, LoadingState, SelectField, Switch } from '../../../components/ui';
 import { useI18n } from '../../../i18n';
 import { storage } from '../../../lib/storage';
-import { nk, searchFoods } from '../api';
+import { fetchRecent, nk, searchFoods } from '../api';
 import { FoodListItem } from '../FoodBits';
 import { useDebounced } from '../hooks';
 
 const COMPATIBLE_KEY = 'fitai.nutrition.compatibleOnly';
 
 /** Debounced bilingual food search with a diet filter and category filter. */
-export function SearchTab({ onSelect, onCreateCustom, onQuickAdd }: { onSelect(food: FoodDTO): void; onCreateCustom(): void; onQuickAdd(): void }) {
-  const { t } = useI18n();
+export function SearchTab({ onSelect, onCreateCustom, onQuickAdd }: { onSelect(food: FoodDTO, grams?: number): void; onCreateCustom(): void; onQuickAdd(): void }) {
+  const { t, formatNumber } = useI18n();
   const [q, setQ] = useState('');
   const [category, setCategory] = useState<FoodCategory | ''>('');
   const [compatibleOnly, setCompatibleOnly] = useState(() => storage.get<boolean>(COMPATIBLE_KEY) === true);
@@ -25,6 +25,10 @@ export function SearchTab({ onSelect, onCreateCustom, onQuickAdd }: { onSelect(f
     placeholderData: keepPreviousData,
     staleTime: 60_000,
   });
+
+  // With nothing typed yet, the foods the user logged most recently come first (pre-filled with the last amount).
+  const recent = useQuery({ queryKey: nk.recent, queryFn: fetchRecent, staleTime: 60_000, enabled: !debounced });
+  const recentItems = (recent.data ?? []).slice(0, 5).filter((r) => !compatibleOnly || r.food.conflicts.length === 0);
 
   return (
     <div className="stack">
@@ -84,6 +88,21 @@ export function SearchTab({ onSelect, onCreateCustom, onQuickAdd }: { onSelect(f
         />
       ) : (
         <section className="stack-sm">
+          {!debounced && recentItems.length > 0 && (
+            <>
+              <h2 className="section-title">{t('nutrition.search.recentTitle')}</h2>
+              <ul className="list" aria-label={t('nutrition.search.recentTitle')}>
+                {recentItems.map((item) => (
+                  <FoodListItem
+                    key={`recent-${item.food.id}`}
+                    food={item.food}
+                    onSelect={(food) => onSelect(food, item.lastGrams)}
+                    extra={t('nutrition.history.lastAmount', { grams: formatNumber(item.lastGrams) })}
+                  />
+                ))}
+              </ul>
+            </>
+          )}
           <p className="small muted" aria-live="polite">
             {debounced ? t('nutrition.search.results', { count: query.data.length }) : t('nutrition.search.popular')}
           </p>

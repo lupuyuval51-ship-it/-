@@ -1,14 +1,11 @@
-import { addDays } from '@shared/dates';
+import { useState } from 'react';
 import type { MealType } from '@shared/constants';
 import type { FoodLogEntryDTO, MealGroupDTO } from '@shared/types';
-import { ApiError } from '../../api/client';
-import { Badge, Button, Card, IconButton, LinkButton, useToast } from '../../components/ui';
-import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
+import { Badge, Card, IconButton, LinkButton } from '../../components/ui';
 import { useI18n } from '../../i18n';
-import { errorMessage } from '../../lib/errors';
-import { copyLogs } from './api';
-import { useNutritionInvalidation } from './hooks';
+import { CopyMealModal } from './CopyMealModal';
 import { MacroLine, useMacroFormat } from './Macros';
+import { RepeatYesterdayButton } from './RepeatYesterdayButton';
 
 export function useEntryAmountLabel() {
   const { t, formatNumber } = useI18n();
@@ -35,22 +32,10 @@ export function MealSection({
 }) {
   const i18n = useI18n();
   const { t, lt } = i18n;
-  const toast = useToast();
-  const invalidate = useNutritionInvalidation();
   const f = useMacroFormat();
   const amountLabel = useEntryAmountLabel();
   const mealName = t(`enums.mealType.${mealType}`);
-
-  const copy = useIdempotentMutation((_: void, key: string) => copyLogs({ fromDate: addDays(date, -1), toDate: date, mealType }, key), {
-    onSuccess: (res) => {
-      invalidate(res.day);
-      toast.success(t('nutrition.meals.copied', { count: res.copied }));
-    },
-    onError: (err) => {
-      if (err instanceof ApiError && err.code === 'nothing_to_copy') toast.info(errorMessage(err, i18n, 'nutrition'));
-      else toast.error(errorMessage(err, i18n, 'nutrition'));
-    },
-  });
+  const [copyOpen, setCopyOpen] = useState(false);
 
   const empty = group.entries.length === 0;
   return (
@@ -59,23 +44,24 @@ export function MealSection({
       title={mealName}
       subtitle={empty ? undefined : <MacroLine m={group.totals} />}
       actions={
-        <LinkButton
-          size="sm"
-          variant="secondary"
-          icon="plus"
-          to={`/nutrition/log?date=${date}&meal=${mealType}`}
-          aria-label={t('nutrition.meals.addTo', { meal: mealName })}
-        >
-          {t('nutrition.meals.add')}
-        </LinkButton>
+        <div className="row">
+          {!empty && <IconButton icon="copy" size="sm" label={t('nutrition.meals.copyToLabel', { meal: mealName })} onClick={() => setCopyOpen(true)} />}
+          <LinkButton
+            size="sm"
+            variant="secondary"
+            icon="plus"
+            to={`/nutrition/log?date=${date}&meal=${mealType}`}
+            aria-label={t('nutrition.meals.addTo', { meal: mealName })}
+          >
+            {t('nutrition.meals.add')}
+          </LinkButton>
+        </div>
       }
     >
       {empty ? (
         <div className="row-between meal-empty">
           <span className="empty-inline">{t('nutrition.meals.empty')}</span>
-          <Button size="sm" variant="ghost" icon="copy" loading={copy.isPending} onClick={() => copy.mutate()} aria-label={t('nutrition.meals.copyYesterdayLabel', { meal: mealName })}>
-            {t('nutrition.meals.copyYesterday')}
-          </Button>
+          <RepeatYesterdayButton date={date} mealType={mealType} />
         </div>
       ) : (
         <ul className="list" aria-label={mealName}>
@@ -103,6 +89,7 @@ export function MealSection({
           })}
         </ul>
       )}
+      {copyOpen && <CopyMealModal date={date} mealType={mealType} onClose={() => setCopyOpen(false)} />}
     </Card>
   );
 }

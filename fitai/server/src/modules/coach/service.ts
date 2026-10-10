@@ -57,7 +57,7 @@ async function produceReply(userId: string, threadId: string, message: string): 
     minimumCalories: data.minimumCalories,
   });
   // Safety replies are fixed texts; they never reach the model and earn no reward.
-  if (safety) return { content: safety.reply, source: 'builtin', status: 'ok', rewarded: false };
+  if (safety) return { content: safety.reply, source: 'builtin', status: 'ok', safety: safety.category, rewarded: false };
 
   const exercises = await getAllExercises();
   if (!isLlmConfigured()) return builtinAnswer(message, lang, data, exercises, false);
@@ -112,7 +112,7 @@ export async function sendCoachMessage(userId: string, threadId: string, content
     const { rewarded, ...fields } = reply;
     const row = await insertMessage(tx, { ...fields, userId, threadId, role: 'assistant' });
     await tx.exec(
-      `UPDATE coach_threads SET updated_at = now(), title = CASE WHEN title = '' THEN $3 ELSE title END WHERE id = $1 AND user_id = $2`,
+      `UPDATE coach_threads SET last_activity_at = now(), title = CASE WHEN title = '' THEN $3 ELSE title END WHERE id = $1 AND user_id = $2`,
       [threadId, userId, titleFromMessage(content)],
     );
     if (rewarded) await onCoachQuestion(tx, { userId });

@@ -36,7 +36,8 @@ export function QuickAddTab({ date, mealType }: { date: string; mealType: MealTy
     const parsed = quickAddSchema.safeParse({
       date,
       mealType,
-      name: form.name,
+      // A description is optional: fall back to a generic "Quick add" so calories can be logged in one field.
+      name: form.name.trim() || t('nutrition.meals.quickAdd'),
       kcal: form.kcal,
       proteinG: form.proteinG ?? undefined,
       carbsG: form.carbsG ?? undefined,
@@ -74,7 +75,7 @@ export function QuickAddTab({ date, mealType }: { date: string; mealType: MealTy
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           error={errors.name}
-          required
+          hint={t('nutrition.quick.nameHint')}
           maxLength={120}
           name="name"
         />

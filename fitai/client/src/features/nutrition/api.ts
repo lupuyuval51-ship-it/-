@@ -7,6 +7,7 @@ import type {
   LogTemplateInput,
   PhotoAnalysisInput,
   QuickAddInput,
+  RestoreLogEntryInput,
   SaveMealFromDayInput,
   UpdateCustomFoodInput,
   UpdateLogEntryInput,
@@ -75,7 +76,8 @@ export const quickAdd = (input: QuickAddInput, key: string) => apiPost<LogEntryR
 export const batchLog = (input: BatchLogInput, key: string) => apiPost<LogEntriesResponse>('/nutrition/logs/batch', input, key);
 export const copyLogs = (input: CopyLogsInput, key: string) => apiPost<CopyLogsResponse>('/nutrition/logs/copy', input, key);
 export const updateEntry = (id: string, patch: UpdateLogEntryInput) => apiPatch<LogEntryResponse>(`/nutrition/logs/${encodeURIComponent(id)}`, patch);
-export const deleteEntry = (id: string) => apiDelete<DeleteLogEntryResponse>(`/nutrition/logs/${encodeURIComponent(id)}`);
+export const restoreEntry = (input: RestoreLogEntryInput, key: string) => apiPost<LogEntryResponse>('/nutrition/logs/restore', input, key);
+export const deleteEntry =(id: string) => apiDelete<DeleteLogEntryResponse>(`/nutrition/logs/${encodeURIComponent(id)}`);
 
 // ---------------------------------------------------------------- Saved meals
 export const fetchSavedMeals = () => apiGet<SavedMealsResponse>('/nutrition/saved-meals').then((r) => r.meals);

@@ -8,6 +8,7 @@ import { fetchDay, nk } from '../../features/nutrition/api';
 import { mealForHour, useMealLabel, useUserHour, useUserToday } from '../../features/nutrition/hooks';
 import { useMacroFormat } from '../../features/nutrition/Macros';
 import { PortionDialog, type PortionSource } from '../../features/nutrition/PortionDialog';
+import { RepeatYesterdayButton } from '../../features/nutrition/RepeatYesterdayButton';
 import { clampLogDate, maxLogDate } from '../../features/nutrition/portion';
 import { BarcodeTab } from '../../features/nutrition/tabs/BarcodeTab';
 import { CustomFoodTab } from '../../features/nutrition/tabs/CustomFoodTab';
@@ -96,9 +97,12 @@ export default function FoodLogPage() {
           />
         </div>
         {mealGroup && (
-          <p className="small muted nutri-meal-so-far" aria-live="polite">
-            {t('nutrition.log.mealSoFar', { meal: labels.meal(meal), kcal: f.kcal(mealGroup.totals.kcal) })} · {t('nutrition.log.mealItems', { count: mealGroup.entries.length })}
-          </p>
+          <div className="row-between nutri-meal-so-far">
+            <p className="small muted" aria-live="polite">
+              {t('nutrition.log.mealSoFar', { meal: labels.meal(meal), kcal: f.kcal(mealGroup.totals.kcal) })} · {t('nutrition.log.mealItems', { count: mealGroup.entries.length })}
+            </p>
+            {mealGroup.entries.length === 0 && <RepeatYesterdayButton date={date} mealType={meal} />}
+          </div>
         )}
       </Card>
 
@@ -107,7 +111,7 @@ export default function FoodLogPage() {
       <div role="tabpanel" aria-label={t(`nutrition.tabs.${tab}`)} className="nutri-tabpanel">
         {tab === 'search' && (
           <SearchTab
-            onSelect={(food) => select(food)}
+            onSelect={(food, grams) => select(food, 'manual', grams)}
             onCreateCustom={() => update({ tab: 'custom' })}
             onQuickAdd={() => update({ tab: 'quick' })}
           />

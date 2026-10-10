@@ -7,6 +7,7 @@ import { Button, Card, ErrorState, IconButton, LoadingState, Segmented, Stat, us
 import { BodyWeightForm } from '../../../features/progress/BodyWeightForm';
 import { invalidateAfterBodyWeight, progressApi } from '../../../features/progress/api';
 import { signedWeightText, useFmt } from '../../../features/progress/format';
+import { oneOf, useUrlState } from '../../../features/progress/useUrlState';
 import { useUnits } from '../../../hooks/useUnits';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
@@ -22,7 +23,7 @@ export function BodyWeightCard() {
   const toast = useToast();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
-  const [range, setRange] = useState<TrendPeriod>(90);
+  const [range, setRange] = useUrlState<TrendPeriod>('bw', oneOf(TREND_PERIODS), 90);
   const [showAll, setShowAll] = useState(false);
   const query = useQuery({ queryKey: qk.bodyWeight(range), queryFn: () => progressApi.bodyWeight(range), placeholderData: keepPreviousData });
   const remove = useMutation({
@@ -77,6 +78,8 @@ export function BodyWeightCard() {
                   hint={t('progress.bodyWeight.entriesCount', { count: entries.length })}
                 />
               </div>
+              {entries.length === 1 && <p className="small muted progress-sparse">{t('progress.bodyWeight.sparseOne')}</p>}
+              {entries.length > 1 && <p className="small muted progress-sparse">{t('progress.bodyWeight.fluctuationNote')}</p>}
               <div aria-live="polite">
                 <h3 className="chart-heading">{chartTitle}</h3>
                 <LineChart

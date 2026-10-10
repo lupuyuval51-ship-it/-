@@ -20,6 +20,8 @@ export function ThreadList({
 }) {
   const i18n = useI18n();
   const { t } = i18n;
+  // Empty conversations are unsent drafts (not worth listing) unless the user is looking at one.
+  const visible = (query.data?.threads ?? []).filter((x) => x.messageCount > 0 || x.id === selectedId);
   return (
     <nav className="coach-threads" aria-label={t('coach.conversations')}>
       <Button variant="primary" icon="plus" block onClick={onNew} disabled={newActive}>
@@ -30,11 +32,11 @@ export function ThreadList({
           <LoadingState compact />
         ) : query.isError ? (
           <ErrorState compact error={query.error} onRetry={() => void query.refetch()} />
-        ) : query.data.threads.length === 0 ? (
+        ) : visible.length === 0 ? (
           <EmptyState compact icon="chat" title={t('coach.noConversations')} body={t('coach.noConversationsBody')} />
         ) : (
           <ul className="coach-thread-items">
-            {query.data.threads.map((thread) => {
+            {visible.map((thread) => {
               const active = thread.id === selectedId;
               return (
                 <li key={thread.id}>

@@ -81,7 +81,26 @@ export const batchLogSchema = z.object({
   items: z.array(batchLogItemSchema).min(1).max(20),
 });
 
-export const nutritionDayQuerySchema = z.object({ date: dateString.optional() });
+/** Undo a delete: re-creates an entry the user just removed, with its exact amount, values and correction flag. */
+export const restoreLogEntrySchema = z.object({
+  date: dateString,
+  mealType,
+  foodId: uuid.nullable(),
+  foodName: z.object({ en: requiredText(LIMITS.textShortMax), he: requiredText(LIMITS.textShortMax) }),
+  grams: grams.nullable(),
+  servings: z.number().positive().max(100).nullable(),
+  kcal: z.number().min(0).max(5000),
+  proteinG: z.number().min(0).max(500),
+  carbsG: z.number().min(0).max(1000),
+  fatG: z.number().min(0).max(500),
+  fiberG: z.number().min(0).max(200),
+  isCorrected: z.boolean(),
+  source: z.enum(['manual', 'barcode', 'photo', 'saved_meal', 'suggestion', 'quick_add']),
+  note: cleanText(200).default(''),
+});
+export type RestoreLogEntryInput = z.input<typeof restoreLogEntrySchema>;
+
+export const nutritionDayQuerySchema =z.object({ date: dateString.optional() });
 
 export const nutritionSummaryQuerySchema = z.object({
   days: z.coerce
