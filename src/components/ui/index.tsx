@@ -29,7 +29,7 @@ export function Badge({ tone = "neutral", className, ...rest }: HTMLAttributes<H
   const tones = {
     neutral: "border-line bg-ink-700 text-muted",
     neon: "border-neon/40 bg-neon/10 text-neon",
-    violet: "border-violet/40 bg-violet/15 text-violet",
+    violet: "border-violet/40 bg-violet/15 text-violet-soft",
     lime: "border-lime/40 bg-lime/10 text-lime",
     amber: "border-amber/40 bg-amber/10 text-amber",
     rose: "border-rose/40 bg-rose/10 text-rose",

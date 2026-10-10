@@ -95,7 +95,7 @@ export default async function LandingPage() {
             ))}
           </ul>
           <Card className="space-y-1 border-violet/40">
-            <h3 className="font-semibold text-violet">{t("landing.tiers.title")}</h3>
+            <h3 className="font-semibold text-violet-soft">{t("landing.tiers.title")}</h3>
             <p className="text-sm text-muted">{t("landing.tiers.text")}</p>
           </Card>
         </div>

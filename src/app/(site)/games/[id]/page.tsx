@@ -83,7 +83,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             <ol className="space-y-3 text-sm">
               {overview.missions.map((m, i) => (
                 <li key={m.id} className="flex gap-3">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-violet/20 text-xs font-bold text-violet">{i + 1}</span>
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-violet/20 text-xs font-bold text-violet-soft">{i + 1}</span>
                   <div>
                     <p className="font-medium">{m.title}</p>
                     <ul className="list-disc ps-5 text-muted">{m.objectives.map((o, j) => <li key={j}>{o}</li>)}</ul>

@@ -63,7 +63,7 @@ export default async function PricingPage() {
                 <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
                 <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{t("pricing.feature.modes")}</span></li>
                 <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{t("pricing.feature.save")}</span></li>
-                {plan === "PRO" && <li className="flex gap-2"><span aria-hidden className="text-violet">★</span><span>{t("pricing.feature.same")}</span></li>}
+                {plan === "PRO" && <li className="flex gap-2"><span aria-hidden className="text-violet-soft">★</span><span>{t("pricing.feature.same")}</span></li>}
               </ul>
               {plan === "FREE" ? (
                 user ? (

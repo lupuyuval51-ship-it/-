@@ -12,6 +12,8 @@
   --color-muted: #9aa6d4;
   --color-neon: #22e6ff;
   --color-violet: #8b5cf6;
+  /* readable violet for text on the dark surfaces (the base violet is for fills and borders; it is only ~3:1 as text) */
+  --color-violet-soft: #c4b5fd;
   --color-lime: #a3ff4f;
   --color-amber: #ffc63d;
   --color-rose: #ff5c8a;

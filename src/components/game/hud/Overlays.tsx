@@ -271,7 +271,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
       <div role="dialog" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-2xl">
-        <h2 dir="auto" className="text-lg font-bold text-violet">{title}</h2>
+        <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
         <div className="flex justify-end"><Button onClick={onClose}>{t("lore.close")}</Button></div>
       </div>
