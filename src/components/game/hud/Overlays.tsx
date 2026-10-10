@@ -307,32 +307,37 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
   const t = useT();
+  const { shortLandscape } = useLayout();
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=resume-button]");
+  // Safe centering: the outer box aligns to the start and the dialog uses `my-auto`, so a dialog taller than the
+  // screen starts at the top edge (never clipped above it) and scrolls inside itself (`max-h-full`).
+  const row = cx("flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 text-sm", shortLandscape ? "py-1.5" : "py-2.5");
+  const box2 = "size-5 shrink-0 accent-[var(--color-neon)]";
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm">
-      <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md md:max-w-xl space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3">
-        <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
-        <div className="space-y-2">
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
-          <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
+    <div data-testid="pause-backdrop" className={cx("absolute inset-0 z-40 flex items-start justify-center overflow-hidden bg-ink-950/75 backdrop-blur-sm", shortLandscape ? "p-2" : "p-4")}>
+      <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className={cx("lu-pop my-auto max-h-full w-full overflow-y-auto overscroll-contain rounded-3xl border border-line bg-ink-800 shadow-e3", shortLandscape ? "max-w-2xl space-y-2 p-3" : "max-w-md space-y-4 p-5 md:max-w-xl")}>
+        <h2 className={cx("font-bold", shortLandscape ? "text-lg" : "text-xl")}>{t("hud.paused")}</h2>
+        <div className={cx(shortLandscape ? "grid grid-cols-2 gap-1.5" : "space-y-2")}>
+          <label className={row}><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className={box2} /></label>
+          <label className={row}><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className={box2} /></label>
+          <label className={row}><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className={box2} data-testid="guide-toggle" /></label>
+          <label className={row}><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className={box2} data-testid="motion-toggle" /></label>
+          <p className={cx("rounded-xl bg-ink-900 px-3 text-sm text-muted", shortLandscape ? "col-span-2 py-1.5" : "py-2.5")} data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
         </div>
         <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
           <summary className="cursor-pointer font-medium">{t("hud.controls")}</summary>
-          <ul className="mt-2 space-y-1 text-muted">
+          <ul className={cx("mt-2 text-muted", shortLandscape ? "grid grid-cols-2 gap-x-3 gap-y-0.5" : "space-y-1")}>
             {(["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
           </ul>
         </details>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={onResume} data-testid="resume-button" className="flex-1">{t("hud.resume")}</Button>
-          {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)}>{t("hud.restart")}</Button> : (
-            <div className="w-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
+        <div data-testid="pause-actions" className={cx("grid gap-2", shortLandscape ? "grid-cols-3" : "grid-cols-2")}>
+          <Button onClick={onResume} data-testid="resume-button" className={cx("w-full", !shortLandscape && "col-span-2")}>{t("hud.resume")}</Button>
+          {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)} className="w-full" data-testid="restart-button">{t("hud.restart")}</Button> : (
+            <div className="col-span-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
           )}
-          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("hud.exit")}</Link>
+          <Link href="/games" data-testid="exit-link" className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-line px-4 text-center text-sm font-semibold hover:bg-text/10">{t("hud.exit")}</Link>
         </div>
       </div>
     </div>
@@ -344,9 +349,9 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=results-link]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur">
+    <div className="absolute inset-0 z-40 flex items-start justify-center overflow-hidden bg-ink-950/80 p-2 backdrop-blur sm:p-4">
       <Confetti />
-      <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-full w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
         <Stars n={summary.stars} size="lg" />
         <p className="text-lg" data-testid="final-score">{t("done.score", { score: summary.score, max: summary.maxScore })}</p>

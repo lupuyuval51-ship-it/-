@@ -297,7 +297,9 @@ describe("a11y: text-scaling guards on the HUD and mobile pages", () => {
 
   it("scrolls tall dialogs instead of clipping them", () => {
     const overlays = src["src/components/game/hud/Overlays.tsx"]!;
-    expect(overlays.match(/max-h-\[96dvh\][^"]*overflow-y-auto/g)?.length).toBe(2); // pause menu + completion card
+    // pause menu + completion card: safe centering (items-start + my-auto), scroll inside the dialog (max-h-full)
+    expect(overlays.match(/my-auto max-h-full[^"]*overflow-y-auto/g)?.length).toBe(2);
+    expect(overlays).not.toMatch(/absolute inset-0 z-40 flex items-center/);
     expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/max-h-\[94dvh\][^"]*sm:rounded-3xl/);
     expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/flex-1 overflow-y-auto/);
   });
