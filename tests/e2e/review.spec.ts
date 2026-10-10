@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
 import { getGameSpec } from "./db";
-import { challengeOf, openGame, snapshot } from "./play-helpers";
+import { answerInUi, challengeOf, openGame, snapshot } from "./play-helpers";
 import { correctAnswer, wrongAnswer } from "../unit/helpers";
 
  
@@ -37,6 +37,28 @@ for (const locale of ["en", "he"] as const) {
     await expect(item).toContainText(ch.explanation);
     await expect(page.getByTestId("review-answer")).not.toBeEmpty();
     void client;
+
+    // "practise only these": the missed question again, unscored, graded by the server
+    const scoreBefore = (await snapshot(page).catch(() => null))?.client?.score;
+    await page.getByTestId("practice-start").click();
+    await page.waitForURL(/\/practice$/);
+    await expect(page.getByTestId("practice-progress")).toContainText("1");
+    await expect(page.getByTestId("challenge-panel")).toHaveAttribute("data-challenge", ch.id);
+    await answerInUi(page, ch, "wrong");
+    await expect(page.getByTestId("result")).toContainText(/./);
+    await expect(page.getByTestId("challenge-submit")).toBeVisible(); // not resolved after one miss: try again
+    await answerInUi(page, ch, "right");
+    await expect(page.getByTestId("result")).toContainText(/correct|נכון/i);
+    await page.getByTestId("challenge-close").click();
+    await expect(page.getByTestId("practice-done")).toBeVisible();
+    await expect(page.getByTestId("practice-score")).toContainText("1");
+    void scoreBefore;
+    // practice never touches the score of the session
+    const results = await page.goto(`/games/${gameId}/results/${sessionId}`);
+    expect(results?.status()).toBe(200);
+    // the practice API refuses questions that are not part of the review, and other accounts
+    const foreign = await page.evaluate(async ([sid, cid]) => (await fetch(`/api/practice/${sid}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "hint", challengeId: cid }) })).status, [sessionId, spec.challenges.find((c) => c.id !== ch.id)!.id] as const);
+    expect(foreign).toBe(404);
     // another account cannot see it
     const other = await browser.newContext();
     const op = await other.newPage();

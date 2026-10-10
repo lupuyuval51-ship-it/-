@@ -232,6 +232,7 @@ Plan, currency and amount come from a server-side checkout row created from the 
   Score, stars, achievements, adaptive easier/harder variants and completion are derived by an event-sourced reducer under a row lock, so parallel or
   forged events cannot double-count or finish a game early.
 * **Review your mistakes:** from the results page, a review screen (`/games/<id>/results/<session>/review`) lists every question that took more than one try or needed the answer revealed, with the question, the right answer in words and the explanation. Only challenges already resolved are included, so an open question's answer is never released early; only the session's owner can open it.
+* **Practise only these:** the review screen has a button that asks just the missed questions again (`/games/<id>/results/<session>/practice`), one by one, graded by the server (`/api/practice/<session>`), with free hints and a short summary at the end. It is unscored and stores nothing, and the API only accepts questions that are part of that session's review.
 * **Education:** objectives, specific feedback for common mistakes, explanations, adaptive difficulty, learning results with per-objective mastery,
   concepts to review, achievements and a conclusion; progress is saved on every device and resumes where you left off.
 * **Controls:** WASD / arrows, Space (jump), E (interact), Esc (pause), drag to look, number keys pick an answer in multiple-choice challenges; touch joystick and
