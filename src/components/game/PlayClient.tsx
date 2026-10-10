@@ -405,7 +405,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
       )}
       {client && (
         <>
-          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />
+          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} engine={d.game.generator.kind === "engine"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />
           <Toasts toasts={toasts} />
           <ScorePopups popups={popups} />
           {tutorial && overlay.type === "none" && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}

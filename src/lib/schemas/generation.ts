@@ -10,6 +10,16 @@ const text = (max: number) =>
     .max(max)
     .refine((s) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(s), "Control characters are not allowed.");
 
+/** Optional long text: an empty box means "not provided", anything else must be non-blank and free of control characters. */
+const optionalMaterial = z.preprocess(
+  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  z
+    .string()
+    .max(INPUT_LIMITS.materialMax)
+    .refine((s) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(s), "Control characters are not allowed.")
+    .optional(),
+);
+
 export const extensionOptionsSchema = z.object({
   addArea: z.boolean().default(true),
   addMissions: z.number().int().min(0).max(3).default(1),
@@ -26,6 +36,8 @@ export const generationRequestSchema = z
     gameType: z.enum(GAME_TYPES),
     contentLanguage: z.enum(CONTENT_LANGUAGES).default("en"),
     notes: text(INPUT_LIMITS.notesMax).optional(),
+    /** The learner's own study material: with it, a game is built from these notes instead of a template. */
+    material: optionalMaterial,
     /** EXTEND only: the saved game to add to. */
     targetGameId: z.string().min(1).max(40).optional(),
     extension: extensionOptionsSchema.optional(),

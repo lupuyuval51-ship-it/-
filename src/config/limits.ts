@@ -4,6 +4,8 @@ export const INPUT_LIMITS = {
   subjectMax: 120,
   goalMax: 500,
   notesMax: 500,
+  /** Study material the learner pastes in (the study engine builds a game from it; AI providers get it as source text). */
+  materialMax: 8000,
   nameMax: 60,
   passwordMin: 10,
   passwordMax: 128,

@@ -1,5 +1,6 @@
 import "server-only";
 import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
+import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
 import { challengesPayloadSchema, checkAgainstPlan, validateBlueprint, type Blueprint } from "@/lib/game/spec/blueprint";
 import type { GameType } from "@/lib/game/spec/constants";
 import { mergeExtension } from "@/lib/game/spec/extension";
@@ -11,7 +12,7 @@ import { extractJson } from "../ai/json";
 import { blueprintPrompt, challengesPrompt, extensionPrompt, fastPrompt, repairPrompt, summarizeGame, systemPrompt, type PromptStage } from "../ai/prompts";
 import type { AiMessage, LlmBackend, TemplateBackend } from "../ai/types";
 
-export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT";
+export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE";
 
 /** A generation failure with a safe, user-facing message (the credit is always released on failure). */
 export class PipelineError extends Error {
@@ -41,6 +42,8 @@ export interface PipelineOutput {
   model: string;
   usage: { inputTokens: number; outputTokens: number };
   templateId?: string;
+  /** Built by the rule-based study engine from the learner's own material (neither AI output nor a demo template). */
+  engine?: boolean;
 }
 
 const MAX_REPAIRS = 2;
@@ -199,9 +202,46 @@ function checkMerged(base: GameSpec, ext: ReturnType<typeof extensionSchema.pars
 
 // ───────────────────────────── demo templates ─────────────────────────────
 
+const noUsage = { inputTokens: 0, outputTokens: 0 };
+
+/** The study engine: the learner's own material becomes the game (also the way to extend a game built that way). */
+async function runStudyEngine(input: PipelineInput): Promise<PipelineOutput> {
+  const req = input.request;
+  const lang = req.contentLanguage === "he" ? "he" : "en";
+  try {
+    if (req.mode === "EXTEND") {
+      if (!input.base) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be loaded.");
+      const built = buildMaterialExtension(input.base, req);
+      const ext = extensionSchema.safeParse(built.ext);
+      if (!ext.success) throw new PipelineError("INVALID_OUTPUT", "The extension built from your material was invalid. You were not charged.", ext.error.message);
+      await input.onStage("validate");
+      const checked = checkMerged(input.base, ext.data);
+      if (!checked.ok) throw new PipelineError("INVALID_OUTPUT", "The extension built from your material could not be merged. You were not charged.", checked.errors.join("; "));
+      return { spec: checked.value.spec, warnings: [...built.notes, ...checked.value.warnings], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
+    }
+    const built = buildMaterialSpec(req);
+    await input.onStage("validate");
+    const res = validateGameSpec(applyRequest(built.raw, req, { language: (built.raw.meta as { language: string }).language }), { alignGameType: req.gameType });
+    if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The game built from your material could not be validated. You were not charged.", res.errors.join("; "));
+    return { spec: res.spec, warnings: [...built.notes, ...res.warnings], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
+  } catch (e) {
+    if (e instanceof MaterialError) throw new PipelineError("MATERIAL_UNUSABLE", `${e.userMessage(lang)} You were not charged.`, e.message);
+    throw e;
+  }
+}
+
 async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
   const req = input.request;
   await input.onStage(req.mode === "EXTEND" ? "extend" : "generate");
+  // New game with material, or an extension of a game that was built from material: the study engine does the work.
+  // (Extending a demo-template game ignores material: its content comes from the template, never from the engine.)
+  const engineBase = req.mode === "EXTEND" && input.base?.meta.generator?.kind === "engine";
+  if ((req.mode !== "EXTEND" && req.material) || engineBase) {
+    if (engineBase && !req.material) {
+      throw new PipelineError("MATERIAL_UNUSABLE", "Add more study material to extend a game that was built from your material. You were not charged.");
+    }
+    return runStudyEngine(input);
+  }
   if (req.mode === "EXTEND") {
     if (!input.base) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be loaded.");
     const built = buildDemoExtension(input.base, req);

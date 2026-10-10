@@ -23,12 +23,16 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
   if (request.mode === "EXTEND") {
     const game = await db.game.findFirst({ where: { id: request.targetGameId!, ownerId: userId, deletedAt: null } });
     if (!game) throw Errors.notFound("Game not found.");
-    if (game.generatorKind !== backend.info.kind) {
+    // Games built from the learner's own material are extended by the same study engine, which runs when no AI provider is configured.
+    const compatible = game.generatorKind === backend.info.kind || (game.generatorKind === "engine" && backend.info.kind === "demo");
+    if (!compatible) {
       throw Errors.conflict(
         "EXTEND_BACKEND_MISMATCH",
         game.generatorKind === "demo"
           ? "This game was created from demo templates. It can only be extended while the server is in demo mode."
-          : "This game was AI-generated. It cannot be extended with demo templates — configure the AI provider first.",
+          : game.generatorKind === "engine"
+            ? "This game was built from your own study material. It can only be extended with more material while no AI provider is configured."
+            : "This game was AI-generated. It cannot be extended with demo templates — configure the AI provider first.",
       );
     }
     // The extended game's identity is authoritative; the client may not change its subject, level or language.

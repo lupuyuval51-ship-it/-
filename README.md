@@ -147,6 +147,27 @@ POST /api/generations  →  reserve credit  →  background job  →  provider (
 * **Honest labelling:** every game stores `generatorKind` (`ai` | `demo`), provider and model; the library, details page and play screen show it.
   When no demo template matches a subject the game says so instead of pretending to be about it.
 
+### Study engine: a game made from *your* material (works without any AI)
+
+Hand-written demo templates only cover five topics, so there is a second, rule-based engine that builds a game from whatever the learner pastes in
+(`src/lib/game/material`). In the create form the **Study material** box accepts notes, a chapter, “term: meaning” lines or numbered steps (up to 8000
+characters, Hebrew, English or any script); with no AI provider configured the engine turns it into a complete game, and with an AI provider the same
+text is passed to the model as *data it must stick to* (`<study_material>`, tag break-outs stripped), so every question is about what was pasted.
+
+* **What it extracts (deterministically, nothing invented):** a title, `term: meaning` / `term - meaning` / `term = meaning` lines and “X is …” sentences,
+  numbered lists (steps), sentences with exactly one number, and plain statements. From those it builds six kinds of challenge: *match the terms*, *name the
+  term from its description*, *fill the gap* (wrong options are other words of the material that look like the right one), *put the steps in order*, *find
+  the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and per-option feedback quote the learner's
+  own sentences.
+* **A full game, not a quiz:** the world, guide character, stations, lore note, collectibles, missions and portal(s) are composed for the chosen game type
+  and mode (Fast = one area, Full = two areas when there is enough material); the environment follows the subject (ocean, space, Egypt, castle, lab, forest…).
+  The same text always gives the same game. Extending such a game with *more material* adds a new area and keeps every old id.
+* **Honest by construction:** the game is stored as `generatorKind: "engine"` and shown everywhere as “From your material (study engine, not AI)”. If the
+  material is too short or has too little to ask about, the job fails with a precise message in Hebrew or English and the credit is released.
+* **Same safety path as everything else:** the output goes through the normal spec validation (references, solvability, limits, sanitising), control and
+  bidi characters are stripped from the material, and nothing in a spec is executable.
+* **Limits (by design):** it can only ask about what the learner wrote — it cannot teach a subject from a bare topic name. For that, configure an AI provider.
+
 Enable a provider by setting its key in `.env` (e.g. `ANTHROPIC_API_KEY=sk-ant-…`) and restart. `GET /api/ai/status` reports what is active
 (never the key).
 
@@ -279,19 +300,19 @@ Every browser test also fails on any uncaught page error or console error.
 
 ### Verification record
 
-Run on 2026-10-10 in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
+Run on 2026-10-10 (after the gameplay polish and the study engine) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
 
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | passed (0 errors) |
 | `npm run lint` | passed (0 errors, 0 warnings) |
-| Vitest **unit** (9 files) | **303 passed** |
-| Vitest **integration** against PostgreSQL (6 files) | **89 passed** |
-| Playwright **E2E** (desktop + Pixel 7 projects, 39 scheduled) | **38 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Vitest **unit** (13 files) | **444 passed** |
+| Vitest **integration** against PostgreSQL (6 files) | **97 passed** |
+| Playwright **E2E** (desktop + Pixel 7 projects, 47 scheduled) | **46 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
 | `npm run build` | passed |
 
 Not run (and therefore not claimed): anything against a real AI provider or the real Stripe API; GitHub Actions (`.github/workflows/ci.yml` was written but never executed);
-Firefox/WebKit; a Docker image build; a load test.
+Firefox/WebKit; a Docker image build; a load test. The study engine's question quality was checked by reading its output for English, Hebrew, Spanish and Arabic sample texts and by validity/solvability tests, not by learners.
 
 ---
 
@@ -323,7 +344,7 @@ Firefox/WebKit; a Docker image build; a load test.
 * One subscription per user; changing plan means cancelling (access continues to period end) and subscribing again. In-place upgrade is not implemented
   (it also cannot cross currencies, e.g. Plus in ILS → Pro in USD).
 * Partial refunds and disputes/chargebacks do not change entitlements. Taxes (Stripe Tax) are not configured.
-* Demo mode only has templates for programming, maths, science, ancient Egypt and Spanish, in Hebrew and English; other subjects get the closest template with a visible notice.
+* Demo mode only has templates for programming, maths, science, ancient Egypt and Spanish, in Hebrew and English; other subjects get the closest template with a visible notice. To get a game about anything without an AI provider, paste your own material and use the study engine (it only asks about what you wrote).
 * Challenge content for AI games is validated structurally and for solvability, but factual correctness of model output cannot be checked automatically.
 * Game audio is synthesised (no recorded assets); 3D art is procedural (no imported models or textures).
 * Playwright runs in Chromium only.

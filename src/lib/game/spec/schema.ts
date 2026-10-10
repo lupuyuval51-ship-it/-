@@ -229,7 +229,8 @@ export const missionSchema = z.object({
 // ───────────────────────────── the spec ─────────────────────────────
 
 export const generatorInfoSchema = z.object({
-  kind: z.enum(["ai", "demo"]),
+  /** `engine` = built by the rule-based study engine from the learner's own material (not AI, not a template). */
+  kind: z.enum(["ai", "demo", "engine"]),
   provider: z.string().max(40),
   model: z.string().max(80),
   templateId: z.string().max(40).optional(),

@@ -45,7 +45,9 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
 
   const extend = mode === "EXTEND";
   const selected = games.find((g) => g.id === gameId);
-  const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind;
+  const engineGame = selected?.generatorKind === "engine";
+  const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "demo");
+  const [materialLen, setMaterialLen] = useState(0);
   const exhausted = allowance.remaining <= 0;
   const blocked = backend.kind === "unavailable" || exhausted || Boolean(allowance.activeJobId) || mismatch;
 
@@ -60,6 +62,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
     if (get("subject").length > INPUT_LIMITS.subjectMax) errs.subject = t("create.error.tooLong");
     if (get("learningGoal").length > INPUT_LIMITS.goalMax) errs.learningGoal = t("create.error.tooLong");
     if (get("notes").length > INPUT_LIMITS.notesMax) errs.notes = t("create.error.tooLong");
+    if (get("material").length > INPUT_LIMITS.materialMax) errs.material = t("create.error.tooLong");
+    if (extend && engineGame && !get("material")) errs.material = t("create.error.materialRequired");
     setFieldErrors(errs);
     if (Object.keys(errs).length) {
       setError({ text: t("create.error.validation") });
@@ -77,6 +81,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
           gameType: "adventure",
           contentLanguage: locale,
           notes: get("notes") || undefined,
+          material: get("material") || undefined,
           targetGameId: gameId,
           extension: { addArea: true, addMissions, addChallenges, addMechanics },
         }
@@ -88,6 +93,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
           gameType: get("gameType"),
           contentLanguage: get("contentLanguage"),
           notes: get("notes") || undefined,
+          material: get("material") || undefined,
         };
     try {
       const res = await fetch("/api/generations", {
@@ -120,6 +126,17 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
   function toggleMechanic(m: Mechanic) {
     setAddMechanics((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
   }
+
+
+  const materialField = (
+    <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : t("create.material.hint.demo")}>
+      <Textarea
+        id="material" name="material" dir="auto" rows={8} maxLength={INPUT_LIMITS.materialMax} placeholder={t("create.material.placeholder")} data-testid="create-material"
+        onChange={(e) => setMaterialLen(e.target.value.length)}
+      />
+      <span className="mt-1 block text-end text-xs text-muted" aria-live="off">{t("create.material.count", { n: materialLen, max: INPUT_LIMITS.materialMax })}</span>
+    </Field>
+  );
 
   return (
     <form onSubmit={submit} className="space-y-6" noValidate data-testid="create-form">
@@ -190,6 +207,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
                 </div>
                 <p className="text-xs text-muted">{t("mechanic.hint")}</p>
               </fieldset>
+              {(engineGame || backend.kind === "ai") && materialField}
               <Field label={t("create.notes")} htmlFor="notes" error={fieldErrors.notes}>
                 <Textarea id="notes" name="notes" maxLength={INPUT_LIMITS.notesMax} rows={2} placeholder={t("create.notes.placeholder")} />
               </Field>
@@ -221,6 +239,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
               {GAME_TYPES.map((g) => <option key={g} value={g}>{t(`gameType.${g}`)}</option>)}
             </Select>
           </Field>
+          {materialField}
           <Field label={t("create.notes")} htmlFor="notes" error={fieldErrors.notes}>
             <Textarea id="notes" name="notes" maxLength={INPUT_LIMITS.notesMax} rows={2} placeholder={t("create.notes.placeholder")} />
           </Field>

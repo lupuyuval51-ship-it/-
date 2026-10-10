@@ -26,8 +26,8 @@ function specWithGenerator(out: PipelineOutput, backend: GenerationBackend, mode
     return spec;
   }
   spec.meta.generator = {
-    kind: backend.info.kind,
-    provider: backend.info.id,
+    kind: out.engine ? "engine" : backend.info.kind,
+    provider: out.engine ? "study-engine" : backend.info.id,
     model: out.model.slice(0, 80),
     templateId: out.templateId,
     mode,
@@ -87,14 +87,15 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
       await failJob(jobId, "AI_UNAVAILABLE", "AI generation is not configured on this server. You were not charged.");
       return;
     }
-    await updateJobProgress(jobId, { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
-
     let base: BaseGame | null = null;
     if (request.mode === "EXTEND") {
       const game = await db.game.findFirst({ where: { id: job.targetGameId ?? "", ownerId: job.userId, deletedAt: null } });
       if (!game) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be found. You were not charged.");
       base = { id: game.id, revision: game.revision, spec: game.spec as unknown as GameSpec };
     }
+    // Without an AI provider, learner material (or extending a material game) is handled by the rule-based study engine.
+    const engine = backend.type === "templates" && (request.mode === "EXTEND" ? base?.spec.meta.generator?.kind === "engine" : Boolean(request.material));
+    await updateJobProgress(jobId, engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
 
     const out = await runPipeline({
       backend, request, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,

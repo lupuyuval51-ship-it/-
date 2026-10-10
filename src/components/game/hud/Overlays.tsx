@@ -81,7 +81,7 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
 
 // ───────────────────────── top bar + missions ─────────────────────────
 
-export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, collect }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; collect?: { have: number; total: number } }) {
+export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, collect }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; collect?: { have: number; total: number } }) {
   const t = useT();
   const [open, setOpen] = useState(true);
   const active = spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m) && m.areaId === client.areaId);
@@ -98,6 +98,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
             <p dir="auto" className="max-w-[40vw] truncate text-sm font-semibold" data-testid="area-name">{areaName}</p>
           </div>
           {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
+          {engine && <Badge tone="lime" title={t("engine.badge.hint")}>{t("engine.badge")}</Badge>}
         </div>
         <div className="pointer-events-auto flex items-center gap-2">
           <div className="rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-end backdrop-blur" aria-live="off">

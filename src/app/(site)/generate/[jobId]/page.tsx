@@ -23,7 +23,7 @@ export default async function GeneratePage({ params }: { params: Promise<{ jobId
         stage: job.stage,
         gameId: job.gameId,
         attempts: job.attempts,
-        source: job.providerId === "demo" ? "demo" : job.providerId ? "ai" : null,
+        source: job.providerId === "study-engine" ? "engine" : job.providerId === "demo" ? "demo" : job.providerId ? "ai" : null,
         warnings: (job.warnings as string[] | null) ?? [],
         error: job.status === "FAILED" ? { code: job.errorCode, message: job.errorMessage } : null,
         allowance: allowance ? { remaining: allowance.remaining, limit: allowance.limit } : undefined,
