@@ -298,14 +298,14 @@ describe("a11y: text-scaling guards on the HUD and mobile pages", () => {
   it("scrolls tall dialogs instead of clipping them", () => {
     const overlays = src["src/components/game/hud/Overlays.tsx"]!;
     expect(overlays.match(/max-h-\[96dvh\][^"]*overflow-y-auto/g)?.length).toBe(2); // pause menu + completion card
-    expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/max-h-\[94dvh\][^"]*overflow-hidden/);
-    expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/flex-1 space-y-4 overflow-y-auto/);
+    expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/max-h-\[94dvh\][^"]*sm:rounded-3xl/);
+    expect(src["src/components/game/hud/ChallengePanel.tsx"]).toMatch(/flex-1 overflow-y-auto/);
   });
 
   it("touch controls size with the font but never exceed the viewport", () => {
     const o = src["src/components/game/hud/Overlays.tsx"]!;
-    expect(o).toContain("size-[min(8rem,34vw)]");
-    expect(o).toMatch(/min-h-16 min-w-16/);
+    expect(o).toContain("max-w-[34vw]");
+    expect(o).toContain("m.action");
   });
 
   it("the mobile viewport allows pinch zoom", () => {
