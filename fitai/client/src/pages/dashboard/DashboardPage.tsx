@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../auth/AuthProvider';
 import { Card, LinkButton, PageHeader, QueryState } from '../../components/ui';
 import { useDashboard } from '../../features/dashboard/api';
+import { DashboardSkeleton } from '../../features/dashboard/Skeletons';
 import { NextWorkoutCard } from '../../features/dashboard/NextWorkoutCard';
 import { NutritionTodayCard } from '../../features/dashboard/NutritionTodayCard';
 import { QuickActions } from '../../features/dashboard/QuickActions';
@@ -40,14 +41,17 @@ export default function DashboardPage() {
         title={t(greetingKey(clock.minutes), { name })}
         subtitle={formatDate(query.data?.today ?? clock.date, { weekday: 'long', day: 'numeric', month: 'long' })}
       />
-      <QueryState query={query}>
+      <QueryState query={query} loading={<DashboardSkeleton />}>
         {(data) => (
-          <div className="stack">
+          <div className="dash-layout">
             {data.activeSession && <ResumeBanner session={data.activeSession} />}
-            <div className="dash-grid">
+            <div className="dash-hero">
               <NextWorkoutCard data={data} />
-              <NutritionTodayCard nutrition={data.nutritionToday} />
               <WeeklyGoalCard data={data} />
+            </div>
+            <QuickActions onLogWeight={() => setWeightOpen(true)} />
+            <div className="dash-grid">
+              <NutritionTodayCard nutrition={data.nutritionToday} />
               <Card
                 title={t('dashboard.insights.title')}
                 className="dash-insights"
@@ -70,7 +74,6 @@ export default function DashboardPage() {
               >
                 <RecordList records={data.recentRecords} emptyText={t('dashboard.records.empty')} />
               </Card>
-              <QuickActions onLogWeight={() => setWeightOpen(true)} />
             </div>
           </div>
         )}

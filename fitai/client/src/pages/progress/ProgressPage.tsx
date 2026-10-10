@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router';
 import { PROGRESS_PERIODS, type ProgressPeriod } from '@shared/constants';
 import { qk } from '../../api/queryClient';
 import { Card, LinkButton, PageHeader, QueryState, Segmented } from '../../components/ui';
+import { ProgressSkeleton } from '../../features/dashboard/Skeletons';
 import { progressApi } from '../../features/progress/api';
 import { InsightList } from '../../features/progress/InsightList';
 import { RecordList } from '../../features/progress/RecordList';
@@ -59,7 +60,7 @@ export default function ProgressPage() {
       />
       <div className="stack-lg">
         <div className={`stack${overview.isPlaceholderData ? ' is-refreshing' : ''}`} aria-busy={overview.isFetching}>
-          <QueryState query={overview}>
+          <QueryState query={overview} loading={<ProgressSkeleton />}>
             {(o) => (
               <>
                 <SummarySection overview={o} />

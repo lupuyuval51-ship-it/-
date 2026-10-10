@@ -2,6 +2,7 @@ import type en from '../en/progress';
 import type { Translations } from '../types';
 
 const progress: Translations<typeof en> = {
+  loading: 'טוען את ההתקדמות',
   title: 'התקדמות',
   subtitle: 'המגמות שלך — רק לפי מה שתיעדת.',
   period: {
