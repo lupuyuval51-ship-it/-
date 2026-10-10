@@ -37,6 +37,23 @@ export interface RenderProfile {
   glow: boolean;
   /** Frame-time guard may lower the pixel ratio when FPS is poor (never raises quality above the tier). */
   adaptiveResolution: boolean;
+  /** Hard ceilings on scenery, independent of `environmentDetail` (which only ranks what is kept). */
+  limits: {
+    /** Max non-solid decor items drawn (solid props have collision and are always drawn). */
+    looseDecor: number;
+    /** Max distant skyline silhouettes. */
+    skylinePieces: number;
+    /** Lowest fraction of the skyline kept, whatever `environmentDetail` says. */
+    skylineMin: number;
+    /** Multiplier on the number of ambient critters (birds, cars, fish...); 0 removes them. */
+    lifeScale: number;
+    /** Rivers and lakes (extra transparent layers); 0 removes them. */
+    water: 0 | 1;
+    /** Draw static level geometry as one mesh per material instead of one mesh per box (far fewer draw calls). */
+    mergeStatic: boolean;
+  };
+  /** Tessellation of procedural geometry: "low" uses far fewer segments per cylinder, sphere and ring. */
+  geometry: "normal" | "low";
 }
 
 export const RENDER_PROFILES: Readonly<Record<GraphicsTier, RenderProfile>> = Object.freeze({
@@ -56,6 +73,8 @@ export const RENDER_PROFILES: Readonly<Record<GraphicsTier, RenderProfile>> = Ob
     particles: { ambient: 500, burst: 80, trails: true },
     glow: true,
     adaptiveResolution: true,
+    limits: { looseDecor: 4096, skylinePieces: 4096, skylineMin: 0.25, lifeScale: 1, water: 1, mergeStatic: false },
+    geometry: "normal",
   },
   B: {
     tier: "B",
@@ -73,10 +92,12 @@ export const RENDER_PROFILES: Readonly<Record<GraphicsTier, RenderProfile>> = Ob
     particles: { ambient: 120, burst: 24, trails: false },
     glow: false,
     adaptiveResolution: true,
+    limits: { looseDecor: 4096, skylinePieces: 4096, skylineMin: 0.25, lifeScale: 1, water: 1, mergeStatic: false },
+    geometry: "normal",
   },
   C: {
     tier: "C",
-    pixelRatioMax: 1,
+    pixelRatioMax: 0.85,
     antialias: false,
     toneMapping: "none",
     exposure: 1,
@@ -84,12 +105,14 @@ export const RENDER_PROFILES: Readonly<Record<GraphicsTier, RenderProfile>> = Ob
     materials: "simple",
     textureSize: 0,
     accentLights: 0,
-    environmentDetail: 0.2,
+    environmentDetail: 0.15,
     sky: "flat",
     fog: false,
-    particles: { ambient: 24, burst: 8, trails: false },
+    particles: { ambient: 16, burst: 6, trails: false },
     glow: false,
     adaptiveResolution: true,
+    limits: { looseDecor: 16, skylinePieces: 14, skylineMin: 0.1, lifeScale: 0.5, water: 0, mergeStatic: true },
+    geometry: "low",
   },
 });
 

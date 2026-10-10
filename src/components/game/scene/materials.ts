@@ -128,7 +128,9 @@ export function createMaterialSet(profile: RenderProfile, theme: EnvTheme): Mate
   function surface(style: string, w = 1, d = 1): THREE.Material {
     const def = base[style] ?? base.prop!;
     const repeat = style === "floor" || style === "floorAlt" ? 4 : 2.5;
-    const key = `${style}|${profile.materials}|${Math.round(w / repeat)}x${Math.round(d / repeat)}`;
+    // Untextured (simple) materials do not depend on the box size, so every box of a style shares one material.
+    const size = profile.materials === "simple" ? "" : `${Math.round(w / repeat)}x${Math.round(d / repeat)}`;
+    const key = `${style}|${profile.materials}|${size}`;
     const hit = cache.get(key);
     if (hit) return hit;
     let m: THREE.Material;

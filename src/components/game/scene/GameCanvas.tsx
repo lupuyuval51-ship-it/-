@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
@@ -14,6 +14,7 @@ import { Backdrop } from "./Backdrop";
 import { Life } from "./Life";
 import { Entities } from "./Entities";
 import { Companion, GuideBeams, GuideProjector } from "./Guide";
+import { DPR_SCALE, FrameGovernor, MIN_DPR, degradeProfile } from "./governor";
 import { createMaterialSet } from "./materials";
 import { ParticleEmitter, Particles } from "./Particles";
 import { PlayerAvatar } from "./PlayerAvatar";
@@ -91,11 +92,17 @@ function GuideDriver({ runtime, model, client }: { runtime: GameRuntime; model: 
   return null;
 }
 
-/** One frame of game logic, then adaptive resolution. Registered first so it runs before every renderer callback. */
-function Loop({ runtime, input, onInteract, profile, exposeStats }: Pick<GameCanvasProps, "runtime" | "input" | "onInteract" | "profile" | "exposeStats">) {
+/**
+ * One frame of game logic, then the quality governor. Registered first so it runs before every renderer callback.
+ * When frame time stays high the governor steps down the fallback ladder (see governor.ts): the pixel ratio shrinks
+ * with every step and `onLevel` lets the scene switch off effects. Nothing here can raise quality above the tier.
+ */
+function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel }: Pick<GameCanvasProps, "runtime" | "input" | "onInteract" | "profile" | "exposeStats"> & { onLevel: (level: number) => void }) {
   const setDpr = useThree((s) => s.setDpr);
   const gl = useThree((s) => s.gl);
-  const stats = useRef({ t: 0, n: 0, dpr: Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio), pub: 0, frames: 0 });
+  const stats = useRef({ pub: 0, frames: 0 });
+  const governor = useMemo(() => new FrameGovernor(), []);
+  const baseDpr = useMemo(() => Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio), [profile.pixelRatioMax]);
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1);
     const { sim, interact } = input.poll(step);
@@ -118,20 +125,13 @@ function Loop({ runtime, input, onInteract, profile, exposeStats }: Pick<GameCan
       }
     }
     if (!profile.adaptiveResolution) return;
-    // Guard rail: if frames are consistently slow, render fewer pixels. Never raises quality above the granted tier.
-    const s = stats.current;
-    s.t += dt;
-    s.n += 1;
-    if (s.t >= 2.5) {
-      const avg = s.t / s.n;
-      if (avg > 0.036 && s.dpr > 0.7) {
-        s.dpr = Math.max(0.7, s.dpr * 0.8);
-        setDpr(s.dpr);
-        gl.domElement.dataset.dpr = s.dpr.toFixed(2);
-      }
-      s.t = 0;
-      s.n = 0;
-    }
+    const next = governor.push(dt);
+    if (next === null) return;
+    const dpr = Math.max(MIN_DPR, baseDpr * (DPR_SCALE[next] ?? 1));
+    setDpr(dpr);
+    gl.domElement.dataset.dpr = dpr.toFixed(2);
+    gl.domElement.dataset.qualityLevel = String(next);
+    onLevel(next);
   });
   return null;
 }
@@ -180,19 +180,22 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
 }
 
 function Scene(props: GameCanvasProps) {
-  const { runtime, profile, emitter } = props;
+  const { runtime, profile: tierProfile, emitter } = props;
+  // `tierProfile` is what the server granted: it is the ceiling. `profile` is what is drawn right now (never better).
+  const [level, setLevel] = useState(0);
+  const profile = useMemo(() => degradeProfile(tierProfile, level), [tierProfile, level]);
   const theme = runtime.world.theme;
-  const materials = useMemo(() => createMaterialSet(profile, theme), [profile, theme]);
+  const materials = useMemo(() => createMaterialSet(tierProfile, theme), [tierProfile, theme]);
   useEffect(() => () => materials.dispose(), [materials]);
   const gl = useThree((s) => s.gl);
   useEffect(() => {
     gl.toneMappingExposure = profile.exposure;
-    gl.domElement.dataset.tier = profile.tier;
+    gl.domElement.dataset.tier = tierProfile.tier;
     gl.domElement.dataset.ready = "1";
-  }, [gl, profile]);
+  }, [gl, profile.exposure, tierProfile.tier]);
   return (
     <>
-      <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={profile} exposeStats={props.exposeStats} />
+      <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={tierProfile} exposeStats={props.exposeStats} onLevel={setLevel} />
       <CameraRig runtime={runtime} input={props.input} reduceMotion={props.reduceMotion} />
       {props.headless ? (
         <>
@@ -227,7 +230,7 @@ export default function GameCanvas(props: GameCanvasProps) {
   return (
     <Canvas
       key={`${props.runtime.areaId}-${profile.tier}`}
-      dpr={[1, profile.pixelRatioMax]}
+      dpr={[Math.min(1, profile.pixelRatioMax), profile.pixelRatioMax]}
       shadows={shadows}
       flat={profile.toneMapping === "none"}
       gl={{ antialias: profile.antialias, powerPreference: "high-performance", alpha: false, preserveDrawingBuffer: false }}

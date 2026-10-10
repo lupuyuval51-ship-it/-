@@ -6,18 +6,31 @@ import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { WorldBox, WorldModel } from "@/lib/game/world/types";
-import { DECOR_PARTS, decorColor, type Geo } from "./decor";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { boxPlan, decorItemsFor } from "./budget";
+import { decorColor, partsFor, type Geo, type Part } from "./decor";
+import { DECOR_GEO_ARGS, type Detail } from "./geometry";
 import type { MaterialSet } from "./materials";
 
 const BOX = new THREE.BoxGeometry(1, 1, 1);
-const GEOS: Record<Geo, THREE.BufferGeometry> = {
-  box: BOX,
-  cyl: new THREE.CylinderGeometry(1, 1, 1, 10),
-  cone: new THREE.ConeGeometry(1, 1, 10),
-  sphere: new THREE.SphereGeometry(1, 12, 10),
-  oct: new THREE.OctahedronGeometry(1, 0),
-  torus: new THREE.TorusGeometry(1, 0.14, 8, 20),
-};
+
+/** Unit geometries per detail level, built once and shared by every world (never disposed: they are tiny). */
+const GEO_CACHE: Partial<Record<Detail, Record<Geo, THREE.BufferGeometry>>> = {};
+function decorGeos(detail: Detail): Record<Geo, THREE.BufferGeometry> {
+  const hit = GEO_CACHE[detail];
+  if (hit) return hit;
+  const a = DECOR_GEO_ARGS[detail];
+  const made: Record<Geo, THREE.BufferGeometry> = {
+    box: BOX,
+    cyl: new THREE.CylinderGeometry(...a.cyl),
+    cone: new THREE.ConeGeometry(...a.cone),
+    sphere: new THREE.SphereGeometry(...a.sphere),
+    oct: new THREE.OctahedronGeometry(...a.oct),
+    torus: new THREE.TorusGeometry(...a.torus),
+  };
+  GEO_CACHE[detail] = made;
+  return made;
+}
 
 function BoxMesh({ box, materials, profile, runtime }: { box: WorldBox; materials: MaterialSet; profile: RenderProfile; runtime: GameRuntime }) {
   const ref = useRef<THREE.Mesh>(null);
@@ -57,21 +70,45 @@ function BoxMesh({ box, materials, profile, runtime }: { box: WorldBox; material
   );
 }
 
+/**
+ * Static level geometry merged into one mesh per material style (Tier C): a "rooms" level goes from dozens of draw
+ * calls to a handful. Boxes are baked into world space, so nothing here moves or needs per-frame work.
+ */
+function MergedBoxes({ boxes, style, materials }: { boxes: WorldBox[]; style: string; materials: MaterialSet }) {
+  const geometry = useMemo(() => {
+    const parts = boxes.map((b) => {
+      const g = new THREE.BoxGeometry(1, 1, 1);
+      g.applyMatrix4(new THREE.Matrix4().compose(
+        new THREE.Vector3((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2, (b.z0 + b.z1) / 2),
+        new THREE.Quaternion(),
+        new THREE.Vector3(b.x1 - b.x0, b.y1 - b.y0, b.z1 - b.z0),
+      ));
+      return g;
+    });
+    const merged = mergeGeometries(parts, false);
+    parts.forEach((g) => g.dispose());
+    return merged;
+  }, [boxes]);
+  useEffect(() => () => geometry?.dispose(), [geometry]);
+  const mat = useMemo(() => materials.surface(style, 1, 1), [materials, style]);
+  if (!geometry) return null;
+  return <mesh geometry={geometry} material={mat} frustumCulled={false} />;
+}
+
 /** Instanced scenery. Items beyond the tier's detail budget are not drawn at all (solid props always are). */
 function Decor({ world, profile, materials }: { world: WorldModel; profile: RenderProfile; materials: MaterialSet }) {
+  const low = profile.geometry === "low";
   const groups = useMemo(() => {
     const byKind = new Map<string, typeof world.decor>();
-    for (const item of world.decor) {
-      if (!item.solid && item.rank >= profile.environmentDetail) continue;
-      byKind.set(item.kind, [...(byKind.get(item.kind) ?? []), item]);
-    }
+    for (const item of decorItemsFor(world, profile)) byKind.set(item.kind, [...(byKind.get(item.kind) ?? []), item]);
     return [...byKind.entries()];
-  }, [world, profile.environmentDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [world, profile.environmentDetail, profile.limits.looseDecor]);
 
   return (
     <group>
       {groups.map(([kind, items]) =>
-        DECOR_PARTS[kind as keyof typeof DECOR_PARTS].map((part, pi) => (
+        partsFor(kind as Parameters<typeof partsFor>[0], low).map((part, pi) => (
           <DecorInstances key={`${kind}-${pi}`} items={items} part={part} world={world} profile={profile} materials={materials} />
         )),
       )}
@@ -79,7 +116,7 @@ function Decor({ world, profile, materials }: { world: WorldModel; profile: Rend
   );
 }
 
-function DecorInstances({ items, part, world, profile, materials }: { items: WorldModel["decor"]; part: (typeof DECOR_PARTS)[keyof typeof DECOR_PARTS][number]; world: WorldModel; profile: RenderProfile; materials: MaterialSet }) {
+function DecorInstances({ items, part, world, profile, materials }: { items: WorldModel["decor"]; part: Part; world: WorldModel; profile: RenderProfile; materials: MaterialSet }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   useEffect(() => {
     const mesh = ref.current;
@@ -111,7 +148,7 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
     return materials.surface("decor", 2, 2);
   }, [materials, part.emissive]);
   const solid = items.some((i) => i.solid);
-  return <instancedMesh ref={ref} args={[GEOS[part.geo], mat as THREE.Material, items.length]} castShadow={profile.shadows.enabled && solid} receiveShadow={false} frustumCulled={false} />;
+  return <instancedMesh ref={ref} args={[decorGeos(profile.geometry)[part.geo], mat as THREE.Material, items.length]} castShadow={profile.shadows.enabled && solid} receiveShadow={false} frustumCulled={false} />;
 }
 
 function Hazards({ world }: { world: WorldModel }) {
@@ -150,10 +187,14 @@ function GroundGrid({ world }: { world: WorldModel }) {
 
 export function WorldView({ runtime, profile, materials }: { runtime: GameRuntime; profile: RenderProfile; materials: MaterialSet }) {
   const world = runtime.world;
+  const plan = useMemo(() => boxPlan(world, profile), [world, profile.limits.mergeStatic]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <group>
-      {world.boxes.map((b) => (
+      {plan.individual.map((b) => (
         <BoxMesh key={b.id} box={b} materials={materials} profile={profile} runtime={runtime} />
+      ))}
+      {[...plan.merged.entries()].map(([style, boxes]) => (
+        <MergedBoxes key={style} style={style} boxes={boxes} materials={materials} />
       ))}
       <GroundGrid world={world} />
       <Hazards world={world} />
