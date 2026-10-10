@@ -179,6 +179,21 @@ Enable a provider by setting its key in `.env` (e.g. `ANTHROPIC_API_KEY=sk-ant-â
 
 ---
 
+### Optional Unity renderer (Tier A)
+
+Unity can draw the world instead of Three.js. It is a **display layer only**: the browser still runs input, physics and guidance, and the server still
+grades, scores and releases hints, so Unity never sees answer keys.
+
+* `GET /api/games/:id/unity?area=` returns a versioned scene description (geometry, placements, theme, and the **scene director's** output). Access is
+  Tier A only (Plus/Pro), decided on the server from the persisted plan (`403 TIER_REQUIRED` otherwise).
+* The **scene director** (`src/lib/game/unity/director.ts`) builds themed scenery, station signage and mood from the learner's own material (subject, area
+  names, station labels, lore titles â€” never challenge text). Deterministic and render-only (no colliders).
+* The page talks to a WebGL build through `src/lib/game/unity/bridge.ts`: scene once, then ~20 Hz frames. Unity may only answer `ready` / `error` / `stats`, strictly
+  validated. With `?renderer=unity` and a build in `public/unity/levelup/Build/`, Three.js stops drawing (`headless`) and Unity renders; otherwise the built-in
+  renderer stays and the page says so.
+* The Unity project skeleton is in [`unity/`](unity/README.md). **The C# has not been compiled or run** (no Unity Editor in the build environment); the TypeScript side
+  is tested with a stand-in loader (`tests/e2e/unity.spec.ts`), so real Unity behaviour is unverified.
+
 ## Payments
 
 `PAYMENTS_MODE` selects the behaviour:
@@ -356,3 +371,4 @@ Firefox/WebKit; a Docker image build; a load test. The study engine's question q
 * Challenge content for AI games is validated structurally and for solvability, but factual correctness of model output cannot be checked automatically.
 * Game audio is synthesised (no recorded assets); 3D art is procedural (no imported models or textures).
 * Playwright runs in Chromium only.
+* The Unity renderer is untested against a real Unity build (see above); gameplay input is not handled inside Unity.

@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import { clipCameraDistance } from "@/lib/game/engine/camera";
+import { buildFrame, stationStatusOf, type UnityFrame } from "@/lib/game/unity/bridge";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
 import type { ClientState } from "@/lib/game/state/progress";
@@ -34,6 +35,45 @@ export interface GameCanvasProps {
   guide: GuideModel;
   guideMarker: RefObject<HTMLDivElement | null>;
   guideLabel: (kind: GuideKind, name: string, meters: number) => string;
+  /**
+   * Unity is drawing the world: keep running input, physics, camera and guidance here but draw nothing.
+   * Frames (positions and progress flags, display only) are handed to `onUnityFrame` at about 20 Hz.
+   */
+  headless?: boolean;
+  onUnityFrame?: (frame: UnityFrame) => void;
+}
+
+/** A subscriber with a positive priority takes over rendering from R3F; this one renders nothing. */
+function NoRender() {
+  useFrame(() => {}, 1);
+  return null;
+}
+
+function UnityFrameDriver({ runtime, client, onFrame }: { runtime: GameRuntime; client: ClientState; onFrame: (f: UnityFrame) => void }) {
+  const latest = useRef(client);
+  useEffect(() => { latest.current = client; }, [client]);
+  const camera = useThree((s) => s.camera);
+  const acc = useRef(0);
+  const dir = useMemo(() => new THREE.Vector3(), []);
+  useFrame((_, dt) => {
+    acc.current += dt;
+    if (acc.current < 0.05) return;
+    acc.current = 0;
+    camera.getWorldDirection(dir);
+    const frame = buildFrame(
+      {
+        sim: runtime.sim,
+        nearby: runtime.nearby,
+        client: latest.current,
+        world: runtime.world,
+        stationStatus: (id) => stationStatusOf(runtime.spec, latest.current, id),
+        gateOpen: (id) => runtime.gateOpen(id),
+      },
+      { x: camera.position.x, y: camera.position.y, z: camera.position.z, lx: camera.position.x + dir.x, ly: camera.position.y + dir.y, lz: camera.position.z + dir.z },
+    );
+    onFrame(frame);
+  });
+  return null;
 }
 
 /** Keeps the guide model in step with progress and the player's position (4 Hz). */
@@ -152,18 +192,29 @@ function Scene(props: GameCanvasProps) {
     <>
       <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={profile} exposeStats={props.exposeStats} />
       <CameraRig runtime={runtime} input={props.input} />
-      <Sky profile={profile} theme={theme} />
-      <Lights runtime={runtime} profile={profile} theme={theme} />
-      <Backdrop world={runtime.world} profile={profile} materials={materials} />
-      <Life world={runtime.world} profile={profile} materials={materials} />
-      <WorldView runtime={runtime} profile={profile} materials={materials} />
-      <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} guide={props.guide} />
-      <PlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
-      <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
-      <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
-      <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
-      <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
-      <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
+      {props.headless ? (
+        <>
+          <NoRender />
+          {props.onUnityFrame && <UnityFrameDriver runtime={runtime} client={props.client} onFrame={props.onUnityFrame} />}
+          <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+        </>
+      ) : (
+        <>
+          <Sky profile={profile} theme={theme} />
+          <Lights runtime={runtime} profile={profile} theme={theme} />
+          <Backdrop world={runtime.world} profile={profile} materials={materials} />
+          <Life world={runtime.world} profile={profile} materials={materials} />
+          <WorldView runtime={runtime} profile={profile} materials={materials} />
+          <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} guide={props.guide} />
+          <PlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
+          <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
+          <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
+          <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+          <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
+        </>
+      )}
     </>
   );
 }

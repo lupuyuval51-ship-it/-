@@ -18,6 +18,8 @@ import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCar
 import { Minimap } from "./hud/Minimap";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
+import { UnityView, unityBuildAvailable } from "./UnityView";
+import type { UnityFrame } from "@/lib/game/unity/bridge";
 
 const GameCanvas = dynamic(() => import("./scene/GameCanvas"), { ssr: false });
 
@@ -101,6 +103,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
   const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
   const router = useRouter();
+  // Optional Unity renderer (?renderer=unity). Display only: input, physics, scoring and the server stay as they are.
+  const [unity, setUnity] = useState<"off" | "loading" | "ready">("off");
+  const unitySend = useRef<((frame: UnityFrame) => void) | null>(null);
+  const registerUnity = useCallback((fn: ((frame: UnityFrame) => void) | null) => { unitySend.current = fn; }, []);
+  const onUnityFrame = useCallback((frame: UnityFrame) => unitySend.current?.(frame), []);
   const guide = useMemo(() => new GuideModel(), []);
   const guideMarker = useRef<HTMLDivElement>(null);
   const input = useMemo(() => new InputState(), []);
@@ -137,6 +144,25 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     setToasts((x) => [...x.slice(-3), { id, text, tone }]);
     setTimeout(() => setToasts((x) => x.filter((y) => y.id !== id)), 3200);
   }, []);
+
+  // Opt in with ?renderer=unity. Without a deployed build (or below Tier A) the built-in renderer is used, with a note.
+  const tier = data?.render.tier;
+  useEffect(() => {
+    if (!tier || new URLSearchParams(window.location.search).get("renderer") !== "unity") return;
+    if (tier !== "A") { toast(t("unity.tier"), "info"); return; }
+    const ctl = new AbortController();
+    void unityBuildAvailable(ctl.signal).then((ok) => {
+      if (ctl.signal.aborted) return;
+      if (ok) setUnity("loading");
+      else toast(t("unity.fallback"), "info");
+    });
+    return () => ctl.abort();
+  }, [tier, toast, t]);
+  const onUnityStatus = useCallback((status: "ready" | "error") => {
+    if (status === "ready") { setUnity("ready"); return; }
+    setUnity("off");
+    toast(t("unity.error"), "warn");
+  }, [toast, t]);
 
   // ───────── session boot ─────────
   const load = useCallback(async (restart: boolean) => {
@@ -399,10 +425,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
   return (
-    <main ref={host} className="relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind}>
+    <main ref={host} className="relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} />
+        <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
+      {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
+      {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}
       {client && (
         <>
           <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} engine={d.game.generator.kind === "engine"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />

@@ -30,3 +30,11 @@ playwright/.cache/
 .vscode/
 *.log
 .scratch/
+
+# Unity
+unity/**/Library/
+unity/**/Temp/
+unity/**/Logs/
+unity/**/obj/
+unity/**/UserSettings/
+/public/unity/
