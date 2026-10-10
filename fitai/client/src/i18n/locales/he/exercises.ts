@@ -27,6 +27,17 @@ const exercises: Translations<typeof en> = {
     placeholder: 'חיפוש לפי שם, שריר או ציוד…',
     clear: 'ניקוי החיפוש',
   },
+  recent: {
+    title: 'חיפושים אחרונים',
+    clear: 'ניקוי החיפושים האחרונים',
+  },
+  suggestions: {
+    title: 'אפשר לנסות לחפש',
+    tip: 'כדאי לבדוק את האיות, או לחפש לפי שריר ("חזה"), ציוד ("משקולת") או תנועה ("לחיצה").',
+    dropFilters: 'חיפוש בלי מסננים',
+    allEquipment: 'הצגת גם תרגילים שדורשים ציוד אחר',
+    term: { squat: 'סקוואט', press: 'לחיצה', row: 'חתירה', plank: 'פלאנק', curl: 'כפיפת מרפק', lunge: 'מכרע' },
+  },
   filters: {
     title: 'סינון',
     show: 'הצגת מסננים',
@@ -56,6 +67,7 @@ const exercises: Translations<typeof en> = {
   results: {
     label: 'תרגילים',
     count: { one: 'תרגיל אחד', two: 'שני תרגילים', other: '{count} תרגילים' },
+    countFor: { one: 'תרגיל אחד עבור "{q}"', two: 'שני תרגילים עבור "{q}"', other: '{count} תרגילים עבור "{q}"' },
     showing: 'מוצגים {shown} מתוך {total}',
     updating: 'התוצאות מתעדכנות…',
     approximate: 'לא נמצאו התאמות מדויקות ל"{q}" — מוצגות תוצאות דומות.',
@@ -78,6 +90,7 @@ const exercises: Translations<typeof en> = {
     notFoundTitle: 'התרגיל לא נמצא',
     notFoundBody: 'התרגיל לא קיים או שהקישור שגוי.',
     browseLibrary: 'למאגר התרגילים',
+    addToPlan: 'הוספה לתוכנית',
     askCoach: 'שאלה למאמן על התרגיל',
     coachQuestion: 'איך מבצעים את התרגיל "{name}" בטכניקה נכונה, ואיך כדאי לשלב אותו באימונים שלי?',
     overview: 'סקירה',

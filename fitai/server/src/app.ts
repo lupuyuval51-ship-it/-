@@ -100,10 +100,10 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
       express.static(path.join(staticDir, 'assets'), { immutable: true, maxAge: '1y', index: false, fallthrough: false }),
     );
     app.use(express.static(staticDir, { index: false, maxAge: '1h' }));
-    const indexHtml = path.join(staticDir, 'index.html');
     app.get(/^(?!\/api\/).*/, (_req, res) => {
       res.setHeader('Cache-Control', 'no-cache');
-      res.sendFile(indexHtml);
+      // `root` keeps this working when the app lives under a dot-directory (send refuses dotfiles in absolute paths).
+      res.sendFile('index.html', { root: staticDir });
     });
   }
   app.use(errorHandler);

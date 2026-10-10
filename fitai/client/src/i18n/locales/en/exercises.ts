@@ -25,6 +25,17 @@ const exercises = {
     placeholder: 'Search by name, muscle or equipment…',
     clear: 'Clear search',
   },
+  recent: {
+    title: 'Recent searches',
+    clear: 'Clear recent searches',
+  },
+  suggestions: {
+    title: 'Try searching for',
+    tip: 'Check the spelling, or search by muscle (“chest”), equipment (“dumbbell”) or movement (“press”).',
+    dropFilters: 'Search without filters',
+    allEquipment: 'Include exercises needing other equipment',
+    term: { squat: 'squat', press: 'press', row: 'row', plank: 'plank', curl: 'curl', lunge: 'lunge' },
+  },
   filters: {
     title: 'Filters',
     show: 'Show filters',
@@ -54,6 +65,7 @@ const exercises = {
   results: {
     label: 'Exercises',
     count: { one: '{count} exercise', other: '{count} exercises' },
+    countFor: { one: '{count} exercise for “{q}”', other: '{count} exercises for “{q}”' },
     showing: 'Showing {shown} of {total}',
     updating: 'Updating results…',
     approximate: 'No exact matches for “{q}” — showing similar results.',
@@ -76,6 +88,7 @@ const exercises = {
     notFoundTitle: 'Exercise not found',
     notFoundBody: 'This exercise doesn’t exist or the link is broken.',
     browseLibrary: 'Browse the library',
+    addToPlan: 'Add to plan',
     askCoach: 'Ask the coach about this exercise',
     coachQuestion: 'How do I perform the {name} with good technique, and how should I fit it into my training?',
     overview: 'Overview',

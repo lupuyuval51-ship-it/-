@@ -49,3 +49,32 @@ export function formatLoggedSet(set: LoggedSet, f: SetFormatter): string | null 
   if (set.weightKg != null && set.weightKg > 0) return f.formatWeight(set.weightKg);
   return null;
 }
+
+export interface TextPart {
+  text: string;
+  match: boolean;
+}
+
+/**
+ * Splits `text` so the parts matching any word of `query` (case-insensitive, literal
+ * substrings; Latin and Hebrew) can be highlighted. Words shorter than 2 characters are
+ * ignored to avoid marking single letters.
+ */
+export function highlightParts(text: string, query: string): TextPart[] {
+  const words = Array.from(new Set(query.toLowerCase().split(/\s+/).filter((w) => w.length >= 2)));
+  if (!text || words.length === 0) return [{ text, match: false }];
+  const lower = text.toLowerCase();
+  // Lower-casing can change the length for a few scripts; skip highlighting rather than misalign.
+  if (lower.length !== text.length) return [{ text, match: false }];
+  const marked = new Array<boolean>(text.length).fill(false);
+  for (const w of words) {
+    for (let i = lower.indexOf(w); i !== -1; i = lower.indexOf(w, i + 1)) marked.fill(true, i, i + w.length);
+  }
+  const parts: TextPart[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const last = parts[parts.length - 1];
+    if (last && last.match === marked[i]) last.text += text[i];
+    else parts.push({ text: text[i]!, match: marked[i]! });
+  }
+  return parts;
+}

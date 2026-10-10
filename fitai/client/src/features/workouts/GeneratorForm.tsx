@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { DEFAULT_EQUIPMENT_BY_LOCATION, EQUIPMENT, GOALS, LIMITS, LOCATIONS, MUSCLE_GROUPS, type Equipment, type Goal, type MuscleGroup, type TrainingLocation } from '@shared/constants';
 import { generatePlanSchema } from '@shared/schemas/workouts';
 import type { GeneratePlanInput, ProfileDTO } from '@shared/types';
@@ -17,6 +17,7 @@ import {
   RadioCards,
   Segmented,
   Spinner,
+  Switch,
   TextAreaField,
   TextField,
   useToast,
@@ -24,7 +25,8 @@ import {
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
-import { fetchHealth, fetchProfile, generatePlan, workoutKeys } from './api';
+import { activatePlan, fetchHealth, fetchPlans, fetchProfile, generatePlan, workoutKeys } from './api';
+import { PlanPreview } from './PlanPreview';
 
 interface FormState {
   goal: Goal;
@@ -93,13 +95,34 @@ function GeneratorFormInner({ profile }: { profile: ProfileDTO }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<FormState>(() => initialState(profile));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  /** Quick path (profile defaults, one tap) until the user asks to customize. */
+  const [customize, setCustomize] = useState(false);
+  const plansQuery = useQuery({ queryKey: workoutKeys.plansList(false), queryFn: ({ signal }) => fetchPlans(false, signal) });
+  const hasActive = plansQuery.data?.some((p) => p.status === 'active') ?? true;
+  const [activateChoice, setActivateChoice] = useState<boolean | null>(null);
+  // A first plan becomes the active one by default; an existing active plan is never replaced silently.
+  const activateAfter = activateChoice ?? !hasActive;
+  const onboarded = profile.onboardingCompletedAt != null;
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((f) => ({ ...f, [k]: v }));
 
-  const generate = useIdempotentMutation((input: GeneratePlanInput, key) => generatePlan(input, key), {
+  const generate = useIdempotentMutation(
+    async (vars: { body: GeneratePlanInput; activate: boolean }, key) => {
+      const plan = await generatePlan(vars.body, key);
+      if (!vars.activate) return plan;
+      try {
+        return await activatePlan(plan.id);
+      } catch {
+        // The plan exists; activating it can be repeated from the plan page.
+        return plan;
+      }
+    },
+    {
     onSuccess: (plan) => {
       queryClient.setQueryData(qk.plan(plan.id), plan);
+      void queryClient.invalidateQueries({ queryKey: ['plan'] });
       void queryClient.invalidateQueries({ queryKey: qk.plans });
-      toast.success(t('workouts.toasts.generated'));
+      void queryClient.invalidateQueries({ queryKey: qk.dashboard });
+      toast.success(plan.status === 'active' ? t('workouts.toasts.generatedActive') : t('workouts.toasts.generated'));
       navigate(`/workouts/plans/${plan.id}`);
     },
     onError: (err) => {
@@ -107,14 +130,15 @@ function GeneratorFormInner({ profile }: { profile: ProfileDTO }) {
       // The form re-renders in place of the progress card: announce the failure as well.
       toast.error(errorMessage(err, i18n, 'workouts'));
     },
-  });
+    },
+  );
 
   const onLocation = (loc: TrainingLocation) => {
     setForm((f) => ({ ...f, location: loc, equipment: loc === profile.trainingLocation ? [...profile.equipment] : [...DEFAULT_EQUIPMENT_BY_LOCATION[loc]] }));
   };
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
+  const submit = (e?: FormEvent) => {
+    e?.preventDefault();
     if (generate.isPending) return;
     const body: GeneratePlanInput = {
       goal: form.goal,
@@ -134,7 +158,7 @@ function GeneratorFormInner({ profile }: { profile: ProfileDTO }) {
       return;
     }
     setErrors({});
-    generate.mutate(body);
+    generate.mutate({ body, activate: activateAfter });
   };
 
   if (generate.isPending) {
@@ -151,9 +175,49 @@ function GeneratorFormInner({ profile }: { profile: ProfileDTO }) {
 
   return (
     <Card as="section" title={t('workouts.tabs.generate')} subtitle={t('workouts.generator.intro')}>
-      <form className="stack-lg" onSubmit={submit} noValidate>
-        <Notice tone="info">{t('workouts.generator.profileHint')}</Notice>
-        {generate.isError && <Notice tone="danger">{errorMessage(generate.error, i18n, 'workouts')}</Notice>}
+      <div className="stack-lg">
+        {!onboarded && (
+          <Notice tone="warning" title={t('workouts.quick.needProfileTitle')}>
+            {t('workouts.quick.needProfileBody')}{' '}
+            <Link to="/onboarding" className="link">
+              {t('workouts.quick.completeProfile')}
+            </Link>
+          </Notice>
+        )}
+        <section className="ux-quick stack" aria-labelledby="quick-plan-title">
+          <h3 className="section-title" id="quick-plan-title">
+            {customize ? t('workouts.preview.title') : t('workouts.quick.title')}
+          </h3>
+          <PlanPreview input={form} experience={profile.experienceLevel} />
+          <Switch
+            label={t('workouts.quick.makeActive')}
+            hint={hasActive ? t('workouts.quick.makeActiveReplace') : t('workouts.quick.makeActiveFirst')}
+            checked={activateAfter}
+            onChange={setActivateChoice}
+          />
+          {!customize && (
+            <>
+              {generate.isError && <Notice tone="danger">{errorMessage(generate.error, i18n, 'workouts')}</Notice>}
+              <div className="ux-quick-actions">
+                <Button variant="primary" size="lg" icon="sparkles" onClick={() => submit()} disabled={!onboarded} block>
+                  {t('workouts.quick.submit')}
+                </Button>
+                <Button icon="edit" onClick={() => setCustomize(true)} aria-expanded={false} aria-controls="generator-custom-form">
+                  {t('workouts.quick.customize')}
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+      </div>
+      <form id="generator-custom-form" className="stack-lg ux-custom-form" onSubmit={submit} noValidate hidden={!customize}>
+        <div className="row-between">
+          <Notice tone="info">{t('workouts.generator.profileHint')}</Notice>
+          <Button variant="ghost" size="sm" icon="chevronUp" onClick={() => setCustomize(false)} aria-expanded>
+            {t('workouts.quick.hideCustomize')}
+          </Button>
+        </div>
+        {generate.isError && customize && <Notice tone="danger">{errorMessage(generate.error, i18n, 'workouts')}</Notice>}
         <RadioCards<Goal>
           label={t('workouts.generator.goal')}
           value={form.goal}

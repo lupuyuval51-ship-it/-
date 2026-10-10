@@ -35,13 +35,12 @@ test('search, filter by muscle group and difficulty, URL sync, reload and back/f
   await expect(page.getByRole('radio', { name: /^Beginner/ })).toHaveAttribute('aria-checked', 'true');
   await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
 
-  // Back/forward step through filter changes.
+  // Filter chips replace the history entry: Back leaves the filtered view in one step
+  // (to the page before the search began), Forward returns to it.
   await page.goBack();
-  await expect(page).toHaveURL(/\?q=squat&group=legs$/);
-  await expect(page.getByRole('radio', { name: /^Beginner/ })).toHaveAttribute('aria-checked', 'false');
-  await expect(results(page).getByRole('link', { name: 'Barbell Back Squat' })).toBeVisible();
+  await expect(page).toHaveURL(/\/exercises$/);
   await page.goForward();
-  await expect(page).toHaveURL(/difficulty=beginner/);
+  await expect(page).toHaveURL(/\?q=squat&group=legs&difficulty=beginner$/);
   await expect(results(page).getByRole('link', { name: 'Barbell Back Squat' })).toHaveCount(0);
 
   // Clear filters keeps the search; the clear button empties it.
@@ -67,7 +66,8 @@ test('Hebrew search after switching the language, and an empty state', async ({ 
 
   await search.fill('zzzzqqq');
   await expect(page.getByText('לא נמצאו תרגילים')).toBeVisible();
-  await page.getByRole('button', { name: 'ניקוי החיפוש והמסננים' }).click();
+  await expect(page.getByRole('button', { name: 'סקוואט', exact: true })).toBeVisible(); // suggested searches
+  await page.locator('.ux-no-results').getByRole('button', { name: 'ניקוי החיפוש', exact: true }).click();
   await expect(page).toHaveURL(/\/exercises$/);
   await expect(page.getByRole('list', { name: 'תרגילים' }).getByRole('listitem').first()).toBeVisible();
 });
