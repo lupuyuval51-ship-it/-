@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import { mulberry32 } from "@/lib/game/util/prng";
+import { particleSlots } from "./budget";
 import { makeSoftSprite } from "./materials";
 
 /** Imperative handle so DOM/HUD code can trigger bursts without going through React state. */
@@ -20,9 +21,7 @@ export class ParticleEmitter {
 /** Ambient motes + event bursts + (Tier A) movement trail. Budgets come from the render profile. */
 export function Particles({ runtime, profile, emitter, accent }: { runtime: GameRuntime; profile: RenderProfile; emitter: ParticleEmitter; accent: string }) {
   const sprite = useMemo(() => makeSoftSprite(), []);
-  const ambient = profile.particles.ambient;
-  const burstCap = Math.max(8, profile.particles.burst * 6);
-  const trailCap = profile.particles.trails ? 60 : 0;
+  const { ambient, burst: burstCap, trail: trailCap } = particleSlots(profile);
 
   const amb = useMemo(() => {
     const pos = new Float32Array(ambient * 3);
@@ -44,6 +43,9 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
     g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(total * 3), 3));
     return { g, vel: new Float32Array(total * 3), life: new Float32Array(total), base: new Float32Array(total * 3), cursor: 0, total };
   }, [burstCap, trailCap]);
+
+  useEffect(() => () => amb.g.dispose(), [amb]);
+  useEffect(() => () => pool.g.dispose(), [pool]);
 
   const trailClock = useRef(0);
   const col = useMemo(() => new THREE.Color(), []);
@@ -73,6 +75,7 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
       posAttr.needsUpdate = true;
     }
     for (const b of emitter.queue.splice(0)) {
+      if (!burstCap) continue;
       const n = Math.min(b.count, profile.particles.burst);
       // the pool blends additively, so dust is lightened toward white to read as a pale puff on any ground
       const dust = b.kind === "dust" ? `#${new THREE.Color(b.color).lerp(new THREE.Color("#ffffff"), 0.55).getHexString()}` : b.color;
@@ -103,6 +106,7 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
     colors.needsUpdate = true;
   });
 
+  if (pool.total === 0 && ambient === 0) return null;
   return (
     <>
       {ambient > 0 && (

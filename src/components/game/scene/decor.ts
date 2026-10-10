@@ -196,3 +196,21 @@ export function decorColor(key: ColorKey, tint: number, accent: string, accent2:
   if (key === "accent2") return accent2;
   return PALETTES[key][tint % 4]!;
 }
+
+/** Most parts a prop keeps at low detail (palms with eleven parts, reeds with seven, ... are thinned out). */
+export const LOW_DETAIL_MAX_PARTS = 6;
+
+/**
+ * The parts to draw for a prop. At low detail props with many small parts keep their first parts (the body) plus an
+ * evenly spaced sample of the rest, so a palm is still a trunk with a few fronds instead of eleven draw calls.
+ */
+export function partsFor(kind: DecorKind, lowDetail: boolean): Part[] {
+  const all = DECOR_PARTS[kind];
+  if (!lowDetail || all.length <= LOW_DETAIL_MAX_PARTS) return all;
+  const body = 2;
+  const rest = all.slice(body);
+  const take = LOW_DETAIL_MAX_PARTS - body;
+  const out = all.slice(0, body);
+  for (let i = 0; i < take; i++) out.push(rest[Math.floor((i * rest.length) / take)]!);
+  return out;
+}

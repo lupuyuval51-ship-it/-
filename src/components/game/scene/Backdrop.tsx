@@ -6,15 +6,20 @@ import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { WorldModel } from "@/lib/game/world/types";
 import { buildSkyline, buildWater, type SkylineGeo, type WaterPiece } from "@/lib/game/world/skyline";
+import { skylineFor } from "./budget";
+import { SKYLINE_SEGMENTS, type Detail } from "./geometry";
 import type { MaterialSet } from "./materials";
 
-const GEOS: Record<SkylineGeo, () => THREE.BufferGeometry> = {
-  box: () => new THREE.BoxGeometry(1, 1, 1),
-  cyl: () => new THREE.CylinderGeometry(1, 1, 1, 12),
-  cone: () => new THREE.ConeGeometry(1, 1, 12),
-  cone4: () => new THREE.ConeGeometry(0.7071, 1, 4).rotateY(Math.PI / 4),
-  sphere: () => new THREE.SphereGeometry(1, 14, 10),
-  dome: () => new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
+const makeGeo = (geo: SkylineGeo, d: Detail): THREE.BufferGeometry => {
+  const s = SKYLINE_SEGMENTS[d];
+  switch (geo) {
+    case "box": return new THREE.BoxGeometry(1, 1, 1);
+    case "cyl": return new THREE.CylinderGeometry(1, 1, 1, s.cyl);
+    case "cone": return new THREE.ConeGeometry(1, 1, s.cone);
+    case "cone4": return new THREE.ConeGeometry(0.7071, 1, 4).rotateY(Math.PI / 4);
+    case "sphere": return new THREE.SphereGeometry(1, s.sphere[0], s.sphere[1]);
+    case "dome": return new THREE.SphereGeometry(1, s.dome[0], s.dome[1], 0, Math.PI * 2, 0, Math.PI / 2);
+  }
 };
 
 /** Horizontal half-extent multiplier for each unit geometry (box and cone4 are 1 wide, the rest have radius 1). */
@@ -31,10 +36,9 @@ export function Backdrop({ world, profile, materials }: { world: WorldModel; pro
   const groundY = world.hasVoid ? world.killY + 3 : -0.03;
 
   const pieces = useMemo(() => {
-    const all = buildSkyline(world.environment, theme, world.seed, groundY);
-    const keep = Math.max(0.25, profile.environmentDetail);
-    return all.filter((_, i) => i / all.length < keep);
-  }, [world.environment, world.seed, theme, groundY, profile.environmentDetail]);
+    return skylineFor(buildSkyline(world.environment, theme, world.seed, groundY), profile);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [world.environment, world.seed, theme, groundY, profile.environmentDetail, profile.limits.skylineMin, profile.limits.skylinePieces]);
 
   const groups = useMemo(() => {
     const m = new Map<SkylineGeo, typeof pieces>();
@@ -48,23 +52,23 @@ export function Backdrop({ world, profile, materials }: { world: WorldModel; pro
   }, [theme, world.hasVoid]);
   const groundMat = useMemo(() => materials.solid(groundColor, { rough: 1, metal: 0 }), [materials, groundColor]);
 
-  const water = useMemo(() => (world.hasVoid ? [] : buildWater(world.environment, theme, world.seed, world.bounds)), [world, theme]);
+  const water = useMemo(() => (world.hasVoid || profile.limits.water === 0 ? [] : buildWater(world.environment, theme, world.seed, world.bounds)), [world, theme, profile.limits.water]);
 
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, groundY - 0.02, 0]} material={groundMat} receiveShadow={false}>
-        <circleGeometry args={[700, 48]} />
+        <circleGeometry args={[700, profile.geometry === "low" ? 24 : 48]} />
       </mesh>
       {water.length > 0 && <Water pieces={water} y={groundY} animate={profile.tier !== "C"} />}
       {groups.map(([geo, items]) => (
-        <SkylineInstances key={geo} geo={geo} items={items} />
+        <SkylineInstances key={geo} geo={geo} items={items} detail={profile.geometry} />
       ))}
     </group>
   );
 }
 
-function SkylineInstances({ geo, items }: { geo: SkylineGeo; items: ReturnType<typeof buildSkyline> }) {
-  const geometry = useMemo(() => GEOS[geo](), [geo]);
+function SkylineInstances({ geo, items, detail }: { geo: SkylineGeo; items: ReturnType<typeof buildSkyline>; detail: Detail }) {
+  const geometry = useMemo(() => makeGeo(geo, detail), [geo, detail]);
   const material = useMemo(() => new THREE.MeshBasicMaterial({ fog: false, side: THREE.DoubleSide }), []);
   const mesh = useMemo(() => {
     const m = new THREE.InstancedMesh(geometry, material, items.length);
