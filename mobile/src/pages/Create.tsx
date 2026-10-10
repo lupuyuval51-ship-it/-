@@ -45,9 +45,12 @@ export function CreatePage() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={submit} data-testid="mobile-create" noValidate aria-busy={busy}>
-      <a href="#/" className="text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
-      <h1 className="text-2xl font-extrabold">{t("mob.create.title")}</h1>
+    <form className="space-y-4 md:grid md:grid-cols-2 md:items-start md:gap-x-8 md:gap-y-4 md:space-y-0" onSubmit={submit} data-testid="mobile-create" noValidate aria-busy={busy}>
+      <div className="space-y-4 md:col-span-2">
+        <a href="#/" className="block text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
+        <h1 className="text-2xl font-extrabold">{t("mob.create.title")}</h1>
+      </div>
+      <div className="space-y-4" data-testid="create-notes-column">
       <Field label={t("create.subject")} htmlFor="subject" error={error && !subject.trim() ? t("create.error.required") : null}>
         <Input id="subject" value={subject} maxLength={INPUT_LIMITS.subjectMax} onChange={(e) => setSubject(e.target.value)} placeholder={t("create.subject.placeholder")} required />
       </Field>
@@ -73,6 +76,8 @@ export function CreatePage() {
         <Textarea id="material" dir="auto" rows={7} value={material} maxLength={INPUT_LIMITS.materialMax} onChange={(e) => setMaterial(e.target.value)} placeholder={t("create.material.placeholder")} />
       </Field>
       <MaterialPreview material={material} full={mode === "FULL"} />
+      </div>
+      <div className="space-y-4" data-testid="create-options-column">
       <Field label={t("create.goal")} htmlFor="goal">
         <Input id="goal" value={goal} maxLength={INPUT_LIMITS.goalMax} onChange={(e) => setGoal(e.target.value)} placeholder={t("create.goal.placeholder")} />
       </Field>
@@ -108,6 +113,7 @@ export function CreatePage() {
         </div>
       )}
       <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="mobile-create-submit">{busy ? t("mob.create.building") : t("create.submit")}</Button>
+      </div>
     </form>
   );
 }

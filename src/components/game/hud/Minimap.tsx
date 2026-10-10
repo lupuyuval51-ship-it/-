@@ -4,9 +4,13 @@ import { useEffect, useRef } from "react";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { GuideModel } from "@/lib/game/state/guidance";
 import { stationActive, stationDone, type ClientState } from "@/lib/game/state/progress";
+import { cx } from "@/components/ui";
 import type { InputState } from "../input";
+import { useLayout } from "../useLayout";
 
 const SIZE = 132; // CSS pixels
+/** Shown on short landscape screens (the bitmap is scaled down by CSS). */
+const SMALL_SIZE = 88;
 /** Half-width of the visible window in metres. */
 const RANGE = 30;
 const GREEN = "#34d399";
@@ -19,6 +23,7 @@ const GREY = "#7b8499";
  */
 export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntime; client: ClientState; input: InputState; guide: GuideModel }) {
   const canvas = useRef<HTMLCanvasElement>(null);
+  const { shortLandscape } = useLayout();
   const clientRef = useRef(client);
   useEffect(() => { clientRef.current = client; }, [client]);
 
@@ -179,5 +184,5 @@ export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntim
     return () => cancelAnimationFrame(raf);
   }, [runtime, input, guide]);
 
-  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={{ width: SIZE, height: SIZE }} className="pointer-events-none absolute end-3 top-[4.9rem] z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block" />;
+  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={shortLandscape ? { width: SMALL_SIZE, height: SMALL_SIZE } : { width: SIZE, height: SIZE }} className={cx("pointer-events-none absolute end-3 z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block", shortLandscape ? "top-[3.25rem]" : "top-[4.9rem]")} />;
 }

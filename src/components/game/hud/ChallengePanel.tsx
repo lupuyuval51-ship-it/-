@@ -6,6 +6,7 @@ import { useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import type { Block } from "@/lib/game/spec/schema";
+import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
@@ -114,11 +115,12 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   const setProgram = useCallback((program: Block[]) => setAnswer(program.length ? { type: "program", program } : null), []);
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
+  const { shortLandscape } = useLayout();
   return (
-    <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-e3 sm:rounded-3xl">
+    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
-        <header className="flex items-start justify-between gap-3 border-b border-line p-4">
+        <header className={cx("flex items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>
           <div className="space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
             <h2 id="challenge-title" dir="auto" className="text-lg font-bold">{challenge.title}</h2>
@@ -132,7 +134,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")}><X aria-hidden className="size-4" /></Button>
         </header>
 
-        <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        <div className={cx("flex-1 overflow-y-auto", shortLandscape ? "space-y-2 p-3" : "space-y-4 p-4")}>
           <RichText text={challenge.prompt} />
 
           {challenge.type === "choice" && <ChoiceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(optionId) => setAnswer({ type: "choice", optionId })} />}
@@ -170,7 +172,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           )}
         </div>
 
-        <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-line p-3">
+        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : "p-3")}>
           {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t("challenge.hint")}</Button> : <span />}
           {resolved ? (
             <Button onClick={onClose} data-testid="challenge-close">{t("challenge.close")}</Button>
