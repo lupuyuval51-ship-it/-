@@ -56,7 +56,7 @@ export function SubscriptionPanel({ billing }: { billing: BillingView }) {
       {!sub ? (
         <>
           <p className="text-sm text-muted">{t("acc.sub.free")}</p>
-          <Link href="/pricing" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:bg-white">{t("acc.sub.upgrade")}</Link>
+          <Link href="/pricing" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("acc.sub.upgrade")}</Link>
         </>
       ) : (
         <>
@@ -80,7 +80,7 @@ export function SubscriptionPanel({ billing }: { billing: BillingView }) {
               <Button variant="secondary" disabled={busy !== null} onClick={() => run("cancel")} data-testid="sub-cancel">{t("acc.sub.cancel")}</Button>
             ))}
             {sub.canManage && <Button variant="ghost" disabled={busy !== null} onClick={() => run("portal")}>{t("acc.sub.manage")}</Button>}
-            {(sub.status === "CANCELED" || sub.cancelAtPeriodEnd) && <Link href="/pricing" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10">{t("acc.sub.upgrade")}</Link>}
+            {(sub.status === "CANCELED" || sub.cancelAtPeriodEnd) && <Link href="/pricing" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("acc.sub.upgrade")}</Link>}
           </div>
           {dev && sub.simulated && (
             <div className="space-y-2 rounded-xl border border-amber/40 bg-amber/5 p-3" data-testid="dev-simulator">

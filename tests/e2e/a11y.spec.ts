@@ -18,26 +18,37 @@ async function audit(page: import("@playwright/test").Page, label: string, scope
 
 for (const locale of ["en", "he"] as const) {
   test.describe(`accessibility (${locale})`, () => {
-    test("public pages", async ({ page }) => {
-      await setLocaleCookie(page, locale);
-      for (const path of ["/", "/pricing", "/login", "/register"]) {
-        await page.goto(path);
-        await expect(page.locator("main")).toBeVisible();
-        await audit(page, `${locale} ${path}`);
-      }
-    });
+    for (const theme of ["dark", "light"] as const) {
+      test(`public pages (${theme} theme)`, async ({ page, context, baseURL }) => {
+        // page-enter fades are skipped (what a reduced-motion user gets), so axe never measures half-transparent text
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await context.addCookies([{ name: "lu-theme", value: theme, url: baseURL! }]);
+        await setLocaleCookie(page, locale);
+        for (const path of ["/", "/pricing", "/login", "/register", "/missing-page"]) {
+          await page.goto(path);
+          await expect(page.locator("main")).toBeVisible();
+          await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          await audit(page, `${locale} ${theme} ${path}`);
+        }
+      });
 
-    test("signed-in pages", async ({ page }) => {
-      test.setTimeout(120_000);
-      await setLocaleCookie(page, locale);
-      await registerViaApi(page, { locale });
-      const gameId = await createGameViaApi(page, { contentLanguage: locale });
-      for (const path of ["/dashboard", "/create", "/create?mode=EXTEND", "/games", `/games/${gameId}`, "/account"]) {
-        await page.goto(path);
-        await expect(page.locator("main")).toBeVisible();
-        await audit(page, `${locale} ${path}`);
-      }
-    });
+      test(`signed-in pages (${theme} theme)`, async ({ page, context, baseURL }) => {
+        test.setTimeout(120_000);
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await context.addCookies([{ name: "lu-theme", value: theme, url: baseURL! }]);
+        await setLocaleCookie(page, locale);
+        await registerViaApi(page, { locale });
+        await page.goto("/games");
+        await expect(page.getByTestId("lib-empty")).toBeVisible(); // illustrated empty state
+        await audit(page, `${locale} ${theme} /games (empty)`);
+        const gameId = await createGameViaApi(page, { contentLanguage: locale });
+        for (const path of ["/dashboard", "/create", "/create?mode=EXTEND", "/games", `/games/${gameId}`, "/account"]) {
+          await page.goto(path);
+          await expect(page.locator("main")).toBeVisible();
+          await audit(page, `${locale} ${theme} ${path}`);
+        }
+      });
+    }
 
     test("play screen: HUD, pause menu, dialogue and a challenge panel", async ({ page }) => {
       test.setTimeout(180_000);

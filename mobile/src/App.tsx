@@ -32,7 +32,7 @@ export function App() {
   const play = path.startsWith("/play/");
   return (
     <I18nProvider locale={locale} dict={dict}>
-      {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5">{route(path)}</main>}
+      {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5"><div key={path} className="lu-page">{route(path)}</div></main>}
     </I18nProvider>
   );
 }

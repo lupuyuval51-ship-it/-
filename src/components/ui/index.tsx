@@ -1,28 +1,48 @@
-import type { ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { Star } from "lucide-react";
+import { Children, cloneElement, isValidElement, useId, type ButtonHTMLAttributes, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 export const cx = (...parts: (string | false | null | undefined)[]): string => parts.filter(Boolean).join(" ");
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "success";
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-neon text-ink-950 hover:bg-white shadow-[0_0_24px_-6px_var(--color-neon)] disabled:bg-ink-600 disabled:text-muted disabled:shadow-none",
-  secondary: "bg-ink-700 text-text hover:bg-ink-600 border border-line disabled:opacity-50",
-  ghost: "bg-transparent text-text hover:bg-white/10 border border-transparent disabled:opacity-50",
-  danger: "bg-rose/90 text-white hover:bg-rose disabled:opacity-50",
-  success: "bg-lime text-ink-950 hover:bg-white disabled:opacity-50",
+  primary: "bg-neon text-ink-950 shadow-glow hover:brightness-110 active:brightness-95 disabled:bg-ink-600 disabled:text-muted disabled:shadow-none",
+  secondary: "bg-ink-700 text-text border border-line shadow-e1 hover:bg-ink-600 active:bg-ink-700 disabled:opacity-50",
+  ghost: "bg-transparent text-text border border-transparent hover:bg-text/10 active:bg-text/15 disabled:opacity-50",
+  danger: "bg-rose text-ink-950 hover:brightness-110 active:brightness-95 disabled:opacity-50",
+  success: "bg-lime text-ink-950 hover:brightness-110 active:brightness-95 disabled:opacity-50",
 };
 
+/**
+ * Buttons keep a 44px minimum height (touch-target size, WCAG 2.5.5) while padding and text follow the fluid type scale,
+ * so they grow with the viewport instead of being fixed-height boxes.
+ */
 export function Button({ variant = "primary", size = "md", className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: "sm" | "md" | "lg" }) {
-  const sizes = { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2.5 text-sm", lg: "px-6 py-3.5 text-base" };
+  const sizes = { sm: "px-[0.85em] py-[0.4em] text-sm", md: "px-[1.1em] py-[0.6em] text-sm", lg: "px-[1.4em] py-[0.75em] text-base" };
   return (
     <button
       {...rest}
-      className={cx("inline-flex min-h-11 items-center justify-center gap-2 rounded-xl font-semibold transition-colors disabled:cursor-not-allowed", sizes[size], VARIANTS[variant], className)}
+      className={cx("inline-flex min-h-11 items-center justify-center gap-2 rounded-xl font-semibold transition-[background-color,filter,transform,box-shadow] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:active:scale-100", sizes[size], VARIANTS[variant], className)}
     />
   );
 }
 
-export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div {...rest} className={cx("rounded-2xl border border-line bg-ink-800/70 p-5 backdrop-blur", className)} />;
+/**
+ * Surfaces with an elevation hierarchy: `flat` for inset content, `raised` (default) for cards, `floating` for menus
+ * and dialogs. `interactive` adds hover lift, pressed state and a focus ring for cards that are a single control.
+ */
+export function Card({ className, elevation = "raised", interactive = false, ...rest }: HTMLAttributes<HTMLDivElement> & { elevation?: "flat" | "raised" | "floating"; interactive?: boolean }) {
+  const elev = { flat: "bg-ink-900/60", raised: "bg-ink-800/80 shadow-e2", floating: "bg-ink-800 shadow-e3" }[elevation];
+  return (
+    <div
+      {...rest}
+      className={cx(
+        "rounded-2xl border border-line p-5 backdrop-blur",
+        elev,
+        interactive && "transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-neon/50 hover:shadow-e3 focus-within:border-neon/60 active:translate-y-0",
+        className,
+      )}
+    />
+  );
 }
 
 export function Badge({ tone = "neutral", className, ...rest }: HTMLAttributes<HTMLSpanElement> & { tone?: "neutral" | "neon" | "violet" | "lime" | "amber" | "rose" }) {
@@ -37,8 +57,8 @@ export function Badge({ tone = "neutral", className, ...rest }: HTMLAttributes<H
   return <span {...rest} className={cx("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium", tones[tone], className)} />;
 }
 
-export function Spinner({ className }: { className?: string }) {
-  return <span role="status" aria-label="loading" className={cx("inline-block size-5 animate-spin rounded-full border-2 border-neon border-t-transparent", className)} />;
+export function Spinner({ className, label = "loading" }: { className?: string; label?: string }) {
+  return <span role="status" aria-label={label} className={cx("inline-block size-5 animate-spin rounded-full border-2 border-neon border-t-transparent", className)} />;
 }
 
 export function Alert({ tone = "info", children, className, ...rest }: HTMLAttributes<HTMLDivElement> & { tone?: "info" | "error" | "success" | "warn"; children: ReactNode }) {
@@ -64,21 +84,46 @@ export function ProgressBar({ value, max = 100, className, label }: { value: num
   );
 }
 
-const fieldBase = "w-full rounded-xl border border-line bg-ink-900 px-3.5 py-2.5 text-sm text-text placeholder:text-muted/70 focus:border-neon focus:outline-none focus:ring-1 focus:ring-neon";
+/** Field states: default, focus, invalid (`aria-invalid`), valid (`data-valid`), disabled. */
+const fieldBase = cx(
+  "w-full rounded-xl border border-line bg-ink-900 px-3.5 py-2.5 text-sm text-text shadow-e1 transition-[border-color,box-shadow] placeholder:text-muted/70",
+  "hover:border-muted/60 focus:border-neon focus:outline-none focus:ring-2 focus:ring-neon/40",
+  "aria-[invalid=true]:border-rose aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-rose/30",
+  "data-[valid=true]:border-lime/70",
+  "disabled:cursor-not-allowed disabled:bg-ink-700 disabled:text-muted disabled:opacity-70",
+);
 
-export function Field({ label, hint, error, children, htmlFor }: { label: string; hint?: string; error?: string | null; children: ReactNode; htmlFor?: string }) {
+/**
+ * Label + control + hint/error/success. The single child control gets `id`, `aria-invalid` and `aria-describedby`
+ * wired automatically, so error and success messages are announced with the field.
+ */
+export function Field({ label, hint, error, success, children, htmlFor }: { label: string; hint?: string; error?: string | null; success?: string | null; children: ReactNode; htmlFor?: string }) {
+  const auto = useId();
+  const id = htmlFor ?? `f${auto}`;
+  const msgId = `${id}-msg`;
+  const message = error ?? success ?? hint ?? null;
+  const only = Children.count(children) === 1 && isValidElement(children) ? (children as ReactElement<Record<string, unknown>>) : null;
+  const control = only
+    ? cloneElement(only, {
+        id: (only.props.id as string | undefined) ?? id,
+        "aria-invalid": error ? true : (only.props["aria-invalid"] as boolean | undefined),
+        "aria-describedby": message ? msgId : (only.props["aria-describedby"] as string | undefined),
+        "data-valid": success && !error ? true : undefined,
+      })
+    : children;
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-text">
+      <label htmlFor={id} className="block text-sm font-medium text-text">
         {label}
       </label>
-      {children}
-      {hint && !error && <p className="text-xs text-muted">{hint}</p>}
-      {error && (
-        <p role="alert" className="text-xs text-rose">
-          {error}
-        </p>
-      )}
+      {control}
+      {error ? (
+        <p id={msgId} role="alert" className="text-xs font-medium text-rose">{error}</p>
+      ) : success ? (
+        <p id={msgId} role="status" className="text-xs font-medium text-lime">{success}</p>
+      ) : hint ? (
+        <p id={msgId} className="text-xs text-muted">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -88,13 +133,11 @@ export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <tex
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(fieldBase, p.className)} />;
 
 export function Stars({ n, size = "md" }: { n: number; size?: "sm" | "md" | "lg" }) {
-  const sz = { sm: "text-base", md: "text-xl", lg: "text-4xl" }[size];
+  const sz = { sm: "size-4", md: "size-5", lg: "size-9" }[size];
   return (
-    <span aria-label={`${n}/3`} className={cx("inline-flex gap-0.5", sz)}>
+    <span role="img" aria-label={`${n}/3`} className="inline-flex gap-0.5">
       {[1, 2, 3].map((i) => (
-        <span key={i} className={i <= n ? "text-amber" : "text-ink-600"}>
-          ★
-        </span>
+        <Star key={i} aria-hidden className={cx(sz, i <= n ? "fill-amber text-amber" : "fill-ink-600 text-ink-600")} />
       ))}
     </span>
   );

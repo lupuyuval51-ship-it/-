@@ -23,7 +23,7 @@ export function LanguageSwitch() {
           router.refresh();
         })
       }
-      className={cx("min-h-10 rounded-lg border border-line px-3 text-sm font-medium hover:bg-white/10", pending && "opacity-60")}
+      className={cx("min-h-10 rounded-lg border border-line px-2.5 text-sm font-medium transition-colors hover:bg-text/10 sm:px-3", pending && "opacity-60")}
     >
       {t(`lang.${next}`)}
     </button>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check, Star } from "lucide-react";
 import { Alert, Badge, Card } from "@/components/ui";
 import { CheckoutButton } from "@/components/pricing/CheckoutButton";
 import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
@@ -45,7 +46,7 @@ export default async function PricingPage() {
           const isCurrent = current === plan;
           const games = planGames(plan);
           return (
-            <Card key={plan} className={`flex flex-col gap-4 ${plan === "PLUS" ? "border-neon/60 shadow-[0_0_50px_-25px_var(--color-neon)]" : ""}`} data-testid={`plan-${plan}`}>
+            <Card key={plan} className={`flex flex-col gap-4 ${plan === "PLUS" ? "border-neon/60 shadow-glow" : ""}`} data-testid={`plan-${plan}`}>
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">{t(`plan.${plan}`)}</h2>
                 {isCurrent && <Badge tone="lime" data-testid={`current-${plan}`}>{t("pricing.current")}</Badge>}
@@ -59,24 +60,24 @@ export default async function PricingPage() {
                 {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd")}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
-                <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: t("pricing.period.billing") })}</span></li>
-                <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
-                <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{t("pricing.feature.modes")}</span></li>
-                <li className="flex gap-2"><span aria-hidden className="text-lime">✓</span><span>{t("pricing.feature.save")}</span></li>
-                {plan === "PRO" && <li className="flex gap-2"><span aria-hidden className="text-violet-soft">★</span><span>{t("pricing.feature.same")}</span></li>}
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: t("pricing.period.billing") })}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.modes")}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.save")}</span></li>
+                {plan === "PRO" && <li className="flex gap-2"><Star aria-hidden className="mt-0.5 size-4 shrink-0 fill-violet-soft text-violet-soft" /><span>{t("pricing.feature.same")}</span></li>}
               </ul>
               {plan === "FREE" ? (
                 user ? (
-                  isCurrent ? <div className="text-center text-sm text-muted">{t("pricing.current")}</div> : <Link href="/account" className={`${linkBtn} border border-line hover:bg-white/10`}>{t("acc.sub.manage")}</Link>
+                  isCurrent ? <div className="text-center text-sm text-muted">{t("pricing.current")}</div> : <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("acc.sub.manage")}</Link>
                 ) : (
-                  <Link href="/register" className={`${linkBtn} border border-line hover:bg-white/10`}>{t("pricing.cta.free")}</Link>
+                  <Link href="/register" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("pricing.cta.free")}</Link>
                 )
               ) : !user ? (
-                <Link href="/login?next=/pricing" className={`${linkBtn} bg-neon text-ink-950 hover:bg-white`}>{t("pricing.cta.login")}</Link>
+                <Link href="/login?next=/pricing" className={`${linkBtn} bg-neon text-ink-950 hover:brightness-110`}>{t("pricing.cta.login")}</Link>
               ) : isCurrent || (hasSubscription && billing?.subscription?.plan === plan) ? (
-                <Link href="/account" className={`${linkBtn} border border-line hover:bg-white/10`}>{t("pricing.cta.manage")}</Link>
+                <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("pricing.cta.manage")}</Link>
               ) : hasSubscription ? (
-                <Link href="/account" className={`${linkBtn} border border-line hover:bg-white/10`}>{t("pricing.cta.manage")}</Link>
+                <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("pricing.cta.manage")}</Link>
               ) : isPaidPlanId(plan) ? (
                 <CheckoutButton plan={plan} label={t("pricing.cta.upgrade", { plan: t(`plan.${plan}`) })} disabled={!payments.ready} />
               ) : null}

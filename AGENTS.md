@@ -31,6 +31,6 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 
 ## Removed on purpose
 
-The previous version of this file described the archived prototype in `legacy-demo/` (dependency-free Node runtime, a BASIC tier, "Daily 3D Quest",
+The previous version of this file described the archived prototype that lived in `legacy-demo/` (removed; still in git history) (dependency-free Node runtime, a BASIC tier, "Daily 3D Quest",
 manual bit payments approved by an admin, private proof files). The LEVEL UP rebuild specifies a different stack and exactly three plans
 (Free / Plus / Pro) with Stripe billing, so those rules no longer apply and were dropped rather than kept as dead guidance.

@@ -155,7 +155,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
         value={material} onChange={(e) => setMaterial(e.target.value)}
       />
       <span className="mt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <label className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 font-semibold text-neon hover:bg-white/5 focus-within:outline focus-within:outline-2 focus-within:outline-neon">
+        <label className="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 font-semibold text-neon hover:bg-text/5 focus-within:outline focus-within:outline-2 focus-within:outline-neon">
           <input type="file" accept=".txt,.md,.markdown,.csv,.tsv,text/plain,text/markdown,text/csv" onChange={loadFile} className="sr-only" data-testid="material-file" />
           {t("create.material.file")}
         </label>
@@ -184,7 +184,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
                 key={m}
                 className={cx(
                   "flex cursor-pointer flex-col gap-2 rounded-2xl border p-4 transition-colors",
-                  mode === m ? "border-neon bg-neon/10" : "border-line bg-ink-800/60 hover:bg-white/5",
+                  mode === m ? "border-neon bg-neon/10" : "border-line bg-ink-800/60 hover:bg-text/5",
                   disabled && "cursor-not-allowed opacity-50",
                 )}
               >

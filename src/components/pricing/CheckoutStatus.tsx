@@ -38,7 +38,7 @@ export function CheckoutStatus({ sessionId }: { sessionId: string | null }) {
       {active ? (
         <>
           <Alert tone="success">{t("billing.success.done", { plan: t(`plan.${view.plan}`) })}</Alert>
-          <Link href="/create" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:bg-white">{t("dash.create")}</Link>
+          <Link href="/create" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("dash.create")}</Link>
         </>
       ) : (
         <>

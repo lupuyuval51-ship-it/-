@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { primaryLink, StateView } from "@/components/ui/StateView";
 import { Alert, Arrow, Badge, Card } from "@/components/ui";
 import { GameCardView } from "@/components/games/GameCardView";
 import { formatDate } from "@/lib/format";
@@ -26,7 +27,7 @@ export default async function DashboardPage() {
           <h1 className="text-3xl font-extrabold" data-testid="dash-greeting">{t("dash.greeting", { name: user.displayName })}</h1>
           <p className="text-muted">{t("dash.subtitle")}</p>
         </div>
-        <Link href="/create" data-testid="dash-create" className={`${btn} bg-neon text-ink-950 hover:bg-white`}>{t("dash.create")}</Link>
+        <Link href="/create" data-testid="dash-create" className={`${btn} bg-neon text-ink-950 hover:brightness-110`}>{t("dash.create")}</Link>
       </header>
 
       {allowance.activeJobId && (
@@ -68,10 +69,8 @@ export default async function DashboardPage() {
           {games.length > 0 && <Link href="/games" className="text-sm font-semibold text-neon hover:underline">{t("dash.recent.all")} <Arrow /></Link>}
         </div>
         {recent.length === 0 ? (
-          <Card className="space-y-3 py-10 text-center" data-testid="dash-empty">
-            <p className="text-lg font-semibold">{t("dash.empty.title")}</p>
-            <p className="mx-auto max-w-md text-sm text-muted">{t("dash.empty.text")}</p>
-            <div><Link href="/create" className={`${btn} bg-neon text-ink-950 hover:bg-white`}>{t("dash.empty.cta")}</Link></div>
+          <Card elevation="flat" className="py-2">
+            <StateView kind="empty" data-testid="dash-empty" title={t("dash.empty.title")} text={t("dash.empty.text")} actions={<Link href="/create" className={primaryLink}>{t("dash.empty.cta")}</Link>} />
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{recent.map((g) => <GameCardView key={g.id} game={g} t={t} />)}</div>

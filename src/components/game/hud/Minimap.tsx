@@ -179,5 +179,5 @@ export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntim
     return () => cancelAnimationFrame(raf);
   }, [runtime, input, guide]);
 
-  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={{ width: SIZE, height: SIZE }} className="pointer-events-none absolute end-3 top-[4.9rem] z-10 hidden rounded-full shadow-lg shadow-black/40 sm:block" />;
+  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={{ width: SIZE, height: SIZE }} className="pointer-events-none absolute end-3 top-[4.9rem] z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block" />;
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Award, Circle, CircleCheck, Flame, Gem, Pause } from "lucide-react";
+import { NpcIcon } from "@/components/ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Badge, Button, ProgressBar, Stars, cx } from "@/components/ui";
@@ -24,7 +26,7 @@ export function Toasts({ toasts }: { toasts: Toast[] }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center gap-2 px-4" aria-live="polite">
       {toasts.map((x) => (
-        <div key={x.id} className={cx("lu-pop rounded-full border px-4 py-2 text-sm font-semibold shadow-lg backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
+        <div key={x.id} className={cx("lu-pop rounded-full border px-4 py-2 text-sm font-semibold shadow-e2 backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
           {x.text}
         </div>
       ))}
@@ -58,7 +60,13 @@ export function ScorePopups({ popups }: { popups: Popup[] }) {
  * duplicate of the area name or mission title to the page's text.
  */
 export function AreaBanner({ name, subtitle }: { name: string; subtitle?: string }) {
-  return <div aria-hidden="true" data-testid="area-banner" data-title={name} data-sub={subtitle ?? ""} className="lu-banner z-20" />;
+  // Decorative title card: the area name is already announced by the top bar, so the card is hidden from assistive tech.
+  return (
+    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20">
+      <span className="lu-banner-title" dir="auto">{name}</span>
+      {subtitle && <span className="lu-banner-sub" dir="auto">{subtitle}</span>}
+    </div>
+  );
 }
 
 /** One-time, non-blocking hint card for new players. */
@@ -66,7 +74,7 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
   const t = useT();
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-48 z-20 flex justify-center px-4 sm:inset-x-auto sm:bottom-6 sm:start-4 sm:justify-start sm:px-0" data-testid="tutorial-card">
-      <div className="lu-pop pointer-events-auto w-full max-w-sm space-y-1.5 rounded-2xl border border-neon/40 bg-ink-900/85 p-3 shadow-xl backdrop-blur">
+      <div className="lu-pop pointer-events-auto w-full max-w-sm space-y-1.5 rounded-2xl border border-neon/40 bg-ink-900/85 p-3 shadow-e3 backdrop-blur">
         <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
         <ul className="space-y-1 text-xs text-muted">
           <li>{t("hud.tutorial.move")}</li>
@@ -108,11 +116,11 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
           {collect && collect.total > 0 && (
             <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
               <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
-              <span aria-hidden>💎 {collect.have}/{collect.total}</span>
+              <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
             </Badge>
           )}
-          {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak">🔥 {t("hud.streak", { n: client.streak })}</Badge>}
-          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button">❚❚</Button>
+          {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
+          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button"><Pause aria-hidden className="size-4" /></Button>
         </div>
       </div>
       <aside className="pointer-events-auto absolute start-3 top-20 z-10 w-[min(20rem,calc(100vw-1.5rem))]" aria-label={t("hud.missions")}>
@@ -131,7 +139,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
                     const p = objectiveProgress(spec, client, m, i);
                     return (
                       <li key={i} dir="auto" className={cx("flex items-start gap-1.5", p.done ? "text-lime" : "text-muted")}>
-                        <span aria-hidden>{p.done ? "✓" : "○"}</span>
+                        {p.done ? <CircleCheck aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : <Circle aria-hidden className="mt-0.5 size-3.5 shrink-0" />}
                         <span>{o.text}{p.target > 1 && ` (${p.current}/${p.target})`}</span>
                       </li>
                     );
@@ -178,7 +186,7 @@ export function InteractPrompt({ target, touch, onActivate }: { target: Interact
   } else text = t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label });
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 flex justify-center px-4 sm:bottom-10">
-      <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} className={cx("pointer-events-auto lu-pop flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-lg backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
+      <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} className={cx("pointer-events-auto lu-pop flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-e2 backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
         {!touch && <kbd className="grid size-7 place-items-center rounded-md border border-line bg-ink-700 font-mono text-xs">{t("prompt.key")}</kbd>}
         <span dir="auto">{text}</span>
       </button>
@@ -243,9 +251,9 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
   });
   return (
     <div className="absolute inset-x-0 bottom-0 z-30 flex justify-center p-3 sm:p-6">
-      <div role="dialog" aria-label={npc.name} data-testid="dialogue" className="lu-pop w-full max-w-2xl space-y-3 rounded-2xl border border-line bg-ink-800/95 p-4 shadow-2xl backdrop-blur">
+      <div role="dialog" aria-label={npc.name} data-testid="dialogue" className="lu-pop w-full max-w-2xl space-y-3 rounded-2xl border border-line bg-ink-800/95 p-4 shadow-e3 backdrop-blur">
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-full text-lg" style={{ background: npc.look.color + "33", border: `2px solid ${npc.look.color}` }}>{npc.look.shape === "robot" ? "🤖" : npc.look.shape === "human" ? "🧑" : npc.look.shape === "creature" ? "🐾" : "🔮"}</span>
+          <span aria-hidden className="grid size-10 place-items-center rounded-full" style={{ background: npc.look.color + "33", border: `2px solid ${npc.look.color}`, color: npc.look.color }}><NpcIcon shape={npc.look.shape} className="size-5" /></span>
           <div>
             <p className="font-bold" dir="auto">{npc.name}</p>
             <p className="text-xs text-muted" dir="auto">{npc.role}</p>
@@ -271,7 +279,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
   }, [onClose]);
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
-      <div role="dialog" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-2xl">
+      <div role="dialog" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
         <div className="flex justify-end"><Button onClick={onClose}>{t("lore.close")}</Button></div>
@@ -287,7 +295,7 @@ export function PauseMenu({ profile, sfx, music, guide, onSfx, onMusic, onGuide,
   const [confirm, setConfirm] = useState(false);
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-4 backdrop-blur-sm">
-      <div role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-line bg-ink-800 p-5 shadow-2xl">
+      <div role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-line bg-ink-800 p-5 shadow-e3">
         <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
         <div className="space-y-2">
           <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
@@ -306,7 +314,7 @@ export function PauseMenu({ profile, sfx, music, guide, onSfx, onMusic, onGuide,
           {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)}>{t("hud.restart")}</Button> : (
             <div className="w-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
           )}
-          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10">{t("hud.exit")}</Link>
+          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("hud.exit")}</Link>
         </div>
       </div>
     </div>
@@ -318,17 +326,17 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur">
       <Confetti />
-      <div role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-2xl">
+      <div role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
         <Stars n={summary.stars} size="lg" />
         <p className="text-lg" data-testid="final-score">{t("done.score", { score: summary.score, max: summary.maxScore })}</p>
         {summary.achievements.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-2">{summary.achievements.map((a) => <Badge key={a} tone="amber">🏅 {t(`ach.${a}` as never)}</Badge>)}</div>
+          <div className="flex flex-wrap justify-center gap-2">{summary.achievements.map((a) => <Badge key={a} tone="amber"><Award aria-hidden className="size-3.5" /> {t(`ach.${a}` as never)}</Badge>)}</div>
         )}
         <div className="flex flex-col gap-2">
-          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-neon px-4 text-sm font-semibold text-ink-950 hover:bg-white" data-testid="results-link">{t("done.results")}</Link>
+          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-neon px-4 text-sm font-semibold text-ink-950 hover:brightness-110" data-testid="results-link">{t("done.results")}</Link>
           <Button variant="secondary" onClick={onReplay}>{t("done.replay")}</Button>
-          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10">{t("done.library")}</Link>
+          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("done.library")}</Link>
         </div>
       </div>
     </div>

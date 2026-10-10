@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Bot, Flag } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { Button, cx } from "@/components/ui";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
@@ -59,10 +60,10 @@ function Grid({ ch, trail, step }: { ch: ProgramChallenge; trail: { x: number; y
             isGoal && "ring-2 ring-lime/70 animate-pulse")}>
             {isBot ? (
               <span key={`${at}-${x}-${y}`} className="lu-pop relative text-neon">
-                {trail ? "🤖" : DIR_ARROW[start.dir]}
+                {trail ? <Bot aria-hidden className="size-4" /> : DIR_ARROW[start.dir]}
                 {trail && <span aria-hidden className="absolute -end-2 -top-2 text-[10px] leading-none text-neon">{DIR_ARROW[dir]}</span>}
               </span>
-            ) : isGoal ? "🏁" : isWall ? <span aria-hidden className="text-ink-500">▓</span> : seen ? <span aria-hidden className="text-[10px] text-neon/60">●</span> : ""}
+            ) : isGoal ? <Flag aria-hidden className="size-4 text-lime" /> : isWall ? <span aria-hidden className="text-ink-500">▓</span> : seen ? <span aria-hidden className="text-[10px] text-neon/60">●</span> : ""}
           </div>
         );
       })}

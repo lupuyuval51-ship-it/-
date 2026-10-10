@@ -95,7 +95,7 @@ export function GameActions({ gameId, title, timeOfDay, mechanics, hasProgress }
       <Card className="space-y-3">
         <h2 className="font-semibold">{t("det.danger")}</h2>
         <div className="flex flex-wrap gap-2">
-          <Link href={`/create?mode=EXTEND&game=${gameId}`} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10" data-testid="extend-link">{t("det.extend")}</Link>
+          <Link href={`/create?mode=EXTEND&game=${gameId}`} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10" data-testid="extend-link">{t("det.extend")}</Link>
           {hasProgress && <Button variant="secondary" disabled={busy} onClick={reset} data-testid="reset-progress">{t("det.reset")}</Button>}
           <Button variant="danger" disabled={busy} onClick={remove} data-testid="delete-game">{t("det.delete")}</Button>
         </div>

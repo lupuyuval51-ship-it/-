@@ -29,10 +29,11 @@ test.describe("play-screen guidance and polish", () => {
     await expect.poll(async () => (await guideState(page)).primary?.label ?? null, { timeout: 15_000 }).not.toBeNull();
     await expect(page.getByTestId("guide-marker")).toHaveAttribute("data-show", "1", { timeout: 15_000 });
 
-    // the area title card never adds a second copy of the area name to the page text
-    await expect(page.getByTestId("area-banner")).toHaveAttribute("data-title", /.+/);
+    // the area title card shows the area name but is hidden from assistive tech (the top bar already announces it)
+    const banner = page.getByTestId("area-banner");
+    await expect(banner).toHaveAttribute("aria-hidden", "true");
     const areaName = (await page.getByTestId("area-name").innerText()).trim();
-    await expect(page.getByText(areaName, { exact: true })).toHaveCount(1);
+    await expect(banner).toHaveAttribute("data-title", areaName);
 
     // collectible counter (the demo adventure has pick-ups)
     await expect(page.getByTestId("collect-count")).toContainText(/0\/\d+/);

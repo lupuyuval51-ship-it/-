@@ -48,8 +48,8 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport }:
         <p className="text-xl" data-testid="practice-score">{t("prac.done.score", { right, total: items.length })}</p>
         <Card className="text-sm text-muted">{right === items.length ? t("prac.done.great") : t("prac.done.more")}</Card>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href={`/games/${gameId}/results/${sessionId}/review`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:bg-white">{t("prac.done.review")}</Link>
-          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10"><Arrow back /> {t("rev.back")}</Link>
+          <Link href={`/games/${gameId}/results/${sessionId}/review`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("prac.done.review")}</Link>
+          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t("rev.back")}</Link>
         </div>
       </div>
     );

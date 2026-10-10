@@ -40,7 +40,7 @@ export function DevCheckout({ checkoutId, plan, priceText, completed }: { checko
       ) : (
         <div className="flex flex-wrap gap-3">
           <Button onClick={pay} disabled={busy} size="lg" data-testid="dev-pay">{busy ? t("common.loading") : t("billing.dev.pay")}</Button>
-          <Link href="/billing/cancel" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10">{t("billing.dev.cancel")}</Link>
+          <Link href="/billing/cancel" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("billing.dev.cancel")}</Link>
         </div>
       )}
       {error && <Alert tone="error">{error}</Alert>}

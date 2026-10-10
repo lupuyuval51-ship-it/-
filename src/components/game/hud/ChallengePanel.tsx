@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CircleCheck, CircleX, X } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
@@ -115,7 +116,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
 
   return (
     <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-2xl sm:rounded-3xl">
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-e3 sm:rounded-3xl">
         {result?.correct && <Confetti />}
         <header className="flex items-start justify-between gap-3 border-b border-line p-4">
           <div className="space-y-1">
@@ -128,7 +129,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")}>✕</Button>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")}><X aria-hidden className="size-4" /></Button>
         </header>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -151,7 +152,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           {result && (
             <div data-testid="result" className={cx("space-y-2 rounded-xl border p-3 text-sm", result.correct ? "border-lime/50 bg-lime/10" : "border-rose/50 bg-rose/10")} role="status" aria-live="polite">
               <p className="font-semibold">
-                {result.correct ? `✓ ${t("challenge.correct")}` : `✗ ${t("challenge.incorrect")}`}
+                {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
                 {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
               </p>
               <p dir="auto">{result.feedback}</p>

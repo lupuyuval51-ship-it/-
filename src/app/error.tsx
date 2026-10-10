@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { useT } from "@/components/I18nProvider";
+import { primaryLink, secondaryLink, StateView } from "@/components/ui/StateView";
 
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const t = useT();
@@ -10,17 +11,22 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
     console.error(error);
   }, [error]);
   return (
-    <main className="mx-auto grid min-h-[60vh] max-w-lg place-items-center px-4 text-center" role="alert" data-testid="error-page">
-      <div className="space-y-4">
-        <p className="text-5xl" aria-hidden>⚠️</p>
-        <h1 className="text-2xl font-bold">{t("error.title")}</h1>
-        <p className="text-muted">{t("error.text")}</p>
+    <main className="px-4" role="alert">
+      <StateView
+        kind="error"
+        data-testid="error-page"
+        title={t("error.title")}
+        text={t("error.text")}
+        actions={
+          <>
+            <button type="button" onClick={reset} className={primaryLink}>{t("common.retry")}</button>
+            <Link href="/games" className={secondaryLink}>{t("nav.library")}</Link>
+            <Link href="/" className={secondaryLink}>{t("notfound.cta")}</Link>
+          </>
+        }
+      >
         {error.digest && <p className="text-xs text-muted" dir="ltr">ref: {error.digest}</p>}
-        <div className="flex justify-center gap-3">
-          <button type="button" onClick={reset} className="min-h-11 rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:bg-white">{t("common.retry")}</button>
-          <Link href="/" className="inline-flex min-h-11 items-center rounded-xl border border-line px-5 text-sm font-semibold hover:bg-white/10">{t("notfound.cta")}</Link>
-        </div>
-      </div>
+      </StateView>
     </main>
   );
 }

@@ -41,7 +41,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
           {t("det.created", { date: formatDate(game.createdAt, locale) })} · {t("det.minutes", { n: overview.estimatedMinutes })} · {t("det.generator", { provider: game.generator.provider, model: game.generator.model })}
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
-          <Link href={`/play/${game.id}`} data-testid="details-play" className={`${btn} bg-neon text-ink-950 shadow-[0_0_30px_-8px_var(--color-neon)] hover:bg-white`}>
+          <Link href={`/play/${game.id}`} data-testid="details-play" className={`${btn} bg-neon text-ink-950 shadow-glow hover:brightness-110`}>
             {inProgress ? t("det.continue") : t("det.play")}
           </Link>
         </div>

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Bot, Check, Flag, Gem } from "lucide-react";
+import { GameTypeIcon } from "@/components/ui/icons";
 import { Arrow, Badge, Card } from "@/components/ui";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
@@ -7,7 +9,6 @@ import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { getRegion } from "@/server/region";
 
-const TYPE_ICON: Record<(typeof GAME_TYPES)[number], string> = { exploration: "🧭", puzzle: "🧩", platformer: "🦘", simulation: "🧪", adventure: "🗺️" };
 
 export default async function LandingPage() {
   const { t } = await getT();
@@ -22,21 +23,21 @@ export default async function LandingPage() {
           <p className="max-w-xl text-lg text-muted">{t("landing.hero.subtitle")}</p>
           <div className="flex flex-wrap gap-3">
             {user ? (
-              <Link href="/dashboard" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 shadow-[0_0_30px_-8px_var(--color-neon)] hover:bg-white">{t("landing.cta.dashboard")}</Link>
+              <Link href="/dashboard" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 shadow-glow hover:brightness-110">{t("landing.cta.dashboard")}</Link>
             ) : (
               <>
-                <Link href="/register" data-testid="cta-start" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 shadow-[0_0_30px_-8px_var(--color-neon)] hover:bg-white">{t("landing.cta.primary")}</Link>
-                <Link href="/pricing" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10">{t("landing.cta.secondary")}</Link>
+                <Link href="/register" data-testid="cta-start" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 shadow-glow hover:brightness-110">{t("landing.cta.primary")}</Link>
+                <Link href="/pricing" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("landing.cta.secondary")}</Link>
               </>
             )}
           </div>
           <p className="text-sm text-muted">{t("landing.subjects.list")}</p>
         </div>
-        <div aria-hidden className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-ink-700 via-ink-800 to-violet/30 shadow-[0_0_80px_-30px_var(--color-violet)]">
+        <div aria-hidden className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-ink-700 via-ink-800 to-violet/30 shadow-e3">
           <div className="absolute inset-0 [background-image:linear-gradient(var(--color-line)_1px,transparent_1px),linear-gradient(90deg,var(--color-line)_1px,transparent_1px)] [background-size:36px_36px] opacity-40 [transform:perspective(500px)_rotateX(58deg)_translateY(20%)_scale(1.6)]" />
-          <div className="absolute start-[18%] top-[20%] grid size-24 place-items-center rounded-2xl border border-neon/50 bg-neon/10 text-4xl shadow-[0_0_40px_-10px_var(--color-neon)]">🤖</div>
-          <div className="absolute end-[14%] top-[34%] grid size-16 place-items-center rounded-xl border border-violet/50 bg-violet/15 text-2xl">💎</div>
-          <div className="absolute bottom-[14%] start-[40%] grid size-20 place-items-center rounded-2xl border border-lime/50 bg-lime/10 text-3xl">🏁</div>
+          <div className="absolute start-[18%] top-[20%] grid size-24 place-items-center rounded-2xl border border-neon/50 bg-neon/10 text-neon shadow-glow"><Bot className="size-12" /></div>
+          <div className="absolute end-[14%] top-[34%] grid size-16 place-items-center rounded-xl border border-violet/50 bg-violet/15 text-violet-soft"><Gem className="size-8" /></div>
+          <div className="absolute bottom-[14%] start-[40%] grid size-20 place-items-center rounded-2xl border border-lime/50 bg-lime/10 text-lime"><Flag className="size-10" /></div>
         </div>
       </section>
 
@@ -61,7 +62,7 @@ export default async function LandingPage() {
           {GAME_TYPES.map((g) => (
             <li key={g}>
               <Card className="h-full space-y-2">
-                <span className="text-3xl" aria-hidden>{TYPE_ICON[g]}</span>
+                <span aria-hidden className="grid size-11 place-items-center rounded-xl bg-neon/10 text-neon"><GameTypeIcon type={g} className="size-6" /></span>
                 <h3 className="font-semibold">{t(`gameType.${g}`)}</h3>
                 <p className="text-sm text-muted">{t(`landing.types.${g}`)}</p>
               </Card>
@@ -88,8 +89,8 @@ export default async function LandingPage() {
           <h2 className="text-2xl font-bold">{t("landing.learn.title")}</h2>
           <ul className="space-y-3">
             {([1, 2, 3] as const).map((n) => (
-              <li key={n} className="flex gap-3 rounded-2xl border border-line bg-ink-800/50 p-4 text-sm">
-                <span aria-hidden className="text-lime">✓</span>
+              <li key={n} className="flex gap-3 rounded-2xl border border-line bg-ink-800/70 p-4 text-sm shadow-e1">
+                <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" />
                 <span>{t(`landing.learn.${n}`)}</span>
               </li>
             ))}

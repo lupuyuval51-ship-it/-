@@ -18,7 +18,7 @@ const launchOptions = {
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 120_000,
-  expect: { timeout: 15_000 },
+  expect: { timeout: 15_000, toHaveScreenshot: { animations: "disabled", caret: "hide" } },
   fullyParallel: false,
   workers: 1,
   retries: 0,

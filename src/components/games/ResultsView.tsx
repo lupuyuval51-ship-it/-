@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Award } from "lucide-react";
 import { Alert, Arrow, Badge, Card, ProgressBar, Stars } from "@/components/ui";
 import type { DictKey, TFn } from "@/lib/i18n";
 import type { LearningSummary } from "@/lib/game/state/progress";
@@ -64,7 +65,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review }: { t: 
           </ul>
         )}
         {r.review.length > 0 && (
-          <Link href={`/games/${game.id}/results/${sessionId}/review`} data-testid="review-open" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:bg-white">{t("res.review.open")} <Arrow /></Link>
+          <Link href={`/games/${game.id}/results/${sessionId}/review`} data-testid="review-open" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("res.review.open")} <Arrow /></Link>
         )}
       </Card>
 
@@ -74,7 +75,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review }: { t: 
           <ul className="grid gap-2 sm:grid-cols-2">
             {s.achievements.map((a) => (
               <li key={a} className="rounded-xl border border-amber/30 bg-amber/5 p-3 text-sm">
-                <p className="font-semibold text-amber">🏅 {t(`ach.${a}` as DictKey)}</p>
+                <p className="flex items-center gap-1.5 font-semibold text-amber"><Award aria-hidden className="size-4" /> {t(`ach.${a}` as DictKey)}</p>
                 <p className="text-xs text-muted">{t(`ach.${a}.desc` as DictKey)}</p>
               </li>
             ))}
@@ -90,8 +91,8 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review }: { t: 
       )}
 
       <div className="flex flex-wrap justify-center gap-3">
-        <Link href={`/play/${game.id}`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:bg-white">{t("res.replay")}</Link>
-        <Link href="/games" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10">{t("res.library")}</Link>
+        <Link href={`/play/${game.id}`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("res.replay")}</Link>
+        <Link href="/games" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("res.library")}</Link>
       </div>
     </div>
   );

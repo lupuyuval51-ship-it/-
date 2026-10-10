@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check, PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
@@ -94,7 +95,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
   const currentStage = job.stage.startsWith("repair") ? "repair" : job.stage;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6" data-testid="generation-progress" data-status={job.status}>
+    <div className="mx-auto max-w-2xl space-y-6" data-testid="generation-progress" data-status={job.status} aria-busy={!done}>
       <header className="space-y-1">
         <h1 className="text-3xl font-extrabold">{t("gen.title")}</h1>
         <p className="text-muted">{t("gen.subtitle")}</p>
@@ -102,13 +103,13 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
 
       {job.status === "SUCCEEDED" && (
         <Card className="space-y-4 border-lime/50 text-center" data-testid="gen-success">
-          <p className="text-4xl" aria-hidden>🎉</p>
+          <PartyPopper aria-hidden className="mx-auto size-10 text-lime" />
           <h2 className="text-2xl font-bold">{t("gen.success.title")}</h2>
           <p className="text-sm text-muted">{t("gen.success.text", { left: job.allowance?.remaining ?? 0 })}</p>
           <div className="flex justify-center">{job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : "violet"} data-testid="gen-source">{t(`gen.source.${job.source}`)}</Badge>}</div>
           <div className="flex flex-wrap justify-center gap-3">
-            {job.gameId && <Link href={`/play/${job.gameId}`} data-testid="gen-play" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:bg-white">{t("gen.play")}</Link>}
-            {job.gameId && <Link href={`/games/${job.gameId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10">{t("gen.details")}</Link>}
+            {job.gameId && <Link href={`/play/${job.gameId}`} data-testid="gen-play" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("gen.play")}</Link>}
+            {job.gameId && <Link href={`/games/${job.gameId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("gen.details")}</Link>}
           </div>
         </Card>
       )}
@@ -118,7 +119,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           <h2 className="text-2xl font-bold">{t("gen.failed.title")}</h2>
           <Alert tone="error">{job.error?.message ?? t("common.error.generic")}</Alert>
           <p className="text-sm text-lime" data-testid="gen-not-charged">{t("gen.failed.notCharged")}</p>
-          <Link href="/create" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:bg-white">{t("gen.retry")}</Link>
+          <Link href="/create" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("gen.retry")}</Link>
         </Card>
       )}
 
@@ -132,7 +133,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           <ol className="space-y-2 text-sm">
             {steps.map((s, i) => (
               <li key={s} className={cx("flex items-center gap-2", i < idx ? "text-lime" : i === idx ? "text-text" : "text-muted")}>
-                <span aria-hidden className="grid size-5 place-items-center rounded-full border border-current text-[10px]">{i < idx ? "✓" : i + 1}</span>
+                <span aria-hidden className="grid size-5 place-items-center rounded-full border border-current text-[10px]">{i < idx ? <Check className="size-3" /> : i + 1}</span>
                 {t(stageKey(s))}
               </li>
             ))}

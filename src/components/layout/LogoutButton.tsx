@@ -13,7 +13,7 @@ export function LogoutButton() {
       type="button"
       disabled={busy}
       data-testid="logout"
-      className="min-h-10 rounded-lg px-3 text-sm font-medium text-muted hover:bg-white/10 hover:text-text"
+      className="min-h-10 rounded-lg px-3 text-sm font-medium text-muted hover:bg-text/10 hover:text-text"
       onClick={async () => {
         setBusy(true);
         await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);

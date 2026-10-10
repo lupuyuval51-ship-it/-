@@ -44,10 +44,10 @@ export function CreatePage() {
   }
 
   return (
-    <form className="space-y-4" onSubmit={submit} data-testid="mobile-create" noValidate>
+    <form className="space-y-4" onSubmit={submit} data-testid="mobile-create" noValidate aria-busy={busy}>
       <a href="#/" className="text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
       <h1 className="text-2xl font-extrabold">{t("mob.create.title")}</h1>
-      <Field label={t("create.subject")} htmlFor="subject">
+      <Field label={t("create.subject")} htmlFor="subject" error={error && !subject.trim() ? t("create.error.required") : null}>
         <Input id="subject" value={subject} maxLength={INPUT_LIMITS.subjectMax} onChange={(e) => setSubject(e.target.value)} placeholder={t("create.subject.placeholder")} required />
       </Field>
       <Field label={t("create.material")} hint={t("mob.create.material.hint")} htmlFor="material">

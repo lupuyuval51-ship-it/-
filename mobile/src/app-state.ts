@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from "react";
 import type { GraphicsTier } from "@/config/plans";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
+import { applyTheme, isThemePref, type ThemePref } from "@/lib/theme";
 import { browserKV, OfflineStore } from "@/lib/offline/store";
 import { offlineTransport } from "@/components/game/offlineTransport";
 
-export interface Settings { locale: Locale; tier: GraphicsTier; sound: boolean; music: boolean }
+export interface Settings { locale: Locale; tier: GraphicsTier; sound: boolean; music: boolean; theme: ThemePref }
 const KEY = "levelup.mobile.settings";
 
 /** Phones vary a lot: start at the middle tier unless the device reports plenty of memory and cores. */
@@ -15,7 +16,7 @@ function defaultTier(): GraphicsTier {
 
 function load(): Settings {
   // Hebrew/RTL is the product default; English is one tap away in Settings.
-  const base: Settings = { locale: DEFAULT_LOCALE, tier: defaultTier(), sound: true, music: true };
+  const base: Settings = { locale: DEFAULT_LOCALE, tier: defaultTier(), sound: true, music: true, theme: "system" };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -25,6 +26,7 @@ function load(): Settings {
         tier: v.tier === "A" || v.tier === "B" || v.tier === "C" ? v.tier : base.tier,
         sound: typeof v.sound === "boolean" ? v.sound : true,
         music: typeof v.music === "boolean" ? v.music : true,
+        theme: isThemePref(v.theme) ? v.theme : "system",
       };
     }
   } catch { /* defaults */ }
@@ -32,9 +34,11 @@ function load(): Settings {
 }
 
 let settings = load();
+applyTheme(settings.theme);
 const listeners = new Set<() => void>();
 export function setSettings(patch: Partial<Settings>): void {
   settings = { ...settings, ...patch };
+  if (patch.theme) applyTheme(patch.theme);
   try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch { /* optional */ }
   listeners.forEach((l) => l());
 }

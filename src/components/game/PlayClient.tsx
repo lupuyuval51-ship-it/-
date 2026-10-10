@@ -367,14 +367,14 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   // ───────── render ─────────
   if (boot.status === "loading") {
     return (
-      <main className="grid h-dvh place-items-center bg-ink-950" aria-busy="true">
+      <main className="theme-dark grid h-dvh place-items-center bg-ink-950" aria-busy="true">
         <div className="flex items-center gap-3 text-lg"><Spinner /> {t("hud.loading")}</div>
       </main>
     );
   }
   if (boot.status === "error") {
     return (
-      <main className="grid h-dvh place-items-center bg-ink-950 p-6">
+      <main className="theme-dark grid h-dvh place-items-center bg-ink-950 p-6">
         <div className="max-w-md space-y-4 text-center">
           <p role="alert" className="text-lg">{boot.message}</p>
           <div className="flex justify-center gap-3"><Button onClick={() => void start(false)}>{t("common.retry")}</Button><Link href="/games" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("hud.exit")}</Link></div>
@@ -384,14 +384,14 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   }
   const d = boot.data;
   if (!webglAvailable()) {
-    return <main className="grid h-dvh place-items-center bg-ink-950 p-6"><p role="alert" className="max-w-md text-center text-lg">{t("hud.webgl.error")}</p></main>;
+    return <main className="theme-dark grid h-dvh place-items-center bg-ink-950 p-6"><p role="alert" className="max-w-md text-center text-lg">{t("hud.webgl.error")}</p></main>;
   }
   const npc = overlay.type === "dialogue" ? d.spec.areas.flatMap((a) => a.npcs).find((n) => n.id === overlay.npcId) : null;
   const lore = overlay.type === "lore" ? d.spec.areas.flatMap((a) => a.stations).find((s) => s.id === overlay.stationId) : null;
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
   return (
-    <main ref={host} className="relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
+    <main ref={host} className="theme-dark relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
         <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}

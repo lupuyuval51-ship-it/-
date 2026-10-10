@@ -1,6 +1,7 @@
 import { useT } from "@/components/I18nProvider";
 import { Arrow, Button, Card, Field, Select } from "@/components/ui";
 import { GRAPHICS_TIERS, type GraphicsTier } from "@/config/plans";
+import { THEMES, type ThemePref } from "@/lib/theme";
 import { setSettings, store, useSettings } from "../app-state";
 import { navigate } from "../router";
 
@@ -15,6 +16,11 @@ export function SettingsPage() {
         <Select id="locale" value={s.locale} onChange={(e) => setSettings({ locale: e.target.value as "he" | "en" })}>
           <option value="he">{t("lang.he")}</option>
           <option value="en">{t("lang.en")}</option>
+        </Select>
+      </Field>
+      <Field label={t("theme.label")} htmlFor="theme">
+        <Select id="theme" value={s.theme} onChange={(e) => setSettings({ theme: e.target.value as ThemePref })}>
+          {THEMES.map((x) => <option key={x} value={x}>{t(`theme.${x}`)}</option>)}
         </Select>
       </Field>
       <Field label={t("mob.settings.graphics")} hint={t("mob.settings.graphics.hint")} htmlFor="tier">

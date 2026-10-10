@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { GeneratorBadge } from "@/components/games/GameBadges";
 import { Badge, Button, Card, Stars } from "@/components/ui";
+import { primaryLink, StateView } from "@/components/ui/StateView";
 import { store } from "../app-state";
 
 export function LibraryPage() {
@@ -24,15 +25,14 @@ export function LibraryPage() {
       <a href="#/create" data-testid="mobile-new" className="flex min-h-14 items-center justify-center rounded-2xl bg-neon text-lg font-bold text-ink-950">+ {t("mob.new")}</a>
       <h2 className="text-lg font-semibold">{t("lib.title")}</h2>
       {games.length === 0 ? (
-        <Card className="space-y-1 text-center" data-testid="mobile-empty">
-          <p className="font-semibold">{t("lib.empty.title")}</p>
-          <p className="text-sm text-muted">{t("lib.empty.text")}</p>
+        <Card elevation="flat" className="py-0">
+          <StateView kind="empty" data-testid="mobile-empty" title={t("lib.empty.title")} text={t("lib.empty.text")} actions={<a href="#/create" className={primaryLink}>{t("lib.empty.cta")}</a>} />
         </Card>
       ) : (
         <ul className="space-y-3">
           {games.map((g) => (
             <li key={g.id}>
-              <Card className="space-y-3" data-testid="mobile-game">
+              <Card interactive className="space-y-3" data-testid="mobile-game">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 dir="auto" className="me-auto text-lg font-semibold">{g.title}</h3>
                   <GeneratorBadge kind={g.generatorKind} provider={g.generatorKind} t={t} />

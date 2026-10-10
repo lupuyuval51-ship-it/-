@@ -305,10 +305,28 @@ src/server/             env · db · auth · allowance (ledger) · generation (j
 src/app/                routes: pages and /api handlers (thin; logic lives in src/server)
 src/components/         UI, forms, and the R3F game (scene/, hud/)
 tests/                  unit · integration (real PostgreSQL) · e2e (Playwright)
-legacy-demo/            archived earlier prototype (not used; delete when no longer needed)
 ```
 
 ---
+
+## Design system
+
+One design system for the website and the Android app (`mobile/` imports the same `src/app/globals.css`):
+
+* **Tokens** live in `src/app/globals.css` (`@theme`): surfaces `ink-950…600`, `line`, `text`, `muted`, accents `neon/violet/lime/amber/rose`
+  (+ `violet-soft` for violet text), elevation `shadow-e1/e2/e3/glow`, a fluid type scale (`text-xs…5xl` are `clamp()` values with
+  Hebrew-friendly line heights) and the font. They are CSS variables, so every Tailwind utility follows the active theme. No hex
+  values in components (3D scene colours aside).
+* **Themes:** dark (default), light, or "match device" (`prefers-color-scheme`). The header switch / app setting stores
+  `lu-theme`; the server renders `data-theme` on `<html>` so there is no flash. The 3D play screen always uses `.theme-dark`.
+* **Type:** Heebo (variable, bundled with `@fontsource-variable/heebo`, so the offline app has it too) for Hebrew and Latin.
+* **Components** (`src/components/ui`): `Button` (44 px touch target, fluid padding, hover/pressed/disabled), `Card`
+  (`flat`/`raised`/`floating` elevation, `interactive` hover-lift + focus), `Field` (wires `id`, `aria-invalid`,
+  `aria-describedby`; error / success / hint states), `StateView` (illustrated empty / error / 404 with recovery actions),
+  SVG icons from `lucide-react` (`GameTypeIcon`, `NpcIcon`) — no emoji in the UI.
+* **Motion:** short page-enter transition on every route; all animation is disabled under `prefers-reduced-motion`.
+* **Checks:** axe audits run on public and signed-in pages in both themes; `tests/e2e/visual.spec.ts` keeps pixel baselines of
+  the public pages (he/en × dark/light). Change them deliberately with `--update-snapshots`.
 
 ## Testing
 

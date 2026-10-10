@@ -48,9 +48,9 @@ export function ReviewView({ t, id, sessionId, review }: { t: TFn; id: string; s
       )}
       <div className="flex flex-wrap justify-center gap-3">
         {r.review.length > 0 && (
-          <Link href={`/games/${id}/results/${sessionId}/practice`} data-testid="practice-start" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:bg-white">{t("rev.practice.only")} <Arrow /></Link>
+          <Link href={`/games/${id}/results/${sessionId}/practice`} data-testid="practice-start" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("rev.practice.only")} <Arrow /></Link>
         )}
-        <Link href={`/play/${id}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-white/10">{t("rev.practice")}</Link>
+        <Link href={`/play/${id}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("rev.practice")}</Link>
       </div>
     </div>
   );
