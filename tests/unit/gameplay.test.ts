@@ -6,6 +6,7 @@ import {
   chooseVariant, collectibleIds, findArea, initialState, maxScore, pointsAwarded, portalOpen, stationActive, summarize, type PlayState,
 } from "@/lib/game/state/progress";
 import type { GameSpec } from "@/lib/game/spec/schema";
+import { answerText, buildReview } from "@/lib/game/state/review";
 import { PACK_SUBJECT, correctAnswer, request, validDemoSpec, wrongAnswer } from "./helpers";
 
 const ctx = (now = 1_000_000) => ({ now, seed: "test-session" });
@@ -256,5 +257,43 @@ describe("learning summary", () => {
     expect(sum.completed).toBe(false);
     expect(sum.stars).toBe(0);
     void request;
+  });
+});
+
+describe("review of mistakes", () => {
+  const spec = validDemoSpec();
+  const first = initialState(spec, 0);
+  const station = findArea(spec, "a-plaza")!.stations.find((s) => s.kind === "challenge" && stationActive(spec, first, s))!;
+  const ch = spec.challenges.find((c) => c.id === station.challengeId)!;
+
+  it("lists only resolved challenges that needed more than one try, with the answer released only then", () => {
+    const s = initialState(spec, 0);
+    s.recent = [];
+    let r = play(spec, s, { type: "open", stationId: station.id });
+    // an open challenge with a miss is NOT reviewable yet: its answer must stay hidden until it is resolved
+    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: wrongAnswer(ch) });
+    expect(buildReview(spec, r.state)).toEqual([]);
+    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: correctAnswer(ch) });
+    const items = buildReview(spec, r.state);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ challengeId: ch.id, wrong: 1, revealed: false, explanation: ch.explanation });
+    expect(items[0]!.answer).toBeTruthy();
+  });
+
+  it("a first-try success is not in the review, and a revealed challenge comes first", () => {
+    const s = initialState(spec, 0);
+    s.records["c-a"] = { stationId: "x", attempts: 1, wrong: 0, hints: 0, resolved: true, correct: true, revealed: false, points: 10, timeMs: null };
+    expect(buildReview(spec, s)).toEqual([]);
+    const ids = spec.challenges.slice(0, 2).map((c) => c.id);
+    s.records[ids[0]!] = { stationId: "x", attempts: 2, wrong: 1, hints: 0, resolved: true, correct: true, revealed: false, points: 5, timeMs: null };
+    s.records[ids[1]!] = { stationId: "y", attempts: 3, wrong: 3, hints: 1, resolved: true, correct: false, revealed: true, points: 0, timeMs: null };
+    expect(buildReview(spec, s).map((x) => x.challengeId)).toEqual([ids[1], ids[0]]);
+  });
+
+  it("states the right answer in words for every challenge type", () => {
+    for (const c of spec.challenges) {
+      if (c.type === "simulation") expect(answerText(c)).toBeNull();
+      else expect(answerText(c), c.id).toMatch(/\S/);
+    }
   });
 });

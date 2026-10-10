@@ -71,6 +71,9 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
             ))}
           </ul>
         )}
+        {r.review.length > 0 && (
+          <Link href={`/games/${game.id}/results/${sessionId}/review`} data-testid="review-open" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:bg-white">{t("res.review.open")} <Arrow /></Link>
+        )}
       </Card>
 
       {s.achievements.length > 0 && (

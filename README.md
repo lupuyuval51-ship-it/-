@@ -231,6 +231,7 @@ Plan, currency and amount come from a server-side checkout row created from the 
   explanation or feedback); answers are graded on the server; hints cost points; after three wrong attempts the solution and explanation are revealed.
   Score, stars, achievements, adaptive easier/harder variants and completion are derived by an event-sourced reducer under a row lock, so parallel or
   forged events cannot double-count or finish a game early.
+* **Review your mistakes:** from the results page, a review screen (`/games/<id>/results/<session>/review`) lists every question that took more than one try or needed the answer revealed, with the question, the right answer in words and the explanation. Only challenges already resolved are included, so an open question's answer is never released early; only the session's owner can open it.
 * **Education:** objectives, specific feedback for common mistakes, explanations, adaptive difficulty, learning results with per-objective mastery,
   concepts to review, achievements and a conclusion; progress is saved on every device and resumes where you left off.
 * **Controls:** WASD / arrows, Space (jump), E (interact), Esc (pause), drag to look, number keys pick an answer in multiple-choice challenges; touch joystick and
@@ -312,9 +313,9 @@ Run on 2026-10-10 (after the gameplay polish and the study engine) in the build 
 | --- | --- |
 | `npm run typecheck` | passed (0 errors) |
 | `npm run lint` | passed (0 errors, 0 warnings) |
-| Vitest **unit** (13 files) | **451 passed** |
+| Vitest **unit** (13 files) | **454 passed** |
 | Vitest **integration** against PostgreSQL (6 files) | **97 passed** |
-| Playwright **E2E** (desktop + Pixel 7 projects, 48 scheduled) | **47 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Playwright **E2E** (desktop + Pixel 7 projects, 50 scheduled) | **49 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
 | `npm run build` | passed |
 
 Not run (and therefore not claimed): anything against a real AI provider or the real Stripe API; GitHub Actions (`.github/workflows/ci.yml` was written but never executed);

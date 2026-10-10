@@ -1,3 +1,4 @@
+import { buildReview } from "@/lib/game/state/review";
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { RENDER_PROFILES, type RenderProfile } from "@/config/graphics";
@@ -160,5 +161,5 @@ export async function getSessionResults(userId: string, sessionId: string) {
   if (!session || session.game.deletedAt) return null;
   const spec = session.game.spec as unknown as GameSpec;
   const state = session.state as unknown as PlayState;
-  return { session, game: session.game, spec, summary: summarize(spec, state, (session.finishedAt ?? session.updatedAt).getTime()) };
+  return { session, game: session.game, spec, summary: summarize(spec, state, (session.finishedAt ?? session.updatedAt).getTime()), review: buildReview(spec, state) };
 }
