@@ -20,12 +20,14 @@ import {
   useToast,
 } from '../../components/ui';
 import { deleteSession, fetchSessionSummary, sessionKeys } from '../../features/sessions/api';
+import { NextSteps } from '../../features/sessions/NextSteps';
 import { formatDuration, formatRecordValue, formatSetValues } from '../../features/sessions/format';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import '../../styles/session.css';
+import '../../styles/ux-session.css';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -235,6 +237,8 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
           ))}
         </ul>
       </Card>
+
+      <NextSteps />
 
       <div className="row summary-actions">
         <LinkButton to="/" variant="primary" icon="home">

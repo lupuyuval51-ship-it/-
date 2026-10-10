@@ -3,6 +3,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { Card, LinkButton, PageHeader, QueryState } from '../../components/ui';
 import { useDashboard } from '../../features/dashboard/api';
 import { DashboardSkeleton } from '../../features/dashboard/Skeletons';
+import { GettingStartedCard } from '../../features/dashboard/GettingStartedCard';
 import { NextWorkoutCard } from '../../features/dashboard/NextWorkoutCard';
 import { NutritionTodayCard } from '../../features/dashboard/NutritionTodayCard';
 import { QuickActions } from '../../features/dashboard/QuickActions';
@@ -16,6 +17,7 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
 import '../../styles/progress.css';
 import '../../styles/dashboard.css';
+import '../../styles/ux-session.css';
 
 function greetingKey(minutes: number) {
   const hour = Math.floor(minutes / 60);
@@ -47,6 +49,7 @@ export default function DashboardPage() {
             {data.activeSession && <ResumeBanner session={data.activeSession} />}
             <div className="dash-hero">
               <NextWorkoutCard data={data} />
+              <GettingStartedCard data={data} />
               <WeeklyGoalCard data={data} />
             </div>
             <QuickActions onLogWeight={() => setWeightOpen(true)} />

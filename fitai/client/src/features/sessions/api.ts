@@ -49,6 +49,9 @@ export const deleteSet = (sessionId: string, setId: string) =>
 export const addExercise = (sessionId: string, input: AddSessionExerciseInput, key: string) =>
   timed(() => apiPost<SessionResponse>(`/sessions/${sessionId}/exercises`, input, key)).then((r) => r.session);
 
+export const replaceExercise = (sessionId: string, sessionExerciseId: string, exerciseId: string, key: string) =>
+  timed(() => apiPost<SessionResponse>(`/sessions/${sessionId}/exercises/${sessionExerciseId}/replace`, { exerciseId }, key)).then((r) => r.session);
+
 export const removeExercise = (sessionId: string, sessionExerciseId: string) =>
   timed(() => apiDelete<SessionResponse>(`/sessions/${sessionId}/exercises/${sessionExerciseId}`)).then((r) => r.session);
 

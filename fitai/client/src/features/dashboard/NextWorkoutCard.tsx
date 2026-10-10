@@ -10,9 +10,10 @@ import { errorMessage } from '../../lib/errors';
 import { relativeTimeText, useFmt } from '../progress/format';
 import { focusLabel } from '../workouts/format';
 import { startPlanWorkout } from './api';
+import { todayPlan } from './today';
 
 /** Next plan day with a one-tap start, or a clear path to creating a plan. */
-export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan' | 'nextWorkout' | 'activeSession' | 'lastWorkout'> }) {
+export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | 'activePlan' | 'nextWorkout' | 'activeSession' | 'lastWorkout' | 'weeklyGoal' | 'weekDays'> }) {
   const i18n = useI18n();
   const { t, formatDate } = i18n;
   const fmt = useFmt();
@@ -87,6 +88,7 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan
     );
   }
 
+  const today = todayPlan(data);
   const nextFocus = focusLabel(nextWorkout.focus, i18n);
   return (
     <Card title={t('dashboard.nextWorkout.title')} className="dash-next">
@@ -110,14 +112,16 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan
         <p className="small faint">{t('dashboard.nextWorkout.fromPlan', { plan: activePlan.name })}</p>
         </div>
       </div>
+      <p className="dash-today-reason small" aria-live="polite" data-testid="today-reason">
+        {t(`dashboard.today.reason.${today.reason}`, { count: today.outlook.daysLeft, days: today.outlook.daysLeft })}
+      </p>
       <div className="row dash-next-actions">
         {activeSession ? (
-          <LinkButton to="/workouts/session" variant="primary" icon="play">
-            {t('dashboard.nextWorkout.resume')}
-          </LinkButton>
+          // The resume banner above is the single primary action while a workout is open.
+          <span className="small muted">{t('dashboard.today.finishFirst')}</span>
         ) : (
-          <Button variant="primary" icon="play" loading={start.isPending} onClick={() => start.mutate(nextWorkout.workoutId)}>
-            {t('dashboard.nextWorkout.start')}
+          <Button variant={today.kind === 'trained' ? 'secondary' : 'primary'} icon="play" loading={start.isPending} onClick={() => start.mutate(nextWorkout.workoutId)}>
+            {today.kind === 'trained' ? t('dashboard.today.startAnyway') : t('dashboard.nextWorkout.start')}
           </Button>
         )}
         <LinkButton to={`/workouts/plans/${nextWorkout.planId}`} variant="ghost">

@@ -262,6 +262,33 @@ describe('editing a live session', () => {
     expect((await user.post(`/api/sessions/${s.id}/exercises`, { exerciseId: 'plank', sets: 0 })).status).toBe(400);
   });
 
+  it('replaces an exercise in place, keeping position and set count, but not once sets are logged', async () => {
+    const user = await onboardedUser(server.baseUrl);
+    const empty = await startEmpty(user);
+    let s = await addExercise(user, empty.id, 'barbell_back_squat', 4);
+    s = await addExercise(user, empty.id, 'dumbbell_curl', 2);
+    s = await addExercise(user, empty.id, 'plank', 2);
+    const curl = s.exercises[1]!;
+
+    const res = await user.post(`/api/sessions/${s.id}/exercises/${curl.id}/replace`, { exerciseId: 'lat_pulldown' });
+    expect(res.status, JSON.stringify(res.body)).toBe(200);
+    const r = res.body.session as WorkoutSessionDTO;
+    expect(r.exercises.map((e) => [e.exerciseId, e.position, e.sets.length])).toEqual([
+      ['barbell_back_squat', 0, 4],
+      ['lat_pulldown', 1, 2],
+      ['plank', 2, 2],
+    ]);
+
+    // Logged work is protected; unknown exercises and foreign sessions are rejected.
+    await completeSet(user, s.id, r.exercises[0]!.sets[0]!.id, { reps: 5, weightKg: 100 });
+    const locked = await user.post(`/api/sessions/${s.id}/exercises/${r.exercises[0]!.id}/replace`, { exerciseId: 'plank' });
+    expect(locked.status).toBe(409);
+    expect(locked.body.error.code).toBe('exercise_has_progress');
+    expect((await user.post(`/api/sessions/${s.id}/exercises/${r.exercises[1]!.id}/replace`, { exerciseId: 'no_such_exercise' })).status).toBe(404);
+    const other = await onboardedUser(server.baseUrl);
+    expect((await other.post(`/api/sessions/${s.id}/exercises/${r.exercises[1]!.id}/replace`, { exerciseId: 'plank' })).status).toBe(404);
+  });
+
   it('pauses and resumes, accumulating paused time', async () => {
     const user = await onboardedUser(server.baseUrl);
     const s = await startEmpty(user);

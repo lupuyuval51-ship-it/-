@@ -30,6 +30,34 @@ const dashboard = {
     emptyPlanBody: 'Add workouts to your plan to see what comes next.',
     lastWorkout: 'Last workout: {name} · {when}',
   },
+  today: {
+    finishFirst: 'Finish or resume your current workout first.',
+    startAnyway: 'Train again anyway',
+    reason: {
+      resume: 'You have a workout open — pick up where you left off.',
+      relaxed: 'Right on pace for your weekly goal. Today is a good day to train.',
+      tight: {
+        one: 'Only {days} day left this week — training today keeps your goal within reach.',
+        other: 'Only {days} days left this week — training today keeps your goal within reach.',
+      },
+      outOfReach: 'Not enough days left to hit this week’s goal, but every workout still counts.',
+      goalMet: 'Weekly goal reached. Another session is a bonus — listen to your body.',
+      trainedToday: 'You already trained today. Recover, eat well — the next workout is waiting.',
+      trainedTodayMet: 'You trained today and reached your weekly goal. Rest up.',
+      noPlan: 'A plan tells you exactly what to do each day.',
+      emptyPlan: 'Add workouts to your plan to see what to do today.',
+    },
+  },
+  start: {
+    title: 'Getting started',
+    progress: '{done} of {total} steps done',
+    done: 'Done',
+    steps: {
+      plan: { title: 'Create your workout plan', body: 'Tailored to your goal, equipment and schedule.', action: 'Create plan' },
+      workout: { title: 'Do your first workout', body: 'Log sets as you go; rest timers and progress tracking are built in.', action: 'Open workouts' },
+      meal: { title: 'Log your first meal', body: 'Search a food, scan a barcode or snap a photo.', action: 'Add a meal' },
+    },
+  },
   nutrition: {
     title: "Today's nutrition",
     ringLabel: 'Calories today: {value} of {target}',
@@ -55,6 +83,9 @@ const dashboard = {
     dayRest: '{day}: no workout',
     streak: { one: '{count}-week streak', other: '{count}-week streak' },
     noStreak: 'No streak yet',
+    daysLeft: { one: '{count} day left this week (including today)', other: '{count} days left this week (including today)' },
+    tight: 'You would need to train on each remaining day to reach the goal.',
+    outOfReach: 'This week’s goal is out of reach now — each workout still counts toward your progress.',
   },
   records: {
     title: 'Recent personal records',

@@ -1,0 +1,206 @@
+/* UX additions for the live workout and dashboard (layout/interaction only; logical properties throughout). */
+
+/* +/- steppers under each set input: big targets for sweaty one-handed use */
+.set-input {
+  gap: 4px;
+}
+.set-stepper {
+  display: flex;
+  gap: 4px;
+  direction: ltr; /* minus always on the left, plus on the right, like the numbers */
+}
+.set-step-btn {
+  flex: 1 1 0;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.set-step-btn:active {
+  background: var(--primary-soft, var(--surface-2));
+}
+.set-step-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.set-fields {
+  align-items: flex-start;
+}
+.set-fields .set-unit,
+.set-fields .set-times {
+  align-self: flex-start;
+  padding-block-start: 14px;
+}
+.set-fields .set-input {
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+.set-input-weight {
+  max-inline-size: 132px;
+}
+.set-input-reps {
+  max-inline-size: 112px;
+}
+.set-row-current:not(.set-row-done) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Exercise finished block */
+.exercise-done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.exercise-done-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: 700;
+  color: var(--success);
+}
+.exercise-card-tools {
+  flex-shrink: 0;
+}
+
+/* Undo strip, pinned above the mobile bottom navigation */
+.undo-strip {
+  position: fixed;
+  inset-inline: var(--space-3);
+  inset-block-end: calc(var(--bottom-nav-height, 64px) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / 0.25));
+  max-inline-size: 480px;
+  margin-inline: auto;
+}
+@media (min-width: 900px) {
+  .undo-strip {
+    inset-block-end: var(--space-4);
+    inset-inline: auto;
+    inset-inline-end: var(--space-4);
+    margin-inline: 0;
+  }
+}
+
+/* Finish dialog */
+.finish-stats {
+  display: flex;
+  gap: var(--space-5, 24px);
+  margin: 0;
+}
+.finish-stats dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.finish-stats dd {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.finish-left {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-4);
+}
+
+/* Workout settings + shortcuts */
+.session-prefs summary {
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.session-prefs-body {
+  padding-block-start: var(--space-2);
+}
+.session-shortcuts {
+  display: none;
+}
+@media (min-width: 900px) and (pointer: fine) {
+  .session-shortcuts {
+    display: block;
+  }
+}
+.session-shortcut {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+.session-shortcut dt {
+  min-inline-size: 48px;
+}
+.session-shortcut kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+/* Dashboard: getting started + today hero */
+.dash-today-reason {
+  margin: 0;
+}
+.dash-start-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dash-start-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+.dash-start-item-body {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.dash-start-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  color: var(--bg);
+}
+.dash-start-item-done .dash-start-mark {
+  background: var(--success);
+  border-color: var(--success);
+}
+.dash-start-item-done .dash-start-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.next-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .set-check,
+  .set-row {
+    transition: none;
+  }
+}

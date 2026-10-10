@@ -49,6 +49,9 @@ export const addSessionExerciseSchema = z.object({
 });
 export type AddSessionExerciseInput = z.input<typeof addSessionExerciseSchema>;
 
+export const replaceSessionExerciseSchema = z.object({ exerciseId: slugId });
+export type ReplaceSessionExerciseInput = z.infer<typeof replaceSessionExerciseSchema>;
+
 export const updateSessionExerciseSchema = z
   .object({
     restSeconds: z.number().int().min(LIMITS.restSecondsMin).max(LIMITS.restSecondsMax).optional(),

@@ -1,5 +1,5 @@
 import { ExerciseAnimation } from '../animation/ExerciseAnimation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LIMITS } from '@shared/constants';
 import { formatClock } from '@shared/training';
 import type { SessionExerciseDTO, SessionSetDTO } from '@shared/types';
@@ -53,6 +53,13 @@ export interface ExerciseCardProps {
   removePending: boolean;
   onExercisePatch(patch: ExercisePatch): void;
   onShowInfo(): void;
+  /** Replace this exercise with another one (only offered before any set is logged). */
+  onSwap(): void;
+  swapDisabled: boolean;
+  /** Name of the following exercise, or null when this is the last one. */
+  nextName: string | null;
+  onNext(): void;
+  onFinish(): void;
 }
 
 /** The current exercise: prescription, coach suggestion, last performance and the sets table. */
@@ -67,6 +74,11 @@ export function ExerciseCard({
   removePending,
   onExercisePatch,
   onShowInfo,
+  onSwap,
+  swapDisabled,
+  nextName,
+  onNext,
+  onFinish,
 }: ExerciseCardProps) {
   const i18n = useI18n();
   const { t, lt, formatDate } = i18n;
@@ -80,6 +92,22 @@ export function ExerciseCard({
   const done = exercise.sets.filter((s) => s.completed).length;
   // Without a visible weight column no load is suggested (or logged) for the set.
   const defaults = setDefaults(exercise).map((d) => (showWeight ? d : { ...d, weightKg: null }));
+  const currentSetId = exercise.sets.find((s) => !s.completed)?.id ?? null;
+  const allDone = exercise.sets.length > 0 && currentSetId == null;
+  const listRef = useRef<HTMLOListElement>(null);
+  const firstRender = useRef(true);
+
+  // Keep the set to log next in view (one-handed use: no hunting for the next row).
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    if (!currentSetId) return;
+    const row = listRef.current?.querySelector<HTMLElement>('.set-row-current');
+    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    row?.scrollIntoView?.({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+  }, [currentSetId]);
 
   return (
     <article className="card exercise-card" aria-labelledby={`ex-${exercise.id}-title`}>
@@ -97,7 +125,15 @@ export function ExerciseCard({
             {t('session.overview.setsDone', { done, total: exercise.sets.length })}
           </p>
         </div>
-        <IconButton icon="trash" label={t('session.exercise.remove')} onClick={onRemove} loading={removePending} />
+        <div className="row exercise-card-tools">
+          <IconButton
+            icon="swap"
+            label={swapDisabled ? t('session.exercise.swapLocked') : t('session.exercise.swap', { name })}
+            onClick={onSwap}
+            disabled={swapDisabled}
+          />
+          <IconButton icon="trash" label={t('session.exercise.remove')} onClick={onRemove} loading={removePending} />
+        </div>
       </header>
       <div className="exercise-card-demo">
         <ExerciseAnimation exerciseId={exercise.exerciseId} muscles={exercise.exercise.primaryMuscles} size="sm" controls={false} label={name} />
@@ -139,11 +175,11 @@ export function ExerciseCard({
       {tracking !== 'weight_reps' && <Switch label={t('session.exercise.addedWeight')} checked={addedWeight} onChange={setAddedWeight} />}
 
       <h3 className="visually-hidden">{t('session.sets.title')}</h3>
-      <ol className="set-list">
+      <ol className="set-list" ref={listRef}>
         {exercise.sets.map((s, i) => (
           <SetRow
             key={s.id}
-            current={!s.completed && exercise.sets.findIndex((x) => !x.completed) === i}
+            current={s.id === currentSetId}
             set={s}
             tracking={tracking}
             showWeight={showWeight}
@@ -155,6 +191,22 @@ export function ExerciseCard({
           />
         ))}
       </ol>
+      {allDone && (
+        <div className="exercise-done" role="status">
+          <p className="exercise-done-title">
+            <Icon name="check" size={18} /> {t('session.exercise.allDone')}
+          </p>
+          {nextName ? (
+            <Button variant="primary" iconEnd="chevronRight" onClick={onNext} block>
+              {t('session.exercise.nextUp', { name: nextName })}
+            </Button>
+          ) : (
+            <Button variant="primary" icon="check" onClick={onFinish} block>
+              {t('session.exercise.finishUp')}
+            </Button>
+          )}
+        </div>
+      )}
       <Button icon="plus" onClick={onAddSet} loading={addSetPending} block>
         {t('session.sets.add')}
       </Button>

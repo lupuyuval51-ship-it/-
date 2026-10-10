@@ -166,6 +166,9 @@ export function RestTimerCard({ timer, onChange }: { timer: RestTimerState; onCh
             <Button size="sm" variant="ghost" icon="refresh" onClick={m.reset} disabled={m.status === 'idle'} aria-label={t('session.timer.resetLabel')}>
               {t('session.timer.reset')}
             </Button>
+            <Button size="sm" variant="secondary" icon="chevronRight" onClick={m.close} aria-label={t('session.timer.skipLabel')}>
+              {t('session.timer.skip')}
+            </Button>
           </div>
         </div>
       </div>
@@ -259,7 +262,7 @@ export function RestTimerBar({ timer, onChange }: { timer: RestTimerState; onCha
         <Button size="sm" variant="ghost" onClick={() => m.adjust(15)} aria-label={t('session.timer.plus15Label')}>
           {t('session.timer.plus15')}
         </Button>
-        <IconButton icon="close" size="sm" label={t('session.timer.close')} onClick={m.close} />
+        <IconButton icon="close" size="sm" label={t('session.timer.skipLabel')} onClick={m.close} />
       </div>
     </div>
   );

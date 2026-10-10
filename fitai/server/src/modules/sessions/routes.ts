@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   addSessionExerciseSchema,
   finishSessionSchema,
+  replaceSessionExerciseSchema,
   sessionHistoryQuerySchema,
   sessionStateSchema,
   startSessionSchema,
@@ -31,6 +32,7 @@ import {
   deleteSet,
   finishSession,
   removeExercise,
+  replaceExercise,
   startSession,
   updateExercise,
   updateSet,
@@ -135,6 +137,17 @@ sessionsRouter.post('/sessions/:id/exercises', async (req, res) => {
     return sessionResponse(tx, user, id);
   });
   res.status(201).json(body);
+});
+
+sessionsRouter.post('/sessions/:id/exercises/:sessionExerciseId/replace', async (req, res) => {
+  const { id, sessionExerciseId } = parseParams(exerciseParams, req);
+  const { exerciseId } = parseBody(replaceSessionExerciseSchema, req);
+  const user = sessionUser(req);
+  const body = await db.tx(async (tx) => {
+    await replaceExercise(tx, user.id, id, sessionExerciseId, exerciseId);
+    return sessionResponse(tx, user, id);
+  });
+  res.json(body);
 });
 
 sessionsRouter.patch('/sessions/:id/exercises/:sessionExerciseId', async (req, res) => {
