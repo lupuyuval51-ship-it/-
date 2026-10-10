@@ -1,11 +1,12 @@
 /** Change password and sign out of every device. */
 import { useMutation } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { changePasswordSchema } from '@shared/schemas/auth';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, Card, Notice, PasswordField, useConfirm, useToast } from '../../components/ui';
+import { PasswordStrength } from '../../features/auth/PasswordStrength';
 import { changePassword, logoutAllDevices } from '../../features/profile/api';
 import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
@@ -21,6 +22,7 @@ export function SecuritySection() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { allowLeave } = usePageGuard();
+  const strengthId = useId();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof typeof EMPTY, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -107,7 +109,6 @@ export function SecuritySection() {
               value={form.newPassword}
               onChange={set('newPassword')}
               error={errors.newPassword}
-              hint={t('auth.fields.passwordHint')}
               required
               dir="ltr"
             />
@@ -122,6 +123,7 @@ export function SecuritySection() {
               dir="ltr"
             />
           </div>
+          <PasswordStrength password={form.newPassword} id={strengthId} />
           {formError && <Notice tone="danger">{formError}</Notice>}
           <div className="settings-actions">
             <Button type="submit" variant="primary" icon="check" loading={passwordMutation.isPending}>

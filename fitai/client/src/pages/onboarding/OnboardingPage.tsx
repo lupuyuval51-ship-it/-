@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { UNITS, type Units } from '@shared/constants';
+import { ADULT_AGE, UNITS, type Units } from '@shared/constants';
 import type { ProfileDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
-import { Button, Card, ErrorState, LinkButton, LoadingState, Notice, ProgressBar, Segmented, useToast } from '../../components/ui';
+import { Button, Card, ErrorState, LinkButton, LoadingState, Notice, ProgressBar, Segmented, useConfirm, useToast } from '../../components/ui';
 import { applyProfileChange, saveOnboarding, updateSettings, useProfile } from '../../features/profile/api';
 import {
   DEFAULT_DRAFT,
@@ -39,6 +39,7 @@ import { errorMessage } from '../../lib/errors';
 import { storage } from '../../lib/storage';
 import { ReviewStep } from './ReviewStep';
 import '../../styles/profile.css';
+import '../../styles/ux-onboarding.css';
 
 interface StoredDraft {
   v: 1;
@@ -90,6 +91,7 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
   const { user, setUser, refresh, logout } = useAuth();
   const { imperial } = useUnits();
   const toast = useToast();
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   // Fixed for the lifetime of the page (the user flips to "onboarded" while submitting).
@@ -214,7 +216,9 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
     goTo(returnToReview ? REVIEW_STEP : step + 1);
   };
 
-  const startOver = () => {
+  const startOver = async () => {
+    const ok = await confirm({ title: t('onboarding.actions.startOverTitle'), body: t('onboarding.actions.startOverBody'), confirmLabel: t('onboarding.restored.startOver'), danger: true });
+    if (!ok) return;
     const fresh = freshState(profile);
     storage.remove(ONBOARDING_DRAFT_KEY);
     changed.current = false;
@@ -301,6 +305,7 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
               {t(`onboarding.steps.${current.id}.title`)}
             </h2>
             <p className="muted">{t(`onboarding.steps.${current.id}.subtitle`)}</p>
+            {current.id === 'preferences' && <p className="small muted">{t('onboarding.actions.skipHint')}</p>}
           </div>
 
           {hasErrors && <Notice tone="danger">{t('onboarding.errors.fixErrors')}</Notice>}
@@ -317,6 +322,13 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
                 options={UNITS.map((u) => ({ value: u, label: t(`enums.units.${u}`) }))}
               />
               <AboutFields values={draft} onChange={update} errors={errors} />
+              <div aria-live="polite">
+                {draft.ageYears != null && draft.ageYears >= 13 && draft.ageYears < ADULT_AGE && (
+                  <Notice tone="info" icon="info" title={t('onboarding.notices.minorAboutTitle')}>
+                    {t('onboarding.notices.minorAbout')}
+                  </Notice>
+                )}
+              </div>
               <Notice tone="info" icon="info" title={t('onboarding.notices.whyAskedTitle')}>
                 {t('onboarding.notices.whyAsked')}
               </Notice>
@@ -353,15 +365,22 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
             <Button icon="chevronLeft" onClick={() => goTo(step - 1)} disabled={step === 0 || submit.isPending}>
               {t('onboarding.actions.back')}
             </Button>
-            {step === REVIEW_STEP ? (
-              <Button type="submit" variant="primary" icon="check" loading={submit.isPending}>
-                {t('onboarding.actions.finish')}
-              </Button>
-            ) : (
-              <Button type="submit" variant="primary" iconEnd="chevronRight">
-                {returnToReview ? t('onboarding.actions.backToReview') : t('onboarding.actions.next')}
-              </Button>
-            )}
+            <div className="onboarding-actions-end">
+              {current.id === 'preferences' && (
+                <Button variant="ghost" onClick={() => goTo(returnToReview ? REVIEW_STEP : step + 1)}>
+                  {t('onboarding.actions.skip')}
+                </Button>
+              )}
+              {step === REVIEW_STEP ? (
+                <Button type="submit" variant="primary" icon="check" loading={submit.isPending}>
+                  {t('onboarding.actions.finish')}
+                </Button>
+              ) : (
+                <Button type="submit" variant="primary" iconEnd="chevronRight">
+                  {returnToReview ? t('onboarding.actions.backToReview') : t('onboarding.actions.next')}
+                </Button>
+              )}
+            </div>
           </div>
         </form>
       </Card>
