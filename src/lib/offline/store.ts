@@ -35,6 +35,8 @@ export interface StoredGame {
   id: string;
   title: string;
   createdAt: number;
+  /** Last change (ms): drives cloud sync. */
+  updatedAt: number;
   revision: number;
   spec: GameSpec;
 }
@@ -47,6 +49,8 @@ export interface StoredSession {
   state: PlayState;
   startedAt: number;
   finishedAt: number | null;
+  /** Last change (ms): drives cloud sync. */
+  updatedAt: number;
 }
 
 export interface GameSummaryRow {
@@ -87,7 +91,16 @@ function activePercent(spec: GameSpec, sessions: StoredSession[]): number {
 }
 
 export class OfflineStore {
+  private listeners = new Set<() => void>();
+  /** True while merging cloud rows: those writes are not user changes and must not trigger another sync. */
+  private muted = false;
   constructor(private kv: KV, private clock: () => number = Date.now) {}
+
+  /** Called after every change made through the store (cloud sync debounces on it). */
+  subscribe(cb: () => void): () => void {
+    this.listeners.add(cb);
+    return () => this.listeners.delete(cb);
+  }
 
   private read<T>(key: string, fallback: T): T {
     const raw = this.kv.get(PREFIX + key);
@@ -96,6 +109,7 @@ export class OfflineStore {
   }
   private write(key: string, value: unknown): void {
     this.kv.set(PREFIX + key, JSON.stringify(value));
+    if (!this.muted) this.listeners.forEach((l) => l());
   }
 
   // ───────── games ─────────
@@ -103,7 +117,8 @@ export class OfflineStore {
   private sessionIds(gameId: string): string[] { return this.read<string[]>(`sessions.${gameId}`, []); }
 
   addGame(spec: GameSpec): StoredGame {
-    const game: StoredGame = { id: randomId(), title: spec.meta.title, createdAt: this.clock(), revision: 1, spec };
+    const now = this.clock();
+    const game: StoredGame = { id: randomId(), title: spec.meta.title, createdAt: now, updatedAt: now, revision: 1, spec };
     this.write(`game.${game.id}`, game);
     this.write("games", [game.id, ...this.gameIds()]);
     return game;
@@ -112,10 +127,9 @@ export class OfflineStore {
   getGame(id: string): StoredGame | null { return this.read<StoredGame | null>(`game.${id}`, null); }
 
   deleteGame(id: string): void {
-    for (const s of this.sessionIds(id)) this.kv.remove(PREFIX + `session.${s}`);
-    this.kv.remove(PREFIX + `sessions.${id}`);
-    this.kv.remove(PREFIX + `game.${id}`);
-    this.write("games", this.gameIds().filter((g) => g !== id));
+    this.removeGameLocally(id);
+    // remember the deletion so sync removes the game from the cloud and other phones
+    this.write("tombstones", { ...this.read<Record<string, number>>("tombstones", {}), [id]: this.clock() });
   }
 
   listGames(): GameSummaryRow[] {
@@ -136,13 +150,16 @@ export class OfflineStore {
 
   // ───────── sessions ─────────
   getSession(id: string): StoredSession | null { return this.read<StoredSession | null>(`session.${id}`, null); }
-  private saveSession(s: StoredSession): void { this.write(`session.${s.id}`, s); }
+  private saveSession(s: StoredSession): void { s.updatedAt = this.clock(); this.write(`session.${s.id}`, s); }
 
   startSession(gameId: string, restart: boolean): { session: StoredSession; spec: PublicSpec; client: ClientState; maxScore: number; resumed: boolean; game: StoredGame } {
     const game = this.getGame(gameId);
     if (!game) throw new OfflineError(404, "NOT_FOUND", "Game not found.");
     const now = this.clock();
-    const active = this.sessionIds(gameId).map((s) => this.getSession(s)).find((s) => s?.status === "ACTIVE") ?? null;
+    const actives = this.sessionIds(gameId).map((s) => this.getSession(s)).filter((s): s is StoredSession => s?.status === "ACTIVE");
+    const active = actives[0] ?? null;
+    // two phones can each have an unfinished run after a sync: keep the newest, close the others
+    for (const extra of actives.slice(1)) this.saveSession({ ...extra, status: "ABANDONED", finishedAt: now });
     let session: StoredSession | null = null;
     let resumed = false;
     if (active && restart) this.saveSession({ ...active, status: "ABANDONED", finishedAt: now });
@@ -155,7 +172,7 @@ export class OfflineStore {
       }
     }
     if (!session) {
-      session = { id: randomId(), gameId, revision: game.revision, status: "ACTIVE", state: initialState(game.spec, now), startedAt: now, finishedAt: null };
+      session = { id: randomId(), gameId, revision: game.revision, status: "ACTIVE", state: initialState(game.spec, now), startedAt: now, finishedAt: null, updatedAt: now };
       this.write(`sessions.${gameId}`, [session.id, ...this.sessionIds(gameId)]);
     }
     this.saveSession(session);
@@ -224,7 +241,8 @@ export class OfflineStore {
     const deck = this.deck();
     const now = this.clock();
     const games = new Set(this.gameIds());
-    for (const k of Object.keys(deck)) if (!games.has(deck[k]!.gameId)) delete deck[k];
+    let changed = false;
+    for (const k of Object.keys(deck)) if (!games.has(deck[k]!.gameId)) { delete deck[k]; changed = true; }
     for (const gameId of games) {
       for (const sid of this.sessionIds(gameId)) {
         const s = this.getSession(sid);
@@ -232,16 +250,16 @@ export class OfflineStore {
         for (const [challengeId, r] of Object.entries(s.state.records)) {
           if (!r.resolved || (r.wrong === 0 && !r.revealed)) continue;
           const card = newCard(gameId, challengeId, now);
-          if (!deck[card.key]) deck[card.key] = card;
+          if (!deck[card.key]) { deck[card.key] = card; changed = true; }
         }
       }
     }
-    this.saveDeck(deck);
+    if (changed) this.saveDeck(deck);
     return deck;
   }
 
   deckSummary(): { total: number; due: number; nextDue: number | null } {
-    const cards = Object.values(this.syncDeck());
+    const cards = Object.values(this.syncDeck()).filter((c) => !c.mastered);
     const now = this.clock();
     const future = cards.filter((c) => c.due > now).map((c) => c.due);
     return { total: cards.length, due: cards.filter((c) => c.due <= now).length, nextDue: future.length ? Math.min(...future) : null };
@@ -270,8 +288,7 @@ export class OfflineStore {
     const revealed = !graded.correct && resolved;
     if (resolved) {
       const next = review(card, graded.correct && b.attempt === 1, now);
-      if (next) deck[card.key] = next;
-      else delete deck[card.key];
+      deck[card.key] = next ?? { ...card, mastered: true, updatedAt: now };
       this.saveDeck(deck);
     }
     return {
@@ -282,5 +299,97 @@ export class OfflineStore {
         reveal: revealed ? revealSolution(ch) : undefined,
       },
     };
+  }
+
+  // ───────── cloud sync surface (see sync.ts) ─────────
+
+  /** Everything changed on this device after `since` (ms), plus deletions, for pushing. */
+  changesSince(since: number): { games: StoredGame[]; sessions: StoredSession[]; cards: DeckCard[]; deletedGames: { id: string; at: number }[] } {
+    const games: StoredGame[] = [];
+    const sessions: StoredSession[] = [];
+    for (const id of this.gameIds()) {
+      const g = this.getGame(id);
+      if (!g) continue;
+      if ((g.updatedAt ?? g.createdAt) > since) games.push(g);
+      for (const sid of this.sessionIds(id)) {
+        const s = this.getSession(sid);
+        if (s && (s.updatedAt ?? s.startedAt) > since) sessions.push(s);
+      }
+    }
+    const cards = Object.values(this.deck()).filter((c) => (c.updatedAt ?? c.added) > since);
+    const tomb = this.read<Record<string, number>>("tombstones", {});
+    const deletedGames = Object.entries(tomb).filter(([, at]) => at > since).map(([id, at]) => ({ id, at }));
+    return { games, sessions, cards, deletedGames };
+  }
+
+  /**
+   * Merge rows pulled from the cloud. A local record that changed after the last successful push and is at least as new as
+   * the remote one wins (it is pushed next); otherwise the remote record replaces it. A game deleted on either side stays deleted.
+   */
+  applyRemote(rows: { games: (StoredGame & { deletedAt: number | null })[]; sessions: StoredSession[]; cards: DeckCard[] }, lastPushMs: number): number {
+    this.muted = true;
+    try {
+      return this.mergeRemote(rows, lastPushMs);
+    } finally {
+      this.muted = false;
+    }
+  }
+
+  private mergeRemote(rows: { games: (StoredGame & { deletedAt: number | null })[]; sessions: StoredSession[]; cards: DeckCard[] }, lastPushMs: number): number {
+    let applied = 0;
+    const tomb = this.read<Record<string, number>>("tombstones", {});
+    const dirtyAndNewer = (local: number | undefined, remote: number) => local !== undefined && local > lastPushMs && local >= remote;
+    // Server timestamps must never make a pulled record look like a local change (the phone and server clocks differ):
+    // a record taken from the cloud is stored as "clean", i.e. not newer than the last push.
+    const clean = (remote: number) => Math.min(remote, lastPushMs);
+
+    for (const r of rows.games) {
+      if (tomb[r.id] !== undefined) continue; // deleted here: the push removes it remotely
+      const local = this.getGame(r.id);
+      if (r.deletedAt !== null) {
+        if (local) { this.removeGameLocally(r.id); applied++; }
+        continue;
+      }
+      if (local && dirtyAndNewer(local.updatedAt ?? local.createdAt, r.updatedAt)) continue;
+      const { deletedAt: _d, ...game } = r;
+      void _d;
+      game.updatedAt = clean(r.updatedAt);
+      this.write(`game.${game.id}`, game);
+      if (!local) this.write("games", [game.id, ...this.gameIds()]);
+      applied++;
+    }
+
+    for (const r of rows.sessions) {
+      if (!this.getGame(r.gameId) || tomb[r.gameId] !== undefined) continue;
+      const local = this.getSession(r.id);
+      if (local && dirtyAndNewer(local.updatedAt ?? local.startedAt, r.updatedAt)) continue;
+      this.write(`session.${r.id}`, { ...r, updatedAt: clean(r.updatedAt) });
+      if (!local) {
+        const ids = [...this.sessionIds(r.gameId), r.id];
+        const started = (id: string) => (id === r.id ? r.startedAt : this.getSession(id)?.startedAt ?? 0);
+        this.write(`sessions.${r.gameId}`, ids.sort((a, b) => started(b) - started(a)));
+      }
+      applied++;
+    }
+
+    if (rows.cards.length > 0) {
+      const deck = this.deck();
+      for (const r of rows.cards) {
+        if (!this.getGame(r.gameId) || tomb[r.gameId] !== undefined) continue;
+        const local = deck[r.key];
+        if (local && dirtyAndNewer(local.updatedAt ?? local.added, r.updatedAt)) continue;
+        deck[r.key] = { ...r, updatedAt: clean(r.updatedAt) };
+        applied++;
+      }
+      this.saveDeck(deck);
+    }
+    return applied;
+  }
+
+  private removeGameLocally(id: string): void {
+    for (const s of this.sessionIds(id)) this.kv.remove(PREFIX + `session.${s}`);
+    this.kv.remove(PREFIX + `sessions.${id}`);
+    this.kv.remove(PREFIX + `game.${id}`);
+    this.write("games", this.gameIds().filter((g) => g !== id));
   }
 }

@@ -10,7 +10,7 @@ LEVEL UP הופכת את מה שאתם לומדים להרפתקה תלת־ממ�
 • ניקוד, רמזים, כוכבים ומסך "החזרה על הטעויות" עם תרגול של מה שפספסתם.
 • "חזרה על הטעויות שלי": כל השאלות שפספסתם בכל המשחקים חוזרות בזמן הנכון (חזרה מרווחת: 1, 3, 7, 16 ימים).
 • עברית ואנגלית, שליטה במגע, שלוש רמות גרפיקה לטלפונים חזקים וחלשים.
-• פרטיות מלאה: הכול נשאר בטלפון. אין חשבון, אין פרסומות, אין מעקב, אין צורך באינטרנט.
+• פרטיות: בלי חשבון הכול נשאר בטלפון ולא צריך אינטרנט. חשבון אופציונלי מגבה ומסנכרן בין טלפונים. אין פרסומות ואין מעקב.
 שימו לב: המשחקים נבנים על ידי מנוע מבוסס חוקים או מגיעים מתבניות הדגמה – לא על ידי בינה מלאכותית.
 
 ## English (en-US)
@@ -23,12 +23,19 @@ LEVEL UP turns what you study into a 3D adventure.
 • Score, hints, stars and a "review your mistakes" screen with practice for what you missed.
 • "Review my mistakes": every question you missed, in every game, comes back at the right time (spaced repetition: 1, 3, 7, 16 days).
 • Hebrew and English, touch controls, three graphics levels for strong and older phones.
-• Fully private: everything stays on your phone. No account, no ads, no tracking, no internet needed.
+• Private: without an account everything stays on your phone and no internet is needed. An optional account backs up and syncs between phones. No ads, no tracking.
 Note: games are built by a rule-based engine or come from demo templates — not by AI.
 
 ## Play Console answers (as built)
 - Ads: **No**. In-app purchases: **No** (version 1 is free).
-- Data safety: **No data collected, no data shared.** (All data stays on device; nothing is transmitted.)
+- Data safety (version 1.2.0+, with the optional account):
+  - Data collected: **Personal info → Email address** (account management) and **App activity → Other user-generated content**
+    (games, progress, review list — app functionality, backup/sync). Both **optional** (only with an account).
+  - Shared with third parties: **No**. Processed by our backend provider Supabase on our behalf (that is not "sharing").
+  - Encrypted in transit: **Yes**. Users can request deletion: **Yes** (in-app + web page `account-deletion.md`).
+  - Without an account nothing is collected.
 - Target audience: choose your ages. If you include under-13s, the Families policy applies — the app has no ads, no data collection and no external links, which is what that policy asks for.
 - Content rating questionnaire: educational, no violence/sexual content/gambling, no user-to-user communication.
 - Privacy policy URL: host `privacy-policy.md` (e.g. GitHub Pages or Google Sites) and paste the link.
+- Data deletion URL (required because the app lets people create accounts): host `account-deletion.md` and paste the link.
+- App access for reviewers: no login is needed to use the app (the account is optional), so no test credentials are required.

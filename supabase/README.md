@@ -1,7 +1,7 @@
 # Supabase (planned): optional account + cloud backup for the Android app
 
-Status: **schema written, project not created yet.** Creating a Supabase project is a billing-relevant action that has to be
-approved by the account owner (the free plan costs nothing; Supabase shows the price before creation).
+Status: **live.** Project `level-up` (`dytftgtyugvzfumdcoep`, eu-central-1, free plan), migrations in `migrations/` applied,
+edge function `functions/delete-account` deployed (JWT required), security advisor clean, RLS checks in `tests/rls_checks.sql`.
 
 Planned scope (the app keeps working offline, sign-in is optional):
 - E-mail sign-in (Supabase Auth). Games, play progress and the review deck are backed up per user and synced between phones

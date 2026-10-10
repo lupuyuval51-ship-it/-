@@ -5,10 +5,12 @@ What was verified in the build environment, and what only you can do in Google P
 ## Verified here (not a substitute for a real device)
 - AAB/APK built with Android Gradle Plugin **8.10.1** (supports API 36), Gradle 8.11.1, `compileSdk 36`, `targetSdk 36`, `minSdk 23`.
 - Signed; `jarsigner -verify` and `apksigner verify` pass. Package `app.levelup.learn3d`.
-- The app makes **no network request at all** (tested with the network blocked) and never loads Unity files: Unity is an optional
-  *website* renderer; the app always uses the built-in 3D renderer (`allowUnity={false}`, tested).
-- CSP is `connect-src 'self'` on purpose: the app has no server, API or CDN. If you ever add one, add that exact domain to
-  `mobile/index.html` (never `*`) and set CORS on that server for the app origin `https://localhost`.
+- Without an account the app makes **no network request at all** (tested with the network blocked) and never loads Unity files:
+  Unity is an optional *website* renderer; the app always uses the built-in 3D renderer (`allowUnity={false}`, tested).
+- With the optional account it talks only to the Supabase project `https://dytftgtyugvzfumdcoep.supabase.co` — the only extra
+  entry in the CSP `connect-src` (no `*`). The `delete-account` function allows the app origins only (CORS allow-list).
+- Supabase project: owner-only row level security on every table, checked with `supabase/tests/rls_checks.sql`; Supabase security
+  advisor: no warnings. Account deletion: in-app button → edge function → Auth admin API.
 - Phone-size browser tests (Pixel 7 viewport): create → play → answer → save → resume, back button, vibration setting, review deck,
   Hebrew/English, no overlapping HUD, no raw template text.
 
@@ -28,11 +30,20 @@ What was verified in the build environment, and what only you can do in Google P
 4. New personal developer accounts may need a closed test with a minimum number of testers for a minimum period before production
    access — check *Dashboard → Release your app* in Play Console for the current requirement.
 
+## 2b. Supabase settings only you can change (dashboard)
+- *Authentication → Sign In / Providers → Email*: either turn **Confirm email** off, or keep it on and set *URL Configuration → Site URL*
+  to a page you host (e.g. the privacy page). With the defaults, the confirmation link in the email opens `localhost:3000`,
+  which a phone cannot load (the account is still confirmed, but the page looks broken).
+- *Authentication → Emails*: Supabase's built-in email sender is rate-limited and meant for testing; connect your own SMTP
+  before many users sign up.
+- Password reset is not built into the app yet (it needs a hosted reset page or deep link). A user who forgets the password keeps
+  all games on the phone and can create a new account.
+
 ## 3. Store listing and policy (you)
 - App name, short and full description (he/en): `listing.md`.
 - Icon 512×512 `play-icon-512.png`, feature graphic 1024×500 `feature-graphic-1024x500.png`, phone screenshots in `screenshots/`
   (regenerate with `node mobile/shots.mjs`; Play needs at least 2).
 - Privacy policy: host `privacy-policy.md` at a public URL, add your support e-mail, paste the URL.
-- Data safety form: *no data collected, no data shared*; no data is sent off the device (see `listing.md`).
+- Data safety form and Data deletion URL: answers in `listing.md`; deletion page `account-deletion.md`.
 - Content rating questionnaire; target audience and ads declaration (**no ads**); no in-app purchases in this version.
-- No login in the app → no test-account credentials are needed for reviewers.
+- The account is optional → reviewers can use the whole app without credentials.

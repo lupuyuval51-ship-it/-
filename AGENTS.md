@@ -18,8 +18,12 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 
 ## Offline Android app (`mobile/`, `android/`, `src/lib/offline`)
 
-- A deliberate, documented exception: no server, so the reducer, answer keys and scoring run on the device. Keep it free of
-  accounts, payments, AI keys and network calls (CSP `connect-src 'self'`). Never import server code (`server-only` throws in that bundle).
+- A deliberate, documented exception: no server, so the reducer, answer keys and scoring run on the device. Never import server
+  code (`server-only` throws in that bundle). No payments and no AI keys in the app.
+- Optional account + cloud backup through Supabase (`mobile/src/cloud`, `src/lib/offline/sync.ts`, `supabase/`): only the URL and
+  the *publishable* key are in the app; every table is owner-only (RLS, tested by `supabase/tests/rls_checks.sql`). Signed out,
+  the app makes no network request (tested). CSP `connect-src` lists exactly `'self'` and the project URL — never `*`.
+  Schema changes go through `supabase/migrations/`; re-run the Supabase security advisor afterwards.
 - Paid features there must use Google Play Billing, never Stripe. Generated games must still pass `validateGameSpec` and keep their `generatorKind` label.
 - Run `npm run test:e2e:mobile` for changes that affect it.
 

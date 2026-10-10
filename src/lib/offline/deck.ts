@@ -23,25 +23,29 @@ export interface DeckCard {
   due: number;
   added: number;
   reviews: number;
+  /** Last change (ms): drives cloud sync. */
+  updatedAt: number;
+  /** Graduated after the last box. Kept (not deleted) so another phone does not bring the card back. */
+  mastered: boolean;
 }
 
 export const deckKey = (gameId: string, challengeId: string) => `${gameId}.${challengeId}`;
 
 export function newCard(gameId: string, challengeId: string, now: number): DeckCard {
-  return { key: deckKey(gameId, challengeId), gameId, challengeId, box: 1, due: now, added: now, reviews: 0 };
+  return { key: deckKey(gameId, challengeId), gameId, challengeId, box: 1, due: now, added: now, reviews: 0, updatedAt: now, mastered: false };
 }
 
 /** Result of one review. Returns null when the card is mastered (it leaves the deck). */
 export function review(card: DeckCard, firstTryCorrect: boolean, now: number): DeckCard | null {
-  if (!firstTryCorrect) return { ...card, box: 1, due: now + RETRY_DELAY_MS, reviews: card.reviews + 1 };
+  if (!firstTryCorrect) return { ...card, box: 1, due: now + RETRY_DELAY_MS, reviews: card.reviews + 1, updatedAt: now };
   if (card.box >= MASTERED_AFTER_BOX) return null;
   const days = BOX_INTERVAL_DAYS[card.box - 1]!;
-  return { ...card, box: card.box + 1, due: now + days * DAY, reviews: card.reviews + 1 };
+  return { ...card, box: card.box + 1, due: now + days * DAY, reviews: card.reviews + 1, updatedAt: now };
 }
 
 /** The cards to ask now: due ones, oldest first, at most one session's worth. */
 export function dueCards(cards: readonly DeckCard[], now: number, max = MAX_PER_SESSION): DeckCard[] {
-  return cards.filter((c) => c.due <= now).sort((a, b) => a.due - b.due || a.added - b.added).slice(0, max);
+  return cards.filter((c) => !c.mastered && c.due <= now).sort((a, b) => a.due - b.due || a.added - b.added).slice(0, max);
 }
 
 export const deckBodySchema = z.discriminatedUnion("action", [

@@ -11,8 +11,13 @@ Phone-only features:
   back a screen, and from the library it closes the app.
 - **Vibration** (`@capacitor/haptics`) on right/wrong answers, pickups, gates and missions; switch off in Settings.
 
+- **Optional account + cloud backup** (Supabase): e-mail sign-in in Settings; games, progress and the review deck are pushed and
+  pulled automatically (on start, when the app comes back, 15 s after a change, when back online). Last write wins; a deleted game
+  stays deleted on every phone. Signed out, nothing is sent. Details and dashboard settings: `supabase/README.md`,
+  `mobile/store/release-checklist.md`.
+
 What is different from the website (by design):
-- No accounts, no Stripe, no AI providers (an API key cannot live in an app). Games come from the **study engine** (your
+- No Stripe and no AI providers (a secret key cannot live in an app); the account is optional and only for backup/sync. Games come from the **study engine** (your
   notes) or **demo templates**, and are labelled that way.
 - Answer keys are on the device, so scores are for self-practice, not for anything that must be cheat-proof.
 - Graphics tier A/B/C is a Settings choice for the phone's power (there are no paid plans in the app). Default: B, or A on

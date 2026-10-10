@@ -39,6 +39,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@react-three/fiber": "^9.8.1",
+    "@supabase/supabase-js": "^2.117.3",
     "lucide-react": "^1.55.0",
     "next": "^16.4.0",
     "pg": "^8.23.1",
