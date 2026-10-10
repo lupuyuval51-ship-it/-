@@ -103,3 +103,14 @@ test("notes the engine cannot use give a clear message instead of a broken game"
   await page.getByTestId("mobile-create-submit").click();
   await expect(page.getByTestId("mobile-create-error")).toBeVisible();
 });
+
+test("'Try an example' fills real notes, the help explains the format, and the example builds a game", async ({ page }) => {
+  await page.goto("/#/create");
+  await page.getByTestId("notes-help").locator("summary").click();
+  await expect(page.getByTestId("notes-help")).toContainText(/מושג: הסבר/);
+  await page.getByTestId("example-notes").click();
+  await expect(page.locator("#subject")).toHaveValue("מחזור המים");
+  await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "1");
+  await page.getByTestId("mobile-create-submit").click();
+  await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "engine", { timeout: 60_000 });
+});

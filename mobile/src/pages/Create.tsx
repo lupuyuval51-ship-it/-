@@ -6,6 +6,7 @@ import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { generateOfflineWithProgress, OfflineGenerationError, type OfflineStage } from "@/lib/offline/generate";
 import { store } from "../app-state";
+import { EXAMPLE_NOTES } from "./examples";
 import { navigate } from "../router";
 
 export function CreatePage() {
@@ -50,6 +51,24 @@ export function CreatePage() {
       <Field label={t("create.subject")} htmlFor="subject" error={error && !subject.trim() ? t("create.error.required") : null}>
         <Input id="subject" value={subject} maxLength={INPUT_LIMITS.subjectMax} onChange={(e) => setSubject(e.target.value)} placeholder={t("create.subject.placeholder")} required />
       </Field>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" size="sm" variant="secondary" data-testid="example-notes" onClick={() => {
+          const ex = EXAMPLE_NOTES[language];
+          setSubject(ex.subject);
+          setMaterial(ex.notes);
+          setError(null);
+        }}>{t("mob.create.example")}</Button>
+        <details className="text-sm" data-testid="notes-help">
+          <summary className="cursor-pointer font-medium text-neon">{t("mob.create.help.title")}</summary>
+          <ul className="mt-2 list-disc space-y-1 ps-5 text-muted">
+            <li>{t("mob.create.help.terms")}</li>
+            <li>{t("mob.create.help.steps")}</li>
+            <li>{t("mob.create.help.qa")}</li>
+            <li>{t("mob.create.help.facts")}</li>
+            <li>{t("mob.create.help.length")}</li>
+          </ul>
+        </details>
+      </div>
       <Field label={t("create.material")} hint={t("mob.create.material.hint")} htmlFor="material">
         <Textarea id="material" dir="auto" rows={7} value={material} maxLength={INPUT_LIMITS.materialMax} onChange={(e) => setMaterial(e.target.value)} placeholder={t("create.material.placeholder")} />
       </Field>
