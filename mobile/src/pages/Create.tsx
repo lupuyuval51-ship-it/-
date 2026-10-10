@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { MaterialPreview } from "@/components/create/MaterialPreview";
 import { useLocale, useT } from "@/components/I18nProvider";
-import { Alert, Arrow, Button, Field, Input, Select, Textarea } from "@/components/ui";
+import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
-import { generateOffline, OfflineGenerationError } from "@/lib/offline/generate";
+import { generateOfflineWithProgress, OfflineGenerationError, type OfflineStage } from "@/lib/offline/generate";
 import { store } from "../app-state";
 import { navigate } from "../router";
 
@@ -20,26 +20,27 @@ export function CreatePage() {
   const [language, setLanguage] = useState<"he" | "en">(locale);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!subject.trim()) { setError(t("create.error.required")); return; }
     setBusy(true);
     setError(null);
-    // Let the "building" state paint before the (synchronous) engine runs.
-    setTimeout(() => {
-      try {
-        const { spec } = generateOffline({
-          mode, subject: subject.trim(), learningGoal: goal.trim() || subject.trim(), difficulty, gameType, contentLanguage: language,
-          material: material.trim() || undefined,
-        });
-        const game = store.addGame(spec);
-        navigate(`/play/${game.id}`, true);
-      } catch (err) {
-        setError(err instanceof OfflineGenerationError && err.code === "MATERIAL_UNUSABLE" ? t("mob.create.error.material") : t("mob.create.error.generic"));
-        setBusy(false);
-      }
-    }, 30);
+    setProgress({ percent: 0, stage: "reading" });
+    try {
+      const { spec } = await generateOfflineWithProgress({
+        mode, subject: subject.trim(), learningGoal: goal.trim() || subject.trim(), difficulty, gameType, contentLanguage: language,
+        material: material.trim() || undefined,
+      }, (percent, stage) => setProgress({ percent, stage }));
+      setProgress({ percent: 95, stage: "saving" });
+      const game = store.addGame(spec);
+      setProgress({ percent: 100, stage: "saving" });
+      navigate(`/play/${game.id}`, true);
+    } catch (err) {
+      setError(err instanceof OfflineGenerationError && err.code === "MATERIAL_UNUSABLE" ? t("mob.create.error.material") : t("mob.create.error.generic"));
+      setBusy(false);
+    }
   }
 
   return (
@@ -81,6 +82,12 @@ export function CreatePage() {
         </Field>
       </div>
       {error && <Alert tone="error" data-testid="mobile-create-error">{error}</Alert>}
+      {busy && (
+        <div className="space-y-2" role="status" aria-live="polite" data-testid="mobile-progress" data-percent={progress.percent}>
+          <p className="text-sm font-semibold">{t(`mob.stage.${progress.stage}`)} <span className="ltr-num">{progress.percent}%</span></p>
+          <ProgressBar value={progress.percent} label={t("mob.create.building")} />
+        </div>
+      )}
       <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="mobile-create-submit">{busy ? t("mob.create.building") : t("create.submit")}</Button>
     </form>
   );

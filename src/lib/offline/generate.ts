@@ -57,3 +57,18 @@ export function generateOffline(input: unknown, now = new Date()): { spec: GameS
     : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
   return { spec, warnings: [...notes, ...res.warnings] };
 }
+
+export type OfflineStage = "reading" | "building" | "checking" | "saving";
+
+/** Real stages of the build with a percentage; yields to the UI between stages so the bar actually paints. */
+export async function generateOfflineWithProgress(input: unknown, onProgress: (percent: number, stage: OfflineStage) => void, now = new Date()): Promise<{ spec: GameSpec; warnings: string[] }> {
+  const tick = () => new Promise<void>((r) => setTimeout(r, 150));
+  onProgress(5, "reading");
+  await tick();
+  onProgress(30, "building");
+  await tick();
+  const result = generateOffline(input, now); // parse notes → challenges → world → validation (runs in one go)
+  onProgress(85, "checking");
+  await tick();
+  return result;
+}

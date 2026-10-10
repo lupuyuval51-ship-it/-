@@ -41,6 +41,7 @@ test("Hebrew by default, no network: build a game from notes, play a challenge, 
   await page.locator("#material").fill(NOTES);
   await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "1");
   await page.getByTestId("mobile-create-submit").click();
+  await expect(page.getByTestId("mobile-progress")).toBeVisible(); // the percentage meter shows while building
   await waitForWorld(page);
   await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "engine");
 
