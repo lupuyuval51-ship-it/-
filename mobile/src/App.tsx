@@ -45,7 +45,7 @@ export function App() {
   const play = path.startsWith("/play/");
   return (
     <I18nProvider locale={locale} dict={dict}>
-      {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5"><div key={path} className="lu-page">{route(path)}</div></main>}
+      {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div key={path} className="lu-page">{route(path)}</div></main>}
     </I18nProvider>
   );
 }

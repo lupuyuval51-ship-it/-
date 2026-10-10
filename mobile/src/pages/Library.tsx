@@ -25,7 +25,8 @@ export function LibraryPage() {
         </div>
         <a href="#/settings" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm font-semibold" data-testid="mobile-settings">{t("mob.settings")}</a>
       </header>
-      <a href="#/create" data-testid="mobile-new" className="flex min-h-14 items-center justify-center rounded-2xl bg-neon text-lg font-bold text-ink-950">+ {t("mob.new")}</a>
+      <div className="space-y-5 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">
+      <a href="#/create" data-testid="mobile-new" className="flex min-h-14 items-center justify-center rounded-2xl bg-neon text-lg font-bold text-ink-950 md:min-h-16">+ {t("mob.new")}</a>
       {deck.total > 0 && (
         <a href="#/review" data-testid="deck-open" data-due={deck.due} className="flex min-h-14 items-center gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 shadow-e1 transition hover:border-violet active:scale-[0.99]">
           <RotateCcw aria-hidden className="size-5 shrink-0 text-violet-soft" />
@@ -36,16 +37,17 @@ export function LibraryPage() {
           <Arrow />
         </a>
       )}
+      </div>
       <h2 className="text-lg font-semibold">{t("lib.title")}</h2>
       {games.length === 0 ? (
         <Card elevation="flat" className="py-0">
           <StateView kind="empty" data-testid="mobile-empty" title={t("lib.empty.title")} text={t("lib.empty.text")} actions={<a href="#/create" className={primaryLink}>{t("lib.empty.cta")}</a>} />
         </Card>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 md:grid-cols-2" data-testid="mobile-games">
           {games.map((g) => (
-            <li key={g.id}>
-              <Card interactive className="space-y-3" data-testid="mobile-game">
+            <li key={g.id} className="flex">
+              <Card interactive className="w-full space-y-3" data-testid="mobile-game">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 dir="auto" className="me-auto text-lg font-semibold">{g.title}</h3>
                   <GeneratorBadge kind={g.generatorKind} provider={g.generatorKind} t={t} />

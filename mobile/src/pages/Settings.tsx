@@ -14,6 +14,8 @@ export function SettingsPage() {
     <div className="space-y-4" data-testid="mobile-settings-page">
       <a href="#/" className="text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
       <h1 className="text-2xl font-extrabold">{t("mob.settings")}</h1>
+      <div className="space-y-4 md:grid md:grid-cols-2 md:items-start md:gap-x-8 md:space-y-0" data-testid="settings-columns">
+      <div className="space-y-4">
       <Field label={t("mob.settings.language")} htmlFor="locale">
         <Select id="locale" value={s.locale} onChange={(e) => setSettings({ locale: e.target.value as "he" | "en" })}>
           <option value="he">{t("lang.he")}</option>
@@ -30,6 +32,8 @@ export function SettingsPage() {
           {GRAPHICS_TIERS.map((x) => <option key={x} value={x}>{t(`tier.${x}`)}</option>)}
         </Select>
       </Field>
+      </div>
+      <div className="space-y-4">
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.sound} onChange={(e) => setSettings({ sound: e.target.checked })} />{t("hud.sound")}</label>
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.vibration} onChange={(e) => setSettings({ vibration: e.target.checked })} />{t("mob.settings.vibration")}</label>
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.music} onChange={(e) => setSettings({ music: e.target.checked })} />{t("hud.music")}</label>
@@ -39,6 +43,9 @@ export function SettingsPage() {
         <p>{t("mob.settings.privacy")}</p>
         <p>{t("mob.settings.about")}</p>
       </Card>
+      </div>
+      </div>
+      <AccountPanel />
       <Button variant="danger" onClick={() => {
         if (!window.confirm(t("mob.settings.clear.confirm"))) return;
         for (const g of store.listGames()) store.deleteGame(g.id);
