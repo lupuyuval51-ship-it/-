@@ -163,7 +163,7 @@ PostgreSQL schema (`server/src/db/migrations/0001_init.sql` and later files): us
 - **Client**: Vitest + jsdom for i18n completeness and pure UI logic.
 - **E2E**: Playwright drives the production build in Chromium (desktop & mobile viewports) against an isolated database and a fake LLM: `npm run build && npm run test:e2e`.
 
-Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓ (119 exercises, 198 foods, 36 meal templates, 0 errors) · **487 server tests** (30 files) · **110 client tests** (14 files) · production build ✓ · **50 Playwright browser tests passed** (2 skipped by design: mobile-only layouts on the desktop project). Animations are additionally checked for full coverage, valid poses and seamless loops.
+Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓ (119 exercises, 198 foods, 36 meal templates, 0 errors) · **495 server tests** (31 files) · **151 client tests** (21 files) · production build ✓ · **88 Playwright browser tests passed** (2 skipped by design: mobile-only layouts on the desktop project). Animations are additionally checked for full coverage, valid poses and seamless loops.
 
 ---
 

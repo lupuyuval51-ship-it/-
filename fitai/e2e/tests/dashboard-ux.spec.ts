@@ -8,13 +8,10 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function generateAndActivatePlan(page: Page) {
-  await page.goto('/workouts');
-  await page.getByRole('button', { name: 'Generate your first plan' }).click();
-  await page.getByRole('radio', { name: '3' }).click();
-  await page.getByRole('button', { name: 'Generate plan' }).click();
+  // One-tap generation; with no active plan yet it is activated right away.
+  await page.goto('/workouts?tab=generate');
+  await page.getByRole('button', { name: 'Generate my plan' }).click();
   await expect(page).toHaveURL(/\/workouts\/plans\/[0-9a-f-]{36}$/, { timeout: 30_000 });
-  await page.getByRole('button', { name: 'Set as active plan' }).click();
-  await expect(page.getByText('This is now your active plan')).toBeVisible();
 }
 
 test('dashboard guides a new user, then offers one clear action for today and a resume banner @mobile', async ({ page }) => {
