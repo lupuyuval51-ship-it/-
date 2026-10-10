@@ -29,6 +29,10 @@ const onboarding = {
     editStep: 'Edit: {step}',
     cancel: 'Back to profile',
     logout: 'Log out',
+    skip: 'Skip this step',
+    skipHint: 'Everything on this page is optional. You can add it later in your profile.',
+    startOverTitle: 'Start over?',
+    startOverBody: 'This clears the answers you entered so far on this device.',
   },
   units: {
     label: 'Units',
@@ -97,6 +101,8 @@ const onboarding = {
     mealsPerDay: 'Meals per day',
   },
   notices: {
+    minorAboutTitle: 'Training that fits your age',
+    minorAbout: 'Because you are under 18, your plan uses age-appropriate limits: no calorie deficits and no max-effort lifts. Your profile stays private.',
     whyAskedTitle: 'Why we ask',
     whyAsked:
       'Age, sex, height and weight are used only to estimate your daily energy needs (Mifflin-St Jeor formula). If you prefer not to state your sex, we use an average of both formulas.',

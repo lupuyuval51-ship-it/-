@@ -3,7 +3,7 @@
  * both always offer the same choices, units and validation messages. Every control sits in
  * a `data-field` container so the first invalid field can be focused.
  */
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
   ACTIVITY_LEVELS,
   ADULT_AGE,
@@ -37,10 +37,32 @@ export interface FieldsProps<K extends keyof ProfileDraft> {
   errors: FieldErrors;
 }
 
-/** Container used to find and focus the first invalid control. */
-export function FieldSlot({ name, children, className }: { name: string; children: ReactNode; className?: string }) {
+/**
+ * Container used to find and focus the first invalid control. With `error`, the group control
+ * inside (radiogroup / fieldset of a segmented control, chips or cards, which have no error slot
+ * of their own) is marked invalid and described by the error text.
+ */
+export function FieldSlot({ name, children, className, error }: { name: string; children: ReactNode; className?: string; error?: string | null }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = ref.current;
+    const group = root?.querySelector<HTMLElement>('[role="radiogroup"], fieldset');
+    if (!root || !group) return;
+    const errorEl = error ? root.querySelector<HTMLElement>('.field-error') : null;
+    if (errorEl) {
+      errorEl.id ||= `${name}-error`;
+      if (group.dataset.prevDescribedby === undefined) group.dataset.prevDescribedby = group.getAttribute('aria-describedby') ?? '';
+      group.setAttribute('aria-invalid', 'true');
+      group.setAttribute('aria-describedby', errorEl.id);
+    } else if (group.dataset.prevDescribedby !== undefined) {
+      group.removeAttribute('aria-invalid');
+      if (group.dataset.prevDescribedby) group.setAttribute('aria-describedby', group.dataset.prevDescribedby);
+      else group.removeAttribute('aria-describedby');
+      delete group.dataset.prevDescribedby;
+    }
+  }, [error, name]);
   return (
-    <div data-field={name} className={className}>
+    <div data-field={name} className={className} ref={ref}>
       {children}
     </div>
   );
@@ -194,7 +216,7 @@ export function AboutFields({ values, onChange, errors }: FieldsProps<'ageYears'
       <FieldSlot name="ageYears">
         <NumberField label={t('onboarding.fields.age')} value={values.ageYears} onChange={(v) => onChange({ ageYears: v })} min={LIMITS.ageMin} max={LIMITS.ageMax} error={errors.ageYears} required name="ageYears" inputMode="numeric" />
       </FieldSlot>
-      <FieldSlot name="sex">
+      <FieldSlot name="sex" error={errors.sex}>
         <Segmented label={t('onboarding.fields.sex')} value={values.sex} onChange={(v) => onChange({ sex: v })} options={SEXES.map((s) => ({ value: s, label: t(`enums.sex.${s}`) }))} />
         <InlineError error={errors.sex} />
       </FieldSlot>
@@ -211,7 +233,7 @@ export function AboutFields({ values, onChange, errors }: FieldsProps<'ageYears'
 export function ExperienceField({ values, onChange, errors }: FieldsProps<'experienceLevel'>) {
   const { t } = useI18n();
   return (
-    <FieldSlot name="experienceLevel">
+    <FieldSlot name="experienceLevel" error={errors.experienceLevel}>
       <RadioCards
         label={t('onboarding.fields.experience')}
         columns={3}
@@ -263,7 +285,7 @@ export function GoalField({ values, onChange, errors, age }: FieldsProps<'goal'>
   const { t } = useI18n();
   return (
     <div className="stack">
-      <FieldSlot name="goal">
+      <FieldSlot name="goal" error={errors.goal}>
         <RadioCards
           label={t('onboarding.fields.goal')}
           value={values.goal}
@@ -295,7 +317,7 @@ export function TrainingFields({
   const [prefilled, setPrefilled] = useState(false);
   return (
     <div className="stack">
-      <FieldSlot name="trainingLocation">
+      <FieldSlot name="trainingLocation" error={errors.trainingLocation}>
         <RadioCards
           label={t('onboarding.fields.location')}
           columns={3}
@@ -311,7 +333,7 @@ export function TrainingFields({
         />
       </FieldSlot>
       <div aria-live="polite">{prefilled && <p className="field-hint">{t('onboarding.notices.locationPrefilled')}</p>}</div>
-      <FieldSlot name="equipment">
+      <FieldSlot name="equipment" error={errors.equipment}>
         <ChipGroup
           label={t('onboarding.fields.equipment')}
           options={EQUIPMENT.map((e) => ({ value: e, label: t(`enums.equipment.${e}`) }))}
@@ -333,7 +355,7 @@ export function TrainingFields({
         </div>
       </FieldSlot>
       <div className="grid-2">
-        <FieldSlot name="daysPerWeek">
+        <FieldSlot name="daysPerWeek" error={errors.daysPerWeek}>
           <Segmented
             label={t('onboarding.fields.daysPerWeek')}
             value={values.daysPerWeek}
@@ -360,7 +382,7 @@ export function TrainingFields({
           />
         </FieldSlot>
       </div>
-      <FieldSlot name="preferredDays">
+      <FieldSlot name="preferredDays" error={errors.preferredDays}>
         <ChipGroup
           label={t('onboarding.fields.preferredDays')}
           options={weekdays}
@@ -370,7 +392,7 @@ export function TrainingFields({
           error={errors.preferredDays}
         />
       </FieldSlot>
-      <FieldSlot name="weeklyWorkoutGoal">
+      <FieldSlot name="weeklyWorkoutGoal" error={errors.weeklyWorkoutGoal}>
         <Segmented
           label={t('onboarding.fields.weeklyGoal')}
           value={values.weeklyWorkoutGoal}
@@ -395,7 +417,7 @@ export function PreferenceFields({ values, onChange, errors }: FieldsProps<Prefe
   const { t } = useI18n();
   return (
     <div className="stack">
-      <FieldSlot name="focusMuscleGroups">
+      <FieldSlot name="focusMuscleGroups" error={errors.focusMuscleGroups}>
         <ChipGroup
           label={t('onboarding.fields.focusGroups')}
           options={MUSCLE_GROUPS.map((g) => ({ value: g, label: t(`enums.muscleGroup.${g}`) }))}
@@ -434,7 +456,7 @@ export function PreferenceFields({ values, onChange, errors }: FieldsProps<Prefe
       <FieldSlot name="avoidExerciseIds">
         <AvoidExercisesField value={values.avoidExerciseIds} onChange={(ids) => onChange({ avoidExerciseIds: ids })} error={errors.avoidExerciseIds} />
       </FieldSlot>
-      <FieldSlot name="injuries">
+      <FieldSlot name="injuries" error={errors.injuries}>
         <ChipGroup
           label={t('onboarding.fields.injuries')}
           options={INJURY_AREAS.map((i) => ({ value: i, label: t(`enums.injury.${i}`) }))}
@@ -485,7 +507,7 @@ export function NutritionFields({ values, onChange, errors }: FieldsProps<Nutrit
   const { t } = useI18n();
   return (
     <div className="stack">
-      <FieldSlot name="dietType">
+      <FieldSlot name="dietType" error={errors.dietType}>
         <RadioCards
           label={t('onboarding.fields.dietType')}
           columns={2}
@@ -495,7 +517,7 @@ export function NutritionFields({ values, onChange, errors }: FieldsProps<Nutrit
           options={DIET_TYPES.map((d) => ({ value: d, label: t(`enums.diet.${d}`) }))}
         />
       </FieldSlot>
-      <FieldSlot name="allergies">
+      <FieldSlot name="allergies" error={errors.allergies}>
         <ChipGroup
           label={t('onboarding.fields.allergies')}
           options={ALLERGENS.map((a) => ({ value: a, label: t(`enums.allergen.${a}`) }))}
@@ -505,7 +527,7 @@ export function NutritionFields({ values, onChange, errors }: FieldsProps<Nutrit
           error={errors.allergies}
         />
       </FieldSlot>
-      <FieldSlot name="dietaryRestrictions">
+      <FieldSlot name="dietaryRestrictions" error={errors.dietaryRestrictions}>
         <ChipGroup
           label={t('onboarding.fields.restrictions')}
           options={DIETARY_RESTRICTIONS.map((r) => ({ value: r, label: t(`enums.restriction.${r}`) }))}
@@ -526,7 +548,7 @@ export function NutritionFields({ values, onChange, errors }: FieldsProps<Nutrit
           name="dislikedFoods"
         />
       </FieldSlot>
-      <FieldSlot name="mealsPerDay">
+      <FieldSlot name="mealsPerDay" error={errors.mealsPerDay}>
         <Segmented
           label={t('onboarding.fields.mealsPerDay')}
           value={values.mealsPerDay}
@@ -547,7 +569,7 @@ export function LifestyleFields({ values, onChange, errors }: FieldsProps<Lifest
   const { t } = useI18n();
   return (
     <div className="stack">
-      <FieldSlot name="activityLevel">
+      <FieldSlot name="activityLevel" error={errors.activityLevel}>
         <RadioCards
           label={t('onboarding.fields.activity')}
           value={values.activityLevel}
@@ -556,7 +578,7 @@ export function LifestyleFields({ values, onChange, errors }: FieldsProps<Lifest
           options={ACTIVITY_LEVELS.map((a) => ({ value: a, label: t(`enums.activity.${a}`), description: t(`enums.activityDescription.${a}`) }))}
         />
       </FieldSlot>
-      <FieldSlot name="occupationActivity">
+      <FieldSlot name="occupationActivity" error={errors.occupationActivity}>
         <RadioCards
           label={t('onboarding.fields.occupation')}
           columns={3}

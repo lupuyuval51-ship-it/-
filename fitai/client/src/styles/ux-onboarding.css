@@ -1,0 +1,28 @@
+/* UX additions for the account flows (password hints, skip actions). Layout only; colours use existing tokens. */
+.password-strength {
+  display: grid;
+  gap: 0.25rem;
+}
+.password-rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-muted, inherit);
+}
+.password-rules li[data-ok='true'] {
+  color: var(--success, inherit);
+}
+.auth-inline-link {
+  margin-block-start: 0.25rem;
+}
+.onboarding-actions-end {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
