@@ -333,6 +333,38 @@ describe('batch logging (photo review)', () => {
   });
 });
 
+describe('undo a delete (restore)', () => {
+  it('puts a deleted entry back exactly, including its correction, amount and meal', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const made = await log(c, { foodId: chicken.id, servings: 2, mealType: 'dinner' });
+    const entry: FoodLogEntryDTO = (await c.patch(`/api/nutrition/logs/${made.body.entry.id}`, { correction: { kcal: 400, proteinG: 60, carbsG: 1, fatG: 9, fiberG: 0 } })).body.entry;
+    expect((await c.delete(`/api/nutrition/logs/${entry.id}`)).status).toBe(200);
+    const restored = await c.post('/api/nutrition/logs/restore', {
+      date: entry.date, mealType: entry.mealType, foodId: entry.foodId, foodName: entry.foodName, grams: entry.grams, servings: entry.servings,
+      kcal: entry.kcal, proteinG: entry.proteinG, carbsG: entry.carbsG, fatG: entry.fatG, fiberG: entry.fiberG,
+      isCorrected: entry.isCorrected, source: entry.source, note: entry.note,
+    });
+    expect(restored.status).toBe(201);
+    expect(restored.body.entry).toMatchObject({ mealType: 'dinner', grams: 240, servings: 2, kcal: 400, proteinG: 60, isCorrected: true, foodId: chicken.id });
+    expect(restored.body.day.meals.dinner.entries).toHaveLength(1);
+    expect(restored.body.day.totals.kcal).toBe(400);
+  });
+
+  it('restores a quick-add entry, validates input and refuses foods the user cannot see', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const base = { date: today, mealType: 'snack', foodId: null, foodName: { en: 'Cake', he: 'עוגה' }, grams: null, servings: null, kcal: 350, proteinG: 4, carbsG: 50, fatG: 14, fiberG: 1, isCorrected: false, source: 'quick_add' };
+    const ok = await c.post('/api/nutrition/logs/restore', base);
+    expect(ok.status).toBe(201);
+    expect(ok.body.entry).toMatchObject({ foodId: null, kcal: 350, source: 'quick_add' });
+    expect((await c.post('/api/nutrition/logs/restore', { ...base, kcal: -1 })).status).toBe(400);
+    expect((await c.post('/api/nutrition/logs/restore', { ...base, date: addDays(today, 5) })).status).toBe(422);
+    const mine = await c.post('/api/foods', { name: 'Private food', category: 'snacks_sweets', per100g: { kcal: 100, protein: 1, carbs: 1, fat: 1 }, servingGrams: 100 });
+    const other = await onboardedUser(server.baseUrl);
+    const stolen = await other.post('/api/nutrition/logs/restore', { ...base, foodId: mine.body.food.id, grams: 100 });
+    expect(stolen.status).toBe(404);
+  });
+});
+
 describe('saved meals', () => {
   it('creates, lists, logs and deletes a saved meal', async () => {
     const c = await onboardedUser(server.baseUrl);
@@ -356,6 +388,30 @@ describe('saved meals', () => {
     expect(logged.body.day.meals.dinner.totals.kcal).toBe(486.5);
     expect((await c.delete(`/api/nutrition/saved-meals/${meal.id}`)).status).toBe(200);
     expect((await c.get('/api/nutrition/saved-meals')).body.meals).toEqual([]);
+  });
+
+  it('keeps per-entry corrections when a meal is saved and logged again', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    const first = await log(c, { foodId: chicken.id, grams: 100, mealType: 'lunch' });
+    await log(c, { foodId: rice.id, grams: 100, mealType: 'lunch' });
+    // The chicken label says 180 kcal, not the database's 151.
+    const fixed = await c.patch(`/api/nutrition/logs/${first.body.entry.id}`, { correction: { kcal: 180, proteinG: 31, carbsG: 0, fatG: 4, fiberG: 0 } });
+    expect(fixed.body.entry.isCorrected).toBe(true);
+    const saved = await c.post('/api/nutrition/saved-meals/from-day', { date: today, mealType: 'lunch', name: 'Corrected lunch' });
+    expect(saved.status).toBe(201);
+    const [a, b] = saved.body.meal.items;
+    expect(a).toMatchObject({ isCorrected: true, grams: 100, nutrients: { kcal: 180, proteinG: 31, fatG: 4 } });
+    expect(b.isCorrected).toBe(false);
+    expect(saved.body.meal.totals.kcal).toBe(180 + b.nutrients.kcal);
+
+    const logged = await c.post(`/api/nutrition/saved-meals/${saved.body.meal.id}/log`, { date: yesterday, mealType: 'dinner' });
+    expect(logged.status).toBe(201);
+    const [e1, e2] = logged.body.entries as FoodLogEntryDTO[];
+    expect(e1).toMatchObject({ kcal: 180, proteinG: 31, fatG: 4, isCorrected: true, source: 'saved_meal', grams: 100 });
+    expect(e2).toMatchObject({ isCorrected: false });
+    // The corrected entry keeps its value when the amount changes, like the original did.
+    const bumped = await c.patch(`/api/nutrition/logs/${e1!.id}`, { grams: 200 });
+    expect(bumped.body.entry).toMatchObject({ kcal: 180, grams: 200, isCorrected: true });
   });
 
   it('saves a logged meal from a day, skipping quick-add entries', async () => {

@@ -211,6 +211,17 @@ describe('logging a suggestion', () => {
     expect(plain.body.entries.map((e: { grams: number }) => e.grams)).toEqual([200, 150]);
   });
 
+  it('re-checks disliked foods when logging, even if the profile changed after the list was shown', async () => {
+    const c = await onboardedUser(server.baseUrl, { disliked_foods: 'lentils' });
+    const res = await c.post('/api/nutrition/suggestions/test_sugg_lentils_rice/log', { date: today, mealType: 'lunch' });
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('template_disliked');
+    const day = await c.get(`/api/nutrition/day?date=${today}`);
+    expect(day.body.meals.lunch.entries).toHaveLength(0);
+    // A template without the disliked food is still fine.
+    expect((await c.post('/api/nutrition/suggestions/test_sugg_protein_bowl/log', { date: today, mealType: 'lunch' })).status).toBe(201);
+  });
+
   it('rejects incompatible, unknown and invalid templates', async () => {
     const veggie = await onboardedUser(server.baseUrl, { diet_type: 'vegetarian' });
     const pork = await veggie.post('/api/nutrition/suggestions/test_sugg_pork_potato/log', { date: today, mealType: 'dinner' });

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNo
 import { ApiError } from '../../api/client';
 import { Button, EmptyState, ErrorState, Icon, LoadingState } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import '../../styles/ux-coach.css';
 import { errorMessage } from '../../lib/errors';
 import { MessageBubble } from './MessageBubble';
 import { SuggestedPrompts } from './SuggestedPrompts';
@@ -126,6 +127,7 @@ export function ChatView({
       <div className="coach-welcome">
         <EmptyState icon="sparkles" title={t('coach.emptyTitle')} body={t('coach.emptyBody')} />
         <SuggestedPrompts onPick={onPick} disabled={sendDisabled} />
+        <p className="coach-welcome-safety small muted">{t('coach.safetyIntro')}</p>
       </div>
     );
   } else {

@@ -66,6 +66,7 @@ function PortionDialogInner({ food, open, onClose, date, mealType, source = 'man
   const error = amountError(mode, amount, current.serving.grams);
   const dateInvalid = !day || day > maxLogDate(today);
   const name = lt(current.name);
+  const hasAllergen = current.conflicts.some((c) => c.type === 'allergen');
 
   const mutation = useIdempotentMutation((vars: CreateLogEntryInput, key: string) => logFood(vars, key), {
     onSuccess: (res) => {
@@ -105,8 +106,8 @@ function PortionDialogInner({ food, open, onClose, date, mealType, source = 'man
       footer={
         <>
           <Button onClick={onClose}>{t('common.actions.cancel')}</Button>
-          <Button variant="primary" icon="check" loading={mutation.isPending} onClick={() => submit()}>
-            {t('nutrition.portion.log')}
+          <Button variant={hasAllergen ? 'danger' : 'primary'} icon="check" loading={mutation.isPending} onClick={() => submit()}>
+            {current.conflicts.length > 0 ? t('nutrition.portion.logAnyway') : t('nutrition.portion.log')}
           </Button>
         </>
       }
@@ -125,7 +126,8 @@ function PortionDialogInner({ food, open, onClose, date, mealType, source = 'man
         </div>
 
         {current.conflicts.length > 0 && (
-          <Notice tone="warning" title={t('nutrition.portion.conflictsTitle')}>
+          <Notice tone={hasAllergen ? 'danger' : 'warning'} title={hasAllergen ? t('nutrition.portion.allergenTitle') : t('nutrition.portion.conflictsTitle')}>
+            <p className="small">{hasAllergen ? t('nutrition.portion.allergenBody') : t('nutrition.portion.dietBody')}</p>
             <div className="food-badges">
               <ConflictBadges conflicts={current.conflicts} />
             </div>

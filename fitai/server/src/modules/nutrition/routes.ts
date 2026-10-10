@@ -16,6 +16,7 @@ import {
   nutritionSummaryQuerySchema,
   photoAnalysisSchema,
   quickAddSchema,
+  restoreLogEntrySchema,
   saveMealFromDaySchema,
   savedMealSchema,
   updateCustomFoodSchema,
@@ -45,7 +46,7 @@ import { parseBody, parseParams, parseQuery } from '../../middleware/validate';
 import { dietPreferences, getProfile } from '../profile/repository';
 import { lookupBarcode } from './barcode';
 import { createUserFood, deleteUserFood, foodAlternatives, listOwnFoods, requireVisibleFood, searchFoods, toFoodDTO, updateUserFood } from './foods';
-import { batchLog, copyEntries, createEntry, deleteEntry, frequentFoods, getDay, nutritionSummary, quickAdd, recentFoods, updateEntry, userToday } from './logs';
+import { batchLog, copyEntries, createEntry, deleteEntry, frequentFoods, getDay, nutritionSummary, quickAdd, recentFoods, restoreEntry, updateEntry, userToday } from './logs';
 import { analyzeMealPhoto } from './photo';
 import { createSavedMeal, deleteSavedMeal, listSavedMeals, logSavedMeal, saveMealFromDay } from './savedMeals';
 import { getSuggestions, logTemplate } from './suggestions';
@@ -166,6 +167,13 @@ nutritionRouter.post('/nutrition/logs/copy', async (req, res) => {
   const input = parseBody(copyLogsSchema, req);
   const id = userId(req);
   const body: CopyLogsResponse = await db.tx((tx) => copyEntries(tx, id, input));
+  res.status(201).json(body);
+});
+
+nutritionRouter.post('/nutrition/logs/restore', async (req, res) => {
+  const input = parseBody(restoreLogEntrySchema, req);
+  const id = userId(req);
+  const body: LogEntryResponse = await db.tx((tx) => restoreEntry(tx, id, input));
   res.status(201).json(body);
 });
 

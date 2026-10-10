@@ -63,6 +63,37 @@ describe('coach threads', () => {
     expect((await user.delete(`/api/coach/threads/${first.id}`)).status).toBe(404);
   });
 
+  it('renaming a thread does not move it in the list; only new messages do', async () => {
+    const user = await onboardedUser(server.baseUrl);
+    const older = await newThread(user, 'Older');
+    await user.post(`/api/coach/threads/${older.id}/messages`, { content: 'What is progressive overload?' });
+    const newer = await newThread(user, 'Newer');
+    await user.post(`/api/coach/threads/${newer.id}/messages`, { content: 'How do I squat with good form?' });
+    const order = async () => (await user.get('/api/coach/threads')).body.threads.map((t: { id: string }) => t.id);
+    expect(await order()).toEqual([newer.id, older.id]);
+
+    const before = (await user.get('/api/coach/threads')).body.threads.find((t: { id: string }) => t.id === older.id);
+    const renamed = await user.patch(`/api/coach/threads/${older.id}`, { title: 'Renamed old one' });
+    expect(renamed.status).toBe(200);
+    expect(renamed.body.thread.updatedAt).toBe(before.updatedAt);
+    expect(await order()).toEqual([newer.id, older.id]);
+
+    await user.post(`/api/coach/threads/${older.id}/messages`, { content: 'And what about rest periods?' });
+    expect(await order()).toEqual([older.id, newer.id]);
+  });
+
+  it('marks fixed safety replies so the UI can present them as safety guidance', async () => {
+    const t = await newThread(alice);
+    const red = await alice.post(`/api/coach/threads/${t.id}/messages`, { content: 'I felt chest pain and dizzy during my run, can I keep training?' });
+    expect(red.status).toBe(200);
+    expect(red.body.reply).toMatchObject({ source: 'builtin', safety: 'medical_red_flag' });
+    expect(red.body.userMessage.safety).toBeNull();
+    const normal = await alice.post(`/api/coach/threads/${t.id}/messages`, { content: 'What is progressive overload?' });
+    expect(normal.body.reply.safety).toBeNull();
+    const listed = await alice.get(`/api/coach/threads/${t.id}/messages`);
+    expect(listed.body.messages.map((m: { safety: string | null }) => m.safety)).toEqual([null, 'medical_red_flag', null, null]);
+  });
+
   it('auto-titles an untitled thread from its first message (≤ 60 chars)', async () => {
     const t = await newThread(alice);
     const long = 'Can you explain how I should structure my warm-up before heavy squats and deadlifts on leg day?';

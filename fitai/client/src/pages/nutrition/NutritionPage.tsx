@@ -4,8 +4,10 @@ import { useSearchParams } from 'react-router';
 import { MEAL_TYPES } from '@shared/constants';
 import type { FoodLogEntryDTO } from '@shared/types';
 import { qk } from '../../api/queryClient';
-import { EmptyState, LinkButton, PageHeader, QueryState, useConfirm, useToast } from '../../components/ui';
-import { deleteEntry, fetchDay, fetchProfile, nk } from '../../features/nutrition/api';
+import { EmptyState, LinkButton, PageHeader, QueryState, useToast } from '../../components/ui';
+import { deleteEntry, fetchDay, fetchProfile, nk, restoreEntry } from '../../features/nutrition/api';
+import { entryToRestoreInput } from '../../features/nutrition/undo';
+import { newIdempotencyKey } from '../../lib/ids';
 import { DateNavigator } from '../../features/nutrition/DateNavigator';
 import { DayOverview } from '../../features/nutrition/DayOverview';
 import { EditEntryModal } from '../../features/nutrition/EditEntryModal';
@@ -24,7 +26,6 @@ export default function NutritionPage() {
   const { t, lt } = i18n;
   useDocumentTitle(t('nutrition.title'));
   const toast = useToast();
-  const confirm = useConfirm();
   const invalidate = useNutritionInvalidation();
   const today = useUserToday();
   const [params, setParams] = useSearchParams();
@@ -35,23 +36,26 @@ export default function NutritionPage() {
   const day = useQuery({ queryKey: nk.day(date), queryFn: ({ signal }) => fetchDay(date, signal) });
   const profile = useQuery({ queryKey: qk.profile, queryFn: fetchProfile, staleTime: 5 * 60_000 });
 
-  const remove = useMutation({
-    mutationFn: (entry: FoodLogEntryDTO) => deleteEntry(entry.id),
+  // Deleting is immediate and undoable: no confirm dialog to tap through, and a mis-tap costs one tap to fix.
+  const undo = useMutation({
+    mutationFn: (entry: FoodLogEntryDTO) => restoreEntry(entryToRestoreInput(entry), newIdempotencyKey()),
     onSuccess: (res) => {
       invalidate(res.day);
-      toast.success(t('nutrition.meals.deleted'));
+      toast.success(t('nutrition.meals.restored', { name: lt(res.entry.foodName) }));
+    },
+    onError: (err) => toast.error(errorMessage(err, i18n, 'nutrition')),
+  });
+  const remove = useMutation({
+    mutationFn: (entry: FoodLogEntryDTO) => deleteEntry(entry.id),
+    onSuccess: (res, entry) => {
+      invalidate(res.day);
+      toast.show(t('nutrition.meals.deletedName', { name: lt(entry.foodName) }), 'info', { label: t('nutrition.meals.undo'), onClick: () => undo.mutate(entry) });
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'nutrition')),
   });
 
-  const onDelete = async (entry: FoodLogEntryDTO) => {
-    const ok = await confirm({
-      title: t('nutrition.meals.deleteTitle'),
-      body: t('nutrition.meals.deleteBody', { name: lt(entry.foodName), meal: t(`enums.mealType.${entry.mealType}`) }),
-      confirmLabel: t('common.actions.delete'),
-      danger: true,
-    });
-    if (ok) remove.mutate(entry);
+  const onDelete = (entry: FoodLogEntryDTO) => {
+    if (!remove.isPending) remove.mutate(entry);
   };
 
   return (

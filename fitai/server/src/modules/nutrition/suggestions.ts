@@ -302,8 +302,11 @@ export async function logTemplate(sql: Sql, userId: string, slug: string, input:
   assertLoggableDate(input.date, await userToday(sql, userId));
   const [resolved] = await resolveTemplates(sql, [template]);
   if (!resolved) throw unprocessable('template_unavailable', 'This meal suggestion is currently unavailable');
-  const prefs = dietPreferences(await getProfile(sql, userId));
+  const profile = await getProfile(sql, userId);
+  const prefs = dietPreferences(profile);
   if (!templateCompatible(resolved, prefs, [])) throw unprocessable('template_incompatible', 'This meal contains foods that do not fit your diet');
+  // The list never offers disliked foods; re-check here because the profile may have changed since the page loaded.
+  if (!templateCompatible(resolved, prefs, dislikedKeywords(profile.dislikedFoods))) throw unprocessable('template_disliked', 'This meal contains a food you said you dislike');
   return logEntries(
     sql,
     userId,

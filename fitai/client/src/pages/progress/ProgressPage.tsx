@@ -6,7 +6,9 @@ import { Card, LinkButton, PageHeader, QueryState, Segmented } from '../../compo
 import { ProgressSkeleton } from '../../features/dashboard/Skeletons';
 import { progressApi } from '../../features/progress/api';
 import { InsightList } from '../../features/progress/InsightList';
+import { MetricGlossary } from '../../features/progress/MetricGlossary';
 import { RecordList } from '../../features/progress/RecordList';
+import { SparseDataNotice } from '../../features/progress/SparseDataNotice';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
 import { AchievementsCard } from './sections/AchievementsCard';
@@ -64,6 +66,7 @@ export default function ProgressPage() {
             {(o) => (
               <>
                 <SummarySection overview={o} />
+                <SparseDataNotice overview={o} onPeriod={setPeriod} />
                 <Card title={t('progress.insights.title')} className="progress-insights">
                   <InsightList insights={o.insights} />
                 </Card>
@@ -83,6 +86,7 @@ export default function ProgressPage() {
         <StrengthCard />
         <BodyWeightCard />
         <AchievementsCard />
+        <MetricGlossary />
         <Card title={t('progress.history.title')} className="progress-history">
           <div className="row-between">
             <p className="muted">{t('progress.history.body')}</p>

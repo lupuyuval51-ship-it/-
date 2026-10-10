@@ -4,7 +4,7 @@ import type { MealType } from '@shared/constants';
 import { scaleNutrients, sumMacros } from '@shared/nutrition';
 import type { BatchLogInput, PhotoAnalysisInput } from '@shared/schemas/nutrition';
 import type { FoodDTO, PhotoAnalysisDTO, PhotoAnalysisItemDTO } from '@shared/types';
-import { Badge, Button, Card, Checkbox, EmptyState, ErrorState, Icon, IconButton, LoadingState, Notice, NumberField, Spinner, TextField, useToast } from '../../../components/ui';
+import { Badge, Button, Card, Checkbox, EmptyState, ErrorState, Icon, IconButton, LoadingState, Notice, NumberField, Spinner, TextField, useConfirm, useToast } from '../../../components/ui';
 import { useIdempotentMutation } from '../../../hooks/useIdempotentMutation';
 import { useI18n } from '../../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../../lib/errors';
@@ -56,6 +56,7 @@ function PhotoAnalyzer({ date, mealType }: { date: string; mealType: MealType })
   const i18n = useI18n();
   const { t, lt } = i18n;
   const toast = useToast();
+  const confirm = useConfirm();
   const invalidate = useNutritionInvalidation();
   const f = useMacroFormat();
   const [preparing, setPreparing] = useState(false);
@@ -134,13 +135,23 @@ function PhotoAnalyzer({ date, mealType }: { date: string; mealType: MealType })
   const invalid = selected.some((i) => amountError('grams', i.grams, 1) != null || (!i.match && (!i.name.trim() || !i.estimate)));
   const total = sumMacros(selected.map(itemNutrients));
 
-  const submit = () => {
+  const submit = async () => {
     setShowErrors(true);
     if (!selected.length) {
       toast.error(t('nutrition.photo.nothingSelected'));
       return;
     }
     if (invalid || log.isPending) return;
+    const conflicting = selected.filter((i) => i.match && i.match.conflicts.length > 0);
+    if (conflicting.length > 0) {
+      const ok = await confirm({
+        title: t('nutrition.photo.conflictConfirmTitle'),
+        body: t('nutrition.photo.conflictConfirmBody', { names: conflicting.map((i) => lt(i.match!.name)).join(', ') }),
+        confirmLabel: t('nutrition.portion.logAnyway'),
+        danger: conflicting.some((i) => i.match!.conflicts.some((c) => c.type === 'allergen')),
+      });
+      if (!ok) return;
+    }
     log.mutate({
       date,
       mealType,
@@ -271,7 +282,7 @@ function PhotoAnalyzer({ date, mealType }: { date: string; mealType: MealType })
                 <strong className="num" aria-live="polite">
                   {t('nutrition.photo.selectedTotal', { kcal: f.kcal(total.kcal) })}
                 </strong>
-                <Button variant="primary" icon="check" loading={log.isPending} onClick={submit}>
+                <Button variant="primary" icon="check" loading={log.isPending} onClick={() => void submit()}>
                   {t('nutrition.photo.logSelected')}
                 </Button>
               </div>

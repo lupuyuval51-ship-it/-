@@ -6,7 +6,7 @@
 import { MEAL_TYPES, type MealType } from '@shared/constants';
 import { addDays, dateRange, diffDays, todayInTimeZone } from '@shared/dates';
 import { ZERO_MACROS, round1, scaleNutrients, subtractMacros, sumMacros, type Macros } from '@shared/nutrition';
-import type { batchLogSchema, copyLogsSchema, createLogEntrySchema, quickAddSchema, updateLogEntrySchema } from '@shared/schemas/nutrition';
+import type { batchLogSchema, copyLogsSchema, createLogEntrySchema, quickAddSchema, restoreLogEntrySchema, updateLogEntrySchema } from '@shared/schemas/nutrition';
 import type {
   DayNutritionDTO,
   FoodLogEntryDTO,
@@ -381,6 +381,27 @@ export async function deleteEntry(sql: Sql, userId: string, id: string): Promise
   const row = await sql.maybeOne<{ logged_on: string }>('DELETE FROM food_log_entries WHERE id = $1 AND user_id = $2 RETURNING logged_on', [id, userId]);
   if (!row) throw notFound('entry_not_found', 'Log entry not found');
   return getDay(sql, userId, row.logged_on);
+}
+
+/** Undo for a delete: puts the removed entry back exactly as it was (amount, values and correction flag). */
+export async function restoreEntry(sql: Sql, userId: string, input: z.output<typeof restoreLogEntrySchema>) {
+  assertLoggableDate(input.date, await userToday(sql, userId));
+  if (input.foodId) await requireVisibleFood(sql, userId, input.foodId);
+  const result = await logEntries(sql, userId, input.date, [
+    {
+      date: input.date,
+      mealType: input.mealType,
+      foodId: input.foodId,
+      foodName: input.foodName,
+      grams: input.grams,
+      servings: input.servings,
+      nutrients: { kcal: input.kcal, proteinG: input.proteinG, carbsG: input.carbsG, fatG: input.fatG, fiberG: input.fiberG },
+      isCorrected: input.isCorrected,
+      source: input.source,
+      note: input.note,
+    },
+  ]);
+  return { entry: result.entries[0]!, day: result.day, reward: result.reward };
 }
 
 /** Copies a day's (or one meal's) entries — including any corrections — to another date. */

@@ -5,7 +5,7 @@ import { LIMITS } from '@shared/constants';
 import type { CoachThreadDTO, CoachThreadListResponse, SendCoachMessageResponse } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
-import { IconButton, LoadingState, Modal, Notice, PageHeader, useConfirm, useToast } from '../../components/ui';
+import { Badge, IconButton, LoadingState, Modal, Notice, PageHeader, useConfirm, useToast } from '../../components/ui';
 import { ChatView, type PendingMessage } from '../../features/coach/ChatView';
 import { Composer, type ComposerHandle } from '../../features/coach/Composer';
 import { coachApi } from '../../features/coach/api';
@@ -18,6 +18,7 @@ import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import '../../styles/coach.css';
+import '../../styles/ux-coach.css';
 
 interface SendVars {
   /** null = start a new conversation with this message. */
@@ -62,12 +63,34 @@ export default function CoachPage() {
   const status = useQuery({ queryKey: qk.coachStatus, queryFn: coachApi.status });
   const threads = useQuery({ queryKey: qk.coachThreads, queryFn: coachApi.threads });
 
-  const latestId = threads.data?.threads[0]?.id ?? null;
+  // A conversation without messages is an unsent draft (e.g. the first send failed): never default to it.
+  const latestId = threads.data?.threads.find((x) => x.messageCount > 0)?.id ?? null;
   const selectedId = threadParam ?? (newMode ? null : latestId);
   const selectedThread = threads.data?.threads.find((x) => x.id === selectedId) ?? null;
   const waitingForThreads = threadParam == null && !newMode && threads.isPending;
 
+  /** Thread created by a first send that has not stored a message yet. */
+  const orphan = useRef<string | null>(null);
+
+  /** Removes the empty conversation left behind by a failed first send, and forgets the failed message. */
+  const cleanupOrphan = () => {
+    const id = orphan.current;
+    if (!id) return;
+    orphan.current = null;
+    void coachApi
+      .deleteThread(id)
+      .catch(() => undefined)
+      .finally(() => {
+        queryClient.removeQueries({ queryKey: qk.coachMessages(id) });
+        void queryClient.invalidateQueries({ queryKey: qk.coachThreads });
+      });
+  };
+
   const selectThread = (id: string | null) => {
+    if (send.isError && id !== orphan.current) {
+      cleanupOrphan();
+      send.reset();
+    }
     setNewMode(id == null);
     setParams(id ? { thread: id } : {});
     setDrawerOpen(false);
@@ -80,6 +103,7 @@ export default function CoachPage() {
         // Same idempotency key family: a retry re-uses the conversation created by the first attempt.
         const created = await coachApi.createThread('', `${key}-new`);
         threadId = created.thread.id;
+        orphan.current = threadId;
         queryClient.setQueryData(qk.coachMessages(threadId), emptyMessages());
         setSendThread(threadId);
         setNewMode(false);
@@ -91,6 +115,7 @@ export default function CoachPage() {
     },
     {
       onSuccess: ({ threadId, res }) => {
+        orphan.current = null;
         appendMessages(queryClient, threadId, [res.userMessage, res.reply]);
         queryClient.setQueryData(qk.coachStatus, res.status);
         for (const key of [qk.coachThreads, qk.dashboard, qk.gamification, qk.notifications]) void queryClient.invalidateQueries({ queryKey: key });
@@ -120,7 +145,11 @@ export default function CoachPage() {
 
   const discardFailed = () => {
     const content = sendVars?.content ?? '';
+    const hadOrphan = orphan.current != null;
+    // A failed FIRST message must not leave an empty conversation behind.
+    cleanupOrphan();
     send.reset();
+    if (hadOrphan) selectThread(null);
     setDraft((d) => d || content);
     composer.current?.focus();
   };
@@ -176,6 +205,14 @@ export default function CoachPage() {
         <Notice tone="info" icon="info">
           {t('coach.builtinMode')}
         </Notice>
+      )}
+      {status.data && (
+        <p className="coach-mode small muted" data-mode={status.data.llmConfigured ? 'ai' : 'builtin'}>
+          <Badge tone={status.data.llmConfigured ? 'primary' : 'info'} icon={status.data.llmConfigured ? 'sparkles' : 'dumbbell'}>
+            {status.data.llmConfigured ? t('coach.modeAi') : t('coach.modeBuiltin')}
+          </Badge>
+          <span>{status.data.llmConfigured ? t('coach.modeAiHint') : t('coach.modeBuiltinHint')}</span>
+        </p>
       )}
       <div className="coach-layout">
         <aside className="coach-sidebar">{threadList}</aside>

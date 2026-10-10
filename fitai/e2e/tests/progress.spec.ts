@@ -167,3 +167,28 @@ test('notifications: clicking an unread item marks it read and keeps focus in th
   await expect(page.getByText('No unread notifications')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Mark all as read' })).toBeDisabled();
 });
+
+test('sparse data: plain guidance, a longer-period shortcut, URL-kept ranges and a metric glossary', async ({ page }) => {
+  await readyUser(page);
+  await page.goto('/progress?period=7');
+  const sparse = page.locator('.progress-sparse-card');
+  await expect(sparse.getByText('Not much data yet')).toBeVisible();
+  await expect(sparse.getByText('No workouts in the last 7 days.')).toBeVisible();
+  await expect(sparse.getByText(/No meals logged in this period/)).toBeVisible();
+  await expect(sparse.getByText(/Only one weigh-in so far/)).toBeVisible();
+  await sparse.getByRole('button', { name: 'Show 30 days' }).click();
+  await expect(page).toHaveURL(/period=30/);
+  await expect(page.getByRole('radiogroup', { name: 'Period' }).getByRole('radio', { name: '30 days' })).toHaveAttribute('aria-checked', 'true');
+
+  // Body weight range lives in the URL and survives a reload.
+  const bw = page.getByRole('region', { name: 'Body weight' });
+  await expect(bw.getByText(/One weigh-in so far/)).toBeVisible();
+  await bw.getByRole('radio', { name: '1 year' }).click();
+  await expect(page).toHaveURL(/bw=365/);
+  await page.reload();
+  await expect(bw.getByRole('radio', { name: '1 year' })).toHaveAttribute('aria-checked', 'true');
+
+  // What the numbers mean.
+  await page.getByText('What do these numbers mean?').click();
+  await expect(page.getByText(/Weight × reps for every completed set/)).toBeVisible();
+});

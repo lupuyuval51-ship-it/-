@@ -8,6 +8,7 @@ import { LineChart } from '../../../components/charts/Charts';
 import { Card, EmptyState, ErrorState, LoadingState, Segmented, SelectField } from '../../../components/ui';
 import { progressApi } from '../../../features/progress/api';
 import { RecordList } from '../../../features/progress/RecordList';
+import { oneOf, useUrlState } from '../../../features/progress/useUrlState';
 import { useUnits } from '../../../hooks/useUnits';
 import { useI18n } from '../../../i18n';
 
@@ -39,8 +40,8 @@ function metricsFor(data: ExerciseProgressDTO): Metric[] {
 export function StrengthCard() {
   const { t, lt, formatDate, formatNumber } = useI18n();
   const units = useUnits();
-  const [range, setRange] = useState<TrendPeriod>(90);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [range, setRange] = useUrlState<TrendPeriod>('sr', oneOf(TREND_PERIODS), 90);
+  const [selected, setSelected] = useUrlState<string>('ex', (raw) => raw || null, '');
   const [metric, setMetric] = useState<Metric | null>(null);
 
   const trained = useQuery({ queryKey: qk.trainedExercises, queryFn: progressApi.trainedExercises });
@@ -100,6 +101,8 @@ export function StrengthCard() {
                 size="sm"
               />
             )}
+            {active && <p className="small muted progress-metric-help">{t(`progress.strength.metricHelp.${active}`)}</p>}
+            {points.filter((p) => p.value != null).length === 1 && <p className="small muted progress-sparse">{t('progress.strength.sparseOne')}</p>}
             <div aria-live="polite" aria-busy={detail.isFetching}>
               <h3 className="chart-heading">{chartTitle}</h3>
               <LineChart

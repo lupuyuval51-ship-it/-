@@ -85,9 +85,12 @@ function SavedMealRow({ meal, date, mealType }: { meal: SavedMealDTO; date: stri
           <span className="small muted">{t('nutrition.saved.items', { count: meal.items.length })}</span>
         </div>
         <span className="small muted">
-          {meal.items.map((i) => `${lt(i.food.name)} (${t('nutrition.units.grams', { value: formatNumber(i.grams) })})`).join(' · ')}
+          {meal.items
+            .map((i) => `${lt(i.food.name)} (${t('nutrition.units.grams', { value: formatNumber(i.grams) })}${i.isCorrected ? `, ${t('nutrition.meals.corrected').toLocaleLowerCase(i18n.intlLocale)}` : ''})`)
+            .join(' · ')}
         </span>
         <MacroLine m={meal.totals} className="small" />
+        {meal.items.some((i) => i.isCorrected) && <span className="small muted">{t('nutrition.saved.correctionsKept')}</span>}
         {hasConflicts && (
           <Badge tone="warning" icon="warning">
             {t('nutrition.saved.conflictWarning')}
@@ -110,7 +113,25 @@ function SavedMealRow({ meal, date, mealType }: { meal: SavedMealDTO; date: stri
             if (ok) remove.mutate();
           }}
         />
-        <Button size="sm" variant="primary" icon="plus" loading={log.isPending} onClick={() => log.mutate()} aria-label={t('nutrition.saved.logTo', { name: meal.name, meal: mealName })}>
+        <Button
+          size="sm"
+          variant="primary"
+          icon="plus"
+          loading={log.isPending}
+          onClick={async () => {
+            // Foods that conflict with the user's allergies / diet need an explicit "yes" before they are logged.
+            if (hasConflicts) {
+              const ok = await confirm({
+                title: t('nutrition.saved.conflictConfirmTitle'),
+                body: t('nutrition.saved.conflictConfirmBody', { name: meal.name }),
+                confirmLabel: t('nutrition.portion.logAnyway'),
+                danger: meal.items.some((i) => i.food.conflicts.some((c) => c.type === 'allergen')),
+              });
+              if (!ok) return;
+            }
+            log.mutate();
+          }}
+          aria-label={t('nutrition.saved.logTo', { name: meal.name, meal: mealName })}>
           {t('nutrition.saved.log')}
         </Button>
       </div>

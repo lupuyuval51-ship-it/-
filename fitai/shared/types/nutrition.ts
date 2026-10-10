@@ -102,6 +102,8 @@ export interface SavedMealItemDTO {
   food: FoodDTO;
   grams: number;
   nutrients: Macros;
+  /** True when `nutrients` is a manual correction saved with the meal (not computed from the food). */
+  isCorrected: boolean;
 }
 
 export interface SavedMealDTO {

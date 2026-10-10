@@ -17,7 +17,8 @@ interface ThreadRow {
   id: string;
   title: string;
   created_at: Date;
-  updated_at: Date;
+  /** Time of the last message (renaming a thread does not change it). */
+  last_activity_at: Date;
   message_count: number;
 }
 
@@ -28,13 +29,14 @@ interface MessageRow {
   content: string;
   source: CoachSource | null;
   status: CoachMessageDTO['status'];
+  safety_category: CoachMessageDTO['safety'];
   created_at: Date;
 }
 
 const iso = (d: Date) => new Date(d).toISOString();
 
 function toThreadDTO(r: ThreadRow): CoachThreadDTO {
-  return { id: r.id, title: r.title, createdAt: iso(r.created_at), updatedAt: iso(r.updated_at), messageCount: r.message_count };
+  return { id: r.id, title: r.title, createdAt: iso(r.created_at), updatedAt: iso(r.last_activity_at), messageCount: r.message_count };
 }
 
 function toMessageDTO(r: MessageRow): CoachMessageDTO {
@@ -45,19 +47,20 @@ function toMessageDTO(r: MessageRow): CoachMessageDTO {
     content: r.content,
     source: r.source,
     status: r.status,
+    safety: r.safety_category,
     createdAt: iso(r.created_at),
   };
 }
 
 /** Thread columns + message count; callers append the (parameterized) condition. */
-const THREAD_SELECT_WHERE = `SELECT t.id, t.title, t.created_at, t.updated_at,
+const THREAD_SELECT_WHERE = `SELECT t.id, t.title, t.created_at, t.last_activity_at,
          (SELECT count(*) FROM coach_messages m WHERE m.thread_id = t.id AND m.user_id = t.user_id)::int AS message_count
     FROM coach_threads t
    WHERE `;
-const MESSAGE_COLUMNS = 'id, thread_id, role, content, source, status, created_at';
+const MESSAGE_COLUMNS = 'id, thread_id, role, content, source, status, safety_category, created_at';
 
 export async function listThreads(sql: Sql, userId: string): Promise<CoachThreadDTO[]> {
-  const rows = await sql.many<ThreadRow>(`${THREAD_SELECT_WHERE}t.user_id = $1 ORDER BY t.updated_at DESC, t.created_at DESC LIMIT 200`, [userId]);
+  const rows = await sql.many<ThreadRow>(`${THREAD_SELECT_WHERE}t.user_id = $1 ORDER BY t.last_activity_at DESC, t.created_at DESC LIMIT 200`, [userId]);
   return rows.map(toThreadDTO);
 }
 
@@ -75,7 +78,7 @@ export async function requireThread(sql: Sql, userId: string, threadId: string):
 export async function createThread(sql: Sql, userId: string, title: string): Promise<CoachThreadDTO> {
   const row = await sql.one<ThreadRow>(
     `INSERT INTO coach_threads (user_id, title) VALUES ($1, $2)
-     RETURNING id, title, created_at, updated_at, 0 AS message_count`,
+     RETURNING id, title, created_at, last_activity_at, 0 AS message_count`,
     [userId, title],
   );
   return toThreadDTO(row);
@@ -132,6 +135,7 @@ export interface NewMessage {
   content: string;
   source: CoachSource | null;
   status: CoachMessageDTO['status'];
+  safety?: CoachMessageDTO['safety'];
   model?: string | null;
   inputTokens?: number | null;
   outputTokens?: number | null;
@@ -140,10 +144,10 @@ export interface NewMessage {
 export async function insertMessage(sql: Sql, m: NewMessage): Promise<CoachMessageDTO> {
   // clock_timestamp(): distinct, ordered timestamps even for several inserts in one transaction.
   const row = await sql.one<MessageRow>(
-    `INSERT INTO coach_messages (thread_id, user_id, role, content, source, status, model, input_tokens, output_tokens, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, clock_timestamp())
+    `INSERT INTO coach_messages (thread_id, user_id, role, content, source, status, model, input_tokens, output_tokens, safety_category, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, clock_timestamp())
      RETURNING ${MESSAGE_COLUMNS}`,
-    [m.threadId, m.userId, m.role, m.content.slice(0, MESSAGE_MAX_CHARS), m.source, m.status, m.model ?? null, m.inputTokens ?? null, m.outputTokens ?? null],
+    [m.threadId, m.userId, m.role, m.content.slice(0, MESSAGE_MAX_CHARS), m.source, m.status, m.model ?? null, m.inputTokens ?? null, m.outputTokens ?? null, m.safety ?? null],
   );
   return toMessageDTO(row);
 }
