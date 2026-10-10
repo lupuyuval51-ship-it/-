@@ -4,12 +4,18 @@ import { GeneratorBadge } from "@/components/games/GameBadges";
 import { RotateCcw } from "lucide-react";
 import { Arrow, Badge, Button, Card, Stars } from "@/components/ui";
 import { primaryLink, StateView } from "@/components/ui/StateView";
+import { browserKV } from "@/lib/offline/store";
+import { hashQuery, markWelcomeSeen, shouldShowWelcome } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
+import { Welcome } from "./Welcome";
 
 export function LibraryPage() {
   const t = useT();
   const [games, setGames] = useState(() => store.listGames());
   const [deck, setDeck] = useState(() => store.deckSummary());
+  // First launch (or "show the welcome again" in Settings): a short, skippable 3-step intro above the library.
+  const [welcome, setWelcome] = useState(() => hashQuery(window.location.hash).get("welcome") === "1" || shouldShowWelcome(browserKV(), store.listGames().length > 0));
+  const closeWelcome = () => { markWelcomeSeen(browserKV()); setWelcome(false); };
   const remove = (id: string) => {
     if (!window.confirm(t("mob.delete.confirm"))) return;
     store.deleteGame(id);
@@ -25,6 +31,7 @@ export function LibraryPage() {
         </div>
         <a href="#/settings" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm font-semibold" data-testid="mobile-settings">{t("mob.settings")}</a>
       </header>
+      {welcome && <Welcome onDone={closeWelcome} />}
       <div className="space-y-5 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">
       <a href="#/create" data-testid="mobile-new" className="flex min-h-14 items-center justify-center rounded-2xl bg-neon text-lg font-bold text-ink-950 md:min-h-16">+ {t("mob.new")}</a>
       {deck.total > 0 && (
@@ -41,7 +48,25 @@ export function LibraryPage() {
       <h2 className="text-lg font-semibold">{t("lib.title")}</h2>
       {games.length === 0 ? (
         <Card elevation="flat" className="py-0">
-          <StateView kind="empty" data-testid="mobile-empty" title={t("lib.empty.title")} text={t("lib.empty.text")} actions={<a href="#/create" className={primaryLink}>{t("lib.empty.cta")}</a>} />
+          <StateView
+            kind="empty"
+            data-testid="mobile-empty"
+            title={t("mob.empty.title")}
+            text={
+              <>
+                {t("mob.empty.text")}
+                <span className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+                  {(["mob.empty.tip1", "mob.empty.tip2", "mob.empty.tip3"] as const).map((k) => <span key={k}>✓ {t(k)}</span>)}
+                </span>
+              </>
+            }
+            actions={
+              <>
+                <a href="#/create?example=1" data-testid="empty-example" className={primaryLink}>{t("mob.empty.example")}</a>
+                <a href="#/create" data-testid="empty-create" className="inline-flex min-h-11 items-center rounded-xl border border-line px-5 text-sm font-semibold">{t("lib.empty.cta")}</a>
+              </>
+            }
+          />
         </Card>
       ) : (
         <ul className="grid gap-3 md:grid-cols-2" data-testid="mobile-games">

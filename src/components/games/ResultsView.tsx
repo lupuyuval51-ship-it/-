@@ -4,12 +4,21 @@ import { Alert, Arrow, Badge, Card, ProgressBar, Stars } from "@/components/ui";
 import type { DictKey, TFn } from "@/lib/i18n";
 import type { LearningSummary } from "@/lib/game/state/progress";
 import type { ReviewItem } from "@/lib/game/state/review";
+import { recommendedNext, type NextAction } from "@/lib/offline/onboarding";
 
 /** Learning results. Presentational only: shared by the web results page and the offline app. */
-export function ResultsView({ t, s, game, sessionId, conclusion, review }: { t: TFn; s: LearningSummary; game: { id: string; title: string }; sessionId: string; conclusion: string; review: readonly ReviewItem[] }) {
+export function ResultsView({ t, s, game, sessionId, conclusion, review, libraryHref = "/games" }: { t: TFn; s: LearningSummary; game: { id: string; title: string }; sessionId: string; conclusion: string; review: readonly ReviewItem[]; libraryHref?: string }) {
   const minutes = Math.max(1, Math.round(s.durationMs / 60000));
   const spec = { learning: { conclusion } };
   const r = { review };
+  const next: NextAction = recommendedNext(s, review.length);
+  const all: { id: NextAction; href: string; label: string }[] = [
+    { id: "review", href: `/games/${game.id}/results/${sessionId}/review`, label: t("res.review.open") },
+    { id: "replay", href: `/play/${game.id}`, label: t("res.replay") },
+    { id: "new", href: "/create", label: t("res.new") },
+  ];
+  // The recommended step comes first; "review" is only offered when there is something to review.
+  const actions = all.filter((a) => a.id !== "review" || review.length > 0).sort((a, b) => Number(b.id === next) - Number(a.id === next));
   return (
     <div className="mx-auto max-w-3xl space-y-6" data-testid="results">
       <Link href={`/games/${game.id}`} className="text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
@@ -90,10 +99,16 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review }: { t: 
         </Card>
       )}
 
-      <div className="flex flex-wrap justify-center gap-3">
-        <Link href={`/play/${game.id}`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("res.replay")}</Link>
-        <Link href="/games" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("res.library")}</Link>
-      </div>
+      <Card className="space-y-3" data-testid="results-next" data-recommended={next}>
+        <h2 className="text-lg font-semibold">{t("res.next.title")}</h2>
+        <p className="text-sm text-muted">{t(`res.next.${next}` as DictKey)}</p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {actions.map((a) => (
+            <Link key={a.id} href={a.href} data-testid={`next-${a.id}`} className={`inline-flex min-h-12 items-center justify-center gap-1 rounded-xl px-6 font-semibold ${a.id === next ? "bg-neon text-ink-950 hover:brightness-110" : "border border-line hover:bg-text/10"}`}>{a.label}</Link>
+          ))}
+        </div>
+        <Link href={libraryHref} className="inline-flex min-h-11 items-center text-sm text-muted hover:text-text">{t("res.library")}</Link>
+      </Card>
     </div>
   );
 }

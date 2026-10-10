@@ -5,6 +5,7 @@ import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } fro
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { generateOfflineWithProgress, OfflineGenerationError, type OfflineStage } from "@/lib/offline/generate";
+import { hashQuery } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
 import { EXAMPLE_NOTES } from "./examples";
 import { navigate } from "../router";
@@ -12,9 +13,11 @@ import { navigate } from "../router";
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
-  const [subject, setSubject] = useState("");
+  // `#/create?example=1` (from the welcome / empty library) opens with the example notes already filled in.
+  const [prefill] = useState(() => (hashQuery(window.location.hash).get("example") === "1" ? EXAMPLE_NOTES[locale] : null));
+  const [subject, setSubject] = useState(prefill?.subject ?? "");
   const [goal, setGoal] = useState("");
-  const [material, setMaterial] = useState("");
+  const [material, setMaterial] = useState(prefill?.notes ?? "");
   const [mode, setMode] = useState<"FAST" | "FULL">("FAST");
   const [difficulty, setDifficulty] = useState<(typeof DIFFICULTIES)[number]>("beginner");
   const [gameType, setGameType] = useState<(typeof GAME_TYPES)[number]>("adventure");
