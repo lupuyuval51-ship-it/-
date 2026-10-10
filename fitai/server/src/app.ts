@@ -97,13 +97,14 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
   if (staticDir) {
     app.use(
       '/assets',
-      express.static(path.join(staticDir, 'assets'), { immutable: true, maxAge: '1y', index: false, fallthrough: false }),
+      express.static(path.join(staticDir, 'assets'), { immutable: true, maxAge: '1y', index: false, fallthrough: false, dotfiles: 'allow' }),
     );
-    app.use(express.static(staticDir, { index: false, maxAge: '1h' }));
+    app.use(express.static(staticDir, { index: false, maxAge: '1h', dotfiles: 'allow' }));
     const indexHtml = path.join(staticDir, 'index.html');
     app.get(/^(?!\/api\/).*/, (_req, res) => {
       res.setHeader('Cache-Control', 'no-cache');
-      res.sendFile(indexHtml);
+      // dotfiles: 'allow' — the install path itself may contain a dot-directory (e.g. ~/.apps/fitai).
+      res.sendFile(indexHtml, { dotfiles: 'allow' });
     });
   }
   app.use(errorHandler);
