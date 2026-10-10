@@ -350,14 +350,14 @@ Every browser test also fails on any uncaught page error or console error.
 
 ### Verification record
 
-Run on 2026-10-10 (after the Unity bridge and the offline Android app) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
+Run on 2026-10-10 (after the UI overhaul: themes, design tokens, icons, states) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
 
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | passed (0 errors) |
 | `npm run lint` | passed (0 errors, 0 warnings) |
 | Vitest unit + integration against PostgreSQL (22 files) | **566 passed** |
-| Playwright **E2E** website (desktop + Pixel 7 projects, 53 scheduled) | **52 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Playwright **E2E** website incl. axe audits in both themes and visual-regression baselines (desktop + Pixel 7 projects, 63 scheduled) | **62 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
 | Playwright **E2E** offline app bundle (`npm run test:e2e:mobile`, Pixel 7, network blocked) | **3 passed** |
 | `npm run build` | passed |
 | Android `./gradlew bundleRelease assembleRelease` (target SDK 36) | signed AAB + APK built; `apksigner verify` / `jarsigner -verify` passed |
