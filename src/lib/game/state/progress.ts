@@ -140,9 +140,25 @@ export function challengePoints(level: number): number {
   return POINTS_BY_LEVEL[level] ?? POINTS_BY_LEVEL[1]!;
 }
 
+/** The most a placed challenge can pay: its own level, or its "harder" variant's when adaptive difficulty can serve it. */
+function bestLevelFor(spec: GameSpec, challenge: Challenge, adaptive: boolean): number {
+  let level = challenge.level;
+  const seen = new Set<string>([challenge.id]);
+  for (let next = adaptive ? findChallenge(spec, challenge.harderId ?? "") : undefined; next && !seen.has(next.id); next = findChallenge(spec, next.harderId ?? "")) {
+    seen.add(next.id);
+    level = Math.max(level, next.level);
+  }
+  return level;
+}
+
+/**
+ * The most a player can earn WITHOUT the timed bonus. A harder variant (served after a streak) pays more than the
+ * challenge it replaces, so it counts here: otherwise a flawless run would score above 100%.
+ */
 export function maxScore(spec: GameSpec): number {
   const placed = new Set(spec.areas.flatMap((a) => a.stations.map((s) => s.challengeId).filter(Boolean)));
-  const challengeMax = spec.challenges.filter((c) => placed.has(c.id)).reduce((sum, c) => sum + challengePoints(c.level), 0);
+  const adaptive = spec.areas.some((a) => mechanicsForArea(spec, a.id).has("adaptive_difficulty"));
+  const challengeMax = spec.challenges.filter((c) => placed.has(c.id)).reduce((sum, c) => sum + challengePoints(bestLevelFor(spec, c, adaptive)), 0);
   const collectMax = spec.areas.reduce((sum, a) => sum + a.collectibles.count * COLLECT_POINTS, 0);
   return challengeMax + collectMax + spec.missions.length * MISSION_BONUS;
 }
@@ -290,7 +306,8 @@ export interface LearningSummary {
 }
 
 export function summarize(spec: GameSpec, state: PlayState, now = Date.now()): LearningSummary {
-  const max = maxScore(spec);
+  // The timed bonus is on top of the base maximum: never report a score above its own maximum.
+  const max = Math.max(maxScore(spec), state.score);
   const percent = max > 0 ? Math.min(1, state.score / max) : 0;
   const entries = Object.entries(state.records).filter(([, r]) => r.resolved);
   const concepts = new Map<string, { concept: string; correct: number; total: number; firstTry: number }>();
