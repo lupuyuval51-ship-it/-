@@ -1,0 +1,17 @@
+{
+  "name": "levelup-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LEVELUP AI – personalized learning SaaS demo with manual bit payments and WebGL Daily 3D Quest",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "NODE_ENV=production node server.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "typecheck": "node scripts/typecheck.mjs",
+    "lint": "node scripts/lint.mjs",
+    "build": "node scripts/build.mjs",
+    "test:dist": "node scripts/smoke-dist.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

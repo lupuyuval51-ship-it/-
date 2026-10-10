@@ -1,17 +1,57 @@
 {
-  "name": "levelup-ai",
-  "version": "1.0.0",
+  "name": "level-up",
+  "version": "0.1.0",
   "private": true,
-  "description": "LEVELUP AI – personalized learning SaaS demo with manual bit payments and WebGL Daily 3D Quest",
-  "type": "module",
-  "scripts": {
-    "dev": "node server.js",
-    "start": "NODE_ENV=production node server.js",
-    "test": "node --test --test-concurrency=1 tests/*.test.js",
-    "typecheck": "node scripts/typecheck.mjs",
-    "lint": "node scripts/lint.mjs",
-    "build": "node scripts/build.mjs",
-    "test:dist": "node scripts/smoke-dist.mjs"
+  "description": "LEVEL UP — generate genuinely playable 3D educational games with AI",
+  "engines": {
+    "node": ">=20.9"
   },
-  "engines": { "node": ">=20" }
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm test",
+    "db:up": "bash scripts/pg-local.sh start",
+    "db:down": "bash scripts/pg-local.sh stop",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "stripe:setup": "node --env-file-if-exists=.env --import tsx scripts/stripe-setup.ts"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@react-three/fiber": "^9.8.1",
+    "next": "^16.4.0",
+    "pg": "^8.23.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "stripe": "^23.0.0",
+    "three": "^0.186.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.186.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.0",
+    "postcss": "^8.5.29",
+    "prisma": "^7.10.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9",
+    "vitest": "^5.0.3"
+  }
 }

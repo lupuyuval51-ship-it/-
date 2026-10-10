@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* LEVEL UP design tokens. Dark, game-like palette; light mode is intentionally not offered (3D scenes are dark). */
+@theme {
+  --color-ink-950: #060914;
+  --color-ink-900: #0a0f1f;
+  --color-ink-800: #101833;
+  --color-ink-700: #18224a;
+  --color-ink-600: #25326a;
+  --color-line: #2a3769;
+  --color-text: #e8ecff;
+  --color-muted: #9aa6d4;
+  --color-neon: #22e6ff;
+  --color-violet: #8b5cf6;
+  --color-lime: #a3ff4f;
+  --color-amber: #ffc63d;
+  --color-rose: #ff5c8a;
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, "Noto Sans Hebrew", "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root { color-scheme: dark; }
+
+html, body { min-height: 100%; }
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgb(139 92 246 / 0.22), transparent 60%),
+    radial-gradient(900px 500px at 0% 10%, rgb(34 230 255 / 0.14), transparent 55%),
+    var(--color-ink-950);
+  background-attachment: fixed;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible { outline: 2px solid var(--color-neon); outline-offset: 2px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Keep numbers/prices readable inside RTL text. */
+.ltr-num { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+@keyframes lu-pop { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.lu-pop { animation: lu-pop 0.18s ease-out both; }
+@keyframes lu-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.lu-skeleton { background: linear-gradient(90deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.04)); background-size: 200% 100%; animation: lu-shimmer 1.6s linear infinite; }
