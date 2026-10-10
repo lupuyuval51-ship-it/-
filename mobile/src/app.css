@@ -3,4 +3,5 @@
 @source "./";
 
 /* Phone app: respect the notch / gesture bar, no rubber-band scrolling behind the 3D view. */
-body { overscroll-behavior: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+/* Pinch-zoom stays available (no user-scalable=no); touch-action only removes the double-tap delay. */
+body { touch-action: manipulation; overscroll-behavior: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }

@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { CircleCheck, CircleX, X } from "lucide-react";
-import { useT } from "@/components/I18nProvider";
+import { useDir, useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import type { Block } from "@/lib/game/spec/schema";
+import { radioStep, radioTabIndex } from "@/lib/game/a11y/scene";
 import { Confetti } from "./Confetti";
+import { useDialogFocus } from "./useDialogFocus";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
 
@@ -96,7 +98,8 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
   }, [busy, onClose]);
-  useEffect(() => ref.current?.querySelector<HTMLElement>("button, input")?.focus(), []);
+  // focus lands on the first answer control (not on "close"), is trapped inside the panel and returns to the HUD afterwards
+  useDialogFocus(ref, '[role="radio"][tabindex="0"], input, [data-block], [data-item], [data-left]');
   // a wrong answer gives the panel a short shake (skipped when the player prefers reduced motion)
   useEffect(() => {
     const el = ref.current;
@@ -111,6 +114,8 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     if (!answer || busy || resolved) return;
     onSubmit(answer);
   };
+  // One always-mounted live region: result and hint are announced even though their visible boxes appear later.
+  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: result.feedback }) + (result.resolved ? "" : ` ${t("challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
   const setProgram = useCallback((program: Block[]) => setAnswer(program.length ? { type: "program", program } : null), []);
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
@@ -118,8 +123,8 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
       <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-e3 sm:rounded-3xl">
         {result?.correct && <Confetti />}
-        <header className="flex items-start justify-between gap-3 border-b border-line p-4">
-          <div className="space-y-1">
+        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line p-4">
+          <div className="min-w-0 flex-1 space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
             <h2 id="challenge-title" dir="auto" className="text-lg font-bold">{challenge.title}</h2>
             <div className="flex flex-wrap gap-1.5">
@@ -129,8 +134,13 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")}><X aria-hidden className="size-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape"><X aria-hidden className="size-4" /></Button>
         </header>
+
+        <div role="status" aria-live="polite" className="sr-only" data-testid="challenge-live">
+          {spoken && <p key={`r-${result?.attemptsLeft}-${result?.correct}-${result?.feedback}`}>{spoken}</p>}
+          {hint && <p>{t("challenge.hintShown")}: {hint}</p>}
+        </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           <RichText text={challenge.prompt} />
@@ -143,14 +153,14 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           {challenge.type === "simulation" && <SimulationPanel challenge={challenge} disabled={resolved || busy} onChange={setSim} />}
 
           {hint && (
-            <div className="rounded-xl border border-amber/40 bg-amber/10 p-3 text-sm" data-testid="hint">
+            <div className="rounded-xl border border-amber/40 bg-amber/10 p-3 text-sm" data-testid="hint" role="note">
               <b className="text-amber">{t("challenge.hintShown")}: </b>
               <span dir="auto">{hint}</span>
             </div>
           )}
 
           {result && (
-            <div data-testid="result" className={cx("space-y-2 rounded-xl border p-3 text-sm", result.correct ? "border-lime/50 bg-lime/10" : "border-rose/50 bg-rose/10")} role="status" aria-live="polite">
+            <div data-testid="result" className={cx("space-y-2 rounded-xl border p-3 text-sm", result.correct ? "border-lime/50 bg-lime/10" : "border-rose/50 bg-rose/10")}>
               <p className="font-semibold">
                 {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
                 {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
@@ -175,7 +185,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           {resolved ? (
             <Button onClick={onClose} data-testid="challenge-close">{t("challenge.close")}</Button>
           ) : (
-            <Button onClick={submit} disabled={!answer || busy} data-testid="challenge-submit">{busy ? t("common.loading") : t("challenge.check")}</Button>
+            <Button onClick={submit} disabled={!answer || busy} aria-busy={busy} data-testid="challenge-submit">{busy ? t("common.loading") : t("challenge.check")}</Button>
           )}
         </footer>
       </div>
@@ -195,6 +205,10 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
     setLastWrong(result && !result.correct ? picked : null);
   }
   const revealed = result?.reveal?.optionId as string | undefined;
+  const dir = useDir();
+  const group = useRef<HTMLDivElement>(null);
+  const checkedIndex = challenge.options.findIndex((o) => o.id === picked);
+  const t = useT();
   // number keys pick an option (desktop shortcut)
   useEffect(() => {
     if (disabled) return;
@@ -211,7 +225,7 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
     return () => window.removeEventListener("keydown", onKey);
   }, [challenge.options, disabled, onChange]);
   return (
-    <div role="radiogroup" aria-label={challenge.title} className="space-y-2">
+    <div ref={group} role="radiogroup" aria-label={challenge.title} className="space-y-2">
       {challenge.options.map((o, idx) => {
         const isPicked = picked === o.id;
         return (
@@ -220,8 +234,18 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
             type="button"
             role="radio"
             aria-checked={isPicked}
+            tabIndex={radioTabIndex(idx, checkedIndex)}
             disabled={disabled}
             data-option={o.id}
+            onKeyDown={(e) => {
+              const n = radioStep(e.key, idx, challenge.options.length, dir === "rtl");
+              if (n === null) return;
+              e.preventDefault();
+              const next = challenge.options[n]!;
+              setPicked(next.id);
+              onChange(next.id);
+              group.current?.querySelectorAll<HTMLElement>('[role="radio"]')[n]?.focus();
+            }}
             onClick={() => { setPicked(o.id); onChange(o.id); }}
             className={cx("flex w-full min-h-12 items-start gap-3 rounded-xl border px-3 py-2.5 text-start text-sm transition-colors",
               isPicked ? "border-neon bg-neon/10" : "border-line bg-ink-900 hover:border-neon/50",
@@ -230,7 +254,9 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
               result?.correct && isPicked && "border-lime bg-lime/10")}
           >
             <span aria-hidden="true" className={cx("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[11px] font-bold leading-none", isPicked ? "border-neon bg-neon text-ink-950" : "border-muted text-muted")}>{idx + 1}</span>
-            <RichText text={o.text} />
+            <RichText text={o.text} className="min-w-0 flex-1" />
+            {revealed === o.id && <span className="sr-only">({t("challenge.correct")})</span>}
+            {lastWrong === o.id && !isPicked && <span className="sr-only">({t("challenge.incorrect")})</span>}
           </button>
         );
       })}
@@ -241,15 +267,17 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
 function NumericInput({ challenge, disabled, onChange, onEnter }: { challenge: Extract<PublicChallenge, { type: "numeric" }>; disabled: boolean; onChange: (v: number | null) => void; onEnter: () => void }) {
   const t = useT();
   const [text, setText] = useState("");
+  const unitId = useId();
   return (
     <label className="block space-y-1.5 text-sm">
       <span className="text-muted">{t("challenge.numeric.label")}</span>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
           inputMode="decimal"
           dir="ltr"
           autoComplete="off"
+          aria-describedby={challenge.unit ? unitId : undefined}
           disabled={disabled}
           placeholder={t("challenge.numeric.placeholder")}
           value={text}
@@ -261,9 +289,9 @@ function NumericInput({ challenge, disabled, onChange, onEnter }: { challenge: E
             const n = Number(v.replace(",", ".").trim());
             onChange(v.trim() !== "" && Number.isFinite(n) ? n : null);
           }}
-          className="w-44 rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-lg focus:border-neon focus:outline-none"
+          className="w-44 max-w-full rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-lg focus:border-neon focus:outline-none"
         />
-        {challenge.unit && <span className="text-muted" dir="auto">{challenge.unit}</span>}
+        {challenge.unit && <span id={unitId} className="text-muted" dir="auto">{challenge.unit}</span>}
       </div>
     </label>
   );
@@ -272,33 +300,44 @@ function NumericInput({ challenge, disabled, onChange, onEnter }: { challenge: E
 function SequenceInput({ challenge, disabled, result, onChange }: { challenge: Extract<PublicChallenge, { type: "sequence" }>; disabled: boolean; result: AnswerResult | null; onChange: (order: string[] | null) => void }) {
   const t = useT();
   const [order, setOrder] = useState<string[]>([]);
+  const [note, setNote] = useState("");
+  const root = useRef<HTMLDivElement>(null);
+  const focusNext = useRef<string | null>(null);
   const pool = challenge.items.filter((i) => !order.includes(i.id));
   const inPlace = (result?.detail?.inPlace as boolean[] | undefined) ?? [];
-  const update = (next: string[]) => { setOrder(next); onChange(next.length === challenge.items.length ? next : null); };
+  const update = (next: string[], spoken: string, focus: string) => { setOrder(next); setNote(spoken); focusNext.current = focus; onChange(next.length === challenge.items.length ? next : null); };
+  // The button that was pressed leaves its list, so keyboard / TalkBack focus is handed to a sensible neighbour.
+  useEffect(() => {
+    const sel = focusNext.current;
+    focusNext.current = null;
+    if (sel) (root.current?.querySelector<HTMLElement>(sel) ?? root.current?.querySelector<HTMLElement>("[data-item], [data-order]"))?.focus();
+  });
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={root}>
       <p className="text-sm text-muted">{t("challenge.sequence.help")}</p>
-      <ol className="space-y-1.5" aria-label="your order">
+      <p role="status" aria-live="polite" className="sr-only">{note}</p>
+      <ol className="space-y-1.5" aria-label={t("a11y.seq.order")}>
         {order.map((id, i) => {
           const item = challenge.items.find((x) => x.id === id)!;
           return (
             <li key={id}>
-              <button type="button" disabled={disabled} onClick={() => update(order.filter((x) => x !== id))} className={cx("flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-start text-sm", result && !result.correct && inPlace.length ? (inPlace[i] ? "border-lime/60 bg-lime/10" : "border-rose/60 bg-rose/10") : "border-neon/50 bg-neon/10")}>
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-700 text-xs">{i + 1}</span>
-                <span dir="auto" className="whitespace-pre-wrap font-mono">{item.text}</span>
+              <button type="button" disabled={disabled} data-order={id} aria-label={t("a11y.seq.item", { n: i + 1, text: item.text })} onClick={() => update(order.filter((x) => x !== id), t("a11y.seq.removed", { text: item.text }), `[data-item="${id}"]`)} className={cx("flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 py-2 text-start text-sm", result && !result.correct && inPlace.length ? (inPlace[i] ? "border-lime/60 bg-lime/10" : "border-rose/60 bg-rose/10") : "border-neon/50 bg-neon/10")}>
+                <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-700 text-xs">{i + 1}</span>
+                <span aria-hidden dir="auto" className="min-w-0 whitespace-pre-wrap break-words font-mono">{item.text}</span>
               </button>
+              {result && !result.correct && inPlace.length > 0 && <span className="sr-only">{t(inPlace[i] ? "challenge.correct" : "challenge.incorrect")}</span>}
             </li>
           );
         })}
       </ol>
-      <div className="flex flex-wrap gap-2" aria-label="available items">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("a11y.seq.pool")}>
         {pool.map((i) => (
-          <button key={i.id} type="button" disabled={disabled} data-item={i.id} onClick={() => update([...order, i.id])} className="rounded-xl border border-line bg-ink-900 px-3 py-2 text-start text-sm hover:border-neon/60">
-            <span dir="auto" className="whitespace-pre-wrap font-mono">{i.text}</span>
+          <button key={i.id} type="button" disabled={disabled} data-item={i.id} onClick={() => update([...order, i.id], t("a11y.seq.added", { n: order.length + 1, total: challenge.items.length, text: i.text }), "[data-item]")} className="min-h-11 rounded-xl border border-line bg-ink-900 px-3 py-2 text-start text-sm hover:border-neon/60">
+            <span dir="auto" className="whitespace-pre-wrap break-words font-mono">{i.text}</span>
           </button>
         ))}
       </div>
-      {order.length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" onClick={() => update([])}>{t("challenge.sequence.reset")}</Button>}
+      {order.length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" onClick={() => update([], t("a11y.seq.cleared"), "[data-item]")}>{t("challenge.sequence.reset")}</Button>}
     </div>
   );
 }
@@ -307,38 +346,62 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
   const t = useT();
   const [pairs, setPairs] = useState<Record<string, string>>({});
   const [left, setLeft] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+  const root = useRef<HTMLDivElement>(null);
+  const focusNext = useRef<string | null>(null);
   const right = (result?.detail?.right as Record<string, boolean> | undefined) ?? {};
   const palette = ["#22e6ff", "#ff4fd8", "#a3ff4f", "#ffc63d", "#8b5cf6", "#ff5c8a"];
   const usedRights = new Set(Object.values(pairs));
+  const leftText = (id: string) => challenge.lefts.find((l) => l.id === id)?.text ?? "";
+  const rightText = (id: string) => challenge.rights.find((r) => r.id === id)?.text ?? "";
   const emit = (p: Record<string, string>) => onChange(Object.keys(p).length === challenge.lefts.length ? Object.entries(p).map(([leftId, rightId]) => ({ leftId, rightId })) : null);
   const colorOf = (leftId: string) => palette[challenge.lefts.findIndex((l) => l.id === leftId) % palette.length]!;
+  // A pressed button becomes disabled or changes role in the flow, so hand focus to the next thing the player needs.
+  useEffect(() => {
+    const sel = focusNext.current;
+    focusNext.current = null;
+    if (sel) (root.current?.querySelector<HTMLElement>(sel) ?? root.current?.querySelector<HTMLElement>("[data-left]"))?.focus();
+  });
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={root}>
       <p className="text-sm text-muted">{t("challenge.match.help")}</p>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
+      <p role="status" aria-live="polite" className="sr-only">{note}</p>
+      <div className="grid grid-cols-1 gap-3 min-[26rem]:grid-cols-2">
+        <div className="space-y-2" role="group" aria-label={t("a11y.match.terms")}>
           {challenge.lefts.map((l) => (
-            <button key={l.id} type="button" disabled={disabled} data-left={l.id} onClick={() => setLeft(l.id)} style={{ borderColor: pairs[l.id] ? colorOf(l.id) : undefined }}
-              className={cx("w-full rounded-xl border px-3 py-2.5 text-start text-sm", left === l.id ? "border-neon bg-neon/10" : "border-line bg-ink-900", result && !result.correct && l.id in right && (right[l.id] ? "bg-lime/10" : "bg-rose/10"))}>
-              <span dir="auto">{l.text}</span>
+            <button key={l.id} type="button" disabled={disabled} data-left={l.id} data-paired={pairs[l.id] ? "1" : undefined} aria-pressed={left === l.id}
+              onClick={() => { setLeft(l.id); setNote(t("a11y.match.pickLeft", { text: l.text })); focusNext.current = "[data-right]:not(:disabled)"; }} style={{ borderColor: pairs[l.id] ? colorOf(l.id) : undefined }}
+              className={cx("min-h-11 w-full rounded-xl border px-3 py-2.5 text-start text-sm", left === l.id ? "border-neon bg-neon/10" : "border-line bg-ink-900", result && !result.correct && l.id in right && (right[l.id] ? "bg-lime/10" : "bg-rose/10"))}>
+              <span dir="auto" className="break-words">{l.text}</span>
+              {pairs[l.id] && <span className="sr-only"> ({t("a11y.match.pairedWith", { text: rightText(pairs[l.id]!) })})</span>}
+              {result && !result.correct && l.id in right && <span className="sr-only"> ({t(right[l.id] ? "challenge.correct" : "challenge.incorrect")})</span>}
             </button>
           ))}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2" role="group" aria-label={t("a11y.match.answers")}>
           {challenge.rights.map((r) => {
             const owner = Object.entries(pairs).find(([, v]) => v === r.id)?.[0];
             return (
               <button key={r.id} type="button" disabled={disabled || !left || usedRights.has(r.id)} data-right={r.id}
-                onClick={() => { if (!left) return; const next = { ...pairs, [left]: r.id }; setPairs(next); setLeft(null); emit(next); }}
+                onClick={() => {
+                  if (!left) return;
+                  const next = { ...pairs, [left]: r.id };
+                  setPairs(next);
+                  setNote(t("a11y.match.paired", { left: leftText(left), right: r.text, n: Object.keys(next).length, total: challenge.lefts.length }));
+                  focusNext.current = "[data-left]:not([data-paired])";
+                  setLeft(null);
+                  emit(next);
+                }}
                 style={{ borderColor: owner ? colorOf(owner) : undefined }}
-                className="w-full rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-start text-sm enabled:hover:border-neon/60 disabled:opacity-70">
-                <span dir="auto">{r.text}</span>
+                className="min-h-11 w-full rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-start text-sm enabled:hover:border-neon/60 disabled:opacity-70">
+                <span dir="auto" className="break-words">{r.text}</span>
+                {owner && <span className="sr-only"> ({t("a11y.match.pairedWith", { text: leftText(owner) })})</span>}
               </button>
             );
           })}
         </div>
       </div>
-      {Object.keys(pairs).length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" onClick={() => { setPairs({}); setLeft(null); onChange(null); }}>{t("challenge.match.reset")}</Button>}
+      {Object.keys(pairs).length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" onClick={() => { setPairs({}); setLeft(null); setNote(t("a11y.match.cleared")); focusNext.current = "[data-left]"; onChange(null); }}>{t("challenge.match.reset")}</Button>}
     </div>
   );
 }

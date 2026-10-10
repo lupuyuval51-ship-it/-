@@ -65,7 +65,7 @@ test.describe("touch devices", () => {
     expect(box!.height).toBeGreaterThanOrEqual(vp.height - 2);
 
     // drag the joystick with real touch events (CDP) and watch the server-agnostic simulation move
-    const stick = (await page.getByRole("application", { name: "joystick" }).boundingBox())!;
+    const stick = (await page.getByTestId("touch-controls").getByRole("application").boundingBox())!;
     const cx = stick.x + stick.width / 2, cy = stick.y + stick.height / 2;
     const before = (await snapshot(page)).player;
     const cdp = await page.context().newCDPSession(page);

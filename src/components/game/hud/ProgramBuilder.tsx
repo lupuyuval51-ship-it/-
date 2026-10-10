@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Flag } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
 import { Button, cx } from "@/components/ui";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
+import { describeGrid } from "@/lib/game/a11y/scene";
 import type { Block } from "@/lib/game/spec/schema";
 
 type ProgramChallenge = Extract<PublicChallenge, { type: "program" }>;
@@ -46,8 +47,9 @@ function Grid({ ch, trail, step }: { ch: ProgramChallenge; trail: { x: number; y
       if (dx || dy) { dir = dx > 0 ? "E" : dx < 0 ? "W" : dy > 0 ? "S" : "N"; break; }
     }
   }
+  const t = useT();
   return (
-    <div className="grid gap-1 rounded-xl border border-line bg-ink-900 p-2" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 2.2rem))`, direction: "ltr" }} aria-label="robot grid">
+    <div className="grid gap-1 rounded-xl border border-line bg-ink-900 p-2" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 2.2rem))`, direction: "ltr" }} role="img" aria-label={describeGrid(ch.grid, pos, dir, t)}>
       {Array.from({ length: width * height }, (_, i) => {
         const x = i % width, y = Math.floor(i / width);
         const isWall = wallSet.has(`${x},${y}`);
@@ -78,6 +80,7 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
   const [anim, setAnim] = useState<{ trail: typeof trail; step: number }>({ trail, step: 0 });
   if (anim.trail !== trail) setAnim({ trail, step: 0 }); // restart the run animation when a new result arrives
   const step = anim.trail === trail ? anim.step : 0;
+  const [note, setNote] = useState("");
   const used = countBlocks(program);
   const full = used >= challenge.maxBlocks;
 
@@ -91,6 +94,7 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
   const add = (block: Block) => {
     if (full || disabled) return;
     setProgram((p) => mutate(p, (root) => containerAt(root, path).push(block)));
+    setNote(t("a11y.program.added", { label: labelOf(block), used: used + 1, max: challenge.maxBlocks }));
     if (block.t === "repeat") setPath((pp) => [...pp, containerAt(program, pp).length, "body"]);
     if (block.t === "if") setPath((pp) => [...pp, containerAt(program, pp).length, "body"]);
   };
@@ -104,41 +108,52 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
     return items;
   }, [challenge.allowed, t]);
 
-  const removeAt = (p: Path, idx: number) => setProgram((prog) => mutate(prog, (root) => void containerAt(root, p).splice(idx, 1)));
+  const labelOf = (b: Block) => (b.t === "move" ? t("block.move") : b.t === "left" ? t("block.left") : b.t === "right" ? t("block.right") : b.t === "repeat" ? t("block.repeat", { n: b.n }) : t("block.if"));
+  const removeAt = (p: Path, idx: number) => {
+    const gone = containerAt(program, p)[idx];
+    setProgram((prog) => mutate(prog, (root) => void containerAt(root, p).splice(idx, 1)));
+    if (gone) setNote(t("a11y.program.removed", { label: labelOf(gone) }));
+    // the delete button disappears with its row: keep keyboard / TalkBack focus inside the program
+    setTimeout(() => (listRef.current?.querySelector<HTMLElement>("[data-block-delete]") ?? listRef.current?.querySelector<HTMLElement>("button"))?.focus(), 0);
+  };
   const setCount = (p: Path, idx: number, delta: number) =>
     setProgram((prog) => mutate(prog, (root) => {
       const b = containerAt(root, p)[idx];
-      if (b?.t === "repeat") b.n = Math.max(2, Math.min(9, b.n + delta));
+      if (b?.t === "repeat") {
+        b.n = Math.max(2, Math.min(9, b.n + delta));
+        setNote(t("a11y.program.repeatCount", { n: b.n }));
+      }
     }));
+  const listRef = useRef<HTMLDivElement>(null);
   const samePath = (a: Path, b: Path) => a.length === b.length && a.every((v, i) => v === b[i]);
 
   const renderList = (blocks: Block[], at: Path): React.ReactNode =>
     blocks.map((b, i) => {
-      const label = b.t === "move" ? t("block.move") : b.t === "left" ? t("block.left") : b.t === "right" ? t("block.right") : b.t === "repeat" ? t("block.repeat", { n: b.n }) : t("block.if");
+      const label = labelOf(b);
       const container = b.t === "repeat" || b.t === "if";
       const bodyPath: Path = [...at, i, "body"];
       const elsePath: Path = [...at, i, "else"];
       return (
         <li key={i} className="space-y-1">
-          <div className={cx("flex items-center gap-2 rounded-lg border px-2 py-1.5 text-sm", container ? "border-violet/50 bg-violet/10" : "border-line bg-ink-700")}>
-            <span className="flex-1">{label}</span>
+          <div className={cx("flex flex-wrap items-center gap-2 rounded-lg border px-2 py-1.5 text-sm", container ? "border-violet/50 bg-violet/10" : "border-line bg-ink-700")}>
+            <span className="min-w-0 flex-1 break-words">{label}</span>
             {b.t === "repeat" && !disabled && (
               <span className="flex items-center gap-1">
-                <button type="button" aria-label="-" className="size-6 rounded bg-ink-600" onClick={() => setCount(at, i, -1)}>−</button>
-                <button type="button" aria-label="+" className="size-6 rounded bg-ink-600" onClick={() => setCount(at, i, 1)}>+</button>
+                <button type="button" aria-label={`${t("a11y.program.fewer")}: ${label}`} className="grid min-h-9 min-w-9 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, -1)}><span aria-hidden>−</span></button>
+                <button type="button" aria-label={`${t("a11y.program.more")}: ${label}`} className="grid min-h-9 min-w-9 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, 1)}><span aria-hidden>+</span></button>
               </span>
             )}
-            {!disabled && <button type="button" aria-label={t("common.delete")} className="size-6 rounded text-rose hover:bg-rose/20" onClick={() => removeAt(at, i)}>×</button>}
+            {!disabled && <button type="button" data-block-delete aria-label={t("a11y.program.delete", { delete: t("common.delete"), label })} className="grid min-h-9 min-w-9 place-items-center rounded text-rose hover:bg-rose/20" onClick={() => removeAt(at, i)}><span aria-hidden>×</span></button>}
           </div>
           {container && (
             <div className="ms-4 space-y-1">
-              <button type="button" onClick={() => setPath(bodyPath)} className={cx("w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, bodyPath) ? "border-neon text-neon" : "border-line text-muted")}>
+              <button type="button" aria-pressed={samePath(path, bodyPath)} onClick={() => setPath(bodyPath)} className={cx("min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, bodyPath) ? "border-neon text-neon" : "border-line text-muted")}>
                 {samePath(path, bodyPath) ? t("challenge.program.insideLoop") : t("block.nested")}
               </button>
               <ul className="space-y-1">{renderList(b.body, bodyPath)}</ul>
               {b.t === "if" && (
                 <>
-                  <button type="button" onClick={() => setPath(elsePath)} className={cx("w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, elsePath) ? "border-neon text-neon" : "border-line text-muted")}>
+                  <button type="button" aria-pressed={samePath(path, elsePath)} onClick={() => setPath(elsePath)} className={cx("min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, elsePath) ? "border-neon text-neon" : "border-line text-muted")}>
                     {t("block.else")}
                   </button>
                   <ul className="space-y-1">{renderList(b.else, elsePath)}</ul>
@@ -153,6 +168,7 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">{t("challenge.program.help", { used, max: challenge.maxBlocks })}</p>
+      <p role="status" aria-live="polite" className="sr-only">{note}</p>
       <div className="flex flex-wrap items-start gap-4">
         <Grid ch={challenge} trail={trail} step={step} />
         <div className="min-w-56 flex-1 space-y-3">
@@ -166,14 +182,14 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
               ))}
             </div>
           </div>
-          <div className="rounded-xl border border-line bg-ink-900 p-2">
-            <button type="button" onClick={() => setPath([])} className={cx("mb-2 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", path.length === 0 ? "border-neon text-neon" : "border-line text-muted")}>
+          <div className="rounded-xl border border-line bg-ink-900 p-2" ref={listRef}>
+            <button type="button" aria-pressed={path.length === 0} onClick={() => setPath([])} className={cx("mb-2 min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", path.length === 0 ? "border-neon text-neon" : "border-line text-muted")}>
               {t("challenge.program.addTo", { where: path.length === 0 ? t("challenge.program.top") : t("block.nested") })}
             </button>
-            {program.length === 0 ? <p className="p-2 text-sm text-muted">{t("challenge.program.empty")}</p> : <ul className="space-y-1" data-testid="program">{renderList(program, [])}</ul>}
+            {program.length === 0 ? <p className="p-2 text-sm text-muted">{t("challenge.program.empty")}</p> : <ul className="space-y-1" data-testid="program" aria-label={t("a11y.program.list")}>{renderList(program, [])}</ul>}
           </div>
           <div className="flex gap-2">
-            <Button type="button" size="sm" variant="ghost" disabled={disabled || program.length === 0} onClick={() => { setProgram([]); setPath([]); }}>{t("challenge.program.clear")}</Button>
+            <Button type="button" size="sm" variant="ghost" disabled={disabled || program.length === 0} onClick={() => { setProgram([]); setPath([]); setNote(t("a11y.program.cleared")); }}>{t("challenge.program.clear")}</Button>
           </div>
         </div>
       </div>

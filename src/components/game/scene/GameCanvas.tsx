@@ -36,6 +36,8 @@ export interface GameCanvasProps {
   guide: GuideModel;
   guideMarker: RefObject<HTMLDivElement | null>;
   guideLabel: (kind: GuideKind, name: string, meters: number) => string;
+  /** Accessible name of the canvas (translated by the host). */
+  sceneLabel?: string;
   /**
    * Unity is drawing the world: keep running input, physics, camera and guidance here but draw nothing.
    * Frames (positions and progress flags, display only) are handed to `onUnityFrame` at about 20 Hz.
@@ -236,7 +238,7 @@ export default function GameCanvas(props: GameCanvasProps) {
       gl={{ antialias: profile.antialias, powerPreference: "high-performance", alpha: false, preserveDrawingBuffer: false }}
       camera={{ fov: 62, near: 0.1, far: 520, position: [0, 6, 10] }}
       style={{ touchAction: "none" }}
-      aria-label="3D game world"
+      aria-label={props.sceneLabel ?? "3D game world"}
       role="img"
     >
       <Scene {...props} />

@@ -15,6 +15,7 @@ import { GameAudio } from "./audio";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
 import { Minimap } from "./hud/Minimap";
+import { SceneAnnouncer } from "./hud/SceneAnnouncer";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
 import { UnityView, unityBuildAvailable } from "./UnityView";
@@ -420,7 +421,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   return (
     <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} relative h-dvh w-full select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
+        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
       {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
       {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}
@@ -428,6 +429,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         <>
           <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} engine={d.game.generator.kind === "engine"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />
           <Toasts toasts={toasts} />
+          {runtime && <SceneAnnouncer runtime={runtime} spec={d.spec} client={client} input={input} guide={guide} nearby={nearby} areaId={runtime.areaId} areaName={area.name} touch={touch} active={overlay.type === "none"} />}
           <ScorePopups popups={popups} />
           {tutorial && overlay.type === "none" && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}
           {overlay.type === "none" && <GuideMarker markerRef={guideMarker} />}
