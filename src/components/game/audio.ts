@@ -6,8 +6,9 @@
  * come from the environment's "mood"), scheduled a quarter of a second ahead so it never stutters.
  */
 import type { Environment } from "@/lib/game/spec/constants";
+import { cuesForEvent, gapAllows, resyncNextNote, safeGain, streakNotes, voiceAllowed, volumeToGain, type GameSoundEvent, type Sfx } from "./audioModel";
 
-export type Sfx = "collect" | "correct" | "wrong" | "jump" | "land" | "portal" | "mission" | "blip" | "checkpoint" | "fall" | "open" | "step" | "stepFast" | "gate";
+export type { Sfx, GameSoundEvent } from "./audioModel";
 
 const SCALE = [0, 2, 4, 7, 9]; // major pentatonic, used for the pickup combo
 type Quality = "maj" | "min" | "sus";
@@ -53,8 +54,17 @@ export class GameAudio {
   private mood: Mood = MOODS["neon-city"];
   private combo = 0;
   private lastCollect = -10;
+  /** Scheduled end times of sounding voices (clock based, so a missed "ended" event can never leak a voice). */
+  private ends: number[] = [];
+  private lastPlayed = new Map<Sfx, number>();
+  /** True while the page is in the background: the context is suspended and nothing is scheduled. */
+  private hidden = false;
+  private lifecycleOn = false;
   sfxOn = true;
   musicOn = false;
+  /** 0-1 sliders; the defaults match the previous fixed levels. */
+  private sfxVolume = 1;
+  private musicVolume = 1;
 
   unlock(): void {
     if (typeof window === "undefined") return;
@@ -68,16 +78,64 @@ export class GameAudio {
         comp.ratio.value = 4;
         comp.connect(this.ctx.destination);
         this.master = this.ctx.createGain();
-        this.master.gain.value = 0.55;
+        this.master.gain.value = volumeToGain(this.sfxVolume, 0.55);
         this.master.connect(comp);
         this.music = this.ctx.createGain();
-        this.music.gain.value = 0.55;
+        this.music.gain.value = volumeToGain(this.musicVolume, 0.55);
         this.music.connect(comp);
+        this.watchLifecycle();
       }
-      if (this.ctx.state === "suspended") void this.ctx.resume();
+      if (!this.hidden && this.ctx.state !== "running") void this.ctx.resume()?.catch?.(() => undefined);
       if (this.musicOn && !this.timer) this.startMusic();
     } catch {
       /* audio is optional */
+    }
+  }
+
+  /**
+   * Going to the background (tab switch, Android home button, screen off) suspends the context so nothing keeps
+   * sounding or piles up; coming back resumes it and the music continues from "now", never replaying a backlog.
+   */
+  private watchLifecycle(): void {
+    if (this.lifecycleOn || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+    this.lifecycleOn = true;
+    document.addEventListener("visibilitychange", this.onVisibility);
+    if (typeof window.addEventListener === "function") window.addEventListener("pagehide", this.onHide);
+  }
+
+  private onHide = (): void => this.setBackground(true);
+  private onVisibility = (): void => this.setBackground(document.visibilityState === "hidden");
+
+  /** Public so a native host (app-state events) can drive it as well. */
+  setBackground(hidden: boolean): void {
+    if (hidden === this.hidden) return;
+    this.hidden = hidden;
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (hidden) {
+      void ctx.suspend?.()?.catch?.(() => undefined);
+    } else {
+      this.nextNote = resyncNextNote(this.nextNote, ctx.currentTime);
+      void ctx.resume()?.catch?.(() => undefined);
+    }
+  }
+
+  /** Master volumes (0-1). Changes glide, so a slider never clicks. */
+  setVolumes(sfx: number, music: number): void {
+    this.sfxVolume = sfx;
+    this.musicVolume = music;
+    this.glide(this.master, volumeToGain(sfx, 0.55));
+    this.glide(this.music, volumeToGain(music, 0.55));
+  }
+
+  private glide(node: GainNode | null, to: number): void {
+    const ctx = this.ctx;
+    if (!ctx || !node) return;
+    try {
+      node.gain.cancelScheduledValues?.(ctx.currentTime);
+      node.gain.setTargetAtTime?.(to, ctx.currentTime, 0.03);
+    } catch {
+      node.gain.value = to;
     }
   }
 
@@ -97,8 +155,9 @@ export class GameAudio {
     if (opts.slideTo) o.frequency.exponentialRampToValueAtTime(opts.slideTo, start + dur);
     const attack = opts.attack ?? 0.012;
     g.gain.setValueAtTime(0.0001, start);
-    g.gain.exponentialRampToValueAtTime(gain, start + attack);
+    g.gain.exponentialRampToValueAtTime(safeGain(gain), start + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    this.track(start + dur + 0.05);
     let out: AudioNode = o;
     if (opts.lowpass) {
       const f = ctx.createBiquadFilter();
@@ -110,6 +169,15 @@ export class GameAudio {
     out.connect(g).connect(dest);
     o.start(start);
     o.stop(start + dur + 0.05);
+  }
+
+  private track(end: number): void {
+    if (this.ends.length > 200) this.ends = this.ends.filter((e) => e > (this.ctx?.currentTime ?? 0));
+    this.ends.push(end);
+  }
+
+  private activeVoices(now: number): number {
+    return this.ends.reduce((n, e) => (e > now ? n + 1 : n), 0);
   }
 
   private noise(start: number, dur: number, gain: number, type: BiquadFilterType, from: number, to = from, dest?: AudioNode): void {
@@ -132,14 +200,23 @@ export class GameAudio {
     g.gain.setValueAtTime(0.0001, start);
     g.gain.exponentialRampToValueAtTime(gain, start + Math.min(0.01, dur / 3));
     g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    this.track(start + dur + 0.05);
     src.connect(f).connect(g).connect(out);
     src.start(start, Math.random() * 0.5);
     src.stop(start + dur + 0.05);
   }
 
-  play(name: Sfx): void {
-    if (!this.sfxOn || !this.ctx) return;
-    const t = this.ctx.currentTime;
+  /** Plays the cues for a game event (a right answer on a streak is the chime plus a flourish). */
+  playEvent(e: GameSoundEvent): void {
+    for (const c of cuesForEvent(e)) this.play(c.sfx, { level: c.level, delay: c.delay });
+  }
+
+  play(name: Sfx, opts: { level?: number; delay?: number } = {}): void {
+    if (!this.sfxOn || !this.ctx || this.hidden) return;
+    const now = this.ctx.currentTime;
+    if (!gapAllows(name, this.lastPlayed.get(name), now) || !voiceAllowed(name, this.activeVoices(now))) return;
+    this.lastPlayed.set(name, now);
+    const t = now + (opts.delay ?? 0);
     switch (name) {
       case "collect": {
         // quick successive pickups climb the pentatonic scale
@@ -158,9 +235,42 @@ export class GameAudio {
         this.noise(t + 0.3, 0.35, 0.03, "highpass", 5000);
         break;
       case "wrong":
-        this.tone(233, t, 0.26, "sawtooth", 0.1, { slideTo: 160, lowpass: 900 });
-        this.tone(220, t + 0.12, 0.3, "sawtooth", 0.1, { slideTo: 130, lowpass: 800 });
+        // gentle "not quite": two soft, falling sine notes. No buzz, no harsh edge; it should feel like "try again".
+        this.tone(392, t, 0.22, "sine", 0.13, { attack: 0.02, slideTo: 370 });
+        this.tone(311, t + 0.13, 0.34, "sine", 0.12, { attack: 0.02, slideTo: 294 });
+        this.tone(196, t + 0.13, 0.34, "triangle", 0.04, { attack: 0.03, lowpass: 700 });
         break;
+      case "streak": {
+        // a sparkling rising arpeggio; a longer streak climbs further and ends with a shimmer
+        const level = Math.max(1, Math.min(3, Math.round(opts.level ?? 1)));
+        const base = 659 * (level === 3 ? 1.12 : 1);
+        streakNotes(level).forEach((semi, i) => {
+          const f = base * Math.pow(2, semi / 12);
+          this.tone(f, t + i * 0.065, 0.28, "triangle", 0.15);
+          this.tone(f * 2, t + i * 0.065, 0.18, "sine", 0.04);
+        });
+        if (level >= 2) this.noise(t + 0.15, 0.4, 0.025, "highpass", 6500);
+        if (level === 3) this.tone(base * 4, t + 0.4, 0.5, "sine", 0.05);
+        break;
+      }
+      case "areaEnter":
+        // a soft rising swell into a warm open fifth: arriving somewhere new
+        this.noise(t, 0.55, 0.035, "bandpass", 500, 2400);
+        this.tone(262, t, 0.7, "sine", 0.13, { attack: 0.18 });
+        this.tone(392, t + 0.12, 0.7, "triangle", 0.1, { attack: 0.18 });
+        this.tone(523, t + 0.28, 0.6, "sine", 0.09, { attack: 0.1 });
+        break;
+      case "victory": {
+        // short fanfare: a rising run, then a held major chord with a sparkle on top (about 1.8 s)
+        const run = [523, 587, 659, 784];
+        run.forEach((f, i) => this.tone(f, t + i * 0.1, 0.3, "triangle", 0.2));
+        const chord = t + 0.46;
+        [523, 659, 784, 1047].forEach((f, i) => this.tone(f, chord + i * 0.012, 1.0, i === 3 ? "sine" : "triangle", i === 3 ? 0.1 : 0.16, { attack: 0.02 }));
+        [131, 196].forEach((f) => this.tone(f, chord, 1.0, "sine", 0.1));
+        [1568, 2093].forEach((f, i) => this.tone(f, chord + 0.25 + i * 0.12, 0.5, "sine", 0.045));
+        this.noise(chord, 0.9, 0.025, "highpass", 5500);
+        break;
+      }
       case "jump":
         this.tone(280, t, 0.17, "sine", 0.14, { slideTo: 640 });
         this.noise(t, 0.08, 0.025, "bandpass", 900, 2200);
@@ -222,6 +332,7 @@ export class GameAudio {
 
   private startMusic(): void {
     if (this.timer || !this.ctx) return;
+    this.glide(this.music, volumeToGain(this.musicVolume, 0.55));
     this.nextNote = this.ctx.currentTime + 0.12;
     this.beat = 0;
     this.timer = setInterval(() => this.pump(), 70);
@@ -229,8 +340,8 @@ export class GameAudio {
 
   private pump(): void {
     const ctx = this.ctx;
-    if (!ctx || ctx.state !== "running") {
-      if (ctx && this.nextNote < ctx.currentTime) this.nextNote = ctx.currentTime + 0.1; // never replay a backlog after a suspend
+    if (!ctx || this.hidden || ctx.state !== "running") {
+      if (ctx) this.nextNote = resyncNextNote(this.nextNote, ctx.currentTime); // never replay a backlog after a suspend
       return;
     }
     while (this.nextNote < ctx.currentTime + 0.25) {
@@ -266,10 +377,19 @@ export class GameAudio {
   private stopMusic(): void {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
+    // the notes already scheduled ahead fade out instead of being cut off
+    this.glide(this.music, 0);
   }
 
   dispose(): void {
     this.stopMusic();
+    if (this.lifecycleOn) {
+      document.removeEventListener("visibilitychange", this.onVisibility);
+      if (typeof window.removeEventListener === "function") window.removeEventListener("pagehide", this.onHide);
+      this.lifecycleOn = false;
+    }
+    this.hidden = false;
+    this.ends = [];
     void this.ctx?.close();
     this.ctx = null;
   }
