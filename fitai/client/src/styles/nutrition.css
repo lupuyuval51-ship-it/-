@@ -392,3 +392,122 @@
     inset-block-end: 0;
   }
 }
+
+/* ================================================================== Visual polish (UI 4) */
+.nutri-overview-card {
+  background: radial-gradient(90% 70% at 0% 0%, var(--primary-soft), transparent 65%), var(--surface);
+}
+.nutri-ring .ring {
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--primary) 30%, transparent));
+}
+.nutri-ring-value {
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
+.nutri-remaining {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+.nutri-macros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.nutri-macro {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.nutri-macro-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.nutri-macro-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.nutri-macro-value {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nutri-macro-pct {
+  font-size: 12px;
+  font-weight: 800;
+}
+.nutri-macro-info .ring-fill {
+  stroke: var(--info);
+}
+.nutri-macro-warning .ring-fill {
+  stroke: var(--warning);
+}
+.nutri-macro .ring-warning,
+.nutri-macro .ring-fill.ring-warning {
+  stroke: var(--warning);
+}
+@media (max-width: 420px) {
+  .nutri-macros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Meal cards: coloured accent per meal */
+.meal-card {
+  --meal-accent: var(--primary);
+  border-inline-start: 4px solid var(--meal-accent);
+}
+.meal-card-breakfast {
+  --meal-accent: #f59e0b;
+}
+.meal-card-lunch {
+  --meal-accent: #22c55e;
+}
+.meal-card-dinner {
+  --meal-accent: #6366f1;
+}
+.meal-card-snack {
+  --meal-accent: #ec4899;
+}
+.meal-card .card-title {
+  font-size: 18px;
+}
+.meal-entry-kcal {
+  font-size: 16px;
+}
+.meal-entry {
+  padding-block: var(--space-3);
+}
+.meal-card .card-subtitle {
+  font-weight: 600;
+}
+
+/* Date navigator + food lists */
+.nutri-date-nav {
+  box-shadow: var(--shadow);
+}
+.nutri-date-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+.food-item {
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.food-item:hover {
+  background: var(--surface-2);
+}
+.macro-cell {
+  border: 1px solid var(--border);
+}
+.macro-cell dd {
+  font-size: 17px;
+}

@@ -143,6 +143,7 @@ export function ExerciseCard({
         {exercise.sets.map((s, i) => (
           <SetRow
             key={s.id}
+            current={!s.completed && exercise.sets.findIndex((x) => !x.completed) === i}
             set={s}
             tracking={tracking}
             showWeight={showWeight}

@@ -271,7 +271,14 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
         <p className="small muted" aria-live="polite">
           {t('onboarding.stepOf', { current: step + 1, total: ONBOARDING_STEPS.length })}
         </p>
-        <ProgressBar value={step + 1} max={ONBOARDING_STEPS.length} label={t('onboarding.progressLabel')} />
+        <div className="onboarding-segments" aria-hidden="true">
+          {ONBOARDING_STEPS.map((s, i) => (
+            <span key={s.id} className={i < step ? 'done' : i === step ? 'current' : undefined} />
+          ))}
+        </div>
+        <div className="visually-hidden">
+          <ProgressBar value={step + 1} max={ONBOARDING_STEPS.length} label={t('onboarding.progressLabel')} />
+        </div>
         <ol className="onboarding-steps">
           {ONBOARDING_STEPS.map((s, i) => (
             <li key={s.id} aria-current={i === step ? 'step' : undefined} className={i === step ? 'current' : i < step ? 'done' : undefined}>
