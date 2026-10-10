@@ -128,7 +128,9 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
           </div>
           <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
         </div>
-        <div className={cx("pointer-events-auto flex flex-wrap items-center gap-1.5", shortLandscape && "shrink-0")}>
+        {/* Compact chips (tighter padding and type) so "Demo template", the leaf counter and the streak sit on one slim row
+            and leave the world visible under the header. */}
+        <div data-testid="hud-chips" className={cx("pointer-events-auto flex max-w-full flex-wrap items-center gap-1 [&>*]:px-2 [&>*]:py-0 [&>*]:text-[11px] [&>*]:leading-5", shortLandscape && "shrink-0")}>
           {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
           {engine && <Badge tone="lime" title={t("engine.badge.hint")}>{t("engine.badge")}</Badge>}
           {collect && collect.total > 0 && (

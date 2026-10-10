@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { labelSafeTop, labelScreenOpacity } from "@/lib/labelFade";
+import { useLayout } from "../useLayout";
 import { makeLabelTexture, makeSoftSprite } from "./materials";
 
 /** World label that keeps a steady, readable size on screen (small when you are next to it, larger when far away). */
@@ -11,6 +13,9 @@ export function Label({ text, color, y, scale = 1 }: { text: string; color: stri
   useEffect(() => () => texture.dispose(), [texture]);
   const ref = useRef<THREE.Sprite>(null);
   const tmp = useMemo(() => new THREE.Vector3(), []);
+  const ndc = useMemo(() => new THREE.Vector3(), []);
+  const layout = useLayout();
+  const safeTop = labelSafeTop(layout);
   useFrame(({ camera }) => {
     const s = ref.current;
     if (!s) return;
@@ -20,7 +25,10 @@ export function Label({ text, color, y, scale = 1 }: { text: string; color: stri
     const h = 0.034 * d * scale;
     s.scale.set(h * aspect, h, 1);
     // far labels fade out so a distant cluster of terminals never turns into a wall of text
-    (s.material as THREE.SpriteMaterial).opacity = Math.max(0, Math.min(1, (44 - real) / 16));
+    const far = Math.max(0, Math.min(1, (44 - real) / 16));
+    // labels are sprites inside the canvas: near the side edges they would be cut off, and at the top they would slide under the DOM HUD
+    ndc.copy(tmp).project(camera);
+    (s.material as THREE.SpriteMaterial).opacity = far * labelScreenOpacity(ndc.x, ndc.y, ndc.z, safeTop);
   });
   return (
     <sprite ref={ref} position={[0, y, 0]} scale={[0.46 * aspect, 0.46, 1]}>
