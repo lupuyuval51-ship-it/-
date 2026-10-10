@@ -21,9 +21,8 @@ async function api(page: Page, method: 'post' | 'patch' | 'put', url: string, da
 }
 
 async function audit(page: Page, route: string, locale: string, theme: string): Promise<Finding[]> {
-  await page.goto(route);
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(400);
+  await page.goto(route, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(900);
   return page.evaluate(
     ({ route, locale, theme, MIN_TARGET }) => {
       const out: Finding[] = [];
