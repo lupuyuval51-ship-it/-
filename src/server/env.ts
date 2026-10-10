@@ -27,8 +27,6 @@ const schema = z.object({
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
-  STRIPE_PRICE_PLUS: optional(z.string()),
-  STRIPE_PRICE_PRO: optional(z.string()),
 
   CRON_SECRET: optional(z.string().min(16)),
   ENABLE_TEST_HOOKS: bool.default(false),

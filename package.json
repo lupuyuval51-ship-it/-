@@ -22,8 +22,7 @@
     "db:down": "bash scripts/pg-local.sh stop",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "db:generate": "prisma generate",
-    "stripe:setup": "node --env-file-if-exists=.env --import tsx scripts/stripe-setup.ts"
+    "db:generate": "prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

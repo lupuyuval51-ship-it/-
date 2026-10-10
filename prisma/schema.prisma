@@ -106,7 +106,7 @@ model UserProfile {
   displayName        String
   locale             String            @default("he") // UI language: he | en
   country            String? // ISO 3166-1 alpha-2, chosen by the user (billing region). Never precise location.
-  graphicsPreference GraphicsTier      @default(B) // clamped server-side to the plan's allowed tiers
+  graphicsPreference GraphicsTier? // null = automatic (the plan's default tier); always clamped server-side to the plan's allowed tiers
   soundEnabled       Boolean           @default(true)
   musicEnabled       Boolean           @default(false)
   visibility         ProfileVisibility @default(PRIVATE) // all profiles are private; there is no public surface

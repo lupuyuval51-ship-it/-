@@ -28,7 +28,7 @@ export interface PlaySessionStart {
  */
 export async function resolveRender(userId: string, now = new Date()): Promise<PlaySessionStart["render"]> {
   const [ent, profile] = await Promise.all([resolveEntitlement(userId, now), db.userProfile.findUnique({ where: { userId } })]);
-  const requested = (profile?.graphicsPreference ?? PLANS[ent.plan].graphics.defaultTier) as GraphicsTier;
+  const requested: GraphicsTier = profile?.graphicsPreference ?? PLANS[ent.plan].graphics.defaultTier;
   const tier = resolveGraphicsTier(ent.plan, requested);
   return { tier, plan: ent.plan, requested, profile: RENDER_PROFILES[tier] };
 }

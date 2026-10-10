@@ -11,7 +11,8 @@ export interface AuthUser {
   displayName: string;
   locale: "he" | "en";
   country: string | null;
-  graphicsPreference: GraphicsTier;
+  /** null = automatic: the best tier the current plan allows. */
+  graphicsPreference: GraphicsTier | null;
   soundEnabled: boolean;
   musicEnabled: boolean;
 }
