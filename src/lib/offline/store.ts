@@ -69,6 +69,16 @@ export interface GameSummaryRow {
   lastSessionId: string | null;
 }
 
+export interface ImportCounts {
+  gamesAdded: number;
+  gamesUpdated: number;
+  gamesKept: number;
+  sessionsImported: number;
+  sessionsKept: number;
+  cardsImported: number;
+  cardsKept: number;
+}
+
 export class OfflineError extends Error {
   constructor(public status: number, public code: string, message: string) {
     super(message);
@@ -384,6 +394,80 @@ export class OfflineStore {
       this.saveDeck(deck);
     }
     return applied;
+  }
+
+  // ───────── backup file (see backup.ts) ─────────
+
+  /** Everything on the device that belongs in a backup file. Read-only: nothing is written. */
+  exportData(): { games: StoredGame[]; sessions: StoredSession[]; cards: DeckCard[] } {
+    const games: StoredGame[] = [];
+    const sessions: StoredSession[] = [];
+    const ids = new Set<string>();
+    for (const id of this.gameIds()) {
+      const g = this.getGame(id);
+      if (!g) continue;
+      games.push(g);
+      ids.add(id);
+      for (const sid of this.sessionIds(id)) {
+        const s = this.getSession(sid);
+        if (s) sessions.push(s);
+      }
+    }
+    const cards = Object.values(this.deck()).filter((c) => ids.has(c.gameId));
+    return { games, sessions, cards };
+  }
+
+  /**
+   * Merge already-validated records from a backup file. Local data is never overwritten by an older or equal copy:
+   * a record is taken only when it is new here or strictly newer than the local one. Records that are taken are stamped
+   * "changed now" so cloud sync pushes them. A game deleted here after the backup was made stays deleted.
+   */
+  importRecords(data: { games: StoredGame[]; sessions: StoredSession[]; cards: DeckCard[] }): ImportCounts {
+    const counts: ImportCounts = { gamesAdded: 0, gamesUpdated: 0, gamesKept: 0, sessionsImported: 0, sessionsKept: 0, cardsImported: 0, cardsKept: 0 };
+    const now = this.clock();
+    const tomb = this.read<Record<string, number>>("tombstones", {});
+    let tombChanged = false;
+    const stamp = (r: { updatedAt?: number; createdAt?: number; startedAt?: number; added?: number }) => r.updatedAt ?? r.createdAt ?? r.startedAt ?? r.added ?? 0;
+    const usable = new Set<string>();
+
+    for (const g of data.games) {
+      const local = this.getGame(g.id);
+      const deletedAt = tomb[g.id];
+      if (!local && deletedAt !== undefined && deletedAt >= stamp(g)) { counts.gamesKept++; continue; }
+      if (local && stamp(local) >= stamp(g)) { counts.gamesKept++; usable.add(g.id); continue; }
+      if (deletedAt !== undefined) { delete tomb[g.id]; tombChanged = true; }
+      const next: StoredGame = { ...g, updatedAt: now, revision: local ? Math.max(local.revision, g.revision) + 1 : g.revision };
+      this.write(`game.${g.id}`, next);
+      if (!local) { this.write("games", [g.id, ...this.gameIds()]); counts.gamesAdded++; } else counts.gamesUpdated++;
+      usable.add(g.id);
+    }
+    if (tombChanged) this.write("tombstones", tomb);
+
+    for (const s of data.sessions) {
+      if (!usable.has(s.gameId) && !this.getGame(s.gameId)) { counts.sessionsKept++; continue; } // its game stays deleted here
+      const local = this.getSession(s.id);
+      if (local && stamp(local) >= stamp(s)) { counts.sessionsKept++; continue; }
+      this.write(`session.${s.id}`, { ...s, updatedAt: now });
+      if (!local) {
+        const ids = [...this.sessionIds(s.gameId), s.id];
+        const started = (id: string) => (id === s.id ? s.startedAt : this.getSession(id)?.startedAt ?? 0);
+        this.write(`sessions.${s.gameId}`, ids.sort((a, b) => started(b) - started(a)));
+      }
+      counts.sessionsImported++;
+    }
+
+    const deck = this.deck();
+    let deckChanged = false;
+    for (const c of data.cards) {
+      if (!this.getGame(c.gameId)) { counts.cardsKept++; continue; }
+      const local = deck[c.key];
+      if (local && stamp(local) >= stamp(c)) { counts.cardsKept++; continue; }
+      deck[c.key] = { ...c, updatedAt: now };
+      counts.cardsImported++;
+      deckChanged = true;
+    }
+    if (deckChanged) this.saveDeck(deck);
+    return counts;
   }
 
   private removeGameLocally(id: string): void {
