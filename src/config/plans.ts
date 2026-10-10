@@ -1,0 +1,144 @@
+/**
+ * THE single source of truth for plans, prices, allowances and graphics permissions.
+ *
+ * Every other module (API routes, allowance service, pricing page, runtime session setup, webhooks) reads
+ * from here. Never hard-code a price, a limit or a tier check anywhere else, and never gate by price.
+ * This file is pure data + pure functions so it is safe to import from both server and client code;
+ * all ENFORCEMENT happens on the server (see src/server/allowance and src/server/games/play-session).
+ */
+
+export const PLAN_IDS = ["FREE", "PLUS", "PRO"] as const;
+export type PlanId = (typeof PLAN_IDS)[number];
+
+/** Quality order: A is the highest tier, C the lowest. */
+export const GRAPHICS_TIERS = ["A", "B", "C"] as const;
+export type GraphicsTier = (typeof GRAPHICS_TIERS)[number];
+
+export type CurrencyCode = "USD" | "ILS";
+
+/**
+ * How a plan's allowance period is defined.
+ * - calendar_month_utc: resets at 00:00 UTC on the 1st of every month (used by FREE).
+ * - billing_period:     follows the subscription's paid billing period from the payment provider.
+ */
+export type AllowancePeriodRule = { kind: "calendar_month_utc" } | { kind: "billing_period" };
+
+export interface PlanDefinition {
+  id: PlanId;
+  /** Ascending order of capability; used for upgrade/downgrade labelling only, never for access checks. */
+  rank: number;
+  /**
+   * Monthly price in MINOR units (cents / agorot) per currency. A currency that is not listed is NOT offered:
+   * no price is ever derived from an exchange rate. PRO deliberately has no ILS entry.
+   */
+  monthlyPrices: Readonly<Partial<Record<CurrencyCode, number>>>;
+  gamesPerPeriod: number;
+  allowancePeriod: AllowancePeriodRule;
+  graphics: { allowedTiers: readonly GraphicsTier[]; defaultTier: GraphicsTier };
+}
+
+/** Plus and Pro share this exact object: Pro's advantage is the number of games, not better graphics. */
+const TIER_A_GRAPHICS = Object.freeze({
+  allowedTiers: Object.freeze(["A", "B", "C"] as const),
+  defaultTier: "A" as GraphicsTier,
+});
+
+const FREE_GRAPHICS = Object.freeze({
+  allowedTiers: Object.freeze(["B", "C"] as const),
+  defaultTier: "B" as GraphicsTier,
+});
+
+export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
+  FREE: {
+    id: "FREE",
+    rank: 0,
+    monthlyPrices: { USD: 0, ILS: 0 },
+    gamesPerPeriod: 1,
+    // FREE ALLOWANCE PERIOD: one generated game per calendar month (UTC). Unused games do not roll over.
+    allowancePeriod: { kind: "calendar_month_utc" },
+    graphics: FREE_GRAPHICS,
+  },
+  PLUS: {
+    id: "PLUS",
+    rank: 1,
+    // $10/month internationally; exactly ₪30/month for users in Israel (explicit, never FX-derived).
+    monthlyPrices: { USD: 1000, ILS: 3000 },
+    gamesPerPeriod: 1,
+    allowancePeriod: { kind: "billing_period" },
+    graphics: TIER_A_GRAPHICS,
+  },
+  PRO: {
+    id: "PRO",
+    rank: 2,
+    // $40/month. No shekel price is invented for PRO: Israeli users are shown (and charged) USD.
+    monthlyPrices: { USD: 4000 },
+    gamesPerPeriod: 5,
+    allowancePeriod: { kind: "billing_period" },
+    graphics: TIER_A_GRAPHICS,
+  },
+});
+
+/** Region whose users are shown localized prices where a localized price is explicitly configured. */
+export const ISRAEL = "IL";
+
+export const PAID_PLAN_IDS = ["PLUS", "PRO"] as const satisfies readonly PlanId[];
+export type PaidPlanId = (typeof PAID_PLAN_IDS)[number];
+
+export function isPlanId(v: unknown): v is PlanId {
+  return typeof v === "string" && (PLAN_IDS as readonly string[]).includes(v);
+}
+export function isPaidPlanId(v: unknown): v is PaidPlanId {
+  return v === "PLUS" || v === "PRO";
+}
+export function isGraphicsTier(v: unknown): v is GraphicsTier {
+  return typeof v === "string" && (GRAPHICS_TIERS as readonly string[]).includes(v);
+}
+
+export function getPlan(id: PlanId): PlanDefinition {
+  return PLANS[id];
+}
+
+export function planAllowsTier(plan: PlanId, tier: GraphicsTier): boolean {
+  return PLANS[plan].graphics.allowedTiers.includes(tier);
+}
+
+/**
+ * Server-trusted graphics resolution. `requested` is only a preference: the result is always within the plan.
+ * If the requested tier is not allowed, the best allowed tier that is not better than requested is chosen
+ * (FREE asking for A gets B), falling back to the plan default.
+ */
+export function resolveGraphicsTier(plan: PlanId, requested?: GraphicsTier | null): GraphicsTier {
+  const def = PLANS[plan].graphics;
+  if (!requested) return def.defaultTier;
+  if (def.allowedTiers.includes(requested)) return requested;
+  const wanted = GRAPHICS_TIERS.indexOf(requested);
+  const candidate = GRAPHICS_TIERS.find((t, i) => i >= wanted && def.allowedTiers.includes(t));
+  return candidate ?? def.defaultTier;
+}
+
+/** Display currency for a region: ILS only where a plan explicitly configures an ILS price. */
+export function displayCurrency(plan: PlanId, country: string | null | undefined): CurrencyCode {
+  if (country?.toUpperCase() === ISRAEL && PLANS[plan].monthlyPrices.ILS !== undefined) return "ILS";
+  return "USD";
+}
+
+export function monthlyPrice(plan: PlanId, country: string | null | undefined): { currency: CurrencyCode; minor: number } {
+  const currency = displayCurrency(plan, country);
+  return { currency, minor: PLANS[plan].monthlyPrices[currency] ?? 0 };
+}
+
+const SYMBOL: Record<CurrencyCode, string> = { USD: "$", ILS: "₪" };
+
+/** "$10", "₪30", "$9.99". Deterministic (no Intl) so server and client always agree. */
+export function formatMoney(minor: number, currency: CurrencyCode): string {
+  const major = minor / 100;
+  const text = Number.isInteger(major) ? String(major) : major.toFixed(2);
+  return `${SYMBOL[currency]}${text}`;
+}
+
+/** Start (inclusive) and end (exclusive) of the UTC calendar month containing `at`. */
+export function calendarMonthUtc(at: Date): { start: Date; end: Date } {
+  const start = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 1));
+  return { start, end };
+}
