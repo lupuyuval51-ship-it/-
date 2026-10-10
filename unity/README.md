@@ -2,7 +2,7 @@
 
 > **Status: not built or run.** The C# in `LevelUpClient/` was written without a Unity Editor and has never been
 > compiled. The TypeScript side (scene export, scene director, bridge protocol, API, headless mode) *is* unit-tested.
-> Expect to fix small compile errors on first open.
+> It was compiled once against hand-written stubs of the Unity APIs (catches syntax and typing slips only, not real Unity API mismatches), so expect small errors on first open.
 
 Unity is a **display layer**. The browser keeps running input, physics, guidance and the server keeps grading, scoring,
 rewards and hints. Unity receives:
