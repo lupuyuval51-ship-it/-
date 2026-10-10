@@ -350,6 +350,27 @@ video {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  min-width: 0;
+}
+/* Small phones (360px): the brand name gives way so the workout pill, language toggle,
+   bell and profile button always fit on one row. */
+@media (max-width: 479px) {
+  .topbar {
+    gap: var(--space-2);
+    padding-inline: var(--space-3);
+  }
+  .topbar-brand .brand-name {
+    display: none;
+  }
+  .topbar-actions .session-pill {
+    min-width: 0;
+    padding-inline: var(--space-2);
+  }
+  .topbar-actions .session-pill .num {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 .main {
   padding: var(--space-4);
@@ -389,7 +410,7 @@ video {
   gap: 3px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   transition: color var(--dur-fast) ease;
   -webkit-tap-highlight-color: transparent;
@@ -1143,7 +1164,7 @@ video {
   gap: 4px;
   padding: 2px 9px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 18px;
   white-space: nowrap;
@@ -1562,7 +1583,7 @@ video {
 }
 .chart-axis {
   fill: var(--text-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .chart-line {
   stroke: var(--primary);
@@ -1601,7 +1622,7 @@ video {
 }
 .chart-ref-label {
   fill: var(--warning);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 .chart-tooltip {
@@ -1724,5 +1745,24 @@ video {
     min-width: 40px;
     min-height: 40px;
     margin: -8px;
+  }
+}
+
+/* Phone touch targets: 44px hit areas without changing how things look. */
+@media (max-width: 639px) {
+  .topbar-actions .session-pill {
+    min-height: 40px;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    inset: -9px -6px;
+  }
+  .coach-suggestions .coach-suggestion {
+    min-height: 44px;
+  }
+  .exercise-name {
+    display: inline-block;
+    padding-block: var(--space-2);
   }
 }

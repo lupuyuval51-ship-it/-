@@ -14,7 +14,7 @@
   border-radius: 999px;
   background: var(--danger);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   line-height: 18px;
   text-align: center;
@@ -55,7 +55,7 @@
 }
 .ring-sub {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   max-width: 84px;
 }
@@ -496,7 +496,7 @@ button.notif-main {
   opacity: 1;
 }
 .chart-svg .chart-axis {
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 .chart-svg .chart-grid {
@@ -519,7 +519,7 @@ button.notif-main {
   z-index: 2;
 }
 .chart-tip-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 .chart-tip-value {

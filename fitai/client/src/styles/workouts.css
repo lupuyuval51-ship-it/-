@@ -267,7 +267,7 @@
   background: var(--primary);
   color: var(--primary-contrast);
   border: 2px solid var(--surface);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -513,7 +513,7 @@ a.week-day:focus-visible {
   background: linear-gradient(180deg, var(--primary-soft), var(--surface));
 }
 .week-day-num {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;

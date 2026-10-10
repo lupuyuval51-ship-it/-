@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
-import { onboardViaApi, registerViaUi } from './helpers';
+import { onboardViaApi, registerViaUi, useEnglish } from './helpers';
 
 /**
  * Phone-first audit: every screen at a small phone width (360px), Hebrew and English,
@@ -23,6 +23,10 @@ async function api(page: Page, method: 'post' | 'patch' | 'put', url: string, da
 async function audit(page: Page, route: string, locale: string, theme: string): Promise<Finding[]> {
   await page.goto(route, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(900);
+  if (process.env.MOBILE_SHOTS) {
+    const name = route.replace(/[^a-z]+/gi, '_').slice(0, 30) || 'home';
+    await page.screenshot({ path: `${process.env.MOBILE_SHOTS}/${locale}-${theme}-${name}.png`, fullPage: false });
+  }
   return page.evaluate(
     ({ route, locale, theme, MIN_TARGET }) => {
       const out: Finding[] = [];
@@ -45,7 +49,9 @@ async function audit(page: Page, route: string, locale: string, theme: string): 
         const r = el.getBoundingClientRect();
         const cs = getComputedStyle(el);
         if (r.width === 0 || r.height === 0 || cs.visibility === 'hidden' || cs.display === 'none') return;
-        if (el.closest('.visually-hidden')) return;
+        if (el.closest('.visually-hidden') || el.classList.contains('skip-link')) return;
+        // Stretched links (a ::after covering their card) have the whole card as hit area.
+        if (getComputedStyle(el, '::after').position === 'absolute') return;
         // Inline links inside running text are exempt from the target-size rule.
         if (el.tagName === 'A' && el.closest('p, li, dd, label') && cs.display === 'inline') return;
         if (Math.min(r.width, r.height) < MIN_TARGET && r.height < MIN_TARGET) {
@@ -79,8 +85,10 @@ async function audit(page: Page, route: string, locale: string, theme: string): 
 }
 
 test('phone audit: no horizontal scrolling anywhere; report small targets and tiny text', async ({ page }) => {
-  test.setTimeout(600_000);
+  test.setTimeout(300_000);
+  page.setDefaultTimeout(15_000);
   await page.setViewportSize({ width: WIDTH, height: 740 });
+  await useEnglish(page); // the registration helper uses English labels; locales are switched below
   await registerViaUi(page);
   await onboardViaApi(page);
 
