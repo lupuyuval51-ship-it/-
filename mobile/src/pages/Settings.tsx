@@ -46,7 +46,6 @@ export function SettingsPage() {
       </Card>
       </div>
       </div>
-      <AccountPanel />
       <Button variant="danger" onClick={() => {
         if (!window.confirm(t("mob.settings.clear.confirm"))) return;
         for (const g of store.listGames()) store.deleteGame(g.id);

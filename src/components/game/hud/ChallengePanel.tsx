@@ -403,7 +403,7 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
           })}
         </div>
       </div>
-      {Object.keys(pairs).length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" onClick={() => { setPairs({}); setLeft(null); setNote(t("a11y.match.cleared")); focusNext.current = "[data-left]"; onChange(null); }}>{t("challenge.match.reset")}</Button>}
+      {Object.keys(pairs).length > 0 && !disabled && <Button type="button" variant="ghost" size="sm" data-testid="match-reset" onClick={() => { setPairs({}); setLeft(null); setNote(t("a11y.match.cleared")); focusNext.current = "[data-left]"; onChange(null); }}>{t("challenge.match.reset")}</Button>}
     </div>
   );
 }

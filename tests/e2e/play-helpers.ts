@@ -54,6 +54,9 @@ export async function answerInUi(page: Page, ch: Challenge, mode: "right" | "wro
     const order = mode === "right" ? answer.order : [...answer.order].reverse();
     for (const id of order) await panel.locator(`[data-item="${id}"]`).click();
   } else if (ch.type === "match" && answer.type === "match") {
+    // A previous (wrong) attempt leaves its pairs in place; clear them like a player would.
+    const reset = panel.getByTestId("match-reset");
+    if (await reset.isVisible().catch(() => false)) await reset.click();
     for (const [i, p] of answer.pairs.entries()) {
       const rightId = mode === "right" ? p.rightId : answer.pairs[(i + 1) % answer.pairs.length]!.rightId;
       await panel.locator(`[data-left="${p.leftId}"]`).click();
