@@ -58,6 +58,7 @@ import {
   type TrainingLocation,
 } from '@shared/constants';
 import type { WorkoutFocus } from '@shared/schemas/workouts';
+import { chooseSplit, type SplitChoice } from '@shared/split';
 import type { AbilityBenchmarks, GenerationNote, PlanGenerationInput, PreferenceIntensity, PreferenceInterpreter } from '@shared/types';
 import type { ExerciseRecord } from '../exercises/repository';
 import { fill, strings, workoutNameFor } from './i18n';
@@ -224,38 +225,7 @@ export function nameMatches(e: ExerciseRecord, keywords: string[]): boolean {
 
 type FocusBase = 'full_body' | 'upper' | 'lower' | 'push' | 'pull' | 'legs';
 
-export interface SplitChoice {
-  splitType: SplitType;
-  focuses: WorkoutFocus[];
-  noteCode: string;
-}
-
-export function chooseSplit(daysPerWeek: number, experience: ExperienceLevel, goal: Goal): SplitChoice {
-  const days = clamp(Math.round(daysPerWeek), 1, 7);
-  const hypertrophyOrStrength = experience !== 'beginner' && (goal === 'muscle_gain' || goal === 'strength');
-  switch (days) {
-    case 1:
-      return { splitType: 'full_body', focuses: ['full_body'], noteCode: 'split_full_body' };
-    case 2:
-      return { splitType: 'full_body', focuses: ['full_body_a', 'full_body_b'], noteCode: 'split_full_body' };
-    case 3:
-      return hypertrophyOrStrength
-        ? { splitType: 'push_pull_legs', focuses: ['push', 'pull', 'legs'], noteCode: 'split_push_pull_legs' }
-        : { splitType: 'full_body', focuses: ['full_body_a', 'full_body_b', 'full_body_c'], noteCode: 'split_full_body' };
-    case 4:
-      return { splitType: 'upper_lower', focuses: ['upper_a', 'lower_a', 'upper_b', 'lower_b'], noteCode: 'split_upper_lower' };
-    case 5:
-      return hypertrophyOrStrength
-        ? { splitType: 'upper_lower_full', focuses: ['upper', 'lower', 'push', 'pull', 'legs'], noteCode: 'split_upper_lower_ppl' }
-        : { splitType: 'upper_lower_full', focuses: ['upper_a', 'lower_a', 'full_body', 'upper_b', 'lower_b'], noteCode: 'split_upper_lower_full' };
-    default:
-      return {
-        splitType: 'push_pull_legs',
-        focuses: ['push_a', 'pull_a', 'legs_a', 'push_b', 'pull_b', 'legs_b'],
-        noteCode: 'split_push_pull_legs_x2',
-      };
-  }
-}
+export { chooseSplit, type SplitChoice };
 
 export function focusBase(focus: string): FocusBase {
   const m = /^(full_body|upper|lower|push|pull|legs)/.exec(focus);

@@ -4,12 +4,13 @@ import { LIMITS } from '@shared/constants';
 import { isWorkoutFocus, WORKOUT_FOCUSES } from '@shared/schemas/workouts';
 import type { ExerciseSummaryDTO, PlanWorkoutDTO, WorkoutPlanDTO } from '@shared/types';
 import { qk } from '../../api/queryClient';
-import { Badge, Button, Card, EmptyState, IconButton, Notice, NumberField, Segmented, SelectField, TextAreaField, TextField, useToast } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, Icon, IconButton, Notice, NumberField, Segmented, SelectField, TextAreaField, TextField, useToast } from '../../components/ui';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
 import { ExercisePicker } from '../exercises/ExercisePicker';
 import { AlternativesModal } from './AlternativesModal';
+import { StepperField } from './StepperField';
 import { formatRest } from './format';
 import { updateWorkout } from './api';
 import {
@@ -60,6 +61,18 @@ export function WorkoutDayEditor({
   const dirty = isDraftDirty(draft, original);
   const validation = useMemo(() => validateDraft(draft), [draft]);
   const nameRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
+  const undoRef = useRef<HTMLButtonElement>(null);
+  /** Last destructive change (remove / replace) with the draft to go back to. */
+  const [undoState, setUndo] = useState<{ message: string; snapshot: DayDraft; after: DayDraft } | null>(null);
+  // Undo is offered only while nothing else was edited since (it restores a whole-day snapshot).
+  const undo = undoState && undoState.after === draft ? undoState : null;
+  /** Screen-reader announcement of moves. */
+  const [announcement, setAnnouncement] = useState('');
+  /** Keeps keyboard focus on the move button of a row that just moved. */
+  const [focusMove, setFocusMove] = useState<{ key: string; dir: -1 | 1 } | null>(null);
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
 
   // Keyboard/screen-reader users land in the editor that replaced the "Edit day" button.
   useEffect(() => {
@@ -86,6 +99,44 @@ export function WorkoutDayEditor({
 
   const updateRow = (key: string, patch: Partial<DraftExercise> | ((row: DraftExercise) => DraftExercise)) =>
     setDraft((d) => ({ ...d, exercises: d.exercises.map((x) => (x.key === key ? (typeof patch === 'function' ? patch(x) : { ...x, ...patch }) : x)) }));
+
+  // After a removal or replacement the focused button is gone: land on "Undo" (also the safest next key press).
+  useEffect(() => {
+    if (undoState) undoRef.current?.focus();
+  }, [undoState]);
+
+  useEffect(() => {
+    if (!focusMove) return;
+    const row = listRef.current?.querySelector<HTMLElement>(`[data-row-key="${CSS.escape(focusMove.key)}"]`);
+    const wanted = row?.querySelector<HTMLButtonElement>(`[data-move="${focusMove.dir === -1 ? 'up' : 'down'}"]`);
+    const other = row?.querySelector<HTMLButtonElement>(`[data-move="${focusMove.dir === -1 ? 'down' : 'up'}"]`);
+    (wanted && !wanted.disabled ? wanted : other)?.focus();
+    setFocusMove(null);
+  }, [focusMove]);
+
+  /** Moves a row; `viaKeyboard` keeps focus on its move button and announces the new position. */
+  const moveRow = (from: number, to: number, viaKeyboard: boolean) => {
+    if (to < 0 || to >= draft.exercises.length || from === to) return;
+    const row = draft.exercises[from]!;
+    setDraft((d) => ({ ...d, exercises: moveItem(d.exercises, from, to) }));
+    setAnnouncement(t('workouts.editor.moved', { name: lt(row.exercise.name), position: i18n.formatNumber(to + 1), count: i18n.formatNumber(draft.exercises.length) }));
+    if (viaKeyboard) setFocusMove({ key: row.key, dir: to < from ? -1 : 1 });
+  };
+
+  const removeRow = (row: DraftExercise) => {
+    const name = lt(row.exercise.name);
+    const after = { ...draft, exercises: draft.exercises.filter((x) => x.key !== row.key) };
+    setUndo({ message: t('workouts.editor.removedUndo', { name }), snapshot: draft, after });
+    setDraft(after);
+  };
+
+  const replaceRow = (key: string, e: ExerciseSummaryDTO) => {
+    const row = draft.exercises.find((x) => x.key === key);
+    if (!row) return;
+    const after = { ...draft, exercises: draft.exercises.map((x) => (x.key === key ? replaceDraftExercise(x, e) : x)) };
+    setUndo({ message: t('workouts.editor.replacedUndo', { from: lt(row.exercise.name), to: lt(e.name) }), snapshot: draft, after });
+    setDraft(after);
+  };
 
   const onSubmit = () => {
     if (!validation.valid) {
@@ -144,7 +195,7 @@ export function WorkoutDayEditor({
         {draft.exercises.length === 0 ? (
           <EmptyState compact icon="dumbbell" title={t('workouts.editor.empty')} />
         ) : (
-          <ol className="editor-list">
+          <ol className="editor-list" ref={listRef}>
             {draft.exercises.map((row, index) => (
               <EditorRow
                 key={row.key}
@@ -153,12 +204,46 @@ export function WorkoutDayEditor({
                 count={draft.exercises.length}
                 errors={errorsShown.rows[row.key] ?? {}}
                 onChange={(patch) => updateRow(row.key, patch)}
-                onMove={(dir) => setDraft((d) => ({ ...d, exercises: moveItem(d.exercises, index, index + dir) }))}
-                onRemove={() => setDraft((d) => ({ ...d, exercises: d.exercises.filter((x) => x.key !== row.key) }))}
+                onMove={(dir) => moveRow(index, index + dir, true)}
+                onRemove={() => removeRow(row)}
                 onReplace={() => setAlternativesFor(row.key)}
+                dragging={dragKey === row.key}
+                dropTarget={overKey === row.key && dragKey !== row.key}
+                onDragStart={() => setDragKey(row.key)}
+                onDragOver={() => setOverKey(row.key)}
+                onDragEnd={() => {
+                  setDragKey(null);
+                  setOverKey(null);
+                }}
+                onDrop={() => {
+                  const from = draft.exercises.findIndex((x) => x.key === dragKey);
+                  if (from >= 0) moveRow(from, index, false);
+                  setDragKey(null);
+                  setOverKey(null);
+                }}
               />
             ))}
           </ol>
+        )}
+
+        <div className="visually-hidden" role="status" aria-live="polite">
+          {announcement}
+        </div>
+        {undo && (
+          <div className="ux-undo" role="status" aria-live="polite">
+            <span>{undo.message}</span>
+            <Button
+              ref={undoRef}
+              size="sm"
+              icon="refresh"
+              onClick={() => {
+                setDraft(undo.snapshot);
+                setUndo(null);
+              }}
+            >
+              {t('workouts.editor.undo')}
+            </Button>
+          </div>
         )}
 
         <div className="row">
@@ -197,7 +282,7 @@ export function WorkoutDayEditor({
           exercise={altRow.exercise}
           excludeIds={draftIds}
           onSelect={(e) => {
-            updateRow(altRow.key, (r) => replaceDraftExercise(r, e));
+            replaceRow(altRow.key, e);
             setAlternativesFor(null);
           }}
           onBrowse={() => {
@@ -212,7 +297,7 @@ export function WorkoutDayEditor({
         excludeIds={draftIds}
         title={picker?.mode === 'replace' ? t('workouts.alternatives.title', { name: lt(draft.exercises.find((x) => picker.mode === 'replace' && x.key === picker.key)?.exercise.name) }) : t('workouts.editor.pickerTitle')}
         onSelect={(e: ExerciseSummaryDTO) => {
-          if (picker?.mode === 'replace') updateRow(picker.key, (r) => replaceDraftExercise(r, e));
+          if (picker?.mode === 'replace') replaceRow(picker.key, e);
           else setDraft((d) => ({ ...d, exercises: [...d.exercises, newDraftExercise(e)] }));
         }}
       />
@@ -229,6 +314,12 @@ function EditorRow({
   onMove,
   onRemove,
   onReplace,
+  dragging,
+  dropTarget,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+  onDrop,
 }: {
   row: DraftExercise;
   index: number;
@@ -238,6 +329,12 @@ function EditorRow({
   onMove(dir: -1 | 1): void;
   onRemove(): void;
   onReplace(): void;
+  dragging: boolean;
+  dropTarget: boolean;
+  onDragStart(): void;
+  onDragOver(): void;
+  onDragEnd(): void;
+  onDrop(): void;
 }) {
   const i18n = useI18n();
   const { t, lt } = i18n;
@@ -246,11 +343,51 @@ function EditorRow({
   const restIsPreset = row.restSeconds != null && (REST_PRESETS as readonly number[]).includes(row.restSeconds);
   const [customRest, setCustomRest] = useState(!restIsPreset);
   const headingId = useId();
+  const hintId = useId();
   const err = (field: keyof typeof errors) => (errors[field] ? fieldErrorMessage(errors[field], i18n) : undefined);
 
   return (
-    <li className="editor-row" aria-labelledby={headingId}>
+    <li
+      className={`editor-row${dragging ? ' ux-dragging' : ''}${dropTarget ? ' ux-drop-target' : ''}`}
+      aria-labelledby={headingId}
+      data-row-key={row.key}
+      aria-describedby={hintId}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragOver();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDrop();
+      }}
+      onKeyDown={(e) => {
+        // Alt + ↑/↓ moves the row from anywhere inside it (arrow buttons do the same).
+        if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+          e.preventDefault();
+          onMove(e.key === 'ArrowUp' ? -1 : 1);
+        }
+      }}
+    >
+      <span id={hintId} className="visually-hidden">
+        {t('workouts.editor.reorderHint')}
+      </span>
       <div className="editor-row-head">
+        <span
+          className="ux-grip"
+          aria-hidden="true"
+          draggable
+          onDragStart={(e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', row.key);
+            const li = e.currentTarget.closest('li');
+            if (li) e.dataTransfer.setDragImage(li, 16, 16);
+            onDragStart();
+          }}
+          onDragEnd={onDragEnd}
+          data-testid="drag-handle"
+        >
+          <Icon name="grip" size={18} />
+        </span>
         <span className="exercise-index" aria-hidden="true">
           {index + 1}
         </span>
@@ -263,8 +400,8 @@ function EditorRow({
           </div>
         </div>
         <div className="editor-row-actions">
-          <IconButton icon="arrowUp" size="sm" label={t('workouts.editor.moveUp', { name })} onClick={() => onMove(-1)} disabled={index === 0} />
-          <IconButton icon="arrowDown" size="sm" label={t('workouts.editor.moveDown', { name })} onClick={() => onMove(1)} disabled={index === count - 1} />
+          <IconButton icon="arrowUp" size="sm" label={t('workouts.editor.moveUp', { name })} onClick={() => onMove(-1)} disabled={index === 0} data-move="up" />
+          <IconButton icon="arrowDown" size="sm" label={t('workouts.editor.moveDown', { name })} onClick={() => onMove(1)} disabled={index === count - 1} data-move="down" />
           <Button size="sm" icon="swap" onClick={onReplace} aria-label={t('workouts.editor.replaceLabel', { name })}>
             {t('workouts.editor.replace')}
           </Button>
@@ -273,7 +410,7 @@ function EditorRow({
       </div>
 
       <div className="editor-grid">
-        <NumberField label={t('workouts.editor.sets')} value={row.sets} min={1} max={10} onChange={(v) => onChange({ sets: v })} error={err('sets')} />
+        <StepperField label={t('workouts.editor.sets')} value={row.sets} min={1} max={10} fallback={3} onChange={(v) => onChange({ sets: v })} error={err('sets')} />
         <div className="editor-target">
           <Segmented<'reps' | 'time'>
             label={t('workouts.editor.target')}
@@ -288,11 +425,11 @@ function EditorRow({
         </div>
         {row.mode === 'reps' ? (
           <>
-            <NumberField label={t('workouts.editor.repMin')} value={row.repMin} min={1} max={100} onChange={(v) => onChange({ repMin: v })} error={err('repMin')} />
-            <NumberField label={t('workouts.editor.repMax')} value={row.repMax} min={1} max={100} onChange={(v) => onChange({ repMax: v })} error={err('repMax')} />
+            <StepperField label={t('workouts.editor.repMin')} value={row.repMin} min={1} max={100} fallback={8} onChange={(v) => onChange({ repMin: v })} error={err('repMin')} />
+            <StepperField label={t('workouts.editor.repMax')} value={row.repMax} min={1} max={100} fallback={12} onChange={(v) => onChange({ repMax: v })} error={err('repMax')} />
           </>
         ) : (
-          <NumberField label={t('workouts.editor.seconds')} value={row.targetSeconds} min={5} max={7200} onChange={(v) => onChange({ targetSeconds: v })} error={err('targetSeconds')} />
+          <StepperField label={t('workouts.editor.seconds')} value={row.targetSeconds} min={5} max={7200} step={5} fallback={30} onChange={(v) => onChange({ targetSeconds: v })} error={err('targetSeconds')} />
         )}
         <SelectField
           label={t('workouts.editor.rest')}

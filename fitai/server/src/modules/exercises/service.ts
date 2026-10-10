@@ -28,6 +28,13 @@ import { searchExercises } from './search';
 
 const DIFFICULTY_ORDER = { beginner: 0, intermediate: 1, advanced: 2 } as const;
 export const DEFAULT_PAGE_SIZE = 30;
+/**
+ * Added to the relevance of exercises the user has the equipment for when searching, so
+ * "squat" lists Goblet / bodyweight squats ahead of rack-only ones for someone without a
+ * rack. Smaller than the gap between a name match and a muscle/equipment-term match, so
+ * relevance still dominates.
+ */
+export const AVAILABILITY_BOOST = 2;
 
 export function muscleGroupsOf(e: Pick<ExerciseRecord, 'primaryMuscles'>): MuscleGroup[] {
   return Array.from(new Set(e.primaryMuscles.map((m) => MUSCLE_TO_GROUP[m])));
@@ -86,8 +93,10 @@ export async function listExercises(sql: Sql, userId: string, query: ExerciseLis
   const { matches, approximate } = searchExercises(all, query.q);
   const lang: Locale = query.lang ?? 'en';
   const collator = collators[lang];
+  const boost = (item: ExerciseRecord) => (query.q && fit.onboarded && hasEquipmentFor(item, fit) ? AVAILABILITY_BOOST : 0);
   const results = matches
     .filter(({ item }) => failedDimensions(item, query).length === 0 && (!query.availableOnly || hasEquipmentFor(item, fit)))
+    .map((m) => ({ ...m, score: m.score + boost(m.item) }))
     .sort(
       (a, b) =>
         b.score - a.score ||

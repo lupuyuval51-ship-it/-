@@ -1,20 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { hasAnimation } from '@shared/animation/data/index';
 import { ExerciseAnimation } from '../../features/animation/ExerciseAnimation';
-import { useId, type MouseEvent, type ReactNode } from 'react';
+import { useId, useState, type MouseEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { ExerciseDetailDTO, ExerciseListItemDTO, ExerciseMediaDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
-import { Badge, Card, EmptyState, ErrorState, Icon, LinkButton, Notice, Skeleton } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, ErrorState, Icon, LinkButton, Notice, Skeleton } from '../../components/ui';
 import { fetchExercise } from '../../features/exercises/api';
 import { DIFFICULTY_TONE, ExerciseCard } from '../../features/exercises/ExerciseCard';
 import { formatList, formatLoggedSet, localizedList, type SetFormatter } from '../../features/exercises/format';
 import { deeperNav, readLibraryNav, type LibraryNavState } from '../../features/exercises/navigation';
+import { AddToPlanModal } from '../../features/workouts/AddToPlanModal';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import '../../styles/exercises.css';
+import '../../styles/ux-workouts.css';
 
 export default function ExerciseDetailPage() {
   const { t, lt } = useI18n();
@@ -94,6 +96,14 @@ function ExerciseDetailView({ exercise: ex, nav, backLink }: { exercise: Exercis
   const mistakes = localizedList(ex.mistakes, locale);
   const safety = localizedList(ex.safety, locale);
   const altNav = deeperNav(nav);
+  const [addOpen, setAddOpen] = useState(false);
+  const ctx = ex.userContext;
+  const addWarnings = ctx
+    ? [
+        ...(ctx.hasRequiredEquipment ? [] : [t('exercises.detail.fit.missingEquipment', { items: list(ctx.missingEquipment.map((q) => t(`enums.equipment.${q}`))) })]),
+        ...(ctx.injuryConflicts.length > 0 ? [t('exercises.detail.fit.injuryTitle', { areas: list(ctx.injuryConflicts.map((a) => t(`enums.injury.${a}`))) })] : []),
+      ]
+    : [];
 
   return (
     <article className="ex-detail" aria-labelledby={titleId}>
@@ -113,7 +123,10 @@ function ExerciseDetailView({ exercise: ex, nav, backLink }: { exercise: Exercis
             </div>
           </div>
           <div className="page-actions">
-            <LinkButton to={coachHref} variant="primary" icon="chat">
+            <Button variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
+              {t('exercises.detail.addToPlan')}
+            </Button>
+            <LinkButton to={coachHref} icon="chat">
               {t('exercises.detail.askCoach')}
             </LinkButton>
           </div>
@@ -121,6 +134,7 @@ function ExerciseDetailView({ exercise: ex, nav, backLink }: { exercise: Exercis
       </header>
 
       {ex.userContext && <PersonalFit exercise={ex} list={list} />}
+      <AddToPlanModal open={addOpen} onClose={() => setAddOpen(false)} exercise={ex} warnings={addWarnings} />
 
       <section className="ex-hero" aria-label={t('exercises.detail.overview')}>
         <div className="ex-hero-stage">

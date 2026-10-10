@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { LIMITS } from '@shared/constants';
 import { updatePlanSchema } from '@shared/schemas/workouts';
-import type { ApplyProgressionResponse, WorkoutPlanDTO } from '@shared/types';
+import type { ApplyProgressionResponse, ExerciseSummaryDTO, PlanExerciseDTO, PlanWorkoutDTO, WorkoutPlanDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
 import {
@@ -21,8 +21,10 @@ import {
   useConfirm,
   useToast,
 } from '../../components/ui';
-import { applyProgression, deleteWorkout, duplicateWorkout, fetchPlan, regenerateWorkout, reorderWorkouts, updatePlan } from '../../features/workouts/api';
-import { nextWorkoutIndex } from '../../features/workouts/format';
+import { applyProgression, deleteWorkout, duplicateWorkout, fetchPlan, regenerateWorkout, reorderWorkouts, updatePlan, updateWorkout } from '../../features/workouts/api';
+import { AlternativesModal } from '../../features/workouts/AlternativesModal';
+import { draftFromWorkout, replaceDraftExercise, toUpdateInput } from '../../features/workouts/draft';
+import { focusLabel, nextWorkoutIndex } from '../../features/workouts/format';
 import { useStartWorkout, useUnsavedChangesGuard } from '../../features/workouts/hooks';
 import { AddDayModal, ProgressionResultModal } from '../../features/workouts/PlanModals';
 import { STATUS_TONE, usePlanActions } from '../../features/workouts/PlanList';
@@ -36,6 +38,7 @@ import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
 import '../../styles/workouts.css';
+import '../../styles/ux-workouts.css';
 
 /** /workouts/plans/:planId — plan details, generator explanations and day editing. */
 export default function PlanDetailPage() {
@@ -82,6 +85,8 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
   const [dirty, setDirty] = useState(false);
   const [addDayOpen, setAddDayOpen] = useState(false);
   const [progression, setProgression] = useState<ApplyProgressionResponse | null>(null);
+  /** Exercise being swapped from the read-only view (one-tap alternatives). */
+  const [swapping, setSwapping] = useState<{ workout: PlanWorkoutDTO; exercise: PlanExerciseDTO } | null>(null);
   useUnsavedChangesGuard(dirty);
 
   const actions = usePlanActions({
@@ -135,7 +140,26 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
     onError,
   });
 
-  const busy = duplicateDay.isPending || regenerateDay.isPending || deleteDay.isPending || reorder.isPending;
+  const swap = useMutation({
+    mutationFn: async ({ workout, exercise, replacement }: { workout: PlanWorkoutDTO; exercise: PlanExerciseDTO; replacement: ExerciseSummaryDTO }) => {
+      const original = draftFromWorkout(workout);
+      const draft = { ...original, exercises: original.exercises.map((x) => (x.id === exercise.id ? replaceDraftExercise(x, replacement) : x)) };
+      const updated = await updateWorkout(plan.id, workout.id, toUpdateInput(draft));
+      return { updated, undoInput: toUpdateInput(original), workoutId: workout.id };
+    },
+    onSuccess: ({ updated, undoInput, workoutId }, vars) => {
+      applyUpdate(updated);
+      toast.show(t('workouts.toasts.swapped', { from: i18n.lt(vars.exercise.exercise.name), to: i18n.lt(vars.replacement.name) }), 'success', {
+        label: t('workouts.editor.undo'),
+        onClick: () => {
+          updateWorkout(plan.id, workoutId, undoInput).then(applyUpdate, onError);
+        },
+      });
+    },
+    onError,
+  });
+
+  const busy = swap.isPending || duplicateDay.isPending || regenerateDay.isPending || deleteDay.isPending || reorder.isPending;
   const planBusy = actions.activate.isPending || actions.duplicate.isPending || actions.archiving || actions.removing || progress.isPending;
   // While a day is open in the editor, actions that rewrite or leave the plan wait: applying
   // progression would silently diverge from the editor's draft, duplicate/delete navigate away.
@@ -146,6 +170,21 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
   return (
     <div className="stack-lg plan-detail">
       <PlanHeader plan={plan} />
+
+      {plan.status === 'active' && plan.workouts.length > 0 && (
+        <TodayCard
+          workout={plan.workouts[nextIndex]!}
+          dayNumber={nextIndex + 1}
+          pending={pendingId === plan.workouts[nextIndex]!.id}
+          disabled={busy || editing}
+          onStart={() => start(plan.workouts[nextIndex]!.id)}
+        />
+      )}
+      {plan.status === 'draft' && (
+        <Notice tone="info" title={t('workouts.detail.draftTitle')}>
+          {t('workouts.detail.draftBody')}
+        </Notice>
+      )}
 
       <div className="plan-actions" role="group" aria-label={t('workouts.list.moreActions', { name: plan.name })}>
         {plan.status !== 'active' && (
@@ -209,11 +248,13 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
               busy={busy}
               locked={editingDayId != null}
               maxDaysReached={maxDays}
+              sessionMinutes={plan.sessionMinutes}
               focusEdit={returnFocusId === w.id}
               onEditFocused={() => setReturnFocusId(null)}
               actions={{
                 onStart: () => start(w.id),
                 onEdit: () => setEditingDayId(w.id),
+                onSwap: (exercise) => setSwapping({ workout: w, exercise }),
                 onDuplicate: () => duplicateDay.mutate(w.id),
                 onRegenerate: async () => {
                   if (await confirm({ title: t('workouts.confirm.regenerateTitle'), body: t('workouts.confirm.regenerateBody'), confirmLabel: t('workouts.confirm.regenerateConfirm') })) {
@@ -240,6 +281,26 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
 
       <WeeklyVolumeCard plan={plan} />
 
+      {swapping && (
+        <AlternativesModal
+          open
+          onClose={() => setSwapping(null)}
+          planId={plan.id}
+          workoutId={swapping.workout.id}
+          planExerciseId={swapping.exercise.id}
+          exercise={swapping.exercise.exercise}
+          excludeIds={swapping.workout.exercises.map((x) => x.exerciseId)}
+          onSelect={(replacement) => {
+            swap.mutate({ workout: swapping.workout, exercise: swapping.exercise, replacement });
+            setSwapping(null);
+          }}
+          onBrowse={() => {
+            // Browsing the whole library happens in the day editor.
+            setEditingDayId(swapping.workout.id);
+            setSwapping(null);
+          }}
+        />
+      )}
       <AddDayModal open={addDayOpen} onClose={() => setAddDayOpen(false)} plan={plan} onAdded={applyUpdate} />
       <ProgressionResultModal result={progression} onClose={() => setProgression(null)} />
     </div>
@@ -345,5 +406,31 @@ function PlanHeader({ plan }: { plan: WorkoutPlanDTO }) {
         />
       </div>
     </div>
+  );
+}
+
+/** Prominent "start today's workout" for the active plan: the next day in the rotation. */
+function TodayCard({ workout, dayNumber, pending, disabled, onStart }: { workout: PlanWorkoutDTO; dayNumber: number; pending: boolean; disabled: boolean; onStart(): void }) {
+  const i18n = useI18n();
+  const { t } = i18n;
+  const focus = focusLabel(workout.focus, i18n);
+  return (
+    <Card className="ux-today" as="section">
+      <div className="row-between">
+        <div>
+          <div className="small muted">{t('workouts.today.label')}</div>
+          <strong className="next-workout-name">{workout.name}</strong>
+          <div className="row small muted">
+            <span>{t('workouts.detail.dayNumber', { n: dayNumber })}</span>
+            {focus && focus !== workout.name && <span>{focus}</span>}
+            <span>{t('workouts.list.exercisesCount', { count: workout.exercises.length })}</span>
+            {workout.estimatedMinutes != null && <span>{t('workouts.detail.estimated', { minutes: workout.estimatedMinutes })}</span>}
+          </div>
+        </div>
+        <Button variant="primary" size="lg" icon="play" onClick={onStart} loading={pending} disabled={disabled || workout.exercises.length === 0}>
+          {t('workouts.today.start')}
+        </Button>
+      </div>
+    </Card>
   );
 }

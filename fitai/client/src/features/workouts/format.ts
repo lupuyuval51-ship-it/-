@@ -69,3 +69,14 @@ export function nextWorkoutIndex(plan: Pick<WorkoutPlanDTO, 'workouts' | 'nextWo
   const n = plan.workouts.length;
   return n ? ((plan.nextWorkoutIndex % n) + n) % n : 0;
 }
+
+/** Base of a training-focus code ("push_a" → "push"); "" for custom text. */
+export function focusBase(focus: string): string {
+  const m = /^(full_body|upper|lower|push|pull|legs)(_[abc])?$/.exec(focus);
+  return m?.[1] ?? '';
+}
+
+/** Weekly-volume math for a single day. */
+export function dayMuscleSets(workout: WorkoutPlanDTO['workouts'][number]): Record<MuscleGroup, number> {
+  return weeklySets({ workouts: [workout] });
+}

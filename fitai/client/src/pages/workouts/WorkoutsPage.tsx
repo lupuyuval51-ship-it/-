@@ -5,6 +5,7 @@ import { PlanList } from '../../features/workouts/PlanList';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
 import '../../styles/workouts.css';
+import '../../styles/ux-workouts.css';
 
 type Tab = 'plans' | 'generate';
 

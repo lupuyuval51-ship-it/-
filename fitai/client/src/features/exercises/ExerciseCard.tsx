@@ -6,7 +6,7 @@ import type { ExerciseListItemDTO } from '@shared/types';
 import { Badge, Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { ExerciseThumb } from '../animation/ExerciseAnimation';
-import { formatList } from './format';
+import { formatList, highlightParts } from './format';
 import type { LibraryNavState } from './navigation';
 
 export const DIFFICULTY_TONE: Record<Difficulty, 'success' | 'info' | 'warning'> = {
@@ -26,6 +26,7 @@ export function ExerciseCard({
   index,
   onNavigate,
   headingLevel = 'h3',
+  highlight = '',
 }: {
   exercise: ExerciseListItemDTO;
   navState?: LibraryNavState;
@@ -33,6 +34,8 @@ export function ExerciseCard({
   index?: number;
   onNavigate?: MouseEventHandler<HTMLAnchorElement>;
   headingLevel?: 'h3' | 'h4';
+  /** Search text whose matches are marked in the exercise name. */
+  highlight?: string;
 }) {
   const { t, lt, intlLocale } = useI18n();
   const Heading = headingLevel;
@@ -55,7 +58,15 @@ export function ExerciseCard({
         <div className="ex-card-head">
           <Heading className="ex-card-title">
             <Link to={`/exercises/${exercise.id}`} state={navState} className="ex-card-link" data-index={index} onClick={onNavigate}>
-              {lt(exercise.name)}
+              {highlightParts(lt(exercise.name), highlight).map((part, i) =>
+                part.match ? (
+                  <mark key={i} className="ex-mark">
+                    {part.text}
+                  </mark>
+                ) : (
+                  part.text
+                ),
+              )}
             </Link>
           </Heading>
           <Badge tone={DIFFICULTY_TONE[exercise.difficulty]}>{t(`enums.difficulty.${exercise.difficulty}`)}</Badge>

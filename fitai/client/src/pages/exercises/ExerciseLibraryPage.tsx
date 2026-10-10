@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNod
 import { useLocation, useNavigationType, useSearchParams } from 'react-router';
 import type { ExerciseListItemDTO, ExerciseListQuery } from '@shared/types';
 import { qk } from '../../api/queryClient';
-import { Badge, Button, EmptyState, ErrorState, Notice, PageHeader, Skeleton } from '../../components/ui';
+import { Badge, Button, ErrorState, Notice, PageHeader, Skeleton } from '../../components/ui';
 import { exerciseKeys, fetchExerciseFacets, fetchExercises } from '../../features/exercises/api';
 import { ExerciseCard } from '../../features/exercises/ExerciseCard';
 import {
@@ -24,10 +24,13 @@ import {
 } from '../../features/exercises/filters';
 import { LibraryFilters } from '../../features/exercises/LibraryFilters';
 import { libraryScrollPositions, type LibraryNavState } from '../../features/exercises/navigation';
+import { addRecentSearch, clearRecentSearches, readRecentSearches } from '../../features/exercises/recentSearches';
 import { SearchBox } from '../../features/exercises/SearchBox';
+import { NoResults, RecentSearches } from '../../features/exercises/SearchHelp';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
 import '../../styles/exercises.css';
+import '../../styles/ux-workouts.css';
 
 const listOptions = (params: ExerciseListQuery) =>
   queryOptions({ queryKey: qk.exercises(params), queryFn: ({ signal }) => fetchExercises(params, signal) });
@@ -64,6 +67,8 @@ export default function ExerciseLibraryPage() {
   const stateRef = useRef(state);
   stateRef.current = state;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [recents, setRecents] = useState<string[]>(() => readRecentSearches());
+  const remember = useCallback((q: string) => setRecents(addRecentSearch(q)), []);
   const filtersId = useId();
   const gridRef = useRef<HTMLDivElement>(null);
   // Index of the result to focus once "Load more" has added it (see below).
@@ -80,7 +85,9 @@ export default function ExerciseLibraryPage() {
     },
     [setSearchParams],
   );
-  const setFilters = (patch: Partial<Filters>) => apply(changeFilters(stateRef.current, patch));
+  // Chips, selects and switches refine the same view: replace the history entry so Back
+  // leaves the library instead of stepping through every filter click.
+  const setFilters = (patch: Partial<Filters>) => apply(changeFilters(stateRef.current, patch), true);
   // Refining a search replaces the history entry; starting or clearing one adds an entry.
   const onSearch = useCallback(
     (q: string) => {
@@ -144,7 +151,15 @@ export default function ExerciseLibraryPage() {
     const frame = window.requestAnimationFrame(() => window.scrollTo({ top: y }));
     return () => window.cancelAnimationFrame(frame);
   }, [allLoaded, location.key, navigationType]);
-  const rememberScroll = () => libraryScrollPositions.set(location.key, window.scrollY);
+  const rememberScroll = () => {
+    libraryScrollPositions.set(location.key, window.scrollY);
+    // Opening a result means the search was useful.
+    remember(stateRef.current.q);
+  };
+  const pickSearch = (q: string) => {
+    apply(changeFilters(stateRef.current, { q }), stateRef.current.q !== '');
+    remember(q);
+  };
 
   const loadMore = () => {
     // Continue from the pages actually shown (a too-large `page` in the URL is ignored).
@@ -162,21 +177,7 @@ export default function ExerciseLibraryPage() {
   } else if (first.isError || !first.data) {
     results = <ErrorState error={first.error} onRetry={() => void first.refetch()} />;
   } else if (total === 0) {
-    const criteria = hasCriteria(state);
-    results = (
-      <EmptyState
-        icon="search"
-        title={criteria ? t('exercises.results.emptyTitle') : t('exercises.results.emptyLibrary')}
-        body={state.q ? t('exercises.results.emptySearch', { q: state.q }) : criteria ? t('exercises.results.emptyFilters') : undefined}
-        action={
-          criteria ? (
-            <Button variant="primary" icon="close" onClick={() => apply(DEFAULT_LIBRARY_STATE)}>
-              {state.q ? t('exercises.filters.clearAll') : t('exercises.filters.clear')}
-            </Button>
-          ) : undefined
-        }
-      />
-    );
+    results = <NoResults state={state} recents={recents} onApply={(next) => apply(next, true)} />;
   } else {
     results = (
       <>
@@ -190,7 +191,7 @@ export default function ExerciseLibraryPage() {
         >
           {items.map((e, i) => (
             <div role="listitem" key={e.id} className="ex-grid-item">
-              <ExerciseCard exercise={e} index={i} navState={navState} onNavigate={rememberScroll} />
+              <ExerciseCard exercise={e} index={i} navState={navState} onNavigate={rememberScroll} highlight={state.q} />
             </div>
           ))}
         </div>
@@ -214,21 +215,22 @@ export default function ExerciseLibraryPage() {
     <div className="ex-library">
       <PageHeader title={t('exercises.title')} subtitle={t('exercises.subtitle')} />
       <div className="ex-toolbar">
-        <SearchBox value={state.q} onCommit={onSearch} />
+        <SearchBox value={state.q} onCommit={onSearch} onSubmit={remember} />
         <Button className="ex-filters-toggle" icon="filter" aria-expanded={filtersOpen} aria-controls={filtersId} onClick={() => setFiltersOpen((v) => !v)}>
           {filtersOpen ? t('exercises.filters.hide') : t('exercises.filters.show')}
           {activeCount > 0 && <Badge tone="primary">{t('exercises.filters.active', { count: activeCount })}</Badge>}
         </Button>
       </div>
+      {state.q === '' && <RecentSearches items={recents} onPick={pickSearch} onClear={() => { clearRecentSearches(); setRecents([]); }} />}
       <section id={filtersId} className={`card ex-filters${filtersOpen ? ' ex-filters-open' : ''}`} aria-label={t('exercises.filters.title')}>
         <LibraryFilters filters={state} facets={facets.data} onChange={setFilters} />
       </section>
       <div className="ex-results-bar">
         <p className="ex-results-count" aria-live="polite" aria-atomic="true">
-          {first.isPending ? t('common.states.loading') : updating ? t('exercises.results.updating') : first.data ? t('exercises.results.count', { count: total }) : ''}
+          {first.isPending ? t('common.states.loading') : updating ? t('exercises.results.updating') : first.data ? state.q ? t('exercises.results.countFor', { count: total, q: state.q }) : t('exercises.results.count', { count: total }) : ''}
         </p>
         {activeCount > 0 && (
-          <Button variant="ghost" size="sm" icon="close" onClick={() => apply(clearFilters(stateRef.current))}>
+          <Button variant="ghost" size="sm" icon="close" onClick={() => apply(clearFilters(stateRef.current), true)}>
             {t('exercises.filters.clear')}
           </Button>
         )}

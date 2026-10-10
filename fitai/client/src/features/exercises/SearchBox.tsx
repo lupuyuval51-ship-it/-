@@ -4,14 +4,23 @@ import { Icon, IconButton } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { cleanSearch } from './filters';
 
-export const SEARCH_DEBOUNCE_MS = 300;
+export const SEARCH_DEBOUNCE_MS = 200;
 
 /**
  * Debounced search input. Typing commits after a short pause; Enter commits at once;
  * the clear button / Escape clear immediately. External changes of `value` (back/forward,
  * "clear filters") replace the text unless they are the value this box just committed.
  */
-export function SearchBox({ value, onCommit }: { value: string; onCommit(q: string): void }) {
+export function SearchBox({
+  value,
+  onCommit,
+  onSubmit: onExplicitSubmit,
+}: {
+  value: string;
+  onCommit(q: string): void;
+  /** Enter pressed: the user means this search (the page remembers it as a recent search). */
+  onSubmit?(q: string): void;
+}) {
   const { t } = useI18n();
   const [text, setText] = useState(value);
   const committed = useRef(value);
@@ -64,6 +73,7 @@ export function SearchBox({ value, onCommit }: { value: string; onCommit(q: stri
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     commit(text);
+    onExplicitSubmit?.(cleanSearch(text));
   };
 
   return (

@@ -10,6 +10,9 @@ async function generateFromForm(page: Page) {
   await page.getByRole('button', { name: 'Generate your first plan' }).click();
   await expect(page).toHaveURL(/tab=generate/);
   await expect(page.getByText("FITAI's training engine builds your plan from your profile")).toBeVisible();
+  // The quick path shows what will be built; options are behind "Customize".
+  await expect(page.getByRole('button', { name: 'Generate my plan' })).toBeVisible();
+  await page.getByRole('button', { name: 'Customize' }).click();
   await page.getByRole('radio', { name: '3' }).click();
   await page.getByLabel('Plan name (optional)').fill('E2E strength block');
   await page.getByRole('button', { name: 'Generate plan' }).click();
@@ -40,9 +43,9 @@ test('generate a plan, edit a day and keep the changes @mobile', async ({ page }
 
   // Change sets, reps and rest of the first exercise.
   const first = rows.first();
-  await first.getByLabel('Sets').fill('5');
-  await first.getByLabel('Min reps').fill('6');
-  await first.getByLabel('Max reps').fill('8');
+  await first.getByLabel('Sets', { exact: true }).fill('5');
+  await first.getByLabel('Min reps', { exact: true }).fill('6');
+  await first.getByLabel('Max reps', { exact: true }).fill('8');
   await first.getByLabel('Rest', { exact: true }).selectOption('150');
 
   // Replace the second exercise via the alternatives modal.
@@ -66,10 +69,10 @@ test('generate a plan, edit a day and keep the changes @mobile', async ({ page }
   await expect(editor.getByText('Unsaved changes')).toBeVisible();
 
   // Invalid rep range is caught before saving.
-  await first.getByLabel('Min reps').fill('9');
+  await first.getByLabel('Min reps', { exact: true }).fill('9');
   await editor.getByRole('button', { name: 'Save day' }).click();
   await expect(first.getByText('Minimum reps must not exceed maximum reps')).toBeVisible();
-  await first.getByLabel('Min reps').fill('6');
+  await first.getByLabel('Min reps', { exact: true }).fill('6');
 
   await editor.getByRole('button', { name: 'Save day' }).click();
   await expect(page.getByText('Changes saved')).toBeVisible();
@@ -93,15 +96,16 @@ test('activate and duplicate plans from the plan page and the list', async ({ pa
   await generateFromForm(page);
   const planUrl = page.url();
 
-  await page.getByRole('button', { name: 'Set as active plan' }).click();
-  await expect(page.getByText('This is now your active plan')).toBeVisible();
+  // A first plan is activated by the generator (default on), so it is already the active plan.
   await expect(page.getByText('Active', { exact: true })).toBeVisible();
   await expect(page.getByText('Next', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start today’s workout' })).toBeEnabled();
 
   await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'E2E strength block (copy)' })).toBeVisible();
   expect(page.url()).not.toBe(planUrl);
   await expect(page.getByText('Draft', { exact: true })).toBeVisible();
+  await expect(page.getByText('This plan is a draft')).toBeVisible();
 
   await page.goto('/workouts');
   await expect(page.getByText('Active plan', { exact: true })).toBeVisible();
@@ -127,7 +131,7 @@ test('unsaved changes guard prompts before leaving the page', async ({ page }) =
   await generateFromForm(page);
   const planUrl = page.url();
   await page.getByRole('article').first().getByRole('button', { name: 'Edit day' }).click();
-  await page.getByRole('article').first().locator('ol > li').first().getByLabel('Sets').fill('7');
+  await page.getByRole('article').first().locator('ol > li').first().getByLabel('Sets', { exact: true }).fill('7');
 
   await page.getByRole('link', { name: 'Home', exact: true }).filter({ visible: true }).first().click();
   const prompt = page.getByRole('dialog', { name: 'Discard unsaved changes?' });
@@ -156,6 +160,7 @@ test('Hebrew / RTL: generate with free-text preferences, archive and find archiv
 
   await page.getByRole('button', { name: 'יצירת התוכנית הראשונה' }).click();
   await expect(page).toHaveURL(/tab=generate/);
+  await page.getByRole('button', { name: 'התאמה אישית' }).click();
   await page.getByLabel('העדפות (רשות)').fill('בלי קפיצות, יותר ידיים');
   await page.getByLabel('שם התוכנית (רשות)').fill('תוכנית בדיקה');
   await page.getByRole('button', { name: 'יצירת תוכנית' }).click();
