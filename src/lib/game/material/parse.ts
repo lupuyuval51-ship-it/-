@@ -19,6 +19,10 @@ export interface Fact {
   value: number;
   decimals: number;
   isYear: boolean;
+  /** The number exactly as the learner wrote it ("1,200", "6650", "2.5"). */
+  numText: string;
+  /** Where the number sits in `source` (so it can be swapped for another number from the material). */
+  numAt: number;
 }
 
 export interface QuestionAnswer {
@@ -135,7 +139,7 @@ function asFact(sentence: string): Fact | null {
   if (blanked.length < 25 || blanked.length > 230 || wordCount(blanked) < 5) return null;
   // a second number makes the blank ambiguous ("between 5 and 10"): keep only sentences with exactly one
   if (NUMBER.test(blanked.replace("___", ""))) return null;
-  return { source: s, blanked, value, decimals: m[2]?.length ?? 0, isYear: Number.isInteger(value) && value >= 1000 && value <= 2100 };
+  return { source: s, blanked, value, decimals: m[2]?.length ?? 0, isYear: Number.isInteger(value) && value >= 1000 && value <= 2100, numText: m[0], numAt: m.index };
 }
 
 export function parseMaterial(raw: string): Knowledge {
