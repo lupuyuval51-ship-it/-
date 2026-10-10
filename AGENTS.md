@@ -16,6 +16,13 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 - No secrets in the client: no `NEXT_PUBLIC_*` variables, no keys in props. `.env` is never committed.
 - AI output is untrusted: it must pass `validateGameSpec` (schema, cross-checks, solvability, sanitising) before it is stored or played. Nothing in a spec is executable.
 
+## Offline Android app (`mobile/`, `android/`, `src/lib/offline`)
+
+- A deliberate, documented exception: no server, so the reducer, answer keys and scoring run on the device. Keep it free of
+  accounts, payments, AI keys and network calls (CSP `connect-src 'self'`). Never import server code (`server-only` throws in that bundle).
+- Paid features there must use Google Play Billing, never Stripe. Generated games must still pass `validateGameSpec` and keep their `generatorKind` label.
+- Run `npm run test:e2e:mobile` for changes that affect it.
+
 ## Working agreements
 
 - Before calling work done run `npm run check` (typecheck + lint + unit/integration) and, for UI/gameplay/billing changes, `npm run test:e2e`. Report what was actually run; never claim an unrun test passed.

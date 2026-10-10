@@ -191,8 +191,17 @@ grades, scores and releases hints, so Unity never sees answer keys.
 * The page talks to a WebGL build through `src/lib/game/unity/bridge.ts`: scene once, then ~20 Hz frames. Unity may only answer `ready` / `error` / `stats`, strictly
   validated. With `?renderer=unity` and a build in `public/unity/levelup/Build/`, Three.js stops drawing (`headless`) and Unity renders; otherwise the built-in
   renderer stays and the page says so.
-* The Unity project skeleton is in [`unity/`](unity/README.md). **The C# has not been compiled or run** (no Unity Editor in the build environment); the TypeScript side
+* The Unity project skeleton is in [`unity/`](unity/README.md). **The C# has never run in Unity** (only compiled against hand-written API stubs; no Unity Editor in the build environment); the TypeScript side
   is tested with a stand-in loader (`tests/e2e/unity.spec.ts`), so real Unity behaviour is unverified.
+
+### Offline Android app (Google Play)
+
+`mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, demo templates
+and the server's own game reducer, running on the device (`src/lib/offline`). No accounts, AI, Stripe or network; games and
+progress stay on the phone. Answer keys live on the device there, so it is a self-practice app (this is the one deliberate
+exception to the server-authority rules). Capacitor wraps the Vite bundle (`android/`). Build, signing and Play Console
+steps: [mobile/README.md](mobile/README.md).
+
 
 ## Payments
 

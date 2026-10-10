@@ -6,16 +6,13 @@ import { useT } from "@/components/I18nProvider";
 import { Arrow, Card, Spinner } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
+import { httpTransport, type PlayTransport } from "./transport";
 
-async function call<T>(sessionId: string, body: unknown): Promise<T> {
-  const res = await fetch(`/api/practice/${sessionId}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), credentials: "same-origin" });
-  if (!res.ok) throw new Error(String(res.status));
-  return (await res.json()) as T;
-}
 
 /** The missed questions again, one by one: unscored, answers graded by the server, ends with a short summary. */
-export function PracticeClient({ gameId, sessionId }: { gameId: string; sessionId: string }) {
+export function PracticeClient({ gameId, sessionId, transport = httpTransport }: { gameId: string; sessionId: string; transport?: PlayTransport }) {
   const t = useT();
+  const call = transport.practice;
   const [items, setItems] = useState<PublicChallenge[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [index, setIndex] = useState(0);
@@ -29,7 +26,7 @@ export function PracticeClient({ gameId, sessionId }: { gameId: string; sessionI
     let live = true;
     call<{ items: PublicChallenge[] }>(sessionId, { action: "start" }).then((r) => live && setItems(r.items)).catch(() => live && setFailed(true));
     return () => { live = false; };
-  }, [sessionId]);
+  }, [sessionId, call]);
 
   const next = useCallback((outcome: "first" | "later" | "missed" | "skipped") => {
     setOutcomes((o) => [...o, outcome]);

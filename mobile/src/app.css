@@ -1,0 +1,6 @@
+@import "../../src/app/globals.css";
+@source "../../src";
+@source "./";
+
+/* Phone app: respect the notch / gesture bar, no rubber-band scrolling behind the 3D view. */
+body { overscroll-behavior: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }

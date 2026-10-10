@@ -6,12 +6,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Button, Spinner } from "@/components/ui";
-import type { RenderProfile } from "@/config/graphics";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import { GameRuntime, type Interactable } from "@/lib/game/engine/runtime";
 import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
-import type { PublicSpec } from "@/lib/game/spec/public";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
+import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
@@ -22,39 +21,6 @@ import { UnityView, unityBuildAvailable } from "./UnityView";
 import type { UnityFrame } from "@/lib/game/unity/bridge";
 
 const GameCanvas = dynamic(() => import("./scene/GameCanvas"), { ssr: false });
-
-interface Started {
-  sessionId: string;
-  resumed: boolean;
-  game: { id: string; title: string; revision: number; generator: { kind: string; provider: string } };
-  spec: PublicSpec;
-  state: ClientState;
-  maxScore: number;
-  render: { tier: "A" | "B" | "C"; plan: string; profile: RenderProfile };
-  testHooks: boolean;
-}
-
-interface EventResponse {
-  data: Record<string, unknown>;
-  state: ClientState;
-  newlyCompletedMissions: string[];
-  newAchievements: string[];
-  completed: boolean;
-  summary?: LearningSummary;
-}
-
-class ApiFailure extends Error {
-  constructor(public status: number, public code: string, message: string) {
-    super(message);
-  }
-}
-
-async function api<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), credentials: "same-origin" });
-  const json = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } } & T;
-  if (!res.ok) throw new ApiFailure(res.status, json.error?.code ?? "ERROR", json.error?.message ?? "Request failed");
-  return json;
-}
 
 function webglAvailable(): boolean {
   try {
@@ -86,7 +52,7 @@ const readPref = (k: string, d: boolean): boolean => {
   }
 };
 
-export default function PlayClient({ gameId, soundDefault, musicDefault }: { gameId: string; soundDefault: boolean; musicDefault: boolean }) {
+export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport }) {
   const t = useT();
   const [boot, setBoot] = useState<{ status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: Started }>({ status: "loading" });
   const [client, setClient] = useState<ClientState | null>(null);
@@ -167,7 +133,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
   // ───────── session boot ─────────
   const load = useCallback(async (restart: boolean) => {
     try {
-      const d = await api<Started>(`/api/games/${gameId}/session`, { restart });
+      const d = await transport.startSession(gameId, restart);
       setClient(d.state);
       setScore(d.state.score);
       setBoot({ status: "ready", data: d });
@@ -175,7 +141,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     } catch (e) {
       setBoot({ status: "error", message: e instanceof ApiFailure && e.status === 429 ? t("common.error.rateLimited") : t("hud.loading.error") });
     }
-  }, [gameId, t, toast]);
+  }, [gameId, t, toast, transport]);
   /** (Re)start from an event handler: show the loading screen, close overlays, then fetch the session. */
   const start = useCallback((restart = false) => {
     setBoot({ status: "loading" });
@@ -198,7 +164,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     const d = dataRef.current;
     if (!d) return Promise.reject(new Error("not ready"));
     const run = async () => {
-      const res = await api<T>(`/api/play/${d.sessionId}/events`, event);
+      const res = await transport.sendEvent<T>(d.sessionId, event);
       setClient(res.state);
       setScore(res.state.score);
       runtime?.setClientState(res.state);
@@ -219,7 +185,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     const p = queue.current.then(run, run);
     queue.current = p.catch(() => undefined);
     return p;
-  }, [audio, emitter, runtime, t, toast]);
+  }, [audio, emitter, runtime, t, toast, transport]);
 
   const handleError = useCallback((e: unknown) => {
     if (e instanceof ApiFailure) {

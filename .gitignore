@@ -39,3 +39,6 @@ unity/**/obj/
 unity/**/UserSettings/
 /public/unity/
 unity/**/Builds/
+
+# Offline app build output
+/mobile/dist/
