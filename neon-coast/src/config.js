@@ -16,7 +16,16 @@ CITY.minZ = CITY.roadZ(0) - CITY.road / 2; CITY.maxZ = CITY.roadZ(CITY.gridZ) + 
 CITY.beachX = CITY.maxX; CITY.oceanX = CITY.maxX + CITY.beachWidth;
 
 export const PLAYER = { walk: 2.6, run: 6.2, sprint: 8.4, jump: 5.2, gravity: 16, radius: 0.38, height: 1.8, maxHealth: 100, maxArmor: 100, enterRange: 3.6 };
-export const TRAFFIC = { cars: 34, peds: 44, spawnMin: 90, spawnMax: 220, despawn: 280, pedSpawnMin: 45, pedSpawnMax: 140, pedDespawn: 190 };
+// cars / peds: the fallback budget. tier: how many AI cars and civilians a quality tier keeps alive (peds shrink by pedBubble.nightCut at night).
+// despawn: wrecks and mission cars. pedBubble (metres): civilians appear 16-110 m away while hidden from the camera (55 m and more when visible) and
+// leave beyond 140 m only while hidden (220 m whatever the camera sees); populate fills the 15-150 m ring. pedAreaFraction: share of new civilians that wander
+// inside a rectangle (the beach strip or a park) instead of the sidewalk graph.
+export const TRAFFIC = {
+  cars: 34, peds: 44, despawn: 280,
+  tier: { low: { cars: 22, peds: 28 }, med: { cars: 34, peds: 46 }, high: { cars: 46, peds: 66 } },
+  pedBubble: { hiddenMin: 16, hiddenMax: 110, visibleMin: 55, despawnHidden: 140, despawnHard: 220, popMin: 15, popMax: 150, nightCut: 0.45, quietRadius: 60 },
+  pedAreaFraction: 0.25,
+};
 export const TIME = { start: 14 * 60, minutesPerSecond: 0.5, lampOn: 18.4, lampOff: 6.2 };
 
 export const WEAPONS = [

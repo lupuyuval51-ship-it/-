@@ -1,11 +1,119 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { CITY } from './config.js';
 import { GeoBuilder, StaticGrid, mulberry, clamp, xform, M4, mergeGeometries } from './utils.js';
-import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonSign, billboard, crossTex, storefrontTextures, shadowTex, cloudTex, AWNINGS, facadeNormal, facadeORM, storefrontNormal, storefrontORM, asphaltNormal, sidewalkNormal, plankNormal, sandNormal } from './textures.js';
+import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonAtlas, bladeLetters, bladeLayout, NEON_CELL, NEON_ASPECT, billboardAtlas, crossTex, storefrontTextures, shadowTex, AWNINGS, facadeNormal, facadeORM, storefrontNormal, storefrontORM, asphaltNormal, sidewalkNormal, plankNormal, sandNormal, lightPoolTex } from './textures.js';
+import { envRegister } from './env.js';
 
 const { road, sidewalk, pitch, gridX, gridZ } = CITY;
 const HALF = road / 2;
 const FLOOR = 3.5;
+// Module colour constants: setNight and updateTrafficLights run every frame and must not allocate.
+const C_LAMP_OFF = new THREE.Color(0x9a9fa8), C_LAMP_ON = new THREE.Color(0xffe2b0);
+// Light-state colours (index 0 = lit, 1 = dark) for red / yellow / green lamps
+const TL_RED = [new THREE.Color(0xff2a2a).multiplyScalar(2.2), new THREE.Color(0x2a0a0a)], TL_YEL = [new THREE.Color(0xffc21a).multiplyScalar(2.2), new THREE.Color(0x2a1f05)], TL_GRN = [new THREE.Color(0x2aff5a).multiplyScalar(2.2), new THREE.Color(0x062a10)];
+
+// ---------- per-window night lighting ----------
+// Every facade material is patched once so each window of each building decides for itself whether it is lit, in which colour and how
+// brightly. The emissive texture is only a MASK of the panes (textures.js facadeTextures). The per-building seed arrives as the vertex
+// attribute aBld (written by addBuilding through the GeoBuilder.box colour, renamed in buildBlocks) and the side of the building as vFace.
+// A window is one 2 m x 3.5 m cell of the facade, so cell = floor(uv * 4). litFrac and time are shared uniform objects (World.winU).
+const glslColor = hex => { const c = new THREE.Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }; // sRGB hex -> linear GLSL colour
+const WIN_GAIN = '0.55'; // calibrates the emissive output so about 15 % of the lit windows exceed the bloom threshold of post.js (1.02)
+function patchWindowShader(mat, uniforms, isLow) {
+  // The shader strings are built when a program is compiled (isLow() is read then), so a quality change followed by material.needsUpdate
+  // switches to the other variant (the low tier drops blinds, tint bands and the TV flicker).
+  mat.onBeforeCompile = shader => {
+    const low = isLow();
+    const pars = `
+varying vec3 vBld; varying float vFace; uniform float litFrac; uniform float time;
+float winHash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+const vec3 WIN_WARM = ${glslColor(0xffcf8a)}, WIN_NEUTRAL = ${glslColor(0xfff0d8)}, WIN_COOL = ${glslColor(0xd8f0ff)}, WIN_TV = ${glslColor(0x7fa8ff)}, WIN_MAGENTA = ${glslColor(0xff6ad5)}, WIN_BLIND = ${glslColor(0xd9d2c3)};`;
+    // Building seed and side are quantised first: a constant varying may carry 1 ulp of interpolation noise and the hash would amplify it.
+    const mapFrag = `#include <map_fragment>
+  vec2 wCell = floor(vEmissiveMapUv * 4.0);
+  float wHb = mod(floor(vBld.x * 1024.0 + 0.5) * 0.0947 + floor(vFace + 0.5) * 13.0, 97.0);
+  float wMask = texture2D(emissiveMap, vEmissiveMapUv).r;
+  float wIn = smoothstep(0.12, 0.4, wMask);
+  float wBlind = ${low ? '0.0' : 'wIn * step(winHash(wCell + wHb + 13.0), 0.3)'};
+  diffuseColor.rgb = mix(diffuseColor.rgb, WIN_BLIND, wBlind * 0.6);
+  diffuseColor.rgb *= 1.0 + (1.0 - wIn) * (vBld.x - 0.5) * 0.16;`;
+    const emisFrag = `{
+    float wH = winHash(wCell + wHb);
+    float wFloor = winHash(vec2(wCell.y, wHb));
+    float wLit = step(wH, litFrac * (0.55 + 0.9 * wFloor));
+    float wT = winHash(wCell + wHb + 3.0);
+    vec3 wTint = WIN_WARM; float wFlick = 1.0;
+    ${low ? 'if (wT > 0.75) wTint = WIN_NEUTRAL;' : `if (wT > 0.98) wTint = WIN_MAGENTA;
+    else if (wT > 0.93) { wTint = WIN_TV; wFlick = 0.7 + 0.3 * sin(time * 9.0 + wH * 40.0); }
+    else if (wT > 0.80) wTint = WIN_COOL;
+    else if (wT > 0.60) wTint = WIN_NEUTRAL;`}
+    float wBright = 0.8 + 1.4 * winHash(wCell + wHb + 7.0);
+    totalEmissiveRadiance *= wMask * wLit * wTint * wBright * wFlick * ${WIN_GAIN};
+  }`;
+    shader.uniforms.litFrac = uniforms.litFrac; shader.uniforms.time = uniforms.time;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', () => '#include <common>\nattribute vec3 aBld; varying vec3 vBld; varying float vFace;')
+      .replace('#include <begin_vertex>', () => '#include <begin_vertex>\n  vBld = aBld; vFace = dot(normal, vec3(1.0, 2.0, 3.0));');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', () => '#include <common>' + pars)
+      .replace('#include <map_fragment>', () => mapFrag)
+      .replace('#include <roughnessmap_fragment>', () => '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.6, wBlind);')
+      .replace('#include <metalnessmap_fragment>', () => '#include <metalnessmap_fragment>\n  metalnessFactor = mix(metalnessFactor, 0.05, wBlind);') // a blind is matte cloth, not a metal mirror
+      .replace('#include <emissivemap_fragment>', () => emisFrag);
+  };
+  mat.customProgramCacheKey = () => isLow() ? 'win-low' : 'win';
+}
+// ---------- wet streets ----------
+// Asphalt and pavement get patchy puddles when it rains. All of it is driven by the shared uniforms `wet` (= rain, written once per frame by
+// setNight) and `time`. In a puddle the roughness drops to 0.04 (mirror), the bumps flatten out, the image-based reflection is boosted and
+// raindrop rings run over the surface. The low tier keeps the cheap part (wet roughness) and compiles with NO_PUDDLES: no noise, no ripples.
+function patchWetShader(mat, uniforms, isLow) {
+  mat.onBeforeCompile = shader => {
+    const low = isLow();
+    shader.uniforms.wet = uniforms.wet; shader.uniforms.time = uniforms.time;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', () => '#include <common>\nvarying vec3 vWPos;')
+      .replace('#include <begin_vertex>', () => '#include <begin_vertex>\n  vWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', () => `${low ? '#define NO_PUDDLES\n' : ''}#include <common>
+varying vec3 vWPos; uniform float wet; uniform float time;
+float wHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float wNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(wHash(i), wHash(i + vec2(1.0, 0.0)), f.x), mix(wHash(i + vec2(0.0, 1.0)), wHash(i + vec2(1.0, 1.0)), f.x), f.y); }`)
+      .replace('#include <roughnessmap_fragment>', () => `#include <roughnessmap_fragment>
+  float wPud = 0.0;
+  #ifndef NO_PUDDLES
+  if (wet > 0.001) { vec2 wq = vWPos.xz * 0.11; float wn = 0.65 * wNoise(wq) + 0.35 * wNoise(wq * 2.3 + 11.0); wPud = smoothstep(0.55, 0.7, wn) * wet; }
+  #endif
+  roughnessFactor = mix(mix(roughnessFactor, 0.35, wet), 0.04, wPud);`)
+      .replace('#include <normal_fragment_maps>', () => `#include <normal_fragment_maps>
+  #ifndef NO_PUDDLES
+  if (wPud > 0.002) {
+    normal = normalize(mix(normal, nonPerturbedNormal, wPud * 0.9)); // standing water is flat
+    vec2 wg = vWPos.xz / 1.5; vec2 wid = floor(wg); vec2 wf = fract(wg) - 0.5;      // one possible drop per 1.5 m cell
+    float wh = wHash(wid); vec2 wc = (vec2(wHash(wid + 3.1), wHash(wid + 7.7)) - 0.5) * 0.5; vec2 wd = wf - wc; float wr = length(wd);
+    float wp = fract(time * 0.8 + wh); float wamp = step(0.4, wh) * (1.0 - wp) * (1.0 - wp);
+    float warg = 30.0 * wr - time * 12.0; float wring = (30.0 * cos(warg) - 6.0 * sin(warg)) * exp(-wr * 6.0); // slope of sin(30r - 12t) * exp(-6r)
+    vec3 wdir = (viewMatrix * vec4(wd.x, 0.0, wd.y, 0.0)).xyz / max(wr, 0.02);
+    normal = normalize(normal - wdir * wring * wamp * wPud * 0.018);
+  }
+  #endif`)
+      .replace('#include <lights_fragment_end>', () => `#include <lights_fragment_end>
+  #ifndef NO_PUDDLES
+  reflectedLight.indirectSpecular *= 1.0 + wPud * 2.0; // puddles mirror the sky and the neon
+  #endif`);
+  };
+  mat.customProgramCacheKey = () => isLow() ? 'wet-low' : 'wet';
+}
+// Fraction of the windows that are lit: 0.62 for 19-23 h, falling linearly to 0.22 at 03 h and rising to 0.35 at 06 h (by day it is irrelevant).
+function litFractionAt(hours) {
+  const h = hours < 12 ? hours + 24 : hours;
+  if (h <= 23) return 0.62;
+  if (h <= 27) return 0.62 + (0.22 - 0.62) * (h - 23) / 4;
+  if (h <= 30) return 0.22 + (0.35 - 0.22) * (h - 27) / 3;
+  return 0.35;
+}
+const C_SODIUM = new THREE.Color(0xffcf8a), C_SHOP = new THREE.Color(0xffd9a0); // light-pool colours (sRGB hex -> linear)
 
 // Points of interest: block index, which lot corner, look and map colour
 export const POI_DEFS = [
@@ -31,13 +139,25 @@ export const POI_DEFS = [
 ];
 export const PARKS = [[2, 3], [6, 1]];
 const SIGN_TEXTS = [['מלון', '#ff4fa3'], ['CLUB', '#3ce8f5'], ['BAR', '#ff9a3c'], ['סושי', '#7cff8a'], ['24/7', '#ffd34e'], ['NEON', '#ff4fa3'], ['קפה', '#ffb347'], ['PIZZA', '#ff5a5a'], ['DISCO', '#c084fc'], ['מסעדה', '#3ce8f5'], ['HOTEL', '#ffd34e'], ['ספא', '#7cff8a'], ['CASINO', '#ff9a3c'], ['LIVE', '#ff4fa3'], ['ביטוח', '#3ce8f5'], ['SUSHI', '#7cff8a'], ['GYM', '#ff5a5a'], ['פרחים', '#ff9ad5'], ['TATTOO', '#c084fc'], ['VINYL', '#ffd34e']];
+const BOX_POI_TYPES = new Set(['hospital', 'police', 'bank']); // these points of interest get a lightbox sign, everything else glass tubes
+const SIGN_OFFSET = 0.2; // distance of a wall sign from the facade; its raceway (0.15 m) sits behind it
 const BILLBOARDS = [['SOLARA', 'the drink of the coast', '#ff4fa3', '#ff9a3c'], ['COAST MOTORS', 'drive tomorrow today', '#3ce8f5', '#1f4e9b'], ['NEON FM', '98.6 – all night long', '#c084fc', '#ff4fa3'], ['סאנרייז', 'בית חולים – פתוח 24/7', '#ff5a5a', '#ffb347'], ['PALM SPA', 'relax. repeat.', '#7cff8a', '#3ce8f5'], ['SOLARA BANK', 'your money, our vault', '#ffd34e', '#ff9a3c']];
 
 export class World {
   constructor(scene, quality = 'high') {
     this.scene = scene; this.quality = quality; this.grid = new StaticGrid(24); this.rng = mulberry(20240915);
     this.pois = {}; this.parkingSpots = []; this.lampPositions = []; this.signs = []; this.lights = []; this.markers = [];
-    this.buildGraph(); this.buildGround(); this.buildBlocks(); this.buildRoadMarkings(); this.buildProps(); this.buildStreetProps(); this.buildTrafficLights(); this.buildBeach(); this.buildBeachExtras(); this.buildClouds(); this.buildOutskirts(); this.buildMapImage();
+    this.lots = []; this.lotGrid = new Map(); this.parks = []; this.treeSpots = []; // lots: parking lots {x0,z0,x1,z1} (0.17 m high); parks: {x0,z0,x1,z1,cx,cz}
+    this.winU = { litFrac: { value: 0.62 }, time: { value: 0 } }; // shared by every facade material (window shader)
+    this.isLowTier = () => this.quality === 'low'; // read by the window shader whenever a program is compiled
+    this.seedRng = mulberry(90210); // building seeds; a separate stream so the city layout (this.rng) stays exactly as before
+    this.storeSpill = []; this.signSpill = []; // light-pool sources recorded by addStorefront*/addSign* for buildLightPools
+    // Signage: addSign / addSignX / addBladeSign only RECORD a sign (this.signs); buildSigns turns them all into one atlas mesh, one dark prop mesh and one
+    // billboard mesh. signRng is its own stream, so the layout (this.rng) and the building seeds (this.seedRng) do not change.
+    this.signRng = mulberry(7351); this.flickN = 0; this.lastSign = null; this.darkB = new GeoBuilder(); this.billboardDefs = [];
+    this.signU = { level: { value: 0.42 }, time: { value: 0 } }; // shared by the sign shader: brightness (setNight) and flicker clock (update)
+    this.wetU = { wet: { value: 0 }, time: { value: 0 } }; // shared by the asphalt / pavement shader: rain amount and ripple clock
+    this.buildGraph(); this.buildGround(); this.buildBlocks(); this.buildRoadMarkings(); this.buildProps(); this.buildStreetProps(); this.buildTrafficLights(); this.buildBeach(); this.buildSigns(); this.buildBeachExtras(); this.buildLightPools(); this.buildOutskirts(); this.buildMapImage();
   }
 
   // ---------------- road graph ----------------
@@ -61,14 +181,40 @@ export class World {
     const fx = Math.sign(B.x - A.x), fz = Math.sign(B.z - A.z), rx = -fz, rz = fx, off = 1.75 + lane * 3.5;
     return { sx: A.x + fx * HALF + rx * off, sz: A.z + fz * HALF + rz * off, ex: B.x - fx * HALF + rx * off, ez: B.z - fz * HALF + rz * off, fx, fz, rx, rz, len: seg.len - road, from: A, to: B };
   }
-  nearestLane(x, z) {
-    let best = null, bd = Infinity;
-    for (const seg of this.segments) for (const dir of [1, -1]) for (let l = 0; l < 2; l++) {
-      const L = this.lane(seg, dir, l); const t = clamp(((x - L.sx) * L.fx + (z - L.sz) * L.fz) / L.len, 0, 1);
-      const px = L.sx + L.fx * t * L.len, pz = L.sz + L.fz * t * L.len, d = (px - x) ** 2 + (pz - z) ** 2;
-      if (d < bd) { bd = d; best = { seg, dir, lane: l, t, px, pz, L }; }
+  // Closest lane centre-line to (x, z). With a heading (hx, hz) a lane that runs against it costs 400 m² extra, so a car
+  // sitting on the yellow line picks the lane it is actually facing. Returns a fresh object (callers may keep it).
+  nearestLane(x, z, hx = 0, hz = 0) {
+    const segs = this.segments, hasHeading = hx !== 0 || hz !== 0;
+    let bd = Infinity, bSeg = null, bDir = 1, bLane = 0, bt = 0, bpx = 0, bpz = 0;
+    for (let si = 0; si < segs.length; si++) {
+      const seg = segs[si], len = seg.len - road;
+      for (let dir = 1; dir >= -1; dir -= 2) {
+        const A = dir > 0 ? seg.a : seg.b, B = dir > 0 ? seg.b : seg.a, fx = Math.sign(B.x - A.x), fz = Math.sign(B.z - A.z), rx = -fz, rz = fx;
+        const penalty = hasHeading && fx * hx + fz * hz < -0.2 ? 400 : 0;
+        for (let l = 0; l < 2; l++) {
+          const off = 1.75 + l * 3.5, sx = A.x + fx * HALF + rx * off, sz = A.z + fz * HALF + rz * off; // same maths as lane()
+          const t = clamp(((x - sx) * fx + (z - sz) * fz) / len, 0, 1);
+          const px = sx + fx * t * len, pz = sz + fz * t * len, d = (px - x) ** 2 + (pz - z) ** 2 + penalty;
+          if (d < bd) { bd = d; bSeg = seg; bDir = dir; bLane = l; bt = t; bpx = px; bpz = pz; }
+        }
+      }
     }
-    return best;
+    return { seg: bSeg, dir: bDir, lane: bLane, t: bt, px: bpx, pz: bpz, L: this.lane(bSeg, bDir, bLane) };
+  }
+  // Height of the walkable ground at (x, z): road 0, sidewalk/park 0.15, parking lot 0.17, beach 0.02, pier ramp 0 -> pier.y, pier deck pier.y.
+  groundY(x, z) {
+    const pier = this.pier;
+    if (pier && Math.abs(z - pier.z) < 4.5) {
+      if (x >= pier.x0 && x <= pier.x1) return pier.y;
+      if (x >= pier.x0 - 6 && x < pier.x0) return pier.y * (x - (pier.x0 - 6)) / 6;
+    }
+    if (x > CITY.beachX - 1) return 0.02;
+    const u = x - (CITY.roadX(0) + HALF), v = z - (CITY.roadZ(0) + HALF), bi = Math.floor(u / pitch), bj = Math.floor(v / pitch);
+    if (bi < 0 || bj < 0 || bi >= gridX || bj >= gridZ) return 0; // same block range as buildBlocks
+    if (u - bi * pitch >= CITY.block || v - bj * pitch >= CITY.block) return 0; // road
+    const lots = this.lotGrid.get(bj * 64 + bi);
+    if (lots) for (let i = 0; i < lots.length; i++) { const L = lots[i]; if (x >= L.x0 && x <= L.x1 && z >= L.z0 && z <= L.z1) return 0.17; }
+    return 0.15;
   }
   randomLanePoint() { const seg = this.segments[Math.floor(Math.random() * this.segments.length)], dir = Math.random() < 0.5 ? 1 : -1, lane = Math.random() < 0.6 ? 0 : 1, L = this.lane(seg, dir, lane), t = 0.1 + Math.random() * 0.8; return { seg, dir, lane, t, x: L.sx + L.fx * t * L.len, z: L.sz + L.fz * t * L.len, heading: Math.atan2(-L.fz, L.fx), L }; }
   randomSidewalkPoint() {
@@ -97,6 +243,7 @@ export class World {
       prop: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }),
       leaf: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide }),
     };
+    patchWetShader(mats.asphalt, this.wetU, this.isLowTier); patchWetShader(mats.sidewalk, this.wetU, this.isLowTier); // roads, parking lots (same material) and pavements
     const g = new GeoBuilder(); g.plane(CITY.minX - 6, CITY.minZ - 6, CITY.maxX, CITY.maxZ + 6, 0, 6);
     const ground = new THREE.Mesh(g.build(), mats.asphalt); ground.receiveShadow = true; this.scene.add(ground);
     // outskirts ground: a frame around the city rectangle, never overlapping the asphalt
@@ -141,9 +288,14 @@ export class World {
         const h = floors * FLOOR;
         this.addBuilding(fb(style.id), roofB, bx0, bz0, bx1, bz1, h, style, rng, isPoiLot ? poi : null);
         // signs on the street-facing side(s)
-        const frontZ = r === 0, frontX = c === 0;
+        const frontZ = r === 0, frontX = c === 0; this.lastSign = null;
         if (isPoiLot) { this.addSign(bx0, bx1, bz0, poi.sign[0], poi.sign[1], 'south', h, 1.3, poi); this.pois[poi.id] = { ...poi, x: (bx0 + bx1) / 2, z: z0 + 1.5, bx0, bx1, bz0, bz1, h, blockX0: x0, blockZ0: z0 }; }
         else if (floors <= 14 && rng() < 0.42) { const s = SIGN_TEXTS[Math.floor(rng() * SIGN_TEXTS.length)]; if (frontZ) this.addSign(bx0, bx1, bz0, s[0], s[1], 'south', h, 1); else if (r === rows - 1) this.addSign(bx0, bx1, bz1, s[0], s[1], 'north', h, 1); else if (frontX) this.addSignX(bx0, bz0, bz1, s[0], s[1], 'west', h); else if (c === cols - 1) this.addSignX(bx1, bz0, bz1, s[0], s[1], 'east', h); }
+        if (!isPoiLot && floors >= 3 && floors <= 14 && this.signRng() < 0.3) { // a vertical blade sign on one of the street-facing sides
+          const sides = []; if (frontZ) sides.push(0); if (r === rows - 1) sides.push(1); if (frontX) sides.push(2); if (c === cols - 1) sides.push(3);
+          const side = sides[Math.floor(this.signRng() * sides.length)], t = SIGN_TEXTS[Math.floor(this.signRng() * SIGN_TEXTS.length)];
+          if (side !== undefined) this.placeBlade(side, bx0, bz0, bx1, bz1, h, t[0], t[1]);
+        }
         if (floors <= 6 && !isPoiLot && rng() < 0.2) this.addBillboard((bx0 + bx1) / 2, h, (bz0 + bz1) / 2, rng);
         if (floors <= 16 && rng() < 0.75) { const var_ = Math.floor(rng() * 5); if (frontZ) this.addStorefront(bx0, bx1, bz0, 'south', var_); if (r === rows - 1) this.addStorefront(bx0, bx1, bz1, 'north', var_); if (frontX) this.addStorefrontX(bx0, bz0, bz1, 'west', var_); if (c === cols - 1) this.addStorefrontX(bx1, bz0, bz1, 'east', var_); }
       }
@@ -153,12 +305,13 @@ export class World {
     for (const [id, b] of facadeBuilders) {
       const style = FACADES.find(f => f.id === id), tex = facadeTextures(style); const orm = facadeORM(style);
       const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: facadeNormal(style), normalScale: new THREE.Vector2(0.85, 0.85), roughnessMap: orm, metalnessMap: orm, roughness: 1, metalness: 1, envMapIntensity: 1.1 });
-      m.userData.glow = tex.glow; this.facadeMats.push(m);
-      const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh);
+      m.userData.glow = tex.glow; this.facadeMats.push(m); patchWindowShader(m, this.winU, this.isLowTier);
+      if (style.id === 'glass' || style.id === 'tower') envRegister(m, 1.0); // mirror-like glass panes: explicit PMREM so envMapIntensity applies
+      const mesh = new THREE.Mesh(this.seedAttribute(b.build()), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh);
     }
     const roofs = new THREE.Mesh(roofB.build(), this.mats.roof); roofs.castShadow = true; roofs.receiveShadow = true; this.scene.add(roofs);
     this.storeMats = [];
-    this.storeBuilders.forEach((b, i) => { if (!b.count) return; const tex = storefrontTextures(i); const orm = storefrontORM(i); const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: storefrontNormal(i), normalScale: new THREE.Vector2(0.8, 0.8), roughnessMap: orm, metalnessMap: orm, roughness: 1, metalness: 1, envMapIntensity: 1.2 }); this.storeMats.push(m); const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh); });
+    this.storeBuilders.forEach((b, i) => { if (!b.count) return; const tex = storefrontTextures(i); const orm = storefrontORM(i); const m = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: storefrontNormal(i), normalScale: new THREE.Vector2(0.8, 0.8), roughnessMap: orm, metalnessMap: orm, roughness: 1, metalness: 1, envMapIntensity: 1.2 }); this.storeMats.push(m); envRegister(m, 1.0); const mesh = new THREE.Mesh(b.build(), m); mesh.castShadow = true; mesh.receiveShadow = true; this.scene.add(mesh); });
     if (this.awningB.count) { const aw = new THREE.Mesh(this.awningB.build(), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide })); aw.castShadow = true; this.scene.add(aw); }
     if (this.shadowB.count) this.scene.add(new THREE.Mesh(this.shadowB.build(), new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false, color: 0x000000, opacity: 0.55, side: THREE.DoubleSide })));
     if (this.towerLights.length) { this.towerLightMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.45, 8, 6), new THREE.MeshBasicMaterial({ color: 0xff2020 }), this.towerLights.length); const m = new THREE.Matrix4(); this.towerLights.forEach((p, i) => { m.makeTranslation(p.x, p.y, p.z); this.towerLightMesh.setMatrixAt(i, m); }); this.scene.add(this.towerLightMesh); }
@@ -167,8 +320,12 @@ export class World {
     if (lotB.count) { const lot = new THREE.Mesh(lotB.build(), this.mats.asphalt); lot.receiveShadow = true; this.scene.add(lot); }
     if (lineB.count) this.scene.add(new THREE.Mesh(lineB.build(), this.mats.white));
   }
+  // The per-building seed travels in the vertex colour of the facade box (r = random, g = floors / 60, b = style / 8); buildBlocks and buildBeach
+  // rename that attribute to aBld, which the window shader reads (see patchWindowShader).
+  seedAttribute(geo) { const c = geo.getAttribute('color'); if (c) { geo.setAttribute('aBld', c); geo.deleteAttribute('color'); } return geo; }
   addBuilding(fb, roofB, x0, z0, x1, z1, h, style, rng, poi) {
-    fb.box(x0, 0, z0, x1, h, z1, { uvU: 8, uvV: 14, top: false });
+    const seed = new THREE.Color(this.seedRng(), Math.round(h / FLOOR) / 60, FACADES.indexOf(style) / 8);
+    fb.box(x0, 0, z0, x1, h, z1, { uvU: 8, uvV: 14, top: false, color: seed });
     roofB.box(x0, h - 0.01, z0, x1, h + 0.3, z1, { uvU: 4, uvV: 4, sides: true });
     roofB.box(x0 - 0.12, h, z0 - 0.12, x1 + 0.12, h + 0.55, z0 + 0.3, { uvU: 2, uvV: 2 }); roofB.box(x0 - 0.12, h, z1 - 0.3, x1 + 0.12, h + 0.55, z1 + 0.12, { uvU: 2, uvV: 2 }); roofB.box(x0 - 0.12, h, z0, x0 + 0.3, h + 0.55, z1, { uvU: 2, uvV: 2 }); roofB.box(x1 - 0.3, h, z0, x1 + 0.12, h + 0.55, z1, { uvU: 2, uvV: 2 });
     this.addContactShadow(x0, z0, x1, z1, 0.16);
@@ -176,7 +333,8 @@ export class World {
     const floors = Math.round(h / FLOOR), w = x1 - x0, d = z1 - z0;
     if (floors >= 16 && rng() < 0.6) { // stepped crown
       const in0 = 2 + rng() * 3, hh = FLOOR * (2 + Math.floor(rng() * 5));
-      fb.box(x0 + in0, h, z0 + in0, x1 - in0, h + hh, z1 - in0, { uvU: 8, uvV: 14, top: false }); roofB.box(x0 + in0, h + hh - 0.01, z0 + in0, x1 - in0, h + hh + 0.3, z1 - in0, { uvU: 4, uvV: 4 });
+      const crownSeed = new THREE.Color((seed.r + 0.37) % 1, seed.g, seed.b); // a different window pattern than the shaft below
+      fb.box(x0 + in0, h, z0 + in0, x1 - in0, h + hh, z1 - in0, { uvU: 8, uvV: 14, top: false, color: crownSeed }); roofB.box(x0 + in0, h + hh - 0.01, z0 + in0, x1 - in0, h + hh + 0.3, z1 - in0, { uvU: 4, uvV: 4 });
       if (rng() < 0.6) { const ah = 6 + rng() * 10; roofB.box((x0 + x1) / 2 - 0.25, h + hh, (z0 + z1) / 2 - 0.25, (x0 + x1) / 2 + 0.25, h + hh + ah, (z0 + z1) / 2 + 0.25, { uvU: 1, uvV: 1 }); this.towerLights.push({ x: (x0 + x1) / 2, y: h + hh + ah + 0.3, z: (z0 + z1) / 2 }); } else this.towerLights.push({ x: (x0 + x1) / 2, y: h + hh + 0.6, z: (z0 + z1) / 2 });
     } else if (floors >= 4) {
       const n = 1 + Math.floor(rng() * 3);
@@ -192,12 +350,14 @@ export class World {
     const b = this.storeBuilders[v]; const w = x1 - x0; if (w < 7) return; const d = 0.22; const zz0 = side === 'south' ? z - d : z - 0.02, zz1 = side === 'south' ? z + 0.02 : z + d;
     b.box(x0 + 0.3, 0, zz0, x1 - 0.3, 4.4, zz1, { uvU: 6, uvV: 4.4, top: true });
     const col = new THREE.Color(AWNINGS[v % AWNINGS.length]); const az = side === 'south' ? z - d : z + d; const dir = side === 'south' ? -1 : 1;
+    this.storeSpill.push({ x0, x1, z, side, alongX: true, a0: x0 + 0.3, a1: x1 - 0.3, face: az, dir }); // shop-window light on the pavement, see buildLightPools
     this.awningB.quad([x0 + 0.5, 3.35, az], [x1 - 0.5, 3.35, az], [x1 - 0.5, 2.85, az + dir * 1.3], [x0 + 0.5, 2.85, az + dir * 1.3], [0, 0.9, dir * 0.4], null, col);
   }
   addStorefrontX(x, z0, z1, side, v) {
     const b = this.storeBuilders[v]; const w = z1 - z0; if (w < 7) return; const d = 0.22; const xx0 = side === 'west' ? x - d : x - 0.02, xx1 = side === 'west' ? x + 0.02 : x + d;
     b.box(xx0, 0, z0 + 0.3, xx1, 4.4, z1 - 0.3, { uvU: 6, uvV: 4.4, top: true });
     const col = new THREE.Color(AWNINGS[v % AWNINGS.length]); const ax = side === 'west' ? x - d : x + d; const dir = side === 'west' ? -1 : 1;
+    this.storeSpill.push({ x, z0, z1, side, alongX: false, a0: z0 + 0.3, a1: z1 - 0.3, face: ax, dir });
     this.awningB.quad([ax, 3.35, z1 - 0.5], [ax, 3.35, z0 + 0.5], [ax + dir * 1.3, 2.85, z0 + 0.5], [ax + dir * 1.3, 2.85, z1 - 0.5], [dir * 0.4, 0.9, 0], null, col);
   }
   addContactShadow(x0, z0, x1, z1, y) {
@@ -207,27 +367,129 @@ export class World {
     q([x0 - w, y, z1], [x0 - w, y, z0], [x0, y, z0], [x0, y, z1]);
     q([x1 + w, y, z0], [x1 + w, y, z1], [x1, y, z1], [x1, y, z0]);
   }
+  // ---------------- signage ----------------
+  // Nothing here creates a Mesh or a Material: a sign is only recorded in this.signs, and buildSigns() (called once after buildBlocks and buildBeach)
+  // builds ONE mesh for all neon signs (atlas texture, alpha-tested), ONE for the billboard faces and ONE merged dark mesh for raceways, blade
+  // cabinets, brackets, billboard frames and posts. Sign fields: kind 'wall' { alongX, a (centre along the wall), face (wall plane), dir (outward),
+  // y, w, hh } or 'blade' { alongX, a, face, dir, yb, H, W, c (distance of its centre line from the wall) }, plus text, color, style, flick.
+  // Height of a wall sign's centre: not below the storefront band (4.4 m) and the sign stays under the roof line.
+  signHeight(h, hh, y) { return Math.max(4.55 + hh / 2, Math.min(y, h - 0.3 - hh / 2)); }
+  pushSign(sg) {
+    sg.flick = this.signRng() < 0.08 ? ++this.flickN : 0; // 8 % of the signs flicker (ids 1..n); 0 = steady
+    this.signs.push(sg); this.lastSign = sg;
+    if (sg.kind === 'wall' && sg.style === 'tube') { // raceway: the dark channel the tubes are mounted on, 0.15 m deep, behind the lower part of the lettering
+      const y = sg.y - sg.hh * 0.2, a0 = sg.a - sg.w * 0.46, a1 = sg.a + sg.w * 0.46, f0 = Math.min(sg.face - sg.dir * 0.03, sg.face + sg.dir * 0.15), f1 = Math.max(sg.face - sg.dir * 0.03, sg.face + sg.dir * 0.15);
+      if (sg.alongX) this.darkB.box(a0, y - 0.11, f0, a1, y + 0.11, f1, { uvU: 1, uvV: 1 }); else this.darkB.box(f0, y - 0.11, a0, f1, y + 0.11, a1, { uvU: 1, uvV: 1 });
+    }
+  }
   addSign(x0, x1, z, text, color, side, h, scale = 1, poi) {
-    const w = Math.min(10 * scale, (x1 - x0) * 0.8), y = Math.min(h - 1.5, poi ? 7.5 : 4.8 + Math.random() * 2);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), new THREE.MeshBasicMaterial({ map: neonSign(text, color), transparent: false }));
-    m.position.set((x0 + x1) / 2, y, z + (side === 'south' ? -0.08 : 0.08)); m.rotation.y = side === 'south' ? Math.PI : 0; this.scene.add(m); this.signs.push(m);
+    const w = Math.min(10 * scale, (x1 - x0) * 0.8), hh = w / NEON_ASPECT, a = (x0 + x1) / 2, dir = side === 'south' ? -1 : 1;
+    const y = this.signHeight(h, hh, poi ? 7.5 : 4.8 + this.signRng() * 2);
+    this.pushSign({ kind: 'wall', alongX: true, a, face: z, dir, y, w, hh, text, color, style: poi && BOX_POI_TYPES.has(poi.type) ? 'box' : 'tube' });
+    this.signSpill.push({ alongX: true, a, face: z, dir, color });
   }
   addSignX(x, z0, z1, text, color, side, h) {
-    const w = Math.min(10, (z1 - z0) * 0.8), y = Math.min(h - 1.5, 4.8 + Math.random() * 2);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), new THREE.MeshBasicMaterial({ map: neonSign(text, color) }));
-    m.position.set(x + (side === 'west' ? -0.08 : 0.08), y, (z0 + z1) / 2); m.rotation.y = side === 'west' ? -Math.PI / 2 : Math.PI / 2; this.scene.add(m); this.signs.push(m);
+    const w = Math.min(10, (z1 - z0) * 0.8), hh = w / NEON_ASPECT, a = (z0 + z1) / 2, dir = side === 'west' ? -1 : 1;
+    const y = this.signHeight(h, hh, 4.8 + this.signRng() * 2);
+    this.pushSign({ kind: 'wall', alongX: false, a, face: x, dir, y, w, hh, text, color, style: 'tube' });
+    this.signSpill.push({ alongX: false, a, face: x, dir, color });
   }
+  // Vertical blade sign: 1.4 m wide, 4 to 5.9 m tall (it depends on the number of letters), double sided, perpendicular to the facade, its centre line 1.0 to
+  // 2.4 m out over the pavement, bottom edge at 4.6 to 11 m. (x, z) is the point on the wall the bracket is fixed to; side is the facade it hangs from.
+  // The letters are stacked top to bottom in logical order (Array.from), which reads correctly for Hebrew and for English. It adds a dark cabinet between its
+  // two faces, two brackets and a collision box (overhead: bullets and the camera ray hit it, walkers and cars pass under it).
+  addBladeSign(x, z, side, text, color, h) {
+    const alongX = side === 'south' || side === 'north', dir = side === 'south' || side === 'west' ? -1 : 1, W = 1.4;
+    const n = bladeLetters(text).length; if (!n) return;
+    const H = bladeLayout(n).used / (NEON_CELL.h - 2 * NEON_CELL.pad) * W, yMax = Math.min(11, h - H - 0.4); if (yMax < 4.6) return; // does not fit under the roof line
+    const yb = 4.6 + this.signRng() * (yMax - 4.6), c = 1.0 + this.signRng() * 1.4, a = alongX ? x : z, face = alongX ? z : x;
+    this.pushSign({ kind: 'blade', alongX, a, face, dir, yb, H, W, c, text, color, style: 'blade' });
+    const f0 = face + dir * (c - W / 2), f1 = face + dir * (c + W / 2), lo = Math.min(f0, f1), hi = Math.max(f0, f1), w0 = Math.min(face - dir * 0.02, f0), w1 = Math.max(face - dir * 0.02, f0);
+    const box = (an0, an1, y0, y1, o0, o1) => { if (alongX) this.darkB.box(an0, y0, o0, an1, y1, o1, { uvU: 1, uvV: 1 }); else this.darkB.box(o0, y0, an0, o1, y1, an1, { uvU: 1, uvV: 1 }); }; // an = along the wall, o = across it
+    box(a - 0.05, a + 0.05, yb, yb + H, lo, hi); // cabinet
+    for (const yy of [yb + 0.3, yb + H - 0.3]) box(a - 0.04, a + 0.04, yy - 0.04, yy + 0.04, w0, w1); // brackets back to the wall
+    if (alongX) this.grid.add({ x0: a - 0.06, x1: a + 0.06, z0: lo, z1: hi, y0: yb, y1: yb + H, type: 'prop' }); else this.grid.add({ x0: lo, x1: hi, z0: a - 0.06, z1: a + 0.06, y0: yb, y1: yb + H, type: 'prop' });
+  }
+  // picks where on a facade a blade sign goes (side 0..3 = south, north, west, east) and keeps clear of the wall sign recorded last
+  placeBlade(si, bx0, bz0, bx1, bz1, h, text, color) {
+    const alongX = si < 2, face = si === 0 ? bz0 : si === 1 ? bz1 : si === 2 ? bx0 : bx1, lo = (alongX ? bx0 : bz0) + 1.6, hi = (alongX ? bx1 : bz1) - 1.6, ls = this.lastSign;
+    let a0 = lo, a1 = hi;
+    if (ls && ls.kind === 'wall' && ls.alongX === alongX && ls.face === face) { const left = ls.a - ls.w / 2 - 1, right = ls.a + ls.w / 2 + 1; if (left - lo >= hi - right) a1 = left; else a0 = right; }
+    if (a1 - a0 < 0.5) return;
+    const a = a0 + this.signRng() * (a1 - a0);
+    this.addBladeSign(alongX ? a : face, alongX ? face : a, ['south', 'north', 'west', 'east'][si], text, color, h);
+  }
+  // Billboard: only the face is textured (atlas); frame, posts and back plate are merged into the dark prop mesh. rng() is called exactly as before (layout unchanged).
   addBillboard(x, h, z, rng) {
-    const b = BILLBOARDS[Math.floor(rng() * BILLBOARDS.length)], rot = Math.floor(rng() * 4) * Math.PI / 2;
-    const grp = new THREE.Group(); grp.position.set(x, h, z); grp.rotation.y = rot;
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(8.4, 0.3, 0.3), this.mats.dark); frame.position.y = 5.2; grp.add(frame);
-    for (const px of [-3.6, 3.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 3.2, 0.25), this.mats.dark); p.position.set(px, 1.6, 0); grp.add(p); }
-    const face = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), new THREE.MeshBasicMaterial({ map: billboard(b[0], b[1], b[2], b[3]) })); face.position.set(0, 5.2, 0.2); grp.add(face);
-    const back = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), this.mats.dark); back.position.set(0, 5.2, -0.2); back.rotation.y = Math.PI; grp.add(back);
-    this.scene.add(grp);
+    const idx = Math.floor(rng() * BILLBOARDS.length), rot = Math.floor(rng() * 4) * Math.PI / 2, c = Math.cos(rot), s = Math.sin(rot);
+    this.billboardDefs.push({ x, h, z, idx, rot });
+    const box = (x0, y0, z0, x1, y1, z1) => { // local box -> world box (rot is a multiple of 90 degrees, so it stays axis-aligned)
+      const ax = x + x0 * c + z0 * s, az = z - x0 * s + z0 * c, bx = x + x1 * c + z1 * s, bz = z - x1 * s + z1 * c;
+      this.darkB.box(Math.min(ax, bx), h + y0, Math.min(az, bz), Math.max(ax, bx), h + y1, Math.max(az, bz), { uvU: 1, uvV: 1 });
+    };
+    box(-4.2, 5.05, -0.15, 4.2, 5.35, 0.15); // spine
+    for (const px of [-3.6, 3.6]) box(px - 0.125, 0, -0.125, px + 0.125, 3.2, 0.125); // posts
+    box(-4.15, 7.2, -0.22, 4.15, 7.35, 0.26); box(-4.15, 3.05, -0.22, 4.15, 3.2, 0.26); box(-4.15, 3.2, -0.22, -4.0, 7.2, 0.26); box(4.0, 3.2, -0.22, 4.15, 7.2, 0.26); // frame around the face
+    const P = (lx, ly, lz) => [x + lx * c + lz * s, h + ly, z - lx * s + lz * c];
+    this.darkB.quad(P(4, 3.2, -0.2), P(-4, 3.2, -0.2), P(-4, 7.2, -0.2), P(4, 7.2, -0.2), [-s, 0, -c]); // back plate, facing away from the face
+  }
+  // One draw call each for the neon signs, the billboard faces and the dark prop geometry.
+  buildSigns() {
+    const atlas = neonAtlas(this.signs.map(sg => ({ text: sg.text, color: sg.color, style: sg.style })));
+    const g = new GeoBuilder(), flick = [];
+    // a quad of width w and height hh centred on (cx, cy, cz), facing (nx, nz), readable from the front (reading direction r = (nz, -nx))
+    const face = (cx, cy, cz, nx, nz, w, hh, uvs, f) => {
+      const rx = nz, rz = -nx, hw = w / 2, hy = hh / 2;
+      g.quad([cx - rx * hw, cy - hy, cz - rz * hw], [cx + rx * hw, cy - hy, cz + rz * hw], [cx + rx * hw, cy + hy, cz + rz * hw], [cx - rx * hw, cy + hy, cz - rz * hw], [nx, 0, nz], uvs);
+      for (let i = 0; i < 6; i++) flick.push(f);
+    };
+    for (const sg of this.signs) {
+      const r = atlas.rect(sg);
+      if (sg.kind === 'blade') { // the cell holds the stack rotated by 90 degrees (see textures.js): the sign's top is the cell's left, its left edge the cell's bottom
+        const uU = r.u0 + bladeLayout(bladeLetters(sg.text).length).used * r.texel, uvs = [[uU, r.vB], [uU, r.vT], [r.u0, r.vT], [r.u0, r.vB]]; // bottom-left, bottom-right, top-right, top-left
+        const tx = sg.alongX ? 1 : 0, tz = sg.alongX ? 0 : 1, cl = sg.face + sg.dir * sg.c, cx = sg.alongX ? sg.a : cl, cz = sg.alongX ? cl : sg.a, cy = sg.yb + sg.H / 2;
+        face(cx + tx * 0.07, cy, cz + tz * 0.07, tx, tz, sg.W, sg.H, uvs, sg.flick); face(cx - tx * 0.07, cy, cz - tz * 0.07, -tx, -tz, sg.W, sg.H, uvs, sg.flick); // one face per side of the cabinet
+      } else {
+        const off = sg.face + sg.dir * SIGN_OFFSET;
+        face(sg.alongX ? sg.a : off, sg.y, sg.alongX ? off : sg.a, sg.alongX ? 0 : sg.dir, sg.alongX ? sg.dir : 0, sg.w, sg.hh, [[r.u0, r.vB], [r.u1, r.vB], [r.u1, r.vT], [r.u0, r.vT]], sg.flick);
+      }
+    }
+    if (g.count) {
+      const geo = g.build(); geo.setAttribute('aFlick', new THREE.Float32BufferAttribute(flick, 1));
+      const mat = this.signMat = new THREE.MeshBasicMaterial({ map: atlas.texture, alphaTest: 0.3, side: THREE.DoubleSide });
+      // level (day 0.42 .. night 3.0, written once per frame by setNight) scales the colour; signs with aFlick > 0 go dark for 0.06-0.2 s every 2-7 s and buzz at 7 Hz
+      mat.onBeforeCompile = shader => {
+        shader.uniforms.level = this.signU.level; shader.uniforms.time = this.signU.time;
+        shader.vertexShader = shader.vertexShader.replace('#include <common>', () => '#include <common>\nattribute float aFlick; varying float vFlick;').replace('#include <begin_vertex>', () => '#include <begin_vertex>\n  vFlick = aFlick;');
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', () => '#include <common>\nvarying float vFlick; uniform float level; uniform float time;\nfloat sgHash(float n) { return fract(sin(n * 12.9898) * 43758.5453); }')
+          .replace('#include <alphatest_fragment>', () => `#include <alphatest_fragment>
+  {
+    float sgF = 1.0;
+    if (vFlick > 0.5) {
+      float sgId = floor(vFlick + 0.5), sgP = 2.0 + 5.0 * sgHash(sgId), sgD = 0.06 + 0.14 * sgHash(sgId + 17.0);
+      float sgPh = mod(time + sgP * sgHash(sgId + 31.0), sgP), sgSlot = sgHash(floor(time * 7.0) + sgId * 3.7);
+      sgF = sgPh < sgD ? 0.04 + 0.5 * step(0.7, sgSlot) : 0.94 + 0.06 * sgSlot;
+    }
+    diffuseColor.rgb *= level * sgF;
+  }`);
+      };
+      mat.customProgramCacheKey = () => 'sign';
+      this.signMesh = new THREE.Mesh(geo, mat); this.scene.add(this.signMesh);
+    }
+    // billboard faces
+    const bb = billboardAtlas(BILLBOARDS), bg = new GeoBuilder();
+    for (const b of this.billboardDefs) {
+      const c = Math.cos(b.rot), s = Math.sin(b.rot), P = (lx, ly, lz) => [b.x + lx * c + lz * s, b.h + ly, b.z - lx * s + lz * c], r = bb.rect(b.idx);
+      bg.quad(P(-4, 3.2, 0.2), P(4, 3.2, 0.2), P(4, 7.2, 0.2), P(-4, 7.2, 0.2), [s, 0, c], [[r.u0, r.vB], [r.u1, r.vB], [r.u1, r.vT], [r.u0, r.vT]]);
+    }
+    if (bg.count) { this.billMat = new THREE.MeshBasicMaterial({ map: bb.texture }); this.billMesh = new THREE.Mesh(bg.build(), this.billMat); this.scene.add(this.billMesh); }
+    if (this.darkB.count) { this.darkMesh = new THREE.Mesh(this.darkB.build(), this.mats.dark); this.scene.add(this.darkMesh); }
   }
   buildParking(x0, z0, x1, z1, lotB, lineB) {
     lotB.box(x0, 0.15, z0, x1, 0.17, z1, { uvU: 6, uvV: 6, sides: false });
+    const lot = { x0, z0, x1, z1 }; this.lots.push(lot); // groundY: 0.17 inside a lot
+    const key = Math.floor(((z0 + z1) / 2 - (CITY.roadZ(0) + HALF)) / pitch) * 64 + Math.floor(((x0 + x1) / 2 - (CITY.roadX(0) + HALF)) / pitch); let arr = this.lotGrid.get(key); if (!arr) this.lotGrid.set(key, arr = []); arr.push(lot);
     const n = Math.floor((x1 - x0 - 4) / 3.2); const zc = (z0 + z1) / 2;
     for (let i = 0; i < n; i++) { const x = x0 + 2 + i * 3.2; lineB.strip(x, zc - 4, Math.PI / 2, 5.5, 0.15, 0.18); if (i < n - 1 && Math.random() < 0.55) this.parkingSpots.push({ x: x + 1.6, z: zc - 4, heading: Math.PI / 2 }); }
     lineB.strip(x0 + 2 + n * 3.2, zc - 4, Math.PI / 2, 5.5, 0.15, 0.18);
@@ -278,7 +540,8 @@ export class World {
       for (let s = 16; s < seg.len - road - 8; s += 26) for (const side of [1, -1]) {
         const x = A.x + fx * (HALF + s) + rx * side * (HALF + 0.8), z = A.z + fz * (HALF + s) + rz * side * (HALF + 0.8);
         const rot = Math.atan2(rz * side, -rx * side); // arm (local +x) points toward the road
-        lampSpots.push({ x, z, rot });
+        const curb = seg.horizontal ? A.z + rz * side * HALF : A.x + rx * side * HALF; // kerb line this lamp stands behind (z for an east-west road, x for a north-south one)
+        lampSpots.push({ x, z, rot, horizontal: seg.horizontal, rc: seg.horizontal ? A.z : A.x, curb });
         this.grid.add({ x0: x - 0.15, x1: x + 0.15, z0: z - 0.15, z1: z + 0.15, y0: 0, y1: 7, type: 'pole' });
       }
     }
@@ -289,7 +552,7 @@ export class World {
       m.compose(new THREE.Vector3(L.x, 0, L.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, L.rot, 0)), new THREE.Vector3(1, 1, 1)); poles.setMatrixAt(i, m);
       const hx = L.x + Math.cos(L.rot) * 1.7, hz = L.z - Math.sin(L.rot) * 1.7;
       m.compose(new THREE.Vector3(hx, 6.85, hz), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, L.rot, 0)), new THREE.Vector3(1, 1, 1)); this.lampHeads.setMatrixAt(i, m);
-      this.lampPositions.push({ x: hx, y: 6.6, z: hz });
+      this.lampPositions.push({ x: hx, y: 6.6, z: hz, horizontal: L.horizontal, rc: L.rc, curb: L.curb }); // road axis, road centre line and kerb: used by buildLightPools
     });
     this.scene.add(poles); this.scene.add(this.lampHeads);
     // palms along the beach and the coast road, trees in parks
@@ -310,10 +573,10 @@ export class World {
     const col = h => new THREE.Color(h); const B = (w, h, d, x, y, z, c) => xform(new THREE.BoxGeometry(w, h, d), M4(x, y, z), col(c)); const CY = (r0, r1, h, x, y, z, c, seg = 10) => xform(new THREE.CylinderGeometry(r0, r1, h, seg), M4(x, y, z), col(c));
     const kinds = {
       bench: { geo: mergeGeometries([B(1.8, 0.08, 0.5, 0, 0.45, 0, 0x8a5a34), B(1.8, 0.4, 0.06, 0, 0.72, -0.24, 0x8a5a34), B(0.08, 0.45, 0.5, -0.8, 0.22, 0, 0x2a2d33), B(0.08, 0.45, 0.5, 0.8, 0.22, 0, 0x2a2d33)]), every: 44, offset: 2.3, rot: 0, box: 0.9 },
-      bin: { geo: mergeGeometries([CY(0.3, 0.26, 0.9, 0, 0.45, 0, 0x2f5f3a, 12), CY(0.32, 0.32, 0.06, 0, 0.93, 0, 0x1e1e22, 12)]), every: 31, offset: 2.4, rot: 0, box: 0.35 },
-      hydrant: { geo: mergeGeometries([CY(0.14, 0.16, 0.7, 0, 0.35, 0, 0xd8322a, 8), CY(0.18, 0.18, 0.08, 0, 0.72, 0, 0xd8322a, 8), B(0.5, 0.1, 0.12, 0, 0.45, 0, 0xd8322a)]), every: 57, offset: 1.0, rot: 0, box: 0.2 },
-      mailbox: { geo: mergeGeometries([B(0.5, 0.5, 0.45, 0, 1.0, 0, 0x2b4fa8), B(0.5, 0.15, 0.45, 0, 1.3, 0, 0x2b4fa8), B(0.1, 0.8, 0.1, 0, 0.4, 0, 0x2a2d33)]), every: 83, offset: 2.4, rot: 0, box: 0.3 },
-      planter: { geo: mergeGeometries([B(1.2, 0.5, 0.6, 0, 0.25, 0, 0x8a8a86), xform(new THREE.SphereGeometry(0.42, 8, 6), M4(-0.3, 0.75, 0, 0, 0, 0, 1, 0.8, 1), col(0x3f8f3a)), xform(new THREE.SphereGeometry(0.42, 8, 6), M4(0.3, 0.75, 0, 0, 0, 0, 1, 0.8, 1), col(0x4aa03f))]), every: 38, offset: 2.3, rot: 0, box: 0.65 },
+      bin: { geo: mergeGeometries([CY(0.3, 0.26, 0.9, 0, 0.45, 0, 0x2f5f3a, 8), CY(0.32, 0.32, 0.06, 0, 0.93, 0, 0x1e1e22, 8)]), every: 31, offset: 2.4, rot: 0, box: 0.35, shadow: false },
+      hydrant: { geo: mergeGeometries([CY(0.14, 0.16, 0.7, 0, 0.35, 0, 0xd8322a, 8), CY(0.18, 0.18, 0.08, 0, 0.72, 0, 0xd8322a, 8), B(0.5, 0.1, 0.12, 0, 0.45, 0, 0xd8322a)]), every: 57, offset: 1.0, rot: 0, box: 0.2, shadow: false },
+      mailbox: { geo: mergeGeometries([B(0.5, 0.5, 0.45, 0, 1.0, 0, 0x2b4fa8), B(0.5, 0.15, 0.45, 0, 1.3, 0, 0x2b4fa8), B(0.1, 0.8, 0.1, 0, 0.4, 0, 0x2a2d33)]), every: 83, offset: 2.4, rot: 0, box: 0.3, shadow: false },
+      planter: { geo: mergeGeometries([B(1.2, 0.5, 0.6, 0, 0.25, 0, 0x8a8a86), xform(new THREE.SphereGeometry(0.42, 6, 4), M4(-0.3, 0.75, 0, 0, 0, 0, 1, 0.8, 1), col(0x3f8f3a)), xform(new THREE.SphereGeometry(0.42, 6, 4), M4(0.3, 0.75, 0, 0, 0, 0, 1, 0.8, 1), col(0x4aa03f))]), every: 38, offset: 2.3, rot: 0, box: 0.65, shadow: false },
       busstop: { geo: mergeGeometries([B(0.12, 2.6, 0.12, -1.4, 1.3, -0.5, 0x4a4d55), B(0.12, 2.6, 0.12, 1.4, 1.3, -0.5, 0x4a4d55), B(3.2, 0.1, 1.4, 0, 2.6, 0, 0x2a2d33), B(3.0, 1.3, 0.08, 0, 1.6, -0.5, 0x5fa8cc), B(2.4, 0.06, 0.4, 0, 0.5, -0.2, 0x8a5a34), B(0.6, 0.5, 0.06, -0.9, 2.2, -0.55, 0xffd34e)]), every: 156, offset: 2.2, rot: 0, box: 1.6 },
     };
     const spots = {}; for (const k in kinds) spots[k] = [];
@@ -327,13 +590,8 @@ export class World {
           spots[k].push({ x, z, rot }); this.grid.add({ x0: x - K.box, x1: x + K.box, z0: z - K.box, z1: z + K.box, y0: 0, y1: 2, type: 'pole' }); } }
     }
     const m = new THREE.Matrix4();
-    for (const k in kinds) { const list = spots[k]; if (!list.length) continue; const mesh = new THREE.InstancedMesh(kinds[k].geo, this.mats.prop, list.length); mesh.castShadow = true; mesh.receiveShadow = true;
+    for (const k in kinds) { const list = spots[k]; if (!list.length) continue; const mesh = new THREE.InstancedMesh(kinds[k].geo, this.mats.prop, list.length); mesh.castShadow = kinds[k].shadow !== false; mesh.receiveShadow = true; // small clutter (bins, hydrants, mailboxes, planters) stays out of the shadow pass
       list.forEach((p, i) => { m.compose(new THREE.Vector3(p.x, 0.15, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, p.rot, 0)), new THREE.Vector3(1, 1, 1)); mesh.setMatrixAt(i, m); }); this.scene.add(mesh); }
-  }
-  buildClouds() {
-    const tex = cloudTex(); this.cloudMats = [];
-    for (const [y, sc, op] of [[380, 1.0, 0.85], [470, 1.6, 0.55]]) { const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: op, color: 0xffffff }); mat.map = tex.clone(); mat.map.needsUpdate = true; mat.map.repeat.set(3 * sc, 3 * sc); mat.map.wrapS = mat.map.wrapT = THREE.RepeatWrapping;
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(4200, 4200), mat); mesh.rotation.x = -Math.PI / 2; mesh.position.y = y; mesh.renderOrder = -1; this.scene.add(mesh); this.cloudMats.push({ mat, speed: 0.0012 / sc, baseOp: op }); }
   }
   buildBeachExtras() {
     const col = h => new THREE.Color(h); const m = new THREE.Matrix4(); const rng = mulberry(4242);
@@ -359,7 +617,7 @@ export class World {
     ]);
     for (const n of this.nodes) {
       if (n.i === 0 || n.i === gridX || n.j === 0 || n.j === gridZ) continue;
-      const rec = { node: n, offset: Math.random() * 20, heads: [], state: null }; this.lightNodes.push(rec); n.light = rec;
+      const rec = { node: n, offset: Math.random() * 20, heads: [], ns: null, ew: null }; this.lightNodes.push(rec); n.light = rec; // ns / ew: last applied light state per axis
       for (const o of n.out) { // a head facing traffic arriving FROM o.to
         const fx = Math.sign(o.to.x - n.x), fz = Math.sign(o.to.z - n.z); // direction toward the neighbour; incoming traffic travels -f
         const rx = fz, rz = -fx; // right side of incoming traffic (which travels along -f): right = (-(-fz), (-fx)) = (fz, -fx)
@@ -385,13 +643,88 @@ export class World {
     if (axis === 'ns') return p < 8 ? 'g' : p < 10 ? 'y' : 'r'; return p < 10 ? 'r' : p < 18 ? 'g' : 'y';
   }
   updateTrafficLights(t) {
-    const c = new THREE.Color(); let dirty = false;
+    let dirty = false;
     for (const rec of this.lightNodes) {
-      const s = this.lightState(rec.node, 'ns', t) + this.lightState(rec.node, 'ew', t); if (s === rec.state) continue; rec.state = s; dirty = true;
-      for (const h of rec.heads) { const st = h.axis === 'ns' ? s[0] : s[1]; this.lightLamps.setColorAt(h.base, c.set(st === 'r' ? 0xff2a2a : 0x2a0a0a).multiplyScalar(st === 'r' ? 2.2 : 1)); this.lightLamps.setColorAt(h.base + 1, c.set(st === 'y' ? 0xffc21a : 0x2a1f05).multiplyScalar(st === 'y' ? 2.2 : 1)); this.lightLamps.setColorAt(h.base + 2, c.set(st === 'g' ? 0x2aff5a : 0x062a10).multiplyScalar(st === 'g' ? 2.2 : 1)); }
+      const ns = this.lightState(rec.node, 'ns', t), ew = this.lightState(rec.node, 'ew', t); // 'g' | 'y' | 'r'
+      if (ns === rec.ns && ew === rec.ew) continue; rec.ns = ns; rec.ew = ew; dirty = true;
+      for (const h of rec.heads) { const st = h.axis === 'ns' ? ns : ew;
+        this.lightLamps.setColorAt(h.base, TL_RED[st === 'r' ? 0 : 1]); this.lightLamps.setColorAt(h.base + 1, TL_YEL[st === 'y' ? 0 : 1]); this.lightLamps.setColorAt(h.base + 2, TL_GRN[st === 'g' ? 0 : 1]); }
     }
     if (dirty) this.lightLamps.instanceColor.needsUpdate = true;
   }
+
+  // ---------------- night light pools ----------------
+  // Street surfaces get warm pools without a single PointLight: one additive mesh of soft ground quads (lamps, shop windows, neon signs)
+  // and, on med/high, one instanced mesh of faint volumetric lamp cones. That is 2 draw calls at night, both hidden by day (setNight).
+  buildLightPools() {
+    const b = new GeoBuilder(), S = 13, R = S / 2, sodium = C_SODIUM.clone().multiplyScalar(0.6), shop = C_SHOP.clone().multiplyScalar(0.55), tint = new THREE.Color(); // 0.6 per channel at most: neighbouring pools never blow out
+    // a flat quad between (x0,z0) and (x1,z1) at height y facing up; uv(x, z) gives the texture coordinate of a corner (same winding as GeoBuilder.plane)
+    const ground = (x0, z0, x1, z1, y, col, uv) => b.quad([x0, y, z1], [x1, y, z1], [x1, y, z0], [x0, y, z0], [0, 1, 0], [uv(x0, z1), uv(x1, z1), uv(x1, z0), uv(x0, z0)], col);
+    // 13 x 13 m pool under every lamp head, cut at the kerb into a road part (y 0.03) and a pavement part (y 0.165); uv from world xz so the gradient is continuous across the cut
+    for (const L of this.lampPositions) {
+      const qx0 = L.x - R, qz0 = L.z - R, uv = (x, z) => [(x - qx0) / S, (z - qz0) / S];
+      const lo = L.horizontal ? qz0 : qx0, hi = lo + S; // extent across the road axis
+      const cuts = L.curb > lo + 0.01 && L.curb < hi - 0.01 ? [lo, L.curb, hi] : [lo, hi];
+      for (let k = 0; k + 1 < cuts.length; k++) {
+        const a = cuts[k], c = cuts[k + 1], y = Math.abs((a + c) / 2 - L.rc) < HALF ? 0.03 : 0.165;
+        if (L.horizontal) ground(qx0, a, qx0 + S, c, y, sodium, uv); else ground(a, qz0, c, qz0 + S, y, sodium, uv);
+      }
+    }
+    // Glow strip along a wall: face = coordinate of the wall plane, dir = outward, depth = how far it reaches. The wall edge sits on the texture's centre
+    // line (v = 0.5) and the outer edge on v = 1, so the glow is brightest at the wall. Along the wall u runs from u0 to u1.
+    const spill = (alongX, a0, a1, face, dir, depth, u0, u1, y, col) => {
+      const o0 = Math.min(face, face + dir * depth), o1 = Math.max(face, face + dir * depth);
+      const uv = (x, z) => { const along = alongX ? x : z, out = alongX ? z : x; return [u0 + (along - a0) / (a1 - a0) * (u1 - u0), 0.5 + 0.5 * dir * (out - face) / depth]; };
+      if (alongX) ground(a0, o0, a1, o1, y, col, uv); else ground(o0, a0, o1, a1, y, col, uv);
+    };
+    // Shop front: rounded caps at both ends and a constant middle (u fixed on the centre column), so a long shop gets one even band of light
+    const shopStrip = (alongX, a0, a1, face, dir, depth, y, col) => {
+      const cap = Math.min(depth, (a1 - a0) / 2), ue = 0.5 * cap / depth;
+      spill(alongX, a0, a0 + cap, face, dir, depth, 0.5 - ue, 0.5, y, col);
+      if (a1 - a0 - 2 * cap > 0.01) spill(alongX, a0 + cap, a1 - cap, face, dir, depth, 0.5, 0.5, y, col);
+      spill(alongX, a1 - cap, a1, face, dir, depth, 0.5, 0.5 + ue, y, col);
+    };
+    for (const sp of this.storeSpill) { // (width - 0.6) x 3.2 m outward, #ffd9a0 x 0.55
+      const mid = (sp.a0 + sp.a1) / 2, out = sp.face + sp.dir * 1.6;
+      shopStrip(sp.alongX, sp.a0, sp.a1, sp.face, sp.dir, 3.2, (sp.alongX ? this.groundY(mid, out) : this.groundY(out, mid)) + 0.012, shop);
+    }
+    for (const sg of this.signSpill) { // 6 x 3 m on the pavement below the sign, in the sign colour x 0.4
+      tint.set(sg.color).multiplyScalar(0.4); const out = sg.face + sg.dir * 1.5;
+      spill(sg.alongX, sg.a - 3, sg.a + 3, sg.face, sg.dir, 3, 0, 1, (sg.alongX ? this.groundY(sg.a, out) : this.groundY(out, sg.a)) + 0.012, tint);
+    }
+    // fog: false because three's fog would blend the glow towards the (bright, at dusk) fog colour; the far fade is done in the shader instead
+    this.poolMat = new THREE.MeshBasicMaterial({ map: lightPoolTex(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, opacity: 0, fog: false });
+    this.poolFog = { fogNear: { value: 100 }, fogFar: { value: 800 } };
+    // The real lamp PointLights already light the ground near the player, so the pools fade in between 14 and 36 m from the camera
+    // (smoothstep(14, 36, vFogDepth)) and fade out again with the scene fog.
+    this.poolMat.onBeforeCompile = shader => {
+      shader.uniforms.fogNear = this.poolFog.fogNear; shader.uniforms.fogFar = this.poolFog.fogFar;
+      shader.vertexShader = shader.vertexShader.replace('#include <common>', () => '#include <common>\nvarying float vFogDepth;').replace('#include <project_vertex>', () => '#include <project_vertex>\n  vFogDepth = -mvPosition.z;');
+      shader.fragmentShader = shader.fragmentShader.replace('#include <common>', () => '#include <common>\nvarying float vFogDepth; uniform float fogNear, fogFar;')
+        .replace('#include <opaque_fragment>', () => 'diffuseColor.a *= smoothstep(14.0, 36.0, vFogDepth) * (1.0 - smoothstep(fogNear, fogFar, vFogDepth));\n#include <opaque_fragment>');
+    };
+    this.poolMat.customProgramCacheKey = () => 'pool';
+    this.poolMesh = new THREE.Mesh(b.build(), this.poolMat); this.poolMesh.visible = false; this.scene.add(this.poolMesh);
+    if (this.quality !== 'low') this.buildLampCones();
+  }
+  // Volumetric cones under the lamp heads (med/high only): one instanced open cone, alpha fades from the lamp (vUv.y = 1) to the ground and
+  // towards the silhouette. Built lazily so a switch from low to med/high at run time (World.setQuality) can still create it.
+  buildLampCones() {
+    if (this.coneMesh || !this.lampPositions.length) return;
+    this.coneMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+      uniforms: { uColor: { value: C_SODIUM.clone() }, uOpacity: { value: 0 }, fogNear: { value: 100 }, fogFar: { value: 800 } },
+      vertexShader: `varying vec3 vN; varying vec3 vV; varying vec2 vUv; varying float vD;
+        void main(){ vUv = uv; vec4 mv = modelViewMatrix * instanceMatrix * vec4(position, 1.0); vN = normalize(normalMatrix * mat3(instanceMatrix) * normal); vV = normalize(-mv.xyz); vD = -mv.z; gl_Position = projectionMatrix * mv; }`,
+      fragmentShader: `uniform vec3 uColor; uniform float uOpacity, fogNear, fogFar; varying vec3 vN; varying vec3 vV; varying vec2 vUv; varying float vD;
+        void main(){ float a = pow(vUv.y, 1.5) * pow(abs(dot(normalize(vN), normalize(vV))), 2.0);
+          a *= (1.0 - smoothstep(fogNear, fogFar, vD)) * smoothstep(2.5, 9.0, vD); // fog fade as in fx.js ParticlePool; no glare when the camera is inside a cone
+          gl_FragColor = vec4(uColor, a * uOpacity); }` });
+    this.coneMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.3, 3.0, 6.6, 16, 1, true), this.coneMat, this.lampPositions.length);
+    const m = new THREE.Matrix4(); this.lampPositions.forEach((L, i) => { m.makeTranslation(L.x, 3.45, L.z); this.coneMesh.setMatrixAt(i, m); }); // spans y 0.15 .. 6.75, just under the lamp head
+    this.coneMesh.computeBoundingSphere(); this.coneMesh.visible = false; this.scene.add(this.coneMesh);
+  }
+  // Quality tier change at run time. The caller should flag the materials for recompilation afterwards (Game.setQuality already does).
+  setQuality(q) { this.quality = q; if (q !== 'low') this.buildLampCones(); }
 
   // ---------------- beach, pier, ocean ----------------
   buildBeach() {
@@ -421,15 +754,17 @@ export class World {
     this.grid.add({ x0: px1 - 8, x1: px1 - 2, z0: pz - 2.5, z1: pz + 2.5, y0: 0, y1: 5, type: 'building' });
     this.grid.add({ x0: px0, x1: px1, z0: pz - 4.7, z1: pz - 4.4, y0: 0, y1: 3, type: 'pole' }); this.grid.add({ x0: px0, x1: px1, z0: pz + 4.4, z1: pz + 4.7, y0: 0, y1: 3, type: 'pole' });
     // pier ramp so cars can drive on
-    const ramp = new THREE.Mesh(new THREE.BoxGeometry(6, 1, 9), this.mats.plank); ramp.position.set(px0 - 2.5, 0.55, pz); ramp.rotation.z = 0.2; this.scene.add(ramp);
+    // The top face climbs from the sand at x0-6 to the deck height 1.0 at x0 (slope 1:6); groundY follows the same line.
+    const rampAng = Math.atan(1 / 6); const ramp = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(6, 1), 1, 9), this.mats.plank);
+    ramp.position.set(px0 - 3, 0.5 - 0.5 / Math.cos(rampAng), pz); ramp.rotation.z = rampAng; ramp.receiveShadow = true; this.scene.add(ramp);
     this.pier = { x0: px0, x1: px1, z: pz, y: 1.0 };
     this.pois.docks = { id: 'docks', x: px1 - 14, z: pz, color: '#ffd34e', label: 'docks', noMarker: true, y: 1.0 };
     this.pois.fixer = { id: 'fixer', x: px1 - 10, z: pz + 3.2, color: '#e0e0e0', label: 'fixer', type: 'giver', mission: 'fixer', y: 1.0 };
     // beach club at z=0
     const cb = new GeoBuilder(); const cx0 = CITY.beachX + 6, cx1 = CITY.beachX + 30, cz0 = -14, cz1 = 14;
-    const fb = new GeoBuilder(); fb.box(cx0, 0, cz0, cx1, 7, cz1, { uvU: 8, uvV: 14, top: false }); cb.box(cx0, 6.99, cz0, cx1, 7.3, cz1, { uvU: 4, uvV: 4 });
-    const style = FACADES[2], tex = facadeTextures(style), corm = facadeORM(style); const mat = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: facadeNormal(style), normalScale: new THREE.Vector2(0.85, 0.85), roughnessMap: corm, metalnessMap: corm, roughness: 1, metalness: 1 }); mat.userData.glow = tex.glow; this.facadeMats.push(mat);
-    const club = new THREE.Mesh(fb.build(), mat); club.castShadow = true; club.receiveShadow = true; this.scene.add(club); this.scene.add(new THREE.Mesh(cb.build(), this.mats.roof));
+    const fb = new GeoBuilder(); fb.box(cx0, 0, cz0, cx1, 7, cz1, { uvU: 8, uvV: 14, top: false, color: new THREE.Color(0.43, 2 / 60, 2 / 8) }); cb.box(cx0, 6.99, cz0, cx1, 7.3, cz1, { uvU: 4, uvV: 4 });
+    const style = FACADES[2], tex = facadeTextures(style), corm = facadeORM(style); const mat = new THREE.MeshStandardMaterial({ map: tex.map, emissiveMap: tex.emissiveMap, emissive: 0xffffff, emissiveIntensity: 0, normalMap: facadeNormal(style), normalScale: new THREE.Vector2(0.85, 0.85), roughnessMap: corm, metalnessMap: corm, roughness: 1, metalness: 1 }); mat.userData.glow = tex.glow; this.facadeMats.push(mat); patchWindowShader(mat, this.winU, this.isLowTier);
+    const club = new THREE.Mesh(this.seedAttribute(fb.build()), mat); club.castShadow = true; club.receiveShadow = true; this.scene.add(club); this.scene.add(new THREE.Mesh(cb.build(), this.mats.roof));
     this.grid.add({ x0: cx0, x1: cx1, z0: cz0, z1: cz1, y0: 0, y1: 7, type: 'building' });
     this.addSignX(cx0, cz0, cz1, 'BEACH CLUB', '#ff4fa3', 'west', 7);
     this.pois.club = { id: 'club', x: cx0 - 4, z: 0, color: '#ffd34e', label: 'beachClub', mission: 'lior' };
@@ -450,26 +785,37 @@ export class World {
     const pad = 40; this.mapX0 = CITY.minX - pad; this.mapZ0 = CITY.minZ - pad; this.mapScale = 1.25; // px per metre
     const W = Math.ceil((CITY.oceanX + 120 - this.mapX0) * this.mapScale), H = Math.ceil((CITY.maxZ + pad - this.mapZ0) * this.mapScale);
     const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'); const S = this.mapScale, X = x => (x - this.mapX0) * S, Z = z => (z - this.mapZ0) * S;
-    ctx.fillStyle = '#8fae7a'; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#e6d3a3'; ctx.fillRect(X(CITY.beachX), 0, W, H); ctx.fillStyle = '#2f7fb8'; ctx.fillRect(X(CITY.oceanX), 0, W, H);
-    ctx.fillStyle = '#c9c4bb'; ctx.fillRect(X(CITY.minX), Z(CITY.minZ), (CITY.maxX - CITY.minX) * S, (CITY.maxZ - CITY.minZ) * S);
-    for (let bj = 0; bj < gridZ; bj++) for (let bi = 0; bi < gridX; bi++) { const x0 = CITY.roadX(bi) + HALF, z0 = CITY.roadZ(bj) + HALF; const park = PARKS.some(p => p[0] === bi && p[1] === bj); ctx.fillStyle = park ? '#6fb35e' : '#a49f96'; ctx.fillRect(X(x0), Z(z0), CITY.block * S, CITY.block * S); }
-    ctx.fillStyle = '#7d7871'; for (const b of this.buildings) ctx.fillRect(X(b.x0), Z(b.z0), (b.x1 - b.x0) * S, (b.z1 - b.z0) * S);
-    ctx.fillStyle = '#a07a52'; ctx.fillRect(X(this.pier.x0), Z(this.pier.z - 4.5), (this.pier.x1 - this.pier.x0) * S, 9 * S);
-    ctx.fillStyle = '#b8d9c9'; ctx.fillRect(X(CITY.beachX + 6), Z(-14), 24 * S, 28 * S);
+    // dark neon palette: reads well under the HUD glow and keeps the player blip and POI markers on top
+    ctx.fillStyle = '#0e1428'; ctx.fillRect(0, 0, W, H); // ground
+    ctx.fillStyle = '#3d3626'; ctx.fillRect(X(CITY.beachX), 0, W, H); ctx.fillStyle = '#0c3560'; ctx.fillRect(X(CITY.oceanX), 0, W, H); // beach, ocean
+    ctx.fillStyle = '#6a74a3'; ctx.fillRect(X(CITY.minX), Z(CITY.minZ), (CITY.maxX - CITY.minX) * S, (CITY.maxZ - CITY.minZ) * S); // roads (blocks are laid over them)
+    for (let bj = 0; bj < gridZ; bj++) for (let bi = 0; bi < gridX; bi++) { const x0 = CITY.roadX(bi) + HALF, z0 = CITY.roadZ(bj) + HALF; const park = PARKS.some(p => p[0] === bi && p[1] === bj); ctx.fillStyle = park ? '#1d4a36' : '#161c36'; ctx.fillRect(X(x0), Z(z0), CITY.block * S, CITY.block * S); }
+    ctx.fillStyle = '#222a4a'; for (const b of this.buildings) ctx.fillRect(X(b.x0), Z(b.z0), (b.x1 - b.x0) * S, (b.z1 - b.z0) * S);
+    ctx.fillStyle = '#6a5236'; ctx.fillRect(X(this.pier.x0), Z(this.pier.z - 4.5), (this.pier.x1 - this.pier.x0) * S, 9 * S);
+    ctx.fillStyle = '#222a4a'; ctx.fillRect(X(CITY.beachX + 6), Z(-14), 24 * S, 28 * S); // beach club
+    // 1 px centre line along every road segment, snapped to pixel centres so it stays crisp
+    const snap = v => Math.round(v) + 0.5; ctx.strokeStyle = '#8f99c9'; ctx.lineWidth = 1; ctx.beginPath();
+    for (const seg of this.segments) { ctx.moveTo(snap(X(seg.a.x)), snap(Z(seg.a.z))); ctx.lineTo(snap(X(seg.b.x)), snap(Z(seg.b.z))); }
+    ctx.stroke();
     this.mapCanvas = c;
   }
   mapPx(x, z) { return [(x - this.mapX0) * this.mapScale, (z - this.mapZ0) * this.mapScale]; }
 
   // ---------------- per-frame ----------------
-  setNight(f, sunDir, skyColor, fogColor, fogNear, fogFar, sunColor, rain = 0) {
-    for (const m of this.facadeMats) m.emissiveIntensity = f * (m.userData.glow ?? 0.5) * 1.15;
+  // hours: time of day 0..24 (integration passes clock / 60); it sets the fraction of lit windows. Without it the evening value is used.
+  setNight(f, sunDir, skyColor, fogColor, fogNear, fogFar, sunColor, rain = 0, hours) {
+    this.winU.litFrac.value = typeof hours === 'number' && hours >= 0 ? litFractionAt(hours % 24) : 0.62;
+    for (const m of this.facadeMats) m.emissiveIntensity = f * 1.1; // per-window brightness and colour come from the window shader
     for (const m of this.storeMats) m.emissiveIntensity = f * 1.05;
-    if (this.cloudMats) for (const c of this.cloudMats) { c.mat.color.copy(sunColor || skyColor).lerp(new THREE.Color(0x2a3350), f * 0.9).lerp(new THREE.Color(0x6a7280), rain * 0.6); c.mat.opacity = c.baseOp * (1 - f * 0.35) * (1 + rain * 0.3); }
-    this.mats.asphalt.roughness = 0.92 - rain * 0.68; this.mats.asphalt.metalness = 0.02 + rain * 0.5; this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.sidewalk.roughness = 0.95 - rain * 0.5; this.mats.sidewalk.metalness = rain * 0.3; this.mats.asphalt.envMapIntensity = 1 + rain * 1.4;
-    this.lampHeads.material.color.setHex(0x9a9fa8).lerp(new THREE.Color(0xffe2b0), f).multiplyScalar(1 + f * 1.0);
-    for (const sg of this.signs) sg.material.color.setScalar(1.0 + f * 0.75);
+    // Wet streets: the shader (patchWetShader) does the wetting - roughness, puddles, ripples - from the one `wet` uniform. Here only the albedo darkens and the bumps flatten.
+    this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.asphalt.color.setScalar(1 - rain * 0.45); this.mats.sidewalk.color.setScalar(1 - rain * 0.3); this.wetU.wet.value = rain;
+    this.lampHeads.material.color.copy(C_LAMP_OFF).lerp(C_LAMP_ON, f).multiplyScalar(1 + f * 1.0);
+    this.signU.level.value = 0.42 + (3.0 - 0.42) * f; // every neon sign at once: dim by day, blooming at night
+    if (this.billMat) this.billMat.color.setScalar(1 + 0.4 * f); // billboards glow a little after dark
+    const lamps = f >= 0.05; // street-light pools and cones only exist at night
+    if (this.poolMesh) { this.poolMesh.visible = lamps; this.poolMat.opacity = f * 0.8; this.poolFog.fogNear.value = fogNear; this.poolFog.fogFar.value = fogFar; }
+    if (this.coneMesh) { this.coneMesh.visible = lamps && this.quality !== 'low'; const u = this.coneMat.uniforms; u.uOpacity.value = f * (0.05 + 0.15 * rain); u.fogNear.value = fogNear; u.fogFar.value = fogFar; }
     this.oceanMat.uniforms.night.value = f; this.oceanMat.uniforms.sunDir.value.copy(sunDir); this.oceanMat.uniforms.skyColor.value.copy(skyColor); this.oceanMat.uniforms.fogColor.value.copy(fogColor); this.oceanMat.uniforms.fogNear.value = fogNear; this.oceanMat.uniforms.fogFar.value = fogFar;
   }
-  update(dt, t) { this.oceanMat.uniforms.time.value = t; this.updateTrafficLights(t); if (this.cloudMats) for (const c of this.cloudMats) c.mat.map.offset.x += c.speed * dt; if (this.towerLightMesh) this.towerLightMesh.material.color.setHex(Math.floor(t * 1.4) % 2 ? 0xff2020 : 0x3a0808).multiplyScalar(Math.floor(t * 1.4) % 2 ? 2.4 : 1); if (this.boats) for (const b of this.boats) { b.position.y = -0.1 + Math.sin(t * 0.9 + b.position.x) * 0.15; b.rotation.z = Math.sin(t * 0.7 + b.position.z) * 0.04; } }
+  update(dt, t) { this.oceanMat.uniforms.time.value = t; this.winU.time.value = this.signU.time.value = this.wetU.time.value = t % 600; /* window TV flicker, sign flicker, rain ripples */ this.updateTrafficLights(t); if (this.towerLightMesh) this.towerLightMesh.material.color.setHex(Math.floor(t * 1.4) % 2 ? 0xff2020 : 0x3a0808).multiplyScalar(Math.floor(t * 1.4) % 2 ? 2.4 : 1); if (this.boats) for (const b of this.boats) { b.position.y = -0.1 + Math.sin(t * 0.9 + b.position.x) * 0.15; b.rotation.z = Math.sin(t * 0.7 + b.position.z) * 0.04; } }
 }

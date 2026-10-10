@@ -4,6 +4,11 @@ import * as THREE from '../vendor/three.module.min.js';
 // Tone mapping lives here only; the renderer must stay on NoToneMapping.
 const VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
+// Copies a grade vector given as THREE.Vector3, [r,g,b] or {x,y,z}; a missing value becomes the neutral `d` on every channel.
+function setV3(dst, s, d) {
+  if (!s) dst.set(d, d, d); else if (s.isVector3) dst.copy(s); else if (Array.isArray(s)) dst.set(s[0] ?? d, s[1] ?? d, s[2] ?? d); else dst.set(s.x ?? d, s.y ?? d, s.z ?? d);
+}
+
 export class Post {
   constructor(renderer, quality) {
     this.renderer = renderer; this.targets = []; this.w = 0; this.h = 0; this._projInv = new THREE.Matrix4();
@@ -68,9 +73,10 @@ export class Post {
     this.composite = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, vertexShader: VS,
       uniforms: { tScene: { value: null }, tBloom1: { value: null }, tBloom2: { value: null }, tAO: { value: null }, tShafts: { value: null },
         useBloom: { value: 0 }, useAO: { value: 0 }, useShafts: { value: 0 }, strength: { value: 0.7 }, shaftStrength: { value: 0 }, shaftColor: { value: new THREE.Color(1, 1, 1) },
-        exposure: { value: 1 }, night: { value: 0 }, rain: { value: 0 }, time: { value: 0 }, hurt: { value: 0 }, gray: { value: 0 }, speed: { value: 0 } },
-      fragmentShader: `uniform sampler2D tScene, tBloom1, tBloom2, tAO, tShafts; uniform vec3 shaftColor;
-        uniform float useBloom, useAO, useShafts, strength, shaftStrength, exposure, night, rain, time, hurt, gray, speed; varying vec2 vUv;
+        exposure: { value: 1 }, night: { value: 0 }, rain: { value: 0 }, time: { value: 0 }, hurt: { value: 0 }, gray: { value: 0 }, speed: { value: 0 },
+        lift: { value: new THREE.Vector3(0, 0, 0) }, gain: { value: new THREE.Vector3(1, 1, 1) }, sat: { value: 1 }, vigFloor: { value: 0.66 } },
+      fragmentShader: `uniform sampler2D tScene, tBloom1, tBloom2, tAO, tShafts; uniform vec3 shaftColor, lift, gain;
+        uniform float useBloom, useAO, useShafts, strength, shaftStrength, exposure, night, rain, time, hurt, gray, speed, sat, vigFloor; varying vec2 vUv;
         vec3 aces(vec3 x){ const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14; return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0); }
         vec3 toSRGB(vec3 c){ return mix(c * 12.92, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c)); }
         void main(){
@@ -85,11 +91,12 @@ export class Post {
           if (useBloom > 0.5) col += (texture2D(tBloom1, vUv).rgb * 0.62 + texture2D(tBloom2, vUv).rgb * 0.5) * strength;
           if (useShafts > 0.5) col += texture2D(tShafts, vUv).rgb * shaftColor * shaftStrength;
           col *= exposure; col = aces(col);
+          col = lift + col * (gain - lift); col = mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, sat); // time-of-day grade (neutral at lift 0, gain 1, sat 1)
           col = mix(col, col * vec3(0.94, 0.99, 1.09), night * 0.5);
           col = mix(col, col * vec3(0.88, 0.95, 1.0), rain * 0.35);
           col = mix(col, clamp((col - 0.5) * 1.06 + 0.5, 0.0, 1.0), 0.55);
           float lum = dot(col, vec3(0.299, 0.587, 0.114)); col = mix(col, vec3(lum) * 0.8, gray);
-          float vig = smoothstep(1.3, 0.32, length(off * vec2(1.25, 1.0))); col *= mix(0.66, 1.0, vig);
+          float vig = smoothstep(1.3, 0.32, length(off * vec2(1.25, 1.0))); col *= mix(vigFloor, 1.0, vig);
           col = mix(col, vec3(0.5, 0.015, 0.015), hurt * (1.0 - vig) * 0.62);
           float g = fract(sin(dot(vUv * vec2(1237.0, 917.0) + fract(time), vec2(12.9898, 78.233))) * 43758.5453);
           col += (g - 0.5) * (0.009 + night * 0.013);
@@ -134,7 +141,8 @@ export class Post {
     if (this.level >= 2) { const dt = new THREE.DepthTexture(w, h); dt.minFilter = THREE.NearestFilter; dt.magFilter = THREE.NearestFilter; this.rt.depthTexture = dt; }
     this.ldr = mk(w, h, { byte: true });
     if (this.level >= 1) { this.bright = mk(w / 2, h / 2); this.a1 = mk(w / 4, h / 4); this.b1 = mk(w / 4, h / 4); this.a2 = mk(w / 8, h / 8); this.b2 = mk(w / 8, h / 8); this.shafts = mk(w / 4, h / 4); }
-    if (this.level >= 2) { this.aoRaw = mk(w / 2, h / 2); this.aoTmp = mk(w / 2, h / 2); this.ao = mk(w / 2, h / 2); }
+    // single-channel occlusion: 8 bit targets are plenty (and half the bandwidth of half-float RGBA)
+    if (this.level >= 2) { this.aoRaw = mk(w / 2, h / 2, { byte: true }); this.aoTmp = mk(w / 2, h / 2, { byte: true }); this.ao = mk(w / 2, h / 2, { byte: true }); }
   }
 
   pass(mat, target) { this.quad.material = mat; this.renderer.setRenderTarget(target); this.renderer.render(this.scene, this.cam); }
@@ -168,6 +176,7 @@ export class Post {
     }
     c.tScene.value = this.rt.texture; c.night.value = u.night || 0; c.rain.value = u.rain || 0; c.time.value = u.time || 0;
     c.hurt.value = u.hurt || 0; c.gray.value = u.gray || 0; c.exposure.value = u.exposure ?? 1; c.speed.value = u.speed || 0;
+    setV3(c.lift.value, u.lift, 0); setV3(c.gain.value, u.gain, 1); c.sat.value = u.sat ?? 1; c.vigFloor.value = u.vigFloor ?? 0.66; // colour grade; all neutral when the caller sets nothing
     this.pass(this.composite, this.ldr);
     this.fxaa.uniforms.tDiffuse.value = this.ldr.texture; this.fxaa.uniforms.texel.value.set(1 / this.w, 1 / this.h);
     this.pass(this.fxaa, null);

@@ -22,10 +22,12 @@ export function fireWeapon(game, ox, oy, oz, dx, dy, dz, w, shooter) {
     }
     const hx = ox + ddx * best.t, hy = oy + ddy * best.t, hz = oz + ddz * best.t;
     game.fx.tracer(ox, oy, oz, hx, hy, hz);
-    if (best.type === 'ped') { best.ped.hit(w.dmg * (best.head ? 2.5 : 1), ddx, ddz, shooter === 'player' ? 'player' : shooter); if (shooter === 'player' && (best.ped.team === 'cop' || best.ped.team === 'swat') && !best.ped.dead) game.police.reportCrime('hitcop', hx, hz); }
+    if (best.type === 'ped') { best.ped.hit(w.dmg * (best.head ? 2.5 : 1), ddx, ddz, shooter === 'player' ? 'player' : shooter, !!best.head); if (shooter === 'player' && (best.ped.team === 'cop' || best.ped.team === 'swat') && !best.ped.dead) game.police.reportCrime('hitcop', hx, hz); }
     else if (best.type === 'vehicle') { const v = best.vehicle; v.damage(w.dmg * 0.55, 'gun'); game.fx.sparks(hx, hy, hz, 5, 4); if (v.ai && v.ai.mode === 'traffic') v.ai.panic = 8; if (shooter === 'player') { if (v.type === 'police') game.police.reportCrime('hitcop', hx, hz); else game.police.reportCrime('shootcar', hx, hz); } }
     else if (best.type === 'player') { game.player.damage(w.dmg, ox, oz); }
     else if (best.t < w.range) { game.fx.sparks(hx, hy, hz, 4, 3); game.fx.dust(hx, hy, hz, 2); }
+    // bullet-impact sound for the first two pellets only (a shotgun blast must not stack eight of them); a shot that reached max range hit nothing
+    if (k < 2) { const it = best.type === 'vehicle' ? 'vehicle' : best.type === 'ped' || best.type === 'player' ? 'ped' : best.t < w.range ? 'world' : null; if (it) game.audio.bulletImpact(it, dist(hx, hz, game.player.x, game.player.z)); }
     hits.push(best);
   }
   game.fx.muzzle(ox, oy, oz, dx, dy, dz); game.audio.shot(w.id, dist(ox, oz, game.player.x, game.player.z));
@@ -73,9 +75,10 @@ export class Grenades {
   update(dt) {
     const G = this.game;
     for (let i = this.list.length - 1; i >= 0; i--) {
-      const g = this.list[i]; g.t -= dt; g.vy -= 14 * dt; let nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, nz = g.z + g.vz * dt;
-      if (ny < 0.14) { ny = 0.14; g.vy = -g.vy * 0.4; g.vx *= 0.75; g.vz *= 0.75; }
-      const h = G.grid.circleHit(nx, nz, 0.16, _g); if (h) { nx += h.nx * h.depth; nz += h.nz * h.depth; const vn = g.vx * h.nx + g.vz * h.nz; if (vn < 0) { g.vx -= 1.6 * vn * h.nx; g.vz -= 1.6 * vn * h.nz; } }
+      const g = this.list[i]; g.t -= dt; g.vy -= 14 * dt; let nx = g.x + g.vx * dt, ny = g.y + g.vy * dt, nz = g.z + g.vz * dt, clank = 0; // clank = impact speed of the hardest bounce this frame
+      if (ny < 0.14) { ny = 0.14; clank = Math.abs(g.vy); g.vy = -g.vy * 0.4; g.vx *= 0.75; g.vz *= 0.75; }
+      const h = G.grid.circleHit(nx, nz, 0.16, _g); if (h) { nx += h.nx * h.depth; nz += h.nz * h.depth; const vn = g.vx * h.nx + g.vz * h.nz; if (vn < 0) { if (-vn > clank) clank = -vn; g.vx -= 1.6 * vn * h.nx; g.vz -= 1.6 * vn * h.nz; } }
+      if (clank > 2) G.audio.clank(clank); // a resting grenade only creeps at ~0.2 m/s, so it never rattles
       g.x = nx; g.y = ny; g.z = nz; g.mesh.position.set(nx, ny, nz); g.mesh.rotation.x += dt * 8;
       if (g.t <= 0) { G.scene.remove(g.mesh); this.list.splice(i, 1); G.explode(g.x, Math.max(0.2, g.y - 0.2), g.z, g.source); }
     }

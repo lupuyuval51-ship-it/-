@@ -24,7 +24,7 @@ export class Police {
   clearForces() {
     for (const v of this.cars) { v.siren = false; if (v.ai.mode === 'deployed') v.ai.mode = 'police'; v.ai = { mode: 'patrol', cruise: 13, blocked: 0, panic: 0 }; acquireLane(v, this.game.world); }
     for (const p of this.cops) { p.state = 'leave'; p.kind = 'civ'; p.team = null; p.pickWaypoint(); }
-    if (this.heli) { this.game.scene.remove(this.heli.group); this.heli = null; this.game.audio.heli(0); }
+    this.removeHeli();
   }
   update(dt) {
     const G = this.game, P = G.player, t = G.time; this.heat = Math.max(0, this.heat - dt * 0.01);
@@ -33,7 +33,8 @@ export class Police {
     let seen = false; const px = P.x, pz = P.z;
     for (const v of this.cars) { const d = dist(v.x, v.z, px, pz); if (d < 60 || (d < 110 && G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1)) { seen = true; break; } }
     if (!seen) for (const p of this.cops) { const d = dist(p.x, p.z, px, pz); if (d < 45 || (d < 90 && p.hasLOS(px, 1.2, pz))) { seen = true; break; } }
-    if (this.heli && this.heli.hasTrack && dist(this.heli.group.position.x, this.heli.group.position.z, px, pz) < 40) seen = true;
+    // the helicopter only counts as a witness while its line down to the player is open (a street canyon or a roof breaks it)
+    if (this.heli && this.heli.hasTrack) { const hp = this.heli.group.position, hd = Math.hypot(hp.x - px, hp.z - pz); if (hd < 40) { const ty = P.vehicle ? 1.6 : 1.4, dx = px - hp.x, dy = ty - hp.y, dz = pz - hp.z, len = Math.hypot(dx, dy, dz) || 1; if (G.grid.raycast(hp.x, hp.y, hp.z, dx / len, dy / len, dz / len, len) >= len - 1.5) seen = true; } }
     if (seen) { this.lastSeen = t; this.lastPos = { x: px, z: pz }; } this.hidden = !seen; if (this.heli) this.heli.hasTrack = seen || (t - this.lastSeen < 6);
     if (t - this.lastSeen > 20) { this.lastSeen = t; this.setLevel(this.level - 1); if (this.level === 0) G.hud.notify(T.evaded); }
     // patrol cars join the pursuit when close
@@ -58,7 +59,7 @@ export class Police {
     this.copSpawnT -= dt; const copsN = this.cops.length;
     if (copsN < COPS_PER_LEVEL[this.level] && this.copSpawnT <= 0 && !P.vehicle) { this.copSpawnT = 4; const c = cars.find(v => dist(v.x, v.z, px, pz) < 40); if (c) this.spawnCop(c.x + (Math.random() - 0.5) * 4, c.z + (Math.random() - 0.5) * 4, c.type === 'swat'); }
     // helicopter
-    if (this.level >= 4) { if (!this.heli) this.makeHeli(); this.updateHeli(dt); } else if (this.heli) { G.scene.remove(this.heli.group); this.heli = null; G.audio.heli(0); }
+    if (this.level >= 4) { if (!this.heli) this.makeHeli(); this.updateHeli(dt); } else if (this.heli) this.removeHeli();
     G.audio.siren(clamp(1 - nearest / 160, 0, 1));
   }
   spawnCar() {
@@ -79,6 +80,12 @@ export class Police {
     const p = new Ped(G, { kind: 'armed', team: swat ? 'swat' : 'cop', look: swat ? LOOKS.swat : LOOKS.cop, x, z, hp: swat ? 170 : 100, weapon: swat ? 'rifle' : (this.level >= 3 && Math.random() < 0.4 ? 'smg' : 'pistol'), accuracy: swat ? 0.62 : 0.5, hostile: true });
     G.addPed(p); return p;
   }
+  // The searchlight is Game.heliSpot, a permanent scene light, so the scene's light count never changes. It rides in the helicopter group while one flies and goes back to the scene (intensity 0) afterwards.
+  removeHeli() {
+    const G = this.game, h = this.heli; if (!h) return;
+    G.scene.remove(h.group); this.heli = null; G.audio.heli(0);
+    const s = G.heliSpot; if (s) { s.intensity = 0; s.position.set(0, 0, 0); s.target.position.set(0, 0, 0); G.scene.add(s); G.scene.add(s.target); }
+  }
   makeHeli() {
     const G = this.game; const g = new THREE.Group(); const dark = new THREE.MeshStandardMaterial({ color: 0x1a1d24, roughness: 0.5, metalness: 0.5 }); const blue = new THREE.MeshStandardMaterial({ color: 0x2b4a8c, roughness: 0.5, metalness: 0.4 });
     const body = new THREE.Mesh(new THREE.BoxGeometry(4.2, 1.8, 2), blue); body.castShadow = true; g.add(body); const nose = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 1.6), new THREE.MeshStandardMaterial({ color: 0x0f1c2c, roughness: 0.1, metalness: 0.8 })); nose.position.set(2.6, 0.1, 0); g.add(nose);
@@ -86,13 +93,13 @@ export class Police {
     const skidL = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 0.12), dark); skidL.position.set(0, -1.3, 0.9); g.add(skidL); const skidR = skidL.clone(); skidR.position.z = -0.9; g.add(skidR);
     const rotor = new THREE.Mesh(new THREE.BoxGeometry(11, 0.08, 0.35), dark); rotor.position.y = 1.15; g.add(rotor); const rotor2 = rotor.clone(); rotor2.rotation.y = Math.PI / 2; g.add(rotor2);
     const tr = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.6, 0.2), dark); tr.position.set(-6.4, 0.6, 0.4); g.add(tr);
-    const spot = new THREE.SpotLight(0xfff4d0, 2500, 90, 0.32, 0.5, 1.2); spot.position.set(1.5, -0.9, 0); g.add(spot); g.add(spot.target);
+    const spot = G.heliSpot || new THREE.SpotLight(0xfff4d0, 0, 90, 0.32, 0.5, 1.2); spot.intensity = 2500; spot.position.set(1.5, -0.9, 0); g.add(spot); g.add(spot.target);
     const beamGeo = new THREE.ConeGeometry(9, 32, 16, 1, true); beamGeo.translate(0, -16, 0); const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide })); beam.position.set(1.5, -0.9, 0); g.add(beam);
     g.position.set(G.player.x + 40, 34, G.player.z + 40); G.scene.add(g);
     this.heli = { group: g, rotors: [rotor, rotor2, tr], spot, beam, ang: 0, shootT: 3, x: g.position.x, z: g.position.z, hp: 400, hasTrack: true };
   }
   updateHeli(dt) {
-    const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22; const lp = this.lastPos || { x: P.x, z: P.z }; const fx = h.hasTrack ? P.x : lp.x, fz = h.hasTrack ? P.z : lp.z;
+    const G = this.game, P = G.player, h = this.heli, g = h.group; h.ang += dt * 0.35; const R = 22; const lp = this.lastPos || { x: P.x, z: P.z }; const fx = lp.x, fz = lp.z; // flies to where the player was last seen, which is the live position only while someone has eyes on them
     const tx = fx + Math.cos(h.ang) * R, tz = fz + Math.sin(h.ang) * R; g.position.x = damp(g.position.x, tx, 1.2, dt); g.position.z = damp(g.position.z, tz, 1.2, dt); g.position.y = damp(g.position.y, 30 + Math.sin(h.ang * 2) * 2, 1, dt);
     const dx = fx - g.position.x, dz = fz - g.position.z; g.rotation.y = Math.atan2(-dz, dx); g.rotation.z = -0.12; for (const r of h.rotors) r.rotation.y += dt * 40;
     const th = g.rotation.y, lx = dx * Math.cos(th) - dz * Math.sin(th), lz = dx * Math.sin(th) + dz * Math.cos(th); h.spot.target.position.set(lx, 1 - g.position.y, lz); const beamLen = g.position.y; h.beam.scale.set(1, beamLen / 32, 1); h.beam.lookAt(fx, 0, fz); h.beam.rotateX(-Math.PI / 2);

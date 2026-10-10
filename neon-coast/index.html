@@ -28,7 +28,7 @@
     <div class="hud-bl">
       <canvas id="minimap"></canvas>
       <div class="bars"><div class="bar health"><i id="healthBar"></i></div><div class="bar armor"><i id="armorBar"></i></div></div>
-      <div id="speedo" class="speedo"><b id="speed">0</b><span data-t="kmh"></span></div>
+      <div id="speedo" class="speedo"><b id="speed">0</b><span data-t="kmh"></span><div class="bar car"><i id="carHp"></i></div></div>
     </div>
     <div id="prompt" class="prompt"></div>
     <div id="objective" class="objective"></div>
@@ -36,6 +36,9 @@
     <div id="crosshair" class="crosshair"></div>
     <div id="scope" class="scope"><i></i><i></i></div>
     <div id="hurt" class="hurt"></div>
+    <div id="dmgDir" class="dmg-dir" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div id="hitmarker" class="hitmarker" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="obj-pin" hidden><i class="arw"></i><b></b></div>
     <div id="missionResult" class="mission-result"><div class="title"></div><div class="sub"></div></div>
     <div id="overlay" class="overlay"><div class="big"></div><div class="sub"></div></div>
   </div>
@@ -95,16 +98,20 @@
   </div>
 
   <div id="touch" class="touch" hidden>
+    <div class="touch-look"></div>
     <div class="stick"><div class="knob"></div></div>
     <div class="tbtns">
-      <button data-btn="weapon">⇄</button><button data-btn="aim">◎</button><button data-btn="fire">●</button>
-      <button data-btn="map">M</button><button data-btn="jump">⤒</button><button data-btn="run">»</button>
-      <button data-btn="pause">II</button><button data-btn="enter">E</button><button data-btn="brake">▼</button>
+      <button data-btn="fire">●</button><button data-btn="brake">▼</button>
+      <button data-btn="jump">⤒</button><button data-btn="enter">E</button>
+      <button data-btn="run">»</button><button data-btn="aim">◎</button>
+      <button data-btn="reload">↻</button><button data-btn="weapon">⇄</button>
+      <button data-btn="radio">♪</button><button data-btn="horn">H</button>
     </div>
-    <div class="tbtns2"><button data-btn="vig">V</button>
-    </div>
-    <button class="tside" data-btn="radio">♪</button><button class="tside second" data-btn="horn">H</button>
+    <div class="tbtns2"><button data-btn="vig">V</button></div>
+    <div class="tbtns3"><button data-btn="map">M</button><button data-btn="pause">II</button></div>
   </div>
+
+  <div class="rotate" aria-live="polite"><i class="rot-phone"></i><p data-t="rotateDevice"></p></div>
 </div>
 <script type="module" src="src/main.js"></script>
 </body>

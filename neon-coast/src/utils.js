@@ -114,6 +114,7 @@ export class StaticGrid {
   circleHit(x, z, r, tmp = []) {
     const list = this.query(x, z, r, tmp); let best = null;
     for (const b of list) {
+      if (b.y0 > 3.2) continue; // overhead boxes (blade signs) stop bullets and the camera ray, but people and cars pass under them
       const px = clamp(x, b.x0, b.x1), pz = clamp(z, b.z0, b.z1);
       let dx = x - px, dz = z - pz, d = Math.hypot(dx, dz);
       if (d < r) {

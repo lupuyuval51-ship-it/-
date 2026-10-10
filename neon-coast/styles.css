@@ -1,25 +1,26 @@
 /* Neon Coast – single committed visual world: a humid neon night on the coast. */
-:root { --bg: #0b0f1e; --panel: rgba(10, 13, 28, 0.82); --line: rgba(255, 255, 255, 0.14); --text: #f3f0fa; --muted: #9aa0c0; --pink: #ff4fa3; --cyan: #3ce8f5; --gold: #ffd34e; --green: #7cff8a; --red: #ff5a5a; --orange: #ff9a3c; --blue: #4d8cff; --display: 'Bebas Neue', 'Heebo', Impact, sans-serif; --body: 'Heebo', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; }
+:root { --bg: #0b0f1e; --panel: rgba(10, 13, 28, 0.82); --line: rgba(255, 255, 255, 0.14); --text: #f3f0fa; --muted: #9aa0c0; --pink: #ff4fa3; --cyan: #3ce8f5; --gold: #ffd34e; --green: #7cff8a; --red: #ff5a5a; --orange: #ff9a3c; --blue: #4d8cff; --display: 'Bebas Neue', 'Heebo', Impact, sans-serif; --body: 'Heebo', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 #game { position: fixed; inset: 0; }
-canvas#c { display: block; width: 100%; height: 100%; transition: filter 0.7s ease; outline: none; }
+canvas#c { display: block; width: 100%; height: 100%; transition: filter 0.7s ease; outline: none; touch-action: none; }
 canvas#c.gray { filter: grayscale(1) contrast(1.15) brightness(0.75); }
 button { font-family: inherit; }
 kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; min-width: 64px; text-align: center; direction: ltr; display: inline-block; }
 
 /* ---------- HUD ---------- */
 .hud { position: absolute; inset: 0; pointer-events: none; }
-.hud-tr { position: absolute; top: 18px; right: 20px; display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; }
+.hud-tr { position: absolute; top: calc(18px + var(--sat)); right: calc(20px + var(--sar)); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; isolation: isolate; }
+.hud-tr::before { content: ''; position: absolute; z-index: -1; top: calc(-18px - var(--sat)); right: calc(-20px - var(--sar)); bottom: -26px; left: -110px; background: radial-gradient(120% 100% at 100% 0, rgba(5, 8, 20, 0.6), transparent 72%); pointer-events: none; }
 .money-wrap { position: relative; }
 .money { font-family: var(--display); font-size: 42px; line-height: 1; letter-spacing: 1px; color: var(--green); text-shadow: 0 0 14px rgba(124, 255, 138, 0.55), 0 2px 0 #0b3d1a; font-variant-numeric: tabular-nums; direction: ltr; }
 .money-delta { position: absolute; right: 0; top: 100%; font-family: var(--display); font-size: 22px; opacity: 0; direction: ltr; }
 .money-delta.plus { color: var(--green); animation: rise 1.8s ease-out; } .money-delta.minus { color: var(--red); animation: rise 1.8s ease-out; }
 @keyframes rise { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
 .stars { display: flex; gap: 2px; direction: ltr; font-size: 24px; line-height: 1; }
-.stars span { color: rgba(255, 255, 255, 0.16); transition: color 0.2s; }
-.stars span.on { color: var(--gold); text-shadow: 0 0 10px rgba(255, 211, 78, 0.8); }
-.stars span.on.dim { color: rgba(255, 211, 78, 0.35); text-shadow: none; }
+.stars span { color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.6); transition: color 0.2s; }
+.stars span.on { color: var(--gold); -webkit-text-stroke: 0; text-shadow: 0 0 10px rgba(255, 211, 78, 0.8); }
+.stars span.on.dim { color: rgba(255, 211, 78, 0.35); -webkit-text-stroke: 1.5px rgba(255, 211, 78, 0.75); text-shadow: none; }
 .stars.flash { animation: pop 0.35s ease-out; }
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 .evade { width: 118px; height: 3px; border-radius: 2px; overflow: hidden; background: rgba(255, 255, 255, 0.1); opacity: 0; }
@@ -28,8 +29,8 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 .weapon { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; direction: ltr; }
 .weapon span { font-weight: 600; font-size: 14px; color: var(--text); text-shadow: 0 1px 3px #000; }
 .weapon b { font-family: var(--display); font-size: 24px; color: #fff; letter-spacing: 1px; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000; }
-.clock { font-family: var(--display); font-size: 20px; color: var(--muted); letter-spacing: 1px; direction: ltr; }
-.notify { position: absolute; top: 18px; left: 20px; display: flex; flex-direction: column; gap: 6px; width: min(380px, 58vw); }
+.clock { font-family: var(--display); font-size: 20px; color: #e8ecff; text-shadow: 0 1px 3px #000; letter-spacing: 1px; direction: ltr; }
+.notify { position: absolute; top: calc(18px + var(--sat)); left: calc(20px + var(--sal)); display: flex; flex-direction: column; gap: 6px; width: min(380px, 58vw); }
 .toast { background: var(--panel); border-inline-start: 3px solid var(--cyan); padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; line-height: 1.35; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); animation: slideIn 0.3s ease-out; transition: opacity 0.4s, transform 0.4s; backdrop-filter: blur(6px); }
 .toast.cash { border-color: var(--green); } .toast.warn { border-color: var(--red); } .toast.obj { border-color: var(--gold); } .toast.dim { border-color: var(--muted); color: var(--muted); }
 .toast.out { opacity: 0; transform: translateX(-12px); }
@@ -43,18 +44,20 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 @keyframes titleIn { 0% { opacity: 0; transform: translate(-50%, 10px); } 12% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .radio { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; font-family: var(--display); font-size: 18px; letter-spacing: 1.5px; color: var(--pink); opacity: 0; transition: opacity 0.3s; direction: ltr; }
 .radio.on { opacity: 1; }
-.hud-bl { position: absolute; left: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 6px; width: 240px; }
+.hud-bl { position: absolute; left: calc(20px + var(--sal)); bottom: calc(20px + var(--sab)); display: flex; flex-direction: column; gap: 6px; width: 240px; }
 #minimap { width: 240px; height: 160px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55); background: var(--bg); display: block; }
 .bars { display: flex; gap: 6px; }
-.bar { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 3px; overflow: hidden; }
+.bar { flex: 1; height: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
 .bar i { display: block; height: 100%; width: 0; transition: width 0.25s; }
 .bar.health i { background: var(--green); } .bar.health i.low { background: var(--red); animation: blink 0.8s steps(2) infinite; } .bar.armor i { background: var(--blue); }
+.speedo .bar.car { position: absolute; left: 0; top: 100%; width: 96px; height: 6px; margin-top: 5px; flex: none; } .bar.car i { background: var(--cyan); } .bar.car .low { background: var(--orange); }
 .speedo { position: absolute; left: 100%; bottom: 0; margin-left: 14px; display: none; align-items: baseline; gap: 6px; direction: ltr; }
 .speedo.on { display: flex; }
 .speedo b { font-family: var(--display); font-size: 40px; line-height: 1; color: #fff; text-shadow: 0 2px 6px #000; font-variant-numeric: tabular-nums; min-width: 2ch; }
 .speedo span { font-size: 12px; color: var(--muted); font-weight: 600; }
 .prompt { position: absolute; bottom: 152px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); padding: 7px 16px; border-radius: 999px; font-weight: 600; font-size: 15px; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
 .prompt.on { opacity: 1; }
+.prompt kbd.key { min-width: 0; padding: 1px 8px; margin-inline-end: 8px; background: var(--gold); border-color: transparent; color: #14060e; font-weight: 700; }
 .objective { position: absolute; bottom: 98px; left: 50%; transform: translateX(-50%); font-weight: 600; font-size: 17px; color: #fff; background: rgba(9, 12, 26, 0.7); padding: 7px 16px; border-radius: 6px; border-bottom: 2px solid var(--gold); max-width: min(80vw, 640px); text-align: center; opacity: 0; transition: opacity 0.3s; }
 .objective.on { opacity: 1; }
 .subtitle { position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); font-weight: 500; font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px #000, 0 0 10px #000; max-width: min(72ch, 86vw); text-align: center; opacity: 0; transition: opacity 0.3s; }
@@ -130,13 +133,33 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 .shop-list button:hover { background: rgba(124, 255, 138, 0.15); }
 
 /* ---------- touch ---------- */
-.touch { position: absolute; inset: 0; pointer-events: none; }
-.stick { position: absolute; left: 26px; bottom: 200px; width: 124px; height: 124px; border-radius: 50%; background: rgba(255, 255, 255, 0.07); border: 2px solid rgba(255, 255, 255, 0.2); pointer-events: auto; }
+.touch { position: absolute; inset: 0; pointer-events: none; touch-action: none; }
+.touch-look { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
+.stick { position: absolute; left: calc(26px + var(--sal)); bottom: 150px; width: 124px; height: 124px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.16); pointer-events: none; opacity: 0.6; transition: opacity 0.15s, background 0.15s, border-color 0.15s; }
+.stick.on { opacity: 1; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); }
 .knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
-.tbtns { position: absolute; right: 18px; bottom: 24px; display: grid; grid-template-columns: repeat(3, 58px); gap: 10px; pointer-events: auto; }
-.touch button { width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 20px; font-weight: 700; pointer-events: auto; }
-.touch button.on { background: var(--pink); }
-.tside { position: absolute; right: 18px; top: 120px; } .tside.second { top: 190px; }
+.tbtns, .tbtns2, .tbtns3 { display: contents; }
+.touch button { position: absolute; width: 54px; height: 54px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 20px; font-weight: 700; padding: 0; pointer-events: auto; touch-action: none; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+.touch button.on { background: var(--pink); border-color: var(--pink); }
+/* Right-hand cluster: an arc around the main button (fire on foot, brake in a car). Every slot is the same in both layouts. */
+.touch button[data-btn=fire] { right: calc(16px + var(--sar)); bottom: calc(22px + var(--sab)); width: 72px; height: 72px; font-size: 26px; background: rgba(255, 79, 163, 0.25); border-color: rgba(255, 79, 163, 0.7); }
+.touch button[data-btn=jump] { right: calc(100px + var(--sar)); bottom: calc(30px + var(--sab)); }
+.touch button[data-btn=enter] { right: calc(84px + var(--sar)); bottom: calc(102px + var(--sab)); background: rgba(255, 211, 78, 0.18); border-color: rgba(255, 211, 78, 0.6); }
+.touch button[data-btn=run] { right: calc(16px + var(--sar)); bottom: calc(106px + var(--sab)); }
+.touch button[data-btn=aim] { right: calc(154px + var(--sar)); bottom: calc(96px + var(--sab)); }
+.touch button[data-btn=reload] { right: calc(166px + var(--sar)); bottom: calc(30px + var(--sab)); }
+.touch button[data-btn=weapon] { right: calc(154px + var(--sar)); bottom: calc(162px + var(--sab)); }
+.touch button[data-btn=vig] { right: calc(154px + var(--sar)); bottom: calc(162px + var(--sab)); border-color: var(--blue); }
+.touch button[data-btn=vig].show { background: rgba(77, 140, 255, 0.35); animation: pop 0.6s ease-out; }
+.touch button[data-btn=brake] { right: calc(16px + var(--sar)); bottom: calc(22px + var(--sab)); width: 72px; height: 72px; font-size: 26px; background: rgba(255, 90, 90, 0.22); border-color: rgba(255, 90, 90, 0.7); }
+.touch button[data-btn=radio] { right: calc(16px + var(--sar)); bottom: calc(106px + var(--sab)); }
+.touch button[data-btn=horn] { right: calc(154px + var(--sar)); bottom: calc(96px + var(--sab)); }
+.touch button[data-btn=map], .touch button[data-btn=pause] { top: calc(8px + var(--sat)); width: 40px; height: 40px; font-size: 15px; background: rgba(8, 11, 24, 0.55); }
+.touch button[data-btn=map] { left: calc(50% - 98px); } .touch button[data-btn=pause] { left: calc(50% + 58px); }
+/* on foot: car-only buttons are hidden. In a car: on-foot buttons are hidden; fire stays as the drive-by button. */
+#touch:not(.in-car) [data-btn=brake], #touch:not(.in-car) [data-btn=radio], #touch:not(.in-car) [data-btn=horn] { display: none; }
+#touch.in-car [data-btn=aim], #touch.in-car [data-btn=run], #touch.in-car [data-btn=reload], #touch.in-car [data-btn=weapon] { display: none; }
+#touch.in-car [data-btn=fire] { right: calc(166px + var(--sar)); bottom: calc(30px + var(--sab)); width: 54px; height: 54px; font-size: 20px; }
 
 @media (max-width: 720px) {
   .hud-bl, #minimap { width: 160px; } #minimap { height: 110px; } .money { font-size: 30px; } .stars { font-size: 18px; } .speedo b { font-size: 28px; }
@@ -162,4 +185,47 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 .bets .btn.on { border-color: var(--gold); color: var(--gold); }
 .casino-msg { min-height: 24px; font-family: var(--display); font-size: 24px; letter-spacing: 1px; }
 .casino-msg.win { color: var(--green); } .casino-msg.lose { color: var(--red); }
-.tbtns2 { position: absolute; right: 18px; bottom: 236px; pointer-events: auto; }
+
+/* ---------- combat feedback: hit marker, damage direction, objective pins ---------- */
+.hitmarker { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.hitmarker i { position: absolute; left: -1px; top: -16px; width: 2px; height: 9px; transform-origin: 1px 16px; background: #fff; border-radius: 1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55); opacity: 0; }
+.hitmarker i:nth-child(1) { transform: rotate(45deg); } .hitmarker i:nth-child(2) { transform: rotate(135deg); } .hitmarker i:nth-child(3) { transform: rotate(225deg); } .hitmarker i:nth-child(4) { transform: rotate(315deg); }
+.hitmarker.hit i { animation: hm 0.12s ease-out forwards; }
+.hitmarker.head { transform: scale(1.25); } .hitmarker.head i { background: #ffd34e; animation: hm 0.18s ease-out forwards; }
+.hitmarker.kill { transform: scale(1.5); } .hitmarker.kill i { background: #ff3b3b; animation: hm 0.26s ease-out forwards; }
+@keyframes hm { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+.dmg-dir { position: absolute; inset: 0; pointer-events: none; }
+.dmg-dir i { position: absolute; left: 50%; top: 50%; width: 120px; height: 26px; margin-left: -60px; margin-top: calc(-34vh - 13px); transform-origin: 50% calc(34vh + 13px); opacity: 0; will-change: transform, opacity; border-radius: 50% 50% 0 0 / 100% 100% 0 0; background: radial-gradient(ellipse 60px 26px at 50% 0, rgba(255, 50, 50, 0.95), rgba(255, 50, 50, 0.45) 55%, rgba(255, 50, 50, 0) 100%); }
+.obj-pin { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; will-change: transform; color: #fff; --c: var(--gold); }
+.obj-pin[hidden] { display: none; }
+.obj-pin::before { content: ''; position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; box-sizing: border-box; background: var(--c); border: 2px solid #0b0f1e; transform: rotate(45deg); box-shadow: 0 0 10px var(--c); }
+.obj-pin b { position: absolute; left: 0; top: 20px; transform: translateX(-50%); white-space: nowrap; font-family: var(--display); font-size: 16px; font-weight: 400; letter-spacing: 1px; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.8); direction: ltr; }
+.obj-pin .arw { position: absolute; left: -6px; top: -7px; width: 0; height: 0; border-left: 12px solid var(--c); border-top: 7px solid transparent; border-bottom: 7px solid transparent; filter: drop-shadow(0 0 2px #0b0f1e) drop-shadow(0 1px 2px #000); }
+
+/* ---------- rotate-to-landscape overlay (touch devices in portrait only) ---------- */
+.rotate { display: none; }
+.rot-phone { display: block; width: 34px; height: 58px; border: 3px solid var(--text); border-radius: 8px; position: relative; animation: rotPhone 2.4s ease-in-out infinite; }
+.rot-phone::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 8px; height: 3px; margin-left: -4px; border-radius: 2px; background: var(--text); }
+@keyframes rotPhone { 0%, 20% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+@media (pointer: coarse) and (orientation: portrait) {
+  .rotate { position: absolute; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 24px; background: rgba(5, 8, 20, 0.97); pointer-events: auto; text-align: center; }
+  .rotate p { margin: 0; font-weight: 700; font-size: 20px; line-height: 1.4; }
+}
+
+/* ---------- short landscape screens (phones) ---------- */
+@media (max-height: 500px) {
+  #minimap { width: 150px; height: 100px; } .hud-bl { width: 150px; } .money { font-size: 28px; } .stars { font-size: 16px; } .weapon svg { width: 28px; height: 28px; } .weapon b { font-size: 20px; }
+  .objective { bottom: 12px; font-size: 13px; padding: 5px 12px; } .subtitle { bottom: 44px; font-size: 14px; line-height: 1.3; } .prompt { bottom: 82px; font-size: 14px; padding: 5px 14px; }
+  .notify { width: min(240px, 34vw); } .toast { font-size: 13px; padding: 6px 10px; }
+  .mission-timer { font-size: 34px; top: 8px; } .radio { top: 54px; }
+  .speedo b { font-size: 30px; }
+}
+/* on touch devices the bottom text lines live between the minimap and the right-hand button cluster */
+@media (pointer: coarse) {
+  .prompt, .objective, .subtitle { left: calc(var(--sal) + 176px); right: calc(var(--sar) + 232px); transform: none; width: max-content; max-width: calc(100vw - 408px - var(--sal) - var(--sar)); margin-inline: auto; white-space: normal; }
+}
+
+/* in a vehicle the chase camera frames the car bottom-centre, so the context prompt moves up over the road ahead (below the timer and radio chip) */
+.prompt.in-car { bottom: auto; top: 118px; }
+@media (max-width: 720px) { .prompt.in-car { bottom: auto; top: 118px; } }
+@media (max-height: 500px) { .prompt.in-car { bottom: auto; top: 92px; } }

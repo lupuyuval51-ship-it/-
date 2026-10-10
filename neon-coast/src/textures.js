@@ -24,10 +24,12 @@ export const FACADES = [
   { id: 'white',   wall: '#f4f1ea', frame: '#d8d2c6', win: '#2b3a4a', lit: '#ffe4a6', winW: 0.5, winH: 0.65, glow: 0.4, bands: '#dcd5c8' },
 ];
 
+// emissiveMap is a MASK of every window (white, fading 1.0 -> 0.72 from the top of a pane to its bottom, a 5 px darker inner rim,
+// black mullions). It carries no lit pattern at all: which panes glow, and in which colour, is decided per building in the facade
+// shader that world.js patches in (see patchWindowShader), so no two buildings share a lit-window stamp.
 export function facadeTextures(style, seed = 1) {
   return memo('facade' + style.id, () => {
     const W = 256, H = 448, cols = 4, rows = 4, cw = W / cols, ch = H / rows; const rng = mulberry(seed * 7919 + style.id.length);
-    const lit = []; for (let i = 0; i < cols * rows; i++) lit.push(rng() < 0.45);
     const draw = (emissive) => (ctx) => {
       ctx.fillStyle = emissive ? '#000' : style.wall; ctx.fillRect(0, 0, W, H);
       if (!emissive) { // subtle grime
@@ -35,15 +37,21 @@ export function facadeTextures(style, seed = 1) {
         if (style.bands) { ctx.fillStyle = style.bands; for (let r = 0; r < rows; r++) ctx.fillRect(0, r * ch + ch - 6, W, 6); }
       }
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-        const ww = cw * style.winW, wh = ch * style.winH, x = c * cw + (cw - ww) / 2, y = r * ch + (ch - wh) / 2 + ch * 0.05; const isLit = lit[r * cols + c];
-        if (emissive) { if (isLit) { ctx.fillStyle = style.lit; ctx.fillRect(x, y, ww, wh); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x, y + wh * 0.5, ww, wh * 0.1); } continue; }
+        const ww = cw * style.winW, wh = ch * style.winH, x = c * cw + (cw - ww) / 2, y = r * ch + (ch - wh) / 2 + ch * 0.05;
+        if (emissive) {
+          const g = ctx.createLinearGradient(0, y, 0, y + wh); g.addColorStop(0, 'rgb(255,255,255)'); g.addColorStop(1, 'rgb(184,184,184)'); // 1.0 -> 0.72
+          ctx.fillStyle = g; ctx.fillRect(x, y, ww, wh);
+          ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 5; ctx.strokeRect(x + 2.5, y + 2.5, ww - 5, wh - 5); // darker inner rim
+          ctx.fillStyle = '#000'; ctx.fillRect(x + ww / 2 - 1, y, 2, wh); ctx.fillRect(x, y + wh / 2 - 1, ww, 2); // mullions, like the diffuse map
+          continue;
+        }
         ctx.fillStyle = style.frame; ctx.fillRect(x - 3, y - 3, ww + 6, wh + 6);
         ctx.fillStyle = style.win; ctx.fillRect(x, y, ww, wh);
         const g = ctx.createLinearGradient(x, y, x + ww, y + wh); g.addColorStop(0, 'rgba(255,255,255,0.28)'); g.addColorStop(0.5, 'rgba(255,255,255,0.04)'); g.addColorStop(1, 'rgba(255,255,255,0.18)'); ctx.fillStyle = g; ctx.fillRect(x, y, ww, wh);
         ctx.fillStyle = style.frame; ctx.fillRect(x + ww / 2 - 1, y, 2, wh); ctx.fillRect(x, y + wh / 2 - 1, ww, 2);
       }
     };
-    return { map: canvasTex(W, H, draw(false)), emissiveMap: canvasTex(W, H, draw(true)), glow: style.glow };
+    return { map: canvasTex(W, H, draw(false)), emissiveMap: canvasTex(W, H, draw(true), { linear: true }), glow: style.glow }; // mask values are data: no sRGB decoding
   });
 }
 
@@ -75,26 +83,120 @@ export const plankTex = () => memo('plank', () => canvasTex(128, 128, (ctx, w, h
   for (let i = 0; i < 600; i++) { ctx.fillStyle = `rgba(0,0,0,${rng() * 0.15})`; ctx.fillRect(rng() * w, rng() * h, rng() * 12, 1); }
 }));
 
-// Neon signs: text rendered in a glowing colour on black; used as emissive+map on a plane
-export function neonSign(text, color, font = '900 64px Heebo, Arial') {
-  return memo('neon:' + text + color, () => canvasTex(512, 128, (ctx, w, h) => {
-    ctx.fillStyle = '#07070c'; ctx.fillRect(0, 0, w, h);
-    ctx.font = font; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.shadowColor = color; ctx.shadowBlur = 28; ctx.fillStyle = color; ctx.fillText(text, w / 2, h / 2 + 4);
-    ctx.shadowBlur = 8; ctx.fillStyle = '#ffffff'; ctx.globalAlpha = 0.85; ctx.fillText(text, w / 2, h / 2 + 4); ctx.globalAlpha = 1;
-    ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.globalAlpha = 0.6; ctx.strokeRect(10, 10, w - 20, h - 20);
-  }, { clamp: true }));
+// ---------- neon signage ----------
+// All signs of the city live in ONE atlas (neonAtlas): 2048 x 2048 px of 512 x 128 cells. Only NEON_CELL.pad px inside every cell are
+// drawn (and the draw is clipped to that area), so bilinear and mip filtering never read a neighbouring sign. The sign is transparent
+// outside its strokes: the glow comes from the sign level in world.js (setNight) and from the bloom pass.
+export const NEON_CELL = { w: 512, h: 128, pad: 4 };
+export const NEON_ASPECT = (NEON_CELL.w - 2 * NEON_CELL.pad) / (NEON_CELL.h - 2 * NEON_CELL.pad); // width / height of the drawn area (4.2)
+const hasHebrew = s => /[֐-׿]/.test(s);
+// Heebo when it is already loaded, Arial otherwise. The canvas is drawn once, so a font that arrives later is not picked up.
+function signFamily() { try { return document.fonts?.check?.('700 64px Heebo') ? 'Heebo, Arial' : 'Arial'; } catch (e) { return 'Arial'; } }
+const rgbOf = hex => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+// '#rrggbb' -> 'rgb(...)' mixed towards white by wmix, then scaled by k
+const shade = (hex, k, wmix = 0) => { const c = rgbOf(hex).map(v => Math.round(Math.min(255, (v + (255 - v) * wmix) * k))); return `rgb(${c[0]},${c[1]},${c[2]})`; };
+function roundRectPath(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+// sets ctx.font so that `text` fits into maxW (the size only shrinks) and returns the size used
+function fitFont(ctx, text, family, weight, size, maxW) {
+  ctx.font = `${weight} ${size}px ${family}`; const w = ctx.measureText(text).width;
+  if (w > maxW) { size = Math.max(16, Math.floor(size * maxW / w)); ctx.font = `${weight} ${size}px ${family}`; }
+  return size;
+}
+// Glass tube lettering: a 6 px colour stroke around the glyphs with a shadowBlur halo and a 2 px white core on top. No fill.
+function tubeText(ctx, str, cx, cy, fs, color) {
+  const k = fs / 64;
+  ctx.shadowColor = color; ctx.shadowBlur = 14 * k + 4; ctx.lineWidth = Math.max(3.5, 6 * k); ctx.strokeStyle = color; ctx.strokeText(str, cx, cy);
+  ctx.shadowBlur = 0; ctx.lineWidth = Math.max(1.5, 2 * k); ctx.strokeStyle = '#ffffff'; ctx.strokeText(str, cx, cy);
+}
+// Number of letters (spaces dropped) a blade sign stacks, and how it uses the cell: the cell is drawn rotated by 90 degrees, so its 504 px
+// length becomes the sign height. `used` is the part of it the stack needs (343..504 px = 4.0..5.9 m for a 1.4 m wide blade).
+export const bladeLetters = text => Array.from(text).filter(ch => ch.trim() !== '');
+export function bladeLayout(n) {
+  const len = NEON_CELL.w - 2 * NEON_CELL.pad, pitch = Math.min(94, Math.floor((len - 24) / Math.max(1, n)));
+  return { pitch, used: Math.min(len, Math.max(343, n * pitch + 24)), len };
+}
+// Draws one sign into the cell whose top-left corner is (x0, y0). style: 'tube' (glass tube letters), 'box' (lightbox with a gradient back)
+// or 'blade' (tube letters stacked top to bottom for a vertical sign).
+function drawNeonCell(ctx, x0, y0, text, color, style) {
+  const { w, h, pad } = NEON_CELL, ix = x0 + pad, iy = y0 + pad, iw = w - 2 * pad, ih = h - 2 * pad, fam = signFamily();
+  ctx.save(); ctx.beginPath(); ctx.rect(ix, iy, iw, ih); ctx.clip();
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.miterLimit = 2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (style === 'blade') {
+    // virtual canvas: ih wide, iw tall, rotated into the cell (x' runs up the cell, y' to the right); the quad in world.js undoes it with its uvs
+    ctx.transform(0, -1, 1, 0, ix, iy + ih); ctx.direction = 'ltr';
+    const letters = bladeLetters(text), { pitch, used } = bladeLayout(letters.length), fs = Math.min(78, Math.floor(pitch * 0.84)), top = (used - letters.length * pitch) / 2;
+    ctx.font = `700 ${fs}px ${fam}`;
+    letters.forEach((ch, i) => tubeText(ctx, ch, ih / 2, top + (i + 0.5) * pitch + fs * 0.04, fs, color));
+  } else if (style === 'box') {
+    ctx.direction = hasHebrew(text) ? 'rtl' : 'ltr';
+    const g = ctx.createLinearGradient(0, iy, 0, iy + ih); g.addColorStop(0, shade(color, 0.62, 0.18)); g.addColorStop(1, shade(color, 0.92, 0.08));
+    roundRectPath(ctx, ix + 3, iy + 3, iw - 6, ih - 6, 14); ctx.fillStyle = g; ctx.fill();
+    roundRectPath(ctx, ix + 9, iy + 9, iw - 18, ih - 18, 9); ctx.lineWidth = 3; ctx.strokeStyle = shade(color, 1, 0.65); ctx.stroke();
+    fitFont(ctx, text, fam, 800, 60, iw - 64);
+    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 5; ctx.shadowOffsetY = 2; ctx.fillStyle = '#fff8ec'; ctx.fillText(text, ix + iw / 2, iy + ih / 2 + 3);
+  } else {
+    ctx.direction = hasHebrew(text) ? 'rtl' : 'ltr';
+    const fs = fitFont(ctx, text, fam, 700, 64, iw - 40);
+    tubeText(ctx, text, ix + iw / 2, iy + ih / 2 + 3, fs, color);
+  }
+  ctx.restore();
+}
+export const neonKey = (text, color, style) => style + '|' + color + '|' + text;
+// One sign on its own transparent 512 x 128 canvas (the atlas below is what the city uses).
+export function neonSign(text, color, style = 'tube') {
+  return memo('neon:' + neonKey(text, color, style), () => canvasTex(NEON_CELL.w, NEON_CELL.h, ctx => drawNeonCell(ctx, 0, 0, text, color, style), { clamp: true }));
+}
+// entries: [{ text, color, style }]. Every unique (text, color, style) gets one cell. Returns { texture, rect(key), count } where key is
+// neonKey(text, color, style) or an entry object, and rect is { u0, u1, vB, vT, texel } (the drawn area of the cell in uv; vB is the
+// bottom edge, vT the top edge, texel = 1 / atlas width). More than 64 signs cannot happen with the city's texts; if it ever did,
+// the extra ones would show the first cell instead of failing.
+export function neonAtlas(entries) {
+  const W = 2048, H = 2048, { w, h, pad } = NEON_CELL, cols = Math.floor(W / w), cap = cols * Math.floor(H / h);
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'); const rects = new Map(); let n = 0;
+  for (const e of entries) {
+    const key = neonKey(e.text, e.color, e.style); if (rects.has(key)) continue;
+    if (n >= cap) { rects.set(key, rects.values().next().value); continue; }
+    const x = (n % cols) * w, y = Math.floor(n / cols) * h; drawNeonCell(ctx, x, y, e.text, e.color, e.style);
+    rects.set(key, { u0: (x + pad) / W, u1: (x + w - pad) / W, vT: 1 - (y + pad) / H, vB: 1 - (y + h - pad) / H, texel: 1 / W }); n++;
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.needsUpdate = true;
+  return { texture: t, count: n, rect: k => rects.get(typeof k === 'string' ? k : neonKey(k.text, k.color, k.style)) };
+}
+
+// Billboard artwork: gradient, soft discs, a title and a subtitle, both shrunk to fit.
+function drawBillboardCell(ctx, x, y, w, h, title, sub, c1, c2) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.translate(x, y); const fam = signFamily();
+  const g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(255,255,255,0.12)'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(w * 0.8 - i * 40, h * 0.3 + i * 20, 90 - i * 12, 0, Math.PI * 2); ctx.fill(); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12;
+  ctx.direction = hasHebrew(title) ? 'rtl' : 'ltr'; fitFont(ctx, title, fam, 900, 72, w - 48); ctx.fillText(title, w / 2, h * 0.4);
+  ctx.direction = hasHebrew(sub) ? 'rtl' : 'ltr'; fitFont(ctx, sub, fam, 500, 34, w - 48); ctx.fillText(sub, w / 2, h * 0.72);
+  ctx.restore();
 }
 export function billboard(title, sub, c1, c2) {
-  return memo('bb:' + title + sub, () => canvasTex(512, 256, (ctx, w, h) => {
-    const g = ctx.createLinearGradient(0, 0, w, h); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.12)'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(w * 0.8 - i * 40, h * 0.3 + i * 20, 90 - i * 12, 0, Math.PI * 2); ctx.fill(); }
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.font = '900 72px Heebo, Arial'; ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 12; ctx.fillText(title, w / 2, h * 0.4);
-    ctx.font = '500 34px Heebo, Arial'; ctx.fillText(sub, w / 2, h * 0.72);
-  }, { clamp: true }));
+  return memo('bb:' + title + sub, () => canvasTex(512, 256, ctx => drawBillboardCell(ctx, 0, 0, 512, 256, title, sub, c1, c2), { clamp: true }));
+}
+// list: [[title, subtitle, colour1, colour2], ...] (at most 6). One 1024 x 768 atlas of 512 x 256 cells; rect(i) = { u0, u1, vB, vT } of cell i,
+// inset by 2 px so filtering stays inside the cell.
+export function billboardAtlas(list) {
+  return memo('bbatlas', () => {
+    const W = 1024, H = 768, cw = 512, ch = 256, pad = 2, c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'); const rects = [];
+    list.slice(0, 6).forEach((b, i) => {
+      const x = (i % 2) * cw, y = Math.floor(i / 2) * ch; drawBillboardCell(ctx, x, y, cw, ch, b[0], b[1], b[2], b[3]);
+      rects.push({ u0: (x + pad) / W, u1: (x + cw - pad) / W, vT: 1 - (y + pad) / H, vB: 1 - (y + ch - pad) / H });
+    });
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.needsUpdate = true;
+    return { texture: t, rect: i => rects[i] };
+  });
 }
 export const particleTex = () => memo('particle', () => canvasTex(64, 64, (ctx, w, h) => {
   const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(255,255,255,0.6)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+}, { clamp: true }));
+// Soft round light pool for the additive night lighting of world.js (street lamps, shop and sign spill): white, alpha 1.0 -> 0.
+export const lightPoolTex = () => memo('lightpool', () => canvasTex(128, 128, (ctx, w, h) => {
+  const g = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.55)'); g.addColorStop(0.7, 'rgba(255,255,255,0.18)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.clearRect(0, 0, w, h); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 }, { clamp: true }));
 export const crossTex = () => memo('cross', () => canvasTex(128, 128, (ctx, w, h) => {
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#e0312f'; ctx.fillRect(w * 0.4, h * 0.15, w * 0.2, h * 0.7); ctx.fillRect(w * 0.15, h * 0.4, w * 0.7, h * 0.2);
@@ -125,7 +227,11 @@ export const cloudTex = () => memo('cloud', () => canvasTex(512, 512, (ctx, w, h
   const rng = mulberry(99); const img = ctx.createImageData(w, h); const d = img.data; const noise = new Float32Array(w * h);
   for (let oct = 0; oct < 5; oct++) { const s = 8 << oct, amp = 1 / (oct + 1); const grid = []; const n = s + 1; for (let i = 0; i < n * n; i++) grid.push(rng());
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const fx = x / w * s, fy = y / h * s, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0; const sm = t => t * t * (3 - 2 * t); const g = (i, j) => grid[(j % s) * n + (i % s)]; const v = (g(x0, y0) * (1 - sm(tx)) + g(x0 + 1, y0) * sm(tx)) * (1 - sm(ty)) + (g(x0, y0 + 1) * (1 - sm(tx)) + g(x0 + 1, y0 + 1) * sm(tx)) * sm(ty); noise[y * w + x] += v * amp; } }
-  for (let i = 0; i < w * h; i++) { const v = noise[i] / 2.28; const a = Math.max(0, Math.min(1, (v - 0.52) * 3.2)); d[i * 4] = 255; d[i * 4 + 1] = 255; d[i * 4 + 2] = 255; d[i * 4 + 3] = a * 255; }
+  // Alpha is the raw FBM, contrast-stretched (about +-1.7 sigma around a mean of 0.58 spans 0..1); the sky dome (sky.js) thresholds it with its own `cover`.
+  // Every octave wraps (see g()), so the texture tiles seamlessly.
+  let mean = 0; for (let i = 0; i < w * h; i++) mean += noise[i]; mean /= w * h;
+  let varSum = 0; for (let i = 0; i < w * h; i++) varSum += (noise[i] - mean) ** 2; const sigma = Math.sqrt(varSum / (w * h)) || 1;
+  for (let i = 0; i < w * h; i++) { const a = Math.max(0, Math.min(1, 0.58 + (noise[i] - mean) / (3.4 * sigma))); d[i * 4] = 255; d[i * 4 + 1] = 255; d[i * 4 + 2] = 255; d[i * 4 + 3] = Math.round(a * 255); }
   ctx.putImageData(img, 0, 0);
 }));
 
