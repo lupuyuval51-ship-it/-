@@ -52,3 +52,23 @@ export function extensionJson(base: GameSpec, req: GenerationRequest): object {
 export const isStage = (req: AiRequest, name: "blueprint" | "challenges" | "extension" | "spec"): boolean =>
   ({ blueprint: "BLUEPRINT (stage 1", challenges: "CHALLENGES PAYLOAD", extension: "EXTENSION (additions", spec: "GAME SPECIFICATION" })[name] !== undefined &&
   req.system.includes(({ blueprint: "BLUEPRINT (stage 1", challenges: "CHALLENGES PAYLOAD", extension: "EXTENSION (additions", spec: "GAME SPECIFICATION" })[name]);
+
+// ───────────── game creation helper for play/library tests ─────────────
+import { db } from "@/server/db";
+import { setBackendForTests } from "@/server/ai/registry";
+import { createGeneration } from "@/server/generation/service";
+import { runGenerationJob } from "@/server/generation/runner";
+import { randomUUID } from "node:crypto";
+
+const DEMO_BACKEND = { type: "templates" as const, info: { id: "demo", kind: "demo" as const, label: "Demo templates (not AI)", model: "predefined-templates" } };
+
+/** Create a real, persisted demo game for a user through the production pipeline. */
+export async function makeGame(userId: string, over: Partial<GenerationRequest> = {}) {
+  const request: GenerationRequest = { mode: "FULL", subject: "Python loops", learningGoal: "Understand loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over };
+  setBackendForTests(DEMO_BACKEND);
+  const res = await createGeneration(userId, { idempotencyKey: `mk-${randomUUID()}`, request }, { schedule: false });
+  await runGenerationJob(res.jobId, { backend: DEMO_BACKEND });
+  const job = await db.generationJob.findUniqueOrThrow({ where: { id: res.jobId } });
+  if (!job.gameId) throw new Error(`game creation failed: ${job.errorCode} ${job.errorMessage}`);
+  return db.game.findUniqueOrThrow({ where: { id: job.gameId } });
+}

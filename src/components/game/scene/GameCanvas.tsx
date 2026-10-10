@@ -1,0 +1,147 @@
+"use client";
+
+import { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import type { RenderProfile } from "@/config/graphics";
+import { clipCameraDistance } from "@/lib/game/engine/camera";
+import type { GameRuntime } from "@/lib/game/engine/runtime";
+import type { ClientState } from "@/lib/game/state/progress";
+import type { InputState } from "../input";
+import { Entities } from "./Entities";
+import { createMaterialSet } from "./materials";
+import { ParticleEmitter, Particles } from "./Particles";
+import { PlayerAvatar } from "./PlayerAvatar";
+import { Lights, Sky } from "./Sky";
+import { WorldView } from "./WorldView";
+
+export { ParticleEmitter };
+
+export interface GameCanvasProps {
+  runtime: GameRuntime;
+  profile: RenderProfile;
+  input: InputState;
+  emitter: ParticleEmitter;
+  client: ClientState;
+  nearbyKey: string | null;
+  onInteract: () => void;
+  /** Publish renderer statistics on the canvas element (automated browser tests only). */
+  exposeStats?: boolean;
+}
+
+/** One frame of game logic, then adaptive resolution. Registered first so it runs before every renderer callback. */
+function Loop({ runtime, input, onInteract, profile, exposeStats }: Pick<GameCanvasProps, "runtime" | "input" | "onInteract" | "profile" | "exposeStats">) {
+  const setDpr = useThree((s) => s.setDpr);
+  const gl = useThree((s) => s.gl);
+  const stats = useRef({ t: 0, n: 0, dpr: Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio), pub: 0, frames: 0 });
+  useFrame((_, dt) => {
+    const step = Math.min(dt, 0.1);
+    const { sim, interact } = input.poll(step);
+    runtime.update(step, sim, input.yaw);
+    if (interact) onInteract();
+    if (exposeStats) {
+      stats.current.pub += dt;
+      stats.current.frames += 1;
+      if (stats.current.pub > 0.4) {
+        const ds = gl.domElement.dataset;
+        ds.calls = String(gl.info.render.calls);
+        ds.triangles = String(gl.info.render.triangles);
+        ds.frames = String(stats.current.frames);
+        ds.shadowMap = gl.shadowMap.enabled ? String(gl.shadowMap.type) : "off";
+        ds.toneMapping = String(gl.toneMapping);
+        ds.pixelRatio = gl.getPixelRatio().toFixed(2);
+        ds.textures = String(gl.info.memory.textures);
+        ds.lights = String(runtime.world.stations.length);
+        stats.current.pub = 0;
+      }
+    }
+    if (!profile.adaptiveResolution) return;
+    // Guard rail: if frames are consistently slow, render fewer pixels. Never raises quality above the granted tier.
+    const s = stats.current;
+    s.t += dt;
+    s.n += 1;
+    if (s.t >= 2.5) {
+      const avg = s.t / s.n;
+      if (avg > 0.036 && s.dpr > 0.7) {
+        s.dpr = Math.max(0.7, s.dpr * 0.8);
+        setDpr(s.dpr);
+        gl.domElement.dataset.dpr = s.dpr.toFixed(2);
+      }
+      s.t = 0;
+      s.n = 0;
+    }
+  });
+  return null;
+}
+
+function CameraRig({ runtime, input }: Pick<GameCanvasProps, "runtime" | "input">) {
+  const camera = useThree((s) => s.camera);
+  const init = useRef(false);
+  const dir = useMemo(() => new THREE.Vector3(), []);
+  const desired = useMemo(() => new THREE.Vector3(), []);
+  const look = useMemo(() => new THREE.Vector3(), []);
+  useFrame((_, dt) => {
+    const p = runtime.sim.player;
+    const yaw = input.yaw;
+    const pitch = input.pitch;
+    const dist = 7.2;
+    dir.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+    const from = { x: p.x, y: p.y + 1.5, z: p.z };
+    const d = clipCameraDistance(runtime.sim.boxes(), from, dir, dist, (id) => runtime.gateOpen(id));
+    desired.set(from.x + dir.x * d, from.y + dir.y * d, from.z + dir.z * d);
+    if (!init.current) {
+      camera.position.copy(desired);
+      init.current = true;
+    } else {
+      camera.position.lerp(desired, 1 - Math.exp(-dt * 12));
+    }
+    look.set(p.x, p.y + 1.2, p.z);
+    camera.lookAt(look);
+  });
+  return null;
+}
+
+function Scene(props: GameCanvasProps) {
+  const { runtime, profile, emitter } = props;
+  const theme = runtime.world.theme;
+  const materials = useMemo(() => createMaterialSet(profile, theme), [profile, theme]);
+  useEffect(() => () => materials.dispose(), [materials]);
+  const gl = useThree((s) => s.gl);
+  useEffect(() => {
+    gl.toneMappingExposure = profile.exposure;
+    gl.domElement.dataset.tier = profile.tier;
+    gl.domElement.dataset.ready = "1";
+  }, [gl, profile]);
+  return (
+    <>
+      <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={profile} exposeStats={props.exposeStats} />
+      <CameraRig runtime={runtime} input={props.input} />
+      <Sky profile={profile} theme={theme} />
+      <Lights runtime={runtime} profile={profile} theme={theme} />
+      <WorldView runtime={runtime} profile={profile} materials={materials} />
+      <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} />
+      <PlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
+      <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
+    </>
+  );
+}
+
+export default function GameCanvas(props: GameCanvasProps) {
+  const { profile } = props;
+  const shadows = profile.shadows.type === "soft" ? "soft" : profile.shadows.type === "basic" ? "basic" : false;
+  return (
+    <Canvas
+      key={`${props.runtime.areaId}-${profile.tier}`}
+      dpr={[1, profile.pixelRatioMax]}
+      shadows={shadows}
+      flat={profile.toneMapping === "none"}
+      gl={{ antialias: profile.antialias, powerPreference: "high-performance", alpha: false, preserveDrawingBuffer: false }}
+      camera={{ fov: 62, near: 0.1, far: 520, position: [0, 6, 10] }}
+      style={{ touchAction: "none" }}
+      aria-label="3D game world"
+      role="img"
+    >
+      <Scene {...props} />
+    </Canvas>
+  );
+}

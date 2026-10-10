@@ -1,0 +1,264 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useT } from "@/components/I18nProvider";
+import { Badge, Button, ProgressBar, Stars, cx } from "@/components/ui";
+import type { RenderProfile } from "@/config/graphics";
+import type { Interactable } from "@/lib/game/engine/runtime";
+import type { PublicSpec } from "@/lib/game/spec/public";
+import type { Npc } from "@/lib/game/spec/schema";
+import { missionUnlocked, objectiveProgress, type ClientState, type LearningSummary } from "@/lib/game/state/progress";
+import type { InputState } from "../input";
+
+// ───────────────────────── toasts ─────────────────────────
+
+export interface Toast {
+  id: number;
+  text: string;
+  tone: "good" | "info" | "warn";
+}
+
+export function Toasts({ toasts }: { toasts: Toast[] }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center gap-2 px-4" aria-live="polite">
+      {toasts.map((x) => (
+        <div key={x.id} className={cx("lu-pop rounded-full border px-4 py-2 text-sm font-semibold shadow-lg backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
+          {x.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ───────────────────────── top bar + missions ─────────────────────────
+
+export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean }) {
+  const t = useT();
+  const [open, setOpen] = useState(true);
+  const active = spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m) && m.areaId === client.areaId);
+  const shown = active.length ? active : spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m)).slice(0, 1);
+  return (
+    <>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
+        <div className="pointer-events-auto flex items-center gap-2">
+          <Link href="/games" aria-label={t("hud.exit")} className="grid size-11 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
+            <span aria-hidden>←</span>
+          </Link>
+          <div className="rounded-xl border border-line bg-ink-900/80 px-3 py-2 backdrop-blur">
+            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.area")}</p>
+            <p dir="auto" className="max-w-[40vw] truncate text-sm font-semibold" data-testid="area-name">{areaName}</p>
+          </div>
+          {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
+        </div>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <div className="rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-end backdrop-blur" aria-live="off">
+            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.score")}</p>
+            <p className="text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button">❚❚</Button>
+        </div>
+      </div>
+      <aside className="pointer-events-auto absolute start-3 top-20 z-10 w-[min(20rem,calc(100vw-1.5rem))]" aria-label={t("hud.missions")}>
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mb-1 flex w-full items-center justify-between rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-sm font-semibold backdrop-blur">
+          <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
+          <span aria-hidden>{open ? "▾" : "▸"}</span>
+        </button>
+        {open && (
+          <div className="space-y-2 rounded-xl border border-line bg-ink-900/80 p-3 backdrop-blur" data-testid="missions">
+            <ProgressBar value={client.missionsDone.length} max={spec.missions.length} label={t("hud.missions")} />
+            {shown.map((m) => (
+              <div key={m.id} className="space-y-1">
+                <p dir="auto" className="text-sm font-semibold">{m.title}</p>
+                <ul className="space-y-0.5 text-xs">
+                  {m.objectives.map((o, i) => {
+                    const p = objectiveProgress(spec, client, m, i);
+                    return (
+                      <li key={i} dir="auto" className={cx("flex items-start gap-1.5", p.done ? "text-lime" : "text-muted")}>
+                        <span aria-hidden>{p.done ? "✓" : "○"}</span>
+                        <span>{o.text}{p.target > 1 && ` (${p.current}/${p.target})`}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </aside>
+    </>
+  );
+}
+
+// ───────────────────────── interact prompt ─────────────────────────
+
+export function InteractPrompt({ target, touch, onActivate }: { target: Interactable | null; touch: boolean; onActivate: () => void }) {
+  const t = useT();
+  if (!target) return null;
+  let text: string;
+  let enabled = true;
+  if (target.kind === "npc") text = t("prompt.npc", { label: target.label });
+  else if (target.kind === "portal") {
+    text = target.open ? t("prompt.portal", { label: target.label }) : t("prompt.portal.locked", { label: target.label });
+    enabled = target.open;
+  } else if (target.status === "done") text = t("prompt.station.done", { label: target.label });
+  else if (target.status === "locked") {
+    text = t("prompt.station.locked", { label: target.label });
+    enabled = false;
+  } else text = t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label });
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 flex justify-center px-4 sm:bottom-10">
+      <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} className={cx("pointer-events-auto lu-pop flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-lg backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
+        {!touch && <kbd className="grid size-7 place-items-center rounded-md border border-line bg-ink-700 font-mono text-xs">{t("prompt.key")}</kbd>}
+        <span dir="auto">{text}</span>
+      </button>
+    </div>
+  );
+}
+
+// ───────────────────────── touch controls ─────────────────────────
+
+export function TouchControls({ input, onInteract, hasJump }: { input: InputState; onInteract: () => void; hasJump: boolean }) {
+  const t = useT();
+  const base = useRef<HTMLDivElement>(null);
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const pid = useRef<number | null>(null);
+  const move = (e: React.PointerEvent) => {
+    const r = base.current!.getBoundingClientRect();
+    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    const max = r.width / 2 - 14;
+    const len = Math.hypot(dx, dy) || 1;
+    const k = Math.min(1, max / len);
+    setKnob({ x: dx * k, y: dy * k });
+    input.stick = { x: (dx * k) / max, y: (-dy * k) / max };
+  };
+  const end = () => {
+    pid.current = null;
+    setKnob({ x: 0, y: 0 });
+    input.stick = { x: 0, y: 0 };
+  };
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-4" style={{ direction: "ltr" }} data-testid="touch-controls">
+      <div ref={base} role="application" aria-label="joystick" className="pointer-events-auto relative size-32 touch-none rounded-full border border-line bg-ink-900/60 backdrop-blur"
+        onPointerDown={(e) => { pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
+        onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={end} onPointerCancel={end}>
+        <div className="absolute left-1/2 top-1/2 size-14 rounded-full border border-neon/60 bg-neon/20" style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
+      </div>
+      <div className="pointer-events-auto flex flex-col items-end gap-3">
+        <button type="button" className="grid size-14 touch-none place-items-center rounded-full border border-line bg-ink-900/70 text-xs font-semibold backdrop-blur active:bg-neon/30"
+          onPointerDown={() => { input.sprintHeld = true; }} onPointerUp={() => { input.sprintHeld = false; }} onPointerCancel={() => { input.sprintHeld = false; }}>{t("touch.sprint")}</button>
+        <div className="flex gap-3">
+          {hasJump && <button type="button" className="grid size-16 place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30" onClick={() => input.queueJump()}>{t("touch.jump")}</button>}
+          <button type="button" className="grid size-16 place-items-center rounded-full border border-neon/60 bg-neon/20 font-semibold backdrop-blur active:bg-neon/40" onClick={onInteract} data-testid="touch-interact">{t("touch.interact")}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────── dialogue / lore ─────────────────────────
+
+export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => void; onLine: () => void }) {
+  const t = useT();
+  const [i, setI] = useState(0);
+  const last = i >= npc.lines.length - 1;
+  const next = () => (last ? onClose() : (setI(i + 1), onLine()));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Escape") onClose();
+      else if (["Enter", "Space", "KeyE"].includes(e.code)) { e.preventDefault(); next(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+  return (
+    <div className="absolute inset-x-0 bottom-0 z-30 flex justify-center p-3 sm:p-6">
+      <div role="dialog" aria-label={npc.name} data-testid="dialogue" className="lu-pop w-full max-w-2xl space-y-3 rounded-2xl border border-line bg-ink-800/95 p-4 shadow-2xl backdrop-blur">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-full text-lg" style={{ background: npc.look.color + "33", border: `2px solid ${npc.look.color}` }}>{npc.look.shape === "robot" ? "🤖" : npc.look.shape === "human" ? "🧑" : npc.look.shape === "creature" ? "🐾" : "🔮"}</span>
+          <div>
+            <p className="font-bold" dir="auto">{npc.name}</p>
+            <p className="text-xs text-muted" dir="auto">{npc.role}</p>
+          </div>
+        </div>
+        <p dir="auto" className="min-h-12 text-base leading-relaxed">{npc.lines[i]}</p>
+        {last && npc.hint && <p dir="auto" className="rounded-lg border border-amber/40 bg-amber/10 p-2 text-sm"><b className="text-amber">{t("dialogue.hint", { name: npc.name })}: </b>{npc.hint}</p>}
+        <div className="flex justify-between">
+          <span className="text-xs text-muted">{i + 1}/{npc.lines.length}</span>
+          <Button size="sm" onClick={next} data-testid="dialogue-next">{last ? t("dialogue.close") : t("dialogue.next")}</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function LoreCard({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
+  const t = useT();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", "KeyE", "Space"].includes(e.code)) { e.preventDefault(); onClose(); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+      <div role="dialog" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-2xl">
+        <h2 dir="auto" className="text-lg font-bold text-violet">{title}</h2>
+        <p dir="auto" className="leading-relaxed">{text}</p>
+        <div className="flex justify-end"><Button onClick={onClose}>{t("lore.close")}</Button></div>
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────── pause + completion ─────────────────────────
+
+export function PauseMenu({ profile, sfx, music, onSfx, onMusic, onResume, onRestart }: { profile: RenderProfile; sfx: boolean; music: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
+  const t = useT();
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-4 backdrop-blur-sm">
+      <div role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-line bg-ink-800 p-5 shadow-2xl">
+        <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
+        <div className="space-y-2">
+          <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
+          <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
+          <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
+        </div>
+        <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
+          <summary className="cursor-pointer font-medium">{t("hud.controls")}</summary>
+          <ul className="mt-2 space-y-1 text-muted">
+            {(["move", "look", "jump", "sprint", "interact", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
+          </ul>
+        </details>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={onResume} data-testid="resume-button" className="flex-1">{t("hud.resume")}</Button>
+          {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)}>{t("hud.restart")}</Button> : (
+            <div className="w-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
+          )}
+          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10">{t("hud.exit")}</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary: LearningSummary; gameId: string; sessionId: string; onReplay: () => void }) {
+  const t = useT();
+  return (
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur">
+      <div role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-2xl">
+        <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
+        <Stars n={summary.stars} size="lg" />
+        <p className="text-lg" data-testid="final-score">{t("done.score", { score: summary.score, max: summary.maxScore })}</p>
+        {summary.achievements.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2">{summary.achievements.map((a) => <Badge key={a} tone="amber">🏅 {t(`ach.${a}` as never)}</Badge>)}</div>
+        )}
+        <div className="flex flex-col gap-2">
+          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-neon px-4 text-sm font-semibold text-ink-950 hover:bg-white" data-testid="results-link">{t("done.results")}</Link>
+          <Button variant="secondary" onClick={onReplay}>{t("done.replay")}</Button>
+          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-white/10">{t("done.library")}</Link>
+        </div>
+      </div>
+    </div>
+  );
+}

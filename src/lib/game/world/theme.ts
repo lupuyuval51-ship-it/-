@@ -2,7 +2,7 @@ import type { Environment, TimeOfDay } from "../spec/constants";
 import type { DecorKind, EnvTheme } from "./types";
 
 const base: Record<Environment, EnvTheme> = {
-  "neon-city": { skyTop: "#0b0620", skyBottom: "#3a1b78", fog: "#1a0f3d", ground: "#171a35", groundAlt: "#222752", wall: "#2c2f63", platform: "#3b3f86", accent: "#22e6ff", accent2: "#ff4fd8", sun: "#b9a6ff", sunIntensity: 1.0, ambient: 0.55, stars: true },
+  "neon-city": { skyTop: "#0b0620", skyBottom: "#3a1b78", fog: "#1a0f3d", ground: "#232a55", groundAlt: "#2c3566", wall: "#2c2f63", platform: "#3b3f86", accent: "#22e6ff", accent2: "#ff4fd8", sun: "#b9a6ff", sunIntensity: 1.0, ambient: 0.55, stars: true },
   forest: { skyTop: "#5fa8d3", skyBottom: "#d6efdc", fog: "#b9dcc4", ground: "#3d7a3a", groundAlt: "#4b8f45", wall: "#6b5a43", platform: "#7a6a52", accent: "#ffd166", accent2: "#a3ff4f", sun: "#fff4d6", sunIntensity: 1.7, ambient: 0.7, stars: false },
   "space-station": { skyTop: "#02030a", skyBottom: "#0c1330", fog: "#070b1d", ground: "#252b3c", groundAlt: "#2f3750", wall: "#3b4663", platform: "#47557a", accent: "#35f0ff", accent2: "#ff8a3d", sun: "#cfe1ff", sunIntensity: 1.2, ambient: 0.5, stars: true },
   "desert-ruins": { skyTop: "#5aa0d6", skyBottom: "#f4d9a6", fog: "#ecd2a0", ground: "#d2b074", groundAlt: "#c49f61", wall: "#b08a55", platform: "#c9a468", accent: "#2dd4bf", accent2: "#f59e0b", sun: "#fff1cc", sunIntensity: 1.9, ambient: 0.75, stars: false },
@@ -32,11 +32,11 @@ export function themeFor(env: Environment, time: TimeOfDay, palette?: { primary:
     t.skyTop = mix(t.skyTop, "#02040f", 0.8);
     t.skyBottom = mix(t.skyBottom, "#0b1230", 0.75);
     t.fog = mix(t.fog, "#060a1c", 0.8);
-    t.ground = mix(t.ground, "#05070f", 0.45);
-    t.groundAlt = mix(t.groundAlt, "#05070f", 0.45);
+    t.ground = mix(t.ground, "#05070f", 0.2);
+    t.groundAlt = mix(t.groundAlt, "#05070f", 0.2);
     t.sun = "#8fa8ff";
-    t.sunIntensity *= 0.4;
-    t.ambient *= 0.45;
+    t.sunIntensity *= 0.75;
+    t.ambient *= 0.9;
     t.stars = true;
   }
   if (palette) {

@@ -45,7 +45,7 @@ export const RENDER_PROFILES: Readonly<Record<GraphicsTier, RenderProfile>> = Ob
     pixelRatioMax: 2,
     antialias: true,
     toneMapping: "aces",
-    exposure: 1.1,
+    exposure: 1.35,
     shadows: { enabled: true, type: "soft", mapSize: 2048, casters: 2 },
     materials: "pbr",
     textureSize: 512,
