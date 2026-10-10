@@ -4,14 +4,16 @@ import { Link } from 'react-router';
 import type { PlanStatus } from '@shared/constants';
 import type { WorkoutPlanDTO, WorkoutPlanSummaryDTO } from '@shared/types';
 import { qk } from '../../api/queryClient';
-import { Badge, Button, Card, EmptyState, ErrorState, LinkButton, Notice, QueryState, Skeleton, useConfirm, useToast } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, ErrorState, Icon, LinkButton, Notice, QueryState, Skeleton, useConfirm, useToast } from '../../components/ui';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { activatePlan, archivePlan, deletePlan, duplicatePlan, fetchPlan, fetchPlans, workoutKeys } from './api';
+import { ExerciseTile } from './ExerciseRow';
 import { focusLabel, nextWorkoutIndex } from './format';
 import { useStartWorkout } from './hooks';
 import { CustomPlanModal } from './PlanModals';
+import { PlanListSkeleton } from './Skeletons';
 
 export const STATUS_TONE: Record<PlanStatus, 'success' | 'neutral' | 'warning'> = { active: 'success', draft: 'neutral', archived: 'warning' };
 
@@ -95,6 +97,7 @@ export function PlanList({ onGenerate }: { onGenerate(): void }) {
     <div className="stack-lg">
       <QueryState
         query={query}
+        loading={<PlanListSkeleton />}
         isEmpty={(plans) => plans.length === 0 && !showArchived}
         empty={
           <EmptyState
@@ -187,12 +190,31 @@ export function PlanList({ onGenerate }: { onGenerate(): void }) {
 function PlanFacts({ plan }: { plan: WorkoutPlanSummaryDTO }) {
   const { t } = useI18n();
   return (
-    <div className="row small muted plan-facts">
-      {plan.goal && <span>{t(`enums.goal.${plan.goal}`)}</span>}
-      <span>{t(`enums.splitType.${plan.splitType}`)}</span>
-      <span>{t('workouts.list.workoutsCount', { count: plan.workoutCount })}</span>
-      <span>{t('workouts.list.exercisesCount', { count: plan.exerciseCount })}</span>
-      {plan.sessionMinutes != null && <span>{t('workouts.detail.estimated', { minutes: plan.sessionMinutes })}</span>}
+    <div className="plan-facts">
+      {plan.goal && (
+        <span className="wk-chip wk-chip-accent">
+          <Icon name="target" size={13} />
+          {t(`enums.goal.${plan.goal}`)}
+        </span>
+      )}
+      <span className="wk-chip">
+        <Icon name="list" size={13} />
+        {t(`enums.splitType.${plan.splitType}`)}
+      </span>
+      <span className="wk-chip">
+        <Icon name="calendar" size={13} />
+        {t('workouts.list.workoutsCount', { count: plan.workoutCount })}
+      </span>
+      <span className="wk-chip">
+        <Icon name="dumbbell" size={13} />
+        {t('workouts.list.exercisesCount', { count: plan.exerciseCount })}
+      </span>
+      {plan.sessionMinutes != null && (
+        <span className="wk-chip">
+          <Icon name="clock" size={13} />
+          {t('workouts.detail.estimated', { minutes: plan.sessionMinutes })}
+        </span>
+      )}
     </div>
   );
 }
@@ -200,7 +222,7 @@ function PlanFacts({ plan }: { plan: WorkoutPlanSummaryDTO }) {
 /** The active plan with its next workout and a one-tap "Start workout". */
 function ActivePlanCard({ summary }: { summary: WorkoutPlanSummaryDTO }) {
   const i18n = useI18n();
-  const { t } = i18n;
+  const { t, formatNumber } = i18n;
   const detail = useQuery({ queryKey: qk.plan(summary.id), queryFn: ({ signal }) => fetchPlan(summary.id, signal) });
   const { start, pendingId } = useStartWorkout();
   return (
@@ -231,8 +253,8 @@ function ActivePlanCard({ summary }: { summary: WorkoutPlanSummaryDTO }) {
             const next = detail.data.workouts[nextWorkoutIndex(detail.data)]!;
             const focus = focusLabel(next.focus, i18n);
             return (
-              <div className="row-between">
-                <div>
+              <div className="next-workout-inner">
+                <div className="next-workout-text">
                   <div className="small muted">{t('workouts.list.nextWorkout')}</div>
                   <strong className="next-workout-name">{next.name}</strong>
                   <div className="small muted row">
@@ -241,6 +263,14 @@ function ActivePlanCard({ summary }: { summary: WorkoutPlanSummaryDTO }) {
                     {next.estimatedMinutes != null && <span>{t('workouts.detail.estimated', { minutes: next.estimatedMinutes })}</span>}
                   </div>
                 </div>
+                {next.exercises.length > 0 && (
+                  <div className="next-workout-tiles" aria-hidden="true">
+                    {next.exercises.slice(0, 4).map((x) => (
+                      <ExerciseTile key={x.id} exerciseId={x.exerciseId} muscles={x.exercise.primaryMuscles} />
+                    ))}
+                    {next.exercises.length > 4 && <span className="next-workout-more" dir="ltr">{`+${formatNumber(next.exercises.length - 4)}`}</span>}
+                  </div>
+                )}
                 <Button variant="primary" size="lg" icon="play" onClick={() => start(next.id)} loading={pendingId === next.id} disabled={next.exercises.length === 0}>
                   {t('workouts.actions.start')}
                 </Button>

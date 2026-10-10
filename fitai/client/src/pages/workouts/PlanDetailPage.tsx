@@ -27,6 +27,8 @@ import { useStartWorkout, useUnsavedChangesGuard } from '../../features/workouts
 import { AddDayModal, ProgressionResultModal } from '../../features/workouts/PlanModals';
 import { STATUS_TONE, usePlanActions } from '../../features/workouts/PlanList';
 import { GenerationNotesCard, WeeklyVolumeCard } from '../../features/workouts/PlanNotes';
+import { PlanDetailSkeleton } from '../../features/workouts/Skeletons';
+import { WeekSchedule } from '../../features/workouts/WeekSchedule';
 import { WorkoutDayCard } from '../../features/workouts/WorkoutDayCard';
 import { WorkoutDayEditor } from '../../features/workouts/WorkoutDayEditor';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -60,7 +62,11 @@ export default function PlanDetailPage() {
       </div>
     );
   }
-  return <QueryState query={query}>{(plan) => <PlanDetail plan={plan} />}</QueryState>;
+  return (
+    <QueryState query={query} loading={<PlanDetailSkeleton />}>
+      {(plan) => <PlanDetail plan={plan} />}
+    </QueryState>
+  );
 }
 
 function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
@@ -165,6 +171,8 @@ function PlanDetail({ plan }: { plan: WorkoutPlanDTO }) {
       {editing && <p className="small muted">{t('workouts.detail.finishEditingFirst')}</p>}
 
       {plan.status === 'archived' && <Notice tone="warning">{t('workouts.detail.archivedNotice')}</Notice>}
+
+      <WeekSchedule plan={plan} nextIndex={nextIndex} />
 
       <GenerationNotesCard notes={plan.generationNotes} />
 
@@ -272,7 +280,7 @@ function PlanHeader({ plan }: { plan: WorkoutPlanDTO }) {
   };
 
   return (
-    <div className="stack">
+    <div className="stack plan-hero">
       {editing ? (
         <>
           <PageHeader title={plan.name} backTo="/workouts" backLabel={t('workouts.detail.backToPlans')} />

@@ -37,9 +37,12 @@ function SkeletonGrid({ count }: { count: number }) {
     <div className="ex-grid" aria-hidden="true">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="card ex-card ex-card-skeleton">
-          <Skeleton height={20} width="70%" />
-          <Skeleton height={14} width="45%" />
-          <Skeleton height={14} width="60%" />
+          <Skeleton height={84} width={84} radius={12} />
+          <div className="ex-card-body">
+            <Skeleton height={20} width="70%" />
+            <Skeleton height={14} width="45%" />
+            <Skeleton height={22} width="80%" radius={999} />
+          </div>
         </div>
       ))}
     </div>
@@ -222,7 +225,7 @@ export default function ExerciseLibraryPage() {
       </section>
       <div className="ex-results-bar">
         <p className="ex-results-count" aria-live="polite" aria-atomic="true">
-          {first.isPending ? '' : updating ? t('exercises.results.updating') : first.data ? t('exercises.results.count', { count: total }) : ''}
+          {first.isPending ? t('common.states.loading') : updating ? t('exercises.results.updating') : first.data ? t('exercises.results.count', { count: total }) : ''}
         </p>
         {activeCount > 0 && (
           <Button variant="ghost" size="sm" icon="close" onClick={() => apply(clearFilters(stateRef.current))}>
