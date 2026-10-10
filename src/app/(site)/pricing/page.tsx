@@ -3,7 +3,7 @@ import { Alert, Badge, Card } from "@/components/ui";
 import { CheckoutButton } from "@/components/pricing/CheckoutButton";
 import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
 import { PLAN_IDS, isPaidPlanId, type PlanId } from "@/config/plans";
-import { regionLabel } from "@/lib/regions";
+import { REGIONS, regionLabel } from "@/lib/regions";
 import { getBillingView } from "@/server/billing/service";
 import { paymentsStatus } from "@/server/billing/gateway";
 import { getCurrentUser } from "@/server/auth/current";
@@ -23,6 +23,7 @@ export default async function PricingPage() {
   const billing = user ? await getBillingView(user.id) : null;
   const hasSubscription = Boolean(billing?.subscription && !["CANCELED", "INCOMPLETE_EXPIRED"].includes(billing.subscription.status));
   const current: PlanId | null = billing?.plan ?? null;
+  const knownRegion = REGIONS.some((r) => r.code === region);
 
   return (
     <div className="space-y-12">
@@ -30,7 +31,7 @@ export default async function PricingPage() {
         <h1 className="text-4xl font-extrabold" data-testid="pricing-title">{t("pricing.title")}</h1>
         <p className="mx-auto max-w-2xl text-muted">{t("pricing.subtitle")}</p>
         <p className="text-xs text-muted" data-testid="pricing-region">
-          {user ? t("pricing.region.note", { region: regionLabel(region, locale) }) : t("pricing.region.visitor", { region: regionLabel(region, locale) })}
+          {user ? t("pricing.region.note", { region: regionLabel(region, locale) }) : knownRegion ? t("pricing.region.visitor", { region: regionLabel(region, locale) }) : t("pricing.region.default")}
         </p>
       </header>
 

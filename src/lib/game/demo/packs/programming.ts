@@ -8,6 +8,7 @@ export const programmingPack: DemoPack = {
   gameType: "adventure",
   environment: "neon-city",
   timeOfDay: "night",
+  topic: (lang) => translator(lang)("Programming basics: variables, conditions, loops and functions", "יסודות התכנות: משתנים, תנאים, לולאות ופונקציות"),
   title: (lang) => translator(lang)("Code Quest", "משימת קוד"),
   tagline: (lang) => translator(lang)("Restore the neon city by thinking like a programmer.", "החזירו את אורות עיר הניאון בעזרת חשיבה של מתכנתים."),
 

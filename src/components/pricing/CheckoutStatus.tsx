@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Alert, Card, Spinner } from "@/components/ui";
+import { Alert, Arrow, Card, Spinner } from "@/components/ui";
 
 interface View {
   plan: "FREE" | "PLUS" | "PRO";
@@ -45,7 +45,7 @@ export function CheckoutStatus({ sessionId }: { sessionId: string | null }) {
           <p className="text-sm text-muted">{t("billing.success.text")}</p>
           <div className="flex justify-center"><Spinner /></div>
           {tries > 8 && <p className="text-xs text-muted">{t("billing.success.pending")}</p>}
-          <Link href="/account" className="text-sm text-neon hover:underline">{t("nav.account")} →</Link>
+          <Link href="/account" className="text-sm text-neon hover:underline">{t("nav.account")} <Arrow /></Link>
         </>
       )}
     </Card>

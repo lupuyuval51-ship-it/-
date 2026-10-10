@@ -24,7 +24,7 @@ export async function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
         <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-extrabold tracking-wide" aria-label={t("app.name")}>
           <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-neon to-violet text-ink-950">▲</span>
-          <span>{t("app.name")}</span>
+          <span className="whitespace-nowrap">{t("app.name")}</span>
         </Link>
         <nav className="ms-4 hidden flex-1 items-center gap-1 md:flex" aria-label="main">
           {links.map((l) => (
@@ -35,7 +35,7 @@ export async function SiteHeader() {
         </nav>
         <div className="ms-auto flex items-center gap-2">
           {allowance && (
-            <Link href="/pricing" data-testid="allowance-pill" title={`${allowance.plan}`}>
+            <Link href="/pricing" data-testid="allowance-pill" title={`${allowance.plan}`} className="hidden sm:block">
               <Badge tone={allowance.remaining > 0 ? "lime" : "amber"}>
                 {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
               </Badge>
@@ -53,6 +53,11 @@ export async function SiteHeader() {
           <details className="relative md:hidden">
             <summary aria-label={t("nav.menu")} className="grid size-10 cursor-pointer list-none place-items-center rounded-lg border border-line">☰</summary>
             <div className="absolute end-0 top-12 w-56 space-y-1 rounded-xl border border-line bg-ink-800 p-2 shadow-xl">
+              {allowance && (
+                <Link href="/pricing" data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-white/10">
+                  {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
+                </Link>
+              )}
               {links.map((l) => <Link key={l.href} href={l.href} className="block rounded-lg px-3 py-2.5 text-sm hover:bg-white/10">{l.label}</Link>)}
               {user ? <div className="px-1"><LogoutButton /></div> : <Link href="/login" className="block rounded-lg px-3 py-2.5 text-sm hover:bg-white/10">{t("nav.login")}</Link>}
             </div>

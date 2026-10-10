@@ -11,6 +11,8 @@ export interface DemoPack {
   gameType: GameType;
   environment: Environment;
   timeOfDay: TimeOfDay;
+  /** One line describing what the fixed demo content actually teaches (shown to the user). */
+  topic(lang: Lang): string;
   title(lang: Lang): string;
   tagline(lang: Lang): string;
   /** The Full Adventure content: multiple areas, missions and challenges. */

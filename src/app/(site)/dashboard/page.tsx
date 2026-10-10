@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Alert, Badge, Card } from "@/components/ui";
+import { Alert, Arrow, Badge, Card } from "@/components/ui";
 import { GameCardView } from "@/components/games/GameCardView";
 import { formatDate } from "@/lib/format";
 import { getAllowanceSummary } from "@/server/allowance/summary";
@@ -32,7 +32,7 @@ export default async function DashboardPage() {
       {allowance.activeJobId && (
         <Alert tone="info" className="flex flex-wrap items-center justify-between gap-3" data-testid="dash-generating">
           <span>{t("dash.generating")}</span>
-          <Link href={`/generate/${allowance.activeJobId}`} className="font-semibold text-neon hover:underline">{t("dash.generating.cta")} →</Link>
+          <Link href={`/generate/${allowance.activeJobId}`} className="font-semibold text-neon hover:underline">{t("dash.generating.cta")} <Arrow /></Link>
         </Alert>
       )}
 
@@ -46,12 +46,12 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted">{t("dash.allowance.left", { n: allowance.remaining, limit: allowance.limit })}</p>
           <p className="text-xs text-muted">{allowance.plan === "FREE" ? t("dash.allowance.free") : ""} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
           {allowance.reserved > 0 && <p className="text-xs text-amber">{t("dash.allowance.inflight", { n: allowance.reserved })}</p>}
-          {allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} →</Link>}
+          {allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
         </Card>
         <Card className="space-y-3">
           <h2 className="font-semibold">{t("dash.graphics", { tier: t(`tier.short.${render.tier}`) })}</h2>
           <p className="text-sm text-muted">{t(`tier.${render.tier}`)}</p>
-          <Link href="/account" className="text-sm font-semibold text-neon hover:underline">{t("nav.account")} →</Link>
+          <Link href="/account" className="text-sm font-semibold text-neon hover:underline">{t("nav.account")} <Arrow /></Link>
         </Card>
       </section>
 
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{t("dash.recent.title")}</h2>
-          {games.length > 0 && <Link href="/games" className="text-sm font-semibold text-neon hover:underline">{t("dash.recent.all")} →</Link>}
+          {games.length > 0 && <Link href="/games" className="text-sm font-semibold text-neon hover:underline">{t("dash.recent.all")} <Arrow /></Link>}
         </div>
         {recent.length === 0 ? (
           <Card className="space-y-3 py-10 text-center" data-testid="dash-empty">

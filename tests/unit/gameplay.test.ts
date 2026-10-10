@@ -6,7 +6,7 @@ import {
   chooseVariant, collectibleIds, findArea, initialState, maxScore, pointsAwarded, portalOpen, stationActive, summarize, type PlayState,
 } from "@/lib/game/state/progress";
 import type { GameSpec } from "@/lib/game/spec/schema";
-import { correctAnswer, request, validDemoSpec, wrongAnswer } from "./helpers";
+import { PACK_SUBJECT, correctAnswer, request, validDemoSpec, wrongAnswer } from "./helpers";
 
 const ctx = (now = 1_000_000) => ({ now, seed: "test-session" });
 
@@ -26,7 +26,7 @@ describe("server-side grading for every challenge in every template", () => {
   for (const pack of DEMO_PACKS) {
     for (const lang of ["en", "he"] as const) {
       it(`${pack.id}/${lang}: the reference answer is accepted and a wrong answer is rejected`, () => {
-        const spec = validDemoSpec({ subject: pack.id === "math" ? "fractions" : "python", contentLanguage: lang });
+        const spec = validDemoSpec({ subject: PACK_SUBJECT[pack.id]!, contentLanguage: lang });
         for (const ch of spec.challenges) {
           const good = gradeAnswer(ch, correctAnswer(ch), lang);
           expect(good.correct, `${ch.id} correct answer rejected: ${good.feedback}`).toBe(true);

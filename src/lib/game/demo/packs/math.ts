@@ -8,6 +8,7 @@ export const mathPack: DemoPack = {
   gameType: "puzzle",
   environment: "castle",
   timeOfDay: "dusk",
+  topic: (lang) => translator(lang)("Maths basics: order of operations, fractions, percentages, equations and geometry", "יסודות המתמטיקה: סדר פעולות, שברים, אחוזים, משוואות וגיאומטריה"),
   title: (lang) => translator(lang)("Castle of Numbers", "טירת המספרים"),
   tagline: (lang) => translator(lang)("Unlock the castle gates one calculation at a time.", "פתחו את שערי הטירה, חישוב אחר חישוב."),
 

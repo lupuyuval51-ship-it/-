@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Alert, Badge, Card, ProgressBar, Stars } from "@/components/ui";
+import { Alert, Arrow, Badge, Card, ProgressBar, Stars } from "@/components/ui";
 import type { DictKey } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/current";
 import { getSessionResults } from "@/server/games/play";
@@ -19,7 +19,7 @@ export default async function ResultsPage({ params }: { params: Promise<{ id: st
   const minutes = Math.max(1, Math.round(s.durationMs / 60000));
   return (
     <div className="mx-auto max-w-3xl space-y-6" data-testid="results">
-      <Link href={`/games/${game.id}`} className="text-sm text-muted hover:text-text">← {game.title}</Link>
+      <Link href={`/games/${game.id}`} className="text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
       <header className="space-y-3 text-center">
         <h1 className="text-3xl font-extrabold">{t("res.title")}</h1>
         <div className="flex justify-center"><Stars n={s.stars} size="lg" /></div>

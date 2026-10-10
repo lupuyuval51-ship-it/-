@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
-import { Alert, Badge, Card, ProgressBar, Spinner, cx } from "@/components/ui";
+import { Alert, Arrow, Badge, Card, ProgressBar, Spinner, cx } from "@/components/ui";
 import type { DictKey } from "@/lib/i18n";
 
 interface JobView {
@@ -154,7 +154,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           </ul>
         </details>
       )}
-      {done && <Link href="/dashboard" className="inline-block text-sm text-muted hover:text-text">← {t("nav.dashboard")}</Link>}
+      {done && <Link href="/dashboard" className="inline-block text-sm text-muted hover:text-text"><Arrow back /> {t("nav.dashboard")}</Link>}
     </div>
   );
 }

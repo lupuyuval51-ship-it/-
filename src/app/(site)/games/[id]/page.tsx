@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Badge, Card, Stars } from "@/components/ui";
+import { Arrow, Badge, Card, Stars } from "@/components/ui";
 import { GameActions } from "@/components/games/GameActions";
 import { GeneratorBadge } from "@/components/games/GameBadges";
 import { formatDate } from "@/lib/format";
@@ -26,7 +26,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
   const btn = "inline-flex min-h-12 items-center justify-center rounded-xl px-6 font-semibold";
   return (
     <div className="space-y-8">
-      <Link href="/games" className="text-sm text-muted hover:text-text">← {t("det.back")}</Link>
+      <Link href="/games" className="text-sm text-muted hover:text-text"><Arrow back /> {t("det.back")}</Link>
       <header className="space-y-3">
         <div className="flex flex-wrap gap-2">
           <Badge>{t(`gameType.${game.gameType}` as DictKey)}</Badge>

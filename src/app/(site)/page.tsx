@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, Card } from "@/components/ui";
+import { Arrow, Badge, Card } from "@/components/ui";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
@@ -116,7 +116,7 @@ export default async function LandingPage() {
             );
           })}
         </div>
-        <Link href="/pricing" className="inline-block text-neon hover:underline">{t("landing.cta.secondary")} →</Link>
+        <Link href="/pricing" className="inline-block text-neon hover:underline">{t("landing.cta.secondary")} <Arrow /></Link>
       </section>
     </div>
   );

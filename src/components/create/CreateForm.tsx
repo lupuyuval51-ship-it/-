@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
-import { Alert, Badge, Button, Card, Field, Input, Select, Textarea, cx } from "@/components/ui";
+import { Alert, Arrow, Badge, Button, Card, Field, Input, Select, Textarea, cx } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES, GENERATION_MODES, type GenerationModeId, type Mechanic } from "@/lib/game/spec/constants";
 import type { DictKey } from "@/lib/i18n";
@@ -230,17 +230,17 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-sm" data-testid="create-allowance">
           <Badge tone={exhausted ? "amber" : "lime"}>{exhausted ? t("create.allowance.none", { date: formatDate(allowance.periodEnd, locale) }) : t("create.allowance", { n: allowance.remaining, limit: allowance.limit })}</Badge>
-          {exhausted && allowance.plan !== "PRO" && <Link href="/pricing" className="font-semibold text-neon hover:underline">{t("create.allowance.upgrade")} →</Link>}
+          {exhausted && allowance.plan !== "PRO" && <Link href="/pricing" className="font-semibold text-neon hover:underline">{t("create.allowance.upgrade")} <Arrow /></Link>}
         </div>
         <p className="text-xs text-muted">{t("create.policy")}</p>
         {allowance.activeJobId && (
           <Alert tone="info">
-            {t("create.error.inProgress")} <Link href={`/generate/${allowance.activeJobId}`} className="font-semibold text-neon hover:underline">{t("create.error.inProgress.cta")} →</Link>
+            {t("create.error.inProgress")} <Link href={`/generate/${allowance.activeJobId}`} className="font-semibold text-neon hover:underline">{t("create.error.inProgress.cta")} <Arrow /></Link>
           </Alert>
         )}
         {error && (
           <Alert tone="error" data-testid="create-error">
-            {error.text} {error.jobId && <Link href={`/generate/${error.jobId}`} className="font-semibold text-neon hover:underline">{t("create.error.inProgress.cta")} →</Link>}
+            {error.text} {error.jobId && <Link href={`/generate/${error.jobId}`} className="font-semibold text-neon hover:underline">{t("create.error.inProgress.cta")} <Arrow /></Link>}
           </Alert>
         )}
         <Button type="submit" size="lg" disabled={busy || blocked || (extend && games.length === 0)} data-testid="create-submit" className="w-full sm:w-auto">

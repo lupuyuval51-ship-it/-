@@ -41,4 +41,13 @@ export function wrongAnswer(ch: Challenge): Answer {
   }
 }
 
+/** A subject that selects each demo template by keyword. */
+export const PACK_SUBJECT: Record<string, string> = {
+  programming: "python loops",
+  math: "fractions and equations",
+  science: "physics and energy",
+  history: "ancient Egypt",
+  language: "Spanish greetings",
+};
+
 export const ALL_GAME_TYPES: readonly GameType[] = GAME_TYPES;

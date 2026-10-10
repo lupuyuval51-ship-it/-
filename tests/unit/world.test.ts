@@ -9,7 +9,9 @@ import type { WorldModel } from "@/lib/game/world/types";
 import { ENVIRONMENTS, type GameType } from "@/lib/game/spec/constants";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { buildDemoSpec } from "@/lib/game/demo";
-import { request, validDemoSpec } from "./helpers";
+import { PACK_SUBJECT, request, validDemoSpec } from "./helpers";
+
+const SUBJECTS = Object.values(PACK_SUBJECT);
 
 // ───────────────────────── helpers ─────────────────────────
 
@@ -111,7 +113,7 @@ describe("worlds are built from the spec and respect it", () => {
 
 describe("every key point is reachable on foot (open layouts)", () => {
   const cases: { gameType: "adventure" | "exploration" | "puzzle" | "simulation"; subject: string }[] = [];
-  for (const gameType of ["adventure", "exploration", "puzzle", "simulation"] as const) for (const subject of ["python", "fractions"]) cases.push({ gameType, subject });
+  for (const gameType of ["adventure", "exploration", "puzzle", "simulation"] as const) for (const subject of SUBJECTS) cases.push({ gameType, subject });
   for (const c of cases) {
     for (const size of ["small", "medium", "large"] as const) {
       it(`${c.subject}/${c.gameType}/${size}`, () => {
@@ -265,7 +267,7 @@ function skilledJump(world: WorldModel, A: { x0: number; x1: number; z0: number;
 
 describe("platformer: the level geometry is always crossable with the real jump physics", () => {
   const configs: { subject: string; size: "small" | "medium" | "large" }[] = [];
-  for (const subject of ["python", "fractions"]) for (const size of ["small", "medium", "large"] as const) configs.push({ subject, size });
+  for (const subject of SUBJECTS) for (const size of ["small", "medium", "large"] as const) configs.push({ subject, size });
   for (const cfg of configs) {
     it(`${cfg.subject}/${cfg.size}: every consecutive platform pair (including moving platforms at their worst phase)`, () => {
       const res = validateGameSpec(buildDemoSpec(request({ subject: cfg.subject, gameType: "platformer" })).raw, { alignGameType: "platformer" });
@@ -337,7 +339,7 @@ describe("platformer: the level geometry is always crossable with the real jump 
 
   it("fairness: nothing the player must reach (stations, collectibles, checkpoints, portal, entry/exit lanes) lies over lava", () => {
     for (const size of ["small", "medium", "large"] as const) {
-      for (const subject of ["python", "fractions"]) {
+      for (const subject of SUBJECTS) {
         const res = validateGameSpec(buildDemoSpec(request({ subject, gameType: "platformer" })).raw, { alignGameType: "platformer" });
         if (!res.ok) throw new Error("invalid");
         res.spec.mechanics = [...new Set([...res.spec.mechanics, "hazards" as const, "moving_platforms" as const])];

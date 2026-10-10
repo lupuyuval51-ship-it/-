@@ -99,3 +99,8 @@ export function Stars({ n, size = "md" }: { n: number; size?: "sm" | "md" | "lg"
     </span>
   );
 }
+
+/** Direction-aware arrow: "forward" points to where reading continues (right in LTR, left in RTL). */
+export function Arrow({ back = false }: { back?: boolean }) {
+  return <span aria-hidden className="inline-block rtl:-scale-x-100">{back ? "←" : "→"}</span>;
+}

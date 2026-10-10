@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_PACKS, buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
+import { DEMO_PACKS, buildDemoExtension, buildDemoSpec, matchPack } from "@/lib/game/demo";
 import { mergeExtension } from "@/lib/game/spec/extension";
 import { extensionSchema } from "@/lib/game/spec/schema";
 import { crossCheck, sanitizeDeep, validateGameSpec } from "@/lib/game/spec/validate";
 import { toPublicSpec } from "@/lib/game/spec/public";
 import { toPublicChallenge } from "@/lib/game/challenges/grade";
-import { ALL_GAME_TYPES, request, validDemoSpec } from "./helpers";
+import { ALL_GAME_TYPES, PACK_SUBJECT, request, validDemoSpec } from "./helpers";
 
 describe("demo templates are valid for every pack × language × mode × game type", () => {
   for (const pack of DEMO_PACKS) {
@@ -13,7 +13,7 @@ describe("demo templates are valid for every pack × language × mode × game ty
       for (const mode of ["FAST", "FULL"] as const) {
         for (const gameType of ALL_GAME_TYPES) {
           it(`${pack.id}/${lang}/${mode}/${gameType}`, () => {
-            const req = request({ subject: pack.id === "math" ? "fractions and equations" : "python loops", contentLanguage: lang, mode, gameType });
+            const req = request({ subject: PACK_SUBJECT[pack.id]!, contentLanguage: lang, mode, gameType });
             const { raw, templateId } = buildDemoSpec(req);
             expect(templateId).toBe(pack.id);
             const res = validateGameSpec(raw, { alignGameType: gameType });
@@ -191,5 +191,59 @@ describe("Extend Existing Game", () => {
     const merged = validateGameSpec(mergeExtension(spec, extensionSchema.parse(first.ext)).raw);
     if (!merged.ok) throw new Error("merge invalid");
     expect(buildDemoExtension({ ...merged.spec, meta: { ...merged.spec.meta, generator: spec.meta.generator } }, request({ mode: "EXTEND" }))).toBeNull();
+  });
+});
+
+describe("every demo template supports Extend Existing Game", () => {
+  for (const pack of DEMO_PACKS) {
+    for (const lang of ["en", "he"] as const) {
+      it(`${pack.id}/${lang}: all pre-written extensions merge into a valid game, one after another`, () => {
+        let spec = validDemoSpec({ subject: PACK_SUBJECT[pack.id]!, contentLanguage: lang, mode: "FULL" });
+        const generator = { kind: "demo" as const, provider: "demo", model: "templates", templateId: pack.id, mode: "FULL" as const, generatedAt: "x" };
+        let merged = 0;
+        for (let i = 0; i < 4; i++) {
+          const built = buildDemoExtension({ ...spec, meta: { ...spec.meta, generator } }, request({ mode: "EXTEND", contentLanguage: lang }));
+          if (!built) break;
+          const res = validateGameSpec(mergeExtension(spec, extensionSchema.parse(built.ext)).raw);
+          if (!res.ok) throw new Error(res.errors.join("\n"));
+          expect(res.spec.areas.length).toBe(spec.areas.length + 1);
+          spec = res.spec;
+          merged++;
+        }
+        expect(merged).toBeGreaterThanOrEqual(1);
+      });
+    }
+  }
+});
+
+describe("template selection is honest about what the demo can and cannot do", () => {
+  it("selects each template from subject keywords in English and Hebrew", () => {
+    const cases: [string, string][] = [
+      ["Python loops", "programming"], ["תכנות בפייתון", "programming"], ["fractions", "math"], ["אלגברה", "math"],
+      ["photosynthesis and the food chain", "science"], ["פיזיקה", "science"], ["Ancient Egypt", "history"], ["היסטוריה של מצרים", "history"],
+      ["Spanish greetings", "language"], ["ספרדית למתחילים", "language"],
+    ];
+    for (const [subject, id] of cases) expect(matchPack(subject)?.id, subject).toBe(id);
+  });
+
+  it("when no template matches, the game says so instead of pretending to be about the typed subject", () => {
+    expect(matchPack("underwater basket weaving")).toBeNull();
+    const req = request({ subject: "underwater basket weaving", learningGoal: "weave baskets", mode: "FAST", gameType: "simulation" });
+    const { raw, templateId, notes } = buildDemoSpec(req);
+    expect(templateId).toBe("science"); // the closest template for a simulation
+    const res = validateGameSpec(raw, { alignGameType: "simulation" });
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    expect(res.spec.meta.title).not.toContain("basket");
+    expect(res.spec.meta.subject).not.toContain("basket");
+    expect(res.spec.learning.goal).not.toContain("weave");
+    expect(notes.join(" ")).toMatch(/No demo template matches “underwater basket weaving”/);
+  });
+
+  it("when a template matches, the typed subject and goal are kept and the template scope is stated", () => {
+    const { raw, notes } = buildDemoSpec(request({ subject: "Python decorators", learningGoal: "Understand decorators" }));
+    const res = validateGameSpec(raw);
+    if (!res.ok) throw new Error(res.errors.join("\n"));
+    expect(res.spec.meta.subject).toBe("Python decorators");
+    expect(notes.join(" ")).toMatch(/Template used/);
   });
 });
