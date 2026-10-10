@@ -332,16 +332,20 @@ Every browser test also fails on any uncaught page error or console error.
 
 ### Verification record
 
-Run on 2026-10-10 (after the gameplay polish and the study engine) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
+Run on 2026-10-10 (after the Unity bridge and the offline Android app) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
 
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | passed (0 errors) |
 | `npm run lint` | passed (0 errors, 0 warnings) |
-| Vitest **unit** (13 files) | **454 passed** |
-| Vitest **integration** against PostgreSQL (6 files) | **97 passed** |
-| Playwright **E2E** (desktop + Pixel 7 projects, 50 scheduled) | **49 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Vitest unit + integration against PostgreSQL (22 files) | **566 passed** |
+| Playwright **E2E** website (desktop + Pixel 7 projects, 53 scheduled) | **52 passed, 1 skipped** — the skipped one is the touch-device test, which by design runs only in the mobile project (where it passed) |
+| Playwright **E2E** offline app bundle (`npm run test:e2e:mobile`, Pixel 7, network blocked) | **3 passed** |
 | `npm run build` | passed |
+| Android `./gradlew bundleRelease assembleRelease` (target SDK 36) | signed AAB + APK built; `apksigner verify` / `jarsigner -verify` passed |
+
+The Android app was **not run on a phone or emulator** (no KVM in the build environment); its web bundle was tested in Chromium at phone size.
+The Unity C# has never run in Unity (compiled only against hand-written API stubs).
 
 Not run (and therefore not claimed): anything against a real AI provider or the real Stripe API; GitHub Actions (`.github/workflows/ci.yml` was written but never executed);
 Firefox/WebKit; a Docker image build; a load test. The study engine's question quality was checked by reading its output for English, Hebrew, Spanish and Arabic sample texts and by validity/solvability tests, not by learners.
