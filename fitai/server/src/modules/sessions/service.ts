@@ -328,6 +328,30 @@ export async function removeExercise(sql: Sql, userId: string, sessionId: string
   await sql.exec('UPDATE workout_sessions SET current_exercise_index = $2 WHERE id = $1', [sessionId, index]);
 }
 
+/**
+ * Swaps an exercise for another one in place (same position, same number of sets), e.g.
+ * when the machine is taken. Only allowed before any set of the exercise was completed,
+ * so logged work is never silently discarded.
+ */
+export async function replaceExercise(sql: Sql, userId: string, sessionId: string, sessionExerciseId: string, exerciseId: string): Promise<void> {
+  await requireOpenSession(sql, userId, sessionId);
+  const old = await requireSessionExercise(sql, userId, sessionId, sessionExerciseId);
+  const stats = await sql.one<{ total: number; done: number }>(
+    'SELECT count(*)::int AS total, count(*) FILTER (WHERE completed)::int AS done FROM session_sets WHERE session_exercise_id = $1',
+    [old.id],
+  );
+  if (stats.done > 0) throw conflict('exercise_has_progress', 'Sets of this exercise are already logged');
+  const newId = await addExercise(sql, userId, sessionId, { exerciseId, sets: Math.max(1, stats.total) });
+  await sql.exec('UPDATE session_exercises SET position = $2 WHERE id = $1', [newId, old.position]);
+  await sql.exec('DELETE FROM session_exercises WHERE id = $1', [old.id]);
+  await sql.exec(
+    `UPDATE session_exercises s SET position = r.rn
+       FROM (SELECT id, (row_number() OVER (ORDER BY position, created_at) - 1)::int AS rn FROM session_exercises WHERE session_id = $1) r
+      WHERE s.id = r.id AND s.position <> r.rn`,
+    [sessionId],
+  );
+}
+
 export async function updateExercise(sql: Sql, userId: string, sessionId: string, sessionExerciseId: string, input: UpdateSessionExerciseInput): Promise<void> {
   await requireOpenSession(sql, userId, sessionId);
   await requireSessionExercise(sql, userId, sessionId, sessionExerciseId);

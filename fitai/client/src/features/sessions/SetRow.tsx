@@ -13,6 +13,11 @@ import type { SetPatch } from './queue';
 
 const RPE_OPTIONS = [1, 2, 3, 4, 5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 
+/** Next value for a +/- tap: never negative, no floating point noise. */
+export function stepValue(base: number | null, delta: number): number {
+  return Math.max(0, Math.round(((base ?? 0) + delta) * 100) / 100);
+}
+
 /** Free-typing numeric input that reports `number | null` (comma decimals accepted). */
 function SetInput({
   label,
@@ -22,12 +27,22 @@ function SetInput({
   placeholder,
   error,
   className,
+  step,
+  fallback,
+  decLabel,
+  incLabel,
 }: {
   label: string;
   value: number | null;
   onChange(v: number | null): void;
   decimal?: boolean;
   placeholder?: string;
+  /** Increment of the +/- buttons (display units). */
+  step: number;
+  /** Starting point for the first tap when the field is empty (the prefilled suggestion). */
+  fallback: number | null;
+  decLabel: string;
+  incLabel: string;
   error?: string;
   className?: string;
 }) {
@@ -58,6 +73,14 @@ function SetInput({
           onChange(n == null || Number.isNaN(n) ? null : n);
         }}
       />
+      <span className="set-stepper">
+        <button type="button" className="set-step-btn" aria-label={decLabel} onClick={() => onChange(stepValue(value ?? fallback, -step))}>
+          <Icon name="minus" size={18} />
+        </button>
+        <button type="button" className="set-step-btn" aria-label={incLabel} onClick={() => onChange(stepValue(value ?? fallback, step))}>
+          <Icon name="plus" size={18} />
+        </button>
+      </span>
       {error && (
         <span className="set-input-error" id={errorId} role="alert">
           {error}
@@ -101,12 +124,14 @@ export interface SetRowProps {
   onPatch(patch: SetPatch, opts: { immediate: boolean }): void;
   onToggleComplete(): void;
   onDelete(): void;
+  /** The set to log next (first one not done). */
+  current?: boolean;
 }
 
-export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete }: SetRowProps) {
+export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete, current = false }: SetRowProps) {
   const i18n = useI18n();
   const { t } = i18n;
-  const { toDisplay, fromDisplay, weightUnit, formatWeight } = useUnits();
+  const { toDisplay, fromDisplay, weightUnit, formatWeight, imperial } = useUnits();
   const [errors, setErrors] = useState<Partial<Record<'weightKg' | 'reps' | 'durationSeconds', string>>>({});
   const n = set.setNumber;
 
@@ -126,7 +151,10 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
   const repsPlaceholder = defaults.reps != null ? String(defaults.reps) : undefined;
 
   return (
-    <li className={`set-row${set.completed ? ' set-row-done' : ''}`} data-testid={`set-row-${n}`}>
+    <li className={`set-row${set.completed ? ' set-row-done' : ''}${current ? ' set-row-current' : ''}`}
+      data-testid={`set-row-${n}`}
+      aria-current={current ? 'step' : undefined}
+    >
       <span className="set-num num" aria-hidden="true">
         {n}
       </span>
@@ -139,6 +167,10 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
             value={toDisplay(set.weightKg)}
             onChange={(v) => edit('weightKg', fromDisplay(v))}
             placeholder={weightPlaceholder}
+            step={imperial ? 5 : 2.5}
+            fallback={toDisplay(defaults.weightKg)}
+            decLabel={t('session.sets.weightDec', { n })}
+            incLabel={t('session.sets.weightInc', { n })}
             error={errors.weightKg}
           />
         )}
@@ -151,6 +183,10 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
               value={set.durationSeconds}
               onChange={(v) => edit('durationSeconds', v)}
               placeholder={defaults.durationSeconds != null ? String(defaults.durationSeconds) : undefined}
+              step={5}
+              fallback={defaults.durationSeconds}
+              decLabel={t('session.sets.durationDec', { n })}
+              incLabel={t('session.sets.durationInc', { n })}
               error={errors.durationSeconds}
             />
             <span className="set-unit small muted">{t('common.units.sec')}</span>
@@ -169,6 +205,10 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
               value={set.reps}
               onChange={(v) => edit('reps', v)}
               placeholder={repsPlaceholder}
+              step={1}
+              fallback={defaults.reps}
+              decLabel={t('session.sets.repsDec', { n })}
+              incLabel={t('session.sets.repsInc', { n })}
               error={errors.reps}
             />
             {!showWeight && <span className="set-unit small muted">{t('common.units.reps')}</span>}

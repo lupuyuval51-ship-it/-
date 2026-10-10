@@ -31,6 +31,7 @@ import {
   finishSession,
   pauseSession,
   removeExercise,
+  replaceExercise,
   resumeSession,
   sessionKeys,
   startEmptySession,
@@ -42,13 +43,19 @@ import { FinishDialog } from '../../features/sessions/FinishDialog';
 import { closeActiveSession, setActiveSession, useActiveSession, useSyncStatus } from '../../features/sessions/hooks';
 import type { ExercisePatch, SetPatch } from '../../features/sessions/queue';
 import { RestTimerBar, RestTimerCard } from '../../features/sessions/RestTimer';
+import { completionOutcome, countSets, nextOpenExercise, unfinishedExercises, volumeKg } from '../../features/sessions/logic';
+import { useSessionPrefs } from '../../features/sessions/prefs';
+import { SessionPrefsPanel } from '../../features/sessions/SessionPrefs';
+import { useWorkoutShortcuts } from '../../features/sessions/shortcuts';
 import { sessionSync } from '../../features/sessions/sync';
+import { useWakeLock } from '../../features/sessions/wakeLock';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useNow } from '../../hooks/useNow';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import '../../styles/session.css';
+import '../../styles/ux-session.css';
 
 class UnsyncedChangesError extends Error {}
 
@@ -139,10 +146,14 @@ function useIsMobile(): boolean {
   return mobile;
 }
 
-const countSets = (exercises: SessionExerciseDTO[]) => ({
-  total: exercises.reduce((n, e) => n + e.sets.length, 0),
-  done: exercises.reduce((n, e) => n + e.sets.filter((s) => s.completed).length, 0),
-});
+/** What the "Undo" strip can revert: the last set that was logged. */
+interface UndoInfo {
+  set: SessionSetDTO;
+  /** Rest timer as it was before logging (restored on undo). */
+  previousTimer: WorkoutSessionDTO['restTimer'];
+  /** Exercise index to return to when logging auto-advanced to the next exercise. */
+  returnIndex: number | null;
+}
 
 function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const i18n = useI18n();
@@ -158,11 +169,17 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const index = Math.max(0, Math.min(session.currentExerciseIndex, exercises.length - 1));
   const current = exercises[index] ?? null;
   const { done, total } = countSets(exercises);
+  const nextOpenIndex = nextOpenExercise(exercises, index);
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
   const [infoId, setInfoId] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState('');
+  const [swapFor, setSwapFor] = useState<SessionExerciseDTO | null>(null);
+  const [undo, setUndo] = useState<UndoInfo | null>(null);
+  const advanceTimer = useRef<number | null>(null);
+  const [prefs] = useSessionPrefs();
+  useWakeLock(prefs.wakeLock);
   const timerRef = useRef<HTMLDivElement>(null);
   const [timerInView, setTimerInView] = useState(true);
   const isMobile = useIsMobile();
@@ -201,12 +218,37 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const patchExercise = (ex: SessionExerciseDTO, patch: ExercisePatch) =>
     sessionSync.enqueue({ type: 'exercise', sessionId, sessionExerciseId: ex.id, patch }, 900);
 
+  // The undo strip disappears on its own, and a pending auto-advance never outlives the page.
+  useEffect(() => {
+    if (!undo) return;
+    const id = window.setTimeout(() => setUndo(null), 10_000);
+    return () => window.clearTimeout(id);
+  }, [undo]);
+  useEffect(
+    () => () => {
+      if (advanceTimer.current != null) window.clearTimeout(advanceTimer.current);
+    },
+    [],
+  );
+
+  const onUndo = () => {
+    if (!undo) return;
+    if (advanceTimer.current != null) window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = null;
+    patchSet(undo.set, { completed: false }, { immediate: true });
+    setTimer(undo.previousTimer ?? null);
+    if (undo.returnIndex != null) setIndex(undo.returnIndex);
+    setAnnouncement(t('session.sets.undone', { n: undo.set.setNumber }));
+    setUndo(null);
+  };
+
   const toggleComplete = (ex: SessionExerciseDTO, set: SessionSetDTO, defaults: SetDefaults) => {
     primeAudio();
     if (set.completed) {
       patchSet(set, { completed: false }, { immediate: true });
       return;
     }
+    const outcome = completionOutcome(exercises, exercises.indexOf(ex), set.id);
     const tracking = ex.exercise.trackingType;
     const patch: SetPatch = { completed: true };
     // An untouched set is logged with the values shown as placeholders.
@@ -217,8 +259,20 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     }
     if (set.weightKg == null && defaults.weightKg != null) patch.weightKg = defaults.weightKg;
     patchSet(set, patch, { immediate: true });
-    if (ex.restSeconds > 0) setTimer(startTimer(ex.restSeconds, serverNow(), ex.id));
+    // Rest starts automatically (skip it after the very last set: nothing left to rest for).
+    if (ex.restSeconds > 0 && !outcome.workoutDone) setTimer(startTimer(ex.restSeconds, serverNow(), ex.id));
     setAnnouncement(t('session.sets.completed', { n: set.setNumber }));
+    const advanceTo = prefs.autoAdvance ? outcome.advanceTo : null;
+    setUndo({ set, previousTimer: session.restTimer, returnIndex: advanceTo != null ? exercises.indexOf(ex) : null });
+    if (advanceTo != null) {
+      // Short pause so the tick animation and the rest timer register before the view moves on.
+      if (advanceTimer.current != null) window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = window.setTimeout(() => {
+        advanceTimer.current = null;
+        setIndex(advanceTo);
+        setAnnouncement(t('session.exercise.movedOn', { name: lt(exercises[advanceTo]!.exercise.name) }));
+      }, 1200);
+    }
   };
 
   const addSetM = useIdempotentMutation(
@@ -283,6 +337,22 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     onError,
   });
 
+  const swapM = useIdempotentMutation(
+    async (input: { ex: SessionExerciseDTO; exerciseId: string }, key: string) => {
+      sessionSync.discard((op) => (op.type === 'set' && input.ex.sets.some((s) => s.id === op.setId)) || (op.type === 'exercise' && op.sessionExerciseId === input.ex.id));
+      await sessionSync.settle();
+      return replaceExercise(sessionId, input.ex.id, input.exerciseId, key);
+    },
+    {
+      onSuccess: (s) => {
+        setActiveSession(qc, s);
+        setSwapFor(null);
+        toast.success(t('session.exercise.swapped'));
+      },
+      onError,
+    },
+  );
+
   const onRemoveExercise = async (ex: SessionExerciseDTO) => {
     const ok = await confirm({
       title: t('session.exercise.removeConfirm', { name: lt(ex.exercise.name) }),
@@ -339,12 +409,26 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   });
 
   const onDiscard = async () => {
-    const ok = await confirm({ title: t('session.discard.title'), body: t('session.discard.body'), confirmLabel: t('session.discard.confirm'), danger: true });
+    const body = done > 0 ? t('session.discard.bodyWithSets', { done, total, time: formatClock(elapsed) }) : t('session.discard.body');
+    const ok = await confirm({ title: t('session.discard.title'), body, confirmLabel: t('session.discard.confirm'), danger: true });
     if (ok) {
       sessionSync.discard((op) => op.sessionId === sessionId);
       discardM.mutate();
     }
   };
+
+  // Desktop keyboard shortcuts (ignored while typing or inside dialogs).
+  useWorkoutShortcuts((action) => {
+    if (action === 'complete') document.querySelector<HTMLButtonElement>('.set-row-current .set-check')?.click();
+    else if (action === 'undo') onUndo();
+    else if (action === 'previous') index > 0 && setIndex(index - 1);
+    else if (action === 'next') index < exercises.length - 1 && setIndex(index + 1);
+    else if (action === 'pause') pauseM.mutate(paused ? 'resume' : 'pause');
+    else if (action === 'rest') {
+      if (session.restTimer) setTimer(null);
+      else setTimer(startTimer(current?.restSeconds ?? 90, serverNow(), current?.id ?? null));
+    }
+  });
 
   const overview = (
     <ol className="session-overview">
@@ -456,6 +540,11 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
                 removePending={removeExerciseM.isPending}
                 onExercisePatch={(patch) => patchExercise(current, patch)}
                 onShowInfo={() => setInfoId(current.exerciseId)}
+                onSwap={() => setSwapFor(current)}
+                swapDisabled={current.sets.some((s) => s.completed)}
+                nextName={nextOpenIndex != null ? lt(exercises[nextOpenIndex]!.exercise.name) : null}
+                onNext={() => nextOpenIndex != null && setIndex(nextOpenIndex)}
+                onFinish={() => setFinishOpen(true)}
               />
             </>
           ) : (
@@ -475,6 +564,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
               {t('session.overview.addExercise')}
             </Button>
           )}
+          <SessionPrefsPanel />
         </div>
 
         {exercises.length > 0 && (
@@ -487,6 +577,14 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
         )}
       </div>
 
+      {undo && (
+        <div className="undo-strip" role="status" data-testid="undo-strip">
+          <span>{t('session.sets.logged', { n: undo.set.setNumber })}</span>
+          <Button size="sm" icon="refresh" onClick={onUndo}>
+            {t('session.sets.undo')}
+          </Button>
+        </div>
+      )}
       {session.restTimer && isMobile && !timerInView && <RestTimerBar timer={session.restTimer} onChange={setTimer} />}
 
       <Modal
@@ -503,12 +601,22 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
       </Modal>
       <ExercisePicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={(e) => addExerciseM.mutate(e.id)} title={t('session.exercise.addTitle')} />
       <ExerciseInfoModal exerciseId={infoId} onClose={() => setInfoId(null)} />
+      <ExercisePicker
+        open={swapFor != null}
+        onClose={() => setSwapFor(null)}
+        onSelect={(e) => swapFor && swapM.mutate({ ex: swapFor, exerciseId: e.id })}
+        excludeIds={exercises.map((e) => e.exerciseId)}
+        title={t('session.exercise.swapTitle', { name: swapFor ? lt(swapFor.exercise.name) : '' })}
+      />
       <FinishDialog
         open={finishOpen}
         onClose={() => setFinishOpen(false)}
         pending={finishM.isPending}
         done={done}
         total={total}
+        elapsedSeconds={elapsed}
+        volumeKg={volumeKg(exercises)}
+        lines={unfinishedExercises(exercises).map((l) => ({ id: l.id, name: lt(l.exercise.exercise.name), done: l.done, total: l.total }))}
         onConfirm={(input) => finishM.mutate(input)}
       />
       <p className="visually-hidden" aria-live="polite">

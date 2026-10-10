@@ -9,6 +9,7 @@ import { timerStatus, type RestTimerState } from '@shared/timer';
 import type { WorkoutSessionDTO } from '@shared/types';
 import { useI18n } from '../../i18n';
 import { serverNow } from './clock';
+import { prefersReducedMotion, readPrefs } from './prefs';
 import { readTimerMuted } from './storage';
 
 type AudioCtor = typeof AudioContext;
@@ -77,10 +78,12 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 export function signalRestOver(texts: { title: string; body: string }): void {
   if (!readTimerMuted()) playBeep();
-  try {
-    navigator.vibrate?.([200, 100, 200]);
-  } catch {
-    /* vibration unavailable */
+  if (readPrefs().vibrate && !prefersReducedMotion()) {
+    try {
+      navigator.vibrate?.([200, 100, 200]);
+    } catch {
+      /* vibration unavailable */
+    }
   }
   if (notificationsSupported() && Notification.permission === 'granted' && document.visibilityState === 'hidden') {
     try {

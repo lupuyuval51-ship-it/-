@@ -1,9 +1,21 @@
 import { useState } from 'react';
 import { SESSION_LIMITS } from '@shared/schemas/sessions';
+import { formatClock } from '@shared/training';
 import { Button, Modal, Notice, Segmented, TextAreaField } from '../../components/ui';
+import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 
-/** Confirmation before finishing: warns about uncompleted sets and collects optional RPE and notes. */
+export interface FinishLine {
+  id: string;
+  name: string;
+  done: number;
+  total: number;
+}
+
+/**
+ * Confirmation before finishing: a short summary of what was logged (time, volume, sets
+ * left undone per exercise), a warning when nothing was completed, and optional RPE and notes.
+ */
 export function FinishDialog({
   open,
   onClose,
@@ -11,6 +23,9 @@ export function FinishDialog({
   pending,
   done,
   total,
+  elapsedSeconds,
+  volumeKg,
+  lines,
 }: {
   open: boolean;
   onClose(): void;
@@ -18,8 +33,13 @@ export function FinishDialog({
   pending: boolean;
   done: number;
   total: number;
+  elapsedSeconds: number;
+  volumeKg: number;
+  /** Exercises that still have sets not marked done. */
+  lines: FinishLine[];
 }) {
   const { t } = useI18n();
+  const { formatWeight } = useUnits();
   const [effort, setEffort] = useState<number>(0);
   const [notes, setNotes] = useState('');
   return (
@@ -30,7 +50,7 @@ export function FinishDialog({
       footer={
         <>
           <Button onClick={onClose} disabled={pending}>
-            {t('common.actions.cancel')}
+            {t('session.finish.keepGoing')}
           </Button>
           <Button variant="primary" icon="check" loading={pending} onClick={() => onConfirm({ perceivedExertion: effort || null, notes: notes.trim() })}>
             {t('session.finish.confirm')}
@@ -40,10 +60,27 @@ export function FinishDialog({
     >
       <div className="stack">
         <p>{t('session.finish.summary', { done, total })}</p>
+        <dl className="finish-stats">
+          <div>
+            <dt>{t('session.finish.time')}</dt>
+            <dd className="num">{formatClock(elapsedSeconds)}</dd>
+          </div>
+          <div>
+            <dt>{t('session.finish.volume')}</dt>
+            <dd className="num">{volumeKg > 0 ? formatWeight(volumeKg) : '—'}</dd>
+          </div>
+        </dl>
         {done === 0 ? (
           <Notice tone="warning">{t('session.finish.noneWarning')}</Notice>
-        ) : done < total ? (
-          <Notice tone="info">{t('session.finish.fewWarning')}</Notice>
+        ) : lines.length > 0 ? (
+          <Notice tone="info">
+            <p>{t('session.finish.fewWarning')}</p>
+            <ul className="finish-left">
+              {lines.map((l) => (
+                <li key={l.id}>{t('session.finish.left', { name: l.name, done: l.done, total: l.total })}</li>
+              ))}
+            </ul>
+          </Notice>
         ) : null}
         <Segmented<number>
           label={t('session.finish.effort')}
