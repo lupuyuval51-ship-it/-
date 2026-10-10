@@ -20,7 +20,7 @@ export function ResultsPage({ gameId, sessionId }: { gameId: string; sessionId: 
   const t = useT();
   const r = useResults(gameId, sessionId);
   if (!r) return <Missing />;
-  return <ResultsView t={t} s={r.summary} game={{ id: r.game.id, title: r.game.title }} sessionId={sessionId} conclusion={r.game.spec.learning.conclusion} review={r.review} />;
+  return <ResultsView t={t} s={r.summary} game={{ id: r.game.id, title: r.game.title }} sessionId={sessionId} conclusion={r.game.spec.learning.conclusion} review={r.review} libraryHref="/" />;
 }
 
 export function ReviewPage({ gameId, sessionId }: { gameId: string; sessionId: string }) {

@@ -208,6 +208,11 @@ export const app = defineDict(
     "res.incomplete": "This run is not finished yet, so the results are partial.",
     "res.replay": "Play again",
     "res.library": "Back to library",
+    "res.new": "New game",
+    "res.next.title": "What next?",
+    "res.next.review": "Start with the questions you missed — that is where you learn the most. Then play again for a better score.",
+    "res.next.replay": "Play again to finish the game or improve your stars.",
+    "res.next.new": "Great run! Build a new game from other notes.",
 
     "acc.title": "Account",
     "acc.profile": "Profile",
@@ -491,6 +496,11 @@ export const app = defineDict(
     "res.incomplete": "הריצה הזו עדיין לא הסתיימה, ולכן התוצאות חלקיות.",
     "res.replay": "לשחק שוב",
     "res.library": "חזרה לספרייה",
+    "res.new": "משחק חדש",
+    "res.next.title": "מה עכשיו?",
+    "res.next.review": "מתחילים בשאלות שפספסתם — שם לומדים הכי הרבה. אחר כך משחקים שוב לניקוד טוב יותר.",
+    "res.next.replay": "משחקים שוב כדי לסיים את המשחק או לשפר את הכוכבים.",
+    "res.next.new": "ריצה מצוינת! בונים משחק חדש מחומר אחר.",
 
     "acc.title": "חשבון",
     "acc.profile": "פרופיל",

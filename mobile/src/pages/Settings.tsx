@@ -32,6 +32,7 @@ export function SettingsPage() {
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.sound} onChange={(e) => setSettings({ sound: e.target.checked })} />{t("hud.sound")}</label>
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.vibration} onChange={(e) => setSettings({ vibration: e.target.checked })} />{t("mob.settings.vibration")}</label>
       <label className="flex min-h-11 items-center gap-3"><input type="checkbox" className="size-5" checked={s.music} onChange={(e) => setSettings({ music: e.target.checked })} />{t("hud.music")}</label>
+      <Button variant="secondary" data-testid="welcome-again" onClick={() => navigate("/?welcome=1")}>{t("mob.settings.welcome")}</Button>
       <AccountPanel />
       <Card className="space-y-2 text-sm text-muted">
         <p>{t("mob.settings.privacy")}</p>
