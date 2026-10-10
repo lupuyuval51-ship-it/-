@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Link } from 'react-router';
 import { isWorkoutFocus } from '@shared/schemas/workouts';
-import type { PlanExerciseDTO, PlanWorkoutDTO } from '@shared/types';
+import type { PlanWorkoutDTO } from '@shared/types';
 import { Badge, Button, Card, EmptyState, IconButton } from '../../components/ui';
-import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
-import { focusLabel, formatPrescription, formatRest } from './format';
+import { ExerciseRow } from './ExerciseRow';
+import { focusLabel } from './format';
 
 export interface DayActions {
   onStart(): void;
@@ -60,6 +59,7 @@ export function WorkoutDayCard({
   return (
     <Card
       as="article"
+      id={`day-${workout.id}`}
       className={`day-card${isNext ? ' day-card-next' : ''}`}
       title={workout.name}
       subtitle={
@@ -121,32 +121,3 @@ export function WorkoutDayCard({
   );
 }
 
-function ExerciseRow({ x, index }: { x: PlanExerciseDTO; index: number }) {
-  const i18n = useI18n();
-  const { t, lt, formatNumber } = i18n;
-  const { formatWeight } = useUnits();
-  const name = lt(x.exercise.name);
-  return (
-    <li className="exercise-row">
-      <span className="exercise-index" aria-hidden="true">
-        {formatNumber(index + 1)}
-      </span>
-      <div className="exercise-body">
-        <Link to={`/exercises/${encodeURIComponent(x.exerciseId)}`} className="exercise-name link" aria-label={t('workouts.exercise.openDetails', { name })}>
-          {name}
-        </Link>
-        <div className="small muted">{x.exercise.primaryMuscles.map((m) => t(`enums.muscle.${m}`)).join(' · ')}</div>
-        <div className="exercise-meta">
-          <strong className="num">
-            <span className="visually-hidden">{t('workouts.exercise.prescriptionLabel')}: </span>
-            {formatPrescription(x, i18n)}
-          </strong>
-          <span>{t('workouts.exercise.rest', { rest: formatRest(x.restSeconds, i18n) })}</span>
-          {x.targetRpe != null && <span>{t('workouts.exercise.rpe', { rpe: formatNumber(x.targetRpe) })}</span>}
-          {x.targetWeightKg != null && <span>{t('workouts.exercise.weight', { weight: formatWeight(x.targetWeightKg) })}</span>}
-        </div>
-        {x.notes && <p className="exercise-notes small">{x.notes}</p>}
-      </div>
-    </li>
-  );
-}

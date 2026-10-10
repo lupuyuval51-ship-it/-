@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { Muscle } from '@shared/constants';
 import { getAnimation } from '@shared/animation/data/index';
-import { CANVAS, computeFrame, floorDash, viewBoxFor, type PropShape } from '@shared/animation/engine';
+import { CANVAS, computeFrame, floorDash, viewBoxFor, type Frame, type PropShape } from '@shared/animation/engine';
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import './animation.css';
@@ -18,6 +18,67 @@ function Shape({ p }: { p: PropShape }) {
     case 'path':
       return <path d={p.d} className={`${cls} ${p.fill ? 'anim-fill' : 'anim-stroke'}`} strokeWidth={p.w ?? 2} fill={p.fill ? undefined : 'none'} />;
   }
+}
+
+type Anim = NonNullable<ReturnType<typeof getAnimation>>;
+
+/** The articulated figure itself (shared by the full player and the small thumbnail). */
+function FigureSvg({ anim, frame, label, decorative = false }: { anim: Anim; frame: Frame; label: string; decorative?: boolean }) {
+  // Unique ids: many figures can be on one page (library cards, plan rows).
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
+  const bgId = `anim-bg-${uid}`;
+  const glowId = `anim-glow-${uid}`;
+  const vb = viewBoxFor(anim, frame);
+  const dash = floorDash(anim);
+  return (
+    <svg
+      viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
+      role={decorative ? undefined : 'img'}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : label}
+      className="anim-svg"
+      direction="ltr"
+    >
+      <defs>
+        <linearGradient id={bgId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" className="anim-bg-top" />
+          <stop offset="100%" className="anim-bg-bottom" />
+        </linearGradient>
+        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.2" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill={`url(#${bgId})`} />
+      <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} strokeDasharray={dash?.dash} />
+      <ellipse cx={frame.shadow.cx} cy={frame.shadow.cy} rx={frame.shadow.rx} ry={3} className="anim-shadow" opacity={frame.shadow.opacity} />
+      {frame.props.filter((p) => p.layer === 'back').map((p, i) => <Shape key={`b${i}`} p={p} />)}
+      {frame.segments.map((s, i) => (
+        <line
+          key={i}
+          x1={s.a[0]}
+          y1={s.a[1]}
+          x2={s.b[0]}
+          y2={s.b[1]}
+          strokeWidth={s.w}
+          strokeLinecap="round"
+          className={`anim-seg anim-${s.side}${s.part === 'torso' || s.part === 'neck' ? ' anim-torso' : ''}${s.highlight && s.side !== 'far' ? ' anim-hl' : ''}`}
+          filter={s.highlight && s.side !== 'far' ? `url(#${glowId})` : undefined}
+        />
+      ))}
+      {frame.overlays.map((o, i) => (
+        <line key={`o${i}`} x1={o.a[0]} y1={o.a[1]} x2={o.b[0]} y2={o.b[1]} strokeWidth={o.w} strokeLinecap="round" className="anim-overlay" filter={`url(#${glowId})`} />
+      ))}
+      {frame.overlayDots.map((d, i) => (
+        <circle key={`d${i}`} cx={d.c[0]} cy={d.c[1]} r={d.r} className="anim-overlay-dot" filter={`url(#${glowId})`} />
+      ))}
+      <circle cx={frame.head.c[0]} cy={frame.head.c[1]} r={frame.head.r} className="anim-head" />
+      {frame.props.filter((p) => p.layer === 'front').map((p, i) => <Shape key={`f${i}`} p={p} />)}
+    </svg>
+  );
 }
 
 /**
@@ -79,51 +140,10 @@ export function ExerciseAnimation({
 
   if (!anim) return null;
   const frame = computeFrame(anim, time, muscles);
-  const vb = viewBoxFor(anim, frame);
-  const dash = floorDash(anim);
 
   return (
-    <div ref={holder} className={`anim anim-${size}`}>
-      <svg viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`} role="img" aria-label={label ?? t('exercises.animation.label')} className="anim-svg" direction="ltr">
-        <defs>
-          <linearGradient id="anim-bg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" className="anim-bg-top" />
-            <stop offset="100%" className="anim-bg-bottom" />
-          </linearGradient>
-          <filter id="anim-glow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.2" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="url(#anim-bg)" />
-        <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} strokeDasharray={dash?.dash} />
-        <ellipse cx={frame.shadow.cx} cy={frame.shadow.cy} rx={frame.shadow.rx} ry={3} className="anim-shadow" opacity={frame.shadow.opacity} />
-        {frame.props.filter((p) => p.layer === 'back').map((p, i) => <Shape key={`b${i}`} p={p} />)}
-        {frame.segments.map((s, i) => (
-          <line
-            key={i}
-            x1={s.a[0]}
-            y1={s.a[1]}
-            x2={s.b[0]}
-            y2={s.b[1]}
-            strokeWidth={s.w}
-            strokeLinecap="round"
-            className={`anim-seg anim-${s.side}${s.part === 'torso' || s.part === 'neck' ? ' anim-torso' : ''}${s.highlight && s.side !== 'far' ? ' anim-hl' : ''}`}
-            filter={s.highlight && s.side !== 'far' ? 'url(#anim-glow)' : undefined}
-          />
-        ))}
-        {frame.overlays.map((o, i) => (
-          <line key={`o${i}`} x1={o.a[0]} y1={o.a[1]} x2={o.b[0]} y2={o.b[1]} strokeWidth={o.w} strokeLinecap="round" className="anim-overlay" filter="url(#anim-glow)" />
-        ))}
-        {frame.overlayDots.map((d, i) => (
-          <circle key={`d${i}`} cx={d.c[0]} cy={d.c[1]} r={d.r} className="anim-overlay-dot" filter="url(#anim-glow)" />
-        ))}
-        <circle cx={frame.head.c[0]} cy={frame.head.c[1]} r={frame.head.r} className="anim-head" />
-        {frame.props.filter((p) => p.layer === 'front').map((p, i) => <Shape key={`f${i}`} p={p} />)}
-      </svg>
+    <div ref={holder} className={`anim anim-stage anim-${size}`}>
+      <FigureSvg anim={anim} frame={frame} label={label ?? t('exercises.animation.label')} />
       {controls && (
         <div className="anim-controls">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPlaying((p) => !p)} aria-pressed={playing}>
@@ -145,6 +165,49 @@ export function ExerciseAnimation({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Small decorative preview (a mid-movement pose, primary muscles highlighted) that plays
+ * while hovered. Renders nothing without a built-in animation, so callers show their own
+ * placeholder via `hasAnimation`.
+ */
+export function ExerciseThumb({ exerciseId, muscles = [], className = '' }: { exerciseId: string; muscles?: Muscle[]; className?: string }) {
+  const anim = getAnimation(exerciseId);
+  const [playing, setPlaying] = useState(false);
+  const [time, setTime] = useState(0.5);
+  useEffect(() => {
+    if (!anim || !playing) return;
+    let raf = 0;
+    let prev: number | null = null;
+    const step = (now: number) => {
+      if (prev != null) {
+        const dt = (now - prev) / 1000;
+        setTime((tt) => (tt + dt / anim.durationSec) % 1);
+      }
+      prev = now;
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [anim, playing]);
+  if (!anim) return null;
+  const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const frame = computeFrame(anim, time, muscles);
+  return (
+    <div
+      className={`anim-thumb ${className}`.trim()}
+      onPointerEnter={() => {
+        if (!reduce) setPlaying(true);
+      }}
+      onPointerLeave={() => {
+        setPlaying(false);
+        setTime(0.5);
+      }}
+    >
+      <FigureSvg anim={anim} frame={frame} label="" decorative />
     </div>
   );
 }

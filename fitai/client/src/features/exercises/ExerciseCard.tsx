@@ -1,9 +1,11 @@
 import type { MouseEventHandler } from 'react';
 import { Link } from 'react-router';
+import { hasAnimation } from '@shared/animation/data/index';
 import type { Difficulty } from '@shared/constants';
 import type { ExerciseListItemDTO } from '@shared/types';
 import { Badge, Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import { ExerciseThumb } from '../animation/ExerciseAnimation';
 import { formatList } from './format';
 import type { LibraryNavState } from './navigation';
 
@@ -15,7 +17,8 @@ export const DIFFICULTY_TONE: Record<Difficulty, 'success' | 'info' | 'warning'>
 
 /**
  * Library result card. The whole card is clickable through the title link (stretched
- * over the card), so the link's accessible name is just the exercise name.
+ * over the card), so the link's accessible name is just the exercise name. The preview
+ * tile is decorative and only shows a figure when a built-in animation exists.
  */
 export function ExerciseCard({
   exercise,
@@ -39,41 +42,58 @@ export function ExerciseCard({
   const injuries = ctx ? formatList(ctx.injuryConflicts.map((a) => t(`enums.injury.${a}`)), intlLocale) : '';
   return (
     <article className="card ex-card">
-      <div className="ex-card-head">
-        <Heading className="ex-card-title">
-          <Link to={`/exercises/${exercise.id}`} state={navState} className="ex-card-link" data-index={index} onClick={onNavigate}>
-            {lt(exercise.name)}
-          </Link>
-        </Heading>
-        <Badge tone={DIFFICULTY_TONE[exercise.difficulty]}>{t(`enums.difficulty.${exercise.difficulty}`)}</Badge>
+      <div className="ex-card-tile" aria-hidden="true">
+        {hasAnimation(exercise.id) ? (
+          <ExerciseThumb exerciseId={exercise.id} muscles={exercise.primaryMuscles} />
+        ) : (
+          <span className="anim-thumb ex-card-tile-fallback">
+            <Icon name="dumbbell" size={28} />
+          </span>
+        )}
       </div>
-      <p className="ex-card-muscles">{exercise.primaryMuscles.map((m) => t(`enums.muscle.${m}`)).join(' · ')}</p>
-      <dl className="ex-card-meta">
-        <div className="ex-card-meta-item">
-          <dt>
-            <Icon name="dumbbell" size={14} />
-            <span className="visually-hidden">{t('exercises.card.equipment')}</span>
-          </dt>
-          <dd>{equipment}</dd>
+      <div className="ex-card-body">
+        <div className="ex-card-head">
+          <Heading className="ex-card-title">
+            <Link to={`/exercises/${exercise.id}`} state={navState} className="ex-card-link" data-index={index} onClick={onNavigate}>
+              {lt(exercise.name)}
+            </Link>
+          </Heading>
+          <Badge tone={DIFFICULTY_TONE[exercise.difficulty]}>{t(`enums.difficulty.${exercise.difficulty}`)}</Badge>
         </div>
-        <div className="ex-card-meta-item">
-          <dt>
-            <Icon name="target" size={14} />
-            <span className="visually-hidden">{t('exercises.card.category')}</span>
-          </dt>
-          <dd>{t(`enums.category.${exercise.category}`)}</dd>
-        </div>
-      </dl>
-      {ctx && (!ctx.hasRequiredEquipment || ctx.injuryConflicts.length > 0) && (
-        <div className="ex-card-fit">
-          {!ctx.hasRequiredEquipment && <Badge icon="info">{t('exercises.card.missingEquipment')}</Badge>}
-          {ctx.injuryConflicts.length > 0 && (
-            <Badge tone="warning" icon="warning">
-              {t('exercises.card.injuryCaution', { areas: injuries })}
-            </Badge>
-          )}
-        </div>
-      )}
+        <p className="ex-card-muscles">
+          {exercise.primaryMuscles.map((m) => (
+            <span key={m} className="ex-chip ex-chip-muscle">
+              {t(`enums.muscle.${m}`)}
+            </span>
+          ))}
+        </p>
+        <dl className="ex-card-meta">
+          <div className="ex-card-meta-item">
+            <dt>
+              <Icon name="dumbbell" size={14} />
+              <span className="visually-hidden">{t('exercises.card.equipment')}</span>
+            </dt>
+            <dd>{equipment}</dd>
+          </div>
+          <div className="ex-card-meta-item">
+            <dt>
+              <Icon name="target" size={14} />
+              <span className="visually-hidden">{t('exercises.card.category')}</span>
+            </dt>
+            <dd>{t(`enums.category.${exercise.category}`)}</dd>
+          </div>
+        </dl>
+        {ctx && (!ctx.hasRequiredEquipment || ctx.injuryConflicts.length > 0) && (
+          <div className="ex-card-fit">
+            {!ctx.hasRequiredEquipment && <Badge icon="info">{t('exercises.card.missingEquipment')}</Badge>}
+            {ctx.injuryConflicts.length > 0 && (
+              <Badge tone="warning" icon="warning">
+                {t('exercises.card.injuryCaution', { areas: injuries })}
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
     </article>
   );
 }

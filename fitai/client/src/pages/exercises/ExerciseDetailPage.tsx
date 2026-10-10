@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import type { ExerciseDetailDTO, ExerciseListItemDTO, ExerciseMediaDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
-import { Badge, Card, EmptyState, ErrorState, Icon, LinkButton, LoadingState, Notice } from '../../components/ui';
+import { Badge, Card, EmptyState, ErrorState, Icon, LinkButton, Notice, Skeleton } from '../../components/ui';
 import { fetchExercise } from '../../features/exercises/api';
 import { DIFFICULTY_TONE, ExerciseCard } from '../../features/exercises/ExerciseCard';
 import { formatList, formatLoggedSet, localizedList, type SetFormatter } from '../../features/exercises/format';
@@ -44,7 +44,16 @@ export default function ExerciseDetailPage() {
     return (
       <>
         {backLink}
-        <LoadingState />
+        <div className="ex-hero" role="status" aria-live="polite">
+          <span className="visually-hidden">{t('common.states.loading')}</span>
+          <Skeleton height={300} radius={18} />
+          <div className="card stack">
+            <Skeleton height={22} width="40%" />
+            <Skeleton height={14} />
+            <Skeleton height={14} width="85%" />
+            <Skeleton height={28} width="60%" radius={999} />
+          </div>
+        </div>
       </>
     );
   }
@@ -113,86 +122,107 @@ function ExerciseDetailView({ exercise: ex, nav, backLink }: { exercise: Exercis
 
       {ex.userContext && <PersonalFit exercise={ex} list={list} />}
 
-      <div className="ex-detail-grid">
-        <div className="stack">
-          <Card title={t('exercises.detail.overview')}>
-            <div className="stack">
-              <p>{lt(ex.description)}</p>
-              {ex.unilateral && <p className="muted small">{t('exercises.detail.unilateralNote')}</p>}
-              <div>
-                <h3 className="ex-subheading">{t('exercises.detail.targetMuscles')}</h3>
-                <dl className="ex-muscles">
+      <section className="ex-hero" aria-label={t('exercises.detail.overview')}>
+        <div className="ex-hero-stage">
+          {ex.media ? (
+            <ExerciseMedia media={ex.media} name={name} />
+          ) : hasAnimation(ex.id) ? (
+            <ExerciseAnimation exerciseId={ex.id} muscles={ex.primaryMuscles} size="lg" label={t('exercises.detail.mediaAlt', { name })} />
+          ) : (
+            <p className="ex-media-note">
+              <Icon name="info" size={18} />
+              <span>{t('exercises.detail.noMedia')}</span>
+            </p>
+          )}
+        </div>
+        <Card title={t('exercises.detail.overview')} className="ex-hero-info">
+          <div className="stack">
+            <p className="ex-lead">{lt(ex.description)}</p>
+            {ex.unilateral && <p className="muted small">{t('exercises.detail.unilateralNote')}</p>}
+            <div>
+              <h3 className="ex-subheading">{t('exercises.detail.targetMuscles')}</h3>
+              <dl className="ex-muscles">
+                <div className="ex-muscles-row">
+                  <dt>{t('exercises.detail.primary')}</dt>
+                  <dd>
+                    <ul className="ex-tags" role="list">
+                      {ex.primaryMuscles.map((m) => (
+                        <li key={m}>
+                          <span className="ex-muscle ex-muscle-primary">{t(`enums.muscle.${m}`)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+                {ex.secondaryMuscles.length > 0 && (
                   <div className="ex-muscles-row">
-                    <dt>{t('exercises.detail.primary')}</dt>
+                    <dt>{t('exercises.detail.secondary')}</dt>
                     <dd>
                       <ul className="ex-tags" role="list">
-                        {ex.primaryMuscles.map((m) => (
+                        {ex.secondaryMuscles.map((m) => (
                           <li key={m}>
-                            <Badge tone="primary">{t(`enums.muscle.${m}`)}</Badge>
+                            <span className="ex-muscle ex-muscle-secondary">{t(`enums.muscle.${m}`)}</span>
                           </li>
                         ))}
                       </ul>
                     </dd>
                   </div>
-                  {ex.secondaryMuscles.length > 0 && (
-                    <div className="ex-muscles-row">
-                      <dt>{t('exercises.detail.secondary')}</dt>
-                      <dd>
-                        <ul className="ex-tags" role="list">
-                          {ex.secondaryMuscles.map((m) => (
-                            <li key={m}>
-                              <Badge>{t(`enums.muscle.${m}`)}</Badge>
-                            </li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-              </div>
-              <div>
-                <h3 className="ex-subheading">{t('exercises.detail.equipment')}</h3>
-                <p>{ex.equipment.length > 0 ? list(ex.equipment.map((q) => t(`enums.equipment.${q}`))) : t('exercises.detail.noEquipment')}</p>
-              </div>
+                )}
+              </dl>
             </div>
-          </Card>
-
-          <Card title={t('exercises.detail.howTo')}>
-            <div className="stack">
-              {ex.media ? (
-                <ExerciseMedia media={ex.media} name={name} />
-              ) : hasAnimation(ex.id) ? (
-                <ExerciseAnimation exerciseId={ex.id} muscles={ex.primaryMuscles} size="lg" label={t('exercises.detail.mediaAlt', { name })} />
-              ) : (
-                <p className="ex-media-note">
-                  <Icon name="info" size={18} />
-                  <span>{t('exercises.detail.noMedia')}</span>
-                </p>
-              )}
-              <div>
-                <h3 className="ex-subheading">{t('exercises.detail.steps')}</h3>
-                <ol className="ex-steps" role="list">
-                  {steps.map((s, i) => (
-                    <li key={i}>{s}</li>
+            <div>
+              <h3 className="ex-subheading">{t('exercises.detail.equipment')}</h3>
+              {ex.equipment.length > 0 ? (
+                <ul className="ex-tags" role="list">
+                  {ex.equipment.map((q) => (
+                    <li key={q}>
+                      <span className="ex-muscle ex-muscle-gear">
+                        <Icon name="dumbbell" size={13} />
+                        {t(`enums.equipment.${q}`)}
+                      </span>
+                    </li>
                   ))}
-                </ol>
-              </div>
+                </ul>
+              ) : (
+                <p>{t('exercises.detail.noEquipment')}</p>
+              )}
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      <div className="ex-detail-grid">
+        <div className="stack">
+          <Card title={t('exercises.detail.howTo')}>
+            <div>
+              <h3 className="ex-subheading">{t('exercises.detail.steps')}</h3>
+              <ol className="ex-steps" role="list">
+                {steps.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ol>
             </div>
           </Card>
 
-          <Card title={t('exercises.detail.mistakes')}>
-            <ul className="ex-bullets ex-bullets-mistakes">
+          <Card title={t('exercises.detail.mistakes')} className="ex-callout ex-callout-mistakes">
+            <ul className="ex-callout-list">
               {mistakes.map((s, i) => (
-                <li key={i}>{s}</li>
+                <li key={i}>
+                  <Icon name="close" size={16} />
+                  <span>{s}</span>
+                </li>
               ))}
             </ul>
           </Card>
 
-          <Card title={t('exercises.detail.safety')}>
+          <Card title={t('exercises.detail.safety')} className="ex-callout ex-callout-safety">
             <div className="stack">
-              <ul className="ex-bullets ex-bullets-safety">
+              <ul className="ex-callout-list">
                 {safety.map((s, i) => (
-                  <li key={i}>{s}</li>
+                  <li key={i}>
+                    <Icon name="check" size={16} />
+                    <span>{s}</span>
+                  </li>
                 ))}
               </ul>
               {ex.contraindications.length > 0 && (

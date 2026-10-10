@@ -140,13 +140,50 @@
 .ex-card {
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-3);
   height: 100%;
-  transition: border-color var(--transition), transform var(--transition);
+  padding: var(--space-3);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 .ex-card:hover {
   border-color: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent), var(--shadow);
+}
+.ex-card-tile {
+  flex: none;
+}
+.ex-card-tile .anim-thumb {
+  inline-size: 84px;
+}
+.ex-card-tile-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--text-faint);
+}
+.ex-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-self: stretch;
+}
+.ex-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.ex-chip-muscle {
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 .ex-card-head {
   display: flex;
@@ -178,8 +215,10 @@
   outline-offset: 2px;
 }
 .ex-card-muscles {
-  font-size: 13px;
-  color: var(--text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
 }
 .ex-card-meta {
   display: flex;
@@ -316,10 +355,120 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ex-steps li {
+  position: relative;
+  line-height: 1.6;
+}
+/* Vertical connector between numbered steps. */
+.ex-steps li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  inset-block: 32px calc(-1 * var(--space-3) + 4px);
+  inset-inline-start: 13px;
+  inline-size: 2px;
+  background: var(--border);
+}
+
+/* ------------------------------------------------------------------ Hero */
+.ex-hero {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  margin-block-end: var(--space-4);
+}
+.ex-hero-stage {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(80% 70% at 50% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: var(--shadow);
+  align-self: start;
+}
+@media (min-width: 900px) {
+  .ex-hero {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+.ex-lead {
+  font-size: 15px;
+  line-height: 1.65;
+}
+.ex-muscle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ex-muscle::before {
+  content: '';
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.ex-muscle-primary {
   background: var(--primary-soft);
   color: var(--primary);
-  font-size: 13px;
-  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.ex-muscle-secondary {
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.ex-muscle-secondary::before {
+  background: transparent;
+  border: 1.5px solid currentColor;
+}
+.ex-muscle-gear {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.ex-muscle-gear::before {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ Mistake / safety callouts */
+.ex-callout {
+  border-inline-start: 4px solid var(--callout, var(--border));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--callout) 7%, transparent), transparent 60%), var(--surface);
+}
+.ex-callout-mistakes {
+  --callout: var(--danger);
+}
+.ex-callout-safety {
+  --callout: var(--success);
+}
+.ex-callout-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ex-callout-list li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+  line-height: 1.55;
+}
+.ex-callout-list li .icon {
+  color: var(--callout);
+  margin-block-start: 3px;
 }
 .ex-bullets {
   display: flex;
