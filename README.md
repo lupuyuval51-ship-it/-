@@ -273,6 +273,13 @@ Plan, currency and amount come from a server-side checkout row created from the 
 * **Game feel:** coyote time and jump buffering (unit-tested), landing dust, a camera dip on landing and a wider view while sprinting, footsteps, pick-up combos
   that climb the scale, a generative music loop per environment (tempo, key, chords and instrument change), a confetti burst on a correct answer and a shake on a
   wrong one, an animated cannon and a springy lever in the physics challenges. Animation respects `prefers-reduced-motion`.
+* **Accessibility:** the 3D canvas is one labelled image, so the scene is exposed through `SceneAnnouncer`: a polite live region announces the area, anything you
+  walk up to (with the right key or the Use button) and objective/mission progress, and the **Describe surroundings** button (or `H`) reads the nearest
+  stations, characters and portal with distance and direction relative to the camera, plus the way to the next objective (`src/lib/game/a11y/scene.ts`, unit-tested).
+  Dialogs (challenge, dialogue, lore, pause, completion) are modal: focus enters, Tab is trapped and focus returns afterwards. Choices are a real radio group
+  (arrow keys, one tab stop); sequence/match/program controls announce what changed and keep focus; the robot grid and simulations have text alternatives. The HUD
+  is a single flow with wrapping text and scrolling dialogs so a 200% system font does not overlap; the Android app allows pinch zoom. Check on a device with
+  TalkBack and Settings > Display > Font size = largest.
 
 ---
 

@@ -52,11 +52,11 @@ export function LibraryPage() {
                   {g.inProgress && <Badge tone="neon">{t("lib.progress", { n: g.percent })}</Badge>}
                 </div>
                 <p dir="auto" className="text-sm text-muted">{g.subject}</p>
-                {g.bestStars > 0 && <div className="flex items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}
+                {g.bestStars > 0 && <div className="flex flex-wrap items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}
                 <div className="flex flex-wrap gap-2">
-                  <a href={`#/play/${g.id}`} data-testid="mobile-play" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 font-semibold text-ink-950">{g.inProgress ? t("lib.continue") : t("lib.play")}</a>
-                  {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("mob.results")}</a>}
-                  <Button variant="ghost" size="sm" className="ms-auto" onClick={() => remove(g.id)}>{t("mob.delete")}</Button>
+                  <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action: g.inProgress ? t("lib.continue") : t("lib.play"), title: g.title })} className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 font-semibold text-ink-950">{g.inProgress ? t("lib.continue") : t("lib.play")}</a>
+                  {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("mob.results")}</a>}
+                  <Button variant="ghost" size="sm" className="ms-auto" aria-label={t("a11y.forGame", { action: t("mob.delete"), title: g.title })} onClick={() => remove(g.id)}>{t("mob.delete")}</Button>
                 </div>
               </Card>
             </li>

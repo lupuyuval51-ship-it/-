@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { I18nProvider } from "@/components/I18nProvider";
 import { DICTIONARIES, dirOf } from "@/lib/i18n";
 import { useSettings } from "./app-state";
@@ -31,6 +31,17 @@ export function App() {
     document.documentElement.dir = dirOf(locale);
   }, [locale]);
   useEffect(() => { window.scrollTo(0, 0); }, [path]);
+  // Screen readers: after navigating, land on the new page's heading so TalkBack announces where the player is
+  // (the first render keeps the default focus; the play screen manages its own focus).
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (path.startsWith("/play/")) return;
+    const h = document.querySelector<HTMLElement>("main h1");
+    if (!h) return;
+    h.tabIndex = -1;
+    h.focus({ preventScroll: true });
+  }, [path]);
   const play = path.startsWith("/play/");
   return (
     <I18nProvider locale={locale} dict={dict}>

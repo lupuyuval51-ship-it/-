@@ -12,7 +12,9 @@ import type { PublicSpec } from "@/lib/game/spec/public";
 import type { Npc } from "@/lib/game/spec/schema";
 import { missionUnlocked, objectiveProgress, type ClientState, type LearningSummary } from "@/lib/game/state/progress";
 import type { InputState } from "../input";
+import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { Confetti } from "./Confetti";
+import { useDialogFocus } from "./useDialogFocus";
 
 // ───────────────────────── toasts ─────────────────────────
 
@@ -24,9 +26,9 @@ export interface Toast {
 
 export function Toasts({ toasts }: { toasts: Toast[] }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center gap-2 px-4" aria-live="polite">
+    <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex flex-col items-center gap-2 px-4" role="status" aria-live="polite">
       {toasts.map((x) => (
-        <div key={x.id} className={cx("lu-pop rounded-full border px-4 py-2 text-sm font-semibold shadow-e2 backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
+        <div key={x.id} className={cx("lu-pop max-w-full rounded-2xl border px-4 py-2 text-center text-sm font-semibold shadow-e2 backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
           {x.text}
         </div>
       ))}
@@ -97,21 +99,22 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
   const shown = active.length ? active : spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m)).slice(0, 1);
   return (
     <>
-      {/* Two rows on phones so nothing overlaps: [back · area · score · pause], then small status chips. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 space-y-1.5 p-3">
-        <div className="flex items-stretch gap-2">
+      {/* One column, so nothing is positioned by a fixed offset: with a 200% system font the rows simply grow and wrap
+          instead of overlapping the mission list. Row 1: [back · area · score · pause], row 2: status chips, then missions. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex max-h-dvh flex-col items-start gap-1.5 p-3">
+        <div className="flex w-full flex-wrap items-stretch gap-2">
           <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
             <span aria-hidden className="rtl:-scale-x-100">←</span>
           </Link>
-          <div className="pointer-events-auto min-w-0 flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
+          <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
             <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.area")}</p>
-            <p dir="auto" className="truncate text-sm font-semibold" data-testid="area-name">{areaName}</p>
+            <p dir="auto" className="break-words text-sm font-semibold" data-testid="area-name">{areaName}</p>
           </div>
-          <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off">
-            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.score")}</p>
-            <p dir="ltr" className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
+          <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
+            <p className="text-[11px] uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
+            <p dir="ltr" aria-hidden className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
           </div>
-          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button" className="pointer-events-auto shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
+          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
         </div>
         <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
           {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
@@ -124,34 +127,34 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
           )}
           {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
         </div>
+        <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
+          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="hud-missions" className="mb-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-start text-sm font-semibold backdrop-blur">
+            <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
+            <span aria-hidden>{open ? "▾" : "▸"}</span>
+          </button>
+          {open && (
+            <div id="hud-missions" className="min-h-0 space-y-2 overflow-y-auto rounded-xl border border-line bg-ink-900/80 p-3 backdrop-blur" style={{ maxHeight: "min(24rem, 50dvh)" }} data-testid="missions">
+              <ProgressBar value={client.missionsDone.length} max={spec.missions.length} label={t("hud.missions")} />
+              {shown.map((m) => (
+                <div key={m.id} className="space-y-1">
+                  <p dir="auto" className="text-sm font-semibold">{m.title}</p>
+                  <ul className="space-y-0.5 text-xs">
+                    {m.objectives.map((o, i) => {
+                      const p = objectiveProgress(spec, client, m, i);
+                      return (
+                        <li key={i} dir="auto" className={cx("flex items-start gap-1.5", p.done ? "text-lime" : "text-muted")}>
+                          {p.done ? <CircleCheck aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : <Circle aria-hidden className="mt-0.5 size-3.5 shrink-0" />}
+                          <span>{p.done && <span className="sr-only">{t("hud.mission.done")}: </span>}{o.text}{p.target > 1 && ` (${p.current}/${p.target})`}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </aside>
       </div>
-      <aside className="pointer-events-auto absolute start-3 top-[6.5rem] z-10 w-[min(20rem,calc(100vw-1.5rem))]" aria-label={t("hud.missions")}>
-        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mb-1 flex w-full items-center justify-between rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-sm font-semibold backdrop-blur">
-          <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
-          <span aria-hidden>{open ? "▾" : "▸"}</span>
-        </button>
-        {open && (
-          <div className="space-y-2 rounded-xl border border-line bg-ink-900/80 p-3 backdrop-blur" data-testid="missions">
-            <ProgressBar value={client.missionsDone.length} max={spec.missions.length} label={t("hud.missions")} />
-            {shown.map((m) => (
-              <div key={m.id} className="space-y-1">
-                <p dir="auto" className="text-sm font-semibold">{m.title}</p>
-                <ul className="space-y-0.5 text-xs">
-                  {m.objectives.map((o, i) => {
-                    const p = objectiveProgress(spec, client, m, i);
-                    return (
-                      <li key={i} dir="auto" className={cx("flex items-start gap-1.5", p.done ? "text-lime" : "text-muted")}>
-                        {p.done ? <CircleCheck aria-hidden className="mt-0.5 size-3.5 shrink-0" /> : <Circle aria-hidden className="mt-0.5 size-3.5 shrink-0" />}
-                        <span>{o.text}{p.target > 1 && ` (${p.current}/${p.target})`}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-      </aside>
     </>
   );
 }
@@ -175,22 +178,12 @@ export function GuideMarker({ markerRef }: { markerRef: React.RefObject<HTMLDivE
 export function InteractPrompt({ target, touch, onActivate }: { target: Interactable | null; touch: boolean; onActivate: () => void }) {
   const t = useT();
   if (!target) return null;
-  let text: string;
-  let enabled = true;
-  if (target.kind === "npc") text = t("prompt.npc", { label: target.label });
-  else if (target.kind === "portal") {
-    text = target.open ? t("prompt.portal", { label: target.label }) : t("prompt.portal.locked", { label: target.label });
-    enabled = target.open;
-  } else if (target.status === "done") text = t("prompt.station.done", { label: target.label });
-  else if (target.status === "locked") {
-    text = t("prompt.station.locked", { label: target.label });
-    enabled = false;
-  } else text = t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label });
+  const { text, enabled } = interactablePrompt(target, t);
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-28 z-10 flex justify-center px-4 sm:bottom-10">
-      <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} className={cx("pointer-events-auto lu-pop flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-e2 backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
-        {!touch && <kbd className="grid size-7 place-items-center rounded-md border border-line bg-ink-700 font-mono text-xs">{t("prompt.key")}</kbd>}
-        <span dir="auto">{text}</span>
+      <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} aria-keyshortcuts={touch ? undefined : "E"} aria-disabled={enabled ? undefined : true} className={cx("pointer-events-auto lu-pop flex min-h-12 max-w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-e2 backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
+        {!touch && <kbd aria-hidden className="grid size-7 place-items-center rounded-md border border-line bg-ink-700 font-mono text-xs">{t("prompt.key")}</kbd>}
+        <span dir="auto" className="min-w-0 break-words text-start">{text}</span>
       </button>
     </div>
   );
@@ -219,17 +212,17 @@ export function TouchControls({ input, onInteract, hasJump }: { input: InputStat
   };
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between p-4" style={{ direction: "ltr" }} data-testid="touch-controls">
-      <div ref={base} role="application" aria-label="joystick" className="pointer-events-auto relative size-32 touch-none rounded-full border border-line bg-ink-900/60 backdrop-blur"
+      <div ref={base} role="application" aria-label={t("a11y.joystick")} className="pointer-events-auto relative size-[min(8rem,34vw)] shrink-0 touch-none rounded-full border border-line bg-ink-900/60 backdrop-blur"
         onPointerDown={(e) => { pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
         onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={end} onPointerCancel={end}>
         <div className="absolute left-1/2 top-1/2 size-14 rounded-full border border-neon/60 bg-neon/20" style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>
-      <div className="pointer-events-auto flex flex-col items-end gap-3">
-        <button type="button" className="grid size-14 touch-none place-items-center rounded-full border border-line bg-ink-900/70 text-xs font-semibold backdrop-blur active:bg-neon/30"
+      <div className="pointer-events-auto flex min-w-0 flex-col items-end gap-3">
+        <button type="button" aria-label={t("a11y.sprint")} className="grid min-h-14 min-w-14 touch-none place-items-center rounded-full border border-line bg-ink-900/70 px-2 text-xs font-semibold backdrop-blur active:bg-neon/30"
           onPointerDown={() => { input.sprintHeld = true; }} onPointerUp={() => { input.sprintHeld = false; }} onPointerCancel={() => { input.sprintHeld = false; }}>{t("touch.sprint")}</button>
-        <div className="flex gap-3">
-          {hasJump && <button type="button" className="grid size-16 place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30" onClick={() => input.queueJump()}>{t("touch.jump")}</button>}
-          <button type="button" className="grid size-16 place-items-center rounded-full border border-neon/60 bg-neon/20 font-semibold backdrop-blur active:bg-neon/40" onClick={onInteract} data-testid="touch-interact">{t("touch.interact")}</button>
+        <div className="flex flex-wrap justify-end gap-3">
+          {hasJump && <button type="button" className="grid min-h-16 min-w-16 place-items-center rounded-full border border-line bg-ink-900/70 px-3 font-semibold backdrop-blur active:bg-neon/30" onClick={() => input.queueJump()}>{t("touch.jump")}</button>}
+          <button type="button" className="grid min-h-16 min-w-16 place-items-center rounded-full border border-neon/60 bg-neon/20 px-3 font-semibold backdrop-blur active:bg-neon/40" onClick={onInteract} data-testid="touch-interact">{t("touch.interact")}</button>
         </div>
       </div>
     </div>
@@ -242,6 +235,8 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
   const t = useT();
   const [i, setI] = useState(0);
   const last = i >= npc.lines.length - 1;
+  const box = useRef<HTMLDivElement>(null);
+  useDialogFocus(box, "[data-testid=dialogue-next]");
   const next = () => (last ? onClose() : (setI(i + 1), onLine()));
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -253,7 +248,7 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
   });
   return (
     <div className="absolute inset-x-0 bottom-0 z-30 flex justify-center p-3 sm:p-6">
-      <div role="dialog" aria-label={npc.name} data-testid="dialogue" className="lu-pop w-full max-w-2xl space-y-3 rounded-2xl border border-line bg-ink-800/95 p-4 shadow-e3 backdrop-blur">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={npc.name} data-testid="dialogue" className="lu-pop w-full max-w-2xl space-y-3 rounded-2xl border border-line bg-ink-800/95 p-4 shadow-e3 backdrop-blur">
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-10 place-items-center rounded-full" style={{ background: npc.look.color + "33", border: `2px solid ${npc.look.color}`, color: npc.look.color }}><NpcIcon shape={npc.look.shape} className="size-5" /></span>
           <div>
@@ -261,9 +256,9 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
             <p className="text-xs text-muted" dir="auto">{npc.role}</p>
           </div>
         </div>
-        <p dir="auto" className="min-h-12 text-base leading-relaxed">{npc.lines[i]}</p>
+        <p dir="auto" role="status" aria-live="polite" className="min-h-12 text-base leading-relaxed">{npc.lines[i]}</p>
         {last && npc.hint && <p dir="auto" className="rounded-lg border border-amber/40 bg-amber/10 p-2 text-sm"><b className="text-amber">{t("dialogue.hint", { name: npc.name })}: </b>{npc.hint}</p>}
-        <div className="flex justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-muted">{i + 1}/{npc.lines.length}</span>
           <Button size="sm" onClick={next} data-testid="dialogue-next">{last ? t("dialogue.close") : t("dialogue.next")}</Button>
         </div>
@@ -274,6 +269,8 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
 
 export function LoreCard({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
   const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  useDialogFocus(box);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", "KeyE", "Space"].includes(e.code)) { e.preventDefault(); onClose(); } };
     window.addEventListener("keydown", onKey);
@@ -281,7 +278,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
   }, [onClose]);
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
-      <div role="dialog" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={title} data-testid="lore-card" className="lu-pop w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
         <div className="flex justify-end"><Button onClick={onClose}>{t("lore.close")}</Button></div>
@@ -295,21 +292,23 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
   const t = useT();
   const [confirm, setConfirm] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useDialogFocus(box, "[data-testid=resume-button]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/75 p-4 backdrop-blur-sm">
-      <div role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-line bg-ink-800 p-5 shadow-e3">
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3">
         <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
         <div className="space-y-2">
-          <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
-          <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
-          <label className="flex items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
+          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
+          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
+          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
+          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
           <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
         </div>
         <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
           <summary className="cursor-pointer font-medium">{t("hud.controls")}</summary>
           <ul className="mt-2 space-y-1 text-muted">
-            {(["move", "look", "jump", "sprint", "interact", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
+            {(["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
           </ul>
         </details>
         <div className="flex flex-wrap gap-2">
@@ -326,10 +325,12 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
 
 export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary: LearningSummary; gameId: string; sessionId: string; onReplay: () => void }) {
   const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  useDialogFocus(box, "[data-testid=results-link]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur">
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur">
       <Confetti />
-      <div role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
         <Stars n={summary.stars} size="lg" />
         <p className="text-lg" data-testid="final-score">{t("done.score", { score: summary.score, max: summary.maxScore })}</p>
