@@ -1,5 +1,6 @@
 /** Owned by the dashboard feature. Hebrew (he/dashboard.ts) must have exactly the same keys. */
 const dashboard = {
+  loading: 'Loading your dashboard',
   title: 'Dashboard',
   greeting: {
     morning: 'Good morning, {name}',

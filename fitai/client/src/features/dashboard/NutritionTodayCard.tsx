@@ -45,9 +45,9 @@ export function NutritionTodayCard({ nutrition }: { nutrition: DashboardDTO['nut
               <div key={m.key} className="macro-row">
                 <div className="row-between small">
                   <span className="macro-name">{t(`common.macros.${m.key}`)}</span>
-                  <span className="muted num">
+                  <bdi dir="ltr" className="muted num">
                     {goal != null ? t('dashboard.nutrition.macro', { value: formatNumber(value), target: formatNumber(goal) }) : `${formatNumber(value)} ${t('common.units.g')}`}
-                  </span>
+                  </bdi>
                 </div>
                 <ProgressBar value={value} max={goal ?? Math.max(1, value)} tone={m.tone} label={t(`common.macros.${m.key}`)} />
               </div>

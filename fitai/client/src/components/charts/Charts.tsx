@@ -3,7 +3,7 @@
  * (time flows LTR in numeric charts); each includes a visually-hidden data table for
  * screen readers.
  */
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type KeyboardEvent as _KE, type ReactNode } from 'react';
 
 export interface ChartPoint {
   /** Category / x label (already formatted for display). */
@@ -99,6 +99,27 @@ function DataTable({ data, title, formatValue }: { data: ChartPoint[]; title: st
   );
 }
 
+/** Floating tooltip anchored above a data point; clamped so it never leaves the chart. */
+function Tooltip({ x, y, W, label, value }: { x: number; y: number; W: number; label: string; value: string }) {
+  const half = 64;
+  const left = Math.max(half, Math.min(W - half, x));
+  return (
+    <div className="chart-tip" style={{ insetInlineStart: left, insetBlockStart: Math.max(0, y - 10) }} role="status">
+      <span className="chart-tip-label">{label}</span>
+      <strong className="chart-tip-value num">{value}</strong>
+    </div>
+  );
+}
+
+/** Left/right arrows move the active point so keyboard users get the same tooltip as hover. */
+function useArrowKeys(count: number, setHover: (fn: (i: number | null) => number | null) => void) {
+  return (e: _KE<Element>) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return;
+    e.preventDefault();
+    setHover((i) => (e.key === 'Home' ? 0 : e.key === 'End' ? count - 1 : Math.max(0, Math.min(count - 1, (i ?? (e.key === 'ArrowRight' ? -1 : count)) + (e.key === 'ArrowRight' ? 1 : -1)))));
+  };
+}
+
 export function LineChart({ data, title, height: baseHeight = 220, formatValue = (v) => String(Math.round(v * 10) / 10), tone = 'primary', reference, emptyMessage }: ChartProps) {
   const id = useId();
   const [hover, setHover] = useState<number | null>(null);
@@ -116,10 +137,21 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
   const ticks = [s.min, (s.min + s.max) / 2, s.max];
   const every = labelEvery(data.length, W);
   const hovered = hover != null ? data[hover] : null;
+  const onKey = useArrowKeys(data.length, setHover);
+  const baseY = PAD.top + s.innerH;
+  const firstI = data.findIndex((d) => d.value != null);
+  const lastI = data.length - 1 - [...data].reverse().findIndex((d) => d.value != null);
+  const area = `${path} L${x(lastI)},${baseY} L${x(firstI)},${baseY} Z`;
   return (
     <figure className="chart" dir="ltr" ref={ref}>
-      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} tabIndex={0} onKeyDown={onKey} onBlur={() => setHover(null)} onMouseLeave={() => setHover(null)}>
         <title id={`${id}-t`}>{title}</title>
+        <defs>
+          <linearGradient id={`${id}-g`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" className="chart-area-stop" stopOpacity="0.32" />
+            <stop offset="100%" className="chart-area-stop" stopOpacity="0" />
+          </linearGradient>
+        </defs>
         {ticks.map((t, i) => (
           <g key={i}>
             <line x1={PAD.left} x2={W - PAD.right} y1={s.y(t)} y2={s.y(t)} className="chart-grid" />
@@ -136,12 +168,15 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
             </text>
           </g>
         )}
+        {points.length > 1 && <path d={area} fill={`url(#${id}-g)`} className="chart-area" />}
+        {hover != null && data[hover]?.value != null && <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={baseY} className="chart-cursor" />}
         <path d={path} className="chart-line" fill="none" />
         {data.map((d, i) =>
           d.value == null ? null : (
-            <circle key={i} cx={x(i)} cy={s.y(d.value)} r={hover === i ? 5 : 3.5} className="chart-dot" onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} tabIndex={-1} />
+            <circle key={i} cx={x(i)} cy={s.y(d.value)} r={hover === i ? 5.5 : data.length > 40 ? 0 : 3.5} className={`chart-dot${hover === i ? ' chart-dot-active' : ''}`} />
           ),
         )}
+        {data.map((d, i) => (d.value == null ? null : <rect key={`h${i}`} x={x(i) - Math.max(step, 12) / 2} y={PAD.top} width={Math.max(step, 12)} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} />))}
         {data.map((d, i) =>
           showLabel(i, data.length, every) ? (
             <text key={i} x={x(i)} y={height - 8} textAnchor="middle" className="chart-axis">
@@ -150,11 +185,7 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
           ) : null,
         )}
       </svg>
-      {hovered && hovered.value != null && (
-        <div className="chart-tooltip">
-          {hovered.label}: <strong>{formatValue(hovered.value)}</strong>
-        </div>
-      )}
+      {hovered && hover != null && hovered.value != null && <Tooltip x={x(hover)} y={s.y(hovered.value)} W={W} label={hovered.label} value={formatValue(hovered.value)} />}
       <DataTable data={data} title={title} formatValue={formatValue} />
     </figure>
   );
@@ -170,9 +201,10 @@ export function BarChart({ data, title, height: baseHeight = 200, formatValue = 
   const barW = Math.max(2, Math.min(36, band * 0.7));
   const every = labelEvery(data.length, W);
   const hovered = hover != null ? data[hover] : null;
+  const onKey = useArrowKeys(data.length, setHover);
   return (
     <figure className="chart" dir="ltr" ref={ref}>
-      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} tabIndex={0} onKeyDown={onKey} onBlur={() => setHover(null)} onMouseLeave={() => setHover(null)}>
         <title id={`${id}-t`}>{title}</title>
         {[s.min, s.max / 2, s.max].map((t, i) => (
           <g key={i}>
@@ -193,11 +225,16 @@ export function BarChart({ data, title, height: baseHeight = 200, formatValue = 
               y={y}
               width={barW}
               height={Math.max(0, PAD.top + s.innerH - y)}
-              rx={3}
-              className={`chart-bar${hover === i ? ' chart-bar-hover' : ''}`}
-              onMouseEnter={() => setHover(i)}
+              rx={Math.min(5, barW / 2)}
+              className={`chart-bar${hover === i ? ' chart-bar-hover' : ''}${reference && v >= reference.value ? ' chart-bar-met' : ''}`}
             />
           );
+        })}
+        {data.map((_, i) => (
+          <rect key={`h${i}`} x={PAD.left + i * band} y={PAD.top} width={band} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} />
+        ))}
+        {data.map(() => {
+          return null;
         })}
         {reference && (
           <g>
@@ -215,11 +252,7 @@ export function BarChart({ data, title, height: baseHeight = 200, formatValue = 
           ) : null,
         )}
       </svg>
-      {hovered && (
-        <div className="chart-tooltip">
-          {hovered.label}: <strong>{formatValue(hovered.value ?? 0)}</strong>
-        </div>
-      )}
+      {hovered && hover != null && <Tooltip x={PAD.left + hover * band + band / 2} y={s.y(hovered.value ?? 0)} W={W} label={hovered.label} value={formatValue(hovered.value ?? 0)} />}
       <DataTable data={data} title={title} formatValue={formatValue} />
     </figure>
   );

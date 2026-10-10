@@ -2,6 +2,7 @@ import type en from '../en/dashboard';
 import type { Translations } from '../types';
 
 const dashboard: Translations<typeof en> = {
+  loading: 'טוען את לוח הבקרה',
   title: 'לוח בקרה',
   greeting: {
     morning: 'בוקר טוב, {name}',

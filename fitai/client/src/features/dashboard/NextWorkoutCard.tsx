@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import type { DashboardDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
-import { Badge, Button, Card, EmptyState, LinkButton, useToast } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, Icon, LinkButton, useToast } from '../../components/ui';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
@@ -90,7 +90,11 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan
   const nextFocus = focusLabel(nextWorkout.focus, i18n);
   return (
     <Card title={t('dashboard.nextWorkout.title')} className="dash-next">
-      <div className="stack-sm">
+      <div className="dash-next-body">
+        <span className="dash-next-icon" aria-hidden="true">
+          <Icon name="dumbbell" size={26} />
+        </span>
+        <div className="stack-sm dash-next-info">
         <h3 className="dash-next-name">{nextWorkout.name}</h3>
         {nextFocus && nextFocus !== nextWorkout.name && <p className="muted">{nextFocus}</p>}
         <div className="row">
@@ -104,6 +108,7 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'activePlan
           )}
         </div>
         <p className="small faint">{t('dashboard.nextWorkout.fromPlan', { plan: activePlan.name })}</p>
+        </div>
       </div>
       <div className="row dash-next-actions">
         {activeSession ? (

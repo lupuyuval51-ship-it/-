@@ -1,5 +1,6 @@
 /** Owned by the progress feature. Hebrew (he/progress.ts) must have exactly the same keys. */
 const progress = {
+  loading: 'Loading your progress',
   title: 'Progress',
   subtitle: 'Your trends — based only on what you recorded.',
   period: {

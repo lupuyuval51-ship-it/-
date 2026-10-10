@@ -1,18 +1,74 @@
-/* Dashboard (home). Mobile-first; logical properties only. */
+/* Dashboard (home). Mobile-first; logical properties only. Local tokens live on .dashboard / .progress-page. */
 
+.dashboard,
+.progress-page,
+.notif-page {
+  --accent-grad: linear-gradient(135deg, color-mix(in srgb, var(--primary) 85%, #fff 0%), color-mix(in srgb, var(--info) 80%, var(--primary)));
+  --hero-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, var(--surface)) 0%, var(--surface) 60%);
+  --gold: var(--warning);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dash-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.dash-hero {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .dash-hero {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
 .dash-grid {
   display: grid;
   gap: var(--space-4);
   grid-template-columns: 1fr;
+  align-items: start;
 }
 @media (min-width: 760px) {
   .dash-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .dash-grid .dash-nutrition {
+    grid-column: 1 / -1;
+  }
 }
 @media (min-width: 1180px) {
   .dash-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .dash-grid .dash-nutrition {
+    grid-column: auto;
+  }
+}
+.dash-grid > .card,
+.dash-hero > .card {
+  animation: dash-rise 420ms var(--ease-out) both;
+}
+.dash-hero > .card:nth-child(2) {
+  animation-delay: 70ms;
+}
+.dash-grid > .card:nth-child(2) {
+  animation-delay: 120ms;
+}
+.dash-grid > .card:nth-child(3) {
+  animation-delay: 170ms;
+}
+@keyframes dash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-grid > .card,
+  .dash-hero > .card {
+    animation: none;
   }
 }
 
@@ -25,7 +81,8 @@
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
-  background: var(--primary-soft);
+  background: var(--hero-bg);
+  box-shadow: var(--shadow);
 }
 .resume-icon {
   display: grid;
@@ -36,6 +93,21 @@
   background: var(--primary);
   color: var(--primary-contrast);
   flex-shrink: 0;
+  animation: resume-pulse 2.4s ease-in-out infinite;
+}
+@keyframes resume-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .resume-icon {
+    animation: none;
+  }
 }
 .resume-body {
   flex: 1;
@@ -45,12 +117,45 @@
   font-size: 16px;
 }
 
-/* Next workout */
+/* Next workout (hero) */
+.dash-next {
+  background: var(--hero-bg);
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.dash-next-body {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+.dash-next-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.dash-next-info {
+  min-width: 0;
+}
 .dash-next-name {
-  font-size: 20px;
+  font-size: 22px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .dash-next-actions {
-  margin-block-start: var(--space-4);
+  margin-block-start: var(--space-5);
+}
+.dash-next-actions .btn-primary {
+  min-height: 48px;
+  padding-inline: var(--space-6);
+  font-size: 16px;
 }
 .dash-last {
   margin-block-start: var(--space-3);
@@ -77,6 +182,10 @@
 .macro-name {
   font-weight: 600;
 }
+.dash-nutrition .num,
+.dash-weekly .num {
+  font-variant-numeric: tabular-nums;
+}
 .dash-nutrition .notice {
   margin-block-start: var(--space-3);
 }
@@ -93,7 +202,32 @@
   }
 }
 
-/* Weekly goal */
+/* Weekly goal (hero) */
+.dash-weekly {
+  display: flex;
+  flex-direction: column;
+}
+.weekly-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+.weekly-text {
+  min-width: 0;
+}
+.ring-value-lg {
+  font-size: 30px;
+  line-height: 1;
+}
+.ring-of {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.dash-weekly .ring-sub {
+  margin-block-start: 4px;
+  color: var(--text-muted);
+}
 .weekly-count {
   font-size: 18px;
 }
@@ -103,7 +237,7 @@
 }
 .week-dots {
   list-style: none;
-  margin: 0;
+  margin: var(--space-4) 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -118,12 +252,13 @@
 .week-dot-mark {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 2px solid var(--border);
   background: var(--surface-2);
   color: var(--primary-contrast);
+  transition: transform 200ms var(--ease-out);
 }
 .week-dot-done .week-dot-mark {
   background: var(--primary);
@@ -140,21 +275,51 @@
 .week-dot-today .week-dot-label {
   color: var(--text);
 }
+.dash-weekly .divider {
+  margin-block: var(--space-4);
+}
+.dash-weekly .level-progress {
+  margin-block-start: auto;
+}
+@media (max-width: 420px) {
+  .weekly-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+}
 
-/* Quick actions */
+/* Quick actions: slim shortcut row */
 .quick-actions {
   display: grid;
   gap: var(--space-2);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+@media (min-width: 760px) {
+  .quick-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 .quick-actions .btn {
-  justify-content: flex-start;
+  justify-content: center;
   white-space: normal;
-  text-align: start;
+  text-align: center;
   min-height: 48px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.quick-actions .btn:hover {
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
 }
 @media (max-width: 360px) {
   .quick-actions {
     grid-template-columns: 1fr;
   }
+}
+
+.dash-grid .card-header {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.dash-grid .card-header .card-title {
+  flex: 1 1 auto;
 }
