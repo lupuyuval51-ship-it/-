@@ -111,10 +111,107 @@ test('search, preview, log, edit, correct and delete a food', async ({ page }) =
   await edit.getByRole('button', { name: 'Revert to calculated values' }).click();
   await expect(toast(page, 'Values recalculated from the food')).toBeVisible();
   await expect(breakfast.getByText('Corrected')).toBeHidden();
+  // Delete is immediate (no confirm dialog) and can be undone.
   await page.getByRole('button', { name: `Delete ${CHICKEN}` }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-  await expect(toast(page, 'Entry deleted')).toBeVisible();
+  await expect(toast(page, `${CHICKEN} removed`)).toBeVisible();
   await expect(page.getByText('Nothing logged yet today')).toBeVisible();
+  await page.locator('.toasts').getByRole('button', { name: 'Undo' }).click();
+  await expect(toast(page, `${CHICKEN} put back`)).toBeVisible();
+  await expect(breakfast.getByText(CHICKEN)).toBeVisible();
+  await expect(page.getByRole('img', { name: /^151 of [\d,]+ kcal eaten$/ })).toBeVisible();
+  await page.getByRole('button', { name: `Delete ${CHICKEN}` }).click();
+  await expect(page.getByText('Nothing logged yet today')).toBeVisible();
+});
+
+async function apiPost(page: Page, path: string, data: unknown) {
+  const me = await (await page.request.get('/api/auth/me')).json();
+  const res = await page.request.post(path, { headers: { 'x-csrf-token': me.csrfToken, 'content-type': 'application/json' }, data });
+  if (!res.ok()) throw new Error(`${path} failed: ${res.status()} ${await res.text()}`);
+  return res.json();
+}
+
+const shiftDate = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+
+test('fewest taps: recent foods first, repeat yesterday, copy a meal to another day', async ({ page }) => {
+  await readyUser(page);
+  const { today } = await (await page.request.get('/api/dashboard')).json();
+  const found = await (await page.request.get('/api/foods/search?q=chicken%20breast')).json();
+  const chicken = found.foods.find((f: { name: { en: string } }) => f.name.en === CHICKEN);
+  await apiPost(page, '/api/nutrition/logs', { date: shiftDate(today, -1), mealType: 'breakfast', foodId: chicken.id, grams: 200 });
+
+  // Recent foods are offered before anything is typed, pre-filled with the last amount.
+  await page.goto('/nutrition/log?meal=lunch');
+  await expect(page.getByRole('heading', { name: 'Recently logged' })).toBeVisible();
+  const recent = page.getByRole('list', { name: 'Recently logged' });
+  await expect(recent.getByText('Last time: 200 g')).toBeVisible();
+  await recent.getByRole('button', { name: `Add ${CHICKEN}` }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('textbox', { name: 'Amount', exact: true })).toHaveValue('200');
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+
+  // Same breakfast as yesterday in one tap, right from the log page.
+  await page.goto('/nutrition/log?meal=breakfast');
+  await page.getByRole('button', { name: 'Copy yesterday’s Breakfast' }).click();
+  await expect(toast(page, 'Copied 1 item from yesterday')).toBeVisible();
+  await expect(page.getByText(/Breakfast so far: 302 kcal · 1 item/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Copy yesterday’s Breakfast' })).toHaveCount(0);
+
+  // Copy a meal to another day and jump there.
+  await page.goto('/nutrition');
+  await page.getByRole('button', { name: 'Copy Breakfast to another day' }).click();
+  const copy = page.getByRole('dialog', { name: 'Copy Breakfast to another day' });
+  await expect(copy.getByLabel('Copy to')).toHaveValue(shiftDate(today, 1));
+  await copy.getByRole('button', { name: 'Copy', exact: true }).click();
+  await expect(toast(page, /Copied 1 item from Breakfast to/)).toBeVisible();
+  await page.locator('.toasts').getByRole('button', { name: 'Go to that day' }).click();
+  await expect(page).toHaveURL(new RegExp(`date=${shiftDate(today, 1)}`));
+  await expect(page.getByRole('list', { name: 'Breakfast' }).getByText(CHICKEN)).toBeVisible();
+});
+
+test('allergy warning is explicit at the moment of choosing a food', async ({ page }) => {
+  await readyUser(page, { allergies: ['peanut'] });
+  await page.goto('/nutrition/log?meal=snack');
+  await page.getByLabel('Search foods').fill('peanuts');
+  await page.getByRole('button', { name: 'Add Peanuts, dry-roasted, unsalted' }).first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Allergy warning')).toBeVisible();
+  await expect(dialog.getByText(/contains an ingredient you listed as an allergy/)).toBeVisible();
+  // Logging stays possible (it is the user's decision) but is labelled for what it is.
+  await expect(dialog.getByRole('button', { name: 'Log', exact: true })).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Log anyway' }).click();
+  await expect(toast(page, 'Peanuts, dry-roasted, unsalted added to Snack')).toBeVisible();
+});
+
+test('a saved meal keeps the corrections made to its entries', async ({ page }) => {
+  await readyUser(page);
+  await page.goto('/nutrition/log?meal=lunch');
+  await page.getByLabel('Search foods').fill('chicken breast');
+  await page.getByRole('button', { name: `Add ${CHICKEN}`, exact: true }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Log', exact: true }).click();
+  await expect(toast(page, `${CHICKEN} added to Lunch`)).toBeVisible();
+
+  await page.goto('/nutrition');
+  await page.getByRole('button', { name: `Edit ${CHICKEN}` }).click();
+  const edit = page.getByRole('dialog');
+  await edit.getByRole('switch', { name: 'Correct nutrient values manually' }).click();
+  await edit.getByLabel('Calories (kcal)').fill('250');
+  await edit.getByRole('button', { name: 'Save' }).click();
+  await expect(toast(page, 'Entry updated')).toBeVisible();
+
+  await page.goto('/nutrition/log?meal=lunch&tab=saved');
+  await page.getByRole('button', { name: 'Save Lunch as a meal' }).click();
+  await page.getByRole('dialog').getByRole('textbox', { name: 'Meal name' }).fill('Label-checked lunch');
+  await page.getByRole('dialog').getByRole('button', { name: 'Save meal' }).click();
+  await expect(toast(page, '“Label-checked lunch” saved')).toBeVisible();
+  await expect(page.getByText('Your corrected values are kept when you log this meal.')).toBeVisible();
+
+  await page.getByLabel('Meal', { exact: true }).selectOption('dinner');
+  await page.getByRole('button', { name: 'Log “Label-checked lunch” to Dinner' }).click();
+  await expect(toast(page, '“Label-checked lunch” added to Dinner')).toBeVisible();
+  await page.getByRole('link', { name: 'Done' }).click();
+  const dinner = page.getByRole('list', { name: 'Dinner' });
+  await expect(dinner.getByText('250 kcal')).toBeVisible();
+  await expect(dinner.getByText('Corrected')).toBeVisible();
 });
 
 test('custom food, quick add, saved meal and re-log', async ({ page }) => {
