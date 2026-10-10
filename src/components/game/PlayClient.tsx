@@ -12,6 +12,7 @@ import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
 import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
+import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
 import { Minimap } from "./hud/Minimap";
@@ -54,7 +55,7 @@ const readPref = (k: string, d: boolean): boolean => {
   }
 };
 
-export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate";
+export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate" | "streak" | "victory" | "area";
 
 /**
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
@@ -182,7 +183,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       for (const id of res.newlyCompletedMissions) {
         const m = d.spec.missions.find((x) => x.id === id);
         toast(t("toast.mission", { title: m?.title ?? id }), "good");
-        audio.play("mission");
+        if (!res.completed) audio.playEvent({ type: "mission" }); // the last mission is covered by the victory jingle
         feedback.current?.("mission");
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1, p.z, "#a3ff4f", 40);
@@ -190,7 +191,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       for (const a of res.newAchievements) toast(t("toast.achievement", { name: t(`ach.${a}` as never) }), "good");
       if (res.completed && res.summary) {
         setOverlay({ type: "done", summary: res.summary });
-        audio.play("mission");
+        audio.playEvent({ type: "complete" });
+        feedback.current?.("victory");
       }
       return res;
     };
@@ -272,7 +274,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     } else if (target.kind === "portal") {
       if (!target.open) { toast(t("prompt.portal.locked", { label: target.label }), "warn"); return; }
       send({ type: "enter_area", areaId: target.id })
-        .then(() => { audio.play("portal"); toast(t("toast.area", { name: d.spec.areas.find((a) => a.id === target.id)?.name ?? "" }), "good"); })
+        .then(() => { audio.play("portal"); audio.play("areaEnter", { delay: 0.55 }); feedback.current?.("area"); toast(t("toast.area", { name: d.spec.areas.find((a) => a.id === target.id)?.name ?? "" }), "good"); })
         .catch(handleError);
     } else if (target.status === "locked") {
       toast(t("prompt.station.locked", { label: target.label }), "warn");
@@ -305,9 +307,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     try {
       const res = await send<EventResponse & { data: { result: AnswerResult } }>({ type: "answer", stationId: o.stationId, answer });
       const result = res.data.result;
-      audio.play(result.correct ? "correct" : "wrong");
+      const streak = result.correct ? res.state.streak : 0; // the server's count of right answers in a row
+      audio.playEvent({ type: "answer", correct: result.correct, streak });
       feedback.current?.(result.correct ? "correct" : "wrong");
+      if (result.correct && streakLevel(streak) > 0) feedback.current?.("streak");
       if (result.correct) {
+        if (streak >= 3) pop(t("hud.streak", { n: streak }), "gold");
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#a3ff4f", 36);
         if (result.pointsAwarded > 0) pop(t("hud.points", { n: result.pointsAwarded }));

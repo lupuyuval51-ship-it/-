@@ -174,6 +174,9 @@ p { text-wrap: pretty; }
 
 @keyframes lu-float { 0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; } 12% { transform: translate(-50%, -8px) scale(1.15); opacity: 1; } 100% { transform: translate(-50%, -90px) scale(1); opacity: 0; } }
 .lu-float { animation: lu-float 1.4s ease-out both; }
+/* Reduced motion: the reward text just appears in place (the generic rule above would make it flash and vanish). */
+.reduce-motion .lu-float { animation: none !important; transform: translate(-50%, -40px); opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .lu-float { animation: none !important; transform: translate(-50%, -40px); opacity: 1; } }
 @keyframes lu-pop { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .lu-pop { animation: lu-pop 0.18s ease-out both; }
 @keyframes lu-confetti { 0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.6); opacity: 0; } }

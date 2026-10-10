@@ -22,10 +22,10 @@ export function installBackButton(): void {
 export function haptic(kind: Feedback): void {
   if (!getSettings().vibration) return;
   if (Capacitor.isNativePlatform()) {
-    if (kind === "correct" || kind === "mission") void Haptics.notification({ type: NotificationType.Success });
+    if (kind === "correct" || kind === "mission" || kind === "victory") void Haptics.notification({ type: NotificationType.Success });
     else if (kind === "wrong") void Haptics.notification({ type: NotificationType.Error });
     else void Haptics.impact({ style: ImpactStyle.Light });
     return;
   }
-  navigator.vibrate?.(kind === "wrong" ? [40, 60, 40] : kind === "collect" || kind === "gate" ? 15 : 30);
+  navigator.vibrate?.(kind === "wrong" ? [25, 50, 25] : kind === "victory" ? [30, 50, 30, 50, 80] : kind === "streak" ? [15, 40, 25] : kind === "collect" || kind === "gate" ? 15 : 30);
 }
