@@ -34,7 +34,6 @@ export default defineConfig({
       APP_ENV: "test",
       APP_URL: BASE,
       DATABASE_URL: DB,
-      SESSION_SECRET: "e2e-only-session-secret-0123456789abcdef0123456789",
       TRUST_PROXY: "true",
       AI_PROVIDER: "demo",
       PAYMENTS_MODE: "dev",

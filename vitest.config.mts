@@ -11,7 +11,6 @@ const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? "postgresql://levelup:l
 const baseEnv = {
   APP_ENV: "test",
   APP_URL: "http://localhost:3000",
-  SESSION_SECRET: "test-only-session-secret-0123456789abcdef0123456789",
   TRUST_PROXY: "true",
   AI_PROVIDER: "demo",
   PAYMENTS_MODE: "disabled",

@@ -11,7 +11,6 @@ const schema = z.object({
   APP_ENV: z.enum(["local", "test", "production"]).default("local"),
   APP_URL: z.string().url().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
   TRUST_PROXY: bool.default(false),
 
   AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "demo"]).default("auto"),
@@ -49,7 +48,7 @@ export function getEnv(): Env {
     // Hard guards: simulators and test hooks must never be reachable in production.
     if (env.PAYMENTS_MODE === "dev") throw new Error("PAYMENTS_MODE=dev is not allowed when APP_ENV=production");
     if (env.ENABLE_TEST_HOOKS) throw new Error("ENABLE_TEST_HOOKS=true is not allowed when APP_ENV=production");
-    if (/replace-with|local-dev-only|change-me/i.test(env.SESSION_SECRET)) throw new Error("SESSION_SECRET must be a real random secret in production");
+    if (!env.APP_URL.startsWith("https://")) throw new Error("APP_URL must be an https:// URL when APP_ENV=production (cookies are Secure and Stripe redirects use it)");
   }
   cached = env;
   return env;

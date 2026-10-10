@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { getEnv, resetEnvForTests } from "@/server/env";
 
-const KEYS = ["APP_ENV", "PAYMENTS_MODE", "ENABLE_TEST_HOOKS", "SESSION_SECRET"] as const;
+const KEYS = ["APP_ENV", "APP_URL", "PAYMENTS_MODE", "ENABLE_TEST_HOOKS", "DATABASE_URL"] as const;
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 afterEach(() => {
   for (const k of KEYS) {
@@ -18,7 +18,7 @@ function withEnv(over: Partial<Record<(typeof KEYS)[number], string>>) {
 }
 
 describe("production safety guards", () => {
-  const prod = { APP_ENV: "production", SESSION_SECRET: "x".repeat(48), PAYMENTS_MODE: "disabled", ENABLE_TEST_HOOKS: "false" };
+  const prod = { APP_ENV: "production", APP_URL: "https://levelup.example", PAYMENTS_MODE: "disabled", ENABLE_TEST_HOOKS: "false" };
 
   it("refuses the payment simulator in production", () => {
     expect(withEnv({ ...prod, PAYMENTS_MODE: "dev" })).toThrow(/PAYMENTS_MODE=dev is not allowed/);
@@ -26,14 +26,14 @@ describe("production safety guards", () => {
   it("refuses test hooks in production", () => {
     expect(withEnv({ ...prod, ENABLE_TEST_HOOKS: "true" })).toThrow(/ENABLE_TEST_HOOKS/);
   });
-  it("refuses a placeholder session secret in production", () => {
-    expect(withEnv({ ...prod, SESSION_SECRET: "replace-with-a-long-random-string-0123456789abcdef" })).toThrow(/SESSION_SECRET/);
-  });
   it("accepts a real production configuration, and allows the simulator outside production", () => {
     expect(withEnv(prod)().PAYMENTS_MODE).toBe("disabled");
     expect(withEnv({ ...prod, APP_ENV: "local", PAYMENTS_MODE: "dev" })().PAYMENTS_MODE).toBe("dev");
   });
-  it("rejects short session secrets everywhere", () => {
-    expect(withEnv({ ...prod, APP_ENV: "local", SESSION_SECRET: "short" })).toThrow(/at least 32/);
+  it("requires https in production", () => {
+    expect(withEnv({ ...prod, APP_URL: "http://levelup.example" })).toThrow(/https/);
+  });
+  it("requires a database URL", () => {
+    expect(withEnv({ ...prod, APP_ENV: "local", DATABASE_URL: "" })).toThrow(/DATABASE_URL/);
   });
 });
