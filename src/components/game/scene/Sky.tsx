@@ -12,10 +12,22 @@ import { mulberry32 } from "@/lib/game/util/prng";
 const LIGHT_UNITS = 2.6;
 
 const skyVert = `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`;
-const skyFrag = `varying vec3 vDir; uniform vec3 top; uniform vec3 bottom; uniform vec3 sun; uniform vec3 sunDir;
-void main(){ float h = clamp(vDir.y*0.5+0.5, 0.0, 1.0); vec3 c = mix(bottom, top, pow(h, 0.65));
-  float s = max(dot(normalize(vDir), normalize(sunDir)), 0.0); c += sun * (pow(s, 600.0)*1.4 + pow(s, 8.0)*0.18);
-  float horizon = exp(-abs(vDir.y)*9.0); c += bottom * horizon * 0.25; gl_FragColor = vec4(c, 1.0); }`;
+const skyFrag = `varying vec3 vDir; uniform vec3 top; uniform vec3 bottom; uniform vec3 sun; uniform vec3 sunDir; uniform float time; uniform float clouds;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p){ vec2 i = floor(p); vec2 f = fract(p); f = f*f*(3.0 - 2.0*f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
+float fbm(vec2 p){ float v = 0.0; float a = 0.5; for (int i = 0; i < 4; i++) { v += a * vnoise(p); p *= 2.03; a *= 0.5; } return v; }
+void main(){ vec3 d = normalize(vDir); float h = clamp(d.y*0.5+0.5, 0.0, 1.0); vec3 c = mix(bottom, top, pow(h, 0.65));
+  float s = max(dot(d, normalize(sunDir)), 0.0); c += sun * (pow(s, 600.0)*1.4 + pow(s, 8.0)*0.18);
+  float horizon = exp(-abs(d.y)*9.0); c += bottom * horizon * 0.25;
+  if (clouds > 0.5 && d.y > 0.02) {
+    vec2 uv = d.xz / (d.y + 0.22) * 1.5 + vec2(time * 0.01, time * 0.004);
+    float n = fbm(uv);
+    float cover = smoothstep(0.5, 0.78, n) * smoothstep(0.02, 0.3, d.y);
+    vec3 cc = mix(vec3(1.0), sun, 0.15 + 0.35 * pow(s, 4.0)) * (0.9 - 0.18 * smoothstep(0.6, 0.9, n));
+    c = mix(c, cc, cover * 0.85);
+  }
+  gl_FragColor = vec4(c, 1.0); }`;
 
 /** Backdrop: Tier A = shader dome with sun glow + stars, Tier B = gradient, Tier C = flat colour. */
 export function Sky({ profile, theme }: { profile: RenderProfile; theme: EnvTheme }) {
@@ -25,7 +37,9 @@ export function Sky({ profile, theme }: { profile: RenderProfile; theme: EnvThem
 
   const uniforms = useMemo(() => ({
     top: { value: new THREE.Color(theme.skyTop) }, bottom: { value: new THREE.Color(theme.skyBottom) },
-    sun: { value: new THREE.Color(theme.sun) }, sunDir: { value: new THREE.Vector3(0.4, 0.55, -0.7) },
+    // the glow sits where the directional light really comes from (see `Lights`)
+    sun: { value: new THREE.Color(theme.sun) }, sunDir: { value: new THREE.Vector3(22, 34, 14).normalize() },
+    time: { value: 0 }, clouds: { value: theme.clouds && !theme.stars ? 1 : 0 },
   }), [theme]);
 
   useEffect(() => {
@@ -65,9 +79,10 @@ export function Sky({ profile, theme }: { profile: RenderProfile; theme: EnvThem
     return g;
   }, [profile.sky, theme.stars]);
 
-  useFrame(({ camera }) => {
+  useFrame(({ camera, clock }) => {
     dome.current?.position.copy(camera.position);
     stars.current?.position.copy(camera.position);
+    uniforms.time.value = clock.elapsedTime;
   });
 
   if (profile.sky !== "dome") return null;

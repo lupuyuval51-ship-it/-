@@ -92,6 +92,10 @@ export interface MaterialSet {
   glow(color: string, intensity?: number): THREE.Material;
   /** Unlit material that is tinted by per-instance colour (used for glowing scenery). */
   unlit(): THREE.Material;
+  /** Plain coloured material without procedural textures (characters, props with clean colours). */
+  solid(color: string, opts?: { rough?: number; metal?: number }): THREE.Material;
+  /** Always-unlit flat colour (eyes, screens, outlines). Cheap on every tier. */
+  flat(color: string): THREE.Material;
   dispose(): void;
 }
 
@@ -111,6 +115,8 @@ export function createMaterialSet(profile: RenderProfile, theme: EnvTheme): Mate
     stationPad: { color: mix(theme.platform, theme.accent, 0.25), rough: 0.6, metal: 0.25 },
     mover: { color: mix(theme.platform, theme.accent2, 0.5), rough: 0.5, metal: 0.4, emissive: new THREE.Color(theme.accent2).multiplyScalar(0.18) },
     prop: { color: mix(theme.wall, "#ffffff", 0.1), rough: 0.9, metal: 0.05 },
+    /** Scenery: near-white so each instance's own palette colour shows true (only a hint of the world's wall colour). */
+    decor: { color: mix("#ffffff", theme.wall, 0.12), rough: 0.82, metal: 0.04 },
     pedestal: { color: mix(theme.wall, theme.accent, 0.2), rough: 0.5, metal: 0.4 },
     pillar: { color: mix(theme.wall, "#ffffff", 0.18), rough: 0.7, metal: 0.1 },
     bench: { color: mix(theme.wall, "#222222", 0.25), rough: 0.5, metal: 0.5 },
@@ -178,7 +184,29 @@ export function createMaterialSet(profile: RenderProfile, theme: EnvTheme): Mate
     return m;
   }
 
-  return { surface, glow, unlit, dispose: () => owned.forEach((o) => o.dispose()) };
+  function solid(color: string, opts: { rough?: number; metal?: number } = {}): THREE.Material {
+    const key = `solid|${profile.materials}|${color}|${opts.rough ?? 0.55}|${opts.metal ?? 0.1}`;
+    const hit = cache.get(key);
+    if (hit) return hit;
+    const m = profile.materials === "simple"
+      ? new THREE.MeshLambertMaterial({ color })
+      : new THREE.MeshStandardMaterial({ color, roughness: opts.rough ?? 0.55, metalness: profile.materials === "pbr" ? (opts.metal ?? 0.1) : (opts.metal ?? 0.1) * 0.3 });
+    owned.push(m);
+    cache.set(key, m);
+    return m;
+  }
+
+  function flat(color: string): THREE.Material {
+    const key = `flat|${color}`;
+    const hit = cache.get(key);
+    if (hit) return hit;
+    const m = new THREE.MeshBasicMaterial({ color, fog: false });
+    owned.push(m);
+    cache.set(key, m);
+    return m;
+  }
+
+  return { surface, glow, unlit, solid, flat, dispose: () => owned.forEach((o) => o.dispose()) };
 }
 
 /** Round soft sprite used for particles and glow halos. */

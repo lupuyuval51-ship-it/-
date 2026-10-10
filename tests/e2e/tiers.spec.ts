@@ -21,7 +21,7 @@ async function capture(page: import("@playwright/test").Page, gameId: string): P
   await page.waitForTimeout(1500);
   const snap = await snapshot(page);
   const stats = await page.evaluate(() => ({ ...(document.querySelector("canvas") as HTMLCanvasElement).dataset }));
-  const shot = await page.screenshot({ clip: (await page.locator("canvas").boundingBox())! });
+  const shot = await page.screenshot({ clip: (await page.locator("canvas").first().boundingBox())! });
   return { tier: snap.tier, profile: snap.profile, stats, shot };
 }
 

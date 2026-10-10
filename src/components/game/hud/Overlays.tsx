@@ -10,6 +10,7 @@ import type { PublicSpec } from "@/lib/game/spec/public";
 import type { Npc } from "@/lib/game/spec/schema";
 import { missionUnlocked, objectiveProgress, type ClientState, type LearningSummary } from "@/lib/game/state/progress";
 import type { InputState } from "../input";
+import { Confetti } from "./Confetti";
 
 // ───────────────────────── toasts ─────────────────────────
 
@@ -31,9 +32,56 @@ export function Toasts({ toasts }: { toasts: Toast[] }) {
   );
 }
 
+// ───────────────────────── score popups + tutorial ─────────────────────────
+
+export interface Popup {
+  id: number;
+  text: string;
+  tone: "good" | "gold";
+}
+
+/** Floating "+100" style rewards above the middle of the screen. */
+export function ScorePopups({ popups }: { popups: Popup[] }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-[38%] z-20" aria-hidden>
+      {popups.map((p, i) => (
+        <span key={p.id} style={{ left: `${50 + (i % 3) * 6 - 6}%` }} className={cx("lu-float absolute text-3xl font-extrabold drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:text-4xl", p.tone === "gold" ? "text-amber" : "text-lime")}>
+          {p.text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Title card shown for a few seconds when an area opens. The text lives in CSS (`content: attr(...)`), so it adds no
+ * duplicate of the area name or mission title to the page's text.
+ */
+export function AreaBanner({ name, subtitle }: { name: string; subtitle?: string }) {
+  return <div aria-hidden="true" data-testid="area-banner" data-title={name} data-sub={subtitle ?? ""} className="lu-banner z-20" />;
+}
+
+/** One-time, non-blocking hint card for new players. */
+export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: () => void }) {
+  const t = useT();
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-48 z-20 flex justify-center px-4 sm:inset-x-auto sm:bottom-6 sm:start-4 sm:justify-start sm:px-0" data-testid="tutorial-card">
+      <div className="lu-pop pointer-events-auto w-full max-w-sm space-y-1.5 rounded-2xl border border-neon/40 bg-ink-900/85 p-3 shadow-xl backdrop-blur">
+        <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
+        <ul className="space-y-1 text-xs text-muted">
+          <li>{t("hud.tutorial.move")}</li>
+          <li>{t("hud.tutorial.guide")}</li>
+          <li>{touch ? t("hud.tutorial.interact.touch") : t("hud.tutorial.interact")}</li>
+        </ul>
+        <div className="flex justify-end"><Button size="sm" onClick={onDismiss} data-testid="tutorial-ok">{t("hud.tutorial.ok")}</Button></div>
+      </div>
+    </div>
+  );
+}
+
 // ───────────────────────── top bar + missions ─────────────────────────
 
-export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean }) {
+export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, collect }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; collect?: { have: number; total: number } }) {
   const t = useT();
   const [open, setOpen] = useState(true);
   const active = spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m) && m.areaId === client.areaId);
@@ -56,6 +104,13 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo 
             <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.score")}</p>
             <p className="text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
           </div>
+          {collect && collect.total > 0 && (
+            <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
+              <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
+              <span aria-hidden>💎 {collect.have}/{collect.total}</span>
+            </Badge>
+          )}
+          {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak">🔥 {t("hud.streak", { n: client.streak })}</Badge>}
           <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button">❚❚</Button>
         </div>
       </div>
@@ -87,6 +142,20 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo 
         )}
       </aside>
     </>
+  );
+}
+
+// ───────────────────────── objective marker ─────────────────────────
+
+/** Positioned imperatively by GuideProjector (every frame) — React only mounts it. */
+export function GuideMarker({ markerRef }: { markerRef: React.RefObject<HTMLDivElement | null> }) {
+  return (
+    <div ref={markerRef} aria-hidden data-testid="guide-marker" data-show="0" className="pointer-events-none absolute start-0 top-0 z-[5] opacity-0 transition-opacity duration-200" style={{ willChange: "transform" }}>
+      <div className="flex flex-col items-center gap-1">
+        <svg width="26" height="26" viewBox="0 0 24 24" className="drop-shadow-[0_0_6px_var(--color-neon)]"><path d="M12 3l9 17-9-5-9 5 9-17z" fill="var(--color-neon)" stroke="#06101f" strokeWidth="1.5" strokeLinejoin="round" /></svg>
+        <div dir="auto" className="max-w-[60vw] truncate rounded-full border border-neon/50 bg-ink-900/85 px-2.5 py-0.5 text-xs font-semibold text-neon backdrop-blur" />
+      </div>
+    </div>
   );
 }
 
@@ -212,7 +281,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, sfx, music, onSfx, onMusic, onResume, onRestart }: { profile: RenderProfile; sfx: boolean; music: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
+export function PauseMenu({ profile, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
   const t = useT();
   const [confirm, setConfirm] = useState(false);
   return (
@@ -222,6 +291,7 @@ export function PauseMenu({ profile, sfx, music, onSfx, onMusic, onResume, onRes
         <div className="space-y-2">
           <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
           <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
+          <label className="flex items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
           <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
         </div>
         <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
@@ -246,6 +316,7 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   const t = useT();
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink-950/80 p-4 backdrop-blur">
+      <Confetti />
       <div role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop w-full max-w-md space-y-4 rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-2xl">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
         <Stars n={summary.stars} size="lg" />

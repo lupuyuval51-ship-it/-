@@ -5,6 +5,7 @@ import { useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import type { Block } from "@/lib/game/spec/schema";
+import { Confetti } from "./Confetti";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
 
@@ -95,6 +96,15 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     return () => window.removeEventListener("keydown", onKey, true);
   }, [busy, onClose]);
   useEffect(() => ref.current?.querySelector<HTMLElement>("button, input")?.focus(), []);
+  // a wrong answer gives the panel a short shake (skipped when the player prefers reduced motion)
+  useEffect(() => {
+    const el = ref.current;
+    if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    el.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }],
+      { duration: 420, easing: "ease-in-out" },
+    );
+  }, [result]);
 
   const submit = () => {
     if (!answer || busy || resolved) return;
@@ -105,7 +115,8 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
 
   return (
     <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink-950/70 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-2xl sm:rounded-3xl">
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className="lu-pop relative flex max-h-[94dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-line bg-ink-800 shadow-2xl sm:rounded-3xl">
+        {result?.correct && <Confetti />}
         <header className="flex items-start justify-between gap-3 border-b border-line p-4">
           <div className="space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
@@ -183,9 +194,24 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
     setLastWrong(result && !result.correct ? picked : null);
   }
   const revealed = result?.reveal?.optionId as string | undefined;
+  // number keys pick an option (desktop shortcut)
+  useEffect(() => {
+    if (disabled) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || (e.target as HTMLElement | null)?.closest("input, textarea, select")) return;
+      const n = Number(e.key);
+      const o = Number.isInteger(n) && n >= 1 ? challenge.options[n - 1] : undefined;
+      if (o) {
+        setPicked(o.id);
+        onChange(o.id);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [challenge.options, disabled, onChange]);
   return (
     <div role="radiogroup" aria-label={challenge.title} className="space-y-2">
-      {challenge.options.map((o) => {
+      {challenge.options.map((o, idx) => {
         const isPicked = picked === o.id;
         return (
           <button
@@ -202,7 +228,7 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
               revealed === o.id && "border-lime bg-lime/10",
               result?.correct && isPicked && "border-lime bg-lime/10")}
           >
-            <span className={cx("mt-0.5 size-4 shrink-0 rounded-full border", isPicked ? "border-neon bg-neon" : "border-muted")} />
+            <span aria-hidden="true" className={cx("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[11px] font-bold leading-none", isPicked ? "border-neon bg-neon text-ink-950" : "border-muted text-muted")}>{idx + 1}</span>
             <RichText text={o.text} />
           </button>
         );

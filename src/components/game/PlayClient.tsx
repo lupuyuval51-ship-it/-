@@ -9,11 +9,13 @@ import { Button, Spinner } from "@/components/ui";
 import type { RenderProfile } from "@/config/graphics";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import { GameRuntime, type Interactable } from "@/lib/game/engine/runtime";
+import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
 import type { PublicSpec } from "@/lib/game/spec/public";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
 import { GameAudio } from "./audio";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
-import { Dialogue, DoneOverlay, InteractPrompt, LoreCard, PauseMenu, TopBar, TouchControls, Toasts, type Toast } from "./hud/Overlays";
+import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
+import { Minimap } from "./hud/Minimap";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
 
@@ -71,6 +73,8 @@ type Overlay =
 
 const SFX_KEY = "levelup.sfx";
 const MUSIC_KEY = "levelup.music";
+const GUIDE_KEY = "levelup.guide";
+const TUTORIAL_KEY = "levelup.tutorial";
 const readPref = (k: string, d: boolean): boolean => {
   try {
     const v = localStorage.getItem(k);
@@ -89,11 +93,16 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
   const [nearby, setNearby] = useState<Interactable | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [score, setScore] = useState(0);
+  const [popups, setPopups] = useState<Popup[]>([]);
+  const [tutorial, setTutorial] = useState(() => (typeof window === "undefined" ? false : !readPref(TUTORIAL_KEY, false)));
   // Read once on the client; the loading screen (the only thing rendered on the server) does not depend on these.
   const [touch] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [sfx, setSfx] = useState(() => (typeof window === "undefined" ? soundDefault : readPref(SFX_KEY, soundDefault)));
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
+  const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
   const router = useRouter();
+  const guide = useMemo(() => new GuideModel(), []);
+  const guideMarker = useRef<HTMLDivElement>(null);
   const input = useMemo(() => new InputState(), []);
   const emitter = useMemo(() => new ParticleEmitter(), []);
   const audio = useMemo(() => new GameAudio(), []);
@@ -111,6 +120,17 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     clientRef.current = client;
     dataRef.current = data;
   });
+
+  const popupId = useRef(0);
+  const pop = useCallback((text: string, tone: Popup["tone"] = "good") => {
+    const id = ++popupId.current;
+    setPopups((x) => [...x.slice(-2), { id, text, tone }]);
+    setTimeout(() => setPopups((x) => x.filter((y) => y.id !== id)), 1500);
+  }, []);
+  const dismissTutorial = useCallback(() => {
+    setTutorial(false);
+    try { localStorage.setItem(TUTORIAL_KEY, "1"); } catch { /* optional */ }
+  }, []);
 
   const toast = useCallback((text: string, tone: Toast["tone"] = "info") => {
     const id = ++toastId.current;
@@ -143,6 +163,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     return () => clearTimeout(id);
   }, [load]);
   useEffect(() => { audio.setSfx(sfx); audio.setMusic(music); }, [audio, sfx, music]);
+  useEffect(() => { guide.enabled = guideOn; }, [guide, guideOn]);
+  const guideLabel = useCallback((kind: GuideKind, name: string, meters: number) => `${kind === "npc" ? t("hud.guide.talk", { name }) : kind === "collectible" ? t("hud.guide.collect") : name} · ${meters} ${t("hud.guide.m")}`, [t]);
   useEffect(() => () => audio.dispose(), [audio]);
 
   // ───────── server events (strictly ordered) ─────────
@@ -193,7 +215,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
         const item = rt.world.collectibles.find((c) => c.itemId === itemId);
         if (item) emitter.burst(item.x, item.y, item.z, "#4cf3ff", 18);
         audio.play("collect");
-        send({ type: "collect", itemId }).then(() => toast(t("toast.collected", { n: 10 }), "good")).catch(handleError);
+        send({ type: "collect", itemId }).then(() => pop(t("hud.points", { n: 10 }), "gold")).catch(handleError);
       },
       onCheckpoint: (id, pos) => {
         audio.play("checkpoint");
@@ -201,9 +223,16 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
         send({ type: "checkpoint", checkpointId: id, position: pos }).catch(handleError);
       },
       onRespawn: (reason) => { audio.play("fall"); toast(t(reason === "fell" ? "toast.respawn.fell" : "toast.respawn.hazard"), "warn"); },
-      onJump: () => audio.play("jump"),
-      onLand: () => audio.play("land"),
+      onJump: () => { audio.play("jump"); const p = rt.sim.player; emitter.burst(p.x, p.y, p.z, rt.world.theme.groundAlt, 5, "dust"); },
+      onLand: () => { audio.play("land"); const p = rt.sim.player; emitter.burst(p.x, p.y, p.z, rt.world.theme.groundAlt, 9, "dust"); },
+      onStep: (fast) => audio.play(fast ? "stepFast" : "step"),
+      onGateOpen: (g) => {
+        audio.play("gate");
+        emitter.burst(g.x, g.y, g.z, rt.world.theme.accent2, 40);
+        toast(t("toast.gate"), "good");
+      },
     });
+    audio.setTheme(rt.world.environment);
     input.yaw = rt.sim.player.yaw;
     setRuntime(rt);
     return () => { rt.paused = true; };
@@ -229,6 +258,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
     const target = runtime?.nearby;
     if (!d || !runtime || !target || overlayRef.current.type !== "none") return;
     audio.unlock();
+    dismissTutorial(); // the player found out how interaction works
     if (target.kind === "npc") {
       setOverlay({ type: "dialogue", npcId: target.id });
       audio.play("blip");
@@ -251,7 +281,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
         .then((res) => setOverlay({ type: "challenge", stationId: target.id, label: target.label, challenge: res.data.challenge, result: null, hint: null, busy: false }))
         .catch(handleError);
     }
-  }, [audio, handleError, runtime, send, t, toast]);
+  }, [audio, dismissTutorial, handleError, runtime, send, t, toast]);
 
   useEffect(() => {
     input.onPause = () => setOverlay((o) => (o.type === "none" ? { type: "pause" } : o.type === "pause" ? { type: "none" } : o));
@@ -270,13 +300,17 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
       const res = await send<EventResponse & { data: { result: AnswerResult } }>({ type: "answer", stationId: o.stationId, answer });
       const result = res.data.result;
       audio.play(result.correct ? "correct" : "wrong");
-      if (result.correct) { const p = runtime?.sim.player; if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#a3ff4f", 36); }
+      if (result.correct) {
+        const p = runtime?.sim.player;
+        if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#a3ff4f", 36);
+        if (result.pointsAwarded > 0) pop(t("hud.points", { n: result.pointsAwarded }));
+      }
       setOverlay((cur) => (cur.type === "challenge" ? { ...cur, result, busy: false } : cur));
     } catch (e) {
       setOverlay((cur) => (cur.type === "challenge" ? { ...cur, busy: false } : cur));
       handleError(e);
     }
-  }, [audio, emitter, handleError, runtime, send]);
+  }, [audio, emitter, handleError, pop, runtime, send, t]);
 
   const requestHint = useCallback(async () => {
     const o = overlayRef.current;
@@ -330,11 +364,13 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
         tier: data.render.tier, profile: data.render.profile, layout: runtime.world.layout, areaId: runtime.areaId, sessionId: data.sessionId,
       }),
       teleport: (x: number, y: number, z: number) => runtime.sim.teleport(x, y, z),
+      look: (yaw: number, pitch?: number) => { input.yaw = yaw; if (pitch !== undefined) input.pitch = pitch; },
       interact: () => interact(),
       canvas: () => host.current?.querySelector("canvas")?.dataset,
+      guide: () => ({ enabled: guide.enabled, targets: guide.targets, primary: guide.primary }),
     };
     return () => { delete w.__LEVELUP_TEST__; };
-  }, [data, runtime, interact, input]);
+  }, [data, runtime, interact, input, guide]);
 
   // ───────── render ─────────
   if (boot.status === "loading") {
@@ -365,12 +401,17 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
   return (
     <main ref={host} className="relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} />
+        <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} />
       )}
       {client && (
         <>
-          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} onPause={() => setOverlay({ type: "pause" })} />
+          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />
           <Toasts toasts={toasts} />
+          <ScorePopups popups={popups} />
+          {tutorial && overlay.type === "none" && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}
+          {overlay.type === "none" && <GuideMarker markerRef={guideMarker} />}
+          {overlay.type === "none" && guideOn && runtime && <Minimap runtime={runtime} client={client} input={input} guide={guide} />}
+          {runtime && <AreaBanner key={runtime.areaId} name={area.name} subtitle={d.spec.missions.find((m) => m.areaId === area.id && !client.missionsDone.includes(m.id))?.title} />}
           {overlay.type === "none" && <InteractPrompt target={nearby} touch={touch} onActivate={interact} />}
           {touch && overlay.type === "none" && runtime && <TouchControls input={input} onInteract={interact} hasJump={runtime.jumpEnabled} />}
         </>
@@ -381,7 +422,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault }: { gam
       {npc && <Dialogue npc={npc} onClose={closeOverlay} onLine={() => audio.play("blip")} />}
       {lore && lore.loreTitle && lore.loreText && <LoreCard title={lore.loreTitle} text={lore.loreText} onClose={closeOverlay} />}
       {overlay.type === "pause" && (
-        <PauseMenu profile={d.render.profile} sfx={sfx} music={music} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
+        <PauseMenu profile={d.render.profile} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onMusic={(v) => { setMusic(v); audio.unlock(); try { localStorage.setItem(MUSIC_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onResume={closeOverlay} onRestart={() => void start(true)} />
       )}

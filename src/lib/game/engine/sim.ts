@@ -40,6 +40,9 @@ export interface SimOptions {
 }
 
 const SUBSTEP = 1 / 90;
+/** A jump pressed this long before touching down still counts, and one pressed this long after walking off an edge too. */
+const JUMP_BUFFER = 0.14;
+const COYOTE_TIME = 0.11;
 
 export class WorldSim {
   readonly world: WorldModel;
@@ -49,6 +52,8 @@ export class WorldSim {
   private live: WorldBox[];
   private liveMovers: { base: WorldBox; box: WorldBox }[] = [];
   private checkpoint: { x: number; y: number; z: number } | null = null;
+  private jumpBuffer = 0;
+  private coyote = 0;
 
   constructor(world: WorldModel, opts: SimOptions) {
     this.world = world;
@@ -71,6 +76,8 @@ export class WorldSim {
   }
   teleport(x: number, y: number, z: number): void {
     this.player = { ...this.player, x, y, z, vy: 0, grounded: false, standingOn: null };
+    this.jumpBuffer = 0;
+    this.coyote = 0;
   }
 
   /** Current mover offsets applied to live boxes. */
@@ -154,6 +161,8 @@ export class WorldSim {
     const c = this.checkpoint;
     const s = this.world.spawn;
     this.player = this.freshPlayer(c?.x ?? s.x, c?.y ?? s.y, c?.z ?? s.z, this.player.yaw);
+    this.jumpBuffer = 0;
+    this.coyote = 0;
     return reason;
   }
 
@@ -209,11 +218,16 @@ export class WorldSim {
       p.yaw += diff * Math.min(1, h * 14);
     }
 
-    if (jump && p.grounded && this.opts.jumpEnabled) {
+    // Forgiving jumps: a press just before landing is remembered, and walking off an edge keeps the jump for a moment.
+    this.jumpBuffer = jump ? JUMP_BUFFER : Math.max(0, this.jumpBuffer - h);
+    this.coyote = p.grounded ? COYOTE_TIME : Math.max(0, this.coyote - h);
+    if (this.jumpBuffer > 0 && this.coyote > 0 && p.vy <= 0.5 && this.opts.jumpEnabled) {
       p.vy = JUMP_VELOCITY;
       p.grounded = false;
       p.standingOn = null;
       events.jumped = true;
+      this.jumpBuffer = 0;
+      this.coyote = 0;
     }
 
     p.x += vx * h;

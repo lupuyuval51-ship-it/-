@@ -10,9 +10,10 @@ import { makeSoftSprite } from "./materials";
 
 /** Imperative handle so DOM/HUD code can trigger bursts without going through React state. */
 export class ParticleEmitter {
-  queue: { x: number; y: number; z: number; color: string; count: number }[] = [];
-  burst(x: number, y: number, z: number, color: string, count = 24): void {
-    if (this.queue.length < 8) this.queue.push({ x, y, z, color, count });
+  queue: { x: number; y: number; z: number; color: string; count: number; kind: "pop" | "dust" }[] = [];
+  /** `pop` sparks fly up and out (pick-ups, rewards); `dust` is a low, short puff (take-off and landing). */
+  burst(x: number, y: number, z: number, color: string, count = 24, kind: "pop" | "dust" = "pop"): void {
+    if (this.queue.length < 8) this.queue.push({ x, y, z, color, count, kind });
   }
 }
 
@@ -73,7 +74,12 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
     }
     for (const b of emitter.queue.splice(0)) {
       const n = Math.min(b.count, profile.particles.burst);
-      for (let k = 0; k < n; k++) spawn(b.x, b.y, b.z, b.color, 4.2, 5.5, 0.9 + Math.random() * 0.4, 0, burstCap);
+      // the pool blends additively, so dust is lightened toward white to read as a pale puff on any ground
+      const dust = b.kind === "dust" ? `#${new THREE.Color(b.color).lerp(new THREE.Color("#ffffff"), 0.55).getHexString()}` : b.color;
+      for (let k = 0; k < n; k++) {
+        if (b.kind === "dust") spawn(b.x, b.y + 0.05, b.z, dust, 2.6, 1.3, 0.4 + Math.random() * 0.25, 0, burstCap);
+        else spawn(b.x, b.y, b.z, b.color, 4.2, 5.5, 0.9 + Math.random() * 0.4, 0, burstCap);
+      }
     }
     if (trailCap && p.speed > 2 && p.grounded) {
       trailClock.current += dt;

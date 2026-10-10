@@ -59,7 +59,7 @@ test.describe("touch devices", () => {
     await expect(page.getByTestId("touch-controls")).toBeVisible();
     await expect(page.getByTestId("touch-interact")).toBeVisible();
     await expectNoHorizontalOverflow(page);
-    const box = await page.locator("canvas").boundingBox();
+    const box = await page.locator("canvas").first().boundingBox(); // first = the 3D scene (the minimap is a second, small canvas)
     const vp = page.viewportSize()!;
     expect(box!.width).toBeGreaterThanOrEqual(vp.width - 2);
     expect(box!.height).toBeGreaterThanOrEqual(vp.height - 2);

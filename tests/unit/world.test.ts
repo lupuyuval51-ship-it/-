@@ -165,9 +165,33 @@ describe("every key point is reachable on foot (open layouts)", () => {
 
 // ───────────────────────── physics ─────────────────────────
 
+describe("gate-opening notifications", () => {
+  const spec = toPublicSpec(specFor("puzzle"));
+  const client = toClientState(initialState(spec as never, 0));
+
+  it("fires once, when the last station a gate waits for is completed, and never for gates already open at load", () => {
+    const opened: string[] = [];
+    const rt = new GameRuntime(spec, spec.areas[0]!.id, client, { onGateOpen: (g) => opened.push(g.id) });
+    const gate = rt.world.gates[0]!;
+    rt.setClientState(client); // first state after load: nothing opens "again"
+    expect(opened).toEqual([]);
+    const done = { ...client, resolvedStations: { [gate.opensWhenStationsDone[0]!]: "correct" as const } };
+    rt.setClientState(done);
+    expect(opened).toEqual([gate.id]);
+    rt.setClientState(done); // the same state again: no repeat
+    expect(opened).toEqual([gate.id]);
+
+    const reloaded: string[] = [];
+    const rt2 = new GameRuntime(spec, spec.areas[0]!.id, done, { onGateOpen: (g) => reloaded.push(g.id) });
+    rt2.setClientState(done); // resuming a saved game with the gate already open
+    expect(reloaded).toEqual([]);
+  });
+});
+
 describe("character physics", () => {
   const spec = toPublicSpec(specFor("exploration"));
   const client = toClientState(initialState(spec as never, 0));
+  const rt0 = () => new GameRuntime(spec, "a-plaza", client);
 
   it("stands on the floor, falls under gravity and jumps to a believable height", () => {
     const rt = new GameRuntime(spec, "a-plaza", client);
@@ -192,6 +216,40 @@ describe("character physics", () => {
     sim.step(1 / 60, { ...IDLE, jump: true }, 0);
     for (let i = 0; i < 20; i++) sim.step(1 / 60, IDLE, 0);
     expect(sim.player.y).toBeCloseTo(0, 3);
+  });
+
+  it("remembers a jump pressed just before landing, but not one pressed long before", () => {
+    const rt = new GameRuntime(spec, "a-plaza", client);
+    const run = (height: number) => {
+      const sim = new WorldSim(rt.world, { jumpEnabled: true, gateOpen: () => true });
+      sim.teleport(sim.player.x, height, sim.player.z);
+      let jumped = false;
+      for (let i = 0; i < 40; i++) jumped = sim.step(1 / 60, { ...IDLE, jump: i === 0 }, 0).jumped || jumped;
+      return jumped;
+    };
+    expect(run(0.2)).toBe(true); // lands ~0.12 s later: inside the buffer
+    expect(run(2)).toBe(false); // lands ~0.39 s later: the press has expired
+  });
+
+  it("allows a jump for a moment after walking off an edge (coyote time), but not for long", () => {
+    const ledge = { id: "ledge", kind: "platform" as const, x0: -3, x1: 3, y0: -1, y1: 0, z0: -3, z1: 3, visible: true, solid: true, walkable: true, style: "platform" };
+    const world: WorldModel = { ...rt0().world, boxes: [ledge], hazards: [], killY: -50, bounds: { x0: -50, x1: 50, z0: -50, z1: 50 } };
+    const run = (framesAfterEdge: number) => {
+      const sim = new WorldSim(world, { jumpEnabled: true, gateOpen: () => true });
+      sim.teleport(2.8, 0, 0);
+      sim.step(1 / 60, IDLE, 0);
+      let off = -1;
+      for (let i = 0; i < 240; i++) {
+        const air = !sim.player.grounded;
+        if (air && off < 0) off = i;
+        const press = off >= 0 && i - off === framesAfterEdge;
+        const ev = sim.step(1 / 60, { moveX: off >= 0 && !press ? 0 : 1, moveY: 0, jump: press, sprint: false }, 0);
+        if (press) return ev.jumped || sim.player.vy > 0;
+      }
+      throw new Error("never left the ledge");
+    };
+    expect(run(3)).toBe(true); // 0.05 s after leaving
+    expect(run(20)).toBe(false); // 0.33 s after leaving
   });
 
   it("walls and the area bounds stop the player (no tunnelling at sprint speed)", () => {

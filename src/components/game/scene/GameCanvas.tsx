@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import { clipCameraDistance } from "@/lib/game/engine/camera";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
+import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
 import type { ClientState } from "@/lib/game/state/progress";
 import type { InputState } from "../input";
+import { Backdrop } from "./Backdrop";
+import { Life } from "./Life";
 import { Entities } from "./Entities";
+import { Companion, GuideBeams, GuideProjector } from "./Guide";
 import { createMaterialSet } from "./materials";
 import { ParticleEmitter, Particles } from "./Particles";
 import { PlayerAvatar } from "./PlayerAvatar";
@@ -27,6 +31,22 @@ export interface GameCanvasProps {
   onInteract: () => void;
   /** Publish renderer statistics on the canvas element (automated browser tests only). */
   exposeStats?: boolean;
+  guide: GuideModel;
+  guideMarker: RefObject<HTMLDivElement | null>;
+  guideLabel: (kind: GuideKind, name: string, meters: number) => string;
+}
+
+/** Keeps the guide model in step with progress and the player's position (4 Hz). */
+function GuideDriver({ runtime, model, client }: { runtime: GameRuntime; model: GuideModel; client: ClientState }) {
+  const latest = useRef(client);
+  useEffect(() => {
+    latest.current = client;
+    model.refresh(runtime.spec, client, runtime.world, { isCollected: (id) => runtime.isCollected(id), player: runtime.sim.player });
+  }, [client, model, runtime]);
+  useFrame((_, dt) => {
+    model.tick(dt, runtime.spec, latest.current, runtime.world, { isCollected: (id) => runtime.isCollected(id), player: runtime.sim.player });
+  });
+  return null;
 }
 
 /** One frame of game logic, then adaptive resolution. Registered first so it runs before every renderer callback. */
@@ -80,13 +100,29 @@ function CameraRig({ runtime, input }: Pick<GameCanvasProps, "runtime" | "input"
   const dir = useMemo(() => new THREE.Vector3(), []);
   const desired = useMemo(() => new THREE.Vector3(), []);
   const look = useMemo(() => new THREE.Vector3(), []);
+  const dip = useRef(0);
+  const prev = useRef({ grounded: true, vy: 0 });
+  const baseFov = useRef<number | null>(null);
   useFrame((_, dt) => {
     const p = runtime.sim.player;
     const yaw = input.yaw;
     const pitch = input.pitch;
+    // a short downward bump when landing from a height
+    if (p.grounded && !prev.current.grounded && prev.current.vy < -6) dip.current = Math.min(0.4, -prev.current.vy * 0.016);
+    prev.current = { grounded: p.grounded, vy: p.vy };
+    dip.current *= Math.exp(-dt * 9);
+    // sprinting widens the view a little: a cheap, strong sense of speed
+    if (camera instanceof THREE.PerspectiveCamera) {
+      if (baseFov.current === null) baseFov.current = camera.fov;
+      const want = baseFov.current + Math.max(0, Math.min(1, (p.speed - 6.5) / 2.5)) * 6;
+      if (Math.abs(camera.fov - want) > 0.01) {
+        camera.fov += (want - camera.fov) * (1 - Math.exp(-dt * 6));
+        camera.updateProjectionMatrix();
+      }
+    }
     const dist = 7.2;
     dir.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
-    const from = { x: p.x, y: p.y + 1.5, z: p.z };
+    const from = { x: p.x, y: p.y + 1.5 - dip.current, z: p.z };
     const d = clipCameraDistance(runtime.sim.boxes(), from, dir, dist, (id) => runtime.gateOpen(id));
     desired.set(from.x + dir.x * d, from.y + dir.y * d, from.z + dir.z * d);
     if (!init.current) {
@@ -95,7 +131,7 @@ function CameraRig({ runtime, input }: Pick<GameCanvasProps, "runtime" | "input"
     } else {
       camera.position.lerp(desired, 1 - Math.exp(-dt * 12));
     }
-    look.set(p.x, p.y + 1.2, p.z);
+    look.set(p.x, p.y + 1.2 - dip.current * 0.5, p.z);
     camera.lookAt(look);
   });
   return null;
@@ -118,9 +154,15 @@ function Scene(props: GameCanvasProps) {
       <CameraRig runtime={runtime} input={props.input} />
       <Sky profile={profile} theme={theme} />
       <Lights runtime={runtime} profile={profile} theme={theme} />
+      <Backdrop world={runtime.world} profile={profile} materials={materials} />
+      <Life world={runtime.world} profile={profile} materials={materials} />
       <WorldView runtime={runtime} profile={profile} materials={materials} />
-      <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} />
+      <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} guide={props.guide} />
       <PlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
+      <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
+      <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
+      <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
+      <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
       <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
     </>
   );

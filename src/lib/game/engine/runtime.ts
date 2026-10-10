@@ -22,6 +22,10 @@ export interface RuntimeCallbacks {
   onRespawn?(reason: "fell" | "hazard"): void;
   onJump?(): void;
   onLand?(): void;
+  /** A footstep, fired once per stride while walking or running on the ground. */
+  onStep?(fast: boolean): void;
+  /** A gate opened because the last station it was waiting for was completed (not fired for gates already open on load). */
+  onGateOpen?(gate: { id: string; x: number; y: number; z: number }): void;
 }
 
 const NO_INPUT: SimInput = { moveX: 0, moveY: 0, jump: false, sprint: false };
@@ -36,7 +40,11 @@ export class GameRuntime {
   paused = false;
   private cb: RuntimeCallbacks;
   private pendingCollect = new Set<string>();
+  private strideDist = 0;
   private currentCheckpoint: string | null = null;
+  private openGates = new Set<string>();
+  /** False until the first client state arrives, so gates that are already open on load do not "open" again. */
+  private ready = false;
   readonly jumpEnabled: boolean;
 
   constructor(spec: PublicSpec, areaId: string, client: ClientState, cb: RuntimeCallbacks = {}) {
@@ -65,6 +73,15 @@ export class GameRuntime {
   setClientState(client: ClientState): void {
     this.client = client;
     for (const id of client.collected) this.pendingCollect.delete(id);
+    for (const g of this.world.gates) {
+      const open = this.gateOpen(g.id);
+      if (open && !this.openGates.has(g.id)) {
+        this.openGates.add(g.id);
+        const box = this.world.boxes.find((b) => b.gateId === g.id);
+        if (box && this.ready) this.cb.onGateOpen?.({ id: g.id, x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2, z: (box.z0 + box.z1) / 2 });
+      } else if (!open) this.openGates.delete(g.id);
+    }
+    this.ready = true;
   }
 
   gateOpen(gateId: string): boolean {
@@ -108,6 +125,16 @@ export class GameRuntime {
     if (ev.landed) this.cb.onLand?.();
     if (ev.respawned) this.cb.onRespawn?.(ev.respawned);
     const p = this.sim.player;
+    if (p.grounded && p.speed > 0.5) {
+      this.strideDist += p.speed * Math.min(dt, 0.1);
+      const stride = p.speed > 7 ? 2.2 : 1.6;
+      if (this.strideDist >= stride) {
+        this.strideDist -= stride;
+        this.cb.onStep?.(p.speed > 7);
+      }
+    } else {
+      this.strideDist = 0;
+    }
 
     for (const c of this.world.collectibles) {
       if (this.isCollected(c.itemId)) continue;

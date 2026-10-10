@@ -34,18 +34,35 @@ const DIR_ARROW = { N: "▲", E: "▶", S: "▼", W: "◀" } as const;
 function Grid({ ch, trail, step }: { ch: ProgramChallenge; trail: { x: number; y: number }[] | null; step: number }) {
   const { width, height, start, goal, walls } = ch.grid;
   const wallSet = new Set(walls.map((w) => `${w.x},${w.y}`));
-  const pos = trail ? trail[Math.min(step, trail.length - 1)]! : start;
-  const visited = new Set((trail ?? []).slice(0, step + 1).map((c) => `${c.x},${c.y}`));
+  const at = trail ? Math.min(step, trail.length - 1) : 0;
+  const pos = trail ? trail[at]! : start;
+  const visited = new Set((trail ?? []).slice(0, at + 1).map((c) => `${c.x},${c.y}`));
+  // facing: the last real move along the trail (or the start direction until the robot has moved)
+  let dir: keyof typeof DIR_ARROW = start.dir;
+  if (trail) {
+    for (let i = at; i > 0; i--) {
+      const dx = trail[i]!.x - trail[i - 1]!.x, dy = trail[i]!.y - trail[i - 1]!.y;
+      if (dx || dy) { dir = dx > 0 ? "E" : dx < 0 ? "W" : dy > 0 ? "S" : "N"; break; }
+    }
+  }
   return (
-    <div className="grid gap-1 rounded-xl bg-ink-900 p-2" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 2.2rem))`, direction: "ltr" }} aria-label="robot grid">
+    <div className="grid gap-1 rounded-xl border border-line bg-ink-900 p-2" style={{ gridTemplateColumns: `repeat(${width}, minmax(0, 2.2rem))`, direction: "ltr" }} aria-label="robot grid">
       {Array.from({ length: width * height }, (_, i) => {
         const x = i % width, y = Math.floor(i / width);
         const isWall = wallSet.has(`${x},${y}`);
         const isGoal = goal.x === x && goal.y === y;
         const isBot = pos.x === x && pos.y === y;
+        const seen = visited.has(`${x},${y}`);
         return (
-          <div key={i} className={cx("flex aspect-square items-center justify-center rounded-md text-lg", isWall ? "bg-ink-600" : visited.has(`${x},${y}`) ? "bg-neon/25" : "bg-ink-800")}>
-            {isBot ? <span className="text-neon">{trail ? "🤖" : DIR_ARROW[start.dir]}</span> : isGoal ? "🏁" : isWall ? "▓" : ""}
+          <div key={i} className={cx("relative flex aspect-square items-center justify-center rounded-md text-lg transition-colors duration-200",
+            isWall ? "bg-gradient-to-br from-ink-600 to-ink-700 shadow-inner" : seen ? "bg-neon/25" : "bg-ink-800",
+            isGoal && "ring-2 ring-lime/70 animate-pulse")}>
+            {isBot ? (
+              <span key={`${at}-${x}-${y}`} className="lu-pop relative text-neon">
+                {trail ? "🤖" : DIR_ARROW[start.dir]}
+                {trail && <span aria-hidden className="absolute -end-2 -top-2 text-[10px] leading-none text-neon">{DIR_ARROW[dir]}</span>}
+              </span>
+            ) : isGoal ? "🏁" : isWall ? <span aria-hidden className="text-ink-500">▓</span> : seen ? <span aria-hidden className="text-[10px] text-neon/60">●</span> : ""}
           </div>
         );
       })}

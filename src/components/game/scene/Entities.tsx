@@ -5,211 +5,136 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
-import { stationActive, stationDone, type ClientState } from "@/lib/game/state/progress";
-import type { WorldCollectible, WorldNpc, WorldStation } from "@/lib/game/world/types";
-import { makeLabelTexture, makeSoftSprite, type MaterialSet } from "./materials";
+import { stationDone, type ClientState } from "@/lib/game/state/progress";
+import type { WorldNpc } from "@/lib/game/world/types";
+import type { GuideModel } from "@/lib/game/state/guidance";
+import { Character } from "./Characters";
+import { CollectibleView } from "./Collectibles";
+import { Label } from "./Marks";
+import type { MaterialSet } from "./materials";
+import { StationView, STATION_GREEN as GREEN, STATION_GREY as GREY } from "./Stations";
 
-const GREEN = "#34d399";
-const GREY = "#7b8499";
-
-function Label({ text, color, y, scale = 1 }: { text: string; color: string; y: number; scale?: number }) {
-  const { texture, aspect } = useMemo(() => makeLabelTexture(text, color), [text, color]);
-  useEffect(() => () => texture.dispose(), [texture]);
-  const h = 0.46 * scale;
-  return (
-    <sprite position={[0, y, 0]} scale={[h * aspect, h, 1]}>
-      <spriteMaterial map={texture} transparent depthWrite={false} fog={false} />
-    </sprite>
-  );
-}
-
-function Halo({ color, size, y }: { color: string; size: number; y: number }) {
-  const tex = useMemo(() => makeSoftSprite(), []);
-  useEffect(() => () => tex.dispose(), [tex]);
-  return (
-    <sprite position={[0, y, 0]} scale={[size, size, 1]}>
-      <spriteMaterial map={tex} color={color} transparent opacity={0.55} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
-    </sprite>
-  );
-}
-
-function StationView({ runtime, station, client, nearby, profile, materials }: { runtime: GameRuntime; station: WorldStation; client: ClientState; nearby: boolean; profile: RenderProfile; materials: MaterialSet }) {
-  const ring = useRef<THREE.Mesh>(null);
-  const group = useRef<THREE.Group>(null);
-  const area = runtime.spec.areas.find((a) => a.id === runtime.areaId)!;
-  const def = area.stations.find((s) => s.id === station.stationId)!;
-  const done = stationDone(client, station.stationId);
-  const active = stationActive(runtime.spec, client, def);
-  const theme = runtime.world.theme;
-  const color = done ? GREEN : active ? (station.kind === "lore" ? theme.accent2 : theme.accent) : GREY;
-  const glow = materials.glow(color, done ? 0.8 : active ? 1.6 : 0.25);
-  const pad = materials.surface("stationPad", 2, 2);
-  const shadows = profile.shadows.enabled;
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    if (ring.current) {
-      ring.current.rotation.z = t * (active && !done ? 1.4 : 0.3);
-      ring.current.position.y = 2.05 + Math.sin(t * 2 + station.x) * 0.08;
-    }
-    if (group.current) group.current.scale.setScalar(THREE.MathUtils.lerp(group.current.scale.x, nearby ? 1.1 : 1, 0.15));
-  });
-
-  return (
-    <group position={[station.x, station.y, station.z]}>
-      <group ref={group}>
-        <mesh position={[0, 0.12, 0]} material={pad} castShadow={shadows} receiveShadow={shadows}>
-          <cylinderGeometry args={[0.95, 1.1, 0.24, 20]} />
-        </mesh>
-        <mesh position={[0, 0.85, 0]} material={pad} castShadow={shadows}>
-          <boxGeometry args={[0.95, 1.2, 0.3]} />
-        </mesh>
-        <mesh position={[0, 1.0, -0.17]} material={glow}>
-          <planeGeometry args={[0.72, 0.8]} />
-        </mesh>
-        <mesh ref={ring} position={[0, 2.05, 0]} rotation={[Math.PI / 2, 0, 0]} material={glow}>
-          {station.kind === "lore" ? <octahedronGeometry args={[0.42, 0]} /> : <torusGeometry args={[0.55, 0.07, 8, 28]} />}
-        </mesh>
-      </group>
-      {profile.glow && <Halo color={color} size={done ? 2.4 : 4.2} y={1.3} />}
-      <Label text={(done ? "✓ " : "") + station.label} color={color} y={3.0} />
-    </group>
-  );
-}
-
-function NpcView({ runtime, npc, nearby, profile, materials }: { runtime: GameRuntime; npc: WorldNpc; nearby: boolean; profile: RenderProfile; materials: MaterialSet }) {
-  const g = useRef<THREE.Group>(null);
-  const mat = useMemo(() => materials.glow(npc.color, 0.35), [materials, npc.color]);
-  const dark = materials.surface("pedestal", 1, 1);
-  const shadows = profile.shadows.enabled;
-  useFrame(({ clock }) => {
-    const p = runtime.sim.player;
-    const grp = g.current;
-    if (!grp) return;
-    const target = Math.atan2(p.x - npc.x, p.z - npc.z);
-    let d = target - grp.rotation.y;
-    while (d > Math.PI) d -= Math.PI * 2;
-    while (d < -Math.PI) d += Math.PI * 2;
-    grp.rotation.y += d * 0.08;
-    grp.position.y = npc.y + (npc.shape === "orb" ? 1.1 + Math.sin(clock.elapsedTime * 2) * 0.12 : Math.sin(clock.elapsedTime * 2.2 + npc.x) * 0.03);
-    const s = THREE.MathUtils.lerp(grp.scale.x, nearby ? 1.08 : 1, 0.15);
-    grp.scale.setScalar(s);
-  });
+function NpcView({ runtime, npc, nearby, profile, materials, model }: { runtime: GameRuntime; npc: WorldNpc; nearby: boolean; profile: RenderProfile; materials: MaterialSet; model: GuideModel }) {
+  const labelY = npc.shape === "orb" ? 2.75 : npc.shape === "creature" ? 2.05 : npc.shape === "robot" ? 2.3 : 2.2;
   return (
     <group position={[npc.x, 0, npc.z]}>
-      <group ref={g}>
-        {npc.shape === "robot" && (
-          <>
-            <mesh position={[0, 0.8, 0]} material={mat} castShadow={shadows}><boxGeometry args={[0.8, 0.9, 0.55]} /></mesh>
-            <mesh position={[0, 1.55, 0]} material={mat} castShadow={shadows}><boxGeometry args={[0.6, 0.5, 0.5]} /></mesh>
-            <mesh position={[-0.14, 1.58, 0.26]} material={dark}><sphereGeometry args={[0.07, 8, 8]} /></mesh>
-            <mesh position={[0.14, 1.58, 0.26]} material={dark}><sphereGeometry args={[0.07, 8, 8]} /></mesh>
-            <mesh position={[0, 1.95, 0]} material={dark}><cylinderGeometry args={[0.03, 0.03, 0.3, 6]} /></mesh>
-          </>
-        )}
-        {npc.shape === "human" && (
-          <>
-            <mesh position={[0, 0.85, 0]} material={mat} castShadow={shadows}><capsuleGeometry args={[0.3, 0.7, 4, 10]} /></mesh>
-            <mesh position={[0, 1.6, 0]} material={dark} castShadow={shadows}><sphereGeometry args={[0.27, 12, 10]} /></mesh>
-            <mesh position={[0, 1.78, 0]} material={mat}><coneGeometry args={[0.3, 0.3, 12]} /></mesh>
-          </>
-        )}
-        {npc.shape === "creature" && (
-          <>
-            <mesh position={[0, 0.65, 0]} material={mat} castShadow={shadows}><sphereGeometry args={[0.6, 14, 12]} /></mesh>
-            <mesh position={[-0.3, 1.25, 0]} material={mat}><coneGeometry args={[0.15, 0.4, 8]} /></mesh>
-            <mesh position={[0.3, 1.25, 0]} material={mat}><coneGeometry args={[0.15, 0.4, 8]} /></mesh>
-            <mesh position={[-0.2, 0.8, 0.5]} material={dark}><sphereGeometry args={[0.09, 8, 8]} /></mesh>
-            <mesh position={[0.2, 0.8, 0.5]} material={dark}><sphereGeometry args={[0.09, 8, 8]} /></mesh>
-          </>
-        )}
-        {npc.shape === "orb" && (
-          <>
-            <mesh position={[0, 0, 0]} material={mat}><sphereGeometry args={[0.5, 16, 14]} /></mesh>
-            <mesh rotation={[Math.PI / 2.4, 0, 0]} material={dark}><torusGeometry args={[0.75, 0.04, 8, 28]} /></mesh>
-          </>
-        )}
-      </group>
-      <Label text={npc.name} color={npc.color} y={2.55} scale={0.9} />
-    </group>
-  );
-}
-
-function CollectibleView({ runtime, item, profile, materials, accent }: { runtime: GameRuntime; item: WorldCollectible; profile: RenderProfile; materials: MaterialSet; accent: string }) {
-  const ref = useRef<THREE.Group>(null);
-  const colors: Record<string, string> = { gem: "#4cf3ff", "data-core": "#ff6ad5", star: "#ffd23f", leaf: "#7be26b", coin: "#ffc63d" };
-  const color = colors[item.kind] ?? accent;
-  const mat = materials.glow(color, 1.5);
-  useFrame(({ clock }) => {
-    const g = ref.current;
-    if (!g) return;
-    g.visible = !runtime.isCollected(item.itemId);
-    g.rotation.y = clock.elapsedTime * 1.8;
-    g.position.y = item.y + Math.sin(clock.elapsedTime * 2.4 + item.x) * 0.12;
-  });
-  return (
-    <group position={[item.x, item.y, item.z]}>
-      <group ref={ref}>
-        <mesh material={mat} castShadow={profile.shadows.enabled}>
-          {item.kind === "coin" ? <cylinderGeometry args={[0.32, 0.32, 0.08, 16]} /> : item.kind === "data-core" ? <boxGeometry args={[0.4, 0.4, 0.4]} /> : item.kind === "leaf" ? <coneGeometry args={[0.25, 0.6, 6]} /> : item.kind === "star" ? <octahedronGeometry args={[0.38, 0]} /> : <octahedronGeometry args={[0.3, 0]} />}
-        </mesh>
-        {profile.glow && <Halo color={color} size={1.2} y={0} />}
-      </group>
+      <Character runtime={runtime} npc={npc} nearby={nearby} profile={profile} materials={materials} model={model} />
+      <Label text={npc.name} color={npc.color} y={labelY} scale={0.9} />
     </group>
   );
 }
 
 function CheckpointView({ pos, active, materials, accent }: { pos: { x: number; y: number; z: number }; active: boolean; materials: MaterialSet; accent: string }) {
   const mat = materials.glow(active ? GREEN : accent, active ? 1.6 : 0.5);
+  const pole = materials.solid("#cfd6ea", { rough: 0.4, metal: 0.5 });
   const base = materials.surface("pedestal", 1, 1);
-  const ring = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
-    if (ring.current) ring.current.rotation.z = clock.elapsedTime * 1.5;
+  const cloth = useMemo(() => new THREE.MeshStandardMaterial({ color: active ? GREEN : accent, emissive: active ? GREEN : accent, emissiveIntensity: active ? 0.5 : 0.15, side: THREE.DoubleSide, roughness: 0.7 }), [active, accent]);
+  useEffect(() => () => cloth.dispose(), [cloth]);
+  const flag = useRef<THREE.Mesh>(null);
+  const raise = useRef(active ? 1 : 0);
+  useFrame(({ clock }, dt) => {
+    const t = clock.elapsedTime;
+    raise.current += ((active ? 1 : 0) - raise.current) * Math.min(1, dt * 3);
+    const f = flag.current;
+    if (!f) return;
+    f.position.y = 1.05 + raise.current * 0.5;
+    f.rotation.y = Math.sin(t * 3 + pos.x) * 0.22;
+    f.scale.x = 1 + Math.sin(t * 5 + pos.z) * 0.06;
   });
   return (
     <group position={[pos.x, pos.y, pos.z]}>
-      <mesh position={[0, 0.7, 0]} material={base}><cylinderGeometry args={[0.07, 0.1, 1.4, 8]} /></mesh>
-      <mesh ref={ring} position={[0, 1.5, 0]} rotation={[Math.PI / 2, 0, 0]} material={mat}><torusGeometry args={[0.32, 0.05, 8, 18]} /></mesh>
+      <mesh position={[0, 0.06, 0]} material={base}><cylinderGeometry args={[0.45, 0.5, 0.12, 14]} /></mesh>
+      <mesh position={[0, 0.13, 0]} rotation={[Math.PI / 2, 0, 0]} material={mat}><torusGeometry args={[0.4, 0.03, 6, 24]} /></mesh>
+      <mesh position={[0, 0.85, 0]} material={pole}><cylinderGeometry args={[0.035, 0.045, 1.6, 8]} /></mesh>
+      <mesh position={[0, 1.7, 0]} material={mat}><sphereGeometry args={[0.07, 10, 8]} /></mesh>
+      <mesh ref={flag} position={[0.3, 1.05, 0]} material={cloth}><planeGeometry args={[0.56, 0.34]} /></mesh>
     </group>
   );
 }
 
-function PortalView({ runtime, client, nearby, materials }: { runtime: GameRuntime; client: ClientState; nearby: boolean; materials: MaterialSet }) {
+const SWIRL_VERT = "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }";
+const SWIRL_FRAG = `
+varying vec2 vUv; uniform float uTime; uniform vec3 uColor; uniform float uOpen; uniform float uNear;
+void main(){
+  vec2 p = vUv * 2.0 - 1.0;
+  float r = length(p);
+  if (r > 1.0) discard;
+  float a = atan(p.y, p.x);
+  float arms = sin(a * 3.0 + r * 9.0 - uTime * (1.2 + uOpen * 2.0));
+  float rings = sin(r * 18.0 - uTime * 3.0) * 0.5 + 0.5;
+  float swirl = smoothstep(-0.2, 1.0, arms) * (0.45 + 0.55 * rings);
+  float core = pow(1.0 - r, 2.2);
+  float edge = smoothstep(0.65, 1.0, r) * (1.0 - smoothstep(0.96, 1.0, r));
+  float v = (swirl * 0.55 + core * 0.9 + edge * 0.5) * (0.28 + uOpen * 0.72 + uNear * 0.2);
+  gl_FragColor = vec4(uColor * (0.6 + v), v * (0.4 + uOpen * 0.6));
+}`;
+
+function PortalView({ runtime, client, nearby, materials, profile }: { runtime: GameRuntime; client: ClientState; nearby: boolean; materials: MaterialSet; profile: RenderProfile }) {
   const portal = runtime.world.portal!;
   const area = runtime.spec.areas.find((a) => a.id === runtime.areaId)!;
   const open = area.portal!.requiresMissionIds.every((id) => client.missionsDone.includes(id));
   const theme = runtime.world.theme;
   const color = open ? theme.accent2 : GREY;
   const ring = materials.glow(color, open ? 1.8 : 0.3);
-  const disc = useRef<THREE.Mesh>(null);
+  const stone = materials.surface("pedestal", 1, 1);
   const spin = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
+  const runes = useRef<THREE.Group>(null);
+  const swirl = useMemo(
+    () => new THREE.ShaderMaterial({
+      vertexShader: SWIRL_VERT,
+      fragmentShader: SWIRL_FRAG,
+      uniforms: { uTime: { value: 0 }, uColor: { value: new THREE.Color(color) }, uOpen: { value: open ? 1 : 0 }, uNear: { value: 0 } },
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      fog: false,
+    }),
+    [color, open],
+  );
+  useEffect(() => () => swirl.dispose(), [swirl]);
+  useFrame(({ clock }, dt) => {
     const t = clock.elapsedTime;
     if (spin.current) spin.current.rotation.z = t * (open ? 1.2 : 0.2);
-    if (disc.current) (disc.current.material as THREE.MeshBasicMaterial).opacity = (open ? 0.3 : 0.1) + Math.sin(t * 3) * 0.07 + (nearby ? 0.12 : 0);
+    if (runes.current) runes.current.rotation.z = -t * (open ? 0.6 : 0.1);
+    swirl.uniforms.uTime!.value = t;
+    swirl.uniforms.uNear!.value += ((nearby ? 1 : 0) - swirl.uniforms.uNear!.value) * Math.min(1, dt * 6);
   });
   return (
     <group position={[portal.x, portal.y, portal.z]}>
+      <mesh position={[0, 0.1, 0]} material={stone}><cylinderGeometry args={[2.0, 2.2, 0.2, 28]} /></mesh>
+      <mesh position={[0, 0.22, 0]} rotation={[Math.PI / 2, 0, 0]} material={ring}><torusGeometry args={[1.85, 0.05, 8, 48]} /></mesh>
+      {([-1, 1] as const).map((s) => (
+        <mesh key={s} position={[s * 1.7, 1.6, 0]} material={stone} castShadow={profile.shadows.enabled}>
+          <boxGeometry args={[0.34, 3.2, 0.34]} />
+        </mesh>
+      ))}
       <mesh ref={spin} position={[0, 1.9, 0]} material={ring}><torusGeometry args={[1.45, 0.13, 10, 36]} /></mesh>
-      <mesh ref={disc} position={[0, 1.9, 0]}>
-        <circleGeometry args={[1.35, 28]} />
-        <meshBasicMaterial color={color} transparent opacity={0.3} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+      <mesh position={[0, 1.9, 0]} material={swirl}>
+        <circleGeometry args={[1.38, 40]} />
       </mesh>
-      <Label text={(open ? "" : "🔒 ") + portal.label} color={color} y={4.1} />
+      <group ref={runes} position={[0, 1.9, 0]}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <mesh key={i} position={[Math.cos((i / 8) * Math.PI * 2) * 1.72, Math.sin((i / 8) * Math.PI * 2) * 1.72, 0]} rotation={[0, 0, (i / 8) * Math.PI * 2]} material={ring}>
+            <boxGeometry args={[0.14, 0.05, 0.05]} />
+          </mesh>
+        ))}
+      </group>
+      <Label text={(open ? "" : "🔒 ") + portal.label} color={color} y={4.4} />
     </group>
   );
 }
 
-export function Entities({ runtime, client, nearbyKey, profile, materials }: { runtime: GameRuntime; client: ClientState; nearbyKey: string | null; profile: RenderProfile; materials: MaterialSet }) {
+export function Entities({ runtime, client, nearbyKey, profile, materials, guide }: { runtime: GameRuntime; client: ClientState; nearbyKey: string | null; profile: RenderProfile; materials: MaterialSet; guide: GuideModel }) {
   const w = runtime.world;
   const activeCp = client.checkpoint?.areaId === runtime.areaId ? client.checkpoint.id : null;
   return (
     <group>
       {w.stations.map((s) => <StationView key={s.stationId} runtime={runtime} station={s} client={client} nearby={nearbyKey === `station:${s.stationId}`} profile={profile} materials={materials} />)}
-      {w.npcs.map((n) => <NpcView key={n.npcId} runtime={runtime} npc={n} nearby={nearbyKey === `npc:${n.npcId}`} profile={profile} materials={materials} />)}
+      {w.npcs.map((n) => <NpcView key={n.npcId} runtime={runtime} npc={n} nearby={nearbyKey === `npc:${n.npcId}`} profile={profile} materials={materials} model={guide} />)}
       {w.collectibles.map((c) => <CollectibleView key={c.itemId} runtime={runtime} item={c} profile={profile} materials={materials} accent={w.theme.accent} />)}
       {w.checkpoints.map((c) => <CheckpointView key={c.checkpointId} pos={c} active={activeCp === c.checkpointId} materials={materials} accent={w.theme.accent} />)}
-      {w.portal && <PortalView runtime={runtime} client={client} nearby={nearbyKey?.startsWith("portal:") ?? false} materials={materials} />}
+      {w.portal && <PortalView runtime={runtime} client={client} nearby={nearbyKey?.startsWith("portal:") ?? false} materials={materials} profile={profile} />}
     </group>
   );
 }

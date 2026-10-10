@@ -10,6 +10,7 @@
 import { MAX_COMFORT_GAP, MAX_JUMP_HEIGHT, PLAYER_RADIUS, KILL_Y_MARGIN } from "../engine/constants";
 import { collectibleId } from "../state/progress";
 import { rangeOf } from "../util/prng";
+import { COLLIDER } from "./theme";
 import { ambientDecor, box, centered, dist2d, farthestSpot, scatter, sizeScale, solidDecorKind, type LayoutCtx, type LayoutResult } from "./helpers";
 import type { DecorItem, WorldBox, WorldCheckpoint, WorldCollectible, WorldGate, WorldHazard, WorldNpc, WorldPortal, WorldStation } from "./types";
 
@@ -90,8 +91,13 @@ export function plaza(ctx: LayoutCtx): LayoutResult {
   const obstacles = scatter(ctx.rng, obstacleCount, { minR: 3, maxR: R * 0.93 }, 3.8, keep.map((k) => ({ ...k, r: k.r + 0.6 })));
   obstacles.forEach((p, i) => {
     const rad = 0.55 + ctx.rng() * 0.35;
-    r.boxes.push(centered(`prop-${i}`, "prop", p.x, p.z, rad * 2, rad * 2, 0, 1.6 + ctx.rng() * 1.8, { style: "prop", walkable: false }));
-    const item: DecorItem = { kind: solidDecorKind(ctx), x: p.x, y: 0, z: p.z, scale: rad * 1.6, rot: ctx.rng() * 6.28, rank: 0, solid: true, tint: Math.floor(ctx.rng() * 4) };
+    const kind = solidDecorKind(ctx);
+    const scale = rad * 1.6;
+    const col = COLLIDER[kind] ?? { r: 0.6, h: 1.6 };
+    const half = Math.min(0.9, col.r * scale);
+    // The collider is invisible: the decor mesh is what the player sees (no more grey boxes under trees and lamps).
+    r.boxes.push(centered(`prop-${i}`, "prop", p.x, p.z, half * 2, half * 2, 0, col.h * scale, { style: "prop", walkable: false, visible: false }));
+    const item: DecorItem = { kind, x: p.x, y: 0, z: p.z, scale, rot: ctx.rng() * 6.28, rank: 0, solid: true, tint: Math.floor(ctx.rng() * 4) };
     r.decor.push(item);
     keep.push({ x: p.x, z: p.z, r: 1.4 });
   });

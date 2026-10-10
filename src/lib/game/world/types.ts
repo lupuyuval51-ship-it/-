@@ -25,7 +25,8 @@ export interface WorldBox {
 }
 
 export type DecorKind =
-  | "tree" | "pine" | "rock" | "crystal" | "pillar" | "tower" | "crate" | "pipe" | "coral" | "mushroom" | "lamp" | "arch" | "antenna" | "cactus" | "bush" | "cloud" | "building" | "hologram";
+  | "tree" | "pine" | "rock" | "crystal" | "pillar" | "tower" | "crate" | "pipe" | "coral" | "mushroom" | "lamp" | "arch" | "antenna" | "cactus" | "bush" | "cloud" | "building" | "hologram"
+  | "palm" | "obelisk" | "reed" | "flower" | "torch" | "banner" | "kelp" | "flask" | "dish";
 
 export interface DecorItem {
   kind: DecorKind;
@@ -62,6 +63,8 @@ export interface EnvTheme {
   sunIntensity: number;
   ambient: number;
   stars: boolean;
+  /** Drifting clouds on the Tier A sky dome (open-air daytime worlds only). */
+  clouds: boolean;
 }
 
 export interface WorldModel {

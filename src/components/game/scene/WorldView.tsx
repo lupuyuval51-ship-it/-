@@ -86,13 +86,19 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
     if (!mesh) return;
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), c = new THREE.Color();
     const e = new THREE.Euler();
+    const pq = new THREE.Quaternion();
+    const hasRot = Boolean(part.rot);
+    if (part.rot) pq.setFromEuler(new THREE.Euler(part.rot[0], part.rot[1], part.rot[2], "YXZ"));
+    const full = new THREE.Quaternion();
     items.forEach((it, i) => {
       e.set(0, it.rot, 0);
       q.setFromEuler(e);
       // part offset is rotated with the item, then scaled
       p.set(part.pos[0] * it.scale, part.pos[1] * it.scale, part.pos[2] * it.scale).applyQuaternion(q).add(new THREE.Vector3(it.x, it.y, it.z));
       s.set(part.size[0] * it.scale, part.size[1] * it.scale, part.size[2] * it.scale);
-      m.compose(p, q, s);
+      full.copy(q);
+      if (hasRot) full.multiply(pq);
+      m.compose(p, full, s);
       mesh.setMatrixAt(i, m);
       mesh.setColorAt(i, c.set(decorColor(part.color, it.tint, world.theme.accent, world.theme.accent2)));
     });
@@ -102,7 +108,7 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
 
   const mat = useMemo(() => {
     if (part.emissive) return materials.unlit();
-    return materials.surface("prop", 2, 2);
+    return materials.surface("decor", 2, 2);
   }, [materials, part.emissive]);
   const solid = items.some((i) => i.solid);
   return <instancedMesh ref={ref} args={[GEOS[part.geo], mat as THREE.Material, items.length]} castShadow={profile.shadows.enabled && solid} receiveShadow={false} frustumCulled={false} />;

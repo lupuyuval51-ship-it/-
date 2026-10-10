@@ -206,7 +206,20 @@ Plan, currency and amount come from a server-side checkout row created from the 
   forged events cannot double-count or finish a game early.
 * **Education:** objectives, specific feedback for common mistakes, explanations, adaptive difficulty, learning results with per-objective mastery,
   concepts to review, achievements and a conclusion; progress is saved on every device and resumes where you left off.
-* **Controls:** WASD / arrows, Space (jump), E (interact), Esc (pause), drag to look; touch joystick and buttons on phones. Audio is synthesised with WebAudio (no assets).
+* **Controls:** WASD / arrows, Space (jump), E (interact), Esc (pause), drag to look, number keys pick an answer in multiple-choice challenges; touch joystick and
+  buttons on phones. Audio is synthesised with WebAudio (no assets).
+* **Guidance (nobody gets lost):** a pure function (`src/lib/game/state/guidance.ts`, unit-tested) turns the missions and the player's progress into "what next"
+  targets using only public information. The scene shows a light beam, a pulsing ground ring and a bobbing chevron over each objective, a companion drone that
+  leads the way, and an on-screen marker with the name and distance (an edge-pinned arrow when the target is off-screen); the HUD adds a round camera-aligned
+  minimap (desktop), a collectible counter, a first-run hint card and an area title card. The pause menu can switch all of it off.
+* **A world that feels alive:** every environment has a far horizon (skyline, pyramids, mountains, floating islands…), a Nile or a lake where it fits, drifting
+  clouds on the Tier A sky, ambient life (birds, hover-cars, fish, drones, balloons) scaled by the graphics tier, and props composed from primitives. Characters
+  (robots, people, creatures, orbs) turn to face you and wave; the player robot has a walk/run cycle, squash and stretch, and a jetpack. Stations are holograms
+  that show locked / ready / done and play a shockwave when completed; pick-ups have their own shapes, lean toward you and burst when collected; portals swirl;
+  gates announce themselves when they open.
+* **Game feel:** coyote time and jump buffering (unit-tested), landing dust, a camera dip on landing and a wider view while sprinting, footsteps, pick-up combos
+  that climb the scale, a generative music loop per environment (tempo, key, chords and instrument change), a confetti burst on a correct answer and a shake on a
+  wrong one, an animated cannon and a springy lever in the physics challenges. Animation respects `prefers-reduced-motion`.
 
 ---
 

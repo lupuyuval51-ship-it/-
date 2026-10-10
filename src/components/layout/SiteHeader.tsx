@@ -26,7 +26,7 @@ export async function SiteHeader() {
           <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-neon to-violet text-ink-950">▲</span>
           <span className="whitespace-nowrap">{t("app.name")}</span>
         </Link>
-        <nav className="ms-4 hidden flex-1 items-center gap-1 md:flex" aria-label="main">
+        <nav className="ms-4 hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
           {links.map((l) => (
             <Link key={l.href} href={l.href} className="min-h-10 content-center rounded-lg px-3 text-sm font-medium text-muted hover:bg-white/10 hover:text-text">
               {l.label}
@@ -43,14 +43,14 @@ export async function SiteHeader() {
           )}
           <LanguageSwitch />
           {user ? (
-            <span className="hidden md:block"><LogoutButton /></span>
+            <span className="hidden lg:block"><LogoutButton /></span>
           ) : (
             <>
               <Link href="/login" className="hidden min-h-10 content-center rounded-lg px-3 text-sm font-medium hover:bg-white/10 sm:block">{t("nav.login")}</Link>
               <Link href="/register" className="inline-flex min-h-10 items-center rounded-lg bg-neon px-3 text-sm font-semibold text-ink-950 hover:bg-white">{t("nav.register")}</Link>
             </>
           )}
-          <details className="relative md:hidden">
+          <details className="relative lg:hidden">
             <summary aria-label={t("nav.menu")} className="grid size-10 cursor-pointer list-none place-items-center rounded-lg border border-line">☰</summary>
             <div className="absolute end-0 top-12 w-56 space-y-1 rounded-xl border border-line bg-ink-800 p-2 shadow-xl">
               {allowance && (
