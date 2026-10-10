@@ -7,6 +7,7 @@
  */
 import { SPEC_LIMITS } from "./constants";
 import { MECHANICS, type GameType } from "./constants";
+import { estimateMinutes } from "./estimate";
 import { LAYOUT_FOR_GAME_TYPE, impliedMechanics, verifyMechanics } from "./mechanics";
 import { gameSpecSchema, type Area, type Challenge, type GameSpec } from "./schema";
 import { goalReachable, runProgram } from "../challenges/program";
@@ -260,6 +261,29 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
   return { errors, warnings };
 }
 
+/**
+ * Portals are one-way: there is no door back. A portal that opens before the area's own missions are finished lets a
+ * player walk away from objectives they can then never complete, so the game could not be finished (found by the
+ * "rusher" bot in the balance simulation). Every portal therefore also waits for the area's final missions.
+ */
+export function sealPortals(spec: GameSpec): string[] {
+  const notes: string[] = [];
+  for (const area of spec.areas) {
+    if (!area.portal) continue;
+    const here = spec.missions.filter((m) => m.areaId === area.id);
+    // "Final" missions: nothing else in this area builds on them (finishing those finishes their prerequisites).
+    const final = here.filter((m) => !here.some((o) => o.requires.includes(m.id)));
+    const wanted = [...new Set([...area.portal.requiresMissionIds, ...final.map((m) => m.id)])];
+    // The schema allows four; keep the portal's own requirements first, then as many final missions as fit.
+    const next = wanted.slice(0, 4);
+    if (next.length > area.portal.requiresMissionIds.length) {
+      area.portal.requiresMissionIds = next;
+      notes.push(`portal in area "${area.id}" now waits for the area's final missions, so nobody can leave objectives behind`);
+    }
+  }
+  return notes;
+}
+
 /** Align layouts to the chosen game type so "platformer" really plays as a platformer. */
 export function alignLayoutsToGameType(spec: GameSpec, gameType: GameType): string[] {
   const notes: string[] = [];
@@ -303,6 +327,9 @@ export function validateGameSpec(raw: unknown, opts: { alignGameType?: GameType 
     warnings.push(`mechanics enabled automatically because the content needs them: ${missing.join(", ")}`);
   }
 
+  // Before the cross-checks, so a seal that would make the game unfinishable is reported as such.
+  warnings.push(...sealPortals(spec));
+
   const cross = crossCheck(spec);
   warnings.push(...cross.warnings);
   if (cross.errors.length) return { ok: false, errors: cross.errors.slice(0, 30), warnings };
@@ -310,6 +337,9 @@ export function validateGameSpec(raw: unknown, opts: { alignGameType?: GameType 
   const report = verifyMechanics(spec);
   for (const i of report.ignored) warnings.push(`mechanic "${i.mechanic}" has no effect: ${i.reason}`);
   spec.mechanics = spec.mechanics.filter((m) => !report.ignored.some((i) => i.mechanic === m));
+
+  // The length shown to learners is measured from the content, not trusted from the generator or the model.
+  spec.meta.estimatedMinutes = estimateMinutes(spec);
 
   const size = JSON.stringify(spec).length;
   if (size > SPEC_LIMITS.maxBytes) return { ok: false, errors: [`specification is too large after validation (${size} bytes, max ${SPEC_LIMITS.maxBytes})`], warnings };
