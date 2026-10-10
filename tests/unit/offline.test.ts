@@ -109,3 +109,54 @@ describe("offline store: the same rules as the server, on the device", () => {
     catch (e) { expect((e as OfflineError).code).toBe("VALIDATION_ERROR"); }
   });
 });
+
+describe("review deck: spaced repetition across games", () => {
+  it("collects missed questions from every game, schedules 1/3/7/16 days, resets on a miss, and graduates", async () => {
+    const { review, newCard, dueCards, BOX_INTERVAL_DAYS } = await import("@/lib/offline/deck");
+    const DAY = 86_400_000;
+    let c = newCard("g", "c", 0)!;
+    expect(dueCards([c], 0)).toHaveLength(1);
+    for (const days of BOX_INTERVAL_DAYS) {
+      const next = review(c, true, c.due)!;
+      expect(next.due - c.due).toBe(days * DAY);
+      c = next;
+    }
+    expect(review(c, true, c.due)).toBeNull(); // mastered
+    const missed = review({ ...c, box: 3 }, false, 1000)!;
+    expect(missed.box).toBe(1);
+    expect(missed.due).toBeGreaterThan(1000);
+  });
+
+  it("serves due questions from all games through the store, grades them, and moves them through the boxes", () => {
+    let now = 1_000_000;
+    const store = new OfflineStore(memoryKV(), () => now);
+    const a = store.addGame(generateOffline(request({ material: NOTES, subject: "Plants", mode: "FULL" })).spec);
+    const s = store.startSession(a.id, false);
+    // miss one question, then solve it
+    const area = findArea(a.spec, s.client.areaId)!;
+    const st = area.stations.find((x) => x.kind === "challenge" && stationActive(a.spec, s.client, x))!;
+    const opened = store.applyEvent(s.session.id, { type: "open", stationId: st.id });
+    const ch = a.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
+    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
+    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+
+    expect(store.deckSummary()).toMatchObject({ total: 1, due: 1 });
+    const started = store.deckPractice({ action: "start" }) as { items: { id: string }[] };
+    expect(started.items).toHaveLength(1);
+    const key = started.items[0]!.id;
+    const res = store.deckPractice({ action: "answer", challengeId: key, answer: correctAnswer(ch), attempt: 1 }) as { result: { correct: boolean; resolved: boolean } };
+    expect(res.result).toMatchObject({ correct: true, resolved: true });
+    expect(store.deckSummary()).toMatchObject({ total: 1, due: 0 });
+    now += 86_400_000 + 1;
+    expect(store.deckSummary().due).toBe(1);
+    // a miss resets the card to box 1 and brings it back soon
+    store.deckPractice({ action: "answer", challengeId: key, answer: wrongAnswer(ch), attempt: 3 });
+    expect(store.deckSummary().due).toBe(0);
+    now += 11 * 60 * 1000;
+    expect(store.deckSummary().due).toBe(1);
+    expect(() => store.deckPractice({ action: "hint", challengeId: "nope" })).toThrow(OfflineError);
+    // deleting the game removes its cards
+    store.deleteGame(a.id);
+    expect(store.deckSummary().total).toBe(0);
+  });
+});

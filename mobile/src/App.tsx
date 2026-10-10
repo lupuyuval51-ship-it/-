@@ -4,6 +4,7 @@ import { DICTIONARIES, dirOf } from "@/lib/i18n";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
 import { CreatePage } from "./pages/Create";
+import { DeckPage } from "./pages/Deck";
 import { LibraryPage } from "./pages/Library";
 import { PlayPage } from "./pages/Play";
 import { PracticePage, ResultsPage, ReviewPage } from "./pages/Results";
@@ -13,6 +14,7 @@ function route(path: string) {
   let m: RegExpMatchArray | null;
   if (path === "/create") return <CreatePage />;
   if (path === "/settings") return <SettingsPage />;
+  if (path === "/review") return <DeckPage />;
   if ((m = path.match(/^\/play\/([\w-]+)$/))) return <PlayPage key={m[1]} gameId={m[1]!} />;
   if ((m = path.match(/^\/games\/([\w-]+)\/results\/([\w-]+)\/review$/))) return <ReviewPage gameId={m[1]!} sessionId={m[2]!} />;
   if ((m = path.match(/^\/games\/([\w-]+)\/results\/([\w-]+)\/practice$/))) return <PracticePage gameId={m[1]!} sessionId={m[2]!} />;

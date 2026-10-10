@@ -4,6 +4,13 @@ The phone app runs **without any server**. It reuses the website's game code (`s
 study engine and demo templates, and the very same game reducer the server uses (`processEvent`), here running on the
 device through `src/lib/offline/store.ts`. Games and progress are kept in the app's local storage.
 
+Phone-only features:
+- **Review my mistakes** (`src/lib/offline/deck.ts`): every question missed in any game goes into one deck with spaced
+  repetition (Leitner boxes: right on the first try → back in 1, 3, 7, 16 days, then mastered; a miss → back to box 1).
+- **Android back button** (`@capacitor/app`): in a game it closes the open panel, then pauses, then leaves; elsewhere it goes
+  back a screen, and from the library it closes the app.
+- **Vibration** (`@capacitor/haptics`) on right/wrong answers, pickups, gates and missions; switch off in Settings.
+
 What is different from the website (by design):
 - No accounts, no Stripe, no AI providers (an API key cannot live in an app). Games come from the **study engine** (your
   notes) or **demo templates**, and are labelled that way.

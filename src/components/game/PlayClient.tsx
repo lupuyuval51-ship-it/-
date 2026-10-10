@@ -52,7 +52,13 @@ const readPref = (k: string, d: boolean): boolean => {
   }
 };
 
-export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport }) {
+export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate";
+
+/**
+ * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
+ * window event (the Android back button): it closes the open panel, or pauses, or — from the pause menu — leaves the game.
+ */
+export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport, onFeedback }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport; onFeedback?: (kind: Feedback) => void }) {
   const t = useT();
   const [boot, setBoot] = useState<{ status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: Started }>({ status: "loading" });
   const [client, setClient] = useState<ClientState | null>(null);
@@ -82,6 +88,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const host = useRef<HTMLDivElement>(null);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const toastId = useRef(0);
+  const feedback = useRef(onFeedback);
+  useEffect(() => { feedback.current = onFeedback; }, [onFeedback]);
   const lastSaved = useRef({ x: 1e9, z: 1e9 });
   const dataRef = useRef<Started | null>(null);
   const clientRef = useRef<ClientState | null>(null);
@@ -172,6 +180,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         const m = d.spec.missions.find((x) => x.id === id);
         toast(t("toast.mission", { title: m?.title ?? id }), "good");
         audio.play("mission");
+        feedback.current?.("mission");
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1, p.z, "#a3ff4f", 40);
       }
@@ -207,6 +216,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         const item = rt.world.collectibles.find((c) => c.itemId === itemId);
         if (item) emitter.burst(item.x, item.y, item.z, "#4cf3ff", 18);
         audio.play("collect");
+        feedback.current?.("collect");
         send({ type: "collect", itemId }).then(() => pop(t("hud.points", { n: 10 }), "gold")).catch(handleError);
       },
       onCheckpoint: (id, pos) => {
@@ -220,6 +230,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       onStep: (fast) => audio.play(fast ? "stepFast" : "step"),
       onGateOpen: (g) => {
         audio.play("gate");
+        feedback.current?.("gate");
         emitter.burst(g.x, g.y, g.z, rt.world.theme.accent2, 40);
         toast(t("toast.gate"), "good");
       },
@@ -292,6 +303,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       const res = await send<EventResponse & { data: { result: AnswerResult } }>({ type: "answer", stationId: o.stationId, answer });
       const result = res.data.result;
       audio.play(result.correct ? "correct" : "wrong");
+      feedback.current?.(result.correct ? "correct" : "wrong");
       if (result.correct) {
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#a3ff4f", 36);
@@ -317,6 +329,18 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     setOverlay({ type: "none" });
     runtime?.refreshNearby();
   }, [runtime]);
+
+  // ───────── system back (Android back button / gesture) ─────────
+  useEffect(() => {
+    const onBack = () => {
+      const o = overlayRef.current;
+      if (o.type === "none") setOverlay({ type: "pause" });
+      else if (o.type === "pause" || o.type === "done") router.push("/games");
+      else if (o.type !== "challenge" || !o.busy) closeOverlay();
+    };
+    window.addEventListener("levelup:back", onBack);
+    return () => window.removeEventListener("levelup:back", onBack);
+  }, [closeOverlay, router]);
 
   // ───────── autosave ─────────
   useEffect(() => {

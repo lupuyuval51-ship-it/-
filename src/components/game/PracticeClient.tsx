@@ -10,7 +10,9 @@ import { httpTransport, type PlayTransport } from "./transport";
 
 
 /** The missed questions again, one by one: unscored, answers graded by the server, ends with a short summary. */
-export function PracticeClient({ gameId, sessionId, transport = httpTransport }: { gameId: string; sessionId: string; transport?: PlayTransport }) {
+export function PracticeClient({ gameId, sessionId, transport = httpTransport, backHref, reviewHref }: { gameId: string; sessionId: string; transport?: PlayTransport; backHref?: string; reviewHref?: string | null }) {
+  const back = backHref ?? `/games/${gameId}/results/${sessionId}`;
+  const reviewLink = reviewHref === undefined ? `/games/${gameId}/results/${sessionId}/review` : reviewHref;
   const t = useT();
   const call = transport.practice;
   const [items, setItems] = useState<PublicChallenge[] | null>(null);
@@ -48,8 +50,8 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport }:
         <p className="text-xl" data-testid="practice-score">{t("prac.done.score", { right, total: items.length })}</p>
         <Card className="text-sm text-muted">{right === items.length ? t("prac.done.great") : t("prac.done.more")}</Card>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href={`/games/${gameId}/results/${sessionId}/review`} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("prac.done.review")}</Link>
-          <Link href={`/games/${gameId}/results/${sessionId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t("rev.back")}</Link>
+          {reviewLink && <Link href={reviewLink} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("prac.done.review")}</Link>}
+          <Link href={back} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t("rev.back")}</Link>
         </div>
       </div>
     );
@@ -73,7 +75,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport }:
   return (
     <div className="space-y-3" data-testid="practice">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link href={`/games/${gameId}/results/${sessionId}/review`} className="text-sm text-muted hover:text-text"><Arrow back /> {t("rev.back")}</Link>
+        <Link href={reviewLink ?? back} className="text-sm text-muted hover:text-text"><Arrow back /> {t("rev.back")}</Link>
         <p className="text-sm font-semibold" data-testid="practice-progress">{t("prac.progress", { n: index + 1, total: items.length })}</p>
       </div>
       <p className="text-xs text-muted">{t("prac.note")}</p>

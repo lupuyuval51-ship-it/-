@@ -3,6 +3,9 @@ import type { GraphicsTier } from "@/config/plans";
 import { OfflineError, type OfflineStore } from "@/lib/offline/store";
 import { ApiFailure, type PlayTransport } from "./transport";
 
+/** Pseudo session id for the cross-game "review my mistakes" deck. */
+export const DECK_SESSION = "deck";
+
 /** Same contract as the server API, answered on the device. Errors keep the server's status/code shape. */
 export function offlineTransport(store: OfflineStore, tier: () => GraphicsTier, opts: { testHooks?: boolean } = {}): PlayTransport {
   const wrap = async <T>(fn: () => T): Promise<T> => {
@@ -28,6 +31,6 @@ export function offlineTransport(store: OfflineStore, tier: () => GraphicsTier, 
         };
       }),
     sendEvent: <T,>(sessionId: string, event: Record<string, unknown>) => wrap(() => store.applyEvent(sessionId, event) as unknown as T),
-    practice: <T,>(sessionId: string, body: unknown) => wrap(() => store.practice(sessionId, body) as T),
+    practice: <T,>(sessionId: string, body: unknown) => wrap(() => (sessionId === DECK_SESSION ? store.deckPractice(body) : store.practice(sessionId, body)) as T),
   };
 }

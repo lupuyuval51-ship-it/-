@@ -32,7 +32,9 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
     "@capacitor/android": "^7.6.9",
+    "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.6.9",
+    "@capacitor/haptics": "^7.0.5",
     "@fontsource-variable/heebo": "^5.3.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",

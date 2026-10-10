@@ -9,6 +9,10 @@ import { GameEventError, gameEventSchema, processEvent } from "../game/state/eve
 import { PracticeNotFound, practiceBodySchema, respondPractice } from "../game/state/practice";
 import { initialState, maxScore, recompute, summarize, toClientState, type ClientState, type LearningSummary, type PlayState } from "../game/state/progress";
 import { buildReview, type ReviewItem } from "../game/state/review";
+import { MAX_ATTEMPTS_PER_CHALLENGE } from "@/config/limits";
+import { gradeAnswer, revealSolution, toPublicChallenge } from "../game/challenges/grade";
+import { findChallenge } from "../game/state/progress";
+import { deckBodySchema, dueCards, newCard, review, type DeckCard } from "./deck";
 
 export interface KV {
   get(key: string): string | null;
@@ -201,5 +205,74 @@ export class OfflineStore {
       if (e instanceof PracticeNotFound) throw new OfflineError(404, "NOT_FOUND", e.message);
       throw e;
     }
+  }
+
+  // ───────── "review my mistakes" deck (spaced repetition across all games) ─────────
+  private deck(): Record<string, DeckCard> { return this.read<Record<string, DeckCard>>("deck", {}); }
+  private saveDeck(d: Record<string, DeckCard>): void { this.write("deck", d); }
+
+  /** Adds every question missed (resolved with a wrong answer or revealed) in any session; drops cards of deleted games. */
+  syncDeck(): Record<string, DeckCard> {
+    const deck = this.deck();
+    const now = this.clock();
+    const games = new Set(this.gameIds());
+    for (const k of Object.keys(deck)) if (!games.has(deck[k]!.gameId)) delete deck[k];
+    for (const gameId of games) {
+      for (const sid of this.sessionIds(gameId)) {
+        const s = this.getSession(sid);
+        if (!s) continue;
+        for (const [challengeId, r] of Object.entries(s.state.records)) {
+          if (!r.resolved || (r.wrong === 0 && !r.revealed)) continue;
+          const card = newCard(gameId, challengeId, now);
+          if (!deck[card.key]) deck[card.key] = card;
+        }
+      }
+    }
+    this.saveDeck(deck);
+    return deck;
+  }
+
+  deckSummary(): { total: number; due: number; nextDue: number | null } {
+    const cards = Object.values(this.syncDeck());
+    const now = this.clock();
+    const future = cards.filter((c) => c.due > now).map((c) => c.due);
+    return { total: cards.length, due: cards.filter((c) => c.due <= now).length, nextDue: future.length ? Math.min(...future) : null };
+  }
+
+  deckPractice(body: unknown) {
+    const parsed = deckBodySchema.safeParse(body);
+    if (!parsed.success) throw new OfflineError(400, "VALIDATION_ERROR", "The request is invalid.");
+    const b = parsed.data;
+    const now = this.clock();
+    if (b.action === "start") {
+      const items = dueCards(Object.values(this.syncDeck()), now).flatMap((card) => {
+        const ch = this.getGame(card.gameId) && findChallenge(this.getGame(card.gameId)!.spec, card.challengeId);
+        return ch ? [{ ...toPublicChallenge(ch, `deck:${card.key}:${card.reviews}`), id: card.key }] : [];
+      });
+      return { items };
+    }
+    const deck = this.deck();
+    const card = deck[b.challengeId];
+    const game = card ? this.getGame(card.gameId) : null;
+    const ch = game ? findChallenge(game.spec, card!.challengeId) : undefined;
+    if (!card || !game || !ch) throw new OfflineError(404, "NOT_FOUND", "That question is not in your review deck.");
+    if (b.action === "hint") return { hint: ch.hint ?? null };
+    const graded = gradeAnswer(ch, b.answer, game.spec.meta.language);
+    const resolved = graded.correct || b.attempt >= MAX_ATTEMPTS_PER_CHALLENGE;
+    const revealed = !graded.correct && resolved;
+    if (resolved) {
+      const next = review(card, graded.correct && b.attempt === 1, now);
+      if (next) deck[card.key] = next;
+      else delete deck[card.key];
+      this.saveDeck(deck);
+    }
+    return {
+      result: {
+        correct: graded.correct, feedback: graded.feedback, detail: graded.detail, resolved, revealed, pointsAwarded: 0,
+        attemptsLeft: Math.max(0, MAX_ATTEMPTS_PER_CHALLENGE - b.attempt),
+        explanation: resolved ? ch.explanation : undefined,
+        reveal: revealed ? revealSolution(ch) : undefined,
+      },
+    };
   }
 }
