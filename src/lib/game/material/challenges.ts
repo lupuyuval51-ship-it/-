@@ -9,7 +9,7 @@ import { clip, shuffled, wordsOf } from "./text";
 
 type Raw = Record<string, unknown>;
 type Level = 1 | 2 | 3;
-export type ChallengeKind = "qa" | "match" | "term" | "cloze" | "steps" | "number" | "truefalse";
+export type ChallengeKind = "qa" | "match" | "term" | "define" | "cloze" | "steps" | "number" | "truefalse";
 type Objective = "questions" | "terms" | "facts" | "steps" | "ideas";
 
 interface Candidate {
@@ -130,11 +130,47 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
       kind: "term", objective: "terms", level: 1, keys: [d.term.toLowerCase()],
       make: (id, level, objectiveId) => choice({
         id, level, objectiveId, options, correct: correctAt,
-        title: t("Name the term", "איך קוראים לזה?"),
+        title: pick(TERM_TITLES, id, t),
         // the concept tag is shown in the challenge panel, so it describes the question and never names the answer
         concept: clip(d.meaning, 60),
         prompt: t(`Which term matches this description from your material?\n“${clip(d.meaning, 300)}”`, `איזה מושג מתאים להסבר הזה מתוך החומר שלכם?\n״${clip(d.meaning, 300)}״`),
         hint: t(`It starts with “${first}”.`, `זה מתחיל באות ״${first}״.`),
+        explanation: clip(d.source, 600),
+      }),
+    });
+  }
+  return out;
+}
+
+/** Titles rotate with the challenge number so a whole game does not repeat one heading. */
+const TERM_TITLES: [string, string][] = [["Name the term", "איך קוראים לזה?"], ["Which concept is this?", "איזה מושג זה?"], ["Find the concept", "מצאו את המושג"]];
+const DEFINE_TITLES: [string, string][] = [["What does it mean?", "מה זה אומר?"], ["Pick the right meaning", "בחרו את ההסבר הנכון"], ["Explain the term", "הסבירו את המושג"]];
+function pick(titles: [string, string][], id: string, t: ReturnType<typeof translator>): string {
+  const n = Number(id.replace(/\D+/g, "")) || 0;
+  const [en, he] = titles[n % titles.length]!;
+  return t(en, he);
+}
+
+/** The reverse of "term": the term is shown and the learner picks its meaning from the other meanings in the material. */
+function defineCandidates(defs: Definition[], rnd: () => number, t: ReturnType<typeof translator>): Candidate[] {
+  const usable = defs.filter((d) => d.term.length <= 60 && d.meaning.length >= 8 && d.meaning.length <= 160);
+  if (usable.length < 3) return [];
+  const out: Candidate[] = [];
+  for (const d of usable) {
+    const wrong = shuffled(usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase() && o.meaning.toLowerCase() !== d.meaning.toLowerCase()), rnd).slice(0, 3);
+    if (wrong.length < 2) continue;
+    const correctAt = Math.floor(rnd() * (wrong.length + 1));
+    const options = wrong.map((w) => [clip(w.meaning, 200), t(`That describes “${clip(w.term, 60)}”, not this term.`, `זה מתאר את ״${clip(w.term, 60)}״ ולא את המושג הזה.`)] as [string, string]);
+    options.splice(correctAt, 0, [clip(d.meaning, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
+    const firstWord = d.meaning.trim().split(/\s+/)[0] ?? "";
+    out.push({
+      kind: "define", objective: "terms", level: 2, keys: [d.term.toLowerCase()],
+      make: (id, level, objectiveId) => choice({
+        id, level, objectiveId, options, correct: correctAt,
+        title: pick(DEFINE_TITLES, id, t),
+        concept: clip(d.term, 60),
+        prompt: t(`According to your material, what is “${clip(d.term, 80)}”?`, `לפי החומר שלכם, מהו ״${clip(d.term, 80)}״?`),
+        hint: t(`The right description starts with “${firstWord}”.`, `ההסבר הנכון מתחיל במילה ״${firstWord}״.`),
         explanation: clip(d.source, 600),
       }),
     });
@@ -320,7 +356,7 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: ReturnType<typeof tran
 
 // ───────────────────────────── selection ─────────────────────────────
 
-const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "match", "number", "term", "cloze"];
+const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "match", "number", "term", "define", "cloze"];
 
 export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generated {
   const t = translator(opts.lang);
@@ -335,6 +371,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
     match: matchCandidates(k.definitions, t),
     number: numberCandidates(k.facts, t),
     term: termCandidates(k.definitions, k.keywords, rnd, t),
+    define: defineCandidates(k.definitions, rnd, t),
     cloze: clozeCandidates(statements, k.keywords, rnd, t),
     truefalse: trueFalseCandidates(statements, k.keywords, rnd, t),
   };
@@ -377,7 +414,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   }
   const objText = OBJECTIVE_TEXT(t);
   const used = new Set<Objective>();
-  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, cloze: 0, steps: 0, number: 0, truefalse: 0 };
+  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, define: 0, cloze: 0, steps: 0, number: 0, truefalse: 0 };
   const challenges = ordered.map((c, i) => {
     used.add(c.objective);
     counts[c.kind]++;

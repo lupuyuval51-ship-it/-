@@ -91,28 +91,31 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
 
 export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, collect }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; collect?: { have: number; total: number } }) {
   const t = useT();
-  const [open, setOpen] = useState(true);
+  // Phones start with the mission list folded so it does not cover the world; larger screens show it.
+  const [open, setOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 640);
   const active = spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m) && m.areaId === client.areaId);
   const shown = active.length ? active : spec.missions.filter((m) => !client.missionsDone.includes(m.id) && missionUnlocked(client, m)).slice(0, 1);
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-2 p-3">
-        <div className="pointer-events-auto flex items-center gap-2">
-          <Link href="/games" aria-label={t("hud.exit")} className="grid size-11 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
-            <span aria-hidden>←</span>
+      {/* Two rows on phones so nothing overlaps: [back · area · score · pause], then small status chips. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 space-y-1.5 p-3">
+        <div className="flex items-stretch gap-2">
+          <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
+            <span aria-hidden className="rtl:-scale-x-100">←</span>
           </Link>
-          <div className="rounded-xl border border-line bg-ink-900/80 px-3 py-2 backdrop-blur">
+          <div className="pointer-events-auto min-w-0 flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
             <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.area")}</p>
-            <p dir="auto" className="max-w-[40vw] truncate text-sm font-semibold" data-testid="area-name">{areaName}</p>
+            <p dir="auto" className="truncate text-sm font-semibold" data-testid="area-name">{areaName}</p>
           </div>
+          <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off">
+            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.score")}</p>
+            <p dir="ltr" className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button" className="pointer-events-auto shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
+        </div>
+        <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
           {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
           {engine && <Badge tone="lime" title={t("engine.badge.hint")}>{t("engine.badge")}</Badge>}
-        </div>
-        <div className="pointer-events-auto flex items-center gap-2">
-          <div className="rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-end backdrop-blur" aria-live="off">
-            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.score")}</p>
-            <p className="text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
-          </div>
           {collect && collect.total > 0 && (
             <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
               <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
@@ -120,10 +123,9 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
             </Badge>
           )}
           {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
-          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} data-testid="pause-button"><Pause aria-hidden className="size-4" /></Button>
         </div>
       </div>
-      <aside className="pointer-events-auto absolute start-3 top-20 z-10 w-[min(20rem,calc(100vw-1.5rem))]" aria-label={t("hud.missions")}>
+      <aside className="pointer-events-auto absolute start-3 top-[6.5rem] z-10 w-[min(20rem,calc(100vw-1.5rem))]" aria-label={t("hud.missions")}>
         <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mb-1 flex w-full items-center justify-between rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-sm font-semibold backdrop-blur">
           <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
           <span aria-hidden>{open ? "▾" : "▸"}</span>
@@ -290,7 +292,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
+export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
   const t = useT();
   const [confirm, setConfirm] = useState(false);
   return (
@@ -301,6 +303,7 @@ export function PauseMenu({ profile, sfx, music, guide, onSfx, onMusic, onGuide,
           <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
           <label className="flex items-center justify-between rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 accent-[var(--color-neon)]" /></label>
           <label className="flex items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
+          <label className="flex items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
           <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
         </div>
         <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">

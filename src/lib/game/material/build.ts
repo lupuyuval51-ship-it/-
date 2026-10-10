@@ -32,22 +32,22 @@ export class MaterialError extends Error {
 // ───────────────────────────── world flavour ─────────────────────────────
 
 const CATEGORY: [SubjectCategory, RegExp][] = [
-  ["programming", /\b(?:python|java(?:script)?|code|coding|program(?:ming)?|algorithm|loop|variable|function|software|computer|html|css|sql)\b|תכנות|קוד|אלגוריתם|מחשב/i],
-  ["math", /\b(?:math(?:s|ematics)?|algebra|geometry|fraction|equation|arithmetic|calculus|percent)\b|מתמטיקה|חשבון|שבר|משוואה|גיאומטריה|אחוז/i],
-  ["science", /\b(?:science|physics|chemistry|biology|atom|cell|energy|force|planet|space|ecosystem|photosynthesis|gravity|molecule|animal|plant|weather|ocean|sea|climate)\b|מדע|פיזיקה|כימיה|ביולוגיה|אנרגיה|כוח|כוכב|חלל|תא|צמח|חיה|אקלים|ים|אוקיינוס/i],
-  ["history", /\b(?:history|ancient|empire|war|revolution|king|queen|dynasty|medieval|civilization|century|egypt|rome|greece)\b|היסטוריה|עתיק|אימפריה|מלחמה|מהפכה|מלך|תקופה|מצרים|רומא|יוון/i],
-  ["language", /\b(?:language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|translate|words?)\b|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
+  ["programming", /\b(?:python|java(?:script)?|code|coding|program(?:ming)?|algorithm|loop|variable|function|software|computer|html|css|sql)(?:s|es)?\b|תכנות|קוד|אלגוריתם|מחשב/i],
+  ["math", /\b(?:math(?:s|ematics)?|algebra|geometry|fraction|equation|arithmetic|calculus|percent)(?:s|es)?\b|מתמטיקה|חשבון|שבר|משוואה|גיאומטריה|אחוז/i],
+  ["science", /\b(?:science|physics|chemistry|biology|atom|cell|energy|force|planet|space|ecosystem|photosynthesis|gravity|molecule|animal|plant|weather|ocean|sea|climate)(?:s|es)?\b|מדע|פיזיקה|כימיה|ביולוגיה|אנרגיה|כוח|כוכב|חלל|תא|צמח|חיה|אקלים|ים|אוקיינוס/i],
+  ["history", /\b(?:history|ancient|empire|war|revolution|king|queen|dynasty|medieval|civilization|century|egypt|rome|greece)(?:s|es)?\b|היסטוריה|עתיק|אימפריה|מלחמה|מהפכה|מלך|תקופה|מצרים|רומא|יוון/i],
+  ["language", /\b(?:language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|translate|words?)(?:s|es)?\b|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
 ];
 
 const ENV: [Environment, RegExp][] = [
-  ["ocean-floor", /\b(?:ocean|sea|marine|fish|coral|whale|dolphin|underwater|reef)\b|ים|אוקיינוס|דג|אלמוג|לווייתן/i],
-  ["space-station", /\b(?:space|planet|star|galaxy|astronaut|rocket|orbit|solar system|moon|mars)\b|חלל|כוכב|גלקסיה|אסטרונאוט|טיל|מסלול|ירח|מאדים/i],
-  ["desert-ruins", /\b(?:egypt|pyramid|pharaoh|nile|desert|ancient|mesopotamia|bronze age)\b|מצרים|פירמידה|פרעה|נילוס|מדבר|עתיק/i],
-  ["castle", /\b(?:castle|medieval|knight|king|queen|kingdom|rome|roman|greece|greek|empire|math(?:s|ematics)?|algebra|geometry)\b|טירה|ימי הביניים|אביר|מלך|ממלכה|רומא|יוון|אימפריה|מתמטיקה|אלגברה|גיאומטריה/i],
-  ["neon-city", /\b(?:code|coding|program|python|java(?:script)?|algorithm|computer|software|internet|network|robot|ai|data)\b|קוד|תכנות|אלגוריתם|מחשב|תוכנה|אינטרנט|רשת|רובוט|נתונים/i],
-  ["laboratory", /\b(?:science|physics|chemistry|biology|atom|molecule|cell|energy|force|experiment|lab|body|health)\b|מדע|פיזיקה|כימיה|ביולוגיה|אטום|מולקולה|תא|אנרגיה|כוח|ניסוי|גוף|בריאות/i],
-  ["sky-islands", /\b(?:weather|cloud|climate|geography|bird|flight|air|wind|mountain|continent|map)\b|מזג אוויר|ענן|אקלים|גיאוגרפיה|ציפור|טיסה|אוויר|רוח|הר|יבשת|מפה/i],
-  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)\b|יער|טבע|צמח|עץ|חיה|דבורה|דבורים|חרק|פרח|גינה|חווה|מערכת אקולוגית|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
+  ["ocean-floor", /\b(?:ocean|sea|marine|fish|coral|whale|dolphin|underwater|reef)(?:s|es)?\b|ים|אוקיינוס|דג|אלמוג|לווייתן/i],
+  ["space-station", /\b(?:space|planet|star|galaxy|astronaut|rocket|orbit|solar system|moon|mars)(?:s|es)?\b|חלל|כוכב|גלקסיה|אסטרונאוט|טיל|מסלול|ירח|מאדים/i],
+  ["desert-ruins", /\b(?:egypt|pyramid|pharaoh|nile|desert|ancient|mesopotamia|bronze age)(?:s|es)?\b|מצרים|פירמידה|פרעה|נילוס|מדבר|עתיק/i],
+  ["castle", /\b(?:castle|medieval|knight|king|queen|kingdom|rome|roman|greece|greek|empire|math(?:s|ematics)?|algebra|geometry)(?:s|es)?\b|טירה|ימי הביניים|אביר|מלך|ממלכה|רומא|יוון|אימפריה|מתמטיקה|אלגברה|גיאומטריה/i],
+  ["neon-city", /\b(?:code|coding|program|python|java(?:script)?|algorithm|computer|software|internet|network|robot|ai|data)(?:s|es)?\b|קוד|תכנות|אלגוריתם|מחשב|תוכנה|אינטרנט|רשת|רובוט|נתונים/i],
+  ["laboratory", /\b(?:science|physics|chemistry|biology|atom|molecule|cell|energy|force|experiment|lab|body|health)(?:s|es)?\b|מדע|פיזיקה|כימיה|ביולוגיה|אטום|מולקולה|תא|אנרגיה|כוח|ניסוי|גוף|בריאות/i],
+  ["sky-islands", /\b(?:weather|cloud|climate|geography|bird|flight|air|wind|mountain|continent|map)(?:s|es)?\b|מזג אוויר|ענן|אקלים|גיאוגרפיה|ציפור|טיסה|אוויר|רוח|הר|יבשת|מפה/i],
+  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)(?:s|es)?\b|יער|טבע|צמח|עץ|חיה|דבורה|דבורים|חרק|פרח|גינה|חווה|מערכת אקולוגית|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
 ];
 
 const ENV_BY_TYPE: Record<GameType, Environment> = { exploration: "forest", puzzle: "castle", platformer: "sky-islands", simulation: "laboratory", adventure: "neon-city" };
@@ -144,6 +144,9 @@ interface AreaOpts {
   portalTo?: { id: string; label: string; mission: string };
 }
 
+/** Each chapter looks different: an open plaza first, then rooms, then a long corridor. */
+const LAYOUT_BY_CHAPTER = ["plaza", "rooms", "corridor"] as const;
+
 function buildArea(o: AreaOpts): Raw {
   const t = translator(o.lang);
   const f = o.flavour;
@@ -152,7 +155,7 @@ function buildArea(o: AreaOpts): Raw {
   if (lore) stations.push(loreStation(`s-${o.index}-lore`, t("Study notes", "פתקי לימוד"), lore.title, lore.text));
   const first = o.know.all[0] ?? o.subject;
   return {
-    id: o.id, name: clip(o.name, 60), description: clip(o.description, 260), size: "medium", layout: "plaza", hazardLevel: "none",
+    id: o.id, name: clip(o.name, 60), description: clip(o.description, 260), size: "medium", layout: LAYOUT_BY_CHAPTER[(o.index - 1) % LAYOUT_BY_CHAPTER.length], hazardLevel: "none",
     ...(o.intro ? { intro: clip(o.intro, 260) } : {}),
     stations,
     npcs: [npc(`n-${o.index}`, t(...f.guide), t("Your study guide", "המדריך שלכם ללמידה"), f.color, f.shape, [

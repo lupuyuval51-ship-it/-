@@ -40,6 +40,8 @@ export interface GameCanvasProps {
    * Frames (positions and progress flags, display only) are handed to `onUnityFrame` at about 20 Hz.
    */
   headless?: boolean;
+  /** Calmer scene for people sensitive to motion: no landing dip, no sprint zoom, far fewer particles. */
+  reduceMotion?: boolean;
   onUnityFrame?: (frame: UnityFrame) => void;
 }
 
@@ -134,7 +136,7 @@ function Loop({ runtime, input, onInteract, profile, exposeStats }: Pick<GameCan
   return null;
 }
 
-function CameraRig({ runtime, input }: Pick<GameCanvasProps, "runtime" | "input">) {
+function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runtime" | "input" | "reduceMotion">) {
   const camera = useThree((s) => s.camera);
   const init = useRef(false);
   const dir = useMemo(() => new THREE.Vector3(), []);
@@ -148,13 +150,13 @@ function CameraRig({ runtime, input }: Pick<GameCanvasProps, "runtime" | "input"
     const yaw = input.yaw;
     const pitch = input.pitch;
     // a short downward bump when landing from a height
-    if (p.grounded && !prev.current.grounded && prev.current.vy < -6) dip.current = Math.min(0.4, -prev.current.vy * 0.016);
+    if (!reduceMotion && p.grounded && !prev.current.grounded && prev.current.vy < -6) dip.current = Math.min(0.4, -prev.current.vy * 0.016);
     prev.current = { grounded: p.grounded, vy: p.vy };
     dip.current *= Math.exp(-dt * 9);
     // sprinting widens the view a little: a cheap, strong sense of speed
     if (camera instanceof THREE.PerspectiveCamera) {
       if (baseFov.current === null) baseFov.current = camera.fov;
-      const want = baseFov.current + Math.max(0, Math.min(1, (p.speed - 6.5) / 2.5)) * 6;
+      const want = baseFov.current + (reduceMotion ? 0 : Math.max(0, Math.min(1, (p.speed - 6.5) / 2.5)) * 6);
       if (Math.abs(camera.fov - want) > 0.01) {
         camera.fov += (want - camera.fov) * (1 - Math.exp(-dt * 6));
         camera.updateProjectionMatrix();
@@ -191,7 +193,7 @@ function Scene(props: GameCanvasProps) {
   return (
     <>
       <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={profile} exposeStats={props.exposeStats} />
-      <CameraRig runtime={runtime} input={props.input} />
+      <CameraRig runtime={runtime} input={props.input} reduceMotion={props.reduceMotion} />
       {props.headless ? (
         <>
           <NoRender />

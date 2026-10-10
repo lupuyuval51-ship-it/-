@@ -162,6 +162,9 @@ p { text-wrap: pretty; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 
+/* In-game "Reduce motion" (also on by default when the device asks for it): HUD animations stop too. */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+
 /* Page enter transition (route changes). */
 @keyframes lu-page { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .lu-page { animation: lu-page 0.22s ease-out both; }

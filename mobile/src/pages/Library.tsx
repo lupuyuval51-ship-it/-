@@ -49,7 +49,7 @@ export function LibraryPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 dir="auto" className="me-auto text-lg font-semibold">{g.title}</h3>
                   <GeneratorBadge kind={g.generatorKind} provider={g.generatorKind} t={t} />
-                  {g.inProgress && <Badge tone="neon">{t("lib.progress")}</Badge>}
+                  {g.inProgress && <Badge tone="neon">{t("lib.progress", { n: g.percent })}</Badge>}
                 </div>
                 <p dir="auto" className="text-sm text-muted">{g.subject}</p>
                 {g.bestStars > 0 && <div className="flex items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}

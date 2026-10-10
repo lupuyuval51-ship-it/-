@@ -78,3 +78,19 @@ test("vibration can be switched off in settings and the choice is kept", async (
   await page.reload();
   await expect(page.getByRole("checkbox", { name: /vibration|רטט/i })).not.toBeChecked();
 });
+
+test("the app never requests Unity files or any network resource, even when asked for the Unity renderer", async ({ page }) => {
+  const requested: string[] = [];
+  page.on("request", (r) => { if (!r.url().startsWith("http://127.0.0.1:4173/") && !r.url().startsWith("data:") && !r.url().startsWith("blob:")) requested.push(r.url()); });
+  const unity: string[] = [];
+  page.on("request", (r) => { if (/unity|\/api\//i.test(new URL(r.url()).pathname)) unity.push(r.url()); });
+  await page.goto("/?renderer=unity#/create");
+  await page.locator("#subject").fill("Fractions");
+  await page.getByTestId("mobile-create-submit").click();
+  await expect(page.getByTestId("play-root")).toBeVisible();
+  await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1", undefined, { timeout: 60_000 });
+  await expect(page.getByTestId("play-root")).toHaveAttribute("data-renderer", "three"); // the built-in 3D renderer is what runs
+  await expect(page.getByTestId("unity-canvas")).toHaveCount(0);
+  expect(unity).toEqual([]);
+  expect(requested).toEqual([]);
+});

@@ -42,6 +42,8 @@ type Overlay =
 const SFX_KEY = "levelup.sfx";
 const MUSIC_KEY = "levelup.music";
 const GUIDE_KEY = "levelup.guide";
+const MOTION_KEY = "levelup.reduceMotion";
+const systemReducesMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TUTORIAL_KEY = "levelup.tutorial";
 const readPref = (k: string, d: boolean): boolean => {
   try {
@@ -58,7 +60,7 @@ export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate";
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
  * window event (the Android back button): it closes the open panel, or pauses, or — from the pause menu — leaves the game.
  */
-export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport, onFeedback }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport; onFeedback?: (kind: Feedback) => void }) {
+export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport, onFeedback, allowUnity = true }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport; onFeedback?: (kind: Feedback) => void; /** The Android app has no Unity build and no scene API: it never asks for one. */ allowUnity?: boolean }) {
   const t = useT();
   const [boot, setBoot] = useState<{ status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: Started }>({ status: "loading" });
   const [client, setClient] = useState<ClientState | null>(null);
@@ -73,6 +75,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const [touch] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [sfx, setSfx] = useState(() => (typeof window === "undefined" ? soundDefault : readPref(SFX_KEY, soundDefault)));
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
+  const [reduceMotion, setReduceMotion] = useState(() => (typeof window === "undefined" ? false : readPref(MOTION_KEY, systemReducesMotion())));
   const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
   const router = useRouter();
   // Optional Unity renderer (?renderer=unity). Display only: input, physics, scoring and the server stay as they are.
@@ -122,7 +125,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   // Opt in with ?renderer=unity. Without a deployed build (or below Tier A) the built-in renderer is used, with a note.
   const tier = data?.render.tier;
   useEffect(() => {
-    if (!tier || new URLSearchParams(window.location.search).get("renderer") !== "unity") return;
+    if (!allowUnity || !tier || new URLSearchParams(window.location.search).get("renderer") !== "unity") return;
     if (tier !== "A") { toast(t("unity.tier"), "info"); return; }
     const ctl = new AbortController();
     void unityBuildAvailable(ctl.signal).then((ok) => {
@@ -131,7 +134,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       else toast(t("unity.fallback"), "info");
     });
     return () => ctl.abort();
-  }, [tier, toast, t]);
+  }, [allowUnity, tier, toast, t]);
   const onUnityStatus = useCallback((status: "ready" | "error") => {
     if (status === "ready") { setUnity("ready"); return; }
     setUnity("off");
@@ -415,9 +418,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
   return (
-    <main ref={host} className="theme-dark relative h-dvh w-full select-none overflow-hidden bg-ink-950" data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
+    <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} relative h-dvh w-full select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={d.render.profile} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
+        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
       {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
       {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}
@@ -440,7 +443,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       {npc && <Dialogue npc={npc} onClose={closeOverlay} onLine={() => audio.play("blip")} />}
       {lore && lore.loreTitle && lore.loreText && <LoreCard title={lore.loreTitle} text={lore.loreText} onClose={closeOverlay} />}
       {overlay.type === "pause" && (
-        <PauseMenu profile={d.render.profile} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
+        <PauseMenu profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onMusic={(v) => { setMusic(v); audio.unlock(); try { localStorage.setItem(MUSIC_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onResume={closeOverlay} onRestart={() => void start(true)} />
       )}

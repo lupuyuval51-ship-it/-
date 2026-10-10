@@ -60,6 +60,8 @@ export interface GameSummaryRow {
   bestStars: number;
   maxScore: number;
   inProgress: boolean;
+  /** Share of missions finished in the unfinished run (0–100). */
+  percent: number;
   lastSessionId: string | null;
 }
 
@@ -77,6 +79,12 @@ const randomId = (): string => {
   if (c?.randomUUID) return c.randomUUID().replace(/-/g, "").slice(0, 20);
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 };
+
+function activePercent(spec: GameSpec, sessions: StoredSession[]): number {
+  const active = sessions.find((s) => s.status === "ACTIVE");
+  if (!active || spec.missions.length === 0) return 0;
+  return Math.round((active.state.missionsDone.length / spec.missions.length) * 100);
+}
 
 export class OfflineStore {
   constructor(private kv: KV, private clock: () => number = Date.now) {}
@@ -121,7 +129,7 @@ export class OfflineStore {
         id, title: g.title, subject: g.spec.meta.subject, createdAt: g.createdAt, generatorKind: g.spec.meta.generator?.kind ?? "demo",
         environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
         bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
-        inProgress: sessions.some((s) => s.status === "ACTIVE"), lastSessionId: sessions[0]?.id ?? null,
+        inProgress: sessions.some((s) => s.status === "ACTIVE"), percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
       }];
     });
   }
