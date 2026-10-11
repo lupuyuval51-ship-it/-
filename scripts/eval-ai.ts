@@ -9,6 +9,8 @@
  * --concurrency N (default 2) --deadline-ms N (per case, default 600000) --call-timeout-ms N (per model call, default 240000) --out file.json --price-in USD --price-out USD (per million tokens, for the cost columns).
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import http from "node:http";
+import https from "node:https";
 import { buildCases } from "../src/server/ai/eval/cases";
 import { buildReport, compareReports, formatReport, type Prices, type Report } from "../src/server/ai/eval/report";
 import { runEval } from "../src/server/ai/eval/run";
@@ -17,6 +19,25 @@ import { runEval } from "../src/server/ai/eval/run";
 process.env.DATABASE_URL ??= "postgresql://eval:eval@127.0.0.1:1/eval";
 
 const args = process.argv.slice(2);
+
+/**
+ * fetch() gives up on a response whose headers take more than 300 s, which a model on a laptop CPU easily exceeds.
+ * For a server on this machine we use plain node:http, which waits as long as the call's own timeout allows.
+ */
+function patientFetch(url: string | URL | Request, init: RequestInit = {}): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const u = new URL(String(url));
+    const req = (u.protocol === "https:" ? https : http).request(u, { method: init.method ?? "GET", headers: init.headers as Record<string, string> }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (c: Buffer) => chunks.push(c));
+      res.on("end", () => resolve(new Response(Buffer.concat(chunks), { status: res.statusCode ?? 500 })));
+      res.on("error", reject);
+    });
+    req.on("error", reject);
+    init.signal?.addEventListener("abort", () => req.destroy(new Error("aborted")));
+    req.end(init.body as string | undefined);
+  });
+}
 const flag = (name: string) => args.includes(`--${name}`);
 const value = (name: string): string | undefined => {
   const i = args.indexOf(`--${name}`);
@@ -46,7 +67,12 @@ async function main(): Promise<void> {
   }
 
   const { getBackend } = await import("../src/server/ai/registry");
-  const backend = getBackend();
+  let backend = getBackend();
+  const base = process.env.OPENAI_BASE_URL ?? "";
+  if (backend.type === "llm" && backend.info.id === "openai" && /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/)/.test(base)) {
+    const { createOpenAiCompatBackend } = await import("../src/server/ai/providers/openai");
+    backend = createOpenAiCompatBackend({ apiKey: process.env.OPENAI_API_KEY ?? "local", baseUrl: base, model: backend.info.model, fetchImpl: patientFetch as typeof fetch });
+  }
   if (backend.type !== "llm") { console.error(`The configured backend is "${backend.info.id}" (${backend.type}), not a language model. Set AI_PROVIDER and the provider's key/model first.`); process.exit(2); }
   if (!flag("yes")) { console.error(`This runs ${cases.length} cases against ${backend.info.id} / ${backend.info.model} and spends real money. Add --yes to continue (or --dry to only list the cases).`); process.exit(2); }
 
