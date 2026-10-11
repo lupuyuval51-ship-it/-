@@ -11,8 +11,9 @@ export function fireWeapon(game, ox, oy, oz, dx, dy, dz, w, shooter) {
     const tg = ddy < -1e-4 ? -oy / ddy : Infinity; if (tg < best.t) best = { t: tg, type: 'ground' };
     for (const p of game.peds) {
       if (p.dead || p === shooter) continue; if (Math.abs(p.x - ox) > w.range || Math.abs(p.z - oz) > w.range) continue;
-      const th = raySphere(ox, oy, oz, ddx, ddy, ddz, p.x, p.y + 1.6, p.z, 0.24); if (th !== null && th < best.t) { best = { t: th, type: 'ped', ped: p, head: true }; continue; }
-      const tb = raySphere(ox, oy, oz, ddx, ddy, ddz, p.x, p.y + 0.95, p.z, 0.5); if (tb !== null && tb < best.t) best = { t: tb, type: 'ped', ped: p };
+      const H = p.mesh?.scale?.y || 1; // people are built at their own height (about 0.89 .. 1.12 of the 1.73 m body): the head and chest spheres follow it
+      const th = raySphere(ox, oy, oz, ddx, ddy, ddz, p.x, p.y + 1.6 * H, p.z, 0.24 * H); if (th !== null && th < best.t) { best = { t: th, type: 'ped', ped: p, head: true }; continue; }
+      const tb = raySphere(ox, oy, oz, ddx, ddy, ddz, p.x, p.y + 0.95 * H, p.z, 0.5 * H); if (tb !== null && tb < best.t) best = { t: tb, type: 'ped', ped: p };
     }
     const P = game.player; if (shooter !== 'player' && shooter !== P && !P.dead && !P.vehicle) { const tb = raySphere(ox, oy, oz, ddx, ddy, ddz, P.x, P.y + 0.95, P.z, 0.5); if (tb !== null && tb < best.t) best = { t: tb, type: 'player' }; }
     for (const v of game.vehicles) {

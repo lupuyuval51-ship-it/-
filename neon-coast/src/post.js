@@ -54,13 +54,14 @@ export class Post {
           gl_FragColor = vec4(vec3(clamp(1.0 - occ / 12.0 * intensity, 0.0, 1.0)), 1.0);
         }` });
 
-    this.aoBlur = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, dir: { value: new THREE.Vector2(1, 0) } }, vertexShader: VS,
-      fragmentShader: `uniform sampler2D tDiffuse, tDepth; uniform vec2 dir; varying vec2 vUv;
-        void main(){ float dc = texture2D(tDepth, vUv).x; float sum = texture2D(tDiffuse, vUv).r * 0.4; float wsum = 0.4;
-          for (int i = 1; i <= 3; i++) { float f = float(i); float w = 0.2 / f;
+    this.aoBlur = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, projInv: { value: new THREE.Matrix4() }, dir: { value: new THREE.Vector2(1, 0) } }, vertexShader: VS,
+      fragmentShader: `uniform sampler2D tDiffuse, tDepth; uniform mat4 projInv; uniform vec2 dir; varying vec2 vUv;
+        float viewZ(vec2 uv){ vec4 c = projInv * vec4(uv * 2.0 - 1.0, texture2D(tDepth, uv).x * 2.0 - 1.0, 1.0); return c.z / c.w; }
+        void main(){ float zc = viewZ(vUv); float sum = texture2D(tDiffuse, vUv).r * 0.4; float wsum = 0.4;
+          float tol = 0.05 + 0.03 * abs(zc); // gate on linear view depth: raw depth is non-linear, so at a few metres it rejected nearly every tap and the SSAO grain survived
+          for (int i = 1; i <= 6; i++) { float f = float(i); float w = 0.2 / f; // 6 taps a side: the per-pixel rotation of the 12 samples averages out (3 taps left grain on dark facades and the sky)
             vec2 o = dir * f;
-            float d1 = texture2D(tDepth, vUv + o).x, d2 = texture2D(tDepth, vUv - o).x;
-            float w1 = w * step(abs(d1 - dc), 0.0008), w2 = w * step(abs(d2 - dc), 0.0008);
+            float w1 = w * step(abs(viewZ(vUv + o) - zc), tol), w2 = w * step(abs(viewZ(vUv - o) - zc), tol);
             sum += texture2D(tDiffuse, vUv + o).r * w1 + texture2D(tDiffuse, vUv - o).r * w2; wsum += w1 + w2; }
           gl_FragColor = vec4(vec3(sum / max(wsum, 0.0001)), 1.0); }` });
 
@@ -99,8 +100,7 @@ export class Post {
           float vig = smoothstep(1.3, 0.32, length(off * vec2(1.25, 1.0))); col *= mix(vigFloor, 1.0, vig);
           col = mix(col, vec3(0.5, 0.015, 0.015), hurt * (1.0 - vig) * 0.62);
           float g = fract(sin(dot(vUv * vec2(1237.0, 917.0) + fract(time), vec2(12.9898, 78.233))) * 43758.5453);
-          col += (g - 0.5) * (0.009 + night * 0.013);
-          gl_FragColor = vec4(toSRGB(col), 1.0);
+          gl_FragColor = vec4(toSRGB(col) + (g - 0.5) * (2.0 / 255.0), 1.0); // dither of one 8-bit step in display space; grain added in linear space speckled every dark pixel at night
         }` });
 
     this.fxaa = new THREE.ShaderMaterial({ depthTest: false, depthWrite: false, uniforms: { tDiffuse: { value: null }, texel: { value: new THREE.Vector2() } }, vertexShader: VS,
@@ -159,7 +159,7 @@ export class Post {
       s.proj.value.copy(camera.projectionMatrix); s.projInv.value.copy(camera.projectionMatrix).invert();
       s.res.value.set(this.aoRaw.width, this.aoRaw.height);
       this.pass(this.ssao, this.aoRaw);
-      const ab = this.aoBlur.uniforms; ab.tDepth.value = this.rt.depthTexture;
+      const ab = this.aoBlur.uniforms; ab.tDepth.value = this.rt.depthTexture; ab.projInv.value.copy(s.projInv.value);
       ab.tDiffuse.value = this.aoRaw.texture; ab.dir.value.set(1 / this.aoRaw.width, 0); this.pass(this.aoBlur, this.aoTmp);
       ab.tDiffuse.value = this.aoTmp.texture; ab.dir.value.set(0, 1 / this.aoRaw.height); this.pass(this.aoBlur, this.ao);
       c.tAO.value = this.ao.texture; c.useAO.value = 1;

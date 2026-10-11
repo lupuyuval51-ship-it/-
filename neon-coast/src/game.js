@@ -10,6 +10,7 @@ import { UI } from './ui.js';
 import { Police } from './police.js';
 import { Traffic } from './traffic.js';
 import { Missions } from './missions.js';
+import { Jobs } from './jobs.js';
 import { Pickups } from './combat.js';
 import { Player } from './player.js';
 import { Vehicle, collideVehicles } from './vehicle.js';
@@ -28,16 +29,17 @@ const STATIONS = ['off', 'neon', 'bass', 'club'];
 const SAVE_KEY = 'neoncoast.save', SET_KEY = 'neoncoast.settings';
 const HALF = CITY.road / 2;
 const SHOP_TYPES = { guns: 'guns', dealer: 'cars', spray: 'spray', hospital: 'hospital', safehouse: 'safehouse', burger: 'burger', clothes: 'clothes', casino: 'casino' };
+const SHOP_RING = new THREE.RingGeometry(1.5, 1.7, 40).rotateX(-Math.PI / 2); // a shop's marker lies flat on the pavement; the mission drum would stand across the door
 const _tmp = [];
 // drawing-buffer pixel budget of the 3D pass per quality tier; the canvas keeps its full size and FXAA upsamples
 const RES_CAP = { high: 3.7e6, med: 2.1e6, low: 1.0e6 };
 // time-of-day grade (Post: lift, gain, saturation), blended by sun height and night
 const GRADE = { noon: new THREE.Vector3(1.02, 1.0, 0.97), gold: new THREE.Vector3(1.10, 0.98, 0.86), lift: new THREE.Vector3(0.006, 0.008, 0.02) };
 const ss = THREE.MathUtils.smoothstep;
-const PED_BUBBLE = { hiddenMin: 16, hiddenMax: 110, visibleMin: 55, despawnHidden: 140, despawnHard: 220, popMin: 15, popMax: 150, nightCut: 0.45, quietRadius: 60 };
+const PED_BUBBLE = { hiddenMin: 16, hiddenMax: 110, visibleMin: 55, despawnHidden: 140, despawnHard: 220, popMin: 15, popMax: 150, nightCut: 0.45, quietRadius: 60, dayBoost: 1.3, nearRadius: 70 };
 const pb = k => TRAFFIC.pedBubble?.[k] ?? PED_BUBBLE[k];
 // scratch objects: nothing below is allocated per frame
-const _fwd = new THREE.Vector3(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere(), _amb = new THREE.Color(), _spot = { x: 0, z: 0, area: null };
+const _fwd = new THREE.Vector3(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere(), _amb = new THREE.Color(), _spot = { x: 0, z: 0, area: null }, _vpt = { x: 0, z: 0 };
 const _lampD = new Float32Array(4), _lampP = [null, null, null, null];
 const _ambience = { x: 0, z: 0, night: 0, rain: 0, inCar: false, cars: 0, park: NaN, rightX: 1, quality: 'high' };
 
@@ -54,7 +56,7 @@ export class Game {
     this.post = new Post(this.renderer, q);
     this.input = new Input(canvas); this.audio = new AudioSys(); this.audio.volume = this.settings.volume; this.audio.quality = q; this.hud = new HUD(this);
     this.vehicles = []; this.peds = []; this.time = 0; this.clock = TIME.start; this.weather = 'clear'; this.station = 'off'; this.money = 0; this.stats = { kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }; this.collected = new Set();
-    this.state = 'title'; this.timeScale = 1; this.godMode = false; this.interactPrompt = null; this.missionPrompt = null; this.weatherT = 150; this.lampT = 0; this.pedSpawnT = 0; this.titleAng = 0; this.built = false; this.hitStopT = 0; this.bustLevel = 0; this.parkT = 0; this.parkDist = NaN;
+    this.state = 'title'; this.timeScale = 1; this.godMode = false; this.interactPrompt = null; this.missionPrompt = null; this.weatherT = 150; this.lampT = 0; this.pedSpawnT = 0; this.titleAng = 0; this.built = false; this.hitStopT = 0; this.bustLevel = 0; this.parkT = 0; this.parkDist = NaN; this.indoorK = 0; this.inShopId = null;
     this._active = []; this._near = []; this._focus = new THREE.Vector3(); this._frustum = new THREE.Frustum(); this._sz = new THREE.Vector2();
     this.ui = new UI(this);
     addEventListener('resize', () => this.resize()); this.resize();
@@ -75,9 +77,9 @@ export class Game {
     this.env = new EnvMap(this.renderer, this.scene); this.skids = new SkidMarks(this.scene); this.grenades = new Grenades(this);
     this.police = new Police(this); this.traffic = new Traffic(this); this.missions = new Missions(this); this.pickups = new Pickups(this); this.ownedOutfits = new Set(['street']); this.outfit = 'street';
     const sh = this.world.pois.safehouse; this.player = new Player(this, sh.x + 4, sh.z - 0.5);
-    this.missions.init();
+    this.missions.init(); this.jobs = new Jobs(this); this.jobs.init(); this.world.shops.attach(this); // the repeatable jobs and the shop keepers exist before the prewarm compiles their shaders
     // shop markers
-    this.shopMarkers = []; for (const id in this.world.pois) { const p = this.world.pois[id]; if (!SHOP_TYPES[p.type]) continue; const m = this.missions.makeMarker(p.x, p.z, parseInt(p.color.slice(1), 16), false); m.mesh.children[0].scale.set(0.75, 0.5, 0.75); m.mesh.children[0].material.opacity = 0.32; this.shopMarkers.push({ id, ...p, mesh: m.mesh }); }
+    this.shopMarkers = []; for (const id in this.world.pois) { const p = this.world.pois[id]; if (!SHOP_TYPES[p.type]) continue; const m = this.missions.makeMarker(p.x, p.z, parseInt(p.color.slice(1), 16), false); const ring = m.mesh.children[0]; ring.geometry = SHOP_RING; ring.position.y = 0.17; ring.material.opacity = 0.42; ring.material.side = THREE.FrontSide; this.shopMarkers.push({ id, ...p, mesh: m.mesh }); }
     for (const id in this.world.pois) { const p = this.world.pois[id]; if (p.type === 'police') this.setupStation(p); }
     // lamp light pool + headlights
     this.lampLights = []; for (let i = 0; i < 4; i++) { const l = new THREE.PointLight(0xffd9a0, 0, 30, 2); l.userData.on = 0; this.scene.add(l); this.lampLights.push(l); }
@@ -148,7 +150,7 @@ export class Game {
   }
   startNew() {
     this.audio.shouldRun = true; this.audio.init(); this.money = 500; this.clock = TIME.start; this.time = 0; this.stats = { kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }; this.collected = new Set(); this.weather = 'clear'; this.sky.setWeather('clear'); this.weatherT = 150; this.station = 'off'; this.audio.setStation('off');
-    this.healthRespawn = 0; this.hitStopT = 0; this.bustLevel = 0; if (this.missions.active) this.missions.fail(); this.missions.resetProgress(); this.clearDynamic();
+    this.healthRespawn = 0; this.hitStopT = 0; this.bustLevel = 0; if (this.missions.active) this.missions.fail(); this.missions.resetProgress(); this.jobs.reset(); this.clearDynamic();
     const sh = this.world.pois.safehouse; this.player.weapons = { fist: { ammo: Infinity, clip: 0 } }; this.player.weaponIds = ['fist']; this.ownedOutfits = new Set(['street']); this.applyOutfit('street'); this.player.select('fist'); this.player.armor = 0; this.player.respawn(sh.x + 4, sh.z - 0.5); this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations(); this.populate();
     this.play(); this.hud.notify(T.hint.first, 'obj', 9); setTimeout(() => this.hud.notify(T.hint.stealCar, 'dim', 7), 4000);
   }
@@ -166,7 +168,7 @@ export class Game {
   hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch { return false; } }
   saveSettings() { try { localStorage.setItem(SET_KEY, JSON.stringify(this.settings)); } catch {} }
   saveGame(silent = false) {
-    if (!this.built) return; const s = { v: 1, money: this.money, clock: this.clock, weather: this.weather, station: this.station, stats: this.stats, collected: [...this.collected], player: this.player.save(), missions: this.missions.save(), outfit: this.outfit, outfits: [...this.ownedOutfits], t: Date.now() };
+    if (!this.built) return; const s = { v: 1, money: this.money, clock: this.clock, weather: this.weather, station: this.station, stats: this.stats, collected: [...this.collected], player: this.player.save(), missions: this.missions.save(), jobs: this.jobs.save(), outfit: this.outfit, outfits: [...this.ownedOutfits], t: Date.now() };
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(s)); if (!silent) this.hud.notify(T.saved, 'cash'); } catch (e) { this.hud.notify(T.saveFailed, 'warn'); }
     this.ui.applyLanguage();
   }
@@ -174,7 +176,7 @@ export class Game {
     let s; try { s = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {} if (!s) { this.hud.notify(T.noSave, 'warn'); return false; }
     if (this.missions.active) this.missions.fail(); this.clearDynamic();
     this.money = s.money; this.clock = s.clock; this.weather = s.weather || 'clear'; this.sky.setWeather(this.weather); this.station = s.station || 'off'; this.audio.setStation(this.station); this.stats = Object.assign({ kills: 0, carsStolen: 0, distance: 0, playtime: 0, tokens: 0 }, s.stats); this.collected = new Set(s.collected || []);
-    this.missions.load(s.missions || {}); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations(); this.hitStopT = 0; this.populate(); this.hud.notify(T.loaded, 'cash'); return true;
+    this.missions.load(s.missions || {}); this.jobs.load(s.jobs ?? s.missions?.jobs ?? null); this.player.load(s.player); this.ownedOutfits = new Set(s.outfits || ['street']); this.applyOutfit(s.outfit || 'street'); this.player.dead = false; this.player.vehicle = null; this.player.mesh.visible = true; this.player.camYaw = Math.PI; this.resetPickups(); this.restoreStations(); this.hitStopT = 0; this.populate(); this.hud.notify(T.loaded, 'cash'); return true;
   }
   sleep() { this.clock = 7 * 60; this.player.health = 100; this.weather = 'clear'; this.sky.setWeather('clear'); this.saveGame(true); this.hud.notify(T.sleepDone, 'cash'); }
   setQuality(q) {
@@ -189,7 +191,8 @@ export class Game {
   addPed(p) { this.peds.push(p); return p; }
   removePed(p) { const i = this.peds.indexOf(p); if (i >= 0) this.peds.splice(i, 1); p.dispose(); }
   addPickup(o) { return this.pickups.add(o); }
-  addMoney(n) { this.money = Math.max(0, this.money + n); this.hud.moneyDelta(n); }
+  // a payment at a shop till (not a casino bet) rings the till
+  addMoney(n) { this.money = Math.max(0, this.money + n); this.hud.moneyDelta(n); if (n < 0 && this.state === 'shop' && this.ui?.shopType !== 'casino') this.audio.register(); }
   alert(x, z, r, type, src) { for (const p of this.peds) p.scare(x, z, r); if (type === 'gunfire' || type === 'death') for (const v of this.vehicles) if (v.ai && v.ai.mode === 'traffic' && dist(v.x, v.z, x, z) < r) v.ai.panic = 6; }
   nextStation() { const i = STATIONS.indexOf(this.station); this.station = STATIONS[(i + 1) % STATIONS.length]; this.audio.setStation(this.station); this.hud.radio(this.station); }
   deliverCar(type) { const d = this.world.pois.dealer; let x = d.x + 12; const z = d.blockZ0 - 1.75; for (let k = 0; k < 6; k++) { if (!this.vehicles.some(v => dist(v.x, v.z, x, z) < 5.5)) break; x += 6; } const v = new Vehicle(type, pick(CAR_COLORS), x, z, 0); v.parked = true; this.addVehicle(v); }
@@ -201,9 +204,10 @@ export class Game {
   onCarHit(v, other, impact) { if (v.driver === this.player) this.player.shake = Math.min(1, (this.player.shake || 0) + impact / 16); if (other.driver === this.player) { v.playerHitT = this.time; if ((v.type === 'police' || v.type === 'swat') && impact > 4) this.police.reportCrime('hitcop', v.x, v.z); if (impact > 5 && v.ai && v.ai.mode === 'traffic') v.ai.panic = 5; } }
   // ---------- death / arrest ----------
   wasted() { if (this.state === 'dead') return; this.setState('dead'); this.deadKind = 'wasted'; this.hud.overlay('wasted'); this.timeScale = 0.35; this.audio.engine(false); this.audio.failed(); if (this.missions.active) this.missions.fail(); setTimeout(() => this.respawn('hospital'), 4800); }
-  bust() { if (this.state === 'dead' || this.player.dead) return; this.bustLevel = this.police.level; this.setState('dead'); this.deadKind = 'busted'; const P = this.player; if (P.vehicle) P.exitVehicle(); P.dead = true; this.hud.overlay('busted'); this.timeScale = 0.35; this.audio.engine(false); this.audio.wanted(); if (this.missions.active) this.missions.fail(); setTimeout(() => this.respawn('police'), 4800); }
+  bust() { if (this.state === 'dead' || this.player.dead) return; this.bustLevel = this.police.level; this.setState('dead'); this.deadKind = 'busted'; const P = this.player; if (P.vehicle) P.exitVehicle(); P.kill(P.hitX || 0, P.hitZ || 0); this.hud.overlay('busted'); this.timeScale = 0.35; this.audio.engine(false); this.audio.wanted(); if (this.missions.active) this.missions.fail(); setTimeout(() => this.respawn('police'), 4800); }
   // Back on their feet at the nearest hospital (wasted) or police station (busted); the hospital bill and the fine come out of the cash.
   respawn(kind) {
+    this.jobs.cancel('dead', true); // a shift ends with the death or the arrest (Jobs.tickActive has already paid out the summary); nothing carries over into the new life
     const P = this.player, hosp = kind === 'hospital', ids = hosp ? ['hospital', 'hospital2'] : ['police', 'police2'];
     let poi = this.world.pois[ids[0]], bd = Infinity; for (const id of ids) { const c = this.world.pois[id]; if (!c) continue; const d = dist(c.x, c.z, P.x, P.z); if (d < bd) { bd = d; poi = c; } }
     const cash = this.money, bill = hosp ? Math.min(4000, 200 + cash * 0.06) : Math.min(6000, 300 * this.bustLevel + cash * 0.08), loss = Math.min(cash, Math.round(bill)); if (loss) this.addMoney(-loss);
@@ -297,9 +301,9 @@ export class Game {
     this.grenades.update(dt);
     this.updatePeds(dt);
     this.pickups.update(dt); if (this.healthRespawn && this.time > this.healthRespawn) { this.healthRespawn = 0; const hp = this.world.pois.hospital; this.pickups.add({ type: 'health', x: hp.x - 5, z: hp.z + 1, onCollect: () => { this.healthRespawn = this.time + 90; } }); }
-    this.missions.update(dt); this.fx.update(dt); this.world.update(dt, this.time);
+    this.jobs?.update(dt); this.missions.update(dt); this.fx.update(dt); this.world.update(dt, this.time); // the jobs run before the missions (Missions.update would call them too; the second call in a frame is ignored)
     // environment
-    const env = this.sky.update(dt, this.clock / 60, this._focus.set(P.x, 0, P.z), this.camera); this.applyEnv(env, this.clock / 60); this.audio.rain(env.rain);
+    const env = this.sky.update(dt, this.clock / 60, this._focus.set(P.x, 0, P.z), this.camera); this.applyEnv(env, this.clock / 60); this.updateIndoors(dt); this.audio.rain(env.rain * (1 - 0.8 * this.indoorK));
     this.updateAmbience(dt, env, carsNear);
     this.updateLights(dt, env.night);
     P.updateCamera(dt); this.hud.update(dt);
@@ -307,17 +311,25 @@ export class Game {
     if (this.state === 'playing') { this.audio.musicFor(!!P.vehicle); }
     for (const m of this.shopMarkers) m.mesh.children[0].rotation.y += dt * 0.6;
   }
+  // Indoors (a shop interior, World.interiorAt) the walls muffle the outside: indoorK eases 0 -> 1 over about 0.2 s. The door chime plays once on entering.
+  updateIndoors(dt) {
+    const P = this.player, id = this.world.interiorAt(P.x, P.z);
+    if (id !== this.inShopId) { if (id !== null && !P.dead) this.audio.chime(); this.inShopId = id; }
+    this.indoorK += ((id !== null ? 1 : 0) - this.indoorK) * Math.min(1, dt * 6);
+  }
   // City ambience: hum, wind, surf, fountains, birds, crickets and distant events follow where the player is (park distance is refreshed twice a second).
   updateAmbience(dt, env, cars) {
     const P = this.player, A = _ambience; this.parkT -= dt;
     if (this.parkT <= 0) { this.parkT = 0.5; let best = Infinity; for (const k of this.world.parks) { const d = dist(P.x, P.z, k.cx, k.cz); if (d < best) best = d; } this.parkDist = best === Infinity ? NaN : best; }
-    A.x = P.x; A.z = P.z; A.night = env.night; A.rain = env.rain; A.inCar = !!P.vehicle; A.cars = cars; A.park = this.parkDist; A.rightX = this.camera.matrixWorld.elements[0]; A.quality = this.settings.quality;
+    // indoors the rain is almost gone and the ambience bus takes the car muffle (a 650 Hz lowpass): the wind and the sea sit behind a wall
+    A.x = P.x; A.z = P.z; A.night = env.night; A.rain = env.rain * (1 - 0.8 * this.indoorK); A.inCar = !!P.vehicle || this.indoorK > 0.5; A.cars = cars; A.park = this.parkDist; A.rightX = this.camera.matrixWorld.elements[0]; A.quality = this.settings.quality;
     this.audio.ambience(A);
   }
   impact(v, imp) { const P = this.player; const d = dist(v.x, v.z, P.x, P.z); if (d < 90) this.audio.impact(imp, d); this.fx.sparks(v.x + v.fx * v.spec.len * 0.5, 0.6, v.z + v.fz * v.spec.len * 0.5, Math.min(12, imp), 4); if (v === P.vehicle || v.driver === P) P.shake = Math.min(1, (P.shake || 0) + imp / 16); if (v.driver === P && imp > 11) P.damage((imp - 10) * 2.5, v.x, v.z); if (v.ai && v.ai.mode === 'traffic') v.disturbed = 1.2; }
   interactions() {
     const P = this.player, I = this.input; let prompt = null, target = null;
     if (!P.dead) for (const m of this.shopMarkers) { const d = dist(m.x, m.z, P.x, P.z); if (d > 3.2) continue; if (m.type === 'spray') { if (P.vehicle && P.vehicle.speed < 1.5) { target = m; } } else if (!P.vehicle) target = m; }
+    if (!target && !P.dead && !P.vehicle) target = this.world.shops.counterTarget(P.x, P.z, this.shopMarkers); // at the till inside a shop: the same menu as the street marker
     if (target) prompt = T.pressInteract + T[target.label];
     if (!prompt && this.missionPrompt) prompt = this.missionPrompt;
     if (!prompt && P.vehicle && P.vehicle.type === 'police' && !this.missions.active && !P.dead) { prompt = T.vigilanteStart; if (I.once('KeyV') || I.btnOnce('vig')) this.missions.startVigilante(); }
@@ -335,7 +347,8 @@ export class Game {
   pedBudget() {
     const P = this.player, pois = this.world.pois, base = TRAFFIC.tier?.[this.settings.quality]?.peds ?? TRAFFIC.peds; let k = 1 - pb('nightCut') * (this.night || 0);
     const q = pb('quietRadius'); for (const id of ['club', 'burger']) { const o = pois[id]; if (o && dist(o.x, o.z, P.x, P.z) < q) { k = 1; break; } }
-    return Math.round(base * k);
+    const hr = (this.clock / 60) % 24, day = hr >= 9 && hr < 19 ? pb('dayBoost') || 1 : 1; // the streets are busier by day
+    return Math.round(base * k * day);
   }
   // A rectangle for a civilian who wanders about instead of walking the sidewalks: the beach strip (z within 120 m of the player) or a park near the player.
   pedArea() {
@@ -346,25 +359,49 @@ export class Game {
     for (const k of parks) if (dist(k.cx, k.cz, P.x, P.z) < 140 && r-- === 0) return k;
     return null;
   }
+  // by day most new civilians walk the sidewalks near the player (a city-wide spread is about one person per 200 m of pavement, which reads as empty)
+  nearSegments() {
+    const P = this.player, nr = pb('nearRadius') || 70, out = this._near || (this._near = []); out.length = 0;
+    for (const s of this.world.segments) { const mx = (s.a.x + s.b.x) / 2 - P.x, mz = (s.a.z + s.b.z) / 2 - P.z; if (mx * mx + mz * mz < nr * nr) out.push(s); }
+    return out.length >= 3 ? out : null;
+  }
+  // by day a share of new civilians stand on the sidewalk at a shop door (the burger bars twice as often at lunch), so the shopping streets fill up. Returns a scratch point or null.
+  venueSpot(lo, hi) {
+    const V = this.crowd && this.crowd.venues; if (!V || Math.random() >= (TRAFFIC.venueFraction ?? 0.4)) return null;
+    const hr = (this.clock / 60) % 24; if (hr < 9 || hr >= 19) return null; const P = this.player, lunch = hr >= 11 && hr < 14;
+    const wt = v => v.weight > 0 && !v.club ? v.weight * (lunch && v.type === 'burger' ? 2 : 1) : 0;
+    let tot = 0; for (const v of V) { const w = wt(v); if (w > 0) { const d = dist(v.ox, v.oz, P.x, P.z); if (d >= lo && d <= hi) tot += w; } }
+    if (tot <= 0) return null; let r = Math.random() * tot;
+    for (const v of V) { const w = wt(v); if (!(w > 0)) continue; const d = dist(v.ox, v.oz, P.x, P.z); if (d < lo || d > hi) continue; r -= w; if (r <= 0) { _vpt.x = v.ox + (Math.random() * 2 - 1) * Math.min(v.w, 5); _vpt.z = v.oz + (Math.random() * 2 - 1) * 0.6; return _vpt; } }
+    return null;
+  }
   // A place for a new civilian (a shared scratch record, or null). Playing: 16-110 m away and hidden from the camera, or at least 55 m away. Populate (noView): 15-150 m, no view test.
   pickPedSpot(noView) {
     const P = this.player, W = this.world, S = _spot, lo = noView ? pb('popMin') : pb('hiddenMin'), hi = noView ? pb('popMax') : pb('hiddenMax'), frac = TRAFFIC.pedAreaFraction ?? 0.25;
+    const hr = (this.clock / 60) % 24, near = hr >= 9 && hr < 19 && Math.random() < (TRAFFIC.nearFraction ?? 0.5) ? this.nearSegments() : null;
     for (let t = 0; t < 8; t++) {
       let x, z, area = null;
-      if (Math.random() < frac && (area = this.pedArea())) { x = area.x0 + Math.random() * (area.x1 - area.x0); z = area.z0 + Math.random() * (area.z1 - area.z0); }
+      const at = this.venueSpot(lo, hi);
+      if (at) { x = at.x; z = at.z; }
+      else if (Math.random() < frac && (area = this.pedArea())) { x = area.x0 + Math.random() * (area.x1 - area.x0); z = area.z0 + Math.random() * (area.z1 - area.z0); }
+      else if (near) { const s = W.randomSidewalkPoint(near); x = s.x; z = s.z; area = null; }
       else { const s = W.randomSidewalkPoint(); x = s.x; z = s.z; area = null; }
+      if (W.interiorAt(x, z) !== null) continue; // nobody is born inside a shop
+      if (this.grid.circleHit(x, z, 0.4)) continue; // nor inside a tree, lamp, bench or planter
       const d = dist(x, z, P.x, P.z); if (d < lo || d > hi) continue;
       if (!noView && d < pb('visibleMin') && !this.isHiddenFromCamera(x, 1, z)) continue;
       S.x = x; S.z = z; S.area = area; return S;
     }
     return null;
   }
-  spawnCiv(s) { return this.addPed(new Ped(this, { kind: 'civ', x: s.x, z: s.z, area: s.area || undefined, ctx: { zone: s.x > CITY.beachX - 8 ? 'beach' : 'city', hour: this.clock / 60, rain: this.weather === 'rain' } })); }
+  // the wardrobe, role and zone of a civilian come from peds.js (lookContext: zone, district, hour, rain, weekend, cold, hot)
+  spawnCiv(s) { return this.addPed(new Ped(this, { kind: 'civ', x: s.x, z: s.z, area: s.area || undefined })); }
   // Fills the world around the player (loading, respawn): traffic up to the tier budget in a 15-150 m ring, civilians up to 70% of theirs. Nothing here depends on the camera.
   populate() {
     if (!this.built) return; const P = this.player;
     for (let i = this.vehicles.length - 1; i >= 0; i--) { const v = this.vehicles[i]; if (v.ai && v.ai.mode === 'traffic' && !v.special && !v.parked && v !== P.vehicle && dist(v.x, v.z, P.x, P.z) > 200) this.removeVehicle(v); }
     for (let i = this.peds.length - 1; i >= 0; i--) { const p = this.peds[i]; if (p.kind === 'civ' && !p.dead && !p.noDespawn && !p.mission && dist(p.x, p.z, P.x, P.z) > pb('despawnHidden')) this.removePed(p); }
+    for (let i = this.peds.length - 1; i >= 0; i--) { const p = this.peds[i]; if (p.kind === 'civ' && !p.dead && !p.noDespawn && !p.mission && dist(p.x, p.z, P.x, P.z) > (pb('nearRadius') || 70) + 30) this.removePed(p); } // a refill (respawn, time skip) puts the people round the player, not the ones left behind
     this.traffic.fill(Infinity, { ring: [pb('popMin'), pb('popMax')] });
     let n = 0; for (const p of this.peds) if (p.kind === 'civ' && !p.dead) n++;
     const want = Math.ceil(this.pedBudget() * 0.7); for (let t = 0; t < 240 && n < want; t++) { const s = this.pickPedSpot(true); if (s) { this.spawnCiv(s); n++; } }
@@ -388,6 +425,9 @@ export class Game {
   updatePeds(dt) {
     const cam = this.camera, peds = this.peds, fr = this._frustum; _pm.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse); fr.setFromProjectionMatrix(_pm);
     const cx = cam.position.x, cy = cam.position.y, cz = cam.position.z;
+    // the cars bucketed on a 16 m grid for this frame: a person checks the 3x3 buckets round them, not every car (Ped.collideVehicles)
+    const frameNo = this._pedFrame = (this._pedFrame || 0) + 1;
+    const VB = this._vb || (this._vb = new Map()); VB.clear(); for (const v of this.vehicles) { const k = Math.floor(v.x / 16) * 100003 + Math.floor(v.z / 16); let a = VB.get(k); if (!a) VB.set(k, a = []); a.push(v); }
     for (let i = peds.length - 1; i >= 0; i--) {
       const p = peds[i]; if (!p) continue;
       const dx = p.x - cx, dy = p.y - cy, dz = p.z - cz, d2 = dx * dx + dy * dy + dz * dz, sh = d2 < 2025;
@@ -395,20 +435,27 @@ export class Game {
       let cull = false;
       if (d2 > 400 && !p.ragdoll && !(p.dead && p.deadT < 2.5)) { _sph.center.set(p.x, p.y + 0.9, p.z); _sph.radius = 1.6; cull = !fr.intersectsSphere(_sph); }
       if (cull) { p.animSkip = -1e6; p.animAcc = 0; p.animYaw = p.yaw; p.culled = true; } else if (p.culled) { p.culled = false; p.animSkip = 9; }
-      p.update(dt);
+      // people more than 15 m away and out of view think and walk every third frame with the time they missed (their brain and collision are the cost; nobody can see them)
+      if (cull && d2 > 225) { p._far = (p._far || 0) + dt; if ((frameNo + i) % 3) continue; const dtFar = p._far; p._far = 0; p.update(dtFar); continue; }
+      p._far = 0; p.update(dt);
     }
   }
+  // the cars near (x, z) for the people's collision (the buckets of updatePeds; every car when the buckets are not built yet)
+  vehiclesNear(x, z) { const VB = this._vb; if (!VB) return this.vehicles; const cx = Math.floor(x / 16), cz = Math.floor(z / 16), out = this._vnear || (this._vnear = []); out.length = 0; for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const a = VB.get((cx + i) * 100003 + (cz + j)); if (a) for (let k = 0; k < a.length; k++) out.push(a[k]); } return out; }
   updateLights(dt, night) {
     const P = this.player; this.lampT -= dt;
     if (this.lampT <= 0) { // the four lamps nearest to the player (insertion into a fixed list, no allocation); a light with no lamp keeps intensity 0 and stays visible, so the light count never changes
       this.lampT = 0.4; const n = this.lampLights.length; let got = 0;
       for (const l of this.world.lampPositions) {
-        const d = (l.x - P.x) ** 2 + (l.z - P.z) ** 2; if (d >= 3600 || (got === n && d >= _lampD[n - 1])) continue;
+        const q = (l.x - P.x) ** 2 + (l.z - P.z) ** 2; if (q >= 3600) continue;
+        const d = q + ((l.lit ?? 1) < 0.05 ? 1e4 : 0); // a lamp that is off (not lit yet, or dead) ranks behind every lit one: it fills a light only when no lit lamp is near
+        if (got === n && d >= _lampD[n - 1]) continue;
         let k = got < n ? got++ : n - 1; while (k > 0 && _lampD[k - 1] > d) { _lampD[k] = _lampD[k - 1]; _lampP[k] = _lampP[k - 1]; k--; } _lampD[k] = d; _lampP[k] = l;
       }
-      for (let i = 0; i < n; i++) { const li = this.lampLights[i]; if (i < got) { const l = _lampP[i]; li.position.set(l.x, l.y, l.z); li.userData.on = 1; } else li.userData.on = 0; }
+      for (let i = 0; i < n; i++) { const li = this.lampLights[i]; if (i < got) { const l = _lampP[i]; li.position.set(l.x, l.y, l.z); li.color.setHex(l.color ?? 0xffd9a0); li.userData.on = 1; li.userData.lamp = l; } else { li.userData.on = 0; li.userData.lamp = null; } }
     }
-    for (const li of this.lampLights) li.intensity = night * 85 * li.userData.on;
+    // the lamp's own live level (0..1: the LED starts, sodium warm-up, flicker and the dusk sweep) scales its light every frame
+    for (const li of this.lampLights) { const l = li.userData.lamp; li.intensity = night * 85 * li.userData.on * (l ? (l.lit ?? 1) : 1); }
     this.fill.position.set(P.x, P.y + 3.2, P.z); this.fill.intensity = night * (P.vehicle ? 0 : 6);
     const v = P.vehicle; const on = v && !v.wrecked ? night : 0;
     for (let i = 0; i < 2; i++) { const s = this.headlights[i]; if (!v) { s.intensity = 0; continue; } const side = i ? 1 : -1; const rx = -v.fz, rz = v.fx; s.position.set(v.x + v.fx * v.spec.len * 0.5 + rx * side * 0.7, v.y + 0.8, v.z + v.fz * v.spec.len * 0.5 + rz * side * 0.7); s.target.position.set(s.position.x + v.fx * 24, v.y - 1.2 + ((v.groundPitch || 0) + (v.pitch || 0)) * 24, s.position.z + v.fz * 24); s.intensity = on * (this.settings.quality === 'high' ? 320 : 220); }

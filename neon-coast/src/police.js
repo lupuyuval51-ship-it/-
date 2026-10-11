@@ -13,7 +13,10 @@ export class Police {
   get cars() { return this.game.vehicles.filter(v => v.ai && (v.ai.mode === 'police' || v.ai.mode === 'deployed') && !v.wrecked); }
   get cops() { return this.game.peds.filter(p => (p.team === 'cop' || p.team === 'swat') && !p.dead && !p.station); }
   copsNear(x, z, r) { for (const v of this.game.vehicles) if (v.type === 'police' && !v.wrecked && dist(v.x, v.z, x, z) < r) return true; for (const p of this.cops) if (dist(p.x, p.z, x, z) < r) return true; return false; }
+  // A job ambulance or fire truck is on duty while the player drives it with its siren on (jobs.js marks it special 'job'): no cop starts a pursuit for it, and its driving is not a crime
+  onDuty() { const v = this.game.player.vehicle; return !!(v && v.special === 'job' && v.siren && v.spec?.emergency); }
   reportCrime(type, x, z, extra) {
+    if ((type === 'runover' || type === 'witness') && this.onDuty()) return; // emergency driving on duty: nobody reports it
     const near = this.copsNear(x, z, 75) || this.level > 0;
     const table = { kill: 1, killcop: 1.6, runover: extra ? 1 : 0.5, carjack: near ? 0.6 : 0.15, gunfire: near ? 0.5 : 0.1, hitcop: 1, explosion: near ? 1.2 : 0.6, shootcar: near ? 0.4 : 0.05 };
     const add = table[type] ?? 0.3; if (!add) return; this.heat += add; this.lastSeen = this.game.time;
@@ -29,19 +32,21 @@ export class Police {
   update(dt) {
     const G = this.game, P = G.player, t = G.time; this.heat = Math.max(0, this.heat - dt * 0.01);
     if (this.level === 0) { G.audio.siren(0); G.audio.heli(0); return; }
-    // are we seen?
-    let seen = false; const px = P.x, pz = P.z;
-    for (const v of this.cars) { const d = dist(v.x, v.z, px, pz); if (d < 60 || (d < 110 && G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1)) { seen = true; break; } }
-    if (!seen) for (const p of this.cops) { const d = dist(p.x, p.z, px, pz); if (d < 45 || (d < 90 && p.hasLOS(px, 1.2, pz))) { seen = true; break; } }
+    // are we seen? An emergency vehicle on duty is not seen at all (onDuty). Indoors the walls hide the player: only people close by see him or her; the distance tests ignore walls, so they shrink there
+    let seen = false; const px = P.x, pz = P.z, duty = this.onDuty(), indoor = G.world.interiorAt(px, pz) !== null;
+    if (!duty) {
+      for (const v of this.cars) { const d = dist(v.x, v.z, px, pz); if (d < (indoor ? 14 : 60) || (d < 110 && G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1)) { seen = true; break; } }
+      if (!seen) for (const p of this.cops) { const d = dist(p.x, p.z, px, pz); if (d < (indoor ? 10 : 45) || (d < 90 && p.hasLOS(px, 1.2, pz))) { seen = true; break; } }
+    }
     // the helicopter only counts as a witness while its line down to the player is open (a street canyon or a roof breaks it)
-    if (this.heli && this.heli.hasTrack) { const hp = this.heli.group.position, hd = Math.hypot(hp.x - px, hp.z - pz); if (hd < 40) { const ty = P.vehicle ? 1.6 : 1.4, dx = px - hp.x, dy = ty - hp.y, dz = pz - hp.z, len = Math.hypot(dx, dy, dz) || 1; if (G.grid.raycast(hp.x, hp.y, hp.z, dx / len, dy / len, dz / len, len) >= len - 1.5) seen = true; } }
+    if (!duty && this.heli && this.heli.hasTrack) { const hp = this.heli.group.position, hd = Math.hypot(hp.x - px, hp.z - pz); if (hd < 40) { const ty = P.vehicle ? 1.6 : 1.4, dx = px - hp.x, dy = ty - hp.y, dz = pz - hp.z, len = Math.hypot(dx, dy, dz) || 1; if (G.grid.raycast(hp.x, hp.y, hp.z, dx / len, dy / len, dz / len, len) >= len - 1.5) seen = true; } }
     if (seen) { this.lastSeen = t; this.lastPos = { x: px, z: pz }; } this.hidden = !seen; if (this.heli) this.heli.hasTrack = seen || (t - this.lastSeen < 6);
     if (t - this.lastSeen > 20) { this.lastSeen = t; this.setLevel(this.level - 1); if (this.level === 0) G.hud.notify(T.evaded); }
     // patrol cars join the pursuit when close
-    for (const v of G.vehicles) if (v.ai && v.ai.mode === 'patrol' && dist(v.x, v.z, px, pz) < 90 && (() => { const d = dist(v.x, v.z, px, pz) || 1; return G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1; })()) { v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: v.ai.lane ?? 0 }; acquireLane(v, G.world); v.siren = true; }
+    if (!duty) for (const v of G.vehicles) if (v.ai && v.ai.mode === 'patrol' && dist(v.x, v.z, px, pz) < 90 && (() => { const d = dist(v.x, v.z, px, pz) || 1; return G.grid.raycast(v.x, 1.2, v.z, (px - v.x) / d, 0, (pz - v.z) / d, d) >= d - 1; })()) { v.ai = { mode: 'police', cruise: 40, deployed: false, stuck: 0, rev: 0, lane: v.ai.lane ?? 0 }; acquireLane(v, G.world); v.siren = true; }
     // spawn pursuit cars
     const cars = this.cars; this.spawnT -= dt;
-    if (cars.length < CARS_PER_LEVEL[this.level] && this.spawnT <= 0) { this.spawnT = 2.2; this.spawnCar(); }
+    if (!duty && cars.length < CARS_PER_LEVEL[this.level] && this.spawnT <= 0) { this.spawnT = 2.2; this.spawnCar(); }
     // drive pursuit cars
     let nearest = 999;
     for (const v of cars) {
@@ -76,7 +81,7 @@ export class Police {
   }
   deploy(v) { const n = this.level >= 3 ? 2 : 1; for (let i = 0; i < n; i++) { const s = v.seatPosition(i === 0 ? 1 : -1); this.spawnCop(s.x, s.z, v.type === 'swat'); } }
   spawnCop(x, z, swat = false) {
-    const G = this.game; if (this.cops.length >= COPS_PER_LEVEL[this.level] + 2) return;
+    const G = this.game; if (this.cops.length >= COPS_PER_LEVEL[this.level] + 2) return; if (G.world.interiorAt(x, z) !== null) return; // no cop is born inside a shop
     const p = new Ped(G, { kind: 'armed', team: swat ? 'swat' : 'cop', look: swat ? LOOKS.swat : LOOKS.cop, x, z, hp: swat ? 170 : 100, weapon: swat ? 'rifle' : (this.level >= 3 && Math.random() < 0.4 ? 'smg' : 'pistol'), accuracy: swat ? 0.62 : 0.5, hostile: true });
     G.addPed(p); return p;
   }
@@ -93,7 +98,8 @@ export class Police {
     const skidL = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 0.12), dark); skidL.position.set(0, -1.3, 0.9); g.add(skidL); const skidR = skidL.clone(); skidR.position.z = -0.9; g.add(skidR);
     const rotor = new THREE.Mesh(new THREE.BoxGeometry(11, 0.08, 0.35), dark); rotor.position.y = 1.15; g.add(rotor); const rotor2 = rotor.clone(); rotor2.rotation.y = Math.PI / 2; g.add(rotor2);
     const tr = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.6, 0.2), dark); tr.position.set(-6.4, 0.6, 0.4); g.add(tr);
-    const spot = G.heliSpot || new THREE.SpotLight(0xfff4d0, 0, 90, 0.32, 0.5, 1.2); spot.intensity = 2500; spot.position.set(1.5, -0.9, 0); g.add(spot); g.add(spot.target);
+    // the searchlight is created once by Game (no light is made at run time); it rides in the helicopter group with its target
+    const spot = G.heliSpot; spot.intensity = 2500; spot.position.set(1.5, -0.9, 0); g.add(spot); g.add(spot.target);
     const beamGeo = new THREE.ConeGeometry(9, 32, 16, 1, true); beamGeo.translate(0, -16, 0); const beam = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide })); beam.position.set(1.5, -0.9, 0); g.add(beam);
     g.position.set(G.player.x + 40, 34, G.player.z + 40); G.scene.add(g);
     this.heli = { group: g, rotors: [rotor, rotor2, tr], spot, beam, ang: 0, shootT: 3, x: g.position.x, z: g.position.z, hp: 400, hasTrack: true };

@@ -2,8 +2,10 @@ import { Vehicle } from './vehicle.js';
 import { TRAFFIC, CAR_COLORS, CITY } from './config.js';
 import { clamp, wrapAngle, dist, pick, damp } from './utils.js';
 
-const TYPE_WEIGHTS = [['sedan', 34], ['suv', 18], ['sport', 11], ['taxi', 12], ['truck', 8], ['muscle', 9], ['police', 6]];
-export function randomType(noPolice) { const list = noPolice ? TYPE_WEIGHTS.filter(t => t[0] !== 'police') : TYPE_WEIGHTS; const tot = list.reduce((s, t) => s + t[1], 0); let r = Math.random() * tot; for (const t of list) { r -= t[1]; if (r <= 0) return t[0]; } return 'sedan'; }
+// Job vehicles drive in traffic too (rarely, and at most LIMIT of each type at once, so they add no load); they never park in a lot slot (noSpecial).
+const TYPE_WEIGHTS = [['sedan', 34], ['suv', 18], ['sport', 11], ['taxi', 12], ['truck', 8], ['muscle', 9], ['police', 6], ['van', 6], ['bus', 3], ['ambulance', 2], ['towtruck', 2], ['firetruck', 1]];
+const SPECIAL_LIMIT = { bus: 1, ambulance: 1, towtruck: 1, firetruck: 1 };
+export function randomType(noPolice, noSpecial) { const list = TYPE_WEIGHTS.filter(t => !(noPolice && t[0] === 'police') && !(noSpecial && SPECIAL_LIMIT[t[0]])); const tot = list.reduce((s, t) => s + t[1], 0); let r = Math.random() * tot; for (const t of list) { r -= t[1]; if (r <= 0) return t[0]; } return 'sedan'; }
 
 // ---------- flow tunables ----------
 // Following keeps a bumper gap of FOLLOW_GAP + FOLLOW_TIME * own speed to a car that moves or queues. Something that will not clear by itself (wreck, parked car, the
@@ -40,7 +42,9 @@ export function acquireLane(v, W, hx = v.fx, hz = v.fz) {
 }
 function planNext(v, W) {
   const ai = v.ai, L = ai.L, from = L.from, node = L.to; const opts = node.out.filter(o => o.to !== from); const list = opts.length ? opts : node.out;
-  let best = null, tot = 0; const weighted = list.map(o => { const straight = (o.to.x - node.x) * L.fx + (o.to.z - node.z) * L.fz > 0.5; const w = straight ? 3 : 1; tot += w; return { o, w }; });
+  // a bus or a fire truck cannot take a 14 m junction corner, so it only turns when there is no way straight on
+  const isStraight = o => (o.to.x - node.x) * L.fx + (o.to.z - node.z) * L.fz > 0.5, longCar = v.spec.len > 7 && list.some(isStraight);
+  let best = null, tot = 0; const weighted = list.map(o => { const straight = isStraight(o); const w = straight ? 3 : longCar ? 0 : 1; tot += w; return { o, w }; });
   let r = Math.random() * tot; for (const { o, w } of weighted) { r -= w; if (r <= 0) { best = o; break; } } best = best || list[0];
   ai.nextSeg = best.seg; ai.nextDir = best.dir; ai.next = W.lane(best.seg, best.dir, ai.lane);
 }
@@ -119,6 +123,30 @@ export function tryLaneChange(v, game, lane) {
   ai.blocked = 0; ai.appr = 0; ai.lcT = LC_COOL; ai.passT = 5; ai.sigT = 2.2; ai.sigDir = dl > 0 ? 1 : -1; // lane 1 lies to the right of lane 0
   return true;
 }
+// ---------- giving way to a siren ----------
+// The player's vehicle with its siren on (ambulance, fire truck) while it moves: traffic ahead of it pulls over (the inner lane changes to the outer one, the outer lane hugs the kerb) and stops,
+// oncoming traffic slows down. _sir is refreshed once per Traffic.update; ai.yT keeps a car pulled over for 1.5 s after the siren has gone by.
+const SIREN_RANGE = 70, _sir = { on: false, x: 0, z: 0, fx: 1, fz: 0 };
+function yieldToSiren(v, game, L, s, distEnd, target, dt) {
+  const ai = v.ai; let want = 0;
+  if (_sir.on && ai.panic <= 0) {
+    const S = _sir, dx = S.x - v.x, dz = S.z - v.z;
+    if (dx * dx + dz * dz < SIREN_RANGE * SIREN_RANGE) {
+      const along = dx * L.fx + dz * L.fz, side = dx * L.rx + dz * L.rz, same = S.fx * L.fx + S.fz * L.fz;
+      if (same > 0.4 && along < 8 && along > -SIREN_RANGE && Math.abs(side) < 10) ai.yT = 1.5;
+      else if (same < -0.4 && along > 0 && along < 45 && Math.abs(side) < 9) target = Math.min(target, 4);
+      if (ai.yT > 0) want = -along;
+    }
+  }
+  if (ai.yT > 0) {
+    ai.yT -= dt;
+    const inJunction = s < 2 || distEnd < 5; // never stop inside a junction: keep rolling until clear of it
+    target = inJunction ? Math.min(target, 7) : want > 0 && want < 30 ? 0 : Math.min(target, 3.5);
+    if (ai.lane === 0 && !inJunction && !(ai.lcT > 0)) { ai.lcT = LC_RETRY; ai.sigT = 0.9; ai.sigDir = 1; tryLaneChange(v, game, 1); }
+  }
+  ai.yk = damp(ai.yk || 0, ai.yT > 0 && ai.lane === 1 ? 1.15 : 0, 2.5, dt); if (Math.abs(ai.yk) < 0.01) ai.yk = 0;
+  return target;
+}
 export function laneFollow(v, game, dt) {
   const W = game.world, ai = v.ai; if (!ai.L) acquireLane(v, W);
   // Backing out of a mutual block: a slow straight reverse (aborted when something is behind), then a short pause so the other car can use the room.
@@ -185,6 +213,7 @@ export function laneFollow(v, game, dt) {
   if (ai.sigT > 0) { ai.sigT -= dt; v.signal = ai.sigDir; }
   else { const cross = L.fx * ai.next.fz - L.fz * ai.next.fx; v.signal = turning && distEnd < 30 ? (cross > 0 ? 1 : -1) : 0; }
   if (ai.panic > 0) ai.panic -= dt;
+  if (_sir.on || ai.yT > 0 || ai.yk) { target = yieldToSiren(v, game, L, s, distEnd, target, dt); if (ai.yk && (!turning || distEnd > 18)) { tx += L.rx * ai.yk; tz += L.rz * ai.yk; } }
   steerToward(v, tx, tz, target, dt);
 }
 
@@ -223,7 +252,7 @@ export class Traffic {
   count() { let n = 0; for (const v of this.game.vehicles) if (v.ai && !v.wrecked && v.ai.mode !== 'police' && v.ai.mode !== 'deployed') n++; return n; }
   init() {
     const G = this.game, W = G.world;
-    for (const s of W.parkingSpots) { if (Math.random() > 0.4) continue; const v = new Vehicle(randomType(true), pick(CAR_COLORS), s.x, s.z, s.heading); v.parked = true; G.addVehicle(v); }
+    for (const s of W.parkingSpots) { if (Math.random() > 0.4) continue; const v = new Vehicle(randomType(true, true), pick(CAR_COLORS), s.x, s.z, s.heading); v.parked = true; G.addVehicle(v); }
     const d = W.pois.dealer; if (d) for (let i = 0; i < 3; i++) { const v = new Vehicle(['sport', 'muscle', 'suv'][i], [0xff4fa3, 0x3ce8f5, 0xf2f2f2][i], d.x + 4 + i * 6, d.z - 5.5, Math.PI / 2); v.parked = true; v.locked = true; G.addVehicle(v); }
     const n = Math.min(this.budget(), 26); for (let i = 0; i < n; i++) this.spawn(true);
   }
@@ -240,10 +269,9 @@ export class Traffic {
     for (let i = 0; i < segs.length; i++) { const dx = this.mid[i * 2] - P.x, dz = this.mid[i * 2 + 1] - P.z; if (dx * dx + dz * dz < r2) near.push(segs[i]); }
     this.nearT = 2; this.nearX = P.x; this.nearZ = P.z;
   }
-  // Is the point (x, z) out of the player's view? Uses Game.isHiddenFromCamera when it exists, otherwise the camera-cone test (the cone is 69 degrees either side).
+  // Is the point (x, z) out of the player's view? Uses Game.isHiddenFromCamera (the camera-frustum test lives there).
   hiddenFrom(x, z, d) {
-    const G = this.game, P = G.player; if (typeof G.isHiddenFromCamera === 'function') return !!G.isHiddenFromCamera(x, 1.2, z);
-    return ((x - P.x) * Math.sin(P.camYaw) + (z - P.z) * Math.cos(P.camYaw)) / (d || 1) <= 0.35;
+    return !!this.game.isHiddenFromCamera(x, 1.2, z);
   }
   // Spawns one AI car on a lane point of a nearby segment and returns it (null when no free point was found this time). initial = world build: no view test, 30 m minimum.
   // o.ring = [min, max] overrides the distance band, o.noViewTest skips the visibility test (Game.populate under a loading / respawn overlay).
@@ -265,8 +293,9 @@ export class Traffic {
       found++; if (d < bd) { bd = d; bSeg = seg; bDir = dir; bLane = lane; bL = L; bx = x; bz = z; }
     }
     if (!bSeg) return null;
-    const type = randomType(G.police.level > 0); const v = new Vehicle(type, pick(CAR_COLORS), bx, bz, Math.atan2(-bL.fz, bL.fx));
-    v.ai = { mode: type === 'police' ? 'patrol' : 'traffic', seg: bSeg, dir: bDir, lane: bLane, L: bL, cruise: 11 + Math.random() * 6, blocked: 0, panic: 0, sigT: 0, sigDir: 0, latOff: 0, waiting: false, waitT: 0, lcT: 0 }; planNext(v, W);
+    let type = randomType(G.police.level > 0); if (SPECIAL_LIMIT[type]) { let n = 0; for (const o of G.vehicles) if (o.type === type) n++; if (n >= SPECIAL_LIMIT[type]) type = 'sedan'; }
+    const v = new Vehicle(type, pick(CAR_COLORS), bx, bz, Math.atan2(-bL.fz, bL.fx));
+    v.ai = { mode: type === 'police' ? 'patrol' : 'traffic', seg: bSeg, dir: bDir, lane: bLane, L: bL, cruise: (11 + Math.random() * 6) * (v.spec.len > 7 ? 0.75 : 1), blocked: 0, panic: 0, sigT: 0, sigDir: 0, latOff: 0, waiting: false, waitT: 0, lcT: 0 }; planNext(v, W);
     v.vx = v.fx * 8; v.vz = v.fz * 8; if (type === 'police') v.lightsOn = true; G.addVehicle(v); return v;
   }
   // Spawns up to n cars (default: until the tier budget is reached) without the view test. For Game.populate during loading and respawn overlays.
@@ -288,6 +317,8 @@ export class Traffic {
   }
   update(dt) {
     const G = this.game, P = G.player; const cap = this.budget(); const count = this.count();
+    // only real emergency vehicles (ambulance, fire truck) are given way
+    const pv = P.vehicle; _sir.on = !!(pv && pv.siren && pv.spec.emergency && !pv.wrecked && pv.speed > 3); if (_sir.on) { _sir.x = pv.x; _sir.z = pv.z; _sir.fx = pv.fx; _sir.fz = pv.fz; }
     this.nearT -= dt; this.spawnT -= dt;
     if (this.spawnT <= 0) { if (count < cap) { this.spawnT = count < cap * 0.5 ? 0.12 : 0.35; this.spawn(); } else if (count > cap + 1) { this.spawnT = 0.5; this.trim(); } }
     for (let i = G.vehicles.length - 1; i >= 0; i--) {

@@ -23,8 +23,11 @@ export const PLAYER = { walk: 2.6, run: 6.2, sprint: 8.4, jump: 5.2, gravity: 16
 export const TRAFFIC = {
   cars: 34, peds: 44, despawn: 280,
   tier: { low: { cars: 22, peds: 28 }, med: { cars: 34, peds: 46 }, high: { cars: 46, peds: 66 } },
-  pedBubble: { hiddenMin: 16, hiddenMax: 110, visibleMin: 55, despawnHidden: 140, despawnHard: 220, popMin: 15, popMax: 150, nightCut: 0.45, quietRadius: 60 },
+  pedBubble: { hiddenMin: 16, hiddenMax: 110, visibleMin: 55, despawnHidden: 140, despawnHard: 220, popMin: 15, popMax: 150, nightCut: 0.45, quietRadius: 60, dayBoost: 1.3, nearRadius: 70 },
   pedAreaFraction: 0.25,
+  // by day (9:00 to 19:00) the budget is multiplied by pedBubble.dayBoost; of the new civilians, venueFraction stand at a shop door (game.js venueSpot) and
+  // nearFraction walk the sidewalks within pedBubble.nearRadius (70 m) of the player (game.js nearSegments), so the streets round the player read as a crowd
+  venueFraction: 0.4, nearFraction: 0.8,
 };
 export const TIME = { start: 14 * 60, minutesPerSecond: 0.5, lampOn: 18.4, lampOff: 6.2 };
 
@@ -51,6 +54,12 @@ export const VEHICLES = {
   muscle: { name: 'muscle', maxSpeed: 50, accel: 14, brake: 22, grip: 7.5, mass: 1.2, steer: 0.5,  len: 4.9, wid: 2.0, price: 9500,  hp: 110 },
   limo:   { name: 'limo',   maxSpeed: 42, accel: 8,  brake: 20, grip: 7.5, mass: 1.6, steer: 0.45, len: 6.4, wid: 1.95, price: 22000, hp: 150 },
   super:  { name: 'super',  maxSpeed: 66, accel: 20, brake: 28, grip: 10.5, mass: 1.0, steer: 0.48, len: 4.6, wid: 2.0, price: 48000, hp: 85 },
+  // Job vehicles (price 0: not sold). Long ones get a third collision circle (vehicle.js) and a wide turning circle: steer is the lock at standstill.
+  ambulance: { name: 'ambulance', maxSpeed: 46, accel: 11,  brake: 22, grip: 8,   mass: 1.9, steer: 0.5,  len: 5.8,  wid: 2.1,  price: 0, hp: 160, emergency: true },
+  firetruck: { name: 'firetruck', maxSpeed: 29, accel: 5.5, brake: 12, grip: 7,   mass: 3.8, steer: 0.46, len: 8.0,  wid: 2.5,  price: 0, hp: 320, emergency: true },
+  towtruck:  { name: 'towtruck',  maxSpeed: 38, accel: 8,   brake: 16, grip: 7.5, mass: 2.4, steer: 0.5,  len: 6.6,  wid: 2.25, price: 0, hp: 210 },
+  bus:       { name: 'bus',       maxSpeed: 20, accel: 3.6, brake: 8,  grip: 6.5, mass: 5.2, steer: 0.5,  len: 10.6, wid: 2.55, price: 0, hp: 420 },
+  van:       { name: 'van',       maxSpeed: 40, accel: 10,  brake: 21, grip: 8,   mass: 1.5, steer: 0.55, len: 5.2,  wid: 2.0,  price: 0, hp: 130 },
 };
 export const CAR_COLORS = [0xd8d8dc, 0x1c1e26, 0x9b2335, 0x1f4e9b, 0xe8b830, 0x2e8b57, 0x7a4a2a, 0xc0c0c8, 0xff6f91, 0x3cc4d1, 0x5b3a8c, 0xf0f0f0, 0xf58a2a, 0x2f2f2f, 0x6ec1e4, 0xb8e986];
 
@@ -64,3 +73,22 @@ export const OUTFITS = [
   { id: 'hawaii',  price: 600,  look: { shirt: 0xff9a3c, pants: 0xe8e0d0, shorts: true, hair: 0x1a120e, hat: 0xe8d9a0 } },
   { id: 'gold',    price: 9000, look: { shirt: 0x101318, pants: 0x101318, jacket: 0xffd34e, hair: 0xffd34e, glasses: true } },
 ];
+
+// ---------- Repeatable jobs (src/jobs.js) ----------
+// xp: cumulative XP for level 1..5. pay: pay multiplier per level. tier: vehicle tier per level (1 stock, 2 tuned, 3 elite; see tierSpec).
+// abandon: seconds out of the job vehicle before the shift ends. call: seconds between two calls [min, max]. fine: repair deposit charged per level when the job vehicle is wrecked.
+// defs: id, vehicle (null = the job uses whatever the player steals), colour of the depot and map blip, anchor POI the depot is placed next to, map icon (icons.js), pay = [min, max] of a level 1 call (the UI shows it x pay[level]).
+export const JOBS = {
+  xp: [0, 120, 320, 640, 1100], pay: [1, 1.12, 1.25, 1.4, 1.6], tier: [1, 1, 2, 2, 3],
+  tierSpec: { 2: { maxSpeed: 1.08, accel: 1.15, grip: 1.04, hp: 1.3 }, 3: { maxSpeed: 1.15, accel: 1.3, grip: 1.08, brake: 1.1, hp: 1.6 } },
+  abandon: 25, call: [4, 8], fine: 150, depotRange: 4.2, depotShow: 230,
+  defs: [
+    { id: 'taxi',      vehicle: 'taxi',      color: '#ffd34e', anchor: 'taxi',      icon: 'dealer',   pay: [150, 330] },
+    { id: 'paramedic', vehicle: 'ambulance', color: '#ff5a5a', anchor: 'hospital',  icon: 'hospital', pay: [190, 380] },
+    { id: 'fire',      vehicle: 'firetruck', color: '#ff7a2a', anchor: 'police2',   icon: 'spray',    pay: [220, 420] },
+    { id: 'tow',       vehicle: 'towtruck',  color: '#f0ac14', anchor: 'spray2',    icon: 'dealer',   pay: [170, 330] },
+    { id: 'courier',   vehicle: 'van',       color: '#ff9a3c', anchor: 'burger',    icon: 'burger',   pay: [150, 330] },
+    { id: 'bus',       vehicle: 'bus',       color: '#4d8cff', anchor: 'safehouse', icon: 'dealer',   pay: [420, 700] },
+    { id: 'export',    vehicle: null,        color: '#c084fc', anchor: 'docks',     icon: 'docks',    pay: [450, 3200] },
+  ],
+};

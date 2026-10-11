@@ -29,7 +29,7 @@ export class Missions {
   // The subtitle only takes clicks while a mission line is up (the HUD layer itself ignores the pointer, and a hidden subtitle must never swallow canvas clicks).
   skippable(on) { const e = this.subEl; if (e) { e.style.pointerEvents = on ? 'auto' : ''; e.style.cursor = on ? 'pointer' : ''; } }
   // New game / load: forget every trace of the previous run.
-  resetProgress() { this.completed = new Set(); this.taxiRuns = 0; this.raceRoute = 0; this.contracts = 0; this.vigLevel = 0; this.retry = null; this.skipFlag = false; this.endDuck(); }
+  resetProgress() { this.completed = new Set(); this.taxiRuns = 0; this.raceRoute = 0; this.contracts = 0; this.vigLevel = 0; this.retry = null; this.skipFlag = false; this.endDuck(); this.game.jobs?.reset(); }
   // Called by Game.respawn: the retry offer starts its 20 s again once the player is back on their feet.
   onRespawn() { if (this.retry) this.retry.until = this.game.time + RETRY_WINDOW; this.game.missionPrompt = null; }
   // The radio ducks under the mission title card and comes back when the card is gone (or the mission ends first). A deadline further ahead than the card belongs to a previous game whose clock was reset.
@@ -54,10 +54,11 @@ export class Missions {
     if (id === 'taxi') return c.has('intro') ? 'taxi' : null;
     return null;
   }
-  get blips() { const out = []; if (!this.active) for (const g of this.givers) if (this.nextFor(g.id)) out.push({ x: g.x, z: g.z, color: '#ffd34e', kind: 'mission' }); for (const m of this.objMarkers) out.push({ x: m.x, z: m.z, color: m.color, kind: 'objective' }); return out; }
+  get blips() { const out = []; if (!this.active) for (const g of this.givers) if (this.nextFor(g.id)) out.push({ x: g.x, z: g.z, color: '#ffd34e', kind: 'mission' }); for (const m of this.objMarkers) out.push({ x: m.x, z: m.z, color: m.color, kind: 'objective' }); const jb = this.game.jobs?.blips; if (jb) for (const b of jb) out.push(b); return out; }
   update(dt) {
     this.dt = dt;
     const G = this.game, P = G.player, t = G.time; if (this.duckUntil && (t >= this.duckUntil || this.duckUntil > t + TITLE_TIME + 1e-3)) this.endDuck();
+    G.jobs?.update(dt); // the repeatable jobs run from here (Jobs.update ignores a second call in the same frame)
     for (const m of this.objMarkers) { m.mesh.children[0].rotation.y += dt; m.mesh.children[0].scale.setScalar(1 + Math.sin(t * 4) * 0.06); if (m.follow) { m.x = m.follow.x; m.z = m.follow.z; m.mesh.position.x = m.follow.x; m.mesh.position.z = m.follow.z; } }
     if (this.active) {
       if (this.timer) { const left = this.timer.end - t; G.hud.setTimer(Math.max(0, left), this.timer.label); }
@@ -70,7 +71,8 @@ export class Missions {
     const offer = !!this.retry && !P.dead;
     let near = null;
     for (const g of this.givers) { const id = this.nextFor(g.id); g.marker.mesh.visible = !!id; g.marker.mesh.children[0].rotation.y += dt * 0.8; if (id && dist(g.x, g.z, P.x, P.z) < 2.6) near = { g, id }; }
-    G.missionPrompt = P.dead ? null : offer ? (T.retryPrompt ?? 'E – Retry mission') : near ? `${T.pressStart}: ${this.name(near.id)}` : null;
+    if (near && P.vehicle && G.jobs?.active) near = null; // E in the job vehicle exits it: a giver's marker must not start a mission (and end the shift) by accident
+    G.missionPrompt = P.dead ? null : offer ? (T.retryPrompt ?? 'E – Retry mission') : near ? `${T.pressStart}: ${this.name(near.id)}` : (G.jobs?.prompt ?? null);
     if (!P.dead && (offer || near) && (G.input.once('KeyE') || G.input.once('KeyF') || G.input.btnOnce('enter'))) { if (offer) this.retryNow(); else this.start(near.id); }
   }
   // Restarts the mission that just failed: from its last checkpoint (player, health, armor and weapons come back, money does not) or, at checkpoint 0, next to the giver.
@@ -98,7 +100,7 @@ export class Missions {
   // ---------- runner ----------
   // from = checkpoint to resume at (0 = the beginning). retrying skips the intro dialogue. snap carries the checkpoint snapshot of the failed run, so dying again before the next checkpoint falls back to the same one.
   start(id, from = 0, retrying = from > 0, snap = null) {
-    const G = this.game; this.retry = null; this.skipFlag = false;
+    const G = this.game; this.retry = null; this.skipFlag = false; if (G.jobs?.active) G.jobs.cancel('mission'); // a story mission ends the running shift
     this.active = { id, aborted: false, cleanup: [], cp: from, from, retrying, skipSay: retrying, snap, earned: 0, t0: G.time }; G.hud.missionTitle(this.name(id)); G.audio.missionDuck = TITLE_DUCK; this.duckUntil = G.time + TITLE_TIME;
     const ctx = this.ctx(); this['m_' + id](ctx).then(() => this.finish(id)).catch(e => { if (e instanceof Abort) { if ('failText' in e && this.active) this.fail(e.failText); } else { console.error(e); this.fail(); } });
   }
@@ -114,7 +116,8 @@ export class Missions {
     G.hud.missionResult(false, T.missionFailed, text || m.fail || this.name(id)); G.audio.failed(); this.endDuck(); this.active = null;
   }
   runCleanup() { const a = this.active; for (const f of a.cleanup) { try { f(); } catch (e) { console.error(e); } } this.clearMarkers(); this.timer = null; this.game.hud.clearTimer(); this.game.hud.setObjective(null); this.game.hud.subtitle(null); this.skippable(false); this.waiters.length = 0; }
-  clearMarkers() { for (const m of this.objMarkers) this.game.scene.remove(m.mesh); this.objMarkers = []; }
+  // Objective markers of the repeatable jobs (m.job, see jobs.js) share this list so the HUD pins and the minimap show them; a story mission's clean-up leaves them alone.
+  clearMarkers() { const keep = []; for (const m of this.objMarkers) { if (m.job) keep.push(m); else this.game.scene.remove(m.mesh); } this.objMarkers = keep; }
   ctx() {
     const G = this.game, P = G.player, self = this, a = this.active;
     const waitUntil = fn => new Promise((resolve, reject) => { if (a.aborted) return reject(new Abort()); self.waiters.push({ fn, resolve, reject }); });
@@ -254,6 +257,7 @@ export class Missions {
       this.vigLevel++; c.reward(Math.min(400 + 300 * this.vigLevel, 3500)); G.hud.notify(`${T.vigilanteDone} ${this.vigLevel}`, 'cash'); await c.wait(2);
     }
   }
-  save() { return { completed: [...this.completed], taxiRuns: this.taxiRuns, raceRoute: this.raceRoute, contracts: this.contracts }; }
-  load(s) { this.completed = new Set(s.completed || []); this.taxiRuns = s.taxiRuns || 0; this.raceRoute = s.raceRoute || 0; this.contracts = s.contracts || 0; this.vigLevel = 0; this.retry = null; this.endDuck(); }
+  // the job progress (levels, XP, lifetime stats) travels in the same save slot as the story progress
+  save() { return { completed: [...this.completed], taxiRuns: this.taxiRuns, raceRoute: this.raceRoute, contracts: this.contracts, jobs: this.game.jobs?.save() ?? null }; }
+  load(s) { this.completed = new Set(s.completed || []); this.taxiRuns = s.taxiRuns || 0; this.raceRoute = s.raceRoute || 0; this.contracts = s.contracts || 0; this.vigLevel = 0; this.retry = null; this.endDuck(); this.game.jobs?.load(s.jobs ?? null); }
 }

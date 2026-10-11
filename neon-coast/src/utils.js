@@ -33,10 +33,13 @@ export class GeoBuilder {
     const su = opts.uvU || 1, sv = opts.uvV || 1, c = opts.color;
     const rep = (w, h) => [[0, 0], [w / su, 0], [w / su, h / sv], [0, h / sv]];
     if (opts.sides !== false) {
-      this.quad([x1, y0, z0], [x1, y0, z1], [x1, y1, z1], [x1, y1, z0], [1, 0, 0], rep(z1 - z0, y1 - y0), c);
-      this.quad([x0, y0, z1], [x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [-1, 0, 0], rep(z1 - z0, y1 - y0), c);
-      this.quad([x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [0, 0, -1], rep(x1 - x0, y1 - y0), c);
-      this.quad([x1, y0, z1], [x0, y0, z1], [x0, y1, z1], [x1, y1, z1], [0, 0, 1], rep(x1 - x0, y1 - y0), c);
+      // The four side faces are wound counter-clockwise seen from OUTSIDE (the right-hand rule gives the declared normal). Until release 3 they were wound the other way
+      // round, so every box was drawn inside-out (its far inner walls showed instead of its near outer walls). The texture coordinates stay with their corners.
+      const rz = rep(z1 - z0, y1 - y0), rx = rep(x1 - x0, y1 - y0);
+      this.quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], [rz[1], rz[0], rz[3], rz[2]], c);
+      this.quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], [rz[1], rz[0], rz[3], rz[2]], c);
+      this.quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], [rx[1], rx[0], rx[3], rx[2]], c);
+      this.quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], [rx[1], rx[0], rx[3], rx[2]], c);
     }
     if (opts.top !== false) this.quad([x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [0, 1, 0], rep(x1 - x0, z1 - z0), c);
     if (opts.bottom) this.quad([x0, y0, z1], [x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [0, -1, 0], rep(x1 - x0, z1 - z0), c);
@@ -111,10 +114,10 @@ export class StaticGrid {
     return out;
   }
   // circle vs boxes: returns {nx,nz,depth} of the deepest penetration, or null
-  circleHit(x, z, r, tmp = []) {
+  circleHit(x, z, r, tmp = [], veh = false) { // veh: the caller is a vehicle; boxes with vehOnly (a stop across a shop opening) stop cars and nobody else
     const list = this.query(x, z, r, tmp); let best = null;
     for (const b of list) {
-      if (b.y0 > 3.2) continue; // overhead boxes (blade signs) stop bullets and the camera ray, but people and cars pass under them
+      if (b.y0 > 3.2 || (b.vehOnly && !veh)) continue; // overhead boxes (blade signs) stop bullets and the camera ray, but people and cars pass under them
       const px = clamp(x, b.x0, b.x1), pz = clamp(z, b.z0, b.z1);
       let dx = x - px, dz = z - pz, d = Math.hypot(dx, dz);
       if (d < r) {
@@ -138,7 +141,7 @@ export class StaticGrid {
       for (let cx = Math.floor(x / c) - 1; cx <= Math.floor(x / c) + 1; cx++) for (let cz = Math.floor(z / c) - 1; cz <= Math.floor(z / c) + 1; cz++) {
         const arr = this.map.get(this.key(cx, cz)); if (!arr) continue;
         for (const b of arr) {
-          if (seen.has(b)) continue; seen.add(b);
+          if (seen.has(b) || b.vehOnly) continue; seen.add(b); // vehicle stops are invisible to the sight and bullet rays
           const t0 = rayBox(ox, oy, oz, dx, dy, dz, b);
           if (t0 !== null && t0 < bestT) bestT = t0;
         }

@@ -229,3 +229,87 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 .prompt.in-car { bottom: auto; top: 118px; }
 @media (max-width: 720px) { .prompt.in-car { bottom: auto; top: 118px; } }
 @media (max-height: 500px) { .prompt.in-car { bottom: auto; top: 92px; } }
+
+/* ---------- release 3: job HUD card, job shift summary, touch G / N, pause-screen job board ---------- */
+/* jobs.js builds the card markup (.jobpanel, .jp-*) and sets --jc; the rules live here (see the empty #jobStyle in index.html). */
+#hud .jobpanel { position: absolute; left: calc(20px + var(--sal)); top: 226px; width: 236px; padding: 9px 12px 10px; border-radius: 8px; background: var(--panel); border-inline-start: 3px solid var(--jc, var(--gold)); color: var(--text); font: 600 13px/1.35 var(--body); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); display: none; pointer-events: none; }
+#hud .jobpanel.on { display: block; }
+#hud .jobpanel .jp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
+#hud .jobpanel .jp-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+#hud .jobpanel .jp-lv { flex: none; color: var(--jc, var(--gold)); font-size: 12px; letter-spacing: 0.5px; }
+#hud .jobpanel .jp-xp { height: 3px; margin: 5px 0 6px; background: rgba(255, 255, 255, 0.14); border-radius: 2px; overflow: hidden; }
+#hud .jobpanel .jp-xp i { display: block; height: 100%; width: 0; background: var(--jc, var(--gold)); transition: width 0.3s; }
+#hud .jobpanel .jp-sum { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--muted); font-size: 12px; }
+#hud .jobpanel .jp-calls { min-width: 0; overflow-wrap: anywhere; }
+#hud .jobpanel .jp-sum b { flex: none; color: var(--green); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+#hud .jobpanel .jp-bar { display: none; margin-top: 5px; }
+#hud .jobpanel .jp-bar.on { display: block; }
+#hud .jobpanel .jp-bar span { display: block; font-size: 11px; color: var(--muted); }
+#hud .jobpanel .jp-bar div { height: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.5); overflow: hidden; }
+#hud .jobpanel .jp-bar i { display: block; height: 100%; width: 100%; transition: width 0.2s, background 0.2s; }
+#hud .jobpanel .jp-l { margin-top: 5px; font-size: 12px; overflow-wrap: anywhere; }
+#hud .jobpanel .jp-l:empty { display: none; }
+#hud .jobpanel .jp-l1 { font-size: 15px; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { #hud .jobpanel { width: 204px; } }
+@media (max-height: 560px) { #hud .jobpanel { top: 128px; width: 204px; padding: 6px 9px; font-size: 12px; } }
+
+/* the shift summary and every mission result: the sub line wraps inside the screen instead of running off it */
+#hud .mission-result { width: min(92vw, 600px); white-space: normal; }
+#hud .mission-result .title { white-space: nowrap; }
+#hud .mission-result .sub { line-height: 1.4; text-shadow: 0 2px 6px #000, 0 0 12px #000; }
+
+/* touch G (siren) and N (skip call): shown only during a shift; the siren only in a vehicle. Slots are free in both layouts. */
+.touch button[data-btn=siren] { right: calc(84px + var(--sar)); bottom: calc(170px + var(--sab)); display: none; background: rgba(255, 90, 90, 0.2); border-color: rgba(255, 90, 90, 0.6); }
+.touch button[data-btn=skip] { right: calc(16px + var(--sar)); bottom: calc(190px + var(--sab)); display: none; }
+#touch.job-on [data-btn=siren], #touch.job-on [data-btn=skip] { display: block; }
+#touch.job-on:not(.in-car) [data-btn=siren] { display: none; }
+
+/* pause screen: the job board spans both columns. Cards are built by ui.js (renderJobs): .job-card, .jc-*. */
+.pause-panel .cols .jobs-board { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.jobs-board h3 { margin-bottom: 10px; }
+.jobs-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.job-card { --jc: var(--gold); display: flex; gap: 12px; align-items: flex-start; min-width: 0; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-inline-start: 3px solid var(--jc); }
+.job-card.on-shift { box-shadow: 0 0 0 1px var(--jc), 0 0 18px color-mix(in srgb, var(--jc) 35%, transparent); }
+.job-card .jc-ico { flex: none; width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--jc); color: #0b0f1e; box-shadow: 0 0 14px color-mix(in srgb, var(--jc) 50%, transparent); }
+.job-card .jc-ico svg { width: 30px; height: 30px; }
+.job-card .jc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.job-card .jc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
+.job-card .jc-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 800; }
+.job-card .jc-lv { flex: none; font-family: var(--display); font-size: 18px; letter-spacing: 1px; color: var(--jc); }
+.job-card .jc-xp { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.job-card .jc-xp i { display: block; height: 100%; background: var(--jc); }
+.job-card .jc-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.job-card .jc-meta b { flex: none; color: var(--green); direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+.job-card .jc-depot { font-size: 12px; color: var(--cyan); }
+.job-card .jc-note { font-size: 12px; color: var(--muted); }
+
+/* ---------- release 3: shop screens (moved verbatim from ui.js shopStyle(); ui.js sees #shopUiStyle in index.html and does not inject it again) ---------- */
+#shop .shop-panel{width:min(96vw,700px)}
+#shop .shop-head{display:flex;align-items:center;gap:14px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:linear-gradient(90deg,color-mix(in srgb,var(--sc,#ff4fa3) 26%,transparent),rgba(255,255,255,.03));border:1px solid color-mix(in srgb,var(--sc,#ff4fa3) 45%,transparent)}
+#shop .sh-ico{flex:0 0 auto;width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:var(--sc,#ff4fa3);color:#0b0f1e;box-shadow:0 0 18px color-mix(in srgb,var(--sc,#ff4fa3) 60%,transparent)}
+#shop .sh-ico svg{width:30px;height:30px}
+#shop .sh-msg{flex:1;min-width:0;font-size:15px;line-height:1.35;color:#e6e3f4}
+#shop .sh-msg small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+#shop .sh-cash{flex:0 0 auto;text-align:end;font-family:var(--display);font-size:30px;line-height:1;color:var(--green);direction:ltr}
+#shop .sh-cash small{display:block;font-family:inherit;font-size:11px;letter-spacing:1.5px;color:var(--muted);margin-bottom:2px}
+#shop .shop-list{max-height:min(62vh,560px);overflow:auto;padding-inline-end:4px}
+#shop .shop-list li.shop-grp{display:block;font-family:var(--display);letter-spacing:1.6px;font-size:15px;color:var(--sc,#ff4fa3);margin:12px 0 2px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.12);list-style:none}
+#shop .shop-list li:not(.shop-grp):not(.casino){grid-template-columns:48px 1fr auto auto;padding:10px 4px}
+#shop .shop-list li.off{opacity:.5}
+#shop .shop-ico{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;color:var(--sc,#ff4fa3)}
+#shop .shop-ico svg{width:28px;height:28px}
+#shop .shop-list b{font-size:16px}
+#shop .shop-list .desc{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+#shop .bars{display:grid;grid-template-columns:repeat(3,minmax(60px,1fr));gap:3px 12px;margin-top:6px;max-width:330px}
+#shop .bars span{font-size:10.5px;color:var(--muted);display:block;line-height:1.2}
+#shop .bars i{display:block;height:4px;margin-top:2px;border-radius:2px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+#shop .bars i:after{content:"";position:absolute;inset:0 auto 0 0;width:var(--v);background:var(--sc,#ff4fa3);border-radius:2px}
+html[dir=rtl] #shop .bars i:after{inset:0 0 0 auto}
+#shop .swatch{display:flex;gap:4px;margin-top:6px}
+#shop .swatch i{width:17px;height:17px;border-radius:50%;border:1px solid rgba(255,255,255,.4)}
+#shop .shop-list li.poor button{color:var(--red);border-color:rgba(255,90,90,.35)}
+#shop .shop-list li button:not([disabled]):hover{background:color-mix(in srgb,var(--sc,#ff4fa3) 24%,transparent)}
+@media (max-width:560px){#shop .sh-cash{font-size:22px}#shop .shop-list li:not(.shop-grp):not(.casino){grid-template-columns:40px minmax(0,1fr) auto}#shop .bars{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 8px}#shop .shop-list .tag{display:block;grid-column:2;grid-row:2}#shop .shop-list .tag:empty{display:none}}
+.jobs-none { grid-column: 1 / -1; margin: 0 0 4px; color: var(--muted); font-size: 13px; }
+/* the job board stays hidden until ui.js fills #jobsStats (renderJobs) */
+.jobs-board:has(> .jobs-stats:empty) { display: none; }

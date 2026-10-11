@@ -74,7 +74,8 @@ export class EnvMap {
         for (let p = 0; p < 3; p++) { // soft sodium pools of the street lights
           const x = S * (0.2 + rng() * 0.6), y = S * (0.2 + rng() * 0.6), r = S * 0.3;
           if (night < 0.05) continue;
-          const rg = ctx.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, 'rgba(255,176,96,0.85)'); rg.addColorStop(1, 'rgba(255,176,96,0)');
+          const cool = p === 1, c0 = cool ? '200,220,255' : '255,176,96'; // warm sodium pools next to a cool LED one (street lamps of release 3)
+          const rg = ctx.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, 'rgba(' + c0 + ',0.85)'); rg.addColorStop(1, 'rgba(' + c0 + ',0)');
           ctx.globalAlpha = night; ctx.fillStyle = rg; ctx.fillRect(0, 0, S, S); ctx.globalAlpha = 1;
         }
         return;

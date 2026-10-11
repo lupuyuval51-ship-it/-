@@ -7,7 +7,7 @@ const KEYS = [
   [-0.35, 0x060a1f, 0x090d1e, 0x000000],
   [-0.12, 0x0a1030, 0x2a2650, 0x7a3a3a],
   [0.0, 0x2b3b7a, 0xff7a4a, 0xffa25a],
-  [0.12, 0x4a86d8, 0xffb98a, 0xffd2a0],
+  [0.12, 0x4a86d8, 0xffa870, 0xffc27e], // golden hour (17:30 in summer sits here): warm horizon and a gold sun, not the pale pastel of before
   [0.45, 0x3f8ae4, 0xb6dff6, 0xfff1d4],
   [1.0, 0x2f7fdc, 0xc6e8fb, 0xfff6e6],
 ];
@@ -41,7 +41,8 @@ export class Sky {
       fragmentShader: `uniform vec3 top,horizon,sunDir,sunColor,cityGlow,moonDir; uniform float night,rain,time,cover; uniform sampler2D cloudMap; varying vec3 vDir;
         float hash(vec3 p){ return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453); }
         void main(){ vec3 d=normalize(vDir); float h=max(d.y,0.0); vec3 col=mix(horizon,top,pow(h,0.55)); if(d.y<0.0) col=mix(horizon,horizon*0.5,min(1.0,-d.y*4.0));
-        float sd=max(dot(d,sunDir),0.0); col+=sunColor*(pow(sd,900.0)*3.0+pow(sd,24.0)*0.35+pow(sd,4.0)*0.08)*(1.0-rain*0.7);
+        float gold=smoothstep(0.02,0.1,sunDir.y)*(1.0-smoothstep(0.16,0.3,sunDir.y)); col=mix(col,sunColor*1.1,0.7*gold*exp(-h*1.4)); // golden hour: the sky a little above the horizon takes the warm sun colour (the blue top mixed with the horizon went lilac)
+        float sd=max(dot(d,sunDir),0.0); col+=sunColor*(pow(sd,900.0)*3.0+pow(sd,24.0)*0.55+pow(sd,4.0)*0.2)*(1.0-rain*0.7);
         vec3 g=floor(d*260.0); float s=hash(g); float star=step(0.9965,s)*smoothstep(0.02,0.2,d.y)*night*(0.5+0.5*hash(g+1.0)); col+=vec3(star)*(1.0-rain);
         col+=cityGlow*exp(-max(d.y,0.0)*7.0)*night*0.55;
         col+=vec3(0.6,0.65,0.8)*pow(max(dot(d,moonDir),0.0),60.0)*0.25*night;
@@ -107,7 +108,7 @@ export class Sky {
     else { const md = _moonLight.set(-sd.x, Math.max(0.35, -sd.y), -sd.z).normalize(); this.sun.position.copy(focus).addScaledVector(md, 220); this.sun.intensity = 0.5 * (1 - this.rain * 0.5); this.sun.color.setHex(0x8fa4ff); }
     this.sun.target.position.copy(focus);
     // ambient: a pale sky tint by day (the sky colour itself at night), warm ground bounce by day, deep blue at night
-    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day); this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
+    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day).lerp(sunC, 0.6 * day * (1 - THREE.MathUtils.smoothstep(sunY, 0.1, 0.5))); // golden hour: the fill light takes the warm sun colour, so the facades are not washed blue-lilac this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
     // fog: horizon colour, denser in rain and at night
     this.fogColor.copy(hor).lerp(top, 0.35 * night).lerp(CITY_FOG, night * 0.5); this.skyColor.copy(top); // the fog picks up the glow of the city at night
     const near = lerp(150, 45, this.rain) * (1 - night * 0.35), far = lerp(720, 320, this.rain) * (1 - night * 0.3);
@@ -117,7 +118,8 @@ export class Sky {
     const r = this.rain; this.rainMesh.visible = r > 0.02;
     if (this.rainMesh.visible) {
       const u = this.rainU, cp = camera.position; this._rainT = (this._rainT + dt) % RAIN_PERIOD;
-      u.time.value = this._rainT; u.origin.value.set(Math.round(cp.x), Math.round(cp.y), Math.round(cp.z)); u.alpha.value = 0.25 * r;
+      this._in = (this._in || 0) + (((this.scene.userData.interiorAt?.(cp.x, cp.z) ?? null) !== null ? 1 : 0) - (this._in || 0)) * Math.min(1, dt * 8); // indoors (a shop interior, see shops.js) the rain stops falling through the ceiling
+      u.time.value = this._rainT; u.origin.value.set(Math.round(cp.x), Math.round(cp.y), Math.round(cp.z)); u.alpha.value = 0.25 * r * (1 - this._in);
       const t = u.tint.value; t.copy(this.fogColor); t.r += 0.07 * night; t.g += 0.08 * night; t.b += 0.11 * night; // streaks catch some light at night
     }
     const env = this._env; env.night = night; env.sunY = sunY; env.fogNear = near; env.fogFar = far; env.rain = r;

@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<!-- Empty marker styles: jobs.js and ui.js inject their own CSS only when these ids are missing. The CSS lives in styles.css. -->
+<style id="jobStyle"></style><style id="shopUiStyle"></style>
 <div id="game">
   <canvas id="c"></canvas>
 
@@ -78,6 +80,7 @@
         </div>
         <div class="stats"><h3 data-t="ui.stats"></h3><ul id="stats"></ul></div>
         <div class="controls"><h3 data-t="controls"></h3><ul class="controls-list"></ul></div>
+        <div class="jobs-board"><h3 data-t="ui.jobs"></h3><div id="jobsStats" class="jobs-stats"></div></div>
       </div>
     </div>
   </div>
@@ -105,7 +108,7 @@
       <button data-btn="jump">⤒</button><button data-btn="enter">E</button>
       <button data-btn="run">»</button><button data-btn="aim">◎</button>
       <button data-btn="reload">↻</button><button data-btn="weapon">⇄</button>
-      <button data-btn="radio">♪</button><button data-btn="horn">H</button>
+      <button data-btn="radio">♪</button><button data-btn="horn">H</button><button data-btn="siren" title="G">G</button><button data-btn="skip" title="N">N</button>
     </div>
     <div class="tbtns2"><button data-btn="vig">V</button></div>
     <div class="tbtns3"><button data-btn="map">M</button><button data-btn="pause">II</button></div>
@@ -113,6 +116,25 @@
 
   <div class="rotate" aria-live="polite"><i class="rot-phone"></i><p data-t="rotateDevice"></p></div>
 </div>
+<script type="module">
+// Touch G (siren) and N (skip call): each button sends the key that jobs.js reads (KeyG, KeyN), so the job code needs no touch case.
+// #touch gets the class job-on while a job panel is showing, so the two buttons appear only during a shift.
+(function () {
+  var touch = document.getElementById('touch'), hud = document.getElementById('hud');
+  var keys = { siren: 'KeyG', skip: 'KeyN' };
+  function send(code) {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: code, key: code }));
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: code, key: code }));
+  }
+  Object.keys(keys).forEach(function (name) {
+    var b = touch && touch.querySelector('[data-btn="' + name + '"]');
+    if (b) b.addEventListener('pointerdown', function () { send(keys[name]); });
+  });
+  function sync() { if (touch && hud) touch.classList.toggle('job-on', !!hud.querySelector('.jobpanel.on')); }
+  if (hud && window.MutationObserver) new MutationObserver(sync).observe(hud, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  sync();
+})();
+</script>
 <script type="module" src="src/main.js"></script>
 </body>
 </html>

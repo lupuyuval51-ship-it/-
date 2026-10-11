@@ -9,6 +9,8 @@
 //
 // Ambience (amb bus): city hum, wind, surf and fountain are continuous layers built once in init() and steered by ambience(s) every frame;
 // birds, gulls, crickets and the distant events are scheduled from tick(). Footsteps (step, land) go through one panner into the wpn bus.
+// People (release 3): the crowd murmur is a sixth continuous layer on the amb bus (murmur(level), steered by the crowd director in peds.js, with sparse distant voices scheduled from tick());
+// voices (shout, laugh), phones (phoneRing), shops (chime, register), cameras (shutter) and the footsteps of other people (pedStep) are one-shots made from the same formant voice.
 import { CITY } from './config.js';
 
 const NOTE = n => 440 * Math.pow(2, (n - 69) / 12);
@@ -76,6 +78,21 @@ const FOOT = {
   },
 };
 
+// ---- people: voices, crowd and shop sounds ----
+// A voice is a sawtooth glottal source (pitch contour, vibrato) through three parallel formant bandpasses whose centres glide between two vowels, plus a breath of noise for consonants.
+// Vowels are [F1, F2, F3] in Hz for an adult male; women and children scale them by `fem`. Levels are peak gains before the 0.6 master trim and sit well under a gunshot.
+const VOW = { a: [800, 1150, 2900], e: [550, 1800, 2550], i: [300, 2250, 3000], o: [480, 850, 2700], u: [330, 780, 2500], ae: [690, 1680, 2600] };
+const PEOPLE = {
+  hear: 44, voice: 0.5,                                       // metres over which a voice fades to nothing (gain (1 - d / hear)^1.6); voice = overall level of the formant voice
+  male: 118, fem: 214, femF: 1.13,                           // fundamental in Hz and the formant stretch of a shorter vocal tract
+  formQ: [5, 7, 9], formG: [3.2, 2.4, 1.6],                  // bandpass Q and weight of the three formants (bandpass peak gain is 1, a sawtooth harmonic at a formant is only ~0.1)
+  gap: 0.09,                                                 // seconds between two voices (a shout that comes too soon after another is dropped)
+  murmur: { gain: 0.055, trim: 55, tau: 0.7, stale: 1.4, bands: [[380, 1.2, 0.55, 0.9], [760, 1.5, 0.5, 1.3], [1500, 1.8, 0.32, 1.9], [2900, 2.0, 0.12, 2.6]], voices: 0.4, voiceGain: 0.03, eps: 0.004 }, // bands: [centre Hz, Q, weight, babble LFO Hz]; voices: syllable phrases per second at level 1
+  step: { range: 18, gain: 0.7, gap: 0.035 },                // other people's footsteps: audible within 16 m, at half the player's level, at most one voice per 35 ms
+  phone: { gain: 0.07, f: [1318.5, 1568], beep: 0.055 },
+  shop: { chime: 0.045, register: 0.04 },
+};
+
 export class AudioSys {
   constructor() {
     this.ctx = null; this.volume = 0.8; this.station = 'off'; this.enabled = false; this.quality = 'high';
@@ -89,6 +106,7 @@ export class AudioSys {
     this.ambW = { hum: -1, wind: -1, surf: -1, fountain: -1, cricket: -1, pan: 9 };
     this.ambCar = null; this.ambTickT = 0; this.farT = 0; this.footSide = 1;
     this.crickGain = null; this.footPan = null;
+    this.murGain = null; this.murLv = 0; this.murT = -1e9; this.murW = -1; this.murVoiceT = 0; this.crowdPan = null; this.pedStepT = -1e9; this.voiceT = -1e9; this.shutterT = -1e9; this.ringT = -1e9;
   }
   init() {
     if (this.ctx) { if (this.ctx.state === 'suspended' && this.shouldRun && !(typeof document !== 'undefined' && document.hidden)) this.ctx.resume(); return; }
@@ -338,7 +356,8 @@ export class AudioSys {
   put(key, p, v, eps) { const W = this.ambW; if (Math.abs(v - W[key]) <= eps && !(v === 0 && W[key] !== 0)) return; W[key] = v; p.value = v; }
   // Event layers, called from tick() every 25 ms: Poisson birds (gulls on the beach) by day and the one distant event every 18-45 s. Crickets are a continuous layer and live in ambience().
   ambTick() {
-    const C = this.ctx, S = this.ambS, A = AMB; if (!S.on || this.menu) return;
+    const C = this.ctx, S = this.ambS, A = AMB; if (this.murGain && this.murLv > 0 && C.currentTime - this.murT > PEOPLE.murmur.stale) { this.murLv = 0; this.applyMurmur(true); } // nobody feeds murmur() any more: the crowd fades away
+    if (!S.on || this.menu) return;
     const t = C.currentTime, dt = Math.min(0.1, t - this.ambTickT); this.ambTickT = t;
     if (!(dt > 0) || t - S.t > A.stale) return; // a suspended context does not advance, a stale state means nobody is feeding ambience()
     const half = this.quality === 'low' ? 0.5 : 1;
@@ -346,6 +365,7 @@ export class AudioSys {
       if (S.beach > 0.5) { if (Math.random() < A.gull.rate * half * dt) this.gull(t + 0.02); }
       else { const near = unit((A.bird.far - S.park) / (A.bird.far - A.bird.near)); if (Math.random() < (A.bird.rate + (A.bird.parkRate - A.bird.rate) * near) * half * dt) this.bird(t + 0.02); }
     }
+    if (this.murLv > 0.25 && !S.inCar && Math.random() < PEOPLE.murmur.voices * this.murLv * half * dt) this.farVoice(t + 0.03); // a snatch of conversation somewhere in the crowd
     this.farT -= dt; if (this.farT <= 0) { this.farT = A.far.min + Math.random() * (A.far.max - A.far.min); this.distant(t + 0.05); }
   }
   // One bird call: 2-6 syllables of a sine at 2.6-5.4 kHz, each a 35-90 ms chirp that sweeps up or down by up to 35%. A single oscillator and gain carry the whole call.
@@ -424,8 +444,8 @@ export class AudioSys {
     this.footVoice(surf, g, wet, t, k); this.footVoice(surf, g * 0.8, false, t + 0.035, k * 1.03);
   }
   // Plays the layers of one surface recipe at level g, pitch k and time t.
-  footVoice(surf, g, wet, t, k) {
-    const R = FOOT.rec[surf] || FOOT.rec.concrete, d = this.footPan, full = this.quality !== 'low';
+  footVoice(surf, g, wet, t, k, dest) {
+    const R = FOOT.rec[surf] || FOOT.rec.concrete, d = dest || this.footPan, full = this.quality !== 'low';
     for (const [off, dur, a, o] of R.n) this.noise(t + off, dur, a * g, { ...o, k, dest: d });
     if (R.o) for (const [off, wave, f, dur, a, o] of R.o) this.osc(wave, f, t + off, dur, a * g, { ...o, k, dest: d });
     if (full) {
@@ -434,6 +454,102 @@ export class AudioSys {
       if (R.grains) for (let i = 0; i < R.grains; i++) this.noise(t + 0.012 + Math.random() * 0.06, 0.006, 0.3 * g, { hp: 4000, k, dest: d });
     }
     if (wet) this.noise(t + 0.004, 0.045, FOOT.wet * g, { hp: 3000, k, dest: d });
+  }
+
+  // ---- people: voices, phones, shops, cameras, the crowd ----
+  // Level of a voice at distance d: (1 - d / hear)^1.6, 0 beyond the range.
+  vox(d) { const x = 1 - (+d || 0) / PEOPLE.hear; return x > 0 ? Math.pow(x, 1.6) : 0; }
+  // One voiced syllable at time t. o: dur, f = pitch contour [start, peak at 40%, end] in Hz, v = [vowel, vowel at the end], gain (peak), fem (1 = shorter vocal tract), vib (depth as a fraction of the pitch) at vibHz,
+  // rough (Hz of an amplitude flutter: growl, scream), breath (noise gain, aspirated sound), att, pan, lp (cutoff of the distance filter), dest (default: the sfx bus).
+  syl(t, o) {
+    const C = this.ctx, P = PEOPLE, k = o.fem ? P.femF : 1, dur = o.dur, f = o.f, full = this.quality !== 'low', v0 = VOW[o.v[0]], v1 = VOW[o.v[1] || o.v[0]], att = o.att || 0.022, vg = o.gain * P.voice;
+    const src = C.createOscillator(), mix = C.createGain(), env = C.createGain(), pan = mkPan(C); src.type = 'sawtooth'; pan.pan.value = o.pan || 0;
+    src.frequency.setValueAtTime(f[0], t); src.frequency.linearRampToValueAtTime(f[1], t + dur * 0.4); src.frequency.linearRampToValueAtTime(f[2], t + dur);
+    if (o.vib && full) { const l = C.createOscillator(), d = C.createGain(); l.frequency.value = o.vibHz || 5.8; d.gain.value = f[1] * o.vib; l.connect(d); d.connect(src.frequency); l.start(t); l.stop(t + dur + 0.05); }
+    for (let i = 0; i < (full ? 3 : 2); i++) { const bp = C.createBiquadFilter(), g = C.createGain(); bp.type = 'bandpass'; bp.Q.value = P.formQ[i]; bp.frequency.setValueAtTime(v0[i] * k, t); bp.frequency.linearRampToValueAtTime(v1[i] * k, t + dur * 0.9); g.gain.value = P.formG[i]; src.connect(bp); bp.connect(g); g.connect(mix); }
+    let head = mix; if (o.rough && full) { const am = C.createGain(), l = C.createOscillator(), d = C.createGain(); am.gain.value = 0.62; l.frequency.value = o.rough; d.gain.value = 0.38; l.connect(d); d.connect(am.gain); l.start(t); l.stop(t + dur + 0.05); mix.connect(am); head = am; }
+    env.gain.setValueAtTime(0.0001, t); env.gain.linearRampToValueAtTime(vg, t + att); env.gain.linearRampToValueAtTime(vg * 0.8, t + dur * 0.65); env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    head.connect(env); let tail = env; if (o.lp) { const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = o.lp; lp.Q.value = 0.5; env.connect(lp); tail = lp; }
+    tail.connect(pan); pan.connect(o.dest || this.sfx); if (o.breath) this.noise(t, dur, o.breath * P.voice, { bp: 2300 * k, q: 0.7, dest: pan });
+    src.start(t); src.stop(t + dur + 0.05);
+  }
+  // A person's voice. kind: 'hey' | 'whoa' | 'oh' | 'ugh' | 'scream' | 'angry' | 'help' | 'yell'; dist = metres from the listener; pan -1..1; fem = true / false (random when omitted).
+  // Quiet by design (peak 0.15-0.2 before the master trim, a pistol is 0.7) and gone beyond 44 m.
+  shout(kind = 'hey', dist = 0, pan = 0, fem) {
+    if (!this.enabled || this.menu) return; const P = PEOPLE, t = this.ctx.currentTime + 0.01, g = this.vox(dist); if (g < 0.02 || t - this.voiceT < P.gap) return; this.voiceT = t;
+    if (fem === undefined) fem = Math.random() < 0.45; const f0 = (fem ? P.fem : P.male) * (0.9 + Math.random() * 0.22), o = { fem: fem ? 1 : 0, pan: clamp(+pan || 0, -1, 1), lp: Math.max(1500, 7500 - dist * 150) };
+    switch (kind) {
+      case 'whoa': this.syl(t, { ...o, dur: 0.5, f: [f0 * 0.95, f0 * 1.3, f0 * 0.88], v: ['o', 'a'], gain: 0.15 * g, vib: 0.012, breath: 0.03 * g }); break;
+      case 'oh': this.syl(t, { ...o, dur: 0.22, f: [f0 * 1.2, f0 * 1.25, f0 * 0.95], v: ['o', 'o'], gain: 0.14 * g }); break;
+      case 'ugh': this.syl(t, { ...o, dur: 0.22, f: [f0 * 1.1, f0 * 0.85, f0 * 0.62], v: ['a', 'u'], gain: 0.16 * g, rough: 55, breath: 0.05 * g }); break;
+      case 'scream': { const s = (fem ? 520 : 330) * (0.9 + Math.random() * 0.25), d = 0.8 + Math.random() * 0.35; this.syl(t, { ...o, dur: d, f: [s * 0.9, s * 1.32, s * 1.1], v: ['a', 'ae'], gain: 0.13 * g, vib: 0.035, vibHz: 6.5, rough: 38, breath: 0.1 * g, att: 0.03 }); break; }
+      case 'angry': this.syl(t, { ...o, dur: 0.38, f: [f0 * 0.95, f0 * 1.12, f0 * 0.82], v: ['a', 'o'], gain: 0.17 * g, rough: 68, breath: 0.04 * g }); break;
+      case 'help': this.syl(t, { ...o, dur: 0.2, f: [f0 * 1.25, f0 * 1.4, f0 * 1.3], v: ['e', 'e'], gain: 0.15 * g }); this.syl(t + 0.24, { ...o, dur: 0.34, f: [f0 * 1.45, f0 * 1.4, f0 * 1.05], v: ['e', 'u'], gain: 0.16 * g, vib: 0.02, breath: 0.03 * g }); break;
+      case 'yell': this.syl(t, { ...o, dur: 0.5, f: [f0 * 1.05, f0 * 1.4, f0 * 1.2], v: ['a', 'e'], gain: 0.16 * g, vib: 0.015, rough: 50 }); break;
+      default: this.syl(t, { ...o, dur: 0.3, f: [f0 * 0.95, f0 * 1.28, f0 * 1.05], v: ['e', 'i'], gain: 0.15 * g, breath: 0.05 * g }); // 'hey'
+    }
+  }
+  // Laughter: four to six "ha"s that fall in pitch and fade, each preceded by a puff of breath.
+  laugh(dist = 0, pan = 0, fem, dest) {
+    if (!this.enabled || this.menu) return; const P = PEOPLE, g = this.vox(dist); if (g < 0.02) return; if (fem === undefined) fem = Math.random() < 0.5;
+    const t0 = this.ctx.currentTime + 0.02, n = 4 + Math.floor(Math.random() * 3), f0 = (fem ? P.fem : P.male) * (1.15 + Math.random() * 0.2), o = { fem: fem ? 1 : 0, pan: clamp(+pan || 0, -1, 1), lp: Math.max(1500, 7500 - dist * 150), dest };
+    for (let i = 0; i < n; i++) { const t = t0 + i * (0.165 + Math.random() * 0.03), a = 1 - i / (n + 1), last = i === n - 1; this.syl(t, { ...o, dur: last ? 0.2 : 0.1, f: [f0 * (1.1 - 0.06 * i), f0 * (1.15 - 0.06 * i), f0 * (0.95 - 0.06 * i)], v: ['a', last ? 'e' : 'a'], gain: 0.13 * g * a, breath: 0.07 * g * a, att: 0.012 }); }
+  }
+  // A ringtone heard from dist metres: two bursts of four triangle beeps alternating between E6 and G6.
+  phoneRing(dist = 0, pan = 0) {
+    if (!this.enabled || this.menu) return; const P = PEOPLE.phone, g = this.vox((+dist || 0) * 0.8); if (g < 0.02) return; const t = this.ctx.currentTime + 0.02; if (t - this.ringT < 0.5) return; this.ringT = t;
+    const pn = mkPan(this.ctx); pn.pan.value = clamp(+pan || 0, -1, 1); pn.connect(this.sfx);
+    for (let r = 0; r < 2; r++) for (let b = 0; b < 4; b++) { const ti = t + r * 0.85 + b * 0.115; this.osc('triangle', P.f[b % 2], ti, P.beep, P.gain * g, { a: 0.004, lp: 4200, dest: pn }); this.osc('sine', P.f[b % 2] * 2, ti, P.beep, P.gain * g * 0.25, { a: 0.004, dest: pn }); }
+  }
+  // A bell: inharmonic partials with their own decays. Used by the shop door chime and the till.
+  bell(t, f, gain, dur, dest) { for (const [m, a, d] of [[1, 1, 1], [2.76, 0.38, 0.55], [5.4, 0.16, 0.3], [8.9, 0.06, 0.18]]) this.osc('sine', f * m, t, dur * d, gain * a, { a: 0.002, dest }); }
+  // The chime over a shop door (two notes, E5 then C5). dist: metres from the door (omit for the player's own door: it then plays on the ui bus).
+  chime(dist) {
+    if (!this.enabled) return; const near = !(dist > 0.5), g = near ? 1 : this.vox(dist * 0.9); if (g < 0.02) return; const t = this.ctx.currentTime + 0.01, D = near ? this.ui : this.sfx, A = PEOPLE.shop.chime * g;
+    this.bell(t, NOTE(88), A, 1.1, D); this.bell(t + 0.3, NOTE(84), A * 0.9, 1.5, D);
+  }
+  // The till: a drawer thunk, a bright bell and the drawer sliding shut. dist omitted: the player's own transaction (ui bus).
+  register(dist) {
+    if (!this.enabled) return; const near = !(dist > 0.5), g = near ? 1 : this.vox(dist * 0.9); if (g < 0.02) return; const t = this.ctx.currentTime + 0.01, D = near ? this.ui : this.sfx, A = PEOPLE.shop.register * g;
+    this.noise(t, 0.03, A * 3, { bp: 2200, q: 3, dest: D }); this.osc('triangle', 190, t, 0.07, A * 2, { f1: 80, dest: D });
+    this.bell(t + 0.09, 2093, A * 0.55, 0.75, D); this.bell(t + 0.12, 3136, A * 0.35, 0.6, D);
+    this.noise(t + 0.62, 0.11, A * 2.2, { hp: 1600, lp: 5000, a: 0.03, dest: D }); this.noise(t + 0.74, 0.02, A * 2.4, { bp: 1400, q: 2, dest: D });
+  }
+  // A camera shutter heard from dist metres: the mirror slap and the curtain, 70 ms apart.
+  shutter(dist = 0, pan = 0) {
+    if (!this.enabled || this.menu) return; const g = this.vox((+dist || 0) * 0.7), t = this.ctx.currentTime + 0.01; if (g < 0.03 || t - this.shutterT < 0.3) return; this.shutterT = t;
+    const pn = mkPan(this.ctx); pn.pan.value = clamp(+pan || 0, -1, 1); pn.connect(this.sfx);
+    this.noise(t, 0.014, 0.22 * g, { hp: 2500, dest: pn }); this.osc('square', 1700, t, 0.02, 0.012 * g, { f1: 700, dest: pn }); this.noise(t + 0.07, 0.025, 0.14 * g, { bp: 1300, q: 1.5, dest: pn });
+  }
+  // The footstep of somebody else: surf as in step(), dist in metres, pan -1..1, intensity 0.3 (strolling) .. 1 (sprinting). At most one voice per 35 ms, audible within 16 m.
+  pedStep(surf, dist = 0, pan = 0, intensity = 0.4, wet = false) {
+    if (!this.enabled || this.menu) return; const P = PEOPLE.step, t = this.ctx.currentTime; if (!(dist < P.range) || t - this.pedStepT < P.gap) return; this.pedStepT = t;
+    const F = FOOT, i = unit(+intensity), x = 1 - dist / P.range, g = (F.walk + (F.sprint - F.walk) * unit((i - F.iWalk) / (1 - F.iWalk))) * P.gain * x * x; if (g < 0.0015) return;
+    const pn = mkPan(this.ctx); pn.pan.value = clamp(+pan || 0, -1, 1); pn.connect(this.wpn); this.footVoice(surf, g, wet, t, 1 + (Math.random() * 2 - 1) * FOOT.pitch, pn);
+  }
+  // ---- the crowd ----
+  // murmur(level): level 0..1 is how crowded the player's surroundings are (peds.js computes it ten times a second). Call it again within 1.4 s or it fades out.
+  murmur(level) {
+    if (!this.enabled) return; this.murLv = unit(+level); this.murT = this.ctx.currentTime; if (this.murLv > 0 && !this.murGain) this.buildMurmur(); this.applyMurmur(false);
+  }
+  // A bed of babble: white noise through four formant-ish bands whose levels each wander on two incommensurate slow LFOs, on the amb bus (so a car lowpasses it and a menu ducks it).
+  buildMurmur() {
+    const C = this.ctx, M = PEOPLE.murmur, out = this.murGain = C.createGain(); out.gain.value = 0; out.connect(this.amb); const src = this.loopSrc(this.noiseBuf, 0.71, 1);
+    for (const [fc, q, w, hz] of M.bands) {
+      const bp = C.createBiquadFilter(), g = C.createGain(); bp.type = 'bandpass'; bp.frequency.value = fc; bp.Q.value = q; g.gain.value = w * 0.5 * M.trim; src.connect(bp); bp.connect(g); g.connect(out);
+      for (const [r, dep] of [[hz, 0.4], [hz * 0.37 + 0.11, 0.25]]) { const l = C.createOscillator(), d = C.createGain(); l.frequency.value = r; d.gain.value = w * dep * M.trim; l.connect(d); d.connect(g.gain); l.start(); }
+    }
+  }
+  applyMurmur(force) {
+    if (!this.murGain) return; const M = PEOPLE.murmur, tgt = M.gain * this.murLv * (this.quality === 'low' ? 0.8 : 1); if (!force && Math.abs(tgt - this.murW) < M.gain * M.eps && !(tgt === 0 && this.murW !== 0)) return;
+    this.murW = tgt; this.murGain.gain.setTargetAtTime(tgt, this.ctx.currentTime, M.tau);
+  }
+  // A phrase of distant, indistinct talk (two to five syllables, lowpassed, panned anywhere) scheduled from ambTick() while the murmur is up.
+  farVoice(t) {
+    const P = PEOPLE, M = P.murmur, fem = Math.random() < 0.5, f0 = (fem ? P.fem : P.male) * (0.9 + Math.random() * 0.25), n = 2 + Math.floor(Math.random() * 4), pan = (Math.random() * 2 - 1) * 0.8, vs = ['a', 'e', 'o', 'i', 'u', 'ae'], vol = M.voiceGain * (0.6 + Math.random() * 0.4);
+    let ti = t; for (let i = 0; i < n; i++) { const d = 0.09 + Math.random() * 0.12, a = vs[Math.floor(Math.random() * vs.length)], b = vs[Math.floor(Math.random() * vs.length)], p = f0 * (0.9 + Math.random() * 0.3);
+      this.syl(ti, { dur: d, f: [p, p * (1 + Math.random() * 0.15), p * (0.85 + Math.random() * 0.2)], v: [a, b], gain: vol, fem: fem ? 1 : 0, pan, lp: 1500, dest: this.amb, att: 0.015 }); ti += d + 0.03 + Math.random() * 0.09; }
+    if (Math.random() < 0.12) this.laugh(32 + Math.random() * 12, pan, fem, this.amb);
   }
 
   // ---- radio ----
