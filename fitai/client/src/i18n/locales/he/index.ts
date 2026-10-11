@@ -1,0 +1,36 @@
+import type { Dictionary } from '../en';
+import common from './common';
+import nav from './nav';
+import auth from './auth';
+import errors from './errors';
+import enums from './enums';
+import onboarding from './onboarding';
+import settings from './settings';
+import dashboard from './dashboard';
+import workouts from './workouts';
+import session from './session';
+import exercises from './exercises';
+import nutrition from './nutrition';
+import coach from './coach';
+import progress from './progress';
+import achievements from './achievements';
+import notifications from './notifications';
+
+export const he: Dictionary = {
+  common,
+  nav,
+  auth,
+  errors,
+  enums,
+  onboarding,
+  settings,
+  dashboard,
+  workouts,
+  session,
+  exercises,
+  nutrition,
+  coach,
+  progress,
+  achievements,
+  notifications,
+};

@@ -1,0 +1,709 @@
+/* Progress, achievements and notifications (also loaded by the header bell). Logical properties only. */
+
+/* ------------------------------------------------------------------ Header bell */
+.notif-bell {
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ Shared pieces */
+.chart-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-block-end: var(--space-2);
+}
+.streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.streak-pill-empty {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  white-space: normal;
+}
+.ring-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+}
+.ring-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 84px;
+}
+.is-refreshing {
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+
+/* Insights */
+.insight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.insight {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border-inline-start: 3px solid var(--border);
+  font-size: 14px;
+}
+.insight-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.insight-positive {
+  border-inline-start-color: var(--success);
+}
+.insight-positive .insight-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.insight-neutral {
+  border-inline-start-color: var(--info);
+}
+.insight-neutral .insight-icon {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.insight-attention {
+  border-inline-start-color: var(--warning);
+}
+.insight-attention .insight-icon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* Personal records */
+.record-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.record-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.record-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: end;
+  flex-shrink: 0;
+}
+
+/* Level & achievements */
+.level-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--info-soft);
+  color: var(--info);
+  font-weight: 800;
+  font-size: 14px;
+}
+.ach-header {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 640px) {
+  .ach-header {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+.achievement-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 560px) {
+  .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .achievement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.achievement {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  min-width: 0;
+}
+.achievement-unlocked {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success-soft) 60%, var(--surface-2));
+}
+.achievement-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--surface-3);
+  font-size: 22px;
+}
+.achievement-locked .achievement-icon {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+.achievement-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.achievement-title {
+  font-size: 14px;
+}
+.achievement-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.achievement-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-block-start: 2px;
+}
+
+/* ------------------------------------------------------------------ Progress page */
+.progress-page .page-actions .segmented {
+  max-width: 100%;
+}
+.summary-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 900px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-block-start: 2px;
+}
+.trend-up .icon {
+  color: var(--success);
+}
+.trend-down .icon {
+  color: var(--warning);
+}
+.trend-same .icon {
+  color: var(--text-faint);
+}
+.progress-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .progress-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.consistency {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.consistency-rule {
+  margin-block-start: var(--space-3);
+}
+.muscle-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.muscle-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 7rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.muscle-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.muscle-count {
+  min-width: 4.5rem;
+  text-align: end;
+}
+.nutrition-stats {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.strength-controls {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+  align-items: end;
+}
+@media (min-width: 640px) {
+  .strength-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* Body weight */
+.bw-layout {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .bw-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+  }
+}
+.bw-stats {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bw-form-panel {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  align-self: start;
+}
+.bw-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.bw-form-fields {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.bw-entries .list-item {
+  padding-block: var(--space-2);
+}
+.bw-entry-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ Notifications page */
+.notif-summary {
+  padding: var(--space-3) var(--space-4) 0;
+}
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--border);
+}
+.notif-item:last-child {
+  border-block-end: 0;
+}
+.notif-unread {
+  background: color-mix(in srgb, var(--primary-soft) 55%, transparent);
+}
+.notif-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.notif-icon-achievement,
+.notif-icon-personal_record {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.notif-icon-level_up {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.notif-icon-weekly_goal {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.notif-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  font-size: 14px;
+}
+button.notif-main {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.notif-unread .notif-text {
+  font-weight: 700;
+}
+.notif-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.record-name {
+  overflow-wrap: anywhere;
+}
+
+
+/* ================================================================== Visual polish (UI 2) */
+
+/* ---- Charts: palette, area fill, tooltips (overrides the base chart rules) */
+.chart {
+  --series: var(--primary);
+}
+.chart .chart-info,
+.chart-svg.chart-info {
+  --series: var(--info);
+}
+.chart-svg {
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
+}
+.chart-svg:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.chart-area-stop {
+  stop-color: var(--series);
+}
+.chart-svg .chart-line {
+  stroke: var(--series);
+  stroke-width: 2.5;
+}
+.chart-svg .chart-dot {
+  fill: var(--series);
+  stroke: var(--surface);
+  transition: r 120ms ease;
+}
+.chart-svg .chart-dot-active {
+  stroke-width: 3;
+}
+.chart-cursor {
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chart-svg .chart-bar {
+  fill: var(--series);
+  opacity: 0.7;
+  transition: opacity 120ms ease;
+}
+.chart-svg .chart-bar-met {
+  fill: var(--success);
+  opacity: 0.95;
+}
+.chart-svg .chart-bar-hover {
+  opacity: 1;
+}
+.chart-svg .chart-axis {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.chart-svg .chart-grid {
+  stroke-dasharray: 2 4;
+}
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+.chart-tip-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.chart-tip-value {
+  font-size: 14px;
+  font-weight: 800;
+}
+.chart-empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.chart-heading {
+  letter-spacing: 0.02em;
+}
+.progress-page .card .num,
+.progress-page .stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Summary stats */
+.progress-summary .stat {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 60%, var(--surface)));
+}
+.progress-summary .stat-value {
+  font-size: 22px;
+}
+.trend-up {
+  color: var(--success);
+}
+.trend-down {
+  color: var(--warning);
+}
+
+/* ---- Streak pill & rings */
+.streak-pill {
+  background: linear-gradient(135deg, var(--warning-soft), color-mix(in srgb, var(--danger) 12%, transparent));
+}
+.streak-pill:not(.streak-pill-empty) .icon {
+  animation: flame-flicker 2.2s ease-in-out infinite;
+  transform-origin: 50% 90%;
+}
+@keyframes flame-flicker {
+  50% {
+    transform: scale(1.12) rotate(-4deg);
+  }
+}
+.ring-fill {
+  transition: stroke-dashoffset 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.consistency .ring-value {
+  font-size: 22px;
+}
+
+/* ---- Level medal & XP bar */
+.level-progress {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+.level-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.level-medal {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary-contrast);
+  background: conic-gradient(from 200deg, var(--info), var(--primary), var(--info));
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, #fff 35%, transparent), 0 4px 14px color-mix(in srgb, var(--info) 35%, transparent);
+}
+.level-badge {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+.level-progress .progress {
+  height: 10px;
+}
+.level-progress .progress-fill {
+  background: linear-gradient(90deg, var(--info), var(--primary));
+}
+
+/* ---- Insights & records */
+.insight {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--border) 60%, transparent);
+}
+.record-icon {
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--warning-soft), color-mix(in srgb, var(--warning) 22%, transparent));
+}
+.record-value strong {
+  font-variant-numeric: tabular-nums;
+}
+.record-list .list-item {
+  align-items: center;
+}
+
+/* ---- Muscle bars */
+.progress-muscles .progress {
+  height: 10px;
+}
+
+/* ---- Achievements */
+.ach-header {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--hero-bg, var(--surface-2));
+  border: 1px solid var(--border);
+}
+.achievement {
+  position: relative;
+  overflow: hidden;
+  transition: transform 160ms var(--ease-out, ease), border-color 160ms ease;
+}
+.achievement:hover {
+  transform: translateY(-1px);
+}
+.achievement-unlocked {
+  border-color: color-mix(in srgb, var(--gold, var(--warning)) 55%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--warning-soft) 90%, var(--surface-2)), var(--surface-2) 70%);
+}
+.achievement-unlocked::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, #fff 22%, transparent), transparent);
+  transform: skewX(-18deg);
+  animation: ach-sheen 1.4s 0.3s ease-out 1 both;
+  pointer-events: none;
+}
+@keyframes ach-sheen {
+  to {
+    inset-inline-start: 130%;
+  }
+}
+.achievement-unlocked .achievement-icon {
+  background: color-mix(in srgb, var(--warning) 20%, var(--surface-3));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 55%, transparent), 0 4px 12px color-mix(in srgb, var(--warning) 25%, transparent);
+  border-radius: 50%;
+}
+.achievement-locked {
+  border-style: dashed;
+  background: var(--surface);
+}
+.achievement-locked .achievement-icon {
+  border-radius: 50%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .achievement-unlocked::after,
+  .streak-pill .icon {
+    animation: none;
+  }
+}
+
+/* ---- Notifications */
+.notif-item {
+  transition: background 150ms ease;
+}
+.notif-item:hover {
+  background: var(--surface-2);
+}
+.notif-unread {
+  border-inline-start: 3px solid var(--primary);
+  padding-inline-start: calc(var(--space-4) - 3px);
+}
+.notif-icon {
+  width: 40px;
+  height: 40px;
+}
+.notif-icon-level_up {
+  background: linear-gradient(135deg, var(--info-soft), var(--success-soft));
+}
+.notif-badge {
+  background: linear-gradient(135deg, var(--danger), color-mix(in srgb, var(--danger) 70%, var(--warning)));
+}

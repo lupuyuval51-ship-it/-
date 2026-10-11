@@ -1,0 +1,513 @@
+/* Nutrition module — mobile first, logical properties only (RTL-safe). */
+
+/* ------------------------------------------------------------------ Layout */
+.nutri-layout {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .nutri-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  }
+  .nutri-side {
+    position: sticky;
+    inset-block-start: var(--space-4);
+  }
+}
+
+/* ------------------------------------------------------------------ Date navigator */
+.nutri-date-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.nutri-date-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 140px;
+  text-align: center;
+}
+.nutri-date-title {
+  font-size: 16px;
+}
+.nutri-date-input {
+  inline-size: auto;
+  max-inline-size: 170px;
+}
+
+/* ------------------------------------------------------------------ Day overview */
+.nutri-overview {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+@media (min-width: 640px) {
+  .nutri-overview {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+.nutri-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+.nutri-ring-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.nutri-ring-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.nutri-remaining {
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}
+.nutri-macros {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.nutri-macro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.nutri-macro-label {
+  font-weight: 600;
+}
+.nutri-minor-note {
+  margin-block-start: var(--space-3);
+}
+.nutri-notes {
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ------------------------------------------------------------------ Meals */
+.meal-card .card-subtitle {
+  margin-block-start: 2px;
+}
+.meal-empty {
+  min-height: 40px;
+}
+.meal-entry {
+  align-items: center;
+}
+.meal-entry-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.meal-entry-title {
+  gap: var(--space-2);
+}
+.meal-entry-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.meal-entry-kcal {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.meal-entry-actions {
+  display: flex;
+  gap: 2px;
+}
+
+/* ------------------------------------------------------------------ Macro displays */
+.macro-line {
+  overflow-wrap: anywhere;
+}
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+.macro-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  text-align: center;
+}
+.macro-cell dt {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.macro-cell dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 15px;
+}
+@media (max-width: 420px) {
+  .macro-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ------------------------------------------------------------------ Food lists */
+.food-item {
+  align-items: flex-start;
+}
+.food-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+}
+.food-item-name {
+  overflow-wrap: anywhere;
+}
+.food-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+  row-gap: 2px;
+}
+.food-item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+.food-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-block-start: var(--space-1);
+}
+.saved-meal .food-item-body {
+  cursor: default;
+}
+
+/* ------------------------------------------------------------------ Log page */
+.nutri-log-context .grid-2 {
+  align-items: end;
+}
+.nutri-meal-so-far {
+  margin: var(--space-2) 0 0;
+}
+.nutri-tabpanel {
+  min-height: 240px;
+}
+.nutri-search-bar {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  .nutri-search-bar {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: end;
+  }
+}
+.nutri-search-field,
+.nutri-category {
+  margin: 0;
+}
+.nutri-save-current {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+.nutri-fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: 0;
+  min-width: 0;
+}
+.nutri-form-actions {
+  justify-content: flex-end;
+}
+.nutri-barcode-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+.nutri-barcode-form .field {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+.nutri-modal-footer {
+  inline-size: 100%;
+}
+
+/* ------------------------------------------------------------------ Portion dialog */
+.portion-form .chips {
+  margin-block-start: calc(var(--space-2) * -1);
+}
+
+/* ------------------------------------------------------------------ Suggestions */
+.suggestion-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 760px) {
+  .suggestion-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.suggestion-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.suggestion-card > .btn {
+  align-self: flex-start;
+}
+.suggestion-name {
+  margin: 0;
+  font-size: 15px;
+}
+.suggestion-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.suggestion-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ Trends */
+.nutri-stats {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+/* ------------------------------------------------------------------ Barcode scanner */
+.scanner-frame {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4 / 3;
+}
+.scanner-video {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+}
+.scanner-guide {
+  position: absolute;
+  inset-inline: 12%;
+  inset-block: 35%;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 999px rgb(0 0 0 / 0.25);
+}
+
+/* ------------------------------------------------------------------ Photo analysis */
+.photo-pick {
+  cursor: pointer;
+}
+.photo-pick.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.photo-pick:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.photo-preview {
+  display: block;
+  max-inline-size: 100%;
+  max-block-size: 280px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  object-fit: contain;
+}
+.photo-items {
+  gap: var(--space-3);
+}
+.photo-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.photo-item-off {
+  opacity: 0.6;
+}
+.photo-match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.photo-footer {
+  position: sticky;
+  inset-block-end: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
+  padding: var(--space-3) 0;
+  background: linear-gradient(to top, var(--surface) 75%, transparent);
+}
+@media (min-width: 900px) {
+  .photo-footer {
+    inset-block-end: 0;
+  }
+}
+
+/* ================================================================== Visual polish (UI 4) */
+.nutri-overview-card {
+  background: radial-gradient(90% 70% at 0% 0%, var(--primary-soft), transparent 65%), var(--surface);
+}
+.nutri-ring .ring {
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--primary) 30%, transparent));
+}
+.nutri-ring-value {
+  font-size: 34px;
+  letter-spacing: -0.02em;
+}
+.nutri-remaining {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 14px;
+}
+.nutri-macros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.nutri-macro {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.nutri-macro-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.nutri-macro-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.nutri-macro-value {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nutri-macro-pct {
+  font-size: 12px;
+  font-weight: 800;
+}
+.nutri-macro-info .ring-fill {
+  stroke: var(--info);
+}
+.nutri-macro-warning .ring-fill {
+  stroke: var(--warning);
+}
+.nutri-macro .ring-warning,
+.nutri-macro .ring-fill.ring-warning {
+  stroke: var(--warning);
+}
+@media (max-width: 420px) {
+  .nutri-macros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Meal cards: coloured accent per meal */
+.meal-card {
+  --meal-accent: var(--primary);
+  border-inline-start: 4px solid var(--meal-accent);
+}
+.meal-card-breakfast {
+  --meal-accent: #f59e0b;
+}
+.meal-card-lunch {
+  --meal-accent: #22c55e;
+}
+.meal-card-dinner {
+  --meal-accent: #6366f1;
+}
+.meal-card-snack {
+  --meal-accent: #ec4899;
+}
+.meal-card .card-title {
+  font-size: 18px;
+}
+.meal-entry-kcal {
+  font-size: 16px;
+}
+.meal-entry {
+  padding-block: var(--space-3);
+}
+.meal-card .card-subtitle {
+  font-weight: 600;
+}
+
+/* Date navigator + food lists */
+.nutri-date-nav {
+  box-shadow: var(--shadow);
+}
+.nutri-date-title {
+  font-size: 18px;
+  font-weight: 800;
+}
+.food-item {
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.food-item:hover {
+  background: var(--surface-2);
+}
+.macro-cell {
+  border: 1px solid var(--border);
+}
+.macro-cell dd {
+  font-size: 17px;
+}
