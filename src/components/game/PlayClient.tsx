@@ -14,7 +14,8 @@ import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type
 import { GameAudio } from "./audio";
 import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
-import { AreaBanner, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
+import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
+import { withReaction } from "@/lib/game/state/reactions";
 import { Minimap } from "./hud/Minimap";
 import { SceneAnnouncer } from "./hud/SceneAnnouncer";
 import { InputState } from "./input";
@@ -37,6 +38,7 @@ type Overlay =
   | { type: "none" }
   | { type: "challenge"; stationId: string; label: string; challenge: PublicChallenge; result: AnswerResult | null; hint: string | null; busy: boolean }
   | { type: "dialogue"; npcId: string }
+  | { type: "boss"; bossId: string }
   | { type: "lore"; stationId: string }
   | { type: "pause" }
   | { type: "done"; summary: LearningSummary };
@@ -189,6 +191,13 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1, p.z, "#a3ff4f", 40);
       }
+      for (const id of res.newlyDefeatedBosses ?? []) {
+        const b = d.spec.bosses?.find((x) => x.id === id);
+        toast(t("boss.toast", { name: b?.name ?? id }), "good");
+        feedback.current?.("victory");
+        const p = runtime?.sim.player;
+        if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#ff4d6d", 70);
+      }
       for (const a of res.newAchievements) toast(t("toast.achievement", { name: t(`ach.${a}` as never) }), "good");
       if (res.completed && res.summary) {
         setOverlay({ type: "done", summary: res.summary });
@@ -272,13 +281,16 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       setOverlay({ type: "dialogue", npcId: target.id });
       audio.play("blip");
       send({ type: "talk", npcId: target.id }).catch(handleError);
+    } else if (target.kind === "boss") {
+      setOverlay({ type: "boss", bossId: target.id });
+      audio.play("blip");
     } else if (target.kind === "portal") {
       if (!target.open) { toast(t("prompt.portal.locked", { label: target.label }), "warn"); return; }
       send({ type: "enter_area", areaId: target.id })
         .then(() => { audio.play("portal"); audio.play("areaEnter", { delay: 0.55 }); feedback.current?.("area"); toast(t("toast.area", { name: d.spec.areas.find((a) => a.id === target.id)?.name ?? "" }), "good"); })
         .catch(handleError);
     } else if (target.status === "locked") {
-      toast(t("prompt.station.locked", { label: target.label }), "warn");
+      toast(t(target.lockedByBoss ? "prompt.station.lockedBoss" : "prompt.station.locked", { label: target.label }), "warn");
     } else if (target.status === "done") {
       toast(t("prompt.station.done", { label: target.label }), "info");
     } else if (target.stationKind === "lore") {
@@ -385,7 +397,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     w.__LEVELUP_TEST__ = {
       snapshot: () => ({
         player: { ...runtime.sim.player }, nearby: runtime.nearby, client: clientRef.current, overlay: overlayRef.current.type, yaw: input.yaw,
-        stations: runtime.world.stations, npcs: runtime.world.npcs, collectibles: runtime.world.collectibles, portal: runtime.world.portal,
+        stations: runtime.world.stations, npcs: runtime.world.npcs, bosses: runtime.world.bosses, collectibles: runtime.world.collectibles, portal: runtime.world.portal,
         tier: data.render.tier, profile: data.render.profile, layout: runtime.world.layout, areaId: runtime.areaId, sessionId: data.sessionId,
       }),
       teleport: (x: number, y: number, z: number) => runtime.sim.teleport(x, y, z),
@@ -420,6 +432,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     return <main className="theme-dark grid h-dvh place-items-center bg-ink-950 p-6"><p role="alert" className="max-w-md text-center text-lg">{t("hud.webgl.error")}</p></main>;
   }
   const npc = overlay.type === "dialogue" ? d.spec.areas.flatMap((a) => a.npcs).find((n) => n.id === overlay.npcId) : null;
+  const boss = overlay.type === "boss" ? d.spec.bosses?.find((b) => b.id === overlay.bossId) : null;
   const lore = overlay.type === "lore" ? d.spec.areas.flatMap((a) => a.stations).find((s) => s.id === overlay.stationId) : null;
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
@@ -447,7 +460,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       {overlay.type === "challenge" && (
         <ChallengePanel challenge={overlay.challenge} stationLabel={overlay.label} result={overlay.result} hint={overlay.hint} busy={overlay.busy} onSubmit={submitAnswer} onHint={requestHint} onClose={closeOverlay} />
       )}
-      {npc && <Dialogue npc={npc} onClose={closeOverlay} onLine={() => audio.play("blip")} />}
+      {npc && <Dialogue npc={withReaction(npc, client?.missionsDone ?? [])} onClose={closeOverlay} onLine={() => audio.play("blip")} />}
+      {boss && client && <BossCard boss={boss} client={client} stationLabel={(id) => d.spec.areas.flatMap((a) => a.stations).find((s) => s.id === id)?.label ?? id} onClose={closeOverlay} />}
       {lore && lore.loreTitle && lore.loreText && <LoreCard title={lore.loreTitle} text={lore.loreText} onClose={closeOverlay} />}
       {overlay.type === "pause" && (
         <PauseMenu profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}

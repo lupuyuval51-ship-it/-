@@ -199,7 +199,7 @@ export class OfflineStore {
     const event = parsed.data;
     const now = this.clock();
     if (session.status === "COMPLETED") {
-      if (event.type === "finish") return { data: {}, state: toClientState(session.state), newlyCompletedMissions: [], newAchievements: [], completed: true, summary: summarize(game.spec, session.state, session.finishedAt ?? now) };
+      if (event.type === "finish") return { data: {}, state: toClientState(session.state), newlyCompletedMissions: [], newlyDefeatedBosses: [], newAchievements: [], completed: true, summary: summarize(game.spec, session.state, session.finishedAt ?? now) };
       throw new OfflineError(409, "SESSION_COMPLETED", "This game session is already finished.");
     }
     if (session.status !== "ACTIVE") throw new OfflineError(409, "SESSION_ENDED", "This game session has ended. Start a new one.");
@@ -219,7 +219,7 @@ export class OfflineStore {
       updated.finishedAt = now;
     }
     this.saveSession(updated);
-    return { data: result.data, state: result.client, newlyCompletedMissions: result.newlyCompletedMissions, newAchievements: result.newAchievements, completed: next.finished, summary };
+    return { data: result.data, state: result.client, newlyCompletedMissions: result.newlyCompletedMissions, newlyDefeatedBosses: result.newlyDefeatedBosses, newAchievements: result.newAchievements, completed: next.finished, summary };
   }
 
   results(sessionId: string): { game: StoredGame; session: StoredSession; summary: LearningSummary; review: ReviewItem[] } | null {

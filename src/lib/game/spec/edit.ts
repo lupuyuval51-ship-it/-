@@ -37,7 +37,7 @@ export const editResponseSchema = z.object({
 export type EditResponse = z.infer<typeof editResponseSchema>;
 
 /** Top-level sections an edit may touch, and (for `meta`) the only fields inside it. */
-const EDITABLE_SECTIONS = new Set(["meta", "learning", "theme", "mechanics", "areas", "missions", "challenges"]);
+const EDITABLE_SECTIONS = new Set(["meta", "learning", "theme", "mechanics", "areas", "missions", "challenges", "bosses"]);
 const EDITABLE_META = new Set(["title", "tagline", "estimatedMinutes", "subjectCategory"]);
 const FORBIDDEN_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
 

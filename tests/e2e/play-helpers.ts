@@ -17,10 +17,10 @@ export async function openGame(page: Page, gameId: string) {
  * Put the player next to an entity using the test hook (walking to every station is covered separately by the
  * keyboard-movement test). Tries four offsets because decoration can block one side.
  */
-export async function goNear(page: Page, kind: "station" | "npc" | "collectible", id: string) {
+export async function goNear(page: Page, kind: "station" | "npc" | "boss" | "collectible", id: string) {
   const snap = await snapshot(page);
-  const list = kind === "station" ? snap.stations : kind === "npc" ? snap.npcs : snap.collectibles;
-  const key = kind === "station" ? "stationId" : kind === "npc" ? "npcId" : "itemId";
+  const list = kind === "station" ? snap.stations : kind === "npc" ? snap.npcs : kind === "boss" ? snap.bosses : snap.collectibles;
+  const key = kind === "station" ? "stationId" : kind === "npc" ? "npcId" : kind === "boss" ? "bossId" : "itemId";
   const target = list.find((e: any) => e[key] === id);
   if (!target) throw new Error(`${kind} ${id} is not in the current area`);
   for (const [dx, dz] of [[0, 1.7], [1.7, 0], [0, -1.7], [-1.7, 0]] as const) {

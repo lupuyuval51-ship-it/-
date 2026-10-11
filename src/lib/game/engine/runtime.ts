@@ -4,15 +4,16 @@
  */
 import { mechanicsForArea } from "../spec/mechanics";
 import type { PublicSpec } from "../spec/public";
-import { portalOpen, stationActive, stationDone, type ClientState } from "../state/progress";
+import { bossPhaseOpen, portalOpen, stationActive, stationDone, type ClientState } from "../state/progress";
 import { buildWorld } from "../world/build";
 import type { WorldModel } from "../world/types";
 import { INTERACT_RADIUS, PICKUP_RADIUS } from "./constants";
 import { WorldSim, type SimInput } from "./sim";
 
 export type Interactable =
-  | { kind: "station"; id: string; label: string; stationKind: "challenge" | "lore"; status: "active" | "locked" | "done"; x: number; z: number }
+  | { kind: "station"; id: string; label: string; stationKind: "challenge" | "lore"; status: "active" | "locked" | "done"; /** Locked because an earlier round of a boss battle is still open. */ lockedByBoss?: boolean; x: number; z: number }
   | { kind: "npc"; id: string; label: string; x: number; z: number }
+  | { kind: "boss"; id: string; label: string; x: number; z: number }
   | { kind: "portal"; id: string; label: string; open: boolean; x: number; z: number };
 
 export interface RuntimeCallbacks {
@@ -106,9 +107,10 @@ export class GameRuntime {
       const def = area.stations.find((x) => x.id === s.stationId)!;
       const done = stationDone(this.client, s.stationId);
       const status = done ? "done" : stationActive(this.spec, this.client, def) ? "active" : "locked";
-      consider(Math.hypot(p.x - s.x, p.z - s.z), p.y - s.y, { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, x: s.x, z: s.z });
+      consider(Math.hypot(p.x - s.x, p.z - s.z), p.y - s.y, { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, lockedByBoss: status === "locked" && !bossPhaseOpen(this.spec, this.client, s.stationId), x: s.x, z: s.z });
     }
     for (const n of this.world.npcs) consider(Math.hypot(p.x - n.x, p.z - n.z), p.y - n.y, { kind: "npc", id: n.npcId, label: n.name, x: n.x, z: n.z });
+    for (const b of this.world.bosses) consider(Math.hypot(p.x - b.x, p.z - b.z), p.y - b.y, { kind: "boss", id: b.bossId, label: b.name, x: b.x, z: b.z });
     const portal = this.world.portal;
     if (portal) {
       consider(Math.hypot(p.x - portal.x, p.z - portal.z), p.y - portal.y, {

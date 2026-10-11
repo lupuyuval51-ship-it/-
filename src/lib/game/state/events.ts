@@ -9,7 +9,7 @@ import { idSchema } from "../spec/schema";
 import type { GameSpec } from "../spec/schema";
 import { mechanicsForArea } from "../spec/mechanics";
 import {
-  COLLECT_POINTS, chooseVariant, cloneState, collectibleIds, findArea, findChallenge, findStation, portalOpen, recordAttempt, recompute, stationActive,
+  COLLECT_POINTS, bossPhaseOpen, chooseVariant, cloneState, collectibleIds, findArea, findChallenge, findStation, portalOpen, recordAttempt, recompute, stationActive,
   summarize, toClientState, type ClientState, type LearningSummary, type PlayState,
 } from "./progress";
 
@@ -47,6 +47,7 @@ export interface EventResult {
   /** Event-specific payload for the response. */
   data: Record<string, unknown>;
   newlyCompletedMissions: string[];
+  newlyDefeatedBosses: string[];
   newAchievements: string[];
   summary?: LearningSummary;
 }
@@ -65,7 +66,9 @@ export function processEvent(spec: GameSpec, prev: PlayState, event: GameEvent, 
     const found = findStation(spec, stationId);
     if (!found) return reject("UNKNOWN_STATION", "That station does not exist.");
     if (found.area.id !== state.areaId) return reject("WRONG_AREA", "That station is in a different area.");
-    if (!stationActive(spec, state, found.station)) return reject("STATION_LOCKED", "Complete the earlier missions to unlock this station.");
+    if (!stationActive(spec, state, found.station)) {
+      return reject("STATION_LOCKED", bossPhaseOpen(spec, state, found.station.id) ? "Complete the earlier missions to unlock this station." : "Win the earlier phases of this battle first.");
+    }
     return found;
   };
 
@@ -170,8 +173,8 @@ export function processEvent(spec: GameSpec, prev: PlayState, event: GameEvent, 
     }
   }
 
-  const { newlyCompleted, newAchievements } = recompute(spec, state);
-  const result: EventResult = { state, client: toClientState(state), data, newlyCompletedMissions: newlyCompleted, newAchievements };
+  const { newlyCompleted, newAchievements, defeatedBosses } = recompute(spec, state);
+  const result: EventResult = { state, client: toClientState(state), data, newlyCompletedMissions: newlyCompleted, newlyDefeatedBosses: defeatedBosses, newAchievements };
   if (state.finished) result.summary = summarize(spec, state, ctx.now);
   return result;
 }

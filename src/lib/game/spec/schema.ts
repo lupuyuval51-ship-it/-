@@ -191,6 +191,26 @@ export const npcSchema = z.object({
   look: z.object({ color: hex, shape: z.enum(NPC_SHAPES) }),
   lines: z.array(text(240)).min(1).max(L.linesPerNpc),
   hint: text(220).optional(),
+  /** What the character says once a mission is done: the world answers the player's progress. The latest finished one wins. */
+  reactions: z.array(z.object({ afterMissionId: idSchema, lines: z.array(text(240)).min(1).max(3) })).max(L.reactionsPerNpc).default([]),
+});
+
+/**
+ * A boss: a multi-phase battle made of the area's own challenge stations. The phase stations open one after the
+ * other; every phase solved wounds the boss, and the last one defeats it. There is no new grading or scoring path:
+ * each phase is an ordinary challenge, so answers, hints and points stay server-validated.
+ */
+export const bossSchema = z.object({
+  id: idSchema,
+  areaId: idSchema,
+  name: text(40),
+  /** The epithet shown with the name ("Guardian of the Loop"). */
+  title: text(70),
+  /** Spoken when the player walks up to the boss. */
+  intro: text(260),
+  defeatLine: text(200),
+  look: z.object({ color: hex, shape: z.enum(NPC_SHAPES) }),
+  phaseStationIds: z.array(idSchema).min(L.bossPhasesMin).max(L.bossPhasesMax),
 });
 
 export const areaSchema = z.object({
@@ -215,6 +235,7 @@ export const objectiveSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("collect"), text: text(200), count: z.number().int().min(1).max(L.collectiblesPerArea) }),
   z.object({ type: z.literal("talk"), text: text(200), npcId: idSchema }),
   z.object({ type: z.literal("visit"), text: text(200), stationIds: z.array(idSchema).min(1).max(4) }),
+  z.object({ type: z.literal("defeat"), text: text(200), bossId: idSchema }),
 ]);
 
 export const missionSchema = z.object({
@@ -224,6 +245,8 @@ export const missionSchema = z.object({
   areaId: idSchema,
   requires: z.array(idSchema).max(4).default([]),
   objectives: z.array(objectiveSchema).min(1).max(L.objectivesPerMission),
+  /** A side mission: it pays its bonus but the game can be finished without it. */
+  optional: z.boolean().default(false),
 });
 
 // ───────────────────────────── the spec ─────────────────────────────
@@ -267,10 +290,12 @@ export const gameSpecSchema = z.object({
   areas: z.array(areaSchema).min(1).max(L.areas),
   missions: z.array(missionSchema).min(1).max(L.missions),
   challenges: z.array(challengeSchema).min(1).max(L.challenges),
+  bosses: z.array(bossSchema).max(L.bosses).default([]),
 });
 
 export type GameSpec = z.infer<typeof gameSpecSchema>;
 export type Area = z.infer<typeof areaSchema>;
+export type Boss = z.infer<typeof bossSchema>;
 export type Station = z.infer<typeof stationSchema>;
 export type Npc = z.infer<typeof npcSchema>;
 export type Mission = z.infer<typeof missionSchema>;

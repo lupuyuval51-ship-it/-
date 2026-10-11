@@ -10,6 +10,7 @@ import { MECHANICS, type GameType } from "./constants";
 import { estimateMinutes } from "./estimate";
 import { LAYOUT_FOR_GAME_TYPE, impliedMechanics, verifyMechanics } from "./mechanics";
 import { gameSpecSchema, type Area, type Challenge, type GameSpec } from "./schema";
+import { collectibleIds, initialState, portalOpen, recompute, stationActive } from "../state/progress";
 import { goalReachable, runProgram } from "../challenges/program";
 import { leverSolvable, projectileSolvable } from "../challenges/simulations";
 
@@ -57,6 +58,8 @@ export function normalizeRawSpec(raw: unknown): { value: unknown; notes: string[
   cap(spec, "areas", SPEC_LIMITS.areas, "areas");
   cap(spec, "missions", SPEC_LIMITS.missions, "missions");
   cap(spec, "challenges", SPEC_LIMITS.challenges, "challenges");
+  cap(spec, "bosses", SPEC_LIMITS.bosses, "bosses");
+  for (const b of arr(spec.bosses)) if (isObj(b)) cap(b, "phaseStationIds", SPEC_LIMITS.bossPhasesMax, `phases of boss ${String(b.id)}`);
   if (isObj(spec.learning)) cap(spec.learning, "objectives", SPEC_LIMITS.learningObjectives, "learning objectives");
 
   if (Array.isArray(spec.mechanics)) {
@@ -102,7 +105,7 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
 
   for (const [label, ids] of [
     ["area", areaIds], ["mission", missionIds], ["challenge", challengeIds], ["station", stations.map((s) => s.id)],
-    ["npc", npcs.map((n) => n.id)], ["learning objective", spec.learning.objectives.map((o) => o.id)],
+    ["npc", npcs.map((n) => n.id)], ["learning objective", spec.learning.objectives.map((o) => o.id)], ["boss", (spec.bosses ?? []).map((b) => b.id)],
   ] as const) {
     const d = dupes([...ids]);
     if (d.length) err(`duplicate ${label} ids: ${d.join(", ")}`);
@@ -201,9 +204,39 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
         case "visit":
           for (const id of o.stationIds) if (areaStation.get(id)?.kind !== "lore") err(`mission "${m.id}" visit objective "${id}" is not a lore station in area "${area.id}"`);
           break;
+        case "defeat": {
+          const boss = (spec.bosses ?? []).find((b) => b.id === o.bossId);
+          if (!boss) err(`mission "${m.id}" wants to defeat unknown boss "${o.bossId}"`);
+          else if (boss.areaId !== area.id) err(`mission "${m.id}" wants to defeat boss "${boss.id}" who lives in area "${boss.areaId}", not "${area.id}"`);
+          break;
+        }
       }
     }
   }
+  // ── bosses: the battle is made of the area's own challenge stations, fought in order
+  const phaseOwner = new Map<string, string>();
+  for (const boss of spec.bosses ?? []) {
+    const area = areaById.get(boss.areaId);
+    if (!area) {
+      err(`boss "${boss.id}" lives in unknown area "${boss.areaId}"`);
+      continue;
+    }
+    const byId = new Map(area.stations.map((st) => [st.id, st]));
+    if (dupes(boss.phaseStationIds).length) err(`boss "${boss.id}" lists the same phase station twice`);
+    for (const id of boss.phaseStationIds) {
+      const st = byId.get(id);
+      if (!st) err(`boss "${boss.id}" phase "${id}" is not a station of area "${area.id}"`);
+      else if (st.kind !== "challenge") err(`boss "${boss.id}" phase "${id}" must be a challenge station`);
+      else if (phaseOwner.has(id)) err(`station "${id}" is a phase of two bosses ("${phaseOwner.get(id)}" and "${boss.id}")`);
+      else phaseOwner.set(id, boss.id);
+    }
+  }
+  for (const a of spec.areas) {
+    for (const n of a.npcs) {
+      for (const r of n.reactions ?? []) if (!missionById.has(r.afterMissionId)) err(`npc "${n.id}" reacts to unknown mission "${r.afterMissionId}"`);
+    }
+  }
+
   // mission dependency cycles
   const state = new Map<string, 0 | 1 | 2>();
   const visit = (id: string, path: string[]): void => {
@@ -253,6 +286,31 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
     for (const m of spec.missions) if (!done.has(m.id)) err(`mission "${m.id}" can never be completed (unreachable area or unmet requirements)`);
   }
 
+  // ── boss battles add an ordering rule (phases open one after another) that the static check above cannot see:
+  // play the game the way a perfect player would, with the real progress rules, and make sure it can be finished.
+  if (errors.length === 0 && (spec.bosses ?? []).length > 0) {
+    const st = initialState(spec, 0);
+    for (let pass = 0; pass < 100 && !st.finished; pass++) {
+      const before = JSON.stringify([st.areaId, st.resolvedStations, st.visited, st.missionsDone]);
+      const area = areaById.get(st.areaId)!;
+      for (const n of area.npcs) if (!st.talked.includes(n.id)) st.talked.push(n.id);
+      for (const id of collectibleIds(area)) if (!st.collected.includes(id)) st.collected.push(id);
+      for (const s of area.stations) {
+        if (!stationActive(spec, st, s)) continue;
+        if (s.kind === "lore") {
+          if (!st.visited.includes(s.id)) st.visited.push(s.id);
+        } else st.resolvedStations[s.id] = "correct";
+      }
+      recompute(spec, st);
+      if (area.portal && portalOpen(spec, st, area)) st.areaId = area.portal.toAreaId;
+      if (JSON.stringify([st.areaId, st.resolvedStations, st.visited, st.missionsDone]) === before) break;
+    }
+    if (!st.finished) {
+      const open = spec.missions.filter((m) => !m.optional && !st.missionsDone.includes(m.id)).map((m) => m.id);
+      err(`the game cannot be finished with the boss battles as written (open missions: ${open.join(", ")}). Phases open one after another, so a phase station must not belong to a mission that can only unlock after a LATER phase`);
+    }
+  }
+
   // ── softer quality warnings
   const assessed = new Set(spec.challenges.map((c) => c.objectiveId).filter(Boolean));
   for (const o of spec.learning.objectives) if (!assessed.has(o.id)) warnings.push(`learning objective "${o.id}" is not assessed by any challenge`);
@@ -272,7 +330,7 @@ export function sealPortals(spec: GameSpec): string[] {
     if (!area.portal) continue;
     const here = spec.missions.filter((m) => m.areaId === area.id);
     // "Final" missions: nothing else in this area builds on them (finishing those finishes their prerequisites).
-    const final = here.filter((m) => !here.some((o) => o.requires.includes(m.id)));
+    const final = here.filter((m) => !m.optional && !here.some((o) => o.requires.includes(m.id)));
     const wanted = [...new Set([...area.portal.requiresMissionIds, ...final.map((m) => m.id)])];
     // The schema allows four; keep the portal's own requirements first, then as many final missions as fit.
     const next = wanted.slice(0, 4);

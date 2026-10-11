@@ -29,7 +29,7 @@ export const metersBetween = (a: Pt, b: Pt): number => Math.max(0, Math.round(Ma
 
 // ───────────────────────── what is around the player ─────────────────────────
 
-export type ScenePointKind = "station" | "lore" | "npc" | "portal" | "collectible";
+export type ScenePointKind = "station" | "lore" | "npc" | "boss" | "portal" | "collectible";
 export interface ScenePoint {
   kind: ScenePointKind;
   id: string;
@@ -50,13 +50,14 @@ export function scenePoints(spec: PublicSpec, client: ClientState, world: WorldM
     out.push({ kind: s.kind === "lore" ? "lore" : "station", id: s.stationId, label: s.label, x: s.x, z: s.z, status });
   }
   for (const n of world.npcs) out.push({ kind: "npc", id: n.npcId, label: n.name, x: n.x, z: n.z });
+  for (const b of world.bosses ?? []) out.push({ kind: "boss", id: b.bossId, label: b.name, x: b.x, z: b.z });
   if (world.portal && area) out.push({ kind: "portal", id: world.portal.toAreaId, label: world.portal.label, x: world.portal.x, z: world.portal.z, status: portalOpen(spec as never, client, area as never) ? "open" : "locked" });
   for (const c of world.collectibles) if (!client.collected.includes(c.itemId)) out.push({ kind: "collectible", id: c.itemId, label: "", x: c.x, z: c.z });
   return out;
 }
 
 const KIND_KEY: Record<ScenePointKind, DictKey> = {
-  station: "a11y.kind.station", lore: "a11y.kind.lore", npc: "a11y.kind.npc", portal: "a11y.kind.portal", collectible: "a11y.kind.collectible",
+  station: "a11y.kind.station", lore: "a11y.kind.lore", npc: "a11y.kind.npc", boss: "a11y.kind.boss", portal: "a11y.kind.portal", collectible: "a11y.kind.collectible",
 };
 
 /** "Terminal Loops (locked), 4 m ahead and to the right" */
@@ -84,9 +85,10 @@ export function describeSurroundings(args: { points: ScenePoint[]; player: Pt; y
 /** The text of the interact prompt for a nearby target, and whether activating it does anything. */
 export function interactablePrompt(target: Interactable, t: TFn): { text: string; enabled: boolean } {
   if (target.kind === "npc") return { text: t("prompt.npc", { label: target.label }), enabled: true };
+  if (target.kind === "boss") return { text: t("prompt.boss", { label: target.label }), enabled: true };
   if (target.kind === "portal") return { text: target.open ? t("prompt.portal", { label: target.label }) : t("prompt.portal.locked", { label: target.label }), enabled: target.open };
   if (target.status === "done") return { text: t("prompt.station.done", { label: target.label }), enabled: true };
-  if (target.status === "locked") return { text: t("prompt.station.locked", { label: target.label }), enabled: false };
+  if (target.status === "locked") return { text: t(target.lockedByBoss ? "prompt.station.lockedBoss" : "prompt.station.locked", { label: target.label }), enabled: false };
   return { text: t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label }), enabled: true };
 }
 

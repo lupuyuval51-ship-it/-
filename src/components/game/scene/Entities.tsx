@@ -5,8 +5,8 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
-import { stationDone, type ClientState } from "@/lib/game/state/progress";
-import type { WorldNpc } from "@/lib/game/world/types";
+import { bossProgress, stationDone, type ClientState } from "@/lib/game/state/progress";
+import type { WorldBoss, WorldNpc } from "@/lib/game/world/types";
 import type { GuideModel } from "@/lib/game/state/guidance";
 import { Character } from "./Characters";
 import { CollectibleView } from "./Collectibles";
@@ -20,6 +20,43 @@ function NpcView({ runtime, npc, nearby, profile, materials, model }: { runtime:
     <group position={[npc.x, 0, npc.z]}>
       <Character runtime={runtime} npc={npc} nearby={nearby} profile={profile} materials={materials} model={model} />
       <Label text={npc.name} color={npc.color} y={labelY} scale={0.9} />
+    </group>
+  );
+}
+
+/**
+ * A boss is a character drawn larger than life with a health bar that follows the battle: one segment per round,
+ * and a segment goes dark each time a round is won. The bar always faces the camera.
+ */
+function BossView({ runtime, boss, client, nearby, profile, materials, model }: { runtime: GameRuntime; boss: WorldBoss; client: ClientState; nearby: boolean; profile: RenderProfile; materials: MaterialSet; model: GuideModel }) {
+  const def = runtime.spec.bosses?.find((b) => b.id === boss.bossId);
+  const progress = def ? bossProgress(def, client) : { total: 1, done: 0, defeated: false, nextPhase: 0 };
+  const left = progress.total - progress.done;
+  const bar = useRef<THREE.Group>(null);
+  const fill = materials.glow(boss.color, 1.4);
+  const empty = materials.flat("#1a2038");
+  const frame = materials.flat("#06101f");
+  // The character's own coordinates are local to this scaled group; only facing needs the world position.
+  const npc: WorldNpc = { npcId: boss.bossId, name: boss.name, color: boss.color, shape: boss.shape, facing: boss.facing, x: boss.x, y: 0, z: boss.z };
+  const labelY = boss.shape === "orb" ? 2.75 : boss.shape === "creature" ? 2.05 : boss.shape === "robot" ? 2.3 : 2.2;
+  const top = (labelY + 0.9) * boss.scale;
+  useFrame(({ camera }) => {
+    const g = bar.current;
+    if (g) g.quaternion.copy(camera.quaternion);
+  });
+  const w = 0.42 * progress.total;
+  return (
+    <group position={[boss.x, boss.y, boss.z]}>
+      <group scale={boss.scale}>
+        <Character runtime={runtime} npc={npc} nearby={nearby} profile={profile} materials={materials} model={model} />
+      </group>
+      <group ref={bar} position={[0, top, 0]} visible={!progress.defeated}>
+        <mesh position={[0, 0, -0.01]} material={frame}><planeGeometry args={[w + 0.14, 0.34]} /></mesh>
+        {Array.from({ length: progress.total }, (_, i) => (
+          <mesh key={i} position={[-w / 2 + 0.21 + i * 0.42, 0, 0]} material={i < left ? fill : empty}><planeGeometry args={[0.36, 0.2]} /></mesh>
+        ))}
+      </group>
+      <Label text={boss.name} color={boss.color} y={top + 0.55} scale={1.1} />
     </group>
   );
 }
@@ -132,6 +169,7 @@ export function Entities({ runtime, client, nearbyKey, profile, materials, guide
     <group>
       {w.stations.map((s) => <StationView key={s.stationId} runtime={runtime} station={s} client={client} nearby={nearbyKey === `station:${s.stationId}`} profile={profile} materials={materials} />)}
       {w.npcs.map((n) => <NpcView key={n.npcId} runtime={runtime} npc={n} nearby={nearbyKey === `npc:${n.npcId}`} profile={profile} materials={materials} model={guide} />)}
+      {w.bosses.map((b) => <BossView key={b.bossId} runtime={runtime} boss={b} client={client} nearby={nearbyKey === `boss:${b.bossId}`} profile={profile} materials={materials} model={guide} />)}
       {w.collectibles.map((c) => <CollectibleView key={c.itemId} runtime={runtime} item={c} profile={profile} materials={materials} accent={w.theme.accent} />)}
       {w.checkpoints.map((c) => <CheckpointView key={c.checkpointId} pos={c} active={activeCp === c.checkpointId} materials={materials} accent={w.theme.accent} />)}
       {w.portal && <PortalView runtime={runtime} client={client} nearby={nearbyKey?.startsWith("portal:") ?? false} materials={materials} profile={profile} />}

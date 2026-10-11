@@ -4,11 +4,12 @@
  */
 import { MAX_ATTEMPTS_PER_CHALLENGE } from "@/config/limits";
 import { mechanicsForArea } from "../spec/mechanics";
-import type { Area, Challenge, GameSpec, Mission, Station } from "../spec/schema";
+import type { Area, Boss, Challenge, GameSpec, Mission, Station } from "../spec/schema";
 
 export const POINTS_BY_LEVEL: Readonly<Record<number, number>> = { 1: 100, 2: 150, 3: 200 };
 export const COLLECT_POINTS = 10;
 export const MISSION_BONUS = 50;
+export const BOSS_BONUS = 150;
 const ATTEMPT_MULTIPLIER = [1, 0.6, 0.3] as const;
 const HINT_PENALTY = 0.15;
 const MAX_HINT_PENALTY = 0.3;
@@ -47,6 +48,8 @@ export interface PlayState {
   score: number;
   achievements: string[];
   missionsDone: string[];
+  /** Bosses already paid out (a boss is defeated once all its phase stations are resolved). Older saves lack it. */
+  bossesDefeated: string[];
   finished: boolean;
   startedAt: number;
   updatedAt: number;
@@ -55,7 +58,7 @@ export interface PlayState {
 export function initialState(spec: GameSpec, now = Date.now()): PlayState {
   return {
     v: 1, areaId: spec.areas[0]!.id, position: null, checkpoint: null, served: {}, records: {}, resolvedStations: {},
-    collected: [], talked: [], visited: [], openedAt: {}, recent: [], streak: 0, hintsUsed: 0, score: 0, achievements: [], missionsDone: [],
+    collected: [], talked: [], visited: [], openedAt: {}, recent: [], streak: 0, hintsUsed: 0, score: 0, achievements: [], missionsDone: [], bossesDefeated: [],
     finished: false, startedAt: now, updatedAt: now,
   };
 }
@@ -77,6 +80,44 @@ export function findStation(spec: GameSpec, id: string): { station: Station; are
 }
 export function findChallenge(spec: GameSpec, id: string): Challenge | undefined {
   return spec.challenges.find((c) => c.id === id);
+}
+
+export function findBoss(spec: GameSpec, id: string): Boss | undefined {
+  return (spec.bosses ?? []).find((b) => b.id === id);
+}
+
+// ───────────────────────────── bosses ─────────────────────────────
+
+export interface BossProgress {
+  /** Phases in the battle, phases already resolved, and the index of the phase to fight next (-1 once defeated). */
+  total: number;
+  done: number;
+  nextPhase: number;
+  defeated: boolean;
+}
+
+export function bossProgress(boss: Boss, state: Pick<PlayState, "resolvedStations">): BossProgress {
+  const done = boss.phaseStationIds.filter((id) => state.resolvedStations[id]).length;
+  const defeated = done >= boss.phaseStationIds.length;
+  // Phases open in order, so the next one is the first unresolved.
+  const nextPhase = defeated ? -1 : boss.phaseStationIds.findIndex((id) => !state.resolvedStations[id]);
+  return { total: boss.phaseStationIds.length, done, nextPhase, defeated };
+}
+
+/** The boss a station is a phase of, with the phase's index. */
+export function bossOfStation(spec: GameSpec, stationId: string): { boss: Boss; phase: number } | undefined {
+  for (const boss of spec.bosses ?? []) {
+    const phase = boss.phaseStationIds.indexOf(stationId);
+    if (phase >= 0) return { boss, phase };
+  }
+  return undefined;
+}
+
+/** A boss phase can only be fought once the phase before it is resolved. */
+export function bossPhaseOpen(spec: GameSpec, state: Pick<PlayState, "resolvedStations">, stationId: string): boolean {
+  const hit = bossOfStation(spec, stationId);
+  if (!hit || hit.phase === 0) return true;
+  return Boolean(state.resolvedStations[hit.boss.phaseStationIds[hit.phase - 1]!]);
 }
 
 // ───────────────────────────── missions ─────────────────────────────
@@ -109,6 +150,12 @@ export function objectiveProgress(spec: GameSpec, state: ProgressView, mission: 
       const n = o.stationIds.filter((id) => state.visited.includes(id)).length;
       return { done: n >= o.stationIds.length, current: n, target: o.stationIds.length };
     }
+    case "defeat": {
+      const boss = findBoss(spec, o.bossId);
+      if (!boss) return { done: false, current: 0, target: 1 };
+      const p = bossProgress(boss, state);
+      return { done: p.defeated, current: p.done, target: p.total };
+    }
   }
 }
 
@@ -121,7 +168,8 @@ export function missionUnlocked(state: Pick<PlayState, "missionsDone">, mission:
 }
 
 /** A station is playable when a mission that needs it is unlocked, or when no mission mentions it at all. */
-export function stationActive(spec: GameSpec, state: Pick<PlayState, "missionsDone">, station: Station): boolean {
+export function stationActive(spec: GameSpec, state: Pick<PlayState, "missionsDone" | "resolvedStations">, station: Station): boolean {
+  if (!bossPhaseOpen(spec, state, station.id)) return false;
   const wanted = spec.missions.filter((m) =>
     m.objectives.some((o) => (o.type === "solve" && station.kind === "challenge" && o.challengeIds.includes(station.challengeId ?? "")) || (o.type === "visit" && o.stationIds.includes(station.id))),
   );
@@ -160,7 +208,7 @@ export function maxScore(spec: GameSpec): number {
   const adaptive = spec.areas.some((a) => mechanicsForArea(spec, a.id).has("adaptive_difficulty"));
   const challengeMax = spec.challenges.filter((c) => placed.has(c.id)).reduce((sum, c) => sum + challengePoints(bestLevelFor(spec, c, adaptive)), 0);
   const collectMax = spec.areas.reduce((sum, a) => sum + a.collectibles.count * COLLECT_POINTS, 0);
-  return challengeMax + collectMax + spec.missions.length * MISSION_BONUS;
+  return challengeMax + collectMax + spec.missions.length * MISSION_BONUS + (spec.bosses ?? []).length * BOSS_BONUS;
 }
 
 export function starsFor(percent: number, completed: boolean): 0 | 1 | 2 | 3 {
@@ -199,8 +247,17 @@ export function cloneState(state: PlayState): PlayState {
   return structuredClone(state);
 }
 
-export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: string[]; newAchievements: string[] } {
+export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: string[]; newAchievements: string[]; defeatedBosses: string[] } {
   const newlyCompleted: string[] = [];
+  state.bossesDefeated ??= [];
+  const defeatedBosses: string[] = [];
+  for (const boss of spec.bosses ?? []) {
+    if (!state.bossesDefeated.includes(boss.id) && bossProgress(boss, state).defeated) {
+      state.bossesDefeated.push(boss.id);
+      state.score += BOSS_BONUS;
+      defeatedBosses.push(boss.id);
+    }
+  }
   // Missions can complete in chains within one event, so iterate to a fixed point.
   for (let i = 0; i < spec.missions.length; i++) {
     let changed = false;
@@ -215,7 +272,8 @@ export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: s
     if (!changed) break;
   }
   const wasFinished = state.finished;
-  state.finished = spec.missions.every((m) => state.missionsDone.includes(m.id));
+  // Side missions pay their bonus but never block the end of the game.
+  state.finished = spec.missions.every((m) => m.optional || state.missionsDone.includes(m.id));
 
   const have = new Set(state.achievements);
   const grant = (id: string, cond: boolean) => {
@@ -227,6 +285,8 @@ export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: s
   grant("persistent", recs.some((r) => r.correct && r.wrong >= 2));
   const totalCollectibles = spec.areas.reduce((n, a) => n + a.collectibles.count, 0);
   grant("explorer", totalCollectibles > 0 && state.collected.length >= totalCollectibles);
+  grant("boss_slayer", state.bossesDefeated.length > 0);
+  grant("side_quester", spec.missions.some((m) => m.optional) && spec.missions.filter((m) => m.optional).every((m) => state.missionsDone.includes(m.id)));
   if (state.finished) {
     grant("completed", true);
     grant("no_hints", state.hintsUsed === 0);
@@ -235,7 +295,7 @@ export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: s
   const newAchievements = [...have].filter((a) => !state.achievements.includes(a));
   state.achievements = [...have];
   void wasFinished;
-  return { newlyCompleted, newAchievements };
+  return { newlyCompleted, newAchievements, defeatedBosses };
 }
 
 export interface AnswerOutcome {
@@ -341,12 +401,12 @@ export function summarize(spec: GameSpec, state: PlayState, now = Date.now()): L
 }
 
 /** The slice of state the browser receives (no timestamps of other stations, no server bookkeeping). */
-export type ClientState = Pick<PlayState, "areaId" | "position" | "checkpoint" | "resolvedStations" | "collected" | "talked" | "visited" | "missionsDone" | "streak" | "hintsUsed" | "score" | "achievements" | "finished">;
+export type ClientState = Pick<PlayState, "areaId" | "position" | "checkpoint" | "resolvedStations" | "collected" | "talked" | "visited" | "missionsDone" | "bossesDefeated" | "streak" | "hintsUsed" | "score" | "achievements" | "finished">;
 
 export function toClientState(state: PlayState): ClientState {
   return {
     areaId: state.areaId, position: state.position, checkpoint: state.checkpoint, resolvedStations: state.resolvedStations, collected: state.collected,
-    talked: state.talked, visited: state.visited, missionsDone: state.missionsDone, streak: state.streak, hintsUsed: state.hintsUsed, score: state.score,
+    talked: state.talked, visited: state.visited, missionsDone: state.missionsDone, bossesDefeated: state.bossesDefeated ?? [], streak: state.streak, hintsUsed: state.hintsUsed, score: state.score,
     achievements: state.achievements, finished: state.finished,
   };
 }

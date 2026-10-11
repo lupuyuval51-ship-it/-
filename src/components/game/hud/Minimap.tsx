@@ -123,6 +123,21 @@ export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntim
         ctx.fill();
         ctx.stroke();
       }
+      for (const b of world.bosses) {
+        const { mx, my } = toMap(b.x, b.z);
+        if (!inside(mx, my)) continue;
+        ctx.fillStyle = "#ff4d6d";
+        ctx.strokeStyle = "#06101f";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(mx, my - 5.5);
+        ctx.lineTo(mx + 5, my);
+        ctx.lineTo(mx, my + 5.5);
+        ctx.lineTo(mx - 5, my);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
       if (world.portal) {
         const { mx, my } = toMap(world.portal.x, world.portal.z);
         if (inside(mx, my)) {

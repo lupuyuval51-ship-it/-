@@ -51,7 +51,7 @@ const r3 = (n: number) => Math.round(n * 1000) / 1000;
 
 export interface FrameSource {
   sim: { time: number; player: { x: number; y: number; z: number; yaw: number; speed: number; grounded: boolean } };
-  nearby: { kind: "station" | "npc" | "portal"; id: string } | null;
+  nearby: { kind: "station" | "npc" | "portal" | "boss"; id: string } | null;
   client: { collected: string[] };
   world: { stations: { stationId: string }[]; gates: { id: string }[] };
   stationStatus(stationId: string): "active" | "locked" | "done";
@@ -66,7 +66,8 @@ export function buildFrame(src: FrameSource, camera: UnityFrame["camera"]): Unit
     t: r3(src.sim.time),
     player: { x: r3(p.x), y: r3(p.y), z: r3(p.z), yaw: r3(p.yaw), speed: r3(p.speed), grounded: p.grounded },
     camera: { x: r3(camera.x), y: r3(camera.y), z: r3(camera.z), lx: r3(camera.lx), ly: r3(camera.ly), lz: r3(camera.lz) },
-    nearby: src.nearby ? { kind: src.nearby.kind, id: src.nearby.id } : null,
+    // The Unity renderer only knows stations, characters and portals: a boss is a character there.
+    nearby: src.nearby ? { kind: src.nearby.kind === "boss" ? "npc" : src.nearby.kind, id: src.nearby.id } : null,
     collected: src.client.collected,
     stations,
     openGates: src.world.gates.filter((g) => src.gateOpen(g.id)).map((g) => g.id),

@@ -17,6 +17,7 @@ export interface EventResponse {
   data: Record<string, unknown>;
   state: ClientState;
   newlyCompletedMissions: string[];
+  newlyDefeatedBosses?: string[];
   newAchievements: string[];
   completed: boolean;
   summary?: LearningSummary;

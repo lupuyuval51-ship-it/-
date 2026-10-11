@@ -43,6 +43,7 @@ export interface DecorItem {
 export interface Placed { x: number; y: number; z: number }
 export interface WorldStation extends Placed { stationId: string; kind: "challenge" | "lore"; label: string; facing: number }
 export interface WorldNpc extends Placed { npcId: string; name: string; color: string; shape: NpcShape; facing: number }
+export interface WorldBoss extends Placed { bossId: string; name: string; color: string; shape: NpcShape; facing: number; scale: number; phaseStationIds: string[] }
 export interface WorldCollectible extends Placed { itemId: string; kind: CollectibleKind }
 export interface WorldCheckpoint extends Placed { checkpointId: string }
 export interface WorldHazard { id: string; x0: number; x1: number; z0: number; z1: number; y: number; kind: "lava" | "electric" }
@@ -79,6 +80,8 @@ export interface WorldModel {
   decor: DecorItem[];
   stations: WorldStation[];
   npcs: WorldNpc[];
+  /** The area's boss figures (decor + an interaction point; the battle itself is made of ordinary stations). */
+  bosses: WorldBoss[];
   collectibles: WorldCollectible[];
   checkpoints: WorldCheckpoint[];
   hazards: WorldHazard[];

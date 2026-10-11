@@ -15,7 +15,7 @@ export interface LayoutCtx {
   theme: EnvTheme;
 }
 
-export type LayoutResult = Omit<WorldModel, "areaId" | "layout" | "environment" | "seed" | "theme">;
+export type LayoutResult = Omit<WorldModel, "areaId" | "layout" | "environment" | "seed" | "theme" | "bosses">;
 
 export const makeCtx = (spec: WorldSpec, area: Area, rng: () => number, theme: EnvTheme): LayoutCtx => ({
   spec, area, areaIndex: spec.areas.findIndex((a) => a.id === area.id), mech: mechanicsForArea(spec, area.id), rng, theme,

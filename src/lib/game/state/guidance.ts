@@ -7,7 +7,7 @@
  */
 import type { PublicSpec } from "../spec/public";
 import type { WorldModel } from "../world/types";
-import { missionUnlocked, objectiveProgress, stationActive, type ClientState } from "./progress";
+import { bossProgress, findBoss, missionUnlocked, objectiveProgress, stationActive, type ClientState } from "./progress";
 
 export type GuideKind = "npc" | "station" | "lore" | "collectible" | "portal";
 
@@ -71,6 +71,15 @@ export function guideTargets(spec: PublicSpec, client: ClientState, world: World
           const s = world.stations.find((x) => x.stationId === id);
           if (s && !client.visited.includes(id)) out.push({ kind: "lore", id, label: s.label, x: s.x, y: s.y, z: s.z, missionId: mission.id });
         }
+        break;
+      }
+      case "defeat": {
+        // The next phase of the battle (phases open one after another).
+        const boss = findBoss(spec as never, o.bossId);
+        if (!boss) break;
+        const next = bossProgress(boss, client).nextPhase;
+        const s = next >= 0 ? world.stations.find((x) => x.stationId === boss.phaseStationIds[next]) : undefined;
+        if (s) out.push({ kind: "station", id: s.stationId, label: s.label, x: s.x, y: s.y, z: s.z, missionId: mission.id });
         break;
       }
       case "collect": {

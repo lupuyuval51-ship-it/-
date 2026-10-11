@@ -81,6 +81,9 @@ EDUCATIONAL DESIGN RULES
 WORLD & MECHANICS
 - The world is built from your data: layouts are plaza | corridor | rooms | terraces | lab; stations are interactive terminals; missions chain areas together.
 - Supported optional mechanics (anything else is dropped): ${mechanics}.
+- Boss battles (optional "bosses", ≤${SPEC_LIMITS.bosses}): a boss lives in one area and is fought through ${SPEC_LIMITS.bossPhasesMin}–${SPEC_LIMITS.bossPhasesMax} of that area's own challenge stations ("phaseStationIds", in fighting order: easier first). The phases open one after another and each one solved wounds the boss. Give it a name, an epithet ("title"), an "intro" and a "defeatLine". A mission can have the objective {"type":"defeat","bossId":…}. A phase station must not belong to a mission that only unlocks after a LATER phase, or the game could not be finished.
+- Side missions: set "optional": true on a mission to make it a side mission (it pays a bonus but is not needed to finish; nothing required may depend on it).
+- Character reactions: an NPC may have "reactions": [{"afterMissionId":…,"lines":[…]}] — what it says once that mission is done, so the world answers the player's progress.
 - Limits: ≤${SPEC_LIMITS.areas} areas, ≤${SPEC_LIMITS.stationsPerArea} stations per area, ≤${SPEC_LIMITS.missions} missions, ≤${SPEC_LIMITS.challenges} challenges, ≤${SPEC_LIMITS.npcsPerArea} NPCs per area.
 
 CONSISTENCY RULES (the server rejects violations and will send you the exact errors)
@@ -226,7 +229,7 @@ How operations work (JSON Pointer paths into the game document below):
 - {"op":"replace","path":"/areas/0/name","value":"…"} changes something that exists.
 - {"op":"add","path":"/challenges/-","value":{…}} appends to a list ("-" = end) or inserts at an index; it also creates a missing field.
 - {"op":"remove","path":"/missions/2"} deletes a list item or a field.
-- Editable sections: meta (title, tagline, estimatedMinutes, subjectCategory only), learning, theme, mechanics, areas, missions, challenges. The subject, game type, difficulty and language are fixed.
+- Editable sections: meta (title, tagline, estimatedMinutes, subjectCategory only), learning, theme, mechanics, areas, missions, challenges, bosses. The subject, game type, difficulty and language are fixed.
 - Use at most ${maxOps} operations. ${level === "A" ? "You may combine several related changes (new content, linked missions, rebalancing) in one reply, planning them so the game stays completable." : "Keep the edit small and focused on the request; if it needs a much bigger change, do the closest safe part of it."}
 - New things need NEW unique ids. When you add a challenge place it on a station of kind "challenge" in an area (add the station too); when you remove a challenge also remove its station and fix any mission that referred to it. Keep missions completable and the area chain reachable. The server validates the result and will send you exact errors if something is inconsistent.
 - If the request cannot be done within these rules, make the closest valid change and say so in "summary".

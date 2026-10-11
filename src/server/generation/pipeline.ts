@@ -1,6 +1,7 @@
 import "server-only";
 import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
 import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
+import { addFinalBoss } from "@/lib/game/spec/boss";
 import { challengesPayloadSchema, checkAgainstPlan, validateBlueprint, type Blueprint } from "@/lib/game/spec/blueprint";
 import type { ContentLanguage, GameType } from "@/lib/game/spec/constants";
 import { mergeExtension } from "@/lib/game/spec/extension";
@@ -185,7 +186,8 @@ async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], co
       return res.ok ? { ok: true, value: { spec: res.spec, warnings: res.warnings } } : { ok: false, errors: res.errors };
     },
   }, totals, counters);
-  return { spec: content.value.spec, warnings: [...bp.value.warnings, ...content.warnings, ...content.value.warnings] };
+  const boss = addFinalBoss(content.value.spec);
+  return { spec: boss.spec, warnings: [...bp.value.warnings, ...content.warnings, ...content.value.warnings, ...(boss.added ? boss.notes : [])] };
 }
 
 async function runExtend(input: PipelineInput, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ spec: GameSpec; warnings: string[] }> {
@@ -235,7 +237,9 @@ async function runStudyEngine(input: PipelineInput): Promise<PipelineOutput> {
     await input.onStage("validate");
     const res = validateGameSpec(applyRequest(built.raw, req, { language: (built.raw.meta as { language: string }).language }), { alignGameType: req.gameType });
     if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The game built from your material could not be validated. You were not charged.", res.errors.join("; "));
-    return { spec: res.spec, warnings: [...built.notes, ...res.warnings], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
+    // The study engine builds a Full Adventure out of the learner's own material: it ends with a quiz boss.
+    const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+    return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
   } catch (e) {
     if (e instanceof MaterialError) throw new PipelineError("MATERIAL_UNUSABLE", `${e.userMessage(lang)} You were not charged.`, e.message);
     throw e;
@@ -271,7 +275,8 @@ async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
   const lang = (built.raw.meta as { language: string }).language;
   const res = validateGameSpec(applyRequest(built.raw, req, { language: lang }), { alignGameType: req.gameType });
   if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The demo template could not be validated.", res.errors.join("; "));
-  return { spec: res.spec, warnings: [...built.notes, ...res.warnings], attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId: built.templateId };
+  const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+  return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId: built.templateId };
 }
 
 // ───────────────────────────── entry point ─────────────────────────────

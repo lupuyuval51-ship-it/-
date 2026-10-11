@@ -9,8 +9,8 @@ import { Badge, Button, ProgressBar, Stars, cx } from "@/components/ui";
 import type { RenderProfile } from "@/config/graphics";
 import type { Interactable } from "@/lib/game/engine/runtime";
 import type { PublicSpec } from "@/lib/game/spec/public";
-import type { Npc } from "@/lib/game/spec/schema";
-import { missionUnlocked, objectiveProgress, type ClientState, type LearningSummary } from "@/lib/game/state/progress";
+import type { Boss, Npc } from "@/lib/game/spec/schema";
+import { bossProgress, missionUnlocked, objectiveProgress, type ClientState, type LearningSummary } from "@/lib/game/state/progress";
 import { stickTravel, stickVector, TOUCH_METRICS } from "@/lib/layout";
 import type { InputState } from "../input";
 import { interactablePrompt } from "@/lib/game/a11y/scene";
@@ -137,6 +137,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
             </Badge>
           )}
+          <BossHealth spec={spec} client={client} />
           {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
         </div>
         <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
@@ -149,7 +150,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               <ProgressBar value={client.missionsDone.length} max={spec.missions.length} label={t("hud.missions")} />
               {shown.map((m) => (
                 <div key={m.id} className="space-y-1">
-                  <p dir="auto" className="text-sm font-semibold">{m.title}</p>
+                  <p dir="auto" className="text-sm font-semibold">{m.title}{m.optional && <Badge tone="violet" className="ms-2 align-middle" data-testid="side-mission">{t("mission.side")}</Badge>}</p>
                   <ul className="space-y-0.5 text-xs">
                     {m.objectives.map((o, i) => {
                       const p = objectiveProgress(spec, client, m, i);
@@ -239,6 +240,59 @@ export function TouchControls({ input, onInteract, hasJump }: { input: InputStat
           {hasJump && <button type="button" className={cx("grid place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30", m.action)} onClick={() => input.queueJump()}>{t("touch.jump")}</button>}
           <button type="button" className={cx("grid place-items-center rounded-full border border-neon/60 bg-neon/20 font-semibold backdrop-blur active:bg-neon/40", m.action)} onClick={onInteract} data-testid="touch-interact">{t("touch.interact")}</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ───────────────────────── boss ─────────────────────────
+
+/** Health bar of the boss being fought in the current area (visible once the battle has started). */
+function BossHealth({ spec, client }: { spec: PublicSpec; client: ClientState }) {
+  const t = useT();
+  const boss = (spec.bosses ?? []).find((b) => b.areaId === client.areaId && (() => { const p = bossProgress(b, client); return p.done > 0 && !p.defeated; })());
+  if (!boss) return null;
+  const p = bossProgress(boss, client);
+  const left = p.total - p.done;
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-rose/50 bg-ink-900/85 px-3 py-1 text-xs backdrop-blur" data-testid="boss-health" data-left={left} data-total={p.total} role="img" aria-label={`${boss.name}: ${t("boss.health")} ${left}/${p.total}`}>
+      <span dir="auto" className="max-w-[9rem] truncate font-semibold text-rose">{boss.name}</span>
+      <span aria-hidden className="flex gap-0.5">{Array.from({ length: p.total }, (_, i) => <span key={i} className={cx("h-2 w-4 rounded-sm", i < left ? "bg-rose" : "bg-ink-600")} />)}</span>
+    </div>
+  );
+}
+
+/** What a boss says when the player walks up: who it is, how the battle goes and where the next round is. */
+export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; client: ClientState; stationLabel: (stationId: string) => string; onClose: () => void }) {
+  const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  useDialogFocus(box);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", "KeyE", "Space"].includes(e.code)) { e.preventDefault(); onClose(); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  const p = bossProgress(boss, client);
+  return (
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+      <div ref={box} role="dialog" aria-modal="true" aria-label={boss.name} data-testid="boss-card" className="lu-pop max-h-full w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl border border-rose/60 bg-ink-800 p-5 shadow-e3">
+        <div className="flex items-center gap-3">
+          <span aria-hidden className="grid size-11 place-items-center rounded-full" style={{ background: boss.look.color + "33", border: `2px solid ${boss.look.color}`, color: boss.look.color }}><NpcIcon shape={boss.look.shape} className="size-6" /></span>
+          <div>
+            <h2 dir="auto" className="text-lg font-bold" style={{ color: boss.look.color }}>{boss.name}</h2>
+            <p dir="auto" className="text-xs text-muted">{boss.title}</p>
+          </div>
+        </div>
+        <p dir="auto" className="leading-relaxed">{p.defeated ? boss.defeatLine : boss.intro}</p>
+        <div className="space-y-1.5 rounded-xl bg-ink-900 p-3 text-sm" data-testid="boss-progress" data-done={p.done} data-total={p.total}>
+          <p className="flex items-center justify-between gap-2 font-semibold">
+            <span>{t("boss.health")}</span>
+            <span className="text-xs text-muted">{p.defeated ? t("boss.defeated") : t("boss.round", { n: p.done + 1, total: p.total })}</span>
+          </p>
+          <div aria-hidden className="flex gap-1">{boss.phaseStationIds.map((id, i) => <span key={id} className={cx("h-2.5 flex-1 rounded-sm", i < p.total - p.done ? "bg-rose" : "bg-ink-600")} />)}</div>
+          {!p.defeated && <p dir="auto" className="text-muted">{t("boss.next", { n: p.nextPhase + 1 })} <span className="text-text">({stationLabel(boss.phaseStationIds[p.nextPhase]!)})</span></p>}
+        </div>
+        <div className="flex justify-end"><Button onClick={onClose} data-testid="boss-close">{t("boss.close")}</Button></div>
       </div>
     </div>
   );

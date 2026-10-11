@@ -162,6 +162,13 @@ POST /api/generations  →  reserve credit  →  background job  →  provider (
   a failed, rejected or timed-out edit releases it and changes nothing. Only AI-made games can be edited by the robot (demo/engine games are never
   passed off as AI output). `GET /api/games/[id]/revisions` and `POST …/revisions/[n]/restore` list and restore versions; a restore is never
   destructive (the old content becomes a new latest version).
+* **Boss battles, side missions, characters that react:** a spec may contain `bosses` — a boss is fought through 2–5 of its area's own challenge
+  stations ("phases"), which open one after another; every phase solved wounds it (a health bar in the scene and the HUD), the last one defeats it
+  (+150 points, `boss_slayer`). There is no extra grading path: each phase is an ordinary server-graded challenge. A mission can have the objective
+  `defeat`; `optional: true` makes a side mission that pays its bonus but never blocks finishing (portals do not wait for it); an NPC's `reactions`
+  change what it says once a mission is done. The validator plays the game with the real rules to prove a boss cannot make it unfinishable. Full
+  Adventures built without a model (demo templates, the study engine, the offline app) end with a quiz boss made of the area's quickest questions
+  (`src/lib/game/spec/boss.ts`); AI games may design their own, and the edit robot can add or change bosses.
 * **Honest labelling:** every game stores `generatorKind` (`ai` | `demo`), provider and model; the library, details page and play screen show it.
   When no demo template matches a subject the game says so instead of pretending to be about it.
 

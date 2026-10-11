@@ -107,6 +107,7 @@ export interface PlayEventResponse {
   data: Record<string, unknown>;
   state: ClientState;
   newlyCompletedMissions: string[];
+  newlyDefeatedBosses: string[];
   newAchievements: string[];
   completed: boolean;
   summary?: LearningSummary;
@@ -124,7 +125,7 @@ export async function applyPlayEvent(userId: string, sessionId: string, event: G
     const state = session.state as unknown as PlayState;
 
     if (session.status === "COMPLETED") {
-      if (event.type === "finish") return { data: {}, state: toClientState(state), newlyCompletedMissions: [], newAchievements: [], completed: true, summary: summarize(spec, state, session.finishedAt?.getTime() ?? now.getTime()) };
+      if (event.type === "finish") return { data: {}, state: toClientState(state), newlyCompletedMissions: [], newlyDefeatedBosses: [], newAchievements: [], completed: true, summary: summarize(spec, state, session.finishedAt?.getTime() ?? now.getTime()) };
       throw Errors.conflict("SESSION_COMPLETED", "This game session is already finished.");
     }
     if (session.status !== "ACTIVE") throw Errors.conflict("SESSION_ENDED", "This game session has ended. Start a new one.");
@@ -149,7 +150,7 @@ export async function applyPlayEvent(userId: string, sessionId: string, event: G
       await completeSession(tx, session, next, summary, now);
     }
     return {
-      data: result.data, state: result.client, newlyCompletedMissions: result.newlyCompletedMissions, newAchievements: result.newAchievements,
+      data: result.data, state: result.client, newlyCompletedMissions: result.newlyCompletedMissions, newlyDefeatedBosses: result.newlyDefeatedBosses, newAchievements: result.newAchievements,
       completed: next.finished, summary,
     };
   });

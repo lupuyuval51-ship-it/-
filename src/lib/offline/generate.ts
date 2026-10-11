@@ -4,6 +4,7 @@
  */
 import { buildDemoSpec } from "../game/demo";
 import { MaterialError, buildMaterialSpec } from "../game/material/build";
+import { addFinalBoss } from "../game/spec/boss";
 import type { GameSpec } from "../game/spec/schema";
 import { normalizeRawSpec, validateGameSpec } from "../game/spec/validate";
 import { generationRequestSchema, type GenerationRequest } from "../schemas/generation";
@@ -51,11 +52,13 @@ export function generateOffline(input: unknown, now = new Date()): { spec: GameS
   const language = (raw.meta as { language: string }).language;
   const res = validateGameSpec(applyRequest(raw, req, language), { alignGameType: req.gameType });
   if (!res.ok) throw new OfflineGenerationError("INVALID_OUTPUT", res.errors.join("; "));
-  const spec = res.spec;
+  // A Full Adventure ends with a quiz boss (same rule as the server pipeline); anything that cannot take one stays as it was.
+  const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+  const spec = boss.spec;
   spec.meta.generator = engine
     ? { kind: "engine", provider: "study-engine", model: "rule-based", mode: req.mode, generatedAt: now.toISOString() }
     : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
-  return { spec, warnings: [...notes, ...res.warnings] };
+  return { spec, warnings: [...notes, ...res.warnings, ...(boss.added ? boss.notes : [])] };
 }
 
 export type OfflineStage = "reading" | "building" | "checking" | "saving";
