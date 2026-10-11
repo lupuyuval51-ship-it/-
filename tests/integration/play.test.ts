@@ -150,8 +150,9 @@ describe("play sessions", () => {
     let completed = false;
     for (let guard = 0; guard < 30 && !completed; guard++) {
       const area = findArea(spec, state.areaId)!;
-      for (const n of area.npcs) state = (await send(u, data.sessionId, { type: "talk", npcId: n.id })).body.state;
-      for (const id of collectibleIds(area)) state = (await send(u, data.sessionId, { type: "collect", itemId: id })).body.state;
+      // A later pass (battle rounds open one after another) may repeat requests the server already accepted: keep the last good state.
+      for (const n of area.npcs) state = (await send(u, data.sessionId, { type: "talk", npcId: n.id })).body.state ?? state;
+      for (const id of collectibleIds(area)) state = (await send(u, data.sessionId, { type: "collect", itemId: id })).body.state ?? state;
       for (const s of area.stations) {
         if (!stationActive(spec, state, s) || state.resolvedStations[s.id] || state.visited.includes(s.id)) continue;
         if (s.kind === "lore") { state = (await send(u, data.sessionId, { type: "visit", stationId: s.id })).body.state; continue; }

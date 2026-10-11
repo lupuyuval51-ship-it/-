@@ -23,6 +23,46 @@ export type CurrencyCode = "USD" | "ILS";
  */
 export type AllowancePeriodRule = { kind: "calendar_month_utc" } | { kind: "billing_period" };
 
+// ───────────────────────────── game feature tiers ─────────────────────────────
+
+/**
+ * What a game can contain. Every game is built at one FEATURE TIER (C, B or A) decided by the server from the plan
+ * that paid for it: C exposes 40 % of these features, B 70 %, A all of them (the shares are computed below, so the
+ * lists cannot drift from the promise). A feature that is not in the tier is never generated, never kept when a
+ * model or an edit adds it, and a request for it is refused with the plan that unlocks it.
+ */
+export const GAME_FEATURES = [
+  // what kind of world (4)
+  "type:exploration", "type:puzzle", "type:platformer", "type:simulation",
+  // what the player is asked (6)
+  "challenge:choice", "challenge:numeric", "challenge:sequence", "challenge:match", "challenge:program", "challenge:simulation",
+  // what the game does (10)
+  "system:collect", "system:dialogue", "system:checkpoints", "system:hazards", "system:timed_bonus", "system:adaptive_difficulty",
+  "system:side_missions", "system:boss", "system:reactions", "system:multi_area",
+] as const;
+export type GameFeature = (typeof GAME_FEATURES)[number];
+
+/** Feature tiers use the same letters as the graphics tiers but are a separate setting: A is the fullest, C the most basic. */
+export type FeatureTier = "A" | "B" | "C";
+export const FEATURE_TIERS: readonly FeatureTier[] = ["C", "B", "A"];
+
+const TIER_C: readonly GameFeature[] = ["type:exploration", "type:puzzle", "challenge:choice", "challenge:numeric", "challenge:sequence", "system:collect", "system:dialogue", "system:checkpoints"];
+const TIER_B: readonly GameFeature[] = [...TIER_C, "type:platformer", "challenge:match", "system:hazards", "system:timed_bonus", "system:side_missions", "system:multi_area"];
+
+export const TIER_FEATURES: Readonly<Record<FeatureTier, readonly GameFeature[]>> = Object.freeze({ C: TIER_C, B: TIER_B, A: GAME_FEATURES });
+
+/** Areas a game of each tier may have (a single area unless the tier has multi-area adventures). */
+export const TIER_MAX_AREAS: Readonly<Record<FeatureTier, number>> = Object.freeze({ C: 1, B: 2, A: 4 });
+
+export const tierHas = (tier: FeatureTier, feature: GameFeature): boolean => TIER_FEATURES[tier].includes(feature);
+/** Whole-number percentage of all game features a tier exposes (C 40, B 70, A 100). */
+export const featureShare = (tier: FeatureTier): number => Math.round((TIER_FEATURES[tier].length / GAME_FEATURES.length) * 100);
+/** The cheapest plan whose tier has the feature (for "available on Plus" messages). */
+export function planUnlocking(feature: GameFeature): PlanId {
+  const tier = FEATURE_TIERS.find((t) => tierHas(t, feature)) ?? "A";
+  return (Object.values(PLANS).find((p) => p.featureTier === tier) ?? PLANS.PRO).id;
+}
+
 /** Level of the personal AI robot that edits games from natural-language instructions. */
 export const ROBOT_LEVELS = ["none", "B", "A"] as const;
 export type RobotLevel = (typeof ROBOT_LEVELS)[number];
@@ -52,6 +92,8 @@ export interface PlanDefinition {
    */
   monthlyPrices: Readonly<Partial<Record<CurrencyCode, number>>>;
   gamesPerPeriod: number;
+  /** The feature tier of every game this plan creates. */
+  featureTier: FeatureTier;
   allowancePeriod: AllowancePeriodRule;
   graphics: { allowedTiers: readonly GraphicsTier[]; defaultTier: GraphicsTier };
   features: PlanFeatures;
@@ -73,8 +115,9 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     id: "FREE",
     rank: 0,
     monthlyPrices: { USD: 0, ILS: 0 },
-    gamesPerPeriod: 1,
-    // FREE ALLOWANCE PERIOD: one generated game per calendar month (UTC). Unused games do not roll over.
+    gamesPerPeriod: 2,
+    featureTier: "C",
+    // FREE ALLOWANCE PERIOD: two generated games per calendar month (UTC). Unused games do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
     features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3 },
@@ -85,6 +128,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     // $10/month internationally; exactly ₪30/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 1000, ILS: 3000 },
     gamesPerPeriod: 1,
+    featureTier: "B",
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20 },
@@ -95,6 +139,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     // $40/month. No shekel price is invented for PRO: Israeli users are shown (and charged) USD.
     monthlyPrices: { USD: 4000 },
     gamesPerPeriod: 5,
+    featureTier: "A",
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100 },

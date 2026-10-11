@@ -9,6 +9,7 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 - Plan features and quotas (AI robot level, AI edits per period, version history) are in `src/config/plans.ts` (`features`) and enforced only on the server
   (`src/server/games/ai-edit.ts`, `versions.ts`). An AI edit reserves a quota slot (`AiEdit` PENDING) and commits it with the new version in one transaction;
   a failed edit never costs anything. The model edits a game only through the allow-listed operations in `src/lib/game/spec/edit.ts` and the result must pass `validateGameSpec`.
+- Every game has a **feature tier** (C = 40 %, B = 70 %, A = 100 % of `GAME_FEATURES`) fixed by the server from the plan (`PLANS[plan].featureTier`, Free = C, up to 2 games). It is enforced on the saved game by `clampToFeatureTier` and on requests by `assertRequestAllowed` — never in the UI. Integration suites run at tier A through `setFeatureTierForTests` (`tests/integration/setup.ts`); `feature-tier.test.ts` uses the real tiers.
 - Boss battles are made of ordinary challenge stations (no separate grading): phases open in order, the validator plays the game with the real progress rules
   (`crossCheck` in `src/lib/game/spec/validate.ts`), and `PlayState.bossesDefeated` may be missing in older saves (always `?? []`).
 - Plus and Pro have the **same** Tier A graphics; Free gets Tier B/C. The tier is resolved on the server from the persisted plan, never taken from the client.

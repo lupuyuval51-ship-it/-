@@ -5,6 +5,7 @@ import { POST as logout } from "@/app/api/auth/logout/route";
 import { GET as allowance } from "@/app/api/allowance/route";
 import { disconnectDb } from "@/server/db";
 import { cookieFrom, createTestUser, makeRequest, readJson, uniqueEmail } from "./helpers";
+import { PLANS } from "@/config/plans";
 
 afterAll(disconnectDb);
 
@@ -19,7 +20,7 @@ describe("authentication & protected API", () => {
     const me = await allowance(makeRequest("GET", "/api/allowance", { cookie: cookieFrom(res) }));
     expect(me.status).toBe(200);
     const body = await readJson<{ plan: string; remaining: number; limit: number }>(me);
-    expect(body).toMatchObject({ plan: "FREE", limit: 1, remaining: 1 });
+    expect(body).toMatchObject({ plan: "FREE", limit: PLANS.FREE.gamesPerPeriod, remaining: PLANS.FREE.gamesPerPeriod });
   });
 
   it("rejects unauthenticated access with 401 and a garbage/forged cookie too", async () => {

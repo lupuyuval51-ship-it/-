@@ -9,12 +9,14 @@ import { failJob, reapExpiredJobs, startGenerationJob, succeedJob } from "@/serv
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { ApiError } from "@/server/http/errors";
 import { createTestUser, grantSubscription } from "./helpers";
+import { PLANS } from "@/config/plans";
 
 afterAll(disconnectDb);
 
 const request: GenerationRequest = {
   mode: "FAST", subject: "Python loops", learningGoal: "Understand for loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en",
 };
+const FREE_GAMES = PLANS.FREE.gamesPerPeriod;
 const key = () => `k-${randomUUID()}`;
 const deadlineMs = 60_000;
 
@@ -37,21 +39,25 @@ async function code(p: Promise<unknown>): Promise<string> {
 }
 
 describe("allowance: FREE", () => {
-  it("allows exactly one delivered game per calendar month, then refuses", async () => {
+  it("allows exactly the plan's delivered games per calendar month, then refuses", async () => {
     const u = await createTestUser();
-    const { job } = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
-    expect((await getAllowanceSummary(u.id)).reserved).toBe(1);
-    expect(await deliverGame(job.id, u.id)).toBe(true);
+    for (let i = 0; i < FREE_GAMES; i++) {
+      const { job } = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+      expect((await getAllowanceSummary(u.id)).reserved).toBe(1);
+      expect(await deliverGame(job.id, u.id)).toBe(true);
+    }
     const s = await getAllowanceSummary(u.id);
-    expect(s).toMatchObject({ plan: "FREE", limit: 1, used: 1, reserved: 0, remaining: 0 });
+    expect(s).toMatchObject({ plan: "FREE", limit: FREE_GAMES, used: FREE_GAMES, reserved: 0, remaining: 0 });
     expect(await code(startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs }))).toBe("ALLOWANCE_EXHAUSTED");
   });
 
   it("resets in the next calendar month (period follows the clock, not the client)", async () => {
     const u = await createTestUser();
     const jan = new Date("2027-01-15T12:00:00Z");
-    const first = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs, now: jan });
-    await deliverGame(first.job.id, u.id);
+    for (let i = 0; i < FREE_GAMES; i++) {
+      const g = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs, now: jan });
+      await deliverGame(g.job.id, u.id);
+    }
     expect(await code(startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs, now: new Date("2027-01-31T23:59:59Z") }))).toBe("ALLOWANCE_EXHAUSTED");
     const feb = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs, now: new Date("2027-02-01T00:00:00Z") });
     expect(feb.created).toBe(true);
@@ -61,7 +67,7 @@ describe("allowance: FREE", () => {
     const u = await createTestUser();
     const { job } = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
     expect(await failJob(job.id, "PROVIDER_ERROR", "The AI provider is unavailable.")).toBe(true);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: 1 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: FREE_GAMES });
     const retry = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
     expect(retry.created).toBe(true);
   });
@@ -169,7 +175,7 @@ describe("duplicate requests and concurrency", () => {
     expect([delivered, failed].filter(Boolean)).toHaveLength(1);
     const s = await getAllowanceSummary(u.id);
     expect(s.reserved).toBe(0);
-    expect(s.used + s.remaining).toBe(1);
+    expect(s.used + s.remaining).toBe(FREE_GAMES);
     const records = await db.usageRecord.findMany({ where: { jobId: job.id } });
     expect(records.filter((r) => r.kind !== "RESERVE")).toHaveLength(1);
   });
@@ -180,7 +186,7 @@ describe("duplicate requests and concurrency", () => {
     expect(await reapExpiredJobs(new Date(Date.now() + 5000), u.id)).toBe(1);
     const after = await db.generationJob.findUniqueOrThrow({ where: { id: job.id } });
     expect(after).toMatchObject({ status: "FAILED", errorCode: "TIMEOUT" });
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ remaining: 1, reserved: 0, used: 0 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ remaining: FREE_GAMES, reserved: 0, used: 0 });
   });
 
   it("a late worker cannot deliver after its job was reaped (no orphan game, no charge)", async () => {

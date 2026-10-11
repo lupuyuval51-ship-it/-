@@ -11,7 +11,7 @@ const mid = new Date("2026-03-20T00:00:00Z");
 describe("entitlement resolution", () => {
   it("no subscription → FREE with the UTC calendar month as period", () => {
     const e = computeEntitlement(null, mid);
-    expect(e).toMatchObject({ plan: "FREE", source: "FREE", limit: 1 });
+    expect(e).toMatchObject({ plan: "FREE", source: "FREE", limit: 2 });
     expect(e.periodStart.toISOString()).toBe("2026-03-01T00:00:00.000Z");
     expect(e.periodEnd.toISOString()).toBe("2026-04-01T00:00:00.000Z");
   });

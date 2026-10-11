@@ -275,6 +275,8 @@ export const gameSpecSchema = z.object({
     estimatedMinutes: z.number().int().min(2).max(120),
     /** Assigned by the server after validation; anything a model puts here is overwritten. */
     generator: generatorInfoSchema.optional(),
+    /** Assigned by the server from the plan that paid for the game (C = basic, B = more, A = everything). */
+    featureTier: z.enum(["A", "B", "C"]).optional(),
   }),
   learning: z.object({
     goal: text(320),

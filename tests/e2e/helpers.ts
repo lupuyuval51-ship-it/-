@@ -22,7 +22,7 @@ export async function registerViaApi(page: Page, opts: { locale?: "he" | "en"; c
 }
 
 export async function createGameViaApi(page: Page, over: Record<string, unknown> = {}): Promise<string> {
-  const request = { mode: "FAST", subject: "Python loops", learningGoal: "Understand variables and loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over };
+  const request = { mode: "FAST", subject: "Python loops", learningGoal: "Understand variables and loops", difficulty: "beginner", gameType: "exploration", contentLanguage: "en", ...over }; // exploration: a game type every plan (the Free plan included) can build
   const created = await apiPost<{ jobId: string }>(page, "/api/generations", { idempotencyKey: `e2e-${randomUUID()}`, request });
   expect([200, 202]).toContain(created.status);
   for (let i = 0; i < 100; i++) {

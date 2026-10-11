@@ -46,7 +46,10 @@ export function normalizeRawSpec(raw: unknown): { value: unknown; notes: string[
   const spec = sanitizeDeep(raw);
   if (!isObj(spec)) return { value: spec, notes };
 
-  if (isObj(spec.meta)) delete spec.meta.generator; // always assigned by the server
+  if (isObj(spec.meta)) {
+    delete spec.meta.generator; // always assigned by the server
+    delete spec.meta.featureTier; // so is the tier the game was built at
+  }
 
   const cap = (o: Obj, key: string, max: number, label: string) => {
     const list = o[key];

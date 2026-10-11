@@ -58,6 +58,7 @@ export async function getGameDetails(userId: string, gameId: string) {
     game: {
       id: game.id, title: game.title, subject: game.subject, gameType: game.gameType, difficulty: game.difficulty, language: game.language, createdVia: game.createdVia,
       generator: { kind: game.generatorKind, provider: game.generatorProvider, model: game.generatorModel }, revision: game.revision, createdAt: game.createdAt, updatedAt: game.updatedAt,
+      featureTier: spec.meta.featureTier ?? null,
     },
     overview: {
       tagline: spec.meta.tagline, estimatedMinutes: spec.meta.estimatedMinutes, environment: spec.theme.environment, timeOfDay: spec.theme.timeOfDay,

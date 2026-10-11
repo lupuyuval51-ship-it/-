@@ -1,6 +1,7 @@
 import "server-only";
 import type { GenerationJob, Prisma } from "@/generated/prisma/client";
 import { generationRequestSchema, type GenerationRequest } from "@/lib/schemas/generation";
+import { clampToFeatureTier, maxTier } from "@/lib/game/spec/tier";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { ProviderError } from "../ai/errors";
 import { getBackend } from "../ai/registry";
@@ -97,13 +98,21 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
     const engine = backend.type === "templates" && (request.mode === "EXTEND" ? base?.spec.meta.generator?.kind === "engine" : Boolean(request.material));
     await updateJobProgress(jobId, engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
 
+    // Games saved before tiers existed count as tier A (they keep everything they have).
+    const tier = request.mode === "EXTEND" && base ? maxTier(job.featureTier, base.spec.meta.featureTier ?? "A") : job.featureTier;
     const out = await runPipeline({
-      backend, request, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
+      backend, request, tier, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
       onStage: (stage) => updateJobProgress(jobId, { stage }),
     });
 
     await updateJobProgress(jobId, { stage: "save", attempts: out.attempts, warnings: out.warnings.slice(0, 20) });
-    const spec = specWithGenerator(out, backend, request.mode, base);
+    const built = specWithGenerator(out, backend, request.mode, base);
+    // The plan's feature tier is enforced on the saved game itself. Extending keeps what the game already had (it was
+    // built at its own tier); only a lower plan's NEW content would be a problem, and a lower plan cannot extend at all.
+    const clamped = clampToFeatureTier(built, tier);
+    if (!clamped.ok) throw new PipelineError("TIER_BUILD_FAILED", "We could not build this game within your plan's features. You were not charged — try a different topic or game type.", clamped.errors.join(" | ").slice(0, 600));
+    const spec = clamped.spec;
+    if (clamped.notes.length) await updateJobProgress(jobId, { warnings: [...out.warnings, ...clamped.notes].slice(0, 20) });
     const delivered = await succeedJob(jobId, (tx, j) => deliver(tx, j, spec, request, base));
     if (!delivered) console.warn(`[generation] job ${jobId} was already settled (timed out?); result discarded, no charge`);
   } catch (err) {

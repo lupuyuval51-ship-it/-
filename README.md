@@ -97,7 +97,7 @@ from there — the UI never hard-codes them and nothing is gated by price in the
 
 | Plan | Price | Generated games | Period | Graphics |
 | --- | --- | --- | --- | --- |
-| **Free** | $0 | **1** | each UTC calendar month | Tier B / C |
+| **Free** | $0 | **2** | each UTC calendar month | Tier B / C |
 | **Plus** | **$10 / month**, or exactly **₪30 / month** for accounts whose region is Israel | **1** | the subscription's billing period | Tier A (also B / C) |
 | **Pro** | **$40 / month** (USD everywhere; no shekel price is invented) | **5** | the subscription's billing period | Tier A — **identical** to Plus |
 
@@ -111,6 +111,23 @@ Allowance rules, all enforced in the database rather than in UI code:
 * Upgrading keeps credits already used in the period; unused credits do not roll over.
 * Entitlement exists only while a subscription is `ACTIVE`/`TRIALING` (48 h grace after the period end for webhook delay).
   A failed payment, cancellation (at period end), unpaid state, or a **fully refunded invoice** (for that period only) falls back to Free.
+
+**Game feature tiers** (separate from the graphics tiers, same letters): every game is built at the feature tier of the plan that paid for it —
+**Free = C (40 % of the game features), Plus = B (70 %), Pro = A (100 %)**. The 20 features (`GAME_FEATURES` in `plans.ts`) are 4 game types, 6 question
+types and 10 systems; the shares are computed from the lists, so they cannot drift from the promise (a unit test pins 40 / 70 / 100).
+
+| | C (Free) | B (Plus) adds | A (Pro) adds |
+| --- | --- | --- | --- |
+| Game types | exploration, puzzle | platformer, multi-area adventures (≤ 2 areas) | simulation labs (adventures up to 4 areas) |
+| Questions | choice, numbers, ordering | matching pairs | robot-program puzzles, physics simulations |
+| Systems | collectibles, characters, checkpoints | hazards, timed bonus, side missions | adaptive difficulty, boss battles, characters that react |
+
+Enforcement is on the server and on the saved game, never in the UI: a request for a feature outside the tier is refused with `403 FEATURE_TIER_LOCKED`
+(naming the plan that unlocks it) before anything is reserved; the tier is stored on the generation job when it starts; the delivered game is run
+through `clampToFeatureTier` (`src/lib/game/spec/tier.ts`), which removes what the tier does not have and repairs everything that pointed at it
+(stations, missions, requirements, portals, boss phases) and re-validates — so a model, a template or an edit cannot smuggle features in; the model is
+also told its tier so it does not waste its answer. Extending a game never strips what it already has (a game keeps the fuller of its own tier and the
+plan's), and games from before tiers count as A. The offline Android app is not tiered (no plans there yet).
 
 **Plan features and quotas** live next to the prices in `plans.ts` (`features`): the personal AI robot level (`none` / B / A), AI edits per
 period, and whether saved versions can be listed and restored. They are read by the server only; the UI just shows what the server reports and

@@ -1,10 +1,14 @@
 import "server-only";
-import { PLANS, type PlanFeatures, type PlanId, type RobotLevel } from "@/config/plans";
+import { PLANS, featureShare, type FeatureTier, type PlanFeatures, type PlanId, type RobotLevel } from "@/config/plans";
 import { resolveEntitlement, type Entitlement } from "../allowance/entitlement";
 import { db, type Tx } from "../db";
+import { featureTierForPlan } from "./feature-tier";
 
 export interface Capabilities {
   plan: PlanId;
+  /** The feature tier games created on this plan are built at, and the share of all game features it exposes. */
+  featureTier: FeatureTier;
+  featureShare: number;
   robot: RobotLevel;
   versionHistory: boolean;
   aiEdits: { limit: number; used: number; remaining: number; periodEnd: string };
@@ -17,6 +21,6 @@ export async function getCapabilities(userId: string, now = new Date(), client: 
   const used = await client.aiEdit.count({ where: { userId, periodStart: ent.periodStart, status: { in: ["PENDING", "SUCCEEDED"] } } });
   return {
     ent, features,
-    caps: { plan: ent.plan, robot: features.robot, versionHistory: features.versionHistory, aiEdits: { limit: features.aiEditsPerPeriod, used, remaining: Math.max(0, features.aiEditsPerPeriod - used), periodEnd: ent.periodEnd.toISOString() } },
+    caps: { plan: ent.plan, featureTier: featureTierForPlan(ent.plan), featureShare: featureShare(featureTierForPlan(ent.plan)), robot: features.robot, versionHistory: features.versionHistory, aiEdits: { limit: features.aiEditsPerPeriod, used, remaining: Math.max(0, features.aiEditsPerPeriod - used), periodEnd: ent.periodEnd.toISOString() } },
   };
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
 import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
+import { tierHas, type FeatureTier } from "@/config/plans";
 import { addFinalBoss } from "@/lib/game/spec/boss";
 import { challengesPayloadSchema, checkAgainstPlan, validateBlueprint, type Blueprint } from "@/lib/game/spec/blueprint";
 import type { ContentLanguage, GameType } from "@/lib/game/spec/constants";
@@ -13,7 +14,7 @@ import { extractJson } from "../ai/json";
 import { blueprintPrompt, challengesPrompt, extensionPrompt, fastPrompt, repairPrompt, summarizeGame, systemPrompt, type PromptStage } from "../ai/prompts";
 import type { AiMessage, LlmBackend, TemplateBackend } from "../ai/types";
 
-export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE";
+export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE" | "TIER_BUILD_FAILED" | "EDIT_TIER_LOCKED";
 
 /** A generation failure with a safe, user-facing message (the credit is always released on failure). */
 export class PipelineError extends Error {
@@ -25,6 +26,8 @@ export class PipelineError extends Error {
 
 export interface PipelineInput {
   backend: LlmBackend | TemplateBackend;
+  /** The feature tier of the game being built (what the prompts ask the model to stay within). */
+  tier?: FeatureTier;
   request: GenerationRequest;
   /** EXTEND only: the saved spec being extended. */
   base: GameSpec | null;
@@ -48,6 +51,7 @@ export interface PipelineOutput {
 }
 
 const MAX_REPAIRS = 2;
+const tierHasBoss = (tier: FeatureTier): boolean => tierHas(tier, "system:boss");
 
 // ───────────────────────────── helpers ─────────────────────────────
 
@@ -148,7 +152,7 @@ function fullSpecCheck(req: GenerationRequest, limits: { exactAreas?: number; mi
 
 async function runFast(input: PipelineInput, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ spec: GameSpec; warnings: string[] }> {
   const { value } = await runLlmStage(ctxOf(input), {
-    stage: "generate", prompt: "spec", firstUser: fastPrompt(input.request), effort: "medium", maxOutputTokens: 14_000,
+    stage: "generate", prompt: "spec", firstUser: fastPrompt(input.request, input.tier), effort: "medium", maxOutputTokens: 14_000,
     check: fullSpecCheck(input.request, { exactAreas: 1, minPlaced: 3, maxPlaced: 6 }),
   }, totals, counters);
   return value;
@@ -158,7 +162,7 @@ async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], co
   const req = input.request;
   // Stage 1 — blueprint: cheap structural validation before any expensive content is written.
   const bp = await runLlmStage<{ blueprint: Blueprint; warnings: string[] }>(ctxOf(input), {
-    stage: "blueprint", prompt: "blueprint", firstUser: blueprintPrompt(req), effort: "high", maxOutputTokens: 14_000,
+    stage: "blueprint", prompt: "blueprint", firstUser: blueprintPrompt(req, input.tier), effort: "high", maxOutputTokens: 14_000,
     check: (parsed) => {
       const withReq = applyRequest(parsed, req);
       const res = validateBlueprint(withReq);
@@ -174,7 +178,7 @@ async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], co
   // Stage 2 — challenge content for every planned challenge, then full validation of the assembled game.
   const { challengePlan, ...rest } = bp.value.blueprint;
   const content = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(ctxOf(input), {
-    stage: "content", prompt: "challenges", firstUser: challengesPrompt(req, JSON.stringify(bp.value.blueprint)), effort: "high", maxOutputTokens: 24_000,
+    stage: "content", prompt: "challenges", firstUser: challengesPrompt(req, JSON.stringify(bp.value.blueprint), input.tier), effort: "high", maxOutputTokens: 24_000,
     check: (parsed) => {
       const { value } = normalizeRawSpec(parsed);
       const payload = challengesPayloadSchema.safeParse(value);
@@ -186,7 +190,7 @@ async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], co
       return res.ok ? { ok: true, value: { spec: res.spec, warnings: res.warnings } } : { ok: false, errors: res.errors };
     },
   }, totals, counters);
-  const boss = addFinalBoss(content.value.spec);
+  const boss = !input.tier || tierHasBoss(input.tier) ? addFinalBoss(content.value.spec) : { spec: content.value.spec, added: false, notes: [] as string[] };
   return { spec: boss.spec, warnings: [...bp.value.warnings, ...content.warnings, ...content.value.warnings, ...(boss.added ? boss.notes : [])] };
 }
 
@@ -195,7 +199,7 @@ async function runExtend(input: PipelineInput, totals: PipelineOutput["usage"], 
   if (!base) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be loaded.");
   const req = input.request;
   const { value } = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(ctxOf(input), {
-    stage: "extend", prompt: "extension", firstUser: extensionPrompt(req, summarizeGame(base)), effort: "medium", maxOutputTokens: 16_000,
+    stage: "extend", prompt: "extension", firstUser: extensionPrompt(req, summarizeGame(base), input.tier), effort: "medium", maxOutputTokens: 16_000,
     check: (parsed) => {
       const { value: norm } = normalizeRawSpec(parsed);
       const ext = extensionSchema.safeParse(norm);
@@ -238,7 +242,7 @@ async function runStudyEngine(input: PipelineInput): Promise<PipelineOutput> {
     const res = validateGameSpec(applyRequest(built.raw, req, { language: (built.raw.meta as { language: string }).language }), { alignGameType: req.gameType });
     if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The game built from your material could not be validated. You were not charged.", res.errors.join("; "));
     // The study engine builds a Full Adventure out of the learner's own material: it ends with a quiz boss.
-    const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+    const boss = req.mode === "FULL" && (!input.tier || tierHasBoss(input.tier)) ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
     return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
   } catch (e) {
     if (e instanceof MaterialError) throw new PipelineError("MATERIAL_UNUSABLE", `${e.userMessage(lang)} You were not charged.`, e.message);
@@ -275,7 +279,7 @@ async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
   const lang = (built.raw.meta as { language: string }).language;
   const res = validateGameSpec(applyRequest(built.raw, req, { language: lang }), { alignGameType: req.gameType });
   if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The demo template could not be validated.", res.errors.join("; "));
-  const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+  const boss = req.mode === "FULL" && (!input.tier || tierHasBoss(input.tier)) ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
   return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId: built.templateId };
 }
 

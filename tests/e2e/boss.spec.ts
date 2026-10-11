@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
-import { getGameSpec } from "./db";
+import { getGameSpec, setPlan } from "./db";
 import { answerInUi, challengeOf, goNear, openGame, snapshot } from "./play-helpers";
 import { collectibleIds, findArea, stationActive, type ClientState } from "@/lib/game/state/progress";
 import { correctAnswer } from "../unit/helpers";
@@ -40,7 +40,8 @@ test.describe("final boss battle", () => {
   test("a Full Adventure ends with a boss: rounds open in order, each win wounds it, the last one defeats it and finishes the game", async ({ page }) => {
     test.setTimeout(240_000);
     await setLocaleCookie(page, "en");
-    await registerViaApi(page, { locale: "en" });
+    const { email } = await registerViaApi(page, { locale: "en" });
+    await setPlan(email, "PRO"); // boss battles are a tier-A (Pro) feature
     const gameId = await createGameViaApi(page, { mode: "FULL", subject: "Fractions", gameType: "adventure" });
     const spec = await getGameSpec(gameId);
     expect(spec.bosses.length, "Full demo games end with a boss").toBe(1);
@@ -103,7 +104,8 @@ test.describe("final boss battle", () => {
   test("the boss card and health bar work in Hebrew (RTL) too", async ({ page }) => {
     test.setTimeout(240_000);
     await setLocaleCookie(page, "he");
-    await registerViaApi(page, { locale: "he" });
+    const { email } = await registerViaApi(page, { locale: "he" });
+    await setPlan(email, "PRO");
     const gameId = await createGameViaApi(page, { mode: "FULL", subject: "Fractions", gameType: "adventure", contentLanguage: "he" });
     const spec = await getGameSpec(gameId);
     const boss = spec.bosses[0]!;

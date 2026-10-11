@@ -1,4 +1,6 @@
 import "server-only";
+import type { FeatureTier } from "@/config/plans";
+import { clampToFeatureTier } from "@/lib/game/spec/tier";
 import { EDIT_LIMITS, applyEditOps, editResponseSchema, identityChanges, sameContent } from "@/lib/game/spec/edit";
 import type { RobotLevel } from "@/config/plans";
 import type { GameSpec } from "@/lib/game/spec/schema";
@@ -16,6 +18,8 @@ export interface EditInput {
   instruction: string;
   /** The plan's robot level: B = small focused edits, A = larger multi-part changes. */
   level: Exclude<RobotLevel, "none">;
+  /** The feature tier the edited game may use (the fuller of the plan's tier and the game's own). */
+  tier: FeatureTier;
   deadline: number;
   callTimeoutMs: number;
   onStage: (stage: string) => Promise<void> | void;
@@ -52,7 +56,7 @@ export async function runEdit(input: EditInput): Promise<EditOutput> {
   const { value, warnings } = await runLlmStage<{ spec: GameSpec; summary: string; warnings: string[] }>(
     { backend: input.backend, language: base.meta.language, deadline: input.deadline, callTimeoutMs: input.callTimeoutMs, onStage: input.onStage, now: input.now },
     {
-      stage: "edit", prompt: "edit", firstUser: editPrompt(baseJson, instruction, input.level, base.meta.language),
+      stage: "edit", prompt: "edit", firstUser: editPrompt(baseJson, instruction, input.level, base.meta.language, input.tier),
       effort: input.level === "A" ? "high" : "medium", maxOutputTokens: input.level === "A" ? 16_000 : 8_000,
       check: (parsed) => {
         const { value: norm } = normalizeRawSpec(parsed);
@@ -67,7 +71,11 @@ export async function runEdit(input: EditInput): Promise<EditOutput> {
         const identity = identityChanges(base, res.spec);
         if (identity.length) return { ok: false, errors: identity };
         if (sameContent(base, res.spec)) return { ok: false, errors: ["your operations did not change the game; make the change the player asked for"] };
-        return { ok: true, value: { spec: res.spec, summary: reply.data.summary, warnings: res.warnings } };
+        // The plan's feature tier applies to edits too: a game cannot gain features its tier does not have.
+        const tiered = clampToFeatureTier(res.spec, input.tier);
+        if (!tiered.ok) return { ok: false, errors: tiered.errors };
+        if (tiered.removed.length) return { ok: false, errors: [`these features are not part of the player's plan and cannot be added: ${tiered.removed.join(", ")}. Make the change without them.`] };
+        return { ok: true, value: { spec: tiered.spec, summary: reply.data.summary, warnings: [...res.warnings, ...tiered.notes] } };
       },
     },
     totals, counters,

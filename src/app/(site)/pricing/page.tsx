@@ -3,7 +3,8 @@ import { Check, Star } from "lucide-react";
 import { Alert, Badge, Card } from "@/components/ui";
 import { CheckoutButton } from "@/components/pricing/CheckoutButton";
 import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
-import { PLAN_IDS, isPaidPlanId, type PlanId } from "@/config/plans";
+import { FEATURE_TIERS, PLANS, PLAN_IDS, TIER_FEATURES, featureShare, isPaidPlanId, tierHas, type PlanId } from "@/config/plans";
+import type { DictKey } from "@/lib/i18n";
 import { REGIONS, regionLabel } from "@/lib/regions";
 import { getBillingView } from "@/server/billing/service";
 import { paymentsStatus } from "@/server/billing/gateway";
@@ -45,6 +46,10 @@ export default async function PricingPage() {
           const price = planPriceText(plan, region);
           const isCurrent = current === plan;
           const games = planGames(plan);
+          // what this plan's tier adds on top of the plan below it (the cheapest plan lists everything it has)
+          const rank = FEATURE_TIERS.indexOf(PLANS[plan].featureTier);
+          const below = rank > 0 ? PLAN_IDS.find((p) => PLANS[p].featureTier === FEATURE_TIERS[rank - 1]) : undefined;
+          const newFeatures = TIER_FEATURES[PLANS[plan].featureTier].filter((f) => !below || !tierHas(PLANS[below].featureTier, f));
           return (
             <Card key={plan} className={`flex flex-col gap-4 ${plan === "PLUS" ? "border-neon/60 shadow-glow" : ""}`} data-testid={`plan-${plan}`}>
               <div className="flex items-center justify-between">
@@ -60,12 +65,19 @@ export default async function PricingPage() {
                 {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd")}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
-                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: t("pricing.period.billing") })}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
+                <li className="flex gap-2" data-testid={`share-${plan}`}><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span><b>{t("feat.level", { tier: PLANS[plan].featureTier })}</b> · {t("feat.share", { share: featureShare(PLANS[plan].featureTier) })}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.modes")}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.save")}</span></li>
                 {plan === "PRO" && <li className="flex gap-2"><Star aria-hidden className="mt-0.5 size-4 shrink-0 fill-violet-soft text-violet-soft" /><span>{t("pricing.feature.same")}</span></li>}
               </ul>
+              <div className="space-y-1.5 border-t border-line pt-3 text-xs text-muted" data-testid={`features-${plan}`}>
+                <p className="font-semibold text-text">{below ? t("pricing.features.more", { plan: t(`plan.${below}` as DictKey) }) : t("pricing.features.base")}</p>
+                <ul className="space-y-1">
+                  {newFeatures.map((f) => <li key={f} className="flex gap-1.5"><Check aria-hidden className="mt-0.5 size-3.5 shrink-0 text-lime" /><span>{t(`feat.${f.replace(":", ".")}` as DictKey)}</span></li>)}
+                </ul>
+              </div>
               {plan === "FREE" ? (
                 user ? (
                   isCurrent ? <div className="text-center text-sm text-muted">{t("pricing.current")}</div> : <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("acc.sub.manage")}</Link>

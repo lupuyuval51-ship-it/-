@@ -17,6 +17,7 @@ import type { GenerationRequest } from "@/lib/schemas/generation";
 import { ApiError } from "@/server/http/errors";
 import { createTestUser, grantSubscription, makeRequest, readJson } from "./helpers";
 import { extensionJson, fullStages, isStage, mockLlm, specJson } from "./helpers-ai";
+import { PLANS } from "@/config/plans";
 
 afterAll(disconnectDb);
 afterEach(() => setBackendForTests(null));
@@ -25,6 +26,7 @@ const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "Python loops", learningGoal: "Understand variables, conditions and loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over,
 });
+const FREE_GAMES = PLANS.FREE.gamesPerPeriod;
 const key = () => `idem-${randomUUID()}`;
 
 async function generate(userId: string, request: GenerationRequest, backend: GenerationBackend) {
@@ -47,7 +49,7 @@ describe("generation pipeline — demo templates (labelled, never passed off as 
     expect(validateGameSpec(spec).ok).toBe(true);
     expect(spec.meta.generator).toMatchObject({ kind: "demo", provider: "demo" });
     expect(spec.areas).toHaveLength(1);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: 0 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: FREE_GAMES - 1 });
     expect(await db.gameRevision.count({ where: { gameId: game!.id } })).toBe(1);
   });
 
@@ -151,7 +153,7 @@ describe("generation pipeline — AI provider (scripted mock model)", () => {
     expect(job.errorMessage).toMatch(/not charged/i);
     expect(game).toBeNull();
     expect(llm.calls).toHaveLength(3); // initial + 2 repairs, never an unbounded loop
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: 1 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: FREE_GAMES });
     expect(await db.game.count({ where: { ownerId: u.id } })).toBe(0);
   });
 
@@ -161,14 +163,14 @@ describe("generation pipeline — AI provider (scripted mock model)", () => {
     const { job } = await generate(u.id, req(), llm);
     expect(job).toMatchObject({ status: "FAILED", errorCode: "OUTPUT_TRUNCATED" });
     expect(llm.calls[1]!.messages.at(-1)!.content).toMatch(/SMALLER/);
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("a model refusal fails the job without charging", async () => {
     const u = await createTestUser();
     const { job } = await generate(u.id, req(), mockLlm([{ text: "", model: "m", finish: "refused", usage: { inputTokens: 1, outputTokens: 0 } }]));
     expect(job).toMatchObject({ status: "FAILED", errorCode: "PROVIDER_REFUSED" });
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("an unavailable provider fails safely with a friendly message that never leaks internals", async () => {
@@ -177,7 +179,7 @@ describe("generation pipeline — AI provider (scripted mock model)", () => {
     expect(job).toMatchObject({ status: "FAILED", errorCode: "PROVIDER_UNAVAILABLE" });
     expect(JSON.stringify(job)).not.toMatch(/sk-LEAK|secret\.internal/);
     expect(job.errorMessage).toMatch(/not charged/i);
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("unexpected exceptions are hidden behind a generic message and also release the credit", async () => {
@@ -185,7 +187,7 @@ describe("generation pipeline — AI provider (scripted mock model)", () => {
     const { job } = await generate(u.id, req(), mockLlm([new Error("db password is hunter2")]));
     expect(job).toMatchObject({ status: "FAILED", errorCode: "INTERNAL_ERROR" });
     expect(JSON.stringify(job)).not.toContain("hunter2");
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("a hung provider hits the job deadline: the job fails with a timeout and the credit returns", async () => {
@@ -197,7 +199,7 @@ describe("generation pipeline — AI provider (scripted mock model)", () => {
     expect(Date.now() - t0).toBeLessThan(8000);
     const job = await db.generationJob.findUniqueOrThrow({ where: { id: started.job.id } });
     expect(job).toMatchObject({ status: "FAILED", errorCode: "PROVIDER_TIMEOUT" });
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("Full Adventure runs two stages (blueprint → content) and validates the assembled game", async () => {
@@ -290,7 +292,7 @@ describe("study engine — the learner's own material becomes the game (no AI, n
     expect(spec.meta.generator?.templateId).toBeUndefined();
     expect(JSON.stringify(spec)).toContain("Pharaoh");
     expect(spec.meta.subject).toBe("Ancient Egypt");
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: 0 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: FREE_GAMES - 1 });
   });
 
   it("without material the labelled demo template is still used (nothing pretends to be about the subject)", async () => {
@@ -306,7 +308,7 @@ describe("study engine — the learner's own material becomes the game (no AI, n
     expect(job.errorMessage).toMatch(/too short|at least/i);
     expect(job.errorMessage).toMatch(/not charged/i);
     expect(game).toBeNull();
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: 1 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0, remaining: FREE_GAMES });
   });
 
   it("Hebrew material gets a Hebrew game and Hebrew messages", async () => {
@@ -375,7 +377,7 @@ describe("service preconditions & routes", () => {
     setBackendForTests({ type: "unavailable", reason: "ANTHROPIC_API_KEY is not set", info: { id: "anthropic", kind: "ai", label: "Anthropic", model: "n/a" } });
     expect(await codeOf(createGeneration(u.id, { idempotencyKey: key(), request: req() }, { schedule: false }))).toBe("AI_UNAVAILABLE");
     expect(await db.generationJob.count({ where: { userId: u.id } })).toBe(0);
-    expect((await getAllowanceSummary(u.id)).remaining).toBe(1);
+    expect((await getAllowanceSummary(u.id)).remaining).toBe(FREE_GAMES);
   });
 
   it("cannot extend someone else's game, a missing game, or an AI game with demo templates", async () => {
@@ -416,9 +418,10 @@ describe("service preconditions & routes", () => {
     }
     expect(state).toMatchObject({ status: "SUCCEEDED", source: "demo", provider: "demo" });
     expect(state.gameId).toBeTruthy();
-    expect((state.allowance as { remaining: number }).remaining).toBe(0);
+    expect((state.allowance as { remaining: number }).remaining).toBe(FREE_GAMES - 1);
 
-    // another user cannot read my job; and a second generation now hits the allowance wall (402)
+    // another user cannot read my job; and once the month's games are used, the next one hits the allowance wall (402)
+    for (let i = 1; i < FREE_GAMES; i++) await generate(u.id, req(), DEMO);
     const stranger = await createTestUser();
     expect((await pollRoute(makeRequest("GET", `/api/generations/${ja.jobId}`, { cookie: stranger.cookie }), { params: Promise.resolve({ id: ja.jobId }) })).status).toBe(404);
     const again = await createRoute(makeRequest("POST", "/api/generations", { cookie: u.cookie, body: { idempotencyKey: key(), request: req() } }));

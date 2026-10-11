@@ -17,6 +17,8 @@ export interface CreateFormProps {
   games: { id: string; title: string; subject: string; generatorKind: string }[];
   /** Mechanics the user can ask an extension to add. */
   extensionMechanics: readonly Mechanic[];
+  /** What the plan's feature tier can build (the server enforces it; this only explains and disables). */
+  featureTier: { tier: "A" | "B" | "C"; share: number; gameTypes: { id: string; allowed: boolean; plan: string | null }[]; fullAllowed: boolean; unlockPlan: string };
   initialMode?: GenerationModeId;
   initialGameId?: string;
 }
@@ -32,7 +34,7 @@ function newKey(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function CreateForm({ backend, allowance, games, extensionMechanics, initialMode = "FAST", initialGameId }: CreateFormProps) {
+export function CreateForm({ backend, allowance, games, extensionMechanics, featureTier, initialMode = "FAST", initialGameId }: CreateFormProps) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -117,6 +119,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
       if (code === "ALLOWANCE_EXHAUSTED") setError({ text: t("create.error.exhausted") });
       else if (code === "JOB_IN_PROGRESS") setError({ text: t("create.error.inProgress"), jobId: json.error?.details?.jobId ?? undefined });
       else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: t("create.error.mismatch") });
+      else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
       else if (code === "VALIDATION_ERROR") setError({ text: t("create.error.validation") });
       else if (code === "RATE_LIMITED") setError({ text: t("common.error.rateLimited") });
       else if (code === "UNAUTHORIZED") router.push("/login?next=/create");
@@ -178,7 +181,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
         <legend className="mb-2 text-sm font-semibold">{t("create.mode.title")}</legend>
         <div className="grid gap-3 md:grid-cols-3" role="radiogroup">
           {GENERATION_MODES.map((m) => {
-            const disabled = m === "EXTEND" && games.length === 0;
+            const locked = m !== "FAST" && !featureTier.fullAllowed;
+            const disabled = (m === "EXTEND" && games.length === 0) || locked;
             return (
               <label
                 key={m}
@@ -190,7 +194,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
               >
                 <span className="flex items-center gap-2">
                   <input type="radio" name="mode" value={m} checked={mode === m} disabled={disabled} onChange={() => setMode(m)} className="size-4 accent-[var(--color-neon)]" data-testid={`mode-${m}`} />
-                  <span className="font-semibold">{t(`mode.${m}`)}</span>
+                  <span className="font-semibold">{t(`mode.${m}`)}{locked && <span className="ms-2 text-xs font-normal text-amber" data-testid={`mode-locked-${m}`}>{t("create.locked.suffix", { plan: t(`plan.${featureTier.unlockPlan}` as DictKey) })}</span>}</span>
                 </span>
                 <span className="text-sm text-muted">{t(`create.mode.${m}.desc` as DictKey)}</span>
               </label>
@@ -198,6 +202,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
           })}
         </div>
       </fieldset>
+      <p className="text-sm text-muted" data-testid="create-tier-note">{t("create.tier.note", { tier: featureTier.tier, share: featureTier.share })}</p>
 
       {extend ? (
         <Card className="space-y-4">
@@ -263,8 +268,11 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, init
             </Field>
           </div>
           <Field label={t("create.gameType")} htmlFor="gameType" hint={t("create.gameType.hint")}>
-            <Select id="gameType" name="gameType" defaultValue="adventure" data-testid="create-gametype">
-              {GAME_TYPES.map((g) => <option key={g} value={g}>{t(`gameType.${g}`)}</option>)}
+            <Select id="gameType" name="gameType" defaultValue={featureTier.gameTypes.find((g) => g.id === "adventure")?.allowed ? "adventure" : (featureTier.gameTypes.find((g) => g.allowed)?.id ?? "exploration")} data-testid="create-gametype">
+              {GAME_TYPES.map((g) => {
+                const info = featureTier.gameTypes.find((x) => x.id === g);
+                return <option key={g} value={g} disabled={info ? !info.allowed : false}>{t(`gameType.${g}`)}{info && !info.allowed && info.plan ? ` ${t("create.locked.suffix", { plan: t(`plan.${info.plan}` as DictKey) })}` : ""}</option>;
+              })}
             </Select>
           </Field>
           {materialField}

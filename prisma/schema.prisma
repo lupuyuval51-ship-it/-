@@ -253,6 +253,7 @@ model GenerationJob {
   stage             String         @default("queued")
   idempotencyKey    String
   request           Json // validated creation request (subject, goal, difficulty, mode, ...)
+  featureTier       GraphicsTier   @default(A) // the game's feature tier, fixed by the server from the plan when the job starts (same letters as the graphics tiers, a separate setting)
   allowancePeriodId String?
   targetGameId      String? // EXTEND: the game being extended
   gameId            String? // set when a validated game was delivered (EXTEND jobs point at the game they extended)

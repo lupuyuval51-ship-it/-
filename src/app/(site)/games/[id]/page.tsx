@@ -5,6 +5,7 @@ import { AiEditPanel } from "@/components/games/AiEditPanel";
 import { GameActions } from "@/components/games/GameActions";
 import { VersionHistory } from "@/components/games/VersionHistory";
 import { GeneratorBadge } from "@/components/games/GameBadges";
+import { featureShare } from "@/config/plans";
 import { formatDate } from "@/lib/format";
 import type { DictKey } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/current";
@@ -40,6 +41,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
           <Badge>{t(`env.${overview.environment}` as DictKey)}</Badge>
           <GeneratorBadge kind={game.generator.kind} provider={game.generator.provider} t={t} />
           <Badge>{t("det.version", { n: game.revision })}</Badge>
+          {game.featureTier && <Badge tone="violet" data-testid="game-tier" title={t("det.tier.hint", { tier: game.featureTier })}>{t("det.tier.badge", { tier: game.featureTier, share: featureShare(game.featureTier) })}</Badge>}
         </div>
         <h1 className="text-3xl font-extrabold" data-testid="game-title">{game.title}</h1>
         <p className="max-w-3xl text-lg text-muted">{overview.tagline}</p>

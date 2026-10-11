@@ -5,6 +5,7 @@ import { resolveEntitlement } from "../allowance/entitlement";
 import { ensurePeriod } from "../allowance/periods";
 import { recordReserve, reserveCredit, settleReservation } from "../allowance/ledger";
 import { db, isUniqueViolation, type Tx } from "../db";
+import { featureTierForPlan } from "../games/feature-tier";
 import { ApiError, Errors } from "../http/errors";
 
 const ACTIVE = ["PENDING", "RUNNING"] as const;
@@ -43,6 +44,7 @@ export async function startGenerationJob(args: StartJobArgs): Promise<{ job: Gen
           mode: args.request.mode,
           idempotencyKey: args.idempotencyKey,
           request: args.request,
+          featureTier: featureTierForPlan(ent.plan),
           targetGameId: args.request.targetGameId ?? null,
           allowancePeriodId: period.id,
           deadlineAt: new Date(now.getTime() + args.deadlineMs),
