@@ -10,7 +10,7 @@ import { memoryKV, OfflineStore, type GameSummaryRow } from "@/lib/offline/store
 import { ErrorBoundary, ErrorFallback } from "../../mobile/src/ErrorBoundary";
 import { formatNextReview } from "../../mobile/src/format";
 import {
-  continueGame, FILTER_MIN_GAMES, filterCounts, filterGames, isDone, loadLibrary, orderGames, showFilters,
+  CONTINUE_MIN_GAMES, continueGame, FILTER_MIN_GAMES, filterCounts, filterGames, isDone, loadLibrary, orderGames, showFilters,
   type LibraryGame, type LibrarySource,
 } from "../../mobile/src/library-model";
 import { ContinueCard, FilterBar, GameCard } from "../../mobile/src/pages/library-parts";
@@ -50,6 +50,13 @@ describe("library model: order, continue and filters", () => {
     if (!lib.ok) throw new Error("load failed");
     expect(continueGame(lib.games)?.id).toBe(a.id);
     expect(lib.deck).toEqual({ total: 0, due: 0, nextDue: null });
+  });
+
+  it("the extra continue card is only offered once the list is long enough to need it", () => {
+    const many = Array.from({ length: CONTINUE_MIN_GAMES }, (_, i) => lg({ id: `g${i}`, inProgress: i === 1, lastPlayedAt: i }));
+    expect(continueGame(many)?.id).toBe("g1");
+    expect(continueGame(many.slice(0, CONTINUE_MIN_GAMES - 1))).toBeNull();
+    expect(continueGame(many.map((g) => ({ ...g, inProgress: false })))).toBeNull();
   });
 
   it("keeps the store order for ties and never mutates its input", () => {

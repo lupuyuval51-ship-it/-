@@ -45,8 +45,14 @@ export function loadLibrary(src: LibrarySource): LibraryLoad {
   }
 }
 
-/** The game to resume: the most recently played unfinished one. */
+/**
+ * The game to resume: the most recently played unfinished one. With only one or two games the list already puts it
+ * at the top with its own Continue button, so the extra card (which would repeat it and push the list down on a small
+ * screen) appears from three games on.
+ */
+export const CONTINUE_MIN_GAMES = 3;
 export function continueGame(games: readonly LibraryGame[]): LibraryGame | null {
+  if (games.length < CONTINUE_MIN_GAMES) return null;
   return orderGames(games).find((g) => g.inProgress) ?? null;
 }
 
