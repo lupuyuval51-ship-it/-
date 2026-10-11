@@ -3,6 +3,7 @@ import { PracticeClient } from "@/components/game/PracticeClient";
 import { ResultsView } from "@/components/games/ResultsView";
 import { ReviewView } from "@/components/games/ReviewView";
 import { useT } from "@/components/I18nProvider";
+import { primaryLink, StateView } from "@/components/ui/StateView";
 import { store, transport } from "../app-state";
 import { navigate } from "../router";
 
@@ -11,9 +12,18 @@ function useResults(gameId: string, sessionId: string) {
   return r && r.game.id === gameId ? r : null;
 }
 
+/** A deleted game or a stale link: say so, and offer the way back as a proper 44px button. */
 function Missing() {
   const t = useT();
-  return <p role="alert" className="p-6 text-center">{t("mob.notfound")} <a className="underline" href="#/">{t("mob.back")}</a></p>;
+  return (
+    <StateView
+      kind="notfound"
+      data-testid="results-missing"
+      title={t("mob.notfound")}
+      text={t("mob.notfound.text")}
+      actions={<a href="#/" className={primaryLink}>{t("res.library")}</a>}
+    />
+  );
 }
 
 export function ResultsPage({ gameId, sessionId }: { gameId: string; sessionId: string }) {
