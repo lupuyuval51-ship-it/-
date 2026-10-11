@@ -408,7 +408,7 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
             <p className="text-xs text-muted" dir="auto">{npc.role}</p>
           </div>
         </div>
-        <p dir="auto" role="status" aria-live="polite" className={cx("leading-relaxed", shortLandscape ? "text-sm" : "min-h-12 text-base")}>{npc.lines[i]}</p>
+        <p dir="auto" role="status" aria-live="polite" onClick={next} className={cx("cursor-pointer leading-relaxed", shortLandscape ? "text-sm" : "min-h-12 text-base")}>{npc.lines[i]}</p>
         {last && npc.hint && <p dir="auto" className="rounded-lg border border-amber/40 bg-amber/10 p-2 text-sm"><b className="text-amber">{t("dialogue.hint", { name: npc.name })}: </b>{npc.hint}</p>}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-muted">{i + 1}/{npc.lines.length}</span>
