@@ -22,6 +22,9 @@ vi.mock("../../mobile/src/app-state", async (importOriginal) => {
 vi.mock("../../mobile/src/pages/AccountPanel", () => ({ AccountPanel: () => null }));
 vi.mock("../../mobile/src/pages/BackupPanel", () => ({ BackupPanel: () => null }));
 
+let account: { session: { user: { email: string } } | null; status: string; lastSyncAt: number | null; error: null } = { session: null, status: "idle", lastSyncAt: null, error: null };
+vi.mock("../../mobile/src/cloud/account", () => ({ useAccount: () => account }));
+
 const mem = new Map<string, string>();
 const fakeStorage = {
   getItem: (k: string) => mem.get(k) ?? null,
@@ -45,7 +48,7 @@ beforeAll(async () => {
   ({ ResultsPage } = await import("../../mobile/src/pages/Results"));
 });
 afterAll(() => vi.unstubAllGlobals());
-beforeEach(() => { mem.clear(); win.location.hash = ""; });
+beforeEach(() => { mem.clear(); win.location.hash = ""; account = { session: null, status: "idle", lastSyncAt: null, error: null }; });
 
 const render = (el: ReactElement, locale: Locale = "en") => renderToStaticMarkup(h(I18nProvider, { locale, dict: DICTIONARIES[locale], children: el }));
 const seed = () => {
@@ -132,6 +135,21 @@ describe("library page states", () => {
     expect(html).toContain('href="#/settings"'); // backup/export lives in Settings
     expect(html).not.toContain('data-testid="welcome"');
     expect(html).not.toContain("mobile-games");
+  });
+
+  it("signed in, the footer says how the backup is doing instead of 'offline'", () => {
+    seed().addGame(validDemoSpec());
+    account = { session: { user: { email: "a@b.co" } }, status: "syncing", lastSyncAt: null, error: null };
+    expect(render(h(LibraryPage))).toMatch(/data-testid="library-footer">Syncing/);
+    account = { session: { user: { email: "a@b.co" } }, status: "ok", lastSyncAt: new Date(2026, 9, 11, 14, 30).getTime(), error: null };
+    expect(render(h(LibraryPage))).toMatch(/data-testid="library-footer">Last sync: 11\/10\/2026, 14:30/);
+    account = { session: { user: { email: "a@b.co" } }, status: "error", lastSyncAt: null, error: null };
+    expect(render(h(LibraryPage))).toContain("Could not sync");
+    expect(render(h(LibraryPage))).not.toContain("Offline · on this device");
+  });
+
+  it("signed out, the footer keeps the offline promise", () => {
+    expect(render(h(LibraryPage))).toMatch(/data-testid="library-footer">Offline · on this device/);
   });
 
   it("renders in Hebrew without losing any of the structure", () => {

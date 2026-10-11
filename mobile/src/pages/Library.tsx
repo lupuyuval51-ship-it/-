@@ -1,26 +1,42 @@
 import { useRef, useState } from "react";
-import { useT } from "@/components/I18nProvider";
+import { useLocale, useT } from "@/components/I18nProvider";
 import { RotateCcw } from "lucide-react";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
 import { primaryLink, secondaryLink, StateView } from "@/components/ui/StateView";
 import { browserKV } from "@/lib/offline/store";
 import { hashQuery, markWelcomeSeen, shouldShowWelcome } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
+import { useAccount } from "../cloud/account";
+import { formatWhen, syncLineKey } from "../format";
 import { continueGame, filterCounts, filterGames, loadLibrary, showFilters, type LibraryFilter } from "../library-model";
+import { stripQuery } from "../router";
 import { ContinueCard, FilterBar, GameCard } from "./library-parts";
 import { Welcome } from "./Welcome";
 
 export function LibraryPage() {
   const t = useT();
-  const [data, setData] = useState(() => loadLibrary(store));
+  const locale = useLocale();
+  const { session, status, lastSyncAt } = useAccount();
+  // The list is read again after our own writes (delete, retry) and whenever a cloud sync finishes (`lastSyncAt`), because
+  // a sync can bring in or remove games from another phone while this screen is open.
+  const [lib, setLib] = useState(() => ({ syncedAt: lastSyncAt, data: loadLibrary(store) }));
+  if (lib.syncedAt !== lastSyncAt) setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
+  const reload = () => setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
+  const data = lib.data;
   const [filter, setFilter] = useState<LibraryFilter>("all");
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  // First launch (or "show the welcome again" in Settings): a short, skippable intro above the library.
-  const [welcome, setWelcome] = useState(() => data.ok && (hashQuery(window.location.hash).get("welcome") === "1" || shouldShowWelcome(browserKV(), data.games.length > 0)));
-  const closeWelcome = () => { markWelcomeSeen(browserKV()); setWelcome(false); };
+  // First launch: a short, skippable intro above the library. "Show the welcome again" in Settings opens it on demand
+  // (`explicit`). On first launch it also goes away by itself if games arrive, e.g. from the cloud backup of a new phone.
+  const [welcomeMode, setWelcomeMode] = useState<"off" | "first" | "explicit">(() => {
+    if (!data.ok) return "off";
+    if (hashQuery(window.location.hash).get("welcome") === "1") return "explicit";
+    return shouldShowWelcome(browserKV(), data.games.length > 0) ? "first" : "off";
+  });
+  const closeWelcome = () => { markWelcomeSeen(browserKV()); setWelcomeMode("off"); stripQuery(); };
 
   const games = data.ok ? data.games : [];
+  const welcome = welcomeMode === "explicit" || (welcomeMode === "first" && games.length === 0);
   const deck = data.ok ? data.deck : null;
   const filtering = showFilters(games);
   const active: LibraryFilter = filtering ? filter : "all";
@@ -35,7 +51,7 @@ export function LibraryPage() {
     } catch {
       setNotice({ tone: "error", text: t("mob.lib.delete.error") });
     }
-    setData(loadLibrary(store));
+    reload();
     // The tapped button is gone: put the screen-reader cursor on the list heading instead of losing it.
     requestAnimationFrame(() => heading.current?.focus({ preventScroll: true }));
   };
@@ -59,7 +75,7 @@ export function LibraryPage() {
             text={t("mob.lib.error.text")}
             actions={
               <>
-                <Button onClick={() => setData(loadLibrary(store))} data-testid="load-retry">{t("common.retry")}</Button>
+                <Button onClick={() => reload()} data-testid="load-retry">{t("common.retry")}</Button>
                 <a href="#/settings" className={secondaryLink}>{t("mob.settings")}</a>
               </>
             }
@@ -138,7 +154,9 @@ export function LibraryPage() {
           )}
         </>
       )}
-      <p className="text-center text-xs text-muted">{t("mob.offline")}</p>
+      <p className="text-center text-xs text-muted" data-testid="library-footer">
+        {session ? t(syncLineKey(status, lastSyncAt), { when: lastSyncAt ? formatWhen(lastSyncAt, locale) : "" }) : t("mob.offline")}
+      </p>
     </div>
   );
 }

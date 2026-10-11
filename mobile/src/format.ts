@@ -18,3 +18,17 @@ export function formatNextReview(nextDue: number, now: number, locale: Locale): 
     : due.toLocaleDateString(tag(locale), { weekday: "long" });
   return `${day}, ${time}`;
 }
+
+export type SyncStatus = "idle" | "syncing" | "ok" | "error";
+
+/** A date and time in the app language ("11/10/2026, 14:30"), for "last sync". */
+export function formatWhen(ts: number, locale: Locale): string {
+  return new Date(ts).toLocaleString(tag(locale), { dateStyle: "short", timeStyle: "short" });
+}
+
+/** Which one-line account/sync message the library footer shows for a signed-in player. */
+export function syncLineKey(status: SyncStatus, lastSyncAt: number | null): "mob.account.syncing" | "mob.account.syncError" | "mob.account.lastSync" | "mob.account.notSynced" {
+  if (status === "syncing") return "mob.account.syncing";
+  if (status === "error") return "mob.account.syncError";
+  return lastSyncAt ? "mob.account.lastSync" : "mob.account.notSynced";
+}

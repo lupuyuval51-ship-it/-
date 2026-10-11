@@ -2,18 +2,19 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { createElement as h, type ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/I18nProvider";
 import { DICTIONARIES, makeT, type Locale } from "@/lib/i18n";
 import { WELCOME_STEPS } from "@/lib/offline/onboarding";
 import { memoryKV, OfflineStore, type GameSummaryRow } from "@/lib/offline/store";
 import { ErrorBoundary, ErrorFallback } from "../../mobile/src/ErrorBoundary";
-import { formatNextReview } from "../../mobile/src/format";
+import { formatNextReview, formatWhen, syncLineKey } from "../../mobile/src/format";
 import {
   CONTINUE_MIN_GAMES, continueGame, FILTER_MIN_GAMES, filterCounts, filterGames, isDone, loadLibrary, orderGames, showFilters,
   type LibraryGame, type LibrarySource,
 } from "../../mobile/src/library-model";
 import { ContinueCard, FilterBar, GameCard } from "../../mobile/src/pages/library-parts";
+import { stripQuery } from "../../mobile/src/router";
 import { Welcome } from "../../mobile/src/pages/Welcome";
 import { validDemoSpec } from "./helpers";
 
@@ -118,6 +119,43 @@ describe("formatNextReview", () => {
   });
   it("treats an overdue time as today", () => {
     expect(formatNextReview(at(-2), now, "en")).toMatch(/^today, /);
+  });
+});
+
+describe("sync line and dates", () => {
+  it("picks one clear sentence for the library footer", () => {
+    expect(syncLineKey("syncing", 5)).toBe("mob.account.syncing");
+    expect(syncLineKey("error", 5)).toBe("mob.account.syncError");
+    expect(syncLineKey("ok", 5)).toBe("mob.account.lastSync");
+    expect(syncLineKey("idle", null)).toBe("mob.account.notSynced");
+    expect(syncLineKey("ok", null)).toBe("mob.account.notSynced");
+  });
+  it("formats the last sync in the app language, not the device's", () => {
+    const ts = new Date(2026, 9, 11, 14, 30).getTime();
+    expect(formatWhen(ts, "en")).toBe("11/10/2026, 14:30");
+    expect(formatWhen(ts, "he")).toMatch(/11\.10\.2026/);
+  });
+});
+
+describe("stripQuery", () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const stub = (hash: string) => {
+    const replaceState = vi.fn();
+    vi.stubGlobal("window", { location: { hash }, history: { state: { k: 1 }, replaceState } });
+    return replaceState;
+  };
+  it("removes a one-shot flag from the URL without adding a history entry", () => {
+    const replace = stub("#/?welcome=1");
+    stripQuery();
+    expect(replace).toHaveBeenCalledWith({ k: 1 }, "", "#/");
+  });
+  it("keeps the route and leaves query-less URLs alone", () => {
+    const replace = stub("#/create?example=1");
+    stripQuery();
+    expect(replace).toHaveBeenCalledWith({ k: 1 }, "", "#/create");
+    const none = stub("#/settings");
+    stripQuery();
+    expect(none).not.toHaveBeenCalled();
   });
 });
 
