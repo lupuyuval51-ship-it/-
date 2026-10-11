@@ -1,0 +1,40 @@
+export const I18N = {
+  he: {
+    skip: 'דלג לתוכן', nav_catalog: 'קטלוג', nav_chat: 'צ׳אט', nav_compare: 'השוואה', settings: 'הגדרות',
+    hero: 'כל המודלים הפתוחים במקום אחד', hero_sub: 'Qwen, DeepSeek, Kimi, GLM, Llama, Mistral, Gemma, gpt-oss ועוד. הקטלוג מתעדכן אוטומטית ממקורות חיים, ואפשר לשוחח עם כל מודל או להשוות כמה במקביל.',
+    models_n: n => `${n} מודלים`, src_live: 'קטלוג חי', src_snapshot: 'צילום מצב (לא מחובר)', refresh: 'רענן קטלוג',
+    search: 'חיפוש מודל, משפחה או רישיון…', all: 'הכול', sort: 'מיון', sort_new: 'חדשים ראשונים', sort_ctx: 'חלון הקשר', sort_price: 'מחיר', sort_size: 'גודל',
+    f_reasoning: 'חשיבה', f_tools: 'כלים', f_vision: 'ראייה', f_free: 'חינם', f_local: 'מקומי', f_ready: 'זמין עכשיו',
+    params: 'פרמטרים', active: 'פעילים', context: 'הקשר', price: 'מחיר ל־1M טוקנים', license: 'רישיון', free: 'חינם', na: '—',
+    chat: 'שיחה', add_compare: 'להשוואה', in_compare: 'בהשוואה ✓', hf: 'Hugging Face', no_results: 'לא נמצאו מודלים. נסו לנקות מסננים.', show_more: 'הצג עוד',
+    compare_dock: n => `${n} נבחרו להשוואה`, go_compare: 'פתח השוואה', clear: 'נקה',
+    model: 'מודל', provider: 'ספק', system: 'הנחיית מערכת', system_ph: 'אופציונלי: איך המודל צריך להתנהג', temperature: 'טמפרטורה', max_tokens: 'מקס׳ טוקנים לתשובה', new_chat: 'שיחה חדשה',
+    msg_ph: 'כתבו הודעה… (Enter לשליחה, Shift+Enter לשורה חדשה)', send: 'שלח', stop: 'עצור', you: 'אתם', thinking: 'חשיבה', via: 'דרך',
+    cmp_title: 'השוואת מודלים', cmp_sub: 'אותה שאלה, עד 4 מודלים במקביל, עם זמן תגובה ומספר טוקנים.', cmp_slot: n => `מודל ${n}`, cmp_none: '— ריק —', run: 'הרץ השוואה', cmp_ph: 'השאלה שתישלח לכל המודלים',
+    ttft: 'זמן לטוקן ראשון', total: 'סה״כ', tokens: 'טוקנים',
+    st_ready: 'מוכן', st_needs_key: 'דרוש מפתח', st_unreachable: 'לא זמין',
+    access_code: 'קוד גישה', access_hint: 'השרת מוגן בקוד גישה. לא נדרש אם משתמשים במפתח משלכם.', keys: 'מפתחות API אישיים (BYO)',
+    keys_note: 'המפתח נשמר רק בדפדפן הזה ונשלח רק בבקשות שלכם. הוא לא נשמר בשרת.', get_key: 'קבלת מפתח', save: 'שמור', close: 'סגור', saved: 'נשמר',
+    e_no_key: 'אין ספק זמין למודל הזה. הוסיפו מפתח API בהגדרות, או הפעילו Ollama מקומי.', e_access: 'נדרש קוד גישה (הגדרות).', e_generic: 'הבקשה נכשלה', e_refreshed: 'הקטלוג רוענן',
+    local_badge: 'מקומי', other: 'אחרים', providers_missing: n => `${n} ספקים ממתינים למפתח (הגדרות)`, open_weights: 'משקולות פתוחות. בדקו את הרישיון לפני שימוש מסחרי.'
+  },
+  en: {
+    skip: 'Skip to content', nav_catalog: 'Catalog', nav_chat: 'Chat', nav_compare: 'Compare', settings: 'Settings',
+    hero: 'Every open model, one place', hero_sub: 'Qwen, DeepSeek, Kimi, GLM, Llama, Mistral, Gemma, gpt-oss and more. The catalog updates itself from live sources; chat with any model or compare several side by side.',
+    models_n: n => `${n} models`, src_live: 'Live catalog', src_snapshot: 'Snapshot (offline)', refresh: 'Refresh catalog',
+    search: 'Search model, family or license…', all: 'All', sort: 'Sort', sort_new: 'Newest first', sort_ctx: 'Context window', sort_price: 'Price', sort_size: 'Size',
+    f_reasoning: 'Reasoning', f_tools: 'Tools', f_vision: 'Vision', f_free: 'Free', f_local: 'Local', f_ready: 'Ready now',
+    params: 'Parameters', active: 'active', context: 'Context', price: 'Price per 1M tokens', license: 'License', free: 'Free', na: '—',
+    chat: 'Chat', add_compare: 'Compare', in_compare: 'In compare ✓', hf: 'Hugging Face', no_results: 'No models found. Try clearing filters.', show_more: 'Show more',
+    compare_dock: n => `${n} selected to compare`, go_compare: 'Open compare', clear: 'Clear',
+    model: 'Model', provider: 'Provider', system: 'System prompt', system_ph: 'Optional: how the model should behave', temperature: 'Temperature', max_tokens: 'Max tokens per reply', new_chat: 'New chat',
+    msg_ph: 'Write a message… (Enter to send, Shift+Enter for a new line)', send: 'Send', stop: 'Stop', you: 'You', thinking: 'Reasoning', via: 'via',
+    cmp_title: 'Compare models', cmp_sub: 'One prompt, up to 4 models in parallel, with latency and token counts.', cmp_slot: n => `Model ${n}`, cmp_none: '— empty —', run: 'Run comparison', cmp_ph: 'The prompt sent to every model',
+    ttft: 'Time to first token', total: 'Total', tokens: 'tokens',
+    st_ready: 'Ready', st_needs_key: 'Needs key', st_unreachable: 'Unreachable',
+    access_code: 'Access code', access_hint: 'This server is protected by an access code. Not needed if you use your own key.', keys: 'Your own API keys (BYO)',
+    keys_note: 'Keys stay in this browser only and are sent only with your own requests. The server never stores them.', get_key: 'Get a key', save: 'Save', close: 'Close', saved: 'Saved',
+    e_no_key: 'No provider is available for this model. Add an API key in Settings, or run local Ollama.', e_access: 'Access code required (Settings).', e_generic: 'Request failed', e_refreshed: 'Catalog refreshed',
+    local_badge: 'Local', other: 'Other', providers_missing: n => `${n} providers waiting for a key (Settings)`, open_weights: 'Open weights. Check the license before commercial use.'
+  }
+};
