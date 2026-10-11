@@ -12,6 +12,7 @@ import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
 import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
+import { canVibrate, webHaptic, type Feedback } from "./haptics";
 import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
@@ -49,6 +50,7 @@ const GUIDE_KEY = "levelup.guide";
 const MOTION_KEY = "levelup.reduceMotion";
 const systemReducesMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TUTORIAL_KEY = "levelup.tutorial";
+const VIBRATION_KEY = "levelup.vibration";
 const readPref = (k: string, d: boolean): boolean => {
   try {
     const v = localStorage.getItem(k);
@@ -58,7 +60,7 @@ const readPref = (k: string, d: boolean): boolean => {
   }
 };
 
-export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate" | "streak" | "victory" | "area" | "checkpoint";
+export type { Feedback };
 
 /**
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
@@ -82,6 +84,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
   const [reduceMotion, setReduceMotion] = useState(() => (typeof window === "undefined" ? false : readPref(MOTION_KEY, systemReducesMotion())));
   const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
+  // Website on a phone that can vibrate: the same short buzzes as the Android app, switchable in the pause menu. The app brings its own (`onFeedback`).
+  const [vibration, setVibration] = useState(() => (typeof window === "undefined" ? true : readPref(VIBRATION_KEY, true)));
+  const webVibration = !onFeedback && touch && canVibrate();
   const router = useRouter();
   // Optional Unity renderer (?renderer=unity). Display only: input, physics, scoring and the server stay as they are.
   const [unity, setUnity] = useState<"off" | "loading" | "ready">("off");
@@ -97,7 +102,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const toastId = useRef(0);
   const feedback = useRef(onFeedback);
-  useEffect(() => { feedback.current = onFeedback; }, [onFeedback]);
+  useEffect(() => { feedback.current = onFeedback ?? (touch && vibration ? webHaptic : undefined); }, [onFeedback, touch, vibration]);
   const lastSaved = useRef({ x: 1e9, z: 1e9 });
   const dataRef = useRef<Started | null>(null);
   const clientRef = useRef<ClientState | null>(null);
@@ -468,7 +473,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       {boss && client && <BossCard boss={boss} client={client} stationLabel={(id) => d.spec.areas.flatMap((a) => a.stations).find((s) => s.id === id)?.label ?? id} onClose={closeOverlay} />}
       {lore && lore.loreTitle && lore.loreText && <LoreCard title={lore.loreTitle} text={lore.loreText} onClose={closeOverlay} />}
       {overlay.type === "pause" && (
-        <PauseMenu source={d.game.generator.kind === "demo" ? "demo" : d.game.generator.kind === "engine" ? "engine" : undefined} profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
+        <PauseMenu source={d.game.generator.kind === "demo" ? "demo" : d.game.generator.kind === "engine" ? "engine" : undefined} profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} vibration={webVibration ? { on: vibration, onChange: (v) => { setVibration(v); try { localStorage.setItem(VIBRATION_KEY, v ? "1" : "0"); } catch { /* optional */ } if (v) webHaptic("collect"); } } : undefined} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onMusic={(v) => { setMusic(v); audio.unlock(); try { localStorage.setItem(MUSIC_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onResume={closeOverlay} onRestart={() => void start(true)} />
       )}

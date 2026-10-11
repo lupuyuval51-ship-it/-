@@ -16,7 +16,7 @@ import type { InputState } from "../input";
 import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
-import { bottomAboveControls, bottomEdge, landscapeStrip, safePadX } from "./hudLayout";
+import { applyDeadzone, bottomAboveControls, bottomEdge, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
 import { useDialogFocus } from "./useDialogFocus";
 
 // ───────────────────────── toasts ─────────────────────────
@@ -275,7 +275,7 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
     const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
     const v = stickVector(dx, dy, stickTravel(r.width, knobEl.current?.getBoundingClientRect().width ?? 56));
     setKnob({ x: v.kx, y: v.ky });
-    input.stick = { x: v.x, y: v.y };
+    input.stick = applyDeadzone(v.x, v.y); // the knob follows the thumb exactly; only the steering ignores a resting thumb
   };
   const end = () => {
     pid.current = null;
@@ -333,7 +333,7 @@ export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; 
   }, [onClose]);
   const p = bossProgress(boss, client);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={boss.name} data-testid="boss-card" className="lu-pop max-h-full w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl border border-rose/60 bg-ink-800 p-5 shadow-e3">
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-11 place-items-center rounded-full" style={{ background: boss.look.color + "33", border: `2px solid ${boss.look.color}`, color: boss.look.color }}><NpcIcon shape={boss.look.shape} className="size-6" /></span>
@@ -406,7 +406,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={title} data-testid="lore-card" className="lu-pop max-h-full overflow-y-auto w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
@@ -418,14 +418,14 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
+export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
   const t = useT();
   const { shortLandscape } = useLayout();
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=resume-button]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm" style={safePadX("1rem")}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className={cx("lu-pop my-auto max-h-[96dvh] w-full space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3", shortLandscape ? "max-w-3xl" : "max-w-md md:max-w-xl")}>
         <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
         {/* a phone held sideways has no room for one tall column: toggles on one side, the rest (and "Resume") on the other */}
@@ -434,6 +434,7 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
+            {vibration && <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.vibration")}</span><input type="checkbox" checked={vibration.on} onChange={(e) => vibration.onChange(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="vibration-toggle" /></label>}
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
             <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
             {source && <p dir="auto" className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="source-note"><b className="text-text">{source === "demo" ? t("hud.demo") : t("engine.badge")}</b> — {source === "demo" ? t("demo.badge.hint") : t("engine.badge.hint")}</p>}
@@ -464,7 +465,7 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=results-link]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur">
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur" style={safePadAll()}>
       <Confetti />
       <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>

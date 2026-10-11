@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bottomAboveControls, bottomEdge, controlsHeightRem, keyboardInset, landscapeReserveRem, landscapeStrip, safePadX, sideWithInset, topWithInset } from "@/components/game/hud/hudLayout";
+import { applyDeadzone, bottomAboveControls, bottomEdge, controlsHeightRem, keyboardInset, landscapeReserveRem, landscapeStrip, safePadAll, safePadX, sideWithInset, STICK_DEADZONE, topWithInset } from "@/components/game/hud/hudLayout";
 import { computeLayout, TOUCH_METRICS } from "@/lib/layout";
 
 describe("controls clearance (derived from the touch metrics)", () => {
@@ -66,6 +66,14 @@ describe("safe-area helpers", () => {
     expect(safePadX("1rem").paddingLeft).toContain("max(1rem,");
   });
 
+  it("pads an overlay on all four sides", () => {
+    const p = safePadAll();
+    expect(p.paddingTop).toBe("max(1rem, env(safe-area-inset-top, 0px))");
+    expect(p.paddingBottom).toBe("max(1rem, env(safe-area-inset-bottom, 0px))");
+    expect(p.paddingLeft).toContain("safe-area-inset-left");
+    expect(p.paddingRight).toContain("safe-area-inset-right");
+  });
+
   it("moves a top-anchored element down by the part of the inset the bar's padding does not already cover", () => {
     expect(topWithInset(4.9, 0.75)).toBe("calc(4.9rem + max(0px, env(safe-area-inset-top, 0px) - 0.75rem))");
   });
@@ -98,5 +106,29 @@ describe("keyboardInset", () => {
 
   it("never goes negative", () => {
     expect(keyboardInset(500, vv(800))).toBe(0);
+  });
+});
+
+describe("stick dead zone", () => {
+  it("ignores a resting thumb", () => {
+    expect(applyDeadzone(0, 0)).toEqual({ x: 0, y: 0 });
+    expect(applyDeadzone(STICK_DEADZONE * 0.9, 0)).toEqual({ x: 0, y: 0 });
+    expect(applyDeadzone(Number.NaN, 0)).toEqual({ x: 0, y: 0 });
+  });
+
+  it("keeps the direction and climbs smoothly from zero", () => {
+    const a = applyDeadzone(0.3, 0.4); // magnitude 0.5
+    expect(Math.atan2(a.y, a.x)).toBeCloseTo(Math.atan2(0.4, 0.3));
+    expect(Math.hypot(a.x, a.y)).toBeCloseTo((0.5 - STICK_DEADZONE) / (1 - STICK_DEADZONE));
+    const just = applyDeadzone(STICK_DEADZONE + 0.01, 0);
+    expect(just.x).toBeGreaterThan(0);
+    expect(just.x).toBeLessThan(0.02);
+  });
+
+  it("still reaches full tilt, and never more", () => {
+    expect(applyDeadzone(1, 0)).toEqual({ x: 1, y: 0 });
+    const d = applyDeadzone(0.6, 0.8);
+    expect(Math.hypot(d.x, d.y)).toBeCloseTo(1);
+    expect(Math.hypot(applyDeadzone(3, 4).x, applyDeadzone(3, 4).y)).toBeCloseTo(1);
   });
 });

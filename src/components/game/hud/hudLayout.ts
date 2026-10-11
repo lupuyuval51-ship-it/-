@@ -69,6 +69,11 @@ export function safePadX(base = "0.75rem"): { paddingLeft: string; paddingRight:
   return { paddingLeft: `max(${base}, env(safe-area-inset-left, 0px))`, paddingRight: `max(${base}, env(safe-area-inset-right, 0px))` };
 }
 
+/** Padding on all four sides for a full-screen overlay: at least `base`, and never under a notch, rounded corner or gesture bar. */
+export function safePadAll(base = "1rem"): { paddingTop: string; paddingBottom: string; paddingLeft: string; paddingRight: string } {
+  return { ...safePadX(base), paddingTop: `max(${base}, env(safe-area-inset-top, 0px))`, paddingBottom: `max(${base}, env(safe-area-inset-bottom, 0px))` };
+}
+
 /**
  * How far the on-screen keyboard covers the bottom of the page, from the visual viewport. Browsers that shrink only the
  * visual viewport (Chrome Android with the default `interactive-widget`, iOS Safari) leave fixed bottom sheets behind the
@@ -80,4 +85,15 @@ export function keyboardInset(layoutHeight: number, vv: { height: number; offset
   if (vv.scale > 1.01) return 0;
   const covered = Math.round(layoutHeight - vv.height - vv.offsetTop);
   return covered >= 120 ? covered : 0;
+}
+
+/** Share of the stick's travel that is ignored, so a resting thumb does not make the avatar creep. */
+export const STICK_DEADZONE = 0.12;
+
+/** Radial dead zone with rescaling: 0 inside the zone, then a smooth climb to full tilt (a full push is still exactly 1). */
+export function applyDeadzone(x: number, y: number, zone = STICK_DEADZONE): { x: number; y: number } {
+  const m = Math.hypot(x, y);
+  if (!(m > zone)) return { x: 0, y: 0 };
+  const k = Math.min(1, (m - zone) / (1 - zone)) / m;
+  return { x: x * k, y: y * k };
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { labelHeightFactor } from "./labelScale";
 import { makeLabelTexture, makeSoftSprite } from "./materials";
 
 /** World label that keeps a steady, readable size on screen (small when you are next to it, larger when far away). */
@@ -11,13 +12,15 @@ export function Label({ text, color, y, scale = 1 }: { text: string; color: stri
   useEffect(() => () => texture.dispose(), [texture]);
   const ref = useRef<THREE.Sprite>(null);
   const tmp = useMemo(() => new THREE.Vector3(), []);
-  useFrame(({ camera }) => {
+  useFrame(({ camera, size }) => {
     const s = ref.current;
     if (!s) return;
     s.getWorldPosition(tmp);
     const real = camera.position.distanceTo(tmp);
     const d = Math.min(46, Math.max(5, real));
-    const h = 0.034 * d * scale;
+    // never smaller than a readable size on short screens (a phone held sideways); unchanged on tall ones
+    const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 62;
+    const h = labelHeightFactor(size.height, fov) * d * scale;
     s.scale.set(h * aspect, h, 1);
     // far labels fade out so a distant cluster of terminals never turns into a wall of text
     (s.material as THREE.SpriteMaterial).opacity = Math.max(0, Math.min(1, (44 - real) / 16));

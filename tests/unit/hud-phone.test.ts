@@ -196,6 +196,13 @@ describe("pause menu", () => {
     expect(menu()).not.toContain("source-note");
   });
 
+  it("offers the vibration switch only where the browser can vibrate (the app has its own setting)", () => {
+    expect(menu()).not.toContain("vibration-toggle");
+    const html = menu({ vibration: { on: true, onChange: noop } });
+    expect(html).toContain('data-testid="vibration-toggle"');
+    expect(html).toContain("Vibration");
+  });
+
   it("uses two columns on a phone held sideways so Resume needs no scrolling", () => {
     expect(menu()).not.toContain("grid-cols-2");
     view.layout = sideways();

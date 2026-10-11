@@ -231,6 +231,7 @@ export const game = defineDict(
     "hud.tutorial.move.touch": "Drag the joystick to move; drag the screen to look around.",
     "hud.tutorial.guide.short": "Follow the glowing beam to your next goal.",
     "hud.tutorial.interact.short": "Next to something glowing, tap “{label}”.",
+    "hud.vibration": "Vibration (phones)",
   },
   {
     "hud.score": "ניקוד",
@@ -462,5 +463,6 @@ export const game = defineDict(
     "hud.tutorial.move.touch": "גררו את הג׳ויסטיק כדי ללכת, וגררו את המסך כדי להסתכל.",
     "hud.tutorial.guide.short": "עקבו אחרי קרן האור אל היעד הבא.",
     "hud.tutorial.interact.short": "ליד משהו זוהר, לחצו על “{label}”.",
+    "hud.vibration": "רטט (בטלפון)",
   },
 );

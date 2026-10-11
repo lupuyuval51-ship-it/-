@@ -139,21 +139,21 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
             <span className="min-w-0 flex-1 break-words">{label}</span>
             {b.t === "repeat" && !disabled && (
               <span className="flex items-center gap-1">
-                <button type="button" aria-label={`${t("a11y.program.fewer")}: ${label}`} className="grid min-h-9 min-w-9 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, -1)}><span aria-hidden>−</span></button>
-                <button type="button" aria-label={`${t("a11y.program.more")}: ${label}`} className="grid min-h-9 min-w-9 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, 1)}><span aria-hidden>+</span></button>
+                <button type="button" aria-label={`${t("a11y.program.fewer")}: ${label}`} className="grid min-h-11 min-w-11 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, -1)}><span aria-hidden>−</span></button>
+                <button type="button" aria-label={`${t("a11y.program.more")}: ${label}`} className="grid min-h-11 min-w-11 place-items-center rounded bg-ink-600" onClick={() => setCount(at, i, 1)}><span aria-hidden>+</span></button>
               </span>
             )}
-            {!disabled && <button type="button" data-block-delete aria-label={t("a11y.program.delete", { delete: t("common.delete"), label })} className="grid min-h-9 min-w-9 place-items-center rounded text-rose hover:bg-rose/20" onClick={() => removeAt(at, i)}><span aria-hidden>×</span></button>}
+            {!disabled && <button type="button" data-block-delete aria-label={t("a11y.program.delete", { delete: t("common.delete"), label })} className="grid min-h-11 min-w-11 place-items-center rounded text-rose hover:bg-rose/20" onClick={() => removeAt(at, i)}><span aria-hidden>×</span></button>}
           </div>
           {container && (
             <div className="ms-4 space-y-1">
-              <button type="button" aria-pressed={samePath(path, bodyPath)} onClick={() => setPath(bodyPath)} className={cx("min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, bodyPath) ? "border-neon text-neon" : "border-line text-muted")}>
+              <button type="button" aria-pressed={samePath(path, bodyPath)} onClick={() => setPath(bodyPath)} className={cx("min-h-11 w-full rounded-md border border-dashed px-2 py-1 text-start text-[0.8125rem]", samePath(path, bodyPath) ? "border-neon text-neon" : "border-line text-muted")}>
                 {samePath(path, bodyPath) ? t("challenge.program.insideLoop") : t("block.nested")}
               </button>
               <ul className="space-y-1">{renderList(b.body, bodyPath)}</ul>
               {b.t === "if" && (
                 <>
-                  <button type="button" aria-pressed={samePath(path, elsePath)} onClick={() => setPath(elsePath)} className={cx("min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", samePath(path, elsePath) ? "border-neon text-neon" : "border-line text-muted")}>
+                  <button type="button" aria-pressed={samePath(path, elsePath)} onClick={() => setPath(elsePath)} className={cx("min-h-11 w-full rounded-md border border-dashed px-2 py-1 text-start text-[0.8125rem]", samePath(path, elsePath) ? "border-neon text-neon" : "border-line text-muted")}>
                     {t("block.else")}
                   </button>
                   <ul className="space-y-1">{renderList(b.else, elsePath)}</ul>
@@ -183,7 +183,7 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
             </div>
           </div>
           <div className="rounded-xl border border-line bg-ink-900 p-2" ref={listRef}>
-            <button type="button" aria-pressed={path.length === 0} onClick={() => setPath([])} className={cx("mb-2 min-h-9 w-full rounded-md border border-dashed px-2 py-1 text-start text-xs", path.length === 0 ? "border-neon text-neon" : "border-line text-muted")}>
+            <button type="button" aria-pressed={path.length === 0} onClick={() => setPath([])} className={cx("mb-2 min-h-11 w-full rounded-md border border-dashed px-2 py-1 text-start text-[0.8125rem]", path.length === 0 ? "border-neon text-neon" : "border-line text-muted")}>
               {t("challenge.program.addTo", { where: path.length === 0 ? t("challenge.program.top") : t("block.nested") })}
             </button>
             {program.length === 0 ? <p className="p-2 text-sm text-muted">{t("challenge.program.empty")}</p> : <ul className="space-y-1" data-testid="program" aria-label={t("a11y.program.list")}>{renderList(program, [])}</ul>}
