@@ -4,7 +4,9 @@ import android.content.res.Configuration;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.ViewGroup;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.core.graphics.ColorUtils;
@@ -14,10 +16,12 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.WebViewListener;
 
 /**
  * Native shell of the offline app. Everything the user sees is the web bundle in the WebView; this class only
- * (1) switches off WebView capabilities the app never uses and (2) fits the page between the system bars.
+ * (1) switches off WebView capabilities the app never uses, (2) fits the page between the system bars and
+ * (3) survives the WebView's render process being killed (out of memory on a weak phone) instead of crashing the app.
  *
  * Why (2): the app targets API 36. From Android 15 the system draws every app edge-to-edge (behind the status bar,
  * the gesture/navigation bar and the camera cut-out) and Android 16 removes the opt-out. Capacitor 7 does not inset
@@ -35,6 +39,12 @@ public class MainActivity extends BridgeActivity {
     private static final int PAGE_DARK = 0xFF060914;
     private static final int PAGE_LIGHT = 0xFFF5F7FC;
 
+    /** Render-process recoveries allowed per window; more than that is a crash loop and is left to the system. */
+    private static final int MAX_RENDERER_RECOVERIES = 2;
+    private static final long RECOVERY_WINDOW_MS = 60_000;
+    private static int rendererRecoveries = 0;
+    private static long recoveryWindowStart = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(FilesPlugin.class); // before super.onCreate, which builds the bridge
@@ -44,6 +54,7 @@ public class MainActivity extends BridgeActivity {
         if (getBridge() == null) return;
         WebView webView = getBridge().getWebView();
         hardenWebView(webView);
+        recoverFromRendererLoss();
         applyPageColor(webView, isNight(getResources().getConfiguration()) ? PAGE_DARK : PAGE_LIGHT);
         fitSystemBars(webView);
     }
@@ -53,6 +64,30 @@ public class MainActivity extends BridgeActivity {
         super.onConfigurationChanged(newConfig);
         // `uiMode` is handled by the activity (no restart): follow the system light/dark switch; the page then refines it.
         if (getBridge() != null) applyPageColor(getBridge().getWebView(), isNight(newConfig) ? PAGE_DARK : PAGE_LIGHT);
+    }
+
+    /**
+     * The WebView's render process can be killed by the system to reclaim memory (a 3D game on a weak phone, or the app in the
+     * background) or can crash. Capacitor does not handle that, and an unhandled loss terminates the whole app. A WebView whose
+     * renderer is gone cannot be reused, so start a fresh activity with a fresh WebView: games and progress are in local storage,
+     * the user lands on the library.
+     * https://developer.android.com/develop/ui/views/layout/webapps/managing-webview (Termination Handling API)
+     * A renderer that keeps dying right after a restart is not retried (that would loop): it falls back to the system behaviour.
+     */
+    private void recoverFromRendererLoss() {
+        getBridge().addWebViewListener(new WebViewListener() {
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                long now = SystemClock.elapsedRealtime();
+                if (now - recoveryWindowStart > RECOVERY_WINDOW_MS) {
+                    recoveryWindowStart = now;
+                    rendererRecoveries = 0;
+                }
+                if (++rendererRecoveries > MAX_RENDERER_RECOVERIES) return false;
+                runOnUiThread(MainActivity.this::recreate);
+                return true;
+            }
+        });
     }
 
     /** Called (on the UI thread) by SystemBarsPlugin with the colour the page is currently showing. */

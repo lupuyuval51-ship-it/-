@@ -58,6 +58,7 @@ Lean release (`android/app/build.gradle`, `proguard-rules.pro`, `res/raw/keep.xm
 | FileProvider | cache + the app's own `Pictures/` only | Capacitor's template shared the whole external storage root; nothing in the app uses the provider (no camera input). |
 | Backup file hand-off | `FilesPlugin` writes the backup text to the app's private cache and opens Android's share sheet | The WebView has no Web Share API for files (MDN browser-compat-data: `navigator.canShare` is unsupported in Android WebView) and Capacitor 7 sets no download listener, so a `<a download href="blob:…">` click is dropped; so *Settings → Backup → Export my games* would otherwise do nothing in the app (`mobile/src/native.ts` routes that click to the plugin; the page is unchanged). No storage permission; nothing leaves the phone unless the user picks a target. |
 | WebView | file access off, geolocation off, debugging off, mixed content off | `MainActivity.hardenWebView`, `capacitor.config.ts`. Content access stays on: the file chooser (notes import, backup import) returns `content://` URIs. |
+| WebView renderer loss | `MainActivity.recoverFromRendererLoss`: a killed or crashed WebView render process restarts the activity (at most 2 times per minute) instead of crashing the app | The system kills the renderer to reclaim memory (a 3D game on a weak phone, or the app in the background); Capacitor does not handle it, and an unhandled loss terminates the app, which shows up as a crash in Android vitals ([Termination Handling API](https://developer.android.com/develop/ui/views/layout/webapps/managing-webview)). Games and progress are in local storage; the user lands on the library. |
 | Native HTTP/cookies | `CapacitorHttp` and `CapacitorCookies` disabled | Their native requests bypass the page's CSP. Note: Capacitor registers those core plugins unconditionally, so the CSP is not a hard network boundary against an injected script; the "no request while signed out" rule is held by the app's code and tested. |
 | CSP (`mobile/index.html`) | `connect-src 'self' https://<project>.supabase.co`, `object-src 'none'`, `base-uri 'self'` | Unchanged; now covered by `tests/unit/android-shell.test.ts`. `script-src 'unsafe-inline'` stays: Capacitor injects its bridge as an inline script on WebViews without `DOCUMENT_START_SCRIPT`. |
 
@@ -179,6 +180,8 @@ Build: `npx cap sync android && cd android && ./gradlew bundleRelease` (then `as
 8. File import still works (*New game → load a .txt/.md*, *Settings → Backup → Import from a file*) — the WebView file settings changed —
    and **backup export opens the share sheet** (*Settings → Backup → Export my games*): save it to Drive/Files, then re-import it. If the share
    sheet does not open, check `adb logcat` for "LevelUpFiles" / FileProvider errors.
-9. WebGL game plays, sound, vibration setting, the optional account (sign up/in, sync, delete) over HTTPS.
+9. WebGL game plays, sound, vibration setting, the optional account (sign up/in, sync, delete) over HTTPS. Renderer loss: with the
+   app open, `adb shell ps -A | grep sandboxed_process`, then `adb shell kill <pid>` of the app's WebView renderer: the app must come
+   back to the library, not close with "keeps stopping".
 10. `adb shell dumpsys package app.levelup.learn3d | grep -i backup` shows no allowed backup; `adb backup` yields nothing.
 11. `npm run test:e2e:mobile` (web bundle only; native behaviour is covered by the list above).

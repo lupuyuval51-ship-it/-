@@ -88,6 +88,10 @@ describe("WebView and Capacitor configuration", () => {
     expect(activity).toContain("WindowInsetsCompat.Type.ime()");
     expect(activity).toContain("setAllowFileAccess(false)");
     expect(activity).toContain("setGeolocationEnabled(false)");
+    // a killed WebView renderer restarts the activity, but never in a loop
+    expect(activity).toContain("onRenderProcessGone");
+    expect(activity).toMatch(/MAX_RENDERER_RECOVERIES = \d+;/);
+    expect(activity).toContain("if (++rendererRecoveries > MAX_RENDERER_RECOVERIES) return false;");
   });
 
   it("Content-Security-Policy: connect-src is exactly 'self' and the Supabase project, no wildcard, no eval", () => {
