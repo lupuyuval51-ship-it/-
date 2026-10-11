@@ -137,10 +137,10 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")} style={{ ...(shortLandscape ? safePadX("0.5rem") : {}), ...(lifted ? { paddingBottom: kb, alignItems: "flex-end" } : {}) }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} style={lifted ? { maxHeight: `calc(100dvh - ${kb}px - 0.5rem)` } : undefined} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
-        <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>
+        <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-3 sm:p-4")}>
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
-            <h2 id="challenge-title" dir="auto" className={cx("font-bold", shortLandscape ? "text-base" : "text-lg")}>{challenge.title}</h2>
+            <h2 id="challenge-title" dir="auto" className={cx("font-bold", shortLandscape ? "text-base" : "text-base sm:text-lg")}>{challenge.title}</h2>
             <div className="flex flex-wrap gap-1.5">
               <Badge tone="violet">{t("challenge.level", { n: challenge.level })}</Badge>
               <Badge>{t("challenge.concept")}: {challenge.concept}</Badge>
