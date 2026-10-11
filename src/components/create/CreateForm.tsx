@@ -172,7 +172,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
   return (
     <form onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
       <Alert tone={backend.kind === "demo" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
-        {backend.kind === "ai" && t("create.provider.ai", { provider: backend.label })}
+        {backend.kind === "ai" && t("create.provider.ai")}
         {backend.kind === "demo" && t("create.provider.demo")}
         {backend.kind === "unavailable" && t("create.provider.unavailable", { reason: backend.reason ?? "" })}
       </Alert>
