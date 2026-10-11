@@ -425,6 +425,20 @@ describe("saves from earlier app versions load and play", () => {
     expect(normalizeSession(structuredClone(rawSession))).toEqual(rawSession);
   });
 
+  it("reading never drops data the game wrote: position, checkpoint (with its yaw), records, bonuses", () => {
+    const ctx = populated();
+    editStored(ctx.kv, `session.${ctx.sessionId}`, (v) => {
+      const st = v.state as Record<string, unknown>;
+      st.position = { x: 1.5, y: 0, z: -2, yaw: 0.25 };
+      st.checkpoint = { id: "a-hall:cp1", areaId: "a-hall", x: 1, y: 0, z: -2, yaw: -1.5 };
+      st.bossesDefeated = ["boss-final"];
+      st.streak = 4;
+    });
+    const raw = JSON.parse(ctx.kv.get(`${PREFIX}session.${ctx.sessionId}`)!) as { state: unknown };
+    expect(ctx.store.getSession(ctx.sessionId)!.state).toEqual(raw.state);
+    expect(Object.keys((ctx.store.getSession(ctx.sessionId)!.state.records))).not.toHaveLength(0);
+  });
+
   it("normalizeState returns null only when there is no area to resume in, and drops unsafe keys", () => {
     expect(normalizeState(null)).toBeNull();
     expect(normalizeState({})).toBeNull();

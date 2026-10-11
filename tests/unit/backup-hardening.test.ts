@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  BACKUP_FORMAT, BackupError, createBackup, fileTooLarge, importBackup, MAX_BACKUP_BYTES, MAX_BACKUP_FILE_BYTES, MAX_GAMES, MAX_SESSIONS, parseBackup, serializeBackup,
+  BACKUP_ERROR_CODES, BACKUP_FORMAT, BackupError, createBackup, fileTooLarge, importBackup, MAX_BACKUP_BYTES, MAX_BACKUP_FILE_BYTES, MAX_GAMES, MAX_SESSIONS, parseBackup, serializeBackup,
   type BackupFile,
 } from "@/lib/offline/backup";
+import { DICTIONARIES } from "@/lib/i18n";
 import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOffline } from "@/lib/offline/generate";
 import { checkGameRecord, revalidateSpec } from "@/lib/offline/records";
@@ -85,6 +86,20 @@ describe("backup round trip keeps everything the rules depend on", () => {
     importBackup(dst, JSON.stringify(b));
     expect(dst.getGame(src.game.id)!.spec.meta.generator).toBeUndefined();
     expect(dst.listGames()[0]!.generatorKind).toBe("demo");
+  });
+});
+
+describe("every backup problem has a message in both languages", () => {
+  it("each error code, plus the read/save failures and the storage warnings, has non-empty Hebrew and English text", () => {
+    const keys = [...BACKUP_ERROR_CODES.map((c) => `mob.backup.err.${c}`), "mob.backup.err.READ", "mob.backup.err.SAVE", "mob.backup.skipped.runs", "mob.storage.full", "mob.storage.blocked", "mob.storage.damaged", "mob.storage.purge", "mob.storage.purged"];
+    for (const locale of ["he", "en"] as const) {
+      for (const key of keys) expect((DICTIONARIES[locale] as Record<string, string>)[key]?.length, `${locale} ${key}`).toBeGreaterThan(3);
+    }
+    // placeholders match between the two languages
+    for (const key of keys) {
+      const params = (l: "he" | "en") => ((DICTIONARIES[l] as Record<string, string>)[key]!.match(/\{\w+\}/g) ?? []).sort();
+      expect(params("he"), key).toEqual(params("en"));
+    }
   });
 });
 

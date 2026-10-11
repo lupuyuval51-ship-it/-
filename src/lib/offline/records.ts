@@ -56,7 +56,10 @@ export function normalizeState(raw: unknown): PlayState | null {
     v: 1,
     areaId: raw.areaId,
     position: point(pos, ["x", "y", "z", "yaw"]) ? { x: pos.x, y: pos.y, z: pos.z, yaw: pos.yaw } : null,
-    checkpoint: point(cp, ["x", "y", "z"]) && typeof cp.id === "string" && typeof cp.areaId === "string" ? { id: cp.id, areaId: cp.areaId, x: cp.x, y: cp.y, z: cp.z } : null,
+    // (a saved checkpoint also carries the player's `yaw` at run time, although the type does not list it: keep it, a read must not drop data)
+    checkpoint: point(cp, ["x", "y", "z"]) && typeof cp.id === "string" && typeof cp.areaId === "string"
+      ? ({ id: cp.id, areaId: cp.areaId, x: cp.x, y: cp.y, z: cp.z, ...(point(cp, ["yaw"]) ? { yaw: (cp as unknown as { yaw: number }).yaw } : {}) } as PlayState["checkpoint"])
+      : null,
     served: mapOf(raw.served, (x) => (typeof x === "string" ? x : undefined)),
     records: mapOf(raw.records, normalizeRecord),
     resolvedStations: mapOf(raw.resolvedStations, (x) => (x === "correct" || x === "revealed" ? x : undefined)),
@@ -128,7 +131,7 @@ const playStateSchema = z.object({
   v: z.literal(1),
   areaId: z.string().max(200),
   position: z.object({ x: z.number().finite(), y: z.number().finite(), z: z.number().finite(), yaw: z.number().finite() }).nullable(),
-  checkpoint: z.object({ id: z.string().max(200), areaId: z.string().max(200), x: z.number().finite(), y: z.number().finite(), z: z.number().finite() }).nullable(),
+  checkpoint: z.object({ id: z.string().max(200), areaId: z.string().max(200), x: z.number().finite(), y: z.number().finite(), z: z.number().finite(), yaw: z.number().finite().optional() }).nullable(),
   served: rec(z.string().max(200)),
   records: rec(challengeRecordSchema),
   resolvedStations: rec(z.enum(["correct", "revealed"])),

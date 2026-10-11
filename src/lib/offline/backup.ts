@@ -40,7 +40,9 @@ export interface BackupFile {
   deck: DeckCard[];
 }
 
-export type BackupErrorCode = "TOO_LARGE" | "NOT_JSON" | "NOT_A_BACKUP" | "NEWER_VERSION" | "INVALID" | "EXPORT_TOO_LARGE" | "STORAGE_FULL" | "STORAGE_UNAVAILABLE";
+/** Every reason a backup can fail; the screen has a message `mob.backup.err.<CODE>` for each (checked by a test, in both languages). */
+export const BACKUP_ERROR_CODES = ["TOO_LARGE", "NOT_JSON", "NOT_A_BACKUP", "NEWER_VERSION", "INVALID", "EXPORT_TOO_LARGE", "STORAGE_FULL", "STORAGE_UNAVAILABLE"] as const;
+export type BackupErrorCode = (typeof BACKUP_ERROR_CODES)[number];
 export class BackupError extends Error {
   constructor(public code: BackupErrorCode, message: string) {
     super(message);
