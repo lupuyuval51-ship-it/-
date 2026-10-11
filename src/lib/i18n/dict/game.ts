@@ -227,6 +227,10 @@ export const game = defineDict(
     "ach.completed.desc": "Finished every mission.",
     "ach.no_hints.desc": "Finished without asking for a hint.",
     "ach.flawless.desc": "Every challenge right on the first try.",
+    // phone play polish: short first-run card for touch screens
+    "hud.tutorial.move.touch": "Drag the joystick to move; drag the screen to look around.",
+    "hud.tutorial.guide.short": "Follow the glowing beam to your next goal.",
+    "hud.tutorial.interact.short": "Next to something glowing, tap “{label}”.",
   },
   {
     "hud.score": "ניקוד",
@@ -454,5 +458,9 @@ export const game = defineDict(
     "ach.completed.desc": "סיימתם את כל המשימות.",
     "ach.no_hints.desc": "סיימתם בלי לבקש רמז.",
     "ach.flawless.desc": "כל האתגרים נכונים בניסיון ראשון.",
+    // phone play polish: short first-run card for touch screens
+    "hud.tutorial.move.touch": "גררו את הג׳ויסטיק כדי ללכת, וגררו את המסך כדי להסתכל.",
+    "hud.tutorial.guide.short": "עקבו אחרי קרן האור אל היעד הבא.",
+    "hud.tutorial.interact.short": "ליד משהו זוהר, לחצו על “{label}”.",
   },
 );

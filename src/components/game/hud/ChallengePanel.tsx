@@ -9,7 +9,9 @@ import type { Block } from "@/lib/game/spec/schema";
 import { radioStep, radioTabIndex } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
+import { safePadX } from "./hudLayout";
 import { useDialogFocus } from "./useDialogFocus";
+import { useKeyboardInset } from "./useKeyboardInset";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
 
@@ -104,7 +106,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // a wrong answer gives the panel a short shake (skipped when the player prefers reduced motion)
   useEffect(() => {
     const el = ref.current;
-    if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches || el.closest(".reduce-motion")) return;
     el.animate(
       [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }],
       { duration: 420, easing: "ease-in-out" },
@@ -121,9 +123,13 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
   const { shortLandscape } = useLayout();
+  // On phones whose on-screen keyboard only covers the page (it does not resize it), the sheet lifts above the keyboard so
+  // the answer field and the "Check" button stay visible while typing a number.
+  const kb = useKeyboardInset();
+  const lifted = kb > 0;
   return (
-    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
+    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")} style={{ ...(shortLandscape ? safePadX("0.5rem") : {}), ...(lifted ? { paddingBottom: kb, alignItems: "flex-end" } : {}) }}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} style={lifted ? { maxHeight: `calc(100dvh - ${kb}px - 0.5rem)` } : undefined} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
         <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>
           <div className="min-w-0 flex-1 space-y-1">
@@ -136,7 +142,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape"><X aria-hidden className="size-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape" className="min-w-11"><X aria-hidden className="size-4" /></Button>
         </header>
 
         <div role="status" aria-live="polite" className="sr-only" data-testid="challenge-live">
@@ -182,7 +188,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           )}
         </div>
 
-        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : "p-3")}>
+        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : lifted ? "p-3" : "p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]")}>
           {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t("challenge.hint")}</Button> : <span />}
           {resolved ? (
             <Button onClick={onClose} data-testid="challenge-close">{t("challenge.close")}</Button>
