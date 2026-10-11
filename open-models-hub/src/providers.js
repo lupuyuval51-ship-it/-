@@ -3,7 +3,7 @@
 
 export function providerDefs(env = process.env) {
   return [
-    { id: 'openrouter', name: 'OpenRouter', kind: 'cloud', base: 'https://openrouter.ai/api/v1', key: env.OPENROUTER_API_KEY, keyUrl: 'https://openrouter.ai/keys', headers: { 'X-Title': 'OpenModels Hub' } },
+    { id: 'openrouter', name: 'OpenRouter', kind: 'cloud', base: 'https://openrouter.ai/api/v1', key: env.OPENROUTER_API_KEY, keyUrl: 'https://openrouter.ai/keys', headers: { 'X-Title': 'OPEN' } },
     { id: 'together', name: 'Together AI', kind: 'cloud', base: 'https://api.together.xyz/v1', key: env.TOGETHER_API_KEY, keyUrl: 'https://api.together.ai/settings/api-keys' },
     { id: 'deepinfra', name: 'DeepInfra', kind: 'cloud', base: 'https://api.deepinfra.com/v1/openai', key: env.DEEPINFRA_API_KEY, keyUrl: 'https://deepinfra.com/dash/api_keys' },
     { id: 'groq', name: 'Groq', kind: 'cloud', base: 'https://api.groq.com/openai/v1', key: env.GROQ_API_KEY, keyUrl: 'https://console.groq.com/keys' },

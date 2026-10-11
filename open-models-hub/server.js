@@ -8,14 +8,13 @@ import { createRegistry } from './src/registry.js';
 import { SECURITY_HEADERS, createLimiter, safeEqual, validateChat } from './src/security.js';
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
-const BODY_LIMIT = 256 * 1024;
-const MAX_STREAMS_PER_IP = 6;
 
 export function createApp({ config = loadConfig(), providers = providerDefs(config.env), registry, fetchImpl = fetch, publicDir = path.join(root, 'public') } = {}) {
   registry ||= createRegistry({ providers, fetchImpl, snapshotPath: path.join(root, 'data', 'models.snapshot.json'), log: m => console.warn(m) });
-  const chatLimiter = createLimiter({ max: 40 });
+  const { limits } = config;
+  const chatLimiter = createLimiter({ max: limits.ratePerMin });
   const streams = new Map();
-  let lastManualRefresh = 0;
+  let refreshing = null;
 
   const json = (res, status, body) => {
     res.writeHead(status, { 'content-type': MIME['.json'], 'cache-control': 'no-store', ...SECURITY_HEADERS });
@@ -35,7 +34,7 @@ export function createApp({ config = loadConfig(), providers = providerDefs(conf
     const chunks = [];
     for await (const c of req) {
       size += c.length;
-      if (size > BODY_LIMIT) throw Object.assign(new Error('too_large'), { status: 413 });
+      if (size > limits.bodyLimitMb * 1024 * 1024) throw Object.assign(new Error('too_large'), { status: 413 });
       chunks.push(c);
     }
     try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw Object.assign(new Error('invalid_json'), { status: 400 }); }
@@ -48,7 +47,7 @@ export function createApp({ config = loadConfig(), providers = providerDefs(conf
 
   async function chat(req, res) {
     const ip = clientIp(req);
-    if (!chatLimiter(ip)) return fail(res, 429, 'rate_limited', 'Too many requests, slow down');
+    if (!chatLimiter(ip)) return fail(res, 429, 'rate_limited', 'Rate limit reached (RATE_LIMIT_PER_MIN)');
     let body;
     try { body = await readJson(req); } catch (e) { return fail(res, e.status || 400, e.message); }
     const v = validateChat(body);
@@ -67,11 +66,11 @@ export function createApp({ config = loadConfig(), providers = providerDefs(conf
     const provider = providers.find(p => p.id === route.provider);
     if (!usable(route)) return fail(res, 400, 'no_provider_key', `Add an API key for ${provider.name} (Settings), or configure it on the server`);
     if (!authorized(req, Boolean(ownKey))) return fail(res, 401, 'access_code', 'Access code required');
-    if ((streams.get(ip) || 0) >= MAX_STREAMS_PER_IP) return fail(res, 429, 'too_many_streams', 'Too many parallel streams');
+    if (limits.streamsPerIp > 0 && (streams.get(ip) || 0) >= limits.streamsPerIp) return fail(res, 429, 'too_many_streams', 'Too many parallel streams');
 
     const ctl = new AbortController();
     res.on('close', () => { if (!res.writableEnded) ctl.abort(); });
-    const signal = AbortSignal.any([ctl.signal, AbortSignal.timeout(5 * 60 * 1000)]);
+    const signal = limits.streamTimeoutSec > 0 ? AbortSignal.any([ctl.signal, AbortSignal.timeout(limits.streamTimeoutSec * 1000)]) : ctl.signal;
     streams.set(ip, (streams.get(ip) || 0) + 1);
     try {
       const events = await openChat({ provider, apiKey: ownKey || provider.key, modelId: route.modelId, messages, params, signal, fetchImpl });
@@ -120,9 +119,9 @@ export function createApp({ config = loadConfig(), providers = providerDefs(conf
       }
       if (pathname === '/api/refresh' && req.method === 'POST') {
         if (!authorized(req, false)) return fail(res, 401, 'access_code', 'Access code required');
-        if (Date.now() - lastManualRefresh < 60000) return fail(res, 429, 'cooldown', 'Catalog was refreshed less than a minute ago');
-        lastManualRefresh = Date.now();
-        return json(res, 200, await registry.refresh());
+        // Concurrent refreshes share one run, so the upstream catalogs are never hit twice at once.
+        refreshing ||= registry.refresh().finally(() => { refreshing = null; });
+        return json(res, 200, await refreshing);
       }
       if (pathname === '/api/chat' && req.method === 'POST') return await chat(req, res);
       if (pathname.startsWith('/api/')) return fail(res, 404, 'not_found');
@@ -142,7 +141,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const { server, registry, providers } = createApp({ config });
   const refresh = () => registry.refresh().then(s => console.log(`catalog: ${s.count} models (${s.source})`));
   server.listen(config.port, () => {
-    console.log(`OpenModels Hub on http://localhost:${config.port}`);
+    console.log(`OPEN on http://localhost:${config.port}`);
     const keyed = providers.filter(p => p.hasKey).map(p => p.name);
     console.log(`providers with server keys: ${keyed.join(', ') || 'none (users bring their own key, or use local Ollama)'}`);
     if (keyed.length && !config.accessCode && config.production) console.warn('WARNING: server provider keys are set but HUB_ACCESS_CODE is empty – anyone who can reach this server can spend them.');

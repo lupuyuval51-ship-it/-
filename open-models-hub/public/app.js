@@ -139,7 +139,7 @@ function viewCatalog(main) {
     else if (b.dataset.chat) location.hash = `#/chat/${encodeURIComponent(b.dataset.chat)}`;
     else if (b.dataset.cmp) {
       const id = b.dataset.cmp, i = state.compare.indexOf(id);
-      if (i >= 0) state.compare.splice(i, 1); else if (state.compare.length < 4) state.compare.push(id); else return toast(t('cmp_sub'));
+      if (i >= 0) state.compare.splice(i, 1); else state.compare.push(id);
       paint();
     } else if (b.dataset.go) location.hash = '#/compare';
     else if ('clear' in b.dataset) { state.compare = []; paint(); }
@@ -242,13 +242,13 @@ function viewChat(main) {
       <label class="field">${esc(t('provider'))}<select id="prov">${(m?.routes || []).map(r => `<option value="${esc(r.provider)}" ${r.provider === (c.provider || pickProvider(m, '')) ? 'selected' : ''}>${esc(state.providers.find(p => p.id === r.provider)?.name || r.provider)} · ${esc(t('st_' + (providerStatus(r.provider) || 'needs_key')))}</option>`).join('')}</select></label>
       <label class="field">${esc(t('system'))}<textarea id="sys" rows="3" dir="auto" placeholder="${esc(t('system_ph'))}">${esc(c.system || '')}</textarea></label>
       <label class="field">${esc(t('temperature'))}: <output id="tv">${c.temperature ?? 0.7}</output><input id="temp" type="range" min="0" max="2" step="0.1" value="${c.temperature ?? 0.7}"></label>
-      <label class="field">${esc(t('max_tokens'))}<input id="max" type="number" min="1" max="8192" value="${c.maxTokens ?? 2048}"></label>
+      <label class="field">${esc(t('max_tokens'))}<input id="max" type="number" min="1" placeholder="${esc(t('auto'))}" value="${c.maxTokens ?? ''}"></label>
       <button id="new" type="button">${esc(t('new_chat'))}</button><p class="note">${esc(t('open_weights'))}</p></aside>
     <section><div id="log" role="log" aria-label="${esc(t('nav_chat'))}"></div>
       <form class="composer" id="composer"><textarea id="input" rows="2" dir="auto" placeholder="${esc(t('msg_ph'))}" aria-label="${esc(t('msg_ph'))}"></textarea><button class="primary" id="send">${esc(t('send'))}</button></form></section></div>`;
   const log = $('#log');
   for (const msg of c.messages) { const el = msgEl(msg.role === 'user' ? t('you') : m?.name, msg.role); $('.body', el).innerHTML = renderMd(msg.content); log.append(el); }
-  const sync = () => { c.system = $('#sys').value; c.temperature = +$('#temp').value; c.maxTokens = +$('#max').value || 2048; c.provider = $('#prov').value; };
+  const sync = () => { c.system = $('#sys').value; c.temperature = +$('#temp').value; c.maxTokens = Math.floor(+$('#max').value) || undefined; c.provider = $('#prov').value; };
   $('#temp').oninput = e => ($('#tv').textContent = e.target.value);
   $('#model').onchange = e => { location.hash = `#/chat/${encodeURIComponent(e.target.value)}`; };
   $('#new').onclick = () => { c.messages = []; viewChat(main); };
@@ -272,11 +272,13 @@ function viewChat(main) {
 
 // ---------- compare ----------
 function viewCompare(main) {
-  const slots = [0, 1, 2, 3].map(i => state.compare[i] || '');
+  const slots = Array.from({ length: Math.max(4, state.compare.length + 1) }, (_, i) => state.compare[i] || '');
+  const slotHtml = (id, i) => `<label class="field">${esc(t('cmp_slot', i + 1))}<select data-slot="${i}">${modelOptions(id, { empty: t('cmp_none') })}</select></label>`;
   main.innerHTML = `<h1>${esc(t('cmp_title'))}</h1><p class="sub">${esc(t('cmp_sub'))}</p>
-    <div class="slots">${slots.map((id, i) => `<label class="field">${esc(t('cmp_slot', i + 1))}<select data-slot="${i}">${modelOptions(id, { empty: t('cmp_none') })}</select></label>`).join('')}</div>
+    <div class="slots" id="slots">${slots.map(slotHtml).join('')}</div><button type="button" id="add-slot" class="ghost">+ ${esc(t('add_slot'))}</button>
     <form id="cmp"><textarea id="prompt" rows="3" dir="auto" placeholder="${esc(t('cmp_ph'))}" aria-label="${esc(t('cmp_ph'))}"></textarea>
     <div class="actions"><button class="primary" id="run">${esc(t('run'))}</button></div></form><div class="cols" id="cols"></div>`;
+  $('#add-slot').onclick = () => $('#slots').insertAdjacentHTML('beforeend', slotHtml('', document.querySelectorAll('[data-slot]').length));
   let ctl = null;
   $('#cmp').onsubmit = async e => {
     e.preventDefault();
@@ -289,7 +291,7 @@ function viewCompare(main) {
     const cols = $('#cols'); cols.innerHTML = '';
     await Promise.all(ids.map(id => {
       const el = msgEl(byId(id).name, 'assistant'); cols.append(el);
-      return runInto(el, { modelId: id, provider: '', messages: [{ role: 'user', content: prompt }], params: { max_tokens: 1500 } }, ctl.signal);
+      return runInto(el, { modelId: id, provider: '', messages: [{ role: 'user', content: prompt }], params: {} }, ctl.signal);
     }));
     ctl = null; if ($('#run')) $('#run').textContent = t('run');
   };

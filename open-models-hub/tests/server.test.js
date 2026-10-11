@@ -14,7 +14,7 @@ async function boot({ env = {}, upstream } = {}) {
   const fetchImpl = fakeFetch();
   const registry = createRegistry({ providers, fetchImpl });
   await registry.refresh();
-  const { server } = createApp({ config: { ...loadConfig({}), accessCode: env.HUB_ACCESS_CODE || '' }, providers, registry, fetchImpl });
+  const { server } = createApp({ config: loadConfig(env), providers, registry, fetchImpl });
   const base = await listen(server);
   return { base, up, stop: async () => { await close(server); await close(up.server); } };
 }
@@ -77,7 +77,8 @@ test('chat input is validated', async () => {
       [{ ...chatBody(), messages: [{ role: 'tool', content: 'x' }] }, 'invalid_messages'],
       [{ ...chatBody(), messages: [{ role: 'assistant', content: 'x' }] }, 'last_message_must_be_user'],
       [{ ...chatBody(), params: { temperature: 9 } }, 'invalid_temperature'],
-      [{ ...chatBody(), params: { max_tokens: 99999 } }, 'invalid_max_tokens'],
+      [{ ...chatBody(), params: { max_tokens: 0 } }, 'invalid_max_tokens'],
+      [{ ...chatBody(), params: { max_tokens: 1.5 } }, 'invalid_max_tokens'],
       [{ ...chatBody(), model: 42 }, 'invalid_model']
     ];
     for (const [body, code] of cases) {
@@ -86,9 +87,43 @@ test('chat input is validated', async () => {
       assert.equal((await r.json()).error.code, code);
     }
     assert.equal((await post(s.base, chatBody({ model: 'nope/nope' }))).status, 404);
-    const big = await fetch(`${s.base}/api/chat`, { method: 'POST', body: 'x'.repeat(300000) });
-    assert.equal(big.status, 413);
   } finally { await s.stop(); }
+});
+
+test('OPEN has no usage caps by default: huge prompts, many messages and big max_tokens all go through', async () => {
+  const s = await boot();
+  try {
+    const history = Array.from({ length: 200 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'x'.repeat(5000) }));
+    history.push({ role: 'user', content: 'y'.repeat(300000) });
+    const res = await post(s.base, chatBody({ messages: history, params: { max_tokens: 1000000 } }));
+    assert.equal(res.status, 200);
+    assert.equal((await events(res)).at(-1).type, 'done');
+    assert.equal(s.up.seen[0].body.max_tokens, 1000000);
+    assert.equal(s.up.seen[0].body.messages.length, 201);
+    for (let i = 0; i < 80; i++) assert.equal((await post(s.base, chatBody())).status, 200, `request ${i}`); // no rate limit
+  } finally { await s.stop(); }
+});
+
+test('max_tokens is not defaulted when the user leaves it empty', async () => {
+  const s = await boot();
+  try {
+    await (await post(s.base, chatBody())).text();
+    assert.equal('max_tokens' in s.up.seen[0].body, false);
+  } finally { await s.stop(); }
+});
+
+test('limits are opt-in: RATE_LIMIT_PER_MIN and BODY_LIMIT_MB work when the operator sets them', async () => {
+  const s = await boot({ env: { RATE_LIMIT_PER_MIN: '2', BODY_LIMIT_MB: '1' } });
+  try {
+    assert.equal((await post(s.base, chatBody())).status, 200);
+    assert.equal((await post(s.base, chatBody())).status, 200);
+    assert.equal((await post(s.base, chatBody())).status, 429);
+  } finally { await s.stop(); }
+  const s2 = await boot({ env: { BODY_LIMIT_MB: '1' } });
+  try {
+    const big = await fetch(`${s2.base}/api/chat`, { method: 'POST', body: 'x'.repeat(2 * 1024 * 1024) });
+    assert.equal(big.status, 413);
+  } finally { await s2.stop(); }
 });
 
 test('a model with no usable provider explains what to do', async () => {
@@ -141,11 +176,12 @@ test('upstream failures map to clear errors', async () => {
   }
 });
 
-test('refresh endpoint has a cooldown', async () => {
+test('refresh can be repeated freely, and concurrent refreshes share one run', async () => {
   const s = await boot();
   try {
+    const rs = await Promise.all([1, 2, 3].map(() => fetch(`${s.base}/api/refresh`, { method: 'POST' })));
+    assert.deepEqual(rs.map(r => r.status), [200, 200, 200]);
     assert.equal((await fetch(`${s.base}/api/refresh`, { method: 'POST' })).status, 200);
-    assert.equal((await fetch(`${s.base}/api/refresh`, { method: 'POST' })).status, 429);
   } finally { await s.stop(); }
 });
 
@@ -166,6 +202,8 @@ test('rate limiter and validator unit checks', () => {
   assert.ok(lim('b'));
   t = 1500;
   assert.ok(lim('a'));
-  assert.equal(validateChat({ model: 'm', messages: [{ role: 'user', content: 'x' }] }).value.params.max_tokens, 2048);
-  assert.equal(validateChat({ model: 'm', messages: [{ role: 'user', content: 'x'.repeat(20001) }] }).error, 'invalid_messages');
+  assert.equal(validateChat({ model: 'm', messages: [{ role: 'user', content: 'x' }] }).value.params.max_tokens, undefined);
+  assert.equal(validateChat({ model: 'm', messages: [{ role: 'user', content: 'x'.repeat(1e6) }] }).error, undefined);
+  const free = createLimiter({ max: 0 });
+  for (let i = 0; i < 1000; i++) assert.ok(free('a')); // 0 = unlimited
 });

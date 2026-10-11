@@ -1,8 +1,8 @@
 {
-  "name": "open-models-hub",
+  "name": "open-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "OpenModels Hub – one place to browse, chat with and compare open-weight models (Qwen, DeepSeek, Kimi, GLM, Llama, Mistral, Gemma, gpt-oss and more)",
+  "description": "OPEN – one place to browse, chat with and compare open-weight models (Qwen, DeepSeek, Kimi, GLM, Llama, Mistral, Gemma, gpt-oss and more)",
   "type": "module",
   "scripts": {
     "dev": "node server.js",

@@ -18,6 +18,13 @@ export function loadConfig(env = process.env) {
     production: env.NODE_ENV === 'production',
     accessCode: env.HUB_ACCESS_CODE || '',
     trustProxy: env.TRUST_PROXY === 'true',
+    // Usage limits are opt-in: 0 means unlimited. bodyLimitMb is memory protection, not a usage cap.
+    limits: {
+      ratePerMin: int(env.RATE_LIMIT_PER_MIN, 0),
+      streamsPerIp: int(env.MAX_STREAMS_PER_IP, 0),
+      streamTimeoutSec: int(env.STREAM_TIMEOUT_SECONDS, 0),
+      bodyLimitMb: Math.max(1, int(env.BODY_LIMIT_MB, 32))
+    },
     refreshMinutes: Math.max(5, int(env.CATALOG_REFRESH_MINUTES, 360)),
     appUrl: env.APP_URL || `http://localhost:${int(env.PORT, 3100)}`,
     env
