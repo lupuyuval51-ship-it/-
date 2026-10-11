@@ -4,6 +4,7 @@ import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
+import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress, OfflineGenerationError, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
@@ -36,7 +37,7 @@ export function CreatePage() {
       const { spec } = await generateOfflineWithProgress({
         mode, subject: subject.trim(), learningGoal: goal.trim() || subject.trim(), difficulty, gameType, contentLanguage: language,
         material: material.trim() || undefined,
-      }, (percent, stage) => setProgress({ percent, stage }));
+      }, (percent, stage) => setProgress({ percent, stage }), new Date(), getOfflineTier());
       setProgress({ percent: 95, stage: "saving" });
       const game = store.addGame(spec);
       setProgress({ percent: 100, stage: "saving" });

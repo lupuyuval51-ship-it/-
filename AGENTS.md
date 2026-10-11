@@ -31,6 +31,7 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
   the app makes no network request (tested). CSP `connect-src` lists exactly `'self'` and the project URL — never `*`.
   Schema changes go through `supabase/migrations/`; re-run the Supabase security advisor afterwards.
 - Paid features there must use Google Play Billing, never Stripe. Generated games must still pass `validateGameSpec` and keep their `generatorKind` label.
+- Feature tiers apply on the device too: `generateOffline(…, tier)` refuses what the tier lacks (`TIER_LOCKED`) and clamps the rest with `clampToFeatureTier`; the tier comes from `src/lib/offline/entitlement.ts`, which stays at full tier A until Google Play Billing supplies the purchased plan.
 - Run `npm run test:e2e:mobile` for changes that affect it.
 
 ## Working agreements
