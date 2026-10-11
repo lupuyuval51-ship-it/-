@@ -82,9 +82,11 @@ interface Props {
   onSubmit: (a: Answer) => void;
   onHint: () => void;
   onClose: () => void;
+  /** Shown inside a page (the practice screen) instead of covering the whole play screen: it is not lifted above the keyboard. */
+  embedded?: boolean;
 }
 
-export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose }: Props) {
+export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose, embedded = false }: Props) {
   const t = useT();
   const resolved = result?.resolved ?? false;
   const ref = useRef<HTMLDivElement>(null);
@@ -126,7 +128,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // On phones whose on-screen keyboard only covers the page (it does not resize it), the sheet lifts above the keyboard so
   // the answer field and the "Check" button stay visible while typing a number.
   const kb = useKeyboardInset();
-  const lifted = kb > 0;
+  const lifted = kb > 0 && !embedded;
   // A phone held sideways has room for two panes: the question on one side, the answers (and the verdict) on the other,
   // each scrolling on its own. The robot and simulation widgets are wide, so they keep one column. Only classes change
   // between the layouts, never the element tree, so turning the phone does not reset a half-made answer.

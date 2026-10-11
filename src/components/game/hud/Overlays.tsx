@@ -67,10 +67,16 @@ export function ScorePopups({ popups }: { popups: Popup[] }) {
  * Title card shown for a few seconds when an area opens. The text lives in CSS (`content: attr(...)`), so it adds no
  * duplicate of the area name or mission title to the page's text.
  */
-export function AreaBanner({ name, subtitle }: { name: string; subtitle?: string }) {
+export function AreaBanner({ name, subtitle, calm = false }: { name: string; subtitle?: string; /** Reduced motion: the card just appears for a few seconds (the slide-in animation would otherwise be cut to nothing). */ calm?: boolean }) {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (!calm) return;
+    const id = setTimeout(() => setGone(true), 3200);
+    return () => clearTimeout(id);
+  }, [calm]);
   // Decorative title card: the area name is already announced by the top bar, so the card is hidden from assistive tech.
   return (
-    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20">
+    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20" style={calm ? { animation: "none", opacity: gone ? 0 : 1 } : undefined}>
       <span className="lu-banner-title" dir="auto">{name}</span>
       {subtitle && <span className="lu-banner-sub" dir="auto">{subtitle}</span>}
     </div>
@@ -164,8 +170,8 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">
                 <span className="uppercase tracking-wide">{t("hud.area")}</span>
                 {source && (
-                  <span title={source.hint} data-testid="source-badge" className={cx("inline-flex items-center gap-1 rounded-full px-1.5 py-px text-[11px] font-semibold", source.tone)}>
-                    <source.Icon aria-hidden className="size-3 shrink-0" />{source.text}
+                  <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-[11px] font-semibold", source.tone)}>
+                    <source.Icon aria-hidden className="mt-px size-3 shrink-0" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
                   </span>
                 )}
               </p>

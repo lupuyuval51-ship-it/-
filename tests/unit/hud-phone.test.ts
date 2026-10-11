@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/I18nProvider";
 import { InputState } from "@/components/game/input";
-import { InteractPrompt, PauseMenu, Toasts, TopBar, TouchControls, TutorialCard } from "@/components/game/hud/Overlays";
+import { AreaBanner, InteractPrompt, PauseMenu, Toasts, TopBar, TouchControls, TutorialCard } from "@/components/game/hud/Overlays";
 import { ChallengePanel } from "@/components/game/hud/ChallengePanel";
 import { renderProfileFor } from "@/config/graphics";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
@@ -83,6 +83,18 @@ describe("toasts sit right under the top bar", () => {
     expect(render(h(Toasts, { toasts }))).toContain("top-16");
     view.layout = sideways();
     expect(render(h(Toasts, { toasts }))).toContain("top-12");
+  });
+});
+
+describe("area title card with reduced motion", () => {
+  it("animates normally, and just shows for a few seconds when motion is reduced", () => {
+    const normal = render(h(AreaBanner, { name: "Nile Valley", subtitle: "Find the scribe" }));
+    expect(normal).toContain('aria-hidden="true"');
+    expect(normal).not.toContain("animation:none");
+    const calm = render(h(AreaBanner, { name: "Nile Valley", calm: true }));
+    expect(calm).toContain("animation:none");
+    expect(calm).toContain("opacity:1");
+    expect(calm).toContain('data-title="Nile Valley"'); // still the same element for assistive tests and tools
   });
 });
 
