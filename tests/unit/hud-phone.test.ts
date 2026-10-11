@@ -234,6 +234,19 @@ describe("challenge panel on a phone", () => {
     expect(html).toMatch(/aria-label="Close"[^>]*min-w-11|min-w-11[^>]*aria-label="Close"/);
   });
 
+  it("shows the question and the answers side by side on a phone held sideways (except for the wide widgets)", () => {
+    expect(panel()).not.toContain("grid-cols-2");
+    view.layout = sideways();
+    const html = panel();
+    expect(html).toContain("grid-cols-2");
+    // the question comes first, then the answers (DOM order = reading and focus order)
+    expect(html.indexOf('data-testid="challenge-question"')).toBeLessThan(html.indexOf('data-testid="challenge-answer"'));
+    expect(html.indexOf('data-testid="challenge-answer"')).toBeLessThan(html.indexOf('role="radiogroup"'));
+    const program: PublicChallenge = { id: "p", title: "Robot", prompt: "p", concept: "c", level: 1, hasHint: false, type: "program", maxBlocks: 4, allowed: ["move"], grid: { width: 3, height: 3, start: { x: 0, y: 0, dir: "E" }, goal: { x: 2, y: 2 }, walls: [] } };
+    const wide = render(h(ChallengePanel, { challenge: program, stationLabel: "T", result: null, hint: null, busy: false, onSubmit: noop, onHint: noop, onClose: noop }));
+    expect(wide).not.toContain("grid-cols-2");
+  });
+
   it("pads the sides by the notch when the phone is sideways", () => {
     expect(panel()).not.toContain("env(safe-area-inset-left");
     view.layout = sideways();
