@@ -14,6 +14,7 @@ import { Backdrop } from "./Backdrop";
 import { Life } from "./Life";
 import { Entities } from "./Entities";
 import { Companion, GuideBeams, GuideProjector } from "./Guide";
+import type { GuideInsets } from "./guideBand";
 import { DPR_SCALE, FrameGovernor, MIN_DPR, degradeProfile } from "./governor";
 import { createMaterialSet } from "./materials";
 import { ParticleEmitter, Particles } from "./Particles";
@@ -35,6 +36,8 @@ export interface GameCanvasProps {
   exposeStats?: boolean;
   guide: GuideModel;
   guideMarker: RefObject<HTMLDivElement | null>;
+  /** The screen band the objective marker may use (the HUD keeps it clear of the top bar and the controls). */
+  guideInsets?: RefObject<GuideInsets>;
   guideLabel: (kind: GuideKind, name: string, meters: number) => string;
   /** Accessible name of the canvas (translated by the host). */
   sceneLabel?: string;
@@ -204,7 +207,7 @@ function Scene(props: GameCanvasProps) {
           <NoRender />
           {props.onUnityFrame && <UnityFrameDriver runtime={runtime} client={props.client} onFrame={props.onUnityFrame} />}
           <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
-          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} insets={props.guideInsets} />
         </>
       ) : (
         <>
@@ -218,7 +221,7 @@ function Scene(props: GameCanvasProps) {
           <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
           <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
           <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
-          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} insets={props.guideInsets} />
           <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
         </>
       )}

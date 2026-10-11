@@ -20,6 +20,9 @@ import { withReaction } from "@/lib/game/state/reactions";
 import { Minimap } from "./hud/Minimap";
 import { SceneAnnouncer } from "./hud/SceneAnnouncer";
 import { useWakeLock } from "./hud/useWakeLock";
+import { guideInsets } from "./hud/hudLayout";
+import { DEFAULT_GUIDE_INSETS, type GuideInsets } from "./scene/guideBand";
+import { useLayout } from "./useLayout";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
 import { UnityView, unityBuildAvailable } from "./UnityView";
@@ -96,6 +99,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const onUnityFrame = useCallback((frame: UnityFrame) => unitySend.current?.(frame), []);
   const guide = useMemo(() => new GuideModel(), []);
   const guideMarker = useRef<HTMLDivElement>(null);
+  // where the objective marker may be pinned: under the top bar and above the controls (updated without re-rendering the scene)
+  const markerInsets = useRef<GuideInsets>(DEFAULT_GUIDE_INSETS);
+  const layout = useLayout();
+  useEffect(() => {
+    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale });
+  }, [hudBottom, layout.height, layout.touchScale, touch]);
   const input = useMemo(() => new InputState(), []);
   const emitter = useMemo(() => new ParticleEmitter(), []);
   const audio = useMemo(() => new GameAudio(), []);
@@ -452,7 +461,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   return (
     <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} fixed inset-0 select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
+        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideInsets={markerInsets} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
       {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
       {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}

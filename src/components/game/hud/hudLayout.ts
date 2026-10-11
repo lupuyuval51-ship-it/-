@@ -1,4 +1,5 @@
 import { TOUCH_METRICS, type TouchScale } from "@/lib/layout";
+import { DEFAULT_GUIDE_INSETS, MIN_BAND_PX, type GuideInsets } from "../scene/guideBand";
 
 /**
  * Where the HUD may put things so they never sit on top of the on-screen controls.
@@ -108,4 +109,18 @@ export function applyDeadzone(x: number, y: number, zone = STICK_DEADZONE): { x:
   if (!(m > zone)) return { x: 0, y: 0 };
   const k = Math.min(1, (m - zone) / (1 - zone)) / m;
   return { x: x * k, y: y * k };
+}
+
+/**
+ * The band the objective marker may use: under the top bar (measured by the bar itself) and above the on-screen controls
+ * (their size from the touch metrics). Before the bar has reported its size the old fixed band is used.
+ */
+export function guideInsets(o: { hudBottom: number | undefined; viewportHeight: number; touch: boolean; scale: TouchScale; rootPx?: number }): GuideInsets {
+  const rootPx = o.rootPx ?? 16;
+  const top = o.hudBottom === undefined || !Number.isFinite(o.hudBottom) ? DEFAULT_GUIDE_INSETS.top : Math.round(o.hudBottom + 14);
+  const controls = o.touch ? Math.round((controlsHeightRem(o.scale) + controlsPadRem(o.scale).bottom) * rootPx) + 18 : 72;
+  // on a very short screen the controls win the argument: keep a usable band between the two
+  const room = o.viewportHeight - top - MIN_BAND_PX;
+  const bottom = Math.max(16, Math.min(controls, Number.isFinite(room) ? room : controls));
+  return { top, bottom, left: DEFAULT_GUIDE_INSETS.left, right: DEFAULT_GUIDE_INSETS.right };
 }

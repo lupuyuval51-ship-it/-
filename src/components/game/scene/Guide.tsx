@@ -8,6 +8,7 @@ import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
 import type { EnvTheme } from "@/lib/game/world/types";
 import type { InputState } from "../input";
+import { DEFAULT_GUIDE_INSETS, markerBand, type GuideInsets } from "./guideBand";
 import { makeSoftSprite } from "./materials";
 
 /** Several beams can be active at once (talk + two terminals + a coin); six covers every mission. */
@@ -206,11 +207,12 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
  * Projects the primary objective to the screen and writes the result straight into the HUD marker element
  * (transform + text), so the marker costs no React renders. Off-screen targets pin to the edge with an arrow.
  */
-export function GuideProjector({ runtime, model, markerRef, label }: { runtime: GameRuntime; model: GuideModel; markerRef: RefObject<HTMLDivElement | null>; label: (kind: GuideKind, name: string, meters: number) => string }) {
+export function GuideProjector({ runtime, model, markerRef, label, insets }: { runtime: GameRuntime; model: GuideModel; markerRef: RefObject<HTMLDivElement | null>; label: (kind: GuideKind, name: string, meters: number) => string; /** Where the HUD leaves room for the marker (read every frame, so the HUD can change it without a render). */ insets?: RefObject<GuideInsets> }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const v = useMemo(() => new THREE.Vector3(), []);
   const lastText = useRef("");
+  const markerWidth = useRef(0);
 
   useFrame(() => {
     const el = markerRef.current;
@@ -230,7 +232,7 @@ export function GuideProjector({ runtime, model, markerRef, label }: { runtime: 
     const W = size.width, H = size.height;
     let sx = ((behind ? -v.x : v.x) * 0.5 + 0.5) * W;
     let sy = ((behind ? v.y : -v.y) * 0.5 + 0.5) * H;
-    const left = 28, right = W - 28, top = 132, bottom = H - 120;
+    const { left, right, top, bottom } = markerBand(W, H, insets?.current ?? DEFAULT_GUIDE_INSETS, markerWidth.current);
     const inside = !behind && sx > left && sx < right && sy > top && sy < bottom;
     let angle = 180; // pointing down at the target when it is on screen
     if (!inside) {
@@ -258,6 +260,7 @@ export function GuideProjector({ runtime, model, markerRef, label }: { runtime: 
       lastText.current = text;
       const t = el.firstElementChild?.lastElementChild as HTMLElement | null;
       if (t) t.textContent = text;
+      markerWidth.current = el.offsetWidth; // measured only when the text changes, so the pinned marker's label never runs off a side edge
     }
   });
   return null;

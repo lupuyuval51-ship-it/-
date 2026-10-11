@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDeadzone, bottomAboveControls, bottomEdge, controlsHeightRem, controlsInsetStyle, controlsPadRem, keyboardInset, landscapeReserveRem, landscapeStrip, safePadAll, safePadX, sideWithInset, STICK_DEADZONE, topWithInset } from "@/components/game/hud/hudLayout";
+import { applyDeadzone, bottomAboveControls, bottomEdge, controlsHeightRem, controlsInsetStyle, controlsPadRem, guideInsets, keyboardInset, landscapeReserveRem, landscapeStrip, safePadAll, safePadX, sideWithInset, STICK_DEADZONE, topWithInset } from "@/components/game/hud/hudLayout";
 import { computeLayout, TOUCH_METRICS } from "@/lib/layout";
 
 describe("controls clearance (derived from the touch metrics)", () => {
@@ -146,5 +146,40 @@ describe("stick dead zone", () => {
     const d = applyDeadzone(0.6, 0.8);
     expect(Math.hypot(d.x, d.y)).toBeCloseTo(1);
     expect(Math.hypot(applyDeadzone(3, 4).x, applyDeadzone(3, 4).y)).toBeCloseTo(1);
+  });
+});
+
+describe("band for the objective marker", () => {
+  it("keeps the old band until the top bar has reported its size", () => {
+    const g = guideInsets({ hudBottom: undefined, viewportHeight: 800, touch: false, scale: "regular" });
+    expect(g.top).toBe(132);
+    expect(g.left).toBe(28);
+  });
+
+  it("starts under the top bar and ends above the touch controls", () => {
+    const g = guideInsets({ hudBottom: 150, viewportHeight: 800, touch: true, scale: "regular" });
+    expect(g.top).toBe(164);
+    // controls: 8.25rem tall + 1rem padding, plus a margin
+    expect(g.bottom).toBe(Math.round((8.25 + 1) * 16) + 18);
+    expect(800 - g.bottom).toBeGreaterThan(g.top + 80);
+  });
+
+  it("gives bigger controls more room, and keyboard players less", () => {
+    const phone = guideInsets({ hudBottom: 100, viewportHeight: 900, touch: true, scale: "regular" });
+    const tablet = guideInsets({ hudBottom: 100, viewportHeight: 900, touch: true, scale: "large" });
+    const desktop = guideInsets({ hudBottom: 100, viewportHeight: 900, touch: false, scale: "regular" });
+    expect(tablet.bottom).toBeGreaterThan(phone.bottom);
+    expect(desktop.bottom).toBeLessThan(phone.bottom);
+  });
+
+  it("never squeezes the band below a usable height, even on a short landscape screen", () => {
+    const g = guideInsets({ hudBottom: 140, viewportHeight: 320, touch: true, scale: "compact" });
+    expect(320 - g.bottom - g.top).toBeGreaterThanOrEqual(80);
+    expect(g.bottom).toBeGreaterThanOrEqual(16);
+  });
+
+  it("copes with nonsense input", () => {
+    const g = guideInsets({ hudBottom: Number.NaN, viewportHeight: Number.NaN, touch: true, scale: "regular" });
+    expect(Number.isFinite(g.top) && Number.isFinite(g.bottom)).toBe(true);
   });
 });
