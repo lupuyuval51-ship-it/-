@@ -13,6 +13,9 @@ import { stripQuery } from "../router";
 import { ContinueCard, FilterBar, GameCard } from "./library-parts";
 import { Welcome } from "./Welcome";
 
+/** The chosen filter survives opening a game and coming back (kept for the app session only; a new launch starts at "All"). */
+let rememberedFilter: LibraryFilter = "all";
+
 export function LibraryPage() {
   const t = useT();
   const locale = useLocale();
@@ -23,7 +26,8 @@ export function LibraryPage() {
   if (lib.syncedAt !== lastSyncAt) setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
   const reload = () => setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
   const data = lib.data;
-  const [filter, setFilter] = useState<LibraryFilter>("all");
+  const [filter, setFilterState] = useState<LibraryFilter>(rememberedFilter);
+  const setFilter = (f: LibraryFilter) => { rememberedFilter = f; setFilterState(f); };
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   // First launch: a short, skippable intro above the library. "Show the welcome again" in Settings opens it on demand
