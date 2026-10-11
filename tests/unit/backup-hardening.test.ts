@@ -10,6 +10,7 @@ import { memoryKV, OfflineStore } from "@/lib/offline/store";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { request } from "./helpers";
 import { editStored, flakyKV, phone, populated, PREFIX } from "./offline-helpers";
+import { randomAction, rng } from "./random-play";
 
 const exportText = (store: OfflineStore) => JSON.stringify(createBackup(store, 5_000_000));
 const codeOf = (fn: () => unknown): string => { try { fn(); } catch (e) { return e instanceof BackupError ? e.code : `OTHER:${String(e)}`; } return "NONE"; };
@@ -214,18 +215,6 @@ describe("importing into a full phone", () => {
   });
 });
 
-/** Small deterministic random generator so a failure can be reproduced from its seed. */
-function rng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 function mutate(root: Json, rand: () => number): void {
   const nodes: { parent: Json[] | { [k: string]: Json }; key: string | number }[] = [];
@@ -296,5 +285,58 @@ describe("fuzz: whatever is in the file, the library stays valid and usable", ()
   it("an empty store still exports a valid file and importing it into memory-only storage works", () => {
     const empty = new OfflineStore(memoryKV());
     expect(parseBackup(serializeBackup(createBackup(empty, 1)))).toMatchObject({ games: [], sessions: [], deck: [] });
+  });
+});
+
+describe("property: a backup restores exactly what was exported", () => {
+  const content = (store: OfflineStore) => {
+    const d = store.exportData();
+    return {
+      games: d.games.map((g) => ({ id: g.id, title: g.title, spec: g.spec })).sort((a, b) => a.id.localeCompare(b.id)),
+      sessions: d.sessions.map((s) => ({ id: s.id, gameId: s.gameId, status: s.status, state: s.state, startedAt: s.startedAt, finishedAt: s.finishedAt })).sort((a, b) => a.id.localeCompare(b.id)),
+      cards: d.cards.map((c) => ({ key: c.key, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: c.due, mastered: c.mastered })).sort((a, b) => a.key.localeCompare(b.key)),
+    };
+  };
+
+  it("random libraries survive export, import into an empty device, and a second import changes nothing", () => {
+    let cards = 0;
+    let sessions = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const rand = rng(seed);
+      const src = phone(1_000_000);
+      for (let step = 0; step < 30; step++) { src.t.now += 1000; randomAction(src.store, rand); }
+      const before = content(src.store);
+      const text = serializeBackup(createBackup(src.store, 5));
+      const dst = phone(9_000_000);
+      const r = importBackup(dst.store, text);
+      expect(r.rejectedGames, `seed ${seed}`).toEqual([]);
+      expect(r.droppedSessions + r.droppedCards, `seed ${seed}`).toBe(0);
+      expect(content(dst.store), `seed ${seed}`).toEqual(before);
+      const rows = (store: OfflineStore) => store.listGames().map((g) => ({ ...g, createdAt: 0 })).sort((x, y) => x.id.localeCompare(y.id));
+      expect(rows(dst.store), `seed ${seed}`).toEqual(rows(src.store));
+      const again = importBackup(dst.store, text);
+      expect(again, `seed ${seed}`).toMatchObject({ gamesAdded: 0, gamesUpdated: 0, sessionsImported: 0, cardsImported: 0 });
+      expect(content(dst.store), `seed ${seed}`).toEqual(before);
+      cards += before.cards.length;
+      sessions += before.sessions.length;
+    }
+    expect(sessions).toBeGreaterThan(20);
+    expect(cards).toBeGreaterThan(0);
+  });
+
+  it("a restore never replaces newer data on the device with the older data of the file", () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const rand = rng(seed + 500);
+      const a = phone(1_000_000);
+      for (let step = 0; step < 15; step++) { a.t.now += 1000; randomAction(a.store, rand); }
+      const old = serializeBackup(createBackup(a.store, 1));
+      for (let step = 0; step < 15; step++) { a.t.now += 1000; randomAction(a.store, rand); }
+      const now = content(a.store);
+      importBackup(a.store, old);
+      // everything in `now` is still there exactly as it was (the older file may only add what was deleted/never existed... but never change it)
+      const after = content(a.store);
+      for (const s of now.sessions) expect(after.sessions.find((x) => x.id === s.id), `seed ${seed}`).toEqual(s);
+      for (const g of now.games) expect(after.games.find((x) => x.id === g.id), `seed ${seed}`).toEqual(g);
+    }
   });
 });

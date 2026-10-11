@@ -1,28 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { generateOffline } from "@/lib/offline/generate";
-import { OfflineError } from "@/lib/offline/store";
-import type { GameSpec } from "@/lib/game/spec/schema";
-import { findArea } from "@/lib/game/state/progress";
-import { request } from "./helpers";
 import { FakeCloud, phone } from "./offline-helpers";
-
-/** Small deterministic random generator so a failing run can be reproduced from its seed. */
-function rng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-const POOL: GameSpec[] = [
-  generateOffline(request({ subject: "Fractions" })).spec,
-  generateOffline(request({ subject: "Decimals", mode: "FAST" })).spec,
-  generateOffline(request({ subject: "Percent", mode: "FAST", contentLanguage: "he" })).spec,
-];
+import { randomAction, rng } from "./random-play";
 
 type Phone = ReturnType<typeof phone>;
 /** More seeds and longer runs for a deeper hunt: `FUZZ_SEEDS=300 FUZZ_STEPS=80 npx vitest run --project unit tests/unit/sync-fuzz.test.ts`. */
@@ -34,7 +12,6 @@ const BASE = 1_700_000_000_000;
 async function scenario(seed: number, clockOffMs: number, steps: number, log: string[]) {
   const rand = rng(seed);
   const roll = (n: number) => Math.floor(rand() * n);
-  const pick = <T,>(xs: T[]): T => xs[roll(xs.length)]!;
   const cloud = new FakeCloud();
   let real = BASE;
   cloud.tick = real;
@@ -47,40 +24,19 @@ async function scenario(seed: number, clockOffMs: number, steps: number, log: st
     const i = roll(2);
     const p = phones[i]!;
     at(i);
-    const games = p.store.listGames();
     const op = roll(10);
-    try {
-      if (op === 0 || games.length === 0) {
-        p.store.addGame(pick(POOL));
-        log.push(`${i}:add`);
-      } else if (op === 1) {
-        p.store.startSession(pick(games).id, rand() < 0.5);
-        log.push(`${i}:start`);
-      } else if (op <= 4) {
-        const g = pick(games);
-        const s = p.store.startSession(g.id, false); // resumes the run in progress (or begins one)
-        const area = findArea(p.store.getGame(g.id)!.spec, s.client.areaId)!;
-        const state = p.store.getSession(s.session.id)!.state;
-        const free = Array.from({ length: area.collectibles.count }, (_, k) => `${area.id}:c${k}`).filter((id) => !state.collected.includes(id));
-        if (rand() < 0.5 && free.length > 0) p.store.applyEvent(s.session.id, { type: "collect", itemId: free[0] });
-        else if (area.npcs.length > 0) p.store.applyEvent(s.session.id, { type: "talk", npcId: pick(area.npcs).id });
-        log.push(`${i}:move`);
-      } else if (op === 5 && rand() < 0.5) {
-        p.store.deleteGame(pick(games).id);
-        log.push(`${i}:delete`);
-      } else if (op === 6 && clockOffMs > 0 && rand() < 0.4) {
-        // the learner (or the network) changes this phone's clock, forwards or backwards
-        skew[i] = skew[i]! + Math.round((rand() - 0.5) * 2 * clockOffMs * 6);
-        at(i);
-        log.push(`${i}:clock`);
-      } else {
-        cloud.fail = rand() < 0.15;
-        log.push(`${i}:sync${cloud.fail ? "(fails)" : ""}`);
-        try { await p.sync(cloud); } catch (e) { if (!cloud.fail) throw e; }
-        cloud.fail = false;
-      }
-    } catch (e) {
-      if (!(e instanceof OfflineError)) throw e; // a refused move (wrong place, already done) is normal
+    if (op === 6 && clockOffMs > 0 && rand() < 0.4) {
+      // the learner (or the network) changes this phone's clock, forwards or backwards
+      skew[i] = skew[i]! + Math.round((rand() - 0.5) * 2 * clockOffMs * 6);
+      at(i);
+      log.push(`${i}:clock`);
+    } else if (op >= 6) {
+      cloud.fail = rand() < 0.15;
+      log.push(`${i}:sync${cloud.fail ? "(fails)" : ""}`);
+      try { await p.sync(cloud); } catch (e) { if (!cloud.fail) throw e; }
+      cloud.fail = false;
+    } else {
+      log.push(`${i}:${randomAction(p.store, rand)}`);
     }
   }
 
@@ -101,13 +57,15 @@ function snapshot(p: Phone) {
   const games = p.store.listGames().map((g) => g.id).sort();
   const runs = games.flatMap((id) => p.store.exportData().sessions.filter((s) => s.gameId === id).map((s) => ({ id: s.id, status: s.status, state: s.state })));
   runs.sort((a, b) => a.id.localeCompare(b.id));
-  return { games, runs };
+  const cards = p.store.exportData().cards.map((c) => ({ key: c.key, box: c.box, due: c.due, mastered: c.mastered })).sort((x, y) => x.key.localeCompare(y.key));
+  return { games, runs, cards };
 }
 
 describe("fuzz: two phones, one account, random play, a flaky network", () => {
   for (const clockOff of [0, 4_000, 600_000]) {
     it(`both phones end up with the same games and runs, and no damage (clocks up to ${clockOff / 1000} s apart)`, async () => {
       let totalGames = 0;
+      let totalCards = 0;
       for (let seed = 1; seed <= SEEDS; seed++) {
         const log: string[] = [];
         const why = () => `seed ${seed + clockOff} (${log.join(" ")})`;
@@ -117,6 +75,7 @@ describe("fuzz: two phones, one account, random play, a flaky network", () => {
         const [a, b] = [snapshot(phones[0]!), snapshot(phones[1]!)];
         expect(a.games, why()).toEqual(b.games);
         expect(a.runs, why()).toEqual(b.runs);
+        expect(a.cards, why()).toEqual(b.cards);
         const live = [...cloud.games.values()].filter((g) => g.deletedAt === null).map((g) => g.localId).sort();
         expect(a.games, `${why()}: cloud`).toEqual(live);
         for (const p of phones) {
@@ -125,8 +84,10 @@ describe("fuzz: two phones, one account, random play, a flaky network", () => {
           expect((await p.sync(cloud)).pushed, why()).toBe(0);
         }
         totalGames += a.games.length;
+        totalCards += a.cards.length;
       }
       expect(totalGames).toBeGreaterThan(10);
+      expect(totalCards).toBeGreaterThan(0); // the review deck takes part in the comparison
     });
   }
 });
