@@ -38,6 +38,11 @@ export const generationRequestSchema = z
     notes: text(INPUT_LIMITS.notesMax).optional(),
     /** The learner's own study material: with it, a game is built from these notes instead of a template. */
     material: optionalMaterial,
+    /**
+     * Where the game will be played, as the browser sees it. Only a hint: "phone" can only make the game easier to
+     * handle on a touch screen (see `fitForDevice`); it never unlocks anything.
+     */
+    device: z.enum(["phone", "desktop"]).optional(),
     /** EXTEND only: the saved game to add to. */
     targetGameId: z.string().min(1).max(40).optional(),
     extension: extensionOptionsSchema.optional(),

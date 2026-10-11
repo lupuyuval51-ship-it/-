@@ -34,6 +34,14 @@ function newKey(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+
+/** A touch-first, small screen: the game is fitted to a phone (a hint only; it can never unlock anything). */
+function playDevice(): "phone" | "desktop" {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "desktop";
+  const touch = window.matchMedia("(pointer: coarse)").matches;
+  const small = Math.min(window.screen?.width ?? window.innerWidth, window.screen?.height ?? window.innerHeight) < 820;
+  return touch && small ? "phone" : "desktop";
+}
 export function CreateForm({ backend, allowance, games, extensionMechanics, featureTier, initialMode = "FAST", initialGameId }: CreateFormProps) {
   const t = useT();
   const locale = useLocale();
@@ -102,6 +110,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           contentLanguage: get("contentLanguage"),
           notes: get("notes") || undefined,
           material: get("material") || undefined,
+          device: playDevice(),
         };
     try {
       const res = await fetch("/api/generations", {

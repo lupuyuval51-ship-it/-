@@ -1,6 +1,7 @@
 import "server-only";
 import type { GenerationJob, Prisma } from "@/generated/prisma/client";
 import { generationRequestSchema, type GenerationRequest } from "@/lib/schemas/generation";
+import { fitForDevice } from "@/lib/game/spec/device";
 import { clampToFeatureTier, maxTier } from "@/lib/game/spec/tier";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { ProviderError } from "../ai/errors";
@@ -111,8 +112,11 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
     // built at its own tier); only a lower plan's NEW content would be a problem, and a lower plan cannot extend at all.
     const clamped = clampToFeatureTier(built, tier);
     if (!clamped.ok) throw new PipelineError("TIER_BUILD_FAILED", "We could not build this game within your plan's features. You were not charged — try a different topic or game type.", clamped.errors.join(" | ").slice(0, 600));
-    const spec = clamped.spec;
-    if (clamped.notes.length) await updateJobProgress(jobId, { warnings: [...out.warnings, ...clamped.notes].slice(0, 20) });
+    // A game made on a phone is fitted to a touch screen (never for an extension: the original areas stay as they were).
+    const fitted = request.mode !== "EXTEND" && request.device === "phone" ? fitForDevice(clamped.spec, "phone") : { spec: clamped.spec, notes: [] as string[] };
+    const spec = fitted.spec;
+    const notes = [...clamped.notes, ...fitted.notes];
+    if (notes.length) await updateJobProgress(jobId, { warnings: [...out.warnings, ...notes].slice(0, 20) });
     const delivered = await succeedJob(jobId, (tx, j) => deliver(tx, j, spec, request, base));
     if (!delivered) console.warn(`[generation] job ${jobId} was already settled (timed out?); result discarded, no charge`);
   } catch (err) {

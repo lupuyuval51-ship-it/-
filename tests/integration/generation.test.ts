@@ -64,6 +64,23 @@ describe("generation pipeline — demo templates (labelled, never passed off as 
     expect(full.meta.estimatedMinutes).toBeGreaterThan(fast.meta.estimatedMinutes);
   });
 
+  it("a game made on a phone is fitted to a touch screen; the same request from a desktop is not, and the learning content is identical", async () => {
+    const u = await createTestUser();
+    await grantSubscription(u.id, "PRO");
+    const desktop = (await generate(u.id, req({ mode: "FULL", gameType: "platformer", device: "desktop" }), DEMO)).game!.spec as unknown as GameSpec;
+    const phone = (await generate(u.id, req({ mode: "FULL", gameType: "platformer", device: "phone" }), DEMO)).game!.spec as unknown as GameSpec;
+    expect(validateGameSpec(phone).ok).toBe(true);
+    expect(phone.mechanics).not.toContain("moving_platforms");
+    for (const a of phone.areas) {
+      expect(a.hazardLevel).not.toBe("high");
+      expect(a.size).not.toBe("large");
+      if (a.layout === "terraces") expect(a.size).toBe("small");
+    }
+    expect(phone.challenges.map((c) => c.id)).toEqual(desktop.challenges.map((c) => c.id));
+    expect(phone.missions.map((m) => m.id)).toEqual(desktop.missions.map((m) => m.id));
+    expect(phone.meta.generator).toMatchObject({ kind: "demo" });
+  });
+
   it("Extend: adds an area, missions and challenges, keeps old content, bumps the revision, and costs one credit", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
