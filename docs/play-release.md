@@ -117,7 +117,8 @@ are no ads, analytics or third-party SDKs besides Supabase's client library.
 users can request deletion "on the web page itself" (not by sending them back to the app); the page must name the app or
 developer as in the store listing; any retained data must be explained
 ([account deletion help](https://support.google.com/googleplay/android-developer/answer/13327111)). `mobile/store/account-deletion.md`
-covers it; add a working `mailto:` link or form at the top and the exact store app name.
+now leads with the e-mail request path and the in-app path; fill in the support address and your developer name (as in the
+store listing) and, if any data is kept after deletion (e.g. provider backups), say so.
 
 **App access (reviewers).** Login is optional and every feature of the app works without it, so choose "all functionality is
 available without special access". Because the account is a visible feature, also give reviewers a ready account in English
