@@ -28,14 +28,15 @@ Note: games are built by a rule-based engine or come from demo templates — not
 
 ## Play Console answers (as built)
 - Ads: **No**. In-app purchases: **No** (version 1 is free).
-- Data safety (version 1.2.0+, with the optional account):
-  - Data collected: **Personal info → Email address** (account management) and **App activity → Other user-generated content**
-    (games, progress, review list — app functionality, backup/sync). Both **optional** (only with an account).
+- Data safety (with the optional account; derivation and the full table in `docs/play-release.md`):
+  - Data collected: **Personal info → Email address** and **User IDs** (account management), **App activity → Other user-generated
+    content** (the games: title and generated content from the user's notes) and **Other actions** (play progress, review list)
+    — app functionality, backup/sync. All **optional** (only with an account).
   - Shared with third parties: **No**. Processed by our backend provider Supabase on our behalf (that is not "sharing").
   - Encrypted in transit: **Yes**. Users can request deletion: **Yes** (in-app + web page `account-deletion.md`).
   - Without an account nothing is collected.
-- Target audience: choose your ages. If you include under-13s, the Families policy applies — the app has no ads, no data collection and no external links, which is what that policy asks for.
+- Target audience: your decision. The optional account collects an e-mail address, so if under-13s are a target audience the Families policy (COPPA/GDPR, disclosure of personal information collected from children) applies — see `docs/play-release.md` §5. Simplest: 13+.
 - Content rating questionnaire: educational, no violence/sexual content/gambling, no user-to-user communication.
 - Privacy policy URL: host `privacy-policy.md` (e.g. GitHub Pages or Google Sites) and paste the link.
 - Data deletion URL (required because the app lets people create accounts): host `account-deletion.md` and paste the link.
-- App access for reviewers: no login is needed to use the app (the account is optional), so no test credentials are required.
+- App access for reviewers: no login is needed to use the app (the account is optional). Because the account is a visible feature, also give a ready, confirmed test account (e-mail + password, in English) in the App access instructions.

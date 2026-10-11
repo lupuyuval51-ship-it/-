@@ -1,9 +1,10 @@
 import { App } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import type { Feedback } from "@/components/game/PlayClient";
 import { getSettings } from "./app-state";
 import { backAction } from "./back";
+import { isShareableText } from "./export";
 import { navigate } from "./router";
 
 /**
@@ -23,6 +24,46 @@ export function installBackButton(): void {
       case "leave": void App.minimizeApp(); break;
     }
   });
+}
+
+interface LevelUpFiles {
+  share(options: { name: string; mime: string; text: string }): Promise<void>;
+}
+
+/**
+ * Android's WebView has no Web Share API and drops `<a download href="blob:…">`, so the page's "save backup file" would do
+ * nothing in the app. Here, a click on such a link hands the text to the native share sheet instead (`FilesPlugin.java`:
+ * "save to Drive / Files", e-mail, …). Only text/JSON blobs made with `URL.createObjectURL` are remembered, and they are
+ * forgotten when the page revokes them. The page itself needs no change, and nothing is sent anywhere by the app.
+ */
+function installFileDownloads(): void {
+  const files = registerPlugin<LevelUpFiles>("LevelUpFiles");
+  const blobs = new Map<string, Blob>();
+  const create = URL.createObjectURL.bind(URL);
+  const revoke = URL.revokeObjectURL.bind(URL);
+  URL.createObjectURL = (source: Blob | MediaSource) => {
+    const url = create(source);
+    if (source instanceof Blob && isShareableText(source.type, source.size)) blobs.set(url, source);
+    return url;
+  };
+  URL.revokeObjectURL = (url: string) => {
+    blobs.delete(url);
+    revoke(url);
+  };
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[download]") : null;
+    const blob = link ? blobs.get(link.href) : undefined;
+    if (!link || !blob) return;
+    event.preventDefault();
+    void blob.text().then((text) => files.share({ name: link.download, mime: blob.type, text })).catch(() => { /* the user can tap again */ });
+  }, true);
+}
+
+/** Hooks that only make sense inside the Android app; a no-op in a browser (tests, `npm run mobile:dev`). */
+export function installNativeShell(): void {
+  if (!Capacitor.isNativePlatform()) return;
+  installBackButton();
+  installFileDownloads();
 }
 
 /** Short vibrations for game events (can be switched off in Settings). */

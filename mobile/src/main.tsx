@@ -3,9 +3,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { startAccount } from "./cloud/account";
-import { installBackButton } from "./native";
+import { installNativeShell } from "./native";
 
-installBackButton();
+installNativeShell();
 startAccount();
 
 createRoot(document.getElementById("root")!).render(<StrictMode><App /></StrictMode>);

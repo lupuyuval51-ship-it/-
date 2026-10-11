@@ -32,6 +32,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(FilesPlugin.class); // before super.onCreate, which builds the bridge
         super.onCreate(savedInstanceState);
         // No WebView on the device: Capacitor has already shown its own message.
         if (getBridge() == null) return;

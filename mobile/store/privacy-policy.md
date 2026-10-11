@@ -3,7 +3,7 @@
 _Last updated: 2026-10-10_
 
 **English.**
-LEVEL UP works fully on your phone without an account. If you do not sign in, nothing leaves your device: the games you create, the notes you paste and your progress are stored only in the app's storage on your phone (and may be included in your own Android device backup).
+LEVEL UP works fully on your phone without an account. If you do not sign in, nothing leaves your device: the games you create, the notes you paste and your progress are stored only in the app's storage on your phone. The app does not take part in Android's automatic backup, so this data is not copied to Google or to another phone unless you choose to (the optional account below, or a backup file you export and save yourself).
 
 **Optional account and cloud backup.** If you choose to create an account, we store, in our cloud database (Supabase, servers in the EU — Frankfurt):
 - your email address and a securely hashed password (used only to sign you in);
@@ -17,7 +17,7 @@ This data is sent encrypted (HTTPS), is accessible only to your own account (row
 Contact: _add your support e-mail here_.
 
 **עברית.**
-LEVEL UP עובדת במלואה בטלפון גם בלי חשבון. אם לא מתחברים, שום מידע לא יוצא מהמכשיר: המשחקים שיוצרים, החומר שמדביקים וההתקדמות נשמרים רק באחסון של האפליקציה בטלפון (וייתכן שייכללו בגיבוי של מכשיר האנדרואיד שלכם).
+LEVEL UP עובדת במלואה בטלפון גם בלי חשבון. אם לא מתחברים, שום מידע לא יוצא מהמכשיר: המשחקים שיוצרים, החומר שמדביקים וההתקדמות נשמרים רק באחסון של האפליקציה בטלפון. האפליקציה אינה משתתפת בגיבוי האוטומטי של אנדרואיד, ולכן המידע אינו מועתק אל גוגל או אל טלפון אחר, אלא אם בחרתם בכך (החשבון האופציונלי שלמטה, או קובץ גיבוי שאתם מייצאים ושומרים בעצמכם).
 
 **חשבון וגיבוי בענן — אופציונלי.** אם בוחרים ליצור חשבון, נשמרים במסד הנתונים שלנו בענן (Supabase, שרתים באיחוד האירופי — פרנקפורט):
 - כתובת האימייל וסיסמה מוצפנת (לצורך התחברות בלבד);

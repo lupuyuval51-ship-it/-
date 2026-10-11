@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import config from "../../capacitor.config";
 import { backAction } from "../../mobile/src/back";
 import { SUPABASE_URL } from "../../mobile/src/cloud/config";
+import { isShareableText, MAX_SHARE_CHARS } from "../../mobile/src/export";
 
 /**
  * Guards for the Google Play build of the offline Android app (`android/`, `capacitor.config.ts`, `mobile/index.html`):
@@ -97,6 +98,28 @@ describe("WebView and Capacitor configuration", () => {
     expect(directives.get("object-src")).toEqual(["'none'"]);
     expect(directives.get("base-uri")).toEqual(["'self'"]);
     expect(csp).not.toMatch(/\*|unsafe-eval|http:/);
+  });
+});
+
+describe("native file hand-off (backup file in the Android WebView)", () => {
+  it("the page-side plugin name matches the registered native plugin, which uses a cache path the FileProvider shares", () => {
+    const activity = read("android/app/src/main/java/app/levelup/learn3d/MainActivity.java");
+    const plugin = read("android/app/src/main/java/app/levelup/learn3d/FilesPlugin.java");
+    expect(activity).toMatch(/registerPlugin\(FilesPlugin\.class\);\s*\/\/[^\n]*\n\s*super\.onCreate/); // registered before the bridge is built
+    const name = plugin.match(/@CapacitorPlugin\(name = "([^"]+)"\)/)?.[1];
+    expect(name).toBe("LevelUpFiles");
+    expect(read("mobile/src/native.ts")).toContain(`registerPlugin<LevelUpFiles>("${name}")`);
+    expect(plugin).toContain('".fileprovider"');
+    expect(plugin).toContain("getCacheDir()");
+    expect(read("android/app/src/main/res/xml/file_paths.xml")).toContain("<cache-path");
+    expect(read("android/app/src/main/AndroidManifest.xml")).toContain("${applicationId}.fileprovider");
+  });
+
+  it("only text and JSON of a sane size is handed over", () => {
+    expect(isShareableText("application/json", 1_000)).toBe(true);
+    expect(isShareableText("text/plain", 0)).toBe(true);
+    expect(isShareableText("application/json", MAX_SHARE_CHARS + 1)).toBe(false);
+    for (const type of ["image/png", "audio/wav", "application/octet-stream", ""]) expect(isShareableText(type, 10)).toBe(false);
   });
 });
 

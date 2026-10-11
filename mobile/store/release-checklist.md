@@ -2,6 +2,8 @@
 
 What was verified in the build environment, and what only you can do in Google Play Console.
 
+Target API level, the privacy/hardening settings of the Android build, Data safety answers and the checks to run on the built AAB (R8, merged manifest, Android 15+ insets, back button, backup export) are in [`docs/play-release.md`](../../docs/play-release.md); this list is the older, shorter checklist.
+
 ## Verified here (not a substitute for a real device)
 - AAB/APK built with Android Gradle Plugin **8.10.1** (supports API 36), Gradle 8.11.1, `compileSdk 36`, `targetSdk 36`, `minSdk 23`.
 - Signed; `jarsigner -verify` and `apksigner verify` pass. Package `app.levelup.learn3d`.
