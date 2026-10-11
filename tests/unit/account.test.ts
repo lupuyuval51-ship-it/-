@@ -60,10 +60,12 @@ function installBrowser() {
     key: (i: number) => [...data.keys()][i] ?? null,
     get length() { return data.size; },
   });
-  vi.stubGlobal("document", { addEventListener: vi.fn(), visibilityState: "visible" });
+  const doc = { visibilityState: "visible", handlers: [] as (() => void)[], addEventListener: (_type: string, fn: () => void) => void doc.handlers.push(fn) };
+  vi.stubGlobal("document", doc);
   vi.stubGlobal("window", { addEventListener: vi.fn() });
-  return data;
+  return { data, doc };
 }
+let browser: ReturnType<typeof installBrowser>;
 
 async function load() {
   vi.resetModules();
@@ -78,8 +80,8 @@ async function load() {
   return import("../../mobile/src/cloud/account");
 }
 
-beforeEach(() => { installBrowser(); });
-afterEach(() => { vi.unstubAllGlobals(); });
+beforeEach(() => { browser = installBrowser(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("account: signed out means silent", () => {
   it("no session: starting the account reads the saved sign-in and makes no cloud call", async () => {
@@ -100,6 +102,47 @@ describe("account: signed out means silent", () => {
   });
 });
 
+describe("account: when changes are sent", () => {
+  const change = () => (shared.store as OfflineStore).addGame(generateOffline(request()).spec);
+
+  it("a change made while a round is running is sent afterwards, not forgotten", async () => {
+    vi.useFakeTimers();
+    const acc = await load();
+    h.state.session = { user: { id: "u1" }, access_token: "t" };
+    let release!: () => void;
+    h.state.pullGate = new Promise<void>((r) => { release = r; });
+    acc.startAccount();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.state.pulls).toBe(1);
+    change(); // the learner plays on while the first round waits for the network
+    await vi.advanceTimersByTimeAsync(16_000); // the 15 s timer fires while the round is still busy and finds nothing to do
+    expect(h.state.pulls).toBe(1);
+    h.state.pullGate = null;
+    release();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(16_000);
+    expect(h.state.pulls).toBe(2);
+  });
+
+  it("when the app goes to the background with unsent changes, they are sent at once; with nothing to send, it stays quiet", async () => {
+    vi.useFakeTimers();
+    const acc = await load();
+    h.state.session = { user: { id: "u1" }, access_token: "t" };
+    acc.startAccount();
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.state.pulls).toBe(1); // the start-up round
+    const hide = () => { browser.doc.visibilityState = "hidden"; browser.doc.handlers.forEach((fn) => fn()); };
+    hide();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.state.pulls).toBe(1); // nothing changed since the last round
+    change();
+    hide();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(h.state.pulls).toBe(2);
+  });
+});
+
 describe("account: sign out", () => {
   it("ends this phone's sign-in only, never the learner's other phones", async () => {
     const acc = await load();
@@ -110,10 +153,11 @@ describe("account: sign out", () => {
   it("works offline: the server call failing still leaves the phone signed out and the games in place", async () => {
     const acc = await load();
     const store = shared.store as OfflineStore;
+    const before = store.listGames().length;
     store.addGame(generateOffline(request()).spec);
     h.state.signOutThrows = true;
     await expect(acc.signOut()).resolves.toBeUndefined();
-    expect(store.listGames()).toHaveLength(1);
+    expect(store.listGames()).toHaveLength(before + 1);
   });
 
   it("a sync that finishes after signing out does not change what Settings shows", async () => {

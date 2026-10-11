@@ -22,18 +22,24 @@ export const getAccountSnapshot = (): Snapshot => snap;
 export const useAccount = (): Snapshot => useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, getAccountSnapshot);
 
 let running: Promise<void> | null = null;
+/** True when the learner changed something that the last round may not have seen. */
+let pending = false;
 /** One sync at a time; never throws (a failure is shown in Settings and the next trigger retries). */
 export function syncNow(): Promise<void> {
   const session = snap.session;
   if (!session) return Promise.resolve();
   if (running) return running;
+  pending = false;
   set({ status: "syncing", error: null });
   // A round that finishes after the user signed out (or into another account) must not change what Settings shows.
   const current = () => snap.session?.user.id === session.user.id;
   running = syncOnce(store, browserKV(), supabaseCloud(supabase), session.user.id)
     .then((r) => { if (current()) set({ status: "ok", lastSyncAt: readSyncState(browserKV()).lastSyncAt, skipped: r.skipped, rejected: r.rejected }); })
     .catch((e: unknown) => { if (current()) set({ status: "error", error: e instanceof Error ? e.message : "sync failed" }); })
-    .finally(() => { running = null; });
+    .finally(() => {
+      running = null;
+      if (pending && snap.session) later(); // something changed while the round was running: its own timer found the round busy
+    });
   return running;
 }
 
@@ -47,8 +53,12 @@ export function startAccount(): void {
   started = true;
   void supabase.auth.getSession().then(({ data }) => { set({ session: data.session }); if (data.session) void syncNow(); });
   supabase.auth.onAuthStateChange((_event, session) => set({ session }));
-  store.subscribe(() => { if (snap.session) later(); });
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && snap.session) void syncNow(); });
+  store.subscribe(() => { pending = true; if (snap.session) later(); });
+  document.addEventListener("visibilitychange", () => {
+    if (!snap.session) return;
+    // coming back: catch up. Going away: a phone may freeze this page before the 15 s timer fires, so push what is pending now.
+    if (document.visibilityState === "visible" || (document.visibilityState === "hidden" && pending)) void syncNow();
+  });
   window.addEventListener("online", () => { if (snap.session) void syncNow(); });
 }
 

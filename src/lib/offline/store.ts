@@ -74,6 +74,8 @@ export interface GameSummaryRow {
   /** Share of missions finished in the unfinished run (0–100). */
   percent: number;
   lastSessionId: string | null;
+  /** When the learner last moved in any run of this game (phone clock, ms), or null if it was never started. */
+  lastPlayedAt: number | null;
 }
 
 export interface ImportCounts {
@@ -139,6 +141,23 @@ export class OfflineStore {
   private muted = false;
   constructor(private kv: KV, private clock: () => number = Date.now) {}
 
+  /** Lower bound for change stamps, set by cloud sync at the start of a round (see `changeStamp`). */
+  private floor = 0;
+  setClockFloor(ms: number): void { this.floor = ms; }
+
+  /**
+   * The time recorded as "changed now" on a game, run, card or deletion. It is the phone's clock, but never at or before the last
+   * completed push to the cloud. Cloud sync sends what changed after that mark, so if the clock had gone backwards (the learner
+   * changed the time, or the network corrected it) a change stamped by the raw clock would look older than the last push: it would
+   * never be sent, and the next pull would treat it as unchanged and overwrite it.
+   */
+  private changeStamp(): number {
+    const raw = this.clock();
+    const pushed = this.read<{ lastPushMs?: unknown }>("sync", {}).lastPushMs;
+    const floor = Math.max(this.floor, typeof pushed === "number" && Number.isFinite(pushed) ? pushed : 0);
+    return raw > floor ? raw : floor + 1;
+  }
+
   /** Called after every change made through the store (cloud sync debounces on it). */
   subscribe(cb: () => void): () => void {
     this.listeners.add(cb);
@@ -196,8 +215,7 @@ export class OfflineStore {
   }
 
   addGame(spec: GameSpec): StoredGame {
-    const now = this.clock();
-    const game: StoredGame = { id: randomId(), title: spec.meta.title, createdAt: now, updatedAt: now, revision: 1, spec };
+    const game: StoredGame = { id: randomId(), title: spec.meta.title, createdAt: this.clock(), updatedAt: this.changeStamp(), revision: 1, spec };
     this.putGame(game, true);
     return game;
   }
@@ -205,9 +223,36 @@ export class OfflineStore {
   getGame(id: string): StoredGame | null { return normalizeGame(this.read<unknown>(`game.${id}`, null)); }
 
   deleteGame(id: string): void {
+    // Remember the deletion first, so an interruption can never leave a game that is gone here but still in the cloud (it would come
+    // back on the next phone). If the phone is too full even for that, the game is removed first: that frees the space it needs.
+    const tomb = { ...this.tombstones(), [id]: this.changeStamp() };
+    let recorded = true;
+    try { this.put("tombstones", tomb); } catch (e) { if (!isStorageError(e)) throw e; recorded = false; }
     this.removeGameLocally(id);
-    // remember the deletion so sync removes the game from the cloud and other phones
-    this.write("tombstones", { ...this.tombstones(), [id]: this.clock() });
+    if (!recorded) this.write("tombstones", tomb);
+  }
+
+  /**
+   * Deletes every game on the device, including ones whose data is damaged (those are not in `listGames()`, so deleting the
+   * listed games one by one would leave them behind), their runs, and the review deck. Returns how many games were removed.
+   */
+  deleteAll(): number {
+    const ids = new Set(this.gameIds());
+    const keys = this.kv.keys?.() ?? [];
+    const gPrefix = PREFIX + "game.";
+    for (const k of keys) if (k.startsWith(gPrefix)) ids.add(k.slice(gPrefix.length));
+    const at = this.changeStamp();
+    const tomb = this.tombstones();
+    for (const id of ids) tomb[id] = at;
+    let recorded = true;
+    try { this.put("tombstones", tomb); } catch (e) { if (!isStorageError(e)) throw e; recorded = false; }
+    for (const id of ids) this.removeGameKeys(id);
+    for (const k of keys) if (k.startsWith(PREFIX + "session.") || k.startsWith(PREFIX + "sessions.")) this.kv.remove(k); // runs of unlisted games
+    this.put("games", []);
+    this.put("deck", {});
+    if (!recorded) this.put("tombstones", tomb);
+    this.changed();
+    return ids.size;
   }
 
   listGames(): GameSummaryRow[] {
@@ -224,6 +269,7 @@ export class OfflineStore {
           environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
           bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
           inProgress: sessions.some((s) => s.status === "ACTIVE"), percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
+          lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
         }];
       } catch {
         return []; // one damaged game must not take the whole library down
@@ -233,7 +279,7 @@ export class OfflineStore {
 
   // ───────── sessions ─────────
   getSession(id: string): StoredSession | null { return normalizeSession(this.read<unknown>(`session.${id}`, null)); }
-  private saveSession(s: StoredSession): void { s.updatedAt = this.clock(); this.write(`session.${s.id}`, s); }
+  private saveSession(s: StoredSession): void { s.updatedAt = this.changeStamp(); this.write(`session.${s.id}`, s); }
 
   startSession(gameId: string, restart: boolean): { session: StoredSession; spec: PublicSpec; client: ClientState; maxScore: number; resumed: boolean; game: StoredGame } {
     const game = this.getGame(gameId);
@@ -262,7 +308,7 @@ export class OfflineStore {
       this.saveSession(session);
     } else {
       session = { id: randomId(), gameId, revision: game.revision, status: "ACTIVE", state: initialState(game.spec, now), startedAt: now, finishedAt: null, updatedAt: now };
-      session.updatedAt = this.clock();
+      session.updatedAt = this.changeStamp();
       this.putSession(session, true);
       this.pruneAbandoned(gameId);
     }
@@ -359,6 +405,7 @@ export class OfflineStore {
   syncDeck(): Record<string, DeckCard> {
     const deck = this.deck();
     const now = this.clock();
+    const stampNow = this.changeStamp();
     const games = new Set(this.gameIds());
     let changed = false;
     for (const k of Object.keys(deck)) if (!games.has(deck[k]!.gameId)) { delete deck[k]; changed = true; }
@@ -368,7 +415,7 @@ export class OfflineStore {
         if (!s) continue;
         for (const [challengeId, r] of Object.entries(s.state.records)) {
           if (!r.resolved || (r.wrong === 0 && !r.revealed)) continue;
-          const card = newCard(gameId, challengeId, now);
+          const card = { ...newCard(gameId, challengeId, now), updatedAt: stampNow };
           if (!deck[card.key]) { deck[card.key] = card; changed = true; }
         }
       }
@@ -407,7 +454,8 @@ export class OfflineStore {
     const revealed = !graded.correct && resolved;
     if (resolved) {
       const next = review(card, graded.correct && b.attempt === 1, now);
-      deck[card.key] = next ?? { ...card, mastered: true, updatedAt: now };
+      const changedAt = this.changeStamp();
+      deck[card.key] = next ? { ...next, updatedAt: changedAt } : { ...card, mastered: true, updatedAt: changedAt };
       this.saveDeck(deck);
     }
     return {
@@ -548,7 +596,7 @@ export class OfflineStore {
    */
   importRecords(data: { games: StoredGame[]; sessions: StoredSession[]; cards: DeckCard[] }): ImportCounts {
     const counts: ImportCounts = { gamesAdded: 0, gamesUpdated: 0, gamesKept: 0, sessionsImported: 0, sessionsKept: 0, cardsImported: 0, cardsKept: 0 };
-    const now = this.clock();
+    const now = this.changeStamp();
     const tomb = this.tombstones();
     let tombChanged = false;
     const stamp = (r: { updatedAt?: number; createdAt?: number; startedAt?: number; added?: number }) => r.updatedAt ?? r.createdAt ?? r.startedAt ?? r.added ?? 0;
@@ -635,6 +683,11 @@ export class OfflineStore {
       const tomb = this.tombstones();
       const gPrefix = PREFIX + "game.";
       const sPrefix = PREFIX + "session.";
+      // a deletion that was interrupted (remembered, but the game is still here and has not been changed since) is finished
+      for (const id of this.gameIds()) {
+        const g = tomb[id] !== undefined ? this.getGame(id) : null;
+        if (g && tomb[id]! >= g.updatedAt) this.removeGameLocally(id);
+      }
       const listed = new Set(this.gameIds());
       const found: StoredGame[] = [];
       for (const k of keys.filter((x) => x.startsWith(gPrefix))) {

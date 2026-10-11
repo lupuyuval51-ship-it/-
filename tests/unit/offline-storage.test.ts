@@ -177,6 +177,51 @@ describe("damage to one record never takes the library down", () => {
     expect(() => ctx.store.deckSummary()).not.toThrow();
   });
 
+  it("'delete all games' also removes damaged and unlisted games, their runs and the deck, and remembers the deletions for the cloud", () => {
+    const ctx = populated();
+    const second = newGame(ctx.store, "Decimals");
+    const third = newGame(ctx.store, "Percent");
+    ctx.store.startSession(second.id, false);
+    ctx.kv.set(`${PREFIX}game.${second.id}`, "{broken"); // damaged: hidden from the library, so the Settings loop would never delete it
+    ctx.kv.set(`${PREFIX}games`, JSON.stringify([ctx.game.id, second.id])); // `third` is stored but not listed
+    expect(ctx.store.listGames().map((g) => g.id)).toEqual([ctx.game.id]);
+    for (const g of ctx.store.listGames()) ctx.store.deleteGame(g.id); // what the screen did before: leaves the rest behind
+    expect(ctx.kv.get(`${PREFIX}game.${second.id}`)).not.toBeNull();
+
+    expect(ctx.store.deleteAll()).toBe(2); // the damaged one and the unlisted one (the first was already deleted by the loop above)
+    expect(ctx.store.listGames()).toEqual([]);
+    expect(ctx.kv.keys!().filter((k) => /\.(game|session|sessions)\./.test(k) || k.endsWith(".games"))).toEqual([`${PREFIX}games`]);
+    expect(JSON.parse(ctx.kv.get(`${PREFIX}games`)!)).toEqual([]);
+    expect(ctx.store.deckSummary().total).toBe(0);
+    expect(Object.keys(ctx.store.changesSince(0).deletedGames.reduce((o, d) => ({ ...o, [d.id]: 1 }), {}))).toEqual(expect.arrayContaining([ctx.game.id, second.id, third.id]));
+    expect(ctx.store.integrity()).toEqual({ games: 0, damagedGames: [], damagedSessions: [] });
+    // and it works on an empty phone and again
+    expect(ctx.store.deleteAll()).toBe(0);
+  });
+
+  it("'delete all games' on a full phone still empties the library", () => {
+    const { kv, ctl } = flakyKV();
+    const { store } = phone(1_000_000, kv);
+    newGame(store);
+    newGame(store, "Decimals");
+    ctl.mode = "full";
+    ctl.failOn = (k) => k === `${PREFIX}tombstones`;
+    expect(codeOf(() => store.deleteAll())).toBe("STORAGE_FULL"); // the cloud cannot be told, but the games are gone
+    expect(store.listGames()).toEqual([]);
+  });
+
+  it("each listed game says when it was last played", () => {
+    const ctx = populated();
+    const never = newGame(ctx.store, "Decimals");
+    const rows = Object.fromEntries(ctx.store.listGames().map((g) => [g.id, g]));
+    expect(rows[never.id]!.lastPlayedAt).toBeNull();
+    const state = ctx.store.getSession(ctx.sessionId)!.state;
+    expect(rows[ctx.game.id]!.lastPlayedAt).toBe(state.updatedAt);
+    const area = findArea(ctx.game.spec, state.areaId)!;
+    ctx.store.applyEvent(ctx.sessionId, { type: "talk", npcId: area.npcs[0]!.id });
+    expect(ctx.store.listGames().find((g) => g.id === ctx.game.id)!.lastPlayedAt).toBeGreaterThan(state.updatedAt);
+  });
+
   it("purgeDamaged removes exactly what integrity reports, nothing else", () => {
     const ctx = populated();
     const other = newGame(ctx.store, "Decimals");
@@ -289,6 +334,27 @@ describe("recover(): lists that were damaged or never written", () => {
     ctx.store.recover();
     expect(ctx.store.listGames().map((g) => g.id)).toEqual([ctx.game.id]);
     expect(ctx.kv.get(`${PREFIX}game.${other.id}`)).toBeNull();
+  });
+
+  it("a deletion is remembered before the game is removed, and an interrupted one is finished at the next start", () => {
+    const inner = memoryKV();
+    const order: string[] = [];
+    const kv = { ...inner, set: (k: string, v: string) => { order.push(`set ${k.slice(PREFIX.length)}`); inner.set(k, v); }, remove: (k: string) => { order.push(`remove ${k.slice(PREFIX.length)}`); inner.remove(k); } };
+    const { store } = phone(1_000_000, kv);
+    const g = newGame(store);
+    order.length = 0;
+    store.deleteGame(g.id);
+    expect(order[0]).toBe("set tombstones");
+    expect(order.indexOf(`remove game.${g.id}`)).toBeGreaterThan(0);
+
+    // the app was killed right after the tombstone was written: the game is still there
+    const kept = newGame(store, "Decimals");
+    const other = newGame(store, "Percent");
+    inner.set(`${PREFIX}tombstones`, JSON.stringify({ [kept.id]: store.getGame(kept.id)!.updatedAt + 5, [other.id]: store.getGame(other.id)!.updatedAt - 5 }));
+    expect(store.listGames()).toHaveLength(2);
+    store.recover();
+    // `kept` is finished off; `other` was changed (restored from a backup) after the deletion, so it stays
+    expect(store.listGames().map((x) => x.id)).toEqual([other.id]);
   });
 
   it("cannot make a duplicate entry when a game is added back under an id that is already listed", () => {

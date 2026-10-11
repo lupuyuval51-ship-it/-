@@ -74,6 +74,37 @@ const ms = (iso: string) => Date.parse(iso);
 const iso = (n: number) => new Date(n).toISOString();
 const bytes = (v: unknown) => JSON.stringify(v).length;
 
+const size = (b: PushBatch) => b.games.length + b.sessions.length + b.cards.length + b.deletedGames.length;
+
+/**
+ * What to send for a set of local changes. A game too large for the cloud stays on this phone, and so do its runs and cards
+ * (the server would reject them: they refer to a game it does not have), including runs changed in later rounds.
+ */
+function buildBatch(store: OfflineStore, changes: ReturnType<OfflineStore["changesSince"]>): { batch: PushBatch; skipped: number } {
+  let skipped = 0;
+  const batch: PushBatch = { games: [], sessions: [], cards: [], deletedGames: changes.deletedGames.map((d) => d.id) };
+  const fits = new Map<string, boolean>();
+  for (const g of changes.games) {
+    const ok = bytes(g.spec) <= MAX_SPEC_BYTES;
+    fits.set(g.id, ok);
+    if (!ok) { skipped++; continue; }
+    batch.games.push({ localId: g.id, title: g.title, spec: g.spec, createdAt: iso(g.createdAt) });
+  }
+  const gameFits = (id: string): boolean => {
+    if (!fits.has(id)) { const g = store.getGame(id); fits.set(id, g !== null && bytes(g.spec) <= MAX_SPEC_BYTES); }
+    return fits.get(id)!;
+  };
+  for (const s of changes.sessions) {
+    if (bytes(s.state) > MAX_STATE_BYTES || !gameFits(s.gameId)) { skipped++; continue; }
+    batch.sessions.push({ localId: s.id, gameId: s.gameId, status: s.status, state: s.state, startedAt: iso(s.startedAt), finishedAt: s.finishedAt ? iso(s.finishedAt) : null });
+  }
+  for (const c of changes.cards) {
+    if (!gameFits(c.gameId)) continue;
+    batch.cards.push({ cardKey: c.key, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: iso(c.due), mastered: c.mastered });
+  }
+  return { batch, skipped };
+}
+
 export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userId: string, now: () => number = Date.now): Promise<SyncResult> {
   let state = readSyncState(kv);
   // a different account on this phone must not inherit the previous account's sync marks
@@ -81,7 +112,12 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   const startedAt = now();
   // The phone's clock went back since the last push (it had been set ahead and was corrected): "changed after the last push"
   // would find nothing until the clock caught up, so new progress would not be saved. Start the marks over; the pushes are idempotent.
-  if (state.lastPushMs > startedAt) state = { ...state, lastPushMs: 0 };
+  if (state.lastPushMs > startedAt) {
+    state = { ...state, lastPushMs: 0 };
+    writeSyncState(kv, state); // so new changes are not stamped after the old, too-late mark while this round runs
+  }
+  // Changes made from now on are stamped after this moment, whatever the clock does (see OfflineStore.changeStamp).
+  store.setClockFloor(startedAt);
   store.clampFutureStamps(startedAt + FUTURE_TOLERANCE_MS, startedAt);
 
   // 1) pull and merge (games first: sessions and cards refer to them)
@@ -121,27 +157,20 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   const cursor = seen.length ? seen[seen.length - 1]! : state.cursor;
 
   // 2) push local changes
-  const changes = store.changesSince(state.lastPushMs);
-  let skipped = 0;
-  const batch: PushBatch = { games: [], sessions: [], cards: [], deletedGames: changes.deletedGames.map((d) => d.id) };
-  const pushable = new Set<string>();
-  for (const g of changes.games) {
-    if (bytes(g.spec) > MAX_SPEC_BYTES) { skipped++; continue; } // too large for the cloud: stays on this phone only
-    pushable.add(g.id);
-    batch.games.push({ localId: g.id, title: g.title, spec: g.spec, createdAt: iso(g.createdAt) });
+  let { batch, skipped } = buildBatch(store, store.changesSince(state.lastPushMs));
+  let pushed = size(batch);
+  if (pushed > 0) {
+    try {
+      await api.push(batch);
+    } catch (e) {
+      // A run or card refers to a game the cloud does not have: that game's own change was missed somewhere along the way.
+      // Send everything once; the pushes are idempotent, and from then on the cloud has what the runs refer to.
+      if (!/foreign key/i.test(e instanceof Error ? e.message : String(e))) throw e;
+      ({ batch, skipped } = buildBatch(store, store.changesSince(0)));
+      pushed = size(batch);
+      await api.push(batch);
+    }
   }
-  for (const s of changes.sessions) {
-    if (bytes(s.state) > MAX_STATE_BYTES) { skipped++; continue; }
-    batch.sessions.push({ localId: s.id, gameId: s.gameId, status: s.status, state: s.state, startedAt: iso(s.startedAt), finishedAt: s.finishedAt ? iso(s.finishedAt) : null });
-  }
-  for (const c of changes.cards) batch.cards.push({ cardKey: c.key, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: iso(c.due), mastered: c.mastered });
-  // a session or card whose game was too large to push would be rejected by the server (foreign key)
-  const skippedGames = new Set(changes.games.filter((g) => !pushable.has(g.id)).map((g) => g.id));
-  batch.sessions = batch.sessions.filter((s) => !skippedGames.has(s.gameId));
-  batch.cards = batch.cards.filter((c) => !skippedGames.has(c.gameId));
-
-  const pushed = batch.games.length + batch.sessions.length + batch.cards.length + batch.deletedGames.length;
-  if (pushed > 0) await api.push(batch);
 
   writeSyncState(kv, { userId, cursor, lastPushMs: startedAt, lastSyncAt: now() });
   return { pushed, pulled, skipped, rejected };

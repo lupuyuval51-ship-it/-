@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateOffline } from "@/lib/offline/generate";
 import { createBackup, importBackup } from "@/lib/offline/backup";
-import { readSyncState, FUTURE_TOLERANCE_MS } from "@/lib/offline/sync";
+import { FUTURE_TOLERANCE_MS, MAX_SPEC_BYTES, readSyncState } from "@/lib/offline/sync";
 import { findArea } from "@/lib/game/state/progress";
 import { request } from "./helpers";
 import { FakeCloud, flakyKV, phone, PREFIX } from "./offline-helpers";
@@ -236,6 +236,85 @@ describe("deletions and restores across phones", () => {
     expect(cloud.games.get(g.id)!.deletedAt).not.toBeNull();
     await a.sync(cloud);
     expect(a.store.listGames()).toEqual([]);
+  });
+});
+
+describe("a clock that goes backwards never hides a change from the cloud", () => {
+  it("a game added after the clock went back a little is still sent, even though the clock later passes the old mark", async () => {
+    const cloud = cloudAt(10_000_000);
+    const a = phone(10_000_000);
+    addGame(a);
+    await a.sync(cloud);
+    const mark = readSyncState(a.kv).lastPushMs;
+    a.t.now = mark - 50_000; // the network corrects the clock by 50 s
+    const g2 = addGame(a, "Decimals");
+    expect(a.store.getGame(g2.id)!.updatedAt).toBeGreaterThan(mark); // stamped after the last push, whatever the clock says
+    a.t.now = mark + 100_000;
+    cloud.tick = a.t.now;
+    await a.sync(cloud);
+    expect([...cloud.games.keys()]).toContain(g2.id);
+  });
+
+  it("progress made while the clock was set back is sent and is not replaced by the older cloud copy", async () => {
+    const cloud = cloudAt(10_000_000);
+    const a = phone(10_000_000);
+    const g = addGame(a);
+    const run = a.store.startSession(g.id, false).session.id;
+    await a.sync(cloud);
+    const mark = readSyncState(a.kv).lastPushMs;
+    a.t.now = mark - 3_600_000; // the learner sets the clock back an hour and plays
+    talk(a, g.id, run);
+    const played = JSON.stringify(a.store.getSession(run)!.state.talked);
+    a.t.now = mark + 7_200_000; // ... and later fixes it; by the time of the next sync the clock is past the old mark
+    cloud.tick = a.t.now;
+    await a.sync(cloud);
+    expect(JSON.stringify(a.store.getSession(run)!.state.talked)).toBe(played);
+    expect(JSON.stringify(cloud.sessions.get(run)!.state.talked)).toBe(played);
+  });
+});
+
+describe("a run that refers to a game the cloud does not have", () => {
+  it("heals itself: the round sends everything once instead of failing forever", async () => {
+    const cloud = cloudAt(1_000_000);
+    const a = phone(1_000_000);
+    const g = addGame(a);
+    const run = a.store.startSession(g.id, false).session.id;
+    await a.sync(cloud);
+    cloud.games.clear(); // the cloud lost the game (a restore, a manual clean-up)
+    cloud.sessions.clear();
+    a.t.now += 10_000;
+    cloud.tick = a.t.now;
+    talk(a, g.id, run);
+    await a.sync(cloud); // a plain round would fail with "foreign key"
+    expect([...cloud.games.keys()]).toEqual([g.id]);
+    expect([...cloud.sessions.keys()]).toEqual([run]);
+    expect((await a.sync(cloud)).pushed).toBe(0);
+  });
+
+  it("an error that is not about a missing game is still raised, and nothing is marked as sent", async () => {
+    const cloud = cloudAt(1_000_000);
+    const a = phone(1_000_000);
+    addGame(a);
+    cloud.fail = true;
+    await expect(a.sync(cloud)).rejects.toThrow("offline");
+    expect(readSyncState(a.kv).lastPushMs).toBe(0);
+  });
+
+  it("a game too large for the cloud keeps its runs on the phone in every later round too", async () => {
+    const cloud = cloudAt(1_000_000);
+    const a = phone(1_000_000);
+    const spec = generateOffline(request()).spec;
+    const big = a.store.addGame({ ...spec, learning: { ...spec.learning, conclusion: "x".repeat(MAX_SPEC_BYTES + 10) } } as typeof spec);
+    addGame(a, "Decimals");
+    const run = a.store.startSession(big.id, false).session.id;
+    await a.sync(cloud); // the game and its run are held back
+    a.t.now += 10_000;
+    cloud.tick = a.t.now;
+    talk(a, big.id, run); // the game is no longer "changed", but its run is
+    const r = await a.sync(cloud); // used to fail with a foreign key error every round from here on
+    expect(r.skipped).toBeGreaterThanOrEqual(1);
+    expect(cloud.sessions.has(run)).toBe(false);
+    expect(cloud.games.size).toBe(1);
   });
 });
 
