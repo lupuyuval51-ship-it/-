@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -26,27 +27,37 @@ import com.getcapacitor.BridgeActivity;
  * Android 14 and older keep the classic opaque system bars, so nothing is changed there.
  */
 public class MainActivity extends BridgeActivity {
-    /** Page background of the web app (`--color-ink-950` in src/app/globals.css): dark by default, light follows the system. */
+    /**
+     * Page backgrounds of the web app (`--color-ink-950` in src/app/globals.css, dark and light theme). The page refines the
+     * choice at run time (mobile/src/system-bars.ts); these are the start-up colours that follow the system light/dark mode.
+     * tests/unit/android-shell.test.ts checks that they still match the CSS.
+     */
     private static final int PAGE_DARK = 0xFF060914;
     private static final int PAGE_LIGHT = 0xFFF5F7FC;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(FilesPlugin.class); // before super.onCreate, which builds the bridge
+        registerPlugin(SystemBarsPlugin.class);
         super.onCreate(savedInstanceState);
         // No WebView on the device: Capacitor has already shown its own message.
         if (getBridge() == null) return;
         WebView webView = getBridge().getWebView();
         hardenWebView(webView);
-        applyPageColors(webView, isNight(getResources().getConfiguration()));
+        applyPageColor(webView, isNight(getResources().getConfiguration()) ? PAGE_DARK : PAGE_LIGHT);
         fitSystemBars(webView);
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // `uiMode` is handled by the activity (no restart), so follow the system light/dark switch here.
-        if (getBridge() != null) applyPageColors(getBridge().getWebView(), isNight(newConfig));
+        // `uiMode` is handled by the activity (no restart): follow the system light/dark switch; the page then refines it.
+        if (getBridge() != null) applyPageColor(getBridge().getWebView(), isNight(newConfig) ? PAGE_DARK : PAGE_LIGHT);
+    }
+
+    /** Called (on the UI thread) by SystemBarsPlugin with the colour the page is currently showing. */
+    void setPageColor(int color) {
+        if (getBridge() != null) applyPageColor(getBridge().getWebView(), color);
     }
 
     private static boolean isNight(Configuration configuration) {
@@ -63,18 +74,18 @@ public class MainActivity extends BridgeActivity {
     }
 
     /**
-     * Colours behind the WebView, so there is no white flash before the page paints and the strip behind the
-     * transparent system bars matches the page. Light/dark icons follow the same switch (Android 15+ only: older
-     * versions keep the system's own opaque bar colours, where light icons on the default bar are the readable choice).
+     * Colour behind the WebView, so there is no white flash before the page paints, and the strip behind the transparent
+     * system bars matches the page. Light/dark icons follow the colour (Android 15+ only: older versions keep the system's
+     * own opaque bar colours, where the default light icons are the readable choice).
      */
-    private void applyPageColors(WebView webView, boolean night) {
-        int page = night ? PAGE_DARK : PAGE_LIGHT;
-        webView.setBackgroundColor(page);
+    private void applyPageColor(WebView webView, int color) {
+        webView.setBackgroundColor(color);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) return;
-        getWindow().setBackgroundDrawable(new ColorDrawable(page));
+        getWindow().setBackgroundDrawable(new ColorDrawable(color));
+        boolean lightPage = ColorUtils.calculateLuminance(color) > 0.5;
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        controller.setAppearanceLightStatusBars(!night);
-        controller.setAppearanceLightNavigationBars(!night);
+        controller.setAppearanceLightStatusBars(lightPage);
+        controller.setAppearanceLightNavigationBars(lightPage);
     }
 
     /** Android 15+: keep the WebView out of the system bars, the cut-out and the on-screen keyboard. */

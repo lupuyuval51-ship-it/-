@@ -6,6 +6,7 @@ import { getSettings } from "./app-state";
 import { backAction } from "./back";
 import { isShareableText } from "./export";
 import { navigate } from "./router";
+import { pageColor } from "./system-bars";
 
 /**
  * Android back button: inside a game it is handled by the game (close panel → pause → leave);
@@ -59,11 +60,38 @@ function installFileDownloads(): void {
   }, true);
 }
 
+interface LevelUpSystemBars {
+  setPageColor(options: { color: string }): Promise<void>;
+}
+
+/**
+ * Android 15+ draws the app behind transparent system bars (see MainActivity.java). Tell the shell which page colour is on
+ * screen, so the strip behind the bars matches and the status/navigation bar icons stay readable: it follows the in-app theme
+ * (Settings), the system light/dark mode, and the 3D play screen, which is always dark.
+ */
+function installSystemBars(): void {
+  const bars = registerPlugin<LevelUpSystemBars>("LevelUpSystemBars");
+  const light = window.matchMedia("(prefers-color-scheme: light)");
+  let sent = "";
+  const sync = () => {
+    const path = (window.location.hash.replace(/^#/, "") || "/").split("?")[0]!;
+    const color = pageColor({ path, themeAttr: document.documentElement.getAttribute("data-theme"), systemLight: light.matches });
+    if (color === sent) return;
+    sent = color;
+    void bars.setPageColor({ color }).catch(() => { sent = ""; });
+  };
+  window.addEventListener("hashchange", sync);
+  light.addEventListener("change", sync);
+  new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  sync();
+}
+
 /** Hooks that only make sense inside the Android app; a no-op in a browser (tests, `npm run mobile:dev`). */
 export function installNativeShell(): void {
   if (!Capacitor.isNativePlatform()) return;
   installBackButton();
   installFileDownloads();
+  installSystemBars();
 }
 
 /** Short vibrations for game events (can be switched off in Settings). */

@@ -72,9 +72,10 @@ Capacitor config, back-button rules).
   `MainActivity.fitSystemBars` therefore gives the WebView
   margins for system bars + cut-out + **keyboard** (an edge-to-edge window is no longer resized by `adjustResize`), and the
   page keeps its own `env()` padding, which is then 0. Android 14 and older keep their normal opaque bars and are untouched.
-- Colours behind the transparent bars and the light/dark status-bar icons follow the system light/dark mode
-  (`applyPageColors`, using the page's own `--color-ink-950` values). If the user forces the opposite theme in Settings, the strip
-  keeps the system colour (icons stay readable). Not synced from JS on purpose (would need a custom plugin).
+- Colours behind the transparent bars and the light/dark status-bar icons: `MainActivity` starts with the system light/dark mode;
+  the page then tells the shell what it is showing (`mobile/src/system-bars.ts` -> `SystemBarsPlugin`): the in-app theme from
+  Settings, the system mode, and the 3D play screen, which is always dark. The two colours are the page backgrounds in
+  `src/app/globals.css`; a unit test fails if the CSS, the TypeScript and `MainActivity.java` drift apart.
 - **Back button** (`mobile/src/native.ts`, rules in `mobile/src/back.ts`): in a game the game decides; elsewhere one screen back
   (or to the library when there is no history); on the library the app moves to the background. Android 12+ does the same for a
   root launcher activity and recommends not finishing it
@@ -168,7 +169,9 @@ Build: `npx cap sync android && cd android && ./gradlew bundleRelease` (then `as
 4. On a phone with the release APK, `adb logcat | grep -iE "capacitor|plugin"` shows no "plugin not found / not implemented".
 5. **Android 15 or 16** (device or API 35/36 emulator): header is below the status bar, bottom controls above the gesture bar, both
    orientations (and a cut-out phone); focus the notes box on *New game* and the e-mail/password fields in Settings → the keyboard
-   does not cover them; rotate with the keyboard open; switch system dark/light while the app is open (strip colour, icons).
+   does not cover them; rotate with the keyboard open; switch system dark/light while the app is open, and set the in-app theme
+   (Settings) opposite to the system, then open a game: the strip behind the status/gesture bar matches the screen (always dark in a
+   game) and the clock/battery icons stay readable.
    If this is wrong, remove the `fitSystemBars(webView)` call in `MainActivity.onCreate` to go back to the old behaviour.
 6. **Android 13/14**: looks exactly as before (status bar readable, keyboard resizes the page).
 7. Back button: library → leaves to the background (app resumes warm); other screens → back one; game → panel → pause → leave.

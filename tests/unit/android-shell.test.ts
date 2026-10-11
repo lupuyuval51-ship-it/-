@@ -5,6 +5,7 @@ import config from "../../capacitor.config";
 import { backAction } from "../../mobile/src/back";
 import { SUPABASE_URL } from "../../mobile/src/cloud/config";
 import { isShareableText, MAX_SHARE_CHARS } from "../../mobile/src/export";
+import { PAGE_DARK, PAGE_LIGHT, pageColor } from "../../mobile/src/system-bars";
 
 /**
  * Guards for the Google Play build of the offline Android app (`android/`, `capacitor.config.ts`, `mobile/index.html`):
@@ -101,11 +102,43 @@ describe("WebView and Capacitor configuration", () => {
   });
 });
 
+describe("system bars (Android 15+ edge-to-edge)", () => {
+  it("the page colours the shell shows are the CSS page backgrounds, in the web code and in MainActivity", () => {
+    const css = read("src/app/globals.css");
+    const dark = css.match(/--color-ink-950:\s*(#[0-9a-fA-F]{6})/)?.[1];
+    const light = css.match(/:root\[data-theme="light"\]\s*\{[^}]*?--color-ink-950:\s*(#[0-9a-fA-F]{6})/)?.[1];
+    expect(PAGE_DARK).toBe(dark?.toLowerCase());
+    expect(PAGE_LIGHT).toBe(light?.toLowerCase());
+    const activity = read("android/app/src/main/java/app/levelup/learn3d/MainActivity.java");
+    expect(activity).toContain(`PAGE_DARK = 0xFF${PAGE_DARK.slice(1).toUpperCase()};`);
+    expect(activity).toContain(`PAGE_LIGHT = 0xFF${PAGE_LIGHT.slice(1).toUpperCase()};`);
+  });
+
+  it("picks the colour from the route, the in-app theme and the system mode (the play screen is always dark)", () => {
+    expect(pageColor({ path: "/", themeAttr: null, systemLight: false })).toBe(PAGE_DARK);
+    expect(pageColor({ path: "/", themeAttr: null, systemLight: true })).toBe(PAGE_LIGHT);
+    expect(pageColor({ path: "/settings", themeAttr: "dark", systemLight: true })).toBe(PAGE_DARK);
+    expect(pageColor({ path: "/settings", themeAttr: "light", systemLight: false })).toBe(PAGE_LIGHT);
+    expect(pageColor({ path: "/play/abc", themeAttr: "light", systemLight: true })).toBe(PAGE_DARK);
+    expect(pageColor({ path: "/games/g/results/s", themeAttr: null, systemLight: true })).toBe(PAGE_LIGHT);
+  });
+
+  it("registers the plugin the page talks to", () => {
+    const activity = read("android/app/src/main/java/app/levelup/learn3d/MainActivity.java");
+    expect(activity.indexOf("registerPlugin(SystemBarsPlugin.class);")).toBeGreaterThan(-1);
+    expect(activity.indexOf("registerPlugin(SystemBarsPlugin.class);")).toBeLessThan(activity.indexOf("super.onCreate("));
+    expect(read("android/app/src/main/java/app/levelup/learn3d/SystemBarsPlugin.java")).toContain('@CapacitorPlugin(name = "LevelUpSystemBars")');
+    expect(read("mobile/src/native.ts")).toContain('registerPlugin<LevelUpSystemBars>("LevelUpSystemBars")');
+  });
+});
+
 describe("native file hand-off (backup file in the Android WebView)", () => {
   it("the page-side plugin name matches the registered native plugin, which uses a cache path the FileProvider shares", () => {
     const activity = read("android/app/src/main/java/app/levelup/learn3d/MainActivity.java");
     const plugin = read("android/app/src/main/java/app/levelup/learn3d/FilesPlugin.java");
-    expect(activity).toMatch(/registerPlugin\(FilesPlugin\.class\);\s*\/\/[^\n]*\n\s*super\.onCreate/); // registered before the bridge is built
+    const superCreate = activity.indexOf("super.onCreate(");
+    expect(activity.indexOf("registerPlugin(FilesPlugin.class);")).toBeGreaterThan(-1);
+    expect(activity.indexOf("registerPlugin(FilesPlugin.class);")).toBeLessThan(superCreate); // registered before the bridge is built
     const name = plugin.match(/@CapacitorPlugin\(name = "([^"]+)"\)/)?.[1];
     expect(name).toBe("LevelUpFiles");
     expect(read("mobile/src/native.ts")).toContain(`registerPlugin<LevelUpFiles>("${name}")`);
@@ -119,7 +152,7 @@ describe("native file hand-off (backup file in the Android WebView)", () => {
     expect(isShareableText("application/json", 1_000)).toBe(true);
     expect(isShareableText("text/plain", 0)).toBe(true);
     expect(isShareableText("application/json", MAX_SHARE_CHARS + 1)).toBe(false);
-    for (const type of ["image/png", "audio/wav", "application/octet-stream", ""]) expect(isShareableText(type, 10)).toBe(false);
+    for (const type of ["image/png", "audio/wav", "application/octet-stream", "text/javascript", "application/javascript", ""]) expect(isShareableText(type, 10)).toBe(false);
   });
 });
 
