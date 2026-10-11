@@ -151,8 +151,11 @@ financial declarations**: none.
 4. Create the reviewer test account and fill *App access*.
 5. Supabase dashboard (can't be done from the repo): *Confirm email* / Site URL, own SMTP before many sign-ups, password reset is
    not built in (see `mobile/store/release-checklist.md` 2b).
-6. Store listing: text in `mobile/store/listing.md`, icon, feature graphic, at least 2 phone screenshots (tablet screenshots
-   recommended); regenerate with `node mobile/shots.mjs`.
+6. Store listing: text in `mobile/store/listing.md`, icon (512x512 32-bit PNG), feature graphic (1024x500, no alpha), at least 2
+   screenshots (JPEG/24-bit PNG, "the maximum dimension ... can't be more than twice as long as the minimum dimension",
+   <https://support.google.com/googleplay/android-developer/answer/9866151>). The screenshots in `mobile/store/screenshots/` were
+   1082x2202 (2.04:1, too tall for Play); they are now cropped to 1082x2164 and `node mobile/shots.mjs` uses a 412x820 viewport so
+   regenerated ones stay within the limit. Tablet screenshots are recommended.
 7. Testing: internal track first. A personal developer account created after 13 Nov 2023 needs a closed test with at least 12
    testers opted in for 14 continuous days before it can apply for production
    (<https://support.google.com/googleplay/android-developer/answer/14151465>); the help page states it for personal accounts, so check the Dashboard for what applies to
