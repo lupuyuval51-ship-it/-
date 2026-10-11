@@ -107,7 +107,7 @@ export function LibraryPage() {
             )}
           </div>
           <h2 id="library-title" ref={heading} tabIndex={-1} className="text-lg font-semibold outline-none">{t("lib.title")}</h2>
-          <div aria-live="polite">{notice && <Alert tone={notice.tone}>{notice.text}</Alert>}</div>
+          <div aria-live="polite">{notice && <Alert tone={notice.tone} data-testid="library-notice">{notice.text}</Alert>}</div>
           {games.length === 0 ? (
             welcome ? (
               // The welcome card above already explains what to do: keep the empty state to one quiet line.
