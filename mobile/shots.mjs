@@ -8,7 +8,9 @@ const HE = `פוטוסינתזה: התהליך שבו צמחים הופכים א
 פלואם: הרקמה שמובילה סוכר בצמח.
 גלוקוז: הסוכר שהצמחים מייצרים בפוטוסינתזה.`;
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"] });
-const ctx = await b.newContext({ ...devices["Pixel 7"], reducedMotion: "reduce" });
+// Google Play rejects screenshots whose longer side is more than twice the shorter side. Pixel 7 is 412x839 (ratio 2.04), so trim
+// the height: 412x820 css px at 2.625 = 1082x2153 px.
+const ctx = await b.newContext({ ...devices["Pixel 7"], viewport: { width: 412, height: 820 }, reducedMotion: "reduce" });
 const p = await ctx.newPage();
 const base = "http://127.0.0.1:4173/";
 await p.goto(base + "#/create");

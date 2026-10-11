@@ -8,7 +8,7 @@ Phone-only features:
 - **Review my mistakes** (`src/lib/offline/deck.ts`): every question missed in any game goes into one deck with spaced
   repetition (Leitner boxes: right on the first try → back in 1, 3, 7, 16 days, then mastered; a miss → back to box 1).
 - **Android back button** (`@capacitor/app`): in a game it closes the open panel, then pauses, then leaves; elsewhere it goes
-  back a screen, and from the library it closes the app.
+  back a screen, and from the library the app moves to the background (what Android 12+ does for any root launcher activity).
 - **Vibration** (`@capacitor/haptics`) on right/wrong answers, pickups, gates and missions; switch off in Settings.
 
 - **Optional account + cloud backup** (Supabase): e-mail sign-in in Settings; games, progress and the review deck are pushed and
@@ -27,7 +27,7 @@ What is different from the website (by design):
 
 ## Build
 
-Needs Node 20+, JDK 17+ (21 used), Android SDK (platform 36, build-tools 36) with `ANDROID_HOME` set.
+Needs Node 20+, **JDK 21** (Capacitor 7 generates Java 21 settings; JDK 17 will not build it), Android SDK (platform 36, build-tools 36) with `ANDROID_HOME` set.
 
 ```bash
 npm install
@@ -49,6 +49,8 @@ keyPassword=...
 
 Keep the `.jks` file and the password safe and private. With **Play App Signing** (default for new apps) this is only
 the *upload* key; Google holds the app-signing key, and a lost upload key can be reset through Play Console support.
+
+The release build is shrunk with R8 (code and resources) and has no Android backup, no cleartext traffic and only the `INTERNET` and `VIBRATE` permissions. Everything about the Play release — target API level, privacy settings and why, Data safety answers, what needs you, and the checks to run on the built AAB — is in [`docs/play-release.md`](../docs/play-release.md).
 
 Before the first upload, decide the package name: `appId` in `capacitor.config.ts` and `namespace`/`applicationId` in
 `android/app/build.gradle` (currently `app.levelup.learn3d`). It can never change after the first upload. Increase
