@@ -183,6 +183,19 @@ describe("damage to one record never takes the library down", () => {
     expect(() => ctx.store.deckSummary()).not.toThrow();
   });
 
+  it("a game that is damaged deep inside answers with a typed GAME_DAMAGED error, is reported by integrity, and can be removed", () => {
+    const ctx = populated();
+    const other = newGame(ctx.store, "Decimals");
+    editStored(ctx.kv, `game.${ctx.game.id}`, (v) => { (v.spec as { areas: { stations: unknown }[] }).areas[0]!.stations = "not a list"; });
+    expect(codeOf(() => ctx.store.startSession(ctx.game.id, true))).toBe("GAME_DAMAGED");
+    expect(codeOf(() => ctx.store.applyEvent(ctx.sessionId, { type: "open", stationId: "x" }))).toBe("GAME_DAMAGED");
+    expect(ctx.store.getSession(ctx.sessionId)!.status).toBe("ACTIVE"); // the failed restart closed nothing
+    expect(ctx.store.integrity().damagedGames).toEqual([ctx.game.id]);
+    expect(ctx.store.startSession(other.id, false).resumed).toBe(false); // the other game is untouched
+    expect(ctx.store.purgeDamaged()).toBeGreaterThan(0);
+    expect(ctx.store.listGames().map((g) => g.id)).toEqual([other.id]);
+  });
+
   it("'delete all games' also removes damaged and unlisted games, their runs and the deck, and remembers the deletions for the cloud", () => {
     const ctx = populated();
     const second = newGame(ctx.store, "Decimals");

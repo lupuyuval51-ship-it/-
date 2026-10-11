@@ -116,6 +116,18 @@ export const toStorageError = (e: unknown): OfflineError =>
     ? new OfflineError(507, "STORAGE_FULL", "This phone has no room left to save. Delete a game you no longer need and try again.")
     : new OfflineError(503, "STORAGE_UNAVAILABLE", "This browser blocks saving on the device, so nothing can be stored.");
 
+/**
+ * Anything other than a typed error while playing a stored game means its saved data is broken in a way the light checks on read
+ * do not see (a nested part is missing). That is reported as a typed error for that one game instead of an unexplained crash.
+ */
+const damaged = (e: unknown): OfflineError =>
+  e instanceof OfflineError ? e : new OfflineError(500, "GAME_DAMAGED", "This game's saved data is damaged and cannot be played. It can be deleted from Settings.");
+
+/** Can the game be opened at all? (the structure play starts from; the spec was validated when it was stored) */
+function gameUsable(g: StoredGame): boolean {
+  try { initialState(g.spec, 0); maxScore(g.spec); toPublicSpec(g.spec); return true; } catch { return false; }
+}
+
 /** localStorage holds about 5 million characters in a WebView; the app warns well before that. */
 export const STORAGE_LIMIT_CHARS = 5_000_000;
 
@@ -303,8 +315,15 @@ export class OfflineStore {
   private saveSession(s: StoredSession): void { s.updatedAt = this.changeStamp(); this.write(`session.${s.id}`, s); }
 
   startSession(gameId: string, restart: boolean): { session: StoredSession; spec: PublicSpec; client: ClientState; maxScore: number; resumed: boolean; game: StoredGame } {
+    try { return this.runSession(gameId, restart); } catch (e) { throw damaged(e); }
+  }
+
+  private runSession(gameId: string, restart: boolean): { session: StoredSession; spec: PublicSpec; client: ClientState; maxScore: number; resumed: boolean; game: StoredGame } {
     const game = this.getGame(gameId);
     if (!game) throw new OfflineError(404, "NOT_FOUND", "Game not found.");
+    // what the game screen needs, built first: a game that cannot give it must fail before any run is closed or created
+    const publicSpec = toPublicSpec(game.spec);
+    const maxPoints = maxScore(game.spec);
     const now = this.clock();
     const actives = this.sessionIds(gameId).map((s) => this.getSession(s)).filter((s): s is StoredSession => s?.status === "ACTIVE");
     // a run that points at an area the game does not have (damaged, or from a game that was replaced) cannot be resumed
@@ -333,7 +352,7 @@ export class OfflineStore {
       this.putSession(session, true);
       this.pruneAbandoned(gameId);
     }
-    return { session, spec: toPublicSpec(game.spec), client: toClientState(session.state), maxScore: maxScore(game.spec), resumed, game };
+    return { session, spec: publicSpec, client: toClientState(session.state), maxScore: maxPoints, resumed, game };
   }
 
   /**
@@ -359,6 +378,10 @@ export class OfflineStore {
   }
 
   applyEvent(sessionId: string, input: unknown) {
+    try { return this.runEvent(sessionId, input); } catch (e) { throw damaged(e); }
+  }
+
+  private runEvent(sessionId: string, input: unknown) {
     const session = this.getSession(sessionId);
     if (!session) throw new OfflineError(404, "NOT_FOUND", "Play session not found.");
     const game = this.getGame(session.gameId);
@@ -395,7 +418,11 @@ export class OfflineStore {
     const session = this.getSession(sessionId);
     const game = session ? this.getGame(session.gameId) : null;
     if (!session || !game) return null;
-    return { game, session, summary: summarize(game.spec, session.state, session.finishedAt ?? this.clock()), review: buildReview(game.spec, session.state) };
+    try {
+      return { game, session, summary: summarize(game.spec, session.state, session.finishedAt ?? this.clock()), review: buildReview(game.spec, session.state) };
+    } catch {
+      return null; // damaged data: shown like a run that is not there
+    }
   }
 
   practice(sessionId: string, body: unknown) {
@@ -407,7 +434,7 @@ export class OfflineStore {
       return respondPractice(r.game.spec, r.session.state, sessionId, parsed.data);
     } catch (e) {
       if (e instanceof PracticeNotFound) throw new OfflineError(404, "NOT_FOUND", e.message);
-      throw e;
+      throw damaged(e);
     }
   }
 
@@ -456,6 +483,10 @@ export class OfflineStore {
   }
 
   deckPractice(body: unknown) {
+    try { return this.runDeckPractice(body); } catch (e) { throw damaged(e); }
+  }
+
+  private runDeckPractice(body: unknown) {
     const parsed = deckBodySchema.safeParse(body);
     if (!parsed.success) throw new OfflineError(400, "VALIDATION_ERROR", "The request is invalid.");
     const b = parsed.data;
@@ -754,7 +785,8 @@ export class OfflineStore {
     const damagedSessions: string[] = [];
     const ids = this.gameIds();
     for (const id of ids) {
-      if (!this.getGame(id)) { damagedGames.push(id); continue; }
+      const g = this.getGame(id);
+      if (!g || !gameUsable(g)) { damagedGames.push(id); continue; }
       for (const sid of this.sessionIds(id)) if (!this.getSession(sid)) damagedSessions.push(sid);
     }
     return { games: ids.length - damagedGames.length, damagedGames, damagedSessions };
