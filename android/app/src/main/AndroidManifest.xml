@@ -2,6 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
+      Permissions. INTERNET: only for the optional account (Supabase over HTTPS); the app makes no request while signed out.
+      VIBRATE comes from @capacitor/haptics (the vibration setting) and is merged in by Gradle. Nothing else is requested:
+      no storage, camera, microphone, location, contacts or notifications. Check with the merged manifest after every
+      plugin update (app/build/intermediates/merged_manifests/release/.../AndroidManifest.xml).
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
       allowBackup="false": the games and the optional Supabase sign-in session live in the WebView's local storage. They must
       leave the phone only through the app's own opt-in, owner-only cloud backup, never through Android Auto Backup / device
       transfer (which would also copy the sign-in session to another device). data_extraction_rules.xml repeats this for
@@ -11,6 +19,7 @@
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
         android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -44,12 +53,4 @@
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
     </application>
-
-    <!--
-      Permissions. INTERNET: only for the optional account (Supabase over HTTPS); the app makes no request while signed out.
-      VIBRATE comes from @capacitor/haptics (the vibration setting) and is merged in by Gradle. Nothing else is requested:
-      no storage, camera, microphone, location, contacts or notifications. Check with the merged manifest after every
-      plugin update (app/build/intermediates/merged_manifests/release/.../AndroidManifest.xml).
-    -->
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

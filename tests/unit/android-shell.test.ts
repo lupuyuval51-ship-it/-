@@ -22,6 +22,10 @@ describe("Android manifest (privacy and attack surface)", () => {
     expect(manifest).toMatch(/android:allowBackup="false"/);
     expect(manifest).toMatch(/android:usesCleartextTraffic="false"/);
     expect(manifest).toMatch(/android:dataExtractionRules="@xml\/data_extraction_rules"/);
+    expect(manifest).toMatch(/android:fullBackupContent="@xml\/backup_rules"/);
+    const legacy = read("android/app/src/main/res/xml/backup_rules.xml");
+    expect(legacy).not.toMatch(/<include/);
+    for (const domain of ["root", "file", "database", "sharedpref", "external"]) expect(legacy).toContain(`<exclude domain="${domain}" path="." />`);
     const rules = read("android/app/src/main/res/xml/data_extraction_rules.xml");
     const cloud = rules.match(/<cloud-backup>([\s\S]*?)<\/cloud-backup>/)?.[1] ?? "";
     const transfer = rules.match(/<device-transfer>([\s\S]*?)<\/device-transfer>/)?.[1] ?? "";
