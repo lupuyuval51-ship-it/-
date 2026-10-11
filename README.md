@@ -231,3 +231,14 @@ For a real public deployment, use PostgreSQL/private object storage rather than 
 - Add malware scanning and signed file delivery.
 - Run accessibility audit with assistive technology.
 - Run independent security/privacy review and jurisdiction-specific legal review.
+
+## Neon Coast – משחק עולם פתוח (תיקיית `neon-coast/`)
+
+משחק פעולה תלת־ממדי בעולם פתוח בסגנון GTA שרץ בדפדפן (Three.js, ללא תלויות חיצוניות): עיר פרוצדורלית עם תנועה, הולכי רגל, משטרה בחמש רמות חיפוש, נשקים, 8 משימות, חנויות, יום/לילה, מזג אוויר ורדיו פרוצדורלי.
+
+```bash
+cd neon-coast
+node serve.mjs 8080   # http://localhost:8080
+```
+
+פרטים מלאים ב־[`neon-coast/README.md`](neon-coast/README.md).

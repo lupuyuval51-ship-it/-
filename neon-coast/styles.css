@@ -1,0 +1,336 @@
+/* Neon Coast – single committed visual world: a humid neon night on the coast. */
+:root { --bg: #0b0f1e; --panel: rgba(10, 13, 28, 0.82); --line: rgba(255, 255, 255, 0.14); --text: #f3f0fa; --muted: #9aa0c0; --pink: #ff4fa3; --cyan: #3ce8f5; --gold: #ffd34e; --green: #7cff8a; --red: #ff5a5a; --orange: #ff9a3c; --blue: #4d8cff; --display: 'Bebas Neue', 'Heebo', Impact, sans-serif; --body: 'Heebo', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+#game { position: fixed; inset: 0; }
+canvas#c { display: block; width: 100%; height: 100%; transition: filter 0.7s ease; outline: none; touch-action: none; }
+canvas#c.gray { filter: grayscale(1) contrast(1.15) brightness(0.75); }
+button { font-family: inherit; }
+kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; min-width: 64px; text-align: center; direction: ltr; display: inline-block; }
+
+/* ---------- HUD ---------- */
+.hud { position: absolute; inset: 0; pointer-events: none; }
+.hud-tr { position: absolute; top: calc(18px + var(--sat)); right: calc(20px + var(--sar)); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; text-align: right; isolation: isolate; }
+.hud-tr::before { content: ''; position: absolute; z-index: -1; top: calc(-18px - var(--sat)); right: calc(-20px - var(--sar)); bottom: -26px; left: -110px; background: radial-gradient(120% 100% at 100% 0, rgba(5, 8, 20, 0.6), transparent 72%); pointer-events: none; }
+.money-wrap { position: relative; }
+.money { font-family: var(--display); font-size: 42px; line-height: 1; letter-spacing: 1px; color: var(--green); text-shadow: 0 0 14px rgba(124, 255, 138, 0.55), 0 2px 0 #0b3d1a; font-variant-numeric: tabular-nums; direction: ltr; }
+.money-delta { position: absolute; right: 0; top: 100%; font-family: var(--display); font-size: 22px; opacity: 0; direction: ltr; }
+.money-delta.plus { color: var(--green); animation: rise 1.8s ease-out; } .money-delta.minus { color: var(--red); animation: rise 1.8s ease-out; }
+@keyframes rise { 0% { opacity: 0; transform: translateY(6px); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-14px); } }
+.stars { display: flex; gap: 2px; direction: ltr; font-size: 24px; line-height: 1; }
+.stars span { color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.6); transition: color 0.2s; }
+.stars span.on { color: var(--gold); -webkit-text-stroke: 0; text-shadow: 0 0 10px rgba(255, 211, 78, 0.8); }
+.stars span.on.dim { color: rgba(255, 211, 78, 0.35); -webkit-text-stroke: 1.5px rgba(255, 211, 78, 0.75); text-shadow: none; }
+.stars.flash { animation: pop 0.35s ease-out; }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.evade { width: 118px; height: 3px; border-radius: 2px; overflow: hidden; background: rgba(255, 255, 255, 0.1); opacity: 0; }
+.evade.on { opacity: 1; } .evade i { display: block; height: 100%; width: 40%; background: var(--gold); animation: scan 1.2s linear infinite; }
+@keyframes scan { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+.weapon { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; direction: ltr; }
+.weapon span { font-weight: 600; font-size: 14px; color: var(--text); text-shadow: 0 1px 3px #000; }
+.weapon b { font-family: var(--display); font-size: 24px; color: #fff; letter-spacing: 1px; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000; }
+.clock { font-family: var(--display); font-size: 20px; color: #e8ecff; text-shadow: 0 1px 3px #000; letter-spacing: 1px; direction: ltr; }
+.notify { position: absolute; top: calc(18px + var(--sat)); left: calc(20px + var(--sal)); display: flex; flex-direction: column; gap: 6px; width: min(380px, 58vw); }
+.toast { background: var(--panel); border-inline-start: 3px solid var(--cyan); padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; line-height: 1.35; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); animation: slideIn 0.3s ease-out; transition: opacity 0.4s, transform 0.4s; backdrop-filter: blur(6px); }
+.toast.cash { border-color: var(--green); } .toast.warn { border-color: var(--red); } .toast.obj { border-color: var(--gold); } .toast.dim { border-color: var(--muted); color: var(--muted); }
+.toast.out { opacity: 0; transform: translateX(-12px); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.mission-timer { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-family: var(--display); font-size: 44px; line-height: 1; color: #fff; text-shadow: 0 2px 8px #000; opacity: 0; transition: opacity 0.3s; text-align: center; font-variant-numeric: tabular-nums; direction: ltr; }
+.mission-timer.on { opacity: 1; } .mission-timer.low { color: var(--red); animation: blink 0.6s steps(2) infinite; }
+.mission-timer small { display: block; font-family: var(--body); font-weight: 600; font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+@keyframes blink { 50% { opacity: 0.4; } }
+.mission-title { position: absolute; top: 24%; left: 50%; transform: translateX(-50%); font-family: var(--display); font-size: clamp(36px, 7vw, 64px); letter-spacing: 3px; color: var(--gold); text-shadow: 0 0 30px rgba(255, 211, 78, 0.5), 0 3px 0 #5a4a10; opacity: 0; white-space: nowrap; }
+.mission-title.on { animation: titleIn 4s ease-out forwards; }
+@keyframes titleIn { 0% { opacity: 0; transform: translate(-50%, 10px); } 12% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+.radio { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); padding: 6px 16px; border-radius: 999px; font-family: var(--display); font-size: 18px; letter-spacing: 1.5px; color: var(--pink); opacity: 0; transition: opacity 0.3s; direction: ltr; }
+.radio.on { opacity: 1; }
+.hud-bl { position: absolute; left: calc(20px + var(--sal)); bottom: calc(20px + var(--sab)); display: flex; flex-direction: column; gap: 6px; width: 240px; }
+#minimap { width: 240px; height: 160px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.18); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55); background: var(--bg); display: block; }
+.bars { display: flex; gap: 6px; }
+.bar { flex: 1; height: 10px; background: rgba(0, 0, 0, 0.5); border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7); }
+.bar i { display: block; height: 100%; width: 0; transition: width 0.25s; }
+.bar.health i { background: var(--green); } .bar.health i.low { background: var(--red); animation: blink 0.8s steps(2) infinite; } .bar.armor i { background: var(--blue); }
+.speedo .bar.car { position: absolute; left: 0; top: 100%; width: 96px; height: 6px; margin-top: 5px; flex: none; } .bar.car i { background: var(--cyan); } .bar.car .low { background: var(--orange); }
+.speedo { position: absolute; left: 100%; bottom: 0; margin-left: 14px; display: none; align-items: baseline; gap: 6px; direction: ltr; }
+.speedo.on { display: flex; }
+.speedo b { font-family: var(--display); font-size: 40px; line-height: 1; color: #fff; text-shadow: 0 2px 6px #000; font-variant-numeric: tabular-nums; min-width: 2ch; }
+.speedo span { font-size: 12px; color: var(--muted); font-weight: 600; }
+.prompt { position: absolute; bottom: 152px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); padding: 7px 16px; border-radius: 999px; font-weight: 600; font-size: 15px; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.prompt.on { opacity: 1; }
+.prompt kbd.key { min-width: 0; padding: 1px 8px; margin-inline-end: 8px; background: var(--gold); border-color: transparent; color: #14060e; font-weight: 700; }
+.objective { position: absolute; bottom: 98px; left: 50%; transform: translateX(-50%); font-weight: 600; font-size: 17px; color: #fff; background: rgba(9, 12, 26, 0.7); padding: 7px 16px; border-radius: 6px; border-bottom: 2px solid var(--gold); max-width: min(80vw, 640px); text-align: center; opacity: 0; transition: opacity 0.3s; }
+.objective.on { opacity: 1; }
+.subtitle { position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); font-weight: 500; font-size: 18px; line-height: 1.4; text-shadow: 0 2px 4px #000, 0 0 10px #000; max-width: min(72ch, 86vw); text-align: center; opacity: 0; transition: opacity 0.3s; }
+.subtitle.on { opacity: 1; } .subtitle b { color: var(--cyan); margin-inline-end: 6px; }
+.crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; border: 2px solid rgba(255, 255, 255, 0.92); border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(0, 0, 0, 0.4); display: none; transform: translate(-50%, -50%); }
+.crosshair::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; background: var(--pink); border-radius: 50%; transform: translate(-50%, -50%); }
+.crosshair.on { display: block; }
+.hurt { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 42%, rgba(255, 30, 30, 0.6) 100%); opacity: 0; }
+.mission-result { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); text-align: center; opacity: 0; white-space: nowrap; }
+.mission-result .title { font-family: var(--display); font-size: clamp(48px, 9vw, 84px); letter-spacing: 4px; line-height: 1; text-shadow: 0 4px 0 rgba(0, 0, 0, 0.5), 0 0 40px currentColor; }
+.mission-result.pass .title { color: var(--gold); } .mission-result.fail .title { color: var(--red); }
+.mission-result .sub { font-weight: 600; font-size: 18px; color: var(--text); margin-top: 8px; }
+.mission-result.on { animation: resultIn 5s ease-out forwards; }
+@keyframes resultIn { 0% { opacity: 0; transform: translate(-50%, 0) scale(1.4); } 10% { opacity: 1; transform: translate(-50%, 0) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; } }
+.overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45); opacity: 0; transition: opacity 0.6s; }
+.overlay.on { opacity: 1; }
+.overlay .big { font-family: var(--display); font-size: clamp(72px, 18vw, 170px); letter-spacing: 8px; line-height: 1; color: var(--red); text-shadow: 0 0 50px rgba(255, 90, 90, 0.6), 0 6px 0 #4a0f0f; animation: zoom 5s ease-out; }
+.overlay .sub { font-size: 16px; color: var(--muted); margin-top: 12px; max-width: 60ch; text-align: center; padding: 0 16px; }
+@keyframes zoom { from { transform: scale(0.85); } to { transform: scale(1.05); } }
+
+/* ---------- screens ---------- */
+.screen[hidden], .hud[hidden], .touch[hidden] { display: none !important; }
+.screen { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: auto; padding-inline: 16px; }
+.loading { background: var(--bg); flex-direction: column; gap: 18px; font-weight: 600; color: var(--muted); }
+.spinner { width: 48px; height: 48px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.12); border-top-color: var(--pink); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.title { flex-direction: column; justify-content: flex-end; padding-block: 6vh; background: linear-gradient(180deg, rgba(11, 15, 30, 0.05) 0%, rgba(11, 15, 30, 0.55) 55%, rgba(11, 15, 30, 0.96) 100%); }
+.title-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+.logo { font-family: var(--display); font-size: clamp(72px, 17vw, 176px); line-height: 0.86; letter-spacing: 6px; direction: ltr; text-align: center; background: linear-gradient(90deg, var(--pink), var(--orange)); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 28px rgba(255, 79, 163, 0.5)); }
+.logo span { display: block; background: linear-gradient(90deg, var(--cyan), #8ef5ff); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: 12px; margin-inline-start: 12px; }
+.tagline { margin: 6px 0 14px; font-weight: 600; font-size: clamp(16px, 2.4vw, 22px); color: var(--text); text-shadow: 0 2px 10px #000; }
+.menu { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.menu.col { flex-direction: column; align-items: stretch; }
+.btn { font-weight: 700; font-size: 16px; padding: 12px 28px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.07); color: #fff; cursor: pointer; backdrop-filter: blur(8px); transition: background 0.15s, transform 0.15s, box-shadow 0.15s; }
+.btn:hover { background: rgba(255, 255, 255, 0.16); transform: translateY(-1px); }
+.btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.btn.primary { background: linear-gradient(90deg, var(--pink), var(--orange)); border: none; color: #14060e; box-shadow: 0 0 26px rgba(255, 79, 163, 0.45); }
+.btn.primary:hover { box-shadow: 0 0 34px rgba(255, 79, 163, 0.7); }
+.btn.ghost { background: transparent; }
+.btn.small { padding: 6px 14px; font-size: 13px; }
+.btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+.lang { display: flex; gap: 6px; }
+.lang .btn.on { color: var(--pink); border-color: var(--pink); }
+.controls-panel { display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 18px; margin-top: 10px; max-width: 640px; width: 100%; }
+.controls-panel.on { display: block; }
+.controls-list { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 24px; }
+.controls-list li { display: flex; align-items: center; gap: 10px; padding: 5px 0; break-inside: avoid; font-size: 14px; }
+.modal { background: rgba(4, 6, 14, 0.6); backdrop-filter: blur(6px); }
+.panel { background: rgba(12, 16, 32, 0.94); border: 1px solid var(--line); border-radius: 16px; padding: 22px 28px; max-width: min(980px, 96vw); max-height: 92vh; overflow: auto; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); width: 100%; }
+.panel h2 { font-family: var(--display); font-size: 40px; letter-spacing: 2px; margin: 0 0 14px; line-height: 1; }
+.panel h3 { font-family: var(--display); font-size: 22px; letter-spacing: 1.5px; margin: 0 0 8px; color: var(--muted); }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-head h2 { margin: 0; }
+.pause-panel .cols { display: grid; grid-template-columns: 220px 1fr; gap: 28px 32px; align-items: start; }
+.settings label { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-weight: 600; }
+.settings select, .settings input[type=range] { accent-color: var(--pink); }
+.settings select { background: #161b33; color: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-family: inherit; }
+.stats ul { list-style: none; margin: 0; padding: 0; }
+.stats li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 14px; }
+.stats li b { color: var(--gold); font-variant-numeric: tabular-nums; direction: ltr; }
+.map-panel { width: min(96vw, 1100px); height: min(92vh, 820px); display: flex; flex-direction: column; }
+#bigmap { flex: 1; width: 100%; min-height: 0; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 10px 0 0; }
+.legend li { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.shop-panel { width: min(94vw, 580px); }
+.shop-list { list-style: none; margin: 0; padding: 0; }
+.shop-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.shop-list li.off { opacity: 0.45; }
+.shop-list b { display: block; font-size: 15px; } .shop-list small { color: var(--muted); }
+.shop-list .tag { font-size: 12px; font-weight: 700; color: var(--green); }
+.shop-list button { font-family: var(--display); font-size: 18px; letter-spacing: 1px; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.08); color: var(--green); cursor: pointer; direction: ltr; min-width: 92px; }
+.shop-list button:hover { background: rgba(124, 255, 138, 0.15); }
+
+/* ---------- touch ---------- */
+.touch { position: absolute; inset: 0; pointer-events: none; touch-action: none; }
+.touch-look { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
+.stick { position: absolute; left: calc(26px + var(--sal)); bottom: 150px; width: 124px; height: 124px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.16); pointer-events: none; opacity: 0.6; transition: opacity 0.15s, background 0.15s, border-color 0.15s; }
+.stick.on { opacity: 1; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4); }
+.knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); }
+.tbtns, .tbtns2, .tbtns3 { display: contents; }
+.touch button { position: absolute; width: 54px; height: 54px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 20px; font-weight: 700; padding: 0; pointer-events: auto; touch-action: none; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35); }
+.touch button.on { background: var(--pink); border-color: var(--pink); }
+/* Right-hand cluster: an arc around the main button (fire on foot, brake in a car). Every slot is the same in both layouts. */
+.touch button[data-btn=fire] { right: calc(16px + var(--sar)); bottom: calc(22px + var(--sab)); width: 72px; height: 72px; font-size: 26px; background: rgba(255, 79, 163, 0.25); border-color: rgba(255, 79, 163, 0.7); }
+.touch button[data-btn=jump] { right: calc(100px + var(--sar)); bottom: calc(30px + var(--sab)); }
+.touch button[data-btn=enter] { right: calc(84px + var(--sar)); bottom: calc(102px + var(--sab)); background: rgba(255, 211, 78, 0.18); border-color: rgba(255, 211, 78, 0.6); }
+.touch button[data-btn=run] { right: calc(16px + var(--sar)); bottom: calc(106px + var(--sab)); }
+.touch button[data-btn=aim] { right: calc(154px + var(--sar)); bottom: calc(96px + var(--sab)); }
+.touch button[data-btn=reload] { right: calc(166px + var(--sar)); bottom: calc(30px + var(--sab)); }
+.touch button[data-btn=weapon] { right: calc(154px + var(--sar)); bottom: calc(162px + var(--sab)); }
+.touch button[data-btn=vig] { right: calc(154px + var(--sar)); bottom: calc(162px + var(--sab)); border-color: var(--blue); }
+.touch button[data-btn=vig].show { background: rgba(77, 140, 255, 0.35); animation: pop 0.6s ease-out; }
+.touch button[data-btn=brake] { right: calc(16px + var(--sar)); bottom: calc(22px + var(--sab)); width: 72px; height: 72px; font-size: 26px; background: rgba(255, 90, 90, 0.22); border-color: rgba(255, 90, 90, 0.7); }
+.touch button[data-btn=radio] { right: calc(16px + var(--sar)); bottom: calc(106px + var(--sab)); }
+.touch button[data-btn=horn] { right: calc(154px + var(--sar)); bottom: calc(96px + var(--sab)); }
+.touch button[data-btn=map], .touch button[data-btn=pause] { top: calc(8px + var(--sat)); width: 40px; height: 40px; font-size: 15px; background: rgba(8, 11, 24, 0.55); }
+.touch button[data-btn=map] { left: calc(50% - 98px); } .touch button[data-btn=pause] { left: calc(50% + 58px); }
+/* on foot: car-only buttons are hidden. In a car: on-foot buttons are hidden; fire stays as the drive-by button. */
+#touch:not(.in-car) [data-btn=brake], #touch:not(.in-car) [data-btn=radio], #touch:not(.in-car) [data-btn=horn] { display: none; }
+#touch.in-car [data-btn=aim], #touch.in-car [data-btn=run], #touch.in-car [data-btn=reload], #touch.in-car [data-btn=weapon] { display: none; }
+#touch.in-car [data-btn=fire] { right: calc(166px + var(--sar)); bottom: calc(30px + var(--sab)); width: 54px; height: 54px; font-size: 20px; }
+
+@media (max-width: 720px) {
+  .hud-bl, #minimap { width: 160px; } #minimap { height: 110px; } .money { font-size: 30px; } .stars { font-size: 18px; } .speedo b { font-size: 28px; }
+  .pause-panel .cols { grid-template-columns: 1fr; } .controls-list { columns: 1; } .panel { padding: 16px; } .objective { bottom: 120px; font-size: 14px; } .subtitle { font-size: 15px; bottom: 70px; } .prompt { bottom: 170px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* ---------- icons, scope, casino, shop icons ---------- */
+.weapon svg { color: #fff; filter: drop-shadow(0 1px 3px #000); flex: none; }
+.scope { position: absolute; inset: 0; display: none; background: radial-gradient(circle at center, transparent 0, transparent 30vmin, rgba(0, 0, 0, 0.2) 31vmin, rgba(2, 3, 8, 0.97) 34vmin); }
+.scope.on { display: block; }
+.scope i { position: absolute; left: 50%; top: 50%; background: rgba(255, 255, 255, 0.85); }
+.scope i:first-child { width: 62vmin; height: 1px; transform: translate(-50%, -50%); }
+.scope i:last-child { width: 1px; height: 62vmin; transform: translate(-50%, -50%); }
+.scope::after { content: ''; position: absolute; left: 50%; top: 50%; width: 62vmin; height: 62vmin; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); transform: translate(-50%, -50%); }
+.shop-list li { grid-template-columns: 36px 1fr auto auto; }
+.shop-icon { width: 30px; height: 30px; color: var(--pink); }
+.casino-list li.casino { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 14px 0; }
+.reels { display: flex; gap: 12px; justify-content: center; }
+.reels span { width: 84px; height: 100px; background: var(--bg); border: 2px solid var(--gold); border-radius: 12px; display: grid; place-items: center; font-family: var(--display); font-size: 58px; color: var(--gold); text-shadow: 0 0 18px rgba(255, 211, 78, 0.6); }
+.rules { margin: 0; color: var(--muted); font-size: 13px; }
+.bets { display: flex; gap: 8px; }
+.bets .btn.on { border-color: var(--gold); color: var(--gold); }
+.casino-msg { min-height: 24px; font-family: var(--display); font-size: 24px; letter-spacing: 1px; }
+.casino-msg.win { color: var(--green); } .casino-msg.lose { color: var(--red); }
+
+/* ---------- combat feedback: hit marker, damage direction, objective pins ---------- */
+.hitmarker { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.hitmarker i { position: absolute; left: -1px; top: -16px; width: 2px; height: 9px; transform-origin: 1px 16px; background: #fff; border-radius: 1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55); opacity: 0; }
+.hitmarker i:nth-child(1) { transform: rotate(45deg); } .hitmarker i:nth-child(2) { transform: rotate(135deg); } .hitmarker i:nth-child(3) { transform: rotate(225deg); } .hitmarker i:nth-child(4) { transform: rotate(315deg); }
+.hitmarker.hit i { animation: hm 0.12s ease-out forwards; }
+.hitmarker.head { transform: scale(1.25); } .hitmarker.head i { background: #ffd34e; animation: hm 0.18s ease-out forwards; }
+.hitmarker.kill { transform: scale(1.5); } .hitmarker.kill i { background: #ff3b3b; animation: hm 0.26s ease-out forwards; }
+@keyframes hm { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+.dmg-dir { position: absolute; inset: 0; pointer-events: none; }
+.dmg-dir i { position: absolute; left: 50%; top: 50%; width: 120px; height: 26px; margin-left: -60px; margin-top: calc(-34vh - 13px); transform-origin: 50% calc(34vh + 13px); opacity: 0; will-change: transform, opacity; border-radius: 50% 50% 0 0 / 100% 100% 0 0; background: radial-gradient(ellipse 60px 26px at 50% 0, rgba(255, 50, 50, 0.95), rgba(255, 50, 50, 0.45) 55%, rgba(255, 50, 50, 0) 100%); }
+.obj-pin { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; will-change: transform; color: #fff; --c: var(--gold); }
+.obj-pin[hidden] { display: none; }
+.obj-pin::before { content: ''; position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; box-sizing: border-box; background: var(--c); border: 2px solid #0b0f1e; transform: rotate(45deg); box-shadow: 0 0 10px var(--c); }
+.obj-pin b { position: absolute; left: 0; top: 20px; transform: translateX(-50%); white-space: nowrap; font-family: var(--display); font-size: 16px; font-weight: 400; letter-spacing: 1px; text-shadow: 0 1px 3px #000, 0 0 6px rgba(0, 0, 0, 0.8); direction: ltr; }
+.obj-pin .arw { position: absolute; left: -6px; top: -7px; width: 0; height: 0; border-left: 12px solid var(--c); border-top: 7px solid transparent; border-bottom: 7px solid transparent; filter: drop-shadow(0 0 2px #0b0f1e) drop-shadow(0 1px 2px #000); }
+
+/* ---------- rotate-to-landscape overlay (touch devices in portrait only) ---------- */
+.rotate { display: none; }
+.rot-phone { display: block; width: 34px; height: 58px; border: 3px solid var(--text); border-radius: 8px; position: relative; animation: rotPhone 2.4s ease-in-out infinite; }
+.rot-phone::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 8px; height: 3px; margin-left: -4px; border-radius: 2px; background: var(--text); }
+@keyframes rotPhone { 0%, 20% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
+/* No longer shown: the game plays upright on phones too (see the portrait layout at the end of this file). */
+
+/* ---------- short landscape screens (phones) ---------- */
+@media (max-height: 500px) {
+  #minimap { width: 150px; height: 100px; } .hud-bl { width: 150px; } .money { font-size: 28px; } .stars { font-size: 16px; } .weapon svg { width: 28px; height: 28px; } .weapon b { font-size: 20px; }
+  .objective { bottom: 12px; font-size: 13px; padding: 5px 12px; } .subtitle { bottom: 44px; font-size: 14px; line-height: 1.3; } .prompt { bottom: 82px; font-size: 14px; padding: 5px 14px; }
+  .notify { width: min(240px, 34vw); } .toast { font-size: 13px; padding: 6px 10px; }
+  .mission-timer { font-size: 34px; top: 8px; } .radio { top: 54px; }
+  .speedo b { font-size: 30px; }
+}
+/* on touch devices the bottom text lines live between the minimap and the right-hand button cluster */
+@media (pointer: coarse) {
+  .prompt, .objective, .subtitle { left: calc(var(--sal) + 176px); right: calc(var(--sar) + 232px); transform: none; width: max-content; max-width: calc(100vw - 408px - var(--sal) - var(--sar)); margin-inline: auto; white-space: normal; }
+}
+
+/* in a vehicle the chase camera frames the car bottom-centre, so the context prompt moves up over the road ahead (below the timer and radio chip) */
+.prompt.in-car { bottom: auto; top: 118px; }
+@media (max-width: 720px) { .prompt.in-car { bottom: auto; top: 118px; } }
+@media (max-height: 500px) { .prompt.in-car { bottom: auto; top: 92px; } }
+
+/* ---------- release 3: job HUD card, job shift summary, touch G / N, pause-screen job board ---------- */
+/* jobs.js builds the card markup (.jobpanel, .jp-*) and sets --jc; the rules live here (see the empty #jobStyle in index.html). */
+#hud .jobpanel { position: absolute; left: calc(20px + var(--sal)); top: 226px; width: 236px; padding: 9px 12px 10px; border-radius: 8px; background: var(--panel); border-inline-start: 3px solid var(--jc, var(--gold)); color: var(--text); font: 600 13px/1.35 var(--body); box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); display: none; pointer-events: none; }
+#hud .jobpanel.on { display: block; }
+#hud .jobpanel .jp-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
+#hud .jobpanel .jp-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+#hud .jobpanel .jp-lv { flex: none; color: var(--jc, var(--gold)); font-size: 12px; letter-spacing: 0.5px; }
+#hud .jobpanel .jp-xp { height: 3px; margin: 5px 0 6px; background: rgba(255, 255, 255, 0.14); border-radius: 2px; overflow: hidden; }
+#hud .jobpanel .jp-xp i { display: block; height: 100%; width: 0; background: var(--jc, var(--gold)); transition: width 0.3s; }
+#hud .jobpanel .jp-sum { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; color: var(--muted); font-size: 12px; }
+#hud .jobpanel .jp-calls { min-width: 0; overflow-wrap: anywhere; }
+#hud .jobpanel .jp-sum b { flex: none; color: var(--green); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+#hud .jobpanel .jp-bar { display: none; margin-top: 5px; }
+#hud .jobpanel .jp-bar.on { display: block; }
+#hud .jobpanel .jp-bar span { display: block; font-size: 11px; color: var(--muted); }
+#hud .jobpanel .jp-bar div { height: 6px; border-radius: 3px; background: rgba(0, 0, 0, 0.5); overflow: hidden; }
+#hud .jobpanel .jp-bar i { display: block; height: 100%; width: 100%; transition: width 0.2s, background 0.2s; }
+#hud .jobpanel .jp-l { margin-top: 5px; font-size: 12px; overflow-wrap: anywhere; }
+#hud .jobpanel .jp-l:empty { display: none; }
+#hud .jobpanel .jp-l1 { font-size: 15px; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { #hud .jobpanel { width: 204px; } }
+@media (max-height: 560px) { #hud .jobpanel { top: 128px; width: 204px; padding: 6px 9px; font-size: 12px; } }
+
+/* the shift summary and every mission result: the sub line wraps inside the screen instead of running off it */
+#hud .mission-result { width: min(92vw, 600px); white-space: normal; }
+#hud .mission-result .title { white-space: nowrap; }
+#hud .mission-result .sub { line-height: 1.4; text-shadow: 0 2px 6px #000, 0 0 12px #000; }
+
+/* touch G (siren) and N (skip call): shown only during a shift; the siren only in a vehicle. Slots are free in both layouts. */
+.touch button[data-btn=siren] { right: calc(84px + var(--sar)); bottom: calc(170px + var(--sab)); display: none; background: rgba(255, 90, 90, 0.2); border-color: rgba(255, 90, 90, 0.6); }
+.touch button[data-btn=skip] { right: calc(16px + var(--sar)); bottom: calc(190px + var(--sab)); display: none; }
+#touch.job-on [data-btn=siren], #touch.job-on [data-btn=skip] { display: block; }
+#touch.job-on:not(.in-car) [data-btn=siren] { display: none; }
+
+/* pause screen: the job board spans both columns. Cards are built by ui.js (renderJobs): .job-card, .jc-*. */
+.pause-panel .cols .jobs-board { grid-column: 1 / -1; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+.jobs-board h3 { margin-bottom: 10px; }
+.jobs-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.job-card { --jc: var(--gold); display: flex; gap: 12px; align-items: flex-start; min-width: 0; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-inline-start: 3px solid var(--jc); }
+.job-card.on-shift { box-shadow: 0 0 0 1px var(--jc), 0 0 18px color-mix(in srgb, var(--jc) 35%, transparent); }
+.job-card .jc-ico { flex: none; width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--jc); color: #0b0f1e; box-shadow: 0 0 14px color-mix(in srgb, var(--jc) 50%, transparent); }
+.job-card .jc-ico svg { width: 30px; height: 30px; }
+.job-card .jc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.job-card .jc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; min-width: 0; }
+.job-card .jc-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 800; }
+.job-card .jc-lv { flex: none; font-family: var(--display); font-size: 18px; letter-spacing: 1px; color: var(--jc); }
+.job-card .jc-xp { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.job-card .jc-xp i { display: block; height: 100%; background: var(--jc); }
+.job-card .jc-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.job-card .jc-meta b { flex: none; color: var(--green); direction: ltr; unicode-bidi: isolate; font-variant-numeric: tabular-nums; }
+.job-card .jc-depot { font-size: 12px; color: var(--cyan); }
+.job-card .jc-note { font-size: 12px; color: var(--muted); }
+
+/* ---------- release 3: shop screens (moved verbatim from ui.js shopStyle(); ui.js sees #shopUiStyle in index.html and does not inject it again) ---------- */
+#shop .shop-panel{width:min(96vw,700px)}
+#shop .shop-head{display:flex;align-items:center;gap:14px;margin:0 0 10px;padding:12px 14px;border-radius:14px;background:linear-gradient(90deg,color-mix(in srgb,var(--sc,#ff4fa3) 26%,transparent),rgba(255,255,255,.03));border:1px solid color-mix(in srgb,var(--sc,#ff4fa3) 45%,transparent)}
+#shop .sh-ico{flex:0 0 auto;width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:var(--sc,#ff4fa3);color:#0b0f1e;box-shadow:0 0 18px color-mix(in srgb,var(--sc,#ff4fa3) 60%,transparent)}
+#shop .sh-ico svg{width:30px;height:30px}
+#shop .sh-msg{flex:1;min-width:0;font-size:15px;line-height:1.35;color:#e6e3f4}
+#shop .sh-msg small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+#shop .sh-cash{flex:0 0 auto;text-align:end;font-family:var(--display);font-size:30px;line-height:1;color:var(--green);direction:ltr}
+#shop .sh-cash small{display:block;font-family:inherit;font-size:11px;letter-spacing:1.5px;color:var(--muted);margin-bottom:2px}
+#shop .shop-list{max-height:min(62vh,560px);overflow:auto;padding-inline-end:4px}
+#shop .shop-list li.shop-grp{display:block;font-family:var(--display);letter-spacing:1.6px;font-size:15px;color:var(--sc,#ff4fa3);margin:12px 0 2px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.12);list-style:none}
+#shop .shop-list li:not(.shop-grp):not(.casino){grid-template-columns:48px 1fr auto auto;padding:10px 4px}
+#shop .shop-list li.off{opacity:.5}
+#shop .shop-ico{width:42px;height:42px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;color:var(--sc,#ff4fa3)}
+#shop .shop-ico svg{width:28px;height:28px}
+#shop .shop-list b{font-size:16px}
+#shop .shop-list .desc{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+#shop .bars{display:grid;grid-template-columns:repeat(3,minmax(60px,1fr));gap:3px 12px;margin-top:6px;max-width:330px}
+#shop .bars span{font-size:10.5px;color:var(--muted);display:block;line-height:1.2}
+#shop .bars i{display:block;height:4px;margin-top:2px;border-radius:2px;background:rgba(255,255,255,.12);position:relative;overflow:hidden}
+#shop .bars i:after{content:"";position:absolute;inset:0 auto 0 0;width:var(--v);background:var(--sc,#ff4fa3);border-radius:2px}
+html[dir=rtl] #shop .bars i:after{inset:0 0 0 auto}
+#shop .swatch{display:flex;gap:4px;margin-top:6px}
+#shop .swatch i{width:17px;height:17px;border-radius:50%;border:1px solid rgba(255,255,255,.4)}
+#shop .shop-list li.poor button{color:var(--red);border-color:rgba(255,90,90,.35)}
+#shop .shop-list li button:not([disabled]):hover{background:color-mix(in srgb,var(--sc,#ff4fa3) 24%,transparent)}
+@media (max-width:560px){#shop .sh-cash{font-size:22px}#shop .shop-list li:not(.shop-grp):not(.casino){grid-template-columns:40px minmax(0,1fr) auto}#shop .bars{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px 8px}#shop .shop-list .tag{display:block;grid-column:2;grid-row:2}#shop .shop-list .tag:empty{display:none}}
+.jobs-none { grid-column: 1 / -1; margin: 0 0 4px; color: var(--muted); font-size: 13px; }
+/* the job board stays hidden until ui.js fills #jobsStats (renderJobs) */
+.jobs-board:has(> .jobs-stats:empty) { display: none; }
+
+/* ---------- portrait phones: the HUD is stacked for an upright screen ----------
+   Top corners: map and pause buttons. Under them: money, stars, weapon and clock on the right; the minimap, bars and speedo on the left.
+   The stick and the action buttons own the bottom third, so the context prompt, objective and subtitle sit just above them. */
+@media (orientation: portrait) and (max-width: 720px) {
+  .touch button[data-btn=map] { left: calc(12px + var(--sal)); top: calc(8px + var(--sat)); }
+  .touch button[data-btn=pause] { left: auto; right: calc(12px + var(--sar)); top: calc(8px + var(--sat)); }
+  .hud-tr { top: calc(58px + var(--sat)); right: calc(14px + var(--sar)); }
+  .money { font-size: 34px; } .stars { font-size: 18px; } .clock { font-size: 18px; } .weapon { margin-top: 2px; }
+  .hud-bl { top: calc(58px + var(--sat)); left: calc(14px + var(--sal)); bottom: auto; width: 126px; gap: 5px; }
+  #minimap { width: 126px; height: 94px; }
+  .speedo { position: static; margin: 4px 0 0; }
+  .speedo b { font-size: 30px; }
+  .speedo .bar.car { position: static; width: 100%; margin-top: 4px; }
+  .notify { top: calc(206px + var(--sat)); left: calc(14px + var(--sal)); width: min(250px, 64vw); }
+  #hud .jobpanel { top: calc(360px + var(--sat)); left: calc(14px + var(--sal)); width: min(220px, 60vw); }
+  .mission-timer { top: calc(10px + var(--sat)); font-size: 38px; }
+  .radio { top: calc(262px + var(--sat)); }
+  .prompt, .objective, .subtitle { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 92vw; margin: 0; white-space: normal; text-align: center; }
+  .prompt { bottom: calc(288px + var(--sab)); }
+  .objective { bottom: calc(326px + var(--sab)); font-size: 15px; }
+  .subtitle { bottom: calc(372px + var(--sab)); font-size: 16px; }
+  .prompt.in-car { top: calc(200px + var(--sat)); bottom: auto; }
+}
