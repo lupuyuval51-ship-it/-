@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Arrow, Badge, Card, Stars } from "@/components/ui";
+import { AiEditPanel } from "@/components/games/AiEditPanel";
 import { GameActions } from "@/components/games/GameActions";
+import { VersionHistory } from "@/components/games/VersionHistory";
 import { GeneratorBadge } from "@/components/games/GameBadges";
 import { formatDate } from "@/lib/format";
 import type { DictKey } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/current";
 import { ApiError } from "@/server/http/errors";
+import { getBackend } from "@/server/ai/registry";
 import { getGameDetails } from "@/server/games/library";
+import { listRevisions } from "@/server/games/versions";
 import { getT } from "@/server/i18n";
 
 export const metadata = { title: "Game details" };
@@ -22,7 +26,9 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
     throw e;
   });
   if (!d) notFound();
-  const { game, overview, progress, inProgress, recent, revisions } = d;
+  const { game, overview, progress, inProgress, recent } = d;
+  const history = await listRevisions(user.id, id);
+  const aiAvailable = getBackend().type === "llm";
   const btn = "inline-flex min-h-12 items-center justify-center rounded-xl px-6 font-semibold";
   return (
     <div className="space-y-8">
@@ -127,6 +133,8 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             )}
           </Card>
 
+          <AiEditPanel gameId={game.id} revision={game.revision} capabilities={history.capabilities} editable={game.generator.kind === "ai"} aiAvailable={aiAvailable} />
+
           <GameActions
             gameId={game.id}
             title={game.title}
@@ -135,17 +143,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             hasProgress={Boolean(progress || inProgress)}
           />
 
-          <Card className="space-y-2">
-            <h2 className="text-lg font-semibold">{t("det.revisions")}</h2>
-            <ul className="space-y-1 text-sm text-muted">
-              {revisions.map((r) => (
-                <li key={r.revision} className="flex justify-between">
-                  <span>{t("det.version", { n: r.revision })} · {t(`det.rev.${r.reason}` as DictKey)}</span>
-                  <span>{formatDate(r.createdAt, locale)}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
+          <VersionHistory gameId={game.id} revisions={history.revisions?.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })) ?? null} />
         </aside>
       </div>
     </div>

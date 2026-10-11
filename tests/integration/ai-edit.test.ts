@@ -58,6 +58,13 @@ describe("AI edit: plan and ownership are enforced on the server", () => {
     expect((await db.game.findUniqueOrThrow({ where: { id: gameId } })).revision).toBe(1);
   });
 
+  it("the plan is checked before the provider: a Free user gets FEATURE_LOCKED even when no AI provider is configured", async () => {
+    const u = await createTestUser();
+    const gameId = await makeAiGame(u.id);
+    setBackendForTests({ type: "templates", info: { id: "demo", kind: "demo", label: "Demo", model: "t" } } satisfies GenerationBackend);
+    expect(errCode((await edit(u, gameId, { instruction: "rename the game" })).json)).toBe("FEATURE_LOCKED");
+  });
+
   it("a user cannot edit someone else's game (404) and an unknown game is 404 too", async () => {
     const owner = await createTestUser();
     const gameId = await makeAiGame(owner.id);

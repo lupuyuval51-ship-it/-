@@ -112,6 +112,16 @@ Allowance rules, all enforced in the database rather than in UI code:
 * Entitlement exists only while a subscription is `ACTIVE`/`TRIALING` (48 h grace after the period end for webhook delay).
   A failed payment, cancellation (at period end), unpaid state, or a **fully refunded invoice** (for that period only) falls back to Free.
 
+**Plan features and quotas** live next to the prices in `plans.ts` (`features`): the personal AI robot level (`none` / B / A), AI edits per
+period, and whether saved versions can be listed and restored. They are read by the server only; the UI just shows what the server reports and
+explains which plan unlocks a locked feature.
+
+| Plan | AI robot | AI edits / period | Version history |
+| --- | --- | --- | --- |
+| **Free** | — (manual edits only) | 0 | not available (3 versions kept internally) |
+| **Plus** | level B: guided edits (≤ 15 operations per request) | 40 | list and restore, 20 versions kept |
+| **Pro** | level A: larger multi-part changes (≤ 40 operations per request, higher reasoning effort) | 200 | list and restore, 100 versions kept |
+
 **Graphics tiers** are chosen by the server from the persisted plan and sent to the client as a numeric render profile.
 A forged request for Tier A on a Free account is refused (`403 TIER_NOT_ALLOWED`) and a stale stored preference is clamped.
 The tiers differ in what is actually rendered — measured in the browser tests: shadow type and map size, materials/normal maps,
@@ -144,6 +154,14 @@ POST /api/generations  →  reserve credit  →  background job  →  provider (
 * **Modes really differ:** Fast = one focused area; Full = a two-stage plan then content, several areas, missions and an assessment;
   Extend = an additive pass that preserves every existing id, remaps collisions and links the last old area to the new one.
   After generation a game can also be edited without AI (rename, time of day, optional mechanics) with a version history.
+* **Edit a game with words (Plus / Pro):** `POST /api/games/[id]/edit` takes a natural-language instruction. The model never writes code and never
+  rewrites the game: it answers with a few allow-listed JSON-Patch style operations (`src/lib/game/spec/edit.ts`) that are applied to a copy and the
+  whole result goes through `validateGameSpec` (schema, cross-references, solvability, sanitising) before it can be saved; the subject, type,
+  difficulty and language are locked, and validation errors are fed back to the model (max 2 repairs). One quota slot is reserved by a `PENDING`
+  `AiEdit` row (one in flight per user — partial unique index, advisory lock for the check) and committed with the new version in one transaction;
+  a failed, rejected or timed-out edit releases it and changes nothing. Only AI-made games can be edited by the robot (demo/engine games are never
+  passed off as AI output). `GET /api/games/[id]/revisions` and `POST …/revisions/[n]/restore` list and restore versions; a restore is never
+  destructive (the old content becomes a new latest version).
 * **Honest labelling:** every game stores `generatorKind` (`ai` | `demo`), provider and model; the library, details page and play screen show it.
   When no demo template matches a subject the game says so instead of pretending to be about it.
 

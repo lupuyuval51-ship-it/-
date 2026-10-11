@@ -59,10 +59,6 @@ export interface EditResult {
 export async function editGameWithAi(args: EditArgs, opts: { now?: Date } = {}): Promise<EditResult> {
   const now = opts.now ?? new Date();
   const backend = getBackend();
-  if (backend.type !== "llm") {
-    throw Errors.unavailable("AI_UNAVAILABLE", "The AI robot needs an AI provider, which is not configured on this server.");
-  }
-
   await reapExpiredEdits(args.userId, now);
 
   // Idempotent retry: the same key returns the same outcome instead of spending a second edit.
@@ -79,6 +75,10 @@ export async function editGameWithAi(args: EditArgs, opts: { now?: Date } = {}):
   const { ent, features } = await getCapabilities(args.userId, now);
   if (features.robot === "none" || features.aiEditsPerPeriod <= 0) {
     throw new ApiError(403, "FEATURE_LOCKED", "Editing games with the AI robot is available on Plus and Pro.", { feature: "robot", requiredPlan: "PLUS" });
+  }
+  // Permission first (what the plan includes), then whether this server can run a model at all.
+  if (backend.type !== "llm") {
+    throw Errors.unavailable("AI_UNAVAILABLE", "The AI robot needs an AI provider, which is not configured on this server.");
   }
   const level = features.robot;
 

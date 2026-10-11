@@ -6,6 +6,9 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 ## Rules that are enforced (and tested)
 
 - Plans, prices, allowances and graphics permissions live **only** in `src/config/plans.ts`. Never gate by price in the UI; the server enforces.
+- Plan features and quotas (AI robot level, AI edits per period, version history) are in `src/config/plans.ts` (`features`) and enforced only on the server
+  (`src/server/games/ai-edit.ts`, `versions.ts`). An AI edit reserves a quota slot (`AiEdit` PENDING) and commits it with the new version in one transaction;
+  a failed edit never costs anything. The model edits a game only through the allow-listed operations in `src/lib/game/spec/edit.ts` and the result must pass `validateGameSpec`.
 - Plus and Pro have the **same** Tier A graphics; Free gets Tier B/C. The tier is resolved on the server from the persisted plan, never taken from the client.
 - Allowance credits are **reserved → committed/released** in the database (atomic conditional update, idempotency key, one in-flight job per user). A failed generation must never cost a credit.
 - Game score, rewards, hints, attempts and completion are calculated **server-side from validated events**. The browser never receives answer keys, explanations or solutions before the server releases them.
