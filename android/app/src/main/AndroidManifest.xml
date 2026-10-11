@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      allowBackup="false": the games and the optional Supabase sign-in session live in the WebView's local storage. They must
+      leave the phone only through the app's own opt-in, owner-only cloud backup, never through Android Auto Backup / device
+      transfer (which would also copy the sign-in session to another device). data_extraction_rules.xml repeats this for
+      Android 12+ device-to-device transfer, which some manufacturers run even with allowBackup="false". See docs/play-release.md.
+      usesCleartextTraffic="false": HTTPS only (the only server is the Supabase project in the CSP).
+    -->
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:usesCleartextTraffic="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -15,6 +24,7 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
             android:exported="true">
 
             <intent-filter>
@@ -35,7 +45,11 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
-
+    <!--
+      Permissions. INTERNET: only for the optional account (Supabase over HTTPS); the app makes no request while signed out.
+      VIBRATE comes from @capacitor/haptics (the vibration setting) and is merged in by Gradle. Nothing else is requested:
+      no storage, camera, microphone, location, contacts or notifications. Check with the merged manifest after every
+      plugin update (app/build/intermediates/merged_manifests/release/.../AndroidManifest.xml).
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

@@ -4,6 +4,12 @@ apply plugin: 'com.android.application'
 def keystoreProps = new Properties()
 def keystoreFile = rootProject.file('keystore.properties')
 if (keystoreFile.exists()) { keystoreFile.withInputStream { keystoreProps.load(it) } }
+// Play only accepts a signed bundle: say so loudly instead of silently producing an unsigned release.
+gradle.taskGraph.whenReady { graph ->
+    if (!keystoreFile.exists() && graph.allTasks.any { it.name in ['bundleRelease', 'assembleRelease', 'packageRelease'] }) {
+        logger.warn('WARNING: android/keystore.properties not found - the release build is UNSIGNED and cannot be uploaded to Google Play (see mobile/README.md).')
+    }
+}
 
 android {
     namespace "app.levelup.learn3d"
@@ -34,8 +40,12 @@ android {
     buildTypes {
         release {
             if (keystoreFile.exists()) signingConfig signingConfigs.release
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8 code shrinking/obfuscation + resource shrinking (the unshrunk dex was ~7 MB: androidx, Kotlin stdlib, appcompat).
+            // Capacitor plugins are found by reflection, so proguard-rules.pro keeps them; the mapping file is embedded in the
+            // AAB and Play Console de-obfuscates crash stack traces with it.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
