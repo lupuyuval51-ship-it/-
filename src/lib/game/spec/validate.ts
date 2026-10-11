@@ -10,8 +10,8 @@ import { MECHANICS, type GameType } from "./constants";
 import { estimateMinutes } from "./estimate";
 import { LAYOUT_FOR_GAME_TYPE, impliedMechanics, verifyMechanics } from "./mechanics";
 import { gameSpecSchema, type Area, type Challenge, type GameSpec } from "./schema";
-import { collectibleIds, initialState, portalOpen, recompute, stationActive } from "../state/progress";
 import { goalReachable, runProgram } from "../challenges/program";
+import { describeStuck, doorsOpenInOrder, orderStationsForDoors, playThrough } from "../world/flow";
 import { leverSolvable, projectileSolvable } from "../challenges/simulations";
 
 export type ValidationResult =
@@ -77,7 +77,21 @@ export function normalizeRawSpec(raw: unknown): { value: unknown; notes: string[
     cap(area, "stations", SPEC_LIMITS.stationsPerArea, `stations in ${String(area.id)}`);
     cap(area, "npcs", SPEC_LIMITS.npcsPerArea, `npcs in ${String(area.id)}`);
   }
-  for (const m of arr(spec.missions)) if (isObj(m)) cap(m, "objectives", SPEC_LIMITS.objectivesPerMission, `objectives in ${String(m.id)}`);
+  for (const m of arr(spec.missions)) {
+    if (!isObj(m)) continue;
+    cap(m, "objectives", SPEC_LIMITS.objectivesPerMission, `objectives in ${String(m.id)}`);
+    // The same id listed twice would ask for two solves of one station: the objective could never be completed.
+    for (const o of arr(m.objectives)) {
+      if (!isObj(o)) continue;
+      for (const key of ["challengeIds", "stationIds"] as const) {
+        const list = o[key];
+        if (Array.isArray(list) && new Set(list).size !== list.length) {
+          o[key] = [...new Set(list)];
+          notes.push(`duplicate ids removed from ${key} of an objective in mission ${String(m.id)}`);
+        }
+      }
+    }
+  }
   for (const c of arr(spec.challenges)) {
     if (!isObj(c)) continue;
     cap(c, "options", SPEC_LIMITS.optionsPerChoice, `options in ${String(c.id)}`);
@@ -289,28 +303,15 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
     for (const m of spec.missions) if (!done.has(m.id)) err(`mission "${m.id}" can never be completed (unreachable area or unmet requirements)`);
   }
 
-  // ── boss battles add an ordering rule (phases open one after another) that the static check above cannot see:
-  // play the game the way a perfect player would, with the real progress rules, and make sure it can be finished.
-  if (errors.length === 0 && (spec.bosses ?? []).length > 0) {
-    const st = initialState(spec, 0);
-    for (let pass = 0; pass < 100 && !st.finished; pass++) {
-      const before = JSON.stringify([st.areaId, st.resolvedStations, st.visited, st.missionsDone]);
-      const area = areaById.get(st.areaId)!;
-      for (const n of area.npcs) if (!st.talked.includes(n.id)) st.talked.push(n.id);
-      for (const id of collectibleIds(area)) if (!st.collected.includes(id)) st.collected.push(id);
-      for (const s of area.stations) {
-        if (!stationActive(spec, st, s)) continue;
-        if (s.kind === "lore") {
-          if (!st.visited.includes(s.id)) st.visited.push(s.id);
-        } else st.resolvedStations[s.id] = "correct";
-      }
-      recompute(spec, st);
-      if (area.portal && portalOpen(spec, st, area)) st.areaId = area.portal.toAreaId;
-      if (JSON.stringify([st.areaId, st.resolvedStations, st.visited, st.missionsDone]) === before) break;
-    }
-    if (!st.finished) {
-      const open = spec.missions.filter((m) => !m.optional && !st.missionsDone.includes(m.id)).map((m) => m.id);
-      err(`the game cannot be finished with the boss battles as written (open missions: ${open.join(", ")}). Phases open one after another, so a phase station must not belong to a mission that can only unlock after a LATER phase`);
+  // ── play the game the way a perfect player would, with the real progress rules: boss phases open one after another
+  // and, in layouts with doors, rooms open in station order. This is what proves the game can be finished.
+  if (errors.length === 0) {
+    const flow = playThrough(spec, "check");
+    if (!flow.finished) {
+      // Doors only force an order on the stations, which `orderStationsForDoors` fixes losslessly; report only what
+      // no order can fix.
+      const best = spec.areas.some((a) => doorsOpenInOrder(spec, a)) ? playThrough(spec, "plan") : flow;
+      if (!best.finished && best.stuck) err(describeStuck(spec, best.stuck));
     }
   }
 
@@ -394,6 +395,8 @@ export function validateGameSpec(raw: unknown, opts: { alignGameType?: GameType 
   const cross = crossCheck(spec);
   warnings.push(...cross.warnings);
   if (cross.errors.length) return { ok: false, errors: cross.errors.slice(0, 30), warnings };
+  // Rooms with doors are met in the order the stations are listed: list them in the order the missions unlock them.
+  warnings.push(...orderStationsForDoors(spec));
 
   const report = verifyMechanics(spec);
   for (const i of report.ignored) warnings.push(`mechanic "${i.mechanic}" has no effect: ${i.reason}`);

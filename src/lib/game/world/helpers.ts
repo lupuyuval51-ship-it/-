@@ -102,3 +102,88 @@ export function solidDecorKind(ctx: LayoutCtx): DecorItem["kind"] {
   const kinds = ENV_DECOR[ctx.spec.theme.environment].solid;
   return kinds[Math.floor(ctx.rng() * kinds.length)]!;
 }
+
+// ───────────────────────────── clearance & settling ─────────────────────────────
+
+const clampTo = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(v, hi));
+
+/** Distance from (x, z) to the nearest thing that blocks walking (walls, scenery, pedestals, closed doors). Infinity if none. */
+export function solidClearance(boxes: readonly WorldBox[], x: number, z: number): number {
+  let best = Infinity;
+  for (const b of boxes) {
+    if (!b.solid || b.kind === "bounds" || b.y1 <= 0.45) continue;
+    const d = Math.hypot(x - clampTo(x, b.x0, b.x1), z - clampTo(z, b.z0, b.z1));
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+type Rect = { x0: number; x1: number; z0: number; z1: number };
+const nearHazard = (hazards: readonly Rect[], x: number, z: number, pad: number): boolean =>
+  hazards.some((h) => x > h.x0 - pad && x < h.x1 + pad && z > h.z0 - pad && z < h.z1 + pad);
+
+/** Nothing solid between the two points (so a spot found near an item is on the same side of every wall and door). */
+export function lineOfWalk(boxes: readonly WorldBox[], from: { x: number; z: number }, to: { x: number; z: number }): boolean {
+  const len = Math.hypot(to.x - from.x, to.z - from.z);
+  for (let d = 0.4; d < len; d += 0.4) {
+    const t = d / len;
+    const x = to.x + (from.x - to.x) * t;
+    const z = to.z + (from.z - to.z) * t;
+    if (Math.hypot(x - from.x, z - from.z) < 1.0) continue; // the start itself may be hugging a prop
+    if (solidClearance(boxes, x, z) < 0.3) return false;
+  }
+  return true;
+}
+
+/** Item kind → clearances: from scenery, from stations, from characters (NPCs and bosses), from the portal, from its own kind. */
+const MIN_DISTANCE = {
+  npc: { solid: 0.9, station: 3.0, character: 2.6, portal: 3.0, own: 2.2 },
+  checkpoint: { solid: 0.9, station: 1.8, character: 1.8, portal: 2.0, own: 2.0 },
+  collectible: { solid: 0.6, station: 1.6, character: 1.8, portal: 1.8, own: 1.0 },
+} as const;
+
+type Settled = Pick<LayoutResult, "boxes" | "hazards" | "stations" | "npcs" | "collectibles" | "checkpoints" | "portal" | "spawn" | "bounds" | "hasVoid">;
+
+/**
+ * Items that can be dropped on top of each other or inside scenery (characters, checkpoints, collectibles) are checked
+ * against the finished layout and, only when they collide with something, moved to the nearest free spot that is on the
+ * same side of every wall and door. Items that were fine stay exactly where the layout put them. Stations, the portal and
+ * bosses are the anchors everything else keeps away from; characters settle first (`npcs`), so bosses can avoid them.
+ */
+export function settlePlacements(r: Settled, what: "npcs" | "items", bosses: readonly { x: number; z: number }[] = []): void {
+  if (r.hasVoid) return; // platformers place everything on its own platform
+  const b = r.bounds;
+  const lists = { npc: r.npcs, checkpoint: r.checkpoints, collectible: r.collectibles } as const;
+  const kinds = (what === "npcs" ? ["npc"] : ["checkpoint", "collectible"]) as (keyof typeof lists)[];
+
+  for (const kind of kinds) {
+    const rule = MIN_DISTANCE[kind];
+    const own = lists[kind] as Placed[];
+    const ok = (p: { x: number; z: number }, self: Placed): boolean => {
+      if (p.x < b.x0 + 1 || p.x > b.x1 - 1 || p.z < b.z0 + 1 || p.z > b.z1 - 1) return false;
+      if (solidClearance(r.boxes, p.x, p.z) < rule.solid) return false;
+      if (nearHazard(r.hazards, p.x, p.z, 0.8)) return false;
+      if (r.stations.some((s) => dist2d(p, s) < rule.station)) return false;
+      if (r.npcs.some((n) => n !== self && dist2d(p, n) < rule.character) || bosses.some((s) => dist2d(p, s) < rule.character)) return false;
+      if (r.portal && dist2d(p, r.portal) < rule.portal) return false;
+      if (own.some((o) => o !== self && dist2d(p, o) < rule.own)) return false;
+      if (kind === "npc" && dist2d(p, r.spawn) < 1.6) return false;
+      return true;
+    };
+    for (const item of own) {
+      if (ok(item, item)) continue;
+      let moved = false;
+      for (let radius = 0.6; radius <= 5 && !moved; radius += 0.6) {
+        const steps = Math.max(8, Math.round(radius * 8));
+        for (let k = 0; k < steps && !moved; k++) {
+          const a = (k / steps) * Math.PI * 2 + 0.3;
+          const cand = { x: item.x + Math.cos(a) * radius, z: item.z + Math.sin(a) * radius };
+          if (!ok(cand, item) || !lineOfWalk(r.boxes, item, cand)) continue;
+          item.x = cand.x;
+          item.z = cand.z;
+          moved = true;
+        }
+      }
+    }
+  }
+}

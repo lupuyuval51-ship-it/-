@@ -79,6 +79,14 @@ export function plaza(ctx: LayoutCtx): LayoutResult {
     keep.push({ x: portalPos.x, z: portalPos.z, r: 4 });
   }
 
+  if (ctx.mech.has("checkpoints")) {
+    r.stations.slice(0, 3).forEach((s, i) => {
+      const cp = { checkpointId: `${ctx.area.id}:cp${i}`, x: s.x * 0.8, y: 0, z: s.z * 0.8 + 3 };
+      r.checkpoints.push(cp);
+      keep.push({ x: cp.x, z: cp.z, r: 2 });
+    });
+  }
+
   // Lava patches (hazards) keep clear of every key point so a safe route always exists.
   const lava = scatter(ctx.rng, hazardTarget(ctx), { minR: R * 0.25, maxR: R * 0.8 }, 6, keep.map((k) => ({ ...k, r: k.r + 2.5 })));
   lava.forEach((p, i) => {
@@ -105,9 +113,6 @@ export function plaza(ctx: LayoutCtx): LayoutResult {
   if (wantsCollectibles(ctx)) {
     const spots = scatter(ctx.rng, ctx.area.collectibles.count, { minR: R * 0.2, maxR: R * 0.88 }, 2.6, keep.map((k) => ({ ...k, r: Math.max(k.r, 1.8) })));
     spots.forEach((p, i) => r.collectibles.push(collectible(ctx, i, p.x, 0.9, p.z)));
-  }
-  if (ctx.mech.has("checkpoints")) {
-    r.stations.slice(0, 3).forEach((s, i) => r.checkpoints.push({ checkpointId: `${ctx.area.id}:cp${i}`, x: s.x * 0.8, y: 0, z: s.z * 0.8 + 3 }));
   }
   r.decor.push(...ambientDecor(ctx, r.bounds, 0, AMBIENT_MAX));
   return r;
@@ -143,10 +148,14 @@ export function corridor(ctx: LayoutCtx): LayoutResult {
   });
   if (wantsNpcs(ctx)) ctx.area.npcs.forEach((_, i) => r.npcs.push(npc(ctx, i, -2.5 + i * 2.5, 0, head - 6.5)));
   if (wantsCollectibles(ctx)) {
-    for (let i = 0; i < ctx.area.collectibles.count; i++) {
+    // Collectible i belongs to segment i mod n (the doors rely on it); inside it they are spread evenly along the wall.
+    const total = ctx.area.collectibles.count;
+    for (let i = 0; i < total; i++) {
       const segIdx = i % n;
-      const z = -(seg * segIdx) - seg * (0.2 + 0.18 * Math.floor(i / n)) - 0.5;
-      r.collectibles.push(collectible(ctx, i, i % 2 === 0 ? 3.9 : -3.9, 0.9, z));
+      const slot = Math.floor(i / n);
+      const slots = Math.ceil((total - segIdx) / n);
+      const z = -(seg * segIdx) - seg * (0.12 + (0.76 * (slot + 0.5)) / slots);
+      r.collectibles.push(collectible(ctx, i, (i + segIdx) % 2 === 0 ? 3.9 : -3.9, 0.9, z));
     }
   }
   const endZ = -(seg * n) - 4;
@@ -279,7 +288,9 @@ export function lab(ctx: LayoutCtx): LayoutResult {
     r.stations.push(station(ctx, i, sx, 0, sz));
     const bx = Math.cos(a) * (ringR + 1.7);
     const bz = Math.sin(a) * (ringR + 1.7);
-    r.boxes.push(centered(`bench-${i}`, "prop", bx, bz, 3, 1.4, 0, 1.0, { style: "bench", walkable: false }));
+    // the bench runs along the ring: wide in x for stations to the north or south, wide in z for those to the east or west
+    const alongX = Math.abs(Math.sin(a)) >= Math.abs(Math.cos(a));
+    r.boxes.push(centered(`bench-${i}`, "prop", bx, bz, alongX ? 3 : 1.4, alongX ? 1.4 : 3, 0, 1.0, { style: "bench", walkable: false }));
     avoid.push({ x: sx, z: sz }, { x: bx, z: bz });
   });
   if (wantsNpcs(ctx)) ctx.area.npcs.forEach((_, i) => r.npcs.push(npc(ctx, i, -3 + i * 3, 0, R * 0.55)));
