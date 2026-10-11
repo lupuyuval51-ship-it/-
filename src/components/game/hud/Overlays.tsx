@@ -308,7 +308,7 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
     <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", ...controlsInsetStyle(touchScale) }} data-testid="touch-controls" data-scale={touchScale}>
       {/* the invisible ring around the stick (before:) widens the touch area by 12px, so a thumb that lands just outside still steers */}
       <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/60 backdrop-blur before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
-        onPointerDown={(e) => { if (pid.current !== null) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
+        onPointerDown={(e) => { if (pid.current !== null && pid.current !== e.pointerId) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
         onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={(e) => { if (pid.current === e.pointerId) end(); }} onPointerCancel={(e) => { if (pid.current === e.pointerId) end(); }} onLostPointerCapture={(e) => { if (pid.current === e.pointerId) end(); }}>
         <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>

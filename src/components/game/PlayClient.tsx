@@ -306,6 +306,17 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     if (runtime) runtime.paused = blocking;
   }, [overlay, input, runtime]);
 
+  // On a phone the first-run card has done its job once the player is clearly walking around: it then stops covering the world.
+  useEffect(() => {
+    if (!tutorial || !touch || !runtime) return;
+    const from = { x: runtime.sim.player.x, z: runtime.sim.player.z };
+    const id = setInterval(() => {
+      const p = runtime.sim.player;
+      if (Math.hypot(p.x - from.x, p.z - from.z) > 15) dismissTutorial();
+    }, 1000);
+    return () => clearInterval(id);
+  }, [tutorial, touch, runtime, dismissTutorial]);
+
   // ───────── interaction ─────────
   const interact = useCallback(() => {
     const d = dataRef.current;
