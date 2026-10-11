@@ -18,6 +18,7 @@
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
     "balance": "tsx --tsconfig tsconfig.json scripts/balance-report.ts",
+    "eval:ai": "tsx --tsconfig tsconfig.json --conditions react-server scripts/eval-ai.ts",
     "check": "npm run typecheck && npm run lint && npm test",
     "db:up": "bash scripts/pg-local.sh start",
     "db:down": "bash scripts/pg-local.sh stop",

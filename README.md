@@ -245,6 +245,18 @@ exception to the server-authority rules). Capacitor wraps the Vite bundle (`andr
 steps: [mobile/README.md](mobile/README.md).
 
 
+### Measuring a model (`npm run eval:ai`)
+
+A fixed, deterministic set of 100 requests (70 generations and 30 natural-language edits; Hebrew and English; tiers A/B/C; FAST and FULL; all game types each tier allows) is run through the **real** generation pipeline and edit engine, so any model can be compared with any other on the same terms. It reports success rate (accepted by `validateGameSpec` and re-checked for game type, language and feature tier), the share that needed no repair round, repairs and calls per case, p50/p95 latency, tokens, and cost per successful result when `--price-in` / `--price-out` (USD per million tokens) are given.
+
+```
+npm run eval:ai -- --dry                          # list the cases; no model call, no cost
+npm run eval:ai -- --yes --label deepseek --price-in 0.3 --price-out 1.2
+npm run eval:ai -- --compare eval-a.json eval-b.json
+```
+
+A real run **spends money** at the provider, so it needs `--yes`. It uses the backend configured by `AI_PROVIDER` and the provider variables, and never touches the database. The code is in `src/server/ai/eval/` (tested with a fake backend in `tests/unit/ai-eval.test.ts`).
+
 ## Payments
 
 `PAYMENTS_MODE` selects the behaviour:
