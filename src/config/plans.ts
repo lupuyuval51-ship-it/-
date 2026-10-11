@@ -23,6 +23,25 @@ export type CurrencyCode = "USD" | "ILS";
  */
 export type AllowancePeriodRule = { kind: "calendar_month_utc" } | { kind: "billing_period" };
 
+/** Level of the personal AI robot that edits games from natural-language instructions. */
+export const ROBOT_LEVELS = ["none", "B", "A"] as const;
+export type RobotLevel = (typeof ROBOT_LEVELS)[number];
+
+/**
+ * What a plan can DO (capabilities and usage limits). Quotas live here and only here, so they can be tuned without
+ * touching any other code. Every consumer is on the server; the UI only displays what the server reports.
+ */
+export interface PlanFeatures {
+  /** "none" = no AI editing. B = guided edits; A = also plans larger multi-part changes. */
+  robot: RobotLevel;
+  /** AI edit requests per allowance period (0 = not available). A failed edit never counts. */
+  aiEditsPerPeriod: number;
+  /** Saved versions can be listed and restored. */
+  versionHistory: boolean;
+  /** Versions kept per game; the oldest are pruned beyond this (the current one is never pruned). */
+  versionsKept: number;
+}
+
 export interface PlanDefinition {
   id: PlanId;
   /** Ascending order of capability; used for upgrade/downgrade labelling only, never for access checks. */
@@ -35,6 +54,7 @@ export interface PlanDefinition {
   gamesPerPeriod: number;
   allowancePeriod: AllowancePeriodRule;
   graphics: { allowedTiers: readonly GraphicsTier[]; defaultTier: GraphicsTier };
+  features: PlanFeatures;
 }
 
 /** Plus and Pro share this exact object: Pro's advantage is the number of games, not better graphics. */
@@ -57,6 +77,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     // FREE ALLOWANCE PERIOD: one generated game per calendar month (UTC). Unused games do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
+    features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3 },
   },
   PLUS: {
     id: "PLUS",
@@ -66,6 +87,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     gamesPerPeriod: 1,
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
+    features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20 },
   },
   PRO: {
     id: "PRO",
@@ -75,6 +97,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     gamesPerPeriod: 5,
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
+    features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100 },
   },
 });
 

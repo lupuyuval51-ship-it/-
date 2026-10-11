@@ -2,7 +2,7 @@ import "server-only";
 import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
 import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
 import { challengesPayloadSchema, checkAgainstPlan, validateBlueprint, type Blueprint } from "@/lib/game/spec/blueprint";
-import type { GameType } from "@/lib/game/spec/constants";
+import type { ContentLanguage, GameType } from "@/lib/game/spec/constants";
 import { mergeExtension } from "@/lib/game/spec/extension";
 import { extensionSchema, type GameSpec } from "@/lib/game/spec/schema";
 import { normalizeRawSpec, validateGameSpec } from "@/lib/game/spec/validate";
@@ -12,7 +12,7 @@ import { extractJson } from "../ai/json";
 import { blueprintPrompt, challengesPrompt, extensionPrompt, fastPrompt, repairPrompt, summarizeGame, systemPrompt, type PromptStage } from "../ai/prompts";
 import type { AiMessage, LlmBackend, TemplateBackend } from "../ai/types";
 
-export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE";
+export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE";
 
 /** A generation failure with a safe, user-facing message (the credit is always released on failure). */
 export class PipelineError extends Error {
@@ -50,7 +50,19 @@ const MAX_REPAIRS = 2;
 
 // ───────────────────────────── helpers ─────────────────────────────
 
-function deadlineSignal(input: PipelineInput): AbortSignal {
+/** What one model stage needs; the generation pipeline and the edit engine both run stages through it. */
+export interface StageContext {
+  backend: LlmBackend | TemplateBackend;
+  language: ContentLanguage;
+  deadline: number;
+  callTimeoutMs: number;
+  onStage: (stage: string) => Promise<void> | void;
+  now?: () => number;
+}
+
+const ctxOf = (input: PipelineInput): StageContext => ({ backend: input.backend, language: input.request.contentLanguage, deadline: input.deadline, callTimeoutMs: input.callTimeoutMs, onStage: input.onStage, now: input.now });
+
+function deadlineSignal(input: Pick<StageContext, "deadline" | "now">): AbortSignal {
   const remaining = input.deadline - (input.now?.() ?? Date.now());
   if (remaining < 3000) throw new PipelineError("TIMEOUT", "Generation took too long and was cancelled. You were not charged.");
   return AbortSignal.timeout(remaining);
@@ -68,7 +80,7 @@ function applyRequest(raw: unknown, req: GenerationRequest, opts: { language?: s
 
 type Check<T> = (parsed: unknown) => { ok: true; value: T; warnings?: string[] } | { ok: false; errors: string[] };
 
-interface StageSpec<T> {
+export interface StageSpec<T> {
   stage: string;
   prompt: PromptStage;
   firstUser: string;
@@ -78,9 +90,9 @@ interface StageSpec<T> {
 }
 
 /** One model "stage": call, extract JSON, validate, and on failure feed the exact errors back (max 2 repairs). */
-async function runLlmStage<T>(input: PipelineInput, spec: StageSpec<T>, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ value: T; warnings: string[] }> {
+export async function runLlmStage<T>(input: StageContext, spec: StageSpec<T>, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ value: T; warnings: string[] }> {
   const backend = input.backend as LlmBackend;
-  const system = systemPrompt(spec.prompt, input.request.contentLanguage);
+  const system = systemPrompt(spec.prompt, input.language);
   const messages: AiMessage[] = [{ role: "user", content: spec.firstUser }];
   let lastErrors: string[] = [];
 
@@ -134,7 +146,7 @@ function fullSpecCheck(req: GenerationRequest, limits: { exactAreas?: number; mi
 }
 
 async function runFast(input: PipelineInput, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ spec: GameSpec; warnings: string[] }> {
-  const { value } = await runLlmStage(input, {
+  const { value } = await runLlmStage(ctxOf(input), {
     stage: "generate", prompt: "spec", firstUser: fastPrompt(input.request), effort: "medium", maxOutputTokens: 14_000,
     check: fullSpecCheck(input.request, { exactAreas: 1, minPlaced: 3, maxPlaced: 6 }),
   }, totals, counters);
@@ -144,7 +156,7 @@ async function runFast(input: PipelineInput, totals: PipelineOutput["usage"], co
 async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], counters: { attempts: number; model: string }): Promise<{ spec: GameSpec; warnings: string[] }> {
   const req = input.request;
   // Stage 1 — blueprint: cheap structural validation before any expensive content is written.
-  const bp = await runLlmStage<{ blueprint: Blueprint; warnings: string[] }>(input, {
+  const bp = await runLlmStage<{ blueprint: Blueprint; warnings: string[] }>(ctxOf(input), {
     stage: "blueprint", prompt: "blueprint", firstUser: blueprintPrompt(req), effort: "high", maxOutputTokens: 14_000,
     check: (parsed) => {
       const withReq = applyRequest(parsed, req);
@@ -160,7 +172,7 @@ async function runFull(input: PipelineInput, totals: PipelineOutput["usage"], co
 
   // Stage 2 — challenge content for every planned challenge, then full validation of the assembled game.
   const { challengePlan, ...rest } = bp.value.blueprint;
-  const content = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(input, {
+  const content = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(ctxOf(input), {
     stage: "content", prompt: "challenges", firstUser: challengesPrompt(req, JSON.stringify(bp.value.blueprint)), effort: "high", maxOutputTokens: 24_000,
     check: (parsed) => {
       const { value } = normalizeRawSpec(parsed);
@@ -180,7 +192,7 @@ async function runExtend(input: PipelineInput, totals: PipelineOutput["usage"], 
   const base = input.base;
   if (!base) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be loaded.");
   const req = input.request;
-  const { value } = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(input, {
+  const { value } = await runLlmStage<{ spec: GameSpec; warnings: string[] }>(ctxOf(input), {
     stage: "extend", prompt: "extension", firstUser: extensionPrompt(req, summarizeGame(base)), effort: "medium", maxOutputTokens: 16_000,
     check: (parsed) => {
       const { value: norm } = normalizeRawSpec(parsed);

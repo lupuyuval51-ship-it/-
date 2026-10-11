@@ -29,6 +29,12 @@ enum GenerationMode {
   EXTEND
 }
 
+enum EditStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
 enum JobStatus {
   PENDING
   RUNNING
@@ -99,6 +105,7 @@ model User {
   progress     GameProgress[]
   playSessions PlaySession[]
   devCheckouts DevCheckoutSession[]
+  aiEdits      AiEdit[]
 }
 
 model UserProfile {
@@ -298,6 +305,7 @@ model Game {
   progress     GameProgress[]
   playSessions PlaySession[]
   jobs         GenerationJob[] @relation("JobGame")
+  aiEdits      AiEdit[]
 
   @@index([ownerId, deletedAt, createdAt])
 }
@@ -306,7 +314,8 @@ model GameRevision {
   id        String   @id @default(cuid())
   gameId    String
   revision  Int
-  reason    String // create | extend | edit
+  reason    String // create | extend | edit | restore
+  note      String? // the instruction (edit) or the restored revision number (restore)
   spec      Json
   createdAt DateTime @default(now())
 
@@ -352,4 +361,34 @@ model PlaySession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, gameId, status])
+}
+
+// One AI edit request. A PENDING row IS the reservation of one edit from the plan's quota (released when it
+// FAILS, kept when it SUCCEEDS). A partial unique index (see migration) allows one PENDING edit per user.
+model AiEdit {
+  id             String     @id @default(cuid())
+  userId         String
+  gameId         String
+  instruction    String
+  idempotencyKey String
+  status         EditStatus @default(PENDING)
+  plan           PlanId
+  periodStart    DateTime
+  baseRevision   Int
+  resultRevision Int?
+  summary        String?
+  model          String?
+  attempts       Int        @default(0)
+  errorCode      String?
+  errorMessage   String?
+  deadlineAt     DateTime
+  createdAt      DateTime   @default(now())
+  finishedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, periodStart, status])
+  @@index([gameId, createdAt])
 }
