@@ -7,6 +7,8 @@
  */
 import type { GameSpec } from "../game/spec/schema";
 import type { PlayState } from "../game/state/progress";
+import type { DeckCard } from "./deck";
+import { checkCardRecord, checkGameRecord, checkSessionRecord } from "./records";
 import type { KV, OfflineStore, StoredSession } from "./store";
 
 export const MAX_SPEC_BYTES = 1_000_000;
@@ -35,14 +37,38 @@ interface SyncState { userId: string | null; cursor: string | null; lastPushMs: 
 const KEY = "levelup.offline.sync";
 const EMPTY: SyncState = { userId: null, cursor: null, lastPushMs: 0, lastSyncAt: null };
 
+/** The saved sync marks. Anything damaged falls back to "never synced", which is safe: the next round just moves everything again. */
 export function readSyncState(kv: KV): SyncState {
-  try { return { ...EMPTY, ...(JSON.parse(kv.get(KEY) ?? "{}") as Partial<SyncState>) }; } catch { return { ...EMPTY }; }
+  try {
+    const v = JSON.parse(kv.get(KEY) ?? "{}") as Partial<Record<keyof SyncState, unknown>> | null;
+    if (!v || typeof v !== "object") return { ...EMPTY };
+    const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x) && x >= 0;
+    return {
+      userId: typeof v.userId === "string" ? v.userId : null,
+      cursor: typeof v.cursor === "string" && !Number.isNaN(Date.parse(v.cursor)) ? v.cursor : null,
+      lastPushMs: finite(v.lastPushMs) ? v.lastPushMs : 0,
+      lastSyncAt: finite(v.lastSyncAt) ? v.lastSyncAt : null,
+    };
+  } catch { return { ...EMPTY }; }
 }
-const writeSyncState = (kv: KV, s: SyncState) => kv.set(KEY, JSON.stringify(s));
+/** Best effort: if the phone is full the marks stay as they were and the next round repeats the (idempotent) work. */
+function writeSyncState(kv: KV, s: SyncState): void {
+  try { kv.set(KEY, JSON.stringify(s)); } catch { /* retried next round */ }
+}
 /** Forget what was synced (sign-out or a different account): everything is treated as new on the next sign-in. */
 export const resetSyncState = (kv: KV) => kv.remove(KEY);
 
-export interface SyncResult { pushed: number; pulled: number; skipped: number }
+export interface SyncResult {
+  pushed: number;
+  pulled: number;
+  /** Local records that were too large for the cloud and stay on this phone. */
+  skipped: number;
+  /** Cloud rows that failed validation (damaged, or made by a version this app cannot read) and were not taken. */
+  rejected: number;
+}
+
+/** A local record stamped further ahead than this when a round starts came from a clock that was set ahead and corrected. */
+export const FUTURE_TOLERANCE_MS = 120_000;
 
 const ms = (iso: string) => Date.parse(iso);
 const iso = (n: number) => new Date(n).toISOString();
@@ -53,14 +79,42 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   // a different account on this phone must not inherit the previous account's sync marks
   if (state.userId !== null && state.userId !== userId) state = { ...EMPTY };
   const startedAt = now();
+  // The phone's clock went back since the last push (it had been set ahead and was corrected): "changed after the last push"
+  // would find nothing until the clock caught up, so new progress would not be saved. Start the marks over; the pushes are idempotent.
+  if (state.lastPushMs > startedAt) state = { ...state, lastPushMs: 0 };
+  store.clampFutureStamps(startedAt + FUTURE_TOLERANCE_MS);
 
   // 1) pull and merge (games first: sessions and cards refer to them)
   const remote = await api.pull(state.cursor);
-  const pulled = store.applyRemote({
-    games: remote.games.map((g) => ({ id: g.localId, title: g.title, spec: g.spec, createdAt: ms(g.createdAt), updatedAt: ms(g.updatedAt), revision: 1, deletedAt: g.deletedAt ? ms(g.deletedAt) : null })),
-    sessions: remote.sessions.map((s) => ({ id: s.localId, gameId: s.gameId, revision: 1, status: s.status, state: s.state, startedAt: ms(s.startedAt), finishedAt: s.finishedAt ? ms(s.finishedAt) : null, updatedAt: ms(s.updatedAt) })),
-    cards: remote.cards.map((c) => ({ key: c.cardKey, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: ms(c.due), added: ms(c.updatedAt), reviews: 0, updatedAt: ms(c.updatedAt), mastered: c.mastered })),
-  }, state.lastPushMs);
+  // Cloud rows are untrusted input like a backup file: another phone may run another version, and a row can be damaged.
+  // A bad row is skipped and counted; it never reaches storage and never stops the rest.
+  let rejected = 0;
+  const games: Parameters<OfflineStore["applyRemote"]>[0]["games"] = [];
+  for (const g of remote.games) {
+    const deletedAt = g.deletedAt ? ms(g.deletedAt) : null;
+    if (deletedAt !== null && Number.isNaN(deletedAt)) { rejected++; continue; }
+    const row = { id: g.localId, title: g.title, spec: g.spec, createdAt: ms(g.createdAt), updatedAt: ms(g.updatedAt), revision: 1 };
+    if (deletedAt !== null) {
+      // a deletion carries no usable content: take it without re-validating the spec that is kept for history
+      if (typeof g.localId !== "string" || Number.isNaN(row.updatedAt)) { rejected++; continue; }
+      games.push({ ...row, createdAt: Number.isNaN(row.createdAt) ? 0 : row.createdAt, deletedAt });
+      continue;
+    }
+    const checked = checkGameRecord(row);
+    if (!checked.ok) { rejected++; continue; }
+    games.push({ ...checked.game, deletedAt: null });
+  }
+  const sessions: StoredSession[] = [];
+  for (const s of remote.sessions) {
+    const checked = checkSessionRecord({ id: s.localId, gameId: s.gameId, revision: 1, status: s.status, state: s.state, startedAt: ms(s.startedAt), finishedAt: s.finishedAt ? ms(s.finishedAt) : null, updatedAt: ms(s.updatedAt) });
+    if (checked) sessions.push(checked); else rejected++;
+  }
+  const cards: DeckCard[] = [];
+  for (const c of remote.cards) {
+    const checked = checkCardRecord({ key: c.cardKey, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: ms(c.due), added: ms(c.updatedAt), reviews: 0, updatedAt: ms(c.updatedAt), mastered: c.mastered });
+    if (checked) cards.push(checked); else rejected++;
+  }
+  const pulled = store.applyRemote({ games, sessions, cards }, state.lastPushMs);
   const seen = [...remote.games, ...remote.sessions, ...remote.cards].map((r) => r.updatedAt).sort();
   const cursor = seen.length ? seen[seen.length - 1]! : state.cursor;
 
@@ -88,5 +142,5 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   if (pushed > 0) await api.push(batch);
 
   writeSyncState(kv, { userId, cursor, lastPushMs: startedAt, lastSyncAt: now() });
-  return { pushed, pulled, skipped };
+  return { pushed, pulled, skipped, rejected };
 }
