@@ -153,7 +153,7 @@ export class Player {
     if (wantFire && this.fireT <= 0 && this.reloadT <= 0 && this.enterT <= 0 && !G.uiOpen) this.fire();
     this.mesh.rotation.y = this.yaw;
     // character animation: distance-driven gait, strafe direction, aim pitch from the real camera ray, reload progress
-    const w = this.weapon, a = _anim, yawRate = dt > 1e-5 ? clamp(wrapAngle(this.yaw - this.prevYaw) / dt, -YAW_RATE_MAX, YAW_RATE_MAX) : 0; this.prevYaw = this.yaw;
+    const w = this.weapon, a = _anim, yawRaw = dt > 1e-5 ? clamp(wrapAngle(this.yaw - this.prevYaw) / dt, -YAW_RATE_MAX, YAW_RATE_MAX) : 0; this.prevYaw = this.yaw; this.yawRateS = damp(this.yawRateS || 0, yawRaw, 22, Math.min(dt, 0.1)); const yawRate = Math.abs(this.yawRateS) < 0.02 ? 0 : this.yawRateS; // mouse steps are low-passed (about 45 ms) so the lean and head lead do not twitch
     a.v = this.speed; a.grounded = this.grounded; a.vy = this.vy; a.moveYaw = Math.atan2(this.moveDirX, this.moveDirZ); a.yaw = this.yaw; a.yawRate = yawRate;
     a.aiming = this.aiming; a.aimPitch = Math.asin(clamp(_camDir.y, -1, 1)); a.long = isLong(w); a.punch = this.punchT > 0 ? 1 - this.punchT / PUNCH_TIME : 0; a.melee = w.id === 'bat' ? 'bat' : 'fist'; a.reload = this.reloadT > 0 ? 1 - this.reloadT / RELOAD_TIME : -1;
     a.moving = moving; a.speed = this.speedNorm; a.pitch = this.camPitch - 0.2;

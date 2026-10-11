@@ -235,7 +235,7 @@ export class World {
     const mats = this.mats = {
       asphalt: new THREE.MeshStandardMaterial({ map: asphaltTex(), normalMap: asphaltNormal(), normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.92, metalness: 0.02 }),
       sidewalk: new THREE.MeshStandardMaterial({ map: sidewalkTex(), normalMap: sidewalkNormal(), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.95 }),
-      grass: new THREE.MeshStandardMaterial({ map: grassTex(), roughness: 1 }),
+      grass: new THREE.MeshStandardMaterial({ map: grassTex(), color: 0xd6d4b4, roughness: 1 }),
       sand: new THREE.MeshStandardMaterial({ map: sandTex(), normalMap: sandNormal(), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1 }),
       roof: new THREE.MeshStandardMaterial({ map: roofTex(), roughness: 0.95 }),
       plank: new THREE.MeshStandardMaterial({ map: plankTex(), normalMap: plankNormal(), normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.9 }),
@@ -245,6 +245,11 @@ export class World {
       prop: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }),
       leaf: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide }),
     };
+    mats.sand.onBeforeCompile = sh => { // wet sand: a darker, glossier band along the waterline
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vSX;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSX = (modelMatrix * vec4(position, 1.0)).x;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vSX;').replace('#include <map_fragment>', '#include <map_fragment>\n  float wl = smoothstep(' + (CITY.oceanX - 16).toFixed(1) + ', ' + (CITY.oceanX - 3).toFixed(1) + ', vSX + sin(vMapUv.y * 40.0) * 0.8); diffuseColor.rgb *= mix(1.0, 0.62, wl);').replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.35, wl);');
+    };
+    mats.sand.customProgramCacheKey = () => 'sandwet';
     patchWetShader(mats.asphalt, this.wetU, this.isLowTier); patchWetShader(mats.sidewalk, this.wetU, this.isLowTier); // roads, parking lots (same material) and pavements
     const g = new GeoBuilder(); g.plane(CITY.minX - 6, CITY.minZ - 6, CITY.maxX, CITY.maxZ + 6, 0, 6);
     const ground = new THREE.Mesh(g.build(), mats.asphalt); ground.receiveShadow = true; this.scene.add(ground);
@@ -654,7 +659,7 @@ export class World {
       spill(sg.alongX, sg.a - 3, sg.a + 3, sg.face, sg.dir, 3, 0, 1, (sg.alongX ? this.groundY(sg.a, out) : this.groundY(out, sg.a)) + 0.012, tint);
     }
     // fog: false because three's fog would blend the glow towards the (bright, at dusk) fog colour; the far fade is done in the shader instead
-    this.poolMat = new THREE.MeshBasicMaterial({ map: lightPoolTex(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, opacity: 0.8, fog: false });
+    this.poolMat = new THREE.MeshBasicMaterial({ map: lightPoolTex(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, opacity: 1.0, fog: false });
     this.poolFog = { fogNear: { value: 100 }, fogFar: { value: 800 } }; this.poolU = { uState: { value: this.lamps.stateTex }, uShop: { value: 0 } }; // uShop: night level of the shop and sign pools (lamp pools follow their own lamp)
     // The real lamp PointLights already light the ground right at the player, so the pools fade in between 6 and 22 m from the camera
     // (smoothstep(6, 22, vFogDepth); the old 14 to 36 m range hid the road under a lamp 12 m away) and fade out again with the scene fog.
@@ -774,7 +779,8 @@ export class World {
     for (const m of this.facadeMats) m.emissiveIntensity = f * 1.1; // per-window brightness and colour come from the window shader
     for (const m of this.storeMats) m.emissiveIntensity = f * 1.05;
     // Wet streets: the shader (patchWetShader) does the wetting - roughness, puddles, ripples - from the one `wet` uniform. Here only the albedo darkens and the bumps flatten.
-    this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.asphalt.color.setScalar(1 - rain * 0.45); this.mats.asphalt.roughness = 0.92 - 0.2 * f; // dry tarmac takes a faint sheen after dark, so the lamp light shows on the road; by day it stays matte this.mats.sidewalk.color.setScalar(1 - rain * 0.3); this.wetU.wet.value = rain;
+    this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.asphalt.color.setScalar(1 - rain * 0.45); this.mats.asphalt.roughness = 0.92 - 0.2 * f; // dry tarmac takes a faint sheen after dark, so the lamp light shows on the road; by day it stays matte
+    this.mats.sidewalk.color.setScalar(1 - rain * 0.3); this.wetU.wet.value = rain;
     this.signU.level.value = 0.42 + (3.0 - 0.42) * f; // every neon sign at once: dim by day, blooming at night
     if (this.billMat) this.billMat.color.setScalar(1 + 0.4 * f); // billboards glow a little after dark
     const lamps = f >= 0.05; // street-light pools and cones only exist at night

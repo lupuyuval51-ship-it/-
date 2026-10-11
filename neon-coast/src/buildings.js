@@ -626,8 +626,8 @@ function relief(B, rec) {
         }
         if (first && L >= 6 && (look !== 'glass' || R() < 0.3)) { // drainpipes at the ends of the wall
           // the metal atlas cell is already mid-grey and multiplies the vertex colour, so a near-black pipe went black on cream walls: pipes are tinted from the facade's fin colour instead
-          const pipeC = mixc(pal.fin, 0x6b6f78, 0.45), clampC = mixc(pal.fin, 0x3a3d45, 0.6);
-          for (const us of [0.34, L - 0.34]) if (R() < 0.7 && !overlap(L - us - 0.1, L - us + 0.1, 0.2, y1)) { bx(L - us - 0.06, L - us + 0.06, 0.15, y1 - 0.3, 0.1, 0.22, pipeC, ME, 0, FB, fineDB); for (let y = 1.5; y < y1 - 0.5; y += 3.6) bx(L - us - 0.09, L - us + 0.09, y, y + 0.1, 0.05, 0.25, clampC, ME, 0, FB, fineDB); }
+          const pipeC = mixc(pal.fin, 0xffffff, 0.5), clampC = mixc(pal.fin, 0xffffff, 0.15); // light, thin pipes: dark and thick ones read as black bands down the corners
+          for (const us of [0.34, L - 0.34]) if (R() < 0.7 && !overlap(L - us - 0.1, L - us + 0.1, 0.2, y1)) { bx(L - us - 0.035, L - us + 0.035, 0.15, y1 - 0.3, 0.06, 0.13, pipeC, ME, 0, FB, fineDB); for (let y = 1.5; y < y1 - 0.5; y += 3.6) bx(L - us - 0.055, L - us + 0.055, y, y + 0.08, 0.04, 0.15, clampC, ME, 0, FB, fineDB); }
         }
         if (first && !rec.poi && (look === 'brick' || look === 'conc' || rec.dist === 'industrial' || !street)) { // graffiti and posters on the lower wall
           const n = street ? (R() < 0.25 ? 1 : 0) : (R() < 0.8 ? 1 + (R() < 0.4 ? 1 : 0) : 0);

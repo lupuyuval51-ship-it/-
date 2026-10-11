@@ -93,17 +93,22 @@ export const sandTex = () => memo('sand', () => canvasTex(256, 256, (ctx, w, h) 
   ctx.fillStyle = '#e6d3a3'; ctx.fillRect(0, 0, w, h); const rng = mulberry(9);
   // low-frequency albedo: soft paler and darker drifts of sand, wrapped in 3x3 so the tile repeats without a seam
   for (let i = 0; i < 16; i++) { const x = rng() * w, y = rng() * h, r = 50 + rng() * 90, c = rng() < 0.5 ? '248,232,190' : '178,146,98'; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, `rgba(${c},0.26)`); g.addColorStop(1, `rgba(${c},0)`); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
+  ctx.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = rng() * w, y = rng() * h, L = 30 + rng() * 50; ctx.strokeStyle = i % 2 ? 'rgba(250,236,196,0.22)' : 'rgba(150,120,78,0.2)'; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + L * 0.5, y - 5, x + L, y); ctx.stroke(); } // wind ripple crests
   for (let i = 0; i < 9000; i++) { ctx.fillStyle = `rgba(${200 + rng() * 50},${180 + rng() * 40},${120 + rng() * 50},0.5)`; ctx.fillRect(rng() * w, rng() * h, 2, 2); }
 }));
 export const grassTex = () => memo('grass', () => canvasTex(512, 512, (ctx, w, h) => { // lawn: broad lush / dry / shaded patches, thousands of blades, a few daisies (tiles seamlessly)
-  const rng = mulberry(3); ctx.fillStyle = '#3d6a33'; ctx.fillRect(0, 0, w, h);
-  const patch = ['rgba(104,132,62,0.3)', 'rgba(32,86,36,0.4)', 'rgba(150,150,60,0.22)', 'rgba(60,110,44,0.35)'];
+  const rng = mulberry(3); ctx.fillStyle = '#4b6b35'; ctx.fillRect(0, 0, w, h);
+  const patch = ['rgba(104,132,62,0.3)', 'rgba(32,86,36,0.4)', 'rgba(170,158,70,0.34)', 'rgba(60,110,44,0.35)'];
   for (let i = 0; i < 46; i++) { const x = rng() * w, y = rng() * h, r = (30 + rng() * 70) * (i % 5 === 0 ? 2 : 1), c = patch[i % 4]; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, c); g.addColorStop(1, c.replace(/[\d.]+\)$/, '0)')); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
   // dry-yellow clumps (wrapped like the patches above)
   for (let i = 0; i < 9; i++) { const x = rng() * w, y = rng() * h, r = 14 + rng() * 22; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(176,160,74,0.3)'); g.addColorStop(1, 'rgba(176,160,74,0)'); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
   // mown bands: strips a shade lighter and darker in 64 px steps (512 is a multiple, so the tile still repeats seamlessly)
   for (let y = 0; y < h; y += 64) { ctx.fillStyle = (y / 64) % 2 ? 'rgba(20,52,22,0.13)' : 'rgba(200,224,130,0.08)'; ctx.fillRect(0, y, w, 64); }
   for (let i = 0; i < 16000; i++) { const x = rng() * w, y = rng() * h, l = 4 + rng() * 6; ctx.strokeStyle = rng() < 0.5 ? `rgba(${30 + rng() * 40},${80 + rng() * 50},${24 + rng() * 30},0.55)` : `rgba(${90 + rng() * 60},${140 + rng() * 60},${40 + rng() * 40},0.5)`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (rng() - 0.5) * 3, y - l); ctx.stroke(); }
+  // clover drifts, bare worn earth specks and a faint sun-bleached cast
+  for (let i = 0; i < 60; i++) { const cx = rng() * w, cy = rng() * h, n = 8 + Math.floor(rng() * 14); for (let k = 0; k < n; k++) { ctx.fillStyle = rng() < 0.5 ? 'rgba(96,150,92,0.55)' : 'rgba(128,172,104,0.5)'; ctx.beginPath(); ctx.arc((cx + (rng() - 0.5) * 22 + w) % w, (cy + (rng() - 0.5) * 22 + h) % h, 1.2 + rng() * 1.6, 0, 6.28); ctx.fill(); } }
+  for (let i = 0; i < 14; i++) { const x = rng() * w, y = rng() * h, r = 5 + rng() * 9; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(128,104,70,0.35)'); g.addColorStop(1, 'rgba(128,104,70,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+  ctx.fillStyle = 'rgba(190,176,120,0.07)'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 70; i++) { ctx.fillStyle = rng() < 0.6 ? 'rgba(255,255,240,0.7)' : 'rgba(255,225,90,0.7)'; ctx.beginPath(); ctx.arc(rng() * w, rng() * h, 1 + rng() * 0.8, 0, 6.28); ctx.fill(); }
 }));
 

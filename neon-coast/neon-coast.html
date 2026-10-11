@@ -807,9 +807,9 @@ const VEHICLES = {
   super:  { name: 'super',  maxSpeed: 66, accel: 20, brake: 28, grip: 10.5, mass: 1.0, steer: 0.48, len: 4.6, wid: 2.0, price: 48000, hp: 85 },
   // Job vehicles (price 0: not sold). Long ones get a third collision circle (vehicle.js) and a wide turning circle: steer is the lock at standstill.
   ambulance: { name: 'ambulance', maxSpeed: 46, accel: 11,  brake: 22, grip: 8,   mass: 1.9, steer: 0.5,  len: 5.8,  wid: 2.1,  price: 0, hp: 160, emergency: true },
-  firetruck: { name: 'firetruck', maxSpeed: 29, accel: 5.5, brake: 12, grip: 7,   mass: 3.8, steer: 0.46, len: 8.0,  wid: 2.5,  price: 0, hp: 320, emergency: true },
+  firetruck: { name: 'firetruck', maxSpeed: 30, accel: 6.5, brake: 14, grip: 7,   mass: 3.8, steer: 0.46, len: 8.0,  wid: 2.5,  price: 0, hp: 320, emergency: true },
   towtruck:  { name: 'towtruck',  maxSpeed: 38, accel: 8,   brake: 16, grip: 7.5, mass: 2.4, steer: 0.5,  len: 6.6,  wid: 2.25, price: 0, hp: 210 },
-  bus:       { name: 'bus',       maxSpeed: 20, accel: 3.6, brake: 8,  grip: 6.5, mass: 5.2, steer: 0.5,  len: 10.6, wid: 2.55, price: 0, hp: 420 },
+  bus:       { name: 'bus',       maxSpeed: 22, accel: 4.4, brake: 10,  grip: 6.5, mass: 5.2, steer: 0.5,  len: 10.6, wid: 2.55, price: 0, hp: 420 },
   van:       { name: 'van',       maxSpeed: 40, accel: 10,  brake: 21, grip: 8,   mass: 1.5, steer: 0.55, len: 5.2,  wid: 2.0,  price: 0, hp: 130 },
 };
 const CAR_COLORS = [0xd8d8dc, 0x1c1e26, 0x9b2335, 0x1f4e9b, 0xe8b830, 0x2e8b57, 0x7a4a2a, 0xc0c0c8, 0xff6f91, 0x3cc4d1, 0x5b3a8c, 0xf0f0f0, 0xf58a2a, 0x2f2f2f, 0x6ec1e4, 0xb8e986];
@@ -1115,17 +1115,22 @@ const sandTex = () => memo('sand', () => canvasTex(256, 256, (ctx, w, h) => {
   ctx.fillStyle = '#e6d3a3'; ctx.fillRect(0, 0, w, h); const rng = mulberry(9);
   // low-frequency albedo: soft paler and darker drifts of sand, wrapped in 3x3 so the tile repeats without a seam
   for (let i = 0; i < 16; i++) { const x = rng() * w, y = rng() * h, r = 50 + rng() * 90, c = rng() < 0.5 ? '248,232,190' : '178,146,98'; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, `rgba(${c},0.26)`); g.addColorStop(1, `rgba(${c},0)`); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
+  ctx.lineWidth = 1.2; for (let i = 0; i < 40; i++) { const x = rng() * w, y = rng() * h, L = 30 + rng() * 50; ctx.strokeStyle = i % 2 ? 'rgba(250,236,196,0.22)' : 'rgba(150,120,78,0.2)'; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + L * 0.5, y - 5, x + L, y); ctx.stroke(); } // wind ripple crests
   for (let i = 0; i < 9000; i++) { ctx.fillStyle = `rgba(${200 + rng() * 50},${180 + rng() * 40},${120 + rng() * 50},0.5)`; ctx.fillRect(rng() * w, rng() * h, 2, 2); }
 }));
 const grassTex = () => memo('grass', () => canvasTex(512, 512, (ctx, w, h) => { // lawn: broad lush / dry / shaded patches, thousands of blades, a few daisies (tiles seamlessly)
-  const rng = mulberry(3); ctx.fillStyle = '#3d6a33'; ctx.fillRect(0, 0, w, h);
-  const patch = ['rgba(104,132,62,0.3)', 'rgba(32,86,36,0.4)', 'rgba(150,150,60,0.22)', 'rgba(60,110,44,0.35)'];
+  const rng = mulberry(3); ctx.fillStyle = '#4b6b35'; ctx.fillRect(0, 0, w, h);
+  const patch = ['rgba(104,132,62,0.3)', 'rgba(32,86,36,0.4)', 'rgba(170,158,70,0.34)', 'rgba(60,110,44,0.35)'];
   for (let i = 0; i < 46; i++) { const x = rng() * w, y = rng() * h, r = (30 + rng() * 70) * (i % 5 === 0 ? 2 : 1), c = patch[i % 4]; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, c); g.addColorStop(1, c.replace(/[\d.]+\)$/, '0)')); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
   // dry-yellow clumps (wrapped like the patches above)
   for (let i = 0; i < 9; i++) { const x = rng() * w, y = rng() * h, r = 14 + rng() * 22; for (const dx of [-w, 0, w]) for (const dy of [-h, 0, h]) { const px = x + dx, py = y + dy; if (px < -r || px > w + r || py < -r || py > h + r) continue; const g = ctx.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(176,160,74,0.3)'); g.addColorStop(1, 'rgba(176,160,74,0)'); ctx.fillStyle = g; ctx.fillRect(px - r, py - r, r * 2, r * 2); } }
   // mown bands: strips a shade lighter and darker in 64 px steps (512 is a multiple, so the tile still repeats seamlessly)
   for (let y = 0; y < h; y += 64) { ctx.fillStyle = (y / 64) % 2 ? 'rgba(20,52,22,0.13)' : 'rgba(200,224,130,0.08)'; ctx.fillRect(0, y, w, 64); }
   for (let i = 0; i < 16000; i++) { const x = rng() * w, y = rng() * h, l = 4 + rng() * 6; ctx.strokeStyle = rng() < 0.5 ? `rgba(${30 + rng() * 40},${80 + rng() * 50},${24 + rng() * 30},0.55)` : `rgba(${90 + rng() * 60},${140 + rng() * 60},${40 + rng() * 40},0.5)`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + (rng() - 0.5) * 3, y - l); ctx.stroke(); }
+  // clover drifts, bare worn earth specks and a faint sun-bleached cast
+  for (let i = 0; i < 60; i++) { const cx = rng() * w, cy = rng() * h, n = 8 + Math.floor(rng() * 14); for (let k = 0; k < n; k++) { ctx.fillStyle = rng() < 0.5 ? 'rgba(96,150,92,0.55)' : 'rgba(128,172,104,0.5)'; ctx.beginPath(); ctx.arc((cx + (rng() - 0.5) * 22 + w) % w, (cy + (rng() - 0.5) * 22 + h) % h, 1.2 + rng() * 1.6, 0, 6.28); ctx.fill(); } }
+  for (let i = 0; i < 14; i++) { const x = rng() * w, y = rng() * h, r = 5 + rng() * 9; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, 'rgba(128,104,70,0.35)'); g.addColorStop(1, 'rgba(128,104,70,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+  ctx.fillStyle = 'rgba(190,176,120,0.07)'; ctx.fillRect(0, 0, w, h);
   for (let i = 0; i < 70; i++) { ctx.fillStyle = rng() < 0.6 ? 'rgba(255,255,240,0.7)' : 'rgba(255,225,90,0.7)'; ctx.beginPath(); ctx.arc(rng() * w, rng() * h, 1 + rng() * 0.8, 0, 6.28); ctx.fill(); }
 }));
 
@@ -3308,11 +3313,21 @@ function randomLook(ctx) {
   o.hairStyle = wpick(sty); o.skin = pick(SKINS); o.hair = elder ? pick(ELDER_HAIR) : o.dyed || (A === 'street' && chance(0.07)) ? pick(HAIR_DYED) : wpick(HAIR_NATURAL); if (!elder && o.hairStyle === 'mohawk' && chance(0.5)) o.hair = pick(HAIR_DYED);
   if (!female && (o.hairStyle === 'pony' || o.hairStyle === 'bun') && chance(0.5)) o.hairStyle = 'short';
   o.beard = !female ? (chance(elder ? 0.18 : A === 'business' ? 0.1 : A === 'worker' || A === 'street' ? 0.3 : 0.2) ? pick(['full', 'short', 'goatee', 'moustache', 'chinstrap', 'short', 'full']) : false) : false;
-  const w = BUILD_W[build] * (0.97 + Math.random() * 0.06), height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() - 1) * 0.11 + (Math.random() < 0.06 ? 0.07 : 0) - (Math.random() < 0.05 ? 0.06 : 0) + (build === 'athletic' ? 0.015 : 0) - (elder ? 0.025 : 0)) / 1.735, 0.893, 1.124); // 1.55 .. 1.95 m (the bind pose is 1.735 m tall with its hair)
+  const w = BUILD_W[build] * (0.95 + Math.random() * 0.10), height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() + Math.random() - 1.5) * 0.125 + (Math.random() < 0.06 ? 0.07 : 0) - (Math.random() < 0.05 ? 0.06 : 0) + (build === 'athletic' ? 0.015 : 0) - (elder ? 0.025 : 0)) / 1.735, 0.893, 1.124); // 1.55 .. 1.95 m (the bind pose is 1.735 m tall with its hair)
   o.lipstick = o.lipstick !== undefined ? o.lipstick : female && chance(c.night ? 0.45 : 0.28); o.eye = chance(0.15) ? pick([0x3b78c4, 0x3f9a5c]) : undefined; o.brow = -0.15 + Math.random() * 0.35; o.width = w; o.height = height;
   o.archetype = A; // what kind of outfit this is (the people chain may read it)
   o.jaw = Math.floor(Math.random() * 3); // 0 narrow and round, 1 average, 2 square: the head shape of this person (headSpec)
   o.restEx = chance(0.2) ? 1 : 0; // the face at rest: neutral, or a faint smile (facePlan)
+  // ----- extra variety (release 4): patterns, open or zipped jackets, bags, hats and accessories on top of the archetype -----
+  const dressy = A === 'business' || A === 'night', loose = !dressy && A !== 'worker';
+  if (['jacket', 'leather', 'puffer'].includes(o.top)) o.open = o.top === 'puffer' ? (chance(0.35) ? true : undefined) : chance(0.45) ? false : true;
+  if (o.top === 'shirt' && o.plaid === undefined) o.plaid = chance(0.12); if (o.top === 'dress' && o.satin === undefined) o.satin = chance(0.3);
+  if (o.top === 'blazer' && o.pinstripe === undefined) o.pinstripe = chance(0.12); if ((o.top === 'tee' || o.top === 'longsleeve' || o.top === 'sweater') && loose && chance(0.12)) o.shirt = pick([neon, 0xd1345b, 0x2aa198, 0xf5c542, 0xff7f50, 0x7b4fbf]);
+  if (loose && !o.bag && !o.backpack && chance(0.1)) { if (chance(0.5)) o.bag = pick([0x14161c, 0x5a3a2a, P2, 0x7a6a55]); else o.backpack = pick([0x14161c, P1, P2, 0x2f3b6a]); }
+  if (!o.scarf && (c.cold || c.rain) && chance(0.2)) o.scarf = pick([P2, P1, 0xd1345b, 0x7a6a55, 0x555a66]);
+  if (!o.cap && !o.beanie && !o.hat && !o.helmet && !o.hoodUp && !o.headband && !o.headphones && loose && chance(0.07)) { if (female && chance(0.5)) o.headband = pick([neon, 0xffffff, 0xd1345b, P2]); else if (c.cold || c.rain) o.beanie = pick([0x14161c, P1, P2, 0x555a66]); else o.cap = pick([0x14161c, 0xffffff, P2, 0x2a6fd6]); }
+  if (!o.bracelet && chance(female ? 0.14 : 0.07)) o.bracelet = true; if (!o.earrings && female && chance(0.12)) o.earrings = pick([0xf0c040, 0xe8e8ee]); if (!female && !o.chain && chance(0.05)) o.chain = true;
+  if (!o.glasses && !o.sunglasses && chance(0.06)) o.glasses = true;
   // keep the legacy fields other code reads
   o.skirt = o.skirt !== undefined ? o.skirt : o.top === 'dress' ? o.shirt : o.bottom === 'skirt' ? o.pants : null; o.shorts = o.bottom === 'shorts';
   if (o.glasses === undefined) o.glasses = false; if (o.sunglasses === undefined) o.sunglasses = false; if (o.watch === undefined) o.watch = chance(0.18);
@@ -3372,7 +3387,7 @@ function uniformLook(kind) {
   const base = LOOKS[kind], r = UNI[kind]; if (!base || !r) return randomLook();
   const female = chance(r.f), elder = chance(r.elder || 0), look = { ...base, female, elder }; delete look._fk; delete look._tone; delete look.freckles; delete look._beard;
   look.skin = pick(SKINS); look.build = wpick(r.builds || [['slim', 0.25], ['average', 0.45], ['athletic', 0.15], ['heavy', 0.15]]); if (elder && look.build === 'athletic') look.build = 'average';
-  look.height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() - 1) * 0.08 - (elder ? 0.025 : 0)) / 1.735, 0.9, 1.12); look.width = undefined;
+  look.height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() + Math.random() - 1.5) * 0.11 - (elder ? 0.025 : 0)) / 1.735, 0.9, 1.12); look.width = undefined;
   look.hair = elder ? pick(ELDER_HAIR) : r.hair ? pick(r.hair) : wpick(HAIR_NATURAL); const pool = STYLES[female ? 'f' : 'm'][elder ? 'elder' : r.key] || STYLES.m.casual; look.hairStyle = wpick(pool); if (kind === 'jogger' || kind === 'nurse') look.hairStyle = female ? pick(['pony', 'bun', 'braids', 'pixie', 'bob']) : look.hairStyle; if (kind === 'clubber' && !elder) look.hairStyle = female ? pick(['wavy', 'long', 'pixie', 'bob', 'braids']) : pick(['mohawk', 'quiff', 'slick', 'fade', 'curly']);
   look.beard = !female && base.beard !== undefined ? (chance(0.7) ? pick(['full', 'short', 'goatee', 'moustache', 'short']) : false) : false; if (!female && !look.beard && chance(0.08)) look.beard = pick(['short', 'moustache']);
   if (r.shirt) look.shirt = pick(r.shirt); if (r.jacket) look.jacket = pick(r.jacket); if (r.apron) look.apron = pick(r.apron); if (r.pants) look.pants = pick(r.pants); if (r.helmetColour) look.helmetColour = pick(r.helmetColour);
@@ -3517,7 +3532,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
       if (w.x > w.y && w.x > w.z) t = textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); else if (w.z > w.y) t = textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); else t = textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz);
       ws = 1.0;
     #else
-      w /= (w.x + w.y + w.z);
+      w /= (w.x + w.y + w.z); float dq = smoothstep(9.0, 22.0, length(vViewPosition)) * 0.98; w = max(w - dq * max(w.x, max(w.y, w.z)), 0.0); w /= (w.x + w.y + w.z); // beyond 9 m the weaker projections fade out, from 22 m one fetch
       if (w.x > 0.05) { t += w.x * textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); ws += w.x; }
       if (w.y > 0.05) { t += w.y * textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz); ws += w.y; }
       if (w.z > 0.05) { t += w.z * textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); ws += w.z; }
@@ -3528,6 +3543,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
     chMul = c.rgb * 1.25 * mix(1.0, vTint.a, ma.r); chAlpha = mb.b; chAbsC = c.rgb; chAbsK = ma.b; chTintK = ma.g; chRough = mb.r; chH = mb.g * 0.004;
   }
 }
+chH *= 1.0 - smoothstep(5.0, 13.0, length(vViewPosition)); // the cloth relief is invisible beyond 13 m: no bump work there
 diffuseColor.rgb *= chMul; diffuseColor.a *= chAlpha;`;
 const GL_POST_COLOR = `
 if (chTintK > 0.0 && dot(vTint.rgb, vec3(1.0)) > 0.01) diffuseColor.rgb = mix(diffuseColor.rgb, vTint.rgb * chMul, chTintK);
@@ -3546,7 +3562,7 @@ function patchChar(shader) {
     .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + GL_BUMP);
 }
 const SURF = { ready: false, fab: null, maskA: null, maskB: null, atlas: null };
-charMat.alphaTest = 0.5; charMat.roughness = 1; charMat.onBeforeCompile = patchChar; charMat.customProgramCacheKey = () => 'char-r3-' + (QUALITY === 'low' ? 'low' : 'hi');
+charMat.alphaTest = 0.5; charMat.roughness = 1; charMat.onBeforeCompile = patchChar; charMat.customProgramCacheKey = () => 'char-r4-' + (QUALITY === 'low' ? 'low' : 'hi');
 
 // ---------- skeleton (bind pose in metres; H = 1 is a 1.73 m body, look.height scales the whole group) ----------
 // Finger geometry is modelled in a RELAXED pose (fingers slightly curled), so a bone rotation of 0 is the relaxed hand: positive = more curl (a fist), negative = open.
@@ -3720,7 +3736,7 @@ function vnoise(x, y, z) {
 // ---------- body spec: proportions of one body type ----------
 // Base = an average adult male (1.73 m). Rows are [y, half width x, front depth z, back depth z] for the trunk, [y, half width, half depth, centre z] for a limb. Sex and build scale them by zone.
 const TK0 = [[0.70, 0.062, 0.030, 0.050], [0.73, 0.088, 0.032, 0.050], [0.76, 0.115, 0.036, 0.056], [0.79, 0.140, 0.044, 0.068], [0.82, 0.158, 0.064, 0.086], [0.86, 0.170, 0.094, 0.110], [0.94, 0.165, 0.100, 0.112], [1.02, 0.150, 0.097, 0.099], [1.08, 0.141, 0.094, 0.092], [1.15, 0.148, 0.097, 0.093], [1.23, 0.160, 0.104, 0.096],
-  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.142, 0.083, 0.082], [1.452, 0.108, 0.070, 0.072], [1.476, 0.078, 0.060, 0.062], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
+  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.150, 0.085, 0.083], [1.452, 0.119, 0.072, 0.074], [1.476, 0.087, 0.062, 0.064], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
 const AK0 = [[1.422, 0.014, 0.018, 0], [1.415, 0.034, 0.038, 0], [1.401, 0.050, 0.053, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
   [1.130, 0.040, 0.042, -0.004], [1.090, 0.043, 0.044, 0], [1.030, 0.040, 0.040, 0], [0.965, 0.033, 0.033, 0], [0.915, 0.027, 0.029, 0], [0.888, 0.021, 0.027, 0]];
 const LK0 = [[1.00, 0.042, 0.050, 0], [0.94, 0.050, 0.060, -0.002], [0.88, 0.060, 0.074, -0.002], [0.84, 0.072, 0.088, -0.002], [0.80, 0.086, 0.098, -0.001], [0.76, 0.088, 0.094, 0], [0.66, 0.078, 0.083, 0.003], [0.58, 0.066, 0.071, 0.004], [0.525, 0.059, 0.064, 0.005], [0.485, 0.058, 0.060, 0.002],
@@ -3732,9 +3748,9 @@ const SEX_SPEC = {
 };
 const BUILD_SPEC = { // slim | average | athletic | heavy (belly = extra front depth at the waist, buK scales the bust or pectorals)
   slim: { hp: 0.93, wa: 0.88, ch: 0.93, sh: 0.94, dz: 0.92, belly: -0.004, ar: 0.84, th: 0.85, cf: 0.87, nk: 0.9, buK: [0.6, 0.85], glK: 0.8 },
-  average: { hp: 1, wa: 1, ch: 1, sh: 1, dz: 1, belly: 0, ar: 1, th: 1, cf: 1, nk: 1, buK: [1, 1], glK: 1 },
+  average: { hp: 1, wa: 1, ch: 1, sh: 1, dz: 1, belly: 0.007, ar: 1, th: 1, cf: 1, nk: 1, buK: [1, 1], glK: 1 },
   athletic: { hp: 0.99, wa: 0.92, ch: 1.12, sh: 1.1, dz: 1.05, belly: -0.006, ar: 1.2, th: 1.12, cf: 1.12, nk: 1.12, buK: [3.2, 1.0], glK: 1.3 },
-  heavy: { hp: 1.14, wa: 1.4, ch: 1.12, sh: 1.05, dz: 1.08, belly: 0.058, ar: 1.28, th: 1.24, cf: 1.14, nk: 1.22, buK: [1.9, 1.3], glK: 1.35 },
+  heavy: { hp: 1.14, wa: 1.4, ch: 1.12, sh: 1.05, dz: 1.08, belly: 0.066, ar: 1.28, th: 1.24, cf: 1.14, nk: 1.22, buK: [1.9, 1.3], glK: 1.35 },
 };
 const _specs = new Map();
 // res = residual width factor of the person within the build (quantised to 0.03 steps so the cache stays small)
@@ -3745,8 +3761,8 @@ function bodySpec(fem, build, res) {
   const mx = [[0.7, hp], [0.92, hp], [1.08, wa], [1.2, (wa + ch) / 2], [1.31, ch], [1.39, sh], [1.46, 1], [1.6, 1]]; // lateral multiplier by height
   S = { fem, build, res, tk: [], ak: [], lk: [], pc: [null, null, null], handK: sx.hk, armX: sx.ax * (0.5 + 0.5 * sh) * res, legX: sx.lx * (0.7 + 0.3 * hp) * res, neckR: sx.neck * sx.nk * b.nk, bust: sx.bu * b.buK[fem ? 1 : 0], pecX: fem ? 0.062 : 0.078, glute: sx.gl * b.glK };
   for (const r of TK0) {
-    const y = r[0], belly = b.belly * gaus(y, 1.06, 0.1), zone = fem && y > 0.95 && y < 1.2 ? 0.93 : 1;
-    S.tk.push([y, r[1] * lin(mx, y) * res, (r[2] + belly) * dz * zone, r[3] * dz * zone * (1 + (b.belly > 0.02 ? 0.05 * gaus(y, 1.06, 0.1) : 0))]);
+    const y = r[0], belly = b.belly * gaus(y, 1.05, 0.115), zone = fem && y > 0.95 && y < 1.2 ? 0.93 : 1;
+    S.tk.push([y, r[1] * lin(mx, y) * res, (r[2] + belly) * dz * zone, r[3] * dz * zone * (1 + (b.belly > 0.02 ? 0.05 * gaus(y, 1.05, 0.115) : 0))]);
   }
   const arm = sx.ar * b.ar, thigh = sx.th * b.th, calf = sx.cf * b.cf;
   // (the limb tables above read top to bottom; interpolation wants ascending y)
@@ -3931,11 +3947,11 @@ function handLofts(S, s, lod, out) {
   out.push(loft(pal, LD.pseg[lod], { tone, capHi: true }));
   const fx = ax + s * FIN.dx, y0 = FIN.y0 + 0.003, cosA = Math.cos(FIN.a1), L1 = (y0 - FJ_Y) / cosA, d1 = [m * Math.sin(FIN.a1), -cosA, 0], d2 = [m * Math.sin(FIN.a1 + FIN.a2), -Math.cos(FIN.a1 + FIN.a2), 0];
   const W7 = [wtp([[hd, 0.5], [fgB, 0.5]]), wtp([[fgB, 1]]), wtp([[fgB, 0.8], [ft, 0.2]]), wtp([[fgB, 0.5], [ft, 0.5]]), wtp([[ft, 0.85], [fgB, 0.15]]), wtp([[ft, 1]]), wtp([[ft, 1]])];
-  const fingerPts = (zc, L2) => { const J = [fx + d1[0] * L1, y0 + d1[1] * L1, zc], pts = []; for (const f of [0, 0.4, 0.8, 1]) pts.push([fx + d1[0] * L1 * f, y0 + d1[1] * L1 * f, zc]); for (const f of [0.35, 0.7, 1]) pts.push([J[0] + d2[0] * L2 * f, J[1] + d2[1] * L2 * f, zc]); return pts; };
+  const fingerPts = (zc, L2, kA) => { const a1 = FIN.a1 * (kA || 1), a2 = FIN.a2 * (kA || 1), e1 = [m * Math.sin(a1), -Math.cos(a1), 0], e2 = [m * Math.sin(a1 + a2), -Math.cos(a1 + a2), 0], J = [fx + e1[0] * L1, y0 + e1[1] * L1, zc], pts = []; for (const f of [0, 0.4, 0.8, 1]) pts.push([fx + e1[0] * L1 * f, y0 + e1[1] * L1 * f, zc]); for (const f of [0.35, 0.7, 1]) pts.push([J[0] + e2[0] * L2 * f, J[1] + e2[1] * L2 * f, zc]); return pts; }; // kA staggers the curl of a relaxed hand: the index lies straighter than the little finger
   if (lod === 0) {
     const ZS = [0.0315, 0.0105, -0.0105, -0.0305], RS = [0.0105, 0.0108, 0.0100, 0.0085], L2S = [0.040, 0.045, 0.040, 0.031];
     for (let i = 0; i < 4; i++) {
-      const pts = fingerPts(ZS[i] * k, L2S[i] * k), RF = [1, 0.97, 0.93, 0.9, 0.84, 0.74, 0.62], rr = [];
+      const pts = fingerPts(ZS[i] * k, L2S[i] * k, [0.9, 1.05, 1.25, 1.5][i]), RF = [1, 0.97, 0.93, 0.9, 0.84, 0.74, 0.62], rr = [];
       for (let j = 0; j < pts.length; j++) rr.push(pathRing(pts[Math.max(0, j - 1)], pts[j], pts[Math.min(pts.length - 1, j + 1)], RS[i] * k * RF[j] * 0.92, RS[i] * k * RF[j], W7[j], Z_AX));
       out.push(loft(rr, 6, { tone, capHi: true }));
     }
@@ -4061,7 +4077,7 @@ function headMesh(S, lod) {
 }
 
 // ---------- face atlas layout (the painting is in s_atlas) ----------
-const EYE_CELL = 0.034, EYE_K = 1.28; // width of an eye cell in metres, and the scale of the painted eye inside it // width of an eye cell in metres
+const EYE_CELL = 0.034, EYE_K = 1.4; // width of an eye cell in metres, and the scale of the painted eye inside it // width of an eye cell in metres
 const AT = { W: 1024, H: 768, FW: 100, FH: 114, FCOLS: 10, EY: 456, EW: 64, HY: 520, HW: 256, HH: 248 };
 const EXPRS = ['neutral', 'smile', 'angry', 'scared', 'pained', 'dead', 'talk', 'laugh'];
 const EYE_OF = [0, 0, 2, 1, 3, 5, 0, 3]; // lid state of each expression: 0 open, 1 wide, 2 narrow, 3 squint, 4 closed, 5 glazed
@@ -4190,7 +4206,7 @@ const fillp = (X, pts, al, c, a, b) => ink(X, ctx => { spath(ctx, pts, true); ct
 
 // expression table: brow inner / peak / outer offsets (m), mouth opening, corner lift, width scale, teeth rows, tongue, cheek raise, brow furrow, forehead lines, pallor
 const XP = [
-  { bi: 0, bp: 0, bo: 0, mo: 0, cl: 0.0008, mw: 1, te: 0, tg: 0, ch: 0, fu: 0, fl: 0 },
+  { bi: 0, bp: 0, bo: 0, mo: 0, cl: 0.0014, mw: 1, te: 0, tg: 0, ch: 0, fu: 0, fl: 0 },
   { bi: 0.0005, bp: 0.001, bo: 0.0015, mo: 0.0028, cl: 0.0042, mw: 1.1, te: 1, tg: 0, ch: 1, fu: 0, fl: 0 },
   { bi: -0.0065, bp: -0.003, bo: 0.0012, mo: 0.0045, cl: -0.002, mw: 0.98, te: 2, tg: 0, ch: 0, fu: 1, fl: 0.3 },
   { bi: 0.0085, bp: 0.007, bo: 0.0035, mo: 0.0105, cl: -0.0005, mw: 0.9, te: 2, tg: 0, ch: 0, fu: 0, fl: 1 },
@@ -4487,15 +4503,15 @@ function hairPieces(look, HS, fem, style, lod) {
     case 'balding': cap({ edge: edge(0.0), top: (a) => hl0(a, fem) + 0.032 * smx(0.9, 1.6, a) * (1 - smx(2.9, 3.14, a) * 0.3) + 0.002, th: prof(0.0028, 0.007), cell: 2, lv: [0.2, 0.6] }); break;
     case 'pixie': cap({ edge: edge(0.0), th: prof(0.003, 0.0105, 0.004), cell: 0, lv: [0.22, 0.65] });
       ribbons([[0.0, 1.702, 0.0, -0.036, 0.022, 0.02], [0.3 * side, 1.702, 0.02 * side, -0.036, 0.018, 0.02], [-0.3 * side, 1.7, -0.01 * side, -0.03, 0.02, 0.02], [0.65 * side, 1.69, 0.03 * side, -0.036, 0.0, 0.012], [2.6, 1.585, 0.0, -0.04, -0.016, 0.02], [-2.6, 1.585, 0.0, -0.04, -0.016, 0.02], [3.1, 1.555, 0.0, -0.04, -0.012, 0.02]], { cell: 0 }); break;
-    case 'curly': { // a thin cap and a spiral of ball-curls (golden angle) over the crown and sides
-      cap({ edge: edge(0.0), th: prof(0.009, 0.016), cell: 1, lv: [0.25, 0.6] }); // thick enough that the gaps between the curls show hair, not scalp
-      const n = [46, 24, 11][lod], r = [0.030, 0.034, 0.042][lod];
-      for (let i = 0; i < n; i++) { const t = (i + 0.5) / n, el = Math.acos(1 - t * 0.92), pa = ((i * 2.39996 + 0.4 + Math.PI) % TAU) - Math.PI, ya = Math.min(Math.max(hl0(Math.abs(pa), fem) + 0.01, TOP_Y - el * 0.075), 1.742), s = 0.9 + 0.3 * rng();
-        headP(HS, ya, pa, _hp, false); headN(HS, ya, pa, _hn, false); out.push(blobPiece(_hp[0] + _hn[0] * 0.014, _hp[1] + _hn[1] * 0.014 + 0.004, _hp[2] + _hn[2] * 0.014, r * s, r * s * 0.95, r * s, lod ? [7, 5] : [9, 6], { cell: 1 })); }
+    case 'curly': { // continuous layered volumes: a dense base shell, a lumpy curl layer and a thinner outer layer of finer lumps, each darker at the root and lighter at the tips
+      const nc3 = [40, 26, 16][lod], nr3 = [14, 10, 7][lod], lump = (fr, am, sd) => (a, f, phi, y) => am * (vnoise(phi * fr + sd, y * fr * 12, 0.5) - 0.5) * smx(0.08, 0.45, f), root = (i) => 0.8 + 0.3 * Math.min(1, i / (nr3 - 1));
+      out.push(capPiece(HS, { nc: nc3, nr: nr3, edge: (a) => hl0(a, fem) + 0.004 + 0.012 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.011 + 0.012 * smx(0, 0.5, f) + lump(4.2, 0.02, 1.3)(a, f, phi, y), push: (a, f, phi, y, n, o) => { o[1] += 0.006 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.6], k: (i, j) => root(i) }));
+      out.push(capPiece(HS, { nc: nc3, nr: nr3, edge: (a) => hl0(a, fem) + 0.014 + 0.012 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.016 + 0.014 * smx(0, 0.5, f) + lump(7, 0.022, 4.1)(a, f, phi, y) + lump(15, 0.01, 7)(a, f, phi, y), push: (a, f, phi, y, n, o) => { o[1] += 0.008 * smx(0.3, 1, f); }, cell: 1, lv: [0.3, 0.75], k: (i, j) => root(i) + 0.08 }));
+      if (lod < 2) out.push(capPiece(HS, { nc: nc3, nr: nr3 - 2, edge: (a) => hl0(a, fem) + 0.03 + 0.01 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.014 + 0.012 * smx(0, 0.55, f) + lump(10, 0.016, 2.2)(a, f, phi, y), cell: 1, lv: [0.4, 0.85], k: (i, j) => 1.0 + 0.1 * Math.sin(j * 1.7) }));
       break; }
-    case 'afro': {
-      const nc2 = [44, 28, 18][lod], nr2 = [16, 11, 8][lod];
-      out.push(capPiece(HS, { nc: nc2, nr: nr2, edge: (a) => hl0(a, fem) + 0.006 + 0.03 * smx(0.9, 1.7, a) + 0.012 * smx(2.6, 3.1, a), th: (a, f, phi, y) => { const base = 0.012 + 0.03 * Math.sin(Math.min(1, f / 0.62) * Math.PI * 0.5) + 0.006 * smx(0.55, 1, f), bump = 0.0075 * (vnoise(phi * 3.1 + 1.7, y * 38, 0.5) - 0.5) + 0.004 * (vnoise(phi * 9 + 3, y * 90, 1.5) - 0.5); return base + bump * smx(0.1, 0.5, f); }, push: (a, f, phi, y, n, o) => { o[1] += 0.012 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.7] }));
+    case 'afro': { // three nested domes with different lump scales, so the volume reads as one soft mass with a strand gradient
+      const nc2 = [44, 28, 18][lod], nr2 = [16, 11, 8][lod], dome = (e0, t0, t1, am, fr, sd, kk) => capPiece(HS, { nc: nc2, nr: nr2, edge: (a) => hl0(a, fem) + e0 + 0.03 * smx(0.9, 1.7, a) + 0.012 * smx(2.6, 3.1, a), th: (a, f, phi, y) => t0 + t1 * Math.sin(Math.min(1, f / 0.62) * Math.PI * 0.5) + 0.006 * smx(0.55, 1, f) + am * (vnoise(phi * fr + sd, y * fr * 12, 0.5) - 0.5) * smx(0.1, 0.5, f), push: (a, f, phi, y, n, o) => { o[1] += 0.012 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.75], k: (i) => kk + 0.28 * Math.min(1, i / (nr2 - 1)) });
+      out.push(dome(0.006, 0.012, 0.026, 0.006, 3.1, 1.7, 0.74)); out.push(dome(0.014, 0.016, 0.032, 0.012, 5.5, 3.3, 0.78)); if (lod < 2) out.push(dome(0.022, 0.012, 0.034, 0.008, 9, 5.1, 0.82));
       break; }
     case 'mohawk': { // shaved sides and a ripple-topped fin along the midline from the forehead over the crown to the nape
       cap({ edge: edge(0.012), th: prof(0.0014, 0.0030), cell: 2, lv: [0.2, 0.6], sm: (i) => 0.5 - 0.2 * (i / (nr - 1)) });
@@ -4522,7 +4538,7 @@ function hairPieces(look, HS, fem, style, lod) {
       if (pony) { const seg = lod ? 5 : 8, pts = [[0, 1.687, -0.108], [0, 1.668, -0.13], [0, 1.628, -0.148], [0, 1.57, -0.152], [0, 1.50, -0.146], [0, 1.44, -0.135], [0, 1.385, -0.125]], rad = [0.02, 0.026, 0.03, 0.031, 0.028, 0.02, 0.011];
         out.push(tubePiece(pts, rad, seg, { cell: 0, u0: 0.1 })); out.push(tubePiece(pts.slice(0, 2).map((p, i) => [p[0], p[1] - 0.0 + i * 0.0, p[2] + 0.0]), [0.0255, 0.0255], seg, { rgb: look._tie || 0xd1345b, cell: 0 }));
         ribbons([[0.5, 1.7, 0, -0.01, 0.02, 0.016], [-0.5, 1.7, 0, -0.01, 0.02, 0.016]], { cell: 0 }); }
-      if (bun) { out.push(blobPiece(0, 1.712, -0.082, 0.052, 0.046, 0.05, lod ? [8, 6] : [12, 8], { cell: 1, k: () => 0.98 })); if (lod < 2) out.push(tubePiece([[-0.03, 1.703, -0.108], [0, 1.722, -0.118], [0.03, 1.703, -0.108]], [0.011, 0.011, 0.011], 6, { rgb: look._tie || 0x2f2f2f, cell: 0 })); }
+      if (bun) { out.push(blobPiece(0, 1.712, -0.082, 0.052, 0.046, 0.05, lod ? [8, 6] : [12, 8], { cell: 1, k: () => 0.98 })); out.push(blobPiece(0, 1.7, -0.078, 0.058, 0.03, 0.054, lod ? [8, 5] : [12, 6], { cell: 1, k: () => 0.88 })); out.push(blobPiece(0, 1.728, -0.088, 0.036, 0.03, 0.034, lod ? [7, 5] : [10, 6], { cell: 1, k: () => 1.06 })); if (lod < 2) for (let q = 0; q < 3; q++) out.push(tubePiece([[-0.05, 1.706 + q * 0.012, -0.075], [0, 1.738 - q * 0.004, -0.12 + q * 0.01], [0.05, 1.706 + q * 0.012, -0.075]], [0.006, 0.007, 0.006], 5, { cell: 1, k: () => 0.9 + 0.1 * q })); if (lod < 2) out.push(tubePiece([[-0.03, 1.703, -0.108], [0, 1.722, -0.118], [0.03, 1.703, -0.108]], [0.011, 0.011, 0.011], 6, { rgb: look._tie || 0x2f2f2f, cell: 0 })); }
       if (style === 'braids') { for (const s of [1, -1]) { const pts = []; for (let i = 0; i < 9; i++) { const t = i / 8; pts.push([s * (0.086 + 0.012 * t + 0.01 * Math.sin(t * 3)), 1.62 - t * 0.27, -0.03 - 0.03 * t + 0.0]); } const rad = pts.map((p, i) => 0.0105 * (1 - 0.35 * i / 8));
         out.push(tubePiece(pts, rad, lod ? 5 : 7, { cell: 1, u0: 0.1, k: (v) => 0.88 + 0.2 * (Math.floor(v / (lod ? 5 : 7)) % 2) }));
         if (lod < 2) for (let i = 1; i < 8; i++) out.push(blobPiece(pts[i][0] + s * 0.0028 * (i % 2 ? 1 : -1), pts[i][1], pts[i][2], 0.0118 * (1 - 0.3 * i / 8), 0.0145, 0.0118 * (1 - 0.3 * i / 8), [7, 5], { cell: 1, k: () => 0.9 + 0.12 * (i % 2) })); } }
@@ -4781,6 +4797,7 @@ function buildShoes(look, gm, fem, shoes) {
     const x = s * S.legX, ft = s > 0 ? FT_L : FT_R, sole = P.sole;
     // sole (outsole + midsole), closed at both ends
     put(toGeo(loft(lastRings(P, s, x, ft, 0.003, () => sole, 0.003, 0, 1, 4, hwMul), seg, { col: soleC, capLo: true, capHi: true, fab: FAB.rubber }))); // the sole's underside is exactly y = 0
+    if (type === 'sneakers' && hi) put(toGeo(loft(lastRings(P, s, x, ft, 0.0042, () => 0.0068, 0.0042, 0, 1, 4, hwMul), seg, { col: col(0x2c2c30), capLo: true, capHi: true, fab: FAB.rubber }))); // the outsole: a dark rubber band round the foot of the midsole
     if (type === 'boots' || type === 'dress') { // a heel block under the rear of the foot
       const hr = lastRings(P, s, x, ft, 0.002, z => sole + (type === 'boots' ? 0.02 : 0.016) * (1 - smx(-0.075, 0.05, z)), 0.002, 0, 0.22, 4, hwMul); if (hr.length > 2) put(toGeo(loft(hr, seg, { col: shade(soleC, 0.85), capLo: true, capHi: true, fab: FAB.rubber })));
     }
@@ -5334,7 +5351,7 @@ function emptyGeo() {
   if (_empty) return _empty; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3)); g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(9), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(9), 3));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint16Array(12), 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(new Float32Array(12), 4)); g.setIndex(new THREE.BufferAttribute(new Uint16Array(0), 1)); return (_empty = g);
 }
-const LOD_TIER = { high: { best: 0, d0: 14, d1: 40 }, med: { best: 1, d0: 0, d1: 26 }, low: { best: 1, d0: 0, d1: 10 } };
+const LOD_TIER = { high: { best: 0, d0: 13, d1: 36 }, med: { best: 1, d0: 0, d1: 24 }, low: { best: 1, d0: 0, d1: 9 } };
 const _cam = new THREE.Vector3(); let _camOk = false, _fovK = 1, _lodT = 0;
 function noteCamera(renderer, scene, cam) { if (cam.isPerspectiveCamera && !(cam.parent && cam.parent.isCubeCamera)) { _cam.setFromMatrixPosition(cam.matrixWorld); _fovK = Math.tan(cam.fov * Math.PI / 360) / 0.52; _camOk = true; } } // set as mesh.onBeforeRender: the last camera that drew a person
 // finger curl of one hand: 0 = the relaxed hand the mesh is modelled in, 1 = a firm grip, 1.35 = a fist, negative = open; the thumb tucks in with it (s = +1 left hand, -1 right)
@@ -5705,7 +5722,7 @@ function makeCharacter(look) {
   // Damps the base pose toward TG, adds the gait overlay, writes the bones, levels the feet and (when `solve`) puts the pelvis where the lowest foot touches y = 0.
   function applyPose(dt, kU, kL, snap, solve, autoFoot) {
     const fU = snap ? 1 : 1 - Math.exp(-kU * dt), fL = snap ? 1 : 1 - Math.exp(-kL * dt);
-    for (let i = 0; i < NB; i++) {
+    for (let i = 0, nb = lod === 2 ? FG_L : NB; i < nb; i++) { // beyond 36 m the finger bones keep their last pose (a mitten there is a few pixels), the other 18 bones follow
       const k = i * 3, f = i === HIPS || i >= TH_L && i <= FT_R ? fL : fU;
       cur[k] += (TG[k] - cur[k]) * f; cur[k + 1] += (i === HIPS ? wrapAngle(TG[k + 1] - cur[k + 1]) : TG[k + 1] - cur[k + 1]) * f; cur[k + 2] += (TG[k + 2] - cur[k + 2]) * f;
       list[i].rotation.set(cur[k] + OV[k], cur[k + 1] + OV[k + 1], cur[k + 2] + OV[k + 2]);
@@ -5939,7 +5956,7 @@ class Ped {
     this.shootT = 1 + Math.random(); this.accuracy = o.accuracy ?? 0.5; this.hostile = !!o.hostile; this.stationX = o.x; this.stationZ = o.z; this.aggroRange = o.aggroRange ?? 45; this.bustT = 0; this.blockedT = 0;
     this.punchT = 0; this.mission = o.mission || null; this.noDespawn = !!o.noDespawn; this.fromVehicle = o.fromVehicle || null; this.station = !!o.station; this.vip = !!o.vip;
     this.area = this.kind === 'civ' && o.area ? o.area : null; // {x0, z0, x1, z1}: civilians that wander inside a rectangle (beach, parks) instead of walking the sidewalk graph
-    this.animAcc = 0; this.animSkip = 9; this.animYaw = this.yaw;
+    this.animAcc = 0; this.animSkip = 9; this.stK = 0; this.stX = 0; this.stZ = 0; this.stF = undefined; this.animYaw = this.yaw;
     const arch = this.look.archetype, pace = this.look.elder ? 0.72 : arch === 'business' || arch === 'sporty' ? 1.12 : arch === 'tourist' ? 0.85 : 1;
     this.walkSpeed = WALK * pace * (0.78 + Math.random() * 0.5); if (this.trait === 'jogger') this.walkSpeed = 3.1 + Math.random() * 1.0; // strollers 1.2 m/s, commuters 1.9, joggers 3-4
     this.aimT = 0; this.deadDir = 1; this.deadDirX = 0; this.deadDirZ = 0; this.lift = 0; this.liftTo = 0; this.liftStage = 0; // a body lying on the ground is lifted so that its lowest vertex rests on the ground
@@ -6398,10 +6415,10 @@ class Ped {
     const px0 = this.x - P.x, pz0 = this.z - P.z, near = px0 * px0 + pz0 * pz0, aware = this.free && !this.pinned && near < 3600;
     if (tx !== null) {
       const dx = tx - this.x, dz = tz - this.z, l = Math.hypot(dx, dz);
-      if (l > 0.05) { let hx = dx / l, hz = dz / l, sp = spd; if (aware && l > 0.25) { D.steer(this, hx, hz); hx = D.sx; hz = D.sz; sp *= D.sf; } this.yaw = angleLerp(this.yaw, Math.atan2(hx, hz), Math.min(1, dt * 10)); this.speed = damp(this.speed, sp, 8, dt); this.x += Math.sin(this.yaw) * this.speed * dt; this.z += Math.cos(this.yaw) * this.speed * dt; }
+      if (l > 0.05) { let hx = dx / l, hz = dz / l, sp = spd; if (aware && l > 0.25) { if (near < 225 || (this.stK = (this.stK + 1) & 3) === 0 || this.stF === undefined) { D.steer(this, hx, hz); this.stX = D.sx; this.stZ = D.sz; this.stF = D.sf; } hx = this.stX; hz = this.stZ; sp *= this.stF; } this.yaw = angleLerp(this.yaw, Math.atan2(hx, hz), Math.min(1, dt * 10)); this.speed = damp(this.speed, sp, 8, dt); this.x += Math.sin(this.yaw) * this.speed * dt; this.z += Math.cos(this.yaw) * this.speed * dt; }
       else this.speed = damp(this.speed, 0, 10, dt);
     } else this.speed = damp(this.speed, 0, 10, dt);
-    if (!this.pinned) { this.collideStatic(); this.collideVehicles(); if (aware) D.separate(this); } // somebody on a bench or a towel is inside the collision box of the thing they sit on
+    if (!this.pinned) { this.collideStatic(); this.collideVehicles(); if (aware && (near < 225 || (this.stK & 1) === 0)) D.separate(this); } // somebody on a bench or a towel is inside the collision box of the thing they sit on
     const B = G.world.bounds; this.x = clamp(this.x, B.minX, B.maxX); this.z = clamp(this.z, B.minZ, B.maxZ);
     // real ground height: 0.15 m sidewalks, lots, beach, pier ramp; the first update snaps, later steps ease so a kerb is a quick step instead of a pop
     const gy = this.groundAt(this.x, this.z);
@@ -7170,6 +7187,7 @@ function fixturesOf(S) {
   const nx = Math.max(2, Math.round(iw / (k === 'casino' ? 5.5 : 4.4))), nz = Math.max(2, Math.round(dp / (k === 'casino' ? 5.5 : 4.4))), I = { casino: 0.2, lounge: 0.18, bank: 0.34, hospital: 0.4, dealer: 0.46, spray: 0.4, garage: 0.4 }[k] ?? 0.38;
   const strip = k === 'spray' || k === 'garage' || k === 'police' || k === 'hospital';
   for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) fx.push({ x: ix0 + (i + 0.5) * iw / nx, y: gf > 4 ? gf - 1.1 : fy, z: iz0 + (j + 0.5) * dp / nz, i: I * (gf > 4 ? 1.9 : 1), kind: gf > 4 ? 'pendant' : strip ? 'strip' : 'panel' });
+  fx.push({ x: S.cx, y: fy - 0.4, z: iz0 + dp - 1.8, i: 0.7, kind: 'keeper' }); // warm light on the keeper's side of the counter (bake only)
   if (k === 'casino') fx.push({ x: S.cx, y: gf - 2.3, z: iz0 + dp * 0.5, i: 1.6, kind: 'chandelier' });
   return fx;
 }
@@ -7200,6 +7218,7 @@ function interiorOf(S) {
   // ceiling fixtures: recessed panels, strips (fluorescent tubes), pendants (tall lobbies), a chandelier (casino)
   const gc = hdr(sp.glowc, 1.12);
   for (const f of fx) {
+    if (f.kind === 'keeper') continue;
     if (f.kind === 'panel') { ib.rect('glow', 'D', f.x - 0.6, f.x + 0.6, f.z - 0.3, f.z + 0.3, fy - 0.012, gc); ib.box('metal', f.x - 0.66, fy - 0.03, f.z - 0.36, f.x + 0.66, fy - 0.01, f.z + 0.36, 0x8a8f99, { no: 'UD' }); }
     else if (f.kind === 'strip') { ib.box('metal', f.x - 1.0, fy - 0.1, f.z - 0.13, f.x + 1.0, fy - 0.04, f.z + 0.13, 0x7a7f89, { no: 'U' }); ib.box('glow', f.x - 0.95, fy - 0.12, f.z - 0.07, f.x + 0.95, fy - 0.1, f.z + 0.07, gc, { no: 'U' }); }
     else if (f.kind === 'pendant') { ib.cyl('metal', f.x, f.y + 0.1, f.z, 0.012, 0.012, fy - f.y - 0.1, 0x4a4d55, 5, { cap: false }); ib.cyl('metal', f.x, f.y, f.z, 0.34, 0.12, 0.1, 0x20232a, 12, { cap: false }); ib.cyl('glow', f.x, f.y - 0.012, f.z, 0.3, 0.3, 0.012, gc, 12, { bot: true, cap: false }); }
@@ -7212,7 +7231,8 @@ function interiorOf(S) {
   const er = artAtlas().rects.exit; if (er && gf < 4) ib.pic('screen', [cx + 0.45, gf - 0.62, iz0 + 0.02], [cx - 0.45, gf - 0.62, iz0 + 0.02], [cx - 0.45, gf - 0.62 + 0.34, iz0 + 0.02], [cx + 0.45, gf - 0.62 + 0.34, iz0 + 0.02], 'exit', 0xffffff, [0, 0, 0]);
   ib.at(ix1 - 0.3, fy - 0.35, iz1 - 0.3, 2.35); ib.box('plastic', -0.05, -0.05, -0.2, 0.05, 0.05, 0.2, 0x1a1b20); ib.sph('plastic', 0, -0.06, 0.22, 0.08, 0.06, 0.08, 0x23252b, 8, 5); ib.end();
   ib.at(cx, y0, iz0); S.api = (LAY[S.kind] || LAY.basic)(ib, S);
-  const cn = S.api?.counter; if (cn) { ib.cyl('glow', cn.u, 0.002, cn.v, 0.42, 0.42, 0.012, hdr(sp.k2, 1.1), 24, { cap: true }); ib.cyl('plastic', cn.u, 0.004, cn.v, 0.33, 0.33, 0.012, 0x15171c, 24, { cap: true }); } // the customer spot at the till (the prompt appears here)
+  const cn = S.api?.counter; if (cn) { ib.cyl('glow', cn.u, 0.002, cn.v, 0.42, 0.42, 0.012, hdr(sp.k2, 1.1), 24, { cap: true }); ib.cyl('plastic', cn.u, 0.004, cn.v, 0.33, 0.33, 0.012, mix(sp.k2, 0xd8d8de, 0.7), 24, { cap: true }); }
+  const kp = S.api?.keeper; if (kp) { ib.cyl('glow', kp.u, 0.003, kp.v, 0.95, 0.95, 0.008, hdr(sp.glowc, 0.32), 24, { cap: true }); const ly = Math.min(fy - 0.6, 2.55); ib.cyl('metal', kp.u, ly + 0.1, kp.v, 0.01, 0.01, fy - 0.15 - ly - 0.1, 0x4a4d55, 5, { cap: false }); ib.cyl('metal', kp.u, ly, kp.v, 0.2, 0.09, 0.12, 0x20232a, 10, { cap: false }); ib.cyl('glow', kp.u, ly - 0.012, kp.v, 0.17, 0.17, 0.01, hdr(0xfff0d8, 1.3), 10, { bot: true, cap: false }); } // keeper's post: a warm spot above and a pool on the floor // the customer spot at the till (the prompt appears here)
   ib.end();
   return ib;
 }
@@ -7476,7 +7496,7 @@ const LAY = {
     for (let i = 0; i < 3; i++) { const x = -hw + 1.6 + i * 1.5; ib.box('metal', x - 0.02, 0.35, 0.9, x + 0.02, 0.9, 0.94, 0x6a6f79); gun(ib, i === 1 ? 'sniper' : 'rifle', x, 0.98, 0.92, 0.55, 0.9); }
     ib.box('matte', 1.6, 0, 0.35, hw - 0.4, 0.32, 1.45, 0x2c2f38, { no: 'D' }); ib.box('plastic', 1.58, 0.32, 0.33, hw - 0.38, 0.35, 1.47, 0x5a5f69, { no: 'D' }); ib.col(1.6, 0.35, hw - 0.4, 1.45, 0.35);
     mannequin(ib, hw - 1.7, 0.9, Math.PI, { shirt: 0x3a4a2a, pants: 0x3a3f4a, jacket: 0x2a2e38, hat: 0x2a2e38 }, 0.35); poster(ib, 'target2', hw - 3.9, 1.5, 0.45, 0.7, 1.0, Math.PI);
-    return { counter: { u: -0.6, v: dp - 4.2, yaw: 0 }, keeper: { u: -0.6, v: dp - 1.7, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.05, dp - 2] } };
+    return { counter: { u: -0.6, v: dp - 4.2, yaw: 0 }, keeper: { u: -0.6, v: dp - 1.7, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.2, v: dp - 4.9, yaw: 0 }, { role: 'customer', u: -5.2, v: 5.8, yaw: -Math.PI / 2 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.05, dp - 2] } };
   },
 
   // ----- clothes: window stage with mannequins in the outfits of the game, racks, mirrors, fitting booths, a wrap desk -----
@@ -7503,7 +7523,7 @@ const LAY = {
     counter(ib, 3.2, dp - 3.3, Math.min(8.4, hw - 0.4), dp - 2.55, { body: 0xf4efe8, top: 0xe8c890, acc: ac }); till(ib, 5.0, 1.05, dp - 2.9);
     for (let i = 0; i < 4; i++) { const x = 6.0 + i * 0.55, c = pick(r, [0xff9ad5, 0xffffff, 0x2b2b2b, 0x3ce8f5]); ib.box('matte', x, 1.05, dp - 3.2, x + 0.34, 1.5, dp - 2.8, c); ib.box('metal', x + 0.08, 1.5, dp - 3.02, x + 0.26, 1.52, dp - 3.0, 0xd8dce4); }
     glowSign(ib, 'logoSunset', 4.4, 3.1, dp - 0.04, 3.4, Math.PI);
-    return { counter: { u: 5.0, v: dp - 4.1, yaw: 0 }, keeper: { u: 5.0, v: dp - 1.7, yaw: Math.PI }, view: { cam: [-1.5, 1.6, 0.8], look: [1.5, 1.0, dp * 0.6] } };
+    return { counter: { u: 5.0, v: dp - 4.1, yaw: 0 }, keeper: { u: 5.0, v: dp - 1.7, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.0, v: dp - 4.9, yaw: 0 }], view: { cam: [-1.5, 1.6, 0.8], look: [1.5, 1.0, dp * 0.6] } };
   },
 
   // ----- burger bar: checkered floor, window bar, booths, order counter with menu boards, kitchen, drink machine -----
@@ -7527,7 +7547,7 @@ const LAY = {
     // drink machine at the right end of the counter, napkin boxes, big neon on the right wall
     ib.at(hw - 1.3, 0, cv + 0.3, 0); ib.box('plastic', -0.35, 0, -0.3, 0.35, 1.9, 0.3, 0xd8201a); ib.box('plastic', -0.3, 1.2, 0.3, 0.3, 1.8, 0.31, 0x15171c); ib.rect('glow', 'N', -0.28, 0.28, 1.25, 1.75, 0.312, hdr(0xfff0d0, 0.9)); for (let i = 0; i < 4; i++) ib.cyl('metal', -0.2 + i * 0.133, 0.95, 0.35, 0.02, 0.02, 0.2, 0xaab0ba, 6, { cap: false }); ib.col(-0.35, -0.3, 0.35, 0.3, 1.9); ib.end();
     glowSign(ib, 'logoNeon', hw - 0.05, 2.5, dp * 0.55, 3.4, -Math.PI / 2); poster(ib, 'kitchen', -hw + 0.03, 1.8, 2.2, 0.9, 0.9, Math.PI / 2);
-    return { counter: { u: 0, v: cv - 0.9, yaw: 0 }, keeper: { u: 0, v: cv + 1.4, yaw: Math.PI }, extra: [{ role: 'chef', u: -4.7, v: dp - 1.5, yaw: 0, look: 'chef' }], view: { cam: [0, 1.6, 0.8], look: [0, 1.4, dp - 2] } };
+    return { counter: { u: 0, v: cv - 0.9, yaw: 0 }, keeper: { u: 0, v: cv + 1.4, yaw: Math.PI }, extra: [{ role: 'chef', u: -4.7, v: dp - 1.5, yaw: 0, look: 'chef' }, { role: 'customer', u: 2.3, v: cv - 1.5, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.4, dp - 2] } };
   },
 };
 
@@ -7568,7 +7588,7 @@ Object.assign(LAY, {
     for (const u of [-hw + 1.4, -hw + 2.8]) { ib.box('plastic', u - 0.28, 0.79, dp - 0.95, u + 0.28, 1.2, dp - 0.93, 0x15171c); ib.rect('glow', 'S', u - 0.25, u + 0.25, 0.83, 1.18, dp - 0.955, hdr(0x6fb0ff, 0.8)); ib.box('plastic', u - 0.04, 0.79, dp - 0.95, u + 0.04, 0.9, dp - 0.85, 0x15171c); }
     chair(ib, -hw + 1.4, dp - 2.3, Math.PI, 0xf2f4f8); chair(ib, -hw + 2.8, dp - 2.3, Math.PI, 0xf2f4f8); sofa(ib, hw - 1.0, 9.0, 2.2, -Math.PI / 2, 0x1f2a3a); sofa(ib, hw - 1.0, 11.2, 1.6, -Math.PI / 2, 0x1f2a3a); table(ib, hw - 2.2, 10.1, 0.7, 1.2, 0.4, 0xe8ecf2, 0x8a8f99);
     plant(ib, hw - 0.6, 7.3, 1.2); plant(ib, -hw + 0.6, 2.2, 1.2);
-    return { counter: { u: 5.1, v: dp - 3.3, yaw: 0 }, keeper: { u: 5.1, v: dp - 0.95, yaw: Math.PI }, cars, view: { cam: [0, 1.6, 0.8], look: [0, 0.9, 7] } };
+    return { counter: { u: 5.1, v: dp - 3.3, yaw: 0 }, keeper: { u: 5.1, v: dp - 0.95, yaw: Math.PI }, cars, extra: [{ role: 'customer', u: 3.0, v: dp - 4.6, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 0.9, 7] } };
   },
 
   // ----- paint and repair shop: a car raised on a two-post lift, a car being prepared, tool wall, roll cabs, paint cans, tyres, a counter -----
@@ -7690,7 +7710,7 @@ Object.assign(LAY, {
     }
     // cell gate (one door ajar), and a plant
     plant(ib, hw - 0.6, 1.3, 1.1);
-    return { counter: { u: 0, v: dz - 0.8, yaw: 0 }, keeper: { u: 0, v: dz + 1.5, yaw: Math.PI }, view: { cam: [0, 1.65, 0.8], look: [0, 1.4, dp - 2.5] } };
+    return { counter: { u: 0, v: dz - 0.8, yaw: 0 }, keeper: { u: 0, v: dz + 1.5, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.4, v: dz - 1.6, yaw: 0 }], view: { cam: [0, 1.65, 0.8], look: [0, 1.4, dp - 2.5] } };
   },
 
   // ----- taxi dispatch: counter with radio, city map, key board, benches -----
@@ -7706,7 +7726,7 @@ Object.assign(LAY, {
     for (const u of [-hw + 1.5, -hw + 2.6]) { ib.box('plastic', u - 0.28, 0.79, dp - 1.05, u + 0.28, 1.2, dp - 1.03, 0x15171c); ib.rect('glow', 'S', u - 0.25, u + 0.25, 0.83, 1.18, dp - 1.055, hdr(0xffd34e, 0.8)); }
     rug(ib, -3.4, 3.2, 3.4, 6.8, 0xffd34e, 0x2a2d36); vending(ib, hw - 0.5, 8.4, -Math.PI / 2, 0x2f6fe0); for (const v of [2.6, 4.2]) sofa(ib, -hw + 0.8, v, 1.5, Math.PI / 2, 0x3a3d46); poster(ib, 'ad1', -hw + 0.04, 1.9, 8.6, 0.8, 1.2, Math.PI / 2); poster(ib, 'target2', hw - 0.04, 1.9, 2.0, 0.7, 1.05, -Math.PI / 2, 0xe8e0d0); screenQuad(ib, 'news', hw - 0.05, 2.2, 6.4, 1.3, 0.75, -Math.PI / 2, [0, 0, 0.25]);
     plant(ib, hw - 0.6, 1.4, 1.1); ib.cyl('plastic', -hw + 0.5, 0, 1.6, 0.18, 0.18, 0.9, 0xe8f0f4, 10, { bot: true }); ib.cyl('plastic', -hw + 0.5, 0.9, 1.6, 0.15, 0.15, 0.3, 0x4aa8e8, 10); ib.col(-hw + 0.3, 1.4, -hw + 0.7, 1.8, 1.2);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.5, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.5, yaw: Math.PI }, extra: [{ role: 'customer', u: -2.6, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
   },
 
   // ----- Ricky's lounge: pool table, bar with bottles, jukebox, sofas, neon -----
@@ -7725,12 +7745,12 @@ Object.assign(LAY, {
     sofa(ib, -hw + 0.8, 2.8, 2.2, Math.PI / 2, 0x4a2a8a); table(ib, -hw + 2.0, 2.8, 0.6, 1.0, 0.42, 0x3a1a3a, 0xc9ccd4);
     glowSign(ib, 'lounge', -hw + 0.04, 2.6, 8.6, 2.4, Math.PI / 2); glowSign(ib, 'logoRicky', 0, 3.0, dp - 0.04, 3.2, Math.PI);
     poster(ib, 'ad1', hw - 0.04, 2.3, 4.6, 0.8, 1.2, -Math.PI / 2); poster(ib, 'ad2', hw - 0.04, 2.3, 5.6, 0.8, 1.2, -Math.PI / 2);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.3, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [-1, 1.2, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.3, yaw: Math.PI }, extra: [{ role: 'customer', u: -3.2, v: dp - 4.9, yaw: 0 }, { role: 'customer', u: 3.0, v: 3.6, yaw: Math.PI }], view: { cam: [0, 1.6, 0.8], look: [-1, 1.2, dp - 2] } };
   },
 
   // ----- Garage 8: a race car on jack stands, tool chests, tyre rack, counter -----
   garage(ib, S) {
-    const hw = S.iw / 2, dp = S.dp, r = ib.r, ac = S.sp.k2, cars = [{ type: 'sport', color: 0x2a6fe0, u: -2.4, v: 6.4, y: 0.38, h: -Math.PI / 2 }];
+    const hw = S.iw / 2, dp = S.dp, r = ib.r, ac = S.sp.k2, cars = [{ type: 'sport', color: 0x2a6fe0, u: -2.4, v: 6.4, y: 0, h: -Math.PI / 2 }];
     for (const [x, z] of [[-3.5, 4.6], [-1.3, 4.6], [-3.5, 8.2], [-1.3, 8.2]]) { ib.cyl('metal', x, 0, z, 0.2, 0.2, 0.03, 0x4a4d55, 8); ib.cyl('plastic', x, 0.03, z, 0.05, 0.05, 0.3, 0xc01c20, 6, { cap: true }); ib.col(x - 0.2, z - 0.2, x + 0.2, z + 0.2, 0.4); }
     for (const [x, z, c] of [[hw - 0.5, 3.0, 0xc01c20], [hw - 0.5, 4.2, 0xc01c20]]) rollCab(ib, x, z, -Math.PI / 2, c);
     pegTools(ib, -hw + 0.4, -2.6, 1.1, 2.9, dp - 0.06, r); rollCab(ib, -hw + 1.2, dp - 0.8, Math.PI, 0x2f6fe0); rollCab(ib, -hw + 2.3, dp - 0.8, Math.PI, 0xc01c20);
@@ -7738,7 +7758,7 @@ Object.assign(LAY, {
     counter(ib, 1.6, dp - 3.0, 6.4, dp - 2.3, { body: 0x2a2d36, top: 0xc9ccd4, acc: ac }); till(ib, 4.0, 1.05, dp - 2.65);
     glowSign(ib, 'logoGarage', 3.0, 2.8, dp - 0.04, 3.0, Math.PI); poster(ib, 'ad1', -hw + 0.04, 1.9, 3.0, 0.8, 1.2, Math.PI / 2);
     ib.box('plastic', -hw + 0.4, 0, 6.0, -hw + 1.2, 0.9, 9.2, 0x4a4d55, { no: 'D' }); ib.box('plastic', -hw + 0.36, 0.9, 5.96, -hw + 1.24, 0.95, 9.24, 0xc8a070, { no: 'D' }); ib.col(-hw + 0.36, 5.96, -hw + 1.24, 9.24, 0.95);
-    return { counter: { u: 4.0, v: dp - 3.8, yaw: 0 }, keeper: { u: 4.0, v: dp - 1.4, yaw: Math.PI }, cars, view: { cam: [0, 1.6, 0.8], look: [-1, 1.0, dp - 3] } };
+    return { counter: { u: 4.0, v: dp - 3.8, yaw: 0 }, keeper: { u: 4.0, v: dp - 1.4, yaw: Math.PI }, cars, extra: [{ role: 'customer', u: 1.0, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [-1, 1.0, dp - 3] } };
   },
 
   // ----- apartment lobby (the safehouse): desk, mailboxes, lift, sofas, plants -----
@@ -7750,7 +7770,7 @@ Object.assign(LAY, {
     sofa(ib, 4.6, 5.4, 2.4, Math.PI, 0x2a3a4a); sofa(ib, 6.3, 3.6, 1.8, -Math.PI / 2, 0x2a3a4a); table(ib, 5.4, 4.0, 1.0, 0.6, 0.4, 0xe8e4dc, 0x8a8f99, true); plant(ib, -hw + 0.7, 1.4, 1.5); plant(ib, hw - 0.7, 1.4, 1.5); plant(ib, hw - 0.7, 8.6, 1.4);
     rug(ib, 3.0, 2.4, hw - 0.4, 6.8, 0x7cff8a, 0x2a3a2e); sofa(ib, -hw + 3.2, 3.4, 1.8, Math.PI, 0x3a4a3a); table(ib, -hw + 3.2, 4.4, 0.9, 0.5, 0.4, 0xe8e4dc, 0x8a8f99); poster(ib, 'ad2', hw - 0.04, 1.9, 9.2, 0.8, 1.2, -Math.PI / 2); poster(ib, 'ad1', hw - 0.04, 1.9, 10.4, 0.8, 1.2, -Math.PI / 2); poster(ib, 'map', hw - 0.04, 1.9, 7.9, 1.4, 1.05, -Math.PI / 2);
     glowSign(ib, 'logoPalms', 0, 2.8, dp - 0.04, 3.0, Math.PI);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.4, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.4, yaw: Math.PI }, extra: [{ role: 'customer', u: -1.8, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
   },
 });
 LAY.hospital2 = LAY.hospital;
@@ -8386,8 +8406,8 @@ function relief(B, rec) {
         }
         if (first && L >= 6 && (look !== 'glass' || R() < 0.3)) { // drainpipes at the ends of the wall
           // the metal atlas cell is already mid-grey and multiplies the vertex colour, so a near-black pipe went black on cream walls: pipes are tinted from the facade's fin colour instead
-          const pipeC = mixc(pal.fin, 0x6b6f78, 0.45), clampC = mixc(pal.fin, 0x3a3d45, 0.6);
-          for (const us of [0.34, L - 0.34]) if (R() < 0.7 && !overlap(L - us - 0.1, L - us + 0.1, 0.2, y1)) { bx(L - us - 0.06, L - us + 0.06, 0.15, y1 - 0.3, 0.1, 0.22, pipeC, ME, 0, FB, fineDB); for (let y = 1.5; y < y1 - 0.5; y += 3.6) bx(L - us - 0.09, L - us + 0.09, y, y + 0.1, 0.05, 0.25, clampC, ME, 0, FB, fineDB); }
+          const pipeC = mixc(pal.fin, 0xffffff, 0.5), clampC = mixc(pal.fin, 0xffffff, 0.15); // light, thin pipes: dark and thick ones read as black bands down the corners
+          for (const us of [0.34, L - 0.34]) if (R() < 0.7 && !overlap(L - us - 0.1, L - us + 0.1, 0.2, y1)) { bx(L - us - 0.035, L - us + 0.035, 0.15, y1 - 0.3, 0.06, 0.13, pipeC, ME, 0, FB, fineDB); for (let y = 1.5; y < y1 - 0.5; y += 3.6) bx(L - us - 0.055, L - us + 0.055, y, y + 0.08, 0.04, 0.15, clampC, ME, 0, FB, fineDB); }
         }
         if (first && !rec.poi && (look === 'brick' || look === 'conc' || rec.dist === 'industrial' || !street)) { // graffiti and posters on the lower wall
           const n = street ? (R() < 0.25 ? 1 : 0) : (R() < 0.8 ? 1 + (R() < 0.4 ? 1 : 0) : 0);
@@ -8678,7 +8698,7 @@ class World {
     const mats = this.mats = {
       asphalt: new THREE.MeshStandardMaterial({ map: asphaltTex(), normalMap: asphaltNormal(), normalScale: new THREE.Vector2(0.7, 0.7), roughness: 0.92, metalness: 0.02 }),
       sidewalk: new THREE.MeshStandardMaterial({ map: sidewalkTex(), normalMap: sidewalkNormal(), normalScale: new THREE.Vector2(0.55, 0.55), roughness: 0.95 }),
-      grass: new THREE.MeshStandardMaterial({ map: grassTex(), roughness: 1 }),
+      grass: new THREE.MeshStandardMaterial({ map: grassTex(), color: 0xd6d4b4, roughness: 1 }),
       sand: new THREE.MeshStandardMaterial({ map: sandTex(), normalMap: sandNormal(), normalScale: new THREE.Vector2(0.5, 0.5), roughness: 1 }),
       roof: new THREE.MeshStandardMaterial({ map: roofTex(), roughness: 0.95 }),
       plank: new THREE.MeshStandardMaterial({ map: plankTex(), normalMap: plankNormal(), normalScale: new THREE.Vector2(0.8, 0.8), roughness: 0.9 }),
@@ -8688,6 +8708,11 @@ class World {
       prop: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0.1 }),
       leaf: new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, side: THREE.DoubleSide }),
     };
+    mats.sand.onBeforeCompile = sh => { // wet sand: a darker, glossier band along the waterline
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vSX;').replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSX = (modelMatrix * vec4(position, 1.0)).x;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vSX;').replace('#include <map_fragment>', '#include <map_fragment>\n  float wl = smoothstep(' + (CITY.oceanX - 16).toFixed(1) + ', ' + (CITY.oceanX - 3).toFixed(1) + ', vSX + sin(vMapUv.y * 40.0) * 0.8); diffuseColor.rgb *= mix(1.0, 0.62, wl);').replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, 0.35, wl);');
+    };
+    mats.sand.customProgramCacheKey = () => 'sandwet';
     patchWetShader(mats.asphalt, this.wetU, this.isLowTier); patchWetShader(mats.sidewalk, this.wetU, this.isLowTier); // roads, parking lots (same material) and pavements
     const g = new GeoBuilder(); g.plane(CITY.minX - 6, CITY.minZ - 6, CITY.maxX, CITY.maxZ + 6, 0, 6);
     const ground = new THREE.Mesh(g.build(), mats.asphalt); ground.receiveShadow = true; this.scene.add(ground);
@@ -9097,7 +9122,7 @@ class World {
       spill(sg.alongX, sg.a - 3, sg.a + 3, sg.face, sg.dir, 3, 0, 1, (sg.alongX ? this.groundY(sg.a, out) : this.groundY(out, sg.a)) + 0.012, tint);
     }
     // fog: false because three's fog would blend the glow towards the (bright, at dusk) fog colour; the far fade is done in the shader instead
-    this.poolMat = new THREE.MeshBasicMaterial({ map: lightPoolTex(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, opacity: 0.8, fog: false });
+    this.poolMat = new THREE.MeshBasicMaterial({ map: lightPoolTex(), vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, opacity: 1.0, fog: false });
     this.poolFog = { fogNear: { value: 100 }, fogFar: { value: 800 } }; this.poolU = { uState: { value: this.lamps.stateTex }, uShop: { value: 0 } }; // uShop: night level of the shop and sign pools (lamp pools follow their own lamp)
     // The real lamp PointLights already light the ground right at the player, so the pools fade in between 6 and 22 m from the camera
     // (smoothstep(6, 22, vFogDepth); the old 14 to 36 m range hid the road under a lamp 12 m away) and fade out again with the scene fog.
@@ -9217,7 +9242,8 @@ class World {
     for (const m of this.facadeMats) m.emissiveIntensity = f * 1.1; // per-window brightness and colour come from the window shader
     for (const m of this.storeMats) m.emissiveIntensity = f * 1.05;
     // Wet streets: the shader (patchWetShader) does the wetting - roughness, puddles, ripples - from the one `wet` uniform. Here only the albedo darkens and the bumps flatten.
-    this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.asphalt.color.setScalar(1 - rain * 0.45); this.mats.asphalt.roughness = 0.92 - 0.2 * f; // dry tarmac takes a faint sheen after dark, so the lamp light shows on the road; by day it stays matte this.mats.sidewalk.color.setScalar(1 - rain * 0.3); this.wetU.wet.value = rain;
+    this.mats.asphalt.normalScale.setScalar(0.7 - rain * 0.45); this.mats.asphalt.color.setScalar(1 - rain * 0.45); this.mats.asphalt.roughness = 0.92 - 0.2 * f; // dry tarmac takes a faint sheen after dark, so the lamp light shows on the road; by day it stays matte
+    this.mats.sidewalk.color.setScalar(1 - rain * 0.3); this.wetU.wet.value = rain;
     this.signU.level.value = 0.42 + (3.0 - 0.42) * f; // every neon sign at once: dim by day, blooming at night
     if (this.billMat) this.billMat.color.setScalar(1 + 0.4 * f); // billboards glow a little after dark
     const lamps = f >= 0.05; // street-light pools and cones only exist at night
@@ -9241,7 +9267,7 @@ const KEYS = [
   [-0.35, 0x060a1f, 0x090d1e, 0x000000],
   [-0.12, 0x0a1030, 0x2a2650, 0x7a3a3a],
   [0.0, 0x2b3b7a, 0xff7a4a, 0xffa25a],
-  [0.12, 0x4a86d8, 0xffa870, 0xffc27e], // golden hour (17:30 in summer sits here): warm horizon and a gold sun, not the pale pastel of before
+  [0.12, 0x4a86d8, 0xffa870, 0xffb060], // golden hour (17:30 in summer sits here): warm horizon and a gold sun, not the pale pastel of before
   [0.45, 0x3f8ae4, 0xb6dff6, 0xfff1d4],
   [1.0, 0x2f7fdc, 0xc6e8fb, 0xfff6e6],
 ];
@@ -9338,11 +9364,12 @@ class Sky {
     // lights
     const day = clamp(sunY * 3, 0, 1); const dayLight = day * (1 - this.rain * 0.55);
     const texel = 2 * 88 / (this.sun.shadow.mapSize.x || 2048); focus = _snap.set(Math.round(focus.x / texel) * texel, 0, Math.round(focus.z / texel) * texel);
-    if (sunY > 0.03) { this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.intensity = lerp(0.2, 3.3, dayLight); this.sun.color.copy(sunC); }
+    if (sunY > 0.03) { this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.intensity = lerp(0.2, 3.3, dayLight) + 1.5 * dayLight * THREE.MathUtils.smoothstep(sunY, 0.0, 0.1) * (1 - THREE.MathUtils.smoothstep(sunY, 0.14, 0.3)); this.sun.color.copy(sunC); } // golden hour: a stronger warm key light so the facades glow
     else { const md = _moonLight.set(-sd.x, Math.max(0.35, -sd.y), -sd.z).normalize(); this.sun.position.copy(focus).addScaledVector(md, 220); this.sun.intensity = 0.5 * (1 - this.rain * 0.5); this.sun.color.setHex(0x8fa4ff); }
     this.sun.target.position.copy(focus);
     // ambient: a pale sky tint by day (the sky colour itself at night), warm ground bounce by day, deep blue at night
-    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day).lerp(sunC, 0.6 * day * (1 - THREE.MathUtils.smoothstep(sunY, 0.1, 0.5))); // golden hour: the fill light takes the warm sun colour, so the facades are not washed blue-lilac this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
+    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day).lerp(sunC, 0.6 * day * (1 - THREE.MathUtils.smoothstep(sunY, 0.1, 0.5))); // golden hour: the fill light takes the warm sun colour, so the facades are not washed blue-lilac
+    this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
     // fog: horizon colour, denser in rain and at night
     this.fogColor.copy(hor).lerp(top, 0.35 * night).lerp(CITY_FOG, night * 0.5); this.skyColor.copy(top); // the fog picks up the glow of the city at night
     const near = lerp(150, 45, this.rain) * (1 - night * 0.35), far = lerp(720, 320, this.rain) * (1 - night * 0.3);
@@ -11344,6 +11371,7 @@ const JOB_STRINGS = {
     tip: 'טיפ', bonus: 'בונוס', base: 'בסיס', waiting: 'ממתינים לקריאה…', depotHint: 'נקודת עבודה',
     pCalls: 'קריאות', pEarned: 'הרווחתם', pMood: 'מצב רוח הנוסע', pPatient: 'מצב המטופל', pOrder: 'מצב ההזמנה', pTank: 'מים', pComfort: 'נוחות הנסיעה', pCar: 'מצב הרכב', pFare: 'מונה', pStop: 'תחנה {0}/{1}', pPax: 'נוסעים', pFires: 'מוקדי אש', pHeat: 'חיפוש',
     addr: 'בלוק {0}-{1}',
+    hint_taxi: 'טיפ: עצרו ליד הנוסע, סעו בעדינות בלי בלימות חדות וקבלו טיפ. N מדלג על קריאה.', hint_paramedic: 'טיפ: הפעילו סירנה (G), הגיעו לפצוע ופנו אותו לבית החולים. פצוע קריטי דורש מהירות.', hint_fire: 'טיפ: גשו לאש, עצרו וירו (עכבר שמאלי) כדי להתיז מים. הרכב הבוער מתפוצץ אם מתעכבים.', hint_tow: 'טיפ: סעו לאחור עד הרכב המסומן, חכו שהוא יתחבר וגררו אותו למגרש ההחרמה.', hint_courier: 'טיפ: אספו את ההזמנה בניאון בורגר ומסרו אותה מהר ובעדינות כדי לקבל טיפ.', hint_bus: 'טיפ: עצרו בתחנה המסומנת עם הדלת מול הרציף, חכו לנוסעים ושמרו על לוח הזמנים.', hint_export: 'טיפ: גנבו את הרכב מהרשימה והביאו אותו לנמל. המשטרה תרדוף אחריכם.',
     tx_new: 'קריאת מונית', tx_newVip: 'קריאה: נוסע VIP', tx_hail: 'נוסע מחכה', tx_pick: 'אספו את הנוסע', tx_board: 'הנוסע עולה…', tx_to: 'נוסע: קחו אותי אל {0}', tx_ride: 'הסיעו את הנוסע אל {0}', tx_time: 'זמן',
     tx_arrived: 'הגענו. תודה!', tx_angry: 'הנוסע כועס ויצא מהמונית!', tx_late: 'הנוסע התעייף מלחכות ויצא', tx_gone: 'הנוסע התייאש ועזב', tx_lost: 'הנוסע נעלם', tx_fare: 'נסיעה', tx_fast: 'הגעה מהירה', tx_hard: 'נוסע: תנהגו בעדינות!', tx_crash: 'נוסע: מה עשיתם?!', tx_hurry: 'נוסע: אני ממהר!',
     pm_new: 'קריאת חירום: פצוע', pm_sev0: 'מצב יציב', pm_sev1: 'מצב קשה', pm_sev2: 'מצב קריטי', pm_go: 'הגיעו אל הפצוע', pm_load: 'מעמיסים את המטופל…', pm_hosp: 'פנו את המטופל אל {0}', pm_handover: 'המטופל נמסר לצוות', pm_died: 'המטופל לא שרד', pm_lost: 'פצוע אחר טופל – הקריאה בוטלה', pm_fare: 'פינוי', pm_speed: 'בונוס מהירות',
@@ -11367,6 +11395,7 @@ const JOB_STRINGS = {
     tip: 'Tip', bonus: 'Bonus', base: 'Base', waiting: 'Waiting for a call…', depotHint: 'Job depot',
     pCalls: 'Calls', pEarned: 'Earned', pMood: 'Passenger mood', pPatient: 'Patient', pOrder: 'Order', pTank: 'Water', pComfort: 'Ride comfort', pCar: 'Vehicle', pFare: 'Meter', pStop: 'Stop {0}/{1}', pPax: 'Passengers', pFires: 'Fires', pHeat: 'Heat',
     addr: 'Block {0}-{1}',
+    hint_taxi: 'Tip: stop next to the passenger, drive smoothly with no hard braking and earn a tip. N skips a call.', hint_paramedic: 'Tip: use the siren (G), reach the patient and rush them to hospital. Critical patients need speed.', hint_fire: 'Tip: drive to the fire, stop and hold fire (left mouse) to spray water. Burning cars explode if you wait.', hint_tow: 'Tip: reverse up to the marked car, wait for the hook and tow it to the impound lot.', hint_courier: 'Tip: pick up the order at Neon Burger and deliver it fast and gently for a tip.', hint_bus: 'Tip: stop at the marked bus stop with the door at the platform, wait for the passengers and keep to the schedule.', hint_export: 'Tip: steal the car on the list and bring it to the docks. The cops will chase you.',
     tx_new: 'Taxi call', tx_newVip: 'Call: VIP passenger', tx_hail: 'Fare waiting', tx_pick: 'Pick up the passenger', tx_board: 'Passenger boarding…', tx_to: 'Passenger: take me to {0}', tx_ride: 'Drive the passenger to {0}', tx_time: 'Time',
     tx_arrived: 'We are here. Thanks!', tx_angry: 'The passenger is furious and got out!', tx_late: 'The passenger got tired of the ride and left', tx_gone: 'The passenger gave up waiting', tx_lost: 'The passenger vanished', tx_fare: 'Fare', tx_fast: 'Fast ride', tx_hard: 'Passenger: easy on the brakes!', tx_crash: 'Passenger: what was that?!', tx_hurry: 'Passenger: I am in a hurry!',
     pm_new: 'Emergency call: injured person', pm_sev0: 'Stable', pm_sev1: 'Serious', pm_sev2: 'Critical', pm_go: 'Reach the patient', pm_load: 'Loading the patient…', pm_hosp: 'Take the patient to {0}', pm_handover: 'Patient handed over', pm_died: 'The patient did not make it', pm_lost: 'Someone else treated the patient – call cancelled', pm_fare: 'Transfer', pm_speed: 'Speed bonus',
@@ -11614,7 +11643,7 @@ class Jobs {
     if (v) { this.seat(v); v.special = 'job'; v.jobCar = id; v.parked = false; }
     const r = { id, def, dep, lvl, veh: v, t0: G.time, shift: { calls: 0, base: 0, tips: 0, bonus: 0, xp: 0, fines: 0, fails: 0 }, streak: 0, call: null, nextT: 3, away: 0, st: {}, marks: [], peds: [], h: newHud(), cf: newCf(), sirenOff: false, vmark: null, prompt: null };
     this.active = r; this.stats[id].shifts++; this.prompt = null;
-    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup();
+    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
     try { IM[id].start?.(this, r); } catch (e) { console.error(e); }
     return true;
   }
@@ -11636,6 +11665,8 @@ class Jobs {
     const G = this.game; G.hud.missionResult(!s.bad, s.bad ? tr('shiftFail') : tr('shiftOver'), `${this.name(s.id)} · ${s.bad ? s.reason + ' · ' : ''}${s.sub}`); if (s.calls) this.toast(s.sub, s.tot > 0 ? 'cash' : 'warn', 9); if (s.bad) G.audio.failed(); else if (s.calls) G.audio.passed();
   }
 
+  // E enters a vehicle within reach: while one is, a job depot answers to J only (on foot) so E never steals the car
+  eFree(P) { return !P.vehicle && !P.nearestVehicle?.(); }
   // ---------- per frame ----------
   update(dt) {
     const G = this.game; if (!this.built || !G.player || !(dt > 0)) return; if (this._ut === G.time) return; this._ut = G.time;
@@ -11651,8 +11682,8 @@ class Jobs {
     const G = this.game, P = G.player, I = G.input; this.prompt = null; let near = null;
     for (const d of this.depots) if (d.dist < JOBS.depotRange + (P.vehicle ? 2 : 0)) near = d;
     if (!near || P.dead || G.state !== 'playing' || G.missions.active) { this.stopT = 0; return; }
-    const foot = !P.vehicle, touch = !!I.isTouch; this.prompt = (foot ? 'E – ' : touch ? '' : 'J – ') + tr('start', this.name(near.id));
-    if ((foot && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
+    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = (eOk ? 'E – ' : touch && !foot ? '' : 'J – ') + tr('start', this.name(near.id));
+    if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
     else if (touch && !foot) { this.stopT = (this.stopT || 0) + (P.vehicle.speed < 0.6 ? dt : -this.stopT); if (this.stopT > 1.2) { this.stopT = 0; this.start(near.id); } } // no J key on a touch screen: standing still in the marker starts the shift
   }
   tickActive(r, dt) {
@@ -11676,7 +11707,7 @@ class Jobs {
     if (r.away > 2) h.obj = tr('leaveWarn', Math.max(0, Math.ceil(JOBS.abandon - r.away)));
     // depot: end the shift (not while hauling a stolen car through the yard)
     const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (r.dep.marker) r.dep.marker.mesh.visible = true;
-    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const foot = !P.vehicle; this.prompt = (foot ? 'E' : 'J') + ' – ' + tr('end'); if ((foot && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
+    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P); this.prompt = (eOk ? 'E' : 'J') + ' – ' + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
     // keep the weapon fire of a job vehicle (drive-by) quiet
     if (v && P.vehicle === v && IM[r.id].noGun) P.fireT = Math.max(P.fireT, 0.12);
     // siren: lights flash and the sound plays while the call runs (toggle with G)
@@ -12390,7 +12421,7 @@ class Player {
     if (wantFire && this.fireT <= 0 && this.reloadT <= 0 && this.enterT <= 0 && !G.uiOpen) this.fire();
     this.mesh.rotation.y = this.yaw;
     // character animation: distance-driven gait, strafe direction, aim pitch from the real camera ray, reload progress
-    const w = this.weapon, a = _anim, yawRate = dt > 1e-5 ? clamp(wrapAngle(this.yaw - this.prevYaw) / dt, -YAW_RATE_MAX, YAW_RATE_MAX) : 0; this.prevYaw = this.yaw;
+    const w = this.weapon, a = _anim, yawRaw = dt > 1e-5 ? clamp(wrapAngle(this.yaw - this.prevYaw) / dt, -YAW_RATE_MAX, YAW_RATE_MAX) : 0; this.prevYaw = this.yaw; this.yawRateS = damp(this.yawRateS || 0, yawRaw, 22, Math.min(dt, 0.1)); const yawRate = Math.abs(this.yawRateS) < 0.02 ? 0 : this.yawRateS; // mouse steps are low-passed (about 45 ms) so the lean and head lead do not twitch
     a.v = this.speed; a.grounded = this.grounded; a.vy = this.vy; a.moveYaw = Math.atan2(this.moveDirX, this.moveDirZ); a.yaw = this.yaw; a.yawRate = yawRate;
     a.aiming = this.aiming; a.aimPitch = Math.asin(clamp(_camDir.y, -1, 1)); a.long = isLong(w); a.punch = this.punchT > 0 ? 1 - this.punchT / PUNCH_TIME : 0; a.melee = w.id === 'bat' ? 'bat' : 'fist'; a.reload = this.reloadT > 0 ? 1 - this.reloadT / RELOAD_TIME : -1;
     a.moving = moving; a.speed = this.speedNorm; a.pitch = this.camPitch - 0.2;
@@ -13064,7 +13095,7 @@ class Game {
   impact(v, imp) { const P = this.player; const d = dist(v.x, v.z, P.x, P.z); if (d < 90) this.audio.impact(imp, d); this.fx.sparks(v.x + v.fx * v.spec.len * 0.5, 0.6, v.z + v.fz * v.spec.len * 0.5, Math.min(12, imp), 4); if (v === P.vehicle || v.driver === P) P.shake = Math.min(1, (P.shake || 0) + imp / 16); if (v.driver === P && imp > 11) P.damage((imp - 10) * 2.5, v.x, v.z); if (v.ai && v.ai.mode === 'traffic') v.disturbed = 1.2; }
   interactions() {
     const P = this.player, I = this.input; let prompt = null, target = null;
-    if (!P.dead) for (const m of this.shopMarkers) { const d = dist(m.x, m.z, P.x, P.z); if (d > 3.2) continue; if (m.type === 'spray') { if (P.vehicle && P.vehicle.speed < 1.5) { target = m; } } else if (!P.vehicle) target = m; }
+    if (!P.dead) for (const m of this.shopMarkers) { const d = dist(m.x, m.z, P.x, P.z); if (d > 3.2) continue; { const nv = P.vehicle ? null : P.nearestVehicle(); if (nv && dist(nv.x, nv.z, P.x, P.z) - nv.spec.wid * 0.5 < d - 0.5) continue; } if (m.type === 'spray') { if (P.vehicle && P.vehicle.speed < 1.5) { target = m; } } else if (!P.vehicle) target = m; }
     if (!target && !P.dead && !P.vehicle) target = this.world.shops.counterTarget(P.x, P.z, this.shopMarkers); // at the till inside a shop: the same menu as the street marker
     if (target) prompt = T.pressInteract + T[target.label];
     if (!prompt && this.missionPrompt) prompt = this.missionPrompt;

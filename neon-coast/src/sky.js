@@ -7,7 +7,7 @@ const KEYS = [
   [-0.35, 0x060a1f, 0x090d1e, 0x000000],
   [-0.12, 0x0a1030, 0x2a2650, 0x7a3a3a],
   [0.0, 0x2b3b7a, 0xff7a4a, 0xffa25a],
-  [0.12, 0x4a86d8, 0xffa870, 0xffc27e], // golden hour (17:30 in summer sits here): warm horizon and a gold sun, not the pale pastel of before
+  [0.12, 0x4a86d8, 0xffa870, 0xffb060], // golden hour (17:30 in summer sits here): warm horizon and a gold sun, not the pale pastel of before
   [0.45, 0x3f8ae4, 0xb6dff6, 0xfff1d4],
   [1.0, 0x2f7fdc, 0xc6e8fb, 0xfff6e6],
 ];
@@ -104,11 +104,12 @@ export class Sky {
     // lights
     const day = clamp(sunY * 3, 0, 1); const dayLight = day * (1 - this.rain * 0.55);
     const texel = 2 * 88 / (this.sun.shadow.mapSize.x || 2048); focus = _snap.set(Math.round(focus.x / texel) * texel, 0, Math.round(focus.z / texel) * texel);
-    if (sunY > 0.03) { this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.intensity = lerp(0.2, 3.3, dayLight); this.sun.color.copy(sunC); }
+    if (sunY > 0.03) { this.sun.position.copy(focus).addScaledVector(sd, 220); this.sun.intensity = lerp(0.2, 3.3, dayLight) + 1.5 * dayLight * THREE.MathUtils.smoothstep(sunY, 0.0, 0.1) * (1 - THREE.MathUtils.smoothstep(sunY, 0.14, 0.3)); this.sun.color.copy(sunC); } // golden hour: a stronger warm key light so the facades glow
     else { const md = _moonLight.set(-sd.x, Math.max(0.35, -sd.y), -sd.z).normalize(); this.sun.position.copy(focus).addScaledVector(md, 220); this.sun.intensity = 0.5 * (1 - this.rain * 0.5); this.sun.color.setHex(0x8fa4ff); }
     this.sun.target.position.copy(focus);
     // ambient: a pale sky tint by day (the sky colour itself at night), warm ground bounce by day, deep blue at night
-    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day).lerp(sunC, 0.6 * day * (1 - THREE.MathUtils.smoothstep(sunY, 0.1, 0.5))); // golden hour: the fill light takes the warm sun colour, so the facades are not washed blue-lilac this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
+    this.hemi.color.copy(top).lerp(WHITE, 0.75 * day).lerp(sunC, 0.6 * day * (1 - THREE.MathUtils.smoothstep(sunY, 0.1, 0.5))); // golden hour: the fill light takes the warm sun colour, so the facades are not washed blue-lilac
+    this.hemi.groundColor.copy(GROUND_DAY).lerp(GROUND_NIGHT, night); this.hemi.intensity = lerp(0.5, 0.6, dayLight);
     // fog: horizon colour, denser in rain and at night
     this.fogColor.copy(hor).lerp(top, 0.35 * night).lerp(CITY_FOG, night * 0.5); this.skyColor.copy(top); // the fog picks up the glow of the city at night
     const near = lerp(150, 45, this.rain) * (1 - night * 0.35), far = lerp(720, 320, this.rain) * (1 - night * 0.3);

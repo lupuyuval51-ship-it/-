@@ -56,9 +56,9 @@ export const VEHICLES = {
   super:  { name: 'super',  maxSpeed: 66, accel: 20, brake: 28, grip: 10.5, mass: 1.0, steer: 0.48, len: 4.6, wid: 2.0, price: 48000, hp: 85 },
   // Job vehicles (price 0: not sold). Long ones get a third collision circle (vehicle.js) and a wide turning circle: steer is the lock at standstill.
   ambulance: { name: 'ambulance', maxSpeed: 46, accel: 11,  brake: 22, grip: 8,   mass: 1.9, steer: 0.5,  len: 5.8,  wid: 2.1,  price: 0, hp: 160, emergency: true },
-  firetruck: { name: 'firetruck', maxSpeed: 29, accel: 5.5, brake: 12, grip: 7,   mass: 3.8, steer: 0.46, len: 8.0,  wid: 2.5,  price: 0, hp: 320, emergency: true },
+  firetruck: { name: 'firetruck', maxSpeed: 30, accel: 6.5, brake: 14, grip: 7,   mass: 3.8, steer: 0.46, len: 8.0,  wid: 2.5,  price: 0, hp: 320, emergency: true },
   towtruck:  { name: 'towtruck',  maxSpeed: 38, accel: 8,   brake: 16, grip: 7.5, mass: 2.4, steer: 0.5,  len: 6.6,  wid: 2.25, price: 0, hp: 210 },
-  bus:       { name: 'bus',       maxSpeed: 20, accel: 3.6, brake: 8,  grip: 6.5, mass: 5.2, steer: 0.5,  len: 10.6, wid: 2.55, price: 0, hp: 420 },
+  bus:       { name: 'bus',       maxSpeed: 22, accel: 4.4, brake: 10,  grip: 6.5, mass: 5.2, steer: 0.5,  len: 10.6, wid: 2.55, price: 0, hp: 420 },
   van:       { name: 'van',       maxSpeed: 40, accel: 10,  brake: 21, grip: 8,   mass: 1.5, steer: 0.55, len: 5.2,  wid: 2.0,  price: 0, hp: 130 },
 };
 export const CAR_COLORS = [0xd8d8dc, 0x1c1e26, 0x9b2335, 0x1f4e9b, 0xe8b830, 0x2e8b57, 0x7a4a2a, 0xc0c0c8, 0xff6f91, 0x3cc4d1, 0x5b3a8c, 0xf0f0f0, 0xf58a2a, 0x2f2f2f, 0x6ec1e4, 0xb8e986];

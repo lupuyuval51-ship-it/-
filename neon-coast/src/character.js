@@ -176,11 +176,21 @@ export function randomLook(ctx) {
   o.hairStyle = wpick(sty); o.skin = pick(SKINS); o.hair = elder ? pick(ELDER_HAIR) : o.dyed || (A === 'street' && chance(0.07)) ? pick(HAIR_DYED) : wpick(HAIR_NATURAL); if (!elder && o.hairStyle === 'mohawk' && chance(0.5)) o.hair = pick(HAIR_DYED);
   if (!female && (o.hairStyle === 'pony' || o.hairStyle === 'bun') && chance(0.5)) o.hairStyle = 'short';
   o.beard = !female ? (chance(elder ? 0.18 : A === 'business' ? 0.1 : A === 'worker' || A === 'street' ? 0.3 : 0.2) ? pick(['full', 'short', 'goatee', 'moustache', 'chinstrap', 'short', 'full']) : false) : false;
-  const w = BUILD_W[build] * (0.97 + Math.random() * 0.06), height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() - 1) * 0.11 + (Math.random() < 0.06 ? 0.07 : 0) - (Math.random() < 0.05 ? 0.06 : 0) + (build === 'athletic' ? 0.015 : 0) - (elder ? 0.025 : 0)) / 1.735, 0.893, 1.124); // 1.55 .. 1.95 m (the bind pose is 1.735 m tall with its hair)
+  const w = BUILD_W[build] * (0.95 + Math.random() * 0.10), height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() + Math.random() - 1.5) * 0.125 + (Math.random() < 0.06 ? 0.07 : 0) - (Math.random() < 0.05 ? 0.06 : 0) + (build === 'athletic' ? 0.015 : 0) - (elder ? 0.025 : 0)) / 1.735, 0.893, 1.124); // 1.55 .. 1.95 m (the bind pose is 1.735 m tall with its hair)
   o.lipstick = o.lipstick !== undefined ? o.lipstick : female && chance(c.night ? 0.45 : 0.28); o.eye = chance(0.15) ? pick([0x3b78c4, 0x3f9a5c]) : undefined; o.brow = -0.15 + Math.random() * 0.35; o.width = w; o.height = height;
   o.archetype = A; // what kind of outfit this is (the people chain may read it)
   o.jaw = Math.floor(Math.random() * 3); // 0 narrow and round, 1 average, 2 square: the head shape of this person (headSpec)
   o.restEx = chance(0.2) ? 1 : 0; // the face at rest: neutral, or a faint smile (facePlan)
+  // ----- extra variety (release 4): patterns, open or zipped jackets, bags, hats and accessories on top of the archetype -----
+  const dressy = A === 'business' || A === 'night', loose = !dressy && A !== 'worker';
+  if (['jacket', 'leather', 'puffer'].includes(o.top)) o.open = o.top === 'puffer' ? (chance(0.35) ? true : undefined) : chance(0.45) ? false : true;
+  if (o.top === 'shirt' && o.plaid === undefined) o.plaid = chance(0.12); if (o.top === 'dress' && o.satin === undefined) o.satin = chance(0.3);
+  if (o.top === 'blazer' && o.pinstripe === undefined) o.pinstripe = chance(0.12); if ((o.top === 'tee' || o.top === 'longsleeve' || o.top === 'sweater') && loose && chance(0.12)) o.shirt = pick([neon, 0xd1345b, 0x2aa198, 0xf5c542, 0xff7f50, 0x7b4fbf]);
+  if (loose && !o.bag && !o.backpack && chance(0.1)) { if (chance(0.5)) o.bag = pick([0x14161c, 0x5a3a2a, P2, 0x7a6a55]); else o.backpack = pick([0x14161c, P1, P2, 0x2f3b6a]); }
+  if (!o.scarf && (c.cold || c.rain) && chance(0.2)) o.scarf = pick([P2, P1, 0xd1345b, 0x7a6a55, 0x555a66]);
+  if (!o.cap && !o.beanie && !o.hat && !o.helmet && !o.hoodUp && !o.headband && !o.headphones && loose && chance(0.07)) { if (female && chance(0.5)) o.headband = pick([neon, 0xffffff, 0xd1345b, P2]); else if (c.cold || c.rain) o.beanie = pick([0x14161c, P1, P2, 0x555a66]); else o.cap = pick([0x14161c, 0xffffff, P2, 0x2a6fd6]); }
+  if (!o.bracelet && chance(female ? 0.14 : 0.07)) o.bracelet = true; if (!o.earrings && female && chance(0.12)) o.earrings = pick([0xf0c040, 0xe8e8ee]); if (!female && !o.chain && chance(0.05)) o.chain = true;
+  if (!o.glasses && !o.sunglasses && chance(0.06)) o.glasses = true;
   // keep the legacy fields other code reads
   o.skirt = o.skirt !== undefined ? o.skirt : o.top === 'dress' ? o.shirt : o.bottom === 'skirt' ? o.pants : null; o.shorts = o.bottom === 'shorts';
   if (o.glasses === undefined) o.glasses = false; if (o.sunglasses === undefined) o.sunglasses = false; if (o.watch === undefined) o.watch = chance(0.18);
@@ -240,7 +250,7 @@ export function uniformLook(kind) {
   const base = LOOKS[kind], r = UNI[kind]; if (!base || !r) return randomLook();
   const female = chance(r.f), elder = chance(r.elder || 0), look = { ...base, female, elder }; delete look._fk; delete look._tone; delete look.freckles; delete look._beard;
   look.skin = pick(SKINS); look.build = wpick(r.builds || [['slim', 0.25], ['average', 0.45], ['athletic', 0.15], ['heavy', 0.15]]); if (elder && look.build === 'athletic') look.build = 'average';
-  look.height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() - 1) * 0.08 - (elder ? 0.025 : 0)) / 1.735, 0.9, 1.12); look.width = undefined;
+  look.height = clamp(((female ? 1.645 : 1.77) + (Math.random() + Math.random() + Math.random() - 1.5) * 0.11 - (elder ? 0.025 : 0)) / 1.735, 0.9, 1.12); look.width = undefined;
   look.hair = elder ? pick(ELDER_HAIR) : r.hair ? pick(r.hair) : wpick(HAIR_NATURAL); const pool = STYLES[female ? 'f' : 'm'][elder ? 'elder' : r.key] || STYLES.m.casual; look.hairStyle = wpick(pool); if (kind === 'jogger' || kind === 'nurse') look.hairStyle = female ? pick(['pony', 'bun', 'braids', 'pixie', 'bob']) : look.hairStyle; if (kind === 'clubber' && !elder) look.hairStyle = female ? pick(['wavy', 'long', 'pixie', 'bob', 'braids']) : pick(['mohawk', 'quiff', 'slick', 'fade', 'curly']);
   look.beard = !female && base.beard !== undefined ? (chance(0.7) ? pick(['full', 'short', 'goatee', 'moustache', 'short']) : false) : false; if (!female && !look.beard && chance(0.08)) look.beard = pick(['short', 'moustache']);
   if (r.shirt) look.shirt = pick(r.shirt); if (r.jacket) look.jacket = pick(r.jacket); if (r.apron) look.apron = pick(r.apron); if (r.pants) look.pants = pick(r.pants); if (r.helmetColour) look.helmetColour = pick(r.helmetColour);
@@ -385,7 +395,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
       if (w.x > w.y && w.x > w.z) t = textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); else if (w.z > w.y) t = textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); else t = textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz);
       ws = 1.0;
     #else
-      w /= (w.x + w.y + w.z);
+      w /= (w.x + w.y + w.z); float dq = smoothstep(9.0, 22.0, length(vViewPosition)) * 0.98; w = max(w - dq * max(w.x, max(w.y, w.z)), 0.0); w /= (w.x + w.y + w.z); // beyond 9 m the weaker projections fade out, from 22 m one fetch
       if (w.x > 0.05) { t += w.x * textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); ws += w.x; }
       if (w.y > 0.05) { t += w.y * textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz); ws += w.y; }
       if (w.z > 0.05) { t += w.z * textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); ws += w.z; }
@@ -396,6 +406,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
     chMul = c.rgb * 1.25 * mix(1.0, vTint.a, ma.r); chAlpha = mb.b; chAbsC = c.rgb; chAbsK = ma.b; chTintK = ma.g; chRough = mb.r; chH = mb.g * 0.004;
   }
 }
+chH *= 1.0 - smoothstep(5.0, 13.0, length(vViewPosition)); // the cloth relief is invisible beyond 13 m: no bump work there
 diffuseColor.rgb *= chMul; diffuseColor.a *= chAlpha;`;
 const GL_POST_COLOR = `
 if (chTintK > 0.0 && dot(vTint.rgb, vec3(1.0)) > 0.01) diffuseColor.rgb = mix(diffuseColor.rgb, vTint.rgb * chMul, chTintK);
@@ -414,7 +425,7 @@ function patchChar(shader) {
     .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + GL_BUMP);
 }
 const SURF = { ready: false, fab: null, maskA: null, maskB: null, atlas: null };
-charMat.alphaTest = 0.5; charMat.roughness = 1; charMat.onBeforeCompile = patchChar; charMat.customProgramCacheKey = () => 'char-r3-' + (QUALITY === 'low' ? 'low' : 'hi');
+charMat.alphaTest = 0.5; charMat.roughness = 1; charMat.onBeforeCompile = patchChar; charMat.customProgramCacheKey = () => 'char-r4-' + (QUALITY === 'low' ? 'low' : 'hi');
 
 // ---------- skeleton (bind pose in metres; H = 1 is a 1.73 m body, look.height scales the whole group) ----------
 // Finger geometry is modelled in a RELAXED pose (fingers slightly curled), so a bone rotation of 0 is the relaxed hand: positive = more curl (a fist), negative = open.
@@ -588,7 +599,7 @@ function vnoise(x, y, z) {
 // ---------- body spec: proportions of one body type ----------
 // Base = an average adult male (1.73 m). Rows are [y, half width x, front depth z, back depth z] for the trunk, [y, half width, half depth, centre z] for a limb. Sex and build scale them by zone.
 const TK0 = [[0.70, 0.062, 0.030, 0.050], [0.73, 0.088, 0.032, 0.050], [0.76, 0.115, 0.036, 0.056], [0.79, 0.140, 0.044, 0.068], [0.82, 0.158, 0.064, 0.086], [0.86, 0.170, 0.094, 0.110], [0.94, 0.165, 0.100, 0.112], [1.02, 0.150, 0.097, 0.099], [1.08, 0.141, 0.094, 0.092], [1.15, 0.148, 0.097, 0.093], [1.23, 0.160, 0.104, 0.096],
-  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.142, 0.083, 0.082], [1.452, 0.108, 0.070, 0.072], [1.476, 0.078, 0.060, 0.062], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
+  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.150, 0.085, 0.083], [1.452, 0.119, 0.072, 0.074], [1.476, 0.087, 0.062, 0.064], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
 const AK0 = [[1.422, 0.014, 0.018, 0], [1.415, 0.034, 0.038, 0], [1.401, 0.050, 0.053, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
   [1.130, 0.040, 0.042, -0.004], [1.090, 0.043, 0.044, 0], [1.030, 0.040, 0.040, 0], [0.965, 0.033, 0.033, 0], [0.915, 0.027, 0.029, 0], [0.888, 0.021, 0.027, 0]];
 const LK0 = [[1.00, 0.042, 0.050, 0], [0.94, 0.050, 0.060, -0.002], [0.88, 0.060, 0.074, -0.002], [0.84, 0.072, 0.088, -0.002], [0.80, 0.086, 0.098, -0.001], [0.76, 0.088, 0.094, 0], [0.66, 0.078, 0.083, 0.003], [0.58, 0.066, 0.071, 0.004], [0.525, 0.059, 0.064, 0.005], [0.485, 0.058, 0.060, 0.002],
@@ -600,9 +611,9 @@ const SEX_SPEC = {
 };
 const BUILD_SPEC = { // slim | average | athletic | heavy (belly = extra front depth at the waist, buK scales the bust or pectorals)
   slim: { hp: 0.93, wa: 0.88, ch: 0.93, sh: 0.94, dz: 0.92, belly: -0.004, ar: 0.84, th: 0.85, cf: 0.87, nk: 0.9, buK: [0.6, 0.85], glK: 0.8 },
-  average: { hp: 1, wa: 1, ch: 1, sh: 1, dz: 1, belly: 0, ar: 1, th: 1, cf: 1, nk: 1, buK: [1, 1], glK: 1 },
+  average: { hp: 1, wa: 1, ch: 1, sh: 1, dz: 1, belly: 0.007, ar: 1, th: 1, cf: 1, nk: 1, buK: [1, 1], glK: 1 },
   athletic: { hp: 0.99, wa: 0.92, ch: 1.12, sh: 1.1, dz: 1.05, belly: -0.006, ar: 1.2, th: 1.12, cf: 1.12, nk: 1.12, buK: [3.2, 1.0], glK: 1.3 },
-  heavy: { hp: 1.14, wa: 1.4, ch: 1.12, sh: 1.05, dz: 1.08, belly: 0.058, ar: 1.28, th: 1.24, cf: 1.14, nk: 1.22, buK: [1.9, 1.3], glK: 1.35 },
+  heavy: { hp: 1.14, wa: 1.4, ch: 1.12, sh: 1.05, dz: 1.08, belly: 0.066, ar: 1.28, th: 1.24, cf: 1.14, nk: 1.22, buK: [1.9, 1.3], glK: 1.35 },
 };
 const _specs = new Map();
 // res = residual width factor of the person within the build (quantised to 0.03 steps so the cache stays small)
@@ -613,8 +624,8 @@ export function bodySpec(fem, build, res) {
   const mx = [[0.7, hp], [0.92, hp], [1.08, wa], [1.2, (wa + ch) / 2], [1.31, ch], [1.39, sh], [1.46, 1], [1.6, 1]]; // lateral multiplier by height
   S = { fem, build, res, tk: [], ak: [], lk: [], pc: [null, null, null], handK: sx.hk, armX: sx.ax * (0.5 + 0.5 * sh) * res, legX: sx.lx * (0.7 + 0.3 * hp) * res, neckR: sx.neck * sx.nk * b.nk, bust: sx.bu * b.buK[fem ? 1 : 0], pecX: fem ? 0.062 : 0.078, glute: sx.gl * b.glK };
   for (const r of TK0) {
-    const y = r[0], belly = b.belly * gaus(y, 1.06, 0.1), zone = fem && y > 0.95 && y < 1.2 ? 0.93 : 1;
-    S.tk.push([y, r[1] * lin(mx, y) * res, (r[2] + belly) * dz * zone, r[3] * dz * zone * (1 + (b.belly > 0.02 ? 0.05 * gaus(y, 1.06, 0.1) : 0))]);
+    const y = r[0], belly = b.belly * gaus(y, 1.05, 0.115), zone = fem && y > 0.95 && y < 1.2 ? 0.93 : 1;
+    S.tk.push([y, r[1] * lin(mx, y) * res, (r[2] + belly) * dz * zone, r[3] * dz * zone * (1 + (b.belly > 0.02 ? 0.05 * gaus(y, 1.05, 0.115) : 0))]);
   }
   const arm = sx.ar * b.ar, thigh = sx.th * b.th, calf = sx.cf * b.cf;
   // (the limb tables above read top to bottom; interpolation wants ascending y)
@@ -799,11 +810,11 @@ function handLofts(S, s, lod, out) {
   out.push(loft(pal, LD.pseg[lod], { tone, capHi: true }));
   const fx = ax + s * FIN.dx, y0 = FIN.y0 + 0.003, cosA = Math.cos(FIN.a1), L1 = (y0 - FJ_Y) / cosA, d1 = [m * Math.sin(FIN.a1), -cosA, 0], d2 = [m * Math.sin(FIN.a1 + FIN.a2), -Math.cos(FIN.a1 + FIN.a2), 0];
   const W7 = [wtp([[hd, 0.5], [fgB, 0.5]]), wtp([[fgB, 1]]), wtp([[fgB, 0.8], [ft, 0.2]]), wtp([[fgB, 0.5], [ft, 0.5]]), wtp([[ft, 0.85], [fgB, 0.15]]), wtp([[ft, 1]]), wtp([[ft, 1]])];
-  const fingerPts = (zc, L2) => { const J = [fx + d1[0] * L1, y0 + d1[1] * L1, zc], pts = []; for (const f of [0, 0.4, 0.8, 1]) pts.push([fx + d1[0] * L1 * f, y0 + d1[1] * L1 * f, zc]); for (const f of [0.35, 0.7, 1]) pts.push([J[0] + d2[0] * L2 * f, J[1] + d2[1] * L2 * f, zc]); return pts; };
+  const fingerPts = (zc, L2, kA) => { const a1 = FIN.a1 * (kA || 1), a2 = FIN.a2 * (kA || 1), e1 = [m * Math.sin(a1), -Math.cos(a1), 0], e2 = [m * Math.sin(a1 + a2), -Math.cos(a1 + a2), 0], J = [fx + e1[0] * L1, y0 + e1[1] * L1, zc], pts = []; for (const f of [0, 0.4, 0.8, 1]) pts.push([fx + e1[0] * L1 * f, y0 + e1[1] * L1 * f, zc]); for (const f of [0.35, 0.7, 1]) pts.push([J[0] + e2[0] * L2 * f, J[1] + e2[1] * L2 * f, zc]); return pts; }; // kA staggers the curl of a relaxed hand: the index lies straighter than the little finger
   if (lod === 0) {
     const ZS = [0.0315, 0.0105, -0.0105, -0.0305], RS = [0.0105, 0.0108, 0.0100, 0.0085], L2S = [0.040, 0.045, 0.040, 0.031];
     for (let i = 0; i < 4; i++) {
-      const pts = fingerPts(ZS[i] * k, L2S[i] * k), RF = [1, 0.97, 0.93, 0.9, 0.84, 0.74, 0.62], rr = [];
+      const pts = fingerPts(ZS[i] * k, L2S[i] * k, [0.9, 1.05, 1.25, 1.5][i]), RF = [1, 0.97, 0.93, 0.9, 0.84, 0.74, 0.62], rr = [];
       for (let j = 0; j < pts.length; j++) rr.push(pathRing(pts[Math.max(0, j - 1)], pts[j], pts[Math.min(pts.length - 1, j + 1)], RS[i] * k * RF[j] * 0.92, RS[i] * k * RF[j], W7[j], Z_AX));
       out.push(loft(rr, 6, { tone, capHi: true }));
     }
@@ -929,7 +940,7 @@ function headMesh(S, lod) {
 }
 
 // ---------- face atlas layout (the painting is in s_atlas) ----------
-const EYE_CELL = 0.034, EYE_K = 1.28; // width of an eye cell in metres, and the scale of the painted eye inside it // width of an eye cell in metres
+const EYE_CELL = 0.034, EYE_K = 1.4; // width of an eye cell in metres, and the scale of the painted eye inside it // width of an eye cell in metres
 const AT = { W: 1024, H: 768, FW: 100, FH: 114, FCOLS: 10, EY: 456, EW: 64, HY: 520, HW: 256, HH: 248 };
 const EXPRS = ['neutral', 'smile', 'angry', 'scared', 'pained', 'dead', 'talk', 'laugh'];
 const EYE_OF = [0, 0, 2, 1, 3, 5, 0, 3]; // lid state of each expression: 0 open, 1 wide, 2 narrow, 3 squint, 4 closed, 5 glazed
@@ -1058,7 +1069,7 @@ const fillp = (X, pts, al, c, a, b) => ink(X, ctx => { spath(ctx, pts, true); ct
 
 // expression table: brow inner / peak / outer offsets (m), mouth opening, corner lift, width scale, teeth rows, tongue, cheek raise, brow furrow, forehead lines, pallor
 const XP = [
-  { bi: 0, bp: 0, bo: 0, mo: 0, cl: 0.0008, mw: 1, te: 0, tg: 0, ch: 0, fu: 0, fl: 0 },
+  { bi: 0, bp: 0, bo: 0, mo: 0, cl: 0.0014, mw: 1, te: 0, tg: 0, ch: 0, fu: 0, fl: 0 },
   { bi: 0.0005, bp: 0.001, bo: 0.0015, mo: 0.0028, cl: 0.0042, mw: 1.1, te: 1, tg: 0, ch: 1, fu: 0, fl: 0 },
   { bi: -0.0065, bp: -0.003, bo: 0.0012, mo: 0.0045, cl: -0.002, mw: 0.98, te: 2, tg: 0, ch: 0, fu: 1, fl: 0.3 },
   { bi: 0.0085, bp: 0.007, bo: 0.0035, mo: 0.0105, cl: -0.0005, mw: 0.9, te: 2, tg: 0, ch: 0, fu: 0, fl: 1 },
@@ -1355,15 +1366,15 @@ function hairPieces(look, HS, fem, style, lod) {
     case 'balding': cap({ edge: edge(0.0), top: (a) => hl0(a, fem) + 0.032 * smx(0.9, 1.6, a) * (1 - smx(2.9, 3.14, a) * 0.3) + 0.002, th: prof(0.0028, 0.007), cell: 2, lv: [0.2, 0.6] }); break;
     case 'pixie': cap({ edge: edge(0.0), th: prof(0.003, 0.0105, 0.004), cell: 0, lv: [0.22, 0.65] });
       ribbons([[0.0, 1.702, 0.0, -0.036, 0.022, 0.02], [0.3 * side, 1.702, 0.02 * side, -0.036, 0.018, 0.02], [-0.3 * side, 1.7, -0.01 * side, -0.03, 0.02, 0.02], [0.65 * side, 1.69, 0.03 * side, -0.036, 0.0, 0.012], [2.6, 1.585, 0.0, -0.04, -0.016, 0.02], [-2.6, 1.585, 0.0, -0.04, -0.016, 0.02], [3.1, 1.555, 0.0, -0.04, -0.012, 0.02]], { cell: 0 }); break;
-    case 'curly': { // a thin cap and a spiral of ball-curls (golden angle) over the crown and sides
-      cap({ edge: edge(0.0), th: prof(0.009, 0.016), cell: 1, lv: [0.25, 0.6] }); // thick enough that the gaps between the curls show hair, not scalp
-      const n = [46, 24, 11][lod], r = [0.030, 0.034, 0.042][lod];
-      for (let i = 0; i < n; i++) { const t = (i + 0.5) / n, el = Math.acos(1 - t * 0.92), pa = ((i * 2.39996 + 0.4 + Math.PI) % TAU) - Math.PI, ya = Math.min(Math.max(hl0(Math.abs(pa), fem) + 0.01, TOP_Y - el * 0.075), 1.742), s = 0.9 + 0.3 * rng();
-        headP(HS, ya, pa, _hp, false); headN(HS, ya, pa, _hn, false); out.push(blobPiece(_hp[0] + _hn[0] * 0.014, _hp[1] + _hn[1] * 0.014 + 0.004, _hp[2] + _hn[2] * 0.014, r * s, r * s * 0.95, r * s, lod ? [7, 5] : [9, 6], { cell: 1 })); }
+    case 'curly': { // continuous layered volumes: a dense base shell, a lumpy curl layer and a thinner outer layer of finer lumps, each darker at the root and lighter at the tips
+      const nc3 = [40, 26, 16][lod], nr3 = [14, 10, 7][lod], lump = (fr, am, sd) => (a, f, phi, y) => am * (vnoise(phi * fr + sd, y * fr * 12, 0.5) - 0.5) * smx(0.08, 0.45, f), root = (i) => 0.8 + 0.3 * Math.min(1, i / (nr3 - 1));
+      out.push(capPiece(HS, { nc: nc3, nr: nr3, edge: (a) => hl0(a, fem) + 0.004 + 0.012 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.011 + 0.012 * smx(0, 0.5, f) + lump(4.2, 0.02, 1.3)(a, f, phi, y), push: (a, f, phi, y, n, o) => { o[1] += 0.006 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.6], k: (i, j) => root(i) }));
+      out.push(capPiece(HS, { nc: nc3, nr: nr3, edge: (a) => hl0(a, fem) + 0.014 + 0.012 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.016 + 0.014 * smx(0, 0.5, f) + lump(7, 0.022, 4.1)(a, f, phi, y) + lump(15, 0.01, 7)(a, f, phi, y), push: (a, f, phi, y, n, o) => { o[1] += 0.008 * smx(0.3, 1, f); }, cell: 1, lv: [0.3, 0.75], k: (i, j) => root(i) + 0.08 }));
+      if (lod < 2) out.push(capPiece(HS, { nc: nc3, nr: nr3 - 2, edge: (a) => hl0(a, fem) + 0.03 + 0.01 * smx(1.0, 1.8, a), th: (a, f, phi, y) => 0.014 + 0.012 * smx(0, 0.55, f) + lump(10, 0.016, 2.2)(a, f, phi, y), cell: 1, lv: [0.4, 0.85], k: (i, j) => 1.0 + 0.1 * Math.sin(j * 1.7) }));
       break; }
-    case 'afro': {
-      const nc2 = [44, 28, 18][lod], nr2 = [16, 11, 8][lod];
-      out.push(capPiece(HS, { nc: nc2, nr: nr2, edge: (a) => hl0(a, fem) + 0.006 + 0.03 * smx(0.9, 1.7, a) + 0.012 * smx(2.6, 3.1, a), th: (a, f, phi, y) => { const base = 0.012 + 0.03 * Math.sin(Math.min(1, f / 0.62) * Math.PI * 0.5) + 0.006 * smx(0.55, 1, f), bump = 0.0075 * (vnoise(phi * 3.1 + 1.7, y * 38, 0.5) - 0.5) + 0.004 * (vnoise(phi * 9 + 3, y * 90, 1.5) - 0.5); return base + bump * smx(0.1, 0.5, f); }, push: (a, f, phi, y, n, o) => { o[1] += 0.012 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.7] }));
+    case 'afro': { // three nested domes with different lump scales, so the volume reads as one soft mass with a strand gradient
+      const nc2 = [44, 28, 18][lod], nr2 = [16, 11, 8][lod], dome = (e0, t0, t1, am, fr, sd, kk) => capPiece(HS, { nc: nc2, nr: nr2, edge: (a) => hl0(a, fem) + e0 + 0.03 * smx(0.9, 1.7, a) + 0.012 * smx(2.6, 3.1, a), th: (a, f, phi, y) => t0 + t1 * Math.sin(Math.min(1, f / 0.62) * Math.PI * 0.5) + 0.006 * smx(0.55, 1, f) + am * (vnoise(phi * fr + sd, y * fr * 12, 0.5) - 0.5) * smx(0.1, 0.5, f), push: (a, f, phi, y, n, o) => { o[1] += 0.012 * smx(0.3, 1, f); }, cell: 1, lv: [0.25, 0.75], k: (i) => kk + 0.28 * Math.min(1, i / (nr2 - 1)) });
+      out.push(dome(0.006, 0.012, 0.026, 0.006, 3.1, 1.7, 0.74)); out.push(dome(0.014, 0.016, 0.032, 0.012, 5.5, 3.3, 0.78)); if (lod < 2) out.push(dome(0.022, 0.012, 0.034, 0.008, 9, 5.1, 0.82));
       break; }
     case 'mohawk': { // shaved sides and a ripple-topped fin along the midline from the forehead over the crown to the nape
       cap({ edge: edge(0.012), th: prof(0.0014, 0.0030), cell: 2, lv: [0.2, 0.6], sm: (i) => 0.5 - 0.2 * (i / (nr - 1)) });
@@ -1390,7 +1401,7 @@ function hairPieces(look, HS, fem, style, lod) {
       if (pony) { const seg = lod ? 5 : 8, pts = [[0, 1.687, -0.108], [0, 1.668, -0.13], [0, 1.628, -0.148], [0, 1.57, -0.152], [0, 1.50, -0.146], [0, 1.44, -0.135], [0, 1.385, -0.125]], rad = [0.02, 0.026, 0.03, 0.031, 0.028, 0.02, 0.011];
         out.push(tubePiece(pts, rad, seg, { cell: 0, u0: 0.1 })); out.push(tubePiece(pts.slice(0, 2).map((p, i) => [p[0], p[1] - 0.0 + i * 0.0, p[2] + 0.0]), [0.0255, 0.0255], seg, { rgb: look._tie || 0xd1345b, cell: 0 }));
         ribbons([[0.5, 1.7, 0, -0.01, 0.02, 0.016], [-0.5, 1.7, 0, -0.01, 0.02, 0.016]], { cell: 0 }); }
-      if (bun) { out.push(blobPiece(0, 1.712, -0.082, 0.052, 0.046, 0.05, lod ? [8, 6] : [12, 8], { cell: 1, k: () => 0.98 })); if (lod < 2) out.push(tubePiece([[-0.03, 1.703, -0.108], [0, 1.722, -0.118], [0.03, 1.703, -0.108]], [0.011, 0.011, 0.011], 6, { rgb: look._tie || 0x2f2f2f, cell: 0 })); }
+      if (bun) { out.push(blobPiece(0, 1.712, -0.082, 0.052, 0.046, 0.05, lod ? [8, 6] : [12, 8], { cell: 1, k: () => 0.98 })); out.push(blobPiece(0, 1.7, -0.078, 0.058, 0.03, 0.054, lod ? [8, 5] : [12, 6], { cell: 1, k: () => 0.88 })); out.push(blobPiece(0, 1.728, -0.088, 0.036, 0.03, 0.034, lod ? [7, 5] : [10, 6], { cell: 1, k: () => 1.06 })); if (lod < 2) for (let q = 0; q < 3; q++) out.push(tubePiece([[-0.05, 1.706 + q * 0.012, -0.075], [0, 1.738 - q * 0.004, -0.12 + q * 0.01], [0.05, 1.706 + q * 0.012, -0.075]], [0.006, 0.007, 0.006], 5, { cell: 1, k: () => 0.9 + 0.1 * q })); if (lod < 2) out.push(tubePiece([[-0.03, 1.703, -0.108], [0, 1.722, -0.118], [0.03, 1.703, -0.108]], [0.011, 0.011, 0.011], 6, { rgb: look._tie || 0x2f2f2f, cell: 0 })); }
       if (style === 'braids') { for (const s of [1, -1]) { const pts = []; for (let i = 0; i < 9; i++) { const t = i / 8; pts.push([s * (0.086 + 0.012 * t + 0.01 * Math.sin(t * 3)), 1.62 - t * 0.27, -0.03 - 0.03 * t + 0.0]); } const rad = pts.map((p, i) => 0.0105 * (1 - 0.35 * i / 8));
         out.push(tubePiece(pts, rad, lod ? 5 : 7, { cell: 1, u0: 0.1, k: (v) => 0.88 + 0.2 * (Math.floor(v / (lod ? 5 : 7)) % 2) }));
         if (lod < 2) for (let i = 1; i < 8; i++) out.push(blobPiece(pts[i][0] + s * 0.0028 * (i % 2 ? 1 : -1), pts[i][1], pts[i][2], 0.0118 * (1 - 0.3 * i / 8), 0.0145, 0.0118 * (1 - 0.3 * i / 8), [7, 5], { cell: 1, k: () => 0.9 + 0.12 * (i % 2) })); } }
@@ -1649,6 +1660,7 @@ function buildShoes(look, gm, fem, shoes) {
     const x = s * S.legX, ft = s > 0 ? FT_L : FT_R, sole = P.sole;
     // sole (outsole + midsole), closed at both ends
     put(toGeo(loft(lastRings(P, s, x, ft, 0.003, () => sole, 0.003, 0, 1, 4, hwMul), seg, { col: soleC, capLo: true, capHi: true, fab: FAB.rubber }))); // the sole's underside is exactly y = 0
+    if (type === 'sneakers' && hi) put(toGeo(loft(lastRings(P, s, x, ft, 0.0042, () => 0.0068, 0.0042, 0, 1, 4, hwMul), seg, { col: col(0x2c2c30), capLo: true, capHi: true, fab: FAB.rubber }))); // the outsole: a dark rubber band round the foot of the midsole
     if (type === 'boots' || type === 'dress') { // a heel block under the rear of the foot
       const hr = lastRings(P, s, x, ft, 0.002, z => sole + (type === 'boots' ? 0.02 : 0.016) * (1 - smx(-0.075, 0.05, z)), 0.002, 0, 0.22, 4, hwMul); if (hr.length > 2) put(toGeo(loft(hr, seg, { col: shade(soleC, 0.85), capLo: true, capHi: true, fab: FAB.rubber })));
     }
@@ -2202,7 +2214,7 @@ function emptyGeo() {
   if (_empty) return _empty; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(9), 3)); g.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(9), 3)); g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(9), 3));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(new Uint16Array(12), 4)); g.setAttribute('skinWeight', new THREE.BufferAttribute(new Float32Array(12), 4)); g.setIndex(new THREE.BufferAttribute(new Uint16Array(0), 1)); return (_empty = g);
 }
-const LOD_TIER = { high: { best: 0, d0: 14, d1: 40 }, med: { best: 1, d0: 0, d1: 26 }, low: { best: 1, d0: 0, d1: 10 } };
+const LOD_TIER = { high: { best: 0, d0: 13, d1: 36 }, med: { best: 1, d0: 0, d1: 24 }, low: { best: 1, d0: 0, d1: 9 } };
 const _cam = new THREE.Vector3(); let _camOk = false, _fovK = 1, _lodT = 0;
 function noteCamera(renderer, scene, cam) { if (cam.isPerspectiveCamera && !(cam.parent && cam.parent.isCubeCamera)) { _cam.setFromMatrixPosition(cam.matrixWorld); _fovK = Math.tan(cam.fov * Math.PI / 360) / 0.52; _camOk = true; } } // set as mesh.onBeforeRender: the last camera that drew a person
 // finger curl of one hand: 0 = the relaxed hand the mesh is modelled in, 1 = a firm grip, 1.35 = a fist, negative = open; the thumb tucks in with it (s = +1 left hand, -1 right)
@@ -2573,7 +2585,7 @@ export function makeCharacter(look) {
   // Damps the base pose toward TG, adds the gait overlay, writes the bones, levels the feet and (when `solve`) puts the pelvis where the lowest foot touches y = 0.
   function applyPose(dt, kU, kL, snap, solve, autoFoot) {
     const fU = snap ? 1 : 1 - Math.exp(-kU * dt), fL = snap ? 1 : 1 - Math.exp(-kL * dt);
-    for (let i = 0; i < NB; i++) {
+    for (let i = 0, nb = lod === 2 ? FG_L : NB; i < nb; i++) { // beyond 36 m the finger bones keep their last pose (a mitten there is a few pixels), the other 18 bones follow
       const k = i * 3, f = i === HIPS || i >= TH_L && i <= FT_R ? fL : fU;
       cur[k] += (TG[k] - cur[k]) * f; cur[k + 1] += (i === HIPS ? wrapAngle(TG[k + 1] - cur[k + 1]) : TG[k + 1] - cur[k + 1]) * f; cur[k + 2] += (TG[k + 2] - cur[k + 2]) * f;
       list[i].rotation.set(cur[k] + OV[k], cur[k + 1] + OV[k + 1], cur[k + 2] + OV[k + 2]);

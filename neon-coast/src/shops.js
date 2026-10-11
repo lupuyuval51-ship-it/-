@@ -352,6 +352,7 @@ function fixturesOf(S) {
   const nx = Math.max(2, Math.round(iw / (k === 'casino' ? 5.5 : 4.4))), nz = Math.max(2, Math.round(dp / (k === 'casino' ? 5.5 : 4.4))), I = { casino: 0.2, lounge: 0.18, bank: 0.34, hospital: 0.4, dealer: 0.46, spray: 0.4, garage: 0.4 }[k] ?? 0.38;
   const strip = k === 'spray' || k === 'garage' || k === 'police' || k === 'hospital';
   for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) fx.push({ x: ix0 + (i + 0.5) * iw / nx, y: gf > 4 ? gf - 1.1 : fy, z: iz0 + (j + 0.5) * dp / nz, i: I * (gf > 4 ? 1.9 : 1), kind: gf > 4 ? 'pendant' : strip ? 'strip' : 'panel' });
+  fx.push({ x: S.cx, y: fy - 0.4, z: iz0 + dp - 1.8, i: 0.7, kind: 'keeper' }); // warm light on the keeper's side of the counter (bake only)
   if (k === 'casino') fx.push({ x: S.cx, y: gf - 2.3, z: iz0 + dp * 0.5, i: 1.6, kind: 'chandelier' });
   return fx;
 }
@@ -382,6 +383,7 @@ function interiorOf(S) {
   // ceiling fixtures: recessed panels, strips (fluorescent tubes), pendants (tall lobbies), a chandelier (casino)
   const gc = hdr(sp.glowc, 1.12);
   for (const f of fx) {
+    if (f.kind === 'keeper') continue;
     if (f.kind === 'panel') { ib.rect('glow', 'D', f.x - 0.6, f.x + 0.6, f.z - 0.3, f.z + 0.3, fy - 0.012, gc); ib.box('metal', f.x - 0.66, fy - 0.03, f.z - 0.36, f.x + 0.66, fy - 0.01, f.z + 0.36, 0x8a8f99, { no: 'UD' }); }
     else if (f.kind === 'strip') { ib.box('metal', f.x - 1.0, fy - 0.1, f.z - 0.13, f.x + 1.0, fy - 0.04, f.z + 0.13, 0x7a7f89, { no: 'U' }); ib.box('glow', f.x - 0.95, fy - 0.12, f.z - 0.07, f.x + 0.95, fy - 0.1, f.z + 0.07, gc, { no: 'U' }); }
     else if (f.kind === 'pendant') { ib.cyl('metal', f.x, f.y + 0.1, f.z, 0.012, 0.012, fy - f.y - 0.1, 0x4a4d55, 5, { cap: false }); ib.cyl('metal', f.x, f.y, f.z, 0.34, 0.12, 0.1, 0x20232a, 12, { cap: false }); ib.cyl('glow', f.x, f.y - 0.012, f.z, 0.3, 0.3, 0.012, gc, 12, { bot: true, cap: false }); }
@@ -394,7 +396,8 @@ function interiorOf(S) {
   const er = artAtlas().rects.exit; if (er && gf < 4) ib.pic('screen', [cx + 0.45, gf - 0.62, iz0 + 0.02], [cx - 0.45, gf - 0.62, iz0 + 0.02], [cx - 0.45, gf - 0.62 + 0.34, iz0 + 0.02], [cx + 0.45, gf - 0.62 + 0.34, iz0 + 0.02], 'exit', 0xffffff, [0, 0, 0]);
   ib.at(ix1 - 0.3, fy - 0.35, iz1 - 0.3, 2.35); ib.box('plastic', -0.05, -0.05, -0.2, 0.05, 0.05, 0.2, 0x1a1b20); ib.sph('plastic', 0, -0.06, 0.22, 0.08, 0.06, 0.08, 0x23252b, 8, 5); ib.end();
   ib.at(cx, y0, iz0); S.api = (LAY[S.kind] || LAY.basic)(ib, S);
-  const cn = S.api?.counter; if (cn) { ib.cyl('glow', cn.u, 0.002, cn.v, 0.42, 0.42, 0.012, hdr(sp.k2, 1.1), 24, { cap: true }); ib.cyl('plastic', cn.u, 0.004, cn.v, 0.33, 0.33, 0.012, 0x15171c, 24, { cap: true }); } // the customer spot at the till (the prompt appears here)
+  const cn = S.api?.counter; if (cn) { ib.cyl('glow', cn.u, 0.002, cn.v, 0.42, 0.42, 0.012, hdr(sp.k2, 1.1), 24, { cap: true }); ib.cyl('plastic', cn.u, 0.004, cn.v, 0.33, 0.33, 0.012, mix(sp.k2, 0xd8d8de, 0.7), 24, { cap: true }); }
+  const kp = S.api?.keeper; if (kp) { ib.cyl('glow', kp.u, 0.003, kp.v, 0.95, 0.95, 0.008, hdr(sp.glowc, 0.32), 24, { cap: true }); const ly = Math.min(fy - 0.6, 2.55); ib.cyl('metal', kp.u, ly + 0.1, kp.v, 0.01, 0.01, fy - 0.15 - ly - 0.1, 0x4a4d55, 5, { cap: false }); ib.cyl('metal', kp.u, ly, kp.v, 0.2, 0.09, 0.12, 0x20232a, 10, { cap: false }); ib.cyl('glow', kp.u, ly - 0.012, kp.v, 0.17, 0.17, 0.01, hdr(0xfff0d8, 1.3), 10, { bot: true, cap: false }); } // keeper's post: a warm spot above and a pool on the floor // the customer spot at the till (the prompt appears here)
   ib.end();
   return ib;
 }
@@ -658,7 +661,7 @@ const LAY = {
     for (let i = 0; i < 3; i++) { const x = -hw + 1.6 + i * 1.5; ib.box('metal', x - 0.02, 0.35, 0.9, x + 0.02, 0.9, 0.94, 0x6a6f79); gun(ib, i === 1 ? 'sniper' : 'rifle', x, 0.98, 0.92, 0.55, 0.9); }
     ib.box('matte', 1.6, 0, 0.35, hw - 0.4, 0.32, 1.45, 0x2c2f38, { no: 'D' }); ib.box('plastic', 1.58, 0.32, 0.33, hw - 0.38, 0.35, 1.47, 0x5a5f69, { no: 'D' }); ib.col(1.6, 0.35, hw - 0.4, 1.45, 0.35);
     mannequin(ib, hw - 1.7, 0.9, Math.PI, { shirt: 0x3a4a2a, pants: 0x3a3f4a, jacket: 0x2a2e38, hat: 0x2a2e38 }, 0.35); poster(ib, 'target2', hw - 3.9, 1.5, 0.45, 0.7, 1.0, Math.PI);
-    return { counter: { u: -0.6, v: dp - 4.2, yaw: 0 }, keeper: { u: -0.6, v: dp - 1.7, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.05, dp - 2] } };
+    return { counter: { u: -0.6, v: dp - 4.2, yaw: 0 }, keeper: { u: -0.6, v: dp - 1.7, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.2, v: dp - 4.9, yaw: 0 }, { role: 'customer', u: -5.2, v: 5.8, yaw: -Math.PI / 2 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.05, dp - 2] } };
   },
 
   // ----- clothes: window stage with mannequins in the outfits of the game, racks, mirrors, fitting booths, a wrap desk -----
@@ -685,7 +688,7 @@ const LAY = {
     counter(ib, 3.2, dp - 3.3, Math.min(8.4, hw - 0.4), dp - 2.55, { body: 0xf4efe8, top: 0xe8c890, acc: ac }); till(ib, 5.0, 1.05, dp - 2.9);
     for (let i = 0; i < 4; i++) { const x = 6.0 + i * 0.55, c = pick(r, [0xff9ad5, 0xffffff, 0x2b2b2b, 0x3ce8f5]); ib.box('matte', x, 1.05, dp - 3.2, x + 0.34, 1.5, dp - 2.8, c); ib.box('metal', x + 0.08, 1.5, dp - 3.02, x + 0.26, 1.52, dp - 3.0, 0xd8dce4); }
     glowSign(ib, 'logoSunset', 4.4, 3.1, dp - 0.04, 3.4, Math.PI);
-    return { counter: { u: 5.0, v: dp - 4.1, yaw: 0 }, keeper: { u: 5.0, v: dp - 1.7, yaw: Math.PI }, view: { cam: [-1.5, 1.6, 0.8], look: [1.5, 1.0, dp * 0.6] } };
+    return { counter: { u: 5.0, v: dp - 4.1, yaw: 0 }, keeper: { u: 5.0, v: dp - 1.7, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.0, v: dp - 4.9, yaw: 0 }], view: { cam: [-1.5, 1.6, 0.8], look: [1.5, 1.0, dp * 0.6] } };
   },
 
   // ----- burger bar: checkered floor, window bar, booths, order counter with menu boards, kitchen, drink machine -----
@@ -709,7 +712,7 @@ const LAY = {
     // drink machine at the right end of the counter, napkin boxes, big neon on the right wall
     ib.at(hw - 1.3, 0, cv + 0.3, 0); ib.box('plastic', -0.35, 0, -0.3, 0.35, 1.9, 0.3, 0xd8201a); ib.box('plastic', -0.3, 1.2, 0.3, 0.3, 1.8, 0.31, 0x15171c); ib.rect('glow', 'N', -0.28, 0.28, 1.25, 1.75, 0.312, hdr(0xfff0d0, 0.9)); for (let i = 0; i < 4; i++) ib.cyl('metal', -0.2 + i * 0.133, 0.95, 0.35, 0.02, 0.02, 0.2, 0xaab0ba, 6, { cap: false }); ib.col(-0.35, -0.3, 0.35, 0.3, 1.9); ib.end();
     glowSign(ib, 'logoNeon', hw - 0.05, 2.5, dp * 0.55, 3.4, -Math.PI / 2); poster(ib, 'kitchen', -hw + 0.03, 1.8, 2.2, 0.9, 0.9, Math.PI / 2);
-    return { counter: { u: 0, v: cv - 0.9, yaw: 0 }, keeper: { u: 0, v: cv + 1.4, yaw: Math.PI }, extra: [{ role: 'chef', u: -4.7, v: dp - 1.5, yaw: 0, look: 'chef' }], view: { cam: [0, 1.6, 0.8], look: [0, 1.4, dp - 2] } };
+    return { counter: { u: 0, v: cv - 0.9, yaw: 0 }, keeper: { u: 0, v: cv + 1.4, yaw: Math.PI }, extra: [{ role: 'chef', u: -4.7, v: dp - 1.5, yaw: 0, look: 'chef' }, { role: 'customer', u: 2.3, v: cv - 1.5, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.4, dp - 2] } };
   },
 };
 
@@ -750,7 +753,7 @@ Object.assign(LAY, {
     for (const u of [-hw + 1.4, -hw + 2.8]) { ib.box('plastic', u - 0.28, 0.79, dp - 0.95, u + 0.28, 1.2, dp - 0.93, 0x15171c); ib.rect('glow', 'S', u - 0.25, u + 0.25, 0.83, 1.18, dp - 0.955, hdr(0x6fb0ff, 0.8)); ib.box('plastic', u - 0.04, 0.79, dp - 0.95, u + 0.04, 0.9, dp - 0.85, 0x15171c); }
     chair(ib, -hw + 1.4, dp - 2.3, Math.PI, 0xf2f4f8); chair(ib, -hw + 2.8, dp - 2.3, Math.PI, 0xf2f4f8); sofa(ib, hw - 1.0, 9.0, 2.2, -Math.PI / 2, 0x1f2a3a); sofa(ib, hw - 1.0, 11.2, 1.6, -Math.PI / 2, 0x1f2a3a); table(ib, hw - 2.2, 10.1, 0.7, 1.2, 0.4, 0xe8ecf2, 0x8a8f99);
     plant(ib, hw - 0.6, 7.3, 1.2); plant(ib, -hw + 0.6, 2.2, 1.2);
-    return { counter: { u: 5.1, v: dp - 3.3, yaw: 0 }, keeper: { u: 5.1, v: dp - 0.95, yaw: Math.PI }, cars, view: { cam: [0, 1.6, 0.8], look: [0, 0.9, 7] } };
+    return { counter: { u: 5.1, v: dp - 3.3, yaw: 0 }, keeper: { u: 5.1, v: dp - 0.95, yaw: Math.PI }, cars, extra: [{ role: 'customer', u: 3.0, v: dp - 4.6, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 0.9, 7] } };
   },
 
   // ----- paint and repair shop: a car raised on a two-post lift, a car being prepared, tool wall, roll cabs, paint cans, tyres, a counter -----
@@ -872,7 +875,7 @@ Object.assign(LAY, {
     }
     // cell gate (one door ajar), and a plant
     plant(ib, hw - 0.6, 1.3, 1.1);
-    return { counter: { u: 0, v: dz - 0.8, yaw: 0 }, keeper: { u: 0, v: dz + 1.5, yaw: Math.PI }, view: { cam: [0, 1.65, 0.8], look: [0, 1.4, dp - 2.5] } };
+    return { counter: { u: 0, v: dz - 0.8, yaw: 0 }, keeper: { u: 0, v: dz + 1.5, yaw: Math.PI }, extra: [{ role: 'customer', u: 2.4, v: dz - 1.6, yaw: 0 }], view: { cam: [0, 1.65, 0.8], look: [0, 1.4, dp - 2.5] } };
   },
 
   // ----- taxi dispatch: counter with radio, city map, key board, benches -----
@@ -888,7 +891,7 @@ Object.assign(LAY, {
     for (const u of [-hw + 1.5, -hw + 2.6]) { ib.box('plastic', u - 0.28, 0.79, dp - 1.05, u + 0.28, 1.2, dp - 1.03, 0x15171c); ib.rect('glow', 'S', u - 0.25, u + 0.25, 0.83, 1.18, dp - 1.055, hdr(0xffd34e, 0.8)); }
     rug(ib, -3.4, 3.2, 3.4, 6.8, 0xffd34e, 0x2a2d36); vending(ib, hw - 0.5, 8.4, -Math.PI / 2, 0x2f6fe0); for (const v of [2.6, 4.2]) sofa(ib, -hw + 0.8, v, 1.5, Math.PI / 2, 0x3a3d46); poster(ib, 'ad1', -hw + 0.04, 1.9, 8.6, 0.8, 1.2, Math.PI / 2); poster(ib, 'target2', hw - 0.04, 1.9, 2.0, 0.7, 1.05, -Math.PI / 2, 0xe8e0d0); screenQuad(ib, 'news', hw - 0.05, 2.2, 6.4, 1.3, 0.75, -Math.PI / 2, [0, 0, 0.25]);
     plant(ib, hw - 0.6, 1.4, 1.1); ib.cyl('plastic', -hw + 0.5, 0, 1.6, 0.18, 0.18, 0.9, 0xe8f0f4, 10, { bot: true }); ib.cyl('plastic', -hw + 0.5, 0.9, 1.6, 0.15, 0.15, 0.3, 0x4aa8e8, 10); ib.col(-hw + 0.3, 1.4, -hw + 0.7, 1.8, 1.2);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.5, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.5, yaw: Math.PI }, extra: [{ role: 'customer', u: -2.6, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
   },
 
   // ----- Ricky's lounge: pool table, bar with bottles, jukebox, sofas, neon -----
@@ -907,12 +910,12 @@ Object.assign(LAY, {
     sofa(ib, -hw + 0.8, 2.8, 2.2, Math.PI / 2, 0x4a2a8a); table(ib, -hw + 2.0, 2.8, 0.6, 1.0, 0.42, 0x3a1a3a, 0xc9ccd4);
     glowSign(ib, 'lounge', -hw + 0.04, 2.6, 8.6, 2.4, Math.PI / 2); glowSign(ib, 'logoRicky', 0, 3.0, dp - 0.04, 3.2, Math.PI);
     poster(ib, 'ad1', hw - 0.04, 2.3, 4.6, 0.8, 1.2, -Math.PI / 2); poster(ib, 'ad2', hw - 0.04, 2.3, 5.6, 0.8, 1.2, -Math.PI / 2);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.3, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [-1, 1.2, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.3, yaw: Math.PI }, extra: [{ role: 'customer', u: -3.2, v: dp - 4.9, yaw: 0 }, { role: 'customer', u: 3.0, v: 3.6, yaw: Math.PI }], view: { cam: [0, 1.6, 0.8], look: [-1, 1.2, dp - 2] } };
   },
 
   // ----- Garage 8: a race car on jack stands, tool chests, tyre rack, counter -----
   garage(ib, S) {
-    const hw = S.iw / 2, dp = S.dp, r = ib.r, ac = S.sp.k2, cars = [{ type: 'sport', color: 0x2a6fe0, u: -2.4, v: 6.4, y: 0.38, h: -Math.PI / 2 }];
+    const hw = S.iw / 2, dp = S.dp, r = ib.r, ac = S.sp.k2, cars = [{ type: 'sport', color: 0x2a6fe0, u: -2.4, v: 6.4, y: 0, h: -Math.PI / 2 }];
     for (const [x, z] of [[-3.5, 4.6], [-1.3, 4.6], [-3.5, 8.2], [-1.3, 8.2]]) { ib.cyl('metal', x, 0, z, 0.2, 0.2, 0.03, 0x4a4d55, 8); ib.cyl('plastic', x, 0.03, z, 0.05, 0.05, 0.3, 0xc01c20, 6, { cap: true }); ib.col(x - 0.2, z - 0.2, x + 0.2, z + 0.2, 0.4); }
     for (const [x, z, c] of [[hw - 0.5, 3.0, 0xc01c20], [hw - 0.5, 4.2, 0xc01c20]]) rollCab(ib, x, z, -Math.PI / 2, c);
     pegTools(ib, -hw + 0.4, -2.6, 1.1, 2.9, dp - 0.06, r); rollCab(ib, -hw + 1.2, dp - 0.8, Math.PI, 0x2f6fe0); rollCab(ib, -hw + 2.3, dp - 0.8, Math.PI, 0xc01c20);
@@ -920,7 +923,7 @@ Object.assign(LAY, {
     counter(ib, 1.6, dp - 3.0, 6.4, dp - 2.3, { body: 0x2a2d36, top: 0xc9ccd4, acc: ac }); till(ib, 4.0, 1.05, dp - 2.65);
     glowSign(ib, 'logoGarage', 3.0, 2.8, dp - 0.04, 3.0, Math.PI); poster(ib, 'ad1', -hw + 0.04, 1.9, 3.0, 0.8, 1.2, Math.PI / 2);
     ib.box('plastic', -hw + 0.4, 0, 6.0, -hw + 1.2, 0.9, 9.2, 0x4a4d55, { no: 'D' }); ib.box('plastic', -hw + 0.36, 0.9, 5.96, -hw + 1.24, 0.95, 9.24, 0xc8a070, { no: 'D' }); ib.col(-hw + 0.36, 5.96, -hw + 1.24, 9.24, 0.95);
-    return { counter: { u: 4.0, v: dp - 3.8, yaw: 0 }, keeper: { u: 4.0, v: dp - 1.4, yaw: Math.PI }, cars, view: { cam: [0, 1.6, 0.8], look: [-1, 1.0, dp - 3] } };
+    return { counter: { u: 4.0, v: dp - 3.8, yaw: 0 }, keeper: { u: 4.0, v: dp - 1.4, yaw: Math.PI }, cars, extra: [{ role: 'customer', u: 1.0, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [-1, 1.0, dp - 3] } };
   },
 
   // ----- apartment lobby (the safehouse): desk, mailboxes, lift, sofas, plants -----
@@ -932,7 +935,7 @@ Object.assign(LAY, {
     sofa(ib, 4.6, 5.4, 2.4, Math.PI, 0x2a3a4a); sofa(ib, 6.3, 3.6, 1.8, -Math.PI / 2, 0x2a3a4a); table(ib, 5.4, 4.0, 1.0, 0.6, 0.4, 0xe8e4dc, 0x8a8f99, true); plant(ib, -hw + 0.7, 1.4, 1.5); plant(ib, hw - 0.7, 1.4, 1.5); plant(ib, hw - 0.7, 8.6, 1.4);
     rug(ib, 3.0, 2.4, hw - 0.4, 6.8, 0x7cff8a, 0x2a3a2e); sofa(ib, -hw + 3.2, 3.4, 1.8, Math.PI, 0x3a4a3a); table(ib, -hw + 3.2, 4.4, 0.9, 0.5, 0.4, 0xe8e4dc, 0x8a8f99); poster(ib, 'ad2', hw - 0.04, 1.9, 9.2, 0.8, 1.2, -Math.PI / 2); poster(ib, 'ad1', hw - 0.04, 1.9, 10.4, 0.8, 1.2, -Math.PI / 2); poster(ib, 'map', hw - 0.04, 1.9, 7.9, 1.4, 1.05, -Math.PI / 2);
     glowSign(ib, 'logoPalms', 0, 2.8, dp - 0.04, 3.0, Math.PI);
-    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.4, yaw: Math.PI }, view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
+    return { counter: { u: 0, v: dp - 3.9, yaw: 0 }, keeper: { u: 0, v: dp - 1.4, yaw: Math.PI }, extra: [{ role: 'customer', u: -1.8, v: dp - 4.9, yaw: 0 }], view: { cam: [0, 1.6, 0.8], look: [0, 1.3, dp - 2] } };
   },
 });
 LAY.hospital2 = LAY.hospital;

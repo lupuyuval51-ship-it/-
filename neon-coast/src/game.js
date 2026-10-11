@@ -328,7 +328,7 @@ export class Game {
   impact(v, imp) { const P = this.player; const d = dist(v.x, v.z, P.x, P.z); if (d < 90) this.audio.impact(imp, d); this.fx.sparks(v.x + v.fx * v.spec.len * 0.5, 0.6, v.z + v.fz * v.spec.len * 0.5, Math.min(12, imp), 4); if (v === P.vehicle || v.driver === P) P.shake = Math.min(1, (P.shake || 0) + imp / 16); if (v.driver === P && imp > 11) P.damage((imp - 10) * 2.5, v.x, v.z); if (v.ai && v.ai.mode === 'traffic') v.disturbed = 1.2; }
   interactions() {
     const P = this.player, I = this.input; let prompt = null, target = null;
-    if (!P.dead) for (const m of this.shopMarkers) { const d = dist(m.x, m.z, P.x, P.z); if (d > 3.2) continue; if (m.type === 'spray') { if (P.vehicle && P.vehicle.speed < 1.5) { target = m; } } else if (!P.vehicle) target = m; }
+    if (!P.dead) for (const m of this.shopMarkers) { const d = dist(m.x, m.z, P.x, P.z); if (d > 3.2) continue; { const nv = P.vehicle ? null : P.nearestVehicle(); if (nv && dist(nv.x, nv.z, P.x, P.z) - nv.spec.wid * 0.5 < d - 0.5) continue; } if (m.type === 'spray') { if (P.vehicle && P.vehicle.speed < 1.5) { target = m; } } else if (!P.vehicle) target = m; }
     if (!target && !P.dead && !P.vehicle) target = this.world.shops.counterTarget(P.x, P.z, this.shopMarkers); // at the till inside a shop: the same menu as the street marker
     if (target) prompt = T.pressInteract + T[target.label];
     if (!prompt && this.missionPrompt) prompt = this.missionPrompt;

@@ -115,7 +115,7 @@ export class Ped {
     this.shootT = 1 + Math.random(); this.accuracy = o.accuracy ?? 0.5; this.hostile = !!o.hostile; this.stationX = o.x; this.stationZ = o.z; this.aggroRange = o.aggroRange ?? 45; this.bustT = 0; this.blockedT = 0;
     this.punchT = 0; this.mission = o.mission || null; this.noDespawn = !!o.noDespawn; this.fromVehicle = o.fromVehicle || null; this.station = !!o.station; this.vip = !!o.vip;
     this.area = this.kind === 'civ' && o.area ? o.area : null; // {x0, z0, x1, z1}: civilians that wander inside a rectangle (beach, parks) instead of walking the sidewalk graph
-    this.animAcc = 0; this.animSkip = 9; this.animYaw = this.yaw;
+    this.animAcc = 0; this.animSkip = 9; this.stK = 0; this.stX = 0; this.stZ = 0; this.stF = undefined; this.animYaw = this.yaw;
     const arch = this.look.archetype, pace = this.look.elder ? 0.72 : arch === 'business' || arch === 'sporty' ? 1.12 : arch === 'tourist' ? 0.85 : 1;
     this.walkSpeed = WALK * pace * (0.78 + Math.random() * 0.5); if (this.trait === 'jogger') this.walkSpeed = 3.1 + Math.random() * 1.0; // strollers 1.2 m/s, commuters 1.9, joggers 3-4
     this.aimT = 0; this.deadDir = 1; this.deadDirX = 0; this.deadDirZ = 0; this.lift = 0; this.liftTo = 0; this.liftStage = 0; // a body lying on the ground is lifted so that its lowest vertex rests on the ground
@@ -574,10 +574,10 @@ export class Ped {
     const px0 = this.x - P.x, pz0 = this.z - P.z, near = px0 * px0 + pz0 * pz0, aware = this.free && !this.pinned && near < 3600;
     if (tx !== null) {
       const dx = tx - this.x, dz = tz - this.z, l = Math.hypot(dx, dz);
-      if (l > 0.05) { let hx = dx / l, hz = dz / l, sp = spd; if (aware && l > 0.25) { D.steer(this, hx, hz); hx = D.sx; hz = D.sz; sp *= D.sf; } this.yaw = angleLerp(this.yaw, Math.atan2(hx, hz), Math.min(1, dt * 10)); this.speed = damp(this.speed, sp, 8, dt); this.x += Math.sin(this.yaw) * this.speed * dt; this.z += Math.cos(this.yaw) * this.speed * dt; }
+      if (l > 0.05) { let hx = dx / l, hz = dz / l, sp = spd; if (aware && l > 0.25) { if (near < 225 || (this.stK = (this.stK + 1) & 3) === 0 || this.stF === undefined) { D.steer(this, hx, hz); this.stX = D.sx; this.stZ = D.sz; this.stF = D.sf; } hx = this.stX; hz = this.stZ; sp *= this.stF; } this.yaw = angleLerp(this.yaw, Math.atan2(hx, hz), Math.min(1, dt * 10)); this.speed = damp(this.speed, sp, 8, dt); this.x += Math.sin(this.yaw) * this.speed * dt; this.z += Math.cos(this.yaw) * this.speed * dt; }
       else this.speed = damp(this.speed, 0, 10, dt);
     } else this.speed = damp(this.speed, 0, 10, dt);
-    if (!this.pinned) { this.collideStatic(); this.collideVehicles(); if (aware) D.separate(this); } // somebody on a bench or a towel is inside the collision box of the thing they sit on
+    if (!this.pinned) { this.collideStatic(); this.collideVehicles(); if (aware && (near < 225 || (this.stK & 1) === 0)) D.separate(this); } // somebody on a bench or a towel is inside the collision box of the thing they sit on
     const B = G.world.bounds; this.x = clamp(this.x, B.minX, B.maxX); this.z = clamp(this.z, B.minZ, B.maxZ);
     // real ground height: 0.15 m sidewalks, lots, beach, pier ramp; the first update snaps, later steps ease so a kerb is a quick step instead of a pop
     const gy = this.groundAt(this.x, this.z);

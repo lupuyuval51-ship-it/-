@@ -27,6 +27,7 @@ export const JOB_STRINGS = {
     tip: 'טיפ', bonus: 'בונוס', base: 'בסיס', waiting: 'ממתינים לקריאה…', depotHint: 'נקודת עבודה',
     pCalls: 'קריאות', pEarned: 'הרווחתם', pMood: 'מצב רוח הנוסע', pPatient: 'מצב המטופל', pOrder: 'מצב ההזמנה', pTank: 'מים', pComfort: 'נוחות הנסיעה', pCar: 'מצב הרכב', pFare: 'מונה', pStop: 'תחנה {0}/{1}', pPax: 'נוסעים', pFires: 'מוקדי אש', pHeat: 'חיפוש',
     addr: 'בלוק {0}-{1}',
+    hint_taxi: 'טיפ: עצרו ליד הנוסע, סעו בעדינות בלי בלימות חדות וקבלו טיפ. N מדלג על קריאה.', hint_paramedic: 'טיפ: הפעילו סירנה (G), הגיעו לפצוע ופנו אותו לבית החולים. פצוע קריטי דורש מהירות.', hint_fire: 'טיפ: גשו לאש, עצרו וירו (עכבר שמאלי) כדי להתיז מים. הרכב הבוער מתפוצץ אם מתעכבים.', hint_tow: 'טיפ: סעו לאחור עד הרכב המסומן, חכו שהוא יתחבר וגררו אותו למגרש ההחרמה.', hint_courier: 'טיפ: אספו את ההזמנה בניאון בורגר ומסרו אותה מהר ובעדינות כדי לקבל טיפ.', hint_bus: 'טיפ: עצרו בתחנה המסומנת עם הדלת מול הרציף, חכו לנוסעים ושמרו על לוח הזמנים.', hint_export: 'טיפ: גנבו את הרכב מהרשימה והביאו אותו לנמל. המשטרה תרדוף אחריכם.',
     tx_new: 'קריאת מונית', tx_newVip: 'קריאה: נוסע VIP', tx_hail: 'נוסע מחכה', tx_pick: 'אספו את הנוסע', tx_board: 'הנוסע עולה…', tx_to: 'נוסע: קחו אותי אל {0}', tx_ride: 'הסיעו את הנוסע אל {0}', tx_time: 'זמן',
     tx_arrived: 'הגענו. תודה!', tx_angry: 'הנוסע כועס ויצא מהמונית!', tx_late: 'הנוסע התעייף מלחכות ויצא', tx_gone: 'הנוסע התייאש ועזב', tx_lost: 'הנוסע נעלם', tx_fare: 'נסיעה', tx_fast: 'הגעה מהירה', tx_hard: 'נוסע: תנהגו בעדינות!', tx_crash: 'נוסע: מה עשיתם?!', tx_hurry: 'נוסע: אני ממהר!',
     pm_new: 'קריאת חירום: פצוע', pm_sev0: 'מצב יציב', pm_sev1: 'מצב קשה', pm_sev2: 'מצב קריטי', pm_go: 'הגיעו אל הפצוע', pm_load: 'מעמיסים את המטופל…', pm_hosp: 'פנו את המטופל אל {0}', pm_handover: 'המטופל נמסר לצוות', pm_died: 'המטופל לא שרד', pm_lost: 'פצוע אחר טופל – הקריאה בוטלה', pm_fare: 'פינוי', pm_speed: 'בונוס מהירות',
@@ -50,6 +51,7 @@ export const JOB_STRINGS = {
     tip: 'Tip', bonus: 'Bonus', base: 'Base', waiting: 'Waiting for a call…', depotHint: 'Job depot',
     pCalls: 'Calls', pEarned: 'Earned', pMood: 'Passenger mood', pPatient: 'Patient', pOrder: 'Order', pTank: 'Water', pComfort: 'Ride comfort', pCar: 'Vehicle', pFare: 'Meter', pStop: 'Stop {0}/{1}', pPax: 'Passengers', pFires: 'Fires', pHeat: 'Heat',
     addr: 'Block {0}-{1}',
+    hint_taxi: 'Tip: stop next to the passenger, drive smoothly with no hard braking and earn a tip. N skips a call.', hint_paramedic: 'Tip: use the siren (G), reach the patient and rush them to hospital. Critical patients need speed.', hint_fire: 'Tip: drive to the fire, stop and hold fire (left mouse) to spray water. Burning cars explode if you wait.', hint_tow: 'Tip: reverse up to the marked car, wait for the hook and tow it to the impound lot.', hint_courier: 'Tip: pick up the order at Neon Burger and deliver it fast and gently for a tip.', hint_bus: 'Tip: stop at the marked bus stop with the door at the platform, wait for the passengers and keep to the schedule.', hint_export: 'Tip: steal the car on the list and bring it to the docks. The cops will chase you.',
     tx_new: 'Taxi call', tx_newVip: 'Call: VIP passenger', tx_hail: 'Fare waiting', tx_pick: 'Pick up the passenger', tx_board: 'Passenger boarding…', tx_to: 'Passenger: take me to {0}', tx_ride: 'Drive the passenger to {0}', tx_time: 'Time',
     tx_arrived: 'We are here. Thanks!', tx_angry: 'The passenger is furious and got out!', tx_late: 'The passenger got tired of the ride and left', tx_gone: 'The passenger gave up waiting', tx_lost: 'The passenger vanished', tx_fare: 'Fare', tx_fast: 'Fast ride', tx_hard: 'Passenger: easy on the brakes!', tx_crash: 'Passenger: what was that?!', tx_hurry: 'Passenger: I am in a hurry!',
     pm_new: 'Emergency call: injured person', pm_sev0: 'Stable', pm_sev1: 'Serious', pm_sev2: 'Critical', pm_go: 'Reach the patient', pm_load: 'Loading the patient…', pm_hosp: 'Take the patient to {0}', pm_handover: 'Patient handed over', pm_died: 'The patient did not make it', pm_lost: 'Someone else treated the patient – call cancelled', pm_fare: 'Transfer', pm_speed: 'Speed bonus',
@@ -297,7 +299,7 @@ export class Jobs {
     if (v) { this.seat(v); v.special = 'job'; v.jobCar = id; v.parked = false; }
     const r = { id, def, dep, lvl, veh: v, t0: G.time, shift: { calls: 0, base: 0, tips: 0, bonus: 0, xp: 0, fines: 0, fails: 0 }, streak: 0, call: null, nextT: 3, away: 0, st: {}, marks: [], peds: [], h: newHud(), cf: newCf(), sirenOff: false, vmark: null, prompt: null };
     this.active = r; this.stats[id].shifts++; this.prompt = null;
-    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup();
+    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
     try { IM[id].start?.(this, r); } catch (e) { console.error(e); }
     return true;
   }
@@ -319,6 +321,8 @@ export class Jobs {
     const G = this.game; G.hud.missionResult(!s.bad, s.bad ? tr('shiftFail') : tr('shiftOver'), `${this.name(s.id)} · ${s.bad ? s.reason + ' · ' : ''}${s.sub}`); if (s.calls) this.toast(s.sub, s.tot > 0 ? 'cash' : 'warn', 9); if (s.bad) G.audio.failed(); else if (s.calls) G.audio.passed();
   }
 
+  // E enters a vehicle within reach: while one is, a job depot answers to J only (on foot) so E never steals the car
+  eFree(P) { return !P.vehicle && !P.nearestVehicle?.(); }
   // ---------- per frame ----------
   update(dt) {
     const G = this.game; if (!this.built || !G.player || !(dt > 0)) return; if (this._ut === G.time) return; this._ut = G.time;
@@ -334,8 +338,8 @@ export class Jobs {
     const G = this.game, P = G.player, I = G.input; this.prompt = null; let near = null;
     for (const d of this.depots) if (d.dist < JOBS.depotRange + (P.vehicle ? 2 : 0)) near = d;
     if (!near || P.dead || G.state !== 'playing' || G.missions.active) { this.stopT = 0; return; }
-    const foot = !P.vehicle, touch = !!I.isTouch; this.prompt = (foot ? 'E – ' : touch ? '' : 'J – ') + tr('start', this.name(near.id));
-    if ((foot && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
+    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = (eOk ? 'E – ' : touch && !foot ? '' : 'J – ') + tr('start', this.name(near.id));
+    if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
     else if (touch && !foot) { this.stopT = (this.stopT || 0) + (P.vehicle.speed < 0.6 ? dt : -this.stopT); if (this.stopT > 1.2) { this.stopT = 0; this.start(near.id); } } // no J key on a touch screen: standing still in the marker starts the shift
   }
   tickActive(r, dt) {
@@ -359,7 +363,7 @@ export class Jobs {
     if (r.away > 2) h.obj = tr('leaveWarn', Math.max(0, Math.ceil(JOBS.abandon - r.away)));
     // depot: end the shift (not while hauling a stolen car through the yard)
     const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (r.dep.marker) r.dep.marker.mesh.visible = true;
-    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const foot = !P.vehicle; this.prompt = (foot ? 'E' : 'J') + ' – ' + tr('end'); if ((foot && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
+    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P); this.prompt = (eOk ? 'E' : 'J') + ' – ' + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
     // keep the weapon fire of a job vehicle (drive-by) quiet
     if (v && P.vehicle === v && IM[r.id].noGun) P.fireT = Math.max(P.fireT, 0.12);
     // siren: lights flash and the sound plays while the call runs (toggle with G)
