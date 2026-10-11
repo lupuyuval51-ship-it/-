@@ -22,7 +22,8 @@ export default defineConfig({
     projects: [
       {
         resolve: { alias },
-        test: { name: "unit", include: ["tests/unit/**/*.test.ts"], environment: "node", env: { ...baseEnv, DATABASE_URL: testDatabaseUrl } },
+        // Some unit tests play every corpus game through; on a busy machine they can exceed the 5 s default.
+        test: { name: "unit", include: ["tests/unit/**/*.test.ts"], environment: "node", testTimeout: 30_000, env: { ...baseEnv, DATABASE_URL: testDatabaseUrl } },
       },
       {
         resolve: { alias },
