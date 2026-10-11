@@ -30,12 +30,12 @@ describe("steps", () => {
     expect(isLastStep(1)).toBe(false);
     expect(isLastStep(2)).toBe(true);
   });
-  it("every step has a title and text in both languages", () => {
+  it("every step has a title and a one-line explanation in both languages", () => {
     for (const locale of ["he", "en"] as const) {
       const d = DICTIONARIES[locale] as Record<string, string>;
       for (const s of WELCOME_STEPS) {
         expect(d[`mob.welcome.${s}.title`]?.length).toBeGreaterThan(0);
-        expect(d[`mob.welcome.${s}.text`]?.length).toBeGreaterThan(0);
+        expect(d[`mob.welcome.${s}.short`]?.length).toBeGreaterThan(0);
       }
     }
   });

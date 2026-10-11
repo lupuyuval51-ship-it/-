@@ -5,3 +5,6 @@
 /* Phone app: respect the notch / gesture bar, no rubber-band scrolling behind the 3D view. */
 /* Pinch-zoom stays available (no user-scalable=no); touch-action only removes the double-tap delay. */
 body { touch-action: manipulation; overscroll-behavior: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+
+/* Headings that script focuses (after a route change, after Skip/Delete) are there for the screen reader, not controls: no ring. */
+h1[tabindex="-1"], h2[tabindex="-1"] { outline: none; }
