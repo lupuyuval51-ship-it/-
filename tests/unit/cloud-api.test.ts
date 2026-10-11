@@ -5,9 +5,16 @@ import { chunkRows, MAX_BATCH_CHARS, MAX_BATCH_ROWS, MAX_IDS_PER_FILTER, OVERLAP
 type Call = { op: string; table: string; detail?: unknown };
 
 /** A Supabase client that records what the app asks of it. Nothing leaves the machine. */
-function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?: (c: Call) => string | null) {
+type Failure = string | { message: string; code?: string } | null;
+function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?: (c: Call) => Failure) {
   const calls: Call[] = [];
-  const record = (c: Call) => { calls.push(c); const msg = failOn?.(c); return Promise.resolve({ data: null, error: msg ? { message: msg } : null }); };
+  const stored: Record<string, Record<string, unknown>[]> = {};
+  const record = (c: Call) => {
+    calls.push(c);
+    const f = failOn?.(c);
+    if (!f && c.op === "upsert") (stored[c.table] ??= []).push(...(c.detail as { rows: Record<string, unknown>[] }).rows);
+    return Promise.resolve({ data: null, error: f ? (typeof f === "string" ? { message: f } : f) : null });
+  };
   const db = {
     from(table: string) {
       return {
@@ -28,7 +35,7 @@ function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?:
       };
     },
   };
-  return { db: db as unknown as SupabaseClient, calls };
+  return { db: db as unknown as SupabaseClient, calls, stored };
 }
 
 const game = (i: number, pad = 0) => ({ localId: `g${i}`, title: `Game ${i}`, spec: { pad: "x".repeat(pad) } as never, createdAt: "2030-01-01T00:00:00.000Z" });
@@ -90,6 +97,26 @@ describe("cloud push is split into small requests", () => {
       deletedGames: ["x"],
     })).rejects.toThrow("permission denied");
     expect(calls.map((c) => `${c.op}:${c.table}`)).toEqual(["upsert:games", "upsert:sessions"]);
+  });
+
+  it("a row the table refuses is left out and counted; every other row is stored", async () => {
+    const refuse = (c: Call) => ((c.detail as { rows?: { title?: string; state?: { bad?: boolean } }[] }).rows ?? []).some((r) => r.title === "TOO LONG" || r.state?.bad)
+      ? { message: 'new row for relation "games" violates check constraint', code: "23514" } : null;
+    const { db, stored, calls } = fakeDb({}, refuse);
+    const games = Array.from({ length: 9 }, (_, i) => ({ ...game(i), title: i === 4 ? "TOO LONG" : `Game ${i}` }));
+    const sessions = Array.from({ length: 5 }, (_, i) => ({ localId: `s${i}`, gameId: "g0", status: "ACTIVE" as const, state: { bad: i === 0 } as never, startedAt: "2030-01-01T00:00:00.000Z", finishedAt: null }));
+    const r = await supabaseCloud(db).push({ games, sessions, cards: [], deletedGames: [] });
+    expect(r).toEqual({ refused: 2 });
+    expect((stored.games ?? []).map((g) => g.local_id).sort()).toEqual(["g0", "g1", "g2", "g3", "g5", "g6", "g7", "g8"]);
+    expect((stored.sessions ?? []).map((g) => g.local_id).sort()).toEqual(["s1", "s2", "s3", "s4"]);
+    expect(calls.length).toBeLessThan(40); // the bad row is found by splitting, not by sending rows one by one
+  });
+
+  it("only content rules count as refusals: a foreign key error, a network error and a permission error still stop the push", async () => {
+    for (const failure of [{ message: 'violates foreign key constraint "sessions_user_id_game_id_fkey"', code: "23503" }, { message: "TypeError: Failed to fetch" }, { message: "permission denied", code: "42501" }]) {
+      const { db } = fakeDb({}, () => failure);
+      await expect(supabaseCloud(db).push({ games: [game(1), game(2)], sessions: [], cards: [], deletedGames: [] })).rejects.toThrow(failure.message);
+    }
   });
 
   it("an empty batch sends nothing", async () => {

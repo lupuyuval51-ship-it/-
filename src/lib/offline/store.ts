@@ -13,7 +13,7 @@ import { MAX_ATTEMPTS_PER_CHALLENGE } from "@/config/limits";
 import { gradeAnswer, revealSolution, toPublicChallenge } from "../game/challenges/grade";
 import { findArea, findChallenge } from "../game/state/progress";
 import { deckBodySchema, dueCards, newCard, review, type DeckCard } from "./deck";
-import { normalizeGame, normalizeSession } from "./records";
+import { normalizeCard, normalizeGame, normalizeSession } from "./records";
 
 export interface KV {
   get(key: string): string | null;
@@ -98,6 +98,14 @@ export class OfflineError extends Error {
 export const STORAGE_ERROR_CODES = ["STORAGE_FULL", "STORAGE_UNAVAILABLE"] as const;
 export type StorageErrorCode = (typeof STORAGE_ERROR_CODES)[number];
 export const isStorageError = (e: unknown): e is OfflineError => e instanceof OfflineError && (STORAGE_ERROR_CODES as readonly string[]).includes(e.code);
+/**
+ * The storage failure code of an error, or null. Works for an `OfflineError` and for the `ApiFailure` the offline transport turns it into
+ * (which keeps the code), so a screen can show "no room left" whichever way the error reached it.
+ */
+export function storageErrorCode(e: unknown): StorageErrorCode | null {
+  const code = (e as { code?: unknown } | null)?.code;
+  return (STORAGE_ERROR_CODES as readonly unknown[]).includes(code) ? (code as StorageErrorCode) : null;
+}
 
 const isQuotaError = (e: unknown): boolean => {
   const x = e as { name?: unknown; code?: unknown } | null;
@@ -396,7 +404,10 @@ export class OfflineStore {
     const out: Record<string, DeckCard> = {};
     if (!v || typeof v !== "object" || Array.isArray(v)) return out;
     // a damaged card is dropped on its own; it comes back the next time the question is missed
-    for (const [k, c] of Object.entries(v)) if (k !== "__proto__" && c && typeof c === "object" && typeof (c as DeckCard).gameId === "string" && typeof (c as DeckCard).challengeId === "string") out[k] = c as DeckCard;
+    for (const [k, c] of Object.entries(v)) {
+      const card = k === "__proto__" ? null : normalizeCard(c, k);
+      if (card) out[k] = card;
+    }
     return out;
   }
   private saveDeck(d: Record<string, DeckCard>): void { this.write("deck", d); }

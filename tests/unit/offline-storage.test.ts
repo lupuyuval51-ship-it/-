@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { generateOffline } from "@/lib/offline/generate";
 import { normalizeGame, normalizeSession, normalizeState } from "@/lib/offline/records";
 import { getOfflineTier } from "@/lib/offline/entitlement";
-import { isStorageError, MAX_ABANDONED_RUNS_PER_GAME, memoryKV, OfflineError, OfflineStore } from "@/lib/offline/store";
+import { isStorageError, MAX_ABANDONED_RUNS_PER_GAME, memoryKV, OfflineError, OfflineStore, storageErrorCode } from "@/lib/offline/store";
 import { findArea, stationActive } from "@/lib/game/state/progress";
 import { correctAnswer, request, wrongAnswer } from "./helpers";
 import { editStored, flakyKV, NOTES, phone, populated, PREFIX } from "./offline-helpers";
@@ -44,6 +44,12 @@ describe("a full or blocked phone gives a clear error and never half-saves", () 
       const g = newGame(store);
       expect(store.listGames().map((x) => x.id)).toEqual([g.id]);
     }
+  });
+
+  it("a screen can recognise the failure from the store's error or from the transport's copy of it", () => {
+    expect(storageErrorCode(new OfflineError(507, "STORAGE_FULL", "x"))).toBe("STORAGE_FULL");
+    expect(storageErrorCode({ status: 503, code: "STORAGE_UNAVAILABLE", message: "x" })).toBe("STORAGE_UNAVAILABLE"); // an ApiFailure
+    for (const other of [new OfflineError(404, "NOT_FOUND", "x"), new Error("boom"), null, undefined, "STORAGE_FULL", { code: 5 }]) expect(storageErrorCode(other)).toBeNull();
   });
 
   it("blocked storage (private mode, policy) is reported differently from a full phone", () => {

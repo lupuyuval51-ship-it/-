@@ -8,7 +8,7 @@
 import type { GameSpec } from "../game/spec/schema";
 import type { PlayState } from "../game/state/progress";
 import type { DeckCard } from "./deck";
-import { checkCardRecord, checkGameRecord, checkSessionRecord } from "./records";
+import { checkCardRecord, checkGameRecord, checkSessionRecord, cloudTitle } from "./records";
 import type { KV, OfflineStore, StoredSession } from "./store";
 
 export const MAX_SPEC_BYTES = 1_000_000;
@@ -30,7 +30,11 @@ export interface PushBatch {
 export interface CloudApi {
   /** Rows changed after `since` (ISO, exclusive), oldest first. `null` = everything. */
   pull(since: string | null): Promise<CloudRows>;
-  push(batch: PushBatch): Promise<void>;
+  /**
+   * Upserts the batch. Resolves with how many rows the server refused for what is in them (a record that breaks a table rule is
+   * left out so it cannot block everything else); rejects when the round should be retried (offline, signed out, a missing game).
+   */
+  push(batch: PushBatch): Promise<void | { refused: number }>;
 }
 
 interface SyncState { userId: string | null; cursor: string | null; lastPushMs: number; lastSyncAt: number | null }
@@ -71,8 +75,11 @@ export interface SyncResult {
 export const FUTURE_TOLERANCE_MS = 120_000;
 
 const ms = (iso: string) => Date.parse(iso);
-const iso = (n: number) => new Date(n).toISOString();
-const bytes = (v: unknown) => JSON.stringify(v).length;
+/** A timestamp the cloud can store. A number that is not a valid date (damaged data) becomes the epoch rather than ending the round with an error. */
+const iso = (n: number) => new Date(Number.isFinite(n) && Math.abs(n) <= 8.64e15 ? n : 0).toISOString();
+const encoder = new TextEncoder();
+/** Size as the cloud counts it: bytes of the JSON (Hebrew takes two per letter), not characters. */
+const bytes = (v: unknown) => encoder.encode(JSON.stringify(v)).length;
 
 const size = (b: PushBatch) => b.games.length + b.sessions.length + b.cards.length + b.deletedGames.length;
 
@@ -88,7 +95,7 @@ function buildBatch(store: OfflineStore, changes: ReturnType<OfflineStore["chang
     const ok = bytes(g.spec) <= MAX_SPEC_BYTES;
     fits.set(g.id, ok);
     if (!ok) { skipped++; continue; }
-    batch.games.push({ localId: g.id, title: g.title, spec: g.spec, createdAt: iso(g.createdAt) });
+    batch.games.push({ localId: g.id, title: cloudTitle(g.title, g.spec), spec: g.spec, createdAt: iso(g.createdAt) });
   }
   const gameFits = (id: string): boolean => {
     if (!fits.has(id)) { const g = store.getGame(id); fits.set(id, g !== null && bytes(g.spec) <= MAX_SPEC_BYTES); }
@@ -161,14 +168,14 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   let pushed = size(batch);
   if (pushed > 0) {
     try {
-      await api.push(batch);
+      skipped += (await api.push(batch))?.refused ?? 0;
     } catch (e) {
       // A run or card refers to a game the cloud does not have: that game's own change was missed somewhere along the way.
       // Send everything once; the pushes are idempotent, and from then on the cloud has what the runs refer to.
       if (!/foreign key/i.test(e instanceof Error ? e.message : String(e))) throw e;
       ({ batch, skipped } = buildBatch(store, store.changesSince(0)));
       pushed = size(batch);
-      await api.push(batch);
+      skipped += (await api.push(batch))?.refused ?? 0;
     }
   }
 

@@ -32,8 +32,34 @@ async function readAll(db: SupabaseClient, table: string, columns: string, since
   }
 }
 
-function must(error: { message: string } | null): void {
+interface DbError { message: string; code?: string }
+
+function must(error: DbError | null): void {
   if (error) throw new Error(error.message);
+}
+
+/**
+ * The table refuses this particular row (a rule on its content: too long, out of range, malformed), as opposed to the request
+ * failing (offline, signed out, a missing game). Foreign-key errors are not row refusals: the round heals those by sending the game.
+ */
+const isRowRefusal = (e: DbError): boolean => /^(22|23)/.test(e.code ?? "") && e.code !== "23503";
+
+/**
+ * One upsert. If the table refuses a row in it, the request is split until the refused row is alone and left out (counted), so a
+ * single bad record can never stop everything else from syncing. Anything else that goes wrong is raised.
+ */
+async function upsertChunk(db: SupabaseClient, table: string, rows: Row[], onConflict: string, refused: { n: number }): Promise<void> {
+  const { error } = await db.from(table).upsert(rows, { onConflict });
+  if (!error) return;
+  if (!isRowRefusal(error)) throw new Error(error.message);
+  if (rows.length === 1) { refused.n++; return; }
+  const mid = rows.length >> 1;
+  await upsertChunk(db, table, rows.slice(0, mid), onConflict, refused);
+  await upsertChunk(db, table, rows.slice(mid), onConflict, refused);
+}
+
+async function upsertAll(db: SupabaseClient, table: string, rows: Row[], onConflict: string, refused: { n: number }): Promise<void> {
+  for (const chunk of chunkRows(rows)) await upsertChunk(db, table, chunk, onConflict, refused);
 }
 
 /** Splits rows into requests of bounded size. A row bigger than the limit goes alone. */
@@ -71,21 +97,18 @@ export function supabaseCloud(db: SupabaseClient): CloudApi {
 
     /**
      * Writes in this order: games, runs, cards, deletions (runs and cards reference their game). Large batches are split into
-     * several requests; every request is an idempotent upsert, so a round that stops half-way is simply repeated.
+     * several requests; every request is an idempotent upsert, so a round that stops half-way is simply repeated. A row the table
+     * refuses for what it contains is left out and counted in the result.
      */
-    async push(b: PushBatch): Promise<void> {
-      for (const rows of chunkRows(b.games.map((g) => ({ local_id: g.localId, title: g.title, spec: g.spec, created_at: g.createdAt, deleted_at: null })))) {
-        must((await db.from("games").upsert(rows, { onConflict: "user_id,local_id" })).error);
-      }
-      for (const rows of chunkRows(b.sessions.map((s) => ({ local_id: s.localId, game_id: s.gameId, status: s.status, state: s.state, started_at: s.startedAt, finished_at: s.finishedAt })))) {
-        must((await db.from("sessions").upsert(rows, { onConflict: "user_id,local_id" })).error);
-      }
-      for (const rows of chunkRows(b.cards.map((c) => ({ card_key: c.cardKey, game_id: c.gameId, challenge_id: c.challengeId, box: c.box, due: c.due, mastered: c.mastered })))) {
-        must((await db.from("deck_cards").upsert(rows, { onConflict: "user_id,card_key" })).error);
-      }
+    async push(b: PushBatch): Promise<{ refused: number }> {
+      const refused = { n: 0 };
+      await upsertAll(db, "games", b.games.map((g) => ({ local_id: g.localId, title: g.title, spec: g.spec, created_at: g.createdAt, deleted_at: null })), "user_id,local_id", refused);
+      await upsertAll(db, "sessions", b.sessions.map((s) => ({ local_id: s.localId, game_id: s.gameId, status: s.status, state: s.state, started_at: s.startedAt, finished_at: s.finishedAt })), "user_id,local_id", refused);
+      await upsertAll(db, "deck_cards", b.cards.map((c) => ({ card_key: c.cardKey, game_id: c.gameId, challenge_id: c.challengeId, box: c.box, due: c.due, mastered: c.mastered })), "user_id,card_key", refused);
       for (let i = 0; i < b.deletedGames.length; i += MAX_IDS_PER_FILTER) {
         must((await db.from("games").update({ deleted_at: new Date().toISOString() }).in("local_id", b.deletedGames.slice(i, i + MAX_IDS_PER_FILTER))).error);
       }
+      return { refused: refused.n };
     },
   };
 }

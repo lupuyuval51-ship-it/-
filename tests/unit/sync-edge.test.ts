@@ -4,7 +4,7 @@ import { createBackup, importBackup } from "@/lib/offline/backup";
 import { FUTURE_TOLERANCE_MS, MAX_SPEC_BYTES, readSyncState } from "@/lib/offline/sync";
 import { findArea } from "@/lib/game/state/progress";
 import { request } from "./helpers";
-import { FakeCloud, flakyKV, phone, PREFIX } from "./offline-helpers";
+import { editStored, FakeCloud, flakyKV, phone, PREFIX } from "./offline-helpers";
 
 const SYNC_KEY = "levelup.offline.sync";
 const addGame = (p: ReturnType<typeof phone>, subject = "Fractions") => p.store.addGame(generateOffline(request({ subject })).spec);
@@ -270,6 +270,54 @@ describe("a clock that goes backwards never hides a change from the cloud", () =
     await a.sync(cloud);
     expect(JSON.stringify(a.store.getSession(run)!.state.talked)).toBe(played);
     expect(JSON.stringify(cloud.sessions.get(run)!.state.talked)).toBe(played);
+  });
+});
+
+describe("nothing in the stored data can make every round fail", () => {
+  it("a title the cloud would refuse (empty, or longer than 200) is repaired when the game is sent", async () => {
+    const cloud = cloudAt(1_000_000);
+    const a = phone(1_000_000);
+    const long = addGame(a, "Fractions");
+    const empty = addGame(a, "Decimals");
+    editStored(a.kv, `game.${long.id}`, (v) => { v.title = "T".repeat(300); });
+    editStored(a.kv, `game.${empty.id}`, (v) => { v.title = "  "; });
+    await a.sync(cloud);
+    expect(cloud.games.get(long.id)!.title).toHaveLength(200);
+    expect(cloud.games.get(empty.id)!.title).toBe(empty.spec.meta.title);
+  });
+
+  it("a damaged review card (wrong box, no due date) is repaired, not sent as it is, and does not stop the round", async () => {
+    const cloud = cloudAt(1_000_000);
+    const a = phone(1_000_000);
+    const g = addGame(a);
+    a.kv.set(`${PREFIX}deck`, JSON.stringify({
+      [`${g.id}.c1`]: { key: `${g.id}.c1`, gameId: g.id, challengeId: "c1", box: "high", due: null, added: 5, reviews: 2, updatedAt: 2_000_000, mastered: false },
+      [`${g.id}.c2`]: { key: `${g.id}.c2`, gameId: g.id, challengeId: "c2", box: 99, due: 1e300, added: 5, reviews: -4, updatedAt: 2_000_000, mastered: "yes" },
+    }));
+    await a.sync(cloud);
+    const cards = [...cloud.cards.values()];
+    expect(cards).toHaveLength(2);
+    for (const c of cards) {
+      expect(c.box).toBeGreaterThanOrEqual(1);
+      expect(c.box).toBeLessThanOrEqual(5);
+      expect(Number.isNaN(Date.parse(c.due))).toBe(false);
+    }
+  });
+
+  it("the cloud's own limits are respected when a backup is imported: card and title limits", () => {
+    const src = phone(1_000_000);
+    const g = addGame(src);
+    const b = JSON.parse(JSON.stringify(createBackup(src.store, 1))) as { games: { title: string }[]; deck: unknown[] };
+    b.games[0]!.title = "x".repeat(250);
+    b.deck = [
+      { key: `${g.id}.ok`, gameId: g.id, challengeId: "ok", box: 5, due: 1, added: 1, reviews: 0, mastered: false },
+      { key: `${g.id}.${"y".repeat(150)}`, gameId: g.id, challengeId: "y".repeat(150), box: 2, due: 1, added: 1, reviews: 0, mastered: false }, // challenge id longer than the cloud allows
+      { key: `${g.id}.b9`, gameId: g.id, challengeId: "b9", box: 9, due: 1, added: 1, reviews: 0, mastered: false }, // box outside the cloud's 1-5
+    ];
+    const dst = phone(9_000_000);
+    const r = importBackup(dst.store, JSON.stringify(b));
+    expect(r).toMatchObject({ gamesAdded: 1, cardsImported: 1, droppedCards: 2 });
+    expect(dst.store.getGame(g.id)!.title).toHaveLength(200);
   });
 });
 

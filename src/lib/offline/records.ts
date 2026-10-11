@@ -14,7 +14,7 @@ import { generatorInfoSchema, type GameSpec } from "../game/spec/schema";
 import { clampToFeatureTier } from "../game/spec/tier";
 import { validateGameSpec } from "../game/spec/validate";
 import type { ChallengeRecord, PlayState } from "../game/state/progress";
-import type { DeckCard } from "./deck";
+import { MASTERED_AFTER_BOX, type DeckCard } from "./deck";
 import { getOfflineTier } from "./entitlement";
 import type { StoredGame, StoredSession } from "./store";
 
@@ -159,10 +159,14 @@ const sessionSchema = z.object({
   state: playStateSchema, startedAt: ms, finishedAt: ms.nullable(), updatedAt: ms.optional(),
 });
 
+// (the cloud table accepts: key 1-160 characters, challenge id 1-64, box 1-5; a card outside that would be refused there every round)
 const cardSchema = z.object({
-  key: z.string().max(200), gameId: id, challengeId: z.string().max(200), box: z.number().int().min(1).max(10), due: ms, added: ms,
+  key: z.string().min(1).max(160), gameId: id, challengeId: z.string().min(1).max(64), box: z.number().int().min(1).max(MASTERED_AFTER_BOX), due: ms, added: ms,
   reviews: z.number().int().nonnegative(), updatedAt: ms.optional(), mastered: z.boolean(),
 });
+
+/** The cloud table accepts titles of 1-200 characters; a game with another title would be refused there on every round. */
+export const cloudTitle = (title: string, spec: { meta: { title: string } }): string => (title.trim() ? title : spec.meta.title || "Game").slice(0, 200);
 
 export interface RejectedGame { id: string; title: string; reason: string }
 
@@ -201,7 +205,7 @@ export function checkGameRecord(input: unknown, deviceTier?: FeatureTier): { ok:
   const res = revalidateSpec(parsed.data.spec, deviceTier);
   if (!res.ok) return { ok: false, rejected: { ...label, reason: res.reason } };
   const g = parsed.data;
-  return { ok: true, game: { id: g.id, title: g.title, createdAt: g.createdAt, updatedAt: g.updatedAt ?? g.createdAt, revision: g.revision, spec: res.spec } };
+  return { ok: true, game: { id: g.id, title: cloudTitle(g.title, res.spec), createdAt: g.createdAt, updatedAt: g.updatedAt ?? g.createdAt, revision: g.revision, spec: res.spec } };
 }
 
 /**
@@ -227,6 +231,18 @@ export function checkSessionRecord(input: unknown): StoredSession | null {
   if (!parsed.success) return null;
   const d = parsed.data;
   return { ...d, state: d.state as PlayState, updatedAt: d.updatedAt ?? d.startedAt };
+}
+
+/** A review card from the device's own storage, or null when it has no game/challenge. Numbers that would poison the rest (NaN, wrong box) are repaired. */
+export function normalizeCard(raw: unknown, key: string): DeckCard | null {
+  if (!isObj(raw) || typeof raw.gameId !== "string" || typeof raw.challengeId !== "string") return null;
+  const added = Math.max(0, num(raw.added, 0));
+  const box = Math.trunc(num(raw.box, 1));
+  return {
+    key, gameId: raw.gameId, challengeId: raw.challengeId,
+    box: Math.min(MASTERED_AFTER_BOX, Math.max(1, box)), due: Math.max(0, num(raw.due, added)), added,
+    reviews: Math.max(0, Math.trunc(num(raw.reviews, 0))), updatedAt: num(raw.updatedAt, added), mastered: raw.mastered === true,
+  };
 }
 
 export function checkCardRecord(input: unknown): DeckCard | null {
