@@ -16,7 +16,7 @@ import type { InputState } from "../input";
 import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
-import { applyDeadzone, bottomAboveControls, bottomEdge, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
+import { applyDeadzone, bottomAboveControls, bottomEdge, controlsInsetStyle, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
 import { SPRINT_IDLE, isSprinting, sprintCancel, sprintPress, sprintRelease, sprintStickReleased, sprintToggle, type SprintState } from "./sprintLatch";
 import { useDialogFocus } from "./useDialogFocus";
 
@@ -301,7 +301,7 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
   };
   // Landscape: keep the controls clear of the notch / rounded corners and the gesture bar.
   return (
-    <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", paddingLeft: "max(0.75rem, env(safe-area-inset-left))", paddingRight: "max(0.75rem, env(safe-area-inset-right))", paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }} data-testid="touch-controls" data-scale={touchScale}>
+    <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", ...controlsInsetStyle(touchScale) }} data-testid="touch-controls" data-scale={touchScale}>
       {/* the invisible ring around the stick (before:) widens the touch area by 12px, so a thumb that lands just outside still steers */}
       <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/60 backdrop-blur before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
         onPointerDown={(e) => { if (pid.current !== null) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}

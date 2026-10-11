@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDeadzone, bottomAboveControls, bottomEdge, controlsHeightRem, keyboardInset, landscapeReserveRem, landscapeStrip, safePadAll, safePadX, sideWithInset, STICK_DEADZONE, topWithInset } from "@/components/game/hud/hudLayout";
+import { applyDeadzone, bottomAboveControls, bottomEdge, controlsHeightRem, controlsInsetStyle, controlsPadRem, keyboardInset, landscapeReserveRem, landscapeStrip, safePadAll, safePadX, sideWithInset, STICK_DEADZONE, topWithInset } from "@/components/game/hud/hudLayout";
 import { computeLayout, TOUCH_METRICS } from "@/lib/layout";
 
 describe("controls clearance (derived from the touch metrics)", () => {
@@ -19,14 +19,30 @@ describe("controls clearance (derived from the touch metrics)", () => {
 
   it("places things above the controls and the gesture bar", () => {
     const css = bottomAboveControls("regular", 0.5);
-    expect(css).toBe("calc(8.75rem + max(0.5rem, env(safe-area-inset-bottom, 0px)))");
-    // the controls' own bottom padding is max(0.5rem, inset), so the clearance must use the same floor
-    expect(css).toContain("max(0.5rem, env(safe-area-inset-bottom");
+    expect(css).toBe("calc(8.75rem + max(1rem, env(safe-area-inset-bottom, 0px)))");
+    // the controls' own bottom padding is max(<scale padding>, inset), so the clearance must use the same floor
+    expect(css).toContain(`max(${controlsPadRem("regular").bottom}rem, env(safe-area-inset-bottom`);
     expect(bottomAboveControls("large")).not.toBe(bottomAboveControls("regular"));
   });
 
   it("keeps a bottom-edge element clear of the gesture bar", () => {
     expect(bottomEdge(0.5)).toBe("max(0.5rem, env(safe-area-inset-bottom, 0px))");
+  });
+});
+
+describe("controls padding (taken from the scale's own padding, then the device insets)", () => {
+  it("reads the Tailwind padding of each scale", () => {
+    expect(controlsPadRem("compact")).toEqual({ side: 0.75, bottom: 0.5 }); // px-3 pb-2
+    expect(controlsPadRem("regular")).toEqual({ side: 1, bottom: 1 }); // p-4
+    expect(controlsPadRem("large")).toEqual({ side: 1.5, bottom: 1.5 }); // p-6
+  });
+
+  it("keeps the thumbs off the gesture bar and the curved screen edges", () => {
+    const s = controlsInsetStyle("regular");
+    expect(s.paddingBottom).toBe("max(1rem, env(safe-area-inset-bottom, 0px))");
+    expect(s.paddingLeft).toBe("max(1rem, env(safe-area-inset-left, 0px))");
+    expect(s.paddingRight).toBe("max(1rem, env(safe-area-inset-right, 0px))");
+    expect(controlsInsetStyle("large").paddingBottom).toContain("max(1.5rem");
   });
 });
 
@@ -51,7 +67,7 @@ describe("landscape strip between the stick and the buttons", () => {
     const s = landscapeStrip("compact");
     expect(s.left).toBe("max(7.25rem, calc(6.50rem + env(safe-area-inset-left, 0px)))");
     expect(s.right).toBe("max(12.00rem, calc(11.25rem + env(safe-area-inset-right, 0px)))");
-    expect(sideWithInset(0.75, "left")).toContain("env(safe-area-inset-left");
+    expect(sideWithInset(0.75, "left", 0.75)).toContain("env(safe-area-inset-left");
   });
 
   it("uses the same sizes as the controls themselves", () => {

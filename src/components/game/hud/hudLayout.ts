@@ -8,16 +8,26 @@ import { TOUCH_METRICS, type TouchScale } from "@/lib/layout";
  * numbers into inline styles. Safe-area insets (notch, rounded corners, gesture bar) are folded in with `env()`.
  */
 
-/** The touch controls keep at least this much room at the sides / bottom (see TouchControls). */
-export const CONTROLS_SIDE_FLOOR_REM = 0.75;
-export const CONTROLS_BOTTOM_FLOOR_REM = 0.5;
-
-const rem = (cls: string, prefix: string): number => {
-  const n = Number(new RegExp(`${prefix}-(\\d+(?:\\.\\d+)?)`).exec(cls)?.[1] ?? 0);
-  return n / 4; // Tailwind spacing unit: 1 = 0.25rem
+/** A Tailwind spacing class such as `px-3` / `size-24` in rem (1 unit = 0.25rem), or null when the string has none. */
+const remOrNull = (cls: string, prefix: string): number | null => {
+  const m = new RegExp(`(?<![\\w-])${prefix}-(\\d+(?:\\.\\d+)?)`).exec(cls);
+  return m ? Number(m[1]) / 4 : null;
 };
+const rem = (cls: string, prefix: string): number => remOrNull(cls, prefix) ?? 0;
 const sizeRem = (cls: string) => rem(cls, "size");
 const gapRem = (cls: string) => rem(cls, "gap");
+
+/** How far the controls keep from the screen's sides and bottom, from the padding in `TOUCH_METRICS` (before any inset). */
+export function controlsPadRem(scale: TouchScale): { side: number; bottom: number } {
+  const pad = TOUCH_METRICS[scale].pad;
+  return { side: remOrNull(pad, "px") ?? rem(pad, "p"), bottom: remOrNull(pad, "pb") ?? rem(pad, "p") };
+}
+
+/** Padding of the touch-controls bar: the scale's own padding, or the notch / gesture-bar inset when that is larger. */
+export function controlsInsetStyle(scale: TouchScale): { paddingLeft: string; paddingRight: string; paddingBottom: string } {
+  const p = controlsPadRem(scale);
+  return { paddingLeft: `max(${p.side}rem, env(safe-area-inset-left, 0px))`, paddingRight: `max(${p.side}rem, env(safe-area-inset-right, 0px))`, paddingBottom: `max(${p.bottom}rem, env(safe-area-inset-bottom, 0px))` };
+}
 
 /** Height (rem, without the bottom inset) from the bottom edge to the top of the tallest control. */
 export function controlsHeightRem(scale: TouchScale): number {
@@ -30,7 +40,7 @@ export function controlsHeightRem(scale: TouchScale): number {
 
 /** CSS `bottom` that puts something `gapRem` above the touch controls (portrait phones and tablets). */
 export function bottomAboveControls(scale: TouchScale, gap = 0.5): string {
-  return `calc(${(controlsHeightRem(scale) + gap).toFixed(2)}rem + max(${CONTROLS_BOTTOM_FLOOR_REM}rem, env(safe-area-inset-bottom, 0px)))`;
+  return `calc(${(controlsHeightRem(scale) + gap).toFixed(2)}rem + max(${controlsPadRem(scale).bottom}rem, env(safe-area-inset-bottom, 0px)))`;
 }
 
 /** CSS `bottom` for something that sits at the bottom edge (nothing in the way), clear of the gesture bar. */
@@ -45,18 +55,20 @@ export function landscapeReserveRem(scale: TouchScale, hasJump = true): { left: 
   const gap = gapRem(m.gap);
   // compact: [sprint][jump][interact] in one row
   const buttons = sizeRem(m.sprint) + gap + (hasJump ? sizeRem(m.action) + gap : 0) + sizeRem(m.action);
-  return { left: CONTROLS_SIDE_FLOOR_REM + stick + 0.5, right: CONTROLS_SIDE_FLOOR_REM + buttons + 0.5 };
+  const side = controlsPadRem(scale).side;
+  return { left: side + stick + 0.5, right: side + buttons + 0.5 };
 }
 
 /** `max(<floor>, env(inset))`-style value for the physical `left` / `right` of an element beside the controls. */
-export function sideWithInset(remValue: number, side: "left" | "right"): string {
-  return `max(${remValue.toFixed(2)}rem, calc(${(remValue - CONTROLS_SIDE_FLOOR_REM).toFixed(2)}rem + env(safe-area-inset-${side}, 0px)))`;
+export function sideWithInset(remValue: number, side: "left" | "right", floorRem: number): string {
+  return `max(${remValue.toFixed(2)}rem, calc(${(remValue - floorRem).toFixed(2)}rem + env(safe-area-inset-${side}, 0px)))`;
 }
 
 /** Inline style for a strip in the middle of a landscape phone, between the stick and the buttons. */
 export function landscapeStrip(scale: TouchScale, hasJump = true): { left: string; right: string } {
   const r = landscapeReserveRem(scale, hasJump);
-  return { left: sideWithInset(r.left, "left"), right: sideWithInset(r.right, "right") };
+  const floor = controlsPadRem(scale).side;
+  return { left: sideWithInset(r.left, "left", floor), right: sideWithInset(r.right, "right", floor) };
 }
 
 /** `top` for something placed `baseRem` below the top edge when the top bar's padding is `floorRem`: moves down with the status-bar / notch inset. */
