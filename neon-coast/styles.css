@@ -207,10 +207,7 @@ kbd { font-family: var(--display); font-size: 15px; letter-spacing: 0.5px; backg
 .rot-phone { display: block; width: 34px; height: 58px; border: 3px solid var(--text); border-radius: 8px; position: relative; animation: rotPhone 2.4s ease-in-out infinite; }
 .rot-phone::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 8px; height: 3px; margin-left: -4px; border-radius: 2px; background: var(--text); }
 @keyframes rotPhone { 0%, 20% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-@media (pointer: coarse) and (orientation: portrait) {
-  .rotate { position: absolute; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 24px; background: rgba(5, 8, 20, 0.97); pointer-events: auto; text-align: center; }
-  .rotate p { margin: 0; font-weight: 700; font-size: 20px; line-height: 1.4; }
-}
+/* No longer shown: the game plays upright on phones too (see the portrait layout at the end of this file). */
 
 /* ---------- short landscape screens (phones) ---------- */
 @media (max-height: 500px) {
@@ -313,3 +310,27 @@ html[dir=rtl] #shop .bars i:after{inset:0 0 0 auto}
 .jobs-none { grid-column: 1 / -1; margin: 0 0 4px; color: var(--muted); font-size: 13px; }
 /* the job board stays hidden until ui.js fills #jobsStats (renderJobs) */
 .jobs-board:has(> .jobs-stats:empty) { display: none; }
+
+/* ---------- portrait phones: the HUD is stacked for an upright screen ----------
+   Top corners: map and pause buttons. Under them: money, stars, weapon and clock on the right; the minimap, bars and speedo on the left.
+   The stick and the action buttons own the bottom third, so the context prompt, objective and subtitle sit just above them. */
+@media (orientation: portrait) and (max-width: 720px) {
+  .touch button[data-btn=map] { left: calc(12px + var(--sal)); top: calc(8px + var(--sat)); }
+  .touch button[data-btn=pause] { left: auto; right: calc(12px + var(--sar)); top: calc(8px + var(--sat)); }
+  .hud-tr { top: calc(58px + var(--sat)); right: calc(14px + var(--sar)); }
+  .money { font-size: 34px; } .stars { font-size: 18px; } .clock { font-size: 18px; } .weapon { margin-top: 2px; }
+  .hud-bl { top: calc(58px + var(--sat)); left: calc(14px + var(--sal)); bottom: auto; width: 126px; gap: 5px; }
+  #minimap { width: 126px; height: 94px; }
+  .speedo { position: static; margin: 4px 0 0; }
+  .speedo b { font-size: 30px; }
+  .speedo .bar.car { position: static; width: 100%; margin-top: 4px; }
+  .notify { top: calc(206px + var(--sat)); left: calc(14px + var(--sal)); width: min(250px, 64vw); }
+  #hud .jobpanel { top: calc(360px + var(--sat)); left: calc(14px + var(--sal)); width: min(220px, 60vw); }
+  .mission-timer { top: calc(10px + var(--sat)); font-size: 38px; }
+  .radio { top: calc(262px + var(--sat)); }
+  .prompt, .objective, .subtitle { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: 92vw; margin: 0; white-space: normal; text-align: center; }
+  .prompt { bottom: calc(288px + var(--sab)); }
+  .objective { bottom: calc(326px + var(--sab)); font-size: 15px; }
+  .subtitle { bottom: calc(372px + var(--sab)); font-size: 16px; }
+  .prompt.in-car { top: calc(200px + var(--sat)); bottom: auto; }
+}
