@@ -134,7 +134,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // between the layouts, never the element tree, so turning the phone does not reset a half-made answer.
   const split = shortLandscape && challenge.type !== "program" && challenge.type !== "simulation";
   return (
-    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")} style={{ ...(shortLandscape ? safePadX("0.5rem") : {}), ...(lifted ? { paddingBottom: kb, alignItems: "flex-end" } : {}) }}>
+    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")} style={{ ...(shortLandscape ? safePadX("0.5rem") : {}), ...(lifted ? { paddingBottom: kb, alignItems: "flex-end" } : {}) }}>
       <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} style={lifted ? { maxHeight: `calc(100dvh - ${kb}px - 0.5rem)` } : undefined} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
         <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>

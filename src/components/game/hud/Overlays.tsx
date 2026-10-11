@@ -187,7 +187,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
           <div className={cx("pointer-events-auto flex flex-wrap items-center gap-1.5 empty:hidden", shortLandscape && "shrink-0")}>
             {/* the chips are see-through by design; a dark plate under each keeps a station label behind it from garbling the text */}
             {collect && collect.total > 0 && (
-              <span className="rounded-full bg-ink-900/80 backdrop-blur">
+              <span className="rounded-full bg-ink-900/85">
                 <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
                   <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
                   <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
@@ -195,7 +195,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               </span>
             )}
             <BossHealth spec={spec} client={client} />
-            {client.streak >= 2 && <span className="rounded-full bg-ink-900/80 backdrop-blur"><Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge></span>}
+            {client.streak >= 2 && <span className="rounded-full bg-ink-900/85"><Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge></span>}
           </div>
         </div>
         <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
@@ -308,19 +308,19 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
   return (
     <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", ...controlsInsetStyle(touchScale) }} data-testid="touch-controls" data-scale={touchScale}>
       {/* the invisible ring around the stick (before:) widens the touch area by 12px, so a thumb that lands just outside still steers */}
-      <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/60 backdrop-blur before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
+      <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/70 before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
         onPointerDown={(e) => { if (pid.current !== null && pid.current !== e.pointerId) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
         onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={(e) => { if (pid.current === e.pointerId) end(); }} onPointerCancel={(e) => { if (pid.current === e.pointerId) end(); }} onLostPointerCapture={(e) => { if (pid.current === e.pointerId) end(); }}>
         <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>
       <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row" : "flex-col items-end", m.gap)}>
-        <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold backdrop-blur active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
+        <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
           onPointerDown={() => setSprint(sprintPress(sprintState.current, performance.now()))} onPointerUp={() => setSprint(sprintRelease(sprintState.current, performance.now()))} onPointerCancel={() => setSprint(sprintCancel(sprintState.current))} onLostPointerCapture={() => setSprint(sprintCancel(sprintState.current))}
           onClick={(e) => { if (e.detail === 0) setSprint(sprintToggle(sprintState.current)); }}>{t("touch.sprint")}</button>
         <div className={cx("flex", m.gap)}>
           {/* jump reacts on press (not on release) so a platform jump feels instant; a keyboard / screen-reader activation has detail 0 */}
-          {hasJump && <button type="button" className={cx("grid touch-none select-none place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30", m.action)} onPointerDown={() => input.queueJump()} onClick={(e) => { if (e.detail === 0) input.queueJump(); }}>{t("touch.jump")}</button>}
-          <button type="button" className={cx("grid select-none place-items-center rounded-full border font-semibold backdrop-blur active:bg-neon/40", m.action, ready ? "border-neon bg-neon/30 ring-2 ring-neon/60" : "border-neon/50 bg-neon/15")} onClick={onInteract} data-testid="touch-interact" data-ready={ready ? "1" : "0"}>{t("touch.interact")}</button>
+          {hasJump && <button type="button" className={cx("grid touch-none select-none place-items-center rounded-full border border-line bg-ink-900/70 font-semibold active:bg-neon/30", m.action)} onPointerDown={() => input.queueJump()} onClick={(e) => { if (e.detail === 0) input.queueJump(); }}>{t("touch.jump")}</button>}
+          <button type="button" className={cx("grid select-none place-items-center rounded-full border font-semibold active:bg-neon/40", m.action, ready ? "border-neon bg-neon/30 ring-2 ring-neon/60" : "border-neon/50 bg-neon/15")} onClick={onInteract} data-testid="touch-interact" data-ready={ready ? "1" : "0"}>{t("touch.interact")}</button>
         </div>
       </div>
     </div>
@@ -356,7 +356,7 @@ export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; 
   }, [onClose]);
   const p = bossProgress(boss, client);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm" style={safePadAll()}>
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={boss.name} data-testid="boss-card" className="lu-pop max-h-full w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl border border-rose/60 bg-ink-800 p-5 shadow-e3">
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-11 place-items-center rounded-full" style={{ background: boss.look.color + "33", border: `2px solid ${boss.look.color}`, color: boss.look.color }}><NpcIcon shape={boss.look.shape} className="size-6" /></span>
@@ -429,7 +429,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm" style={safePadAll()}>
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={title} data-testid="lore-card" className="lu-pop max-h-full overflow-y-auto w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
@@ -448,7 +448,7 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=resume-button]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm" style={safePadAll()}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/90 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className={cx("lu-pop my-auto max-h-[96dvh] w-full space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3", shortLandscape ? "max-w-3xl" : "max-w-md md:max-w-xl")}>
         <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
         {/* a phone held sideways has no room for one tall column: toggles on one side, the rest (and "Resume") on the other */}
@@ -490,7 +490,7 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=results-link]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur" style={safePadAll()}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur pointer-coarse:bg-ink-950/90 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <Confetti />
       <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>
