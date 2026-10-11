@@ -19,6 +19,7 @@ import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPromp
 import { withReaction } from "@/lib/game/state/reactions";
 import { Minimap } from "./hud/Minimap";
 import { SceneAnnouncer } from "./hud/SceneAnnouncer";
+import { useWakeLock } from "./hud/useWakeLock";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
 import { UnityView, unityBuildAvailable } from "./UnityView";
@@ -391,6 +392,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     document.addEventListener("visibilitychange", flush);
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", flush); };
   }, [data, runtime, send]);
+
+  // a phone keeps its screen on while a game is on (reading a question takes longer than the screen timeout); paused or finished, it may sleep
+  useWakeLock(touch && boot.status === "ready" && overlay.type !== "pause" && overlay.type !== "done");
 
   // auto-pause when the tab is hidden
   useEffect(() => {
