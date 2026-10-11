@@ -103,8 +103,19 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const markerInsets = useRef<GuideInsets>(DEFAULT_GUIDE_INSETS);
   const layout = useLayout();
   useEffect(() => {
-    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale });
+    // control sizes are in rem, so they grow with the system font size: measure what a rem is right now
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale, rootPx });
   }, [hudBottom, layout.height, layout.touchScale, touch]);
+  // On a phone a downward drag must never pull the page down to refresh it, and a quick double tap on a button must not zoom.
+  useEffect(() => {
+    if (!touch) return;
+    const html = document.documentElement, body = document.body;
+    const before = [html.style.overscrollBehavior, body.style.overscrollBehavior];
+    html.style.overscrollBehavior = "none";
+    body.style.overscrollBehavior = "none";
+    return () => { html.style.overscrollBehavior = before[0] ?? ""; body.style.overscrollBehavior = before[1] ?? ""; };
+  }, [touch]);
   const input = useMemo(() => new InputState(), []);
   const emitter = useMemo(() => new ParticleEmitter(), []);
   const audio = useMemo(() => new GameAudio(), []);
@@ -118,6 +129,13 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const clientRef = useRef<ClientState | null>(null);
   const overlayRef = useRef<Overlay>(overlay);
   const data = boot.status === "ready" ? boot.data : null;
+  // The renderer rebuilds its materials whenever the profile object changes, so the calmer profile must be one stable object
+  // (a new object on every render of this component made every toast, score change and rotation rebuild the materials).
+  const sceneProfile = useMemo(() => {
+    if (!data) return null;
+    const p = data.render.profile;
+    return reduceMotion ? { ...p, particles: { ambient: 0, burst: Math.min(p.particles.burst, 6), trails: false } } : p;
+  }, [data, reduceMotion]);
   // Event handlers read the latest values through refs (kept in sync after every render).
   useEffect(() => {
     overlayRef.current = overlay;
@@ -459,9 +477,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
   return (
-    <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} fixed inset-0 select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
+    <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} fixed inset-0 touch-manipulation select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideInsets={markerInsets} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
+        <GameCanvas runtime={runtime} profile={sceneProfile ?? d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideInsets={markerInsets} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
       {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
       {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}

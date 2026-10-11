@@ -384,7 +384,7 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
     <div className="space-y-3" ref={root}>
       <p className="text-sm text-muted">{t("challenge.match.help")}</p>
       <p role="status" aria-live="polite" className="sr-only">{note}</p>
-      <div className="grid grid-cols-1 gap-3 min-[26rem]:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <div className="space-y-2" role="group" aria-label={t("a11y.match.terms")}>
           {challenge.lefts.map((l) => (
             <button key={l.id} type="button" disabled={disabled} data-left={l.id} data-paired={pairs[l.id] ? "1" : undefined} aria-pressed={left === l.id}

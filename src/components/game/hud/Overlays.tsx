@@ -168,10 +168,11 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
             </Link>
             <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">
-                <span className="uppercase tracking-wide">{t("hud.area")}</span>
+                {/* with a source label the card's first line is that label (the caption stays for screen readers), so the card is no taller */}
+                <span className={cx("uppercase tracking-wide", source && "sr-only")}>{t("hud.area")}</span>
                 {source && (
                   <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-[11px] font-semibold", source.tone)}>
-                    <source.Icon aria-hidden className="mt-px size-3 shrink-0" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
+                    <source.Icon aria-hidden className="mt-px hidden size-3 shrink-0 min-[24rem]:block" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
                   </span>
                 )}
               </p>
@@ -184,14 +185,17 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
             <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto min-w-11 shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
           </div>
           <div className={cx("pointer-events-auto flex flex-wrap items-center gap-1.5 empty:hidden", shortLandscape && "shrink-0")}>
+            {/* the chips are see-through by design; a dark plate under each keeps a station label behind it from garbling the text */}
             {collect && collect.total > 0 && (
-              <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
-                <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
-                <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
-              </Badge>
+              <span className="rounded-full bg-ink-900/80 backdrop-blur">
+                <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
+                  <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
+                  <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
+                </Badge>
+              </span>
             )}
             <BossHealth spec={spec} client={client} />
-            {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
+            {client.streak >= 2 && <span className="rounded-full bg-ink-900/80 backdrop-blur"><Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge></span>}
           </div>
         </div>
         <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
