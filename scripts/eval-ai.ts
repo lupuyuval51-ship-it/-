@@ -6,7 +6,7 @@
  *   npm run eval:ai -- --compare a.json b.json     compare two saved reports
  *
  * A real run SPENDS MONEY at the provider, so it needs --yes. Options: --generate N (default 70) --edit N (default 30)
- * --concurrency N (default 2) --out file.json --price-in USD --price-out USD (per million tokens, for the cost columns).
+ * --concurrency N (default 2) --deadline-ms N (per case, default 600000) --call-timeout-ms N (per model call, default 240000) --out file.json --price-in USD --price-out USD (per million tokens, for the cost columns).
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { buildCases } from "../src/server/ai/eval/cases";
@@ -56,7 +56,7 @@ async function main(): Promise<void> {
   const label = value("label") ?? backend.info.model;
   console.log(`Running ${cases.length} cases on ${backend.info.id} / ${backend.info.model} ...`);
   const results = await runEval(cases, {
-    backend, concurrency: num("concurrency", 2),
+    backend, concurrency: num("concurrency", 2), deadlineMs: num("deadline-ms", 600_000), callTimeoutMs: num("call-timeout-ms", 240_000),
     onResult: (r, done, total) => console.log(`[${done}/${total}] ${r.id} ${r.ok ? "ok" : `FAIL ${r.errorCode}${r.failedChecks.length ? ` (${r.failedChecks.join(",")})` : ""}`} repairs=${r.repairs} ${(r.ms / 1000).toFixed(1)}s`),
   });
   const report = buildReport(label, results, prices);
