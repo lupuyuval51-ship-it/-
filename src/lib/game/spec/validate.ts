@@ -77,7 +77,21 @@ export function normalizeRawSpec(raw: unknown): { value: unknown; notes: string[
     cap(area, "stations", SPEC_LIMITS.stationsPerArea, `stations in ${String(area.id)}`);
     cap(area, "npcs", SPEC_LIMITS.npcsPerArea, `npcs in ${String(area.id)}`);
   }
-  for (const m of arr(spec.missions)) if (isObj(m)) cap(m, "objectives", SPEC_LIMITS.objectivesPerMission, `objectives in ${String(m.id)}`);
+  for (const m of arr(spec.missions)) {
+    if (!isObj(m)) continue;
+    cap(m, "objectives", SPEC_LIMITS.objectivesPerMission, `objectives in ${String(m.id)}`);
+    // The same id listed twice would ask for two solves of one station: the objective could never be completed.
+    for (const o of arr(m.objectives)) {
+      if (!isObj(o)) continue;
+      for (const key of ["challengeIds", "stationIds"] as const) {
+        const list = o[key];
+        if (Array.isArray(list) && new Set(list).size !== list.length) {
+          o[key] = [...new Set(list)];
+          notes.push(`duplicate ids removed from ${key} of an objective in mission ${String(m.id)}`);
+        }
+      }
+    }
+  }
   for (const c of arr(spec.challenges)) {
     if (!isObj(c)) continue;
     cap(c, "options", SPEC_LIMITS.optionsPerChoice, `options in ${String(c.id)}`);
