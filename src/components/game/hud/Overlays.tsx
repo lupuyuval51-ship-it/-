@@ -271,6 +271,7 @@ export function InteractPrompt({ target, touch, onActivate }: { target: Interact
 /**
  * Joystick on the left, actions on the right, in both languages: like every game controller this layout is not mirrored
  * for right-to-left text (`direction: ltr` below), so the thumbs find the same controls whatever the UI language.
+ * In every scale the "Use" button is the one in the bottom-right corner (landscape: Run, Jump, Use from left to right).
  * `ready` lights the action button when something can be used right now.
  */
 export function TouchControls({ input, onInteract, hasJump, ready = false }: { input: InputState; onInteract: () => void; hasJump: boolean; ready?: boolean }) {
@@ -312,7 +313,7 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
         onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={(e) => { if (pid.current === e.pointerId) end(); }} onPointerCancel={(e) => { if (pid.current === e.pointerId) end(); }} onLostPointerCapture={(e) => { if (pid.current === e.pointerId) end(); }}>
         <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>
-      <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row-reverse" : "flex-col items-end", m.gap)}>
+      <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row" : "flex-col items-end", m.gap)}>
         <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold backdrop-blur active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
           onPointerDown={() => setSprint(sprintPress(sprintState.current, performance.now()))} onPointerUp={() => setSprint(sprintRelease(sprintState.current, performance.now()))} onPointerCancel={() => setSprint(sprintCancel(sprintState.current))} onLostPointerCapture={() => setSprint(sprintCancel(sprintState.current))}
           onClick={(e) => { if (e.detail === 0) setSprint(sprintToggle(sprintState.current)); }}>{t("touch.sprint")}</button>

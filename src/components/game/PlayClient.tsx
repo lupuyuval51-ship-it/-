@@ -88,8 +88,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
   const [reduceMotion, setReduceMotion] = useState(() => (typeof window === "undefined" ? false : readPref(MOTION_KEY, systemReducesMotion())));
   const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
-  // Website on a phone that can vibrate: the same short buzzes as the Android app, switchable in the pause menu. The app brings its own (`onFeedback`).
-  const [vibration, setVibration] = useState(() => (typeof window === "undefined" ? true : readPref(VIBRATION_KEY, true)));
+  // Website on a phone that can vibrate: the same short buzzes as the Android app, switchable in the pause menu (off by default for people whose device asks for reduced motion). The app brings its own (`onFeedback`).
+  const [vibration, setVibration] = useState(() => (typeof window === "undefined" ? true : readPref(VIBRATION_KEY, !systemReducesMotion())));
   const webVibration = !onFeedback && touch && canVibrate();
   const router = useRouter();
   // Optional Unity renderer (?renderer=unity). Display only: input, physics, scoring and the server stay as they are.

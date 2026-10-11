@@ -191,6 +191,18 @@ describe("touch controls", () => {
     expect(he).toContain(DICTIONARIES.he["touch.jump"]);
   });
 
+  it("keep the Use button in the bottom-right corner when the phone is sideways too", () => {
+    view.layout = sideways();
+    const html = render(h(TouchControls, { input, onInteract: noop, hasJump: true }));
+    expect(html).not.toContain("flex-row-reverse");
+    // left to right: Run, Jump, Use
+    const at = (needle: string) => html.indexOf(needle);
+    const run = `aria-label="${DICTIONARIES.en["a11y.sprint"]}"`;
+    expect(at(run)).toBeGreaterThan(-1);
+    expect(at(run)).toBeLessThan(at(DICTIONARIES.en["touch.jump"] + "</button>"));
+    expect(at(DICTIONARIES.en["touch.jump"] + "</button>")).toBeLessThan(at('data-testid="touch-interact"'));
+  });
+
   it("leave out the jump button when the world has no jumping", () => {
     expect(render(h(TouchControls, { input, onInteract: noop, hasJump: false }))).not.toContain(DICTIONARIES.en["touch.jump"]);
   });
