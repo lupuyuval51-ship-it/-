@@ -58,6 +58,21 @@ test("text pasted from a PDF or a word processor (control characters) still buil
   await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "engine", { timeout: 60_000 });
 });
 
+test("a text file on the phone can be loaded as the notes, and a file that is not text is explained", async ({ page }) => {
+  await page.goto("/#/create");
+  await page.getByTestId("material-file").setInputFiles({ name: "מחזור-המים.txt", mimeType: "text/plain", buffer: Buffer.from(water.he.notes, "utf-8") });
+  await expect(page.locator("#material")).toHaveValue(water.he.notes);
+  await expect(page.locator("#subject")).toHaveValue("מחזור המים"); // named after the file
+  await expect(page.getByTestId("material-file-note")).toContainText("מחזור-המים.txt");
+  await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "1");
+
+  const binary = Buffer.alloc(80);
+  for (let i = 0; i < binary.length; i++) binary[i] = i % 2 === 0 ? 0x00 : 0xff;
+  await page.getByTestId("material-file").setInputFiles({ name: "scan.pdf", mimeType: "application/pdf", buffer: binary });
+  await expect(page.getByTestId("material-file-note")).toContainText("לא ניתן לקרוא את הקובץ כטקסט");
+  await expect(page.locator("#material")).toHaveValue(water.he.notes); // unchanged
+});
+
 test("a missing subject is explained next to the field, which gets the focus", async ({ page }) => {
   await page.goto("/#/create");
   await page.getByTestId("mobile-create-submit").click();

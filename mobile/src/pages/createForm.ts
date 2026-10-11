@@ -84,6 +84,32 @@ export function detectScript(text: string): ContentLang | null {
   return null;
 }
 
+// ───────────────────────────── a text file as the study material ─────────────────────────────
+
+/** Bigger than this is not a set of notes. */
+export const MAX_FILE_BYTES = 2_000_000;
+
+export type MaterialFile = { ok: true; text: string; trimmed: boolean } | { ok: false };
+
+/**
+ * The material out of a file the learner picked. Anything that does not read as text (a PDF or a Word file picked by
+ * mistake decodes to NULs and replacement characters), or is empty, is refused; a long file keeps its beginning.
+ */
+export function materialFromFileText(raw: string): MaterialFile {
+  const broken = (raw.match(/[\u0000\uFFFD]/g) ?? []).length;
+  if (broken > Math.max(2, raw.length * 0.01)) return { ok: false };
+  const text = cleanPastedText(raw).trim();
+  if (!text) return { ok: false };
+  let kept = text.slice(0, INPUT_LIMITS.materialMax);
+  if (/[\uD800-\uDBFF]$/.test(kept)) kept = kept.slice(0, -1); // do not end on half of an emoji
+  return { ok: true, text: kept, trimmed: text.length > INPUT_LIMITS.materialMax };
+}
+
+/** A subject suggested by the file name ("cell-biology_ch3.md" becomes "cell biology ch3"). */
+export function subjectFromFileName(name: string): string {
+  return cleanPastedText(name).replace(/\.[A-Za-z0-9]{1,8}$/, "").replace(/[_\-.]+/g, " ").replace(/\s+/g, " ").trim().slice(0, INPUT_LIMITS.subjectMax);
+}
+
 /** Nothing typed yet (the choices alone do not make a draft). */
 export const isBlankForm = (f: Pick<CreateFormValues, "subject" | "goal" | "material">): boolean => !f.subject.trim() && !f.goal.trim() && !f.material.trim();
 
@@ -184,7 +210,7 @@ export const classifySaveError = (err: unknown): CreateProblem => (isStorageFull
 // ───────────────────────────── the screen's state ─────────────────────────────
 
 /** What the learner had before a button replaced it, so one tap brings it back. */
-export interface Undo { form: CreateFormValues; reason: "example" | "cleared" }
+export interface Undo { form: CreateFormValues; reason: "example" | "cleared" | "file" }
 
 export interface CreateState {
   form: CreateFormValues;
@@ -197,6 +223,7 @@ export interface CreateState {
 export type CreateAction =
   | { [K in keyof CreateFormValues]: { type: "change"; key: K; value: CreateFormValues[K] } }[keyof CreateFormValues]
   | { type: "example"; id: string }
+  | { type: "file"; text: string; subject: string }
   | { type: "clear" }
   | { type: "undo" }
   | { type: "problem"; problem: CreateProblem | null };
@@ -239,6 +266,18 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
         restored: false,
         undo: hasOwnText(state.form) ? { form: state.form, reason: "example" } : state.undo,
         problem: null,
+      };
+    }
+    case "file": {
+      const f = state.form;
+      const replaces = f.material.trim() !== "" && !isExampleText(f.subject, f.material);
+      const subjectless = f.subject.trim() === "";
+      const solved = state.problem !== null && (state.problem.kind === "material" || (state.problem.kind === "required" && subjectless && action.subject !== ""));
+      return {
+        form: { ...f, material: action.text, subject: subjectless ? action.subject : f.subject },
+        restored: false,
+        undo: replaces ? { form: f, reason: "file" } : state.undo,
+        problem: solved ? null : state.problem,
       };
     }
     case "clear":

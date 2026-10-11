@@ -6,7 +6,7 @@ import { INPUT_LIMITS } from "@/config/limits";
 import { generationRequestSchema } from "@/lib/schemas/generation";
 import {
   DRAFT_KEY, anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, detectScript, emptyForm, fitToTier, isBlankForm, isStorageFull,
-  createReducer, hasOwnText, loadDraft, lockedChoices, parseDraft, pickGameType, pickMode, saveDraft, startState, type CreateFormValues, type CreateState, type DraftStorage,
+  createReducer, hasOwnText, loadDraft, lockedChoices, materialFromFileText, parseDraft, subjectFromFileName, pickGameType, pickMode, saveDraft, startState, type CreateFormValues, type CreateState, type DraftStorage,
 } from "../../mobile/src/pages/createForm";
 import { EXAMPLES } from "../../mobile/src/pages/examples";
 
@@ -275,5 +275,58 @@ describe("the screen's state", () => {
     expect(hasOwnText(own)).toBe(true);
     expect(hasOwnText(emptyForm("en", "A"))).toBe(false);
     expect(hasOwnText(filled({ subject: EXAMPLES[0]!.en.subject, material: EXAMPLES[0]!.en.notes }))).toBe(false);
+  });
+});
+
+describe("a text file as the study material", () => {
+  it("keeps real text, cleans it and cuts a long file to the limit without splitting an emoji", () => {
+    // a byte-order mark, Windows line endings and a vertical tab are all cleaned away
+    expect(materialFromFileText("\uFEFFTerm: meaning\r\nSecond: line\u000B\n")).toEqual({ ok: true, text: "Term: meaning\nSecond: line", trimmed: false });
+    const long = materialFromFileText("a".repeat(INPUT_LIMITS.materialMax - 1) + "😀 and more text after it");
+    expect(long).toMatchObject({ ok: true, trimmed: true });
+    if (long.ok) {
+      expect(long.text.length).toBeLessThanOrEqual(INPUT_LIMITS.materialMax);
+      expect(/[\uD800-\uDBFF]$/.test(long.text)).toBe(false);
+    }
+    expect(materialFromFileText("שלום עולם: הסבר").ok).toBe(true);
+  });
+
+  it("refuses an empty file and a binary one (a PDF or Word file picked by mistake)", () => {
+    expect(materialFromFileText("")).toEqual({ ok: false });
+    expect(materialFromFileText("   \n \u000B ")).toEqual({ ok: false });
+    expect(materialFromFileText("%PDF-1.7\u0000\u0000\u0000\uFFFD\uFFFD\uFFFD stream \u0000\uFFFD")).toEqual({ ok: false });
+    // a stray replacement character in an otherwise normal text is fine
+    expect(materialFromFileText("Term: meaning of the term \uFFFD and more words in this line to be long enough").ok).toBe(true);
+  });
+
+  it("suggests a subject from the file name", () => {
+    expect(subjectFromFileName("cell-biology_ch3.md")).toBe("cell biology ch3");
+    expect(subjectFromFileName("Notes.txt")).toBe("Notes");
+    expect(subjectFromFileName("שברים - סיכום.txt")).toBe("שברים סיכום");
+    expect(subjectFromFileName("x".repeat(500) + ".txt").length).toBe(INPUT_LIMITS.subjectMax);
+    expect(subjectFromFileName(".md")).toBe("");
+  });
+
+  it("loading a file fills the notes, names an unnamed game after the file and takes back the matching messages", () => {
+    const base = startState(null, { locale: "en", tier: "A", example: false });
+    const s = createReducer({ ...base, problem: { kind: "required" } }, { type: "file", text: "Term: meaning", subject: "Cell biology" });
+    expect(s.form).toMatchObject({ material: "Term: meaning", subject: "Cell biology" });
+    expect(s.problem).toBeNull();
+    expect(s.undo).toBeNull();
+    const named = createReducer({ ...base, form: filled({ subject: "Mine", material: "" }) }, { type: "file", text: "New notes", subject: "File name" });
+    expect(named.form.subject).toBe("Mine");
+    expect(named.undo).toBeNull(); // nothing was replaced
+    const keepsOther = createReducer({ ...base, problem: { kind: "generic" } }, { type: "file", text: "n", subject: "" });
+    expect(keepsOther.problem).toEqual({ kind: "generic" });
+    expect(createReducer({ ...base, problem: { kind: "material", detail: null } }, { type: "file", text: "n", subject: "" }).problem).toBeNull();
+  });
+
+  it("loading a file over the learner's own notes can be taken back; over an example it cannot (nothing was lost)", () => {
+    const own = filled({ subject: "Mine", material: "My own notes about cells." });
+    const s = createReducer({ ...startState(null, { locale: "en", tier: "A", example: false }), form: own }, { type: "file", text: "File notes", subject: "F" });
+    expect(s.undo).toEqual({ form: own, reason: "file" });
+    expect(createReducer(s, { type: "undo" }).form).toEqual(own);
+    const onExample = createReducer(startState(null, { locale: "en", tier: "A", example: true }), { type: "file", text: "File notes", subject: "F" });
+    expect(onExample.undo).toBeNull();
   });
 });

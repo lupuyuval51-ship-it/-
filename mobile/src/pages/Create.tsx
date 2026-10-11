@@ -10,7 +10,7 @@ import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/ge
 import { hashQuery } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
 import {
-  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, detectScript, draftStorage, isBlankForm, loadDraft, saveDraft, startState,
+  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
   type ContentLang, type CreateAction, type CreateFormValues,
 } from "./createForm";
 import { EXAMPLES } from "./examples";
@@ -35,6 +35,8 @@ export function CreatePage() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
   const [langKept, setLangKept] = useState<ContentLang | null>(null);
+  const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const alertBox = useRef<HTMLDivElement>(null);
 
   // ── the draft: written while typing, when the app is hidden and when the screen is left; dropped once a game exists
@@ -74,6 +76,21 @@ export function CreatePage() {
   }, [problem]);
 
   const change = <K extends keyof CreateFormValues>(key: K, value: CreateFormValues[K]) => dispatch({ type: "change", key, value } as CreateAction);
+
+  /** Notes saved as a text file on the phone: read here, on the device, like pasted text. */
+  async function loadFile(file: File) {
+    try {
+      if (file.size > MAX_FILE_BYTES) throw new Error("too big");
+      const loaded = materialFromFileText(await file.text());
+      if (!loaded.ok) throw new Error("not text");
+      dispatch({ type: "file", text: loaded.text, subject: subjectFromFileName(file.name) });
+      setFileNote(loaded.trimmed
+        ? { tone: "info", text: t("create.material.file.trimmed", { max: INPUT_LIMITS.materialMax }) }
+        : { tone: "info", text: t("mob.create.file.loaded", { name: file.name }) });
+    } catch {
+      setFileNote({ tone: "error", text: t("create.material.file.error") });
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -167,7 +184,7 @@ export function CreatePage() {
       </div>
       {undo ? (
         <Alert tone="info" className="flex flex-wrap items-center justify-between gap-2" data-testid="create-undo">
-          <span>{t(undo.reason === "example" ? "mob.create.undo.example" : "mob.create.undo.cleared")}</span>
+          <span>{t(undo.reason === "example" ? "mob.create.undo.example" : undo.reason === "file" ? "mob.create.undo.file" : "mob.create.undo.cleared")}</span>
           <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => dispatch({ type: "undo" })}>{t("mob.create.undo")}</Button>
         </Alert>
       ) : restored ? (
@@ -176,6 +193,14 @@ export function CreatePage() {
       <Field label={t("create.material")} hint={hasMaterial ? t("mob.create.material.hint.filled") : t("mob.create.material.hint.empty")} error={materialError} htmlFor="material">
         <Textarea id="material" dir="auto" rows={7} value={form.material} maxLength={INPUT_LIMITS.materialMax} disabled={busy} onChange={(e) => change("material", e.target.value)} placeholder={t("create.material.placeholder")} />
       </Field>
+      <div className="space-y-1">
+        <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => fileInput.current?.click()} data-testid="material-file-button">{t("create.material.file")}</Button>
+        <input
+          ref={fileInput} type="file" className="hidden" tabIndex={-1} data-testid="material-file" accept=".txt,.md,.markdown,.csv,.tsv,text/plain,text/markdown,text/csv"
+          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void loadFile(f); }}
+        />
+        {fileNote && <p className={fileNote.tone === "error" ? "text-xs font-medium text-rose" : "text-xs text-muted"} role={fileNote.tone === "error" ? "alert" : "status"} data-testid="material-file-note">{fileNote.text}</p>}
+      </div>
       {form.material.length >= COUNT_FROM && (
         <p className={form.material.length >= INPUT_LIMITS.materialMax ? "text-xs font-medium text-amber" : "text-xs text-muted"} data-testid="material-count">
           {t("create.material.count", { n: form.material.length, max: INPUT_LIMITS.materialMax })}

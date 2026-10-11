@@ -53,6 +53,8 @@ describe("New game screen (offline app)", () => {
     for (const id of ["mobile-create", "create-notes-column", "create-options-column", "notes-help", "example-notes", "mobile-create-submit"]) expect(html).toContain(`data-testid="${id}"`);
     for (const id of ["subject", "material", "goal", "mode", "language", "difficulty", "gameType"]) expect(html).toContain(`id="${id}"`);
     expect(html).toMatch(/מושג: הסבר/); // the help explains the format
+    expect(html).toMatch(/<input[^>]*type="file"[^>]*data-testid="material-file"/); // notes can come from a text file on the phone
+    expect(html).toContain('data-testid="material-file-button"');
     expect(html).not.toContain('data-testid="mobile-create-error"');
     expect(html).not.toContain('data-testid="mobile-progress"');
   });
