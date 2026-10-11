@@ -67,7 +67,7 @@ export function ScorePopups({ popups }: { popups: Popup[] }) {
  * Title card shown for a few seconds when an area opens. The text lives in CSS (`content: attr(...)`), so it adds no
  * duplicate of the area name or mission title to the page's text.
  */
-export function AreaBanner({ name, subtitle, calm = false }: { name: string; subtitle?: string; /** Reduced motion: the card just appears for a few seconds (the slide-in animation would otherwise be cut to nothing). */ calm?: boolean }) {
+export function AreaBanner({ name, subtitle, calm = false, below }: { name: string; subtitle?: string; /** Reduced motion: the card just appears for a few seconds (the slide-in animation would otherwise be cut to nothing). */ calm?: boolean; /** Pixels from the top that the card must stay under (the top bar), so it never covers the HUD on a short screen. */ below?: number }) {
   const [gone, setGone] = useState(false);
   useEffect(() => {
     if (!calm) return;
@@ -76,7 +76,7 @@ export function AreaBanner({ name, subtitle, calm = false }: { name: string; sub
   }, [calm]);
   // Decorative title card: the area name is already announced by the top bar, so the card is hidden from assistive tech.
   return (
-    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20" style={calm ? { animation: "none", opacity: gone ? 0 : 1 } : undefined}>
+    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20" style={{ ...(below === undefined ? {} : { top: `max(20%, ${below}px)` }), ...(calm ? { animation: "none", opacity: gone ? 0 : 1 } : {}) }}>
       <span className="lu-banner-title" dir="auto">{name}</span>
       {subtitle && <span className="lu-banner-sub" dir="auto">{subtitle}</span>}
     </div>

@@ -96,6 +96,11 @@ describe("area title card with reduced motion", () => {
     expect(calm).toContain("opacity:1");
     expect(calm).toContain('data-title="Nile Valley"'); // still the same element for assistive tests and tools
   });
+
+  it("stays under the top bar on a short screen", () => {
+    expect(render(h(AreaBanner, { name: "Nile Valley", below: 140 }))).toContain("top:max(20%, 140px)");
+    expect(render(h(AreaBanner, { name: "Nile Valley" }))).not.toContain("top:max");
+  });
 });
 
 describe("first-run card", () => {
