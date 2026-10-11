@@ -559,28 +559,30 @@ export class OfflineStore {
   }
 
   /**
-   * Records stamped later than `limit` (the phone's clock was set ahead and then corrected) are re-stamped to `limit`.
-   * Otherwise they would win every sync conflict and be pushed again on every round. Returns how many were changed.
+   * Records stamped later than `threshold` (the phone's clock was set ahead and then corrected) are re-stamped to `to`
+   * (default: the threshold). Otherwise they would win every sync conflict and be pushed again on every round.
+   * Returns how many were changed.
    */
-  clampFutureStamps(limit: number): number {
+  clampFutureStamps(threshold: number, to: number = threshold): number {
+    const limit = threshold;
     let n = 0;
     this.muted = true;
     try {
       for (const id of this.gameIds()) {
         const g = this.getGame(id);
-        if (g && g.updatedAt > limit) { this.put(`game.${id}`, { ...g, updatedAt: limit }); n++; }
+        if (g && g.updatedAt > limit) { this.put(`game.${id}`, { ...g, updatedAt: to }); n++; }
         for (const sid of this.sessionIds(id)) {
           const s = this.getSession(sid);
-          if (s && s.updatedAt > limit) { this.put(`session.${sid}`, { ...s, updatedAt: limit }); n++; }
+          if (s && s.updatedAt > limit) { this.put(`session.${sid}`, { ...s, updatedAt: to }); n++; }
         }
       }
       const deck = this.deck();
       let deckChanged = false;
-      for (const c of Object.values(deck)) if (c.updatedAt > limit) { c.updatedAt = limit; deckChanged = true; n++; }
+      for (const c of Object.values(deck)) if (c.updatedAt > limit) { c.updatedAt = to; deckChanged = true; n++; }
       if (deckChanged) this.put("deck", deck);
       const tomb = this.tombstones();
       let tombChanged = false;
-      for (const [id, at] of Object.entries(tomb)) if (at > limit) { tomb[id] = limit; tombChanged = true; n++; }
+      for (const [id, at] of Object.entries(tomb)) if (at > limit) { tomb[id] = to; tombChanged = true; n++; }
       if (tombChanged) this.put("tombstones", tomb);
     } finally {
       this.muted = false;

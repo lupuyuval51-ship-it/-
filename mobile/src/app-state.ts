@@ -47,5 +47,7 @@ export const getSettings = (): Settings => settings;
 export const useSettings = (): Settings => useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, () => settings);
 
 export const store = new OfflineStore(browserKV());
+// Start-up repair: a crash between two writes, or a damaged list, can leave a stored game out of the library. Relinks only; never deletes.
+try { store.recover(); } catch { /* the library still opens; repairing is retried at the next start */ }
 // Test hooks exist only in the `e2e` build (`vite build --mode e2e`), never in the store build.
 export const transport = offlineTransport(store, () => settings.tier, { testHooks: import.meta.env.MODE === "e2e" });

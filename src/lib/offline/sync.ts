@@ -82,7 +82,7 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
   // The phone's clock went back since the last push (it had been set ahead and was corrected): "changed after the last push"
   // would find nothing until the clock caught up, so new progress would not be saved. Start the marks over; the pushes are idempotent.
   if (state.lastPushMs > startedAt) state = { ...state, lastPushMs: 0 };
-  store.clampFutureStamps(startedAt + FUTURE_TOLERANCE_MS);
+  store.clampFutureStamps(startedAt + FUTURE_TOLERANCE_MS, startedAt);
 
   // 1) pull and merge (games first: sessions and cards refer to them)
   const remote = await api.pull(state.cursor);
