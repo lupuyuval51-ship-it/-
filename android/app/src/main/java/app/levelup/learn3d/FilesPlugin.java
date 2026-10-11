@@ -51,8 +51,16 @@ public class FilesPlugin extends Plugin {
             send.setType(mime);
             send.putExtra(Intent.EXTRA_STREAM, uri);
             send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getActivity().startActivity(Intent.createChooser(send, null));
-            call.resolve();
+            final Intent chooser = Intent.createChooser(send, null);
+            // Plugin methods run on a background thread; the share sheet is started from the UI thread.
+            getActivity().runOnUiThread(() -> {
+                try {
+                    getActivity().startActivity(chooser);
+                    call.resolve();
+                } catch (RuntimeException e) {
+                    call.reject("could not open the share sheet: " + e.getMessage());
+                }
+            });
         } catch (IOException | RuntimeException e) {
             call.reject("could not share the file: " + e.getMessage());
         }

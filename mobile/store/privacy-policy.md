@@ -1,6 +1,6 @@
 # LEVEL UP — Privacy Policy (Android app)
 
-_Last updated: 2026-10-10_
+_Last updated: 2026-10-11_
 
 **English.**
 LEVEL UP works fully on your phone without an account. If you do not sign in, nothing leaves your device: the games you create, the notes you paste and your progress are stored only in the app's storage on your phone. The app does not take part in Android's automatic backup, so this data is not copied to Google or to another phone unless you choose to (the optional account below, or a backup file you export and save yourself).
