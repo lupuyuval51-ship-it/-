@@ -168,8 +168,8 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
             </Link>
             <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">
-                {/* with a source label the card's first line is that label (the caption stays for screen readers), so the card is no taller */}
-                <span className={cx("uppercase tracking-wide", source && "sr-only")}>{t("hud.area")}</span>
+                {/* with a source label the card's first line is that label (the caption stays for screen readers, and shows again from the sm breakpoint up, where there is room), so the card is no taller */}
+                <span className={cx("uppercase tracking-wide", source && "sr-only sm:not-sr-only")}>{t("hud.area")}</span>
                 {source && (
                   <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-[11px] font-semibold", source.tone)}>
                     <source.Icon aria-hidden className="mt-px hidden size-3 shrink-0 min-[24rem]:block" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
