@@ -203,6 +203,18 @@ describe("pause menu", () => {
     expect(html).toContain("Vibration");
   });
 
+  it("lists the on-screen buttons (not keys) for touch players, in both languages", () => {
+    const en = menu({ touch: true });
+    expect(en).toContain("the joystick on the left");
+    expect(en).toContain("tap “Jump”");
+    expect(en).not.toContain("Space");
+    expect(en).not.toContain("W A S D");
+    const he = render(h(PauseMenu, { profile, reduceMotion: false, onReduceMotion: noop, sfx: true, music: true, guide: true, onSfx: noop, onMusic: noop, onGuide: noop, onResume: noop, onRestart: noop, touch: true }), "he");
+    expect(he).toContain(`“${DICTIONARIES.he["touch.sprint"]}”`);
+    expect(he).not.toMatch(/\{\w+\}/);
+    expect(menu()).toContain("Space"); // keyboard players still get the keys
+  });
+
   it("uses two columns on a phone held sideways so Resume needs no scrolling", () => {
     expect(menu()).not.toContain("grid-cols-2");
     view.layout = sideways();

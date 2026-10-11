@@ -17,6 +17,7 @@ import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
 import { applyDeadzone, bottomAboveControls, bottomEdge, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
+import { SPRINT_IDLE, isSprinting, sprintCancel, sprintPress, sprintRelease, sprintStickReleased, sprintToggle, type SprintState } from "./sprintLatch";
 import { useDialogFocus } from "./useDialogFocus";
 
 // ───────────────────────── toasts ─────────────────────────
@@ -270,6 +271,15 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
   const knobEl = useRef<HTMLDivElement>(null);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
   const pid = useRef<number | null>(null);
+  // "Run": hold to run while held, tap to keep running until the stick is let go (see sprintLatch.ts)
+  const sprintState = useRef<SprintState>(SPRINT_IDLE);
+  const [running, setRunning] = useState(false);
+  const setSprint = (next: SprintState) => {
+    sprintState.current = next;
+    const on = isSprinting(next);
+    input.sprintHeld = on;
+    setRunning(on);
+  };
   const move = (e: React.PointerEvent) => {
     const r = base.current!.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
@@ -281,6 +291,7 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
     pid.current = null;
     setKnob({ x: 0, y: 0 });
     input.stick = { x: 0, y: 0 };
+    setSprint(sprintStickReleased(sprintState.current));
   };
   // Landscape: keep the controls clear of the notch / rounded corners and the gesture bar.
   return (
@@ -292,8 +303,9 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
         <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>
       <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row-reverse" : "flex-col items-end", m.gap)}>
-        <button type="button" aria-label={t("a11y.sprint")} className={cx("grid touch-none select-none place-items-center rounded-full border border-line bg-ink-900/70 text-xs font-semibold backdrop-blur active:bg-neon/30", m.sprint)}
-          onPointerDown={() => { input.sprintHeld = true; }} onPointerUp={() => { input.sprintHeld = false; }} onPointerCancel={() => { input.sprintHeld = false; }} onLostPointerCapture={() => { input.sprintHeld = false; }}>{t("touch.sprint")}</button>
+        <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold backdrop-blur active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
+          onPointerDown={() => setSprint(sprintPress(sprintState.current, performance.now()))} onPointerUp={() => setSprint(sprintRelease(sprintState.current, performance.now()))} onPointerCancel={() => setSprint(sprintCancel(sprintState.current))} onLostPointerCapture={() => setSprint(sprintCancel(sprintState.current))}
+          onClick={(e) => { if (e.detail === 0) setSprint(sprintToggle(sprintState.current)); }}>{t("touch.sprint")}</button>
         <div className={cx("flex", m.gap)}>
           {/* jump reacts on press (not on release) so a platform jump feels instant; a keyboard / screen-reader activation has detail 0 */}
           {hasJump && <button type="button" className={cx("grid touch-none select-none place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30", m.action)} onPointerDown={() => input.queueJump()} onClick={(e) => { if (e.detail === 0) input.queueJump(); }}>{t("touch.jump")}</button>}
@@ -418,7 +430,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
+export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration, touch = false }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** A touch screen: the controls list names the on-screen buttons instead of keys. */ touch?: boolean; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
   const t = useT();
   const { shortLandscape } = useLayout();
   const [confirm, setConfirm] = useState(false);
@@ -443,7 +455,9 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
             <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
               <summary className="cursor-pointer py-1 font-medium">{t("hud.controls")}</summary>
               <ul className="mt-2 space-y-1 text-muted">
-                {(["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
+                {touch
+                  ? (["move", "look", "jump", "sprint", "interact", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.touch.${k}`, { label: t(k === "jump" ? "touch.jump" : k === "sprint" ? "touch.sprint" : "touch.interact") })}</li>)
+                  : (["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
               </ul>
             </details>
             <div className="flex flex-wrap gap-2">
