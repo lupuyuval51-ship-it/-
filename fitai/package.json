@@ -12,7 +12,7 @@
     "dev:server": "tsx watch --clear-screen=false server/src/index.ts",
     "dev:client": "vite --config client/vite.config.ts",
     "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --config client/vite.config.ts",
+    "build:client": "vite build --config client/vite.config.ts && node scripts/build-sw-assets.mjs",
     "build:server": "node scripts/build-server.mjs",
     "start": "node dist/server/index.js",
     "db:migrate": "tsx server/src/db/cli.ts migrate",

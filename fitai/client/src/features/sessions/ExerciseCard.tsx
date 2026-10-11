@@ -4,6 +4,7 @@ import { LIMITS } from '@shared/constants';
 import { formatClock } from '@shared/training';
 import type { SessionExerciseDTO, SessionSetDTO } from '@shared/types';
 import { Badge, Button, Icon, IconButton, NumberField, Switch, TextAreaField } from '../../components/ui';
+import { PlateCalculator } from './PlateCalculator';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { formatPrescription, formatPrevious, suggestionParams } from './format';
@@ -94,6 +95,7 @@ export function ExerciseCard({
   const defaults = setDefaults(exercise).map((d) => (showWeight ? d : { ...d, weightKg: null }));
   const currentSetId = exercise.sets.find((s) => !s.completed)?.id ?? null;
   const allDone = exercise.sets.length > 0 && currentSetId == null;
+  const [platesOpen, setPlatesOpen] = useState(false);
   const listRef = useRef<HTMLOListElement>(null);
   const firstRender = useRef(true);
 
@@ -126,6 +128,9 @@ export function ExerciseCard({
           </p>
         </div>
         <div className="row exercise-card-tools">
+          {exercise.exercise.equipment.includes('barbell') && (
+            <IconButton icon="dumbbell" label={t('session.plates.open')} onClick={() => setPlatesOpen(true)} />
+          )}
           <IconButton
             icon="swap"
             label={swapDisabled ? t('session.exercise.swapLocked') : t('session.exercise.swap', { name })}
@@ -234,6 +239,7 @@ export function ExerciseCard({
           />
         </div>
       </details>
+      <PlateCalculator open={platesOpen} onClose={() => setPlatesOpen(false)} initialWeightKg={(exercise.sets.find((x) => !x.completed) ?? exercise.sets[0])?.weightKg ?? (exercise.sets.find((x) => !x.completed) ?? exercise.sets[0])?.targetWeightKg ?? null} />
     </article>
   );
 }

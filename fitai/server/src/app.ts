@@ -99,7 +99,19 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
       '/assets',
       express.static(path.join(staticDir, 'assets'), { immutable: true, maxAge: '1y', index: false, fallthrough: false, dotfiles: 'allow' }),
     );
-    app.use(express.static(staticDir, { index: false, maxAge: '1h', dotfiles: 'allow' }));
+    app.use(
+      express.static(staticDir, {
+        index: false,
+        maxAge: '1h',
+        dotfiles: 'allow',
+        // The service worker and its asset list must always be revalidated so updates are picked up.
+        setHeaders: (res, filePath) => {
+          const name = path.basename(filePath);
+          if (name === 'sw.js' || name === 'sw-assets.js') res.setHeader('Cache-Control', 'no-cache');
+          if (name === 'sw.js') res.setHeader('Service-Worker-Allowed', '/');
+        },
+      }),
+    );
     const indexHtml = path.join(staticDir, 'index.html');
     app.get(/^(?!\/api\/).*/, (_req, res) => {
       res.setHeader('Cache-Control', 'no-cache');

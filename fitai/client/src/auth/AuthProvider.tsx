@@ -2,10 +2,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import type { LoginInput, RegisterInput } from '@shared/schemas/auth';
 import type { AuthResponse, MeResponse, UserDTO } from '@shared/types';
-import { api, onUnauthorized, setCsrfToken } from '../api/client';
+import { ApiError, api, onUnauthorized, setCsrfToken } from '../api/client';
 import { qk } from '../api/queryClient';
 import { useI18n } from '../i18n';
 import { storage } from '../lib/storage';
+
+/** Last known signed-in user, used only when the network is unreachable. Cleared on logout. */
+const ME_CACHE_KEY = 'fitai.me';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
 
@@ -30,9 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const me = useQuery({
     queryKey: qk.me,
     queryFn: async () => {
-      const res = await api<MeResponse>('/auth/me');
-      setCsrfToken(res.csrfToken);
-      return res;
+      try {
+        const res = await api<MeResponse>('/auth/me');
+        setCsrfToken(res.csrfToken);
+        storage.set(ME_CACHE_KEY, res.user);
+        return res;
+      } catch (err) {
+        // Offline in the gym: keep the signed-in user from the last visit so the app (and the
+        // workout in progress) stays usable. A real 401 still signs out. The CSRF token is
+        // fetched again as soon as a request needs it online.
+        const cached = err instanceof ApiError && err.isNetwork ? storage.get<UserDTO>(ME_CACHE_KEY) : null;
+        if (cached) return { user: cached, csrfToken: '' } satisfies MeResponse;
+        throw err;
+      }
     },
     staleTime: 5 * 60_000,
     retry: 1,
@@ -72,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearSession = useCallback(() => {
     setCsrfToken(null);
+    storage.remove(ME_CACHE_KEY);
     queryClient.cancelQueries();
     queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
     queryClient.setQueryData<MeResponse>(qk.me, { user: null, csrfToken: null });
@@ -97,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // on the next sign-in.
           storage.remove('fitai.activeSession');
           storage.remove('fitai.onboardingDraft');
+          storage.remove(ME_CACHE_KEY);
           clearSession();
         }
       },

@@ -25,3 +25,12 @@ createRoot(document.getElementById('root')!).render(
     </I18nProvider>
   </StrictMode>,
 );
+
+// Offline app shell for the gym (production only: the dev server serves unbundled modules).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      /* the app works without it, just not offline */
+    });
+  });
+}

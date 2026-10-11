@@ -162,3 +162,28 @@ describe('levels', () => {
     expect(levelInfo(350).progress).toBeCloseTo(50 / 300, 5);
   });
 });
+
+import { platesFor } from './plates';
+
+describe('platesFor', () => {
+  it('loads kg plates heaviest first', () => {
+    expect(platesFor(100, 'kg', 20)).toEqual({ perSide: [{ plate: 25, count: 1 }, { plate: 15, count: 1 }], total: 100, remainder: 0, belowBar: false });
+    expect(platesFor(60, 'kg', 20).perSide).toEqual([{ plate: 20, count: 1 }]);
+    expect(platesFor(142.5, 'kg', 20).perSide).toEqual([{ plate: 25, count: 2 }, { plate: 10, count: 1 }, { plate: 1.25, count: 1 }]);
+  });
+  it('supports pounds with a 45 lb bar', () => {
+    expect(platesFor(225, 'lb', 45)).toEqual({ perSide: [{ plate: 45, count: 2 }], total: 225, remainder: 0, belowBar: false });
+    expect(platesFor(135, 'lb', 45).perSide).toEqual([{ plate: 45, count: 1 }]);
+  });
+  it('reports the remainder instead of rounding up when the weight is not reachable', () => {
+    const load = platesFor(21, 'kg', 20);
+    expect(load.perSide).toEqual([]);
+    expect(load.total).toBe(20);
+    expect(load.remainder).toBe(1);
+  });
+  it('handles targets at or below the bar', () => {
+    expect(platesFor(20, 'kg', 20)).toMatchObject({ perSide: [], total: 20, remainder: 0, belowBar: false });
+    expect(platesFor(15, 'kg', 20)).toMatchObject({ perSide: [], belowBar: true });
+    expect(platesFor(Number.NaN, 'kg', 20).perSide).toEqual([]);
+  });
+});
