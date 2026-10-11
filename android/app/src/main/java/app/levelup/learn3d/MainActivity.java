@@ -45,6 +45,9 @@ public class MainActivity extends BridgeActivity {
     private static int rendererRecoveries = 0;
     private static long recoveryWindowStart = 0;
 
+    /** The colour the page last asked for (null until it does): it wins over the system light/dark mode. */
+    private Integer pageColor = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(FilesPlugin.class); // before super.onCreate, which builds the bridge
@@ -62,8 +65,8 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        // `uiMode` is handled by the activity (no restart): follow the system light/dark switch; the page then refines it.
-        if (getBridge() != null) applyPageColor(getBridge().getWebView(), isNight(newConfig) ? PAGE_DARK : PAGE_LIGHT);
+        // `uiMode` is handled by the activity (no restart): follow the system light/dark switch until the page has said what it shows.
+        if (getBridge() != null && pageColor == null) applyPageColor(getBridge().getWebView(), isNight(newConfig) ? PAGE_DARK : PAGE_LIGHT);
     }
 
     /**
@@ -92,6 +95,7 @@ public class MainActivity extends BridgeActivity {
 
     /** Called (on the UI thread) by SystemBarsPlugin with the colour the page is currently showing. */
     void setPageColor(int color) {
+        pageColor = color;
         if (getBridge() != null) applyPageColor(getBridge().getWebView(), color);
     }
 
