@@ -45,7 +45,7 @@ describe("new question kinds built from the learner's own facts and terms", () =
       expect(JSON.stringify(gen(text, lang))).toBe(JSON.stringify(a));
     });
 
-    it(`${name}: a fact-number question offers only numbers written in the material, with one right answer`, () => {
+    it(`${name}: a fact-number question offers numbers of the material (or labelled near-misses), with one right answer`, () => {
       const g = gen(text, lang);
       const picks = g.challenges.filter((c) => /^(?:Which number goes|איזה מספר מתאים)/.test(String(c.prompt)));
       expect(picks.length).toBeGreaterThan(0);
@@ -53,11 +53,14 @@ describe("new question kinds built from the learner's own facts and terms", () =
         const options = c.options as { id: string; text: string }[];
         const numbers = new Set(options.map((o) => o.text));
         expect(numbers.size).toBe(options.length);
-        for (const o of options) expect(text, o.text).toContain(o.text);
+        const feedbacks = new Map((c.options as { text: string; feedback: string }[]).map((o) => [o.text, o.feedback]));
+        // a number that is not in the notes is a near-miss and says so
+        for (const o of options) if (!text.includes(o.text)) expect(feedbacks.get(o.text), o.text).toMatch(/Close, but|קרוב, אבל/);
         const right = options.find((o) => o.id === c.correctOptionId)!;
         // putting the right number back gives a sentence of the material
         const sentence = String(c.prompt).split("\n")[1]!.slice(1, -1).replace("___", right.text);
         expect(text).toContain(sentence);
+        expect(text).toContain(right.text);
         // the blank is not answered by the prompt itself
         expect(String(c.prompt)).toContain("___");
       }

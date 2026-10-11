@@ -6,12 +6,15 @@
 export const MATERIAL_MAX_CHARS = 8000;
 
 const CONTROL_AND_BIDI = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F‎‏‪-‮⁦-⁩]/g;
+/** Emoji used as bullets or decoration ("💧 Water: …"): they would end up in options, hints ("starts with 💧") and gaps. */
+const EMOJI = /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F?))*\uFE0F?/gu;
 
-/** Strip control and bidi-override characters, unify newlines and spaces, and cap the length. */
+/** Strip control, bidi-override and emoji characters, unify newlines and spaces, and cap the length. */
 export function sanitizeMaterial(raw: string): string {
   return raw
     .normalize("NFC")
     .replace(CONTROL_AND_BIDI, "")
+    .replace(EMOJI, " ")
     .replace(/\r\n?/g, "\n")
     // a tab separates columns (pasted from a spreadsheet): keep it as a visible column separator
     .replace(/[ \u00A0]*\t+[ \u00A0]*/g, " | ")
