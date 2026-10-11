@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/I18nProvider";
 import { InputState } from "@/components/game/input";
-import { AreaBanner, InteractPrompt, PauseMenu, Toasts, TopBar, TouchControls, TutorialCard } from "@/components/game/hud/Overlays";
+import { AreaBanner, GuideMarker, InteractPrompt, PauseMenu, Toasts, TopBar, TouchControls, TutorialCard } from "@/components/game/hud/Overlays";
 import { ChallengePanel } from "@/components/game/hud/ChallengePanel";
 import { renderProfileFor } from "@/config/graphics";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
@@ -83,6 +83,17 @@ describe("toasts sit right under the top bar", () => {
     expect(render(h(Toasts, { toasts }))).toContain("top-16");
     view.layout = sideways();
     expect(render(h(Toasts, { toasts }))).toContain("top-12");
+  });
+});
+
+describe("objective marker is placed in screen coordinates", () => {
+  it("is anchored to the physical top-left corner, so a Hebrew page does not push it off screen", () => {
+    for (const locale of ["en", "he"] as const) {
+      const html = render(h(GuideMarker, { markerRef: { current: null } }), locale);
+      expect(html).toContain("left-0");
+      expect(html).not.toMatch(/\bstart-0\b/);
+      expect(html).toContain('aria-hidden="true"');
+    }
   });
 });
 

@@ -232,10 +232,14 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
 
 // ───────────────────────── objective marker ─────────────────────────
 
-/** Positioned imperatively by GuideProjector (every frame) — React only mounts it. */
+/**
+ * Positioned imperatively by GuideProjector (every frame) — React only mounts it. It is placed with screen coordinates
+ * (a pixel translate from the top-left corner), so it is anchored with the physical `left-0`: a logical `start-0` would
+ * anchor it to the right edge in Hebrew and push the marker off screen.
+ */
 export function GuideMarker({ markerRef }: { markerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div ref={markerRef} aria-hidden data-testid="guide-marker" data-show="0" className="pointer-events-none absolute start-0 top-0 z-[5] opacity-0 transition-opacity duration-200" style={{ willChange: "transform" }}>
+    <div ref={markerRef} aria-hidden data-testid="guide-marker" data-show="0" className="pointer-events-none absolute left-0 top-0 z-[5] opacity-0 transition-opacity duration-200" style={{ willChange: "transform" }}>
       <div className="flex flex-col items-center gap-1">
         <svg width="26" height="26" viewBox="0 0 24 24" className="drop-shadow-[0_0_6px_var(--color-neon)]"><path d="M12 3l9 17-9-5-9 5 9-17z" fill="var(--color-neon)" stroke="#06101f" strokeWidth="1.5" strokeLinejoin="round" /></svg>
         <div dir="auto" className="max-w-[60vw] truncate rounded-full border border-neon/50 bg-ink-900/85 px-2.5 py-0.5 text-xs font-semibold text-neon backdrop-blur" />
