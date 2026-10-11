@@ -34,6 +34,8 @@ export function LibraryPage() {
     return shouldShowWelcome(browserKV(), data.games.length > 0) ? "first" : "off";
   });
   const closeWelcome = () => { markWelcomeSeen(browserKV()); setWelcomeMode("off"); stripQuery(); };
+  // A tapped button that disappears (Skip, Delete) would drop the screen-reader cursor: park it on the list heading.
+  const focusHeading = () => { requestAnimationFrame(() => heading.current?.focus({ preventScroll: true })); };
 
   const games = data.ok ? data.games : [];
   const welcome = welcomeMode === "explicit" || (welcomeMode === "first" && games.length === 0);
@@ -44,7 +46,9 @@ export function LibraryPage() {
   const resume = continueGame(games);
 
   const remove = (id: string) => {
-    if (!window.confirm(t("mob.delete.confirm"))) return;
+    // Name the game: with several cards on screen "this game" would leave room for a wrong tap.
+    const title = games.find((g) => g.id === id)?.title;
+    if (!window.confirm(title ? t("mob.lib.delete.confirmNamed", { title }) : t("mob.delete.confirm"))) return;
     try {
       store.deleteGame(id);
       setNotice({ tone: "success", text: t("mob.lib.deleted") });
@@ -52,8 +56,7 @@ export function LibraryPage() {
       setNotice({ tone: "error", text: t("mob.lib.delete.error") });
     }
     reload();
-    // The tapped button is gone: put the screen-reader cursor on the list heading instead of losing it.
-    requestAnimationFrame(() => heading.current?.focus({ preventScroll: true }));
+    focusHeading();
   };
 
   return (
@@ -65,7 +68,7 @@ export function LibraryPage() {
         </div>
         <a href="#/settings" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm font-semibold" data-testid="mobile-settings">{t("mob.settings")}</a>
       </header>
-      {welcome && <Welcome onDone={closeWelcome} />}
+      {welcome && <Welcome onDone={closeWelcome} onSkip={() => { closeWelcome(); focusHeading(); }} />}
       {!data.ok ? (
         <Card elevation="flat" className="py-0">
           <StateView

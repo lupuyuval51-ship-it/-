@@ -8,14 +8,14 @@ import { navigate } from "../router";
  * primary action ("Try an example", about a minute to a first game) and one alternative ("Use my own notes").
  * Inline, not a blocking modal, so the library stays usable; dismissing it is remembered.
  */
-export function Welcome({ onDone }: { onDone: () => void }) {
+export function Welcome({ onDone, onSkip = onDone }: { onDone: () => void; onSkip?: () => void }) {
   const t = useT();
   const go = (to: string) => { onDone(); navigate(to); };
   return (
     <Card className="space-y-4 border-neon/40" data-testid="welcome" role="region" aria-labelledby="welcome-title">
       <div className="flex items-start justify-between gap-3">
         <h2 id="welcome-title" className="min-w-0 text-xl font-bold">{t("mob.welcome.heading")}</h2>
-        <Button variant="ghost" size="sm" className="-me-2 shrink-0" onClick={onDone} data-testid="welcome-skip">{t("mob.welcome.skip")}</Button>
+        <Button variant="ghost" size="sm" className="-me-2 shrink-0" onClick={onSkip} data-testid="welcome-skip">{t("mob.welcome.skip")}</Button>
       </div>
       <ol className="space-y-3">
         {WELCOME_STEPS.map((step, n) => (
