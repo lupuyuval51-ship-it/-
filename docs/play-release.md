@@ -62,6 +62,11 @@ Lean release (`android/app/build.gradle`, `proguard-rules.pro`, `res/raw/keep.xm
 | Native HTTP/cookies | `CapacitorHttp` and `CapacitorCookies` disabled | Their native requests bypass the page's CSP. Note: Capacitor registers those core plugins unconditionally, so the CSP is not a hard network boundary against an injected script; the "no request while signed out" rule is held by the app's code and tested. |
 | CSP (`mobile/index.html`) | `connect-src 'self' https://<project>.supabase.co`, `object-src 'none'`, `base-uri 'self'` | Unchanged; now covered by `tests/unit/android-shell.test.ts`. `script-src 'unsafe-inline'` stays: Capacitor injects its bridge as an inline script on WebViews without `DOCUMENT_START_SCRIPT`. |
 
+Reverting the backup decision: set `allowBackup="true"` and remove `dataExtractionRules` (and the unit-test lines that guard them).
+Games would then follow the phone to a new device automatically, but so would the sign-in session (the Supabase client keeps it in
+`localStorage`, in the same WebView storage); keeping the games while excluding the session would need the session stored somewhere
+else, which is not done. Update `privacy-policy.md` to say device backup is included.
+
 `tests/unit/android-shell.test.ts` fails if any of this regresses (manifest, permissions, release shrinking, target API, CSP,
 Capacitor config, back-button rules).
 
