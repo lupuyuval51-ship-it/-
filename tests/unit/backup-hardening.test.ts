@@ -91,7 +91,7 @@ describe("backup round trip keeps everything the rules depend on", () => {
 
 describe("every backup problem has a message in both languages", () => {
   it("each error code, plus the read/save failures and the storage warnings, has non-empty Hebrew and English text", () => {
-    const keys = [...BACKUP_ERROR_CODES.map((c) => `mob.backup.err.${c}`), "mob.backup.err.READ", "mob.backup.err.SAVE", "mob.backup.skipped.runs", "mob.storage.full", "mob.storage.blocked", "mob.storage.damaged", "mob.storage.purge", "mob.storage.purged"];
+    const keys = [...BACKUP_ERROR_CODES.map((c) => `mob.backup.err.${c}`), "mob.backup.err.READ", "mob.backup.err.SAVE", "mob.backup.err.COPY", "mob.backup.downloaded", "mob.backup.copy", "mob.backup.copied", "mob.backup.paste.title", "mob.backup.paste.placeholder", "mob.backup.paste.import", "mob.backup.skipped.runs", "mob.storage.full", "mob.storage.blocked", "mob.storage.damaged", "mob.storage.purge", "mob.storage.purged"];
     for (const locale of ["he", "en"] as const) {
       for (const key of keys) expect((DICTIONARIES[locale] as Record<string, string>)[key]?.length, `${locale} ${key}`).toBeGreaterThan(3);
     }

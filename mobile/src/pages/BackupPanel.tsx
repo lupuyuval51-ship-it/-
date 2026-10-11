@@ -1,11 +1,13 @@
 import { useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Button, Card } from "@/components/ui";
-import { backupFileName, BackupError, createBackup, fileTooLarge, importBackup, serializeBackup } from "@/lib/offline/backup";
+import { Button, Card, Textarea } from "@/components/ui";
+import { backupFileName, BackupError, createBackup, fileTooLarge, importBackup, MAX_BACKUP_BYTES, serializeBackup } from "@/lib/offline/backup";
 import { store } from "../app-state";
 
 type Message = { tone: "ok" | "error"; text: string };
 interface Health { writable: "ok" | "full" | "unavailable"; percent: number; damaged: number }
+/** How the file left the app: through the share sheet, as a plain download (nothing confirms the phone kept it), or the learner cancelled. */
+type SaveOutcome = "shared" | "downloaded" | "cancelled";
 
 /** The storage warnings are shown from this share of the practical limit. */
 const WARN_PERCENT = 80;
@@ -16,12 +18,15 @@ function readHealth(): Health {
   return { writable: store.checkWritable(), percent: Math.round((usage.chars / usage.limit) * 100), damaged: report.damagedGames.length + report.damagedSessions.length };
 }
 
-/** Hands the backup text to the user: the share sheet where the WebView can share files, otherwise a normal file download. */
-async function saveFile(name: string, text: string): Promise<void> {
+/**
+ * Hands the backup text to the user: the share sheet where the WebView can share files, otherwise a normal file download.
+ * A plain download is not confirmed by anything (the Android app's WebView may ignore it), so the caller says so honestly.
+ */
+async function saveFile(name: string, text: string): Promise<SaveOutcome> {
   const file = new File([text], name, { type: "application/json" });
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
   if (nav.canShare?.({ files: [file] })) {
-    try { await nav.share({ files: [file], title: name }); return; } catch (e) { if ((e as Error).name === "AbortError") return; }
+    try { await nav.share({ files: [file], title: name }); return "shared"; } catch (e) { if ((e as Error).name === "AbortError") return "cancelled"; }
   }
   const url = URL.createObjectURL(file);
   const a = document.createElement("a");
@@ -31,6 +36,24 @@ async function saveFile(name: string, text: string): Promise<void> {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  return "downloaded";
+}
+
+/** Puts the text on the clipboard (works in the app's WebView, which has no file-saving plugin). False if the phone refused. */
+async function copyText(text: string): Promise<boolean> {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* try the older way */ }
+  try {
+    const box = document.createElement("textarea");
+    box.value = text;
+    box.setAttribute("readonly", "");
+    box.style.position = "fixed";
+    box.style.opacity = "0";
+    document.body.appendChild(box);
+    box.select();
+    const ok = document.execCommand("copy");
+    box.remove();
+    return ok;
+  } catch { return false; }
 }
 
 export function BackupPanel() {
@@ -39,9 +62,10 @@ export function BackupPanel() {
   const [message, setMessage] = useState<Message | null>(null);
   const [busy, setBusy] = useState(false);
   const [health, setHealth] = useState<Health>(readHealth);
+  const [pasted, setPasted] = useState("");
   const errorText = (e: unknown): string => t(`mob.backup.err.${e instanceof BackupError ? e.code : "INVALID"}` as "mob.backup.err.INVALID");
 
-  async function exportAll() {
+  async function exportAll(how: "file" | "copy") {
     setMessage(null);
     setBusy(true);
     try {
@@ -49,9 +73,38 @@ export function BackupPanel() {
       if (backup.games.length === 0) { setMessage({ tone: "error", text: t("mob.backup.empty") }); return; }
       let text: string;
       try { text = serializeBackup(backup); } catch (e) { setMessage({ tone: "error", text: errorText(e) }); return; }
-      try { await saveFile(backupFileName(backup.exportedAt), text); } catch { setMessage({ tone: "error", text: t("mob.backup.err.SAVE") }); return; }
-      setMessage({ tone: "ok", text: t("mob.backup.exported", { games: String(backup.games.length), sessions: String(backup.sessions.length) }) });
+      const counts = { games: String(backup.games.length), sessions: String(backup.sessions.length), runs: String(backup.sessions.length) };
+      if (how === "copy") {
+        const copied = await copyText(text);
+        setMessage(copied ? { tone: "ok", text: t("mob.backup.copied", counts) } : { tone: "error", text: t("mob.backup.err.COPY") });
+        return;
+      }
+      let outcome: SaveOutcome;
+      try { outcome = await saveFile(backupFileName(backup.exportedAt), text); } catch { setMessage({ tone: "error", text: t("mob.backup.err.SAVE") }); return; }
+      if (outcome === "cancelled") return;
+      setMessage({ tone: "ok", text: t(outcome === "shared" ? "mob.backup.exported" : "mob.backup.downloaded", counts) });
     } finally { setBusy(false); }
+  }
+
+  /** Imports backup text (from a file or pasted) and says what happened. */
+  function restore(text: string) {
+    try {
+      const r = importBackup(store, text);
+      const skipped = r.rejectedGames.length;
+      const droppedRuns = r.droppedSessions + r.droppedCards;
+      setMessage({
+        tone: "ok",
+        text: t("mob.backup.imported", { added: String(r.gamesAdded), updated: String(r.gamesUpdated), kept: String(r.gamesKept), sessions: String(r.sessionsImported), cards: String(r.cardsImported) })
+          + (skipped ? " " + t("mob.backup.skipped", { count: String(skipped) }) : "")
+          + (droppedRuns ? " " + t("mob.backup.skipped.runs", { count: String(droppedRuns) }) : ""),
+      });
+      return true;
+    } catch (e) {
+      setMessage({ tone: "error", text: errorText(e) });
+      return false;
+    } finally {
+      setHealth(readHealth());
+    }
   }
 
   async function importFile(file: File) {
@@ -62,22 +115,16 @@ export function BackupPanel() {
       if (fileTooLarge(file.size)) { setMessage({ tone: "error", text: t("mob.backup.err.TOO_LARGE") }); return; }
       let text: string;
       try { text = await file.text(); } catch { setMessage({ tone: "error", text: t("mob.backup.err.READ") }); return; }
-      const r = importBackup(store, text);
-      const skipped = r.rejectedGames.length;
-      const droppedRuns = r.droppedSessions + r.droppedCards;
-      setMessage({
-        tone: "ok",
-        text: t("mob.backup.imported", { added: String(r.gamesAdded), updated: String(r.gamesUpdated), kept: String(r.gamesKept), sessions: String(r.sessionsImported), cards: String(r.cardsImported) })
-          + (skipped ? " " + t("mob.backup.skipped", { count: String(skipped) }) : "")
-          + (droppedRuns ? " " + t("mob.backup.skipped.runs", { count: String(droppedRuns) }) : ""),
-      });
-    } catch (e) {
-      setMessage({ tone: "error", text: errorText(e) });
+      restore(text);
     } finally {
       setBusy(false);
-      setHealth(readHealth());
       if (input.current) input.current.value = "";
     }
+  }
+
+  function importPasted() {
+    setMessage(null);
+    if (restore(pasted)) setPasted("");
   }
 
   function purge() {
@@ -103,10 +150,18 @@ export function BackupPanel() {
         </div>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button variant="secondary" disabled={busy} onClick={() => void exportAll()} data-testid="backup-export">{t("mob.backup.export")}</Button>
+        <Button variant="secondary" disabled={busy} onClick={() => void exportAll("file")} data-testid="backup-export">{t("mob.backup.export")}</Button>
+        <Button variant="secondary" disabled={busy} onClick={() => void exportAll("copy")} data-testid="backup-copy">{t("mob.backup.copy")}</Button>
         <Button variant="secondary" disabled={busy} onClick={() => input.current?.click()} data-testid="backup-import">{t("mob.backup.import")}</Button>
         <input ref={input} type="file" accept=".json,application/json" className="hidden" data-testid="backup-file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importFile(f); }} />
       </div>
+      <details className="text-sm">
+        <summary className="cursor-pointer font-medium text-neon">{t("mob.backup.paste.title")}</summary>
+        <div className="mt-2 space-y-2">
+          <Textarea dir="ltr" rows={4} value={pasted} maxLength={MAX_BACKUP_BYTES} onChange={(e) => setPasted(e.target.value)} placeholder={t("mob.backup.paste.placeholder")} aria-label={t("mob.backup.paste.title")} data-testid="backup-paste" />
+          <Button variant="secondary" size="sm" disabled={busy || pasted.trim().length === 0} onClick={importPasted} data-testid="backup-paste-import">{t("mob.backup.paste.import")}</Button>
+        </div>
+      </details>
       {message && <p role={message.tone === "error" ? "alert" : "status"} className={message.tone === "error" ? "text-sm text-rose" : "text-sm text-lime"}>{message.text}</p>}
     </Card>
   );
