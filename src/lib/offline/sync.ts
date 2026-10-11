@@ -100,6 +100,8 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
       games.push({ ...row, createdAt: Number.isNaN(row.createdAt) ? 0 : row.createdAt, deletedAt });
       continue;
     }
+    // validating a spec is real work (a new phone may pull dozens): let the screen repaint between games
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
     const checked = checkGameRecord(row);
     if (!checked.ok) { rejected++; continue; }
     games.push({ ...checked.game, deletedAt: null });

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { generateOffline } from "@/lib/offline/generate";
 import { normalizeGame, normalizeSession, normalizeState } from "@/lib/offline/records";
-import { isStorageError, memoryKV, OfflineError, OfflineStore } from "@/lib/offline/store";
-import { findArea } from "@/lib/game/state/progress";
-import { request } from "./helpers";
-import { editStored, flakyKV, phone, populated, PREFIX } from "./offline-helpers";
+import { getOfflineTier } from "@/lib/offline/entitlement";
+import { isStorageError, MAX_ABANDONED_RUNS_PER_GAME, memoryKV, OfflineError, OfflineStore } from "@/lib/offline/store";
+import { findArea, stationActive } from "@/lib/game/state/progress";
+import { correctAnswer, request, wrongAnswer } from "./helpers";
+import { editStored, flakyKV, NOTES, phone, populated, PREFIX } from "./offline-helpers";
 
 const newGame = (store: OfflineStore, subject = "Fractions") => store.addGame(generateOffline(request({ subject })).spec);
 const codeOf = (fn: () => unknown): string => { try { fn(); } catch (e) { return e instanceof OfflineError ? e.code : `OTHER:${String(e)}`; } return "NONE"; };
@@ -27,6 +28,22 @@ describe("a full or blocked phone gives a clear error and never half-saves", () 
     ctl.failOn = (k) => k === `${PREFIX}games`;
     expect(codeOf(() => newGame(store))).toBe("STORAGE_FULL");
     expect(inner.keys!().filter((k) => k.startsWith(`${PREFIX}game.`))).toEqual([]);
+  });
+
+  it("addGame is atomic: a storage stub that throws on the second write leaves no dangling record, at any write position", () => {
+    for (const failingWrite of [1, 2]) {
+      const inner = memoryKV();
+      let writes = 0;
+      const kv = { ...inner, set: (k: string, v: string) => { if (++writes === failingWrite) throw new DOMException("quota", "QuotaExceededError"); inner.set(k, v); } };
+      const store = new OfflineStore(kv, () => 1_000_000);
+      expect(codeOf(() => newGame(store))).toBe("STORAGE_FULL");
+      expect(inner.keys!(), `write #${failingWrite} failed`).toEqual([]);
+      expect(store.listGames()).toEqual([]);
+      expect(store.integrity()).toEqual({ games: 0, damagedGames: [], damagedSessions: [] });
+      // the same call works once there is room (writes 3 and 4 succeed)
+      const g = newGame(store);
+      expect(store.listGames().map((x) => x.id)).toEqual([g.id]);
+    }
   });
 
   it("blocked storage (private mode, policy) is reported differently from a full phone", () => {
@@ -178,6 +195,62 @@ describe("damage to one record never takes the library down", () => {
   });
 });
 
+describe("restarting a game does not fill the phone with abandoned runs", () => {
+  it("keeps the newest ten abandoned runs, never touches finished or unfinished ones, and keeps missed questions in the deck", () => {
+    const { store, kv } = phone(1_000_000);
+    const game = store.addGame(generateOffline(request({ material: NOTES, subject: "Plants", mode: "FULL" })).spec);
+    const first = store.startSession(game.id, false);
+    const area = findArea(game.spec, first.client.areaId)!;
+    const st = area.stations.find((x) => x.kind === "challenge" && stationActive(game.spec, first.client, x))!;
+    const opened = store.applyEvent(first.session.id, { type: "open", stationId: st.id });
+    const ch = game.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
+    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
+    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    // (the review deck is not built yet: the only record of the miss is inside the first run)
+
+    const runs: string[] = [first.session.id];
+    for (let i = 0; i < 12; i++) runs.push(store.startSession(game.id, true).session.id);
+    const list = JSON.parse(kv.get(`${PREFIX}sessions.${game.id}`)!) as string[];
+    expect(list).toHaveLength(MAX_ABANDONED_RUNS_PER_GAME + 1);
+    expect(list[0]).toBe(runs[12]); // the live run
+    expect(list).not.toContain(runs[0]);
+    expect(list).not.toContain(runs[1]);
+    expect(kv.get(`${PREFIX}session.${runs[0]}`)).toBeNull();
+    expect(store.getSession(runs[12]!)!.status).toBe("ACTIVE");
+    expect(store.deckSummary().total).toBe(1);
+
+    // a finished run in the middle of the list is never pruned, however many restarts follow
+    const keeper = runs[6]!;
+    editStored(kv, `session.${keeper}`, (v) => { v.status = "COMPLETED"; });
+    for (let i = 0; i < 15; i++) store.startSession(game.id, true);
+    expect(store.getSession(keeper)?.status).toBe("COMPLETED");
+    const after = JSON.parse(kv.get(`${PREFIX}sessions.${game.id}`)!) as string[];
+    expect(after.filter((id) => store.getSession(id)?.status === "ABANDONED")).toHaveLength(MAX_ABANDONED_RUNS_PER_GAME);
+    expect(after).toContain(keeper);
+    expect(store.listGames()[0]!.inProgress).toBe(true);
+  });
+
+  it("a failure while tidying up never stops a game from starting and removes nothing", () => {
+    const ctx = populated(); // a run with a missed question: the deck has to be written before pruning
+    const { game } = ctx;
+    const { kv, ctl } = flakyKV(ctx.kv);
+    let now = 9_000_000;
+    const store = new OfflineStore(kv, () => (now += 1000));
+    for (let i = 0; i < 10; i++) store.startSession(game.id, true); // ten abandoned runs: the next restart would prune the oldest
+    const listBefore = kv.get(`${PREFIX}sessions.${game.id}`);
+    // the deck is empty in storage again, so the next restart must write it first; that write fails
+    kv.remove(`${PREFIX}deck`);
+    ctl.mode = "full";
+    ctl.failOn = (k) => k === `${PREFIX}deck`;
+    const run = store.startSession(game.id, true);
+    expect(run.resumed).toBe(false);
+    const listAfter = JSON.parse(kv.get(`${PREFIX}sessions.${game.id}`)!) as string[];
+    expect(listAfter).toEqual([run.session.id, ...(JSON.parse(listBefore!) as string[])]);
+    expect(ctl.failedWrites).toBeGreaterThan(0);
+    expect(store.getSession(ctx.sessionId)).not.toBeNull(); // the run whose missed question could not be saved to the deck is still there
+  });
+});
+
 describe("recover(): lists that were damaged or never written", () => {
   it("a damaged games list does not make the library look empty after recover()", () => {
     const ctx = populated();
@@ -306,6 +379,7 @@ describe("saves from earlier app versions load and play", () => {
 describe("the offline tier stays the full tier (Play Billing does not exist yet)", () => {
   it("getOfflineTier is A and a stored game is not re-tiered by reading it", () => {
     const ctx = populated();
+    expect(getOfflineTier()).toBe("A");
     expect(ctx.store.getGame(ctx.game.id)!.spec.meta.featureTier).toBe("A");
     // reading through memoryKV twice gives the same bytes: nothing is rewritten by a read
     const before = ctx.kv.get(`${PREFIX}game.${ctx.game.id}`);

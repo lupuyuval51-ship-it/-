@@ -238,3 +238,70 @@ describe("deletions and restores across phones", () => {
     expect(a.store.listGames()).toEqual([]);
   });
 });
+
+describe("two phones that both played offline converge on the later move, whoever syncs first", () => {
+  for (const order of ["a-first", "b-first"] as const) {
+    it(`order ${order}`, async () => {
+      const cloud = cloudAt(10_000_000);
+      const a = phone(10_000_000), b = phone(10_000_000);
+      const g = addGame(a);
+      const run = a.store.startSession(g.id, false).session.id;
+      await a.sync(cloud);
+      await b.sync(cloud);
+      // both go offline and play: a first, b later
+      a.t.now = 10_060_000;
+      talk(a, g.id, run);
+      b.t.now = 10_120_000;
+      const area = findArea(b.store.getGame(g.id)!.spec, b.store.getSession(run)!.state.areaId)!;
+      b.store.applyEvent(run, { type: "collect", itemId: `${area.id}:c0` });
+      const bMove = JSON.stringify(b.store.getSession(run)!.state);
+      cloud.tick = 10_200_000;
+      for (const p of order === "a-first" ? [a, b, a, b] : [b, a, b, a]) {
+        p.t.now = Math.max(p.t.now, 10_200_000) + 1000;
+        cloud.tick += 1000;
+        await p.sync(cloud);
+      }
+      expect(JSON.stringify(a.store.getSession(run)!.state)).toBe(bMove);
+      expect(JSON.stringify(b.store.getSession(run)!.state)).toBe(bMove);
+      expect(JSON.stringify(cloud.sessions.get(run)!.state)).toBe(bMove);
+    });
+  }
+});
+
+describe("clock skew between the phone and the server", () => {
+  /** One more `talk` or `collect`, so each call adds to the run. */
+  function progress(p: ReturnType<typeof phone>, gameId: string, sessionId: string) {
+    const g = p.store.getGame(gameId)!;
+    const s = p.store.getSession(sessionId)!;
+    const area = findArea(g.spec, s.state.areaId)!;
+    const npc = area.npcs.find((n) => !s.state.talked.includes(n.id));
+    if (npc) { p.store.applyEvent(sessionId, { type: "talk", npcId: npc.id }); return; }
+    const item = Array.from({ length: area.collectibles.count }, (_, i) => `${area.id}:c${i}`).find((id) => !s.state.collected.includes(id));
+    if (item) p.store.applyEvent(sessionId, { type: "collect", itemId: item });
+    else p.store.applyEvent(sessionId, { type: "talk", npcId: area.npcs[0]!.id }); // nothing new left: still a saved move
+  }
+
+  for (const skew of [-3_600_000, -300_000, -20_000, 20_000, 300_000, 3_600_000]) {
+    it(`a phone ${skew < 0 ? "behind" : "ahead of"} the server by ${Math.abs(skew / 1000)} s never loses its own newer progress to its own older copy`, async () => {
+      const server0 = 10_000_000;
+      const cloud = cloudAt(server0);
+      const a = phone(server0 + skew);
+      const g = addGame(a);
+      const run = a.store.startSession(g.id, false).session.id;
+      progress(a, g.id, run);
+      cloud.tick = a.t.now - skew; // the server's clock is a fixed distance from the phone's
+      await a.sync(cloud);
+      for (let round = 0; round < 4; round++) {
+        a.t.now += 15_000;
+        cloud.tick = a.t.now - skew;
+        progress(a, g.id, run);
+        const expected = JSON.stringify(a.store.getSession(run)!.state);
+        a.t.now += 1000;
+        cloud.tick = a.t.now - skew;
+        await a.sync(cloud);
+        expect(JSON.stringify(a.store.getSession(run)!.state), `round ${round}`).toBe(expected);
+        expect(JSON.stringify(cloud.sessions.get(run)!.state), `round ${round} cloud`).toBe(expected);
+      }
+    });
+  }
+});

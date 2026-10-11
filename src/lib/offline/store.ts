@@ -117,6 +117,8 @@ export interface Integrity {
 }
 
 const PREFIX = "levelup.offline.";
+/** Abandoned (restarted) runs kept per game; older ones are removed when a new run starts. */
+export const MAX_ABANDONED_RUNS_PER_GAME = 10;
 const STATE_ERRORS = new Set(["WRONG_AREA", "STATION_LOCKED", "PORTAL_LOCKED", "ALREADY_RESOLVED", "ALREADY_COLLECTED", "NOT_OPENED", "NOT_COMPLETE", "NO_PORTAL"]);
 
 const randomId = (): string => {
@@ -186,7 +188,7 @@ export class OfflineStore {
   private putSession(s: StoredSession, isNew: boolean): void {
     this.put(`session.${s.id}`, s);
     if (isNew) {
-      const ids = [...this.sessionIds(s.gameId).filter((x) => x !== s.id), s.id];
+      const ids = [s.id, ...this.sessionIds(s.gameId).filter((x) => x !== s.id)]; // newest first; on equal start times the new one leads
       const started = (id: string) => (id === s.id ? s.startedAt : this.getSession(id)?.startedAt ?? 0);
       try { this.put(`sessions.${s.gameId}`, ids.sort((a, b) => started(b) - started(a))); } catch (e) { this.kv.remove(PREFIX + `session.${s.id}`); throw e; }
     }
@@ -262,8 +264,31 @@ export class OfflineStore {
       session = { id: randomId(), gameId, revision: game.revision, status: "ACTIVE", state: initialState(game.spec, now), startedAt: now, finishedAt: null, updatedAt: now };
       session.updatedAt = this.clock();
       this.putSession(session, true);
+      this.pruneAbandoned(gameId);
     }
     return { session, spec: toPublicSpec(game.spec), client: toClientState(session.state), maxScore: maxScore(game.spec), resumed, game };
+  }
+
+  /**
+   * Every restart leaves an abandoned run behind. They are worth nothing but space (the phone's storage is small), so only the
+   * newest few are kept. Unfinished and finished runs are never touched, and the review deck is brought up to date first so no
+   * missed question is lost with a run. Best effort: if anything fails, nothing is removed.
+   */
+  private pruneAbandoned(gameId: string): void {
+    try {
+      const ids = this.sessionIds(gameId);
+      let abandoned = 0;
+      const keep: string[] = [];
+      const drop: string[] = [];
+      for (const id of ids) { // newest first
+        const s = this.getSession(id);
+        if (s?.status === "ABANDONED" && ++abandoned > MAX_ABANDONED_RUNS_PER_GAME) drop.push(id); else keep.push(id);
+      }
+      if (drop.length === 0) return;
+      this.syncDeck();
+      this.put(`sessions.${gameId}`, keep);
+      for (const id of drop) this.kv.remove(PREFIX + `session.${id}`);
+    } catch { /* pruning is housekeeping; it never blocks starting a game */ }
   }
 
   applyEvent(sessionId: string, input: unknown) {
@@ -470,7 +495,13 @@ export class OfflineStore {
     for (const r of rows.sessions) {
       if (!this.getGame(r.gameId) || tomb[r.gameId] !== undefined) continue;
       const local = this.getSession(r.id);
-      if (local && dirtyAndNewer(local.updatedAt ?? local.startedAt, r.updatedAt)) continue;
+      // A run carries the phone clock time of its last move. Compare that as well as the server's stamp, whichever is earlier: the
+      // server stamp of our own earlier push (which comes back on the next pull) is on the server's clock, and a phone whose clock is
+      // even seconds behind would otherwise let that older copy overwrite the newer progress it has not pushed yet. The server stamp
+      // still bounds the other direction (a run saved while a phone's clock was set far ahead keeps that future time in its moves).
+      // When in doubt the unpushed local progress is kept: it is the only copy of it.
+      const remoteMovedAt = Math.min(Math.max(r.state.updatedAt, r.finishedAt ?? 0, r.startedAt), r.updatedAt);
+      if (local && dirtyAndNewer(local.updatedAt ?? local.startedAt, remoteMovedAt)) continue;
       this.putSession({ ...r, updatedAt: clean(r.updatedAt) }, !local);
       applied++;
     }
