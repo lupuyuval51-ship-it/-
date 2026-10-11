@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 import type { GraphicsTier } from "@/config/plans";
-import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
+import { DEFAULT_LOCALE, type DictKey, type Locale } from "@/lib/i18n";
 import { applyTheme, isThemePref, type ThemePref } from "@/lib/theme";
-import { browserKV, OfflineStore } from "@/lib/offline/store";
+import { browserKV, OfflineStore, storageErrorCode } from "@/lib/offline/store";
 import { offlineTransport } from "@/components/game/offlineTransport";
 
 export interface Settings { locale: Locale; tier: GraphicsTier; sound: boolean; music: boolean; vibration: boolean; theme: ThemePref }
@@ -47,5 +47,16 @@ export const getSettings = (): Settings => settings;
 export const useSettings = (): Settings => useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, () => settings);
 
 export const store = new OfflineStore(browserKV());
+// Start-up repair: a crash between two writes, or a damaged list, can leave a stored game out of the library. Relinks only; never deletes.
+try { store.recover(); } catch { /* the library still opens; repairing is retried at the next start */ }
 // Test hooks exist only in the `e2e` build (`vite build --mode e2e`), never in the store build.
 export const transport = offlineTransport(store, () => settings.tier, { testHooks: import.meta.env.MODE === "e2e" });
+
+/**
+ * The message to show when saving on the phone failed: "no room left" or "saving is blocked", for an error from the store or from
+ * the offline transport. Null for any other error (the screen keeps its own message).
+ */
+export function storageErrorKey(e: unknown): DictKey | null {
+  const code = storageErrorCode(e);
+  return code === "STORAGE_FULL" ? "mob.backup.err.STORAGE_FULL" : code === "STORAGE_UNAVAILABLE" ? "mob.backup.err.STORAGE_UNAVAILABLE" : null;
+}
