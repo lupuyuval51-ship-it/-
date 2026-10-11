@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n";
+import type { SyncStatus } from "./cloud/account";
 
 const tag = (locale: Locale): string => (locale === "he" ? "he-IL" : "en-GB");
 const startOfDay = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -18,8 +19,6 @@ export function formatNextReview(nextDue: number, now: number, locale: Locale): 
     : due.toLocaleDateString(tag(locale), { weekday: "long" });
   return `${day}, ${time}`;
 }
-
-export type SyncStatus = "idle" | "syncing" | "ok" | "error";
 
 /** A date and time in the app language ("11/10/2026, 14:30"), for "last sync". */
 export function formatWhen(ts: number, locale: Locale): string {

@@ -32,14 +32,21 @@ export function orderGames(games: readonly LibraryGame[]): LibraryGame[] {
   return [...games].sort((a, b) => b.lastPlayedAt - a.lastPlayedAt);
 }
 
-/** Reads the library. A damaged entry or an unreadable store gives `{ ok: false }` (an error screen), never a blank page. */
+const NO_DECK: DeckSummary = { total: 0, due: 0, nextDue: null };
+
+/**
+ * Reads the library. An unreadable game list gives `{ ok: false }` (an error screen), never a blank page. The review-deck
+ * count is secondary (and its lookup can write to a full phone), so when it fails the games are still shown without it.
+ */
 export function loadLibrary(src: LibrarySource): LibraryLoad {
   try {
     const games = src.listGames().map((g): LibraryGame => {
       const last = g.lastSessionId ? src.getSession(g.lastSessionId)?.updatedAt : undefined;
       return { ...g, lastPlayedAt: typeof last === "number" && Number.isFinite(last) ? last : g.createdAt };
     });
-    return { ok: true, games: orderGames(games), deck: src.deckSummary() };
+    let deck = NO_DECK;
+    try { deck = src.deckSummary(); } catch { /* the games matter more than the badge */ }
+    return { ok: true, games: orderGames(games), deck };
   } catch {
     return { ok: false };
   }

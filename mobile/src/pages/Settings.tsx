@@ -1,18 +1,25 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Arrow, Button, Card, Field, Select } from "@/components/ui";
+import { Alert, Arrow, Button, Card, Field, Select } from "@/components/ui";
 import { GRAPHICS_TIERS, type GraphicsTier } from "@/config/plans";
+import { browserKV } from "@/lib/offline/store";
 import { THEMES, type ThemePref } from "@/lib/theme";
 import { setSettings, store, useSettings } from "../app-state";
+import { deleteAllGames } from "../reset";
 import { AccountPanel } from "./AccountPanel";
 import { BackupPanel } from "./BackupPanel";
 import { navigate } from "../router";
 
-/** A titled group of settings: a real heading so TalkBack's heading navigation can jump between sections. */
-function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+/**
+ * A titled group of settings. The title is a real heading so TalkBack's heading navigation can jump between sections,
+ * except where the group's own panels bring their headings (account, backup): then it only names the region, and the
+ * panels' headings stay siblings of the other sections' instead of nesting under a same-level heading.
+ */
+function Section({ id, title, heading = true, children }: { id: string; title: string; heading?: boolean; children: ReactNode }) {
+  const cls = "text-sm font-bold uppercase tracking-wide text-muted";
   return (
     <section aria-labelledby={id} className="space-y-3">
-      <h2 id={id} className="text-sm font-bold uppercase tracking-wide text-muted">{title}</h2>
+      {heading ? <h2 id={id} className={cls}>{title}</h2> : <p id={id} className={cls}>{title}</p>}
       {children}
     </section>
   );
@@ -31,6 +38,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 export function SettingsPage() {
   const t = useT();
   const s = useSettings();
+  const [clearFailed, setClearFailed] = useState(false);
   return (
     <div className="space-y-6" data-testid="mobile-settings-page">
       <a href="#/" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
@@ -64,7 +72,7 @@ export function SettingsPage() {
           </Section>
         </div>
         <div className="space-y-6">
-          <Section id="set-data" title={t("mob.settings.sec.data")}>
+          <Section id="set-data" title={t("mob.settings.sec.data")} heading={false}>
             <AccountPanel />
             <BackupPanel />
           </Section>
@@ -86,12 +94,17 @@ export function SettingsPage() {
           data-testid="clear-all"
           onClick={() => {
             if (!window.confirm(t("mob.settings.clear.confirm"))) return;
-            for (const g of store.listGames()) store.deleteGame(g.id);
-            navigate("/", true);
+            try {
+              deleteAllGames(store, browserKV());
+              navigate("/", true);
+            } catch {
+              setClearFailed(true);
+            }
           }}
         >
           {t("mob.settings.clear")}
         </Button>
+        {clearFailed && <Alert tone="error" data-testid="clear-error">{t("mob.settings.clear.error")}</Alert>}
       </section>
     </div>
   );

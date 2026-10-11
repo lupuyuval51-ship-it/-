@@ -14,6 +14,7 @@ import {
   type LibraryGame, type LibrarySource,
 } from "../../mobile/src/library-model";
 import { ContinueCard, FilterBar, GameCard } from "../../mobile/src/pages/library-parts";
+import { CREATE_DRAFT_KEY, deleteAllGames } from "../../mobile/src/reset";
 import { stripQuery } from "../../mobile/src/router";
 import { Welcome } from "../../mobile/src/pages/Welcome";
 import { validDemoSpec } from "./helpers";
@@ -90,7 +91,8 @@ describe("library model: order, continue and filters", () => {
     const ok: LibrarySource = { listGames: () => [], getSession: () => null, deckSummary: () => ({ total: 0, due: 0, nextDue: null }) };
     expect(loadLibrary(ok)).toEqual({ ok: true, games: [], deck: { total: 0, due: 0, nextDue: null } });
     expect(loadLibrary({ ...ok, listGames: () => { throw new Error("corrupt"); } })).toEqual({ ok: false });
-    expect(loadLibrary({ ...ok, deckSummary: () => { throw new Error("corrupt"); } })).toEqual({ ok: false });
+    // the review-deck count is secondary: when it cannot be read (a full phone) the games are still shown
+    expect(loadLibrary({ ...ok, listGames: () => [row({ id: "kept" })], deckSummary: () => { throw new Error("storage full"); } })).toMatchObject({ ok: true, games: [{ id: "kept" }], deck: { total: 0, due: 0, nextDue: null } });
     expect(loadLibrary({ ...ok, listGames: () => [row({ lastSessionId: "s" })], getSession: () => { throw new Error("corrupt"); } })).toEqual({ ok: false });
   });
 
@@ -119,6 +121,44 @@ describe("formatNextReview", () => {
   });
   it("treats an overdue time as today", () => {
     expect(formatNextReview(at(-2), now, "en")).toMatch(/^today, /);
+  });
+});
+
+describe("Settings → delete all games", () => {
+  it("removes every game with its runs and the Create screen's saved draft", () => {
+    const kv = memoryKV();
+    const store = new OfflineStore(kv);
+    const a = store.addGame(validDemoSpec());
+    store.addGame(validDemoSpec());
+    store.startSession(a.id, false);
+    kv.set(CREATE_DRAFT_KEY, JSON.stringify({ subject: "unfinished notes" }));
+    expect(CREATE_DRAFT_KEY).toBe("levelup.mobile.createDraft");
+    deleteAllGames(store, kv);
+    expect(store.listGames()).toEqual([]);
+    expect(kv.get(CREATE_DRAFT_KEY)).toBeNull();
+    expect(kv.get("levelup.offline.session." + a.id)).toBeNull(); // no run is left behind
+  });
+
+  it("works with nothing to delete, and with no draft", () => {
+    const kv = memoryKV();
+    expect(() => deleteAllGames(new OfflineStore(kv), kv)).not.toThrow();
+  });
+
+  it("a storage failure on the draft never stops the games from being deleted", () => {
+    const kv = memoryKV();
+    const store = new OfflineStore(kv);
+    store.addGame(validDemoSpec());
+    const failing = { ...kv, remove: (k: string) => { if (k === CREATE_DRAFT_KEY) throw new Error("blocked"); kv.remove(k); } };
+    expect(() => deleteAllGames(store, failing)).not.toThrow();
+    expect(store.listGames()).toEqual([]);
+  });
+
+  it("the draft is gone even when deleting a game fails, and the failure reaches the caller to report", () => {
+    const kv = memoryKV();
+    kv.set(CREATE_DRAFT_KEY, "{}");
+    const store = { listGames: () => [{ id: "g1" }], deleteGame: () => { throw new Error("quota"); } };
+    expect(() => deleteAllGames(store, kv)).toThrow("quota");
+    expect(kv.get(CREATE_DRAFT_KEY)).toBeNull();
   });
 });
 

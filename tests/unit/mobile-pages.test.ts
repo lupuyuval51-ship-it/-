@@ -174,6 +174,9 @@ describe("settings page", () => {
     const html = render(h(SettingsPage));
     for (const id of ["set-look", "set-feel", "set-data", "set-about"]) expect(html).toContain(`id="${id}"`);
     expect(count(html, "<h1")).toBe(1);
+    // the data section only names its region: the account/backup panels bring their own headings, so no h2 nests in an h2
+    expect(html).toContain('<p id="set-data"');
+    expect(count(html, "<h2")).toBe(3);
     for (const m of html.matchAll(/<select\b[^>]*>/g)) expect(m[0]).toMatch(/min-h-11/);
     for (const m of html.matchAll(/<label\b[^>]*class="[^"]*flex[^"]*"[^>]*>/g)) expect(m[0]).toMatch(/min-h-1[12]/);
     expect(count(html, 'type="checkbox"')).toBe(3);

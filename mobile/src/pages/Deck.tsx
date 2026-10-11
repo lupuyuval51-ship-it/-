@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DECK_SESSION } from "@/components/game/offlineTransport";
 import { PracticeClient } from "@/components/game/PracticeClient";
 import { useLocale, useT } from "@/components/I18nProvider";
-import { Arrow, Badge, Card } from "@/components/ui";
+import { Arrow, Card } from "@/components/ui";
 import { primaryLink, StateView } from "@/components/ui/StateView";
 import { formatNextReview } from "../format";
 import { store, transport } from "../app-state";
@@ -30,10 +30,7 @@ export function DeckPage() {
   }
   return (
     <div className="space-y-3" data-testid="deck">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h1 className="text-2xl font-extrabold">{t("mob.deck.title")}</h1>
-        <Badge tone="violet" data-testid="deck-due">{t("mob.deck.due", { n: summary.due })}</Badge>
-      </div>
+      <h1 className="text-2xl font-extrabold">{t("mob.deck.title")}</h1>
       <p className="text-sm text-muted">{t("mob.deck.intro")}</p>
       <PracticeClient gameId={DECK_SESSION} sessionId={DECK_SESSION} transport={transport} backHref="/" reviewHref={null} />
     </div>

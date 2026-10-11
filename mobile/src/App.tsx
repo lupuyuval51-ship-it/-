@@ -48,7 +48,7 @@ export function App() {
   return (
     <I18nProvider locale={locale} dict={dict}>
       <ErrorBoundary key={path}>
-        {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div key={path} className="lu-page">{route(path)}</div></main>}
+        {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div className="lu-page">{route(path)}</div></main>}
       </ErrorBoundary>
     </I18nProvider>
   );

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { RotateCcw } from "lucide-react";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
@@ -20,15 +20,19 @@ export function LibraryPage() {
   const t = useT();
   const locale = useLocale();
   const { session, status, lastSyncAt } = useAccount();
-  // The list is read again after our own writes (delete, retry) and whenever a cloud sync finishes (`lastSyncAt`), because
-  // a sync can bring in or remove games from another phone while this screen is open.
-  const [lib, setLib] = useState(() => ({ syncedAt: lastSyncAt, data: loadLibrary(store) }));
-  if (lib.syncedAt !== lastSyncAt) setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
-  const reload = () => setLib({ syncedAt: lastSyncAt, data: loadLibrary(store) });
-  const data = lib.data;
+  const [data, setData] = useState(() => loadLibrary(store));
+  const reload = () => setData(loadLibrary(store));
+  // A cloud sync can bring in or remove games from another phone while this screen is open (its merges are silent for the
+  // store's own change listeners), so the list is read again whenever a sync finishes.
+  const syncMark = useRef(lastSyncAt);
+  useEffect(() => {
+    if (syncMark.current === lastSyncAt) return;
+    syncMark.current = lastSyncAt;
+    setData(loadLibrary(store));
+  }, [lastSyncAt]);
   const [filter, setFilterState] = useState<LibraryFilter>(rememberedFilter);
-  const setFilter = (f: LibraryFilter) => { rememberedFilter = f; setFilterState(f); };
-  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
+  const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string; n: number } | null>(null);
+  const setFilter = (f: LibraryFilter) => { rememberedFilter = f; setFilterState(f); setNotice(null); };
   const heading = useRef<HTMLHeadingElement>(null);
   // First launch: a short, skippable intro above the library. "Show the welcome again" in Settings opens it on demand
   // (`explicit`). On first launch it also goes away by itself if games arrive, e.g. from the cloud backup of a new phone.
@@ -55,9 +59,9 @@ export function LibraryPage() {
     if (!window.confirm(title ? t("mob.lib.delete.confirmNamed", { title }) : t("mob.delete.confirm"))) return;
     try {
       store.deleteGame(id);
-      setNotice({ tone: "success", text: t("mob.lib.deleted") });
+      setNotice((p) => ({ tone: "success", text: t("mob.lib.deleted"), n: (p?.n ?? 0) + 1 }));
     } catch {
-      setNotice({ tone: "error", text: t("mob.lib.delete.error") });
+      setNotice((p) => ({ tone: "error", text: t("mob.lib.delete.error"), n: (p?.n ?? 0) + 1 }));
     }
     reload();
     focusHeading();
@@ -73,6 +77,8 @@ export function LibraryPage() {
         <a href="#/settings" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm font-semibold" data-testid="mobile-settings">{t("mob.settings")}</a>
       </header>
       {welcome && <Welcome onDone={closeWelcome} onSkip={() => { closeWelcome(); focusHeading(); }} />}
+      {/* One live region that always exists; a fresh node per message so a repeated message (a second delete) is announced again. */}
+      <div aria-live="polite">{notice && <Alert key={notice.n} role="none" tone={notice.tone} data-testid="library-notice">{notice.text}</Alert>}</div>
       {!data.ok ? (
         <Card elevation="flat" className="py-0">
           <StateView
@@ -111,7 +117,6 @@ export function LibraryPage() {
             )}
           </div>
           <h2 id="library-title" ref={heading} tabIndex={-1} className="text-lg font-semibold outline-none">{t("lib.title")}</h2>
-          <div aria-live="polite">{notice && <Alert tone={notice.tone} data-testid="library-notice">{notice.text}</Alert>}</div>
           {games.length === 0 ? (
             welcome ? (
               // The welcome card above already explains what to do: keep the empty state to one quiet line.

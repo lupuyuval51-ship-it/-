@@ -97,7 +97,11 @@ describe("results page on the phone", () => {
     expect(html.indexOf('data-testid="results-quick"')).toBeLessThan(html.indexOf('data-testid="results"'));
     // the website's own results markup is still all there (the e2e flow relies on it)
     for (const id of ["results-score", "results-review", "results-next", "next-review"]) expect(html).toContain(`data-testid="${id}"`);
-    expect(html).toMatch(/data-testid="results-quick-next"[^>]*>/);
+    // the top button and the website's own "what next" card point at the same place (two copies of one rule must not drift)
+    const quick = /<a href="([^"]+)" data-testid="results-quick-next"/.exec(html)?.[1];
+    const card = /<a href="([^"]+)" data-testid="next-review"/.exec(html)?.[1];
+    expect(quick).toBeTruthy();
+    expect(quick).toBe(card);
     expect(html).toMatch(/class="[^"]*min-h-11[^"]*"[^>]*data-testid="results-quick-next"|data-testid="results-quick-next"[^>]*class="[^"]*min-h-11/);
   });
 
@@ -127,6 +131,7 @@ describe("results page on the phone", () => {
     const html = render(h(ResultsPage, { gameId: game.id, sessionId: s.session.id }));
     expect(html).toContain('data-next="replay"');
     expect(html).toContain(`href="#/play/${game.id}"`);
+    expect(/<a href="([^"]+)" data-testid="results-quick-next"/.exec(html)?.[1]).toBe(/<a href="([^"]+)" data-testid="next-replay"/.exec(html)?.[1]);
     expect(html).not.toContain("results-best");
   });
 

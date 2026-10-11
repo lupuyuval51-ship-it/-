@@ -3,6 +3,9 @@ import { useT } from "@/components/I18nProvider";
 import { Button } from "@/components/ui";
 import { secondaryLink, StateView } from "@/components/ui/StateView";
 
+/** A route change re-keys the boundary by itself; when the crash is on the library already the link changes nothing, so it retries. */
+const atLibrary = (): boolean => (window.location.hash.replace(/^#/, "") || "/").split("?")[0] === "/";
+
 export function ErrorFallback({ onRetry }: { onRetry: () => void }) {
   const t = useT();
   return (
@@ -15,7 +18,7 @@ export function ErrorFallback({ onRetry }: { onRetry: () => void }) {
         actions={
           <>
             <Button onClick={onRetry} data-testid="app-error-retry">{t("common.retry")}</Button>
-            <a href="#/" className={secondaryLink} onClick={onRetry}>{t("res.library")}</a>
+            <a href="#/" className={secondaryLink} onClick={() => { if (atLibrary()) onRetry(); }}>{t("res.library")}</a>
           </>
         }
       />
