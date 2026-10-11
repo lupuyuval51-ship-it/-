@@ -57,6 +57,11 @@ export class FakeCloud implements CloudApi {
     const after = <T extends { updatedAt: string }>(m: Map<string, T>) => [...m.values()].filter((r) => since === null || r.updatedAt > since).sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
     return structuredClone({ games: after(this.games), sessions: after(this.sessions), cards: after(this.cards) });
   }
+  async pullGameData(gameIds: string[]): Promise<Pick<CloudRows, "sessions" | "cards">> {
+    if (this.fail) throw new Error("offline");
+    const ids = new Set(gameIds);
+    return structuredClone({ sessions: [...this.sessions.values()].filter((s) => ids.has(s.gameId)), cards: [...this.cards.values()].filter((c) => ids.has(c.gameId)) });
+  }
   async push(b: PushBatch): Promise<void> {
     if (this.fail) throw new Error("offline");
     this.pushes++;

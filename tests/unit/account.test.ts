@@ -93,6 +93,17 @@ describe("account: signed out means silent", () => {
     expect(h.state.pulls).toBe(0);
   });
 
+  it("signed out, nothing the learner does triggers a request: changes, coming back, going away", async () => {
+    vi.useFakeTimers();
+    const acc = await load();
+    acc.startAccount();
+    await vi.advanceTimersByTimeAsync(0);
+    (shared.store as OfflineStore).addGame(generateOffline(request()).spec);
+    for (const state of ["hidden", "visible", "hidden"]) { browser.doc.visibilityState = state; browser.doc.handlers.forEach((fn) => fn()); }
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(h.state.pulls).toBe(0);
+  });
+
   it("startAccount can be called twice without wiring everything twice", async () => {
     const acc = await load();
     acc.startAccount();

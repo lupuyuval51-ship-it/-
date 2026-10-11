@@ -21,11 +21,14 @@ function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?:
         select(columns: string) {
           const q = {
             since: null as string | null,
+            gameIds: null as string[] | null,
             gt(_col: string, v: string) { q.since = v; return q; },
+            in(_col: string, ids: string[]) { q.gameIds = ids; return q; },
             order() { return q; },
             range(from: number, to: number) {
-              calls.push({ op: "range", table, detail: { from, to, columns, since: q.since } });
-              return Promise.resolve({ data: (tables[table] ?? []).slice(from, to + 1), error: null });
+              calls.push({ op: "range", table, detail: { from, to, columns, since: q.since, gameIds: q.gameIds } });
+              const rows = (tables[table] ?? []).filter((r) => !q.gameIds || q.gameIds.includes(r.game_id as string));
+              return Promise.resolve({ data: rows.slice(from, to + 1), error: null });
             },
           };
           return q;
@@ -146,6 +149,20 @@ describe("cloud pull reads games a few at a time", () => {
     await supabaseCloud(db).pull(cursor);
     const since = (calls.find((c) => c.op === "range")!.detail as { since: string }).since;
     expect(Date.parse(cursor) - Date.parse(since)).toBe(OVERLAP_MS);
+  });
+
+  it("pullGameData reads every run and card of the given games, of any age, a few games per request", async () => {
+    const sessions = Array.from({ length: 3 }, (_, i) => ({ local_id: `s${i}`, game_id: i === 2 ? "other" : `g${i}`, status: "ACTIVE", state: {}, started_at: "a", finished_at: null, updated_at: "2020-01-01T00:00:00Z" }));
+    const cards = [{ card_key: "g0.c", game_id: "g0", challenge_id: "c", box: 2, due: "d", mastered: false, updated_at: "2020-01-01T00:00:00Z" }];
+    const { db, calls } = fakeDb({ sessions, deck_cards: cards });
+    const ids = Array.from({ length: 120 }, (_, i) => `g${i}`);
+    const data = await supabaseCloud(db).pullGameData!(ids);
+    expect(data.sessions.map((s) => s.localId).sort()).toEqual(["s0", "s1"]); // the run of a game that was not asked for stays out
+    expect(data.cards.map((c) => c.cardKey)).toEqual(["g0.c"]);
+    const filters = calls.filter((c) => c.op === "range" && c.table === "sessions").map((c) => (c.detail as { gameIds: string[]; since: string | null }));
+    expect(filters.map((f) => f.gameIds.length)).toEqual([MAX_IDS_PER_FILTER, MAX_IDS_PER_FILTER, 20]);
+    expect(filters.every((f) => f.since === null)).toBe(true); // no age limit
+    expect(await supabaseCloud(db).pullGameData!([])).toEqual({ sessions: [], cards: [] });
   });
 
   it("the first pull has no lower bound", async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createBackup, importBackup, serializeBackup } from "@/lib/offline/backup";
 import { FakeCloud, phone } from "./offline-helpers";
 import { randomAction, rng } from "./random-play";
 
@@ -17,6 +18,7 @@ async function scenario(seed: number, clockOffMs: number, steps: number, log: st
   cloud.tick = real;
   const skew = [0, Math.round((rand() - 0.5) * 2 * clockOffMs)];
   const phones: Phone[] = [phone(BASE + skew[0]!), phone(BASE + skew[1]!)];
+  const saved: (string | null)[] = [null, null]; // each phone's latest backup file
   const at = (i: number) => { phones[i]!.t.now = real + skew[i]!; cloud.tick = Math.max(cloud.tick, real); };
 
   for (let step = 0; step < steps; step++) {
@@ -24,8 +26,14 @@ async function scenario(seed: number, clockOffMs: number, steps: number, log: st
     const i = roll(2);
     const p = phones[i]!;
     at(i);
-    const op = roll(10);
-    if (op === 6 && clockOffMs > 0 && rand() < 0.4) {
+    const op = roll(12);
+    if (op === 10) {
+      saved[i] = serializeBackup(createBackup(p.store, real));
+      log.push(`${i}:backup`);
+    } else if (op === 11 && saved[i] !== null) {
+      importBackup(p.store, saved[i]!); // restoring an older file: it may bring back what was deleted since, never overwrite newer data
+      log.push(`${i}:restore`);
+    } else if (op === 6 && clockOffMs > 0 && rand() < 0.4) {
       // the learner (or the network) changes this phone's clock, forwards or backwards
       skew[i] = skew[i]! + Math.round((rand() - 0.5) * 2 * clockOffMs * 6);
       at(i);

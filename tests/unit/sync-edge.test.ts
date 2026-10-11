@@ -3,7 +3,7 @@ import { generateOffline } from "@/lib/offline/generate";
 import { createBackup, importBackup } from "@/lib/offline/backup";
 import { FUTURE_TOLERANCE_MS, MAX_SPEC_BYTES, readSyncState } from "@/lib/offline/sync";
 import { findArea } from "@/lib/game/state/progress";
-import { request } from "./helpers";
+import { correctAnswer, request, wrongAnswer } from "./helpers";
 import { editStored, FakeCloud, flakyKV, phone, PREFIX } from "./offline-helpers";
 
 const SYNC_KEY = "levelup.offline.sync";
@@ -270,6 +270,48 @@ describe("a clock that goes backwards never hides a change from the cloud", () =
     await a.sync(cloud);
     expect(JSON.stringify(a.store.getSession(run)!.state.talked)).toBe(played);
     expect(JSON.stringify(cloud.sessions.get(run)!.state.talked)).toBe(played);
+  });
+});
+
+describe("a game that comes back to a phone gets its cloud progress back", () => {
+  it("restored from an older backup, it also receives the newer runs and review cards the cloud holds for it", async () => {
+    const cloud = cloudAt(10_000_000);
+    const a = phone(10_000_000);
+    const g = addGame(a);
+    const run = a.store.startSession(g.id, false).session.id;
+    const oldBackup = JSON.stringify(createBackup(a.store, 1)); // made before the question was missed
+    await a.sync(cloud);
+
+    // later: a question is missed (a review card appears) and everything is synced
+    a.t.now += 60_000;
+    cloud.tick = a.t.now;
+    const spec = a.store.getGame(g.id)!.spec;
+    const area = findArea(spec, a.store.getSession(run)!.state.areaId)!;
+    const st = area.stations.find((x) => x.kind === "challenge")!;
+    const opened = a.store.applyEvent(run, { type: "open", stationId: st.id });
+    const ch = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
+    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
+    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    expect(a.store.deckSummary().total).toBe(1);
+    await a.sync(cloud);
+    expect(cloud.cards.size).toBe(1);
+
+    // the game is deleted here (its card goes with it, at once) and restored from the old file
+    a.t.now += 60_000;
+    cloud.tick = a.t.now;
+    a.store.deleteGame(g.id);
+    expect(JSON.parse(a.kv.get(`${PREFIX}deck`) ?? "{}")).toEqual({});
+    await a.sync(cloud);
+    a.t.now += 60_000;
+    cloud.tick = a.t.now;
+    const backup = JSON.parse(oldBackup) as { games: { updatedAt: number }[] };
+    backup.games[0]!.updatedAt = a.t.now + 1_000_000; // a later edit than the deletion, so the restore is accepted
+    expect(importBackup(a.store, JSON.stringify(backup))).toMatchObject({ gamesAdded: 1 });
+    expect(a.store.deckSummary().total).toBe(0); // the old file had no card yet
+    await a.sync(cloud);
+    expect(a.store.deckSummary().total).toBe(1); // the cloud's card comes back with the game
+    // (the run in the old file is the learner's latest decision and is kept; only what the file did not have comes from the cloud)
+    expect(a.store.getSession(run)).not.toBeNull();
   });
 });
 

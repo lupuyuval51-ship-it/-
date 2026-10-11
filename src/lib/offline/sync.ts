@@ -30,6 +30,8 @@ export interface PushBatch {
 export interface CloudApi {
   /** Rows changed after `since` (ISO, exclusive), oldest first. `null` = everything. */
   pull(since: string | null): Promise<CloudRows>;
+  /** Every run and review card of these games, whatever their age (optional: without it a restored game gets its progress back only when it changes). */
+  pullGameData?(gameIds: string[]): Promise<Pick<CloudRows, "sessions" | "cards">>;
   /**
    * Upserts the batch. Resolves with how many rows the server refused for what is in them (a record that breaks a table rule is
    * left out so it cannot block everything else); rejects when the round should be retried (offline, signed out, a missing game).
@@ -112,6 +114,22 @@ function buildBatch(store: OfflineStore, changes: ReturnType<OfflineStore["chang
   return { batch, skipped };
 }
 
+/** Runs and review cards from the cloud, checked like a backup file. A bad row is skipped and counted. */
+function validateChildren(rows: Pick<CloudRows, "sessions" | "cards">): { sessions: StoredSession[]; cards: DeckCard[]; rejected: number } {
+  let rejected = 0;
+  const sessions: StoredSession[] = [];
+  for (const s of rows.sessions) {
+    const checked = checkSessionRecord({ id: s.localId, gameId: s.gameId, revision: 1, status: s.status, state: s.state, startedAt: ms(s.startedAt), finishedAt: s.finishedAt ? ms(s.finishedAt) : null, updatedAt: ms(s.updatedAt) });
+    if (checked) sessions.push(checked); else rejected++;
+  }
+  const cards: DeckCard[] = [];
+  for (const c of rows.cards) {
+    const checked = checkCardRecord({ key: c.cardKey, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: ms(c.due), added: ms(c.updatedAt), reviews: 0, updatedAt: ms(c.updatedAt), mastered: c.mastered });
+    if (checked) cards.push(checked); else rejected++;
+  }
+  return { sessions, cards, rejected };
+}
+
 export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userId: string, now: () => number = Date.now): Promise<SyncResult> {
   let state = readSyncState(kv);
   // a different account on this phone must not inherit the previous account's sync marks
@@ -149,17 +167,16 @@ export async function syncOnce(store: OfflineStore, kv: KV, api: CloudApi, userI
     if (!checked.ok) { rejected++; continue; }
     games.push({ ...checked.game, deletedAt: null });
   }
-  const sessions: StoredSession[] = [];
-  for (const s of remote.sessions) {
-    const checked = checkSessionRecord({ id: s.localId, gameId: s.gameId, revision: 1, status: s.status, state: s.state, startedAt: ms(s.startedAt), finishedAt: s.finishedAt ? ms(s.finishedAt) : null, updatedAt: ms(s.updatedAt) });
-    if (checked) sessions.push(checked); else rejected++;
+  const children = validateChildren(remote);
+  rejected += children.rejected;
+  let pulled = store.applyRemote({ games, sessions: children.sessions, cards: children.cards }, state.lastPushMs);
+  // A game that is new on this phone may have older runs and cards in the cloud than this pull returned: ask for them by game.
+  const added = store.takeAddedGames();
+  if (added.length > 0 && state.cursor !== null && api.pullGameData) {
+    const extra = validateChildren(await api.pullGameData(added));
+    rejected += extra.rejected;
+    pulled += store.applyRemote({ games: [], sessions: extra.sessions, cards: extra.cards }, state.lastPushMs);
   }
-  const cards: DeckCard[] = [];
-  for (const c of remote.cards) {
-    const checked = checkCardRecord({ key: c.cardKey, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: ms(c.due), added: ms(c.updatedAt), reviews: 0, updatedAt: ms(c.updatedAt), mastered: c.mastered });
-    if (checked) cards.push(checked); else rejected++;
-  }
-  const pulled = store.applyRemote({ games, sessions, cards }, state.lastPushMs);
   const seen = [...remote.games, ...remote.sessions, ...remote.cards].map((r) => r.updatedAt).sort();
   const cursor = seen.length ? seen[seen.length - 1]! : state.cursor;
 

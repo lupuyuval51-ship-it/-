@@ -149,6 +149,19 @@ export class OfflineStore {
   private muted = false;
   constructor(private kv: KV, private clock: () => number = Date.now) {}
 
+  /** Games a cloud merge has just added to this phone (see `takeAddedGames`). */
+  private addedByMerge: string[] = [];
+  /**
+   * The games that the last merge(s) added here. The runs and review cards of such a game may exist in the cloud although they are
+   * older than the sync cursor (a game that was deleted here and restored on another phone has lost them locally), so sync asks
+   * the cloud for them by game. Returns each id once and forgets it.
+   */
+  takeAddedGames(): string[] {
+    const ids = [...new Set(this.addedByMerge)];
+    this.addedByMerge = [];
+    return ids;
+  }
+
   /** Lower bound for change stamps, set by cloud sync at the start of a round (see `changeStamp`). */
   private floor = 0;
   setClockFloor(ms: number): void { this.floor = ms; }
@@ -546,6 +559,7 @@ export class OfflineStore {
       void _d;
       game.updatedAt = clean(r.updatedAt);
       this.putGame(game, !local);
+      if (!local) this.addedByMerge.push(game.id);
       applied++;
     }
 
@@ -621,7 +635,7 @@ export class OfflineStore {
       if (deletedAt !== undefined) { delete tomb[g.id]; tombChanged = true; }
       const next: StoredGame = { ...g, updatedAt: now, revision: local ? Math.max(local.revision, g.revision) + 1 : g.revision };
       this.putGame(next, !local);
-      if (!local) counts.gamesAdded++; else counts.gamesUpdated++;
+      if (!local) { counts.gamesAdded++; this.addedByMerge.push(g.id); } else counts.gamesUpdated++; // (a restored game may have newer runs and cards in the cloud)
       usable.add(g.id);
     }
     if (tombChanged) this.write("tombstones", tomb);
@@ -781,6 +795,14 @@ export class OfflineStore {
     for (const s of this.sessionIds(id)) this.kv.remove(PREFIX + `session.${s}`);
     this.kv.remove(PREFIX + `sessions.${id}`);
     this.kv.remove(PREFIX + `game.${id}`);
+    // Its review cards go with it, now: left behind, they would be sent to the cloud as "unchanged" cards of a game this phone no
+    // longer has (skipped), and come back as stale copies if the game is restored later.
+    const deck = this.deck();
+    const mine = Object.keys(deck).filter((k) => deck[k]!.gameId === id);
+    if (mine.length > 0) {
+      for (const k of mine) delete deck[k];
+      try { this.put("deck", deck); } catch (e) { if (!isStorageError(e)) throw e; } // (shrinking the deck cannot realistically fail; the next deck update cleans up)
+    }
   }
 
   private removeGameLocally(id: string): void {
