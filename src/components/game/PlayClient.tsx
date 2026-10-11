@@ -13,6 +13,7 @@ import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
 import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
 import { canVibrate, webHaptic, type Feedback } from "./haptics";
+import { webglAvailable } from "./webgl";
 import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
@@ -29,15 +30,6 @@ import { UnityView, unityBuildAvailable } from "./UnityView";
 import type { UnityFrame } from "@/lib/game/unity/bridge";
 
 const GameCanvas = dynamic(() => import("./scene/GameCanvas"), { ssr: false });
-
-function webglAvailable(): boolean {
-  try {
-    const c = document.createElement("canvas");
-    return Boolean(c.getContext("webgl2") ?? c.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
 
 type Overlay =
   | { type: "none" }
