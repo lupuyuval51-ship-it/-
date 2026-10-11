@@ -8,6 +8,7 @@ import type { FeatureTier } from "@/config/plans";
 import { DIFFICULTIES, GAME_TYPES, type Difficulty, type GameType } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError } from "@/lib/offline/generate";
+import { EXAMPLE_NOTES, exampleById, isExampleText } from "./examples";
 
 export type CreateMode = "FAST" | "FULL";
 export type ContentLang = "he" | "en";
@@ -179,3 +180,77 @@ export function classifyGenerationError(err: unknown, tier: FeatureTier, form: P
 
 /** Failure while writing the finished game to the phone. */
 export const classifySaveError = (err: unknown): CreateProblem => (isStorageFull(err) ? { kind: "storage" } : { kind: "generic" });
+
+// ───────────────────────────── the screen's state ─────────────────────────────
+
+/** What the learner had before a button replaced it, so one tap brings it back. */
+export interface Undo { form: CreateFormValues; reason: "example" | "cleared" }
+
+export interface CreateState {
+  form: CreateFormValues;
+  /** The form came from an earlier, unfinished visit. */
+  restored: boolean;
+  undo: Undo | null;
+  problem: CreateProblem | null;
+}
+
+export type CreateAction =
+  | { [K in keyof CreateFormValues]: { type: "change"; key: K; value: CreateFormValues[K] } }[keyof CreateFormValues]
+  | { type: "example"; id: string }
+  | { type: "clear" }
+  | { type: "undo" }
+  | { type: "problem"; problem: CreateProblem | null };
+
+/** Text the learner wrote themselves: not blank and not one of the ready-made examples. */
+export const hasOwnText = (f: CreateFormValues): boolean => !isBlankForm(f) && !isExampleText(f.subject, f.material);
+
+/**
+ * The form when the screen opens: the saved draft if there is one, or the default example for `#/create?example=1`
+ * (a draft the learner wrote themselves is then kept behind "Bring back my text").
+ */
+export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean }): CreateState {
+  if (opts.example) {
+    const ex = EXAMPLE_NOTES[opts.locale];
+    return {
+      form: { ...emptyForm(opts.locale, opts.tier), subject: ex.subject, material: ex.notes },
+      restored: false,
+      undo: saved && hasOwnText(saved) ? { form: saved, reason: "example" } : null,
+      problem: null,
+    };
+  }
+  return { form: saved ?? emptyForm(opts.locale, opts.tier), restored: Boolean(saved), undo: null, problem: null };
+}
+
+export function createReducer(state: CreateState, action: CreateAction): CreateState {
+  switch (action.type) {
+    case "change": {
+      const { problem } = state;
+      const solved = problem !== null
+        && ((problem.kind === "required" && action.key === "subject")
+          || (problem.kind === "material" && action.key === "material")
+          || (problem.kind === "tier" && (action.key === "mode" || action.key === "gameType")));
+      return { ...state, form: { ...state.form, [action.key]: action.value }, restored: false, problem: solved ? null : problem };
+    }
+    case "example": {
+      const ex = exampleById(action.id)?.[state.form.language];
+      if (!ex) return state;
+      return {
+        form: { ...state.form, subject: ex.subject, material: ex.notes, goal: "" },
+        restored: false,
+        undo: hasOwnText(state.form) ? { form: state.form, reason: "example" } : state.undo,
+        problem: null,
+      };
+    }
+    case "clear":
+      return {
+        form: { ...state.form, subject: "", goal: "", material: "" },
+        restored: false,
+        undo: hasOwnText(state.form) ? { form: state.form, reason: "cleared" } : state.undo,
+        problem: null,
+      };
+    case "undo":
+      return state.undo ? { form: state.undo.form, restored: false, undo: null, problem: null } : state;
+    case "problem":
+      return { ...state, problem: action.problem };
+  }
+}

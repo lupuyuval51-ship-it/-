@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { MaterialPreview } from "@/components/create/MaterialPreview";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } from "@/components/ui";
@@ -10,10 +10,10 @@ import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/ge
 import { hashQuery } from "@/lib/offline/onboarding";
 import { store } from "../app-state";
 import {
-  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, detectScript, draftStorage, emptyForm, isBlankForm, loadDraft, saveDraft,
-  type ContentLang, type CreateFormValues, type CreateProblem,
+  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, detectScript, draftStorage, isBlankForm, loadDraft, saveDraft, startState,
+  type ContentLang, type CreateAction, type CreateFormValues,
 } from "./createForm";
-import { EXAMPLES, EXAMPLE_NOTES, exampleById, isExampleText } from "./examples";
+import { EXAMPLES } from "./examples";
 import { navigate } from "../router";
 
 const STAGES: readonly OfflineStage[] = ["reading", "building", "checking", "saving"];
@@ -22,29 +22,16 @@ const DRAFT_DEBOUNCE_MS = 400;
 /** Show the character counter once the text is this close to the limit. */
 const COUNT_FROM = Math.floor(INPUT_LIMITS.materialMax * 0.7);
 
-interface Undo { form: CreateFormValues; reason: "example" | "cleared" }
-
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
   const tier = getOfflineTier();
   const storage = useMemo(() => draftStorage(), []);
 
-  // Start from the unfinished draft, if any. `#/create?example=1` (from the welcome / empty library) opens with the example
-  // notes instead; a draft the learner wrote themselves is then kept behind "Bring back my text".
-  const [start] = useState(() => {
-    const saved = loadDraft(storage, tier, locale);
-    if (hashQuery(window.location.hash).get("example") === "1") {
-      const ex = EXAMPLE_NOTES[locale];
-      const mine = saved && !isExampleText(saved.subject, saved.material) ? saved : null;
-      return { form: { ...emptyForm(locale, tier), subject: ex.subject, material: ex.notes }, restored: false, undo: mine ? ({ form: mine, reason: "example" } as Undo) : null };
-    }
-    return { form: saved ?? emptyForm(locale, tier), restored: Boolean(saved), undo: null as Undo | null };
-  });
-  const [form, setForm] = useState<CreateFormValues>(start.form);
-  const [restored, setRestored] = useState(start.restored);
-  const [undo, setUndo] = useState<Undo | null>(start.undo);
-  const [problem, setProblem] = useState<CreateProblem | null>(null);
+  // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
+  const [state, dispatch] = useReducer(createReducer, undefined, () =>
+    startState(loadDraft(storage, tier, locale), { locale, tier, example: hashQuery(window.location.hash).get("example") === "1" }));
+  const { form, restored, undo, problem } = state;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
   const [langKept, setLangKept] = useState<ContentLang | null>(null);
@@ -54,6 +41,12 @@ export function CreatePage() {
   const latest = useRef(form);
   useEffect(() => { latest.current = form; }, [form]);
   const finished = useRef(false);
+  // Leaving the screen while a game is being built cancels it: nothing is saved and nobody is navigated away from where they went.
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
   useEffect(() => {
     if (finished.current) return;
     const id = window.setTimeout(() => saveDraft(storage, form), DRAFT_DEBOUNCE_MS);
@@ -80,51 +73,15 @@ export function CreatePage() {
     if (id) el?.focus?.();
   }, [problem]);
 
-  function change<K extends keyof CreateFormValues>(key: K, value: CreateFormValues[K]) {
-    setForm((f) => ({ ...f, [key]: value }));
-    setRestored(false);
-    setProblem((p) => {
-      if (!p) return p;
-      if (p.kind === "required" && key === "subject") return null;
-      if (p.kind === "material" && key === "material") return null;
-      if (p.kind === "tier" && (key === "mode" || key === "gameType")) return null;
-      return p;
-    });
-  }
-
-  /** Text the learner wrote themselves (not an example), kept so a button press can be taken back. */
-  const ownText = (f: CreateFormValues): boolean => !isBlankForm(f) && !isExampleText(f.subject, f.material);
-
-  function applyExample(id: string) {
-    const ex = exampleById(id)?.[form.language];
-    if (!ex) return;
-    if (ownText(form)) setUndo({ form, reason: "example" });
-    setForm((f) => ({ ...f, subject: ex.subject, material: ex.notes, goal: "" }));
-    setRestored(false);
-    setProblem(null);
-  }
-
-  function clearForm() {
-    if (ownText(form)) setUndo({ form, reason: "cleared" });
-    setForm((f) => ({ ...f, subject: "", goal: "", material: "" }));
-    setRestored(false);
-    setProblem(null);
-  }
-
-  function bringBack() {
-    if (!undo) return;
-    setForm(undo.form);
-    setUndo(null);
-    setProblem(null);
-  }
+  const change = <K extends keyof CreateFormValues>(key: K, value: CreateFormValues[K]) => dispatch({ type: "change", key, value } as CreateAction);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
     const subject = cleanPastedText(form.subject).trim();
-    if (!subject) { setProblem({ kind: "required" }); return; }
+    if (!subject) { dispatch({ type: "problem", problem: { kind: "required" } }); return; }
     setBusy(true);
-    setProblem(null);
+    dispatch({ type: "problem", problem: null });
     setProgress({ percent: 0, stage: "reading" });
     let spec;
     try {
@@ -133,16 +90,17 @@ export function CreatePage() {
         material: cleanPastedText(form.material).trim() || undefined,
       }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
     } catch (err) {
-      setProblem(classifyGenerationError(err, tier, form));
+      dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });
       setBusy(false);
       return;
     }
+    if (!alive.current) return;
     setProgress({ percent: 95, stage: "saving" });
     let id: string;
     try {
       id = store.addGame(spec).id;
     } catch (err) {
-      setProblem(classifySaveError(err));
+      dispatch({ type: "problem", problem: classifySaveError(err) });
       setBusy(false);
       return;
     }
@@ -190,7 +148,7 @@ export function CreatePage() {
         <p className="text-sm font-medium" id="example-label">{t("mob.create.example")}</p>
         <div className="flex flex-wrap gap-2" role="group" aria-labelledby="example-label" data-testid="example-list">
           {EXAMPLES.map((ex, i) => (
-            <Button key={ex.id} type="button" size="sm" variant="secondary" disabled={busy} data-testid={i === 0 ? "example-notes" : `example-notes-${ex.id}`} onClick={() => applyExample(ex.id)}>
+            <Button key={ex.id} type="button" size="sm" variant="secondary" disabled={busy} data-testid={i === 0 ? "example-notes" : `example-notes-${ex.id}`} onClick={() => dispatch({ type: "example", id: ex.id })}>
               {ex[form.language].subject}
             </Button>
           ))}
@@ -210,7 +168,7 @@ export function CreatePage() {
       {undo ? (
         <Alert tone="info" className="flex flex-wrap items-center justify-between gap-2" data-testid="create-undo">
           <span>{t(undo.reason === "example" ? "mob.create.undo.example" : "mob.create.undo.cleared")}</span>
-          <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={bringBack}>{t("mob.create.undo")}</Button>
+          <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => dispatch({ type: "undo" })}>{t("mob.create.undo")}</Button>
         </Alert>
       ) : restored ? (
         <Alert tone="info" data-testid="create-restored">{t("mob.create.draft.restored")}</Alert>
@@ -283,7 +241,7 @@ export function CreatePage() {
       {!isBlankForm(form) && !busy && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1" data-testid="create-draft">
           <p className="min-w-0 flex-1 text-xs text-muted">{t("mob.create.draft.note")}</p>
-          <Button type="button" size="sm" variant="ghost" onClick={clearForm}>{t("mob.create.draft.clear")}</Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => dispatch({ type: "clear" })}>{t("mob.create.draft.clear")}</Button>
         </div>
       )}
       </div>

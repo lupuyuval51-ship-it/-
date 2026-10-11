@@ -6,8 +6,9 @@ import { INPUT_LIMITS } from "@/config/limits";
 import { generationRequestSchema } from "@/lib/schemas/generation";
 import {
   DRAFT_KEY, anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, detectScript, emptyForm, fitToTier, isBlankForm, isStorageFull,
-  loadDraft, lockedChoices, parseDraft, pickGameType, pickMode, saveDraft, type CreateFormValues, type DraftStorage,
+  createReducer, hasOwnText, loadDraft, lockedChoices, parseDraft, pickGameType, pickMode, saveDraft, startState, type CreateFormValues, type CreateState, type DraftStorage,
 } from "../../mobile/src/pages/createForm";
+import { EXAMPLES } from "../../mobile/src/pages/examples";
 
 const memory = (): DraftStorage & { data: Map<string, string> } => {
   const data = new Map<string, string>();
@@ -186,5 +187,93 @@ describe("the local draft", () => {
     expect(isBlankForm(emptyForm("he", "A"))).toBe(true);
     expect(isBlankForm({ subject: " ", goal: "\n", material: "" })).toBe(true);
     expect(isBlankForm({ subject: "a", goal: "", material: "" })).toBe(false);
+  });
+});
+
+describe("the screen's state", () => {
+  const fresh = (over: Partial<CreateState> = {}): CreateState => ({ ...startState(null, { locale: "en", tier: "A", example: false }), ...over });
+  const own = filled({ subject: "My unit", goal: "Pass the test", material: "Cell: the smallest unit of life." });
+
+  it("opens empty, or with the saved draft marked as restored", () => {
+    expect(startState(null, { locale: "he", tier: "A", example: false })).toMatchObject({ restored: false, undo: null, problem: null, form: emptyForm("he", "A") });
+    expect(startState(own, { locale: "en", tier: "A", example: false })).toMatchObject({ restored: true, form: own });
+  });
+
+  it("#/create?example=1 fills the default example in the app language and keeps the learner's own draft behind undo", () => {
+    const he = startState(null, { locale: "he", tier: "A", example: true });
+    expect(he.form).toMatchObject({ subject: "מחזור המים", language: "he" });
+    expect(he.undo).toBeNull();
+    const withDraft = startState(own, { locale: "en", tier: "A", example: true });
+    expect(withDraft.form.subject).toBe("The water cycle");
+    expect(withDraft.form.goal).toBe("");
+    expect(withDraft.undo).toEqual({ form: own, reason: "example" });
+    expect(withDraft.restored).toBe(false);
+    const exDraft = filled({ subject: EXAMPLES[1]!.en.subject, material: EXAMPLES[1]!.en.notes });
+    expect(startState(exDraft, { locale: "en", tier: "A", example: true }).undo).toBeNull();
+  });
+
+  it("typing clears the message about that field only", () => {
+    const base = fresh({ problem: { kind: "required" } });
+    expect(createReducer(base, { type: "change", key: "goal", value: "g" }).problem).toEqual({ kind: "required" });
+    expect(createReducer(base, { type: "change", key: "subject", value: "s" }).problem).toBeNull();
+    const material = fresh({ problem: { kind: "material", detail: "x" } });
+    expect(createReducer(material, { type: "change", key: "material", value: "m" }).problem).toBeNull();
+    expect(createReducer(material, { type: "change", key: "subject", value: "s" }).problem).not.toBeNull();
+    const tier = fresh({ problem: { kind: "tier", mode: true, gameType: false } });
+    expect(createReducer(tier, { type: "change", key: "mode", value: "FAST" }).problem).toBeNull();
+    expect(createReducer(tier, { type: "change", key: "gameType", value: "puzzle" }).problem).toBeNull();
+    expect(createReducer(tier, { type: "change", key: "difficulty", value: "advanced" }).problem).not.toBeNull();
+    expect(createReducer(fresh({ problem: { kind: "storage" } }), { type: "change", key: "subject", value: "s" }).problem).toEqual({ kind: "storage" });
+  });
+
+  it("an edit ends the 'restored' notice and changes only that field", () => {
+    const s = createReducer(startState(own, { locale: "en", tier: "A", example: false }), { type: "change", key: "difficulty", value: "advanced" });
+    expect(s.restored).toBe(false);
+    expect(s.form).toEqual({ ...own, difficulty: "advanced" });
+  });
+
+  it("an example fills subject and notes in the game language, resets the goal, and keeps the options", () => {
+    const s = createReducer(fresh({ form: filled({ language: "he", difficulty: "advanced", mode: "FULL", goal: "" }) }), { type: "example", id: "planets" });
+    expect(s.form).toMatchObject({ subject: "מערכת השמש", language: "he", difficulty: "advanced", mode: "FULL", goal: "" });
+    expect(s.form.material).toBe(EXAMPLES[2]!.he.notes);
+    expect(createReducer(fresh(), { type: "example", id: "nope" })).toEqual(fresh());
+  });
+
+  it("an example never silently destroys the learner's text: it can be brought back", () => {
+    const afterExample = createReducer(fresh({ form: own }), { type: "example", id: "water" });
+    expect(afterExample.undo).toEqual({ form: own, reason: "example" });
+    expect(afterExample.form.subject).toBe("The water cycle");
+    // another example on top of an example keeps the original text behind undo
+    const second = createReducer(afterExample, { type: "example", id: "fractions" });
+    expect(second.undo).toEqual({ form: own, reason: "example" });
+    expect(second.form.subject).toBe("Fractions");
+    const back = createReducer(second, { type: "undo" });
+    expect(back.form).toEqual(own);
+    expect(back.undo).toBeNull();
+    // an example over an empty form needs no undo
+    expect(createReducer(fresh(), { type: "example", id: "water" }).undo).toBeNull();
+  });
+
+  it("clearing the form keeps the options, offers undo for the learner's text only", () => {
+    const cleared = createReducer(fresh({ form: { ...own, difficulty: "advanced", gameType: "puzzle" } }), { type: "clear" });
+    expect(cleared.form).toMatchObject({ subject: "", goal: "", material: "", difficulty: "advanced", gameType: "puzzle" });
+    expect(cleared.undo?.reason).toBe("cleared");
+    expect(createReducer(cleared, { type: "undo" }).form.subject).toBe("My unit");
+    const onExample = createReducer(fresh(), { type: "example", id: "water" });
+    expect(createReducer(onExample, { type: "clear" }).undo).toBeNull();
+  });
+
+  it("undo with nothing to bring back changes nothing, and a problem can be set and cleared", () => {
+    const s = fresh();
+    expect(createReducer(s, { type: "undo" })).toBe(s);
+    const p = createReducer(s, { type: "problem", problem: { kind: "generic" } });
+    expect(p.problem).toEqual({ kind: "generic" });
+    expect(createReducer(p, { type: "problem", problem: null }).problem).toBeNull();
+  });
+
+  it("tells the learner's own text from an example", () => {
+    expect(hasOwnText(own)).toBe(true);
+    expect(hasOwnText(emptyForm("en", "A"))).toBe(false);
+    expect(hasOwnText(filled({ subject: EXAMPLES[0]!.en.subject, material: EXAMPLES[0]!.en.notes }))).toBe(false);
   });
 });
