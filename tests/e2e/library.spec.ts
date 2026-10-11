@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { apiPost, createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
-import { dbRows, getGameSpec, userIdOf } from "./db";
+import { dbRows, getGameSpec, setPlan, userIdOf } from "./db";
 import { correctAnswer } from "../unit/helpers";
 
 test.describe("library, details and modification", () => {
@@ -60,7 +60,8 @@ test.describe("library, details and modification", () => {
     await expect(page.getByTestId("details-progress")).toContainText("not finished");
     expect((await dbRows<{ status: string }>('SELECT status FROM "PlaySession" WHERE id = $1', [sessionId]))[0]!.status).toBe("ABANDONED");
 
-    // the extend shortcut preselects the right mode and game
+    // the extend shortcut preselects the right mode and game (extending adds areas: a Plus feature, locked on the Free plan)
+    await setPlan(email, "PLUS");
     await page.getByTestId("extend-link").click();
     await page.waitForURL(/\/create\?mode=EXTEND/);
     await expect(page.getByTestId("mode-EXTEND")).toBeChecked();

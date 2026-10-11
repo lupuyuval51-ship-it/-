@@ -11,7 +11,7 @@ import {
 import { RENDER_PROFILES } from "@/config/graphics";
 
 describe("central plan configuration (exact product rules)", () => {
-  it("FREE: $0, one game per calendar month, graphics tiers B/C only", () => {
+  it("FREE: $0, two games per calendar month, graphics tiers B/C only", () => {
     expect(PLANS.FREE.monthlyPrices.USD).toBe(0);
     expect(PLANS.FREE.gamesPerPeriod).toBe(2);
     expect(PLANS.FREE.allowancePeriod).toEqual({ kind: "calendar_month_utc" });

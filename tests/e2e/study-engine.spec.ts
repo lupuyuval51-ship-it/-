@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { registerViaUi, setLocaleCookie } from "./helpers";
-import { dbRows, getGameSpec, userIdOf } from "./db";
+import { dbRows, getGameSpec, setPlan, userIdOf } from "./db";
 import { answerInUi, challengeOf, goNear, openGame } from "./play-helpers";
 
 const NOTES = `The Nile Valley
@@ -122,6 +122,7 @@ test.describe("the study engine: a game made from the learner's own material", (
     await setLocaleCookie(page, "en");
     const { email } = await registerViaUi(page, { name: "Noa" });
     const userId = await userIdOf(email);
+    await setPlan(email, "PLUS"); // Full games (several areas) are a tier-B feature
     await page.goto("/create");
     await expect(page.getByTestId("create-form")).toHaveAttribute("data-hydrated", "1"); // a file picked before hydration would have no handler
     const quiz = "# European capitals\nQ: What is the capital of France?\nA: Paris\nQ: What is the capital of Italy?\nA: Rome\nQ: What is the capital of Spain?\nA: Madrid\nQ: What is the capital of Germany?\nA: Berlin\nQ: How many countries are in the European Union?\nA: 27 countries";

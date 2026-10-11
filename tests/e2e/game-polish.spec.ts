@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
-import { getGameSpec } from "./db";
+import { getGameSpec, setPlan } from "./db";
 import { challengeOf, goNear, openGame, snapshot } from "./play-helpers";
 import { correctAnswer, PACK_SUBJECT } from "../unit/helpers";
 import { collectibleIds, stationActive, type ClientState } from "@/lib/game/state/progress";
@@ -82,7 +82,8 @@ test.describe("play-screen guidance and polish", () => {
   test("simulation challenges animate: the lever shows its balance and the cannon fires an animated ball", async ({ page }) => {
     test.setTimeout(240_000);
     await setLocaleCookie(page, "en");
-    await registerViaApi(page, { locale: "en" });
+    const { email } = await registerViaApi(page, { locale: "en" });
+    await setPlan(email, "PRO"); // simulation labs and physics simulations are tier A
     const gameId = await createGameViaApi(page, { subject: PACK_SUBJECT.science, gameType: "simulation", mode: "FULL" });
     const spec = await getGameSpec(gameId);
     const second = spec.areas[1];
@@ -112,8 +113,19 @@ test.describe("play-screen guidance and polish", () => {
     await expect.poll(async () => (await snapshot(page)).areaId).toBe(second!.id);
 
     const seen = new Set<string>();
-    for (const st of sims) {
+    // look at the simulations in the order a boss battle opens them
+    const phaseIndex = (id: string) => spec.bosses.flatMap((b) => b.phaseStationIds).indexOf(id);
+    const simIds = new Set(sims.map((x) => x.id));
+    for (const st of [...sims].sort((a, b) => phaseIndex(a.id) - phaseIndex(b.id))) {
       const ch = challengeOf(spec, st.challengeId!) as any;
+      // A boss battle's rounds open one after another: win the other rounds before this one (through the API) so it is open.
+      const battle = spec.bosses.find((b) => b.phaseStationIds.includes(st.id));
+      for (const before of battle ? battle.phaseStationIds.slice(0, battle.phaseStationIds.indexOf(st.id)).filter((id) => !simIds.has(id)) : []) {
+        if (state.resolvedStations[before]) continue;
+        const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: before });
+        state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: before, answer: correctAnswer(challengeOf(spec, opened.body.data.challenge.id)) })).body.state ?? state;
+      }
+      if (battle) { await page.reload(); await openGame(page, gameId); }
       await goNear(page, "station", st.id);
       await page.keyboard.press("KeyE");
       const panel = page.getByTestId("challenge-panel");
@@ -131,6 +143,8 @@ test.describe("play-screen guidance and polish", () => {
       seen.add(ch.sim.kind);
       await page.keyboard.press("Escape");
       await expect(panel).toBeHidden();
+      // the simulation was opened by the player: finish it through the API so the next round of a battle opens
+      if (battle) state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: correctAnswer(ch) })).body.state ?? state;
     }
     expect(seen.size).toBeGreaterThan(0);
   });

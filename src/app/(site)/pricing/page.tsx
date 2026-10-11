@@ -68,7 +68,7 @@ export default async function PricingPage() {
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
                 <li className="flex gap-2" data-testid={`share-${plan}`}><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span><b>{t("feat.level", { tier: PLANS[plan].featureTier })}</b> · {t("feat.share", { share: featureShare(PLANS[plan].featureTier) })}</span></li>
-                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.modes")}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t(PLANS[plan].featureTier === "C" ? "pricing.feature.modes.fast" : "pricing.feature.modes")}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.save")}</span></li>
                 {plan === "PRO" && <li className="flex gap-2"><Star aria-hidden className="mt-0.5 size-4 shrink-0 fill-violet-soft text-violet-soft" /><span>{t("pricing.feature.same")}</span></li>}
               </ul>
