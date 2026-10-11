@@ -25,7 +25,7 @@ What targeting 36 means for this app (Android's own docs):
 - No orientation lock or fixed size in the manifest, so the Android 16 large-screen rule needs nothing: for apps targeting 36,
   "orientation, resizability, and aspect ratio restrictions no longer apply on displays with smallest width >= 600dp"
   (same page); the app simply fills a tablet or foldable.
-- No native libraries in the AAB (the 1.4.1 AAB had no `.so` files), so Play's 16 KB page-size rule has nothing to apply to.
+- No native libraries in the AAB (the 1.4.1 AAB had no `.so` files; Play's 16 KB page-size requirement concerns native code).
 
 ## 2. Release build
 
@@ -66,12 +66,12 @@ Capacitor config, back-button rules).
 
 ## 4. Edge-to-edge, keyboard, back button
 
-- **Android 15+ (targetSdk 36)**: the window is drawn behind the status bar, gesture bar and camera cut-out, and Capacitor 7 does
-  not inset the WebView by default (its `adjustMarginsForEdgeToEdge` default becomes `auto` only in Capacitor 8), and how far
-  the WebView reports `env(safe-area-inset-*)` depends on its version, so the app does not rely on it.
-  `MainActivity.fitSystemBars` therefore gives the WebView
-  margins for system bars + cut-out + **keyboard** (an edge-to-edge window is no longer resized by `adjustResize`), and the
-  page keeps its own `env()` padding, which is then 0. Android 14 and older keep their normal opaque bars and are untouched.
+- **Android 15+ (targetSdk 36)**: the window is drawn behind the status bar, gesture bar and camera cut-out. Capacitor 7 does not
+  inset the WebView by default (its `adjustMarginsForEdgeToEdge` default becomes `auto` only in Capacitor 8), and how far the
+  WebView reports `env(safe-area-inset-*)` depends on its version, so the app does not rely on it. `MainActivity.fitSystemBars`
+  therefore gives the WebView margins for system bars + cut-out + **keyboard** (an edge-to-edge window is no longer resized by
+  `adjustResize`); the page keeps its own `env()` padding, which is then 0. Android 14 and older keep their normal opaque bars
+  and are untouched.
 - Colours behind the transparent bars and the light/dark status-bar icons: `MainActivity` starts with the system light/dark mode;
   the page then tells the shell what it is showing (`mobile/src/system-bars.ts` -> `SystemBarsPlugin`): the in-app theme from
   Settings, the system mode, and the 3D play screen, which is always dark. The two colours are the page backgrounds in
@@ -107,7 +107,8 @@ are no ads, analytics or third-party SDKs besides Supabase's client library.
   count as sharing.
 - **Encrypted in transit: Yes** (HTTPS only; cleartext disabled).
 - **Users can request deletion: Yes**: in-app (Settings → Account → delete my account and cloud data) and on a web page.
-- "Optional" is allowed here because every user can use the whole app without an account.
+- "Optional" is allowed here because every user can use the whole app without an account. The mapping of play progress to
+  "Other actions" and of the user id to "User IDs" is a judgment call on Google's categories; when in doubt, declare it.
 - **Android Auto Backup is off**, so the OS does not copy app data to Google; nothing to declare for it.
 - The Data safety form must match the privacy policy (`mobile/store/privacy-policy.md`, updated for the backup change).
 
