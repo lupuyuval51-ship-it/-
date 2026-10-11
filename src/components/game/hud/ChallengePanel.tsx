@@ -9,7 +9,9 @@ import type { Block } from "@/lib/game/spec/schema";
 import { radioStep, radioTabIndex } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
+import { safePadX } from "./hudLayout";
 import { useDialogFocus } from "./useDialogFocus";
+import { useKeyboardInset } from "./useKeyboardInset";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
 
@@ -80,9 +82,11 @@ interface Props {
   onSubmit: (a: Answer) => void;
   onHint: () => void;
   onClose: () => void;
+  /** Shown inside a page (the practice screen) instead of covering the whole play screen: it is not lifted above the keyboard. */
+  embedded?: boolean;
 }
 
-export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose }: Props) {
+export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose, embedded = false }: Props) {
   const t = useT();
   const resolved = result?.resolved ?? false;
   const ref = useRef<HTMLDivElement>(null);
@@ -104,7 +108,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // a wrong answer gives the panel a short shake (skipped when the player prefers reduced motion)
   useEffect(() => {
     const el = ref.current;
-    if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!result || result.correct || !el || typeof el.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches || el.closest(".reduce-motion")) return;
     el.animate(
       [{ transform: "translateX(0)" }, { transform: "translateX(-9px)" }, { transform: "translateX(8px)" }, { transform: "translateX(-5px)" }, { transform: "translateX(3px)" }, { transform: "translateX(0)" }],
       { duration: 420, easing: "ease-in-out" },
@@ -121,14 +125,22 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
   const { shortLandscape } = useLayout();
+  // On phones whose on-screen keyboard only covers the page (it does not resize it), the sheet lifts above the keyboard so
+  // the answer field and the "Check" button stay visible while typing a number.
+  const kb = useKeyboardInset();
+  const lifted = kb > 0 && !embedded;
+  // A phone held sideways has room for two panes: the question on one side, the answers (and the verdict) on the other,
+  // each scrolling on its own. The robot and simulation widgets are wide, so they keep one column. Only classes change
+  // between the layouts, never the element tree, so turning the phone does not reset a half-made answer.
+  const split = shortLandscape && challenge.type !== "program" && challenge.type !== "simulation";
   return (
-    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
+    <div className={cx("absolute inset-0 z-30 flex justify-center bg-ink-950/70 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none", shortLandscape ? "items-center p-2" : "items-end p-0 sm:items-center sm:p-4")} style={{ ...(shortLandscape ? safePadX("0.5rem") : {}), ...(lifted ? { paddingBottom: kb, alignItems: "flex-end" } : {}) }}>
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby="challenge-title" data-testid="challenge-panel" data-challenge={challenge.id} data-type={challenge.type} style={lifted ? { maxHeight: `calc(100dvh - ${kb}px - 0.5rem)` } : undefined} className={cx("lu-pop relative flex w-full max-w-2xl flex-col overflow-hidden border border-line bg-ink-800 shadow-e3 md:max-w-3xl", shortLandscape ? "max-h-[calc(100dvh-1rem)] rounded-2xl" : "max-h-[94dvh] rounded-t-3xl sm:rounded-3xl")}>
         {result?.correct && <Confetti />}
-        <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-4")}>
+        <header className={cx("flex flex-wrap items-start justify-between gap-3 border-b border-line", shortLandscape ? "p-2.5" : "p-3 sm:p-4")}>
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-xs font-medium text-neon">{stationLabel}</p>
-            <h2 id="challenge-title" dir="auto" className="text-lg font-bold">{challenge.title}</h2>
+            <h2 id="challenge-title" dir="auto" className={cx("font-bold", shortLandscape ? "text-base" : "text-base sm:text-lg")}>{challenge.title}</h2>
             <div className="flex flex-wrap gap-1.5">
               <Badge tone="violet">{t("challenge.level", { n: challenge.level })}</Badge>
               <Badge>{t("challenge.concept")}: {challenge.concept}</Badge>
@@ -136,7 +148,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape"><X aria-hidden className="size-4" /></Button>
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape" className="min-w-11"><X aria-hidden className="size-4" /></Button>
         </header>
 
         <div role="status" aria-live="polite" className="sr-only" data-testid="challenge-live">
@@ -144,45 +156,49 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
           {hint && <p>{t("challenge.hintShown")}: {hint}</p>}
         </div>
 
-        <div className={cx("flex-1 overflow-y-auto", shortLandscape ? "space-y-2 p-3" : "space-y-4 p-4")}>
-          <RichText text={challenge.prompt} />
+        <div className={split ? "grid min-h-0 flex-1 grid-cols-2 grid-rows-1 gap-3 overflow-hidden p-3" : cx("flex-1 overflow-y-auto", shortLandscape ? "space-y-2 p-3" : "space-y-4 p-4")}>
+          <div className={split ? "min-h-0 overflow-y-auto pe-1" : undefined} data-testid="challenge-question">
+            <RichText text={challenge.prompt} />
+          </div>
 
-          {challenge.type === "choice" && <ChoiceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(optionId) => setAnswer({ type: "choice", optionId })} />}
-          {challenge.type === "numeric" && <NumericInput challenge={challenge} disabled={resolved || busy} onChange={(value) => setAnswer(value === null ? null : { type: "numeric", value })} onEnter={submit} />}
-          {challenge.type === "sequence" && <SequenceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(order) => setAnswer(order ? { type: "sequence", order } : null)} />}
-          {challenge.type === "match" && <MatchInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(pairs) => setAnswer(pairs ? { type: "match", pairs } : null)} />}
-          {challenge.type === "program" && <ProgramBuilder challenge={challenge} trail={trail} disabled={resolved || busy} onChange={setProgram} />}
-          {challenge.type === "simulation" && <SimulationPanel challenge={challenge} disabled={resolved || busy} onChange={setSim} />}
+          <div className={split ? "min-h-0 space-y-2 overflow-y-auto ps-1" : cx(shortLandscape ? "space-y-2" : "space-y-4")} data-testid="challenge-answer">
+            {challenge.type === "choice" && <ChoiceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(optionId) => setAnswer({ type: "choice", optionId })} />}
+            {challenge.type === "numeric" && <NumericInput challenge={challenge} disabled={resolved || busy} onChange={(value) => setAnswer(value === null ? null : { type: "numeric", value })} onEnter={submit} />}
+            {challenge.type === "sequence" && <SequenceInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(order) => setAnswer(order ? { type: "sequence", order } : null)} />}
+            {challenge.type === "match" && <MatchInput challenge={challenge} disabled={resolved || busy} result={result} onChange={(pairs) => setAnswer(pairs ? { type: "match", pairs } : null)} />}
+            {challenge.type === "program" && <ProgramBuilder challenge={challenge} trail={trail} disabled={resolved || busy} onChange={setProgram} />}
+            {challenge.type === "simulation" && <SimulationPanel challenge={challenge} disabled={resolved || busy} onChange={setSim} />}
 
-          {hint && (
-            <div className="rounded-xl border border-amber/40 bg-amber/10 p-3 text-sm" data-testid="hint" role="note">
-              <b className="text-amber">{t("challenge.hintShown")}: </b>
-              <span dir="auto">{hint}</span>
-            </div>
-          )}
+            {hint && (
+              <div className="rounded-xl border border-amber/40 bg-amber/10 p-3 text-sm" data-testid="hint" role="note">
+                <b className="text-amber">{t("challenge.hintShown")}: </b>
+                <span dir="auto">{hint}</span>
+              </div>
+            )}
 
-          {result && (
-            <div data-testid="result" className={cx("space-y-2 rounded-xl border p-3 text-sm", result.correct ? "border-lime/50 bg-lime/10" : "border-rose/50 bg-rose/10")}>
-              <p className="font-semibold">
-                {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
-                {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
-              </p>
-              <p dir="auto">{result.feedback}</p>
-              {!result.resolved && <p className="text-muted">{t("challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
-              {result.revealed && result.reveal && (
-                <div className="space-y-1 rounded-lg bg-ink-900 p-2">
-                  <p className="text-xs text-amber">{t("challenge.revealed")}</p>
-                  <pre dir="auto" className="whitespace-pre-wrap text-sm">{revealSummary(challenge, result.reveal, t)}</pre>
-                </div>
-              )}
-              {result.explanation && (
-                <p dir="auto" className="rounded-lg bg-ink-900 p-2"><b className="text-neon">{t("challenge.explanation")}: </b>{result.explanation}</p>
-              )}
-            </div>
-          )}
+            {result && (
+              <div data-testid="result" className={cx("space-y-2 rounded-xl border p-3 text-sm", result.correct ? "border-lime/50 bg-lime/10" : "border-rose/50 bg-rose/10")}>
+                <p className="font-semibold">
+                  {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
+                  {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
+                </p>
+                <p dir="auto">{result.feedback}</p>
+                {!result.resolved && <p className="text-muted">{t("challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
+                {result.revealed && result.reveal && (
+                  <div className="space-y-1 rounded-lg bg-ink-900 p-2">
+                    <p className="text-xs text-amber">{t("challenge.revealed")}</p>
+                    <pre dir="auto" className="whitespace-pre-wrap text-sm">{revealSummary(challenge, result.reveal, t)}</pre>
+                  </div>
+                )}
+                {result.explanation && (
+                  <p dir="auto" className="rounded-lg bg-ink-900 p-2"><b className="text-neon">{t("challenge.explanation")}: </b>{result.explanation}</p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : "p-3")}>
+        <footer className={cx("flex flex-wrap items-center justify-between gap-2 border-t border-line", shortLandscape ? "p-2" : lifted ? "p-3" : "p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]")}>
           {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t("challenge.hint")}</Button> : <span />}
           {resolved ? (
             <Button onClick={onClose} data-testid="challenge-close">{t("challenge.close")}</Button>
@@ -368,7 +384,7 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
     <div className="space-y-3" ref={root}>
       <p className="text-sm text-muted">{t("challenge.match.help")}</p>
       <p role="status" aria-live="polite" className="sr-only">{note}</p>
-      <div className="grid grid-cols-1 gap-3 min-[26rem]:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         <div className="space-y-2" role="group" aria-label={t("a11y.match.terms")}>
           {challenge.lefts.map((l) => (
             <button key={l.id} type="button" disabled={disabled} data-left={l.id} data-paired={pairs[l.id] ? "1" : undefined} aria-pressed={left === l.id}

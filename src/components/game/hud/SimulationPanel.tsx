@@ -80,11 +80,11 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
         <p className="text-sm font-medium text-neon" data-testid="predicted" role="status" aria-live="polite">{t("sim.range", { d: range.toFixed(1) })}</p>
         <label className="block space-y-1 text-sm">
           <span>{t("sim.angle")}: <b>{angle}°</b></span>
-          <input type="range" min={ANGLE_RANGE.min} max={ANGLE_RANGE.max} value={angle} disabled={disabled} onChange={(e) => setAngle(Number(e.target.value))} className="w-full accent-[var(--color-neon)]" aria-label={t("sim.angle")} aria-valuetext={t("a11y.unit.deg", { n: angle })} />
+          <input type="range" min={ANGLE_RANGE.min} max={ANGLE_RANGE.max} value={angle} disabled={disabled} onChange={(e) => setAngle(Number(e.target.value))} className="h-10 w-full accent-[var(--color-neon)]" aria-label={t("sim.angle")} aria-valuetext={t("a11y.unit.deg", { n: angle })} />
         </label>
         <label className="block space-y-1 text-sm">
           <span>{t("sim.speed")}: <b>{speed} m/s</b></span>
-          <input type="range" min={1} max={sim.maxSpeed} step={0.5} value={speed} disabled={disabled} onChange={(e) => setSpeed(Number(e.target.value))} className="w-full accent-[var(--color-neon)]" aria-label={t("sim.speed")} aria-valuetext={t("a11y.unit.mps", { n: speed })} />
+          <input type="range" min={1} max={sim.maxSpeed} step={0.5} value={speed} disabled={disabled} onChange={(e) => setSpeed(Number(e.target.value))} className="h-10 w-full accent-[var(--color-neon)]" aria-label={t("sim.speed")} aria-valuetext={t("a11y.unit.mps", { n: speed })} />
         </label>
       </div>
     );
@@ -111,7 +111,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
       <p className="text-sm text-muted">{t("sim.lever.left", { w: sim.leftWeight, d: sim.leftDistance })} · {t("sim.lever.right", { w: sim.rightWeight })}</p>
       <label className="block space-y-1 text-sm">
         <span>{t("sim.lever.distance")}: <b>{distance} m</b></span>
-        <input type="range" min={0.5} max={sim.maxDistance} step={0.05} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
+        <input type="range" min={0.5} max={sim.maxDistance} step={0.05} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-10 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
       </label>
     </div>
   );

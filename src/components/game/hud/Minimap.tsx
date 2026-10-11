@@ -4,9 +4,10 @@ import { useEffect, useRef } from "react";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { GuideModel } from "@/lib/game/state/guidance";
 import { stationActive, stationDone, type ClientState } from "@/lib/game/state/progress";
-import { cx } from "@/components/ui";
+import { useDir } from "@/components/I18nProvider";
 import type { InputState } from "../input";
 import { useLayout } from "../useLayout";
+import { topWithInset } from "./hudLayout";
 
 const SIZE = 132; // CSS pixels
 /** Shown on short landscape screens (the bitmap is scaled down by CSS). */
@@ -21,11 +22,15 @@ const GREY = "#7b8499";
  * characters, pick-ups and the current guide target, imperatively at ~15 Hz, so it never causes React renders.
  * It only uses what the browser already knows (world layout + public spec + progress), never any answer.
  */
-export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntime; client: ClientState; input: InputState; guide: GuideModel }) {
+export function Minimap({ runtime, client, input, guide, calm = false }: { runtime: GameRuntime; client: ClientState; input: InputState; guide: GuideModel; /** Reduced motion: the objective ring stays still instead of pulsing. */ calm?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const { shortLandscape } = useLayout();
+  // The corner on the "end" side of the text direction (right in English, left in Hebrew). Insets are physical, so it is spelled out.
+  const side = useDir() === "rtl" ? "left" : "right";
   const clientRef = useRef(client);
   useEffect(() => { clientRef.current = client; }, [client]);
+  const calmRef = useRef(calm);
+  useEffect(() => { calmRef.current = calm; }, [calm]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -156,7 +161,7 @@ export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntim
         const d = Math.hypot(dx, dy);
         const k = d > SIZE / 2 - 9 ? (SIZE / 2 - 9) / d : 1;
         const px = SIZE / 2 + dx * k, py = SIZE / 2 + dy * k;
-        const pulse = 0.5 + 0.5 * Math.sin(now / 260);
+        const pulse = calmRef.current ? 0.5 : 0.5 + 0.5 * Math.sin(now / 260);
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
         ctx.globalAlpha = 0.5 + pulse * 0.5;
@@ -199,5 +204,5 @@ export function Minimap({ runtime, client, input, guide }: { runtime: GameRuntim
     return () => cancelAnimationFrame(raf);
   }, [runtime, input, guide]);
 
-  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={shortLandscape ? { width: SMALL_SIZE, height: SMALL_SIZE } : { width: SIZE, height: SIZE }} className={cx("pointer-events-none absolute end-3 z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block", shortLandscape ? "top-[3.25rem]" : "top-[4.9rem]")} />;
+  return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={{ ...(shortLandscape ? { width: SMALL_SIZE, height: SMALL_SIZE } : { width: SIZE, height: SIZE }), top: shortLandscape ? topWithInset(3.25, 0.375) : topWithInset(4.9, 0.75), [side]: `max(0.75rem, env(safe-area-inset-${side}, 0px))` }} className="pointer-events-none absolute z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block" />;
 }

@@ -12,27 +12,24 @@ import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
 import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
+import { canVibrate, webHaptic, type Feedback } from "./haptics";
+import { webglAvailable } from "./webgl";
 import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
 import { withReaction } from "@/lib/game/state/reactions";
 import { Minimap } from "./hud/Minimap";
 import { SceneAnnouncer } from "./hud/SceneAnnouncer";
+import { useWakeLock } from "./hud/useWakeLock";
+import { guideInsets } from "./hud/hudLayout";
+import { DEFAULT_GUIDE_INSETS, type GuideInsets } from "./scene/guideBand";
+import { useLayout } from "./useLayout";
 import { InputState } from "./input";
 import { ParticleEmitter } from "./scene/Particles";
 import { UnityView, unityBuildAvailable } from "./UnityView";
 import type { UnityFrame } from "@/lib/game/unity/bridge";
 
 const GameCanvas = dynamic(() => import("./scene/GameCanvas"), { ssr: false });
-
-function webglAvailable(): boolean {
-  try {
-    const c = document.createElement("canvas");
-    return Boolean(c.getContext("webgl2") ?? c.getContext("webgl"));
-  } catch {
-    return false;
-  }
-}
 
 type Overlay =
   | { type: "none" }
@@ -49,6 +46,7 @@ const GUIDE_KEY = "levelup.guide";
 const MOTION_KEY = "levelup.reduceMotion";
 const systemReducesMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TUTORIAL_KEY = "levelup.tutorial";
+const VIBRATION_KEY = "levelup.vibration";
 const readPref = (k: string, d: boolean): boolean => {
   try {
     const v = localStorage.getItem(k);
@@ -58,7 +56,7 @@ const readPref = (k: string, d: boolean): boolean => {
   }
 };
 
-export type Feedback = "correct" | "wrong" | "collect" | "mission" | "gate" | "streak" | "victory" | "area";
+export type { Feedback };
 
 /**
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
@@ -74,6 +72,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [score, setScore] = useState(0);
   const [popups, setPopups] = useState<Popup[]>([]);
+  const [hudBottom, setHudBottom] = useState<number | undefined>(undefined);
   const [tutorial, setTutorial] = useState(() => (typeof window === "undefined" ? false : !readPref(TUTORIAL_KEY, false)));
   // Read once on the client; the loading screen (the only thing rendered on the server) does not depend on these.
   const [touch] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
@@ -81,6 +80,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const [music, setMusic] = useState(() => (typeof window === "undefined" ? musicDefault : readPref(MUSIC_KEY, musicDefault)));
   const [reduceMotion, setReduceMotion] = useState(() => (typeof window === "undefined" ? false : readPref(MOTION_KEY, systemReducesMotion())));
   const [guideOn, setGuideOn] = useState(() => (typeof window === "undefined" ? true : readPref(GUIDE_KEY, true)));
+  // Website on a phone that can vibrate: the same short buzzes as the Android app, switchable in the pause menu (off by default for people whose device asks for reduced motion). The app brings its own (`onFeedback`).
+  const [vibration, setVibration] = useState(() => (typeof window === "undefined" ? true : readPref(VIBRATION_KEY, !systemReducesMotion())));
+  const webVibration = !onFeedback && touch && canVibrate();
   const router = useRouter();
   // Optional Unity renderer (?renderer=unity). Display only: input, physics, scoring and the server stay as they are.
   const [unity, setUnity] = useState<"off" | "loading" | "ready">("off");
@@ -89,6 +91,23 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const onUnityFrame = useCallback((frame: UnityFrame) => unitySend.current?.(frame), []);
   const guide = useMemo(() => new GuideModel(), []);
   const guideMarker = useRef<HTMLDivElement>(null);
+  // where the objective marker may be pinned: under the top bar and above the controls (updated without re-rendering the scene)
+  const markerInsets = useRef<GuideInsets>(DEFAULT_GUIDE_INSETS);
+  const layout = useLayout();
+  useEffect(() => {
+    // control sizes are in rem, so they grow with the system font size: measure what a rem is right now
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale, rootPx });
+  }, [hudBottom, layout.height, layout.touchScale, touch]);
+  // On a phone a downward drag must never pull the page down to refresh it, and a quick double tap on a button must not zoom.
+  useEffect(() => {
+    if (!touch) return;
+    const html = document.documentElement, body = document.body;
+    const before = [html.style.overscrollBehavior, body.style.overscrollBehavior];
+    html.style.overscrollBehavior = "none";
+    body.style.overscrollBehavior = "none";
+    return () => { html.style.overscrollBehavior = before[0] ?? ""; body.style.overscrollBehavior = before[1] ?? ""; };
+  }, [touch]);
   const input = useMemo(() => new InputState(), []);
   const emitter = useMemo(() => new ParticleEmitter(), []);
   const audio = useMemo(() => new GameAudio(), []);
@@ -96,12 +115,19 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const toastId = useRef(0);
   const feedback = useRef(onFeedback);
-  useEffect(() => { feedback.current = onFeedback; }, [onFeedback]);
+  useEffect(() => { feedback.current = onFeedback ?? (touch && vibration ? webHaptic : undefined); }, [onFeedback, touch, vibration]);
   const lastSaved = useRef({ x: 1e9, z: 1e9 });
   const dataRef = useRef<Started | null>(null);
   const clientRef = useRef<ClientState | null>(null);
   const overlayRef = useRef<Overlay>(overlay);
   const data = boot.status === "ready" ? boot.data : null;
+  // The renderer rebuilds its materials whenever the profile object changes, so the calmer profile must be one stable object
+  // (a new object on every render of this component made every toast, score change and rotation rebuild the materials).
+  const sceneProfile = useMemo(() => {
+    if (!data) return null;
+    const p = data.render.profile;
+    return reduceMotion ? { ...p, particles: { ambient: 0, burst: Math.min(p.particles.burst, 6), trails: false } } : p;
+  }, [data, reduceMotion]);
   // Event handlers read the latest values through refs (kept in sync after every render).
   useEffect(() => {
     overlayRef.current = overlay;
@@ -194,6 +220,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       for (const id of res.newlyDefeatedBosses ?? []) {
         const b = d.spec.bosses?.find((x) => x.id === id);
         toast(t("boss.toast", { name: b?.name ?? id }), "good");
+        if (!res.completed) { audio.play("mission"); audio.play("streak", { level: 3, delay: 0.3 }); }
         feedback.current?.("victory");
         const p = runtime?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#ff4d6d", 70);
@@ -236,10 +263,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       },
       onCheckpoint: (id, pos) => {
         audio.play("checkpoint");
+        feedback.current?.("checkpoint");
         toast(t("toast.checkpoint"), "info");
         send({ type: "checkpoint", checkpointId: id, position: pos }).catch(handleError);
       },
-      onRespawn: (reason) => { audio.play("fall"); toast(t(reason === "fell" ? "toast.respawn.fell" : "toast.respawn.hazard"), "warn"); },
+      onRespawn: (reason) => { audio.play("fall"); feedback.current?.("wrong"); toast(t(reason === "fell" ? "toast.respawn.fell" : "toast.respawn.hazard"), "warn"); },
       onJump: () => { audio.play("jump"); const p = rt.sim.player; emitter.burst(p.x, p.y, p.z, rt.world.theme.groundAlt, 5, "dust"); },
       onLand: () => { audio.play("land"); const p = rt.sim.player; emitter.burst(p.x, p.y, p.z, rt.world.theme.groundAlt, 9, "dust"); },
       onStep: (fast) => audio.play(fast ? "stepFast" : "step"),
@@ -270,6 +298,17 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     if (runtime) runtime.paused = blocking;
   }, [overlay, input, runtime]);
 
+  // On a phone the first-run card has done its job once the player is clearly walking around: it then stops covering the world.
+  useEffect(() => {
+    if (!tutorial || !touch || !runtime) return;
+    const from = { x: runtime.sim.player.x, z: runtime.sim.player.z };
+    const id = setInterval(() => {
+      const p = runtime.sim.player;
+      if (Math.hypot(p.x - from.x, p.z - from.z) > 15) dismissTutorial();
+    }, 1000);
+    return () => clearInterval(id);
+  }, [tutorial, touch, runtime, dismissTutorial]);
+
   // ───────── interaction ─────────
   const interact = useCallback(() => {
     const d = dataRef.current;
@@ -285,11 +324,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       setOverlay({ type: "boss", bossId: target.id });
       audio.play("blip");
     } else if (target.kind === "portal") {
-      if (!target.open) { toast(t("prompt.portal.locked", { label: target.label }), "warn"); return; }
+      if (!target.open) { feedback.current?.("wrong"); toast(t("prompt.portal.locked", { label: target.label }), "warn"); return; }
       send({ type: "enter_area", areaId: target.id })
         .then(() => { audio.play("portal"); audio.play("areaEnter", { delay: 0.55 }); feedback.current?.("area"); toast(t("toast.area", { name: d.spec.areas.find((a) => a.id === target.id)?.name ?? "" }), "good"); })
         .catch(handleError);
     } else if (target.status === "locked") {
+      feedback.current?.("wrong");
       toast(t(target.lockedByBoss ? "prompt.station.lockedBoss" : "prompt.station.locked", { label: target.label }), "warn");
     } else if (target.status === "done") {
       toast(t("prompt.station.done", { label: target.label }), "info");
@@ -383,6 +423,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", flush); };
   }, [data, runtime, send]);
 
+  // a phone keeps its screen on while a game is on (reading a question takes longer than the screen timeout); paused or finished, it may sleep
+  useWakeLock(touch && boot.status === "ready" && overlay.type !== "pause" && overlay.type !== "done");
+
   // auto-pause when the tab is hidden
   useEffect(() => {
     const hide = () => { if (document.hidden) setOverlay((o) => (o.type === "none" ? { type: "pause" } : o)); };
@@ -437,24 +480,24 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const area = d.spec.areas.find((a) => a.id === (client?.areaId ?? d.state.areaId))!;
 
   return (
-    <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} relative h-dvh w-full select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
+    <main ref={host} data-reduce-motion={reduceMotion ? "1" : "0"} className={`theme-dark ${reduceMotion ? "reduce-motion" : ""} fixed inset-0 touch-manipulation select-none overflow-hidden bg-ink-950`} data-testid="play-root" data-tier={d.render.tier} data-plan={d.render.plan} data-shadows={d.render.profile.shadows.type} data-materials={d.render.profile.materials} data-particles={d.render.profile.particles.ambient} data-layout={runtime?.world.layout} data-source={d.game.generator.kind} data-renderer={unity === "ready" ? "unity" : "three"}>
       {runtime && client && (
-        <GameCanvas runtime={runtime} profile={reduceMotion ? { ...d.render.profile, particles: { ambient: 0, burst: Math.min(d.render.profile.particles.burst, 6), trails: false } } : d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
+        <GameCanvas runtime={runtime} profile={sceneProfile ?? d.render.profile} reduceMotion={reduceMotion} input={input} emitter={emitter} client={client} nearbyKey={nearby ? `${nearby.kind}:${nearby.id}` : null} onInteract={interact} exposeStats={d.testHooks} guide={guide} guideMarker={guideMarker} guideInsets={markerInsets} guideLabel={guideLabel} sceneLabel={t("a11y.scene")} headless={unity === "ready"} onUnityFrame={unity === "ready" ? onUnityFrame : undefined} />
       )}
       {runtime && unity !== "off" && <UnityView key={runtime.areaId} gameId={gameId} areaId={runtime.areaId} register={registerUnity} onStatus={onUnityStatus} />}
       {unity === "ready" && <span data-testid="renderer-badge" className="pointer-events-none absolute bottom-2 start-2 rounded-md bg-ink-950/70 px-2 py-0.5 text-xs text-slate-300">{t("unity.badge")}</span>}
       {client && (
         <>
-          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} engine={d.game.generator.kind === "engine"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} />
-          <Toasts toasts={toasts} />
+          <TopBar spec={d.spec} client={client} areaName={area.name} score={score} maxScore={d.maxScore} demo={d.game.generator.kind === "demo"} engine={d.game.generator.kind === "engine"} onPause={() => setOverlay({ type: "pause" })} collect={runtime ? { have: runtime.world.collectibles.filter((c) => client.collected.includes(c.itemId)).length, total: runtime.world.collectibles.length } : undefined} onHeadBottom={setHudBottom} />
+          <Toasts toasts={toasts} top={hudBottom === undefined ? undefined : hudBottom + 8} />
           {runtime && <SceneAnnouncer runtime={runtime} spec={d.spec} client={client} input={input} guide={guide} nearby={nearby} areaId={runtime.areaId} areaName={area.name} touch={touch} active={overlay.type === "none"} />}
           <ScorePopups popups={popups} />
-          {tutorial && overlay.type === "none" && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}
+          {tutorial && overlay.type === "none" && !(touch && nearby) && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}
           {overlay.type === "none" && <GuideMarker markerRef={guideMarker} />}
-          {overlay.type === "none" && guideOn && runtime && <Minimap runtime={runtime} client={client} input={input} guide={guide} />}
-          {runtime && <AreaBanner key={runtime.areaId} name={area.name} subtitle={d.spec.missions.find((m) => m.areaId === area.id && !client.missionsDone.includes(m.id))?.title} />}
+          {overlay.type === "none" && guideOn && runtime && <Minimap runtime={runtime} client={client} input={input} guide={guide} calm={reduceMotion} />}
+          {runtime && <AreaBanner key={runtime.areaId} calm={reduceMotion} below={hudBottom === undefined ? undefined : hudBottom + 12} name={area.name} subtitle={d.spec.missions.find((m) => m.areaId === area.id && !client.missionsDone.includes(m.id))?.title} />}
           {overlay.type === "none" && <InteractPrompt target={nearby} touch={touch} onActivate={interact} />}
-          {touch && overlay.type === "none" && runtime && <TouchControls input={input} onInteract={interact} hasJump={runtime.jumpEnabled} />}
+          {touch && overlay.type === "none" && runtime && <TouchControls input={input} onInteract={interact} hasJump={runtime.jumpEnabled} ready={nearby !== null} />}
         </>
       )}
       {overlay.type === "challenge" && (
@@ -464,7 +507,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       {boss && client && <BossCard boss={boss} client={client} stationLabel={(id) => d.spec.areas.flatMap((a) => a.stations).find((s) => s.id === id)?.label ?? id} onClose={closeOverlay} />}
       {lore && lore.loreTitle && lore.loreText && <LoreCard title={lore.loreTitle} text={lore.loreText} onClose={closeOverlay} />}
       {overlay.type === "pause" && (
-        <PauseMenu profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
+        <PauseMenu touch={touch} source={d.game.generator.kind === "demo" ? "demo" : d.game.generator.kind === "engine" ? "engine" : undefined} profile={d.render.profile} reduceMotion={reduceMotion} onReduceMotion={(v) => { setReduceMotion(v); try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch { /* optional */ } }} sfx={sfx} music={music} guide={guideOn} vibration={webVibration ? { on: vibration, onChange: (v) => { setVibration(v); try { localStorage.setItem(VIBRATION_KEY, v ? "1" : "0"); } catch { /* optional */ } if (v) webHaptic("collect"); } } : undefined} onGuide={(v) => { setGuideOn(v); try { localStorage.setItem(GUIDE_KEY, v ? "1" : "0"); } catch { /* optional */ } }} onSfx={(v) => { setSfx(v); try { localStorage.setItem(SFX_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onMusic={(v) => { setMusic(v); audio.unlock(); try { localStorage.setItem(MUSIC_KEY, v ? "1" : "0"); } catch { /* optional */ } }}
           onResume={closeOverlay} onRestart={() => void start(true)} />
       )}

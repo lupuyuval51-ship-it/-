@@ -82,6 +82,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
       <div className="relative min-h-[80dvh] overflow-hidden rounded-3xl border border-line">
         <ChallengePanel
           key={current.id}
+          embedded
           challenge={current}
           stationLabel={t("prac.label")}
           result={result}

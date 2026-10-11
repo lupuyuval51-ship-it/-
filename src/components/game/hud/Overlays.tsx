@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Award, Circle, CircleCheck, Flame, Gem, Pause } from "lucide-react";
+import { Award, BookOpen, Circle, CircleCheck, Flame, Gem, LayoutTemplate, Pause } from "lucide-react";
 import { NpcIcon } from "@/components/ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
@@ -16,6 +16,8 @@ import type { InputState } from "../input";
 import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { useLayout } from "../useLayout";
 import { Confetti } from "./Confetti";
+import { applyDeadzone, bottomAboveControls, bottomEdge, controlsInsetStyle, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
+import { SPRINT_IDLE, isSprinting, sprintCancel, sprintPress, sprintRelease, sprintStickReleased, sprintToggle, type SprintState } from "./sprintLatch";
 import { useDialogFocus } from "./useDialogFocus";
 
 // ───────────────────────── toasts ─────────────────────────
@@ -26,10 +28,11 @@ export interface Toast {
   tone: "good" | "info" | "warn";
 }
 
-export function Toasts({ toasts }: { toasts: Toast[] }) {
+/** `top` (px) is the bottom edge of the top bar, measured by `TopBar`, so a toast never covers the status chips under it. */
+export function Toasts({ toasts, top }: { toasts: Toast[]; top?: number }) {
   const { shortLandscape } = useLayout();
   return (
-    <div className={cx("pointer-events-none absolute inset-x-0 z-20 flex flex-col items-center gap-2 px-4", shortLandscape ? "top-12" : "top-16")} role="status" aria-live="polite">
+    <div className={cx("pointer-events-none absolute inset-x-0 z-20 flex flex-col items-center gap-2", top === undefined && (shortLandscape ? "top-12" : "top-16"))} style={{ ...safePadX("1rem"), ...(top === undefined ? {} : { top }) }} role="status" aria-live="polite">
       {toasts.map((x) => (
         <div key={x.id} className={cx("lu-pop max-w-full rounded-2xl border px-4 py-2 text-center text-sm font-semibold shadow-e2 backdrop-blur", x.tone === "good" ? "border-lime/50 bg-lime/15 text-lime" : x.tone === "warn" ? "border-amber/50 bg-amber/15 text-amber" : "border-neon/50 bg-ink-800/90 text-neon")}>
           {x.text}
@@ -64,31 +67,58 @@ export function ScorePopups({ popups }: { popups: Popup[] }) {
  * Title card shown for a few seconds when an area opens. The text lives in CSS (`content: attr(...)`), so it adds no
  * duplicate of the area name or mission title to the page's text.
  */
-export function AreaBanner({ name, subtitle }: { name: string; subtitle?: string }) {
+export function AreaBanner({ name, subtitle, calm = false, below }: { name: string; subtitle?: string; /** Reduced motion: the card just appears for a few seconds (the slide-in animation would otherwise be cut to nothing). */ calm?: boolean; /** Pixels from the top that the card must stay under (the top bar), so it never covers the HUD on a short screen. */ below?: number }) {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (!calm) return;
+    const id = setTimeout(() => setGone(true), 3200);
+    return () => clearTimeout(id);
+  }, [calm]);
   // Decorative title card: the area name is already announced by the top bar, so the card is hidden from assistive tech.
   return (
-    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20">
+    <div aria-hidden="true" data-testid="area-banner" data-title={name} className="lu-banner z-20" style={{ ...(below === undefined ? {} : { top: `max(20%, ${below}px)` }), ...(calm ? { animation: "none", opacity: gone ? 0 : 1 } : {}) }}>
       <span className="lu-banner-title" dir="auto">{name}</span>
       {subtitle && <span className="lu-banner-sub" dir="auto">{subtitle}</span>}
     </div>
   );
 }
 
-/** One-time, non-blocking hint card for new players. */
+/**
+ * One-time, non-blocking hint card for new players.
+ * Touch screens get a short card (three one-line tips) that sits just above the on-screen controls, or between them on a
+ * phone held sideways, and only its button takes touches, so it never blocks the joystick or covers the middle of the world.
+ */
 export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: () => void }) {
   const t = useT();
-  const { shortLandscape } = useLayout();
-  // Landscape phones: the joysticks sit in both lower corners, so the card goes to the top corner instead.
+  const { shortLandscape, touchScale } = useLayout();
+  if (!touch) {
+    return (
+      <div className={cx("pointer-events-none absolute z-20 flex justify-center", shortLandscape ? "bottom-3 start-3 justify-start" : "inset-x-0 bottom-48 px-4 sm:inset-x-auto sm:bottom-6 sm:start-4 sm:justify-start sm:px-0")} data-testid="tutorial-card" data-compact={shortLandscape ? "1" : undefined}>
+        <div className="lu-pop pointer-events-auto w-full max-w-sm space-y-1.5 rounded-2xl border border-neon/40 bg-ink-900/85 p-3 shadow-e3 backdrop-blur">
+          <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
+          <ul className="space-y-1 text-xs text-muted">
+            <li>{t("hud.tutorial.move")}</li>
+            <li>{t("hud.tutorial.guide")}</li>
+            <li>{t("hud.tutorial.interact")}</li>
+          </ul>
+          <div className="flex justify-end"><Button size="sm" onClick={onDismiss} data-testid="tutorial-ok">{t("hud.tutorial.ok")}</Button></div>
+        </div>
+      </div>
+    );
+  }
+  const style = shortLandscape ? { ...landscapeStrip("compact"), bottom: bottomEdge(0.5) } : { bottom: bottomAboveControls(touchScale, 0.5) };
   return (
-    <div className={cx("pointer-events-none absolute z-20 flex justify-center", shortLandscape ? "end-3 top-14 justify-end" : "inset-x-0 bottom-48 px-4 sm:inset-x-auto sm:bottom-6 sm:start-4 sm:justify-start sm:px-0")} data-testid="tutorial-card" data-compact={shortLandscape ? "1" : undefined}>
-      <div className="lu-pop pointer-events-auto w-full max-w-sm space-y-1.5 rounded-2xl border border-neon/40 bg-ink-900/85 p-3 shadow-e3 backdrop-blur">
-        <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
-        <ul className="space-y-1 text-xs text-muted">
-          <li>{t("hud.tutorial.move")}</li>
-          <li>{t("hud.tutorial.guide")}</li>
-          <li>{touch ? t("hud.tutorial.interact.touch") : t("hud.tutorial.interact")}</li>
+    <div className={cx("pointer-events-none absolute z-20 flex justify-center", !shortLandscape && "inset-x-0 px-3")} style={style} data-testid="tutorial-card" data-compact={shortLandscape ? "1" : undefined}>
+      <div className="lu-pop w-full max-w-sm rounded-2xl border border-neon/40 bg-ink-900/85 px-3 py-2 shadow-e3 backdrop-blur">
+        <div className="flex items-center justify-between gap-2">
+          <p className="min-w-0 text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
+          <Button size="sm" onClick={onDismiss} data-testid="tutorial-ok" className="pointer-events-auto shrink-0">{t("hud.tutorial.ok")}</Button>
+        </div>
+        <ul className="space-y-0.5 text-[0.8125rem] leading-snug text-muted">
+          <li>{t("hud.tutorial.move.touch")}</li>
+          {!shortLandscape && <li>{t("hud.tutorial.guide.short")}</li>}
+          <li>{t("hud.tutorial.interact.short", { label: t("touch.interact") })}</li>
         </ul>
-        <div className="flex justify-end"><Button size="sm" onClick={onDismiss} data-testid="tutorial-ok">{t("hud.tutorial.ok")}</Button></div>
       </div>
     </div>
   );
@@ -96,8 +126,25 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
 
 // ───────────────────────── top bar + missions ─────────────────────────
 
-export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, collect }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; collect?: { have: number; total: number } }) {
+export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, collect, onHeadBottom }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; collect?: { have: number; total: number }; /** Reports the bottom edge (px) of the folded bar (status chips and missions button), so toasts can sit right under it. */ onHeadBottom?: (px: number) => void }) {
   const t = useT();
+  const head = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const el = head.current, btn = toggle.current;
+    if (!el || !btn || !onHeadBottom) return;
+    // the folded bar ends with the missions button; toasts start right under it
+    const report = () => onHeadBottom(Math.round(btn.getBoundingClientRect().bottom));
+    report();
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(report);
+    ro?.observe(el);
+    ro?.observe(btn);
+    window.addEventListener("resize", report);
+    return () => { ro?.disconnect(); window.removeEventListener("resize", report); };
+  }, [onHeadBottom]);
+  // How the game was made is part of the game's honest label (demo template / built from the player's own material). It lives
+  // inside the solid area card, not as a floating chip over the world, where it used to cover station labels.
+  const source = demo ? { text: t("hud.demo"), hint: t("demo.badge.hint"), Icon: LayoutTemplate, tone: "bg-amber/15 text-amber" } : engine ? { text: t("engine.badge"), hint: t("engine.badge.hint"), Icon: BookOpen, tone: "bg-lime/15 text-lime" } : null;
   // Phones start with the mission list folded so it does not cover the world; larger screens show it.
   const { shortLandscape, missionsOpen } = useLayout();
   const [open, setOpen] = useState(() => typeof window === "undefined" || missionsOpen);
@@ -113,35 +160,46 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
     <>
       {/* One column, so nothing is positioned by a fixed offset: with a 200% system font the rows simply grow and wrap
           instead of overlapping the mission list. Row 1: [back · area · score · pause], row 2: status chips, then missions. */}
-      <div className={cx("pointer-events-none absolute inset-x-0 top-0 z-10 flex max-h-dvh flex-col items-start gap-1.5", shortLandscape ? "px-3 py-1.5" : "p-3")} data-testid="hud-top" data-compact={shortLandscape ? "1" : undefined}>
-        <div className="flex w-full flex-wrap items-stretch gap-2">
-          <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
-            <span aria-hidden className="rtl:-scale-x-100">←</span>
-          </Link>
-          <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
-            <p className="text-[11px] uppercase tracking-wide text-muted">{t("hud.area")}</p>
-            <p dir="auto" className="break-words text-sm font-semibold" data-testid="area-name">{areaName}</p>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex max-h-dvh flex-col items-start gap-1.5" style={{ ...safePadX(), paddingTop: `max(${shortLandscape ? "0.375rem" : "0.75rem"}, env(safe-area-inset-top, 0px))`, paddingBottom: shortLandscape ? "0.375rem" : "0.75rem" }} data-testid="hud-top" data-compact={shortLandscape ? "1" : undefined}>
+        <div ref={head} className="pointer-events-none flex w-full flex-col items-start gap-1.5">
+          <div className="flex w-full flex-wrap items-stretch gap-2">
+            <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
+              <span aria-hidden className="rtl:-scale-x-100">←</span>
+            </Link>
+            <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">
+                {/* with a source label the card's first line is that label (the caption stays for screen readers, and shows again from the sm breakpoint up, where there is room), so the card is no taller */}
+                <span className={cx("uppercase tracking-wide", source && "sr-only sm:not-sr-only")}>{t("hud.area")}</span>
+                {source && (
+                  <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-[11px] font-semibold", source.tone)}>
+                    <source.Icon aria-hidden className="mt-px hidden size-3 shrink-0 min-[24rem]:block" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
+                  </span>
+                )}
+              </p>
+              <p dir="auto" className="break-words text-sm font-semibold" data-testid="area-name">{areaName}</p>
+            </div>
+            <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
+              <p className="text-[11px] uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
+              <p dir="ltr" aria-hidden className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
+            </div>
+            <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto min-w-11 shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
           </div>
-          <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
-            <p className="text-[11px] uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
-            <p dir="ltr" aria-hidden className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
+          <div className={cx("pointer-events-auto flex flex-wrap items-center gap-1.5 empty:hidden", shortLandscape && "shrink-0")}>
+            {/* the chips are see-through by design; a dark plate under each keeps a station label behind it from garbling the text */}
+            {collect && collect.total > 0 && (
+              <span className="rounded-full bg-ink-900/85">
+                <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
+                  <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
+                  <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
+                </Badge>
+              </span>
+            )}
+            <BossHealth spec={spec} client={client} />
+            {client.streak >= 2 && <span className="rounded-full bg-ink-900/85"><Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge></span>}
           </div>
-          <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
-        </div>
-        <div className={cx("pointer-events-auto flex flex-wrap items-center gap-1.5", shortLandscape && "shrink-0")}>
-          {demo && <Badge tone="amber" title={t("demo.badge.hint")}>{t("hud.demo")}</Badge>}
-          {engine && <Badge tone="lime" title={t("engine.badge.hint")}>{t("engine.badge")}</Badge>}
-          {collect && collect.total > 0 && (
-            <Badge tone="lime" data-testid="collect-count" title={t("hud.collect.count", { have: collect.have, total: collect.total })}>
-              <span className="sr-only">{t("hud.collect.count", { have: collect.have, total: collect.total })}</span>
-              <span aria-hidden className="inline-flex items-center gap-1"><Gem className="size-3.5" /> {collect.have}/{collect.total}</span>
-            </Badge>
-          )}
-          <BossHealth spec={spec} client={client} />
-          {client.streak >= 2 && <Badge tone="amber" className="lu-pop" data-testid="streak"><Flame aria-hidden className="size-3.5" /> {t("hud.streak", { n: client.streak })}</Badge>}
         </div>
         <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
-          <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="hud-missions" className="mb-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-start text-sm font-semibold backdrop-blur">
+          <button ref={toggle} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="hud-missions" className="mb-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-start text-sm font-semibold backdrop-blur">
             <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
             <span aria-hidden>{open ? "▾" : "▸"}</span>
           </button>
@@ -151,7 +209,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               {shown.map((m) => (
                 <div key={m.id} className="space-y-1">
                   <p dir="auto" className="text-sm font-semibold">{m.title}{m.optional && <Badge tone="violet" className="ms-2 align-middle" data-testid="side-mission">{t("mission.side")}</Badge>}</p>
-                  <ul className="space-y-0.5 text-xs">
+                  <ul className="space-y-0.5 text-[0.8125rem] leading-snug">
                     {m.objectives.map((o, i) => {
                       const p = objectiveProgress(spec, client, m, i);
                       return (
@@ -174,10 +232,14 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
 
 // ───────────────────────── objective marker ─────────────────────────
 
-/** Positioned imperatively by GuideProjector (every frame) — React only mounts it. */
+/**
+ * Positioned imperatively by GuideProjector (every frame) — React only mounts it. It is placed with screen coordinates
+ * (a pixel translate from the top-left corner), so it is anchored with the physical `left-0`: a logical `start-0` would
+ * anchor it to the right edge in Hebrew and push the marker off screen.
+ */
 export function GuideMarker({ markerRef }: { markerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div ref={markerRef} aria-hidden data-testid="guide-marker" data-show="0" className="pointer-events-none absolute start-0 top-0 z-[5] opacity-0 transition-opacity duration-200" style={{ willChange: "transform" }}>
+    <div ref={markerRef} aria-hidden data-testid="guide-marker" data-show="0" className="pointer-events-none absolute left-0 top-0 z-[5] opacity-0 transition-opacity duration-200" style={{ willChange: "transform" }}>
       <div className="flex flex-col items-center gap-1">
         <svg width="26" height="26" viewBox="0 0 24 24" className="drop-shadow-[0_0_6px_var(--color-neon)]"><path d="M12 3l9 17-9-5-9 5 9-17z" fill="var(--color-neon)" stroke="#06101f" strokeWidth="1.5" strokeLinejoin="round" /></svg>
         <div dir="auto" className="max-w-[60vw] truncate rounded-full border border-neon/50 bg-ink-900/85 px-2.5 py-0.5 text-xs font-semibold text-neon backdrop-blur" />
@@ -193,8 +255,13 @@ export function InteractPrompt({ target, touch, onActivate }: { target: Interact
   const { shortLandscape, touchScale } = useLayout();
   if (!target) return null;
   const { text, enabled } = interactablePrompt(target, t);
+  // Touch screens: the prompt floats just above the controls (portrait) or in the free strip between the stick and the
+  // buttons (phone held sideways), so it is never half-hidden behind the joystick. Keyboard and mouse keep the old spots.
+  const sideways = touch && shortLandscape;
+  const style = !touch ? undefined : sideways ? { ...landscapeStrip("compact"), bottom: bottomEdge(0.75) } : { bottom: bottomAboveControls(touchScale, 0.5) };
+  const place = !touch ? cx("inset-x-0 px-4", shortLandscape ? "bottom-3" : touchScale === "large" ? "bottom-36" : "bottom-28 sm:bottom-10") : sideways ? "" : "inset-x-0 px-3";
   return (
-    <div className={cx("pointer-events-none absolute inset-x-0 z-10 flex justify-center px-4", shortLandscape ? "bottom-3" : touchScale === "large" ? "bottom-36" : "bottom-28 sm:bottom-10")}>
+    <div className={cx("pointer-events-none absolute z-10 flex justify-center", place)} style={style}>
       <button type="button" onClick={onActivate} data-testid="interact-prompt" data-kind={target.kind} data-id={target.id} aria-keyshortcuts={touch ? undefined : "E"} aria-disabled={enabled ? undefined : true} className={cx("pointer-events-auto lu-pop flex min-h-12 max-w-full items-center gap-3 rounded-2xl border px-4 py-2.5 text-sm font-semibold shadow-e2 backdrop-blur", enabled ? "border-neon/60 bg-ink-900/90 text-text" : "border-line bg-ink-900/80 text-muted")}>
         {!touch && <kbd aria-hidden className="grid size-7 place-items-center rounded-md border border-line bg-ink-700 font-mono text-xs">{t("prompt.key")}</kbd>}
         <span dir="auto" className="min-w-0 break-words text-start">{text}</span>
@@ -205,7 +272,13 @@ export function InteractPrompt({ target, touch, onActivate }: { target: Interact
 
 // ───────────────────────── touch controls ─────────────────────────
 
-export function TouchControls({ input, onInteract, hasJump }: { input: InputState; onInteract: () => void; hasJump: boolean }) {
+/**
+ * Joystick on the left, actions on the right, in both languages: like every game controller this layout is not mirrored
+ * for right-to-left text (`direction: ltr` below), so the thumbs find the same controls whatever the UI language.
+ * In every scale the "Use" button is the one in the bottom-right corner (landscape: Run, Jump, Use from left to right).
+ * `ready` lights the action button when something can be used right now.
+ */
+export function TouchControls({ input, onInteract, hasJump, ready = false }: { input: InputState; onInteract: () => void; hasJump: boolean; ready?: boolean }) {
   const t = useT();
   const { touchScale } = useLayout();
   const m = TOUCH_METRICS[touchScale];
@@ -213,32 +286,45 @@ export function TouchControls({ input, onInteract, hasJump }: { input: InputStat
   const knobEl = useRef<HTMLDivElement>(null);
   const [knob, setKnob] = useState({ x: 0, y: 0 });
   const pid = useRef<number | null>(null);
+  // "Run": hold to run while held, tap to keep running until the stick is let go (see sprintLatch.ts)
+  const sprintState = useRef<SprintState>(SPRINT_IDLE);
+  const [running, setRunning] = useState(false);
+  const setSprint = (next: SprintState) => {
+    sprintState.current = next;
+    const on = isSprinting(next);
+    input.sprintHeld = on;
+    setRunning(on);
+  };
   const move = (e: React.PointerEvent) => {
     const r = base.current!.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
     const v = stickVector(dx, dy, stickTravel(r.width, knobEl.current?.getBoundingClientRect().width ?? 56));
     setKnob({ x: v.kx, y: v.ky });
-    input.stick = { x: v.x, y: v.y };
+    input.stick = applyDeadzone(v.x, v.y); // the knob follows the thumb exactly; only the steering ignores a resting thumb
   };
   const end = () => {
     pid.current = null;
     setKnob({ x: 0, y: 0 });
     input.stick = { x: 0, y: 0 };
+    setSprint(sprintStickReleased(sprintState.current));
   };
   // Landscape: keep the controls clear of the notch / rounded corners and the gesture bar.
   return (
-    <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", paddingLeft: "max(0.75rem, env(safe-area-inset-left))", paddingRight: "max(0.75rem, env(safe-area-inset-right))", paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }} data-testid="touch-controls" data-scale={touchScale}>
-      <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none rounded-full border border-line bg-ink-900/60 backdrop-blur", m.stick)}
-        onPointerDown={(e) => { pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
-        onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={end} onPointerCancel={end}>
+    <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", ...controlsInsetStyle(touchScale) }} data-testid="touch-controls" data-scale={touchScale}>
+      {/* the invisible ring around the stick (before:) widens the touch area by 12px, so a thumb that lands just outside still steers */}
+      <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/70 before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
+        onPointerDown={(e) => { if (pid.current !== null && pid.current !== e.pointerId) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
+        onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={(e) => { if (pid.current === e.pointerId) end(); }} onPointerCancel={(e) => { if (pid.current === e.pointerId) end(); }} onLostPointerCapture={(e) => { if (pid.current === e.pointerId) end(); }}>
         <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
       </div>
-      <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row-reverse" : "flex-col items-end", m.gap)}>
-        <button type="button" aria-label={t("a11y.sprint")} className={cx("grid touch-none place-items-center rounded-full border border-line bg-ink-900/70 text-xs font-semibold backdrop-blur active:bg-neon/30", m.sprint)}
-          onPointerDown={() => { input.sprintHeld = true; }} onPointerUp={() => { input.sprintHeld = false; }} onPointerCancel={() => { input.sprintHeld = false; }}>{t("touch.sprint")}</button>
+      <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row" : "flex-col items-end", m.gap)}>
+        <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
+          onPointerDown={() => setSprint(sprintPress(sprintState.current, performance.now()))} onPointerUp={() => setSprint(sprintRelease(sprintState.current, performance.now()))} onPointerCancel={() => setSprint(sprintCancel(sprintState.current))} onLostPointerCapture={() => setSprint(sprintCancel(sprintState.current))}
+          onClick={(e) => { if (e.detail === 0) setSprint(sprintToggle(sprintState.current)); }}>{t("touch.sprint")}</button>
         <div className={cx("flex", m.gap)}>
-          {hasJump && <button type="button" className={cx("grid place-items-center rounded-full border border-line bg-ink-900/70 font-semibold backdrop-blur active:bg-neon/30", m.action)} onClick={() => input.queueJump()}>{t("touch.jump")}</button>}
-          <button type="button" className={cx("grid place-items-center rounded-full border border-neon/60 bg-neon/20 font-semibold backdrop-blur active:bg-neon/40", m.action)} onClick={onInteract} data-testid="touch-interact">{t("touch.interact")}</button>
+          {/* jump reacts on press (not on release) so a platform jump feels instant; a keyboard / screen-reader activation has detail 0 */}
+          {hasJump && <button type="button" className={cx("grid touch-none select-none place-items-center rounded-full border border-line bg-ink-900/70 font-semibold active:bg-neon/30", m.action)} onPointerDown={() => input.queueJump()} onClick={(e) => { if (e.detail === 0) input.queueJump(); }}>{t("touch.jump")}</button>}
+          <button type="button" className={cx("grid select-none place-items-center rounded-full border font-semibold active:bg-neon/40", m.action, ready ? "border-neon bg-neon/30 ring-2 ring-neon/60" : "border-neon/50 bg-neon/15")} onClick={onInteract} data-testid="touch-interact" data-ready={ready ? "1" : "0"}>{t("touch.interact")}</button>
         </div>
       </div>
     </div>
@@ -274,7 +360,7 @@ export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; 
   }, [onClose]);
   const p = bossProgress(boss, client);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={boss.name} data-testid="boss-card" className="lu-pop max-h-full w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl border border-rose/60 bg-ink-800 p-5 shadow-e3">
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-11 place-items-center rounded-full" style={{ background: boss.look.color + "33", border: `2px solid ${boss.look.color}`, color: boss.look.color }}><NpcIcon shape={boss.look.shape} className="size-6" /></span>
@@ -317,7 +403,7 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
     return () => window.removeEventListener("keydown", onKey);
   });
   return (
-    <div className={cx("absolute inset-x-0 bottom-0 z-30 flex justify-center", shortLandscape ? "p-2" : "p-3 sm:p-6")}>
+    <div className={cx("absolute inset-x-0 bottom-0 z-30 flex justify-center", shortLandscape ? "p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]" : "p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]")} style={safePadX(shortLandscape ? "0.5rem" : "0.75rem")}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={npc.name} data-testid="dialogue" className={cx("lu-pop w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-ink-800/95 shadow-e3 backdrop-blur", shortLandscape ? "max-h-[calc(100dvh-1rem)] space-y-1.5 p-3" : "space-y-3 p-4")}>
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-10 place-items-center rounded-full" style={{ background: npc.look.color + "33", border: `2px solid ${npc.look.color}`, color: npc.look.color }}><NpcIcon shape={npc.look.shape} className="size-5" /></span>
@@ -326,7 +412,7 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
             <p className="text-xs text-muted" dir="auto">{npc.role}</p>
           </div>
         </div>
-        <p dir="auto" role="status" aria-live="polite" className={cx("leading-relaxed", shortLandscape ? "text-sm" : "min-h-12 text-base")}>{npc.lines[i]}</p>
+        <p dir="auto" role="status" aria-live="polite" onClick={next} className={cx("cursor-pointer leading-relaxed", shortLandscape ? "text-sm" : "min-h-12 text-base")}>{npc.lines[i]}</p>
         {last && npc.hint && <p dir="auto" className="rounded-lg border border-amber/40 bg-amber/10 p-2 text-sm"><b className="text-amber">{t("dialogue.hint", { name: npc.name })}: </b>{npc.hint}</p>}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-muted">{i + 1}/{npc.lines.length}</span>
@@ -347,7 +433,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm">
+    <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={title} data-testid="lore-card" className="lu-pop max-h-full overflow-y-auto w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
         <p dir="auto" className="leading-relaxed">{text}</p>
@@ -359,34 +445,44 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void }) {
+export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration, touch = false }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** A touch screen: the controls list names the on-screen buttons instead of keys. */ touch?: boolean; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
   const t = useT();
+  const { shortLandscape } = useLayout();
   const [confirm, setConfirm] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=resume-button]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm">
-      <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md md:max-w-xl space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3">
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/75 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/90 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
+      <div ref={box} role="dialog" aria-modal="true" aria-label={t("hud.paused")} data-testid="pause-menu" className={cx("lu-pop my-auto max-h-[96dvh] w-full space-y-4 overflow-y-auto rounded-3xl border border-line bg-ink-800 p-5 shadow-e3", shortLandscape ? "max-w-3xl" : "max-w-md md:max-w-xl")}>
         <h2 className="text-xl font-bold">{t("hud.paused")}</h2>
-        <div className="space-y-2">
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
-          <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
-          <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
-        </div>
-        <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
-          <summary className="cursor-pointer font-medium">{t("hud.controls")}</summary>
-          <ul className="mt-2 space-y-1 text-muted">
-            {(["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
-          </ul>
-        </details>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={onResume} data-testid="resume-button" className="flex-1">{t("hud.resume")}</Button>
-          {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)}>{t("hud.restart")}</Button> : (
-            <div className="w-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
-          )}
-          <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("hud.exit")}</Link>
+        {/* a phone held sideways has no room for one tall column: toggles on one side, the rest (and "Resume") on the other */}
+        <div className={cx(shortLandscape ? "grid grid-cols-2 items-start gap-4" : "space-y-4")}>
+          <div className="space-y-2">
+            <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.sound")}</span><input type="checkbox" checked={sfx} onChange={(e) => onSfx(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
+            <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.music")}</span><input type="checkbox" checked={music} onChange={(e) => onMusic(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" /></label>
+            <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.guide")}</span><input type="checkbox" checked={guide} onChange={(e) => onGuide(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="guide-toggle" /></label>
+            {vibration && <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.vibration")}</span><input type="checkbox" checked={vibration.on} onChange={(e) => vibration.onChange(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="vibration-toggle" /></label>}
+            <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
+            <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
+            {source && <p dir="auto" className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="source-note"><b className="text-text">{source === "demo" ? t("hud.demo") : t("engine.badge")}</b> — {source === "demo" ? t("demo.badge.hint") : t("engine.badge.hint")}</p>}
+          </div>
+          <div className={cx(shortLandscape ? "space-y-2" : "space-y-4")}>
+            <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
+              <summary className="cursor-pointer py-1 font-medium">{t("hud.controls")}</summary>
+              <ul className="mt-2 space-y-1 text-muted">
+                {touch
+                  ? (["move", "look", "jump", "sprint", "interact", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.touch.${k}`, { label: t(k === "jump" ? "touch.jump" : k === "sprint" ? "touch.sprint" : "touch.interact") })}</li>)
+                  : (["move", "look", "jump", "sprint", "interact", "describe", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.${k}`)}</li>)}
+              </ul>
+            </details>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={onResume} data-testid="resume-button" className="flex-1">{t("hud.resume")}</Button>
+              {!confirm ? <Button variant="secondary" onClick={() => setConfirm(true)}>{t("hud.restart")}</Button> : (
+                <div className="w-full space-y-2 rounded-xl border border-rose/40 p-3 text-sm"><p>{t("hud.restart.confirm")}</p><div className="flex gap-2"><Button variant="danger" size="sm" onClick={onRestart}>{t("common.yes")}</Button><Button variant="ghost" size="sm" onClick={() => setConfirm(false)}>{t("common.no")}</Button></div></div>
+              )}
+              <Link href="/games" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">{t("hud.exit")}</Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -398,7 +494,7 @@ export function DoneOverlay({ summary, gameId, sessionId, onReplay }: { summary:
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box, "[data-testid=results-link]");
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur">
+    <div className="absolute inset-0 z-40 flex items-center justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur pointer-coarse:bg-ink-950/90 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <Confetti />
       <div ref={box} role="dialog" aria-modal="true" aria-label={t("done.title")} data-testid="done-overlay" className="lu-pop my-auto max-h-[96dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-3xl border border-lime/40 bg-ink-800 p-6 text-center shadow-e3">
         <h2 className="text-2xl font-extrabold text-lime">{t("done.title")}</h2>

@@ -14,7 +14,8 @@ import { Backdrop } from "./Backdrop";
 import { Life } from "./Life";
 import { Entities } from "./Entities";
 import { Companion, GuideBeams, GuideProjector } from "./Guide";
-import { DPR_SCALE, FrameGovernor, MIN_DPR, degradeProfile } from "./governor";
+import type { GuideInsets } from "./guideBand";
+import { DPR_SCALE, FrameGovernor, MIN_DPR, degradeProfile, governedDprFor, type GovernedDpr } from "./governor";
 import { createMaterialSet } from "./materials";
 import { ParticleEmitter, Particles } from "./Particles";
 import { PlayerAvatar } from "./PlayerAvatar";
@@ -35,6 +36,8 @@ export interface GameCanvasProps {
   exposeStats?: boolean;
   guide: GuideModel;
   guideMarker: RefObject<HTMLDivElement | null>;
+  /** The screen band the objective marker may use (the HUD keeps it clear of the top bar and the controls). */
+  guideInsets?: RefObject<GuideInsets>;
   guideLabel: (kind: GuideKind, name: string, meters: number) => string;
   /** Accessible name of the canvas (translated by the host). */
   sceneLabel?: string;
@@ -99,7 +102,7 @@ function GuideDriver({ runtime, model, client }: { runtime: GameRuntime; model: 
  * When frame time stays high the governor steps down the fallback ladder (see governor.ts): the pixel ratio shrinks
  * with every step and `onLevel` lets the scene switch off effects. Nothing here can raise quality above the tier.
  */
-function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel }: Pick<GameCanvasProps, "runtime" | "input" | "onInteract" | "profile" | "exposeStats"> & { onLevel: (level: number) => void }) {
+function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel, onDpr }: Pick<GameCanvasProps, "runtime" | "input" | "onInteract" | "profile" | "exposeStats"> & { onLevel: (level: number) => void; onDpr: (dpr: number) => void }) {
   const setDpr = useThree((s) => s.setDpr);
   const gl = useThree((s) => s.gl);
   const stats = useRef({ pub: 0, frames: 0 });
@@ -131,6 +134,7 @@ function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel }: Pic
     if (next === null) return;
     const dpr = Math.max(MIN_DPR, baseDpr * (DPR_SCALE[next] ?? 1));
     setDpr(dpr);
+    onDpr(dpr); // tell the canvas component, which would otherwise put the full ratio back on its next render
     gl.domElement.dataset.dpr = dpr.toFixed(2);
     gl.domElement.dataset.qualityLevel = String(next);
     onLevel(next);
@@ -181,7 +185,7 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
   return null;
 }
 
-function Scene(props: GameCanvasProps) {
+function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
   const { runtime, profile: tierProfile, emitter } = props;
   // `tierProfile` is what the server granted: it is the ceiling. `profile` is what is drawn right now (never better).
   const [level, setLevel] = useState(0);
@@ -197,14 +201,14 @@ function Scene(props: GameCanvasProps) {
   }, [gl, profile.exposure, tierProfile.tier]);
   return (
     <>
-      <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={tierProfile} exposeStats={props.exposeStats} onLevel={setLevel} />
+      <Loop runtime={runtime} input={props.input} onInteract={props.onInteract} profile={tierProfile} exposeStats={props.exposeStats} onLevel={setLevel} onDpr={props.onDpr} />
       <CameraRig runtime={runtime} input={props.input} reduceMotion={props.reduceMotion} />
       {props.headless ? (
         <>
           <NoRender />
           {props.onUnityFrame && <UnityFrameDriver runtime={runtime} client={props.client} onFrame={props.onUnityFrame} />}
           <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
-          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} insets={props.guideInsets} />
         </>
       ) : (
         <>
@@ -218,7 +222,7 @@ function Scene(props: GameCanvasProps) {
           <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
           <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
           <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
-          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} />
+          <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} insets={props.guideInsets} />
           <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
         </>
       )}
@@ -228,11 +232,16 @@ function Scene(props: GameCanvasProps) {
 
 export default function GameCanvas(props: GameCanvasProps) {
   const { profile } = props;
+  const canvasKey = `${props.runtime.areaId}-${profile.tier}`;
+  // Once the frame governor has lowered the pixel ratio, the canvas must be given that number: handing it the profile's range
+  // again on the next render (any toast, score change or rotation re-renders the game screen) would put the full ratio back.
+  const [governed, setGoverned] = useState<GovernedDpr | null>(null);
+  const governedDpr = governedDprFor(governed, canvasKey);
   const shadows = profile.shadows.type === "soft" ? "soft" : profile.shadows.type === "basic" ? "basic" : false;
   return (
     <Canvas
-      key={`${props.runtime.areaId}-${profile.tier}`}
-      dpr={[Math.min(1, profile.pixelRatioMax), profile.pixelRatioMax]}
+      key={canvasKey}
+      dpr={governedDpr ?? [Math.min(1, profile.pixelRatioMax), profile.pixelRatioMax]}
       shadows={shadows}
       flat={profile.toneMapping === "none"}
       gl={{ antialias: profile.antialias, powerPreference: "high-performance", alpha: false, preserveDrawingBuffer: false }}
@@ -241,7 +250,7 @@ export default function GameCanvas(props: GameCanvasProps) {
       aria-label={props.sceneLabel ?? "3D game world"}
       role="img"
     >
-      <Scene {...props} />
+      <Scene {...props} onDpr={(dpr) => setGoverned({ key: canvasKey, dpr })} />
     </Canvas>
   );
 }

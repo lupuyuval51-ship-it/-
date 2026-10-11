@@ -56,6 +56,22 @@ export function degradeProfile(base: RenderProfile, level: number): RenderProfil
   return p;
 }
 
+/** The pixel ratio the governor chose for one canvas (identified by `key`, so a new canvas starts from its own default). */
+export interface GovernedDpr {
+  key: string;
+  dpr: number;
+}
+
+/**
+ * The pixel ratio to hand to the canvas as a plain number, or null to use the profile's own range.
+ * react-three-fiber re-applies the `dpr` prop every time the canvas re-renders; when the prop is still the profile's
+ * range, the first toast or score change after a step-down would silently put the full resolution back, and the
+ * governor (which never steps up) would not notice. Handing the chosen number back keeps the step-down.
+ */
+export function governedDprFor(governed: GovernedDpr | null, key: string): number | null {
+  return governed !== null && governed.key === key && Number.isFinite(governed.dpr) && governed.dpr > 0 ? governed.dpr : null;
+}
+
 export interface GovernorOptions {
   /** Seconds ignored after start and after each step (shader compiles, buffer rebuilds, first paint). */
   warmup?: number;
