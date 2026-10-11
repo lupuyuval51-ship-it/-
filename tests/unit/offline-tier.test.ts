@@ -32,3 +32,17 @@ describe("offline app feature tiers", () => {
     expect(b.challenges.length).toBeLessThanOrEqual(a.challenges.length);
   });
 });
+
+describe("offline games are fitted to the phone", () => {
+  it("a phone request gets the phone version, with the same challenges", () => {
+    const desktop = generateOffline({ ...request, gameType: "platformer" }, new Date(), "A").spec;
+    const phone = generateOffline({ ...request, gameType: "platformer", device: "phone" }, new Date(), "A").spec;
+    expect(phone.challenges.map((c) => c.id)).toEqual(desktop.challenges.map((c) => c.id));
+    expect(phone.mechanics).not.toContain("moving_platforms");
+    for (const a of phone.areas) {
+      expect(a.size).not.toBe("large");
+      if (a.layout === "terraces") expect(a.size).toBe("small");
+    }
+    expect(phone.meta.generator).toMatchObject({ kind: desktop.meta.generator!.kind });
+  });
+});

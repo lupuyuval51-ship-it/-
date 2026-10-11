@@ -116,6 +116,7 @@ export function CreatePage() {
       ({ spec } = await generateOfflineWithProgress({
         mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
         material: cleanPastedText(form.material).trim() || undefined,
+        device: "phone", // this app only runs on phones and tablets: fit the game to a touch screen
       }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
     } catch (err) {
       dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });

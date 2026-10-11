@@ -8,7 +8,8 @@ export const CREATE_DRAFT_KEY = "levelup.mobile.createDraft";
  * otherwise bring back notes the player just asked to wipe). The draft goes first and a storage failure on it never
  * blocks the rest; a failure while deleting games is left to the caller to report.
  */
-export function deleteAllGames(store: { listGames(): { id: string }[]; deleteGame(id: string): void }, kv: KV): void {
+export function deleteAllGames(store: { deleteAll(): number }, kv: KV): void {
   try { kv.remove(CREATE_DRAFT_KEY); } catch { /* optional */ }
-  for (const g of store.listGames()) store.deleteGame(g.id);
+  // `deleteAll` also removes damaged games that the library cannot list, which a one-by-one loop would leave behind.
+  store.deleteAll();
 }

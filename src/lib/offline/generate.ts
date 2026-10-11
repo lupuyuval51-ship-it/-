@@ -7,6 +7,7 @@ import { MaterialError, buildMaterialSpec } from "../game/material/build";
 import type { FeatureTier } from "../../config/plans";
 import { addFinalBoss } from "../game/spec/boss";
 import type { GameSpec } from "../game/spec/schema";
+import { fitForDevice } from "../game/spec/device";
 import { clampToFeatureTier, gameTypeAllowed, modeAllowed } from "../game/spec/tier";
 import { normalizeRawSpec, validateGameSpec } from "../game/spec/validate";
 import { generationRequestSchema, type GenerationRequest } from "../schemas/generation";
@@ -64,11 +65,13 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
   const boss = req.mode === "FULL" ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
   const tiered = clampToFeatureTier(boss.spec, tier);
   if (!tiered.ok) throw new OfflineGenerationError("INVALID_OUTPUT", tiered.errors.join("; "));
-  const spec = tiered.spec;
+  // Made on a phone (the Android app asks for it): less walking, easier jumps, more time to type. Same rule as the server.
+  const fitted = req.device === "phone" ? fitForDevice(tiered.spec, "phone") : { spec: tiered.spec, notes: [] as string[] };
+  const spec = fitted.spec;
   spec.meta.generator = engine
     ? { kind: "engine", provider: "study-engine", model: "rule-based", mode: req.mode, generatedAt: now.toISOString() }
     : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
-  return { spec, warnings: [...notes, ...res.warnings, ...(boss.added ? boss.notes : []), ...tiered.notes] };
+  return { spec, warnings: [...notes, ...res.warnings, ...(boss.added ? boss.notes : []), ...tiered.notes, ...fitted.notes] };
 }
 
 export type OfflineStage = "reading" | "building" | "checking" | "saving";

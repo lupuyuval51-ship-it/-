@@ -23,7 +23,7 @@ const render = (el: ReactElement, locale: Locale = "en") => renderToStaticMarkup
 
 const row = (over: Partial<GameSummaryRow> = {}): GameSummaryRow => ({
   id: "g", title: "Game", subject: "Subject", createdAt: 1000, generatorKind: "engine", environment: "meadow", bestScore: 0, bestStars: 0, maxScore: 100,
-  inProgress: false, percent: 0, lastSessionId: null, ...over,
+  inProgress: false, percent: 0, lastSessionId: null, lastPlayedAt: null, ...over,
 });
 const lg = (over: Partial<LibraryGame> = {}): LibraryGame => ({ ...row(over), lastPlayedAt: over.lastPlayedAt ?? over.createdAt ?? 1000, ...over });
 
@@ -139,6 +139,15 @@ describe("Settings → delete all games", () => {
     expect(kv.get("levelup.offline.session." + a.id)).toBeNull(); // no run is left behind
   });
 
+  it("also removes a damaged game that the library cannot list", () => {
+    const kv = memoryKV();
+    const store = new OfflineStore(kv);
+    const g = store.addGame(validDemoSpec());
+    kv.set("levelup.offline.game." + g.id, "{ not json");
+    deleteAllGames(store, kv);
+    expect(kv.keys?.().filter((k) => k.startsWith("levelup.offline.game.")) ?? []).toEqual([]);
+  });
+
   it("works with nothing to delete, and with no draft", () => {
     const kv = memoryKV();
     expect(() => deleteAllGames(new OfflineStore(kv), kv)).not.toThrow();
@@ -156,7 +165,7 @@ describe("Settings → delete all games", () => {
   it("the draft is gone even when deleting a game fails, and the failure reaches the caller to report", () => {
     const kv = memoryKV();
     kv.set(CREATE_DRAFT_KEY, "{}");
-    const store = { listGames: () => [{ id: "g1" }], deleteGame: () => { throw new Error("quota"); } };
+    const store = { deleteAll: (): number => { throw new Error("quota"); } };
     expect(() => deleteAllGames(store, kv)).toThrow("quota");
     expect(kv.get(CREATE_DRAFT_KEY)).toBeNull();
   });

@@ -126,16 +126,18 @@ describe("library page states", () => {
     expect(html).toContain('aria-labelledby="library-title"');
   });
 
-  it("unreadable saved data shows a recoverable error instead of a blank screen", () => {
-    mem.set("levelup.offline.games", JSON.stringify(["broken"]));
+  it("one damaged game is skipped: the other games still show, with no error screen", () => {
+    const store = seed();
+    const good = store.addGame(validDemoSpec());
+    mem.set("levelup.offline.games", JSON.stringify(["broken", good.id]));
     mem.set("levelup.offline.game.broken", JSON.stringify({ id: "broken", title: "x", createdAt: 1 }));
     const html = render(h(LibraryPage));
-    expect(html).toContain('data-testid="mobile-load-error"');
-    expect(html).toContain('data-testid="load-retry"');
-    expect(html).toContain('href="#/settings"'); // backup/export lives in Settings
-    expect(html).not.toContain('data-testid="welcome"');
-    expect(html).not.toContain("mobile-games");
+    expect(html).not.toContain('data-testid="mobile-load-error"');
+    expect(count(html, 'data-testid="mobile-game"')).toBe(1);
+    expect(html).toContain(`#/play/${good.id}`);
   });
+
+  // The error screen itself (a store that cannot list anything) is covered at the model level: loadLibrary → { ok: false }.
 
   it("signed in, the footer says how the backup is doing instead of 'offline'", () => {
     seed().addGame(validDemoSpec());

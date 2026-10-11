@@ -32,6 +32,8 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
   Schema changes go through `supabase/migrations/`; re-run the Supabase security advisor afterwards.
 - Paid features there must use Google Play Billing, never Stripe. Generated games must still pass `validateGameSpec` and keep their `generatorKind` label.
 - Feature tiers apply on the device too: `generateOffline(…, tier)` refuses what the tier lacks (`TIER_LOCKED`) and clamps the rest with `clampToFeatureTier`; the tier comes from `src/lib/offline/entitlement.ts`, which stays at full tier A until Google Play Billing supplies the purchased plan.
+- Games made on a phone are fitted to a touch screen by `fitForDevice` (`src/lib/game/spec/device.ts`): less walking, easier jumps, no moving platforms, milder hazards, more time for timed answers, fewer collectibles — never a change to challenges, answers, missions or bosses, and the result is re-validated. The request's `device` field is only a hint (it can never unlock anything); the Android app always sends `"phone"`, the website's create form sends it for small touch screens, and the AI is told about it in the prompt.
+- Play release: `docs/play-release.md` (target API, privacy/backup settings, Data safety answers, checks on the built AAB) is guarded by `tests/unit/android-shell.test.ts`; keep both in step when changing `android/` or the CSP.
 - Run `npm run test:e2e:mobile` for changes that affect it.
 
 ## Working agreements
