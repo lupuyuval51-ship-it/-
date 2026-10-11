@@ -22,6 +22,17 @@ const DRAFT_DEBOUNCE_MS = 400;
 /** Show the character counter once the text is this close to the limit. */
 const COUNT_FROM = Math.floor(INPUT_LIMITS.materialMax * 0.7);
 
+/**
+ * Enter in a one-line field moves on instead of submitting the form: with only a subject typed, "Go" on the phone's
+ * keyboard would otherwise build a demo game by accident. A null `next` just closes the keyboard.
+ */
+function nextOnEnter(e: React.KeyboardEvent<HTMLInputElement>, next: string | null) {
+  if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+  e.preventDefault();
+  if (next) document.getElementById(next)?.focus();
+  else e.currentTarget.blur();
+}
+
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
@@ -159,7 +170,7 @@ export function CreatePage() {
       </div>
       <div className="min-w-0 space-y-4" data-testid="create-notes-column">
       <Field label={t("create.subject")} htmlFor="subject" error={problem?.kind === "required" ? t("create.error.required") : null}>
-        <Input id="subject" className="min-h-11" value={form.subject} maxLength={INPUT_LIMITS.subjectMax} disabled={busy} onChange={(e) => change("subject", e.target.value)} placeholder={t("create.subject.placeholder")} required />
+        <Input id="subject" className="min-h-11" value={form.subject} maxLength={INPUT_LIMITS.subjectMax} disabled={busy} enterKeyHint="next" onKeyDown={(e) => nextOnEnter(e, "material")} onChange={(e) => change("subject", e.target.value)} placeholder={t("create.subject.placeholder")} required />
       </Field>
       <div className="space-y-2">
         <p className="text-sm font-medium" id="example-label">{t("mob.create.example")}</p>
@@ -220,7 +231,7 @@ export function CreatePage() {
       </div>
       <div className="min-w-0 space-y-4" data-testid="create-options-column">
       <Field label={t("create.goal")} hint={t("mob.create.goal.hint")} htmlFor="goal">
-        <Input id="goal" className="min-h-11" value={form.goal} maxLength={INPUT_LIMITS.goalMax} disabled={busy} onChange={(e) => change("goal", e.target.value)} placeholder={t("create.goal.placeholder")} />
+        <Input id="goal" className="min-h-11" value={form.goal} maxLength={INPUT_LIMITS.goalMax} disabled={busy} enterKeyHint="done" onKeyDown={(e) => nextOnEnter(e, null)} onChange={(e) => change("goal", e.target.value)} placeholder={t("create.goal.placeholder")} />
       </Field>
       <Field label={t("create.mode.title")} htmlFor="mode" hint={t(`mob.create.mode.${form.mode}.desc`)} error={problem?.kind === "tier" && problem.mode ? lockedField : null}>
         <Select id="mode" className="min-h-11" value={form.mode} disabled={busy} onChange={(e) => change("mode", e.target.value as CreateFormValues["mode"])}>
