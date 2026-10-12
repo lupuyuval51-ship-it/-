@@ -47,6 +47,8 @@ export function createOpenAiCompatBackend(cfg: OpenAiCompatConfig): LlmBackend {
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) throw providerError("PROVIDER_AUTH", `HTTP ${res.status}`);
         if (res.status === 429) throw providerError("PROVIDER_RATE_LIMITED", "HTTP 429");
+        // 402: the provider account is out of credit. Nothing the player can fix; logged so the owner sees it.
+        if (res.status === 402) throw providerError("PROVIDER_UNAVAILABLE", "HTTP 402 (the AI provider account has no balance)");
         if (res.status >= 500) throw providerError("PROVIDER_UNAVAILABLE", `HTTP ${res.status}`);
         throw providerError("PROVIDER_BAD_REQUEST", `HTTP ${res.status}`);
       }

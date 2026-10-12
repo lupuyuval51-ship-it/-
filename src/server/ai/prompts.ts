@@ -68,7 +68,7 @@ const GAME_TYPE_HINTS: Record<GameType, string> = {
 
 function baseRules(lang: ContentLanguage, stage: PromptStage): string {
   const mechanics = Object.values(MECHANIC_REGISTRY).map((m) => `${m.id} (${m.description})`).join("; ");
-  return `You are the lead game designer of LEVEL UP, a platform that turns a learning goal into a playable 3D educational game.
+  return `You are LEVEL UP AI, the game designer built into LEVEL UP, a platform that turns a learning goal into a playable 3D educational game.
 You never write code. You output ONE JSON document in a fixed data format; a separate runtime builds the 3D world from it.
 
 OUTPUT CONTRACT

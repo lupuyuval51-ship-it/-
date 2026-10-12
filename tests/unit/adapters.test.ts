@@ -149,7 +149,7 @@ describe("OpenAI-compatible adapter against a local protocol mock", () => {
     expect((await backend().complete(request())).finish).toBe("truncated");
     handler = (_r, res) => reply(res, { choices: [{ message: { content: null, refusal: "no" }, finish_reason: "stop" }] });
     expect((await backend().complete(request())).finish).toBe("refused");
-    for (const [status, code] of [[401, "PROVIDER_AUTH"], [429, "PROVIDER_RATE_LIMITED"], [503, "PROVIDER_UNAVAILABLE"], [400, "PROVIDER_BAD_REQUEST"]] as const) {
+    for (const [status, code] of [[401, "PROVIDER_AUTH"], [402, "PROVIDER_UNAVAILABLE"], [429, "PROVIDER_RATE_LIMITED"], [503, "PROVIDER_UNAVAILABLE"], [400, "PROVIDER_BAD_REQUEST"]] as const) {
       handler = (_r, res) => reply(res, { error: { message: "secret sk-LEAK" } }, status);
       const err = (await backend().complete(request()).catch((e) => e)) as ProviderError;
       expect(err.code).toBe(code);
