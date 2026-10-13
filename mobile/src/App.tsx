@@ -39,6 +39,12 @@ export function App() {
     document.documentElement.dir = dirOf(locale);
   }, [locale]);
   useEffect(() => { window.scrollTo(0, 0); }, [path]);
+  // Opening a game is the most common next step from the library: fetch and parse the play screen once the library has been
+  // drawn and the phone is idle (the 3D renderer is not part of it; it is fetched when a game opens).
+  useEffect(() => {
+    const id = setTimeout(() => { void import("./pages/Play").catch(() => undefined); }, 1500);
+    return () => clearTimeout(id);
+  }, []);
   const first = useRef(true);
   const play = path.startsWith("/play/");
   return (

@@ -8,14 +8,13 @@ import type { GameRuntime } from "@/lib/game/engine/runtime";
 import { mulberry32 } from "@/lib/game/util/prng";
 import { particleSlots } from "./budget";
 import { ParticleEmitter } from "./emitter";
-import { makeSoftSprite } from "./materials";
+import { sharedSoftSprite } from "./materials";
 
 export { ParticleEmitter };
 
 /** Ambient motes + event bursts + (Tier A) movement trail. Budgets come from the render profile. */
 export function Particles({ runtime, profile, emitter, accent }: { runtime: GameRuntime; profile: RenderProfile; emitter: ParticleEmitter; accent: string }) {
-  const sprite = useMemo(() => makeSoftSprite(), []);
-  useEffect(() => () => sprite.dispose(), [sprite]); // react-three-fiber does not free a texture that is handed over as a prop
+  const sprite = sharedSoftSprite(); // one texture for every halo and particle layer (it used to be drawn and uploaded again per mount, and never freed)
   const { ambient, burst: burstCap, trail: trailCap } = particleSlots(profile);
 
   const amb = useMemo(() => {

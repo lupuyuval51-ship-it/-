@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { labelHeightFactor } from "./labelScale";
-import { makeLabelTexture, makeSoftSprite } from "./materials";
+import { makeLabelTexture, sharedSoftSprite } from "./materials";
 
 /** World label that keeps a steady, readable size on screen (small when you are next to it, larger when far away). */
 export function Label({ text, color, y, scale = 1 }: { text: string; color: string; y: number; scale?: number }) {
@@ -33,8 +33,7 @@ export function Label({ text, color, y, scale = 1 }: { text: string; color: stri
 }
 
 export function Halo({ color, size, y, opacity = 0.55 }: { color: string; size: number; y: number; opacity?: number }) {
-  const tex = useMemo(() => makeSoftSprite(), []);
-  useEffect(() => () => tex.dispose(), [tex]);
+  const tex = sharedSoftSprite(); // shared by every halo: not disposed here
   return (
     <sprite position={[0, y, 0]} scale={[size, size, 1]}>
       <spriteMaterial map={tex} color={color} transparent opacity={opacity} depthWrite={false} blending={THREE.AdditiveBlending} fog={false} />
