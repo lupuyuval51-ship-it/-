@@ -49,6 +49,51 @@ describe("interface copy (both languages)", () => {
     }
   });
 
+  describe("Hebrew copy hygiene (the Hebrew dictionary is the product default)", () => {
+    const he = Object.entries(DICTIONARIES.he);
+    const en = Object.entries(DICTIONARIES.en);
+
+    it("no Hebrew string has a space before , . ; : ! ? and no string has a double space", () => {
+      // English keeps its own lists (\"Load a text file (.txt, .md)\"), so the space rule is for Hebrew only
+      const bad = [...he.filter(([, v]) => / [,.;:!?]/.test(v)), ...[...he, ...en].filter(([, v]) => /\S {2,}\S/.test(v))].map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("no UI string uses an arrow character (use the Arrow component, which mirrors in RTL)", () => {
+      const bad = [...he, ...en].filter(([, v]) => /[←-⇿⟵-⟷]/.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("Hebrew uses the Hebrew punctuation: geresh (׳) and gershayim (״), never ASCII or curly quotes", () => {
+      const bad = he.filter(([, v]) => /['"“”„‘’]/.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("a count is never written directly before a plural noun (\"נותרו 1 משחקים\"): it is a label (\"משחקים: {n}\") or a fraction (\"{n} מתוך {total}\")", () => {
+      const COUNTED = /\{(?:n|count|games|runs|sessions|cards|added|updated|kept|shown|have|left|meters|d|target)\} ?(?:משחקים|שאלות|פריטים|ריצות|כרטיסי|נקודות|שניות|דקות|מעלות|ניסיונות|תווים|עריכות|אתגרים|משימות|אזורים|פעמים|מטרים|מטר\b|בלוקים|סיבובים|כוכבים)/;
+      const bad = he.filter(([, v]) => COUNTED.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("no Hebrew string uses the banned phrasings that were fixed: \"נותרו {n}\" as a count, or singular second-person forms", () => {
+      const BANNED = /נותרו \{n\}|(?:^|\s)(?:אתה|ניסית|רוצה|בחרת|הצלחת|שמרת|ספרת|יצרת|למדת)(?=\s|$|[.,!?])/;
+      const bad = he.filter(([, v]) => BANNED.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("a Hebrew prefix is never glued to an inserted name (\"ב{area}\", \"מ{name}\"): names can be Latin or Hebrew", () => {
+      // "ב{cell}" and "ב{list}" are fixed phrases whose inserted text always starts with a Hebrew word, so they are allowed.
+      const GLUED = /(?:^|\s)[בלכמשה]\{(?!cell\}|list\})\w+\}/;
+      const bad = he.filter(([, v]) => GLUED.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
+    it("the mistake-deck intro reads the same arrow-free way in both languages", () => {
+      expect(DICTIONARIES.en["mob.deck.intro"]).not.toMatch(/→|←/);
+      expect(DICTIONARIES.he["mob.deck.intro"]).not.toMatch(/→|←/);
+    });
+  });
+
   it("the example subjects and goals exist for every example button", () => {
     for (const locale of ["en", "he"] as const) {
       for (const n of [1, 2, 3, 4]) {

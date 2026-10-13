@@ -176,7 +176,7 @@ export const mathPack: DemoPack = {
         ],
         challenges: [
           numeric({ id: "c-area", title: t("Tile the floor", "ריצוף הרצפה"), concept: t("area", "שטח"), level: 1, objectiveId: "o-geo",
-            prompt: t("A rectangular floor is 7 m long and 5 m wide. What is its area in square metres?", "רצפה מלבנית באורך 7 מ' וברוחב 5 מ'. מה שטחה במטרים רבועים?"), answer: 35, unit: "m²",
+            prompt: t("A rectangular floor is 7 m long and 5 m wide. What is its area in square metres?", "רצפה מלבנית באורך 7 מ׳ וברוחב 5 מ׳. מה שטחה במטרים רבועים?"), answer: 35, unit: "m²",
             mistakes: [[24, t("That is the perimeter. Area is length × width.", "זה ההיקף. שטח הוא אורך × רוחב.")], [12, t("7 + 5 adds the sides; area multiplies them.", "7 + 5 מחבר את הצלעות; שטח מכפיל אותן.")]],
             hint: t("Area of a rectangle = length × width.", "שטח מלבן = אורך × רוחב."), explanation: t("7 × 5 = 35 square metres.", "7 × 5 = 35 מטרים רבועים.") }),
           choice({ id: "c-tri", title: t("Angles of a triangle", "זוויות במשולש"), concept: t("angles", "זוויות"), level: 2, objectiveId: "o-geo",

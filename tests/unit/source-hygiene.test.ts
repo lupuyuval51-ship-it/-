@@ -71,6 +71,47 @@ describe("RTL safety: logical Tailwind utilities only", () => {
   });
 });
 
+describe("RTL and bidi: directional glyphs and text fields", () => {
+  // Arrows are direction-dependent: they must come from the Arrow component (rtl:-scale-x-100), never typed into a string or JSX.
+  const ARROW_HOME = new Set(["src/components/ui/index.tsx"]);
+  const UI_FILES = () => sourceFiles(["src/components", "src/app", "mobile/src"], [".ts", ".tsx"]);
+
+  it("no arrow glyph (→ ← ↔ ⇒ …) in UI code outside the Arrow component (comments excepted)", () => {
+    const offenders: string[] = [];
+    for (const f of UI_FILES()) {
+      if (ARROW_HOME.has(rel(f))) continue;
+      read(f).split("\n").forEach((line, i) => {
+        if (/^\s*(\/\/|\*|\/\*)/.test(line)) return; // doc comments talk about the glyphs
+        const code = line.replace(/\/\/.*$/, "");
+        if (/[←-⇿⟵-⟷]/.test(code)) offenders.push(`${rel(f)}:${i + 1}`);
+      });
+    }
+    expect(offenders, "use <Arrow /> or <Arrow back />").toEqual([]);
+  });
+
+  it("every text field states its direction: dir=\"auto\" (the Input/Textarea wrappers default to it) or dir=\"ltr\" for codes and e-mail", () => {
+    // Checkboxes, radios, sliders and file pickers hold no text, so they are exempt.
+    const NON_TEXT = /type="(?:checkbox|radio|range|file)"/;
+    const offenders: string[] = [];
+    for (const f of UI_FILES()) {
+      const text = read(f);
+      for (const m of text.matchAll(/<(input|textarea)\b/g)) {
+        const window = text.slice(m.index!, m.index! + 600);
+        const tagEnd = window.search(/\/>|<\/textarea>/);
+        const tag = tagEnd === -1 ? window : window.slice(0, tagEnd);
+        if (!/\bdir=/.test(tag) && !NON_TEXT.test(tag)) offenders.push(`${rel(f)}: ${tag.split("\n")[0]!.trim().slice(0, 80)}`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("the Arrow component mirrors in RTL and points back in the back direction", () => {
+    const ui = read(path.join(root, "src/components/ui/index.tsx"));
+    expect(ui).toMatch(/back \? "←" : "→"\}<\/span>|back \? "←" : "→"/);
+    expect(ui).toMatch(/rtl:-scale-x-100/);
+  });
+});
+
 describe("no secrets and no server code in the client", () => {
   it("there are no NEXT_PUBLIC_ variables in code, config or .env.example (nothing secret can reach the browser)", () => {
     const files = [
