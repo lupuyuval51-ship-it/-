@@ -80,6 +80,13 @@ describe("interface copy (both languages)", () => {
       expect(bad).toEqual([]);
     });
 
+    it("a Hebrew prefix is never glued to an inserted name (\"ב{area}\", \"מ{name}\"): names can be Latin or Hebrew", () => {
+      // "ב{cell}" and "ב{list}" are fixed phrases whose inserted text always starts with a Hebrew word, so they are allowed.
+      const GLUED = /(?:^|\s)[בלכמשה]\{(?!cell\}|list\})\w+\}/;
+      const bad = he.filter(([, v]) => GLUED.test(v)).map(([k]) => k);
+      expect(bad).toEqual([]);
+    });
+
     it("the mistake-deck intro reads the same arrow-free way in both languages", () => {
       expect(DICTIONARIES.en["mob.deck.intro"]).not.toMatch(/→|←/);
       expect(DICTIONARIES.he["mob.deck.intro"]).not.toMatch(/→|←/);
