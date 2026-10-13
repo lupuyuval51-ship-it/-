@@ -35,7 +35,7 @@ const c: TopicContent = {
       ["Time zone", "a region that uses the same clock time; most zones differ from UTC by whole hours", "אזור זמן", "אזור שבו משתמשים באותה שעה; רוב האזורים שונים מ־UTC בשעות שלמות"],
       ["UTC", "Coordinated Universal Time, the reference time from which time zones are counted", "UTC", "הזמן האוניברסלי המתואם, שממנו סופרים את אזורי הזמן"],
       ["Daylight saving time", "moving clocks one hour forward in summer to get more evening light", "שעון קיץ", "הקדמת השעון בשעה אחת בקיץ כדי ליהנות מיותר אור בערב"],
-      ["Century", "a period of one hundred years", "מאה (שנים)", "תקופה של מאה שנים"],
+      ["Century", "a period of one hundred years", "מאה (שנים)", "תקופה של 100 שנים"],
     ],
     q: [
       [["Which of these years was a leap year?", "2000", ["1900", "2100", "2023"], "Years divisible by 4 are leap years, except century years not divisible by 400: 2000 was, 1900 was not."],
