@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type Ref } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
@@ -32,11 +32,45 @@ function decorGeos(detail: Detail): Record<Geo, THREE.BufferGeometry> {
   return made;
 }
 
-function BoxMesh({ box, materials, profile, runtime }: { box: WorldBox; materials: MaterialSet; profile: RenderProfile; runtime: GameRuntime }) {
-  const ref = useRef<THREE.Mesh>(null);
+type BoxMeshProps = { box: WorldBox; materials: MaterialSet; profile: RenderProfile; runtime: GameRuntime };
+
+/**
+ * One level box. Only movers and gates are animated; every other box is plain and registers no per-frame callback (a level
+ * has dozens of them, and each `useFrame` subscription is work every frame even when the callback returns at once).
+ */
+function BoxMesh(props: BoxMeshProps) {
+  const { box } = props;
+  if (!box.visible) return null;
+  return box.mover || (box.kind === "gate" && box.gateId) ? <AnimatedBox {...props} /> : <StaticBox {...props} />;
+}
+
+function BoxShape({ box, mat, profile, ref }: { box: WorldBox; mat: THREE.Material; profile: RenderProfile; ref?: Ref<THREE.Mesh> }) {
   const w = box.x1 - box.x0, h = box.y1 - box.y0, d = box.z1 - box.z0;
   const isGate = box.kind === "gate";
   const isFloor = box.kind === "floor";
+  return (
+    <mesh
+      ref={ref}
+      position={[(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2, (box.z0 + box.z1) / 2]}
+      scale={[w, h, d]}
+      geometry={BOX}
+      material={mat}
+      castShadow={profile.shadows.enabled && !isFloor && !isGate}
+      receiveShadow={profile.shadows.enabled}
+    />
+  );
+}
+
+function StaticBox({ box, materials, profile }: BoxMeshProps) {
+  const w = box.x1 - box.x0, d = box.z1 - box.z0;
+  const mat = useMemo(() => materials.surface(box.style, w, d), [materials, box.style, w, d]);
+  return <BoxShape box={box} mat={mat} profile={profile} />;
+}
+
+function AnimatedBox({ box, materials, profile, runtime }: BoxMeshProps) {
+  const ref = useRef<THREE.Mesh>(null);
+  const w = box.x1 - box.x0, h = box.y1 - box.y0, d = box.z1 - box.z0;
+  const isGate = box.kind === "gate";
   const mat = useMemo(() => materials.surface(box.style, w, d), [materials, box.style, w, d]);
   const live = useMemo(() => (box.mover ? runtime.sim.boxes().find((b) => b.id === box.id) : undefined), [box, runtime]);
   const open = useRef(0);
@@ -56,18 +90,7 @@ function BoxMesh({ box, materials, profile, runtime }: { box: WorldBox; material
     }
   });
 
-  if (!box.visible) return null;
-  return (
-    <mesh
-      ref={ref}
-      position={[(box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2, (box.z0 + box.z1) / 2]}
-      scale={[w, h, d]}
-      geometry={BOX}
-      material={mat}
-      castShadow={profile.shadows.enabled && !isFloor && !isGate}
-      receiveShadow={profile.shadows.enabled}
-    />
-  );
+  return <BoxShape box={box} mat={mat} profile={profile} ref={ref} />;
 }
 
 /**
@@ -100,7 +123,11 @@ function Decor({ world, profile, materials }: { world: WorldModel; profile: Rend
   const low = profile.geometry === "low";
   const groups = useMemo(() => {
     const byKind = new Map<string, typeof world.decor>();
-    for (const item of decorItemsFor(world, profile)) byKind.set(item.kind, [...(byKind.get(item.kind) ?? []), item]);
+    for (const item of decorItemsFor(world, profile)) {
+      const list = byKind.get(item.kind);
+      if (list) list.push(item);
+      else byKind.set(item.kind, [item]);
+    }
     return [...byKind.entries()];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, profile.environmentDetail, profile.limits.looseDecor]);
@@ -131,7 +158,10 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
       e.set(0, it.rot, 0);
       q.setFromEuler(e);
       // part offset is rotated with the item, then scaled
-      p.set(part.pos[0] * it.scale, part.pos[1] * it.scale, part.pos[2] * it.scale).applyQuaternion(q).add(new THREE.Vector3(it.x, it.y, it.z));
+      p.set(part.pos[0] * it.scale, part.pos[1] * it.scale, part.pos[2] * it.scale).applyQuaternion(q);
+      p.x += it.x;
+      p.y += it.y;
+      p.z += it.z;
       s.set(part.size[0] * it.scale, part.size[1] * it.scale, part.size[2] * it.scale);
       full.copy(q);
       if (hasRot) full.multiply(pq);

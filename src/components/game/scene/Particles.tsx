@@ -7,20 +7,14 @@ import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import { mulberry32 } from "@/lib/game/util/prng";
 import { particleSlots } from "./budget";
-import { makeSoftSprite } from "./materials";
+import { ParticleEmitter } from "./emitter";
+import { sharedSoftSprite } from "./materials";
 
-/** Imperative handle so DOM/HUD code can trigger bursts without going through React state. */
-export class ParticleEmitter {
-  queue: { x: number; y: number; z: number; color: string; count: number; kind: "pop" | "dust" }[] = [];
-  /** `pop` sparks fly up and out (pick-ups, rewards); `dust` is a low, short puff (take-off and landing). */
-  burst(x: number, y: number, z: number, color: string, count = 24, kind: "pop" | "dust" = "pop"): void {
-    if (this.queue.length < 8) this.queue.push({ x, y, z, color, count, kind });
-  }
-}
+export { ParticleEmitter };
 
 /** Ambient motes + event bursts + (Tier A) movement trail. Budgets come from the render profile. */
 export function Particles({ runtime, profile, emitter, accent }: { runtime: GameRuntime; profile: RenderProfile; emitter: ParticleEmitter; accent: string }) {
-  const sprite = useMemo(() => makeSoftSprite(), []);
+  const sprite = sharedSoftSprite(); // one texture for every halo and particle layer (it used to be drawn and uploaded again per mount, and never freed)
   const { ambient, burst: burstCap, trail: trailCap } = particleSlots(profile);
 
   const amb = useMemo(() => {
@@ -54,9 +48,13 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
     col.set(color);
     const i = from + ((pool.cursor++ % (to - from)));
     pool.life[i] = lifeTime;
-    pool.base.set([col.r, col.g, col.b], i * 3);
+    pool.base[i * 3] = col.r;
+    pool.base[i * 3 + 1] = col.g;
+    pool.base[i * 3 + 2] = col.b;
     const a = Math.random() * Math.PI * 2, r = Math.random();
-    pool.vel.set([Math.cos(a) * speed * r, up * (0.5 + Math.random()), Math.sin(a) * speed * r], i * 3);
+    pool.vel[i * 3] = Math.cos(a) * speed * r;
+    pool.vel[i * 3 + 1] = up * (0.5 + Math.random());
+    pool.vel[i * 3 + 2] = Math.sin(a) * speed * r;
     (pool.g.attributes.position as THREE.BufferAttribute).setXYZ(i, x, y, z);
   }
 
@@ -74,7 +72,9 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
       }
       posAttr.needsUpdate = true;
     }
-    for (const b of emitter.queue.splice(0)) {
+    // (`splice(0)` would allocate a fresh array every frame, and the queue is empty almost always)
+    while (emitter.queue.length > 0) {
+      const b = emitter.queue.shift()!;
       if (!burstCap) continue;
       const n = Math.min(b.count, profile.particles.burst);
       // the pool blends additively, so dust is lightened toward white to read as a pale puff on any ground

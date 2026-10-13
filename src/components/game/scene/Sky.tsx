@@ -79,6 +79,8 @@ export function Sky({ profile, theme }: { profile: RenderProfile; theme: EnvThem
     return g;
   }, [profile.sky, theme.stars]);
 
+  useEffect(() => () => starGeo?.dispose(), [starGeo]); // handed to <points> as a prop, so react-three-fiber does not free it
+
   useFrame(({ camera, clock }) => {
     dome.current?.position.copy(camera.position);
     stars.current?.position.copy(camera.position);

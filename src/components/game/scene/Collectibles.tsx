@@ -12,6 +12,14 @@ import type { MaterialSet } from "./materials";
 const COLORS: Record<string, string> = { gem: "#4cf3ff", "data-core": "#ff6ad5", star: "#ffd23f", leaf: "#7be26b", coin: "#ffc63d" };
 const SPARKS = 7;
 
+// The pick-up burst (7 sparks and a ring) is identical for every collectible and invisible until it is collected, so one
+// geometry each is shared by all of them instead of eight per collectible. Tiny, shared by every world, never disposed
+// (as the unit geometries in WorldView).
+let sparkGeo: THREE.BufferGeometry | null = null;
+let shockGeo: THREE.BufferGeometry | null = null;
+const sparkGeometry = () => (sparkGeo ??= new THREE.OctahedronGeometry(0.08, 0));
+const shockGeometry = () => (shockGeo ??= new THREE.RingGeometry(0.8, 1, 28));
+
 function starGeometry(): THREE.BufferGeometry {
   const s = new THREE.Shape();
   for (let i = 0; i < 10; i++) {
@@ -58,8 +66,8 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
   useEffect(() => () => geo?.dispose(), [geo]);
   const edges = useMemo(() => (item.kind === "data-core" ? new THREE.EdgesGeometry(new THREE.BoxGeometry(0.5, 0.5, 0.5)) : null), [item.kind]);
   useEffect(() => () => edges?.dispose(), [edges]);
-  const lineMat = useMemo(() => new THREE.LineBasicMaterial({ color, toneMapped: false }), [color]);
-  useEffect(() => () => lineMat.dispose(), [lineMat]);
+  const lineMat = useMemo(() => (item.kind === "data-core" ? new THREE.LineBasicMaterial({ color, toneMapped: false }) : null), [color, item.kind]); // only the data core draws edges
+  useEffect(() => () => lineMat?.dispose(), [lineMat]);
   const shockMat = useMemo(() => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }), [color]);
   useEffect(() => () => shockMat.dispose(), [shockMat]);
 
@@ -120,7 +128,7 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
         return (
           <>
             <mesh ref={inner} material={bright}><boxGeometry args={[0.2, 0.2, 0.2]} /></mesh>
-            {edges && <lineSegments geometry={edges} material={lineMat} />}
+            {edges && lineMat && <lineSegments geometry={edges} material={lineMat} />}
             <mesh material={mat} scale={1.0}><boxGeometry args={[0.36, 0.36, 0.36]} /></mesh>
           </>
         );
@@ -153,12 +161,10 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
       </group>
       <group ref={sparks} position={[item.x, item.y, item.z]} visible={false}>
         {Array.from({ length: SPARKS }, (_, i) => (
-          <mesh key={i} material={mat}><octahedronGeometry args={[0.08, 0]} /></mesh>
+          <mesh key={i} material={mat} geometry={sparkGeometry()} />
         ))}
       </group>
-      <mesh ref={shock} position={[item.x, item.y, item.z]} rotation={[-Math.PI / 2, 0, 0]} material={shockMat} visible={false}>
-        <ringGeometry args={[0.8, 1, 28]} />
-      </mesh>
+      <mesh ref={shock} position={[item.x, item.y, item.z]} rotation={[-Math.PI / 2, 0, 0]} material={shockMat} geometry={shockGeometry()} visible={false} />
     </group>
   );
 }

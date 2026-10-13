@@ -223,6 +223,16 @@ export function makeSoftSprite(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(c);
 }
 
+let softSprite: THREE.CanvasTexture | null = null;
+/**
+ * The one soft-sprite texture every halo, companion glow and particle layer uses (each of them used to draw its own 64x64
+ * canvas and upload its own texture: one per collectible, station and character). It is tiny and shared by every world, so
+ * it is never disposed, like the unit geometries in WorldView; a new renderer simply uploads it again.
+ */
+export function sharedSoftSprite(): THREE.CanvasTexture {
+  return (softSprite ??= makeSoftSprite());
+}
+
 /** Canvas label (supports Hebrew and any script the OS fonts cover). */
 export function makeLabelTexture(text: string, color: string, subtitle?: string): { texture: THREE.CanvasTexture; aspect: number } {
   const W = 512, H = subtitle ? 144 : 96;

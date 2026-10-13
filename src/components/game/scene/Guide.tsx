@@ -9,7 +9,7 @@ import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
 import type { EnvTheme } from "@/lib/game/world/types";
 import type { InputState } from "../input";
 import { DEFAULT_GUIDE_INSETS, markerBand, type GuideInsets } from "./guideBand";
-import { makeSoftSprite } from "./materials";
+import { sharedSoftSprite } from "./materials";
 
 /** Several beams can be active at once (talk + two terminals + a coin); six covers every mission. */
 const SLOTS = 6;
@@ -136,8 +136,7 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
   const idle = useRef(0);
   const prev = useRef({ x: 0, z: 0 });
   const want = useMemo(() => new THREE.Vector3(), []);
-  const halo = useMemo(() => (profile.glow ? makeSoftSprite() : null), [profile.glow]);
-  useEffect(() => () => halo?.dispose(), [halo]);
+  const halo = profile.glow ? sharedSoftSprite() : null; // shared by every halo: not disposed here
 
   useFrame(({ clock }, dt) => {
     const g = root.current;
@@ -145,7 +144,8 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
     const p = runtime.sim.player;
     const t = clock.elapsedTime;
     const moved = Math.hypot(p.x - prev.current.x, p.z - prev.current.z);
-    prev.current = { x: p.x, z: p.z };
+    prev.current.x = p.x;
+    prev.current.z = p.z;
     idle.current = moved > 0.02 ? 0 : idle.current + dt;
 
     const fx = -Math.sin(input.yaw), fz = -Math.cos(input.yaw); // camera forward on the ground
