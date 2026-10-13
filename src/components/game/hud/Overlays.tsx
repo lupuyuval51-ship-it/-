@@ -5,7 +5,7 @@ import { Award, BookOpen, Circle, CircleCheck, Flame, Gem, LayoutTemplate, Pause
 import { NpcIcon } from "@/components/ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Badge, Button, ProgressBar, Stars, cx } from "@/components/ui";
+import { Arrow, Badge, Button, ProgressBar, Stars, cx } from "@/components/ui";
 import type { RenderProfile } from "@/config/graphics";
 import type { Interactable } from "@/lib/game/engine/runtime";
 import type { PublicSpec } from "@/lib/game/spec/public";
@@ -164,7 +164,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
         <div ref={head} className="pointer-events-none flex w-full flex-col items-start gap-1.5">
           <div className="flex w-full flex-wrap items-stretch gap-2">
             <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
-              <span aria-hidden className="rtl:-scale-x-100">←</span>
+              <Arrow back />
             </Link>
             <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">

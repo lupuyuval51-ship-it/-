@@ -420,7 +420,7 @@ export const game = defineDict(
     "block.move": "התקדם",
     "block.left": "פנה שמאלה",
     "block.right": "פנה ימינה",
-    "block.repeat": "חזור {n} פעמים",
+    "block.repeat": "חזרה ×{n}",
     "block.if": "אם הדרך קדימה פנויה",
     "block.else": "אחרת",
     "block.nested": "בתוך",
