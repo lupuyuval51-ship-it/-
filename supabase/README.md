@@ -1,15 +1,32 @@
-# Supabase (planned): optional account + cloud backup for the Android app
+# Supabase: optional account + cloud backup for the Android app
 
-Status: **live.** Project `level-up` (`dytftgtyugvzfumdcoep`, eu-central-1, free plan), migrations in `migrations/` applied,
-edge function `functions/delete-account` deployed (JWT required), security advisor clean, RLS checks in `tests/rls_checks.sql`.
+Status: **live.** Project `level-up` (`dytftgtyugvzfumdcoep`, eu-central-1, free plan). The three migrations in `migrations/` are applied, the edge function
+`functions/delete-account` is deployed (JWT required), the security advisor was clean when last run, and the RLS checks are in `tests/rls_checks.sql`.
 
-Planned scope (the app keeps working offline, sign-in is optional):
+What it does (the app keeps working offline; sign-in is optional):
 - E-mail sign-in (Supabase Auth). Games, play progress and the review deck are backed up per user and synced between phones
-  (last write wins by `updated_at`; deletions sync through `deleted_at`).
-- Only the public *publishable* key is shipped in the app. All tables are owner-only through row level security.
-- **Policy impact:** the app stops being "no data leaves the device" for signed-in users. Before publishing a version with sync:
-  update `mobile/store/privacy-policy.md`, the Play *Data safety* form (e-mail address, user content: games and progress;
-  encrypted in transit; users can request deletion), `connect-src` in `mobile/index.html` (add exactly the project URL, never `*`)
-  and `AGENTS.md`.
+  (last write wins by `updated_at`; deletions sync through `deleted_at`). The client is `mobile/src/cloud`, the sync logic is `src/lib/offline/sync.ts`.
+- Only the project URL and the public *publishable* key are shipped in the app (`mobile/src/cloud/config.ts`). All tables (`games`, `sessions`, `deck_cards`) are owner-only
+  through row level security. A secret or service-role key must never be added to the app or to this repository (`tests/unit/source-hygiene.test.ts` fails on secret-shaped literals).
+- Signed out, the app makes no network request (tested). The CSP `connect-src` in `mobile/index.html` lists exactly `'self'` and the project URL, never `*`
+  (`tests/unit/android-shell.test.ts`).
+- **Account deletion** is the edge function `delete-account` (it checks the caller's JWT, then deletes the user with the Auth admin API using the service-role key that
+  Supabase injects into the function's environment). Deleting from `auth.users` through the SQL endpoint hung on this project, which is why it is not done that way.
 
-Apply `migrations/20261010000000_levelup_sync.sql` to the project, then run Supabase's security advisor and fix any warning.
+Migrations (apply in order; schema changes always go through `migrations/`, never by hand in the dashboard):
+1. `20261010000000_levelup_sync.sql`: the three tables, constraints (spec size, session status), owner-only policies, server-stamped `updated_at`.
+2. `20261010000001_deck_cards_mastered.sql`: a mastered review card stays, flagged, so another phone does not bring it back.
+3. `20261010000002_sessions_finished_at.sql`: the real finish time, so results look the same on every phone.
+
+After **every** schema or policy change: re-run the Supabase security advisor and fix any warning, run the checks in `tests/rls_checks.sql`, and keep this file, `docs/play-release.md`
+(Data safety table) and `mobile/store/privacy-policy.md` in step.
+
+`tests/rls_checks.sql` is a **manual** script (not part of `npm test` or CI): each block creates throw-away users, acts as the `authenticated` or `anon` role with forged claims and ends
+with `RAISE EXCEPTION`, so everything rolls back. Run the blocks one by one in the SQL editor. The results recorded at the top of the file are from 2026-10-10 (project above); the
+"cascade on user delete" check was never run.
+
+**Policy impact** (already reflected in the privacy policy, the Play *Data safety* answers and `AGENTS.md`): for signed-in users the app is no longer "no data leaves the device".
+Anything that changes what is sent (new columns, new tables) needs the same four updates: `mobile/store/privacy-policy.md`, the Play *Data safety* form, `connect-src` if the host changes,
+and `AGENTS.md`.
+
+Dashboard settings that cannot be done from the repository (confirm-email, Site URL, own SMTP before many sign-ups; password reset is not built in) are listed in `mobile/store/release-checklist.md`.

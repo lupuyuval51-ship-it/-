@@ -20,8 +20,11 @@ What is different from the website (by design):
 - No Stripe and no AI providers (a secret key cannot live in an app); the account is optional and only for backup/sync. Games come from the **study engine** (your
   notes) or **demo templates**, and are labelled that way.
 - Answer keys are on the device, so scores are for self-practice, not for anything that must be cheat-proof.
-- Graphics tier A/B/C is a Settings choice for the phone's power (there are no paid plans in the app). Default: B, or A on
-  phones that report ≥ 6 GB RAM and ≥ 8 cores.
+- Graphics tier A/B/C is a Settings choice for the phone's power. Default: B, or A on phones that report ≥ 6 GB RAM and ≥ 8 cores.
+- The *feature* tier (what a game may contain: C = 40 %, B = 70 %, A = 100 % of the game features, see `src/config/plans.ts`) is enforced on the
+  device too (`generateOffline(…, tier)` refuses what the tier lacks and clamps the rest). The tier comes from `src/lib/offline/entitlement.ts`,
+  which stays at the full tier A for every install until Google Play Billing supplies a purchased plan. Games made on a phone are fitted to a touch
+  screen (`fitForDevice`: less walking, easier jumps, never a change to challenges, answers, missions or bosses).
 - Version 1 is free. Google Play does not allow Stripe for in-app digital goods; paid features later need **Google Play
   Billing** (products created in your Play Console).
 
@@ -60,8 +63,10 @@ Before the first upload, decide the package name: `appId` in `capacitor.config.t
 
 ```bash
 npm run test:e2e:mobile       # Playwright on a Pixel 7 viewport against the built bundle, network blocked
-npx vitest run tests/unit/offline.test.ts
+npx vitest run --project unit tests/unit/offline.test.ts tests/unit/android-shell.test.ts   # store/reducer, and the guards on manifest, CSP, permissions, target API
 ```
+`npm run mobile:dev` serves the web part with Vite for quick UI work. The unit tests that read `android/` and `mobile/index.html` (`android-shell.test.ts`) must be kept in
+step with `docs/play-release.md` whenever you change either.
 
 Icons and store graphics: `python3 mobile/make-icons.py` (writes launcher icons and `mobile/store/*.png`).
 Store text and Play Console answers: `mobile/store/listing.md`. Privacy policy: `mobile/store/privacy-policy.md`.

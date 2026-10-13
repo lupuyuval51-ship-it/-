@@ -30,8 +30,12 @@ turns it into a 3D world, and every answer, score and result is computed **on th
 8. [Architecture](#architecture)
 9. [Testing](#testing)
 10. [Deployment](#deployment)
-11. [What needs your credentials](#what-needs-your-credentials)
-12. [Known limitations](#known-limitations)
+11. [Operating the app](#operating-the-app)
+12. [What needs your credentials](#what-needs-your-credentials)
+13. [Known limitations](#known-limitations)
+
+Also: [Design system](#design-system) · one-page architecture and open decisions for a new maintainer: [`docs/handover.md`](docs/handover.md) ·
+Google Play release: [`docs/play-release.md`](docs/play-release.md) · game balance report: [`docs/balance.md`](docs/balance.md).
 
 ---
 
@@ -42,9 +46,11 @@ Requirements: **Node.js ≥ 20.9** and **PostgreSQL 14+**.
 ```bash
 npm install                     # also runs `prisma generate`
 cp .env.example .env            # defaults work for local development
-npm run db:up                   # PostgreSQL via Docker (docker compose up -d db) …
-#   … or, without Docker, an isolated local cluster:  bash scripts/pg-local.sh start
-npm run db:migrate              # apply the migrations
+npm run db:up                   # an isolated local PostgreSQL cluster on 127.0.0.1:54329 (scripts/pg-local.sh; creates the
+                                #   `levelup` and `levelup_test` databases and the `levelup` role; no Docker needed)
+#   … or with Docker:  docker compose up -d db   (creates only `levelup`; for the integration tests also run once:
+#                                                 docker compose exec db createdb -U levelup levelup_test)
+npm run db:migrate              # apply the migrations to the dev database (DATABASE_URL from .env)
 npm run dev                     # http://localhost:3000
 ```
 
@@ -59,9 +65,16 @@ Useful commands:
 | `npm run dev` / `npm run build` / `npm start` | development server / production build / production server |
 | `npm run typecheck` · `npm run lint` | `tsc --noEmit` · ESLint (including React-compiler rules) |
 | `npm test` | Vitest: unit + integration (integration needs PostgreSQL) |
-| `npm run test:e2e` | Playwright end-to-end suite in a real Chromium |
+| `npm run test:unit` · `npm run test:integration` | only the `unit` project (no database) · only the `integration` project (test database `levelup_test`, files run one after another) |
+| `npm run test:e2e` | Playwright end-to-end suite for the website in a real Chromium (builds the app and serves it on port `E2E_PORT`, default 3100) |
+| `npm run test:e2e:mobile` | Playwright for the offline Android app's web bundle (Pixel 7 viewport, network blocked) |
 | `npm run check` | typecheck + lint + vitest |
-| `npm run db:migrate` · `npm run db:migrate:dev` | `prisma migrate deploy` · `prisma migrate dev` |
+| `npm run db:up` · `npm run db:down` | start / stop the local PostgreSQL cluster (`scripts/pg-local.sh`) |
+| `npm run db:migrate` · `npm run db:migrate:dev` · `npm run db:generate` | `prisma migrate deploy` · `prisma migrate dev` · `prisma generate` |
+| `npm run eval:ai` | measure an AI model on the fixed 100-case set (see [Measuring a model](#measuring-a-model-npm-run-evalai)); spends money unless `--dry` |
+| `npm run balance` | print the game-balance simulation (deterministic, ~10 s; see [`docs/balance.md`](docs/balance.md)) |
+| `npm run mobile:dev` · `npm run mobile:build` · `npm run mobile:preview` | Vite dev server / production bundle (`mobile/dist`) / preview of the offline Android app's web part |
+| `npm run unity:build` | optional Unity WebGL renderer build (needs the Unity CLI; never run against a real Editor, see [Optional Unity renderer](#optional-unity-renderer-tier-a)) |
 
 ---
 
@@ -79,11 +92,15 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `AI_PROVIDER` | `auto` | `auto` (real provider if a key is set, else demo) · `anthropic` · `openai` · `demo`. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_REFUSAL_FALLBACK` | – / `claude-opus-5-5` / `true` | Anthropic Messages API. |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | – / OpenAI / `gpt-4.1` | Any OpenAI-compatible chat-completions endpoint. |
-| `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout and whole-job deadline. |
+| `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
 | `PAYMENTS_MODE` | `disabled` | `disabled` · `stripe` · `dev` (simulator). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | – | Required for `PAYMENTS_MODE=stripe`. |
-| `CRON_SECRET` | – | Bearer secret for the optional `POST /api/internal/reap` cron. |
+| `CRON_SECRET` | – | Bearer secret (at least 16 characters) for the optional `POST /api/internal/reap` cron; without it the endpoint always answers 403. |
 | `ENABLE_TEST_HOOKS` | `false` | Exposes `window.__LEVELUP_TEST__` in the play screen for browser tests only. |
+| `TEST_DATABASE_URL` | local `levelup_test` | Used only by the tests and Playwright (never by the app). The integration suite refuses a database whose name does not contain `test`. |
+
+An invalid value stops the first request that needs the configuration with an error naming the variable, so a typo shows up at the first request, not as odd behaviour later.
+The variables are read once per process: change them and restart.
 
 **Production guards** (the process refuses to start its configuration if violated): `PAYMENTS_MODE=dev` and
 `ENABLE_TEST_HOOKS=true` are rejected when `APP_ENV=production`, and `APP_URL` must be `https://`.
@@ -127,7 +144,8 @@ Enforcement is on the server and on the saved game, never in the UI: a request f
 through `clampToFeatureTier` (`src/lib/game/spec/tier.ts`), which removes what the tier does not have and repairs everything that pointed at it
 (stations, missions, requirements, portals, boss phases) and re-validates — so a model, a template or an edit cannot smuggle features in; the model is
 also told its tier so it does not waste its answer. Extending a game never strips what it already has (a game keeps the fuller of its own tier and the
-plan's), and games from before tiers count as A. The offline Android app is not tiered (no plans there yet).
+plan's), and games from before tiers count as A. The offline Android app applies the same tiers on the device (`src/lib/offline/entitlement.ts`): it refuses what the
+tier lacks (`TIER_LOCKED`) and clamps the rest, but stays at full tier A until Google Play Billing supplies a purchased plan.
 
 **Plan features and quotas** live next to the prices in `plans.ts` (`features`): the personal AI robot level (`none` / B / A), AI edits per
 period, and whether saved versions can be listed and restored. They are read by the server only; the UI just shows what the server reports and
@@ -239,10 +257,13 @@ grades, scores and releases hints, so Unity never sees answer keys.
 ### Offline Android app (Google Play)
 
 `mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, demo templates
-and the server's own game reducer, running on the device (`src/lib/offline`). No accounts, AI, Stripe or network; games and
-progress stay on the phone. Answer keys live on the device there, so it is a self-practice app (this is the one deliberate
-exception to the server-authority rules). Capacitor wraps the Vite bundle (`android/`). Build, signing and Play Console
-steps: [mobile/README.md](mobile/README.md).
+and the server's own game reducer, running on the device (`src/lib/offline`). No AI and no Stripe (no payments and no keys in the app; paid
+features there must use Google Play Billing). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
+(Settings → Backup, `src/lib/offline/backup.ts`) and an optional **account with cloud backup** through Supabase (`mobile/src/cloud`,
+`src/lib/offline/sync.ts`, `supabase/`): only the project URL and the *publishable* key are in the app, every table is owner-only (row level
+security; `supabase/tests/rls_checks.sql` is a script you run by hand in the SQL editor, not part of `npm test` or CI), and **signed out the app makes no network request** (tested). Answer keys live on the
+device there, so it is a self-practice app (this is the one deliberate exception to the server-authority rules). Capacitor wraps the Vite
+bundle (`android/`). Build, signing and Play Console steps: [mobile/README.md](mobile/README.md) and [docs/play-release.md](docs/play-release.md).
 
 
 ### Measuring a model (`npm run eval:ai`)
@@ -301,7 +322,7 @@ Plan, currency and amount come from a server-side checkout row created from the 
 ## Game model and gameplay
 
 * A **game spec** (`src/lib/game/spec`) is plain JSON: theme, areas (layout, stations, NPCs, collectibles, portal), missions with objectives
-  (`talk` / `solve` / `collect` / `visit`), challenges (`choice`, `numeric`, `sequence`, `match`, `program`, `simulation` with projectile and lever),
+  (`talk` / `solve` / `collect` / `visit` / `defeat`), challenges (`choice`, `numeric`, `sequence`, `match`, `program`, `simulation` with projectile and lever),
   learning goals and a conclusion.
 * **Game type changes the world:** exploration → open plaza; puzzle → locked rooms with gates; platformer → floating terraces with gaps, moving platforms
   and hazards whose geometry is derived from the physics constants (reachability is tested); simulation → laboratory; adventure → multi-area with portals.
@@ -344,10 +365,13 @@ Implemented and tested:
 * Passwords hashed with **scrypt** (per-password salt, constant-time compare, dummy hash on unknown email to equalise timing); login sessions are random
   256-bit tokens, only their **SHA-256** is stored; cookies are `HttpOnly`, `SameSite=Lax`, `Secure` in production; password change signs out other devices.
 * **CSRF:** every mutating API request must come from the app's own origin (on top of SameSite). Webhooks are exempt and authenticate by signature instead.
-* **Rate limits** (database-backed fixed windows; per IP and per user) on registration, login, generation, game events, checkout, account actions.
+* **Rate limits** (database-backed fixed windows; per IP and per user; values in `src/config/limits.ts`): login 8 per 10 min per account and 30 per 10 min per IP, registration 5 per hour,
+  generation and AI edits 6 per 10 min (per user, each), game events and practice answers 240 per minute, billing actions 10 per 10 min, account actions 30 per 10 min, password change 8 per 10 min. Only the routes
+  that declare a limit are limited (the `general` entry in `limits.ts` is not used by any route). Behind a proxy the IP comes from `X-Forwarded-For` only when `TRUST_PROXY=true`.
 * **Authorisation by ownership** on every game, session, job and billing route (404 for other users' resources); no IDOR in the browser tests.
 * **Validation** with Zod on every input, request-size limits, uniform non-leaky errors (details are logged server-side only).
-* Security headers and a strict **CSP** (`next.config.ts`); no `dangerouslySetInnerHTML`, no `eval`; no secrets in the client bundle (checked).
+* Security headers and a restrictive **CSP** (`next.config.ts`: same-origin only, no framing, no plugins, forms only to ourselves; `script-src` still needs `'unsafe-inline'` because Next.js injects inline bootstrap scripts and a nonce policy would make every page dynamic);
+  no `dangerouslySetInnerHTML`, no `eval`; no secrets in the client bundle (checked by `tests/unit/source-hygiene.test.ts`).
 * Minor-safe defaults: profiles are private; there is no open chat and no precise location — the region is a user-chosen billing region only.
 * `npm audit` (production dependencies) reports 4 *high* advisories, all transitive dependencies of the **Prisma CLI** (`deepmerge-ts` used when
   loading `prisma.config.ts`, `mysql2` used by the CLI's local dev server). They are not in the request path (runtime uses `@prisma/client` + `pg`), and no stable
@@ -360,13 +384,23 @@ Implemented and tested:
 ```
 prisma/                 schema + migrations (hand-written partial unique indexes and CHECK constraints)
 src/config/             plans.ts (single source of truth), graphics.ts (tier render profiles), limits.ts
-src/lib/game/           spec · challenges (grading, simulations) · state (reducer) · world (layouts) · engine (physics) · demo templates
-src/lib/i18n/           typed he/en dictionaries (key parity enforced at compile time)
-src/server/             env · db · auth · allowance (ledger) · generation (jobs, pipeline) · ai (providers) · billing · games · http
+src/lib/game/           spec · challenges (grading, simulations) · state (reducer) · world (layouts) · engine (physics) · demo templates ·
+                        material (study engine) · unity (optional renderer bridge) · sim-balance (bot playthroughs) · a11y
+src/lib/offline/        the server-free game store for the Android app: store, backup, sync, deck, entitlement, offline generation
+src/lib/i18n/           typed he/en dictionaries (key parity enforced at compile time and by tests/unit/i18n-parity.test.ts)
+src/server/             env · db · auth · allowance (ledger) · generation (jobs, pipeline) · ai (providers, eval) · billing · games · http
 src/app/                routes: pages and /api handlers (thin; logic lives in src/server)
 src/components/         UI, forms, and the R3F game (scene/, hud/)
-tests/                  unit · integration (real PostgreSQL) · e2e (Playwright)
+mobile/                 the offline Android app's web part (Vite + React): screens, cloud backup client, native bridges, store listing text
+android/                the Capacitor Android project (Gradle, manifest, MainActivity)
+supabase/               migrations, the delete-account edge function and RLS checks for the app's optional cloud backup
+unity/                  optional Unity WebGL renderer project (C# never run in a real Editor)
+scripts/                pg-local.sh (local PostgreSQL), eval-ai.ts, balance-report.ts, build-unity.sh
+docs/                   handover.md (architecture on one page, open decisions) · play-release.md · balance.md
+tests/                  unit (no database) · integration (real PostgreSQL, `levelup_test`) · e2e (Playwright, website) · e2e-mobile (Playwright, offline app)
 ```
+
+New here? Read [`docs/handover.md`](docs/handover.md) first; the binding engineering rules are in [`AGENTS.md`](AGENTS.md).
 
 ---
 
@@ -395,11 +429,20 @@ One design system for the website and the Android app (`mobile/` imports the sam
 npm run db:up            # PostgreSQL for the integration tests (test DB `levelup_test` is used, never your dev DB)
 npm run check            # typecheck + lint + vitest (unit + integration)
 npm run test:e2e         # builds, starts the app against the test DB and drives Chromium
+npm run test:e2e:mobile  # when you touch mobile/, src/lib/offline or anything the Android app imports
 ```
 
 The E2E config runs Chromium with software WebGL (SwiftShader) so it works without a GPU; set `PW_CHROMIUM_PATH` to use a different browser binary.
 
-Results of the final verification run are recorded in [Verification record](#verification-record).
+Two Vitest projects (`vitest.config.mts`): **unit** (`tests/unit`, no database, 30 s timeout) and **integration** (`tests/integration`, PostgreSQL `levelup_test`, files run
+one at a time because they share the database; global setup applies the real migrations and refuses a database whose name has no "test" in it). Integration suites run at feature tier A
+(`setFeatureTierForTests` in `tests/integration/setup.ts`); `feature-tier.test.ts` uses the real tiers. Single files: `npx vitest run --project unit tests/unit/billing.test.ts`.
+Repository rules that are enforced as tests: i18n key and placeholder parity, logical (RTL-safe) Tailwind classes, no `NEXT_PUBLIC_*` and no secret-shaped literals, no server code in
+client bundles, no `eval` (`tests/unit/i18n-parity.test.ts`, `tests/unit/source-hygiene.test.ts`); the Android shell settings (`tests/unit/android-shell.test.ts`).
+Randomised tests use fixed seeds (`rng(seed)` in `tests/unit/random-play.ts`), so a failure prints the seed that reproduces it. CI (`.github/workflows/ci.yml`) runs typecheck, lint, `npm test`
+and the website E2E; it does **not** run `test:e2e:mobile`, the Supabase RLS checks or an Android build.
+
+A snapshot of one full verification run is recorded in [Verification record](#verification-record) (it is a dated record, not a live number: the suites have grown since).
 
 What is covered: plan/entitlement logic, security primitives, env guards, spec validation (every template × language × mode × game type), server grading of
 every challenge, the reducer (scoring, attempts, adaptive variants, completion, anti-cheat), world generation and reachability (every layout, size and template,
@@ -411,7 +454,7 @@ Every browser test also fails on any uncaught page error or console error.
 
 ### Verification record
 
-Run on 2026-10-10 (after the UI overhaul: themes, design tokens, icons, states) in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
+Snapshot from 2026-10-10 (after the UI overhaul: themes, design tokens, icons, states); the file counts and totals below are **from that date** and have grown since (more unit suites, the offline app's cloud backup, feature tiers, AI editing) — re-run `npm run check` and the E2E commands for current numbers. Run in the build environment (Linux container, Node 22.22, PostgreSQL 16, Chromium via Playwright 1.64 with software WebGL), on a fresh production build:
 
 | Check | Result |
 | --- | --- |
@@ -443,6 +486,61 @@ Firefox/WebKit; a Docker image build; a load test. The study engine's question q
 * **Stripe:** point the webhook at `https://<domain>/api/webhooks/stripe` (see [Payments](#payments)). Keep `PAYMENTS_MODE=stripe`; never `dev` in production.
 * **Secrets:** inject through your platform's secret store. Nothing in this repo contains a real credential; `.env` is ignored by git.
 * Not provided: a Dockerfile / IaC (a Docker image build could not be verified in the build environment) and a CI definition beyond `.github/workflows/ci.yml`.
+
+---
+
+## Operating the app
+
+Everything the running service needs is an environment variable (table in [Configuration](#configuration)) plus one PostgreSQL database. There is no session
+secret to configure (login tokens are random and only their SHA-256 is stored), no object storage and no queue: background work runs inside the Node process.
+
+### What the server needs
+
+| Always | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` only if your proxy overwrites `X-Forwarded-For` |
+| --- | --- |
+| **Real AI** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` (optionally `ANTHROPIC_MODEL`), or `AI_PROVIDER=openai` + `OPENAI_API_KEY` (+ `OPENAI_BASE_URL`, `OPENAI_MODEL` for any OpenAI-compatible endpoint). With `auto`, an Anthropic key wins over an OpenAI key, and no key means the labelled demo templates. With `anthropic`/`openai` and a missing key generation is refused up front, never silently demo. |
+| **Real payments** | `PAYMENTS_MODE=stripe`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the webhook endpoint described in [Payments](#payments). Prices are not configured in Stripe, only in `src/config/plans.ts`. |
+| **Stuck-job cleanup** (optional) | `CRON_SECRET` (≥ 16 characters) and a scheduler calling `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes. Without it stuck jobs are still released when they are read. |
+
+Run `npx prisma migrate deploy` on every release (it is idempotent). `GET /api/ai/status` answers without secrets and tells you which AI backend is active (`demo`, `ai` or `unavailable` with the reason); it does not check the database.
+
+### Rotating keys
+
+The configuration is parsed once per process, so **every rotation ends with a restart** (or redeploy) of the app.
+
+| Secret | How |
+| --- | --- |
+| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Create the new key at the provider, set the variable, restart, check `GET /api/ai/status`, then revoke the old key. Jobs that were running when the process stopped are released by the reaper after their deadline (the credit returns). |
+| `STRIPE_SECRET_KEY` | Create or roll the key in the Stripe Dashboard, set the variable, restart, then revoke the old key. The key is used for checkout, the customer portal, cancellation and reading a Checkout Session back. |
+| `STRIPE_WEBHOOK_SECRET` | The app verifies each webhook against **one** secret. Roll the endpoint's signing secret in the Dashboard and update the variable and restart straight away: deliveries signed with the other secret are refused with `400` and Stripe retries them later (they are idempotent by event id, so a retry is safe). |
+| `CRON_SECRET` | Change the variable and the scheduler's header together; the endpoint answers `403` for anything else. |
+| `DATABASE_URL` | Change the password or host at the database, update the variable, restart. The pool is 10 connections per process (`src/server/db.ts`). |
+| Login sessions | Nothing to rotate. To sign everybody out, delete the rows of the `Session` table (`DELETE FROM "Session"`); a password change already signs out that user's other devices. |
+| Android app (Supabase) | Only the project URL and the *publishable* key are in the app (`mobile/src/cloud/config.ts`); changing them needs a new app version. The service-role key exists only inside Supabase for the `delete-account` edge function and is never in this repository. |
+
+### Running the AI evaluation (`npm run eval:ai`)
+
+Use it before switching model or provider, and after changing prompts or the edit engine. It needs no database. Configure the backend with the same variables as the app
+(`AI_PROVIDER` and the provider's key/model), then:
+
+```bash
+npm run eval:ai -- --dry                                    # list the 100 cases (70 generations, 30 edits); no model call, no cost
+npm run eval:ai -- --yes --label my-model --price-in 3 --price-out 15   # real run: spends money at the provider; --yes is required
+npm run eval:ai -- --compare eval-a.json eval-b.json        # compare two saved reports
+```
+
+Options: `--generate N` / `--edit N` (cases per kind), `--concurrency N` (default 2), `--deadline-ms N` (per case, default 600000), `--call-timeout-ms N` (per model call, default 240000), `--out file.json`
+(default `eval-<label>.json`), `--price-in` / `--price-out` (USD per million tokens, for the cost columns). It refuses to run against the demo backend. Read the success rate first (accepted by `validateGameSpec`
+and re-checked for game type, language and feature tier), then "needed no repair", p95 latency and cost per successful result. The report is written to the current directory and `.gitignore` does not cover `eval-*.json`, so pass `--out` with a path outside the repository or do not commit it.
+
+### Backups and restore
+
+* **PostgreSQL holds all server state:** users and profiles, login sessions, games and their saved versions, play sessions and progress, generation jobs, AI edits, subscriptions, allowance periods and usage, billing webhook events, rate-limit
+  buckets. The app writes no files, so a database backup is a full backup. Use your host's automated snapshots / point-in-time recovery, or `pg_dump`, and keep at least one copy outside the database host.
+* **Restoring:** restore into a database at the same migration level, then run `npx prisma migrate deploy`. If the snapshot is older than the last Stripe events, resend the missing events from the Stripe Dashboard: webhook handling is idempotent by event id and
+  ordered, so already-applied events are no-ops. A restore has **not been rehearsed** in this repository; do one on a staging database before you need it.
+* **Never** point tests at real data: the integration suite uses `levelup_test` and refuses names without "test".
+* **Android app:** nothing is backed up by Android itself (Auto Backup is off on purpose). Users export a backup file (Settings → Backup) or sign in for the optional Supabase cloud backup; that project's own backups and settings are managed in the Supabase dashboard (see [`supabase/README.md`](supabase/README.md)).
 
 ---
 
