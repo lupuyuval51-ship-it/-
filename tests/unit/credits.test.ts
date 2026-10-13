@@ -36,7 +36,7 @@ describe("credits / about content", () => {
     });
 
     it(`the app's About page renders in ${locale} and its footer line is not invented`, () => {
-      const html = renderToStaticMarkup(h(I18nProvider, { locale, dict: DICTIONARIES[locale] }, h(AboutPage)));
+      const html = renderToStaticMarkup(h(I18nProvider, { locale, dict: DICTIONARIES[locale], children: h(AboutPage) }));
       expect(html).toContain("LUPU");
       expect(html).toContain('data-testid="mobile-about-page"');
       expect(html).not.toContain("credits-version"); // the version is read from the installed app after mount; none in a browser or on the server
