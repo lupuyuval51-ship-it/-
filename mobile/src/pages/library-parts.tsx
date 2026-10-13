@@ -11,7 +11,7 @@ export function ContinueCard({ game, t }: { game: LibraryGame; t: TFn }) {
   return (
     <section aria-labelledby="continue-title" data-testid="continue-card" data-game={game.id} className="space-y-3 rounded-2xl border border-neon/50 bg-neon/10 p-4 shadow-e1">
       <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("mob.lib.continue.label")}</p>
-      <h2 id="continue-title" dir="auto" className="break-words text-xl font-bold">{game.title}</h2>
+      <h2 id="continue-title" dir="auto" className="wrap-anywhere text-xl font-bold">{game.title}</h2>
       <div className="flex items-center gap-3">
         <ProgressBar value={game.percent} label={progress} className="flex-1" />
         <span className="shrink-0 text-xs text-muted">{progress}</span>
@@ -32,10 +32,10 @@ export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; 
   return (
     <Card interactive className="w-full min-w-0 space-y-3" data-testid="mobile-game">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 dir="auto" className="me-auto min-w-0 break-words text-lg font-semibold">{g.title}</h3>
+        <h3 dir="auto" className="me-auto min-w-0 wrap-anywhere text-lg font-semibold">{g.title}</h3>
         <GeneratorBadge kind={g.generatorKind} provider={g.generatorKind} t={t} />
       </div>
-      <p dir="auto" className="break-words text-sm text-muted">{g.subject}</p>
+      <p dir="auto" className="wrap-anywhere text-sm text-muted">{g.subject}</p>
       {g.inProgress && (
         <div className="flex items-center gap-3">
           <ProgressBar value={g.percent} label={t("lib.progress", { n: g.percent })} className="flex-1" />

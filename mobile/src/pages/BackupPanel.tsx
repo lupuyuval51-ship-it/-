@@ -156,7 +156,7 @@ export function BackupPanel() {
         <input ref={input} type="file" accept=".json,application/json" className="hidden" data-testid="backup-file" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importFile(f); }} />
       </div>
       <details className="text-sm">
-        <summary className="cursor-pointer font-medium text-neon">{t("mob.backup.paste.title")}</summary>
+        <summary className="flex min-h-11 cursor-pointer items-center font-medium text-neon">{t("mob.backup.paste.title")}</summary>
         <div className="mt-2 space-y-2">
           <Textarea dir="ltr" rows={4} value={pasted} maxLength={MAX_BACKUP_BYTES} onChange={(e) => setPasted(e.target.value)} placeholder={t("mob.backup.paste.placeholder")} aria-label={t("mob.backup.paste.title")} data-testid="backup-paste" />
           <Button variant="secondary" size="sm" disabled={busy || pasted.trim().length === 0} onClick={importPasted} data-testid="backup-paste-import">{t("mob.backup.paste.import")}</Button>

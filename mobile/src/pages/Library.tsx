@@ -158,8 +158,8 @@ export function LibraryPage() {
                   <Button variant="secondary" size="sm" onClick={() => setFilter("all")}>{t("mob.lib.filter.reset")}</Button>
                 </Card>
               ) : (
-                <ul aria-labelledby="library-title" className="grid gap-3 md:grid-cols-2" data-testid="mobile-games">
-                  {shown.map((g) => <li key={g.id} className="flex"><GameCard game={g} t={t} onDelete={remove} /></li>)}
+                <ul aria-labelledby="library-title" className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="mobile-games">
+                  {shown.map((g) => <li key={g.id} className="flex min-w-0"><GameCard game={g} t={t} onDelete={remove} /></li>)}
                 </ul>
               )}
             </>

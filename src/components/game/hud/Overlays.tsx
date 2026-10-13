@@ -167,11 +167,11 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               <span aria-hidden className="rtl:-scale-x-100">←</span>
             </Link>
             <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
-              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-tight text-muted">
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs leading-tight text-muted">
                 {/* with a source label the card's first line is that label (the caption stays for screen readers, and shows again from the sm breakpoint up, where there is room), so the card is no taller */}
                 <span className={cx("uppercase tracking-wide", source && "sr-only sm:not-sr-only")}>{t("hud.area")}</span>
                 {source && (
-                  <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-[11px] font-semibold", source.tone)}>
+                  <span title={source.hint} data-testid="source-badge" className={cx("inline-flex max-w-full items-start gap-1 rounded-md px-1.5 py-px text-xs font-semibold", source.tone)}>
                     <source.Icon aria-hidden className="mt-px hidden size-3 shrink-0 min-[24rem]:block" /><span dir="auto" className="min-w-0 break-words">{source.text}</span>
                   </span>
                 )}
@@ -179,7 +179,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               <p dir="auto" className="break-words text-sm font-semibold" data-testid="area-name">{areaName}</p>
             </div>
             <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
-              <p className="text-[11px] uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
+              <p className="text-xs uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
               <p dir="ltr" aria-hidden className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
             </div>
             <Button variant="secondary" size="sm" onClick={onPause} aria-label={t("hud.pause")} aria-keyshortcuts="Escape" data-testid="pause-button" className="pointer-events-auto min-w-11 shrink-0 self-stretch"><Pause aria-hidden className="size-4" /></Button>
@@ -468,7 +468,7 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
           </div>
           <div className={cx(shortLandscape ? "space-y-2" : "space-y-4")}>
             <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">
-              <summary className="cursor-pointer py-1 font-medium">{t("hud.controls")}</summary>
+              <summary className="cursor-pointer py-3 font-medium">{t("hud.controls")}</summary>
               <ul className="mt-2 space-y-1 text-muted">
                 {touch
                   ? (["move", "look", "jump", "sprint", "interact", "pause"] as const).map((k) => <li key={k}>{t(`hud.controls.touch.${k}`, { label: t(k === "jump" ? "touch.jump" : k === "sprint" ? "touch.sprint" : "touch.interact") })}</li>)
