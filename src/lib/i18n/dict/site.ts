@@ -15,7 +15,7 @@ export const site = defineDict(
     "nav.allowance": "{n} left",
     "nav.allowance.none": "No games left",
     "footer.privacy": "Profiles are private by default. There is no open chat and no location tracking — your region is only used to show the right price.",
-    "footer.demo": "Every game is labelled: “AI-generated” (LEVEL UP AI), “From your material” (study engine, no AI) or “Demo template” (predefined).",
+    "footer.demo": "Every game is labelled: “AI-generated” (LEVEL UP AI), “From your material” (study engine, no AI), “Topic library” (curated content, no AI) or “Demo template” (predefined).",
     "footer.rights": "© {year} LEVEL UP",
 
     "landing.hero.title": "Turn any learning goal into a 3D game you can actually play",
@@ -133,7 +133,7 @@ export const site = defineDict(
     "nav.allowance": "נותרו: {n}",
     "nav.allowance.none": "אין משחקים זמינים",
     "footer.privacy": "פרופילים פרטיים כברירת מחדל. אין צ׳אט פתוח ואין מעקב מיקום — האזור משמש רק להצגת המחיר הנכון.",
-    "footer.demo": "כל משחק מסומן: ״נוצר בבינה מלאכותית״ (LEVEL UP AI), ״מהחומר שלכם״ (מנוע לימוד, בלי AI) או ״תבנית הדגמה״ (מוכנה מראש).",
+    "footer.demo": "כל משחק מסומן: ״נוצר בבינה מלאכותית״ (LEVEL UP AI), ״מהחומר שלכם״ (מנוע לימוד, בלי AI), ״ספריית נושאים״ (תוכן מוכן, בלי AI) או ״תבנית הדגמה״ (מוכנה מראש).",
     "footer.rights": "© {year} LEVEL UP",
 
     "landing.hero.title": "הופכים כל מטרת לימוד למשחק תלת־ממדי שאפשר באמת לשחק",

@@ -126,7 +126,7 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
 
 // ───────────────────────── top bar + missions ─────────────────────────
 
-export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, collect, onHeadBottom }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; collect?: { have: number; total: number }; /** Reports the bottom edge (px) of the folded bar (status chips and missions button), so toasts can sit right under it. */ onHeadBottom?: (px: number) => void }) {
+export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo, engine = false, catalog = false, collect, onHeadBottom }: { spec: PublicSpec; client: ClientState; areaName: string; score: number; maxScore: number; onPause: () => void; demo: boolean; engine?: boolean; catalog?: boolean; collect?: { have: number; total: number }; /** Reports the bottom edge (px) of the folded bar (status chips and missions button), so toasts can sit right under it. */ onHeadBottom?: (px: number) => void }) {
   const t = useT();
   const head = useRef<HTMLDivElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -144,7 +144,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
   }, [onHeadBottom]);
   // How the game was made is part of the game's honest label (demo template / built from the player's own material). It lives
   // inside the solid area card, not as a floating chip over the world, where it used to cover station labels.
-  const source = demo ? { text: t("hud.demo"), hint: t("demo.badge.hint"), Icon: LayoutTemplate, tone: "bg-amber/15 text-amber" } : engine ? { text: t("engine.badge"), hint: t("engine.badge.hint"), Icon: BookOpen, tone: "bg-lime/15 text-lime" } : null;
+  const source = demo ? { text: t("hud.demo"), hint: t("demo.badge.hint"), Icon: LayoutTemplate, tone: "bg-amber/15 text-amber" } : engine ? { text: t("engine.badge"), hint: t("engine.badge.hint"), Icon: BookOpen, tone: "bg-lime/15 text-lime" } : catalog ? { text: t("catalog.badge"), hint: t("catalog.badge.hint"), Icon: BookOpen, tone: "bg-neon/15 text-neon" } : null;
   // Phones start with the mission list folded so it does not cover the world; larger screens show it.
   const { shortLandscape, missionsOpen } = useLayout();
   const [open, setOpen] = useState(() => typeof window === "undefined" || missionsOpen);
@@ -445,7 +445,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
 
 // ───────────────────────── pause + completion ─────────────────────────
 
-export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration, touch = false }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** A touch screen: the controls list names the on-screen buttons instead of keys. */ touch?: boolean; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" }) {
+export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, guide, onSfx, onMusic, onGuide, onResume, onRestart, source, vibration, touch = false }: { profile: RenderProfile; reduceMotion: boolean; onReduceMotion: (v: boolean) => void; sfx: boolean; music: boolean; guide: boolean; onSfx: (v: boolean) => void; onMusic: (v: boolean) => void; onGuide: (v: boolean) => void; onResume: () => void; onRestart: () => void; /** A touch screen: the controls list names the on-screen buttons instead of keys. */ touch?: boolean; /** Only offered where the browser can vibrate and the host has no vibration setting of its own. */ vibration?: { on: boolean; onChange: (v: boolean) => void }; /** How the game was made; the full explanation is readable here (the top bar's tooltip is not reachable by touch). */ source?: "demo" | "engine" | "catalog" }) {
   const t = useT();
   const { shortLandscape } = useLayout();
   const [confirm, setConfirm] = useState(false);
@@ -464,7 +464,7 @@ export function PauseMenu({ profile, reduceMotion, onReduceMotion, sfx, music, g
             {vibration && <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.vibration")}</span><input type="checkbox" checked={vibration.on} onChange={(e) => vibration.onChange(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="vibration-toggle" /></label>}
             <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-ink-900 px-3 py-2.5 text-sm"><span>{t("hud.reduceMotion")}</span><input type="checkbox" checked={reduceMotion} onChange={(e) => onReduceMotion(e.target.checked)} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid="motion-toggle" /></label>
             <p className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="quality-note">{t("hud.quality")}: <b className="text-text">{t(`tier.short.${profile.tier}`)}</b> — {t("hud.quality.granted", { tier: t(`tier.${profile.tier}`) })}</p>
-            {source && <p dir="auto" className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="source-note"><b className="text-text">{source === "demo" ? t("hud.demo") : t("engine.badge")}</b> — {source === "demo" ? t("demo.badge.hint") : t("engine.badge.hint")}</p>}
+            {source && <p dir="auto" className="rounded-xl bg-ink-900 px-3 py-2.5 text-sm text-muted" data-testid="source-note"><b className="text-text">{source === "demo" ? t("hud.demo") : source === "catalog" ? t("catalog.badge") : t("engine.badge")}</b> — {source === "demo" ? t("demo.badge.hint") : source === "catalog" ? t("catalog.badge.hint") : t("engine.badge.hint")}</p>}
           </div>
           <div className={cx(shortLandscape ? "space-y-2" : "space-y-4")}>
             <details className="rounded-xl bg-ink-900 px-3 py-2 text-sm">

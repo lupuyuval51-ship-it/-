@@ -73,6 +73,22 @@ describe("bundle boundaries", () => {
     expect(files.has("src/components/game/PlayClient.tsx")).toBe(false);
   });
 
+  it("topic-library content is never in a first chunk: each topic is reached only through its own literal dynamic import", () => {
+    // The catalogue (titles and descriptions) may be static; the content of the topics may not, anywhere a user lands first.
+    for (const entry of ["mobile/src/App.tsx", "mobile/src/main.tsx", "mobile/src/pages/Create.tsx", "src/components/create/CreateForm.tsx", "src/lib/offline/generate.ts", "src/lib/schemas/generation.ts"]) {
+      const { files } = staticGraph(entry);
+      expect([...files].filter((f) => f.startsWith("src/lib/game/topics/content/")), entry).toEqual([]);
+    }
+    // the Android app's first chunk does not even reach the topic builder (only the create screen, lazily, does)
+    expect(staticGraph("mobile/src/App.tsx").files.has("src/lib/game/topics/build.ts")).toBe(false);
+    const loaders = readFileSync(path.join(root, "src/lib/game/topics/loaders.ts"), "utf8");
+    const imports = [...loaders.matchAll(/import\(([^)]*)\)/g)].map((m) => m[1]!);
+    expect(imports.length).toBeGreaterThan(0);
+    // bundlers can only split what they can see: every import is a plain string literal, one per topic
+    for (const spec of imports) expect(spec).toMatch(/^"\.\/content\/[a-z0-9-]+"$/);
+    expect(new Set(imports).size).toBe(imports.length);
+  });
+
   it("the renderer itself is only reachable through the dynamic import in PlayClient", () => {
     const play = readFileSync(path.join(root, "src/components/game/PlayClient.tsx"), "utf8");
     expect(play).toMatch(/dynamic\(\(\) => import\("\.\/scene\/GameCanvas"\)/);

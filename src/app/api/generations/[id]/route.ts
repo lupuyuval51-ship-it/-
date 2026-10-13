@@ -15,7 +15,7 @@ export const GET = apiRoute<undefined, { id: string }>({}, async ({ user, params
     gameId: job.gameId,
     attempts: job.attempts,
     /** "demo" means the game came from predefined templates, not from an AI model. */
-    source: job.providerId === "study-engine" ? "engine" : job.providerId === "demo" ? "demo" : job.providerId ? "ai" : null,
+    source: job.providerId === "topic-library" ? "catalog" : job.providerId === "study-engine" ? "engine" : job.providerId === "demo" ? "demo" : job.providerId ? "ai" : null,
     provider: job.providerId,
     warnings: (job.warnings as string[] | null) ?? [],
     error: job.status === "FAILED" ? { code: job.errorCode, message: job.errorMessage } : null,

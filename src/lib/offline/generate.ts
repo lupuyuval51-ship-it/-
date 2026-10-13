@@ -4,6 +4,10 @@
  */
 import { buildDemoSpec } from "../game/demo";
 import { MaterialError, buildMaterialSpec } from "../game/material/build";
+import { findTopic } from "../game/topics/catalog";
+import { TOPIC_MODEL, TOPIC_PROVIDER, TopicError, buildTopicSpec, topicRequest } from "../game/topics/build";
+import { loadTopicContent } from "../game/topics/loaders";
+import type { TopicContent } from "../game/topics/types";
 import type { FeatureTier } from "../../config/plans";
 import { addFinalBoss } from "../game/spec/boss";
 import type { GameSpec } from "../game/spec/schema";
@@ -31,19 +35,29 @@ function applyRequest(raw: unknown, req: GenerationRequest, language: string): u
  * `tier` is the feature tier the device is entitled to (see `entitlement.ts`); the game is cut down to it exactly as on
  * the server (`clampToFeatureTier`). Defaults to the full tier A.
  */
-export function generateOffline(input: unknown, now = new Date(), tier: FeatureTier = "A"): { spec: GameSpec; warnings: string[] } {
+export function generateOffline(input: unknown, now = new Date(), tier: FeatureTier = "A", topic?: TopicContent): { spec: GameSpec; warnings: string[] } {
   const parsed = generationRequestSchema.safeParse(input);
   if (!parsed.success || parsed.data.mode === "EXTEND") throw new OfflineGenerationError("INVALID_REQUEST", "The request is invalid.");
-  const req = parsed.data;
+  const entry = parsed.data.topicId ? findTopic(parsed.data.topicId) : undefined;
+  // A topic-library request needs that topic's content, which the caller loads first (`generateOfflineWithProgress` does).
+  if (parsed.data.topicId && (!entry || !topic)) throw new OfflineGenerationError("INVALID_REQUEST", "The topic could not be loaded.");
+  const req = entry ? topicRequest(parsed.data, entry) : parsed.data;
   // Same rule as the server's `assertRequestAllowed`: ask for something the tier doesn't have and nothing is built.
   if (!modeAllowed(tier, req.mode) || !gameTypeAllowed(tier, req.gameType)) throw new OfflineGenerationError("TIER_LOCKED", "This is not part of your plan's game features.");
   const lang = req.contentLanguage === "he" ? "he" : "en";
   let raw: Record<string, unknown>;
   let notes: string[];
   let engine = false;
+  let catalog = false;
   let templateId: string | undefined;
   try {
-    if (req.material) {
+    if (entry && topic) {
+      const built = buildTopicSpec(req, entry, topic);
+      raw = built.raw as Record<string, unknown>;
+      notes = built.notes;
+      catalog = true;
+      templateId = entry.id;
+    } else if (req.material) {
       const built = buildMaterialSpec(req);
       raw = built.raw as Record<string, unknown>;
       notes = built.notes;
@@ -56,6 +70,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
     }
   } catch (e) {
     if (e instanceof MaterialError) throw new OfflineGenerationError("MATERIAL_UNUSABLE", e.userMessage(lang));
+    if (e instanceof TopicError) throw new OfflineGenerationError("INVALID_OUTPUT", e.message);
     throw e;
   }
   const language = (raw.meta as { language: string }).language;
@@ -68,9 +83,11 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
   // Made on a phone (the Android app asks for it): less walking, easier jumps, more time to type. Same rule as the server.
   const fitted = req.device === "phone" ? fitForDevice(tiered.spec, "phone") : { spec: tiered.spec, notes: [] as string[] };
   const spec = fitted.spec;
-  spec.meta.generator = engine
-    ? { kind: "engine", provider: "study-engine", model: "rule-based", mode: req.mode, generatedAt: now.toISOString() }
-    : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
+  spec.meta.generator = catalog
+    ? { kind: "catalog", provider: TOPIC_PROVIDER, model: TOPIC_MODEL, templateId, mode: req.mode, generatedAt: now.toISOString() }
+    : engine
+      ? { kind: "engine", provider: "study-engine", model: "rule-based", mode: req.mode, generatedAt: now.toISOString() }
+      : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
   return { spec, warnings: [...notes, ...res.warnings, ...(boss.added ? boss.notes : []), ...tiered.notes, ...fitted.notes] };
 }
 
@@ -81,9 +98,13 @@ export async function generateOfflineWithProgress(input: unknown, onProgress: (p
   const tick = () => new Promise<void>((r) => setTimeout(r, 150));
   onProgress(5, "reading");
   await tick();
+  // A topic from the library: only now is its content module loaded (each topic is its own chunk).
+  const topicId = input && typeof input === "object" ? (input as { topicId?: unknown }).topicId : undefined;
+  const topic = typeof topicId === "string" ? await loadTopicContent(topicId) : null;
+  if (typeof topicId === "string" && !topic) throw new OfflineGenerationError("INVALID_REQUEST", "The topic could not be loaded.");
   onProgress(30, "building");
   await tick();
-  const result = generateOffline(input, now, tier); // parse notes → challenges → world → validation (runs in one go)
+  const result = generateOffline(input, now, tier, topic ?? undefined); // notes or topic → challenges → world → validation (runs in one go)
   onProgress(85, "checking");
   await tick();
   return result;

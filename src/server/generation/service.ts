@@ -19,7 +19,8 @@ import { runGenerationJob } from "./runner";
  */
 export async function createGeneration(userId: string, body: CreateGenerationBody, opts: { schedule?: boolean } = {}) {
   const backend = getBackend();
-  if (backend.type === "unavailable") {
+  // A game from the topic library is built without any model, so it does not need an AI backend.
+  if (backend.type === "unavailable" && !body.request.topicId) {
     throw Errors.unavailable("AI_UNAVAILABLE", `AI generation is not available: ${backend.reason}. Ask the administrator to configure a provider or use demo mode.`);
   }
 
@@ -36,7 +37,9 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
     if (!compatible) {
       throw Errors.conflict(
         "EXTEND_BACKEND_MISMATCH",
-        game.generatorKind === "demo"
+        game.generatorKind === "catalog"
+          ? "This game comes from the topic library and cannot be extended. Create a new game from the library instead — for example at the next level."
+          : game.generatorKind === "demo"
           ? "This game was created from demo templates. It can only be extended while the server is in demo mode."
           : game.generatorKind === "engine"
             ? "This game was built from your own study material. It can only be extended with more material while no AI provider is configured."
