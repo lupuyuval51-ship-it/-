@@ -10,6 +10,19 @@ type Loader = () => Promise<{ default: TopicContent }>;
 export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "math-fractions": () => import("./content/math-fractions"),
   "math-percentages": () => import("./content/math-percentages"),
+  "math-equations": () => import("./content/math-equations"),
+  "math-angles": () => import("./content/math-angles"),
+  "math-probability": () => import("./content/math-probability"),
+  "math-area-perimeter": () => import("./content/math-area-perimeter"),
+  "science-states-of-matter": () => import("./content/science-states-of-matter"),
+  "science-water-cycle": () => import("./content/science-water-cycle"),
+  "science-solar-system": () => import("./content/science-solar-system"),
+  "science-cells": () => import("./content/science-cells"),
+  "science-photosynthesis": () => import("./content/science-photosynthesis"),
+  "science-digestion": () => import("./content/science-digestion"),
+  "science-electricity": () => import("./content/science-electricity"),
+  "science-forces": () => import("./content/science-forces"),
+  "history-ancient-egypt": () => import("./content/history-ancient-egypt"),
 };
 
 export async function loadTopicContent(id: string): Promise<TopicContent | null> {

@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 2;
+const EXPECTED_TOPICS = 15;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
@@ -131,7 +131,7 @@ describe("topic content hygiene", () => {
       for (const l of LEVELS) {
         for (const pair of contents.get(t.id)![l].q ?? []) {
           for (const [q, answer, wrong, explanation] of pair) {
-            const keys = [answer, ...wrong].map(sameKey);
+            const keys = [answer, ...wrong].map((o) => o.trim().toLowerCase().replace(/\s+/g, " "));
             expect(new Set(keys).size, `${t.id}/${l}: ${q}`).toBe(keys.length);
             expect(wrong.length, `${t.id}/${l}: ${q}`).toBeGreaterThanOrEqual(1);
             expect(wrong.length).toBeLessThanOrEqual(4);
