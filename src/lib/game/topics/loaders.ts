@@ -57,6 +57,8 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "geo-maps": () => import("./content/geo-maps"),
   "geo-continents-oceans": () => import("./content/geo-continents-oceans"),
   "geo-israel": () => import("./content/geo-israel"),
+  "geo-capitals-europe": () => import("./content/geo-capitals-europe"),
+  "lang-en-comparatives": () => import("./content/lang-en-comparatives"),
   "lang-en-past-simple": () => import("./content/lang-en-past-simple"),
   "lang-he-roots": () => import("./content/lang-he-roots"),
   "cs-binary": () => import("./content/cs-binary"),
@@ -70,6 +72,8 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "health-sleep": () => import("./content/health-sleep"),
   "health-road-safety": () => import("./content/health-road-safety"),
   "arts-music-basics": () => import("./content/arts-music-basics"),
+  "arts-colour": () => import("./content/arts-colour"),
+  "arts-literature": () => import("./content/arts-literature"),
   "think-study-skills": () => import("./content/think-study-skills"),
   "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
 };
