@@ -103,7 +103,7 @@ export default async function PricingPage() {
         <Card className="space-y-3" data-testid="pricing-rules">
           <h2 className="text-lg font-semibold">{t("pricing.rules.title")}</h2>
           <ul className="space-y-2 text-sm text-muted">
-            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`)}</span></li>)}
+            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`, { n: PLANS.FREE.gamesPerPeriod })}</span></li>)}
           </ul>
         </Card>
         <Card className="space-y-3" data-testid="pricing-billing">

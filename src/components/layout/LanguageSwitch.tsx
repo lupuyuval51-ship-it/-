@@ -15,7 +15,6 @@ export function LanguageSwitch() {
     <button
       type="button"
       disabled={pending}
-      aria-label={`${t("common.language")}: ${t(`lang.${next}`)}`}
       data-testid="language-switch"
       onClick={() =>
         start(async () => {
@@ -25,7 +24,9 @@ export function LanguageSwitch() {
       }
       className={cx("min-h-10 rounded-lg border border-line px-2.5 text-sm font-medium transition-colors hover:bg-text/10 sm:px-3", pending && "opacity-60")}
     >
-      {t(`lang.${next}`)}
+      {/* the name reads "Language: English" in the current language, with the target language name pronounced in its own */}
+      <span className="sr-only">{t("common.language")}: </span>
+      <span lang={next}>{t(`lang.${next}`)}</span>
     </button>
   );
 }
