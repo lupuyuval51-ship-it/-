@@ -42,7 +42,8 @@ export default async function PricingPage() {
       {payments.mode === "disabled" && <Alert tone="info" data-testid="payments-disabled-banner">{t("pricing.payments.disabled")}</Alert>}
       {payments.mode === "stripe" && !payments.ready && <Alert tone="error">{t("pricing.payments.disabled")}</Alert>}
 
-      <div className="grid gap-5 md:grid-cols-3">
+      {/* three columns only where each card is wide enough to read (a 768px tablet gets one comfortable column) */}
+      <div className="mx-auto grid max-w-xl gap-5 min-[860px]:max-w-none min-[860px]:grid-cols-3">
         {PLAN_IDS.map((plan) => {
           const price = planPriceText(plan, region);
           const isCurrent = current === plan;

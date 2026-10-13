@@ -132,7 +132,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           <ProgressBar value={idx} max={steps.length} label={t(stageKey(currentStage))} />
           <ol className="space-y-2 text-sm">
             {steps.map((s, i) => (
-              <li key={s} className={cx("flex items-center gap-2", i < idx ? "text-lime" : i === idx ? "text-text" : "text-muted")}>
+              <li key={s} aria-current={i === idx ? "step" : undefined} className={cx("flex items-center gap-2", i < idx ? "text-lime" : i === idx ? "text-text" : "text-muted")}>
                 <span aria-hidden className="grid size-5 place-items-center rounded-full border border-current text-[10px]">{i < idx ? <Check className="size-3" /> : i + 1}</span>
                 {t(stageKey(s))}
               </li>

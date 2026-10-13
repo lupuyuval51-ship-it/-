@@ -18,7 +18,6 @@ export function PasswordInput(props: Omit<InputHTMLAttributes<HTMLInputElement>,
       <button
         type="button"
         onClick={() => setShown((v) => !v)}
-        aria-pressed={shown}
         aria-label={shown ? t("auth.password.hide") : t("auth.password.show")}
         className="absolute end-1 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-lg text-muted hover:text-text"
       >
