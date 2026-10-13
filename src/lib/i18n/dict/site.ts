@@ -75,7 +75,7 @@ export const site = defineDict(
     "auth.loggingOut": "Signing out…",
 
     "pricing.title": "Plans & pricing",
-    "pricing.subtitle": "Every plan includes the full creation flow. Plans differ in how many games you can generate and in graphics quality.",
+    "pricing.subtitle": "Plans differ in how many games you can generate, in graphics quality, and in which game features and modes are included.",
     "pricing.per": "/ month",
     "pricing.free.price": "Free",
     "pricing.games.one": "1 generated game per {period}",
@@ -193,7 +193,7 @@ export const site = defineDict(
     "auth.loggingOut": "מתנתקים…",
 
     "pricing.title": "תוכניות ומחירים",
-    "pricing.subtitle": "כל תוכנית כוללת את כל תהליך היצירה. התוכניות נבדלות בכמות המשחקים שאפשר ליצור ובאיכות הגרפיקה.",
+    "pricing.subtitle": "התוכניות נבדלות בכמות המשחקים שאפשר ליצור, באיכות הגרפיקה ובפיצ'רי המשחק והמצבים הכלולים.",
     "pricing.per": "/ לחודש",
     "pricing.free.price": "חינם",
     "pricing.games.one": "משחק אחד שנוצר בכל {period}",
