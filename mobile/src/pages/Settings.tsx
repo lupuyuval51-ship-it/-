@@ -81,6 +81,7 @@ export function SettingsPage() {
               <p>{t("mob.settings.privacy")}</p>
               <p>{t("mob.settings.about")}</p>
             </Card>
+            <Button variant="secondary" data-testid="about-credits" onClick={() => navigate("/about")}>{t("mob.settings.credits")}</Button>
             <Button variant="secondary" data-testid="welcome-again" onClick={() => navigate("/?welcome=1")}>{t("mob.settings.welcome")}</Button>
           </Section>
         </div>

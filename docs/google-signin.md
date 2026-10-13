@@ -44,7 +44,7 @@ Supabase dashboard). Never put a client secret in the app or in `NEXT_PUBLIC_*`.
    must be `https://`. Restart the server. Set both or neither; with only one set the feature stays off.
 4. Run the database migration `20261013150000_auth_identity` (`npx prisma migrate deploy`) before turning it on.
 
-The login and register pages now show "Continue with Google" under the form; the account page shows **Connected sign-in
+The login and register pages ("Sign in with LUPU ID" / "Create your LUPU ID") now show "Continue with Google" under the form; the account page shows **Connected sign-in
 methods**.
 
 ## 3. Android app (Supabase)

@@ -262,7 +262,7 @@ grades, scores and releases hints, so Unity never sees answer keys.
 `mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, demo templates
 and the server's own game reducer, running on the device (`src/lib/offline`). No AI and no Stripe (no payments and no keys in the app; paid
 features there must use Google Play Billing). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
-(Settings → Backup, `src/lib/offline/backup.ts`) and an optional **account with cloud backup** through Supabase (`mobile/src/cloud`,
+(Settings → Backup, `src/lib/offline/backup.ts`) and an optional **LUPU ID (account) with cloud backup** through Supabase (`mobile/src/cloud`,
 `src/lib/offline/sync.ts`, `supabase/`): only the project URL and the *publishable* key are in the app, every table is owner-only (row level
 security; `supabase/tests/rls_checks.sql` is a script you run by hand in the SQL editor, not part of `npm test` or CI), and **signed out the app makes no network request** (tested). Answer keys live on the
 device there, so it is a self-practice app (this is the one deliberate exception to the server-authority rules). Capacitor wraps the Vite

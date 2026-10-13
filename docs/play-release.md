@@ -92,7 +92,7 @@ Capacitor config, back-button rules).
 
 ## 5. Play Console answers, derived from what the code does
 
-**Does the app collect data?** Yes, but only when the user creates the optional account (Settings → Account): the app
+**Does the app collect data?** Yes, but only when the user creates the optional LUPU ID account (Settings → LUPU ID and cloud backup): the app
 makes no network request while signed out (tested with the network blocked). Google's definition: "Collect means transmitting data
 from your app off a user's device", including by webviews you control
 ([Data safety help](https://support.google.com/googleplay/android-developer/answer/10787469)). Everything that is sent goes to one

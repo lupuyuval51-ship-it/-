@@ -39,6 +39,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <header className="space-y-1">
         <h1 className="text-3xl font-extrabold">{t("acc.title")}</h1>
         <p className="text-sm text-muted" dir="ltr">{user.email}</p>
+        <p className="text-sm text-muted">{t("acc.intro")}</p>
       </header>
 
       <SubscriptionPanel billing={billing} />
