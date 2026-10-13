@@ -15,6 +15,7 @@ export { ParticleEmitter };
 /** Ambient motes + event bursts + (Tier A) movement trail. Budgets come from the render profile. */
 export function Particles({ runtime, profile, emitter, accent }: { runtime: GameRuntime; profile: RenderProfile; emitter: ParticleEmitter; accent: string }) {
   const sprite = useMemo(() => makeSoftSprite(), []);
+  useEffect(() => () => sprite.dispose(), [sprite]); // react-three-fiber does not free a texture that is handed over as a prop
   const { ambient, burst: burstCap, trail: trailCap } = particleSlots(profile);
 
   const amb = useMemo(() => {
@@ -48,9 +49,13 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
     col.set(color);
     const i = from + ((pool.cursor++ % (to - from)));
     pool.life[i] = lifeTime;
-    pool.base.set([col.r, col.g, col.b], i * 3);
+    pool.base[i * 3] = col.r;
+    pool.base[i * 3 + 1] = col.g;
+    pool.base[i * 3 + 2] = col.b;
     const a = Math.random() * Math.PI * 2, r = Math.random();
-    pool.vel.set([Math.cos(a) * speed * r, up * (0.5 + Math.random()), Math.sin(a) * speed * r], i * 3);
+    pool.vel[i * 3] = Math.cos(a) * speed * r;
+    pool.vel[i * 3 + 1] = up * (0.5 + Math.random());
+    pool.vel[i * 3 + 2] = Math.sin(a) * speed * r;
     (pool.g.attributes.position as THREE.BufferAttribute).setXYZ(i, x, y, z);
   }
 
@@ -68,7 +73,9 @@ export function Particles({ runtime, profile, emitter, accent }: { runtime: Game
       }
       posAttr.needsUpdate = true;
     }
-    for (const b of emitter.queue.splice(0)) {
+    // (`splice(0)` would allocate a fresh array every frame, and the queue is empty almost always)
+    while (emitter.queue.length > 0) {
+      const b = emitter.queue.shift()!;
       if (!burstCap) continue;
       const n = Math.min(b.count, profile.particles.burst);
       // the pool blends additively, so dust is lightened toward white to read as a pale puff on any ground

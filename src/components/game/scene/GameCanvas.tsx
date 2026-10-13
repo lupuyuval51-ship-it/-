@@ -148,6 +148,7 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
   const dir = useMemo(() => new THREE.Vector3(), []);
   const desired = useMemo(() => new THREE.Vector3(), []);
   const look = useMemo(() => new THREE.Vector3(), []);
+  const from = useMemo(() => ({ x: 0, y: 0, z: 0 }), []); // the camera ray's origin, reused every frame
   const dip = useRef(0);
   const prev = useRef({ grounded: true, vy: 0 });
   const baseFov = useRef<number | null>(null);
@@ -157,7 +158,8 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
     const pitch = input.pitch;
     // a short downward bump when landing from a height
     if (!reduceMotion && p.grounded && !prev.current.grounded && prev.current.vy < -6) dip.current = Math.min(0.4, -prev.current.vy * 0.016);
-    prev.current = { grounded: p.grounded, vy: p.vy };
+    prev.current.grounded = p.grounded;
+    prev.current.vy = p.vy;
     dip.current *= Math.exp(-dt * 9);
     // sprinting widens the view a little: a cheap, strong sense of speed
     if (camera instanceof THREE.PerspectiveCamera) {
@@ -170,7 +172,9 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
     }
     const dist = 7.2;
     dir.set(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
-    const from = { x: p.x, y: p.y + 1.5 - dip.current, z: p.z };
+    from.x = p.x;
+    from.y = p.y + 1.5 - dip.current;
+    from.z = p.z;
     const d = clipCameraDistance(runtime.sim.boxes(), from, dir, dist, (id) => runtime.gateOpen(id));
     desired.set(from.x + dir.x * d, from.y + dir.y * d, from.z + dir.z * d);
     if (!init.current) {

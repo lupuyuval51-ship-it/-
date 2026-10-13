@@ -44,6 +44,9 @@ export class GameRuntime {
   private strideDist = 0;
   private currentCheckpoint: string | null = null;
   private openGates = new Set<string>();
+  private gateCache = new Map<string, boolean>();
+  private gateCacheFor: ClientState | null = null;
+  private areaDef: PublicSpec["areas"][number] | undefined;
   /** False until the first client state arrives, so gates that are already open on load do not "open" again. */
   private ready = false;
   readonly jumpEnabled: boolean;
@@ -85,39 +88,66 @@ export class GameRuntime {
     this.ready = true;
   }
 
+  /**
+   * Whether a gate is open. Asked many times per frame (every substep of the simulation, the camera, every gate mesh), so the
+   * answers are kept per client state and recomputed only when `client` is a different object.
+   */
   gateOpen(gateId: string): boolean {
+    if (this.gateCacheFor !== this.client) {
+      this.gateCacheFor = this.client;
+      this.gateCache.clear();
+    }
+    const hit = this.gateCache.get(gateId);
+    if (hit !== undefined) return hit;
     const gate = this.world.gates.find((g) => g.id === gateId);
-    if (!gate) return true;
-    return gate.opensWhenStationsDone.every((sid) => stationDone(this.client, sid));
+    const open = !gate || gate.opensWhenStationsDone.every((sid) => stationDone(this.client, sid));
+    this.gateCache.set(gateId, open);
+    return open;
   }
 
   isCollected(itemId: string): boolean {
     return this.client.collected.includes(itemId) || this.pendingCollect.has(itemId);
   }
 
+  /**
+   * The closest thing the player can use, run every frame. Distance is tested first: the progress rules (`stationActive`
+   * walks every mission) and the result object are only evaluated for what is actually in reach, and only when it beats the
+   * best so far, instead of for every station, character and portal of the area 60 times a second.
+   */
   private computeNearby(): Interactable | null {
     const p = this.sim.player;
-    let best: { d: number; t: Interactable } | null = null;
-    const consider = (d: number, dy: number, t: Interactable) => {
-      if (d > INTERACT_RADIUS || Math.abs(dy) > 2.6) return;
-      if (!best || d < best.d) best = { d, t };
-    };
-    const area = this.spec.areas.find((a) => a.id === this.areaId)!;
+    let best: Interactable | null = null;
+    let bestD = Infinity;
+    const area = (this.areaDef ??= this.spec.areas.find((a) => a.id === this.areaId)!);
     for (const s of this.world.stations) {
+      const d = Math.hypot(p.x - s.x, p.z - s.z);
+      if (d > INTERACT_RADIUS || Math.abs(p.y - s.y) > 2.6 || (best && d >= bestD)) continue;
       const def = area.stations.find((x) => x.id === s.stationId)!;
       const done = stationDone(this.client, s.stationId);
       const status = done ? "done" : stationActive(this.spec, this.client, def) ? "active" : "locked";
-      consider(Math.hypot(p.x - s.x, p.z - s.z), p.y - s.y, { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, lockedByBoss: status === "locked" && !bossPhaseOpen(this.spec, this.client, s.stationId), x: s.x, z: s.z });
+      best = { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, lockedByBoss: status === "locked" && !bossPhaseOpen(this.spec, this.client, s.stationId), x: s.x, z: s.z };
+      bestD = d;
     }
-    for (const n of this.world.npcs) consider(Math.hypot(p.x - n.x, p.z - n.z), p.y - n.y, { kind: "npc", id: n.npcId, label: n.name, x: n.x, z: n.z });
-    for (const b of this.world.bosses) consider(Math.hypot(p.x - b.x, p.z - b.z), p.y - b.y, { kind: "boss", id: b.bossId, label: b.name, x: b.x, z: b.z });
+    for (const n of this.world.npcs) {
+      const d = Math.hypot(p.x - n.x, p.z - n.z);
+      if (d > INTERACT_RADIUS || Math.abs(p.y - n.y) > 2.6 || (best && d >= bestD)) continue;
+      best = { kind: "npc", id: n.npcId, label: n.name, x: n.x, z: n.z };
+      bestD = d;
+    }
+    for (const b of this.world.bosses) {
+      const d = Math.hypot(p.x - b.x, p.z - b.z);
+      if (d > INTERACT_RADIUS || Math.abs(p.y - b.y) > 2.6 || (best && d >= bestD)) continue;
+      best = { kind: "boss", id: b.bossId, label: b.name, x: b.x, z: b.z };
+      bestD = d;
+    }
     const portal = this.world.portal;
     if (portal) {
-      consider(Math.hypot(p.x - portal.x, p.z - portal.z), p.y - portal.y, {
-        kind: "portal", id: portal.toAreaId, label: portal.label, open: portalOpen(this.spec, this.client, area), x: portal.x, z: portal.z,
-      });
+      const d = Math.hypot(p.x - portal.x, p.z - portal.z);
+      if (!(d > INTERACT_RADIUS || Math.abs(p.y - portal.y) > 2.6 || (best && d >= bestD))) {
+        best = { kind: "portal", id: portal.toAreaId, label: portal.label, open: portalOpen(this.spec, this.client, area), x: portal.x, z: portal.z };
+      }
     }
-    return best ? (best as { d: number; t: Interactable }).t : null;
+    return best;
   }
 
   update(dt: number, input: SimInput = NO_INPUT, camYaw = 0): void {
@@ -139,11 +169,11 @@ export class GameRuntime {
     }
 
     for (const c of this.world.collectibles) {
+      // the cheap distance test first: `isCollected` searches the list of everything collected so far
+      if (!(Math.hypot(p.x - c.x, p.z - c.z) <= PICKUP_RADIUS && Math.abs(p.y + 0.8 - c.y) <= 1.7)) continue;
       if (this.isCollected(c.itemId)) continue;
-      if (Math.hypot(p.x - c.x, p.z - c.z) <= PICKUP_RADIUS && Math.abs(p.y + 0.8 - c.y) <= 1.7) {
-        this.pendingCollect.add(c.itemId);
-        this.cb.onCollect?.(c.itemId);
-      }
+      this.pendingCollect.add(c.itemId);
+      this.cb.onCollect?.(c.itemId);
     }
     for (const cp of this.world.checkpoints) {
       if (cp.checkpointId === this.currentCheckpoint) continue;

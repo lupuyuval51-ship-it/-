@@ -145,7 +145,8 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
     const p = runtime.sim.player;
     const t = clock.elapsedTime;
     const moved = Math.hypot(p.x - prev.current.x, p.z - prev.current.z);
-    prev.current = { x: p.x, z: p.z };
+    prev.current.x = p.x;
+    prev.current.z = p.z;
     idle.current = moved > 0.02 ? 0 : idle.current + dt;
 
     const fx = -Math.sin(input.yaw), fz = -Math.cos(input.yaw); // camera forward on the ground
