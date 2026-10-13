@@ -496,8 +496,9 @@ secret to configure (login tokens are random and only their SHA-256 is stored), 
 
 ### What the server needs
 
-| Always | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` only if your proxy overwrites `X-Forwarded-For` |
+| For | Variables |
 | --- | --- |
+| **Always** | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` only if your proxy overwrites `X-Forwarded-For` |
 | **Real AI** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` (optionally `ANTHROPIC_MODEL`), or `AI_PROVIDER=openai` + `OPENAI_API_KEY` (+ `OPENAI_BASE_URL`, `OPENAI_MODEL` for any OpenAI-compatible endpoint). With `auto`, an Anthropic key wins over an OpenAI key, and no key means the labelled demo templates. With `anthropic`/`openai` and a missing key generation is refused up front, never silently demo. |
 | **Real payments** | `PAYMENTS_MODE=stripe`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the webhook endpoint described in [Payments](#payments). Prices are not configured in Stripe, only in `src/config/plans.ts`. |
 | **Stuck-job cleanup** (optional) | `CRON_SECRET` (≥ 16 characters) and a scheduler calling `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes. Without it stuck jobs are still released when they are read. |
