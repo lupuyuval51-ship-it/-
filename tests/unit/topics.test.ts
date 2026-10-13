@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 32;
+const EXPECTED_TOPICS = 39;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
@@ -121,6 +121,8 @@ describe("topic content hygiene", () => {
       for (const l of LEVELS) {
         const { en, he } = textsOf(contents.get(t.id)![l]);
         for (const s of [...en, ...he]) expect(s.trim().length, `${t.id}/${l}: "${s}"`).toBeGreaterThan(0);
+        // no control or bidi-override characters (the spec validator rejects them)
+        for (const s of [...en, ...he]) expect(/[\u0000-\u001F\u007F‎‏‪-‮⁦-⁩]/.test(s), `${t.id}/${l}: "${s}"`).toBe(false);
         // (a topic about Hebrew grammar quotes Hebrew words in its English version)
         if (!t.id.startsWith("lang-he-")) for (const s of en) expect(HEBREW.test(s), `${t.id}/${l} en: "${s}"`).toBe(false);
         // symbols and numbers ("25%", "3/4") are the same in both languages; anything with letters must be Hebrew
@@ -171,7 +173,7 @@ describe("topic content hygiene", () => {
     for (const t of TOPICS) {
       const c = contents.get(t.id)!;
       for (const lang of [0, 1] as const) {
-        const prompts = LEVELS.flatMap((l) => [...(c[l].q ?? []).map((p) => p[lang][0]), ...(c[l].n ?? []).map((n) => n[lang + 1 as 1 | 2][0])]).map(sameKey);
+        const prompts = LEVELS.flatMap((l) => [...(c[l].q ?? []).map((p) => p[lang][0]), ...(c[l].n ?? []).map((n) => n[lang + 1 as 1 | 2][0])]).map((s) => s.toLowerCase().replace(/\s+/g, " ").replace(/[.?!:,;״"“”]+/g, "").trim()); // symbols stay: "2 + 3 × 4" and "(2 + 3) × 4" are different questions
         expect(new Set(prompts).size, `${t.id}`).toBe(prompts.length);
       }
     }
