@@ -51,6 +51,8 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "science-climate-change": () => import("./content/science-climate-change"),
   "science-moon": () => import("./content/science-moon"),
   "science-human-body-systems": () => import("./content/science-human-body-systems"),
+  "science-habitats": () => import("./content/science-habitats"),
+  "science-microorganisms": () => import("./content/science-microorganisms"),
   "history-ancient-egypt": () => import("./content/history-ancient-egypt"),
   "history-ancient-rome": () => import("./content/history-ancient-rome"),
   "history-ancient-greece": () => import("./content/history-ancient-greece"),
@@ -73,6 +75,7 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "geo-israel": () => import("./content/geo-israel"),
   "geo-capitals-europe": () => import("./content/geo-capitals-europe"),
   "geo-climate-zones": () => import("./content/geo-climate-zones"),
+  "geo-population": () => import("./content/geo-population"),
   "lang-en-questions": () => import("./content/lang-en-questions"),
   "lang-en-articles-plurals": () => import("./content/lang-en-articles-plurals"),
   "lang-en-future": () => import("./content/lang-en-future"),
@@ -103,6 +106,7 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "lang-en-prepositions": () => import("./content/lang-en-prepositions"),
   "think-study-skills": () => import("./content/think-study-skills"),
   "think-critical-thinking": () => import("./content/think-critical-thinking"),
+  "think-problem-solving": () => import("./content/think-problem-solving"),
   "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
 };
 
