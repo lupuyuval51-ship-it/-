@@ -1,25 +1,47 @@
 import { describe, expect, it } from "vitest";
 import { safeNext } from "@/lib/safe-redirect";
 
-describe("safeNext (post-login redirect target)", () => {
+/** Where the browser would really end up: the WHATWG URL parser, which is what `Location:` and `router.push` use. */
+const ORIGIN = "https://app.example";
+const lands = (dest: string): string => new URL(dest, ORIGIN).origin;
+
+describe("safeNext: post-login destinations stay on this site", () => {
   it("keeps ordinary same-site paths, queries and fragments", () => {
-    for (const ok of ["/dashboard", "/games/abc123", "/games/abc?tab=2&x=%D7%A9", "/billing/success?session_id=cs_test_1", "/create#top"]) {
-      expect(safeNext(ok)).toBe(ok);
-    }
-    expect(safeNext(["/account", "/x"])).toBe("/account");
+    for (const ok of ["/dashboard", "/games/abc123", "/create?mode=FULL", "/pricing#plus", "/generate/ck9?x=1&y=2", "/he/%D7%A9%D7%9C%D7%95%D7%9D"]) expect(safeNext(ok), ok).toBe(ok);
   });
 
-  it("falls back for missing, absolute, scheme-relative and backslash targets", () => {
-    for (const bad of [undefined, null, "", "dashboard", "https://evil.example", "//evil.example", "/\\evil.example", "javascript:alert(1)", "/redirect?u=http://evil.example"]) {
-      expect(safeNext(bad as string | undefined)).toBe("/dashboard");
+  it("falls back for anything missing, relative-without-slash, or pointing elsewhere", () => {
+    for (const bad of [undefined, null, "", "dashboard", "https://evil.example/", "http://evil.example", "//evil.example", "//evil.example/path", "/\\evil.example", "javascript:alert(1)", "mailto:a@b.c", "/redirect?to=https://evil.example"]) {
+      expect(safeNext(bad as never), String(bad)).toBe("/dashboard");
+    }
+    expect(safeNext("https://evil.example/", "/login")).toBe("/login");
+  });
+
+  it("takes the first value when the query parameter is repeated, and still validates it", () => {
+    expect(safeNext(["/create", "//evil.example"])).toBe("/create");
+    expect(safeNext(["//evil.example", "/create"])).toBe("/dashboard");
+    expect(safeNext([])).toBe("/dashboard");
+  });
+
+  // Fixed-seed property test: whatever comes out must land on this origin, using the characters an attacker would try.
+  // (ASCII tab / newline / carriage return are covered separately below.)
+  it("property: for random strings over the dangerous alphabet, the result always stays on the site origin", () => {
+    let seed = 0x5eed1234;
+    const rnd = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+    const alphabet = ["/", "/", "\\", ":", ".", "@", "%", "2", "F", "5", "C", "a", "e", "v", "i", "l", "?", "#", " ", "-", "​", " "];
+    for (let i = 0; i < 4000; i++) {
+      const len = 1 + Math.floor(rnd() * 12);
+      const input = "/" + Array.from({ length: len }, () => alphabet[Math.floor(rnd() * alphabet.length)]).join("");
+      expect(lands(safeNext(input)), JSON.stringify(input)).toBe(ORIGIN);
     }
   });
 
-  it("rejects the tab/newline trick: browsers strip them, so '/\\t/evil.example' becomes '//evil.example'", () => {
-    // Prove the premise with the platform's own URL parser, then check that safeNext refuses every variant.
-    expect(new URL("/\t/evil.example", "https://app.example").host).toBe("evil.example");
-    for (const bad of ["/\t/evil.example", "/\n/evil.example", "/\r/evil.example", "/\t\t/evil.example", "/ok/\u0000/x", "/a\\b", "/\u007F"]) {
-      expect(safeNext(bad, "/home")).toBe("/home");
+  // Fixed: the WHATWG URL parser silently deletes ASCII tab, LF and CR anywhere in the input, so "/\t/evil.example" used to pass
+  // the "//" check but navigate to https://evil.example/ (an open redirect after login). Control characters are now refused.
+  it("tab, newline and carriage return inside the path cannot turn '/' + '/' into a protocol-relative URL", () => {
+    for (const evil of ["/\t/evil.example", "/\n/evil.example", "/\r/evil.example", "/\t\\evil.example", "/\t\t/evil.example", "/ok/\u0000/x", "/a\\b", "/\u007F"]) {
+      expect(lands(safeNext(evil, "/home")), JSON.stringify(evil)).toBe(ORIGIN);
+      expect(safeNext(evil, "/home"), JSON.stringify(evil)).toBe("/home");
     }
   });
 });

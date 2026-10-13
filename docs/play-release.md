@@ -4,7 +4,7 @@ Single place for: what the Android build guarantees, how to build and check it, 
 code does), and what only the owner can do. Build commands and signing are in [`mobile/README.md`](../mobile/README.md); store
 text and graphics in `mobile/store/`.
 
-App: `app.levelup.learn3d` (permanent), `versionName 1.4.1` / `versionCode 7` (raise `versionCode` for every upload),
+App: `app.levelup.learn3d` (permanent), version in `android/app/build.gradle` (`versionName` / `versionCode`, at the time of writing 1.5.0 / 8; raise `versionCode` for every upload),
 minSdk 23, **targetSdk 36, compileSdk 36**, Android Gradle Plugin 8.10.1, Gradle 8.11.1, **JDK 21** (Capacitor 7 generates
 Java 21 settings in `android/app/capacitor.build.gradle`; JDK 17 will not build it).
 
@@ -25,7 +25,7 @@ What targeting 36 means for this app (Android's own docs):
 - No orientation lock or fixed size in the manifest, so the Android 16 large-screen rule needs nothing: for apps targeting 36,
   "orientation, resizability, and aspect ratio restrictions no longer apply on displays with smallest width >= 600dp"
   (same page); the app simply fills a tablet or foldable.
-- No native libraries in the AAB (the 1.4.1 AAB had no `.so` files; Play's 16 KB page-size requirement concerns native code).
+- No native libraries in the AAB (the 1.4.1 AAB had no `.so` files, and nothing native has been added since; Play's 16 KB page-size requirement concerns native code). Re-check with `unzip -l app-release.aab | grep '\.so'` for every release.
 
 ## 2. Release build
 

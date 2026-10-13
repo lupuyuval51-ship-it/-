@@ -13,7 +13,7 @@ Produced by the bot-playthrough simulation in `src/lib/game/sim-balance/`. Re-ru
 - Time is estimated from the content (reading speed, items to arrange, feedback, explanations) plus **real walking
   distance** in the generated world (`buildWorld` positions, `WALK_SPEED`, x1.5 detour). It is a model, not a stopwatch:
   the numbers are good for comparing games and catching outliers, not for promising a learner "exactly 9 minutes".
-- Corpus (341 games, 5 seeds each x 4 skills): study-engine games from 16 hand-written note sets (he + en; terms only,
+- Corpus (342 games, 5 seeds each x 4 skills): study-engine games from 16 hand-written note sets (he + en; terms only,
   steps only, Q&A only, numbers, plain prose, short, long mixed) in FULL and FAST, every demo template (6 subjects x 5
   game types x FULL/FAST x he/en), games grown with "Extend Existing Game" until full (up to 4 areas / 24 challenges),
   and 80 fuzzed note sets of random shape.
@@ -21,18 +21,18 @@ Produced by the bot-playthrough simulation in `src/lib/game/sim-balance/`. Re-ru
   40% player with 0 stars, FAST outside 2-10 min, FULL outside 3-30 min (average learner), declared length more than
   2x off, and a weak player taking more than 3x the strong player's time.
 
-## Results after the fixes (median / worst, minutes of the simulated learner)
+## Results (median / worst, minutes of the simulated learner; `npm run balance` on 2026-10-13, 342 games, 0 outliers)
 
 | Group | perfect | 70% | 40% | stars 70% (2 / 3) | stars 40% (1 / 2 / 3) | stuck |
 | --- | --- | --- | --- | --- | --- | --- |
-| engine FULL | 7.9 / 9.3 | 10.3 / 13.5 | 14.2 / 17.9 | 41% / 58% | 27% / 71% / 2% | 0 |
-| engine FAST | 3.5 / 4.0 | 4.5 / 7.1 | 6.3 / 8.8 | 41% / 57% | 17% / 70% / 13% | 0 |
-| demo FULL | 7.3 / 8.5 | 9.2 / 12.2 | 12.9 / 17.0 | 41% / 59% | 13% / 83% / 4% | 0 |
+| engine FULL | 8.0 / 9.6 | 10.4 / 13.6 | 14.3 / 18.9 | 32% / 68% | 13% / 83% / 3% | 0 |
+| engine FAST | 3.5 / 4.0 | 4.5 / 7.1 | 6.3 / 8.5 | 39% / 59% | 18% / 69% / 13% | 0 |
+| demo FULL | 7.3 / 8.6 | 9.3 / 12.0 | 13.0 / 17.0 | 28% / 72% | 5% / 89% / 6% | 0 |
 | demo FAST | 3.3 / 3.7 | 4.2 / 5.7 | 5.9 / 8.2 | 48% / 52% | 18% / 71% / 11% | 0 |
-| extended (up to 24 questions) | 10.0 / 16.0 | 13.2 / 22.9 | 17.9 / 31.6 | 57% / 43% | 14% / 85% / 2% | 0 |
+| extended (up to 24 questions) | 10.0 / 16.0 | 13.4 / 22.4 | 18.1 / 29.9 | 51% / 49% | 0% / 99% / 1% | 0 |
 
-Events per game: 13-15 (FAST) and 28-35 (FULL) at median, 39-49 for the extended games. A perfect player always finishes
-with 3 stars; nobody who finishes gets 0 stars; no bot (including the portal rusher) got stuck in any of the 341 games.
+Events per game: 13-17 (FAST) and 28-40 (FULL) at median, 39-50 for the extended games. A perfect player always finishes
+with 3 stars; nobody who finishes gets 0 stars; no bot (including the portal rusher) got stuck in any of the 342 games.
 
 ## Findings and fixes
 
@@ -55,7 +55,7 @@ with 3 stars; nobody who finishes gets 0 stars; no bot (including the portal rus
    missions (and `crossCheck` then rejects a spec where that would deadlock). Existing generators already satisfied it,
    so no shipped game changes.
 4. **No fix needed (checked):** star thresholds (60% / 85%) separate the skills well: 70% players earn 3 stars about
-   half the time, 40% players almost always 2 (or 1 when they lean on hints) and rarely 3; attempt multipliers
+   half to two thirds of the time (49-72% depending on the group), 40% players almost always 2 (or 1 when they lean on hints) and rarely 3; attempt multipliers
    (1 / 0.6 / 0.3), the hint penalty and the 3-attempts-then-reveal rule never produced a zero-star finish or a stuck
    state; effort-only points (gems and mission bonuses) are about 20% of the maximum (15-25% across the
    corpus). That is the one soft spot: a player who answers nothing right on the first try but finishes still keeps
