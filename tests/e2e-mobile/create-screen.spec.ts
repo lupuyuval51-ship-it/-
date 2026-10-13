@@ -120,7 +120,10 @@ test.describe("on a 360px phone", () => {
     const count = await targets.count();
     expect(count).toBeGreaterThan(8);
     for (let i = 0; i < count; i++) {
-      const box = await targets.nth(i).boundingBox();
+      // a radio wrapped in a label is tapped through the (44px) label
+      const target = targets.nth(i);
+      const wrapped = target.locator("xpath=ancestor::label[1]");
+      const box = (await wrapped.count()) ? await wrapped.boundingBox() : await target.boundingBox();
       if (!box) continue; // hidden inside the closed help
       expect(box.height, `control ${i}`).toBeGreaterThanOrEqual(43);
       expect(box.x + box.width, `control ${i} inside the screen`).toBeLessThanOrEqual(360.5);
