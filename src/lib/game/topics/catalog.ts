@@ -28,6 +28,16 @@ export const TOPICS: readonly TopicEntry[] = [
   { id: "science-forces", cat: "science", ages: [8, 16], en: ["Forces and motion", "Pushes and pulls, gravity, friction, mass and weight, inertia and Newton's laws."], he: ["כוחות ותנועה", "דחיפה ומשיכה, כוח המשיכה, חיכוך, מסה ומשקל, התמדה וחוקי ניוטון."] },
   // ── history and civics
   { id: "history-ancient-egypt", cat: "history", ages: [8, 15], en: ["Ancient Egypt", "The Nile, pharaohs and pyramids, hieroglyphs and the kingdoms of ancient Egypt."], he: ["מצרים העתיקה", "הנילוס, פרעונים ופירמידות, הירוגליפים והממלכות של מצרים העתיקה."] },
+  { id: "history-ancient-rome", cat: "history", ages: [9, 16], en: ["Ancient Rome", "From republic to empire: emperors, the Senate, legions, roads, Pompeii and the fall of the West."], he: ["רומא העתיקה", "מרפובליקה לאימפריה: קיסרים, הסנאט, לגיונות, דרכים, פומפיי ונפילת המערב."], env: "castle" },
+  { id: "history-ancient-greece", cat: "history", ages: [9, 16], en: ["Ancient Greece", "City-states, Athenian democracy, myths, the Olympics, philosophers and Alexander's world."], he: ["יוון העתיקה", "ערי־מדינה, הדמוקרטיה האתונאית, מיתוסים, האולימפיאדה, פילוסופים ועולמו של אלכסנדר."], env: "castle" },
+  { id: "history-israel-independence", cat: "history", ages: [9, 17], en: ["The founding of Israel", "From Herzl and the Zionist movement to the Declaration of Independence and the first years of the state."], he: ["הקמת מדינת ישראל", "מהרצל והתנועה הציונית ועד מגילת העצמאות והשנים הראשונות של המדינה."] },
+  { id: "civics-democracy", cat: "history", ages: [10, 17], en: ["Democracy", "Elections, majority rule and minority rights, separation of powers, the rule of law and a free press."], he: ["דמוקרטיה", "בחירות, הכרעת הרוב וזכויות המיעוט, הפרדת רשויות, שלטון החוק ועיתונות חופשית."], env: "neon-city" },
+  { id: "civics-israel-government", cat: "history", ages: [10, 17], en: ["How Israel is governed", "The Knesset, the government and the President, elections, coalitions, the Basic Laws and the courts."], he: ["משטר ושלטון בישראל", "הכנסת, הממשלה והנשיא, בחירות, קואליציה, חוקי היסוד ובתי המשפט."], env: "neon-city" },
+  // ── geography
+  { id: "geo-continents-oceans", cat: "geography", ages: [7, 14], en: ["Continents and oceans", "The seven continents, the oceans, the equator and hemispheres, and how the continents move."], he: ["יבשות ואוקיינוסים", "שבע היבשות, האוקיינוסים, קו המשווה וחצאי הכדור, ואיך היבשות נעות."] },
+  { id: "geo-israel", cat: "geography", ages: [8, 16], en: ["The geography of Israel", "Seas, lakes and rivers, the Negev and the Galilee, climate, the Rift Valley and water."], he: ["הגאוגרפיה של ישראל", "ימים, אגמים ונהרות, הנגב והגליל, אקלים, השבר הסורי־אפריקני ומים."] },
+  // ── languages
+  { id: "lang-en-present-simple", cat: "languages", ages: [8, 14], en: ["English: present simple", "Habits and facts, he/she/it + s, do and does in questions and negatives, and when not to use it."], he: ["אנגלית: הווה פשוט", "הרגלים ועובדות, s בגוף שלישי, do ו־does בשאלות ובשלילה, ומתי לא משתמשים בו."] },
 ];
 
 /** Every level exists for every topic. */

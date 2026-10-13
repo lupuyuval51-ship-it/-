@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 15;
+const EXPECTED_TOPICS = 23;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
@@ -36,10 +36,12 @@ const namesTerm = (text: string, term: string) => {
 /** Every text of a level, by language. */
 function textsOf(level: LevelContent): { en: string[]; he: string[] } {
   const en: string[] = [], he: string[] = [];
-  for (const [a, b, c, d] of level.t ?? []) { en.push(a, b); he.push(c, d); }
+  // Hebrew terms and options may be English on purpose (an English-grammar topic asks about English sentences), so on the
+  // Hebrew side only the explaining text is checked; on the English side everything is.
+  for (const [a, b, c, d] of level.t ?? []) { en.push(a, b); he.push(d); void c; }
   for (const [e, h] of level.q ?? []) {
     en.push(e[0], e[1], ...e[2], e[3], ...(e[4] ? [e[4]] : []));
-    he.push(h[0], h[1], ...h[2], h[3], ...(h[4] ? [h[4]] : []));
+    he.push(h[0], h[3], ...(h[4] ? [h[4]] : []));
   }
   for (const [, e, h] of level.n ?? []) {
     en.push(e[0], e[2], ...(e[3] ? [e[3]] : []), ...(e[1] ? [e[1]] : []));

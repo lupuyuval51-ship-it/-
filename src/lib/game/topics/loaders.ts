@@ -23,6 +23,14 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "science-electricity": () => import("./content/science-electricity"),
   "science-forces": () => import("./content/science-forces"),
   "history-ancient-egypt": () => import("./content/history-ancient-egypt"),
+  "history-ancient-rome": () => import("./content/history-ancient-rome"),
+  "history-ancient-greece": () => import("./content/history-ancient-greece"),
+  "history-israel-independence": () => import("./content/history-israel-independence"),
+  "civics-democracy": () => import("./content/civics-democracy"),
+  "civics-israel-government": () => import("./content/civics-israel-government"),
+  "geo-continents-oceans": () => import("./content/geo-continents-oceans"),
+  "geo-israel": () => import("./content/geo-israel"),
+  "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
 };
 
 export async function loadTopicContent(id: string): Promise<TopicContent | null> {
