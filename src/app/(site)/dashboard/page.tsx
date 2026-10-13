@@ -1,3 +1,4 @@
+import { plansEnabled } from "@/server/env";
 import Link from "next/link";
 import { primaryLink, StateView } from "@/components/ui/StateView";
 import { Alert, Arrow, Badge, Card } from "@/components/ui";
@@ -42,13 +43,13 @@ export default async function DashboardPage() {
         <Card className="space-y-3" data-testid="dash-allowance">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">{t("dash.allowance.title")}</h2>
-            <Badge tone={allowance.plan === "FREE" ? "neutral" : "violet"}>{t(`plan.${allowance.plan}`)}</Badge>
+            {plansEnabled() && <Badge tone={allowance.plan === "FREE" ? "neutral" : "violet"}>{t(`plan.${allowance.plan}`)}</Badge>}
           </div>
           <p className="text-3xl font-extrabold"><span className="ltr-num" data-testid="dash-remaining">{allowance.remaining}</span><span className="text-lg font-medium text-muted"> / <span className="ltr-num">{allowance.limit}</span></span></p>
           <p className="text-sm text-muted">{t("dash.allowance.left", { n: allowance.remaining, limit: allowance.limit })}</p>
           <p className="text-xs text-muted">{allowance.plan === "FREE" ? t("dash.allowance.free", { n: allowance.limit }) : ""} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
           {allowance.reserved > 0 && <p className="text-xs text-amber">{t("dash.allowance.inflight", { n: allowance.reserved })}</p>}
-          {allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
+          {plansEnabled() && allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
         </Card>
         <Card className="space-y-3">
           <h2 className="font-semibold">{t("dash.graphics", { tier: t(`tier.short.${render.tier}`) })}</h2>

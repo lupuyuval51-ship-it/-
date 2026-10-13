@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DevCheckoutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!getEnv().PLANS_ENABLED) notFound();
   const user = await requireUser(`/billing/dev-checkout/${id}`);
   const env = getEnv();
   if (env.PAYMENTS_MODE !== "dev" || env.APP_ENV === "production") notFound();

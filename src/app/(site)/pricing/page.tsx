@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { plansEnabled } from "@/server/env";
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { Alert, Badge, Card } from "@/components/ui";
@@ -19,6 +21,7 @@ export const dynamic = "force-dynamic";
 const linkBtn = "inline-flex min-h-12 w-full items-center justify-center rounded-xl px-6 font-semibold";
 
 export default async function PricingPage() {
+  if (!plansEnabled()) notFound();
   const { t, locale } = await getT();
   const user = await getCurrentUser();
   const region = await getRegion();

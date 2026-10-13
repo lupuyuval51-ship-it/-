@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { PLANS, monthlyPrice, type CurrencyCode, type PaidPlanId, type PlanId } from "@/config/plans";
 import { computeEntitlement } from "../allowance/entitlement";
 import { db } from "../db";
-import { getEnv } from "../env";
+import { getEnv, plansEnabled } from "../env";
 import { Errors } from "../http/errors";
 import { assertDevMode, devId, snapshotOf } from "./dev";
 import { chargeObject, invoiceObject, parseStripeEvent, stripeEvent, subscriptionObject, type BillingEvent } from "./events";
@@ -72,6 +72,7 @@ const providerOf = (gw: PaymentGateway): Provider => (gw.mode === "dev" ? "DEV" 
 
 /** Start a checkout for a paid plan. The price is looked up from the central config for the user's SAVED region. */
 export async function startCheckout(user: { id: string; email: string; country: string | null }, plan: PaidPlanId, now = new Date()): Promise<{ url: string }> {
+  if (!plansEnabled()) throw Errors.notFound();
   const gw = requireGateway();
   const price = monthlyPrice(plan, user.country);
   if (price.minor <= 0 || PLANS[plan].monthlyPrices[price.currency] !== price.minor) throw Errors.badRequest("This plan cannot be purchased.");

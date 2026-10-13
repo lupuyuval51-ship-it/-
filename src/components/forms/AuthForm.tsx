@@ -18,7 +18,7 @@ const GOOGLE_ERRORS = ["failed", "cancelled", "unverified", "email_exists"] as c
  * `googleEnabled` is decided on the server (both Google credentials configured). Without it nothing about Google is rendered,
  * so the page is exactly the password-only page. `googleError` is one of the fixed keys the callback redirects with.
  */
-export function AuthForm({ mode, next, defaultRegion, googleEnabled = false, googleError = null }: { mode: Mode; next: string; defaultRegion: string | null; googleEnabled?: boolean; googleError?: string | null }) {
+export function AuthForm({ mode, next, defaultRegion, googleEnabled = false, googleError = null, plansOff = false }: { mode: Mode; next: string; defaultRegion: string | null; googleEnabled?: boolean; googleError?: string | null; plansOff?: boolean }) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -73,7 +73,7 @@ export function AuthForm({ mode, next, defaultRegion, googleEnabled = false, goo
     <Card className="mx-auto w-full max-w-md space-y-5 p-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">{register ? t("auth.register.title") : t("auth.login.title")}</h1>
-        <p className="text-sm text-muted">{register ? t("auth.register.subtitle", { n: PLANS.FREE.gamesPerPeriod }) : t("auth.login.subtitle")}</p>
+        <p className="text-sm text-muted">{register ? (plansOff ? t("auth.register.subtitle.open") : t("auth.register.subtitle", { n: PLANS.FREE.gamesPerPeriod })) : t("auth.login.subtitle")}</p>
       </div>
       <form onSubmit={submit} className="space-y-4" noValidate data-testid={`${mode}-form`}>
         {register && (

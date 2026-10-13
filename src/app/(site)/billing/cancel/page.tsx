@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { plansEnabled } from "@/server/env";
 import Link from "next/link";
 import { Card } from "@/components/ui";
 import { getT } from "@/server/i18n";
@@ -6,6 +8,7 @@ import { titleFor } from "@/components/layout/pageTitle";
 export const generateMetadata = titleFor("billing.cancel.title");
 
 export default async function BillingCancelPage() {
+  if (!plansEnabled()) notFound();
   const { t } = await getT();
   return (
     <Card className="mx-auto max-w-lg space-y-3 text-center" data-testid="checkout-cancelled">

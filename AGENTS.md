@@ -5,6 +5,7 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 
 ## Rules that are enforced (and tested)
 
+- `PLANS_ENABLED` (default `false`, `src/server/env.ts`) switches the whole plan layer: off = no plan, price or pricing page is shown, checkout is a 404 and every account resolves to the full product (`computeEntitlement`); on = Free/Plus/Pro. The code stays; the test suites run with it on, `tests/integration/plans-off.test.ts` covers the off switch.
 - Plans, prices, allowances and graphics permissions live **only** in `src/config/plans.ts`. Never gate by price in the UI; the server enforces.
 - Plan features and quotas (AI robot level, AI edits per period, version history) are in `src/config/plans.ts` (`features`) and enforced only on the server
   (`src/server/games/ai-edit.ts`, `versions.ts`). An AI edit reserves a quota slot (`AiEdit` PENDING) and commits it with the new version in one transaction;

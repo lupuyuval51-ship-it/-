@@ -4,6 +4,7 @@ import { GameTypeIcon } from "@/components/ui/icons";
 import { Arrow, Badge, Card } from "@/components/ui";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
+import { plansEnabled } from "@/server/env";
 import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
@@ -27,7 +28,7 @@ export default async function LandingPage() {
             ) : (
               <>
                 <Link href="/register" data-testid="cta-start" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 shadow-glow hover:brightness-110">{t("landing.cta.primary")}</Link>
-                <Link href="/pricing" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("landing.cta.secondary")}</Link>
+                {plansEnabled() && <Link href="/pricing" className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("landing.cta.secondary")}</Link>}
               </>
             )}
           </div>
@@ -95,13 +96,16 @@ export default async function LandingPage() {
               </li>
             ))}
           </ul>
+          {plansEnabled() && (
           <Card className="space-y-1 border-violet/40">
-            <h3 className="font-semibold text-violet-soft">{t("landing.tiers.title")}</h3>
-            <p className="text-sm text-muted">{t("landing.tiers.text")}</p>
-          </Card>
+              <h3 className="font-semibold text-violet-soft">{t("landing.tiers.title")}</h3>
+              <p className="text-sm text-muted">{t("landing.tiers.text")}</p>
+            </Card>
+          )}
         </div>
       </section>
 
+      {plansEnabled() && (
       <section className="space-y-6">
         <h2 className="text-2xl font-bold">{t("landing.pricing.title")}</h2>
         <div className="grid gap-4 md:grid-cols-3">
@@ -119,6 +123,7 @@ export default async function LandingPage() {
         </div>
         <Link href="/pricing" className="inline-block text-neon hover:underline">{t("landing.cta.secondary")} <Arrow /></Link>
       </section>
+      )}
     </div>
   );
 }

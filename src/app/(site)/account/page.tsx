@@ -1,3 +1,4 @@
+import { plansEnabled } from "@/server/env";
 import { SignInMethods } from "@/components/account/SignInMethods";
 import { ProfileSettings } from "@/components/account/ProfileSettings";
 import { SecurityPanel } from "@/components/account/SecurityPanel";
@@ -42,7 +43,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <p className="text-sm text-muted">{t("acc.intro")}</p>
       </header>
 
-      <SubscriptionPanel billing={billing} />
+      {plansEnabled() && <SubscriptionPanel billing={billing} />}
 
       <ProfileSettings
         displayName={user.displayName}

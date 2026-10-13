@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
+import { plansEnabled } from "@/server/env";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { LogoutButton } from "./LogoutButton";
 import { MobileMenu } from "./MobileMenu";
@@ -18,15 +19,16 @@ export async function SiteHeader() {
   const theme = isThemePref(themeCookie) ? themeCookie : "system";
   const user = await getCurrentUser();
   const allowance = user ? await getAllowanceSummary(user.id) : null;
+  const plansOn = plansEnabled();
   const links = user
     ? [
         { href: "/dashboard", label: t("nav.dashboard") },
         { href: "/create", label: t("nav.create") },
         { href: "/games", label: t("nav.library") },
-        { href: "/pricing", label: t("nav.pricing") },
+        ...(plansOn ? [{ href: "/pricing", label: t("nav.pricing") }] : []),
         { href: "/account", label: t("nav.account") },
       ]
-    : [{ href: "/pricing", label: t("nav.pricing") }];
+    : plansOn ? [{ href: "/pricing", label: t("nav.pricing") }] : [];
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
@@ -43,9 +45,9 @@ export async function SiteHeader() {
         </nav>
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2">
           {allowance && (
-            <Link href="/pricing" data-testid="allowance-pill" title={t(`plan.${allowance.plan}`)} className="hidden sm:block">
+            <Link href={plansOn ? "/pricing" : "/dashboard"} data-testid="allowance-pill" title={plansOn ? t(`plan.${allowance.plan}`) : undefined} className="hidden sm:block">
               <Badge tone={allowance.remaining > 0 ? "lime" : "amber"}>
-                {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
+                {plansOn && `${t(`plan.${allowance.plan}`)} · `}{allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
               </Badge>
             </Link>
           )}
@@ -61,8 +63,8 @@ export async function SiteHeader() {
           )}
           <MobileMenu label={t("nav.menu")}>
             {allowance && (
-              <Link href="/pricing" data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-text/10">
-                {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
+              <Link href={plansOn ? "/pricing" : "/dashboard"} data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-text/10">
+                {plansOn && `${t(`plan.${allowance.plan}`)} · `}{allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
               </Link>
             )}
             {links.map((l) => <NavLink key={l.href} href={l.href} className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10" activeClassName="bg-text/10 font-semibold">{l.label}</NavLink>)}

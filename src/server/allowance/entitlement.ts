@@ -1,6 +1,7 @@
 import "server-only";
 import { PLANS, calendarMonthUtc, type PlanId } from "@/config/plans";
 import { db, type Tx } from "../db";
+import { plansEnabled } from "../env";
 
 /**
  * Paid access stays valid for this long after `currentPeriodEnd` while the subscription is still ACTIVE, which
@@ -40,6 +41,11 @@ export function subscriptionGrantsAccess(sub: SubscriptionFacts | null, now: Dat
 }
 
 export function computeEntitlement(sub: SubscriptionFacts | null, now: Date): Entitlement {
+  if (!plansEnabled()) {
+    // Plans are switched off: everybody has the full product (a fair-use monthly allowance, no subscription, no plan shown).
+    const { start, end } = calendarMonthUtc(now);
+    return { plan: "PRO", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.PRO.gamesPerPeriod, subscriptionId: null };
+  }
   if (sub && subscriptionGrantsAccess(sub, now)) {
     return {
       plan: sub.plan,

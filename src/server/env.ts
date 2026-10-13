@@ -25,6 +25,8 @@ const schema = z.object({
   AI_CALL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(600_000).default(240_000),
   AI_JOB_DEADLINE_MS: z.coerce.number().int().min(5_000).max(1_800_000).default(600_000),
 
+  /** Plans (Free/Plus/Pro), pricing and checkout. Off = everybody gets the full product and no plan is shown anywhere; the code stays so it can be switched back on. */
+  PLANS_ENABLED: bool.default(false),
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
@@ -67,5 +69,6 @@ export function resetEnvForTests(): void {
   cached = null;
 }
 
+export const plansEnabled = (): boolean => getEnv().PLANS_ENABLED;
 export const isProduction = (): boolean => getEnv().APP_ENV === "production";
 export const secureCookies = (): boolean => getEnv().APP_ENV === "production" || getEnv().APP_URL.startsWith("https://");

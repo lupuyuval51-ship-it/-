@@ -13,6 +13,8 @@ const baseEnv = {
   APP_URL: "http://localhost:3000",
   TRUST_PROXY: "true",
   AI_PROVIDER: "demo",
+  // the suites test the plans, so they run with them switched on (tests/*/plans-off.test.ts covers the off switch)
+  PLANS_ENABLED: "true",
   PAYMENTS_MODE: "disabled",
   ENABLE_TEST_HOOKS: "false",
 };

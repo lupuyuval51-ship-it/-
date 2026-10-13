@@ -36,6 +36,7 @@ export default defineConfig({
       DATABASE_URL: DB,
       TRUST_PROXY: "true",
       AI_PROVIDER: "demo",
+      PLANS_ENABLED: "true",
       PAYMENTS_MODE: "dev",
       ENABLE_TEST_HOOKS: "true",
       NODE_ENV: "production",
