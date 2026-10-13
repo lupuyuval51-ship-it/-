@@ -74,6 +74,25 @@ In 1927 Charles Lindbergh flew alone across the Atlantic Ocean.`;
     expect(String((c!.items as { text: string }[]).map((i) => i.text))).not.toContain("war");
   });
 
+  it("an amount that looks like a year is not an event: only numbers used as dates make a timeline", () => {
+    const amounts = `The old tower is 1500 metres tall and very famous.
+The trip took 1200 years in total according to the book.
+The school has 1800 students in many different classes.
+The bridge carries 2000 cars across the river every day.`;
+    expect(timelines(amounts, "en")).toHaveLength(0);
+    const [c] = timelines(`${EN}\n${amounts}`, "en");
+    const items = (c!.items as { text: string }[]).map((i) => i.text).join(" ");
+    expect(items).not.toMatch(/tower|trip|school|bridge/);
+    const he = `בשנת 1948 הוקמה מדינת ישראל בתל אביב.
+ב-1967 פרצה מלחמת ששת הימים באזור כולו.
+1973 הייתה השנה שבה פרצה מלחמת יום הכיפורים.
+בבית הספר הגדול הזה לומדים 1500 תלמידים בכל שנה.`;
+    const [h] = timelines(he, "he");
+    const hs = (h!.items as { text: string }[]).map((i) => i.text);
+    expect(hs).toHaveLength(3);
+    expect(hs.join(" ")).not.toMatch(/תלמידים/);
+  });
+
   it("a long list is cut into stretches of time of at most five events, two questions at most", () => {
     const lines = Array.from({ length: 12 }, (_, i) => `In ${1900 + i * 7} the ${["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth"][i]} great bridge of the old city opened.`);
     const cs = timelines(lines.join("\n"), "en", 30);

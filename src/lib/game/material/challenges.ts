@@ -691,11 +691,22 @@ function stepCandidates(groups: string[][], titles: (string | undefined)[], t: T
  * One event per year (two events of the same year cannot be ordered), at most five to a question and two questions to a
  * game; a long list is cut into consecutive stretches of time, so each question is about one period.
  */
+const DATE_CUE = /(?:^|[^\p{L}])(?:in|by|since|until|till|during|around|circa|ca|year|from|after|before|early|late|mid)\.?\s*$|(?:^|\s)(?:c\.|[בלמ]-?|בשנת|בשנה|שנת|שנות|מאז|עד)\s*$/iu;
+const NOT_A_DATE = /^\s*(?:years?|months?|days?|hours?|minutes?|people|students|times|metres|meters|km|kg|tons?|units|שנים|שנה|ימים|חודשים|שעות|פעמים|אנשים|תלמידים|מטר|ק״מ|ק"מ)(?![\p{L}])/iu;
+
+/** A number that is a year of an event ("in 1969", "בשנת 1948"), not an amount that happens to look like one ("1500 metres"). */
+function isEventYear(f: Fact): boolean {
+  if (!f.isYear) return false;
+  const before = f.source.slice(Math.max(0, f.numAt - 16), f.numAt);
+  const after = f.source.slice(f.numAt + f.numText.length, f.numAt + f.numText.length + 14);
+  return !NOT_A_DATE.test(after) && (f.numAt === 0 || DATE_CUE.test(before));
+}
+
 function timelineCandidates(facts: Fact[], t: Tr): Candidate[] {
   const byYear = new Map<number, Fact>();
   const seenText = new Set<string>();
   for (const f of facts) {
-    if (!f.isYear || byYear.has(f.value) || f.blanked.length > 180 || seenText.has(sameKey(f.blanked))) continue;
+    if (!isEventYear(f) || byYear.has(f.value) || f.blanked.length > 180 || seenText.has(sameKey(f.blanked))) continue;
     seenText.add(sameKey(f.blanked));
     byYear.set(f.value, f);
   }
