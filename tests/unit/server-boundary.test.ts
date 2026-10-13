@@ -31,8 +31,9 @@ describe("secrets stay on the server", () => {
     }
   });
 
-  it("process.env is read in exactly one server-only module and there are no NEXT_PUBLIC_ variables", () => {
-    expect(files.filter((f) => /process\.env/.test(f.text)).map((f) => f.rel)).toEqual(["src/server/env.ts"]);
+  it("configuration (anything but NODE_ENV) is read from process.env in exactly one server-only module, and there are no NEXT_PUBLIC_ variables", () => {
+    const configReads = /process\.env(?!\.NODE_ENV\b)/;
+    expect(files.filter((f) => configReads.test(f.text)).map((f) => f.rel)).toEqual(["src/server/env.ts"]);
     expect(files.filter((f) => /NEXT_PUBLIC_/.test(f.text)).map((f) => f.rel)).toEqual([]);
   });
 

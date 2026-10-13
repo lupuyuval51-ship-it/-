@@ -46,6 +46,14 @@ describe("request body limits (apiRoute)", () => {
     expect(bad.status).toBe(400);
   });
 
+  it("treats a missing body as an empty object (routes whose body fields are all optional)", async () => {
+    const optional = apiRoute({ auth: "none", body: z.object({ restart: z.boolean().optional() }) }, async ({ body }) => ({ restart: body.restart ?? false }));
+    const req = new NextRequest(`${ORIGIN}/api/x`, { method: "POST", headers: { host: "localhost:3000", origin: ORIGIN } });
+    const res = await optional(req);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ restart: false });
+  });
+
   it("rejects an oversized CHUNKED upload (no Content-Length) and stops reading it", async () => {
     const { stream, state } = chunkedBody(64 * 1024, 4000); // would be 256 MB if read to the end
     const res = await echo(post(stream));
