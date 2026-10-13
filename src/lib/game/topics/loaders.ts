@@ -58,6 +58,9 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "civics-israel-government": () => import("./content/civics-israel-government"),
   "history-middle-ages": () => import("./content/history-middle-ages"),
   "history-industrial-revolution": () => import("./content/history-industrial-revolution"),
+  "history-exploration": () => import("./content/history-exploration"),
+  "history-renaissance": () => import("./content/history-renaissance"),
+  "geo-rivers-mountains": () => import("./content/geo-rivers-mountains"),
   "geo-maps": () => import("./content/geo-maps"),
   "geo-continents-oceans": () => import("./content/geo-continents-oceans"),
   "geo-israel": () => import("./content/geo-israel"),
@@ -83,6 +86,7 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "arts-colour": () => import("./content/arts-colour"),
   "arts-literature": () => import("./content/arts-literature"),
   "think-study-skills": () => import("./content/think-study-skills"),
+  "think-critical-thinking": () => import("./content/think-critical-thinking"),
   "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
 };
 
