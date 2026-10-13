@@ -9,7 +9,8 @@ import { LibraryPage } from "./pages/Library";
 
 // Only the library (the screen the app opens on) is in the first bundle. Every other screen is its own chunk, loaded when it is
 // opened: the create form carries the offline generator and the demo templates, the play screen the HUD and the runtime
-// (and, one level deeper, the 3D renderer), the results screens their own views. Measured in the PR notes.
+// (and, one level deeper, the 3D renderer), the results screens their own views. With everything in one bundle the first
+// chunk was 2.05 MB (587 kB gzip); with the boundaries it is 0.66 MB (193 kB gzip). tests/unit/bundle-boundary.test.ts guards it.
 const CreatePage = lazy(() => import("./pages/Create").then((m) => ({ default: m.CreatePage })));
 const DeckPage = lazy(() => import("./pages/Deck").then((m) => ({ default: m.DeckPage })));
 const PlayPage = lazy(() => import("./pages/Play").then((m) => ({ default: m.PlayPage })));
