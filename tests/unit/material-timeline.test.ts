@@ -139,7 +139,7 @@ describe("the easier version of a question rules out the most obvious wrong answ
     for (const lang of ["en", "he"] as const) {
       for (const n of NOTE_SETS[lang]) {
         const g = generateChallenges(parseMaterial(n.text), { lang, rnd: mulberry32(11), max: 20, variants: true });
-        for (const v of g.variants) {
+        for (const v of g.variants.filter((x) => x.type === "choice")) {
           const parent = g.challenges.find((c) => c.easierId === v.id)!;
           const all = parent.options as { id: string; text: string }[];
           const wrongs = all.filter((o) => o.id !== parent.correctOptionId);

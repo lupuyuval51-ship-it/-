@@ -914,18 +914,27 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   });
   const variants: Raw[] = [];
   if (opts.variants) {
-    for (const c of challenges) {
-      const options = c.options as { id: string; text: string; feedback: string }[] | undefined;
-      if (c.type !== "choice" || !options || options.length < 3 || variants.length >= 6) continue;
+    const tooShort = (c: Raw) => c.type !== "choice" || ((c.options as unknown[] | undefined)?.length ?? 0) < 3;
+    const orderings = challenges.filter((c) => c.type === "sequence" && ((c.items as unknown[] | undefined)?.length ?? 0) >= 4);
+    const choices = challenges.filter((c) => !tooShort(c));
+    // As many easier versions as before (the spec has room for 24 challenges, and an extension needs some): up to two of them
+    // are for long orderings and the rest for multiple-choice questions.
+    const total = Math.min(6, choices.length);
+    const forOrderings = Math.min(2, orderings.length, total);
+    for (const c of [...orderings.slice(0, forOrderings), ...choices.slice(0, total - forOrderings)]) {
+      const easyId = `${String(c.id)}-easy`;
+      const title = clip(`${String(c.title)} ${t("(easier)", "(קל יותר)")}`, 80);
+      c.easierId = easyId;
+      if (c.type === "sequence") {
+        // a long list to put in order: the easier version keeps the first, a middle and the last (still in their order)
+        const items = c.items as { id: string; text: string }[];
+        variants.push({ ...c, id: easyId, level: 1, easierId: undefined, title, items: [0, Math.floor((items.length - 1) / 2), items.length - 1].map((i) => items[i]!) });
+        continue;
+      }
+      const options = c.options as { id: string; text: string; feedback: string }[];
       const correct = options.find((o) => o.id === c.correctOptionId)!;
       const wrong = leastPlausible(correct, options.filter((o) => o.id !== c.correctOptionId), String(c.prompt));
-      const easyId = `${String(c.id)}-easy`;
-      c.easierId = easyId;
-      variants.push({
-        ...c, id: easyId, level: 1, easierId: undefined,
-        title: clip(`${String(c.title)} ${t("(easier)", "(קל יותר)")}`, 80),
-        options: options.indexOf(correct) < options.indexOf(wrong) ? [correct, wrong] : [wrong, correct],
-      });
+      variants.push({ ...c, id: easyId, level: 1, easierId: undefined, title, options: options.indexOf(correct) < options.indexOf(wrong) ? [correct, wrong] : [wrong, correct] });
     }
   }
   const objectives = (["questions", "terms", "facts", "steps", "ideas"] as Objective[]).filter((o) => used.has(o)).map((o) => ({ id: `${prefix}o-${o}`, text: objText[o] }));

@@ -292,7 +292,7 @@ describe("adaptive difficulty for material games", () => {
     for (const c of withEasier) {
       const easy = spec.challenges.find((x) => x.id === c.easierId)!;
       expect(placed.has(easy.id)).toBe(false);
-      expect(easy.type).toBe("choice");
+      expect(easy.type).toBe(c.type); // a choice question gets a two-option version, a long ordering question a three-item one
       if (easy.type === "choice" && c.type === "choice") {
         expect(easy.options).toHaveLength(2);
         expect(easy.options.map((o) => o.id)).toContain(c.correctOptionId);
