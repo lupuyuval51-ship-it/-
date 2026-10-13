@@ -98,9 +98,17 @@ from your app off a user's device", including by webviews you control
 ([Data safety help](https://support.google.com/googleplay/android-developer/answer/10787469)). Everything that is sent goes to one
 service provider, the project's Supabase backend (`mobile/src/cloud/`), over HTTPS.
 
+**Google sign-in (optional, off unless the build has `VITE_GOOGLE_AUTH=1`).** The button opens Supabase's Google page in the
+system browser (not a request from the app, so `connect-src` stays exactly `'self'` + the Supabase URL) and the browser returns to
+`app.levelup.learn3d://auth` (intent filter on MainActivity; `tests/unit/android-shell.test.ts` pins scheme and host). The app
+exchanges the one-time code over PKCE with Supabase. Google gives Supabase the e-mail address, the name and the account id;
+no Google token is used by the app and no secret is in the app (the Google client secret is only in the Supabase dashboard). Owner steps:
+`docs/google-signin.md`. Data safety: the e-mail and user-id rows above apply, and **Name** is added.
+
 | Play data type | Collected | What (code) | Purpose | Optional | Shared |
 |---|---|---|---|---|---|
-| Personal info → **Email address** | yes | `auth.signUp / signInWithPassword` (`cloud/account.ts`) | Account management | yes | no |
+| Personal info → **Email address** | yes | `auth.signUp / signInWithPassword` (`cloud/account.ts`), or Google sign-in (`cloud/google.ts`) | Account management | yes | no |
+| Personal info → **Name** | yes, only with Google sign-in | Google's profile name, stored by Supabase in the user's metadata; the app does not read or show it | Account management | yes | no |
 | Personal info → **User IDs** | yes | Supabase user UUID, the `user_id` of every row | Account management, App functionality | yes | no |
 | App activity → **Other user-generated content** | yes | games: title and the generated game spec (built from the user's notes) (`cloud/api.ts`) | App functionality (backup, sync) | yes | no |
 | App activity → **Other actions** | yes | play sessions (progress, answers, score) and the review deck | App functionality (backup, sync) | yes | no |
@@ -154,7 +162,9 @@ financial declarations**: none.
    Console (privacy policy, Data safety → deletion link).
 3. Decide the target audience (section 5). Fill Data safety exactly as in the table; content rating; ads = no.
 4. Create the reviewer test account and fill *App access*.
-5. Supabase dashboard (can't be done from the repo): *Confirm email* / Site URL, own SMTP before many sign-ups, password reset is
+5. Optional Google sign-in: `docs/google-signin.md` section 3 (Google client, Supabase provider and redirect URL), then build with
+   `VITE_GOOGLE_AUTH=1`. Add "Name" to the Data safety answers and publish the updated privacy policy before shipping that build.
+5b. Supabase dashboard (can't be done from the repo): *Confirm email* / Site URL, own SMTP before many sign-ups, password reset is
    not built in (see `mobile/store/release-checklist.md` 2b).
 6. Store listing: text in `mobile/store/listing.md`, icon (512x512 32-bit PNG), feature graphic (1024x500, no alpha), at least 2
    screenshots (JPEG/24-bit PNG, "the maximum dimension ... can't be more than twice as long as the minimum dimension",
