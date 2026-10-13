@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
+import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie, rightFor } from "./helpers";
 import { getGameSpec, setPlan } from "./db";
 import { challengeOf, goNear, openGame, snapshot } from "./play-helpers";
 import { correctAnswer, PACK_SUBJECT } from "../unit/helpers";
@@ -72,8 +72,8 @@ test.describe("play-screen guidance and polish", () => {
     await expect(radios.nth(1)).toHaveAttribute("aria-checked", "false");
     // a correct answer celebrates
     const ch = challengeOf(spec, station!.challengeId!);
-    const right = (correctAnswer(ch) as unknown as { optionId: string }).optionId;
-    await panel.locator(`[data-option="${right}"]`).click();
+    const rightText = (ch as { options: { id: string; text: string }[]; correctOptionId: string }).options.find((o) => o.id === (ch as { correctOptionId: string }).correctOptionId)!.text;
+    await panel.locator("[data-option]").filter({ has: page.getByText(rightText, { exact: true }) }).click();
     await page.getByTestId("challenge-submit").click();
     await expect(page.getByTestId("result")).toContainText(/correct/i);
     await expect(page.getByTestId("confetti")).toBeVisible();
@@ -103,7 +103,7 @@ test.describe("play-screen guidance and polish", () => {
         if (state.resolvedStations[st.id] || state.visited.includes(st.id) || !stationActive(spec, state, st)) continue;
         if (st.kind === "lore") { state = (await sendPlayEvent(page, sessionId, { type: "visit", stationId: st.id })).body.state ?? state; continue; }
         const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: st.id });
-        state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: correctAnswer(challengeOf(spec, opened.body.data.challenge.id)) })).body.state ?? state;
+        state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: rightFor(spec, opened.body.data.challenge) })).body.state ?? state;
       }
     }
     const entered = await sendPlayEvent(page, sessionId, { type: "enter_area", areaId: second!.id });
@@ -123,7 +123,7 @@ test.describe("play-screen guidance and polish", () => {
       for (const before of battle ? battle.phaseStationIds.slice(0, battle.phaseStationIds.indexOf(st.id)).filter((id) => !simIds.has(id)) : []) {
         if (state.resolvedStations[before]) continue;
         const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: before });
-        state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: before, answer: correctAnswer(challengeOf(spec, opened.body.data.challenge.id)) })).body.state ?? state;
+        state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: before, answer: rightFor(spec, opened.body.data.challenge) })).body.state ?? state;
       }
       if (battle) { await page.reload(); await openGame(page, gameId); }
       await goNear(page, "station", st.id);

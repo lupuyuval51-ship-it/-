@@ -45,22 +45,25 @@ export const challengeOf = (spec: GameSpec, id: string): Challenge => {
 export async function answerInUi(page: Page, ch: Challenge, mode: "right" | "wrong" = "right") {
   const panel = page.getByTestId("challenge-panel");
   const answer = correctAnswer(ch);
+  // The page shows opaque ids, never the ids written in the game file: find every control by the text a person reads.
+  const byText = (selector: string, text: string) => panel.locator(selector).filter({ has: page.getByText(text, { exact: true }) }).first();
   if (ch.type === "choice") {
-    const wrongId = ch.options.find((o) => o.id !== ch.correctOptionId)!.id;
-    await panel.locator(`[data-option="${mode === "right" ? ch.correctOptionId : wrongId}"]`).click();
+    const wrong = ch.options.find((o) => o.id !== ch.correctOptionId)!;
+    const right = ch.options.find((o) => o.id === ch.correctOptionId)!;
+    await byText("[data-option]", (mode === "right" ? right : wrong).text).click();
   } else if (ch.type === "numeric") {
     await page.getByTestId("numeric-input").fill(String(mode === "right" ? ch.answer : ch.answer + ch.tolerance + 9999));
   } else if (ch.type === "sequence" && answer.type === "sequence") {
     const order = mode === "right" ? answer.order : [...answer.order].reverse();
-    for (const id of order) await panel.locator(`[data-item="${id}"]`).click();
+    for (const id of order) await byText("[data-item]", ch.items.find((i) => i.id === id)!.text).click();
   } else if (ch.type === "match" && answer.type === "match") {
     // A previous (wrong) attempt leaves its pairs in place; clear them like a player would.
     const reset = panel.getByTestId("match-reset");
     if (await reset.isVisible().catch(() => false)) await reset.click();
     for (const [i, p] of answer.pairs.entries()) {
-      const rightId = mode === "right" ? p.rightId : answer.pairs[(i + 1) % answer.pairs.length]!.rightId;
-      await panel.locator(`[data-left="${p.leftId}"]`).click();
-      await panel.locator(`[data-right="${rightId}"]`).click();
+      const rightPair = mode === "right" ? p : answer.pairs[(i + 1) % answer.pairs.length]!;
+      await byText("[data-left]", ch.pairs.find((x) => x.id === p.leftId)!.left).click();
+      await byText("[data-right]", ch.pairs.find((x) => x.id === rightPair.rightId)!.right).click();
     }
   } else {
     throw new Error(`answerInUi does not drive ${ch.type} challenges`);

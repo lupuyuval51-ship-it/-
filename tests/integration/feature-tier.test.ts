@@ -81,6 +81,8 @@ describe("Free plan = tier C: up to 2 games with 40 % of the features", () => {
     const program = (specJson(req({ mode: "FULL", gameType: "adventure", subject: "Python loops" })) as { challenges: Record<string, unknown>[] }).challenges.find((c) => c.type === "program")!;
     const victim = rich.challenges[0]!;
     rich.challenges[0] = { ...program, id: victim.id, objectiveId: victim.objectiveId, easierId: undefined, harderId: undefined };
+    // the replaced challenge loses its variants, so they must not stay behind as unplaced orphans
+    rich.challenges = rich.challenges.filter((c) => c.id !== victim.easierId && c.id !== victim.harderId);
     expect(JSON.stringify(rich)).toContain('"type":"program"');
     const llm = mockLlm([rich]);
     const { game, spec, job } = await generate(u.id, req({ subject: "Python loops" }), llm);

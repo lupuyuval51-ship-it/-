@@ -1,9 +1,8 @@
 import { expect, test } from "./fixtures";
-import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
+import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie, rightFor } from "./helpers";
 import { getGameSpec, setPlan } from "./db";
 import { answerInUi, challengeOf, goNear, openGame, snapshot } from "./play-helpers";
 import { collectibleIds, findArea, stationActive, type ClientState } from "@/lib/game/state/progress";
-import { correctAnswer } from "../unit/helpers";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import type { Page } from "@playwright/test";
 
@@ -24,7 +23,7 @@ async function advanceToBoss(page: Page, sessionId: string, spec: GameSpec): Pro
       if (state.resolvedStations[s.id] || state.visited.includes(s.id) || !stationActive(spec, state, s)) continue;
       if (s.kind === "lore") { state = (await sendPlayEvent(page, sessionId, { type: "visit", stationId: s.id })).body.state ?? state; continue; }
       const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: s.id });
-      state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: s.id, answer: correctAnswer(challengeOf(spec, opened.body.data.challenge.id)) })).body.state ?? state;
+      state = (await sendPlayEvent(page, sessionId, { type: "answer", stationId: s.id, answer: rightFor(spec, opened.body.data.challenge) })).body.state ?? state;
     }
     if (state.areaId === boss.areaId) return state;
     if (area.portal) {

@@ -1,8 +1,7 @@
 import { expect, test } from "./fixtures";
-import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
+import { createGameViaApi, registerViaApi, rightFor, sendPlayEvent, setLocaleCookie, wrongFor } from "./helpers";
 import { getGameSpec } from "./db";
 import { answerInUi, challengeOf, openGame, snapshot } from "./play-helpers";
-import { correctAnswer, wrongAnswer } from "../unit/helpers";
 
  
 for (const locale of ["en", "he"] as const) {
@@ -23,11 +22,11 @@ for (const locale of ["en", "he"] as const) {
     const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: st.id });
     const ch = challengeOf(spec, opened.body.data.challenge.id);
     if (ch.type === "program" || ch.type === "simulation") test.skip(true, "first station is not a plain question");
-    await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
+    await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: wrongFor(spec, opened.body.data.challenge) });
     await page.goto(`/games/${gameId}/results/${sessionId}/review`);
     await expect(page.getByTestId("review-empty")).toBeVisible();
     // once resolved, the miss is reviewable with the right answer and the explanation
-    await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    await sendPlayEvent(page, sessionId, { type: "answer", stationId: st.id, answer: rightFor(spec, opened.body.data.challenge) });
     await page.goto(`/games/${gameId}/results/${sessionId}`);
     await page.getByTestId("review-open").click();
     await page.waitForURL(/\/review$/);

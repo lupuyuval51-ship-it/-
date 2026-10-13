@@ -1,8 +1,7 @@
 import { expect, test } from "./fixtures";
-import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
+import { createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie, rightFor } from "./helpers";
 import { dbRows, getGameSpec, userIdOf } from "./db";
 import { answerInUi, challengeOf, goNear, openGame, snapshot } from "./play-helpers";
-import { correctAnswer } from "../unit/helpers";
 import { collectibleIds, findArea, stationActive, type ClientState } from "@/lib/game/state/progress";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -70,7 +69,7 @@ test.describe("playing a generated game in a real browser", () => {
     expect(row1!.state.records[served.id]?.wrong).toBe(1);
 
     // retry: re-select / re-enter the correct answer
-    if (served.type === "choice") await panel.locator(`[data-option="${served.correctOptionId}"]`).click();
+    if (served.type === "choice") await panel.locator("[data-option]").filter({ has: page.getByText(served.options.find((o) => o.id === served.correctOptionId)!.text, { exact: true }) }).click();
     else if (served.type === "numeric") await page.getByTestId("numeric-input").fill(String(served.answer));
     await page.getByTestId("challenge-submit").click();
     await expect(page.getByTestId("result")).toContainText(/./);
@@ -109,7 +108,7 @@ test.describe("playing a generated game in a real browser", () => {
       if (!stationActive(spec, state, s)) continue;
       if (s.kind === "lore") { state = (await sendPlayEvent(page, sessionId, { type: "visit", stationId: s.id })).body.state ?? state; continue; }
       const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: s.id });
-      const r = await sendPlayEvent(page, sessionId, { type: "answer", stationId: s.id, answer: correctAnswer(challengeOf(spec, opened.body.data.challenge.id)) });
+      const r = await sendPlayEvent(page, sessionId, { type: "answer", stationId: s.id, answer: rightFor(spec, opened.body.data.challenge) });
       state = r.body.state ?? state;
     }
     await page.reload();

@@ -1,7 +1,6 @@
 import { expect, test } from "./fixtures";
-import { apiPost, createGameViaApi, registerViaApi, sendPlayEvent, setLocaleCookie } from "./helpers";
+import { apiPost, createGameViaApi, registerViaApi, rightFor, sendPlayEvent, setLocaleCookie } from "./helpers";
 import { dbRows, getGameSpec, setPlan, userIdOf } from "./db";
-import { correctAnswer } from "../unit/helpers";
 
 test.describe("library, details and modification", () => {
   test("details never show answers; rename, edit mechanics (new version), progress, reset and delete all work", async ({ page }) => {
@@ -31,6 +30,12 @@ test.describe("library, details and modification", () => {
     await expect(page.getByTestId("game-title")).toHaveText("My Loops Quest");
     expect(await dbRows('SELECT revision FROM "GameRevision" WHERE "gameId" = $1', [gameId])).toHaveLength(1);
 
+    // a mechanic outside the plan's tier cannot be switched on (Timed bonus is a Plus feature): the server refuses, whatever the form shows
+    const locked = await page.request.patch(`/api/games/${gameId}`, { data: { mechanics: { timed_bonus: true } }, headers: { origin: new URL(page.url()).origin } });
+    expect(locked.status()).toBe(403);
+    expect(((await locked.json()) as { error: { code: string } }).error.code).toBe("FEATURE_TIER_LOCKED");
+    await setPlan(email, "PLUS");
+
     // changing gameplay (optional mechanic) creates version 2 and keeps history
     await page.getByLabel("Timed bonus").check();
     await page.getByTestId("edit-save").click();
@@ -48,8 +53,7 @@ test.describe("library, details and modification", () => {
     const start = await apiPost<{ sessionId: string }>(page, `/api/games/${gameId}/session`, {});
     const sessionId = start.body.sessionId;
     const opened = await sendPlayEvent(page, sessionId, { type: "open", stationId: "s-var1" });
-    const served = spec.challenges.find((c) => c.id === opened.body.data.challenge.id)!;
-    await sendPlayEvent(page, sessionId, { type: "answer", stationId: "s-var1", answer: correctAnswer(served) });
+    await sendPlayEvent(page, sessionId, { type: "answer", stationId: "s-var1", answer: rightFor(spec, opened.body.data.challenge) });
     await page.goto(`/games/${gameId}`);
     await expect(page.getByTestId("details-progress")).toContainText("In progress");
     await expect(page.getByRole("link", { name: "Continue" }).first()).toBeVisible();

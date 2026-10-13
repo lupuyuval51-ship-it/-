@@ -11,6 +11,7 @@ import { getSessionResults } from "@/server/games/play";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { findArea, stationActive, collectibleIds, type ClientState, type PlayState } from "@/lib/game/state/progress";
 import { answerSeed } from "@/server/games/answer-seed";
+import { setFeatureTierForTests } from "@/server/games/feature-tier";
 import { correctAnswer } from "../unit/helpers";
 import { createTestUser, grantSubscription, makeRequest, readJson, type TestUser } from "./helpers";
 import { makeGame } from "./helpers-ai";
@@ -256,5 +257,25 @@ describe("library & modification workflows", () => {
     expect((await deleteRoute(makeRequest("DELETE", `/api/games/${game.id}`, { cookie: u.cookie }), { params: Promise.resolve({ id: game.id }) })).status).toBe(200);
     expect((await start(u, game.id)).res.status).toBe(404);
     expect((await readJson<{ games: unknown[] }>(await listRoute(makeRequest("GET", "/api/games", { cookie: u.cookie })))).games).toHaveLength(0);
+  });
+});
+
+describe("switching mechanics on is limited by the plan's tier", () => {
+  it("a Free player cannot enable a mechanic outside tier C, but can switch one off; a Plus player can", async () => {
+    const u = await createTestUser();
+    const game = await makeGame(u.id); // made at tier A, like the rest of the suite
+    setFeatureTierForTests(null); // now the real tiers apply to what the player may switch on
+    try {
+      const params = { params: Promise.resolve({ id: game.id }) };
+      const patch = (body: unknown) => editRoute(makeRequest("PATCH", `/api/games/${game.id}`, { cookie: u.cookie, body }), params);
+      const locked = await patch({ mechanics: { timed_bonus: true } });
+      expect(locked.status).toBe(403);
+      expect((await locked.json()).error).toMatchObject({ code: "FEATURE_TIER_LOCKED" });
+      await grantSubscription(u.id, "PLUS");
+      expect((await patch({ mechanics: { timed_bonus: true } })).status).toBe(200);
+      expect((await patch({ mechanics: { timed_bonus: false } })).status).toBe(200);
+    } finally {
+      setFeatureTierForTests("A");
+    }
   });
 });

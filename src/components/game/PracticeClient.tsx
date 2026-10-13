@@ -39,7 +39,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
   }, []);
 
   if (failed) return <p role="alert" className="mx-auto max-w-xl p-6 text-center">{t("common.error.generic")}</p>;
-  if (!items) return <div className="grid min-h-[50dvh] place-items-center"><Spinner /></div>;
+  if (!items) return <div className="grid min-h-[50dvh] place-items-center"><Spinner label={t("common.loading")} /></div>;
 
   const current = items[index];
   if (!current) {

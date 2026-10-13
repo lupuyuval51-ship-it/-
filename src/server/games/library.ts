@@ -1,13 +1,18 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
+import { planUnlocking } from "@/config/plans";
+import type { Mechanic } from "@/lib/game/spec/constants";
 import { mechanicsForArea } from "@/lib/game/spec/mechanics";
 import type { GameSpec } from "@/lib/game/spec/schema";
+import { mechanicAllowed, mechanicFeature } from "@/lib/game/spec/tier";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { toPublicSpec } from "@/lib/game/spec/public";
 import { maxScore, type PlayState } from "@/lib/game/state/progress";
 import { stableStringify } from "@/lib/game/util/stable";
 import { db } from "../db";
-import { Errors } from "../http/errors";
+import { ApiError, Errors } from "../http/errors";
+import { getCapabilities } from "./capabilities";
+import { featureTierForPlan } from "./feature-tier";
 
 export interface GameCard {
   id: string;
@@ -90,6 +95,9 @@ export interface GameEdit {
  * and the edited spec goes through the same full validation as a generated one.
  */
 export async function editGame(userId: string, gameId: string, edit: GameEdit) {
+  // Switching a mechanic ON is a feature of the plan's tier like any other: the saved game must not gain what the plan lacks.
+  const switchingOn = Object.entries(edit.mechanics ?? {}).filter(([, on]) => on).map(([m]) => m as Mechanic);
+  const planTier = switchingOn.length ? featureTierForPlan((await getCapabilities(userId)).ent.plan) : "A";
   return db.$transaction(async (tx) => {
     const rows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Game" WHERE "id" = ${gameId} AND "ownerId" = ${userId} AND "deletedAt" IS NULL FOR UPDATE`;
     if (rows.length === 0) throw Errors.notFound("Game not found.");
@@ -104,6 +112,10 @@ export async function editGame(userId: string, gameId: string, edit: GameEdit) {
     for (const [mech, on] of Object.entries(edit.mechanics ?? {}) as [keyof NonNullable<GameEdit["mechanics"]>, boolean][]) {
       const has = spec.mechanics.includes(mech);
       if (on && !has) {
+        if (!mechanicAllowed(planTier, mech)) {
+          const feature = mechanicFeature(mech)!;
+          throw new ApiError(403, "FEATURE_TIER_LOCKED", `The "${mech}" mechanic is not part of your plan's game features.`, { feature, requiredPlan: planUnlocking(feature), tier: planTier });
+        }
         spec.mechanics.push(mech);
         gameplayChanged = true;
       }

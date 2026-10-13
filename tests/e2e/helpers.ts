@@ -1,5 +1,8 @@
 import { expect, type Page } from "@playwright/test";
+import type { Answer } from "@/lib/game/challenges/grade";
+import type { Challenge, GameSpec } from "@/lib/game/spec/schema";
 import type { GameEvent } from "@/lib/game/state/events";
+import { correctAnswer, wrongAnswer } from "../unit/helpers";
 import { randomUUID } from "node:crypto";
 
 export const PASSWORD = "e2e correct horse battery";
@@ -74,3 +77,38 @@ export async function expectNoHorizontalOverflow(page: Page) {
   const { scrollWidth, clientWidth } = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(scrollWidth, `page is ${scrollWidth}px wide in a ${clientWidth}px viewport`).toBeLessThanOrEqual(clientWidth + 1);
 }
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * The server shows the player opaque ids (not the ids written in the game file), so an answer sent over the API has to use the ids of the
+ * challenge the server actually served. This finds them the way a person would: by the text on screen.
+ */
+export function asServed(ch: Challenge, answer: Answer, served: any): Answer {
+  const byText = (list: { id: string; text: string }[], text: string): string => {
+    const hit = list.find((x) => x.text === text);
+    if (!hit) throw new Error(`no served item with text "${text}"`);
+    return hit.id;
+  };
+  if (ch.type === "choice" && answer.type === "choice") {
+    return { type: "choice", optionId: byText(served.options, ch.options.find((o) => o.id === answer.optionId)!.text) };
+  }
+  if (ch.type === "sequence" && answer.type === "sequence") {
+    return { type: "sequence", order: answer.order.map((id) => byText(served.items, ch.items.find((i) => i.id === id)!.text)) };
+  }
+  if (ch.type === "match" && answer.type === "match") {
+    return {
+      type: "match",
+      pairs: answer.pairs.map((p) => ({
+        leftId: byText(served.lefts, ch.pairs.find((x) => x.id === p.leftId)!.left),
+        rightId: byText(served.rights, ch.pairs.find((x) => x.id === p.rightId)!.right),
+      })),
+    };
+  }
+  return answer;
+}
+
+const challengeIn = (spec: GameSpec, id: string): Challenge => spec.challenges.find((c) => c.id === id)!;
+/** The right answer to a challenge the server just served (`opened.body.data.challenge`). */
+export const rightFor = (spec: GameSpec, served: any): Answer => asServed(challengeIn(spec, served.id), correctAnswer(challengeIn(spec, served.id)), served);
+/** A wrong answer to a challenge the server just served. */
+export const wrongFor = (spec: GameSpec, served: any): Answer => asServed(challengeIn(spec, served.id), wrongAnswer(challengeIn(spec, served.id)), served);

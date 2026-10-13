@@ -117,7 +117,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
       {job.status === "FAILED" && (
         <Card className="space-y-4 border-rose/50" data-testid="gen-failed">
           <h2 className="text-2xl font-bold">{t("gen.failed.title")}</h2>
-          <Alert tone="error">{job.error?.message ?? t("common.error.generic")}</Alert>
+          <Alert tone="error">{failureText(job.error, t)}</Alert>
           <p className="text-sm text-lime" data-testid="gen-not-charged">{t("gen.failed.notCharged")}</p>
           <Link href="/create" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("gen.retry")}</Link>
         </Card>
@@ -158,4 +158,11 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
       {done && <Link href="/dashboard" className="inline-block text-sm text-muted hover:text-text"><Arrow back /> {t("nav.dashboard")}</Link>}
     </div>
   );
+}
+
+/** The server's failure text is in English; for the failures we know, the player gets it in the interface language. */
+const LOCALIZED_FAILURES = ["PROVIDER_UNAVAILABLE", "PROVIDER_TIMEOUT", "PROVIDER_AUTH", "PROVIDER_RATE_LIMITED", "PROVIDER_REFUSED", "PROVIDER_BAD_REQUEST", "OUTPUT_TRUNCATED", "INVALID_OUTPUT", "TIMEOUT", "TIER_BUILD_FAILED", "INTERNAL_ERROR"] as const;
+function failureText(error: { code: string | null; message: string | null } | null, t: ReturnType<typeof useT>): string {
+  const code = LOCALIZED_FAILURES.find((c) => c === error?.code);
+  return code ? t(`gen.err.${code}` as const) : (error?.message ?? t("common.error.generic"));
 }

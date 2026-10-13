@@ -21,6 +21,14 @@ const MECHANIC_FEATURE: Partial<Record<Mechanic, GameFeature>> = {
   timed_bonus: "system:timed_bonus", adaptive_difficulty: "system:adaptive_difficulty", portals: "system:multi_area",
 };
 
+/** The game feature a mechanic belongs to, if the tiers gate it. */
+export const mechanicFeature = (m: Mechanic): GameFeature | undefined => MECHANIC_FEATURE[m];
+/** May a game at this tier switch this mechanic on? (Switching one off is always allowed.) */
+export const mechanicAllowed = (tier: FeatureTier, m: Mechanic): boolean => {
+  const f = MECHANIC_FEATURE[m];
+  return !f || tierHas(tier, f);
+};
+
 /** Adventures are the multi-area stories; every other type is its own feature. */
 export function gameTypeFeature(type: GameType): GameFeature {
   return type === "adventure" ? "system:multi_area" : (`type:${type}` as GameFeature);
