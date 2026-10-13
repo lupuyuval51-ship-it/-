@@ -3,6 +3,7 @@ import type { GameSpec } from "@/lib/game/spec/schema";
 import { PracticeNotFound, respondPractice, type PracticeBody } from "@/lib/game/state/practice";
 import type { PlayState } from "@/lib/game/state/progress";
 import { db } from "../db";
+import { answerSeed } from "./answer-seed";
 import { Errors } from "../http/errors";
 
 export { practiceBodySchema, type PracticeBody } from "@/lib/game/state/practice";
@@ -12,7 +13,7 @@ export async function handlePractice(userId: string, sessionId: string, body: Pr
   const session = await db.playSession.findFirst({ where: { id: sessionId, userId }, include: { game: true } });
   if (!session || session.game.deletedAt) throw Errors.notFound("Session not found.");
   try {
-    return respondPractice(session.game.spec as unknown as GameSpec, session.state as unknown as PlayState, sessionId, body);
+    return respondPractice(session.game.spec as unknown as GameSpec, session.state as unknown as PlayState, answerSeed(sessionId), body);
   } catch (e) {
     if (e instanceof PracticeNotFound) throw Errors.notFound(e.message);
     throw e;

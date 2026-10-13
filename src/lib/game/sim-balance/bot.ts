@@ -3,7 +3,7 @@
  * Used to measure balance (length, score/stars, stuck states). Pure: no I/O, no Math.random, no Date.now.
  * Nothing here ships in a bundle; it is imported by tests and by `scripts/balance-report.ts`.
  */
-import { revealSolution, type Answer } from "../challenges/grade";
+import { revealSolution, toPublicAnswer, type Answer } from "../challenges/grade";
 import type { Challenge, GameSpec } from "../spec/schema";
 import { GameEventError, processEvent, type GameEvent } from "../state/events";
 import { collectibleIds, findArea, findChallenge, initialState, maxScore, portalOpen, stationActive, summarize, type PlayState } from "../state/progress";
@@ -176,7 +176,7 @@ export function playGame(spec: GameSpec, skill: Skill, seed: string): PlayResult
     spend(thinkSeconds(ch));
     if (ch.hint && rnd() < skill.pHint) send({ type: "hint", stationId }, HINT_SECONDS);
     for (let tries = 0; !state.resolvedStations[stationId] && tries < 10; tries++) {
-      const answer = rnd() < (tries === 0 ? skill.pFirst : skill.pRetry) ? rightAnswer(ch) : wrongAnswerFor(ch, rnd);
+      const answer = toPublicAnswer(ch, rnd() < (tries === 0 ? skill.pFirst : skill.pRetry) ? rightAnswer(ch) : wrongAnswerFor(ch, rnd), seed);
       const res = send({ type: "answer", stationId, answer }, FEEDBACK_SECONDS);
       attempts += 1;
       if (!res) break;

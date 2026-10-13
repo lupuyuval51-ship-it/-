@@ -155,6 +155,9 @@ function activePercent(spec: GameSpec, sessions: StoredSession[]): number {
   return Math.round((active.state.missionsDone.length / spec.missions.length) * 100);
 }
 
+/** The shuffle/opaque-id seed of one review card: it changes with every review, so the same question looks different each time. */
+const deckSeed = (card: { key: string; reviews: number }): string => `deck:${card.key}:${card.reviews}`;
+
 export class OfflineStore {
   private listeners = new Set<() => void>();
   /** True while merging cloud rows: those writes are not user changes and must not trigger another sync. */
@@ -494,7 +497,7 @@ export class OfflineStore {
     if (b.action === "start") {
       const items = dueCards(Object.values(this.syncDeck()), now).flatMap((card) => {
         const ch = this.getGame(card.gameId) && findChallenge(this.getGame(card.gameId)!.spec, card.challengeId);
-        return ch ? [{ ...toPublicChallenge(ch, `deck:${card.key}:${card.reviews}`), id: card.key }] : [];
+        return ch ? [{ ...toPublicChallenge(ch, deckSeed(card)), id: card.key }] : [];
       });
       return { items };
     }
@@ -504,7 +507,7 @@ export class OfflineStore {
     const ch = game ? findChallenge(game.spec, card!.challengeId) : undefined;
     if (!card || !game || !ch) throw new OfflineError(404, "NOT_FOUND", "That question is not in your review deck.");
     if (b.action === "hint") return { hint: ch.hint ?? null };
-    const graded = gradeAnswer(ch, b.answer, game.spec.meta.language);
+    const graded = gradeAnswer(ch, b.answer, game.spec.meta.language, deckSeed(card));
     const resolved = graded.correct || b.attempt >= MAX_ATTEMPTS_PER_CHALLENGE;
     const revealed = !graded.correct && resolved;
     if (resolved) {
@@ -518,7 +521,7 @@ export class OfflineStore {
         correct: graded.correct, feedback: graded.feedback, detail: graded.detail, resolved, revealed, pointsAwarded: 0,
         attemptsLeft: Math.max(0, MAX_ATTEMPTS_PER_CHALLENGE - b.attempt),
         explanation: resolved ? ch.explanation : undefined,
-        reveal: revealed ? revealSolution(ch) : undefined,
+        reveal: revealed ? revealSolution(ch, deckSeed(card)) : undefined,
       },
     };
   }

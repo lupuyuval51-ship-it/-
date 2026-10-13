@@ -22,19 +22,21 @@ export function practiceIds(state: PlayState): string[] {
   return Object.entries(state.records).filter(([, r]) => r.resolved && (r.wrong > 0 || r.revealed)).map(([id]) => id);
 }
 
-export function respondPractice(spec: GameSpec, state: PlayState, sessionId: string, body: PracticeBody) {
+/** `seedBase` is the session id in the offline app and the server's secret answer seed on the website. */
+export function respondPractice(spec: GameSpec, state: PlayState, seedBase: string, body: PracticeBody) {
+  const seed = `${seedBase}:practice`;
   const ids = practiceIds(state);
   if (body.action === "start") {
     const items = ids.flatMap((id) => {
       const ch = findChallenge(spec, id);
-      return ch ? [toPublicChallenge(ch, `${sessionId}:practice`)] : [];
+      return ch ? [toPublicChallenge(ch, seed)] : [];
     });
     return { items };
   }
   if (!ids.includes(body.challengeId)) throw new PracticeNotFound("That question is not part of your review.");
   const ch = findChallenge(spec, body.challengeId)!;
   if (body.action === "hint") return { hint: ch.hint ?? null };
-  const graded = gradeAnswer(ch, body.answer, spec.meta.language);
+  const graded = gradeAnswer(ch, body.answer, spec.meta.language, seed);
   const resolved = graded.correct || body.attempt >= MAX_ATTEMPTS_PER_CHALLENGE;
   const revealed = !graded.correct && resolved;
   return {
@@ -42,7 +44,7 @@ export function respondPractice(spec: GameSpec, state: PlayState, sessionId: str
       correct: graded.correct, feedback: graded.feedback, detail: graded.detail, resolved, revealed, pointsAwarded: 0,
       attemptsLeft: Math.max(0, MAX_ATTEMPTS_PER_CHALLENGE - body.attempt),
       explanation: resolved ? ch.explanation : undefined,
-      reveal: revealed ? revealSolution(ch) : undefined,
+      reveal: revealed ? revealSolution(ch, seed) : undefined,
     },
   };
 }

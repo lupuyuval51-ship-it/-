@@ -28,6 +28,8 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
 
   CRON_SECRET: optional(z.string().min(16)),
+  /** Secret behind the opaque answer ids players see (see answer-seed.ts). Defaults to a value derived from DATABASE_URL, which clients never see. */
+  ANSWER_SEED_SECRET: optional(z.string().min(16)),
   ENABLE_TEST_HOOKS: bool.default(false),
 });
 

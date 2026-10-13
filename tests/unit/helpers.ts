@@ -1,4 +1,4 @@
-import { revealSolution, type Answer } from "@/lib/game/challenges/grade";
+import { revealSolution, toPublicAnswer, type Answer } from "@/lib/game/challenges/grade";
 import { GAME_TYPES, type GameType } from "@/lib/game/spec/constants";
 import type { Challenge, GameSpec } from "@/lib/game/spec/schema";
 import { validateGameSpec } from "@/lib/game/spec/validate";
@@ -17,8 +17,16 @@ export function validDemoSpec(over: Partial<GenerationRequest> = {}): GameSpec {
   return res.spec;
 }
 
-/** The correct answer for any challenge, derived from the server's own reveal logic. */
-export function correctAnswer(ch: Challenge): Answer {
+/**
+ * The correct answer for any challenge, derived from the server's own reveal logic. Pass the session's `seed` to get it in
+ * the opaque ids the player is shown (what the reducer expects); without one it uses the game file's ids.
+ */
+export function correctAnswer(ch: Challenge, seed?: string): Answer {
+  const raw = correctRaw(ch);
+  return seed === undefined ? raw : toPublicAnswer(ch, raw, seed);
+}
+
+function correctRaw(ch: Challenge): Answer {
   const r = revealSolution(ch) as Record<string, unknown>;
   switch (ch.type) {
     case "choice": return { type: "choice", optionId: r.optionId as string };
@@ -30,7 +38,12 @@ export function correctAnswer(ch: Challenge): Answer {
   }
 }
 
-export function wrongAnswer(ch: Challenge): Answer {
+export function wrongAnswer(ch: Challenge, seed?: string): Answer {
+  const raw = wrongRaw(ch);
+  return seed === undefined ? raw : toPublicAnswer(ch, raw, seed);
+}
+
+function wrongRaw(ch: Challenge): Answer {
   switch (ch.type) {
     case "choice": return { type: "choice", optionId: ch.options.find((o) => o.id !== ch.correctOptionId)!.id };
     case "numeric": return { type: "numeric", value: ch.answer + ch.tolerance + 12345 };

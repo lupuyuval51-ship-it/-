@@ -9,6 +9,7 @@ import { processEvent, GameEventError, type GameEvent } from "@/lib/game/state/e
 import { initialState, maxScore, recompute, summarize, toClientState, type ClientState, type LearningSummary, type PlayState } from "@/lib/game/state/progress";
 import { resolveEntitlement } from "../allowance/entitlement";
 import { db, type Tx } from "../db";
+import { answerSeed } from "./answer-seed";
 import { getEnv } from "../env";
 import { ApiError, Errors } from "../http/errors";
 
@@ -133,7 +134,7 @@ export async function applyPlayEvent(userId: string, sessionId: string, event: G
 
     let result;
     try {
-      result = processEvent(spec, state, event, { now: now.getTime(), seed: session.id });
+      result = processEvent(spec, state, event, { now: now.getTime(), seed: answerSeed(session.id) });
     } catch (err) {
       if (err instanceof GameEventError) throw new ApiError(STATE_ERRORS.has(err.code) ? 409 : 400, err.code, err.message);
       throw err;

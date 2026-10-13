@@ -91,7 +91,7 @@ export function processEvent(spec: GameSpec, prev: PlayState, event: GameEvent, 
       if (!challengeId) return reject("NOT_OPENED", "Open the challenge before answering.");
       if (state.resolvedStations[station.id]) return reject("ALREADY_RESOLVED", "You already completed this challenge.");
       const challenge = findChallenge(spec, challengeId)!;
-      const grade = gradeAnswer(challenge, event.answer, lang);
+      const grade = gradeAnswer(challenge, event.answer, lang, ctx.seed);
       const invalid = event.answer.type !== challenge.type;
       if (invalid) return reject("BAD_ANSWER", "That answer does not match this challenge.");
       const outcome = recordAttempt(spec, state, station.id, grade.correct, ctx.now);
@@ -105,7 +105,7 @@ export function processEvent(spec: GameSpec, prev: PlayState, event: GameEvent, 
           pointsAwarded: outcome.pointsAwarded,
           attemptsLeft: outcome.attemptsLeft,
           explanation: outcome.resolved ? challenge.explanation : undefined,
-          reveal: outcome.revealed ? revealSolution(challenge) : undefined,
+          reveal: outcome.revealed ? revealSolution(challenge, ctx.seed) : undefined,
         },
       };
       break;

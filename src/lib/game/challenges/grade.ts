@@ -32,8 +32,99 @@ export interface GradeResult {
 
 const round = (n: number, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
 
-export function gradeAnswer(ch: Challenge, answer: Answer, lang: ContentLanguage): GradeResult {
+// ───────────────────────────── opaque ids ─────────────────────────────
+
+/**
+ * The browser never sees the ids written in the game: choices, sequence items and both sides of a match carry opaque,
+ * per-session ids derived from the session seed. Otherwise the ids themselves would give the answer away (a match is
+ * "right id = left id", demo sequences are numbered in the right order). `seed` must be unknown to the player on the
+ * server (see `answerSeed` in src/server/games/answer-seed.ts); in the offline app the device is the trust boundary.
+ */
+type IdKind = "o" | "i" | "l" | "r";
+
+interface IdMap {
+  toPublic: Map<string, string>;
+  toRaw: Map<string, string>;
+}
+
+function idMap(ch: Challenge, seed: string, kind: IdKind): IdMap {
+  const raw =
+    ch.type === "choice" ? ch.options.map((o) => o.id) : ch.type === "sequence" ? ch.items.map((i) => i.id) : ch.type === "match" ? ch.pairs.map((p) => p.id) : [];
+  const toPublic = new Map<string, string>();
+  const toRaw = new Map<string, string>();
+  for (const id of raw) {
+    let salt = 0;
+    let pub = `${kind}${hashSeed(`${seed}|${ch.id}|${kind}|${id}`).toString(36)}`;
+    while (toRaw.has(pub)) pub = `${kind}${hashSeed(`${seed}|${ch.id}|${kind}|${id}|${++salt}`).toString(36)}`;
+    toPublic.set(id, pub);
+    toRaw.set(pub, id);
+  }
+  return { toPublic, toRaw };
+}
+
+/** The answer as the game file knows it, or null when it names an id this player was never shown. */
+function toRawAnswer(ch: Challenge, answer: Answer, seed: string): Answer | null {
+  switch (answer.type) {
+    case "choice": {
+      const id = idMap(ch, seed, "o").toRaw.get(answer.optionId);
+      return id === undefined ? null : { type: "choice", optionId: id };
+    }
+    case "sequence": {
+      const m = idMap(ch, seed, "i").toRaw;
+      const order = answer.order.map((id) => m.get(id));
+      return order.some((id) => id === undefined) ? null : { type: "sequence", order: order as string[] };
+    }
+    case "match": {
+      const l = idMap(ch, seed, "l").toRaw;
+      const r = idMap(ch, seed, "r").toRaw;
+      const pairs = answer.pairs.map((p) => ({ leftId: l.get(p.leftId), rightId: r.get(p.rightId) }));
+      return pairs.some((p) => p.leftId === undefined || p.rightId === undefined) ? null : { type: "match", pairs: pairs as { leftId: string; rightId: string }[] };
+    }
+    default:
+      return answer;
+  }
+}
+
+/** An answer written with the game file's ids, rewritten with the opaque ids the player was shown (for bots and tests). */
+export function toPublicAnswer(ch: Challenge, answer: Answer, seed: string): Answer {
+  if (answer.type === "choice" && ch.type === "choice") return { type: "choice", optionId: idMap(ch, seed, "o").toPublic.get(answer.optionId) ?? answer.optionId };
+  if (answer.type === "sequence" && ch.type === "sequence") {
+    const m = idMap(ch, seed, "i").toPublic;
+    return { type: "sequence", order: answer.order.map((id) => m.get(id) ?? id) };
+  }
+  if (answer.type === "match" && ch.type === "match") {
+    const l = idMap(ch, seed, "l").toPublic;
+    const r = idMap(ch, seed, "r").toPublic;
+    return { type: "match", pairs: answer.pairs.map((p) => ({ leftId: l.get(p.leftId) ?? p.leftId, rightId: r.get(p.rightId) ?? p.rightId })) };
+  }
+  return answer;
+}
+
+/** Detail returned to the player, re-keyed with the ids the player saw. */
+function publicDetail(ch: Challenge, detail: GradeResult["detail"], seed: string): GradeResult["detail"] {
+  if (!detail) return detail;
+  if (ch.type === "choice" && typeof detail.chosen === "string") return { ...detail, chosen: idMap(ch, seed, "o").toPublic.get(detail.chosen) };
+  if (ch.type === "match" && detail.right && typeof detail.right === "object") {
+    const l = idMap(ch, seed, "l").toPublic;
+    return { ...detail, right: Object.fromEntries(Object.entries(detail.right as Record<string, boolean>).map(([id, ok]) => [l.get(id) ?? id, ok])) };
+  }
+  return detail;
+}
+
+/**
+ * Grades an answer. With a `seed` the answer must use the opaque ids of the public view (raw ids are refused) and the
+ * detail comes back in opaque ids too; without one it is the game file's own ids (analysis tools, unit tests).
+ */
+export function gradeAnswer(ch: Challenge, answer: Answer, lang: ContentLanguage, seed?: string): GradeResult {
   if (answer.type !== ch.type) return { correct: false, feedback: msg(lang, "invalidAnswer") };
+  if (seed === undefined) return gradeRaw(ch, answer, lang);
+  const raw = toRawAnswer(ch, answer, seed);
+  if (!raw) return { correct: false, feedback: msg(lang, "invalidAnswer") };
+  const graded = gradeRaw(ch, raw, lang);
+  return { ...graded, detail: publicDetail(ch, graded.detail, seed) };
+}
+
+function gradeRaw(ch: Challenge, answer: Answer, lang: ContentLanguage): GradeResult {
 
   switch (ch.type) {
     case "choice": {
@@ -128,7 +219,25 @@ function programFeedback(ch: ProgramChallenge, run: RunResult, lang: ContentLang
 // ───────────────────────────── revealing solutions ─────────────────────────────
 
 /** Released only after repeated failure so a learner is never permanently stuck. */
-export function revealSolution(ch: Challenge): Record<string, unknown> {
+export function revealSolution(ch: Challenge, seed?: string): Record<string, unknown> {
+  if (seed !== undefined) {
+    // The same solution, written in the opaque ids this player was shown.
+    switch (ch.type) {
+      case "choice":
+        return { optionId: idMap(ch, seed, "o").toPublic.get(ch.correctOptionId) };
+      case "sequence": {
+        const m = idMap(ch, seed, "i").toPublic;
+        return { order: ch.items.map((i) => m.get(i.id)) };
+      }
+      case "match": {
+        const l = idMap(ch, seed, "l").toPublic;
+        const r = idMap(ch, seed, "r").toPublic;
+        return { pairs: ch.pairs.map((p) => ({ leftId: l.get(p.id), rightId: r.get(p.id) })) };
+      }
+      default:
+        break;
+    }
+  }
   switch (ch.type) {
     case "choice":
       return { optionId: ch.correctOptionId };
@@ -180,19 +289,26 @@ export function seededShuffle<T>(items: readonly T[], seed: string, mustDiffer =
 export function toPublicChallenge(ch: Challenge, seed: string): PublicChallenge {
   const base = { id: ch.id, title: ch.title, prompt: ch.prompt, concept: ch.concept, level: ch.level, timeLimitSec: ch.timeLimitSec, hasHint: Boolean(ch.hint) };
   switch (ch.type) {
-    case "choice":
-      return { ...base, type: "choice", options: seededShuffle(ch.options, `${seed}:${ch.id}`).map((o) => ({ id: o.id, text: o.text })) };
+    case "choice": {
+      const ids = idMap(ch, seed, "o").toPublic;
+      return { ...base, type: "choice", options: seededShuffle(ch.options, `${seed}:${ch.id}`).map((o) => ({ id: ids.get(o.id)!, text: o.text })) };
+    }
     case "numeric":
       return { ...base, type: "numeric", unit: ch.unit };
-    case "sequence":
-      return { ...base, type: "sequence", items: seededShuffle(ch.items, `${seed}:${ch.id}`, true).map((i) => ({ id: i.id, text: i.text })) };
-    case "match":
+    case "sequence": {
+      const ids = idMap(ch, seed, "i").toPublic;
+      return { ...base, type: "sequence", items: seededShuffle(ch.items, `${seed}:${ch.id}`, true).map((i) => ({ id: ids.get(i.id)!, text: i.text })) };
+    }
+    case "match": {
+      const l = idMap(ch, seed, "l").toPublic;
+      const r = idMap(ch, seed, "r").toPublic;
       return {
         ...base,
         type: "match",
-        lefts: ch.pairs.map((p) => ({ id: p.id, text: p.left })),
-        rights: seededShuffle(ch.pairs, `${seed}:${ch.id}`, true).map((p) => ({ id: p.id, text: p.right })),
+        lefts: ch.pairs.map((p) => ({ id: l.get(p.id)!, text: p.left })),
+        rights: seededShuffle(ch.pairs, `${seed}:${ch.id}`, true).map((p) => ({ id: r.get(p.id)!, text: p.right })),
       };
+    }
     case "program":
       return { ...base, type: "program", grid: ch.grid, allowed: ch.allowed, maxBlocks: ch.maxBlocks };
     case "simulation":
