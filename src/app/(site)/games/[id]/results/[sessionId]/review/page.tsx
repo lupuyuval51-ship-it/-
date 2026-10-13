@@ -3,8 +3,9 @@ import { ReviewView } from "@/components/games/ReviewView";
 import { requireUser } from "@/server/auth/current";
 import { getSessionResults } from "@/server/games/play";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Review your mistakes" };
+export const generateMetadata = titleFor("rev.title");
 export const dynamic = "force-dynamic";
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string; sessionId: string }> }) {

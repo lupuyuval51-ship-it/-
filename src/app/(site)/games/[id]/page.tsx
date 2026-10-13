@@ -14,8 +14,9 @@ import { getBackend } from "@/server/ai/registry";
 import { getGameDetails } from "@/server/games/library";
 import { listRevisions } from "@/server/games/versions";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Game details" };
+export const generateMetadata = titleFor("page.details");
 export const dynamic = "force-dynamic";
 
 export default async function GameDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -46,7 +47,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
         <h1 className="text-3xl font-extrabold" data-testid="game-title">{game.title}</h1>
         <p className="max-w-3xl text-lg text-muted">{overview.tagline}</p>
         <p className="text-xs text-muted">
-          {t("det.created", { date: formatDate(game.createdAt, locale) })} · {t("det.minutes", { n: overview.estimatedMinutes })} · {game.generator.kind === "ai" ? t("det.generator.ai") : t("det.generator", { provider: game.generator.provider, model: game.generator.model })}
+          {t("det.created", { date: formatDate(game.createdAt, locale) })} · {t("det.minutes", { n: overview.estimatedMinutes })} · {game.generator.kind === "ai" ? t("det.generator.ai") : game.generator.kind === "engine" ? t("det.generator.engine") : t("det.generator.demo")}
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
           <Link href={`/play/${game.id}`} data-testid="details-play" className={`${btn} bg-neon text-ink-950 shadow-glow hover:brightness-110`}>
@@ -115,7 +116,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             {inProgress ? (
               <p className="text-sm">{t("det.progress.inProgress", { done: inProgress.missionsDone, total: inProgress.totalMissions })}</p>
             ) : progress ? (
-              <p className="flex items-center gap-2 text-sm">{t("det.progress.best", { score: progress.bestScore })}<Stars n={progress.bestStars} size="sm" /></p>
+              <p className="flex items-center gap-2 text-sm">{t("det.progress.best", { score: progress.bestScore })}<Stars n={progress.bestStars} size="sm" label={t("common.stars", { n: progress.bestStars })} /></p>
             ) : (
               <p className="text-sm text-muted">{t("det.progress.none")}</p>
             )}
@@ -127,7 +128,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
                   {recent.map((r) => (
                     <li key={r.id} className="flex items-center justify-between gap-2">
                       <span className="text-muted">{r.finishedAt ? formatDate(r.finishedAt, locale) : ""}</span>
-                      <span className="flex items-center gap-2"><Stars n={r.stars} size="sm" /><Link href={`/games/${game.id}/results/${r.id}`} className="text-neon hover:underline">{t("det.results")}</Link></span>
+                      <span className="flex items-center gap-2"><Stars n={r.stars} size="sm" label={t("common.stars", { n: r.stars })} /><Link href={`/games/${game.id}/results/${r.id}`} className="text-neon hover:underline">{t("det.results")}</Link></span>
                     </li>
                   ))}
                 </ul>

@@ -24,7 +24,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review, library
       <Link href={`/games/${game.id}`} className="text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
       <header className="space-y-3 text-center">
         <h1 className="text-3xl font-extrabold">{t("res.title")}</h1>
-        <div className="flex justify-center"><Stars n={s.stars} size="lg" /></div>
+        <div className="flex justify-center"><Stars n={s.stars} size="lg" label={t("common.stars", { n: s.stars })} /></div>
         <p className="text-2xl font-bold" data-testid="results-score">{t("res.score", { score: s.score, max: s.maxScore })}</p>
         <p className="text-sm text-muted">{t("res.time", { m: minutes })} · {t("res.collected", { n: s.collected, total: s.collectiblesTotal })}</p>
       </header>

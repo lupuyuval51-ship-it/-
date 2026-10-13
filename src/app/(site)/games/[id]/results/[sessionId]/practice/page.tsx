@@ -2,8 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { PracticeClient } from "@/components/game/PracticeClient";
 import { requireUser } from "@/server/auth/current";
 import { getSessionResults } from "@/server/games/play";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Practise your mistakes" };
+export const generateMetadata = titleFor("prac.label");
 export const dynamic = "force-dynamic";
 
 export default async function PracticePage({ params }: { params: Promise<{ id: string; sessionId: string }> }) {

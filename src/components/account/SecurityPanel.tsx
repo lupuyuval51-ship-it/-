@@ -36,7 +36,7 @@ export function SecurityPanel() {
   async function remove(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const password = String(new FormData(e.currentTarget).get("password") ?? "");
-    if (!window.confirm(t("acc.delete.text"))) return;
+    if (!window.confirm(t("acc.delete.confirm"))) return;
     setBusy(true);
     setDel(null);
     try {

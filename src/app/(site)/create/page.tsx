@@ -9,8 +9,9 @@ import { gameTypeAllowed, gameTypeFeature, modeAllowed } from "@/lib/game/spec/t
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { listGames } from "@/server/games/library";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Create a game" };
+export const generateMetadata = titleFor("create.title");
 export const dynamic = "force-dynamic";
 
 /** Mechanics that can be requested for an extension (the rest are implied by the content). */

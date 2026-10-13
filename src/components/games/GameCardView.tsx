@@ -28,15 +28,15 @@ export function GameCardView({ game, t }: { game: GameCard; t: TFn }) {
           {p.inProgress && <ProgressBar value={p.percent} label={t("lib.progress", { n: p.percent })} />}
           <div className="flex items-center justify-between text-xs text-muted">
             <span>{p.inProgress ? t("lib.progress", { n: p.percent }) : t("lib.best", { score: p.bestScore })}</span>
-            {p.bestStars > 0 && <Stars n={p.bestStars} size="sm" />}
+            {p.bestStars > 0 && <Stars n={p.bestStars} size="sm" label={t("common.stars", { n: p.bestStars })} />}
           </div>
         </div>
       )}
       <div className="mt-auto flex gap-2 pt-1">
-        <Link href={`/play/${game.id}`} data-testid="game-play" className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-neon px-4 text-sm font-semibold text-ink-950 hover:brightness-110">
+        <Link href={`/play/${game.id}`} data-testid="game-play" aria-label={`${p?.inProgress ? t("lib.continue") : t("lib.play")}: ${game.title}`} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-neon px-4 text-sm font-semibold text-ink-950 hover:brightness-110">
           {p?.inProgress ? t("lib.continue") : t("lib.play")}
         </Link>
-        <Link href={`/games/${game.id}`} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">
+        <Link href={`/games/${game.id}`} aria-label={`${t("lib.details")}: ${game.title}`} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-4 text-sm font-semibold hover:bg-text/10">
           {t("lib.details")}
         </Link>
       </div>

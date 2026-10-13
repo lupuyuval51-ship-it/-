@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Card } from "@/components/ui";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Checkout cancelled" };
+export const generateMetadata = titleFor("billing.cancel.title");
 
 export default async function BillingCancelPage() {
   const { t } = await getT();

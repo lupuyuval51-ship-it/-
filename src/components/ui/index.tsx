@@ -57,8 +57,9 @@ export function Badge({ tone = "neutral", className, ...rest }: HTMLAttributes<H
   return <span {...rest} className={cx("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium", tones[tone], className)} />;
 }
 
-export function Spinner({ className, label = "loading" }: { className?: string; label?: string }) {
-  return <span role="status" aria-label={label} className={cx("inline-block size-5 animate-spin rounded-full border-2 border-neon border-t-transparent", className)} />;
+/** Decorative by default (it always sits next to text that says what is happening); pass a translated `label` to make it a status of its own. */
+export function Spinner({ className, label }: { className?: string; label?: string }) {
+  return <span {...(label ? { role: "status", "aria-label": label } : { "aria-hidden": true })} className={cx("inline-block size-5 animate-spin rounded-full border-2 border-neon border-t-transparent", className)} />;
 }
 
 export function Alert({ tone = "info", children, className, ...rest }: HTMLAttributes<HTMLDivElement> & { tone?: "info" | "error" | "success" | "warn"; children: ReactNode }) {
@@ -97,7 +98,7 @@ const fieldBase = cx(
  * Label + control + hint/error/success. The single child control gets `id`, `aria-invalid` and `aria-describedby`
  * wired automatically, so error and success messages are announced with the field.
  */
-export function Field({ label, hint, error, success, children, htmlFor }: { label: string; hint?: string; error?: string | null; success?: string | null; children: ReactNode; htmlFor?: string }) {
+export function Field({ label, hint, error, success, children, htmlFor, required }: { label: string; hint?: string; error?: string | null; success?: string | null; children: ReactNode; htmlFor?: string; required?: boolean }) {
   const auto = useId();
   const id = htmlFor ?? `f${auto}`;
   const msgId = `${id}-msg`;
@@ -108,6 +109,7 @@ export function Field({ label, hint, error, success, children, htmlFor }: { labe
         id: (only.props.id as string | undefined) ?? id,
         "aria-invalid": error ? true : (only.props["aria-invalid"] as boolean | undefined),
         "aria-describedby": message ? msgId : (only.props["aria-describedby"] as string | undefined),
+        "aria-required": required ? true : (only.props["aria-required"] as boolean | undefined),
         "data-valid": success && !error ? true : undefined,
       })
     : children;
@@ -132,10 +134,10 @@ export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p}
 export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...p} className={cx(fieldBase, "min-h-24 resize-y", p.className)} />;
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(fieldBase, p.className)} />;
 
-export function Stars({ n, size = "md" }: { n: number; size?: "sm" | "md" | "lg" }) {
+export function Stars({ n, size = "md", label }: { n: number; size?: "sm" | "md" | "lg"; label?: string }) {
   const sz = { sm: "size-4", md: "size-5", lg: "size-9" }[size];
   return (
-    <span role="img" aria-label={`${n}/3`} className="inline-flex gap-0.5">
+    <span role="img" aria-label={label ?? `${n}/3`} className="inline-flex gap-0.5">
       {[1, 2, 3].map((i) => (
         <Star key={i} aria-hidden className={cx(sz, i <= n ? "fill-amber text-amber" : "fill-ink-600 text-ink-600")} />
       ))}

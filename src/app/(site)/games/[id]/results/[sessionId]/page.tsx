@@ -3,8 +3,9 @@ import { ResultsView } from "@/components/games/ResultsView";
 import { requireUser } from "@/server/auth/current";
 import { getSessionResults } from "@/server/games/play";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Learning results" };
+export const generateMetadata = titleFor("res.title");
 export const dynamic = "force-dynamic";
 
 export default async function ResultsPage({ params }: { params: Promise<{ id: string; sessionId: string }> }) {

@@ -11,8 +11,9 @@ import { paymentsStatus } from "@/server/billing/gateway";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { getRegion } from "@/server/region";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Pricing" };
+export const generateMetadata = titleFor("pricing.title");
 export const dynamic = "force-dynamic";
 
 const linkBtn = "inline-flex min-h-12 w-full items-center justify-center rounded-xl px-6 font-semibold";
@@ -62,7 +63,7 @@ export default async function PricingPage() {
                   {!price.isFree && <span className="text-base font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
                 {!price.isFree && <p className="text-xs text-muted">{price.currency === "ILS" ? t("pricing.region.il") : t("pricing.region.usd")}</p>}
-                {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd")}</p>}
+                {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd", { price: price.text })}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</span></li>

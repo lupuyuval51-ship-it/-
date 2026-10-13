@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Button, Card, Field, Input, Select } from "@/components/ui";
 import { REGIONS, OTHER_REGION } from "@/lib/regions";
+import { PasswordInput } from "./PasswordInput";
 
 type Mode = "login" | "register";
 
@@ -20,15 +21,22 @@ export function AuthForm({ mode, next, defaultRegion }: { mode: Mode; next: stri
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
     const email = String(form.get("email") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const errs: Record<string, string> = {};
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) errs.email = t("auth.error.email");
+    if (!register && !password) errs.password = t("auth.error.password");
     if (register && password.length < 10) errs.password = t("auth.error.weak");
     if (register && !String(form.get("displayName") ?? "").trim()) errs.displayName = t("auth.error.name");
     setFields(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      // keyboard and screen-reader users land on the first field that needs fixing (its message is read with it)
+      const first = (["displayName", "email", "password"] as const).find((k) => errs[k]);
+      if (first) formEl.querySelector<HTMLElement>(`#${first}`)?.focus();
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -60,15 +68,15 @@ export function AuthForm({ mode, next, defaultRegion }: { mode: Mode; next: stri
       </div>
       <form onSubmit={submit} className="space-y-4" noValidate data-testid={`${mode}-form`}>
         {register && (
-          <Field label={t("auth.name")} htmlFor="displayName" error={fields.displayName}>
+          <Field label={t("auth.name")} htmlFor="displayName" error={fields.displayName} required>
             <Input id="displayName" name="displayName" autoComplete="nickname" maxLength={60} required />
           </Field>
         )}
-        <Field label={t("auth.email")} htmlFor="email" error={fields.email}>
+        <Field label={t("auth.email")} htmlFor="email" error={fields.email} required>
           <Input id="email" name="email" type="email" inputMode="email" autoComplete="email" dir="ltr" required />
         </Field>
-        <Field label={t("auth.password")} htmlFor="password" hint={register ? t("auth.password.hint") : undefined} error={fields.password}>
-          <Input id="password" name="password" type="password" autoComplete={register ? "new-password" : "current-password"} dir="ltr" required />
+        <Field label={t("auth.password")} htmlFor="password" hint={register ? t("auth.password.hint") : undefined} error={fields.password} required>
+          <PasswordInput id="password" name="password" autoComplete={register ? "new-password" : "current-password"} required />
         </Field>
         {register && (
           <Field label={t("auth.region")} htmlFor="country" hint={t("auth.region.hint")}>

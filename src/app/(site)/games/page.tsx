@@ -5,8 +5,9 @@ import { GameCardView } from "@/components/games/GameCardView";
 import { requireUser } from "@/server/auth/current";
 import { listGames } from "@/server/games/library";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "My games" };
+export const generateMetadata = titleFor("lib.title");
 export const dynamic = "force-dynamic";
 
 export default async function LibraryPage() {

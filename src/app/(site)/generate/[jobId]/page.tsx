@@ -3,8 +3,9 @@ import { GenerationProgress } from "@/components/create/GenerationProgress";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { requireUser } from "@/server/auth/current";
 import { getUserJob } from "@/server/generation/jobs";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Creating your game" };
+export const generateMetadata = titleFor("gen.title");
 export const dynamic = "force-dynamic";
 
 export default async function GeneratePage({ params }: { params: Promise<{ jobId: string }> }) {

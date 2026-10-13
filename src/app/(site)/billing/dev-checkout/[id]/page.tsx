@@ -5,8 +5,9 @@ import { requireUser } from "@/server/auth/current";
 import { db } from "@/server/db";
 import { getEnv } from "@/server/env";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Payment simulator" };
+export const generateMetadata = titleFor("billing.dev.title");
 export const dynamic = "force-dynamic";
 
 export default async function DevCheckoutPage({ params }: { params: Promise<{ id: string }> }) {

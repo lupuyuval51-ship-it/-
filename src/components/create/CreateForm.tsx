@@ -83,6 +83,10 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
     setFieldErrors(errs);
     if (Object.keys(errs).length) {
       setError({ text: t("create.error.validation") });
+      // keyboard and screen-reader users land on the first field that needs fixing (its message is read with it)
+      const first = (["subject", "learningGoal", "material", "notes"] as const).find((k) => errs[k]);
+      const target = first ? e.currentTarget.elements.namedItem(first) : null;
+      if (target instanceof HTMLElement) target.focus();
       return;
     }
     setBusy(true);
@@ -206,6 +210,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
                   <span className="font-semibold">{t(`mode.${m}`)}{locked && <span className="ms-2 text-xs font-normal text-amber" data-testid={`mode-locked-${m}`}>{t("create.locked.suffix", { plan: t(`plan.${featureTier.unlockPlan}` as DictKey) })}</span>}</span>
                 </span>
                 <span className="text-sm text-muted">{t(`create.mode.${m}.desc` as DictKey)}</span>
+                {m === "EXTEND" && games.length === 0 && <span className="text-xs font-medium text-amber">{t("create.extend.none")}</span>}
               </label>
             );
           })}
@@ -226,7 +231,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
               </Field>
               <p className="text-xs text-muted">{t("create.extend.keep")}</p>
               {mismatch && <Alert tone="error">{t("create.error.mismatch")}</Alert>}
-              <Field label={t("create.extend.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal}>
+              <Field label={t("create.extend.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
                 <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -258,10 +263,10 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
         </Card>
       ) : (
         <Card className="space-y-4">
-          <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject}>
+          <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject} required>
             <Input id="subject" name="subject" maxLength={INPUT_LIMITS.subjectMax} placeholder={t("create.subject.placeholder")} data-testid="create-subject" autoComplete="off" />
           </Field>
-          <Field label={t("create.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal}>
+          <Field label={t("create.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
             <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">

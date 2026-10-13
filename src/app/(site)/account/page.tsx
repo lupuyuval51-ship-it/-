@@ -1,7 +1,7 @@
 import { ProfileSettings } from "@/components/account/ProfileSettings";
 import { SecurityPanel } from "@/components/account/SecurityPanel";
 import { SubscriptionPanel } from "@/components/account/SubscriptionPanel";
-import { Badge, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { PLANS } from "@/config/plans";
 import { formatDateTime } from "@/lib/format";
 import { getAllowanceSummary } from "@/server/allowance/summary";
@@ -9,9 +9,12 @@ import { requireUser } from "@/server/auth/current";
 import { getBillingView } from "@/server/billing/service";
 import { db } from "@/server/db";
 import { getT } from "@/server/i18n";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Account" };
+export const generateMetadata = titleFor("acc.title");
 export const dynamic = "force-dynamic";
+
+const USAGE_LIMIT = 15;
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
@@ -19,7 +22,7 @@ export default async function AccountPage() {
   const [billing, allowance, usage] = await Promise.all([
     getBillingView(user.id),
     getAllowanceSummary(user.id),
-    db.usageRecord.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: 15 }),
+    db.usageRecord.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: USAGE_LIMIT }),
   ]);
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -47,15 +50,16 @@ export default async function AccountPage() {
           <ul className="divide-y divide-line text-sm">
             {usage.map((u) => (
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <span>{t(`acc.usage.${u.kind}`)}</span>
-                <span className="flex items-center gap-2 text-xs text-muted">
-                  <Badge tone={u.kind === "COMMIT" ? "lime" : u.kind === "RELEASE" ? "amber" : "neutral"}>{u.kind}</Badge>
-                  {formatDateTime(u.createdAt, locale)}
+                <span className="flex items-center gap-2">
+                  <span aria-hidden className={`size-2 shrink-0 rounded-full ${u.kind === "COMMIT" ? "bg-lime" : u.kind === "RELEASE" ? "bg-amber" : "bg-muted"}`} />
+                  {t(`acc.usage.${u.kind}`)}
                 </span>
+                <span className="text-xs text-muted">{formatDateTime(u.createdAt, locale)}</span>
               </li>
             ))}
           </ul>
         )}
+        {usage.length === USAGE_LIMIT && <p className="text-xs text-muted">{t("acc.usage.more", { n: USAGE_LIMIT })}</p>}
       </Card>
 
       <SecurityPanel />

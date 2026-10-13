@@ -8,8 +8,9 @@ import { requireUser } from "@/server/auth/current";
 import { listGames } from "@/server/games/library";
 import { getT } from "@/server/i18n";
 import { resolveRender } from "@/server/games/play";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Dashboard" };
+export const generateMetadata = titleFor("nav.dashboard");
 export const dynamic = "force-dynamic";
 
 const btn = "inline-flex min-h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold";
