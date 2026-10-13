@@ -129,6 +129,12 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // the answer field and the "Check" button stay visible while typing a number.
   const kb = useKeyboardInset();
   const lifted = kb > 0 && !embedded;
+  // The sheet shrinks when the keyboard opens: keep the field being typed in inside the part of it that is still visible.
+  useEffect(() => {
+    if (!lifted) return;
+    const el = document.activeElement;
+    if (el instanceof HTMLElement && ref.current?.contains(el)) el.scrollIntoView({ block: "nearest" });
+  }, [lifted, kb, ref]);
   // A phone held sideways has room for two panes: the question on one side, the answers (and the verdict) on the other,
   // each scrolling on its own. The robot and simulation widgets are wide, so they keep one column. Only classes change
   // between the layouts, never the element tree, so turning the phone does not reset a half-made answer.
@@ -271,7 +277,7 @@ function ChoiceInput({ challenge, disabled, result, onChange }: { challenge: Ext
               revealed === o.id && "border-lime bg-lime/10",
               result?.correct && isPicked && "border-lime bg-lime/10")}
           >
-            <span aria-hidden="true" className={cx("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-[11px] font-bold leading-none", isPicked ? "border-neon bg-neon text-ink-950" : "border-muted text-muted")}>{idx + 1}</span>
+            <span aria-hidden="true" className={cx("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border text-xs font-bold leading-none", isPicked ? "border-neon bg-neon text-ink-950" : "border-muted text-muted")}>{idx + 1}</span>
             <RichText text={o.text} className="min-w-0 flex-1" />
             {revealed === o.id && <span className="sr-only">({t("challenge.correct")})</span>}
             {lastWrong === o.id && !isPicked && <span className="sr-only">({t("challenge.incorrect")})</span>}

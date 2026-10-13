@@ -37,7 +37,7 @@ export function MobileMenu({ label, children }: { label: string; children: React
 
   return (
     <details ref={ref} className="relative lg:hidden">
-      <summary aria-label={label} className="grid size-10 cursor-pointer list-none place-items-center rounded-lg border border-line hover:bg-text/10">
+      <summary aria-label={label} className="grid size-11 cursor-pointer list-none place-items-center rounded-lg border border-line hover:bg-text/10">
         <Menu aria-hidden className="size-5" />
       </summary>
       <div className="lu-pop absolute end-0 top-12 w-64 space-y-1 rounded-xl border border-line bg-ink-800 p-2 shadow-e3">{children}</div>
