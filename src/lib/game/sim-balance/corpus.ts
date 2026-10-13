@@ -143,6 +143,22 @@ A: Cairo
 Q: How many continents are there?
 A: 7`,
   },
+  {
+    id: "en-history", subject: "The space race",
+    text: `Space race: the competition between the United States and the Soviet Union to be first in space.
+Satellite: an object that orbits a planet or a moon.
+Orbit: the curved path of an object around a planet or a star.
+Cosmonaut: the Russian word for an astronaut.
+
+In 1957 the Soviet Union launched Sputnik, the first artificial satellite.
+In 1961 Yuri Gagarin became the first human to travel into space.
+In 1963 Valentina Tereshkova became the first woman in space.
+In 1965 Alexei Leonov made the first spacewalk outside a spacecraft.
+Neil Armstrong was the first human to walk on the Moon in 1969.
+In 1975 an American Apollo craft and a Soviet Soyuz craft docked together in orbit.
+In 1981 the first Space Shuttle, Columbia, flew into orbit.
+In 1998 the first module of the International Space Station was launched.`,
+  },
 ];
 
 const HE: Notes[] = [
@@ -254,6 +270,22 @@ const HE: Notes[] = [
 ת: קהיר
 ש: כמה יבשות יש?
 ת: 7`,
+  },
+  {
+    id: "he-history", subject: "מרוץ החלל",
+    text: `מרוץ החלל: התחרות בין ארצות הברית לברית המועצות מי יגיע ראשון להישגים בחלל.
+לוויין: גוף שמקיף כוכב לכת או ירח.
+מסלול: הדרך המעוקלת שבה גוף נע סביב כוכב לכת או כוכב.
+קוסמונאוט: המילה הרוסית לאסטרונאוט.
+
+בשנת 1957 שיגרה ברית המועצות את ספוטניק, הלוויין המלאכותי הראשון.
+בשנת 1961 יורי גגרין הפך לאדם הראשון שטס אל החלל.
+בשנת 1963 ולנטינה טרשקובה הפכה לאישה הראשונה בחלל.
+בשנת 1965 אלכסיי לאונוב ביצע את ההליכה הראשונה בחלל מחוץ לחללית.
+ניל ארמסטרונג היה האדם הראשון שצעד על הירח בשנת 1969.
+בשנת 1975 חללית אמריקנית מסוג אפולו וחללית סובייטית מסוג סויוז עגנו יחד במסלול.
+בשנת 1981 המעבורת הראשונה, קולומביה, יצאה למסלול סביב כדור הארץ.
+בשנת 1998 שוגר המודול הראשון של תחנת החלל הבינלאומית.`,
   },
 ];
 
