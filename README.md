@@ -206,7 +206,7 @@ POST /api/generations  →  reserve credit  →  background job  →  provider (
   change what it says once a mission is done. The validator plays the game with the real rules to prove a boss cannot make it unfinishable. Full
   Adventures built without a model (demo templates, the study engine, the offline app) end with a quiz boss made of the area's quickest questions
   (`src/lib/game/spec/boss.ts`); AI games may design their own, and the edit robot can add or change bosses.
-* **Honest labelling:** every game stores `generatorKind` (`ai` | `demo`), provider and model; the library, details page and play screen show it.
+* **Honest labelling:** every game stores `generatorKind` (`ai` | `demo` | `engine` | `catalog`), provider and model; the library, details page and play screen show it.
   When no demo template matches a subject the game says so instead of pretending to be about it.
 
 ### Study engine: a game made from *your* material (works without any AI)
@@ -235,6 +235,34 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
 * **Same safety path as everything else:** the output goes through the normal spec validation (references, solvability, limits, sanitising), control and
   bidi characters are stripped from the material, and nothing in a spec is executable.
 * **Limits (by design):** it can only ask about what the learner wrote — it cannot teach a subject from a bare topic name. For that, configure an AI provider.
+
+### Topic library: ready topics, no AI
+
+The create form (website and Android app) has a second way to build a game: **pick a topic from the topic library** and a level. The library
+currently holds **84 topics** (the goal is 200) in ten categories — maths, science, history and civics, geography, languages, computing,
+money and economy, health and safety, arts and literature, thinking and study skills. Each topic is curated, fact-checked content written natively
+in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
+(reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
+AI provider is configured — and adapts while playing (an easier two-option version after two misses, a harder version with more options after a streak).
+
+* **Code:** `src/lib/game/topics/` — `catalog.ts` (the small catalogue the picker shows: id, he/en title and description, category, ages),
+  `loaders.ts` (one literal dynamic `import()` per topic, so every topic is its own chunk and only the picked one is loaded),
+  `content/<id>.ts` (the content), `build.ts` (content → raw game spec), `types.ts` (the compact content format).
+* **Request:** `topicId` in the generation request (`src/lib/schemas/generation.ts`) — only a key into the catalogue, never a path; not allowed
+  together with `material` or for an extension. The server (`runTopicLibrary` in `src/server/generation/pipeline.ts`) and the offline app
+  (`generateOffline` / `generateOfflineWithProgress` in `src/lib/offline/generate.ts`) build, validate (`validateGameSpec`), add the final boss in a
+  Full Adventure, clamp to the feature tier and fit the game to a phone exactly as for every other game; on the website it costs one game of the
+  allowance with the same reservation and idempotency rules.
+* **Label:** stored as `generatorKind: "catalog"`, provider `topic-library` (the topic id in `templateId`) and shown everywhere as
+  **“Topic library”** / **״ספריית נושאים״** with the explanation “curated, fact-checked content — not AI”. Topic-library games cannot be extended
+  (create a new game at the next level instead).
+* **Adding a topic:** write `src/lib/game/topics/content/<id>.ts` in the format documented in `types.ts` (per level: `t` terms as
+  [en term, en meaning, he term, he meaning] whose meaning never names the term, `q` questions with 1–4 wrong options and an explanation, optional
+  `n` numeric items and `s` orderings), add one row to `TOPICS` in `catalog.ts` and one line to `TOPIC_LOADERS` in `loaders.ts`, raise
+  `EXPECTED_TOPICS` in `tests/unit/topics.test.ts` and run it. The test builds every topic × level × language (FAST, and FULL alternating languages)
+  through the real offline path and checks validation, finishability, unique and placed ids, the tier-B/C clamp, content hygiene (Hebrew is
+  Hebrew, no answer among the wrong options, no repeated questions, numeric answers present in their explanations) and runs the balance bots on a
+  sample. Every fact must be checked before it is written; when in doubt, leave the item out.
 
 Enable a provider by setting its key in `.env` (e.g. `ANTHROPIC_API_KEY=sk-ant-…`) and restart. `GET /api/ai/status` reports what is active
 (never the key).

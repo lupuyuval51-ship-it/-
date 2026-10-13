@@ -20,6 +20,7 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 - Hebrew/RTL is the default and English/LTR must stay functional: add every string to both dictionaries (`defineDict` fails the build on a missing key), use logical Tailwind properties (`ms-`/`me-`/`start-`/`end-`).
 - Demo templates are never presented as AI output: games store `generatorKind` and the UI shows the label.
 - No secrets in the client: no `NEXT_PUBLIC_*` variables, no keys in props. `.env` is never committed.
+- Topic library (`src/lib/game/topics`): curated, fact-checked he+en content per topic and level, built without any model and labelled `catalog` / “Topic library”, never AI. Each topic is its own lazily imported module (literal `import()` in `loaders.ts`; never in a first chunk); the catalogue lists only topics whose content exists; `topicId` is only a catalogue key. Same validation, tier clamp, phone fit and allowance as every game; `tests/unit/topics.test.ts` must stay green (count, hygiene, every topic × level builds and finishes).
 - AI output is untrusted: it must pass `validateGameSpec` (schema, cross-checks, solvability, sanitising) before it is stored or played. Nothing in a spec is executable.
 
 ## Offline Android app (`mobile/`, `android/`, `src/lib/offline`)

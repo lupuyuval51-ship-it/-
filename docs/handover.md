@@ -39,6 +39,10 @@ Request paths worth knowing:
   answer keys, explanations and solutions are released by the server after an attempt.
 * **Pay:** `POST /api/billing/checkout` (amount and currency come from `plans.ts`) → Stripe → `POST /api/webhooks/stripe` → signature check over the raw body → idempotent, ordered ingest (`src/server/billing/ingest.ts`) →
   `Subscription` row → `resolveEntitlement` (`src/server/allowance/entitlement.ts`, 48 h grace after the period end).
+* **Topic library (no AI):** a request with `topicId` is built from curated content in `src/lib/game/topics/` (one lazily imported module per topic,
+  `loaders.ts`) by `runTopicLibrary` in `src/server/generation/pipeline.ts` — before any backend is touched, so no model is called — and on the phone by
+  `generateOfflineWithProgress`. Same validation, tier clamp, phone fit and allowance; label `catalog` / “Topic library”. Tests: `tests/unit/topics.test.ts`,
+  `tests/integration/topic-library.test.ts`, the topic part of `tests/unit/bundle-boundary.test.ts`.
 * **Tiers:** the plan decides the *feature tier* (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) and the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
   (`assertRequestAllowed` in `src/server/generation/service.ts`, `clampToFeatureTier` in `src/lib/game/spec/tier.ts`).
 
@@ -79,7 +83,7 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 **Product behaviour**
 * One subscription per user; changing plan means cancel (access to period end) and subscribe again. In-place upgrade does not exist (it cannot cross currencies: Plus in ILS to Pro in USD).
 * Partial refunds, disputes and chargebacks do not change entitlements; Stripe Tax is not configured.
-* Demo mode has templates for five topics only (programming, maths, science, ancient Egypt, Spanish); other subjects get the closest template with a visible notice. The study engine only asks about what the learner pasted.
+* Demo mode has templates for five topics only (programming, maths, science, ancient Egypt, Spanish); other subjects get the closest template with a visible notice. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (84 of the planned 200), each at three levels; topic-library games cannot be extended.
 * Factual correctness of AI-made challenge content cannot be checked automatically (structure and solvability can).
 * Audio is synthesised and 3D art is procedural; Playwright runs in Chromium only.
 * The Android app: scores are self-practice (answer keys on the device); no paid features until Google Play Billing exists (the device tier stays A meanwhile); Auto Backup is off on purpose, so a new phone needs the backup file or the optional account;
