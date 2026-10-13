@@ -13,6 +13,7 @@ const h = vi.hoisted(() => {
     authListeners: 0,
     getSessionCalls: 0,
     pulls: 0,
+    pullsSettled: 0,
     pullGate: null as null | Promise<void>,
     pullFails: false,
   };
@@ -35,9 +36,13 @@ vi.mock("../../mobile/src/cloud/api", () => ({
   supabaseCloud: (): CloudApi => ({
     async pull(): Promise<CloudRows> {
       h.state.pulls++;
-      if (h.state.pullGate) await h.state.pullGate;
-      if (h.state.pullFails) throw new Error("offline");
-      return { games: [], sessions: [], cards: [] };
+      try {
+        if (h.state.pullGate) await h.state.pullGate;
+        if (h.state.pullFails) throw new Error("offline");
+        return { games: [], sessions: [], cards: [] };
+      } finally {
+        h.state.pullsSettled++;
+      }
     },
     async push(_b: PushBatch) { /* nothing to record */ },
   }),
@@ -75,6 +80,7 @@ async function load() {
   h.state.authListeners = 0;
   h.state.getSessionCalls = 0;
   h.state.pulls = 0;
+  h.state.pullsSettled = 0;
   h.state.pullGate = null;
   h.state.pullFails = false;
   return import("../../mobile/src/cloud/account");
@@ -182,7 +188,9 @@ describe("account: sign out", () => {
     expect(acc.getAccountSnapshot().status).toBe("syncing");
     await acc.signOut();
     release();
-    await new Promise((r) => setTimeout(r, 20));
+    // Wait for the gated pull to actually settle (not a fixed sleep), then let the account module's own continuation run.
+    await vi.waitFor(() => expect(h.state.pullsSettled).toBe(1));
+    await new Promise((r) => setTimeout(r, 0));
     expect(acc.getAccountSnapshot()).toMatchObject({ session: null, status: "idle", error: null });
   });
 

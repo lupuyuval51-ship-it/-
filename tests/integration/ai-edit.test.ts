@@ -264,7 +264,8 @@ describe("AI edit: quota", () => {
     setBackendForTests(slow);
     const first = edit(u, gameId, { instruction: "rename the game slowly" });
     // wait until the first edit holds its reservation
-    for (let i = 0; i < 100 && (await db.aiEdit.count({ where: { userId: u.id, status: "PENDING" } })) === 0; i++) await new Promise((r) => setTimeout(r, 20));
+    // (deadline-based, generous: on a busy machine the first request can take seconds to reach its reservation)
+    for (const until = Date.now() + 20_000; Date.now() < until && (await db.aiEdit.count({ where: { userId: u.id, status: "PENDING" } })) === 0;) await new Promise((r) => setTimeout(r, 20));
     const second = await edit(u, gameId, { instruction: "and another one" });
     expect(second.status).toBe(409);
     expect(errCode(second.json)).toBe("EDIT_IN_PROGRESS");

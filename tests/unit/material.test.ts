@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { gradeAnswer, revealSolution } from "@/lib/game/challenges/grade";
 import { processEvent } from "@/lib/game/state/events";
 import { initialState } from "@/lib/game/state/progress";
@@ -261,6 +261,15 @@ describe("adversarial or odd material", () => {
     ["one gigantic sentence", `${"Bees collect nectar from many flowers and ".repeat(150)}honey.`],
     ["nested punctuation", "(((((a: b - c = d))))) ".repeat(300)],
   ];
+  // The point of the time limit is to catch catastrophic backtracking, not to measure the machine: the limit scales with how long an
+  // ordinary build takes in this very process (a loaded CI box slows both), with the old 1.5 s as the floor.
+  const calibrate = () => {
+    const t0 = performance.now();
+    for (let i = 0; i < 3; i++) buildMaterialSpec(req({ material: EN_HISTORY }) as never);
+    return (performance.now() - t0) / 3;
+  };
+  let limitMs = 1500;
+  beforeAll(() => { limitMs = Math.max(1500, 30 * calibrate()); });
   for (const [name, material] of cases) {
     it(`${name}: finishes quickly and either builds a valid game or refuses politely`, () => {
       const started = performance.now();
@@ -273,7 +282,7 @@ describe("adversarial or odd material", () => {
       } catch (e) {
         expect(e, String(e)).toBeInstanceOf(MaterialError);
       }
-      expect(performance.now() - started).toBeLessThan(1500);
+      expect(performance.now() - started).toBeLessThan(limitMs);
       expect(["game", "refused"]).toContain(outcome);
     });
   }
