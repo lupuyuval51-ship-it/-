@@ -12,6 +12,8 @@ const schema = z.object({
   APP_URL: z.string().url().default("http://localhost:3000"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   TRUST_PROXY: bool.default(false),
+  /** With TRUST_PROXY: how many proxies we own sit in front of the app (the client IP is that many entries from the right of X-Forwarded-For). */
+  TRUSTED_PROXY_HOPS: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.coerce.number().int().min(1).max(5).default(1)),
 
   AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "demo"]).default("auto"),
   ANTHROPIC_API_KEY: optional(z.string()),

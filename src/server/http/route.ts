@@ -5,10 +5,12 @@ import { SESSION_COOKIE } from "@/config/limits";
 import { getEnv } from "../env";
 import { checkRateLimit, type RateLimitRule } from "../ratelimit";
 import { readCookie, getUserBySessionToken, type AuthUser } from "../auth/session";
+import { exceedsJsonDepth, readBodyText } from "./body";
 import { getClientIp } from "./client-ip";
 import { ApiError, Errors } from "./errors";
 
 const MAX_BODY_BYTES = 256 * 1024;
+const MAX_JSON_DEPTH = 40;
 
 type AuthMode = "required" | "optional" | "none";
 
@@ -117,16 +119,17 @@ export function apiRoute<B = undefined, P = Record<string, never>, A extends Aut
 
       let body = undefined as B;
       if (options.body) {
-        const len = Number(req.headers.get("content-length") ?? "0");
-        if (len > MAX_BODY_BYTES) throw new ApiError(413, "PAYLOAD_TOO_LARGE", "The request body is too large.");
-        const text = await req.text();
-        if (text.length > MAX_BODY_BYTES) throw new ApiError(413, "PAYLOAD_TOO_LARGE", "The request body is too large.");
+        // Counts the stream itself (chunked uploads have no Content-Length), so an oversized body is never buffered.
+        const text = await readBodyText(req, MAX_BODY_BYTES);
         let raw: unknown;
         try {
           raw = text.length ? JSON.parse(text) : {};
         } catch {
           throw Errors.badRequest("The request body must be valid JSON.");
         }
+        // No schema of ours nests anywhere near this deep; a recursive schema (program blocks) fed thousands of levels
+        // would overflow the stack inside the validator and surface as a 500.
+        if (exceedsJsonDepth(raw, MAX_JSON_DEPTH)) throw Errors.badRequest("The request body is nested too deeply.");
         const parsed = options.body.safeParse(raw);
         if (!parsed.success) throw Errors.validation(z.flattenError(parsed.error));
         body = parsed.data;
