@@ -25,11 +25,13 @@ import { guideInsets } from "./hud/hudLayout";
 import { DEFAULT_GUIDE_INSETS, type GuideInsets } from "./scene/guideBand";
 import { useLayout } from "./useLayout";
 import { InputState } from "./input";
-import { ParticleEmitter } from "./scene/Particles";
+import { ParticleEmitter } from "./scene/emitter";
 import { UnityView, unityBuildAvailable } from "./UnityView";
 import type { UnityFrame } from "@/lib/game/unity/bridge";
 
 const GameCanvas = dynamic(() => import("./scene/GameCanvas"), { ssr: false });
+/** The renderer (three + react-three-fiber) is a separate chunk. Fetch it while the session is still being created, so the two waits overlap. */
+const preloadRenderer = () => { void import("./scene/GameCanvas").catch(() => undefined); };
 
 type Overlay =
   | { type: "none" }
@@ -195,6 +197,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     const id = setTimeout(() => void load(false), 0);
     return () => clearTimeout(id);
   }, [load]);
+  useEffect(preloadRenderer, []);
   useEffect(() => { audio.setSfx(sfx); audio.setMusic(music); }, [audio, sfx, music]);
   useEffect(() => { guide.enabled = guideOn; }, [guide, guideOn]);
   const guideLabel = useCallback((kind: GuideKind, name: string, meters: number) => `${kind === "npc" ? t("hud.guide.talk", { name }) : kind === "collectible" ? t("hud.guide.collect") : name} · ${meters} ${t("hud.guide.m")}`, [t]);

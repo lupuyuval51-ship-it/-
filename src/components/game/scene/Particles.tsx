@@ -7,16 +7,10 @@ import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
 import { mulberry32 } from "@/lib/game/util/prng";
 import { particleSlots } from "./budget";
+import { ParticleEmitter } from "./emitter";
 import { makeSoftSprite } from "./materials";
 
-/** Imperative handle so DOM/HUD code can trigger bursts without going through React state. */
-export class ParticleEmitter {
-  queue: { x: number; y: number; z: number; color: string; count: number; kind: "pop" | "dust" }[] = [];
-  /** `pop` sparks fly up and out (pick-ups, rewards); `dust` is a low, short puff (take-off and landing). */
-  burst(x: number, y: number, z: number, color: string, count = 24, kind: "pop" | "dust" = "pop"): void {
-    if (this.queue.length < 8) this.queue.push({ x, y, z, color, count, kind });
-  }
-}
+export { ParticleEmitter };
 
 /** Ambient motes + event bursts + (Tier A) movement trail. Budgets come from the render profile. */
 export function Particles({ runtime, profile, emitter, accent }: { runtime: GameRuntime; profile: RenderProfile; emitter: ParticleEmitter; accent: string }) {

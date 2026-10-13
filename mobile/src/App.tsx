@@ -1,15 +1,22 @@
-import { useEffect, useMemo, useRef } from "react";
-import { I18nProvider } from "@/components/I18nProvider";
+import { lazy, Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { I18nProvider, useT } from "@/components/I18nProvider";
+import { Spinner } from "@/components/ui";
 import { DICTIONARIES, dirOf } from "@/lib/i18n";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
-import { CreatePage } from "./pages/Create";
-import { DeckPage } from "./pages/Deck";
 import { LibraryPage } from "./pages/Library";
-import { PlayPage } from "./pages/Play";
-import { PracticePage, ResultsPage, ReviewPage } from "./pages/Results";
-import { SettingsPage } from "./pages/Settings";
+
+// Only the library (the screen the app opens on) is in the first bundle. Every other screen is its own chunk, loaded when it is
+// opened: the create form carries the offline generator and the demo templates, the play screen the HUD and the runtime
+// (and, one level deeper, the 3D renderer), the results screens their own views. Measured in the PR notes.
+const CreatePage = lazy(() => import("./pages/Create").then((m) => ({ default: m.CreatePage })));
+const DeckPage = lazy(() => import("./pages/Deck").then((m) => ({ default: m.DeckPage })));
+const PlayPage = lazy(() => import("./pages/Play").then((m) => ({ default: m.PlayPage })));
+const PracticePage = lazy(() => import("./pages/Results").then((m) => ({ default: m.PracticePage })));
+const ResultsPage = lazy(() => import("./pages/Results").then((m) => ({ default: m.ResultsPage })));
+const ReviewPage = lazy(() => import("./pages/Results").then((m) => ({ default: m.ReviewPage })));
+const SettingsPage = lazy(() => import("./pages/Settings").then((m) => ({ default: m.SettingsPage })));
 
 function route(path: string) {
   let m: RegExpMatchArray | null;
@@ -32,24 +39,45 @@ export function App() {
     document.documentElement.dir = dirOf(locale);
   }, [locale]);
   useEffect(() => { window.scrollTo(0, 0); }, [path]);
-  // Screen readers: after navigating, land on the new page's heading so TalkBack announces where the player is
-  // (the first render keeps the default focus; the play screen manages its own focus). Screens that open with a
-  // state card (empty, not found) have an h2 instead of an h1.
   const first = useRef(true);
+  const play = path.startsWith("/play/");
+  return (
+    <I18nProvider locale={locale} dict={dict}>
+      {/* The Suspense boundary sits inside the error boundary, which is re-keyed per route: every navigation mounts it afresh,
+          so the heading focus below runs once the (possibly still loading) screen has really been committed. */}
+      <ErrorBoundary key={path}>
+        {play
+          ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play /></Suspense>
+          : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div className="lu-page"><Suspense fallback={null}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>}
+      </ErrorBoundary>
+    </I18nProvider>
+  );
+}
+
+/** What the play screen shows while its chunk loads: the same card the screen itself shows while the session starts. */
+function PlayLoading() {
+  const t = useT();
+  return (
+    <main className="theme-dark grid h-dvh place-items-center bg-ink-950" aria-busy="true">
+      <div className="flex items-center gap-3 text-lg"><Spinner /> {t("hud.loading")}</div>
+    </main>
+  );
+}
+
+/**
+ * Screen readers: after navigating, land on the new page's heading so TalkBack announces where the player is (the first
+ * render keeps the default focus; the play screen manages its own focus). Screens that open with a state card (empty, not
+ * found) have an h2 instead of an h1. Rendered next to the screen inside its Suspense boundary, so with a lazily loaded
+ * screen the effect waits for the screen's content instead of finding the loading fallback.
+ */
+function LandOnHeading({ first, play }: { first: MutableRefObject<boolean>; play: boolean }) {
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    if (path.startsWith("/play/")) return;
+    if (play) return;
     const h = document.querySelector<HTMLElement>("main h1") ?? document.querySelector<HTMLElement>("main h2");
     if (!h) return;
     h.tabIndex = -1;
     h.focus({ preventScroll: true });
-  }, [path]);
-  const play = path.startsWith("/play/");
-  return (
-    <I18nProvider locale={locale} dict={dict}>
-      <ErrorBoundary key={path}>
-        {play ? route(path) : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div className="lu-page">{route(path)}</div></main>}
-      </ErrorBoundary>
-    </I18nProvider>
-  );
+  }, [first, play]);
+  return null;
 }
