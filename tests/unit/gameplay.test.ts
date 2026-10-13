@@ -176,7 +176,7 @@ describe("scoring is computed on the server from attempts, hints and time", () =
     }
     const res = last!.data.result as { resolved: boolean; revealed: boolean; reveal: { optionId: string }; explanation: string; pointsAwarded: number };
     expect(res).toMatchObject({ resolved: true, revealed: true, pointsAwarded: 0 });
-    expect(res.reveal.optionId).toBe("a");
+    expect(res.reveal.optionId).toBe((correctAnswer(ch) as { optionId: string }).optionId);
     expect(res.explanation.length).toBeGreaterThan(10);
     expect(s.resolvedStations["s-var1"]).toBe("revealed");
     expect(s.score).toBe(0);

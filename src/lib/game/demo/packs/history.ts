@@ -80,7 +80,7 @@ export const historyPack: DemoPack = {
         ] },
       ],
       challenges: [
-        choice({ id: "c-nile", title: t("Why the Nile?", "למה הנילוס?"), concept: t("the Nile", "הנילוס"), level: 1, objectiveId: "o-nile",
+        choice({ id: "c-nile", easierId: "c-nile-easy", title: t("Why the Nile?", "למה הנילוס?"), concept: t("the Nile", "הנילוס"), level: 1, objectiveId: "o-nile",
           prompt: t("Why was the yearly flood of the Nile so important to Egyptian farmers?", "למה היה שיטפון הנילוס השנתי כל כך חשוב לחקלאים המצרים?"),
           options: [
             [t("It left rich, fertile mud on the fields", "הוא השאיר בוץ עשיר ופורה על השדות"), t("Yes — the flood deposited fertile silt, so crops grew well in a very dry land.", "נכון — השיטפון הפקיד סחף פורה, ולכן היבולים גדלו היטב בארץ יבשה מאוד.")],
@@ -126,12 +126,12 @@ export const historyPack: DemoPack = {
             [t("To keep the desert from spreading", "כדי למנוע מהמדבר להתפשט"), t("Mummies have nothing to do with the desert's size.", "למומיות אין קשר לגודל המדבר.")],
           ], correct: 0, hint: t("Think about what the Egyptians believed happened after death.", "חשבו על מה שהמצרים האמינו שקורה אחרי המוות."),
           explanation: t("Egyptians believed a person continued to exist after death and needed the body, so embalmers preserved it carefully.", "המצרים האמינו שאדם ממשיך להתקיים אחרי המוות וזקוק לגוף, ולכן חנטים שימרו אותו בקפידה.") }),
-        sequence({ id: "c-timeline", title: t("Kings on the wall", "המלכים על הקיר"), concept: t("timeline of ancient Egypt", "ציר הזמן של מצרים העתיקה"), level: 3, objectiveId: "o-time",
+        sequence({ id: "c-timeline", easierId: "c-timeline-easy", title: t("Kings on the wall", "המלכים על הקיר"), concept: t("timeline of ancient Egypt", "ציר הזמן של מצרים העתיקה"), level: 3, objectiveId: "o-time",
           prompt: t("Put these events of ancient Egypt in order, from earliest to latest.", "סדרו את האירועים האלה ממצרים העתיקה מהמוקדם למאוחר."),
           items: [t("Great Pyramid built (c. 2560 BCE)", "בניית הפירמידה הגדולה (כ-2560 לפנה״ס)"), t("Reign of Tutankhamun (c. 1332–1323 BCE)", "שלטון תות-אנח-אמון (כ-1332–1323 לפנה״ס)"), t("Reign of Ramesses II (1279–1213 BCE)", "שלטון רעמסס השני (1279–1213 לפנה״ס)"), t("Death of Cleopatra VII (30 BCE)", "מותה של קליאופטרה השביעית (30 לפנה״ס)")],
           hint: t("In BCE dates, bigger numbers mean longer ago.", "בתאריכים לפני הספירה, מספרים גדולים יותר פירושם זמן רב יותר מאחור."),
           explanation: t("2560, then about 1330, then about 1279, then 30 BCE: the numbers shrink as time moves forward.", "2560, אחר כך כ-1330, אחר כך 1279, ואז 30 לפנה״ס: המספרים קטנים ככל שהזמן מתקדם.") }),
-        choice({ id: "c-carter", title: t("Who found the tomb?", "מי מצא את הקבר?"), concept: t("archaeology", "ארכיאולוגיה"), level: 2, objectiveId: "o-time",
+        choice({ id: "c-carter", easierId: "c-carter-easy", title: t("Who found the tomb?", "מי מצא את הקבר?"), concept: t("archaeology", "ארכיאולוגיה"), level: 2, objectiveId: "o-time",
           prompt: t("In 1922, who discovered the nearly intact tomb of Tutankhamun?", "ב-1922, מי גילה את קברו כמעט השלם של תות-אנח-אמון?"),
           options: [
             ["Howard Carter", t("Yes — the British archaeologist Howard Carter found it in the Valley of the Kings in 1922.", "נכון — הארכיאולוג הבריטי הווארד קרטר מצא אותו בעמק המלכים ב-1922.")],
@@ -140,6 +140,26 @@ export const historyPack: DemoPack = {
             ["Cleopatra", t("Cleopatra died in 30 BCE, long after Tutankhamun's time.", "קליאופטרה מתה ב-30 לפנה״ס, הרבה אחרי תקופתו של תות-אנח-אמון.")],
           ], correct: 0, hint: t("It was an archaeologist, and the discovery happened in the 1920s.", "זה היה ארכיאולוג, והגילוי התרחש בשנות ה-20."),
           explanation: t("Howard Carter's team opened the tomb in 1922 and found thousands of objects, including the famous golden mask.", "הצוות של הווארד קרטר פתח את הקבר ב-1922 ומצא אלפי חפצים, ובהם המסכה הזהובה המפורסמת.") }),
+
+        choice({ id: "c-nile-easy", title: t("Why the Nile? (warm-up)", "למה הנילוס? (חימום)"), concept: t("the Nile", "הנילוס"), level: 1, objectiveId: "o-nile",
+          prompt: t("Why was the yearly flood of the Nile so important to Egyptian farmers?", "למה היה שיטפון הנילוס השנתי כל כך חשוב לחקלאים המצרים?"),
+          options: [
+            [t("It brought sea fish to the villages", "הוא הביא דגי ים לכפרים"), t("The Nile is a freshwater river; it does not bring sea fish.", "הנילוס הוא נהר מים מתוקים; הוא לא מביא דגי ים.")],
+            [t("It left rich, fertile mud on the fields", "הוא השאיר בוץ עשיר ופורה על השדות"), t("Yes — the flood deposited fertile silt, so crops grew well in a very dry land.", "נכון — השיטפון הפקיד סחף פורה, ולכן היבולים גדלו היטב בארץ יבשה מאוד.")],
+          ], correct: 1, hint: t("Egypt gets almost no rain. Where did the farmers' soil and water come from?", "במצרים כמעט לא יורד גשם. מאיפה הגיעו האדמה והמים של החקלאים?"),
+          explanation: t("The flood watered the land and left fertile silt. That is why most Egyptians lived along the river.", "השיטפון השקה את האדמה והשאיר סחף פורה. לכן רוב המצרים חיו לאורך הנהר.") }),
+        sequence({ id: "c-timeline-easy", title: t("Kings on the wall (warm-up)", "המלכים על הקיר (חימום)"), concept: t("timeline of ancient Egypt", "ציר הזמן של מצרים העתיקה"), level: 2, objectiveId: "o-time",
+          prompt: t("Put these three events of ancient Egypt in order, from earliest to latest.", "סדרו את שלושת האירועים האלה ממצרים העתיקה מהמוקדם למאוחר."),
+          items: [t("Great Pyramid built (c. 2560 BCE)", "בניית הפירמידה הגדולה (כ-2560 לפנה״ס)"), t("Reign of Ramesses II (1279–1213 BCE)", "שלטון רעמסס השני (1279–1213 לפנה״ס)"), t("Death of Cleopatra VII (30 BCE)", "מותה של קליאופטרה השביעית (30 לפנה״ס)")],
+          hint: t("In BCE dates, bigger numbers mean longer ago.", "בתאריכים לפני הספירה, מספרים גדולים יותר פירושם זמן רב יותר מאחור."),
+          explanation: t("2560, then 1279, then 30 BCE: the numbers shrink as time moves forward.", "2560, אחר כך 1279, ואז 30 לפנה״ס: המספרים קטנים ככל שהזמן מתקדם.") }),
+        choice({ id: "c-carter-easy", title: t("Who found the tomb? (warm-up)", "מי מצא את הקבר? (חימום)"), concept: t("archaeology", "ארכיאולוגיה"), level: 1, objectiveId: "o-time",
+          prompt: t("In 1922, who discovered the nearly intact tomb of Tutankhamun?", "ב-1922, מי גילה את קברו כמעט השלם של תות-אנח-אמון?"),
+          options: [
+            ["Cleopatra", t("Cleopatra died in 30 BCE, long after Tutankhamun's time.", "קליאופטרה מתה ב-30 לפנה״ס, הרבה אחרי תקופתו של תות-אנח-אמון.")],
+            ["Howard Carter", t("Yes — the British archaeologist Howard Carter found it in the Valley of the Kings in 1922.", "נכון — הארכיאולוג הבריטי הווארד קרטר מצא אותו בעמק המלכים ב-1922.")],
+          ], correct: 1, hint: t("The finder was an archaeologist of the 1920s, not a ruler of ancient Egypt.", "המגלה היה ארכיאולוג בשנות ה-20 של המאה ה-20, לא שליט של מצרים העתיקה."),
+          explanation: t("Howard Carter's team opened the tomb in the Valley of the Kings in 1922.", "הצוות של הווארד קרטר פתח את הקבר בעמק המלכים ב-1922.") }),
       ],
     };
   },

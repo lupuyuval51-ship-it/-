@@ -12,7 +12,7 @@ import { clip, isStop, shuffled, wordsOf, type Word } from "./text";
 type Raw = Record<string, unknown>;
 type Level = 1 | 2 | 3;
 type Tr = ReturnType<typeof translator>;
-export type ChallengeKind = "qa" | "match" | "term" | "define" | "cloze" | "steps" | "number" | "truefalse" | "factpick" | "statement" | "odd";
+export type ChallengeKind = "qa" | "match" | "term" | "define" | "cloze" | "steps" | "number" | "truefalse" | "factpick" | "statement" | "odd" | "timeline";
 type Objective = "questions" | "terms" | "facts" | "steps" | "ideas";
 
 interface Candidate {
@@ -686,6 +686,53 @@ function stepCandidates(groups: string[][], titles: (string | undefined)[], t: T
   });
 }
 
+/**
+ * Dated events from the learner's notes, put in order: every sentence that holds exactly one year, with the year hidden.
+ * One event per year (two events of the same year cannot be ordered), at most five to a question and two questions to a
+ * game; a long list is cut into consecutive stretches of time, so each question is about one period.
+ */
+const DATE_CUE = /(?:^|[^\p{L}])(?:in|by|since|until|till|during|around|circa|ca|year|from|after|before|early|late|mid)\.?\s*$|(?:^|\s)(?:c\.|[בלמ]-?|בשנת|בשנה|שנת|שנות|מאז|עד)\s*$/iu;
+const NOT_A_DATE = /^\s*(?:years?|months?|days?|hours?|minutes?|people|students|times|metres|meters|km|kg|tons?|units|שנים|שנה|ימים|חודשים|שעות|פעמים|אנשים|תלמידים|מטר|ק״מ|ק"מ)(?![\p{L}])/iu;
+
+/** A number that is a year of an event ("in 1969", "בשנת 1948"), not an amount that happens to look like one ("1500 metres"). */
+function isEventYear(f: Fact): boolean {
+  if (!f.isYear) return false;
+  const before = f.source.slice(Math.max(0, f.numAt - 16), f.numAt);
+  const after = f.source.slice(f.numAt + f.numText.length, f.numAt + f.numText.length + 14);
+  return !NOT_A_DATE.test(after) && (f.numAt === 0 || DATE_CUE.test(before));
+}
+
+function timelineCandidates(facts: Fact[], t: Tr): Candidate[] {
+  const byYear = new Map<number, Fact>();
+  const seenText = new Set<string>();
+  for (const f of facts) {
+    if (!isEventYear(f) || byYear.has(f.value) || f.blanked.length > 180 || seenText.has(sameKey(f.blanked))) continue;
+    seenText.add(sameKey(f.blanked));
+    byYear.set(f.value, f);
+  }
+  const dated = [...byYear.values()].sort((a, b) => a.value - b.value);
+  if (dated.length < 3) return [];
+  const groups = Math.min(2, Math.ceil(dated.length / 5));
+  const size = Math.min(5, Math.ceil(dated.length / groups));
+  return Array.from({ length: groups }, (_, g) => dated.slice(g * size, (g + 1) * size)).filter((events) => events.length >= 3).map((events, g) => {
+    const years = events.map((f) => f.numText);
+    return {
+      kind: "timeline" as const, objective: "facts" as const, level: (events.length >= 5 ? 3 : 2) as Level, keys: [`timeline-${g}`],
+      make: (id: string, level: Level, objectiveId: string) => sequence({
+        id, level, objectiveId, items: events.map((f) => f.blanked),
+        title: t("Put the events in order", "סדרו את האירועים בציר הזמן"),
+        concept: t("order of events", "סדר האירועים"),
+        prompt: t("Put these events from your material in the order they happened, the earliest first. The years are hidden.", "סדרו את האירועים האלה מתוך החומר שלכם לפי הסדר שבו התרחשו, מהקדום למאוחר. השנים מוסתרות."),
+        hint: t(`All of them happened between ${years[0]} and ${years[years.length - 1]}.`, `כולם התרחשו בין ${years[0]} ל-${years[years.length - 1]}.`),
+        explanation: (() => {
+          const head = `${years.join(" → ")}. `;
+          return head + events.map((f) => clip(f.source, Math.floor((560 - head.length) / events.length))).join("  ");
+        })(),
+      }),
+    };
+  });
+}
+
 const OPPOSITE: Record<string, string> = { yes: "No", no: "Yes", true: "False", false: "True", correct: "Incorrect", incorrect: "Correct", כן: "לא", לא: "כן", נכון: "לא נכון", "לא נכון": "נכון", שגוי: "נכון" };
 
 /** Shape of an answer, for choosing wrong options that look like it (a name next to names, a number next to numbers). */
@@ -693,6 +740,16 @@ function answerDistance(a: string, b: string): number {
   const cap = (s: string) => /^\p{Lu}/u.test(s);
   const digit = (s: string) => /\d/.test(s);
   return Math.abs(wordsOf(a).length - wordsOf(b).length) + (cap(a) === cap(b) ? 0 : 2) + (digit(a) === digit(b) ? 0 : 2) + Math.abs(a.length - b.length) / 25 + (hasHebrew(a) === hasHebrew(b) ? 0 : 6);
+}
+
+/**
+ * The wrong option that is easiest to rule out, for the two-option "easier" version of a question: the one least like the
+ * right answer (different words, different shape) and least tied to the question's own words. The hardest distractors
+ * stay in the full question. Ties keep the original order.
+ */
+export function leastPlausible<T extends { text: string }>(correct: { text: string }, wrong: T[], prompt: string): T {
+  const closeness = (o: T) => overlap(correct.text, o.text) + overlap(o.text, correct.text) + overlap(prompt, o.text) - Math.min(answerDistance(correct.text, o.text), 6) / 3;
+  return wrong.reduce((best, o) => (closeness(o) < closeness(best) ? o : best));
 }
 
 function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
@@ -771,7 +828,7 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
 
 // ───────────────────────────── selection ─────────────────────────────
 
-const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "match", "number", "term", "define", "cloze", "factpick", "statement", "odd"];
+const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "timeline", "match", "number", "term", "define", "cloze", "factpick", "statement", "odd"];
 
 export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generated {
   const t = translator(opts.lang);
@@ -786,6 +843,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   const pools: Record<ChallengeKind, Candidate[]> = {
     qa: qaCandidates(k, rnd, t),
     steps: stepCandidates(k.steps, k.stepTitles, t),
+    timeline: timelineCandidates(k.facts, t),
     match: matchCandidates(k.definitions, t),
     number: numberCandidates(k.facts, k.qa, t),
     term: termCandidates(k.definitions, k.keywords, rnd, t),
@@ -847,7 +905,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   }
   const objText = OBJECTIVE_TEXT(t);
   const used = new Set<Objective>();
-  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, define: 0, cloze: 0, steps: 0, number: 0, truefalse: 0, factpick: 0, statement: 0, odd: 0 };
+  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, define: 0, cloze: 0, steps: 0, number: 0, truefalse: 0, factpick: 0, statement: 0, odd: 0, timeline: 0 };
   const challenges = ordered.map((c, i) => {
     used.add(c.objective);
     counts[c.kind]++;
@@ -856,18 +914,27 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   });
   const variants: Raw[] = [];
   if (opts.variants) {
-    for (const c of challenges) {
-      const options = c.options as { id: string; text: string; feedback: string }[] | undefined;
-      if (c.type !== "choice" || !options || options.length < 3 || variants.length >= 6) continue;
-      const correct = options.find((o) => o.id === c.correctOptionId)!;
-      const wrong = options.find((o) => o.id !== c.correctOptionId)!;
+    const tooShort = (c: Raw) => c.type !== "choice" || ((c.options as unknown[] | undefined)?.length ?? 0) < 3;
+    const orderings = challenges.filter((c) => c.type === "sequence" && ((c.items as unknown[] | undefined)?.length ?? 0) >= 4);
+    const choices = challenges.filter((c) => !tooShort(c));
+    // As many easier versions as before (the spec has room for 24 challenges, and an extension needs some): up to two of them
+    // are for long orderings and the rest for multiple-choice questions.
+    const total = Math.min(6, choices.length);
+    const forOrderings = Math.min(2, orderings.length, total);
+    for (const c of [...orderings.slice(0, forOrderings), ...choices.slice(0, total - forOrderings)]) {
       const easyId = `${String(c.id)}-easy`;
+      const title = clip(`${String(c.title)} ${t("(easier)", "(קל יותר)")}`, 80);
       c.easierId = easyId;
-      variants.push({
-        ...c, id: easyId, level: 1, easierId: undefined,
-        title: clip(`${String(c.title)} ${t("(easier)", "(קל יותר)")}`, 80),
-        options: options.indexOf(correct) < options.indexOf(wrong) ? [correct, wrong] : [wrong, correct],
-      });
+      if (c.type === "sequence") {
+        // a long list to put in order: the easier version keeps the first, a middle and the last (still in their order)
+        const items = c.items as { id: string; text: string }[];
+        variants.push({ ...c, id: easyId, level: 1, easierId: undefined, title, items: [0, Math.floor((items.length - 1) / 2), items.length - 1].map((i) => items[i]!) });
+        continue;
+      }
+      const options = c.options as { id: string; text: string; feedback: string }[];
+      const correct = options.find((o) => o.id === c.correctOptionId)!;
+      const wrong = leastPlausible(correct, options.filter((o) => o.id !== c.correctOptionId), String(c.prompt));
+      variants.push({ ...c, id: easyId, level: 1, easierId: undefined, title, options: options.indexOf(correct) < options.indexOf(wrong) ? [correct, wrong] : [wrong, correct] });
     }
   }
   const objectives = (["questions", "terms", "facts", "steps", "ideas"] as Objective[]).filter((o) => used.has(o)).map((o) => ({ id: `${prefix}o-${o}`, text: objText[o] }));
