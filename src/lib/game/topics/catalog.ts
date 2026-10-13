@@ -37,6 +37,20 @@ export const TOPICS: readonly TopicEntry[] = [
   { id: "geo-continents-oceans", cat: "geography", ages: [7, 14], en: ["Continents and oceans", "The seven continents, the oceans, the equator and hemispheres, and how the continents move."], he: ["יבשות ואוקיינוסים", "שבע היבשות, האוקיינוסים, קו המשווה וחצאי הכדור, ואיך היבשות נעות."] },
   { id: "geo-israel", cat: "geography", ages: [8, 16], en: ["The geography of Israel", "Seas, lakes and rivers, the Negev and the Galilee, climate, the Rift Valley and water."], he: ["הגאוגרפיה של ישראל", "ימים, אגמים ונהרות, הנגב והגליל, אקלים, השבר הסורי־אפריקני ומים."] },
   // ── languages
+  { id: "lang-en-past-simple", cat: "languages", ages: [9, 15], en: ["English: past simple", "Regular and irregular verbs, did in questions and negatives, was/were, and other past forms."], he: ["אנגלית: עבר פשוט", "פעלים רגילים ולא רגילים, did בשאלות ובשלילה, was/were וצורות עבר נוספות."] },
+  { id: "lang-he-roots", cat: "languages", ages: [9, 16], en: ["Hebrew roots and verb patterns", "The shoresh, word families, mishkal and the binyanim, including weak roots."], he: ["שורשים ובניינים בעברית", "השורש, משפחות מילים, משקלים והבניינים, כולל גזרות."] },
+  // ── computing
+  { id: "cs-binary", cat: "computing", ages: [9, 17], en: ["Binary numbers", "Bits and bytes, base 2 and place value, converting numbers, hexadecimal and text codes."], he: ["מספרים בינאריים", "ביטים ובתים, בסיס 2 וערך המקום, המרת מספרים, בסיס הקסדצימלי וקידוד טקסט."] },
+  { id: "cs-algorithms", cat: "computing", ages: [8, 17], en: ["Algorithms", "Step-by-step instructions, loops and conditions, searching and sorting, efficiency and recursion."], he: ["אלגוריתמים", "הוראות צעד אחר צעד, לולאות ותנאים, חיפוש ומיון, יעילות ורקורסיה."] },
+  { id: "cs-internet-safety", cat: "computing", ages: [7, 16], en: ["Internet safety", "Personal information, strong passwords, phishing, cyberbullying, privacy and your digital footprint."], he: ["בטיחות ברשת", "מידע אישי, סיסמאות חזקות, דיוג, בריונות ברשת, פרטיות וטביעת הרגל הדיגיטלית."] },
+  // ── economy and personal finance
+  { id: "econ-budgeting", cat: "economy", ages: [9, 17], en: ["Budgeting and saving", "Income and expenses, needs and wants, saving goals, deficits and smart spending choices."], he: ["תקציב וחיסכון", "הכנסות והוצאות, צרכים ורצונות, יעדי חיסכון, גירעון והחלטות קנייה נבונות."] },
+  // ── health, nutrition and safety
+  { id: "health-nutrition", cat: "health", ages: [7, 16], en: ["Healthy eating", "Food groups and nutrients, vitamins and minerals, food labels and energy in food."], he: ["תזונה נכונה", "קבוצות מזון ורכיבי תזונה, ויטמינים ומינרלים, סימון תזונתי והאנרגיה שבמזון."], env: "forest" },
+  // ── arts, music and literature
+  { id: "arts-music-basics", cat: "arts", ages: [7, 16], en: ["Music basics", "Rhythm, melody and tempo, notes and the staff, scales, chords and time signatures."], he: ["יסודות המוזיקה", "מקצב, לחן וטמפו, תווים וחמשה, סולמות, אקורדים ומשקלים."] },
+  // ── thinking and study skills
+  { id: "think-study-skills", cat: "thinking", ages: [9, 18], en: ["How to study well", "Planning, focus and sleep, summaries, retrieval practice, spaced repetition and learning about learning."], he: ["איך ללמוד נכון", "תכנון, ריכוז ושינה, סיכומים, תרגול שליפה, חזרה מרווחת ולמידה על הלמידה."] },
   { id: "lang-en-present-simple", cat: "languages", ages: [8, 14], en: ["English: present simple", "Habits and facts, he/she/it + s, do and does in questions and negatives, and when not to use it."], he: ["אנגלית: הווה פשוט", "הרגלים ועובדות, s בגוף שלישי, do ו־does בשאלות ובשלילה, ומתי לא משתמשים בו."] },
 ];
 

@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 23;
+const EXPECTED_TOPICS = 32;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
@@ -121,7 +121,8 @@ describe("topic content hygiene", () => {
       for (const l of LEVELS) {
         const { en, he } = textsOf(contents.get(t.id)![l]);
         for (const s of [...en, ...he]) expect(s.trim().length, `${t.id}/${l}: "${s}"`).toBeGreaterThan(0);
-        for (const s of en) expect(HEBREW.test(s), `${t.id}/${l} en: "${s}"`).toBe(false);
+        // (a topic about Hebrew grammar quotes Hebrew words in its English version)
+        if (!t.id.startsWith("lang-he-")) for (const s of en) expect(HEBREW.test(s), `${t.id}/${l} en: "${s}"`).toBe(false);
         // symbols and numbers ("25%", "3/4") are the same in both languages; anything with letters must be Hebrew
         for (const s of he) if (LETTER.test(s.replace(/[A-Za-z]+/g, (w) => (w.length <= 6 ? "" : w)))) expect(HEBREW.test(s), `${t.id}/${l} he: "${s}"`).toBe(true);
       }

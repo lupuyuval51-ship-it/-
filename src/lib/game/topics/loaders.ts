@@ -30,6 +30,15 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "civics-israel-government": () => import("./content/civics-israel-government"),
   "geo-continents-oceans": () => import("./content/geo-continents-oceans"),
   "geo-israel": () => import("./content/geo-israel"),
+  "lang-en-past-simple": () => import("./content/lang-en-past-simple"),
+  "lang-he-roots": () => import("./content/lang-he-roots"),
+  "cs-binary": () => import("./content/cs-binary"),
+  "cs-algorithms": () => import("./content/cs-algorithms"),
+  "cs-internet-safety": () => import("./content/cs-internet-safety"),
+  "econ-budgeting": () => import("./content/econ-budgeting"),
+  "health-nutrition": () => import("./content/health-nutrition"),
+  "arts-music-basics": () => import("./content/arts-music-basics"),
+  "think-study-skills": () => import("./content/think-study-skills"),
   "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
 };
 
