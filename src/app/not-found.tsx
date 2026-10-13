@@ -8,6 +8,7 @@ export default async function NotFound() {
     <main className="px-4">
       <StateView
         kind="notfound"
+        headingLevel={1}
         data-testid="not-found"
         title={t("notfound.title")}
         text={t("notfound.text")}

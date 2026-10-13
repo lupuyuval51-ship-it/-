@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { primaryLink, StateView } from "@/components/ui/StateView";
 import { Card } from "@/components/ui";
-import { GameCardView } from "@/components/games/GameCardView";
+import { toCardData } from "@/components/games/GameCardView";
+import { LibraryGrid } from "@/components/games/LibraryGrid";
 import { requireUser } from "@/server/auth/current";
 import { listGames } from "@/server/games/library";
 import { getT } from "@/server/i18n";
@@ -28,7 +29,7 @@ export default async function LibraryPage() {
           <StateView kind="empty" data-testid="lib-empty" title={t("lib.empty.title")} text={t("lib.empty.text")} actions={<Link href="/create" className={primaryLink}>{t("lib.empty.cta")}</Link>} />
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="lib-grid">{games.map((g) => <GameCardView key={g.id} game={g} t={t} />)}</div>
+        <LibraryGrid games={games.map(toCardData)} />
       )}
     </div>
   );

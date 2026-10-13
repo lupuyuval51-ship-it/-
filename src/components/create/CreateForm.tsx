@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Badge, Button, Card, Field, Input, Select, Textarea, cx } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
@@ -22,6 +22,8 @@ export interface CreateFormProps {
   initialMode?: GenerationModeId;
   initialGameId?: string;
 }
+
+const EXAMPLES = [1, 2, 3, 4] as const;
 
 const NATIVE_LANG: Record<string, string> = { he: "עברית", en: "English", ar: "العربية", es: "Español", fr: "Français", de: "Deutsch", ru: "Русский" };
 
@@ -55,6 +57,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
   const [error, setError] = useState<{ text: string; jobId?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const keyRef = useRef<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const examplesId = useId();
   // false while the server-rendered form is still inert, true once React handles events (tests wait for it)
   const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
@@ -145,6 +149,20 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
     }
   }
 
+  /** Fills the subject and goal from an example (the fields are uncontrolled, so the form element is written to directly). */
+  function applyExample(n: (typeof EXAMPLES)[number]) {
+    const form = formRef.current;
+    if (!form) return;
+    const set = (name: string, value: string) => {
+      const el = form.elements.namedItem(name);
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.value = value;
+    };
+    set("subject", t(`create.example.${n}.subject` as DictKey));
+    set("learningGoal", t(`create.example.${n}.goal` as DictKey));
+    setFieldErrors(({ subject: _s, learningGoal: _g, ...rest }) => rest);
+    form.querySelector<HTMLElement>("#learningGoal")?.focus();
+  }
+
   function toggleMechanic(m: Mechanic) {
     setAddMechanics((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
   }
@@ -183,7 +201,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
   );
 
   return (
-    <form onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
+    <form ref={formRef} onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
       <Alert tone={backend.kind === "demo" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
         {backend.kind === "ai" && t("create.provider.ai")}
         {backend.kind === "demo" && t("create.provider.demo")}
@@ -266,6 +284,14 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject} required>
             <Input id="subject" name="subject" maxLength={INPUT_LIMITS.subjectMax} placeholder={t("create.subject.placeholder")} data-testid="create-subject" autoComplete="off" />
           </Field>
+          <div role="group" aria-labelledby={examplesId} className="-mt-1 flex flex-wrap items-center gap-2" data-testid="create-examples">
+            <span id={examplesId} className="text-xs text-muted">{t("create.examples")}</span>
+            {EXAMPLES.map((n) => (
+              <button key={n} type="button" onClick={() => applyExample(n)} className="min-h-10 rounded-full border border-line px-3 text-sm font-medium hover:border-neon/60 hover:bg-neon/10">
+                {t(`create.example.${n}.subject` as DictKey)}
+              </button>
+            ))}
+          </div>
           <Field label={t("create.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
             <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
           </Field>

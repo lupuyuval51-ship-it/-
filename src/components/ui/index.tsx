@@ -87,7 +87,7 @@ export function ProgressBar({ value, max = 100, className, label }: { value: num
 
 /** Field states: default, focus, invalid (`aria-invalid`), valid (`data-valid`), disabled. */
 const fieldBase = cx(
-  "w-full rounded-xl border border-line bg-ink-900 px-3.5 py-2.5 text-sm text-text shadow-e1 transition-[border-color,box-shadow] placeholder:text-muted/70",
+  "w-full rounded-xl border border-line bg-ink-900 px-3.5 py-2.5 text-sm text-text shadow-e1 transition-[border-color,box-shadow] placeholder:text-muted",
   "hover:border-muted/60 focus:border-neon focus:outline-none focus:ring-2 focus:ring-neon/40",
   "aria-[invalid=true]:border-rose aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-rose/30",
   "data-[valid=true]:border-lime/70",

@@ -6,7 +6,21 @@ import type { DictKey, TFn } from "@/lib/i18n";
 import { GeneratorBadge } from "./GameBadges";
 
 
-export function GameCardView({ game, t }: { game: GameCard; t: TFn }) {
+/** What a card needs. Deliberately without provider/model names, so it can also be handed to client components. */
+export type GameCardData = Pick<GameCard, "id" | "title" | "subject" | "gameType" | "difficulty" | "areas" | "missions" | "challenges"> & {
+  generator: { kind: string };
+  progress: Pick<NonNullable<GameCard["progress"]>, "bestScore" | "bestStars" | "inProgress" | "percent"> | null;
+};
+
+export function toCardData(g: GameCard): GameCardData {
+  return {
+    id: g.id, title: g.title, subject: g.subject, gameType: g.gameType, difficulty: g.difficulty, areas: g.areas, missions: g.missions, challenges: g.challenges,
+    generator: { kind: g.generator.kind },
+    progress: g.progress && { bestScore: g.progress.bestScore, bestStars: g.progress.bestStars, inProgress: g.progress.inProgress, percent: g.progress.percent },
+  };
+}
+
+export function GameCardView({ game, t }: { game: GameCardData; t: TFn }) {
   const p = game.progress;
   return (
     <Card interactive className="flex h-full flex-col gap-3" data-testid="game-card">
@@ -20,7 +34,7 @@ export function GameCardView({ game, t }: { game: GameCard; t: TFn }) {
       <div className="flex flex-wrap gap-1.5">
         <Badge>{t(`gameType.${game.gameType}` as DictKey)}</Badge>
         <Badge>{t(`difficulty.${game.difficulty}` as DictKey)}</Badge>
-        <GeneratorBadge kind={game.generator.kind} provider={game.generator.provider} t={t} />
+        <GeneratorBadge kind={game.generator.kind} t={t} />
       </div>
       <p className="text-xs text-muted">{t("lib.meta", { areas: game.areas, missions: game.missions, challenges: game.challenges })}</p>
       {p && (

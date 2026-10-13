@@ -14,6 +14,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
     <main className="px-4" role="alert">
       <StateView
         kind="error"
+        headingLevel={1}
         data-testid="error-page"
         title={t("error.title")}
         text={t("error.text")}

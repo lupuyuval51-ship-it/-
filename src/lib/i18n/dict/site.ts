@@ -130,7 +130,7 @@ export const site = defineDict(
     "nav.register": "להתחיל בחינם",
     "nav.logout": "התנתקות",
     "nav.menu": "תפריט",
-    "nav.allowance": "נותרו {n}",
+    "nav.allowance": "נותרו: {n}",
     "nav.allowance.none": "אין משחקים זמינים",
     "footer.privacy": "פרופילים פרטיים כברירת מחדל. אין צ׳אט פתוח ואין מעקב מיקום — האזור משמש רק להצגת המחיר הנכון.",
     "footer.demo": "כל משחק מסומן: ״נוצר בבינה מלאכותית״ (LEVEL UP AI), ״מהחומר שלכם״ (מנוע לימוד, בלי AI) או ״תבנית הדגמה״ (מוכנה מראש).",
