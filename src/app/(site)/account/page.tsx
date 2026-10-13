@@ -1,3 +1,4 @@
+import { SignInMethods } from "@/components/account/SignInMethods";
 import { ProfileSettings } from "@/components/account/ProfileSettings";
 import { SecurityPanel } from "@/components/account/SecurityPanel";
 import { SubscriptionPanel } from "@/components/account/SubscriptionPanel";
@@ -6,6 +7,11 @@ import { PLANS } from "@/config/plans";
 import { formatDateTime } from "@/lib/format";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { requireUser } from "@/server/auth/current";
+import { getSignInMethods, isSessionReauthed } from "@/server/auth/google/identity";
+import { isGoogleEnabled } from "@/server/auth/google/protocol";
+import { SESSION_COOKIE } from "@/config/limits";
+import { sha256Hex } from "@/server/security/tokens";
+import { cookies } from "next/headers";
 import { getBillingView } from "@/server/billing/service";
 import { db } from "@/server/db";
 import { getT } from "@/server/i18n";
@@ -16,9 +22,13 @@ export const dynamic = "force-dynamic";
 
 const USAGE_LIMIT = 15;
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ google?: string }> }) {
+  const { google: notice } = await searchParams;
   const user = await requireUser("/account");
   const { t, locale } = await getT();
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  const googleEnabled = isGoogleEnabled();
+  const [methods, reauthFresh] = await Promise.all([getSignInMethods(user.id), token ? isSessionReauthed(sha256Hex(token)) : false]);
   const [billing, allowance, usage] = await Promise.all([
     getBillingView(user.id),
     getAllowanceSummary(user.id),
@@ -62,7 +72,9 @@ export default async function AccountPage() {
         {usage.length === USAGE_LIMIT && <p className="text-xs text-muted">{t("acc.usage.more", { n: USAGE_LIMIT })}</p>}
       </Card>
 
-      <SecurityPanel />
+      {(googleEnabled || methods.google) && <SignInMethods hasPassword={methods.password} google={methods.google} googleEnabled={googleEnabled} notice={notice ?? null} />}
+
+      <SecurityPanel hasPassword={methods.password} googleEnabled={googleEnabled} reauthFresh={reauthFresh} />
     </div>
   );
 }

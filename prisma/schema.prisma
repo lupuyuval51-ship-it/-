@@ -91,12 +91,13 @@ enum WebhookStatus {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique // always stored lower-cased
-  passwordHash String
+  passwordHash String // "scrypt$…" for password accounts; NO_PASSWORD_HASH ("!") for accounts that only sign in with a provider
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   profile      UserProfile?
   sessions     Session[]
+  identities   AuthIdentity[]
   subscription Subscription?
   allowances   AllowancePeriod[]
   usage        UsageRecord[]
@@ -130,11 +131,28 @@ model Session {
   expiresAt  DateTime
   lastUsedAt DateTime @default(now())
   userAgent  String?
+  reauthAt   DateTime? // set when this session re-authenticated through the provider (confirms account deletion for password-less accounts)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// A sign-in method other than the password (today: Google). Keyed by the provider's stable subject id, never by email.
+model AuthIdentity {
+  id        String   @id @default(cuid())
+  provider  String // "google"
+  subject   String // Google's `sub`
+  userId    String
+  email     String // the provider's email at link time (display only; never used to find an account)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@unique([userId, provider])
+  @@index([userId])
 }
 
 model RateLimitBucket {

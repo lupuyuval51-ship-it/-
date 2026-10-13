@@ -97,6 +97,7 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
 | `PAYMENTS_MODE` | `disabled` | `disabled` · `stripe` · `dev` (simulator). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | – | Required for `PAYMENTS_MODE=stripe`. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | – | Optional "Continue with Google" on the website. Both or neither: the button and `/api/auth/google/*` exist only when both are set. Setup: [`docs/google-signin.md`](docs/google-signin.md). |
 | `CRON_SECRET` | – | Bearer secret (at least 16 characters) for the optional `POST /api/internal/reap` cron; without it the endpoint always answers 403. |
 | `ENABLE_TEST_HOOKS` | `false` | Exposes `window.__LEVELUP_TEST__` in the play screen for browser tests only. |
 | `TEST_DATABASE_URL` | local `levelup_test` | Used only by the tests and Playwright (never by the app). The integration suite refuses a database whose name does not contain `test`. |

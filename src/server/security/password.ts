@@ -36,3 +36,7 @@ export async function verifyAgainstDummy(password: string): Promise<void> {
   dummyHash ??= hashPassword("dummy-password-for-timing-equalisation");
   await verifyPassword(password, await dummyHash);
 }
+
+/** Stored instead of a hash for accounts that sign in only through a provider (Google). `verifyPassword` can never match it. */
+export const NO_PASSWORD_HASH = "!";
+export const hasUsablePassword = (stored: string): boolean => stored.startsWith("scrypt$");

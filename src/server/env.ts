@@ -29,6 +29,10 @@ const schema = z.object({
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
 
+  /** Sign in with Google (website). Both must be set, otherwise the button and the /api/auth/google/* routes do not exist. */
+  GOOGLE_CLIENT_ID: optional(z.string().min(10)),
+  GOOGLE_CLIENT_SECRET: optional(z.string().min(10)),
+
   CRON_SECRET: optional(z.string().min(16)),
   /** Secret behind the opaque answer ids players see (see answer-seed.ts). Defaults to a value derived from DATABASE_URL, which clients never see. */
   ANSWER_SEED_SECRET: optional(z.string().min(16)),
