@@ -154,7 +154,7 @@ describe("first-run card", () => {
   it("has a Hebrew version of every touch tip, with the button name filled in", () => {
     const html = render(h(TutorialCard, { touch: true, onDismiss: noop }), "he");
     expect(html).toContain(DICTIONARIES.he["hud.tutorial.move.touch"]);
-    expect(html).toContain(`“${DICTIONARIES.he["touch.interact"]}”`);
+    expect(html).toContain(`״${DICTIONARIES.he["touch.interact"]}״`);
     expect(html).not.toMatch(/\{\w+\}/);
   });
 });
@@ -250,7 +250,7 @@ describe("pause menu", () => {
     expect(en).not.toContain("Space");
     expect(en).not.toContain("W A S D");
     const he = render(h(PauseMenu, { profile, reduceMotion: false, onReduceMotion: noop, sfx: true, music: true, guide: true, onSfx: noop, onMusic: noop, onGuide: noop, onResume: noop, onRestart: noop, touch: true }), "he");
-    expect(he).toContain(`“${DICTIONARIES.he["touch.sprint"]}”`);
+    expect(he).toContain(`״${DICTIONARIES.he["touch.sprint"]}״`);
     expect(he).not.toMatch(/\{\w+\}/);
     expect(menu()).toContain("Space"); // keyboard players still get the keys
   });
