@@ -28,17 +28,17 @@ export function ReviewView({ t, id, sessionId, review }: { t: TFn; id: string; s
                   {x.hints > 0 && <Badge>{t("rev.hints", { n: x.hints })}</Badge>}
                 </div>
                 <div className="space-y-1 text-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("rev.question")}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-muted">{t("rev.question")}</p>
                   <p dir="auto" className="whitespace-pre-wrap">{x.prompt}</p>
                 </div>
                 {x.answer && (
                   <div className="space-y-1 rounded-xl border border-lime/40 bg-lime/5 p-3 text-sm">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-lime">{t("rev.answer")}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-lime">{t("rev.answer")}</p>
                     <p dir="auto" className="whitespace-pre-wrap" data-testid="review-answer">{x.answer}</p>
                   </div>
                 )}
                 <div className="space-y-1 text-sm">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">{t("rev.why")}</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-muted">{t("rev.why")}</p>
                   <p dir="auto">{x.explanation}</p>
                 </div>
               </Card>

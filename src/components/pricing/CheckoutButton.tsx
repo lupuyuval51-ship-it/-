@@ -30,7 +30,7 @@ export function CheckoutButton({ plan, label, disabled }: { plan: PaidPlanId; la
 
   return (
     <div className="space-y-2">
-      <Button onClick={go} disabled={busy || disabled} size="lg" className="w-full" data-testid={`checkout-${plan}`}>
+      <Button onClick={go} disabled={busy || disabled} aria-busy={busy} size="lg" className="w-full" data-testid={`checkout-${plan}`}>
         {busy ? t("common.loading") : label}
       </Button>
       {error && <Alert tone="error">{error}</Alert>}

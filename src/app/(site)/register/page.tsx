@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/forms/AuthForm";
 import { getCurrentUser } from "@/server/auth/current";
 import { getRegion } from "@/server/region";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Create account" };
+export const generateMetadata = titleFor("auth.submit.register");
 
 export default async function RegisterPage() {
   if (await getCurrentUser()) redirect("/dashboard");

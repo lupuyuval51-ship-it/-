@@ -11,8 +11,9 @@ import { paymentsStatus } from "@/server/billing/gateway";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { getRegion } from "@/server/region";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Pricing" };
+export const generateMetadata = titleFor("pricing.title");
 export const dynamic = "force-dynamic";
 
 const linkBtn = "inline-flex min-h-12 w-full items-center justify-center rounded-xl px-6 font-semibold";
@@ -41,7 +42,8 @@ export default async function PricingPage() {
       {payments.mode === "disabled" && <Alert tone="info" data-testid="payments-disabled-banner">{t("pricing.payments.disabled")}</Alert>}
       {payments.mode === "stripe" && !payments.ready && <Alert tone="error">{t("pricing.payments.disabled")}</Alert>}
 
-      <div className="grid gap-5 md:grid-cols-3">
+      {/* three columns only where each card is wide enough to read (a 768px tablet gets one comfortable column) */}
+      <div className="mx-auto grid max-w-xl gap-5 min-[860px]:max-w-none min-[860px]:grid-cols-3">
         {PLAN_IDS.map((plan) => {
           const price = planPriceText(plan, region);
           const isCurrent = current === plan;
@@ -62,7 +64,7 @@ export default async function PricingPage() {
                   {!price.isFree && <span className="text-base font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
                 {!price.isFree && <p className="text-xs text-muted">{price.currency === "ILS" ? t("pricing.region.il") : t("pricing.region.usd")}</p>}
-                {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd")}</p>}
+                {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd", { price: price.text })}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</span></li>
@@ -102,7 +104,7 @@ export default async function PricingPage() {
         <Card className="space-y-3" data-testid="pricing-rules">
           <h2 className="text-lg font-semibold">{t("pricing.rules.title")}</h2>
           <ul className="space-y-2 text-sm text-muted">
-            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`)}</span></li>)}
+            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`, { n: PLANS.FREE.gamesPerPeriod })}</span></li>)}
           </ul>
         </Card>
         <Card className="space-y-3" data-testid="pricing-billing">

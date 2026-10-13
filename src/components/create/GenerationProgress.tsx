@@ -95,14 +95,14 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
   const currentStage = job.stage.startsWith("repair") ? "repair" : job.stage;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6" data-testid="generation-progress" data-status={job.status} aria-busy={!done}>
+    <div className="mx-auto max-w-2xl space-y-6" data-testid="generation-progress" data-status={job.status}>
       <header className="space-y-1">
         <h1 className="text-3xl font-extrabold">{t("gen.title")}</h1>
         <p className="text-muted">{t("gen.subtitle")}</p>
       </header>
 
       {job.status === "SUCCEEDED" && (
-        <Card className="space-y-4 border-lime/50 text-center" data-testid="gen-success">
+        <Card className="space-y-4 border-lime/50 text-center" data-testid="gen-success" role="status">
           <PartyPopper aria-hidden className="mx-auto size-10 text-lime" />
           <h2 className="text-2xl font-bold">{t("gen.success.title")}</h2>
           <p className="text-sm text-muted">{t("gen.success.text", { left: job.allowance?.remaining ?? 0 })}</p>
@@ -127,12 +127,12 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
         <Card className="space-y-5">
           <div className="flex items-center gap-3">
             <Spinner />
-            <p className="font-semibold" data-testid="gen-stage">{t(stageKey(currentStage))}</p>
+            <p className="font-semibold" data-testid="gen-stage" role="status">{t(stageKey(currentStage))}</p>
           </div>
           <ProgressBar value={idx} max={steps.length} label={t(stageKey(currentStage))} />
           <ol className="space-y-2 text-sm">
             {steps.map((s, i) => (
-              <li key={s} className={cx("flex items-center gap-2", i < idx ? "text-lime" : i === idx ? "text-text" : "text-muted")}>
+              <li key={s} aria-current={i === idx ? "step" : undefined} className={cx("flex items-center gap-2", i < idx ? "text-lime" : i === idx ? "text-text" : "text-muted")}>
                 <span aria-hidden className="grid size-5 place-items-center rounded-full border border-current text-[10px]">{i < idx ? <Check className="size-3" /> : i + 1}</span>
                 {t(stageKey(s))}
               </li>

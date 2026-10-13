@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Menu, Triangle } from "lucide-react";
+import { Triangle } from "lucide-react";
 import { cookies } from "next/headers";
 import { isThemePref, THEME_COOKIE } from "@/lib/theme";
 import { ThemeSwitch } from "./ThemeSwitch";
@@ -9,6 +9,8 @@ import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { LogoutButton } from "./LogoutButton";
+import { MobileMenu } from "./MobileMenu";
+import { NavLink } from "./NavLink";
 
 export async function SiteHeader() {
   const { t } = await getT();
@@ -32,16 +34,16 @@ export async function SiteHeader() {
           <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-neon to-violet text-ink-950"><Triangle className="size-4 fill-current" /></span>
           <span className="hidden whitespace-nowrap min-[420px]:inline">{t("app.name")}</span>
         </Link>
-        <nav className="ms-4 hidden flex-1 items-center gap-1 lg:flex" aria-label="main">
+        <nav className="ms-4 hidden flex-1 items-center gap-1 lg:flex" aria-label={t("nav.main")}>
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="min-h-10 content-center rounded-lg px-3 text-sm font-medium text-muted hover:bg-text/10 hover:text-text">
+            <NavLink key={l.href} href={l.href} className="min-h-10 content-center rounded-lg px-3 text-sm font-medium text-muted hover:bg-text/10 hover:text-text" activeClassName="bg-text/10 text-text">
               {l.label}
-            </Link>
+            </NavLink>
           ))}
         </nav>
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2">
           {allowance && (
-            <Link href="/pricing" data-testid="allowance-pill" title={`${allowance.plan}`} className="hidden sm:block">
+            <Link href="/pricing" data-testid="allowance-pill" title={t(`plan.${allowance.plan}`)} className="hidden sm:block">
               <Badge tone={allowance.remaining > 0 ? "lime" : "amber"}>
                 {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
               </Badge>
@@ -57,18 +59,15 @@ export async function SiteHeader() {
               <Link href="/register" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-lg bg-neon px-3 text-sm font-semibold text-ink-950 hover:brightness-110">{t("nav.register")}</Link>
             </>
           )}
-          <details className="relative lg:hidden">
-            <summary aria-label={t("nav.menu")} className="grid size-10 cursor-pointer list-none place-items-center rounded-lg border border-line hover:bg-text/10"><Menu aria-hidden className="size-5" /></summary>
-            <div className="lu-pop absolute end-0 top-12 w-64 space-y-1 rounded-xl border border-line bg-ink-800 p-2 shadow-e3">
-              {allowance && (
-                <Link href="/pricing" data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-text/10">
-                  {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
-                </Link>
-              )}
-              {links.map((l) => <Link key={l.href} href={l.href} className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10">{l.label}</Link>)}
-              {user ? <div className="px-1"><LogoutButton /></div> : <Link href="/login" className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10">{t("nav.login")}</Link>}
-            </div>
-          </details>
+          <MobileMenu label={t("nav.menu")}>
+            {allowance && (
+              <Link href="/pricing" data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-text/10">
+                {t(`plan.${allowance.plan}`)} · {allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
+              </Link>
+            )}
+            {links.map((l) => <NavLink key={l.href} href={l.href} className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10" activeClassName="bg-text/10 font-semibold">{l.label}</NavLink>)}
+            {user ? <div className="px-1"><LogoutButton /></div> : <Link href="/login" className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10">{t("nav.login")}</Link>}
+          </MobileMenu>
         </div>
       </div>
     </header>

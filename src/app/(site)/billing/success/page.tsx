@@ -1,7 +1,8 @@
 import { CheckoutStatus } from "@/components/pricing/CheckoutStatus";
 import { requireUser } from "@/server/auth/current";
+import { titleFor } from "@/components/layout/pageTitle";
 
-export const metadata = { title: "Payment" };
+export const generateMetadata = titleFor("billing.success.title");
 export const dynamic = "force-dynamic";
 
 export default async function BillingSuccessPage({ searchParams }: { searchParams: Promise<{ session_id?: string }> }) {
