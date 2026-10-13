@@ -123,7 +123,11 @@ function Decor({ world, profile, materials }: { world: WorldModel; profile: Rend
   const low = profile.geometry === "low";
   const groups = useMemo(() => {
     const byKind = new Map<string, typeof world.decor>();
-    for (const item of decorItemsFor(world, profile)) byKind.set(item.kind, [...(byKind.get(item.kind) ?? []), item]);
+    for (const item of decorItemsFor(world, profile)) {
+      const list = byKind.get(item.kind);
+      if (list) list.push(item);
+      else byKind.set(item.kind, [item]);
+    }
     return [...byKind.entries()];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, profile.environmentDetail, profile.limits.looseDecor]);
@@ -154,7 +158,10 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
       e.set(0, it.rot, 0);
       q.setFromEuler(e);
       // part offset is rotated with the item, then scaled
-      p.set(part.pos[0] * it.scale, part.pos[1] * it.scale, part.pos[2] * it.scale).applyQuaternion(q).add(new THREE.Vector3(it.x, it.y, it.z));
+      p.set(part.pos[0] * it.scale, part.pos[1] * it.scale, part.pos[2] * it.scale).applyQuaternion(q);
+      p.x += it.x;
+      p.y += it.y;
+      p.z += it.z;
       s.set(part.size[0] * it.scale, part.size[1] * it.scale, part.size[2] * it.scale);
       full.copy(q);
       if (hasRot) full.multiply(pq);

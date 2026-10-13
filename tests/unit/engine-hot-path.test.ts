@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import * as THREE from "three";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RENDER_PROFILES } from "@/config/graphics";
@@ -196,5 +198,17 @@ describe("createMaterialSet", () => {
       set.dispose();
     }
     expect(dispose).toHaveBeenCalledTimes(made);
+  });
+});
+
+// ───────────────────────── re-renders ─────────────────────────
+
+describe("play screen re-renders", () => {
+  it("the canvas is memoised, and the phone app's router is one stable object so the memo holds there too", async () => {
+    const canvas = readFileSync(path.resolve(import.meta.dirname, "../../src/components/game/scene/GameCanvas.tsx"), "utf8");
+    expect(canvas).toMatch(/export default memo\(GameCanvas\);/);
+    // PlayClient's interaction handler lists the router as a dependency and is passed to the canvas as `onInteract`
+    const { useRouter } = await import("../../mobile/src/shims/next-navigation");
+    expect(useRouter()).toBe(useRouter());
   });
 });

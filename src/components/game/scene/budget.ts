@@ -63,7 +63,9 @@ export function boxPlan(world: WorldModel, profile: RenderProfile): { individual
       continue;
     }
     const key = b.style;
-    merged.set(key, [...(merged.get(key) ?? []), b]);
+    const list = merged.get(key);
+    if (list) list.push(b);
+    else merged.set(key, [b]);
   }
   return { individual, merged };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
@@ -234,7 +234,7 @@ function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
   );
 }
 
-export default function GameCanvas(props: GameCanvasProps) {
+function GameCanvas(props: GameCanvasProps) {
   const { profile } = props;
   const canvasKey = `${props.runtime.areaId}-${profile.tier}`;
   // Once the frame governor has lowered the pixel ratio, the canvas must be given that number: handing it the profile's range
@@ -258,3 +258,11 @@ export default function GameCanvas(props: GameCanvasProps) {
     </Canvas>
   );
 }
+
+/**
+ * Memoised: the play screen re-renders for every toast, score pop-up, overlay and HUD measurement, and none of those change
+ * what the canvas gets. Without this each of them reconciled the whole scene (hundreds of elements) for nothing, which on a
+ * phone is a dropped frame at exactly the moments the player is tapping. Every prop the play screen passes is a stable
+ * reference or a primitive, and `client`/`nearbyKey` change when the scene really has to follow them.
+ */
+export default memo(GameCanvas);
