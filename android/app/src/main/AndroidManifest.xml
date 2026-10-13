@@ -41,6 +41,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!--
+              Return address of "Continue with Google" (optional account): Supabase redirects the system browser to
+              app.levelup.learn3d://auth?code=... and Android hands it to this activity (singleTask, so the running app is reused;
+              Capacitor's App plugin reports it as appUrlOpen). Only that scheme + host is claimed. The one-time code is useless
+              without the PKCE verifier kept inside this app, so another app that declares the same scheme gains nothing.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="app.levelup.learn3d" android:host="auth" />
+            </intent-filter>
+
         </activity>
 
         <provider

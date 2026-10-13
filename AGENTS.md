@@ -16,6 +16,9 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 - Allowance credits are **reserved → committed/released** in the database (atomic conditional update, idempotency key, one in-flight job per user). A failed generation must never cost a credit.
 - Game score, rewards, hints, attempts and completion are calculated **server-side from validated events**. The browser never receives answer keys, explanations or solutions before the server releases them.
 - A payment never activates access unless it arrives through the verified billing pipeline (`src/server/billing`): Stripe signature verified over the raw body, idempotent by event id, price checked against the plan config. The dev simulator (`PAYMENTS_MODE=dev`) goes through the same pipeline, is labelled, and is refused when `APP_ENV=production`.
+- Sign in with Google (`src/server/auth/google/`, `docs/google-signin.md`): exists only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are both set. Identities are keyed by Google's `sub` (`AuthIdentity`), `email_verified` is required, an
+  existing e-mail is **never** auto-linked (the owner links Google from the account page after a password sign-in), the last way to sign in can never be removed, and a Google-only account (no usable password) confirms
+  deletion with a fresh Google re-authentication of the same session. The redirect URI comes from `APP_URL`. The Android app uses Supabase's Google provider behind `VITE_GOOGLE_AUTH=1`; no secret is ever in the app.
 - Minor profiles are private by default. No open chat and no precise location (the region is a user-chosen billing region only).
 - Hebrew/RTL is the default and English/LTR must stay functional: add every string to both dictionaries (`defineDict` fails the build on a missing key), use logical Tailwind properties (`ms-`/`me-`/`start-`/`end-`).
 - Demo templates are never presented as AI output: games store `generatorKind` and the UI shows the label.

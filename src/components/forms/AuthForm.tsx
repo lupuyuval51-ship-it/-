@@ -7,15 +7,23 @@ import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Button, Card, Field, Input, Select } from "@/components/ui";
 import { PLANS } from "@/config/plans";
 import { REGIONS, OTHER_REGION } from "@/lib/regions";
+import { GoogleButton } from "./GoogleButton";
 import { PasswordInput } from "./PasswordInput";
 
 type Mode = "login" | "register";
 
-export function AuthForm({ mode, next, defaultRegion }: { mode: Mode; next: string; defaultRegion: string | null }) {
+const GOOGLE_ERRORS = ["failed", "cancelled", "unverified", "email_exists"] as const;
+
+/**
+ * `googleEnabled` is decided on the server (both Google credentials configured). Without it nothing about Google is rendered,
+ * so the page is exactly the password-only page. `googleError` is one of the fixed keys the callback redirects with.
+ */
+export function AuthForm({ mode, next, defaultRegion, googleEnabled = false, googleError = null }: { mode: Mode; next: string; defaultRegion: string | null; googleEnabled?: boolean; googleError?: string | null }) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const initialGoogleError = googleError === "rate_limited" ? t("common.error.rateLimited") : (GOOGLE_ERRORS as readonly string[]).includes(googleError ?? "") ? t(`auth.google.error.${googleError as (typeof GOOGLE_ERRORS)[number]}`) : null;
+  const [error, setError] = useState<string | null>(googleEnabled ? initialGoogleError : null);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const register = mode === "register";
@@ -92,6 +100,16 @@ export function AuthForm({ mode, next, defaultRegion }: { mode: Mode; next: stri
           {busy ? t("common.loading") : register ? t("auth.submit.register") : t("auth.submit.login")}
         </Button>
       </form>
+      {googleEnabled && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-xs text-muted" role="separator">
+            <span className="h-px flex-1 bg-line" />
+            {t("auth.or")}
+            <span className="h-px flex-1 bg-line" />
+          </div>
+          <GoogleButton href={`/api/auth/google/start?next=${encodeURIComponent(next)}`} />
+        </div>
+      )}
       <p className="text-center text-sm">
         <Link href={register ? `/login?next=${encodeURIComponent(next)}` : "/register"} className="text-neon hover:underline">
           {register ? t("auth.switch.toLogin") : t("auth.switch.toRegister")}

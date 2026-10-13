@@ -10,7 +10,7 @@ import { GAME_FEATURES, PLANS, featureShare } from "@/config/plans";
  */
 const root = path.resolve(import.meta.dirname, "../..");
 const read = (p: string) => readFileSync(path.join(root, p), "utf8");
-const DOCS = ["AGENTS.md", "README.md", "docs/handover.md", "docs/play-release.md", "docs/balance.md", "mobile/README.md", "supabase/README.md"] as const;
+const DOCS = ["AGENTS.md", "README.md", "docs/handover.md", "docs/play-release.md", "docs/google-signin.md", "docs/balance.md", "mobile/README.md", "supabase/README.md"] as const;
 const pkg = JSON.parse(read("package.json")) as { scripts: Record<string, string> };
 
 describe("documented commands exist", () => {

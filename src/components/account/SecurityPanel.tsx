@@ -3,10 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import { GoogleButton } from "@/components/forms/GoogleButton";
 import { Alert, Button, Card, Field, Input } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 
-export function SecurityPanel() {
+/**
+ * `hasPassword=false` is a Google-only account: there is no password to change, and deleting is confirmed by a fresh
+ * Google re-authentication (`reauthFresh`, decided by the server) instead of a password.
+ */
+export function SecurityPanel({ hasPassword = true, googleEnabled = false, reauthFresh = false }: { hasPassword?: boolean; googleEnabled?: boolean; reauthFresh?: boolean } = {}) {
   const t = useT();
   const router = useRouter();
   const [pw, setPw] = useState<{ tone: "success" | "error"; text: string } | null>(null);
@@ -40,14 +45,14 @@ export function SecurityPanel() {
     setBusy(true);
     setDel(null);
     try {
-      const res = await fetch("/api/account", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ password }) });
+      const res = await fetch("/api/account", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify(hasPassword ? { password } : { googleReauth: true }) });
       const json = (await res.json().catch(() => ({}))) as { error?: { code?: string } };
       if (res.ok) {
         router.push("/");
         router.refresh();
         return;
       }
-      setDel(json.error?.code === "SUBSCRIPTION_ACTIVE" ? t("acc.delete.active") : json.error?.code === "WRONG_PASSWORD" ? t("acc.delete.wrong") : t("common.error.generic"));
+      setDel(json.error?.code === "SUBSCRIPTION_ACTIVE" ? t("acc.delete.active") : json.error?.code === "WRONG_PASSWORD" ? t("acc.delete.wrong") : json.error?.code === "REAUTH_REQUIRED" ? t("acc.delete.google") : t("common.error.generic"));
     } catch {
       setDel(t("common.error.network"));
     } finally {
@@ -57,6 +62,7 @@ export function SecurityPanel() {
 
   return (
     <div className="space-y-6">
+      {hasPassword ? (
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold">{t("acc.password.title")}</h2>
         <form onSubmit={change} className="space-y-4" data-testid="password-form">
@@ -66,16 +72,36 @@ export function SecurityPanel() {
           <Button type="submit" variant="secondary" disabled={busy}>{t("acc.password.change")}</Button>
         </form>
       </Card>
+      ) : (
+        <Card className="space-y-2">
+          <h2 className="text-lg font-semibold">{t("acc.password.title")}</h2>
+          <p className="text-sm text-muted">{t("acc.password.none")}</p>
+        </Card>
+      )}
       <Card className="space-y-4 border-rose/40">
         <div>
           <h2 className="text-lg font-semibold">{t("acc.delete.title")}</h2>
           <p className="text-sm text-muted">{t("acc.delete.text")}</p>
         </div>
-        <form onSubmit={remove} className="space-y-4" data-testid="delete-form">
-          <Field label={t("acc.delete.password")} htmlFor="del-password"><Input id="del-password" name="password" type="password" autoComplete="current-password" dir="ltr" required /></Field>
-          {del && <Alert tone="error">{del}</Alert>}
-          <Button type="submit" variant="danger" disabled={busy}>{t("acc.delete.button")}</Button>
-        </form>
+        {hasPassword ? (
+          <form onSubmit={remove} className="space-y-4" data-testid="delete-form">
+            <Field label={t("acc.delete.password")} htmlFor="del-password"><Input id="del-password" name="password" type="password" autoComplete="current-password" dir="ltr" required /></Field>
+            {del && <Alert tone="error">{del}</Alert>}
+            <Button type="submit" variant="danger" disabled={busy}>{t("acc.delete.button")}</Button>
+          </form>
+        ) : reauthFresh ? (
+          <form onSubmit={remove} className="space-y-4" data-testid="delete-form">
+            <Alert tone="success">{t("acc.delete.google.done")}</Alert>
+            {del && <Alert tone="error">{del}</Alert>}
+            <Button type="submit" variant="danger" disabled={busy}>{t("acc.delete.button")}</Button>
+          </form>
+        ) : (
+          <div className="space-y-4" data-testid="delete-form">
+            <p className="text-sm text-muted">{t("acc.delete.google")}</p>
+            {del && <Alert tone="error">{del}</Alert>}
+            {googleEnabled && <GoogleButton href="/api/auth/google/start?intent=reauth" label={t("acc.delete.google.button")} testId="google-reauth" className="sm:w-auto" />}
+          </div>
+        )}
       </Card>
     </div>
   );

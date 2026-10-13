@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import { GoogleLogo } from "@/components/forms/GoogleButton";
 import { Alert, Button, Card, Field, Input } from "@/components/ui";
 import { deleteAccount, signIn, signOut, signUp, syncNow, useAccount } from "../cloud/account";
+import { googleAuthEnabled } from "../cloud/google";
+import { onGoogleResult, signInWithGoogle } from "../cloud/google-native";
 
 /** Optional account: back up games and progress to the cloud and use them on another phone. The game works without it. */
 export function AccountPanel() {
@@ -12,6 +15,16 @@ export function AccountPanel() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "error" | "success" | "info"; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const google = googleAuthEnabled();
+  useEffect(() => google ? onGoogleResult((r) => { if (!r.ok) setMessage({ tone: "error", text: t(r.reason === "cancelled" ? "mob.account.google.cancelled" : "mob.account.google.error") }); }) : undefined, [google, t]);
+
+  async function viaGoogle() {
+    setMessage(null);
+    const r = await signInWithGoogle();
+    // on success the system browser is open; the result comes back through the deep link (onGoogleResult / the session listener)
+    if (!r.ok) setMessage({ tone: "error", text: t("mob.account.google.error") });
+  }
 
   async function submit(kind: "in" | "up") {
     setMessage(null);
@@ -72,7 +85,13 @@ export function AccountPanel() {
         <Button size="sm" onClick={() => void submit("in")} disabled={busy} data-testid="sign-in">{t("mob.account.signIn")}</Button>
         <Button size="sm" variant="secondary" onClick={() => void submit("up")} disabled={busy} data-testid="sign-up">{t("mob.account.signUp")}</Button>
       </div>
-      <p className="text-xs text-muted">{t("mob.account.privacy")}</p>
+      {google && (
+        <>
+          <div className="flex items-center gap-3 text-xs text-muted" role="separator"><span className="h-px flex-1 bg-line" />{t("mob.account.or")}<span className="h-px flex-1 bg-line" /></div>
+          <Button size="sm" variant="secondary" className="w-full" onClick={() => void viaGoogle()} disabled={busy} data-testid="sign-in-google"><GoogleLogo className="size-4" />{t("mob.account.google")}</Button>
+        </>
+      )}
+      <p className="text-xs text-muted">{t("mob.account.privacy")}{google ? ` ${t("mob.account.google.privacy")}` : ""}</p>
       {message && <Alert tone={message.tone}>{message.text}</Alert>}
     </Card>
   );

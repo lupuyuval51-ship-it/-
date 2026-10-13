@@ -70,3 +70,5 @@ step with `docs/play-release.md` whenever you change either.
 
 Icons and store graphics: `python3 mobile/make-icons.py` (writes launcher icons and `mobile/store/*.png`).
 Store text and Play Console answers: `mobile/store/listing.md`. Privacy policy: `mobile/store/privacy-policy.md`.
+
+**Google sign-in (optional).** Build with `VITE_GOOGLE_AUTH=1 npm run mobile:build` to show "Continue with Google" in the account panel; without the flag nothing about it is in the UI. Setup (Google client, Supabase provider, redirect URL `app.levelup.learn3d://auth`): `docs/google-signin.md`.

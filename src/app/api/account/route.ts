@@ -20,9 +20,9 @@ export const PATCH = apiRoute({ body: updateSchema, rateLimit: [{ name: "account
   return { displayName: p.displayName, locale: p.locale, country: p.country, graphicsPreference: p.graphicsPreference, soundEnabled: p.soundEnabled, musicEnabled: p.musicEnabled };
 });
 
-const deleteSchema = z.object({ password: z.string().min(1).max(INPUT_LIMITS.passwordMax) });
-export const DELETE = apiRoute({ body: deleteSchema, rateLimit: [{ name: "account-delete", rule: { max: 5, windowSec: 3600 }, by: "user" }] }, async ({ user, body }) => {
-  await deleteAccount(user.id, body.password);
+const deleteSchema = z.union([z.object({ password: z.string().min(1).max(INPUT_LIMITS.passwordMax) }), z.object({ googleReauth: z.literal(true) })]);
+export const DELETE = apiRoute({ body: deleteSchema, rateLimit: [{ name: "account-delete", rule: { max: 5, windowSec: 3600 }, by: "user" }] }, async ({ user, body, sessionToken }) => {
+  await deleteAccount(user.id, "password" in body ? { password: body.password } : { googleReauth: true, sessionToken });
   const res = NextResponse.json({ ok: true }, { headers: { "Cache-Control": "no-store" } });
   res.cookies.set(clearedSessionCookie());
   return res;
