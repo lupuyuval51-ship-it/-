@@ -130,8 +130,10 @@ export function Field({ label, hint, error, success, children, htmlFor, required
   );
 }
 
-export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input {...p} className={cx(fieldBase, p.className)} />;
-export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea {...p} className={cx(fieldBase, "min-h-24 resize-y", p.className)} />;
+// dir="auto": what people type (a subject, a goal, a name) can be Hebrew or English inside an RTL page; a field pinned to one
+// direction would misplace the other. Fields that must stay LTR (e-mail, passwords, codes) pass dir="ltr" explicitly.
+export const Input = (p: InputHTMLAttributes<HTMLInputElement>) => <input dir="auto" {...p} className={cx(fieldBase, p.className)} />;
+export const Textarea = (p: TextareaHTMLAttributes<HTMLTextAreaElement>) => <textarea dir="auto" {...p} className={cx(fieldBase, "min-h-24 resize-y", p.className)} />;
 export const Select = (p: SelectHTMLAttributes<HTMLSelectElement>) => <select {...p} className={cx(fieldBase, p.className)} />;
 
 export function Stars({ n, size = "md", label }: { n: number; size?: "sm" | "md" | "lg"; label?: string }) {

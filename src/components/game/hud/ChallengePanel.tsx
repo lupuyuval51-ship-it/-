@@ -67,7 +67,7 @@ function revealSummary(ch: PublicChallenge, reveal: Record<string, unknown>, t: 
     case "choice": return ch.options.find((o) => o.id === reveal.optionId)?.text ?? "";
     case "numeric": return `${reveal.value}${ch.unit ? ` ${ch.unit}` : ""}`;
     case "sequence": return (reveal.order as string[]).map((id, i) => `${i + 1}. ${ch.items.find((x) => x.id === id)?.text ?? ""}`).join("\n");
-    case "match": return ch.lefts.map((l) => `${l.text} → ${ch.rights.find((r) => r.id === l.id)?.text ?? ""}`).join("\n");
+    case "match": return ch.lefts.map((l) => `${l.text}: ${ch.rights.find((r) => r.id === l.id)?.text ?? ""}`).join("\n");
     case "program": return (reveal.program as Block[]).flatMap((b) => blockText(b, t)).join("\n");
     case "simulation": return Object.entries(reveal.params as Record<string, number>).map(([k, v]) => `${k}: ${v}`).join(", ");
   }

@@ -233,6 +233,12 @@ export function sharedSoftSprite(): THREE.CanvasTexture {
   return (softSprite ??= makeSoftSprite());
 }
 
+/** Base direction of a label: the first strong letter decides (Hebrew/Arabic script = rtl). Digits and punctuation alone stay ltr. */
+const textDirection = (s: string): CanvasDirection => {
+  const first = /([\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF])|[A-Za-z\u00C0-\u024F]/.exec(s);
+  return first ? (first[1] ? "rtl" : "ltr") : "inherit";
+};
+
 /** Canvas label (supports Hebrew and any script the OS fonts cover). */
 export function makeLabelTexture(text: string, color: string, subtitle?: string): { texture: THREE.CanvasTexture; aspect: number } {
   const W = 512, H = subtitle ? 144 : 96;
@@ -251,6 +257,9 @@ export function makeLabelTexture(text: string, color: string, subtitle?: string)
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  // A detached canvas defaults to LTR. Hebrew labels (and mixed Hebrew + Latin) need the base direction of their first strong character,
+  // otherwise punctuation and Latin words in the middle of a Hebrew name land on the wrong side.
+  ctx.direction = textDirection(text);
   let size = 44;
   ctx.font = `600 ${size}px "Segoe UI", system-ui, Arial, sans-serif`;
   while (ctx.measureText(text).width > W - 40 && size > 20) {
@@ -260,6 +269,7 @@ export function makeLabelTexture(text: string, color: string, subtitle?: string)
   ctx.fillText(text, W / 2, subtitle ? 50 : H / 2);
   if (subtitle) {
     ctx.fillStyle = color;
+    ctx.direction = textDirection(subtitle);
     ctx.font = `500 28px "Segoe UI", system-ui, Arial, sans-serif`;
     ctx.fillText(subtitle, W / 2, 104);
   }
