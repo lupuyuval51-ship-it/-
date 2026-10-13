@@ -6,7 +6,7 @@
 import type { GameType } from "../spec/constants";
 import type { GameExtension, GameSpec } from "../spec/schema";
 import type { GenerationRequest } from "@/lib/schemas/generation";
-import { translator, type Lang } from "./builders";
+import { easierChoice, easierMatch, spreadAnswers, translator, type Lang } from "./builders";
 import { historyPack } from "./packs/history";
 import { languagePack } from "./packs/language";
 import { mathPack } from "./packs/math";
@@ -15,7 +15,46 @@ import { sciencePack } from "./packs/science";
 import type { DemoPack } from "./types";
 
 /** Order matters: the first pack whose keywords match the subject wins. */
-export const DEMO_PACKS: readonly DemoPack[] = [programmingPack, mathPack, sciencePack, historyPack, languagePack];
+type Challenges = Record<string, unknown>[];
+
+/**
+ * Easier warm-ups derived from the written questions (served after two misses in a row): a choice question keeps the right
+ * option and the one wrong option (its index, as written) that is easiest to rule out; a match question keeps three pairs.
+ */
+const WARMUPS: Record<string, { base: string; wrong?: number }[]> = {
+  programming: [{ base: "c-var1", wrong: 3 }, { base: "c-cond1", wrong: 2 }, { base: "c-func1", wrong: 3 }],
+  science: [{ base: "c-states", wrong: 3 }, { base: "c-force", wrong: 1 }],
+  language: [{ base: "c-hello", wrong: 2 }, { base: "c-food", wrong: 1 }, { base: "c-polite" }],
+};
+
+function withWarmups(packId: string, lang: Lang, challenges: Challenges): Challenges {
+  const plan = WARMUPS[packId] ?? [];
+  const warm = lang === "he" ? "(חימום)" : "(warm-up)";
+  const variants: Challenges = [];
+  const out = challenges.map((c) => {
+    const w = plan.find((p) => p.base === c.id);
+    if (!w || c.easierId) return c;
+    const over = { id: `${c.id}-easy`, title: `${String(c.title)} ${warm}`.slice(0, 80) };
+    variants.push(c.type === "match" ? easierMatch(c, over) : easierChoice(c, { ...over, wrong: w.wrong ?? 0 }));
+    return { ...c, easierId: over.id };
+  });
+  return [...out, ...variants];
+}
+
+/** Where each pack starts in the cycle of answer slots (chosen so the packs together use every slot about equally). */
+const SLOT_OFFSETS = [0, 1, 2, 3, 0];
+
+/** The packs as they are played: warm-ups added, and the right answer of a choice question not always in the same place. */
+const spread = (pack: DemoPack, at: number): DemoPack => ({
+  ...pack,
+  build: (lang) => {
+    const content = pack.build(lang);
+    return { ...content, challenges: spreadAnswers(withWarmups(pack.id, lang, content.challenges as Challenges), at) };
+  },
+  extensions: (lang) => pack.extensions(lang).map((e) => ({ ...e, challenges: spreadAnswers(e.challenges as Challenges, at + 1) })),
+});
+
+export const DEMO_PACKS: readonly DemoPack[] = [programmingPack, mathPack, sciencePack, historyPack, languagePack].map((pack, i) => spread(pack, SLOT_OFFSETS[i]!));
 
 const DEFAULT_PACK_FOR_TYPE: Record<GameType, string> = {
   adventure: "programming", exploration: "history", puzzle: "math", platformer: "language", simulation: "science",

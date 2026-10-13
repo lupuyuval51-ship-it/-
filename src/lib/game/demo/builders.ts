@@ -28,6 +28,45 @@ export const choice = (c: Common & { options: [string, string][]; correct: numbe
   correctOptionId: LETTERS[c.correct]!,
 });
 
+/** The slot the right answer takes in the 1st, 2nd, 3rd … choice question of a pack (cycled; capped by the number of options). `offset` starts a pack part-way round the cycle. */
+const ANSWER_SLOTS = [1, 3, 0, 2, 2, 0, 3, 1];
+
+/**
+ * Hand-written packs tend to list the right answer first, which a test-wise player learns to pick without knowing the
+ * subject. This moves it to a spread-out slot, in order and the same for every language, keeping the wrong options in
+ * their written order. Only choice questions change; their option ids follow the new positions.
+ */
+export function spreadAnswers(challenges: Raw[], offset = 0): Raw[] {
+  let nth = offset, pair = offset;
+  return challenges.map((c) => {
+    if (c.type !== "choice") return c;
+    const options = c.options as { id: string; text: string; feedback: string }[];
+    // numbers and fractions read best in the order they were written
+    if (options.every((o) => /^[-−\d.,/\s]+$/.test(o.text))) return c;
+    const right = options.find((o) => o.id === c.correctOptionId)!;
+    // a two-option warm-up alternates between the two slots; longer questions follow the cycle
+    const slot = options.length < 3 ? pair++ % 2 : Math.min(ANSWER_SLOTS[nth++ % ANSWER_SLOTS.length]!, options.length - 1);
+    const placed = options.filter((o) => o !== right);
+    placed.splice(slot, 0, right);
+    return { ...c, options: placed.map((o, i) => ({ ...o, id: LETTERS[i]! })), correctOptionId: LETTERS[slot]! };
+  });
+}
+
+/** A two-option warm-up of a choice question: the right option and the one wrong option (by its index) that is easiest to rule out. */
+export const easierChoice = (base: Raw, over: { id: string; title: string; wrong: number }): Raw => {
+  const options = base.options as { id: string; text: string; feedback: string }[];
+  const right = options.find((o) => o.id === base.correctOptionId)!;
+  const kept = options.filter((o, i) => o === right || i === over.wrong);
+  const { easierId: _e, harderId: _h, ...rest } = base;
+  return { ...rest, id: over.id, title: over.title, level: 1, options: kept.map((o, i) => ({ ...o, id: LETTERS[i]! })), correctOptionId: LETTERS[kept.indexOf(right)]! };
+};
+
+/** A three-pair warm-up of a match question: its first three pairs. */
+export const easierMatch = (base: Raw, over: { id: string; title: string }): Raw => {
+  const { easierId: _e, harderId: _h, ...rest } = base;
+  return { ...rest, id: over.id, title: over.title, level: 1, pairs: (base.pairs as Raw[]).slice(0, 3).map((p, i) => ({ ...p, id: `p${i + 1}` })) };
+};
+
 export const numeric = (c: Common & { answer: number; tolerance?: number; unit?: string; mistakes?: [number, string][] }): Raw => ({
   type: "numeric", ...strip(c, ["answer", "tolerance", "unit", "mistakes"]),
   answer: c.answer, tolerance: c.tolerance ?? 0, ...(c.unit ? { unit: c.unit } : {}),

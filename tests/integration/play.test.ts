@@ -89,16 +89,18 @@ describe("play sessions", () => {
     const { data } = await start(u, game.id);
     const opened = await send(u, data.sessionId, { type: "open", stationId: "s-var1" });
     expect(opened.status).toBe(200);
-    const challenge = opened.body.data.challenge as { id: string; options: { id: string }[] };
+    const challenge = opened.body.data.challenge as { id: string; options: { id: string; text: string }[] };
+    // the demo moves the right answer around: find the options by what they say
+    const optionId = (text: RegExp) => challenge.options.find((o) => text.test(o.text))!.id;
     expect(challenge.id).toBe("c-var1");
     const dump = JSON.stringify(opened.body);
     for (const secret of ["correctOptionId", "feedback", "explanation", '"hint"']) expect(dump).not.toContain(secret);
-    const wrong = await send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: "b" } });
+    const wrong = await send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: optionId(/repeats code/i) } });
     expect(wrong.body.data.result).toMatchObject({ correct: false, resolved: false, attemptsLeft: 2 });
     expect(wrong.body.data.result.feedback).toMatch(/loop/i);
     const hint = await send(u, data.sessionId, { type: "hint", stationId: "s-var1" });
     expect(hint.body.data.hint).toMatch(/box/i);
-    const right = await send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: "a" } });
+    const right = await send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: optionId(/named box/i) } });
     expect(right.body.data.result).toMatchObject({ correct: true, resolved: true });
     expect(right.body.data.result.explanation).toBeTruthy();
     expect(right.body.state.resolvedStations["s-var1"]).toBe("correct");
@@ -134,8 +136,9 @@ describe("play sessions", () => {
     const { data } = await start(u, game.id);
     const collects = await Promise.all(Array.from({ length: 10 }, () => send(u, data.sessionId, { type: "collect", itemId: "a-plaza:c1" })));
     expect(collects.filter((r) => r.status === 200)).toHaveLength(1);
-    await send(u, data.sessionId, { type: "open", stationId: "s-var1" });
-    const answers = await Promise.all(Array.from({ length: 6 }, () => send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: "a" } })));
+    const opened = await send(u, data.sessionId, { type: "open", stationId: "s-var1" });
+    const rightId = (opened.body.data.challenge as { options: { id: string; text: string }[] }).options.find((o) => /named box/i.test(o.text))!.id;
+    const answers = await Promise.all(Array.from({ length: 6 }, () => send(u, data.sessionId, { type: "answer", stationId: "s-var1", answer: { type: "choice", optionId: rightId } })));
     expect(answers.filter((r) => r.status === 200)).toHaveLength(1);
     const row = await db.playSession.findUniqueOrThrow({ where: { id: data.sessionId } });
     expect((row.state as unknown as PlayState).score).toBe(110); // 100 (first try) + 10 (one coin)
