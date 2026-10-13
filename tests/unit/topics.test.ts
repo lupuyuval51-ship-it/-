@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 100;
+const EXPECTED_TOPICS = 104;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
@@ -69,6 +69,7 @@ describe("topic catalogue", () => {
         expect(desc.length).toBeLessThanOrEqual(200);
       }
       expect(HEBREW.test(t.he[0]) && HEBREW.test(t.he[1])).toBe(true);
+      for (const s of [...t.en, ...t.he]) expect(/[\u0000-\u001F\u007F‎‏‪-‮⁦-⁩]/.test(s), `${t.id}: "${s}"`).toBe(false);
       expect(HEBREW.test(t.en[0]) || HEBREW.test(t.en[1])).toBe(false);
       expect(t.ages[0]).toBeGreaterThanOrEqual(6);
       expect(t.ages[1]).toBeLessThanOrEqual(18);
