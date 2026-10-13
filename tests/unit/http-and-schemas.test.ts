@@ -23,20 +23,22 @@ describe("getClientIp: forwarding headers are trusted only behind a proxy you co
     expect(getClientIp(headers({}))).toBe("unknown");
   });
 
-  it("TRUST_PROXY=true: first X-Forwarded-For hop, then X-Real-IP, trimmed", () => {
+  it("TRUST_PROXY=true: the entry our own proxy added (the last one by default), then X-Real-IP, trimmed", () => {
     process.env.TRUST_PROXY = "true";
     resetEnvForTests();
-    expect(getClientIp(headers({ "x-forwarded-for": " 203.0.113.9 , 10.0.0.1" }))).toBe("203.0.113.9");
+    // a proxy appends the address it saw: the left end is whatever the client claimed, so only the right end is believed
+    expect(getClientIp(headers({ "x-forwarded-for": " 6.6.6.6 , 203.0.113.9 " }))).toBe("203.0.113.9");
+    expect(getClientIp(headers({ "x-forwarded-for": "203.0.113.9" }))).toBe("203.0.113.9");
     expect(getClientIp(headers({ "x-real-ip": "198.51.100.4" }))).toBe("198.51.100.4");
     expect(getClientIp(headers({ "x-forwarded-for": "203.0.113.9", "x-real-ip": "198.51.100.4" }))).toBe("203.0.113.9");
     expect(getClientIp(headers({}))).toBe("unknown");
   });
 
-  it("TRUST_PROXY=true: an absurdly long value is ignored instead of becoming a bucket key", () => {
+  it("TRUST_PROXY=true: a value that is not an IP address never becomes a bucket key", () => {
     process.env.TRUST_PROXY = "true";
     resetEnvForTests();
     expect(getClientIp(headers({ "x-forwarded-for": "9".repeat(65) }))).toBe("unknown");
-    expect(getClientIp(headers({ "x-forwarded-for": "9".repeat(64) }))).toBe("9".repeat(64));
+    expect(getClientIp(headers({ "x-forwarded-for": "not-an-ip" }))).toBe("unknown");
   });
 });
 

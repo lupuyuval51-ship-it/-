@@ -65,7 +65,8 @@ async function deliver(tx: Tx, job: GenerationJob, spec: GameSpec, request: Gene
 }
 
 function describeFailure(err: unknown): { code: string; message: string } {
-  if (err instanceof ProviderError) return { code: err.code, message: err.userMessage };
+  // The owner must be able to see WHY the provider failed (out of credit, bad key, ...). `message` is "<code>: <short detail>" and never holds a provider response body.
+  if (err instanceof ProviderError) { console.warn(`[generation] provider error: ${err.message}`); return { code: err.code, message: err.userMessage }; }
   if (err instanceof PipelineError) return { code: err.code, message: err.userMessage };
   console.error("[generation] unexpected failure:", err);
   return { code: "INTERNAL_ERROR", message: INTERNAL_MESSAGE };

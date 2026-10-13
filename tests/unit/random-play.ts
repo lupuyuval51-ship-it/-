@@ -2,7 +2,7 @@ import { generateOffline } from "@/lib/offline/generate";
 import { OfflineError, type OfflineStore } from "@/lib/offline/store";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { findArea, findChallenge, stationActive } from "@/lib/game/state/progress";
-import { correctAnswer, request, wrongAnswer } from "./helpers";
+import { correctAnswer, request, wrongAnswer, deckSeedOf } from "./helpers";
 
 /** Small deterministic random generator so a failing run can be reproduced from its seed. */
 export function rng(seed: number): () => number {
@@ -64,15 +64,15 @@ export function randomAction(store: OfflineStore, rand: () => number): string {
     if (st && rand() < 0.6) {
       const opened = store.applyEvent(s.session.id, { type: "open", stationId: st.id });
       const ch = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-      store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-      store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+      store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, s.session.id) });
+      store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch, s.session.id) });
       store.deckSummary();
       return "miss";
     }
     const card = Object.values(store.syncDeck()).find((c) => !c.mastered);
     const cardGame = card && store.getGame(card.gameId);
     const ch = card && cardGame && findChallenge(cardGame.spec, card.challengeId);
-    if (card && ch) store.deckPractice({ action: "answer", challengeId: card.key, answer: correctAnswer(ch), attempt: 1 });
+    if (card && ch) store.deckPractice({ action: "answer", challengeId: card.key, answer: correctAnswer(ch, deckSeedOf(store, card.key)), attempt: 1 });
     return "review";
   } catch (e) {
     if (!(e instanceof OfflineError)) throw e;

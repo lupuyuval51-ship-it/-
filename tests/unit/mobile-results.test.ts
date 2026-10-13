@@ -55,8 +55,8 @@ function playThrough(store: OfflineStore, spec: GameSpec, sessionId: string, fir
       if (s.kind === "lore") { if (send({ type: "visit", stationId: s.id }).completed) return box.last; continue; }
       const opened = send({ type: "open", stationId: s.id });
       const ch = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-      if (!missed && ch.type !== "program" && ch.type !== "simulation") { send({ type: "answer", stationId: s.id, answer: wrongAnswer(ch) }); missed = true; }
-      if (send({ type: "answer", stationId: s.id, answer: correctAnswer(ch) }).completed) return box.last;
+      if (!missed && ch.type !== "program" && ch.type !== "simulation") { send({ type: "answer", stationId: s.id, answer: wrongAnswer(ch, sessionId) }); missed = true; }
+      if (send({ type: "answer", stationId: s.id, answer: correctAnswer(ch, sessionId) }).completed) return box.last;
     }
     if (area.portal) { try { send({ type: "enter_area", areaId: area.portal.toAreaId }); } catch { /* locked */ } }
   }

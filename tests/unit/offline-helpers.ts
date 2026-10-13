@@ -30,8 +30,8 @@ export function populated(startMs = 1_000_000, kv: KV = memoryKV()) {
   const st = area.stations.find((x) => x.kind === "challenge" && stationActive(game.spec, s.client, x))!;
   const opened = p.store.applyEvent(s.session.id, { type: "open", stationId: st.id });
   const ch = game.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-  p.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-  p.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+  p.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, s.session.id) });
+  p.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch, s.session.id) });
   p.store.syncDeck();
   return { ...p, game, sessionId: s.session.id };
 }

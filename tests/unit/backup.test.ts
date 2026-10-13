@@ -27,8 +27,8 @@ function populated() {
   const st = area.stations.find((x) => x.kind === "challenge" && stationActive(game.spec, s.client, x))!;
   const opened = ctx.store.applyEvent(s.session.id, { type: "open", stationId: st.id });
   const ch = game.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-  ctx.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-  ctx.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+  ctx.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, s.session.id) });
+  ctx.store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch, s.session.id) });
   ctx.store.syncDeck();
   return { ...ctx, game, sessionId: s.session.id };
 }

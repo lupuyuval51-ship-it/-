@@ -88,7 +88,9 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `APP_ENV` | `local` | `local` · `test` · `production`. Production turns on hard safety guards (below). |
 | `APP_URL` | `http://localhost:3000` | Public base URL: CSRF origin allow-list, Stripe return URLs. Must be `https://` in production. |
 | `DATABASE_URL` | local compose DB | PostgreSQL connection string. |
-| `TRUST_PROXY` | `false` | Set `true` **only** behind a proxy you control that overwrites `X-Forwarded-For` (Vercel, Cloudflare, nginx). Otherwise rate limiting uses a shared bucket. |
+| `TRUST_PROXY` | `false` | Set `true` **only** behind a proxy you control. Then the client IP is read from `X-Forwarded-For` (or `X-Real-IP`). Otherwise rate limiting uses one shared bucket. |
+| `TRUSTED_PROXY_HOPS` | `1` | How many proxies sit in front of the app (Cloudflare + nginx = 2). Every proxy **appends** the address it saw, so the client IP is the entry this many places from the **right**; the left end is attacker-controlled. A proxy that overwrites the header (Vercel) is 1. |
+| `ANSWER_SEED_SECRET` | derived from `DATABASE_URL` | At least 16 characters. Secret behind the opaque answer ids players see in match / sequence / choice questions, so the ids do not give the answer away. Keep it stable (changing it only affects questions currently open). |
 | `AI_PROVIDER` | `auto` | `auto` (real provider if a key is set, else demo) · `anthropic` · `openai` · `demo`. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_REFUSAL_FALLBACK` | – / `claude-opus-5-5` / `true` | Anthropic Messages API. |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | – / OpenAI / `gpt-4.1` | Any OpenAI-compatible chat-completions endpoint. |
@@ -482,7 +484,7 @@ Firefox/WebKit; a Docker image build; a load test. The study engine's question q
 * **Background work:** generation runs after the HTTP response using Next.js `after()`. Run the app on a **long-lived Node server** (or a platform whose
   functions may live ≥ `AI_JOB_DEADLINE_MS`; `/api/generations` sets `maxDuration = 800`). If a function is killed early the job passes its deadline,
   is marked `TIMEOUT` and the credit is released. Optionally call `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes.
-* **Reverse proxy / HTTPS:** terminate TLS in front, set `APP_URL=https://…`, `APP_ENV=production`, and `TRUST_PROXY=true` only if the proxy overwrites `X-Forwarded-For`.
+* **Reverse proxy / HTTPS:** terminate TLS in front, set `APP_URL=https://…`, `APP_ENV=production`, and `TRUST_PROXY=true` (and `TRUSTED_PROXY_HOPS` if more than one proxy is in front).
 * **Stripe:** point the webhook at `https://<domain>/api/webhooks/stripe` (see [Payments](#payments)). Keep `PAYMENTS_MODE=stripe`; never `dev` in production.
 * **Secrets:** inject through your platform's secret store. Nothing in this repo contains a real credential; `.env` is ignored by git.
 * Not provided: a Dockerfile / IaC (a Docker image build could not be verified in the build environment) and a CI definition beyond `.github/workflows/ci.yml`.
@@ -498,7 +500,7 @@ secret to configure (login tokens are random and only their SHA-256 is stored), 
 
 | For | Variables |
 | --- | --- |
-| **Always** | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` only if your proxy overwrites `X-Forwarded-For` |
+| **Always** | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` behind a proxy (set `TRUSTED_PROXY_HOPS` when there is more than one) |
 | **Real AI** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` (optionally `ANTHROPIC_MODEL`), or `AI_PROVIDER=openai` + `OPENAI_API_KEY` (+ `OPENAI_BASE_URL`, `OPENAI_MODEL` for any OpenAI-compatible endpoint). With `auto`, an Anthropic key wins over an OpenAI key, and no key means the labelled demo templates. With `anthropic`/`openai` and a missing key generation is refused up front, never silently demo. |
 | **Real payments** | `PAYMENTS_MODE=stripe`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the webhook endpoint described in [Payments](#payments). Prices are not configured in Stripe, only in `src/config/plans.ts`. |
 | **Stuck-job cleanup** (optional) | `CRON_SECRET` (≥ 16 characters) and a scheduler calling `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes. Without it stuck jobs are still released when they are read. |

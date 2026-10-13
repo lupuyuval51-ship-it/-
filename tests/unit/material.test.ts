@@ -330,7 +330,7 @@ describe("adaptive difficulty for material games", () => {
     expect(served.id).toBe(base.easierId);
     expect(served.options).toHaveLength(2);
     const easy = spec.challenges.find((c) => c.id === base.easierId)!;
-    const answered = processEvent(spec, opened.state, { type: "answer", stationId: station.id, answer: correctAnswer(easy) }, ctx);
+    const answered = processEvent(spec, opened.state, { type: "answer", stationId: station.id, answer: correctAnswer(easy, ctx.seed) }, ctx);
     expect((answered.data.result as { correct: boolean }).correct).toBe(true);
   });
 

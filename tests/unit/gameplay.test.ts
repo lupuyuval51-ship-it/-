@@ -9,7 +9,8 @@ import type { GameSpec } from "@/lib/game/spec/schema";
 import { answerText, buildReview } from "@/lib/game/state/review";
 import { PACK_SUBJECT, correctAnswer, request, validDemoSpec, wrongAnswer } from "./helpers";
 
-const ctx = (now = 1_000_000) => ({ now, seed: "test-session" });
+const SEED = "test-session";
+const ctx = (now = 1_000_000) => ({ now, seed: SEED });
 
 function play(spec: GameSpec, state: PlayState, event: GameEvent, now = 1_000_000): EventResult {
   return processEvent(spec, state, event, ctx(now));
@@ -83,7 +84,7 @@ describe("a complete playthrough through the server reducer", () => {
           const opened = step({ type: "open", stationId: s.id });
           const served = (opened.data.challenge as { id: string }).id;
           const ch = spec.challenges.find((c) => c.id === served)!;
-          const r = step({ type: "answer", stationId: s.id, answer: correctAnswer(ch) });
+          const r = step({ type: "answer", stationId: s.id, answer: correctAnswer(ch, SEED) });
           expect((r.data.result as { correct: boolean }).correct).toBe(true);
         }
         // Stations unlocked by missions completed in this very loop get picked up on the next pass.
@@ -133,9 +134,9 @@ describe("hostile or buggy clients cannot cheat", () => {
     let s = fresh();
     s = play(spec, s, { type: "open", stationId: "s-var1" }).state;
     const ch = spec.challenges.find((c) => c.id === "c-var1")!;
-    const r = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch) });
+    const r = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch, SEED) });
     expect(r.state.score).toBe(100);
-    expect(codeOf(() => play(spec, r.state, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch) }))).toBe("ALREADY_RESOLVED");
+    expect(codeOf(() => play(spec, r.state, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch, SEED) }))).toBe("ALREADY_RESOLVED");
     expect(r.state.score).toBe(100);
   });
 
@@ -160,23 +161,23 @@ describe("scoring is computed on the server from attempts, hints and time", () =
 
   it("first try = full points; later attempts earn less; 3 wrong attempts reveal the answer for 0 points", () => {
     let s = open(initialState(spec, 0));
-    const first = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch) });
+    const first = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch, SEED) });
     expect((first.data.result as { pointsAwarded: number }).pointsAwarded).toBe(100);
 
     s = open(initialState(spec, 0));
-    s = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch) }).state;
-    const second = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch) });
+    s = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch, SEED) }).state;
+    const second = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch, SEED) });
     expect((second.data.result as { pointsAwarded: number }).pointsAwarded).toBe(60);
 
     s = open(initialState(spec, 0));
     let last: EventResult | null = null;
     for (let i = 0; i < 3; i++) {
-      last = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch) });
+      last = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch, SEED) });
       s = last.state;
     }
     const res = last!.data.result as { resolved: boolean; revealed: boolean; reveal: { optionId: string }; explanation: string; pointsAwarded: number };
     expect(res).toMatchObject({ resolved: true, revealed: true, pointsAwarded: 0 });
-    expect(res.reveal.optionId).toBe((correctAnswer(ch) as { optionId: string }).optionId);
+    expect(res.reveal.optionId).toBe((correctAnswer(ch, SEED) as { optionId: string }).optionId);
     expect(res.explanation.length).toBeGreaterThan(10);
     expect(s.resolvedStations["s-var1"]).toBe("revealed");
     expect(s.score).toBe(0);
@@ -187,7 +188,7 @@ describe("scoring is computed on the server from attempts, hints and time", () =
     const h = play(spec, s, { type: "hint", stationId: "s-var1" });
     expect(h.data.hint).toMatch(/box/);
     s = h.state;
-    const r = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch) });
+    const r = play(spec, s, { type: "answer", stationId: "s-var1", answer: correctAnswer(ch, SEED) });
     expect((r.data.result as { pointsAwarded: number }).pointsAwarded).toBe(85);
     expect(play(spec, s, { type: "hint", stationId: "s-var1" }).state.hintsUsed).toBe(1); // asking again is free
   });
@@ -238,7 +239,7 @@ describe("adaptive difficulty chooses easier / harder variants from performance"
     const again = play(spec, s, { type: "open", stationId: "s-var2" });
     expect((again.data.challenge as { id: string }).id).toBe("c-var2-easy");
     const easy = spec.challenges.find((c) => c.id === "c-var2-easy")!;
-    const ans = play(spec, again.state, { type: "answer", stationId: "s-var2", answer: correctAnswer(easy) });
+    const ans = play(spec, again.state, { type: "answer", stationId: "s-var2", answer: correctAnswer(easy, SEED) });
     expect((ans.data.result as { correct: boolean }).correct).toBe(true);
   });
 });
@@ -249,7 +250,7 @@ describe("learning summary", () => {
     let s = initialState(spec, 0);
     s = play(spec, s, { type: "open", stationId: "s-var1" }).state;
     const ch = spec.challenges.find((c) => c.id === "c-var1")!;
-    for (let i = 0; i < 3; i++) s = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch) }).state;
+    for (let i = 0; i < 3; i++) s = play(spec, s, { type: "answer", stationId: "s-var1", answer: wrongAnswer(ch, SEED) }).state;
     const sum = summarize(spec, s, 5000);
     expect(sum.review).toEqual([expect.objectContaining({ challengeId: "c-var1", reason: "revealed" })]);
     expect(sum.concepts).toEqual([expect.objectContaining({ concept: "variables", correct: 0, total: 1 })]);
@@ -271,9 +272,9 @@ describe("review of mistakes", () => {
     s.recent = [];
     let r = play(spec, s, { type: "open", stationId: station.id });
     // an open challenge with a miss is NOT reviewable yet: its answer must stay hidden until it is resolved
-    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: wrongAnswer(ch) });
+    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: wrongAnswer(ch, SEED) });
     expect(buildReview(spec, r.state)).toEqual([]);
-    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: correctAnswer(ch) });
+    r = play(spec, r.state, { type: "answer", stationId: station.id, answer: correctAnswer(ch, SEED) });
     const items = buildReview(spec, r.state);
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ challengeId: ch.id, wrong: 1, revealed: false, explanation: ch.explanation });

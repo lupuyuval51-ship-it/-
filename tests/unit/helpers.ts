@@ -64,3 +64,10 @@ export const PACK_SUBJECT: Record<string, string> = {
 };
 
 export const ALL_GAME_TYPES: readonly GameType[] = GAME_TYPES;
+
+/** The seed of a review card's questions in the offline deck (it changes with every review; see `deckSeed` in the store). */
+export function deckSeedOf(store: { syncDeck(): Record<string, { key: string; reviews: number }> }, key: string): string {
+  const card = store.syncDeck()[key];
+  if (!card) throw new Error(`no review card ${key}`);
+  return `deck:${card.key}:${card.reviews}`;
+}

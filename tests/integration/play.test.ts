@@ -10,6 +10,7 @@ import { setBackendForTests } from "@/server/ai/registry";
 import { getSessionResults } from "@/server/games/play";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { findArea, stationActive, collectibleIds, type ClientState, type PlayState } from "@/lib/game/state/progress";
+import { answerSeed } from "@/server/games/answer-seed";
 import { correctAnswer } from "../unit/helpers";
 import { createTestUser, grantSubscription, makeRequest, readJson, type TestUser } from "./helpers";
 import { makeGame } from "./helpers-ai";
@@ -161,7 +162,7 @@ describe("play sessions", () => {
         if (s.kind === "lore") { state = (await send(u, data.sessionId, { type: "visit", stationId: s.id })).body.state; continue; }
         const opened = await send(u, data.sessionId, { type: "open", stationId: s.id });
         const ch = spec.challenges.find((c) => c.id === opened.body.data.challenge.id)!;
-        const r = await send(u, data.sessionId, { type: "answer", stationId: s.id, answer: correctAnswer(ch) });
+        const r = await send(u, data.sessionId, { type: "answer", stationId: s.id, answer: correctAnswer(ch, answerSeed(data.sessionId)) });
         state = r.body.state;
         if (r.body.completed) { completed = true; expect(r.body.summary).toMatchObject({ completed: true, stars: 3 }); break; }
       }

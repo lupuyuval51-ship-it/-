@@ -268,8 +268,8 @@ describe("restarting a game does not fill the phone with abandoned runs", () => 
     const st = area.stations.find((x) => x.kind === "challenge" && stationActive(game.spec, first.client, x))!;
     const opened = store.applyEvent(first.session.id, { type: "open", stationId: st.id });
     const ch = game.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, first.session.id) });
+    store.applyEvent(first.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch, first.session.id) });
     // (the review deck is not built yet: the only record of the miss is inside the first run)
 
     const runs: string[] = [first.session.id];

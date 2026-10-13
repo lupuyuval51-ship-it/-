@@ -290,8 +290,8 @@ describe("a game that comes back to a phone gets its cloud progress back", () =>
     const st = area.stations.find((x) => x.kind === "challenge")!;
     const opened = a.store.applyEvent(run, { type: "open", stationId: st.id });
     const ch = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, run) });
+    a.store.applyEvent(run, { type: "answer", stationId: st.id, answer: correctAnswer(ch, run) });
     expect(a.store.deckSummary().total).toBe(1);
     await a.sync(cloud);
     expect(cloud.cards.size).toBe(1);

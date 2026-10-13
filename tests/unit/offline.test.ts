@@ -3,7 +3,7 @@ import { generateOffline, OfflineGenerationError } from "@/lib/offline/generate"
 import { memoryKV, OfflineError, OfflineStore } from "@/lib/offline/store";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { collectibleIds, findArea, stationActive, type ClientState } from "@/lib/game/state/progress";
-import { correctAnswer, request, wrongAnswer } from "./helpers";
+import { correctAnswer, request, wrongAnswer, deckSeedOf } from "./helpers";
 
 const NOTES = `Photosynthesis: the process plants use to turn light into chemical energy.
 Chlorophyll: the green pigment in leaves that absorbs light.
@@ -27,8 +27,8 @@ function playThrough(store: OfflineStore, spec: GameSpec, sessionId: string, fir
       if (s.kind === "lore") { if (send({ type: "visit", stationId: s.id }).completed) return box.last; continue; }
       const opened = send({ type: "open", stationId: s.id });
       const ch = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-      if (!missed && ch.type !== "program" && ch.type !== "simulation") { send({ type: "answer", stationId: s.id, answer: wrongAnswer(ch) }); missed = true; }
-      if (send({ type: "answer", stationId: s.id, answer: correctAnswer(ch) }).completed) return box.last;
+      if (!missed && ch.type !== "program" && ch.type !== "simulation") { send({ type: "answer", stationId: s.id, answer: wrongAnswer(ch, sessionId) }); missed = true; }
+      if (send({ type: "answer", stationId: s.id, answer: correctAnswer(ch, sessionId) }).completed) return box.last;
     }
     if (area.portal) { try { send({ type: "enter_area", areaId: area.portal.toAreaId }); } catch { /* locked */ } }
   }
@@ -137,20 +137,20 @@ describe("review deck: spaced repetition across games", () => {
     const st = area.stations.find((x) => x.kind === "challenge" && stationActive(a.spec, s.client, x))!;
     const opened = store.applyEvent(s.session.id, { type: "open", stationId: st.id });
     const ch = a.spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
-    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch) });
-    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch) });
+    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: wrongAnswer(ch, s.session.id) });
+    store.applyEvent(s.session.id, { type: "answer", stationId: st.id, answer: correctAnswer(ch, s.session.id) });
 
     expect(store.deckSummary()).toMatchObject({ total: 1, due: 1 });
     const started = store.deckPractice({ action: "start" }) as { items: { id: string }[] };
     expect(started.items).toHaveLength(1);
     const key = started.items[0]!.id;
-    const res = store.deckPractice({ action: "answer", challengeId: key, answer: correctAnswer(ch), attempt: 1 }) as { result: { correct: boolean; resolved: boolean } };
+    const res = store.deckPractice({ action: "answer", challengeId: key, answer: correctAnswer(ch, deckSeedOf(store, key)), attempt: 1 }) as { result: { correct: boolean; resolved: boolean } };
     expect(res.result).toMatchObject({ correct: true, resolved: true });
     expect(store.deckSummary()).toMatchObject({ total: 1, due: 0 });
     now += 86_400_000 + 1;
     expect(store.deckSummary().due).toBe(1);
     // a miss resets the card to box 1 and brings it back soon
-    store.deckPractice({ action: "answer", challengeId: key, answer: wrongAnswer(ch), attempt: 3 });
+    store.deckPractice({ action: "answer", challengeId: key, answer: wrongAnswer(ch, deckSeedOf(store, key)), attempt: 3 });
     expect(store.deckSummary().due).toBe(0);
     now += 11 * 60 * 1000;
     expect(store.deckSummary().due).toBe(1);

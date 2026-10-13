@@ -17,7 +17,7 @@ import { pruneRevisions } from "./versions";
 const SAFE_FAILURE = "Something went wrong while editing your game. Nothing was changed and this did not count against your plan — please try again.";
 
 function describeFailure(err: unknown): { code: string; message: string } {
-  if (err instanceof ProviderError) return { code: err.code, message: err.userMessage };
+  if (err instanceof ProviderError) { console.warn(`[ai-edit] provider error: ${err.message}`); return { code: err.code, message: err.userMessage }; }
   if (err instanceof PipelineError) return { code: err.code, message: err.userMessage };
   if (err instanceof ApiError) return { code: err.code, message: err.message };
   console.error("[ai-edit] unexpected failure:", err);

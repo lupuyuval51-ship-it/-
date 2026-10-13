@@ -36,7 +36,7 @@ function playUntilBoss(spec: GameSpec): PlayState {
       for (const s of area.stations) if (s.kind === "challenge" && stationActive(spec, state, s) && !state.resolvedStations[s.id]) {
         send({ type: "open", stationId: s.id });
         const ch = spec.challenges.find((c) => c.id === state.served[s.id])!;
-        send({ type: "answer", stationId: s.id, answer: correctAnswer(ch) });
+        send({ type: "answer", stationId: s.id, answer: correctAnswer(ch, ctx.seed) });
       }
       for (const id of Array.from({ length: area.collectibles.count }, (_, i) => `${area.id}:c${i}`)) if (!state.collected.includes(id)) send({ type: "collect", itemId: id });
       try { send({ type: "enter_area", areaId: area.portal.toAreaId }); } catch { /* not open yet */ }
@@ -91,7 +91,7 @@ describe("boss battle rules", () => {
     for (const [i, id] of boss.phaseStationIds.entries()) {
       state = processEvent(spec, state, { type: "open", stationId: id }, ctx).state;
       const ch = spec.challenges.find((c) => c.id === state.served[id])!;
-      const res = processEvent(spec, state, { type: "answer", stationId: id, answer: correctAnswer(ch) }, ctx);
+      const res = processEvent(spec, state, { type: "answer", stationId: id, answer: correctAnswer(ch, ctx.seed) }, ctx);
       state = res.state;
       const progress = bossProgress(boss, state);
       expect(progress.done).toBe(i + 1);
