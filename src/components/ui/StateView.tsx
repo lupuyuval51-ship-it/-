@@ -36,8 +36,10 @@ function Illustration({ kind }: { kind: Kind }) {
   );
 }
 
-/** Empty / error / not-found screen: illustration, what happened, and what to do next. */
-/** `headingLevel` 1 is for whole-page states (error, not found) that have no other heading; embedded empty states stay at 2. */
+/**
+ * Empty / error / not-found screen: illustration, what happened, and what to do next.
+ * `headingLevel` 1 is for whole-page states (error, not found) that have no other heading; embedded empty states stay at 2.
+ */
 export function StateView({ kind, title, text, actions, children, className, headingLevel = 2, ...rest }: { kind: Kind; title: string; text?: ReactNode; actions?: ReactNode; children?: ReactNode; className?: string; headingLevel?: 1 | 2 } & Record<`data-${string}`, string>) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
