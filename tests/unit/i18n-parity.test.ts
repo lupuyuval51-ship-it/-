@@ -63,7 +63,7 @@ describe("i18n dictionaries: he and en are the same dictionary", () => {
 
   it("Hebrew strings are translated: any string with a real English word also has Hebrew letters, apart from a short list of brand/code terms", () => {
     // Strings that are legitimately Latin in Hebrew UI: the product name, plan names and the English endonym. Anything new must be deliberate.
-    const untranslatedOk = new Set<string>(["app.name", "lang.en", "plan.PLUS", "plan.PRO", "footer.rights"]);
+    const untranslatedOk = new Set<string>(["app.name", "lang.en", "plan.PLUS", "plan.PRO", "footer.rights", "nav.account", "acc.title", "acc.methods.google"]);
     const untranslated = keys.filter((k) => !HEBREW.test(he[k]) && LATIN_WORD.test(he[k].replace(/\{\w+\}/g, "")) && !untranslatedOk.has(k));
     // Report the key and the text so a failure says exactly what to translate.
     expect(untranslated.map((k) => `${k}: ${he[k]}`)).toEqual([]);

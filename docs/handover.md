@@ -64,6 +64,10 @@ migration (partial indexes and CHECKs are hand-written SQL). Integration tests u
 PostgreSQL via Prisma (`prisma/schema.prisma`): `User`, `UserProfile`, `Session` (token hash only), `RateLimitBucket`, `Subscription`, `AllowancePeriod`, `UsageRecord`, `WebhookEvent`, `DevCheckoutSession`,
 `GenerationJob`, `Game`, `GameRevision`, `GameProgress`, `PlaySession`, `AiEdit`. The app writes no files. Operations (variables, key rotation, `eval:ai`, backups): README → *Operating the app*.
 
+## Branding: LUPU ID and credits
+
+**LUPU ID** is only the *name* of the account/sign-in in the interface (login, register, account page, the app's Settings panel, privacy texts); technically nothing changed (website accounts in PostgreSQL/Prisma, the app's optional account in Supabase, same routes and test ids). The two are **separate accounts**: a LUPU ID made on the website is not signed in on the app, and vice versa; no copy says otherwise. **LUPU** is the company credit: footer line "© year LUPU", website `/about` and the app's Settings → About and credits (`src/components/about/Credits.tsx`, open-source list in `src/config/credits.ts`, checked against package.json and node_modules by `tests/unit/credits.test.ts`). The app version on that screen comes from Capacitor's `App.getInfo()` (the Gradle `versionName`) and is simply not shown in a browser. No support e-mail exists in the repo yet, so none is shown.
+
 ## Known limitations
 
 Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md`; the first block is "never exercised for real".

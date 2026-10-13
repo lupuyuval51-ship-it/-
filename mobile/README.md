@@ -11,7 +11,7 @@ Phone-only features:
   back a screen, and from the library the app moves to the background (what Android 12+ does for any root launcher activity).
 - **Vibration** (`@capacitor/haptics`) on right/wrong answers, pickups, gates and missions; switch off in Settings.
 
-- **Optional account + cloud backup** (Supabase): e-mail sign-in in Settings; games, progress and the review deck are pushed and
+- **Optional LUPU ID (account) + cloud backup** (Supabase): e-mail or Google sign-in in Settings (the app's LUPU ID lives in Supabase and is separate from the website's LUPU ID); games, progress and the review deck are pushed and
   pulled automatically (on start, when the app comes back, 15 s after a change, when back online). Last write wins; a deleted game
   stays deleted on every phone. Signed out, nothing is sent. Details and dashboard settings: `supabase/README.md`,
   `mobile/store/release-checklist.md`.

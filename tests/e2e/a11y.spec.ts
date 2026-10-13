@@ -24,7 +24,7 @@ for (const locale of ["en", "he"] as const) {
         await page.emulateMedia({ reducedMotion: "reduce" });
         await context.addCookies([{ name: "lu-theme", value: theme, url: baseURL! }]);
         await setLocaleCookie(page, locale);
-        for (const path of ["/", "/pricing", "/login", "/register", "/missing-page"]) {
+        for (const path of ["/", "/pricing", "/about", "/login", "/register", "/missing-page"]) {
           await page.goto(path);
           await expect(page.locator("main")).toBeVisible();
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);

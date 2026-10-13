@@ -17,12 +17,14 @@ const PlayPage = lazy(() => import("./pages/Play").then((m) => ({ default: m.Pla
 const PracticePage = lazy(() => import("./pages/Results").then((m) => ({ default: m.PracticePage })));
 const ResultsPage = lazy(() => import("./pages/Results").then((m) => ({ default: m.ResultsPage })));
 const ReviewPage = lazy(() => import("./pages/Results").then((m) => ({ default: m.ReviewPage })));
+const AboutPage = lazy(() => import("./pages/About").then((m) => ({ default: m.AboutPage })));
 const SettingsPage = lazy(() => import("./pages/Settings").then((m) => ({ default: m.SettingsPage })));
 
 function route(path: string) {
   let m: RegExpMatchArray | null;
   if (path === "/create") return <CreatePage />;
   if (path === "/settings") return <SettingsPage />;
+  if (path === "/about") return <AboutPage />;
   if (path === "/review") return <DeckPage />;
   if ((m = path.match(/^\/play\/([\w-]+)$/))) return <PlayPage key={m[1]} gameId={m[1]!} />;
   if ((m = path.match(/^\/games\/([\w-]+)\/results\/([\w-]+)\/review$/))) return <ReviewPage gameId={m[1]!} sessionId={m[2]!} />;
