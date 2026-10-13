@@ -47,7 +47,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
         <h1 className="text-3xl font-extrabold" data-testid="game-title">{game.title}</h1>
         <p className="max-w-3xl text-lg text-muted">{overview.tagline}</p>
         <p className="text-xs text-muted">
-          {t("det.created", { date: formatDate(game.createdAt, locale) })} · {t("det.minutes", { n: overview.estimatedMinutes })} · {game.generator.kind === "ai" ? t("det.generator.ai") : game.generator.kind === "engine" ? t("det.generator.engine") : t("det.generator.demo")}
+          {t("det.created", { date: formatDate(game.createdAt, locale) })} · {t("det.minutes", { n: overview.estimatedMinutes })} · {game.generator.kind === "ai" ? t("det.generator.ai") : game.generator.kind === "engine" ? t("det.generator.engine") : game.generator.kind === "catalog" ? t("det.generator.catalog") : t("det.generator.demo")}
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
           <Link href={`/play/${game.id}`} data-testid="details-play" className={`${btn} bg-neon text-ink-950 shadow-glow hover:brightness-110`}>

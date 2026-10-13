@@ -10,6 +10,8 @@ import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES, GENERATION_MODES, type Gen
 import type { DictKey } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import { MaterialPreview } from "./MaterialPreview";
+import { TopicPicker } from "./TopicPicker";
+import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 
 export interface CreateFormProps {
   backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string };
@@ -67,9 +69,15 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
   const engineGame = selected?.generatorKind === "engine";
   const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "demo");
   const [material, setMaterial] = useState("");
+  /** "library": a topic from the curated topic library (built without AI); "own": the learner's own subject. */
+  const [source, setSource] = useState<"own" | "library">("own");
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const library = !extend && source === "library";
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const exhausted = allowance.remaining <= 0;
-  const blocked = backend.kind === "unavailable" || exhausted || Boolean(allowance.activeJobId) || mismatch;
+  const catalogGame = extend && selected?.generatorKind === "catalog";
+  // the topic library never needs an AI provider
+  const blocked = (backend.kind === "unavailable" && !library) || exhausted || Boolean(allowance.activeJobId) || mismatch || catalogGame;
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -77,8 +85,10 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
     const form = new FormData(e.currentTarget);
     const get = (k: string) => String(form.get(k) ?? "").trim();
     const errs: Record<string, string> = {};
-    if (!extend && !get("subject")) errs.subject = t("create.error.required");
-    if (!get("learningGoal")) errs.learningGoal = t("create.error.required");
+    const topic = library && topicId ? findTopic(topicId) : undefined;
+    if (library && !topic) errs.topicId = t("topics.required");
+    if (!extend && !library && !get("subject")) errs.subject = t("create.error.required");
+    if (!library && !get("learningGoal")) errs.learningGoal = t("create.error.required");
     if (get("subject").length > INPUT_LIMITS.subjectMax) errs.subject = t("create.error.tooLong");
     if (get("learningGoal").length > INPUT_LIMITS.goalMax) errs.learningGoal = t("create.error.tooLong");
     if (get("notes").length > INPUT_LIMITS.notesMax) errs.notes = t("create.error.tooLong");
@@ -88,8 +98,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
     if (Object.keys(errs).length) {
       setError({ text: t("create.error.validation") });
       // keyboard and screen-reader users land on the first field that needs fixing (its message is read with it)
-      const first = (["subject", "learningGoal", "material", "notes"] as const).find((k) => errs[k]);
-      const target = first ? e.currentTarget.elements.namedItem(first) : null;
+      const first = (["topicId", "subject", "learningGoal", "material", "notes"] as const).find((k) => errs[k]);
+      const target = first === "topicId" ? e.currentTarget.querySelector<HTMLElement>('[data-testid="topic-search"]') : first ? e.currentTarget.elements.namedItem(first) : null;
       if (target instanceof HTMLElement) target.focus();
       return;
     }
@@ -109,7 +119,19 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           targetGameId: gameId,
           extension: { addArea: true, addMissions, addChallenges, addMechanics },
         }
-      : {
+      : topic
+        ? {
+            // the server builds the game from the topic's own content; subject and goal are the topic's title and description
+            mode,
+            subject: get("contentLanguage") === "he" ? topic.he[0] : topic.en[0],
+            learningGoal: get("contentLanguage") === "he" ? topic.he[1] : topic.en[1],
+            difficulty: get("difficulty"),
+            gameType: get("gameType"),
+            contentLanguage: get("contentLanguage"),
+            topicId: topic.id,
+            device: playDevice(),
+          }
+        : {
           mode,
           subject: get("subject"),
           learningGoal: get("learningGoal"),
@@ -135,7 +157,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
       const code = json.error?.code;
       if (code === "ALLOWANCE_EXHAUSTED") setError({ text: t("create.error.exhausted") });
       else if (code === "JOB_IN_PROGRESS") setError({ text: t("create.error.inProgress"), jobId: json.error?.details?.jobId ?? undefined });
-      else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: t("create.error.mismatch") });
+      else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: catalogGame ? t("create.error.catalogExtend") : t("create.error.mismatch") });
       else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
       else if (code === "VALIDATION_ERROR") setError({ text: t("create.error.validation") });
       else if (code === "RATE_LIMITED") setError({ text: t("common.error.rateLimited") });
@@ -248,7 +270,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
                 </Select>
               </Field>
               <p className="text-xs text-muted">{t("create.extend.keep")}</p>
-              {mismatch && <Alert tone="error">{t("create.error.mismatch")}</Alert>}
+              {mismatch && !catalogGame && <Alert tone="error">{t("create.error.mismatch")}</Alert>}
+              {catalogGame && <Alert tone="info" data-testid="extend-catalog-note">{t("create.error.catalogExtend")}</Alert>}
               <Field label={t("create.extend.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
                 <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
               </Field>
@@ -281,6 +304,24 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
         </Card>
       ) : (
         <Card className="space-y-4">
+          <fieldset className="space-y-2">
+            <legend className="mb-1 text-sm font-semibold">{t("topics.source.title")}</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(["own", "library"] as const).map((s) => (
+                <label key={s} className={cx("flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium", source === s ? "border-neon bg-neon/10" : "border-line hover:bg-text/5")}>
+                  <input type="radio" name="source" value={s} checked={source === s} onChange={() => setSource(s)} className="size-4 accent-[var(--color-neon)]" data-testid={`source-${s}`} />
+                  {s === "own" ? t("topics.source.own") : t("topics.source.library")}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          {library ? (
+            <>
+              <Alert tone="info" data-testid="topics-intro">{t("topics.intro", { n: TOPICS.length })}</Alert>
+              <TopicPicker value={topicId} onChange={(id) => { setTopicId(id); setFieldErrors(({ topicId: _x, ...rest }) => rest); }} error={fieldErrors.topicId} />
+            </>
+          ) : (
+          <>
           <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject} required>
             <Input id="subject" name="subject" maxLength={INPUT_LIMITS.subjectMax} placeholder={t("create.subject.placeholder")} data-testid="create-subject" autoComplete="off" />
           </Field>
@@ -295,15 +336,17 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           <Field label={t("create.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
             <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
           </Field>
+          </>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t("create.difficulty")} htmlFor="difficulty">
+            <Field label={t("create.difficulty")} htmlFor="difficulty" hint={library ? t("topics.level.hint") : undefined}>
               <Select id="difficulty" name="difficulty" defaultValue="beginner" data-testid="create-difficulty">
                 {DIFFICULTIES.map((d) => <option key={d} value={d}>{t(`difficulty.${d}`)}</option>)}
               </Select>
             </Field>
             <Field label={t("create.language")} htmlFor="contentLanguage" hint={t("create.language.hint")}>
               <Select id="contentLanguage" name="contentLanguage" defaultValue={locale} data-testid="create-language">
-                {(backend.kind === "demo" ? CONTENT_LANGUAGES.filter((l) => l === "he" || l === "en") : CONTENT_LANGUAGES).map((l) => <option key={l} value={l}>{NATIVE_LANG[l]}</option>)}
+                {(backend.kind === "demo" || library ? CONTENT_LANGUAGES.filter((l) => l === "he" || l === "en") : CONTENT_LANGUAGES).map((l) => <option key={l} value={l}>{NATIVE_LANG[l]}</option>)}
               </Select>
             </Field>
           </div>
@@ -315,10 +358,12 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
               })}
             </Select>
           </Field>
-          {materialField}
-          <Field label={t("create.notes")} htmlFor="notes" error={fieldErrors.notes}>
-            <Textarea id="notes" name="notes" maxLength={INPUT_LIMITS.notesMax} rows={2} placeholder={t("create.notes.placeholder")} />
-          </Field>
+          {!library && materialField}
+          {!library && (
+            <Field label={t("create.notes")} htmlFor="notes" error={fieldErrors.notes}>
+              <Textarea id="notes" name="notes" maxLength={INPUT_LIMITS.notesMax} rows={2} placeholder={t("create.notes.placeholder")} />
+            </Field>
+          )}
         </Card>
       )}
 

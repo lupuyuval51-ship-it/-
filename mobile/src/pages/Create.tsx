@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { MaterialPreview } from "@/components/create/MaterialPreview";
+import { TopicPicker } from "@/components/create/TopicPicker";
+import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
@@ -48,6 +50,11 @@ export function CreatePage() {
   const [langKept, setLangKept] = useState<ContentLang | null>(null);
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  /** "library": a ready topic from the topic library (built on the device, no AI); "notes": the learner's own subject and notes. */
+  const [source, setSource] = useState<"notes" | "library">("notes");
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const [topicError, setTopicError] = useState(false);
+  const library = source === "library";
   const alertBox = useRef<HTMLDivElement>(null);
 
   // ── the draft: written while typing, when the app is hidden and when the screen is left; dropped once a game exists
@@ -106,18 +113,26 @@ export function CreatePage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    const subject = cleanPastedText(form.subject).trim();
+    const topic = library && topicId ? findTopic(topicId) : undefined;
+    if (library && !topic) {
+      setTopicError(true);
+      document.querySelector<HTMLElement>('[data-testid="topic-search"]')?.focus();
+      return;
+    }
+    const subject = topic ? topic[form.language][0] : cleanPastedText(form.subject).trim();
     if (!subject) { dispatch({ type: "problem", problem: { kind: "required" } }); return; }
     setBusy(true);
     dispatch({ type: "problem", problem: null });
     setProgress({ percent: 0, stage: "reading" });
     let spec;
     try {
-      ({ spec } = await generateOfflineWithProgress({
-        mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
-        material: cleanPastedText(form.material).trim() || undefined,
-        device: "phone", // this app only runs on phones and tablets: fit the game to a touch screen
-      }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
+      ({ spec } = await generateOfflineWithProgress(topic
+        ? { mode: form.mode, subject, learningGoal: topic[form.language][1], difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language, topicId: topic.id, device: "phone" }
+        : {
+          mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
+          material: cleanPastedText(form.material).trim() || undefined,
+          device: "phone", // this app only runs on phones and tablets: fit the game to a touch screen
+        }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
     } catch (err) {
       dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });
       setBusy(false);
@@ -125,6 +140,7 @@ export function CreatePage() {
     }
     if (!alive.current) return;
     setProgress({ percent: 95, stage: "saving" });
+    // (a topic-library game leaves the learner's own draft untouched)
     let id: string;
     try {
       id = store.addGame(spec).id;
@@ -133,8 +149,10 @@ export function CreatePage() {
       setBusy(false);
       return;
     }
-    finished.current = true;
-    clearDraft(storage);
+    if (!topic) {
+      finished.current = true;
+      clearDraft(storage);
+    }
     setProgress({ percent: 100, stage: "saving" });
     navigate(`/play/${id}`, true);
   }
@@ -168,7 +186,24 @@ export function CreatePage() {
       <div className="space-y-4 md:col-span-2">
         <a href="#/" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
         <h1 className="text-2xl font-extrabold">{t("mob.create.title")}</h1>
+        <fieldset className="space-y-2" data-testid="create-source">
+          <legend className="mb-1 text-sm font-semibold">{t("topics.source.title")}</legend>
+          <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
+            {(["notes", "library"] as const).map((s) => (
+              <label key={s} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium ${source === s ? "border-neon bg-neon/10" : "border-line"}`}>
+                <input type="radio" name="source" value={s} checked={source === s} disabled={busy} onChange={() => setSource(s)} className="size-4 accent-[var(--color-neon)]" data-testid={`source-${s}`} />
+                {s === "notes" ? t("topics.source.own") : t("topics.source.library")}
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
+      {library ? (
+        <div className="min-w-0 space-y-4" data-testid="create-topics-column">
+          <Alert tone="info" data-testid="topics-intro">{t("topics.intro.mobile", { n: TOPICS.length })}</Alert>
+          <TopicPicker value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
+        </div>
+      ) : (
       <div className="min-w-0 space-y-4" data-testid="create-notes-column">
       <Field label={t("create.subject")} htmlFor="subject" error={problem?.kind === "required" ? t("create.error.required") : null}>
         <Input id="subject" className="min-h-11" value={form.subject} maxLength={INPUT_LIMITS.subjectMax} disabled={busy} enterKeyHint="next" onKeyDown={(e) => nextOnEnter(e, "material")} onChange={(e) => change("subject", e.target.value)} placeholder={t("create.subject.placeholder")} required />
@@ -230,10 +265,13 @@ export function CreatePage() {
       )}
       <MaterialPreview material={form.material} full={form.mode === "FULL"} />
       </div>
+      )}
       <div className="min-w-0 space-y-4" data-testid="create-options-column">
-      <Field label={t("create.goal")} hint={t("mob.create.goal.hint")} htmlFor="goal">
-        <Input id="goal" className="min-h-11" value={form.goal} maxLength={INPUT_LIMITS.goalMax} disabled={busy} enterKeyHint="done" onKeyDown={(e) => nextOnEnter(e, null)} onChange={(e) => change("goal", e.target.value)} placeholder={t("create.goal.placeholder")} />
-      </Field>
+      {!library && (
+        <Field label={t("create.goal")} hint={t("mob.create.goal.hint")} htmlFor="goal">
+          <Input id="goal" className="min-h-11" value={form.goal} maxLength={INPUT_LIMITS.goalMax} disabled={busy} enterKeyHint="done" onKeyDown={(e) => nextOnEnter(e, null)} onChange={(e) => change("goal", e.target.value)} placeholder={t("create.goal.placeholder")} />
+        </Field>
+      )}
       <Field label={t("create.mode.title")} htmlFor="mode" hint={t(`mob.create.mode.${form.mode}.desc`)} error={problem?.kind === "tier" && problem.mode ? lockedField : null}>
         <Select id="mode" className="min-h-11" value={form.mode} disabled={busy} onChange={(e) => change("mode", e.target.value as CreateFormValues["mode"])}>
           {(["FAST", "FULL"] as const).map((m) => {
@@ -252,7 +290,7 @@ export function CreatePage() {
       </Field>
       {anyLocked(tier) && <p className="text-xs text-muted" data-testid="create-locked-note">{t("mob.create.locked.note")}</p>}
       <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
-        <Field label={t("create.difficulty")} htmlFor="difficulty">
+        <Field label={t("create.difficulty")} htmlFor="difficulty" hint={library ? t("topics.level.hint") : undefined}>
           <Select id="difficulty" className="min-h-11" value={form.difficulty} disabled={busy} onChange={(e) => change("difficulty", e.target.value as CreateFormValues["difficulty"])}>
             {DIFFICULTIES.map((d) => <option key={d} value={d}>{t(`difficulty.${d}`)}</option>)}
           </Select>
@@ -275,7 +313,7 @@ export function CreatePage() {
         </div>
       )}
       <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="mobile-create-submit">{busy ? t("mob.create.building") : t("create.submit")}</Button>
-      {!isBlankForm(form) && !busy && (
+      {!library && !isBlankForm(form) && !busy && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1" data-testid="create-draft">
           <p className="min-w-0 flex-1 text-xs text-muted">{t("mob.create.draft.note")}</p>
           <Button type="button" size="sm" variant="ghost" onClick={() => dispatch({ type: "clear" })}>{t("mob.create.draft.clear")}</Button>

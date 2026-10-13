@@ -1,6 +1,9 @@
 import "server-only";
 import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
 import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
+import { findTopic } from "@/lib/game/topics/catalog";
+import { TOPIC_MODEL, TopicError, buildTopicSpec, topicRequest } from "@/lib/game/topics/build";
+import { loadTopicContent } from "@/lib/game/topics/loaders";
 import { tierHas, type FeatureTier } from "@/config/plans";
 import { addFinalBoss } from "@/lib/game/spec/boss";
 import { challengesPayloadSchema, checkAgainstPlan, validateBlueprint, type Blueprint } from "@/lib/game/spec/blueprint";
@@ -48,6 +51,8 @@ export interface PipelineOutput {
   templateId?: string;
   /** Built by the rule-based study engine from the learner's own material (neither AI output nor a demo template). */
   engine?: boolean;
+  /** Built from the curated topic library (not AI); `templateId` holds the topic id. */
+  catalog?: boolean;
 }
 
 const MAX_REPAIRS = 2;
@@ -283,9 +288,38 @@ async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
   return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId: built.templateId };
 }
 
+// ───────────────────────────── topic library ─────────────────────────────
+
+/**
+ * A topic from the curated library: built from that topic's fact-checked content at the chosen level. No model is
+ * called, whatever backend is configured; the result goes through the same validation as everything else.
+ */
+async function runTopicLibrary(input: PipelineInput): Promise<PipelineOutput> {
+  const entry = findTopic(input.request.topicId ?? "");
+  if (!entry || input.request.mode === "EXTEND") throw new PipelineError("INVALID_OUTPUT", "This topic is not in the topic library. You were not charged.");
+  await input.onStage(input.request.mode === "FULL" ? "content" : "generate");
+  const content = await loadTopicContent(entry.id);
+  if (!content) throw new PipelineError("INVALID_OUTPUT", "This topic could not be loaded. You were not charged.");
+  const req = topicRequest(input.request, entry);
+  let built;
+  try {
+    built = buildTopicSpec(req, entry, content);
+  } catch (e) {
+    if (e instanceof TopicError) throw new PipelineError("INVALID_OUTPUT", "This topic could not be built at this level. You were not charged.", e.message);
+    throw e;
+  }
+  await input.onStage("validate");
+  const res = validateGameSpec(applyRequest(built.raw, req, { language: (built.raw.meta as { language: string }).language }), { alignGameType: req.gameType });
+  if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The topic-library game could not be validated. You were not charged.", res.errors.join("; "));
+  const boss = req.mode === "FULL" && (!input.tier || tierHasBoss(input.tier)) ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
+  return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: TOPIC_MODEL, usage: noUsage, templateId: entry.id, catalog: true };
+}
+
 // ───────────────────────────── entry point ─────────────────────────────
 
 export async function runPipeline(input: PipelineInput): Promise<PipelineOutput> {
+  // The topic library never needs (or calls) a model, even when a real AI provider is configured.
+  if (input.request.topicId) return runTopicLibrary(input);
   if (input.backend.type === "templates") return runTemplates(input);
   const totals = { inputTokens: 0, outputTokens: 0 };
   const counters = { attempts: 0, model: input.backend.info.model };

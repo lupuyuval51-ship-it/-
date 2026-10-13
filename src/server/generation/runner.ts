@@ -6,6 +6,7 @@ import { clampToFeatureTier, maxTier } from "@/lib/game/spec/tier";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { ProviderError } from "../ai/errors";
 import { getBackend } from "../ai/registry";
+import { TOPIC_MODEL, TOPIC_PROVIDER } from "@/lib/game/topics/build";
 import type { GenerationBackend } from "../ai/types";
 import { db, type Tx } from "../db";
 import { getEnv } from "../env";
@@ -28,8 +29,8 @@ function specWithGenerator(out: PipelineOutput, backend: GenerationBackend, mode
     return spec;
   }
   spec.meta.generator = {
-    kind: out.engine ? "engine" : backend.info.kind,
-    provider: out.engine ? "study-engine" : backend.info.id,
+    kind: out.catalog ? "catalog" : out.engine ? "engine" : backend.info.kind,
+    provider: out.catalog ? TOPIC_PROVIDER : out.engine ? "study-engine" : backend.info.id,
     model: out.model.slice(0, 80),
     templateId: out.templateId,
     mode,
@@ -86,7 +87,9 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
   const backend = opts.backend ?? getBackend();
   try {
     const request = generationRequestSchema.parse(job.request);
-    if (backend.type === "unavailable") {
+    // The topic library needs no AI backend at all (it never calls a model).
+    const catalog = Boolean(request.topicId);
+    if (backend.type === "unavailable" && !catalog) {
       await failJob(jobId, "AI_UNAVAILABLE", "AI generation is not configured on this server. You were not charged.");
       return;
     }
@@ -98,12 +101,15 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
     }
     // Without an AI provider, learner material (or extending a material game) is handled by the rule-based study engine.
     const engine = backend.type === "templates" && (request.mode === "EXTEND" ? base?.spec.meta.generator?.kind === "engine" : Boolean(request.material));
-    await updateJobProgress(jobId, engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
+    await updateJobProgress(jobId, catalog
+      ? { providerId: TOPIC_PROVIDER, model: TOPIC_MODEL, stage: "starting" }
+      : engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
 
     // Games saved before tiers existed count as tier A (they keep everything they have).
     const tier = request.mode === "EXTEND" && base ? maxTier(job.featureTier, base.spec.meta.featureTier ?? "A") : job.featureTier;
     const out = await runPipeline({
-      backend, request, tier, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
+      // (an unavailable backend only gets this far for a topic-library request, which never touches it)
+      backend: backend as Exclude<GenerationBackend, { type: "unavailable" }>, request, tier, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
       onStage: (stage) => updateJobProgress(jobId, { stage }),
     });
 

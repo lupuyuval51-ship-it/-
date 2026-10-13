@@ -15,7 +15,7 @@ interface JobView {
   stage: string;
   gameId: string | null;
   attempts: number;
-  source: "demo" | "ai" | "engine" | null;
+  source: "demo" | "ai" | "engine" | "catalog" | null;
   warnings: string[];
   error: { code: string | null; message: string | null } | null;
   allowance?: { remaining: number; limit: number };
@@ -106,7 +106,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           <PartyPopper aria-hidden className="mx-auto size-10 text-lime" />
           <h2 className="text-2xl font-bold">{t("gen.success.title")}</h2>
           <p className="text-sm text-muted">{t("gen.success.text", { left: job.allowance?.remaining ?? 0 })}</p>
-          <div className="flex justify-center">{job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : "violet"} data-testid="gen-source">{t(`gen.source.${job.source}`)}</Badge>}</div>
+          <div className="flex justify-center">{job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : job.source === "catalog" ? "neon" : "violet"} data-testid="gen-source">{t(`gen.source.${job.source}`)}</Badge>}</div>
           <div className="flex flex-wrap justify-center gap-3">
             {job.gameId && <Link href={`/play/${job.gameId}`} data-testid="gen-play" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("gen.play")}</Link>}
             {job.gameId && <Link href={`/games/${job.gameId}`} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10">{t("gen.details")}</Link>}
@@ -141,7 +141,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
             <span>{t("gen.elapsed", { s: elapsed })}</span>
             {job.attempts > 0 && <span>{t("gen.attempts", { n: job.attempts })}</span>}
-            {job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : "violet"}>{t(`gen.source.${job.source}`)}</Badge>}
+            {job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : job.source === "catalog" ? "neon" : "violet"}>{t(`gen.source.${job.source}`)}</Badge>}
           </div>
           {pollError && <Alert tone="warn">{t("gen.poll.error")}</Alert>}
         </Card>

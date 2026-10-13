@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { INPUT_LIMITS } from "@/config/limits";
 import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES, GENERATION_MODES, MECHANICS } from "@/lib/game/spec/constants";
+import { isTopicId } from "@/lib/game/topics/catalog";
 
 const text = (max: number) =>
   z
@@ -43,6 +44,11 @@ export const generationRequestSchema = z
      * handle on a touch screen (see `fitForDevice`); it never unlocks anything.
      */
     device: z.enum(["phone", "desktop"]).optional(),
+    /**
+     * A topic from the curated topic library: the game is built from its fact-checked content at the chosen difficulty,
+     * without any model. Only a key into the catalogue (checked here), never a path.
+     */
+    topicId: z.string().max(60).refine(isTopicId, "Unknown topic.").optional(),
     /** EXTEND only: the saved game to add to. */
     targetGameId: z.string().min(1).max(40).optional(),
     extension: extensionOptionsSchema.optional(),
@@ -50,6 +56,12 @@ export const generationRequestSchema = z
   .superRefine((v, ctx) => {
     if (v.mode === "EXTEND" && !v.targetGameId) {
       ctx.addIssue({ code: "custom", path: ["targetGameId"], message: "Choose the game you want to extend." });
+    }
+    if (v.topicId && v.mode === "EXTEND") {
+      ctx.addIssue({ code: "custom", path: ["topicId"], message: "A topic-library game is created new; it cannot be an extension." });
+    }
+    if (v.topicId && v.material) {
+      ctx.addIssue({ code: "custom", path: ["topicId"], message: "Choose either a topic from the library or your own material, not both." });
     }
     if (v.mode !== "EXTEND" && (v.targetGameId || v.extension)) {
       ctx.addIssue({ code: "custom", path: ["targetGameId"], message: "Only 'Extend Existing Game' accepts a target game." });

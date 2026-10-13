@@ -39,12 +39,13 @@ describe("interface copy (both languages)", () => {
     }
     expect(DICTIONARIES.en["det.generator.demo"]).toMatch(/not AI/);
     expect(DICTIONARIES.en["det.generator.engine"]).toMatch(/not AI/);
+    expect(DICTIONARIES.en["det.generator.catalog"]).toMatch(/not AI/);
   });
 
-  it("the footer lists all three provenance labels, matching the badges", () => {
+  it("the footer lists all four provenance labels, matching the badges", () => {
     for (const locale of ["en", "he"] as const) {
       const footer = DICTIONARIES[locale]["footer.demo"];
-      for (const badge of ["ai.badge", "engine.badge", "demo.badge"] as const) expect(footer).toContain(DICTIONARIES[locale][badge]);
+      for (const badge of ["ai.badge", "engine.badge", "catalog.badge", "demo.badge"] as const) expect(footer).toContain(DICTIONARIES[locale][badge]);
     }
   });
 
