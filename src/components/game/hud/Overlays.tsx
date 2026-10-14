@@ -284,7 +284,9 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
   const m = TOUCH_METRICS[touchScale];
   const base = useRef<HTMLDivElement>(null);
   const knobEl = useRef<HTMLDivElement>(null);
-  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  // the knob is moved straight on the element: a state update per pointer event re-rendered the controls ~60-120 times a second
+  const geo = useRef<{ cx: number; cy: number; travel: number } | null>(null);
+  const placeKnob = (x: number, y: number) => { if (knobEl.current) knobEl.current.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`; };
   const pid = useRef<number | null>(null);
   // "Run": hold to run while held, tap to keep running until the stick is let go (see sprintLatch.ts)
   const sprintState = useRef<SprintState>(SPRINT_IDLE);
@@ -295,16 +297,21 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
     input.sprintHeld = on;
     setRunning(on);
   };
-  const move = (e: React.PointerEvent) => {
-    const r = base.current!.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
-    const v = stickVector(dx, dy, stickTravel(r.width, knobEl.current?.getBoundingClientRect().width ?? 56));
-    setKnob({ x: v.kx, y: v.ky });
+  const move = (e: React.PointerEvent, fresh = false) => {
+    // the stick does not move while it is held, so its box is measured once per touch (not twice per pointer event)
+    if (fresh || !geo.current) {
+      const r = base.current!.getBoundingClientRect();
+      geo.current = { cx: r.left + r.width / 2, cy: r.top + r.height / 2, travel: stickTravel(r.width, knobEl.current?.getBoundingClientRect().width ?? 56) };
+    }
+    const g = geo.current;
+    const v = stickVector(e.clientX - g.cx, e.clientY - g.cy, g.travel);
+    placeKnob(v.kx, v.ky);
     input.stick = applyDeadzone(v.x, v.y); // the knob follows the thumb exactly; only the steering ignores a resting thumb
   };
   const end = () => {
     pid.current = null;
-    setKnob({ x: 0, y: 0 });
+    geo.current = null;
+    placeKnob(0, 0);
     input.stick = { x: 0, y: 0 };
     setSprint(sprintStickReleased(sprintState.current));
   };
@@ -313,9 +320,9 @@ export function TouchControls({ input, onInteract, hasJump, ready = false }: { i
     <div className={cx("pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between", m.pad)} style={{ direction: "ltr", ...controlsInsetStyle(touchScale) }} data-testid="touch-controls" data-scale={touchScale}>
       {/* the invisible ring around the stick (before:) widens the touch area by 12px, so a thumb that lands just outside still steers */}
       <div ref={base} role="application" aria-label={t("a11y.joystick")} className={cx("pointer-events-auto relative max-h-[34vw] max-w-[34vw] touch-none select-none rounded-full border border-line bg-ink-900/70 before:absolute before:-inset-3 before:rounded-full before:content-['']", m.stick)}
-        onPointerDown={(e) => { if (pid.current !== null && pid.current !== e.pointerId) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e); }}
+        onPointerDown={(e) => { if (pid.current !== null && pid.current !== e.pointerId) return; pid.current = e.pointerId; (e.target as HTMLElement).setPointerCapture(e.pointerId); move(e, true); }}
         onPointerMove={(e) => { if (pid.current === e.pointerId) move(e); }} onPointerUp={(e) => { if (pid.current === e.pointerId) end(); }} onPointerCancel={(e) => { if (pid.current === e.pointerId) end(); }} onLostPointerCapture={(e) => { if (pid.current === e.pointerId) end(); }}>
-        <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} style={{ transform: `translate(calc(-50% + ${knob.x}px), calc(-50% + ${knob.y}px))` }} />
+        <div ref={knobEl} className={cx("absolute left-1/2 top-1/2 rounded-full border border-neon/60 bg-neon/20", m.knob)} />
       </div>
       <div className={cx("pointer-events-auto flex items-end", touchScale === "compact" ? "flex-row" : "flex-col items-end", m.gap)}>
         <button type="button" aria-label={t("a11y.sprint")} aria-pressed={running} data-running={running ? "1" : "0"} className={cx("grid touch-none select-none place-items-center rounded-full border text-xs font-semibold active:bg-neon/30", m.sprint, running ? "border-neon bg-neon/25" : "border-line bg-ink-900/70")}
