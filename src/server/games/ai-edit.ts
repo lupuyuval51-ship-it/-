@@ -1,7 +1,6 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { EDIT_LIMITS } from "@/lib/game/spec/edit";
-import { maxTier } from "@/lib/game/spec/tier";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { ProviderError } from "../ai/errors";
 import { getBackend } from "../ai/registry";
@@ -11,7 +10,6 @@ import { ApiError, Errors } from "../http/errors";
 import { runEdit } from "../generation/edit";
 import { PipelineError } from "../generation/pipeline";
 import { getCapabilities, type Capabilities } from "./capabilities";
-import { featureTierForPlan } from "./feature-tier";
 import { pruneRevisions } from "./versions";
 
 const SAFE_FAILURE = "Something went wrong while editing your game. Nothing was changed and this did not count against your plan — please try again.";
@@ -132,7 +130,8 @@ export async function editGameWithAi(args: EditArgs, opts: { now?: Date } = {}):
     const env = getEnv();
     const out = await runEdit({
       backend, spec: baseSpec, instruction: args.instruction, level,
-      tier: maxTier(featureTierForPlan(ent.plan), baseSpec.meta.featureTier ?? "A"), deadline: now.getTime() + env.AI_JOB_DEADLINE_MS, callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
+      // an edit stays within the game's own level (its points were paid for that level); older games count as A
+      tier: baseSpec.meta.featureTier ?? "A", deadline: now.getTime() + env.AI_JOB_DEADLINE_MS, callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
       onStage: async () => { /* progress is not streamed for edits; the request returns when the edit is done */ },
     });
     const spec = out.spec;

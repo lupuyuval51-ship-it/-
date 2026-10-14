@@ -1,3 +1,4 @@
+import { PLANS } from "@/config/plans";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db, disconnectDb } from "@/server/db";
 import { resetEnvForTests } from "@/server/env";
@@ -76,7 +77,7 @@ describe("checkout pricing is decided by the server from the central plan config
 });
 
 describe("simulated subscription lifecycle (same ingest pipeline as Stripe webhooks)", () => {
-  it("Plus: completing checkout grants PLUS (1 game, tier A) and completing twice never double-grants", async () => {
+  it("Plus: completing checkout grants PLUS (3 points, tier A) and completing twice never double-grants", async () => {
     const u = await createTestUser({ country: "IL" });
     const { url } = await startCheckout({ id: u.id, email: u.email, country: "IL" }, "PLUS");
     const id = sessionIdOf(url);
@@ -88,16 +89,16 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
     expect(await db.webhookEvent.count({ where: { id: { startsWith: `evt_dev_${id}` } } })).toBe(2);
     const sub = await db.subscription.findUniqueOrThrow({ where: { userId: u.id } });
     expect(sub).toMatchObject({ provider: "DEV", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 3000 });
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", limit: 1, remaining: 1 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", limit: PLANS.PLUS.allowance.budget, remaining: PLANS.PLUS.allowance.budget });
     expect((await resolveRender(u.id)).tier).toBe("A");
   });
 
-  it("Pro: 5 games per billing period and the very same Tier A graphics as Plus", async () => {
+  it("Pro: 10 points per billing period and the very same Tier A graphics as Plus", async () => {
     const plus = await createTestUser({ country: "US" });
     const pro = await createTestUser({ country: "IL" });
     await subscribe(plus, "PLUS");
     await subscribe(pro, "PRO");
-    expect(await getAllowanceSummary(pro.id)).toMatchObject({ plan: "PRO", limit: 5, remaining: 5 });
+    expect(await getAllowanceSummary(pro.id)).toMatchObject({ plan: "PRO", limit: PLANS.PRO.allowance.budget, remaining: PLANS.PRO.allowance.budget });
     const [rp, rr] = [await resolveRender(plus.id), await resolveRender(pro.id)];
     expect(rr.tier).toBe(rp.tier);
     expect(rr.profile).toEqual(rp.profile);
@@ -129,14 +130,14 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
   it("failed payment pauses paid features; a successful renewal restores them with a fresh allowance period", async () => {
     const u = await createTestUser();
     await subscribe(u, "PLUS");
-    // spend the Plus credit
+    // spend a Plus point (the suite runs at one level, where every game costs one point)
     const request = { mode: "FAST", subject: "x", learningGoal: "y", difficulty: "beginner", gameType: "adventure", contentLanguage: "en" } as const;
     const { job } = await startGenerationJob({ userId: u.id, idempotencyKey: `k-${u.id}-1`, request, deadlineMs: 60_000 });
     await succeedJob(job.id, async (tx) => {
       const g = await tx.game.create({ data: { ownerId: u.id, title: "T", subject: "S", gameType: "adventure", difficulty: "beginner", language: "en", createdVia: "FAST", generatorKind: "demo", generatorProvider: "demo", generatorModel: "demo", spec: {} } });
       return { gameId: g.id };
     });
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", used: 1, remaining: 0 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", used: 1, remaining: PLANS.PLUS.allowance.budget - 1 });
 
     const failed = await simulateDevEvent(u.id, "payment_failed");
     expect(failed.plan).toBe("FREE");
@@ -146,8 +147,8 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
     const renewed = await simulateDevEvent(u.id, "renew");
     expect(renewed.plan).toBe("PLUS");
     expect(renewed.subscription).toMatchObject({ status: "ACTIVE", suspended: null });
-    // new billing period → the Plus credit is available again (the old period's spend does not carry over)
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", used: 0, remaining: 1 });
+    // new billing period → the Plus points are available again (the old period's spend does not carry over)
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", used: 0, remaining: PLANS.PLUS.allowance.budget });
   });
 
   it("a full refund suspends paid features for that period only; the next paid renewal restores them", async () => {

@@ -16,15 +16,15 @@ describe("entitlement resolution", () => {
     expect(e.periodEnd.toISOString()).toBe("2026-04-01T00:00:00.000Z");
   });
 
-  it("ACTIVE PLUS → paid entitlement over the billing period, limit 1", () => {
+  it("ACTIVE PLUS → paid entitlement over the billing period, a budget of 3 points", () => {
     const e = computeEntitlement(sub(), mid);
-    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 1, subscriptionId: "s1" });
+    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 3, subscriptionId: "s1" });
     expect(e.periodStart).toEqual(start);
     expect(e.periodEnd).toEqual(end);
   });
 
-  it("ACTIVE PRO → limit 5", () => {
-    expect(computeEntitlement(sub({ plan: "PRO" }), mid).limit).toBe(5);
+  it("ACTIVE PRO → a budget of 10 points", () => {
+    expect(computeEntitlement(sub({ plan: "PRO" }), mid).limit).toBe(10);
   });
 
   it.each(["PAST_DUE", "UNPAID", "CANCELED", "INCOMPLETE", "INCOMPLETE_EXPIRED", "PAUSED"])("%s subscriptions do NOT grant paid access", (status) => {

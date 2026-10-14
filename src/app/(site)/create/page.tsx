@@ -3,8 +3,8 @@ import { GENERATION_MODES, MECHANICS, type GenerationModeId } from "@/lib/game/s
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { describeBackend } from "@/server/ai/registry";
 import { requireUser } from "@/server/auth/current";
-import { featureShare, planUnlocking } from "@/config/plans";
-import { featureTierForPlan } from "@/server/games/feature-tier";
+import { FEATURE_TIERS, defaultLevel, featureShare, levelUnlocking, planUnlocking, planUnlockingLevel } from "@/config/plans";
+import { levelCost, levelsForPlan, maxLevelForPlan } from "@/server/games/feature-tier";
 import { gameTypeAllowed, gameTypeFeature, modeAllowed } from "@/lib/game/spec/tier";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { listGames } from "@/server/games/library";
@@ -23,9 +23,23 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const [allowance, games] = await Promise.all([getAllowanceSummary(user.id), listGames(user.id)]);
   const backend = describeBackend();
-  const tier = featureTierForPlan(allowance.plan);
+  const plan = allowance.plan;
+  const offered = levelsForPlan(plan);
   const requested = (GENERATION_MODES as readonly string[]).includes(sp.mode ?? "") ? (sp.mode as GenerationModeId) : "FAST";
-  const mode = modeAllowed(featureTierForPlan(allowance.plan), requested) ? requested : "FAST";
+  const mode = modeAllowed(maxLevelForPlan(plan), requested) ? requested : "FAST";
+  // Everything below is derived from the plan config on the server; the form only explains and disables (the server enforces).
+  const levels = [...FEATURE_TIERS].reverse().map((level) => {
+    const cost = levelCost(plan, level);
+    return {
+      level, share: featureShare(level), cost,
+      allowed: offered.includes(level),
+      affordable: cost !== null && cost <= allowance.remaining,
+      unlockPlan: offered.includes(level) ? null : planUnlockingLevel(level),
+      fullAllowed: modeAllowed(level, "FULL"),
+      gameTypes: GAME_TYPES.map((g) => ({ id: g, allowed: gameTypeAllowed(level, g), level: levelUnlocking(gameTypeFeature(g)) })),
+    };
+  });
+  const defaultFor = (m: GenerationModeId) => offered.length === 1 ? offered[0]! : defaultLevel(plan, allowance.remaining, (l) => modeAllowed(l, m));
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-1">
@@ -34,14 +48,14 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
       </header>
       <CreateForm
         backend={{ kind: backend.kind, provider: backend.provider, label: backend.label, reason: backend.reason }}
-        allowance={{ remaining: allowance.remaining, limit: allowance.limit, periodEnd: allowance.periodEnd, plan: allowance.plan, activeJobId: allowance.activeJobId }}
-        games={games.map((g) => ({ id: g.id, title: g.title, subject: g.subject, generatorKind: g.generator.kind }))}
+        allowance={{ remaining: allowance.remaining, limit: allowance.limit, periodEnd: allowance.periodEnd, plan, activeJobId: allowance.activeJobId }}
+        games={games.map((g) => ({ id: g.id, title: g.title, subject: g.subject, generatorKind: g.generator.kind, level: g.level, extendCost: levelCost(plan, g.level) }))}
         extensionMechanics={EXTENSION_MECHANICS}
-        featureTier={{
-          tier, share: featureShare(tier),
-          // what the plan's tier can build, and which plan unlocks what it cannot
-          gameTypes: GAME_TYPES.map((g) => ({ id: g, allowed: gameTypeAllowed(tier, g), plan: gameTypeAllowed(tier, g) ? null : planUnlocking(gameTypeFeature(g)) })),
-          fullAllowed: modeAllowed(tier, "FULL"),
+        levels={{
+          options: levels,
+          defaults: { FAST: defaultFor("FAST"), FULL: defaultFor("FULL") },
+          // the cheapest plan whose highest level has several areas (for the locked Full Adventure / Extend modes)
+          fullAllowed: modeAllowed(maxLevelForPlan(plan), "FULL"),
           unlockPlan: planUnlocking("system:multi_area"),
         }}
         initialMode={mode}

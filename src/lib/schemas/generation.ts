@@ -45,6 +45,12 @@ export const generationRequestSchema = z
      */
     device: z.enum(["phone", "desktop"]).optional(),
     /**
+     * The level (feature tier) wished for this game: C = 40 %, B = 70 %, A = 100 % of the game features. Only a wish:
+     * the server checks it against the plan (`levelsAllowed`) and the points left, and picks the best affordable level
+     * when it is missing. Ignored when extending (the game keeps its own level).
+     */
+    level: z.enum(["A", "B", "C"]).optional(),
+    /**
      * A topic from the curated topic library: the game is built from its fact-checked content at the chosen difficulty,
      * without any model. Only a key into the catalogue (checked here), never a path.
      */

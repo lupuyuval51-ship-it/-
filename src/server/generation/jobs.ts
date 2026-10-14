@@ -1,11 +1,12 @@
 import "server-only";
 import type { GenerationJob } from "@/generated/prisma/client";
+import { planUnlockingLevel, type FeatureTier } from "@/config/plans";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { resolveEntitlement } from "../allowance/entitlement";
 import { ensurePeriod } from "../allowance/periods";
 import { recordReserve, reserveCredit, settleReservation } from "../allowance/ledger";
 import { db, isUniqueViolation, type Tx } from "../db";
-import { featureTierForPlan } from "../games/feature-tier";
+import { levelCost, maxLevelForPlan } from "../games/feature-tier";
 import { ApiError, Errors } from "../http/errors";
 
 const ACTIVE = ["PENDING", "RUNNING"] as const;
@@ -14,17 +15,23 @@ export interface StartJobArgs {
   userId: string;
   idempotencyKey: string;
   request: GenerationRequest;
+  /**
+   * The game's level (feature tier), decided by the server (createGeneration); defaults to `request.level`, else the
+   * plan's highest level. Its price is read from the plan HERE, inside the transaction.
+   */
+  level?: FeatureTier;
   deadlineMs: number;
   now?: Date;
 }
 
 /**
- * Create a generation job and hold one allowance credit for it, atomically.
+ * Create a generation job and hold its allowance POINTS (the price of its level on the user's plan), atomically.
  *
  * Guarantees (each enforced by the database, not by application code):
  *  - the same (user, idempotencyKey) always yields the same job, never a second reservation;
  *  - a user has at most one job in flight (partial unique index) → no parallel/duplicate generations;
- *  - `used + reserved` can never exceed the plan limit (conditional UPDATE in reserveCredit).
+ *  - `used + reserved` can never exceed the plan's points budget (conditional UPDATE in reserveCredit);
+ *  - the job stores its level (`featureTier`) and its `cost`; commit and release move exactly that many points.
  */
 export async function startGenerationJob(args: StartJobArgs): Promise<{ job: GenerationJob; created: boolean }> {
   const now = args.now ?? new Date();
@@ -38,26 +45,37 @@ export async function startGenerationJob(args: StartJobArgs): Promise<{ job: Gen
       const ent = await resolveEntitlement(args.userId, now, tx);
       // Locks this period's row for the rest of the transaction → concurrent starters for the same user queue here.
       const period = await ensurePeriod(tx, args.userId, ent);
+      // Priced from the plan as it is NOW (inside the transaction): a plan change since the pre-checks cannot slip through.
+      const level = args.level ?? args.request.level ?? maxLevelForPlan(ent.plan);
+      const cost = levelCost(ent.plan, level);
+      if (cost === null) {
+        throw new ApiError(403, "FEATURE_TIER_LOCKED", `Level ${level} games are not part of your plan.`, {
+          level, requiredLevel: level, requiredPlan: planUnlockingLevel(level),
+        });
+      }
       const created = await tx.generationJob.create({
         data: {
           userId: args.userId,
           mode: args.request.mode,
           idempotencyKey: args.idempotencyKey,
           request: args.request,
-          featureTier: featureTierForPlan(ent.plan),
+          featureTier: level,
+          cost,
           targetGameId: args.request.targetGameId ?? null,
           allowancePeriodId: period.id,
           deadlineAt: new Date(now.getTime() + args.deadlineMs),
         },
       });
-      const reserved = await reserveCredit(tx, period.id);
+      const reserved = await reserveCredit(tx, period.id, cost);
       if (!reserved) {
-        throw new ApiError(402, "ALLOWANCE_EXHAUSTED", "You have no generated games left in this period.", {
-          plan: ent.plan,
-          resetsAt: ent.periodEnd.toISOString(),
+        const remaining = Math.max(0, period.limit - period.used - period.reserved);
+        throw new ApiError(402, "ALLOWANCE_EXHAUSTED", remaining > 0
+          ? `A level ${level} game costs ${cost} points and you have ${remaining} left in this period.`
+          : "You have no points left in this period.", {
+          plan: ent.plan, level, cost, remaining, resetsAt: ent.periodEnd.toISOString(),
         });
       }
-      await recordReserve(tx, { userId: args.userId, periodId: period.id, jobId: created.id });
+      await recordReserve(tx, { userId: args.userId, periodId: period.id, jobId: created.id, cost });
       return created;
     });
     return { job, created: true };
@@ -92,7 +110,7 @@ export async function updateJobProgress(
 export type Delivery = (tx: Tx, job: GenerationJob) => Promise<{ gameId: string }>;
 
 /**
- * Deliver a validated game and COMMIT the credit in one transaction.
+ * Deliver a validated game and COMMIT the job's points in one transaction.
  * Returns false when the job was already settled (timed out / failed / delivered before) — in that case nothing
  * is written, the credit is not consumed twice and no orphan game is created.
  */
@@ -106,13 +124,13 @@ export async function succeedJob(jobId: string, deliver: Delivery, now = new Dat
     const job = await tx.generationJob.findUniqueOrThrow({ where: { id: jobId } });
     const { gameId } = await deliver(tx, job);
     await tx.generationJob.update({ where: { id: jobId }, data: { gameId } });
-    const settled = await settleReservation(tx, { userId: job.userId, periodId: job.allowancePeriodId!, jobId, kind: "COMMIT", note: "game delivered" });
+    const settled = await settleReservation(tx, { userId: job.userId, periodId: job.allowancePeriodId!, jobId, cost: job.cost, kind: "COMMIT", note: "game delivered" });
     if (!settled) throw new Error("invariant violated: reservation already settled for an in-flight job");
     return true;
   });
 }
 
-/** Mark a job failed and RELEASE its credit — a failed generation never costs the user anything. */
+/** Mark a job failed and RELEASE all its points — a failed generation never costs the user anything. */
 export async function failJob(jobId: string, code: string, safeMessage: string, now = new Date()): Promise<boolean> {
   return db.$transaction(async (tx) => {
     const { count } = await tx.generationJob.updateMany({
@@ -121,7 +139,7 @@ export async function failJob(jobId: string, code: string, safeMessage: string, 
     });
     if (count === 0) return false;
     const job = await tx.generationJob.findUniqueOrThrow({ where: { id: jobId } });
-    await settleReservation(tx, { userId: job.userId, periodId: job.allowancePeriodId!, jobId, kind: "RELEASE", note: code });
+    await settleReservation(tx, { userId: job.userId, periodId: job.allowancePeriodId!, jobId, cost: job.cost, kind: "RELEASE", note: code });
     return true;
   });
 }

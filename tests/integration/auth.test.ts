@@ -20,7 +20,7 @@ describe("authentication & protected API", () => {
     const me = await allowance(makeRequest("GET", "/api/allowance", { cookie: cookieFrom(res) }));
     expect(me.status).toBe(200);
     const body = await readJson<{ plan: string; remaining: number; limit: number }>(me);
-    expect(body).toMatchObject({ plan: "FREE", limit: PLANS.FREE.gamesPerPeriod, remaining: PLANS.FREE.gamesPerPeriod });
+    expect(body).toMatchObject({ plan: "FREE", limit: PLANS.FREE.allowance.budget, remaining: PLANS.FREE.allowance.budget });
   });
 
   it("rejects unauthenticated access with 401 and a garbage/forged cookie too", async () => {

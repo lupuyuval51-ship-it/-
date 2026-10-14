@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLANS } from "@/config/plans";
+import { maxLevel } from "@/config/plans";
 import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
 import { OfflineGenerationError, generateOffline } from "@/lib/offline/generate";
 
@@ -11,8 +11,8 @@ describe("offline app feature tiers", () => {
     expect(getOfflineTier()).toBe("A");
   });
 
-  it("maps each plan to the same tier as the server", () => {
-    for (const id of ["FREE", "PLUS", "PRO"] as const) expect(getOfflineTier(id)).toBe(PLANS[id].featureTier);
+  it("maps each plan to the highest level the server lets it make", () => {
+    for (const id of ["FREE", "PLUS", "PRO"] as const) expect(getOfflineTier(id)).toBe(maxLevel(id));
   });
 
   it("refuses what the tier does not include instead of building it", () => {

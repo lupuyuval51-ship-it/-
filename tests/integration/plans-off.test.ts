@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PLANS } from "@/config/plans";
+import { PLANS, levelsAllowed } from "@/config/plans";
 import { computeEntitlement } from "@/server/allowance/entitlement";
 import { startCheckout } from "@/server/billing/service";
 import { resetEnvForTests } from "@/server/env";
@@ -14,7 +14,9 @@ describe("plans switched off", () => {
     expect(e.plan).toBe("PRO");
     expect(e.source).toBe("FREE");
     expect(e.subscriptionId).toBeNull();
-    expect(e.limit).toBe(PLANS.PRO.gamesPerPeriod);
+    // the full product: Pro's points budget as fair use, and every level (A included)
+    expect(e.limit).toBe(PLANS.PRO.allowance.budget);
+    expect(levelsAllowed(e.plan)).toEqual(["A", "B", "C"]);
   });
 
   it("refuses to start a checkout", async () => {

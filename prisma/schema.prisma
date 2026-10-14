@@ -201,9 +201,9 @@ model AllowancePeriod {
   plan           PlanId
   periodStart    DateTime
   periodEnd      DateTime
-  limit          Int
-  used           Int             @default(0) // committed: a validated game was delivered
-  reserved       Int             @default(0) // held by generation jobs that are still in flight
+  limit          Int // the plan's points budget for the period
+  used           Int             @default(0) // committed POINTS: validated games were delivered
+  reserved       Int             @default(0) // POINTS held by generation jobs that are still in flight
   subscriptionId String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -271,7 +271,8 @@ model GenerationJob {
   stage             String         @default("queued")
   idempotencyKey    String
   request           Json // validated creation request (subject, goal, difficulty, mode, ...)
-  featureTier       GraphicsTier   @default(A) // the game's feature tier, fixed by the server from the plan when the job starts (same letters as the graphics tiers, a separate setting)
+  featureTier       GraphicsTier   @default(A) // the game's level (feature tier), decided by the server within the plan when the job starts (same letters as the graphics tiers, a separate setting)
+  cost              Int            @default(1) // allowance POINTS held by this job (the price of its level on the plan when it started); reserve, commit and release all move exactly this amount
   allowancePeriodId String?
   targetGameId      String? // EXTEND: the game being extended
   gameId            String? // set when a validated game was delivered (EXTEND jobs point at the game they extended)

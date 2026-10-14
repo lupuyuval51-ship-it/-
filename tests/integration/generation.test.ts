@@ -26,7 +26,8 @@ const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "Python loops", learningGoal: "Understand variables, conditions and loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over,
 });
-const FREE_GAMES = PLANS.FREE.gamesPerPeriod;
+// Under the suite's tier override every game costs one point, so Free's budget is a number of games.
+const FREE_GAMES = PLANS.FREE.allowance.budget;
 const key = () => `idem-${randomUUID()}`;
 
 async function generate(userId: string, request: GenerationRequest, backend: GenerationBackend) {

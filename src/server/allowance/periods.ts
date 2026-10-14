@@ -18,8 +18,10 @@ export interface PeriodRow {
 
 /**
  * Get-or-create the allowance row for the entitlement's period in ONE atomic statement.
- * If the plan changed inside the same period (e.g. PLUS → PRO upgrade) the limit is refreshed while `used`
- * and `reserved` are preserved, so credits already spent in the period stay spent.
+ * If the plan changed inside the same period (e.g. PLUS → PRO upgrade) the limit (points budget) is refreshed while
+ * `used` and `reserved` (points) are preserved, so points already spent in the period stay spent: an upgrade adds the
+ * difference in budget (Plus 3 → Pro 10 with 3 used leaves 7); a downgrade can leave `used` above the new budget,
+ * which simply means nothing is left until the period ends.
  */
 export async function ensurePeriod(tx: Tx, userId: string, ent: Entitlement): Promise<PeriodRow> {
   const rows = await tx.$queryRaw<PeriodRow[]>`

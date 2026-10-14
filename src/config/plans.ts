@@ -26,10 +26,11 @@ export type AllowancePeriodRule = { kind: "calendar_month_utc" } | { kind: "bill
 // ───────────────────────────── game feature tiers ─────────────────────────────
 
 /**
- * What a game can contain. Every game is built at one FEATURE TIER (C, B or A) decided by the server from the plan
- * that paid for it: C exposes 40 % of these features, B 70 %, A all of them (the shares are computed below, so the
- * lists cannot drift from the promise). A feature that is not in the tier is never generated, never kept when a
- * model or an edit adds it, and a request for it is refused with the plan that unlocks it.
+ * What a game can contain. Every game is built at one FEATURE TIER, also called its LEVEL (C, B or A): C exposes 40 %
+ * of these features, B 70 %, A all of them (the shares are computed below, so the lists cannot drift from the promise).
+ * The level of each game is decided by the server within what the plan offers (`levelsAllowed`) and costs points
+ * (`costOf`). A feature that is not in the level is never generated, never kept when a model or an edit adds it, and a
+ * request for it is refused with the level and the plan that unlock it.
  */
 export const GAME_FEATURES = [
   // what kind of world (4)
@@ -57,10 +58,17 @@ export const TIER_MAX_AREAS: Readonly<Record<FeatureTier, number>> = Object.free
 export const tierHas = (tier: FeatureTier, feature: GameFeature): boolean => TIER_FEATURES[tier].includes(feature);
 /** Whole-number percentage of all game features a tier exposes (C 40, B 70, A 100). */
 export const featureShare = (tier: FeatureTier): number => Math.round((TIER_FEATURES[tier].length / GAME_FEATURES.length) * 100);
-/** The cheapest plan whose tier has the feature (for "available on Plus" messages). */
+/** The lowest level (feature tier) that has the feature. */
+export function levelUnlocking(feature: GameFeature): FeatureTier {
+  return FEATURE_TIERS.find((t) => tierHas(t, feature)) ?? "A";
+}
+/** The cheapest plan that can make a game with the feature (for "available on Plus" messages). */
 export function planUnlocking(feature: GameFeature): PlanId {
-  const tier = FEATURE_TIERS.find((t) => tierHas(t, feature)) ?? "A";
-  return (Object.values(PLANS).find((p) => p.featureTier === tier) ?? PLANS.PRO).id;
+  return planUnlockingLevel(levelUnlocking(feature));
+}
+/** The cheapest plan that can make games at this level. */
+export function planUnlockingLevel(level: FeatureTier): PlanId {
+  return PLAN_IDS.find((p) => levelsAllowed(p).includes(level)) ?? "PRO";
 }
 
 /** Level of the personal AI robot that edits games from natural-language instructions. */
@@ -82,6 +90,18 @@ export interface PlanFeatures {
   versionsKept: number;
 }
 
+/**
+ * A plan's game allowance, in POINTS. Every game (a "topic") is made at one level (feature tier C/B/A) and costs that
+ * level's points; a level missing from `cost` can never be made on the plan. The keys are written in the order the
+ * offer is described to people ("2 topics at level C or 1 at level B"), see `planOffer`.
+ */
+export interface PlanAllowance {
+  /** Points per allowance period. Unused points do not roll over. */
+  budget: number;
+  /** Points one game costs at each level the plan offers. */
+  cost: Readonly<Partial<Record<FeatureTier, number>>>;
+}
+
 export interface PlanDefinition {
   id: PlanId;
   /** Ascending order of capability; used for upgrade/downgrade labelling only, never for access checks. */
@@ -91,15 +111,14 @@ export interface PlanDefinition {
    * no price is ever derived from an exchange rate. PRO deliberately has no ILS entry.
    */
   monthlyPrices: Readonly<Partial<Record<CurrencyCode, number>>>;
-  gamesPerPeriod: number;
-  /** The feature tier of every game this plan creates. */
-  featureTier: FeatureTier;
+  /** Points per period and the price of a game at each level (the player picks the level of each game). */
+  allowance: PlanAllowance;
   allowancePeriod: AllowancePeriodRule;
   graphics: { allowedTiers: readonly GraphicsTier[]; defaultTier: GraphicsTier };
   features: PlanFeatures;
 }
 
-/** Plus and Pro share this exact object: Pro's advantage is the number of games, not better graphics. */
+/** Plus and Pro share this exact object: Pro's advantage is the number of points, not better graphics. */
 const TIER_A_GRAPHICS = Object.freeze({
   allowedTiers: Object.freeze(["A", "B", "C"] as const),
   defaultTier: "A" as GraphicsTier,
@@ -115,9 +134,9 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     id: "FREE",
     rank: 0,
     monthlyPrices: { USD: 0, ILS: 0 },
-    gamesPerPeriod: 2,
-    featureTier: "C",
-    // FREE ALLOWANCE PERIOD: two generated games per calendar month (UTC). Unused games do not roll over.
+    // 2 topics at level C, or 1 topic at level B, per calendar month (UTC). Never level A.
+    allowance: { budget: 2, cost: { C: 1, B: 2 } },
+    // FREE ALLOWANCE PERIOD: the calendar month (UTC). Unused points do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
     features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3 },
@@ -127,8 +146,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 1,
     // $10/month internationally; exactly ₪30/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 1000, ILS: 3000 },
-    gamesPerPeriod: 1,
-    featureTier: "B",
+    // 3 topics at level B, or 1 topic at level A, per billing period (C costs what B costs).
+    allowance: { budget: 3, cost: { B: 1, A: 3, C: 1 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20 },
@@ -138,13 +157,68 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 2,
     // $40/month. No shekel price is invented for PRO: Israeli users are shown (and charged) USD.
     monthlyPrices: { USD: 4000 },
-    gamesPerPeriod: 5,
-    featureTier: "A",
+    // 5 topics at level A, or 10 topics at level B, per billing period (C costs what B costs).
+    // NOTE (owner's numbers, kept as specified): one A game is worth 2 B games on Pro but 3 B games on Plus.
+    allowance: { budget: 10, cost: { A: 2, B: 1, C: 1 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100 },
   },
 });
+
+// ───────────────────────────── allowance points ─────────────────────────────
+
+/** The levels a plan can make, highest first. */
+export function levelsAllowed(plan: PlanId): FeatureTier[] {
+  return (["A", "B", "C"] as const).filter((l) => PLANS[plan].allowance.cost[l] !== undefined);
+}
+
+/** The highest level a plan can make (Free B, Plus A, Pro A). */
+export function maxLevel(plan: PlanId): FeatureTier {
+  return levelsAllowed(plan)[0] ?? "C";
+}
+
+/** Points one game at `level` costs on `plan`, or null when the plan cannot make that level. */
+export function costOf(plan: PlanId, level: FeatureTier): number | null {
+  return PLANS[plan].allowance.cost[level] ?? null;
+}
+
+/** How many games at `level` fit in `points` (default: the plan's whole budget). 0 when the level is not offered. */
+export function topicsAt(plan: PlanId, level: FeatureTier, points: number = PLANS[plan].allowance.budget): number {
+  const cost = costOf(plan, level);
+  return cost === null ? 0 : Math.floor(Math.max(0, points) / cost);
+}
+
+export interface OfferOption {
+  level: FeatureTier;
+  topics: number;
+}
+
+/**
+ * The plan's offer as alternatives ("2 topics at level C or 1 at level B"), derived from the budget and the costs.
+ * Levels are listed in the order of the plan's `cost` keys. A level is left out when a higher level costs the same or
+ * less (it says nothing new: on Plus and Pro, C costs what B costs). With `points`, it describes what those points buy
+ * (e.g. what is left this period); alternatives that no longer fit are dropped.
+ */
+export function planOffer(plan: PlanId, points: number = PLANS[plan].allowance.budget): OfferOption[] {
+  const cost = PLANS[plan].allowance.cost;
+  const order = Object.keys(cost) as FeatureTier[];
+  const rank = (l: FeatureTier) => FEATURE_TIERS.indexOf(l);
+  return order
+    .filter((l) => !order.some((h) => rank(h) > rank(l) && cost[h]! <= cost[l]!))
+    .map((level) => ({ level, topics: topicsAt(plan, level, points) }))
+    .filter((o) => o.topics > 0);
+}
+
+/**
+ * The level a new game gets when the player does not choose one: the highest level the plan offers that the
+ * remaining points pay for and that `fits` the request (e.g. a Full Adventure needs at least B). When nothing is
+ * affordable, the highest level that fits (the server then answers ALLOWANCE_EXHAUSTED), else the plan's highest.
+ */
+export function defaultLevel(plan: PlanId, remaining: number, fits: (level: FeatureTier) => boolean = () => true): FeatureTier {
+  const levels = levelsAllowed(plan);
+  return levels.find((l) => fits(l) && costOf(plan, l)! <= remaining) ?? levels.find(fits) ?? maxLevel(plan);
+}
 
 /** Region whose users are shown localized prices where a localized price is explicitly configured. */
 export const ISRAEL = "IL";

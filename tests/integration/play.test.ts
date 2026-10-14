@@ -260,20 +260,20 @@ describe("library & modification workflows", () => {
   });
 });
 
-describe("switching mechanics on is limited by the plan's tier", () => {
-  it("a Free player cannot enable a mechanic outside tier C, but can switch one off; a Plus player can", async () => {
+describe("switching mechanics on is limited by the game's own level", () => {
+  it("a level C game cannot gain a mechanic outside level C, whatever the plan; a level A game can, and either can switch one off", async () => {
     const u = await createTestUser();
-    const game = await makeGame(u.id); // made at tier A, like the rest of the suite
-    setFeatureTierForTests(null); // now the real tiers apply to what the player may switch on
+    await grantSubscription(u.id, "PRO");
+    setFeatureTierForTests(null); // the real levels apply
     try {
-      const params = { params: Promise.resolve({ id: game.id }) };
-      const patch = (body: unknown) => editRoute(makeRequest("PATCH", `/api/games/${game.id}`, { cookie: u.cookie, body }), params);
-      const locked = await patch({ mechanics: { timed_bonus: true } });
+      const small = await makeGame(u.id, { mode: "FAST", gameType: "exploration", level: "C" });
+      const full = await makeGame(u.id, { level: "A" });
+      const patch = (id: string, body: unknown) => editRoute(makeRequest("PATCH", `/api/games/${id}`, { cookie: u.cookie, body }), { params: Promise.resolve({ id }) });
+      const locked = await patch(small.id, { mechanics: { timed_bonus: true } });
       expect(locked.status).toBe(403);
-      expect((await locked.json()).error).toMatchObject({ code: "FEATURE_TIER_LOCKED" });
-      await grantSubscription(u.id, "PLUS");
-      expect((await patch({ mechanics: { timed_bonus: true } })).status).toBe(200);
-      expect((await patch({ mechanics: { timed_bonus: false } })).status).toBe(200);
+      expect((await locked.json()).error).toMatchObject({ code: "FEATURE_TIER_LOCKED", details: { requiredLevel: "B", tier: "C" } });
+      expect((await patch(full.id, { mechanics: { timed_bonus: true } })).status).toBe(200);
+      expect((await patch(full.id, { mechanics: { timed_bonus: false } })).status).toBe(200);
     } finally {
       setFeatureTierForTests("A");
     }

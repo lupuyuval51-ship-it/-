@@ -3,6 +3,7 @@ import Link from "next/link";
 import { primaryLink, StateView } from "@/components/ui/StateView";
 import { Alert, Arrow, Badge, Card } from "@/components/ui";
 import { GameCardView } from "@/components/games/GameCardView";
+import { offerText } from "@/components/pricing/PlanPrice";
 import { formatDate } from "@/lib/format";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { requireUser } from "@/server/auth/current";
@@ -47,7 +48,8 @@ export default async function DashboardPage() {
           </div>
           <p className="text-3xl font-extrabold"><span className="ltr-num" data-testid="dash-remaining">{allowance.remaining}</span><span className="text-lg font-medium text-muted"> / <span className="ltr-num">{allowance.limit}</span></span></p>
           <p className="text-sm text-muted">{t("dash.allowance.left", { n: allowance.remaining, limit: allowance.limit })}</p>
-          <p className="text-xs text-muted">{allowance.plan === "FREE" ? t("dash.allowance.free", { n: allowance.limit }) : ""} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
+          <p className="text-xs text-muted" data-testid="dash-offer">{t("dash.allowance.offer", { offer: offerText(t, allowance.plan) })} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
+          {allowance.remaining > 0 && allowance.remaining < allowance.limit && <p className="text-xs text-muted" data-testid="dash-buys">{t("dash.allowance.buys", { offer: offerText(t, allowance.plan, allowance.remaining) })}</p>}
           {allowance.reserved > 0 && <p className="text-xs text-amber">{t("dash.allowance.inflight", { n: allowance.reserved })}</p>}
           {plansEnabled() && allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
         </Card>

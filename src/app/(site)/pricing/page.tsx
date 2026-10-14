@@ -4,8 +4,9 @@ import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { Alert, Badge, Card } from "@/components/ui";
 import { CheckoutButton } from "@/components/pricing/CheckoutButton";
-import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
-import { FEATURE_TIERS, PLANS, PLAN_IDS, TIER_FEATURES, featureShare, isPaidPlanId, tierHas, type PlanId } from "@/config/plans";
+import { offerText, planHasTierA, planPriceText, pointsText } from "@/components/pricing/PlanPrice";
+import { PLAN_IDS, TIER_FEATURES, featureShare, isPaidPlanId, levelsAllowed, maxLevel, tierHas, type PlanId } from "@/config/plans";
+import { modeAllowed } from "@/lib/game/spec/tier";
 import type { DictKey } from "@/lib/i18n";
 import { REGIONS, regionLabel } from "@/lib/regions";
 import { getBillingView } from "@/server/billing/service";
@@ -50,11 +51,11 @@ export default async function PricingPage() {
         {PLAN_IDS.map((plan) => {
           const price = planPriceText(plan, region);
           const isCurrent = current === plan;
-          const games = planGames(plan);
-          // what this plan's tier adds on top of the plan below it (the cheapest plan lists everything it has)
-          const rank = FEATURE_TIERS.indexOf(PLANS[plan].featureTier);
-          const below = rank > 0 ? PLAN_IDS.find((p) => PLANS[p].featureTier === FEATURE_TIERS[rank - 1]) : undefined;
-          const newFeatures = TIER_FEATURES[PLANS[plan].featureTier].filter((f) => !below || !tierHas(PLANS[below].featureTier, f));
+          const period = plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing");
+          const top = maxLevel(plan);
+          // what this plan's highest level adds on top of the plan below it (the cheapest plan lists everything it has)
+          const below = PLAN_IDS[PLAN_IDS.indexOf(plan) - 1];
+          const newFeatures = TIER_FEATURES[top].filter((f) => !below || !tierHas(maxLevel(below), f));
           return (
             <Card key={plan} className={`flex flex-col gap-4 ${plan === "PLUS" ? "border-neon/60 shadow-glow" : ""}`} data-testid={`plan-${plan}`}>
               <div className="flex items-center justify-between">
@@ -70,15 +71,15 @@ export default async function PricingPage() {
                 {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd", { price: price.text })}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
-                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{games === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: games, period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span data-testid={`offer-${plan}`}><b>{t("pricing.games.many", { offer: offerText(t, plan), period })}</b><span className="block text-xs text-muted" data-testid={`points-${plan}`}>{pointsText(t, plan)}</span></span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span></li>
-                <li className="flex gap-2" data-testid={`share-${plan}`}><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span><b>{t("feat.level", { tier: PLANS[plan].featureTier })}</b> · {t("feat.share", { share: featureShare(PLANS[plan].featureTier) })}</span></li>
-                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t(PLANS[plan].featureTier === "C" ? "pricing.feature.modes.fast" : "pricing.feature.modes")}</span></li>
+                <li className="flex gap-2" data-testid={`share-${plan}`}><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{[...levelsAllowed(plan)].reverse().map((tier) => t("pricing.level.item", { tier, share: featureShare(tier) })).join(" · ")}</span></li>
+                <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t(modeAllowed(top, "FULL") ? "pricing.feature.modes" : "pricing.feature.modes.fast")}</span></li>
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span>{t("pricing.feature.save")}</span></li>
                 {plan === "PRO" && <li className="flex gap-2"><Star aria-hidden className="mt-0.5 size-4 shrink-0 fill-violet-soft text-violet-soft" /><span>{t("pricing.feature.same")}</span></li>}
               </ul>
               <div className="space-y-1.5 border-t border-line pt-3 text-xs text-muted" data-testid={`features-${plan}`}>
-                <p className="font-semibold text-text">{below ? t("pricing.features.more", { plan: t(`plan.${below}` as DictKey) }) : t("pricing.features.base")}</p>
+                <p className="font-semibold text-text">{!below ? t("pricing.features.base") : newFeatures.length ? t("pricing.features.more", { plan: t(`plan.${below}` as DictKey) }) : t("pricing.features.same", { plan: t(`plan.${below}` as DictKey) })}</p>
                 <ul className="space-y-1">
                   {newFeatures.map((f) => <li key={f} className="flex gap-1.5"><Check aria-hidden className="mt-0.5 size-3.5 shrink-0 text-lime" /><span>{t(`feat.${f.replace(":", ".")}` as DictKey)}</span></li>)}
                 </ul>
@@ -107,7 +108,7 @@ export default async function PricingPage() {
         <Card className="space-y-3" data-testid="pricing-rules">
           <h2 className="text-lg font-semibold">{t("pricing.rules.title")}</h2>
           <ul className="space-y-2 text-sm text-muted">
-            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`, { n: PLANS.FREE.gamesPerPeriod })}</span></li>)}
+            {([1, 2, 3, 4] as const).map((n) => <li key={n} className="flex gap-2"><span aria-hidden>•</span><span>{t(`pricing.rules.${n}`, { offer: offerText(t, "FREE") })}</span></li>)}
           </ul>
         </Card>
         <Card className="space-y-3" data-testid="pricing-billing">
