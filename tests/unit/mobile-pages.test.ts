@@ -42,6 +42,8 @@ beforeAll(async () => {
   vi.stubGlobal("localStorage", fakeStorage);
   vi.stubGlobal("window", win);
   vi.stubGlobal("document", { documentElement: { removeAttribute: () => {}, setAttribute: () => {} } });
+  // the app reads its settings once, at import: start as an install that has done the first-run setup (FirstSetup has its own spec)
+  fakeStorage.setItem("levelup.mobile.settings", JSON.stringify({ setupDone: true }));
   ({ LibraryPage } = await import("../../mobile/src/pages/Library"));
   ({ SettingsPage } = await import("../../mobile/src/pages/Settings"));
   ({ DeckPage } = await import("../../mobile/src/pages/Deck"));

@@ -44,3 +44,19 @@ test("language and country are chosen on first launch, then the welcome follows 
   await page.goto("/#/settings");
   await expect(page.locator("#region")).toHaveValue("IL");
 });
+
+test("plans and prices are information only, in the currency of the chosen country", async ({ page }) => {
+  await page.goto("/#/");
+  await page.getByTestId("setup-region").selectOption("IL");
+  await page.getByTestId("setup-continue").click();
+  await page.goto("/#/settings");
+  await page.getByTestId("open-plans").click();
+  await expect(page.getByTestId("mobile-plans-page")).toBeVisible();
+  await expect(page.getByTestId("plans-open-now")).toBeVisible();
+  await expect(page.getByTestId("mobile-price-PLUS")).toContainText("₪10");
+  await expect(page.getByTestId("mobile-price-PRO")).toContainText("₪40");
+  // nothing to buy, nothing leading out of the app
+  await expect(page.getByTestId("mobile-plans-page").locator("button")).toHaveCount(0);
+  await expect(page.getByTestId("mobile-plans-page").locator("a[href^='http']")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

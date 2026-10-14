@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
-import { plansEnabled } from "@/server/env";
+import { plansEnabled, plansShown } from "@/server/env";
 import { LanguageSwitch } from "./LanguageSwitch";
 import { LogoutButton } from "./LogoutButton";
 import { MobileMenu } from "./MobileMenu";
@@ -20,15 +20,16 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
   const allowance = user ? await getAllowanceSummary(user.id) : null;
   const plansOn = plansEnabled();
+  const plansVisible = plansShown();
   const links = user
     ? [
         { href: "/dashboard", label: t("nav.dashboard") },
         { href: "/create", label: t("nav.create") },
         { href: "/games", label: t("nav.library") },
-        ...(plansOn ? [{ href: "/pricing", label: t("nav.pricing") }] : []),
+        ...(plansVisible ? [{ href: "/pricing", label: t("nav.pricing") }] : []),
         { href: "/account", label: t("nav.account") },
       ]
-    : plansOn ? [{ href: "/pricing", label: t("nav.pricing") }] : [];
+    : plansVisible ? [{ href: "/pricing", label: t("nav.pricing") }] : [];
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">

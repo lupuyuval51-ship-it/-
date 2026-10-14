@@ -27,6 +27,8 @@ const schema = z.object({
 
   /** Plans (Free/Plus/Pro), pricing and checkout. Off = everybody gets the full product and no plan is shown anywhere; the code stays so it can be switched back on. */
   PLANS_ENABLED: bool.default(false),
+  /** With plans off: still show the plans and prices (pricing page, landing, nav) as information, with no way to buy. */
+  PLANS_SHOWN: bool.default(true),
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
@@ -70,5 +72,7 @@ export function resetEnvForTests(): void {
 }
 
 export const plansEnabled = (): boolean => getEnv().PLANS_ENABLED;
+/** Plans and prices are visible (as information when plans are off). */
+export const plansShown = (): boolean => getEnv().PLANS_ENABLED || getEnv().PLANS_SHOWN;
 export const isProduction = (): boolean => getEnv().APP_ENV === "production";
 export const secureCookies = (): boolean => getEnv().APP_ENV === "production" || getEnv().APP_URL.startsWith("https://");

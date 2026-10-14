@@ -96,6 +96,7 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | – / OpenAI / `gpt-4.1` | Any OpenAI-compatible chat-completions endpoint. |
 | `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
 | `PLANS_ENABLED` | `false` | `true` shows Free/Plus/Pro, the pricing page and checkout. `false` (the launch setting): no plan is shown, checkout and `/pricing` are gone, everybody gets the full product with the Pro monthly points budget as fair use. The plan code stays in place. |
+| `PLANS_SHOWN` | `true` | With `PLANS_ENABLED=false`: show the plans and prices (pricing page, landing teaser, nav link) as information only, with no checkout button and no payment banner. `false` hides them completely. |
 | `PAYMENTS_MODE` | `disabled` | `disabled` · `stripe` · `dev` (simulator). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | – | Required for `PAYMENTS_MODE=stripe`. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | – | Optional "Continue with Google" on the website. Both or neither: the button and `/api/auth/google/*` exist only when both are set. Setup: [`docs/google-signin.md`](docs/google-signin.md). |

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { plansEnabled } from "@/server/env";
+import { plansEnabled, plansShown } from "@/server/env";
 import Link from "next/link";
 import { Check, Star } from "lucide-react";
 import { Alert, Badge, Card } from "@/components/ui";
@@ -22,14 +22,18 @@ export const dynamic = "force-dynamic";
 const linkBtn = "inline-flex min-h-12 w-full items-center justify-center rounded-xl px-6 font-semibold";
 
 export default async function PricingPage() {
-  if (!plansEnabled()) notFound();
+  if (!plansShown()) notFound();
+  // plans off: the page is information only (no checkout, no payment banners)
+  const buyable = plansEnabled();
   const { t, locale } = await getT();
   const user = await getCurrentUser();
   const region = await getRegion();
   const payments = paymentsStatus();
   const billing = user ? await getBillingView(user.id) : null;
+  // with plans off everybody resolves to the full product internally; no card is "yours"
+  const current: PlanId | null = buyable ? (billing?.plan ?? null) : null;
   const hasSubscription = Boolean(billing?.subscription && !["CANCELED", "INCOMPLETE_EXPIRED"].includes(billing.subscription.status));
-  const current: PlanId | null = billing?.plan ?? null;
+
   const knownRegion = REGIONS.some((r) => r.code === region);
 
   return (
@@ -42,9 +46,10 @@ export default async function PricingPage() {
         </p>
       </header>
 
-      {payments.mode === "dev" && <Alert tone="warn" data-testid="payments-dev-banner">{t("pricing.payments.dev")}</Alert>}
-      {payments.mode === "disabled" && <Alert tone="info" data-testid="payments-disabled-banner">{t("pricing.payments.disabled")}</Alert>}
-      {payments.mode === "stripe" && !payments.ready && <Alert tone="error">{t("pricing.payments.disabled")}</Alert>}
+      {!buyable && <Alert tone="info" data-testid="pricing-open-now">{t("pricing.open.now")}</Alert>}
+      {buyable && payments.mode === "dev" && <Alert tone="warn" data-testid="payments-dev-banner">{t("pricing.payments.dev")}</Alert>}
+      {buyable && payments.mode === "disabled" && <Alert tone="info" data-testid="payments-disabled-banner">{t("pricing.payments.disabled")}</Alert>}
+      {buyable && payments.mode === "stripe" && !payments.ready && <Alert tone="error">{t("pricing.payments.disabled")}</Alert>}
 
       {/* three columns only where each card is wide enough to read (a 768px tablet gets one comfortable column) */}
       <div className="mx-auto grid max-w-xl gap-5 min-[860px]:max-w-none min-[860px]:grid-cols-3">
@@ -84,12 +89,12 @@ export default async function PricingPage() {
                 </ul>
               </div>
               {plan === "FREE" ? (
-                user ? (
+                user ? (!buyable ? null : 
                   isCurrent ? <div className="text-center text-sm text-muted">{t("pricing.current")}</div> : <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("acc.sub.manage")}</Link>
                 ) : (
                   <Link href="/register" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("pricing.cta.free")}</Link>
                 )
-              ) : !user ? (
+              ) : !buyable ? null : !user ? (
                 <Link href="/login?next=/pricing" className={`${linkBtn} bg-neon text-ink-950 hover:brightness-110`}>{t("pricing.cta.login")}</Link>
               ) : isCurrent || (hasSubscription && billing?.subscription?.plan === plan) ? (
                 <Link href="/account" className={`${linkBtn} border border-line hover:bg-text/10`}>{t("pricing.cta.manage")}</Link>
