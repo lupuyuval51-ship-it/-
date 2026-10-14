@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Button, Card, Field, Input, Select } from "@/components/ui";
-import { PLANS } from "@/config/plans";
+import { offerText } from "@/components/pricing/PlanPrice";
 import { REGIONS, OTHER_REGION } from "@/lib/regions";
 import { GoogleButton } from "./GoogleButton";
 import { PasswordInput } from "./PasswordInput";
@@ -73,7 +73,7 @@ export function AuthForm({ mode, next, defaultRegion, googleEnabled = false, goo
     <Card className="mx-auto w-full max-w-md space-y-5 p-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">{register ? t("auth.register.title") : t("auth.login.title")}</h1>
-        <p className="text-sm text-muted">{register ? (plansOff ? t("auth.register.subtitle.open") : t("auth.register.subtitle", { n: PLANS.FREE.gamesPerPeriod })) : t("auth.login.subtitle")}</p>
+        <p className="text-sm text-muted">{register ? (plansOff ? t("auth.register.subtitle.open") : t("auth.register.subtitle", { offer: offerText(t, "FREE") })) : t("auth.login.subtitle")}</p>
       </div>
       <form onSubmit={submit} className="space-y-4" noValidate data-testid={`${mode}-form`}>
         {register && (

@@ -39,13 +39,13 @@ describe("subscriptionGrantsAccess: the whole matrix", () => {
             expect(subscriptionGrantsAccess(sub, now), `${label} (${now.toISOString()})`).toBe(expected(status, revoked, now));
             const ent = computeEntitlement(sub, now);
             if (expected(status, revoked, now)) {
-              expect(ent).toMatchObject({ plan, source: "SUBSCRIPTION", limit: PLANS[plan].gamesPerPeriod, subscriptionId: "s" });
+              expect(ent).toMatchObject({ plan, source: "SUBSCRIPTION", limit: PLANS[plan].allowance.budget, subscriptionId: "s" });
               expect(ent.periodStart).toEqual(start);
               expect(ent.periodEnd).toEqual(end);
             } else {
               // anything else is exactly the Free plan with the UTC calendar month containing "now", and no link to the subscription
               const month = calendarMonthUtc(now);
-              expect(ent).toMatchObject({ plan: "FREE", source: "FREE", limit: PLANS.FREE.gamesPerPeriod, subscriptionId: null });
+              expect(ent).toMatchObject({ plan: "FREE", source: "FREE", limit: PLANS.FREE.allowance.budget, subscriptionId: null });
               expect(ent.periodStart).toEqual(month.start);
               expect(ent.periodEnd).toEqual(month.end);
             }

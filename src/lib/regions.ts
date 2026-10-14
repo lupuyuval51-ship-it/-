@@ -1,5 +1,5 @@
 /**
- * Billing regions the user can pick. Only Israel has a localized price (Plus: ₪30); everyone else is charged in USD.
+ * Billing regions the user can pick. Only Israel has localized prices (Plus ₪10, Pro ₪40); everyone else is charged in USD.
  * The region is the user's own choice (never precise location) and is stored on their profile.
  */
 export const REGIONS = [

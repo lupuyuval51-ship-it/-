@@ -48,7 +48,7 @@ describe("topic library — curated topics become games without any model", () =
     expect(spec.meta.generator).toMatchObject({ kind: "catalog", provider: "topic-library", templateId: topic.id });
     // the subject is the topic's own title, not whatever the client typed
     expect(spec.meta.subject).toBe(topic.he[0]);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: PLANS.FREE.gamesPerPeriod - 1 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: PLANS.FREE.allowance.budget - 1 });
   });
 
   it("a real AI provider is configured: the model is never called, and the game is still not labelled as AI", async () => {
@@ -72,15 +72,15 @@ describe("topic library — curated topics become games without any model", () =
     expect(game!.generatorKind).toBe("catalog");
   });
 
-  it("honours the plan's feature tier: Free gets a tier-C game, and a Full Adventure is refused before anything is reserved", async () => {
-    setFeatureTierForTests(null); // this test uses the plans' real tiers (Free = C)
+  it("honours the game's level: a Free level-C topic is a tier-C game, and a level-C Full Adventure is refused before anything is reserved", async () => {
+    setFeatureTierForTests(null); // this test uses the plans' real levels (Free = C or B)
     const u = await createTestUser();
-    const { game } = await generate(u.id, req({ gameType: "exploration" }), DEMO);
+    const { game } = await generate(u.id, req({ gameType: "exploration", level: "C" }), DEMO);
     const spec = game!.spec as unknown as GameSpec;
     expect(spec.meta.featureTier).toBe("C");
     expect(spec.challenges.every((c) => c.type !== "match" && !c.easierId && !c.harderId)).toBe(true);
     setBackendForTests(DEMO);
-    const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ mode: "FULL" }) }, { schedule: false }).catch((e) => e);
+    const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ mode: "FULL", level: "C" }) }, { schedule: false }).catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).code).toBe("FEATURE_TIER_LOCKED");
     expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0 });

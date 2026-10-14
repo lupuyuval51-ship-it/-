@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GAME_FEATURES, PLANS, TIER_FEATURES, TIER_MAX_AREAS, featureShare, planUnlocking, tierHas, type FeatureTier, type GameFeature } from "@/config/plans";
+import { GAME_FEATURES, PLANS, TIER_FEATURES, TIER_MAX_AREAS, featureShare, levelUnlocking, levelsAllowed, planUnlocking, tierHas, type FeatureTier, type GameFeature } from "@/config/plans";
 import { addFinalBoss } from "@/lib/game/spec/boss";
 import { CHALLENGE_TYPES } from "@/lib/game/spec/constants";
 import type { GameSpec } from "@/lib/game/spec/schema";
@@ -22,20 +22,23 @@ describe("feature tiers (the promise: C 40 %, B 70 %, A 100 % of the game's feat
     expect(new Set(GAME_FEATURES).size).toBe(GAME_FEATURES.length);
   });
 
-  it("every plan has a tier: Free → C, Plus → B, Pro → A; Free makes up to 2 games", () => {
-    expect(PLANS.FREE.featureTier).toBe("C");
-    expect(PLANS.PLUS.featureTier).toBe("B");
-    expect(PLANS.PRO.featureTier).toBe("A");
-    expect(PLANS.FREE.gamesPerPeriod).toBe(2);
+  it("every plan offers levels: Free C/B (never A), Plus and Pro up to A", () => {
+    expect(levelsAllowed("FREE")).toEqual(["B", "C"]);
+    expect(levelsAllowed("PLUS")).toEqual(["A", "B", "C"]);
+    expect(levelsAllowed("PRO")).toEqual(["A", "B", "C"]);
+    expect(PLANS.FREE.allowance.budget).toBe(2);
     expect(PLANS.FREE.monthlyPrices.USD).toBe(0);
   });
 
   it("names the plan that unlocks a feature", () => {
     expect(planUnlocking("challenge:choice")).toBe("FREE");
-    expect(planUnlocking("type:platformer")).toBe("PLUS");
-    expect(planUnlocking("system:side_missions")).toBe("PLUS");
-    expect(planUnlocking("system:boss")).toBe("PRO");
-    expect(planUnlocking("challenge:program")).toBe("PRO");
+    // level B is on Free (it costs 2 of Free's 2 points); level A starts with Plus
+    expect(planUnlocking("type:platformer")).toBe("FREE");
+    expect(planUnlocking("system:side_missions")).toBe("FREE");
+    expect(planUnlocking("system:boss")).toBe("PLUS");
+    expect(planUnlocking("challenge:program")).toBe("PLUS");
+    expect(levelUnlocking("system:boss")).toBe("A");
+    expect(levelUnlocking("type:platformer")).toBe("B");
   });
 
   it("game types, modes, challenge types and area counts follow the tier", () => {

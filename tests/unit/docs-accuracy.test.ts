@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAME_FEATURES, PLANS, featureShare } from "@/config/plans";
+import { GAME_FEATURES, PLANS, costOf, featureShare, planOffer, type PlanId } from "@/config/plans";
 
 /**
  * Documentation that names a command, a variable, a file or a number must keep naming real ones. These checks read the docs the
@@ -60,18 +60,22 @@ describe("documented product numbers match src/config/plans.ts", () => {
   const readme = read("README.md");
   const row = (plan: string) => readme.split("\n").find((l) => l.startsWith(`| **${plan}**`)) ?? "";
 
-  it("the plans table shows the configured prices and game allowances", () => {
-    expect(row("Free")).toContain(`**${PLANS.FREE.gamesPerPeriod}**`);
+  it("the plans table shows the configured prices, points budgets and level costs", () => {
+    const costs = (plan: PlanId) => (["C", "B", "A"] as const).map((l) => costOf(plan, l) ?? "not available").join(" · ");
+    const offer = (plan: PlanId) => planOffer(plan).map((o, i) => (i === 0 ? `${o.topics} topic${o.topics === 1 ? "" : "s"} at level ${o.level}` : `${o.topics} at level ${o.level}`)).join(", or ");
+    for (const [plan, name] of [["FREE", "Free"], ["PLUS", "Plus"], ["PRO", "Pro"]] as const) {
+      expect(row(name)).toContain(`| **${PLANS[plan].allowance.budget}** |`);
+      expect(row(name)).toContain(`| ${costs(plan)} |`);
+      expect(row(name)).toContain(`| ${offer(plan)} |`);
+    }
     expect(row("Plus")).toContain(`**$${PLANS.PLUS.monthlyPrices.USD! / 100} / month**`);
     expect(row("Plus")).toContain(`₪${PLANS.PLUS.monthlyPrices.ILS! / 100} / month`);
-    expect(row("Plus")).toContain(`**${PLANS.PLUS.gamesPerPeriod}**`);
     expect(row("Pro")).toContain(`**$${PLANS.PRO.monthlyPrices.USD! / 100} / month**`);
-    expect(row("Pro")).toContain(`**${PLANS.PRO.gamesPerPeriod}**`);
-    expect(PLANS.PRO.monthlyPrices.ILS).toBeUndefined(); // the README says no shekel price is invented for Pro
+    expect(row("Pro")).toContain(`₪${PLANS.PRO.monthlyPrices.ILS! / 100} / month`);
   });
 
   it("the plan-features table shows the configured AI edit quotas and versions kept", () => {
-    const features = readme.split("\n").filter((l) => /^\| \*\*(Free|Plus|Pro)\*\* \| /.test(l) && /(AI robot|level|manual edits only)/.test(l));
+    const features = readme.split("\n").filter((l) => /^\| \*\*(Free|Plus|Pro)\*\* \| /.test(l) && /(AI robot|level|manual edits only)/.test(l) && !/topics? at level/.test(l));
     expect(features).toHaveLength(3);
     for (const [plan, line] of [["FREE", features[0]!], ["PLUS", features[1]!], ["PRO", features[2]!]] as const) {
       const f = PLANS[plan].features;
@@ -85,7 +89,7 @@ describe("documented product numbers match src/config/plans.ts", () => {
   it("the documented feature shares (40 / 70 / 100 %) and feature count are the computed ones", () => {
     expect([featureShare("C"), featureShare("B"), featureShare("A")]).toEqual([40, 70, 100]);
     expect(GAME_FEATURES).toHaveLength(20);
-    expect(readme.includes("**Free = C (40 % of the game features), Plus = B (70 %), Pro = A (100 %)**"), "README feature shares").toBe(true);
+    expect(readme.includes("**C = 40 % of the game features, B = 70 %, A = 100 %**"), "README feature shares").toBe(true);
     expect(readme.includes("The 20 features"), "README feature count").toBe(true);
   });
 });

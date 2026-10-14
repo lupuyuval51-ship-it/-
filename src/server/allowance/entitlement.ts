@@ -16,6 +16,7 @@ export interface Entitlement {
   source: EntitlementSource;
   periodStart: Date;
   periodEnd: Date;
+  /** The plan's allowance budget in POINTS (each game costs points by level: PLANS[plan].allowance). */
   limit: number;
   subscriptionId: string | null;
 }
@@ -44,7 +45,7 @@ export function computeEntitlement(sub: SubscriptionFacts | null, now: Date): En
   if (!plansEnabled()) {
     // Plans are switched off: everybody has the full product (a fair-use monthly allowance, no subscription, no plan shown).
     const { start, end } = calendarMonthUtc(now);
-    return { plan: "PRO", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.PRO.gamesPerPeriod, subscriptionId: null };
+    return { plan: "PRO", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.PRO.allowance.budget, subscriptionId: null };
   }
   if (sub && subscriptionGrantsAccess(sub, now)) {
     return {
@@ -52,12 +53,12 @@ export function computeEntitlement(sub: SubscriptionFacts | null, now: Date): En
       source: "SUBSCRIPTION",
       periodStart: sub.currentPeriodStart,
       periodEnd: sub.currentPeriodEnd,
-      limit: PLANS[sub.plan].gamesPerPeriod,
+      limit: PLANS[sub.plan].allowance.budget,
       subscriptionId: sub.id,
     };
   }
   const { start, end } = calendarMonthUtc(now);
-  return { plan: "FREE", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.FREE.gamesPerPeriod, subscriptionId: null };
+  return { plan: "FREE", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.FREE.allowance.budget, subscriptionId: null };
 }
 
 /** The user's current entitlement, derived from persisted subscription state only (never from the client). */

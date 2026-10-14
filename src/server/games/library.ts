@@ -1,7 +1,6 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
-import { planUnlocking } from "@/config/plans";
-import type { Mechanic } from "@/lib/game/spec/constants";
+import { levelUnlocking, planUnlocking } from "@/config/plans";
 import { mechanicsForArea } from "@/lib/game/spec/mechanics";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { mechanicAllowed, mechanicFeature } from "@/lib/game/spec/tier";
@@ -11,8 +10,6 @@ import { maxScore, type PlayState } from "@/lib/game/state/progress";
 import { stableStringify } from "@/lib/game/util/stable";
 import { db } from "../db";
 import { ApiError, Errors } from "../http/errors";
-import { getCapabilities } from "./capabilities";
-import { featureTierForPlan } from "./feature-tier";
 
 export interface GameCard {
   id: string;
@@ -26,6 +23,8 @@ export interface GameCard {
   revision: number;
   createdAt: Date;
   updatedAt: Date;
+  /** The game's level (feature tier); games saved before levels existed count as A. */
+  level: "A" | "B" | "C";
   areas: number;
   missions: number;
   challenges: number;
@@ -46,7 +45,7 @@ export async function listGames(userId: string): Promise<GameCard[]> {
     return {
       id: g.id, title: g.title, subject: g.subject, gameType: g.gameType, difficulty: g.difficulty, language: g.language, createdVia: g.createdVia,
       generator: { kind: g.generatorKind, provider: g.generatorProvider, model: g.generatorModel }, revision: g.revision, createdAt: g.createdAt, updatedAt: g.updatedAt,
-      areas: spec.areas.length, missions: spec.missions.length, challenges: spec.challenges.length,
+      level: spec.meta.featureTier ?? "A", areas: spec.areas.length, missions: spec.missions.length, challenges: spec.challenges.length,
       progress: p ? { bestScore: p.bestScore, bestStars: p.bestStars, completions: p.completions, lastPlayedAt: p.lastPlayedAt, inProgress: Boolean(active), percent: Math.round(done * 100) } : null,
     };
   });
@@ -95,15 +94,15 @@ export interface GameEdit {
  * and the edited spec goes through the same full validation as a generated one.
  */
 export async function editGame(userId: string, gameId: string, edit: GameEdit) {
-  // Switching a mechanic ON is a feature of the plan's tier like any other: the saved game must not gain what the plan lacks.
-  const switchingOn = Object.entries(edit.mechanics ?? {}).filter(([, on]) => on).map(([m]) => m as Mechanic);
-  const planTier = switchingOn.length ? featureTierForPlan((await getCapabilities(userId)).ent.plan) : "A";
   return db.$transaction(async (tx) => {
     const rows = await tx.$queryRaw<{ id: string }[]>`SELECT "id" FROM "Game" WHERE "id" = ${gameId} AND "ownerId" = ${userId} AND "deletedAt" IS NULL FOR UPDATE`;
     if (rows.length === 0) throw Errors.notFound("Game not found.");
     const game = await tx.game.findUniqueOrThrow({ where: { id: gameId } });
     const spec = structuredClone(game.spec as unknown as GameSpec);
     let gameplayChanged = false;
+    // Switching a mechanic ON is a feature of the game's own level like any other: the saved game must not gain what
+    // its level lacks (its points were paid for that level). Games saved before levels existed count as level A.
+    const gameTier = spec.meta.featureTier ?? "A";
 
     if (edit.title !== undefined) spec.meta.title = edit.title;
     if (edit.timeOfDay && edit.timeOfDay !== spec.theme.timeOfDay) {
@@ -112,9 +111,9 @@ export async function editGame(userId: string, gameId: string, edit: GameEdit) {
     for (const [mech, on] of Object.entries(edit.mechanics ?? {}) as [keyof NonNullable<GameEdit["mechanics"]>, boolean][]) {
       const has = spec.mechanics.includes(mech);
       if (on && !has) {
-        if (!mechanicAllowed(planTier, mech)) {
+        if (!mechanicAllowed(gameTier, mech)) {
           const feature = mechanicFeature(mech)!;
-          throw new ApiError(403, "FEATURE_TIER_LOCKED", `The "${mech}" mechanic is not part of your plan's game features.`, { feature, requiredPlan: planUnlocking(feature), tier: planTier });
+          throw new ApiError(403, "FEATURE_TIER_LOCKED", `The "${mech}" mechanic is not part of level ${gameTier} games.`, { feature, requiredLevel: levelUnlocking(feature), requiredPlan: planUnlocking(feature), tier: gameTier });
         }
         spec.mechanics.push(mech);
         gameplayChanged = true;
@@ -128,6 +127,8 @@ export async function editGame(userId: string, gameId: string, edit: GameEdit) {
     if (!res.ok) throw Errors.badRequest("That change would make the game invalid.", res.errors);
     const final = res.spec;
     final.meta.generator = spec.meta.generator;
+    // validation strips the level (a model must not set it); the game keeps the level it was made (and paid) at
+    if (spec.meta.featureTier) final.meta.featureTier = spec.meta.featureTier;
     const json = final as unknown as Prisma.InputJsonValue;
     const themeChanged = stableStringify(final.theme) !== stableStringify((game.spec as unknown as GameSpec).theme);
     if (!gameplayChanged && !themeChanged) {

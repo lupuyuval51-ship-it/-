@@ -33,7 +33,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   const [billing, allowance, usage] = await Promise.all([
     getBillingView(user.id),
     getAllowanceSummary(user.id),
-    db.usageRecord.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: USAGE_LIMIT }),
+    db.usageRecord.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" }, take: USAGE_LIMIT, include: { job: { select: { cost: true } } } }),
   ]);
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -64,7 +64,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                 <span className="flex items-center gap-2">
                   <span aria-hidden className={`size-2 shrink-0 rounded-full ${u.kind === "COMMIT" ? "bg-lime" : u.kind === "RELEASE" ? "bg-amber" : "bg-muted"}`} />
-                  {t(`acc.usage.${u.kind}`)}
+                  {t(`acc.usage.${u.kind}`, { n: u.job.cost })}
                 </span>
                 <span className="text-xs text-muted">{formatDateTime(u.createdAt, locale)}</span>
               </li>

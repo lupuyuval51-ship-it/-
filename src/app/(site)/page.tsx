@@ -5,7 +5,7 @@ import { Arrow, Badge, Card } from "@/components/ui";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { plansEnabled } from "@/server/env";
-import { planGames, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
+import { offerText, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { getRegion } from "@/server/region";
@@ -115,7 +115,7 @@ export default async function LandingPage() {
               <Card key={plan} className="space-y-2" data-testid={`teaser-${plan}`}>
                 <h3 className="text-lg font-bold">{t(`plan.${plan}`)}</h3>
                 <p className="text-3xl font-extrabold"><span className="ltr-num">{price.isFree ? t("pricing.free.price") : price.text}</span>{!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}</p>
-                <p className="text-sm text-muted">{planGames(plan) === 1 ? t("pricing.games.one", { period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") }) : t("pricing.games.many", { n: planGames(plan), period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</p>
+                <p className="text-sm text-muted">{t("pricing.games.many", { offer: offerText(t, plan), period: plan === "FREE" ? t("pricing.period.month") : t("pricing.period.billing") })}</p>
                 <p className="text-sm text-muted">{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
               </Card>
             );

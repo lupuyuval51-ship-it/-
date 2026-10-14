@@ -16,13 +16,36 @@ import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 export interface CreateFormProps {
   backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string };
   allowance: { remaining: number; limit: number; periodEnd: string; plan: string; activeJobId: string | null };
-  games: { id: string; title: string; subject: string; generatorKind: string }[];
+  /** Saved games; `extendCost` is the points an extension costs at the game's own level (null: the plan cannot make that level). */
+  games: { id: string; title: string; subject: string; generatorKind: string; level: Level; extendCost: number | null }[];
   /** Mechanics the user can ask an extension to add. */
   extensionMechanics: readonly Mechanic[];
-  /** What the plan's feature tier can build (the server enforces it; this only explains and disables). */
-  featureTier: { tier: "A" | "B" | "C"; share: number; gameTypes: { id: string; allowed: boolean; plan: string | null }[]; fullAllowed: boolean; unlockPlan: string };
+  /** The game levels, their point cost on the plan and what each can build (the server enforces it; this only explains and disables). */
+  levels: {
+    options: LevelOption[];
+    /** The level preselected for each mode (the best one the points pay for). */
+    defaults: { FAST: Level; FULL: Level };
+    /** Whether the plan's highest level has several areas (Full Adventure and Extend), and the plan that unlocks them. */
+    fullAllowed: boolean;
+    unlockPlan: string;
+  };
   initialMode?: GenerationModeId;
   initialGameId?: string;
+}
+
+type Level = "A" | "B" | "C";
+export interface LevelOption {
+  level: Level;
+  share: number;
+  /** Points one game at this level costs on the plan (null: not on the plan). */
+  cost: number | null;
+  allowed: boolean;
+  affordable: boolean;
+  /** The cheapest plan that offers this level when the current one does not. */
+  unlockPlan: string | null;
+  fullAllowed: boolean;
+  /** Game types a game at this level can be, and the lowest level that has each. */
+  gameTypes: { id: string; allowed: boolean; level: Level }[];
 }
 
 const EXAMPLES = [1, 2, 3, 4] as const;
@@ -46,12 +69,14 @@ function playDevice(): "phone" | "desktop" {
   const small = Math.min(window.screen?.width ?? window.innerWidth, window.screen?.height ?? window.innerHeight) < 820;
   return touch && small ? "phone" : "desktop";
 }
-export function CreateForm({ backend, allowance, games, extensionMechanics, featureTier, initialMode = "FAST", initialGameId }: CreateFormProps) {
+export function CreateForm({ backend, allowance, games, extensionMechanics, levels, initialMode = "FAST", initialGameId }: CreateFormProps) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
   const [mode, setMode] = useState<GenerationModeId>(initialMode === "EXTEND" && games.length === 0 ? "FAST" : initialMode);
   const [gameId, setGameId] = useState(initialGameId && games.some((g) => g.id === initialGameId) ? initialGameId : (games[0]?.id ?? ""));
+  const [level, setLevel] = useState<Level>(levels.defaults[initialMode === "FULL" ? "FULL" : "FAST"]);
+  const [gameType, setGameType] = useState<string>("adventure");
   const [addMissions, setAddMissions] = useState(1);
   const [addChallenges, setAddChallenges] = useState(3);
   const [addMechanics, setAddMechanics] = useState<Mechanic[]>([]);
@@ -76,8 +101,26 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const exhausted = allowance.remaining <= 0;
   const catalogGame = extend && selected?.generatorKind === "catalog";
+  const levelInfo = levels.options.find((o) => o.level === level) ?? levels.options[0]!;
+  const levelUsable = (o: LevelOption) => o.allowed && o.affordable && (mode !== "FULL" || o.fullAllowed);
+  // the game type shown is always one the chosen level can build (the select is controlled)
+  const typeAllowed = (id: string) => levelInfo.gameTypes.find((g) => g.id === id)?.allowed ?? true;
+  const effectiveType = typeAllowed(gameType) ? gameType : typeAllowed("adventure") ? "adventure" : (levelInfo.gameTypes.find((g) => g.allowed)?.id ?? "exploration");
+  const selectedInfo = selected ? levels.options.find((o) => o.level === selected.level) : undefined;
+  const extendProblem = !extend || !selected ? null
+    : selected.extendCost === null ? "locked" as const
+    : !selectedInfo?.fullAllowed ? "single" as const
+    : selected.extendCost > allowance.remaining ? "short" as const : null;
+  const short = extend ? extendProblem === "short" : !levelUsable(levelInfo);
   // the topic library never needs an AI provider
-  const blocked = (backend.kind === "unavailable" && !library) || exhausted || Boolean(allowance.activeJobId) || mismatch || catalogGame;
+  const blocked = (backend.kind === "unavailable" && !library) || exhausted || short || Boolean(extendProblem) || Boolean(allowance.activeJobId) || mismatch || catalogGame;
+  const costText = (n: number) => (n === 1 ? t("create.level.cost.one") : t("create.level.cost", { n }));
+
+  function chooseMode(m: GenerationModeId) {
+    setMode(m);
+    // a Full Adventure needs a level with several areas: move to the preselected one when the current level has none
+    if (m === "FULL" && !levelInfo.fullAllowed) setLevel(levels.defaults.FULL);
+  }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -126,8 +169,9 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
             subject: get("contentLanguage") === "he" ? topic.he[0] : topic.en[0],
             learningGoal: get("contentLanguage") === "he" ? topic.he[1] : topic.en[1],
             difficulty: get("difficulty"),
-            gameType: get("gameType"),
+            gameType: effectiveType,
             contentLanguage: get("contentLanguage"),
+            level,
             topicId: topic.id,
             device: playDevice(),
           }
@@ -136,8 +180,9 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           subject: get("subject"),
           learningGoal: get("learningGoal"),
           difficulty: get("difficulty"),
-          gameType: get("gameType"),
+          gameType: effectiveType,
           contentLanguage: get("contentLanguage"),
+          level,
           notes: get("notes") || undefined,
           material: get("material") || undefined,
           device: playDevice(),
@@ -234,7 +279,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
         <legend className="mb-2 text-sm font-semibold">{t("create.mode.title")}</legend>
         <div className="grid gap-3 md:grid-cols-3" role="radiogroup">
           {GENERATION_MODES.map((m) => {
-            const locked = m !== "FAST" && !featureTier.fullAllowed;
+            const locked = m !== "FAST" && !levels.fullAllowed;
             const disabled = (m === "EXTEND" && games.length === 0) || locked;
             return (
               <label
@@ -246,8 +291,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
                 )}
               >
                 <span className="flex items-center gap-2">
-                  <input type="radio" name="mode" value={m} checked={mode === m} disabled={disabled} onChange={() => setMode(m)} className="size-4 accent-[var(--color-neon)]" data-testid={`mode-${m}`} />
-                  <span className="font-semibold">{t(`mode.${m}`)}{locked && <span className="ms-2 text-xs font-normal text-amber" data-testid={`mode-locked-${m}`}>{t("create.locked.suffix", { plan: t(`plan.${featureTier.unlockPlan}` as DictKey) })}</span>}</span>
+                  <input type="radio" name="mode" value={m} checked={mode === m} disabled={disabled} onChange={() => chooseMode(m)} className="size-4 accent-[var(--color-neon)]" data-testid={`mode-${m}`} />
+                  <span className="font-semibold">{t(`mode.${m}`)}{locked && <span className="ms-2 text-xs font-normal text-amber" data-testid={`mode-locked-${m}`}>{t("create.locked.suffix", { plan: t(`plan.${levels.unlockPlan}` as DictKey) })}</span>}</span>
                 </span>
                 <span className="text-sm text-muted">{t(`create.mode.${m}.desc` as DictKey)}</span>
                 {m === "EXTEND" && games.length === 0 && <span className="text-xs font-medium text-amber">{t("create.extend.none")}</span>}
@@ -256,7 +301,39 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
           })}
         </div>
       </fieldset>
-      <p className="text-sm text-muted" data-testid="create-tier-note">{t("create.tier.note", { tier: featureTier.tier, share: featureTier.share })}</p>
+      {!extend && (
+        <fieldset className="space-y-2" data-testid="create-level">
+          <legend className="mb-1 text-sm font-semibold">{t("create.level.title")}</legend>
+          <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
+            {levels.options.map((o) => {
+              const disabled = !levelUsable(o);
+              return (
+                <label
+                  key={o.level}
+                  className={cx(
+                    "flex cursor-pointer flex-col gap-1 rounded-xl border px-3 py-2 text-sm",
+                    level === o.level ? "border-neon bg-neon/10" : "border-line hover:bg-text/5",
+                    disabled && "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  <span className="flex items-center gap-2">
+                    <input type="radio" name="level" value={o.level} checked={level === o.level} disabled={disabled} onChange={() => setLevel(o.level)} className="size-4 accent-[var(--color-neon)]" data-testid={`level-${o.level}`} />
+                    <span className="font-semibold">{t("create.level.option", { tier: o.level, share: o.share })}</span>
+                  </span>
+                  <span className="ms-6 text-xs text-muted" data-testid={`level-cost-${o.level}`}>
+                    {o.cost !== null ? costText(o.cost) : null}
+                    {!o.allowed && o.unlockPlan && <span className="text-amber" data-testid={`level-locked-${o.level}`}>{t("create.locked.suffix", { plan: t(`plan.${o.unlockPlan}` as DictKey) })}</span>}
+                    {o.allowed && !o.affordable && <span className="ms-1 text-amber" data-testid={`level-short-${o.level}`}>{t("create.level.short")}</span>}
+                    {o.allowed && o.affordable && mode === "FULL" && !o.fullAllowed && <span className="ms-1 text-amber">{t("create.locked.level", { level: levels.defaults.FULL })}</span>}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted" data-testid="create-level-hint">{t("create.level.hint", { n: allowance.remaining })}</p>
+        </fieldset>
+      )}
+      {!extend && <p className="text-sm text-muted" data-testid="create-tier-note">{t("create.tier.note", { tier: levelInfo.level, share: levelInfo.share })}</p>}
 
       {extend ? (
         <Card className="space-y-4">
@@ -270,6 +347,13 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
                 </Select>
               </Field>
               <p className="text-xs text-muted">{t("create.extend.keep")}</p>
+              {selected && (
+                <p className={cx("text-sm", extendProblem && extendProblem !== "short" ? "text-amber" : "text-muted")} data-testid="extend-cost">
+                  {extendProblem === "locked" ? t("create.extend.locked", { tier: selected.level })
+                    : extendProblem === "single" ? t("create.extend.single", { tier: selected.level })
+                    : t("create.extend.cost", { tier: selected.level, cost: costText(selected.extendCost!) })}
+                </p>
+              )}
               {mismatch && !catalogGame && <Alert tone="error">{t("create.error.mismatch")}</Alert>}
               {catalogGame && <Alert tone="info" data-testid="extend-catalog-note">{t("create.error.catalogExtend")}</Alert>}
               <Field label={t("create.extend.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
@@ -351,10 +435,13 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
             </Field>
           </div>
           <Field label={t("create.gameType")} htmlFor="gameType" hint={t("create.gameType.hint")}>
-            <Select id="gameType" name="gameType" defaultValue={featureTier.gameTypes.find((g) => g.id === "adventure")?.allowed ? "adventure" : (featureTier.gameTypes.find((g) => g.allowed)?.id ?? "exploration")} data-testid="create-gametype">
+            <Select id="gameType" name="gameType" value={effectiveType} onChange={(e) => setGameType(e.target.value)} data-testid="create-gametype">
               {GAME_TYPES.map((g) => {
-                const info = featureTier.gameTypes.find((x) => x.id === g);
-                return <option key={g} value={g} disabled={info ? !info.allowed : false}>{t(`gameType.${g}`)}{info && !info.allowed && info.plan ? ` ${t("create.locked.suffix", { plan: t(`plan.${info.plan}` as DictKey) })}` : ""}</option>;
+                const info = levelInfo.gameTypes.find((x) => x.id === g);
+                // locked at this level: either a higher level of the same plan has it, or a higher plan does
+                const unlock = info && !info.allowed ? levels.options.find((o) => o.level === info.level) : undefined;
+                const suffix = !unlock ? "" : unlock.allowed ? t("create.locked.level", { level: unlock.level }) : t("create.locked.suffix", { plan: t(`plan.${unlock.unlockPlan ?? "PRO"}` as DictKey) });
+                return <option key={g} value={g} disabled={info ? !info.allowed : false}>{t(`gameType.${g}`)}{suffix ? ` ${suffix}` : ""}</option>;
               })}
             </Select>
           </Field>
@@ -369,8 +456,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, feat
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-sm" data-testid="create-allowance">
-          <Badge tone={exhausted ? "amber" : "lime"}>{exhausted ? t("create.allowance.none", { date: formatDate(allowance.periodEnd, locale) }) : t("create.allowance", { n: allowance.remaining, limit: allowance.limit })}</Badge>
-          {exhausted && allowance.plan !== "PRO" && <Link href="/pricing" className="font-semibold text-neon hover:underline">{t("create.allowance.upgrade")} <Arrow /></Link>}
+          <Badge tone={exhausted || short ? "amber" : "lime"}>{exhausted ? t("create.allowance.none", { date: formatDate(allowance.periodEnd, locale) }) : t("create.allowance", { n: allowance.remaining, limit: allowance.limit })}</Badge>
+          {(exhausted || short) && allowance.plan !== "PRO" && <Link href="/pricing" className="font-semibold text-neon hover:underline">{t("create.allowance.upgrade")} <Arrow /></Link>}
         </div>
         <p className="text-xs text-muted">{t("create.policy")}</p>
         {allowance.activeJobId && (

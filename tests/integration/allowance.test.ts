@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { db, disconnectDb } from "@/server/db";
 import { getAllowanceSummary } from "@/server/allowance/summary";
@@ -9,14 +9,16 @@ import { failJob, reapExpiredJobs, startGenerationJob, succeedJob } from "@/serv
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { ApiError } from "@/server/http/errors";
 import { createTestUser, grantSubscription } from "./helpers";
-import { PLANS } from "@/config/plans";
+import { PLANS, costOf, type FeatureTier } from "@/config/plans";
+import { setFeatureTierForTests } from "@/server/games/feature-tier";
 
 afterAll(disconnectDb);
 
 const request: GenerationRequest = {
   mode: "FAST", subject: "Python loops", learningGoal: "Understand for loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en",
 };
-const FREE_GAMES = PLANS.FREE.gamesPerPeriod;
+// Under the suite's tier override every game costs one point, so Free's budget is a number of games.
+const FREE_GAMES = PLANS.FREE.allowance.budget;
 const key = () => `k-${randomUUID()}`;
 const deadlineMs = 60_000;
 
@@ -73,53 +75,74 @@ describe("allowance: FREE", () => {
   });
 });
 
-describe("allowance: PLUS and PRO", () => {
-  it("PLUS gets exactly one game per billing period", async () => {
+describe("allowance: PLUS and PRO (real levels and point costs)", () => {
+  // these tests are about the points model itself, so they use the plans' real levels (no tier override)
+  beforeEach(() => setFeatureTierForTests(null));
+  const start = (userId: string, level: FeatureTier, now?: Date) => startGenerationJob({ userId, idempotencyKey: key(), request, level, deadlineMs, now });
+
+  it("PLUS: 1 topic at level A uses all 3 points; 3 topics at level B are the alternative", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PLUS");
-    const a = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+    const a = await start(u.id, "A");
+    expect(a.job.cost).toBe(costOf("PLUS", "A"));
     await deliverGame(a.job.id, u.id);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 1, remaining: 0 });
-    expect(await code(startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs }))).toBe("ALLOWANCE_EXHAUSTED");
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 3, used: 3, remaining: 0 });
+    expect(await code(start(u.id, "C"))).toBe("ALLOWANCE_EXHAUSTED");
+
+    const v = await createTestUser();
+    await grantSubscription(v.id, "PLUS");
+    for (let i = 0; i < 3; i++) await deliverGame((await start(v.id, "B")).job.id, v.id);
+    expect(await getAllowanceSummary(v.id)).toMatchObject({ used: 3, remaining: 0 });
+    expect(await code(start(v.id, "B"))).toBe("ALLOWANCE_EXHAUSTED");
   });
 
-  it("PRO gets exactly five games per billing period, the sixth is refused", async () => {
+  it("PRO: exactly 5 topics at level A per billing period, the sixth is refused; a refused start holds nothing", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
     for (let i = 0; i < 5; i++) {
-      const { job } = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+      const { job } = await start(u.id, "A");
+      expect(job.cost).toBe(2);
       await deliverGame(job.id, u.id);
     }
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PRO", limit: 5, used: 5, remaining: 0 });
-    expect(await code(startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs }))).toBe("ALLOWANCE_EXHAUSTED");
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PRO", limit: 10, used: 10, remaining: 0 });
+    expect(await code(start(u.id, "A"))).toBe("ALLOWANCE_EXHAUSTED");
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ reserved: 0, used: 10 });
+  });
+
+  it("a level the plan does not offer is refused inside the reservation transaction (Free never makes A)", async () => {
+    const u = await createTestUser();
+    const r = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, level: "A", deadlineMs }).catch((e: unknown) => e);
+    expect(r).toBeInstanceOf(ApiError);
+    expect((r as ApiError).code).toBe("FEATURE_TIER_LOCKED");
+    expect(await db.generationJob.count({ where: { userId: u.id } })).toBe(0);
   });
 
   it("a new billing period grants a fresh allowance (renewal)", async () => {
     const u = await createTestUser();
-    const start = new Date(Date.now() - 5 * 86_400_000);
-    await grantSubscription(u.id, "PLUS", { start });
-    const a = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+    const begin = new Date(Date.now() - 5 * 86_400_000);
+    await grantSubscription(u.id, "PLUS", { start: begin });
+    const a = await start(u.id, "A");
     await deliverGame(a.job.id, u.id);
     expect((await getAllowanceSummary(u.id)).remaining).toBe(0);
     // The renewal webhook moves the subscription into its next paid period.
-    const nextStart = new Date(start.getTime() + 30 * 86_400_000);
+    const nextStart = new Date(begin.getTime() + 30 * 86_400_000);
     await grantSubscription(u.id, "PLUS", { start: nextStart, end: new Date(nextStart.getTime() + 30 * 86_400_000) });
     const later = new Date(nextStart.getTime() + 3600_000);
-    expect((await getAllowanceSummary(u.id, later)).remaining).toBe(1);
-    expect((await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs, now: later })).created).toBe(true);
+    expect((await getAllowanceSummary(u.id, later)).remaining).toBe(PLANS.PLUS.allowance.budget);
+    expect((await start(u.id, "A", later)).created).toBe(true);
   });
 
-  it("upgrading PLUS → PRO inside the same period raises the limit but keeps credits already spent", async () => {
+  it("upgrading PLUS → PRO inside the same period raises the budget but keeps points already spent", async () => {
     const u = await createTestUser();
-    const start = new Date(Date.now() - 2 * 86_400_000);
-    await grantSubscription(u.id, "PLUS", { start });
-    const a = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+    const begin = new Date(Date.now() - 2 * 86_400_000);
+    await grantSubscription(u.id, "PLUS", { start: begin });
+    const a = await start(u.id, "B");
     await deliverGame(a.job.id, u.id);
-    await grantSubscription(u.id, "PRO", { start });
-    // limit refreshes lazily when the next generation resolves the period
-    const b = await startGenerationJob({ userId: u.id, idempotencyKey: key(), request, deadlineMs });
+    await grantSubscription(u.id, "PRO", { start: begin });
+    // the budget refreshes lazily when the next generation resolves the period
+    const b = await start(u.id, "A");
     await deliverGame(b.job.id, u.id);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PRO", limit: 5, used: 2 });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PRO", limit: 10, used: 3, remaining: 7 });
   });
 
   it("failed payment (PAST_DUE) and cancellation (CANCELED) fall back to FREE entitlements", async () => {
@@ -156,16 +179,29 @@ describe("duplicate requests and concurrency", () => {
     expect(s.used).toBe(0);
   });
 
-  it("credit reservation is atomic: 25 concurrent reservations against a limit of 5 succeed exactly 5 times", async () => {
+  it("points reservation is atomic: 25 concurrent 2-point reservations against Pro's 10 points succeed exactly 5 times", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
     const ent = await resolveEntitlement(u.id);
     const period = await db.$transaction((tx) => ensurePeriod(tx, u.id, ent));
-    const outcomes = await Promise.all(Array.from({ length: 25 }, () => db.$transaction((tx) => reserveCredit(tx, period.id))));
-    expect(outcomes.filter(Boolean)).toHaveLength(5);
+    expect(period.limit).toBe(PLANS.PRO.allowance.budget);
+    const cost = costOf("PRO", "A")!;
+    const outcomes = await Promise.all(Array.from({ length: 25 }, () => db.$transaction((tx) => reserveCredit(tx, period.id, cost))));
+    expect(outcomes.filter(Boolean)).toHaveLength(Math.floor(PLANS.PRO.allowance.budget / cost));
     const row = await db.allowancePeriod.findUniqueOrThrow({ where: { id: period.id } });
-    expect(row.reserved).toBe(5);
+    expect(row.reserved).toBe(PLANS.PRO.allowance.budget);
     expect(row.used + row.reserved).toBeLessThanOrEqual(row.limit);
+  });
+
+  it("a reservation larger than the points left is refused whole (never a partial hold)", async () => {
+    const u = await createTestUser();
+    await grantSubscription(u.id, "PLUS");
+    const ent = await resolveEntitlement(u.id);
+    const period = await db.$transaction((tx) => ensurePeriod(tx, u.id, ent));
+    expect(await db.$transaction((tx) => reserveCredit(tx, period.id, 1))).toBe(true);
+    expect(await db.$transaction((tx) => reserveCredit(tx, period.id, costOf("PLUS", "A")!))).toBe(false);
+    expect((await db.allowancePeriod.findUniqueOrThrow({ where: { id: period.id } })).reserved).toBe(1);
+    await expect(db.$transaction((tx) => reserveCredit(tx, period.id, 0))).rejects.toThrow(/invalid allowance cost/);
   });
 
   it("settling twice (finish racing with the timeout reaper) never double-charges or double-refunds", async () => {

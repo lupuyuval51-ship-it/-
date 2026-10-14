@@ -2,11 +2,11 @@ import "server-only";
 import { PLANS, featureShare, type FeatureTier, type PlanFeatures, type PlanId, type RobotLevel } from "@/config/plans";
 import { resolveEntitlement, type Entitlement } from "../allowance/entitlement";
 import { db, type Tx } from "../db";
-import { featureTierForPlan } from "./feature-tier";
+import { maxLevelForPlan } from "./feature-tier";
 
 export interface Capabilities {
   plan: PlanId;
-  /** The feature tier games created on this plan are built at, and the share of all game features it exposes. */
+  /** The highest level (feature tier) games created on this plan can have, and the share of all game features it exposes. */
   featureTier: FeatureTier;
   featureShare: number;
   robot: RobotLevel;
@@ -21,6 +21,6 @@ export async function getCapabilities(userId: string, now = new Date(), client: 
   const used = await client.aiEdit.count({ where: { userId, periodStart: ent.periodStart, status: { in: ["PENDING", "SUCCEEDED"] } } });
   return {
     ent, features,
-    caps: { plan: ent.plan, featureTier: featureTierForPlan(ent.plan), featureShare: featureShare(featureTierForPlan(ent.plan)), robot: features.robot, versionHistory: features.versionHistory, aiEdits: { limit: features.aiEditsPerPeriod, used, remaining: Math.max(0, features.aiEditsPerPeriod - used), periodEnd: ent.periodEnd.toISOString() } },
+    caps: { plan: ent.plan, featureTier: maxLevelForPlan(ent.plan), featureShare: featureShare(maxLevelForPlan(ent.plan)), robot: features.robot, versionHistory: features.versionHistory, aiEdits: { limit: features.aiEditsPerPeriod, used, remaining: Math.max(0, features.aiEditsPerPeriod - used), periodEnd: ent.periodEnd.toISOString() } },
   };
 }
