@@ -7,7 +7,7 @@
  */
 import { choice, match, numeric, sequence, translator, type Lang } from "../demo/builders";
 import { properPhrases, type Definition, type Fact, type Keyword, type Knowledge, type QuestionAnswer } from "./parse";
-import { clip, isStop, shuffled, wordsOf, type Word } from "./text";
+import { clip, distinctStart, isStop, shuffled, startHintText, wordsOf, type Word } from "./text";
 
 type Raw = Record<string, unknown>;
 type Level = 1 | 2 | 3;
@@ -238,12 +238,26 @@ function pickTarget(sentence: string, keywords: Map<string, Keyword>): ClozePlan
   return { sentence, target: { ...best.k, text: best.span.text }, start: best.span.start, end: best.span.end, prev, next };
 }
 
+/** Words for amounts and units: never a sensible wrong option for a name, a term or a gap that is not a number. */
+const UNIT_WORDS = new Set(("percent percentage degrees degree million billion thousand hundred kilometres kilometers metres meters kilograms centimetres minutes seconds hours days weeks months years times " +
+  "אחוז אחוזים מעלות מיליון מיליארד אלף מאה קילומטר קילומטרים מטרים מטר דקות שניות שעות ימים שבועות חודשים שנים פעמים").split(" "));
+
+/** "a" or "an" in front of a word, by its first sound: a wrong word of the other kind would be ruled out by grammar alone. */
+function articleOf(word: string): "a" | "an" {
+  const w = word.toLowerCase();
+  if (/^(?:hour|honest|honou?r|heir)/.test(w)) return "an";
+  if (/^(?:uni|use|usu|eu|one|once|ubiq)/.test(w)) return "a";
+  return /^[aeiou]/.test(w) ? "an" : "a";
+}
+
 function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () => number, n = 3): Keyword[] {
   const t = plan.target;
   const sentenceWords = wordsOf(plan.sentence);
   const last = (w: string) => w.slice(-1).toLowerCase();
   const fits = pool
-    .filter((k) => k.lower !== t.lower && hasHebrew(k.text) === hasHebrew(t.text))
+    .filter((k) => k.lower !== t.lower && hasHebrew(k.text) === hasHebrew(t.text) && !UNIT_WORDS.has(k.lower))
+    // "a ___" / "an ___": only words that take the same article as the right one
+    .filter((k) => (plan.prev !== "a" && plan.prev !== "an") || hasHebrew(k.text) || articleOf(k.text) === articleOf(t.text))
     .filter((k) => !wordsOf(k.text).some((kw) => sentenceWords.some((sw) => sameWord(kw.text, sw.text)) || wordsOf(t.text).some((tw) => sameWord(kw.text, tw.text))));
   // The best wrong options look like the right one: same kind of word (name vs common word), a word that has stood in the
   // same place in the notes ("for the ___"), a similar ending (plural, -ing, -ed…), similar length, and topical (used more than once).
@@ -285,7 +299,9 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context,
     const options = forms.map((d, i) => [d, whyNot(d, distractors[i]!.text, ctx, t)] as [string, string]);
     options.splice(correctAt, 0, [plan.target.text, t("Yes — that is how your material puts it.", "נכון — כך החומר שלכם מנסח זאת.")]);
     const letters = plan.target.text.replace(/\s/g, "").length;
-    const first = plan.target.text.charAt(0);
+    // the start is shown, so it has to differ from the starts of the wrong words
+    const own = distinctStart(plan.target.text, forms);
+    const first = own && own.at === 0 ? own.prefix : plan.target.text.charAt(0);
     out.push({
       kind: "cloze", objective: "ideas", level: 2, keys: [s],
       make: (id, level, objectiveId) => choice({
@@ -294,8 +310,8 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context,
         concept: t("main ideas", "רעיונות מרכזיים"),
         prompt: t(`Which ${plan.target.text.includes(" ") ? "name" : "word"} completes this sentence from your material?\n“${blanked}”`, `${plan.target.text.includes(" ") ? "איזה שם משלים" : "איזו מילה משלימה"} את המשפט הזה מתוך החומר שלכם?\n״${blanked}״`),
         hint: plan.target.text.includes(" ")
-          ? t(`The missing name has ${letters} letters and starts with “${first}”.`, `בשם החסר יש ${letters} אותיות והוא מתחיל באות ״${first}״.`)
-          : t(`The missing word has ${letters} letters and starts with “${first}”.`, `במילה החסרה יש ${letters} אותיות והיא מתחילה באות ״${first}״.`),
+          ? t(`The missing name has ${letters} letters and starts with “${first}”.`, `בשם החסר יש ${letters} אותיות והוא מתחיל ${first.length > 1 ? "באותיות" : "באות"} ״${first}״.`)
+          : t(`The missing word has ${letters} letters and starts with “${first}”.`, `במילה החסרה יש ${letters} אותיות והיא מתחילה ${first.length > 1 ? "באותיות" : "באות"} ״${first}״.`),
         explanation: clip(s, 600),
       }),
     });
@@ -403,7 +419,7 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
       .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
     const fillers = otherTerms.length >= 3 || d.short ? [] : keywords
-      .filter((k) => k.text.length >= 4 && hasHebrew(k.text) === hasHebrew(d.term) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
+      .filter((k) => k.text.length >= 4 && !UNIT_WORDS.has(k.lower) && hasHebrew(k.text) === hasHebrew(d.term) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
       .sort((a, b) => Number(b.proper) - Number(a.proper) || b.count - a.count || Math.abs(a.text.length - d.term.length) - Math.abs(b.text.length - d.term.length) || a.lower.localeCompare(b.lower))
       .slice(0, 3 - otherTerms.length)
       // a stand-alone option reads better without a leading Hebrew "and" (ו־)
@@ -414,7 +430,9 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     const correctAt = Math.floor(rnd() * (wrong.length + 1));
     const options = wrong.map((w) => [clip(w.text, 200), w.why] as [string, string]);
     options.splice(correctAt, 0, [clip(d.term, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
-    const first = d.term.trim().charAt(0);
+    // "It starts with “C”." only helps when no other option starts with “C” as well
+    const start = distinctStart(d.term, wrong.map((w) => w.text));
+    const termHint = start ? startHintText(start, t) : t(`It is not “${clip(wrong[0]!.text, 60)}”.`, `זה לא ״${clip(wrong[0]!.text, 60)}״.`);
     out.push({
       kind: "term", objective: "terms", level: 1, keys: [d.term.toLowerCase()],
       make: (id, level, objectiveId) => choice({
@@ -425,7 +443,7 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
         prompt: d.short
           ? t(`Which entry of your list goes with “${clip(shown, 100)}”?`, `איזה פריט ברשימה שלכם מתאים ל״${clip(shown, 100)}״?`)
           : t(`Which term matches this description from your material?\n“${clip(shown, 300)}”`, `איזה מושג מתאים להסבר הזה מתוך החומר שלכם?\n״${clip(shown, 300)}״`),
-        hint: t(`It starts with “${first}”.`, `זה מתחיל באות ״${first}״.`),
+        hint: termHint,
         explanation: clip(d.source, 600),
       }),
     });
@@ -453,7 +471,7 @@ function defineCandidates(defs: Definition[], rnd: () => number, t: Tr): Candida
     const options = picked.map((w) => [clip(w.meaning, 200), t(`That describes “${clip(w.term, 60)}”, not this term.`, `זה מתאר את ״${clip(w.term, 60)}״ ולא את המושג הזה.`)] as [string, string]);
     options.splice(correctAt, 0, [clip(d.meaning, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
     const key = distinctiveWord(d.meaning, picked.map((w) => w.meaning));
-    const firstWord = d.meaning.trim().split(/\s+/)[0] ?? "";
+    const defStart = distinctStart(d.meaning, picked.map((w) => w.meaning));
     out.push({
       kind: "define", objective: "terms", level: 2, keys: [d.term.toLowerCase()],
       make: (id, level, objectiveId) => choice({
@@ -465,7 +483,7 @@ function defineCandidates(defs: Definition[], rnd: () => number, t: Tr): Candida
           : t(`According to your material, what is “${clip(d.term, 80)}”?`, `לפי החומר שלכם, מהו ״${clip(d.term, 80)}״?`),
         hint: key && !d.short
           ? t(`The right description mentions “${key}”.`, `ההסבר הנכון מזכיר את ״${key}״.`)
-          : t(`The right one starts with “${firstWord.charAt(0)}”.`, `התשובה הנכונה מתחילה באות ״${firstWord.charAt(0)}״.`),
+          : defStart ? startHintText(defStart, t) : t(`It is not “${clip(picked[0]!.meaning, 100)}”.`, `זה לא ״${clip(picked[0]!.meaning, 100)}״.`),
         explanation: clip(d.source, 600),
       }),
     });
@@ -544,7 +562,9 @@ function nearNumbers(f: Fact, taken: ReadonlySet<string>, rnd: () => number, cou
 }
 
 /** The same kind of number: a year next to years, a decimal next to decimals, of a similar size. */
-const sameKind = (a: Fact, b: Fact) => a.isYear === b.isYear && (a.decimals > 0) === (b.decimals > 0) && Math.abs(Math.log10(Math.abs(a.value) + 1) - Math.log10(Math.abs(b.value) + 1)) <= 1.2;
+/** The word that follows a number in its sentence ("million", "years", "%"): 29 years and 58 million km are not alike. */
+const unitAfter = (f: Fact) => f.isYear ? "" : /^\s*(\p{L}+|%)/u.exec(f.source.slice(f.numAt + f.numText.length))?.[1]?.toLowerCase() ?? "";
+const sameKind = (a: Fact, b: Fact) => unitAfter(a) === unitAfter(b) && a.isYear === b.isYear && (a.decimals > 0) === (b.decimals > 0) && Math.abs(Math.log10(Math.abs(a.value) + 1) - Math.log10(Math.abs(b.value) + 1)) <= 1.2;
 
 /** The number as a multiple-choice question: the fact with a gap, and the numbers of the learner's other facts as options. */
 function factPickCandidates(facts: Fact[], rnd: () => number, t: Tr): Candidate[] {
@@ -752,6 +772,12 @@ export function leastPlausible<T extends { text: string }>(correct: { text: stri
   return wrong.reduce((best, o) => (closeness(o) < closeness(best) ? o : best));
 }
 
+/** Do two texts share a word that says something (not a stop word)? A wrong option that does may be a second right answer. */
+function sharesWord(a: string, b: string): boolean {
+  const mine = wordsOf(a).filter((w) => w.text.length >= 3 && !isStop(w.text) && !/^\d+$/.test(w.text));
+  return wordsOf(b).some((w) => w.text.length >= 3 && !isStop(w.text) && mine.some((m) => sameWord(m.text, w.text)));
+}
+
 function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
   const out: Candidate[] = [];
   const numbersElsewhere = (self: QuestionAnswer) => [
@@ -800,7 +826,9 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     const fromQa = k.qa.filter((o) => o !== qa && o.value === undefined && !OPPOSITE[o.answer.toLowerCase()]).map((o) => ({ text: o.answer, about: o.question, rank: 0 }));
     const fromTerms = (short ? k.definitions.map((d) => ({ text: d.term, about: d.source, rank: 3 })) : k.definitions.map((d) => ({ text: d.meaning, about: d.source, rank: 3 })));
     const seen = new Set<string>([sameKey(qa.answer)]);
-    const pool = [...fromQa, ...fromTerms].filter((x) => x.text.length <= 200 && !seen.has(sameKey(x.text)) && (seen.add(sameKey(x.text)), true) && !mentions(qa.question, x.text));
+    const pool = [...fromQa, ...fromTerms].filter((x) => x.text.length <= 200 && !seen.has(sameKey(x.text)) && (seen.add(sameKey(x.text)), true) && !mentions(qa.question, x.text)
+      // a term or description that shares a word with the answer ("sun's heat" next to "the energy of the sun") may be right too
+      && (x.rank === 0 || !sharesWord(x.text, qa.answer)));
     const ranked = pool.sort((a, b) => a.rank + answerDistance(a.text, qa.answer) - (b.rank + answerDistance(b.text, qa.answer)) || a.text.localeCompare(b.text));
     const distractors = shuffled(ranked.slice(0, 5), rnd).slice(0, 3);
     if (distractors.length < 2) continue;
@@ -811,12 +839,15 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     options.splice(correctAt, 0, [clip(qa.answer, 200), t("Yes — that is the answer in your notes.", "נכון — זו התשובה בפתקים שלכם.")]);
     const key = distinctiveWord(qa.answer, distractors.map((d) => d.text));
     const lead = wordsOf(qa.answer).find((w) => !isStop(w.text))?.text ?? qa.answer;
+    const ansStart = distinctStart(qa.answer, distractors.map((d) => d.text));
     out.push({
       kind: "qa", objective: "questions", level: 1, keys: [qa.question.toLowerCase()],
       make: (id, level, objectiveId) => choice({
         id, level, objectiveId, options, correct: correctAt,
         title: t("Answer the question", "ענו על השאלה"), concept: clip(qa.question, 60), prompt: question,
-        hint: wordsOf(qa.answer).length === 1 || !key
+        hint: wordsOf(qa.answer).length === 1 && ansStart && ansStart.at === 0
+          ? t(`The answer starts with “${ansStart.prefix}”.`, `התשובה מתחילה ${ansStart.prefix.length > 1 ? "באותיות" : "באות"} ״${ansStart.prefix}״.`)
+          : wordsOf(qa.answer).length === 1 || !key
           ? t(`The answer ${wordsOf(qa.answer).length > 1 ? "has a word that " : ""}starts with “${(wordsOf(qa.answer).length > 1 ? lead : qa.answer).charAt(0)}”.`, `${wordsOf(qa.answer).length > 1 ? "בתשובה יש מילה שמתחילה" : "התשובה מתחילה"} באות ״${(wordsOf(qa.answer).length > 1 ? lead : qa.answer).charAt(0)}״.`)
           : t(`The answer includes the word “${key}”.`, `בתשובה מופיעה המילה ״${key}״.`),
         explanation,

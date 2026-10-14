@@ -9,7 +9,7 @@
  */
 import type { Environment, SubjectCategory, TimeOfDay } from "../spec/constants";
 import { challengeStation, choice, loreStation, match, npc, numeric, sequence, translator, type Lang, type Tr } from "../demo/builders";
-import { clip } from "../material/text";
+import { clip, distinctStart, startHintText } from "../material/text";
 import { hashSeed, mulberry32 } from "../util/prng";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { LEVEL_KEY, type LevelContent, type QText, type Term, type TopicCategory, type TopicContent, type TopicEntry } from "./types";
@@ -177,7 +177,9 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
           const right: [string, string] = [word, t(...RIGHT_FEEDBACK)];
           const a = arrange(right, wrong(3), rnd);
           const prompt = t(`Which term matches this description?\n“${meaning}”`, `איזה מושג מתאים לתיאור הזה?\n״${meaning}״`);
-          const hint = t(`It starts with “${word.charAt(0)}”.`, `הוא מתחיל ב״${word.charAt(0)}״.`);
+          // the start of the word only helps when no wrong option starts the same way
+          const start = distinctStart(word, a.options.filter((_, i) => i !== a.correct).map((o) => o[0]));
+          const hint = start ? startHintText(start, t, "prefix") : t(`It is not “${wrong(1)[0]![0]}”.`, `זה לא ״${wrong(1)[0]![0]}״.`);
           const explanation = clip(`${word}: ${meaning}.`, 600);
           const base = choice({ id, level: lvl, objectiveId, title: t("Name the term", "איך קוראים לזה?"), concept: t("Key terms", "מושגי מפתח"), prompt, ...a, hint, explanation });
           const out: { base: Raw; easier?: Raw; harder?: Raw } = { base, easier: easierOf(base, Math.min(2, others.length - 1), t) };

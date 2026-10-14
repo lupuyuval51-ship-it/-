@@ -11,8 +11,8 @@ const c: TopicContent = {
     q: [
       [["What does a food chain usually start with?", "A plant", ["A lion", "A mushroom", "A human"], "Plants capture the sun's energy, so food chains start with them."],
         ["במה מתחילה בדרך כלל שרשרת מזון?", "בצמח", ["באריה", "בפטרייה", "באדם"], "צמחים קולטים את אנרגיית השמש, ולכן שרשראות מזון מתחילות בהם."]],
-      [["Grass → rabbit → fox. Which one is the herbivore?", "The rabbit", ["The grass", "The fox", "None of them"], "The rabbit eats the grass (a plant) and is eaten by the fox."],
-        ["עשב ← ארנב ← שועל. מי אוכל העשב?", "הארנב", ["העשב", "השועל", "אף אחד"], "הארנב אוכל את העשב (צמח) והשועל אוכל אותו."]],
+      [["Grass → rabbit → fox. Which one is the herbivore?", "The rabbit", ["The grass", "The fox", "The rabbit and the fox"], "The rabbit eats the grass (a plant) and is eaten by the fox."],
+        ["עשב ← ארנב ← שועל. מי מהם אוכל עשב?", "הארנב", ["העשב", "השועל", "הארנב והשועל"], "הארנב אוכל את העשב (צמח) והשועל אוכל אותו."]],
     ],
     s: [[["A food chain", "Grass", "Grasshopper", "Frog", "Snake"], ["שרשרת מזון", "עשב", "חגב", "צפרדע", "נחש"]]],
   },

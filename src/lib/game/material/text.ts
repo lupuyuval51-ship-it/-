@@ -97,3 +97,31 @@ export function shuffled<T>(arr: readonly T[], rnd: () => number): T[] {
   }
   return a;
 }
+
+/**
+ * What tells the right option apart by its start: "It starts with “M”." is only a hint when no other option starts with
+ * "M" too. Gives the shortest start (up to 3 letters) of the right option's first word, or of a later word when the first
+ * words are the same ("מעי דק" / "מעי גס" → the second word starts with “ד”), that none of the other options share
+ * (`at` is the word's position, 0 for the first). Null when no start tells them apart: the caller then picks another hint.
+ */
+export function distinctStart(correct: string, others: readonly string[]): { at: number; prefix: string } | null {
+  const mine = wordsOf(correct).map((w) => w.text);
+  const theirs = others.map((o) => wordsOf(o).map((w) => w.text.toLowerCase()));
+  for (let i = 0; i < Math.min(mine.length, 4); i++) {
+    const same = mine.slice(0, i).map((w) => w.toLowerCase()).join(" ");
+    for (let n = 1; n <= Math.min(3, mine[i]!.length); n++) {
+      const p = mine[i]!.slice(0, n);
+      if (!theirs.some((o) => o.slice(0, i).join(" ") === same && (o[i] ?? "").startsWith(p.toLowerCase()))) return { at: i, prefix: p };
+    }
+  }
+  return null;
+}
+
+const ORDINAL: [string, string][] = [["first", "הראשונה"], ["second", "השנייה"], ["third", "השלישית"], ["fourth", "הרביעית"]];
+
+/** "It starts with “M”." in the right language, naming the word when it is not the first ("Its second word starts with “D”."). */
+export function startHintText(s: { at: number; prefix: string }, t: (en: string, he: string) => string, kind: "letter" | "prefix" = "letter"): string {
+  const [en, he] = ORDINAL[s.at] ?? ORDINAL[0]!;
+  if (s.at === 0) return kind === "letter" ? t(`It starts with “${s.prefix}”.`, `זה מתחיל ${s.prefix.length > 1 ? "באותיות" : "באות"} ״${s.prefix}״.`) : t(`It starts with “${s.prefix}”.`, `הוא מתחיל ב״${s.prefix}״.`);
+  return t(`Its ${en} word starts with “${s.prefix}”.`, `המילה ${he} שלו מתחילה ב״${s.prefix}״.`);
+}

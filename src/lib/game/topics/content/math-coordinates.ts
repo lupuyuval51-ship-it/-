@@ -9,8 +9,8 @@ const c: TopicContent = {
       ["x-axis", "the horizontal number line on a grid", "ציר x", "ציר המספרים האופקי ברשת"],
     ],
     q: [
-      [["In the point (4, 1), which number tells you how far to go across?", "4", ["1", "Both", "Neither"], "The first number is x (across), the second is y (up): along the corridor, then up the stairs."],
-        ["בנקודה (4, 1), איזה מספר אומר כמה ללכת הצידה?", "4", ["1", "שניהם", "אף אחד"], "המספר הראשון הוא x (הצידה) והשני y (למעלה): קודם לאורך המסדרון, אחר כך במדרגות."]],
+      [["In the point (4, 1), which number tells you how far to go across?", "4", ["1", "5", "0"], "The first number is x (across), the second is y (up): along the corridor, then up the stairs."],
+        ["בנקודה (4, 1), איזה מספר אומר כמה ללכת הצידה?", "4", ["1", "5", "0"], "המספר הראשון הוא x (הצידה) והשני y (למעלה): קודם לאורך המסדרון, אחר כך במדרגות."]],
       [["Which point is on the y-axis?", "(0, 5)", ["(5, 0)", "(5, 5)", "(1, 1)"], "Points on the y-axis have x = 0."],
         ["איזו נקודה נמצאת על ציר y?", "(0, 5)", ["(5, 0)", "(5, 5)", "(1, 1)"], "לנקודות על ציר y יש x = 0."]],
     ],

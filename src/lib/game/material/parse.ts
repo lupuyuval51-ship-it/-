@@ -375,7 +375,9 @@ export function parseMaterial(raw: string): Knowledge {
     facts: uniq(facts, (f) => f.blanked),
     sentences: uniq(sentences, (s) => s),
     prose: uniq(prose, (s) => s),
-    keywords: [...stats.values()],
+    // A word that only ever starts a sentence is capitalised by position, not because it is a name: as a wrong option next
+    // to a lower-case answer ("Farmers" among "pharaohs") the capital letter would give the answer away. Acronyms stay.
+    keywords: [...stats.values()].map((k) => (!k.proper && /^\p{Lu}\p{Ll}/u.test(k.text) ? { ...k, text: k.text.toLowerCase() } : k)),
     all: uniq(all, (s) => s),
   };
 }

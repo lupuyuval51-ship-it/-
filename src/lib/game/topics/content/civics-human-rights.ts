@@ -11,7 +11,7 @@ const c: TopicContent = {
     q: [
       [["Which of these is a right of every child?", "The right to education", ["The right to stay up all night", "The right to a new phone", "The right to skip school"], "The UN Convention on the Rights of the Child includes the right to education."],
         ["מה מהבאים הוא זכות של כל ילד?", "הזכות לחינוך", ["הזכות להישאר ער כל הלילה", "הזכות לטלפון חדש", "הזכות לא ללכת לבית הספר"], "האמנה של האו״ם בדבר זכויות הילד כוללת את הזכות לחינוך."]],
-      [["If I have the right to speak freely, what is my responsibility?", "To respect others' right to speak too", ["To speak louder than everyone", "To stop others from speaking", "None"], "Rights come with the duty to respect the same rights in others."],
+      [["If I have the right to speak freely, what is my responsibility?", "To respect others' right to speak too", ["To speak louder than everyone", "To stop others from speaking", "I have no responsibility"], "Rights come with the duty to respect the same rights in others."],
         ["אם יש לי זכות לדבר בחופשיות, מה האחריות שלי?", "לכבד גם את זכותם של אחרים לדבר", ["לדבר חזק יותר מכולם", "למנוע מאחרים לדבר", "אין לי אחריות"], "זכויות באות יחד עם החובה לכבד את אותן זכויות אצל אחרים."]],
     ],
   },
