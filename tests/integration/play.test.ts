@@ -269,6 +269,8 @@ describe("switching mechanics on is limited by the game's own level", () => {
       const small = await makeGame(u.id, { mode: "FAST", gameType: "exploration", level: "C" });
       const full = await makeGame(u.id, { level: "A" });
       const patch = (id: string, body: unknown) => editRoute(makeRequest("PATCH", `/api/games/${id}`, { cookie: u.cookie, body }), { params: Promise.resolve({ id }) });
+      // an edit never loses the level (validation strips it from the spec; the game keeps the level it was made at)
+      expect((await patch(small.id, { title: "Renamed small game" })).status).toBe(200);
       const locked = await patch(small.id, { mechanics: { timed_bonus: true } });
       expect(locked.status).toBe(403);
       expect((await locked.json()).error).toMatchObject({ code: "FEATURE_TIER_LOCKED", details: { requiredLevel: "B", tier: "C" } });

@@ -127,6 +127,8 @@ export async function editGame(userId: string, gameId: string, edit: GameEdit) {
     if (!res.ok) throw Errors.badRequest("That change would make the game invalid.", res.errors);
     const final = res.spec;
     final.meta.generator = spec.meta.generator;
+    // validation strips the level (a model must not set it); the game keeps the level it was made (and paid) at
+    if (spec.meta.featureTier) final.meta.featureTier = spec.meta.featureTier;
     const json = final as unknown as Prisma.InputJsonValue;
     const themeChanged = stableStringify(final.theme) !== stableStringify((game.spec as unknown as GameSpec).theme);
     if (!gameplayChanged && !themeChanged) {

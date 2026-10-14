@@ -30,8 +30,9 @@ test.describe("library, details and modification", () => {
     await expect(page.getByTestId("game-title")).toHaveText("My Loops Quest");
     expect(await dbRows('SELECT revision FROM "GameRevision" WHERE "gameId" = $1', [gameId])).toHaveLength(1);
 
-    // a mechanic outside the plan's tier cannot be switched on (Timed bonus is a Plus feature): the server refuses, whatever the form shows
-    const locked = await page.request.patch(`/api/games/${gameId}`, { data: { mechanics: { timed_bonus: true } }, headers: { origin: new URL(page.url()).origin } });
+    // a mechanic outside the game's own level cannot be switched on (this Free game is level B; adaptive difficulty is level A): the server refuses, whatever the form shows
+    expect(spec.meta.featureTier).toBe("B");
+    const locked = await page.request.patch(`/api/games/${gameId}`, { data: { mechanics: { adaptive_difficulty: true } }, headers: { origin: new URL(page.url()).origin } });
     expect(locked.status()).toBe(403);
     expect(((await locked.json()) as { error: { code: string } }).error.code).toBe("FEATURE_TIER_LOCKED");
     await setPlan(email, "PLUS");
@@ -99,7 +100,7 @@ test.describe("library, details and modification", () => {
     await page.getByTestId("profile-save").click();
     await expect(page.getByTestId("profile-message")).toContainText("Saved");
     await page.goto("/pricing");
-    await expect(page.getByTestId("price-PLUS")).toContainText("₪30");
+    await expect(page.getByTestId("price-PLUS")).toContainText("₪10");
 
     await page.goto("/account");
     await page.locator("#current").fill(password);
