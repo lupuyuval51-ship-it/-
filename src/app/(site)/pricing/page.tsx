@@ -68,7 +68,6 @@ export default async function PricingPage() {
                   {!price.isFree && <span className="text-base font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
                 {!price.isFree && <p className="text-xs text-muted">{price.currency === "ILS" ? t("pricing.region.il") : t("pricing.region.usd")}</p>}
-                {plan === "PRO" && region === "IL" && <p className="mt-1 text-xs text-amber">{t("pricing.pro.usd", { price: price.text })}</p>}
               </div>
               <ul className="flex-1 space-y-2 text-sm">
                 <li className="flex gap-2"><Check aria-hidden className="mt-0.5 size-4 shrink-0 text-lime" /><span data-testid={`offer-${plan}`}><b>{t("pricing.games.many", { offer: offerText(t, plan), period })}</b><span className="block text-xs text-muted" data-testid={`points-${plan}`}>{pointsText(t, plan)}</span></span></li>

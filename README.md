@@ -119,8 +119,8 @@ from there — the UI never hard-codes them and nothing is gated by price in the
 | Plan | Price | Points / period | Cost per game (C · B · A) | What that buys | Period | Graphics |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Free** | $0 | **2** | 1 · 2 · not available | 2 topics at level C, or 1 at level B | each UTC calendar month | Tier B / C |
-| **Plus** | **$10 / month**, or exactly **₪30 / month** for accounts whose region is Israel | **3** | 1 · 1 · 3 | 3 topics at level B, or 1 at level A | the subscription's billing period | Tier A (also B / C) |
-| **Pro** | **$40 / month** (USD everywhere; no shekel price is invented) | **10** | 1 · 1 · 2 | 5 topics at level A, or 10 at level B | the subscription's billing period | Tier A — **identical** to Plus |
+| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **3** | 1 · 1 · 3 | 3 topics at level B, or 1 at level A | the subscription's billing period | Tier A (also B / C) |
+| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **10** | 1 · 1 · 2 | 5 topics at level A, or 10 at level B | the subscription's billing period | Tier A — **identical** to Plus |
 
 The allowance is a **points budget** per period (`PLANS[plan].allowance = { budget, cost }`); each game ("topic") costs the points
 of its **level** (the feature tier below). A level missing from `cost` cannot be made on that plan (Free can never make A). The
@@ -339,7 +339,7 @@ A real run **spends money** at the provider, so it needs `--yes`. It uses the ba
 3. In the Stripe Dashboard → Settings → Billing → Customer portal, save a configuration (payment methods and invoices; cancellation is also handled in-app).
 
 **You do not create Prices in Stripe.** Checkout sends the amount and currency straight from `src/config/plans.ts`
-(`unit_amount` 1000 USD / 3000 ILS for Plus, 4000 USD for Pro, monthly), keyed by the account's saved region. The webhook handler **fails closed**:
+(`unit_amount` 1000 USD / 1000 ILS for Plus, 4000 USD / 4000 ILS for Pro, monthly), keyed by the account's saved region. The webhook handler **fails closed**:
 a subscription whose charged amount/currency does not equal the configured price for its plan is rejected and grants nothing.
 
 What the webhook pipeline guarantees (`src/server/billing`, covered by integration tests that send real Stripe-signed requests):
@@ -597,7 +597,7 @@ and re-checked for game type, language and feature tier), then "needed no repair
 ## Known limitations
 
 * One subscription per user; changing plan means cancelling (access continues to period end) and subscribing again. In-place upgrade is not implemented
-  (it also cannot cross currencies, e.g. Plus in ILS → Pro in USD).
+  (it also cannot cross currencies, e.g. a USD subscription into an ILS one).
 * Partial refunds and disputes/chargebacks do not change entitlements. Taxes (Stripe Tax) are not configured.
 * Demo mode only has templates for programming, maths, science, ancient Egypt and Spanish, in Hebrew and English; other subjects get the closest template with a visible notice. To get a game about anything without an AI provider, paste your own material and use the study engine (it only asks about what you wrote).
 * Challenge content for AI games is validated structurally and for solvability, but factual correctness of model output cannot be checked automatically.

@@ -1,4 +1,4 @@
-import { PLANS } from "@/config/plans";
+import { PLANS, type PlanId } from "@/config/plans";
 import { randomUUID } from "node:crypto";
 import Stripe from "stripe";
 import { NextRequest } from "next/server";
@@ -69,7 +69,7 @@ async function world(over: Partial<SimSubscription> & { country?: string } = {})
     plan,
     status: "active",
     currency: il ? "ils" : "usd",
-    unitAmount: plan === "PRO" ? 4000 : il ? 3000 : 1000,
+    unitAmount: PLANS[plan as PlanId].monthlyPrices[il ? "ILS" : "USD"]!,
     periodStart: at(-2 * DAY),
     periodEnd: at(28 * DAY),
     ...over,
@@ -106,11 +106,11 @@ describe("signature verification at the HTTP boundary", () => {
 });
 
 describe("subscription events → entitlements", () => {
-  it("created: Plus in Israel is exactly ₪30 and grants PLUS; entitlement follows the billing period", async () => {
+  it("created: Plus in Israel is exactly ₪10 and grants PLUS; entitlement follows the billing period", async () => {
     const w = await world({ country: "IL" });
     const res = await deliver(subEvent(w.sim, "customer.subscription.created"));
     expect(res).toMatchObject({ status: 200, json: { received: true, status: "processed" } });
-    expect(await row(w.userId)).toMatchObject({ provider: "STRIPE", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 3000 });
+    expect(await row(w.userId)).toMatchObject({ provider: "STRIPE", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 1000 });
     const ent = await resolveEntitlement(w.userId);
     expect(ent).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: PLANS.PLUS.allowance.budget });
     expect(ent.periodStart).toEqual(w.sim.periodStart);
@@ -150,7 +150,7 @@ describe("subscription events → entitlements", () => {
     expect(cheap).toMatchObject({ status: 200, json: { status: "failed" } });
     const proAtPlusPrice = await deliver(subEvent({ ...w.sim, plan: "PRO" }, "customer.subscription.created")); // PRO at $10
     expect(proAtPlusPrice.json.status).toBe("failed");
-    const proInIls = await deliver(subEvent({ ...w.sim, plan: "PRO", currency: "ils", unitAmount: 3000 }, "customer.subscription.created")); // no ILS price exists for Pro
+    const proInIls = await deliver(subEvent({ ...w.sim, plan: "PRO", currency: "ils", unitAmount: 1000 }, "customer.subscription.created")); // Pro at the Plus shekel price
     expect(proInIls.json.status).toBe("failed");
     expect(await db.subscription.count({ where: { userId: w.userId } })).toBe(0);
     expect((await resolveEntitlement(w.userId)).plan).toBe("FREE");

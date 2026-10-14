@@ -71,7 +71,7 @@ describe("documented product numbers match src/config/plans.ts", () => {
     expect(row("Plus")).toContain(`**$${PLANS.PLUS.monthlyPrices.USD! / 100} / month**`);
     expect(row("Plus")).toContain(`₪${PLANS.PLUS.monthlyPrices.ILS! / 100} / month`);
     expect(row("Pro")).toContain(`**$${PLANS.PRO.monthlyPrices.USD! / 100} / month**`);
-    expect(PLANS.PRO.monthlyPrices.ILS).toBeUndefined(); // the README says no shekel price is invented for Pro
+    expect(row("Pro")).toContain(`₪${PLANS.PRO.monthlyPrices.ILS! / 100} / month`);
   });
 
   it("the plan-features table shows the configured AI edit quotas and versions kept", () => {

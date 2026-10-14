@@ -108,7 +108,7 @@ export interface PlanDefinition {
   rank: number;
   /**
    * Monthly price in MINOR units (cents / agorot) per currency. A currency that is not listed is NOT offered:
-   * no price is ever derived from an exchange rate. PRO deliberately has no ILS entry.
+   * no price is ever derived from an exchange rate.
    */
   monthlyPrices: Readonly<Partial<Record<CurrencyCode, number>>>;
   /** Points per period and the price of a game at each level (the player picks the level of each game). */
@@ -144,8 +144,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
   PLUS: {
     id: "PLUS",
     rank: 1,
-    // $10/month internationally; exactly ₪30/month for users in Israel (explicit, never FX-derived).
-    monthlyPrices: { USD: 1000, ILS: 3000 },
+    // $10/month internationally; exactly ₪10/month for users in Israel (explicit, never FX-derived).
+    monthlyPrices: { USD: 1000, ILS: 1000 },
     // 3 topics at level B, or 1 topic at level A, per billing period (C costs what B costs).
     allowance: { budget: 3, cost: { B: 1, A: 3, C: 1 } },
     allowancePeriod: { kind: "billing_period" },
@@ -155,8 +155,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
   PRO: {
     id: "PRO",
     rank: 2,
-    // $40/month. No shekel price is invented for PRO: Israeli users are shown (and charged) USD.
-    monthlyPrices: { USD: 4000 },
+    // $40/month internationally; exactly ₪40/month for users in Israel (explicit, never FX-derived).
+    monthlyPrices: { USD: 4000, ILS: 4000 },
     // 5 topics at level A, or 10 topics at level B, per billing period (C costs what B costs).
     // NOTE (owner's numbers, kept as specified): one A game is worth 2 B games on Pro but 3 B games on Plus.
     allowance: { budget: 10, cost: { A: 2, B: 1, C: 1 } },
@@ -271,7 +271,7 @@ export function monthlyPrice(plan: PlanId, country: string | null | undefined): 
 
 const SYMBOL: Record<CurrencyCode, string> = { USD: "$", ILS: "₪" };
 
-/** "$10", "₪30", "$9.99". Deterministic (no Intl) so server and client always agree. */
+/** "$10", "₪40", "$9.99". Deterministic (no Intl) so server and client always agree. */
 export function formatMoney(minor: number, currency: CurrencyCode): string {
   const major = minor / 100;
   const text = Number.isInteger(major) ? String(major) : major.toFixed(2);

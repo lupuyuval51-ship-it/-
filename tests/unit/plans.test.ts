@@ -26,24 +26,26 @@ describe("central plan configuration (exact product rules)", () => {
     expect(planAllowsTier("FREE", "A")).toBe(false);
   });
 
-  it("PLUS: $10/month internationally, exactly ₪30/month in Israel, 3 points per billing period, Tier A", () => {
+  it("PLUS: $10/month internationally, exactly ₪10/month in Israel, 3 points per billing period, Tier A", () => {
     expect(PLANS.PLUS.monthlyPrices.USD).toBe(1000);
-    expect(PLANS.PLUS.monthlyPrices.ILS).toBe(3000);
+    expect(PLANS.PLUS.monthlyPrices.ILS).toBe(1000);
     expect(PLANS.PLUS.allowance).toEqual({ budget: 3, cost: { B: 1, A: 3, C: 1 } });
     expect(PLANS.PLUS.allowancePeriod).toEqual({ kind: "billing_period" });
     expect(planAllowsTier("PLUS", "A")).toBe(true);
-    expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 3000 });
-    expect(formatMoney(monthlyPrice("PLUS", "IL").minor, "ILS")).toBe("₪30");
+    expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 1000 });
+    expect(formatMoney(monthlyPrice("PLUS", "IL").minor, "ILS")).toBe("₪10");
     expect(formatMoney(monthlyPrice("PLUS", "US").minor, "USD")).toBe("$10");
     expect(monthlyPrice("PLUS", null)).toEqual({ currency: "USD", minor: 1000 });
   });
 
-  it("PRO: $40/month, 10 points per billing period, and NO invented shekel price", () => {
+  it("PRO: $40/month internationally, exactly ₪40/month in Israel, 10 points per billing period", () => {
     expect(PLANS.PRO.monthlyPrices.USD).toBe(4000);
-    expect(PLANS.PRO.monthlyPrices.ILS).toBeUndefined();
+    expect(PLANS.PRO.monthlyPrices.ILS).toBe(4000);
+    expect(formatMoney(monthlyPrice("PRO", "IL").minor, "ILS")).toBe("₪40");
     expect(PLANS.PRO.allowance).toEqual({ budget: 10, cost: { A: 2, B: 1, C: 1 } });
-    expect(displayCurrency("PRO", "IL")).toBe("USD");
-    expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "USD", minor: 4000 });
+    expect(displayCurrency("PRO", "IL")).toBe("ILS");
+    expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "ILS", minor: 4000 });
+    expect(monthlyPrice("PRO", "US")).toEqual({ currency: "USD", minor: 4000 });
   });
 
   it("PLUS and PRO get exactly the same graphics entitlement", () => {

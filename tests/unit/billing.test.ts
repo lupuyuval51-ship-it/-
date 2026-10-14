@@ -111,10 +111,10 @@ describe("Stripe gateway requests", () => {
   it("creates a subscription-mode checkout with the exact configured amount and currency", async () => {
     const { client, calls } = fake();
     const gw = createStripeGateway(client);
-    expect(await gw.createCheckout({ ...args, plan: "PLUS", currency: "ILS", unitAmount: 3000 })).toEqual({ url: "https://checkout.stripe.test/c/cs_test_1" });
+    expect(await gw.createCheckout({ ...args, plan: "PLUS", currency: "ILS", unitAmount: 1000 })).toEqual({ url: "https://checkout.stripe.test/c/cs_test_1" });
     const params = calls.checkout as { mode: string; client_reference_id: string; customer_email: string; metadata: Record<string, string>; subscription_data: { metadata: Record<string, string> }; line_items: { price_data: { currency: string; unit_amount: number; recurring: { interval: string } } }[]; success_url: string };
     expect(params.mode).toBe("subscription");
-    expect(params.line_items[0]!.price_data).toMatchObject({ currency: "ils", unit_amount: 3000, recurring: { interval: "month" } });
+    expect(params.line_items[0]!.price_data).toMatchObject({ currency: "ils", unit_amount: 1000, recurring: { interval: "month" } });
     expect(params.client_reference_id).toBe("user_1");
     expect(params.customer_email).toBe("a@example.test");
     expect(params.metadata).toEqual({ userId: "user_1", plan: "PLUS" });
