@@ -2,7 +2,9 @@ import { useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Card, Field, Select } from "@/components/ui";
 import { GRAPHICS_TIERS, type GraphicsTier } from "@/config/plans";
+import { REGION_CHOICES } from "@/lib/offline/first-run";
 import { browserKV } from "@/lib/offline/store";
+import { regionLabel } from "@/lib/regions";
 import { THEMES, type ThemePref } from "@/lib/theme";
 import { setSettings, store, useSettings } from "../app-state";
 import { deleteAllGames } from "../reset";
@@ -50,6 +52,11 @@ export function SettingsPage() {
               <Select id="locale" className="min-h-11" value={s.locale} onChange={(e) => setSettings({ locale: e.target.value as "he" | "en" })}>
                 <option value="he" lang="he">{t("lang.he")}</option>
                 <option value="en" lang="en">{t("lang.en")}</option>
+              </Select>
+            </Field>
+            <Field label={t("mob.settings.country")} hint={t("mob.setup.country.hint")} htmlFor="region">
+              <Select id="region" className="min-h-11" value={s.region} onChange={(e) => setSettings({ region: e.target.value })}>
+                {REGION_CHOICES.map((c) => <option key={c} value={c}>{regionLabel(c, s.locale)}</option>)}
               </Select>
             </Field>
             <Field label={t("theme.label")} htmlFor="theme">

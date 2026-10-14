@@ -1,11 +1,12 @@
 import { useSyncExternalStore } from "react";
 import type { GraphicsTier } from "@/config/plans";
-import { DEFAULT_LOCALE, type DictKey, type Locale } from "@/lib/i18n";
+import type { DictKey, Locale } from "@/lib/i18n";
+import { freshDefaults, sanitizeRegion } from "@/lib/offline/first-run";
 import { applyTheme, isThemePref, type ThemePref } from "@/lib/theme";
 import { browserKV, OfflineStore, storageErrorCode } from "@/lib/offline/store";
 import { offlineTransport } from "@/components/game/offlineTransport";
 
-export interface Settings { locale: Locale; tier: GraphicsTier; sound: boolean; music: boolean; vibration: boolean; theme: ThemePref }
+export interface Settings { locale: Locale; tier: GraphicsTier; sound: boolean; music: boolean; vibration: boolean; theme: ThemePref; region: string; setupDone: boolean }
 const KEY = "levelup.mobile.settings";
 
 /** Phones vary a lot: start at the middle tier unless the device reports plenty of memory and cores. */
@@ -15,8 +16,9 @@ function defaultTier(): GraphicsTier {
 }
 
 function load(): Settings {
-  // Hebrew/RTL is the product default; English is one tap away in Settings.
-  const base: Settings = { locale: DEFAULT_LOCALE, tier: defaultTier(), sound: true, music: true, vibration: true, theme: "system" };
+  // A fresh install starts in English and asks for the language and the country first (see FirstSetup); the Hebrew/RTL product
+  // default applies to the test build only.
+  const base: Settings = { ...freshDefaults(import.meta.env.MODE === "e2e"), tier: defaultTier(), sound: true, music: true, vibration: true, theme: "system" };
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
@@ -28,6 +30,9 @@ function load(): Settings {
         music: typeof v.music === "boolean" ? v.music : true,
         theme: isThemePref(v.theme) ? v.theme : "system",
         vibration: typeof v.vibration === "boolean" ? v.vibration : true,
+        region: sanitizeRegion(v.region),
+        // anybody who already has saved settings (an upgrade) is never sent through the first-run screen
+        setupDone: typeof v.setupDone === "boolean" ? v.setupDone : true,
       };
     }
   } catch { /* defaults */ }
