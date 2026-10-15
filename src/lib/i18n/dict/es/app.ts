@@ -83,7 +83,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "topics.cat.history": "Historia y civismo",
   "topics.cat.geography": "Geografía",
   "topics.cat.languages": "Idiomas",
-  "topics.cat.computing": "Informática",
+  "topics.cat.computing": "Programación e informática",
   "topics.cat.economy": "Dinero y economía",
   "topics.cat.health": "Salud y seguridad",
   "topics.cat.arts": "Artes y literatura",
