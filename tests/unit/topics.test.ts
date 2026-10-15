@@ -16,7 +16,7 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
  * number of topics that exist (the catalogue never lists a topic without content).
  */
-const EXPECTED_TOPICS = 108;
+const EXPECTED_TOPICS = 113;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
