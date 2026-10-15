@@ -17,7 +17,9 @@ const LANGS: readonly Locale[] = ["en", "he", "es"];
 function Choice({ type, name, checked, onChange, testId, children, lang }: { type: "radio" | "checkbox"; name: string; checked: boolean; onChange: () => void; testId: string; children: React.ReactNode; lang?: string }) {
   return (
     <label className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium ${checked ? "border-neon bg-neon/10" : "border-line"}`}>
-      <input type={type} name={name} checked={checked} onChange={onChange} className="size-4 shrink-0 accent-[var(--color-neon)]" data-testid={testId} lang={lang} />
+      {type === "radio"
+        ? <input type="radio" name={name} checked={checked} onChange={onChange} className="size-4 shrink-0 accent-[var(--color-neon)]" data-testid={testId} lang={lang} />
+        : <input type="checkbox" name={name} checked={checked} onChange={onChange} className="size-4 shrink-0 accent-[var(--color-neon)]" data-testid={testId} lang={lang} />}
       <span lang={lang} className="min-w-0">{children}</span>
     </label>
   );

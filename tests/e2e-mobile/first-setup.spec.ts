@@ -69,7 +69,7 @@ test("the questionnaire asks the language, the topics, the time and the plan, th
 
   // the answers are used: the topic library opens on the first interest; 20 minutes a day proposes a full adventure
   await page.goto("/#/create");
-  await expect(page.locator("input[name=mode][value=FULL]")).toBeChecked();
+  await expect(page.locator("#mode")).toHaveValue("FULL");
   await page.getByTestId("source-library").check();
   await expect(page.getByTestId("topic-cat-science")).toHaveAttribute("aria-pressed", "true");
 });

@@ -19,7 +19,7 @@ describe("first run of the offline app", () => {
 
 describe("first-run questionnaire answers", () => {
   it("keeps only valid answers", async () => {
-    const { sanitizeInterests, sanitizeMinutes, sanitizePlanChoice, modeForMinutes } = await import("@/lib/offline/first-run");
+    const { sanitizeInterests, sanitizeMinutes, sanitizePlanChoice } = await import("@/lib/offline/first-run");
     expect(sanitizeInterests(["math", "nope", "math", "science"])).toEqual(["math", "science"]);
     expect(sanitizeInterests("math")).toEqual([]);
     expect(sanitizeMinutes(10)).toBe(10);

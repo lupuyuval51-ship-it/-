@@ -27,6 +27,7 @@ export const commonEs: Record<keyof typeof common.en, string> = {
   "common.language": "Idioma",
   "lang.he": "עברית",
   "lang.en": "English",
+  "lang.es": "Español",
   "theme.label": "Tema de color",
   "theme.system": "Según el dispositivo",
   "theme.light": "Claro",
