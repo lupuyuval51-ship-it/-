@@ -251,7 +251,7 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
 ### Topic library: ready topics, no AI
 
 The create form (website and Android app) has a second way to build a game: **pick a topic from the topic library** and a level. The library
-currently holds **133 topics** (the goal is 200) in ten categories — maths, science, history and civics, geography, languages, computing,
+currently holds **138 topics** (the goal is 200) in ten categories — maths, science, history and civics, geography, languages, computing,
 money and economy, health and safety, arts and literature, thinking and study skills. Each topic is curated, fact-checked content written natively
 in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
 (reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
