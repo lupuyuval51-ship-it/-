@@ -3,6 +3,7 @@ import { MaterialPreview } from "@/components/create/MaterialPreview";
 import { TopicPicker } from "@/components/create/TopicPicker";
 import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 import { useLocale, useT } from "@/components/I18nProvider";
+import { contentLangOf } from "@/lib/i18n";
 import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
@@ -43,7 +44,7 @@ export function CreatePage() {
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
   const [state, dispatch] = useReducer(createReducer, undefined, () =>
-    startState(loadDraft(storage, tier, locale), { locale, tier, example: hashQuery(window.location.hash).get("example") === "1" }));
+    startState(loadDraft(storage, tier, contentLangOf(locale)), { locale: contentLangOf(locale), tier, example: hashQuery(window.location.hash).get("example") === "1" }));
   const { form, restored, undo, problem } = state;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });

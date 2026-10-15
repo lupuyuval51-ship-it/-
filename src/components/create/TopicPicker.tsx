@@ -3,7 +3,7 @@
 import { useId, useMemo, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { Input, cx } from "@/components/ui";
-import type { DictKey } from "@/lib/i18n";
+import { contentLangOf, type DictKey } from "@/lib/i18n";
 import { TOPICS, TOPIC_CATEGORIES, searchTopics, type TopicCategory } from "@/lib/game/topics/catalog";
 
 /**
@@ -13,7 +13,8 @@ import { TOPICS, TOPIC_CATEGORIES, searchTopics, type TopicCategory } from "@/li
  */
 export function TopicPicker({ value, onChange, disabled = false, error }: { value: string | null; onChange: (id: string) => void; disabled?: boolean; error?: string | null }) {
   const t = useT();
-  const locale = useLocale();
+  // topic content exists in Hebrew and English; a Spanish interface shows the English titles
+  const locale = contentLangOf(useLocale());
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<TopicCategory | "all">("all");
   const listId = useId();
