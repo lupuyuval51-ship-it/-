@@ -98,7 +98,7 @@ export interface PlanFeatures {
 export interface PlanAllowance {
   /** Points per allowance period. Unused points do not roll over. */
   budget: number;
-  /** Points one game costs at each level the plan offers. */
+  /** Points one game costs at each level the plan offers. 0 = free and unlimited (still rate-limited, one job at a time). */
   cost: Readonly<Partial<Record<FeatureTier, number>>>;
 }
 
@@ -146,8 +146,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 1,
     // $10/month internationally; exactly ₪10/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 1000, ILS: 1000 },
-    // 3 topics at level B, or 1 topic at level A, per billing period (C costs what B costs).
-    allowance: { budget: 3, cost: { B: 1, A: 3, C: 1 } },
+    // 3 topics at level B, or 1 topic at level A, per billing period; level C is free and unlimited (cost 0).
+    allowance: { budget: 3, cost: { B: 1, A: 3, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20 },
@@ -157,9 +157,9 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 2,
     // $40/month internationally; exactly ₪40/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 4000, ILS: 4000 },
-    // 5 topics at level A, or 10 topics at level B, per billing period (C costs what B costs).
+    // 5 topics at level A, or 10 topics at level B, per billing period; level C is free and unlimited (cost 0).
     // NOTE (owner's numbers, kept as specified): one A game is worth 2 B games on Pro but 3 B games on Plus.
-    allowance: { budget: 10, cost: { A: 2, B: 1, C: 1 } },
+    allowance: { budget: 10, cost: { A: 2, B: 1, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100 },
@@ -178,15 +178,20 @@ export function maxLevel(plan: PlanId): FeatureTier {
   return levelsAllowed(plan)[0] ?? "C";
 }
 
-/** Points one game at `level` costs on `plan`, or null when the plan cannot make that level. */
+/** Points one game at `level` costs on `plan` (0 = free, unlimited), or null when the plan cannot make that level. */
 export function costOf(plan: PlanId, level: FeatureTier): number | null {
   return PLANS[plan].allowance.cost[level] ?? null;
 }
 
-/** How many games at `level` fit in `points` (default: the plan's whole budget). 0 when the level is not offered. */
+/**
+ * How many games at `level` fit in `points` (default: the plan's whole budget). 0 when the level is not offered;
+ * `Infinity` when the level is free (cost 0).
+ */
 export function topicsAt(plan: PlanId, level: FeatureTier, points: number = PLANS[plan].allowance.budget): number {
   const cost = costOf(plan, level);
-  return cost === null ? 0 : Math.floor(Math.max(0, points) / cost);
+  if (cost === null) return 0;
+  if (cost === 0) return Infinity;
+  return Math.floor(Math.max(0, points) / cost);
 }
 
 export interface OfferOption {
@@ -197,7 +202,7 @@ export interface OfferOption {
 /**
  * The plan's offer as alternatives ("2 topics at level C or 1 at level B"), derived from the budget and the costs.
  * Levels are listed in the order of the plan's `cost` keys. A level is left out when a higher level costs the same or
- * less (it says nothing new: on Plus and Pro, C costs what B costs). With `points`, it describes what those points buy
+ * less (it says nothing new). With `points`, it describes what those points buy
  * (e.g. what is left this period); alternatives that no longer fit are dropped.
  */
 export function planOffer(plan: PlanId, points: number = PLANS[plan].allowance.budget): OfferOption[] {

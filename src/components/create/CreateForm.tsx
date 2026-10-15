@@ -99,7 +99,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   const [topicId, setTopicId] = useState<string | null>(null);
   const library = !extend && source === "library";
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
-  const exhausted = allowance.remaining <= 0;
+  // a free level (cost 0, Plus and Pro level C) can always be made, so the points never run out for it
+  const exhausted = allowance.remaining <= 0 && !levels.options.some((o) => o.allowed && o.cost === 0);
   const catalogGame = extend && selected?.generatorKind === "catalog";
   const levelInfo = levels.options.find((o) => o.level === level) ?? levels.options[0]!;
   const levelUsable = (o: LevelOption) => o.allowed && o.affordable && (mode !== "FULL" || o.fullAllowed);
@@ -114,7 +115,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   const short = extend ? extendProblem === "short" : !levelUsable(levelInfo);
   // the topic library never needs an AI provider
   const blocked = (backend.kind === "unavailable" && !library) || exhausted || short || Boolean(extendProblem) || Boolean(allowance.activeJobId) || mismatch || catalogGame;
-  const costText = (n: number) => (n === 1 ? t("create.level.cost.one") : t("create.level.cost", { n }));
+  const costText = (n: number) => (n === 0 ? t("create.level.cost.free") : n === 1 ? t("create.level.cost.one") : t("create.level.cost", { n }));
 
   function chooseMode(m: GenerationModeId) {
     setMode(m);

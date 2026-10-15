@@ -43,7 +43,7 @@ Request paths worth knowing:
   `loaders.ts`) by `runTopicLibrary` in `src/server/generation/pipeline.ts` — before any backend is touched, so no model is called — and on the phone by
   `generateOfflineWithProgress`. Same validation, tier clamp, phone fit and allowance; label `catalog` / “Topic library”. Tests: `tests/unit/topics.test.ts`,
   `tests/integration/topic-library.test.ts`, the topic part of `tests/unit/bundle-boundary.test.ts`.
-* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan and paid in points (`PLANS[plan].allowance`: Free 2 points with C = 1, B = 2, no A; Plus 3 with C = 1, B = 1, A = 3; Pro 10 with C = 1, B = 1, A = 2), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
+* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan and paid in points (`PLANS[plan].allowance`: Free 2 points with C = 1, B = 2, no A; Plus 3 with C = 0 (free, unlimited), B = 1, A = 3; Pro 10 with C = 0 (free, unlimited), B = 1, A = 2), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
   (`assertRequestAllowed` in `src/server/generation/service.ts`, `clampToFeatureTier` in `src/lib/game/spec/tier.ts`).
 
 ## Where the rules are enforced and tested

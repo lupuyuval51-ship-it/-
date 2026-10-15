@@ -26,6 +26,6 @@ export function maxLevelForPlan(plan: PlanId): FeatureTier {
 
 /** Points one game at `level` costs on `plan`, or null when the plan cannot make that level. */
 export function levelCost(plan: PlanId, level: FeatureTier): number | null {
-  if (override) return level === override ? Math.min(...Object.values(PLANS[plan].allowance.cost)) : null;
+  if (override) return level === override ? Math.min(...Object.values(PLANS[plan].allowance.cost).filter((c) => c > 0)) : null;
   return costOf(plan, level);
 }

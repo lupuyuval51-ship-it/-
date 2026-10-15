@@ -49,7 +49,7 @@ export default async function DashboardPage() {
           <p className="text-3xl font-extrabold"><span className="ltr-num" data-testid="dash-remaining">{allowance.remaining}</span><span className="text-lg font-medium text-muted"> / <span className="ltr-num">{allowance.limit}</span></span></p>
           <p className="text-sm text-muted">{t("dash.allowance.left", { n: allowance.remaining, limit: allowance.limit })}</p>
           <p className="text-xs text-muted" data-testid="dash-offer">{t("dash.allowance.offer", { offer: offerText(t, allowance.plan) })} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
-          {allowance.remaining > 0 && allowance.remaining < allowance.limit && <p className="text-xs text-muted" data-testid="dash-buys">{t("dash.allowance.buys", { offer: offerText(t, allowance.plan, allowance.remaining) })}</p>}
+          {allowance.remaining < allowance.limit && offerText(t, allowance.plan, allowance.remaining) && <p className="text-xs text-muted" data-testid="dash-buys">{t("dash.allowance.buys", { offer: offerText(t, allowance.plan, allowance.remaining) })}</p>}
           {allowance.reserved > 0 && <p className="text-xs text-amber">{t("dash.allowance.inflight", { n: allowance.reserved })}</p>}
           {plansEnabled() && allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
         </Card>

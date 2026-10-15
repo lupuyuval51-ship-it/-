@@ -87,7 +87,12 @@ describe("allowance: PLUS and PRO (real levels and point costs)", () => {
     expect(a.job.cost).toBe(costOf("PLUS", "A"));
     await deliverGame(a.job.id, u.id);
     expect(await getAllowanceSummary(u.id)).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 3, used: 3, remaining: 0 });
-    expect(await code(start(u.id, "C"))).toBe("ALLOWANCE_EXHAUSTED");
+    // level C is free and unlimited on Plus: it still works with no points left, and costs nothing
+    const c = await start(u.id, "C");
+    expect(c.job.cost).toBe(0);
+    await deliverGame(c.job.id, u.id);
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 3, reserved: 0, remaining: 0 });
+    expect(await code(start(u.id, "B"))).toBe("ALLOWANCE_EXHAUSTED");
 
     const v = await createTestUser();
     await grantSubscription(v.id, "PLUS");
@@ -201,7 +206,10 @@ describe("duplicate requests and concurrency", () => {
     expect(await db.$transaction((tx) => reserveCredit(tx, period.id, 1))).toBe(true);
     expect(await db.$transaction((tx) => reserveCredit(tx, period.id, costOf("PLUS", "A")!))).toBe(false);
     expect((await db.allowancePeriod.findUniqueOrThrow({ where: { id: period.id } })).reserved).toBe(1);
-    await expect(db.$transaction((tx) => reserveCredit(tx, period.id, 0))).rejects.toThrow(/invalid allowance cost/);
+    await expect(db.$transaction((tx) => reserveCredit(tx, period.id, -1))).rejects.toThrow(/invalid allowance cost/);
+    // a free level holds nothing, even when the period is full
+    expect(await db.$transaction((tx) => reserveCredit(tx, period.id, 0))).toBe(true);
+    expect((await db.allowancePeriod.findUniqueOrThrow({ where: { id: period.id } })).reserved).toBe(1);
   });
 
   it("settling twice (finish racing with the timeout reaper) never double-charges or double-refunds", async () => {

@@ -61,8 +61,12 @@ describe("documented product numbers match src/config/plans.ts", () => {
   const row = (plan: string) => readme.split("\n").find((l) => l.startsWith(`| **${plan}**`)) ?? "";
 
   it("the plans table shows the configured prices, points budgets and level costs", () => {
-    const costs = (plan: PlanId) => (["C", "B", "A"] as const).map((l) => costOf(plan, l) ?? "not available").join(" · ");
-    const offer = (plan: PlanId) => planOffer(plan).map((o, i) => (i === 0 ? `${o.topics} topic${o.topics === 1 ? "" : "s"} at level ${o.level}` : `${o.topics} at level ${o.level}`)).join(", or ");
+    const costs = (plan: PlanId) => (["C", "B", "A"] as const).map((l) => { const c = costOf(plan, l); return c === null ? "not available" : c === 0 ? "free" : c; }).join(" · ");
+    const offer = (plan: PlanId) => {
+      const counted = planOffer(plan).filter((o) => Number.isFinite(o.topics));
+      const free = planOffer(plan).filter((o) => !Number.isFinite(o.topics)).map((o) => `, plus unlimited at level ${o.level}`);
+      return counted.map((o, i) => (i === 0 ? `${o.topics} topic${o.topics === 1 ? "" : "s"} at level ${o.level}` : `${o.topics} at level ${o.level}`)).join(", or ") + free.join("");
+    };
     for (const [plan, name] of [["FREE", "Free"], ["PLUS", "Plus"], ["PRO", "Pro"]] as const) {
       expect(row(name)).toContain(`| **${PLANS[plan].allowance.budget}** |`);
       expect(row(name)).toContain(`| ${costs(plan)} |`);

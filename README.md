@@ -120,8 +120,8 @@ from there — the UI never hard-codes them and nothing is gated by price in the
 | Plan | Price | Points / period | Cost per game (C · B · A) | What that buys | Period | Graphics |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Free** | $0 | **2** | 1 · 2 · not available | 2 topics at level C, or 1 at level B | each UTC calendar month | Tier B / C |
-| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **3** | 1 · 1 · 3 | 3 topics at level B, or 1 at level A | the subscription's billing period | Tier A (also B / C) |
-| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **10** | 1 · 1 · 2 | 5 topics at level A, or 10 at level B | the subscription's billing period | Tier A — **identical** to Plus |
+| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **3** | free · 1 · 3 | 3 topics at level B, or 1 at level A, plus unlimited at level C | the subscription's billing period | Tier A (also B / C) |
+| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **10** | free · 1 · 2 | 5 topics at level A, or 10 at level B, plus unlimited at level C | the subscription's billing period | Tier A — **identical** to Plus |
 
 The allowance is a **points budget** per period (`PLANS[plan].allowance = { budget, cost }`); each game ("topic") costs the points
 of its **level** (the feature tier below). A level missing from `cost` cannot be made on that plan (Free can never make A). The

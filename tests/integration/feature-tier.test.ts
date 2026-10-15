@@ -169,7 +169,12 @@ describe("Plus plan: 3 topics at level B, or 1 topic at level A", () => {
     expect(job.featureTier).toBe("A");
     expect(spec!.bosses.length).toBe(1);
     expect(await summary(u.id)).toEqual({ used: 3, reserved: 0 });
-    expect((await codeOf(createGeneration(u.id, { idempotencyKey: key(), request: req({ level: "C" }) }, { schedule: false }))).code).toBe("ALLOWANCE_EXHAUSTED");
+    expect((await codeOf(createGeneration(u.id, { idempotencyKey: key(), request: req({ level: "B" }) }, { schedule: false }))).code).toBe("ALLOWANCE_EXHAUSTED");
+    // level C is free and unlimited on Plus: still possible with no points left, and it spends nothing
+    const free = await generate(u.id, req({ level: "C" }));
+    expect(free.job.featureTier).toBe("C");
+    expect(free.job.cost).toBe(0);
+    expect(await summary(u.id)).toEqual({ used: 3, reserved: 0 });
   });
 });
 

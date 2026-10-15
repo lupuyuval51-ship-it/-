@@ -9,7 +9,10 @@ import type { Tx } from "../db";
  * latest committed values.
  */
 export async function reserveCredit(tx: Tx, periodId: string, cost: number): Promise<boolean> {
-  if (!Number.isInteger(cost) || cost < 1) throw new Error(`invalid allowance cost ${cost}`);
+  if (!Number.isInteger(cost) || cost < 0) throw new Error(`invalid allowance cost ${cost}`);
+  // A free level (cost 0) holds nothing, so it is never refused by the budget, not even after a downgrade left the
+  // period over its new limit. One job at a time and the generate rate limit still apply.
+  if (cost === 0) return true;
   const affected = await tx.$executeRaw`
     UPDATE "AllowancePeriod"
        SET "reserved" = "reserved" + ${cost}, "updatedAt" = now()
