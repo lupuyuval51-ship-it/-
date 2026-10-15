@@ -1,0 +1,78 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Language family", "a group of languages that grew from the same older language", "משפחת שפות", "קבוצת שפות שהתפתחו מאותה שפה עתיקה יותר"],
+      ["Alphabet", "a set of letters used to write a language", "אלפבית", "קבוצת אותיות שבהן כותבים שפה"],
+      ["Mother tongue", "the first language a person learns as a small child", "שפת אם", "השפה הראשונה שאדם לומד בילדותו המוקדמת"],
+      ["Dialect", "a way of speaking a language that belongs to one region or group, with its own words and pronunciation", "ניב", "דרך דיבור של שפה שמיוחדת לאזור או לקבוצה, עם מילים והגייה משלה"],
+      ["Translation", "changing a text or speech from one language into another while keeping its meaning", "תרגום", "העברת טקסט או דיבור משפה אחת לשפה אחרת תוך שמירה על המשמעות"],
+    ],
+    q: [
+      [["About how many languages are spoken in the world today?", "About 7,000", ["About 700", "About 70,000", "About 70"], "Linguists count about 7,000 languages. Many of them are spoken by only a small group of people."],
+        ["בערך כמה שפות מדוברות היום בעולם?", "בערך 7,000", ["בערך 700", "בערך 70,000", "בערך 70"], "בלשנים סופרים בערך 7,000 שפות. רבות מהן מדוברות רק בפי קבוצה קטנה של אנשים."]],
+      [["Which of these languages is written from left to right?", "Spanish", ["Hebrew", "Arabic", "Persian"], "Hebrew, Arabic and Persian are written from right to left. Spanish, like English, is written from left to right."],
+        ["איזו מהשפות האלה נכתבת משמאל לימין?", "ספרדית", ["עברית", "ערבית", "פרסית"], "עברית, ערבית ופרסית נכתבות מימין לשמאל. ספרדית, כמו אנגלית, נכתבת משמאל לימין."]],
+      [["Spanish, French and Italian are related languages. Where did they all come from?", "From Latin, the language of ancient Rome", ["From ancient Greek", "From Hebrew", "From English"], "They grew from Latin, which was spoken across the Roman Empire and changed in its own way in each place."],
+        ["ספרדית, צרפתית ואיטלקית הן שפות קרובות. ממה כולן התפתחו?", "מלטינית, שפת רומא העתיקה", ["מיוונית עתיקה", "מעברית", "מאנגלית"], "הן התפתחו מלטינית, שדיברו בה בכל רחבי האימפריה הרומית, והיא השתנתה בכל מקום בדרכה."]],
+    ],
+    s: [[["How Hebrew became an everyday language again, in order", "For many centuries Hebrew is used mainly for prayer, study and writing", "Eliezer Ben-Yehuda brings up his son speaking only Hebrew", "Schools in the Land of Israel begin teaching in Hebrew", "Hebrew becomes the main language of the new State of Israel", "Today millions of people speak Hebrew as their mother tongue"],
+      ["איך העברית חזרה להיות שפת יומיום, לפי הסדר", "במשך מאות רבות של שנים העברית משמשת בעיקר לתפילה, ללימוד ולכתיבה", "אליעזר בן־יהודה מגדל את בנו בדיבור בעברית בלבד", "בתי ספר בארץ ישראל מתחילים ללמד בעברית", "העברית הופכת לשפה העיקרית של מדינת ישראל החדשה", "היום מיליוני אנשים מדברים עברית כשפת אם"]]],
+  },
+  i: {
+    t: [
+      ["Semitic languages", "a language family that includes Hebrew, Arabic and Amharic", "השפות השמיות", "משפחת שפות שכוללת את העברית, הערבית והאמהרית"],
+      ["Indo-European languages", "the language family with the most speakers, including English, Hindi, Russian and Spanish", "השפות ההודו־אירופיות", "משפחת השפות עם מספר הדוברים הגדול ביותר, ובה אנגלית, הינדית, רוסית וספרדית"],
+      ["Logographic writing", "a way of writing in which each sign stands for a whole word or a meaningful part of a word, as in Chinese", "כתב לוגוגרפי", "שיטת כתיבה שבה כל סימן מייצג מילה שלמה או חלק של מילה שיש לו משמעות, כמו בסינית"],
+      ["Official language", "a language a country uses in its laws, courts and government", "שפה רשמית", "שפה שמדינה משתמשת בה בחוקים, בבתי המשפט ובממשלה"],
+      ["Loanword", "a word one language takes from another, such as “pizza” from Italian", "מילה שאולה", "מילה ששפה אחת לוקחת משפה אחרת, כמו ״פיצה״ מאיטלקית"],
+    ],
+    q: [
+      [["Which language has the most native speakers, people who learned it as their first language?", "Mandarin Chinese", ["English", "Spanish", "Hindi"], "Close to a billion people grew up speaking Mandarin. Spanish comes next, ahead of English."],
+        ["לאיזו שפה יש הכי הרבה דוברים ילידים, כלומר אנשים שלמדו אותה כשפה ראשונה?", "סינית מנדרינית", ["אנגלית", "ספרדית", "הינדית"], "קרוב למיליארד אנשים גדלו בדיבור בסינית מנדרינית. אחריה באה ספרדית, לפני אנגלית."]],
+      [["When people who learned a language as a second language are counted too, which language is spoken by the most people?", "English", ["Mandarin Chinese", "French", "Hebrew"], "About one and a half billion people speak English, but most of them learned it as a second language, at school or for work."],
+        ["כשסופרים גם אנשים שלמדו שפה כשפה שנייה, באיזו שפה מדברים הכי הרבה אנשים?", "אנגלית", ["סינית מנדרינית", "צרפתית", "עברית"], "כמיליארד וחצי אנשים מדברים אנגלית, אבל רובם למדו אותה כשפה שנייה, בבית הספר או לצורך עבודה."]],
+      [["Hebrew and Arabic have many similar words, such as “shalom” and “salaam”. Why?", "They belong to the same language family, the Semitic languages", ["Hebrew copied all its words from Arabic", "It is just a coincidence", "Both languages come from Latin"], "Both grew from an older shared language. That is why many of their roots, numbers and family words sound alike."],
+        ["בעברית ובערבית יש מילים דומות רבות, כמו ״שלום״ ו״סלאם״. למה?", "הן שייכות לאותה משפחת שפות, השפות השמיות", ["העברית העתיקה את כל המילים שלה מהערבית", "זה סתם צירוף מקרים", "שתיהן באות מלטינית"], "שתיהן התפתחו משפה קדומה משותפת. לכן הרבה שורשים, מספרים ומילים לבני משפחה נשמעים בהן דומה."]],
+      [["The word “tsunami” is used in English, Hebrew and many other languages. Which language did it come from?", "Japanese", ["Greek", "Hawaiian", "Latin"], "In Japanese it means “harbour wave”. Japan has had many tsunamis, so the world took its word for them."],
+        ["המילה ״צונאמי״ משמשת בעברית, באנגלית ובשפות רבות אחרות. מאיזו שפה היא הגיעה?", "מיפנית", ["מיוונית", "מהוואית", "מלטינית"], "ביפנית פירוש המילה הוא ״גל של נמל״. ביפן היו צונאמי רבים, ולכן העולם אימץ את המילה היפנית."]],
+      [["Besides left to right, how is Chinese or Japanese often written in traditional books?", "From top to bottom, in columns", ["From bottom to top, in columns", "In a spiral from the middle of the page", "Only on the diagonal"], "In traditional books the characters run down in columns, and the columns go from right to left. Many modern texts use left-to-right lines instead."],
+        ["חוץ מכתיבה משמאל לימין, איך כותבים לעיתים קרובות סינית או יפנית בספרים מסורתיים?", "מלמעלה למטה, בטורים", ["מלמטה למעלה, בטורים", "בספירלה ממרכז הדף", "רק באלכסון"], "בספרים מסורתיים הסימנים יורדים בטורים, והטורים מסודרים מימין לשמאל. טקסטים מודרניים רבים כתובים דווקא בשורות משמאל לימין."]],
+      [["Why do linguists worry about many of the world's languages?", "Many have few speakers, and when children stop learning them they may die out", ["They have too many letters", "They are spoken too fast", "They cannot be typed on computers"], "A language survives when children grow up speaking it. Experts think that a large share of today's languages are in danger of disappearing."],
+        ["למה בלשנים מודאגים לגבי שפות רבות בעולם?", "לרבות מהן יש מעט דוברים, וכשילדים מפסיקים ללמוד אותן הן עלולות להיעלם", ["יש בהן יותר מדי אותיות", "מדברים בהן מהר מדי", "אי אפשר להקליד אותן במחשב"], "שפה שורדת כשילדים גדלים ומדברים בה. מומחים מעריכים שחלק גדול מהשפות של היום נמצאות בסכנת היעלמות."]],
+    ],
+    n: [[22, ["How many letters does the Hebrew alphabet have, not counting the special forms used at the end of a word?", "letters", "The Hebrew alphabet has 22 letters, from alef to tav. Five of them also have a final form."],
+      ["כמה אותיות יש באלפבית העברי, בלי לספור את האותיות הסופיות כמו ך ו־ם?", "אותיות", "באלפבית העברי יש 22 אותיות, מא׳ ועד ת׳. לחמש מהן יש גם צורה סופית."]]],
+    s: [[["How one language becomes a family of languages, in order", "One group of people speaks one language", "Groups move apart to different lands", "Each group's speech slowly changes in its own way", "After many centuries the groups can no longer understand each other", "Several related languages now form one family"],
+      ["איך שפה אחת הופכת למשפחת שפות, לפי הסדר", "קבוצת אנשים אחת מדברת שפה אחת", "קבוצות נפרדות ועוברות לארצות שונות", "הדיבור של כל קבוצה משתנה לאט בדרך משלו", "אחרי מאות רבות של שנים הקבוצות כבר לא מבינות זו את זו", "כמה שפות קרובות יוצרות עכשיו משפחה אחת"]]],
+  },
+  a: {
+    t: [
+      ["Abjad", "a script that writes mainly consonants, so readers fill in most vowels themselves", "אבג׳ד", "כתב שמציין בעיקר עיצורים, והקוראים משלימים בעצמם את רוב התנועות"],
+      ["Proto-language", "an old language that was never written down, which linguists rebuild by comparing the languages that grew from it", "שפת־אב", "שפה קדומה שלא נכתבה מעולם, ובלשנים משחזרים אותה בהשוואה בין השפות שהתפתחו ממנה"],
+      ["Lingua franca", "a shared language used by people whose mother tongues are different", "לינגואה פרנקה", "שפה משותפת שמשמשת אנשים ששפות האם שלהם שונות"],
+      ["Creole", "a full language that grew from a mix of languages and is learned by children as a mother tongue", "שפה קריאולית", "שפה שלמה שנוצרה מתערובת של שפות, וילדים לומדים אותה כשפת אם"],
+      ["Sign language", "a full language made with the hands, face and body, with its own grammar", "שפת סימנים", "שפה שלמה שמשתמשת בידיים, בהבעות הפנים ובגוף, ויש לה דקדוק משלה"],
+    ],
+    q: [
+      [["How can an experienced reader read Hebrew without niqqud, the vowel marks?", "The consonants and the rest of the sentence are usually enough to tell which word is meant", ["Every Hebrew word can be read in only one way", "Spoken Hebrew has no vowels at all", "Readers just guess, so they are usually wrong"], "Hebrew writing shows mainly consonants. The same letters can sometimes be read as different words, and the sentence shows which one fits."],
+        ["איך קורא מנוסה מצליח לקרוא עברית בלי ניקוד?", "העיצורים ושאר המשפט מספיקים בדרך כלל כדי לדעת לאיזו מילה הכוונה", ["כל מילה בעברית אפשר לקרוא רק בדרך אחת", "בעברית המדוברת אין תנועות בכלל", "הקוראים פשוט מנחשים, ולכן הם טועים בדרך כלל"], "הכתב העברי מציין בעיקר עיצורים. לפעמים את אותן אותיות אפשר לקרוא כמילים שונות, והמשפט מראה איזו מהן מתאימה."]],
+      [["In the Middle Ages, which language did scholars all over Western Europe use to write to each other?", "Latin", ["French", "English", "Chinese"], "Latin was the shared language of learning, in universities and in books, long after the Roman Empire ended, even though it was no longer anyone's mother tongue."],
+        ["באיזו שפה השתמשו חכמים בכל רחבי מערב אירופה בימי הביניים כדי לכתוב זה לזה?", "לטינית", ["צרפתית", "אנגלית", "סינית"], "הלטינית הייתה השפה המשותפת של הלימוד, באוניברסיטאות ובספרים, הרבה אחרי שהאימפריה הרומית נעלמה, אף שכבר לא הייתה שפת האם של איש."]],
+      [["The word for “mother” is “mater” in Latin, “mētēr” in ancient Greek and “mātā” in Sanskrit. What does this likeness suggest?", "These languages grew from one older language", ["Latin, Greek and Sanskrit copied the word from English", "It is a coincidence that means nothing", "Every language in the world uses this word"], "Regular likenesses in basic words, such as family words and numbers, show that languages are related. Linguists use them to rebuild the old Indo-European language."],
+        ["המילה ״אם״ היא mater בלטינית, mētēr ביוונית עתיקה ו־mātā בסנסקריט. על מה מרמז הדמיון?", "השפות האלה התפתחו משפה קדומה אחת", ["לטינית, יוונית וסנסקריט העתיקו את המילה מאנגלית", "זה צירוף מקרים שאין לו משמעות", "כל השפות בעולם משתמשות במילה הזאת"], "דמיון קבוע במילים בסיסיות, כמו מילים לבני משפחה ומספרים, מראה ששפות קרובות זו לזו. בלשנים משתמשים בו כדי לשחזר את השפה ההודו־אירופית הקדומה."]],
+      [["Is there one sign language that deaf people all over the world use?", "No, there are many, such as Israeli Sign Language and American Sign Language", ["Yes, the same one is used everywhere", "Yes, but only in Europe", "No, because sign languages are only gestures without grammar"], "Sign languages grew up in deaf communities in different places, so each one has its own signs and grammar, just like spoken languages."],
+        ["האם יש שפת סימנים אחת שבה משתמשים חירשים בכל העולם?", "לא, יש רבות, כמו שפת הסימנים הישראלית ושפת הסימנים האמריקאית", ["כן, אותה שפה משמשת בכל מקום", "כן, אבל רק באירופה", "לא, כי שפות סימנים הן רק תנועות ידיים בלי דקדוק"], "שפות סימנים התפתחו בקהילות חירשים במקומות שונים, ולכן לכל אחת יש סימנים ודקדוק משלה, בדיוק כמו בשפות מדוברות."]],
+      [["Haitian Creole grew mainly from French and West African languages. Why do linguists count it as a full language?", "Children learn it as a mother tongue, and it has its own complete grammar", ["It is just French with mistakes", "It has no rules at all", "It is used only in writing"], "A creole begins as a mix, but once children grow up speaking it, it becomes a complete language with its own rules."],
+        ["הקריאולית של האיטי התפתחה בעיקר מצרפתית ומשפות של מערב אפריקה. למה בלשנים רואים בה שפה שלמה?", "ילדים לומדים אותה כשפת אם, ויש לה דקדוק שלם משלה", ["זו פשוט צרפתית עם שגיאות", "אין לה שום כללים", "משתמשים בה רק בכתב"], "שפה קריאולית מתחילה כתערובת, אבל כשילדים גדלים ומדברים בה, היא הופכת לשפה שלמה עם כללים משלה."]],
+      [["Hebrew is often given as the best-known example of what?", "A language revived as an everyday mother tongue after centuries with no native speakers", ["A language invented from nothing in the 1900s", "A language that has not changed at all since the Bible", "The oldest language still spoken"], "Hebrew was never forgotten: it lived on in prayer, study and writing. What was new was children growing up speaking it at home."],
+        ["העברית מוזכרת לעיתים קרובות כדוגמה המפורסמת ביותר למה?", "לשפה שחזרה לחיים כשפת אם יומיומית אחרי מאות שנים בלי דוברים ילידים", ["לשפה שהומצאה יש מאין במאה ה־20", "לשפה שלא השתנתה כלל מאז התנ״ך", "לשפה העתיקה ביותר שעדיין מדברים בה"], "העברית לא נשכחה אף פעם: היא חיה בתפילה, בלימוד ובכתיבה. מה שהיה חדש הוא שילדים גדלו ודיברו בה בבית."]],
+    ],
+    n: [[6, ["The Arabic alphabet has 28 letters and the Hebrew alphabet has 22. How many more letters does the Arabic alphabet have?", "letters", "28 − 22 = 6. Both alphabets come from the same ancient alphabet, but Arabic added 6 letters for sounds that Hebrew does not write with letters of their own."],
+      ["באלפבית הערבי יש 28 אותיות ובאלפבית העברי 22. בכמה אותיות יותר יש באלפבית הערבי?", "אותיות", "28 − 22 = 6. שני האלפביתים באים מאותו אלפבית עתיק, אבל בערבית נוספו 6 אותיות לצלילים שבעברית אין להם אותיות משלהם."]]],
+    s: [[["Rebuilding a lost older language, in order", "Collect words with the same meaning from related languages", "Line up the sounds that match between them", "Find regular rules for how each sound changed", "Work backwards to the most likely older form", "Test the rebuilt words on more examples"],
+      ["שחזור של שפה קדומה שאבדה, לפי הסדר", "אוספים מילים בעלות אותה משמעות משפות קרובות", "מתאימים זה לזה את הצלילים המקבילים ביניהן", "מוצאים כללים קבועים לאופן שבו כל צליל השתנה", "חוזרים אחורה אל הצורה הקדומה הסבירה ביותר", "בודקים את המילים המשוחזרות על דוגמאות נוספות"]]],
+  },
+};
+export default c;

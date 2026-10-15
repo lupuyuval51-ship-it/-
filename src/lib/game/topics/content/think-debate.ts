@@ -1,0 +1,78 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Claim", "a statement that someone says is true and wants others to accept", "טענה", "משפט שמישהו אומר שהוא נכון ורוצה שאחרים יקבלו"],
+      ["Reason", "an explanation of why you think something", "נימוק", "הסבר למה אתם חושבים משהו"],
+      ["Evidence", "facts, examples or numbers that can be checked and that support an idea", "ראיה", "עובדות, דוגמאות או מספרים שאפשר לבדוק ושתומכים ברעיון"],
+      ["Counter-argument", "a reason that goes against what someone else has said", "טיעון נגדי", "נימוק שמתנגד למה שמישהו אחר אמר"],
+      ["Debate", "an organised discussion in which two sides give reasons for and against an idea, taking turns to speak", "דיבייט", "דיון מאורגן שבו שני צדדים מציגים נימוקים בעד ונגד רעיון, ומדברים לפי תור"],
+    ],
+    q: [
+      [["Which sentence gives a reason, and not only an opinion?", "Homework should be shorter, because tired students learn less", ["Homework should be shorter", "Homework is the worst thing ever", "I just don't like homework"], "The word “because” brings in a reason. The other sentences only say what the speaker thinks or feels."],
+        ["איזה משפט נותן נימוק ולא רק דעה?", "צריך לקצר את שיעורי הבית, כי תלמידים עייפים לומדים פחות", ["צריך לקצר את שיעורי הבית", "שיעורי הבית הם הדבר הכי גרוע בעולם", "אני פשוט לא אוהב שיעורי בית"], "המילה ״כי״ מביאה נימוק. שאר המשפטים רק אומרים מה הדובר חושב או מרגיש."]],
+      [["In a debate about longer breaks at school, which of these is evidence?", "In a survey of 30 pupils, 24 said they feel less tired after a longer break", ["Everyone knows I am right", "My friends like this idea", "It is obviously true"], "Evidence is a fact, a number or an example that can be checked. Saying that something is obvious shows nothing."],
+        ["בדיבייט על הפסקות ארוכות יותר בבית הספר, איזה מהבאים הוא ראיה?", "בסקר של 30 תלמידים, 24 אמרו שהם פחות עייפים אחרי הפסקה ארוכה יותר", ["כולם יודעים שאני צודק", "החברים שלי אוהבים את הרעיון", "ברור שזה נכון"], "ראיה היא עובדה, מספר או דוגמה שאפשר לבדוק. לומר שמשהו ברור לא מוכיח כלום."]],
+      [["The other side has finished speaking in a debate. What is the fair thing to do?", "Listen, then answer their points with your own reasons", ["Ignore what they said and repeat your own speech", "Interrupt as loudly as you can", "Insult them so they lose confidence"], "Good debaters answer what was really said. They argue against the idea and never against the person."],
+        ["הצד השני סיים לדבר בדיבייט. מה ההתנהגות ההוגנת?", "להקשיב ואז לענות לנקודות שלו בנימוקים משלכם", ["להתעלם ממה שאמר ולחזור על הנאום שלכם", "להפריע בקול רם ככל האפשר", "לפגוע בו כדי שיאבד ביטחון"], "בדיבייט טוב עונים על מה שנאמר באמת. חולקים על הרעיון ולא על האדם."]],
+    ],
+    s: [[["Building an argument, in order", "State your opinion clearly", "Give a reason for it", "Back the reason up with evidence", "Think about what the other side might answer", "Finish by repeating your main point"],
+      ["בניית טיעון, לפי הסדר", "מציגים את הדעה בבירור", "נותנים נימוק לדעה", "מחזקים את הנימוק בראיה", "חושבים מה הצד השני עשוי לענות", "מסיימים בחזרה על הנקודה העיקרית"]]],
+  },
+  i: {
+    t: [
+      ["Motion", "the statement a formal debate is about, such as “Homework should be banned”", "הצעת הדיון", "המשפט שעליו מתווכחים בדיבייט, למשל ״יש לבטל את שיעורי הבית״"],
+      ["Proposition", "the side in a debate that argues for the statement being debated", "הצד התומך", "הקבוצה בדיבייט שטוענת בעד המשפט שעליו מתווכחים"],
+      ["Opposition", "the side in a debate that argues against the statement being debated", "הצד המתנגד", "הקבוצה בדיבייט שטוענת נגד המשפט שעליו מתווכחים"],
+      ["Rebuttal", "an answer that shows why the other side's argument is wrong or weak", "הפרכה", "תשובה שמראה למה הטיעון של הצד השני שגוי או חלש"],
+      ["Persuade", "to get someone to agree with you by giving good reasons", "לשכנע", "לגרום למישהו להסכים איתכם בעזרת נימוקים טובים"],
+    ],
+    q: [
+      [["The other side says: “Phones should be banned at school, because pupils use them to cheat in tests.” Which is the best rebuttal?", "Cheating can be stopped by collecting phones during tests, without banning them all day", ["Phones cost a lot of money", "I really like my phone", "You are wrong because you are annoying"], "A good rebuttal answers the reason that was given. It shows that the problem can be solved in another way, so the ban is not needed."],
+        ["הצד השני אומר: ״צריך לאסור טלפונים בבית הספר, כי תלמידים משתמשים בהם כדי להעתיק במבחנים.״ מהי ההפרכה הטובה ביותר?", "אפשר למנוע העתקות על ידי איסוף הטלפונים בזמן מבחנים, בלי לאסור אותם כל היום", ["טלפונים עולים הרבה כסף", "אני מאוד אוהב את הטלפון שלי", "אתם טועים כי אתם מעצבנים"], "הפרכה טובה עונה על הנימוק שנאמר. היא מראה שאפשר לפתור את הבעיה בדרך אחרת, ולכן האיסור לא נחוץ."]],
+      [["In a debate about breakfast, which evidence is usually the strongest?", "A large study by researchers that compared many children", ["A story about one cousin who never eats breakfast", "An advert from a cereal company", "A guess made by a friend"], "A large, careful study looks at many cases and has no product to sell. One story can be unusual, and an advert wants you to buy."],
+        ["בדיבייט על ארוחת בוקר, איזו ראיה היא בדרך כלל החזקה ביותר?", "מחקר גדול של חוקרים שהשוו בין ילדים רבים", ["סיפור על בן דוד אחד שאף פעם לא אוכל ארוחת בוקר", "פרסומת של חברת דגני בוקר", "ניחוש של חבר"], "מחקר גדול וזהיר בודק מקרים רבים ואין לו מוצר למכור. סיפור אחד יכול להיות חריג, ופרסומת רוצה שתקנו."]],
+      [["Why does each speaker in a school debate get the same amount of time?", "So both sides get a fair and equal chance to make their case", ["So that the loudest speaker wins", "So that nobody needs to listen", "So that the judges can leave early"], "With equal time, the winner is the side with the better arguments, not the side that talked longer."],
+        ["למה כל דובר בדיבייט בבית הספר מקבל אותו זמן?", "כדי ששני הצדדים יקבלו הזדמנות הוגנת ושווה להציג את עמדתם", ["כדי שהדובר הכי רועש ינצח", "כדי שאף אחד לא יצטרך להקשיב", "כדי שהשופטים יוכלו ללכת מוקדם"], "כשהזמן שווה, מנצח הצד עם הנימוקים הטובים יותר, ולא הצד שדיבר יותר."]],
+      [["Why does a good debater prepare for the other side's best arguments?", "To have strong answers ready instead of being caught by surprise", ["To switch sides in the middle of the debate", "To copy their speech word for word", "To avoid speaking at all"], "Knowing what the other side is likely to say lets you plan your rebuttals and spot the weak points in your own case."],
+        ["למה דובר טוב מתכונן לטיעונים הכי חזקים של הצד השני?", "כדי שיהיו לו תשובות חזקות מוכנות, ולא יופתע", ["כדי להחליף צד באמצע הדיבייט", "כדי להעתיק את הנאום שלהם מילה במילה", "כדי לא לדבר בכלל"], "כשיודעים מה הצד השני צפוי לומר, אפשר לתכנן הפרכות ולגלות את הנקודות החלשות בעמדה שלכם."]],
+      [["Which sentence disagrees politely?", "I see your point, but the numbers show something different", ["That idea is just stupid", "Nobody cares what you think", "Stop talking, you have no idea"], "It shows that you listened, then answers the idea with evidence. The other sentences attack the person and give no reason."],
+        ["איזה משפט מביע אי־הסכמה בנימוס?", "אני מבין את הנקודה שלך, אבל המספרים מראים משהו אחר", ["הרעיון הזה פשוט טיפשי", "לאף אחד לא אכפת מה אתה חושב", "תפסיק לדבר, אין לך מושג"], "המשפט מראה שהקשבתם, ואז עונה על הרעיון בעזרת ראיות. שאר המשפטים תוקפים את האדם ולא נותנים שום נימוק."]],
+    ],
+    n: [[24, ["In a school debate there are 3 speakers on each of the 2 sides, and each one speaks for 4 minutes. How many minutes of speeches are there altogether?", "minutes", "3 speakers × 2 sides = 6 speeches, and 6 × 4 = 24 minutes."],
+      ["בדיבייט בבית הספר יש 3 דוברים בכל אחד משני הצדדים, וכל אחד מדבר 4 דקות. כמה דקות של נאומים יש בסך הכול?", "דקות", "3 דוברים × 2 צדדים = 6 נאומים, ו־6 × 4 = 24 דקות."]]],
+    s: [[["A school debate, in order", "The motion is announced", "Both sides prepare their arguments", "The first speaker for the motion opens the debate", "The two sides take turns to give their cases and rebuttals", "Each side gives a final summary", "The judges decide which side argued better"],
+      ["דיבייט בבית הספר, לפי הסדר", "מכריזים על הצעת הדיון", "שני הצדדים מכינים את הטיעונים שלהם", "הדובר הראשון של הצד התומך פותח את הדיבייט", "שני הצדדים מציגים לסירוגין את הטיעונים ואת ההפרכות שלהם", "כל צד נותן סיכום אחרון", "השופטים מחליטים איזה צד טען טוב יותר"]]],
+  },
+  a: {
+    t: [
+      ["Ethos", "persuading by showing that the speaker is honest and knows the subject", "אתוס", "שכנוע שנשען על כך שהדובר ישר ומבין בנושא"],
+      ["Pathos", "persuading by stirring the listeners' feelings", "פתוס", "שכנוע שנשען על הרגשות של המאזינים"],
+      ["Logos", "persuading with facts, logic and clear reasoning", "לוגוס", "שכנוע שנשען על עובדות, על היגיון ועל נימוקים ברורים"],
+      ["Steelman", "restating the other side's argument in its strongest form before answering it", "איש פלדה", "הצגה מחדש של הטיעון של הצד השני בגרסה החזקה ביותר שלו, לפני שעונים עליו"],
+      ["Slippery slope", "claiming that one small step will surely lead to a chain of extreme results, without showing why", "מדרון חלקלק", "טענה שצעד קטן אחד יוביל בוודאות לשרשרת של תוצאות קיצוניות, בלי להראות למה"],
+    ],
+    q: [
+      [["A speaker begins: “I have worked as a children's doctor for 20 years, and I have seen…” Which kind of appeal is she mainly using?", "Ethos", ["Logos", "Pathos", "Rebuttal"], "She builds trust by showing her experience and knowledge. That is ethos, the appeal to the speaker's character."],
+        ["דוברת פותחת: ״אני עובדת כרופאת ילדים כבר 20 שנה, וראיתי…״ באיזו דרך שכנוע היא משתמשת בעיקר?", "אתוס", ["לוגוס", "פתוס", "הפרכה"], "היא בונה אמון בכך שהיא מראה את הניסיון והידע שלה. זה אתוס, שכנוע שנשען על דמות הדובר."]],
+      [["To argue for a new animal shelter, a speaker shows a photo of a hungry, shivering puppy. Which appeal is this mainly?", "Pathos", ["Logos", "Ethos", "A survey"], "The photo works on the audience's feelings. Feelings can be fair to use, but a strong case also needs facts and reasons."],
+        ["כדי לטעון בעד מקלט חדש לבעלי חיים, דובר מראה תמונה של גור כלבים רעב ורועד. באיזו דרך שכנוע מדובר בעיקר?", "פתוס", ["לוגוס", "אתוס", "סקר"], "התמונה פועלת על הרגשות של הקהל. מותר להשתמש ברגשות, אבל טיעון חזק צריך גם עובדות ונימוקים."]],
+      [["“If we allow five more minutes of break, soon there will be no lessons at all.” What is wrong with this argument?", "It is a slippery slope: it claims an extreme chain of results without any evidence", ["Nothing, it is backed by strong data", "It is a polite rebuttal", "It uses too many numbers"], "Nothing shows that five extra minutes would lead to cancelling lessons. Each step in such a chain needs its own evidence."],
+        ["״אם נאשר עוד חמש דקות הפסקה, בקרוב לא יהיו שיעורים בכלל.״ מה הבעיה בטיעון הזה?", "זה מדרון חלקלק: הוא טוען לשרשרת תוצאות קיצוניות בלי שום ראיה", ["אין בו בעיה, הוא נשען על נתונים חזקים", "זו הפרכה מנומסת", "יש בו יותר מדי מספרים"], "שום דבר לא מראה שחמש דקות נוספות יובילו לביטול השיעורים. כל צעד בשרשרת כזאת צריך ראיה משלו."]],
+      [["“Pupils who eat breakfast get better grades, so breakfast makes you cleverer.” What is the weak point?", "Two things happening together does not prove that one causes the other", ["There is no weak point; it is proved", "Grades can never be measured", "Breakfast is only an opinion"], "Something else, such as good sleep or a calm morning at home, might affect both. To show a cause, you need a fair test."],
+        ["״תלמידים שאוכלים ארוחת בוקר מקבלים ציונים טובים יותר, ולכן ארוחת בוקר הופכת אתכם לחכמים יותר.״ מהי נקודת התורפה?", "העובדה ששני דברים מופיעים יחד לא מוכיחה שאחד גורם לשני", ["אין נקודת תורפה, זה מוכח", "אי אפשר למדוד ציונים", "ארוחת בוקר היא רק דעה"], "ייתכן שמשהו אחר, כמו שינה טובה או בוקר רגוע בבית, משפיע על שניהם. כדי להראות סיבה צריך ניסוי הוגן."]],
+      [["Why might a debater steelman the other side's argument before answering it?", "Answering the strongest version makes the reply more convincing and fair", ["To make the other side look silly", "To avoid giving any evidence", "To use up the speaking time"], "If you beat the strongest version, the judges see that your case really holds. Beating a weak, twisted version (a straw man) proves little."],
+        ["למה דובר עשוי להציג את הטיעון של הצד השני כ״איש פלדה״ לפני שהוא עונה עליו?", "תשובה לגרסה החזקה ביותר הופכת את המענה למשכנע והוגן יותר", ["כדי שהצד השני ייראה מגוחך", "כדי לא להביא שום ראיה", "כדי לבזבז את זמן הדיבור"], "אם מנצחים את הגרסה החזקה ביותר, השופטים רואים שהעמדה שלכם באמת עומדת. ניצחון על גרסה חלשה ומעוותת (איש קש) לא מוכיח הרבה."]],
+      [["A speaker quotes only the 2 surveys, out of 10, that agree with her and ignores the rest. What is this called?", "Cherry-picking the evidence", ["Steelmanning", "A fair summary", "Using ethos"], "Choosing only the evidence that suits you hides the full picture. Here, 8 of the 10 surveys may point the other way."],
+        ["דוברת מצטטת רק 2 סקרים מתוך 10, את אלה שמסכימים איתה, ומתעלמת מהשאר. איך קוראים לזה?", "בחירה סלקטיבית של ראיות", ["הצגת ״איש פלדה״", "סיכום הוגן", "שימוש באתוס"], "כשבוחרים רק את הראיות שמתאימות לכם, מסתירים את התמונה המלאה. ייתכן ש־8 מתוך 10 הסקרים מצביעים לכיוון ההפוך."]],
+      [["After a debate, a listener changes her mind because of the other side's evidence. What does this show?", "Good thinking: being willing to change your mind when the evidence is strong", ["Weakness: a strong person never changes their mind", "That she was not listening", "That debates are a waste of time"], "The aim of arguing well is to get closer to the truth, not only to win. Changing your view for good reasons is a strength."],
+        ["אחרי דיבייט מאזינה משנה את דעתה בגלל הראיות של הצד השני. מה זה מראה?", "חשיבה טובה: נכונות לשנות דעה כשהראיות חזקות", ["חולשה: אדם חזק אף פעם לא משנה את דעתו", "שהיא לא הקשיבה", "שדיבייט הוא בזבוז זמן"], "המטרה של טיעון טוב היא להתקרב לאמת, ולא רק לנצח. שינוי דעה מסיבות טובות הוא חוזק."]],
+    ],
+    n: [[75, ["In a survey of 200 pupils, 150 support longer breaks. What percentage is that?", "%", "150 ÷ 200 = 0.75, which is 75%. Saying “75% of 200 pupils” is stronger evidence than “most people I know”."],
+      ["בסקר של 200 תלמידים, 150 תומכים בהפסקות ארוכות יותר. כמה אחוזים זה?", "%", "150 ÷ 200 = 0.75, כלומר 75%. ״75% מתוך 200 תלמידים״ היא ראיה חזקה יותר מ״רוב האנשים שאני מכיר״."]]],
+    s: [[["Giving a full rebuttal, in order", "Listen and note the other side's main claim", "Restate the claim fairly in your own words", "Point out the weak link in its reasoning or evidence", "Give your own counter-evidence", "Explain why your side's case is stronger overall"],
+      ["מתן הפרכה מלאה, לפי הסדר", "מקשיבים ורושמים את הטענה העיקרית של הצד השני", "מנסחים מחדש את הטענה בהגינות, במילים שלכם", "מצביעים על החוליה החלשה בהיגיון או בראיות שלה", "מביאים ראיות נגדיות משלכם", "מסבירים למה העמדה של הצד שלכם חזקה יותר בסך הכול"]]],
+  },
+};
+export default c;
