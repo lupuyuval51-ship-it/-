@@ -116,6 +116,19 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "think-critical-thinking": () => import("./content/think-critical-thinking"),
   "think-problem-solving": () => import("./content/think-problem-solving"),
   "lang-en-present-simple": () => import("./content/lang-en-present-simple"),
+  "geo-capitals-world": () => import("./content/geo-capitals-world"),
+  "geo-landforms": () => import("./content/geo-landforms"),
+  "econ-entrepreneurship": () => import("./content/econ-entrepreneurship"),
+  "econ-smart-shopping": () => import("./content/econ-smart-shopping"),
+  "health-emotions": () => import("./content/health-emotions"),
+  "arts-drawing": () => import("./content/arts-drawing"),
+  "arts-photography": () => import("./content/arts-photography"),
+  "arts-film": () => import("./content/arts-film"),
+  "think-logic": () => import("./content/think-logic"),
+  "think-memory": () => import("./content/think-memory"),
+  "think-time-management": () => import("./content/think-time-management"),
+  "lang-en-everyday": () => import("./content/lang-en-everyday"),
+  "lang-es-basics": () => import("./content/lang-es-basics"),
 };
 
 export async function loadTopicContent(id: string): Promise<TopicContent | null> {
