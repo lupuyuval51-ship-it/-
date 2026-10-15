@@ -42,3 +42,6 @@ unity/**/Builds/
 
 # Offline app build output
 /mobile/dist/
+
+# topic factory drafts (beginner level only, finished and moved into src/lib/game/topics/content by the finisher)
+.topic-staging/
