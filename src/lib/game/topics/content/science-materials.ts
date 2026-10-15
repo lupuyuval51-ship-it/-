@@ -1,0 +1,77 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Material", "what an object is made of, such as wood, metal or plastic", "חומר", "מה שחפץ עשוי ממנו, כמו עץ, מתכת או פלסטיק"],
+      ["Property", "something you can say about a material, such as that it is hard, bendy or waterproof", "תכונה", "דבר שאפשר לומר על חומר, למשל שהוא קשה, גמיש או אטום למים"],
+      ["Transparent", "letting light pass through so that you can see clearly through it", "שקוף", "מאפשר לאור לעבור דרכו, כך שאפשר לראות דרכו בבירור"],
+      ["Flexible", "able to bend without breaking", "גמיש", "יכול להתכופף בלי להישבר"],
+    ],
+    q: [
+      [["Which property makes plastic a good material for a raincoat?", "It is waterproof", ["It is magnetic", "It dissolves in water", "It is very heavy"], "A waterproof material does not let water through, so it keeps you dry in the rain."],
+        ["איזו תכונה הופכת את הפלסטיק לחומר טוב למעיל גשם?", "הוא אטום למים", ["הוא מגנטי", "הוא מתמוסס במים", "הוא כבד מאוד"], "חומר אטום למים לא מעביר מים, ולכן הוא שומר עליכם יבשים בגשם."]],
+      [["Which of these objects is made from a natural material?", "A wooden spoon", ["A plastic bottle", "A nylon jacket", "A polystyrene cup"], "Wood comes from trees, so it is a natural material. Plastic, nylon and polystyrene are made by people in factories, mostly from oil and gas."],
+        ["איזה מהחפצים האלה עשוי מחומר טבעי?", "כף מעץ", ["בקבוק פלסטיק", "מעיל מניילון", "כוס מקלקר"], "עץ בא מעצים, ולכן הוא חומר טבעי. פלסטיק, ניילון וקלקר מיוצרים בידי בני אדם במפעלים, בעיקר מנפט ומגז."]],
+      [["Why are saucepans usually made of metal?", "Metal lets heat pass through it easily", ["Metal is transparent", "Metal floats on water", "Metal is soft and bendy"], "Heat travels well through metal, so it reaches the food quickly. The handles are often plastic or wood, because those do not get hot so fast."],
+        ["למה סירים עשויים בדרך כלל ממתכת?", "מתכת מעבירה חום בקלות", ["מתכת שקופה", "מתכת צפה על המים", "מתכת רכה וגמישה"], "חום עובר היטב דרך מתכת, ולכן הוא מגיע מהר לאוכל. הידיות עשויות לעיתים קרובות מפלסטיק או מעץ, כי הם לא מתחממים מהר כל כך."]],
+    ],
+    s: [[["A fair test: which material is waterproof?", "Choose the materials to test", "Cut a piece of each material, all the same size", "Pour the same amount of water on each piece", "Watch which pieces let the water through", "Compare the results"],
+      ["מבחן הוגן: איזה חומר אטום למים?", "בוחרים את החומרים לבדיקה", "גוזרים חתיכה מכל חומר, כולן באותו גודל", "שופכים על כל חתיכה אותה כמות מים", "מסתכלים אילו חתיכות מעבירות את המים", "משווים את התוצאות"]]],
+  },
+  i: {
+    t: [
+      ["Conductor", "a material that lets heat or electricity pass through it easily", "מוליך", "חומר שחום או חשמל עוברים דרכו בקלות"],
+      ["Insulator", "a material that does not let heat or electricity pass through easily", "מבודד", "חומר שחום או חשמל לא עוברים דרכו בקלות"],
+      ["Opaque", "letting no light through at all, so you cannot see through it", "אטום לאור", "לא מעביר אור בכלל, ולכן אי אפשר לראות דרכו"],
+      ["Translucent", "letting some light through, but you cannot see clearly through it", "שקוף למחצה", "מעביר חלק מהאור, אבל אי אפשר לראות דרכו בבירור"],
+      ["Absorbent", "able to soak up a liquid and hold it, like a sponge", "סופג", "מושך נוזל לתוכו ומחזיק אותו, כמו ספוג"],
+    ],
+    q: [
+      [["Why are electric wires made of copper covered with plastic?", "Copper conducts electricity well, and the plastic is an insulator that keeps the electricity away from your hand", ["Copper is waterproof and the plastic is magnetic", "The plastic makes the electricity flow faster", "Copper is transparent, so it needs a cover"], "The electricity travels along the copper inside. The plastic around it does not let electricity through, so the wire is safe to touch. Never touch a wire whose plastic is damaged."],
+        ["למה חוטי חשמל עשויים מנחושת שמצופה בפלסטיק?", "נחושת מוליכה חשמל היטב, והפלסטיק הוא מבודד ששומר על החשמל רחוק מהיד", ["נחושת אטומה למים והפלסטיק מגנטי", "הפלסטיק גורם לחשמל לזרום מהר יותר", "נחושת שקופה, ולכן היא צריכה כיסוי"], "החשמל עובר לאורך הנחושת שבפנים. הפלסטיק שמסביב לא מעביר חשמל, ולכן בטוח לגעת בחוט. אף פעם לא נוגעים בחוט שהפלסטיק שלו פגום."]],
+      [["Which material lets light into a bathroom but stops people from seeing clearly inside?", "Frosted glass", ["Clear glass", "Wood", "Metal"], "Frosted glass is translucent: light gets through, but shapes behind it are blurred. Clear glass is transparent, and wood and metal are opaque."],
+        ["איזה חומר מכניס אור לחדר רחצה אבל לא נותן לראות בבירור פנימה?", "זכוכית חלבית", ["זכוכית שקופה", "עץ", "מתכת"], "זכוכית חלבית היא שקופה למחצה: אור עובר דרכה, אבל צורות שמאחוריה מטושטשות. זכוכית רגילה שקופה, ועץ ומתכת אטומים לאור."]],
+      [["Which material is best for wiping up spilled juice?", "A cotton cloth", ["A plastic bag", "Aluminium foil", "A glass plate"], "Cotton is absorbent: the juice soaks into it. Plastic, foil and glass are waterproof, so the juice just slides around on them."],
+        ["איזה חומר הכי מתאים לניגוב מיץ שנשפך?", "מטלית כותנה", ["שקית פלסטיק", "נייר אלומיניום", "צלחת זכוכית"], "כותנה סופגת: המיץ נכנס לתוכה. פלסטיק, אלומיניום וזכוכית אטומים למים, ולכן המיץ רק מחליק עליהם."]],
+      [["Which of these objects would a magnet pick up?", "An iron nail", ["An aluminium can", "A wooden pencil", "A plastic ruler"], "Magnets attract iron and steel. Aluminium is a metal too, but a magnet does not pull it, and wood and plastic are not magnetic."],
+        ["איזה מהחפצים האלה מגנט ירים?", "מסמר ברזל", ["פחית אלומיניום", "עיפרון עץ", "סרגל פלסטיק"], "מגנטים מושכים ברזל ופלדה. גם אלומיניום הוא מתכת, אבל מגנט לא מושך אותו, ועץ ופלסטיק אינם מגנטיים."]],
+      [["You scratch material A with material B, and a scratch mark appears on A. What does this tell you?", "B is harder than A", ["A is harder than B", "A and B are equally hard", "B is softer than every other material"], "A harder material scratches a softer one. This simple test is used to compare how hard materials and minerals are."],
+        ["שורטים את חומר א׳ בעזרת חומר ב׳, ועל א׳ נשארת שריטה. מה זה מלמד?", "ב׳ קשה יותר מא׳", ["א׳ קשה יותר מב׳", "א׳ וב׳ קשים באותה מידה", "ב׳ רך יותר מכל חומר אחר"], "חומר קשה שורט חומר רך ממנו. בבדיקה הפשוטה הזאת משתמשים כדי להשוות כמה קשים חומרים ומינרלים."]],
+      [["Why do we put glass, paper, plastic packaging and metal into separate recycling bins?", "Each material is recycled in a different way, so they must be kept apart", ["Mixed materials turn into poison", "So that all the bins are equally heavy", "Only the colour of the bin matters"], "Glass is melted, paper is turned into pulp and metal is melted down in its own furnaces. Sorting at home saves a lot of work at the recycling plant."],
+        ["למה מפרידים זכוכית, נייר, אריזות פלסטיק ומתכת לפחי מיחזור שונים?", "כל חומר ממוחזר בדרך אחרת, ולכן צריך להפריד ביניהם", ["חומרים מעורבבים הופכים לרעל", "כדי שכל הפחים יהיו כבדים באותה מידה", "רק הצבע של הפח חשוב"], "זכוכית מתיכים, נייר הופכים לעיסה ומתכת מתיכים בתנורים משלה. מיון בבית חוסך הרבה עבודה במפעל המיחזור."]],
+    ],
+    n: [[75, ["To test how absorbent it is, a sponge is weighed before and after soaking. It weighs 20 g dry and 95 g wet. How many grams of water did it soak up?", "g", "95 − 20 = 75 g of water."],
+      ["כדי לבדוק כמה ספוג סופג, שוקלים אותו לפני ואחרי ההשריה. יבש הוא שוקל 20 גרם ורטוב 95 גרם. כמה גרם מים הוא ספג?", "גרם", "95 − 20 = 75 גרם מים."]]],
+    s: [[["How paper is recycled, in order", "Used paper is collected and sorted", "It is mixed with water and broken up into a mush called pulp", "Ink and dirt are removed from the pulp", "The pulp is spread out, pressed and dried into thin sheets", "The new paper is rolled up and sent off to be used again"],
+      ["איך ממחזרים נייר, לפי הסדר", "אוספים נייר משומש וממיינים אותו", "מערבבים אותו עם מים ומפרקים אותו לעיסה", "מוציאים מהעיסה דיו ולכלוך", "פורשים את העיסה, כובשים אותה ומייבשים אותה ליריעות דקות", "מגלגלים את הנייר החדש ושולחים אותו לשימוש מחדש"]]],
+  },
+  a: {
+    t: [
+      ["Density", "how much mass is packed into a certain volume of a material", "צפיפות", "כמה מסה דחוסה בנפח מסוים של חומר"],
+      ["Alloy", "a mixture of a metal with other elements, such as steel made from iron and carbon", "סגסוגת", "תערובת של מתכת עם יסודות אחרים, כמו פלדה שעשויה מברזל ופחמן"],
+      ["Composite", "a material made by combining two or more materials to get better properties, like concrete with steel bars", "חומר מרוכב", "שילוב של שני חומרים או יותר כדי לקבל תכונות טובות יותר, כמו בטון עם מוטות פלדה"],
+      ["Biodegradable", "able to be broken down naturally by living things such as bacteria and fungi", "מתכלה", "יכול להתפרק באופן טבעי בעזרת יצורים חיים כמו חיידקים ופטריות"],
+      ["Corrosion", "slow damage to a metal caused by reacting with air and water, such as rust on iron", "קורוזיה", "פגיעה איטית במתכת בגלל תגובה עם אוויר ומים, כמו חלודה על ברזל"],
+    ],
+    q: [
+      [["Why does a huge steel ship float, even though a small steel nail sinks?", "Its hollow shape holds a lot of air, so the ship as a whole is less dense than water", ["The steel in ships is lighter than the steel in nails", "Seawater is magnetic and holds the steel up", "Ships float only because their engines are running"], "What matters is the mass of the whole ship divided by its whole volume, air included. The nail is solid steel, which is much denser than water."],
+        ["למה ספינת פלדה ענקית צפה, אף שמסמר פלדה קטן שוקע?", "הצורה החלולה שלה מכילה הרבה אוויר, ולכן הספינה כולה פחות צפופה ממים", ["הפלדה של ספינות קלה יותר מהפלדה של מסמרים", "מי הים מגנטיים ומחזיקים את הפלדה למעלה", "ספינות צפות רק כשהמנועים שלהן פועלים"], "מה שקובע הוא המסה של הספינה כולה חלקי הנפח שלה כולו, כולל האוויר. המסמר עשוי פלדה מלאה, שצפופה הרבה יותר ממים."]],
+      [["Why is stainless steel used for cutlery and sinks?", "Chromium mixed into the steel protects it from rusting", ["It is pure iron, which never rusts", "It is a kind of hard plastic", "Water cannot touch magnetic metals"], "Stainless steel is an alloy of iron with chromium and other elements. The chromium forms a thin, invisible layer on the surface that stops rust."],
+        ["למה משתמשים בפלדת אל־חלד לסכו״ם ולכיורים?", "כרום שמעורב בפלדה מגן עליה מפני חלודה", ["היא ברזל טהור, שאף פעם לא מחליד", "היא סוג של פלסטיק קשה", "מים לא יכולים לגעת במתכות מגנטיות"], "פלדת אל־חלד היא סגסוגת של ברזל עם כרום ויסודות אחרים. הכרום יוצר על פני השטח שכבה דקה ושקופה שעוצרת את החלודה."]],
+      [["Concrete is strong when squeezed but cracks easily when it is stretched or bent. How do builders make concrete beams stronger?", "They put steel bars inside, which are strong when stretched", ["They add extra water to the mixture", "They paint the concrete white", "They leave the inside of the beam empty"], "Reinforced concrete is a composite: the concrete resists squeezing and the steel resists stretching, so together they can carry heavy loads."],
+        ["בטון חזק כשלוחצים עליו, אבל נסדק בקלות כשמותחים או מכופפים אותו. איך הבנאים מחזקים קורות בטון?", "מכניסים לתוכן מוטות פלדה, שחזקים במתיחה", ["מוסיפים לתערובת עוד מים", "צובעים את הבטון בלבן", "משאירים את פנים הקורה ריק"], "בטון מזוין הוא חומר מרוכב: הבטון עומד בלחיצה והפלדה עומדת במתיחה, וכך יחד הם נושאים משקלים כבדים."]],
+      [["Which of these items takes the longest to break down in nature?", "A plastic bottle", ["A paper bag", "A cotton T-shirt", "A banana peel"], "Paper, cotton and food scraps are biodegradable, so microbes break them down in weeks to months or a few years. Most plastics last for hundreds of years, breaking only into smaller pieces."],
+        ["איזה מהפריטים האלה מתפרק בטבע הכי לאט?", "בקבוק פלסטיק", ["שקית נייר", "חולצת כותנה", "קליפת בננה"], "נייר, כותנה ושאריות מזון הם מתכלים, ולכן חיידקים מפרקים אותם תוך שבועות, חודשים או כמה שנים. רוב סוגי הפלסטיק נשארים מאות שנים ורק מתפרקים לחתיכות קטנות יותר."]],
+      [["Some glasses darken in bright sunlight and become clear again indoors. Why are they called a smart material?", "Their properties change by themselves in response to their surroundings", ["They contain a tiny computer", "They learn new things like a person", "They are made from recycled phones"], "Smart materials react to light, heat, pressure or other changes without anyone controlling them. In these lenses, sunlight makes special molecules in the glass darken."],
+        ["יש משקפיים שמתכהים באור שמש חזק ונעשים שקופים שוב בתוך הבית. למה קוראים להם חומר חכם?", "התכונות שלהם משתנות מעצמן בתגובה לסביבה", ["יש בהם מחשב זעיר", "הם לומדים דברים חדשים כמו אדם", "הם עשויים מטלפונים ממוחזרים"], "חומרים חכמים מגיבים לאור, לחום, ללחץ או לשינויים אחרים בלי שמישהו שולט בהם. בעדשות האלה אור השמש גורם למולקולות מיוחדות בזכוכית להתכהות."]],
+      [["Why are iron gates and railings often painted?", "The paint keeps air and water away from the iron, which slows down rusting", ["Paint makes the iron magnetic", "Paint turns iron into steel", "Iron rusts only at night"], "Rust forms when iron reacts with oxygen and water. A layer of paint is a barrier, so it must be repaired where it chips."],
+        ["למה צובעים לעיתים קרובות שערים ומעקות מברזל?", "הצבע מרחיק אוויר ומים מהברזל, וכך מאט את ההחלדה", ["הצבע הופך את הברזל למגנטי", "הצבע הופך ברזל לפלדה", "ברזל מחליד רק בלילה"], "חלודה נוצרת כשברזל מגיב עם חמצן ומים. שכבת הצבע היא מחסום, ולכן צריך לתקן אותה במקום שבו היא מתקלפת."]],
+    ],
+    n: [[3, ["A block has a mass of 600 g and a volume of 200 cm³. What is its density in grams per cubic centimetre?", "g/cm³", "Density = mass ÷ volume = 600 ÷ 200 = 3 g/cm³. Water is about 1 g/cm³, so this block sinks."],
+      ["לגוש יש מסה של 600 גרם ונפח של 200 סמ״ק. מהי הצפיפות שלו בגרם לסמ״ק?", "גרם לסמ״ק", "צפיפות = מסה ÷ נפח = 600 ÷ 200 = 3 גרם לסמ״ק. הצפיפות של מים היא בערך 1 גרם לסמ״ק, ולכן הגוש שוקע."]]],
+    s: [[["Choosing a material for a new product, in order", "Decide what the product must do", "List the properties it needs, such as strong, light or waterproof", "Pick a few materials that have those properties", "Test samples of each material fairly", "Choose the best one, thinking also about cost and the environment"],
+      ["בחירת חומר למוצר חדש, לפי הסדר", "מחליטים מה המוצר צריך לעשות", "רושמים את התכונות שהוא צריך, כמו חוזק, קלות או אטימות למים", "בוחרים כמה חומרים שיש להם התכונות האלה", "בודקים דוגמאות מכל חומר במבחן הוגן", "בוחרים את הטוב ביותר, וחושבים גם על המחיר ועל הסביבה"]]],
+  },
+};
+export default c;
