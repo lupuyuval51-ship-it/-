@@ -13,9 +13,9 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("price-PRO")).toContainText("$40");
     // the offer is generated from the points budget and the level costs (src/config/plans.ts)
     await expect(page.getByTestId("offer-FREE")).toContainText("2 topics at level C or 1 at level B per calendar month");
-    await expect(page.getByTestId("offer-PLUS")).toContainText("3 topics at level B or 1 at level A per monthly billing period");
-    await expect(page.getByTestId("offer-PRO")).toContainText("5 topics at level A or 10 at level B per monthly billing period");
-    await expect(page.getByTestId("points-PLUS")).toContainText("3 points: level C = 1 · level B = 1 · level A = 3");
+    await expect(page.getByTestId("offer-PLUS")).toContainText("3 topics at level B or 1 at level A, plus unlimited topics at level C per monthly billing period");
+    await expect(page.getByTestId("offer-PRO")).toContainText("5 topics at level A or 10 at level B, plus unlimited topics at level C per monthly billing period");
+    await expect(page.getByTestId("points-PLUS")).toContainText("3 points: level C free · level B = 1 · level A = 3");
     await expect(page.getByTestId("points-FREE")).not.toContainText("level A");
     await expect(page.getByTestId("plan-FREE")).toContainText("Tier B / C");
     await expect(page.getByTestId("plan-PLUS")).toContainText("Tier A");
@@ -127,9 +127,12 @@ test.describe("pricing and subscriptions", () => {
     }
     const sixth = await apiPost<{ error: { code: string } }>(page, "/api/generations", { idempotencyKey: "pro-6-0123456789abcdef", request: { mode: "FAST", subject: "Six", learningGoal: "Six", difficulty: "beginner", gameType: "adventure", contentLanguage: "en" } });
     expect(sixth).toMatchObject({ status: 402, body: { error: { code: "ALLOWANCE_EXHAUSTED" } } });
+    // with no points left, level C is still free and unlimited on Pro: the form offers it and does not block
     await page.goto("/create");
-    await expect(page.getByTestId("create-submit")).toBeDisabled();
-    await expect(page.getByTestId("create-allowance")).toContainText("used all");
+    await expect(page.getByTestId("level-cost-C")).toContainText("Free, unlimited");
+    await expect(page.getByTestId("level-C")).toBeEnabled();
+    await expect(page.getByTestId("level-B")).toBeDisabled();
+    await expect(page.getByTestId("level-A")).toBeDisabled();
     // Pro cannot buy more through the UI either
     await expect(page.getByText("Upgrade for more points")).toHaveCount(0);
   });
