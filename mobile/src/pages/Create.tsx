@@ -11,7 +11,8 @@ import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
-import { store } from "../app-state";
+import { getSettings, store } from "../app-state";
+import { modeForMinutes } from "@/lib/offline/first-run";
 import {
   anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
   type ContentLang, type CreateAction, type CreateFormValues,
@@ -36,6 +37,12 @@ function nextOnEnter(e: React.KeyboardEvent<HTMLInputElement>, next: string | nu
   else e.currentTarget.blur();
 }
 
+/** The mode the first-run answers suggest (20+ minutes a day: a full adventure), when the tier can build it. */
+function suggestedMode(tier: ReturnType<typeof getOfflineTier>): "FAST" | "FULL" {
+  const m = modeForMinutes(getSettings().minutesPerDay);
+  return modeAllowed(tier, m) ? m : "FAST";
+}
+
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
@@ -44,7 +51,7 @@ export function CreatePage() {
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
   const [state, dispatch] = useReducer(createReducer, undefined, () =>
-    startState(loadDraft(storage, tier, contentLangOf(locale)), { locale: contentLangOf(locale), tier, example: hashQuery(window.location.hash).get("example") === "1" }));
+    startState(loadDraft(storage, tier, contentLangOf(locale)), { locale: contentLangOf(locale), tier, example: hashQuery(window.location.hash).get("example") === "1", mode: suggestedMode(tier) }));
   const { form, restored, undo, problem } = state;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
@@ -202,7 +209,7 @@ export function CreatePage() {
       {library ? (
         <div className="min-w-0 space-y-4" data-testid="create-topics-column">
           <Alert tone="info" data-testid="topics-intro">{t("topics.intro.mobile", { n: TOPICS.length })}</Alert>
-          <TopicPicker value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
+          <TopicPicker initialCategory={getSettings().interests[0]} value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
         </div>
       ) : (
       <div className="min-w-0 space-y-4" data-testid="create-notes-column">

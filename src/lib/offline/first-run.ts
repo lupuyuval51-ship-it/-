@@ -1,4 +1,6 @@
 import { REGIONS } from "@/lib/regions";
+import { isPlanId, type PlanId } from "@/config/plans";
+import { TOPIC_CATEGORIES, type TopicCategory } from "@/lib/game/topics/types";
 import type { Locale } from "@/lib/i18n";
 
 /**
@@ -19,3 +21,23 @@ export const sanitizeRegion = (v: unknown): string => (typeof v === "string" && 
 export function freshDefaults(testBuild: boolean): { locale: Locale; region: string; setupDone: boolean } {
   return testBuild ? { locale: "he", region: REGION_OTHER, setupDone: true } : { locale: "en", region: REGION_OTHER, setupDone: false };
 }
+
+// ───────────── the first-run questionnaire (interests, time, plan) ─────────────
+
+/** How much time the learner wants to give per day (minutes); the last option means "30 or more". */
+export const MINUTES_CHOICES = [5, 10, 20, 30] as const;
+export type MinutesChoice = (typeof MINUTES_CHOICES)[number];
+
+export const sanitizeMinutes = (v: unknown): MinutesChoice | null => (MINUTES_CHOICES as readonly unknown[]).includes(v) ? (v as MinutesChoice) : null;
+
+/** Interests are topic-library categories; anything else is dropped. */
+export function sanitizeInterests(v: unknown): TopicCategory[] {
+  if (!Array.isArray(v)) return [];
+  return [...new Set(v.filter((x): x is TopicCategory => (TOPIC_CATEGORIES as readonly unknown[]).includes(x)))];
+}
+
+/** The plan the learner said they want. A preference only: the app sells nothing and unlocks nothing with it. */
+export const sanitizePlanChoice = (v: unknown): PlanId | null => (isPlanId(v) ? v : null);
+
+/** A short session suits a quick game; with 20 minutes or more a day the create screen proposes a full adventure. */
+export const modeForMinutes = (m: MinutesChoice | null): "FAST" | "FULL" => (m !== null && m >= 20 ? "FULL" : "FAST");

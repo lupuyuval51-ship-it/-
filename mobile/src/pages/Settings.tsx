@@ -49,9 +49,10 @@ export function SettingsPage() {
         <div className="space-y-6">
           <Section id="set-look" title={t("mob.settings.sec.look")}>
             <Field label={t("mob.settings.language")} htmlFor="locale">
-              <Select id="locale" className="min-h-11" value={s.locale} onChange={(e) => setSettings({ locale: e.target.value as "he" | "en" })}>
-                <option value="he" lang="he">{t("lang.he")}</option>
+              <Select id="locale" className="min-h-11" value={s.locale} onChange={(e) => setSettings({ locale: e.target.value as "he" | "en" | "es" })}>
                 <option value="en" lang="en">{t("lang.en")}</option>
+                <option value="he" lang="he">{t("lang.he")}</option>
+                <option value="es" lang="es">{t("lang.es")}</option>
               </Select>
             </Field>
             <Field label={t("mob.settings.country")} hint={t("mob.setup.country.hint")} htmlFor="region">
@@ -90,6 +91,7 @@ export function SettingsPage() {
             </Card>
             <Button variant="secondary" data-testid="open-plans" onClick={() => navigate("/plans")}>{t("pricing.title")}</Button>
             <Button variant="secondary" data-testid="about-credits" onClick={() => navigate("/about")}>{t("mob.settings.credits")}</Button>
+            <Button variant="secondary" data-testid="setup-again" onClick={() => { setSettings({ setupDone: false }); navigate("/"); }}>{t("mob.settings.setupAgain")}</Button>
             <Button variant="secondary" data-testid="welcome-again" onClick={() => navigate("/?welcome=1")}>{t("mob.settings.welcome")}</Button>
           </Section>
         </div>

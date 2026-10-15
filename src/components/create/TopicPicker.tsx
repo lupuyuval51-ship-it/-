@@ -11,12 +11,12 @@ import { TOPICS, TOPIC_CATEGORIES, searchTopics, type TopicCategory } from "@/li
  * list of topic cards as native radio buttons (arrow keys move between them, screen readers announce "n of m").
  * Only the catalogue (titles and descriptions) lives here; a topic's content is loaded when the game is built.
  */
-export function TopicPicker({ value, onChange, disabled = false, error }: { value: string | null; onChange: (id: string) => void; disabled?: boolean; error?: string | null }) {
+export function TopicPicker({ value, onChange, disabled = false, error, initialCategory }: { value: string | null; onChange: (id: string) => void; disabled?: boolean; error?: string | null; /** opens on this category (e.g. the learner's first interest) */ initialCategory?: TopicCategory }) {
   const t = useT();
   // topic content exists in Hebrew and English; a Spanish interface shows the English titles
   const locale = contentLangOf(useLocale());
   const [query, setQuery] = useState("");
-  const [cat, setCat] = useState<TopicCategory | "all">("all");
+  const [cat, setCat] = useState<TopicCategory | "all">(initialCategory ?? "all");
   const listId = useId();
   const searchId = useId();
   const errorId = useId();

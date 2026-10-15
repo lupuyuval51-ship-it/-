@@ -235,17 +235,19 @@ export const hasOwnText = (f: CreateFormValues): boolean => !isBlankForm(f) && !
  * The form when the screen opens: the saved draft if there is one, or the default example for `#/create?example=1`
  * (a draft the learner wrote themselves is then kept behind "Bring back my text").
  */
-export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean }): CreateState {
+export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean; mode?: "FAST" | "FULL" }): CreateState {
+  // a fresh form starts in the mode suggested by the first-run answers (how much time a day); a saved draft keeps its own
+  const fresh = (): CreateFormValues => ({ ...emptyForm(opts.locale, opts.tier), ...(opts.mode ? { mode: opts.mode } : {}) });
   if (opts.example) {
     const ex = EXAMPLE_NOTES[opts.locale];
     return {
-      form: { ...emptyForm(opts.locale, opts.tier), subject: ex.subject, material: ex.notes },
+      form: { ...fresh(), subject: ex.subject, material: ex.notes },
       restored: false,
       undo: saved && hasOwnText(saved) ? { form: saved, reason: "example" } : null,
       problem: null,
     };
   }
-  return { form: saved ?? emptyForm(opts.locale, opts.tier), restored: Boolean(saved), undo: null, problem: null };
+  return { form: saved ?? fresh(), restored: Boolean(saved), undo: null, problem: null };
 }
 
 export function createReducer(state: CreateState, action: CreateAction): CreateState {
