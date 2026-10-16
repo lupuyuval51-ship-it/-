@@ -4,7 +4,10 @@ Status: **live.** Project `levelup-app` (`yhxwgfgodxbzdvaqtqjz`, eu-central-1, f
 The three migrations in `migrations/` are applied, the edge function `functions/delete-account` is deployed (JWT required), the security
 advisor was clean (no findings) and the RLS checks in `tests/rls_checks.sql` passed on it the same day. Google Play purchase verification will
 live here too, next to the accounts (`PLAY_SERVICE_ACCOUNT_JSON` in this project's Edge Function secrets).
-The earlier project `level-up` (`dytftgtyugvzfumdcoep`) served app versions up to 1.15.0; its accounts and backups were not copied over.
+The earlier project `level-up` (`dytftgtyugvzfumdcoep`) served app versions up to 1.15.0; its accounts and backups were not copied over (it had none) and it is paused.
+A separate, still empty project `levelup-ai` (`zfkjkbyzurhidhpkzpxr`, https://zfkjkbyzurhidhpkzpxr.supabase.co, eu-central-1) is reserved for
+LEVEL UP AI in the app: an Edge Function there would hold the AI provider key in its secrets (never in the app). Nothing in the app talks to it yet.
+It does not know the users of `levelup-app`, so a function there must verify the caller's `levelup-app` sign-in before doing any work.
 
 What it does (the app keeps working offline; sign-in is optional):
 - E-mail sign-in (Supabase Auth). Games, play progress and the review deck are backed up per user and synced between phones

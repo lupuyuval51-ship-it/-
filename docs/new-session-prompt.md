@@ -11,7 +11,7 @@ You are continuing an existing, working project: **LEVEL UP** (brand LUPU), a pl
 1. Work on branch `claude/gifted-wozniak-y84up7` (fetch it; push only there; no pull requests unless I ask).
 2. Read, in this order: `AGENTS.md` (enforced rules), `README.md` (commands and configuration), `docs/handover.md`, `docs/project-dna.md` (decisions and current state), `docs/play-release.md` (Android release checklist).
 3. Current state: Android version 1.16.0 (versionCode 20), 201 topic-library topics (about a third of each category is Plus/Pro only), first-run questionnaire, bottom tab bar, English/Hebrew/Spanish interface, plans switched off (`PLANS_ENABLED=false`, shown as information only), no payments and no AI keys in the app.
-4. Supabase: the app uses the project `levelup-app` (ref `yhxwgfgodxbzdvaqtqjz`, https://yhxwgfgodxbzdvaqtqjz.supabase.co) for the optional account and cloud backup. Google Play purchase verification goes into the same project (its Edge Function secret `PLAY_SERVICE_ACCOUNT_JSON`), next to the accounts. The older projects `level-up`, `open` and `levelup-billing` are not used by the current app.
+4. Supabase: the app uses the project `levelup-app` (ref `yhxwgfgodxbzdvaqtqjz`, https://yhxwgfgodxbzdvaqtqjz.supabase.co) for the optional account and cloud backup. Google Play purchase verification goes into the same project (its Edge Function secret `PLAY_SERVICE_ACCOUNT_JSON`), next to the accounts. A separate empty project `levelup-ai` (ref `zfkjkbyzurhidhpkzpxr`) is reserved for LEVEL UP AI in the app (an Edge Function holding the AI key in its secrets; it must verify the caller's `levelup-app` sign-in). The older projects `level-up`, `open` and `levelup-billing` are paused and not used.
 
 ## 2. Set up the environment
 
