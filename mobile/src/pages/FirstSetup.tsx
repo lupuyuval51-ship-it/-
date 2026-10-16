@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Field, Select } from "@/components/ui";
-import { offerText, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
+import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { TOPIC_CATEGORIES, type TopicCategory } from "@/lib/game/topics/types";
 import type { Locale } from "@/lib/i18n";
@@ -132,7 +132,7 @@ export function FirstSetup() {
                       <span className="ms-auto text-lg font-extrabold" data-testid={`setup-price-${plan}`}><span className="ltr-num">{price.isFree ? t("pricing.free.price") : price.text}</span>{!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}</span>
                     </span>
                     <span className="block text-sm text-muted">{offerText(t, plan)}</span>
-                    <span className="block text-xs text-muted">{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span>
+                    <span className="block text-xs text-muted">{topicsText(t, plan)} · {planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span>
                   </label>
                 );
               })}

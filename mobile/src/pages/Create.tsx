@@ -8,7 +8,7 @@ import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } fro
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
-import { getOfflineTier } from "@/lib/offline/entitlement";
+import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
 import { getSettings, store } from "../app-state";
@@ -209,7 +209,7 @@ export function CreatePage() {
       {library ? (
         <div className="min-w-0 space-y-4" data-testid="create-topics-column">
           <Alert tone="info" data-testid="topics-intro">{t("topics.intro.mobile", { n: TOPICS.length })}</Alert>
-          <TopicPicker initialCategory={getSettings().interests[0]} value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
+          <TopicPicker plan={getOfflinePlan()} initialCategory={getSettings().interests[0]} value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
         </div>
       ) : (
       <div className="min-w-0 space-y-4" data-testid="create-notes-column">

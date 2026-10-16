@@ -1,5 +1,7 @@
 import { PLANS, costOf, formatMoney, levelsAllowed, monthlyPrice, planOffer, type PlanId } from "@/config/plans";
 import type { TFn } from "@/lib/i18n";
+import { TOPICS } from "@/lib/game/topics/catalog";
+import { topicOpenFor } from "@/lib/game/topics/premium";
 
 /** Price text for a plan in a region, straight from the central config (never derived from an exchange rate). */
 export function planPriceText(plan: PlanId, region: string | null): { text: string; currency: "USD" | "ILS"; minor: number; isFree: boolean } {
@@ -28,4 +30,10 @@ export function offerText(t: TFn, plan: PlanId, points?: number): string {
 export function pointsText(t: TFn, plan: PlanId): string {
   const costs = [...levelsAllowed(plan)].reverse().map((level) => (costOf(plan, level) === 0 ? t("pricing.cost.free", { level }) : t("pricing.cost", { level, n: costOf(plan, level)! }))).join(" · ");
   return t("pricing.points", { n: PLANS[plan].allowance.budget, costs });
+}
+
+/** "All 201 library topics" / "137 of the 201 library topics": how much of the topic library the plan opens. */
+export function topicsText(t: TFn, plan: PlanId): string {
+  const open = TOPICS.filter((x) => topicOpenFor(plan, x.id)).length;
+  return open === TOPICS.length ? t("pricing.topics.all", { n: TOPICS.length }) : t("pricing.topics.some", { n: open, total: TOPICS.length });
 }

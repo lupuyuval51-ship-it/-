@@ -15,6 +15,7 @@ import { PLANS } from "@/config/plans";
 import { createTestUser, grantSubscription } from "./helpers";
 import { mockLlm } from "./helpers-ai";
 import { setFeatureTierForTests } from "@/server/games/feature-tier";
+import { PREMIUM_TOPIC_IDS } from "@/lib/game/topics/premium";
 
 /** The topic library on the website: the server pipeline builds the game from curated content, never with a model. */
 afterAll(disconnectDb);
@@ -106,5 +107,24 @@ describe("topic library — curated topics become games without any model", () =
     const err = await createGeneration(u.id, { idempotencyKey: key(), request: ext }, { schedule: false }).catch((e) => e);
     expect((err as ApiError).code).toBe("EXTEND_BACKEND_MISMATCH");
     expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0 });
+  });
+});
+
+describe("premium topics — about a third of the library is Plus and Pro only, enforced by the server", () => {
+  const premium = [...PREMIUM_TOPIC_IDS][0]!;
+  it("a Free account is refused a premium topic (403 TOPIC_LOCKED naming Plus) and nothing is reserved", async () => {
+    const u = await createTestUser();
+    setBackendForTests(DEMO);
+    const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ topicId: premium }) }, { schedule: false }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ status: 403, code: "TOPIC_LOCKED", details: { requiredPlan: "PLUS" } });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0 });
+  });
+
+  it("a Plus account plays it", async () => {
+    const u = await createTestUser();
+    await grantSubscription(u.id, "PLUS");
+    const { job } = await generate(u.id, req({ topicId: premium }), DEMO);
+    expect(job.status).toBe("SUCCEEDED");
   });
 });

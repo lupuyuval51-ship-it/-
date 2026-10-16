@@ -88,6 +88,8 @@ export interface PlanFeatures {
   versionHistory: boolean;
   /** Versions kept per game; the oldest are pruned beyond this (the current one is never pruned). */
   versionsKept: number;
+  /** The topic-library topics marked premium (src/lib/game/topics/premium.ts, about a third of each category) can be played. */
+  premiumTopics: boolean;
 }
 
 /**
@@ -139,7 +141,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     // FREE ALLOWANCE PERIOD: the calendar month (UTC). Unused points do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
-    features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3 },
+    features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3, premiumTopics: false },
   },
   PLUS: {
     id: "PLUS",
@@ -150,7 +152,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     allowance: { budget: 3, cost: { B: 1, A: 3, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
-    features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20 },
+    features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20, premiumTopics: true },
   },
   PRO: {
     id: "PRO",
@@ -162,7 +164,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     allowance: { budget: 10, cost: { A: 2, B: 1, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
-    features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100 },
+    features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100, premiumTopics: true },
   },
 });
 

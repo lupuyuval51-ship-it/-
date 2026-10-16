@@ -1,6 +1,6 @@
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Card } from "@/components/ui";
-import { offerText, planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
+import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
 import { PLAN_IDS } from "@/config/plans";
 import { useSettings } from "../app-state";
 
@@ -30,6 +30,7 @@ export function PlansPage() {
                 </p>
               </div>
               <p className="text-sm">{offerText(t, plan)}</p>
+              <p className="text-sm text-muted" data-testid={`mobile-topics-${plan}`}>{topicsText(t, plan)}</p>
               <p className="text-sm text-muted">{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
             </Card>
           );

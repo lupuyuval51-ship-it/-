@@ -108,6 +108,8 @@ export const siteEs: Record<keyof typeof site.en, string> = {
   "pricing.billing.1": "Las suscripciones se renuevan cada mes hasta que se cancelen y se cobran en la moneda indicada. Los pagos los procesa nuestro proveedor de pagos; nunca vemos ni guardamos el número de tu tarjeta.",
   "pricing.billing.2": "Puedes cancelar en cualquier momento desde tu página de LUPU ID. Donde se apliquen impuestos, nuestro proveedor de pagos los añade al pagar.",
   "pricing.open.now": "Por ahora todas las funciones están abiertas para todos, gratis.",
+  "pricing.topics.all": "Los {n} temas de la biblioteca",
+  "pricing.topics.some": "{n} de los {total} temas de la biblioteca",
   "pricing.payments.disabled": "Los pagos en línea aún no están activados en esta instalación. Se pueden ver los planes, pero el pago no está disponible.",
   "pricing.payments.dev": "SIMULADOR DE DESARROLLO: no se cobra dinero real. Los planes se conceden mediante eventos de pago simulados que pasan por el flujo real de suscripciones, y se marcan como simulados.",
   "pricing.error.checkout": "No pudimos iniciar el pago. No se te ha cobrado.",

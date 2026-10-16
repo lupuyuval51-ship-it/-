@@ -1,5 +1,6 @@
 "use client";
 
+import type { PlanId } from "@/config/plans";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useSyncExternalStore } from "react";
@@ -205,6 +206,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
       else if (code === "JOB_IN_PROGRESS") setError({ text: t("create.error.inProgress"), jobId: json.error?.details?.jobId ?? undefined });
       else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: catalogGame ? t("create.error.catalogExtend") : t("create.error.mismatch") });
       else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
+      else if (code === "TOPIC_LOCKED") setError({ text: t("create.error.topicLocked") });
       else if (code === "VALIDATION_ERROR") setError({ text: t("create.error.validation") });
       else if (code === "RATE_LIMITED") setError({ text: t("common.error.rateLimited") });
       else if (code === "UNAUTHORIZED") router.push("/login?next=/create");
@@ -403,7 +405,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
           {library ? (
             <>
               <Alert tone="info" data-testid="topics-intro">{t("topics.intro", { n: TOPICS.length })}</Alert>
-              <TopicPicker value={topicId} onChange={(id) => { setTopicId(id); setFieldErrors(({ topicId: _x, ...rest }) => rest); }} error={fieldErrors.topicId} />
+              <TopicPicker plan={allowance.plan as PlanId} value={topicId} onChange={(id) => { setTopicId(id); setFieldErrors(({ topicId: _x, ...rest }) => rest); }} error={fieldErrors.topicId} />
             </>
           ) : (
           <>
