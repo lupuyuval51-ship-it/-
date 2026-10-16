@@ -256,11 +256,12 @@ describe("pause menu", () => {
   });
 
   it("uses two columns on a phone held sideways so Resume needs no scrolling", () => {
-    expect(menu()).not.toContain("grid-cols-2");
+    const columns = "grid grid-cols-2 items-start"; // toggles on one side, controls and actions on the other
+    expect(menu()).not.toContain(columns);
     view.layout = sideways();
     const html = menu();
-    expect(html).toContain("grid-cols-2");
-    expect(html.indexOf("grid-cols-2")).toBeLessThan(html.indexOf('data-testid="resume-button"'));
+    expect(html).toContain(columns);
+    expect(html.indexOf(columns)).toBeLessThan(html.indexOf('data-testid="resume-button"'));
   });
 });
 
@@ -271,7 +272,7 @@ describe("challenge panel on a phone", () => {
   it("keeps the Check button above the gesture bar and the close button a full touch target", () => {
     const html = panel();
     expect(html).toContain("pb-[max(0.75rem,env(safe-area-inset-bottom))]");
-    expect(html).toMatch(/aria-label="Close"[^>]*min-w-11|min-w-11[^>]*aria-label="Close"/);
+    expect(html).toMatch(/aria-label="Close"[^>]*\b(min-w|size)-11|\b(min-w|size)-11[^>]*aria-label="Close"/);
   });
 
   it("shows the question and the answers side by side on a phone held sideways (except for the wide widgets)", () => {
