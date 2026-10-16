@@ -102,3 +102,44 @@ test("plans and prices are information only, in the currency of the chosen count
   await expect(page.getByTestId("mobile-plans-page").locator("a[href^='http']")).toHaveCount(0);
   expect(await noSideScroll(page)).toBe(true);
 });
+
+test("the questionnaire is the whole first screen (nothing behind it) and 'Skip' keeps the defaults", async ({ page }) => {
+  await page.goto("/#/");
+  await expect(page.getByTestId("first-setup")).toBeVisible();
+  await expect(page.getByTestId("mobile-library")).toHaveCount(0);
+  await expect(page.getByTestId("tab-bar")).toHaveCount(0);
+  // even a deep link opens the questionnaire first on a new install
+  await page.goto("/#/create");
+  await expect(page.getByTestId("first-setup")).toBeVisible();
+  await page.getByTestId("setup-next").click();
+  await page.getByTestId("setup-skip").click();
+  await expect(page.getByTestId("first-setup")).toHaveCount(0);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("levelup.mobile.settings")!));
+  expect(saved).toMatchObject({ setupDone: true, locale: "en" });
+});
+
+test("the bottom tab bar reaches every main screen, its tabs are thumb-sized, and it never covers the content", async ({ page }) => {
+  await page.goto("/#/");
+  for (let i = 0; i < 4; i++) await page.getByTestId("setup-next").click();
+  const bar = page.getByTestId("tab-bar");
+  await expect(bar).toBeVisible();
+  for (const [tab, screen] of [["tab-create", "mobile-create"], ["tab-review", null], ["tab-settings", "mobile-settings-page"], ["tab-home", "mobile-library"]] as const) {
+    await page.getByTestId(tab).click();
+    await expect(page.getByTestId(tab)).toHaveAttribute("aria-current", "page");
+    if (screen) await expect(page.getByTestId(screen)).toBeVisible();
+    const box = await page.getByTestId(tab).boundingBox();
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
+  // scrolled to the very end, the last thing on the settings screen sits above the bar
+  await page.getByTestId("tab-settings").click();
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const barTop = (await bar.boundingBox())!.y;
+  const lastBottom = await page.evaluate(() => {
+    const els = [...document.querySelectorAll<HTMLElement>("main button, main a, main p")].filter((e) => e.offsetParent);
+    return Math.max(...els.map((e) => e.getBoundingClientRect().bottom));
+  });
+  expect(lastBottom).toBeLessThanOrEqual(barTop + 1);
+  // the play screen has no tab bar
+  await page.getByTestId("tab-home").click();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

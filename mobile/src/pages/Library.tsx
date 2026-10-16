@@ -5,13 +5,12 @@ import { Alert, Arrow, Button, Card } from "@/components/ui";
 import { primaryLink, secondaryLink, StateView } from "@/components/ui/StateView";
 import { browserKV } from "@/lib/offline/store";
 import { hashQuery, markWelcomeSeen, shouldShowWelcome } from "@/lib/offline/onboarding";
-import { store, useSettings } from "../app-state";
+import { store } from "../app-state";
 import { useAccount } from "../cloud/account";
 import { formatWhen, syncLineKey } from "../format";
 import { continueGame, filterCounts, filterGames, loadLibrary, showFilters, type LibraryFilter } from "../library-model";
 import { stripQuery } from "../router";
 import { ContinueCard, FilterBar, GameCard } from "./library-parts";
-import { FirstSetup } from "./FirstSetup";
 import { Welcome } from "./Welcome";
 
 /** The chosen filter survives opening a game and coming back (kept for the app session only; a new launch starts at "All"). */
@@ -34,7 +33,6 @@ export function LibraryPage() {
   const [filter, setFilterState] = useState<LibraryFilter>(rememberedFilter);
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string; n: number } | null>(null);
   const setFilter = (f: LibraryFilter) => { rememberedFilter = f; setFilterState(f); setNotice(null); };
-  const { setupDone } = useSettings();
   const heading = useRef<HTMLHeadingElement>(null);
   // First launch: a short, skippable intro above the library. "Show the welcome again" in Settings opens it on demand
   // (`explicit`). On first launch it also goes away by itself if games arrive, e.g. from the cloud backup of a new phone.
@@ -71,14 +69,12 @@ export function LibraryPage() {
 
   return (
     <div className="space-y-5" data-testid="mobile-library">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-extrabold tracking-tight">LEVEL UP</h1>
-          <p className="text-sm text-muted">{t("mob.tagline")}</p>
-        </div>
-        <a href="#/settings" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm font-semibold" data-testid="mobile-settings">{t("mob.settings")}</a>
+      {/* Settings, review and a new game are in the bottom tab bar (App.tsx), within reach of the thumb */}
+      <header className="min-w-0">
+        <h1 className="text-3xl font-extrabold tracking-tight">LEVEL UP</h1>
+        <p className="text-sm text-muted">{t("mob.tagline")}</p>
       </header>
-      {!setupDone ? <FirstSetup /> : welcome && <Welcome onDone={closeWelcome} onSkip={() => { closeWelcome(); focusHeading(); }} />}
+      {welcome && <Welcome onDone={closeWelcome} onSkip={() => { closeWelcome(); focusHeading(); }} />}
       {/* One live region that always exists; a fresh node per message so a repeated message (a second delete) is announced again. */}
       <div aria-live="polite">{notice && <Alert key={notice.n} role="none" tone={notice.tone} data-testid="library-notice">{notice.text}</Alert>}</div>
       {!data.ok ? (

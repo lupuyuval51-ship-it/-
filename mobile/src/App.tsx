@@ -6,6 +6,8 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
 import { LibraryPage } from "./pages/Library";
+import { FirstSetup } from "./pages/FirstSetup";
+import { TabBar } from "./pages/TabBar";
 
 // Only the library (the screen the app opens on) is in the first bundle. Every other screen is its own chunk, loaded when it is
 // opened: the create form carries the offline generator and the demo templates, the play screen the HUD and the runtime
@@ -36,7 +38,7 @@ function route(path: string) {
 }
 
 export function App() {
-  const { locale } = useSettings();
+  const { locale, setupDone } = useSettings();
   const path = usePath();
   const dict = useMemo(() => DICTIONARIES[locale], [locale]);
   useEffect(() => {
@@ -57,9 +59,16 @@ export function App() {
       {/* The Suspense boundary sits inside the error boundary, which is re-keyed per route: every navigation mounts it afresh,
           so the heading focus below runs once the (possibly still loading) screen has really been committed. */}
       <ErrorBoundary key={path}>
-        {play
+        {/* a new install opens on the questionnaire, full screen, before anything else */}
+        {!setupDone && !play
+          ? <FirstSetup />
+          : play
           ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play /></Suspense>
-          : <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))" }}><div className="lu-page"><Suspense fallback={null}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>}
+          : <>
+              {/* bottom padding: the content never ends under the tab bar */}
+              <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))", paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><div className="lu-page"><Suspense fallback={null}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>
+              <TabBar path={path} />
+            </>}
       </ErrorBoundary>
     </I18nProvider>
   );
