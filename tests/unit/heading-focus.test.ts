@@ -21,7 +21,7 @@ describe("programmatic heading focus", () => {
   it("keeps the global focus ring for real interactive elements", () => {
     expect(css).toMatch(/^:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--color-neon\)/m);
     // no other rule strips outlines from buttons, links or fields
-    const strippers = [...css.matchAll(/([^{}]+)\{[^}]*outline:\s*(none|0)[^}]*\}/g)].map((m) => m[1].trim());
-    for (const sel of strippers) expect(sel ?? "").toMatch(/h1\[tabindex="-1"\]/);
+    const strippers = [...css.matchAll(/([^{}]+)\{[^}]*outline:\s*(none|0)[^}]*\}/g)].map((m) => (m[1] ?? "").trim());
+    for (const sel of strippers) expect(sel).toMatch(/h1\[tabindex="-1"\]/);
   });
 });
