@@ -16,12 +16,20 @@ const h = vi.hoisted(() => {
     pullsSettled: 0,
     pullGate: null as null | Promise<void>,
     pullFails: false,
+    /** a sign-in kept on the phone without a live session (e.g. an expired one) */
+    saved: false,
+    /** how many times the cloud library was asked for */
+    loads: 0,
   };
   return { state };
 });
 
 vi.mock("../../mobile/src/cloud/client", () => ({
-  supabase: {
+  hasSavedSignIn: () => h.state.saved || h.state.session !== null,
+  getSupabase: async () => { h.state.loads++; return fakeClient; },
+}));
+
+const fakeClient = vi.hoisted(() => ({
     auth: {
       getSession: async () => { h.state.getSessionCalls++; return { data: { session: h.state.session } }; },
       onAuthStateChange: () => { h.state.authListeners++; return { data: { subscription: { unsubscribe() {} } } }; },
@@ -29,7 +37,6 @@ vi.mock("../../mobile/src/cloud/client", () => ({
       signInWithPassword: async () => ({ error: null }),
       signUp: async () => ({ data: { session: null }, error: null }),
     },
-  },
 }));
 
 vi.mock("../../mobile/src/cloud/api", () => ({
@@ -83,6 +90,8 @@ async function load() {
   h.state.pullsSettled = 0;
   h.state.pullGate = null;
   h.state.pullFails = false;
+  h.state.saved = false;
+  h.state.loads = 0;
   return import("../../mobile/src/cloud/account");
 }
 
@@ -90,13 +99,32 @@ beforeEach(() => { browser = installBrowser(); });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("account: signed out means silent", () => {
-  it("no session: starting the account reads the saved sign-in and makes no cloud call", async () => {
+  it("no sign-in on the phone: starting the account does not even load the cloud library", async () => {
     const acc = await load();
     acc.startAccount();
     await Promise.resolve();
     await acc.syncNow();
-    expect(h.state.getSessionCalls).toBe(1);
+    expect(h.state.loads).toBe(0);
+    expect(h.state.getSessionCalls).toBe(0);
     expect(h.state.pulls).toBe(0);
+  });
+
+  it("a kept sign-in without a live session is read on start and makes no cloud call", async () => {
+    const acc = await load();
+    h.state.saved = true;
+    acc.startAccount();
+    await vi.waitFor(() => expect(h.state.getSessionCalls).toBe(1));
+    await acc.syncNow();
+    expect(h.state.pulls).toBe(0);
+  });
+
+  it("the first account action loads the library once", async () => {
+    const acc = await load();
+    acc.startAccount();
+    await acc.signIn("a@b.c", "pw");
+    await acc.signUp("a@b.c", "pw");
+    expect(h.state.loads).toBe(1);
+    expect(h.state.authListeners).toBe(1);
   });
 
   it("signed out, nothing the learner does triggers a request: changes, coming back, going away", async () => {
@@ -112,8 +140,10 @@ describe("account: signed out means silent", () => {
 
   it("startAccount can be called twice without wiring everything twice", async () => {
     const acc = await load();
+    h.state.saved = true;
     acc.startAccount();
     acc.startAccount();
+    await vi.waitFor(() => expect(h.state.getSessionCalls).toBe(1));
     expect(h.state.authListeners).toBe(1);
     expect(h.state.getSessionCalls).toBe(1);
   });
@@ -163,6 +193,7 @@ describe("account: when changes are sent", () => {
 describe("account: sign out", () => {
   it("ends this phone's sign-in only, never the learner's other phones", async () => {
     const acc = await load();
+    h.state.saved = true;
     await acc.signOut();
     expect(h.state.signOutCalls).toEqual([{ scope: "local" }]);
   });
@@ -172,6 +203,7 @@ describe("account: sign out", () => {
     const store = shared.store as OfflineStore;
     const before = store.listGames().length;
     store.addGame(generateOffline(request()).spec);
+    h.state.saved = true;
     h.state.signOutThrows = true;
     await expect(acc.signOut()).resolves.toBeUndefined();
     expect(store.listGames()).toHaveLength(before + 1);

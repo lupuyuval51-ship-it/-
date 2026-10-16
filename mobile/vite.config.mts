@@ -26,7 +26,7 @@ export default defineConfig({
   },
   server: { port: 5173, strictPort: true },
   preview: { port: 4173, strictPort: true },
-  // The first chunk (library) is about 650 kB and the lazily loaded 3D renderer (three + react-three-fiber) about 1 MB: the
+  // The first chunk (library) is about 550 kB (the cloud library is its own chunk, loaded only for a signed-in phone) and the lazily loaded 3D renderer (three + react-three-fiber) about 1 MB: the
   // limit sits just above the renderer so that a screen that pulls it into the first chunk shows up as a build warning
   // (tests/unit/bundle-boundary.test.ts checks the same boundary without a build).
   build: { outDir: r("dist"), emptyOutDir: true, chunkSizeWarningLimit: 1100, sourcemap: false },

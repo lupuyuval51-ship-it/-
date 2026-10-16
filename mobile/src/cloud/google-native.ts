@@ -1,16 +1,15 @@
 import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
-import { syncNow } from "./account";
-import { supabase } from "./client";
+import { connectAccount, syncNow } from "./account";
 import { SUPABASE_URL } from "./config";
-import { finishGoogleSignIn, googleAuthEnabled, startGoogleSignIn, type GoogleResult } from "./google";
+import { finishGoogleSignIn, googleAuthEnabled, parseGoogleCallback, startGoogleSignIn, type GoogleResult } from "./google";
 
 /** Opens Supabase's Google page in the system browser (see google.ts for why a plain navigation does that in Capacitor's WebView). */
 const openExternal = (url: string): void => window.location.assign(url);
 
 /** The "Continue with Google" button. Makes no request until it is tapped. */
-export function signInWithGoogle(): Promise<GoogleResult> {
-  return startGoogleSignIn(supabase, openExternal, SUPABASE_URL);
+export async function signInWithGoogle(): Promise<GoogleResult> {
+  return startGoogleSignIn(await connectAccount(), openExternal, SUPABASE_URL);
 }
 
 type Listener = (r: GoogleResult) => void;
@@ -22,7 +21,8 @@ export function onGoogleResult(fn: Listener): () => void {
 }
 
 async function handle(url: string): Promise<void> {
-  const result = await finishGoogleSignIn(supabase, url);
+  if (!parseGoogleCallback(url)) return; // not our sign-in link: the cloud library is not even loaded
+  const result = await finishGoogleSignIn(await connectAccount(), url);
   if (!result) return;
   if (result.ok) void syncNow();
   listeners.forEach((l) => l(result));

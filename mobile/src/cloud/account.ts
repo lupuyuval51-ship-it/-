@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { readSyncState, resetSyncState, syncOnce } from "@/lib/offline/sync";
 import { browserKV } from "@/lib/offline/store";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./config";
 import { supabaseCloud } from "./api";
-import { supabase } from "./client";
+import { getSupabase, hasSavedSignIn } from "./client";
 import { store } from "../app-state";
 
 export type SyncStatus = "idle" | "syncing" | "ok" | "error";
@@ -33,7 +33,8 @@ export function syncNow(): Promise<void> {
   set({ status: "syncing", error: null });
   // A round that finishes after the user signed out (or into another account) must not change what Settings shows.
   const current = () => snap.session?.user.id === session.user.id;
-  running = syncOnce(store, browserKV(), supabaseCloud(supabase), session.user.id)
+  running = getSupabase()
+    .then((db) => syncOnce(store, browserKV(), supabaseCloud(db), session.user.id))
     .then((r) => { if (current()) set({ status: "ok", lastSyncAt: readSyncState(browserKV()).lastSyncAt, skipped: r.skipped, rejected: r.rejected }); })
     .catch((e: unknown) => { if (current()) set({ status: "error", error: e instanceof Error ? e.message : "sync failed" }); })
     .finally(() => {
@@ -46,13 +47,27 @@ export function syncNow(): Promise<void> {
 let timer: ReturnType<typeof setTimeout> | undefined;
 const later = () => { clearTimeout(timer); timer = setTimeout(() => void syncNow(), 15_000); };
 
+let connected: Promise<SupabaseClient> | null = null;
+/**
+ * Loads the cloud library once, follows sign-in changes and restores a saved sign-in (offline-safe: no network is needed to
+ * read it). Called on start only when this phone keeps a sign-in, otherwise on the first account action.
+ */
+export function connectAccount(): Promise<SupabaseClient> {
+  connected ??= getSupabase().then((db) => {
+    db.auth.onAuthStateChange((_event, session) => set({ session }));
+    // a sign-in that finished first (its event already set the session) is never overwritten by "nothing saved"
+    void db.auth.getSession().then(({ data }) => { if (data.session) { set({ session: data.session }); void syncNow(); } });
+    return db;
+  });
+  return connected;
+}
+
 let started = false;
-/** Restores a saved sign-in (offline-safe: no network is needed to read it) and wires the automatic triggers. Safe to call twice. */
+/** Wires the automatic triggers and restores a saved sign-in; a phone without one loads nothing. Safe to call twice. */
 export function startAccount(): void {
   if (started) return;
   started = true;
-  void supabase.auth.getSession().then(({ data }) => { set({ session: data.session }); if (data.session) void syncNow(); });
-  supabase.auth.onAuthStateChange((_event, session) => set({ session }));
+  if (hasSavedSignIn()) void connectAccount();
   store.subscribe(() => { pending = true; if (snap.session) later(); });
   document.addEventListener("visibilitychange", () => {
     if (!snap.session) return;
@@ -64,7 +79,12 @@ export function startAccount(): void {
 
 export type AuthResult = { ok: true; needsConfirmation?: boolean } | { ok: false; message: string };
 
+/** The client for an account action; a failure to load it reads like any other failed request. */
+const client = (): Promise<SupabaseClient | null> => connectAccount().catch(() => { connected = null; return null; });
+
 export async function signUp(email: string, password: string): Promise<AuthResult> {
+  const supabase = await client();
+  if (!supabase) return { ok: false, message: "no connection" };
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) return { ok: false, message: error.message };
   if (!data.session) return { ok: true, needsConfirmation: true };
@@ -73,6 +93,8 @@ export async function signUp(email: string, password: string): Promise<AuthResul
 }
 
 export async function signIn(email: string, password: string): Promise<AuthResult> {
+  const supabase = await client();
+  if (!supabase) return { ok: false, message: "no connection" };
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { ok: false, message: error.message };
   void syncNow();
@@ -87,14 +109,16 @@ export async function signIn(email: string, password: string): Promise<AuthResul
  */
 export async function signOut(): Promise<void> {
   clearTimeout(timer);
-  try { await supabase.auth.signOut({ scope: "local" }); } catch { /* the local session is removed even when the server cannot be reached */ }
+  // nothing to end when the library was never needed (no sign-in on this phone)
+  try { if (connected || hasSavedSignIn()) await (await connectAccount()).auth.signOut({ scope: "local" }); } catch { /* the local session is removed even when the server cannot be reached */ }
   resetSyncState(browserKV());
   set({ session: null, status: "idle", lastSyncAt: null, error: null, skipped: 0, rejected: 0 });
 }
 
 /** Deletes the account and all its cloud data (edge function with the service role; RLS cascade removes the rows). Local games stay. */
 export async function deleteAccount(): Promise<AuthResult> {
-  const { data } = await supabase.auth.getSession();
+  const supabase = await client();
+  const data = supabase ? (await supabase.auth.getSession()).data : { session: null };
   if (!data.session) return { ok: false, message: "not signed in" };
   let res: Response;
   try {
