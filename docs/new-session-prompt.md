@@ -10,7 +10,7 @@ You are continuing an existing, working project: **LEVEL UP** (brand LUPU), a pl
 
 1. Work on branch `claude/gifted-wozniak-y84up7` (fetch it; push only there; no pull requests unless I ask).
 2. Read, in this order: `AGENTS.md` (enforced rules), `README.md` (commands and configuration), `docs/handover.md`, `docs/project-dna.md` (decisions and current state), `docs/play-release.md` (Android release checklist).
-3. Current state: Android version 1.11.0 (versionCode 15), 201 topic-library topics, first-run questionnaire, English/Hebrew/Spanish interface, plans switched off (`PLANS_ENABLED=false`, shown as information only), no payments and no AI keys in the app.
+3. Current state: Android version 1.14.0 (versionCode 18), 201 topic-library topics (about a third of each category is Plus/Pro only), first-run questionnaire, bottom tab bar, English/Hebrew/Spanish interface, plans switched off (`PLANS_ENABLED=false`, shown as information only), no payments and no AI keys in the app.
 
 ## 2. Set up the environment
 
@@ -31,7 +31,7 @@ Decode the key into a scratch folder outside the repo and write `android/keystor
 
 1. `npm run check` (typecheck + lint + unit/integration) must pass.
 2. `npm run test:e2e:mobile` must pass; for website changes also `npm run build` and `npx playwright test`.
-3. Raise `versionCode` (16 or higher) and `versionName` in `android/app/build.gradle` for every new release.
+3. Raise `versionCode` (19 or higher) and `versionName` in `android/app/build.gradle` for every new release.
 4. Build: `npm run mobile:build && npx cap sync android && (cd android && ./gradlew bundleRelease --no-daemon)`.
 5. Verify the AAB: `jarsigner -verify`, no secrets inside (scan the unzipped bundle), `npx vitest run tests/unit/android-shell.test.ts`.
 6. Commit, push, then send me the AAB and a source zip made with `git archive` (it never contains the keystore or `.env`).
