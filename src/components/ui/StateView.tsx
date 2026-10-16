@@ -40,15 +40,15 @@ function Illustration({ kind }: { kind: Kind }) {
  * Empty / error / not-found screen: illustration, what happened, and what to do next.
  * `headingLevel` 1 is for whole-page states (error, not found) that have no other heading; embedded empty states stay at 2.
  */
-export function StateView({ kind, title, text, actions, children, className, headingLevel = 2, ...rest }: { kind: Kind; title: string; text?: ReactNode; actions?: ReactNode; children?: ReactNode; className?: string; headingLevel?: 1 | 2 } & Record<`data-${string}`, string>) {
+export function StateView({ kind, title, text, actions, children, className, headingLevel = 2, compact = false, ...rest }: { kind: Kind; title: string; text?: ReactNode; actions?: ReactNode; children?: ReactNode; className?: string; headingLevel?: 1 | 2; /** inside a card on a phone: less padding, and the actions are full-width buttons stacked in one column */ compact?: boolean } & Record<`data-${string}`, string>) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
-    <div {...rest} className={cx("mx-auto max-w-lg space-y-4 py-10 text-center", className)}>
+    <div {...rest} className={cx("mx-auto max-w-lg space-y-4 text-center", compact ? "py-2" : "py-10", className)}>
       <Illustration kind={kind} />
       <Heading className="text-2xl font-bold">{title}</Heading>
       {text && <p className="text-muted">{text}</p>}
       {children}
-      {actions && <div className="flex flex-wrap justify-center gap-3">{actions}</div>}
+      {actions && <div className={compact ? "flex flex-col gap-3" : "flex flex-wrap justify-center gap-3"}>{actions}</div>}
     </div>
   );
 }

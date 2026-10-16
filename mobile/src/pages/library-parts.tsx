@@ -1,6 +1,10 @@
-import { Arrow, Button, Card, ProgressBar, Stars } from "@/components/ui";
+import { Trash2 } from "lucide-react";
+import { Arrow, Card, ProgressBar, Stars } from "@/components/ui";
 import { GeneratorBadge } from "@/components/games/GameBadges";
-import type { TFn } from "@/lib/i18n";
+import { StateView } from "@/components/ui/StateView";
+import { DIFFICULTIES } from "@/lib/game/spec/constants";
+import type { TopicCategory } from "@/lib/game/topics/types";
+import type { DictKey, TFn } from "@/lib/i18n";
 import { LIBRARY_FILTERS, type LibraryFilter, type LibraryGame } from "../library-model";
 
 /** Presentational pieces of the phone library. No storage access here, so they render (and are tested) in node. */
@@ -28,25 +32,80 @@ export function ContinueCard({ game, t }: { game: LibraryGame; t: TFn }) {
   );
 }
 
-export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; onDelete: (id: string) => void }) {
+/** Full-width, 56 px actions of the empty library: the first game is one big tap away. */
+const bigPrimary = "flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-neon px-5 text-lg font-bold text-ink-950 shadow-glow transition active:scale-[0.99]";
+const bigSecondary = "flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl border border-line px-5 text-base font-semibold transition active:scale-[0.99]";
+
+/**
+ * The library of a learner with no games (after the welcome was dismissed): one primary action (an example, about a minute to a
+ * first game), one alternative (their own notes) and, when the first-run questionnaire named an interest, a way into the ready-made
+ * topics of that category (the topic library: built on the phone, not AI).
+ */
+export function EmptyLibrary({ t, interest }: { t: TFn; interest?: TopicCategory | undefined }) {
   return (
-    <Card interactive className="w-full min-w-0 space-y-3" data-testid="mobile-game">
-      <div className="flex flex-wrap items-center gap-2">
-        <h3 dir="auto" className="me-auto min-w-0 wrap-anywhere text-lg font-semibold">{g.title}</h3>
+    <Card className="space-y-4 p-4">
+      <StateView
+        kind="empty"
+        compact
+        data-testid="mobile-empty"
+        title={t("mob.empty.title")}
+        text={
+          <>
+            {t("mob.empty.text")}
+            <span className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
+              {(["mob.empty.tip1", "mob.empty.tip2", "mob.empty.tip3"] as const).map((k) => <span key={k}><span aria-hidden>✓ </span>{t(k)}</span>)}
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <a href="#/create?example=1" data-testid="empty-example" className={bigPrimary}>{t("mob.empty.example")} <Arrow /></a>
+            <a href="#/create" data-testid="empty-create" className={bigSecondary}>{t("mob.welcome.own")}</a>
+          </>
+        }
+      />
+      {interest && (
+        <div className="rounded-xl border border-line bg-ink-900/60 px-4 py-3" data-testid="empty-suggest-box">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">{t("mob.empty.suggest")}</p>
+          <a href="#/create?source=library" data-testid="empty-suggest" className="flex min-h-12 items-center justify-between gap-3 font-semibold text-neon">
+            <span className="min-w-0">{t("mob.empty.suggest.cta", { category: t(`topics.cat.${interest}` as DictKey) })}</span>
+            <Arrow />
+          </a>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/**
+ * One game: its title, where it came from (the source label is never hidden), its level, then the progress or the best result,
+ * and the actions: Play / Continue as the one big button, last results, delete (icon button, set apart at the end).
+ */
+export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; onDelete: (id: string) => void }) {
+  const level = DIFFICULTIES.find((d) => d === g.difficulty);
+  const progress = t("lib.progress", { n: g.percent });
+  const action = g.inProgress ? t("lib.continue") : t("lib.play");
+  return (
+    <Card interactive className="w-full min-w-0 space-y-3 p-4" data-testid="mobile-game">
+      <h3 dir="auto" className="wrap-anywhere text-lg font-semibold leading-snug">{g.title}</h3>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-muted">
         <GeneratorBadge kind={g.generatorKind} provider={g.generatorKind} t={t} />
+        <span dir="auto" className="min-w-0 wrap-anywhere">{g.subject}</span>
+        {level && <><span aria-hidden>·</span><span data-testid="game-level">{t(`difficulty.${level}` as DictKey)}</span></>}
       </div>
-      <p dir="auto" className="wrap-anywhere text-sm text-muted">{g.subject}</p>
       {g.inProgress && (
         <div className="flex items-center gap-3">
-          <ProgressBar value={g.percent} label={t("lib.progress", { n: g.percent })} className="flex-1" />
-          <span className="shrink-0 text-xs text-muted">{t("lib.progress", { n: g.percent })}</span>
+          <ProgressBar value={g.percent} label={progress} className="flex-1" />
+          <span className="shrink-0 text-xs text-muted">{progress}</span>
         </div>
       )}
       {g.bestStars > 0 && <div className="flex flex-wrap items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}
-      <div className="flex flex-wrap gap-2">
-        <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action: g.inProgress ? t("lib.continue") : t("lib.play"), title: g.title })} className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 font-semibold text-ink-950">{g.inProgress ? t("lib.continue") : t("lib.play")}</a>
-        {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("mob.results")}</a>}
-        <Button variant="ghost" size="sm" className="ms-auto" aria-label={t("a11y.forGame", { action: t("mob.delete"), title: g.title })} onClick={() => onDelete(g.id)}>{t("mob.delete")}</Button>
+      <div className="flex items-center gap-2">
+        <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action, title: g.title })} className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-neon px-5 font-bold text-ink-950">{action}</a>
+        {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-12 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("mob.results")}</a>}
+        <button type="button" className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl text-muted transition hover:bg-text/10 hover:text-rose active:scale-[0.98]" title={t("mob.delete")} aria-label={t("a11y.forGame", { action: t("mob.delete"), title: g.title })} onClick={() => onDelete(g.id)}>
+          <Trash2 aria-hidden className="size-5" />
+        </button>
       </div>
     </Card>
   );

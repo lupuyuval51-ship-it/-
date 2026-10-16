@@ -17,6 +17,8 @@ export function DeckPage() {
     return (
       <div className="space-y-4" data-testid="deck-empty">
         <a href="#/" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
+        {/* like every other screen, one h1 names where the learner is (the state card below only says what there is to do) */}
+        <h1 className="text-2xl font-extrabold">{t("mob.deck.title")}</h1>
         <Card elevation="flat" className="py-0">
           <StateView
             kind="empty"

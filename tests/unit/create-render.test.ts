@@ -135,8 +135,42 @@ describe("New game screen (offline app)", () => {
     const html = render("en");
     for (const id of ["subject", "goal"]) expect(new RegExp(`<input[^>]*id="${id}"[^>]*class="[^"]*min-h-11`).test(html) || new RegExp(`<input[^>]*class="[^"]*min-h-11[^"]*"[^>]*id="${id}"`).test(html)).toBe(true);
     for (const id of ["mode", "gameType", "difficulty", "language"]) expect(new RegExp(`<select[^>]*(?:id="${id}"[^>]*class="[^"]*min-h-11|class="[^"]*min-h-11[^"]*"[^>]*id="${id}")`).test(html)).toBe(true);
-    for (const b of html.matchAll(/<button[^>]*class="([^"]*)"/g)) expect(b[1]).toContain("min-h-11");
+    for (const b of html.matchAll(/<button[^>]*class="([^"]*)"/g)) expect(b[1]).toMatch(/(?:^|\s)min-h-(?:11|12|14|16)(?:\s|$)/);
     expect(html).toMatch(/<a href="#\/"[^>]*class="[^"]*min-h-11/);
+  });
+
+  it("first view asks only for the subject: mode, game type, level and language are folded into one summarised 'game options' row", () => {
+    const html = render("en");
+    // the toggle is a real button: it says whether it is open, controls the body, and carries the current choice for screen readers
+    const toggle = /<button[^>]*data-testid="create-options-toggle"[^>]*>/.exec(html)?.[0] ?? "";
+    expect(toggle).toContain('aria-expanded="false"');
+    expect(toggle).toContain('aria-controls="create-options-body"');
+    expect(html).toMatch(/<div id="create-options-body" hidden=""/);
+    expect(html).toContain("Game options");
+    expect(html).toContain("Fast Game · Mission adventure · Beginner · English"); // the summary line
+    expect(html).toContain("Current choice: Fast Game"); // and its screen-reader twin
+    // the fields stay in the markup (hidden), so the saved draft and the e2e specs keep their ids
+    for (const id of ["goal", "mode", "gameType", "difficulty", "language"]) expect(html).toContain(`id="${id}"`);
+  });
+
+  it("the generate button is a sticky bar above the tab bar, a direct child of the form", () => {
+    const html = render("en");
+    expect(html).toMatch(/<div class="sticky bottom-\[calc\(57px\+env\(safe-area-inset-bottom\)\)\][^"]*"[^>]*data-testid="create-actions"><button[^>]*data-testid="mobile-create-submit"/);
+    expect(html.indexOf('data-testid="create-actions"')).toBeGreaterThan(html.indexOf('data-testid="create-options-column"'));
+    expect(html.lastIndexOf("</form>")).toBeGreaterThan(html.indexOf('data-testid="mobile-create-submit"'));
+  });
+
+  it("opens on the topic library for #/create?source=library (the empty library's suggestion), with the learner's own subject as default otherwise", () => {
+    expect(render("en", "#/create?source=library")).toContain('data-testid="create-topics-column"');
+    const own = render("en", "#/create");
+    expect(own).toContain('data-testid="create-notes-column"');
+    expect(own).not.toContain('data-testid="create-topics-column"');
+  });
+
+  it("the two ways to build are always side by side and the chosen one is marked", () => {
+    const html = render("en");
+    expect(html).toMatch(/data-testid="create-source"[\s\S]*grid grid-cols-2/);
+    expect(html).toMatch(/<input[^>]*data-testid="source-notes"[^>]*checked=""/);
   });
 
   it("uses logical (RTL-safe) spacing only", () => {

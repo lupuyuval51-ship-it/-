@@ -14,6 +14,8 @@ export const FILTER_MIN_GAMES = 4;
 export interface LibraryGame extends GameSummaryRow {
   /** When the game was last played (ms); falls back to when it was created. */
   lastPlayedAt: number;
+  /** The game's level (beginner / intermediate / advanced) as stored in its spec, when it can be read. */
+  difficulty?: string;
 }
 
 export interface DeckSummary { total: number; due: number; nextDue: number | null }
@@ -23,6 +25,8 @@ export interface LibrarySource {
   listGames(): GameSummaryRow[];
   getSession(id: string): { updatedAt: number } | null;
   deckSummary(): DeckSummary;
+  /** Optional: only used to show each game's level on its card. */
+  getGame?(id: string): { spec: { meta: { difficulty?: string } } } | null;
 }
 
 export type LibraryLoad = { ok: true; games: LibraryGame[]; deck: DeckSummary } | { ok: false };
@@ -42,7 +46,9 @@ export function loadLibrary(src: LibrarySource): LibraryLoad {
   try {
     const games = src.listGames().map((g): LibraryGame => {
       const last = g.lastSessionId ? src.getSession(g.lastSessionId)?.updatedAt : undefined;
-      return { ...g, lastPlayedAt: typeof last === "number" && Number.isFinite(last) ? last : g.createdAt };
+      let difficulty: string | undefined;
+      try { difficulty = src.getGame?.(g.id)?.spec.meta.difficulty; } catch { /* the level is only decoration */ }
+      return { ...g, lastPlayedAt: typeof last === "number" && Number.isFinite(last) ? last : g.createdAt, ...(difficulty ? { difficulty } : {}) };
     });
     let deck = NO_DECK;
     try { deck = src.deckSummary(); } catch { /* the games matter more than the badge */ }

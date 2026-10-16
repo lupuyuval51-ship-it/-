@@ -13,7 +13,8 @@ import {
   CONTINUE_MIN_GAMES, continueGame, FILTER_MIN_GAMES, filterCounts, filterGames, isDone, loadLibrary, orderGames, showFilters,
   type LibraryGame, type LibrarySource,
 } from "../../mobile/src/library-model";
-import { ContinueCard, FilterBar, GameCard } from "../../mobile/src/pages/library-parts";
+import { ContinueCard, EmptyLibrary, FilterBar, GameCard } from "../../mobile/src/pages/library-parts";
+import { TabBar } from "../../mobile/src/pages/TabBar";
 import { CREATE_DRAFT_KEY, deleteAllGames } from "../../mobile/src/reset";
 import { stripQuery } from "../../mobile/src/router";
 import { Welcome } from "../../mobile/src/pages/Welcome";
@@ -21,6 +22,7 @@ import { validDemoSpec } from "./helpers";
 
 const render = (el: ReactElement, locale: Locale = "en") => renderToStaticMarkup(h(I18nProvider, { locale, dict: DICTIONARIES[locale], children: el }));
 
+const count = (html: string, needle: string) => html.split(needle).length - 1;
 const row = (over: Partial<GameSummaryRow> = {}): GameSummaryRow => ({
   id: "g", title: "Game", subject: "Subject", createdAt: 1000, generatorKind: "engine", environment: "meadow", bestScore: 0, bestStars: 0, maxScore: 100,
   inProgress: false, percent: 0, lastSessionId: null, lastPlayedAt: null, ...over,
@@ -52,6 +54,20 @@ describe("library model: order, continue and filters", () => {
     if (!lib.ok) throw new Error("load failed");
     expect(continueGame(lib.games)?.id).toBe(a.id);
     expect(lib.deck).toEqual({ total: 0, due: 0, nextDue: null });
+  });
+
+  it("reads each game's level from its spec for the card, and a game whose spec cannot be read still lists", () => {
+    const store = new OfflineStore(memoryKV(), () => 5_000);
+    const spec = validDemoSpec();
+    const g = store.addGame({ ...spec, meta: { ...spec.meta, difficulty: "advanced" } });
+    const lib = loadLibrary(store);
+    if (!lib.ok) throw new Error("load failed");
+    expect(lib.games.find((x) => x.id === g.id)?.difficulty).toBe("advanced");
+    // a source without getGame (or one that throws) just leaves the level out
+    const src: LibrarySource = { listGames: () => [row({ id: "x" })], getSession: () => null, deckSummary: () => ({ total: 0, due: 0, nextDue: null }), getGame: () => { throw new Error("damaged"); } };
+    const bad = loadLibrary(src);
+    expect(bad.ok && bad.games[0]?.difficulty).toBeUndefined();
+    expect(bad.ok && bad.games).toHaveLength(1);
   });
 
   it("the extra continue card is only offered once the list is long enough to need it", () => {
@@ -263,12 +279,63 @@ describe("library pieces", () => {
     expect(html).not.toContain("progressbar");
     expect(html).toContain(">Play<");
   });
+  it("a game card names the game, its source label and its level, and deleting is a named icon button", () => {
+    const html = render(h(GameCard, { game: lg({ id: "g3", title: "Plants", subject: "Biology", generatorKind: "catalog", difficulty: "advanced" }), t, onDelete: () => {} }));
+    expect(html).toContain("Plants");
+    expect(html).toContain('data-testid="badge-catalog"'); // honest label: the topic library, never AI
+    expect(html).not.toContain("badge-ai");
+    expect(html).toContain('data-testid="game-level">Advanced<');
+    expect(html).toContain('aria-label="Delete: Plants"'); // the icon button says what it deletes
+    expect(html).toContain("<svg"); // (the trash icon)
+    for (const x of touchTargets(html)) expect(tallEnough(x.cls), x.cls).toBe(true);
+    // an unknown or missing level is simply left out
+    expect(render(h(GameCard, { game: lg({ id: "g4", difficulty: "expert" }), t, onDelete: () => {} }))).not.toContain("game-level");
+    expect(render(h(GameCard, { game: lg({ id: "g5" }), t, onDelete: () => {} }))).not.toContain("game-level");
+  });
+  it("the demo and engine games keep their own labels on the card", () => {
+    expect(render(h(GameCard, { game: lg({ generatorKind: "demo" }), t, onDelete: () => {} }))).toContain("badge-demo");
+    expect(render(h(GameCard, { game: lg({ generatorKind: "engine" }), t, onDelete: () => {} }))).toContain("badge-engine");
+  });
+  it("the empty library: example first, own notes second, and a ready-made-topics suggestion from the first interest", () => {
+    const withInterest = render(h(EmptyLibrary, { t, interest: "science" }));
+    expect(withInterest).toContain('data-testid="mobile-empty"');
+    expect(withInterest.indexOf("empty-example")).toBeLessThan(withInterest.indexOf("empty-create"));
+    expect(withInterest).toContain('href="#/create?example=1"');
+    expect(withInterest).toContain('data-testid="empty-suggest"');
+    expect(withInterest).toContain('href="#/create?source=library"');
+    expect(withInterest).toContain("Ready-made topics: Science");
+    const he = render(h(EmptyLibrary, { t: makeT(DICTIONARIES.he), interest: "math" }), "he");
+    expect(he).toContain("נושאים מוכנים: מתמטיקה");
+    const without = render(h(EmptyLibrary, { t }));
+    expect(without).not.toContain("empty-suggest");
+    for (const html of [withInterest, without]) for (const x of touchTargets(html)) expect(tallEnough(x.cls), x.cls).toBe(true);
+  });
   it("filter chips are toggle buttons with counts and exactly the current one is pressed", () => {
     const html = render(h(FilterBar, { filter: "progress", counts: { all: 5, progress: 2, done: 3 }, onChange: () => {}, t }));
     expect(html).toContain('role="group"');
     expect(html.match(/aria-pressed="true"/g)).toHaveLength(1);
     expect(html.match(/aria-pressed="false"/g)).toHaveLength(2);
     for (const x of touchTargets(html)) expect(tallEnough(x.cls), x.cls).toBe(true);
+  });
+});
+
+describe("bottom tab bar", () => {
+  it("has four labelled tabs, marks exactly the current one, and every tab is a 56px target", () => {
+    const html = render(h(TabBar, { path: "/review" }));
+    expect(html).toContain('aria-label="Main navigation"');
+    for (const id of ["tab-home", "tab-create", "tab-review", "tab-settings"]) expect(html).toContain(`data-testid="${id}"`);
+    expect(count(html, 'aria-current="page"')).toBe(1);
+    expect(html).toMatch(/aria-current="page" data-testid="tab-review"/);
+    for (const x of touchTargets(html)) expect(/(?:^|\s)min-h-14(?:\s|$)/.test(x.cls), x.cls).toBe(true);
+    // the active tab is more than a colour: a pill behind the icon, and the label is bold
+    expect(html).toMatch(/data-testid="tab-review"[^>]*class="[^"]*font-bold[^"]*"/);
+    expect(html).toContain("bg-neon/20");
+    // the bar sits above the system navigation bar
+    expect(html).toContain("env(safe-area-inset-bottom)");
+  });
+  it("a game's results and the plans screen belong to their parent tab", () => {
+    expect(render(h(TabBar, { path: "/games/g/results/s" }))).toMatch(/aria-current="page" data-testid="tab-home"/);
+    expect(render(h(TabBar, { path: "/plans" }))).toMatch(/aria-current="page" data-testid="tab-settings"/);
   });
 });
 
@@ -290,7 +357,7 @@ describe("error screen", () => {
 
 describe("phone screens: conventions the source must keep", () => {
   const root = path.resolve(import.meta.dirname, "../../mobile/src");
-  const files = ["App.tsx", "ErrorBoundary.tsx", "pages/Welcome.tsx", "pages/Library.tsx", "pages/library-parts.tsx", "pages/Settings.tsx", "pages/Results.tsx", "pages/Deck.tsx"];
+  const files = ["App.tsx", "ErrorBoundary.tsx", "pages/TabBar.tsx", "pages/Create.tsx", "pages/Welcome.tsx", "pages/Library.tsx", "pages/library-parts.tsx", "pages/Settings.tsx", "pages/Results.tsx", "pages/Deck.tsx"];
   const src = Object.fromEntries(files.map((f) => [f, readFileSync(path.join(root, f), "utf8")]));
 
   it("uses logical Tailwind properties only (RTL is the default language)", () => {
