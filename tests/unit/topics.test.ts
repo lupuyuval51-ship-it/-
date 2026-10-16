@@ -244,6 +244,21 @@ function checkGame(spec: GameSpec, label: string) {
   expect(playThrough(spec).finished, label).toBe(true);
 }
 
+describe("answer length is not a tell", () => {
+  // A right answer that is the only long option gives itself away. By chance it is the longest of four about a quarter of the
+  // time; the curated questions are at about 52 % today. This is a ratchet: new or edited content may lower it, never raise it.
+  // (Rewrite the shortest wrong options of a question rather than shortening its right answer.)
+  it("the right answer of a curated question is the longest option in at most 52 % of them", () => {
+    let all = 0, longest = 0;
+    for (const c of contents.values()) for (const lv of LEVELS) for (const pair of c[lv].q ?? []) for (const [, answer, wrong] of pair) {
+      all++;
+      if (answer.length > Math.max(...wrong.map((w) => w.length))) longest++;
+    }
+    expect(all).toBeGreaterThan(3000);
+    expect(longest / all).toBeLessThanOrEqual(0.52);
+  });
+});
+
 describe("every topic builds a valid, finishable game at every level", () => {
   it("FAST in both languages, FULL in one language per level (alternating), at tier A", () => {
     let n = 0;

@@ -191,7 +191,10 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
       define.push({
         kind: "define", objective: "terms",
         make: (id, lvl, objectiveId) => {
-          const wrong = others.slice(0, 3).map((o) => { const [w, m] = pick(o); return [m, t(`That describes “${w}”.`, `זה מתאר את ״${w}״.`)] as [string, string]; });
+          // Meanings differ a lot in length, and a right answer that is the only long one gives itself away: of the first few
+          // candidates, the ones closest in length to the right meaning are shown (the least alike comes last, as the hint).
+          const near = others.slice(0, 6).map((o) => pick(o)).sort((x, y) => Math.abs(x[1].length - meaning.length) - Math.abs(y[1].length - meaning.length));
+          const wrong = near.slice(0, 3).map(([w, m]) => [m, t(`That describes “${w}”.`, `זה מתאר את ״${w}״.`)] as [string, string]);
           const a = arrange([meaning, t(...RIGHT_FEEDBACK)], wrong, rnd);
           const base = choice({
             id, level: lvl, objectiveId, title: t("What does it mean?", "מה זה אומר?"), concept: clip(word, 60),
