@@ -79,9 +79,10 @@ test("vibration can be switched off in settings and the choice is kept", async (
   await expect(page.getByRole("checkbox", { name: /vibration|רטט/i })).not.toBeChecked();
 });
 
-test("the app never requests Unity files or any network resource, even when asked for the Unity renderer", async ({ page }) => {
+test("the app never requests Unity files or any network resource, even when asked for the Unity renderer", async ({ page, baseURL }) => {
   const requested: string[] = [];
-  page.on("request", (r) => { if (!r.url().startsWith("http://127.0.0.1:4173/") && !r.url().startsWith("data:") && !r.url().startsWith("blob:")) requested.push(r.url()); });
+  const own = `${new URL(baseURL!).origin}/`;
+  page.on("request", (r) => { if (!r.url().startsWith(own) && !r.url().startsWith("data:") && !r.url().startsWith("blob:")) requested.push(r.url()); });
   const unity: string[] = [];
   page.on("request", (r) => { if (/unity|\/api\//i.test(new URL(r.url()).pathname)) unity.push(r.url()); });
   await page.goto("/?renderer=unity#/create");
@@ -116,6 +117,8 @@ for (const vp of [{ width: 915, height: 412 }, { width: 390, height: 844 }]) {
     await page.getByTestId("interact-prompt").tap();
     const panel = page.getByTestId("challenge-panel");
     await expect(panel).toBeVisible();
+    // measure after the opening pop (it starts at 92 % scale)
+    await panel.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
 
     // the panel fits the viewport and its close X is a >=44px target
     const pb = (await panel.boundingBox())!;

@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 /** E2E for the offline Android app's web bundle (the same files Capacitor ships), on a phone viewport. */
-const PORT = 4173;
+const PORT = Number(process.env.MOBILE_E2E_PORT ?? 4173); // override to run two checkouts side by side
 const candidates = [process.env.PW_CHROMIUM_PATH, "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"].filter((p): p is string => Boolean(p));
 const executablePath = candidates.find((p) => existsSync(p));
 const launchOptions = { ...(executablePath ? { executablePath } : {}), args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"] };
