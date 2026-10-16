@@ -157,6 +157,9 @@ p { text-wrap: pretty; }
 
 /* One visible focus ring for everything focusable (cards, list rows, summaries, links, buttons, fields). */
 :focus-visible { outline: 2px solid var(--color-neon); outline-offset: 2px; border-radius: 6px; }
+/* The page heading is focused programmatically after navigation (screen readers land on it). It is not interactive,
+   so it must not look like a control: no ring. Only the heading carrying tabindex="-1" is affected. */
+main h1[tabindex="-1"]:focus, main h1[tabindex="-1"]:focus-visible { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
