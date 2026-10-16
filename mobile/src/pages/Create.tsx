@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { MaterialPreview } from "@/components/create/MaterialPreview";
 import { TopicPicker } from "@/components/create/TopicPicker";
 import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
@@ -59,7 +60,11 @@ export function CreatePage() {
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   /** "library": a ready topic from the topic library (built on the device, no AI); "notes": the learner's own subject and notes. */
-  const [source, setSource] = useState<"notes" | "library">("notes");
+  // (`#/create?source=library` from the empty library's "ready-made topics" suggestion opens on the topic library.)
+  const [source, setSource] = useState<"notes" | "library">(() => (hashQuery(window.location.hash).get("source") === "library" ? "library" : "notes"));
+  // The mode, game type, level and language are folded away at first: the subject (and notes) are the only decisions that matter
+  // on first view, the rest has good defaults (the first-run answers) and is summarised in one line.
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [topicId, setTopicId] = useState<string | null>(null);
   const [topicError, setTopicError] = useState(false);
   const library = source === "library";
@@ -184,6 +189,9 @@ export function CreatePage() {
   const lockedField = t("mob.create.field.locked");
   const lockedLabel = (label: string, ok: boolean) => (ok ? label : `${label} (${t("mob.create.locked")})`);
 
+  // a problem with the mode or the game type opens the options so that the field it names can be shown and focused
+  const optionsVisible = optionsOpen || problem?.kind === "tier";
+  const optionsSummary = [modeName, typeName, t(`difficulty.${form.difficulty}`), t(`lang.${form.language}`)].join(" · ");
   const hasMaterial = form.material.trim().length > 0;
   const script = detectScript(form.material);
   const showLangHint = script !== null && script !== form.language && langKept !== script;
@@ -196,9 +204,9 @@ export function CreatePage() {
         <h1 className="text-2xl font-extrabold">{t("mob.create.title")}</h1>
         <fieldset className="space-y-2" data-testid="create-source">
           <legend className="mb-1 text-sm font-semibold">{t("topics.source.title")}</legend>
-          <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             {(["notes", "library"] as const).map((s) => (
-              <label key={s} className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium ${source === s ? "border-neon bg-neon/10" : "border-line"}`}>
+              <label key={s} className={`flex min-h-14 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold leading-snug transition focus-within:ring-2 focus-within:ring-neon/50 ${source === s ? "border-neon bg-neon/15 shadow-e1" : "border-line text-muted"}`}>
                 <input type="radio" name="source" value={s} checked={source === s} disabled={busy} onChange={() => setSource(s)} className="size-4 accent-[var(--color-neon)]" data-testid={`source-${s}`} />
                 {s === "notes" ? t("topics.source.own") : t("topics.source.library")}
               </label>
@@ -275,6 +283,22 @@ export function CreatePage() {
       </div>
       )}
       <div className="min-w-0 space-y-4" data-testid="create-options-column">
+      <section className="rounded-2xl border border-line bg-ink-900/60" data-testid="create-options">
+        <h2>
+          <button
+            type="button" id="create-options-toggle" data-testid="create-options-toggle" aria-expanded={optionsVisible} aria-controls="create-options-body"
+            onClick={() => setOptionsOpen(!optionsVisible)}
+            className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-2 text-start"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-semibold">{t("mob.create.options.title")}</span>
+              <span className="sr-only">{t("mob.create.options.summary", { summary: optionsSummary })}</span>
+              <span aria-hidden className="block text-xs font-normal text-muted">{optionsSummary}</span>
+            </span>
+            <ChevronDown aria-hidden className={`size-5 shrink-0 text-muted transition-transform ${optionsVisible ? "rotate-180" : ""}`} />
+          </button>
+        </h2>
+        <div id="create-options-body" hidden={!optionsVisible} className="space-y-4 border-t border-line p-4" data-testid="create-options-body">
       {!library && (
         <Field label={t("create.goal")} hint={t("mob.create.goal.hint")} htmlFor="goal">
           <Input id="goal" className="min-h-11" value={form.goal} maxLength={INPUT_LIMITS.goalMax} disabled={busy} enterKeyHint="done" onKeyDown={(e) => nextOnEnter(e, null)} onChange={(e) => change("goal", e.target.value)} placeholder={t("create.goal.placeholder")} />
@@ -310,23 +334,29 @@ export function CreatePage() {
           </Select>
         </Field>
       </div>
+        </div>
+      </section>
       <div ref={alertBox} className="scroll-mt-4">
         {alertText && <Alert tone="error" data-testid="mobile-create-error">{alertText}</Alert>}
       </div>
-      {busy && (
-        <div className="space-y-2" role="status" aria-live="polite" data-testid="mobile-progress" data-percent={progress.percent} data-stage={progress.stage}>
-          <p className="text-sm font-semibold">{t(`mob.stage.${progress.stage}`)} <span className="ltr-num">{progress.percent}%</span></p>
-          <ProgressBar value={progress.percent} label={t("mob.create.building")} />
-          <p className="text-xs text-muted">{t("mob.create.step", { n: stageIndex + 1, total: STAGES.length })}</p>
-        </div>
-      )}
-      <Button type="submit" size="lg" className="w-full" disabled={busy} data-testid="mobile-create-submit">{busy ? t("mob.create.building") : t("create.submit")}</Button>
       {!library && !isBlankForm(form) && !busy && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1" data-testid="create-draft">
           <p className="min-w-0 flex-1 text-xs text-muted">{t("mob.create.draft.note")}</p>
           <Button type="button" size="sm" variant="ghost" onClick={() => dispatch({ type: "clear" })}>{t("mob.create.draft.clear")}</Button>
         </div>
       )}
+      </div>
+      {/* The main action stays on screen, just above the tab bar, while the form scrolls; the build progress is shown with it.
+          A direct child of the form: a sticky element cannot leave its parent, so inside a column it would only stick once that column came into view. */}
+      <div className="sticky bottom-[calc(57px+env(safe-area-inset-bottom))] z-20 -mx-4 md:col-span-2 space-y-2 border-t border-line bg-ink-950/90 px-4 pb-3 pt-3 backdrop-blur" data-testid="create-actions">
+        {busy && (
+          <div className="space-y-1.5" role="status" aria-live="polite" data-testid="mobile-progress" data-percent={progress.percent} data-stage={progress.stage}>
+            <p className="text-sm font-semibold">{t(`mob.stage.${progress.stage}`)} <span className="ltr-num">{progress.percent}%</span></p>
+            <ProgressBar value={progress.percent} label={t("mob.create.building")} />
+            <p className="text-xs text-muted">{t("mob.create.step", { n: stageIndex + 1, total: STAGES.length })}</p>
+          </div>
+        )}
+        <Button type="submit" size="lg" className="min-h-14 w-full" disabled={busy} data-testid="mobile-create-submit">{busy ? t("mob.create.building") : t("create.submit")}</Button>
       </div>
     </form>
   );

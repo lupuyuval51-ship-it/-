@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { RotateCcw } from "lucide-react";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
-import { primaryLink, secondaryLink, StateView } from "@/components/ui/StateView";
+import { secondaryLink, StateView } from "@/components/ui/StateView";
 import { browserKV } from "@/lib/offline/store";
 import { hashQuery, markWelcomeSeen, shouldShowWelcome } from "@/lib/offline/onboarding";
-import { store } from "../app-state";
+import { getSettings, store } from "../app-state";
 import { useAccount } from "../cloud/account";
 import { formatWhen, syncLineKey } from "../format";
 import { continueGame, filterCounts, filterGames, loadLibrary, showFilters, type LibraryFilter } from "../library-model";
 import { stripQuery } from "../router";
-import { ContinueCard, FilterBar, GameCard } from "./library-parts";
+import { ContinueCard, EmptyLibrary, FilterBar, GameCard } from "./library-parts";
 import { Welcome } from "./Welcome";
 
 /** The chosen filter survives opening a game and coming back (kept for the app session only; a new launch starts at "All"). */
@@ -95,52 +95,34 @@ export function LibraryPage() {
       ) : (
         <>
           {resume && !welcome && <ContinueCard game={resume} t={t} />}
-          <div className="space-y-5 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">
-            <a
-              href="#/create"
-              data-testid="mobile-new"
-              className={`flex min-h-14 items-center justify-center rounded-2xl text-lg font-bold md:min-h-16 ${resume && !welcome ? "border-2 border-neon text-neon" : "bg-neon text-ink-950"}`}
-            >
-              + {t("mob.new")}
-            </a>
-            {deck && deck.total > 0 && (
-              <a href="#/review" data-testid="deck-open" data-due={deck.due} className="flex min-h-14 items-center gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 shadow-e1 transition hover:border-violet active:scale-[0.99]">
-                <RotateCcw aria-hidden className="size-5 shrink-0 text-violet-soft" />
-                <span className="me-auto">
-                  <span className="block font-semibold">{t("mob.deck.title")}</span>
-                  <span className="block text-sm text-muted">{deck.due > 0 ? t("mob.deck.due", { n: deck.due }) : t("mob.deck.later", { n: deck.total })}</span>
-                </span>
-                <Arrow />
+          {!(games.length === 0 && !welcome) && (
+            <div className="space-y-4 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">
+              <a
+                href="#/create"
+                data-testid="mobile-new"
+                className={`flex min-h-14 items-center justify-center rounded-2xl text-lg font-bold md:min-h-16 ${resume && !welcome ? "border-2 border-neon text-neon" : "bg-neon text-ink-950 shadow-glow"}`}
+              >
+                <span aria-hidden className="me-2">+</span>{t("mob.new")}
               </a>
-            )}
-          </div>
+              {deck && deck.total > 0 && (
+                <a href="#/review" data-testid="deck-open" data-due={deck.due} className="flex min-h-14 items-center gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 shadow-e1 transition hover:border-violet active:scale-[0.99]">
+                  <RotateCcw aria-hidden className="size-5 shrink-0 text-violet-soft" />
+                  <span className="me-auto">
+                    <span className="block font-semibold">{t("mob.deck.title")}</span>
+                    <span className="block text-sm text-muted">{deck.due > 0 ? t("mob.deck.due", { n: deck.due }) : t("mob.deck.later", { n: deck.total })}</span>
+                  </span>
+                  <Arrow />
+                </a>
+              )}
+            </div>
+          )}
           <h2 id="library-title" ref={heading} tabIndex={-1} className="text-lg font-semibold outline-none">{t("lib.title")}</h2>
           {games.length === 0 ? (
             welcome ? (
               // The welcome card above already explains what to do: keep the empty state to one quiet line.
               <p data-testid="mobile-empty" className="rounded-2xl border border-dashed border-line px-4 py-5 text-center text-sm text-muted">{t("lib.empty.title")} · {t("lib.empty.text")}</p>
             ) : (
-              <Card elevation="flat" className="py-0">
-                <StateView
-                  kind="empty"
-                  data-testid="mobile-empty"
-                  title={t("mob.empty.title")}
-                  text={
-                    <>
-                      {t("mob.empty.text")}
-                      <span className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs">
-                        {(["mob.empty.tip1", "mob.empty.tip2", "mob.empty.tip3"] as const).map((k) => <span key={k}>✓ {t(k)}</span>)}
-                      </span>
-                    </>
-                  }
-                  actions={
-                    <>
-                      <a href="#/create?example=1" data-testid="empty-example" className={primaryLink}>{t("mob.empty.example")}</a>
-                      <a href="#/create" data-testid="empty-create" className={secondaryLink}>{t("lib.empty.cta")}</a>
-                    </>
-                  }
-                />
-              </Card>
+              <EmptyLibrary t={t} interest={getSettings().interests[0]} />
             )
           ) : (
             <>

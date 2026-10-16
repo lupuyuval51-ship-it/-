@@ -7,10 +7,17 @@ const DRAFT_KEY = "levelup.mobile.createDraft";
 const readDraft = (page: Page) => page.evaluate((k) => localStorage.getItem(k), DRAFT_KEY);
 const water = EXAMPLES[0]!;
 const fractions = EXAMPLES.find((e) => e.id === "fractions")!;
+/** The mode, game type, level, language and goal are folded into one "game options" row: open it before touching them. */
+const openOptions = async (page: Page) => {
+  const toggle = page.getByTestId("create-options-toggle");
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+};
 
 test("an unfinished draft is kept when the learner leaves the screen, restored on return and after a restart, and dropped once the game is built", async ({ page }) => {
   await page.goto("/#/create");
   await page.locator("#subject").fill("הנושא שלי");
+  await openOptions(page);
   await page.locator("#goal").fill("להבין את החומר");
   await page.locator("#difficulty").selectOption("advanced");
   await page.getByTestId("mobile-create").getByRole("link", { name: "חזרה" }).click();
@@ -102,10 +109,29 @@ test("notes in another language than the game get a suggestion to switch, which 
   await hint.getByRole("button", { name: "החלפה" }).click();
   await expect(page.locator("#language")).toHaveValue("en");
   await expect(hint).toHaveCount(0);
+  await openOptions(page);
   await page.locator("#language").selectOption("he");
   await expect(hint).toBeVisible();
   await hint.getByRole("button", { name: "להשאיר" }).click();
   await expect(hint).toHaveCount(0);
+});
+
+test("first view asks for the subject only: the options are folded into one row that shows the current choice", async ({ page }) => {
+  await page.goto("/#/create");
+  const toggle = page.getByTestId("create-options-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(toggle).toHaveAttribute("aria-controls", "create-options-body");
+  await expect(page.locator("#difficulty")).toBeHidden();
+  await expect(page.locator("#mode")).toBeHidden();
+  await expect(toggle).toContainText("מתחילים"); // the summary names the level, the mode, the type and the language
+  await openOptions(page);
+  await expect(page.locator("#difficulty")).toBeVisible();
+  await page.locator("#difficulty").selectOption("advanced");
+  await toggle.click(); // fold it again: the summary follows the choice
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator("#difficulty")).toBeHidden();
+  await expect(toggle).toContainText("מתקדם");
+  await expect(page.locator("#difficulty")).toHaveValue("advanced");
 });
 
 test.describe("on a 360px phone", () => {
@@ -128,5 +154,40 @@ test.describe("on a 360px phone", () => {
       expect(box.height, `control ${i}`).toBeGreaterThanOrEqual(43);
       expect(box.x + box.width, `control ${i} inside the screen`).toBeLessThanOrEqual(360.5);
     }
+  });
+
+  test("the generate button stays on screen, above the tab bar, while the form scrolls", async ({ page }) => {
+    await page.goto("/#/create");
+    const submit = page.getByTestId("mobile-create-submit");
+    const bar = page.getByTestId("tab-bar");
+    for (const y of [0, 400, 100_000]) {
+      await page.evaluate((to) => window.scrollTo(0, to), y);
+      const b = (await submit.boundingBox())!;
+      const tabs = (await bar.boundingBox())!;
+      expect(b.height, `scrolled to ${y}`).toBeGreaterThanOrEqual(48);
+      expect(b.y, `scrolled to ${y}`).toBeGreaterThanOrEqual(0);
+      expect(b.y + b.height, `scrolled to ${y}`).toBeLessThanOrEqual(tabs.y + 1);
+    }
+  });
+
+  test("the empty library suggests ready-made topics from the first interest of the questionnaire", async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem("seeded")) return;
+      sessionStorage.setItem("seeded", "1");
+      localStorage.clear();
+      localStorage.setItem("levelup.mobile.settings", JSON.stringify({ locale: "en", region: "OTHER", setupDone: true, interests: ["science", "math"] }));
+      localStorage.setItem("levelup.mobile.welcome", "1");
+    });
+    await page.goto("/#/");
+    await expect(page.getByTestId("mobile-empty")).toBeVisible();
+    await expect(page.getByTestId("mobile-new")).toHaveCount(0); // the hero is the one big way in
+    const example = (await page.getByTestId("empty-example").boundingBox())!;
+    expect(example.height).toBeGreaterThanOrEqual(55);
+    await expect(page.getByTestId("empty-suggest")).toContainText("Ready-made topics: Science");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.getByTestId("empty-suggest").click();
+    await expect(page.getByTestId("topic-picker")).toBeVisible(); // opens on the topic library ...
+    await expect(page.getByTestId("topic-cat-science")).toHaveAttribute("aria-pressed", "true"); // ... on the learner's first interest
+    await expect(page.getByTestId("source-library")).toBeChecked();
   });
 });

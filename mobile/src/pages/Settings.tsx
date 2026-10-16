@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Alert, Arrow, Button, Card, Field, Select } from "@/components/ui";
+import { Alert, Arrow, Button, Field, Select } from "@/components/ui";
 import { GRAPHICS_TIERS, type GraphicsTier } from "@/config/plans";
 import { REGION_CHOICES } from "@/lib/offline/first-run";
 import { browserKV } from "@/lib/offline/store";
@@ -13,27 +13,37 @@ import { BackupPanel } from "./BackupPanel";
 import { navigate } from "../router";
 
 /**
- * A titled group of settings. The title is a real heading so TalkBack's heading navigation can jump between sections,
- * except where the group's own panels bring their headings (account, backup): then it only names the region, and the
+ * A titled group of settings: a real heading (TalkBack's heading navigation jumps between sections) above a card that holds the
+ * group's controls. Where the group brings panels of its own (account, backup), `boxed={false}` only names the region, and the
  * panels' headings stay siblings of the other sections' instead of nesting under a same-level heading.
  */
-function Section({ id, title, heading = true, children }: { id: string; title: string; heading?: boolean; children: ReactNode }) {
-  const cls = "text-sm font-bold uppercase tracking-wide text-muted";
+function Section({ id, title, heading = true, boxed = true, tone = "plain", children }: { id: string; title: string; heading?: boolean; boxed?: boolean; tone?: "plain" | "danger"; children: ReactNode }) {
+  const cls = "px-1 text-lg font-bold";
   return (
     <section aria-labelledby={id} className="space-y-3">
       {heading ? <h2 id={id} className={cls}>{title}</h2> : <p id={id} className={cls}>{title}</p>}
-      {children}
+      {boxed ? <div className={`space-y-4 rounded-2xl border p-4 ${tone === "danger" ? "border-rose/40" : "border-line bg-ink-900/60"}`}>{children}</div> : <div className="space-y-3">{children}</div>}
     </section>
   );
 }
 
-/** One on/off setting: the whole row is the (48px) tap target, the checkbox sits at the end of the line. */
+/** One on/off setting: the whole row is the (56px) tap target, the checkbox sits at the end of the line. */
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-line bg-ink-900/60 px-4">
+    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-3 py-1">
       <span>{label}</span>
-      <input type="checkbox" className="size-5 shrink-0 accent-neon" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" className="size-6 shrink-0 accent-neon" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     </label>
+  );
+}
+
+/** A row that opens another screen: label at the start, an arrow at the end (full width, 56px). */
+function LinkRow({ label, onOpen, testId }: { label: string; onOpen: () => void; testId: string }) {
+  return (
+    <Button variant="secondary" className="min-h-14 w-full justify-between text-start" data-testid={testId} onClick={onOpen}>
+      <span>{label}</span>
+      <Arrow />
+    </Button>
   );
 }
 
@@ -72,7 +82,7 @@ export function SettingsPage() {
             </Field>
           </Section>
           <Section id="set-feel" title={t("mob.settings.sec.feel")}>
-            <div className="space-y-2">
+            <div className="divide-y divide-line">
               <Toggle label={t("hud.sound")} checked={s.sound} onChange={(sound) => setSettings({ sound })} />
               <Toggle label={t("hud.music")} checked={s.music} onChange={(music) => setSettings({ music })} />
               <Toggle label={t("mob.settings.vibration")} checked={s.vibration} onChange={(vibration) => setSettings({ vibration })} />
@@ -80,27 +90,29 @@ export function SettingsPage() {
           </Section>
         </div>
         <div className="space-y-6">
-          <Section id="set-data" title={t("mob.settings.sec.data")} heading={false}>
+          <Section id="set-data" title={t("mob.settings.sec.data")} heading={false} boxed={false}>
             <AccountPanel />
             <BackupPanel />
           </Section>
           <Section id="set-about" title={t("mob.settings.sec.about")}>
-            <Card className="space-y-2 text-sm text-muted">
+            <div className="space-y-2 text-sm text-muted">
               <p>{t("mob.settings.privacy")}</p>
               <p>{t("mob.settings.about")}</p>
-            </Card>
-            <Button variant="secondary" data-testid="open-plans" onClick={() => navigate("/plans")}>{t("pricing.title")}</Button>
-            <Button variant="secondary" data-testid="about-credits" onClick={() => navigate("/about")}>{t("mob.settings.credits")}</Button>
-            <Button variant="secondary" data-testid="setup-again" onClick={() => { setSettings({ setupDone: false }); navigate("/"); }}>{t("mob.settings.setupAgain")}</Button>
-            <Button variant="secondary" data-testid="welcome-again" onClick={() => navigate("/?welcome=1")}>{t("mob.settings.welcome")}</Button>
+            </div>
+            <div className="space-y-2">
+              <LinkRow label={t("pricing.title")} testId="open-plans" onOpen={() => navigate("/plans")} />
+              <LinkRow label={t("mob.settings.credits")} testId="about-credits" onOpen={() => navigate("/about")} />
+              <LinkRow label={t("mob.settings.setupAgain")} testId="setup-again" onOpen={() => { setSettings({ setupDone: false }); navigate("/"); }} />
+              <LinkRow label={t("mob.settings.welcome")} testId="welcome-again" onOpen={() => navigate("/?welcome=1")} />
+            </div>
           </Section>
         </div>
       </div>
-      <section aria-label={t("mob.settings.clear")} className="space-y-2 rounded-2xl border border-rose/40 p-4">
+      <Section id="set-erase" title={t("mob.settings.sec.erase")} tone="danger">
         <p id="clear-hint" className="text-sm text-muted">{t("mob.settings.clear.hint")}</p>
         <Button
           variant="danger"
-          className="w-full sm:w-auto"
+          className="min-h-12 w-full sm:w-auto"
           aria-describedby="clear-hint"
           data-testid="clear-all"
           onClick={() => {
@@ -116,7 +128,7 @@ export function SettingsPage() {
           {t("mob.settings.clear")}
         </Button>
         {clearFailed && <Alert tone="error" data-testid="clear-error">{t("mob.settings.clear.error")}</Alert>}
-      </section>
+      </Section>
     </div>
   );
 }

@@ -66,11 +66,22 @@ export function App() {
           ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play /></Suspense>
           : <>
               {/* bottom padding: the content never ends under the tab bar */}
-              <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))", paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><div className="lu-page"><Suspense fallback={null}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>
+              <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))", paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><div className="lu-page"><Suspense fallback={<ScreenLoading />}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>
               <TabBar path={path} />
             </>}
       </ErrorBoundary>
     </I18nProvider>
+  );
+}
+
+/** What a screen shows while its chunk loads: a spinner that only appears if loading takes a moment (no flash on a fast phone). */
+function ScreenLoading() {
+  const t = useT();
+  return (
+    <div role="status" aria-live="polite" className="lu-delayed grid place-items-center gap-3 py-24 text-muted" data-testid="screen-loading">
+      <Spinner className="size-8" />
+      <span className="text-sm">{t("common.loading")}</span>
+    </div>
   );
 }
 

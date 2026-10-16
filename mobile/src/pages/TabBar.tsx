@@ -24,10 +24,13 @@ export function TabBar({ path }: { path: string }) {
           const active = isActive(href, path);
           return (
             <li key={href}>
-              <a href={`#${href}`} aria-current={active ? "page" : undefined} data-testid={test}
-                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 text-xs font-semibold ${active ? "text-neon" : "text-muted hover:text-text"}`}>
-                <Icon aria-hidden className="size-6" strokeWidth={active ? 2.5 : 2} />
-                <span className="truncate">{t(key)}</span>
+              <a href={`#${href}`} aria-current={active ? "page" : undefined} data-testid={test} data-active={active ? "1" : undefined}
+                className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl px-1 pb-1 pt-1.5 text-xs transition-colors focus-visible:-outline-offset-4 ${active ? "font-bold text-neon" : "font-semibold text-muted hover:text-text"}`}>
+                {/* the active tab is marked by a pill behind its icon and a bolder label, not by colour alone */}
+                <span className={`grid h-8 w-14 place-items-center rounded-full transition-colors ${active ? "bg-neon/20" : ""}`}>
+                  <Icon aria-hidden className="size-6" strokeWidth={active ? 2.5 : 2} />
+                </span>
+                <span className="max-w-full truncate">{t(key)}</span>
               </a>
             </li>
           );

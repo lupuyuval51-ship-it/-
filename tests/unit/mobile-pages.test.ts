@@ -79,6 +79,17 @@ describe("library page states", () => {
     expect(html).toContain('data-testid="empty-create"');
   });
 
+  it("the empty library has one big way in: no second 'New game' button above it, and the example is a 56px primary action", () => {
+    markWelcomeSeen(browserKV());
+    const html = render(h(LibraryPage));
+    expect(html).not.toContain('data-testid="mobile-new"'); // the hero's own buttons (and the tab bar) lead to the create screen
+    expect(html).toMatch(/data-testid="empty-example"[^>]*>|<a[^>]*data-testid="empty-example"/);
+    expect(html).toMatch(/class="[^"]*min-h-14[^"]*bg-neon[^"]*"[^>]*|class="[^"]*bg-neon[^"]*min-h-14[^"]*"/);
+    expect(html).not.toContain("empty-suggest"); // no interest chosen: nothing to suggest
+    expect(count(html, "<h1")).toBe(1);
+    expect(html).toContain('id="library-title"');
+  });
+
   it("a returning player with several games gets 'continue' for the latest unfinished one, and New game steps back to a secondary style", () => {
     const store = seed();
     const a = store.addGame(validDemoSpec());
@@ -176,13 +187,16 @@ describe("library page states", () => {
 describe("settings page", () => {
   it("groups settings under real headings; every select and toggle is a 44px target; the privacy text is not misleading", () => {
     const html = render(h(SettingsPage));
-    for (const id of ["set-look", "set-feel", "set-data", "set-about"]) expect(html).toContain(`id="${id}"`);
+    for (const id of ["set-look", "set-feel", "set-data", "set-about", "set-erase"]) expect(html).toContain(`id="${id}"`);
     expect(count(html, "<h1")).toBe(1);
     // the data section only names its region: the account/backup panels bring their own headings, so no h2 nests in an h2
     expect(html).toContain('<p id="set-data"');
-    expect(count(html, "<h2")).toBe(3);
+    expect(count(html, "<h2")).toBe(4); // look, feel, about and "erase data" (the delete-all button has its own titled section)
+    expect(html).toMatch(/<h2 id="set-erase"[^>]*>Erase data<\/h2>/);
+    // every group is a bordered card under its heading
+    expect(count(html, "rounded-2xl border p-4")).toBe(4);
     for (const m of html.matchAll(/<select\b[^>]*>/g)) expect(m[0]).toMatch(/min-h-11/);
-    for (const m of html.matchAll(/<label\b[^>]*class="[^"]*flex[^"]*"[^>]*>/g)) expect(m[0]).toMatch(/min-h-1[12]/);
+    for (const m of html.matchAll(/<label\b[^>]*class="[^"]*flex[^"]*"[^>]*>/g)) expect(m[0]).toMatch(/min-h-1[124]/);
     expect(count(html, 'type="checkbox"')).toBe(3);
     expect(html).toContain('data-testid="clear-all"');
     expect(html).toContain('aria-describedby="clear-hint"');
@@ -198,6 +212,8 @@ describe("deck and results pages", () => {
     const html = render(h(DeckPage));
     expect(html).toContain('data-testid="deck-empty"');
     expect(html).toMatch(/<a href="#\/"[^>]*class="[^"]*min-h-11/);
+    expect(count(html, "<h1")).toBe(1); // the screen is named like every other one; the state card's title is an h2
+    expect(html).toMatch(/<h1[^>]*>Review my mistakes<\/h1>/);
   });
 
   it("a results link to a deleted game says so and offers the library", () => {
