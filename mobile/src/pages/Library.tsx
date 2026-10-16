@@ -6,6 +6,7 @@ import { secondaryLink, StateView } from "@/components/ui/StateView";
 import { browserKV } from "@/lib/offline/store";
 import { hashQuery, markWelcomeSeen, shouldShowWelcome } from "@/lib/offline/onboarding";
 import { getSettings, store } from "../app-state";
+import { Brand } from "@/components/ui/Brand";
 import { useAccount } from "../cloud/account";
 import { formatWhen, syncLineKey } from "../format";
 import { continueGame, filterCounts, filterGames, loadLibrary, showFilters, type LibraryFilter } from "../library-model";
@@ -71,7 +72,7 @@ export function LibraryPage() {
     <div className="space-y-5" data-testid="mobile-library">
       {/* Settings, review and a new game are in the bottom tab bar (App.tsx), within reach of the thumb */}
       <header className="min-w-0">
-        <h1 className="text-3xl font-extrabold tracking-tight">LEVEL UP</h1>
+        <h1><Brand size="lg" /></h1>
         <p className="text-sm text-muted">{t("mob.tagline")}</p>
       </header>
       {welcome && <Welcome onDone={closeWelcome} onSkip={() => { closeWelcome(); focusHeading(); }} />}
@@ -95,12 +96,13 @@ export function LibraryPage() {
       ) : (
         <>
           {resume && !welcome && <ContinueCard game={resume} t={t} />}
+          {/* one main action per screen: next to the welcome's "Try an example" (or a game to continue) this one is outlined */}
           {!(games.length === 0 && !welcome) && (
             <div className="space-y-4 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">
               <a
                 href="#/create"
                 data-testid="mobile-new"
-                className={`flex min-h-14 items-center justify-center rounded-2xl text-lg font-bold md:min-h-16 ${resume && !welcome ? "border-2 border-neon text-neon" : "bg-neon text-ink-950 shadow-glow"}`}
+                className={`flex min-h-14 items-center justify-center rounded-2xl text-lg font-bold md:min-h-16 ${resume || welcome ? "border-2 border-neon text-neon" : "bg-neon text-ink-950 shadow-glow"}`}
               >
                 <span aria-hidden className="me-2">+</span>{t("mob.new")}
               </a>

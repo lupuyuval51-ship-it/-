@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@fontsource-variable/heebo";
+@import "@fontsource-variable/rubik";
 
 /*
  * LEVEL UP design tokens — the ONE design system, shared by the website and the Android app (mobile/ imports this file).
@@ -9,24 +9,24 @@
  */
 @theme {
   /* surfaces (950 = page, 900 = inset/field, 800 = card, 700/600 = raised/hover) */
-  --color-ink-950: #060914;
-  --color-ink-900: #0a0f1f;
-  --color-ink-800: #101833;
-  --color-ink-700: #18224a;
-  --color-ink-600: #25326a;
-  --color-line: #2a3769;
-  --color-text: #e8ecff;
-  --color-muted: #9aa6d4;
+  --color-ink-950: #0e1b17;
+  --color-ink-900: #13241f;
+  --color-ink-800: #182d27;
+  --color-ink-700: #20392f;
+  --color-ink-600: #2b4a3e;
+  --color-line: #2f4c41;
+  --color-text: #f3f0e4;
+  --color-muted: #a8b9ae;
   /* accents: usable as fills (with ink-950 text on top) and as text on surfaces */
-  --color-neon: #22e6ff;
-  --color-violet: #8b5cf6;
+  --color-neon: #ffd23f;
+  --color-violet: #a594ff;
   /* readable violet for text (the fill violet is only ~3:1 as text) */
-  --color-violet-soft: #c4b5fd;
-  --color-lime: #a3ff4f;
-  --color-amber: #ffc63d;
-  --color-rose: #ff5c8a;
+  --color-violet-soft: #cdc3ff;
+  --color-lime: #8fe39b;
+  --color-amber: #ffa94d;
+  --color-rose: #ff8a7a;
 
-  --font-sans: "Heebo Variable", "Heebo", system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
+  --font-sans: "Rubik Variable", "Rubik", system-ui, -apple-system, "Segoe UI", "Noto Sans Hebrew", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* fluid type scale (360px → 1280px viewports); line heights tuned for Hebrew, which needs more air than Latin */
@@ -53,7 +53,7 @@
   --shadow-e1: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 1px rgb(0 0 0 / 0.2);
   --shadow-e2: 0 6px 18px -6px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.35);
   --shadow-e3: 0 18px 40px -12px rgb(0 0 0 / 0.65), 0 6px 14px -6px rgb(0 0 0 / 0.4);
-  --shadow-glow: 0 0 24px -6px var(--color-neon);
+  --shadow-glow: 0 4px 0 0 color-mix(in oklab, var(--color-neon) 55%, #000);
 
   /* layout widths: one content width, one wide width for dashboards */
   --container-content: 72rem;
@@ -62,70 +62,70 @@
 
 /* ───────── light theme ───────── */
 :root[data-theme="light"] {
-  --color-ink-950: #f5f7fc;
-  --color-ink-900: #ffffff;
-  --color-ink-800: #ffffff;
-  --color-ink-700: #eef1f8;
-  --color-ink-600: #dce2ef;
-  --color-line: #d2d9e8;
-  --color-text: #10162e;
-  --color-muted: #4b5677;
-  --color-neon: #0a6d8c;
-  --color-violet: #6d3fe0;
-  --color-violet-soft: #5a2ccc;
-  --color-lime: #2d7411;
-  --color-amber: #8a5800;
-  --color-rose: #c0185a;
-  --shadow-e1: 0 1px 2px rgb(16 22 46 / 0.08), 0 1px 1px rgb(16 22 46 / 0.05);
-  --shadow-e2: 0 6px 18px -8px rgb(16 22 46 / 0.18), 0 2px 6px -2px rgb(16 22 46 / 0.08);
-  --shadow-e3: 0 18px 40px -14px rgb(16 22 46 / 0.25), 0 6px 14px -6px rgb(16 22 46 / 0.1);
-  --shadow-glow: 0 6px 18px -8px var(--color-neon);
+  --color-ink-950: #f6f1e7;
+  --color-ink-900: #fffdf7;
+  --color-ink-800: #fffefa;
+  --color-ink-700: #efe8d9;
+  --color-ink-600: #e2d9c6;
+  --color-line: #dcd2bf;
+  --color-text: #1b2a24;
+  --color-muted: #4f5c55;
+  --color-neon: #1b5e44;
+  --color-violet: #5b3cc4;
+  --color-violet-soft: #4a2fae;
+  --color-lime: #235f26;
+  --color-amber: #7a4a00;
+  --color-rose: #a12b22;
+  --shadow-e1: 0 1px 2px rgb(40 32 16 / 0.08), 0 1px 1px rgb(40 32 16 / 0.05);
+  --shadow-e2: 0 6px 18px -8px rgb(40 32 16 / 0.18), 0 2px 6px -2px rgb(40 32 16 / 0.08);
+  --shadow-e3: 0 18px 40px -14px rgb(40 32 16 / 0.25), 0 6px 14px -6px rgb(40 32 16 / 0.1);
+  --shadow-glow: 0 4px 0 0 color-mix(in oklab, var(--color-neon) 60%, #000);
   color-scheme: light;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) {
-    --color-ink-950: #f5f7fc;
-    --color-ink-900: #ffffff;
-    --color-ink-800: #ffffff;
-    --color-ink-700: #eef1f8;
-    --color-ink-600: #dce2ef;
-    --color-line: #d2d9e8;
-    --color-text: #10162e;
-    --color-muted: #4b5677;
-    --color-neon: #0a6d8c;
-    --color-violet: #6d3fe0;
-    --color-violet-soft: #5a2ccc;
-    --color-lime: #2d7411;
-    --color-amber: #8a5800;
-    --color-rose: #c0185a;
-    --shadow-e1: 0 1px 2px rgb(16 22 46 / 0.08), 0 1px 1px rgb(16 22 46 / 0.05);
-    --shadow-e2: 0 6px 18px -8px rgb(16 22 46 / 0.18), 0 2px 6px -2px rgb(16 22 46 / 0.08);
-    --shadow-e3: 0 18px 40px -14px rgb(16 22 46 / 0.25), 0 6px 14px -6px rgb(16 22 46 / 0.1);
-    --shadow-glow: 0 6px 18px -8px var(--color-neon);
+    --color-ink-950: #f6f1e7;
+    --color-ink-900: #fffdf7;
+    --color-ink-800: #fffefa;
+    --color-ink-700: #efe8d9;
+    --color-ink-600: #e2d9c6;
+    --color-line: #dcd2bf;
+    --color-text: #1b2a24;
+    --color-muted: #4f5c55;
+    --color-neon: #1b5e44;
+    --color-violet: #5b3cc4;
+    --color-violet-soft: #4a2fae;
+    --color-lime: #235f26;
+    --color-amber: #7a4a00;
+    --color-rose: #a12b22;
+    --shadow-e1: 0 1px 2px rgb(40 32 16 / 0.08), 0 1px 1px rgb(40 32 16 / 0.05);
+    --shadow-e2: 0 6px 18px -8px rgb(40 32 16 / 0.18), 0 2px 6px -2px rgb(40 32 16 / 0.08);
+    --shadow-e3: 0 18px 40px -14px rgb(40 32 16 / 0.25), 0 6px 14px -6px rgb(40 32 16 / 0.1);
+    --shadow-glow: 0 4px 0 0 color-mix(in oklab, var(--color-neon) 60%, #000);
     color-scheme: light;
   }
 }
 
 /* The 3D play screen (and anything else that must stay dark) re-declares the dark values locally. */
 .theme-dark {
-  --color-ink-950: #060914;
-  --color-ink-900: #0a0f1f;
-  --color-ink-800: #101833;
-  --color-ink-700: #18224a;
-  --color-ink-600: #25326a;
-  --color-line: #2a3769;
-  --color-text: #e8ecff;
-  --color-muted: #9aa6d4;
-  --color-neon: #22e6ff;
-  --color-violet: #8b5cf6;
-  --color-violet-soft: #c4b5fd;
-  --color-lime: #a3ff4f;
-  --color-amber: #ffc63d;
-  --color-rose: #ff5c8a;
+  --color-ink-950: #0e1b17;
+  --color-ink-900: #13241f;
+  --color-ink-800: #182d27;
+  --color-ink-700: #20392f;
+  --color-ink-600: #2b4a3e;
+  --color-line: #2f4c41;
+  --color-text: #f3f0e4;
+  --color-muted: #a8b9ae;
+  --color-neon: #ffd23f;
+  --color-violet: #a594ff;
+  --color-violet-soft: #cdc3ff;
+  --color-lime: #8fe39b;
+  --color-amber: #ffa94d;
+  --color-rose: #ff8a7a;
   --shadow-e1: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 1px rgb(0 0 0 / 0.2);
   --shadow-e2: 0 6px 18px -6px rgb(0 0 0 / 0.55), 0 2px 6px -2px rgb(0 0 0 / 0.35);
   --shadow-e3: 0 18px 40px -12px rgb(0 0 0 / 0.65), 0 6px 14px -6px rgb(0 0 0 / 0.4);
-  --shadow-glow: 0 0 24px -6px var(--color-neon);
+  --shadow-glow: 0 4px 0 0 color-mix(in oklab, var(--color-neon) 55%, #000);
   color-scheme: dark;
   color: var(--color-text);
 }
@@ -140,19 +140,25 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
-/* Ambient glow on its own fixed layer (cheap to composite; `background-attachment: fixed` repaints on every scroll on mobile). */
+/* A faint squared-paper grid (a chalkboard in the dark theme, a notebook page in the light one), on its own fixed layer:
+   cheap to composite (`background-attachment: fixed` repaints on every scroll on mobile). */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(1200px 600px at 80% -10%, color-mix(in oklab, var(--color-violet) 22%, transparent), transparent 60%),
-    radial-gradient(900px 500px at 0% 10%, color-mix(in oklab, var(--color-neon) 14%, transparent), transparent 55%);
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-text) 5%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, #000, transparent 70%);
 }
 
-h1, h2, h3 { text-wrap: balance; }
+h1, h2, h3 { text-wrap: balance; letter-spacing: -0.01em; }
+
+/* Primary actions are pressable: they stand on a solid ledge (`shadow-glow`) and sink into it while pressed. */
+.shadow-glow:active:not(:disabled) { translate: 0 3px; box-shadow: 0 1px 0 0 color-mix(in oklab, var(--color-neon) 55%, #000); }
 p { text-wrap: pretty; }
 
 /* One visible focus ring for everything focusable (cards, list rows, summaries, links, buttons, fields). */
@@ -186,7 +192,7 @@ main h1[tabindex="-1"]:focus, main h1[tabindex="-1"]:focus-visible { outline: no
 .lu-confetti { position: absolute; inset-inline-start: 50%; top: 38%; width: 8px; height: 14px; border-radius: 2px; animation: lu-confetti 1.2s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
 @keyframes lu-banner { 0% { opacity: 0; transform: translateY(14px) scale(0.96); } 14% { opacity: 1; transform: none; } 76% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
 .lu-banner { position: absolute; inset-inline: 0; top: 20%; padding-inline: 1rem; text-align: center; pointer-events: none; animation: lu-banner 3.6s ease-in-out both; }
-.lu-banner-title { display: block; font-size: clamp(1.7rem, 5.5vw, 3.2rem); font-weight: 800; line-height: 1.15; color: #fff; text-shadow: 0 2px 16px rgb(0 0 0 / 0.65), 0 0 30px var(--color-neon); }
+.lu-banner-title { display: block; font-size: clamp(1.7rem, 5.5vw, 3.2rem); font-weight: 800; line-height: 1.15; color: #fff; text-shadow: 0 2px 0 rgb(0 0 0 / 0.55), 0 4px 18px rgb(0 0 0 / 0.6); }
 .lu-banner-sub { display: block; margin-top: 0.45rem; font-size: clamp(0.95rem, 2.6vw, 1.3rem); font-weight: 600; color: var(--color-neon); text-shadow: 0 1px 10px rgb(0 0 0 / 0.8); }
 @keyframes lu-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .lu-skeleton { background: linear-gradient(90deg, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.04)); background-size: 200% 100%; animation: lu-shimmer 1.6s linear infinite; }

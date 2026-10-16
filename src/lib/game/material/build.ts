@@ -47,10 +47,11 @@ const ENV: [Environment, RegExp][] = [
   ["neon-city", /\b(?:code|coding|program|python|java(?:script)?|algorithm|computer|software|internet|network|robot|ai|data)(?:s|es)?\b|קוד|תכנות|אלגוריתם|מחשב|תוכנה|אינטרנט|רשת|רובוט|נתונים/i],
   ["laboratory", /\b(?:science|physics|chemistry|biology|atom|molecule|cell|energy|force|experiment|lab|body|health)(?:s|es)?\b|מדע|פיזיקה|כימיה|ביולוגיה|אטום|מולקולה|תא|אנרגיה|כוח|ניסוי|גוף|בריאות/i],
   ["sky-islands", /\b(?:weather|cloud|climate|geography|bird|flight|air|wind|mountain|continent|map)(?:s|es)?\b|מזג אוויר|ענן|אקלים|גיאוגרפיה|ציפור|טיסה|אוויר|רוח|הר|יבשת|מפה/i],
-  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)(?:s|es)?\b|יער|טבע|צמח|עץ|חיה|דבורה|דבורים|חרק|פרח|גינה|חווה|מערכת אקולוגית|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
+  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|photosynthesis|chlorophyll|leaf|leaves|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)(?:s|es)?\b|יער|טבע|צמח|עץ|חיה|פוטוסינתזה|כלורופיל|דבורה|דבורים|חרק|פרח|גינה|חווה|מערכת אקולוגית|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
 ];
 
-const ENV_BY_TYPE: Record<GameType, Environment> = { exploration: "forest", puzzle: "castle", platformer: "sky-islands", simulation: "laboratory", adventure: "neon-city" };
+// A subject that names no world gets a calm, daylight one: the night-time neon city is kept for computing subjects.
+const ENV_BY_TYPE: Record<GameType, Environment> = { exploration: "forest", puzzle: "castle", platformer: "sky-islands", simulation: "laboratory", adventure: "forest" };
 
 export function pickCategory(subject: string): SubjectCategory {
   return CATEGORY.find(([, re]) => re.test(subject))?.[0] ?? "other";

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Triangle } from "lucide-react";
+import { LogoMark } from "@/components/ui/Brand";
 import { cookies } from "next/headers";
 import { isThemePref, THEME_COOKIE } from "@/lib/theme";
 import { ThemeSwitch } from "./ThemeSwitch";
@@ -34,7 +34,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-ink-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
         <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-extrabold tracking-wide" aria-label={t("app.name")}>
-          <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-neon to-violet text-ink-950"><Triangle className="size-4 fill-current" /></span>
+          <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-neon text-ink-950"><LogoMark className="size-5" /></span>
           <span className="hidden whitespace-nowrap min-[420px]:inline">{t("app.name")}</span>
         </Link>
         <nav className="ms-4 hidden flex-1 items-center gap-1 lg:flex" aria-label={t("nav.main")}>

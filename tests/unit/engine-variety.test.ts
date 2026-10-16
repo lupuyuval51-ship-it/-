@@ -14,6 +14,7 @@ describe("engine: theme follows the subject (singular and plural)", () => {
   it.each([
     ["Plants", "forest"], ["Animals", "forest"], ["Flowers and bees", "forest"], ["Planets", "space-station"], ["Pyramids", "desert-ruins"],
     ["Atoms", "laboratory"], ["Cells", "laboratory"], ["Oceans", "ocean-floor"], ["Knights", "castle"], ["Python loops", "neon-city"], ["Clouds", "sky-islands"],
+    ["Photosynthesis", "forest"], ["פוטוסינתזה", "forest"], ["The industrial revolution", "forest"] /* no world named: a calm daylight one */,
   ] as const)("%s → %s", (subject, env) => {
     expect(pickEnvironment(subject, "adventure")).toBe(env);
   });

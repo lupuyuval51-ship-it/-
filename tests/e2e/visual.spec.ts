@@ -30,7 +30,7 @@ test("theme switch cycles system → light → dark and is remembered", async ({
   await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
   await sw.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(245, 247, 252)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(246, 241, 231)");
   await sw.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
@@ -43,10 +43,10 @@ test("system preference picks light when the device is light, and the 3D play sc
   await page.emulateMedia({ colorScheme: "light" });
   await setLocaleCookie(page, "en");
   await page.goto("/");
-  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(245, 247, 252)");
-  await expect(page.locator("body")).toHaveCSS("font-family", /Heebo/);
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(246, 241, 231)");
+  await expect(page.locator("body")).toHaveCSS("font-family", /Rubik/);
   await registerViaApi(page, { locale: "en" });
   const gameId = await createGameViaApi(page);
   await openGame(page, gameId);
-  await expect(page.getByTestId("play-root")).toHaveCSS("background-color", "rgb(6, 9, 20)");
+  await expect(page.getByTestId("play-root")).toHaveCSS("background-color", "rgb(14, 27, 23)");
 });
