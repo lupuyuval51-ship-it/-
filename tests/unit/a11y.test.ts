@@ -295,6 +295,24 @@ describe("a11y: text-scaling guards on the HUD and mobile pages", () => {
     expect(overlays).not.toMatch(/top-\[6\.5rem\]/);
   });
 
+  it("challenge panel: stable, reachable close controls and a scroll cue for hidden answers", () => {
+    const panel = src["src/components/game/hud/ChallengePanel.tsx"]!;
+    // header X is a 44px target above the content; footer stays above the scrolling body and respects the safe area
+    expect(panel).toMatch(/data-testid="challenge-x"[^>]*size-11|size-11[^>]*data-testid="challenge-x"/);
+    expect(panel).toMatch(/<header className=\{cx\("relative z-20 flex shrink-0/);
+    expect(panel).toMatch(/<footer className=\{cx\("relative z-20 flex shrink-0/);
+    expect(panel).toContain("env(safe-area-inset-bottom)");
+    expect(panel).toContain('safePadX("0.5rem")'); // a phone held sideways: clear of the notch and rounded corners
+    // the wrong-answer shake must not move the header / footer buttons
+    expect(panel).toMatch(/const el = bodyRef\.current;\s*if \(!result \|\| result\.correct/);
+    expect(panel).not.toMatch(/const el = ref\.current;\s*if \(!result/);
+    // scroll affordance
+    expect(panel).toContain("challenge-scroll-cue");
+    expect(panel).toContain("scrollCue(");
+    // landscape phones get compact answer rows (the answers sit in their own half-width pane there)
+    expect(panel).toContain("<ChoiceInput compact={shortLandscape}");
+  });
+
   it("scrolls tall dialogs instead of clipping them", () => {
     const overlays = src["src/components/game/hud/Overlays.tsx"]!;
     // pause menu + completion card: safe centering (items-start + my-auto), scroll inside the dialog (max-h-full)

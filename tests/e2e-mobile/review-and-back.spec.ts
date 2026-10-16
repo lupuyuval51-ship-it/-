@@ -94,3 +94,57 @@ test("the app never requests Unity files or any network resource, even when aske
   expect(unity).toEqual([]);
   expect(requested).toEqual([]);
 });
+
+// Round-1 QA: "challenge panel on a landscape phone".
+for (const vp of [{ width: 915, height: 412 }, { width: 390, height: 844 }]) {
+  test(`challenge panel at ${vp.width}x${vp.height}: close X works by real touch after a wrong answer, answers are reachable`, async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: vp, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await page.getByTestId("mobile-new").click();
+    await page.locator("#subject").fill("Plants");
+    await page.locator("#material").fill(NOTES);
+    await page.getByTestId("mobile-create-submit").click();
+    await expect(page.getByTestId("play-root")).toBeVisible();
+    await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1" && Boolean((window as any).__LEVELUP_TEST__), undefined, { timeout: 60_000 });
+    const gameId = page.url().split("/play/")[1]!;
+    const spec = await storedSpec(page, gameId);
+    const snap = await snapshot(page);
+    const area = spec.areas.find((a) => a.id === snap.client.areaId)!;
+    const st = area.stations.find((s) => s.kind === "challenge" && challengeOf(spec, s.challengeId!).type === "choice")!;
+    await goNear(page, "station", st.id);
+    await page.getByTestId("interact-prompt").tap();
+    const panel = page.getByTestId("challenge-panel");
+    await expect(panel).toBeVisible();
+
+    // the panel fits the viewport and its close X is a >=44px target
+    const pb = (await panel.boundingBox())!;
+    expect(pb.y).toBeGreaterThanOrEqual(0);
+    expect(pb.y + pb.height).toBeLessThanOrEqual(vp.height + 0.5);
+    const x = page.getByTestId("challenge-x");
+    const xb = (await x.boundingBox())!;
+    expect(xb.width).toBeGreaterThanOrEqual(44);
+    expect(xb.height).toBeGreaterThanOrEqual(44);
+
+    // every answer can be scrolled to; while one is hidden a scroll cue is shown
+    const options = panel.locator('[role="radio"]');
+    const n = await options.count();
+    expect(n).toBeGreaterThanOrEqual(2);
+    const body = page.getByTestId("challenge-body");
+    const hidden = await body.evaluate((el) => el.scrollHeight > el.clientHeight + 4);
+    if (hidden) await expect(page.getByTestId("challenge-scroll-cue")).toBeVisible();
+    await options.nth(n - 1).scrollIntoViewIfNeeded();
+    const last = (await options.nth(n - 1).boundingBox())!;
+    const foot = (await panel.locator("footer").boundingBox())!;
+    expect(last.y + last.height).toBeLessThanOrEqual(foot.y + 1); // not behind the footer
+
+    // pick a wrong answer fast, check, and immediately tap the X with a real touch (the panel must not be mid-shake)
+    const ch = challengeOf(spec, (await panel.getAttribute("data-challenge"))!);
+    await answerInUi(page, ch, "wrong");
+    await expect(page.getByTestId("result")).toBeVisible();
+    const box = (await x.boundingBox())!;
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(panel).toBeHidden();
+    await ctx.close();
+  });
+}
