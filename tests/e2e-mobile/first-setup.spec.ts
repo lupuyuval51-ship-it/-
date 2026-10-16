@@ -132,7 +132,9 @@ test("the bottom tab bar reaches every main screen, its tabs are thumb-sized, an
   }
   // scrolled to the very end, the last thing on the settings screen sits above the bar
   await page.getByTestId("tab-settings").click();
+  await expect(page.getByTestId("mobile-settings-page")).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(bar).toBeVisible();
   const barTop = (await bar.boundingBox())!.y;
   const lastBottom = await page.evaluate(() => {
     const els = [...document.querySelectorAll<HTMLElement>("main button, main a, main p")].filter((e) => e.offsetParent);
