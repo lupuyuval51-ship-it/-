@@ -1,6 +1,6 @@
 -- Row level security checks for the sync tables. Each block creates throw-away users, runs as the `authenticated`
 -- role with forged JWT claims, and ends with RAISE EXCEPTION so everything is rolled back. Run them one by one
--- (e.g. in the SQL editor). Results on project dytftgtyugvzfumdcoep, 2026-10-10:
+-- (e.g. in the SQL editor). Results on project yhxwgfgodxbzdvaqtqjz (levelup-app), 2026-10-16 (the same on dytftgtyugvzfumdcoep, 2026-10-10):
 --   owner sees own rows; another user sees 0 rows and updates/deletes 0 rows       PASS
 --   insert with another user's user_id -> 42501 (RLS)                              PASS
 --   session pointing at another user's game -> 23503 (foreign key)                PASS

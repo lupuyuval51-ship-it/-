@@ -50,7 +50,7 @@ methods**.
 ## 3. Android app (Supabase)
 
 1. In Google Cloud create a second client: **Web application**, name `LEVEL UP via Supabase`. Authorised redirect URI:
-   `https://dytftgtyugvzfumdcoep.supabase.co/auth/v1/callback` (the project URL from `mobile/src/cloud/config.ts` + `/auth/v1/callback`).
+   `https://yhxwgfgodxbzdvaqtqjz.supabase.co/auth/v1/callback` (the project URL from `mobile/src/cloud/config.ts` + `/auth/v1/callback`).
 2. Supabase dashboard → **Authentication → Sign In / Providers → Google**: enable, paste that client's ID and secret. Leave
    "Skip nonce checks" off.
 3. Supabase dashboard → **Authentication → URL Configuration → Redirect URLs**: add `app.levelup.learn3d://auth`.

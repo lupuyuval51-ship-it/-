@@ -1,7 +1,10 @@
 # Supabase: optional account + cloud backup for the Android app
 
-Status: **live.** Project `level-up` (`dytftgtyugvzfumdcoep`, eu-central-1, free plan). The three migrations in `migrations/` are applied, the edge function
-`functions/delete-account` is deployed (JWT required), the security advisor was clean when last run, and the RLS checks are in `tests/rls_checks.sql`.
+Status: **live.** Project `levelup-app` (`yhxwgfgodxbzdvaqtqjz`, eu-central-1, free plan), created 2026-10-16 and used from app 1.16.0 on.
+The three migrations in `migrations/` are applied, the edge function `functions/delete-account` is deployed (JWT required), the security
+advisor was clean (no findings) and the RLS checks in `tests/rls_checks.sql` passed on it the same day. Google Play purchase verification will
+live here too, next to the accounts (`PLAY_SERVICE_ACCOUNT_JSON` in this project's Edge Function secrets).
+The earlier project `level-up` (`dytftgtyugvzfumdcoep`) served app versions up to 1.15.0; its accounts and backups were not copied over.
 
 What it does (the app keeps working offline; sign-in is optional):
 - E-mail sign-in (Supabase Auth). Games, play progress and the review deck are backed up per user and synced between phones

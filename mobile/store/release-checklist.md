@@ -9,7 +9,7 @@ Target API level, the privacy/hardening settings of the Android build, Data safe
 - Signed; `jarsigner -verify` and `apksigner verify` pass. Package `app.levelup.learn3d`.
 - Without an account the app makes **no network request at all** (tested with the network blocked) and never loads Unity files:
   Unity is an optional *website* renderer; the app always uses the built-in 3D renderer (`allowUnity={false}`, tested).
-- With the optional account it talks only to the Supabase project `https://dytftgtyugvzfumdcoep.supabase.co` — the only extra
+- With the optional account it talks only to the Supabase project `https://yhxwgfgodxbzdvaqtqjz.supabase.co` — the only extra
   entry in the CSP `connect-src` (no `*`). The `delete-account` function allows the app origins only (CORS allow-list).
 - Supabase project: owner-only row level security on every table, checked with `supabase/tests/rls_checks.sql`; Supabase security
   advisor: no warnings. Account deletion: in-app button → edge function → Auth admin API.

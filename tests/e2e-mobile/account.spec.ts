@@ -5,7 +5,7 @@ import { expect, test, type Page, type Route } from "@playwright/test";
  * the machine). The sync merge logic itself is covered by tests/unit/sync.test.ts; this checks the wiring:
  * sign-in, what gets pushed, the sync status, sign-out and account deletion.
  */
-const PROJECT = "https://dytftgtyugvzfumdcoep.supabase.co";
+const PROJECT = "https://yhxwgfgodxbzdvaqtqjz.supabase.co";
 const USER_ID = "11111111-2222-3333-4444-555555555555";
 
 function fakeJwt(): string {

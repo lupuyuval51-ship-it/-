@@ -47,7 +47,7 @@ Interface in **English, Hebrew (RTL) and Spanish**. Every new string goes into a
 - AI output is untrusted → `validateGameSpec()` before saving; on failure show an error and save nothing. A failed generation never costs the learner anything.
 - Honest labels: never present non-AI content as AI or AI content as curated.
 - Minors: profiles private by default, no open chat, no precise location.
-- Keep the package name `app.levelup.learn3d`; raise `versionCode` for every release (the last one is 19, version 1.15.0) and sign with the **same upload key** as before.
+- Keep the package name `app.levelup.learn3d`; raise `versionCode` for every release (the last one is 20, version 1.16.0) and sign with the **same upload key** as before.
 
 ## What I want from you
 
