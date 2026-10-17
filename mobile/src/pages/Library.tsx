@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { RotateCcw } from "lucide-react";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
@@ -10,7 +10,10 @@ import { useAccount } from "../cloud/account";
 import { formatWhen, syncLineKey } from "../format";
 import { continueGame, filterCounts, filterGames, loadLibrary, showFilters, type LibraryFilter } from "../library-model";
 import { stripQuery } from "../router";
-import { ContinueCard, EmptyLibrary, FilterBar, GameCard } from "./library-parts";
+import { COURSES } from "@/lib/game/topics/courses";
+import { contentLangOf } from "@/lib/i18n";
+import { loadCourseProgress } from "../course-model";
+import { ContinueCard, CourseCard, EmptyLibrary, FilterBar, GameCard } from "./library-parts";
 import { Welcome } from "./Welcome";
 
 /** The chosen filter survives opening a game and coming back (kept for the app session only; a new launch starts at "All"). */
@@ -52,6 +55,9 @@ export function LibraryPage() {
   const active: LibraryFilter = filtering ? filter : "all";
   const shown = filterGames(games, active);
   const resume = continueGame(games);
+  // the learning path is the first thing on the home screen (its progress is read from the games on the phone)
+  const course = COURSES[0];
+  const courseProgress = useMemo(() => (course && data.ok ? loadCourseProgress(store, course) : null), [course, data]);
 
   const remove = (id: string) => {
     // Name the game: with several cards on screen "this game" would leave room for a wrong tap.
@@ -94,6 +100,7 @@ export function LibraryPage() {
         </Card>
       ) : (
         <>
+          {course && courseProgress && !welcome && <CourseCard course={course} progress={courseProgress} lang={contentLangOf(locale)} t={t} />}
           {resume && !welcome && <ContinueCard game={resume} t={t} />}
           {!(games.length === 0 && !welcome) && (
             <div className="space-y-4 md:grid md:grid-cols-2 md:items-stretch md:gap-3 md:space-y-0" data-testid="mobile-actions">

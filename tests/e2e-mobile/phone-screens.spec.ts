@@ -61,7 +61,8 @@ test("first run: the whole welcome fits on one 360x640 screen, nothing overflows
 
 test("several games: continue card, filter chips, deleting names the game and keeps the cursor", async ({ page }) => {
   await page.goto("/#/create");
-  await page.locator("#subject").fill("Fractions");
+  // (a subject alone no longer makes a game: the fractions example fills the subject and real notes)
+  await page.getByTestId("example-notes-fractions").click();
   await page.getByTestId("mobile-create-submit").click();
   await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1", undefined, { timeout: 60_000 });
   await cloneGames(page, ["a", "b"]); // three games in all: the continue card appears, the filter chips do not yet

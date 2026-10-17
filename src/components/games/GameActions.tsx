@@ -10,7 +10,8 @@ import type { DictKey } from "@/lib/i18n";
 type Optional = "adaptive_difficulty" | "timed_bonus" | "hazards" | "checkpoints";
 const OPTIONAL: Optional[] = ["adaptive_difficulty", "timed_bonus", "hazards", "checkpoints"];
 
-export function GameActions({ gameId, title, timeOfDay, mechanics, hasProgress }: { gameId: string; title: string; timeOfDay: "day" | "dusk" | "night"; mechanics: string[]; hasProgress: boolean }) {
+/** `editing`: show the edit form (rename, time of day, mechanics); the actions below it (extend, reset, delete) are always there. */
+export function GameActions({ gameId, title, timeOfDay, mechanics, hasProgress, editing = true }: { gameId: string; title: string; timeOfDay: "day" | "dusk" | "night"; mechanics: string[]; hasProgress: boolean; editing?: boolean }) {
   const t = useT();
   const router = useRouter();
   const [name, setName] = useState(title);
@@ -63,7 +64,7 @@ export function GameActions({ gameId, title, timeOfDay, mechanics, hasProgress }
 
   return (
     <div className="space-y-4">
-      <Card className="space-y-4">
+      {editing && <Card className="space-y-4">
         <div>
           <h2 className="font-semibold">{t("det.edit.title")}</h2>
           <p className="text-sm text-muted">{t("det.edit.text")}</p>
@@ -90,7 +91,7 @@ export function GameActions({ gameId, title, timeOfDay, mechanics, hasProgress }
           </fieldset>
           <Button type="submit" variant="secondary" disabled={busy} data-testid="edit-save">{t("det.edit.save")}</Button>
         </form>
-      </Card>
+      </Card>}
       {msg && <Alert tone={msg.tone} data-testid="edit-message">{msg.text}</Alert>}
       <Card className="space-y-3">
         <h2 className="font-semibold">{t("det.danger")}</h2>

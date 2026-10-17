@@ -5,6 +5,7 @@ import { DICTIONARIES, dirOf } from "@/lib/i18n";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
+import { showPlans } from "./features";
 import { LibraryPage } from "./pages/Library";
 import { FirstSetup } from "./pages/FirstSetup";
 import { TabBar } from "./pages/TabBar";
@@ -22,14 +23,16 @@ const ReviewPage = lazy(() => import("./pages/Results").then((m) => ({ default: 
 const AboutPage = lazy(() => import("./pages/About").then((m) => ({ default: m.AboutPage })));
 const PlansPage = lazy(() => import("./pages/Plans").then((m) => ({ default: m.PlansPage })));
 const SettingsPage = lazy(() => import("./pages/Settings").then((m) => ({ default: m.SettingsPage })));
+const CoursePage = lazy(() => import("./pages/Course").then((m) => ({ default: m.CoursePage })));
 
 function route(path: string) {
   let m: RegExpMatchArray | null;
   if (path === "/create") return <CreatePage />;
   if (path === "/settings") return <SettingsPage />;
   if (path === "/about") return <AboutPage />;
-  if (path === "/plans") return <PlansPage />;
+  if (path === "/plans" && showPlans()) return <PlansPage />;
   if (path === "/review") return <DeckPage />;
+  if ((m = path.match(/^\/course\/([\w-]+)$/))) return <CoursePage key={m[1]} courseId={m[1]!} />;
   if ((m = path.match(/^\/play\/([\w-]+)$/))) return <PlayPage key={m[1]} gameId={m[1]!} />;
   if ((m = path.match(/^\/games\/([\w-]+)\/results\/([\w-]+)\/review$/))) return <ReviewPage gameId={m[1]!} sessionId={m[2]!} />;
   if ((m = path.match(/^\/games\/([\w-]+)\/results\/([\w-]+)\/practice$/))) return <PracticePage gameId={m[1]!} sessionId={m[2]!} />;

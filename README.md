@@ -97,6 +97,8 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
 | `PLANS_ENABLED` | `false` | `true` shows Free/Plus/Pro, the pricing page and checkout. `false` (the launch setting): no plan is shown, checkout and `/pricing` are gone, everybody gets the full product with the Pro monthly points budget as fair use. The plan code stays in place. |
 | `PLANS_SHOWN` | `true` | With `PLANS_ENABLED=false`: show the plans and prices (pricing page, landing teaser, nav link) as information only, with no checkout button and no payment banner. `false` hides them completely. |
+| `GAME_EDITING` | `false` | Display switch: `true` shows the editing tools on the game page (rename, time of day, mechanics, the AI edit robot, version history). Off by default because they do not help a learner learn; the API and the plan quotas stay in place. |
+| `DEMO_TEMPLATES` | `false` | Display switch: `true` lets a subject alone (no material, no topic) make a labelled demo-template game when no AI provider is configured. Off: such a request is refused with `422 MATERIAL_REQUIRED` before anything is reserved, and the create form asks for material or a library topic. |
 | `PAYMENTS_MODE` | `disabled` | `disabled` · `stripe` · `dev` (simulator). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | – | Required for `PAYMENTS_MODE=stripe`. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | – | Optional "Continue with Google" on the website. Both or neither: the button and `/api/auth/google/*` exist only when both are set. Setup: [`docs/google-signin.md`](docs/google-signin.md). |
@@ -251,7 +253,7 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
 ### Topic library: ready topics, no AI
 
 The create form (website and Android app) has a second way to build a game: **pick a topic from the topic library** and a level. The library
-currently holds **201 topics** (the goal is 200) in ten categories — maths, science, history and civics, geography, languages, computing,
+currently holds **210 topics** (9 of them the chapters of a course, below) in ten categories — maths, science, history and civics, geography, languages, computing,
 money and economy, health and safety, arts and literature, thinking and study skills. Each topic is curated, fact-checked content written natively
 in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
 (reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
@@ -275,6 +277,21 @@ AI provider is configured — and adapts while playing (an easier two-option ver
   through the real offline path and checks validation, finishability, unique and placed ids, the tier-B/C clamp, content hygiene (Hebrew is
   Hebrew, no answer among the wrong options, no repeated questions, numeric answers present in their explanations) and runs the balance bots on a
   sample. Every fact must be checked before it is written; when in doubt, leave the item out.
+
+### Learning path: a course for one audience
+
+`src/lib/game/topics/courses.ts` strings library topics into a course taught in order. Today there is one: **“Fractions, decimals and
+percentages”** for grades 5–6 (ages 10–12), nine chapters — what a fraction is, equivalent fractions, comparing, adding and subtracting,
+multiplying, dividing by a fraction, decimals and place value, calculating with decimals, percentages. Every chapter is an ordinary
+topic-library topic with a **lesson** (`TopicContent.l`): one or two paragraphs in clear Hebrew (and English), a worked example and a hands-on
+task to try at home. The game teaches first: the lesson boards stand in the first area and the mission that reads them (`m-1-0`) opens the
+questions; the task waits at the end. Each level has 10–11 exercises with answers and explanations; `tests/unit/course-content.test.ts`
+holds them to a stricter bar than the rest of the library. Chapters are free on every plan. In the Android app the home screen opens with the
+path card; `#/course/<id>` lists the chapters, the progress (read from the games on the phone, so a restored backup keeps it) and starts the
+next chapter on the phone. On the website the chapters are in the topic picker under maths.
+
+Maths in a Hebrew line is drawn left to right (`src/lib/i18n/bidi.ts`, `MathText`): an equation, a mixed number or a blank `x/9` keeps its
+textbook order instead of being mirrored by the right-to-left line.
 
 Enable a provider by setting its key in `.env` (e.g. `ANTHROPIC_API_KEY=sk-ant-…`) and restart. `GET /api/ai/status` reports what is active
 (never the key).

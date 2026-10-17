@@ -7,6 +7,7 @@ import { browserKV } from "@/lib/offline/store";
 import { regionLabel } from "@/lib/regions";
 import { THEMES, type ThemePref } from "@/lib/theme";
 import { setSettings, store, useSettings } from "../app-state";
+import { showPlans } from "../features";
 import { deleteAllGames } from "../reset";
 import { AccountPanel } from "./AccountPanel";
 import { BackupPanel } from "./BackupPanel";
@@ -65,11 +66,14 @@ export function SettingsPage() {
                 <option value="es" lang="es">{t("lang.es")}</option>
               </Select>
             </Field>
-            <Field label={t("mob.settings.country")} hint={t("mob.setup.country.hint")} htmlFor="region">
-              <Select id="region" className="min-h-11" value={s.region} onChange={(e) => setSettings({ region: e.target.value })}>
-                {REGION_CHOICES.map((c) => <option key={c} value={c}>{regionLabel(c, s.locale)}</option>)}
-              </Select>
-            </Field>
+            {/* the country only picks the currency of the prices, so it goes with them (features.ts) */}
+            {showPlans() && (
+              <Field label={t("mob.settings.country")} hint={t("mob.setup.country.hint")} htmlFor="region">
+                <Select id="region" className="min-h-11" value={s.region} onChange={(e) => setSettings({ region: e.target.value })}>
+                  {REGION_CHOICES.map((c) => <option key={c} value={c}>{regionLabel(c, s.locale)}</option>)}
+                </Select>
+              </Field>
+            )}
             <Field label={t("theme.label")} htmlFor="theme">
               <Select id="theme" className="min-h-11" value={s.theme} onChange={(e) => setSettings({ theme: e.target.value as ThemePref })}>
                 {THEMES.map((x) => <option key={x} value={x}>{t(`theme.${x}`)}</option>)}
@@ -100,7 +104,7 @@ export function SettingsPage() {
               <p>{t("mob.settings.about")}</p>
             </div>
             <div className="space-y-2">
-              <LinkRow label={t("pricing.title")} testId="open-plans" onOpen={() => navigate("/plans")} />
+              {showPlans() && <LinkRow label={t("pricing.title")} testId="open-plans" onOpen={() => navigate("/plans")} />}
               <LinkRow label={t("mob.settings.credits")} testId="about-credits" onOpen={() => navigate("/about")} />
               <LinkRow label={t("mob.settings.setupAgain")} testId="setup-again" onOpen={() => { setSettings({ setupDone: false }); navigate("/"); }} />
               <LinkRow label={t("mob.settings.welcome")} testId="welcome-again" onOpen={() => navigate("/?welcome=1")} />

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Arrow, Badge, Card } from "@/components/ui";
 import type { TFn } from "@/lib/i18n";
 import type { ReviewItem } from "@/lib/game/state/review";
+import { MathText } from "@/components/ui/MathText";
 
 /** Review of mistakes. Presentational only: shared by the web review page and the offline app. */
 export function ReviewView({ t, id, sessionId, review }: { t: TFn; id: string; sessionId: string; review: readonly ReviewItem[] }) {
@@ -29,17 +30,17 @@ export function ReviewView({ t, id, sessionId, review }: { t: TFn; id: string; s
                 </div>
                 <div className="space-y-1 text-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-muted">{t("rev.question")}</p>
-                  <p dir="auto" className="whitespace-pre-wrap">{x.prompt}</p>
+                  <p dir="auto" className="whitespace-pre-wrap"><MathText text={x.prompt} /></p>
                 </div>
                 {x.answer && (
                   <div className="space-y-1 rounded-xl border border-lime/40 bg-lime/5 p-3 text-sm">
                     <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-lime">{t("rev.answer")}</p>
-                    <p dir="auto" className="whitespace-pre-wrap" data-testid="review-answer">{x.answer}</p>
+                    <p dir="auto" className="whitespace-pre-wrap" data-testid="review-answer"><MathText text={x.answer} /></p>
                   </div>
                 )}
                 <div className="space-y-1 text-sm">
                   <p className="text-xs font-semibold uppercase tracking-wide rtl:tracking-normal text-muted">{t("rev.why")}</p>
-                  <p dir="auto">{x.explanation}</p>
+                  <p dir="auto"><MathText text={x.explanation} /></p>
                 </div>
               </Card>
             </li>

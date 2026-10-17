@@ -209,6 +209,15 @@ export const TOPIC_LOADERS: Readonly<Record<string, Loader>> = {
   "think-time-management": () => import("./content/think-time-management"),
   "lang-en-everyday": () => import("./content/lang-en-everyday"),
   "lang-es-basics": () => import("./content/lang-es-basics"),
+  "course-fractions-1": () => import("./content/course-fractions-1"),
+  "course-fractions-2": () => import("./content/course-fractions-2"),
+  "course-fractions-3": () => import("./content/course-fractions-3"),
+  "course-fractions-4": () => import("./content/course-fractions-4"),
+  "course-fractions-5": () => import("./content/course-fractions-5"),
+  "course-fractions-6": () => import("./content/course-fractions-6"),
+  "course-fractions-7": () => import("./content/course-fractions-7"),
+  "course-fractions-8": () => import("./content/course-fractions-8"),
+  "course-fractions-9": () => import("./content/course-fractions-9"),
 };
 
 export async function loadTopicContent(id: string): Promise<TopicContent | null> {

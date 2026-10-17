@@ -8,9 +8,12 @@ import type { Locale } from "@/lib/i18n";
 import { MINUTES_CHOICES, REGION_CHOICES } from "@/lib/offline/first-run";
 import { regionLabel } from "@/lib/regions";
 import { setSettings, useSettings } from "../app-state";
+import { showPlans } from "../features";
 
-const STEPS = ["language", "topics", "time", "plan"] as const;
-type Step = (typeof STEPS)[number];
+const ALL_STEPS = ["language", "topics", "time", "plan"] as const;
+type Step = (typeof ALL_STEPS)[number];
+/** The plan step (country for prices and the plan wanted) only when the plans are shown (`features.ts`). */
+const STEPS: readonly Step[] = showPlans() ? ALL_STEPS : ALL_STEPS.filter((s) => s !== "plan");
 const LANGS: readonly Locale[] = ["en", "he", "es"];
 
 /** A friendly mark per category and per time choice (decorative: the text says everything). */
@@ -37,10 +40,10 @@ function Choice({ type, name, checked, onChange, testId, icon, children, lang }:
 
 /**
  * The first thing a new install shows, full screen: a short questionnaire. 1) the language (English preselected; the screen
- * switches at once), 2) what the learner wants to learn (topic-library categories), 3) how much time a day, 4) the country for
- * prices and the plan they would like. Everything stays on the phone and can be changed in Settings; "Skip" keeps the
- * defaults. The plan is a preference only: the app sells nothing (paid features in a Google Play app may only use Google Play
- * Billing) and every feature is open.
+ * switches at once), 2) what the learner wants to learn (topic-library categories), 3) how much time a day, and, only when the
+ * plans are shown (`features.ts`, off in a normal build), 4) the country for prices and the plan they would like.
+ * Everything stays on the phone and can be changed in Settings; "Skip" keeps the defaults. The plan is a preference only:
+ * the app sells nothing (paid features in a Google Play app may only use Google Play Billing) and every feature is open.
  */
 export function FirstSetup() {
   const t = useT();

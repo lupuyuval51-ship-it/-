@@ -1,10 +1,12 @@
-import { Trash2 } from "lucide-react";
+import { Route, Trash2 } from "lucide-react";
 import { Arrow, Card, ProgressBar, Stars } from "@/components/ui";
 import { GeneratorBadge } from "@/components/games/GameBadges";
 import { StateView } from "@/components/ui/StateView";
 import { DIFFICULTIES } from "@/lib/game/spec/constants";
 import type { TopicCategory } from "@/lib/game/topics/types";
 import type { DictKey, TFn } from "@/lib/i18n";
+import type { Course } from "@/lib/game/topics/courses";
+import type { CourseProgress } from "../course-model";
 import { LIBRARY_FILTERS, type LibraryFilter, type LibraryGame } from "../library-model";
 
 /** Presentational pieces of the phone library. No storage access here, so they render (and are tested) in node. */
@@ -29,6 +31,26 @@ export function ContinueCard({ game, t }: { game: LibraryGame; t: TFn }) {
         {t("lib.continue")} <Arrow />
       </a>
     </section>
+  );
+}
+
+/** The learning path on the home screen: how far the learner got and the way to the next chapter. */
+export function CourseCard({ course, progress, lang, t }: { course: Course; progress: CourseProgress; lang: "he" | "en"; t: TFn }) {
+  const total = course.chapters.length;
+  const label = t("mob.course.progress", { done: progress.done, total });
+  return (
+    <a href={`#/course/${course.id}`} data-testid="course-card" data-done={progress.done} className="block space-y-3 rounded-2xl border border-violet/50 bg-violet/10 p-4 shadow-e1 transition hover:border-violet active:scale-[0.99]">
+      <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-violet-soft"><Route aria-hidden className="size-4" />{t("mob.course.label")}</span>
+      <span className="block text-lg font-bold leading-snug">{course[lang][0]}</span>
+      <span className="block text-sm text-muted">{course[lang][2]}</span>
+      <span className="flex items-center gap-3">
+        <ProgressBar value={progress.done} max={total} label={label} className="flex-1" />
+        <span className="shrink-0 text-xs text-muted">{label}</span>
+      </span>
+      <span className="flex min-h-11 items-center justify-between gap-2 font-semibold text-neon">
+        {progress.next ? t("mob.course.next", { n: progress.next.number }) : t("mob.course.open")} <Arrow />
+      </span>
+    </a>
   );
 }
 

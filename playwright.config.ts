@@ -37,6 +37,9 @@ export default defineConfig({
       TRUST_PROXY: "true",
       AI_PROVIDER: "demo",
       PLANS_ENABLED: "true",
+      // the display switches are on in the suites (tests/integration/display-switches.test.ts covers them off)
+      GAME_EDITING: "true",
+      DEMO_TEMPLATES: "true",
       PAYMENTS_MODE: "dev",
       ENABLE_TEST_HOOKS: "true",
       NODE_ENV: "production",

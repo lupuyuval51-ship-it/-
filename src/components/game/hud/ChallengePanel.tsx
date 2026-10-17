@@ -15,6 +15,7 @@ import { useDialogFocus } from "./useDialogFocus";
 import { useKeyboardInset } from "./useKeyboardInset";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
+import { MathText } from "@/components/ui/MathText";
 
 export interface AnswerResult {
   correct: boolean;
@@ -47,7 +48,7 @@ export function RichText({ text, className }: { text: string; className?: string
     else {
       if (line.trim() === "" && code.length) { code.push(""); continue; }
       flush();
-      if (line.trim()) out.push(<p key={`p${out.length}`} dir="auto" className="whitespace-pre-wrap">{line}</p>);
+      if (line.trim()) out.push(<p key={`p${out.length}`} dir="auto" className="whitespace-pre-wrap"><MathText text={line} /></p>);
     }
   }
   flush();
@@ -201,7 +202,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
             {hint && (
               <div className="rounded-xl border border-amber/40 bg-amber/10 p-3 text-sm" data-testid="hint" role="note">
                 <b className="text-amber">{t("challenge.hintShown")}: </b>
-                <span dir="auto">{hint}</span>
+                <span dir="auto"><MathText text={hint} /></span>
               </div>
             )}
 
@@ -211,7 +212,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                   {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
                   {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
                 </p>
-                <p dir="auto">{result.feedback}</p>
+                <p dir="auto"><MathText text={result.feedback} /></p>
                 {!result.resolved && <p className="text-muted">{t("challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
                 {result.revealed && result.reveal && (
                   <div className="space-y-1 rounded-lg bg-ink-900 p-2">
@@ -220,7 +221,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                   </div>
                 )}
                 {result.explanation && (
-                  <p dir="auto" className="rounded-lg bg-ink-900 p-2"><b className="text-neon">{t("challenge.explanation")}: </b>{result.explanation}</p>
+                  <p dir="auto" className="rounded-lg bg-ink-900 p-2"><b className="text-neon">{t("challenge.explanation")}: </b><MathText text={result.explanation} /></p>
                 )}
               </div>
             )}

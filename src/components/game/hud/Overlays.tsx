@@ -19,6 +19,7 @@ import { Confetti } from "./Confetti";
 import { applyDeadzone, bottomAboveControls, bottomEdge, controlsInsetStyle, landscapeStrip, safePadAll, safePadX } from "./hudLayout";
 import { SPRINT_IDLE, isSprinting, sprintCancel, sprintPress, sprintRelease, sprintStickReleased, sprintToggle, type SprintState } from "./sprintLatch";
 import { useDialogFocus } from "./useDialogFocus";
+import { MathText } from "@/components/ui/MathText";
 
 // ───────────────────────── toasts ─────────────────────────
 
@@ -443,7 +444,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-ink-950/60 p-4 backdrop-blur-sm pointer-coarse:bg-ink-950/85 pointer-coarse:backdrop-blur-none" style={safePadAll()}>
       <div ref={box} role="dialog" aria-modal="true" aria-label={title} data-testid="lore-card" className="lu-pop max-h-full overflow-y-auto w-full max-w-lg space-y-3 rounded-2xl border border-violet/50 bg-ink-800 p-5 shadow-e3">
         <h2 dir="auto" className="text-lg font-bold text-violet-soft">{title}</h2>
-        <p dir="auto" className="leading-relaxed">{text}</p>
+        <p dir="auto" className="leading-relaxed"><MathText text={text} /></p>
         <div className="flex justify-end"><Button onClick={onClose}>{t("lore.close")}</Button></div>
       </div>
     </div>

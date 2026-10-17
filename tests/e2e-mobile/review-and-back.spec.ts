@@ -86,7 +86,8 @@ test("the app never requests Unity files or any network resource, even when aske
   const unity: string[] = [];
   page.on("request", (r) => { if (/unity|\/api\//i.test(new URL(r.url()).pathname)) unity.push(r.url()); });
   await page.goto("/?renderer=unity#/create");
-  await page.locator("#subject").fill("Fractions");
+  // (a subject alone no longer makes a game: the fractions example fills the subject and real notes)
+  await page.getByTestId("example-notes-fractions").click();
   await page.getByTestId("mobile-create-submit").click();
   await expect(page.getByTestId("play-root")).toBeVisible();
   await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1", undefined, { timeout: 60_000 });

@@ -11,6 +11,7 @@ import type { DictKey } from "@/lib/i18n";
 import { requireUser } from "@/server/auth/current";
 import { ApiError } from "@/server/http/errors";
 import { getBackend } from "@/server/ai/registry";
+import { gameEditingShown } from "@/server/env";
 import { getGameDetails } from "@/server/games/library";
 import { listRevisions } from "@/server/games/versions";
 import { getT } from "@/server/i18n";
@@ -29,7 +30,9 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
   });
   if (!d) notFound();
   const { game, overview, progress, inProgress, recent } = d;
-  const history = await listRevisions(user.id, id);
+  // Editing a game's look and mechanics is hidden unless switched on (GAME_EDITING); the API stays.
+  const editing = gameEditingShown();
+  const history = editing ? await listRevisions(user.id, id) : null;
   const aiAvailable = getBackend().type === "llm";
   const btn = "inline-flex min-h-12 items-center justify-center rounded-xl px-6 font-semibold";
   return (
@@ -136,7 +139,7 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             )}
           </Card>
 
-          <AiEditPanel gameId={game.id} revision={game.revision} capabilities={history.capabilities} editable={game.generator.kind === "ai"} aiAvailable={aiAvailable} />
+          {history && <AiEditPanel gameId={game.id} revision={game.revision} capabilities={history.capabilities} editable={game.generator.kind === "ai"} aiAvailable={aiAvailable} />}
 
           <GameActions
             gameId={game.id}
@@ -144,9 +147,10 @@ export default async function GameDetailsPage({ params }: { params: Promise<{ id
             timeOfDay={overview.timeOfDay}
             mechanics={overview.mechanics}
             hasProgress={Boolean(progress || inProgress)}
+            editing={editing}
           />
 
-          <VersionHistory gameId={game.id} revisions={history.revisions?.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })) ?? null} />
+          {history && <VersionHistory gameId={game.id} revisions={history.revisions?.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })) ?? null} />}
         </aside>
       </div>
     </div>

@@ -8,7 +8,7 @@ import { resolveEntitlement } from "../allowance/entitlement";
 import { findPeriod } from "../allowance/periods";
 import { levelCost, levelsForPlan } from "../games/feature-tier";
 import { db } from "../db";
-import { getEnv } from "../env";
+import { demoTemplatesOn, getEnv } from "../env";
 import { ApiError, Errors } from "../http/errors";
 import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { runInBackground } from "../http/background";
@@ -29,6 +29,12 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
   // A game from the topic library is built without any model, so it does not need an AI backend.
   if (backend.type === "unavailable" && !body.request.topicId) {
     throw Errors.unavailable("AI_UNAVAILABLE", `AI generation is not available: ${backend.reason}. Ask the administrator to configure a provider or use demo mode.`);
+  }
+
+  // Without an AI provider a new game comes from the learner's own material or from the topic library; the demo templates
+  // (a subject alone) are switched off unless DEMO_TEMPLATES is on. Refused before anything is reserved.
+  if (backend.info.kind === "demo" && body.request.mode !== "EXTEND" && !body.request.material && !body.request.topicId && !demoTemplatesOn()) {
+    throw new ApiError(422, "MATERIAL_REQUIRED", "No AI provider is configured: add your own study material, or pick a topic from the topic library.");
   }
 
   const existing = await db.generationJob.findUnique({ where: { userId_idempotencyKey: { userId, idempotencyKey: body.idempotencyKey } } });

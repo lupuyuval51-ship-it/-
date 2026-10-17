@@ -7,7 +7,7 @@
  *
  * Honest provenance: the result is labelled "Topic library (not AI)"; nothing here is presented as AI output.
  */
-import type { Environment, SubjectCategory, TimeOfDay } from "../spec/constants";
+import { SPEC_LIMITS, type Environment, type SubjectCategory, type TimeOfDay } from "../spec/constants";
 import { challengeStation, choice, loreStation, match, npc, numeric, sequence, translator, type Lang, type Tr } from "../demo/builders";
 import { clip, distinctStart, startHintText } from "../material/text";
 import { hashSeed, mulberry32 } from "../util/prng";
@@ -347,6 +347,16 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
   const groups = twoAreas ? [challenges.slice(0, Math.ceil(challenges.length / 2)), challenges.slice(Math.ceil(challenges.length / 2))] : [challenges];
   const keyIdeas = (levelContent.t ?? allTerms).slice(0, 3).map((x) => (lang === "he" ? `${x[2]} — ${x[3]}` : `${x[0]} — ${x[1]}`));
   const firstFact = keyIdeas[0] ?? description;
+  // A course chapter teaches before it asks: its lesson boards stand in the first area and must be read before the
+  // questions open; the hands-on task waits at the end. Boards only fill the room the area has left (stations per area).
+  const lesson = content.l ? content.l[lang] : null;
+  const lessonBoards: Raw[] = lesson
+    ? [
+        ...lesson.text.slice(0, 2).map((text, i) => loreStation(`s-1-lesson-${i + 1}`, lesson.text.length > 1 ? t(`Lesson · part ${i + 1}`, `השיעור · חלק ${i + 1}`) : t("The lesson", "השיעור"), clip(lesson.title, 70), clip(text, 420))),
+        loreStation("s-1-example", t("Worked example", "דוגמה פתורה"), clip(lesson.title, 70), clip(lesson.example, 420)),
+      ]
+    : [];
+  const taskBoard: Raw | null = lesson ? loreStation(`s-${groups.length}-task`, t("Try it yourself", "משימה מעשית"), clip(lesson.title, 70), clip(lesson.task, 420)) : null;
 
   const areas: Raw[] = [];
   const missions: Raw[] = [];
@@ -355,18 +365,28 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
     const index = gi + 1;
     const last = gi === groups.length - 1;
     const stations: Raw[] = cs.map((c, i) => challengeStation(`s-${index}-${i + 1}`, clip(`${t(...f.station)} ${i + 1}`, 40), String(c.id)));
-    if (last && keyIdeas.length) stations.push(loreStation(`s-${index}-lore`, t("Key ideas", "רעיונות מרכזיים"), clip(title, 70), clip(keyIdeas.join(" · "), 420)));
+    const room = () => SPEC_LIMITS.stationsPerArea - stations.length;
+    const boards = gi === 0 ? lessonBoards.slice(0, Math.max(0, room() - (last && taskBoard ? 1 : 0))) : [];
+    stations.unshift(...boards);
+    if (last && taskBoard && room() > 0) stations.push(taskBoard);
+    if (last && keyIdeas.length && room() > 0 && !(lesson && gi === 0 && boards.length)) stations.push(loreStation(`s-${index}-lore`, t("Key ideas", "רעיונות מרכזיים"), clip(title, 70), clip(keyIdeas.join(" · "), 420)));
     const area: Raw = {
       id: `a-${index}`, name: clip(gi === 0 ? t(...f.place) : `${t(...f.place)} · ${t("part 2", "חלק 2")}`, 60),
       description: clip(t(`Questions about “${title}” at the level you chose.`, `שאלות על ״${title}״ ברמה שבחרתם.`), 260),
       size: "medium", layout: (["plaza", "rooms", "corridor"] as const)[gi % 3], hazardLevel: "none",
       ...(gi === 0 ? { intro: clip(t(`Welcome to the topic library: ${title}. Follow the guide!`, `ברוכים הבאים לספריית הנושאים: ${title}. עקבו אחרי המדריך!`), 260) } : {}),
       stations,
-      npcs: [npc(`n-${index}`, t(...f.guide), t("Your guide", "המדריך שלכם"), f.color, f.shape, [
-        clip(t(`Welcome! Today's topic: ${title}.`, `ברוכים הבאים! הנושא של היום: ${title}.`), 240),
-        clip(t(`Something to remember: ${firstFact}`, `משהו שכדאי לזכור: ${firstFact}`), 240),
-        t("Solve the challenges at the glowing stations. Stuck? Ask for a hint — it costs a few points.", "פתרו את האתגרים בתחנות הזוהרות. תקועים? בקשו רמז — הוא עולה כמה נקודות."),
-      ], t("After every answer there is an explanation — read it, it is where the learning happens.", "אחרי כל תשובה יש הסבר — קראו אותו, שם קורה הלימוד."))],
+      npcs: [npc(`n-${index}`, t(...f.guide), t("Your guide", "המדריך שלכם"), f.color, f.shape, boards.length
+        ? [
+            clip(t(`Welcome! Today's chapter: ${title}.`, `ברוכים הבאים! הפרק של היום: ${title}.`), 240),
+            t("First read the lesson boards and the worked example. The questions open after that.", "קודם קראו את לוחות השיעור ואת הדוגמה הפתורה. אחר כך ייפתחו השאלות."),
+            t("Stuck on a question? Read the lesson again, or ask for a hint — it costs a few points.", "תקועים בשאלה? קראו שוב את השיעור, או בקשו רמז — הוא עולה כמה נקודות."),
+          ]
+        : [
+            clip(t(`Welcome! Today's topic: ${title}.`, `ברוכים הבאים! הנושא של היום: ${title}.`), 240),
+            clip(t(`Something to remember: ${firstFact}`, `משהו שכדאי לזכור: ${firstFact}`), 240),
+            t("Solve the challenges at the glowing stations. Stuck? Ask for a hint — it costs a few points.", "פתרו את האתגרים בתחנות הזוהרות. תקועים? בקשו רמז — הוא עולה כמה נקודות."),
+          ], t("After every answer there is an explanation — read it, it is where the learning happens.", "אחרי כל תשובה יש הסבר — קראו אותו, שם קורה הלימוד."))],
       collectibles: { kind: f.gem, count: Math.min(5, Math.max(2, Math.ceil(cs.length * 0.7))), label: t("Knowledge gems", "אבני ידע") },
       ...(groups[gi + 1] ? { portal: { toAreaId: `a-${index + 1}`, label: t("Path to the next chapter", "הדרך לפרק הבא"), requiresMissionIds: [`m-${index}-2`] } } : {}),
     };
@@ -374,14 +394,28 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
     const ids = cs.map((c) => String(c.id));
     const half = Math.max(1, Math.ceil(ids.length / 2));
     const collect = Math.min(2, (area.collectibles as { count: number }).count);
-    const withLore = stations.some((s) => s.kind === "lore");
+    const endBoards = stations.filter((s) => s.kind === "lore" && !boards.includes(s)).map((s) => String(s.id));
     const m1 = `m-${index}-1`, m2 = `m-${index}-2`;
+    if (boards.length) {
+      // the lesson comes first: its mission opens the questions
+      missions.push({
+        id: `m-${index}-0`, title: t("Learn first", "קודם לומדים"), areaId: area.id, requires: previous ? [previous] : [],
+        story: t("Meet your guide, read the lesson and the worked example.", "פגשו את המדריך, קראו את השיעור ואת הדוגמה הפתורה."),
+        objectives: [
+          { type: "talk", text: t("Talk to your guide", "דברו עם המדריך"), npcId: `n-${index}` },
+          { type: "visit", text: t("Read the lesson and the worked example", "קראו את השיעור ואת הדוגמה הפתורה"), stationIds: boards.map((b) => String(b.id)) },
+        ],
+      });
+      previous = `m-${index}-0`;
+    }
     missions.push(
       {
         id: m1, title: t("Warm up", "חימום"), areaId: area.id, requires: previous ? [previous] : [],
-        story: t("Meet your guide and answer the first questions.", "פגשו את המדריך וענו על השאלות הראשונות."),
+        story: boards.length
+          ? t("Use what the lesson taught you on the first questions.", "השתמשו במה שלמדתם בשיעור כדי לענות על השאלות הראשונות.")
+          : t("Meet your guide and answer the first questions.", "פגשו את המדריך וענו על השאלות הראשונות."),
         objectives: [
-          { type: "talk", text: t("Talk to your guide", "דברו עם המדריך"), npcId: `n-${index}` },
+          ...(boards.length ? [] : [{ type: "talk", text: t("Talk to your guide", "דברו עם המדריך"), npcId: `n-${index}` }]),
           { type: "solve", text: t("Answer the first questions", "ענו על השאלות הראשונות"), challengeIds: ids.slice(0, half).slice(0, 6) },
         ],
       },
@@ -391,7 +425,7 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
         objectives: [
           ...(ids.length > half ? [{ type: "solve", text: t("Answer the remaining questions", "ענו על שאר השאלות"), challengeIds: ids.slice(half).slice(0, 6) }] : []),
           ...(collect > 0 ? [{ type: "collect", text: t(`Collect ${collect} knowledge gems`, `אספו ${collect} אבני ידע`), count: collect }] : []),
-          ...(withLore ? [{ type: "visit", text: t("Read the key ideas", "קראו את הרעיונות המרכזיים"), stationIds: [`s-${index}-lore`] }] : []),
+          ...(endBoards.length ? [{ type: "visit", text: lesson && taskBoard && endBoards.includes(String(taskBoard.id)) ? t("Read the hands-on task", "קראו את המשימה המעשית") : t("Read the key ideas", "קראו את הרעיונות המרכזיים"), stationIds: endBoards }] : []),
         ],
       },
     );

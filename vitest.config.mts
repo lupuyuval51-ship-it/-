@@ -15,6 +15,9 @@ const baseEnv = {
   AI_PROVIDER: "demo",
   // the suites test the plans, so they run with them switched on (tests/*/plans-off.test.ts covers the off switch)
   PLANS_ENABLED: "true",
+  // display switches: on in the suites (tests/integration/display-switches.test.ts covers them off)
+  GAME_EDITING: "true",
+  DEMO_TEMPLATES: "true",
   PAYMENTS_MODE: "disabled",
   ENABLE_TEST_HOOKS: "false",
 };

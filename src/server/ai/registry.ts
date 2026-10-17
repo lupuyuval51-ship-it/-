@@ -1,5 +1,5 @@
 import "server-only";
-import { getEnv } from "../env";
+import { getEnv, demoTemplatesOn } from "../env";
 import { createAnthropicBackend } from "./providers/anthropic";
 import { createOpenAiCompatBackend } from "./providers/openai";
 import type { GenerationBackend } from "./types";
@@ -50,8 +50,9 @@ function unavailable(id: string, reason: string): GenerationBackend {
 }
 
 /** Safe, client-visible description of what generation will use. No keys. */
-export function describeBackend(): { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; model: string; reason?: string } {
+export function describeBackend(): { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; model: string; reason?: string; templates?: boolean } {
   const b = getBackend();
   if (b.type === "unavailable") return { kind: "unavailable", provider: b.info.id, label: b.info.label, model: b.info.model, reason: b.reason };
-  return { kind: b.info.kind, provider: b.info.id, label: b.info.label, model: b.info.model };
+  // `templates`: without AI, whether a subject alone still makes a (labelled) demo-template game (DEMO_TEMPLATES).
+  return { kind: b.info.kind, provider: b.info.id, label: b.info.label, model: b.info.model, ...(b.info.kind === "demo" ? { templates: demoTemplatesOn() } : {}) };
 }

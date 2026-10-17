@@ -15,7 +15,8 @@ import { TopicPicker } from "./TopicPicker";
 import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 
 export interface CreateFormProps {
-  backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string };
+  /** `templates`: without AI, whether a subject alone still makes a demo-template game (else material or a topic is needed). */
+  backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string; templates?: boolean };
   allowance: { remaining: number; limit: number; periodEnd: string; plan: string; activeJobId: string | null };
   /** Saved games; `extendCost` is the points an extension costs at the game's own level (null: the plan cannot make that level). */
   games: { id: string; title: string; subject: string; generatorKind: string; level: Level; extendCost: number | null }[];
@@ -99,6 +100,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   const [source, setSource] = useState<"own" | "library">("own");
   const [topicId, setTopicId] = useState<string | null>(null);
   const library = !extend && source === "library";
+  // no AI and the demo templates switched off: a game comes from the learner's material or from the topic library
+  const noTemplates = backend.kind === "demo" && backend.templates === false;
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   // a free level (cost 0, Plus and Pro level C) can always be made, so the points never run out for it
   const exhausted = allowance.remaining <= 0 && !levels.options.some((o) => o.allowed && o.cost === 0);
@@ -139,6 +142,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
     if (get("notes").length > INPUT_LIMITS.notesMax) errs.notes = t("create.error.tooLong");
     if (get("material").length > INPUT_LIMITS.materialMax) errs.material = t("create.error.tooLong");
     if (extend && engineGame && !get("material")) errs.material = t("create.error.materialRequired");
+    if (!extend && !library && noTemplates && !get("material")) errs.material = t("create.error.materialNeeded");
     setFieldErrors(errs);
     if (Object.keys(errs).length) {
       setError({ text: t("create.error.validation") });
@@ -208,6 +212,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
       else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
       else if (code === "TOPIC_LOCKED") setError({ text: json.error?.details?.requiredPlan === "PRO" ? t("create.error.topicLockedPro") : t("create.error.topicLocked") });
       else if (code === "VALIDATION_ERROR") setError({ text: t("create.error.validation") });
+      else if (code === "MATERIAL_REQUIRED") { setFieldErrors({ material: t("create.error.materialNeeded") }); setError({ text: t("create.error.materialNeeded") }); }
       else if (code === "RATE_LIMITED") setError({ text: t("common.error.rateLimited") });
       else if (code === "UNAUTHORIZED") router.push("/login?next=/create");
       else setError({ text: t("common.error.generic") });
@@ -253,7 +258,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   }
 
   const materialField = (
-    <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : t("create.material.hint.demo")}>
+    <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : noTemplates ? t("create.material.hint.engine") : t("create.material.hint.demo")}>
       <Textarea
         id="material" name="material" dir="auto" rows={8} maxLength={INPUT_LIMITS.materialMax} placeholder={t("create.material.placeholder")} data-testid="create-material"
         value={material} onChange={(e) => setMaterial(e.target.value)}
@@ -274,7 +279,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
     <form ref={formRef} onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
       <Alert tone={backend.kind === "demo" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
         {backend.kind === "ai" && t("create.provider.ai")}
-        {backend.kind === "demo" && t("create.provider.demo")}
+        {backend.kind === "demo" && (noTemplates ? t("create.provider.engine") : t("create.provider.demo"))}
         {backend.kind === "unavailable" && t("create.provider.unavailable", { reason: backend.reason ?? "" })}
       </Alert>
 
@@ -412,14 +417,15 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
           <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject} required>
             <Input id="subject" name="subject" maxLength={INPUT_LIMITS.subjectMax} placeholder={t("create.subject.placeholder")} data-testid="create-subject" autoComplete="off" />
           </Field>
-          <div role="group" aria-labelledby={examplesId} className="-mt-1 flex flex-wrap items-center gap-2" data-testid="create-examples">
+          {/* example subjects only make sense when a subject alone can make a game (AI, or the demo templates) */}
+          {!noTemplates && <div role="group" aria-labelledby={examplesId} className="-mt-1 flex flex-wrap items-center gap-2" data-testid="create-examples">
             <span id={examplesId} className="text-xs text-muted">{t("create.examples")}</span>
             {EXAMPLES.map((n) => (
               <button key={n} type="button" onClick={() => applyExample(n)} className="min-h-10 rounded-full border border-line px-3 text-sm font-medium hover:border-neon/60 hover:bg-neon/10">
                 {t(`create.example.${n}.subject` as DictKey)}
               </button>
             ))}
-          </div>
+          </div>}
           <Field label={t("create.goal")} htmlFor="learningGoal" error={fieldErrors.learningGoal} required>
             <Textarea id="learningGoal" name="learningGoal" maxLength={INPUT_LIMITS.goalMax} rows={3} placeholder={t("create.goal.placeholder")} data-testid="create-goal" />
           </Field>

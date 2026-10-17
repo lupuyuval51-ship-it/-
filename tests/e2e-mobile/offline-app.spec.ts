@@ -76,7 +76,7 @@ test("Hebrew by default, no network: build a game from notes, play a challenge, 
   expect(errors).toEqual([]);
 });
 
-test("English, demo game without notes, settings change language and graphics tier, delete works", async ({ page }) => {
+test("English: a subject without notes asks for notes or a library topic (no demo game); settings change language and graphics tier; delete works", async ({ page }) => {
   const errors = watchErrors(page);
   await page.goto("/#/settings");
   await page.locator("#locale").selectOption("en");
@@ -85,11 +85,22 @@ test("English, demo game without notes, settings change language and graphics ti
   await page.goto("/#/create");
   await page.locator("#subject").fill("Fractions");
   await page.getByTestId("mobile-create-submit").click();
+  // nothing is built from a subject alone: the notes are asked for, and the library is one tap away
+  await expect(page.getByTestId("mobile-create-error")).toContainText("Paste your notes");
+  await expect(page.locator("#material")).toBeFocused();
+  expect(page.url()).toContain("#/create");
+  await page.getByTestId("create-to-library").click();
+  await expect(page.getByTestId("source-library")).toBeChecked();
+  await expect(page.getByTestId("topic-picker")).toBeVisible();
+  // with notes it builds, at the chosen graphics tier
+  await page.getByTestId("source-notes").check();
+  await page.getByTestId("example-notes-fractions").click();
+  await page.getByTestId("mobile-create-submit").click();
   await waitForWorld(page);
   await expect(page.getByTestId("play-root")).toHaveAttribute("data-tier", "C");
-  await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "demo");
+  await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "engine");
   await page.goto("/");
-  await expect(page.getByTestId("badge-demo")).toBeVisible();
+  await expect(page.getByTestId("badge-engine")).toBeVisible();
   page.once("dialog", (d) => void d.accept());
   await page.getByRole("button", { name: "Delete" }).click();
   await expect(page.getByTestId("mobile-empty")).toBeVisible();

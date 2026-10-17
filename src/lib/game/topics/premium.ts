@@ -2,7 +2,8 @@ import { PLANS, PLAN_IDS, type PlanId, type TopicTier } from "@/config/plans";
 
 /**
  * Topics of the library that Free does not open (about a third of every category: the 3rd, 6th, 9th… topic of each
- * category in catalogue order, so the first topics of every category stay open to everyone). Of these, `PRO_ONLY_TOPIC_IDS`
+ * category in catalogue order, so the first topics of every category stay open to everyone; course chapters, see
+ * `courses.ts`, are always free and not counted). Of these, `PRO_ONLY_TOPIC_IDS`
  * (two in every category) need Pro; the rest need Plus or Pro. Which plan plays which tier is decided in src/config/plans.ts
  * (`features.topicTiers`), never here; the server and the offline generator enforce it.
  */

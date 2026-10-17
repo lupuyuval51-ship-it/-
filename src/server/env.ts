@@ -30,6 +30,14 @@ const schema = z.object({
   /** With plans off: still show the plans and prices (pricing page, landing, nav) as information, with no way to buy. */
   PLANS_SHOWN: bool.default(true),
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
+  /**
+   * Display switches (they never unlock anything; the server still enforces every rule). Off by default, because they do
+   * not help a learner learn: editing a game's look and mechanics (rename, time of day, mechanics, the AI edit robot and
+   * version history) and the five hand-written demo templates (a subject with no material and no AI). The code and the
+   * API stay; the test suites switch both on.
+   */
+  GAME_EDITING: bool.default(false),
+  DEMO_TEMPLATES: bool.default(false),
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
 
@@ -74,5 +82,9 @@ export function resetEnvForTests(): void {
 export const plansEnabled = (): boolean => getEnv().PLANS_ENABLED;
 /** Plans and prices are visible (as information when plans are off). */
 export const plansShown = (): boolean => getEnv().PLANS_ENABLED || getEnv().PLANS_SHOWN;
+/** The game page shows the editing tools (manual edits, AI edits, version history). */
+export const gameEditingShown = (): boolean => getEnv().GAME_EDITING;
+/** Without an AI provider, a subject alone makes a demo-template game (otherwise material or a library topic is needed). */
+export const demoTemplatesOn = (): boolean => getEnv().DEMO_TEMPLATES;
 export const isProduction = (): boolean => getEnv().APP_ENV === "production";
 export const secureCookies = (): boolean => getEnv().APP_ENV === "production" || getEnv().APP_URL.startsWith("https://");

@@ -76,7 +76,9 @@ describe("New game screen (offline app)", () => {
     expect(options(html, "gameType").every((o) => !o.disabled)).toBe(true);
     expect(options(html, "gameType").find((o) => o.selected)?.value).toBe("adventure");
     expect(html).not.toContain("create-locked-note");
-    expect(html).toContain("No notes? You get a ready-made demo game");
+    // a subject without notes no longer makes a demo game (mobile/src/features.ts): the hint points to the library instead
+    expect(html).toContain("No notes? Pick a ready-made topic from the library instead.");
+    expect(html).not.toContain("demo game");
   });
 
   it("tier C: what the plan lacks is disabled and labelled, and the form starts on a game type the tier has", () => {

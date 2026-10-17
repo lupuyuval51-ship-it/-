@@ -50,7 +50,8 @@ test("sign in backs up the games, shows the sync status, sign-out keeps games on
 
   // a game on the phone before signing in
   await page.goto("/#/create");
-  await page.locator("#subject").fill("Fractions");
+  // (a subject alone no longer makes a game: the fractions example fills the subject and real notes)
+  await page.getByTestId("example-notes-fractions").click();
   await page.getByTestId("mobile-create-submit").click();
   await expect(page.getByTestId("play-root")).toBeVisible();
 
@@ -70,7 +71,9 @@ test("sign in backs up the games, shows the sync status, sign-out keeps games on
   await expect(page.getByTestId("sync-status")).toHaveAttribute("data-status", "ok", { timeout: 15_000 });
   expect(cloud.auth).toEqual(["kid@example.test"]);
   expect(cloud.pushed.games?.length).toBe(1);
-  expect((cloud.pushed.games![0] as { title: string }).title).toMatch(/Fraction/i);
+  const pushedGame = cloud.pushed.games![0] as { title: string; spec: { meta: { subject: string } } };
+  expect(pushedGame.title.length).toBeGreaterThan(0);
+  expect(pushedGame.spec.meta.subject).toMatch(/Fraction|שברים/i); // the e2e build is in Hebrew
   expect(cloud.pushed.sessions?.length).toBe(1);
   // the user id is never sent by the app: the database sets it from the token
   expect(JSON.stringify(cloud.pushed)).not.toContain(USER_ID);

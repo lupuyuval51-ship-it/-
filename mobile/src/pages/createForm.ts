@@ -181,6 +181,8 @@ export type CreateProblem =
   | { kind: "required" }
   | { kind: "tier"; mode: boolean; gameType: boolean }
   | { kind: "material"; /** Specific message from the study engine, in the game's language. */ detail: string | null }
+  /** "My own notes" with no notes, while a subject alone no longer makes a demo game (`features.ts`). */
+  | { kind: "notes" }
   | { kind: "storage" }
   | { kind: "generic" };
 
@@ -256,7 +258,7 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
       const { problem } = state;
       const solved = problem !== null
         && ((problem.kind === "required" && action.key === "subject")
-          || (problem.kind === "material" && action.key === "material")
+          || ((problem.kind === "material" || problem.kind === "notes") && action.key === "material")
           || (problem.kind === "tier" && (action.key === "mode" || action.key === "gameType")));
       return { ...state, form: { ...state.form, [action.key]: action.value }, restored: false, problem: solved ? null : problem };
     }
@@ -274,7 +276,7 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
       const f = state.form;
       const replaces = f.material.trim() !== "" && !isExampleText(f.subject, f.material);
       const subjectless = f.subject.trim() === "";
-      const solved = state.problem !== null && (state.problem.kind === "material" || (state.problem.kind === "required" && subjectless && action.subject !== ""));
+      const solved = state.problem !== null && (state.problem.kind === "material" || state.problem.kind === "notes" || (state.problem.kind === "required" && subjectless && action.subject !== ""));
       return {
         form: { ...f, material: action.text, subject: subjectless ? action.subject : f.subject },
         restored: false,

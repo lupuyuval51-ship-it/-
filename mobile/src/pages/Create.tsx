@@ -22,6 +22,7 @@ import {
 } from "./createForm";
 import { EXAMPLES } from "./examples";
 import { navigate } from "../router";
+import { demoGames } from "../features";
 
 const STAGES: readonly OfflineStage[] = ["reading", "building", "checking", "saving"];
 /** Wait this long after the last keystroke before writing the draft (it is also written when the screen is left or hidden). */
@@ -106,7 +107,7 @@ export function CreatePage() {
   // After a failed attempt, take the learner to what needs attention (the field, or the message for everything else).
   useEffect(() => {
     if (!problem) return;
-    const id = problem.kind === "required" ? "subject" : problem.kind === "material" ? "material" : problem.kind === "tier" ? (problem.mode ? "mode" : "gameType") : null;
+    const id = problem.kind === "required" ? "subject" : problem.kind === "material" || problem.kind === "notes" ? "material" : problem.kind === "tier" ? (problem.mode ? "mode" : "gameType") : null;
     const el = id ? document.getElementById(id) : alertBox.current;
     el?.scrollIntoView?.({ block: "center" });
     if (id) el?.focus?.();
@@ -140,6 +141,8 @@ export function CreatePage() {
     }
     const subject = topic ? topic[form.language][0] : cleanPastedText(form.subject).trim();
     if (!subject) { dispatch({ type: "problem", problem: { kind: "required" } }); return; }
+    // Without notes a subject alone used to make a demo-template game; now the notes are needed (or a ready topic from the library).
+    if (!topic && !useAi && !demoGames() && !cleanPastedText(form.material).trim()) { dispatch({ type: "problem", problem: { kind: "notes" } }); return; }
     if (useAi && !account.session) { setAiFailure("SIGN_IN"); return; }
     setBusy(true);
     setAiFailure(null);
@@ -195,6 +198,7 @@ export function CreatePage() {
     switch (problem.kind) {
       case "required":
       case "material": return t("create.error.validation");
+      case "notes": return t("mob.create.error.notes");
       case "tier": return problem.mode && problem.gameType
         ? t("mob.create.error.tier.both", { mode: modeName, type: typeName })
         : problem.mode ? t("mob.create.error.tier.mode", { mode: modeName, other: t("mode.FAST") }) : t("mob.create.error.tier.type", { type: typeName });
@@ -202,7 +206,8 @@ export function CreatePage() {
       case "generic": return t("mob.create.error.generic");
     }
   })();
-  const materialError = problem?.kind === "material" ? (problem.detail && form.language === locale ? problem.detail : t("mob.create.error.material")) : null;
+  const materialError = problem?.kind === "material" ? (problem.detail && form.language === locale ? problem.detail : t("mob.create.error.material"))
+    : problem?.kind === "notes" ? t("mob.create.error.notes") : null;
   const lockedField = t("mob.create.field.locked");
   const lockedLabel = (label: string, ok: boolean) => (ok ? label : `${label} (${t("mob.create.locked")})`);
 
@@ -272,7 +277,7 @@ export function CreatePage() {
       ) : restored ? (
         <Alert tone="info" data-testid="create-restored">{t("mob.create.draft.restored")}</Alert>
       ) : null}
-      <Field label={t("create.material")} hint={hasMaterial ? t("mob.create.material.hint.filled") : t("mob.create.material.hint.empty")} error={materialError} htmlFor="material">
+      <Field label={demoGames() ? t("create.material") : t("mob.create.material.label")} hint={hasMaterial ? t("mob.create.material.hint.filled") : demoGames() ? t("mob.create.material.hint.empty") : t("mob.create.material.hint.needed")} error={materialError} htmlFor="material">
         <Textarea id="material" dir="auto" rows={7} value={form.material} maxLength={INPUT_LIMITS.materialMax} disabled={busy} onChange={(e) => change("material", e.target.value)} placeholder={t("create.material.placeholder")} />
       </Field>
       <div className="space-y-1">
@@ -356,7 +361,12 @@ export function CreatePage() {
         </div>
       </section>
       <div ref={alertBox} className="scroll-mt-4">
-        {alertText && <Alert tone="error" data-testid="mobile-create-error">{alertText}</Alert>}
+        {alertText && (
+          <Alert tone="error" data-testid="mobile-create-error" className="space-y-2">
+            <p>{alertText}</p>
+            {problem?.kind === "notes" && <Button type="button" size="sm" variant="secondary" onClick={() => { dispatch({ type: "problem", problem: null }); setSource("library"); }} data-testid="create-to-library">{t("mob.create.toLibrary")}</Button>}
+          </Alert>
+        )}
         {aiFailure && <Alert tone="error" data-testid="mobile-create-ai-error">{t(`mob.create.ai.error.${aiFailure}`)}</Alert>}
       </div>
       {!library && !isBlankForm(form) && !busy && (

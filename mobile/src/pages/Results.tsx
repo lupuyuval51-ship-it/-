@@ -6,6 +6,7 @@ import { useT } from "@/components/I18nProvider";
 import { Arrow } from "@/components/ui";
 import { primaryLink, StateView } from "@/components/ui/StateView";
 import type { LearningSummary } from "@/lib/game/state/progress";
+import { chapterOf } from "@/lib/game/topics/courses";
 import { store, transport } from "../app-state";
 import { bestNote, quickNext } from "../results-model";
 import { navigate } from "../router";
@@ -54,12 +55,28 @@ function QuickNext({ gameId, sessionId, summary, reviewCount }: { gameId: string
   );
 }
 
+/** A course chapter's results lead back to the course, where the next chapter waits. */
+function BackToCourse({ topicId }: { topicId: string }) {
+  const t = useT();
+  const chapter = chapterOf(topicId);
+  if (!chapter) return null;
+  const total = chapter.course.chapters.length;
+  return (
+    <a href={`#/course/${chapter.course.id}`} data-testid="results-course" className="mx-auto mb-4 flex min-h-12 max-w-3xl items-center justify-between gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 py-3 text-sm font-semibold">
+      <span>{chapter.number < total ? t("mob.results.course.next", { n: chapter.number + 1 }) : t("mob.results.course")}</span>
+      <Arrow />
+    </a>
+  );
+}
+
 export function ResultsPage({ gameId, sessionId }: { gameId: string; sessionId: string }) {
   const t = useT();
   const r = useResults(gameId, sessionId);
   if (!r) return <Missing />;
+  const gen = r.game.spec.meta.generator;
   return (
     <>
+      {gen?.kind === "catalog" && gen.templateId && <BackToCourse topicId={gen.templateId} />}
       <QuickNext gameId={gameId} sessionId={sessionId} summary={r.summary} reviewCount={r.review.length} />
       <ResultsView t={t} s={r.summary} game={{ id: r.game.id, title: r.game.title }} sessionId={sessionId} conclusion={r.game.spec.learning.conclusion} review={r.review} libraryHref="/" />
     </>

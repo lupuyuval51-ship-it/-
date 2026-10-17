@@ -13,7 +13,8 @@ describe("topic tiers: open, Plus and up, Pro only", () => {
 
   it("in every category: about a third is not free, never a category's first two, and exactly two topics are Pro-only", () => {
     for (const cat of TOPIC_CATEGORIES) {
-      const inCat = TOPICS.filter((t) => t.cat === cat);
+      // (course chapters are free on every plan and not part of a category's share)
+      const inCat = TOPICS.filter((t) => t.cat === cat && !t.course);
       const share = inCat.filter((t) => isPremiumTopic(t.id)).length / inCat.length;
       expect(share, cat).toBeGreaterThanOrEqual(0.25);
       expect(share, cat).toBeLessThanOrEqual(0.4);
@@ -50,9 +51,15 @@ describe("topic tiers: open, Plus and up, Pro only", () => {
     expect(premiumTopicsPlan()).toBe("PLUS");
   });
 
-  it("counts: Free 137, Plus 181, Pro all 201", () => {
+  it("course chapters are free on every plan", () => {
+    const chapters = TOPICS.filter((t) => t.course);
+    expect(chapters.length).toBeGreaterThanOrEqual(8);
+    for (const t of chapters) expect(topicTier(t.id), t.id).toBe("free");
+  });
+
+  it("counts: Free 146, Plus 190, Pro all 210", () => {
     const open = (plan: "FREE" | "PLUS" | "PRO") => TOPICS.filter((t) => topicOpenFor(plan, t.id)).length;
     expect([open("FREE"), open("PLUS"), open("PRO")]).toEqual([TOPICS.length - PREMIUM_TOPIC_IDS.size, TOPICS.length - PRO_ONLY_TOPIC_IDS.size, TOPICS.length]);
-    expect(TOPICS.length - PREMIUM_TOPIC_IDS.size).toBeGreaterThan(130);
+    expect([open("FREE"), open("PLUS"), open("PRO")]).toEqual([146, 190, 210]);
   });
 });

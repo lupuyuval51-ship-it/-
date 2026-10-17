@@ -47,7 +47,7 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
         <p className="text-muted">{t("create.subtitle")}</p>
       </header>
       <CreateForm
-        backend={{ kind: backend.kind, provider: backend.provider, label: backend.label, reason: backend.reason }}
+        backend={{ kind: backend.kind, provider: backend.provider, label: backend.label, reason: backend.reason, templates: backend.templates }}
         allowance={{ remaining: allowance.remaining, limit: allowance.limit, periodEnd: allowance.periodEnd, plan, activeJobId: allowance.activeJobId }}
         games={games.map((g) => ({ id: g.id, title: g.title, subject: g.subject, generatorKind: g.generator.kind, level: g.level, extendCost: levelCost(plan, g.level) }))}
         extensionMechanics={EXTENSION_MECHANICS}

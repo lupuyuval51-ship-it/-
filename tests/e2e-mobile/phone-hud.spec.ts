@@ -50,7 +50,8 @@ test("Hebrew phone: the top bar has no overlaps, the score reads in the right or
 
 test("library card of a game in progress shows a real percentage, never a raw template", async ({ page }) => {
   await page.goto("/#/create");
-  await page.locator("#subject").fill("Fractions");
+  // (a subject alone no longer makes a game: the fractions example fills the subject and real notes)
+  await page.getByTestId("example-notes-fractions").click();
   await page.getByTestId("mobile-create-submit").click();
   await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1", undefined, { timeout: 60_000 });
   await page.goto("/#/");
