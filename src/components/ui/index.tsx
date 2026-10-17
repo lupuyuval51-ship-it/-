@@ -31,12 +31,12 @@ export function Button({ variant = "primary", size = "md", className, ...rest }:
  * and dialogs. `interactive` adds hover lift, pressed state and a focus ring for cards that are a single control.
  */
 export function Card({ className, elevation = "raised", interactive = false, ...rest }: HTMLAttributes<HTMLDivElement> & { elevation?: "flat" | "raised" | "floating"; interactive?: boolean }) {
-  const elev = { flat: "bg-ink-900", raised: "bg-ink-800 shadow-e1", floating: "bg-ink-800 shadow-e3" }[elevation];
+  const elev = { flat: "bg-ink-900/60", raised: "bg-ink-800/80 shadow-e2", floating: "bg-ink-800 shadow-e3" }[elevation];
   return (
     <div
       {...rest}
       className={cx(
-        "rounded-2xl border border-line p-5",
+        "rounded-2xl border border-line p-5 backdrop-blur",
         elev,
         interactive && "transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-neon/50 hover:shadow-e3 focus-within:border-neon/60 active:translate-y-0",
         className,
@@ -80,7 +80,7 @@ export function ProgressBar({ value, max = 100, className, label }: { value: num
   const pct = Math.max(0, Math.min(100, (value / Math.max(1, max)) * 100));
   return (
     <div role="progressbar" aria-label={label} aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} className={cx("h-2 w-full overflow-hidden rounded-full bg-ink-700", className)}>
-      <div className="h-full rounded-full bg-neon transition-[width] duration-500" style={{ width: `${pct}%` }} />
+      <div className="h-full rounded-full bg-gradient-to-r from-neon to-violet transition-[width] duration-500" style={{ width: `${pct}%` }} />
     </div>
   );
 }

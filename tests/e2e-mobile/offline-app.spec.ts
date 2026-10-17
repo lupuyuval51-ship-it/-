@@ -28,11 +28,10 @@ async function waitForWorld(page: Page) {
   await page.waitForFunction(() => (document.querySelector("canvas") as HTMLCanvasElement | null)?.dataset.ready === "1" && Boolean((window as any).__LEVELUP_TEST__), undefined, { timeout: 60_000 });
 }
 
-test("Hebrew by default, no network: build a game from notes, play a challenge, progress survives a restart", async ({ page, context, baseURL }) => {
+test("Hebrew by default, no network: build a game from notes, play a challenge, progress survives a restart", async ({ page, context }) => {
   const errors = watchErrors(page);
   // Everything must work with the network cut off (only the local preview server answers).
-  const own = new URL(baseURL!).origin;
-  await context.route((url) => url.origin !== own, (route) => route.abort());
+  await context.route(/^(?!http:\/\/127\.0\.0\.1:4173).*/, (route) => route.abort());
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.getByTestId("mobile-empty")).toBeVisible();

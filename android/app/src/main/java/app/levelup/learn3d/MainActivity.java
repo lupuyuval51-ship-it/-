@@ -36,8 +36,8 @@ public class MainActivity extends BridgeActivity {
      * choice at run time (mobile/src/system-bars.ts); these are the start-up colours that follow the system light/dark mode.
      * tests/unit/android-shell.test.ts checks that they still match the CSS.
      */
-    private static final int PAGE_DARK = 0xFF0E1B17;
-    private static final int PAGE_LIGHT = 0xFFF6F1E7;
+    private static final int PAGE_DARK = 0xFF060914;
+    private static final int PAGE_LIGHT = 0xFFF5F7FC;
 
     /** Render-process recoveries allowed per window; more than that is a crash loop and is left to the system. */
     private static final int MAX_RENDERER_RECOVERIES = 2;

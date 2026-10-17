@@ -10,18 +10,9 @@ const HE = `פוטוסינתזה: התהליך שבו צמחים הופכים א
 const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--enable-webgl"] });
 // Google Play rejects screenshots whose longer side is more than twice the shorter side. Pixel 7 is 412x839 (ratio 2.04), so trim
 // the height: 412x820 css px at 2.625 = 1082x2153 px.
-const ctx = await b.newContext({ ...devices["Pixel 7"], viewport: { width: 412, height: 820 }, reducedMotion: "reduce", colorScheme: "dark" });
+const ctx = await b.newContext({ ...devices["Pixel 7"], viewport: { width: 412, height: 820 }, reducedMotion: "reduce" });
 const p = await ctx.newPage();
 const base = "http://127.0.0.1:4173/";
-// the first-run questionnaire, in Hebrew, on the topics step; then skip the rest of it
-await p.goto(base);
-await p.getByTestId("setup-lang-he").check();
-await p.getByTestId("setup-next").click();
-await p.getByTestId("setup-topic-science").check();
-await p.getByTestId("setup-topic-computing").check();
-await p.waitForTimeout(400);
-await p.screenshot({ path: out + "5-setup.png" });
-await p.getByTestId("setup-skip").click();
 await p.goto(base + "#/create");
 await p.locator("#subject").fill("פוטוסינתזה");
 await p.locator("#material").fill(HE);
