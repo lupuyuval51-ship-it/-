@@ -15,7 +15,7 @@ import { PLANS } from "@/config/plans";
 import { createTestUser, grantSubscription } from "./helpers";
 import { mockLlm } from "./helpers-ai";
 import { setFeatureTierForTests } from "@/server/games/feature-tier";
-import { PREMIUM_TOPIC_IDS } from "@/lib/game/topics/premium";
+import { PREMIUM_TOPIC_IDS, PRO_ONLY_TOPIC_IDS } from "@/lib/game/topics/premium";
 
 /** The topic library on the website: the server pipeline builds the game from curated content, never with a model. */
 afterAll(disconnectDb);
@@ -110,7 +110,7 @@ describe("topic library — curated topics become games without any model", () =
   });
 });
 
-describe("premium topics — about a third of the library is Plus and Pro only, enforced by the server", () => {
+describe("premium topics — about a third of the library is Plus and Pro only and two topics per category are Pro only, enforced by the server", () => {
   const premium = [...PREMIUM_TOPIC_IDS][0]!;
   it("a Free account is refused a premium topic (403 TOPIC_LOCKED naming Plus) and nothing is reserved", async () => {
     const u = await createTestUser();
@@ -125,6 +125,28 @@ describe("premium topics — about a third of the library is Plus and Pro only, 
     const u = await createTestUser();
     await grantSubscription(u.id, "PLUS");
     const { job } = await generate(u.id, req({ topicId: premium }), DEMO);
+    expect(job.status).toBe("SUCCEEDED");
+  });
+
+  const proOnly = [...PRO_ONLY_TOPIC_IDS][0]!;
+  it("a Plus account is refused a Pro-only topic (403 TOPIC_LOCKED naming Pro) and nothing is reserved", async () => {
+    const u = await createTestUser();
+    await grantSubscription(u.id, "PLUS");
+    setBackendForTests(DEMO);
+    const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ topicId: proOnly }) }, { schedule: false }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err).toMatchObject({ status: 403, code: "TOPIC_LOCKED", details: { requiredPlan: "PRO" } });
+    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0 });
+  });
+
+  it("a Free account is refused a Pro-only topic too, and a Pro account plays it", async () => {
+    const free = await createTestUser();
+    setBackendForTests(DEMO);
+    const err = await createGeneration(free.id, { idempotencyKey: key(), request: req({ topicId: proOnly }) }, { schedule: false }).catch((e: unknown) => e);
+    expect(err).toMatchObject({ status: 403, code: "TOPIC_LOCKED", details: { requiredPlan: "PRO" } });
+    const pro = await createTestUser();
+    await grantSubscription(pro.id, "PRO");
+    const { job } = await generate(pro.id, req({ topicId: proOnly }), DEMO);
     expect(job.status).toBe("SUCCEEDED");
   });
 });

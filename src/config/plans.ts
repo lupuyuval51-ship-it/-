@@ -79,6 +79,9 @@ export type RobotLevel = (typeof ROBOT_LEVELS)[number];
  * What a plan can DO (capabilities and usage limits). Quotas live here and only here, so they can be tuned without
  * touching any other code. Every consumer is on the server; the UI only displays what the server reports.
  */
+/** How a topic-library topic is unlocked: open to everyone, from Plus, or only on Pro. */
+export type TopicTier = "free" | "plus" | "pro";
+
 export interface PlanFeatures {
   /** "none" = no AI editing. B = guided edits; A = also plans larger multi-part changes. */
   robot: RobotLevel;
@@ -88,8 +91,11 @@ export interface PlanFeatures {
   versionHistory: boolean;
   /** Versions kept per game; the oldest are pruned beyond this (the current one is never pruned). */
   versionsKept: number;
-  /** The topic-library topics marked premium (src/lib/game/topics/premium.ts, about a third of each category) can be played. */
-  premiumTopics: boolean;
+  /**
+   * Which tiers of the topic library the plan can play (src/lib/game/topics/premium.ts): "free" topics (about two thirds of each
+   * category), "plus" topics (the next third, Plus and Pro) and "pro" topics (a few in every category, Pro only).
+   */
+  topicTiers: readonly TopicTier[];
 }
 
 /**
@@ -141,7 +147,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     // FREE ALLOWANCE PERIOD: the calendar month (UTC). Unused points do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
-    features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3, premiumTopics: false },
+    features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3, topicTiers: ["free"] },
   },
   PLUS: {
     id: "PLUS",
@@ -152,7 +158,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     allowance: { budget: 3, cost: { B: 1, A: 3, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
-    features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20, premiumTopics: true },
+    features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20, topicTiers: ["free", "plus"] },
   },
   PRO: {
     id: "PRO",
@@ -164,7 +170,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     allowance: { budget: 10, cost: { A: 2, B: 1, C: 0 } },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
-    features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100, premiumTopics: true },
+    features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100, topicTiers: ["free", "plus", "pro"] },
   },
 });
 

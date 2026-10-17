@@ -3,7 +3,7 @@
  * Same validation as the server pipeline: everything passes `validateGameSpec` before it is stored or played.
  */
 import { buildDemoSpec } from "../game/demo";
-import { topicOpenFor } from "@/lib/game/topics/premium";
+import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { getOfflinePlan } from "./entitlement";
 import { MaterialError, buildMaterialSpec } from "../game/material/build";
 import { findTopic } from "../game/topics/catalog";
@@ -37,6 +37,8 @@ function applyRequest(raw: unknown, req: GenerationRequest, language: string): u
  * `tier` is the feature tier the device is entitled to (see `entitlement.ts`); the game is cut down to it exactly as on
  * the server (`clampToFeatureTier`). Defaults to the full tier A.
  */
+const requiredFor = (topicId: string): string => (planOpeningTopic(topicId) === "PRO" ? "This topic is part of Pro." : "This topic is part of Plus and Pro.");
+
 export function generateOffline(input: unknown, now = new Date(), tier: FeatureTier = "A", topic?: TopicContent): { spec: GameSpec; warnings: string[] } {
   const parsed = generationRequestSchema.safeParse(input);
   if (!parsed.success || parsed.data.mode === "EXTEND") throw new OfflineGenerationError("INVALID_REQUEST", "The request is invalid.");
@@ -44,7 +46,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
   // A topic-library request needs that topic's content, which the caller loads first (`generateOfflineWithProgress` does).
   if (parsed.data.topicId && (!entry || !topic)) throw new OfflineGenerationError("INVALID_REQUEST", "The topic could not be loaded.");
   // Premium topics follow the install's plan (Plus/Pro); until Google Play Billing exists every install is unlocked.
-  if (parsed.data.topicId && !topicOpenFor(getOfflinePlan(), parsed.data.topicId)) throw new OfflineGenerationError("TIER_LOCKED", "This topic is part of Plus and Pro.");
+  if (parsed.data.topicId && !topicOpenFor(getOfflinePlan(), parsed.data.topicId)) throw new OfflineGenerationError("TIER_LOCKED", requiredFor(parsed.data.topicId));
   const req = entry ? topicRequest(parsed.data, entry) : parsed.data;
   // Same rule as the server's `assertRequestAllowed`: ask for something the tier doesn't have and nothing is built.
   if (!modeAllowed(tier, req.mode) || !gameTypeAllowed(tier, req.gameType)) throw new OfflineGenerationError("TIER_LOCKED", "This is not part of your plan's game features.");

@@ -195,7 +195,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ idempotencyKey: keyRef.current, request }),
       });
-      const json = (await res.json().catch(() => ({}))) as { jobId?: string; error?: { code?: string; details?: { jobId?: string | null } } };
+      const json = (await res.json().catch(() => ({}))) as { jobId?: string; error?: { code?: string; details?: { jobId?: string | null; requiredPlan?: string } } };
       if (res.ok && json.jobId) {
         router.push(`/generate/${json.jobId}`);
         return;
@@ -206,7 +206,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
       else if (code === "JOB_IN_PROGRESS") setError({ text: t("create.error.inProgress"), jobId: json.error?.details?.jobId ?? undefined });
       else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: catalogGame ? t("create.error.catalogExtend") : t("create.error.mismatch") });
       else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
-      else if (code === "TOPIC_LOCKED") setError({ text: t("create.error.topicLocked") });
+      else if (code === "TOPIC_LOCKED") setError({ text: json.error?.details?.requiredPlan === "PRO" ? t("create.error.topicLockedPro") : t("create.error.topicLocked") });
       else if (code === "VALIDATION_ERROR") setError({ text: t("create.error.validation") });
       else if (code === "RATE_LIMITED") setError({ text: t("common.error.rateLimited") });
       else if (code === "UNAUTHORIZED") router.push("/login?next=/create");

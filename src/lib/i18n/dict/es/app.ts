@@ -79,6 +79,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "topics.categories": "Categorías",
   "topics.locked": "Desde {plan}",
   "create.error.topicLocked": "Este tema forma parte de Plus y Pro.",
+  "create.error.topicLockedPro": "Este tema forma parte de Pro.",
   "topics.cat.all": "Todas",
   "topics.cat.math": "Matemáticas",
   "topics.cat.science": "Ciencias",

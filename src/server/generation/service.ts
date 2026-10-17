@@ -10,7 +10,7 @@ import { levelCost, levelsForPlan } from "../games/feature-tier";
 import { db } from "../db";
 import { getEnv } from "../env";
 import { ApiError, Errors } from "../http/errors";
-import { premiumTopicsPlan, topicOpenFor } from "@/lib/game/topics/premium";
+import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { runInBackground } from "../http/background";
 import { startGenerationJob } from "./jobs";
 import { runGenerationJob } from "./runner";
@@ -36,9 +36,10 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
 
   // What the plan allows is decided here, from persisted state, before anything is reserved or generated.
   const ent = await resolveEntitlement(userId);
-  // A premium topic of the library (about a third of each category) is played only on a plan that opens premium topics.
+  // A topic of the library above the plan's tiers (Plus topics need Plus or Pro, Pro topics need Pro) is refused before anything is reserved.
   if (body.request.topicId && !topicOpenFor(ent.plan, body.request.topicId)) {
-    throw new ApiError(403, "TOPIC_LOCKED", "This topic is part of Plus and Pro.", { topicId: body.request.topicId, requiredPlan: premiumTopicsPlan() });
+    const requiredPlan = planOpeningTopic(body.request.topicId);
+    throw new ApiError(403, "TOPIC_LOCKED", requiredPlan === "PRO" ? "This topic is part of Pro." : "This topic is part of Plus and Pro.", { topicId: body.request.topicId, requiredPlan });
   }
   const period = await findPeriod(userId, ent);
   const remaining = Math.max(0, ent.limit - (period?.used ?? 0) - (period?.reserved ?? 0));

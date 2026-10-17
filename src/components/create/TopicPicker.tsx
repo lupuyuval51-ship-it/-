@@ -5,7 +5,7 @@ import { useLocale, useT } from "@/components/I18nProvider";
 import { Input, cx } from "@/components/ui";
 import { contentLangOf, type DictKey } from "@/lib/i18n";
 import type { PlanId } from "@/config/plans";
-import { premiumTopicsPlan, topicOpenFor } from "@/lib/game/topics/premium";
+import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { TOPICS, TOPIC_CATEGORIES, searchTopics, type TopicCategory } from "@/lib/game/topics/catalog";
 
 /**
@@ -58,7 +58,7 @@ export function TopicPicker({ value, onChange, disabled = false, error, initialC
             >
               <input type="radio" name="topicId" value={x.id} checked={checked} disabled={disabled || locked} onChange={() => onChange(x.id)} className="mt-1 size-4 shrink-0 accent-[var(--color-neon)]" />
               <span className="min-w-0 space-y-0.5">
-                <span className="block font-semibold">{title} {locked && <span className="ms-1 rounded-full border border-amber/40 bg-amber/10 px-2 py-0.5 text-xs font-medium text-amber" data-testid={`topic-locked-${x.id}`}>{t("topics.locked", { plan: t(`plan.${premiumTopicsPlan()}` as DictKey) })}</span>} <span lang={other} dir="auto" className="text-xs font-normal text-muted">· {x[other][0]}</span></span>
+                <span className="block font-semibold">{title} {locked && <span className="ms-1 rounded-full border border-amber/40 bg-amber/10 px-2 py-0.5 text-xs font-medium text-amber" data-testid={`topic-locked-${x.id}`}>{t("topics.locked", { plan: t(`plan.${planOpeningTopic(x.id)}` as DictKey) })}</span>} <span lang={other} dir="auto" className="text-xs font-normal text-muted">· {x[other][0]}</span></span>
                 <span className="block text-sm text-muted">{desc}</span>
                 <span className="block text-xs text-muted">{t(`topics.cat.${x.cat}` as DictKey)} · <span className="ltr-num">{t("topics.ages", { from: x.ages[0], to: x.ages[1] })}</span></span>
               </span>
