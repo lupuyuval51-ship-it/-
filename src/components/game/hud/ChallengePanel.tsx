@@ -16,6 +16,7 @@ import { useKeyboardInset } from "./useKeyboardInset";
 import { ProgramBuilder } from "./ProgramBuilder";
 import { SimulationPanel } from "./SimulationPanel";
 import { MathText } from "@/components/ui/MathText";
+import { isArithmetic } from "@/lib/i18n/bidi";
 
 export interface AnswerResult {
   correct: boolean;
@@ -44,11 +45,13 @@ export function RichText({ text, className }: { text: string; className?: string
     }
   };
   for (const line of lines) {
-    if (line.trim() && CODE_LINE.test(line) && CODE_HINT.test(line)) code.push(line);
+    // (a line of plain arithmetic, such as an answer "4/8" or "2/3 = 4/6", is maths, not code)
+    if (line.trim() && CODE_LINE.test(line) && CODE_HINT.test(line) && !isArithmetic(line)) code.push(line);
     else {
       if (line.trim() === "" && code.length) { code.push(""); continue; }
       flush();
-      if (line.trim()) out.push(<p key={`p${out.length}`} dir="auto" className="whitespace-pre-wrap"><MathText text={line} /></p>);
+      // a line of bare arithmetic keeps the direction around it (it lines up with a Hebrew prompt), drawn left to right inside
+      if (line.trim()) out.push(<p key={`p${out.length}`} dir={isArithmetic(line) ? undefined : "auto"} className="whitespace-pre-wrap"><MathText text={line} /></p>);
     }
   }
   flush();

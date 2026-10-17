@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mathRuns } from "@/lib/i18n/bidi";
+import { isArithmetic, mathRuns } from "@/lib/i18n/bidi";
 
 const runs = (s: string) => mathRuns(s).filter((p) => p.math).map((p) => p.text);
 
@@ -22,7 +22,13 @@ describe("maths inside a Hebrew line is drawn left to right", () => {
     expect(mathRuns(line).map((p) => p.text).join("")).toBe(line);
   });
 
-  it("text without Hebrew is left alone", () => {
+  it("text without Hebrew is left alone, unless it is nothing but arithmetic (an answer option on its own)", () => {
     expect(mathRuns("1/3 = x/9. What is x?")).toEqual([{ text: "1/3 = x/9. What is x?", math: false }]);
+    expect(mathRuns("2/3 = 4/6")).toEqual([{ text: "2/3 = 4/6", math: true }]);
+    expect(mathRuns("4/8")).toEqual([{ text: "4/8", math: true }]);
+    expect(mathRuns("print(x)")).toEqual([{ text: "print(x)", math: false }]);
+    expect(isArithmetic("1 1/8 cups")).toBe(false);
+    expect(isArithmetic("(2 + 3) × 4")).toBe(true);
+    expect(isArithmetic("x")).toBe(false);
   });
 });

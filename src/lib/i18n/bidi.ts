@@ -17,9 +17,13 @@ const RUN = new RegExp(String.raw`${GROUP}(?:\s*[×÷−+=≈/]\s*${GROUP})*`, "
 
 export interface TextPart { text: string; math: boolean }
 
-/** The parts of a line: maths runs (containing at least one digit) and the text between them. Non-Hebrew text is one part. */
+/** A line that is nothing but arithmetic ("4/8", "2/3 = 4/6", "1 1/4 m" is not): numbers, x, spaces and maths signs. */
+export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\d.,/%…×÷−+=≈()x]*$/.test(text);
+
+/** The parts of a line: maths runs (containing at least one digit) and the text between them. Non-Hebrew text is one part (maths when it is all arithmetic). */
 export function mathRuns(text: string): TextPart[] {
-  if (!HEBREW.test(text)) return [{ text, math: false }];
+  // a bare expression (an answer option, a line of its own) is drawn left to right whatever the direction around it
+  if (!HEBREW.test(text)) return [{ text, math: isArithmetic(text) }];
   const parts: TextPart[] = [];
   let at = 0;
   for (const m of text.matchAll(RUN)) {
