@@ -10,6 +10,7 @@
  * Everything outside is injected (`EdgeDeps`), so the handler is unit-tested in Node; `createEdgeDeps` wires the real
  * world inside Deno. Bundled for Deno by `scripts/build-ai-function.mjs`.
  */
+import "server-only"; // (stubbed to nothing when bundled for Deno, see scripts/build-ai-function.mjs)
 import type { FeatureTier } from "@/config/plans";
 import { fitForDevice } from "@/lib/game/spec/device";
 import type { GameSpec } from "@/lib/game/spec/schema";
