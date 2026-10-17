@@ -98,6 +98,13 @@ from your app off a user's device", including by webviews you control
 ([Data safety help](https://support.google.com/googleplay/android-developer/answer/10787469)). Everything that is sent goes to one
 service provider, the project's Supabase backend (`mobile/src/cloud/`), over HTTPS.
 
+**LEVEL UP AI (from 1.17.0).** After an explicit tap, for a signed-in learner only, the subject, goal, difficulty, language and notes of that
+one game go to a second service provider's endpoint, the Supabase project `levelup-ai` (`mobile/src/cloud/ai.ts`; CSP `connect-src` lists
+exactly its URL besides `'self'` and the account project), which forwards them to an AI model provider to write the game. Data safety: the
+**User content** row ("Other user-generated content": the text sent for generation) is *collected and shared with a service provider*, optional
+(only when the learner uses LEVEL UP AI), not used for advertising; it is processed ephemerally, not stored (only a request counter is kept).
+The policy (`mobile/store/privacy-policy.md`, 2026-10-17) says so. Without a sign-in or without tapping, the app still makes no network request.
+
 **Google sign-in (optional, off unless the build has `VITE_GOOGLE_AUTH=1`).** The button opens Supabase's Google page in the
 system browser (not a request from the app, so `connect-src` stays exactly `'self'` + the Supabase URL) and the browser returns to
 `app.levelup.learn3d://auth` (intent filter on MainActivity; `tests/unit/android-shell.test.ts` pins scheme and host). The app

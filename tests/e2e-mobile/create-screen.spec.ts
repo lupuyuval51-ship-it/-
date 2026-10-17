@@ -191,3 +191,17 @@ test.describe("on a 360px phone", () => {
     await expect(page.getByTestId("source-library")).toBeChecked();
   });
 });
+
+test("LEVEL UP AI is offered; signed out it asks for a sign-in and sends nothing anywhere", async ({ page, baseURL }) => {
+  const own = new URL(baseURL!).origin;
+  const outside: string[] = [];
+  page.on("request", (r) => { if (!r.url().startsWith(own) && !r.url().startsWith("data:") && !r.url().startsWith("blob:")) outside.push(r.url()); });
+  await page.goto("/#/create");
+  await page.getByTestId("source-ai").check();
+  await expect(page.getByTestId("create-ai-signin")).toBeVisible();
+  await page.locator("#subject").fill("Fractions");
+  await page.getByTestId("mobile-create-submit").click();
+  await expect(page.getByTestId("mobile-create-ai-error")).toBeVisible();
+  await expect(page.getByTestId("mobile-create")).toBeVisible(); // still here: no game was made
+  expect(outside).toEqual([]);
+});

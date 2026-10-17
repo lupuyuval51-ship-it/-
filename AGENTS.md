@@ -31,7 +31,7 @@ Node ≥ 20.9. Commands, configuration and architecture are in `README.md`.
 ## Offline Android app (`mobile/`, `android/`, `src/lib/offline`)
 
 - A deliberate, documented exception: no server, so the reducer, answer keys and scoring run on the device. Never import server
-  code (`server-only` throws in that bundle). No payments and no AI keys in the app.
+  code (`server-only` throws in that bundle). No payments and no AI keys in the app. The only AI in the app is LEVEL UP AI, an explicit option of the create screen for a signed-in learner (`mobile/src/cloud/ai.ts`): it calls the Edge Function `generate-game` of the separate Supabase project `levelup-ai` (`src/server/ai/edge/`, the key lives only in that project's secrets), the answer must pass `validateGameSpec` on the phone and carry the `ai` label before it is saved, and CSP `connect-src` lists exactly the account project and that one URL.
 - Optional account + cloud backup through Supabase (`mobile/src/cloud`, `src/lib/offline/sync.ts`, `supabase/`): only the URL and
   the *publishable* key are in the app; every table is owner-only (RLS, tested by `supabase/tests/rls_checks.sql`). Signed out,
   the app makes no network request (tested). CSP `connect-src` lists exactly `'self'` and the project URL — never `*`.

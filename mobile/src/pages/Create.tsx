@@ -12,6 +12,8 @@ import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
+import { AiError, generateWithAi, type AiFailure } from "../cloud/ai";
+import { useAccount } from "../cloud/account";
 import { getSettings, store } from "../app-state";
 import { modeForMinutes } from "@/lib/offline/first-run";
 import {
@@ -61,13 +63,17 @@ export function CreatePage() {
   const fileInput = useRef<HTMLInputElement>(null);
   /** "library": a ready topic from the topic library (built on the device, no AI); "notes": the learner's own subject and notes. */
   // (`#/create?source=library` from the empty library's "ready-made topics" suggestion opens on the topic library.)
-  const [source, setSource] = useState<"notes" | "library">(() => (hashQuery(window.location.hash).get("source") === "library" ? "library" : "notes"));
+  const [source, setSource] = useState<"notes" | "library" | "ai">(() => (hashQuery(window.location.hash).get("source") === "library" ? "library" : "notes"));
   // The mode, game type, level and language are folded away at first: the subject (and notes) are the only decisions that matter
   // on first view, the rest has good defaults (the first-run answers) and is summarised in one line.
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [topicId, setTopicId] = useState<string | null>(null);
   const [topicError, setTopicError] = useState(false);
   const library = source === "library";
+  const useAi = source === "ai";
+  const account = useAccount();
+  const signedIn = Boolean(account.session);
+  const [aiFailure, setAiFailure] = useState<AiFailure | null>(null);
   const alertBox = useRef<HTMLDivElement>(null);
 
   // ── the draft: written while typing, when the app is hidden and when the screen is left; dropped once a game exists
@@ -134,11 +140,21 @@ export function CreatePage() {
     }
     const subject = topic ? topic[form.language][0] : cleanPastedText(form.subject).trim();
     if (!subject) { dispatch({ type: "problem", problem: { kind: "required" } }); return; }
+    if (useAi && !account.session) { setAiFailure("SIGN_IN"); return; }
     setBusy(true);
+    setAiFailure(null);
     dispatch({ type: "problem", problem: null });
     setProgress({ percent: 0, stage: "reading" });
     let spec;
     try {
+      if (useAi) {
+        // LEVEL UP AI: only on this tap, only for a signed-in learner; the answer is validated and checked to be labelled AI before it is kept
+        setProgress({ percent: 25, stage: "building" });
+        spec = await generateWithAi({
+          mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
+          material: cleanPastedText(form.material).trim() || undefined, device: "phone",
+        }, account.session!.access_token);
+      } else
       ({ spec } = await generateOfflineWithProgress(topic
         ? { mode: form.mode, subject, learningGoal: topic[form.language][1], difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language, topicId: topic.id, device: "phone" }
         : {
@@ -147,7 +163,8 @@ export function CreatePage() {
           device: "phone", // this app only runs on phones and tablets: fit the game to a touch screen
         }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
     } catch (err) {
-      dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });
+      if (err instanceof AiError) setAiFailure(err.failure);
+      else dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });
       setBusy(false);
       return;
     }
@@ -205,10 +222,10 @@ export function CreatePage() {
         <fieldset className="space-y-2" data-testid="create-source">
           <legend className="mb-1 text-sm font-semibold">{t("topics.source.title")}</legend>
           <div className="grid grid-cols-2 gap-2">
-            {(["notes", "library"] as const).map((s) => (
+            {(["notes", "library", "ai"] as const).map((s) => (
               <label key={s} className={`flex min-h-14 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold leading-snug transition focus-within:ring-2 focus-within:ring-neon/50 ${source === s ? "border-neon bg-neon/15 shadow-e1" : "border-line text-muted"}`}>
                 <input type="radio" name="source" value={s} checked={source === s} disabled={busy} onChange={() => setSource(s)} className="size-4 accent-[var(--color-neon)]" data-testid={`source-${s}`} />
-                {s === "notes" ? t("topics.source.own") : t("topics.source.library")}
+                {s === "notes" ? t("topics.source.own") : s === "library" ? t("topics.source.library") : t("mob.create.source.ai")}
               </label>
             ))}
           </div>
@@ -338,6 +355,9 @@ export function CreatePage() {
       </section>
       <div ref={alertBox} className="scroll-mt-4">
         {alertText && <Alert tone="error" data-testid="mobile-create-error">{alertText}</Alert>}
+        {aiFailure && <Alert tone="error" data-testid="mobile-create-ai-error">{t(`mob.create.ai.error.${aiFailure}`)}</Alert>}
+        {useAi && !signedIn && !aiFailure && <Alert tone="info" data-testid="create-ai-signin">{t("mob.create.ai.signin")}</Alert>}
+        {useAi && signedIn && !aiFailure && <p className="text-sm text-muted" data-testid="create-ai-note">{t("mob.create.ai.note")}</p>}
       </div>
       {!library && !isBlankForm(form) && !busy && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1" data-testid="create-draft">

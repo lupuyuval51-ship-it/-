@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import config from "../../capacitor.config";
 import { backAction } from "../../mobile/src/back";
-import { SUPABASE_URL } from "../../mobile/src/cloud/config";
+import { AI_URL, SUPABASE_URL } from "../../mobile/src/cloud/config";
 import { isShareableText, MAX_SHARE_CHARS } from "../../mobile/src/export";
 import { PAGE_DARK, PAGE_LIGHT, pageColor } from "../../mobile/src/system-bars";
 
@@ -102,7 +102,8 @@ describe("WebView and Capacitor configuration", () => {
     const html = read("mobile/index.html");
     const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] ?? "";
     const directives = new Map(csp.split(";").map((d) => d.trim()).filter(Boolean).map((d) => { const [name, ...values] = d.split(/\s+/); return [name!, values] as const; }));
-    expect(directives.get("connect-src")).toEqual(["'self'", SUPABASE_URL]);
+    expect(directives.get("connect-src")).toEqual(["'self'", SUPABASE_URL, AI_URL]); // the account project and LEVEL UP AI, nothing else
+    expect(AI_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
     expect(SUPABASE_URL).toMatch(/^https:\/\/[a-z0-9]+\.supabase\.co$/);
     expect(directives.get("object-src")).toEqual(["'none'"]);
     expect(directives.get("base-uri")).toEqual(["'self'"]);

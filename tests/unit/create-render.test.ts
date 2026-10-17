@@ -9,6 +9,7 @@ import { EXAMPLES } from "../../mobile/src/pages/examples";
 /** What the New game screen shows for a given tier, locale, hash and saved draft (server-side render: markup only, no effects). */
 const env = vi.hoisted(() => ({ tier: "A" as "A" | "B" | "C" }));
 vi.mock("../../mobile/src/app-state", () => ({ store: { addGame: () => ({ id: "x" }) }, getSettings: () => ({ interests: [], minutesPerDay: null }) }));
+vi.mock("../../mobile/src/cloud/account", () => ({ useAccount: () => ({ session: null }) }));
 vi.mock("@/lib/offline/entitlement", () => ({ getOfflinePlan: () => "PRO", getOfflineTier: () => env.tier }));
 
 const { CreatePage } = await import("../../mobile/src/pages/Create");
