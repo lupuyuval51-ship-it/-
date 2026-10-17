@@ -229,6 +229,8 @@ export function CreatePage() {
               </label>
             ))}
           </div>
+          {useAi && !signedIn && <Alert tone="info" data-testid="create-ai-signin">{t("mob.create.ai.signin")}</Alert>}
+          {useAi && signedIn && <p className="text-sm text-muted" data-testid="create-ai-note">{t("mob.create.ai.note")}</p>}
         </fieldset>
       </div>
       {library ? (
@@ -356,8 +358,6 @@ export function CreatePage() {
       <div ref={alertBox} className="scroll-mt-4">
         {alertText && <Alert tone="error" data-testid="mobile-create-error">{alertText}</Alert>}
         {aiFailure && <Alert tone="error" data-testid="mobile-create-ai-error">{t(`mob.create.ai.error.${aiFailure}`)}</Alert>}
-        {useAi && !signedIn && !aiFailure && <Alert tone="info" data-testid="create-ai-signin">{t("mob.create.ai.signin")}</Alert>}
-        {useAi && signedIn && !aiFailure && <p className="text-sm text-muted" data-testid="create-ai-note">{t("mob.create.ai.note")}</p>}
       </div>
       {!library && !isBlankForm(form) && !busy && (
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1" data-testid="create-draft">
