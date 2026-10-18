@@ -1,0 +1,76 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Analogy", "a comparison showing that two pairs of things are linked in the same way", "אנלוגיה", "השוואה שמראה ששני זוגות של דברים קשורים זה לזה באותה דרך"],
+      ["Opposites", "words with contrary meanings, like hot and cold or open and closed", "הפכים", "מילים שמשמעותן מנוגדת, כמו חם וקר או פתוח וסגור"],
+      ["Part and whole", "a link where one thing is a piece of a bigger thing, like a wheel and a car", "חלק ושלם", "קשר שבו דבר אחד הוא רכיב של דבר גדול יותר, כמו גלגל ומכונית"],
+    ],
+    q: [
+      [["Hot is to cold as up is to …", "down", ["high", "sky", "jump"], "Hot and cold are opposites, so we need the opposite of up, which is down. High means almost the same as up, so it breaks the pattern."],
+        ["״חם״ קשור ל״קר״ כמו ש״למעלה״ קשור ל…", "למטה", ["גבוה", "שמיים", "קפיצה"], "חם וקר הם הפכים, ולכן מחפשים את ההפך של למעלה, כלומר למטה. ״גבוה״ קרוב במשמעותו ל״למעלה״, ולכן הוא שובר את הדפוס."]],
+      [["Bird is to nest as bee is to …", "hive", ["honey", "flower", "wing"], "A nest is the home a bird lives in, and a bee lives in a hive. Bees make honey, but honey is food, not a home."],
+        ["״ציפור״ קשורה ל״קן״ כמו ש״דבורה״ קשורה ל…", "כוורת", ["דבש", "פרח", "כנפיים"], "הקן הוא הבית שבו הציפור גרה, והדבורה גרה בכוורת. דבורים מייצרות דבש, אבל דבש הוא מזון ולא בית."]],
+      [["Pen is to write as scissors are to …", "cut", ["paper", "sharp", "colour"], "The first pair is a tool and what it is used for: a pen is used to write, and scissors are used to cut. Paper is what scissors cut, not what they do."],
+        ["״עט״ קשור ל״כתיבה״ כמו ש״מספריים״ קשורים ל…", "גזירה", ["נייר", "חדות", "צביעה"], "הזוג הראשון הוא כלי והשימוש שלו: בעט כותבים ובמספריים גוזרים. נייר הוא מה שגוזרים, ולא הפעולה שהמספריים עושים."]],
+      [["Finger is to hand as toe is to …", "foot", ["knee", "shoe", "nail"], "A finger is a part of the hand, and a toe is a part of the foot. The knee is in a different place on the leg, and a shoe is not a body part at all."],
+        ["״אצבע״ קשורה ל״כף יד״ כמו ש״בוהן״ קשורה ל…", "כף רגל", ["ברך", "נעל", "ציפורן"], "אצבע היא חלק מכף היד, ובוהן היא חלק מכף הרגל. הברך נמצאת במקום אחר ברגל, ונעל בכלל אינה איבר בגוף."]],
+      [["Puppy is to dog as kitten is to …", "cat", ["lion", "mouse", "milk"], "A puppy is a young dog and a kitten is a young cat. A lion is in the cat family, but a kitten grows into a house cat, not a lion."],
+        ["״גור כלבים״ קשור ל״כלב״ כמו ש״חתלתול״ קשור ל…", "חתול", ["אריה", "עכבר", "חלב"], "גור כלבים הוא כלב צעיר, וחתלתול הוא חתול צעיר. האריה שייך למשפחת החתוליים, אבל חתלתול גדל והופך לחתול בית ולא לאריה."]],
+    ],
+    n: [[15, ["2 is to 6 as 3 is to 9, and the same rule takes 5 to x. What is x?", "", "Each number is multiplied by 3: 2 × 3 = 6 and 3 × 3 = 9, so 5 × 3 = 15. Adding 4 works for the first pair only, so it is not the rule."],
+      ["2 קשור ל־6 כמו ש־3 קשור ל־9, ואותו כלל לוקח את 5 אל x. מהו x?", "", "כל מספר מוכפל ב־3: 2 × 3 = 6 ו־3 × 3 = 9, ולכן 5 × 3 = 15. הוספה של 4 מתאימה רק לזוג הראשון, ולכן זה לא הכלל."]]],
+    s: [[["Solving an analogy", "Read the first pair of words", "Say in one sentence how the two words are linked", "Use the same sentence with the third word", "Choose the option that completes the sentence", "Check that both pairs now match"],
+      ["פתרון אנלוגיה", "קוראים את זוג המילים הראשון", "אומרים במשפט אחד איך שתי המילים קשורות", "משתמשים באותו משפט עם המילה השלישית", "בוחרים את האפשרות שמשלימה את המשפט", "בודקים ששני הזוגות מתאימים עכשיו"]]],
+  },
+  i: {
+    t: [
+      ["Synonyms", "words with almost the same meaning, like big and large", "מילים נרדפות", "מילים שמשמעותן כמעט זהה, כמו גדול וענק"],
+      ["Member and group", "a link where one thing belongs to a larger set, like a rose and flowers", "פריט וקבוצה", "קשר שבו דבר אחד שייך לאוסף רחב יותר, כמו ורד ופרחים"],
+      ["Degree", "a link where one word is a stronger form of another, like warm and hot", "קשר של עוצמה", "קשר שבו מילה אחת היא צורה חזקה יותר של מילה אחרת, כמו חמים וחם"],
+    ],
+    q: [
+      [["Seed is to tree as egg is to …", "bird", ["nest", "shell", "breakfast"], "A seed grows into a tree, and an egg hatches and grows into a bird. A nest is where the egg lies, not what it becomes."],
+        ["״זרע״ קשור ל״עץ״ כמו ש״ביצה״ קשורה ל…", "ציפור", ["קן", "קליפה", "ארוחת בוקר"], "מזרע צומח עץ, ומביצה בוקעת ציפור שגדלה. הקן הוא המקום שבו הביצה מונחת, ולא מה שהיא הופכת להיות."]],
+      [["Tired is to exhausted as warm is to …", "hot", ["cool", "sunny", "cold"], "Exhausted is a much stronger form of tired, so we need a stronger form of warm: hot. Cool and cold go the other way."],
+        ["״עייף״ קשור ל״מותש״ כמו ש״חמים״ קשור ל…", "חם", ["קריר", "שמשי", "קר"], "״מותש״ הוא צורה חזקה בהרבה של ״עייף״, ולכן מחפשים צורה חזקה של ״חמים״: חם. ״קריר״ ו״קר״ הולכים לכיוון ההפוך."]],
+      [["Germ is to illness as spark is to …", "fire", ["match", "metal", "water"], "The pair is a cause and its effect: germs can cause an illness, and a spark can cause a fire. A match is something that makes a spark, so it is a source, not an effect."],
+        ["״חיידק״ קשור ל״מחלה״ כמו ש״ניצוץ״ קשור ל…", "שריפה", ["גפרור", "מתכת", "מים"], "הזוג הוא סיבה ותוצאה: חיידקים יכולים לגרום למחלה, וניצוץ יכול לגרום לשריפה. גפרור הוא מה שיוצר ניצוץ, כלומר מקור ולא תוצאה."]],
+      [["Which pair is linked in the same way as chef : kitchen?", "teacher : classroom", ["doctor : stethoscope", "baker : bread", "kitchen : spoon"], "A chef works in a kitchen, so the link is a worker and the place of work. A stethoscope is a tool and bread is a product, which are different links."],
+        ["איזה זוג קשור באותה דרך כמו טבח : מטבח?", "מורה : כיתה", ["רופא : סטטוסקופ", "אופה : לחם", "מטבח : כף"], "טבח עובד במטבח, כלומר הקשר הוא בין עובד למקום העבודה שלו. סטטוסקופ הוא כלי ולחם הוא מוצר, ואלה קשרים אחרים."]],
+      [["Author is to book as composer is to …", "symphony", ["piano", "orchestra", "conductor"], "An author creates a book and a composer creates a piece of music, such as a symphony. The orchestra plays the music and the piano is an instrument, but neither is what the composer creates."],
+        ["״סופר״ קשור ל״ספר״ כמו ש״מלחין״ קשור ל…", "סימפוניה", ["פסנתר", "תזמורת", "מנצח התזמורת"], "סופר יוצר ספר ומלחין יוצר יצירה מוזיקלית, כמו סימפוניה. התזמורת מנגנת את היצירה והפסנתר הוא כלי נגינה, אבל אף אחד מהם אינו מה שהמלחין יוצר."]],
+      [["An early model of the atom compared it to the solar system: electrons go around the nucleus like planets go around the …", "Sun", ["Moon", "Earth", "comets"], "In this comparison the nucleus sits in the middle like the Sun, and the electrons circle it like planets. The Moon goes around the Earth, which is a smaller pair."],
+        ["מודל מוקדם של האטום השווה אותו למערכת השמש: האלקטרונים סובבים סביב הגרעין כמו שכוכבי הלכת סובבים סביב…", "השמש", ["הירח", "כדור הארץ", "השביטים"], "בהשוואה הזאת הגרעין נמצא במרכז כמו השמש, והאלקטרונים מקיפים אותו כמו כוכבי הלכת. הירח מקיף את כדור הארץ, וזה זוג קטן יותר."]],
+    ],
+    n: [[49, ["2 is to 4, 3 is to 9 and 4 is to 16, and the same rule takes 7 to x. What is x?", "", "Each number is multiplied by itself: 2 × 2 = 4, 3 × 3 = 9 and 4 × 4 = 16, so 7 × 7 = 49. Doubling fits only the first pair."],
+      ["2 קשור ל־4, 3 קשור ל־9 ו־4 קשור ל־16, ואותו כלל לוקח את 7 אל x. מהו x?", "", "כל מספר מוכפל בעצמו: 2 × 2 = 4, 3 × 3 = 9 ו־4 × 4 = 16, ולכן 7 × 7 = 49. הכפלה פי 2 מתאימה רק לזוג הראשון."]]],
+  },
+  a: {
+    t: [
+      ["Argument by analogy", "concluding that two things alike in several ways are probably alike in one more way", "היסק אנלוגי", "מסקנה שלפיה שני דברים הדומים בכמה תכונות כנראה דומים גם בתכונה נוספת"],
+      ["False analogy", "a comparison of things that are alike only in details that do not matter for the conclusion", "השוואה כוזבת", "השוואה בין דברים שדומים רק בפרטים שאינם חשובים למסקנה"],
+      ["Model", "a simpler thing with the same important structure as something complex, used to understand it", "מודל", "דבר פשוט שיש לו אותו מבנה חשוב כמו לדבר מורכב, ובעזרתו מבינים את המורכב"],
+    ],
+    q: [
+      [["Which pair is linked in the same way as thermometer : temperature?", "scale : weight", ["oven : heat", "doctor : fever", "clock : wall"], "A thermometer measures temperature, so we need an instrument and the quantity it measures: a scale measures weight. An oven makes heat; it does not measure it."],
+        ["איזה זוג קשור באותה דרך כמו מדחום : טמפרטורה?", "מאזניים : משקל", ["תנור : חום", "רופא : חום גוף", "שעון : קיר"], "מדחום מודד טמפרטורה, ולכן מחפשים מכשיר והגודל שהוא מודד: מאזניים מודדים משקל. תנור מייצר חום ואינו מודד אותו."]],
+      [["Which pair is linked in the same way as caterpillar : butterfly?", "tadpole : frog", ["chick : egg", "cocoon : silk", "puppy : kitten"], "A caterpillar is an early stage that later becomes a butterfly, and a tadpole later becomes a frog. Chick : egg has the right kind of link but in the wrong order, because the egg comes first."],
+        ["איזה זוג קשור באותה דרך כמו זחל : פרפר?", "ראשן : צפרדע", ["אפרוח : ביצה", "פקעת : משי", "גור כלבים : חתלתול"], "זחל הוא שלב מוקדם שהופך אחר כך לפרפר, וראשן הופך אחר כך לצפרדע. באפרוח : ביצה יש קשר דומה, אבל בסדר הפוך, כי הביצה באה קודם."]],
+      [["Mother is to daughter as aunt is to …", "niece", ["nephew", "uncle", "sister"], "A daughter is a girl one generation below her mother. In the same way, a girl one generation below her aunt is the aunt's niece. Nephew is the right generation but a boy, and an uncle is in the aunt's own generation."],
+        ["״אמא״ קשורה ל״בת״ כמו ש״דודה״ קשורה ל…", "אחיינית", ["אחיין", "דוד", "אחות"], "בת נמצאת דור אחד מתחת לאמא שלה. באותו אופן, ילדה שנמצאת דור אחד מתחת לדודה שלה היא האחיינית של הדודה. ״אחיין״ הוא מהדור הנכון אבל בן, ו״דוד״ שייך לדור של הדודה עצמה."]],
+      [["Ounce is to pound as gram is to …", "kilogram", ["milligram", "litre", "metre"], "An ounce is a small unit of weight and a pound is a bigger unit of the same thing. A kilogram is a bigger unit of mass than a gram. A milligram is smaller, so it turns the link around."],
+        ["״אונקיה״ קשורה ל״ליברה״ כמו ש״גרם״ קשור ל…", "קילוגרם", ["מיליגרם", "ליטר", "מטר"], "אונקיה היא יחידת משקל קטנה וליברה היא יחידה גדולה יותר של אותו גודל. קילוגרם הוא יחידת מסה גדולה יותר מגרם. מיליגרם קטן יותר, ולכן הוא הופך את הקשר."]],
+      [["In the common water-pipe analogy for an electric circuit, what does the battery stand for?", "a pump that pushes the water round", ["the water flowing in the pipes", "a narrow pipe that slows the flow", "a tap that is turned off"], "The battery is what drives the current, just as a pump drives water round the pipes. The water stands for the current itself, and a narrow pipe stands for a resistor."],
+        ["בהשוואה הנפוצה בין מעגל חשמלי לצינורות מים, מה מייצגת הסוללה?", "משאבה שדוחפת את המים במעגל", ["את המים שזורמים בצינורות", "צינור צר שמאט את הזרימה", "ברז שסגרו אותו"], "הסוללה היא מה שמניע את הזרם, כמו שמשאבה מניעה את המים בצינורות. המים מייצגים את הזרם עצמו, וצינור צר מייצג נגד."]],
+      [["Someone says: \"A school is like a prison: both have rules and bells, so school is a punishment.\" Why is this a weak analogy?", "The shared details are not what makes prison a punishment", ["Schools and prisons in fact have no rules in common", "An analogy can never be used as part of an argument", "Prisons do not ring bells, so the facts are wrong"], "A prison is a punishment because people are locked in against their will for a crime, not because of rules or bells. The two places share only details that do not support the conclusion."],
+        ["מישהו אומר: ״בית ספר הוא כמו כלא: בשניהם יש חוקים וצלצולים, ולכן בית ספר הוא עונש.״ למה זו השוואה חלשה?", "הפרטים המשותפים אינם מה שהופך כלא לעונש", ["לבית ספר ולכלא אין בכלל חוקים משותפים", "אסור אף פעם להשתמש בהשוואה בתוך טיעון", "בכלא אין צלצולים, ולכן העובדות שגויות"], "כלא הוא עונש כי כולאים בו אנשים בניגוד לרצונם בגלל עבירה, ולא בגלל החוקים או הצלצולים. שני המקומות חולקים רק פרטים שאינם תומכים במסקנה."]],
+    ],
+    n: [[37, ["2 is to 5, 3 is to 10 and 4 is to 17. With the same rule, 6 is to x. What is x?", "", "Each number is multiplied by itself and then 1 is added: 2 × 2 + 1 = 5, 3 × 3 + 1 = 10, 4 × 4 + 1 = 17, so 6 × 6 + 1 = 37."],
+      ["2 קשור ל־5, 3 קשור ל־10 ו־4 קשור ל־17. לפי אותו כלל, 6 קשור ל־x. מהו x?", "", "כל מספר מוכפל בעצמו ואז מוסיפים 1: 2 × 2 + 1 = 5, 3 × 3 + 1 = 10, 4 × 4 + 1 = 17, ולכן 6 × 6 + 1 = 37."]]],
+    s: [[["Testing an argument by analogy", "Name the two things being compared", "List the ways in which they are alike", "Pick out the likeness the conclusion depends on", "Check whether that likeness really holds for both", "Accept or reject the conclusion"],
+      ["בדיקה של טיעון אנלוגי", "מזהים את שני הדברים שמשווים ביניהם", "מונים את הדרכים שבהן הם דומים", "בוחרים את הדמיון שהמסקנה נשענת עליו", "בודקים אם הדמיון הזה באמת נכון לשניהם", "מקבלים את המסקנה או דוחים אותה"]]],
+  },
+};
+export default c;
