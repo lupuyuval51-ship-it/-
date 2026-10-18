@@ -48,6 +48,8 @@ export class UI {
   show(name) { for (const k in this.screens) this.screens[k].hidden = k !== name; this.open = name; if (name === 'pause') { this.renderStats(); this.renderJobs(); } if (name === 'map') this.g.hud.drawBigMap(this.$('bigmap')); }
   hideAll() { for (const k in this.screens) this.screens[k].hidden = true; this.open = null; }
   setLoading(on) { this.screens.loading.hidden = !on; }
+  // Loading screen progress: the base text plus a percentage (the browser paints it between the build steps).
+  setProgress(f) { const p = this.screens.loading.querySelector('p'); if (p) p.textContent = (T.loading || '') + ' ' + Math.min(99, Math.round(f * 100)) + '%'; }
   renderCasino() {
     const g = this.g, $ = this.$; const SYM = ['7', '★', '♦', '●', '♥', '$']; this.bet = this.bet || 100;
     $('shopList').innerHTML = `<li class="casino"><div class="reels"><span>7</span><span>★</span><span>♦</span></div><p class="rules">${T.casinoRules}</p><div class="bets">${CASINO_BETS.map(b => `<button class="btn small ${b === this.bet ? 'on' : ''}" data-bet="${b}">${fmtMoney(b)}</button>`).join('')}</div><button id="btnSpin" class="btn primary">${T.casinoSpin}</button><div id="casinoMsg" class="casino-msg"></div></li>`;

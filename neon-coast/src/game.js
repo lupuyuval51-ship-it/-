@@ -72,11 +72,22 @@ export class Game {
   }
   get uiOpen() { return this.state !== 'playing' && this.state !== 'dead'; }
   cameraForward() { const P = this.player; return { x: Math.sin(P.camYaw), z: Math.cos(P.camYaw) }; }
-  boot() { this.ui.setLoading(true); requestAnimationFrame(() => setTimeout(() => { try { this.buildWorld(); } catch (e) { console.error(e); window.dispatchEvent(new ErrorEvent('error', { message: String((e && e.message) || e) })); return; } this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop(); }, 40)); }
+  boot() {
+    this.ui.setLoading(true);
+    const tick = () => new Promise(r => setTimeout(r, 0)); // lets the browser paint the progress and stay responsive between build steps
+    requestAnimationFrame(() => setTimeout(async () => {
+      try {
+        const steps = this.buildWorldSteps(); let r; while (!(r = steps.next()).done) { this.ui.setProgress(r.value); await tick(); }
+        this.ui.setProgress(0.96, 'shaders'); await tick(); await this.prewarmAsync(); this.built = true;
+      } catch (e) { console.error(e); window.dispatchEvent(new ErrorEvent('error', { message: String((e && e.message) || e) })); return; }
+      this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop();
+    }, 40));
+  }
 
-  buildWorld() {
+  buildWorld() { for (const _ of this.buildWorldSteps()); this.prewarm(); this.built = true; } // synchronous variant
+  *buildWorldSteps() {
     const q = this.settings.quality;
-    this.world = new World(this.scene, q); this.grid = this.world.grid; this.sky = new Sky(this.scene, this.renderer, q); this.fx = new Effects(this.scene);
+    this.world = new World(this.scene, q, true); for (const f of this.world.buildSteps()) yield 0.9 * f; this.grid = this.world.grid; this.sky = new Sky(this.scene, this.renderer, q); this.fx = new Effects(this.scene);
     this.env = new EnvMap(this.renderer, this.scene); this.skids = new SkidMarks(this.scene); this.grenades = new Grenades(this);
     this.police = new Police(this); this.traffic = new Traffic(this); this.missions = new Missions(this); this.pickups = new Pickups(this); this.ownedOutfits = new Set(['street']); this.outfit = 'street';
     const sh = this.world.pois.safehouse; this.player = new Player(this, sh.x + 4, sh.z - 0.5);
@@ -92,23 +103,20 @@ export class Game {
     this.heliSpot = new THREE.SpotLight(0xfff4d0, 0, 90, 0.32, 0.5, 1.2); this.scene.add(this.heliSpot); this.scene.add(this.heliSpot.target);
     this.traffic.init(); this.resetPickups(); this.built = true;
     this.camera.position.set(120, 70, 120); this.camera.lookAt(0, 20, 0);
-    this.prewarm();
   }
   // Compiles every shader the session can need under the loading screen: one vehicle of each type stands off-screen, objects hidden by day (night pools, lamp cones, rain, lamp
   // pools of cars) are shown for the compile, then everything is put back and the vehicles are disposed. The light count is constant, so nothing recompiles during play.
-  prewarm() {
-    const hid = [], cars = [];
-    try {
-      // The environment map must exist before compiling: it is part of every lit program's key.
-      const env = this.sky.update(0, 18.45, this.camera.position, this.camera); this.applyEnv(env, 18.45);
-      let k = 0; for (const type in VEHICLES) { const v = new Vehicle(type, 0x808080, CITY.minX - 80 - 9 * k++, CITY.minZ - 80, 0); this.scene.add(v.mesh); cars.push(v); }
-      this.scene.traverse(o => { if (!o.visible && !o.isLight) hid.push(o); });
-      for (const o of hid) o.visible = true;
-      this.renderer.compile(this.scene, this.camera);
-    } catch (e) { console.warn('shader prewarm failed', e); }
-    for (const o of hid) o.visible = false;
-    for (const v of cars) { this.scene.remove(v.mesh); v.dispose(); }
+  prewarmSetup(s) {
+    // The environment map must exist before compiling: it is part of every lit program's key.
+    const env = this.sky.update(0, 18.45, this.camera.position, this.camera); this.applyEnv(env, 18.45);
+    let k = 0; for (const type in VEHICLES) { const v = new Vehicle(type, 0x808080, CITY.minX - 80 - 9 * k++, CITY.minZ - 80, 0); this.scene.add(v.mesh); s.cars.push(v); }
+    this.scene.traverse(o => { if (!o.visible && !o.isLight) s.hid.push(o); });
+    for (const o of s.hid) o.visible = true;
   }
+  prewarmRestore(s) { for (const o of s.hid) o.visible = false; for (const v of s.cars) { this.scene.remove(v.mesh); v.dispose(); } }
+  prewarm() { const s = { hid: [], cars: [] }; try { this.prewarmSetup(s); this.renderer.compile(this.scene, this.camera); } catch (e) { console.warn('shader prewarm failed', e); } this.prewarmRestore(s); }
+  // Same compile for the boot: compileAsync links the programs in parallel and without blocking the page (KHR_parallel_shader_compile), so the loading screen keeps painting while a phone's GPU driver works.
+  async prewarmAsync() { const s = { hid: [], cars: [] }; try { this.prewarmSetup(s); if (this.renderer.extensions.has('KHR_parallel_shader_compile')) await this.renderer.compileAsync(this.scene, this.camera); else this.renderer.compile(this.scene, this.camera); } catch (e) { console.warn('shader prewarm failed', e); } this.prewarmRestore(s); }
   setupStation(p) {
     this.stations = this.stations || [];
     const st = { p, peds: [], cars: [] }; this.stations.push(st);

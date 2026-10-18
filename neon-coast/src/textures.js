@@ -276,7 +276,10 @@ export const cloudTex = () => memo('cloud', () => canvasTex(512, 512, (ctx, w, h
 
 // ---------- normal / roughness-metalness maps ----------
 // Height is drawn into a canvas (red channel) and converted with a Sobel-style gradient.
+let TEX_LOW = false; // the low tier builds its normal maps at half size: the Sobel pass over them is a large part of the load time on a phone
+export function setTextureQuality(q) { TEX_LOW = q === 'low'; }
 function normalTex(key, w, h, drawHeight, strength = 2.5, clampTex = false) {
+  if (TEX_LOW) { w = Math.max(64, w >> 1); h = Math.max(64, h >> 1); }
   return memo('n:' + key, () => {
     const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d');
     drawHeight(ctx, w, h);

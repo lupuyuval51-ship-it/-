@@ -1,7 +1,7 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { CITY } from './config.js';
 import { GeoBuilder, StaticGrid, mulberry, clamp, xform, M4, mergeGeometries } from './utils.js';
-import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonAtlas, bladeLetters, bladeLayout, NEON_CELL, NEON_ASPECT, billboardAtlas, crossTex, storefrontTextures, shadowTex, AWNINGS, facadeNormal, facadeORM, storefrontNormal, storefrontORM, asphaltNormal, sidewalkNormal, plankNormal, sandNormal, lightPoolTex } from './textures.js';
+import { FACADES, facadeTextures, asphaltTex, sidewalkTex, sandTex, grassTex, roofTex, plankTex, neonAtlas, bladeLetters, bladeLayout, NEON_CELL, NEON_ASPECT, billboardAtlas, crossTex, storefrontTextures, shadowTex, AWNINGS, facadeNormal, setTextureQuality, facadeORM, storefrontNormal, storefrontORM, asphaltNormal, sidewalkNormal, plankNormal, sandNormal, lightPoolTex } from './textures.js';
 import { envRegister } from './env.js';
 import { Flora, Lamps } from './flora.js';
 import { Shops } from './shops.js';
@@ -145,7 +145,8 @@ const SIGN_OFFSET = 0.2; // distance of a wall sign from the facade; its raceway
 const BILLBOARDS = [['SOLARA', 'the drink of the coast', '#ff4fa3', '#ff9a3c'], ['COAST MOTORS', 'drive tomorrow today', '#3ce8f5', '#1f4e9b'], ['NEON FM', '98.6 – all night long', '#c084fc', '#ff4fa3'], ['סאנרייז', 'בית חולים – פתוח 24/7', '#ff5a5a', '#ffb347'], ['PALM SPA', 'relax. repeat.', '#7cff8a', '#3ce8f5'], ['SOLARA BANK', 'your money, our vault', '#ffd34e', '#ff9a3c']];
 
 export class World {
-  constructor(scene, quality = 'high') {
+  constructor(scene, quality = 'high', defer = false) {
+    setTextureQuality(quality);
     this.scene = scene; this.quality = quality; this.grid = new StaticGrid(24); this.rng = mulberry(20240915);
     this.pois = {}; this.parkingSpots = []; this.lampPositions = []; this.signs = []; this.lights = []; this.markers = [];
     this.lamps = null; this.flora = null; this.bld = new Buildings(this); this.shops = new Shops(this); this.lots = []; this.lotGrid = new Map(); this.parks = []; this.treeSpots = []; // lots: parking lots {x0,z0,x1,z1} (0.17 m high); parks: {x0,z0,x1,z1,cx,cz}
@@ -158,7 +159,12 @@ export class World {
     this.signRng = mulberry(7351); this.flickN = 0; this.lastSign = null; this.darkB = new GeoBuilder(); this.billboardDefs = [];
     this.signU = { level: { value: 0.42 }, time: { value: 0 } }; // shared by the sign shader: brightness (setNight) and flicker clock (update)
     this.wetU = { wet: { value: 0 }, time: { value: 0 } }; // shared by the asphalt / pavement shader: rain amount and ripple clock
-    this.buildGraph(); this.buildGround(); this.buildBlocks(); this.buildRoadMarkings(); this.buildProps(); this.buildStreetProps(); this.buildTrafficLights(); this.buildBeach(); this.bld.finalize(); this.buildSigns(); this.buildBeachExtras(); this.buildShops(); this.buildLamps(); this.buildFlora(); this.buildLightPools(); this.buildOutskirts(); this.buildMapImage();
+    if (!defer) for (const _ of this.buildSteps()); // the game passes defer = true and drives buildSteps itself, so the loading screen can show progress and the browser stays responsive between steps
+  }
+  // The city build, one step at a time: yields the fraction done after each step (the order matters, later steps read what earlier ones recorded).
+  *buildSteps() {
+    const steps = [() => this.buildGraph(), () => this.buildGround(), () => this.buildBlocks(), () => this.buildRoadMarkings(), () => this.buildProps(), () => this.buildStreetProps(), () => this.buildTrafficLights(), () => this.buildBeach(), () => this.bld.finalize(), () => this.buildSigns(), () => this.buildBeachExtras(), () => this.buildShops(), () => this.buildLamps(), () => this.buildFlora(), () => this.buildLightPools(), () => this.buildOutskirts(), () => this.buildMapImage()];
+    for (let i = 0; i < steps.length; i++) { steps[i](); yield (i + 1) / steps.length; }
   }
 
   // ---------------- road graph ----------------
