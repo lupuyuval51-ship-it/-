@@ -100,7 +100,7 @@ test.describe("library, details and modification", () => {
     await page.getByTestId("profile-save").click();
     await expect(page.getByTestId("profile-message")).toContainText("Saved");
     await page.goto("/pricing");
-    await expect(page.getByTestId("price-PLUS")).toContainText("₪10");
+    await expect(page.getByTestId("price-PLUS")).toContainText("₪5");
 
     await page.goto("/account");
     await page.locator("#current").fill(password);

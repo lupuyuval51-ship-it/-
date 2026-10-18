@@ -51,8 +51,8 @@ describe("billing events: builders and parser agree (round trip)", () => {
 
   it("invoices and charges round trip, and only a charge refunded in full by an amount above zero counts as a full refund", () => {
     const period = { periodStart: new Date(T0), periodEnd: new Date(T0 + 30 * 86_400_000) };
-    const paid = parseStripeEvent(stripeEvent("evt_i", "invoice.paid", new Date(T0), invoiceObject({ invoiceId: "in_1", subscriptionId: "sub_1", customerId: "cus_1", amountPaid: 1000, ...period })));
-    expect(paid).toMatchObject({ kind: "invoice_paid", invoiceId: "in_1", subscriptionId: "sub_1", amountPaid: 1000, periodStart: period.periodStart, periodEnd: period.periodEnd });
+    const paid = parseStripeEvent(stripeEvent("evt_i", "invoice.paid", new Date(T0), invoiceObject({ invoiceId: "in_1", subscriptionId: "sub_1", customerId: "cus_1", amountPaid: 500, ...period })));
+    expect(paid).toMatchObject({ kind: "invoice_paid", invoiceId: "in_1", subscriptionId: "sub_1", amountPaid: 500, periodStart: period.periodStart, periodEnd: period.periodEnd });
     const failed = parseStripeEvent(stripeEvent("evt_f", "invoice.payment_failed", new Date(T0), invoiceObject({ invoiceId: "in_2", subscriptionId: "sub_1", customerId: "cus_1", amountPaid: 0, ...period })));
     expect(failed).toMatchObject({ kind: "invoice_failed", invoiceId: "in_2", subscriptionId: "sub_1" });
 
@@ -74,9 +74,9 @@ describe("billing events: hostile or damaged payloads", () => {
     return [
       stripeEvent("evt_a", "customer.subscription.created", created, subscriptionObject({ ...s, status: "active" })),
       stripeEvent("evt_b", "customer.subscription.deleted", created, subscriptionObject(s)),
-      stripeEvent("evt_c", "invoice.paid", created, invoiceObject({ invoiceId: "in_1", subscriptionId: s.subscriptionId, customerId: s.customerId, amountPaid: 1000, periodStart: s.periodStart, periodEnd: s.periodEnd })),
+      stripeEvent("evt_c", "invoice.paid", created, invoiceObject({ invoiceId: "in_1", subscriptionId: s.subscriptionId, customerId: s.customerId, amountPaid: 500, periodStart: s.periodStart, periodEnd: s.periodEnd })),
       stripeEvent("evt_d", "invoice.payment_failed", created, invoiceObject({ invoiceId: "in_2", subscriptionId: s.subscriptionId, customerId: s.customerId, amountPaid: 0, periodStart: s.periodStart, periodEnd: s.periodEnd })),
-      stripeEvent("evt_e", "charge.refunded", created, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 1000, amountRefunded: 1000, paymentIntentId: "pi_1" })),
+      stripeEvent("evt_e", "charge.refunded", created, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 500, amountRefunded: 500, paymentIntentId: "pi_1" })),
       stripeEvent("evt_f", "customer.updated", created, { id: "cus_1" }),
     ];
   };

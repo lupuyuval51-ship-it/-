@@ -43,11 +43,11 @@ async function subscribe(u: { id: string; email: string; country?: string | null
 
 describe("checkout pricing is decided by the server from the central plan config", () => {
   const cases = [
-    { country: "IL", plan: "PLUS", currency: "ils", amount: 1000 },
-    { country: "US", plan: "PLUS", currency: "usd", amount: 1000 },
-    { country: undefined, plan: "PLUS", currency: "usd", amount: 1000 },
-    { country: "IL", plan: "PRO", currency: "ils", amount: 4000 }, // ₪40 in Israel
-    { country: "DE", plan: "PRO", currency: "usd", amount: 4000 },
+    { country: "IL", plan: "PLUS", currency: "ils", amount: 500 },
+    { country: "US", plan: "PLUS", currency: "usd", amount: 500 },
+    { country: undefined, plan: "PLUS", currency: "usd", amount: 500 },
+    { country: "IL", plan: "PRO", currency: "ils", amount: 2000 }, // ₪20 in Israel
+    { country: "DE", plan: "PRO", currency: "usd", amount: 2000 },
   ] as const;
   for (const c of cases) {
     it(`${c.plan} for ${c.country ?? "unknown region"} → ${c.amount} ${c.currency}`, async () => {
@@ -65,7 +65,7 @@ describe("checkout pricing is decided by the server from the central plan config
     expect(res.status).toBe(200);
     const { url } = await readJson<{ url: string }>(res);
     const row = await db.devCheckoutSession.findUniqueOrThrow({ where: { id: sessionIdOf(url) } });
-    expect(row).toMatchObject({ currency: "ils", unitAmount: 1000 });
+    expect(row).toMatchObject({ currency: "ils", unitAmount: 500 });
   });
 
   it("requires authentication and a same-origin request, and refuses FREE as a purchasable plan", async () => {
@@ -88,7 +88,7 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
     expect(await db.subscription.count({ where: { userId: u.id } })).toBe(1);
     expect(await db.webhookEvent.count({ where: { id: { startsWith: `evt_dev_${id}` } } })).toBe(2);
     const sub = await db.subscription.findUniqueOrThrow({ where: { userId: u.id } });
-    expect(sub).toMatchObject({ provider: "DEV", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 1000 });
+    expect(sub).toMatchObject({ provider: "DEV", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 500 });
     expect((await getAllowanceSummary(u.id)).plan).toBe("PLUS");
     expect(await levelAllowance(u.id)).toMatchObject({ limit: levelQuota("PLUS", "A"), remaining: levelQuota("PLUS", "A") });
     expect((await resolveRender(u.id)).tier).toBe("A");
@@ -105,7 +105,7 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
     expect(rr.tier).toBe(rp.tier);
     expect(rr.profile).toEqual(rp.profile);
     const sub = await db.subscription.findUniqueOrThrow({ where: { userId: pro.id } });
-    expect(sub).toMatchObject({ currency: "usd", unitAmount: 4000 });
+    expect(sub).toMatchObject({ currency: "usd", unitAmount: 2000 });
   });
 
   it("another user cannot complete my checkout, and a second checkout is refused while subscribed", async () => {

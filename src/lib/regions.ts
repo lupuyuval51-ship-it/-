@@ -1,6 +1,6 @@
 import type { Locale } from "@/lib/i18n";
 /**
- * Billing regions the user can pick. Only Israel has localized prices (Plus ₪10, Pro ₪40); everyone else is charged in USD.
+ * Billing regions the user can pick. Only Israel has localized prices (Plus ₪5, Pro ₪20); everyone else is charged in USD.
  * The region is the user's own choice (never precise location) and is stored on their profile.
  */
 export const REGIONS = [

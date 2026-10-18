@@ -91,7 +91,7 @@ describe("signature verification at the HTTP boundary", () => {
     expect((await deliver(ev, { signature: "t=1,v1=00" })).status).toBe(400);
     expect((await deliver(ev, { secret: "whsec_someone_else" })).status).toBe(400);
     const signed = Stripe.webhooks.generateTestHeaderString({ payload: body, secret: SECRET });
-    expect((await deliver(ev, { signature: signed, body: body.replace('"unit_amount":1000', '"unit_amount":1'), })).status).toBe(400);
+    expect((await deliver(ev, { signature: signed, body: body.replace('"unit_amount":500', '"unit_amount":1'), })).status).toBe(400);
     expect(await db.webhookEvent.count({ where: { id: (ev as { id: string }).id } })).toBe(0);
     expect(await db.subscription.count({ where: { userId: w.userId } })).toBe(0);
   });
@@ -107,11 +107,11 @@ describe("signature verification at the HTTP boundary", () => {
 });
 
 describe("subscription events → entitlements", () => {
-  it("created: Plus in Israel is exactly ₪10 and grants PLUS; entitlement follows the billing period", async () => {
+  it("created: Plus in Israel is exactly ₪5 and grants PLUS; entitlement follows the billing period", async () => {
     const w = await world({ country: "IL" });
     const res = await deliver(subEvent(w.sim, "customer.subscription.created"));
     expect(res).toMatchObject({ status: 200, json: { received: true, status: "processed" } });
-    expect(await row(w.userId)).toMatchObject({ provider: "STRIPE", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 1000 });
+    expect(await row(w.userId)).toMatchObject({ provider: "STRIPE", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 500 });
     const ent = await resolveEntitlement(w.userId);
     expect(ent).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", quotas: levelQuotas("PLUS") });
     expect(ent.periodStart).toEqual(w.sim.periodStart);
@@ -149,9 +149,9 @@ describe("subscription events → entitlements", () => {
     const w = await world();
     const cheap = await deliver(subEvent({ ...w.sim, unitAmount: 100 }, "customer.subscription.created"));
     expect(cheap).toMatchObject({ status: 200, json: { status: "failed" } });
-    const proAtPlusPrice = await deliver(subEvent({ ...w.sim, plan: "PRO" }, "customer.subscription.created")); // PRO at $10
+    const proAtPlusPrice = await deliver(subEvent({ ...w.sim, plan: "PRO" }, "customer.subscription.created")); // PRO at $5
     expect(proAtPlusPrice.json.status).toBe("failed");
-    const proInIls = await deliver(subEvent({ ...w.sim, plan: "PRO", currency: "ils", unitAmount: 1000 }, "customer.subscription.created")); // Pro at the Plus shekel price
+    const proInIls = await deliver(subEvent({ ...w.sim, plan: "PRO", currency: "ils", unitAmount: 500 }, "customer.subscription.created")); // Pro at the Plus shekel price
     expect(proInIls.json.status).toBe("failed");
     expect(await db.subscription.count({ where: { userId: w.userId } })).toBe(0);
     expect((await resolveEntitlement(w.userId)).plan).toBe("FREE");
@@ -185,7 +185,7 @@ describe("renewal, failure, cancellation and refunds", () => {
     expect((await getBillingView(w.userId)).subscription?.suspended).toBe("past_due");
 
     const next = { start: w.sim.periodEnd, end: at(58 * DAY) };
-    const paid = invoiceObject({ invoiceId: "in_ok1", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 1000, periodStart: next.start, periodEnd: next.end });
+    const paid = invoiceObject({ invoiceId: "in_ok1", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 500, periodStart: next.start, periodEnd: next.end });
     await deliver(stripeEvent(evId(), "invoice.paid", at(-30_000), paid));
     const sub = await row(w.userId);
     expect(sub.status).toBe("ACTIVE");
@@ -196,7 +196,7 @@ describe("renewal, failure, cancellation and refunds", () => {
 
   it("invoice.paid arriving before its subscription is answered 5xx so Stripe retries, then succeeds", async () => {
     const w = await world();
-    const paid = stripeEvent(evId(), "invoice.paid", at(0), invoiceObject({ invoiceId: "in_early", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 1000, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd }));
+    const paid = stripeEvent(evId(), "invoice.paid", at(0), invoiceObject({ invoiceId: "in_early", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 500, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd }));
     expect((await deliver(paid)).status).toBe(500);
     expect((await eventRow((paid as { id: string }).id)).status).toBe("FAILED");
     await deliver(subEvent(w.sim, "customer.subscription.created", at(-5_000)));
@@ -223,14 +223,14 @@ describe("renewal, failure, cancellation and refunds", () => {
   it("a full refund of the latest paid invoice suspends THIS period only; partial refunds change nothing", async () => {
     const w = await world();
     await deliver(subEvent(w.sim, "customer.subscription.created", at(-300_000)));
-    await deliver(stripeEvent(evId(), "invoice.paid", at(-240_000), invoiceObject({ invoiceId: "in_pay1", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 1000, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd })));
+    await deliver(stripeEvent(evId(), "invoice.paid", at(-240_000), invoiceObject({ invoiceId: "in_pay1", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 500, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd })));
 
-    const partial = chargeObject({ chargeId: "ch_1", invoiceId: "", amount: 1000, amountRefunded: 300, paymentIntentId: "pi_for_in_pay1" });
+    const partial = chargeObject({ chargeId: "ch_1", invoiceId: "", amount: 500, amountRefunded: 150, paymentIntentId: "pi_for_in_pay1" });
     delete (partial as { metadata?: unknown }).metadata; // a real Stripe charge has no invoice id: the gateway resolves it
     expect((await deliver(stripeEvent(evId(), "charge.refunded", at(-180_000), partial))).json.status).toBe("ignored");
     expect((await resolveEntitlement(w.userId)).plan).toBe("PLUS");
 
-    const full = chargeObject({ chargeId: "ch_1", invoiceId: "", amount: 1000, amountRefunded: 1000, paymentIntentId: "pi_for_in_pay1" });
+    const full = chargeObject({ chargeId: "ch_1", invoiceId: "", amount: 500, amountRefunded: 500, paymentIntentId: "pi_for_in_pay1" });
     delete (full as { metadata?: unknown }).metadata;
     expect((await deliver(stripeEvent(evId(), "charge.refunded", at(-120_000), full))).json.status).toBe("processed");
     expect((await resolveEntitlement(w.userId)).plan).toBe("FREE");
@@ -239,15 +239,15 @@ describe("renewal, failure, cancellation and refunds", () => {
     // next period: a new paid invoice and a new period → access resumes automatically
     const nextStart = w.sim.periodEnd;
     const nextEnd = at(58 * DAY);
-    await deliver(stripeEvent(evId(), "invoice.paid", at(-60_000), invoiceObject({ invoiceId: "in_pay2", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 1000, periodStart: nextStart, periodEnd: nextEnd })));
+    await deliver(stripeEvent(evId(), "invoice.paid", at(-60_000), invoiceObject({ invoiceId: "in_pay2", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 500, periodStart: nextStart, periodEnd: nextEnd })));
     expect((await resolveEntitlement(w.userId)).plan).toBe("PLUS");
   });
 
   it("a refund of an older invoice (not the latest paid one) does not touch the current period", async () => {
     const w = await world();
     await deliver(subEvent(w.sim, "customer.subscription.created", at(-300_000)));
-    await deliver(stripeEvent(evId(), "invoice.paid", at(-240_000), invoiceObject({ invoiceId: "in_new", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 1000, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd })));
-    const old = chargeObject({ chargeId: "ch_old", invoiceId: "", amount: 1000, amountRefunded: 1000, paymentIntentId: "pi_for_in_old" });
+    await deliver(stripeEvent(evId(), "invoice.paid", at(-240_000), invoiceObject({ invoiceId: "in_new", subscriptionId: w.sim.subscriptionId, customerId: w.sim.customerId, amountPaid: 500, periodStart: w.sim.periodStart, periodEnd: w.sim.periodEnd })));
+    const old = chargeObject({ chargeId: "ch_old", invoiceId: "", amount: 500, amountRefunded: 500, paymentIntentId: "pi_for_in_old" });
     delete (old as { metadata?: unknown }).metadata;
     const res = await deliver(stripeEvent(evId(), "charge.refunded", at(-120_000), old));
     expect(res.json.status).toBe("ignored");
@@ -257,7 +257,7 @@ describe("renewal, failure, cancellation and refunds", () => {
   it("a new subscription may replace a finished one but never a live one", async () => {
     const w = await world();
     await deliver(subEvent(w.sim, "customer.subscription.created", at(-300_000)));
-    const second = { ...w.sim, subscriptionId: `sub_${randomUUID().slice(0, 12)}`, plan: "PRO" as const, unitAmount: 4000, currency: "usd" };
+    const second = { ...w.sim, subscriptionId: `sub_${randomUUID().slice(0, 12)}`, plan: "PRO" as const, unitAmount: 2000, currency: "usd" };
     const blocked = await deliver(subEvent(second, "customer.subscription.created", at(-200_000)));
     expect(blocked.json.status).toBe("ignored");
     expect((await row(w.userId)).plan).toBe("PLUS");

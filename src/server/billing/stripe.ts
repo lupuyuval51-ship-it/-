@@ -51,7 +51,7 @@ export function createStripeGateway(stripe: StripeLike = getStripeClient()): Pay
           mode: "subscription",
           client_reference_id: a.userId,
           ...(a.customerId ? { customer: a.customerId } : { customer_email: a.email }),
-          // The amount and currency come from src/config/plans.ts (Plus: $10, or exactly ₪10 for Israel; Pro: $40, or exactly ₪40 for Israel).
+          // The amount and currency come from src/config/plans.ts (Plus: $5, or exactly ₪5 for Israel; Pro: $20, or exactly ₪20 for Israel).
           line_items: [
             {
               quantity: 1,

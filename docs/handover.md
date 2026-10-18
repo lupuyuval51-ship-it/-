@@ -85,7 +85,7 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 * A database restore has not been rehearsed. No Dockerfile or infrastructure-as-code is provided; no load test.
 
 **Product behaviour**
-* One subscription per user; changing plan means cancel (access to period end) and subscribe again. In-place upgrade does not exist (it cannot cross currencies, e.g. a USD subscription into an ILS one; Israel pays ₪10 for Plus and ₪40 for Pro, everyone else $10 / $40).
+* One subscription per user; changing plan means cancel (access to period end) and subscribe again. In-place upgrade does not exist (it cannot cross currencies, e.g. a USD subscription into an ILS one; Israel pays ₪5 for Plus and ₪20 for Pro, everyone else $10 / $40).
 * Partial refunds, disputes and chargebacks do not change entitlements; Stripe Tax is not configured.
 * Demo mode has templates for five topics only (programming, maths, science, ancient Egypt, Spanish); other subjects get the closest template with a visible notice. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (84 of the planned 200), each at three levels; topic-library games cannot be extended.
 * Factual correctness of AI-made challenge content cannot be checked automatically (structure and solvability can).

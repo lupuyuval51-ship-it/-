@@ -122,8 +122,8 @@ from there — the UI never hard-codes them and nothing is gated by price in the
 | Plan | Price | Level A / period | Level B / period | Level C / period | Period | Graphics |
 | --- | --- | --- | --- | --- | --- | --- |
 | **Free** | $0 | not available | **1** | **5** | each UTC calendar month | Tier B / C |
-| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A (also B / C) |
-| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A — **identical** to Plus |
+| **Plus** | **$5 / month**, or exactly **₪5 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A (also B / C) |
+| **Pro** | **$20 / month**, or exactly **₪20 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A — **identical** to Plus |
 
 The allowance is a **separate quota of games per level** per period (`PLANS[plan].allowance = { A?, B?, C? }`, `UNLIMITED` for no
 count): each game ("topic") uses one game of its own **level** (the feature tier below), and using one level never reduces
@@ -368,7 +368,7 @@ A real run **spends money** at the provider, so it needs `--yes`. It uses the ba
 3. In the Stripe Dashboard → Settings → Billing → Customer portal, save a configuration (payment methods and invoices; cancellation is also handled in-app).
 
 **You do not create Prices in Stripe.** Checkout sends the amount and currency straight from `src/config/plans.ts`
-(`unit_amount` 1000 USD / 1000 ILS for Plus, 4000 USD / 4000 ILS for Pro, monthly), keyed by the account's saved region. The webhook handler **fails closed**:
+(`unit_amount` 500 USD / 500 ILS for Plus, 2000 USD / 2000 ILS for Pro, monthly), keyed by the account's saved region. The webhook handler **fails closed**:
 a subscription whose charged amount/currency does not equal the configured price for its plan is rejected and grants nothing.
 
 What the webhook pipeline guarantees (`src/server/billing`, covered by integration tests that send real Stripe-signed requests):

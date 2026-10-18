@@ -6,14 +6,14 @@ import { createStripeGateway, verifyStripeWebhook, type StripeLike } from "@/ser
 
 const T0 = new Date("2027-03-01T10:00:00Z");
 const T1 = new Date("2027-04-01T10:00:00Z");
-const sim = { subscriptionId: "sub_1", customerId: "cus_1", userId: "user_1", plan: "PLUS", currency: "usd", unitAmount: 1000, periodStart: T0, periodEnd: T1 };
+const sim = { subscriptionId: "sub_1", customerId: "cus_1", userId: "user_1", plan: "PLUS", currency: "usd", unitAmount: 500, periodStart: T0, periodEnd: T1 };
 
 describe("Stripe event parsing", () => {
   it("normalises a subscription (period taken from the item, status upper-cased)", () => {
     const ev = parseStripeEvent(stripeEvent("evt_1", "customer.subscription.created", T0, subscriptionObject({ ...sim, status: "active" })));
     expect(ev).toMatchObject({ kind: "subscription", eventId: "evt_1", deleted: false });
     if (ev.kind !== "subscription") throw new Error("unreachable");
-    expect(ev.snapshot).toMatchObject({ subscriptionId: "sub_1", customerId: "cus_1", userId: "user_1", plan: "PLUS", status: "ACTIVE", currency: "usd", unitAmount: 1000, cancelAtPeriodEnd: false });
+    expect(ev.snapshot).toMatchObject({ subscriptionId: "sub_1", customerId: "cus_1", userId: "user_1", plan: "PLUS", status: "ACTIVE", currency: "usd", unitAmount: 500, cancelAtPeriodEnd: false });
     expect(ev.snapshot.periodStart).toEqual(T0);
     expect(ev.snapshot.periodEnd).toEqual(T1);
   });
@@ -39,15 +39,15 @@ describe("Stripe event parsing", () => {
   });
 
   it("reads invoices from the current (parent.subscription_details) and legacy (subscription) shapes", () => {
-    const paid = parseStripeEvent(stripeEvent("e", "invoice.paid", T0, invoiceObject({ invoiceId: "in_1", subscriptionId: "sub_1", customerId: "cus_1", amountPaid: 1000, periodStart: T0, periodEnd: T1 })));
-    expect(paid).toMatchObject({ kind: "invoice_paid", invoiceId: "in_1", subscriptionId: "sub_1", amountPaid: 1000 });
+    const paid = parseStripeEvent(stripeEvent("e", "invoice.paid", T0, invoiceObject({ invoiceId: "in_1", subscriptionId: "sub_1", customerId: "cus_1", amountPaid: 500, periodStart: T0, periodEnd: T1 })));
+    expect(paid).toMatchObject({ kind: "invoice_paid", invoiceId: "in_1", subscriptionId: "sub_1", amountPaid: 500 });
     const legacy = parseStripeEvent(stripeEvent("e", "invoice.payment_failed", T0, { id: "in_2", subscription: "sub_9", amount_paid: 0 }));
     expect(legacy).toMatchObject({ kind: "invoice_failed", subscriptionId: "sub_9" });
   });
 
   it("distinguishes full from partial refunds", () => {
-    const full = parseStripeEvent(stripeEvent("e", "charge.refunded", T0, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 1000, amountRefunded: 1000, paymentIntentId: "pi_1" })));
-    const part = parseStripeEvent(stripeEvent("e", "charge.refunded", T0, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 1000, amountRefunded: 400, paymentIntentId: "pi_1" })));
+    const full = parseStripeEvent(stripeEvent("e", "charge.refunded", T0, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 500, amountRefunded: 500, paymentIntentId: "pi_1" })));
+    const part = parseStripeEvent(stripeEvent("e", "charge.refunded", T0, chargeObject({ chargeId: "ch_1", invoiceId: "in_1", amount: 500, amountRefunded: 200, paymentIntentId: "pi_1" })));
     expect(full).toMatchObject({ kind: "refund", fullyRefunded: true, paymentIntentId: "pi_1" });
     expect(part).toMatchObject({ kind: "refund", fullyRefunded: false });
   });
@@ -72,7 +72,7 @@ describe("Stripe webhook signature verification (real Stripe SDK verifier)", () 
 
   it("rejects a tampered body, a wrong secret, a missing header, garbage and replays older than the tolerance", () => {
     const good = sign(body);
-    expect(() => verifyStripeWebhook(body.replace("1000", "1"), good, secret)).toThrow();
+    expect(() => verifyStripeWebhook(body.replace("500", "1"), good, secret)).toThrow();
     expect(() => verifyStripeWebhook(body, sign(body, { secret: "whsec_other" }), secret)).toThrow();
     expect(() => verifyStripeWebhook(body, null, secret)).toThrow();
     expect(() => verifyStripeWebhook(body, "t=1,v1=deadbeef", secret)).toThrow();
@@ -111,10 +111,10 @@ describe("Stripe gateway requests", () => {
   it("creates a subscription-mode checkout with the exact configured amount and currency", async () => {
     const { client, calls } = fake();
     const gw = createStripeGateway(client);
-    expect(await gw.createCheckout({ ...args, plan: "PLUS", currency: "ILS", unitAmount: 1000 })).toEqual({ url: "https://checkout.stripe.test/c/cs_test_1" });
+    expect(await gw.createCheckout({ ...args, plan: "PLUS", currency: "ILS", unitAmount: 500 })).toEqual({ url: "https://checkout.stripe.test/c/cs_test_1" });
     const params = calls.checkout as { mode: string; client_reference_id: string; customer_email: string; metadata: Record<string, string>; subscription_data: { metadata: Record<string, string> }; line_items: { price_data: { currency: string; unit_amount: number; recurring: { interval: string } } }[]; success_url: string };
     expect(params.mode).toBe("subscription");
-    expect(params.line_items[0]!.price_data).toMatchObject({ currency: "ils", unit_amount: 1000, recurring: { interval: "month" } });
+    expect(params.line_items[0]!.price_data).toMatchObject({ currency: "ils", unit_amount: 500, recurring: { interval: "month" } });
     expect(params.client_reference_id).toBe("user_1");
     expect(params.customer_email).toBe("a@example.test");
     expect(params.metadata).toEqual({ userId: "user_1", plan: "PLUS" });
@@ -125,7 +125,7 @@ describe("Stripe gateway requests", () => {
 
   it("reuses an existing customer instead of creating a duplicate", async () => {
     const { client, calls } = fake();
-    await createStripeGateway(client).createCheckout({ ...args, plan: "PRO", currency: "USD", unitAmount: 4000, customerId: "cus_existing" });
+    await createStripeGateway(client).createCheckout({ ...args, plan: "PRO", currency: "USD", unitAmount: 2000, customerId: "cus_existing" });
     expect(calls.checkout).toMatchObject({ customer: "cus_existing" });
     expect(calls.checkout).not.toHaveProperty("customer_email");
   });

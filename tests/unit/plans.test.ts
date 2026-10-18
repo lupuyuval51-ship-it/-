@@ -30,26 +30,26 @@ describe("central plan configuration (exact product rules)", () => {
     expect(planAllowsTier("FREE", "A")).toBe(false);
   });
 
-  it("PLUS: $10/month internationally, exactly ₪10/month in Israel, 5 at A / 10 at B / unlimited C per billing period, Tier A", () => {
-    expect(PLANS.PLUS.monthlyPrices.USD).toBe(1000);
-    expect(PLANS.PLUS.monthlyPrices.ILS).toBe(1000);
+  it("PLUS: $5/month internationally, exactly ₪5/month in Israel, 5 at A / 10 at B / unlimited C per billing period, Tier A", () => {
+    expect(PLANS.PLUS.monthlyPrices.USD).toBe(500);
+    expect(PLANS.PLUS.monthlyPrices.ILS).toBe(500);
     expect(PLANS.PLUS.allowance).toEqual({ A: 5, B: 10, C: null });
     expect(PLANS.PLUS.allowancePeriod).toEqual({ kind: "billing_period" });
     expect(planAllowsTier("PLUS", "A")).toBe(true);
-    expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 1000 });
-    expect(formatMoney(monthlyPrice("PLUS", "IL").minor, "ILS")).toBe("₪10");
-    expect(formatMoney(monthlyPrice("PLUS", "US").minor, "USD")).toBe("$10");
-    expect(monthlyPrice("PLUS", null)).toEqual({ currency: "USD", minor: 1000 });
+    expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 500 });
+    expect(formatMoney(monthlyPrice("PLUS", "IL").minor, "ILS")).toBe("₪5");
+    expect(formatMoney(monthlyPrice("PLUS", "US").minor, "USD")).toBe("$5");
+    expect(monthlyPrice("PLUS", null)).toEqual({ currency: "USD", minor: 500 });
   });
 
-  it("PRO: $40/month internationally, exactly ₪40/month in Israel, 5 at A / 10 at B / unlimited C per billing period", () => {
-    expect(PLANS.PRO.monthlyPrices.USD).toBe(4000);
-    expect(PLANS.PRO.monthlyPrices.ILS).toBe(4000);
-    expect(formatMoney(monthlyPrice("PRO", "IL").minor, "ILS")).toBe("₪40");
+  it("PRO: $20/month internationally, exactly ₪20/month in Israel, 5 at A / 10 at B / unlimited C per billing period", () => {
+    expect(PLANS.PRO.monthlyPrices.USD).toBe(2000);
+    expect(PLANS.PRO.monthlyPrices.ILS).toBe(2000);
+    expect(formatMoney(monthlyPrice("PRO", "IL").minor, "ILS")).toBe("₪20");
     expect(PLANS.PRO.allowance).toEqual({ A: 5, B: 10, C: null });
     expect(displayCurrency("PRO", "IL")).toBe("ILS");
-    expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "ILS", minor: 4000 });
-    expect(monthlyPrice("PRO", "US")).toEqual({ currency: "USD", minor: 4000 });
+    expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "ILS", minor: 2000 });
+    expect(monthlyPrice("PRO", "US")).toEqual({ currency: "USD", minor: 2000 });
   });
 
   it("PLUS and PRO get exactly the same graphics entitlement", () => {
@@ -87,7 +87,7 @@ describe("central plan configuration (exact product rules)", () => {
   });
 
   it("formats money deterministically", () => {
-    expect(formatMoney(4000, "USD")).toBe("$40");
+    expect(formatMoney(2000, "USD")).toBe("$20");
     expect(formatMoney(999, "USD")).toBe("$9.99");
     expect(formatMoney(0, "ILS")).toBe("₪0");
   });
