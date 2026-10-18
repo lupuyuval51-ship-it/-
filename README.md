@@ -473,7 +473,12 @@ One design system for the website and the Android app (`mobile/` imports the sam
   values in components (3D scene colours aside).
 * **Themes:** dark (default), light, or "match device" (`prefers-color-scheme`). The header switch / app setting stores
   `lu-theme`; the server renders `data-theme` on `<html>` so there is no flash. The 3D play screen always uses `.theme-dark`.
-* **Type:** Heebo (variable, bundled with `@fontsource-variable/heebo`, so the offline app has it too) for Hebrew and Latin.
+* **Look:** a chalkboard (dark, default) or a notebook page (light): warm green-black or cream surfaces, a faint squared-paper
+  grid behind the pages, chalk-yellow (dark) or ink-green (light) for the main action. Primary buttons stand on a solid ledge and
+  sink into it when pressed (`shadow-glow`); no glows, no glass blur, no gradients. Icons are drawn (lucide), never emoji.
+* **Brand:** the mark is a ball hopping up three steps (`src/components/ui/Brand.tsx`); `node mobile/brand-assets.mjs`
+  regenerates the launcher icons, splash screens, web icon and Play Store icon and feature graphic from the same drawing.
+* **Type:** Rubik (variable, bundled with `@fontsource-variable/rubik`, so the offline app has it too) for Hebrew, Latin and Spanish.
 * **Components** (`src/components/ui`): `Button` (44 px touch target, fluid padding, hover/pressed/disabled), `Card`
   (`flat`/`raised`/`floating` elevation, `interactive` hover-lift + focus), `Field` (wires `id`, `aria-invalid`,
   `aria-describedby`; error / success / hint states), `StateView` (illustrated empty / error / 404 with recovery actions),

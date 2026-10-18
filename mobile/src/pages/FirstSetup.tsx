@@ -1,6 +1,8 @@
+import { BookOpen, Calculator, Code2, Coins, FlaskConical, Globe2, HeartPulse, Landmark, Languages, Lightbulb, Mountain, Palette, Timer, Zap } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Field, Select } from "@/components/ui";
+import { Brand } from "@/components/ui/Brand";
 import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { TOPIC_CATEGORIES, type TopicCategory } from "@/lib/game/topics/types";
@@ -16,23 +18,29 @@ type Step = (typeof ALL_STEPS)[number];
 const STEPS: readonly Step[] = showPlans() ? ALL_STEPS : ALL_STEPS.filter((s) => s !== "plan");
 const LANGS: readonly Locale[] = ["en", "he", "es"];
 
-/** A friendly mark per category and per time choice (decorative: the text says everything). */
-const CATEGORY_ICON: Record<TopicCategory, string> = {
-  math: "🔢", science: "🔬", history: "🏛️", geography: "🌍", languages: "🗣️",
-  computing: "💻", economy: "💰", health: "💚", arts: "🎨", thinking: "🧠",
+type Icon = typeof Calculator;
+type Tone = "neon" | "lime" | "amber" | "rose" | "violet";
+/** A drawn icon on a coloured tile per category and per time choice (decorative: the text says everything). */
+const CATEGORY_ICON: Record<TopicCategory, [Icon, Tone]> = {
+  math: [Calculator, "neon"], science: [FlaskConical, "lime"], history: [Landmark, "amber"], geography: [Globe2, "lime"], languages: [Languages, "rose"],
+  computing: [Code2, "violet"], economy: [Coins, "neon"], health: [HeartPulse, "rose"], arts: [Palette, "amber"], thinking: [Lightbulb, "violet"],
 };
-const MINUTES_ICON: Record<(typeof MINUTES_CHOICES)[number], string> = { 5: "⚡", 10: "⏱️", 20: "📚", 30: "🚀" };
+const MINUTES_ICON: Record<(typeof MINUTES_CHOICES)[number], [Icon, Tone]> = { 5: [Zap, "neon"], 10: [Timer, "lime"], 20: [BookOpen, "amber"], 30: [Mountain, "rose"] };
+const TILE: Record<Tone, string> = {
+  neon: "bg-neon/15 text-neon", lime: "bg-lime/15 text-lime", amber: "bg-amber/15 text-amber", rose: "bg-rose/15 text-rose", violet: "bg-violet/15 text-violet-soft",
+};
 
 /** A large tap target: a real radio or checkbox inside its label, so TalkBack reads it as one control. */
 function Choice({ type, name, checked, onChange, testId, icon, children, lang }: {
-  type: "radio" | "checkbox"; name: string; checked: boolean; onChange: () => void; testId: string; icon?: string; children: ReactNode; lang?: string;
+  type: "radio" | "checkbox"; name: string; checked: boolean; onChange: () => void; testId: string; icon?: [Icon, Tone]; children: ReactNode; lang?: string;
 }) {
+  const Mark = icon?.[0];
   return (
     <label className={`flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold transition-colors ${checked ? "border-neon bg-neon/10" : "border-line bg-ink-800/60"}`}>
       {type === "radio"
         ? <input type="radio" name={name} checked={checked} onChange={onChange} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid={testId} lang={lang} />
         : <input type="checkbox" name={name} checked={checked} onChange={onChange} className="size-5 shrink-0 accent-[var(--color-neon)]" data-testid={testId} lang={lang} />}
-      {icon && <span aria-hidden className="text-2xl leading-none">{icon}</span>}
+      {Mark && <span aria-hidden className={`grid size-9 shrink-0 place-items-center rounded-xl ${TILE[icon[1]]}`}><Mark className="size-5" strokeWidth={2.25} /></span>}
       <span lang={lang} className="min-w-0">{children}</span>
     </label>
   );
@@ -66,7 +74,7 @@ export function FirstSetup() {
     >
       <header className="space-y-3 pb-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-lg font-extrabold tracking-tight">LEVEL UP</p>
+          <p><Brand size="sm" /></p>
           {index > 0 && <button type="button" onClick={finish} className="min-h-11 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-text/10" data-testid="setup-skip">{t("mob.setup.skip")}</button>}
         </div>
         <div className="flex gap-1.5" aria-hidden>

@@ -5,8 +5,8 @@
  * The two colours are the page backgrounds `--color-ink-950` of the dark and the light theme in `src/app/globals.css`;
  * `tests/unit/android-shell.test.ts` fails if they drift apart from the CSS or from MainActivity.java.
  */
-export const PAGE_DARK = "#060914";
-export const PAGE_LIGHT = "#f5f7fc";
+export const PAGE_DARK = "#0e1b17";
+export const PAGE_LIGHT = "#f6f1e7";
 
 export interface PageColorInput {
   /** Current hash route, e.g. "/play/abc". */

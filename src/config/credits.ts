@@ -15,5 +15,5 @@ export const OPEN_SOURCE_CREDITS = [
   { name: "Zod", pkg: "zod", license: "MIT" },
   { name: "Prisma", pkg: "@prisma/client", license: "Apache-2.0" },
   { name: "Lucide", pkg: "lucide-react", license: "ISC" },
-  { name: "Heebo (Fontsource)", pkg: "@fontsource-variable/heebo", license: "OFL-1.1" },
+  { name: "Rubik (Fontsource)", pkg: "@fontsource-variable/rubik", license: "OFL-1.1" },
 ] as const;
