@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 /**
- * First launch of a real install: a short questionnaire — language (English preselected, the page switches at once; Spanish
+ * First launch of a real install: a short questionnaire — language (Hebrew by default; the specs seed English, the page switches at once; Spanish
  * too), what to learn and how much time a day. The plan step (country for prices, the plan wanted) and every other place
  * that showed plans or prices are hidden in a normal build (`mobile/src/features.ts`). Then the welcome. The e2e build skips this screen by default, so the spec seeds the state of a fresh
  * install once (a second load keeps whatever the app saved).

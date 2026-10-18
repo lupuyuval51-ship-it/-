@@ -45,7 +45,7 @@ function Choice({ type, name, checked, onChange, testId, icon, children, lang }:
 }
 
 /**
- * The first thing a new install shows, full screen: a short questionnaire. 1) the language (English preselected; the screen
+ * The first thing a new install shows, full screen: a short questionnaire. 1) the language (Hebrew preselected; the screen
  * switches at once), 2) what the learner wants to learn (topic-library categories), 3) how much time a day, and, only when the
  * plans are shown (`features.ts`, off in a normal build), 4) the country for prices and the plan they would like.
  * Everything stays on the phone and can be changed in Settings; "Skip" keeps the defaults. The plan is a preference only:

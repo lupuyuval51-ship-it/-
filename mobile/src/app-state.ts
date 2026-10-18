@@ -20,8 +20,8 @@ function defaultTier(): GraphicsTier {
 }
 
 function load(): Settings {
-  // A fresh install starts in English and asks for the language and the country first (see FirstSetup); the Hebrew/RTL product
-  // default applies to the test build only.
+  // A fresh install starts in Hebrew (the product's default, RTL) and asks for the language and the country first (see FirstSetup);
+  // the test build skips that questionnaire.
   const base: Settings = { ...freshDefaults(import.meta.env.MODE === "e2e"), tier: defaultTier(), sound: true, music: true, vibration: true, theme: "system", interests: [], minutesPerDay: null, planChoice: null };
   try {
     const raw = localStorage.getItem(KEY);

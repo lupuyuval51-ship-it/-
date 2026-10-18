@@ -34,7 +34,7 @@ There are three products in one codebase:
 
 ## The app's first launch
 
-A 3-step questionnaire (`mobile/src/pages/FirstSetup.tsx`): language (English preselected; Hebrew, Spanish), what the learner wants to learn, minutes per day (the plan step is hidden with the plans, `mobile/src/features.ts`). Answers stay on the phone and only shape suggestions.
+A 3-step questionnaire (`mobile/src/pages/FirstSetup.tsx`): language (Hebrew preselected; English, Spanish), what the learner wants to learn, minutes per day (the plan step is hidden with the plans, `mobile/src/features.ts`). Answers stay on the phone and only shape suggestions.
 
 ## Languages
 
