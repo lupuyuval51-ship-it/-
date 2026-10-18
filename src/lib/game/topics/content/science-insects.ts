@@ -1,0 +1,75 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Insect", "a small animal with six legs and a body in three parts", "חרק", "בעל חיים קטן עם שש רגליים וגוף שבנוי משלושה חלקים"],
+      ["Antennae", "the two feelers on an insect's head, used to smell and touch", "מחושים", "שני האיברים הדקים שעל ראש החרק, שבעזרתם הוא מריח וממשש"],
+      ["Nectar", "the sweet liquid inside flowers that bees and butterflies drink", "צוף", "הנוזל המתוק שבתוך פרחים, שדבורים ופרפרים שותים"],
+    ],
+    q: [
+      [["Which of these animals is NOT an insect?", "A spider", ["An ant", "A beetle", "A butterfly"], "Insects have six legs and three body parts. A spider has eight legs and only two body parts, so it belongs to a different group."],
+        ["איזה מבעלי החיים האלה אינו חרק?", "עכביש", ["נמלה", "חיפושית", "פרפר"], "לחרקים יש שש רגליים ושלושה חלקי גוף. לעכביש יש שמונה רגליים ורק שני חלקי גוף, ולכן הוא שייך לקבוצה אחרת."]],
+      [["What are the three main parts of an insect's body?", "Head, thorax and abdomen", ["Head, neck and tail", "Head, chest and legs", "Shell, wings and six legs"], "Every adult insect has a head with its eyes and antennae, a thorax that carries its six legs, and an abdomen at the back."],
+        ["מהם שלושת החלקים העיקריים של גוף החרק?", "ראש, בית חזה ובטן", ["ראש, צוואר וזנב", "ראש, חזה ורגליים", "שריון, כנפיים ושש רגליים"], "לכל חרק בוגר יש ראש ועליו העיניים והמחושים, בית חזה שנושא את שש הרגליים, ובטן מאחור."]],
+      [["Which insect makes the honey that we buy in jars?", "The honeybee", ["The housefly", "The ladybird", "The grasshopper"], "Honeybees collect nectar from flowers and turn it into honey, which they store in wax cells in the hive as food for the winter."],
+        ["איזה חרק מייצר את הדבש שקונים בצנצנות?", "דבורת הדבש", ["זבוב הבית", "פרת משה רבנו", "החגב"], "דבורי דבש אוספות צוף מפרחים והופכות אותו לדבש, שאותו הן אוגרות בתאי שעווה בכוורת כמזון לחורף."]],
+      [["What do many spiders use to catch insects?", "Webs of sticky silk", ["Their long sticky tongues", "Nets made of leaves", "Their antennae"], "Many spiders spin webs from silk that they make in their own bodies. Insects that fly into the sticky threads get stuck, and the spider feels the web shake."],
+        ["במה עכבישים רבים משתמשים כדי ללכוד חרקים?", "בקורים של משי דביק", ["בלשון ארוכה ודביקה", "ברשתות שעשויות מעלים", "במחושים שלהם"], "עכבישים רבים טווים קורים ממשי שהם מייצרים בגוף שלהם. חרקים שעפים לתוך החוטים הדביקים נתקעים, והעכביש מרגיש את הרשת רועדת."]],
+      [["Why are gardeners happy to see ladybirds?", "Ladybirds eat aphids, small insects that harm plants", ["Ladybirds water the plants with dew from their wings", "Ladybirds chase away the birds that eat seeds", "Ladybirds make honey for the flowers"], "Aphids suck the juices out of plants and weaken them. A single ladybird can eat dozens of aphids in a day, so ladybirds protect the garden without any chemicals."],
+        ["למה גננים שמחים לראות פרות משה רבנו?", "הן אוכלות כנימות, חרקים קטנים שפוגעים בצמחים", ["הן משקות את הצמחים בטל שנאסף על הכנפיים שלהן", "הן מבריחות ציפורים שאוכלות זרעים", "הן מייצרות דבש בשביל הפרחים"], "כנימות מוצצות את המיצים של הצמחים ומחלישות אותם. פרת משה רבנו אחת יכולה לאכול עשרות כנימות ביום, ולכן הן מגינות על הגינה בלי שום חומרים כימיים."]],
+    ],
+    n: [[6, ["How many legs does every adult insect have?", "", "Every adult insect has 6 legs, in three pairs, all joined to the thorax, the middle part of its body."],
+      ["כמה רגליים יש לכל חרק בוגר?", "", "לכל חרק בוגר יש 6 רגליים, בשלושה זוגות, וכולן מחוברות לבית החזה, החלק האמצעי של הגוף."]]],
+    s: [[["The life cycle of a butterfly", "Egg", "Caterpillar", "Chrysalis", "Butterfly"],
+      ["מחזור החיים של פרפר", "ביצה", "זחל", "גולם", "פרפר"]]],
+  },
+  i: {
+    t: [
+      ["Thorax", "the middle part of an insect's body, where the legs and wings are joined", "בית החזה", "החלק האמצעי של גוף החרק, שאליו מחוברות הרגליים והכנפיים"],
+      ["Exoskeleton", "the hard outer covering that supports and protects an insect's body", "שלד חיצוני", "המעטה הקשה מבחוץ, שתומך בגוף החרק ומגן עליו"],
+      ["Complete metamorphosis", "a life cycle with four stages: egg, larva, pupa and adult", "גלגול מלא", "מחזור חיים עם ארבעה שלבים: ביצה, זחל, גולם ובוגר"],
+      ["Colony", "a large group of insects of one kind that live and work together, like ants or bees", "מושבה", "קבוצה גדולה של חרקים מאותו מין שחיים ועובדים יחד, כמו נמלים או דבורים"],
+    ],
+    q: [
+      [["In a honeybee colony, which bee lays almost all of the eggs?", "The queen", ["The worker bees", "The drones", "The oldest worker"], "A colony has one queen, who can lay well over a thousand eggs a day in summer. The workers are females that do not usually lay eggs, and the drones are males."],
+        ["במושבת דבורי דבש, איזו דבורה מטילה כמעט את כל הביצים?", "המלכה", ["הפועלות", "הזכרים", "הפועלת הוותיקה ביותר"], "במושבה יש מלכה אחת, שיכולה להטיל בקיץ הרבה יותר מאלף ביצים ביום. הפועלות הן נקבות שבדרך כלל אינן מטילות ביצים, והזכרים אינם מטילים ביצים כלל."]],
+      [["Why does a growing insect need to moult, or shed its outer skin?", "Its hard exoskeleton cannot stretch as it grows", ["Its old skin has become too dirty and worn to keep", "It needs a new colour for each season", "It wants to become lighter so it can fly"], "An insect's exoskeleton is hard and cannot grow. To get bigger, the insect splits it open, climbs out in a new, soft skin and swells up before the new skin hardens."],
+        ["למה חרק שגדל צריך להחליף את העור החיצוני שלו?", "השלד הקשה שלו לא נמתח כשהוא גדל", ["העור הישן שלו נעשה מלוכלך ובלוי מדי", "הוא צריך צבע חדש לכל עונה", "הוא רוצה להיות קל יותר כדי לעוף"], "השלד החיצוני של חרק קשה ואינו יכול לגדול. כדי לגדול, החרק מבקע אותו, יוצא ממנו בעור חדש ורך ומתנפח לפני שהעור החדש מתקשה."]],
+      [["A young grasshopper hatches looking like a small adult without wings, then grows bigger. What is this kind of life cycle called?", "Incomplete metamorphosis", ["Complete metamorphosis, like a butterfly", "Hibernation", "Pollination"], "In incomplete metamorphosis there is no pupa: the young, called nymphs, look like small adults. They moult several times as they grow and get their wings at the end."],
+        ["חגב צעיר בוקע כשהוא נראה כמו בוגר קטן בלי כנפיים, ואז גדל. איך נקרא מחזור חיים כזה?", "גלגול חסר", ["גלגול מלא, כמו אצל פרפר", "תרדמת חורף", "האבקה"], "בגלגול חסר אין שלב של גולם: הצעירים, שנקראים נימפות, נראים כמו בוגרים קטנים. הם מחליפים עור כמה פעמים בזמן שהם גדלים, ובסוף מקבלים כנפיים."]],
+      [["Which of these statements about spiders is true?", "They have two body parts and no antennae", ["They have six legs, like all insects", "They have three body parts and two wings", "They have long antennae on their heads"], "A spider's body has two main parts, and it has eight legs, no wings and no antennae. That is why spiders are not insects."],
+        ["איזו מהטענות האלה על עכבישים נכונה?", "יש להם שני חלקי גוף ואין להם מחושים", ["יש להם שש רגליים, כמו לכל החרקים", "יש להם שלושה חלקי גוף ושתי כנפיים", "יש להם מחושים ארוכים על הראש"], "לגוף של עכביש יש שני חלקים עיקריים, ויש לו שמונה רגליים, בלי כנפיים ובלי מחושים. לכן עכבישים אינם חרקים."]],
+      [["How does a honeybee tell the others in its hive where to find flowers?", "By doing a special waggle dance", ["By leaving a trail of scent on the ground", "By drawing a map in the wax", "By buzzing a loud song from the hive door"], "Back in the hive, the bee dances in a figure of eight, waggling its body. The direction of the waggle shows the direction of the flowers, and how long it lasts shows how far away they are."],
+        ["איך דבורת דבש מספרת לדבורים אחרות בכוורת היכן יש פרחים?", "בעזרת ריקוד כשכוש מיוחד", ["בעזרת שביל ריח שהיא משאירה על הקרקע", "בעזרת מפה שהיא מציירת בשעווה", "בעזרת זמזום חזק בפתח הכוורת"], "בכוורת הדבורה רוקדת בצורת הספרה 8 ומכשכשת בגופה. כיוון הכשכוש מראה את הכיוון אל הפרחים, ומשך הכשכוש מראה כמה הם רחוקים."]],
+    ],
+    n: [[36, ["A spider has 8 legs and a beetle has 6. How many legs do 3 spiders and 2 beetles have altogether?", "", "3 × 8 = 24 and 2 × 6 = 12, so together they have 24 + 12 = 36 legs."],
+      ["לעכביש יש 8 רגליים ולחיפושית יש 6. כמה רגליים יש בסך הכול ל־3 עכבישים ול־2 חיפושיות?", "", "3 × 8 = 24 ו־2 × 6 = 12, ולכן יחד יש להם 24 + 12 = 36 רגליים."]]],
+    s: [[["The life cycle of a mosquito", "Eggs are laid on or near still water", "Larvae hatch and wriggle about in the water", "Each larva becomes a pupa, still in the water", "An adult mosquito comes out and flies away"],
+      ["מחזור החיים של יתוש", "ביצים מוטלות על מים עומדים או לידם", "זחלים בוקעים ומתפתלים במים", "כל זחל הופך לגולם, עדיין בתוך המים", "יתוש בוגר יוצא ועף משם"]]],
+  },
+  a: {
+    t: [
+      ["Compound eye", "an eye made of many tiny units, each seeing a small part of the view", "עין מורכבת", "עין שבנויה מיחידות זעירות רבות, שכל אחת מהן רואה חלק קטן מהתמונה"],
+      ["Arachnids", "the group of eight-legged animals without antennae, which includes spiders and ticks", "עכבישנים", "קבוצת בעלי החיים עם שמונה רגליים ובלי מחושים, שכוללת עכבישים וקרציות"],
+      ["Arthropods", "animals with jointed legs and a hard outer skeleton, such as insects, spiders and crabs", "פרוקי רגליים", "בעלי חיים עם רגליים בעלות מפרקים ושלד חיצוני קשה, כמו חרקים, עכבישים וסרטנים"],
+    ],
+    q: [
+      [["A scorpion has eight legs, two body parts and no antennae. Which group does it belong to?", "Arachnids, like spiders", ["Insects, like ants", "Crustaceans, like crabs", "Molluscs, like snails"], "Eight legs, two body parts and no antennae are the signs of an arachnid. A scorpion's big claws are not legs: they are a special pair of limbs near its mouth, and spiders have a small pair of these too."],
+        ["לעקרב יש שמונה רגליים, שני חלקי גוף ואין לו מחושים. לאיזו קבוצה הוא שייך?", "לעכבישנים, כמו עכבישים", ["לחרקים, כמו נמלים", "לסרטנים, כמו סרטני הים", "לרכיכות, כמו חלזונות"], "שמונה רגליים, שני חלקי גוף והיעדר מחושים הם הסימנים של עכבישן. הצבתות הגדולות של העקרב אינן רגליים: הן זוג איברים ליד הפה, וגם לעכבישים יש זוג קטן כזה."]],
+      [["How does air get inside an insect's body?", "Through tiny holes along its sides", ["Through a pair of lungs inside its thorax", "Through gills on the sides of its head", "Only through its mouth, as it eats"], "Insects have no lungs. Air enters through small holes called spiracles and travels through a network of tiny tubes straight to the cells."],
+        ["איך אוויר נכנס לגוף של חרק?", "דרך פתחים זעירים לאורך צדי הגוף", ["דרך זוג ריאות בתוך בית החזה", "דרך זימים בצדי הראש", "רק דרך הפה, בזמן שהוא אוכל"], "לחרקים אין ריאות. אוויר נכנס דרך פתחים קטנים שנקראים פתחי נשימה, ועובר ברשת של צינורות זעירים ישר אל התאים."]],
+      [["Ants from one nest march in a line to a piece of food. How do they find the way?", "They follow a scent trail left by other ants", ["They follow the brightest light that they can see", "They remember a map that they are born with", "They listen for the sound of the food"], "An ant that finds food lays a trail of chemical scent, called a pheromone, on its way home. Other ants smell it with their antennae and follow it to the food."],
+        ["נמלים מקן אחד צועדות בשורה אל פירור מזון. איך הן מוצאות את הדרך?", "הן הולכות בעקבות שביל ריח שהשאירו נמלים אחרות", ["הן הולכות לעבר האור החזק ביותר שהן רואות", "הן זוכרות מפה שנולדו איתה", "הן מקשיבות לקול של המזון"], "נמלה שמוצאת מזון משאירה בדרך חזרה לקן שביל של ריח כימי, שנקרא פרומון. נמלים אחרות מריחות אותו במחושים והולכות בעקבותיו אל המזון."]],
+      [["A caterpillar eats leaves, but the adult butterfly sips nectar. How does this help the species?", "Young and adults do not compete for the same food", ["The caterpillar can then grow up without ever eating", "The adult can fly to find leaves for the young", "The nectar turns the caterpillar into a pupa"], "Because larvae and adults live and feed in different ways, they do not take food from each other, so more of them can survive in the same place."],
+        ["זחל אוכל עלים, אבל הפרפר הבוגר מוצץ צוף. איך זה עוזר למין?", "הצעירים והבוגרים לא מתחרים על אותו מזון", ["כך הזחל יכול לגדול בלי לאכול אף פעם", "הבוגר יכול לעוף ולחפש עלים בשביל הצעירים", "הצוף הופך את הזחל לגולם"], "מכיוון שהזחלים והבוגרים חיים וניזונים בדרכים שונות, הם לא לוקחים מזון אלה מאלה, ולכן יותר מהם יכולים לשרוד באותו מקום."]],
+      [["Wasps have bright yellow and black stripes. How does this help them?", "The colours warn predators that they can sting", ["The colours help them hide among green leaves", "The colours keep them cool in hot sunshine", "The colours attract birds to come and eat them"], "Bright warning colours tell predators to stay away. A bird that has been stung once learns to avoid yellow and black insects. Some harmless hoverflies copy these colours and are left alone too."],
+        ["לצרעות יש פסים צהובים ושחורים בולטים. איך זה עוזר להן?", "הצבעים מזהירים טורפים שהן יכולות לעקוץ", ["הצבעים עוזרים להן להסתתר בין עלים ירוקים", "הצבעים שומרים עליהן קרירות בשמש חמה", "הצבעים מושכים ציפורים לבוא ולאכול אותן"], "צבעי אזהרה בולטים אומרים לטורפים להתרחק. ציפור שנעקצה פעם אחת לומדת להימנע מחרקים צהובים ושחורים. כמה מינים של זבובי רחף, שאינם מזיקים, מחקים את הצבעים האלה, וגם אותם משאירים בשקט."]],
+    ],
+    n: [[14, ["A housefly has 2 wings and a honeybee has 4. How many wings do 3 houseflies and 2 honeybees have altogether?", "", "3 × 2 = 6 and 2 × 4 = 8, so 6 + 8 = 14 wings. Flies are unusual: most flying insects have 4 wings."],
+      ["לזבוב בית יש 2 כנפיים ולדבורת דבש יש 4. כמה כנפיים יש בסך הכול ל־3 זבובי בית ול־2 דבורי דבש?", "", "3 × 2 = 6 ו־2 × 4 = 8, ולכן 6 + 8 = 14 כנפיים. זבובים יוצאי דופן: לרוב החרקים המעופפים יש 4 כנפיים."]]],
+    s: [[["How a honeybee develops, in order", "The queen lays an egg in a wax cell", "A larva hatches and is fed by worker bees", "The workers seal the cell with wax, and the larva becomes a pupa", "An adult bee chews its way out of the cell"],
+      ["איך דבורת דבש מתפתחת, לפי הסדר", "המלכה מטילה ביצה בתא שעווה", "בוקע זחל, והפועלות מאכילות אותו", "הפועלות סוגרות את התא בשעווה, והזחל הופך לגולם", "דבורה בוגרת מכרסמת את דרכה החוצה מהתא"]]],
+  },
+};
+export default c;
