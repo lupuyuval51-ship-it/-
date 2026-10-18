@@ -31,7 +31,7 @@ export class UI {
     $('btnResume').onclick = () => game.resume(); $('btnSave').onclick = () => { game.saveGame(); }; $('btnLoad').onclick = () => { if (game.loadGame()) game.resume(); }; $('btnQuit').onclick = () => game.toTitle();
     $('btnMapClose').onclick = () => game.resume(); $('btnShopClose').onclick = () => game.resume();
     for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); game.settings.lang = b.dataset.lang; game.saveSettings(); this.applyLanguage(); };
-    $('selQuality').onchange = e => game.setQuality(e.target.value); $('rangeVolume').oninput = e => game.setVolume(+e.target.value); $('rangeSens').oninput = e => { game.settings.sensitivity = +e.target.value; game.saveSettings(); };
+    $('selQuality').onchange = e => { game.settings.qualityUser = true; game.setQuality(e.target.value); }; $('rangeVolume').oninput = e => game.setVolume(+e.target.value); $('rangeSens').oninput = e => { game.settings.sensitivity = +e.target.value; game.saveSettings(); };
     this.applyLanguage();
   }
   applyLanguage() {

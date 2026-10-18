@@ -47,6 +47,9 @@ export class Game {
   constructor(canvas) {
     this.canvas = canvas; let saved = {}; try { saved = JSON.parse(localStorage.getItem(SET_KEY) || '{}'); } catch {}
     this.settings = Object.assign({ quality: 'high', volume: 0.8, sensitivity: 1, lang: L.code }, saved);
+    // Phones and tablets start on the low tier (one render pass, no shadows, pixel ratio 1): the high tier is a desktop GPU budget and loses the context or crawls on a phone. The player's own pick in the settings (qualityUser) is always respected.
+    const phone = !!((window.matchMedia && matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 900));
+    if (phone && !this.settings.qualityUser) this.settings.quality = 'low';
     const q = this.settings.quality; setCharacterQuality(q);
     // Post renders the scene into its own targets (with their own depth); only the FXAA quad reaches the canvas, so the canvas needs no MSAA, depth or stencil
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' });
@@ -69,7 +72,7 @@ export class Game {
   }
   get uiOpen() { return this.state !== 'playing' && this.state !== 'dead'; }
   cameraForward() { const P = this.player; return { x: Math.sin(P.camYaw), z: Math.cos(P.camYaw) }; }
-  boot() { this.ui.setLoading(true); requestAnimationFrame(() => setTimeout(() => { try { this.buildWorld(); } catch (e) { console.error(e); } this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop(); }, 40)); }
+  boot() { this.ui.setLoading(true); requestAnimationFrame(() => setTimeout(() => { try { this.buildWorld(); } catch (e) { console.error(e); window.dispatchEvent(new ErrorEvent('error', { message: String((e && e.message) || e) })); return; } this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop(); }, 40)); }
 
   buildWorld() {
     const q = this.settings.quality;

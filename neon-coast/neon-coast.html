@@ -10492,7 +10492,7 @@ class UI {
     $('btnResume').onclick = () => game.resume(); $('btnSave').onclick = () => { game.saveGame(); }; $('btnLoad').onclick = () => { if (game.loadGame()) game.resume(); }; $('btnQuit').onclick = () => game.toTitle();
     $('btnMapClose').onclick = () => game.resume(); $('btnShopClose').onclick = () => game.resume();
     for (const b of document.querySelectorAll('[data-lang]')) b.onclick = () => { setLang(b.dataset.lang); game.settings.lang = b.dataset.lang; game.saveSettings(); this.applyLanguage(); };
-    $('selQuality').onchange = e => game.setQuality(e.target.value); $('rangeVolume').oninput = e => game.setVolume(+e.target.value); $('rangeSens').oninput = e => { game.settings.sensitivity = +e.target.value; game.saveSettings(); };
+    $('selQuality').onchange = e => { game.settings.qualityUser = true; game.setQuality(e.target.value); }; $('rangeVolume').oninput = e => game.setVolume(+e.target.value); $('rangeSens').oninput = e => { game.settings.sensitivity = +e.target.value; game.saveSettings(); };
     this.applyLanguage();
   }
   applyLanguage() {
@@ -12814,6 +12814,9 @@ class Game {
   constructor(canvas) {
     this.canvas = canvas; let saved = {}; try { saved = JSON.parse(localStorage.getItem(SET_KEY) || '{}'); } catch {}
     this.settings = Object.assign({ quality: 'high', volume: 0.8, sensitivity: 1, lang: L.code }, saved);
+    // Phones and tablets start on the low tier (one render pass, no shadows, pixel ratio 1): the high tier is a desktop GPU budget and loses the context or crawls on a phone. The player's own pick in the settings (qualityUser) is always respected.
+    const phone = !!((window.matchMedia && matchMedia('(pointer: coarse)').matches) || (navigator.maxTouchPoints > 1 && Math.min(screen.width, screen.height) < 900));
+    if (phone && !this.settings.qualityUser) this.settings.quality = 'low';
     const q = this.settings.quality; setCharacterQuality(q);
     // Post renders the scene into its own targets (with their own depth); only the FXAA quad reaches the canvas, so the canvas needs no MSAA, depth or stencil
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' });
@@ -12836,7 +12839,7 @@ class Game {
   }
   get uiOpen() { return this.state !== 'playing' && this.state !== 'dead'; }
   cameraForward() { const P = this.player; return { x: Math.sin(P.camYaw), z: Math.cos(P.camYaw) }; }
-  boot() { this.ui.setLoading(true); requestAnimationFrame(() => setTimeout(() => { try { this.buildWorld(); } catch (e) { console.error(e); } this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop(); }, 40)); }
+  boot() { this.ui.setLoading(true); requestAnimationFrame(() => setTimeout(() => { try { this.buildWorld(); } catch (e) { console.error(e); window.dispatchEvent(new ErrorEvent('error', { message: String((e && e.message) || e) })); return; } this.ui.setLoading(false); this.ui.show('title'); this.last = performance.now(); this.loop(); }, 40)); }
 
   buildWorld() {
     const q = this.settings.quality;
@@ -13234,8 +13237,12 @@ return {Game};
 (function(){
 const {initLang} = __m_i18n;
 const {Game} = __m_game;
+// While the loading screen is still up, a startup error (no WebGL, a shader that does not compile, out of memory) is written onto it, so a phone shows what went wrong instead of a spinner or a blank page.
+const showFail = msg => { const l = document.getElementById('loading'); if (!l || l.hidden) return; const p = l.querySelector('p'), s = l.querySelector('.spinner'); if (s) s.style.display = 'none'; if (p) { p.style.direction = 'ltr'; p.style.padding = '0 20px'; p.style.wordBreak = 'break-word'; p.textContent = 'Could not start: ' + msg; } };
+window.addEventListener('error', e => showFail(e.message || 'script error'));
+window.addEventListener('unhandledrejection', e => showFail(String((e.reason && e.reason.message) || e.reason)));
 initLang();
-const boot = () => { const game = new Game(document.getElementById('c')); window.__game = game; game.boot(); };
+const boot = () => { try { const game = new Game(document.getElementById('c')); window.__game = game; game.boot(); } catch (e) { console.error(e); showFail(e && e.message ? e.message : String(e)); } };
 if (document.fonts?.ready) document.fonts.ready.then(boot, boot); else boot();
 
 })();
