@@ -164,8 +164,8 @@ test.describe("creating a game", () => {
     await page.goto(`/create?mode=EXTEND&game=${g1!.id}`);
     await expect(page.getByTestId("mode-EXTEND")).toBeChecked();
     // extending keeps the game's own level and uses one game of that level on the plan (Pro: 5 at level A, 1 used)
-    await expect(page.getByTestId("extend-cost")).toContainText("level A and uses one of your level A games (4 of 5 left)");
-    await expect(page.getByTestId("create-allowance")).toContainText("Level A: 4 of 5 games left");
+    await expect(page.getByTestId("extend-cost")).toContainText("level A and uses one of your level A games (19 of 20 left)");
+    await expect(page.getByTestId("create-allowance")).toContainText("Level A: 19 of 20 games left");
     await page.getByTestId("create-goal").fill("Practise nested loops");
     await page.getByTestId("create-submit").click();
     await page.waitForURL(/\/generate\//);

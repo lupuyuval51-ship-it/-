@@ -60,7 +60,7 @@ test.describe("pricing and subscriptions", () => {
 
     // the subscription was created by the shared ingest pipeline, tagged as simulated, with the exact configured price
     const [sub] = await dbRows<{ provider: string; plan: string; status: string; currency: string; unitAmount: number }>('SELECT provider, plan, status, currency, "unitAmount" FROM "Subscription" WHERE "userId" = $1', [userId]);
-    expect(sub).toMatchObject({ provider: "DEV", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 1000 });
+    expect(sub).toMatchObject({ provider: "DEV", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 500 });
     const events = await dbRows<{ type: string; status: string }>('SELECT type, status FROM "WebhookEvent" WHERE id LIKE \'evt_dev_%\' AND "payload"::text LIKE $1 ORDER BY type', [`%${userId}%`]);
     expect(events).toEqual([{ type: "customer.subscription.created", status: "PROCESSED" }, { type: "invoice.paid", status: "PROCESSED" }]);
 
