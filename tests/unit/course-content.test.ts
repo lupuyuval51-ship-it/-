@@ -30,7 +30,7 @@ describe("the course catalogue", () => {
       expect(course.chapters.length).toBeGreaterThanOrEqual(8);
       expect(course.chapters.length).toBeLessThanOrEqual(10);
       expect(new Set(course.chapters).size).toBe(course.chapters.length);
-      expect(courseChapters(course).map((t) => t.id)).toEqual(course.chapters);
+      expect(courseChapters(course, findTopic).map((t) => t.id)).toEqual(course.chapters);
       course.chapters.forEach((id, i) => {
         expect(findTopic(id)?.course, id).toBe(course.id);
         expect(chapterOf(id)).toEqual({ course, number: i + 1 });

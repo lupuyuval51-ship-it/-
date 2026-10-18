@@ -74,13 +74,18 @@ describe("bundle boundaries", () => {
   });
 
   it("topic-library content is never in a first chunk: each topic is reached only through its own literal dynamic import", () => {
-    // The catalogue (titles and descriptions) may be static; the content of the topics may not, anywhere a user lands first.
+    // The catalogue (titles and descriptions) may be static in a screen that lists topics; the content of the topics may not, anywhere a user lands first.
     for (const entry of ["mobile/src/App.tsx", "mobile/src/main.tsx", "mobile/src/pages/Create.tsx", "src/components/create/CreateForm.tsx", "src/lib/offline/generate.ts", "src/lib/schemas/generation.ts"]) {
       const { files } = staticGraph(entry);
       expect([...files].filter((f) => f.startsWith("src/lib/game/topics/content/")), entry).toEqual([]);
     }
     // the Android app's first chunk does not even reach the topic builder (only the create screen, lazily, does)
     expect(staticGraph("mobile/src/App.tsx").files.has("src/lib/game/topics/build.ts")).toBe(false);
+    // nor the catalogue (710 rows of titles and descriptions): the screens that list topics load it
+    for (const entry of ["mobile/src/App.tsx", "mobile/src/main.tsx"]) {
+      const { files } = staticGraph(entry);
+      expect(["src/lib/game/topics/catalog.ts", "src/lib/game/topics/catalog-plus-pro.ts"].filter((f) => files.has(f)), entry).toEqual([]);
+    }
     const loaders = readFileSync(path.join(root, "src/lib/game/topics/loaders.ts"), "utf8");
     const imports = [...loaders.matchAll(/import\(([^)]*)\)/g)].map((m) => m[1]!);
     expect(imports.length).toBeGreaterThan(0);

@@ -4,10 +4,9 @@
  * label, never AI); this file only says which topics make up a course and in what order. Chapters are free on every plan
  * (`premium.ts` never lists them) and are not counted in a category's paid third.
  *
- * Small on purpose: the app's home screen shows the course card, so this sits in the first chunk (the chapters' content
- * stays in their own lazily loaded modules).
+ * Small on purpose: the app's home screen shows the course card, so this sits in the first chunk. It does not import the
+ * catalogue (hundreds of rows, kept out of the app's first chunk): the chapters' rows are looked up by the caller.
  */
-import { findTopic } from "./catalog";
 import type { TopicEntry } from "./types";
 
 export interface Course {
@@ -38,8 +37,9 @@ const BY_ID = new Map(COURSES.map((c) => [c.id, c]));
 
 export const findCourse = (id: string): Course | undefined => BY_ID.get(id);
 
-/** The chapters of a course as catalogue rows, in order. */
-export const courseChapters = (course: Course): TopicEntry[] => course.chapters.map((id) => findTopic(id)).filter((t): t is TopicEntry => Boolean(t));
+/** The chapters of a course as catalogue rows, in order (`find` is the catalogue's `findTopic`). */
+export const courseChapters = (course: Course, find: (id: string) => TopicEntry | undefined): TopicEntry[] =>
+  course.chapters.map((id) => find(id)).filter((t): t is TopicEntry => Boolean(t));
 
 /** The course a topic is a chapter of, and its 1-based chapter number. */
 export function chapterOf(topicId: string): { course: Course; number: number } | null {

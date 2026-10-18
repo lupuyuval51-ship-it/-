@@ -38,7 +38,7 @@ function CourseView({ course }: { course: Course }) {
   const [failed, setFailed] = useState(false);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
-  const chapters = courseChapters(course);
+  const chapters = courseChapters(course, findTopic);
   const [title, description, audience] = course[lang];
 
   async function start(ch: ChapterProgress, level: Difficulty) {
