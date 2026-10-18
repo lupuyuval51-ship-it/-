@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
 import { db } from "@/server/db";
-import type { PlanId } from "@/config/plans";
+import type { FeatureTier, PlanId } from "@/config/plans";
 import { POST as registerRoute } from "@/app/api/auth/register/route";
+import { getAllowanceSummary } from "@/server/allowance/summary";
 
 export const ORIGIN = "http://localhost:3000";
 
@@ -81,4 +82,9 @@ export async function grantSubscription(
     },
     update: { plan, status: opts.status ?? "ACTIVE", currentPeriodStart: start, currentPeriodEnd: end },
   });
+}
+
+/** One level's own counters in the user's current allowance period (the suites run at level A, see setup.ts). */
+export async function levelAllowance(userId: string, level: FeatureTier = "A", now?: Date) {
+  return (await getAllowanceSummary(userId, now)).levels[level];
 }

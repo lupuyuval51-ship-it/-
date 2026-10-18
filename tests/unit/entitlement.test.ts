@@ -11,20 +11,20 @@ const mid = new Date("2026-03-20T00:00:00Z");
 describe("entitlement resolution", () => {
   it("no subscription → FREE with the UTC calendar month as period", () => {
     const e = computeEntitlement(null, mid);
-    expect(e).toMatchObject({ plan: "FREE", source: "FREE", limit: 2 });
+    expect(e).toMatchObject({ plan: "FREE", source: "FREE", quotas: { A: 0, B: 1, C: 5 } });
     expect(e.periodStart.toISOString()).toBe("2026-03-01T00:00:00.000Z");
     expect(e.periodEnd.toISOString()).toBe("2026-04-01T00:00:00.000Z");
   });
 
-  it("ACTIVE PLUS → paid entitlement over the billing period, a budget of 3 points", () => {
+  it("ACTIVE PLUS → paid entitlement over the billing period, with Plus's own quota at each level", () => {
     const e = computeEntitlement(sub(), mid);
-    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: 3, subscriptionId: "s1" });
+    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", quotas: { A: 3, B: 5, C: null }, subscriptionId: "s1" });
     expect(e.periodStart).toEqual(start);
     expect(e.periodEnd).toEqual(end);
   });
 
-  it("ACTIVE PRO → a budget of 10 points", () => {
-    expect(computeEntitlement(sub({ plan: "PRO" }), mid).limit).toBe(10);
+  it("ACTIVE PRO → 5 games at level A, 10 at level B, level C unlimited", () => {
+    expect(computeEntitlement(sub({ plan: "PRO" }), mid).quotas).toEqual({ A: 5, B: 10, C: null });
   });
 
   it.each(["PAST_DUE", "UNPAID", "CANCELED", "INCOMPLETE", "INCOMPLETE_EXPIRED", "PAUSED"])("%s subscriptions do NOT grant paid access", (status) => {

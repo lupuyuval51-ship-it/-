@@ -26,13 +26,13 @@ describe("feature tiers (the promise: C 40 %, B 70 %, A 100 % of the game's feat
     expect(levelsAllowed("FREE")).toEqual(["B", "C"]);
     expect(levelsAllowed("PLUS")).toEqual(["A", "B", "C"]);
     expect(levelsAllowed("PRO")).toEqual(["A", "B", "C"]);
-    expect(PLANS.FREE.allowance.budget).toBe(2);
+    expect(PLANS.FREE.allowance).toEqual({ B: 1, C: 5 });
     expect(PLANS.FREE.monthlyPrices.USD).toBe(0);
   });
 
   it("names the plan that unlocks a feature", () => {
     expect(planUnlocking("challenge:choice")).toBe("FREE");
-    // level B is on Free (it costs 2 of Free's 2 points); level A starts with Plus
+    // level B is on Free (one game a month); level A starts with Plus
     expect(planUnlocking("type:platformer")).toBe("FREE");
     expect(planUnlocking("system:side_missions")).toBe("FREE");
     expect(planUnlocking("system:boss")).toBe("PLUS");

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { GAME_FEATURES, PLANS, costOf, featureShare, planOffer, type PlanId } from "@/config/plans";
+import { GAME_FEATURES, PLANS, featureShare, quotaOf, type PlanId } from "@/config/plans";
 
 /**
  * Documentation that names a command, a variable, a file or a number must keep naming real ones. These checks read the docs the
@@ -60,17 +60,10 @@ describe("documented product numbers match src/config/plans.ts", () => {
   const readme = read("README.md");
   const row = (plan: string) => readme.split("\n").find((l) => l.startsWith(`| **${plan}**`)) ?? "";
 
-  it("the plans table shows the configured prices, points budgets and level costs", () => {
-    const costs = (plan: PlanId) => (["C", "B", "A"] as const).map((l) => { const c = costOf(plan, l); return c === null ? "not available" : c === 0 ? "free" : c; }).join(" · ");
-    const offer = (plan: PlanId) => {
-      const counted = planOffer(plan).filter((o) => Number.isFinite(o.topics));
-      const free = planOffer(plan).filter((o) => !Number.isFinite(o.topics)).map((o) => `, plus unlimited at level ${o.level}`);
-      return counted.map((o, i) => (i === 0 ? `${o.topics} topic${o.topics === 1 ? "" : "s"} at level ${o.level}` : `${o.topics} at level ${o.level}`)).join(", or ") + free.join("");
-    };
+  it("the plans table shows the configured prices and every level's own quota (A · B · C)", () => {
+    const cell = (plan: PlanId, level: "A" | "B" | "C") => { const q = quotaOf(plan, level); return q === 0 ? "not available" : q === null ? "unlimited" : `**${q}**`; };
     for (const [plan, name] of [["FREE", "Free"], ["PLUS", "Plus"], ["PRO", "Pro"]] as const) {
-      expect(row(name)).toContain(`| **${PLANS[plan].allowance.budget}** |`);
-      expect(row(name)).toContain(`| ${costs(plan)} |`);
-      expect(row(name)).toContain(`| ${offer(plan)} |`);
+      expect(row(name)).toContain(`| ${cell(plan, "A")} | ${cell(plan, "B")} | ${cell(plan, "C")} |`);
     }
     expect(row("Plus")).toContain(`**$${PLANS.PLUS.monthlyPrices.USD! / 100} / month**`);
     expect(row("Plus")).toContain(`₪${PLANS.PLUS.monthlyPrices.ILS! / 100} / month`);
@@ -79,7 +72,7 @@ describe("documented product numbers match src/config/plans.ts", () => {
   });
 
   it("the plan-features table shows the configured AI edit quotas and versions kept", () => {
-    const features = readme.split("\n").filter((l) => /^\| \*\*(Free|Plus|Pro)\*\* \| /.test(l) && /(AI robot|level|manual edits only)/.test(l) && !/topics? at level/.test(l));
+    const features = readme.split("\n").filter((l) => /^\| \*\*(Free|Plus|Pro)\*\* \| /.test(l) && /(AI robot|level|manual edits only)/.test(l) && !l.includes("$")); // the plans table (with prices) is checked above
     expect(features).toHaveLength(3);
     for (const [plan, line] of [["FREE", features[0]!], ["PLUS", features[1]!], ["PRO", features[2]!]] as const) {
       const f = PLANS[plan].features;

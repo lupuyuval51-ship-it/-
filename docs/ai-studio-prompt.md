@@ -28,7 +28,7 @@ There are three products in one codebase:
 
 ## Plans (currently switched off)
 
-- `src/config/plans.ts` is the **only** place for plans and prices. Free: 2 points (2 topics at level C or 1 at level B). Plus ₪10 / $10: 3 points (3 topics at B or 1 at A, plus unlimited level C). Pro ₪40 / $40: 10 points (5 at A or 10 at B, plus unlimited C).
+- `src/config/plans.ts` is the **only** place for plans and prices. Every level has its own quota of games per period (using one never reduces another). Free: 1 topic at level B and 5 at level C a month, never A. Plus ₪10 / $10: 3 at A, 5 at B, unlimited C. Pro ₪40 / $40: 5 at A, 10 at B, unlimited C.
 - `PLANS_ENABLED=false` (default): nobody pays, everybody gets the full product. `PLANS_SHOWN=true`: plans are shown as information only, with no buy button.
 - In the Android app, paid features may only use **Google Play Billing** (never Stripe, never PayPal, never a link to an outside payment page).
 

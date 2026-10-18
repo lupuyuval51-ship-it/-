@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PLANS, calendarMonthUtc, type PlanId } from "@/config/plans";
+import { calendarMonthUtc, quotaOf, type PlanId } from "@/config/plans";
 import { ENTITLEMENT_GRACE_MS, computeEntitlement, subscriptionGrantsAccess, type SubscriptionFacts } from "@/server/allowance/entitlement";
 import { rng } from "./random-play";
 
@@ -29,6 +29,8 @@ const REVOKED: [string, Date | null][] = [["not refunded", null], ["refunded thi
 const expected = (status: string, revoked: Date | null, now: Date) =>
   (status === "ACTIVE" || status === "TRIALING") && !(revoked && revoked.getTime() === start.getTime()) && now.getTime() < end.getTime() + G;
 
+const quotasOf = (plan: PlanId) => ({ A: quotaOf(plan, "A"), B: quotaOf(plan, "B"), C: quotaOf(plan, "C") });
+
 describe("subscriptionGrantsAccess: the whole matrix", () => {
   for (const plan of PAID) {
     for (const status of STATUSES) {
@@ -39,13 +41,13 @@ describe("subscriptionGrantsAccess: the whole matrix", () => {
             expect(subscriptionGrantsAccess(sub, now), `${label} (${now.toISOString()})`).toBe(expected(status, revoked, now));
             const ent = computeEntitlement(sub, now);
             if (expected(status, revoked, now)) {
-              expect(ent).toMatchObject({ plan, source: "SUBSCRIPTION", limit: PLANS[plan].allowance.budget, subscriptionId: "s" });
+              expect(ent).toMatchObject({ plan, source: "SUBSCRIPTION", quotas: quotasOf(plan), subscriptionId: "s" });
               expect(ent.periodStart).toEqual(start);
               expect(ent.periodEnd).toEqual(end);
             } else {
               // anything else is exactly the Free plan with the UTC calendar month containing "now", and no link to the subscription
               const month = calendarMonthUtc(now);
-              expect(ent).toMatchObject({ plan: "FREE", source: "FREE", limit: PLANS.FREE.allowance.budget, subscriptionId: null });
+              expect(ent).toMatchObject({ plan: "FREE", source: "FREE", quotas: quotasOf("FREE"), subscriptionId: null });
               expect(ent.periodStart).toEqual(month.start);
               expect(ent.periodEnd).toEqual(month.end);
             }

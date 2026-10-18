@@ -1,12 +1,12 @@
 import "server-only";
 import type { CreateGenerationBody } from "@/lib/schemas/generation";
 import type { GameSpec } from "@/lib/game/spec/schema";
-import { defaultLevel, levelUnlocking, planUnlocking, planUnlockingLevel, type FeatureTier, type PlanId } from "@/config/plans";
+import { defaultLevel, levelUnlocking, planUnlocking, planUnlockingLevel, type FeatureTier, type LevelQuota, type PlanId } from "@/config/plans";
 import { gameTypeFeature, gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { describeBackend, getBackend } from "../ai/registry";
 import { resolveEntitlement } from "../allowance/entitlement";
-import { findPeriod } from "../allowance/periods";
-import { levelCost, levelsForPlan } from "../games/feature-tier";
+import { findPeriod, leftPerLevel } from "../allowance/periods";
+import { levelQuota, levelsForPlan } from "../games/feature-tier";
 import { db } from "../db";
 import { demoTemplatesOn, getEnv } from "../env";
 import { ApiError, Errors } from "../http/errors";
@@ -16,13 +16,14 @@ import { startGenerationJob } from "./jobs";
 import { runGenerationJob } from "./runner";
 
 /**
- * Validate preconditions BEFORE anything is reserved, decide the game's LEVEL, create the job (reserving the level's
- * price in points atomically) and start the work in the background. A duplicate submission (same idempotency key)
- * returns the same job, whatever has been spent since.
+ * Validate preconditions BEFORE anything is reserved, decide the game's LEVEL, create the job (reserving one game of
+ * that level's own quota atomically) and start the work in the background. A duplicate submission (same idempotency
+ * key) returns the same job, whatever has been used since.
  *
- * The level: the player's wish (`request.level`) when the plan offers it, else the highest level the remaining points
- * pay for. Extending a game always uses the game's own level, priced on the current plan; a plan that cannot make
- * that level cannot extend the game. Level C games have a single area and cannot be extended.
+ * The level: the player's wish (`request.level`) when the plan offers it, else the highest level that fits the request
+ * and still has a game left this period. Extending a game always uses the game's own level and one game of that level
+ * on the current plan; a plan that cannot make that level cannot extend the game. Level C games have a single area and
+ * cannot be extended.
  */
 export async function createGeneration(userId: string, body: CreateGenerationBody, opts: { schedule?: boolean } = {}) {
   const backend = getBackend();
@@ -47,8 +48,7 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
     const requiredPlan = planOpeningTopic(body.request.topicId);
     throw new ApiError(403, "TOPIC_LOCKED", requiredPlan === "PRO" ? "This topic is part of Pro." : "This topic is part of Plus and Pro.", { topicId: body.request.topicId, requiredPlan });
   }
-  const period = await findPeriod(userId, ent);
-  const remaining = Math.max(0, ent.limit - (period?.used ?? 0) - (period?.reserved ?? 0));
+  const left = leftPerLevel(ent, await findPeriod(userId, ent));
 
   let request = body.request;
   let level: FeatureTier;
@@ -74,14 +74,14 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
     request = { ...request, subject: game.subject, difficulty: spec.meta.difficulty, gameType: spec.meta.gameType, contentLanguage: spec.meta.language };
     // Games saved before levels existed count as level A (they keep everything they have).
     level = spec.meta.featureTier ?? "A";
-    if (levelCost(ent.plan, level) === null) {
+    if (levelQuota(ent.plan, level) === 0) {
       throw new ApiError(403, "FEATURE_TIER_LOCKED", `Extending a level ${level} game is not part of your plan.`, {
         level, requiredLevel: level, requiredPlan: planUnlockingLevel(level),
       });
     }
     assertRequestAllowed(level, request);
   } else {
-    level = chooseLevel(ent.plan, remaining, request);
+    level = chooseLevel(ent.plan, left, request);
     assertRequestAllowed(level, request, ent.plan);
   }
   request = { ...request, level };
@@ -100,9 +100,10 @@ const levelFits = (level: FeatureTier, request: LevelRequest): boolean => modeAl
 
 /**
  * The level of a new game. The player's wish is checked against the plan (403 FEATURE_TIER_LOCKED with the cheapest
- * plan that offers it); whether the points suffice is checked atomically when the job reserves them (402).
+ * plan that offers it); whether that level still has a game left is checked atomically when the job reserves it (402).
+ * Without a wish: the highest level that fits the request and still has a game left (`left`, per level; null = unlimited).
  */
-export function chooseLevel(plan: PlanId, remaining: number, request: LevelRequest): FeatureTier {
+export function chooseLevel(plan: PlanId, left: Partial<Record<FeatureTier, LevelQuota>>, request: LevelRequest): FeatureTier {
   const levels = levelsForPlan(plan);
   if (request.level) {
     if (!levels.includes(request.level)) {
@@ -113,7 +114,7 @@ export function chooseLevel(plan: PlanId, remaining: number, request: LevelReque
     return request.level;
   }
   if (levels.length === 1) return levels[0]!;
-  return defaultLevel(plan, remaining, (l) => levelFits(l, request));
+  return defaultLevel(plan, left, (l) => levelFits(l, request));
 }
 
 /**

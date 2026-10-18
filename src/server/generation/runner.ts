@@ -75,8 +75,8 @@ function describeFailure(err: unknown): { code: string; message: string } {
 
 /**
  * Execute one generation job end to end. Safe to call more than once for the same job: only the caller that
- * moves it PENDING → RUNNING proceeds. Every exit path either commits the credit together with the saved game
- * or releases it.
+ * moves it PENDING → RUNNING proceeds. Every exit path either commits the held game (one of the job's level) together
+ * with the saved game or releases it.
  */
 export async function runGenerationJob(jobId: string, opts: { backend?: GenerationBackend } = {}): Promise<void> {
   const job = await db.generationJob.findUnique({ where: { id: jobId } });

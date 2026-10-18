@@ -101,7 +101,7 @@ export async function editGame(userId: string, gameId: string, edit: GameEdit) {
     const spec = structuredClone(game.spec as unknown as GameSpec);
     let gameplayChanged = false;
     // Switching a mechanic ON is a feature of the game's own level like any other: the saved game must not gain what
-    // its level lacks (its points were paid for that level). Games saved before levels existed count as level A.
+    // its level lacks (it was made with one game of that level). Games saved before levels existed count as level A.
     const gameTier = spec.meta.featureTier ?? "A";
 
     if (edit.title !== undefined) spec.meta.title = edit.title;

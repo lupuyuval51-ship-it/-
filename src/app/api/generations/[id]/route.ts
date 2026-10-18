@@ -10,6 +10,8 @@ export const GET = apiRoute<undefined, { id: string }>({}, async ({ user, params
   return {
     id: job.id,
     mode: job.mode,
+    /** The game's level (feature tier): the job holds one game of this level's quota. */
+    level: job.featureTier,
     status: job.status,
     stage: job.stage,
     gameId: job.gameId,

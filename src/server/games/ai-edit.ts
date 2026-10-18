@@ -130,7 +130,7 @@ export async function editGameWithAi(args: EditArgs, opts: { now?: Date } = {}):
     const env = getEnv();
     const out = await runEdit({
       backend, spec: baseSpec, instruction: args.instruction, level,
-      // an edit stays within the game's own level (its points were paid for that level); older games count as A
+      // an edit stays within the game's own level (it was made with one game of that level); older games count as A
       tier: baseSpec.meta.featureTier ?? "A", deadline: now.getTime() + env.AI_JOB_DEADLINE_MS, callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
       onStage: async () => { /* progress is not streamed for edits; the request returns when the edit is done */ },
     });

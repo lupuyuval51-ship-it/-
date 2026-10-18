@@ -19,7 +19,7 @@ import type { AiMessage, LlmBackend, TemplateBackend } from "../ai/types";
 
 export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE" | "TIER_BUILD_FAILED" | "EDIT_TIER_LOCKED";
 
-/** A generation failure with a safe, user-facing message (the credit is always released on failure). */
+/** A generation failure with a safe, user-facing message (the held game is always released on failure). */
 export class PipelineError extends Error {
   constructor(public readonly code: PipelineErrorCode, public readonly userMessage: string, detail?: string) {
     super(detail ?? userMessage);
@@ -34,7 +34,7 @@ export interface PipelineInput {
   request: GenerationRequest;
   /** EXTEND only: the saved spec being extended. */
   base: GameSpec | null;
-  /** Epoch ms after which the job is abandoned and the credit released. */
+  /** Epoch ms after which the job is abandoned and its held game released. */
   deadline: number;
   callTimeoutMs: number;
   onStage: (stage: string) => Promise<void> | void;

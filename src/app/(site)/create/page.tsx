@@ -4,7 +4,7 @@ import { getAllowanceSummary } from "@/server/allowance/summary";
 import { describeBackend } from "@/server/ai/registry";
 import { requireUser } from "@/server/auth/current";
 import { FEATURE_TIERS, defaultLevel, featureShare, levelUnlocking, planUnlocking, planUnlockingLevel } from "@/config/plans";
-import { levelCost, levelsForPlan, maxLevelForPlan } from "@/server/games/feature-tier";
+import { levelsForPlan, maxLevelForPlan } from "@/server/games/feature-tier";
 import { gameTypeAllowed, gameTypeFeature, modeAllowed } from "@/lib/game/spec/tier";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { listGames } from "@/server/games/library";
@@ -28,18 +28,20 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
   const requested = (GENERATION_MODES as readonly string[]).includes(sp.mode ?? "") ? (sp.mode as GenerationModeId) : "FAST";
   const mode = modeAllowed(maxLevelForPlan(plan), requested) ? requested : "FAST";
   // Everything below is derived from the plan config on the server; the form only explains and disables (the server enforces).
+  // Every level has its own quota of games this period: `remaining` is what is left at that level (null = unlimited).
   const levels = [...FEATURE_TIERS].reverse().map((level) => {
-    const cost = levelCost(plan, level);
+    const quota = allowance.levels[level];
     return {
-      level, share: featureShare(level), cost,
+      level, share: featureShare(level),
       allowed: offered.includes(level),
-      affordable: cost !== null && cost <= allowance.remaining,
+      limit: quota.limit, remaining: quota.remaining,
       unlockPlan: offered.includes(level) ? null : planUnlockingLevel(level),
       fullAllowed: modeAllowed(level, "FULL"),
       gameTypes: GAME_TYPES.map((g) => ({ id: g, allowed: gameTypeAllowed(level, g), level: levelUnlocking(gameTypeFeature(g)) })),
     };
   });
-  const defaultFor = (m: GenerationModeId) => offered.length === 1 ? offered[0]! : defaultLevel(plan, allowance.remaining, (l) => modeAllowed(l, m));
+  const left = { A: allowance.levels.A.remaining, B: allowance.levels.B.remaining, C: allowance.levels.C.remaining };
+  const defaultFor = (m: GenerationModeId) => offered.length === 1 ? offered[0]! : defaultLevel(plan, left, (l) => modeAllowed(l, m));
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header className="space-y-1">
@@ -48,8 +50,8 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
       </header>
       <CreateForm
         backend={{ kind: backend.kind, provider: backend.provider, label: backend.label, reason: backend.reason, templates: backend.templates }}
-        allowance={{ remaining: allowance.remaining, limit: allowance.limit, periodEnd: allowance.periodEnd, plan, activeJobId: allowance.activeJobId }}
-        games={games.map((g) => ({ id: g.id, title: g.title, subject: g.subject, generatorKind: g.generator.kind, level: g.level, extendCost: levelCost(plan, g.level) }))}
+        allowance={{ periodEnd: allowance.periodEnd, plan, activeJobId: allowance.activeJobId }}
+        games={games.map((g) => ({ id: g.id, title: g.title, subject: g.subject, generatorKind: g.generator.kind, level: g.level }))}
         extensionMechanics={EXTENSION_MECHANICS}
         levels={{
           options: levels,

@@ -46,8 +46,8 @@ export const generationRequestSchema = z
     device: z.enum(["phone", "desktop"]).optional(),
     /**
      * The level (feature tier) wished for this game: C = 40 %, B = 70 %, A = 100 % of the game features. Only a wish:
-     * the server checks it against the plan (`levelsAllowed`) and the points left, and picks the best affordable level
-     * when it is missing. Ignored when extending (the game keeps its own level).
+     * the server checks it against the plan (`levelsAllowed`) and the games left at that level, and picks the highest
+     * level that fits and still has a game left when it is missing. Ignored when extending (the game keeps its own level).
      */
     level: z.enum(["A", "B", "C"]).optional(),
     /**

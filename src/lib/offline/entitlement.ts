@@ -4,7 +4,7 @@
  * There are no plans on the device yet: paid tiers will come from Google Play Billing (never Stripe), and until that
  * exists every install keeps the full tier A so nobody loses what they already have. When billing lands, only this
  * function changes: it will map the verified Play subscription to the
- * highest level that plan offers (`maxLevel(plan)`); the device has no points budget.
+ * highest level that plan offers (`maxLevel(plan)`); the device counts no games per level.
  */
 import { maxLevel, type FeatureTier } from "../../config/plans";
 

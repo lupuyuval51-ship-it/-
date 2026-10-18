@@ -30,8 +30,8 @@ A learner types a goal or pastes study notes; the product produces a **validated
 
 Request paths worth knowing:
 
-* **Generate:** `POST /api/generations` → decide the game's level and reserve its points (`GenerationJob.cost`; conditional `UPDATE`, one job in flight per user, idempotency key) → job runs after the response (`after()`) → provider stages →
-  `validateGameSpec` + `clampToFeatureTier` → save the game and commit the points in one transaction. Failure, timeout or a dead worker releases the points (the reaper, on read or via `POST /api/internal/reap`).
+* **Generate:** `POST /api/generations` → decide the game's level and reserve one game of that level's own quota (`GenerationJob.featureTier`, `AllowanceQuota`; conditional `UPDATE`, one job in flight per user, idempotency key) → job runs after the response (`after()`) → provider stages →
+  `validateGameSpec` + `clampToFeatureTier` → save the game and commit the held game in one transaction. Failure, timeout or a dead worker releases it (the reaper, on read or via `POST /api/internal/reap`).
   Code: `src/server/generation/*`, `src/server/allowance/*`.
 * **Edit with words (Plus/Pro):** `src/server/games/ai-edit.ts` reserves an `AiEdit` row, the model answers with allow-listed operations (`src/lib/game/spec/edit.ts`), the result passes `validateGameSpec`,
   and the new version and the quota are committed together; `versions.ts` lists and restores versions.
@@ -43,7 +43,7 @@ Request paths worth knowing:
   `loaders.ts`) by `runTopicLibrary` in `src/server/generation/pipeline.ts` — before any backend is touched, so no model is called — and on the phone by
   `generateOfflineWithProgress`. Same validation, tier clamp, phone fit and allowance; label `catalog` / “Topic library”. Tests: `tests/unit/topics.test.ts`,
   `tests/integration/topic-library.test.ts`, the topic part of `tests/unit/bundle-boundary.test.ts`.
-* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan and paid in points (`PLANS[plan].allowance`: Free 2 points with C = 1, B = 2, no A; Plus 3 with C = 0 (free, unlimited), B = 1, A = 3; Pro 10 with C = 0 (free, unlimited), B = 1, A = 2), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
+* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan, each level with its own quota per period (`PLANS[plan].allowance`: Free B 1, C 5, no A; Plus A 3, B 5, C unlimited; Pro A 5, B 10, C unlimited), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
   (`assertRequestAllowed` in `src/server/generation/service.ts`, `clampToFeatureTier` in `src/lib/game/spec/tier.ts`).
 
 ## Where the rules are enforced and tested
@@ -51,7 +51,7 @@ Request paths worth knowing:
 | Rule (AGENTS.md) | Code | Tests |
 | --- | --- | --- |
 | Prices, allowances, tiers only in `plans.ts` | `src/config/plans.ts` | `tests/unit/plans.test.ts`, `tier.test.ts`, `tier-property.test.ts`, `tests/integration/feature-tier.test.ts` |
-| A failed generation or edit never costs a point or an edit | `src/server/allowance`, `generation`, `games/ai-edit.ts` | `tests/integration/allowance.test.ts`, `generation.test.ts`, `ai-edit.test.ts` |
+| A failed generation or edit never costs a game or an edit | `src/server/allowance`, `generation`, `games/ai-edit.ts` | `tests/integration/allowance.test.ts`, `generation.test.ts`, `ai-edit.test.ts` |
 | Payments only through the verified pipeline | `src/server/billing` | `tests/unit/billing.test.ts`, `billing-fuzz.test.ts`, `tests/integration/billing-stripe.test.ts`, `billing-dev.test.ts` |
 | Score, hints, attempts, completion computed server-side | `src/lib/game/state`, `src/server/games/play.ts` | `tests/unit/gameplay.test.ts`, `reducer-fuzz.test.ts`, `boss.test.ts`, `tests/integration/play.test.ts` |
 | AI output is untrusted (`validateGameSpec`) | `src/lib/game/spec/validate.ts` | `tests/unit/spec.test.ts`, `edit.test.ts`, `ai-eval.test.ts`, `adapters.test.ts` |
@@ -100,10 +100,10 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 ## Open decisions (owner)
 
 * **Target audience for Google Play** (13+ or all ages). If under-13s are a target, Play's Families policy and COPPA/GDPR apply, and the optional account collects an e-mail address (`docs/play-release.md` section 5).
-* **Google Play Billing:** how paid plans map to a level on the device (`maxLevel(plan)`; the device has no points budget) (`src/lib/offline/entitlement.ts` is the single place to change).
-* **Plan numbers to confirm.** They are pinned as "exact product rules" in `tests/unit/plans.test.ts`: Free 2 points per calendar month (2 topics at level C or 1 at level B); Plus 3 points per billing period (3 at B or 1 at A); Pro 10
-  (5 at A or 10 at B); Plus and Pro have identical graphics. Open question for the owner: one A game costs 3 B games on Plus but only 2 on Pro
-  (kept exactly as specified), and C (not priced by the owner on Plus/Pro) costs what B costs. Change them in `plans.ts` and the tests together.
+* **Google Play Billing:** how paid plans map to a level on the device (`maxLevel(plan)`; the device counts no games per level) (`src/lib/offline/entitlement.ts` is the single place to change).
+* **Plan numbers.** Pinned as "exact product rules" in `tests/unit/plans.test.ts` (the owner's table): a separate quota per level and period —
+  Free: B 1, C 5 per calendar month, never A; Plus: A 3, B 5, C unlimited per billing period; Pro: A 5, B 10, C unlimited; Plus and Pro have
+  identical graphics. Change them in `plans.ts` and the tests together.
 * **Play Console owner tasks:** upload key and Play App Signing, public privacy-policy and account-deletion URLs with a support address, reviewer test account, content rating, Data safety form, closed-test requirement for new personal accounts
   (`docs/play-release.md` section 6). The package name `app.levelup.learn3d` can never change after the first upload.
 * **Supabase dashboard settings** that cannot be done from the repository: confirm-email, site URL, own SMTP before many sign-ups (`mobile/store/release-checklist.md`).

@@ -11,6 +11,8 @@ import type { DictKey } from "@/lib/i18n";
 interface JobView {
   id: string;
   mode: "FAST" | "FULL" | "EXTEND";
+  /** The game's level: the job used one game of this level's own quota. */
+  level: "A" | "B" | "C";
   status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED";
   stage: string;
   gameId: string | null;
@@ -18,7 +20,8 @@ interface JobView {
   source: "demo" | "ai" | "engine" | "catalog" | null;
   warnings: string[];
   error: { code: string | null; message: string | null } | null;
-  allowance?: { remaining: number; limit: number };
+  /** Games left per level once the job is done (`remaining` null = unlimited). */
+  allowance?: { levels: Record<"A" | "B" | "C", { remaining: number | null }> };
 }
 
 /** The visible pipeline per creation mode — the three modes really do run different stages. */
@@ -93,6 +96,9 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
   const idx = stepIndex(job);
   const stageKey = (s: string): DictKey => `gen.stage.${s}` as DictKey;
   const currentStage = job.stage.startsWith("repair") ? "repair" : job.stage;
+  // games left at the level this game used (every level is counted on its own)
+  const levelLeft = job.allowance?.levels[job.level];
+  const leftAfter: number | null = levelLeft ? levelLeft.remaining : 0;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6" data-testid="generation-progress" data-status={job.status}>
@@ -105,7 +111,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
         <Card className="space-y-4 border-lime/50 text-center" data-testid="gen-success" role="status">
           <PartyPopper aria-hidden className="mx-auto size-10 text-lime" />
           <h2 className="text-2xl font-bold">{t("gen.success.title")}</h2>
-          <p className="text-sm text-muted">{t("gen.success.text", { left: job.allowance?.remaining ?? 0 })}</p>
+          <p className="text-sm text-muted" data-testid="gen-left">{leftAfter === null ? t("gen.success.unlimited", { level: job.level }) : t("gen.success.text", { left: leftAfter, level: job.level })}</p>
           <div className="flex justify-center">{job.source && <Badge tone={job.source === "demo" ? "amber" : job.source === "engine" ? "lime" : job.source === "catalog" ? "neon" : "violet"} data-testid="gen-source">{t(`gen.source.${job.source}`)}</Badge>}</div>
           <div className="flex flex-wrap justify-center gap-3">
             {job.gameId && <Link href={`/play/${job.gameId}`} data-testid="gen-play" className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("gen.play")}</Link>}

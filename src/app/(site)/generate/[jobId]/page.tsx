@@ -20,6 +20,7 @@ export default async function GeneratePage({ params }: { params: Promise<{ jobId
       initial={{
         id: job.id,
         mode: job.mode,
+        level: job.featureTier,
         status: job.status,
         stage: job.stage,
         gameId: job.gameId,
@@ -27,7 +28,7 @@ export default async function GeneratePage({ params }: { params: Promise<{ jobId
         source: job.providerId === "topic-library" ? "catalog" : job.providerId === "study-engine" ? "engine" : job.providerId === "demo" ? "demo" : job.providerId ? "ai" : null,
         warnings: (job.warnings as string[] | null) ?? [],
         error: job.status === "FAILED" ? { code: job.errorCode, message: job.errorMessage } : null,
-        allowance: allowance ? { remaining: allowance.remaining, limit: allowance.limit } : undefined,
+        allowance: allowance ? { levels: allowance.levels } : undefined,
       }}
     />
   );

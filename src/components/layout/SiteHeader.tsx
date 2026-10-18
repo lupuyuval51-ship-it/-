@@ -5,6 +5,7 @@ import { isThemePref, THEME_COOKIE } from "@/lib/theme";
 import { ThemeSwitch } from "./ThemeSwitch";
 import { Badge } from "@/components/ui";
 import { getAllowanceSummary } from "@/server/allowance/summary";
+import { levelHasLeft, offeredLevels, shortLeftItems } from "@/components/allowance/quota";
 import { getCurrentUser } from "@/server/auth/current";
 import { getT } from "@/server/i18n";
 import { plansEnabled, plansShown } from "@/server/env";
@@ -21,6 +22,18 @@ export async function SiteHeader() {
   const allowance = user ? await getAllowanceSummary(user.id) : null;
   const plansOn = plansEnabled();
   const plansVisible = plansShown();
+  // every level has its own count: the pill lists what is left at each level the plan offers ("A: 3 · B: 5 · C: ∞")
+  const anyLeft = allowance ? offeredLevels(allowance.levels).some(levelHasLeft) : false;
+  const leftItems = allowance ? shortLeftItems(t, allowance.levels) : [];
+  // each "A: 3" item is its own left-to-right island, so a right-to-left page still reads them from the highest level on
+  const pillText = allowance ? (
+    <>
+      {plansOn && `${t(`plan.${allowance.plan}`)} · `}
+      <span className="sr-only">{t("nav.allowance.title")}: </span>
+      {anyLeft ? leftItems.map((item, i) => <span key={item}>{i > 0 && " · "}<span className="ltr-num">{item}</span></span>) : t("nav.allowance.none")}
+    </>
+  ) : null;
+  const pillTitle = allowance ? `${plansOn ? `${t(`plan.${allowance.plan}`)} · ` : ""}${t("nav.allowance.title")}` : undefined;
   const links = user
     ? [
         { href: "/dashboard", label: t("nav.dashboard") },
@@ -46,10 +59,8 @@ export async function SiteHeader() {
         </nav>
         <div className="ms-auto flex items-center gap-1.5 sm:gap-2">
           {allowance && (
-            <Link href={plansOn ? "/pricing" : "/dashboard"} data-testid="allowance-pill" title={plansOn ? t(`plan.${allowance.plan}`) : undefined} className="hidden sm:block">
-              <Badge tone={allowance.remaining > 0 ? "lime" : "amber"}>
-                {plansOn && `${t(`plan.${allowance.plan}`)} · `}{allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
-              </Badge>
+            <Link href={plansOn ? "/pricing" : "/dashboard"} data-testid="allowance-pill" title={pillTitle} className="hidden sm:block">
+              <Badge tone={anyLeft ? "lime" : "amber"}>{pillText}</Badge>
             </Link>
           )}
           <ThemeSwitch initial={theme} />
@@ -65,7 +76,7 @@ export async function SiteHeader() {
           <MobileMenu label={t("nav.menu")}>
             {allowance && (
               <Link href={plansOn ? "/pricing" : "/dashboard"} data-testid="allowance-pill-mobile" className="block rounded-lg px-3 py-2.5 text-sm text-lime hover:bg-text/10">
-                {plansOn && `${t(`plan.${allowance.plan}`)} · `}{allowance.remaining > 0 ? t("nav.allowance", { n: allowance.remaining }) : t("nav.allowance.none")}
+                {pillText}
               </Link>
             )}
             {links.map((l) => <NavLink key={l.href} href={l.href} className="block rounded-lg px-3 py-2.5 text-sm hover:bg-text/10" activeClassName="bg-text/10 font-semibold">{l.label}</NavLink>)}

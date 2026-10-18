@@ -28,9 +28,9 @@ export type AllowancePeriodRule = { kind: "calendar_month_utc" } | { kind: "bill
 /**
  * What a game can contain. Every game is built at one FEATURE TIER, also called its LEVEL (C, B or A): C exposes 40 %
  * of these features, B 70 %, A all of them (the shares are computed below, so the lists cannot drift from the promise).
- * The level of each game is decided by the server within what the plan offers (`levelsAllowed`) and costs points
- * (`costOf`). A feature that is not in the level is never generated, never kept when a model or an edit adds it, and a
- * request for it is refused with the level and the plan that unlock it.
+ * The level of each game is decided by the server within what the plan offers (`levelsAllowed`) and uses one game of
+ * that level's own quota (`quotaOf`). A feature that is not in the level is never generated, never kept when a model or
+ * an edit adds it, and a request for it is refused with the level and the plan that unlock it.
  */
 export const GAME_FEATURES = [
   // what kind of world (4)
@@ -98,17 +98,17 @@ export interface PlanFeatures {
   topicTiers: readonly TopicTier[];
 }
 
+/** A level's quota with no count (still rate-limited, one job at a time). */
+export const UNLIMITED = null;
+/** Games per period at one level: a whole number, or `UNLIMITED` (null). */
+export type LevelQuota = number | null;
+
 /**
- * A plan's game allowance, in POINTS. Every game (a "topic") is made at one level (feature tier C/B/A) and costs that
- * level's points; a level missing from `cost` can never be made on the plan. The keys are written in the order the
- * offer is described to people ("2 topics at level C or 1 at level B"), see `planOffer`.
+ * A plan's game allowance: every level has its OWN quota of games per period, and using one level never reduces
+ * another. Every game (a "topic") is made at one level (feature tier C/B/A) and uses one game of that level's quota.
+ * A level missing here can never be made on the plan. Unused games do not roll over.
  */
-export interface PlanAllowance {
-  /** Points per allowance period. Unused points do not roll over. */
-  budget: number;
-  /** Points one game costs at each level the plan offers. 0 = free and unlimited (still rate-limited, one job at a time). */
-  cost: Readonly<Partial<Record<FeatureTier, number>>>;
-}
+export type PlanAllowance = Readonly<Partial<Record<FeatureTier, LevelQuota>>>;
 
 export interface PlanDefinition {
   id: PlanId;
@@ -119,14 +119,14 @@ export interface PlanDefinition {
    * no price is ever derived from an exchange rate.
    */
   monthlyPrices: Readonly<Partial<Record<CurrencyCode, number>>>;
-  /** Points per period and the price of a game at each level (the player picks the level of each game). */
+  /** Games per period at each level the plan offers (the player picks the level of each game). */
   allowance: PlanAllowance;
   allowancePeriod: AllowancePeriodRule;
   graphics: { allowedTiers: readonly GraphicsTier[]; defaultTier: GraphicsTier };
   features: PlanFeatures;
 }
 
-/** Plus and Pro share this exact object: Pro's advantage is the number of points, not better graphics. */
+/** Plus and Pro share this exact object: Pro's advantage is the number of games per level, not better graphics. */
 const TIER_A_GRAPHICS = Object.freeze({
   allowedTiers: Object.freeze(["A", "B", "C"] as const),
   defaultTier: "A" as GraphicsTier,
@@ -142,9 +142,10 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     id: "FREE",
     rank: 0,
     monthlyPrices: { USD: 0, ILS: 0 },
-    // 2 topics at level C, or 1 topic at level B, per calendar month (UTC). Never level A.
-    allowance: { budget: 2, cost: { C: 1, B: 2 } },
-    // FREE ALLOWANCE PERIOD: the calendar month (UTC). Unused points do not roll over.
+    // 1 topic at level B and 5 topics at level C per calendar month (UTC), each level counted on its own. Never level A
+    // (it is for paying plans only).
+    allowance: { B: 1, C: 5 },
+    // FREE ALLOWANCE PERIOD: the calendar month (UTC). Unused games do not roll over.
     allowancePeriod: { kind: "calendar_month_utc" },
     graphics: FREE_GRAPHICS,
     features: { robot: "none", aiEditsPerPeriod: 0, versionHistory: false, versionsKept: 3, topicTiers: ["free"] },
@@ -154,8 +155,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 1,
     // $10/month internationally; exactly ₪10/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 1000, ILS: 1000 },
-    // 3 topics at level B, or 1 topic at level A, per billing period; level C is free and unlimited (cost 0).
-    allowance: { budget: 3, cost: { B: 1, A: 3, C: 0 } },
+    // 3 topics at level A, 5 at level B and unlimited level C per billing period, each level counted on its own.
+    allowance: { A: 3, B: 5, C: UNLIMITED },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20, topicTiers: ["free", "plus"] },
@@ -165,20 +166,19 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 2,
     // $40/month internationally; exactly ₪40/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 4000, ILS: 4000 },
-    // 5 topics at level A, or 10 topics at level B, per billing period; level C is free and unlimited (cost 0).
-    // NOTE (owner's numbers, kept as specified): one A game is worth 2 B games on Pro but 3 B games on Plus.
-    allowance: { budget: 10, cost: { A: 2, B: 1, C: 0 } },
+    // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own.
+    allowance: { A: 5, B: 10, C: UNLIMITED },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100, topicTiers: ["free", "plus", "pro"] },
   },
 });
 
-// ───────────────────────────── allowance points ─────────────────────────────
+// ───────────────────────────── allowance: a quota per level ─────────────────────────────
 
 /** The levels a plan can make, highest first. */
 export function levelsAllowed(plan: PlanId): FeatureTier[] {
-  return (["A", "B", "C"] as const).filter((l) => PLANS[plan].allowance.cost[l] !== undefined);
+  return (["A", "B", "C"] as const).filter((l) => PLANS[plan].allowance[l] !== undefined);
 }
 
 /** The highest level a plan can make (Free B, Plus A, Pro A). */
@@ -186,51 +186,46 @@ export function maxLevel(plan: PlanId): FeatureTier {
   return levelsAllowed(plan)[0] ?? "C";
 }
 
-/** Points one game at `level` costs on `plan` (0 = free, unlimited), or null when the plan cannot make that level. */
-export function costOf(plan: PlanId, level: FeatureTier): number | null {
-  return PLANS[plan].allowance.cost[level] ?? null;
+/** Games per period at `level` on `plan`: a whole number, `UNLIMITED` (null), or 0 when the plan does not offer the level. */
+export function quotaOf(plan: PlanId, level: FeatureTier): LevelQuota {
+  const quota = PLANS[plan].allowance[level];
+  return quota === undefined ? 0 : quota;
 }
 
-/**
- * How many games at `level` fit in `points` (default: the plan's whole budget). 0 when the level is not offered;
- * `Infinity` when the level is free (cost 0).
- */
-export function topicsAt(plan: PlanId, level: FeatureTier, points: number = PLANS[plan].allowance.budget): number {
-  const cost = costOf(plan, level);
-  if (cost === null) return 0;
-  if (cost === 0) return Infinity;
-  return Math.floor(Math.max(0, points) / cost);
+/** Games that can still be started at one level: limit − used − reserved, never negative; `UNLIMITED` stays unlimited. */
+export function quotaLeft(limit: LevelQuota, used: number, reserved: number): LevelQuota {
+  return limit === UNLIMITED ? UNLIMITED : Math.max(0, limit - used - reserved);
+}
+
+/** Is there at least one game left (an unlimited level always has one)? */
+export function hasLeft(left: LevelQuota): boolean {
+  return left === UNLIMITED || left > 0;
 }
 
 export interface OfferOption {
   level: FeatureTier;
-  topics: number;
+  /** Games per period at this level; `UNLIMITED` (null) when the level has no count. */
+  topics: LevelQuota;
 }
 
 /**
- * The plan's offer as alternatives ("2 topics at level C or 1 at level B"), derived from the budget and the costs.
- * Levels are listed in the order of the plan's `cost` keys. A level is left out when a higher level costs the same or
- * less (it says nothing new). With `points`, it describes what those points buy
- * (e.g. what is left this period); alternatives that no longer fit are dropped.
+ * The plan's offer, highest level first ("3 topics at level A, 5 at level B and unlimited at level C"), straight from the
+ * quotas. Every level is a separate count, so the options add up (they are not alternatives).
  */
-export function planOffer(plan: PlanId, points: number = PLANS[plan].allowance.budget): OfferOption[] {
-  const cost = PLANS[plan].allowance.cost;
-  const order = Object.keys(cost) as FeatureTier[];
-  const rank = (l: FeatureTier) => FEATURE_TIERS.indexOf(l);
-  return order
-    .filter((l) => !order.some((h) => rank(h) > rank(l) && cost[h]! <= cost[l]!))
-    .map((level) => ({ level, topics: topicsAt(plan, level, points) }))
-    .filter((o) => o.topics > 0);
+export function planOffer(plan: PlanId): OfferOption[] {
+  return levelsAllowed(plan).map((level) => ({ level, topics: quotaOf(plan, level) }));
 }
 
 /**
- * The level a new game gets when the player does not choose one: the highest level the plan offers that the
- * remaining points pay for and that `fits` the request (e.g. a Full Adventure needs at least B). When nothing is
- * affordable, the highest level that fits (the server then answers ALLOWANCE_EXHAUSTED), else the plan's highest.
+ * The level a new game gets when the player does not choose one: the highest level the plan offers that `fits` the
+ * request (e.g. a Full Adventure needs at least B) and still has a game left (`left`: games left per level, `UNLIMITED`
+ * for no count; a level that is not listed counts as its full quota). When none of those has a game left, the highest
+ * level that fits (the server then answers ALLOWANCE_EXHAUSTED), else the plan's highest.
  */
-export function defaultLevel(plan: PlanId, remaining: number, fits: (level: FeatureTier) => boolean = () => true): FeatureTier {
+export function defaultLevel(plan: PlanId, left: Partial<Record<FeatureTier, LevelQuota>> = {}, fits: (level: FeatureTier) => boolean = () => true): FeatureTier {
   const levels = levelsAllowed(plan);
-  return levels.find((l) => fits(l) && costOf(plan, l)! <= remaining) ?? levels.find(fits) ?? maxLevel(plan);
+  const leftAt = (l: FeatureTier): LevelQuota => (left[l] !== undefined ? left[l] : quotaOf(plan, l));
+  return levels.find((l) => fits(l) && hasLeft(leftAt(l))) ?? levels.find(fits) ?? maxLevel(plan);
 }
 
 /** Region whose users are shown localized prices where a localized price is explicitly configured. */

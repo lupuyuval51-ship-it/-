@@ -13,19 +13,20 @@ import { formatDate } from "@/lib/format";
 import { MaterialPreview } from "./MaterialPreview";
 import { TopicPicker } from "./TopicPicker";
 import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
+import { leftText } from "@/components/allowance/quota";
 
 export interface CreateFormProps {
   /** `templates`: without AI, whether a subject alone still makes a demo-template game (else material or a topic is needed). */
   backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string; templates?: boolean };
-  allowance: { remaining: number; limit: number; periodEnd: string; plan: string; activeJobId: string | null };
-  /** Saved games; `extendCost` is the points an extension costs at the game's own level (null: the plan cannot make that level). */
-  games: { id: string; title: string; subject: string; generatorKind: string; level: Level; extendCost: number | null }[];
+  allowance: { periodEnd: string; plan: string; activeJobId: string | null };
+  /** Saved games and their level (an extension keeps the level and uses one game of that level's quota). */
+  games: { id: string; title: string; subject: string; generatorKind: string; level: Level }[];
   /** Mechanics the user can ask an extension to add. */
   extensionMechanics: readonly Mechanic[];
-  /** The game levels, their point cost on the plan and what each can build (the server enforces it; this only explains and disables). */
+  /** The game levels, each one's own quota this period and what each can build (the server enforces it; this only explains and disables). */
   levels: {
     options: LevelOption[];
-    /** The level preselected for each mode (the best one the points pay for). */
+    /** The level preselected for each mode (the highest one that fits and still has a game left). */
     defaults: { FAST: Level; FULL: Level };
     /** Whether the plan's highest level has several areas (Full Adventure and Extend), and the plan that unlocks them. */
     fullAllowed: boolean;
@@ -39,10 +40,11 @@ type Level = "A" | "B" | "C";
 export interface LevelOption {
   level: Level;
   share: number;
-  /** Points one game at this level costs on the plan (null: not on the plan). */
-  cost: number | null;
+  /** Games per period at this level on the plan (null: unlimited; 0: not on the plan). */
+  limit: number | null;
+  /** Games of this level that can still be started this period (null: unlimited). */
+  remaining: number | null;
   allowed: boolean;
-  affordable: boolean;
   /** The cheapest plan that offers this level when the current one does not. */
   unlockPlan: string | null;
   fullAllowed: boolean;
@@ -103,23 +105,31 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   // no AI and the demo templates switched off: a game comes from the learner's material or from the topic library
   const noTemplates = backend.kind === "demo" && backend.templates === false;
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
-  // a free level (cost 0, Plus and Pro level C) can always be made, so the points never run out for it
-  const exhausted = allowance.remaining <= 0 && !levels.options.some((o) => o.allowed && o.cost === 0);
+  // every level has its own quota: a level is usable while it has a game left (an unlimited level always has one)
+  const hasLeft = (o: LevelOption) => o.allowed && (o.remaining === null || o.remaining > 0);
+  const exhausted = !levels.options.some(hasLeft);
+  const resetsOn = formatDate(allowance.periodEnd, locale);
   const catalogGame = extend && selected?.generatorKind === "catalog";
   const levelInfo = levels.options.find((o) => o.level === level) ?? levels.options[0]!;
-  const levelUsable = (o: LevelOption) => o.allowed && o.affordable && (mode !== "FULL" || o.fullAllowed);
+  const levelUsable = (o: LevelOption) => hasLeft(o) && (mode !== "FULL" || o.fullAllowed);
   // the game type shown is always one the chosen level can build (the select is controlled)
   const typeAllowed = (id: string) => levelInfo.gameTypes.find((g) => g.id === id)?.allowed ?? true;
   const effectiveType = typeAllowed(gameType) ? gameType : typeAllowed("adventure") ? "adventure" : (levelInfo.gameTypes.find((g) => g.allowed)?.id ?? "exploration");
   const selectedInfo = selected ? levels.options.find((o) => o.level === selected.level) : undefined;
   const extendProblem = !extend || !selected ? null
-    : selected.extendCost === null ? "locked" as const
-    : !selectedInfo?.fullAllowed ? "single" as const
-    : selected.extendCost > allowance.remaining ? "short" as const : null;
+    : !selectedInfo?.allowed ? "locked" as const
+    : !selectedInfo.fullAllowed ? "single" as const
+    : !hasLeft(selectedInfo) ? "short" as const : null;
   const short = extend ? extendProblem === "short" : !levelUsable(levelInfo);
   // the topic library never needs an AI provider
   const blocked = (backend.kind === "unavailable" && !library) || exhausted || short || Boolean(extendProblem) || Boolean(allowance.activeJobId) || mismatch || catalogGame;
-  const costText = (n: number) => (n === 0 ? t("create.level.cost.free") : n === 1 ? t("create.level.cost.one") : t("create.level.cost", { n }));
+  // the badge under the form speaks about the level this request would use (the game's own level when extending)
+  const badgeLevel = extend ? selectedInfo : levelInfo;
+  const badgeText = exhausted ? t("create.allowance.none", { date: resetsOn })
+    : !badgeLevel?.allowed ? null
+    : badgeLevel.remaining === null || badgeLevel.limit === null ? t("create.allowance.unlimited", { level: badgeLevel.level })
+    : badgeLevel.remaining > 0 ? t("create.allowance", { level: badgeLevel.level, n: badgeLevel.remaining, limit: badgeLevel.limit })
+    : t("create.allowance.levelNone", { level: badgeLevel.level, date: resetsOn });
 
   function chooseMode(m: GenerationModeId) {
     setMode(m);
@@ -328,17 +338,17 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
                     <input type="radio" name="level" value={o.level} checked={level === o.level} disabled={disabled} onChange={() => setLevel(o.level)} className="size-4 accent-[var(--color-neon)]" data-testid={`level-${o.level}`} />
                     <span className="font-semibold">{t("create.level.option", { tier: o.level, share: o.share })}</span>
                   </span>
-                  <span className="ms-6 text-xs text-muted" data-testid={`level-cost-${o.level}`}>
-                    {o.cost !== null ? costText(o.cost) : null}
+                  <span className="ms-6 text-xs text-muted" data-testid={`level-left-${o.level}`}>
+                    {o.allowed && hasLeft(o) && (o.remaining === null || o.limit === null ? t("create.level.unlimited") : t("quota.left", { n: o.remaining, limit: o.limit }))}
                     {!o.allowed && o.unlockPlan && <span className="text-amber" data-testid={`level-locked-${o.level}`}>{t("create.locked.suffix", { plan: t(`plan.${o.unlockPlan}` as DictKey) })}</span>}
-                    {o.allowed && !o.affordable && <span className="ms-1 text-amber" data-testid={`level-short-${o.level}`}>{t("create.level.short")}</span>}
-                    {o.allowed && o.affordable && mode === "FULL" && !o.fullAllowed && <span className="ms-1 text-amber">{t("create.locked.level", { level: levels.defaults.FULL })}</span>}
+                    {o.allowed && !hasLeft(o) && <span className="text-amber" data-testid={`level-short-${o.level}`}>{leftText(t, o, resetsOn)}</span>}
+                    {o.allowed && hasLeft(o) && mode === "FULL" && !o.fullAllowed && <span className="ms-1 text-amber">{t("create.locked.level", { level: levels.defaults.FULL })}</span>}
                   </span>
                 </label>
               );
             })}
           </div>
-          <p className="text-xs text-muted" data-testid="create-level-hint">{t("create.level.hint", { n: allowance.remaining })}</p>
+          <p className="text-xs text-muted" data-testid="create-level-hint">{t("create.level.hint")}</p>
         </fieldset>
       )}
       {!extend && <p className="text-sm text-muted" data-testid="create-tier-note">{t("create.tier.note", { tier: levelInfo.level, share: levelInfo.share })}</p>}
@@ -356,10 +366,11 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
               </Field>
               <p className="text-xs text-muted">{t("create.extend.keep")}</p>
               {selected && (
-                <p className={cx("text-sm", extendProblem && extendProblem !== "short" ? "text-amber" : "text-muted")} data-testid="extend-cost">
+                <p className={cx("text-sm", extendProblem ? "text-amber" : "text-muted")} data-testid="extend-cost">
                   {extendProblem === "locked" ? t("create.extend.locked", { tier: selected.level })
                     : extendProblem === "single" ? t("create.extend.single", { tier: selected.level })
-                    : t("create.extend.cost", { tier: selected.level, cost: costText(selected.extendCost!) })}
+                    : extendProblem === "short" ? t("create.extend.short", { tier: selected.level, date: resetsOn })
+                    : t("create.extend.cost", { tier: selected.level, left: selectedInfo ? leftText(t, selectedInfo, resetsOn) : "" })}
                 </p>
               )}
               {mismatch && !catalogGame && <Alert tone="error">{t("create.error.mismatch")}</Alert>}
@@ -465,7 +476,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-sm" data-testid="create-allowance">
-          <Badge tone={exhausted || short ? "amber" : "lime"}>{exhausted ? t("create.allowance.none", { date: formatDate(allowance.periodEnd, locale) }) : t("create.allowance", { n: allowance.remaining, limit: allowance.limit })}</Badge>
+          {badgeText && <Badge tone={exhausted || short ? "amber" : "lime"}>{badgeText}</Badge>}
           {(exhausted || short) && allowance.plan !== "PRO" && <Link href="/pricing" className="font-semibold text-neon hover:underline">{t("create.allowance.upgrade")} <Arrow /></Link>}
         </div>
         <p className="text-xs text-muted">{t("create.policy")}</p>

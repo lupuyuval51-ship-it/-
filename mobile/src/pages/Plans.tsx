@@ -7,7 +7,7 @@ import { useSettings } from "../app-state";
 /**
  * The plans and their prices, as information only: the app sells nothing (no buy button, no link to a payment page;
  * paid features in an app from Google Play may only use Google Play Billing). Prices come from src/config/plans.ts in the
- * currency of the country picked at first launch; the offer text ("2 topics at level C or 1 at level B") from `planOffer`.
+ * currency of the country picked at first launch; the offer text ("1 topic at level B and 5 at level C") from `planOffer`.
  */
 export function PlansPage() {
   const t = useT();

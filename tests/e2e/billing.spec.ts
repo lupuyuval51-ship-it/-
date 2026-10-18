@@ -11,12 +11,12 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("price-FREE")).toContainText("Free");
     await expect(page.getByTestId("price-PLUS")).toContainText("$10");
     await expect(page.getByTestId("price-PRO")).toContainText("$40");
-    // the offer is generated from the points budget and the level costs (src/config/plans.ts)
-    await expect(page.getByTestId("offer-FREE")).toContainText("2 topics at level C or 1 at level B per calendar month");
-    await expect(page.getByTestId("offer-PLUS")).toContainText("3 topics at level B or 1 at level A, plus unlimited topics at level C per monthly billing period");
-    await expect(page.getByTestId("offer-PRO")).toContainText("5 topics at level A or 10 at level B, plus unlimited topics at level C per monthly billing period");
-    await expect(page.getByTestId("points-PLUS")).toContainText("3 points: level C free · level B = 1 · level A = 3");
-    await expect(page.getByTestId("points-FREE")).not.toContainText("level A");
+    // the offer is generated from each level's own quota (src/config/plans.ts)
+    await expect(page.getByTestId("offer-FREE")).toContainText("1 topic at level B and 5 at level C per calendar month");
+    await expect(page.getByTestId("offer-PLUS")).toContainText("3 topics at level A, 5 at level B and unlimited at level C per monthly billing period");
+    await expect(page.getByTestId("offer-PRO")).toContainText("5 topics at level A, 10 at level B and unlimited at level C per monthly billing period");
+    await expect(page.getByTestId("offer-PLUS")).toContainText("Every level has its own count");
+    await expect(page.getByTestId("offer-FREE")).not.toContainText("level A");
     await expect(page.getByTestId("plan-FREE")).toContainText("Tier B / C");
     await expect(page.getByTestId("plan-PLUS")).toContainText("Tier A");
     await expect(page.getByTestId("plan-PRO")).toContainText("same Tier A graphics as Plus");
@@ -99,7 +99,7 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("account-plan")).toHaveText("Plus");
   });
 
-  test("Pro: $40, 10 points per period (5 topics at level A), and the allowance is enforced after each delivery", async ({ page }) => {
+  test("Pro: $40, 5 topics at level A and 10 at level B per period, each level counted on its own and enforced after each delivery", async ({ page }) => {
     test.setTimeout(180_000);
     await setLocaleCookie(page, "en");
     await registerViaUi(page, { name: "Pro Player", region: "US" });
@@ -112,29 +112,42 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("checkout-status")).toHaveAttribute("data-active", "true", { timeout: 20_000 });
 
     await page.goto("/dashboard");
-    await expect(page.getByTestId("dash-allowance")).toContainText("10 of 10");
-    await expect(page.getByTestId("dash-offer")).toContainText("5 topics at level A or 10 at level B");
+    await expect(page.getByTestId("dash-remaining-A")).toHaveText("5");
+    await expect(page.getByTestId("dash-remaining-B")).toHaveText("10");
+    await expect(page.getByTestId("dash-remaining-C")).toHaveText("Unlimited");
+    await expect(page.getByTestId("dash-offer")).toContainText("5 topics at level A, 10 at level B and unlimited at level C");
     for (let i = 1; i <= 5; i++) {
       const res = await apiPost<{ jobId: string }>(page, "/api/generations", { idempotencyKey: `pro-${i}-0123456789abcdef`, request: { mode: "FAST", subject: `Topic ${i}`, learningGoal: `Goal ${i}`, difficulty: "beginner", gameType: "adventure", contentLanguage: "en" } });
       expect(res.status, `generation ${i}`).toBe(202);
       await expect.poll(async () => (await (await page.request.get(`/api/generations/${res.body.jobId}`)).json()).status, { timeout: 30_000 }).toBe("SUCCEEDED");
       if (i === 1) {
-        // without a level wish, Pro gets level A (2 points)
+        // without a level wish, Pro gets level A: one of its 5, and level B keeps all 10
         await page.goto("/dashboard");
-        await expect(page.getByTestId("dash-remaining")).toHaveText("8");
-        await expect(page.getByTestId("dash-buys")).toContainText("4 topics at level A or 8 at level B");
+        await expect(page.getByTestId("dash-remaining-A")).toHaveText("4");
+        await expect(page.getByTestId("dash-remaining-B")).toHaveText("10");
+        await expect(page.getByTestId("allowance-pill")).toContainText("A: 4");
       }
     }
-    const sixth = await apiPost<{ error: { code: string } }>(page, "/api/generations", { idempotencyKey: "pro-6-0123456789abcdef", request: { mode: "FAST", subject: "Six", learningGoal: "Six", difficulty: "beginner", gameType: "adventure", contentLanguage: "en" } });
-    expect(sixth).toMatchObject({ status: 402, body: { error: { code: "ALLOWANCE_EXHAUSTED" } } });
-    // with no points left, level C is still free and unlimited on Pro: the form offers it and does not block
+    // the sixth level-A game is refused with the level's details (the sixth request is also the last the generate rate limit allows)
+    const sixth = { mode: "FAST", subject: "Six", learningGoal: "Six", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", level: "A" };
+    const refused = await apiPost<{ error: { code: string; details: { level: string; remaining: number } } }>(page, "/api/generations", { idempotencyKey: "pro-6-0123456789abcdef", request: sixth });
+    expect(refused).toMatchObject({ status: 402, body: { error: { code: "ALLOWANCE_EXHAUSTED", details: { level: "A", remaining: 0 } } } });
+    await page.goto("/dashboard");
+    await expect(page.getByTestId("dash-remaining-A")).toHaveText("0");
+    await expect(page.getByTestId("dash-remaining-B")).toHaveText("10");
+    // the form shows level A used up and moves to level B, which is its own count and still has all 10; level C is unlimited
     await page.goto("/create");
-    await expect(page.getByTestId("level-cost-C")).toContainText("Free, unlimited");
-    await expect(page.getByTestId("level-C")).toBeEnabled();
-    await expect(page.getByTestId("level-B")).toBeDisabled();
     await expect(page.getByTestId("level-A")).toBeDisabled();
+    await expect(page.getByTestId("level-short-A")).toContainText("none left until");
+    await expect(page.getByTestId("level-B")).toBeEnabled();
+    await expect(page.getByTestId("level-B")).toBeChecked();
+    await expect(page.getByTestId("level-left-B")).toContainText("10 of 10 left");
+    await expect(page.getByTestId("create-allowance")).toContainText("Level B: 10 of 10 games left");
+    await expect(page.getByTestId("create-submit")).toBeEnabled();
+    await expect(page.getByTestId("level-C")).toBeEnabled();
+    await expect(page.getByTestId("level-left-C")).toContainText("Unlimited");
     // Pro cannot buy more through the UI either
-    await expect(page.getByText("Upgrade for more points")).toHaveCount(0);
+    await expect(page.getByText("Upgrade for more games")).toHaveCount(0);
   });
 
   test("nothing a browser sends can grant a plan: success page, forged checkouts and other users' checkouts", async ({ page, browser }) => {

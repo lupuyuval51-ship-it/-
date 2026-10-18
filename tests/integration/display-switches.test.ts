@@ -42,7 +42,7 @@ describe("display switches off (the defaults)", () => {
     setBackendForTests(DEMO);
     await expect(createGeneration(u.id, { idempotencyKey: `k-${randomUUID()}`, request: req() }, { schedule: false })).rejects.toMatchObject({ status: 422, code: "MATERIAL_REQUIRED" });
     expect(await db.generationJob.count({ where: { userId: u.id } })).toBe(0);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0 });
+    expect((await getAllowanceSummary(u.id)).levels.A).toMatchObject({ used: 0, reserved: 0 });
 
     const fromNotes = await createGeneration(u.id, { idempotencyKey: `k-${randomUUID()}`, request: req({ material: NOTES }) }, { schedule: false });
     await runGenerationJob(fromNotes.jobId, { backend: DEMO });

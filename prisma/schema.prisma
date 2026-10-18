@@ -124,12 +124,12 @@ model UserProfile {
 }
 
 model Session {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  tokenHash  String   @unique // SHA-256 of the cookie token; the raw token is never stored
-  createdAt  DateTime @default(now())
+  tokenHash  String    @unique // SHA-256 of the cookie token; the raw token is never stored
+  createdAt  DateTime  @default(now())
   expiresAt  DateTime
-  lastUsedAt DateTime @default(now())
+  lastUsedAt DateTime  @default(now())
   userAgent  String?
   reauthAt   DateTime? // set when this session re-authenticated through the provider (confirms account deletion for password-less accounts)
 
@@ -201,19 +201,31 @@ model AllowancePeriod {
   plan           PlanId
   periodStart    DateTime
   periodEnd      DateTime
-  limit          Int // the plan's points budget for the period
-  used           Int             @default(0) // committed POINTS: validated games were delivered
-  reserved       Int             @default(0) // POINTS held by generation jobs that are still in flight
   subscriptionId String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
-  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  usage UsageRecord[]
-  jobs  GenerationJob[]
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quotas AllowanceQuota[]
+  usage  UsageRecord[]
+  jobs   GenerationJob[]
 
   @@unique([userId, source, periodStart])
   @@index([userId, periodEnd])
+}
+
+// One level's own quota inside an allowance period (every level is counted separately: using one never reduces another).
+model AllowanceQuota {
+  allowancePeriodId String
+  level             GraphicsTier // the game level (feature tier) this count is for (same letters as the graphics tiers, a separate setting)
+  limit             Int? // games per period at this level, refreshed from the plan config; NULL = unlimited, 0 = not on the plan
+  used              Int          @default(0) // committed games: validated games of this level were delivered
+  reserved          Int          @default(0) // games of this level held by generation jobs that are still in flight
+  updatedAt         DateTime     @updatedAt
+
+  allowancePeriod AllowancePeriod @relation(fields: [allowancePeriodId], references: [id], onDelete: Cascade)
+
+  @@id([allowancePeriodId, level])
 }
 
 // Append-only ledger of allowance movements (audit trail; also enforces settle-once per job).
@@ -271,8 +283,7 @@ model GenerationJob {
   stage             String         @default("queued")
   idempotencyKey    String
   request           Json // validated creation request (subject, goal, difficulty, mode, ...)
-  featureTier       GraphicsTier   @default(A) // the game's level (feature tier), decided by the server within the plan when the job starts (same letters as the graphics tiers, a separate setting)
-  cost              Int            @default(1) // allowance POINTS held by this job (the price of its level on the plan when it started); reserve, commit and release all move exactly this amount
+  featureTier       GraphicsTier   @default(A) // the game's level (feature tier), decided by the server within the plan when the job starts; the job holds one game of THIS level's quota, and commit and release move exactly that one
   allowancePeriodId String?
   targetGameId      String? // EXTEND: the game being extended
   gameId            String? // set when a validated game was delivered (EXTEND jobs point at the game they extended)

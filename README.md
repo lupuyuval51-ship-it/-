@@ -95,7 +95,7 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_REFUSAL_FALLBACK` | – / `claude-opus-5-5` / `true` | Anthropic Messages API. |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | – / OpenAI / `gpt-4.1` | Any OpenAI-compatible chat-completions endpoint. |
 | `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
-| `PLANS_ENABLED` | `false` | `true` shows Free/Plus/Pro, the pricing page and checkout. `false` (the launch setting): no plan is shown, checkout and `/pricing` are gone, everybody gets the full product with the Pro monthly points budget as fair use. The plan code stays in place. |
+| `PLANS_ENABLED` | `false` | `true` shows Free/Plus/Pro, the pricing page and checkout. `false` (the launch setting): no plan is shown, checkout and `/pricing` are gone, everybody gets the full product with Pro's quotas per level and calendar month as fair use. The plan code stays in place. |
 | `PLANS_SHOWN` | `true` | With `PLANS_ENABLED=false`: show the plans and prices (pricing page, landing teaser, nav link) as information only, with no checkout button and no payment banner. `false` hides them completely. |
 | `GAME_EDITING` | `false` | Display switch: `true` shows the editing tools on the game page (rename, time of day, mechanics, the AI edit robot, version history). Off by default because they do not help a learner learn; the API and the plan quotas stay in place. |
 | `DEMO_TEMPLATES` | `false` | Display switch: `true` lets a subject alone (no material, no topic) make a labelled demo-template game when no AI provider is configured. Off: such a request is refused with `422 MATERIAL_REQUIRED` before anything is reserved, and the create form asks for material or a library topic. |
@@ -119,29 +119,34 @@ The variables are read once per process: change them and restart.
 Single source of truth: [`src/config/plans.ts`](src/config/plans.ts). Every price, limit and tier permission is read
 from there — the UI never hard-codes them and nothing is gated by price in the UI.
 
-| Plan | Price | Points / period | Cost per game (C · B · A) | What that buys | Period | Graphics |
+| Plan | Price | Level A / period | Level B / period | Level C / period | Period | Graphics |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Free** | $0 | **2** | 1 · 2 · not available | 2 topics at level C, or 1 at level B | each UTC calendar month | Tier B / C |
-| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **3** | free · 1 · 3 | 3 topics at level B, or 1 at level A, plus unlimited at level C | the subscription's billing period | Tier A (also B / C) |
-| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **10** | free · 1 · 2 | 5 topics at level A, or 10 at level B, plus unlimited at level C | the subscription's billing period | Tier A — **identical** to Plus |
+| **Free** | $0 | not available | **1** | **5** | each UTC calendar month | Tier B / C |
+| **Plus** | **$10 / month**, or exactly **₪10 / month** for accounts whose region is Israel | **3** | **5** | unlimited | the subscription's billing period | Tier A (also B / C) |
+| **Pro** | **$40 / month**, or exactly **₪40 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A — **identical** to Plus |
 
-The allowance is a **points budget** per period (`PLANS[plan].allowance = { budget, cost }`); each game ("topic") costs the points
-of its **level** (the feature tier below). A level missing from `cost` cannot be made on that plan (Free can never make A). The
-pricing, dashboard, header and sign-up copy is generated from these numbers by `planOffer(plan)` — never typed into the UI.
-Note: Plus prices one A game at 3 B games, Pro at 2 B games (the owner's numbers, kept as specified).
+The allowance is a **separate quota of games per level** per period (`PLANS[plan].allowance = { A?, B?, C? }`, `UNLIMITED` for no
+count): each game ("topic") uses one game of its own **level** (the feature tier below), and using one level never reduces
+another. A level missing from the allowance cannot be made on that plan (Free can never make A; A is for paying plans). It is read
+only through the helpers (`levelsAllowed`, `quotaOf`, `planOffer`, `defaultLevel`); the pricing, dashboard, header and sign-up copy
+("1 topic at level B and 5 at level C") is generated from these numbers by `planOffer(plan)` — never typed into the UI. With plans
+switched off everybody gets Pro's quotas per calendar month.
 
 Allowance rules, all enforced in the database rather than in UI code:
 
 * The request carries an optional `level` wish (C/B/A). The server checks it against the plan (`levelsAllowed`, else
-  `403 FEATURE_TIER_LOCKED`) and, without a wish, picks the best level the remaining points pay for (`defaultLevel`). Extending a
-  game keeps the game's own level and costs that level's points on the current plan.
-* The job's points (`GenerationJob.cost`) are **reserved** when it starts and **committed** only when a validated game is saved. Failure,
-  timeout or a crashed worker **releases** them — a failed generation never costs the user anything.
-* `UPDATE … WHERE used + reserved + cost <= limit` makes over-allocation impossible even with parallel requests (`402 ALLOWANCE_EXHAUSTED`
-  otherwise); a partial unique index allows one in-flight generation per user; `(userId, idempotencyKey)` is unique, so retries and double
-  clicks reuse the same job.
-* Jobs carry a deadline and are reaped (on read and via the optional cron endpoint) so a hung worker cannot hold points forever.
-* Upgrading keeps points already used in the period; unused points do not roll over.
+  `403 FEATURE_TIER_LOCKED` naming the cheapest plan that offers it) and against that level's games left (`402 ALLOWANCE_EXHAUSTED`
+  with the level, what is left at it and `resetsAt`); without a wish it picks the highest level that fits the request (mode, game type)
+  and still has a game left (`defaultLevel`). Extending a game keeps the game's own level and uses one game of that level on the current plan.
+* One game of the job's level (`GenerationJob.featureTier`) is **reserved** in that level's counter (`AllowanceQuota`) when the job starts and
+  **committed** only when a validated game is saved. Failure, timeout or a crashed worker **releases** it — a failed generation never costs
+  the user anything. The job settles exactly the level it reserved, even if the plan changed meanwhile.
+* `UPDATE … WHERE used + reserved + 1 <= limit` for that level makes over-allocation impossible even with parallel requests; an unlimited
+  level (`limit` NULL) is never refused by the count (its use is counted all the same). A partial unique index allows one in-flight
+  generation per user; `(userId, idempotencyKey)` is unique, so retries and double clicks reuse the same job; a job settles once.
+* Jobs carry a deadline and are reaped (on read and via the optional cron endpoint) so a hung worker cannot hold a game forever.
+* An upgrade or downgrade inside a period refreshes every level's limit from the config and keeps what was already used at each level;
+  unused games do not roll over.
 * Entitlement exists only while a subscription is `ACTIVE`/`TRIALING` (48 h grace after the period end for webhook delay).
   A failed payment, cancellation (at period end), unpaid state, or a **fully refunded invoice** (for that period only) falls back to Free.
 
@@ -186,7 +191,7 @@ texture size, accent lights, scenery density, particles, glow, tone mapping and 
 Provider-neutral and server-side only; the browser never sees a key or a prompt.
 
 ```
-POST /api/generations  →  reserve points  →  background job  →  provider (stages)  →  validate  →  save game + commit points
+POST /api/generations  →  reserve one game of its level  →  background job  →  provider (stages)  →  validate  →  save game + commit it
                                                    │
                                   Fast Game:   1 call   (compact spec)
                                   Full:        2 calls  (blueprint → challenges)
@@ -239,13 +244,13 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
   per-option feedback quote the learner's own sentences, and the concept tag shown in the challenge panel never names the answer.
 * **Adaptive:** multiple-choice questions get an easier two-option version that the server serves after two misses in a row (`adaptive_difficulty`).
 * **Live preview and files:** under the material box the create form runs the same parser and builder in the browser and says what it found
-  ("Terms: 5 · Questions: 3 · …") and whether it is enough for a game, before any points are spent; a `.txt`/`.md` file can be loaded into the box.
+  ("Terms: 5 · Questions: 3 · …") and whether it is enough for a game, before any game of the allowance is used; a `.txt`/`.md` file can be loaded into the box.
 * **A full game, not a quiz:** the world, guide character, stations, lore note, collectibles, missions and portal(s) are composed for the chosen game type
   and mode (Fast = one area, Full = two areas when there is enough material); the environment follows the subject (ocean, space, Egypt, castle, lab, forest…).
   The same text always gives the same game. Extending such a game with *more material* adds a new area, keeps every old id and reuses the
   game's learning objectives; when the game is already at its size limit the extension is refused with a clear message (no charge).
 * **Honest by construction:** the game is stored as `generatorKind: "engine"` and shown everywhere as “From your material (study engine, not AI)”. If the
-  material is too short or has too little to ask about, the job fails with a precise message in Hebrew or English and the points are released.
+  material is too short or has too little to ask about, the job fails with a precise message in Hebrew or English and the held game is released.
 * **Same safety path as everything else:** the output goes through the normal spec validation (references, solvability, limits, sanitising), control and
   bidi characters are stripped from the material, and nothing in a spec is executable.
 * **Limits (by design):** it can only ask about what the learner wrote — it cannot teach a subject from a bare topic name. For that, configure an AI provider.
@@ -551,7 +556,7 @@ Firefox/WebKit; a Docker image build; a load test. The study engine's question q
   with PgBouncer in transaction mode keep the pool small, and note advisory locks are transaction-scoped so they are compatible).
 * **Background work:** generation runs after the HTTP response using Next.js `after()`. Run the app on a **long-lived Node server** (or a platform whose
   functions may live ≥ `AI_JOB_DEADLINE_MS`; `/api/generations` sets `maxDuration = 800`). If a function is killed early the job passes its deadline,
-  is marked `TIMEOUT` and the points are released. Optionally call `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes.
+  is marked `TIMEOUT` and its held game is released. Optionally call `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes.
 * **Reverse proxy / HTTPS:** terminate TLS in front, set `APP_URL=https://…`, `APP_ENV=production`, and `TRUST_PROXY=true` (and `TRUSTED_PROXY_HOPS` if more than one proxy is in front).
 * **Stripe:** point the webhook at `https://<domain>/api/webhooks/stripe` (see [Payments](#payments)). Keep `PAYMENTS_MODE=stripe`; never `dev` in production.
 * **Secrets:** inject through your platform's secret store. Nothing in this repo contains a real credential; `.env` is ignored by git.

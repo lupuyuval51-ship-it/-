@@ -1,7 +1,8 @@
 import "server-only";
-import { PLANS, calendarMonthUtc, type PlanId } from "@/config/plans";
+import { calendarMonthUtc, type FeatureTier, type LevelQuota, type PlanId } from "@/config/plans";
 import { db, type Tx } from "../db";
 import { plansEnabled } from "../env";
+import { levelQuotas } from "../games/feature-tier";
 
 /**
  * Paid access stays valid for this long after `currentPeriodEnd` while the subscription is still ACTIVE, which
@@ -16,8 +17,11 @@ export interface Entitlement {
   source: EntitlementSource;
   periodStart: Date;
   periodEnd: Date;
-  /** The plan's allowance budget in POINTS (each game costs points by level: PLANS[plan].allowance). */
-  limit: number;
+  /**
+   * Games per period at each level, each its own count (PLANS[plan].allowance): a whole number, null = unlimited,
+   * 0 = the plan does not offer the level.
+   */
+  quotas: Readonly<Record<FeatureTier, LevelQuota>>;
   subscriptionId: string | null;
 }
 
@@ -43,9 +47,9 @@ export function subscriptionGrantsAccess(sub: SubscriptionFacts | null, now: Dat
 
 export function computeEntitlement(sub: SubscriptionFacts | null, now: Date): Entitlement {
   if (!plansEnabled()) {
-    // Plans are switched off: everybody has the full product (a fair-use monthly allowance, no subscription, no plan shown).
+    // Plans are switched off: everybody has the full product (Pro's quotas per calendar month as fair use, no subscription, no plan shown).
     const { start, end } = calendarMonthUtc(now);
-    return { plan: "PRO", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.PRO.allowance.budget, subscriptionId: null };
+    return { plan: "PRO", source: "FREE", periodStart: start, periodEnd: end, quotas: levelQuotas("PRO"), subscriptionId: null };
   }
   if (sub && subscriptionGrantsAccess(sub, now)) {
     return {
@@ -53,12 +57,12 @@ export function computeEntitlement(sub: SubscriptionFacts | null, now: Date): En
       source: "SUBSCRIPTION",
       periodStart: sub.currentPeriodStart,
       periodEnd: sub.currentPeriodEnd,
-      limit: PLANS[sub.plan].allowance.budget,
+      quotas: levelQuotas(sub.plan),
       subscriptionId: sub.id,
     };
   }
   const { start, end } = calendarMonthUtc(now);
-  return { plan: "FREE", source: "FREE", periodStart: start, periodEnd: end, limit: PLANS.FREE.allowance.budget, subscriptionId: null };
+  return { plan: "FREE", source: "FREE", periodStart: start, periodEnd: end, quotas: levelQuotas("FREE"), subscriptionId: null };
 }
 
 /** The user's current entitlement, derived from persisted subscription state only (never from the client). */

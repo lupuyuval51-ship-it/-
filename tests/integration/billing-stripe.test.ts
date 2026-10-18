@@ -1,4 +1,5 @@
 import { PLANS, type PlanId } from "@/config/plans";
+import { levelQuotas } from "@/server/games/feature-tier";
 import { randomUUID } from "node:crypto";
 import Stripe from "stripe";
 import { NextRequest } from "next/server";
@@ -112,15 +113,15 @@ describe("subscription events → entitlements", () => {
     expect(res).toMatchObject({ status: 200, json: { received: true, status: "processed" } });
     expect(await row(w.userId)).toMatchObject({ provider: "STRIPE", plan: "PLUS", status: "ACTIVE", currency: "ils", unitAmount: 1000 });
     const ent = await resolveEntitlement(w.userId);
-    expect(ent).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", limit: PLANS.PLUS.allowance.budget });
+    expect(ent).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", quotas: levelQuotas("PLUS") });
     expect(ent.periodStart).toEqual(w.sim.periodStart);
     expect(ent.periodEnd).toEqual(w.sim.periodEnd);
   });
 
-  it("Pro grants 10 points per billing period", async () => {
+  it("Pro grants its quotas per billing period", async () => {
     const w = await world({ plan: "PRO", country: "IL" });
     await deliver(subEvent(w.sim, "customer.subscription.created"));
-    expect(await resolveEntitlement(w.userId)).toMatchObject({ plan: "PRO", limit: PLANS.PRO.allowance.budget });
+    expect(await resolveEntitlement(w.userId)).toMatchObject({ plan: "PRO", quotas: levelQuotas("PRO") });
   });
 
   it("a redelivered event is a no-op (idempotent), even when delivered concurrently", async () => {
@@ -265,6 +266,6 @@ describe("renewal, failure, cancellation and refunds", () => {
     const replaced = await deliver(subEvent(second, "customer.subscription.created", at(-50_000)));
     expect(replaced.json.status).toBe("processed");
     expect(await row(w.userId)).toMatchObject({ plan: "PRO", status: "ACTIVE", providerSubscriptionId: second.subscriptionId, lastPaidInvoiceId: null, revokedPeriodStart: null });
-    expect(await resolveEntitlement(w.userId)).toMatchObject({ plan: "PRO", limit: PLANS.PRO.allowance.budget });
+    expect(await resolveEntitlement(w.userId)).toMatchObject({ plan: "PRO", quotas: levelQuotas("PRO") });
   });
 });

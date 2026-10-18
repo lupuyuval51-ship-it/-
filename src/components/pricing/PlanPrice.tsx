@@ -1,4 +1,4 @@
-import { PLANS, costOf, formatMoney, levelsAllowed, monthlyPrice, planOffer, type PlanId } from "@/config/plans";
+import { PLANS, formatMoney, monthlyPrice, planOffer, type PlanId } from "@/config/plans";
 import type { TFn } from "@/lib/i18n";
 import { TOPICS } from "@/lib/game/topics/catalog";
 import { topicOpenFor } from "@/lib/game/topics/premium";
@@ -12,24 +12,20 @@ export function planPriceText(plan: PlanId, region: string | null): { text: stri
 export const planHasTierA = (plan: PlanId): boolean => PLANS[plan].graphics.allowedTiers.includes("A");
 
 /**
- * "2 topics at level C or 1 at level B": the plan's offer in words, generated from its points budget and level costs
- * (`planOffer`), never hard-coded. With `points`, what those points buy (e.g. what is left this period).
+ * "3 topics at level A, 5 at level B and unlimited at level C": the plan's offer in words, generated from its quota per
+ * level (`planOffer`), never hard-coded. Every level is its own count, so the parts add up (they are not alternatives).
  */
-export function offerText(t: TFn, plan: PlanId, points?: number): string {
-  const offer = planOffer(plan, points);
-  const counted = offer.filter((o) => Number.isFinite(o.topics));
-  // a free level (cost 0) is unlimited: it is added after the counted alternatives ("…, plus unlimited topics at level C")
-  const free = offer.filter((o) => !Number.isFinite(o.topics)).map((o) => t("offer.unlimited", { level: o.level }));
-  const text = counted
-    .map((o, i) => (i > 0 ? t("offer.more", { n: o.topics, level: o.level }) : o.topics === 1 ? t("offer.first.one", { level: o.level }) : t("offer.first", { n: o.topics, level: o.level })))
-    .join(t("offer.or"));
-  return [text, ...free].filter(Boolean).join(t("offer.and"));
-}
-
-/** "10 points: level A = 2 · level B = 1 · level C = 1", lowest level first. */
-export function pointsText(t: TFn, plan: PlanId): string {
-  const costs = [...levelsAllowed(plan)].reverse().map((level) => (costOf(plan, level) === 0 ? t("pricing.cost.free", { level }) : t("pricing.cost", { level, n: costOf(plan, level)! }))).join(" · ");
-  return t("pricing.points", { n: PLANS[plan].allowance.budget, costs });
+export function offerText(t: TFn, plan: PlanId): string {
+  const offer = planOffer(plan);
+  return offer.reduce((text, o, i) => {
+    const part = o.topics === null
+      ? t(i === 0 ? "offer.first.unlimited" : "offer.unlimited", { level: o.level })
+      : i > 0 ? t("offer.more", { n: o.topics, level: o.level }) : o.topics === 1 ? t("offer.first.one", { level: o.level }) : t("offer.first", { n: o.topics, level: o.level });
+    if (i === 0) return part;
+    // the last part is joined with "and" (some languages write it differently before "unlimited"), the others with a comma
+    const join = i < offer.length - 1 ? t("offer.sep") : o.topics === null ? t("offer.and.unlimited") : t("offer.and");
+    return text + join + part;
+  }, "");
 }
 
 /** "All 201 library topics" / "137 of the 201 library topics": how much of the topic library the plan opens. */

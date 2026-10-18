@@ -3,7 +3,6 @@ import { randomUUID } from "node:crypto";
 import { db, disconnectDb } from "@/server/db";
 import { setBackendForTests } from "@/server/ai/registry";
 import type { GenerationBackend } from "@/server/ai/types";
-import { getAllowanceSummary } from "@/server/allowance/summary";
 import { runGenerationJob } from "@/server/generation/runner";
 import { createGeneration } from "@/server/generation/service";
 import type { GameSpec } from "@/lib/game/spec/schema";
@@ -11,10 +10,9 @@ import { validateGameSpec } from "@/lib/game/spec/validate";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { TOPICS } from "@/lib/game/topics/catalog";
 import { ApiError } from "@/server/http/errors";
-import { PLANS } from "@/config/plans";
-import { createTestUser, grantSubscription } from "./helpers";
+import { createTestUser, grantSubscription, levelAllowance } from "./helpers";
 import { mockLlm } from "./helpers-ai";
-import { setFeatureTierForTests } from "@/server/games/feature-tier";
+import { levelQuota, setFeatureTierForTests } from "@/server/games/feature-tier";
 import { PREMIUM_TOPIC_IDS, PRO_ONLY_TOPIC_IDS } from "@/lib/game/topics/premium";
 
 /** The topic library on the website: the server pipeline builds the game from curated content, never with a model. */
@@ -49,7 +47,7 @@ describe("topic library — curated topics become games without any model", () =
     expect(spec.meta.generator).toMatchObject({ kind: "catalog", provider: "topic-library", templateId: topic.id });
     // the subject is the topic's own title, not whatever the client typed
     expect(spec.meta.subject).toBe(topic.he[0]);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: PLANS.FREE.allowance.budget - 1 });
+    expect(await levelAllowance(u.id)).toMatchObject({ used: 1, reserved: 0, remaining: levelQuota("FREE", "A")! - 1 });
   });
 
   it("a real AI provider is configured: the model is never called, and the game is still not labelled as AI", async () => {
@@ -84,7 +82,7 @@ describe("topic library — curated topics become games without any model", () =
     const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ mode: "FULL", level: "C" }) }, { schedule: false }).catch((e) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).code).toBe("FEATURE_TIER_LOCKED");
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0 });
+    expect(await levelAllowance(u.id, "C")).toMatchObject({ used: 1, reserved: 0 });
   });
 
   it("is idempotent: the same key returns the same job and charges once", async () => {
@@ -95,7 +93,7 @@ describe("topic library — curated topics become games without any model", () =
     const again = await createGeneration(u.id, { idempotencyKey: k, request: req() }, { schedule: false });
     expect(again.jobId).toBe(first.res.jobId);
     expect(again.created).toBe(false);
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0 });
+    expect(await levelAllowance(u.id)).toMatchObject({ used: 1, reserved: 0 });
   });
 
   it("a topic-library game cannot be extended (refused before a credit is reserved)", async () => {
@@ -106,7 +104,7 @@ describe("topic library — curated topics become games without any model", () =
     const ext: GenerationRequest = { mode: "EXTEND", subject: "x", learningGoal: "more", difficulty: "beginner", gameType: "adventure", contentLanguage: "he", targetGameId: game!.id };
     const err = await createGeneration(u.id, { idempotencyKey: key(), request: ext }, { schedule: false }).catch((e) => e);
     expect((err as ApiError).code).toBe("EXTEND_BACKEND_MISMATCH");
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 1, reserved: 0 });
+    expect(await levelAllowance(u.id)).toMatchObject({ used: 1, reserved: 0 });
   });
 });
 
@@ -118,7 +116,7 @@ describe("premium topics — about a third of the library is Plus and Pro only a
     const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ topicId: premium }) }, { schedule: false }).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect(err).toMatchObject({ status: 403, code: "TOPIC_LOCKED", details: { requiredPlan: "PLUS" } });
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0 });
+    expect(await levelAllowance(u.id)).toMatchObject({ used: 0, reserved: 0 });
   });
 
   it("a Plus account plays it", async () => {
@@ -136,7 +134,7 @@ describe("premium topics — about a third of the library is Plus and Pro only a
     const err = await createGeneration(u.id, { idempotencyKey: key(), request: req({ topicId: proOnly }) }, { schedule: false }).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect(err).toMatchObject({ status: 403, code: "TOPIC_LOCKED", details: { requiredPlan: "PRO" } });
-    expect(await getAllowanceSummary(u.id)).toMatchObject({ used: 0, reserved: 0 });
+    expect(await levelAllowance(u.id)).toMatchObject({ used: 0, reserved: 0 });
   });
 
   it("a Free account is refused a Pro-only topic too, and a Pro account plays it", async () => {

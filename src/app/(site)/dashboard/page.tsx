@@ -4,6 +4,7 @@ import { primaryLink, StateView } from "@/components/ui/StateView";
 import { Alert, Arrow, Badge, Card } from "@/components/ui";
 import { GameCardView } from "@/components/games/GameCardView";
 import { offerText } from "@/components/pricing/PlanPrice";
+import { leftText, levelHasLeft, offeredLevels } from "@/components/allowance/quota";
 import { formatDate } from "@/lib/format";
 import { getAllowanceSummary } from "@/server/allowance/summary";
 import { requireUser } from "@/server/auth/current";
@@ -22,6 +23,10 @@ export default async function DashboardPage() {
   const { t, locale } = await getT();
   const [allowance, games, render] = await Promise.all([getAllowanceSummary(user.id), listGames(user.id), resolveRender(user.id)]);
   const inProgress = games.filter((g) => g.progress?.inProgress);
+  // every level the plan offers has its own count this period (highest first)
+  const levels = offeredLevels(allowance.levels);
+  const held = levels.find((l) => l.reserved > 0);
+  const resets = formatDate(allowance.periodEnd, locale);
   const recent = games.slice(0, 6);
   return (
     <div className="space-y-8">
@@ -46,12 +51,27 @@ export default async function DashboardPage() {
             <h2 className="font-semibold">{t("dash.allowance.title")}</h2>
             {plansEnabled() && <Badge tone={allowance.plan === "FREE" ? "neutral" : "violet"}>{t(`plan.${allowance.plan}`)}</Badge>}
           </div>
-          <p className="text-3xl font-extrabold"><span className="ltr-num" data-testid="dash-remaining">{allowance.remaining}</span><span className="text-lg font-medium text-muted"> / <span className="ltr-num">{allowance.limit}</span></span></p>
-          <p className="text-sm text-muted">{t("dash.allowance.left", { n: allowance.remaining, limit: allowance.limit })}</p>
-          <p className="text-xs text-muted" data-testid="dash-offer">{t("dash.allowance.offer", { offer: offerText(t, allowance.plan) })} {t("dash.allowance.resets", { date: formatDate(allowance.periodEnd, locale) })}</p>
-          {allowance.remaining < allowance.limit && offerText(t, allowance.plan, allowance.remaining) && <p className="text-xs text-muted" data-testid="dash-buys">{t("dash.allowance.buys", { offer: offerText(t, allowance.plan, allowance.remaining) })}</p>}
-          {allowance.reserved > 0 && <p className="text-xs text-amber">{t("dash.allowance.inflight", { n: allowance.reserved })}</p>}
-          {plansEnabled() && allowance.remaining === 0 && allowance.plan !== "PRO" && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
+          <ul className="space-y-1.5" data-testid="dash-levels">
+            {levels.map((l) => (
+              <li key={l.level} className="flex items-baseline justify-between gap-3" data-testid={`dash-level-${l.level}`}>
+                <span className="font-semibold">{t("quota.level", { level: l.level })}</span>
+                {l.remaining === null || l.limit === null ? (
+                  <span className="text-lg font-extrabold" data-testid={`dash-remaining-${l.level}`}>{t("quota.unlimited.title")}</span>
+                ) : (
+                  <span className="text-end">
+                    <span aria-hidden>
+                      <span className={`ltr-num text-2xl font-extrabold ${levelHasLeft(l) ? "" : "text-amber"}`} data-testid={`dash-remaining-${l.level}`}>{l.remaining}</span>
+                      <span className="text-base font-medium text-muted"> / <span className="ltr-num">{l.limit}</span></span>
+                    </span>
+                    <span className={levelHasLeft(l) ? "sr-only" : "block text-xs text-amber"}>{leftText(t, l, resets)}</span>
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted" data-testid="dash-offer">{t("dash.allowance.offer", { offer: offerText(t, allowance.plan) })} {t("dash.allowance.resets", { date: resets })}</p>
+          {held && <p className="text-xs text-amber" data-testid="dash-inflight">{t("dash.allowance.inflight", { level: held.level })}</p>}
+          {plansEnabled() && allowance.plan !== "PRO" && levels.some((l) => !levelHasLeft(l)) && <Link href="/pricing" className="text-sm font-semibold text-neon hover:underline">{t("dash.upgrade")} <Arrow /></Link>}
         </Card>
         <Card className="space-y-3">
           <h2 className="font-semibold">{t("dash.graphics", { tier: t(`tier.short.${render.tier}`) })}</h2>
