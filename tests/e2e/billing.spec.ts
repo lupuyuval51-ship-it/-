@@ -13,7 +13,7 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("price-PRO")).toContainText("$40");
     // the offer is generated from each level's own quota (src/config/plans.ts)
     await expect(page.getByTestId("offer-FREE")).toContainText("1 topic at level B and 5 at level C per calendar month");
-    await expect(page.getByTestId("offer-PLUS")).toContainText("3 topics at level A, 5 at level B and unlimited at level C per monthly billing period");
+    await expect(page.getByTestId("offer-PLUS")).toContainText("5 topics at level A, 10 at level B and unlimited at level C per monthly billing period");
     await expect(page.getByTestId("offer-PRO")).toContainText("5 topics at level A, 10 at level B and unlimited at level C per monthly billing period");
     await expect(page.getByTestId("offer-PLUS")).toContainText("Every level has its own count");
     await expect(page.getByTestId("offer-FREE")).not.toContainText("level A");

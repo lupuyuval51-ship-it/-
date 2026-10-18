@@ -155,8 +155,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 1,
     // $10/month internationally; exactly ₪10/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 1000, ILS: 1000 },
-    // 3 topics at level A, 5 at level B and unlimited level C per billing period, each level counted on its own.
-    allowance: { A: 3, B: 5, C: UNLIMITED },
+    // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own (Plus and Pro have the same game quotas; Pro adds the Pro-only topics, a stronger robot and more AI edits).
+    allowance: { A: 5, B: 10, C: UNLIMITED },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "B", aiEditsPerPeriod: 40, versionHistory: true, versionsKept: 20, topicTiers: ["free", "plus"] },

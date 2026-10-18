@@ -30,10 +30,10 @@ describe("central plan configuration (exact product rules)", () => {
     expect(planAllowsTier("FREE", "A")).toBe(false);
   });
 
-  it("PLUS: $10/month internationally, exactly ₪10/month in Israel, 3 at A / 5 at B / unlimited C per billing period, Tier A", () => {
+  it("PLUS: $10/month internationally, exactly ₪10/month in Israel, 5 at A / 10 at B / unlimited C per billing period, Tier A", () => {
     expect(PLANS.PLUS.monthlyPrices.USD).toBe(1000);
     expect(PLANS.PLUS.monthlyPrices.ILS).toBe(1000);
-    expect(PLANS.PLUS.allowance).toEqual({ A: 3, B: 5, C: null });
+    expect(PLANS.PLUS.allowance).toEqual({ A: 5, B: 10, C: null });
     expect(PLANS.PLUS.allowancePeriod).toEqual({ kind: "billing_period" });
     expect(planAllowsTier("PLUS", "A")).toBe(true);
     expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 1000 });
@@ -97,8 +97,8 @@ describe("allowance: a separate quota per level (the owner's table)", () => {
   it("states the offer exactly as the owner specified it, highest level first", () => {
     // Free = 1 topic at level B and 5 at level C per calendar month. Never A (paying plans only).
     expect(planOffer("FREE")).toEqual([{ level: "B", topics: 1 }, { level: "C", topics: 5 }]);
-    // Plus = 3 at level A, 5 at level B, level C unlimited.
-    expect(planOffer("PLUS")).toEqual([{ level: "A", topics: 3 }, { level: "B", topics: 5 }, { level: "C", topics: null }]);
+    // Plus = 5 at level A, 10 at level B, level C unlimited.
+    expect(planOffer("PLUS")).toEqual([{ level: "A", topics: 5 }, { level: "B", topics: 10 }, { level: "C", topics: null }]);
     // Pro = 5 at level A, 10 at level B, level C unlimited.
     expect(planOffer("PRO")).toEqual([{ level: "A", topics: 5 }, { level: "B", topics: 10 }, { level: "C", topics: null }]);
   });
@@ -109,7 +109,7 @@ describe("allowance: a separate quota per level (the owner's table)", () => {
     expect(levelsAllowed("PRO")).toEqual(["A", "B", "C"]);
     expect(quotaOf("FREE", "A")).toBe(0);
     expect([quotaOf("FREE", "C"), quotaOf("FREE", "B")]).toEqual([5, 1]);
-    expect([quotaOf("PLUS", "C"), quotaOf("PLUS", "B"), quotaOf("PLUS", "A")]).toEqual([null, 5, 3]);
+    expect([quotaOf("PLUS", "C"), quotaOf("PLUS", "B"), quotaOf("PLUS", "A")]).toEqual([null, 10, 5]);
     expect([quotaOf("PRO", "C"), quotaOf("PRO", "B"), quotaOf("PRO", "A")]).toEqual([null, 10, 5]);
     expect([maxLevel("FREE"), maxLevel("PLUS"), maxLevel("PRO")]).toEqual(["B", "A", "A"]);
     expect(planUnlockingLevel("A")).toBe("PLUS");
@@ -164,10 +164,10 @@ describe("the offer and the games left are worded from the quotas (never typed),
 
   it("lists every level's own count, highest first, joined as a sum (not alternatives)", () => {
     expect(offerText(en, "FREE")).toBe("1 topic at level B and 5 at level C");
-    expect(offerText(en, "PLUS")).toBe("3 topics at level A, 5 at level B and unlimited at level C");
+    expect(offerText(en, "PLUS")).toBe("5 topics at level A, 10 at level B and unlimited at level C");
     expect(offerText(en, "PRO")).toBe("5 topics at level A, 10 at level B and unlimited at level C");
     expect(offerText(he, "FREE")).toBe("נושא אחד ברמה B ו-5 ברמה C");
-    expect(offerText(he, "PLUS")).toBe("3 נושאים ברמה A, 5 ברמה B וללא הגבלה ברמה C");
+    expect(offerText(he, "PLUS")).toBe("5 נושאים ברמה A, 10 ברמה B וללא הגבלה ברמה C");
     expect(offerText(es, "FREE")).toBe("1 tema de nivel B y 5 de nivel C");
     expect(offerText(es, "PRO")).toBe("5 temas de nivel A, 10 de nivel B e ilimitados de nivel C");
   });

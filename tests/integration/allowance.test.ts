@@ -110,20 +110,20 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     expect(await db.generationJob.count({ where: { userId: u.id } })).toBe(6);
   });
 
-  it("PLUS: 3 at A, 5 at B and unlimited C — using one level never reduces another", async () => {
+  it("PLUS: 5 at A, 10 at B and unlimited C — using one level never reduces another", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PLUS");
-    await make(u.id, "A", 3);
+    await make(u.id, "A", 5);
     expect(await code(start(u.id, "A"))).toBe("ALLOWANCE_EXHAUSTED");
-    expect(await levelAllowance(u.id, "B")).toMatchObject({ limit: 5, used: 0, remaining: 5 });
-    await make(u.id, "B", 5);
+    expect(await levelAllowance(u.id, "B")).toMatchObject({ limit: 10, used: 0, remaining: 10 });
+    await make(u.id, "B", 10);
     expect(await code(start(u.id, "B"))).toBe("ALLOWANCE_EXHAUSTED");
     // level C is never refused by a count (more games than any counted quota), and its use is still counted
     await make(u.id, "C", 7);
     const s = await getAllowanceSummary(u.id);
     expect(s).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION" });
-    expect(s.levels.A).toMatchObject({ limit: 3, used: 3, remaining: 0 });
-    expect(s.levels.B).toMatchObject({ limit: 5, used: 5, remaining: 0 });
+    expect(s.levels.A).toMatchObject({ limit: 5, used: 5, remaining: 0 });
+    expect(s.levels.B).toMatchObject({ limit: 10, used: 10, remaining: 0 });
     expect(s.levels.C).toMatchObject({ limit: null, used: 7, reserved: 0, remaining: null });
   });
 
@@ -155,7 +155,7 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     const u = await createTestUser();
     const begin = new Date(Date.now() - 5 * 86_400_000);
     await grantSubscription(u.id, "PLUS", { start: begin });
-    await make(u.id, "A", 3);
+    await make(u.id, "A", 5);
     await make(u.id, "B");
     expect((await levelAllowance(u.id, "A")).remaining).toBe(0);
     // The renewal webhook moves the subscription into its next paid period.
@@ -163,11 +163,11 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     await grantSubscription(u.id, "PLUS", { start: nextStart, end: new Date(nextStart.getTime() + 30 * 86_400_000) });
     const later = new Date(nextStart.getTime() + 3600_000);
     const s = await getAllowanceSummary(u.id, later);
-    expect([s.levels.A.remaining, s.levels.B.remaining, s.levels.C.remaining]).toEqual([3, 5, null]);
+    expect([s.levels.A.remaining, s.levels.B.remaining, s.levels.C.remaining]).toEqual([5, 10, null]);
     expect((await start(u.id, "A", later)).created).toBe(true);
   });
 
-  it("upgrading PLUS → PRO inside the same period raises every level's limit but keeps what was used at each level", async () => {
+  it("switching PLUS → PRO inside the same period keeps what was used at each level (Plus and Pro have the same game quotas)", async () => {
     const u = await createTestUser();
     const begin = new Date(Date.now() - 2 * 86_400_000);
     await grantSubscription(u.id, "PLUS", { start: begin });
@@ -182,19 +182,6 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     expect(s.levels.B).toMatchObject({ limit: 10, used: 1, remaining: 9 });
     const row = await db.allowanceQuota.findMany({ where: { allowancePeriod: { userId: u.id } }, orderBy: { level: "asc" } });
     expect(row.map((r) => [r.level, r.limit, r.used])).toEqual([["A", 5, 3], ["B", 10, 1], ["C", null, 0]]);
-  });
-
-  it("downgrading PRO → PLUS inside the same period keeps what was used: a level used past its new limit has nothing left, the others still work", async () => {
-    const u = await createTestUser();
-    const begin = new Date(Date.now() - 2 * 86_400_000);
-    await grantSubscription(u.id, "PRO", { start: begin });
-    await make(u.id, "A", 4);
-    await grantSubscription(u.id, "PLUS", { start: begin });
-    expect(await refusal(start(u.id, "A"))).toMatchObject({ code: "ALLOWANCE_EXHAUSTED", details: { level: "A", remaining: 0, limit: 3 } });
-    expect(await levelAllowance(u.id, "A")).toMatchObject({ limit: 3, used: 4, reserved: 0, remaining: 0 });
-    await make(u.id, "B");
-    await make(u.id, "C");
-    expect(await levelAllowance(u.id, "B")).toMatchObject({ limit: 5, used: 1, remaining: 4 });
   });
 
   it("a job settles exactly the level and period it reserved, even when the plan changed while it ran", async () => {

@@ -133,7 +133,7 @@ describe("Free plan: 1 topic at level B and 5 topics at level C a month (never A
   });
 });
 
-describe("Plus plan: 3 topics at level A, 5 at level B and unlimited level C", () => {
+describe("Plus plan: 5 topics at level A, 10 at level B and unlimited level C", () => {
   it("level B: platformers and 2-area adventures with matching and side missions, but no program/simulation, boss or reactions", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PLUS");
@@ -154,7 +154,7 @@ describe("Plus plan: 3 topics at level A, 5 at level B and unlimited level C", (
     expect(r.details).toMatchObject({ requiredLevel: "A", requiredPlan: "PLUS", tier: "B" });
     await generate(u.id, req({ subject: "Photosynthesis", level: "B" }));
     expect(await summary(u.id)).toEqual({ used: { A: 0, B: 3, C: 0 }, reserved: 0 });
-    await useUp(u.id, "B", 5);
+    await useUp(u.id, "B", 10);
     expect((await codeOf(createGeneration(u.id, { idempotencyKey: key(), request: req({ level: "B" }) }, { schedule: false }))).code).toBe("ALLOWANCE_EXHAUSTED");
   });
 
@@ -178,15 +178,15 @@ describe("Plus plan: 3 topics at level A, 5 at level B and unlimited level C", (
     expect(spec!.bosses.length).toBe(1);
     expect(await summary(u.id)).toEqual({ used: { A: 1, B: 0, C: 0 }, reserved: 0 });
     // with level A used up, a Full Adventure without a wish becomes a level B game; A itself is refused
-    await useUp(u.id, "A", 3);
+    await useUp(u.id, "A", 5);
     expect((await codeOf(createGeneration(u.id, { idempotencyKey: key(), request: req({ level: "A" }) }, { schedule: false }))).code).toBe("ALLOWANCE_EXHAUSTED");
     expect((await generate(u.id, req({ mode: "FULL", gameType: "adventure", subject: "Fractions" }))).job.featureTier).toBe("B");
     // level C is unlimited on Plus: still possible with A and B used up, and counted only at C
-    await useUp(u.id, "B", 5);
+    await useUp(u.id, "B", 10);
     const free = await generate(u.id, req({ level: "C" }));
     expect(free.job.featureTier).toBe("C");
     const s = await getAllowanceSummary(u.id);
-    expect([s.levels.A.used, s.levels.B.used, s.levels.C.used, s.levels.C.remaining]).toEqual([3, 5, 1, null]);
+    expect([s.levels.A.used, s.levels.B.used, s.levels.C.used, s.levels.C.remaining]).toEqual([5, 10, 1, null]);
   });
 });
 

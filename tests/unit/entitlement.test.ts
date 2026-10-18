@@ -18,7 +18,7 @@ describe("entitlement resolution", () => {
 
   it("ACTIVE PLUS → paid entitlement over the billing period, with Plus's own quota at each level", () => {
     const e = computeEntitlement(sub(), mid);
-    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", quotas: { A: 3, B: 5, C: null }, subscriptionId: "s1" });
+    expect(e).toMatchObject({ plan: "PLUS", source: "SUBSCRIPTION", quotas: { A: 5, B: 10, C: null }, subscriptionId: "s1" });
     expect(e.periodStart).toEqual(start);
     expect(e.periodEnd).toEqual(end);
   });
