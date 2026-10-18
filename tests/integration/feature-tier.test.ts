@@ -190,7 +190,7 @@ describe("Plus plan: 5 topics at level A, 10 at level B and unlimited level C", 
   });
 });
 
-describe("Pro plan: 5 topics at level A, 10 at level B and unlimited level C", () => {
+describe("Pro plan: 20 topics at level A, 40 at level B and unlimited level C", () => {
   it("builds the full game at level A: several areas, every question type the template has, and the final boss", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
@@ -207,7 +207,7 @@ describe("Pro plan: 5 topics at level A, 10 at level B and unlimited level C", (
     await useUp(u.id, "A", quotaOf("PRO", "A")!);
     const b = await generate(u.id, req({ subject: "Fractions" }));
     expect(b.job.featureTier).toBe("B");
-    expect(await summary(u.id)).toEqual({ used: { A: 5, B: 1, C: 0 }, reserved: 0 });
+    expect(await summary(u.id)).toEqual({ used: { A: 20, B: 1, C: 0 }, reserved: 0 });
   });
 
   it("extending keeps the game's own level and uses one game of that level on the current plan; a plan without that level cannot extend", async () => {

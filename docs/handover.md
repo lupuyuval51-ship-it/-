@@ -43,7 +43,7 @@ Request paths worth knowing:
   `loaders.ts`) by `runTopicLibrary` in `src/server/generation/pipeline.ts` — before any backend is touched, so no model is called — and on the phone by
   `generateOfflineWithProgress`. Same validation, tier clamp, phone fit and allowance; label `catalog` / “Topic library”. Tests: `tests/unit/topics.test.ts`,
   `tests/integration/topic-library.test.ts`, the topic part of `tests/unit/bundle-boundary.test.ts`.
-* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan, each level with its own quota per period (`PLANS[plan].allowance`: Free B 1, C 5, no A; Plus A 5, B 10, C unlimited; Pro A 5, B 10, C unlimited), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
+* **Tiers:** each game has a *feature tier* = level (C 40 %, B 70 %, A 100 % of `GAME_FEATURES`) chosen per game within the plan, each level with its own quota per period (`PLANS[plan].allowance`: Free B 1, C 5, no A; Plus A 5, B 10, C unlimited; Pro A 20, B 40, C unlimited), and the plan decides the *graphics tier*; both are resolved on the server from the persisted plan, never from the client
   (`assertRequestAllowed` in `src/server/generation/service.ts`, `clampToFeatureTier` in `src/lib/game/spec/tier.ts`).
 
 ## Where the rules are enforced and tested
@@ -102,7 +102,7 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 * **Target audience for Google Play** (13+ or all ages). If under-13s are a target, Play's Families policy and COPPA/GDPR apply, and the optional account collects an e-mail address (`docs/play-release.md` section 5).
 * **Google Play Billing:** how paid plans map to a level on the device (`maxLevel(plan)`; the device counts no games per level) (`src/lib/offline/entitlement.ts` is the single place to change).
 * **Plan numbers.** Pinned as "exact product rules" in `tests/unit/plans.test.ts` (the owner's table): a separate quota per level and period —
-  Free: B 1, C 5 per calendar month, never A; Plus: A 5, B 10, C unlimited per billing period; Pro: A 5, B 10, C unlimited; Plus and Pro have
+  Free: B 1, C 5 per calendar month, never A; Plus: A 5, B 10, C unlimited per billing period; Pro: A 20, B 40, C unlimited; Plus and Pro have
   identical graphics. Change them in `plans.ts` and the tests together.
 * **Play Console owner tasks:** upload key and Play App Signing, public privacy-policy and account-deletion URLs with a support address, reviewer test account, content rating, Data safety form, closed-test requirement for new personal accounts
   (`docs/play-release.md` section 6). The package name `app.levelup.learn3d` can never change after the first upload.

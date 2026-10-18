@@ -24,7 +24,7 @@ describe("plans switched off", () => {
     expect(e.subscriptionId).toBeNull();
     // the full product: Pro's quota at every level (A included) as fair use, per UTC calendar month
     expect(e.quotas).toEqual({ A: quotaOf("PRO", "A"), B: quotaOf("PRO", "B"), C: null });
-    expect(e.quotas).toEqual({ A: 5, B: 10, C: null });
+    expect(e.quotas).toEqual({ A: 20, B: 40, C: null });
     expect(levelsAllowed(e.plan)).toEqual(["A", "B", "C"]);
     expect([e.periodStart.toISOString(), e.periodEnd.toISOString()]).toEqual(["2026-11-01T00:00:00.000Z", "2026-12-01T00:00:00.000Z"]);
   });
@@ -36,8 +36,8 @@ describe("plans switched off", () => {
     expect(job.featureTier).toBe("A");
     const s = await getAllowanceSummary(u.id);
     expect(s).toMatchObject({ plan: "PRO", source: "FREE" });
-    expect(s.levels.A).toMatchObject({ limit: 5, used: 0, reserved: 1, remaining: 4 });
-    expect(s.levels.B).toMatchObject({ limit: 10, reserved: 0, remaining: 10 });
+    expect(s.levels.A).toMatchObject({ limit: 20, used: 0, reserved: 1, remaining: 19 });
+    expect(s.levels.B).toMatchObject({ limit: 40, reserved: 0, remaining: 40 });
     expect(s.levels.C).toMatchObject({ limit: null, remaining: null });
   });
 

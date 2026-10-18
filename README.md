@@ -123,7 +123,7 @@ from there — the UI never hard-codes them and nothing is gated by price in the
 | --- | --- | --- | --- | --- | --- | --- |
 | **Free** | $0 | not available | **1** | **5** | each UTC calendar month | Tier B / C |
 | **Plus** | **$5 / month**, or exactly **₪5 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A (also B / C) |
-| **Pro** | **$20 / month**, or exactly **₪20 / month** for accounts whose region is Israel | **5** | **10** | unlimited | the subscription's billing period | Tier A — **identical** to Plus |
+| **Pro** | **$20 / month**, or exactly **₪20 / month** for accounts whose region is Israel | **20** | **40** | unlimited | the subscription's billing period | Tier A — **identical** to Plus |
 
 The allowance is a **separate quota of games per level** per period (`PLANS[plan].allowance = { A?, B?, C? }`, `UNLIMITED` for no
 count): each game ("topic") uses one game of its own **level** (the feature tier below), and using one level never reduces

@@ -23,8 +23,8 @@ describe("entitlement resolution", () => {
     expect(e.periodEnd).toEqual(end);
   });
 
-  it("ACTIVE PRO → 5 games at level A, 10 at level B, level C unlimited", () => {
-    expect(computeEntitlement(sub({ plan: "PRO" }), mid).quotas).toEqual({ A: 5, B: 10, C: null });
+  it("ACTIVE PRO → 20 games at level A, 40 at level B, level C unlimited", () => {
+    expect(computeEntitlement(sub({ plan: "PRO" }), mid).quotas).toEqual({ A: 20, B: 40, C: null });
   });
 
   it.each(["PAST_DUE", "UNPAID", "CANCELED", "INCOMPLETE", "INCOMPLETE_EXPIRED", "PAUSED"])("%s subscriptions do NOT grant paid access", (status) => {

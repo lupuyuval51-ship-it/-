@@ -42,11 +42,11 @@ describe("central plan configuration (exact product rules)", () => {
     expect(monthlyPrice("PLUS", null)).toEqual({ currency: "USD", minor: 500 });
   });
 
-  it("PRO: $20/month internationally, exactly ₪20/month in Israel, 5 at A / 10 at B / unlimited C per billing period", () => {
+  it("PRO: $20/month internationally, exactly ₪20/month in Israel, 20 at A / 40 at B / unlimited C per billing period", () => {
     expect(PLANS.PRO.monthlyPrices.USD).toBe(2000);
     expect(PLANS.PRO.monthlyPrices.ILS).toBe(2000);
     expect(formatMoney(monthlyPrice("PRO", "IL").minor, "ILS")).toBe("₪20");
-    expect(PLANS.PRO.allowance).toEqual({ A: 5, B: 10, C: null });
+    expect(PLANS.PRO.allowance).toEqual({ A: 20, B: 40, C: null });
     expect(displayCurrency("PRO", "IL")).toBe("ILS");
     expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "ILS", minor: 2000 });
     expect(monthlyPrice("PRO", "US")).toEqual({ currency: "USD", minor: 2000 });
@@ -100,7 +100,7 @@ describe("allowance: a separate quota per level (the owner's table)", () => {
     // Plus = 5 at level A, 10 at level B, level C unlimited.
     expect(planOffer("PLUS")).toEqual([{ level: "A", topics: 5 }, { level: "B", topics: 10 }, { level: "C", topics: null }]);
     // Pro = 5 at level A, 10 at level B, level C unlimited.
-    expect(planOffer("PRO")).toEqual([{ level: "A", topics: 5 }, { level: "B", topics: 10 }, { level: "C", topics: null }]);
+    expect(planOffer("PRO")).toEqual([{ level: "A", topics: 20 }, { level: "B", topics: 40 }, { level: "C", topics: null }]);
   });
 
   it("knows which levels a plan can make and each level's own quota; Free can never make A", () => {
@@ -110,7 +110,7 @@ describe("allowance: a separate quota per level (the owner's table)", () => {
     expect(quotaOf("FREE", "A")).toBe(0);
     expect([quotaOf("FREE", "C"), quotaOf("FREE", "B")]).toEqual([5, 1]);
     expect([quotaOf("PLUS", "C"), quotaOf("PLUS", "B"), quotaOf("PLUS", "A")]).toEqual([null, 10, 5]);
-    expect([quotaOf("PRO", "C"), quotaOf("PRO", "B"), quotaOf("PRO", "A")]).toEqual([null, 10, 5]);
+    expect([quotaOf("PRO", "C"), quotaOf("PRO", "B"), quotaOf("PRO", "A")]).toEqual([null, 40, 20]);
     expect([maxLevel("FREE"), maxLevel("PLUS"), maxLevel("PRO")]).toEqual(["B", "A", "A"]);
     expect(planUnlockingLevel("A")).toBe("PLUS");
     expect(planUnlockingLevel("B")).toBe("FREE");
@@ -145,7 +145,7 @@ describe("allowance: a separate quota per level (the owner's table)", () => {
     // nothing used yet: the plan's highest level
     expect(defaultLevel("FREE")).toBe("B");
     expect(defaultLevel("PLUS")).toBe("A");
-    expect(defaultLevel("PRO", { A: 5, B: 10, C: null })).toBe("A");
+    expect(defaultLevel("PRO", { A: 20, B: 40, C: null })).toBe("A");
     // the levels are separate counts: A used up on Plus leaves B, B used up on Free leaves C
     expect(defaultLevel("PLUS", { A: 0, B: 5, C: null })).toBe("B");
     expect(defaultLevel("PLUS", { A: 0, B: 0, C: null })).toBe("C");
@@ -165,11 +165,11 @@ describe("the offer and the games left are worded from the quotas (never typed),
   it("lists every level's own count, highest first, joined as a sum (not alternatives)", () => {
     expect(offerText(en, "FREE")).toBe("1 topic at level B and 5 at level C");
     expect(offerText(en, "PLUS")).toBe("5 topics at level A, 10 at level B and unlimited at level C");
-    expect(offerText(en, "PRO")).toBe("5 topics at level A, 10 at level B and unlimited at level C");
+    expect(offerText(en, "PRO")).toBe("20 topics at level A, 40 at level B and unlimited at level C");
     expect(offerText(he, "FREE")).toBe("נושא אחד ברמה B ו-5 ברמה C");
     expect(offerText(he, "PLUS")).toBe("5 נושאים ברמה A, 10 ברמה B וללא הגבלה ברמה C");
     expect(offerText(es, "FREE")).toBe("1 tema de nivel B y 5 de nivel C");
-    expect(offerText(es, "PRO")).toBe("5 temas de nivel A, 10 de nivel B e ilimitados de nivel C");
+    expect(offerText(es, "PRO")).toBe("20 temas de nivel A, 40 de nivel B e ilimitados de nivel C");
   });
 
   it("words what is left at one level and the header's short items", () => {

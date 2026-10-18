@@ -127,19 +127,19 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     expect(s.levels.C).toMatchObject({ limit: null, used: 7, reserved: 0, remaining: null });
   });
 
-  it("PRO: exactly 5 topics at level A per billing period, the sixth is refused and holds nothing; B keeps all 10", async () => {
+  it("PRO: exactly 20 topics at level A per billing period, the 21st is refused and holds nothing; B keeps all 40", async () => {
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 20; i++) {
       const { job } = await start(u.id, "A");
       expect(job.featureTier).toBe("A");
       await deliverGame(job.id, u.id);
     }
     expect(await code(start(u.id, "A"))).toBe("ALLOWANCE_EXHAUSTED");
     const s = await getAllowanceSummary(u.id);
-    expect(s.levels.A).toMatchObject({ limit: 5, used: 5, reserved: 0, remaining: 0 });
-    expect(s.levels.B).toMatchObject({ limit: 10, used: 0, remaining: 10 });
-    await make(u.id, "B", 10);
+    expect(s.levels.A).toMatchObject({ limit: 20, used: 20, reserved: 0, remaining: 0 });
+    expect(s.levels.B).toMatchObject({ limit: 40, used: 0, remaining: 40 });
+    await make(u.id, "B", 40);
     expect(await code(start(u.id, "B"))).toBe("ALLOWANCE_EXHAUSTED");
   });
 
@@ -167,7 +167,7 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     expect((await start(u.id, "A", later)).created).toBe(true);
   });
 
-  it("switching PLUS → PRO inside the same period keeps what was used at each level (Plus and Pro have the same game quotas)", async () => {
+  it("switching PLUS → PRO inside the same period raises every level's limit (Pro has four times Plus's quotas) and keeps what was used at each level", async () => {
     const u = await createTestUser();
     const begin = new Date(Date.now() - 2 * 86_400_000);
     await grantSubscription(u.id, "PLUS", { start: begin });
@@ -178,10 +178,10 @@ describe("allowance: a separate quota per level (real levels and quotas)", () =>
     await make(u.id, "A");
     const s = await getAllowanceSummary(u.id);
     expect(s.plan).toBe("PRO");
-    expect(s.levels.A).toMatchObject({ limit: 5, used: 3, remaining: 2 });
-    expect(s.levels.B).toMatchObject({ limit: 10, used: 1, remaining: 9 });
+    expect(s.levels.A).toMatchObject({ limit: 20, used: 3, remaining: 17 });
+    expect(s.levels.B).toMatchObject({ limit: 40, used: 1, remaining: 39 });
     const row = await db.allowanceQuota.findMany({ where: { allowancePeriod: { userId: u.id } }, orderBy: { level: "asc" } });
-    expect(row.map((r) => [r.level, r.limit, r.used])).toEqual([["A", 5, 3], ["B", 10, 1], ["C", null, 0]]);
+    expect(row.map((r) => [r.level, r.limit, r.used])).toEqual([["A", 20, 3], ["B", 40, 1], ["C", null, 0]]);
   });
 
   it("a job settles exactly the level and period it reserved, even when the plan changed while it ran", async () => {
@@ -234,7 +234,7 @@ describe("duplicate requests and concurrency", () => {
     expect(a.used).toBe(0);
   });
 
-  it("reservation is atomic per level: 20 concurrent A and 20 concurrent B holds against Pro's 5 A and 10 B succeed exactly 5 and 10 times", async () => {
+  it("reservation is atomic per level: 30 concurrent A and 50 concurrent B holds against Pro's 20 A and 40 B succeed exactly 20 and 40 times", async () => {
     setFeatureTierForTests(null);
     const u = await createTestUser();
     await grantSubscription(u.id, "PRO");
@@ -242,12 +242,12 @@ describe("duplicate requests and concurrency", () => {
     const period = await db.$transaction((tx) => ensurePeriod(tx, u.id, ent));
     expect(period.levels.A.limit).toBe(quotaOf("PRO", "A"));
     expect(period.levels.B.limit).toBe(quotaOf("PRO", "B"));
-    const levels: FeatureTier[] = [...Array.from({ length: 20 }, () => "A" as const), ...Array.from({ length: 20 }, () => "B" as const)];
+    const levels: FeatureTier[] = [...Array.from({ length: 30 }, () => "A" as const), ...Array.from({ length: 50 }, () => "B" as const)];
     const outcomes = await Promise.all(levels.map((l) => db.$transaction((tx) => reserveSlot(tx, period.id, l)).then((ok) => [l, ok] as const)));
-    expect(outcomes.filter(([l, ok]) => l === "A" && ok)).toHaveLength(5);
-    expect(outcomes.filter(([l, ok]) => l === "B" && ok)).toHaveLength(10);
+    expect(outcomes.filter(([l, ok]) => l === "A" && ok)).toHaveLength(20);
+    expect(outcomes.filter(([l, ok]) => l === "B" && ok)).toHaveLength(40);
     const rows = await db.allowanceQuota.findMany({ where: { allowancePeriodId: period.id }, orderBy: { level: "asc" } });
-    expect(rows.map((r) => [r.level, r.reserved])).toEqual([["A", 5], ["B", 10], ["C", 0]]);
+    expect(rows.map((r) => [r.level, r.reserved])).toEqual([["A", 20], ["B", 40], ["C", 0]]);
     for (const r of rows) if (r.limit !== null) expect(r.used + r.reserved).toBeLessThanOrEqual(r.limit);
   });
 

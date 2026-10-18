@@ -155,7 +155,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 1,
     // $5/month internationally; exactly ₪5/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 500, ILS: 500 },
-    // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own (Plus and Pro have the same game quotas; Pro adds the Pro-only topics, a stronger robot and more AI edits).
+    // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own (Pro has four times these quotas, plus the Pro-only topics, a stronger robot and more AI edits).
     allowance: { A: 5, B: 10, C: UNLIMITED },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
@@ -166,8 +166,8 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
     rank: 2,
     // $20/month internationally; exactly ₪20/month for users in Israel (explicit, never FX-derived).
     monthlyPrices: { USD: 2000, ILS: 2000 },
-    // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own.
-    allowance: { A: 5, B: 10, C: UNLIMITED },
+    // 20 topics at level A, 40 at level B and unlimited level C per billing period, each level counted on its own: four times Plus's quotas.
+    allowance: { A: 20, B: 40, C: UNLIMITED },
     allowancePeriod: { kind: "billing_period" },
     graphics: TIER_A_GRAPHICS,
     features: { robot: "A", aiEditsPerPeriod: 200, versionHistory: true, versionsKept: 100, topicTiers: ["free", "plus", "pro"] },

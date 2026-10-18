@@ -7,7 +7,7 @@ let override: FeatureTier | null = null;
 /**
  * Test seam (like `setBackendForTests`): lets a suite exercise a feature tier without creating a subscription. Refused
  * in production. While set, every plan makes games at exactly this level, with the plan's largest counted quota as that
- * level's quota (Free 5, Plus 5, Pro 10), so suites that are not about the quotas keep room for several games and simple
+ * level's quota (Free 5, Plus 10, Pro 40), so suites that are not about the quotas keep room for several games and simple
  * arithmetic (one game = one of that level's games).
  */
 export function setFeatureTierForTests(tier: FeatureTier | null): void {
