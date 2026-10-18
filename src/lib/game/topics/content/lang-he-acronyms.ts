@@ -1,0 +1,69 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Acronym (rashei tevot)", "a short form built from the first letters of several words, like צה״ל", "ראשי תיבות", "צורה קצרה שבנויה מהאותיות הראשונות של כמה מילים, כמו צה״ל"],
+      ["Gershayim (״)", "the double mark written before the last letter of an acronym, as in דו״ח", "גרשיים", "הסימן הכפול שכותבים לפני האות האחרונה של צורה מקוצרת מכמה מילים, כמו בדו״ח"],
+      ["Abbreviation (kitzur)", "one word cut short, keeping only its first letters, like מס׳ for מספר", "קיצור", "מילה אחת שנכתבת רק בחלקה, באותיותיה הראשונות, כמו מס׳ במקום מספר"],
+      ["Geresh (׳)", "the single mark written after a shortened word, as in עמ׳ for עמוד", "גרש", "הסימן הבודד שכותבים אחרי מילה מקוצרת, כמו עמ׳ במקום עמוד"],
+    ],
+    q: [
+      [["What do the letters of the acronym צה״ל stand for?", "צבא הגנה לישראל", ["צבא הגנה לאומי", "צוות הגנה לישראל", "ציוד הגנה למדינה"], "צה״ל is the Israel Defense Forces, in Hebrew צבא הגנה לישראל. All the options start with the same three letters, so you have to know the full name; the gershayim go before its last letter, ל."],
+        ["מה פירוש ראשי התיבות צה״ל?", "צבא הגנה לישראל", ["צבא הגנה לאומי", "צוות הגנה לישראל", "ציוד הגנה למדינה"], "צה״ל הוא צבא הגנה לישראל. כל האפשרויות מתחילות באותן שלוש אותיות, ולכן צריך להכיר את השם המלא; הגרשיים באים לפני האות האחרונה, ל."]],
+      [["Where do the gershayim (״) go in an acronym?", "Before the last letter", ["After the last letter", "After the first letter", "Between every two letters"], "In an acronym the gershayim stand before the last letter: צה״ל, דו״ח, תנ״ך. A single geresh after the last letter marks one shortened word, like מס׳."],
+        ["איפה כותבים את הגרשיים (״) בראשי תיבות?", "לפני האות האחרונה", ["אחרי האות האחרונה", "אחרי האות הראשונה", "בין כל שתי אותיות"], "בראשי תיבות הגרשיים באים לפני האות האחרונה: צה״ל, דו״ח, תנ״ך. גרש אחד אחרי האות האחרונה מסמן קיצור של מילה אחת, כמו מס׳."]],
+      [["How is the word מספר (number) written in short?", "מס׳", ["מ״ס", "מס״", "מ׳ס"], "One shortened word keeps its first letters and takes a geresh after the last letter kept: מס׳. Gershayim belong to acronyms made of several words."],
+        ["איך כותבים בקיצור את המילה ״מספר״?", "מס׳", ["מ״ס", "מס״", "מ׳ס"], "קיצור של מילה אחת שומר את האותיות הראשונות שלה, ואחרי האות האחרונה שנשארה בא גרש: מס׳. גרשיים שייכים לראשי תיבות של כמה מילים."]],
+      [["A note says ת״א. How do you read it aloud?", "Tel Aviv: you say the full name", ["Ta: you say it as one short word", "Tav alef: you say the letter names", "You cannot read it aloud at all"], "Some acronyms are read as their full words: ת״א is said Tel Aviv, and ע״י is said al yedei. Others, like צה״ל, are said as one word."],
+        ["בפתק כתוב ת״א. איך קוראים את זה בקול?", "״תל אביב״ – אומרים את השם המלא", ["״תא״ – אומרים מילה אחת קצרה", "״תו אלף״ – אומרים את שמות האותיות", "אי אפשר לקרוא את זה בקול"], "יש ראשי תיבות שקוראים במילים המלאות: את ת״א אומרים ״תל אביב״, ואת ע״י אומרים ״על ידי״. אחרים, כמו צה״ל, נקראים כמילה אחת."]],
+      [["The word תנ״ך is an acronym. What are its three parts?", "תורה, נביאים, כתובים", ["תלמוד, נביאים, כתובים", "תורה, נשים, כתבים", "תפילה, נביאים, כתבים"], "The Hebrew Bible has three parts: Torah (תורה), Prophets (נביאים) and Writings (כתובים). Their first letters make תנ״ך, with the כ written as a final ך at the end. The Talmud is a different work."],
+        ["המילה תנ״ך היא ראשי תיבות. מהם שלושת החלקים שלה?", "תורה, נביאים, כתובים", ["תלמוד, נביאים, כתובים", "תורה, נשים, כתבים", "תפילה, נביאים, כתבים"], "לתנ״ך שלושה חלקים: תורה, נביאים וכתובים. מהאותיות הראשונות שלהם נוצרת המילה, וה־כ שבסוף נכתבת כ־ך סופית. התלמוד הוא חיבור אחר."]],
+    ],
+    n: [[12, ["Letters can also stand for numbers, marked with gershayim. What number is י״ב, as in כיתה י״ב?", "", "י stands for 10 and ב for 2, so י״ב is 12: כיתה י״ב is the twelfth grade."], ["אותיות משמשות גם כמספרים, ומסמנים אותן בגרשיים. איזה מספר הוא י״ב, כמו בכיתה י״ב?", "", "י היא 10 ו־ב היא 2, ולכן י״ב הוא 12: כיתה י״ב היא הכיתה השתים־עשרה."]]],
+  },
+  i: {
+    t: [
+      ["Acronym read as a word", "an acronym said aloud like an ordinary word, as מנכ״ל is said mankal", "ראשי תיבות שנקראים כמילה", "צורה מקוצרת שאומרים בקול כמו מילה רגילה, כמו מנכ״ל"],
+      ["Name acronym", "a famous person's name made short from its first letters, like רמב״ם for Rabbi Moshe ben Maimon", "ראשי תיבות של שם", "שמו של אדם מפורסם שקוצר לאותיות הראשונות, כמו רמב״ם: רבי משה בן מימון"],
+      ["Gematria", "the number value of each Hebrew letter: א is 1, י is 10 and ק is 100", "גימטרייה", "הערך המספרי של כל אות עברית: א היא 1, י היא 10 ו־ק היא 100"],
+    ],
+    q: [
+      [["What do the letters of מנכ״ל (the head of a company) stand for?", "מנהל כללי", ["מנהל כלכלי", "מנהיג כללי", "מנהל כספים"], "מנכ״ל takes two letters from each word of מנהל כללי, the general manager: מנ from מנהל and כל from כללי. It is said aloud as one word, mankal."],
+        ["מה פירוש ראשי התיבות מנכ״ל?", "מנהל כללי", ["מנהל כלכלי", "מנהיג כללי", "מנהל כספים"], "מנכ״ל לוקח שתי אותיות מכל מילה של ״מנהל כללי״: מנ מ״מנהל״ ו־כל מ״כללי״. אומרים אותו בקול כמילה אחת."]],
+      [["How do you write בצבא הגנה לישראל (in the Israel Defense Forces) with the acronym?", "בצה״ל", ["ב״צה״ל", "בצ״הל", "צה״לב"], "A prefix letter such as ב, ל or ה joins the acronym directly, with no mark between them: בצה״ל, לדו״ח. The gershayim stay before the acronym's last letter."],
+        ["איך כותבים ״בצבא הגנה לישראל״ בראשי תיבות?", "בצה״ל", ["ב״צה״ל", "בצ״הל", "צה״לב"], "אות שימוש כמו ב, ל או ה מצטרפת לראשי התיבות ישירות, בלי סימן ביניהן: בצה״ל, לדו״ח. הגרשיים נשארים לפני האות האחרונה של ראשי התיבות."]],
+      [["Which of these acronyms is read aloud as a single word?", "צה״ל", ["אח״כ", "ע״י", "ת״א"], "צה״ל is said as one word, tsahal. אח״כ is read as אחר כך, ע״י as על ידי and ת״א as תל אביב: for these, the full words are said."],
+        ["אילו מראשי התיבות האלה קוראים בקול כמילה אחת?", "צה״ל", ["אח״כ", "ע״י", "ת״א"], "את צה״ל אומרים כמילה אחת. את אח״כ קוראים ״אחר כך״, את ע״י ״על ידי״ ואת ת״א ״תל אביב״: בהם אומרים את המילים המלאות."]],
+      [["The great Bible commentator רש״י is known by an acronym. Whose name is it?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י stands for Rabbi Shlomo Yitzchaki, who lived in France about 900 years ago and wrote a famous commentary on the Bible and the Talmud. Many great rabbis are known by acronyms, like רמב״ם."],
+        ["פרשן המקרא הגדול רש״י ידוע בראשי תיבות. של איזה שם?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י הוא רבי שלמה יצחקי, שחי בצרפת לפני כ־900 שנה וכתב פירוש מפורסם לתנ״ך ולתלמוד. חכמים רבים ידועים בראשי תיבות, כמו רמב״ם."]],
+      [["Which of these is one shortened word, not an acronym of several words?", "עמ׳", ["עו״ד", "ע״י", "ת״ז"], "עמ׳ is short for one word, עמוד (a page), so it takes a geresh. עו״ד (עורך דין), ע״י (על ידי) and ת״ז (תעודת זהות) come from two words each, so they take gershayim."],
+        ["איזו מהצורות האלה היא קיצור של מילה אחת, ולא ראשי תיבות של כמה מילים?", "עמ׳", ["עו״ד", "ע״י", "ת״ז"], "עמ׳ מקצר מילה אחת, ״עמוד״, ולכן בא אחריו גרש. עו״ד (עורך דין), ע״י (על ידי) ות״ז (תעודת זהות) באים כל אחד משתי מילים, ולכן יש בהם גרשיים."]],
+      [["An envelope says לכבוד גב׳ כהן. What does גב׳ stand for?", "גברת", ["גבוה", "גבעה", "גבר"], "גב׳ is the short form of גברת (Mrs. or Ms.), a title written before a woman's name; the geresh shows that the word was cut short."],
+        ["על מעטפה כתוב: לכבוד גב׳ כהן. מה פירוש גב׳?", "גברת", ["גבוה", "גבעה", "גבר"], "גב׳ הוא קיצור של ״גברת״, תואר שכותבים לפני שמה של אישה; הגרש מראה שהמילה קוצרה."]],
+    ],
+    n: [[33, ["The holiday ל״ג בעומר is named after a number written in letters. What number is ל״ג?", "", "ל stands for 30 and ג for 3, so ל״ג is 33: the holiday falls on the 33rd day of the Omer count."], ["החג ל״ג בעומר נקרא על שם מספר שכתוב באותיות. איזה מספר הוא ל״ג?", "", "ל היא 30 ו־ג היא 3, ולכן ל״ג הוא 33: החג חל ביום ה־33 של ספירת העומר."]]],
+  },
+  a: {
+    t: [
+      ["ט״ו and ט״ז", "the way 15 and 16 are written in letters, as 9 + 6 and 9 + 7, to avoid spelling a name of God", "ט״ו וט״ז", "הדרך לכתוב 15 ו־16 באותיות, כ־9 ועוד 6 ו־9 ועוד 7, כדי לא לכתוב צירוף שהוא שם של האל"],
+      ["Acronym turned word", "an acronym used so much that it takes endings like any word, as in צה״לי (of the army)", "ראשי תיבות שהפכו למילה", "צורה מקוצרת שמשתמשים בה כל כך הרבה שהיא מקבלת סיומות כמו כל מילה, כמו צה״לי"],
+      ["Ambiguous acronym", "an acronym with more than one meaning, so the sentence around it decides, like ע״ש", "ראשי תיבות דו־משמעיים", "צורה מקוצרת שיש לה יותר ממשמעות אחת, כך שהמשפט שסביבה מכריע, כמו ע״ש"],
+    ],
+    q: [
+      [["Why is 15 written in letters as ט״ו (9 + 6) and not as י״ה (10 + 5)?", "Because י and ה together spell a name of God", ["Because י״ה would be read as the number 105 instead", "Because ט״ו takes fewer pen strokes to write than י״ה", "Because the letter ה is never used to stand for a number"], "The letters י and ה form a name of God, so tradition writes 15 as ט״ו, 9 + 6, and 16 as ט״ז, 9 + 7, instead of י״ו. ה does stand for 5 elsewhere, as in כיתה ה׳."],
+        ["למה כותבים 15 באותיות ט״ו (9 ועוד 6) ולא י״ה (10 ועוד 5)?", "כי י ו־ה יחד יוצרות שם של האל", ["כי את י״ה היו קוראים כמספר 105", "כי את ט״ו כותבים בפחות קווים מאת י״ה", "כי האות ה לעולם אינה משמשת כמספר"], "האותיות י ו־ה יוצרות שם של האל, ולכן נהוג לכתוב 15 כ־ט״ו (9 ועוד 6) ו־16 כ־ט״ז (9 ועוד 7) במקום י״ו. ה משמשת בהחלט כמספר 5 במקומות אחרים, כמו בכיתה ה׳."]],
+      [["The verb דיווח (reported) was formed from the acronym דו״ח (דין וחשבון, a report). What does this show?", "An acronym's letters can serve as the root of a new verb", ["Every Hebrew verb was once an acronym of a few older words", "The gershayim of an acronym always turn into the letter ו", "Acronyms can turn into nouns but never into verbs"], "דו״ח, short for דין וחשבון, came to be felt as an ordinary word, and its letters ד־ו־ח were used as a root: דיווח (reported), לדווח (to report). This is one way acronyms become part of the language."],
+        ["הפועל ״דיווח״ נוצר מראשי התיבות דו״ח (דין וחשבון). מה זה מלמד?", "שאותיות של ראשי תיבות יכולות לשמש שורש של פועל חדש", ["שכל פועל בעברית היה פעם ראשי תיבות של מילים ישנות", "שהגרשיים של ראשי תיבות הופכים תמיד לאות ו", "שראשי תיבות יכולים להפוך לשם עצם אבל לא לפועל"], "את דו״ח, קיצור של ״דין וחשבון״, התחילו להרגיש כמילה רגילה, ומהאותיות ד־ו־ח נוצר שורש: דיווח, לדווח. זו אחת הדרכים שבהן ראשי תיבות נעשים חלק מהשפה."]],
+      [["The acronym ע״ש can stand for על שם (named after) or ערב שבת (Friday evening). What does it mean in בית ספר ע״ש ביאליק?", "על שם – it is named after the poet Bialik", ["ערב שבת – it is open only on Friday evenings", "עד שבוע – it was built in less than a week", "עם שירים – it teaches only Bialik's poems"], "A school is named after someone, so here ע״ש means על שם: the school named after Hayim Nahman Bialik, the national poet. In a notice about opening hours, the same letters may mean ערב שבת."],
+        ["ראשי התיבות ע״ש יכולים לציין ״על שם״ או ״ערב שבת״. מה פירושם בצירוף ״בית ספר ע״ש ביאליק״?", "על שם – בית הספר נקרא כך לכבוד ביאליק", ["ערב שבת – בית הספר פתוח רק בערבי שבת", "עד שבוע – בית הספר נבנה בפחות משבוע", "עם שירים – לומדים בו רק את שירי ביאליק"], "בית ספר נקרא על שם מישהו, ולכן כאן ע״ש פירושו ״על שם״: בית הספר שנקרא על שם המשורר הלאומי חיים נחמן ביאליק. בהודעה על שעות פתיחה אותן אותיות יכולות לציין ״ערב שבת״."]],
+      [["In the plural מנכ״לים, why do the gershayim stand before the ל and not before the final ם?", "They mark where the acronym itself ends, not where the word ends", ["Because gershayim are never written before a final letter like ם", "Because a plural ending must always be kept apart from the root", "Because in the plural the acronym is no longer a short form"], "The gershayim show where the acronym ends: מנכ״ל ends in ל, so the plural is מנכ״לים, and the adjective of צה״ל is צה״לי. A final letter can follow gershayim too, as in תנ״ך."],
+        ["ברבים מנכ״לים, למה הגרשיים באים לפני ה־ל ולא לפני ה־ם הסופית?", "כי הם מסמנים איפה נגמרים ראשי התיבות, ולא איפה נגמרת המילה", ["כי לעולם אין כותבים גרשיים לפני אות סופית כמו ם", "כי תמיד צריך להפריד את סיומת הרבים מן השורש", "כי ברבים ראשי התיבות כבר אינם צורה מקוצרת"], "הגרשיים מראים איפה נגמרים ראשי התיבות: מנכ״ל נגמר ב־ל, ולכן ברבים מנכ״לים, ושם התואר מצה״ל הוא צה״לי. גם אות סופית יכולה לבוא אחרי גרשיים, כמו בתנ״ך."]],
+      [["A note says הגענו לת״א אח״כ. What does it say?", "We reached Tel Aviv later on", ["We reached Tel Aviv with a brother", "We reached the station later on", "We left Tel Aviv later on"], "ל is a prefix (to), ת״א is תל אביב and אח״כ is אחר כך (afterwards). Read each acronym as its full words, and the note says: we reached Tel Aviv later on."],
+        ["בפתק כתוב: הגענו לת״א אח״כ. מה פירוש הדברים?", "הגענו לתל אביב אחר כך", ["הגענו לתל אביב עם אח", "הגענו לתחנה אחר כך", "יצאנו מתל אביב אחר כך"], "ל היא אות שימוש, ת״א הוא ״תל אביב״ ו־אח״כ הוא ״אחר כך״. כשקוראים כל צורה מקוצרת במילים המלאות, הפתק אומר: הגענו לתל אביב אחר כך."]],
+    ],
+    n: [[708, ["Israel was founded in the Hebrew year תש״ח. ת is 400, ש is 300 and ח is 8. What number do the letters make?", "", "400 + 300 + 8 = 708. The thousands are left out, so תש״ח is the year 5708, which began in the autumn of 1947 and included May 1948."], ["מדינת ישראל קמה בשנת תש״ח. ת היא 400, ש היא 300 ו־ח היא 8. איזה מספר יוצרות האותיות?", "", "400 ועוד 300 ועוד 8 הם 708. את האלפים לא כותבים, ולכן תש״ח היא שנת 5708, שהתחילה בסתיו 1947 וכללה את מאי 1948."]]],
+    s: [[["Put these numbers written in letters in order, from smallest to largest", "י״ב", "ט״ו", "כ״ג", "ל״ג", "מ״ח"], ["סדרו את המספרים הכתובים באותיות מהקטן לגדול", "י״ב", "ט״ו", "כ״ג", "ל״ג", "מ״ח"]]],
+  },
+};
+export default c;
