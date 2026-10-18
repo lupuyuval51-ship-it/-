@@ -1,15 +1,18 @@
 /**
- * The topic library's catalogue: what the picker shows (id, titles, one-line descriptions, category, ages). It is
- * small and may sit in the first chunk; the content of a topic is a separate module loaded only when it is picked
- * (`loaders.ts`). Every id listed here has content for all three levels — tests enforce it, and nothing is listed
- * before its content exists.
+ * The topic library's catalogue: what the picker shows (id, titles, one-line descriptions, category, ages): the original
+ * library below and the Plus and Pro collection (`catalog-plus-pro.ts`). Hundreds of rows, so it is kept out of the
+ * app's first chunk (the screens that list topics load it); the content of a topic is a separate module loaded only
+ * when it is picked (`loaders.ts`). Every id listed here has content for all three levels — tests enforce it, and
+ * nothing is listed before its content exists. Which plan opens which topic is decided in `premium.ts`.
  */
 import type { Difficulty } from "../spec/constants";
+import { PLUS_PRO_TOPICS } from "./catalog-plus-pro";
 import { TOPIC_CATEGORIES, type TopicCategory, type TopicEntry } from "./types";
 
 export { TOPIC_CATEGORIES, type TopicCategory, type TopicEntry };
 
-export const TOPICS: readonly TopicEntry[] = [
+/** The original library (each category's free topics come first; about a third is not free, see `premium.ts`). */
+const LIBRARY: readonly TopicEntry[] = [
   // ── math
   { id: "math-fractions", cat: "math", ages: [8, 13], en: ["Fractions", "Parts of a whole: numerators, denominators, equivalent fractions and fraction arithmetic."], he: ["שברים", "חלקים של שלם: מונה, מכנה, שברים שקולים וחשבון בשברים."] },
   { id: "math-percentages", cat: "math", ages: [10, 15], en: ["Percentages", "Percent as parts of a hundred, discounts, increases and reverse percentages."], he: ["אחוזים", "אחוז כחלק ממאה, הנחות, עליות ומציאת הכמות המקורית."] },
@@ -232,6 +235,9 @@ export const TOPICS: readonly TopicEntry[] = [
   { id: "course-fractions-8", cat: "math", ages: [10, 12], course: "fractions-5-6", en: ["Chapter 8: Calculating with decimals", "Adding, subtracting, multiplying and dividing decimals, and writing fractions as decimals."], he: ["פרק 8: חישובים בעשרוניים", "חיבור, חיסור, כפל וחילוק בעשרוניים, וכתיבת שברים כמספרים עשרוניים."] },
   { id: "course-fractions-9", cat: "math", ages: [10, 12], course: "fractions-5-6", en: ["Chapter 9: Percentages", "Percent of a number, discounts, price rises and finding the original price."], he: ["פרק 9: אחוזים", "אחוז ממספר, הנחות, התייקרויות ומציאת המחיר המקורי."] },
 ];
+
+/** Every topic, the original library first (so a category lists its free topics before the collection's). */
+export const TOPICS: readonly TopicEntry[] = [...LIBRARY, ...PLUS_PRO_TOPICS];
 
 /** Every level exists for every topic. */
 export const TOPIC_LEVELS: readonly Difficulty[] = ["beginner", "intermediate", "advanced"];

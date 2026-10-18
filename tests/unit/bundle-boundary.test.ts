@@ -81,7 +81,7 @@ describe("bundle boundaries", () => {
     }
     // the Android app's first chunk does not even reach the topic builder (only the create screen, lazily, does)
     expect(staticGraph("mobile/src/App.tsx").files.has("src/lib/game/topics/build.ts")).toBe(false);
-    // nor the catalogue (710 rows of titles and descriptions): the screens that list topics load it
+    // nor the catalogue (470 rows of titles and descriptions): the screens that list topics load it
     for (const entry of ["mobile/src/App.tsx", "mobile/src/main.tsx"]) {
       const { files } = staticGraph(entry);
       expect(["src/lib/game/topics/catalog.ts", "src/lib/game/topics/catalog-plus-pro.ts"].filter((f) => files.has(f)), entry).toEqual([]);

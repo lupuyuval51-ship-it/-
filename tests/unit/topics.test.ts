@@ -6,6 +6,7 @@ import { playThrough } from "@/lib/game/world/flow";
 import { findOutliers, simulate } from "@/lib/game/sim-balance/run";
 import type { CorpusItem } from "@/lib/game/sim-balance/corpus";
 import { TOPICS, TOPIC_CATEGORIES, findTopic, searchTopics } from "@/lib/game/topics/catalog";
+import { PLUS_PRO_TOPICS } from "@/lib/game/topics/catalog-plus-pro";
 import { TOPIC_LOADERS, loadTopicContent } from "@/lib/game/topics/loaders";
 import { numberValue, rangeHint } from "@/lib/game/topics/build";
 import { translator } from "@/lib/game/demo/builders";
@@ -14,14 +15,15 @@ import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
 
 /**
  * The topic library: the catalogue, the content of every topic and every game it builds. Kept in step with the real
- * number of topics that exist (the catalogue never lists a topic without content).
+ * number of topics that exist (the catalogue never lists a topic without content): the original library (210, of them
+ * 9 course chapters) and the Plus and Pro collection (260). The heavy checks run one category at a time.
  */
-const EXPECTED_TOPICS = 210;
+const EXPECTED_TOPICS = 470;
 
 const contents = new Map<string, TopicContent>();
 beforeAll(async () => {
   for (const t of TOPICS) contents.set(t.id, (await loadTopicContent(t.id))!);
-});
+}, 120_000);
 
 const HEBREW = /\p{Script=Hebrew}/u;
 const LETTER = /\p{L}/u;
@@ -151,8 +153,8 @@ describe("topic content hygiene", () => {
     }
   });
 
-  it("terms: a meaning never names its own term, and no two terms or meanings repeat in a topic", () => {
-    for (const t of TOPICS) {
+  for (const cat of TOPIC_CATEGORIES) it(`terms: a meaning never names its own term, and no two terms or meanings repeat in a topic (${cat})`, () => {
+    for (const t of TOPICS.filter((x) => x.cat === cat)) {
       const c = contents.get(t.id)!;
       const all = LEVELS.flatMap((l) => c[l].t ?? []);
       for (const [en, enM, he, heM] of all) {
@@ -257,12 +259,64 @@ describe("answer length is not a tell", () => {
     expect(all).toBeGreaterThan(3000);
     expect(longest / all).toBeLessThanOrEqual(0.52);
   });
+
+  it("in the Plus and Pro collection it is at most 40 %, in each language", () => {
+    for (const lang of [0, 1] as const) {
+      let all = 0, longest = 0;
+      for (const t of PLUS_PRO_TOPICS) for (const lv of LEVELS) for (const pair of contents.get(t.id)![lv].q ?? []) {
+        const [, answer, wrong] = pair[lang];
+        all++;
+        if (answer.length > Math.max(...wrong.map((w) => w.length))) longest++;
+      }
+      expect(all).toBeGreaterThan(PLUS_PRO_TOPICS.length * 12);
+      expect(longest / all, lang ? "he" : "en").toBeLessThanOrEqual(0.4);
+    }
+  });
+});
+
+describe("the Plus and Pro collection", () => {
+  it("has 260 topics, 20 to 30 in every category, all of them listed in the catalogue", () => {
+    expect(PLUS_PRO_TOPICS.length).toBe(260);
+    for (const cat of TOPIC_CATEGORIES) {
+      const n = PLUS_PRO_TOPICS.filter((t) => t.cat === cat).length;
+      expect(n, cat).toBeGreaterThanOrEqual(20);
+      expect(n, cat).toBeLessThanOrEqual(30);
+    }
+    for (const t of PLUS_PRO_TOPICS) expect(findTopic(t.id), t.id).toBe(t);
+  });
+
+  it("every level has 8+ items, 4+ of them questions, numbers or orderings, and every answer is explained (40+ characters)", () => {
+    for (const t of PLUS_PRO_TOPICS) {
+      const c = contents.get(t.id)!;
+      for (const lv of LEVELS) {
+        const l = c[lv];
+        const items = (l.q?.length ?? 0) + (l.n?.length ?? 0) + (l.s?.length ?? 0);
+        expect((l.t?.length ?? 0) + items, `${t.id}/${lv}`).toBeGreaterThanOrEqual(8);
+        expect(items, `${t.id}/${lv}`).toBeGreaterThanOrEqual(4);
+        for (const pair of l.q ?? []) for (const [q, , , explanation] of pair) expect(explanation.length, `${t.id}/${lv}: ${q}`).toBeGreaterThanOrEqual(40);
+        for (const [, en, he] of l.n ?? []) for (const [q, , explanation] of [en, he]) expect(explanation.length, `${t.id}/${lv}: ${q}`).toBeGreaterThanOrEqual(40);
+      }
+    }
+  });
+
+  it("Hebrew text never uses < or > (a right-to-left line draws them mirrored)", () => {
+    for (const t of PLUS_PRO_TOPICS) {
+      const c = contents.get(t.id)!;
+      const he = LEVELS.flatMap((lv) => [
+        ...(c[lv].t ?? []).flatMap((x) => [x[2], x[3]]),
+        ...(c[lv].q ?? []).flatMap(([, h]) => [h[0], h[1], ...h[2], h[3], h[4] ?? ""]),
+        ...(c[lv].n ?? []).flatMap(([, , h]) => [h[0], h[2], h[3] ?? ""]),
+        ...(c[lv].s ?? []).flatMap(([, h]) => h),
+      ]);
+      for (const s of he) expect(/[<>]/.test(s), `${t.id}: ${s}`).toBe(false);
+    }
+  });
 });
 
 describe("every topic builds a valid, finishable game at every level", () => {
-  it("FAST in both languages, FULL in one language per level (alternating), at tier A", () => {
+  for (const cat of TOPIC_CATEGORIES) it(`FAST in both languages, FULL in one language per level (alternating), at tier A (${cat})`, () => {
     let n = 0;
-    for (const t of TOPICS) {
+    for (const t of TOPICS.filter((x) => x.cat === cat)) {
       const c = contents.get(t.id)!;
       DIFFICULTIES.forEach((d, di) => {
         for (const lang of ["en", "he"] as const) {
@@ -285,8 +339,8 @@ describe("every topic builds a valid, finishable game at every level", () => {
     }
   });
 
-  it("the tier clamp holds for B and C, and a phone request is fitted", () => {
-    for (const t of TOPICS) {
+  for (const cat of TOPIC_CATEGORIES) it(`the tier clamp holds for B and C, and a phone request is fitted (${cat})`, () => {
+    for (const t of TOPICS.filter((x) => x.cat === cat)) {
       const c = contents.get(t.id)!;
       for (const d of DIFFICULTIES) {
         const b = generateOffline(request(t.id, d, "he", "FULL", "platformer"), new Date(0), "B", c).spec;

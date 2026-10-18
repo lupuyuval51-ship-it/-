@@ -253,13 +253,17 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
 ### Topic library: ready topics, no AI
 
 The create form (website and Android app) has a second way to build a game: **pick a topic from the topic library** and a level. The library
-currently holds **210 topics** (9 of them the chapters of a course, below) in ten categories — maths, science, history and civics, geography, languages, computing,
-money and economy, health and safety, arts and literature, thinking and study skills. Each topic is curated, fact-checked content written natively
+currently holds **470 topics** in ten categories — maths, science, history and civics, geography, languages, computing,
+money and economy, health and safety, arts and literature, thinking and study skills: the original library of 210 (9 of them the chapters of a course,
+below; about a third of every category is not free) and the **Plus and Pro collection** of 260 (20 to 30 per category, none free: half need Plus or Pro,
+half, the more advanced ones, need Pro: Free opens 146 topics, Plus 320, Pro all 470; with plans off everybody plays everything, and the Android app opens
+everything until Google Play Billing exists). Each topic is curated, fact-checked content written natively
 in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
 (reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
 AI provider is configured — and adapts while playing (an easier two-option version after two misses, a harder version with more options after a streak).
 
-* **Code:** `src/lib/game/topics/` — `catalog.ts` (the small catalogue the picker shows: id, he/en title and description, category, ages),
+* **Code:** `src/lib/game/topics/` — `catalog.ts` and `catalog-plus-pro.ts` (the catalogue the picker shows: id, he/en title and description,
+  category, ages; kept out of the app's first chunk), `premium.ts` (which tier each topic is: free, Plus or Pro),
   `loaders.ts` (one literal dynamic `import()` per topic, so every topic is its own chunk and only the picked one is loaded),
   `content/<id>.ts` (the content), `build.ts` (content → raw game spec), `types.ts` (the compact content format).
 * **Request:** `topicId` in the generation request (`src/lib/schemas/generation.ts`) — only a key into the catalogue, never a path; not allowed
@@ -272,7 +276,9 @@ AI provider is configured — and adapts while playing (an easier two-option ver
   (create a new game at the next level instead).
 * **Adding a topic:** write `src/lib/game/topics/content/<id>.ts` in the format documented in `types.ts` (per level: `t` terms as
   [en term, en meaning, he term, he meaning] whose meaning never names the term, `q` questions with 1–4 wrong options and an explanation, optional
-  `n` numeric items and `s` orderings), add one row to `TOPICS` in `catalog.ts` and one line to `TOPIC_LOADERS` in `loaders.ts`, raise
+  `n` numeric items and `s` orderings), check it with `npx tsx --tsconfig tsconfig.json scripts/check-topics.ts <id>` (with `--plan <file>` for
+  a topic not yet in the catalogue: the stricter bar of the collection, and every level × language built and played as a game), add one row to
+  `catalog.ts` (or `catalog-plus-pro.ts`, with its tier in `premium.ts`) and one line to `TOPIC_LOADERS` in `loaders.ts`, raise
   `EXPECTED_TOPICS` in `tests/unit/topics.test.ts` and run it. The test builds every topic × level × language (FAST, and FULL alternating languages)
   through the real offline path and checks validation, finishability, unique and placed ids, the tier-B/C clamp, content hygiene (Hebrew is
   Hebrew, no answer among the wrong options, no repeated questions, numeric answers present in their explanations) and runs the balance bots on a
