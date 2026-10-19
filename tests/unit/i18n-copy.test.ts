@@ -113,3 +113,13 @@ describe("no demo games", () => {
     }
   });
 });
+
+describe("no deadline talk", () => {
+  it("no interface string in any language announces a deadline (the product never says when something is due)", () => {
+    for (const locale of ["en", "he", "es"] as const) {
+      for (const [key, value] of Object.entries(DICTIONARIES[locale])) {
+        expect(/דדליין|\bdeadline\b|fecha l[ií]mite/i.test(String(value)), `${locale}:${key}`).toBe(false);
+      }
+    }
+  });
+});
