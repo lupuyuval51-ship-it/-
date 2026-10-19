@@ -3,7 +3,7 @@
  * three-line sketch to a long chapter, with and without terms / steps / Q&A / numbers) and every demo template.
  */
 import { generateOffline } from "../../offline/generate";
-import { buildDemoExtension } from "../demo";
+import { sampleBuilder } from "../sample-builder";
 import { MaterialError, buildMaterialExtension } from "../material/build";
 import { mergeExtension } from "../spec/extension";
 import { extensionSchema } from "../spec/schema";
@@ -321,7 +321,7 @@ export function engineCorpus(): CorpusItem[] {
   return out;
 }
 
-/** Demo templates: each pack x game type x mode x language. */
+/** Sample games (registered by the test suites / the balance script, never by the product): each pack x game type x mode x language. */
 export function demoCorpus(): CorpusItem[] {
   const out: CorpusItem[] = [];
   for (const lang of ["en", "he"] as const) {
@@ -367,7 +367,7 @@ export function extendedCorpus(): CorpusItem[] {
       let d = generateOffline({ mode: "FULL", subject, learningGoal: subject, difficulty: "intermediate", gameType: "adventure", contentLanguage: lang }).spec;
       for (let i = 0; i < 4; i++) {
         const req = generationRequestSchema.parse({ mode: "EXTEND", subject, learningGoal: subject, difficulty: "intermediate", gameType: "adventure", contentLanguage: lang, targetGameId: "g" });
-        const next = buildDemoExtension(d, req);
+        const next = sampleBuilder()?.extension(d, req) ?? null;
         if (!next) break;
         const merged = mergeExtension(d, extensionSchema.parse(next.ext));
         const res = validateGameSpec(merged.raw, { alignGameType: d.meta.gameType });

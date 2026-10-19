@@ -9,7 +9,7 @@ import { TOPICS, TOPIC_CATEGORIES, findTopic, searchTopics } from "@/lib/game/to
 import { PLUS_PRO_TOPICS } from "@/lib/game/topics/catalog-plus-pro";
 import { TOPIC_LOADERS, loadTopicContent } from "@/lib/game/topics/loaders";
 import { numberValue, rangeHint } from "@/lib/game/topics/build";
-import { translator } from "@/lib/game/demo/builders";
+import { translator } from "@/lib/game/builders";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import type { LevelContent, TopicContent } from "@/lib/game/topics/types";
 

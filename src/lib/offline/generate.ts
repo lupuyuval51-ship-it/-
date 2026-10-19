@@ -1,8 +1,8 @@
 /**
- * New games on the device, without a server or an AI: the study engine (learner's own material) or a demo template.
+ * New games on the device, without a server or an AI: the topic library or the study engine (learner's own material). Nothing is built from a subject alone.
  * Same validation as the server pipeline: everything passes `validateGameSpec` before it is stored or played.
  */
-import { buildDemoSpec } from "../game/demo";
+import { sampleBuilder } from "../game/sample-builder";
 import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { getOfflinePlan } from "./entitlement";
 import { MaterialError, buildMaterialSpec } from "../game/material/build";
@@ -69,8 +69,10 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
       notes = built.notes;
       engine = true;
     } else {
-      const built = buildDemoSpec(req);
-      raw = built.raw as Record<string, unknown>;
+      const sample = sampleBuilder();
+      if (!sample) throw new OfflineGenerationError("INVALID_REQUEST", "Add your own study material or pick a topic from the topic library.");
+      const built = sample.spec(req);
+      raw = built.raw;
       notes = built.notes;
       templateId = built.templateId;
     }
@@ -93,7 +95,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
     ? { kind: "catalog", provider: TOPIC_PROVIDER, model: TOPIC_MODEL, templateId, mode: req.mode, generatedAt: now.toISOString() }
     : engine
       ? { kind: "engine", provider: "study-engine", model: "rule-based", mode: req.mode, generatedAt: now.toISOString() }
-      : { kind: "demo", provider: "demo", model: "predefined-templates", templateId, mode: req.mode, generatedAt: now.toISOString() };
+      : { kind: "demo", provider: "demo", model: "sample", templateId, mode: req.mode, generatedAt: now.toISOString() }; // only the test suites register samples
   return { spec, warnings: [...notes, ...res.warnings, ...(boss.added ? boss.notes : []), ...tiered.notes, ...fitted.notes] };
 }
 

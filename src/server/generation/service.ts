@@ -8,7 +8,9 @@ import { resolveEntitlement } from "../allowance/entitlement";
 import { findPeriod, leftPerLevel } from "../allowance/periods";
 import { levelQuota, levelsForPlan } from "../games/feature-tier";
 import { db } from "../db";
-import { demoTemplatesOn, getEnv } from "../env";
+import { getEnv } from "../env";
+import "@/lib/game/sample-autoregister";
+import { sampleBuilder } from "@/lib/game/sample-builder";
 import { ApiError, Errors } from "../http/errors";
 import { planOpeningTopic, topicOpenFor } from "@/lib/game/topics/premium";
 import { runInBackground } from "../http/background";
@@ -29,12 +31,12 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
   const backend = getBackend();
   // A game from the topic library is built without any model, so it does not need an AI backend.
   if (backend.type === "unavailable" && !body.request.topicId) {
-    throw Errors.unavailable("AI_UNAVAILABLE", `AI generation is not available: ${backend.reason}. Ask the administrator to configure a provider or use demo mode.`);
+    throw Errors.unavailable("AI_UNAVAILABLE", `AI generation is not available: ${backend.reason}. Ask the administrator to configure a provider or add your own study material or use the topic library.`);
   }
 
-  // Without an AI provider a new game comes from the learner's own material or from the topic library; the demo templates
-  // (a subject alone) are switched off unless DEMO_TEMPLATES is on. Refused before anything is reserved.
-  if (backend.info.kind === "demo" && body.request.mode !== "EXTEND" && !body.request.material && !body.request.topicId && !demoTemplatesOn()) {
+  // Without an AI provider a new game comes from the learner's own material or from the topic library; a subject alone
+  // builds nothing. Refused before anything is reserved.
+  if (backend.info.kind === "none" && body.request.mode !== "EXTEND" && !body.request.material && !body.request.topicId && !sampleBuilder()) {
     throw new ApiError(422, "MATERIAL_REQUIRED", "No AI provider is configured: add your own study material, or pick a topic from the topic library.");
   }
 
@@ -56,17 +58,17 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
     const game = await db.game.findFirst({ where: { id: request.targetGameId!, ownerId: userId, deletedAt: null } });
     if (!game) throw Errors.notFound("Game not found.");
     // Games built from the learner's own material are extended by the same study engine, which runs when no AI provider is configured.
-    const compatible = game.generatorKind === backend.info.kind || (game.generatorKind === "engine" && backend.info.kind === "demo");
+    const compatible = game.generatorKind === backend.info.kind || (game.generatorKind === "engine" && backend.info.kind === "none") || (game.generatorKind === "demo" && sampleBuilder() !== null);
     if (!compatible) {
       throw Errors.conflict(
         "EXTEND_BACKEND_MISMATCH",
         game.generatorKind === "catalog"
           ? "This game comes from the topic library and cannot be extended. Create a new game from the library instead — for example at the next level."
           : game.generatorKind === "demo"
-          ? "This game was created from demo templates. It can only be extended while the server is in demo mode."
+          ? "This game was made from an older ready-made template and cannot be extended. Create a new game instead."
           : game.generatorKind === "engine"
             ? "This game was built from your own study material. It can only be extended with more material while no AI provider is configured."
-            : "This game was AI-generated. It cannot be extended with demo templates — configure the AI provider first.",
+            : "This game was AI-generated. It can only be extended while an AI provider is configured.",
       );
     }
     // The extended game's identity is authoritative; the client may not change its subject, level or language.

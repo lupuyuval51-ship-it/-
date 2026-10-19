@@ -181,7 +181,7 @@ export type CreateProblem =
   | { kind: "required" }
   | { kind: "tier"; mode: boolean; gameType: boolean }
   | { kind: "material"; /** Specific message from the study engine, in the game's language. */ detail: string | null }
-  /** "My own notes" with no notes, while a subject alone no longer makes a demo game (`features.ts`). */
+  /** "My own notes" with no notes, a subject alone builds nothing. */
   | { kind: "notes" }
   | { kind: "storage" }
   | { kind: "generic" };

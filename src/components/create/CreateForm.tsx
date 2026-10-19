@@ -16,8 +16,8 @@ import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 import { leftText } from "@/components/allowance/quota";
 
 export interface CreateFormProps {
-  /** `templates`: without AI, whether a subject alone still makes a demo-template game (else material or a topic is needed). */
-  backend: { kind: "ai" | "demo" | "unavailable"; provider: string; label: string; reason?: string; templates?: boolean };
+  /** `none`: no AI provider, so a game needs the learner's own material or a topic from the library (`subjectOnly`: test suites only). */
+  backend: { kind: "ai" | "none" | "unavailable"; provider: string; label: string; reason?: string; subjectOnly?: boolean };
   allowance: { periodEnd: string; plan: string; activeJobId: string | null };
   /** Saved games and their level (an extension keeps the level and uses one game of that level's quota). */
   games: { id: string; title: string; subject: string; generatorKind: string; level: Level }[];
@@ -96,14 +96,14 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   const extend = mode === "EXTEND";
   const selected = games.find((g) => g.id === gameId);
   const engineGame = selected?.generatorKind === "engine";
-  const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "demo");
+  const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "none") && !(selected.generatorKind === "demo" && backend.subjectOnly);
   const [material, setMaterial] = useState("");
   /** "library": a topic from the curated topic library (built without AI); "own": the learner's own subject. */
   const [source, setSource] = useState<"own" | "library">("own");
   const [topicId, setTopicId] = useState<string | null>(null);
   const library = !extend && source === "library";
-  // no AI and the demo templates switched off: a game comes from the learner's material or from the topic library
-  const noTemplates = backend.kind === "demo" && backend.templates === false;
+  // no AI: a game comes from the learner's material or from the topic library
+  const noTemplates = backend.kind === "none" && !backend.subjectOnly;
   const [fileNote, setFileNote] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   // every level has its own quota: a level is usable while it has a game left (an unlimited level always has one)
   const hasLeft = (o: LevelOption) => o.allowed && (o.remaining === null || o.remaining > 0);
@@ -268,7 +268,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   }
 
   const materialField = (
-    <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : noTemplates ? t("create.material.hint.engine") : t("create.material.hint.demo")}>
+    <Field label={t("create.material")} htmlFor="material" error={fieldErrors.material} hint={backend.kind === "ai" ? t("create.material.hint.ai") : t("create.material.hint.engine")}>
       <Textarea
         id="material" name="material" dir="auto" rows={8} maxLength={INPUT_LIMITS.materialMax} placeholder={t("create.material.placeholder")} data-testid="create-material"
         value={material} onChange={(e) => setMaterial(e.target.value)}
@@ -281,15 +281,15 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
         <span aria-live="off">{t("create.material.count", { n: material.length, max: INPUT_LIMITS.materialMax })}</span>
       </span>
       {fileNote && <span className={cx("mt-1 block text-xs", fileNote.tone === "error" ? "text-rose" : "text-muted")} data-testid="material-file-note">{fileNote.text}</span>}
-      {backend.kind === "demo" && <div className="mt-2"><MaterialPreview material={material} full={mode === "FULL"} /></div>}
+      {backend.kind === "none" && <div className="mt-2"><MaterialPreview material={material} full={mode === "FULL"} /></div>}
     </Field>
   );
 
   return (
     <form ref={formRef} onSubmit={submit} className="space-y-6" noValidate data-testid="create-form" data-hydrated={hydrated ? "1" : "0"}>
-      <Alert tone={backend.kind === "demo" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
+      <Alert tone={backend.kind === "none" ? "warn" : backend.kind === "unavailable" ? "error" : "info"} data-testid="provider-banner" data-provider-kind={backend.kind}>
         {backend.kind === "ai" && t("create.provider.ai")}
-        {backend.kind === "demo" && (noTemplates ? t("create.provider.engine") : t("create.provider.demo"))}
+        {backend.kind === "none" && t("create.provider.engine")}
         {backend.kind === "unavailable" && t("create.provider.unavailable", { reason: backend.reason ?? "" })}
       </Alert>
 
@@ -428,7 +428,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
           <Field label={t("create.subject")} htmlFor="subject" error={fieldErrors.subject} required>
             <Input id="subject" name="subject" maxLength={INPUT_LIMITS.subjectMax} placeholder={t("create.subject.placeholder")} data-testid="create-subject" autoComplete="off" />
           </Field>
-          {/* example subjects only make sense when a subject alone can make a game (AI, or the demo templates) */}
+          {/* example subjects only make sense when a subject alone can make a game (AI only) */}
           {!noTemplates && <div role="group" aria-labelledby={examplesId} className="-mt-1 flex flex-wrap items-center gap-2" data-testid="create-examples">
             <span id={examplesId} className="text-xs text-muted">{t("create.examples")}</span>
             {EXAMPLES.map((n) => (
@@ -450,7 +450,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
             </Field>
             <Field label={t("create.language")} htmlFor="contentLanguage" hint={t("create.language.hint")}>
               <Select id="contentLanguage" name="contentLanguage" defaultValue={locale} data-testid="create-language">
-                {(backend.kind === "demo" || library ? CONTENT_LANGUAGES.filter((l) => l === "he" || l === "en") : CONTENT_LANGUAGES).map((l) => <option key={l} value={l}>{NATIVE_LANG[l]}</option>)}
+                {(backend.kind === "none" || library ? CONTENT_LANGUAGES.filter((l) => l === "he" || l === "en") : CONTENT_LANGUAGES).map((l) => <option key={l} value={l}>{NATIVE_LANG[l]}</option>)}
               </Select>
             </Field>
           </div>

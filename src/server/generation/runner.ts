@@ -29,8 +29,8 @@ function specWithGenerator(out: PipelineOutput, backend: GenerationBackend, mode
     return spec;
   }
   spec.meta.generator = {
-    kind: out.catalog ? "catalog" : out.engine ? "engine" : backend.info.kind,
-    provider: out.catalog ? TOPIC_PROVIDER : out.engine ? "study-engine" : backend.info.id,
+    kind: out.catalog ? "catalog" : out.engine ? "engine" : out.sample ? "demo" : backend.info.kind === "none" ? "engine" : backend.info.kind,
+    provider: out.catalog ? TOPIC_PROVIDER : out.engine ? "study-engine" : out.sample ? "demo" : backend.info.id,
     model: out.model.slice(0, 80),
     templateId: out.templateId,
     mode,
@@ -100,10 +100,10 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
       base = { id: game.id, revision: game.revision, spec: game.spec as unknown as GameSpec };
     }
     // Without an AI provider, learner material (or extending a material game) is handled by the rule-based study engine.
-    const engine = backend.type === "templates" && (request.mode === "EXTEND" ? base?.spec.meta.generator?.kind === "engine" : Boolean(request.material));
+    const engine = backend.type === "none" && (request.mode === "EXTEND" ? base?.spec.meta.generator?.kind === "engine" : Boolean(request.material));
     await updateJobProgress(jobId, catalog
       ? { providerId: TOPIC_PROVIDER, model: TOPIC_MODEL, stage: "starting" }
-      : engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.info.id, model: backend.info.model, stage: "starting" });
+      : engine ? { providerId: "study-engine", model: "rule-based", stage: "starting" } : { providerId: backend.type === "none" ? "demo" : backend.info.id, model: backend.type === "none" ? "sample" : backend.info.model, stage: "starting" }); // "none" reaches here only for a registered test sample
 
     // Games saved before tiers existed count as tier A (they keep everything they have).
     const tier = request.mode === "EXTEND" && base ? maxTier(job.featureTier, base.spec.meta.featureTier ?? "A") : job.featureTier;

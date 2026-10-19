@@ -31,8 +31,12 @@ const securityHeaders = [
   ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
 ];
 
+// Only the end-to-end build registers the sample games (tests/support); the product build keeps the empty module.
+const samples = process.env.E2E_SAMPLES === "1" ? "./tests/support/register-samples.ts" : null;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(samples ? { turbopack: { resolveAlias: { "@/lib/game/sample-autoregister": samples } } } : {}),
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

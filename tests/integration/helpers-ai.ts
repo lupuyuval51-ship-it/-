@@ -1,4 +1,4 @@
-import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoExtension, buildDemoSpec } from "../support/samples";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { providerError } from "@/server/ai/errors";
 import type { AiRequest, AiResponse, LlmBackend } from "@/server/ai/types";
@@ -60,7 +60,7 @@ import { createGeneration } from "@/server/generation/service";
 import { runGenerationJob } from "@/server/generation/runner";
 import { randomUUID } from "node:crypto";
 
-const DEMO_BACKEND = { type: "templates" as const, info: { id: "demo", kind: "demo" as const, label: "Demo templates (not AI)", model: "predefined-templates" } };
+const DEMO_BACKEND = { type: "none" as const, info: { id: "none", kind: "none" as const, label: "No AI provider", model: "n/a" } };
 
 /** Create a real, persisted demo game for a user through the production pipeline. */
 export async function makeGame(userId: string, over: Partial<GenerationRequest> = {}) {

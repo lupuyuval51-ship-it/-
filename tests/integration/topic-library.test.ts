@@ -19,7 +19,7 @@ import { PREMIUM_TOPIC_IDS, PRO_ONLY_TOPIC_IDS } from "@/lib/game/topics/premium
 afterAll(disconnectDb);
 afterEach(() => setBackendForTests(null));
 
-const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "demo", label: "Demo templates (not AI)", model: "predefined-templates" } };
+const DEMO: GenerationBackend = { type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } };
 const topic = TOPICS[0]!;
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "whatever the client sent", learningGoal: "ignored", difficulty: "beginner", gameType: "adventure", contentLanguage: "he", topicId: topic.id, ...over,

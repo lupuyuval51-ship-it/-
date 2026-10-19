@@ -8,7 +8,7 @@
  * Honest provenance: the result is labelled "Topic library (not AI)"; nothing here is presented as AI output.
  */
 import { SPEC_LIMITS, type Environment, type SubjectCategory, type TimeOfDay } from "../spec/constants";
-import { challengeStation, choice, loreStation, match, npc, numeric, sequence, translator, type Lang, type Tr } from "../demo/builders";
+import { challengeStation, choice, loreStation, match, npc, numeric, sequence, translator, type Lang, type Tr } from "../builders";
 import { clip, distinctStart, startHintText } from "../material/text";
 import { hashSeed, mulberry32 } from "../util/prng";
 import type { GenerationRequest } from "@/lib/schemas/generation";

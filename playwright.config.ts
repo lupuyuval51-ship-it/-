@@ -35,11 +35,12 @@ export default defineConfig({
       APP_URL: BASE,
       DATABASE_URL: DB,
       TRUST_PROXY: "true",
-      AI_PROVIDER: "demo",
+      AI_PROVIDER: "none",
+      // the build registers the sample games the browser suites play (next.config.ts); the product build never does
+      E2E_SAMPLES: "1",
       PLANS_ENABLED: "true",
-      // the display switches are on in the suites (tests/integration/display-switches.test.ts covers them off)
+      // the display switch is on in the suites (tests/integration/display-switches.test.ts covers them off)
       GAME_EDITING: "true",
-      DEMO_TEMPLATES: "true",
       PAYMENTS_MODE: "dev",
       ENABLE_TEST_HOOKS: "true",
       NODE_ENV: "production",

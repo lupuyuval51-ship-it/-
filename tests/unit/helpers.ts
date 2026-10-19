@@ -2,7 +2,7 @@ import { revealSolution, toPublicAnswer, type Answer } from "@/lib/game/challeng
 import { GAME_TYPES, type GameType } from "@/lib/game/spec/constants";
 import type { Challenge, GameSpec } from "@/lib/game/spec/schema";
 import { validateGameSpec } from "@/lib/game/spec/validate";
-import { buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoSpec } from "../support/samples";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 
 export function request(over: Partial<GenerationRequest> = {}): GenerationRequest {

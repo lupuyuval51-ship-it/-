@@ -3,7 +3,7 @@ import { apiPost, createGameViaApi, expectNoHorizontalOverflow, registerViaApi, 
 import { setPlan } from "./db";
 
 /**
- * The AI robot and version history on the game page. The E2E server runs the labelled demo templates (no model),
+ * The AI robot and version history on the game page. The E2E build registers sample games (no model),
  * so these tests cover what a person sees per plan; the edit itself, quota and restore are covered against a
  * scripted model in tests/integration/ai-edit.test.ts.
  */

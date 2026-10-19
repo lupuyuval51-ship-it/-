@@ -14,7 +14,7 @@ turns it into a 3D world, and every answer, score and result is computed **on th
 > from the build environment because no credentials exist there: live AI generation and live Stripe billing.
 > They are implemented against the vendors' official SDKs, covered by mock-based tests, and listed precisely in
 > [What needs your credentials](#what-needs-your-credentials). Until you configure them the app runs in clearly
-> labelled **demo mode** and **payments disabled/simulated** mode — it never pretends otherwise.
+> labelled **no-AI mode** (topic library and your own material only) and **payments disabled/simulated** mode — it never pretends otherwise.
 
 ---
 
@@ -54,9 +54,7 @@ npm run db:migrate              # apply the migrations to the dev database (DATA
 npm run dev                     # http://localhost:3000
 ```
 
-Open the app, register, and create a game. With no AI key configured you get the **demo provider**: hand-written
-templates (programming, maths, science, ancient history, Spanish) in Hebrew and English. Every game made from them is
-labelled **“Demo template”** and the create screen says so before you press the button.
+Open the app, register, and create a game. With no AI key configured, games come from the **topic library** (470 curated topics, three levels each) or from **your own material** (the study engine); a subject alone builds nothing, and the create screen says so before you press the button.
 
 Useful commands:
 
@@ -91,14 +89,13 @@ deliberately **no `NEXT_PUBLIC_*` variables**: nothing secret can reach the brow
 | `TRUST_PROXY` | `false` | Set `true` **only** behind a proxy you control. Then the client IP is read from `X-Forwarded-For` (or `X-Real-IP`). Otherwise rate limiting uses one shared bucket. |
 | `TRUSTED_PROXY_HOPS` | `1` | How many proxies sit in front of the app (Cloudflare + nginx = 2). Every proxy **appends** the address it saw, so the client IP is the entry this many places from the **right**; the left end is attacker-controlled. A proxy that overwrites the header (Vercel) is 1. |
 | `ANSWER_SEED_SECRET` | derived from `DATABASE_URL` | At least 16 characters. Secret behind the opaque answer ids players see in match / sequence / choice questions, so the ids do not give the answer away. Keep it stable (changing it only affects questions currently open). |
-| `AI_PROVIDER` | `auto` | `auto` (real provider if a key is set, else demo) · `anthropic` · `openai` · `demo`. |
+| `AI_PROVIDER` | `auto` | `auto` (real provider if a key is set, else no AI) · `anthropic` · `openai` · `none`. |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_REFUSAL_FALLBACK` | – / `claude-opus-5-5` / `true` | Anthropic Messages API. |
 | `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | – / OpenAI / `gpt-4.1` | Any OpenAI-compatible chat-completions endpoint. |
 | `AI_CALL_TIMEOUT_MS`, `AI_JOB_DEADLINE_MS` | `240000`, `600000` | Per-call timeout (1 000 – 600 000 ms) and whole-job deadline (5 000 – 1 800 000 ms). |
 | `PLANS_ENABLED` | `false` | `true` shows Free/Plus/Pro, the pricing page and checkout. `false` (the launch setting): no plan is shown, checkout and `/pricing` are gone, everybody gets the full product with Pro's quotas per level and calendar month as fair use. The plan code stays in place. |
 | `PLANS_SHOWN` | `true` | With `PLANS_ENABLED=false`: show the plans and prices (pricing page, landing teaser, nav link) as information only, with no checkout button and no payment banner. `false` hides them completely. |
 | `GAME_EDITING` | `false` | Display switch: `true` shows the editing tools on the game page (rename, time of day, mechanics, the AI edit robot, version history). Off by default because they do not help a learner learn; the API and the plan quotas stay in place. |
-| `DEMO_TEMPLATES` | `false` | Display switch: `true` lets a subject alone (no material, no topic) make a labelled demo-template game when no AI provider is configured. Off: such a request is refused with `422 MATERIAL_REQUIRED` before anything is reserved, and the create form asks for material or a library topic. |
 | `PAYMENTS_MODE` | `disabled` | `disabled` · `stripe` · `dev` (simulator). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | – | Required for `PAYMENTS_MODE=stripe`. |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | – | Optional "Continue with Google" on the website. Both or neither: the button and `/api/auth/google/*` exist only when both are set. Setup: [`docs/google-signin.md`](docs/google-signin.md). |
@@ -199,8 +196,8 @@ POST /api/generations  →  reserve one game of its level  →  background job  
 ```
 
 * **Providers:** `anthropic` (official `@anthropic-ai/sdk`; streaming; `output_config.effort`; cached system prompt) and any
-  **OpenAI-compatible** endpoint. `demo` is the offline template provider. With `AI_PROVIDER=anthropic|openai` and a missing key the app
-  *refuses* up front instead of silently falling back to demo.
+  **OpenAI-compatible** endpoint. `none` means no AI (topic library and study engine only). With `AI_PROVIDER=anthropic|openai` and a missing key the app
+  *refuses* up front instead of silently falling back to no AI.
 * **Structured output without trusting the model:** the schema is described in the prompt, the reply is parsed and validated with Zod,
   then cross-checked (references, mission dependency cycles, reachable areas, solvable puzzles, program solutions, physics targets) and
   sanitised (control / bidi characters stripped, unknown keys dropped). Findings are fed back for up to two repair rounds. Nothing in a spec
@@ -215,7 +212,7 @@ POST /api/generations  →  reserve one game of its level  →  background job  
   whole result goes through `validateGameSpec` (schema, cross-references, solvability, sanitising) before it can be saved; the subject, type,
   difficulty and language are locked, and validation errors are fed back to the model (max 2 repairs). One quota slot is reserved by a `PENDING`
   `AiEdit` row (one in flight per user — partial unique index, advisory lock for the check) and committed with the new version in one transaction;
-  a failed, rejected or timed-out edit releases it and changes nothing. Only AI-made games can be edited by the robot (demo/engine games are never
+  a failed, rejected or timed-out edit releases it and changes nothing. Only AI-made games can be edited by the robot (engine and topic-library games are never
   passed off as AI output). `GET /api/games/[id]/revisions` and `POST …/revisions/[n]/restore` list and restore versions; a restore is never
   destructive (the old content becomes a new latest version).
 * **Boss battles, side missions, characters that react:** a spec may contain `bosses` — a boss is fought through 2–5 of its area's own challenge
@@ -223,14 +220,13 @@ POST /api/generations  →  reserve one game of its level  →  background job  
   (+150 points, `boss_slayer`). There is no extra grading path: each phase is an ordinary server-graded challenge. A mission can have the objective
   `defeat`; `optional: true` makes a side mission that pays its bonus but never blocks finishing (portals do not wait for it); an NPC's `reactions`
   change what it says once a mission is done. The validator plays the game with the real rules to prove a boss cannot make it unfinishable. Full
-  Adventures built without a model (demo templates, the study engine, the offline app) end with a quiz boss made of the area's quickest questions
+  Adventures built without a model (the study engine, the topic library, the offline app) end with a quiz boss made of the area's quickest questions
   (`src/lib/game/spec/boss.ts`); AI games may design their own, and the edit robot can add or change bosses.
-* **Honest labelling:** every game stores `generatorKind` (`ai` | `demo` | `engine` | `catalog`), provider and model; the library, details page and play screen show it.
-  When no demo template matches a subject the game says so instead of pretending to be about it.
+* **Honest labelling:** every game stores `generatorKind` (`ai` | `engine` | `catalog`; `demo` only on older saved games), provider and model; the library, details page and play screen show it.
 
 ### Study engine: a game made from *your* material (works without any AI)
 
-Hand-written demo templates only cover five topics, so there is a second, rule-based engine that builds a game from whatever the learner pastes in
+The topic library covers its catalogue only, so there is also a rule-based engine that builds a game from whatever the learner pastes in
 (`src/lib/game/material`). In the create form the **Study material** box accepts notes, a chapter, “term: meaning” lines or numbered steps (up to 8000
 characters, Hebrew, English or any script); with no AI provider configured the engine turns it into a complete game, and with an AI provider the same
 text is passed to the model as *data it must stick to* (`<study_material>`, tag break-outs stripped), so every question is about what was pasted.
@@ -326,7 +322,7 @@ grades, scores and releases hints, so Unity never sees answer keys.
 
 ### Offline Android app (Google Play)
 
-`mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, demo templates
+`mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, topic library
 and the server's own game reducer, running on the device (`src/lib/offline`). No AI and no Stripe (no payments and no keys in the app; paid
 features there must use Google Play Billing). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
 (Settings → Backup, `src/lib/offline/backup.ts`) and an optional **LUPU ID (account) with cloud backup** through Supabase (`mobile/src/cloud`,
@@ -454,7 +450,7 @@ Implemented and tested:
 ```
 prisma/                 schema + migrations (hand-written partial unique indexes and CHECK constraints)
 src/config/             plans.ts (single source of truth), graphics.ts (tier render profiles), limits.ts
-src/lib/game/           spec · challenges (grading, simulations) · state (reducer) · world (layouts) · engine (physics) · demo templates ·
+src/lib/game/           spec · challenges (grading, simulations) · state (reducer) · world (layouts) · engine (physics) · topic library ·
                         material (study engine) · unity (optional renderer bridge) · sim-balance (bot playthroughs) · a11y
 src/lib/offline/        the server-free game store for the Android app: store, backup, sync, deck, entitlement, offline generation
 src/lib/i18n/           typed he/en dictionaries (key parity enforced at compile time and by tests/unit/i18n-parity.test.ts)
@@ -574,11 +570,11 @@ secret to configure (login tokens are random and only their SHA-256 is stored), 
 | For | Variables |
 | --- | --- |
 | **Always** | `DATABASE_URL`; in production `APP_ENV=production` and `APP_URL=https://…` (the process refuses `http://`, `PAYMENTS_MODE=dev` and `ENABLE_TEST_HOOKS=true` when `APP_ENV=production`); `TRUST_PROXY=true` behind a proxy (set `TRUSTED_PROXY_HOPS` when there is more than one) |
-| **Real AI** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` (optionally `ANTHROPIC_MODEL`), or `AI_PROVIDER=openai` + `OPENAI_API_KEY` (+ `OPENAI_BASE_URL`, `OPENAI_MODEL` for any OpenAI-compatible endpoint). With `auto`, an Anthropic key wins over an OpenAI key, and no key means the labelled demo templates. With `anthropic`/`openai` and a missing key generation is refused up front, never silently demo. |
+| **Real AI** | `AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY` (optionally `ANTHROPIC_MODEL`), or `AI_PROVIDER=openai` + `OPENAI_API_KEY` (+ `OPENAI_BASE_URL`, `OPENAI_MODEL` for any OpenAI-compatible endpoint). With `auto`, an Anthropic key wins over an OpenAI key, and no key means no AI (topic library and your own material only). With `anthropic`/`openai` and a missing key generation is refused up front, never silently no-AI. |
 | **Real payments** | `PAYMENTS_MODE=stripe`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and the webhook endpoint described in [Payments](#payments). Prices are not configured in Stripe, only in `src/config/plans.ts`. |
 | **Stuck-job cleanup** (optional) | `CRON_SECRET` (≥ 16 characters) and a scheduler calling `POST /api/internal/reap` with `Authorization: Bearer $CRON_SECRET` every few minutes. Without it stuck jobs are still released when they are read. |
 
-Run `npx prisma migrate deploy` on every release (it is idempotent). `GET /api/ai/status` answers without secrets and tells you which AI backend is active (`demo`, `ai` or `unavailable` with the reason); it does not check the database.
+Run `npx prisma migrate deploy` on every release (it is idempotent). `GET /api/ai/status` answers without secrets and tells you which AI backend is active (`none`, `ai` or `unavailable` with the reason); it does not check the database.
 
 ### Rotating keys
 
@@ -606,7 +602,7 @@ npm run eval:ai -- --compare eval-a.json eval-b.json        # compare two saved 
 ```
 
 Options: `--generate N` / `--edit N` (cases per kind), `--concurrency N` (default 2), `--deadline-ms N` (per case, default 600000), `--call-timeout-ms N` (per model call, default 240000), `--out file.json`
-(default `eval-<label>.json`), `--price-in` / `--price-out` (USD per million tokens, for the cost columns). It refuses to run against the demo backend. Read the success rate first (accepted by `validateGameSpec`
+(default `eval-<label>.json`), `--price-in` / `--price-out` (USD per million tokens, for the cost columns). It refuses to run against the no-AI backend. Read the success rate first (accepted by `validateGameSpec`
 and re-checked for game type, language and feature tier), then "needed no repair", p95 latency and cost per successful result. The report is written to the current directory and `.gitignore` does not cover `eval-*.json`, so pass `--out` with a path outside the repository or do not commit it.
 
 ### Backups and restore
@@ -633,7 +629,7 @@ and re-checked for game type, language and feature tier), then "needed no repair
 * One subscription per user; changing plan means cancelling (access continues to period end) and subscribing again. In-place upgrade is not implemented
   (it also cannot cross currencies, e.g. a USD subscription into an ILS one).
 * Partial refunds and disputes/chargebacks do not change entitlements. Taxes (Stripe Tax) are not configured.
-* Demo mode only has templates for programming, maths, science, ancient Egypt and Spanish, in Hebrew and English; other subjects get the closest template with a visible notice. To get a game about anything without an AI provider, paste your own material and use the study engine (it only asks about what you wrote).
+* Without an AI provider a game needs your own material (the study engine only asks about what you wrote) or a topic from the library; a subject alone builds nothing.
 * Challenge content for AI games is validated structurally and for solvability, but factual correctness of model output cannot be checked automatically.
 * Game audio is synthesised (no recorded assets); 3D art is procedural (no imported models or textures).
 * Playwright runs in Chromium only.

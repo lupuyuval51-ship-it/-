@@ -1,4 +1,4 @@
-import { challengeStation, choice, loreStation, match, npc, numeric, program, sequence, translator, type Lang } from "../builders";
+import { challengeStation, choice, loreStation, match, npc, numeric, program, sequence, translator, type Lang } from "@/lib/game/builders";
 import type { DemoPack } from "../types";
 
 export const programmingPack: DemoPack = {

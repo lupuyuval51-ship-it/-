@@ -2,9 +2,11 @@
  * Prints the balance simulation as a table: `npx tsx scripts/balance-report.ts` (add `--json` for raw rows).
  * Deterministic: the same code and corpus always print the same numbers.
  */
+import { registerSamples } from "../tests/support/register-samples";
 import { SKILLS } from "../src/lib/game/sim-balance/bot";
 import { allRows, findOutliers, median } from "../src/lib/game/sim-balance/run";
 
+registerSamples();
 const rows = allRows();
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify(rows.map((r) => ({ id: r.item.id, runs: r.runs })), null, 1));

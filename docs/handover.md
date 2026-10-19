@@ -23,7 +23,7 @@ A learner types a goal or pastes study notes; the product produces a **validated
  src/server/*  ── auth · allowance (ledger) · generation (jobs, pipeline) · ai (providers, eval) · billing · games · http ── Prisma/pg ──► PostgreSQL
         │                                   │                       │
         │                                   │                       └─ Stripe (checkout, webhook → ingest pipeline; dev simulator uses the same pipeline)
-        │                                   └─ AI provider (Anthropic or OpenAI-compatible) or the labelled demo / study-engine builders
+        │                                   └─ AI provider (Anthropic or OpenAI-compatible) the study-engine / topic-library builders
         ▼
  src/lib/game/spec  ── validateGameSpec (schema, cross-checks, solvability, sanitising) ── clampToFeatureTier ── stored game
 ```
@@ -58,7 +58,7 @@ Request paths worth knowing:
 | Hebrew/RTL default, English works, logical Tailwind classes | `src/lib/i18n`, components | `tests/unit/i18n-parity.test.ts`, `source-hygiene.test.ts`, `tests/e2e/responsive.spec.ts` |
 | No secrets or `NEXT_PUBLIC_*` in the client | `src/server/env.ts` | `tests/unit/source-hygiene.test.ts`, `env.test.ts`, `security.test.ts` |
 | Offline app: no server code, no network while signed out, Play settings | `src/lib/offline`, `mobile/`, `android/` | `tests/unit/offline*.test.ts`, `backup*.test.ts`, `sync*.test.ts`, `android-shell.test.ts`, `tests/e2e-mobile` |
-| Demo templates are never shown as AI output (`generatorKind`) | `src/lib/game/demo`, `material` | `tests/unit/examples.test.ts`, `material*.test.ts` |
+| No demo games; engine and catalog games are never shown as AI output (`generatorKind`) | `src/lib/game/material`, `topics` | `tests/unit/examples.test.ts`, `material*.test.ts` |
 
 Working agreement: run `npm run check` before calling work done, `npm run test:e2e` for UI/gameplay/billing, `npm run test:e2e:mobile` for the offline app. Database changes go through a Prisma
 migration (partial indexes and CHECKs are hand-written SQL). Integration tests use `levelup_test` only.
@@ -87,7 +87,7 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 **Product behaviour**
 * One subscription per user; changing plan means cancel (access to period end) and subscribe again. In-place upgrade does not exist (it cannot cross currencies, e.g. a USD subscription into an ILS one; Israel pays ₪5 for Plus and ₪20 for Pro, everyone else $10 / $40).
 * Partial refunds, disputes and chargebacks do not change entitlements; Stripe Tax is not configured.
-* Demo mode has templates for five topics only (programming, maths, science, ancient Egypt, Spanish); other subjects get the closest template with a visible notice. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (84 of the planned 200), each at three levels; topic-library games cannot be extended.
+* There are no demo games: a subject alone builds nothing. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (84 of the planned 200), each at three levels; topic-library games cannot be extended.
 * Factual correctness of AI-made challenge content cannot be checked automatically (structure and solvability can).
 * Audio is synthesised and 3D art is procedural; Playwright runs in Chromium only.
 * The Android app: scores are self-practice (answer keys on the device); no paid features until Google Play Billing exists (the device tier stays A meanwhile); Auto Backup is off on purpose, so a new phone needs the backup file or the optional account;

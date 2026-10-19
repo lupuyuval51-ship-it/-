@@ -26,8 +26,8 @@ test.describe("creating a game", () => {
     await page.waitForURL("**/create");
     // honesty about what will generate the game
     const banner = page.getByTestId("provider-banner");
-    await expect(banner).toHaveAttribute("data-provider-kind", "demo");
-    await expect(banner).toContainText("Demo mode");
+    await expect(banner).toHaveAttribute("data-provider-kind", "none");
+    await expect(banner).toContainText("No AI provider is connected");
     await expect(page.getByTestId("create-allowance")).toContainText("Level B: 1 of 1 games left");
 
     // empty required fields are explained, nothing is sent
@@ -57,7 +57,7 @@ test.describe("creating a game", () => {
     await page.getByTestId("create-submit").dblclick();
     await page.waitForURL(/\/generate\/[a-z0-9]+$/);
     await expect(page.getByTestId("gen-success")).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByTestId("gen-source")).toContainText("demo template");
+    await expect(page.getByTestId("gen-source")).toContainText("ready-made template");
     await expect(page.getByTestId("gen-left")).toContainText("Level C games left in this period: 4");
 
     expect(await dbCount('SELECT count(*) AS n FROM "GenerationJob" WHERE "userId" = $1', [userId])).toBe(1);

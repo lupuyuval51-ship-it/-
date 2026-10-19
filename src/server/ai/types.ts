@@ -3,12 +3,12 @@
  * means adding one adapter file and registering it — nothing else changes.
  */
 
-export type ProviderKind = "ai" | "demo";
+export type ProviderKind = "ai" | "none";
 
 export interface BackendInfo {
-  /** Stable machine id stored on every game ("anthropic", "openai", "demo"). */
+  /** Stable machine id stored on every game ("anthropic", "openai", "none"). */
   id: string;
-  /** "ai" = produced by a language model. "demo" = predefined templates: NEVER presented as AI-generated. */
+  /** "ai" = produced by a language model. "none" = no AI provider is configured (topic library and study engine only). */
   kind: ProviderKind;
   label: string;
   model: string;
@@ -46,9 +46,9 @@ export interface LlmBackend {
   complete(req: AiRequest): Promise<AiResponse>;
 }
 
-/** The labelled local demo: hand-written templates, no model involved. */
-export interface TemplateBackend {
-  type: "templates";
+/** No AI provider configured: games come from the topic library or the learner's own material (study engine); no model is involved. */
+export interface NoAiBackend {
+  type: "none";
   info: BackendInfo;
 }
 
@@ -59,4 +59,4 @@ export interface UnavailableBackend {
   reason: string;
 }
 
-export type GenerationBackend = LlmBackend | TemplateBackend | UnavailableBackend;
+export type GenerationBackend = LlmBackend | NoAiBackend | UnavailableBackend;

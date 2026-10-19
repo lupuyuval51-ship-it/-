@@ -61,7 +61,7 @@ describe("AI edit: plan and ownership are enforced on the server", () => {
   it("the plan is checked before the provider: a Free user gets FEATURE_LOCKED even when no AI provider is configured", async () => {
     const u = await createTestUser();
     const gameId = await makeAiGame(u.id);
-    setBackendForTests({ type: "templates", info: { id: "demo", kind: "demo", label: "Demo", model: "t" } } satisfies GenerationBackend);
+    setBackendForTests({ type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } } satisfies GenerationBackend);
     expect(errCode((await edit(u, gameId, { instruction: "rename the game" })).json)).toBe("FEATURE_LOCKED");
   });
 
@@ -84,7 +84,7 @@ describe("AI edit: plan and ownership are enforced on the server", () => {
   it("only AI-made games are editable, and only while an AI provider is configured", async () => {
     const u = await plusUser();
     const gameId = await makeAiGame(u.id);
-    setBackendForTests({ type: "templates", info: { id: "demo", kind: "demo", label: "Demo", model: "t" } } satisfies GenerationBackend);
+    setBackendForTests({ type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } } satisfies GenerationBackend);
     expect(errCode((await edit(u, gameId, { instruction: "rename the game" })).json)).toBe("AI_UNAVAILABLE");
     await db.game.update({ where: { id: gameId }, data: { generatorKind: "demo" } });
     setBackendForTests(mockLlm([retitle("x")]));

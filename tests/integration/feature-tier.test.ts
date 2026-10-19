@@ -21,7 +21,7 @@ afterEach(() => setBackendForTests(null));
 // The shared setup runs the suites at tier A; these tests are about the plans' REAL tiers.
 beforeEach(() => setFeatureTierForTests(null));
 
-const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "demo", label: "Demo templates (not AI)", model: "predefined-templates" } };
+const DEMO: GenerationBackend = { type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } };
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "Fractions", learningGoal: "Understand fractions", difficulty: "beginner", gameType: "exploration", contentLanguage: "en", ...over,
 });

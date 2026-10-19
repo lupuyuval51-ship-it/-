@@ -22,7 +22,6 @@ import {
 } from "./createForm";
 import { EXAMPLES } from "./examples";
 import { navigate } from "../router";
-import { demoGames } from "../features";
 
 const STAGES: readonly OfflineStage[] = ["reading", "building", "checking", "saving"];
 /** Wait this long after the last keystroke before writing the draft (it is also written when the screen is left or hidden). */
@@ -142,7 +141,7 @@ export function CreatePage() {
     const subject = topic ? topic[form.language][0] : cleanPastedText(form.subject).trim();
     if (!subject) { dispatch({ type: "problem", problem: { kind: "required" } }); return; }
     // Without notes a subject alone used to make a demo-template game; now the notes are needed (or a ready topic from the library).
-    if (!topic && !useAi && !demoGames() && !cleanPastedText(form.material).trim()) { dispatch({ type: "problem", problem: { kind: "notes" } }); return; }
+    if (!topic && !useAi && !cleanPastedText(form.material).trim()) { dispatch({ type: "problem", problem: { kind: "notes" } }); return; }
     if (useAi && !account.session) { setAiFailure("SIGN_IN"); return; }
     setBusy(true);
     setAiFailure(null);
@@ -277,7 +276,7 @@ export function CreatePage() {
       ) : restored ? (
         <Alert tone="info" data-testid="create-restored">{t("mob.create.draft.restored")}</Alert>
       ) : null}
-      <Field label={demoGames() ? t("create.material") : t("mob.create.material.label")} hint={hasMaterial ? t("mob.create.material.hint.filled") : demoGames() ? t("mob.create.material.hint.empty") : t("mob.create.material.hint.needed")} error={materialError} htmlFor="material">
+      <Field label={t("mob.create.material.label")} hint={hasMaterial ? t("mob.create.material.hint.filled") : t("mob.create.material.hint.needed")} error={materialError} htmlFor="material">
         <Textarea id="material" dir="auto" rows={7} value={form.material} maxLength={INPUT_LIMITS.materialMax} disabled={busy} onChange={(e) => change("material", e.target.value)} placeholder={t("create.material.placeholder")} />
       </Field>
       <div className="space-y-1">

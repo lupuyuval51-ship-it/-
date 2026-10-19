@@ -32,7 +32,7 @@ export const commonEs: Record<keyof typeof common.en, string> = {
   "theme.system": "Según el dispositivo",
   "theme.light": "Claro",
   "theme.dark": "Oscuro",
-  "demo.badge": "Plantilla de demostración",
+  "demo.badge": "Plantilla lista",
   "demo.badge.hint": "Creado a partir de una plantilla predefinida, no generado por IA.",
   "ai.badge": "Generado por IA",
   "ai.badge.hint": "Generado por LEVEL UP AI.",

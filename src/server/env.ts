@@ -15,7 +15,7 @@ const schema = z.object({
   /** With TRUST_PROXY: how many proxies we own sit in front of the app (the client IP is that many entries from the right of X-Forwarded-For). */
   TRUSTED_PROXY_HOPS: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.coerce.number().int().min(1).max(5).default(1)),
 
-  AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "demo"]).default("auto"),
+  AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "none"]).default("auto"),
   ANTHROPIC_API_KEY: optional(z.string()),
   ANTHROPIC_MODEL: z.string().default("claude-opus-5-5"),
   ANTHROPIC_REFUSAL_FALLBACK: bool.default(true),
@@ -31,13 +31,11 @@ const schema = z.object({
   PLANS_SHOWN: bool.default(true),
   PAYMENTS_MODE: z.enum(["disabled", "stripe", "dev"]).default("disabled"),
   /**
-   * Display switches (they never unlock anything; the server still enforces every rule). Off by default, because they do
+   * Display switch (it never unlocks anything; the server still enforces every rule). Off by default, because it does
    * not help a learner learn: editing a game's look and mechanics (rename, time of day, mechanics, the AI edit robot and
-   * version history) and the five hand-written demo templates (a subject with no material and no AI). The code and the
-   * API stay; the test suites switch both on.
+   * version history). The code and the API stay; the test suites switch it on.
    */
   GAME_EDITING: bool.default(false),
-  DEMO_TEMPLATES: bool.default(false),
   STRIPE_SECRET_KEY: optional(z.string()),
   STRIPE_WEBHOOK_SECRET: optional(z.string()),
 
@@ -84,7 +82,5 @@ export const plansEnabled = (): boolean => getEnv().PLANS_ENABLED;
 export const plansShown = (): boolean => getEnv().PLANS_ENABLED || getEnv().PLANS_SHOWN;
 /** The game page shows the editing tools (manual edits, AI edits, version history). */
 export const gameEditingShown = (): boolean => getEnv().GAME_EDITING;
-/** Without an AI provider, a subject alone makes a demo-template game (otherwise material or a library topic is needed). */
-export const demoTemplatesOn = (): boolean => getEnv().DEMO_TEMPLATES;
 export const isProduction = (): boolean => getEnv().APP_ENV === "production";
 export const secureCookies = (): boolean => getEnv().APP_ENV === "production" || getEnv().APP_URL.startsWith("https://");

@@ -1,5 +1,5 @@
-import type { Environment, GameType, SubjectCategory, TimeOfDay } from "../spec/constants";
-import type { Lang } from "./builders";
+import type { Environment, GameType, SubjectCategory, TimeOfDay } from "@/lib/game/spec/constants";
+import type { Lang } from "@/lib/game/builders";
 
 export type RawSpec = Record<string, unknown>;
 

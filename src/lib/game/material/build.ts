@@ -5,7 +5,7 @@
  */
 import type { Environment, GameType, SubjectCategory, TimeOfDay } from "../spec/constants";
 import type { GameExtension, GameSpec } from "../spec/schema";
-import { challengeStation, loreStation, npc, translator, type Lang } from "../demo/builders";
+import { challengeStation, loreStation, npc, translator, type Lang } from "../builders";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { generateChallenges, type Generated } from "./challenges";
 import { parseMaterial, type Knowledge } from "./parse";

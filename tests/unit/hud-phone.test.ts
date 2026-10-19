@@ -45,10 +45,10 @@ describe("top bar: how the game was made is part of the area card, not a floatin
     expect(html.match(/From your material/g)).toHaveLength(1);
   });
 
-  it("says Hebrew in Hebrew, and demo templates are labelled as such", () => {
+  it("says Hebrew in Hebrew, and older template games are labelled as such", () => {
     expect(bar({ engine: true }, "he")).toContain(DICTIONARIES.he["engine.badge"]);
     const demo = bar({ demo: true });
-    expect(demo).toContain("Demo template");
+    expect(demo).toContain("Ready-made template");
     expect(demo).not.toContain("From your material");
   });
 

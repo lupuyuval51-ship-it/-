@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoSpec } from "../support/samples";
 import { generateOffline } from "@/lib/offline/generate";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { buildCases, type EditCase, type GenerateCase } from "@/server/ai/eval/cases";

@@ -1,5 +1,6 @@
 import "server-only";
-import { buildDemoExtension, buildDemoSpec } from "@/lib/game/demo";
+import "@/lib/game/sample-autoregister";
+import { sampleBuilder } from "@/lib/game/sample-builder";
 import { MaterialError, buildMaterialExtension, buildMaterialSpec } from "@/lib/game/material/build";
 import { findTopic } from "@/lib/game/topics/catalog";
 import { TOPIC_MODEL, TopicError, buildTopicSpec, topicRequest } from "@/lib/game/topics/build";
@@ -15,9 +16,9 @@ import type { GenerationRequest } from "@/lib/schemas/generation";
 import { providerError } from "../ai/errors";
 import { extractJson } from "../ai/json";
 import { blueprintPrompt, challengesPrompt, extensionPrompt, fastPrompt, repairPrompt, summarizeGame, systemPrompt, type PromptStage } from "../ai/prompts";
-import type { AiMessage, LlmBackend, TemplateBackend } from "../ai/types";
+import type { AiMessage, LlmBackend, NoAiBackend } from "../ai/types";
 
-export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_DEMO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE" | "TIER_BUILD_FAILED" | "EDIT_TIER_LOCKED";
+export type PipelineErrorCode = "INVALID_OUTPUT" | "TIMEOUT" | "NO_EXTENSION" | "EXTEND_CONFLICT" | "MATERIAL_UNUSABLE" | "EDIT_TOO_LARGE" | "EDIT_NO_CHANGE" | "TIER_BUILD_FAILED" | "EDIT_TIER_LOCKED";
 
 /** A generation failure with a safe, user-facing message (the held game is always released on failure). */
 export class PipelineError extends Error {
@@ -28,7 +29,7 @@ export class PipelineError extends Error {
 }
 
 export interface PipelineInput {
-  backend: LlmBackend | TemplateBackend;
+  backend: LlmBackend | NoAiBackend;
   /** The feature tier of the game being built (what the prompts ask the model to stay within). */
   tier?: FeatureTier;
   request: GenerationRequest;
@@ -49,10 +50,12 @@ export interface PipelineOutput {
   model: string;
   usage: { inputTokens: number; outputTokens: number };
   templateId?: string;
-  /** Built by the rule-based study engine from the learner's own material (neither AI output nor a demo template). */
+  /** Built by the rule-based study engine from the learner's own material (not AI output). */
   engine?: boolean;
   /** Built from the curated topic library (not AI); `templateId` holds the topic id. */
   catalog?: boolean;
+  /** Test suites only: a registered sample game (`sample-builder.ts`), stored with the legacy kind "demo". */
+  sample?: boolean;
 }
 
 const MAX_REPAIRS = 2;
@@ -62,7 +65,7 @@ const tierHasBoss = (tier: FeatureTier): boolean => tierHas(tier, "system:boss")
 
 /** What one model stage needs; the generation pipeline and the edit engine both run stages through it. */
 export interface StageContext {
-  backend: LlmBackend | TemplateBackend;
+  backend: LlmBackend | NoAiBackend;
   language: ContentLanguage;
   deadline: number;
   callTimeoutMs: number;
@@ -223,7 +226,7 @@ function checkMerged(base: GameSpec, ext: ReturnType<typeof extensionSchema.pars
   return { ok: true, value: { spec: res.spec, warnings: [...merged.notes, ...res.warnings] } };
 }
 
-// ───────────────────────────── demo templates ─────────────────────────────
+// ───────────────────────────── no AI provider ─────────────────────────────
 
 const noUsage = { inputTokens: 0, outputTokens: 0 };
 
@@ -255,11 +258,10 @@ async function runStudyEngine(input: PipelineInput): Promise<PipelineOutput> {
   }
 }
 
-async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
+async function runWithoutAi(input: PipelineInput): Promise<PipelineOutput> {
   const req = input.request;
   await input.onStage(req.mode === "EXTEND" ? "extend" : "generate");
   // New game with material, or an extension of a game that was built from material: the study engine does the work.
-  // (Extending a demo-template game ignores material: its content comes from the template, never from the engine.)
   const engineBase = req.mode === "EXTEND" && input.base?.meta.generator?.kind === "engine";
   if ((req.mode !== "EXTEND" && req.material) || engineBase) {
     if (engineBase && !req.material) {
@@ -267,25 +269,27 @@ async function runTemplates(input: PipelineInput): Promise<PipelineOutput> {
     }
     return runStudyEngine(input);
   }
+  // No AI and no material: only the test suites register sample games (`sample-builder.ts`); the product builds nothing from a subject alone.
+  const sample = sampleBuilder();
+  if (!sample) throw new PipelineError("INVALID_OUTPUT", "No AI provider is configured: add your own study material, or pick a topic from the topic library. You were not charged.");
   if (req.mode === "EXTEND") {
     if (!input.base) throw new PipelineError("EXTEND_CONFLICT", "The game to extend could not be loaded.");
-    const built = buildDemoExtension(input.base, req);
-    if (!built) throw new PipelineError("NO_DEMO_EXTENSION", "This demo game has no more built-in extensions. Configure an AI provider to extend games freely. You were not charged.");
-    const { ext: extRaw, templateId } = built;
-    const ext = extensionSchema.safeParse(extRaw);
-    if (!ext.success) throw new PipelineError("INVALID_OUTPUT", "The demo extension is invalid.", ext.error.message);
+    const built = sample.extension(input.base, req);
+    if (!built) throw new PipelineError("NO_EXTENSION", "This game has no more extensions. You were not charged.");
+    const ext = extensionSchema.safeParse(built.ext);
+    if (!ext.success) throw new PipelineError("INVALID_OUTPUT", "The extension is invalid.", ext.error.message);
     await input.onStage("validate");
     const checked = checkMerged(input.base, ext.data);
-    if (!checked.ok) throw new PipelineError("INVALID_OUTPUT", "The demo extension could not be merged.", checked.errors.join("; "));
-    return { spec: checked.value.spec, warnings: checked.value.warnings, attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId };
+    if (!checked.ok) throw new PipelineError("INVALID_OUTPUT", "The extension could not be merged.", checked.errors.join("; "));
+    return { spec: checked.value.spec, warnings: checked.value.warnings, attempts: 0, model: "sample", usage: noUsage, templateId: built.templateId, sample: true };
   }
-  const built = buildDemoSpec(req);
+  const built = sample.spec(req);
   await input.onStage("validate");
   const lang = (built.raw.meta as { language: string }).language;
   const res = validateGameSpec(applyRequest(built.raw, req, { language: lang }), { alignGameType: req.gameType });
-  if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The demo template could not be validated.", res.errors.join("; "));
+  if (!res.ok) throw new PipelineError("INVALID_OUTPUT", "The game could not be validated.", res.errors.join("; "));
   const boss = req.mode === "FULL" && (!input.tier || tierHasBoss(input.tier)) ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
-  return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "predefined-templates", usage: { inputTokens: 0, outputTokens: 0 }, templateId: built.templateId };
+  return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "sample", usage: noUsage, templateId: built.templateId, sample: true };
 }
 
 // ───────────────────────────── topic library ─────────────────────────────
@@ -320,7 +324,7 @@ async function runTopicLibrary(input: PipelineInput): Promise<PipelineOutput> {
 export async function runPipeline(input: PipelineInput): Promise<PipelineOutput> {
   // The topic library never needs (or calls) a model, even when a real AI provider is configured.
   if (input.request.topicId) return runTopicLibrary(input);
-  if (input.backend.type === "templates") return runTemplates(input);
+  if (input.backend.type === "none") return runWithoutAi(input);
   const totals = { inputTokens: 0, outputTokens: 0 };
   const counters = { attempts: 0, model: input.backend.info.model };
   const result = input.request.mode === "FAST" ? await runFast(input, totals, counters) : input.request.mode === "FULL" ? await runFull(input, totals, counters) : await runExtend(input, totals, counters);

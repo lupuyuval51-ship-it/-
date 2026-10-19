@@ -8,7 +8,7 @@ import { buildWorld } from "@/lib/game/world/build";
 import type { WorldModel } from "@/lib/game/world/types";
 import { ENVIRONMENTS, type GameType } from "@/lib/game/spec/constants";
 import { validateGameSpec } from "@/lib/game/spec/validate";
-import { buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoSpec } from "../support/samples";
 import { PACK_SUBJECT, request, validDemoSpec } from "./helpers";
 
 const SUBJECTS = Object.values(PACK_SUBJECT);

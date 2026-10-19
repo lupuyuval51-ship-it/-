@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_PACKS } from "@/lib/game/demo";
+import { DEMO_PACKS } from "../support/samples";
 import { gradeAnswer } from "@/lib/game/challenges/grade";
 import { GameEventError, processEvent, type EventResult, type GameEvent } from "@/lib/game/state/events";
 import {

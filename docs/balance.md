@@ -14,7 +14,7 @@ Produced by the bot-playthrough simulation in `src/lib/game/sim-balance/`. Re-ru
   distance** in the generated world (`buildWorld` positions, `WALK_SPEED`, x1.5 detour). It is a model, not a stopwatch:
   the numbers are good for comparing games and catching outliers, not for promising a learner "exactly 9 minutes".
 - Corpus (342 games, 5 seeds each x 4 skills): study-engine games from 16 hand-written note sets (he + en; terms only,
-  steps only, Q&A only, numbers, plain prose, short, long mixed) in FULL and FAST, every demo template (6 subjects x 5
+  steps only, Q&A only, numbers, plain prose, short, long mixed) in FULL and FAST, every sample template (test-only, registered by the script; 6 subjects x 5
   game types x FULL/FAST x he/en), games grown with "Extend Existing Game" until full (up to 4 areas / 24 challenges),
   and 80 fuzzed note sets of random shape.
 - Outlier rules (`findOutliers`): stuck, a perfect player below 3 stars, score above max, rejected moves, a finished

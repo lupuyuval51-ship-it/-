@@ -3,10 +3,10 @@
  * The platform labels every game made from them as a "Demo template" so it can never be mistaken for a
  * generated game. The same schema/validation/runtime path is used as for real AI output.
  */
-import type { GameType } from "../spec/constants";
-import type { GameExtension, GameSpec } from "../spec/schema";
+import type { GameType } from "@/lib/game/spec/constants";
+import type { GameExtension, GameSpec } from "@/lib/game/spec/schema";
 import type { GenerationRequest } from "@/lib/schemas/generation";
-import { easierChoice, easierMatch, spreadAnswers, translator, type Lang } from "./builders";
+import { easierChoice, easierMatch, spreadAnswers, translator, type Lang } from "@/lib/game/builders";
 import { historyPack } from "./packs/history";
 import { languagePack } from "./packs/language";
 import { mathPack } from "./packs/math";

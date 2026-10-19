@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEMO_PACKS, buildDemoExtension, buildDemoSpec, matchPack } from "@/lib/game/demo";
+import { DEMO_PACKS, buildDemoExtension, buildDemoSpec, matchPack } from "../support/samples";
 import { mergeExtension } from "@/lib/game/spec/extension";
 import { extensionSchema } from "@/lib/game/spec/schema";
 import { crossCheck, sanitizeDeep, validateGameSpec } from "@/lib/game/spec/validate";

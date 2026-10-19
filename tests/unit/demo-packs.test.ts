@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoSpec, DEMO_PACKS } from "@/lib/game/demo";
+import { buildDemoSpec, DEMO_PACKS } from "../support/samples";
 import { generationRequestSchema } from "@/lib/schemas/generation";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 

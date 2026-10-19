@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui";
 import type { TFn } from "@/lib/i18n";
 
 /**
- * Honest provenance label: "AI-generated" only for real model output, "Demo template" for predefined templates,
+ * Honest provenance label: "AI-generated" only for real model output, "Ready-made template" only for older template games,
  * "From your material" for the study engine and "Topic library" for the curated topic library (neither is AI).
  */
 export function GeneratorBadge({ kind, t }: { kind: string; provider?: string; t: TFn }) {

@@ -49,7 +49,7 @@ export const gameEs: Record<keyof typeof game.en, string> = {
   "unity.fallback": "Aquí no hay ninguna versión de Unity instalada: se usa el motor integrado.",
   "unity.error": "El motor Unity se detuvo: se cambió al motor integrado.",
   "unity.tier": "El motor Unity forma parte del nivel gráfico más alto: se usa el motor integrado.",
-  "hud.demo": "Plantilla de demostración",
+  "hud.demo": "Plantilla lista",
   "hud.stale": "El juego se actualizó. Recargando…",
   "prompt.station.active": "Abrir {label}",
   "prompt.station.lore": "Leer {label}",

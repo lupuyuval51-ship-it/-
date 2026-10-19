@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoSpec } from "../support/samples";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { providerError } from "@/server/ai/errors";
 import { APP_PROJECT_URL, APP_PUBLISHABLE_KEY, backendFromEnv, createEdgeDeps, handleGenerate, type EdgeDeps, type Slot } from "@/server/ai/edge/generate-game";

@@ -1,5 +1,5 @@
 /** Compact constructors for demo/template content. Output is raw JSON that still goes through full validation. */
-import type { Block } from "../spec/schema";
+import type { Block } from "./spec/schema";
 
 export type Lang = "en" | "he";
 export type Tr = (en: string, he: string) => string;

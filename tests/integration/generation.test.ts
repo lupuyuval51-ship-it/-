@@ -21,7 +21,7 @@ import { levelQuota } from "@/server/games/feature-tier";
 afterAll(disconnectDb);
 afterEach(() => setBackendForTests(null));
 
-const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "demo", label: "Demo templates (not AI)", model: "predefined-templates" } };
+const DEMO: GenerationBackend = { type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } };
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "Python loops", learningGoal: "Understand variables, conditions and loops", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over,
 });
@@ -106,7 +106,7 @@ describe("generation pipeline — demo templates (labelled, never passed off as 
     const e = { ...req({ mode: "EXTEND" }), targetGameId: first.game!.id };
     await generate(u.id, e, DEMO);
     const second = await generate(u.id, e, DEMO);
-    expect(second.job).toMatchObject({ status: "FAILED", errorCode: "NO_DEMO_EXTENSION" });
+    expect(second.job).toMatchObject({ status: "FAILED", errorCode: "NO_EXTENSION" });
     expect((await levelAllowance(u.id)).used).toBe(2);
   });
 
@@ -450,9 +450,9 @@ describe("service preconditions & routes", () => {
     expect((await readJson<{ error: { code: string } }>(again)).error.code).toBe("ALLOWANCE_EXHAUSTED");
   });
 
-  it("GET /api/ai/status labels demo vs AI honestly and never exposes keys", async () => {
+  it("GET /api/ai/status labels no-AI vs AI honestly and never exposes keys", async () => {
     setBackendForTests(DEMO);
-    expect(await readJson(await aiStatus(makeRequest("GET", "/api/ai/status")))).toMatchObject({ kind: "demo", provider: "demo" });
+    expect(await readJson(await aiStatus(makeRequest("GET", "/api/ai/status")))).toMatchObject({ kind: "none", provider: "none" });
     setBackendForTests(mockLlm(["{}"]));
     const body = JSON.stringify(await readJson(await aiStatus(makeRequest("GET", "/api/ai/status"))));
     expect(body).toContain('"kind":"ai"');

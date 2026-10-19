@@ -4,7 +4,9 @@ import { db, disconnectDb } from "@/server/db";
 import { describeBackend, setBackendForTests } from "@/server/ai/registry";
 import type { GenerationBackend } from "@/server/ai/types";
 import { getAllowanceSummary } from "@/server/allowance/summary";
-import { demoTemplatesOn, gameEditingShown, resetEnvForTests } from "@/server/env";
+import { gameEditingShown, resetEnvForTests } from "@/server/env";
+import { setSampleBuilderForTests } from "@/lib/game/sample-builder";
+import { registerSamples } from "../support/register-samples";
 import { runGenerationJob } from "@/server/generation/runner";
 import { createGeneration } from "@/server/generation/service";
 import type { GenerationRequest } from "@/lib/schemas/generation";
@@ -13,28 +15,27 @@ import { createTestUser } from "./helpers";
 import { mockLlm } from "./helpers-ai";
 
 /**
- * The display switches GAME_EDITING and DEMO_TEMPLATES are off by default (the suites run with them on). Off, the game
- * page hides the editing tools, and without an AI provider a subject alone no longer makes a demo-template game: the
- * learner's material or a library topic is needed. Nothing is reserved for a refused request.
+ * The display switch GAME_EDITING is off by default (the suites run with it on). Off, the game page hides the editing
+ * tools. Separately, without an AI provider a subject alone builds nothing in the product (the suites register samples,
+ * the product never does): the learner's material or a library topic is needed. Nothing is reserved for a refused request.
  */
 afterAll(disconnectDb);
 afterEach(() => setBackendForTests(null));
 
-const DEMO: GenerationBackend = { type: "templates", info: { id: "demo", kind: "demo", label: "Demo templates (not AI)", model: "predefined-templates" } };
+const DEMO: GenerationBackend = { type: "none", info: { id: "none", kind: "none", label: "No AI provider", model: "n/a" } };
 const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
   mode: "FAST", subject: "Photosynthesis", learningGoal: "How plants make food", difficulty: "beginner", gameType: "adventure", contentLanguage: "en", ...over,
 });
 const NOTES = "Photosynthesis: the process plants use to turn light into chemical energy.\nChlorophyll: the green pigment in leaves that absorbs light.\nStomata: tiny pores on a leaf that let gases in and out.\nXylem: the tissue that carries water up the plant.";
 
-describe("display switches off (the defaults)", () => {
-  beforeEach(() => { delete process.env.GAME_EDITING; delete process.env.DEMO_TEMPLATES; resetEnvForTests(); });
-  afterEach(() => { process.env.GAME_EDITING = "true"; process.env.DEMO_TEMPLATES = "true"; resetEnvForTests(); });
+describe("the product defaults", () => {
+  beforeEach(() => { delete process.env.GAME_EDITING; setSampleBuilderForTests(null); resetEnvForTests(); });
+  afterEach(() => { process.env.GAME_EDITING = "true"; registerSamples(); resetEnvForTests(); });
 
-  it("both are off unless switched on", () => {
+  it("editing is off unless switched on; without an AI provider the backend says so", () => {
     expect(gameEditingShown()).toBe(false);
-    expect(demoTemplatesOn()).toBe(false);
     setBackendForTests(DEMO);
-    expect(describeBackend()).toMatchObject({ kind: "demo", templates: false });
+    expect(describeBackend()).toMatchObject({ kind: "none" });
   });
 
   it("no AI: a subject alone is refused before anything is reserved; material or a topic still make a game", async () => {
@@ -55,7 +56,7 @@ describe("display switches off (the defaults)", () => {
     expect((await db.generationJob.findUniqueOrThrow({ where: { id: fromTopic.jobId } })).status).toBe("SUCCEEDED");
   });
 
-  it("with an AI provider a subject alone is fine (the switch is only about the demo templates)", async () => {
+  it("with an AI provider a subject alone is fine (only the missing AI provider limits a subject alone)", async () => {
     const u = await createTestUser();
     const llm = mockLlm(() => new Error("not needed: the job is only created here"));
     setBackendForTests(llm);

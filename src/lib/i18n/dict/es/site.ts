@@ -18,7 +18,7 @@ export const siteEs: Record<keyof typeof site.en, string> = {
   "nav.allowance.title": "Juegos que te quedan en este periodo, por nivel",
   "nav.allowance.none": "Sin juegos",
   "footer.privacy": "Los perfiles son privados por defecto. No hay chat abierto ni seguimiento de ubicación: tu región solo se usa para mostrar el precio correcto.",
-  "footer.demo": "Cada juego lleva una etiqueta: “Generado con IA” (LEVEL UP AI), “De tu material” (motor de estudio, sin IA), “Biblioteca de temas” (contenido seleccionado, sin IA) o “Plantilla de demostración” (predefinida).",
+  "footer.demo": "Cada juego lleva una etiqueta: “Generado con IA” (LEVEL UP AI), “De tu material” (motor de estudio, sin IA), “Biblioteca de temas” (contenido seleccionado, sin IA).",
   "footer.rights": "© {year} LUPU",
 
   "landing.hero.title": "Convierte cualquier objetivo de aprendizaje en un juego 3D al que puedes jugar de verdad",

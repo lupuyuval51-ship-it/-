@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildDemoSpec } from "@/lib/game/demo";
+import { buildDemoSpec } from "../support/samples";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { AiError, generateWithAi } from "../../mobile/src/cloud/ai";
 import { AI_URL } from "../../mobile/src/cloud/config";

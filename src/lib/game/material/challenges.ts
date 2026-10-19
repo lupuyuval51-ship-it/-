@@ -5,7 +5,7 @@
  * hold too few others, and it is always labelled as not the number of the material. The output is raw spec JSON that
  * still goes through full validation.
  */
-import { choice, match, numeric, sequence, translator, type Lang } from "../demo/builders";
+import { choice, match, numeric, sequence, translator, type Lang } from "../builders";
 import { properPhrases, type Definition, type Fact, type Keyword, type Knowledge, type QuestionAnswer } from "./parse";
 import { clip, distinctStart, isStop, shuffled, startHintText, wordsOf, type Word } from "./text";
 

@@ -42,10 +42,10 @@ describe("interface copy (both languages)", () => {
     expect(DICTIONARIES.en["det.generator.catalog"]).toMatch(/not AI/);
   });
 
-  it("the footer lists all four provenance labels, matching the badges", () => {
+  it("the footer lists all three provenance labels, matching the badges", () => {
     for (const locale of ["en", "he"] as const) {
       const footer = DICTIONARIES[locale]["footer.demo"];
-      for (const badge of ["ai.badge", "engine.badge", "catalog.badge", "demo.badge"] as const) expect(footer).toContain(DICTIONARIES[locale][badge]);
+      for (const badge of ["ai.badge", "engine.badge", "catalog.badge"] as const) expect(footer).toContain(DICTIONARIES[locale][badge]);
     }
   });
 
@@ -99,6 +99,16 @@ describe("interface copy (both languages)", () => {
       for (const n of [1, 2, 3, 4]) {
         expect(DICTIONARIES[locale][`create.example.${n}.subject` as keyof (typeof DICTIONARIES)["en"]].length).toBeGreaterThan(2);
         expect(DICTIONARIES[locale][`create.example.${n}.goal` as keyof (typeof DICTIONARIES)["en"]].length).toBeGreaterThan(10);
+      }
+    }
+  });
+});
+
+describe("no demo games", () => {
+  it("no interface string in any language talks about a demo (older template games are labelled 'ready-made template')", () => {
+    for (const locale of ["en", "he", "es"] as const) {
+      for (const [key, value] of Object.entries(DICTIONARIES[locale])) {
+        expect(/\bdemo\b|הדגמה|demostraci/i.test(String(value)), `${locale}:${key}`).toBe(false);
       }
     }
   });
