@@ -65,9 +65,7 @@ describe("documented product numbers match src/config/plans.ts", () => {
     for (const [plan, name] of [["FREE", "Free"], ["PLUS", "Plus"], ["PRO", "Pro"]] as const) {
       expect(row(name)).toContain(`| ${cell(plan, "A")} | ${cell(plan, "B")} | ${cell(plan, "C")} |`);
     }
-    expect(row("Plus")).toContain(`**$${PLANS.PLUS.monthlyPrices.USD! / 100} / month**`);
     expect(row("Plus")).toContain(`₪${PLANS.PLUS.monthlyPrices.ILS! / 100} / month`);
-    expect(row("Pro")).toContain(`**$${PLANS.PRO.monthlyPrices.USD! / 100} / month**`);
     expect(row("Pro")).toContain(`₪${PLANS.PRO.monthlyPrices.ILS! / 100} / month`);
   });
 

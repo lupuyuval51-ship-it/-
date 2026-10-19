@@ -4,13 +4,13 @@ import { dbRows, userIdOf } from "./db";
 
 /** The payment simulator (PAYMENTS_MODE=dev) exercised through the real UI. No money moves; everything is labelled. */
 test.describe("pricing and subscriptions", () => {
-  test("exact prices by region: Plus $5 / ₪5 and Pro $20 / ₪20 in Israel, Free $0; rules and billing disclosures are shown", async ({ page, browser }) => {
+  test("exact prices in shekels in every region: Plus ₪5 and Pro ₪20, Free ₪0; rules and billing disclosures are shown", async ({ page, browser }) => {
     await setLocaleCookie(page, "en");
     await page.setExtraHTTPHeaders({ "x-vercel-ip-country": "US" }); // honoured because the E2E server runs behind a trusted proxy
     await page.goto("/pricing");
     await expect(page.getByTestId("price-FREE")).toContainText("Free");
-    await expect(page.getByTestId("price-PLUS")).toContainText("$5");
-    await expect(page.getByTestId("price-PRO")).toContainText("$20");
+    await expect(page.getByTestId("price-PLUS")).toContainText("₪5");
+    await expect(page.getByTestId("price-PRO")).toContainText("₪20");
     // the offer is generated from each level's own quota (src/config/plans.ts)
     await expect(page.getByTestId("offer-FREE")).toContainText("1 topic at level B and 5 at level C per calendar month");
     await expect(page.getByTestId("offer-PLUS")).toContainText("5 topics at level A, 10 at level B and unlimited at level C per monthly billing period");
@@ -37,7 +37,7 @@ test.describe("pricing and subscriptions", () => {
   test("Hebrew pricing page is RTL and keeps prices readable", async ({ page }) => {
     await page.goto("/pricing");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(page.getByTestId("price-PLUS")).toContainText("$5");
+    await expect(page.getByTestId("price-PLUS")).toContainText("₪5");
     await expect(page.getByTestId("pricing-title")).toContainText("מחירים");
   });
 
@@ -99,15 +99,15 @@ test.describe("pricing and subscriptions", () => {
     await expect(page.getByTestId("account-plan")).toHaveText("Plus");
   });
 
-  test("Pro: $20, 20 topics at level A and 40 at level B per period (four times Plus), each level counted on its own", async ({ page }) => {
+  test("Pro: ₪20, 20 topics at level A and 40 at level B per period (four times Plus), each level counted on its own", async ({ page }) => {
     test.setTimeout(180_000);
     await setLocaleCookie(page, "en");
     await registerViaUi(page, { name: "Pro Player", region: "US" });
     await page.goto("/pricing");
-    await expect(page.getByTestId("price-PRO")).toContainText("$20");
+    await expect(page.getByTestId("price-PRO")).toContainText("₪20");
     await page.getByTestId("checkout-PRO").click();
     await page.waitForURL(/\/billing\/dev-checkout\//);
-    await expect(page.getByTestId("dev-checkout")).toContainText("$20");
+    await expect(page.getByTestId("dev-checkout")).toContainText("₪20");
     await page.getByTestId("dev-pay").click();
     await expect(page.getByTestId("checkout-status")).toHaveAttribute("data-active", "true", { timeout: 20_000 });
 

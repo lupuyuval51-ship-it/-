@@ -266,10 +266,9 @@ export function resolveGraphicsTier(plan: PlanId, requested?: GraphicsTier | nul
   return candidate ?? def.defaultTier;
 }
 
-/** Display currency for a region: ILS only where a plan explicitly configures an ILS price. */
-export function displayCurrency(plan: PlanId, country: string | null | undefined): CurrencyCode {
-  if (country?.toUpperCase() === ISRAEL && PLANS[plan].monthlyPrices.ILS !== undefined) return "ILS";
-  return "USD";
+/** Prices are shown and charged in shekels (₪) everywhere; the region no longer changes the currency. */
+export function displayCurrency(_plan: PlanId, _country: string | null | undefined): CurrencyCode {
+  return "ILS";
 }
 
 export function monthlyPrice(plan: PlanId, country: string | null | undefined): { currency: CurrencyCode; minor: number } {

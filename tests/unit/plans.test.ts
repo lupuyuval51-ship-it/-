@@ -30,7 +30,7 @@ describe("central plan configuration (exact product rules)", () => {
     expect(planAllowsTier("FREE", "A")).toBe(false);
   });
 
-  it("PLUS: $5/month internationally, exactly ₪5/month in Israel, 5 at A / 10 at B / unlimited C per billing period, Tier A", () => {
+  it("PLUS: ₪5/month everywhere (shekels only), 5 at A / 10 at B / unlimited C per billing period, Tier A", () => {
     expect(PLANS.PLUS.monthlyPrices.USD).toBe(500);
     expect(PLANS.PLUS.monthlyPrices.ILS).toBe(500);
     expect(PLANS.PLUS.allowance).toEqual({ A: 5, B: 10, C: null });
@@ -38,18 +38,18 @@ describe("central plan configuration (exact product rules)", () => {
     expect(planAllowsTier("PLUS", "A")).toBe(true);
     expect(monthlyPrice("PLUS", "IL")).toEqual({ currency: "ILS", minor: 500 });
     expect(formatMoney(monthlyPrice("PLUS", "IL").minor, "ILS")).toBe("₪5");
-    expect(formatMoney(monthlyPrice("PLUS", "US").minor, "USD")).toBe("$5");
-    expect(monthlyPrice("PLUS", null)).toEqual({ currency: "USD", minor: 500 });
+    expect(formatMoney(monthlyPrice("PLUS", "US").minor, monthlyPrice("PLUS", "US").currency)).toBe("₪5");
+    expect(monthlyPrice("PLUS", null)).toEqual({ currency: "ILS", minor: 500 });
   });
 
-  it("PRO: $20/month internationally, exactly ₪20/month in Israel, 20 at A / 40 at B / unlimited C per billing period", () => {
+  it("PRO: ₪20/month everywhere (shekels only), 20 at A / 40 at B / unlimited C per billing period", () => {
     expect(PLANS.PRO.monthlyPrices.USD).toBe(2000);
     expect(PLANS.PRO.monthlyPrices.ILS).toBe(2000);
     expect(formatMoney(monthlyPrice("PRO", "IL").minor, "ILS")).toBe("₪20");
     expect(PLANS.PRO.allowance).toEqual({ A: 20, B: 40, C: null });
     expect(displayCurrency("PRO", "IL")).toBe("ILS");
     expect(monthlyPrice("PRO", "IL")).toEqual({ currency: "ILS", minor: 2000 });
-    expect(monthlyPrice("PRO", "US")).toEqual({ currency: "USD", minor: 2000 });
+    expect(monthlyPrice("PRO", "US")).toEqual({ currency: "ILS", minor: 2000 });
   });
 
   it("PLUS and PRO get exactly the same graphics entitlement", () => {

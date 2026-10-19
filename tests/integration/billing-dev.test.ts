@@ -44,10 +44,10 @@ async function subscribe(u: { id: string; email: string; country?: string | null
 describe("checkout pricing is decided by the server from the central plan config", () => {
   const cases = [
     { country: "IL", plan: "PLUS", currency: "ils", amount: 500 },
-    { country: "US", plan: "PLUS", currency: "usd", amount: 500 },
-    { country: undefined, plan: "PLUS", currency: "usd", amount: 500 },
+    { country: "US", plan: "PLUS", currency: "ils", amount: 500 },
+    { country: undefined, plan: "PLUS", currency: "ils", amount: 500 },
     { country: "IL", plan: "PRO", currency: "ils", amount: 2000 }, // ₪20 in Israel
-    { country: "DE", plan: "PRO", currency: "usd", amount: 2000 },
+    { country: "DE", plan: "PRO", currency: "ils", amount: 2000 },
   ] as const;
   for (const c of cases) {
     it(`${c.plan} for ${c.country ?? "unknown region"} → ${c.amount} ${c.currency}`, async () => {
@@ -105,7 +105,7 @@ describe("simulated subscription lifecycle (same ingest pipeline as Stripe webho
     expect(rr.tier).toBe(rp.tier);
     expect(rr.profile).toEqual(rp.profile);
     const sub = await db.subscription.findUniqueOrThrow({ where: { userId: pro.id } });
-    expect(sub).toMatchObject({ currency: "usd", unitAmount: 2000 });
+    expect(sub).toMatchObject({ currency: "ils", unitAmount: 2000 });
   });
 
   it("another user cannot complete my checkout, and a second checkout is refused while subscribed", async () => {
