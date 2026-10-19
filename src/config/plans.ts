@@ -153,7 +153,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
   PLUS: {
     id: "PLUS",
     rank: 1,
-    // $5/month internationally; exactly ₪5/month for users in Israel (explicit, never FX-derived).
+    // ₪5/month everywhere (shekels only; the USD figure is kept only so older dollar subscriptions still match).
     monthlyPrices: { USD: 500, ILS: 500 },
     // 5 topics at level A, 10 at level B and unlimited level C per billing period, each level counted on its own (Pro has four times these quotas, plus the Pro-only topics, a stronger robot and more AI edits).
     allowance: { A: 5, B: 10, C: UNLIMITED },
@@ -164,7 +164,7 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
   PRO: {
     id: "PRO",
     rank: 2,
-    // $20/month internationally; exactly ₪20/month for users in Israel (explicit, never FX-derived).
+    // ₪20/month everywhere (shekels only; the USD figure is kept only so older dollar subscriptions still match).
     monthlyPrices: { USD: 2000, ILS: 2000 },
     // 20 topics at level A, 40 at level B and unlimited level C per billing period, each level counted on its own: four times Plus's quotas.
     allowance: { A: 20, B: 40, C: UNLIMITED },

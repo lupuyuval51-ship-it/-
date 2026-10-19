@@ -48,7 +48,7 @@ const c: TopicContent = {
       [21, ["In Fibonacci's sequence each number is the sum of the two before it: 1, 1, 2, 3, 5, 8, 13, x. What is x?", "", "Add the last two numbers: 8 + 13 = 21. The next ones would be 34 and 55."],
         ["בסדרת פיבונאצ׳י כל מספר הוא סכום שני המספרים שלפניו: 1, 1, 2, 3, 5, 8, 13, x. מהו x?", "", "מחברים את שני המספרים האחרונים: 8 + 13 = 21. המספרים הבאים יהיו 34 ו־55."]],
       [90, ["In Babylonian base 60, the number written with the digits 1 and 30 means 1 × 60 + 30. What is it in our numbers?", "", "One sixty plus 30 ones is 60 + 30 = 90, just as an hour and a half is 90 minutes."],
-        ["בשיטת הבסיס 60 של הבבלים, המספר שנכתב בספרות 1 ו־30 פירושו 1 × 60 + 30. כמה זה במספרים שלנו?", "", "שישים אחד ועוד 30 אחדות הם 60 + 30 = 90, בדיוק כמו ששעה וחצי הן 90 דקות."]],
+        ["בשיטת הבסיס 60 של הבבלים, המספר שנכתב בספרות 1 ו־30 פירושו 1 × 60 + 30. כמה זה במספרים שלנו?", "", "אחד כפול 60, ועוד 30 אחדות, הם 60 + 30 = 90, בדיוק כמו ששעה וחצי הן 90 דקות."]],
     ],
     s: [
       [["Events in maths history, from earliest to latest", "Babylonian scribes record maths on clay tablets", "Euclid writes the Elements in Alexandria", "Al-Khwarizmi writes his book on al-jabr in Baghdad", "Descartes publishes his coordinate geometry", "Newton and Leibniz develop calculus"],

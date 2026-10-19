@@ -87,7 +87,7 @@ Taken from the README, `AGENTS.md`, `docs/play-release.md` and `mobile/README.md
 **Product behaviour**
 * One subscription per user; changing plan means cancel (access to period end) and subscribe again. In-place upgrade does not exist (it cannot cross currencies, e.g. a USD subscription into an ILS one; everybody pays in shekels: ₪5 for Plus and ₪20 for Pro).
 * Partial refunds, disputes and chargebacks do not change entitlements; Stripe Tax is not configured.
-* There are no demo games: a subject alone builds nothing. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (84 of the planned 200), each at three levels; topic-library games cannot be extended.
+* There are no demo games: a subject alone builds nothing. The study engine only asks about what the learner pasted. The topic library (no AI) covers only the topics in its catalogue (470 topics: the original 210 and the Plus and Pro collection of 260), each at three levels; topic-library games cannot be extended.
 * Factual correctness of AI-made challenge content cannot be checked automatically (structure and solvability can).
 * Audio is synthesised and 3D art is procedural; Playwright runs in Chromium only.
 * The Android app: scores are self-practice (answer keys on the device); no paid features until Google Play Billing exists (the device tier stays A meanwhile); Auto Backup is off on purpose, so a new phone needs the backup file or the optional account;

@@ -15,7 +15,7 @@ const c: TopicContent = {
       [["How do you count “one, two, three” in Spanish?", "uno, dos, tres", ["uno, due, tre", "un, deux, trois", "eins, zwei, drei"], "Uno, dos, tres is Spanish; the others are Italian, French and German."],
         ["איך סופרים ״אחת, שתיים, שלוש״ בספרדית?", "uno, dos, tres", ["uno, due, tre", "un, deux, trois", "eins, zwei, drei"], "uno, dos, tres היא ספרדית; האחרות הן איטלקית, צרפתית וגרמנית."]],
     ],
-    n: [[7, ["“cinco” + “dos” = ? (Write the number.)", "", "Cinco is 5 and dos is 2: 5 + 2 = 7, which is siete in Spanish."], ["״cinco״ + ״dos״ = ? (כתבו את המספר.)", "", "cinco הוא 5 ו־dos הוא 2: 5 + 2 = 7, ובספרדית siete."]]],
+    n: [[7, ["“cinco” + “dos” = x (Write the number.)", "", "Cinco is 5 and dos is 2: 5 + 2 = 7, which is siete in Spanish."], ["״cinco״ + ״dos״ = x (כתבו את המספר.)", "", "cinco הוא 5 ו־dos הוא 2: 5 + 2 = 7, ובספרדית siete."]]],
   },
   i: {
     t: [
@@ -30,7 +30,7 @@ const c: TopicContent = {
       [["What number is “quince”?", "15", ["50", "14", "5"], "Quince is 15; fifty is cincuenta, fourteen is catorce and five is cinco."],
         ["איזה מספר הוא ״quince״?", "15", ["50", "14", "5"], "quince הוא 15; חמישים זה cincuenta, ארבע־עשרה זה catorce וחמש זה cinco."]],
     ],
-    n: [[20, ["“treinta” − “diez” = ? (Write the number.)", "", "Treinta is 30 and diez is 10: 30 − 10 = 20, which is veinte."], ["״treinta״ − ״diez״ = ? (כתבו את המספר.)", "", "treinta הוא 30 ו־diez הוא 10: 30 − 10 = 20, ובספרדית veinte."]]],
+    n: [[20, ["“treinta” − “diez” = x (Write the number.)", "", "Treinta is 30 and diez is 10: 30 − 10 = 20, which is veinte."], ["״treinta״ − ״diez״ = x (כתבו את המספר.)", "", "treinta הוא 30 ו־diez הוא 10: 30 − 10 = 20, ובספרדית veinte."]]],
   },
   a: {
     t: [
@@ -47,7 +47,7 @@ const c: TopicContent = {
       [["You meet someone new and they say “Mucho gusto”. What does it mean?", "Nice to meet you", ["Good luck", "Much better", "Too much"], "Mucho gusto is a polite phrase used when you meet someone for the first time."],
         ["אתם פוגשים מישהו חדש והוא אומר ״Mucho gusto״. מה זה אומר?", "נעים מאוד (להכיר)", ["בהצלחה", "הרבה יותר טוב", "יותר מדי"], "Mucho gusto הוא ביטוי מנומס שאומרים כשפוגשים מישהו בפעם הראשונה."]],
     ],
-    n: [[10, ["“cien” − “noventa” = ? (Write the number.)", "", "Cien is 100 and noventa is 90: 100 − 90 = 10, which is diez."], ["״cien״ − ״noventa״ = ? (כתבו את המספר.)", "", "cien הוא 100 ו־noventa הוא 90: 100 − 90 = 10, ובספרדית diez."]]],
+    n: [[10, ["“cien” − “noventa” = x (Write the number.)", "", "Cien is 100 and noventa is 90: 100 − 90 = 10, which is diez."], ["״cien״ − ״noventa״ = x (כתבו את המספר.)", "", "cien הוא 100 ו־noventa הוא 90: 100 − 90 = 10, ובספרדית diez."]]],
   },
 };
 export default c;

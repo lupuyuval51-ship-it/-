@@ -116,7 +116,7 @@ export const siteEs: Record<keyof typeof site.en, string> = {
   "pricing.error.already": "Ya tienes una suscripción activa. Usa “Gestionar suscripción” para cambiar de plan.",
   "pricing.region.note": "Los precios se muestran para la región de tu LUPU ID ({region}). Cámbiala en tu página de LUPU ID.",
   "pricing.region.visitor": "Mostrando precios para {region}.",
-  "pricing.region.default": "Mostrando precios en dólares estadounidenses. Elige tu región al registrarte para ver precios locales donde estén disponibles.",
+  "pricing.region.default": "Los precios se muestran en shekels (₪) en todas partes.",
 
   // web copy & accessibility pass
   "nav.skip": "Saltar al contenido",

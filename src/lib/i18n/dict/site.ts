@@ -115,7 +115,7 @@ export const site = defineDict(
     "pricing.error.already": "You already have an active subscription. Use \"Manage subscription\" to change plans.",
     "pricing.region.note": "Prices are shown for your LUPU ID region ({region}). Change it on your LUPU ID page.",
     "pricing.region.visitor": "Showing prices for {region}.",
-    "pricing.region.default": "Showing prices in US dollars. Choose your region when you sign up to see local pricing where available.",
+    "pricing.region.default": "Prices are shown in shekels (₪) everywhere.",
 
     // web copy & accessibility pass
     "nav.skip": "Skip to content",
@@ -256,7 +256,7 @@ export const site = defineDict(
     "pricing.error.already": "כבר יש לכם מנוי פעיל. השתמשו ב״ניהול מנוי״ כדי לשנות תוכנית.",
     "pricing.region.note": "המחירים מוצגים לפי אזור ה-LUPU ID שלכם ({region}). אפשר לשנות בדף ה-LUPU ID.",
     "pricing.region.visitor": "מוצגים מחירים עבור {region}.",
-    "pricing.region.default": "המחירים מוצגים בדולרים. בחרו את האזור שלכם בהרשמה כדי לראות מחיר מקומי היכן שקיים.",
+    "pricing.region.default": "המחירים מוצגים בשקלים (₪) בכל מקום.",
 
     // web copy & accessibility pass
     "nav.skip": "דילוג לתוכן",
