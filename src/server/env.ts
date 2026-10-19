@@ -15,7 +15,8 @@ const schema = z.object({
   /** With TRUST_PROXY: how many proxies we own sit in front of the app (the client IP is that many entries from the right of X-Forwarded-For). */
   TRUSTED_PROXY_HOPS: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.coerce.number().int().min(1).max(5).default(1)),
 
-  AI_PROVIDER: z.enum(["auto", "anthropic", "openai", "none"]).default("auto"),
+  /** "demo" is the old name of "none" (there are no demo games any more); kept so an older deployment's setting still starts. */
+  AI_PROVIDER: z.preprocess((v) => (v === "demo" ? "none" : v), z.enum(["auto", "anthropic", "openai", "none"]).default("auto")),
   ANTHROPIC_API_KEY: optional(z.string()),
   ANTHROPIC_MODEL: z.string().default("claude-opus-5-5"),
   ANTHROPIC_REFUSAL_FALLBACK: bool.default(true),

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { getEnv, resetEnvForTests } from "@/server/env";
 
-const KEYS = ["APP_ENV", "APP_URL", "PAYMENTS_MODE", "ENABLE_TEST_HOOKS", "DATABASE_URL"] as const;
+const KEYS = ["APP_ENV", "APP_URL", "PAYMENTS_MODE", "ENABLE_TEST_HOOKS", "DATABASE_URL", "AI_PROVIDER", "DEMO_TEMPLATES"] as const;
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 afterEach(() => {
   for (const k of KEYS) {
@@ -35,5 +35,11 @@ describe("production safety guards", () => {
   });
   it("requires a database URL", () => {
     expect(withEnv({ ...prod, APP_ENV: "local", DATABASE_URL: "" })).toThrow(/DATABASE_URL/);
+  });
+});
+
+describe("settings of older deployments still start the server", () => {
+  it("AI_PROVIDER=demo (the old name) means no AI, and a leftover DEMO_TEMPLATES is ignored", () => {
+    expect(withEnv({ AI_PROVIDER: "demo", DEMO_TEMPLATES: "true" })().AI_PROVIDER).toBe("none");
   });
 });
