@@ -25,8 +25,8 @@ const c: TopicContent = {
     q: [
       [["What is the capital of the Netherlands (by its constitution)?", "Amsterdam", ["Rotterdam", "Brussels", "Copenhagen"], "Amsterdam is the constitutional capital, although the government sits in The Hague."],
         ["מהי בירת הולנד (לפי החוקה שלה)?", "אמסטרדם", ["רוטרדם", "בריסל", "קופנהגן"], "אמסטרדם היא הבירה לפי החוקה, אף שהממשלה יושבת בהאג."]],
-      [["Which capital is on the River Danube?", "Budapest", ["Paris", "Madrid", "Lisbon"], "The Danube flows through Vienna, Bratislava, Budapest and Belgrade."],
-        ["איזו בירה שוכנת על נהר הדנובה?", "בודפשט", ["פריז", "מדריד", "ליסבון"], "הדנובה זורם דרך וינה, ברטיסלבה, בודפשט ובלגרד."]],
+      [["Which of these capitals is on the River Danube?", "Budapest", ["Paris", "Madrid", "Lisbon"], "The Danube flows through Vienna, Bratislava, Budapest and Belgrade."],
+        ["איזו מהבירות האלה שוכנת על נהר הדנובה?", "בודפשט", ["פריז", "מדריד", "ליסבון"], "הדנובה זורם דרך וינה, ברטיסלבה, בודפשט ובלגרד."]],
     ],
   },
   a: {
