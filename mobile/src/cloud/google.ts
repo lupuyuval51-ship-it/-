@@ -16,8 +16,18 @@
  * Everything here is a pure function of its arguments (injected client / opener / storage) so it is unit-tested without a phone.
  */
 
-/** Build-time switch: `VITE_GOOGLE_AUTH=1` (the Supabase dashboard must have the Google provider enabled). Anything else hides the button. */
-export const googleAuthEnabled = (flag: unknown = import.meta.env.VITE_GOOGLE_AUTH): boolean => flag === "1";
+/**
+ * Build-time switch for "Continue with Google" (the Supabase dashboard must have the Google provider enabled). On in a normal
+ * build; `VITE_GOOGLE_AUTH=0` hides it, and the `e2e` test build keeps it off unless it is asked for with `VITE_GOOGLE_AUTH=1`.
+ */
+export const googleAuthEnabled = (flag: unknown = import.meta.env.VITE_GOOGLE_AUTH ?? (import.meta.env.MODE === "e2e" ? "0" : "1")): boolean => flag === "1";
+
+/**
+ * The app asks for a Google sign-in before anything else (the account is how a learner keeps games and the plan across phones).
+ * Only when Google is on in this build; `VITE_REQUIRE_GOOGLE=0` makes the account optional again. A phone that already has a
+ * sign-in never needs the network again to open the app.
+ */
+export const googleRequired = (flag: unknown = import.meta.env.VITE_REQUIRE_GOOGLE): boolean => googleAuthEnabled() && flag !== "0";
 
 export const GOOGLE_REDIRECT_SCHEME = "app.levelup.learn3d";
 export const GOOGLE_REDIRECT_HOST = "auth";

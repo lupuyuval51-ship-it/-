@@ -232,3 +232,14 @@ Games per level are counted on the phone per calendar month (`src/lib/offline/de
 B 10 and C unlimited, Pro A 20, B 40 and C unlimited. **Known limit:** the purchase is not yet verified by a server (Google Play
 Developer API, with a service account); a rooted phone could fake a plan or reset its counters. Add that check before the
 subscriptions carry real money (a Supabase Edge Function in the account project; its credentials go into the function's secrets).
+
+## Sign-in is required (Play "App access")
+
+The app asks for a Google sign-in on its first screen (`mobile/src/pages/GoogleGate.tsx`); once a phone has a sign-in it opens
+without the network. Because the app is locked behind a login, the Play Console **App content → App access** declaration must say
+so and give the reviewer a way in: a Google test account (create a dedicated Gmail account for it and paste its e-mail and
+password in the Play Console form, never in this repository). **Before the first upload** enable the Google provider in the
+Supabase dashboard (levelup-app → Authentication → Providers → Google, with the OAuth client ID and secret from Google Cloud,
+redirect URL `app.levelup.learn3d://auth` in Authentication → URL configuration); otherwise nobody gets past the sign-in. Data safety:
+e-mail address, name and user ID are now collected for everybody (account management), linked to the user, not shared.
+Account deletion stays in Settings (`delete-account` function).

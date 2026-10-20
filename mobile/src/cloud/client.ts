@@ -21,6 +21,15 @@ export function getSupabase(): Promise<SupabaseClient> {
   return client;
 }
 
+/** Whether this phone holds a finished sign-in (not just a Google sign-in that was started). */
+export function hasSavedSession(): boolean {
+  try {
+    return localStorage.getItem(AUTH_STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
 /** Whether this phone keeps a sign-in (or a Google sign-in waiting for its deep link), read without loading the library. */
 export function hasSavedSignIn(): boolean {
   try {

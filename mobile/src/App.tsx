@@ -6,6 +6,9 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
 import { showPlans } from "./features";
+import { googleRequired } from "./cloud/google";
+import { hasSavedSession } from "./cloud/client";
+import { useAccount } from "./cloud/account";
 import { LibraryPage } from "./pages/Library";
 import { FirstSetup } from "./pages/FirstSetup";
 import { TabBar } from "./pages/TabBar";
@@ -23,6 +26,7 @@ const ReviewPage = lazy(() => import("./pages/Results").then((m) => ({ default: 
 const AboutPage = lazy(() => import("./pages/About").then((m) => ({ default: m.AboutPage })));
 const PlansPage = lazy(() => import("./pages/Plans").then((m) => ({ default: m.PlansPage })));
 const SettingsPage = lazy(() => import("./pages/Settings").then((m) => ({ default: m.SettingsPage })));
+const GoogleGate = lazy(() => import("./pages/GoogleGate").then((m) => ({ default: m.GoogleGate })));
 const CoursePage = lazy(() => import("./pages/Course").then((m) => ({ default: m.CoursePage })));
 
 function route(path: string) {
@@ -43,6 +47,9 @@ function route(path: string) {
 export function App() {
   const { locale, setupDone } = useSettings();
   const path = usePath();
+  const account = useAccount();
+  // A phone without a Google sign-in sees only the sign-in; one that has a saved sign-in opens straight away, offline too.
+  const needSignIn = googleRequired() && !account.session && !hasSavedSession();
   const dict = useMemo(() => DICTIONARIES[locale], [locale]);
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -63,7 +70,9 @@ export function App() {
           so the heading focus below runs once the (possibly still loading) screen has really been committed. */}
       <ErrorBoundary key={path}>
         {/* a new install opens on the questionnaire, full screen, before anything else */}
-        {!setupDone && !play
+        {needSignIn
+          ? <Suspense fallback={<ScreenLoading />}><GoogleGate /></Suspense>
+          : !setupDone && !play
           ? <FirstSetup />
           : play
           ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play /></Suspense>
