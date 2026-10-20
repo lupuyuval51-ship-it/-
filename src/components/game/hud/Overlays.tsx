@@ -111,7 +111,7 @@ export function TutorialCard({ touch, onDismiss }: { touch: boolean; onDismiss: 
   return (
     <div className={cx("pointer-events-none absolute z-20 flex justify-center", !shortLandscape && "inset-x-0 px-3")} style={style} data-testid="tutorial-card" data-compact={shortLandscape ? "1" : undefined}>
       <div className="lu-pop w-full max-w-sm rounded-2xl border border-neon/40 bg-ink-900/85 px-3 py-2 shadow-e3 backdrop-blur">
-        <div className="flex items-center justify-between gap-2">
+        <div className="mb-1.5 flex items-center justify-between gap-2">
           <p className="min-w-0 text-xs font-bold uppercase tracking-wide text-neon">{t("hud.tutorial.title")}</p>
           <Button size="sm" onClick={onDismiss} data-testid="tutorial-ok" className="pointer-events-auto shrink-0">{t("hud.tutorial.ok")}</Button>
         </div>
@@ -164,10 +164,10 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex max-h-dvh flex-col items-start gap-1.5" style={{ ...safePadX(), paddingTop: `max(${shortLandscape ? "0.375rem" : "0.75rem"}, env(safe-area-inset-top, 0px))`, paddingBottom: shortLandscape ? "0.375rem" : "0.75rem" }} data-testid="hud-top" data-compact={shortLandscape ? "1" : undefined}>
         <div ref={head} className="pointer-events-none flex w-full flex-col items-start gap-1.5">
           <div className="flex w-full flex-wrap items-stretch gap-2">
-            <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid size-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
+            <Link href="/games" aria-label={t("hud.exit")} className="pointer-events-auto grid min-h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-ink-900/80 backdrop-blur hover:bg-ink-700">
               <Arrow back />
             </Link>
-            <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 backdrop-blur sm:max-w-xs sm:flex-none">
+            <div className="pointer-events-auto min-w-[7rem] flex-1 rounded-xl border border-line bg-ink-900/80 px-2.5 py-1.5 backdrop-blur min-[24rem]:px-3 sm:max-w-xs sm:flex-none">
               <p className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs leading-tight text-muted">
                 {/* with a source label the card's first line is that label (the caption stays for screen readers, and shows again from the sm breakpoint up, where there is room), so the card is no taller */}
                 <span className={cx("uppercase tracking-wide", source && "sr-only sm:not-sr-only")}>{t("hud.area")}</span>
@@ -179,7 +179,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
               </p>
               <p dir="auto" className="break-words text-sm font-semibold" data-testid="area-name">{areaName}</p>
             </div>
-            <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-3 py-1.5 text-end backdrop-blur" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
+            <div className="pointer-events-auto shrink-0 rounded-xl border border-line bg-ink-900/80 px-2.5 py-1.5 text-end backdrop-blur min-[24rem]:px-3" aria-live="off" role="group" aria-label={t("a11y.score", { score, max: maxScore })}>
               <p className="text-xs uppercase tracking-wide text-muted" aria-hidden>{t("hud.score")}</p>
               <p dir="ltr" aria-hidden className="whitespace-nowrap text-end text-sm font-bold tabular-nums" data-testid="score">{score}<span className="text-muted"> / {maxScore}</span></p>
             </div>
@@ -202,7 +202,7 @@ export function TopBar({ spec, client, areaName, score, maxScore, onPause, demo,
         <aside className="pointer-events-auto flex min-h-0 w-[min(20rem,calc(100vw-1.5rem))] flex-col" aria-label={t("hud.missions")}>
           <button ref={toggle} type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls="hud-missions" className="mb-1 flex min-h-11 w-full items-center justify-between gap-2 rounded-xl border border-line bg-ink-900/80 px-3 py-2 text-start text-sm font-semibold backdrop-blur">
             <span>{t("hud.missions")} · {client.missionsDone.length}/{spec.missions.length}</span>
-            <span aria-hidden>{open ? "▾" : "▸"}</span>
+            <span aria-hidden className="rtl:-scale-x-100">{open ? "▾" : "▸"}</span>
           </button>
           {open && (
             <div id="hud-missions" className="min-h-0 space-y-2 overflow-y-auto rounded-xl border border-line bg-ink-900/80 p-3 backdrop-blur" style={{ maxHeight: "min(24rem, 50dvh)" }} data-testid="missions">

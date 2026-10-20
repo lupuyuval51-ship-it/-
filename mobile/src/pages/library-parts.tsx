@@ -123,8 +123,8 @@ export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; 
       )}
       {g.bestStars > 0 && <div className="flex flex-wrap items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}
       <div className="flex items-center gap-2">
-        <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action, title: g.title })} className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-neon px-5 font-bold text-ink-950">{action}</a>
-        {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-12 items-center rounded-xl border border-line px-4 text-sm font-semibold">{t("mob.results")}</a>}
+        <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action, title: g.title })} className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-neon px-5 font-bold text-ink-950 transition active:scale-[0.98]">{action}</a>
+        {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-12 shrink-0 items-center whitespace-nowrap rounded-xl border border-line px-4 text-sm font-semibold transition hover:bg-text/10 active:scale-[0.98]">{t("mob.results")}</a>}
         <button type="button" className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl text-muted transition hover:bg-text/10 hover:text-rose active:scale-[0.98]" title={t("mob.delete")} aria-label={t("a11y.forGame", { action: t("mob.delete"), title: g.title })} onClick={() => onDelete(g.id)}>
           <Trash2 aria-hidden className="size-5" />
         </button>
@@ -148,7 +148,7 @@ export function FilterBar({ filter, counts, onChange, t }: { filter: LibraryFilt
             aria-pressed={on}
             data-testid={`filter-${f}`}
             onClick={() => onChange(f)}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition active:scale-[0.98] ${on ? "border-neon bg-neon/15 text-neon" : "border-line text-muted"}`}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3 text-sm font-semibold transition active:scale-[0.98] min-[400px]:px-4 ${on ? "border-neon bg-neon/15 text-neon" : "border-line text-muted"}`}
           >
             {t(FILTER_KEY[f])}
             <span className="ltr-num text-xs">{counts[f]}</span>

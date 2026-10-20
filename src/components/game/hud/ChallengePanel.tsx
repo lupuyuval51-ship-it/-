@@ -178,9 +178,10 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
             <h2 id="challenge-title" dir="auto" className={cx("font-bold", shortLandscape ? "text-base" : "text-base sm:text-lg")}>{challenge.title}</h2>
             <div className="flex flex-wrap gap-1.5">
               <Badge tone="violet">{t("challenge.level", { n: challenge.level })}</Badge>
-              {!shortLandscape && <Badge>{t("challenge.concept")}: {challenge.concept}</Badge>}
               {!shortLandscape && <Badge>{t(`challengeType.${challenge.type}`)}</Badge>}
               {challenge.timeLimitSec && <Badge tone="amber">{t("challenge.timeLimit", { n: challenge.timeLimitSec })}</Badge>}
+              {/* last, and on one line: a long concept used to wrap into a tall pill and push the question down on a small phone */}
+              {!shortLandscape && <Badge className="min-w-0 max-w-full" title={`${t("challenge.concept")}: ${challenge.concept}`}><span dir="auto" className="truncate">{t("challenge.concept")}: {challenge.concept}</span></Badge>}
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} disabled={busy} aria-label={t("common.close")} aria-keyshortcuts="Escape" data-testid="challenge-x" className="relative z-20 size-11 shrink-0 touch-manipulation !p-0"><X aria-hidden className="size-5" /></Button>

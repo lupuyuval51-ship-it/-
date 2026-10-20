@@ -245,7 +245,7 @@ export function CreatePage() {
           <legend className="mb-1 text-sm font-semibold">{t("topics.source.title")}</legend>
           <div className="grid grid-cols-2 gap-2">
             {(["notes", "library", "ai"] as const).map((s) => (
-              <label key={s} className={`flex min-h-14 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold leading-snug transition focus-within:ring-2 focus-within:ring-neon/50 ${source === s ? "border-neon bg-neon/15 shadow-e1" : "border-line text-muted"}`}>
+              <label key={s} className={`flex min-h-14 cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold leading-snug text-balance transition last:odd:col-span-2 focus-within:ring-2 focus-within:ring-neon/50 ${source === s ? "border-neon bg-neon/15 shadow-e1" : "border-line text-muted"}`}>
                 <input type="radio" name="source" value={s} checked={source === s} disabled={busy} onChange={() => setSource(s)} className="size-4 accent-[var(--color-neon)]" data-testid={`source-${s}`} />
                 {s === "notes" ? t("topics.source.own") : s === "library" ? t("topics.source.library") : t("mob.create.source.ai")}
               </label>
@@ -264,7 +264,7 @@ export function CreatePage() {
       ) : (
       <div className="min-w-0 space-y-4" data-testid="create-notes-column">
       <Field label={t("create.subject")} htmlFor="subject" error={problem?.kind === "required" ? t("create.error.required") : null}>
-        <Input id="subject" className="min-h-11" value={form.subject} maxLength={INPUT_LIMITS.subjectMax} disabled={busy} enterKeyHint="next" onKeyDown={(e) => nextOnEnter(e, "material")} onChange={(e) => change("subject", e.target.value)} placeholder={t("create.subject.placeholder")} required />
+        <Input id="subject" className="min-h-11 text-ellipsis" value={form.subject} maxLength={INPUT_LIMITS.subjectMax} disabled={busy} enterKeyHint="next" onKeyDown={(e) => nextOnEnter(e, "material")} onChange={(e) => change("subject", e.target.value)} placeholder={t("create.subject.placeholder")} required />
       </Field>
       <div className="space-y-2">
         <p className="text-sm font-medium" id="example-label">{t("mob.create.example")}</p>

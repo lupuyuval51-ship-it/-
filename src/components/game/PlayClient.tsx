@@ -512,7 +512,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
           {tutorial && overlay.type === "none" && !(touch && nearby) && <TutorialCard touch={touch} onDismiss={dismissTutorial} />}
           {overlay.type === "none" && <GuideMarker markerRef={guideMarker} />}
           {overlay.type === "none" && guideOn && runtime && <Minimap runtime={runtime} client={client} input={input} guide={guide} calm={reduceMotion} />}
-          {runtime && <AreaBanner key={runtime.areaId} calm={reduceMotion} below={hudBottom === undefined ? undefined : hudBottom + 88} name={area.name} subtitle={d.spec.missions.find((m) => m.areaId === area.id && !client.missionsDone.includes(m.id))?.title} />}
+          {/* on a phone held sideways the title card and the first-steps card want the same strip: the title waits until the tips are dismissed */}
+          {runtime && !(tutorial && layout.shortLandscape) && <AreaBanner key={runtime.areaId} calm={reduceMotion} below={hudBottom === undefined ? undefined : hudBottom + 88} name={area.name} subtitle={d.spec.missions.find((m) => m.areaId === area.id && !client.missionsDone.includes(m.id))?.title} />}
           {overlay.type === "none" && <InteractPrompt target={nearby} touch={touch} onActivate={interact} />}
           {touch && overlay.type === "none" && runtime && <TouchControls input={input} onInteract={interact} hasJump={runtime.jumpEnabled} ready={nearby !== null} />}
         </>
