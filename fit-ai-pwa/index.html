@@ -284,6 +284,15 @@ input[type="checkbox"].sw:checked::after{inset-inline-start:23px}
 .lvl-dots{display:inline-flex;gap:3px}
 .lvl-dots i{width:6px;height:6px;border-radius:50%;background:var(--surface3)}
 .lvl-dots i.on{background:var(--accent-text)}
+.anim-box{display:block;aspect-ratio:1;border-radius:18px;background:radial-gradient(120% 90% at 50% 100%,color-mix(in srgb,var(--accent) 10%,var(--surface2)),var(--surface2) 70%);border:1px solid var(--line);overflow:hidden}
+.anim-box.tile{aspect-ratio:auto;height:128px;margin:-2px -2px 2px}
+.anim-box .exanim{width:100%;height:100%;display:block}
+.ex-thumb{width:62px;height:62px;flex:none;padding:0;border-radius:14px;cursor:pointer;background:var(--surface2);border:1px solid var(--line);overflow:hidden;display:block}
+.ex-thumb.sm{width:46px;height:46px;border-radius:12px;cursor:default}
+.ex-thumb .exanim{width:100%;height:100%;display:block}
+.timer-anim{width:120px;height:120px;margin:6px auto 0}
+.has-active .main{padding-bottom:calc(var(--nav-h) + 96px + env(safe-area-inset-bottom))}
+@media (min-width:980px){.has-active .main{padding-bottom:110px}}
 .bodymap{display:flex;gap:6px;justify-content:center}
 .bodymap svg{width:min(46%,170px);height:auto}
 .bodymap .base{fill:var(--surface3)}
@@ -1454,6 +1463,223 @@ const emptyBox = (ic, text, cta = '') => `<div class="empty"><div class="ei">${i
 const greeting = () => { const h = new Date().getHours(); return h < 5 ? t('לילה טוב', 'Good night') : h < 12 ? t('בוקר טוב', 'Good morning') : h < 17 ? t('צהריים טובים', 'Good afternoon') : h < 21 ? t('ערב טוב', 'Good evening') : t('לילה טוב', 'Good night'); };
 
 /* =====================================================================
+   EXERCISE ANIMATIONS — procedural 2D figure posed with inverse kinematics.
+   Each exercise is a few keyframes (hip, torso angle, hand/foot targets);
+   arms and legs are solved per frame so feet stay planted and hands hold the gear.
+   ===================================================================== */
+const SEGL = { T: 50, UA: 27, FA: 25, TH: 37, SH: 37 };
+const KEY0 = { view: 'side', hip: [100, 110], torso: 4, tl: 1, curve: 0, head: 0, feet: [[106, 183], [99, 183]], hands: [['s', 3, 48], ['s', -1, 48]], toe: [[11, 3], [11, 3]], kh: [[1, 0], [1, 0]], eh: [[-1, 0.3], [-1, 0.3]] };
+const FRONT0 = { ...KEY0, view: 'front', torso: 0, feet: [[91, 183], [109, 183]], hands: [['s', -3, 48], ['s', 3, 48]], toe: [[-4, 3], [4, 3]], kh: [[-1, 0], [1, 0]], eh: [[-1, 0.2], [1, 0.2]] };
+function skeleton(P) {
+  const r = (P.torso * Math.PI) / 180, ax = [Math.sin(r), -Math.cos(r)], pp = [Math.cos(r), Math.sin(r)], tl = SEGL.T * P.tl, front = P.view === 'front';
+  const hip = P.hip, neck = [hip[0] + ax[0] * tl, hip[1] + ax[1] * tl], shB = [neck[0] - ax[0] * 3, neck[1] - ax[1] * 3];
+  const sh = front ? [[shB[0] - pp[0] * 14, shB[1] - pp[1] * 14], [shB[0] + pp[0] * 14, shB[1] + pp[1] * 14]] : [shB, shB];
+  const hp = front ? [[hip[0] - pp[0] * 8, hip[1] - pp[1] * 8], [hip[0] + pp[0] * 8, hip[1] + pp[1] * 8]] : [hip, hip];
+  return { ax, pp, hip, neck, sh, hp, front };
+}
+// relative targets ('s' = from shoulder, 'h' = from hip) are resolved per keyframe, so keys can mix both styles
+function resolveKey(k) {
+  const sk = skeleton(k), res = (v, i) => (v[0] === 's' ? [sk.sh[i][0] + v[1], sk.sh[i][1] + v[2]] : v[0] === 'h' ? [sk.hp[i][0] + v[1], sk.hp[i][1] + v[2]] : v);
+  return { ...k, hands: k.hands.map(res), feet: k.feet.map(res) };
+}
+function animKeys(spec) {
+  if (spec._k) return spec._k;
+  let prev = spec.v === 'front' ? FRONT0 : KEY0;
+  return (spec._k = spec.k.map(k => (prev = { ...prev, ...k })).map(resolveKey));
+}
+const lerpV = (a, b, u) => (typeof a === 'number' ? a + (b - a) * u : Array.isArray(a) ? a.map((x, i) => lerpV(x, b[i], u)) : a && typeof a === 'object' ? Object.fromEntries(Object.keys(a).map(k => [k, lerpV(a[k], b[k], u)])) : a);
+function poseAt(spec, ts) {
+  const ks = animKeys(spec), d = spec.d || 2.6;
+  if (ks.length === 1) return ks[0];
+  const ph = (((ts % d) + d) % d) / d;
+  if (!spec.seq && ks.length === 2) return lerpV(ks[0], ks[1], 0.5 - 0.5 * Math.cos(ph * 2 * Math.PI));
+  const n = ks.length, x = ph * n, i = Math.floor(x) % n, f = x - Math.floor(x);
+  return lerpV(ks[i], ks[(i + 1) % n], f * f * (3 - 2 * f));
+}
+function ik2(a, t, l1, l2, hint) {
+  const dx = t[0] - a[0], dy = t[1] - a[1], d0 = Math.hypot(dx, dy) || 1e-3, ux = dx / d0, uy = dy / d0;
+  const d = clamp(d0, Math.abs(l1 - l2) + 0.5, l1 + l2 - 0.05);
+  const A = Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1)), c = Math.cos(A), s = Math.sin(A);
+  const j1 = [a[0] + l1 * (ux * c - uy * s), a[1] + l1 * (ux * s + uy * c)], j2 = [a[0] + l1 * (ux * c + uy * s), a[1] + l1 * (-ux * s + uy * c)];
+  const sc = j => (j[0] - a[0]) * hint[0] + (j[1] - a[1]) * hint[1];
+  return [sc(j1) >= sc(j2) ? j1 : j2, [a[0] + ux * d, a[1] + uy * d]];
+}
+function solvePose(P) {
+  const sk = skeleton(P), hr = ((P.head || 0) * Math.PI) / 180;
+  const hax = [sk.ax[0] * Math.cos(hr) - sk.ax[1] * Math.sin(hr), sk.ax[0] * Math.sin(hr) + sk.ax[1] * Math.cos(hr)];
+  const arms = [0, 1].map(i => { const [el, hand] = ik2(sk.sh[i], P.hands[i], SEGL.UA, SEGL.FA, P.eh[i]); return { sh: sk.sh[i], el, hand }; });
+  const legs = [0, 1].map(i => { const [kn, ank] = ik2(sk.hp[i], P.feet[i], SEGL.TH, SEGL.SH, P.kh[i]); return { hip: sk.hp[i], kn, ank, toe: [ank[0] + P.toe[i][0], ank[1] + P.toe[i][1]] }; });
+  const mid = [(sk.hip[0] + sk.neck[0]) / 2 + sk.pp[0] * P.curve, (sk.hip[1] + sk.neck[1]) / 2 + sk.pp[1] * P.curve];
+  const hands = [(arms[0].hand[0] + arms[1].hand[0]) / 2, (arms[0].hand[1] + arms[1].hand[1]) / 2];
+  return { ...sk, mid, head: [sk.neck[0] + hax[0] * 13, sk.neck[1] + hax[1] * 13], arms, legs, pts: { hip: sk.hip, neck: sk.neck, sh0: sk.sh[0], hand0: arms[0].hand, hand1: arms[1].hand, hands, foot0: legs[0].ank, foot1: legs[1].ank, knee0: legs[0].kn } };
+}
+const HL_SEG = { quads: 'th', hamstrings: 'th', glutes: 'th', calves: 'sh', chest: 'to', back: 'to', abs: 'to', obliques: 'to', lowerback: 'to', traps: 'to', shoulders: 'ua', biceps: 'ua', triceps: 'ua', forearms: 'fa' };
+const P2 = p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+const seg = (a, b, w, c, op = 1) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${op < 1 ? ` opacity="${op}"` : ''}/>`;
+function propSVG(pr, g) {
+  const pt = k => (typeof k === 'string' ? g.pts[k] : k), o = pr.o || [0, 0], at = pr.at ? pt(pr.at) : null, c = at ? [at[0] + o[0], at[1] + o[1]] : null;
+  const M = 'var(--muted)', S3 = 'var(--surface3)';
+  switch (pr.t) {
+    case 'box': return `<rect x="${pr.x}" y="${pr.y}" width="${pr.w}" height="${pr.h}" rx="4" fill="${S3}" stroke="var(--line2)" stroke-width="1.5"/>`;
+    case 'pad': return seg(pr.a, pr.b, pr.w || 9, S3);
+    case 'bar': return seg([pr.x1, pr.y], [pr.x2, pr.y], 5, M) + (pr.posts ? seg([pr.x2, pr.y], [pr.x2, 186], 4, M, 0.45) : seg([pr.x1, pr.y], [pr.x1, 186], 4, M, 0.3) + seg([pr.x2, pr.y], [pr.x2, 186], 4, M, 0.3));
+    case 'plate': return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="14" fill="${S3}" stroke="${M}" stroke-width="3" opacity="${pr.front ? 0.9 : 1}"/><circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="3" fill="${M}"/>`;
+    case 'db': { const v = pr.v ? [0, 1] : [1, 0], q = (k, m) => [c[0] + v[0] * k + v[1] * m, c[1] + v[1] * k - v[0] * m]; return seg(q(-7, 0), q(7, 0), 3.5, M) + seg(q(-8, -5), q(-8, 5), 6, M) + seg(q(8, -5), q(8, 5), 6, M); }
+    case 'kb': return `<circle cx="${c[0].toFixed(1)}" cy="${(c[1] + 2).toFixed(1)}" r="5" fill="none" stroke="${M}" stroke-width="3"/><circle cx="${c[0].toFixed(1)}" cy="${(c[1] + 12).toFixed(1)}" r="9" fill="${M}"/>`;
+    case 'band': return seg(pt(pr.from), c, 2.5, 'var(--protein)', 0.9);
+    case 'cable': { const f = pt(pr.from); return seg(f, c, 1.6, M) + `<circle cx="${f[0]}" cy="${f[1]}" r="5" fill="none" stroke="${M}" stroke-width="2"/>`; }
+    case 'anchor': return `<circle cx="${c[0]}" cy="${c[1]}" r="4.5" fill="${M}"/>`;
+    case 'grip': return pr.v ? seg([c[0], c[1] - 10], [c[0], c[1] + 10], 4, M) : seg([c[0] - 13, c[1]], [c[0] + 13, c[1]], 4, M);
+    case 'roller': return `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="6.5" fill="${S3}" stroke="${M}" stroke-width="2"/>`;
+    case 'lp': return seg([c[0] + 6 - 13, c[1] - 4 - 18], [c[0] + 6 + 13, c[1] - 4 + 18], 6, M);
+  }
+  return '';
+}
+const BACK_PROPS = new Set(['box', 'pad', 'bar', 'anchor', 'cable']);
+function figureSVG(id, spec, P) {
+  const g = solvePose(P), hl = HL_SEG[EXM[id]?.muscle], col = k => (k === hl ? 'var(--accent)' : 'var(--text)');
+  const props = spec.p || [], back = props.filter(p => BACK_PROPS.has(p.t) || (p.t === 'plate' && !p.front) || p.back), front = props.filter(p => !back.includes(p));
+  const leg = (l, op) => seg(l.hip, l.kn, 10, col('th'), op) + seg(l.kn, l.ank, 9, col('sh'), op) + seg(l.ank, l.toe, 6, 'var(--text)', op);
+  const arm = (a, op) => seg(a.sh, a.el, 8, col('ua'), op) + seg(a.el, a.hand, 7, col('fa'), op) + `<circle cx="${a.hand[0].toFixed(1)}" cy="${a.hand[1].toFixed(1)}" r="4.2" fill="var(--text)"${op < 1 ? ` opacity="${op}"` : ''}/>`;
+  const farOp = g.front ? 0.92 : 0.38;
+  return `<line x1="6" y1="187.5" x2="194" y2="187.5" stroke="var(--line2)" stroke-width="2"/>${back.map(p => propSVG(p, g)).join('')}${leg(g.legs[1], farOp)}${arm(g.arms[1], farOp)}<path d="M${P2(g.hip)} Q${P2(g.mid)} ${P2(g.neck)}" stroke="${col('to')}" stroke-width="14" fill="none" stroke-linecap="round"/>${seg(g.neck, g.head, 6, 'var(--text)')}<circle cx="${g.head[0].toFixed(1)}" cy="${g.head[1].toFixed(1)}" r="10.5" fill="var(--text)"/>${leg(g.legs[0], 1)}${arm(g.arms[0], 1)}${front.map(p => propSVG(p, g)).join('')}`;
+}
+
+/* keyframe library */
+const s_ = (x, y) => ['s', x, y], h_ = (x, y) => ['h', x, y];
+const F0 = [[106, 183], [99, 183]], FS = [[116, 183], [86, 183]];
+const BOX = (x, y, w, h) => ({ t: 'box', x, y, w, h });
+const PULL_BAR = { t: 'bar', y: 22, x1: 62, x2: 142 };
+const PLATE = (at = 'hands', o = [0, 0], front = true) => ({ t: 'plate', at, o, front });
+const DB = (at, v) => ({ t: 'db', at, v }), DB2 = [DB('hand0'), { t: 'db', at: 'hand1', back: true }], DB2V = [DB('hand0', 1), { t: 'db', at: 'hand1', v: 1, back: true }];
+const PUSH_UP = { hip: [92, 154], torso: 66, feet: [[22, 180], [19, 180]], toe: [[6, 6], [6, 6]], kh: [[1, 0], [1, 0]], hands: [[140, 186], [136, 186]], eh: [[-1, -0.6], [-1, -0.6]] };
+const PUSH_DN = { hip: [97, 169], torso: 79 };
+const LIE_BENCH = { hip: [112, 150], torso: -90, feet: [[150, 183], [146, 183]], kh: [[0, -1], [0, -1]], eh: [[0, 1], [0, 1]] };
+const LIE_FLOOR = { hip: [112, 176], torso: -90, kh: [[0, -1], [0, -1]], eh: [[0, 1], [0, 1]] };
+const HANG = { hip: [99, 122], torso: 4, hands: [[105, 24], [101, 24]], feet: [h_(-26, 52), h_(-30, 50)], toe: [[-1, 9], [-1, 9]], kh: [[1, 0.2], [1, 0.2]], eh: [[0.5, 1], [0.5, 1]] };
+const ALL4 = { hip: [80, 140], torso: 90, hands: [[132, 186], [128, 186]], eh: [[-1, 0], [-1, 0]], feet: [h_(-34, 42), h_(-36, 42)], kh: [[0, 1], [0, 1]], toe: [[-10, 1], [-10, 1]] };
+const PRONE = { hip: [78, 176], torso: 92, feet: [h_(-70, 6), h_(-70, 7)], toe: [[-3, 8], [-3, 8]], eh: [[0, -1], [0, -1]] };
+const BENCH = BOX(40, 156, 96, 30);
+const press = (p, extra = {}) => ({ k: [{ hands: [s_(11, -2), s_(9, -2)], eh: [[1, 0.6], [1, 0.6]] }, { hands: [s_(3, -52), s_(1, -52)], eh: [[1, 0], [1, 0]] }], p, ...extra });
+const curl = p => ({ k: [{ hands: [s_(3, 50), s_(1, 50)], eh: [[-0.3, 1], [-0.3, 1]] }, { hands: [s_(22, 14), s_(20, 14)] }], p });
+const pullup = d => ({ k: [HANG, { hip: [99, 86] }], p: [PULL_BAR], d });
+const ANIMS = {
+  'bw-squat': { k: [{ hands: [s_(8, 46), s_(4, 47)] }, { hip: [84, 146], torso: 38, hands: [s_(48, 2), s_(46, 4)] }] },
+  'goblet-squat': { k: [{ hands: [s_(14, 16), s_(12, 17)], eh: [[0, 1], [0, 1]] }, { hip: [86, 148], torso: 30 }], p: [DB('hands', 1)] },
+  'back-squat': { k: [{ hands: [s_(-9, 7), s_(-11, 8)], eh: [[0, 1], [0, 1]] }, { hip: [84, 148], torso: 40 }], p: [PLATE('sh0', [-3, -2], false)] },
+  'front-squat': { k: [{ hands: [s_(13, 3), s_(11, 4)], eh: [[1, 0.4], [1, 0.4]] }, { hip: [88, 150], torso: 22 }], p: [PLATE('sh0', [10, -2], false)] },
+  'leg-press': { k: [{ hip: [76, 152], torso: -58, feet: [[140, 118], [136, 121]], toe: [[7, -9], [7, -9]], kh: [[-0.3, -1], [-0.3, -1]], hands: [h_(-2, 6), h_(-4, 6)], eh: [[0, 1], [0, 1]] }, { feet: [[114, 104], [110, 107]] }], p: [{ t: 'pad', a: [84, 162], b: [40, 128], w: 10 }, { t: 'pad', a: [40, 184], b: [150, 184], w: 6 }, { t: 'lp', at: 'foot0' }] },
+  'wall-sit': { d: 3, k: [{ hip: [80, 146], torso: -2, feet: [[116, 183], [112, 183]], hands: [h_(26, -2), h_(24, -2)], eh: [[0, 1], [0, 1]] }, { hip: [80, 148] }], p: [{ t: 'pad', a: [70, 20], b: [70, 186], w: 6 }] },
+  'jump-squat': { seq: 1, d: 2.2, k: [{ hands: [s_(-6, 46), s_(-8, 46)] }, { hip: [86, 144], torso: 36, hands: [s_(-16, 42), s_(-18, 42)] }, { hip: [100, 94], torso: 2, feet: [[104, 166], [98, 166]], toe: [[6, 8], [6, 8]], hands: [s_(10, -48), s_(6, -48)], eh: [[0, -1], [0, -1]] }, { hip: [86, 144], torso: 36, feet: F0, toe: [[11, 3], [11, 3]], hands: [s_(-16, 42), s_(-18, 42)], eh: [[-1, 0.3], [-1, 0.3]] }] },
+  'rdl-db': { k: [{ hands: [s_(5, 47), s_(3, 47)] }, { hip: [86, 116], torso: 78, hands: [s_(1, 50), s_(-1, 50)] }], p: DB2 },
+  'rdl-bb': { k: [{ hands: [s_(5, 47), s_(3, 47)] }, { hip: [86, 116], torso: 78, hands: [s_(1, 50), s_(-1, 50)] }], p: [PLATE('hands', [0, 4])] },
+  'deadlift': { k: [{ hands: [s_(4, 47), s_(2, 47)] }, { hip: [84, 138], torso: 62, hands: [s_(1, 51), s_(-1, 51)] }], p: [PLATE('hands', [0, 6])] },
+  'hip-thrust': { k: [{ hip: [98, 170], torso: -58, feet: [[136, 183], [132, 183]], kh: [[0, -1], [0, -1]], hands: [h_(2, -12), h_(0, -12)], eh: [[0, -1], [0, -1]] }, { hip: [102, 146], torso: -85 }], p: [BOX(22, 146, 38, 40), PLATE('hip', [2, -14])] },
+  'glute-bridge': { k: [{ hip: [104, 174], torso: -88, feet: [[134, 183], [130, 183]], kh: [[0, -1], [0, -1]], hands: [[80, 184], [76, 184]], eh: [[0, -1], [0, -1]] }, { hip: [104, 150], torso: -120, head: 32 }] },
+  'kb-swing': { d: 1.8, k: [{ hip: [88, 118], torso: 62, hands: [s_(-8, 46), s_(-10, 46)] }, { hip: [100, 110], torso: -4, hands: [s_(48, -2), s_(46, -2)] }], p: [{ t: 'kb', at: 'hands' }] },
+  'sl-rdl': { k: [{ feet: [[104, 183], [100, 183]], hands: [s_(3, 48), s_(1, 48)] }, { hip: [94, 112], torso: 84, feet: [[104, 183], h_(-70, -6)], toe: [[11, 3], [3, 9]], hands: [s_(0, 49), s_(-2, 49)] }], p: [DB('hand0')] },
+  'superman': { k: [{ ...PRONE, hands: [s_(46, 6), s_(44, 6)] }, { torso: 84, feet: [h_(-68, -5), h_(-68, -4)], hands: [s_(46, -8), s_(44, -8)] }] },
+  'leg-curl': { k: [{ hip: [108, 148], torso: -90, feet: [h_(72, 2), h_(72, 3)], toe: [[2, 8], [2, 8]], kh: [[0, 1], [0, 1]], hands: [s_(-8, 16), s_(-10, 16)], eh: [[0, 1], [0, 1]] }, { feet: [h_(30, -30), h_(30, -29)] }], p: [{ t: 'pad', a: [40, 159], b: [148, 159], w: 10 }, { t: 'pad', a: [94, 164], b: [94, 186], w: 6 }, { t: 'roller', at: 'foot0', o: [0, -7] }] },
+  'reverse-lunge': { k: [{ hands: [h_(8, 0), h_(6, 0)], eh: [[-1, 0], [-1, 0]] }, { hip: [92, 146], feet: [[112, 183], [48, 178]], toe: [[11, 3], [8, 6]], kh: [[1, 0], [0.3, 1]] }] },
+  'walking-lunge': { k: [{ hands: [s_(1, 49), s_(-1, 49)] }, { hip: [92, 146], feet: [[112, 183], [48, 178]], toe: [[11, 3], [8, 6]], kh: [[1, 0], [0.3, 1]] }], p: DB2 },
+  'bulgarian': { k: [{ hip: [96, 116], torso: 6, feet: [[118, 183], [50, 147]], toe: [[11, 3], [7, 5]], kh: [[1, 0], [0.3, 1]], hands: [s_(2, 49), s_(0, 49)] }, { hip: [92, 146] }], p: [BOX(26, 151, 32, 35), ...DB2] },
+  'step-up': { k: [{ hip: [94, 120], torso: 10, feet: [[120, 147], [92, 183]] }, { hip: [118, 76], torso: 4, feet: [[124, 147], [116, 147]] }], p: [BOX(104, 151, 50, 35)] },
+  'leg-extension': { k: [{ hip: [80, 142], torso: -8, feet: [[117, 180], [113, 181]], kh: [[1, -1], [1, -1]], toe: [[9, 4], [9, 4]], hands: [h_(8, 6), h_(6, 6)], eh: [[0, 1], [0, 1]] }, { feet: [[152, 132], [150, 134]], toe: [[6, -8], [6, -8]] }], p: [BOX(58, 149, 52, 9), { t: 'pad', a: [60, 148], b: [52, 96], w: 8 }, { t: 'roller', at: 'foot0', o: [4, -2] }] },
+  'calf-raise': { k: [{}, { hip: [100, 101], feet: [[106, 174], [99, 174]], toe: [[8, 12], [8, 12]] }] },
+  'seated-calf': { k: [{ hip: [74, 140], torso: 0, feet: [[112, 183], [108, 183]], kh: [[1, -1], [1, -1]], hands: [h_(30, -6), h_(28, -6)] }, { feet: [[112, 174], [108, 174]], toe: [[8, 12], [8, 12]] }], p: [BOX(52, 147, 44, 9), { t: 'pad', a: [96, 132], b: [130, 132], w: 6 }] },
+  'pushup': { k: [PUSH_UP, PUSH_DN] },
+  'diamond-pushup': { k: [{ ...PUSH_UP, hands: [[142, 186], [140, 186]] }, PUSH_DN] },
+  'knee-pushup': { k: [{ ...PUSH_UP, hip: [96, 152], torso: 72, feet: [[40, 166], [37, 166]], kh: [[0, 1], [0, 1]], toe: [[-4, 6], [-4, 6]] }, { hip: [98, 162], torso: 84 }] },
+  'decline-pushup': { k: [{ ...PUSH_UP, feet: [[22, 146], [19, 146]], hip: [96, 140], torso: 83, hands: [[146, 186], [142, 186]] }, { hip: [98, 154], torso: 95 }], p: [BOX(0, 150, 40, 36)] },
+  'bench-press': { k: [{ ...LIE_BENCH, hands: [s_(2, -50), s_(0, -50)] }, { hands: [s_(6, -12), s_(4, -12)] }], p: [BENCH, PLATE('hands')] },
+  'db-bench': { k: [{ ...LIE_BENCH, hands: [s_(2, -50), s_(0, -50)] }, { hands: [s_(6, -12), s_(4, -12)] }], p: [BENCH, ...DB2] },
+  'db-fly': { k: [{ ...LIE_BENCH, hands: [s_(2, -50), s_(0, -50)] }, { hands: [s_(-2, -18), s_(-4, -18)] }], p: [BENCH, ...DB2] },
+  'incline-db': { k: [{ ...LIE_BENCH, torso: -58, hands: [s_(12, -50), s_(10, -50)] }, { hands: [s_(10, -14), s_(8, -14)] }], p: [{ t: 'pad', a: [106, 159], b: [60, 132], w: 10 }, { t: 'pad', a: [100, 164], b: [100, 186], w: 6 }, ...DB2] },
+  'machine-chest': { k: [{ hip: [74, 142], torso: -4, feet: [[114, 183], [110, 183]], kh: [[1, -0.5], [1, -0.5]], hands: [s_(50, 4), s_(48, 4)], eh: [[-1, 0.3], [-1, 0.3]] }, { hands: [s_(14, 10), s_(12, 10)] }], p: [BOX(52, 149, 46, 9), { t: 'pad', a: [60, 148], b: [56, 90], w: 8 }, { t: 'grip', at: 'hand0', v: 1 }] },
+  'band-press': { k: [{ feet: FS, torso: 8, hands: [s_(12, 10), s_(10, 10)] }, { hands: [s_(50, 6), s_(48, 6)] }], p: [{ t: 'band', from: [56, 70], at: 'hands' }] },
+  'dips': { k: [{ hip: [104, 106], torso: 9, hands: [[114, 108], [112, 108]], feet: [h_(-14, 58), h_(-18, 58)], kh: [[1, 0], [1, 0]], toe: [[2, 9], [2, 9]], eh: [[-1, -0.5], [-1, -0.5]] }, { hip: [98, 128], torso: 24 }], p: [{ t: 'bar', y: 109, x1: 96, x2: 136, posts: 1 }] },
+  'bench-dips': { k: [{ hip: [86, 132], torso: -6, hands: [[70, 131], [66, 131]], eh: [[-1, 0], [-1, 0]], feet: [[140, 183], [136, 183]] }, { hip: [88, 156], torso: -12 }], p: [BOX(36, 134, 44, 52)] },
+  'cable-fly': { k: [{ feet: FS, torso: 14, hands: [s_(-12, 8), s_(-14, 8)], eh: [[0, 1], [0, 1]] }, { hands: [s_(40, 18), s_(38, 18)] }], p: [{ t: 'cable', from: [40, 34], at: 'hand0' }] },
+  'ohp': press([PLATE('hands', [0, -2])]),
+  'db-shoulder': press(DB2),
+  'band-ohp': press([{ t: 'band', from: 'foot0', at: 'hands' }]),
+  'pike-pushup': { k: [{ hip: [90, 116], torso: 125, feet: [[62, 180], [58, 180]], toe: [[6, 6], [6, 6]], hands: [[136, 186], [132, 186]], eh: [[-1, 0], [-1, 0]], head: 20 }, { hip: [94, 120], torso: 145 }] },
+  'lateral-raise': { v: 'front', k: [{}, { hands: [s_(-50, 2), s_(50, 2)], eh: [[-0.3, 1], [0.3, 1]] }], p: [DB('hand0', 1), DB('hand1', 1)] },
+  'face-pull': { k: [{ feet: FS, torso: -4, hands: [s_(48, -6), s_(46, -6)], eh: [[-1, -0.3], [-1, -0.3]] }, { hands: [s_(10, -16), s_(8, -16)] }], p: [{ t: 'cable', from: [184, 56], at: 'hands' }] },
+  'band-pull-apart': { v: 'front', k: [{ hands: [s_(12, 6), s_(-12, 6)], eh: [[0, 1], [0, 1]] }, { hands: [s_(-46, 4), s_(46, 4)] }], p: [{ t: 'band', from: 'hand1', at: 'hand0' }] },
+  'rear-fly': { v: 'front', k: [{ tl: 0.55, hip: [100, 112], hands: [s_(-3, 44), s_(3, 44)], eh: [[-0.3, 1], [0.3, 1]] }, { hands: [s_(-48, 2), s_(48, 2)] }], p: [DB('hand0', 1), DB('hand1', 1)] },
+  'db-row': { k: [{ hip: [80, 116], torso: 80, feet: [[104, 183], [62, 183]], hands: [s_(0, 48), s_(8, 32)], eh: [[-1, -1], [-1, 0]] }, { hands: [s_(-16, 24), s_(8, 32)] }], p: [BOX(104, 141, 64, 45), DB('hand0', 1)] },
+  'bb-row': { k: [{ hip: [88, 114], torso: 52, hands: [s_(0, 50), s_(-2, 50)], eh: [[-1, -1], [-1, -1]] }, { hands: [s_(-10, 22), s_(-12, 22)] }], p: [PLATE('hands', [0, 3])] },
+  'inverted-row': { k: [{ hip: [82, 166], torso: 75, feet: [[14, 180], [11, 180]], toe: [[6, 6], [6, 6]], hands: [[128, 104], [126, 104]], eh: [[-1, 1], [-1, 1]] }, { hip: [78, 145], torso: 58 }], p: [{ t: 'bar', y: 103, x1: 112, x2: 146, posts: 1 }] },
+  'cable-row': { k: [{ hip: [76, 172], torso: -6, feet: [[144, 176], [140, 176]], toe: [[4, -8], [4, -8]], kh: [[0, -1], [0, -1]], hands: [s_(54, 8), s_(52, 8)], eh: [[-1, 0], [-1, 0]] }, { hands: [s_(6, 18), s_(4, 18)] }], p: [{ t: 'pad', a: [152, 150], b: [152, 186], w: 6 }, { t: 'cable', from: [192, 160], at: 'hands' }] },
+  'band-row': { k: [{ feet: FS, torso: 10, hands: [s_(48, 10), s_(46, 10)], eh: [[-1, 0], [-1, 0]] }, { hands: [s_(2, 18), s_(0, 18)] }], p: [{ t: 'band', from: [184, 80], at: 'hands' }] },
+  'prone-ytw': { k: [{ ...PRONE, hands: [s_(44, 7), s_(42, 7)] }, { hands: [s_(42, -10), s_(40, -10)], torso: 89 }] },
+  'pullup': pullup(2.6),
+  'chinup': pullup(2.6),
+  'neg-pullup': pullup(3.8),
+  'lat-pulldown': { k: [{ hip: [88, 146], torso: -12, feet: [[128, 183], [124, 183]], kh: [[1, -0.5], [1, -0.5]], hands: [s_(10, -50), s_(8, -50)], eh: [[0, 1], [0, 1]] }, { hands: [s_(14, -8), s_(12, -8)] }], p: [BOX(66, 152, 44, 9), { t: 'cable', from: [96, 6], at: 'hands' }, { t: 'grip', at: 'hands' }] },
+  'band-pulldown': { k: [{ hands: [s_(12, -50), s_(10, -50)], eh: [[0, 1], [0, 1]] }, { hands: [s_(14, -6), s_(12, -6)] }], p: [{ t: 'band', from: [112, 4], at: 'hands' }] },
+  'dead-hang': { d: 3.2, k: [{ ...HANG, feet: [h_(-12, 60), h_(-16, 58)] }, { hip: [101, 122], torso: 2 }], p: [PULL_BAR] },
+  'db-curl': curl(DB2),
+  'hammer-curl': curl(DB2V),
+  'bb-curl': curl([PLATE('hands')]),
+  'band-curl': curl([{ t: 'band', from: 'foot0', at: 'hands' }]),
+  'pushdown': { k: [{ torso: 10, hands: [s_(20, 16), s_(18, 16)], eh: [[-0.3, 1], [-0.3, 1]] }, { hands: [s_(8, 50), s_(6, 50)] }], p: [{ t: 'cable', from: [134, 8], at: 'hands' }, { t: 'grip', at: 'hands' }] },
+  'oh-ext': { k: [{ hands: [s_(-10, -4), s_(-12, -4)], eh: [[0.3, -1], [0.3, -1]] }, { hands: [s_(2, -52), s_(0, -52)] }], p: [DB('hands', 1)] },
+  'plank': { d: 3, k: [{ hip: [92, 166], torso: 77, feet: [[22, 180], [19, 180]], toe: [[6, 6], [6, 6]], hands: [s_(24, 28), s_(22, 28)], eh: [[0, 1], [0, 1]] }, { hip: [92, 164] }] },
+  'side-plank': { d: 3, k: [{ hip: [92, 164], torso: 72, feet: [[22, 180], [20, 178]], toe: [[6, 6], [6, 6]], hands: [s_(18, 28), s_(0, -50)], eh: [[0, 1], [0, -1]] }, { hip: [92, 154], torso: 68 }] },
+  'dead-bug': { seq: 1, d: 4.4, k: [{ ...LIE_FLOOR, hands: [s_(2, -50), s_(0, -50)], feet: [h_(34, -36), h_(32, -36)], toe: [[11, -2], [11, -2]] }, { hands: [s_(-50, -4), s_(0, -50)], feet: [h_(34, -36), h_(72, -6)] }, { hands: [s_(2, -50), s_(0, -50)], feet: [h_(34, -36), h_(32, -36)] }, { hands: [s_(2, -50), s_(-50, -4)], feet: [h_(72, -6), h_(32, -36)] }] },
+  'bird-dog': { seq: 1, d: 4.4, k: [ALL4, { hands: [s_(50, -4), [128, 186]], feet: [h_(-34, 42), h_(-72, -2)] }, ALL4, { hands: [[132, 186], s_(48, -4)], feet: [h_(-72, -2), h_(-36, 42)] }] },
+  'hanging-knee': { k: [{ ...HANG, torso: 2, feet: [h_(-10, 60), h_(-13, 59)], toe: [[3, 9], [3, 9]], kh: [[1, -1], [1, -1]] }, { feet: [h_(32, 6), h_(30, 8)], toe: [[9, 3], [9, 3]] }], p: [PULL_BAR] },
+  'crunch': { k: [{ hip: [104, 178], torso: -90, feet: [[140, 183], [136, 183]], kh: [[0, -1], [0, -1]], hands: [s_(-12, -6), s_(-14, -6)], eh: [[0, -1], [0, -1]] }, { torso: -66 }] },
+  'russian-twist': { d: 2, k: [{ hip: [96, 176], torso: -38, feet: [h_(40, -18), h_(38, -16)], kh: [[0, -1], [0, -1]], toe: [[9, -4], [9, -4]], hands: [s_(36, 22), s_(34, 22)], eh: [[0, 1], [0, 1]] }, { hands: [s_(14, 32), s_(12, 32)] }], p: [DB('hands', 1)] },
+  'mountain-climber': { seq: 1, d: 1.4, k: [PUSH_UP, { feet: [h_(34, 16), [19, 180]], kh: [[1, 1], [1, 0]] }, PUSH_UP, { feet: [[22, 180], h_(34, 16)], kh: [[1, 0], [1, 1]] }] },
+  'hollow-hold': { d: 2.4, k: [{ hip: [110, 174], torso: -82, hands: [s_(-50, -6), s_(-48, -6)], eh: [[0, -1], [0, -1]], feet: [h_(72, -14), h_(72, -12)], toe: [[9, -5], [9, -5]] }, { torso: -78, feet: [h_(72, -19), h_(72, -17)] }] },
+  'pallof': { k: [{ feet: FS, hands: [s_(12, 18), s_(10, 18)], eh: [[-0.3, 1], [-0.3, 1]] }, { hands: [s_(50, 14), s_(48, 14)] }], p: [{ t: 'band', from: [40, 92], at: 'hands' }, { t: 'anchor', at: [40, 92] }] },
+  'farmer-carry': { d: 1.4, k: [{ feet: [[118, 183], [86, 183]], hands: [s_(1, 50), s_(-1, 50)] }, { hip: [100, 108], feet: [[86, 183], [118, 183]] }], p: DB2V },
+  'burpee': { seq: 1, d: 3.6, k: [{ hands: [s_(4, 48), s_(2, 48)] }, { hip: [88, 150], torso: 50, hands: [[132, 186], [128, 186]], eh: [[-1, 0], [-1, 0]] }, { ...PUSH_UP }, { hip: [88, 150], torso: 50, feet: F0, toe: [[11, 3], [11, 3]], hands: [[132, 186], [128, 186]], eh: [[-1, 0], [-1, 0]] }, { hip: [100, 92], torso: 2, feet: [[104, 162], [98, 162]], toe: [[6, 8], [6, 8]], hands: [s_(8, -50), s_(4, -50)], eh: [[0, -1], [0, -1]] }] },
+  'jumping-jacks': { v: 'front', d: 1.3, k: [{ feet: [[94, 183], [106, 183]] }, { hip: [100, 111], feet: [[81, 183], [119, 183]], hands: [s_(-24, -44), s_(24, -44)], eh: [[-1, 0], [1, 0]] }] },
+  'high-knees': { seq: 1, d: 1.1, k: [{ feet: [[104, 181], [99, 181]], toe: [[8, 5], [8, 5]], hands: [s_(-12, 42), s_(18, 34)] }, { feet: [h_(36, 30), [99, 181]], kh: [[1, -1], [1, 0]], hands: [s_(-14, 40), s_(20, 30)] }, { feet: [[104, 181], [99, 181]], kh: [[1, 0], [1, 0]], hands: [s_(18, 34), s_(-12, 42)] }, { feet: [[104, 181], h_(36, 30)], kh: [[1, 0], [1, -1]], hands: [s_(20, 30), s_(-14, 40)] }] },
+  'cat-cow': { d: 4, k: [{ ...ALL4, curve: 8, head: -25 }, { curve: -12, head: 30 }] },
+  'worlds-greatest': { d: 4.4, k: [{ hip: [92, 156], torso: 70, feet: [[140, 183], [34, 180]], toe: [[11, 3], [6, 6]], kh: [[1, -0.3], [0, 1]], hands: [s_(6, 40), s_(4, 40)] }, { hands: [s_(0, -52), s_(4, 40)], eh: [[0, -1], [-1, 0.3]], head: -30 }] },
+  'hip-flexor': { d: 3.6, k: [{ hip: [90, 146], torso: 0, feet: [[132, 183], [42, 176]], toe: [[11, 3], [-6, 6]], kh: [[1, -0.5], [0, 1]], hands: [h_(24, -6), h_(22, -6)], eh: [[-1, 0], [-1, 0]] }, { hip: [97, 149], torso: -4 }] },
+  'ham-stretch': { d: 3.6, k: [{ hip: [100, 115], torso: 20, feet: [[127, 183], [98, 183]], toe: [[8, -6], [11, 3]], hands: [s_(4, 44), s_(2, 44)] }, { hip: [96, 116], torso: 55 }] },
+  'childs-pose': { d: 4, k: [{ hip: [64, 166], torso: 96, feet: [[60, 184], [58, 184]], toe: [[-11, 1], [-11, 1]], kh: [[1, 0], [1, 0]], hands: [s_(48, 9), s_(46, 9)], eh: [[0, -1], [0, -1]], head: -12 }, { torso: 99, head: -16 }] },
+  't-rotation': { d: 4.4, k: [{ ...LIE_FLOOR, feet: [[148, 183], [144, 183]], hands: [s_(44, -4), s_(42, -2)], eh: [[0, -1], [0, -1]] }, { hands: [s_(-46, -6), s_(42, -2)] }] },
+  'arm-circles': { v: 'front', seq: 1, d: 1.6, k: [{ hands: [s_(-50, -8), s_(50, -8)], eh: [[0, 1], [0, 1]] }, { hands: [s_(-52, 0), s_(52, 0)] }, { hands: [s_(-50, 8), s_(50, 8)] }, { hands: [s_(-47, 0), s_(47, 0)] }] },
+  'chest-stretch': { d: 3.6, k: [{ feet: [[112, 183], [92, 183]], hands: [[129, 46], s_(0, 48)], eh: [[0, 1], [-1, 0.3]] }, { hip: [106, 110], torso: 8 }], p: [{ t: 'pad', a: [134, 26], b: [134, 186], w: 7 }] },
+  'pigeon': { d: 4, k: [{ hip: [92, 166], torso: 10, feet: [h_(28, 16), h_(-72, 14)], kh: [[1, 0], [0, 1]], toe: [[2, 6], [-10, 2]], hands: [s_(26, 42), s_(24, 42)] }, { torso: 60, hands: [s_(36, 26), s_(34, 26)] }] },
+  'quad-stretch': { d: 3.4, k: [{ feet: [h_(-12, 2), [99, 183]], kh: [[0, 1], [1, 0]], toe: [[-6, -8], [11, 3]], hands: [h_(-12, 2), s_(14, 44)], eh: [[-1, 0], [-1, 0.3]] }, { hip: [100, 111], torso: 6 }] },
+  'calf-stretch': { d: 3.6, k: [{ hip: [104, 118], torso: 40, feet: [[128, 183], [64, 183]], hands: [[154, 86], [150, 88]], eh: [[0, 1], [0, 1]] }, { hip: [110, 120], torso: 44 }], p: [{ t: 'pad', a: [160, 20], b: [160, 186], w: 6 }] }
+};
+
+/* rendering loop: only animates figures that are on screen, ~30 fps; static pose when reduced motion is on */
+const exAnim = (id, cls = '') => (ANIMS[id] ? `<svg class="exanim ${cls}" data-ex="${id}" viewBox="0 0 200 200" role="img" aria-label="${esc(L(EXM[id].name))} — ${t('הדגמה', 'demo')}"></svg>` : '');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const ANIM_ON = new Set();
+const animIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(en => (en.isIntersecting ? ANIM_ON.add(en.target) : ANIM_ON.delete(en.target)))) : null;
+function drawAnim(el, ts) {
+  const id = el.dataset.ex, spec = ANIMS[id];
+  if (!spec) return;
+  const d = spec.d || 2.6, P = reduceMotion.matches ? animKeys(spec)[Math.min(1, spec.k.length - 1)] : poseAt(spec, ts + ((hash(id) % 997) / 997) * d);
+  el.innerHTML = figureSVG(id, spec, P);
+}
+function mountAnims() {
+  for (const el of $$('svg.exanim:not([data-m])')) { el.dataset.m = '1'; drawAnim(el, 0); if (animIO) animIO.observe(el); else ANIM_ON.add(el); }
+}
+let animMountQ = 0, animLast = 0;
+new MutationObserver(recs => {
+  if (animMountQ || !recs.some(r => !r.target.closest?.('svg.exanim'))) return;
+  animMountQ = requestAnimationFrame(() => { animMountQ = 0; mountAnims(); });
+}).observe(document.body, { childList: true, subtree: true });
+(function animLoop(now) {
+  requestAnimationFrame(animLoop);
+  if (now - animLast < 33 || reduceMotion.matches || document.hidden) return;
+  animLast = now;
+  for (const el of ANIM_ON) { if (!el.isConnected) { ANIM_ON.delete(el); animIO?.unobserve(el); continue; } drawAnim(el, now / 1000); }
+})(0);
+
+/* =====================================================================
    THEME, SHELL, ROUTER
    ===================================================================== */
 function applyTheme() {
@@ -1484,7 +1710,7 @@ function shell(r) {
   const side = NAV.map(([id, ic, lb]) => `<a class="side-link ${r === id ? 'active' : ''}" href="#/${id}" ${r === id ? 'aria-current="page"' : ''}>${icon(ic)}<span>${lb()}</span></a>`).join('');
   const bottom = NAV.slice(0, 5).map(([id, ic, lb]) => `<a class="${r === id || (r === 'session' && id === 'workout') ? 'active' : ''}" href="#/${id}" ${r === id ? 'aria-current="page"' : ''}><span class="iw">${icon(ic, 21)}</span><span>${id === 'coach' ? t('מאמן', 'Coach') : lb()}</span></a>`).join('');
   const activeBar = S.active && r !== 'session' ? `<a class="active-bar" href="#/session">${icon('dumbbell')}<span class="grow">${t('אימון פעיל', 'Workout in progress')} · <span class="num" data-elapsed>${mmss((Date.now() - S.active.startedAt) / 1000)}</span></span><span class="row small">${t('המשך', 'Resume')} ${icon(LANG === 'he' ? 'chevL' : 'chevR', 18)}</span></a>` : '';
-  return `<div class="layout"><aside class="sidebar" aria-label="${t('ניווט ראשי', 'Main navigation')}"><a class="logo" href="#/home"><span class="mark">${icon('bolt', 20, 'fill')}</span><span>FIT <b>AI</b></span></a>${side}<div class="grow"></div><div class="card" style="padding:12px"><div class="row"><div class="lvl-badge" style="width:40px;height:40px;font-size:16px;border-radius:13px">${lvl}</div><div class="grow"><div class="bold small">${esc(levelTitle(lvl))}</div><div class="xs muted">${fmt(S.xp)} XP · ${icon('flame', 12).replace('class="ico ', 'style="display:inline;vertical-align:-1px" class="ico ')} ${stk}</div></div></div></div></aside>
+  return `<div class="layout${activeBar ? ' has-active' : ''}"><aside class="sidebar" aria-label="${t('ניווט ראשי', 'Main navigation')}"><a class="logo" href="#/home"><span class="mark">${icon('bolt', 20, 'fill')}</span><span>FIT <b>AI</b></span></a>${side}<div class="grow"></div><div class="card" style="padding:12px"><div class="row"><div class="lvl-badge" style="width:40px;height:40px;font-size:16px;border-radius:13px">${lvl}</div><div class="grow"><div class="bold small">${esc(levelTitle(lvl))}</div><div class="xs muted">${fmt(S.xp)} XP · ${icon('flame', 12).replace('class="ico ', 'style="display:inline;vertical-align:-1px" class="ico ')} ${stk}</div></div></div></div></aside>
   <div class="main"><header class="topbar"><a class="logo mobile-only" href="#/home"><span class="mark">${icon('bolt', 18, 'fill')}</span><span>FIT <b>AI</b></span></a><div class="spacer"></div><a class="chip accent" href="#/awards" title="${t('רמה', 'Level')}">${icon('zap', 14)} ${t('רמה', 'Lv')} ${lvl}</a><a class="chip" href="#/progress" title="${t('רצף ימים', 'Day streak')}" style="color:var(--kcal)">${icon('flame', 14)} ${stk}</a><button class="icon-btn sm mobile-only" data-act="more" aria-label="${t('תפריט', 'Menu')}">${icon('menu', 18)}</button></header><main id="main" class="view" tabindex="-1"></main></div>
   <nav class="bottomnav" aria-label="${t('ניווט', 'Navigation')}">${bottom}</nav>${activeBar}</div>`;
 }
@@ -1704,7 +1930,7 @@ function planView() {
   ${weeks >= 5 ? `<div class="notice info mt">${icon('info', 18)}<span>${t(`אתם ${weeks} שבועות על התוכנית. שקלו שבוע דילואד (כ־60% מהנפח) ואז צרו תוכנית מעודכנת.`, `You've been on this plan for ${weeks} weeks. Consider a deload week (~60% volume), then regenerate.`)}</span></div>` : ''}
   <div class="grid g2 mt">${plan.days.map((d, di) => `<section class="card">
     <div class="card-h"><h2>${esc(L(d.name))}</h2><span class="chip">${icon('clock', 13)} ~${estMinutes(d)} ${t('דק׳', 'min')}</span></div>
-    <div>${d.ex.map((x, i) => `<div class="plan-ex"><span class="ex-num" style="width:28px;height:28px;font-size:13px">${i + 1}</span><button class="grow ex-title" style="font-size:14px" data-act="ex-info" data-id="${x.id}">${esc(L(EXM[x.id].name))}<span class="xs muted" style="display:block;font-weight:600">${x.sets} × ${x.repMin}–${x.repMax}${EXM[x.id].timed ? t(' שנ׳', 's') : ''} · ${x.rest}${t('שנ׳', 's')} ${t('מנוחה', 'rest')}</span></button><button class="icon-btn sm ghost" data-act="plan-swap" data-d="${di}" data-i="${i}" aria-label="${t('החלפת תרגיל', 'Swap exercise')}">${icon('swap', 16)}</button></div>`).join('')}</div>
+    <div>${d.ex.map((x, i) => `<div class="plan-ex"><span class="ex-thumb sm" aria-hidden="true">${exAnim(x.id)}</span><button class="grow ex-title" style="font-size:14px" data-act="ex-info" data-id="${x.id}">${esc(L(EXM[x.id].name))}<span class="xs muted" style="display:block;font-weight:600">${x.sets} × ${x.repMin}–${x.repMax}${EXM[x.id].timed ? t(' שנ׳', 's') : ''} · ${x.rest}${t('שנ׳', 's')} ${t('מנוחה', 'rest')}</span></button><button class="icon-btn sm ghost" data-act="plan-swap" data-d="${di}" data-i="${i}" aria-label="${t('החלפת תרגיל', 'Swap exercise')}">${icon('swap', 16)}</button></div>`).join('')}</div>
     ${d.finisher ? `<p class="xs muted mt">${icon('flame', 12).replace('class="', 'style="display:inline" class="')} ${t('פיניש', 'Finisher')}: ${d.finisher.ids.map(id => esc(L(EXM[id].name))).join(' · ')} (${d.finisher.rounds}×${d.finisher.work}${t('שנ׳', 's')})</p>` : ''}
     <button class="btn primary block mt" data-act="start-day" data-day="${d.id}">${icon('play', 16, 'fill')} ${t('התחלה', 'Start')}</button>
   </section>`).join('')}</div>
@@ -1842,7 +2068,7 @@ function exCard(e, i) {
   return `<article class="card ex-card ${complete ? 'complete' : ''}" id="ex-${i}">
     <div class="ex-head"><span class="ex-num">${complete ? icon('check', 16) : i + 1}</span><div class="grow" style="min-width:0"><button class="ex-title" data-act="ex-info" data-id="${e.id}">${esc(L(ex.name))}</button>
       <div class="xs muted mt-s">${e.tgt.sets} × ${e.tgt.repMin}–${e.tgt.repMax} ${unit} · ${t('מנוחה', 'rest')} ${e.tgt.rest}${t('שנ׳', 's')} · ${esc(L(MUSCLES[ex.muscle]))}</div>
-      <div class="xs mt-s ${e.sugDir > 0 ? 'good-t' : e.sugDir < 0 ? 'warn-t' : 'faint'}" style="font-weight:700">${e.sugDir > 0 ? '↑ ' : e.sugDir < 0 ? '↓ ' : ''}${esc(e.sug)}</div></div></div>
+      <div class="xs mt-s ${e.sugDir > 0 ? 'good-t' : e.sugDir < 0 ? 'warn-t' : 'faint'}" style="font-weight:700">${e.sugDir > 0 ? '↑ ' : e.sugDir < 0 ? '↓ ' : ''}${esc(e.sug)}</div></div><button class="ex-thumb" data-act="ex-info" data-id="${e.id}" aria-label="${t('הדגמת התרגיל', 'Exercise demo')}">${exAnim(e.id)}</button></div>
     <div class="sets"><div class="set-row hdr"><span class="center">#</span><span class="center">${t('קודם', 'Prev')}</span><span class="center">${ex.timed ? t('+ק״ג', '+kg') : t('ק״ג', 'kg')}</span><span class="center">${unit}</span><span></span></div>
     ${e.sets.map((s, j) => `<div class="set-row ${s.done ? 'done' : ''}"><span class="sn">${j + 1}</span><span class="prev">${prev(j)}</span><input type="number" inputmode="decimal" step="0.5" min="0" value="${s.kg}" placeholder="${ex.equip.every(q => q === 'bodyweight' || q === 'pullupbar') ? '0' : '—'}" data-in="set" data-i="${i}" data-j="${j}" data-f="kg" aria-label="${t('משקל בק״ג, סט', 'Weight kg, set')} ${j + 1}"><input type="number" inputmode="numeric" min="0" value="${s.reps}" placeholder="${esc(e.ph)}" data-in="set" data-i="${i}" data-j="${j}" data-f="reps" aria-label="${unit}, ${t('סט', 'set')} ${j + 1}"><button class="ck" data-act="set-done" data-i="${i}" data-j="${j}" aria-pressed="${s.done}" aria-label="${t('סימון סט', 'Mark set')} ${j + 1}">${icon('check', 18)}</button></div>`).join('')}</div>
     <div class="ex-foot"><button class="btn xs" data-act="set-add" data-i="${i}">${icon('plus', 14)} ${t('סט', 'Set')}</button><button class="btn xs" data-act="set-del" data-i="${i}" ${e.sets.length <= 1 ? 'disabled' : ''}>${icon('minus', 14)} ${t('סט', 'Set')}</button><button class="btn xs" data-act="ex-swap" data-i="${i}">${icon('swap', 14)} ${t('החלפה', 'Swap')}</button>${ex.timed ? `<button class="btn xs" data-act="ex-timer" data-i="${i}">${icon('timer', 14)} ${t('טיימר סט', 'Set timer')}</button>` : ''}<span class="grow"></span><button class="btn xs ghost" data-act="ex-remove" data-i="${i}" aria-label="${t('הסרת תרגיל', 'Remove exercise')}">${icon('trash', 14)}</button></div>
@@ -1910,7 +2136,7 @@ ACT['ex-timer'] = el => {
 };
 ACT['finisher-timer'] = () => {
   const f = S.active.finisher;
-  TM.cfg = { name: t('פיניש', 'Finisher'), prep: 10, work: f.work, rest: f.rest, rounds: f.rounds * f.ids.length, exercises: f.ids.map(id => L(EXM[id].name)) };
+  TM.cfg = { name: t('פיניש', 'Finisher'), prep: 10, work: f.work, rest: f.rest, rounds: f.rounds * f.ids.length, exercises: f.ids.map(id => L(EXM[id].name)), exIds: f.ids.slice() };
   TM.fromSession = true; timerReset(); go('#/timer');
 };
 function swapOptions(exId) {
@@ -2045,7 +2271,7 @@ ROUTES.library = main => {
 };
 function drawLib() {
   const res = searchExercises(LIB.q, LIB.muscle, LIB.equip), el = $('#lib-res'); if (!el) return;
-  el.innerHTML = res.length ? res.map(e => `<button class="ex-tile" data-act="ex-info" data-id="${e.id}"><span class="row between"><span class="bold">${esc(L(e.name))}</span>${lvlDots(e.lvl)}</span><span class="chips">${muscleChip(e.muscle)}${e.timed ? `<span class="chip">${icon('timer', 12)} ${t('זמן', 'Timed')}</span>` : ''}${e.mobility ? `<span class="chip good">${t('מוביליטי', 'Mobility')}</span>` : ''}</span><span class="xs muted">${e.equip.map(q => L(EQUIP[q])).join(' · ')}</span></button>`).join('') : `<div class="card" style="grid-column:1/-1">${emptyBox('search', t('לא נמצאו תרגילים', 'No exercises found'))}</div>`;
+  el.innerHTML = res.length ? res.map(e => `<button class="ex-tile" data-act="ex-info" data-id="${e.id}"><span class="anim-box tile">${exAnim(e.id)}</span><span class="row between"><span class="bold">${esc(L(e.name))}</span>${lvlDots(e.lvl)}</span><span class="chips">${muscleChip(e.muscle)}${e.timed ? `<span class="chip">${icon('timer', 12)} ${t('זמן', 'Timed')}</span>` : ''}${e.mobility ? `<span class="chip good">${t('מוביליטי', 'Mobility')}</span>` : ''}</span><span class="xs muted">${e.equip.map(q => L(EQUIP[q])).join(' · ')}</span></button>`).join('') : `<div class="card" style="grid-column:1/-1">${emptyBox('search', t('לא נמצאו תרגילים', 'No exercises found'))}</div>`;
 }
 INP['lib-q'] = el => { LIB.q = el.value; drawLib(); };
 ACT['lib-m'] = el => { LIB.muscle = el.dataset.v; refresh(); };
@@ -2058,7 +2284,7 @@ ACT['ex-info'] = el => {
   openModal(`${modalHead(esc(L(e.name)), 'dumbbell')}
   <div class="chips">${muscleChip(e.muscle)}${e.sec.map(s => `<span class="chip" style="opacity:.75">${esc(L(MUSCLES[s]))}</span>`).join('')}<span class="chip">${e.equip.map(q => esc(L(EQUIP[q]))).join(' / ')}</span><span class="chip">${t('רמה', 'Level')} ${lvlDots(e.lvl)}</span></div>
   ${inj.length ? `<div class="notice mt">${icon('shield', 18)}<span>${t('שימו לב: התרגיל עלול להעמיס על', 'Caution: this may load your')} ${inj.map(c => L(INJURIES[c])).join(', ')}. ${t('בצעו בטווח ללא כאב או בחרו חלופה.', 'Stay pain-free or pick an alternative.')}</span></div>` : ''}
-  <div class="grid g2 mt"><div>${bodyMap(vals)}</div><div><h3 class="bold" style="font-size:15px;margin-bottom:8px">${t('דגשי טכניקה', 'Form cues')}</h3><ol style="margin:0;padding-inline-start:20px" class="stack sm">${e.cues[LANG].map(c => `<li>${esc(c)}</li>`).join('')}</ol>
+  <div class="grid g2 mt"><div class="stack sm"><div class="anim-box" style="max-width:300px;margin:0 auto;width:100%">${exAnim(e.id)}</div><p class="xs muted center">${icon('target', 12).replace('class="', 'style="display:inline;vertical-align:-2px" class="')} ${t('בצבע מודגש: השריר העיקרי', 'Highlighted: the main muscle')}</p>${bodyMap(vals)}</div><div><h3 class="bold" style="font-size:15px;margin-bottom:8px">${t('דגשי טכניקה', 'Form cues')}</h3><ol style="margin:0;padding-inline-start:20px" class="stack sm">${e.cues[LANG].map(c => `<li>${esc(c)}</li>`).join('')}</ol>
   ${st ? `<div class="card mt" style="padding:12px"><div class="xs muted bold">${t('השיא שלך', 'Your best')}</div><div class="bold num" style="font-size:20px">${fmt(st.bestSet.kg, 1)} × ${st.bestSet.reps} <span class="xs muted">(${fmt(st.best, 1)} 1RM)</span></div></div>` : ''}</div></div>
   <h3 class="bold mt" style="font-size:15px">${t('חלופות', 'Alternatives')}</h3><div class="chips mt-s">${swapOptions(e.id).slice(0, 6).map(o => `<button class="chip" data-act="ex-info" data-id="${o.id}">${esc(L(o.name))}</button>`).join('')}</div>
   ${S.active ? `<div class="modal-actions"><button class="btn primary" data-act="add-to-active" data-id="${e.id}">${icon('plus', 16)} ${t('הוספה לאימון הפעיל', 'Add to current workout')}</button></div>` : ''}`, { wide: true });
@@ -2755,16 +2981,17 @@ const TPRESETS = {
   hiit: () => ({ name: 'HIIT 40/20', prep: 10, work: 40, rest: 20, rounds: 10 }),
   emom: () => ({ name: 'EMOM 12', prep: 10, work: 60, rest: 0, rounds: 12 }),
   sprint: () => ({ name: t('ספרינטים 30/90', 'Sprints 30/90'), prep: 10, work: 30, rest: 90, rounds: 6 }),
-  core: () => ({ name: t('ליבה 40/20', 'Core 40/20'), prep: 10, work: 40, rest: 20, rounds: 6, exercises: ['plank', 'dead-bug', 'side-plank', 'bird-dog', 'mountain-climber', 'hollow-hold'].map(id => L(EXM[id].name)) }),
-  mobility: () => ({ name: t('מוביליטי 10 דק׳', 'Mobility 10 min'), prep: 5, work: 45, rest: 15, rounds: 10, exercises: ['cat-cow', 'worlds-greatest', 'hip-flexor', 'ham-stretch', 't-rotation', 'childs-pose', 'arm-circles', 'chest-stretch', 'quad-stretch', 'calf-stretch'].map(id => L(EXM[id].name)) })
+  core: () => ({ name: t('ליבה 40/20', 'Core 40/20'), prep: 10, work: 40, rest: 20, rounds: 6, exIds: ['plank', 'dead-bug', 'side-plank', 'bird-dog', 'mountain-climber', 'hollow-hold'], exercises: ['plank', 'dead-bug', 'side-plank', 'bird-dog', 'mountain-climber', 'hollow-hold'].map(id => L(EXM[id].name)) }),
+  mobility: () => ({ name: t('מוביליטי 10 דק׳', 'Mobility 10 min'), prep: 5, work: 45, rest: 15, rounds: 10, exIds: ['cat-cow', 'worlds-greatest', 'hip-flexor', 'ham-stretch', 't-rotation', 'childs-pose', 'arm-circles', 'chest-stretch', 'quad-stretch', 'calf-stretch'], exercises: ['cat-cow', 'worlds-greatest', 'hip-flexor', 'ham-stretch', 't-rotation', 'childs-pose', 'arm-circles', 'chest-stretch', 'quad-stretch', 'calf-stretch'].map(id => L(EXM[id].name)) })
 };
 const TM = { key: 'tabata', cfg: TPRESETS.tabata(), phases: [], i: 0, running: false, end: 0, rem: 0, done: false, fromSession: false, lastBeep: null };
 function buildPhases(c) {
   const ph = [];
-  if (c.prep) ph.push({ type: 'prep', sec: c.prep, next: c.exercises?.[0] });
+  const id = i => c.exIds?.[i % c.exIds.length];
+  if (c.prep) ph.push({ type: 'prep', sec: c.prep, next: c.exercises?.[0], nextId: id(0) });
   for (let r = 1; r <= c.rounds; r++) {
-    ph.push({ type: 'work', sec: c.work, round: r, ex: c.exercises ? c.exercises[(r - 1) % c.exercises.length] : null });
-    if (c.rest > 0 && r < c.rounds) ph.push({ type: 'rest', sec: c.rest, round: r, next: c.exercises ? c.exercises[r % c.exercises.length] : null });
+    ph.push({ type: 'work', sec: c.work, round: r, ex: c.exercises ? c.exercises[(r - 1) % c.exercises.length] : null, exId: id(r - 1) });
+    if (c.rest > 0 && r < c.rounds) ph.push({ type: 'rest', sec: c.rest, round: r, next: c.exercises ? c.exercises[r % c.exercises.length] : null, nextId: id(r) });
   }
   return ph;
 }
@@ -2781,6 +3008,7 @@ function timerFace() {
   const remainTotal = TM.done ? 0 : rem + sum(TM.phases.slice(TM.i + 1), p => p.sec);
   return `<div class="center"><span class="chip" style="background:color-mix(in srgb, ${color} 18%, transparent);color:${color};border-color:transparent;font-size:14px;padding:6px 14px" id="tm-phase">${phaseName(ph)}</span></div>
   <div class="timer-face"><div class="ring" style="width:${size}px;height:${size}px;max-width:100%"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="max-width:100%;height:auto"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="var(--surface3)" stroke-width="${st}" fill="none"/><circle id="tm-ring" cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${color}" stroke-width="${st}" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - (ph.type === 'done' ? 1 : rem / ph.sec))}" data-c="${c}"/></svg><div class="rc"><div><div class="t" id="tm-t">${TM.done ? icon('check', 64) : Math.ceil(rem)}</div><div class="small muted bold">${ph.round ? `${t('סבב', 'Round')} ${ph.round}/${TM.cfg.rounds}` : esc(TM.cfg.name)}</div></div></div></div></div>
+  ${ph.exId || ph.nextId ? `<div class="anim-box timer-anim" style="${ph.exId ? '' : 'opacity:.6'}">${exAnim(ph.exId || ph.nextId)}</div>` : ''}
   <div class="center" style="min-height:44px"><div class="bold" style="font-size:18px">${esc(ph.ex || '')}</div>${ph.next ? `<div class="xs muted">${t('הבא', 'Next')}: ${esc(ph.next)}</div>` : ''}</div>
   <div class="row mt" style="justify-content:center;gap:18px"><button class="icon-btn" data-act="tm-reset" aria-label="${t('איפוס', 'Reset')}">${icon('reset', 20)}</button><button class="btn primary" data-act="tm-toggle" style="width:80px;height:80px;border-radius:50%;padding:0" aria-label="${TM.running ? t('השהיה', 'Pause') : t('התחלה', 'Start')}">${icon(TM.running ? 'pause' : 'play', 30, 'fill')}</button><button class="icon-btn" data-act="tm-skip" aria-label="${t('דילוג', 'Skip')}" ${TM.done ? 'disabled' : ''}>${icon('skip', 20, 'fill')}</button></div>
   <p class="center small muted mt">${t('נותרו', 'Remaining')} <b class="num" id="tm-left">${mmss(remainTotal)}</b> ${t('מתוך', 'of')} ${mmss(totalTimerSec())}</p>`;
@@ -2797,7 +3025,7 @@ ROUTES.timer = main => {
 };
 const drawTimer = () => { const a = $('#timer-area'); if (a) a.innerHTML = timerFace(); };
 ACT['tm-preset'] = el => { if (TM.running) return; TM.key = el.dataset.k; TM.cfg = TPRESETS[TM.key](); TM.fromSession = false; timerReset(); refresh(); };
-CHG['tm-cfg'] = el => { TM.cfg = { ...TM.cfg, [el.dataset.f]: clamp(Math.round(+el.value || 0), +el.min, +el.max), exercises: TM.cfg.exercises }; if (TM.key !== 'custom') TM.cfg.name = t('מותאם', 'Custom'); TM.key = 'custom'; timerReset(); refresh(); };
+CHG['tm-cfg'] = el => { TM.cfg = { ...TM.cfg, [el.dataset.f]: clamp(Math.round(+el.value || 0), +el.min, +el.max) }; if (TM.key !== 'custom') TM.cfg.name = t('מותאם', 'Custom'); TM.key = 'custom'; timerReset(); refresh(); };
 ACT['tm-toggle'] = () => {
   if (TM.running) { TM.rem = Math.max(0, (TM.end - Date.now()) / 1000); TM.running = false; releaseWakeLock(); }
   else { if (TM.done) timerReset(); TM.running = true; TM.end = Date.now() + TM.rem * 1000; requestWakeLock(); if (TM.rem === TM.phases[TM.i]?.sec) speak(phaseSpeech(TM.phases[TM.i])); }
