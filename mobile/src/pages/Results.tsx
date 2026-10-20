@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PracticeClient } from "@/components/game/PracticeClient";
 import { ResultsView } from "@/components/games/ResultsView";
 import { ReviewView } from "@/components/games/ReviewView";
@@ -8,6 +8,7 @@ import { primaryLink, StateView } from "@/components/ui/StateView";
 import type { LearningSummary } from "@/lib/game/state/progress";
 import { chapterOf } from "@/lib/game/topics/courses";
 import { store, transport } from "../app-state";
+import { loadCourseProgress } from "../course-model";
 import { bestNote, quickNext } from "../results-model";
 import { navigate } from "../router";
 
@@ -59,11 +60,13 @@ function QuickNext({ gameId, sessionId, summary, reviewCount }: { gameId: string
 function BackToCourse({ topicId }: { topicId: string }) {
   const t = useT();
   const chapter = chapterOf(topicId);
+  // The chapter named here is the one the course screen and the home card suggest (the first not finished at any level), not just
+  // "the chapter after this one": a replayed or skipped chapter would otherwise point at the wrong one, or at a chapter already done.
+  const [next] = useState(() => (chapter ? loadCourseProgress(store, chapter.course).next?.number ?? null : null));
   if (!chapter) return null;
-  const total = chapter.course.chapters.length;
   return (
-    <a href={`#/course/${chapter.course.id}`} data-testid="results-course" className="mx-auto mb-4 flex min-h-12 max-w-3xl items-center justify-between gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 py-3 text-sm font-semibold">
-      <span>{chapter.number < total ? t("mob.results.course.next", { n: chapter.number + 1 }) : t("mob.results.course")}</span>
+    <a href={`#/course/${chapter.course.id}`} data-testid="results-course" data-next={next ?? undefined} className="mx-auto mb-4 flex min-h-12 max-w-3xl items-center justify-between gap-3 rounded-2xl border border-violet/50 bg-violet/10 px-4 py-3 text-sm font-semibold">
+      <span>{next !== null ? t("mob.results.course.next", { n: next }) : t("mob.results.course")}</span>
       <Arrow />
     </a>
   );

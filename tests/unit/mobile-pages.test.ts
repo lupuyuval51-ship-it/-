@@ -5,7 +5,10 @@ import { I18nProvider } from "@/components/I18nProvider";
 import { DICTIONARIES, type Locale } from "@/lib/i18n";
 import { browserKV, OfflineStore } from "@/lib/offline/store";
 import { markWelcomeSeen } from "@/lib/offline/onboarding";
-import { validDemoSpec } from "./helpers";
+import { findArea, stationActive } from "@/lib/game/state/progress";
+import { generateOffline } from "@/lib/offline/generate";
+import { correctAnswer, request, validDemoSpec, wrongAnswer } from "./helpers";
+import { NOTES } from "./offline-helpers";
 
 /**
  * The real phone pages rendered on the server with a fake in-memory localStorage: this checks how the screens compose
@@ -214,6 +217,29 @@ describe("deck and results pages", () => {
     expect(html).toMatch(/<a href="#\/"[^>]*class="[^"]*min-h-11/);
     expect(count(html, "<h1")).toBe(1); // the screen is named like every other one; the state card's title is an h2
     expect(html).toMatch(/<h1[^>]*>Review my mistakes<\/h1>/);
+  });
+
+  it("a full phone still opens the review screen instead of ending in the crash screen", () => {
+    // one missed question that is not in the deck yet: counting the deck has to write its card, and the phone has no room left
+    const store = seed();
+    const { spec } = generateOffline(request({ material: NOTES, subject: "Plants", mode: "FULL" }));
+    const game = store.addGame(spec);
+    const run = store.startSession(game.id, false);
+    const station = findArea(spec, run.client.areaId)!.stations.find((x) => x.kind === "challenge" && stationActive(spec, run.client, x))!;
+    const opened = store.applyEvent(run.session.id, { type: "open", stationId: station.id });
+    const challenge = spec.challenges.find((c) => c.id === (opened.data as { challenge: { id: string } }).challenge.id)!;
+    store.applyEvent(run.session.id, { type: "answer", stationId: station.id, answer: wrongAnswer(challenge, run.session.id) });
+    store.applyEvent(run.session.id, { type: "answer", stationId: station.id, answer: correctAnswer(challenge, run.session.id) });
+    const setItem = fakeStorage.setItem;
+    fakeStorage.setItem = () => { throw Object.assign(new Error("full"), { name: "QuotaExceededError" }); };
+    try {
+      expect(() => store.deckSummary()).toThrow(); // the premise: the count itself fails on a full phone
+      const html = render(h(DeckPage));
+      expect(html).toContain('data-testid="deck"');
+      expect(html).not.toContain('data-testid="deck-empty"');
+    } finally {
+      fakeStorage.setItem = setItem;
+    }
   });
 
   it("a results link to a deleted game says so and offers the library", () => {

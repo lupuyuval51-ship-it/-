@@ -55,12 +55,11 @@ vi.mock("../../mobile/src/cloud/api", () => ({
   }),
 }));
 
+// Every `load()` makes a new store, and the account module takes the current one when it starts. Without that, a module left over from an
+// earlier test (signed in, subscribed to the one shared store) would also react to this test's changes, so the number of rounds would depend
+// on which tests ran before (found by running the file in shuffled order).
 const shared = vi.hoisted(() => ({ store: null as unknown }));
-vi.mock("../../mobile/src/app-state", async () => {
-  const mod = await import("@/lib/offline/store");
-  shared.store = new mod.OfflineStore(mod.memoryKV());
-  return { store: shared.store };
-});
+vi.mock("../../mobile/src/app-state", () => ({ get store() { return shared.store; } }));
 
 /** A tiny localStorage, since the module reads the sync marks from the browser's. */
 function installBrowser() {
@@ -81,6 +80,8 @@ let browser: ReturnType<typeof installBrowser>;
 
 async function load() {
   vi.resetModules();
+  const { OfflineStore: Store, memoryKV: kv } = await import("@/lib/offline/store");
+  shared.store = new Store(kv());
   h.state.session = null;
   h.state.signOutCalls = [];
   h.state.signOutThrows = false;

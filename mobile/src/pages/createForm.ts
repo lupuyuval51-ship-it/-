@@ -8,6 +8,7 @@ import type { FeatureTier } from "@/config/plans";
 import { DIFFICULTIES, GAME_TYPES, type Difficulty, type GameType } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError } from "@/lib/offline/generate";
+import { storageErrorCode } from "@/lib/offline/store";
 import { EXAMPLE_NOTES, exampleById, isExampleText } from "./examples";
 
 export type CreateMode = "FAST" | "FULL";
@@ -208,8 +209,11 @@ export function classifyGenerationError(err: unknown, tier: FeatureTier, form: P
   return { kind: "generic" };
 }
 
-/** Failure while writing the finished game to the phone. */
-export const classifySaveError = (err: unknown): CreateProblem => (isStorageFull(err) ? { kind: "storage" } : { kind: "generic" });
+/**
+ * Failure while writing the finished game to the phone. The store reports a full phone as its own typed error (`STORAGE_FULL`), not as
+ * the browser's quota error, so both count: otherwise a full phone was told "the game could not be built, change the details".
+ */
+export const classifySaveError = (err: unknown): CreateProblem => (isStorageFull(err) || storageErrorCode(err) === "STORAGE_FULL" ? { kind: "storage" } : { kind: "generic" });
 
 // ───────────────────────────── the screen's state ─────────────────────────────
 

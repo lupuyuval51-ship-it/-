@@ -11,8 +11,12 @@ import { store, transport } from "../app-state";
 export function DeckPage() {
   const t = useT();
   const locale = useLocale();
-  const [{ summary, now }] = useState(() => ({ summary: store.deckSummary(), now: Date.now() }));
-  if (summary.due === 0) {
+  // Counting the cards can write new ones to the phone, which fails when it is full. The practice below has its own failure message,
+  // so a failed count opens it (instead of ending in the crash screen) and lets it say what went wrong.
+  const [{ summary, now }] = useState(() => {
+    try { return { summary: store.deckSummary(), now: Date.now() }; } catch { return { summary: null, now: Date.now() }; }
+  });
+  if (summary && summary.due === 0) {
     const next = summary.nextDue ? formatNextReview(summary.nextDue, now, locale) : null;
     return (
       <div className="space-y-4" data-testid="deck-empty">

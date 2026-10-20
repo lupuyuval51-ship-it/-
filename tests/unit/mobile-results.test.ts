@@ -5,6 +5,8 @@ import { I18nProvider } from "@/components/I18nProvider";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { collectibleIds, findArea, stationActive, type ClientState } from "@/lib/game/state/progress";
 import { DICTIONARIES, type Locale } from "@/lib/i18n";
+import { COURSES } from "@/lib/game/topics/courses";
+import { loadTopicContent } from "@/lib/game/topics/loaders";
 import { generateOffline } from "@/lib/offline/generate";
 import { browserKV, OfflineStore } from "@/lib/offline/store";
 import { bestNote, quickNext } from "../../mobile/src/results-model";
@@ -133,6 +135,27 @@ describe("results page on the phone", () => {
     expect(html).toContain(`href="#/play/${game.id}"`);
     expect(/<a href="([^"]+)" data-testid="results-quick-next"/.exec(html)?.[1]).toBe(/<a href="([^"]+)" data-testid="next-replay"/.exec(html)?.[1]);
     expect(html).not.toContain("results-best");
+  });
+
+  it("a chapter's results name the course's own next chapter, not just the chapter after it", async () => {
+    const [c1, , c3] = COURSES[0]!.chapters as [string, string, string];
+    const store = new OfflineStore(browserKV());
+    const chapterGame = async (topicId: string) => {
+      const topic = (await loadTopicContent(topicId))!;
+      return store.addGame(generateOffline({ mode: "FAST", subject: topicId, learningGoal: topicId, difficulty: "beginner", gameType: "exploration", contentLanguage: "en", topicId }, new Date(), "A", topic).spec);
+    };
+    // nothing finished yet: chapter 3 was played first, so the path's next chapter is still chapter 1 (the old text said "chapter 4")
+    const third = await chapterGame(c3);
+    const run = store.startSession(third.id, false);
+    const html = render(h(ResultsPage, { gameId: third.id, sessionId: run.session.id }));
+    expect(html).toContain('data-testid="results-course"');
+    expect(html).toContain('data-next="1"');
+    expect(html).toContain("chapter 1 is next");
+    expect(html).not.toContain("chapter 4 is next");
+    // chapter 1's own results say the same until it is finished
+    const first = await chapterGame(c1);
+    const run1 = store.startSession(first.id, false);
+    expect(render(h(ResultsPage, { gameId: first.id, sessionId: run1.session.id }))).toContain("chapter 1 is next");
   });
 
   it("renders in Hebrew", () => {

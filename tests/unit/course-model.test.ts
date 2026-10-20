@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { COURSES } from "@/lib/game/topics/courses";
 import type { GameSummaryRow } from "@/lib/offline/store";
-import { chapterGames, courseProgress, loadCourseProgress, type ChapterGame, type CourseSource } from "../../mobile/src/course-model";
+import { OfflineError } from "@/lib/offline/store";
+import { chapterFailure, chapterGames, courseProgress, loadCourseProgress, type ChapterGame, type CourseSource } from "../../mobile/src/course-model";
 
 const course = COURSES[0]!;
 const [c1, c2, c3] = course.chapters as [string, string, string];
@@ -78,5 +79,16 @@ describe("reading chapter games from the phone's library", () => {
     const p = loadCourseProgress({ listGames: () => { throw new Error("full"); }, getGame: () => null }, course);
     expect(p.done).toBe(0);
     expect(p.next?.number).toBe(1);
+  });
+});
+
+describe("why a chapter could not be started", () => {
+  it("a phone with no room is told to delete a game; any other failure is told to try again", () => {
+    expect(chapterFailure(new OfflineError(507, "STORAGE_FULL", "no room"))).toBe("full");
+    // the same failure after the offline transport has wrapped it (it keeps the code)
+    expect(chapterFailure(Object.assign(new Error("no room"), { code: "STORAGE_FULL" }))).toBe("full");
+    expect(chapterFailure(new OfflineError(503, "STORAGE_UNAVAILABLE", "blocked"))).toBe("generic");
+    expect(chapterFailure(new Error("the topic could not be loaded"))).toBe("generic");
+    expect(chapterFailure(null)).toBe("generic");
   });
 });

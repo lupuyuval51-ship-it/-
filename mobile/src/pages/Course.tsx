@@ -11,7 +11,7 @@ import { contentLangOf, type DictKey } from "@/lib/i18n";
 import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress } from "@/lib/offline/generate";
 import { store } from "../app-state";
-import { loadCourseProgress, type ChapterProgress } from "../course-model";
+import { chapterFailure, loadCourseProgress, type ChapterProgress } from "../course-model";
 import { navigate } from "../router";
 
 /**
@@ -35,7 +35,7 @@ function CourseView({ course }: { course: Course }) {
   const lang = contentLangOf(useLocale());
   const [progress] = useState(() => loadCourseProgress(store, course));
   const [busy, setBusy] = useState<{ n: number; percent: number } | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<"full" | "generic" | null>(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
   const chapters = courseChapters(course, findTopic);
@@ -47,7 +47,7 @@ function CourseView({ course }: { course: Course }) {
     const entry = findTopic(ch.topicId);
     if (!entry) return;
     const tier = getOfflineTier();
-    setFailed(false);
+    setFailed(null);
     setBusy({ n: ch.number, percent: 0 });
     try {
       // A chapter is played as a Full Adventure (two areas: the lesson and the first questions, then the rest and the task) when the tier has it.
@@ -58,8 +58,8 @@ function CourseView({ course }: { course: Course }) {
       if (!alive.current) return;
       const id = store.addGame(spec).id;
       navigate(`/play/${id}`);
-    } catch {
-      if (alive.current) { setFailed(true); setBusy(null); }
+    } catch (err) {
+      if (alive.current) { setFailed(chapterFailure(err)); setBusy(null); }
     }
   }
 
@@ -92,7 +92,7 @@ function CourseView({ course }: { course: Course }) {
       <p className="flex gap-2 text-sm text-muted"><BookOpen aria-hidden className="mt-0.5 size-4 shrink-0" />{t("mob.course.how")}</p>
       <div aria-live="polite">
         {busy && <p role="status" className="text-sm font-semibold" data-testid="course-building">{t("mob.course.building", { n: busy.n })} <span className="ltr-num">{busy.percent}%</span></p>}
-        {failed && <Alert tone="error" data-testid="course-error">{t("mob.course.error")}</Alert>}
+        {failed && <Alert tone="error" data-testid="course-error">{t(failed === "full" ? "mob.course.error.storage" : "mob.course.error")}</Alert>}
       </div>
       <h2 id="course-chapters" className="text-lg font-semibold">{t("mob.course.chapters")}</h2>
       <ol aria-labelledby="course-chapters" className="space-y-3" data-testid="course-chapters">

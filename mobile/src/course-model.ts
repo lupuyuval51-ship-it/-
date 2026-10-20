@@ -1,6 +1,6 @@
 import { DIFFICULTIES, type Difficulty } from "@/lib/game/spec/constants";
 import type { Course } from "@/lib/game/topics/courses";
-import type { GameSummaryRow } from "@/lib/offline/store";
+import { storageErrorCode, type GameSummaryRow } from "@/lib/offline/store";
 
 /**
  * Pure model of a course on the phone (no React, no storage globals, so it is unit-tested in node): which chapters the
@@ -78,6 +78,13 @@ export function courseProgress(course: Pick<Course, "chapters">, games: readonly
   });
   return { chapters, done: chapters.filter((c) => c.levelsDone.length > 0).length, next: chapters.find((c) => c.levelsDone.length === 0) ?? null };
 }
+
+/**
+ * Why a chapter could not be started: the phone has no room to save it (the learner must delete a game, trying again alone would
+ * fail the same way) or anything else (trying again is the right advice). Works for an `OfflineError` and for the failure the
+ * offline transport turns it into, like every other storage message.
+ */
+export const chapterFailure = (err: unknown): "full" | "generic" => (storageErrorCode(err) === "STORAGE_FULL" ? "full" : "generic");
 
 /** Never throws: an unreadable library shows the course as not started rather than breaking the screen. */
 export function loadCourseProgress(src: CourseSource, course: Course, rows?: readonly GameSummaryRow[]): CourseProgress {

@@ -255,6 +255,7 @@ export const mobileEs: Record<keyof typeof mobile.en, string> = {
   "mob.course.how": "Cada capítulo empieza con una lección corta y un ejemplo resuelto. Después practicas, y cada respuesta se explica. Al final hay una tarea para hacer en casa.",
   "mob.course.building": "Preparando el capítulo {n}…",
   "mob.course.error": "No se pudo preparar el capítulo. Inténtalo de nuevo.",
+  "mob.course.error.storage": "El capítulo se preparó, pero este móvil no tiene espacio para guardarlo. Elimina de la biblioteca un juego que ya no necesites e inténtalo de nuevo.",
   "mob.course.chapters": "Capítulos",
   "mob.results.course": "Volver a la ruta",
   "mob.results.course.next": "Volver a la ruta: sigue el capítulo {n}",

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GAME_TYPES } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError, generateOffline } from "@/lib/offline/generate";
+import { OfflineError } from "@/lib/offline/store";
 import { INPUT_LIMITS } from "@/config/limits";
 import { generationRequestSchema } from "@/lib/schemas/generation";
 import {
@@ -99,6 +100,9 @@ describe("explaining a failure", () => {
     expect(isStorageFull(null)).toBe(false);
     expect(classifySaveError(quota)).toEqual({ kind: "storage" });
     expect(classifySaveError(new Error("x"))).toEqual({ kind: "generic" });
+    // the store's own error for a full phone (what `addGame` really throws) is a storage problem too, not "could not be built"
+    expect(classifySaveError(new OfflineError(507, "STORAGE_FULL", "no room"))).toEqual({ kind: "storage" });
+    expect(classifySaveError(new OfflineError(503, "STORAGE_UNAVAILABLE", "blocked"))).toEqual({ kind: "generic" });
   });
 });
 
