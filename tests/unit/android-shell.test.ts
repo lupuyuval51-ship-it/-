@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import config from "../../capacitor.config";
@@ -195,5 +195,92 @@ describe("Android back button", () => {
       expect(backAction(p, true)).toBe("leave");
       expect(backAction(p, false)).toBe("leave");
     }
+  });
+});
+
+/**
+ * What the build really produced (`android/app/build` is not committed): checked only when a build of the CURRENT versionCode is on this
+ * machine, so a stale folder never fails the suite. The documented lists in docs/play-release.md must be the real ones.
+ */
+describe("the built release matches docs/play-release.md", () => {
+  const versionCode = appGradle.match(/versionCode (\d+)/)?.[1];
+  const mergedPath = "android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml";
+  const merged = existsSync(path.join(root, mergedPath)) ? read(mergedPath) : "";
+  const fresh = merged.includes(`android:versionCode="${versionCode}"`);
+  const doc = read("docs/play-release.md");
+  const permissions = [...merged.matchAll(/<uses-permission[^>]*android:name="([^"]+)"/g)].map((m) => m[1]!).sort();
+
+  it.skipIf(!fresh)("requests exactly the permissions the doc lists, and every one is named in the doc", () => {
+    expect(permissions).toEqual([
+      "android.permission.ACCESS_NETWORK_STATE", // Google's transport library, a dependency of the Play Billing library
+      "android.permission.INTERNET",
+      "android.permission.VIBRATE", // @capacitor/haptics
+      "app.levelup.learn3d.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", // androidx.core, signature level
+      "com.android.vending.BILLING", // @capgo/native-purchases (Google Play Billing)
+    ]);
+    for (const name of permissions) expect(doc, name).toContain(name.replace("app.levelup.learn3d.", "…").replace("android.permission.", ""));
+  });
+
+  it.skipIf(!fresh)("keeps backup on, cleartext off, nothing debuggable, and exports only the launcher activity and the DUMP-protected profile receiver", () => {
+    expect(merged).toMatch(/android:allowBackup="true"/);
+    expect(merged).toMatch(/android:usesCleartextTraffic="false"/);
+    expect(merged).not.toMatch(/android:debuggable|android:testOnly/);
+    const exported = [...merged.matchAll(/<(activity|receiver|service|provider)\b[^>]*?android:exported="true"[^>]*>/g)].map((m) => m[0]);
+    expect(exported).toHaveLength(2);
+    expect(exported.filter((e) => e.includes('android:name="app.levelup.learn3d.MainActivity"'))).toHaveLength(1);
+    expect(exported.filter((e) => e.includes('android:name="androidx.profileinstaller.ProfileInstallReceiver"') && e.includes('android:permission="android.permission.DUMP"'))).toHaveLength(1);
+  });
+
+  it.skipIf(!existsSync(path.join(root, "android/app/build/outputs/mapping/release/seeds.txt")) || !fresh)("R8 keeps every plugin the page calls, with its @PluginMethod methods", () => {
+    const seeds = read("android/app/build/outputs/mapping/release/seeds.txt");
+    for (const entry of [
+      "app.levelup.learn3d.FilesPlugin: void share(com.getcapacitor.PluginCall)",
+      "app.levelup.learn3d.SystemBarsPlugin: void setPageColor(com.getcapacitor.PluginCall)",
+      "ee.forgr.nativepurchases.NativePurchasesPlugin: void getPurchases(com.getcapacitor.PluginCall)",
+      "ee.forgr.nativepurchases.NativePurchasesPlugin: void purchaseProduct(com.getcapacitor.PluginCall)",
+    ]) expect(seeds, entry).toContain(entry);
+  });
+});
+
+describe("the documents the store and the owner rely on say what the app really does", () => {
+  const doc = read("docs/play-release.md");
+  const listing = read("mobile/store/listing.md");
+  const policy = read("mobile/store/privacy-policy.md");
+  const [policyEn, policyHe] = policy.split("**עברית.**") as [string, string];
+  const [listingHe, listingEn] = listing.split("## English (en-US)") as [string, string];
+
+  it("play-release.md does not contradict the manifest: backup is on, so no step may expect 'no allowed backup'", () => {
+    expect(manifest).toMatch(/android:allowBackup="true"/);
+    expect(doc).not.toMatch(/shows no allowed backup|`adb backup` yields nothing/);
+    expect(doc).toContain("ALLOW_BACKUP");
+    expect(doc).not.toMatch(/at the time of writing 1\.\d+\.\d+ \/ \d+/); // the version lives in build.gradle only
+    expect(doc).not.toMatch(/somewhere\nThe privacy policy/); // a sentence that stops half way
+  });
+
+  it("play-release.md names the permission and the SDKs the Play Billing library brings", () => {
+    expect(doc).toContain("ACCESS_NETWORK_STATE");
+    expect(doc).toMatch(/Google's own Play Billing library/);
+  });
+
+  it("the store listing states the in-app subscriptions, LEVEL UP AI and Spanish, and no longer promises demo games or a blanket 'not by AI'", () => {
+    for (const text of [listingHe, listingEn]) expect(text).not.toMatch(/demo|הדגמה|not by AI|version 1 is free/i);
+    expect(listing).not.toMatch(/In-app purchases: \*\*No\*\*/);
+    expect(listing).toMatch(/In-app purchases: \*\*Yes\*\*/);
+    expect(listing).toContain("Google Play Billing");
+    expect(listingEn).toContain("LEVEL UP AI");
+    expect(listingHe).toContain("LEVEL UP AI");
+    expect(listingEn).toContain("Spanish");
+    expect(listingHe).toContain("ספרדית");
+    expect(listingHe).not.toMatch(/[<>]/); // Hebrew text never carries a comparison sign
+    expect(listing).not.toMatch(/deadline|due date/i);
+  });
+
+  it("the privacy policy tells both readers that subscriptions are Google Play's, and that the plan stays on the phone", () => {
+    expect(policyEn).toMatch(/Plus and Pro subscriptions \(Google Play\)/);
+    expect(policyEn).toMatch(/never receive your card or payment details/);
+    expect(policyEn).toMatch(/not sent to our cloud/);
+    expect(policyHe).toMatch(/מנויי Plus ו-Pro \(Google Play\)/);
+    expect(policyHe).toMatch(/לא נשלחת לענן שלנו/);
+    expect(policyHe).not.toMatch(/[<>]/);
   });
 });

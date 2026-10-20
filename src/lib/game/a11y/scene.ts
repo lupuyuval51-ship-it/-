@@ -75,7 +75,7 @@ export function describeSurroundings(args: { points: ScenePoint[]; player: Pt; y
   const list = named.slice(0, max).map((p) => describePoint(p, player, yaw, p, t));
   parts.push(list.length ? t("a11y.around", { area: areaName, list: list.join("; ") }) : t("a11y.around.none", { area: areaName }));
   const loose = points.filter((p) => p.kind === "collectible");
-  if (loose.length) parts.push(t("a11y.collectibles", { n: loose.length }));
+  if (loose.length) parts.push(t(loose.length === 1 ? "a11y.collectibles.one" : "a11y.collectibles", { n: loose.length }));
   if (goal) parts.push(t("a11y.goal", { entry: describePoint({ kind: goal.kind, label: goal.label }, player, yaw, goal, t) }));
   return parts.join(" ");
 }

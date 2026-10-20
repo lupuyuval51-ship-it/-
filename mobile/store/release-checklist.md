@@ -9,8 +9,8 @@ Target API level, the privacy/hardening settings of the Android build, Data safe
 - Signed; `jarsigner -verify` and `apksigner verify` pass. Package `app.levelup.learn3d`.
 - Without an account the app makes **no network request at all** (tested with the network blocked) and never loads Unity files:
   Unity is an optional *website* renderer; the app always uses the built-in 3D renderer (`allowUnity={false}`, tested).
-- With the optional account it talks only to the Supabase project `https://yhxwgfgodxbzdvaqtqjz.supabase.co` — the only extra
-  entry in the CSP `connect-src` (no `*`). The `delete-account` function allows the app origins only (CORS allow-list).
+- With the optional account it talks only to the Supabase project `https://yhxwgfgodxbzdvaqtqjz.supabase.co`, and LEVEL UP AI (an explicit tap, signed-in
+  learner) only to `https://zfkjkbyzurhidhpkzpxr.supabase.co` — the only two extra entries in the CSP `connect-src` (no `*`). The `delete-account` function allows the app origins only (CORS allow-list).
 - Supabase project: owner-only row level security on every table, checked with `supabase/tests/rls_checks.sql`; Supabase security
   advisor: no warnings. Account deletion: in-app button → edge function → Auth admin API.
 - Phone-size browser tests (Pixel 7 viewport): create → play → answer → save → resume, back button, vibration setting, review deck,
@@ -47,5 +47,5 @@ Target API level, the privacy/hardening settings of the Android build, Data safe
   (regenerate with `node mobile/shots.mjs`; Play needs at least 2).
 - Privacy policy: host `privacy-policy.md` at a public URL, add your support e-mail, paste the URL.
 - Data safety form and Data deletion URL: answers in `listing.md`; deletion page `account-deletion.md`.
-- Content rating questionnaire; target audience and ads declaration (**no ads**); no in-app purchases in this version.
+- Content rating questionnaire; target audience and ads declaration (**no ads**); **in-app purchases: yes** (two monthly subscriptions through Google Play Billing, see `docs/play-release.md`).
 - The account is optional → reviewers can use the whole app without credentials.

@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useT } from "@/components/I18nProvider";
+import { useLocale, useT } from "@/components/I18nProvider";
 import { GoogleLogo } from "@/components/forms/GoogleButton";
 import { Alert, Button, Card, Field, Input } from "@/components/ui";
 import { deleteAccount, signIn, signOut, signUp, syncNow, useAccount } from "../cloud/account";
 import { googleAuthEnabled } from "../cloud/google";
 import { onGoogleResult, signInWithGoogle } from "../cloud/google-native";
+import { formatWhen } from "../format";
 
 /** Optional account: back up games and progress to the cloud and use them on another phone. The game works without it. */
 export function AccountPanel() {
   const t = useT();
+  const locale = useLocale();
   const { session, status, lastSyncAt, error } = useAccount();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +46,7 @@ export function AccountPanel() {
         <h2 className="text-lg font-semibold">{t("mob.account.title")}</h2>
         <p className="text-sm text-muted">{t("mob.account.signedInAs", { email: session.user.email ?? "" })}</p>
         <p className="text-sm" data-testid="sync-status" data-status={status}>
-          {status === "syncing" ? t("mob.account.syncing") : status === "error" ? t("mob.account.syncError") : lastSyncAt ? t("mob.account.lastSync", { when: new Date(lastSyncAt).toLocaleString() }) : t("mob.account.notSynced")}
+          {status === "syncing" ? t("mob.account.syncing") : status === "error" ? t("mob.account.syncError") : lastSyncAt ? t("mob.account.lastSync", { when: formatWhen(lastSyncAt, locale) }) : t("mob.account.notSynced")}
         </p>
         {error && <p className="text-xs text-muted" dir="ltr">{error}</p>}
         <div className="flex flex-wrap gap-2">

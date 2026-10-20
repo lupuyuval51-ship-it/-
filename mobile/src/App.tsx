@@ -6,6 +6,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
 import { showPlans } from "./features";
+import { APP_TITLE, screenTitle } from "./screen-title";
 import { checkGoogleProvider, googleRequired, readProviderState, type ProviderState } from "./cloud/google";
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./cloud/config";
 import { hasSavedSession } from "./cloud/client";
@@ -74,6 +75,15 @@ export function App() {
   }, []);
   const first = useRef(true);
   const play = path.startsWith("/play/");
+  // The sign-in gate and the questionnaire have no heading of their own to name in the title. When one of them was the first thing
+  // shown, the screen after it is reached by moving on, so its heading takes the focus (the first-render exemption is for a launch
+  // straight onto a screen, where the system already places the screen reader).
+  const gated = needSignIn || (!setupDone && !play);
+  useEffect(() => {
+    if (!gated) return;
+    document.title = APP_TITLE;
+    first.current = false;
+  }, [gated]);
   return (
     <I18nProvider locale={locale} dict={dict}>
       {/* The Suspense boundary sits inside the error boundary, which is re-keyed per route: every navigation mounts it afresh,
@@ -85,10 +95,10 @@ export function App() {
           : !setupDone && !play
           ? <FirstSetup />
           : play
-          ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play /></Suspense>
+          ? <Suspense fallback={<PlayLoading />}>{route(path)}<LandOnHeading first={first} play locale={locale} /></Suspense>
           : <>
               {/* bottom padding: the content never ends under the tab bar */}
-              <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))", paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><div className="lu-page"><Suspense fallback={<ScreenLoading />}>{route(path)}<LandOnHeading first={first} play={false} /></Suspense></div></main>
+              <main className="mx-auto max-w-3xl px-4 py-5 md:max-w-5xl md:py-8" style={{ paddingLeft: "max(1rem, env(safe-area-inset-left))", paddingRight: "max(1rem, env(safe-area-inset-right))", paddingBottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}><div className="lu-page"><Suspense fallback={<ScreenLoading />}>{route(path)}<LandOnHeading first={first} play={false} locale={locale} /></Suspense></div></main>
               <TabBar path={path} />
             </>}
       </ErrorBoundary>
@@ -123,7 +133,11 @@ function PlayLoading() {
  * found) have an h2 instead of an h1. Rendered next to the screen inside its Suspense boundary, so with a lazily loaded
  * screen the effect waits for the screen's content instead of finding the loading fallback.
  */
-function LandOnHeading({ first, play }: { first: MutableRefObject<boolean>; play: boolean }) {
+function LandOnHeading({ first, play, locale }: { first: MutableRefObject<boolean>; play: boolean; locale: string }) {
+  // The document title names the screen (from its heading) and follows a change of the interface language; it never moves the focus.
+  useEffect(() => {
+    document.title = play ? APP_TITLE : screenTitle((document.querySelector("main h1") ?? document.querySelector("main h2"))?.textContent);
+  }, [play, locale]);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
     if (play) return;

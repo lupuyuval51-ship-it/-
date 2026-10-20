@@ -67,14 +67,17 @@ const blockText = (b: Block, t: ReturnType<typeof useT>, depth = 0): string[] =>
   return [pad + t("block.if"), ...b.body.flatMap((x) => blockText(x, t, depth + 1)), pad + t("block.else"), ...b.else.flatMap((x) => blockText(x, t, depth + 1))];
 };
 
-function revealSummary(ch: PublicChallenge, reveal: Record<string, unknown>, t: ReturnType<typeof useT>): string {
+/** The names a revealed simulation solution is written with: the same labels as its sliders, never the raw parameter keys. */
+const SIM_PARAM_LABEL = { angle: "sim.angle", speed: "sim.speed", distance: "sim.lever.distance" } as const;
+
+export function revealSummary(ch: PublicChallenge, reveal: Record<string, unknown>, t: ReturnType<typeof useT>): string {
   switch (ch.type) {
     case "choice": return ch.options.find((o) => o.id === reveal.optionId)?.text ?? "";
     case "numeric": return `${reveal.value}${ch.unit ? ` ${ch.unit}` : ""}`;
     case "sequence": return (reveal.order as string[]).map((id, i) => `${i + 1}. ${ch.items.find((x) => x.id === id)?.text ?? ""}`).join("\n");
     case "match": return ch.lefts.map((l) => `${l.text}: ${ch.rights.find((r) => r.id === l.id)?.text ?? ""}`).join("\n");
     case "program": return (reveal.program as Block[]).flatMap((b) => blockText(b, t)).join("\n");
-    case "simulation": return Object.entries(reveal.params as Record<string, number>).map(([k, v]) => `${k}: ${v}`).join(", ");
+    case "simulation": return Object.entries(reveal.params as Record<string, number>).map(([k, v]) => `${k in SIM_PARAM_LABEL ? t(SIM_PARAM_LABEL[k as keyof typeof SIM_PARAM_LABEL]) : k}: ${v}`).join(", ");
   }
 }
 
@@ -146,7 +149,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     onSubmit(answer);
   };
   // One always-mounted live region: result and hint are announced even though their visible boxes appear later.
-  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: result.feedback }) + (result.resolved ? "" : ` ${t("challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
+  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: result.feedback }) + (result.resolved ? "" : ` ${t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
   const setProgram = useCallback((program: Block[]) => setAnswer(program.length ? { type: "program", program } : null), []);
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
@@ -216,7 +219,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                   {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
                 </p>
                 <p dir="auto"><MathText text={result.feedback} /></p>
-                {!result.resolved && <p className="text-muted">{t("challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
+                {!result.resolved && <p className="text-muted">{t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
                 {result.revealed && result.reveal && (
                   <div className="space-y-1 rounded-lg bg-ink-900 p-2">
                     <p className="text-xs text-amber">{t("challenge.revealed")}</p>
@@ -380,7 +383,7 @@ function SequenceInput({ challenge, disabled, result, onChange }: { challenge: E
             <li key={id}>
               <button type="button" disabled={disabled} data-order={id} aria-label={t("a11y.seq.item", { n: i + 1, text: item.text })} onClick={() => update(order.filter((x) => x !== id), t("a11y.seq.removed", { text: item.text }), `[data-item="${id}"]`)} className={cx("flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 py-2 text-start text-sm", result && !result.correct && inPlace.length ? (inPlace[i] ? "border-lime/60 bg-lime/10" : "border-rose/60 bg-rose/10") : "border-neon/50 bg-neon/10")}>
                 <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-700 text-xs">{i + 1}</span>
-                <span aria-hidden dir="auto" className="min-w-0 whitespace-pre-wrap break-words font-mono">{item.text}</span>
+                <span aria-hidden dir="auto" className="min-w-0 whitespace-pre-wrap break-words font-mono"><MathText text={item.text} /></span>
               </button>
               {result && !result.correct && inPlace.length > 0 && <span className="sr-only">{t(inPlace[i] ? "challenge.correct" : "challenge.incorrect")}</span>}
             </li>
@@ -390,7 +393,7 @@ function SequenceInput({ challenge, disabled, result, onChange }: { challenge: E
       <div className="flex flex-wrap gap-2" role="group" aria-label={t("a11y.seq.pool")}>
         {pool.map((i) => (
           <button key={i.id} type="button" disabled={disabled} data-item={i.id} onClick={() => update([...order, i.id], t("a11y.seq.added", { n: order.length + 1, total: challenge.items.length, text: i.text }), "[data-item]")} className="min-h-11 rounded-xl border border-line bg-ink-900 px-3 py-2 text-start text-sm hover:border-neon/60">
-            <span dir="auto" className="whitespace-pre-wrap break-words font-mono">{i.text}</span>
+            <span dir="auto" className="whitespace-pre-wrap break-words font-mono"><MathText text={i.text} /></span>
           </button>
         ))}
       </div>
@@ -429,7 +432,7 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
             <button key={l.id} type="button" disabled={disabled} data-left={l.id} data-paired={pairs[l.id] ? "1" : undefined} aria-pressed={left === l.id}
               onClick={() => { setLeft(l.id); setNote(t("a11y.match.pickLeft", { text: l.text })); focusNext.current = "[data-right]:not(:disabled)"; }} style={{ borderColor: pairs[l.id] ? colorOf(l.id) : undefined }}
               className={cx("min-h-11 w-full rounded-xl border px-3 py-2.5 text-start text-sm", left === l.id ? "border-neon bg-neon/10" : "border-line bg-ink-900", result && !result.correct && l.id in right && (right[l.id] ? "bg-lime/10" : "bg-rose/10"))}>
-              <span dir="auto" className="break-words">{l.text}</span>
+              <span dir="auto" className="break-words"><MathText text={l.text} /></span>
               {pairs[l.id] && <span className="sr-only"> ({t("a11y.match.pairedWith", { text: rightText(pairs[l.id]!) })})</span>}
               {result && !result.correct && l.id in right && <span className="sr-only"> ({t(right[l.id] ? "challenge.correct" : "challenge.incorrect")})</span>}
             </button>
@@ -451,7 +454,7 @@ function MatchInput({ challenge, disabled, result, onChange }: { challenge: Extr
                 }}
                 style={{ borderColor: owner ? colorOf(owner) : undefined }}
                 className="min-h-11 w-full rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-start text-sm enabled:hover:border-neon/60 disabled:opacity-70">
-                <span dir="auto" className="break-words">{r.text}</span>
+                <span dir="auto" className="break-words"><MathText text={r.text} /></span>
                 {owner && <span className="sr-only"> ({t("a11y.match.pairedWith", { text: leftText(owner) })})</span>}
               </button>
             );

@@ -1,7 +1,7 @@
 # LEVEL UP — offline Android app (Google Play)
 
 The phone app runs **without any server**. It reuses the website's game code (`src/`): the 3D runtime, challenges, the
-study engine and demo templates, and the very same game reducer the server uses (`processEvent`), here running on the
+study engine, the topic library, and the very same game reducer the server uses (`processEvent`), here running on the
 device through `src/lib/offline/store.ts`. Games and progress are kept in the app's local storage.
 
 Phone-only features:
@@ -17,16 +17,17 @@ Phone-only features:
   `mobile/store/release-checklist.md`.
 
 What is different from the website (by design):
-- No Stripe and no AI providers (a secret key cannot live in an app); the account is optional and only for backup/sync. Games come from the **study engine** (your
-  notes) or **demo templates**, and are labelled that way.
+- No Stripe and no AI keys (a secret key cannot live in an app); the account is optional and only for backup/sync. Games come from the **study engine** (your
+  notes) or the **topic library**, and are labelled that way. The only AI is LEVEL UP AI, an explicit option for a signed-in learner that calls the
+  separate Supabase project `levelup-ai` (the key lives only there); its games carry the AI label. There are no demo games.
 - Answer keys are on the device, so scores are for self-practice, not for anything that must be cheat-proof.
 - Graphics tier A/B/C is a Settings choice for the phone's power. Default: B, or A on phones that report ≥ 6 GB RAM and ≥ 8 cores.
 - The *feature* tier (what a game may contain: C = 40 %, B = 70 %, A = 100 % of the game features, see `src/config/plans.ts`) is enforced on the
   device too (`generateOffline(…, tier)` refuses what the tier lacks and clamps the rest). The tier comes from `src/lib/offline/entitlement.ts`,
-  which stays at the full tier A for every install until Google Play Billing supplies a purchased plan. Games made on a phone are fitted to a touch
+  which comes from Google Play Billing (a real install starts as Free; the test builds as Pro). Games made on a phone are fitted to a touch
   screen (`fitForDevice`: less walking, easier jumps, never a change to challenges, answers, missions or bosses).
-- Version 1 is free. Google Play does not allow Stripe for in-app digital goods; paid features later need **Google Play
-  Billing** (products created in your Play Console).
+- Plus and Pro are sold through **Google Play Billing** only (Google Play does not allow Stripe for in-app digital goods): products `levelup_plus` and
+  `levelup_pro` created in your Play Console, see `docs/play-release.md`.
 
 ## Build
 

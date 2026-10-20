@@ -46,7 +46,7 @@ export function TopicPicker({ value, onChange, disabled = false, error, initialC
           </button>
         ))}
       </div>
-      <p className="text-xs text-muted" aria-live="polite" data-testid="topic-count">{shown.length === 0 ? t("topics.none") : t("topics.count", { n: shown.length })}</p>
+      <p className="text-xs text-muted" aria-live="polite" data-testid="topic-count">{shown.length === 0 ? t("topics.none") : t(shown.length === 1 ? "topics.count.one" : "topics.count", { n: shown.length })}</p>
       <div className="max-h-[26rem] space-y-2 overflow-y-auto overscroll-contain rounded-2xl border border-line p-2">
         <div
           id={listId} role="radiogroup" aria-label={t("topics.source.library")} aria-invalid={error ? true : undefined} aria-describedby={error ? errorId : undefined}

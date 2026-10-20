@@ -1,7 +1,8 @@
 import type { Locale } from "@/lib/i18n";
 import type { SyncStatus } from "./cloud/account";
 
-const tag = (locale: Locale): string => (locale === "he" ? "he-IL" : "en-GB");
+/** The date language is the interface language: Spanish used to fall through to English ("Thursday", "tomorrow"). */
+const tag = (locale: Locale): string => (locale === "he" ? "he-IL" : locale === "es" ? "es-ES" : "en-GB");
 const startOfDay = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
 /**

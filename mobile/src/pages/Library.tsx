@@ -119,7 +119,7 @@ export function LibraryPage() {
                   <RotateCcw aria-hidden className="size-5 shrink-0 text-violet-soft" />
                   <span className="me-auto">
                     <span className="block font-semibold">{t("mob.deck.title")}</span>
-                    <span className="block text-sm text-muted">{deck.due > 0 ? t("mob.deck.due", { n: deck.due }) : t("mob.deck.later", { n: deck.total })}</span>
+                    <span className="block text-sm text-muted">{deck.due > 0 ? t(deck.due === 1 ? "mob.deck.due.one" : "mob.deck.due", { n: deck.due }) : t(deck.total === 1 ? "mob.deck.later.one" : "mob.deck.later", { n: deck.total })}</span>
                   </span>
                   <Arrow />
                 </a>

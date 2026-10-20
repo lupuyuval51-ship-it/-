@@ -11,9 +11,12 @@ const HEBREW = /\p{Script=Hebrew}/u;
 
 // a number: 1,200 · 3.47 · 3/4 · 25% · 0.333… · a mixed number 2 1/4 · a blank x/9, 7/x
 const NUM = String.raw`(?:\d+ (?:\d+|x)\/\d+|\d+(?:[.,]\d+)*(?:\/(?:\d+|x))?(?:…|%)?|x\/\d+)`;
-const OPERAND = String.raw`(?:${NUM}|x)`;
-const GROUP = String.raw`(?:${OPERAND}|\(\s*${OPERAND}(?:\s*[×÷−+=≈/]\s*${OPERAND})*\s*\))`;
-const RUN = new RegExp(String.raw`${GROUP}(?:\s*[×÷−+=≈/]\s*${GROUP})*`, "gu");
+// an operand: a number, optionally written straight into a variable ("3x", "3x3"), or x; with superscript exponents ("2²", "x²")
+const OPERAND = String.raw`(?:${NUM}(?:x(?![A-Za-z])\d*)?|x\d*)[⁰¹²³⁴⁵⁶⁷⁸⁹]*`;
+const PAREN = String.raw`\(\s*${OPERAND}(?:\s*[×÷−+=≈/]\s*${OPERAND})*\s*\)`;
+const GROUP = String.raw`(?:${OPERAND}|${PAREN})`;
+// a bracket written straight after a factor is a product too: "2(x + 1)", "(x + 2)(x − 3)"
+const RUN = new RegExp(String.raw`${GROUP}(?:\s*[×÷−+=≈/]\s*${GROUP}|(?=\()${PAREN})*`, "gu");
 
 export interface TextPart { text: string; math: boolean }
 

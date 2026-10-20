@@ -4,7 +4,7 @@ Run on at least one **older/low-end** phone and one recent phone. Tick each line
 
 1. Install from the Internal testing link. App opens in Hebrew; icon and name look right.
 2. Turn on airplane mode. Everything below must still work.
-3. *New game*: paste notes (≥ 6 lines "term: meaning") → progress bar → game starts. Repeat with no notes (demo game).
+3. *New game*: paste notes (≥ 6 lines "term: meaning") → progress bar → game starts. Repeat with a topic from the topic library (no notes needed).
 4. Movement: joystick moves smoothly, camera drags to look, *Run* and *Action* buttons respond. Frame rate feels steady (note the phone model if not).
 5. Open a station, answer wrong then right: sound plays, phone vibrates, score updates, explanation appears.
 6. Collect a gem, open a gate, finish a mission: sounds and vibration.

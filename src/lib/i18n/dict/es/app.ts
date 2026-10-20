@@ -100,6 +100,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "topics.cat.thinking": "Pensamiento y técnicas de estudio",
   "topics.ages": "De {from} a {to} años",
   "topics.count": "{n} temas",
+  "topics.count.one": "1 tema",
   "topics.more": "Mostrar {n} más",
   "topics.none": "Ningún tema coincide con tu búsqueda.",
   "topics.selected": "Tema elegido: {title}",
