@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PLAN_GRACE_MS, PLAY_PRODUCTS, effectivePlan, loadPlanState, planFromPurchases, savePlanState, sanitizePlanState } from "@/lib/offline/billing-state";
-import { levelsLeft, loadUsed, monthKey, pickBuildLevel, recordUse } from "@/lib/offline/device-quota";
-import { quotaOf } from "@/config/plans";
+import { canStartTopic, halfYear, loadTracks, recordTopic, tracksLeft } from "@/lib/offline/tracks";
+import { APP_TRACKS } from "@/config/plans";
 
 const NOW = Date.UTC(2026, 9, 20, 12);
 const DAY = 86_400_000;
@@ -39,32 +39,47 @@ describe("plan from Google Play purchases", () => {
   });
 });
 
-describe("games per level on the phone", () => {
-  it("counts per level and per UTC month, and a new month starts again", () => {
+describe("library topics (tracks) per half-year on the phone", () => {
+  it("the plans give 1, 4 and 7 topics per half-year", () => {
+    expect(APP_TRACKS).toEqual({ FREE: 1, PLUS: 4, PRO: 7 });
+  });
+  it("half-years run January–June and July–December (UTC)", () => {
+    expect(halfYear(NOW)).toEqual({ start: Date.UTC(2026, 6, 1), end: Date.UTC(2027, 0, 1) });
+    expect(halfYear(Date.UTC(2026, 2, 3))).toEqual({ start: Date.UTC(2026, 0, 1), end: Date.UTC(2026, 6, 1) });
+  });
+  it("Free: one topic; replaying it is free, a second one is refused", () => {
     const store = mem();
-    recordUse(store, "B", NOW);
-    recordUse(store, "C", NOW);
-    recordUse(store, "C", NOW);
-    expect(loadUsed(store, NOW)).toEqual({ A: 0, B: 1, C: 2 });
-    expect(loadUsed(store, NOW + 40 * DAY)).toEqual({ A: 0, B: 0, C: 0 });
-    expect(monthKey(NOW)).toBe("2026-10");
+    expect(canStartTopic("FREE", loadTracks(store, NOW), "math-fractions")).toBe(true);
+    recordTopic(store, "math-fractions", NOW);
+    recordTopic(store, "math-fractions", NOW + DAY);
+    expect(loadTracks(store, NOW).topics).toEqual(["math-fractions"]);
+    expect(canStartTopic("FREE", loadTracks(store, NOW), "math-fractions")).toBe(true);
+    expect(canStartTopic("FREE", loadTracks(store, NOW), "science-cells")).toBe(false);
+    expect(tracksLeft("FREE", loadTracks(store, NOW))).toBe(0);
   });
-  it("Free: B once, then C five times, then nothing (A is never offered)", () => {
-    const used = { A: 0, B: 0, C: 0 };
-    expect(pickBuildLevel("FREE", used)).toEqual({ level: "B", exhausted: false });
-    used.B = quotaOf("FREE", "B") as number;
-    expect(pickBuildLevel("FREE", used)).toEqual({ level: "C", exhausted: false });
-    used.C = quotaOf("FREE", "C") as number;
-    expect(pickBuildLevel("FREE", used)).toEqual({ level: "C", exhausted: true });
+  it("Plus has 4 and Pro 7; deleting games does not give a topic back (the history is separate from the games)", () => {
+    const store = mem();
+    for (const id of ["math-fractions", "science-cells", "history-ancient-egypt", "cs-binary"]) recordTopic(store, id, NOW);
+    expect(canStartTopic("PLUS", loadTracks(store, NOW), "econ-budgeting")).toBe(false);
+    expect(canStartTopic("PRO", loadTracks(store, NOW), "econ-budgeting")).toBe(true);
+    expect(tracksLeft("PRO", loadTracks(store, NOW))).toBe(3);
   });
-  it("Plus and Pro start at A and fall to B, then to C which never runs out", () => {
-    for (const plan of ["PLUS", "PRO"] as const) {
-      expect(pickBuildLevel(plan, { A: 0, B: 0, C: 0 }).level).toBe("A");
-      expect(pickBuildLevel(plan, { A: quotaOf(plan, "A") as number, B: 0, C: 0 }).level).toBe("B");
-      expect(pickBuildLevel(plan, { A: 99, B: 99, C: 999 })).toEqual({ level: "C", exhausted: false });
-    }
+  it("the history starts again in the next half-year", () => {
+    const store = mem();
+    recordTopic(store, "math-fractions", NOW);
+    expect(loadTracks(store, Date.UTC(2027, 0, 2)).topics).toEqual([]);
+    expect(canStartTopic("FREE", loadTracks(store, Date.UTC(2027, 0, 2)), "science-cells")).toBe(true);
   });
-  it("a level that is used up never reduces another", () => {
-    expect(levelsLeft("PRO", { A: 20, B: 0, C: 0 })).toEqual({ A: 0, B: 40, C: null });
+  it("course chapters are free on every plan and are not counted", () => {
+    const store = mem();
+    recordTopic(store, "math-fractions", NOW);
+    recordTopic(store, "course-fractions-1", NOW);
+    expect(loadTracks(store, NOW).topics).toEqual(["math-fractions"]);
+    expect(canStartTopic("FREE", loadTracks(store, NOW), "course-fractions-2")).toBe(true);
+  });
+  it("damaged stored data is ignored", () => {
+    const store = mem();
+    store.setItem("levelup.tracks.v1", "{oops");
+    expect(loadTracks(store, NOW).topics).toEqual([]);
   });
 });

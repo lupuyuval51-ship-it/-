@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
-import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
-import { PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId } from "@/config/plans";
+import { planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
+import { APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId } from "@/config/plans";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
 import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases } from "../billing/play";
 
 /**
  * The plans and their prices, and the way to buy: Google Play Billing (the only payment an app from Google Play may use).
  * Prices are in shekels from src/config/plans.ts (Play shows the learner its own final price on the purchase sheet; when Play
- * can tell the price it is shown instead); the offer text ("1 topic at level B and 5 at level C") comes from `planOffer`.
+ * can tell the price it is shown instead); the offer is the number of library topics per half-year (`APP_TRACKS`).
  */
 export function PlansPage() {
   const t = useT();
@@ -66,7 +66,7 @@ export function PlansPage() {
                   {!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
               </div>
-              <p className="text-sm">{offerText(t, id)}</p>
+              <p className="text-sm" data-testid={`mobile-tracks-${id}`}>{APP_TRACKS[id] === 1 ? t("mob.plans.tracks.one") : t("mob.plans.tracks.many", { n: APP_TRACKS[id] })}</p>
               <p className="text-sm text-muted" data-testid={`mobile-topics-${id}`}>{topicsText(t, id)}</p>
               <p className="text-sm text-muted">{planHasTierA(id) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
               {paid && (

@@ -10,7 +10,7 @@ import { EXAMPLES } from "../../mobile/src/pages/examples";
 const env = vi.hoisted(() => ({ tier: "A" as "A" | "B" | "C" }));
 vi.mock("../../mobile/src/app-state", () => ({ store: { addGame: () => ({ id: "x" }) }, getSettings: () => ({ interests: [], minutesPerDay: null }) }));
 vi.mock("../../mobile/src/cloud/account", () => ({ useAccount: () => ({ session: null }) }));
-vi.mock("@/lib/offline/entitlement", () => ({ getOfflinePlan: () => "PRO", getOfflineTier: () => env.tier, getOfflineBuildLevel: () => ({ level: env.tier, exhausted: false }) }));
+vi.mock("@/lib/offline/entitlement", () => ({ getOfflinePlan: () => "PRO", getOfflineTier: () => env.tier }));
 
 const { CreatePage } = await import("../../mobile/src/pages/Create");
 

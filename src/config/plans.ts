@@ -174,6 +174,16 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
   },
 });
 
+// ───────────────────────────── the Android app: topics ("tracks") per half-year ─────────────────────────────
+
+/**
+ * In the Android app the allowance is the number of different library topics ("tracks") a learner may start in each half-year
+ * (January–June and July–December, UTC): Free 1, Plus 4, Pro 7. Inside a started topic every level the plan offers can be played
+ * as often as the learner likes. Deleting a topic's games does not give the track back; the history starts again each half-year.
+ * Course chapters are free on every plan and are not counted. The website keeps the per-level quotas below.
+ */
+export const APP_TRACKS: Readonly<Record<PlanId, number>> = Object.freeze({ FREE: 1, PLUS: 4, PRO: 7 });
+
 // ───────────────────────────── allowance: a quota per level ─────────────────────────────
 
 /** The levels a plan can make, highest first. */

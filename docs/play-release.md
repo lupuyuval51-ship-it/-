@@ -228,8 +228,9 @@ phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to
 
 How the app uses it: at start and whenever it comes back to the screen it asks Play for the learner's purchases
 (`getPurchases`), keeps the plan and its expiry on the phone and works offline from that (3 days of grace after the period ends).
-Games per level are counted on the phone per calendar month (`src/lib/offline/device-quota.ts`): Free B 1 and C 5, Plus A 5,
-B 10 and C unlimited, Pro A 20, B 40 and C unlimited. **Known limit:** the purchase is not yet verified by a server (Google Play
+The allowance in the app is library topics per half-year (`src/lib/offline/tracks.ts`, numbers in `APP_TRACKS`): Free 1, Plus 4,
+Pro 7; a started topic stays open at every level of the plan, deleting its games does not give the topic back, and the history starts again
+on 1 January and 1 July. **Known limit:** the purchase is not yet verified by a server (Google Play
 Developer API, with a service account); a rooted phone could fake a plan or reset its counters. Add that check before the
 subscriptions carry real money (a Supabase Edge Function in the account project; its credentials go into the function's secrets).
 

@@ -4,11 +4,10 @@
  * The plan comes from Google Play Billing (never Stripe): the app asks Play for the learner's subscription, keeps the answer
  * on the phone (`billing-state.ts`) and works offline from it. Without any stored answer the plan is `defaultPlan`: Free in a
  * real build (set by the app at start), Pro in the test builds and in the unit tests.
- * Games per level are counted on the phone (`device-quota.ts`).
+ * The topics a learner may start per half-year are counted on the phone (`tracks.ts`).
  */
 import { maxLevel, type FeatureTier } from "../../config/plans";
 import { effectivePlan, loadPlanState } from "./billing-state";
-import { loadUsed, pickBuildLevel } from "./device-quota";
 
 export type OfflinePlan = "FREE" | "PLUS" | "PRO";
 
@@ -31,10 +30,4 @@ export function getOfflinePlan(now: number = Date.now()): OfflinePlan {
 /** The highest level a plan can make (what a stored game may keep). */
 export function getOfflineTier(plan: OfflinePlan = getOfflinePlan()): FeatureTier {
   return maxLevel(plan);
-}
-
-/** The level the next new game is built at: the highest this month's quotas still allow; `exhausted` when none is left. */
-export function getOfflineBuildLevel(now: number = Date.now()): { level: FeatureTier; exhausted: boolean } {
-  const s = storage();
-  return pickBuildLevel(getOfflinePlan(now), s ? loadUsed(s, now) : { A: 0, B: 0, C: 0 });
 }

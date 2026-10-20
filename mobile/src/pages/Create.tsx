@@ -9,8 +9,9 @@ import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } fro
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
-import { getOfflineBuildLevel, getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
-import { recordUse } from "@/lib/offline/device-quota";
+import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
+import { canStartTopic, halfYear, loadTracks, recordTopic, tracksLeft } from "@/lib/offline/tracks";
+import { APP_TRACKS } from "@/config/plans";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
 import { AiError, generateWithAi, type AiFailure } from "../cloud/ai";
@@ -47,12 +48,23 @@ function suggestedMode(tier: ReturnType<typeof getOfflineTier>): "FAST" | "FULL"
   return modeAllowed(tier, m) ? m : "FAST";
 }
 
+/** The phone's storage, or a do-nothing stand-in when it is blocked (the track history is then not kept). */
+function localStorageOrNull(): { getItem(k: string): string | null; setItem(k: string, v: string): void } {
+  try { if (typeof localStorage !== "undefined") return localStorage; } catch { /* blocked */ }
+  return { getItem: () => null, setItem: () => undefined };
+}
+
+const formatDay = (ms: number, locale: string): string => new Date(ms).toLocaleDateString(locale === "he" ? "he-IL" : locale === "es" ? "es-ES" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
-  // The level of the next game: the highest this month's quotas still allow (`device-quota.ts`).
-  const build = getOfflineBuildLevel();
-  const tier = build.level;
+  const tier = getOfflineTier();
+  // The library topics ("tracks") this phone started in this half-year (`tracks.ts`): Free 1, Plus 4, Pro 7.
+  const plan = getOfflinePlan();
+  // read once when the screen opens (the half-year does not change while a game is being made)
+  const [now] = useState(() => Date.now());
+  const tracks = useMemo(() => loadTracks(localStorageOrNull(), now), [now]);
   const storage = useMemo(() => draftStorage(), []);
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
@@ -146,7 +158,7 @@ export function CreatePage() {
     // Without notes a subject alone used to make a demo-template game; now the notes are needed (or a ready topic from the library).
     if (!topic && !useAi && !cleanPastedText(form.material).trim()) { dispatch({ type: "problem", problem: { kind: "notes" } }); return; }
     if (useAi && !account.session) { setAiFailure("SIGN_IN"); return; }
-    if (build.exhausted) { dispatch({ type: "problem", problem: { kind: "limit" } }); return; }
+    if (topic && !canStartTopic(plan, tracks, topic.id)) { dispatch({ type: "problem", problem: { kind: "limit" } }); return; }
     setBusy(true);
     setAiFailure(null);
     dispatch({ type: "problem", problem: null });
@@ -180,7 +192,7 @@ export function CreatePage() {
     let id: string;
     try {
       id = store.addGame(spec).id;
-      recordUse(localStorage, spec.meta.featureTier ?? tier, Date.now());
+      if (topic) recordTopic(localStorageOrNull(), topic.id, now);
     } catch (err) {
       dispatch({ type: "problem", problem: classifySaveError(err) });
       setBusy(false);
@@ -246,6 +258,7 @@ export function CreatePage() {
       {library ? (
         <div className="min-w-0 space-y-4" data-testid="create-topics-column">
           <Alert tone="info" data-testid="topics-intro">{t("topics.intro.mobile", { n: TOPICS.length })}</Alert>
+          <p className="text-sm text-muted" data-testid="tracks-left">{t("mob.tracks.left", { left: tracksLeft(plan, tracks), total: APP_TRACKS[plan], date: formatDay(halfYear(now).end, locale) })}</p>
           <TopicPicker plan={getOfflinePlan()} initialCategory={getSettings().interests[0]} value={topicId} onChange={(id) => { setTopicId(id); setTopicError(false); }} disabled={busy} error={topicError ? t("topics.required") : null} />
         </div>
       ) : (
