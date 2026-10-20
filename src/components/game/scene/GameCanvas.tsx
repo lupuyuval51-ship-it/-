@@ -10,17 +10,13 @@ import type { GameRuntime } from "@/lib/game/engine/runtime";
 import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
 import type { ClientState } from "@/lib/game/state/progress";
 import type { InputState } from "../input";
-import { Backdrop } from "./Backdrop";
-import { Life } from "./Life";
 import { Entities } from "./Entities";
 import { Companion, GuideBeams, GuideProjector } from "./Guide";
 import type { GuideInsets } from "./guideBand";
-import { DPR_SCALE, FrameGovernor, MIN_DPR, degradeProfile, governedDprFor, type GovernedDpr } from "./governor";
+import { FrameGovernor, degradeProfile, dprForLevel, governedDprFor, rememberLevel, rememberedLevel, type GovernedDpr } from "./governor";
 import { createMaterialSet } from "./materials";
-import { ParticleEmitter, Particles } from "./Particles";
-import { PlayerAvatar } from "./PlayerAvatar";
-import { Lights, Sky } from "./Sky";
-import { WorldView } from "./WorldView";
+import { ParticleEmitter } from "./Particles";
+import { StaticBackdrop, StaticLife, StaticLights, StaticParticles, StaticPlayerAvatar, StaticSky, StaticWorldView } from "./staticScene";
 
 export { ParticleEmitter };
 
@@ -50,6 +46,9 @@ export interface GameCanvasProps {
   reduceMotion?: boolean;
   onUnityFrame?: (frame: UnityFrame) => void;
 }
+
+/** The pixel ratio of the tier on this screen, before any fallback step. */
+const baseDprOf = (profile: RenderProfile) => Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio);
 
 /** A subscriber with a positive priority takes over rendering from R3F; this one renders nothing. */
 function NoRender() {
@@ -106,8 +105,9 @@ function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel, onDpr
   const setDpr = useThree((s) => s.setDpr);
   const gl = useThree((s) => s.gl);
   const stats = useRef({ pub: 0, frames: 0 });
-  const governor = useMemo(() => new FrameGovernor(), []);
-  const baseDpr = useMemo(() => Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio), [profile.pixelRatioMax]);
+  // a new canvas (another area, a replay) carries on from the level this tier already had to step down to
+  const governor = useMemo(() => new FrameGovernor({ startLevel: rememberedLevel(profile.tier) }), [profile.tier]);
+  const baseDpr = useMemo(() => baseDprOf(profile), [profile]);
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1);
     const { sim, interact } = input.poll(step);
@@ -132,7 +132,8 @@ function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel, onDpr
     if (!profile.adaptiveResolution) return;
     const next = governor.push(dt);
     if (next === null) return;
-    const dpr = Math.max(MIN_DPR, baseDpr * (DPR_SCALE[next] ?? 1));
+    const dpr = dprForLevel(baseDpr, next);
+    rememberLevel(profile.tier, next);
     setDpr(dpr);
     onDpr(dpr); // tell the canvas component, which would otherwise put the full ratio back on its next render
     gl.domElement.dataset.dpr = dpr.toFixed(2);
@@ -192,7 +193,7 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
 function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
   const { runtime, profile: tierProfile, emitter } = props;
   // `tierProfile` is what the server granted: it is the ceiling. `profile` is what is drawn right now (never better).
-  const [level, setLevel] = useState(0);
+  const [level, setLevel] = useState(() => rememberedLevel(tierProfile.tier));
   const profile = useMemo(() => degradeProfile(tierProfile, level), [tierProfile, level]);
   const theme = runtime.world.theme;
   const materials = useMemo(() => createMaterialSet(tierProfile, theme), [tierProfile, theme]);
@@ -216,18 +217,18 @@ function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
         </>
       ) : (
         <>
-          <Sky profile={profile} theme={theme} />
-          <Lights runtime={runtime} profile={profile} theme={theme} />
-          <Backdrop world={runtime.world} profile={profile} materials={materials} />
-          <Life world={runtime.world} profile={profile} materials={materials} />
-          <WorldView runtime={runtime} profile={profile} materials={materials} />
+          <StaticSky profile={profile} theme={theme} />
+          <StaticLights runtime={runtime} profile={profile} theme={theme} />
+          <StaticBackdrop world={runtime.world} profile={profile} materials={materials} />
+          <StaticLife world={runtime.world} profile={profile} materials={materials} />
+          <StaticWorldView runtime={runtime} profile={profile} materials={materials} />
           <Entities runtime={runtime} client={props.client} nearbyKey={props.nearbyKey} profile={profile} materials={materials} guide={props.guide} />
-          <PlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
+          <StaticPlayerAvatar runtime={runtime} profile={profile} materials={materials} accent={theme.accent} />
           <GuideDriver runtime={runtime} model={props.guide} client={props.client} />
           <GuideBeams runtime={runtime} model={props.guide} theme={theme} />
           <Companion runtime={runtime} model={props.guide} input={props.input} profile={profile} accent={theme.accent} />
           <GuideProjector runtime={runtime} model={props.guide} markerRef={props.guideMarker} label={props.guideLabel} insets={props.guideInsets} />
-          <Particles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
+          <StaticParticles runtime={runtime} profile={profile} emitter={emitter} accent={theme.accent} />
         </>
       )}
     </>
@@ -240,7 +241,9 @@ function GameCanvas(props: GameCanvasProps) {
   // Once the frame governor has lowered the pixel ratio, the canvas must be given that number: handing it the profile's range
   // again on the next render (any toast, score change or rotation re-renders the game screen) would put the full ratio back.
   const [governed, setGoverned] = useState<GovernedDpr | null>(null);
-  const governedDpr = governedDprFor(governed, canvasKey);
+  // a new canvas starts at the level this tier already had to step down to (the scene starts there too), never above it
+  const remembered = profile.adaptiveResolution ? rememberedLevel(profile.tier) : 0;
+  const governedDpr = governedDprFor(governed, canvasKey) ?? (remembered > 0 ? dprForLevel(baseDprOf(profile), remembered) : null);
   const shadows = profile.shadows.type === "soft" ? "soft" : profile.shadows.type === "basic" ? "basic" : false;
   return (
     <Canvas

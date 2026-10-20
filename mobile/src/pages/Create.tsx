@@ -171,7 +171,7 @@ export function CreatePage() {
         spec = await generateWithAi({
           mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
           material: cleanPastedText(form.material).trim() || undefined, device: "phone",
-        }, account.session!.access_token);
+        }, account.session!.access_token, undefined, undefined, tier);
       } else
       ({ spec } = await generateOfflineWithProgress(topic
         ? { mode: form.mode, subject, learningGoal: topic[form.language][1], difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language, topicId: topic.id, device: "phone" }

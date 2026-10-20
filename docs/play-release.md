@@ -227,7 +227,13 @@ phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to
 5. Data safety: the purchase itself is handled by Google; the app stores only the plan Play reports, on the phone.
 
 How the app uses it: at start and whenever it comes back to the screen it asks Play for the learner's purchases
-(`getPurchases`), keeps the plan and its expiry on the phone and works offline from that (3 days of grace after the period ends).
+(`getPurchases`), keeps the plan on the phone and works offline from that. Play on Android gives no expiry date (the plugin returns
+`purchaseState` "1" for a paid purchase, never `isActive` or `expirationDate`), so the plan keeps working for 3 days after the last time
+Play confirmed it; an empty answer (which is also what the plugin returns when its query fails) never takes a paid plan away inside
+those 3 days. Calls to the plugin run one at a time (it has one billing client, every call closes the previous one), and a paid
+purchase that Play still lists as unacknowledged is acknowledged by the app (Play refunds after 3 days). **Plus and Pro are two separate
+subscriptions** and the plugin cannot replace one with the other, so a learner who already has a plan is sent to Play's subscription
+page (change or cancel there) instead of being sold a second one, which would be billed next to the first.
 The allowance in the app is library topics per half-year (`src/lib/offline/tracks.ts`, numbers in `APP_TRACKS`): Free 1, Plus 4,
 Pro 7; a started topic stays open at every level of the plan, deleting its games does not give the topic back, and the history starts again
 on 1 January and 1 July. **Known limit:** the purchase is not yet verified by a server (Google Play

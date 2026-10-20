@@ -9,7 +9,7 @@ import { idSchema } from "../spec/schema";
 import type { GameSpec } from "../spec/schema";
 import { mechanicsForArea } from "../spec/mechanics";
 import {
-  COLLECT_POINTS, bossPhaseOpen, chooseVariant, cloneState, collectibleIds, findArea, findChallenge, findStation, portalOpen, recordAttempt, recompute, stationActive,
+  COLLECT_POINTS, MAX_PLAY_GAP_MS, bossPhaseOpen, chooseVariant, cloneState, collectibleIds, findArea, findChallenge, findStation, portalOpen, recordAttempt, recompute, stationActive,
   summarize, toClientState, type ClientState, type LearningSummary, type PlayState,
 } from "./progress";
 
@@ -58,6 +58,8 @@ const reject = (code: string, message: string): never => {
 
 export function processEvent(spec: GameSpec, prev: PlayState, event: GameEvent, ctx: EventContext): EventResult {
   const state = cloneState(prev);
+  // Time played, not time since the run was created: a run that is paused, backgrounded or resumed later must not count the pause.
+  if (state.playedMs !== undefined) state.playedMs += Math.min(Math.max(0, ctx.now - prev.updatedAt), MAX_PLAY_GAP_MS);
   state.updatedAt = ctx.now;
   let data: Record<string, unknown> = {};
   const lang = spec.meta.language;

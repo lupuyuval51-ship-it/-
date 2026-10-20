@@ -77,6 +77,7 @@ export function normalizeState(raw: unknown): PlayState | null {
     finished: raw.finished === true,
     startedAt,
     updatedAt: num(raw.updatedAt, startedAt),
+    ...(typeof raw.playedMs === "number" && Number.isFinite(raw.playedMs) && raw.playedMs >= 0 ? { playedMs: raw.playedMs } : {}), // saves from before it do not have it
   };
 }
 
@@ -150,6 +151,7 @@ const playStateSchema = z.object({
   finished: z.boolean(),
   startedAt: ms,
   updatedAt: ms,
+  playedMs: ms.optional(), // saves from before it do not have it
 });
 
 const gameSchema = z.object({

@@ -396,6 +396,9 @@ export function terraces(ctx: LayoutCtx): LayoutResult {
       // inside the safe centre lane, never over the lava strips on the sides
       spots.push({ x: p.xc - 1.0, y: p.y + 0.9, z: p.zc + p.d / 2 - 1.2 }, { x: p.xc + 1.0, y: p.y + 0.9, z: p.zc + p.d / 2 - 1.2 });
     });
+    // A spec may declare more collectibles than the pads above hold (up to 12 in a small area): the rest go on the wide start pad, after
+    // the others, so every area keeps the positions it had and a declared collectible is never missing from the world.
+    for (const z of [-3.9, 3.9]) for (const x of [-4, -2, 0, 2, 4]) spots.push({ x: start.xc + x, y: start.y + 0.9, z: start.zc + z });
     spots.slice(0, ctx.area.collectibles.count).forEach((p, i) => r.collectibles.push(collectible(ctx, i, p.x, p.y, p.z)));
   }
 

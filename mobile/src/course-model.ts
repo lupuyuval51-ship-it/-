@@ -47,15 +47,22 @@ export interface CourseSource {
 
 const isDifficulty = (d: unknown): d is Difficulty => (DIFFICULTIES as readonly unknown[]).includes(d);
 
-/** The chapter games among the phone's games. A game that cannot be read is skipped, never fatal. */
-export function chapterGames(src: CourseSource, chapterIds: readonly string[]): ChapterGame[] {
+/**
+ * The chapter games among the phone's games. A game that cannot be read is skipped, never fatal. `rows` are the library rows
+ * when the screen has just read them (they are not read again); the store's rows carry each game's level and topic, so no spec
+ * is parsed for them either. Only a row without them (an older source) is looked up with `getGame`.
+ */
+export function chapterGames(src: CourseSource, chapterIds: readonly string[], rows?: readonly GameSummaryRow[]): ChapterGame[] {
   const wanted = new Set(chapterIds);
-  return src.listGames().flatMap((g): ChapterGame[] => {
+  return (rows ?? src.listGames()).flatMap((g): ChapterGame[] => {
     try {
-      const meta = src.getGame(g.id)?.spec.meta;
-      const topicId = meta?.generator?.kind === "catalog" ? meta.generator.templateId : undefined;
-      if (!topicId || !wanted.has(topicId) || !isDifficulty(meta?.difficulty)) return [];
-      return [{ id: g.id, topicId, difficulty: meta.difficulty, done: g.bestScore > 0 || g.bestStars > 0, inProgress: g.inProgress, lastPlayedAt: g.lastPlayedAt ?? g.createdAt }];
+      const fromRow = g.difficulty !== undefined;
+      const meta = fromRow ? undefined : src.getGame(g.id)?.spec.meta;
+      const kind = fromRow ? g.generatorKind : meta?.generator?.kind;
+      const topicId = kind === "catalog" ? (fromRow ? g.templateId : meta?.generator?.templateId) : undefined;
+      const difficulty = fromRow ? g.difficulty : meta?.difficulty;
+      if (!topicId || !wanted.has(topicId) || !isDifficulty(difficulty)) return [];
+      return [{ id: g.id, topicId, difficulty, done: g.bestScore > 0 || g.bestStars > 0, inProgress: g.inProgress, lastPlayedAt: g.lastPlayedAt ?? g.createdAt }];
     } catch {
       return [];
     }
@@ -73,9 +80,9 @@ export function courseProgress(course: Pick<Course, "chapters">, games: readonly
 }
 
 /** Never throws: an unreadable library shows the course as not started rather than breaking the screen. */
-export function loadCourseProgress(src: CourseSource, course: Course): CourseProgress {
+export function loadCourseProgress(src: CourseSource, course: Course, rows?: readonly GameSummaryRow[]): CourseProgress {
   try {
-    return courseProgress(course, chapterGames(src, course.chapters));
+    return courseProgress(course, chapterGames(src, course.chapters, rows));
   } catch {
     return courseProgress(course, []);
   }

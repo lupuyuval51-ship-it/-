@@ -7,9 +7,18 @@ import { finishGoogleSignIn, googleAuthEnabled, parseGoogleCallback, startGoogle
 /** Opens Supabase's Google page in the system browser (see google.ts for why a plain navigation does that in Capacitor's WebView). */
 const openExternal = (url: string): void => window.location.assign(url);
 
-/** The "Continue with Google" button. Makes no request until it is tapped. */
-export async function signInWithGoogle(): Promise<GoogleResult> {
-  return startGoogleSignIn(await connectAccount(), openExternal, SUPABASE_URL);
+let starting: Promise<GoogleResult> | null = null;
+/**
+ * The "Continue with Google" button. Makes no request until it is tapped. A second tap while the first is still being set up (the
+ * cloud library loads on the first one) gets the first one's answer instead of starting another flow: each flow overwrites the PKCE
+ * verifier and opens the browser again, and the code of the first would then no longer match. Never rejects: a library that cannot
+ * be loaded is a failed sign-in like any other.
+ */
+export function signInWithGoogle(): Promise<GoogleResult> {
+  starting ??= (async (): Promise<GoogleResult> => {
+    try { return await startGoogleSignIn(await connectAccount(), openExternal, SUPABASE_URL); } catch { return { ok: false, reason: "failed" }; }
+  })().finally(() => { starting = null; });
+  return starting;
 }
 
 type Listener = (r: GoogleResult) => void;
@@ -20,9 +29,17 @@ export function onGoogleResult(fn: Listener): () => void {
   return () => void listeners.delete(fn);
 }
 
+/** After `appStateChange` reports the app active again: the learner is back from the system browser (finished or not). */
+export function onAppResume(fn: () => void): () => void {
+  if (!Capacitor.isNativePlatform()) return () => undefined;
+  const added = App.addListener("appStateChange", ({ isActive }) => { if (isActive) fn(); });
+  return () => void added.then((h) => h.remove()).catch(() => undefined);
+}
+
 async function handle(url: string): Promise<void> {
   if (!parseGoogleCallback(url)) return; // not our sign-in link: the cloud library is not even loaded
-  const result = await finishGoogleSignIn(await connectAccount(), url);
+  // a cloud library that cannot be loaded is a failed sign-in, not a lost one (the gate would wait for an answer forever)
+  const result = await connectAccount().then((db) => finishGoogleSignIn(db, url)).catch((): GoogleResult => ({ ok: false, reason: "failed" }));
   if (!result) return;
   if (result.ok) void syncNow();
   listeners.forEach((l) => l(result));

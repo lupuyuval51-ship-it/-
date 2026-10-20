@@ -39,7 +39,7 @@ function QuickNext({ gameId, sessionId, summary, reviewCount }: { gameId: string
   const t = useT();
   const next = quickNext(gameId, sessionId, summary, reviewCount);
   let best = 0;
-  try { best = store.listGames().find((g) => g.id === gameId)?.bestScore ?? 0; } catch { /* no comparison then */ }
+  try { best = store.gameSummary(gameId)?.bestScore ?? 0; } catch { /* no comparison then */ }
   const note = bestNote(summary, best);
   return (
     <div data-testid="results-quick" data-next={next.id} className="mx-auto mb-4 flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-neon/40 bg-neon/10 p-3">

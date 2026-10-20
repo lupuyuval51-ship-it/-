@@ -8,6 +8,7 @@ import { useDir } from "@/components/I18nProvider";
 import type { InputState } from "../input";
 import { useLayout } from "../useLayout";
 import { topWithInset } from "./hudLayout";
+import { startMinimapLoop } from "./minimapLoop";
 
 const SIZE = 132; // CSS pixels
 /** Shown on short landscape screens (the bitmap is scaled down by CSS). */
@@ -42,13 +43,8 @@ export function Minimap({ runtime, client, input, guide, calm = false }: { runti
     const world = runtime.world;
     const area = runtime.spec.areas.find((a) => a.id === runtime.areaId);
     const theme = world.theme;
-    let raf = 0;
-    let last = 0;
 
     const draw = (now: number) => {
-      raf = requestAnimationFrame(draw);
-      if (now - last < 66) return;
-      last = now;
       const p = runtime.sim.player;
       const cy = Math.cos(input.yaw), sy = Math.sin(input.yaw);
       const s = SIZE / 2 / RANGE;
@@ -200,8 +196,8 @@ export function Minimap({ runtime, client, input, guide, calm = false }: { runti
       ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 1, 0, Math.PI * 2);
       ctx.stroke();
     };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    // ~15 Hz, and only while the canvas is shown (it is `display: none` on a phone held upright)
+    return startMinimapLoop(el, draw);
   }, [runtime, input, guide]);
 
   return <canvas ref={canvas} aria-hidden="true" data-testid="minimap" style={{ ...(shortLandscape ? { width: SMALL_SIZE, height: SMALL_SIZE } : { width: SIZE, height: SIZE }), top: shortLandscape ? topWithInset(3.25, 0.375) : topWithInset(4.9, 0.75), [side]: `max(0.75rem, env(safe-area-inset-${side}, 0px))` }} className="pointer-events-none absolute z-10 hidden rounded-full shadow-e2 shadow-black/40 sm:block" />;

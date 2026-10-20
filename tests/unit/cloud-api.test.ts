@@ -2,11 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import { chunkRows, MAX_BATCH_CHARS, MAX_BATCH_ROWS, MAX_IDS_PER_FILTER, OVERLAP_MS, supabaseCloud } from "../../mobile/src/cloud/api";
 
+const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 type Call = { op: string; table: string; detail?: unknown };
 
 /** A Supabase client that records what the app asks of it. Nothing leaves the machine. */
 type Failure = string | { message: string; code?: string } | null;
-function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?: (c: Call) => Failure) {
+function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?: (c: Call) => Failure, onPage?: (table: string, page: number) => void) {
   const calls: Call[] = [];
   const stored: Record<string, Record<string, unknown>[]> = {};
   const record = (c: Call) => {
@@ -22,13 +23,37 @@ function fakeDb(tables: Record<string, Record<string, unknown>[]> = {}, failOn?:
           const q = {
             since: null as string | null,
             gameIds: null as string[] | null,
+            after: null as { at: string; col: string; key: string } | null,
+            sort: [] as string[],
             gt(_col: string, v: string) { q.since = v; return q; },
             in(_col: string, ids: string[]) { q.gameIds = ids; return q; },
-            order() { return q; },
+            /** The one filter the app sends: rows after (updated_at, key), as PostgREST evaluates it. */
+            or(filter: string) {
+              const m = /^updated_at\.gt\."((?:[^"\\]|\\.)*)",and\(updated_at\.eq\."((?:[^"\\]|\\.)*)",(\w+)\.gt\."((?:[^"\\]|\\.)*)"\)$/.exec(filter);
+              if (!m || m[1] !== m[2]) throw new Error(`unexpected filter ${filter}`);
+              const unescape = (v: string) => v.replace(/\\(.)/g, "$1");
+              q.after = { at: unescape(m[1]!), col: m[3]!, key: unescape(m[4]!) };
+              return q;
+            },
+            order(col: string) { q.sort.push(col); return q; },
+            /** Rows as the database returns them: filtered, in the asked order, at most `n`. */
+            run(n: number) {
+              const rows = (tables[table] ?? [])
+                .filter((r) => !q.gameIds || q.gameIds.includes(r.game_id as string))
+                .filter((r) => !q.since || String(r.updated_at) > q.since)
+                .filter((r) => !q.after || String(r.updated_at) > q.after.at || (String(r.updated_at) === q.after.at && cmp(String(r[q.after.col]), q.after.key) > 0))
+                .sort((a, b) => q.sort.reduce((d, col) => d || cmp(String(a[col]), String(b[col])), 0));
+              return rows.slice(0, n);
+            },
             range(from: number, to: number) {
               calls.push({ op: "range", table, detail: { from, to, columns, since: q.since, gameIds: q.gameIds } });
-              const rows = (tables[table] ?? []).filter((r) => !q.gameIds || q.gameIds.includes(r.game_id as string));
-              return Promise.resolve({ data: rows.slice(from, to + 1), error: null });
+              onPage?.(table, calls.filter((c) => c.op === "range" && c.table === table).length);
+              return Promise.resolve({ data: q.run(to + 1).slice(from), error: null });
+            },
+            limit(n: number) {
+              calls.push({ op: "range", table, detail: { limit: n, columns, since: q.since, gameIds: q.gameIds, after: q.after } });
+              onPage?.(table, calls.filter((c) => c.op === "range" && c.table === table).length);
+              return Promise.resolve({ data: q.run(n), error: null });
             },
           };
           return q;
@@ -137,10 +162,44 @@ describe("cloud pull reads games a few at a time", () => {
     expect(rows.games).toHaveLength(25);
     expect(rows.games[3]).toMatchObject({ localId: "g3", deletedAt: "d" });
     expect(rows.games[0]).toMatchObject({ localId: "g0", deletedAt: null });
-    const gameRanges = calls.filter((c) => c.op === "range" && c.table === "games").map((c) => c.detail as { from: number; to: number });
-    expect(gameRanges).toEqual([{ from: 0, to: 9 }, { from: 10, to: 19 }, { from: 20, to: 29 }].map((r) => expect.objectContaining(r)));
+    // each page starts after the last row of the one before (keyset), at most 10 rows per request
+    const gamePages = calls.filter((c) => c.op === "range" && c.table === "games").map((c) => c.detail as { limit: number; after: { key: string } | null });
+    expect(gamePages.map((p) => p.limit)).toEqual([10, 10, 10]);
+    expect(gamePages.map((p) => p.after?.key ?? null)).toEqual([null, "g9", "g19"]);
     expect(rows.sessions).toEqual([]);
     expect(rows.cards).toEqual([]);
+  });
+
+  it("a row that changes while the pull is running does not make the pull skip another row", async () => {
+    const at = (i: number) => `2030-01-01T00:00:${String(i).padStart(2, "0")}Z`;
+    const games = Array.from({ length: 25 }, (_, i) => ({ local_id: `g${i}`, title: `G${i}`, spec: {}, created_at: "c", updated_at: at(i), deleted_at: null }));
+    // another phone changes g4 (already read) right after the first page: it moves to the end of the order
+    const { db } = fakeDb({ games }, undefined, (table, page) => {
+      if (table === "games" && page === 2) games.find((g) => g.local_id === "g4")!.updated_at = at(40);
+    });
+    const rows = await supabaseCloud(db).pull(null);
+    const ids = rows.games.map((g) => g.localId);
+    expect([...new Set(ids)].sort()).toEqual(games.map((g) => g.local_id).sort()); // every game arrived (g10 used to be skipped)
+    const g4 = rows.games.filter((g) => g.localId === "g4");
+    expect(g4[g4.length - 1]!.updatedAt).toBe(at(40)); // the newest copy comes last, so the merge ends on it
+  });
+
+  it("rows that share one updated_at (a batch pushed together) are paged by their key, none skipped or repeated", async () => {
+    const same = "2030-01-01T00:00:00.123456+00:00";
+    const sessions = Array.from({ length: 450 }, (_, i) => ({ local_id: `s${String(i).padStart(3, "0")}`, game_id: "g", status: "ACTIVE", state: {}, started_at: "a", finished_at: null, updated_at: same }));
+    const { db } = fakeDb({ sessions });
+    const rows = await supabaseCloud(db).pull(null);
+    expect(rows.sessions.map((s) => s.localId)).toEqual(sessions.map((s) => s.local_id));
+  });
+
+  it("a key with a quote, a comma or a parenthesis cannot break the page filter", async () => {
+    const keys = ['a"b', "c,d", "(e)", "f\\g", "h.i"];
+    const cards = keys.map((k) => ({ card_key: k, game_id: "g", challenge_id: "c", box: 1, due: "d", mastered: false, updated_at: "2030-01-01T00:00:00Z" })).concat(
+      Array.from({ length: 500 }, (_, i) => ({ card_key: `z${String(i).padStart(3, "0")}`, game_id: "g", challenge_id: "c", box: 1, due: "d", mastered: false, updated_at: "2030-01-01T00:00:00Z" })));
+    const { db } = fakeDb({ deck_cards: cards });
+    const rows = await supabaseCloud(db).pull(null);
+    expect(rows.cards).toHaveLength(cards.length);
+    expect(rows.cards.map((c) => c.cardKey).sort()).toEqual(cards.map((c) => c.card_key).sort());
   });
 
   it("starts a little before the cursor, so a row that committed late is still seen", async () => {

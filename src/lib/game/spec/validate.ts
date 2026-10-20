@@ -12,7 +12,7 @@ import { LAYOUT_FOR_GAME_TYPE, impliedMechanics, verifyMechanics } from "./mecha
 import { gameSpecSchema, type Area, type Challenge, type GameSpec } from "./schema";
 import { goalReachable, runProgram } from "../challenges/program";
 import { describeStuck, doorsOpenInOrder, orderStationsForDoors, playThrough } from "../world/flow";
-import { leverSolvable, projectileSolvable } from "../challenges/simulations";
+import { LEVER_SLIDER_MIN, leverSolvable, projectileSolvable } from "../challenges/simulations";
 
 export type ValidationResult =
   | { ok: true; spec: GameSpec; warnings: string[] }
@@ -185,7 +185,7 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
       }
       case "simulation":
         if (c.sim.kind === "projectile" && !projectileSolvable(c.sim)) err(`challenge "${c.id}" target is out of reach even at maxSpeed`);
-        if (c.sim.kind === "lever" && !leverSolvable(c.sim)) err(`challenge "${c.id}" balance point is outside the lever (0.2..${c.sim.maxDistance})`);
+        if (c.sim.kind === "lever" && !leverSolvable(c.sim)) err(`challenge "${c.id}" balance point is outside the lever (0.2..${c.sim.maxDistance}) or too close to the pivot for the slider (from ${LEVER_SLIDER_MIN} m) to reach it within the tolerance`);
         break;
       case "numeric":
         break;

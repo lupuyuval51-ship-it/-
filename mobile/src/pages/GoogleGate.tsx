@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { GoogleLogo } from "@/components/forms/GoogleButton";
 import { Alert, Button } from "@/components/ui";
-import { onGoogleResult, signInWithGoogle } from "../cloud/google-native";
+import { onAppResume, onGoogleResult, signInWithGoogle } from "../cloud/google-native";
+
+/** After the learner is back from the browser, how long a deep link that is still arriving may win before the button is given back. */
+const RESUME_GRACE_MS = 1500;
 
 /**
  * The first screen of a phone that is not signed in: the app needs a Google sign-in (Supabase Auth, the system browser, back
@@ -15,6 +18,14 @@ export function GoogleGate() {
   const [error, setError] = useState<"cancelled" | "failed" | null>(null);
 
   useEffect(() => onGoogleResult((r) => { setBusy(false); if (!r.ok) setError(r.reason); }), []);
+  // The learner closed the browser or pressed Back there: no link ever comes back, and the app is behind this gate, so the button
+  // must not stay on "Loading". A deep link that is on its way arrives within the grace time and answers first.
+  useEffect(() => {
+    if (!busy) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const stop = onAppResume(() => { clearTimeout(timer); timer = setTimeout(() => setBusy(false), RESUME_GRACE_MS); });
+    return () => { stop(); clearTimeout(timer); };
+  }, [busy]);
 
   async function start() {
     setError(null);

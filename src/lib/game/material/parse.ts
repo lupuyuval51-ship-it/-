@@ -70,6 +70,10 @@ const NOT_A_TERM = /^(?:note|notes|example|examples|tip|remember|summary|questio
 const QA_Q = /^(?:q|question|ש|שאלה)\s*[.:)]\s*(.{5,})$/iu;
 const QA_A = /^(?:a|answer|ת|תשובה)\s*[.:)]\s*(.{1,})$/iu;
 const INLINE_QA = /^(.{8,200}?[?？؟])\s+([^?？؟]{1,60})$/u;
+/** A lettered option of a multiple-choice question ("A) Venus", "b. Mercury", "ב. כוכב חמה") and the line that names the right letter ("Answer: B", "תשובה: ב"). */
+const MC_OPTION = /^\(?([A-Fa-f]|[א-ו])\s*[.)]\s+(.+)$/u;
+const MC_ANSWER = /^(?:answer|ans|correct answer|תשובה|התשובה הנכונה|תשובה נכונה)\s*[.:)\-–]\s*\(?([A-Fa-f]|[א-ו])\)?(?![\p{L}\p{N}])/iu;
+const letterIndex = (letter: string) => (/[A-Fa-f]/.test(letter) ? letter.toLowerCase().charCodeAt(0) - 97 : "אבגדהו".indexOf(letter));
 const TABLE_SEPARATOR = /^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)*\|?$/u;
 const NUMBER_ONLY = /^([-−]?\d{1,3}(?:,\d{3})+|[-−]?\d+)(?:\.(\d+))?\s*(?:[%°]|\p{L}{1,12}\.?)?$/u;
 const DEF_PIPE = /^\|?\s*([^|]{1,60}?)\s*\|\s*([^|]{3,}?)\s*(?:\|.*)?$/u;
@@ -187,6 +191,32 @@ function asFact(sentence: string): Fact | null {
   return { source: s, blanked, value, decimals: m[3]?.length ?? 0, isYear: Number.isInteger(value) && value >= 1000 && value <= 2100, numText: m[0], numAt: m.index };
 }
 
+/**
+ * The lettered options (A, B, C…) that follow the question at line `at`, in order from A, and the right one when an
+ * "Answer: B" line follows them. Null when the lines after the question are not such a list (at least two options).
+ */
+function multipleChoiceAfter(lines: string[], consumed: Set<number>, at: number): { used: number[]; right?: string } | null {
+  const used: number[] = [];
+  const options: string[] = [];
+  let k = at + 1;
+  for (; k < lines.length; k++) {
+    if (!lines[k]) continue;
+    const m = consumed.has(k) ? null : MC_OPTION.exec(lines[k]!.replace(BULLET, ""));
+    if (!m || letterIndex(m[1]!) !== options.length) break;
+    options.push(m[2]!);
+    used.push(k);
+  }
+  if (options.length < 2) return null;
+  const answer = k < lines.length && !consumed.has(k) ? MC_ANSWER.exec(lines[k]!.replace(BULLET, "")) : null;
+  if (answer) used.push(k);
+  return { used, right: answer ? options[letterIndex(answer[1]!)] : undefined };
+}
+
+/** What kind of item of a list a line is (a definition, a fact with a number, an "X is Y" statement), or null when it is plain text. */
+function itemShape(line: string): "definition" | "fact" | "statement" | null {
+  return asDefinition(line) ? "definition" : asFact(line) ? "fact" : asProseDefinition(line) ? "statement" : null;
+}
+
 export function parseMaterial(raw: string): Knowledge {
   const text = sanitizeMaterial(raw)
     .replace(/\*\*(.+?)\*\*|__(.+?)__/gu, (_m, a: string | undefined, b: string | undefined) => a ?? b ?? "") // markdown bold
@@ -216,6 +246,16 @@ export function parseMaterial(raw: string): Knowledge {
     for (let k = i + 1; k < lines.length; k++) if (lines[k]) { nextIdx = k; break; }
     const next = nextIdx > 0 && !consumed.has(nextIdx) ? lines[nextIdx]!.replace(BULLET, "") : "";
     const q = QA_Q.exec(line);
+    // a multiple-choice question ("A) Venus / B) Mercury … Answer: B"): the first option is not the answer, so it is asked
+    // with the option the quiz names as right, or left out when the quiz does not say which one is right
+    const mc = q || /[?？؟]$/u.test(line) ? multipleChoiceAfter(lines, consumed, i) : null; // (a question line)
+    if (mc) {
+      const pair = mc.right ? asQa(q ? q[1]! : line, mc.right) : null;
+      if (pair) qa.push(pair);
+      consumed.add(i);
+      mc.used.forEach((k) => consumed.add(k));
+      continue;
+    }
     const a = next ? QA_A.exec(next) : null;
     if (q && a) {
       const pair = asQa(q[1]!, a[1]!);
@@ -295,10 +335,18 @@ export function parseMaterial(raw: string): Knowledge {
   const prose: string[] = [];
   const all: string[] = [];
   const firstContent = lines.findIndex((l, i) => l && !consumed.has(i));
+  // a short first line that has the same shape as the line after it ("1947 – …" then "1948 – …", "Venus - …" then "Earth - …") is the
+  // first item of a list, not its heading: taking it as the title would drop that item from every question
+  const startsList = (i: number, line: string) => {
+    const next = lines.findIndex((l, k) => k > i && l && !consumed.has(k));
+    const shape = itemShape(line);
+    return shape !== null && next >= 0 && (vocabAt.has(next) ? shape === "definition" : itemShape(lines[next]!.replace(BULLET, "")) === shape);
+  };
   lines.forEach((rawLine, i) => {
     if (!rawLine || consumed.has(i)) return;
     const line = rawLine.replace(BULLET, "");
-    if (i === firstContent && title === undefined && !vocabAt.has(i) && line.length <= 70 && !/[.!?:：]$/.test(line) && lines.some((l, k) => k > i && l && !consumed.has(k)) && wordCount(line) <= 9) {
+    if (i === firstContent && title === undefined && !vocabAt.has(i) && line.length <= 70 && !/[.!?:：]$/.test(line) && lines.some((l, k) => k > i && l && !consumed.has(k)) && wordCount(line) <= 9
+      && !startsList(i, line)) {
       title = line;
       return;
     }

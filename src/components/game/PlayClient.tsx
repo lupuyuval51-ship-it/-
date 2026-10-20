@@ -5,15 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
+import type { DictKey } from "@/lib/i18n";
 import { Button, Spinner } from "@/components/ui";
 import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import { GameRuntime, type Interactable } from "@/lib/game/engine/runtime";
 import { GuideModel, type GuideKind } from "@/lib/game/state/guidance";
 import type { LearningSummary, ClientState } from "@/lib/game/state/progress";
-import { ApiFailure, httpTransport, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
+import { ApiFailure, flushPosition, httpTransport, isTransientFailure, type EventResponse, type PlayTransport, type StartedSession as Started } from "./transport";
 import { GameAudio } from "./audio";
 import { canVibrate, webHaptic, type Feedback } from "./haptics";
 import { webglAvailable } from "./webgl";
+import { bootErrorKey, playBackAction } from "./playModel";
+import { sameProgress } from "./clientState";
 import { streakLevel } from "./audioModel";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { AreaBanner, BossCard, Dialogue, DoneOverlay, GuideMarker, InteractPrompt, LoreCard, PauseMenu, ScorePopups, TopBar, TouchControls, Toasts, TutorialCard, type Popup, type Toast } from "./hud/Overlays";
@@ -48,6 +51,8 @@ const GUIDE_KEY = "levelup.guide";
 const MOTION_KEY = "levelup.reduceMotion";
 const systemReducesMotion = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TUTORIAL_KEY = "levelup.tutorial";
+/** After a pickup failed to reach the server, how long before standing on it picks it up again. */
+const COLLECT_RETRY_MS = 3000;
 const VIBRATION_KEY = "levelup.vibration";
 const readPref = (k: string, d: boolean): boolean => {
   try {
@@ -64,7 +69,7 @@ export type { Feedback };
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
  * window event (the Android back button): it closes the open panel, or pauses, or — from the pause menu — leaves the game.
  */
-export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport, onFeedback, allowUnity = true }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport; onFeedback?: (kind: Feedback) => void; /** The Android app has no Unity build and no scene API: it never asks for one. */ allowUnity?: boolean }) {
+export default function PlayClient({ gameId, soundDefault, musicDefault, transport = httpTransport, onFeedback, allowUnity = true, saveErrorKey }: { gameId: string; soundDefault: boolean; musicDefault: boolean; transport?: PlayTransport; onFeedback?: (kind: Feedback) => void; /** The Android app has no Unity build and no scene API: it never asks for one. */ allowUnity?: boolean; /** The message for a failed save on the device ("no room left"), or null for any other failure. Only the Android app has one. */ saveErrorKey?: (e: unknown) => DictKey | null }) {
   const t = useT();
   const [boot, setBoot] = useState<{ status: "loading" } | { status: "error"; message: string } | { status: "ready"; data: Started }>({ status: "loading" });
   const [client, setClient] = useState<ClientState | null>(null);
@@ -182,9 +187,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       setBoot({ status: "ready", data: d });
       if (d.resumed && !restart) toast(t("hud.resumed"), "info");
     } catch (e) {
-      setBoot({ status: "error", message: e instanceof ApiFailure && e.status === 429 ? t("common.error.rateLimited") : t("hud.loading.error") });
+      setBoot({ status: "error", message: t(bootErrorKey(e, saveErrorKey)) });
     }
-  }, [gameId, t, toast, transport]);
+  }, [gameId, saveErrorKey, t, toast, transport]);
   /** (Re)start from an event handler: show the loading screen, close overlays, then fetch the session. */
   const start = useCallback((restart = false) => {
     setBoot({ status: "loading" });
@@ -209,9 +214,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     if (!d) return Promise.reject(new Error("not ready"));
     const run = async () => {
       const res = await transport.sendEvent<T>(d.sessionId, event);
-      setClient(res.state);
-      setScore(res.state.score);
-      runtime?.setClientState(res.state);
+      // an autosave changes nothing on screen (only the stored position): no new state, so no render of the scene for it
+      if (event.type !== "save" || !sameProgress(clientRef.current, res.state)) {
+        setClient(res.state);
+        setScore(res.state.score);
+        runtime?.setClientState(res.state);
+      }
       for (const id of res.newlyCompletedMissions) {
         const m = d.spec.missions.find((x) => x.id === id);
         toast(t("toast.mission", { title: m?.title ?? id }), "good");
@@ -246,10 +254,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       if (e.code === "SESSION_STALE") { toast(t("hud.stale"), "warn"); setTimeout(() => void start(false), 800); return; }
       if (e.status === 401) { router.push("/login"); return; }
       if (e.status === 429) { toast(t("common.error.rateLimited"), "warn"); return; }
+      const saveError = saveErrorKey?.(e); // the phone could not store the move: say so instead of losing progress silently
+      if (saveError) { toast(t(saveError), "warn"); return; }
       return; // state conflicts (already collected, locked...) are harmless: the server state is authoritative
     }
     toast(t("toast.offline"), "warn");
-  }, [router, start, t, toast]);
+  }, [router, saveErrorKey, start, t, toast]);
 
   // ───────── runtime per area ─────────
   const areaId = client?.areaId;
@@ -262,7 +272,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         if (item) emitter.burst(item.x, item.y, item.z, "#4cf3ff", 18);
         audio.play("collect");
         feedback.current?.("collect");
-        send({ type: "collect", itemId }).then(() => pop(t("hud.points", { n: 10 }), "gold")).catch(handleError);
+        send({ type: "collect", itemId }).then(() => pop(t("hud.points", { n: 10 }), "gold")).catch((e) => {
+          // the server never took it: let it be picked up again a moment later (not every frame), or the item stays hidden for good
+          if (isTransientFailure(e)) setTimeout(() => rt.forgetPending(itemId), COLLECT_RETRY_MS);
+          handleError(e);
+        });
       },
       onCheckpoint: (id, pos) => {
         audio.play("checkpoint");
@@ -396,11 +410,14 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
 
   // ───────── system back (Android back button / gesture) ─────────
   useEffect(() => {
-    const onBack = () => {
+    const onBack = (ev: Event) => {
       const o = overlayRef.current;
-      if (o.type === "none") setOverlay({ type: "pause" });
-      else if (o.type === "pause" || o.type === "done") router.push("/games");
-      else if (o.type !== "challenge" || !o.busy) closeOverlay();
+      // Without a ready game (loading, failed to start) or without WebGL the screen has no pause menu, so Back leaves at once.
+      const action = playBackAction({ ready: dataRef.current !== null, webgl: webglAvailable(), overlay: o.type, busy: o.type === "challenge" && o.busy });
+      ev.preventDefault(); // answered here: the app shell leaves the screen by itself only when nobody answers
+      if (action === "pause") setOverlay({ type: "pause" });
+      else if (action === "leave") router.push("/games");
+      else if (action === "close") closeOverlay();
     };
     window.addEventListener("levelup:back", onBack);
     return () => window.removeEventListener("levelup:back", onBack);
@@ -417,14 +434,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       send({ type: "save", position: snap }).catch(() => undefined);
     }, 8000);
     const flush = () => {
-      if (document.visibilityState === "hidden" && overlayRef.current.type !== "done") {
-        const snap = runtime.snapshot();
-        try { navigator.sendBeacon(`/api/play/${data.sessionId}/events`, new Blob([JSON.stringify({ type: "save", position: snap })], { type: "application/json" })); } catch { /* best effort */ }
-      }
+      if (document.visibilityState === "hidden" && overlayRef.current.type !== "done") flushPosition(transport, data.sessionId, runtime.snapshot());
     };
     document.addEventListener("visibilitychange", flush);
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", flush); };
-  }, [data, runtime, send]);
+  }, [data, runtime, send, transport]);
 
   // a phone keeps its screen on while a game is on (reading a question takes longer than the screen timeout); paused or finished, it may sleep
   useWakeLock(touch && boot.status === "ready" && overlay.type !== "pause" && overlay.type !== "done");

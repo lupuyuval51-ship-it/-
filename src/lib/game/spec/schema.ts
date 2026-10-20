@@ -65,6 +65,21 @@ const blockSchema: z.ZodType<Block> = z.lazy(() =>
 ) as z.ZodType<Block>;
 export { blockSchema };
 
+/**
+ * A block as a PLAYER sends it. The robot simply runs whatever program it is given, so an empty loop or a long loop body is a wrong
+ * program (graded, with feedback), never an invalid request that the app swallows. `blockSchema` stays strict for authored solutions.
+ */
+const answerBlockSchema: z.ZodType<Block> = z.lazy(() =>
+  z.discriminatedUnion("t", [
+    z.object({ t: z.literal("move") }),
+    z.object({ t: z.literal("left") }),
+    z.object({ t: z.literal("right") }),
+    z.object({ t: z.literal("repeat"), n: z.number().int().min(2).max(9), body: z.array(answerBlockSchema).max(L.programBlocksMax) }),
+    z.object({ t: z.literal("if"), body: z.array(answerBlockSchema).max(L.programBlocksMax), else: z.array(answerBlockSchema).max(L.programBlocksMax).default([]) }),
+  ]),
+) as z.ZodType<Block>;
+export { answerBlockSchema };
+
 const cell = z.object({ x: gridInt(L.gridMax - 1), y: gridInt(L.gridMax - 1) });
 
 // ───────────────────────────── challenges ─────────────────────────────

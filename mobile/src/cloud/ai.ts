@@ -1,5 +1,8 @@
+import type { FeatureTier } from "@/config/plans";
 import { validateGameSpec } from "@/lib/game/spec/validate";
 import { generatorInfoSchema, type GameSpec } from "@/lib/game/spec/schema";
+import { clampToFeatureTier, gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
+import { OfflineGenerationError } from "@/lib/offline/generate";
 import type { GenerationRequest } from "@/lib/schemas/generation";
 import { AI_URL } from "./config";
 
@@ -23,8 +26,12 @@ const BY_CODE: Record<string, AiFailure> = {
  * Asks LEVEL UP AI for a new game. Only ever called after an explicit tap, and only for a signed-in learner: the request
  * (subject, goal, notes) goes to `levelup-ai`, which replies with a game. The reply is untrusted: it must pass `validateGameSpec`
  * here as well, and it must be labelled as AI-made, before the caller may save or play it.
+ * The function writes its games at one server-wide feature tier because it cannot know the learner's plan, so the game is cut down
+ * to `tier` (what this phone's plan allows, `getOfflineTier()`) here, exactly as every other game on the device; a mode or game type
+ * the tier lacks is refused before anything is sent (nothing is used).
  */
-export async function generateWithAi(request: GenerationRequest, accessToken: string, signal?: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<GameSpec> {
+export async function generateWithAi(request: GenerationRequest, accessToken: string, signal?: AbortSignal, fetchImpl: typeof fetch = fetch, tier: FeatureTier = "A"): Promise<GameSpec> {
+  if (!modeAllowed(tier, request.mode) || !gameTypeAllowed(tier, request.gameType)) throw new OfflineGenerationError("TIER_LOCKED", "This is not part of your plan's game features.");
   let res: Response;
   try {
     res = await fetchImpl(`${AI_URL}/functions/v1/generate-game`, {
@@ -43,5 +50,7 @@ export async function generateWithAi(request: GenerationRequest, accessToken: st
   // validation rebuilds the game and drops the provenance label, so the label is read from the answer itself and put back
   const label = generatorInfoSchema.safeParse((body.spec as { meta?: { generator?: unknown } } | null)?.meta?.generator);
   if (!checked.ok || !label.success || label.data.kind !== "ai") throw new AiError("INVALID");
-  return { ...checked.spec, meta: { ...checked.spec.meta, generator: label.data } };
+  const tiered = clampToFeatureTier(checked.spec, tier);
+  if (!tiered.ok) throw new AiError("INVALID");
+  return { ...tiered.spec, meta: { ...tiered.spec.meta, generator: label.data } };
 }

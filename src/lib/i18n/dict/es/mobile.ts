@@ -157,6 +157,8 @@ export const mobileEs: Record<keyof typeof mobile.en, string> = {
   "mob.plans.fineprint": "El pago y la renovación pasan por Google Play. La suscripción se renueva cada mes hasta que la canceles en Google Play, y se mantiene hasta el final del periodo pagado.",
   "mob.plans.msg.CANCELLED": "La compra se canceló. No se cobró nada.",
   "mob.plans.msg.FAILED": "La compra no se completó. No se cobró nada; inténtalo de nuevo.",
+  "mob.plans.msg.PENDING": "Tu compra espera a que Google Play confirme el pago. El plan se activa solo cuando termine.",
+  "mob.plans.msg.SUBSCRIBED": "Ya tienes una suscripción. Para cambiar de plan, cámbiala o cancélala en Google Play, así no se te cobra dos veces.",
   "mob.plans.msg.RESTORED": "Tu suscripción se restauró.",
   "mob.plans.msg.NOTHING": "No se encontró ninguna suscripción activa en esta cuenta de Google Play.",
   "mob.create.error.limit": "Ya usaste los temas que tu plan da en este semestre. Puedes seguir jugando los temas que ya empezaste, o elegir un plan mayor.",

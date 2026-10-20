@@ -76,6 +76,10 @@ export interface GameSummaryRow {
   lastSessionId: string | null;
   /** When the learner last moved in any run of this game (phone clock, ms), or null if it was never started. */
   lastPlayedAt: number | null;
+  /** The game's level as stored in its spec, so a screen that lists games need not read every spec again for it. */
+  difficulty?: string;
+  /** The topic (or template) the game was built from, from its spec (`meta.generator.templateId`). */
+  templateId?: string;
 }
 
 export interface ImportCounts {
@@ -293,24 +297,32 @@ export class OfflineStore {
 
   listGames(): GameSummaryRow[] {
     return this.gameIds().flatMap((id) => {
-      try {
-        const g = this.getGame(id);
-        if (!g) return [];
-        const sessions = this.sessionIds(id).map((s) => this.getSession(s)).filter((s): s is StoredSession => Boolean(s));
-        const done = sessions.filter((s) => s.status === "COMPLETED");
-        // a run that cannot be summarised (damaged) only loses its stars; the game itself stays in the library
-        const best = done.flatMap((s) => { try { return [summarize(g.spec, s.state, s.finishedAt ?? this.clock())]; } catch { return []; } });
-        return [{
-          id, title: g.title, subject: g.spec.meta.subject, createdAt: g.createdAt, generatorKind: g.spec.meta.generator?.kind ?? "demo",
-          environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
-          bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
-          inProgress: sessions.some((s) => s.status === "ACTIVE"), percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
-          lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
-        }];
-      } catch {
-        return []; // one damaged game must not take the whole library down
-      }
+      const row = this.gameSummary(id);
+      return row ? [row] : [];
     });
+  }
+
+  /** The library row of one game (null when it is missing or damaged): a screen that needs one game's best score need not read them all. */
+  gameSummary(id: string): GameSummaryRow | null {
+    try {
+      const g = this.getGame(id);
+      if (!g) return null;
+      const sessions = this.sessionIds(id).map((s) => this.getSession(s)).filter((s): s is StoredSession => Boolean(s));
+      const done = sessions.filter((s) => s.status === "COMPLETED");
+      // a run that cannot be summarised (damaged) only loses its stars; the game itself stays in the library
+      const best = done.flatMap((s) => { try { return [summarize(g.spec, s.state, s.finishedAt ?? this.clock())]; } catch { return []; } });
+      const templateId = g.spec.meta.generator?.templateId;
+      return {
+        id, title: g.title, subject: g.spec.meta.subject, createdAt: g.createdAt, generatorKind: g.spec.meta.generator?.kind ?? "demo",
+        environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
+        bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
+        inProgress: sessions.some((s) => s.status === "ACTIVE"), percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
+        lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
+        difficulty: g.spec.meta.difficulty, ...(templateId ? { templateId } : {}),
+      };
+    } catch {
+      return null; // one damaged game must not take the whole library down
+    }
   }
 
   // ───────── sessions ─────────
@@ -659,6 +671,12 @@ export class OfflineStore {
     const tomb = this.tombstones();
     let tombChanged = false;
     const stamp = (r: { updatedAt?: number; createdAt?: number; startedAt?: number; added?: number }) => r.updatedAt ?? r.createdAt ?? r.startedAt ?? r.added ?? 0;
+    // A run or card taken from the cloud is stored with a flattened stamp (see mergeRemote: min(server stamp, last push), so 0 on a phone's
+    // first sync). That stamp says nothing about how new the content is, and any backup record would look newer than it. What the record
+    // itself keeps decides as well: the last move of a run (phone clock; never later than now, so a clock that was set ahead and corrected
+    // cannot make a run unbeatable) and, for a card, `added`, which a card from the cloud takes from the server's stamp of its last change.
+    const runStamp = (s: StoredSession) => Math.max(stamp(s), Math.min(Math.max(s.state.updatedAt, s.finishedAt ?? 0), now));
+    const cardStamp = (c: DeckCard) => Math.max(stamp(c), c.added);
     const usable = new Set<string>();
 
     for (const g of data.games) {
@@ -677,7 +695,7 @@ export class OfflineStore {
     for (const s of data.sessions) {
       if (!usable.has(s.gameId) && !this.getGame(s.gameId)) { counts.sessionsKept++; continue; } // its game stays deleted here
       const local = this.getSession(s.id);
-      if (local && stamp(local) >= stamp(s)) { counts.sessionsKept++; continue; }
+      if (local && runStamp(local) >= runStamp(s)) { counts.sessionsKept++; continue; }
       this.putSession({ ...s, updatedAt: now }, !local);
       counts.sessionsImported++;
     }
@@ -687,7 +705,7 @@ export class OfflineStore {
     for (const c of data.cards) {
       if (!this.getGame(c.gameId)) { counts.cardsKept++; continue; }
       const local = deck[c.key];
-      if (local && stamp(local) >= stamp(c)) { counts.cardsKept++; continue; }
+      if (local && cardStamp(local) >= cardStamp(c)) { counts.cardsKept++; continue; }
       deck[c.key] = { ...c, updatedAt: now };
       counts.cardsImported++;
       deckChanged = true;

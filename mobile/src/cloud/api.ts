@@ -16,20 +16,37 @@ export const MAX_IDS_PER_FILTER = 50;
 
 type Row = Record<string, unknown>;
 
-/** Pages through one table in updated_at order. */
+/** A value inside a PostgREST `or(...)` filter: double-quoted, so a comma, a parenthesis or a dot in a key cannot end it early. */
+const quoted = (v: string): string => `"${v.replace(/[\\"]/g, "\\$&")}"`;
+
+/**
+ * Pages through one table in (updated_at, key) order. Each page starts after the last row of the previous one (keyset), not at an
+ * offset: a row that another phone changes while the pull is running jumps to the end of the order, and with offsets every row behind
+ * it would shift one place forward and the row at the page boundary would never be returned (the cursor then moves past it).
+ * `order` is [updated_at, the table's key column]; both are in `columns`.
+ */
 async function readAll(db: SupabaseClient, table: string, columns: string, since: string | null, order: string[], gameIds?: string[]): Promise<Row[]> {
   const page = PAGE[table] ?? 100;
+  const keyCol = order[1]!;
   const out: Row[] = [];
-  for (let from = 0; ; from += page) {
+  let last: Row | null = null;
+  for (;;) {
     let q = db.from(table).select(columns);
     if (since) q = q.gt("updated_at", since);
     if (gameIds) q = q.in("game_id", gameIds);
+    if (last) {
+      const at = last.updated_at;
+      const key = last[keyCol];
+      if (typeof at !== "string" || typeof key !== "string") throw new Error(`${table}: a row came back without its ${order.join(" / ")}`);
+      q = q.or(`updated_at.gt.${quoted(at)},and(updated_at.eq.${quoted(at)},${keyCol}.gt.${quoted(key)})`);
+    }
     for (const col of order) q = q.order(col, { ascending: true });
-    const { data, error } = await q.range(from, from + page - 1);
+    const { data, error } = await q.limit(page);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as unknown as Row[];
     out.push(...rows);
     if (rows.length < page) return out;
+    last = rows[rows.length - 1]!;
   }
 }
 

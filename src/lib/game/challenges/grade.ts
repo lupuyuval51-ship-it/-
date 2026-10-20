@@ -4,7 +4,7 @@
  */
 import { z } from "zod";
 import type { ContentLanguage } from "../spec/constants";
-import { blockSchema, idSchema, type Block, type Challenge, type ProgramChallenge } from "../spec/schema";
+import { answerBlockSchema, idSchema, type Block, type Challenge, type ProgramChallenge } from "../spec/schema";
 import { runProgram, type RunResult } from "./program";
 import { ANGLE_RANGE, leverBalanceDistance, projectileRange, projectileSolution } from "./simulations";
 import { msg } from "./messages";
@@ -17,7 +17,7 @@ export const answerSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("numeric"), value: z.number().finite() }),
   z.object({ type: z.literal("sequence"), order: z.array(idSchema).max(8) }),
   z.object({ type: z.literal("match"), pairs: z.array(z.object({ leftId: idSchema, rightId: idSchema })).max(8) }),
-  z.object({ type: z.literal("program"), program: z.array(blockSchema).max(14) }),
+  z.object({ type: z.literal("program"), program: z.array(answerBlockSchema).max(14) }),
   z.object({ type: z.literal("simulation"), params: z.record(z.string().max(20), z.number().finite()).refine((o) => Object.keys(o).length <= 4) }),
 ]);
 export type Answer = z.infer<typeof answerSchema>;

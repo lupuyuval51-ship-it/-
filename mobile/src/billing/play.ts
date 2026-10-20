@@ -6,8 +6,12 @@
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import type { PaidPlanId } from "@/config/plans";
-import { PLAY_PRODUCTS, planFromPurchases, savePlanState, type PlanState } from "@/lib/offline/billing-state";
+import {
+  PLAY_PRODUCTS, classifyPurchaseError, loadPlanState, planAfterRefresh, planFromPurchases, purchasesToAcknowledge, savePlanState,
+  type PlanState, type PurchaseFailure,
+} from "@/lib/offline/billing-state";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
+import { createSerialQueue } from "@/lib/offline/serial-queue";
 
 /** Fired on `window` whenever the plan the phone uses may have changed. */
 export const PLAN_EVENT = "levelup-plan";
@@ -18,42 +22,75 @@ export const billingAvailable = (): boolean => {
 
 const announce = () => window.dispatchEvent(new Event(PLAN_EVENT));
 
-/** Asks Play for the learner's purchases and keeps the answer on the phone. Never throws: offline keeps what was stored. */
-export async function refreshPlan(): Promise<PlanState | null> {
-  if (!billingAvailable()) return null;
+/**
+ * One call to the billing plugin at a time: it keeps a single billing client and every call closes the previous one, so two
+ * calls at once (the plans screen asks for the purchases and the prices together, the app asks again when it comes back from
+ * Play's sheet) cut each other off, and a cut-off purchase query comes back as an empty list.
+ */
+const inLine = createSerialQueue(60_000);
+/** Play's purchase sheet can stay open for minutes; a refresh waits for it (a lost answer frees the line after this long). */
+const BUY_SLOT_MS = 10 * 60_000;
+
+/** The purchases Play lists as paid but has not got the acknowledgement for (it refunds them after 3 days). Never throws. */
+async function acknowledgeAll(tokens: readonly string[]): Promise<void> {
+  for (const purchaseToken of tokens) {
+    try { await NativePurchases.acknowledgePurchase({ purchaseToken }); } catch { /* the next refresh tries again */ }
+  }
+}
+
+/** Never throws: offline keeps what was stored. Runs inside the line (callers go through `refreshPlan`, `buyPlan`, `restorePurchases`). */
+async function refreshNow(): Promise<PlanState | null> {
   try {
     const before = getOfflinePlan();
+    const now = Date.now();
     const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS });
-    const state = planFromPurchases(purchases, Date.now());
+    const state = planAfterRefresh(loadPlanState(localStorage), planFromPurchases(purchases, now), now);
     savePlanState(localStorage, state);
     if (state.plan !== before) announce();
+    // the plugin acknowledges a new purchase without waiting for Play's answer: make sure it arrived (not waited for here)
+    const unacknowledged = purchasesToAcknowledge(purchases);
+    if (unacknowledged.length > 0) void inLine(() => acknowledgeAll(unacknowledged));
     return state;
   } catch {
     return null;
   }
 }
 
-export type BuyResult = { ok: true } | { ok: false; reason: "UNAVAILABLE" | "CANCELLED" | "FAILED" };
+/** Asks Play for the learner's purchases and keeps the answer on the phone. Never throws: offline keeps what was stored. */
+export async function refreshPlan(): Promise<PlanState | null> {
+  if (!billingAvailable()) return null;
+  return inLine(refreshNow);
+}
 
-/** Starts Play's purchase sheet for a plan; on success the new plan is read back from Play. */
+export type BuyResult = { ok: true } | { ok: false; reason: "UNAVAILABLE" | "SUBSCRIBED" | PurchaseFailure };
+
+/**
+ * Starts Play's purchase sheet for a plan; on success the new plan is read back from Play. Plus and Pro are two separate Play
+ * subscriptions and the plugin cannot replace one with the other, so a learner who already has a plan is not sold a second one
+ * (it would be billed next to the first): `SUBSCRIBED` sends them to Play's own subscription page instead.
+ */
 export async function buyPlan(plan: PaidPlanId): Promise<BuyResult> {
   if (!billingAvailable()) return { ok: false, reason: "UNAVAILABLE" };
   const { productId, basePlanId } = PLAY_PRODUCTS[plan];
-  try {
-    await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
-  } catch (err) {
-    const text = String((err as { message?: unknown })?.message ?? err).toLowerCase();
-    return { ok: false, reason: /cancel|user_cancel|usercancel/.test(text) ? "CANCELLED" : "FAILED" };
-  }
-  await refreshPlan();
-  announce();
-  return { ok: true };
+  return inLine(async (): Promise<BuyResult> => {
+    if (getOfflinePlan() !== "FREE") return { ok: false, reason: "SUBSCRIBED" };
+    try {
+      await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
+    } catch (err) {
+      return { ok: false, reason: classifyPurchaseError(err) };
+    }
+    await refreshNow();
+    announce();
+    return { ok: true };
+  }, BUY_SLOT_MS);
 }
 
 export async function restorePurchases(): Promise<boolean> {
   if (!billingAvailable()) return false;
-  try { await NativePurchases.restorePurchases(); } catch { /* the query below is what counts */ }
-  return (await refreshPlan()) !== null;
+  return inLine(async () => {
+    try { await NativePurchases.restorePurchases(); } catch { /* the query below is what counts */ }
+    return (await refreshNow()) !== null;
+  });
 }
 
 /** Play's own page where the learner can change or cancel the subscription. */
@@ -65,13 +102,15 @@ export async function manageSubscription(): Promise<void> {
 /** The price Play will charge (in the learner's own currency), when Play can tell. */
 export async function playPrices(): Promise<Partial<Record<PaidPlanId, string>>> {
   if (!billingAvailable()) return {};
-  const out: Partial<Record<PaidPlanId, string>> = {};
-  try {
-    const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(PLAY_PRODUCTS).map((p) => p.productId), productType: PURCHASE_TYPE.SUBS });
-    for (const [plan, { productId }] of Object.entries(PLAY_PRODUCTS) as [PaidPlanId, { productId: string }][]) {
-      const p = products.find((x) => x.identifier === productId);
-      if (p?.priceString) out[plan] = p.priceString;
-    }
-  } catch { /* the configured price is shown instead */ }
-  return out;
+  return inLine(async () => {
+    const out: Partial<Record<PaidPlanId, string>> = {};
+    try {
+      const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(PLAY_PRODUCTS).map((p) => p.productId), productType: PURCHASE_TYPE.SUBS });
+      for (const [plan, { productId }] of Object.entries(PLAY_PRODUCTS) as [PaidPlanId, { productId: string }][]) {
+        const p = products.find((x) => x.identifier === productId);
+        if (p?.priceString) out[plan] = p.priceString;
+      }
+    } catch { /* the configured price is shown instead */ }
+    return out;
+  });
 }

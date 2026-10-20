@@ -2,6 +2,8 @@ import { REGIONS } from "@/lib/regions";
 import { isPlanId, type PlanId } from "@/config/plans";
 import { TOPIC_CATEGORIES, type TopicCategory } from "@/lib/game/topics/types";
 import type { Locale } from "@/lib/i18n";
+import { WELCOME_KEY } from "./onboarding";
+import type { KV } from "./store";
 
 /**
  * First-launch choices of the offline app: the language and the country the learner would pay from. The country is the
@@ -41,3 +43,20 @@ export const sanitizePlanChoice = (v: unknown): PlanId | null => (isPlanId(v) ? 
 
 /** A short session suits a quick game; with 20 minutes or more a day the create screen proposes a full adventure. */
 export const modeForMinutes = (m: MinutesChoice | null): "FAST" | "FULL" => (m !== null && m >= 20 ? "FULL" : "FAST");
+
+/**
+ * Does this phone already hold the learner's data: games (the lists and records of `OfflineStore`, key prefix `levelup.offline.`) or a
+ * welcome that was already seen? Such a phone is an upgrade, not a fresh install. Versions before the questionnaire saved the settings
+ * key only when a setting was changed, so a learner who never opened Settings has none and must still never be sent through it.
+ * A storage failure counts as "nothing there".
+ */
+export function hasExistingData(kv: Pick<KV, "get" | "keys">): boolean {
+  try {
+    if (kv.get(WELCOME_KEY) === "1") return true;
+    const listed = JSON.parse(kv.get("levelup.offline.games") ?? "[]") as unknown;
+    if (Array.isArray(listed) && listed.length > 0) return true;
+    return (kv.keys?.() ?? []).some((k) => k.startsWith("levelup.offline.game."));
+  } catch {
+    return false;
+  }
+}

@@ -56,9 +56,10 @@ export function LibraryPage() {
   const active: LibraryFilter = filtering ? filter : "all";
   const shown = filterGames(games, active);
   const resume = continueGame(games);
-  // the learning path is the first thing on the home screen (its progress is read from the games on the phone)
+  // the learning path is the first thing on the home screen (its progress is read from the games on the phone, from the rows
+  // this screen has just read: the games are not read a second time for it)
   const course = COURSES[0];
-  const courseProgress = useMemo(() => (course && data.ok ? loadCourseProgress(store, course) : null), [course, data]);
+  const courseProgress = useMemo(() => (course && data.ok ? loadCourseProgress(store, course, data.games) : null), [course, data]);
 
   const remove = (id: string) => {
     // Name the game: with several cards on screen "this game" would leave room for a wrong tap.

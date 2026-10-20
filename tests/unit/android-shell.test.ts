@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import config from "../../capacitor.config";
-import { backAction } from "../../mobile/src/back";
+import { backAction, dispatchGameBack } from "../../mobile/src/back";
 import { AI_URL, SUPABASE_URL } from "../../mobile/src/cloud/config";
 import { isShareableText, MAX_SHARE_CHARS } from "../../mobile/src/export";
 import { PAGE_DARK, PAGE_LIGHT, pageColor } from "../../mobile/src/system-bars";
@@ -172,10 +172,22 @@ describe("Android back button", () => {
   });
 
   it("goes back one screen elsewhere, and falls back to the library when there is no history", () => {
-    for (const p of ["/create", "/settings", "/review", "/games/g1/results/s1", "/games/g1/results/s1/review"]) {
+    for (const p of ["/create", "/settings", "/review", "/games/g1/results/s1/review", "/games/g1/results/s1/practice"]) {
       expect(backAction(p, true)).toBe("history");
       expect(backAction(p, false)).toBe("library");
     }
+  });
+
+  it("never goes back from a finished run's results to the game: that entry would start a brand-new run of it", () => {
+    // history after a run: [library, #/play/g1, #/games/g1/results/s1]; the play route resumes only an ACTIVE run, so re-entering it begins again
+    for (const canGoBack of [true, false]) expect(backAction("/games/g1/results/s1", canGoBack)).toBe("library");
+  });
+
+  it("tells the game screen about Back, and reports when nobody answered (loading, deleted game, crashed screen)", () => {
+    const answered = new EventTarget();
+    answered.addEventListener("levelup:back", (e) => e.preventDefault());
+    expect(dispatchGameBack(answered)).toBe(true);
+    expect(dispatchGameBack(new EventTarget())).toBe(false);
   });
 
   it("leaves the app (to the background) only from the library", () => {

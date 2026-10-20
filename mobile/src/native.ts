@@ -3,7 +3,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import type { Feedback } from "@/components/game/PlayClient";
 import { getSettings } from "./app-state";
-import { backAction } from "./back";
+import { backAction, dispatchGameBack } from "./back";
 import { isShareableText } from "./export";
 import { navigate } from "./router";
 import { pageColor } from "./system-bars";
@@ -19,7 +19,7 @@ export function installBackButton(): void {
   void App.addListener("backButton", ({ canGoBack }) => {
     const path = (window.location.hash.replace(/^#/, "") || "/").split("?")[0]!;
     switch (backAction(path, canGoBack)) {
-      case "game": window.dispatchEvent(new Event("levelup:back")); break;
+      case "game": if (!dispatchGameBack()) navigate("/", true); break; // no game screen answered (loading, deleted game, crashed): do not swallow the press
       case "history": window.history.back(); break;
       case "library": navigate("/", true); break;
       case "leave": void App.minimizeApp(); break;

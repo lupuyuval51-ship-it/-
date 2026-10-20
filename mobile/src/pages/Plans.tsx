@@ -15,7 +15,7 @@ export function PlansPage() {
   const t = useT();
   const [plan, setPlan] = useState(() => getOfflinePlan());
   const [busy, setBusy] = useState<PaidPlanId | "restore" | null>(null);
-  const [message, setMessage] = useState<"CANCELLED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
+  const [message, setMessage] = useState<"CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
   const [prices, setPrices] = useState<Partial<Record<PaidPlanId, string>>>({});
   const canBuy = billingAvailable();
 
@@ -33,6 +33,8 @@ export function PlansPage() {
     const res = await buyPlan(p);
     setPlan(getOfflinePlan());
     if (!res.ok && res.reason !== "UNAVAILABLE") setMessage(res.reason);
+    // a plan is changed or cancelled on Google Play's own page: a second subscription would be billed next to the first
+    if (!res.ok && res.reason === "SUBSCRIBED") void manageSubscription();
     setBusy(null);
   }
 

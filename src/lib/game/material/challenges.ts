@@ -56,8 +56,31 @@ const OBJECTIVE_TEXT = (t: Tr): Record<Objective, string> => ({
   ideas: t("Understand how the ideas fit together", "להבין איך הרעיונות מתחברים"),
 });
 
+/**
+ * Results per text, remembered while a game is built. The term, define and Q&A builders compare every entry with every other
+ * one, and reading both texts again for each pair made a pasted glossary of a few hundred lines take seconds on the UI thread.
+ * Cleared at the start of every `generateChallenges` call and capped, so old notes are never kept. Results are shared:
+ * never change one.
+ */
+const textMemos: Map<string, unknown>[] = [];
+function memoText<T>(f: (s: string) => T): (s: string) => T {
+  const memo = new Map<string, T>();
+  textMemos.push(memo);
+  return (s) => {
+    let v = memo.get(s);
+    if (v === undefined) {
+      if (memo.size > 20_000) memo.clear();
+      v = f(s);
+      memo.set(s, v);
+    }
+    return v;
+  };
+}
+
 const hasHebrew = (s: string) => /\p{Script=Hebrew}/u.test(s);
-const sameKey = (s: string) => s.toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, " ").trim();
+const sameKey = memoText((s: string) => s.toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, " ").trim());
+/** `wordsOf`, remembered: the list is shared, read it only. */
+const words: (s: string) => readonly Word[] = memoText(wordsOf);
 
 /** A rough stem, so "הצמח", "בצמח" and "צמחים" are recognised as the same word when picking wrong options. */
 const stemMemo = new Map<string, string>();
@@ -98,9 +121,9 @@ export function formLike(target: string, replacement: string, known: ReadonlySet
 }
 
 /** Content words of a text as comparable stems (stop words and very short words dropped). */
-function contentStems(text: string): Map<string, string> {
+const contentStems: (text: string) => ReadonlyMap<string, string> = memoText((text: string) => {
   const out = new Map<string, string>();
-  for (const w of wordsOf(text)) {
+  for (const w of words(text)) {
     const min = hasHebrew(w.text) ? 3 : 4;
     const st = stem(w.text);
     if (w.text.length < min || isStop(w.text) || isStop(st) || /^\d+$/.test(w.text)) continue;
@@ -108,19 +131,21 @@ function contentStems(text: string): Map<string, string> {
     if (prev === undefined || w.text.length < prev.length) out.set(st, w.text);
   }
   return out;
-}
+});
+/** The surface forms of the content words of a text, in order (a shared list: read it only). */
+const contentWords: (text: string) => readonly string[] = memoText((text: string) => [...contentStems(text).values()]);
 
 /** Do all the content words of `phrase` appear (in any form) in `text`? */
 function mentions(text: string, phrase: string): boolean {
-  const need = [...contentStems(phrase).values()];
+  const need = contentWords(phrase);
   if (need.length === 0) return false;
-  const have = wordsOf(text);
+  const have = words(text);
   return need.every((n) => have.some((h) => sameWord(h.text, n)));
 }
 
 /** Share of the content words of `a` that `b` also has (0..1). */
 function overlap(a: string, b: string): number {
-  const x = [...contentStems(a).keys()], y = new Set(contentStems(b).keys());
+  const x = [...contentStems(a).keys()], y = contentStems(b);
   return x.length ? x.filter((s) => y.has(s)).length / x.length : 0;
 }
 
@@ -281,7 +306,7 @@ function whyNot(word: string, original: string, ctx: Context, t: Tr): string {
     : t(`“${word}” does not fit here — re-read the sentence in your material.`, `״${word}״ לא מתאים כאן — קראו שוב את המשפט בחומר שלכם.`);
 }
 
-function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context, rnd: () => number, t: Tr): Candidate[] {
+function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context, truths: Set<string>, rnd: () => number, t: Tr): Candidate[] {
   const map = new Map(keywords.map((k) => [k.lower, k]));
   const known = new Set(map.keys());
   const out: Candidate[] = [];
@@ -289,7 +314,10 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context,
   for (const s of sentences) {
     const plan = pickTarget(s, map);
     if (!plan || usedTargets.has(plan.target.lower)) continue;
-    const distractors = distractorsFor(plan, keywords, ctx, rnd);
+    // a wrong word that makes another sentence of the notes (parallel sentences: "…lies in Greece / Italy beside the coast") is also right
+    const fillsTruth = (d: Keyword) => truths.has(sameKey(`${s.slice(0, plan.start)}${formLike(plan.target.text, d.text, known)}${s.slice(plan.end)}`));
+    let distractors = distractorsFor(plan, keywords, ctx, rnd);
+    if (distractors.some(fillsTruth)) distractors = distractorsFor(plan, keywords, ctx, rnd, 9).filter((d) => !fillsTruth(d)).slice(0, 3);
     if (distractors.length < 3) continue;
     const forms = distractors.map((d) => formLike(plan.target.text, d.text, known));
     if (new Set([plan.target.text.toLowerCase(), ...forms.map((f) => f.toLowerCase())]).size < 4) continue;
@@ -410,12 +438,14 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     const shown = maskTerm(d.meaning, d.term);
     if (shown === null) continue;
     // two terms that share a word with each other or with the description ("Loop" / "For loop" / "a loop that…") cannot be told apart
-    const dWords = [...contentStems(d.term).values()];
-    const clash = (o: Definition) => [...contentStems(o.term).values()].some((w) => dWords.some((x) => sameWord(w, x))) || mentions(d.meaning, o.term);
-    const clean = usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase() && !clash(o));
+    const dWords = contentWords(d.term);
+    const clash = (o: Definition) => contentWords(o.term).some((w) => dWords.some((x) => sameWord(w, x))) || mentions(d.meaning, o.term);
+    // an entry with the same description ("big = large" / "huge = large") is a second right answer
+    const clean = usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase() && sameKey(o.meaning) !== sameKey(d.meaning) && !clash(o));
     // wrong options: the other terms first; with only a few terms, other notable words of the material fill in
+    const termLength = words(d.term).length;
     const otherTerms = shuffled(clean, rnd)
-      .sort((a, b) => Math.abs(wordsOf(a.term).length - wordsOf(d.term).length) - Math.abs(wordsOf(b.term).length - wordsOf(d.term).length))
+      .sort((a, b) => Math.abs(words(a.term).length - termLength) - Math.abs(words(b.term).length - termLength))
       .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
     const fillers = otherTerms.length >= 3 || d.short ? [] : keywords
@@ -459,9 +489,12 @@ function defineCandidates(defs: Definition[], rnd: () => number, t: Tr): Candida
   for (const d of usable) {
     // a meaning that spells out its own term would give the answer away by its words alone
     if (!d.short && mentions(d.meaning, d.term)) continue;
+    // two terms with the same description ("fast = quick" / "rapid = quick") would show the same option twice
+    const seenMeaning = new Set<string>();
     const pool = usable.filter((o) => o.term.toLowerCase() !== d.term.toLowerCase() && sameKey(o.meaning) !== sameKey(d.meaning)
       // a wrong meaning that talks about the asked term is a second right answer ("Loop" → "a loop that runs…")
-      && !mentions(o.meaning, d.term) && (o.short || overlap(o.meaning, d.meaning) <= 0.7));
+      && !mentions(o.meaning, d.term) && (o.short || overlap(o.meaning, d.meaning) <= 0.7)
+      && !seenMeaning.has(sameKey(o.meaning)) && (seenMeaning.add(sameKey(o.meaning)), true));
     const wrong = shuffled(pool, rnd)
       // similar-looking meanings make the better wrong options
       .sort((a, b) => Math.abs(a.meaning.length - d.meaning.length) - Math.abs(b.meaning.length - d.meaning.length)).slice(0, 5);
@@ -754,12 +787,14 @@ function timelineCandidates(facts: Fact[], t: Tr): Candidate[] {
 }
 
 const OPPOSITE: Record<string, string> = { yes: "No", no: "Yes", true: "False", false: "True", correct: "Incorrect", incorrect: "Correct", כן: "לא", לא: "כן", נכון: "לא נכון", "לא נכון": "נכון", שגוי: "נכון" };
+/** The other word of a yes / no answer. Own keys only: an answer of "constructor" or "__proto__" must not find a member of Object. */
+const oppositeOf = (answer: string): string | undefined => (Object.hasOwn(OPPOSITE, answer.toLowerCase()) ? OPPOSITE[answer.toLowerCase()] : undefined);
 
 /** Shape of an answer, for choosing wrong options that look like it (a name next to names, a number next to numbers). */
 function answerDistance(a: string, b: string): number {
   const cap = (s: string) => /^\p{Lu}/u.test(s);
   const digit = (s: string) => /\d/.test(s);
-  return Math.abs(wordsOf(a).length - wordsOf(b).length) + (cap(a) === cap(b) ? 0 : 2) + (digit(a) === digit(b) ? 0 : 2) + Math.abs(a.length - b.length) / 25 + (hasHebrew(a) === hasHebrew(b) ? 0 : 6);
+  return Math.abs(words(a).length - words(b).length) + (cap(a) === cap(b) ? 0 : 2) + (digit(a) === digit(b) ? 0 : 2) + Math.abs(a.length - b.length) / 25 + (hasHebrew(a) === hasHebrew(b) ? 0 : 6);
 }
 
 /**
@@ -774,8 +809,8 @@ export function leastPlausible<T extends { text: string }>(correct: { text: stri
 
 /** Do two texts share a word that says something (not a stop word)? A wrong option that does may be a second right answer. */
 function sharesWord(a: string, b: string): boolean {
-  const mine = wordsOf(a).filter((w) => w.text.length >= 3 && !isStop(w.text) && !/^\d+$/.test(w.text));
-  return wordsOf(b).some((w) => w.text.length >= 3 && !isStop(w.text) && mine.some((m) => sameWord(m.text, w.text)));
+  const mine = words(a).filter((w) => w.text.length >= 3 && !isStop(w.text) && !/^\d+$/.test(w.text));
+  return words(b).some((w) => w.text.length >= 3 && !isStop(w.text) && mine.some((m) => sameWord(m.text, w.text)));
 }
 
 function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
@@ -804,7 +839,7 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     }
     // a question whose answer is written in it (or that just repeats its words) cannot be asked with options
     if (mentions(qa.question, qa.answer)) continue;
-    const opposite = OPPOSITE[qa.answer.toLowerCase()];
+    const opposite = oppositeOf(qa.answer);
     if (opposite) {
       // yes / no (true / false) answers: the other word is the only sensible wrong option
       const wrongText = /^\p{Ll}/u.test(qa.answer) ? opposite.toLowerCase() : opposite;
@@ -823,7 +858,7 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     }
     // wrong options: other answers of the same shape first, then terms or meanings from the notes
     const short = wordsOf(qa.answer).length <= 4;
-    const fromQa = k.qa.filter((o) => o !== qa && o.value === undefined && !OPPOSITE[o.answer.toLowerCase()]).map((o) => ({ text: o.answer, about: o.question, rank: 0 }));
+    const fromQa = k.qa.filter((o) => o !== qa && o.value === undefined && !oppositeOf(o.answer)).map((o) => ({ text: o.answer, about: o.question, rank: 0 }));
     const fromTerms = (short ? k.definitions.map((d) => ({ text: d.term, about: d.source, rank: 3 })) : k.definitions.map((d) => ({ text: d.meaning, about: d.source, rank: 3 })));
     const seen = new Set<string>([sameKey(qa.answer)]);
     const pool = [...fromQa, ...fromTerms].filter((x) => x.text.length <= 200 && !seen.has(sameKey(x.text)) && (seen.add(sameKey(x.text)), true) && !mentions(qa.question, x.text)
@@ -862,6 +897,7 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
 const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "timeline", "match", "number", "term", "define", "cloze", "factpick", "statement", "odd"];
 
 export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generated {
+  for (const memo of textMemos) memo.clear();
   const t = translator(opts.lang);
   const { rnd } = opts;
   const prefix = opts.idPrefix ?? "";
@@ -879,7 +915,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
     number: numberCandidates(k.facts, k.qa, t),
     term: termCandidates(k.definitions, k.keywords, rnd, t),
     define: defineCandidates(k.definitions, rnd, t),
-    cloze: clozeCandidates(statements, k.keywords, ctx, rnd, t),
+    cloze: clozeCandidates(statements, k.keywords, ctx, truths, rnd, t),
     truefalse: trueFalseCandidates(statements, k.keywords, ctx, truths, rnd, t),
     factpick: factPickCandidates(k.facts, rnd, t),
     statement: statementCandidates(statements, k.facts, k.keywords, ctx, truths, rnd, t),

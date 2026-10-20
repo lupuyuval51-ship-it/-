@@ -46,9 +46,13 @@ export function loadLibrary(src: LibrarySource): LibraryLoad {
   try {
     const games = src.listGames().map((g): LibraryGame => {
       const last = g.lastSessionId ? src.getSession(g.lastSessionId)?.updatedAt : undefined;
-      let difficulty: string | undefined;
-      try { difficulty = src.getGame?.(g.id)?.spec.meta.difficulty; } catch { /* the level is only decoration */ }
-      return { ...g, lastPlayedAt: typeof last === "number" && Number.isFinite(last) ? last : g.createdAt, ...(difficulty ? { difficulty } : {}) };
+      // the store's rows carry the level already; only a source whose rows do not has to read each game's spec again
+      let difficulty = g.difficulty;
+      if (!difficulty) { try { difficulty = src.getGame?.(g.id)?.spec.meta.difficulty; } catch { /* the level is only decoration */ } }
+      // The store's own time of the last move counts as well as the run's stamp: opening a game bumps the stamp (that is playing), but a run
+      // taken from the cloud carries a flattened stamp (0 on a phone's first sync) that must not push a game that was played to the bottom.
+      const stamp = typeof last === "number" && Number.isFinite(last) ? last : 0;
+      return { ...g, lastPlayedAt: Math.max(g.lastPlayedAt ?? g.createdAt, stamp), ...(difficulty ? { difficulty } : {}) };
     });
     let deck = NO_DECK;
     try { deck = src.deckSummary(); } catch { /* the games matter more than the badge */ }

@@ -72,6 +72,34 @@ export function governedDprFor(governed: GovernedDpr | null, key: string): numbe
   return governed !== null && governed.key === key && Number.isFinite(governed.dpr) && governed.dpr > 0 ? governed.dpr : null;
 }
 
+/** The pixel ratio for a fallback level: the profile's ratio on this screen scaled by the level's step, never below `MIN_DPR`. */
+export function dprForLevel(base: number, level: number): number {
+  return Math.max(MIN_DPR, base * (DPR_SCALE[level] ?? 1));
+}
+
+/**
+ * The lowest quality level each tier has been pushed to in this app session. Every canvas starts from it (another area builds a
+ * new canvas, and so does a replay or the next game), so a slow phone does not climb the ladder again: with a 1.5 s warm-up and
+ * 2 s windows, every step is 3 to 6 seconds of poor frames. The ladder still only goes down, and on a device that holds the
+ * frame rate the level stays 0. Kept per tier, because the ceiling (and so the cost of a level) differs between tiers.
+ */
+const reachedLevel = new Map<string, number>();
+
+export function rememberedLevel(tier: string): number {
+  return reachedLevel.get(tier) ?? 0;
+}
+
+/** Remember that `tier` had to step down to `level`. Never raises quality: a lower level than the remembered one is ignored. */
+export function rememberLevel(tier: string, level: number): void {
+  const l = Math.min(MAX_QUALITY_LEVEL, Math.floor(level));
+  if (l > rememberedLevel(tier)) reachedLevel.set(tier, l);
+}
+
+/** Forget everything remembered (tests). */
+export function forgetRememberedLevels(): void {
+  reachedLevel.clear();
+}
+
 export interface GovernorOptions {
   /** Seconds ignored after start and after each step (shader compiles, buffer rebuilds, first paint). */
   warmup?: number;

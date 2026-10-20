@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/I18nProvider";
-import { ANGLE_RANGE, leverTorque, projectilePath, projectileRange } from "@/lib/game/challenges/simulations";
+import { ANGLE_RANGE, LEVER_SLIDER_MIN, leverTorque, projectilePath, projectileRange } from "@/lib/game/challenges/simulations";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
 
 type SimChallenge = Extract<PublicChallenge, { type: "simulation" }>;
@@ -111,7 +111,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
       <p className="text-sm text-muted">{t("sim.lever.left", { w: sim.leftWeight, d: sim.leftDistance })} · {t("sim.lever.right", { w: sim.rightWeight })}</p>
       <label className="block space-y-1 text-sm">
         <span>{t("sim.lever.distance")}: <b>{distance} m</b></span>
-        <input type="range" min={0.5} max={sim.maxDistance} step={0.05} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-10 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
+        <input type="range" min={LEVER_SLIDER_MIN} max={sim.maxDistance} step={0.05} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-10 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
       </label>
     </div>
   );

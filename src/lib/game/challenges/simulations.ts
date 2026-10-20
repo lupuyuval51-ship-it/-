@@ -36,9 +36,12 @@ export function projectileSolution(sim: ProjectileSim): { angle: number; speed: 
 export function leverBalanceDistance(sim: LeverSim): number {
   return (sim.leftWeight * sim.leftDistance) / sim.rightWeight;
 }
+/** Where the player's slider starts (SimulationPanel): it cannot be set any closer to the pivot than this. */
+export const LEVER_SLIDER_MIN = 0.5;
 export function leverSolvable(sim: LeverSim): boolean {
   const d = leverBalanceDistance(sim);
-  return d >= 0.2 && d <= sim.maxDistance;
+  // the slider must also be able to get within the tolerance of the balance point (the same test the grader applies)
+  return d >= 0.2 && d <= sim.maxDistance && (d >= LEVER_SLIDER_MIN || LEVER_SLIDER_MIN - d <= sim.tolerance);
 }
 /** Net torque (left − right); sign drives the seesaw tilt in the UI. */
 export function leverTorque(sim: LeverSim, rightDistance: number): number {

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { GraphicsTier } from "@/config/plans";
 import type { DictKey, Locale } from "@/lib/i18n";
-import { freshDefaults, sanitizeInterests, sanitizeMinutes, sanitizePlanChoice, sanitizeRegion, type MinutesChoice } from "@/lib/offline/first-run";
+import { freshDefaults, hasExistingData, sanitizeInterests, sanitizeMinutes, sanitizePlanChoice, sanitizeRegion, type MinutesChoice } from "@/lib/offline/first-run";
 import type { PlanId } from "@/config/plans";
 import type { TopicCategory } from "@/lib/game/topics/types";
 import { applyTheme, isThemePref, type ThemePref } from "@/lib/theme";
@@ -43,7 +43,8 @@ function load(): Settings {
       };
     }
   } catch { /* defaults */ }
-  return base;
+  // No usable saved settings: a fresh install, unless the phone already holds games (an upgrade from a version that wrote the key only when a setting changed)
+  return hasExistingData(browserKV()) ? { ...base, setupDone: true } : base;
 }
 
 let settings = load();

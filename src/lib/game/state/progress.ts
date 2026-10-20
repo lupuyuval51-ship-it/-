@@ -14,6 +14,8 @@ const ATTEMPT_MULTIPLIER = [1, 0.6, 0.3] as const;
 const HINT_PENALTY = 0.15;
 const MAX_HINT_PENALTY = 0.3;
 const MIN_FRACTION = 0.2;
+/** The longest gap between two events that still counts as play time (reading a question); a longer pause is the app being closed. */
+export const MAX_PLAY_GAP_MS = 5 * 60_000;
 
 export interface ChallengeRecord {
   stationId: string;
@@ -53,13 +55,15 @@ export interface PlayState {
   finished: boolean;
   startedAt: number;
   updatedAt: number;
+  /** Time actually spent playing (gaps between events, each capped at MAX_PLAY_GAP_MS). Older saves lack it: the results then fall back to finish − start. */
+  playedMs?: number;
 }
 
 export function initialState(spec: GameSpec, now = Date.now()): PlayState {
   return {
     v: 1, areaId: spec.areas[0]!.id, position: null, checkpoint: null, served: {}, records: {}, resolvedStations: {},
     collected: [], talked: [], visited: [], openedAt: {}, recent: [], streak: 0, hintsUsed: 0, score: 0, achievements: [], missionsDone: [], bossesDefeated: [],
-    finished: false, startedAt: now, updatedAt: now,
+    finished: false, startedAt: now, updatedAt: now, playedMs: 0,
   };
 }
 
@@ -391,7 +395,7 @@ export function summarize(spec: GameSpec, state: PlayState, now = Date.now()): L
   return {
     score: state.score, maxScore: max, percent, stars: starsFor(percent, state.finished), completed: state.finished,
     achievements: state.achievements, collected: state.collected.length, collectiblesTotal: spec.areas.reduce((n, a) => n + a.collectibles.count, 0),
-    durationMs: Math.max(0, now - state.startedAt), concepts: [...concepts.values()],
+    durationMs: Math.max(0, state.playedMs ?? (now - state.startedAt)), concepts: [...concepts.values()],
     objectives: spec.learning.objectives.map((o) => {
       const s = objectiveScores.get(o.id);
       return { id: o.id, text: o.text, mastery: s ? s.reduce((a, b) => a + b, 0) / s.length : null };

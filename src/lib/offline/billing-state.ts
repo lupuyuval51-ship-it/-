@@ -12,7 +12,11 @@ export const PLAY_PRODUCTS: Readonly<Record<PaidPlanId, { productId: string; bas
 });
 
 const KEY = "levelup.plan.v1";
-/** A subscription that Play has not confirmed again keeps working this long after its expiry (offline, renewal delayed). */
+/**
+ * A subscription that Play has not confirmed again keeps working this long after its expiry (offline, renewal delayed).
+ * Play on Android gives no expiry date: the stored expiry is then the moment Play last confirmed the plan, so it keeps
+ * working this long after the last confirmation.
+ */
 export const PLAN_GRACE_MS = 3 * 86_400_000;
 
 export interface PlanState {
@@ -28,13 +32,19 @@ export interface KeyValue {
   setItem(key: string, value: string): void;
 }
 
-/** A purchase as Play reports it (the fields of the billing plugin's transaction that matter here). */
+/**
+ * A purchase as Play reports it (the fields of the billing plugin's transaction that matter here). On Android the plugin
+ * gives neither `isActive` nor `expirationDate`: a paid purchase has `purchaseState` "1" ("2" is pending, "0" unknown),
+ * and `isAcknowledged` says whether Play has the acknowledgement it needs (without it Play refunds after 3 days).
+ */
 export interface PurchaseLike {
   productIdentifier: string;
   isActive?: boolean;
   expirationDate?: string;
   purchaseState?: string;
   revocationDate?: string;
+  purchaseToken?: string;
+  isAcknowledged?: boolean;
 }
 
 const planOfProduct = (productId: string): PaidPlanId | null => PAID_PLAN_IDS.find((p) => PLAY_PRODUCTS[p].productId === productId) ?? null;
@@ -46,13 +56,52 @@ export function planFromPurchases(purchases: readonly PurchaseLike[], now: numbe
     const plan = planOfProduct(p.productIdentifier);
     if (!plan || p.revocationDate) continue;
     const expires = p.expirationDate ? Date.parse(p.expirationDate) : NaN;
-    const running = p.isActive === true || (Number.isFinite(expires) && expires > now);
+    const dated = Number.isFinite(expires);
+    // Android (no isActive, no expiry): Play lists only subscriptions that are still running, and a paid one is purchaseState "1".
+    const running = p.isActive === true || (dated && expires > now) || (!dated && p.purchaseState === "1");
     if (!running) continue;
-    const expiresAt = Number.isFinite(expires) ? expires : now + PLAN_GRACE_MS;
+    // Without an expiry the plan is known to run until now; `effectivePlan` adds the grace once.
+    const expiresAt = dated ? expires : now;
     const rank = (x: PlanId) => (x === "PRO" ? 2 : x === "PLUS" ? 1 : 0);
     if (rank(plan) > rank(best.plan) || (plan === best.plan && (best.expiresAt ?? 0) < expiresAt)) best = { plan, expiresAt, checkedAt: now };
   }
   return best;
+}
+
+/**
+ * The tokens of our subscriptions that Play lists as paid ("1") but not acknowledged yet. The plugin acknowledges right after
+ * a purchase without waiting for Play's answer, so this is the safety net: Play refunds what stays unacknowledged for 3 days.
+ */
+export function purchasesToAcknowledge(purchases: readonly PurchaseLike[]): string[] {
+  const out: string[] = [];
+  for (const p of purchases) {
+    if (!planOfProduct(p.productIdentifier) || p.revocationDate || p.purchaseState !== "1" || p.isAcknowledged !== false) continue;
+    if (typeof p.purchaseToken === "string" && p.purchaseToken && !out.includes(p.purchaseToken)) out.push(p.purchaseToken);
+  }
+  return out;
+}
+
+/**
+ * What to keep after asking Play. An empty answer is also what the plugin returns when its query failed (it only logs the
+ * error), so it never takes a paid plan away while the stored one still runs (its expiry plus the grace); after that the
+ * stored plan is Free anyway. A non-empty answer always replaces what was stored.
+ */
+export function planAfterRefresh(stored: PlanState | null, fresh: PlanState, now: number): PlanState {
+  if (fresh.plan === "FREE" && stored && stored.plan !== "FREE" && effectivePlan(stored, now) === stored.plan) return stored;
+  return fresh;
+}
+
+export type PurchaseFailure = "CANCELLED" | "PENDING" | "FAILED";
+
+/**
+ * Why a purchase did not complete. The plugin rejects with fixed texts, not Play's response code: "Purchase is not purchased"
+ * for every answer that is not OK (closing Play's sheet is USER_CANCELED) and "Purchase is pending" while the payment is still
+ * being confirmed (it may be charged later).
+ */
+export function classifyPurchaseError(err: unknown): PurchaseFailure {
+  const text = String((err as { message?: unknown })?.message ?? err).toLowerCase();
+  if (text.includes("pending")) return "PENDING";
+  return /cancel|not purchased/.test(text) ? "CANCELLED" : "FAILED";
 }
 
 export function sanitizePlanState(v: unknown): PlanState | null {

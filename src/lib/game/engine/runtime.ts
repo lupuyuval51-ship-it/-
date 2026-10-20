@@ -31,6 +31,15 @@ export interface RuntimeCallbacks {
 
 const NO_INPUT: SimInput = { moveX: 0, moveY: 0, jump: false, sprint: false };
 
+/**
+ * The avatar's yaw turns the short way round each step, so it winds up with every net turn and is never wrapped. The
+ * event schema only accepts ±20 rad, so what leaves the runtime (autosave, checkpoints) is wrapped into (−π, π]: the
+ * same facing, and a long game of walking in circles keeps saving.
+ */
+export function wrapYaw(yaw: number): number {
+  return Math.abs(yaw) <= Math.PI ? yaw : Math.atan2(Math.sin(yaw), Math.cos(yaw));
+}
+
 export class GameRuntime {
   readonly spec: PublicSpec;
   readonly areaId: string;
@@ -103,6 +112,11 @@ export class GameRuntime {
     const open = !gate || gate.opensWhenStationsDone.every((sid) => stationDone(this.client, sid));
     this.gateCache.set(gateId, open);
     return open;
+  }
+
+  /** A pickup the server never took (its event failed): without this the item stays hidden and can never be picked up again. */
+  forgetPending(itemId: string): void {
+    this.pendingCollect.delete(itemId);
   }
 
   isCollected(itemId: string): boolean {
@@ -180,7 +194,7 @@ export class GameRuntime {
       if (Math.hypot(p.x - cp.x, p.z - cp.z) <= 2.2 && Math.abs(p.y - cp.y) <= 1.5) {
         this.currentCheckpoint = cp.checkpointId;
         this.sim.setCheckpoint({ x: cp.x, y: cp.y, z: cp.z });
-        this.cb.onCheckpoint?.(cp.checkpointId, { x: cp.x, y: cp.y, z: cp.z, yaw: p.yaw });
+        this.cb.onCheckpoint?.(cp.checkpointId, { x: cp.x, y: cp.y, z: cp.z, yaw: wrapYaw(p.yaw) });
       }
     }
 
@@ -200,6 +214,6 @@ export class GameRuntime {
   /** Position snapshot for autosave / resume. */
   snapshot(): { x: number; y: number; z: number; yaw: number } {
     const p = this.sim.player;
-    return { x: p.x, y: p.y, z: p.z, yaw: p.yaw };
+    return { x: p.x, y: p.y, z: p.z, yaw: wrapYaw(p.yaw) };
   }
 }
