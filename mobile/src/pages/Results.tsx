@@ -49,7 +49,7 @@ function QuickNext({ gameId, sessionId, summary, reviewCount }: { gameId: string
           {note.kind === "best" ? t("mob.results.best") : t("mob.results.bestOther", { best: note.best, max: note.max })}
         </p>
       )}
-      <a href={`#${next.href}`} data-testid="results-quick-next" className="ms-auto inline-flex min-h-11 items-center justify-center gap-1 rounded-xl bg-neon px-5 text-sm font-bold text-ink-950 shadow-glow transition active:scale-[0.98]">
+      <a href={`#${next.href}`} data-testid="results-quick-next" className="inline-flex min-h-11 grow basis-44 items-center justify-center gap-1 rounded-xl bg-neon px-5 text-sm font-bold text-ink-950 shadow-glow transition active:scale-[0.98]">
         {t(next.labelKey)} <Arrow />
       </a>
     </div>

@@ -21,7 +21,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review, library
   const actions = all.filter((a) => a.id !== "review" || review.length > 0).sort((a, b) => Number(b.id === next) - Number(a.id === next));
   return (
     <div className="mx-auto max-w-3xl space-y-6" data-testid="results">
-      <Link href={`/games/${game.id}`} className="text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
+      <Link href={`/games/${game.id}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
       <header className="space-y-3 text-center">
         <h1 className="text-3xl font-extrabold">{t("res.title")}</h1>
         <div className="flex justify-center"><Stars n={s.stars} size="lg" label={t("common.stars", { n: s.stars })} /></div>
@@ -74,7 +74,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review, library
           </ul>
         )}
         {r.review.length > 0 && (
-          <Link href={`/games/${game.id}/results/${sessionId}/review`} data-testid="review-open" className="inline-flex min-h-11 items-center rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("res.review.open")} <Arrow /></Link>
+          <Link href={`/games/${game.id}/results/${sessionId}/review`} data-testid="review-open" className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-neon px-5 text-sm font-semibold text-ink-950 hover:brightness-110">{t("res.review.open")} <Arrow /></Link>
         )}
       </Card>
 

@@ -372,8 +372,8 @@ export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; 
       <div ref={box} role="dialog" aria-modal="true" aria-label={boss.name} data-testid="boss-card" className="lu-pop max-h-full w-full max-w-lg space-y-3 overflow-y-auto rounded-2xl border border-rose/60 bg-ink-800 p-5 shadow-e3">
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-11 place-items-center rounded-full" style={{ background: boss.look.color + "33", border: `2px solid ${boss.look.color}`, color: boss.look.color }}><NpcIcon shape={boss.look.shape} className="size-6" /></span>
-          <div>
-            <h2 dir="auto" className="text-lg font-bold" style={{ color: boss.look.color }}>{boss.name}</h2>
+          <div className="min-w-0 flex-1">
+            <h2 dir="auto" className="break-words text-lg font-bold" style={{ color: boss.look.color }}>{boss.name}</h2>
             <p dir="auto" className="text-xs text-muted">{boss.title}</p>
           </div>
         </div>
