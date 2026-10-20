@@ -9,7 +9,8 @@ import { Alert, Arrow, Button, Field, Input, ProgressBar, Select, Textarea } fro
 import { INPUT_LIMITS } from "@/config/limits";
 import { DIFFICULTIES, GAME_TYPES } from "@/lib/game/spec/constants";
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
-import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
+import { getOfflineBuildLevel, getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
+import { recordUse } from "@/lib/offline/device-quota";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
 import { hashQuery } from "@/lib/offline/onboarding";
 import { AiError, generateWithAi, type AiFailure } from "../cloud/ai";
@@ -49,7 +50,9 @@ function suggestedMode(tier: ReturnType<typeof getOfflineTier>): "FAST" | "FULL"
 export function CreatePage() {
   const t = useT();
   const locale = useLocale();
-  const tier = getOfflineTier();
+  // The level of the next game: the highest this month's quotas still allow (`device-quota.ts`).
+  const build = getOfflineBuildLevel();
+  const tier = build.level;
   const storage = useMemo(() => draftStorage(), []);
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
@@ -143,6 +146,7 @@ export function CreatePage() {
     // Without notes a subject alone used to make a demo-template game; now the notes are needed (or a ready topic from the library).
     if (!topic && !useAi && !cleanPastedText(form.material).trim()) { dispatch({ type: "problem", problem: { kind: "notes" } }); return; }
     if (useAi && !account.session) { setAiFailure("SIGN_IN"); return; }
+    if (build.exhausted) { dispatch({ type: "problem", problem: { kind: "limit" } }); return; }
     setBusy(true);
     setAiFailure(null);
     dispatch({ type: "problem", problem: null });
@@ -176,6 +180,7 @@ export function CreatePage() {
     let id: string;
     try {
       id = store.addGame(spec).id;
+      recordUse(localStorage, spec.meta.featureTier ?? tier, Date.now());
     } catch (err) {
       dispatch({ type: "problem", problem: classifySaveError(err) });
       setBusy(false);
@@ -198,6 +203,7 @@ export function CreatePage() {
       case "required":
       case "material": return t("create.error.validation");
       case "notes": return t("mob.create.error.notes");
+      case "limit": return t("mob.create.error.limit");
       case "tier": return problem.mode && problem.gameType
         ? t("mob.create.error.tier.both", { mode: modeName, type: typeName })
         : problem.mode ? t("mob.create.error.tier.mode", { mode: modeName, other: t("mode.FAST") }) : t("mob.create.error.tier.type", { type: typeName });
@@ -363,6 +369,7 @@ export function CreatePage() {
         {alertText && (
           <Alert tone="error" data-testid="mobile-create-error" className="space-y-2">
             <p>{alertText}</p>
+            {problem?.kind === "limit" && <Button type="button" size="sm" variant="secondary" onClick={() => navigate("/plans")} data-testid="create-to-plans">{t("mob.create.error.limit.cta")}</Button>}
             {problem?.kind === "notes" && <Button type="button" size="sm" variant="secondary" onClick={() => { dispatch({ type: "problem", problem: null }); setSource("library"); }} data-testid="create-to-library">{t("mob.create.toLibrary")}</Button>}
           </Alert>
         )}

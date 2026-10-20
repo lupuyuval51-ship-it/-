@@ -257,8 +257,7 @@ The create form (website and Android app) has a second way to build a game: **pi
 currently holds **470 topics** in ten categories — maths, science, history and civics, geography, languages, computing,
 money and economy, health and safety, arts and literature, thinking and study skills: the original library of 210 (9 of them the chapters of a course,
 below; about a third of every category is not free) and the **Plus and Pro collection** of 260 (20 to 30 per category, none free: half need Plus or Pro,
-half, the more advanced ones, need Pro: Free opens 146 topics, Plus 320, Pro all 470; with plans off everybody plays everything, and the Android app opens
-everything until Google Play Billing exists). Each topic is curated, fact-checked content written natively
+half, the more advanced ones, need Pro: Free opens 146 topics, Plus 320, Pro all 470; with plans off everybody plays everything, and the Android app follows the plan Google Play Billing reports: Free until the learner subscribes). Each topic is curated, fact-checked content written natively
 in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
 (reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
 AI provider is configured — and adapts while playing (an easier two-option version after two misses, a harder version with more options after a streak).
@@ -323,8 +322,7 @@ grades, scores and releases hints, so Unity never sees answer keys.
 ### Offline Android app (Google Play)
 
 `mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, topic library
-and the server's own game reducer, running on the device (`src/lib/offline`). No AI and no Stripe (no payments and no keys in the app; paid
-features there must use Google Play Billing). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
+and the server's own game reducer, running on the device (`src/lib/offline`). No AI keys and no Stripe in the app; Plus and Pro are sold as monthly subscriptions through **Google Play Billing** (₪5 and ₪20; `mobile/src/billing/play.ts`, setup in `docs/play-release.md`), with the games per level counted on the phone (`src/lib/offline/device-quota.ts`). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
 (Settings → Backup, `src/lib/offline/backup.ts`) and an optional **LUPU ID (account) with cloud backup** through Supabase (`mobile/src/cloud`,
 `src/lib/offline/sync.ts`, `supabase/`): only the project URL and the *publishable* key are in the app, every table is owner-only (row level
 security; `supabase/tests/rls_checks.sql` is a script you run by hand in the SQL editor, not part of `npm test` or CI), and **signed out the app makes no network request** (tested). Answer keys live on the

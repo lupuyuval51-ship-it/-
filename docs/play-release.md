@@ -54,7 +54,7 @@ Lean release (`android/app/build.gradle`, `proguard-rules.pro`, `res/raw/keep.xm
 |---|---|---|
 | `allowBackup` + `dataExtractionRules` | `false`, cloud backup **and** device transfer excluded (`data_extraction_rules.xml` for Android 12+, `backup_rules.xml` for 11 and older) | Games and the optional Supabase session live in the WebView's local storage. Auto Backup would copy them (including the sign-in session) to Google Drive and to a new phone. The privacy story is "local, plus an opt-in owner-only backup"; this keeps it true. Android 12+ may still run device-to-device transfer with `allowBackup="false"` on some devices, so the rules file excludes it explicitly ([Auto Backup docs](https://developer.android.com/identity/data/autobackup)). Cost: moving to a new phone needs the in-app account backup (or *Settings → Backup*, the file export). |
 | `usesCleartextTraffic` | `false` | HTTPS only. The CSP already allows only `'self'` and the Supabase project. |
-| Permissions | declared: `INTERNET`; merged from `@capacitor/haptics`: `VIBRATE`; androidx adds a signature-level `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `INTERNET` only for the optional account. No storage, camera, microphone, location, contacts or notification permission. |
+| Permissions | declared: `INTERNET`; merged from `@capacitor/haptics`: `VIBRATE`; merged from `@capgo/native-purchases` (Google Play Billing): `com.android.vending.BILLING`; androidx adds a signature-level `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `INTERNET` only for the optional account. No storage, camera, microphone, location, contacts or notification permission. |
 | FileProvider | cache + the app's own `Pictures/` only | Capacitor's template shared the whole external storage root; nothing in the app uses the provider (no camera input). |
 | Backup file hand-off | `FilesPlugin` writes the backup text to the app's private cache and opens Android's share sheet | The WebView has no Web Share API for files (MDN browser-compat-data: `navigator.canShare` is unsupported in Android WebView) and Capacitor 7 sets no download listener, so a `<a download href="blob:…">` click is dropped; so *Settings → Backup → Export my games* would otherwise do nothing in the app (`mobile/src/native.ts` routes that click to the plugin; the page is unchanged). No storage permission; nothing leaves the phone unless the user picks a target. |
 | WebView | file access off, geolocation off, debugging off, mixed content off | `MainActivity.hardenWebView`, `capacitor.config.ts`. Content access stays on: the file chooser (notes import, backup import) returns `content://` URIs. |
@@ -148,7 +148,7 @@ Settings → Account".
 
 **Content rating** (IARC questionnaire). Educational/learning app with 3D mini-games: no violence (the code has no combat or
 damage mechanics; "boss" stations are quiz challenges), no sexual content, no gambling, no profanity, no user-to-user
-communication or sharing, no location sharing, no digital purchases, no unrestricted web access. Answer truthfully; expect the
+communication or sharing, no location sharing, no unrestricted web access. The app sells subscriptions through Google Play Billing (answer the "in-app purchases" question yes). Answer truthfully; expect the
 lowest rating. User-generated content: users only see their own notes and games.
 
 **Target audience and Families policy — owner decision.** The privacy policy says the app suits "learners of all ages". If
@@ -159,7 +159,7 @@ an e-mail address, so `listing.md`'s old "no data collection" line is not true f
 the target audience to 13+ (or older) in Play Console; if you want under-13s, get legal advice first (parental consent, or a
 build without accounts).
 
-**Ads**: no. **In-app purchases**: no (paid features later must use Google Play Billing, never Stripe). **Government/news/health/
+**Ads**: no. **In-app purchases**: yes, two monthly subscriptions through Google Play Billing (see "Subscriptions in the Play Console" below), never Stripe. **Government/news/health/
 financial declarations**: none.
 
 ## 6. What needs the owner
@@ -190,7 +190,7 @@ Build: `npx cap sync android && cd android && ./gradlew bundleRelease` (then `as
 1. Build passes with R8 (no "Missing classes" error). If `app/build/outputs/mapping/release/missing_rules.txt` appears, add the
    suggested `-dontwarn` lines to `proguard-rules.pro`.
 2. Merged manifest (`app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml`): permissions
-   are exactly `INTERNET`, `VIBRATE` and `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; `allowBackup="false"`,
+   are exactly `INTERNET`, `VIBRATE`, `com.android.vending.BILLING` (and the billing service `BIND` queries) and `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; `allowBackup="false"`,
    `usesCleartextTraffic="false"`, `dataExtractionRules` present; no `debuggable`.
 3. AAB: signed; contains `proguard.map` (`unzip -l app-release.aab | grep -i map`); no `.so`; compare size with 3.65 MB (1.4.1).
    Mapping keeps `com.capacitorjs.plugins.app.AppPlugin` and `HapticsPlugin` unrenamed.
@@ -211,3 +211,24 @@ Build: `npx cap sync android && cd android && ./gradlew bundleRelease` (then `as
    back to the library, not close with "keeps stopping".
 10. `adb shell dumpsys package app.levelup.learn3d | grep -i backup` shows no allowed backup; `adb backup` yields nothing.
 11. `npm run test:e2e:mobile` (web bundle only; native behaviour is covered by the list above).
+
+
+## Subscriptions in the Play Console (Google Play Billing)
+
+The app sells Plus and Pro as monthly subscriptions through Google Play Billing (`mobile/src/billing/play.ts`, state kept on the
+phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to exist in the Play Console of the developer account:
+
+1. Upload an AAB (internal testing is enough) so that Play knows the app and its billing permission.
+2. Payments profile (merchant account) of the account owner, with bank and tax details.
+3. Monetise → Subscriptions → create two subscriptions with exactly these **product IDs**: `levelup_plus` and `levelup_pro`.
+   Each gets one **base plan** with the ID `monthly`, auto-renewing, billing period 1 month, price **₪5** (Plus) and **₪20** (Pro)
+   (`src/config/plans.ts` is the source of the numbers). Activate both.
+4. Setup → License testing: add the testers' Gmail accounts, so they can buy without being charged.
+5. Data safety: the purchase itself is handled by Google; the app stores only the plan Play reports, on the phone.
+
+How the app uses it: at start and whenever it comes back to the screen it asks Play for the learner's purchases
+(`getPurchases`), keeps the plan and its expiry on the phone and works offline from that (3 days of grace after the period ends).
+Games per level are counted on the phone per calendar month (`src/lib/offline/device-quota.ts`): Free B 1 and C 5, Plus A 5,
+B 10 and C unlimited, Pro A 20, B 40 and C unlimited. **Known limit:** the purchase is not yet verified by a server (Google Play
+Developer API, with a service account); a rooted phone could fake a plan or reset its counters. Add that check before the
+subscriptions carry real money (a Supabase Edge Function in the account project; its credentials go into the function's secrets).

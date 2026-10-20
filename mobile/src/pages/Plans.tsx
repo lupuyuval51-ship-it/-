@@ -1,41 +1,93 @@
+import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
-import { Alert, Arrow, Card } from "@/components/ui";
+import { Alert, Arrow, Button, Card } from "@/components/ui";
 import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
-import { PLAN_IDS } from "@/config/plans";
-import { useSettings } from "../app-state";
+import { PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId } from "@/config/plans";
+import { getOfflinePlan } from "@/lib/offline/entitlement";
+import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases } from "../billing/play";
 
 /**
- * The plans and their prices, as information only: the app sells nothing (no buy button, no link to a payment page;
- * paid features in an app from Google Play may only use Google Play Billing). Prices come from src/config/plans.ts in the
- * currency of the country picked at first launch; the offer text ("1 topic at level B and 5 at level C") from `planOffer`.
+ * The plans and their prices, and the way to buy: Google Play Billing (the only payment an app from Google Play may use).
+ * Prices are in shekels from src/config/plans.ts (Play shows the learner its own final price on the purchase sheet; when Play
+ * can tell the price it is shown instead); the offer text ("1 topic at level B and 5 at level C") comes from `planOffer`.
  */
 export function PlansPage() {
   const t = useT();
-  const { region } = useSettings();
+  const [plan, setPlan] = useState(() => getOfflinePlan());
+  const [busy, setBusy] = useState<PaidPlanId | "restore" | null>(null);
+  const [message, setMessage] = useState<"CANCELLED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
+  const [prices, setPrices] = useState<Partial<Record<PaidPlanId, string>>>({});
+  const canBuy = billingAvailable();
+
+  useEffect(() => {
+    const sync = () => setPlan(getOfflinePlan());
+    window.addEventListener(PLAN_EVENT, sync);
+    void refreshPlan().then(sync);
+    void playPrices().then(setPrices);
+    return () => window.removeEventListener(PLAN_EVENT, sync);
+  }, []);
+
+  async function buy(p: PaidPlanId) {
+    setBusy(p);
+    setMessage(null);
+    const res = await buyPlan(p);
+    setPlan(getOfflinePlan());
+    if (!res.ok && res.reason !== "UNAVAILABLE") setMessage(res.reason);
+    setBusy(null);
+  }
+
+  async function restore() {
+    setBusy("restore");
+    setMessage(null);
+    const ok = await restorePurchases();
+    const now = getOfflinePlan();
+    setPlan(now);
+    setMessage(ok && now !== "FREE" ? "RESTORED" : "NOTHING");
+    setBusy(null);
+  }
+
   return (
     <div className="space-y-5" data-testid="mobile-plans-page">
       <a href="#/settings" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
       <h1 className="text-2xl font-extrabold">{t("pricing.title")}</h1>
-      <Alert tone="info" data-testid="plans-open-now">{t("pricing.open.now")}</Alert>
+      <Alert tone="info" data-testid="plans-current">{t("mob.plans.current", { plan: t(`plan.${plan}`) })}</Alert>
+      {message && <Alert tone={message === "RESTORED" ? "info" : "warn"} data-testid="plans-message">{t(`mob.plans.msg.${message}`)}</Alert>}
       <div className="space-y-3">
-        {PLAN_IDS.map((plan) => {
-          const price = planPriceText(plan, region === "OTHER" ? null : region);
+        {PLAN_IDS.map((id) => {
+          const price = planPriceText(id, "IL");
+          const paid = (PAID_PLAN_IDS as readonly string[]).includes(id);
+          const shown = paid ? prices[id as PaidPlanId] ?? price.text : null;
           return (
-            <Card key={plan} className={`space-y-2 ${plan === "PLUS" ? "border-neon/60" : ""}`} data-testid={`mobile-plan-${plan}`}>
+            <Card key={id} className={`space-y-2 ${id === "PLUS" ? "border-neon/60" : ""}`} data-testid={`mobile-plan-${id}`}>
               <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-lg font-bold">{t(`plan.${plan}`)}</h2>
-                <p className="text-xl font-extrabold" data-testid={`mobile-price-${plan}`}>
-                  <span className="ltr-num">{price.isFree ? t("pricing.free.price") : price.text}</span>
+                <h2 className="text-lg font-bold">{t(`plan.${id}`)}</h2>
+                <p className="text-xl font-extrabold" data-testid={`mobile-price-${id}`}>
+                  <span className="ltr-num">{price.isFree ? t("pricing.free.price") : shown}</span>
                   {!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
               </div>
-              <p className="text-sm">{offerText(t, plan)}</p>
-              <p className="text-sm text-muted" data-testid={`mobile-topics-${plan}`}>{topicsText(t, plan)}</p>
-              <p className="text-sm text-muted">{planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
+              <p className="text-sm">{offerText(t, id)}</p>
+              <p className="text-sm text-muted" data-testid={`mobile-topics-${id}`}>{topicsText(t, id)}</p>
+              <p className="text-sm text-muted">{planHasTierA(id) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
+              {paid && (
+                plan === id ? (
+                  <p className="text-sm font-bold text-neon" data-testid={`plan-active-${id}`}>{t("mob.plans.active")}</p>
+                ) : (
+                  <Button type="button" className="w-full" disabled={!canBuy || busy !== null} onClick={() => void buy(id as PaidPlanId)} data-testid={`plan-buy-${id}`}>
+                    {busy === id ? t("common.loading") : t("mob.plans.subscribe", { plan: t(`plan.${id}`) })}
+                  </Button>
+                )
+              )}
             </Card>
           );
         })}
       </div>
+      {!canBuy && <p className="text-xs text-muted" data-testid="plans-unavailable">{t("mob.plans.unavailable")}</p>}
+      <div className="space-y-2">
+        <Button type="button" variant="secondary" className="w-full" disabled={!canBuy || busy !== null} onClick={() => void restore()} data-testid="plans-restore">{t("mob.plans.restore")}</Button>
+        {plan !== "FREE" && <Button type="button" variant="secondary" className="w-full" disabled={!canBuy} onClick={() => void manageSubscription()} data-testid="plans-manage">{t("mob.plans.manage")}</Button>}
+      </div>
+      <p className="text-xs text-muted">{t("mob.plans.fineprint")}</p>
     </div>
   );
 }

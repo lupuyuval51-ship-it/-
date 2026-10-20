@@ -183,6 +183,8 @@ export type CreateProblem =
   | { kind: "material"; /** Specific message from the study engine, in the game's language. */ detail: string | null }
   /** "My own notes" with no notes, a subject alone builds nothing. */
   | { kind: "notes" }
+  /** every level of the plan is used up this month (`device-quota.ts`) */
+  | { kind: "limit" }
   | { kind: "storage" }
   | { kind: "generic" };
 

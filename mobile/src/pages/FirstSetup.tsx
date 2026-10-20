@@ -12,8 +12,8 @@ const PlanStep = lazy(() => import("./FirstSetupPlan").then((m) => ({ default: m
 
 const ALL_STEPS = ["language", "topics", "time", "plan"] as const;
 type Step = (typeof ALL_STEPS)[number];
-/** The plan step (country for prices and the plan wanted) only when the plans are shown (`features.ts`). */
-const STEPS: readonly Step[] = showPlans() ? ALL_STEPS : ALL_STEPS.filter((s) => s !== "plan");
+/** The plan step (country for prices and the plan wanted) is off: prices are in shekels for everybody and the plans live on their own screen (Settings → Plans). Build with VITE_SETUP_PLAN=1 to ask again. */
+const STEPS: readonly Step[] = showPlans() && import.meta.env.VITE_SETUP_PLAN === "1" ? ALL_STEPS : ALL_STEPS.filter((s) => s !== "plan");
 const LANGS: readonly Locale[] = ["en", "he", "es"];
 
 type Icon = typeof Calculator;

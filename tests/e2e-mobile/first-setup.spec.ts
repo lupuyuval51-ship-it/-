@@ -81,16 +81,21 @@ test("the language can be changed to Spanish or Hebrew in Settings, and the ques
   await expect(page.getByTestId("first-setup")).toHaveAttribute("data-step", "language");
 });
 
-test("plans and prices are hidden: no country for prices and no Plans page in Settings, and #/plans leads home", async ({ page }) => {
+test("plans are on their own screen: Settings → Plans lists the three plans in shekels, buying needs the installed app, and the setup has no plan step", async ({ page }) => {
   await page.goto("/#/");
   for (let i = 0; i < 3; i++) await page.getByTestId("setup-next").click();
   await page.goto("/#/settings");
   await expect(page.getByTestId("mobile-settings-page")).toBeVisible();
-  await expect(page.getByTestId("open-plans")).toHaveCount(0);
   await expect(page.locator("#region")).toHaveCount(0);
-  await page.goto("/#/plans");
-  await expect(page.getByTestId("mobile-library")).toBeVisible();
-  await expect(page.getByTestId("mobile-plans-page")).toHaveCount(0);
+  await page.getByTestId("open-plans").click();
+  await expect(page.getByTestId("mobile-plans-page")).toBeVisible();
+  await expect(page.getByTestId("mobile-price-PLUS")).toContainText("₪5");
+  await expect(page.getByTestId("mobile-price-PRO")).toContainText("₪20");
+  await expect(page.getByTestId("mobile-price-PRO")).not.toContainText("$");
+  // outside the installed app (the browser test build) Google Play is not there: the buttons are disabled and say why
+  await expect(page.getByTestId("plans-unavailable")).toBeVisible();
+  await expect(page.getByTestId("plan-buy-PLUS")).toBeDisabled();
+  await expect(page.getByTestId("plans-restore")).toBeDisabled();
 });
 
 test("the questionnaire is the whole first screen (nothing behind it) and 'Skip' keeps the defaults", async ({ page }) => {

@@ -8,7 +8,8 @@ import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { findTopic } from "@/lib/game/topics/catalog";
 import { courseChapters, findCourse, type Course } from "@/lib/game/topics/courses";
 import { contentLangOf, type DictKey } from "@/lib/i18n";
-import { getOfflineTier } from "@/lib/offline/entitlement";
+import { getOfflineBuildLevel } from "@/lib/offline/entitlement";
+import { recordUse } from "@/lib/offline/device-quota";
 import { generateOfflineWithProgress } from "@/lib/offline/generate";
 import { store } from "../app-state";
 import { loadCourseProgress, type ChapterProgress } from "../course-model";
@@ -46,7 +47,9 @@ function CourseView({ course }: { course: Course }) {
     if (ch.resume && level === ch.nextLevel) { navigate(`/play/${ch.resume}`); return; }
     const entry = findTopic(ch.topicId);
     if (!entry) return;
-    const tier = getOfflineTier();
+    const built = getOfflineBuildLevel();
+    if (built.exhausted) { navigate("/plans"); return; }
+    const tier = built.level;
     setFailed(false);
     setBusy({ n: ch.number, percent: 0 });
     try {
@@ -57,6 +60,7 @@ function CourseView({ course }: { course: Course }) {
       }, (percent) => { if (alive.current) setBusy({ n: ch.number, percent }); }, new Date(), tier);
       if (!alive.current) return;
       const id = store.addGame(spec).id;
+      recordUse(localStorage, spec.meta.featureTier ?? tier, Date.now());
       navigate(`/play/${id}`);
     } catch {
       if (alive.current) { setFailed(true); setBusy(null); }

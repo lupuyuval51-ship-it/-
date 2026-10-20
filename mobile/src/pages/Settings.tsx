@@ -67,7 +67,7 @@ export function SettingsPage() {
               </Select>
             </Field>
             {/* the country only picks the currency of the prices, so it goes with them (features.ts) */}
-            {showPlans() && (
+            {showPlans() && import.meta.env.VITE_SETUP_PLAN === "1" && (
               <Field label={t("mob.settings.country")} hint={t("mob.setup.country.hint")} htmlFor="region">
                 <Select id="region" className="min-h-11" value={s.region} onChange={(e) => setSettings({ region: e.target.value })}>
                   {REGION_CHOICES.map((c) => <option key={c} value={c}>{regionLabel(c, s.locale)}</option>)}
