@@ -18,20 +18,20 @@ const manifest = read("android/app/src/main/AndroidManifest.xml");
 const appGradle = read("android/app/build.gradle");
 
 describe("Android manifest (privacy and attack surface)", () => {
-  it("keeps data on the phone: no Android backup or device transfer, no cleartext traffic", () => {
-    expect(manifest).toMatch(/android:allowBackup="false"/);
+  it("keeps the learner's data through Android backup and device transfer (games, progress, plan), only caches left out; no cleartext traffic", () => {
+    expect(manifest).toMatch(/android:allowBackup="true"/);
     expect(manifest).toMatch(/android:usesCleartextTraffic="false"/);
     expect(manifest).toMatch(/android:dataExtractionRules="@xml\/data_extraction_rules"/);
     expect(manifest).toMatch(/android:fullBackupContent="@xml\/backup_rules"/);
     const legacy = read("android/app/src/main/res/xml/backup_rules.xml");
-    expect(legacy).not.toMatch(/<include/);
-    for (const domain of ["root", "file", "database", "sharedpref", "external"]) expect(legacy).toContain(`<exclude domain="${domain}" path="." />`);
+    expect(legacy).toContain('<include domain="root" path="." />');
+    expect(legacy).toContain('<exclude domain="root" path="app_webview/Default/Cache" />');
     const rules = read("android/app/src/main/res/xml/data_extraction_rules.xml");
     const cloud = rules.match(/<cloud-backup>([\s\S]*?)<\/cloud-backup>/)?.[1] ?? "";
     const transfer = rules.match(/<device-transfer>([\s\S]*?)<\/device-transfer>/)?.[1] ?? "";
     for (const section of [cloud, transfer]) {
-      expect(section).not.toMatch(/<include/);
-      for (const domain of ["root", "file", "database", "sharedpref", "external"]) expect(section).toContain(`<exclude domain="${domain}" path="." />`);
+      expect(section).toContain('<include domain="root" path="." />');
+      expect(section).toContain('<exclude domain="root" path="app_webview/Default/Cache" />');
     }
   });
 

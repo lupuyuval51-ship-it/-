@@ -1,24 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Nothing is copied off the phone by Android: not by cloud backup (Google Drive) and not by device-to-device transfer.
-  The games and the optional sign-in session live in the WebView's local storage; the only copy that leaves the phone is the
-  user's own opt-in, owner-only Supabase backup (account in Settings). allowBackup="false" in the manifest already turns
-  backup off; on Android 12+ some manufacturers still run device-to-device transfer, so it is excluded explicitly too
-  (https://developer.android.com/identity/data/autobackup).
+  The learner's data (games, progress, settings, the plan Google Play reported) lives in the WebView's local storage, inside the app's
+  data directory ("root" domain). Android's own backup keeps it, so it survives a reinstall and moves to a new phone: Auto Backup to the
+  user's Google account (encrypted, only if the user has Android backup switched on) and device-to-device transfer.
+  Only caches are left out. https://developer.android.com/identity/data/autobackup
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="root" path="." />
-        <exclude domain="file" path="." />
-        <exclude domain="database" path="." />
-        <exclude domain="sharedpref" path="." />
-        <exclude domain="external" path="." />
+        <include domain="root" path="." />
+        <exclude domain="root" path="app_webview/Default/Cache" />
+        <exclude domain="root" path="app_webview/Default/Code Cache" />
+        <exclude domain="root" path="app_webview/Default/GPUCache" />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="root" path="." />
-        <exclude domain="file" path="." />
-        <exclude domain="database" path="." />
-        <exclude domain="sharedpref" path="." />
-        <exclude domain="external" path="." />
+        <include domain="root" path="." />
+        <exclude domain="root" path="app_webview/Default/Cache" />
+        <exclude domain="root" path="app_webview/Default/Code Cache" />
+        <exclude domain="root" path="app_webview/Default/GPUCache" />
     </device-transfer>
 </data-extraction-rules>

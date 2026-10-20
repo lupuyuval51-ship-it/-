@@ -55,7 +55,7 @@ export const mobileEs: Record<keyof typeof mobile.en, string> = {
   "mob.settings.graphics": "Calidad de gráficos",
   "mob.settings.graphics.hint": "Con menos calidad va más fluido en móviles antiguos.",
   "mob.settings.vibration": "Vibración",
-  "mob.settings.privacy": "Privacidad: tus juegos y tu progreso se quedan en este móvil. Solo salen de él si decides iniciar sesión con un LUPU ID para la copia de seguridad en la nube. Sin seguimiento.",
+  "mob.settings.privacy": "Privacidad: tus juegos y tu progreso se guardan en este teléfono, y la copia de seguridad de Android (tu cuenta de Google, si la copia está activada) los conserva si reinstalas o cambias de teléfono. Solo van a nuestra nube si eliges iniciar sesión con un LUPU ID. Sin seguimiento.",
   "mob.settings.about": "Los juegos se crean en el dispositivo con un motor de estudio basado en reglas o vienen de la biblioteca de temas. LEVEL UP AI solo se usa si inicias sesión y lo eliges al crear un juego.",
   "mob.settings.clear": "Eliminar todos los juegos",
   "mob.settings.clear.confirm": "¿Eliminar todos los juegos y el progreso de este móvil?",

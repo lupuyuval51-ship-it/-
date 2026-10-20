@@ -28,6 +28,7 @@ describe("build flag", () => {
   it("the button exists only when VITE_GOOGLE_AUTH is exactly 1", () => {
     expect(googleAuthEnabled("1")).toBe(true);
     for (const v of ["", "0", "true", "yes", 1, null]) expect(googleAuthEnabled(v)).toBe(false);
+    expect(googleAuthEnabled()).toBe(false); // off unless the build asks for it
   });
 });
 

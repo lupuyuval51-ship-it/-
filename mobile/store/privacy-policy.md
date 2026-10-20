@@ -3,7 +3,7 @@
 _Last updated: 2026-10-17_
 
 **English.**
-LEVEL UP works fully on your phone without an account (a LUPU ID). If you do not sign in, nothing leaves your device: the games you create, the notes you paste and your progress are stored only in the app's storage on your phone. The app does not take part in Android's automatic backup, so this data is not copied to Google or to another phone unless you choose to (the optional account below, or a backup file you export and save yourself).
+LEVEL UP works fully on your phone without an account (a LUPU ID). If you do not sign in, we receive nothing: the games you create, the notes you paste and your progress are stored in the app's storage on your phone. The app takes part in Android's own backup: if Android backup is switched on in your phone's settings, Android (Google) keeps an encrypted copy of this app data in your Google account so it is still there after a reinstall or on a new phone (you can switch it off in Android settings). We never see that copy. Beyond that, data goes elsewhere only if you choose to (the optional account below, or a backup file you export and save yourself).
 
 **Optional LUPU ID and cloud backup.** LUPU ID is the name of the optional LEVEL UP account. If you choose to create a LUPU ID, we store, in our cloud database (Supabase, servers in the EU — Frankfurt):
 - your email address and a securely hashed password (used only to sign you in). If you choose "Continue with Google", Google tells us your email address, your name and your Google account ID instead of a password; we use them only to sign you in and we receive nothing else from your Google account (no contacts, calendar or files). We do not see your Google password;
@@ -19,7 +19,7 @@ This data is sent encrypted (HTTPS), is accessible only to your own account (row
 Contact: _add your support e-mail here_.
 
 **עברית.**
-LEVEL UP עובדת במלואה בטלפון גם בלי חשבון (LUPU ID). אם לא מתחברים, שום מידע לא יוצא מהמכשיר: המשחקים שיוצרים, החומר שמדביקים וההתקדמות נשמרים רק באחסון של האפליקציה בטלפון. האפליקציה אינה משתתפת בגיבוי האוטומטי של אנדרואיד, ולכן המידע אינו מועתק אל גוגל או אל טלפון אחר, אלא אם בחרתם בכך (החשבון האופציונלי שלמטה, או קובץ גיבוי שאתם מייצאים ושומרים בעצמכם).
+LEVEL UP עובדת במלואה בטלפון גם בלי חשבון (LUPU ID). אם לא מתחברים, אנחנו לא מקבלים שום מידע: המשחקים שיוצרים, החומר שמדביקים וההתקדמות נשמרים באחסון של האפליקציה בטלפון. האפליקציה משתתפת בגיבוי של אנדרואיד עצמו: אם הגיבוי מופעל בהגדרות הטלפון, אנדרואיד (גוגל) שומר עותק מוצפן של נתוני האפליקציה בחשבון ה-Google שלכם, כדי שיישארו אחרי התקנה מחדש או בטלפון חדש (אפשר לכבות זאת בהגדרות אנדרואיד). אנחנו לא רואים את העותק הזה. מעבר לכך המידע עובר למקום אחר רק אם בחרתם בכך (החשבון האופציונלי שלמטה, או קובץ גיבוי שאתם מייצאים ושומרים בעצמכם).
 
 **LUPU ID וגיבוי בענן — אופציונלי.** LUPU ID הוא שם החשבון האופציונלי של LEVEL UP. אם בוחרים ליצור LUPU ID, נשמרים במסד הנתונים שלנו בענן (Supabase, שרתים באיחוד האירופי — פרנקפורט):
 - כתובת האימייל וסיסמה מוצפנת (לצורך התחברות בלבד). אם בוחרים ב"המשך עם Google", Google מעבירה אלינו את כתובת האימייל, את השם ואת מזהה חשבון ה-Google במקום סיסמה; אנחנו משתמשים בהם רק כדי להתחבר, ולא מקבלים שום דבר נוסף מחשבון ה-Google (לא אנשי קשר, יומן או קבצים). אנחנו לא רואים את הסיסמה שלכם ל-Google;

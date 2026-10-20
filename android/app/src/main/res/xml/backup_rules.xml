@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 11 and older (data_extraction_rules.xml is read on Android 12+): nothing is copied by Auto Backup. allowBackup="false"
-  in the manifest already turns backup off; this file only repeats it so the two rule sets agree (and lint is satisfied).
+  Android 11 and older (data_extraction_rules.xml is read on Android 12+): Auto Backup keeps the app's data directory (the WebView's
+  local storage with the games, progress and settings) and leaves the caches out, so the rules agree with the Android 12+ file.
 -->
 <full-backup-content>
-    <exclude domain="root" path="." />
-    <exclude domain="file" path="." />
-    <exclude domain="database" path="." />
-    <exclude domain="sharedpref" path="." />
-    <exclude domain="external" path="." />
+    <include domain="root" path="." />
+    <exclude domain="root" path="app_webview/Default/Cache" />
+    <exclude domain="root" path="app_webview/Default/Code Cache" />
+    <exclude domain="root" path="app_webview/Default/GPUCache" />
 </full-backup-content>

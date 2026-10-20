@@ -52,7 +52,7 @@ Lean release (`android/app/build.gradle`, `proguard-rules.pro`, `res/raw/keep.xm
 
 | Setting | Value | Why |
 |---|---|---|
-| `allowBackup` + `dataExtractionRules` | `false`, cloud backup **and** device transfer excluded (`data_extraction_rules.xml` for Android 12+, `backup_rules.xml` for 11 and older) | Games and the optional Supabase session live in the WebView's local storage. Auto Backup would copy them (including the sign-in session) to Google Drive and to a new phone. The privacy story is "local, plus an opt-in owner-only backup"; this keeps it true. Android 12+ may still run device-to-device transfer with `allowBackup="false"` on some devices, so the rules file excludes it explicitly ([Auto Backup docs](https://developer.android.com/identity/data/autobackup)). Cost: moving to a new phone needs the in-app account backup (or *Settings → Backup*, the file export). |
+| `allowBackup` + `dataExtractionRules` | `true`: Auto Backup to the user's Google account **and** device-to-device transfer keep the app's data directory (the WebView's local storage: games, progress, settings, the plan Play reported), only caches excluded (`data_extraction_rules.xml` for Android 12+, `backup_rules.xml` for 11 and older) | The learner's data must survive a reinstall and move to a new phone without any account. Android encrypts the copy; it is in the user's own Google account, only if they have Android backup on. A Supabase sign-in session, if chosen, is part of it. Backups over 25 MB are skipped by Android. |
 | `usesCleartextTraffic` | `false` | HTTPS only. The CSP already allows only `'self'` and the Supabase project. |
 | Permissions | declared: `INTERNET`; merged from `@capacitor/haptics`: `VIBRATE`; merged from `@capgo/native-purchases` (Google Play Billing): `com.android.vending.BILLING`; androidx adds a signature-level `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `INTERNET` only for the optional account. No storage, camera, microphone, location, contacts or notification permission. |
 | FileProvider | cache + the app's own `Pictures/` only | Capacitor's template shared the whole external storage root; nothing in the app uses the provider (no camera input). |
@@ -62,10 +62,10 @@ Lean release (`android/app/build.gradle`, `proguard-rules.pro`, `res/raw/keep.xm
 | Native HTTP/cookies | `CapacitorHttp` and `CapacitorCookies` disabled | Their native requests bypass the page's CSP. Note: Capacitor registers those core plugins unconditionally, so the CSP is not a hard network boundary against an injected script; the "no request while signed out" rule is held by the app's code and tested. |
 | CSP (`mobile/index.html`) | `connect-src 'self' https://<project>.supabase.co`, `object-src 'none'`, `base-uri 'self'` | Unchanged; now covered by `tests/unit/android-shell.test.ts`. `script-src 'unsafe-inline'` stays: Capacitor injects its bridge as an inline script on WebViews without `DOCUMENT_START_SCRIPT`. |
 
-Reverting the backup decision: set `allowBackup="true"` and remove `dataExtractionRules` (and the unit-test lines that guard them).
+Reverting the backup decision: set `allowBackup="false"` and exclude every domain in both rule files (and update the unit-test lines that guard them and the privacy policy).
 Games would then follow the phone to a new device automatically, but so would the sign-in session (the Supabase client keeps it in
 `localStorage`, in the same WebView storage); keeping the games while excluding the session would need the session stored somewhere
-else, which is not done. Update `privacy-policy.md` to say device backup is included.
+The privacy policy (`mobile/store/privacy-policy.md`) already says that Android's backup keeps the app data.
 
 `tests/unit/android-shell.test.ts` fails if any of this regresses (manifest, permissions, release shrinking, target API, CSP,
 Capacitor config, back-button rules).
@@ -130,7 +130,7 @@ are no ads, analytics or third-party SDKs besides Supabase's client library.
 - **Users can request deletion: Yes**: in-app (Settings → Account → delete my account and cloud data) and on a web page.
 - "Optional" is allowed here because every user can use the whole app without an account. The mapping of play progress to
   "Other actions" and of the user id to "User IDs" is a judgment call on Google's categories; when in doubt, declare it.
-- **Android Auto Backup is off**, so the OS does not copy app data to Google; nothing to declare for it.
+- **Android Auto Backup is on** (the user's own Google account, encrypted, controlled by their Android settings). It is done by the OS, not by the app, so it is not a data collection by us; the privacy policy says it.
 - The Data safety form must match the privacy policy (`mobile/store/privacy-policy.md`, updated for the backup change).
 
 **Data deletion** (required because users can create an account). Play requires an in-app path and a public web link where
@@ -190,7 +190,7 @@ Build: `npx cap sync android && cd android && ./gradlew bundleRelease` (then `as
 1. Build passes with R8 (no "Missing classes" error). If `app/build/outputs/mapping/release/missing_rules.txt` appears, add the
    suggested `-dontwarn` lines to `proguard-rules.pro`.
 2. Merged manifest (`app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml`): permissions
-   are exactly `INTERNET`, `VIBRATE`, `com.android.vending.BILLING` (and the billing service `BIND` queries) and `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; `allowBackup="false"`,
+   are exactly `INTERNET`, `VIBRATE`, `com.android.vending.BILLING` (and the billing service `BIND` queries) and `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; `allowBackup="true"`,
    `usesCleartextTraffic="false"`, `dataExtractionRules` present; no `debuggable`.
 3. AAB: signed; contains `proguard.map` (`unzip -l app-release.aab | grep -i map`); no `.so`; compare size with 3.65 MB (1.4.1).
    Mapping keeps `com.capacitorjs.plugins.app.AppPlugin` and `HapticsPlugin` unrenamed.
@@ -243,3 +243,10 @@ Supabase dashboard (levelup-app → Authentication → Providers → Google, wit
 redirect URL `app.levelup.learn3d://auth` in Authentication → URL configuration); otherwise nobody gets past the sign-in. Data safety:
 e-mail address, name and user ID are now collected for everybody (account management), linked to the user, not shared.
 Account deletion stays in Settings (`delete-account` function).
+
+## The sign-in is optional (changed)
+
+The Google sign-in is **not** required: a learner uses the app without any account, and their data (games, progress, settings, plan)
+stays on the phone and in Android's own backup (above). Signing in with a LUPU ID stays optional (cloud backup across devices).
+To require Google again build with `VITE_GOOGLE_AUTH=1 VITE_REQUIRE_GOOGLE=1`; the section "Sign-in is required" above then applies.
+Without a login the Play "App access" declaration is "all functionality is available without special access".

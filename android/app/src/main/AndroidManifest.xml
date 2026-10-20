@@ -10,14 +10,15 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!--
-      allowBackup="false": the games and the optional Supabase sign-in session live in the WebView's local storage. They must
-      leave the phone only through the app's own opt-in, owner-only cloud backup, never through Android Auto Backup / device
-      transfer (which would also copy the sign-in session to another device). data_extraction_rules.xml repeats this for
-      Android 12+ device-to-device transfer, which some manufacturers run even with allowBackup="false". See docs/play-release.md.
+      allowBackup="true": the learner's games, progress, settings and plan live in the WebView's local storage. Android's own backup
+      (Auto Backup to the user's Google account, and device-to-device transfer) keeps them, so the learner's data survives a
+      reinstall and moves to a new phone without any account. The rules are in data_extraction_rules.xml (Android 12+) and
+      backup_rules.xml (older); only caches are left out. A Supabase sign-in session, if the learner chose one, is part of it.
+      See docs/play-release.md.
       usesCleartextTraffic="false": HTTPS only (the only server is the Supabase project in the CSP).
     -->
     <application
-        android:allowBackup="false"
+        android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:usesCleartextTraffic="false"

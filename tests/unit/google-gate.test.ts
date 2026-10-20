@@ -12,10 +12,12 @@ const Provider = I18nProvider as unknown as ComponentType<Omit<ComponentProps<ty
 const render = (locale: Locale) => renderToStaticMarkup(createElement(Provider, { locale, dict: DICTIONARIES[locale] }, createElement(GoogleGate)));
 
 describe("the Google sign-in the app asks for first", () => {
-  it("is on in a normal build and can be switched off", () => {
+  it("is off in a normal build and only on with both switches", () => {
     expect(googleAuthEnabled("1")).toBe(true);
-    expect(googleRequired()).toBe(true);
-    expect(googleRequired("0")).toBe(false);
+    expect(googleRequired()).toBe(false);
+    expect(googleRequired("1", true)).toBe(true);
+    expect(googleRequired("1", false)).toBe(false);
+    expect(googleRequired("0", true)).toBe(false);
   });
   it("shows one button and says what Google is used for, in all three languages", () => {
     for (const locale of ["he", "en", "es"] as const) {

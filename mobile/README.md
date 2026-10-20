@@ -71,4 +71,4 @@ step with `docs/play-release.md` whenever you change either.
 Icons and store graphics: `python3 mobile/make-icons.py` (writes launcher icons and `mobile/store/*.png`).
 Store text and Play Console answers: `mobile/store/listing.md`. Privacy policy: `mobile/store/privacy-policy.md`.
 
-**Google sign-in (required).** A phone without a sign-in sees only "Continue with Google" (`pages/GoogleGate.tsx`); after the first sign-in the app works without the network. `VITE_GOOGLE_AUTH=0` hides it, `VITE_REQUIRE_GOOGLE=0` makes the account optional. Setup (Google client, Supabase provider, redirect URL `app.levelup.learn3d://auth`): `docs/google-signin.md`.
+**Google sign-in (optional; required only with `VITE_REQUIRE_GOOGLE=1`).** Then a phone without a sign-in sees only "Continue with Google" (`pages/GoogleGate.tsx`); after the first sign-in the app works without the network. Build with `VITE_GOOGLE_AUTH=1` to show it at all. Setup (Google client, Supabase provider, redirect URL `app.levelup.learn3d://auth`): `docs/google-signin.md`.
