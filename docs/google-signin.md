@@ -6,7 +6,7 @@ breaks) until you have created Google credentials.
 | Where | How it works | What switches it on |
 |---|---|---|
 | **Website** | Our own server flow: OAuth 2.0 Authorization Code + PKCE + nonce. `GET /api/auth/google/start`, `GET /api/auth/google/callback`. | `GOOGLE_CLIENT_ID` **and** `GOOGLE_CLIENT_SECRET` set in the server environment |
-| **Android app** (required sign-in: the first screen of a phone without a sign-in) | Supabase Auth's Google provider, opened in the system browser, back through `app.levelup.learn3d://auth` | on in a normal build (`VITE_GOOGLE_AUTH=0` hides it, `VITE_REQUIRE_GOOGLE=0` makes it optional again) **and the Google provider must be enabled in the Supabase dashboard (project levelup-app), otherwise nobody can get past the first screen** |
+| **Android app** (required sign-in: the first screen of a phone without a sign-in) | Supabase Auth's Google provider, opened in the system browser, back through `app.levelup.learn3d://auth` | on in a normal build (`VITE_GOOGLE_AUTH=0` hides it, `VITE_REQUIRE_GOOGLE=0` makes it optional again) **and the Google provider enabled in the Supabase dashboard (project levelup-app)**; until it is, the app checks Supabase's public settings and does not show the gate, so nobody is locked out |
 
 You need **two OAuth clients** in Google Cloud (one per place), because the redirect URI of the website and the one of Supabase
 differ and the two secrets must live in different places (the website's in your server environment, the app's only in the

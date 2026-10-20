@@ -112,3 +112,36 @@ export async function finishGoogleSignIn(client: OAuthClient, url: string, store
     return { ok: false, reason: "failed" };
   }
 }
+
+// ───────────── is the Google provider switched on in Supabase? ─────────────
+
+const PROVIDER_KEY = "levelup.googleProvider";
+export type ProviderState = "on" | "off" | "unknown";
+
+/** What this phone last learned about the provider (kept so the answer is there at the next start, offline too). */
+export function readProviderState(store?: PendingStore): ProviderState {
+  try {
+    const v = safeStore(store)?.getItem(PROVIDER_KEY);
+    return v === "on" || v === "off" ? v : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Asks Supabase's public settings whether "Google" is enabled. When it is not (the dashboard step was not done yet) nobody could ever
+ * sign in, so the required sign-in must not lock the app: the gate stands aside. When Supabase cannot be reached the last answer
+ * is kept, and with none the gate stays (the sign-in is required).
+ */
+export async function checkGoogleProvider(supabaseUrl: string, publishableKey: string, fetchImpl: typeof fetch = fetch, store?: PendingStore): Promise<ProviderState> {
+  try {
+    const res = await fetchImpl(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: publishableKey }, signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return readProviderState(store);
+    const body = (await res.json()) as { external?: { google?: unknown } };
+    const state: ProviderState = body.external?.google === true ? "on" : "off";
+    try { safeStore(store)?.setItem(PROVIDER_KEY, state); } catch { /* optional */ }
+    return state;
+  } catch {
+    return readProviderState(store);
+  }
+}

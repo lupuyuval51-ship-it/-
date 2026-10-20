@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { I18nProvider, useT } from "@/components/I18nProvider";
 import { Spinner } from "@/components/ui";
 import { DICTIONARIES, dirOf } from "@/lib/i18n";
@@ -6,7 +6,8 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { useSettings } from "./app-state";
 import { usePath } from "./router";
 import { showPlans } from "./features";
-import { googleRequired } from "./cloud/google";
+import { checkGoogleProvider, googleRequired, readProviderState, type ProviderState } from "./cloud/google";
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./cloud/config";
 import { hasSavedSession } from "./cloud/client";
 import { useAccount } from "./cloud/account";
 import { LibraryPage } from "./pages/Library";
@@ -49,7 +50,16 @@ export function App() {
   const path = usePath();
   const account = useAccount();
   // A phone without a Google sign-in sees only the sign-in; one that has a saved sign-in opens straight away, offline too.
-  const needSignIn = googleRequired() && !account.session && !hasSavedSession();
+  const signedIn = Boolean(account.session) || hasSavedSession();
+  const [provider, setProvider] = useState<ProviderState>(() => readProviderState());
+  // The gate only makes sense while Google is enabled in Supabase; if it is not, the app must not lock everybody out.
+  useEffect(() => {
+    if (!googleRequired() || signedIn) return;
+    let alive = true;
+    void checkGoogleProvider(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY).then((s) => { if (alive) setProvider(s); });
+    return () => { alive = false; };
+  }, [signedIn]);
+  const needSignIn = googleRequired() && !signedIn && provider !== "off";
   const dict = useMemo(() => DICTIONARIES[locale], [locale]);
   useEffect(() => {
     document.documentElement.lang = locale;

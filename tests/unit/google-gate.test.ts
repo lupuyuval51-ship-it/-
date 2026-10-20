@@ -26,3 +26,27 @@ describe("the Google sign-in the app asks for first", () => {
     }
   });
 });
+
+describe("the gate stands aside while Google is not enabled in Supabase", () => {
+  const mem = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k) }; };
+  const answer = (body: unknown, ok = true) => (async () => ({ ok, json: async () => body })) as unknown as typeof fetch;
+
+  it("on / off follow the public settings and are remembered", async () => {
+    const { checkGoogleProvider, readProviderState } = await import("../../mobile/src/cloud/google");
+    const store = mem();
+    expect(readProviderState(store)).toBe("unknown");
+    expect(await checkGoogleProvider("https://x.supabase.co", "k", answer({ external: { google: false } }), store)).toBe("off");
+    expect(readProviderState(store)).toBe("off");
+    expect(await checkGoogleProvider("https://x.supabase.co", "k", answer({ external: { google: true } }), store)).toBe("on");
+    expect(readProviderState(store)).toBe("on");
+  });
+  it("when Supabase cannot be reached the last answer stays, and with none the gate stays (unknown)", async () => {
+    const { checkGoogleProvider } = await import("../../mobile/src/cloud/google");
+    const down = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
+    const store = mem();
+    expect(await checkGoogleProvider("https://x.supabase.co", "k", down, store)).toBe("unknown");
+    store.setItem("levelup.googleProvider", "on");
+    expect(await checkGoogleProvider("https://x.supabase.co", "k", down, store)).toBe("on");
+    expect(await checkGoogleProvider("https://x.supabase.co", "k", answer({}, false), store)).toBe("on");
+  });
+});
