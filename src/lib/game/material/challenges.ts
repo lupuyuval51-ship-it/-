@@ -466,6 +466,10 @@ function matchCandidates(defs: Definition[], t: Tr): Candidate[] {
   return out;
 }
 
+/** A word list ("dog - כלב") pairs words, it does not describe them: its feedback says what the list puts together. */
+const listPair = (o: Definition, t: Tr) => t(`In your list, “${clip(o.term, 60)}” goes with “${clip(o.meaning, 100)}”.`, `ברשימה שלכם, ליד ״${clip(o.term, 60)}״ כתוב ״${clip(o.meaning, 100)}״.`);
+const rightFor = (d: Definition, t: Tr) => (d.short ? t("Yes — that is the pair in your list.", "נכון — כך זה ברשימה שלכם.") : t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת."));
+
 function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => number, t: Tr): Candidate[] {
   const usable = defs.filter((d) => d.term.length <= 80 && d.meaning.length >= (d.short ? 2 : 8));
   if (usable.length < 2) return [];
@@ -483,7 +487,7 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     const termLength = words(d.term).length;
     const otherTerms = shuffled(clean, rnd)
       .sort((a, b) => Math.abs(words(a.term).length - termLength) - Math.abs(words(b.term).length - termLength))
-      .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `המונח ״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
+      .map((o) => ({ text: o.term, why: d.short ? listPair(o, t) : t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `המונח ״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
     // a loose word of the notes is a weak wrong option ("Earth's" next to three real terms): it only fills in when fewer than two other terms exist
     const fillers = otherTerms.length >= 2 || d.short ? [] : keywords
@@ -499,7 +503,7 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     if (wrong.length < 2) continue;
     const correctAt = Math.floor(rnd() * (wrong.length + 1));
     const options = wrong.map((w) => [clip(w.text, 200), w.why] as [string, string]);
-    options.splice(correctAt, 0, [clip(d.term, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
+    options.splice(correctAt, 0, [clip(d.term, 200), rightFor(d, t)]);
     // "It starts with “C”." only helps when no other option starts with “C” as well
     const start = distinctStart(d.term, wrong.map((w) => w.text));
     const termHint = start ? startHintText(start, t) : t(`It is not “${clip(wrong[0]!.text, 60)}”.`, `זה לא ״${clip(wrong[0]!.text, 60)}״.`);
@@ -541,8 +545,8 @@ function defineCandidates(defs: Definition[], rnd: () => number, t: Tr): Candida
     const picked = shuffled(wrong, rnd).slice(0, 3);
     if (picked.length < 2) continue;
     const correctAt = Math.floor(rnd() * (picked.length + 1));
-    const options = picked.map((w) => [clip(w.meaning, 200), t(`That describes “${clip(w.term, 60)}”, not this term.`, `זה מתאר את ״${clip(w.term, 60)}״ ולא את המושג הזה.`)] as [string, string]);
-    options.splice(correctAt, 0, [clip(d.meaning, 200), t("Yes — that is how your material describes it.", "נכון — כך החומר שלכם מתאר זאת.")]);
+    const options = picked.map((w) => [clip(w.meaning, 200), d.short ? listPair(w, t) : t(`That describes “${clip(w.term, 60)}”, not this term.`, `זה מתאר את ״${clip(w.term, 60)}״ ולא את המושג הזה.`)] as [string, string]);
+    options.splice(correctAt, 0, [clip(d.meaning, 200), rightFor(d, t)]);
     const key = distinctiveWord(d.meaning, picked.map((w) => w.meaning));
     const defStart = distinctStart(d.meaning, picked.map((w) => w.meaning));
     out.push({
