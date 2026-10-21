@@ -236,7 +236,8 @@ text is passed to the model as *data it must stick to* (`<study_material>`, tag 
   answers (`Q:`/`A:`, `ש:`/`ת:`, a question line followed by its answer, or `question? answer`), numbered lists (steps), sentences with exactly one number,
   and plain statements. From those it builds seven kinds of challenge: *answer the learner's own question* (numeric when the answer is a number),
   *match the terms*, *name the term from its description*, *fill the gap* (wrong options are other words of the material that look like the right one),
-  *put the steps in order*, *find the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and
+  *put the steps in order*, *which step comes first / right after this one* (from a list of four or more different steps, so a recipe
+  or a procedure alone makes a game), *find the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and
   per-option feedback quote the learner's own sentences, and the concept tag shown in the challenge panel never names the answer.
 * **Adaptive:** multiple-choice questions get an easier two-option version that the server serves after two misses in a row (`adaptive_difficulty`).
 * **Live preview and files:** under the material box the create form runs the same parser and builder in the browser and says what it found
