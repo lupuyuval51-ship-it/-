@@ -615,17 +615,22 @@ function numberLike(n: number, f: Fact): string {
 /** "in the 18th century", "במאה ה-18": a number of a century, which a wrong option must not push past the 21st. */
 const isCentury = (f: Fact) => /מאה ה[-־]?\s*$/u.test(f.source.slice(0, f.numAt)) || /^(?:st|nd|rd|th)?[\s-]+century/iu.test(f.source.slice(f.numAt + f.numText.length));
 
+/** A year written with its era ("44 BC", "476 AD", "586 לפנה״ס"): its wrong options are other years, never year 0. */
+const ERA_AFTER = /^\s*(?:BCE?|CE|AD|B\.C\.(?:E\.)?|A\.D\.|לפנה״ס|לפנה"ס|לפני הספירה|לספירה)(?!\p{L})/u;
+const isEraYear = (f: Fact) => Number.isInteger(f.value) && f.value > 0 && (ERA_AFTER.test(f.source.slice(f.numAt + f.numText.length)) || /(?:^|\s)(?:AD|A\.D\.)\s*$/u.test(f.source.slice(0, f.numAt)));
+
 /** Plausible wrong numbers near a fact's number, for when the notes hold too few others of the same kind. Never equal to a number in `taken`. */
 function nearNumbers(f: Fact, taken: ReadonlySet<string>, rnd: () => number, count: number): string[] {
   if (count <= 0) return [];
-  const v = f.value, mag = Math.abs(v), century = isCentury(f);
+  const v = f.value, mag = Math.abs(v), century = isCentury(f), era = isEraYear(f), year = f.isYear || era;
   const unit = f.decimals > 0 ? 10 ** -f.decimals : 1;
-  const steps = f.isYear ? [1, 2, 3, 5, 10, 20] : mag < 20 ? [1, 2, 3, 4, 5, 6] : [0.1, 0.2, 0.3, 0.5, 1].map((p) => Math.max(unit, Math.round((mag * p) / unit) * unit));
+  // a share of the number, never all of it: "0" or twice the number is not a near miss of "44"
+  const steps = year ? [1, 2, 3, 5, 10, 20] : mag < 20 ? [1, 2, 3, 4, 5, 6] : [0.1, 0.2, 0.3, 0.5].map((p) => Math.max(unit, Math.round((mag * p) / unit) * unit));
   const out = new Set<string>();
   const seen = new Set<string>([numberLike(v, f), ...taken]);
   for (const step of shuffled(steps.flatMap((s) => [s, -s]), rnd)) {
-    const n = v + (f.isYear || mag >= 20 || f.decimals === 0 ? step : step * unit);
-    if (!Number.isFinite(n) || (v >= 0 && n < 0) || (f.isYear && (n < 1000 || n > 2100)) || (century && (n < 1 || n > 21))) continue;
+    const n = v + (year || mag >= 20 || f.decimals === 0 ? step : step * unit);
+    if (!Number.isFinite(n) || (v >= 0 && n < 0) || (f.isYear && (n < 1000 || n > 2100)) || (era && n < 1) || (century && (n < 1 || n > 21))) continue;
     const text = numberLike(n, f);
     if (seen.has(text)) continue;
     seen.add(text);
@@ -668,7 +673,7 @@ function factPickCandidates(facts: Fact[], rnd: () => number, t: Tr): Candidate[
         title: pick(FACTPICK_TITLES, id, t),
         concept: clip(f.blanked.replace("___", "…"), 60),
         prompt: t(`Which number goes with this fact from your material?\n“${f.blanked}”`, `איזה מספר מתאים לעובדה הזאת מתוך החומר שלכם?\n״${f.blanked}״`),
-        hint: f.isYear ? t("It is a year.", "זו שנה.") : t(`It has ${digits} digit${digits === 1 ? "" : "s"}.`, digits === 1 ? "יש בו ספרה אחת." : `יש בו ${digits} ספרות.`),
+        hint: f.isYear || isEraYear(f) ? t("It is a year.", "זו שנה.") : t(`It has ${digits} digit${digits === 1 ? "" : "s"}.`, digits === 1 ? "יש בו ספרה אחת." : `יש בו ${digits} ספרות.`),
         explanation: clip(f.source, 600),
       }),
     });
