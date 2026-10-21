@@ -233,7 +233,7 @@ phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to
    Each gets one **base plan** with the ID `monthly`, auto-renewing, billing period 1 month, price **₪5** (Plus) and **₪20** (Pro)
    (`src/config/plans.ts` is the source of the numbers). Activate both.
 4. Monetise → In-app products → create two **one-time products** (managed, non-consumable) with exactly these **product IDs**:
-   `levelup_plus_lifetime` (price **₪15**) and `levelup_pro_lifetime` (price **₪40**; `APP_LIFETIME_PRICES_ILS` in
+   `levelup_plus_lifetime` (price **₪25**) and `levelup_pro_lifetime` (price **₪80**; about 5 and 4 months of the subscription; `APP_LIFETIME_PRICES_ILS` in
    `src/config/plans.ts` is the source of the numbers). Activate both. They give the same plan as the subscription, with no renewal:
    the app lists them with `getPurchases({ productType: "inapp" })` beside the subscriptions, the best plan of all purchases wins, the
    phone keeps a one-time plan for a year after Play last confirmed it (`LIFETIME_RECHECK_MS`; a refunded one is gone from Play's
