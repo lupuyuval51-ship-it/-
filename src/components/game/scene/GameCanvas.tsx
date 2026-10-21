@@ -95,7 +95,8 @@ function UnityFrameDriver({ runtime, client, onFrame }: { runtime: GameRuntime; 
       },
       { x: camera.position.x, y: camera.position.y, z: camera.position.z, lx: camera.position.x + dir.x, ly: camera.position.y + dir.y, lz: camera.position.z + dir.z },
     );
-    onFrame(frame);
+    // a failing receiver must not throw out of the renderer's frame loop (that would stop the whole game, not just the frames)
+    try { onFrame(frame); } catch { /* the receiver handles its own fallback */ }
   });
   return null;
 }
@@ -123,7 +124,7 @@ function Loop({ runtime, input, onInteract, profile, exposeStats, onLevel, onDpr
   const gl = useThree((s) => s.gl);
   const stats = useRef({ pub: 0, frames: 0 });
   // a new canvas (another area, a replay) carries on from the level this tier already had to step down to
-  const governor = useMemo(() => new FrameGovernor({ startLevel: rememberedLevel(profile.tier) }), [profile.tier]);
+  const governor = useMemo(() => new FrameGovernor({ startLevel: profile.adaptiveResolution ? rememberedLevel(profile.tier) : 0 }), [profile.tier, profile.adaptiveResolution]);
   const baseDpr = useMemo(() => baseDprOf(profile), [profile]);
   useFrame((_, dt) => {
     const step = Math.min(dt, 0.1);
@@ -210,7 +211,7 @@ function CameraRig({ runtime, input, reduceMotion }: Pick<GameCanvasProps, "runt
 function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
   const { runtime, profile: tierProfile, emitter } = props;
   // `tierProfile` is what the server granted: it is the ceiling. `profile` is what is drawn right now (never better).
-  const [level, setLevel] = useState(() => rememberedLevel(tierProfile.tier));
+  const [level, setLevel] = useState(() => (tierProfile.adaptiveResolution ? rememberedLevel(tierProfile.tier) : 0)); // as the canvas below decides
   const profile = useMemo(() => degradeProfile(tierProfile, level), [tierProfile, level]);
   const theme = runtime.world.theme;
   // the set follows only the fields it reads (see materialProfileFor), not every new profile object of the same tier
