@@ -6,6 +6,7 @@ import { TOPIC_CATEGORIES, type TopicCategory } from "@/lib/game/topics/types";
 import type { Locale } from "@/lib/i18n";
 import { MINUTES_CHOICES } from "@/lib/offline/first-run";
 import { setSettings, useSettings } from "../app-state";
+import { SCREEN_BACK_EVENT } from "../back";
 import { showPlans } from "../features";
 
 const PlanStep = lazy(() => import("./FirstSetupPlan").then((m) => ({ default: m.PlanStep })));
@@ -49,7 +50,8 @@ function Choice({ type, name, checked, onChange, testId, icon, children, lang }:
  * switches at once), 2) what the learner wants to learn (topic-library categories), 3) how much time a day, and, only when the
  * plans are shown (`features.ts`, off in a normal build), 4) the country for prices and the plan they would like.
  * Everything stays on the phone and can be changed in Settings; "Skip" keeps the defaults. The plan is a preference only:
- * the app sells nothing (paid features in a Google Play app may only use Google Play Billing) and every feature is open.
+ * nothing is bought here and it unlocks nothing (the plan the phone uses comes from Google Play Billing, sold on Settings → Plans;
+ * a new install is Free until Play says otherwise).
  */
 export function FirstSetup() {
   const t = useT();
@@ -62,6 +64,13 @@ export function FirstSetup() {
   useEffect(() => { window.scrollTo(0, 0); heading.current?.focus({ preventScroll: true }); }, [step]);
   const finish = () => setSettings({ setupDone: true });
   const next = () => (last ? finish() : setStep(STEPS[index + 1]!));
+  // the Android Back key goes one step back, like the Back button below (on the first step it leaves the app)
+  useEffect(() => {
+    if (index === 0) return;
+    const onBack = (e: Event) => { e.preventDefault(); setStep(STEPS[index - 1]!); };
+    window.addEventListener(SCREEN_BACK_EVENT, onBack);
+    return () => window.removeEventListener(SCREEN_BACK_EVENT, onBack);
+  }, [index]);
   const toggleInterest = (c: TopicCategory) => setSettings({ interests: s.interests.includes(c) ? s.interests.filter((x) => x !== c) : [...s.interests, c] });
 
   return (

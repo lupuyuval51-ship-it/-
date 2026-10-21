@@ -4,7 +4,7 @@ import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
 import { webHaptic } from "@/components/game/haptics";
 import type { Feedback } from "@/components/game/PlayClient";
 import { getSettings } from "./app-state";
-import { backAction, dispatchGameBack } from "./back";
+import { backAction, dispatchGameBack, dispatchScreenBack } from "./back";
 import { isShareableText } from "./export";
 import { navigate } from "./router";
 import { pageColor } from "./system-bars";
@@ -18,6 +18,7 @@ import { pageColor } from "./system-bars";
 export function installBackButton(): void {
   if (!Capacitor.isNativePlatform()) return;
   void App.addListener("backButton", ({ canGoBack }) => {
+    if (dispatchScreenBack()) return; // the first-launch questions went one step back (on their first step the app leaves, as on the library)
     const path = (window.location.hash.replace(/^#/, "") || "/").split("?")[0]!;
     switch (backAction(path, canGoBack)) {
       case "game": if (!dispatchGameBack()) navigate("/", true); break; // no game screen answered (loading, deleted game, crashed): do not swallow the press

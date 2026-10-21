@@ -140,3 +140,18 @@ test("the bottom tab bar reaches every main screen, its tabs are thumb-sized, an
   await page.getByTestId("tab-home").click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test("the Android Back key goes one question back, and on the first question it is left to the app", async ({ page }) => {
+  await page.goto("/#/");
+  const setup = page.getByTestId("first-setup");
+  const back = () => page.evaluate(() => !window.dispatchEvent(new Event("levelup:screen-back", { cancelable: true }))); // what native.ts sends first
+  await expect(setup).toHaveAttribute("data-step", "language");
+  expect(await back()).toBe(false); // first question: not taken, so Back leaves the app as on the library
+  await page.getByTestId("setup-next").click();
+  await page.getByTestId("setup-next").click();
+  await expect(setup).toHaveAttribute("data-step", "time");
+  expect(await back()).toBe(true);
+  await expect(setup).toHaveAttribute("data-step", "topics");
+  expect(await back()).toBe(true);
+  await expect(setup).toHaveAttribute("data-step", "language");
+});

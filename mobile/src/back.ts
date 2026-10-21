@@ -28,3 +28,14 @@ export function backAction(path: string, canGoBack: boolean): BackAction {
 export function dispatchGameBack(target: Pick<EventTarget, "dispatchEvent"> = window): boolean {
   return !target.dispatchEvent(new Event("levelup:back", { cancelable: true }));
 }
+
+/** The event a screen with steps of its own listens to (the first-launch questions, `FirstSetup`). */
+export const SCREEN_BACK_EVENT = "levelup:screen-back";
+
+/**
+ * Offers Back to the open screen before the route decides: a screen with steps of its own (the first-launch questions)
+ * cancels the event when it went one step back. `false` means no screen took it, so `backAction` decides as usual.
+ */
+export function dispatchScreenBack(target: Pick<EventTarget, "dispatchEvent"> = window): boolean {
+  return !target.dispatchEvent(new Event(SCREEN_BACK_EVENT, { cancelable: true }));
+}
