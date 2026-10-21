@@ -329,7 +329,7 @@ grades, scores and releases hints, so Unity never sees answer keys.
 ### Offline Android app (Google Play)
 
 `mobile/` is a server-free Android app built from the same game code: 3D runtime, challenges, study engine, topic library
-and the server's own game reducer, running on the device (`src/lib/offline`). No AI keys and no Stripe in the app; Plus and Pro are sold as monthly subscriptions or once and for good through **Google Play Billing** (₪5 and ₪20 a month, or ₪25 and ₪80 once; `mobile/src/billing/play.ts`, setup in `docs/play-release.md`), with library topics per half-year counted on the phone (Free 1, Plus 4, Pro 7; `src/lib/offline/tracks.ts`). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
+and the server's own game reducer, running on the device (`src/lib/offline`). No AI keys and no Stripe in the app; Plus and Pro are sold as monthly subscriptions or once and for good through **Google Play Billing** (₪5 and ₪20 a month, or ₪55 and ₪220 once; `mobile/src/billing/play.ts`, setup in `docs/play-release.md`), with library topics per half-year counted on the phone (Free 1, Plus 4, Pro 7; `src/lib/offline/tracks.ts`). Games and progress stay on the phone, with two opt-in ways to move them: a backup **file**
 (Settings → Backup, `src/lib/offline/backup.ts`) and an optional **LUPU ID (account) with cloud backup** through Supabase (`mobile/src/cloud`,
 `src/lib/offline/sync.ts`, `supabase/`): only the project URL and the *publishable* key are in the app, every table is owner-only (row level
 security; `supabase/tests/rls_checks.sql` is a script you run by hand in the SQL editor, not part of `npm test` or CI), and **signed out the app makes no network request** (tested). Answer keys live on the

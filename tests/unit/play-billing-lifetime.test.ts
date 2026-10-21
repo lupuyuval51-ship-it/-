@@ -123,8 +123,8 @@ describe("buying once in the app", () => {
   });
 
   it("shows the price Play gives for the one-time product", async () => {
-    plugin.getProducts.mockResolvedValue({ products: [{ identifier: PLUS_ONCE, priceString: "₪25.00" }] });
-    expect(await playLifetimePrices()).toEqual({ PLUS: "₪25.00" });
+    plugin.getProducts.mockResolvedValue({ products: [{ identifier: PLUS_ONCE, priceString: "₪55.00" }] });
+    expect(await playLifetimePrices()).toEqual({ PLUS: "₪55.00" });
     expect(plugin.getProducts).toHaveBeenCalledWith({ productIdentifiers: [PLUS_ONCE, PRO_ONCE], productType: "inapp" });
   });
 });
