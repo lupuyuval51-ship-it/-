@@ -265,3 +265,13 @@ The Google sign-in is **not** required: a learner uses the app without any accou
 stays on the phone and in Android's own backup (above). Signing in with a LUPU ID stays optional (cloud backup across devices).
 To require Google again build with `VITE_GOOGLE_AUTH=1 VITE_REQUIRE_GOOGLE=1`; the section "Sign-in is required" above then applies.
 Without a login the Play "App access" declaration is "all functionality is available without special access".
+
+## US export laws (Play Console declaration "Export laws")
+
+The Play Console asks the developer to confirm that the app may be subject to US export law and that it complies, including the rules for software with encryption. **The owner makes that declaration** (it is a legal statement by the account holder; nobody can tick it for them). What the code allows them to say truthfully:
+
+- The app contains **no encryption of its own**: no cipher, no key handling, no crypto library in `package.json` or in the Android build (`tests/unit/export-compliance.test.ts` fails if one is added to the app's source or to the mobile dependencies). It uses `crypto.getRandomValues` / `crypto.randomUUID` (random ids) and, through the Supabase client, a SHA-256 hash for sign-in (PKCE): a hash is not encryption.
+- Encryption exists only as **standard, built-in operating-system functions** the app calls without changing: HTTPS/TLS to the Supabase projects and Google Play (Android and the WebView), and Android's own encrypted backup. The app uses cleartext traffic nowhere (`usesCleartextTraffic="false"`).
+- This is the case the US rules treat as software that uses only standard encryption for authentication and data protection in transit: it is exempt from a licence, and an app that only calls the platform's own encryption is not the one that "implements" it. Under the EAR it is, at most, mass-market software (ECCN 5D992.c) available to everyone; no classification request, annual self-classification report or license is needed for an app that does nothing beyond that. (Not legal advice: if the app ever adds its own cipher, its own protocol or encryption of user files with its own keys, read the EAR section 742.15 and re-answer.)
+- In the Play Console: *App content → Export laws* (or the declaration shown when uploading a release): tick that the app may be subject to US export law and that you comply, **and** answer the encryption question as "uses only standard encryption / exempt".
+- Also for the App Store, if the app ever ships there: "uses encryption: yes, only exempt (standard HTTPS)", `ITSAppUsesNonExemptEncryption = NO`.
