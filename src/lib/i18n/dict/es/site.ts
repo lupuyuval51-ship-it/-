@@ -98,7 +98,6 @@ export const siteEs: Record<keyof typeof site.en, string> = {
   "pricing.cta.login": "Inicia sesión para suscribirte",
   "pricing.cta.manage": "Gestionar suscripción",
   "pricing.region.il": "El mismo precio en todos los países",
-  "pricing.region.usd": "Precio en dólares estadounidenses",
   "pricing.rules.title": "Cómo funciona tu cupo",
   "pricing.rules.1": "Cada nivel tiene su propio número de juegos por periodo, y usar un nivel nunca reduce otro. Un juego solo se cuenta cuando un juego validado se guarda en tu biblioteca. Si la generación falla o se agota el tiempo, no se te cobra.",
   "pricing.rules.2": "Free: {offer} por mes natural (UTC). Plus y Pro: tus juegos siguen tu periodo de facturación y se reinician al renovarse. Los juegos sin usar no se acumulan.",
