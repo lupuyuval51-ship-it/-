@@ -191,7 +191,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "lib.best": "Mejor: {score} puntos",
   "lib.completed": "Completado {n}×",
   "lib.search": "Buscar por título o tema",
-  "lib.search.count": "{n} de {total} juegos",
+  "lib.search.count": "Juegos mostrados: {n} de {total}",
   "lib.search.none": "Ningún juego coincide con tu búsqueda.",
   "lib.meta": "Zonas: {areas} · Misiones: {missions} · Retos: {challenges}",
 

@@ -190,7 +190,7 @@ export const app = defineDict(
     "lib.best": "Best: {score} points",
     "lib.completed": "Completed {n}×",
     "lib.search": "Search by title or subject",
-    "lib.search.count": "{n} of {total} games",
+    "lib.search.count": "Games shown: {n} of {total}",
     "lib.search.none": "No games match your search.",
     "lib.meta": "Areas: {areas} · Missions: {missions} · Challenges: {challenges}",
 
