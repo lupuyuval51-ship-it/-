@@ -38,7 +38,8 @@ function NpcView({ runtime, npc, nearby, profile, materials, model }: { runtime:
   return (
     <group position={[npc.x, 0, npc.z]}>
       <Character runtime={runtime} npc={npc} nearby={nearby} profile={profile} materials={materials} model={model} />
-      <Label text={npc.name} color={npc.color} y={labelY} scale={0.9} />
+      {/* the body stands at npc.y (Characters.tsx), so the name follows it onto a platform */}
+      <Label text={npc.name} color={npc.color} y={npc.y + labelY} scale={0.9} />
     </group>
   );
 }
