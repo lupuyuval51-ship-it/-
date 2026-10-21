@@ -588,7 +588,7 @@ function oddCandidates(defs: Definition[], rnd: () => number, t: Tr): Candidate[
     usedOdd.add(odd);
     const correctAt = Math.floor(rnd() * 4);
     const options = inGroup.map((i) => [clip(usable[i]!.term, 200), t(`No — your material describes “${clip(usable[i]!.term, 50)}” with “${word}”: ${clip(usable[i]!.meaning, 120)}`, `לא — החומר שלכם מתאר את ״${clip(usable[i]!.term, 50)}״ עם ״${word}״: ${clip(usable[i]!.meaning, 120)}`)] as [string, string]);
-    options.splice(correctAt, 0, [clip(usable[odd]!.term, 200), t(`Yes — “${clip(usable[odd]!.term, 50)}” is described differently: ${clip(usable[odd]!.meaning, 120)}`, `נכון — ״${clip(usable[odd]!.term, 50)}״ מתואר אחרת: ${clip(usable[odd]!.meaning, 120)}`)]);
+    options.splice(correctAt, 0, [clip(usable[odd]!.term, 200), t(`Yes — “${clip(usable[odd]!.term, 50)}” is described differently: ${clip(usable[odd]!.meaning, 120)}`, `נכון — המונח ״${clip(usable[odd]!.term, 50)}״ מתואר אחרת: ${clip(usable[odd]!.meaning, 120)}`)]);
     out.push({
       kind: "odd", objective: "terms", level: 3, keys: [`odd:${st}`],
       make: (id, level, objectiveId) => choice({

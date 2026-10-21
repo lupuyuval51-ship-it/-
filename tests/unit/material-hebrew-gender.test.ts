@@ -16,10 +16,10 @@ describe("Hebrew feedback on a wrong option", () => {
   it("names the word with a noun whose gender the verbs agree with, never a bare word with masculine verbs", () => {
     const { spec } = generateOffline(request({ material: NOTES, subject: "מחזור המים", learningGoal: "מחזור המים", mode: "FULL", contentLanguage: "he" }));
     const feedback = spec.challenges.flatMap((c) => (c.type === "choice" ? c.options.map((o) => o.feedback) : []));
-    const told = feedback.filter((f) => /לא מתאימה? כאן|מופיעה? בפתקים|מוגדר אחרת/u.test(f));
+    const told = feedback.filter((f) => /לא מתאימה? כאן|מופיעה? בפתקים|מוגדר אחרת|מתואר אחרת/u.test(f));
     expect(told.length).toBeGreaterThan(0);
     for (const f of told) {
-      expect(f, f).toMatch(/^(?:המילה|הביטוי|המספר|המונח) ״/u);
+      expect(f, f).toMatch(/^(?:נכון — )?(?:המילה|הביטוי|המספר|המונח) ״/u);
       if (f.startsWith("המילה")) expect(f, f).not.toMatch(/לא מתאים כאן|הוא לקוח|״ מופיע /u);
     }
   });
