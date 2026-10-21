@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { ChevronDown, CircleCheck, CircleX, X } from "lucide-react";
 import { useDir, useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
@@ -359,17 +359,38 @@ function ChoiceInput({ challenge, compact = false, disabled, result, onChange }:
   );
 }
 
+/**
+ * The keyboard for a numeric answer. iOS's decimal keypad has no minus key, so a negative answer ("−5" in the negative-numbers
+ * topic) could not be typed on an iPhone or iPad: there the text keyboard is asked for (its "123" page has the minus).
+ * Everywhere else the decimal keypad stays (Android's has the minus).
+ */
+export function numericInputMode(nav: { userAgent?: string; platform?: string; maxTouchPoints?: number } | undefined): "decimal" | "text" {
+  if (!nav) return "decimal";
+  const ios = /iPad|iPhone|iPod/.test(nav.userAgent ?? "") || (nav.platform === "MacIntel" && (nav.maxTouchPoints ?? 0) > 1);
+  return ios ? "text" : "decimal";
+}
+
+const noSubscribe = () => () => undefined;
+
+/** The number a typed answer reads as: a decimal comma and the typographic minus (−) count as "." and "-". */
+export const typedNumber = (v: string): number | null => {
+  const n = Number(v.replace(",", ".").replace("−", "-").trim());
+  return v.trim() !== "" && Number.isFinite(n) ? n : null;
+};
+
 function NumericInput({ challenge, disabled, onChange, onEnter }: { challenge: Extract<PublicChallenge, { type: "numeric" }>; disabled: boolean; onChange: (v: number | null) => void; onEnter: () => void }) {
   const t = useT();
   const [text, setText] = useState("");
   const unitId = useId();
+  // the server renders the decimal keypad; the browser answers for itself after hydration (the device never changes)
+  const mode = useSyncExternalStore(noSubscribe, () => numericInputMode(navigator), () => "decimal" as const);
   return (
     <label className="block space-y-1.5 text-sm">
       <span className="text-muted">{t("challenge.numeric.label")}</span>
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
-          inputMode="decimal"
+          inputMode={mode}
           dir="ltr"
           autoComplete="off"
           aria-describedby={challenge.unit ? unitId : undefined}
@@ -381,8 +402,7 @@ function NumericInput({ challenge, disabled, onChange, onEnter }: { challenge: E
           onChange={(e) => {
             const v = e.target.value;
             setText(v);
-            const n = Number(v.replace(",", ".").trim());
-            onChange(v.trim() !== "" && Number.isFinite(n) ? n : null);
+            onChange(typedNumber(v));
           }}
           className="w-44 max-w-full rounded-xl border border-line bg-ink-900 px-3 py-2.5 text-lg focus:border-neon focus:outline-none"
         />
