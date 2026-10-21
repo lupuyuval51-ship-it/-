@@ -249,28 +249,28 @@ function checkGame(spec: GameSpec, label: string) {
 
 describe("answer length is not a tell", () => {
   // A right answer that is the only long option gives itself away. By chance it is the longest of four about a quarter of the
-  // time; the curated questions are at about 52 % today. This is a ratchet: new or edited content may lower it, never raise it.
-  // (Rewrite the shortest wrong options of a question rather than shortening its right answer.)
-  it("the right answer of a curated question is the longest option in at most 52 % of them", () => {
+  // time; the curated questions were at 52 % and are at about 11 % since the content waves. This is a ratchet: new or edited
+  // content may lower it, never raise it. (Rewrite the shortest wrong options of a question rather than shortening its right answer.)
+  it("the right answer of a curated question is the longest option in at most 15 % of them", () => {
     let all = 0, longest = 0;
     for (const c of contents.values()) for (const lv of LEVELS) for (const pair of c[lv].q ?? []) for (const [, answer, wrong] of pair) {
       all++;
       if (answer.length > Math.max(...wrong.map((w) => w.length))) longest++;
     }
     expect(all).toBeGreaterThan(3000);
-    expect(longest / all).toBeLessThanOrEqual(0.52);
+    expect(longest / all).toBeLessThanOrEqual(0.15);
   });
 
-  it("in the Plus and Pro collection it is at most 40 %, in each language", () => {
-    for (const lang of [0, 1] as const) {
+  it("in every topic it is at most 40 %, in each language (scripts/length-tell.ts measures one topic)", () => {
+    for (const t of TOPICS) for (const lang of [0, 1] as const) {
       let all = 0, longest = 0;
-      for (const t of PLUS_PRO_TOPICS) for (const lv of LEVELS) for (const pair of contents.get(t.id)![lv].q ?? []) {
+      for (const lv of LEVELS) for (const pair of contents.get(t.id)![lv].q ?? []) {
         const [, answer, wrong] = pair[lang];
         all++;
         if (answer.length > Math.max(...wrong.map((w) => w.length))) longest++;
       }
-      expect(all).toBeGreaterThan(PLUS_PRO_TOPICS.length * 12);
-      expect(longest / all, lang ? "he" : "en").toBeLessThanOrEqual(0.4);
+      expect(all, t.id).toBeGreaterThanOrEqual(6);
+      expect(longest / all, `${t.id} ${lang ? "he" : "en"}`).toBeLessThanOrEqual(0.4);
     }
   });
 });
@@ -286,8 +286,8 @@ describe("the Plus and Pro collection", () => {
     for (const t of PLUS_PRO_TOPICS) expect(findTopic(t.id), t.id).toBe(t);
   });
 
-  it("every level has 8+ items, 4+ of them questions, numbers or orderings, and every answer is explained (40+ characters)", () => {
-    for (const t of PLUS_PRO_TOPICS) {
+  it("every level of every topic (the original library too) has 8+ items, 4+ of them questions, numbers or orderings, and every answer is explained (40+ characters)", () => {
+    for (const t of TOPICS) {
       const c = contents.get(t.id)!;
       for (const lv of LEVELS) {
         const l = c[lv];
