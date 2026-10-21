@@ -45,7 +45,8 @@ const NO_DECK: DeckSummary = { total: 0, due: 0, nextDue: null };
 export function loadLibrary(src: LibrarySource): LibraryLoad {
   try {
     const games = src.listGames().map((g): LibraryGame => {
-      const last = g.lastSessionId ? src.getSession(g.lastSessionId)?.updatedAt : undefined;
+      // the store's rows carry the newest run's stamp; only a source whose rows do not has to read that run again
+      const last = g.lastStampAt !== undefined ? g.lastStampAt : g.lastSessionId ? src.getSession(g.lastSessionId)?.updatedAt : undefined;
       // the store's rows carry the level already; only a source whose rows do not has to read each game's spec again
       let difficulty = g.difficulty;
       if (!difficulty) { try { difficulty = src.getGame?.(g.id)?.spec.meta.difficulty; } catch { /* the level is only decoration */ } }

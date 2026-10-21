@@ -81,6 +81,8 @@ export interface GameSummaryRow {
   lastDoneSessionId?: string | null;
   /** When the learner last moved in any run of this game (phone clock, ms), or null if it was never started. */
   lastPlayedAt: number | null;
+  /** The store stamp (`updatedAt`) of the newest run, so the library need not read that run again for it. */
+  lastStampAt?: number | null;
   /** The game's level as stored in its spec, so a screen that lists games need not read every spec again for it. */
   difficulty?: string;
   /** The topic (or template) the game was built from, from its spec (`meta.generator.templateId`). */
@@ -323,6 +325,7 @@ export class OfflineStore {
         bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
         inProgress: sessions.some((s) => s.status === "ACTIVE"), completed: done.length > 0, percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null, lastDoneSessionId: done[0]?.id ?? null,
         lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
+        lastStampAt: sessions[0]?.updatedAt ?? null,
         difficulty: g.spec.meta.difficulty, ...(templateId ? { templateId } : {}),
       };
     } catch {
