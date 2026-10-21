@@ -9,6 +9,7 @@ import { DIFFICULTIES, GAME_TYPES, type Difficulty, type GameType } from "@/lib/
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError } from "@/lib/offline/generate";
 import { storageErrorCode } from "@/lib/offline/store";
+import { looksLikeBinary } from "@/lib/game/material/file";
 import { EXAMPLE_NOTES, exampleById, findExample, isExampleText } from "./examples";
 
 export type CreateMode = "FAST" | "FULL";
@@ -106,36 +107,14 @@ export type MaterialFile = { ok: true; text: string; trimmed: boolean } | { ok: 
  * mistake decodes to NULs and replacement characters), or is empty, is refused; a long file keeps its beginning.
  */
 export function materialFromFileText(raw: string): MaterialFile {
-  const broken = (raw.match(/[\u0000\uFFFD]/g) ?? []).length;
-  if (broken > Math.max(2, raw.length * 0.01)) return { ok: false };
+  if (looksLikeBinary(raw)) return { ok: false };
   const text = cleanPastedText(raw).trim();
   if (!text) return { ok: false };
   return { ok: true, text: cutAt(text, INPUT_LIMITS.materialMax), trimmed: text.length > INPUT_LIMITS.materialMax };
 }
 
-/**
- * The text of a picked file's bytes. `File.text()` always reads UTF-8, so notes that Windows Notepad saved as "Unicode"
- * (UTF-16 with a byte-order mark) or as Hebrew "ANSI" (windows-1255, the old Israeli default) came out as garbage and
- * were refused. UTF-8 is tried first; a legacy Hebrew file is recognised by its letters (bytes 0xE0–0xFA hold א–ת);
- * anything else is read as UTF-8 with replacement characters, which `materialFromFileText` then refuses as not text.
- */
-export function decodeTextFile(bytes: Uint8Array): string {
-  if ((bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff)) {
-    return new TextDecoder(bytes[0] === 0xff ? "utf-16le" : "utf-16be").decode(bytes);
-  }
-  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { /* not UTF-8 */ }
-  let high = 0;
-  let hebrew = 0;
-  for (const b of bytes) {
-    if (b < 0x80) continue;
-    high++;
-    if (b >= 0xe0 && b <= 0xfa) hebrew++;
-  }
-  if (hebrew / Math.max(1, high) >= 0.6) {
-    try { return new TextDecoder("windows-1255").decode(bytes); } catch { /* a WebView without the legacy encodings */ }
-  }
-  return new TextDecoder("utf-8").decode(bytes);
-}
+/** The text of a picked file's bytes (UTF-8, UTF-16 with a BOM, or Hebrew windows-1255): shared with the website. */
+export { decodeTextFile } from "@/lib/game/material/file";
 
 /** A subject suggested by the file name ("cell-biology_ch3.md" becomes "cell biology ch3"). */
 export function subjectFromFileName(name: string): string {

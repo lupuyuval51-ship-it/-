@@ -14,6 +14,7 @@ import { MaterialPreview } from "./MaterialPreview";
 import { TopicPicker } from "./TopicPicker";
 import { TOPICS, findTopic } from "@/lib/game/topics/catalog";
 import { leftText } from "@/components/allowance/quota";
+import { decodeTextFile, looksLikeBinary } from "@/lib/game/material/file";
 
 export interface CreateFormProps {
   /** `none`: no AI provider, so a game needs the learner's own material or a topic from the library (`subjectOnly`: test suites only). */
@@ -277,7 +278,10 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
     if (!file) return;
     try {
       if (file.size > 2_000_000) throw new Error("too big");
-      const text = cleanFieldText(await file.text());
+      // Notepad's UTF-16 and Hebrew "ANSI" files read as text too; a PDF or Word file picked by mistake is refused
+      const raw = decodeTextFile(new Uint8Array(await file.arrayBuffer()));
+      if (looksLikeBinary(raw)) throw new Error("not text");
+      const text = cleanFieldText(raw);
       // the cut never leaves half of a two-unit character behind
       setMaterial(cleanFieldText(text.slice(0, INPUT_LIMITS.materialMax)));
       setFileNote(text.length > INPUT_LIMITS.materialMax ? { tone: "info", text: t("create.material.file.trimmed", { max: INPUT_LIMITS.materialMax }) } : null);

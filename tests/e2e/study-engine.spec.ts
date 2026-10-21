@@ -117,6 +117,24 @@ test.describe("the study engine: a game made from the learner's own material", (
     await expect(page.getByTestId("area-name")).toContainText(/[֐-׿]/);
   });
 
+  test("a Hebrew notes file saved by Notepad (windows-1255 or UTF-16) loads as Hebrew; a binary file is refused", async ({ page }) => {
+    await setLocaleCookie(page, "en");
+    await registerViaUi(page, { name: "Noa" });
+    await page.goto("/create");
+    await expect(page.getByTestId("create-form")).toHaveAttribute("data-hydrated", "1");
+    const notes = "כלורופיל: הצבען הירוק שקולט אור.\nפוטוסינתזה: התהליך שבו צמחים הופכים אור לאנרגיה.";
+    // windows-1255: א–ת are the bytes 0xE0–0xFA; the rest of these notes is ASCII
+    const cp1255 = Buffer.from([...notes].map((ch) => (ch >= "א" && ch <= "ת" ? 0xe0 + ch.charCodeAt(0) - "א".charCodeAt(0) : ch.charCodeAt(0))));
+    await page.getByTestId("material-file").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: cp1255 });
+    await expect(page.getByTestId("create-material")).toHaveValue(notes);
+    const utf16 = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from(notes, "utf16le")]);
+    await page.getByTestId("material-file").setInputFiles({ name: "notes-unicode.txt", mimeType: "text/plain", buffer: utf16 });
+    await expect(page.getByTestId("create-material")).toHaveValue(notes);
+    // a PDF picked by mistake does not fill the box with garbage
+    await page.getByTestId("material-file").setInputFiles({ name: "slides.pdf", mimeType: "application/pdf", buffer: Buffer.from([0x25, 0x50, 0x44, 0x46, ...Array.from({ length: 400 }, (_, i) => (i * 37) % 256)]) });
+    await expect(page.getByTestId("create-material")).toHaveValue(notes);
+  });
+
   test("a text file of questions and answers can be loaded into the box and becomes a game", async ({ page }) => {
     test.setTimeout(180_000);
     await setLocaleCookie(page, "en");
