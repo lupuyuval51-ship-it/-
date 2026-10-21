@@ -94,9 +94,9 @@ function checkContent(t: TopicEntry, c: TopicContent, errs: string[]) {
       if ((tol ?? 0) < 0) errs.push(`${l}: negative tolerance`);
       if (Boolean(en[1]) !== Boolean(he[1])) errs.push(`${l}: unit in one language only: ${en[0]}`);
       if (en[1].length > 12 || he[1].length > 12) errs.push(`${l}: unit longer than 12: ${en[0]}`);
-      const written = [String(answer), answer.toLocaleString("en-US")];
+      const written = [String(answer), answer.toLocaleString("en-US")].flatMap((w) => [w, w.replace("-", "−")]);
       for (const [lang, text] of [["en", en[2]], ["he", he[2]]] as const) if (!written.some((w) => text.includes(w))) errs.push(`${l} ${lang}: the answer ${answer} is not in its explanation: ${en[0]}`);
-      for (const text of [en[2], he[2]]) if (text.length < 40) errs.push(`${l}: numeric explanation shorter than 40: ${en[0]}`);
+      for (const text of [en[2], he[2]]) if (text.length < 40) errs.push(`${l}: numeric explanation shorter than 40 characters: ${text} (question: ${en[0]})`);
     }
     for (const [en, he] of lv.s ?? []) {
       if (en.length !== he.length) errs.push(`${l}: ordering step counts differ: ${en[0]}`);

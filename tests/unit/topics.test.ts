@@ -191,7 +191,7 @@ describe("topic content hygiene", () => {
           expect(Boolean(en[1])).toBe(Boolean(he[1]));
           expect(en[1].length).toBeLessThanOrEqual(12);
           expect(he[1].length).toBeLessThanOrEqual(12);
-          const written = [String(answer), answer.toLocaleString("en-US")];
+          const written = [String(answer), answer.toLocaleString("en-US")].flatMap((w) => [w, w.replace("-", "−")]);
           for (const [lang, text] of [["en", en[2]], ["he", he[2]]] as const) expect(written.some((w) => text.includes(w)), `${t.id}/${l} ${lang}: ${en[0]} → ${answer}`).toBe(true);
         }
       }
