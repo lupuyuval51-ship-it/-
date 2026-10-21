@@ -138,6 +138,11 @@ describe("system bars (Android 15+ edge-to-edge)", () => {
     expect(activity.indexOf("registerPlugin(SystemBarsPlugin.class);")).toBeLessThan(activity.indexOf("super.onCreate("));
     expect(read("android/app/src/main/java/app/levelup/learn3d/SystemBarsPlugin.java")).toContain('@CapacitorPlugin(name = "LevelUpSystemBars")');
     expect(read("mobile/src/native.ts")).toContain('registerPlugin<LevelUpSystemBars>("LevelUpSystemBars")');
+    // the keep-screen-on stand-in for navigator.wakeLock, registered the same way
+    expect(activity.indexOf("registerPlugin(ScreenPlugin.class);")).toBeGreaterThan(-1);
+    expect(activity.indexOf("registerPlugin(ScreenPlugin.class);")).toBeLessThan(activity.indexOf("super.onCreate("));
+    expect(read("android/app/src/main/java/app/levelup/learn3d/ScreenPlugin.java")).toContain('@CapacitorPlugin(name = "LevelUpScreen")');
+    expect(read("mobile/src/native.ts")).toContain('registerPlugin<LevelUpScreen>("LevelUpScreen")');
   });
 });
 
@@ -236,6 +241,7 @@ describe("the built release matches docs/play-release.md", () => {
     for (const entry of [
       "app.levelup.learn3d.FilesPlugin: void share(com.getcapacitor.PluginCall)",
       "app.levelup.learn3d.SystemBarsPlugin: void setPageColor(com.getcapacitor.PluginCall)",
+      "app.levelup.learn3d.ScreenPlugin: void setKeepScreenOn(com.getcapacitor.PluginCall)",
       "ee.forgr.nativepurchases.NativePurchasesPlugin: void getPurchases(com.getcapacitor.PluginCall)",
       "ee.forgr.nativepurchases.NativePurchasesPlugin: void purchaseProduct(com.getcapacitor.PluginCall)",
     ]) expect(seeds, entry).toContain(entry);

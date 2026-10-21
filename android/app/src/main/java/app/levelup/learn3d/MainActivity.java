@@ -52,6 +52,7 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(FilesPlugin.class); // before super.onCreate, which builds the bridge
         registerPlugin(SystemBarsPlugin.class);
+        registerPlugin(ScreenPlugin.class);
         super.onCreate(savedInstanceState);
         // No WebView on the device: Capacitor has already shown its own message.
         if (getBridge() == null) return;

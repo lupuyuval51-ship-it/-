@@ -8,6 +8,7 @@ import { backAction, dispatchGameBack, dispatchScreenBack } from "./back";
 import { isShareableText } from "./export";
 import { navigate } from "./router";
 import { pageColor } from "./system-bars";
+import { nativeWakeLock } from "./wake-lock";
 
 /**
  * Android back button: inside a game it is handled by the game (close panel → pause → leave);
@@ -88,12 +89,26 @@ function installSystemBars(): void {
   sync();
 }
 
+interface LevelUpScreen {
+  setKeepScreenOn(options: { on: boolean }): Promise<void>;
+}
+
+/** The WebView has no `navigator.wakeLock`: the play screen's request goes to the shell's keep-screen-on flag (see wake-lock.ts). */
+function installKeepAwake(): void {
+  if ("wakeLock" in navigator) return; // a WebView that has the real API keeps it
+  const screen = registerPlugin<LevelUpScreen>("LevelUpScreen");
+  try {
+    Object.defineProperty(navigator, "wakeLock", { configurable: true, value: nativeWakeLock((on) => screen.setKeepScreenOn({ on })) });
+  } catch { /* the screen then times out as before */ }
+}
+
 /** Hooks that only make sense inside the Android app; a no-op in a browser (tests, `npm run mobile:dev`). */
 export function installNativeShell(): void {
   if (!Capacitor.isNativePlatform()) return;
   installBackButton();
   installFileDownloads();
   installSystemBars();
+  installKeepAwake();
 }
 
 /** Short vibrations for game events (can be switched off in Settings). */
