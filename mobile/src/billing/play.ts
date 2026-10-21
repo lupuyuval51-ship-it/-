@@ -8,7 +8,7 @@ import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import type { PaidPlanId } from "@/config/plans";
 import {
   PLAY_PRODUCTS, classifyPurchaseError, loadPlanState, planAfterRefresh, planFromPurchases, purchasesToAcknowledge, savePlanState,
-  type PlanState, type PurchaseFailure,
+  type PlanState, type PurchaseFailure, type PurchaseLike,
 } from "@/lib/offline/billing-state";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
 import { createSerialQueue } from "@/lib/offline/serial-queue";
@@ -38,12 +38,23 @@ async function acknowledgeAll(tokens: readonly string[]): Promise<void> {
   }
 }
 
-/** Never throws: offline keeps what was stored. Runs inside the line (callers go through `refreshPlan`, `buyPlan`, `restorePurchases`). */
-async function refreshNow(): Promise<PlanState | null> {
+/**
+ * Never throws: offline keeps what was stored. Runs inside the line (callers go through `refreshPlan`, `buyPlan`, `restorePurchases`).
+ * `justBought` is the purchase Play's sheet has just confirmed (`buyPlan`): the query right after a purchase can fail or be cut off
+ * (the plugin then answers an empty list, or rejects), and that must never leave a learner who has just paid on Free, so the
+ * confirmed purchase counts together with whatever the query lists (the best plan of both wins, as always).
+ */
+async function refreshNow(justBought: readonly PurchaseLike[] = []): Promise<PlanState | null> {
   try {
     const before = getOfflinePlan();
     const now = Date.now();
-    const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS });
+    let listed: readonly PurchaseLike[] = [];
+    try {
+      listed = (await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS })).purchases;
+    } catch (err) {
+      if (justBought.length === 0) throw err; // nothing certain to keep: the stored plan stays as it is
+    }
+    const purchases = [...listed, ...justBought];
     const state = planAfterRefresh(loadPlanState(localStorage), planFromPurchases(purchases, now), now);
     savePlanState(localStorage, state);
     if (state.plan !== before) announce();
@@ -65,21 +76,23 @@ export async function refreshPlan(): Promise<PlanState | null> {
 export type BuyResult = { ok: true } | { ok: false; reason: "UNAVAILABLE" | "SUBSCRIBED" | PurchaseFailure };
 
 /**
- * Starts Play's purchase sheet for a plan; on success the new plan is read back from Play. Plus and Pro are two separate Play
- * subscriptions and the plugin cannot replace one with the other, so a learner who already has a plan is not sold a second one
- * (it would be billed next to the first): `SUBSCRIBED` sends them to Play's own subscription page instead.
+ * Starts Play's purchase sheet for a plan; on success the new plan is read back from Play, counting the purchase the sheet itself
+ * confirmed (the plugin resolves only for a paid purchase, state "1"; pending and everything else reject). Plus and Pro are two
+ * separate Play subscriptions and the plugin cannot replace one with the other, so a learner who already has a plan is not sold a
+ * second one (it would be billed next to the first): `SUBSCRIBED` sends them to Play's own subscription page instead.
  */
 export async function buyPlan(plan: PaidPlanId): Promise<BuyResult> {
   if (!billingAvailable()) return { ok: false, reason: "UNAVAILABLE" };
   const { productId, basePlanId } = PLAY_PRODUCTS[plan];
   return inLine(async (): Promise<BuyResult> => {
     if (getOfflinePlan() !== "FREE") return { ok: false, reason: "SUBSCRIBED" };
+    let bought: PurchaseLike | null;
     try {
-      await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
+      bought = await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
     } catch (err) {
       return { ok: false, reason: classifyPurchaseError(err) };
     }
-    await refreshNow();
+    await refreshNow(bought && typeof bought === "object" ? [bought] : []);
     announce();
     return { ok: true };
   }, BUY_SLOT_MS);

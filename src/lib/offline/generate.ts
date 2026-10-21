@@ -45,7 +45,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
   const entry = parsed.data.topicId ? findTopic(parsed.data.topicId) : undefined;
   // A topic-library request needs that topic's content, which the caller loads first (`generateOfflineWithProgress` does).
   if (parsed.data.topicId && (!entry || !topic)) throw new OfflineGenerationError("INVALID_REQUEST", "The topic could not be loaded.");
-  // Premium topics follow the install's plan (Plus/Pro); until Google Play Billing exists every install is unlocked.
+  // Premium topics follow the install's plan (`entitlement.ts`: what Google Play Billing last confirmed, Free until then; the test builds are Pro).
   if (parsed.data.topicId && !topicOpenFor(getOfflinePlan(), parsed.data.topicId)) throw new OfflineGenerationError("TIER_LOCKED", requiredFor(parsed.data.topicId));
   const req = entry ? topicRequest(parsed.data, entry) : parsed.data;
   // Same rule as the server's `assertRequestAllowed`: ask for something the tier doesn't have and nothing is built.
