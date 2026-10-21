@@ -121,6 +121,7 @@ EDUCATIONAL DESIGN RULES
 - The learning IS the gameplay: each challenge must make the player APPLY the concept (compute, order, classify, debug, predict, configure) \u2014 not recall trivia.
 - Introduce concepts gradually: level 1 challenges first, level 2 next, level 3 near the end of each area; later challenges build on earlier ones.
 - Immediate feedback: every wrong choice option has "feedback" explaining the specific misconception; numeric challenges list the most likely wrong answers in "commonMistakes" with a targeted explanation; "explanation" states WHY the answer is right.
+- Choice options are alike in length, detail and style: the right answer must not be the longest or the most detailed option more often than the others (a test-wise player learns to pick it), and no option repeats the prompt's key words. Wrong options are plausible: each reflects a real misconception.
 - Provide a "hint" for harder challenges (it should point, not give away).
 - Every learning objective must be assessed by at least one challenge (objectiveId). The "conclusion" summarises what the player learned and what to study next.
 - Match the requested difficulty and language level. Be factually correct; if unsure, choose a safer, simpler fact.
