@@ -393,7 +393,9 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
     const lvl = Math.min(3, Math.max(1, base + (full ? third : third > 0 ? 1 : 0))) as Level;
     const made = c.make(`c-${i + 1}`, lvl, `o-${c.objective}`);
     if (made.easier && easier < 6) { made.base.easierId = made.easier.id; variants.push(made.easier); easier++; }
-    if (made.harder && harder < 3) { made.base.harderId = made.harder.id; variants.push(made.harder); harder++; }
+    // a harder version is served after a streak of three, so the first three challenges never get one: on them it could
+    // not be earned, yet the best score would count it, and a flawless player would miss three stars
+    if (made.harder && harder < 3 && i >= 3) { made.base.harderId = made.harder.id; variants.push(made.harder); harder++; }
     challenges.push(made.base);
   });
 
