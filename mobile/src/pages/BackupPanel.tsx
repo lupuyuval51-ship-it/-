@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Button, Card, Textarea } from "@/components/ui";
 import { backupFileName, BackupError, createBackup, fileTooLarge, importBackup, MAX_BACKUP_BYTES, serializeBackup } from "@/lib/offline/backup";
-import { store } from "../app-state";
+import { store, storageErrorKey } from "../app-state";
 
 type Message = { tone: "ok" | "error"; text: string };
 interface Health { writable: "ok" | "full" | "unavailable"; percent: number; damaged: number }
@@ -128,9 +128,15 @@ export function BackupPanel() {
   }
 
   function purge() {
-    const n = store.purgeDamaged();
-    setMessage({ tone: "ok", text: t("mob.storage.purged", { count: String(n) }) });
-    setHealth(readHealth());
+    try {
+      const n = store.purgeDamaged();
+      setMessage({ tone: "ok", text: t("mob.storage.purged", { count: String(n) }) });
+    } catch (e) {
+      // the phone refused to write the shortened lists: say so instead of a button that silently does nothing
+      setMessage({ tone: "error", text: t(storageErrorKey(e) ?? "mob.backup.err.STORAGE_UNAVAILABLE") });
+    } finally {
+      setHealth(readHealth());
+    }
   }
 
   return (

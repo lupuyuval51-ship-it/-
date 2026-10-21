@@ -47,6 +47,23 @@ export interface GameCanvasProps {
   onUnityFrame?: (frame: UnityFrame) => void;
 }
 
+/**
+ * The fields of a render profile that `createMaterialSet` reads (kept in step with materials.ts by tests/unit/w2-scene-4.test.ts).
+ * Everything else (particles, shadows, lights, exposure) the scene applies itself.
+ */
+export const MATERIAL_PROFILE_FIELDS = ["materials", "textureSize"] as const satisfies readonly (keyof RenderProfile)[];
+
+/**
+ * The profile to build the material set from: `built`, the one the current set was made from, as long as the fields the set
+ * reads are the same, otherwise `next`. Turning "reduce motion" on or off hands the canvas a new profile object of the same tier
+ * (other particles only); that used to rebuild every material and procedural texture, hand every mesh a new material and dispose
+ * the old set before the new one was drawn (so three.js compiles those shaders again): a freeze on a phone, for a set that came out
+ * exactly the same.
+ */
+export function materialProfileFor(built: RenderProfile | null, next: RenderProfile): RenderProfile {
+  return built !== null && MATERIAL_PROFILE_FIELDS.every((f) => built[f] === next[f]) ? built : next;
+}
+
 /** The pixel ratio of the tier on this screen, before any fallback step. */
 const baseDprOf = (profile: RenderProfile) => Math.min(profile.pixelRatioMax, typeof window === "undefined" ? 1 : window.devicePixelRatio);
 
@@ -196,7 +213,11 @@ function Scene(props: GameCanvasProps & { onDpr: (dpr: number) => void }) {
   const [level, setLevel] = useState(() => rememberedLevel(tierProfile.tier));
   const profile = useMemo(() => degradeProfile(tierProfile, level), [tierProfile, level]);
   const theme = runtime.world.theme;
-  const materials = useMemo(() => createMaterialSet(tierProfile, theme), [tierProfile, theme]);
+  // the set follows only the fields it reads (see materialProfileFor), not every new profile object of the same tier
+  const [built, setBuilt] = useState(tierProfile);
+  const materialProfile = materialProfileFor(built, tierProfile);
+  if (materialProfile !== built) setBuilt(materialProfile);
+  const materials = useMemo(() => createMaterialSet(materialProfile, theme), [materialProfile, theme]);
   useEffect(() => () => materials.dispose(), [materials]);
   const gl = useThree((s) => s.gl);
   useEffect(() => {

@@ -127,8 +127,10 @@ export function playThrough(spec: FlowSpec, mode: "check" | "plan" = "check"): F
     if (st.finished) break;
 
     const doneCount = area.stations.filter((s) => stationDone(st, s.id)).length;
-    // The portal stands in the last room: with doors, every station before it has to be done.
-    const portalReachable = !doors || area.stations.slice(0, n - 1).every((s) => stationDone(st, s.id));
+    // The portal stands in the last room: with doors, the station in every room before it has to be done. In `plan`
+    // mode those rooms hold the stations in the order they were met (the rest come after them), so one station that
+    // never opens here (a side mission waiting for a later area) can still go in the last room, next to the portal.
+    const portalReachable = !doors || (mode === "plan" ? placed.length >= n - 1 : area.stations.slice(0, n - 1).every((s) => stationDone(st, s.id)));
     if (area.portal && portalReachable && portalOpen(full, st, area) && spec.areas.some((a) => a.id === area.portal!.toAreaId)) {
       st.areaId = area.portal.toAreaId;
       continue;

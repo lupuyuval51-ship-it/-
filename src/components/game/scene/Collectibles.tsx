@@ -45,6 +45,50 @@ function leafGeometry(): THREE.BufferGeometry {
   return g;
 }
 
+function coreEdgesGeometry(): THREE.BufferGeometry {
+  const cube = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+  const g = new THREE.EdgesGeometry(cube);
+  cube.dispose();
+  return g;
+}
+
+// The star and leaf silhouettes and the data core's edges are the same for every pick-up of a kind: built once and shared
+// (as the burst above) instead of one extrusion per collectible each time a world is drawn. Never disposed either.
+let starGeo: THREE.BufferGeometry | null = null;
+let leafGeo: THREE.BufferGeometry | null = null;
+let edgesGeo: THREE.BufferGeometry | null = null;
+
+/** The shared shaped geometry of a kind: the star's and the leaf's outline, the data core's edges; null for the rest. */
+export function pickupGeometry(kind: WorldCollectible["kind"]): THREE.BufferGeometry | null {
+  if (kind === "star") return (starGeo ??= starGeometry());
+  if (kind === "leaf") return (leafGeo ??= leafGeometry());
+  if (kind === "data-core") return (edgesGeo ??= coreEdgesGeometry());
+  return null;
+}
+
+/** How fast a pick-up spins, in radians per second: far away, and within 3 m of the player. */
+export const SPIN_FAR = 1.8;
+export const SPIN_NEAR = 3.4;
+
+/**
+ * The next spin angle of a pick-up. It is integrated from the speed, so coming within 3 m (and leaving again) only changes
+ * how fast it turns: the angle used to be `time × speed`, which jumped by `time × 1.6` radians, any angle at all, on that
+ * step (and flickered between two angles when the player stood at the edge). The first frame starts at `time × SPIN_FAR`,
+ * the angle a pick-up far away has always had, so pick-ups nobody has come near still turn together.
+ */
+export function nextSpin(angle: number | null, time: number, dt: number, near: boolean): number {
+  return angle === null ? time * SPIN_FAR : angle + dt * (near ? SPIN_NEAR : SPIN_FAR);
+}
+
+/**
+ * Whether the pick-up burst starts this frame: only when this view saw the item not yet collected and now sees it
+ * collected. `seen` is null when the view has not looked for the current runtime yet: an item already collected then (a
+ * resumed game, a return to the area through its portal) is simply not drawn, instead of every one of them bursting at once.
+ */
+export function startsBurst(seen: boolean | null, collected: boolean): boolean {
+  return collected && seen === false;
+}
+
 /**
  * A pick-up. Each kind has its own silhouette, hovers and spins, leans toward you when you are close, and bursts into
  * sparks when collected. Collection itself is decided by the simulation; this only draws it.
@@ -55,17 +99,19 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
   const inner = useRef<THREE.Mesh>(null);
   const sparks = useRef<THREE.Group>(null);
   const shock = useRef<THREE.Mesh>(null);
-  const was = useRef(false);
+  // What this view last saw, and for which runtime; it starts from the state at the first draw, so a pick-up made on the
+  // very first frame still bursts while an item collected before is never mistaken for one.
+  const was = useRef(runtime.isCollected(item.itemId));
+  const wasFor = useRef(runtime);
   const pop = useRef(0);
+  const spin = useRef<number | null>(null);
   const color = COLORS[item.kind] ?? accent;
   const mat = materials.glow(color, 1.5);
   const bright = materials.glow("#ffffff", 1.2);
   const shadows = profile.shadows.enabled;
 
-  const geo = useMemo(() => (item.kind === "star" ? starGeometry() : item.kind === "leaf" ? leafGeometry() : null), [item.kind]);
-  useEffect(() => () => geo?.dispose(), [geo]);
-  const edges = useMemo(() => (item.kind === "data-core" ? new THREE.EdgesGeometry(new THREE.BoxGeometry(0.5, 0.5, 0.5)) : null), [item.kind]);
-  useEffect(() => () => edges?.dispose(), [edges]);
+  const geo = item.kind === "star" || item.kind === "leaf" ? pickupGeometry(item.kind) : null;
+  const edges = item.kind === "data-core" ? pickupGeometry(item.kind) : null;
   const lineMat = useMemo(() => (item.kind === "data-core" ? new THREE.LineBasicMaterial({ color, toneMapped: false }) : null), [color, item.kind]); // only the data core draws edges
   useEffect(() => () => lineMat?.dispose(), [lineMat]);
   const shockMat = useMemo(() => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }), [color]);
@@ -76,8 +122,9 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
     if (!g || !b) return;
     const t = clock.elapsedTime;
     const collected = runtime.isCollected(item.itemId);
-    if (collected && !was.current) pop.current = 1;
+    if (startsBurst(wasFor.current === runtime ? was.current : null, collected)) pop.current = 1;
     was.current = collected;
+    wasFor.current = runtime;
     b.visible = !collected;
     if (!collected) {
       const p = runtime.sim.player;
@@ -87,7 +134,8 @@ export function CollectibleView({ runtime, item, profile, materials, accent }: {
       g.position.set(item.x + (dx / (d || 1)) * pull, item.y + Math.sin(t * 2.4 + item.x) * 0.12 + (dy / (d || 1)) * pull * 0.5, item.z + (dz / (d || 1)) * pull);
       const s = 1 + (d < 3 ? (1 - d / 3) * 0.18 : 0);
       b.scale.setScalar(s);
-      b.rotation.y = t * (d < 3 ? 3.4 : 1.8);
+      spin.current = nextSpin(spin.current, t, dt, d < 3);
+      b.rotation.y = spin.current;
       if (item.kind === "data-core") b.rotation.x = t * 0.9;
       if (item.kind === "leaf") b.rotation.z = Math.sin(t * 1.6) * 0.35;
       if (inner.current) inner.current.rotation.set(t * 1.4, t * 1.9, 0);

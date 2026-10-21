@@ -1,8 +1,13 @@
 /**
  * The corpus the balance simulation runs over: study-engine games from a spread of realistic notes (he + en, from a
- * three-line sketch to a long chapter, with and without terms / steps / Q&A / numbers) and every demo template.
+ * three-line sketch to a long chapter, with and without terms / steps / Q&A / numbers), the same games fitted to a phone
+ * as the Android app makes them, and the sample packs of the test suites (`tests/support/samples`; the product never
+ * registers them, see `sample-builder.ts`). Topic-library games are balanced in `tests/unit/topics.test.ts`.
+ *
+ * Only an honest refusal of thin notes (`MATERIAL_UNUSABLE`) leaves a game out; any other failure is a bug and is thrown,
+ * so the simulation can never pass by quietly running over fewer games.
  */
-import { generateOffline } from "../../offline/generate";
+import { OfflineGenerationError, generateOffline } from "../../offline/generate";
 import { sampleBuilder } from "../sample-builder";
 import { MaterialError, buildMaterialExtension } from "../material/build";
 import { mergeExtension } from "../spec/extension";
@@ -10,7 +15,7 @@ import { extensionSchema } from "../spec/schema";
 import { validateGameSpec } from "../spec/validate";
 import { generationRequestSchema } from "../../schemas/generation";
 import type { GameSpec } from "../spec/schema";
-import { GAME_TYPES } from "../spec/constants";
+import { GAME_TYPES, type GameType } from "../spec/constants";
 import { hashSeed, mulberry32 } from "../util/prng";
 
 export interface CorpusItem {
@@ -299,20 +304,57 @@ const DEMO_SUBJECTS: Record<"he" | "en", string[]> = {
   he: ["לולאות בפייתון", "שברים", "פוטוסינתזה", "רומא העתיקה", "פעלים בספרדית", "משהו אחר"],
 };
 
-/** Study-engine games: every note set in FULL and FAST (the long one also in a clipped version). */
-export function engineCorpus(): CorpusItem[] {
+/** The study engine's honest "your notes are too thin for a game" (covered by the material tests); nothing else is. */
+const thinNotes = (e: unknown): boolean => e instanceof OfflineGenerationError && e.code === "MATERIAL_UNUSABLE";
+
+/** The sample packs exist only where the test suites or the balance script registered them. */
+function requireSamples(corpus: string): void {
+  if (!sampleBuilder()) throw new Error(`${corpus} needs the test samples: call registerSamples() from tests/support/register-samples.ts first`);
+}
+
+const engineGame = (n: Notes, lang: "he" | "en", mode: "FULL" | "FAST", gameType: GameType, device?: "phone"): GameSpec =>
+  generateOffline({
+    mode, subject: n.subject, learningGoal: `Learn ${n.subject}`, difficulty: "beginner", gameType, contentLanguage: lang, material: n.text, ...(device ? { device } : {}),
+  }).spec;
+
+/**
+ * Study-engine games: every note set in FULL and FAST, as an adventure and a platformer. The ids of the games the engine
+ * refused as too thin are added to `refused` (a three-line sketch is meant to be refused; a long chapter never is).
+ */
+export function engineCorpus(refused: string[] = []): CorpusItem[] {
   const out: CorpusItem[] = [];
   for (const [lang, sets] of [["en", EN], ["he", HE]] as const) {
     for (const n of sets) {
       for (const mode of ["FULL", "FAST"] as const) {
         for (const gameType of ["adventure", "platformer"] as const) {
+          const id = `${n.id}/${mode}/${gameType}`;
           try {
-            const { spec } = generateOffline({
-              mode, subject: n.subject, learningGoal: `Learn ${n.subject}`, difficulty: "beginner", gameType, contentLanguage: lang, material: n.text,
-            });
-            out.push({ id: `${n.id}/${mode}/${gameType}`, kind: "engine", lang, mode, spec });
-          } catch {
-            // too little material for this mode is a legitimate refusal, covered by material tests
+            out.push({ id, kind: "engine", lang, mode, spec: engineGame(n, lang, mode, gameType) });
+          } catch (e) {
+            if (!thinNotes(e)) throw e;
+            refused.push(id);
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The engine games as the Android app makes them: the app always asks for a phone, so every game it builds is fitted to a
+ * touch screen (`fitForDevice`: less walking, fewer gems, more time for timed answers). Every note set, mode and game type.
+ */
+export function phoneCorpus(): CorpusItem[] {
+  const out: CorpusItem[] = [];
+  for (const [lang, sets] of [["en", EN], ["he", HE]] as const) {
+    for (const n of sets) {
+      for (const mode of ["FULL", "FAST"] as const) {
+        for (const gameType of GAME_TYPES) {
+          try {
+            out.push({ id: `phone:${n.id}/${mode}/${gameType}`, kind: "engine", lang, mode, spec: engineGame(n, lang, mode, gameType, "phone") });
+          } catch (e) {
+            if (!thinNotes(e)) throw e;
           }
         }
       }
@@ -323,6 +365,7 @@ export function engineCorpus(): CorpusItem[] {
 
 /** Sample games (registered by the test suites / the balance script, never by the product): each pack x game type x mode x language. */
 export function demoCorpus(): CorpusItem[] {
+  requireSamples("demoCorpus");
   const out: CorpusItem[] = [];
   for (const lang of ["en", "he"] as const) {
     for (const subject of DEMO_SUBJECTS[lang]) {
@@ -338,10 +381,12 @@ export function demoCorpus(): CorpusItem[] {
 }
 
 /**
- * Games grown with "Extend Existing Game" until they are full (4 areas / 24 challenges): the longest games the product makes.
- * Engine games are extended with other notes of the same language, demo games with their own pre-written extensions.
+ * Games grown with "Extend Existing Game": engine games with other notes of the same language until they are full
+ * (4 areas / 24 challenges, the longest games the product makes), sample games with their own pre-written extensions
+ * until the pack has none left. Each step goes through the same merge and validation as the server's EXTEND.
  */
 export function extendedCorpus(): CorpusItem[] {
+  requireSamples("extendedCorpus");
   const out: CorpusItem[] = [];
   for (const lang of ["en", "he"] as const) {
     const sets = lang === "en" ? EN : HE;
@@ -411,8 +456,9 @@ export function fuzzCorpus(count: number, seed = "fuzz"): CorpusItem[] {
           contentLanguage: lang, material: text,
         });
         out.push({ id: `fuzz-${i}/${mode}/${spec.meta.gameType}`, kind: "engine", lang, mode, spec });
-      } catch {
-        // thin notes are refused honestly (tested elsewhere)
+      } catch (e) {
+        // thin notes are refused honestly (tested elsewhere); an invalid game or a crash on odd notes is a bug
+        if (!thinNotes(e)) throw e;
       }
     }
   }

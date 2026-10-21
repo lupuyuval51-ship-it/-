@@ -19,6 +19,17 @@ const GREEN = "#34d399";
 const GREY = "#7b8499";
 
 /**
+ * A station marker's outline: rounded where the canvas can draw it. `roundRect` is missing before Chrome 99 / Safari 16
+ * (an Android System WebView that was never updated, an iPhone left on iOS 15). There the call threw on every frame,
+ * after the map had been clipped and saved, so the stations, characters, objective and player arrow never appeared and
+ * the canvas state stack grew by one entry per frame. There the marker is a plain square instead.
+ */
+export function markerPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  if (typeof ctx.roundRect === "function") ctx.roundRect(x, y, w, h, r);
+  else ctx.rect(x, y, w, h);
+}
+
+/**
  * A round, camera-aligned mini-map (up = the way the camera looks). It draws the area's floor plan, the stations,
  * characters, pick-ups and the current guide target, imperatively at ~15 Hz, so it never causes React renders.
  * It only uses what the browser already knows (world layout + public spec + progress), never any answer.
@@ -109,7 +120,7 @@ export function Minimap({ runtime, client, input, guide, calm = false }: { runti
         ctx.strokeStyle = "#06101f";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(mx - 4, my - 4, 8, 8, 2);
+        markerPath(ctx, mx - 4, my - 4, 8, 8, 2);
         ctx.fill();
         ctx.stroke();
       }

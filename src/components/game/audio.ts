@@ -6,7 +6,7 @@
  * come from the environment's "mood"), scheduled a quarter of a second ahead so it never stutters.
  */
 import type { Environment } from "@/lib/game/spec/constants";
-import { cuesForEvent, gapAllows, resyncNextNote, safeGain, streakNotes, voiceAllowed, volumeToGain, type GameSoundEvent, type Sfx } from "./audioModel";
+import { NOISE_SECONDS, cuesForEvent, gapAllows, noiseOffset, resyncNextNote, safeGain, streakNotes, voiceAllowed, volumeToGain, type GameSoundEvent, type Sfx } from "./audioModel";
 
 export type { Sfx, GameSoundEvent } from "./audioModel";
 
@@ -52,6 +52,8 @@ export class GameAudio {
   private nextNote = 0;
   private beat = 0;
   private mood: Mood = MOODS["neon-city"];
+  /** A theme picked while the music plays; it starts at the top of the next bar. */
+  private nextMood: Mood | null = null;
   private combo = 0;
   private lastCollect = -10;
   /** Scheduled end times of sounding voices (clock based, so a missed "ended" event can never leak a voice). */
@@ -100,7 +102,12 @@ export class GameAudio {
     if (this.lifecycleOn || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
     this.lifecycleOn = true;
     document.addEventListener("visibilitychange", this.onVisibility);
-    if (typeof window.addEventListener === "function") window.addEventListener("pagehide", this.onHide);
+    if (typeof window.addEventListener === "function") {
+      window.addEventListener("pagehide", this.onHide);
+      // a page restored from the back/forward cache is not always announced by a visibilitychange: without this the
+      // `pagehide` above would leave the game silent for good
+      window.addEventListener("pageshow", this.onVisibility);
+    }
   }
 
   private onHide = (): void => this.setBackground(true);
@@ -116,7 +123,7 @@ export class GameAudio {
       void ctx.suspend?.()?.catch?.(() => undefined);
     } else {
       this.nextNote = resyncNextNote(this.nextNote, ctx.currentTime);
-      void ctx.resume()?.catch?.(() => undefined);
+      void ctx.resume?.()?.catch?.(() => undefined);
     }
   }
 
@@ -139,9 +146,17 @@ export class GameAudio {
     }
   }
 
-  /** Picks the music mood for an environment (takes effect on the next bar). */
+  /**
+   * Picks the music mood for an environment. While the music plays it takes effect on the next bar (from the first chord
+   * of its progression), so the old bar's pad never rings under the new key and tempo.
+   */
   setTheme(env: Environment): void {
-    this.mood = MOODS[env] ?? MOODS["neon-city"];
+    const mood = MOODS[env] ?? MOODS["neon-city"];
+    if (this.timer) this.nextMood = mood === this.mood ? null : mood;
+    else {
+      this.mood = mood;
+      this.nextMood = null;
+    }
   }
 
   private tone(freq: number, start: number, dur: number, type: OscillatorType, gain: number, opts: { slideTo?: number; attack?: number; dest?: AudioNode; lowpass?: number } = {}): void {
@@ -185,7 +200,7 @@ export class GameAudio {
     const out = dest ?? this.master;
     if (!ctx || !out) return;
     if (!this.noiseBuf) {
-      const len = ctx.sampleRate;
+      const len = Math.round(ctx.sampleRate * NOISE_SECONDS);
       this.noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
       const d = this.noiseBuf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -202,7 +217,7 @@ export class GameAudio {
     g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
     this.track(start + dur + 0.05);
     src.connect(f).connect(g).connect(out);
-    src.start(start, Math.random() * 0.5);
+    src.start(start, noiseOffset(dur, Math.random(), NOISE_SECONDS));
     src.stop(start + dur + 0.05);
   }
 
@@ -216,7 +231,14 @@ export class GameAudio {
     const now = this.ctx.currentTime;
     if (!gapAllows(name, this.lastPlayed.get(name), now) || !voiceAllowed(name, this.activeVoices(now))) return;
     this.lastPlayed.set(name, now);
-    const t = now + (opts.delay ?? 0);
+    try {
+      this.synth(name, now + Math.max(0, opts.delay ?? 0), opts.level);
+    } catch {
+      /* audio is optional: a voice the browser refuses must never break the game code that asked for the sound */
+    }
+  }
+
+  private synth(name: Sfx, t: number, cueLevel: number | undefined): void {
     switch (name) {
       case "collect": {
         // quick successive pickups climb the pentatonic scale
@@ -242,7 +264,7 @@ export class GameAudio {
         break;
       case "streak": {
         // a sparkling rising arpeggio; a longer streak climbs further and ends with a shimmer
-        const level = Math.max(1, Math.min(3, Math.round(opts.level ?? 1)));
+        const level = Math.max(1, Math.min(3, Math.round(cueLevel ?? 1) || 1));
         const base = 659 * (level === 3 ? 1.12 : 1);
         streakNotes(level).forEach((semi, i) => {
           const f = base * Math.pow(2, semi / 12);
@@ -333,6 +355,8 @@ export class GameAudio {
   private startMusic(): void {
     if (this.timer || !this.ctx) return;
     this.glide(this.music, volumeToGain(this.musicVolume, 0.55));
+    if (this.nextMood) this.mood = this.nextMood;
+    this.nextMood = null;
     this.nextNote = this.ctx.currentTime + 0.12;
     this.beat = 0;
     this.timer = setInterval(() => this.pump(), 70);
@@ -340,12 +364,21 @@ export class GameAudio {
 
   private pump(): void {
     const ctx = this.ctx;
-    if (!ctx || this.hidden || ctx.state !== "running") {
-      if (ctx) this.nextNote = resyncNextNote(this.nextNote, ctx.currentTime); // never replay a backlog after a suspend
-      return;
-    }
+    // Never replay a backlog: not after a suspend, and not after the main thread stalled (a new area being built on a
+    // slow phone) while the audio clock ran on; the late notes would otherwise all sound at once.
+    if (ctx) this.nextNote = resyncNextNote(this.nextNote, ctx.currentTime);
+    if (!ctx || this.hidden || ctx.state !== "running") return;
     while (this.nextNote < ctx.currentTime + 0.25) {
-      this.scheduleStep(this.beat, this.nextNote);
+      if (this.beat % 8 === 0 && this.nextMood) {
+        this.mood = this.nextMood; // a new area's music starts at the top of a bar, on the first chord
+        this.nextMood = null;
+        this.beat = 0;
+      }
+      try {
+        this.scheduleStep(this.beat, this.nextNote);
+      } catch {
+        /* a refused voice skips this step; the loop must still move on */
+      }
       this.nextNote += 60 / this.mood.bpm / 2;
       this.beat++;
     }
@@ -385,12 +418,25 @@ export class GameAudio {
     this.stopMusic();
     if (this.lifecycleOn) {
       document.removeEventListener("visibilitychange", this.onVisibility);
-      if (typeof window.removeEventListener === "function") window.removeEventListener("pagehide", this.onHide);
+      if (typeof window.removeEventListener === "function") {
+        window.removeEventListener("pagehide", this.onHide);
+        window.removeEventListener("pageshow", this.onVisibility);
+      }
       this.lifecycleOn = false;
     }
     this.hidden = false;
     this.ends = [];
-    void this.ctx?.close();
+    this.nextMood = null;
+    const ctx = this.ctx;
     this.ctx = null;
+    this.master = null;
+    this.music = null;
+    this.noiseBuf = null;
+    try {
+      // an old WebKit context has no close(), and closing twice rejects: neither may surface from a React cleanup
+      void ctx?.close?.()?.catch?.(() => undefined);
+    } catch {
+      /* already gone */
+    }
   }
 }

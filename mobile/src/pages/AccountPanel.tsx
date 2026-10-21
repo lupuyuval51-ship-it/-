@@ -2,10 +2,20 @@ import { useEffect, useState } from "react";
 import { useLocale, useT } from "@/components/I18nProvider";
 import { GoogleLogo } from "@/components/forms/GoogleButton";
 import { Alert, Button, Card, Field, Input } from "@/components/ui";
-import { deleteAccount, signIn, signOut, signUp, syncNow, useAccount } from "../cloud/account";
+import { deleteAccount, signIn, signOut, signUp, syncNow, useAccount, type AuthResult } from "../cloud/account";
 import { googleAuthEnabled } from "../cloud/google";
 import { onGoogleResult, signInWithGoogle } from "../cloud/google-native";
 import { formatWhen } from "../format";
+
+/**
+ * What is wrong with the typed e-mail and password, or null. The address is checked as it is sent (trimmed): a phone keyboard
+ * often puts a space after an address it suggested, and that address is fine. The password is taken exactly as typed.
+ */
+export function credentialsProblem(email: string, password: string): "mob.account.error.email" | "mob.account.error.password" | null {
+  if (!/^\S+@\S+\.\S+$/.test(email.trim())) return "mob.account.error.email";
+  if (password.length < 8) return "mob.account.error.password";
+  return null;
+}
 
 /** Optional account: back up games and progress to the cloud and use them on another phone. The game works without it. */
 export function AccountPanel() {
@@ -16,7 +26,11 @@ export function AccountPanel() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ tone: "error" | "success" | "info"; text: string } | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  // The account the delete confirmation was opened for: after a sign-out (or a sign-in to another account) it is closed, so the
+  // next sign-in never opens one tap away from deleting an account.
+  const userId = session?.user.id ?? null;
+  const [confirmFor, setConfirmFor] = useState<string | null>(null);
+  const confirmDelete = confirmFor !== null && confirmFor === userId;
 
   const google = googleAuthEnabled();
   useEffect(() => google ? onGoogleResult((r) => { if (!r.ok) setMessage({ tone: "error", text: t(r.reason === "cancelled" ? "mob.account.google.cancelled" : "mob.account.google.error") }); }) : undefined, [google, t]);
@@ -30,11 +44,17 @@ export function AccountPanel() {
 
   async function submit(kind: "in" | "up") {
     setMessage(null);
-    if (!/^\S+@\S+\.\S+$/.test(email)) { setMessage({ tone: "error", text: t("mob.account.error.email") }); return; }
-    if (password.length < 8) { setMessage({ tone: "error", text: t("mob.account.error.password") }); return; }
+    const problem = credentialsProblem(email, password);
+    if (problem) { setMessage({ tone: "error", text: t(problem) }); return; }
     setBusy(true);
-    const r = kind === "in" ? await signIn(email.trim(), password) : await signUp(email.trim(), password);
-    setBusy(false);
+    let r: AuthResult;
+    try {
+      r = kind === "in" ? await signIn(email.trim(), password) : await signUp(email.trim(), password);
+    } catch {
+      r = { ok: false, message: "failed" }; // never leaves the buttons disabled for good
+    } finally {
+      setBusy(false);
+    }
     if (!r.ok) setMessage({ tone: "error", text: t("mob.account.error.generic") });
     else if (r.needsConfirmation) setMessage({ tone: "info", text: t("mob.account.confirm") });
     else setPassword("");
@@ -51,23 +71,25 @@ export function AccountPanel() {
         {error && <p className="text-xs text-muted" dir="ltr">{error}</p>}
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => void syncNow()} disabled={status === "syncing"} data-testid="sync-now">{t("mob.account.syncNow")}</Button>
-          <Button size="sm" variant="secondary" onClick={() => void signOut()} data-testid="sign-out">{t("mob.account.signOut")}</Button>
+          {/* (an old message, e.g. a failed deletion, must not greet the signed-out screen) */}
+          <Button size="sm" variant="secondary" onClick={() => { setMessage(null); void signOut(); }} data-testid="sign-out">{t("mob.account.signOut")}</Button>
         </div>
         <div className="space-y-2 border-t border-line pt-3">
           {!confirmDelete ? (
-            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)} data-testid="delete-account">{t("mob.account.delete")}</Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirmFor(userId)} data-testid="delete-account">{t("mob.account.delete")}</Button>
           ) : (
             <div className="space-y-2 rounded-xl border border-rose/40 p-3 text-sm">
               <p>{t("mob.account.delete.confirm")}</p>
               <div className="flex gap-2">
                 <Button size="sm" variant="danger" disabled={busy} data-testid="delete-account-confirm" onClick={async () => {
                   setBusy(true);
-                  const r = await deleteAccount();
-                  setBusy(false);
-                  setConfirmDelete(false);
+                  let r: AuthResult;
+                  try { r = await deleteAccount(); } catch { r = { ok: false, message: "failed" }; } finally { setBusy(false); }
+                  setConfirmFor(null);
                   setMessage(r.ok ? { tone: "success", text: t("mob.account.deleted") } : { tone: "error", text: t("mob.account.error.generic") });
                 }}>{t("common.yes")}</Button>
-                <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>{t("common.no")}</Button>
+                {/* a deletion already sent cannot be called back: "No" waits for its answer instead of pretending to cancel it */}
+                <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmFor(null)} data-testid="delete-account-cancel">{t("common.no")}</Button>
               </div>
             </div>
           )}

@@ -20,6 +20,34 @@ function hash(s: string): number {
 
 const shade = (hex: string, f: number) => `#${new THREE.Color(hex).multiplyScalar(f).getHexString()}`;
 
+/** What three.js draws for a colour it is not given: the hair of a character whose hair index falls outside the palette. */
+const UNSET_COLOUR = "#ffffff";
+
+export interface HumanLook {
+  skin: string;
+  hair: string;
+  /** 0 short, 1 bun, 2 spiky, 3 cap; below 0 no hair at all. */
+  style: number;
+  glasses: boolean;
+}
+
+/**
+ * The look of a human character, fixed by its id. The hair and style indexes use a signed shift of the unsigned hash, so
+ * for about half of all ids (every `n-0`…`n-9` the topic library and the study engine give their guide) they are negative:
+ * those characters are drawn without hair, or with white hair (an index outside the palette used to reach the material as
+ * `undefined`, which three.js drew white with a console warning). That is the look players know, so it is kept as it is,
+ * only spelled out; giving them the palette's hair is a visible design change and a decision of its own.
+ */
+export function humanLook(npcId: string): HumanLook {
+  const h = hash(npcId);
+  return {
+    skin: SKIN[h % SKIN.length]!,
+    hair: HAIR[(h >> 3) % HAIR.length] ?? UNSET_COLOUR,
+    style: (h >> 6) % 4,
+    glasses: (h >> 9) % 3 === 0,
+  };
+}
+
 interface NpcProps {
   runtime: GameRuntime;
   npc: WorldNpc;
@@ -168,11 +196,7 @@ function Human({ runtime, npc, nearby, profile, materials }: NpcProps) {
   const head = useRef<THREE.Group>(null);
   const torso = useRef<THREE.Group>(null);
   const shadows = profile.shadows.enabled;
-  const h = hash(npc.npcId);
-  const skin = SKIN[h % SKIN.length]!;
-  const hair = HAIR[(h >> 3) % HAIR.length]!;
-  const style = (h >> 6) % 4; // 0 short, 1 bun, 2 spiky, 3 cap
-  const glasses = (h >> 9) % 3 === 0;
+  const { skin, hair, style, glasses } = humanLook(npc.npcId);
   const cloth = materials.solid(npc.color, { rough: 0.75, metal: 0.05 });
   const cloth2 = materials.solid(shade(npc.color, 0.55), { rough: 0.8, metal: 0.05 });
   const pants = materials.solid("#2c3350", { rough: 0.8 });
@@ -427,7 +451,8 @@ export function Character(props: NpcProps) {
       {body === "human" && <Human {...props} />}
       {body === "creature" && <Creature {...props} />}
       {body === "orb" && <Orb {...props} />}
-      <QuestMark npcId={props.npc.npcId} model={props.model} y={body === "orb" ? 3.5 : body === "robot" ? 3.0 : body === "creature" ? 2.5 : 2.9} materials={props.materials} />
+      {/* over the head: the body stands at the character's own height (`npc.y`), so the mark does too */}
+      <QuestMark npcId={props.npc.npcId} model={props.model} y={props.npc.y + (body === "orb" ? 3.5 : body === "robot" ? 3.0 : body === "creature" ? 2.5 : 2.9)} materials={props.materials} />
     </>
   );
 }

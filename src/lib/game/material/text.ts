@@ -7,17 +7,29 @@ export const MATERIAL_MAX_CHARS = 8000;
 
 const CONTROL_AND_BIDI = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F‎‏‪-‮⁦-⁩]/g;
 /** Emoji used as bullets or decoration ("💧 Water: …"): they would end up in options, hints ("starts with 💧") and gaps. */
-const EMOJI = /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F?))*\uFE0F?/gu;
+// A pictograph outside the basic plane ("\uD83C\uDF24", "\uD83D\uDDFA", "\uD83D\uDEE0") is an emoji even without a variation selector (keyboards often leave it
+// out); text symbols of the basic plane such as \u00A9 or \u2122 stay.
+const EMOJI = /(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F|(?=[\u{1F000}-\u{1FFFF}])\p{Extended_Pictographic})(?:\u200D(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F?))*\uFE0F?/gu;
+/** A keycap digit ("1\uFE0F\u20E3 Boil the water") is a list marker: read as "1." so the list is a list of steps. */
+const KEYCAP_DIGIT = /(\d)\uFE0F?\u20E3/gu;
 /** Soft hyphen, zero-width space, word joiner and byte-order mark (PDF and web pastes): invisible, but they cut "Photo\u00ADsynthesis" into two words. */
 const INVISIBLE = /[\u00AD\u200B\u2060\uFEFF]/g;
+/**
+ * Half of a surrogate pair on its own (pasted garbage, or a character cut in two by a length limit): not text, and the
+ * database refuses a JSON string that holds one. Matched as code units, so no `u` flag.
+ */
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+const CUT_PAIR = /[\uD800-\uDBFF]$/;
 
 /** Strip control, bidi-override and emoji characters, unify newlines and spaces, and cap the length. */
 export function sanitizeMaterial(raw: string): string {
   return raw
     .normalize("NFC")
     .replace(CONTROL_AND_BIDI, "")
+    .replace(KEYCAP_DIGIT, "$1.")
     .replace(EMOJI, " ")
     .replace(INVISIBLE, "")
+    .replace(LONE_SURROGATE, "")
     .replace(/\r\n?/g, "\n")
     // a tab separates columns (pasted from a spreadsheet): keep it as a visible column separator
     .replace(/[ \u00A0]*\t+[ \u00A0]*/g, " | ")
@@ -27,7 +39,10 @@ export function sanitizeMaterial(raw: string): string {
     .join("\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim()
-    .slice(0, MATERIAL_MAX_CHARS);
+    .slice(0, MATERIAL_MAX_CHARS)
+    // the cap may fall in the middle of a two-unit character
+    .replace(CUT_PAIR, "")
+    .trimEnd();
 }
 
 export function clip(s: string, max: number): string {
@@ -35,7 +50,8 @@ export function clip(s: string, max: number): string {
   if (t.length <= max) return t;
   const cut = t.slice(0, max - 1);
   const sp = cut.lastIndexOf(" ");
-  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s,;:–—-]+$/, "")}…`;
+  // a cut inside a two-unit character ("𝑥", a hieroglyph) would leave half of it behind
+  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(CUT_PAIR, "").replace(/[\s,;:–—-]+$/, "")}…`;
 }
 
 const ABBREVIATION = /(?:\b(?:[A-Za-z]|Dr|Mr|Mrs|Ms|St|vs|e\.g|i\.e|etc|No|Fig|approx|ca)\.|ד״ר|פרופ׳?|וכו׳?|למשל)$/;

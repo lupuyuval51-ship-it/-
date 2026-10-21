@@ -145,6 +145,13 @@ function Decor({ world, profile, materials }: { world: WorldModel; profile: Rend
 
 function DecorInstances({ items, part, world, profile, materials }: { items: WorldModel["decor"]; part: Part; world: WorldModel; profile: RenderProfile; materials: MaterialSet }) {
   const ref = useRef<THREE.InstancedMesh>(null);
+  const mat = useMemo(() => {
+    if (part.emissive) return materials.unlit();
+    return materials.surface("decor", 2, 2);
+  }, [materials, part.emissive]);
+  const geo = decorGeos(profile.geometry)[part.geo];
+  // A new geometry, material or count in `args` makes react-three-fiber build a new InstancedMesh, whose instances all start at
+  // the origin with no colour: the placement below must run again for it (`part` is a shared constant and would not change).
   useEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
@@ -171,14 +178,10 @@ function DecorInstances({ items, part, world, profile, materials }: { items: Wor
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [items, part, world.theme]);
+  }, [items, part, world.theme, geo, mat]);
 
-  const mat = useMemo(() => {
-    if (part.emissive) return materials.unlit();
-    return materials.surface("decor", 2, 2);
-  }, [materials, part.emissive]);
   const solid = items.some((i) => i.solid);
-  return <instancedMesh ref={ref} args={[decorGeos(profile.geometry)[part.geo], mat as THREE.Material, items.length]} castShadow={profile.shadows.enabled && solid} receiveShadow={false} frustumCulled={false} />;
+  return <instancedMesh ref={ref} args={[geo, mat as THREE.Material, items.length]} castShadow={profile.shadows.enabled && solid} receiveShadow={false} frustumCulled={false} />;
 }
 
 function Hazards({ world }: { world: WorldModel }) {

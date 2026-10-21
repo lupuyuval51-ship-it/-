@@ -16,7 +16,8 @@ const makeGeo = (geo: Geo, d: Detail): THREE.BufferGeometry => {
   switch (geo) {
     case "box": return new THREE.BoxGeometry(1, 1, 1);
     case "sphere": return new THREE.SphereGeometry(0.5, s.sphere[0], s.sphere[1]);
-    case "cone": return new THREE.ConeGeometry(0.5, 1, s.cone).rotateX(Math.PI / 2); // points along −z → the tail trails behind a −z-facing body
+    // lies along z with its apex at +z, i.e. backwards (the model's front is −z): a tail tapers away behind the body
+    case "cone": return new THREE.ConeGeometry(0.5, 1, s.cone).rotateX(Math.PI / 2);
     case "torus": return new THREE.TorusGeometry(0.5, 0.05, s.torus[0], s.torus[1]).rotateX(Math.PI / 2);
   }
 };

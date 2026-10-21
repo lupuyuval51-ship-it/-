@@ -2,11 +2,13 @@
  * The topic library: curated, fact-checked knowledge per topic and level, written natively in English and Hebrew.
  * Content is DATA (no functions, nothing executable); `build.ts` turns one topic at one level into a game.
  *
- * Compact tuples keep the 200 topic modules small (each one is its own lazily loaded chunk):
+ * Compact tuples keep the topic modules small (one per topic, hundreds of them, each its own lazily loaded chunk):
  *
  *  - `t` terms:     [enTerm, enMeaning, heTerm, heMeaning] — the meaning never names its own term.
- *  - `q` questions: [en, he], each [question, answer, wrongOptions, explanation, hint?]. List the most plausible wrong
- *                   option first and the easiest to rule out last (the automatic hint rules out the last one).
+ *  - `q` questions: [en, he], each [question, answer, wrongOptions, explanation, hint?] with 1–4 wrong options, the same
+ *                   number in both languages. A question shows the first three (a fourth only in its harder variant), so
+ *                   list the most plausible wrong option first and the easiest to rule out last among those three: with
+ *                   two or more, the automatic hint (when there is no `hint`) rules it out and the two-option warm-up keeps it.
  *  - `n` numbers:   [answer, en, he, tolerance?], each language [question, unit ("" for none), explanation, hint?].
  *  - `s` orderings: [en, he], each [title, ...steps in the right order] (3–6 steps).
  *

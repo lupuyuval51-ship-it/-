@@ -42,7 +42,11 @@ export function Backdrop({ world, profile, materials }: { world: WorldModel; pro
 
   const groups = useMemo(() => {
     const m = new Map<SkylineGeo, typeof pieces>();
-    for (const p of pieces) m.set(p.geo, [...(m.get(p.geo) ?? []), p]);
+    for (const p of pieces) {
+      const list = m.get(p.geo);
+      if (list) list.push(p);
+      else m.set(p.geo, [p]);
+    }
     return [...m.entries()];
   }, [pieces]);
 
@@ -86,7 +90,12 @@ function SkylineInstances({ geo, items, detail }: { geo: SkylineGeo; items: Retu
     m.renderOrder = -5;
     return m;
   }, [geometry, material, items, geo]);
-  useEffect(() => () => { geometry.dispose(); material.dispose(); mesh.dispose(); }, [geometry, material, mesh]);
+  // Each resource is released when it is itself replaced or the skyline unmounts. When the frame governor thins the skyline
+  // (levels 3 and 4) only `items`, and so the mesh, change: a shared cleanup used to dispose the geometry and material the new
+  // mesh still draws with, forcing a re-upload and a shader recompile at the moment the device was already struggling.
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => () => mesh.dispose(), [mesh]);
   return <primitive object={mesh} />;
 }
 
@@ -166,6 +175,8 @@ function WaterInstances({ items, circle, material, y }: { items: WaterPiece[]; c
     m.renderOrder = -4;
     return m;
   }, [geometry, material, items, y]);
-  useEffect(() => () => { geometry.dispose(); mesh.dispose(); }, [geometry, mesh]);
+  // as in the skyline: a new mesh over the same geometry must not dispose that geometry (the material belongs to Water)
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useEffect(() => () => mesh.dispose(), [mesh]);
   return <primitive object={mesh} />;
 }

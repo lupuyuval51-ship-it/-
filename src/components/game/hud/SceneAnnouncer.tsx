@@ -18,6 +18,16 @@ const KEEP = 3;
 const LIFETIME_MS = 9000;
 
 /**
+ * H reads the surroundings out, once per press: the auto-repeat of a held key used to queue a new description ~30 times a
+ * second, which a screen reader then read out one after another. Ctrl / Cmd / Alt + H and typing in a field are left alone.
+ */
+export function isDescribeKey(e: Pick<KeyboardEvent, "code" | "repeat" | "ctrlKey" | "metaKey" | "altKey" | "target">): boolean {
+  if (e.code !== "KeyH" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return false;
+  const target = e.target as { closest?: (s: string) => Element | null } | null;
+  return !(typeof target?.closest === "function" && target.closest("input, textarea, select"));
+}
+
+/**
  * Screen-reader view of the 3D scene. A polite live region announces the area, anything the player walks up to and
  * objective progress; a button (also on the H key) reads out what is nearby, in which direction and how far, plus the
  * way to the next objective. The canvas itself stays a single labelled image: there is no per-object DOM to tab through.
@@ -72,10 +82,7 @@ export function SceneAnnouncer({ runtime, spec, client, input, guide, nearby, ar
 
   useEffect(() => {
     if (!active) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "KeyH" || e.ctrlKey || e.metaKey || e.altKey || (e.target as HTMLElement | null)?.closest("input, textarea, select")) return;
-      describe();
-    };
+    const onKey = (e: KeyboardEvent) => { if (isDescribeKey(e)) describe(); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [active, describe]);

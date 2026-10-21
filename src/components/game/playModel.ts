@@ -20,9 +20,11 @@ export function playBackAction(s: { ready: boolean; webgl: boolean; overlay: "no
 
 /**
  * The text of the play screen's "could not start" card. A phone with no room left (or with saving blocked) says so instead of the
- * generic text, because starting a run writes it to the device. `saveErrorKey` only exists in the Android app.
+ * generic text, because starting a run writes it to the device. `saveErrorKey` only exists in the Android app. An expired sign-in
+ * (the website; the device never answers 401) says so, because the card's Retry alone would only fail again.
  */
 export function bootErrorKey(e: unknown, saveErrorKey?: (e: unknown) => DictKey | null): DictKey {
   if (e instanceof ApiFailure && e.status === 429) return "common.error.rateLimited";
+  if (e instanceof ApiFailure && e.status === 401) return "common.error.unauthorized";
   return saveErrorKey?.(e) ?? "hud.loading.error";
 }

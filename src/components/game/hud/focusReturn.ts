@@ -8,7 +8,11 @@
  * or keyboard user would restart from the top of the page after every question. For that case the control that was just
  * activated is remembered with its `data-testid`, and when the dialog closes its replacement (the prompt shows again if the player
  * is still next to the station or character) takes the focus.
+ *
+ * It also decides where Tab goes inside an open dialog (`dialogTabTarget`).
  */
+
+import { trapTarget } from "@/lib/game/a11y/scene";
 
 /** A click on a control, as seen by the document's capture-phase listener. */
 export interface Activation<E> {
@@ -36,4 +40,31 @@ export function focusReturnTarget<E>(previous: E | null, opener: { id: string } 
   if (previous !== null && usable(previous)) return previous;
   const replacement = opener ? find(opener.id) : null;
   return replacement !== null && usable(replacement) ? replacement : null;
+}
+
+/** What the Tab trap needs to know about the focused element (the DOM answers it in `useDialogFocus.ts`). */
+export interface TabContext<E> {
+  /** Inside the dialog (the dialog box itself included). */
+  inside(e: E): boolean;
+  /** The dialog box itself. */
+  isRoot(e: E): boolean;
+  /** `a` comes before `b` in page order. */
+  precedes(a: E, b: E): boolean;
+}
+
+/**
+ * Where Tab (Shift+Tab: `back`) moves the focus inside a modal dialog, with the meaning of `trapTarget`: an index into `items`
+ * (the dialog's tabbable controls in page order), -1 for the dialog box itself (it has no control), or null to let the browser
+ * move it (it then stays inside). The focused element may be inside the dialog without being one of the listed controls: the
+ * "Controls" `<summary>` of the pause menu, or a control that received the focus from a script. Treating it as "outside" sent Tab
+ * back to the first control (the pause menu's sound switch instead of "Resume"); here the browser moves on from it and the trap
+ * only wraps when no control is left on that side.
+ */
+export function dialogTabTarget<E>(back: boolean, active: E | null, items: readonly E[], at: TabContext<E>): number | null {
+  const index = active === null ? -1 : items.indexOf(active);
+  if (index < 0 && active !== null && items.length > 0 && at.inside(active) && !at.isRoot(active)) {
+    const edge = back ? !at.precedes(items[0]!, active) : !at.precedes(active, items[items.length - 1]!);
+    return edge ? (back ? items.length - 1 : 0) : null;
+  }
+  return trapTarget(back, index, items.length);
 }

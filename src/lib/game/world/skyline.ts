@@ -33,13 +33,65 @@ function mix(a: string, b: string, t: number): string {
 /** How much of the haze colour a piece takes on: far pieces fade into the sky (atmospheric perspective). */
 const haze = (c: string, theme: EnvTheme, radius: number, base = 0.25) => mix(c, theme.skyBottom, Math.min(0.85, base + (radius - 200) / 420));
 
-export function buildSkyline(env: Environment, theme: EnvTheme, seed: number, groundY: number): SkylinePiece[] {
+type Rect = { x0: number; x1: number; z0: number; z1: number };
+
+/**
+ * Distant scenery stands at least this far (metres) beyond the playable area once the caller passes its bounds. The ring
+ * is centred on the origin, which is fine for a plaza or a lab but not for a long level: a corridor or a platformer with
+ * eight stations runs 140–250 m along −z, straight into the hills, dunes or towers of the ring.
+ */
+export const SKYLINE_CLEARANCE = 30;
+
+/** Signed distance from (x, z) to a rectangle (negative inside). 1-Lipschitz, and convex along any line. */
+const sdRect = (x: number, z: number, b: Rect): number => {
+  const dx = Math.max(b.x0 - x, x - b.x1);
+  const dz = Math.max(b.z0 - z, z - b.z1);
+  return Math.hypot(Math.max(dx, 0), Math.max(dz, 0)) + Math.min(Math.max(dx, dz), 0);
+};
+
+/** Gap between a piece's ground footprint at (x, z) and the rectangle: boxes and pyramids are axis-aligned squares, the rest round. */
+export function skylineGap(p: Pick<SkylinePiece, "geo" | "sx" | "sz">, x: number, z: number, b: Rect): number {
+  const hx = Math.abs(p.sx) / 2, hz = Math.abs(p.sz) / 2;
+  if (p.geo === "box" || p.geo === "cone4") return sdRect(x, z, { x0: b.x0 - hx, x1: b.x1 + hx, z0: b.z0 - hz, z1: b.z1 + hz });
+  return sdRect(x, z, b) - Math.max(hx, hz);
+}
+
+/**
+ * Moves one ring slot (a tower and its lit band, an island and the rock under it…) straight away from the playable area
+ * until every piece of it clears the area by `SKYLINE_CLEARANCE`. A slot that already does is left exactly where it is.
+ */
+function clearOfArea(group: SkylinePiece[], b: Rect): void {
+  const first = group[0];
+  if (!first) return;
+  const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+  const len = Math.hypot(first.x - cx, first.z - cz);
+  if (len < 1e-6) return;
+  const ux = (first.x - cx) / len, uz = (first.z - cz) / len;
+  const gap = (d: number) => Math.min(...group.map((p) => skylineGap(p, p.x + ux * d, p.z + uz * d, b)));
+  let d = 0;
+  // the gap grows by at most the distance moved, so stepping by the shortfall never overshoots
+  for (let k = 0, g = gap(0); k < 64 && g < SKYLINE_CLEARANCE; k++, g = gap(d)) d += Math.max(1, SKYLINE_CLEARANCE - g);
+  if (d === 0) return;
+  for (const p of group) {
+    p.x += ux * d;
+    p.z += uz * d;
+  }
+}
+
+/**
+ * The skyline for one area. `bounds` (the area's playable rectangle) keeps every piece `SKYLINE_CLEARANCE` metres clear
+ * of it; without it the ring is exactly the original one. Either way the pieces, their order, sizes and colours are the
+ * same for a seed (the budget keeps a prefix of this list), only the slots that would stand in the way move outwards.
+ */
+export function buildSkyline(env: Environment, theme: EnvTheme, seed: number, groundY: number, bounds?: Rect): SkylinePiece[] {
   const rnd = mulberry32(seed ^ 0x5bd1e995);
   const out: SkylinePiece[] = [];
   const ring = (n: number, r0: number, r1: number, f: (a: number, r: number, i: number) => void) => {
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + (rnd() - 0.5) * 0.12;
+      const start = out.length;
       f(a, r0 + rnd() * (r1 - r0), i);
+      if (bounds) clearOfArea(out.slice(start), bounds);
     }
   };
   const at = (a: number, r: number) => ({ x: Math.cos(a) * r, z: Math.sin(a) * r });

@@ -9,7 +9,7 @@ import { DIFFICULTIES, GAME_TYPES, type Difficulty, type GameType } from "@/lib/
 import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError } from "@/lib/offline/generate";
 import { storageErrorCode } from "@/lib/offline/store";
-import { EXAMPLE_NOTES, exampleById, isExampleText } from "./examples";
+import { EXAMPLE_NOTES, exampleById, findExample, isExampleText } from "./examples";
 
 export type CreateMode = "FAST" | "FULL";
 export type ContentLang = "he" | "en";
@@ -67,6 +67,15 @@ export function cleanPastedText(s: string): string {
 }
 
 /**
+ * The first `max` characters, never ending on the first half of a two-unit character (an emoji): a lone half is not
+ * text, shows as a broken box and is refused by the cloud backup's database.
+ */
+function cutAt(s: string, max: number): string {
+  const kept = s.slice(0, max);
+  return /[\uD800-\uDBFF]$/.test(kept) ? kept.slice(0, -1) : kept;
+}
+
+/**
  * The language a text is written in, or null when it is too short or mixed to tell (Hebrew notes with a few Latin
  * terms still count as Hebrew).
  */
@@ -101,14 +110,36 @@ export function materialFromFileText(raw: string): MaterialFile {
   if (broken > Math.max(2, raw.length * 0.01)) return { ok: false };
   const text = cleanPastedText(raw).trim();
   if (!text) return { ok: false };
-  let kept = text.slice(0, INPUT_LIMITS.materialMax);
-  if (/[\uD800-\uDBFF]$/.test(kept)) kept = kept.slice(0, -1); // do not end on half of an emoji
-  return { ok: true, text: kept, trimmed: text.length > INPUT_LIMITS.materialMax };
+  return { ok: true, text: cutAt(text, INPUT_LIMITS.materialMax), trimmed: text.length > INPUT_LIMITS.materialMax };
+}
+
+/**
+ * The text of a picked file's bytes. `File.text()` always reads UTF-8, so notes that Windows Notepad saved as "Unicode"
+ * (UTF-16 with a byte-order mark) or as Hebrew "ANSI" (windows-1255, the old Israeli default) came out as garbage and
+ * were refused. UTF-8 is tried first; a legacy Hebrew file is recognised by its letters (bytes 0xE0–0xFA hold א–ת);
+ * anything else is read as UTF-8 with replacement characters, which `materialFromFileText` then refuses as not text.
+ */
+export function decodeTextFile(bytes: Uint8Array): string {
+  if ((bytes[0] === 0xff && bytes[1] === 0xfe) || (bytes[0] === 0xfe && bytes[1] === 0xff)) {
+    return new TextDecoder(bytes[0] === 0xff ? "utf-16le" : "utf-16be").decode(bytes);
+  }
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { /* not UTF-8 */ }
+  let high = 0;
+  let hebrew = 0;
+  for (const b of bytes) {
+    if (b < 0x80) continue;
+    high++;
+    if (b >= 0xe0 && b <= 0xfa) hebrew++;
+  }
+  if (hebrew / Math.max(1, high) >= 0.6) {
+    try { return new TextDecoder("windows-1255").decode(bytes); } catch { /* a WebView without the legacy encodings */ }
+  }
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 /** A subject suggested by the file name ("cell-biology_ch3.md" becomes "cell biology ch3"). */
 export function subjectFromFileName(name: string): string {
-  return cleanPastedText(name).replace(/\.[A-Za-z0-9]{1,8}$/, "").replace(/[_\-.]+/g, " ").replace(/\s+/g, " ").trim().slice(0, INPUT_LIMITS.subjectMax);
+  return cutAt(cleanPastedText(name).replace(/\.[A-Za-z0-9]{1,8}$/, "").replace(/[_\-.]+/g, " ").replace(/\s+/g, " ").trim(), INPUT_LIMITS.subjectMax).trimEnd();
 }
 
 /** Nothing typed yet (the choices alone do not make a draft). */
@@ -134,7 +165,7 @@ export function draftStorage(): DraftStorage | null {
   }
 }
 
-const str = (v: unknown, max: number): string => (typeof v === "string" ? cleanPastedText(v).slice(0, max) : "");
+const str = (v: unknown, max: number): string => (typeof v === "string" ? cutAt(cleanPastedText(v), max) : "");
 const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T): T => (typeof v === "string" && (list as readonly string[]).includes(v) ? (v as T) : fallback);
 
 /** A stored draft, checked field by field: anything unexpected falls back to a default rather than breaking the screen. */
@@ -163,13 +194,27 @@ export function loadDraft(storage: DraftStorage | null, tier: FeatureTier, fallb
   try { return parseDraft(storage.getItem(DRAFT_KEY), tier, fallbackLanguage); } catch { return null; }
 }
 
-/** Stores the form, or forgets the draft when nothing was typed. Never throws: a draft is a convenience. */
+/** An example exactly as its button filled it in (no goal typed either): nothing of the learner's own is in the form. */
+const isUntouchedExample = (f: CreateFormValues): boolean => !f.goal.trim() && isExampleText(f.subject, f.material);
+
+/**
+ * Stores the form, or forgets the draft when nothing was typed. An untouched example never takes the place of the
+ * learner's own unfinished text (`#/create?example=1` opens on the example while the draft waits behind "Bring back
+ * my text", which lives only as long as the screen): that text stays stored for the next visit, and the example is one
+ * tap away. Never throws: a draft is a convenience.
+ */
 export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now()): void {
   if (!storage) return;
   try {
     if (isBlankForm(form)) storage.removeItem(DRAFT_KEY);
-    else storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, form }));
+    else if (!(isUntouchedExample(form) && storedOwnText(storage))) storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, form }));
   } catch { /* storage full or blocked: the draft is simply not kept */ }
+}
+
+/** The stored draft holds text the learner wrote (not blank, not an example). */
+function storedOwnText(storage: DraftStorage): boolean {
+  const stored = parseDraft(storage.getItem(DRAFT_KEY), "A", "he");
+  return stored !== null && hasOwnText(stored);
 }
 
 export function clearDraft(storage: DraftStorage | null): void {
@@ -245,7 +290,8 @@ export const hasOwnText = (f: CreateFormValues): boolean => !isBlankForm(f) && !
  */
 export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean; mode?: "FAST" | "FULL" }): CreateState {
   // a fresh form starts in the mode suggested by the first-run answers (how much time a day); a saved draft keeps its own
-  const fresh = (): CreateFormValues => ({ ...emptyForm(opts.locale, opts.tier), ...(opts.mode ? { mode: opts.mode } : {}) });
+  // (only when the tier has it: a suggestion never opens the form on a locked choice)
+  const fresh = (): CreateFormValues => ({ ...emptyForm(opts.locale, opts.tier), ...(opts.mode ? { mode: pickMode(opts.tier, opts.mode) } : {}) });
   if (opts.example) {
     const ex = EXAMPLE_NOTES[opts.locale];
     return {
@@ -266,7 +312,14 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
         && ((problem.kind === "required" && action.key === "subject")
           || ((problem.kind === "material" || problem.kind === "notes") && action.key === "material")
           || (problem.kind === "tier" && (action.key === "mode" || action.key === "gameType")));
-      return { ...state, form: { ...state.form, [action.key]: action.value }, restored: false, problem: solved ? null : problem };
+      let form: CreateFormValues = { ...state.form, [action.key]: action.value };
+      // An example nobody has edited follows the game language (its button is named in that language too): otherwise
+      // switching the language left Hebrew notes in an English game, or the other way round.
+      if (action.key === "language") {
+        const shown = findExample(state.form.subject, state.form.material);
+        if (shown && shown.lang !== action.value) form = { ...form, subject: shown.example[action.value].subject, material: shown.example[action.value].notes };
+      }
+      return { ...state, form, restored: false, problem: solved ? null : problem };
     }
     case "example": {
       const ex = exampleById(action.id)?.[state.form.language];
@@ -280,8 +333,11 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
     }
     case "file": {
       const f = state.form;
-      const replaces = f.material.trim() !== "" && !isExampleText(f.subject, f.material);
-      const subjectless = f.subject.trim() === "";
+      const onExample = isExampleText(f.subject, f.material);
+      const replaces = f.material.trim() !== "" && !onExample;
+      // An example's subject names the example's notes, which the file replaces: the file's name takes its place too
+      // (otherwise notes about cells became a game called "The water cycle").
+      const subjectless = f.subject.trim() === "" || onExample;
       const solved = state.problem !== null && (state.problem.kind === "material" || state.problem.kind === "notes" || (state.problem.kind === "required" && subjectless && action.subject !== ""));
       return {
         form: { ...f, material: action.text, subject: subjectless ? action.subject : f.subject },

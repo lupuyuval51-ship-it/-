@@ -15,6 +15,27 @@ import { ambientDecor, box, centered, dist2d, farthestSpot, scatter, sizeScale, 
 import type { DecorItem, WorldBox, WorldCheckpoint, WorldCollectible, WorldGate, WorldHazard, WorldNpc, WorldPortal, WorldStation } from "./types";
 
 const AMBIENT_MAX = 140;
+/** Free floor between the spawn point and the nearest collider (the player's radius plus a little room to turn). */
+const SPAWN_CLEARANCE = PLAYER_RADIUS + 0.2;
+/** Where `ambientDecor` starts along an axis (reach ≥ 1.08, spread ×1.15), as a multiple of the area's half-extent. */
+const AMBIENT_EDGE = 1.08 * 1.15;
+
+/**
+ * Scenery dressing around the area. `ambientDecor` scatters it on an ellipse, which near the diagonals cuts the corners of
+ * the rectangle: a few walk-through props (a pine, a lamp, an obelisk, a tower) stood up to 3 m inside the playable floor.
+ * Those few move straight outwards to where the ring starts along the axes; every other item stays exactly where it was,
+ * and the random sequence (so everything else in the layout) is untouched.
+ */
+function scenery(ctx: LayoutCtx, b: { x0: number; x1: number; z0: number; z1: number }, y: number, count: number): DecorItem[] {
+  const cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+  const hw = (b.x1 - b.x0) / 2, hd = (b.z1 - b.z0) / 2;
+  return ambientDecor(ctx, b, y, count).map((d) => {
+    const q = Math.max(Math.abs(d.x - cx) / hw, Math.abs(d.z - cz) / hd);
+    if (!(q > 0 && q < 1)) return d;
+    const f = AMBIENT_EDGE / q;
+    return { ...d, x: cx + (d.x - cx) * f, z: cz + (d.z - cz) * f };
+  });
+}
 
 function emptyResult(): LayoutResult {
   return {
@@ -114,7 +135,7 @@ export function plaza(ctx: LayoutCtx): LayoutResult {
     const spots = scatter(ctx.rng, ctx.area.collectibles.count, { minR: R * 0.2, maxR: R * 0.88 }, 2.6, keep.map((k) => ({ ...k, r: Math.max(k.r, 1.8) })));
     spots.forEach((p, i) => r.collectibles.push(collectible(ctx, i, p.x, 0.9, p.z)));
   }
-  r.decor.push(...ambientDecor(ctx, r.bounds, 0, AMBIENT_MAX));
+  r.decor.push(...scenery(ctx, r.bounds, 0, AMBIENT_MAX));
   return r;
 }
 
@@ -164,7 +185,7 @@ export function corridor(ctx: LayoutCtx): LayoutResult {
   for (let z = 4; z > -length + head; z -= 7) {
     for (const x of [-W + 0.5, W - 0.5]) r.decor.push({ kind: "pillar", x, y: 0, z, scale: 0.7, rot: 0, rank: 0.2 + ctx.rng() * 0.8, solid: false, tint: 0 });
   }
-  r.decor.push(...ambientDecor(ctx, { x0: -W, x1: W, z0: -length + head, z1: head }, 0, 40));
+  r.decor.push(...scenery(ctx, { x0: -W, x1: W, z0: -length + head, z1: head }, 0, 40));
   return r;
 }
 
@@ -259,7 +280,7 @@ export function rooms(ctx: LayoutCtx): LayoutResult {
   }
   const portal = portalOf(ctx, (last.x0 + last.x1) / 2, 0, last.z0 + S * 0.22);
   if (portal) r.portal = portal;
-  r.decor.push(...ambientDecor(ctx, r.bounds, 0, 60));
+  r.decor.push(...scenery(ctx, r.bounds, 0, 60));
   return r;
 }
 
@@ -293,6 +314,13 @@ export function lab(ctx: LayoutCtx): LayoutResult {
     r.boxes.push(centered(`bench-${i}`, "prop", bx, bz, alongX ? 3 : 1.4, alongX ? 1.4 : 3, 0, 1.0, { style: "bench", walkable: false }));
     avoid.push({ x: sx, z: sz }, { x: bx, z: bz });
   });
+  // With an even number of stations one stands due south, and in a small lab the back of its bench reaches to within
+  // 0.12 m of the spawn (less than the player's radius): the player would start inside it. Step back just far enough.
+  for (const b of r.boxes) {
+    if (!b.id.startsWith("bench-")) continue;
+    const gap = Math.hypot(Math.max(b.x0 - r.spawn.x, 0, r.spawn.x - b.x1), Math.max(b.z0 - r.spawn.z, 0, r.spawn.z - b.z1));
+    if (gap < SPAWN_CLEARANCE) r.spawn.z = Math.min(R - 1.2, Math.max(r.spawn.z, b.z1 + SPAWN_CLEARANCE));
+  }
   if (wantsNpcs(ctx)) ctx.area.npcs.forEach((_, i) => r.npcs.push(npc(ctx, i, -3 + i * 3, 0, R * 0.55)));
   const cand = Array.from({ length: 28 }, (_, i) => ({ x: Math.cos((i / 28) * Math.PI * 2) * R * 0.88, z: Math.sin((i / 28) * Math.PI * 2) * R * 0.88 }));
   const portalPos = ctx.area.portal ? farthestSpot(cand, [...avoid, r.spawn, ...r.npcs]) : null;
@@ -302,7 +330,7 @@ export function lab(ctx: LayoutCtx): LayoutResult {
     scatter(ctx.rng, ctx.area.collectibles.count, { minR: 4, maxR: R * 0.9 }, 2.6, keep).forEach((p, i) => r.collectibles.push(collectible(ctx, i, p.x, 0.9, p.z)));
   }
   for (let i = 0; i < 6; i++) r.decor.push({ kind: "pipe", x: -R + 0.6, y: 2.6, z: -R + 3 + i * ((2 * R - 6) / 5), scale: 0.6, rot: 0, rank: i / 6, solid: false, tint: 0 });
-  r.decor.push(...ambientDecor(ctx, r.bounds, 0, 36));
+  r.decor.push(...scenery(ctx, r.bounds, 0, 36));
   return r;
 }
 
@@ -415,7 +443,7 @@ export function terraces(ctx: LayoutCtx): LayoutResult {
   const zs = pads.flatMap((p) => [p.zc - p.d / 2, p.zc + p.d / 2]);
   r.bounds = { x0: Math.min(...xs) - 6, x1: Math.max(...xs) + 6, z0: Math.min(...zs) - 6, z1: Math.max(...zs) + 6 };
   r.killY = Math.min(...pads.map((p) => p.y)) - KILL_Y_MARGIN;
-  r.decor.push(...ambientDecor(ctx, r.bounds, r.killY + 4, 90).map((d) => ({ ...d, y: d.kind === "cloud" ? 2 + d.scale * 4 : d.y })));
+  r.decor.push(...scenery(ctx, r.bounds, r.killY + 4, 90).map((d) => ({ ...d, y: d.kind === "cloud" ? 2 + d.scale * 4 : d.y })));
   return r;
 }
 

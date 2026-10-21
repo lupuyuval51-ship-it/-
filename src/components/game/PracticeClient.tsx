@@ -8,6 +8,16 @@ import type { Answer, PublicChallenge } from "@/lib/game/challenges/grade";
 import { ChallengePanel, type AnswerResult } from "./hud/ChallengePanel";
 import { httpTransport, type PlayTransport } from "./transport";
 
+/** A hint as it came back, with the question it was asked for. */
+export interface PracticeHint { challengeId: string; text: string | null }
+
+/**
+ * The hint to show with the question on screen. A hint asked for just before moving on arrives while the next question is up:
+ * it belongs to the question it was asked for and is never shown with another one.
+ */
+export function shownHint(hint: PracticeHint | null, challengeId: string): string | null {
+  return hint && hint.challengeId === challengeId ? hint.text : null;
+}
 
 /** The missed questions again, one by one: unscored, answers graded by the server, ends with a short summary. */
 export function PracticeClient({ gameId, sessionId, transport = httpTransport, backHref, reviewHref }: { gameId: string; sessionId: string; transport?: PlayTransport; backHref?: string; reviewHref?: string | null }) {
@@ -19,7 +29,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
   const [failed, setFailed] = useState(false);
   const [index, setIndex] = useState(0);
   const [result, setResult] = useState<AnswerResult | null>(null);
-  const [hint, setHint] = useState<string | null>(null);
+  const [hint, setHint] = useState<PracticeHint | null>(null);
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [outcomes, setOutcomes] = useState<("first" | "later" | "missed" | "skipped")[]>([]);
@@ -86,10 +96,13 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
           challenge={current}
           stationLabel={t("prac.label")}
           result={result}
-          hint={hint}
+          hint={shownHint(hint, current.id)}
           busy={busy}
           onSubmit={(a) => void submit(a)}
-          onHint={() => void call<{ hint: string | null }>(sessionId, { action: "hint", challengeId: current.id }).then((r) => setHint(r.hint)).catch(() => undefined)}
+          onHint={() => {
+            const challengeId = current.id;
+            void call<{ hint: string | null }>(sessionId, { action: "hint", challengeId }).then((r) => setHint({ challengeId, text: r.hint })).catch(() => undefined);
+          }}
           onClose={() => next(result?.resolved ? (result.correct ? (attempt === 1 ? "first" : "later") : "missed") : "skipped")}
         />
       </div>

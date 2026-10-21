@@ -304,11 +304,15 @@ export function parseMaterial(raw: string): Knowledge {
         consumed.add(before);
         if (before === firstNonEmpty) title ??= named;
       }
-      for (let k = 0; k < group.length; k += 6) {
-        const chunk = group.slice(k, k + 6);
-        if (chunk.length < 3) continue;
+      // A long list is cut into parts of at most six steps of (nearly) equal size, so no step is ever left out: seven
+      // steps make 4 + 3, never 6 + a lone step that would vanish from the game. Every part keeps at least three.
+      const parts = Math.ceil(group.length / 6);
+      const base = Math.floor(group.length / parts), extra = group.length % parts;
+      for (let p = 0, k = 0; p < parts; p++) {
+        const chunk = group.slice(k, k + base + (p < extra ? 1 : 0));
+        k += chunk.length;
         steps.push(chunk.map((g) => clip(g.text, 170)));
-        stepTitles.push(named ? clip(k > 0 ? `${named} (${k / 6 + 1})` : named, 90) : undefined);
+        stepTitles.push(named ? clip(p > 0 ? `${named} (${p + 1})` : named, 90) : undefined);
       }
       group.forEach((g) => consumed.add(g.idx));
       i = j;

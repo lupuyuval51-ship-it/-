@@ -87,17 +87,30 @@ function arrange(right: [string, string], wrong: [string, string][], rnd: () => 
   return { options, correct: at };
 }
 
-/** A range that contains the answer without giving it away ("between 40 and 50"). */
+/**
+ * A range that contains the answer without giving it away ("between 40 and 50"). The answer is never one of the bounds
+ * (except 0, the natural lower bound of "between 0 and 10"): a round answer such as 90 or 3600 would otherwise always be
+ * the lower bound ("between 90 and 100") and the hint would hand it over, so it gets a window three steps wide that is
+ * not centred on it either ("between 80 and 110", "between 3400 and 3700").
+ */
 export function rangeHint(answer: number, t: Tr, unit: string): string {
   const a = Math.abs(answer);
   const digits = a >= 1 ? Math.floor(Math.log10(a)) : 0;
   const step = a < 10 ? (Number.isInteger(answer) ? 10 : 1) : 10 ** (digits >= 2 ? digits - 1 : digits);
-  let lo = Math.floor(answer / step) * step;
-  let hi = lo + step;
+  let lo: number, hi: number;
   if (a < 10 && Number.isInteger(answer)) { lo = answer < 0 ? -10 : 0; hi = answer < 0 ? 0 : 10; }
+  else if (a % step === 0) {
+    const k = a / step;
+    const from = (k % 2 ? k - 1 : k - 2) * step; // odd k: one step below it, even k: two (so pairs of round answers share a window)
+    [lo, hi] = answer < 0 ? [-(from + 3 * step), -from] : [from, from + 3 * step];
+  } else { lo = Math.floor(answer / step) * step; hi = lo + step; }
   const u = unit ? ` ${unit}` : "";
-  return t(`The answer is between ${lo} and ${hi}${u}.`, `התשובה בין ${lo} ל-${hi}${u}.`);
+  // "ל-" in front of a negative number would read "ל--20"
+  return t(`The answer is between ${lo} and ${hi}${u}.`, hi < 0 ? `התשובה בין ${lo} לבין ${hi}${u}.` : `התשובה בין ${lo} ל-${hi}${u}.`);
 }
+
+/** A text as the end of a sentence: a full stop is added unless it already ends with one, or with ?, !, … or the colon of a line of code. */
+const asSentence = (s: string): string => (/[.!?…:]\s*$/.test(s) ? s.trimEnd() : `${s}.`);
 
 interface Candidate {
   kind: "q" | "name" | "define" | "n" | "s" | "match";
@@ -108,10 +121,15 @@ interface Candidate {
 const RIGHT_FEEDBACK: [string, string] = ["Correct!", "נכון!"];
 const WRONG_FEEDBACK: [string, string] = ["Not this one — think again.", "לא זו התשובה — חשבו שוב."];
 
-function easierOf(base: Raw, keepWrong: number, t: Tr): Raw {
+/**
+ * The two-option warm-up of a choice question: the right option and the wrong option whose text is `keep` (the one
+ * easiest to rule out). Found by its text, not its place: options that are all numbers are shown in ascending order,
+ * so the place of a wrong option says nothing about which one the content lists last.
+ */
+function easierOf(base: Raw, keep: string, t: Tr): Raw {
   const options = base.options as { id: string; text: string; feedback: string }[];
   const right = options.find((o) => o.id === base.correctOptionId)!;
-  const wrong = options.filter((o) => o !== right)[keepWrong] ?? options.find((o) => o !== right)!;
+  const wrong = options.find((o) => o !== right && o.text === keep) ?? options.find((o) => o !== right)!;
   const kept = options.indexOf(right) < options.indexOf(wrong) ? [right, wrong] : [wrong, right];
   const { hint: _h, easierId: _e, harderId: _x, ...rest } = base;
   return {
@@ -133,7 +151,7 @@ function questionCandidates(level: LevelContent, lang: Lang, t: Tr, rnd: () => n
         const autoHint = shown.length >= 2 ? t(`You can rule out “${shown[shown.length - 1]}”.`, `אפשר לפסול את ״${shown[shown.length - 1]}״.`) : undefined;
         const base = choice({ id, level: lvl, objectiveId, title: t("Question", "שאלה"), concept, prompt: q, options, correct, hint: hint ?? autoHint, explanation });
         const out: { base: Raw; easier?: Raw; harder?: Raw } = { base };
-        if (shown.length >= 2) out.easier = easierOf(base, shown.length - 1, t);
+        if (shown.length >= 2) out.easier = easierOf(base, shown[shown.length - 1]!, t);
         if (wrongs.length >= 4) {
           const more = arrange([answer, t(...RIGHT_FEEDBACK)], wrongs.slice(0, 4).map((w) => [w, t(...WRONG_FEEDBACK)] as [string, string]), rnd);
           out.harder = choice({ id: `${id}-hard`, level: 3, objectiveId, title: t("Question (challenge)", "שאלה (אתגר)"), concept, prompt: q, ...more, hint: hint ?? autoHint, explanation });
@@ -173,16 +191,16 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
       name.push({
         kind: "name", objective: "terms",
         make: (id, lvl, objectiveId) => {
-          const wrong = (n: number) => others.slice(0, n).map((o) => { const [w, m] = pick(o); return [w, t(`“${w}” means: ${m}.`, `״${w}״ פירושו: ${m}.`)] as [string, string]; });
+          const wrong = (n: number) => others.slice(0, n).map((o) => { const [w, m] = pick(o); return [w, t(`“${w}” means: ${asSentence(m)}`, `״${w}״ פירושו: ${asSentence(m)}`)] as [string, string]; });
           const right: [string, string] = [word, t(...RIGHT_FEEDBACK)];
           const a = arrange(right, wrong(3), rnd);
           const prompt = t(`Which term matches this description?\n“${meaning}”`, `איזה מושג מתאים לתיאור הזה?\n״${meaning}״`);
           // the start of the word only helps when no wrong option starts the same way
           const start = distinctStart(word, a.options.filter((_, i) => i !== a.correct).map((o) => o[0]));
           const hint = start ? startHintText(start, t, "prefix") : t(`It is not “${wrong(1)[0]![0]}”.`, `זה לא ״${wrong(1)[0]![0]}״.`);
-          const explanation = clip(`${word}: ${meaning}.`, 600);
+          const explanation = clip(asSentence(`${word}: ${meaning}`), 600);
           const base = choice({ id, level: lvl, objectiveId, title: t("Name the term", "איך קוראים לזה?"), concept: t("Key terms", "מושגי מפתח"), prompt, ...a, hint, explanation });
-          const out: { base: Raw; easier?: Raw; harder?: Raw } = { base, easier: easierOf(base, Math.min(2, others.length - 1), t) };
+          const out: { base: Raw; easier?: Raw; harder?: Raw } = { base, easier: easierOf(base, pick(others[Math.min(2, others.length - 1)]!)[0], t) };
           if (others.length >= 4) out.harder = choice({ id: `${id}-hard`, level: 3, objectiveId, title: t("Name the term (challenge)", "איך קוראים לזה? (אתגר)"), concept: t("Key terms", "מושגי מפתח"), prompt, ...arrange(right, wrong(4), rnd), explanation });
           return out;
         },
@@ -200,9 +218,9 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
             id, level: lvl, objectiveId, title: t("What does it mean?", "מה זה אומר?"), concept: clip(word, 60),
             prompt: t(`What does “${word}” mean?`, `מה פירוש ״${word}״?`), ...a,
             hint: t(`It is not: “${clip(wrong[wrong.length - 1]![0], 120)}”.`, `זה לא: ״${clip(wrong[wrong.length - 1]![0], 120)}״.`),
-            explanation: clip(`${word}: ${meaning}.`, 600),
+            explanation: clip(asSentence(`${word}: ${meaning}`), 600),
           });
-          return { base, easier: easierOf(base, wrong.length - 1, t) };
+          return { base, easier: easierOf(base, wrong[wrong.length - 1]![0], t) };
         },
       });
     }
@@ -242,6 +260,17 @@ function numberCandidates(level: LevelContent, lang: Lang, t: Tr, concept: strin
   });
 }
 
+/**
+ * The prompt of an ordering. Most titles are a name ("The water cycle: put the steps in the right order."); a title that
+ * is a whole sentence is not followed by a colon: a question gets the instruction as a sentence of its own, and an
+ * instruction ("… Put the events in order.") is the prompt as it is.
+ */
+export function orderPrompt(title: string, t: Tr): string {
+  if (/[.]\s*$/.test(title)) return title.trimEnd();
+  if (/[?!…]\s*$/.test(title)) return `${title.trimEnd()} ${t("Put the steps in the right order.", "סדרו את השלבים בסדר הנכון.")}`;
+  return t(`${title}: put the steps in the right order.`, `${title}: סדרו את השלבים בסדר הנכון.`);
+}
+
 function orderCandidates(level: LevelContent, lang: Lang, t: Tr): Candidate[] {
   return (level.s ?? []).map((pair) => {
     const [title, ...steps] = lang === "he" ? pair[1] : pair[0];
@@ -250,7 +279,7 @@ function orderCandidates(level: LevelContent, lang: Lang, t: Tr): Candidate[] {
       make: (id, lvl, objectiveId) => {
         const base = sequence({
           id, level: lvl, objectiveId, title: t("Put in order", "סדרו לפי הסדר"), concept: clip(title!, 60),
-          prompt: t(`${title}: put the steps in the right order.`, `${title}: סדרו את השלבים בסדר הנכון.`), items: steps,
+          prompt: orderPrompt(title!, t), items: steps,
           hint: t(`The first one is “${clip(steps[0]!, 100)}”.`, `הראשון הוא ״${clip(steps[0]!, 100)}״.`),
           explanation: clip(steps.join(" → "), 600),
         });
@@ -300,6 +329,13 @@ const OBJECTIVES = (t: Tr, title: string): Record<Candidate["objective"], string
   numbers: t("Work out the numbers", "לחשב ולמצוא את המספרים"),
   order: t("Put processes and events in the right order", "לסדר תהליכים ואירועים בסדר הנכון"),
 });
+
+/** What the last mission asks to read: the hands-on task, the key ideas, or both (the second area of a course chapter has both). */
+function endBoardsText(endBoards: string[], taskBoard: Raw | null, t: Tr): string {
+  const task = taskBoard !== null && endBoards.includes(String(taskBoard.id));
+  if (task && endBoards.length > 1) return t("Read the hands-on task and the key ideas", "קראו את המשימה המעשית ואת הרעיונות המרכזיים");
+  return task ? t("Read the hands-on task", "קראו את המשימה המעשית") : t("Read the key ideas", "קראו את הרעיונות המרכזיים");
+}
 
 const BASE_LEVEL: Record<GenerationRequest["difficulty"], Level> = { beginner: 1, intermediate: 2, advanced: 3 };
 
@@ -425,7 +461,7 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
         objectives: [
           ...(ids.length > half ? [{ type: "solve", text: t("Answer the remaining questions", "ענו על שאר השאלות"), challengeIds: ids.slice(half).slice(0, 6) }] : []),
           ...(collect > 0 ? [{ type: "collect", text: t(`Collect ${collect} knowledge gems`, `אספו ${collect} אבני ידע`), count: collect }] : []),
-          ...(endBoards.length ? [{ type: "visit", text: lesson && taskBoard && endBoards.includes(String(taskBoard.id)) ? t("Read the hands-on task", "קראו את המשימה המעשית") : t("Read the key ideas", "קראו את הרעיונות המרכזיים"), stationIds: endBoards }] : []),
+          ...(endBoards.length ? [{ type: "visit", text: endBoardsText(endBoards, taskBoard, t), stationIds: endBoards }] : []),
         ],
       },
     );

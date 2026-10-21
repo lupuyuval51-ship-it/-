@@ -4,6 +4,7 @@
  * Nothing here ships in a bundle; it is imported by tests and by `scripts/balance-report.ts`.
  */
 import { revealSolution, toPublicAnswer, type Answer } from "../challenges/grade";
+import { leverBalanceDistance, projectileRange } from "../challenges/simulations";
 import type { Challenge, GameSpec } from "../spec/schema";
 import { GameEventError, processEvent, type GameEvent } from "../state/events";
 import { collectibleIds, findArea, findChallenge, initialState, maxScore, portalOpen, stationActive, summarize, type PlayState } from "../state/progress";
@@ -102,8 +103,24 @@ export function wrongAnswerFor(ch: Challenge, rnd: () => number): Answer {
       return { type: "match", pairs: ids.map((id, k) => ({ leftId: id, rightId: k === i ? ids[i + 1]! : k === i + 1 ? ids[i]! : id })) };
     }
     case "program": return { type: "program", program: [{ t: "left" }] };
-    case "simulation": return { type: "simulation", params: ch.sim.kind === "projectile" ? { angle: 10, speed: 1 } : { distance: 0.5 } };
+    case "simulation": return { type: "simulation", params: wrongSimParams(ch.sim) };
   }
+}
+
+/**
+ * A shot that misses / a weight that tips the lever. The usual guess (a feeble lob, the weight at 0.5 m) is kept when it
+ * is wrong; a target within the tolerance of a feeble lob, or a lever that balances near 0.5 m, takes the other end of the
+ * range, so the "wrong" answer is not graded right (that would hide mistakes from the balance numbers) unless the
+ * tolerance is so wide that every answer the grader accepts as well-formed hits.
+ */
+function wrongSimParams(sim: Extract<Challenge, { type: "simulation" }>["sim"]): Record<string, number> {
+  if (sim.kind === "projectile") {
+    const misses = (p: { angle: number; speed: number }) => Math.abs(projectileRange(p.speed, p.angle, sim.gravity) - sim.targetDistance) > sim.tolerance;
+    return [{ angle: 10, speed: 1 }, { angle: 45, speed: sim.maxSpeed }].find(misses) ?? { angle: 10, speed: 1 };
+  }
+  const balance = leverBalanceDistance(sim);
+  const tips = (distance: number) => Math.abs(distance - balance) > sim.tolerance;
+  return { distance: [0.5, sim.maxDistance, 0.1].find(tips) ?? sim.maxDistance };
 }
 
 // ───────────────────────────── the bot ─────────────────────────────

@@ -22,6 +22,10 @@ export interface DeckCard {
   box: number;
   due: number;
   added: number;
+  /**
+   * How often the card was reviewed on this phone. It also seeds the shuffle and the opaque answer ids of the question each time it is
+   * asked (`deckSeed` in store.ts), so a merge from the cloud or a backup never lowers it (the cloud does not keep it at all).
+   */
   reviews: number;
   /** Last change (ms): drives cloud sync. */
   updatedAt: number;

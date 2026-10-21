@@ -54,7 +54,7 @@ Clouds form when water vapour cools high in the air.`,
       subject: "שברים",
       notes: `מונה: המספר העליון בשבר. הוא אומר כמה חלקים לקחנו.
 מכנה: המספר התחתון בשבר. הוא אומר לכמה חלקים שווים חילקנו את השלם.
-שבר פשוט: שבר שבו המונה קטן מהמכנה.
+שבר אמיתי: שבר שבו המונה קטן מהמכנה.
 שברים שקולים: שברים שונים שמייצגים את אותה כמות.
 
 שלבי חיבור שברים עם מכנה זהה:
@@ -98,11 +98,11 @@ One half is equal to two quarters.`,
 ירח: גוף שמקיף כוכב לכת.
 מסלול: הדרך שבה גוף בחלל מקיף גוף אחר.
 
-סדר הכוכבים הראשונים מהשמש החוצה:
+סדר כוכבי הלכת הראשונים מהשמש החוצה:
 1. חמה היא הקרובה ביותר לשמש.
 2. נוגה באה אחריה.
-3. כדור הארץ הוא הכוכב השלישי.
-4. מאדים הוא הכוכב האדום.
+3. כדור הארץ הוא כוכב הלכת השלישי.
+4. מאדים הוא כוכב הלכת האדום.
 
 ש: איזה כוכב לכת הוא הגדול ביותר?
 ת: צדק.
@@ -180,7 +180,15 @@ export const EXAMPLE_NOTES: Record<"he" | "en", ExampleNotes> = { he: EXAMPLES[0
 
 export const exampleById = (id: string): ExampleDef | undefined => EXAMPLES.find((e) => e.id === id);
 
+/** The example (and its language) whose subject and notes are exactly these, if any: an example nobody has edited. */
+export function findExample(subject: string, notes: string): { example: ExampleDef; lang: "he" | "en" } | undefined {
+  for (const example of EXAMPLES) {
+    for (const lang of ["he", "en"] as const) if (example[lang].subject === subject && example[lang].notes === notes) return { example, lang };
+  }
+  return undefined;
+}
+
 /** True when the text is exactly one of the examples (in either language): used to avoid treating it as the learner's own work. */
 export function isExampleText(subject: string, notes: string): boolean {
-  return EXAMPLES.some((e) => (e.he.subject === subject && e.he.notes === notes) || (e.en.subject === subject && e.en.notes === notes));
+  return findExample(subject, notes) !== undefined;
 }

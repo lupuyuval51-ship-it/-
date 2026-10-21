@@ -1,6 +1,6 @@
 /**
  * Tessellation tables for the procedural scenery. Pure numbers (no three.js) so the renderer and the budget tests
- * read the same source: "low" is what Tier C builds, "normal" is the existing look of Tier A and B.
+ * read the same source: "low" is what Tiers B and C build, "normal" is the look of Tier A (`RenderProfile.geometry`).
  */
 import type { Geo as DecorGeo } from "./decor";
 import type { Geo as LifeGeo } from "./flocks";

@@ -27,9 +27,12 @@ export function projectilePath(speed: number, angleDeg: number, gravity: number,
 export function projectileSolvable(sim: ProjectileSim): boolean {
   return projectileRange(sim.maxSpeed, 45, sim.gravity) + sim.tolerance >= sim.targetDistance;
 }
-/** A reference solution: 45° launch with exactly the speed that lands on the target. */
+/**
+ * A reference solution: 45° launch with exactly the speed that lands on the target. Never faster than `maxSpeed` (the
+ * grader refuses that): a target that is only within the tolerance of the longest shot is hit at full speed.
+ */
 export function projectileSolution(sim: ProjectileSim): { angle: number; speed: number } {
-  return { angle: 45, speed: Math.round(Math.sqrt(sim.targetDistance * sim.gravity) * 100) / 100 };
+  return { angle: 45, speed: Math.min(sim.maxSpeed, Math.round(Math.sqrt(sim.targetDistance * sim.gravity) * 100) / 100) };
 }
 
 /** Distance from the pivot at which the right weight balances the lever. */

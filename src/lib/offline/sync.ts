@@ -63,6 +63,15 @@ function writeSyncState(kv: KV, s: SyncState): void {
 }
 /** Forget what was synced (sign-out or a different account): everything is treated as new on the next sign-in. */
 export const resetSyncState = (kv: KV) => kv.remove(KEY);
+/**
+ * Forget only where the last pull stopped (the account and the push marks stay): the next round reads every cloud row again, so a
+ * record removed on this phone without a deletion (a damaged game that was purged) comes back from its healthy copy, which an
+ * ordinary round would never return (it only reads rows changed after the cursor). The merge is idempotent, so nothing else changes.
+ */
+export function forgetPullCursor(kv: KV): void {
+  const s = readSyncState(kv);
+  if (s.cursor !== null) writeSyncState(kv, { ...s, cursor: null });
+}
 
 export interface SyncResult {
   pushed: number;
@@ -108,7 +117,7 @@ function buildBatch(store: OfflineStore, changes: ReturnType<OfflineStore["chang
     batch.sessions.push({ localId: s.id, gameId: s.gameId, status: s.status, state: s.state, startedAt: iso(s.startedAt), finishedAt: s.finishedAt ? iso(s.finishedAt) : null });
   }
   for (const c of changes.cards) {
-    if (!gameFits(c.gameId)) continue;
+    if (!gameFits(c.gameId)) { skipped++; continue; } // (counted like the run: it stays on this phone too)
     batch.cards.push({ cardKey: c.key, gameId: c.gameId, challengeId: c.challengeId, box: c.box, due: iso(c.due), mastered: c.mastered });
   }
   return { batch, skipped };

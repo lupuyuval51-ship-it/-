@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useId, useRef, useState } from "react";
 import { ChevronDown, CircleCheck, CircleX, X } from "lucide-react";
 import { useDir, useT } from "@/components/I18nProvider";
 import { Badge, Button, cx } from "@/components/ui";
@@ -58,6 +58,11 @@ export function RichText({ text, className }: { text: string; className?: string
   return <div className={cx("space-y-1.5", className)}>{out}</div>;
 }
 
+/** Text of several lines (a revealed solution: one step or pair per line): maths inside a Hebrew line is drawn left to right, each line on its own. */
+function MathLines({ text }: { text: string }) {
+  return <>{text.split("\n").map((line, i) => <Fragment key={i}>{i > 0 && "\n"}<MathText text={line} /></Fragment>)}</>;
+}
+
 const blockText = (b: Block, t: ReturnType<typeof useT>, depth = 0): string[] => {
   const pad = "  ".repeat(depth);
   if (b.t === "move") return [pad + t("block.move")];
@@ -75,10 +80,51 @@ export function revealSummary(ch: PublicChallenge, reveal: Record<string, unknow
     case "choice": return ch.options.find((o) => o.id === reveal.optionId)?.text ?? "";
     case "numeric": return `${reveal.value}${ch.unit ? ` ${ch.unit}` : ""}`;
     case "sequence": return (reveal.order as string[]).map((id, i) => `${i + 1}. ${ch.items.find((x) => x.id === id)?.text ?? ""}`).join("\n");
-    case "match": return ch.lefts.map((l) => `${l.text}: ${ch.rights.find((r) => r.id === l.id)?.text ?? ""}`).join("\n");
+    case "match": {
+      // The pairs are written in the opaque ids this player was shown, where a term and its answer never share an id
+      // (looking the answer up by the term's own id printed "term: " with nothing after it). A reveal without pairs
+      // keeps the old lookup by the same id.
+      const pairs = Array.isArray(reveal.pairs) ? (reveal.pairs as unknown[]) : [];
+      const rightOf = (leftId: string) => {
+        const pair = pairs.find((p): p is { leftId: unknown; rightId: unknown } => typeof p === "object" && p !== null && (p as { leftId?: unknown }).leftId === leftId);
+        return pair ? pair.rightId : pairs.length ? undefined : leftId;
+      };
+      return ch.lefts.map((l) => `${l.text}: ${ch.rights.find((r) => r.id === rightOf(l.id))?.text ?? ""}`).join("\n");
+    }
     case "program": return (reveal.program as Block[]).flatMap((b) => blockText(b, t)).join("\n");
     case "simulation": return Object.entries(reveal.params as Record<string, number>).map(([k, v]) => `${k in SIM_PARAM_LABEL ? t(SIM_PARAM_LABEL[k as keyof typeof SIM_PARAM_LABEL]) : k}: ${v}`).join(", ");
   }
+}
+
+/**
+ * Reports whether part of the scrolling body is hidden below its fold, now and whenever that can change: a scroll, a new
+ * window size, and a change of size of the body or of either column inside it. The answer column grows when the verdict,
+ * the explanation or a hint is added under the last option; the body itself keeps its height then (it is already as tall
+ * as the panel allows), so watching only the body and the question missed exactly the moment the cue is needed.
+ * Returns the function that stops watching.
+ */
+export function watchBelowFold(el: HTMLElement, onChange: (below: boolean) => void): () => void {
+  const update = () => onChange(scrollCue(el.scrollTop, el.clientHeight, el.scrollHeight).below);
+  update();
+  el.addEventListener("scroll", update, { passive: true });
+  const ro = typeof ResizeObserver === "function" ? new ResizeObserver(update) : null;
+  ro?.observe(el);
+  for (const child of Array.from(el.children)) ro?.observe(child);
+  window.addEventListener("resize", update);
+  return () => {
+    el.removeEventListener("scroll", update);
+    ro?.disconnect();
+    window.removeEventListener("resize", update);
+  };
+}
+
+/**
+ * The verdict of each slot of the order on screen. A wrong order comes back with one verdict per slot; once the player
+ * takes items out, the rest move up and a slot's old verdict was about another item. A slot keeps its verdict only while
+ * it still holds the item that was graded there (then the verdict is still exactly true); otherwise it has none.
+ */
+export function slotVerdicts(order: readonly string[], graded: readonly string[], inPlace: readonly boolean[]): (boolean | undefined)[] {
+  return order.map((id, i) => (i < inPlace.length && graded[i] === id ? inPlace[i] : undefined));
 }
 
 interface Props {
@@ -129,19 +175,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
   // Scroll affordance: a fade + chevron shows while more content is hidden below the fold of the body.
   useEffect(() => {
     const el = bodyRef.current;
-    if (!el) return;
-    const update = () => setMoreBelow(scrollCue(el.scrollTop, el.clientHeight, el.scrollHeight).below);
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    const ro = typeof ResizeObserver === "function" ? new ResizeObserver(update) : null;
-    ro?.observe(el);
-    if (el.firstElementChild) ro?.observe(el.firstElementChild);
-    window.addEventListener("resize", update);
-    return () => {
-      el.removeEventListener("scroll", update);
-      ro?.disconnect();
-      window.removeEventListener("resize", update);
-    };
+    return el ? watchBelowFold(el, setMoreBelow) : undefined;
   }, []);
 
   const submit = () => {
@@ -224,7 +258,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                 {result.revealed && result.reveal && (
                   <div className="space-y-1 rounded-lg bg-ink-900 p-2">
                     <p className="text-xs text-amber">{t("challenge.revealed")}</p>
-                    <pre dir="auto" className="whitespace-pre-wrap text-sm">{revealSummary(challenge, result.reveal, t)}</pre>
+                    <pre dir="auto" className="whitespace-pre-wrap text-sm"><MathLines text={revealSummary(challenge, result.reveal, t)} /></pre>
                   </div>
                 )}
                 {result.explanation && (
@@ -365,7 +399,12 @@ function SequenceInput({ challenge, disabled, result, onChange }: { challenge: E
   const root = useRef<HTMLDivElement>(null);
   const focusNext = useRef<string | null>(null);
   const pool = challenge.items.filter((i) => !order.includes(i.id));
-  const inPlace = (result?.detail?.inPlace as boolean[] | undefined) ?? [];
+  // Derived-state adjustment during render: the order that a new result graded (the list is locked while it is checked).
+  const [graded, setGraded] = useState<{ result: AnswerResult | null; order: string[] }>({ result: null, order: [] });
+  if (result !== graded.result) setGraded({ result, order });
+  const rawInPlace = result?.detail?.inPlace;
+  const inPlace = Array.isArray(rawInPlace) ? (rawInPlace as boolean[]) : [];
+  const verdicts = result && !result.correct ? slotVerdicts(order, graded.order, inPlace) : [];
   const update = (next: string[], spoken: string, focus: string) => { setOrder(next); setNote(spoken); focusNext.current = focus; onChange(next.length === challenge.items.length ? next : null); };
   // The button that was pressed leaves its list, so keyboard / TalkBack focus is handed to a sensible neighbour.
   useEffect(() => {
@@ -382,11 +421,11 @@ function SequenceInput({ challenge, disabled, result, onChange }: { challenge: E
           const item = challenge.items.find((x) => x.id === id)!;
           return (
             <li key={id}>
-              <button type="button" disabled={disabled} data-order={id} aria-label={t("a11y.seq.item", { n: i + 1, text: item.text })} onClick={() => update(order.filter((x) => x !== id), t("a11y.seq.removed", { text: item.text }), `[data-item="${id}"]`)} className={cx("flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 py-2 text-start text-sm", result && !result.correct && inPlace.length ? (inPlace[i] ? "border-lime/60 bg-lime/10" : "border-rose/60 bg-rose/10") : "border-neon/50 bg-neon/10")}>
+              <button type="button" disabled={disabled} data-order={id} aria-label={t("a11y.seq.item", { n: i + 1, text: item.text })} onClick={() => update(order.filter((x) => x !== id), t("a11y.seq.removed", { text: item.text }), `[data-item="${id}"]`)} className={cx("flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 py-2 text-start text-sm", verdicts[i] === undefined ? "border-neon/50 bg-neon/10" : verdicts[i] ? "border-lime/60 bg-lime/10" : "border-rose/60 bg-rose/10")}>
                 <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-full bg-ink-700 text-xs">{i + 1}</span>
                 <span aria-hidden dir="auto" className="min-w-0 whitespace-pre-wrap break-words font-mono"><MathText text={item.text} /></span>
               </button>
-              {result && !result.correct && inPlace.length > 0 && <span className="sr-only">{t(inPlace[i] ? "challenge.correct" : "challenge.incorrect")}</span>}
+              {verdicts[i] !== undefined && <span className="sr-only">{t(verdicts[i] ? "challenge.correct" : "challenge.incorrect")}</span>}
             </li>
           );
         })}

@@ -120,3 +120,16 @@ export function voiceAllowed(name: Sfx, active: number): boolean {
 export function resyncNextNote(nextNote: number, now: number): number {
   return nextNote < now ? now + 0.1 : nextNote;
 }
+
+/** Length of the shared white-noise buffer, in seconds. */
+export const NOISE_SECONDS = 1;
+
+/**
+ * Where in the noise buffer a burst of `dur` seconds starts (`random` in 0-1). A random place keeps repeated bursts from
+ * sounding identical, but the burst plus its 50 ms release must still fit in the buffer, or a long one (the portal
+ * swoosh, the victory shimmer) runs out of noise and stops with an audible cut.
+ */
+export function noiseOffset(dur: number, random: number, bufferSeconds = NOISE_SECONDS, maxOffset = 0.5): number {
+  const room = Math.max(0, bufferSeconds - Math.max(0, dur) - 0.05);
+  return clamp(random, 0, 1) * Math.min(maxOffset, room);
+}

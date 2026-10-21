@@ -11,6 +11,7 @@ import { contentLangOf, type DictKey } from "@/lib/i18n";
 import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress } from "@/lib/offline/generate";
 import { store } from "../app-state";
+import { useAccount } from "../cloud/account";
 import { chapterFailure, loadCourseProgress, type ChapterProgress } from "../course-model";
 import { navigate } from "../router";
 
@@ -33,19 +34,30 @@ function Missing() {
 function CourseView({ course }: { course: Course }) {
   const t = useT();
   const lang = contentLangOf(useLocale());
-  const [progress] = useState(() => loadCourseProgress(store, course));
+  const [progress, setProgress] = useState(() => loadCourseProgress(store, course));
+  // A cloud sync can bring in the chapters played on another phone while this screen is open (its merges are silent for the
+  // store's own listeners), so the progress is read again whenever a sync finishes, as on the home screen.
+  const { lastSyncAt } = useAccount();
+  const syncMark = useRef(lastSyncAt);
+  useEffect(() => {
+    if (syncMark.current === lastSyncAt) return;
+    syncMark.current = lastSyncAt;
+    setProgress(loadCourseProgress(store, course));
+  }, [lastSyncAt, course]);
   const [busy, setBusy] = useState<{ n: number; percent: number } | null>(null);
   const [failed, setFailed] = useState<"full" | "generic" | null>(null);
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
-  const chapters = courseChapters(course, findTopic);
+  // Each chapter's catalogue row by its topic id, never by position: a row the catalogue lacks must not shift the titles of the
+  // chapters after it onto the wrong chapter (the button builds `ch.topicId`, so it would build another chapter than it names).
+  const entries = new Map(courseChapters(course, findTopic).map((e) => [e.id, e]));
   const [title, description, audience] = course[lang];
 
   async function start(ch: ChapterProgress, level: Difficulty) {
     if (busy) return;
     if (ch.resume && level === ch.nextLevel) { navigate(`/play/${ch.resume}`); return; }
     const entry = findTopic(ch.topicId);
-    if (!entry) return;
+    if (!entry) { setFailed("generic"); return; } // (a tap is never silently ignored)
     const tier = getOfflineTier();
     setFailed(null);
     setBusy({ n: ch.number, percent: 0 });
@@ -80,7 +92,7 @@ function CourseView({ course }: { course: Course }) {
       {next ? (
         <section className="space-y-3 rounded-2xl border border-neon/50 bg-neon/10 p-4 shadow-e1" aria-labelledby="course-next-title" data-testid="course-next" data-chapter={next.number}>
           <p className="text-xs font-bold uppercase tracking-wide text-neon">{t("mob.course.next", { n: next.number })}</p>
-          <h2 id="course-next-title" className="text-lg font-bold">{chapters[next.number - 1]?.[lang][0]}</h2>
+          <h2 id="course-next-title" className="text-lg font-bold">{entries.get(next.topicId)?.[lang][0]}</h2>
           <button type="button" disabled={busy !== null} onClick={() => void start(next, next.nextLevel ?? "beginner")} data-testid="course-next-start"
             className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-neon px-5 font-bold text-ink-950 shadow-glow transition active:scale-[0.99] disabled:opacity-60">
             {next.resume ? t("mob.course.continue", { n: next.number }) : t("mob.course.start", { n: next.number })} <Arrow />
@@ -97,7 +109,7 @@ function CourseView({ course }: { course: Course }) {
       <h2 id="course-chapters" className="text-lg font-semibold">{t("mob.course.chapters")}</h2>
       <ol aria-labelledby="course-chapters" className="space-y-3" data-testid="course-chapters">
         {progress.chapters.map((ch) => {
-          const entry = chapters[ch.number - 1];
+          const entry = entries.get(ch.topicId);
           if (!entry) return null;
           const status = ch.levelsDone.length
             ? t("mob.course.status.done", { levels: ch.levelsDone.map((d) => t(`difficulty.${d}` as DictKey)).join(" · ") })

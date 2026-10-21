@@ -128,8 +128,10 @@ export function createMaterialSet(profile: RenderProfile, theme: EnvTheme): Mate
   function surface(style: string, w = 1, d = 1): THREE.Material {
     const def = base[style] ?? base.prop!;
     const repeat = style === "floor" || style === "floorAlt" ? 4 : 2.5;
-    // Untextured (simple) materials do not depend on the box size, so every box of a style shares one material.
-    const size = profile.materials === "simple" ? "" : `${Math.round(w / repeat)}x${Math.round(d / repeat)}`;
+    // Untextured materials (Tier C's simple ones, and Tier B's standard ones, which have no texture budget) do not depend on
+    // the box size, so every box of a style shares one material. Only a tiled texture makes the footprint matter.
+    const textured = profile.materials !== "simple" && (albedo !== null || normal !== null);
+    const size = textured ? `${Math.round(w / repeat)}x${Math.round(d / repeat)}` : "";
     const key = `${style}|${profile.materials}|${size}`;
     const hit = cache.get(key);
     if (hit) return hit;
@@ -233,11 +235,34 @@ export function sharedSoftSprite(): THREE.CanvasTexture {
   return (softSprite ??= makeSoftSprite());
 }
 
-/** Base direction of a label: the first strong letter decides (Hebrew/Arabic script = rtl). Digits and punctuation alone stay ltr. */
+/**
+ * Base direction of a label: the first strong letter decides (Hebrew/Arabic script = rtl). Digits and punctuation alone stay ltr.
+ * The multiplication sign (U+00D7) and the division sign (U+00F7) sit inside the Latin-1 letter block but are neutral symbols, so
+ * a Hebrew label that starts with one is still rtl; U+FEFF (a stray byte-order mark) is not an Arabic letter.
+ */
 const textDirection = (s: string): CanvasDirection => {
-  const first = /([\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF])|[A-Za-z\u00C0-\u024F]/.exec(s);
+  const first = /([\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFC])|[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F]/.exec(s);
   return first ? (first[1] ? "rtl" : "ltr") : "inherit";
 };
+
+/**
+ * Adds a rounded rectangle to the current path. `roundRect` is missing before Chrome 99 / Safari 16 (an Android System WebView
+ * that was never updated, an iPhone left on iOS 15); there the call threw while the first station, character or portal label was
+ * drawn, which took the whole 3D scene down. There the same corners are drawn with arcs.
+ */
+export function roundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+  if (typeof ctx.roundRect === "function") {
+    ctx.roundRect(x, y, w, h, r);
+    return;
+  }
+  const k = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.moveTo(x + k, y);
+  ctx.arcTo(x + w, y, x + w, y + h, k);
+  ctx.arcTo(x + w, y + h, x, y + h, k);
+  ctx.arcTo(x, y + h, x, y, k);
+  ctx.arcTo(x, y, x + w, y, k);
+  ctx.closePath();
+}
 
 /** Canvas label (supports Hebrew and any script the OS fonts cover). */
 export function makeLabelTexture(text: string, color: string, subtitle?: string): { texture: THREE.CanvasTexture; aspect: number } {
@@ -249,7 +274,7 @@ export function makeLabelTexture(text: string, color: string, subtitle?: string)
   ctx.fillStyle = "rgba(6,9,20,0.78)";
   const r = 22;
   ctx.beginPath();
-  ctx.roundRect(4, 4, W - 8, H - 8, r);
+  roundedRectPath(ctx, 4, 4, W - 8, H - 8, r);
   ctx.fill();
   ctx.strokeStyle = color;
   ctx.lineWidth = 4;
@@ -266,12 +291,14 @@ export function makeLabelTexture(text: string, color: string, subtitle?: string)
     size -= 2;
     ctx.font = `600 ${size}px "Segoe UI", system-ui, Arial, sans-serif`;
   }
-  ctx.fillText(text, W / 2, subtitle ? 50 : H / 2);
+  // A name that is still too wide at the smallest size (a 50-letter portal label, a long English or Spanish title) is condensed to
+  // the frame instead of running off both edges; `maxWidth` changes nothing for text that already fits.
+  ctx.fillText(text, W / 2, subtitle ? 50 : H / 2, W - 40);
   if (subtitle) {
     ctx.fillStyle = color;
     ctx.direction = textDirection(subtitle);
     ctx.font = `500 28px "Segoe UI", system-ui, Arial, sans-serif`;
-    ctx.fillText(subtitle, W / 2, 104);
+    ctx.fillText(subtitle, W / 2, 104, W - 40);
   }
   const texture = new THREE.CanvasTexture(c);
   texture.colorSpace = THREE.SRGBColorSpace;

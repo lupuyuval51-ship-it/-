@@ -9,7 +9,7 @@ import { describeGrid } from "@/lib/game/a11y/scene";
 import type { Block } from "@/lib/game/spec/schema";
 
 type ProgramChallenge = Extract<PublicChallenge, { type: "program" }>;
-type Path = (number | "body" | "else")[]; // indices into nested containers
+export type Path = (number | "body" | "else")[]; // indices into nested containers
 
 function containerAt(program: Block[], path: Path): Block[] {
   let cur: Block[] = program;
@@ -21,6 +21,22 @@ function containerAt(program: Block[], path: Path): Block[] {
     cur = which === "else" && b.t === "if" ? b.else : b.body;
   }
   return cur;
+}
+
+/**
+ * Where new blocks go after the block at `idx` of the container `at` is removed. The insertion point is a list of indices, so
+ * without this it kept pointing at the old position: removing an earlier block silently moved it into a different loop, or
+ * to the top level while no "add to" button showed as selected (and the top button still said "inside a block").
+ * Removing the block it points into (or one of its parents) moves it up to the container that held that block.
+ */
+export function pathAfterRemove(path: Path, at: Path, idx: number): Path {
+  if (path.length <= at.length || !at.every((v, i) => path[i] === v)) return path;
+  const k = path[at.length] as number;
+  if (k === idx) return at;
+  if (k < idx) return path;
+  const next = [...path];
+  next[at.length] = k - 1;
+  return next;
 }
 
 const countBlocks = (p: Block[]): number => p.reduce((n, b) => n + 1 + (b.t === "repeat" ? countBlocks(b.body) : b.t === "if" ? countBlocks(b.body) + countBlocks(b.else) : 0), 0);
@@ -112,18 +128,22 @@ export function ProgramBuilder({ challenge, trail, disabled, onChange }: { chall
   const removeAt = (p: Path, idx: number) => {
     const gone = containerAt(program, p)[idx];
     setProgram((prog) => mutate(prog, (root) => void containerAt(root, p).splice(idx, 1)));
+    setPath((cur) => pathAfterRemove(cur, p, idx));
     if (gone) setNote(t("a11y.program.removed", { label: labelOf(gone) }));
     // the delete button disappears with its row: keep keyboard / TalkBack focus inside the program
     setTimeout(() => (listRef.current?.querySelector<HTMLElement>("[data-block-delete]") ?? listRef.current?.querySelector<HTMLElement>("button"))?.focus(), 0);
   };
-  const setCount = (p: Path, idx: number, delta: number) =>
+  // the announcement is worked out here, not inside the state updater (which React may run twice and must stay pure)
+  const setCount = (p: Path, idx: number, delta: number) => {
+    const shown = containerAt(program, p)[idx];
+    if (shown?.t !== "repeat") return;
+    const n = Math.max(2, Math.min(9, shown.n + delta));
     setProgram((prog) => mutate(prog, (root) => {
       const b = containerAt(root, p)[idx];
-      if (b?.t === "repeat") {
-        b.n = Math.max(2, Math.min(9, b.n + delta));
-        setNote(t("a11y.program.repeatCount", { n: b.n }));
-      }
+      if (b?.t === "repeat") b.n = n;
     }));
+    setNote(t("a11y.program.repeatCount", { n }));
+  };
   const listRef = useRef<HTMLDivElement>(null);
   const samePath = (a: Path, b: Path) => a.length === b.length && a.every((v, i) => v === b[i]);
 

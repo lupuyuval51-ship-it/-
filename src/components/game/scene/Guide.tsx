@@ -5,14 +5,34 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
-import type { GuideKind, GuideModel } from "@/lib/game/state/guidance";
+import type { GuideKind, GuideModel, GuideTarget } from "@/lib/game/state/guidance";
 import type { EnvTheme } from "@/lib/game/world/types";
 import type { InputState } from "../input";
 import { DEFAULT_GUIDE_INSETS, markerBand, type GuideInsets } from "./guideBand";
 import { sharedSoftSprite } from "./materials";
 
-/** Several beams can be active at once (talk + two terminals + a coin); six covers every mission. */
-const SLOTS = 6;
+/**
+ * Several beams can be active at once (talk + two terminals + a coin). Six cover the games the library and the study engine
+ * build, but a mission may list more (an AI game: a talk, six terminals and a coin), so `beamTargets` decides who gets one.
+ */
+export const BEAM_SLOTS = 6;
+const SLOTS = BEAM_SLOTS;
+
+/**
+ * The targets that get a beam: the first `slots` in mission order, except that the primary objective (the one the marker and
+ * Pip lead to) always has one. It is the nearest target, which can come last in a long mission; without this it was the
+ * only objective on screen with no beam. Writes into `out` (reused every frame) and returns it.
+ */
+export function beamTargets(targets: readonly GuideTarget[], primary: GuideTarget | null, slots = SLOTS, out: GuideTarget[] = []): GuideTarget[] {
+  out.length = 0;
+  if (slots <= 0) return out;
+  for (let i = 0; i < targets.length && out.length < slots; i++) out.push(targets[i]!);
+  if (primary && !out.includes(primary)) {
+    if (out.length < slots) out.push(primary);
+    else out[slots - 1] = primary;
+  }
+  return out;
+}
 
 const beamVert = `varying float vY; void main(){ vY = position.y + 0.5; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 const beamFrag = `varying float vY; uniform vec3 color; uniform float time; uniform float strength;
@@ -70,14 +90,16 @@ export function GuideBeams({ runtime, model, theme }: { runtime: GameRuntime; mo
   const ringMats = useMemo(() => Array.from({ length: SLOTS }, () => new THREE.MeshBasicMaterial({ color: "#ffffff", transparent: true, opacity: 0.5, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false })), []);
   const chevMats = useMemo(() => Array.from({ length: SLOTS }, () => new THREE.MeshBasicMaterial({ color: "#ffffff", fog: false })), []);
   useEffect(() => () => { mats.forEach((m) => m.dispose()); ringMats.forEach((m) => m.dispose()); chevMats.forEach((m) => m.dispose()); }, [mats, ringMats, chevMats]);
+  const shown = useRef<GuideTarget[]>([]);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     const p = runtime.sim.player;
+    const list = model.enabled ? beamTargets(model.targets, model.primary, SLOTS, shown.current) : null;
     for (let i = 0; i < SLOTS; i++) {
       const g = groups.current[i];
       if (!g) continue;
-      const target = model.enabled ? model.targets[i] : undefined;
+      const target = list ? list[i] : undefined;
       g.visible = Boolean(target);
       if (!target) continue;
       const size = KIND_SIZE[target.kind];
@@ -123,6 +145,18 @@ export function GuideBeams({ runtime, model, theme }: { runtime: GameRuntime; mo
   );
 }
 
+/** Ground speed (m/s) below which the player counts as standing still: 0.02 m a frame at 60 frames a second. */
+export const IDLE_SPEED = 1.2;
+
+/**
+ * Whether the player stood still this frame. It compares the distance with the time the simulation really advanced (at
+ * most 0.1 s a frame, as in the game loop), so a slow walk counts as moving at 120 or 144 frames a second too; a fixed
+ * distance per frame made Pip impatient while the player was walking slowly on a fast screen.
+ */
+export function stoodStill(moved: number, dt: number): boolean {
+  return !(moved > IDLE_SPEED * Math.min(Math.max(dt, 0), 0.1));
+}
+
 /**
  * "Pip": a small drone that floats beside the player and, when the next objective is far away, flies ahead towards
  * it — a diegetic arrow with some personality. It gets impatient (bobs faster, drifts to the target) when idle.
@@ -146,7 +180,7 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
     const moved = Math.hypot(p.x - prev.current.x, p.z - prev.current.z);
     prev.current.x = p.x;
     prev.current.z = p.z;
-    idle.current = moved > 0.02 ? 0 : idle.current + dt;
+    idle.current = stoodStill(moved, dt) ? idle.current + dt : 0;
 
     const fx = -Math.sin(input.yaw), fz = -Math.cos(input.yaw); // camera forward on the ground
     const rx = -fz, rz = fx;
@@ -204,6 +238,28 @@ export function Companion({ runtime, model, input, profile, accent }: { runtime:
 }
 
 /**
+ * The marker's distance label, written only when it changes (setting the text and measuring the width cost a layout).
+ * The HUD unmounts the marker while a panel is open (pause, dialogue, lore, challenge) and mounts a fresh, empty one when it
+ * closes; a text remembered for the old element left the new one an empty pill until the distance changed (resume the game
+ * standing still), so a new element always gets its text again.
+ */
+export class MarkerLabel {
+  private el: HTMLElement | null = null;
+  private text: string | null = null;
+  /** The marker's width when its text was last written: the band keeps a pinned marker's label on screen with it. */
+  width = 0;
+
+  write(el: HTMLElement, text: string): void {
+    if (el === this.el && text === this.text) return;
+    this.el = el;
+    this.text = text;
+    const t = el.firstElementChild?.lastElementChild as HTMLElement | null | undefined;
+    if (t) t.textContent = text;
+    this.width = el.offsetWidth;
+  }
+}
+
+/**
  * Projects the primary objective to the screen and writes the result straight into the HUD marker element
  * (transform + text), so the marker costs no React renders. Off-screen targets pin to the edge with an arrow.
  */
@@ -211,8 +267,7 @@ export function GuideProjector({ runtime, model, markerRef, label, insets }: { r
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const v = useMemo(() => new THREE.Vector3(), []);
-  const lastText = useRef("");
-  const markerWidth = useRef(0);
+  const marker = useMemo(() => new MarkerLabel(), []);
 
   useFrame(() => {
     const el = markerRef.current;
@@ -232,7 +287,7 @@ export function GuideProjector({ runtime, model, markerRef, label, insets }: { r
     const W = size.width, H = size.height;
     let sx = ((behind ? -v.x : v.x) * 0.5 + 0.5) * W;
     let sy = ((behind ? v.y : -v.y) * 0.5 + 0.5) * H;
-    const { left, right, top, bottom } = markerBand(W, H, insets?.current ?? DEFAULT_GUIDE_INSETS, markerWidth.current);
+    const { left, right, top, bottom } = markerBand(W, H, insets?.current ?? DEFAULT_GUIDE_INSETS, marker.width);
     const inside = !behind && sx > left && sx < right && sy > top && sy < bottom;
     let angle = 180; // pointing down at the target when it is on screen
     if (!inside) {
@@ -255,13 +310,8 @@ export function GuideProjector({ runtime, model, markerRef, label, insets }: { r
     el.style.transform = `translate3d(${Math.round(sx)}px, ${Math.round(sy)}px, 0) translate(-50%, -50%)`;
     const arrow = el.firstElementChild?.firstElementChild as HTMLElement | null;
     if (arrow) arrow.style.transform = `rotate(${Math.round(angle)}deg)`;
-    const text = label(prim.kind, prim.label, Math.round(d));
-    if (text !== lastText.current) {
-      lastText.current = text;
-      const t = el.firstElementChild?.lastElementChild as HTMLElement | null;
-      if (t) t.textContent = text;
-      markerWidth.current = el.offsetWidth; // measured only when the text changes, so the pinned marker's label never runs off a side edge
-    }
+    // measured only when the text (or the element) changes, so the pinned marker's label never runs off a side edge
+    marker.write(el, label(prim.kind, prim.label, Math.round(d)));
   });
   return null;
 }

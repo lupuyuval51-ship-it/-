@@ -1,13 +1,26 @@
 "use client";
 
 import { useEffect, type RefObject } from "react";
-import { trapTarget } from "@/lib/game/a11y/scene";
-import { focusReturnTarget, removedOpener, type Activation } from "./focusReturn";
+import { dialogTabTarget, focusReturnTarget, removedOpener, type Activation } from "./focusReturn";
 
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/** Candidates for the Tab order; `focusablesIn` keeps the ones that really are in it (`<summary>`: the pause menu's "Controls"). */
+export const FOCUSABLE = 'a[href], button, input:not([type="hidden"]), select, textarea, details > summary:first-of-type, [tabindex]';
 
+/**
+ * Can take the focus: not disabled (a disabled fieldset included), not inside something hidden, inert or aria-hidden within the
+ * dialog, and drawn (`display: none` / `visibility: hidden`, where the browser can tell).
+ */
+export function reachable(el: HTMLElement, root: HTMLElement): boolean {
+  if (el.matches(":disabled")) return false;
+  for (let n: HTMLElement | null = el; n && n !== root; n = n.parentElement) {
+    if (n.hidden || n.hasAttribute("inert") || n.getAttribute("aria-hidden") === "true") return false;
+  }
+  return typeof el.checkVisibility !== "function" || el.checkVisibility({ checkVisibilityCSS: true, visibilityProperty: true });
+}
+
+/** The dialog's controls in Tab order (roving radios that are not the tab stop, `tabindex="-1"`, are left out). */
 export const focusablesIn = (root: HTMLElement): HTMLElement[] =>
-  [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => !el.hidden && el.getAttribute("aria-hidden") !== "true");
+  [...root.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.tabIndex >= 0 && reachable(el, root));
 
 /** Something the focus can really be given back to: still on the page, and not the page itself (focusing <body> does nothing). */
 const usable = (el: HTMLElement): boolean => el.isConnected && el !== document.body && el !== document.documentElement;
@@ -33,16 +46,23 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, initial?: str
     if (!root) return;
     const previous = document.activeElement instanceof HTMLElement && usable(document.activeElement) ? document.activeElement : null;
     const opener = previous ? null : removedOpener(lastActivation, performance.now(), (el) => el.isConnected);
-    const first = (initial ? root.querySelector<HTMLElement>(initial) : null) ?? focusablesIn(root)[0];
-    if (first) first.focus();
-    else {
+    // the first match that can take the focus (a disabled answer control is skipped), else the first control, else the box itself
+    const wanted = initial ? [...root.querySelectorAll<HTMLElement>(initial)].find((el) => reachable(el, root)) : undefined;
+    const first = wanted ?? focusablesIn(root)[0];
+    first?.focus();
+    if (!first || !root.contains(document.activeElement)) {
       root.tabIndex = -1;
       root.focus();
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
       const items = focusablesIn(root);
-      const target = trapTarget(e.shiftKey, items.indexOf(document.activeElement as HTMLElement), items.length);
+      const active = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const target = dialogTabTarget(e.shiftKey, active, items, {
+        inside: (el) => root.contains(el),
+        isRoot: (el) => el === root,
+        precedes: (a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+      });
       if (target === null) return;
       e.preventDefault();
       (target === -1 ? root : items[target])?.focus();

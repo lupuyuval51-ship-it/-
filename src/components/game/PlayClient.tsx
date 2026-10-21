@@ -54,6 +54,11 @@ const TUTORIAL_KEY = "levelup.tutorial";
 /** After a pickup failed to reach the server, how long before standing on it picks it up again. */
 const COLLECT_RETRY_MS = 3000;
 const VIBRATION_KEY = "levelup.vibration";
+/**
+ * The answer to an event sent for a run the screen has since left (Replay, Restart, or the reload after the game was updated).
+ * Its state is that old run's: shown, it would put the old progress, score or even the old area on top of the new run. Dropped quietly.
+ */
+class SupersededRun extends Error {}
 const readPref = (k: string, d: boolean): boolean => {
   try {
     const v = localStorage.getItem(k);
@@ -126,6 +131,9 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   const lastSaved = useRef({ x: 1e9, z: 1e9 });
   const dataRef = useRef<Started | null>(null);
   const clientRef = useRef<ClientState | null>(null);
+  // The runtime's own callbacks (a pickup, a checkpoint) are made once per area and keep the `send` of that moment, which knew only
+  // the previous area's runtime (none at all in the first area): `send` reads the current one here instead.
+  const runtimeRef = useRef<GameRuntime | null>(null);
   const overlayRef = useRef<Overlay>(overlay);
   const data = boot.status === "ready" ? boot.data : null;
   // The renderer rebuilds its materials whenever the profile object changes, so the calmer profile must be one stable object
@@ -140,6 +148,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     overlayRef.current = overlay;
     clientRef.current = client;
     dataRef.current = data;
+    runtimeRef.current = runtime;
   });
 
   const popupId = useRef(0);
@@ -179,6 +188,8 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   }, [toast, t]);
 
   // ───────── session boot ─────────
+  /** A reload for an updated game is on its way: the other events the update caught in flight fail the same way and need no reload of their own. */
+  const staleReload = useRef(false);
   const load = useCallback(async (restart: boolean) => {
     try {
       const d = await transport.startSession(gameId, restart);
@@ -188,10 +199,13 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       if (d.resumed && !restart) toast(t("hud.resumed"), "info");
     } catch (e) {
       setBoot({ status: "error", message: t(bootErrorKey(e, saveErrorKey)) });
+    } finally {
+      staleReload.current = false;
     }
   }, [gameId, saveErrorKey, t, toast, transport]);
   /** (Re)start from an event handler: show the loading screen, close overlays, then fetch the session. */
   const start = useCallback((restart = false) => {
+    dataRef.current = null; // from now on, answers to events of the run being left are dropped (see `SupersededRun`)
     setBoot({ status: "loading" });
     setOverlay({ type: "none" });
     return load(restart);
@@ -211,21 +225,32 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   // ───────── server events (strictly ordered) ─────────
   const send = useCallback(<T extends EventResponse>(event: Record<string, unknown>): Promise<T> => {
     const d = dataRef.current;
-    if (!d) return Promise.reject(new Error("not ready"));
+    // no run on screen: the only way here is the old run's world still moving for a moment after a (re)start began
+    if (!d) return Promise.reject(new SupersededRun());
     const run = async () => {
-      const res = await transport.sendEvent<T>(d.sessionId, event);
+      // queued behind an event that was still on its way when the player left this run: the old run needs it no more
+      if (dataRef.current !== d) throw new SupersededRun();
+      let res: T;
+      try {
+        res = await transport.sendEvent<T>(d.sessionId, event);
+      } catch (e) {
+        if (dataRef.current !== d) throw new SupersededRun();
+        throw e;
+      }
+      if (dataRef.current !== d) throw new SupersededRun();
+      const rt = runtimeRef.current;
       // an autosave changes nothing on screen (only the stored position): no new state, so no render of the scene for it
       if (event.type !== "save" || !sameProgress(clientRef.current, res.state)) {
         setClient(res.state);
         setScore(res.state.score);
-        runtime?.setClientState(res.state);
+        rt?.setClientState(res.state);
       }
       for (const id of res.newlyCompletedMissions) {
         const m = d.spec.missions.find((x) => x.id === id);
         toast(t("toast.mission", { title: m?.title ?? id }), "good");
         if (!res.completed) audio.playEvent({ type: "mission" }); // the last mission is covered by the victory jingle
         feedback.current?.("mission");
-        const p = runtime?.sim.player;
+        const p = rt?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1, p.z, "#a3ff4f", 40);
       }
       for (const id of res.newlyDefeatedBosses ?? []) {
@@ -233,7 +258,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         toast(t("boss.toast", { name: b?.name ?? id }), "good");
         if (!res.completed) { audio.play("mission"); audio.play("streak", { level: 3, delay: 0.3 }); }
         feedback.current?.("victory");
-        const p = runtime?.sim.player;
+        const p = rt?.sim.player;
         if (p) emitter.burst(p.x, p.y + 1.2, p.z, "#ff4d6d", 70);
       }
       for (const a of res.newAchievements) toast(t("toast.achievement", { name: t(`ach.${a}` as never) }), "good");
@@ -247,11 +272,18 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     const p = queue.current.then(run, run);
     queue.current = p.catch(() => undefined);
     return p;
-  }, [audio, emitter, runtime, t, toast, transport]);
+  }, [audio, emitter, t, toast, transport]);
 
   const handleError = useCallback((e: unknown) => {
+    if (e instanceof SupersededRun) return; // the screen has moved on to another run: nothing to say about the old one
     if (e instanceof ApiFailure) {
-      if (e.code === "SESSION_STALE") { toast(t("hud.stale"), "warn"); setTimeout(() => void start(false), 800); return; }
+      if (e.code === "SESSION_STALE") {
+        if (staleReload.current) return;
+        staleReload.current = true;
+        toast(t("hud.stale"), "warn");
+        setTimeout(() => void start(false), 800);
+        return;
+      }
       if (e.status === 401) { router.push("/login"); return; }
       if (e.status === 429) { toast(t("common.error.rateLimited"), "warn"); return; }
       const saveError = saveErrorKey?.(e); // the phone could not store the move: say so instead of losing progress silently
@@ -272,7 +304,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         if (item) emitter.burst(item.x, item.y, item.z, "#4cf3ff", 18);
         audio.play("collect");
         feedback.current?.("collect");
-        send({ type: "collect", itemId }).then(() => pop(t("hud.points", { n: 10 }), "gold")).catch((e) => {
+        send({ type: "collect", itemId }).then((res) => {
+          // the points the server (or the phone's reducer) gave for it, not a number of its own
+          const points = res.data.points;
+          if (typeof points === "number" && points > 0) pop(t("hud.points", { n: points }), "gold");
+        }).catch((e) => {
           // the server never took it: let it be picked up again a moment later (not every frame), or the item stays hidden for good
           if (isTransientFailure(e)) setTimeout(() => rt.forgetPending(itemId), COLLECT_RETRY_MS);
           handleError(e);

@@ -14,6 +14,7 @@ import { gradeAnswer, revealSolution, toPublicChallenge } from "../game/challeng
 import { findArea, findChallenge } from "../game/state/progress";
 import { deckBodySchema, dueCards, newCard, review, type DeckCard } from "./deck";
 import { normalizeCard, normalizeGame, normalizeSession } from "./records";
+import { forgetPullCursor } from "./sync";
 
 export interface KV {
   get(key: string): string | null;
@@ -508,7 +509,8 @@ export class OfflineStore {
     const now = this.clock();
     if (b.action === "start") {
       const items = dueCards(Object.values(this.syncDeck()), now).flatMap((card) => {
-        const ch = this.getGame(card.gameId) && findChallenge(this.getGame(card.gameId)!.spec, card.challengeId);
+        const game = this.getGame(card.gameId);
+        const ch = game && findChallenge(game.spec, card.challengeId);
         return ch ? [{ ...toPublicChallenge(ch, deckSeed(card)), id: card.key }] : [];
       });
       return { items };
@@ -631,7 +633,10 @@ export class OfflineStore {
         if (!this.getGame(r.gameId) || tomb[r.gameId] !== undefined) continue;
         const local = deck[r.key];
         if (local && dirtyAndNewer(local.updatedAt ?? local.added, r.updatedAt)) continue;
-        deck[r.key] = { ...r, updatedAt: clean(r.updatedAt) };
+        // The review counter seeds the shuffle and the opaque answer ids of the question (`deckSeed`), and the cloud does not keep it
+        // (a pulled card says 0). It never goes backwards here: a card replaced while the review screen is open (a round runs in the
+        // background) would otherwise be graded with another seed, and the learner's right answer would be refused as invalid.
+        deck[r.key] = { ...r, reviews: Math.max(r.reviews, local?.reviews ?? 0), updatedAt: clean(r.updatedAt) };
         applied++;
       }
       this.saveDeck(deck);
@@ -706,7 +711,7 @@ export class OfflineStore {
       if (!this.getGame(c.gameId)) { counts.cardsKept++; continue; }
       const local = deck[c.key];
       if (local && cardStamp(local) >= cardStamp(c)) { counts.cardsKept++; continue; }
-      deck[c.key] = { ...c, updatedAt: now };
+      deck[c.key] = { ...c, reviews: Math.max(c.reviews, local?.reviews ?? 0), updatedAt: now }; // (the counter seeds the question: see mergeRemote)
       counts.cardsImported++;
       deckChanged = true;
     }
@@ -813,7 +818,11 @@ export class OfflineStore {
     return { games: ids.length - damagedGames.length, damagedGames, damagedSessions };
   }
 
-  /** Removes what `integrity()` reports. A healthy copy in the cloud (if any) comes back with the next sync. */
+  /**
+   * Removes what `integrity()` reports. A healthy copy in the cloud (if any) comes back with the next sync: a purge records no
+   * deletion (the other phones keep the game), and the sync is told to read the cloud again from the start (a cloud row that did
+   * not change is otherwise never pulled again).
+   */
   purgeDamaged(): number {
     const { damagedGames, damagedSessions } = this.integrity();
     for (const id of damagedGames) this.removeGameKeys(id);
@@ -825,7 +834,10 @@ export class OfflineStore {
     }
     for (const sid of bad) this.kv.remove(PREFIX + `session.${sid}`);
     const n = damagedGames.length + bad.size;
-    if (n > 0) this.changed();
+    if (n > 0) {
+      forgetPullCursor(this.kv); // (after the removals: on a full phone they free the room this needs)
+      this.changed();
+    }
     return n;
   }
 

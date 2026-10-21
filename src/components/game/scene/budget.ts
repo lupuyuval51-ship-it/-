@@ -27,7 +27,10 @@ export function decorItemsFor(world: WorldModel, profile: RenderProfile): DecorI
   return out;
 }
 
-/** The nearest-to-the-start slice of the skyline that this profile keeps (a ring, so a prefix is still balanced). */
+/**
+ * The slice of the skyline that this profile keeps: a prefix of `buildSkyline`'s list. The list is built ring by ring in
+ * angular order, so a short prefix is the first slots of the first ring (one side of the horizon), not a thinned ring.
+ */
 export function skylineFor(all: SkylinePiece[], profile: RenderProfile): SkylinePiece[] {
   const keep = Math.max(profile.limits.skylineMin, profile.environmentDetail);
   const kept = all.filter((_, i) => i / all.length < keep);
@@ -147,7 +150,8 @@ export function sceneBudget(world: WorldModel, profile: RenderProfile): SceneBud
     lifeMatricesPerFrame,
     particleSlots: slots.total,
     lights,
-    shadowCastingLights: profile.shadows.enabled ? profile.shadows.casters : 0,
+    // the sun is the only light that casts shadows (`Sky.tsx`; accent point lights never do), whatever `casters` allows
+    shadowCastingLights: profile.shadows.enabled ? Math.min(1, profile.shadows.casters) : 0,
     drawCalls,
     triangles,
   };

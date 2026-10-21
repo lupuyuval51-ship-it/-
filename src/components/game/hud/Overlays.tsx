@@ -356,13 +356,25 @@ function BossHealth({ spec, client }: { spec: PublicSpec; client: ClientState })
   );
 }
 
+/**
+ * What a key does on the dialogue (`advance`: Enter / Space / E show the next line) or on a one-button card (lore, boss: they
+ * close it). The auto-repeat of a held key is only swallowed (`"hold"`: the default is prevented, so a focused button is not
+ * clicked either), like the game's own E / Enter (input.ts): the press that opened a card, held a moment longer, used to close
+ * it again at once or skip through the whole conversation.
+ */
+export function cardKeyAction(code: string, repeat: boolean, advance: boolean): "close" | "next" | "hold" | null {
+  if (code === "Escape") return "close";
+  if (code !== "Enter" && code !== "Space" && code !== "KeyE") return null;
+  return repeat ? "hold" : advance ? "next" : "close";
+}
+
 /** What a boss says when the player walks up: who it is, how the battle goes and where the next round is. */
 export function BossCard({ boss, client, stationLabel, onClose }: { boss: Boss; client: ClientState; stationLabel: (stationId: string) => string; onClose: () => void }) {
   const t = useT();
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", "KeyE", "Space"].includes(e.code)) { e.preventDefault(); onClose(); } };
+    const onKey = (e: KeyboardEvent) => { const a = cardKeyAction(e.code, e.repeat, false); if (a) { e.preventDefault(); if (a === "close") onClose(); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -404,8 +416,9 @@ export function Dialogue({ npc, onClose, onLine }: { npc: Npc; onClose: () => vo
   const next = () => (last ? onClose() : (setI(i + 1), onLine()));
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code === "Escape") onClose();
-      else if (["Enter", "Space", "KeyE"].includes(e.code)) { e.preventDefault(); next(); }
+      const a = cardKeyAction(e.code, e.repeat, true);
+      if (a === "close") onClose();
+      else if (a) { e.preventDefault(); if (a === "next") next(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -436,7 +449,7 @@ export function LoreCard({ title, text, onClose }: { title: string; text: string
   const box = useRef<HTMLDivElement>(null);
   useDialogFocus(box);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (["Escape", "Enter", "KeyE", "Space"].includes(e.code)) { e.preventDefault(); onClose(); } };
+    const onKey = (e: KeyboardEvent) => { const a = cardKeyAction(e.code, e.repeat, false); if (a) { e.preventDefault(); if (a === "close") onClose(); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);

@@ -11,7 +11,7 @@ export interface Part {
   pos: [number, number, number];
   color: ColorKey;
   emissive?: boolean;
-  /** Euler rotation (radians, applied as yaw · pitch · roll) of this part inside the item. */
+  /** Euler rotation of this part inside the item: radians about [x (pitch), y (yaw), z (roll)], composed in "YXZ" order (yaw · pitch · roll). */
   rot?: [number, number, number];
 }
 

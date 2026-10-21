@@ -8,18 +8,22 @@ import type { RenderProfile } from "@/config/graphics";
 
 export const MAX_QUALITY_LEVEL = 4;
 
-/** Multiplier on the pixel ratio per level (the Loop clamps the result to the profile's own pixel ratio). */
+/** Multiplier on the pixel ratio per level (`dprForLevel` keeps the result between `MIN_DPR` and the profile's own ratio). */
 export const DPR_SCALE: readonly number[] = [1, 0.85, 0.75, 0.7, 0.6];
+/** Floor of the step-downs. It never raises a ratio that is already lower (Tier C draws at 0.4). */
 export const MIN_DPR = 0.6;
 
 const min = (a: number, b: number) => Math.min(a, b);
+
+/** A level inside the ladder (whole number, 0..MAX_QUALITY_LEVEL); anything that is not a number is level 0. */
+const ladderLevel = (level: number) => (Number.isFinite(level) ? Math.max(0, Math.min(MAX_QUALITY_LEVEL, Math.floor(level))) : 0);
 
 /**
  * The profile to render at a fallback level. Level 0 is the profile itself. Every field of the result is less than or
  * equal to the input (booleans only switch off, counts only shrink), which the unit tests assert for every tier.
  */
 export function degradeProfile(base: RenderProfile, level: number): RenderProfile {
-  const l = Math.max(0, Math.min(MAX_QUALITY_LEVEL, Math.floor(level)));
+  const l = ladderLevel(level);
   if (l === 0) return base;
   const p: RenderProfile = {
     ...base,
@@ -72,9 +76,14 @@ export function governedDprFor(governed: GovernedDpr | null, key: string): numbe
   return governed !== null && governed.key === key && Number.isFinite(governed.dpr) && governed.dpr > 0 ? governed.dpr : null;
 }
 
-/** The pixel ratio for a fallback level: the profile's ratio on this screen scaled by the level's step, never below `MIN_DPR`. */
+/**
+ * The pixel ratio for a fallback level: the profile's ratio on this screen scaled by the level's step, never below `MIN_DPR`
+ * and never above `base` itself. The floor used to win over the ceiling: Tier C draws at 0.4, so its first step "down" put
+ * it at 0.6, 2.25 times the pixels, on exactly the phones that were already too slow (and every later canvas started there).
+ */
 export function dprForLevel(base: number, level: number): number {
-  return Math.max(MIN_DPR, base * (DPR_SCALE[level] ?? 1));
+  const b = Number.isFinite(base) && base > 0 ? base : 1;
+  return Math.min(b, Math.max(MIN_DPR, b * (DPR_SCALE[ladderLevel(level)] ?? 1)));
 }
 
 /**
@@ -111,8 +120,13 @@ export interface GovernorOptions {
   critical?: number;
   /** Consecutive slow windows required before stepping down. */
   windowsToStep?: number;
-  /** Frames longer than this (tab switch, GC, debugger) are not counted. */
+  /** Frames longer than this (tab switch, GC, debugger) are not counted in a window. */
   ignoreAbove?: number;
+  /**
+   * Frames longer than this are always a hitch (a tab switch, the app in the background, a debugger). Frames between
+   * `ignoreAbove` and this are long; a run of nothing but long frames is handled on its own (see `push`).
+   */
+  hitchAbove?: number;
   startLevel?: number;
 }
 
@@ -129,10 +143,14 @@ export class FrameGovernor {
   private readonly critical: number;
   private readonly windowsToStep: number;
   private readonly ignoreAbove: number;
+  private readonly hitchAbove: number;
   private skip: number;
   private t = 0;
   private n = 0;
   private slowRun = 0;
+  /** Seconds and frames of the current run of long frames (each between `ignoreAbove` and `hitchAbove`). */
+  private longT = 0;
+  private longN = 0;
 
   constructor(opts: GovernorOptions = {}) {
     this.warmup = opts.warmup ?? 1.5;
@@ -141,12 +159,16 @@ export class FrameGovernor {
     this.critical = opts.critical ?? 1 / 15;
     this.windowsToStep = opts.windowsToStep ?? 2;
     this.ignoreAbove = opts.ignoreAbove ?? 0.25;
-    this.level = Math.max(0, Math.min(MAX_QUALITY_LEVEL, opts.startLevel ?? 0));
+    this.hitchAbove = Math.max(this.ignoreAbove, opts.hitchAbove ?? 1);
+    this.level = ladderLevel(opts.startLevel ?? 0);
     this.skip = this.warmup;
   }
 
   push(dt: number): number | null {
-    if (!(dt > 0) || dt > this.ignoreAbove) return null;
+    if (!(dt > 0) || dt > this.hitchAbove) return null;
+    if (dt > this.ignoreAbove) return this.long(dt);
+    this.longT = 0;
+    this.longN = 0;
     if (this.skip > 0) {
       this.skip -= dt;
       return null;
@@ -161,8 +183,30 @@ export class FrameGovernor {
     else this.slowRun = 0;
     const step = this.level < MAX_QUALITY_LEVEL && (mean > this.critical || this.slowRun >= this.windowsToStep);
     if (!step) return null;
+    return this.stepDown();
+  }
+
+  /**
+   * A long frame. One of them is a hitch and is not measured, as before. But a phone that draws this level at fewer than
+   * four frames a second produces nothing else, so the windows never saw a single frame and the ladder never moved: the
+   * device that needed it most stayed at full quality. A run of long frames lasting a warm-up plus a window (3.5 s by
+   * default, longer than any start-up shader compile) steps down. It does not touch the windows or the warm-up, so a
+   * device that keeps up behaves exactly as before.
+   */
+  private long(dt: number): number | null {
+    this.longT += dt;
+    this.longN += 1;
+    if (this.level >= MAX_QUALITY_LEVEL || this.longN < 3 || this.longT < this.warmup + this.window) return null;
+    return this.stepDown();
+  }
+
+  private stepDown(): number {
     this.level += 1;
     this.slowRun = 0;
+    this.t = 0;
+    this.n = 0;
+    this.longT = 0;
+    this.longN = 0;
     this.skip = this.warmup;
     return this.level;
   }

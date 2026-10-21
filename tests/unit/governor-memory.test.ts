@@ -65,9 +65,10 @@ describe("the quality level a slow phone was pushed to is remembered for the nex
 });
 
 describe("pixel ratio of a level", () => {
-  it("scales the screen's ratio by the level's step and never goes below the floor", () => {
+  it("scales the screen's ratio by the level's step, never below the floor and never above the screen's own ratio", () => {
     DPR_SCALE.forEach((scale, level) => expect(dprForLevel(2, level)).toBeCloseTo(Math.max(MIN_DPR, 2 * scale), 10));
-    expect(dprForLevel(0.5, MAX_QUALITY_LEVEL)).toBe(MIN_DPR);
+    // a screen whose own ratio is under the floor is drawn at its ratio: "stepping down" must never render more pixels than it has
+    expect(dprForLevel(0.5, MAX_QUALITY_LEVEL)).toBe(0.5);
     expect(dprForLevel(1.5, 0)).toBe(1.5);
   });
 });

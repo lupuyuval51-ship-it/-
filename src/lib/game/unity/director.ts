@@ -12,19 +12,56 @@ import type { WorldModel } from "../world/types";
 export const MOTIFS = ["glassware", "plants", "planets", "monuments", "glyphs", "circuits", "bubbles", "cells", "letters", "crystals"] as const;
 export type Motif = (typeof MOTIFS)[number];
 
-/** Keyword stems (Hebrew and English; matched as substrings of the lower-cased text) → motif. */
+/**
+ * Keyword stems (Hebrew and English) → motif. A stem matches the START of a word (after up to two Hebrew one-letter
+ * prefixes: "הים", "בתא"); a stem ending in "$" must be the whole word, optionally plural ("ים$": ים, הים, but not every
+ * plural "-ים"; "star$": star, stars, but not "start"; "קוד$": not "קודם"). Matching inside words made almost every
+ * Hebrew game look like water ("ים" ends every masculine plural) and "making" a history lesson ("king").
+ */
 const KEYWORDS: Record<Motif, readonly string[]> = {
-  glassware: ["chem", "כימ", "atom", "אטום", "molecul", "מולקול", "reaction", "תגובה", "acid", "חומצ", "lab", "מעבד"],
-  plants: ["plant", "צמח", "photosyn", "פוטוסינ", "leaf", "עלה", "seed", "זרע", "tree", "עץ", "ecolog", "אקולוג", "flower", "פרח"],
-  planets: ["space", "חלל", "planet", "כוכב", "star", "orbit", "מסלול", "gravity", "כבידה", "galax", "גלקס", "solar", "שמש"],
-  monuments: ["histor", "היסטור", "war", "מלחמ", "ancient", "עתיק", "empire", "אימפר", "king", "מלך", "revolution", "מהפכ", "rome", "egypt", "מצרי"],
-  glyphs: ["math", "מתמט", "equation", "משוואה", "number", "מספר", "fraction", "שבר", "geometr", "גאומט", "algebra", "אלגברה", "angle", "זווית"],
-  circuits: ["code", "program", "תכנות", "קוד", "loop", "לולאה", "function", "פונקצ", "algorithm", "אלגוריתם", "computer", "מחשב", "variable", "משתנ"],
-  bubbles: ["water", "מים", "ocean", "אוקיינוס", "sea", "ים", "river", "נהר", "fish", "דג", "rain", "גשם"],
-  cells: ["cell", "תא", "body", "גוף", "bio", "ביולוג", "dna", "heart", "לב", "blood", "דם", "organ", "אבר", "brain", "מוח"],
-  letters: ["language", "שפה", "grammar", "דקדוק", "word", "מילה", "verb", "פועל", "sentence", "משפט", "vocabulary", "אוצר מילים", "english", "אנגלית", "writing", "כתיבה"],
+  glassware: ["chem", "כימ", "atom", "אטום", "molecul", "מולקול", "reaction", "תגובה", "acid", "חומצ", "lab$", "laborator", "מעבד"],
+  plants: ["plant", "צמח", "photosyn", "פוטוסינ", "leaf", "leaves", "עלה$", "עלים", "seed", "זרע", "tree", "עץ", "עצים", "ecolog", "אקולוג", "flower", "פרח"],
+  planets: ["space", "חלל", "planet", "כוכב", "star$", "orbit", "מסלול", "gravity", "כבידה", "galax", "גלקס", "solar", "שמש"],
+  monuments: ["histor", "היסטור", "war$", "מלחמ", "ancient", "עתיק", "empire", "אימפר", "king", "מלך", "revolution", "מהפכ", "rome", "roman", "egypt", "מצרי"],
+  glyphs: ["math", "מתמט", "equation", "משווא", "number", "מספר", "fraction", "שבר", "geometr", "גאומט", "algebra", "אלגברה", "angle", "triangle", "זווי"],
+  circuits: ["code", "program", "תכנות", "קוד$", "loop", "לולא", "function", "פונקצ", "algorithm", "אלגוריתם", "computer", "מחשב", "variable", "משתנ"],
+  bubbles: ["water", "מים", "ocean", "אוקיינוס", "sea$", "ים$", "river", "נהר", "fish", "דג$", "rain", "גשם"],
+  cells: ["cell", "תא$", "body", "גוף", "bio", "ביולוג", "dna", "heart", "לב$", "blood", "דם$", "organ$", "organism", "איבר", "אבר$", "brain", "מוח$"],
+  letters: ["language", "שפה", "grammar", "דקדוק", "word", "מילה", "מילים", "verb", "פועל", "sentence", "משפט", "vocabulary", "אוצר מילים", "english", "אנגלית", "writing", "כתיבה"],
   crystals: [],
 };
+
+/** Hebrew one-letter prefixes (the, and, in, to, as). מ and ש are left out: too many words begin with them (מעלה, שלב). */
+const HE_PREFIX = new Set(["ה", "ו", "ב", "ל", "כ"]);
+const HEBREW_LETTER = /^[א-ת]/;
+const WHOLE_WORD_SUFFIXES = ["", "s", "es", "ים", "ות"] as const;
+
+/** The word and, for a Hebrew word, the word without its first one or two prefix letters ("והים" → "הים", "ים"). */
+function wordForms(word: string): string[] {
+  const out = [word];
+  let w = word;
+  for (let i = 0; i < 2 && w.length > 2 && HEBREW_LETTER.test(w) && HE_PREFIX.has(w[0]!); i++) {
+    w = w.slice(1);
+    out.push(w);
+  }
+  return out;
+}
+
+/** Lower-cased words of the text, without Hebrew vowel marks (niqqud) and punctuation. */
+function wordsOf(text: string): string[] {
+  return text.toLowerCase().normalize("NFC").replace(/\p{M}/gu, "").split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+}
+
+/** Whether a keyword (see KEYWORDS) occurs in a text, given as its words and their prefix-free forms. */
+function keywordIn(keyword: string, words: readonly string[], forms: ReadonlySet<string>): boolean {
+  if (keyword.includes(" ")) return ` ${words.join(" ")}`.includes(` ${keyword}`);
+  if (keyword.endsWith("$")) {
+    const base = keyword.slice(0, -1);
+    return WHOLE_WORD_SUFFIXES.some((s) => forms.has(base + s));
+  }
+  for (const f of forms) if (f.startsWith(keyword)) return true;
+  return false;
+}
 
 const CATEGORY_MOTIF: Record<string, Motif> = {
   programming: "circuits",
@@ -76,11 +113,12 @@ export interface SceneDirectives {
 }
 
 function scoreMotifs(texts: readonly string[], category: string): Motif[] {
-  const hay = texts.join(" \n ").toLowerCase();
+  const words = wordsOf(texts.join(" \n "));
+  const forms = new Set(words.flatMap(wordForms));
   const scores = new Map<Motif, number>();
   for (const m of MOTIFS) {
     let s = 0;
-    for (const k of KEYWORDS[m]) if (hay.includes(k)) s += 1;
+    for (const k of KEYWORDS[m]) if (keywordIn(k, words, forms)) s += 1;
     if (s > 0) scores.set(m, s);
   }
   const ranked = [...scores.entries()].sort((a, b) => b[1] - a[1] || MOTIFS.indexOf(a[0]) - MOTIFS.indexOf(b[0])).map(([m]) => m);
@@ -103,7 +141,8 @@ export function directScene(spec: WorldSpec, world: WorldModel): SceneDirectives
   const motifs = scoreMotifs(texts, (spec.meta as { subjectCategory?: string }).subjectCategory ?? "other");
   const rnd = mulberry32(hashSeed(`unity|${world.seed}|${motifs.join(",")}`));
 
-  const signs: StationSign[] = world.stations.map((st, i) => ({ stationId: st.stationId, text: st.label.slice(0, 40), motif: motifs[i % motifs.length]! }));
+  // 40 characters, counted by code point so an emoji is never cut in half (a lone surrogate is not valid text for Unity)
+  const signs: StationSign[] = world.stations.map((st, i) => ({ stationId: st.stationId, text: Array.from(st.label).slice(0, 40).join(""), motif: motifs[i % motifs.length]! }));
 
   const props: DirectedProp[] = [];
   world.stations.forEach((st, i) => {

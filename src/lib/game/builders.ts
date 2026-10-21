@@ -1,4 +1,8 @@
-/** Compact constructors for demo/template content. Output is raw JSON that still goes through full validation. */
+/**
+ * Compact constructors for game content: the topic library (`topics/build.ts`), the study engine (`material/`) and the
+ * test samples (`tests/support/samples`, the only users of `spreadAnswers` / `easierChoice` / `easierMatch`). Output is
+ * raw JSON that still goes through full validation (`validateGameSpec`).
+ */
 import type { Block } from "./spec/schema";
 
 export type Lang = "en" | "he";

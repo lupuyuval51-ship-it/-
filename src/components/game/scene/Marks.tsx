@@ -8,6 +8,16 @@ import { useLayout } from "../useLayout";
 import { labelHeightFactor } from "./labelScale";
 import { makeLabelTexture, sharedSoftSprite } from "./materials";
 
+/**
+ * A world label's opacity: far labels fade out (from 28 m, gone at 44 m) so a distant cluster of terminals never turns into a
+ * wall of text, and labels fade near the screen edges and under the DOM HUD (`labelScreenOpacity`). 0 means not drawn at all.
+ */
+export function labelOpacity(distance: number, ndcX: number, ndcY: number, ndcZ: number, safeTop: number): number {
+  const far = Math.max(0, Math.min(1, (44 - distance) / 16));
+  if (!(far > 0)) return 0;
+  return far * labelScreenOpacity(ndcX, ndcY, ndcZ, safeTop);
+}
+
 /** World label that keeps a steady, readable size on screen (small when you are next to it, larger when far away). */
 export function Label({ text, color, y, scale = 1 }: { text: string; color: string; y: number; scale?: number }) {
   const { texture, aspect } = useMemo(() => makeLabelTexture(text, color), [text, color]);
@@ -27,11 +37,13 @@ export function Label({ text, color, y, scale = 1 }: { text: string; color: stri
     const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 62;
     const h = labelHeightFactor(size.height, fov) * d * scale;
     s.scale.set(h * aspect, h, 1);
-    // far labels fade out so a distant cluster of terminals never turns into a wall of text
-    const far = Math.max(0, Math.min(1, (44 - real) / 16));
     // labels are sprites inside the canvas: near the side edges they would be cut off, and at the top they would slide under the DOM HUD
     ndc.copy(tmp).project(camera);
-    (s.material as THREE.SpriteMaterial).opacity = far * labelScreenOpacity(ndc.x, ndc.y, ndc.z, safeTop);
+    const opacity = labelOpacity(real, ndc.x, ndc.y, ndc.z, safeTop);
+    (s.material as THREE.SpriteMaterial).opacity = opacity;
+    // a label faded out completely is skipped rather than drawn transparent: the same picture, one draw call less for every
+    // far terminal and every label behind the camera (a phone draws all of them every frame otherwise)
+    s.visible = opacity > 0;
   });
   return (
     <sprite ref={ref} position={[0, y, 0]} scale={[0.46 * aspect, 0.46, 1]}>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useT } from "@/components/I18nProvider";
-import { ANGLE_RANGE, LEVER_SLIDER_MIN, leverTorque, projectilePath, projectileRange } from "@/lib/game/challenges/simulations";
+import { ANGLE_RANGE, LEVER_SLIDER_MIN, leverBalanceDistance, leverTorque, projectilePath, projectileRange, type LeverSim, type ProjectileSim } from "@/lib/game/challenges/simulations";
 import type { PublicChallenge } from "@/lib/game/challenges/grade";
 
 type SimChallenge = Extract<PublicChallenge, { type: "simulation" }>;
@@ -15,14 +15,66 @@ const subscribeMotion = (cb: () => void) => {
 };
 const useReducedMotion = () => useSyncExternalStore(subscribeMotion, () => window.matchMedia(REDUCED).matches, () => false);
 
+/**
+ * The game's own "Reduce motion" switch (pause menu) puts `.reduce-motion` on the play screen. Its CSS stops CSS animations
+ * and transitions, but not the SVG `<animateMotion>` of the flying ball, so the panel asks its host as well as the system.
+ */
+export const inCalmHost = (el: Pick<Element, "closest"> | null): boolean => el?.closest(".reduce-motion") != null;
+
+const SPEED_STEP = 0.5;
+const DISTANCE_STEP = 0.05;
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Lowest value of the speed slider. A range input only stops on `min + k·step`, so with `min` 1 a top speed such as 22.3 could
+ * never be chosen (the slider stops at 22) and a target only reachable at full speed was out of reach. The grid is laid from
+ * the top speed down instead; for a whole or half top speed (every authored game) this is still 1.
+ */
+export function speedSliderMin(sim: Pick<ProjectileSim, "maxSpeed">): number {
+  return round2(sim.maxSpeed - SPEED_STEP * Math.floor((sim.maxSpeed - 1) / SPEED_STEP + 1e-9));
+}
+
+/** The preview's "balanced": exactly the grader's rule (within the tolerance of the balance point), so it never says "balanced" for a wrong answer, or "heavier" for a right one. */
+export function leverBalanced(sim: LeverSim, distance: number): boolean {
+  return Math.abs(distance - leverBalanceDistance(sim)) <= sim.tolerance;
+}
+
+const projectileHit = (sim: ProjectileSim, angle: number, speed: number) => Math.abs(projectileRange(speed, angle, sim.gravity) - sim.targetDistance) <= sim.tolerance;
+
+/**
+ * Where the sliders start: on a value the slider can show (its step grid), and never on an answer that is already right, so
+ * a lever that happens to balance at 5 m (equal weights, the left one at 5 m) or a target that the half-speed 45° shot hits
+ * is not solved by pressing "check" without touching anything.
+ */
+export function simStart(sim: SimChallenge["sim"]): { angle: number; speed: number; distance: number } {
+  if (sim.kind === "projectile") {
+    const min = speedSliderMin(sim);
+    const snap = (v: number) => Math.min(sim.maxSpeed, round2(min + Math.max(0, Math.round((v - min) / SPEED_STEP)) * SPEED_STEP));
+    const first = snap(Math.round(sim.maxSpeed / 2));
+    const speed = [first, snap(sim.maxSpeed / 4), sim.maxSpeed].find((s) => !projectileHit(sim, 45, s)) ?? first;
+    return { angle: 45, speed, distance: 5 };
+  }
+  const top = round2(LEVER_SLIDER_MIN + Math.floor((sim.maxDistance - LEVER_SLIDER_MIN) / DISTANCE_STEP + 1e-9) * DISTANCE_STEP);
+  const first = Math.min(top, 5);
+  const balance = leverBalanceDistance(sim);
+  const farEnd = Math.abs(top - balance) >= Math.abs(LEVER_SLIDER_MIN - balance) ? top : LEVER_SLIDER_MIN;
+  const distance = [first, farEnd].find((d) => !leverBalanced(sim, d)) ?? first;
+  return { angle: 45, speed: 10, distance };
+}
+
 /** Live physics preview. The preview uses the same public formulas; correctness is still decided by the server. */
 export function SimulationPanel({ challenge, disabled, onChange }: { challenge: SimChallenge; disabled: boolean; onChange: (params: Record<string, number>) => void }) {
   const t = useT();
-  const reduced = useReducedMotion();
+  const systemReduced = useReducedMotion();
+  const [calmHost, setCalmHost] = useState(false);
+  // the play screen's switch cannot change while a challenge is open (the pause menu replaces the panel), so one look on mount is enough
+  const host = useCallback((el: HTMLDivElement | null) => { if (el) setCalmHost(inCalmHost(el)); }, []);
+  const reduced = systemReduced || calmHost;
   const sim = challenge.sim;
-  const [angle, setAngle] = useState(45);
-  const [speed, setSpeed] = useState(sim.kind === "projectile" ? Math.round(sim.maxSpeed / 2) : 10);
-  const [distance, setDistance] = useState(sim.kind === "lever" ? Math.min(sim.maxDistance, 5) : 5);
+  const [start] = useState(() => simStart(sim));
+  const [angle, setAngle] = useState(start.angle);
+  const [speed, setSpeed] = useState(start.speed);
+  const [distance, setDistance] = useState(start.distance);
 
   useEffect(() => {
     onChange(sim.kind === "projectile" ? { angle, speed } : { distance });
@@ -43,7 +95,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
     const tickStep = W > 60 ? 10 : 5;
     const ticks = Array.from({ length: Math.floor(W / tickStep) }, (_, i) => (i + 1) * tickStep);
     return (
-      <div className="space-y-3">
+      <div ref={host} className="space-y-3">
         <svg viewBox="0 0 600 190" className="w-full rounded-xl bg-ink-900" role="img" aria-label={t("a11y.sim.projectile", { d: range.toFixed(1), target: sim.targetDistance })} style={{ direction: "ltr" }}>
           <defs>
             <linearGradient id="lu-sky" x1="0" y1="0" x2="0" y2="1">
@@ -84,17 +136,18 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
         </label>
         <label className="block space-y-1 text-sm">
           <span>{t("sim.speed")}: <b>{speed} m/s</b></span>
-          <input type="range" min={1} max={sim.maxSpeed} step={0.5} value={speed} disabled={disabled} onChange={(e) => setSpeed(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.speed")} aria-valuetext={t("a11y.unit.mps", { n: speed })} />
+          <input type="range" min={speedSliderMin(sim)} max={sim.maxSpeed} step={SPEED_STEP} value={speed} disabled={disabled} onChange={(e) => setSpeed(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.speed")} aria-valuetext={t("a11y.unit.mps", { n: speed })} />
         </label>
       </div>
     );
   }
 
   const torque = leverTorque(sim, distance);
-  const tilt = Math.max(-14, Math.min(14, torque * 0.35));
-  const balanced = Math.abs(torque) < 0.35;
+  const balanced = leverBalanced(sim, distance);
+  // a balanced beam (as the grader counts it) lies level, so the picture never contradicts the "balanced" label under it
+  const tilt = balanced ? 0 : Math.max(-14, Math.min(14, torque * 0.35));
   return (
-    <div className="space-y-3">
+    <div ref={host} className="space-y-3">
       <svg viewBox="0 0 600 200" className="w-full rounded-xl bg-ink-900" role="img" aria-label={t("a11y.sim.lever", { state: balanced ? t("sim.lever.balanced") : torque > 0 ? t("sim.lever.leftHeavy") : t("sim.lever.rightHeavy") })} style={{ direction: "ltr" }}>
         <polygon points="300,170 280,195 320,195" fill="#2a3769" />
         <g style={{ transform: `rotate(${tilt}deg)`, transformOrigin: "300px 170px", transition: reduced ? "none" : "transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1)" }}>
@@ -111,7 +164,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
       <p className="text-sm text-muted">{t("sim.lever.left", { w: sim.leftWeight, d: sim.leftDistance })} · {t("sim.lever.right", { w: sim.rightWeight })}</p>
       <label className="block space-y-1 text-sm">
         <span>{t("sim.lever.distance")}: <b>{distance} m</b></span>
-        <input type="range" min={LEVER_SLIDER_MIN} max={sim.maxDistance} step={0.05} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
+        <input type="range" min={LEVER_SLIDER_MIN} max={sim.maxDistance} step={DISTANCE_STEP} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
       </label>
     </div>
   );

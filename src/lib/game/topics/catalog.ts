@@ -249,9 +249,20 @@ export const isTopicId = (id: unknown): id is string => typeof id === "string" &
 
 export const topicsIn = (cat: TopicCategory): TopicEntry[] => TOPICS.filter((t) => t.cat === cat);
 
-/** Search over both languages' titles and descriptions (case- and accent-insensitive; Hebrew niqqud ignored). */
+/**
+ * Text as search compares it: lower case, accents, Hebrew niqqud and the maqaf (U+0300–036F, U+0591–05C7) removed, and
+ * so are hyphens, dashes, quotes and apostrophes, which a keyboard types differently from the catalogue: "אי-שוויונות"
+ * finds "אי־שוויונות", נאס"א finds "נאס״א", ג'ינגיס finds "ג׳ינגיס" and "newtons" finds "Newton's".
+ */
+const searchKey = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f\u0591-\u05c7]/g, "").replace(/['"`\u00b4\u2018\u2019\u201a\u201c\u201d\u201e\u05f3\u05f4\-\u2010-\u2015]/g, "").toLowerCase();
+
+/** Each topic's titles and descriptions in both languages as `searchKey` text, made once on the first search. */
+let haystack: Map<string, string> | null = null;
+
+/** Search over both languages' titles and descriptions (case- and accent-insensitive, see `searchKey`); every word must match. */
 export function searchTopics(query: string, cat: TopicCategory | "all" = "all"): TopicEntry[] {
-  const norm = (s: string) => s.normalize("NFD").replace(/[̀-֑ͯ-ׇ]/g, "").toLowerCase();
-  const words = norm(query).split(/\s+/).filter(Boolean);
-  return TOPICS.filter((t) => (cat === "all" || t.cat === cat) && words.every((w) => norm(`${t.en[0]} ${t.en[1]} ${t.he[0]} ${t.he[1]}`).includes(w)));
+  haystack ??= new Map(TOPICS.map((t) => [t.id, searchKey(`${t.en[0]} ${t.en[1]} ${t.he[0]} ${t.he[1]}`)]));
+  const hay = haystack;
+  const words = searchKey(query).split(/\s+/).filter(Boolean);
+  return TOPICS.filter((t) => (cat === "all" || t.cat === cat) && words.every((w) => hay.get(t.id)!.includes(w)));
 }

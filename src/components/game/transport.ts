@@ -47,8 +47,11 @@ export interface PlayTransport {
 
 async function post<T>(url: string, body: unknown): Promise<T> {
   const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), credentials: "same-origin" });
-  const json = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string } } & T;
-  if (!res.ok) throw new ApiFailure(res.status, json.error?.code ?? "ERROR", json.error?.message ?? "Request failed");
+  const json = (await res.json().catch(() => null)) as ({ error?: { code?: string; message?: string } } & T) | null;
+  if (!res.ok) throw new ApiFailure(res.status, json?.error?.code ?? "ERROR", json?.error?.message ?? "Request failed");
+  // A success with no readable answer (the connection dropped halfway through the body, a Wi-Fi sign-in page): the event may
+  // or may not have landed, so it fails like no answer at all. Returned as `{}`, the play screen took it for the new state.
+  if (!json || typeof json !== "object") throw new Error("The server's answer could not be read");
   return json;
 }
 

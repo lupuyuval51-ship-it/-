@@ -8,14 +8,18 @@ import type { GameRuntime } from "@/lib/game/engine/runtime";
 import { stationActive, stationDone, type ClientState } from "@/lib/game/state/progress";
 import type { WorldStation } from "@/lib/game/world/types";
 import { Halo, Label } from "./Marks";
-import type { MaterialSet } from "./materials";
+import { roundedRectPath, type MaterialSet } from "./materials";
 
 export const STATION_GREEN = "#34d399";
 export const STATION_GREY = "#7b8499";
 
-type ScreenState = "challenge" | "lore" | "done" | "locked";
+export type ScreenState = "challenge" | "lore" | "done" | "locked";
 
-/** The hologram that floats above a station. Drawn once per state; never contains any challenge content. */
+/**
+ * The hologram that floats above a station. Drawn once per state; never contains any challenge content.
+ * Its rounded panels go through `roundedRectPath`: a WebView without `ctx.roundRect` (before Chrome 99, an Android 6–8 phone
+ * whose System WebView was never updated) used to throw here while the first station was drawn, which took the whole scene down.
+ */
 export function makeScreenTexture(state: ScreenState, color: string): THREE.CanvasTexture {
   const W = 320, H = 208;
   const c = document.createElement("canvas");
@@ -24,7 +28,7 @@ export function makeScreenTexture(state: ScreenState, color: string): THREE.Canv
   const ctx = c.getContext("2d")!;
   const rr = (x: number, y: number, w: number, h: number, r: number) => {
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
+    roundedRectPath(ctx, x, y, w, h, r);
   };
   ctx.clearRect(0, 0, W, H);
   // glass panel
@@ -125,6 +129,60 @@ export function makeScreenTexture(state: ScreenState, color: string): THREE.Canv
   return tex;
 }
 
+/** One hologram material (and its texture) shared by the stations of a canvas that show the same state in the same colour. */
+export interface SharedScreen {
+  readonly key: string;
+  readonly material: THREE.MeshBasicMaterial;
+  users: number;
+  disposed: boolean;
+  readonly pool: Map<string, SharedScreen>;
+}
+
+const SCREEN_POOLS = new WeakMap<object, Map<string, SharedScreen>>();
+
+/**
+ * The hologram material for `state` drawn in `color`, one per canvas (`owner` is the canvas's material set, so a new canvas never
+ * reuses textures of a renderer that is gone). Every station used to draw its own 320x208 canvas and upload its own texture
+ * (about 350 KB of GPU memory each with its mipmaps), although there are only four pictures in a few colours: an area with eight
+ * stations kept eight where two or three are the same. The picture is identical, so nothing on screen changes.
+ * Looking one up does not keep it alive: a mounted station holds it with `retainScreen` and lets go with `releaseScreen`.
+ */
+export function screenFor(owner: object, state: ScreenState, color: string): SharedScreen {
+  let pool = SCREEN_POOLS.get(owner);
+  if (!pool) {
+    pool = new Map();
+    SCREEN_POOLS.set(owner, pool);
+  }
+  const key = `${state}|${color}`;
+  const hit = pool.get(key);
+  if (hit) return hit;
+  const material = new THREE.MeshBasicMaterial({ map: makeScreenTexture(state, color), transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+  const made: SharedScreen = { key, material, users: 0, disposed: false, pool };
+  pool.set(key, made);
+  return made;
+}
+
+export function retainScreen(s: SharedScreen): void {
+  s.users += 1;
+  // a screen freed between a station's render and its effect is used again (three.js uploads a freed texture on its next draw)
+  s.disposed = false;
+  if (!s.pool.has(s.key)) s.pool.set(s.key, s);
+}
+
+export function releaseScreen(s: SharedScreen): void {
+  s.users = Math.max(0, s.users - 1);
+  if (s.users > 0) return;
+  // Freed a moment later, not at once: in one commit React runs every effect cleanup before any new effect, so a station that
+  // turns to the picture another station is leaving (or a remount under StrictMode) takes it over instead of finding it freed.
+  void Promise.resolve().then(() => {
+    if (s.users > 0 || s.disposed) return;
+    s.disposed = true;
+    if (s.pool.get(s.key) === s) s.pool.delete(s.key);
+    s.material.map?.dispose();
+    s.material.dispose();
+  });
+}
+
 const wrap = (a: number) => {
   while (a > Math.PI) a -= Math.PI * 2;
   while (a < -Math.PI) a += Math.PI * 2;
@@ -168,9 +226,12 @@ export function StationView({ runtime, station, client, nearby, profile, materia
   const haloOpacity = useMemo(() => (new THREE.Color(theme.ground).getHSL({ h: 0, s: 0, l: 0 }).l > 0.45 ? 0.2 : 0.55), [theme.ground]);
   const state: ScreenState = done ? "done" : !active ? "locked" : lore ? "lore" : "challenge";
 
-  const screenTex = useMemo(() => makeScreenTexture(state, color), [state, color]);
-  const screenMat = useMemo(() => new THREE.MeshBasicMaterial({ map: screenTex, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }), [screenTex]);
-  useEffect(() => () => { screenTex.dispose(); screenMat.dispose(); }, [screenTex, screenMat]);
+  const screen = useMemo(() => screenFor(materials, state, color), [materials, state, color]);
+  useEffect(() => {
+    retainScreen(screen);
+    return () => releaseScreen(screen);
+  }, [screen]);
+  const screenMat = screen.material;
   const burstMat = useMemo(() => new THREE.MeshBasicMaterial({ color: STATION_GREEN, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }), []);
   useEffect(() => () => burstMat.dispose(), [burstMat]);
 

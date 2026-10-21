@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RenderProfile } from "@/config/graphics";
 import type { GameRuntime } from "@/lib/game/engine/runtime";
-import { bossProgress, stationDone, type ClientState } from "@/lib/game/state/progress";
+import type { PublicSpec } from "@/lib/game/spec/public";
+import { bossProgress, portalOpen, stationDone, type ClientState } from "@/lib/game/state/progress";
 import type { WorldBoss, WorldNpc } from "@/lib/game/world/types";
 import type { GuideModel } from "@/lib/game/state/guidance";
 import { Character } from "./Characters";
@@ -13,6 +14,24 @@ import { CollectibleView } from "./Collectibles";
 import { Label } from "./Marks";
 import type { MaterialSet } from "./materials";
 import { StationView, STATION_GREEN as GREEN, STATION_GREY as GREY } from "./Stations";
+
+/**
+ * What a boss's health bar shows: rounds in the battle, rounds still standing, and whether it is over. Taken from the shared
+ * progress rules (`bossProgress`), so the bar always agrees with the battle the server grades. Plain numbers, so the boss is only
+ * drawn again when one of them changes (not for every pick-up or every station the player walks past).
+ */
+export function bossBar(spec: Pick<PublicSpec, "bosses">, bossId: string, client: Pick<ClientState, "resolvedStations">): { total: number; left: number; defeated: boolean } {
+  const def = spec.bosses?.find((b) => b.id === bossId);
+  if (!def) return { total: 1, left: 1, defeated: false };
+  const p = bossProgress(def, client);
+  return { total: p.total, left: p.total - p.done, defeated: p.defeated };
+}
+
+/** Whether the area's portal is open, by the same rule as the runtime's interaction prompt (`portalOpen`); false when there is none. */
+export function portalIsOpen(spec: PublicSpec, areaId: string, client: Pick<ClientState, "missionsDone">): boolean {
+  const area = spec.areas.find((a) => a.id === areaId);
+  return area ? portalOpen(spec, client, area) : false;
+}
 
 function NpcView({ runtime, npc, nearby, profile, materials, model }: { runtime: GameRuntime; npc: WorldNpc; nearby: boolean; profile: RenderProfile; materials: MaterialSet; model: GuideModel }) {
   const labelY = npc.shape === "orb" ? 2.75 : npc.shape === "creature" ? 2.05 : npc.shape === "robot" ? 2.3 : 2.2;
@@ -28,10 +47,7 @@ function NpcView({ runtime, npc, nearby, profile, materials, model }: { runtime:
  * A boss is a character drawn larger than life with a health bar that follows the battle: one segment per round,
  * and a segment goes dark each time a round is won. The bar always faces the camera.
  */
-function BossView({ runtime, boss, client, nearby, profile, materials, model }: { runtime: GameRuntime; boss: WorldBoss; client: ClientState; nearby: boolean; profile: RenderProfile; materials: MaterialSet; model: GuideModel }) {
-  const def = runtime.spec.bosses?.find((b) => b.id === boss.bossId);
-  const progress = def ? bossProgress(def, client) : { total: 1, done: 0, defeated: false, nextPhase: 0 };
-  const left = progress.total - progress.done;
+function BossView({ runtime, boss, total, left, defeated, nearby, profile, materials, model }: { runtime: GameRuntime; boss: WorldBoss; total: number; left: number; defeated: boolean; nearby: boolean; profile: RenderProfile; materials: MaterialSet; model: GuideModel }) {
   const bar = useRef<THREE.Group>(null);
   const fill = materials.glow(boss.color, 1.4);
   const empty = materials.flat("#1a2038");
@@ -44,15 +60,15 @@ function BossView({ runtime, boss, client, nearby, profile, materials, model }: 
     const g = bar.current;
     if (g) g.quaternion.copy(camera.quaternion);
   });
-  const w = 0.42 * progress.total;
+  const w = 0.42 * total;
   return (
     <group position={[boss.x, boss.y, boss.z]}>
       <group scale={boss.scale}>
         <Character runtime={runtime} npc={npc} nearby={nearby} profile={profile} materials={materials} model={model} />
       </group>
-      <group ref={bar} position={[0, top, 0]} visible={!progress.defeated}>
+      <group ref={bar} position={[0, top, 0]} visible={!defeated}>
         <mesh position={[0, 0, -0.01]} material={frame}><planeGeometry args={[w + 0.14, 0.34]} /></mesh>
-        {Array.from({ length: progress.total }, (_, i) => (
+        {Array.from({ length: total }, (_, i) => (
           <mesh key={i} position={[-w / 2 + 0.21 + i * 0.42, 0, 0]} material={i < left ? fill : empty}><planeGeometry args={[0.36, 0.2]} /></mesh>
         ))}
       </group>
@@ -106,10 +122,8 @@ void main(){
   gl_FragColor = vec4(uColor * (0.6 + v), v * (0.4 + uOpen * 0.6));
 }`;
 
-function PortalView({ runtime, client, nearby, materials, profile }: { runtime: GameRuntime; client: ClientState; nearby: boolean; materials: MaterialSet; profile: RenderProfile }) {
+function PortalView({ runtime, open, nearby, materials, profile }: { runtime: GameRuntime; open: boolean; nearby: boolean; materials: MaterialSet; profile: RenderProfile }) {
   const portal = runtime.world.portal!;
-  const area = runtime.spec.areas.find((a) => a.id === runtime.areaId)!;
-  const open = area.portal!.requiresMissionIds.every((id) => client.missionsDone.includes(id));
   const theme = runtime.world.theme;
   const color = open ? theme.accent2 : GREY;
   const ring = materials.glow(color, open ? 1.8 : 0.3);
@@ -162,17 +176,33 @@ function PortalView({ runtime, client, nearby, materials, profile }: { runtime: 
   );
 }
 
+// The scene draws everything again whenever progress changes (a pick-up, an answer, a checkpoint) and whenever the player walks
+// into or out of reach of something. Characters, pick-ups, checkpoints and the portal take only stable references and plain values,
+// so memoised they are drawn again only when their own props change: a pick-up no longer reconciles every character in the area.
+// Stations read the whole progress state, so they still follow every change.
+const NpcViewMemo = memo(NpcView);
+const BossViewMemo = memo(BossView);
+const CollectibleViewMemo = memo(CollectibleView);
+const CheckpointViewMemo = memo(CheckpointView);
+const PortalViewMemo = memo(PortalView);
+
+/** The views that are memoised, for the tests. */
+export const MEMOISED_VIEWS = { NpcView: NpcViewMemo, BossView: BossViewMemo, CollectibleView: CollectibleViewMemo, CheckpointView: CheckpointViewMemo, PortalView: PortalViewMemo } as const;
+
 export function Entities({ runtime, client, nearbyKey, profile, materials, guide }: { runtime: GameRuntime; client: ClientState; nearbyKey: string | null; profile: RenderProfile; materials: MaterialSet; guide: GuideModel }) {
   const w = runtime.world;
   const activeCp = client.checkpoint?.areaId === runtime.areaId ? client.checkpoint.id : null;
   return (
     <group>
       {w.stations.map((s) => <StationView key={s.stationId} runtime={runtime} station={s} client={client} nearby={nearbyKey === `station:${s.stationId}`} profile={profile} materials={materials} />)}
-      {w.npcs.map((n) => <NpcView key={n.npcId} runtime={runtime} npc={n} nearby={nearbyKey === `npc:${n.npcId}`} profile={profile} materials={materials} model={guide} />)}
-      {w.bosses.map((b) => <BossView key={b.bossId} runtime={runtime} boss={b} client={client} nearby={nearbyKey === `boss:${b.bossId}`} profile={profile} materials={materials} model={guide} />)}
-      {w.collectibles.map((c) => <CollectibleView key={c.itemId} runtime={runtime} item={c} profile={profile} materials={materials} accent={w.theme.accent} />)}
-      {w.checkpoints.map((c) => <CheckpointView key={c.checkpointId} pos={c} active={activeCp === c.checkpointId} materials={materials} accent={w.theme.accent} />)}
-      {w.portal && <PortalView runtime={runtime} client={client} nearby={nearbyKey?.startsWith("portal:") ?? false} materials={materials} profile={profile} />}
+      {w.npcs.map((n) => <NpcViewMemo key={n.npcId} runtime={runtime} npc={n} nearby={nearbyKey === `npc:${n.npcId}`} profile={profile} materials={materials} model={guide} />)}
+      {w.bosses.map((b) => {
+        const bar = bossBar(runtime.spec, b.bossId, client);
+        return <BossViewMemo key={b.bossId} runtime={runtime} boss={b} total={bar.total} left={bar.left} defeated={bar.defeated} nearby={nearbyKey === `boss:${b.bossId}`} profile={profile} materials={materials} model={guide} />;
+      })}
+      {w.collectibles.map((c) => <CollectibleViewMemo key={c.itemId} runtime={runtime} item={c} profile={profile} materials={materials} accent={w.theme.accent} />)}
+      {w.checkpoints.map((c) => <CheckpointViewMemo key={c.checkpointId} pos={c} active={activeCp === c.checkpointId} materials={materials} accent={w.theme.accent} />)}
+      {w.portal && <PortalViewMemo runtime={runtime} open={portalIsOpen(runtime.spec, runtime.areaId, client)} nearby={nearbyKey?.startsWith("portal:") ?? false} materials={materials} profile={profile} />}
     </group>
   );
 }
