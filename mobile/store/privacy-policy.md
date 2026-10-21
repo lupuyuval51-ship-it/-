@@ -30,7 +30,9 @@ When you create a game with "LEVEL UP AI", the subject, goal, difficulty, langua
 
 ### Plus and Pro subscriptions (Google Play)
 
-Plus and Pro are monthly subscriptions bought and managed in Google Play. Google handles the payment under Google's own privacy policy, and we never receive your card or payment details. The app asks Google Play which subscription you have and keeps only that plan on your phone (it is part of Android's backup described above). It is not sent to our cloud, and no purchase data is stored in a LUPU ID. You can cancel at any time in Google Play's subscription settings.
+Plus and Pro are bought and managed in Google Play, as a monthly subscription or as a one-time purchase. Google handles the payment under Google's own privacy policy, and we never receive your card or payment details. The app asks Google Play which purchase you have and keeps the plan on your phone (it is part of Android's backup described above). While you are signed out the plan is not sent to our cloud and we receive nothing.
+
+If you are signed in with a LUPU ID, the app also sends the purchase token that Google Play gave it (a code that identifies the purchase, never your card or payment details) to our server, together with your sign-in. The server asks Google whether the purchase is real and still valid, and stores the result with your LUPU ID: the product, the plan, whether it is valid, its end date and a one-way hash of the token (so that one purchase cannot be used by two accounts). The token itself is not stored. Deleting your LUPU ID deletes this record too. You can cancel a subscription at any time in Google Play's subscription settings.
 
 ### How long we keep data
 
@@ -86,7 +88,9 @@ LUPU ID הוא שם החשבון האופציונלי של LEVEL UP. אם יוצ
 
 ### מנויי Plus ו-Pro (Google Play)
 
-Plus ו-Pro הם מנויים חודשיים שנרכשים ומנוהלים ב-Google Play. התשלום מטופל על ידי Google, לפי מדיניות הפרטיות של Google, ואנחנו לא מקבלים את פרטי הכרטיס או התשלום שלכם. האפליקציה שואלת את Google Play איזה מנוי יש לכם ושומרת בטלפון רק את התוכנית (היא חלק מהגיבוי של אנדרואיד שתואר למעלה). היא לא נשלחת לענן שלנו, ולא נשמר ב-LUPU ID שום מידע על רכישה. אפשר לבטל בכל עת בהגדרות המנויים של Google Play.
+Plus ו-Pro נרכשים ומנוהלים ב-Google Play, כמנוי חודשי או כרכישה חד-פעמית. התשלום מטופל על ידי Google, לפי מדיניות הפרטיות של Google, ואנחנו לא מקבלים את פרטי הכרטיס או התשלום שלכם. האפליקציה שואלת את Google Play איזו רכישה יש לכם ושומרת בטלפון את התוכנית (היא חלק מהגיבוי של אנדרואיד שתואר למעלה). בזמן שאתם לא מחוברים התוכנית לא נשלחת לענן שלנו ואנחנו לא מקבלים דבר.
+
+אם אתם מחוברים עם LUPU ID, האפליקציה שולחת לשרת שלנו גם את אסימון הרכישה ש-Google Play נתנה לה (קוד שמזהה את הרכישה, ואף פעם לא את פרטי הכרטיס או התשלום), יחד עם ההתחברות שלכם. השרת שואל את Google אם הרכישה אמיתית ועדיין בתוקף, ושומר את התוצאה ב-LUPU ID שלכם: המוצר, התוכנית, אם היא בתוקף, תאריך הסיום וגיבוב חד-כיווני של האסימון (כדי שרכישה אחת לא תשמש שני חשבונות). האסימון עצמו לא נשמר. מחיקת ה-LUPU ID מוחקת גם את הרשומה הזו. אפשר לבטל מנוי בכל עת בהגדרות המנויים של Google Play.
 
 ### כמה זמן אנחנו שומרים מידע
 

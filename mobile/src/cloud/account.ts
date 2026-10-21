@@ -7,6 +7,10 @@ import { supabaseCloud } from "./api";
 import { getSupabase, hasSavedSignIn } from "./client";
 import { store } from "../app-state";
 
+const readyListeners = new Set<() => void>();
+/** Calls `cb` whenever a learner has just signed in or a saved sign-in was restored (the app then has the server check the Play purchases). */
+export const onAccountReady = (cb: () => void): void => { readyListeners.add(cb); };
+
 export type SyncStatus = "idle" | "syncing" | "ok" | "error";
 /**
  * `skipped`: local items too large for the cloud (they stay on this phone). `rejected`: cloud items this app could not read
@@ -58,7 +62,10 @@ let connected: Promise<SupabaseClient> | null = null;
  */
 export function connectAccount(): Promise<SupabaseClient> {
   connected ??= getSupabase().then((db) => {
-    db.auth.onAuthStateChange((_event, session) => set({ session }));
+    db.auth.onAuthStateChange((event, session) => {
+      set({ session });
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) readyListeners.forEach((cb) => cb());
+    });
     // a sign-in that finished first (its event already set the session) is never overwritten by "nothing saved"
     void db.auth.getSession().then(({ data }) => { if (data.session) { set({ session: data.session }); void syncNow(); } });
     return db;
