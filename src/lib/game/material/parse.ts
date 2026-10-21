@@ -473,8 +473,10 @@ export function parseMaterial(raw: string): Knowledge {
       k.count++;
       stats.set(lower, k);
     }
-    wordsOf(s).forEach((w, idx) => {
-      if (phrases.some((p) => w.start >= p.start && w.end <= p.end)) return;
+    wordsOf(s).forEach((w0, idx) => {
+      if (phrases.some((p) => w0.start >= p.start && w0.end <= p.end)) return;
+      // "country's" is "country": a possessive standing in for a noun ("The country's wanted…") reads wrong
+      const w = /\p{Script=Latin}['’]s$/u.test(w0.text) ? { ...w0, text: w0.text.slice(0, -2) } : w0;
       const lower = w.text.toLowerCase();
       const min = /\p{Script=Hebrew}/u.test(w.text) ? 3 : 4;
       // a word with a digit in it ("ב-14", "1948-ב") is a number, not a term: never a gap or a wrong option for a word

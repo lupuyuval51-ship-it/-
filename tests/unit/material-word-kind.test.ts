@@ -28,3 +28,14 @@ describe("wrong words are of the right word's kind (English)", () => {
     for (const c of choices) if (c.type === "choice") for (const o of c.options) expect(o.text, c.id).not.toMatch(/^An? (?:keep|help|choose) /);
   });
 });
+
+describe("pronouns and possessives are not swapped in for nouns", () => {
+  it("no 'The himself wanted…' or 'The country's wanted…'", () => {
+    const notes = "The French Revolution began in 1789 when the people of Paris stormed the Bastille. The king, Louis XVI, had spent the country's money on wars and on his palace at Versailles, while many people were hungry. The revolutionaries wanted liberty, equality and fraternity. In 1793 the king was executed. A period called the Reign of Terror followed, in which thousands of people were killed. In 1799 Napoleon Bonaparte took power and later crowned himself emperor.";
+    const { spec } = generateOffline(request({ material: notes, subject: "French Revolution", mode: "FULL" }));
+    for (const c of spec.challenges) if (c.type === "choice") for (const o of c.options) {
+      expect(o.text, c.id).not.toMatch(/\bThe (?:himself|herself|themselves)\b/);
+      expect(o.text, c.id).not.toMatch(/^(?:country's|himself)$/);
+    }
+  });
+});
