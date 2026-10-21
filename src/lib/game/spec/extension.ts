@@ -61,6 +61,9 @@ export function mergeExtension(base: GameSpec, ext: GameExtension): MergeOutcome
   // First pass: claim fresh ids.
   const room = Math.max(0, SPEC_LIMITS.learningObjectives - spec.learning.objectives.length);
   const newObjectives = ext.objectives.slice(0, room).map((o) => ({ ...o }));
+  // a new challenge that assesses a dropped objective assesses none (it would point at an unknown one and fail the whole merge)
+  const droppedObjectives = new Set(ext.objectives.slice(room).map((o) => o.id));
+  if (droppedObjectives.size) notes.push("some new learning objectives were dropped: the game is at its objective limit");
   for (const o of newObjectives) o.id = claim("objective", o.id, takenObjectives);
   for (const a of extAreas) {
     a.id = claim("area", a.id, takenAreas);
@@ -97,7 +100,8 @@ export function mergeExtension(base: GameSpec, ext: GameExtension): MergeOutcome
   for (const c of extChallenges) {
     if (c.easierId) c.easierId = map("challenge", c.easierId);
     if (c.harderId) c.harderId = map("challenge", c.harderId);
-    if (c.objectiveId) c.objectiveId = map("objective", c.objectiveId);
+    if (c.objectiveId && droppedObjectives.has(c.objectiveId)) delete c.objectiveId;
+    else if (c.objectiveId) c.objectiveId = map("objective", c.objectiveId);
   }
 
   // Link the new area into the portal chain (the only change to existing areas).

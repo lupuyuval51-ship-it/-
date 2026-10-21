@@ -128,6 +128,7 @@ export function identityChanges(before: GameSpec, after: GameSpec): string[] {
 
 /** Content that the edit changed, ignoring the server-assigned provenance. */
 export function sameContent(a: GameSpec, b: GameSpec): boolean {
-  const strip = (s: GameSpec) => JSON.stringify({ ...s, meta: { ...s.meta, generator: undefined } });
+  // the provenance and the plan's feature tier are set by the server (validation drops a tier the model wrote), not content
+  const strip = (s: GameSpec) => JSON.stringify({ ...s, meta: { ...s.meta, generator: undefined, featureTier: undefined } });
   return strip(a) === strip(b);
 }

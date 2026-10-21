@@ -192,15 +192,13 @@ export function challengePoints(level: number): number {
   return POINTS_BY_LEVEL[level] ?? POINTS_BY_LEVEL[1]!;
 }
 
-/** The most a placed challenge can pay: its own level, or its "harder" variant's when adaptive difficulty can serve it. */
+/**
+ * The most a placed challenge can pay: its own level, or its "harder" variant's when adaptive difficulty can serve it.
+ * Only the first variant counts: `chooseVariant` serves one step, never the harder variant of a harder variant.
+ */
 function bestLevelFor(spec: GameSpec, challenge: Challenge, adaptive: boolean): number {
-  let level = challenge.level;
-  const seen = new Set<string>([challenge.id]);
-  for (let next = adaptive ? findChallenge(spec, challenge.harderId ?? "") : undefined; next && !seen.has(next.id); next = findChallenge(spec, next.harderId ?? "")) {
-    seen.add(next.id);
-    level = Math.max(level, next.level);
-  }
-  return level;
+  const harder = adaptive ? findChallenge(spec, challenge.harderId ?? "") : undefined;
+  return Math.max(challenge.level, harder?.level ?? 0);
 }
 
 /**
