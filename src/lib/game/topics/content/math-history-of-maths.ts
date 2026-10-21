@@ -22,8 +22,8 @@ const c: TopicContent = {
     n: [
       [14, ["What number is written XIV in Roman numerals?", "", "X is 10 and IV is 4 (I before V means 5 − 1), so XIV = 10 + 4 = 14."],
         ["איזה מספר נכתב XIV בספרות רומיות?", "", "X הוא 10 ו־IV הוא 4 (I לפני V פירושו 5 − 1), ולכן XIV = 10 + 4 = 14."]],
-      [13, ["Euclid's Elements is divided into parts called books. How many books does it have?", "", "The Elements has 13 books, covering flat geometry, numbers and solid shapes."],
-        ["״היסודות״ של אוקלידס מחולק לחלקים שנקראים ספרים. כמה ספרים יש בו?", "", "ב״יסודות״ יש 13 ספרים, והם עוסקים בגאומטריה של המישור, במספרים ובגופים במרחב."]],
+      [13, ["The Elements, the famous ancient Greek geometry book, is divided into parts called books. How many books does it have?", "", "The Elements has 13 books, covering flat geometry, numbers and solid shapes."],
+        ["״היסודות״, ספר הגאומטריה היווני העתיק המפורסם, מחולק לחלקים שנקראים ספרים. כמה ספרים יש בו?", "", "ב״יסודות״ יש 13 ספרים, והם עוסקים בגאומטריה של המישור, במספרים ובגופים במרחב."]],
     ],
   },
   i: {
@@ -51,13 +51,13 @@ const c: TopicContent = {
         ["בשיטת הבסיס 60 של הבבלים, המספר שנכתב בספרות 1 ו־30 פירושו 1 × 60 + 30. כמה זה במספרים שלנו?", "", "אחד כפול 60, ועוד 30 אחדות, הם 60 + 30 = 90, בדיוק כמו ששעה וחצי הן 90 דקות."]],
     ],
     s: [
-      [["Events in maths history, from earliest to latest", "Babylonian scribes record maths on clay tablets", "Euclid writes the Elements in Alexandria", "Al-Khwarizmi writes his book on al-jabr in Baghdad", "Descartes publishes his coordinate geometry", "Newton and Leibniz develop calculus"],
-        ["אירועים בתולדות המתמטיקה, מהמוקדם למאוחר", "סופרים בבבל רושמים חישובים על לוחות חרס", "אוקלידס כותב את ״היסודות״ באלכסנדריה", "אל־ח׳וארזמי כותב בבגדאד את ספרו על ״אל־ג׳בר״", "דקארט מפרסם את הגאומטריה האנליטית שלו", "ניוטון ולייבניץ מפתחים את החשבון הדיפרנציאלי והאינטגרלי"]],
+      [["Events in maths history, from earliest to latest", "Babylonian scribes record maths on clay tablets", "Euclid writes the Elements in Alexandria", "Al-Khwarizmi writes his book on al-jabr", "Descartes publishes his coordinate geometry", "Newton and Leibniz develop calculus"],
+        ["אירועים בתולדות המתמטיקה, מהמוקדם למאוחר", "סופרים בבבל רושמים חישובים על לוחות חרס", "אוקלידס כותב את ״היסודות״ באלכסנדריה", "אל־ח׳וארזמי כותב את ספרו על ״אל־ג׳בר״", "דקארט מפרסם את הגאומטריה האנליטית שלו", "ניוטון ולייבניץ מפתחים את החשבון הדיפרנציאלי והאינטגרלי"]],
     ],
   },
   a: {
     t: [
-      ["Coordinate geometry", "describing points by pairs of numbers so that shapes can be studied with equations, begun by Descartes and Fermat", "גאומטריה אנליטית", "תיאור נקודות בעזרת זוגות מספרים, כדי לחקור צורות בעזרת משוואות; החלו בה דקארט ופרמה"],
+      ["Coordinate geometry", "describing every point by a pair of numbers measured along two axes, begun by Descartes and Fermat in the 17th century", "גאומטריה אנליטית", "תיאור כל נקודה בעזרת זוג מספרים שנמדדים לאורך שני צירים; החלו בה דקארט ופרמה במאה ה־17"],
       ["Calculus", "the maths of change and motion, developed separately by Newton and Leibniz in the 17th century", "חשבון דיפרנציאלי ואינטגרלי", "המתמטיקה של שינוי ותנועה, שפיתחו ניוטון ולייבניץ כל אחד בנפרד במאה ה־17"],
       ["Proof", "a chain of logical steps showing that a statement must be true in every case", "הוכחה", "שרשרת של צעדים לוגיים שמראה שטענה חייבת להיות נכונה בכל מקרה"],
     ],

@@ -22,8 +22,8 @@ const c: TopicContent = {
   i: {
     t: [
       ["Agreement", "the rule that adjectives and verbs take the same gender and number as the noun they describe", "התאמה", "הכלל ששם התואר והפועל באים באותו מין ובאותו מספר כמו שם העצם שהם מתארים"],
-      ["Dual", "a special form that means exactly two, ending in ־יים, as in יומיים and שבועיים", "זוגי", "צורה מיוחדת שמשמעותה בדיוק שניים, בסיום ־יים, כמו ״יומיים״ ו״שבועיים״"],
-      ["Irregular plural", "a plural that does not follow the usual pattern, such as אבות (fathers) from אב", "צורת רבים חריגה", "צורת רבים שלא בנויה לפי הכלל הרגיל, כמו ״אבות״ מ״אב״"],
+      ["Dual", "a special form that means exactly two, ending in ־יים, as in שבועיים (two weeks) and שעתיים (two hours)", "זוגי", "צורה מיוחדת שמשמעותה בדיוק שניים, בסיום ־יים, כמו ״שבועיים״ ו״שעתיים״"],
+      ["Irregular plural", "a plural that does not follow the usual pattern, such as שנים (years) from שנה", "צורת רבים חריגה", "צורת רבים שלא בנויה לפי הכלל הרגיל, כמו ״שנים״ מ״שנה״"],
       ["Pronoun", "a short word that stands in for a noun, such as הוא, היא, הם and הן", "כינוי גוף", "מילה קצרה שבאה במקום שם עצם, כמו הוא, היא, הם והן"],
     ],
     q: [
@@ -43,7 +43,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Gender of numbers", "the rule that numbers change form to match the noun: שלושה ספרים but שלוש מחברות", "מין המספר", "הכלל שלפיו המספר משנה צורה כדי להתאים לשם העצם: ״שלושה ספרים״ אבל ״שלוש מחברות״"],
+      ["Gender of numbers", "the rule that numbers change form to match the noun: ארבעה כיסאות but ארבע כיתות", "מין המספר", "הכלל שלפיו המספר משנה צורה כדי להתאים לשם העצם: ״ארבעה כיסאות״ אבל ״ארבע כיתות״"],
       ["Plural-only noun", "a noun that has only a plural form, even when it names one thing, like מים and שמיים", "שם עצם ברבים בלבד", "שם עצם שיש לו רק צורה של רבים, גם כשמדובר בדבר אחד, כמו ״מים״ ו״שמיים״"],
       ["Collective noun", "a singular noun that names a whole group, such as משפחה (a family) or צוות (a team)", "שם קיבוצי", "שם עצם ביחיד שמציין קבוצה שלמה, כמו ״משפחה״ או ״צוות״"],
     ],

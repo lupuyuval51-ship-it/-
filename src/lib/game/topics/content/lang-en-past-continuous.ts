@@ -14,8 +14,8 @@ const c: TopicContent = {
         ["השלימו: ״My dad ___ in the park when it started to rain.״", "was walking", ["were walking", "is walking", "was walk"], "ההליכה כבר נמשכה כשהגשם התחיל, ו־my dad (כלומר he) בא עם was: ״he was walking״."]],
       [["Which sentence is in the past continuous?", "She was singing.", ["She sang a song.", "She is singing.", "She sings every day."], "Was singing is was + -ing, an action in progress in the past. Sang is the past simple, and is singing is the present continuous."],
         ["איזה משפט כתוב בעבר מתמשך?", "She was singing.", ["She sang a song.", "She is singing.", "She sings every day."], "was singing בנוי מ־was ועוד ing, פעולה שנמשכה בעבר. sang הוא עבר פשוט, ו־is singing הוא הווה מתמשך."]],
-      [["Complete with the right past form of be: “You ___ laughing.”", "were", ["was", "am", "be"], "In the past continuous, you always takes were, even when it means one person: you were laughing."],
-        ["השלימו בצורת העבר הנכונה של be: ״You ___ laughing.״", "were", ["was", "am", "be"], "בעבר מתמשך you בא תמיד עם were, גם כשמדברים אל אדם אחד: ״you were laughing״."]],
+      [["Complete with the right past form of be: “We ___ laughing.”", "were", ["was", "am", "be"], "We means more than one person, and in the past continuous we, you and they take were: we were laughing."],
+        ["השלימו בצורת העבר הנכונה של be: ״We ___ laughing.״", "were", ["was", "am", "be"], "we פירושו יותר מאדם אחד, ובעבר מתמשך we, you ו־they באים עם were: ״we were laughing״."]],
       [["“What were you doing at 7 a.m.?” Choose the correct answer.", "I was sleeping.", ["I were sleeping.", "I am sleeping.", "I sleeping."], "The question asks about an action in progress at a past time, and I takes was: I was sleeping."],
         ["״What were you doing at 7 a.m.?״ בחרו את התשובה הנכונה.", "I was sleeping.", ["I were sleeping.", "I am sleeping.", "I sleeping."], "השאלה היא על פעולה שנמשכה בשעה מסוימת בעבר, ו־I בא עם was: ״I was sleeping.״"]],
     ],
@@ -24,8 +24,8 @@ const c: TopicContent = {
         ["השלימו was או were: ״I ___ running, you ___ walking, they ___ resting, it ___ raining.״ בכמה רווחים צריך were?", "", "you ו־they באים עם were, ולכן ב־2 רווחים צריך were; I ו־it באים עם was."]],
     ],
     s: [
-      [["Maya's day yesterday, from morning to night", "At 7 a.m. she was eating breakfast", "At 10 a.m. she was sitting in class", "At 4 p.m. she was playing outside", "At 9 p.m. she was sleeping"],
-        ["היום של מאיה אתמול, מהבוקר עד הלילה", "בשבע בבוקר: ״she was eating breakfast״", "בעשר בבוקר: ״she was sitting in class״", "בארבע אחר הצהריים: ״she was playing outside״", "בתשע בערב: ״she was sleeping״"]],
+      [["Maya's day yesterday, from morning to night", "At 7 a.m. she was having breakfast", "At 10 a.m. she was sitting in class", "At 4 p.m. she was playing outside", "At 9 p.m. she was reading in bed"],
+        ["היום של מאיה אתמול, מהבוקר עד הלילה", "בשבע בבוקר: ״she was having breakfast״", "בעשר בבוקר: ״she was sitting in class״", "בארבע אחר הצהריים: ״she was playing outside״", "בתשע בערב: ״she was reading in bed״"]],
     ],
   },
   i: {

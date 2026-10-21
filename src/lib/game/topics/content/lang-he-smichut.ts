@@ -49,7 +49,7 @@ const c: TopicContent = {
     t: [
       ["Double construct", "a construct with an ownership ending on the first noun and של before the second, as in ביתו של המורה", "סמיכות כפולה", "צירוף שבו לשם הראשון נוספת סיומת של שייכות, ולפני השם השני באה ״של״, כמו ״ביתו של המורה״"],
       ["Possessive suffix", "an ending added to a noun to show whose it is, like ־ו in ביתו, his house", "כינוי קניין", "סיומת שמצטרפת לשם עצם ומראה למי הוא שייך, כמו ־ו ב״ביתו״"],
-      ["Number construct", "the bound form of a number before a definite noun, like שלושת in שלושת הילדים", "מספר נסמך", "הצורה הצמודה של מספר שבא לפני שם עצם מיודע, כמו ״שלושת״ ב״שלושת הילדים״"],
+      ["Number construct", "the bound form of a number before a definite noun, like חמשת in חמשת הספרים", "מספר נסמך", "הצורה הצמודה של מספר שבא לפני שם עצם מיודע, כמו ״חמשת״ ב״חמשת הספרים״"],
       ["Compound word", "a word made of two words joined together, like כדורגל from כדור and רגל", "מילה מורכבת", "מילה שנוצרה מחיבור של שתי מילים, כמו ״כדורגל״ מ״כדור״ ו״רגל״"],
     ],
     q: [

@@ -4,9 +4,9 @@ const c: TopicContent = {
   b: {
     t: [
       ["Acronym (rashei tevot)", "a short form built from the first letters of several words, like צה״ל", "ראשי תיבות", "צורה קצרה שבנויה מהאותיות הראשונות של כמה מילים, כמו צה״ל"],
-      ["Gershayim (״)", "the double mark written before the last letter of an acronym, as in דו״ח", "גרשיים", "הסימן הכפול שכותבים לפני האות האחרונה של צורה מקוצרת מכמה מילים, כמו בדו״ח"],
-      ["Abbreviation (kitzur)", "one word cut short, keeping only its first letters, like מס׳ for מספר", "קיצור", "מילה אחת שנכתבת רק בחלקה, באותיותיה הראשונות, כמו מס׳ במקום מספר"],
-      ["Geresh (׳)", "the single mark written after a shortened word, as in עמ׳ for עמוד", "גרש", "הסימן הבודד שכותבים אחרי מילה מקוצרת, כמו עמ׳ במקום עמוד"],
+      ["Gershayim (״)", "the double mark used in acronyms of several words and in numbers written in letters, as in דו״ח", "גרשיים", "הסימן הכפול שמשמש בצורות מקוצרות מכמה מילים ובמספרים שכתובים באותיות, כמו בדו״ח"],
+      ["Abbreviation (kitzur)", "one word cut short, keeping only its first letters, like עמ׳ for עמוד", "קיצור", "מילה אחת שנכתבת רק בחלקה, באותיותיה הראשונות, כמו עמ׳ במקום עמוד"],
+      ["Geresh (׳)", "the single mark written after a shortened word, as in רח׳ for רחוב", "גרש", "הסימן הבודד שכותבים אחרי מילה מקוצרת, כמו רח׳ במקום רחוב"],
     ],
     q: [
       [["What do the letters of the acronym צה״ל stand for?", "צבא הגנה לישראל", ["צבא הגנה לאומי", "צוות הגנה לישראל", "ציוד הגנה למדינה"], "צה״ל is the Israel Defense Forces, in Hebrew צבא הגנה לישראל. All the options start with the same three letters, so you have to know the full name; the gershayim go before its last letter, ל."],
@@ -35,8 +35,8 @@ const c: TopicContent = {
         ["איך כותבים ״בצבא הגנה לישראל״ בראשי תיבות?", "בצה״ל", ["ב״צה״ל", "בצ״הל", "צה״לב"], "אות שימוש כמו ב, ל או ה מצטרפת לראשי התיבות ישירות, בלי סימן ביניהן: בצה״ל, לדו״ח. הגרשיים נשארים לפני האות האחרונה של ראשי התיבות."]],
       [["Which of these acronyms is read aloud as a single word?", "צה״ל", ["אח״כ", "ע״י", "ת״א"], "צה״ל is said as one word, tsahal. אח״כ is read as אחר כך, ע״י as על ידי and ת״א as תל אביב: for these, the full words are said."],
         ["אילו מראשי התיבות האלה קוראים בקול כמילה אחת?", "צה״ל", ["אח״כ", "ע״י", "ת״א"], "את צה״ל אומרים כמילה אחת. את אח״כ קוראים ״אחר כך״, את ע״י ״על ידי״ ואת ת״א ״תל אביב״: בהם אומרים את המילים המלאות."]],
-      [["The great Bible commentator רש״י is known by an acronym. Whose name is it?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י stands for Rabbi Shlomo Yitzchaki, who lived in France about 900 years ago and wrote a famous commentary on the Bible and the Talmud. Many great rabbis are known by acronyms, like רמב״ם."],
-        ["פרשן המקרא הגדול רש״י ידוע בראשי תיבות. של איזה שם?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י הוא רבי שלמה יצחקי, שחי בצרפת לפני כ־900 שנה וכתב פירוש מפורסם לתנ״ך ולתלמוד. חכמים רבים ידועים בראשי תיבות, כמו רמב״ם."]],
+      [["The great Bible commentator רש״י is known by an acronym. Whose name is it?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י stands for Rabbi Shlomo Yitzchaki, who lived in France more than 900 years ago and wrote a famous commentary on the Bible and the Talmud. Many great rabbis are known by acronyms, like רמב״ם."],
+        ["פרשן המקרא הגדול רש״י ידוע בראשי תיבות. של איזה שם?", "רבי שלמה יצחקי", ["רבי שמעון יצחקי", "רבי שמואל ישראלי", "רבי שלום יעקבי"], "רש״י הוא רבי שלמה יצחקי, שחי בצרפת לפני יותר מ־900 שנה וכתב פירוש מפורסם לתנ״ך ולתלמוד. חכמים רבים ידועים בראשי תיבות, כמו רמב״ם."]],
       [["Which of these is one shortened word, not an acronym of several words?", "עמ׳", ["עו״ד", "ע״י", "ת״ז"], "עמ׳ is short for one word, עמוד (a page), so it takes a geresh. עו״ד (עורך דין), ע״י (על ידי) and ת״ז (תעודת זהות) come from two words each, so they take gershayim."],
         ["איזו מהצורות האלה היא קיצור של מילה אחת, ולא ראשי תיבות של כמה מילים?", "עמ׳", ["עו״ד", "ע״י", "ת״ז"], "עמ׳ מקצר מילה אחת, ״עמוד״, ולכן בא אחריו גרש. עו״ד (עורך דין), ע״י (על ידי) ות״ז (תעודת זהות) באים כל אחד משתי מילים, ולכן יש בהם גרשיים."]],
       [["An envelope says לכבוד גב׳ כהן. What does גב׳ stand for?", "גברת", ["גבוה", "גבעה", "גבר"], "גב׳ is the short form of גברת (Mrs. or Ms.), a title written before a woman's name; the geresh shows that the word was cut short."],
@@ -46,7 +46,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["ט״ו and ט״ז", "the way 15 and 16 are written in letters, as 9 + 6 and 9 + 7, to avoid spelling a name of God", "ט״ו וט״ז", "הדרך לכתוב 15 ו־16 באותיות, כ־9 ועוד 6 ו־9 ועוד 7, כדי לא לכתוב צירוף שהוא שם של האל"],
+      ["ט״ו and ט״ז", "the way 15 and 16 are written in letters: as 9 + 6 and 9 + 7, not as 10 + 5 and 10 + 6", "ט״ו וט״ז", "הדרך לכתוב 15 ו־16 באותיות: כ־9 ועוד 6 ו־9 ועוד 7, ולא כ־10 ועוד 5 ו־10 ועוד 6"],
       ["Acronym turned word", "an acronym used so much that it takes endings like any word, as in צה״לי (of the army)", "ראשי תיבות שהפכו למילה", "צורה מקוצרת שמשתמשים בה כל כך הרבה שהיא מקבלת סיומות כמו כל מילה, כמו צה״לי"],
       ["Ambiguous acronym", "an acronym with more than one meaning, so the sentence around it decides, like ע״ש", "ראשי תיבות דו־משמעיים", "צורה מקוצרת שיש לה יותר ממשמעות אחת, כך שהמשפט שסביבה מכריע, כמו ע״ש"],
     ],

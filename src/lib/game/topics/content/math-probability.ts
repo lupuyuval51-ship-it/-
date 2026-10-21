@@ -78,8 +78,8 @@ const c: TopicContent = {
       [0.4, ["A coin was flipped 50 times and landed on heads 20 times. What is the relative frequency of heads, as a decimal?", "", "The relative frequency is the number of times it happened divided by the number of trials: 20 ÷ 50 = 0.4."], ["מטבע הוטל 50 פעמים ונפל על ״עץ״ 20 פעמים. מהי השכיחות היחסית של ״עץ״, כמספר עשרוני?", "", "השכיחות היחסית היא מספר הפעמים שהמאורע קרה חלקי מספר הניסויים: 20 ÷ 50 = 0.4."]],
       [2.5, ["A fair spinner has the numbers 1, 2, 3 and 4 on equal parts. What is the expected value (average) of a spin?", "", "(1 + 2 + 3 + 4) ÷ 4 = 10 ÷ 4 = 2.5. The expected value need not be a number the spinner can actually show."], ["על גלגל הוגן יש במקטעים שווים את המספרים 1, 2, 3 ו־4. מהי התוחלת (הממוצע) של סיבוב אחד?", "", "(1 + 2 + 3 + 4) ÷ 4 = 10 ÷ 4 = 2.5. התוחלת לא חייבת להיות מספר שהגלגל באמת יכול להראות."]],
     ],
-    s: [[["Finding the probability of two heads in two flips with the multiplication rule, in order", "Notice that the two flips are independent, so the chances can be multiplied", "Find the chance of heads on one flip: 1/2", "Multiply the chances of the two flips: 1/2 × 1/2", "Write the answer: 1/4"],
-      ["מחשבים את ההסתברות לשני ״עץ״ בשתי הטלות בעזרת כלל הכפל, לפי הסדר", "שמים לב שההטלות בלתי תלויות, ולכן אפשר לכפול את הסיכויים", "מוצאים את הסיכוי ל״עץ״ בהטלה אחת: 1/2", "כופלים את הסיכויים של שתי ההטלות: 1/2 × 1/2", "כותבים את התשובה: 1/4"]]],
+    s: [[["Finding the probability of red on two spins of a spinner with 3 equal parts, 1 of them red, with the multiplication rule, in order", "Notice that the two spins are independent, so the chances can be multiplied", "Find the chance of red on one spin: 1/3", "Multiply the chances of the two spins: 1/3 × 1/3", "Write the answer: 1/9"],
+      ["מחשבים בעזרת כלל הכפל את ההסתברות לקבל אדום בשני סיבובים של גלגל עם 3 חלקים שווים, שאחד מהם אדום, לפי הסדר", "שמים לב שהסיבובים בלתי תלויים, ולכן אפשר לכפול את הסיכויים", "מוצאים את הסיכוי לאדום בסיבוב אחד: 1/3", "כופלים את הסיכויים של שני הסיבובים: 1/3 × 1/3", "כותבים את התשובה: 1/9"]]],
   },
 };
 export default c;

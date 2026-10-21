@@ -4,7 +4,7 @@ const c: TopicContent = {
   b: {
     t: [
       ["present perfect", "a tense made with have or has + the past participle, as in I have eaten", "הווה מושלם", "זמן שנבנה מ־have או has ועוד צורת הפועל השלישית, כמו I have eaten"],
-      ["past participle", "the third form of a verb, like gone, eaten or played", "past participle", "הצורה השלישית של הפועל, כמו gone, eaten או played"],
+      ["past participle", "the third form of a verb, like eaten, written or played", "past participle", "הצורה השלישית של הפועל, כמו eaten, written או played"],
       ["ever", "a word used mostly in questions to mean at any time in your life", "ever", "מילה שמשמשת בעיקר בשאלות ופירושה ״אי־פעם בחיים״"],
       ["never", "a word that means not at any time", "never", "מילה שפירושה ״אף פעם לא״"],
     ],
@@ -45,8 +45,8 @@ const c: TopicContent = {
         ["השלימו: ״Sorry, Dan isn't here. He has ___ gone out.״", "just", ["yet", "never", "ever"], "just בין has לבין gone פירושו ״לפני רגע״: הוא יצא ממש עכשיו. yet בא בסוף משפטי שלילה ושאלות, never היה אומר שהוא אף פעם לא יוצא, ו־ever משמש בשאלות."]],
     ],
     n: [
-      [3, ["How many of these can complete “I've known her for ___”: two years, Monday, a long time, 2010, ages?", "", "For needs a length of time: two years, a long time and ages, so 3 of them fit. Monday and 2010 are starting points, which take since."],
-        ["כמה מאלה יכולים להשלים את ״I've known her for ___״: two years, Monday, a long time, 2010, ages?", "", "אחרי for בא משך זמן: two years, a long time ו־ages, ולכן 3 מהם מתאימים. Monday ו־2010 הם נקודות התחלה, שבאות אחרי since."]],
+      [3, ["How many of these are lengths of time, not starting points: two years, Monday, a long time, 2010, ages?", "", "Two years, a long time and ages are lengths of time, so there are 3, and they go after for. Monday and 2010 are starting points, which take since."],
+        ["כמה מאלה הם משכי זמן, ולא נקודות התחלה: two years, Monday, a long time, 2010, ages?", "", "two years, a long time ו־ages הם משכי זמן, ולכן יש 3, והם באים אחרי for. Monday ו־2010 הם נקודות התחלה, שבאות אחרי since."]],
     ],
   },
   a: {
@@ -71,8 +71,8 @@ const c: TopicContent = {
         ["השלימו: ״We ___ each other since primary school.״", "have known", ["have been knowing", "know", "are knowing"], "know הוא פועל מצב, ולכן לא בא בצורה מתמשכת; עם since צריך הווה מושלם פשוט: We have known each other since primary school."]],
     ],
     n: [
-      [3, ["How many of these sentences are correct? “I've seen him yesterday.” “She has lived here since 2018.” “Have you ever eaten snails?” “We have known each other for years.”", "", "The first one is wrong, because yesterday is finished time and needs I saw him yesterday; the other 3 are correct present perfect sentences."],
-        ["כמה מהמשפטים האלה נכונים? ״I've seen him yesterday.״ ״She has lived here since 2018.״ ״Have you ever eaten snails?״ ״We have known each other for years.״", "", "המשפט הראשון שגוי, כי yesterday הוא זמן שהסתיים וצריך לומר I saw him yesterday; שאר 3 המשפטים נכונים, בהווה מושלם."]],
+      [3, ["How many of these sentences are correct? “I've seen him yesterday.” “They have bought a new car.” “Has she called you today?” “We have already eaten.”", "", "The first one is wrong, because yesterday is finished time and needs I saw him yesterday; the other 3 are correct present perfect sentences."],
+        ["כמה מהמשפטים האלה נכונים? ״I've seen him yesterday.״ ״They have bought a new car.״ ״Has she called you today?״ ״We have already eaten.״", "", "המשפט הראשון שגוי, כי yesterday הוא זמן שהסתיים וצריך לומר I saw him yesterday; שאר 3 המשפטים נכונים, בהווה מושלם."]],
     ],
   },
 };

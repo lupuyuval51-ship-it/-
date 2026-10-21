@@ -53,7 +53,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Deviation from the mean", "the difference between a value and the mean; these differences always add up to 0", "סטייה מהממוצע", "ההפרש בין ערך לבין הממוצע; סכום ההפרשים האלה הוא תמיד 0"],
+      ["Deviation from the mean", "the difference between a value and the mean: positive for a value above the mean, negative for one below it", "סטייה מהממוצע", "ההפרש בין ערך לבין הממוצע: חיובי לערך שמעל הממוצע ושלילי לערך שמתחתיו"],
       ["Symmetric distribution", "data whose two sides mirror each other around the middle, so the mean and the median are equal or close", "התפלגות סימטרית", "נתונים ששני הצדדים שלהם הם תמונת ראי זה של זה סביב האמצע, ולכן הממוצע והחציון שווים או קרובים"],
       ["Mean absolute deviation", "the mean of how far the values are from their mean, with every distance counted as positive", "ממוצע הסטיות המוחלטות", "הממוצע של המרחקים של הערכים מהממוצע שלהם, כשכל מרחק נספר כחיובי"],
     ],
