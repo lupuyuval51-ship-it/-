@@ -2,7 +2,7 @@ import "server-only";
 import type { CreateGenerationBody } from "@/lib/schemas/generation";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { defaultLevel, levelUnlocking, planUnlocking, planUnlockingLevel, type FeatureTier, type LevelQuota, type PlanId } from "@/config/plans";
-import { gameTypeFeature, gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
+import { gameTypeFeature, gameTypeAllowed, maxAreasFor, modeAllowed } from "@/lib/game/spec/tier";
 import { describeBackend, getBackend } from "../ai/registry";
 import { resolveEntitlement } from "../allowance/entitlement";
 import { findPeriod, leftPerLevel } from "../allowance/periods";
@@ -82,6 +82,13 @@ export async function createGeneration(userId: string, body: CreateGenerationBod
       });
     }
     assertRequestAllowed(level, request);
+    // An extension adds an area. A game that already has as many as its level allows cannot take one more (the level clamp
+    // would drop the new area and the learner would be charged for nothing), so it is refused before anything is reserved.
+    if (spec.areas.length >= maxAreasFor(level)) {
+      throw Errors.conflict("EXTEND_FULL", `This game already has ${spec.areas.length} areas, the most a level ${level} game can have. Create a new game to go on with the topic. You were not charged.`, {
+        level, areas: spec.areas.length, maxAreas: maxAreasFor(level),
+      });
+    }
   } else {
     level = chooseLevel(ent.plan, left, request);
     assertRequestAllowed(level, request, ent.plan);

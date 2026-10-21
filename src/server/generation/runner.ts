@@ -119,6 +119,10 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
     // built at its own tier); only a lower plan's NEW content would be a problem, and a lower plan cannot extend at all.
     const clamped = clampToFeatureTier(built, tier);
     if (!clamped.ok) throw new PipelineError("TIER_BUILD_FAILED", "We could not build this game within your plan's features. You were not charged — try a different topic or game type.", clamped.errors.join(" | ").slice(0, 600));
+    // An extension the level clamp emptied (the game already had all the areas its level allows) is not saved or charged.
+    if (base && clamped.spec.areas.length <= base.spec.areas.length) {
+      throw new PipelineError("TIER_BUILD_FAILED", "This game already has the most areas its level allows, so nothing could be added. You were not charged.", `extension dropped by the level ${tier} clamp: ${base.spec.areas.length} areas before, ${clamped.spec.areas.length} after`);
+    }
     // A game made on a phone is fitted to a touch screen (never for an extension: the original areas stay as they were).
     const fitted = request.mode !== "EXTEND" && request.device === "phone" ? fitForDevice(clamped.spec, "phone") : { spec: clamped.spec, notes: [] as string[] };
     const spec = fitted.spec;
