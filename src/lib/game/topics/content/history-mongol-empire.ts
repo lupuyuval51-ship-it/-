@@ -5,14 +5,14 @@ const c: TopicContent = {
     t: [
       ["Khan", "a Mongol title for a ruler or chief", "חאן", "תואר מונגולי לשליט או למנהיג"],
       ["Steppe", "a huge, dry grassland with few trees, like the plains of Mongolia", "ערבה", "שטח עשב יבש ועצום כמעט בלי עצים, כמו המישורים של מונגוליה"],
-      ["Nomads", "people who move from place to place with their herds instead of living in one village", "נוודים", "אנשים שעוברים ממקום למקום עם העדרים שלהם במקום לגור בכפר אחד"],
+      ["Nomads", "people who have no fixed home and move from place to place", "נוודים", "אנשים שאין להם בית קבוע והם עוברים ממקום למקום"],
       ["Ger (yurt)", "a round tent of felt and wood that a Mongol family could take down and carry", "גר (יורט)", "אוהל עגול מלבד ומעץ שמשפחה מונגולית יכלה לפרק ולשאת איתה"],
     ],
     q: [
-      [["In 1206 a great meeting of the Mongol tribes gave the leader Temüjin a new title. What was it?", "Genghis Khan", ["Kublai Khan", "Shah of Persia", "Emperor of Rome"], "The united tribes proclaimed Temüjin Genghis Khan, a title often explained as “universal ruler”. From then on he led them in wars of conquest."],
-        ["ב־1206 כינוס גדול של שבטי מונגוליה העניק למנהיג טמוג׳ין תואר חדש. מה היה התואר?", "ג׳ינגיס חאן", ["קובלאי חאן", "שאה של פרס", "קיסר רומא"], "השבטים המאוחדים הכריזו על טמוג׳ין כג׳ינגיס חאן, תואר שמסבירים לרוב כ״שליט כל העולם״. מאז הוא הוביל אותם במלחמות כיבוש."]],
-      [["How did most Mongols live on the steppe?", "As nomads moving with their herds", ["In big stone cities with high walls", "As fishermen along the coast", "As farmers growing rice in fields"], "Mongol families moved with their horses, sheep, goats and camels to find fresh grass, carrying their felt tents with them."],
-        ["איך חיו רוב המונגולים בערבות?", "כנוודים שנדדו עם העדרים שלהם", ["בערים גדולות מאבן מוקפות חומות גבוהות", "כדייגים לאורך החוף", "כחקלאים שגידלו אורז בשדות"], "משפחות מונגוליות נדדו עם הסוסים, הכבשים, העיזים והגמלים שלהן כדי למצוא עשב טרי, ונשאו איתן את אוהלי הלבד שלהן."]],
+      [["Genghis Khan is a title that the Mongol tribes gave their leader in 1206. What was his own name?", "Temüjin", ["Ögedei", "Timur", "Attila the Hun"], "He was born Temüjin and was proclaimed Genghis Khan, a title often explained as “universal ruler”. Ögedei was his son and the next Great Khan, Timur (Tamerlane) lived more than a century later, and Attila led the Huns more than 700 years earlier."],
+        ["ג׳ינגיס חאן הוא תואר ששבטי מונגוליה העניקו למנהיגם ב־1206. איך קראו לו לפני כן?", "טמוג׳ין", ["אוגדיי", "טימור", "אטילה ההוני"], "הוא נולד בשם טמוג׳ין והוכרז כג׳ינגיס חאן, תואר שמסבירים לרוב כ״שליט כל העולם״. אוגדיי היה בנו והחאן הגדול הבא, טימור (טמרלן) חי יותר ממאה שנה אחריו, ואטילה הנהיג את ההונים יותר מ־700 שנה לפניו."]],
+      [["Why did Mongol families move from place to place several times a year?", "To find fresh grass and water for their animals", ["To get away from the cold by moving to the warm sea coast", "Because the khan ordered every family to move once a month", "To look for new cities where they could trade"], "Horses, sheep, goats and camels soon eat the grass of one pasture, so families moved with the seasons to fresh grazing and water, taking their felt tents with them. Mongolia is far from any sea."],
+        ["למה משפחות מונגוליות עברו ממקום למקום כמה פעמים בשנה?", "כדי למצוא עשב טרי ומים לבעלי החיים שלהן", ["כדי לברוח מהקור אל חוף ים חמים", "כי החאן ציווה על כל משפחה לעבור פעם בחודש", "כדי לחפש ערים חדשות שבהן יוכלו לסחור"], "סוסים, כבשים, עיזים וגמלים אוכלים מהר את העשב של מרעה אחד, ולכן המשפחות עברו לפי עונות השנה אל מרעה טרי ומים, ולקחו איתן את אוהלי הלבד. מונגוליה רחוקה מכל ים."]],
       [["What made the Mongol army so fast and strong?", "Skilled horse archers, each with several spare horses", ["Heavy iron armour that let their foot soldiers walk through any attack", "Huge numbers of war elephants", "Ships that could sail up every river"], "Mongol riders learned to shoot from the saddle as children. Switching between spare horses let an army cover long distances very quickly."],
         ["מה הפך את הצבא המונגולי למהיר ולחזק כל כך?", "קשתים רכובים מיומנים, ולכל אחד כמה סוסים רזרביים", ["שריון ברזל כבד שאפשר לחיילי הרגלים שלו לעבור דרך כל התקפה", "מספר עצום של פילי מלחמה", "ספינות שיכלו לשוט בכל נהר"], "רוכבים מונגולים למדו לירות מהאוכף כבר בילדותם. ההחלפה בין סוסים רזרביים אפשרה לצבא לעבור מרחקים ארוכים מהר מאוד."]],
       [["Which grandson of Genghis Khan ruled China and founded the Yuan dynasty?", "Kublai Khan", ["Batu Khan", "Hulagu Khan", "Ögedei Khan"], "Kublai proclaimed the Yuan dynasty in 1271 and by 1279 ruled all of China from his capital at Dadu, today's Beijing."],
@@ -22,8 +22,8 @@ const c: TopicContent = {
     ],
     n: [[21, ["Genghis Khan was proclaimed khan in 1206 and died in 1227. For how many years did he rule as khan?", "years", "Subtract the earlier year from the later one: 1227 − 1206 = 21 years."],
       ["ג׳ינגיס חאן הוכרז כחאן ב־1206 ומת ב־1227. כמה שנים הוא שלט כחאן?", "שנים", "מחסירים את השנה המוקדמת מהמאוחרת: 1227 − 1206 = 21 שנים."]]],
-    s: [[["The life of Genghis Khan, in order", "Temüjin is born on the Mongolian steppe", "He unites the Mongol tribes under his rule", "He is proclaimed Genghis Khan", "His armies capture the Jin capital, near today's Beijing", "Genghis Khan dies"],
-      ["חייו של ג׳ינגיס חאן, לפי הסדר", "טמוג׳ין נולד בערבות מונגוליה", "הוא מאחד תחת שלטונו את שבטי מונגוליה", "הוא מוכרז כג׳ינגיס חאן", "צבאותיו כובשים את בירת שושלת ג׳ין, ליד בייג׳ינג של היום", "ג׳ינגיס חאן מת"]]],
+    s: [[["The life of Genghis Khan, in order", "He is born on the Mongolian steppe", "He unites the Mongol tribes under his rule", "He is proclaimed Genghis Khan", "His armies capture the Jin capital, near today's Beijing", "Genghis Khan dies"],
+      ["חייו של ג׳ינגיס חאן, לפי הסדר", "הוא נולד בערבות מונגוליה", "הוא מאחד תחת שלטונו את שבטי מונגוליה", "הוא מוכרז כג׳ינגיס חאן", "צבאותיו כובשים את בירת שושלת ג׳ין, ליד בייג׳ינג של היום", "ג׳ינגיס חאן מת"]]],
   },
   i: {
     t: [

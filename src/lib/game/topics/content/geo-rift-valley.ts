@@ -9,10 +9,10 @@ const c: TopicContent = {
       ["Earthquake", "a sudden shaking of the ground when rocks along a fault slip", "רעידת אדמה", "טלטול פתאומי של הקרקע כשסלעים לאורך העתק מחליקים"],
     ],
     q: [
-      [["Which of these places lies on the floor of the rift valley?", "The Dead Sea", ["Jerusalem", "Mount Carmel", "Tel Aviv-Yafo"], "The Dead Sea lies deep in the rift, between the mountains of Judea and Moab. Jerusalem and the Carmel are in the hills to the west, and Tel Aviv is on the coast."],
-        ["איזה מהמקומות האלה שוכן בקרקעית עמק הבקע?", "ים המלח", ["ירושלים", "הר הכרמל", "תל אביב־יפו"], "ים המלח שוכן עמוק בתוך הבקע, בין הרי יהודה להרי מואב. ירושלים והכרמל נמצאים בהרים שממערב, ותל אביב שוכנת על החוף."]],
-      [["What is special about the shores of the Dead Sea?", "They are the lowest land on Earth", ["They are the highest mountain land in the whole Middle East", "They are the coldest place in Israel in winter", "They are covered in snow for most of the year"], "The shores of the Dead Sea lie more than 400 metres below sea level, lower than any other dry land on Earth. It is one of the hottest places in Israel, not one of the coldest."],
-        ["מה מיוחד בחופי ים המלח?", "הם היבשה הנמוכה ביותר בכדור הארץ", ["הם אזור ההרים הגבוה ביותר בכל המזרח התיכון", "הם המקום הקר ביותר בישראל בחורף", "הם מכוסים בשלג רוב השנה"], "חופי ים המלח נמצאים יותר מ־400 מטר מתחת לפני הים, נמוך מכל יבשה אחרת בכדור הארץ. זה אחד המקומות החמים ביותר בישראל, לא הקרים."]],
+      [["Which of these places lies on the floor of the rift valley?", "Jericho", ["Jerusalem", "Mount Carmel", "Tel Aviv-Yafo"], "Jericho lies in the Jordan Valley, on the floor of the rift just north of the Dead Sea, more than 250 metres below sea level. Jerusalem and the Carmel are in the hills to the west, and Tel Aviv is on the coast."],
+        ["איזה מהמקומות האלה שוכן בקרקעית עמק הבקע?", "יריחו", ["ירושלים", "הר הכרמל", "תל אביב־יפו"], "יריחו שוכנת בבקעת הירדן, בקרקעית הבקע ממש מצפון לים המלח, יותר מ־250 מטר מתחת לפני הים. ירושלים והכרמל נמצאים בהרים שממערב, ותל אביב שוכנת על החוף."]],
+      [["What is special about the shores of the Dead Sea?", "They are the lowest land on Earth", ["They are low, but Death Valley in the USA lies even lower", "They are low, but the shores of the Caspian Sea lie even lower", "They are the lowest land in Asia, but not on Earth"], "The shores of the Dead Sea lie more than 400 metres below sea level, lower than any other dry land on Earth. Death Valley in the USA goes down only to about 86 metres below sea level, and the Caspian shore to less than 30."],
+        ["מה מיוחד בחופי ים המלח?", "הם היבשה הנמוכה ביותר בכדור הארץ", ["הם נמוכים, אבל עמק המוות בארצות הברית נמוך מהם", "הם נמוכים, אבל חופי הים הכספי נמוכים מהם", "הם היבשה הנמוכה ביותר באסיה, אבל לא בכדור הארץ"], "חופי ים המלח נמצאים יותר מ־400 מטר מתחת לפני הים, נמוך מכל יבשה אחרת בכדור הארץ. עמק המוות בארצות הברית יורד רק לכ־86 מטר מתחת לפני הים, וחופי הים הכספי לפחות מ־30."]],
       [["Why are earthquakes a risk along the rift in Israel?", "It lies on a boundary between two tectonic plates", ["It lies close to many active volcanoes under the sea", "The salt of the Dead Sea makes the ground shake", "Strong desert winds shake the floor of the valley"], "The rift follows the boundary where the African and Arabian plates slide past each other. When the rocks along it get stuck and then slip, the ground shakes."],
         ["למה לאורך הבקע בישראל יש סכנה של רעידות אדמה?", "הוא נמצא על גבול בין שני לוחות טקטוניים", ["הוא נמצא קרוב להרבה הרי געש פעילים מתחת לים", "המלח של ים המלח גורם לאדמה לרעוד", "רוחות מדבר חזקות מטלטלות את קרקעית העמק"], "הבקע עובר לאורך הגבול שבו הלוח האפריקני והלוח הערבי מחליקים זה לצד זה. כשהסלעים לאורכו נתקעים ואז מחליקים, האדמה רועדת."]],
       [["Which sea lies at the southern end of the rift in Israel, beyond Eilat?", "The Red Sea", ["The Mediterranean Sea", "The Black Sea", "The Caspian Sea"], "South of the Arava, the rift continues into the Gulf of Eilat, an arm of the Red Sea. The Mediterranean is to the west of Israel, not on the rift."],
@@ -28,10 +28,10 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Arabian Plate", "the plate east of the rift, under the Arabian Peninsula, which moves north faster than the land west of it", "הלוח הערבי", "הלוח שממזרח לבקע, מתחת לחצי האי ערב, שנע צפונה מהר יותר מהיבשה שממערב לו"],
+      ["Arabian Plate", "the tectonic plate that carries the Arabian Peninsula and the land just east of the rift", "הלוח הערבי", "הלוח הטקטוני שנושא את חצי האי ערב ואת היבשה שממש ממזרח לבקע"],
       ["Dead Sea Transform", "the fault from the Gulf of Eilat to southern Turkey, along which its two sides slide past each other", "העתק ים המלח", "ההעתק שעובר ממפרץ אילת עד דרום טורקיה, ושלאורכו שני צדדיו מחליקים זה לצד זה"],
-      ["Salt dome", "a hill of rock salt pushed up from deep underground, like Mount Sodom", "כיפת מלח", "גבעה של סלע מלח שנדחקה כלפי מעלה ממעמקי האדמה, כמו הר סדום"],
-      ["Sinkhole", "a hole that suddenly opens when water dissolves rock, such as salt, under the ground and the surface collapses", "בולען", "בור שנפער פתאום כשמים ממיסים סלע, למשל מלח, מתחת לפני הקרקע, והקרקע שמעליו קורסת"],
+      ["Salt dome", "a hill or dome of rock salt pushed up from deep underground through the rocks above it", "כיפת מלח", "גבעה או כיפה של סלע מלח שנדחקה כלפי מעלה ממעמקי האדמה דרך הסלעים שמעליה"],
+      ["Sinkhole", "a hole that suddenly opens in the ground when the surface collapses into an empty space below it", "בולען", "בור שנפער פתאום באדמה כשפני הקרקע קורסים לתוך חלל ריק שמתחתיהם"],
     ],
     q: [
       [["Along the rift, which way does the land east of it move compared with the land west of it?", "North", ["South", "Straight down", "It does not move at all"], "Along the Dead Sea fault, the Arabian side slides north past the Sinai side by a few millimetres a year. Over millions of years the two sides have shifted about 105 kilometres."],
@@ -47,7 +47,7 @@ const c: TopicContent = {
     ],
     n: [
       [105, ["Rocks that were once side by side have been shifted along the Dead Sea fault. About how many kilometres apart are they now?", "km", "Matching rock layers on the two sides show that they have slid about 105 kilometres past each other."], ["סלעים שהיו פעם זה לצד זה הוזזו לאורך העתק ים המלח. בערך כמה קילומטרים מפרידים ביניהם היום?", "ק״מ", "שכבות סלע תואמות בשני הצדדים מראות שהם החליקו זה לצד זה בכ־105 קילומטרים."], 5],
-      [12, ["Suppose the level of the Dead Sea falls by 1.2 metres a year. By how many metres does it fall in 10 years?", "metres", "10 × 1.2 = 12, so the level falls by 12 metres in ten years."], ["נניח שמפלס ים המלח יורד ב־1.2 מטר בשנה. בכמה מטרים הוא יורד בתוך 10 שנים?", "מטר", "10 × 1.2 = 12, כלומר המפלס יורד ב־12 מטר בעשר שנים."]],
+      [220, ["Suppose the surface of the Kinneret is 210 metres below sea level and the surface of the Dead Sea is 430 metres below sea level. How many metres higher is the Kinneret's surface?", "metres", "430 − 210 = 220, so the Kinneret's surface is 220 metres higher. That is why the Jordan River flows south, downhill along the rift, from the Kinneret to the Dead Sea."], ["נניח שפני הכנרת נמצאים 210 מטר מתחת לפני הים ופני ים המלח נמצאים 430 מטר מתחת לפני הים. בכמה מטרים גבוהים פני הכנרת מפני ים המלח?", "מטר", "430 − 210 = 220, כלומר פני הכנרת גבוהים ב־220 מטר. לכן נהר הירדן זורם דרומה, במורד הבקע, מהכנרת אל ים המלח."]],
     ],
   },
   a: {
@@ -71,7 +71,7 @@ const c: TopicContent = {
     ],
     n: [
       [200000, ["Suppose the two sides of the fault slide 5 mm past each other every year. How many years does it take them to move 1 kilometre?", "years", "1 kilometre is 1,000,000 mm, and 1,000,000 ÷ 5 = 200,000 years."], ["נניח ששני צדי ההעתק מחליקים זה לצד זה ב־5 מ״מ בכל שנה. כמה שנים לוקח להם לזוז קילומטר אחד?", "שנים", "קילומטר אחד הוא 1,000,000 מ״מ, ו־1,000,000 ÷ 5 = 200,000 שנים."]],
-      [700, ["Suppose Lake Tanganyika is 1,470 metres deep and its surface is 770 metres above sea level. How many metres below sea level is its deepest point?", "metres", "The bottom is 1,470 metres below the surface: 1,470 − 770 = 700 metres below sea level."], ["נניח שעומק אגם טנגניקה 1,470 מטר ופני המים שלו נמצאים 770 מטר מעל פני הים. כמה מטרים מתחת לפני הים נמצאת הנקודה העמוקה ביותר שלו?", "מטר", "הקרקעית נמצאת 1,470 מטר מתחת לפני האגם: 1,470 − 770 = 700 מטר מתחת לפני הים."]],
+      [230, ["Suppose Lake Malawi is 700 metres deep and its surface is 470 metres above sea level. How many metres below sea level is its deepest point?", "metres", "The bottom is 700 metres below the surface, and only 470 of them are above sea level: 700 − 470 = 230 metres below sea level, in a deep trough of the rift."], ["נניח שעומק אגם מלאווי 700 מטר ופני המים שלו נמצאים 470 מטר מעל פני הים. כמה מטרים מתחת לפני הים נמצאת הנקודה העמוקה ביותר שלו?", "מטר", "הקרקעית נמצאת 700 מטר מתחת לפני האגם, ורק 470 מהם מעל פני הים: 700 − 470 = 230 מטר מתחת לפני הים, בשקע עמוק של הבקע."]],
     ],
     s: [[["Along the great rift, from north to south", "The Hula Valley", "The Dead Sea", "The Gulf of Eilat", "The Afar Triangle in the Horn of Africa", "Lake Turkana in Kenya", "Lake Malawi"],
       ["לאורך הבקע הגדול, מצפון לדרום", "עמק החולה", "ים המלח", "מפרץ אילת", "משולש עפאר שבקרן אפריקה", "אגם טורקנה שבקניה", "אגם מלאווי"]]],

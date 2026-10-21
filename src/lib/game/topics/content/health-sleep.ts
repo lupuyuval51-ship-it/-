@@ -23,8 +23,8 @@ const c: TopicContent = {
     t: [
       ["Circadian rhythm", "the body's roughly 24-hour internal clock", "שעון ביולוגי", "השעון הפנימי של הגוף, שמחזורו כ־24 שעות"],
       ["Melatonin", "a hormone the body releases in the dark that makes us sleepy", "מלטונין", "הורמון שהגוף משחרר בחושך ומעורר ישנוניות"],
-      ["Caffeine", "a stimulant in coffee, tea, cola and energy drinks that can keep you awake", "קפאין", "חומר ממריץ בקפה, בתה, בקולה ובמשקאות אנרגיה, שיכול להשאיר אתכם ערים"],
-      ["Blue light", "light from screens that can delay the release of melatonin", "אור כחול", "אור ממסכים שיכול לעכב את שחרור המלטונין"],
+      ["Caffeine", "a stimulant found in coffee, tea and cola that can keep you awake for hours", "קפאין", "חומר ממריץ שנמצא בקפה, בתה ובקולה, ויכול להשאיר אתכם ערים במשך שעות"],
+      ["Blue light", "the short-wave part of visible light, plentiful in daylight, which the body clock reads as a sign of day", "אור כחול", "החלק של האור הנראה שאורך הגל שלו קצר, שיש ממנו הרבה באור היום, והשעון הביולוגי מפרש אותו כסימן ליום"],
     ],
     q: [
       [["Why can using a phone in bed make it harder to sleep?", "Its light and content keep the brain alert and delay melatonin", ["The phone's radio signals switch on the brain's nerves and keep them awake", "It uses up the body's sugar", "It has no effect at all"], "Bright screens signal 'daytime' to the brain, and messages and games keep it busy. It is the light and the content, not the phone's radio signals."],
@@ -34,15 +34,15 @@ const c: TopicContent = {
       [["Which evening drink is most likely to keep you awake?", "An energy drink", ["A cup of caffeine-free herbal tea", "A glass of warm milk", "A glass of water"], "Energy drinks contain a lot of caffeine (cola and many teas have some too), and its effect can last for hours, so it is best to avoid them in the afternoon and evening."],
         ["איזה משקה בערב הכי עלול להשאיר אתכם ערים?", "משקה אנרגיה", ["כוס תה צמחים בלי קפאין", "כוס חלב חם", "כוס מים"], "במשקאות אנרגיה יש הרבה קפאין (גם בקולה ובהרבה סוגי תה יש קצת), והשפעתו יכולה להימשך שעות, ולכן עדיף להימנע מהם אחר הצהריים ובערב."]],
     ],
-    n: [[20, ["In adults, the caffeine in the body falls by about half every 5 hours. A can of energy drink has about 80 mg. About how many mg are left after 10 hours?", "mg", "After 5 hours about half is left (40 mg), and after 5 more hours half of that: 40 ÷ 2 = 20 mg, which is why caffeine in the afternoon can still disturb sleep at night."],
-      ["אצל מבוגרים כמות הקפאין בגוף יורדת בערך בחצי כל 5 שעות. בפחית משקה אנרגיה יש כ־80 מ״ג קפאין. כמה מ״ג נשארים בערך אחרי 10 שעות?", "מ״ג", "אחרי 5 שעות נשאר בערך חצי (40 מ״ג), ואחרי עוד 5 שעות חצי מזה: 40 ÷ 2 = 20 מ״ג, ולכן קפאין אחר הצהריים עדיין יכול להפריע לשינה בלילה."]]],
+    n: [[20, ["In adults, the caffeine in the body falls by about half every 5 hours. A single espresso has about 80 mg. About how many mg are left after 10 hours?", "mg", "After 5 hours about half is left (40 mg), and after 5 more hours half of that: 40 ÷ 2 = 20 mg, which is why caffeine in the afternoon can still disturb sleep at night."],
+      ["אצל מבוגרים כמות הקפאין בגוף יורדת בערך בחצי כל 5 שעות. בכוס אספרסו אחת יש כ־80 מ״ג קפאין. כמה מ״ג נשארים בערך אחרי 10 שעות?", "מ״ג", "אחרי 5 שעות נשאר בערך חצי (40 מ״ג), ואחרי עוד 5 שעות חצי מזה: 40 ÷ 2 = 20 מ״ג, ולכן קפאין אחר הצהריים עדיין יכול להפריע לשינה בלילה."]]],
   },
   a: {
     t: [
       ["REM sleep", "the stage of sleep with rapid eye movements, when most vivid dreaming happens", "שנת REM", "שלב השינה עם תנועות עיניים מהירות, שבו מתרחשים רוב החלומות החיים"],
       ["Deep sleep", "the slowest, most restful stage of sleep, important for body repair", "שינה עמוקה", "השלב האיטי והמרגיע ביותר בשינה, שחשוב לתיקון הגוף"],
-      ["Sleep cycle", "one round through the stages of sleep, lasting about 90 minutes", "מחזור שינה", "סבב אחד דרך שלבי השינה, שנמשך כ־90 דקות"],
-      ["Memory consolidation", "the process in which sleep helps turn new learning into lasting memory", "גיבוש זיכרון", "התהליך שבו השינה עוזרת להפוך למידה חדשה לזיכרון יציב"],
+      ["Sleep cycle", "one full round through all the stages of sleep, after which the next round begins", "מחזור שינה", "סבב שלם אחד דרך כל שלבי השינה, שבסופו מתחיל הסבב הבא"],
+      ["Memory consolidation", "the brain's slow work of making a fresh memory stable, so that it lasts", "גיבוש זיכרון", "העבודה האיטית של המוח, שהופכת זיכרון טרי ליציב כך שיישמר לאורך זמן"],
     ],
     q: [
       [["About how many sleep cycles does a person go through in an 8-hour night?", "About 5", ["About 1", "About 2", "About 20"], "Each cycle lasts roughly 90 minutes: 480 ÷ 90 ≈ 5."],

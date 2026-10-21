@@ -24,8 +24,8 @@ const c: TopicContent = {
     n: [
       [24, ["In the basic plan, the world is divided into one time zone for each hour of the day. How many time zones is that?", "", "A day has 24 hours, so there are 24 time zones. Real borders bend around countries and a few places use half hours, so in practice there are more than 24 different clock times."],
         ["בתוכנית הבסיסית, העולם מחולק לאזור זמן אחד לכל שעה ביממה. כמה אזורי זמן יש אז?", "", "ביממה יש 24 שעות, ולכן יש 24 אזורי זמן. הגבולות האמיתיים מתעקלים סביב מדינות, ויש מקומות שמשתמשים בחצאי שעות, כך שבפועל יש בעולם יותר מ־24 זמנים רשמיים שונים."]],
-      [11, ["Israel's winter time is 2 hours ahead of London. When it is 9:00 in London, what hour is it in Israel?", "", "Israel is ahead, so add 2 hours: 9 + 2 = 11. It is 11:00 in Israel."],
-        ["שעון החורף בישראל מקדים את לונדון בשעתיים. כשבלונדון השעה 9:00, מה השעה בישראל?", "", "ישראל מקדימה, ולכן מוסיפים שעתיים: 9 + 2 = 11. בישראל השעה 11:00."]],
+      [13, ["In winter the clocks in Dubai are 4 hours ahead of London. When it is 9:00 in London, what hour is it in Dubai?", "", "Dubai is ahead, so add 4 hours: 9 + 4 = 13. It is 13:00, one in the afternoon, in Dubai."],
+        ["בחורף השעונים בדובאי מקדימים את לונדון ב־4 שעות. כשבלונדון השעה 9:00, מה השעה בדובאי?", "", "דובאי מקדימה, ולכן מוסיפים 4 שעות: 9 + 4 = 13. בדובאי השעה 13:00, אחת בצהריים."]],
     ],
   },
   i: {
@@ -51,8 +51,8 @@ const c: TopicContent = {
     n: [
       [13, ["A plane leaves Tel Aviv at 10:00 Israel time and flies 5 hours to London, which is 2 hours behind Israel. On the 24-hour clock, what hour is it in London when it lands?", "", "In Israel time it lands at 10 + 5 = 15:00. London is 2 hours behind, so 15 − 2 = 13, and it is 13:00 in London."],
         ["מטוס ממריא מתל אביב בשעה 10:00 לפי שעון ישראל וטס 5 שעות ללונדון, שמפגרת אחרי ישראל בשעתיים. לפי שעון של 24 שעות, מה השעה בלונדון כשהוא נוחת?", "", "לפי שעון ישראל הוא נוחת ב־10 + 5 = 15:00. לונדון מפגרת בשעתיים, ולכן 15 − 2 = 13, ובלונדון השעה 13:00."]],
-      [4, ["The Earth turns 15° every 60 minutes. How many minutes does it take to turn 1°?", "minutes", "60 ÷ 15 = 4, so the Earth turns 1° in 4 minutes."],
-        ["כדור הארץ מסתובב 15° בכל 60 דקות. כמה דקות לוקח לו להסתובב מעלה אחת?", "דקות", "60 ÷ 15 = 4, ולכן כדור הארץ מסתובב מעלה אחת ב־4 דקות."]],
+      [4, ["Two places are 1° of longitude apart. By how many minutes does the moment when the sun is highest differ between them?", "minutes", "The Earth turns 360° in 24 hours, which is 15° in 60 minutes. 60 ÷ 15 = 4, so each degree of longitude makes a difference of 4 minutes."],
+        ["שני מקומות נמצאים במרחק של מעלה אחת של קו אורך זה מזה. בכמה דקות נבדל ביניהם הרגע שבו השמש הכי גבוהה בשמיים?", "דקות", "כדור הארץ מסתובב 360° ב־24 שעות, כלומר 15° ב־60 דקות. 60 ÷ 15 = 4, ולכן כל מעלה של קו אורך יוצרת הפרש של 4 דקות."]],
     ],
     s: [[["How the world came to use time zones, in order", "Every town sets its clocks by its own noon, when the sun is highest", "Fast trains make the many different local times confusing", "Railways set one standard time across large regions", "In 1884 a world conference chooses Greenwich as longitude 0°"],
       ["איך העולם הגיע לאזורי זמן, לפי הסדר", "כל עיר מכוונת את השעונים לפי הצהריים שלה, כשהשמש הכי גבוהה", "רכבות מהירות הופכות את ריבוי השעות המקומיות למבלבל", "חברות הרכבת קובעות שעה אחידה לאזורים גדולים", "ב־1884 ועידה עולמית בוחרת בגריניץ׳ כקו האורך 0°"]]],
@@ -78,8 +78,8 @@ const c: TopicContent = {
     n: [
       [20, ["Jerusalem is at about 35° east, but Israel's winter clock is set for 30° east. About how many minutes before 12:00 on the clock is the sun highest in Jerusalem?", "minutes", "Jerusalem is 5° east of 30°, and the Earth turns 1° in 4 minutes: 5 × 4 = 20 minutes earlier, at about 11:40, leaving out small changes through the year."],
         ["ירושלים נמצאת בערך ב־35° מזרח, אבל שעון החורף של ישראל מכוון לפי 30° מזרח. כמה דקות בערך לפני 12:00 לפי השעון השמש נמצאת בשיא גובהה בירושלים?", "דקות", "ירושלים נמצאת 5° מזרחית ל־30°, וכדור הארץ מסתובב מעלה אחת ב־4 דקות: 5 × 4 = 20 דקות מוקדם יותר, בסביבות 11:40, בלי להתחשב בשינויים קטנים במשך השנה."]],
-      [7, ["A plane leaves Los Angeles, at UTC−8, at 23:00 on Monday and flies 13 hours west to Sydney, at UTC+11. On the 24-hour clock, what hour is it in Sydney when it lands?", "", "23:00 at UTC−8 is 7:00 on Tuesday in UTC. Add 13 hours to get 20:00 UTC. Sydney is 11 hours ahead: 20 + 11 = 31, so it is 7:00 on Wednesday morning."],
-        ["מטוס ממריא מלוס אנג׳לס, לפי UTC−8, בשעה 23:00 ביום שני, וטס 13 שעות מערבה לסידני, לפי UTC+11. לפי שעון של 24 שעות, מה השעה בסידני כשהוא נוחת?", "", "23:00 לפי UTC−8 הוא 7:00 ביום שלישי לפי UTC. מוסיפים 13 שעות ומקבלים 20:00 לפי UTC. סידני מקדימה ב־11 שעות: 20 + 11 = 31, ולכן השעה 7:00 בבוקר יום רביעי."]],
+      [8, ["A plane leaves Los Angeles, at UTC−8, at 22:00 on Thursday and flies 15 hours west to Sydney, at UTC+11. On the 24-hour clock, what hour is it in Sydney when it lands?", "", "22:00 at UTC−8 is 6:00 on Friday in UTC. Add 15 hours to get 21:00 UTC. Sydney is 11 hours ahead: 21 + 11 = 32, which is 24 + 8, so it is 8:00 on Saturday morning."],
+        ["מטוס ממריא מלוס אנג׳לס, לפי UTC−8, בשעה 22:00 ביום חמישי, וטס 15 שעות מערבה לסידני, לפי UTC+11. לפי שעון של 24 שעות, מה השעה בסידני כשהוא נוחת?", "", "22:00 לפי UTC−8 הוא 6:00 ביום שישי לפי UTC. מוסיפים 15 שעות ומקבלים 21:00 לפי UTC. סידני מקדימה ב־11 שעות: 21 + 11 = 32, כלומר 24 ועוד 8, ולכן השעה 8:00 בבוקר יום שבת."]],
     ],
     s: [[["Order these places by when the new year begins there (1 January, 00:00), first to last", "Kiritimati in Kiribati", "Auckland, New Zealand", "Tokyo, Japan", "Jerusalem, Israel", "London, United Kingdom", "Honolulu, Hawaii"],
       ["סדרו את המקומות לפי הרגע שבו מתחילה בהם השנה החדשה (1 בינואר, 00:00), מהראשון לאחרון", "קיריטימטי שבקיריבטי", "אוקלנד, ניו זילנד", "טוקיו, יפן", "ירושלים, ישראל", "לונדון, בריטניה", "הונולולו, הוואי"]]],

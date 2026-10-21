@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Hippocrates", "an ancient Greek doctor who taught that illnesses have natural causes and are not punishments from the gods", "היפוקרטס", "רופא יווני קדום שלימד שלמחלות יש סיבות טבעיות ושהן אינן עונש מהאלים"],
+      ["Hippocrates", "an ancient Greek doctor from the island of Kos, often called the father of medicine", "היפוקרטס", "רופא יווני קדום מהאי קוס, שמכונה לעיתים קרובות אבי הרפואה"],
       ["Vaccine", "a substance that prepares the body to defend itself against a disease before the person catches it", "חיסון", "חומר שמכין את הגוף להתגונן מפני מחלה לפני שהאדם נדבק בה"],
       ["Antibiotic", "a medicine that kills bacteria or stops them from growing, but does not work against viruses", "אנטיביוטיקה", "תרופה שהורגת חיידקים או עוצרת את התרבותם, אך אינה פועלת נגד נגיפים"],
       ["Anaesthetic", "a medicine that stops a patient from feeling pain during an operation", "חומר הרדמה", "תרופה שגורמת למטופל לא להרגיש כאב בזמן ניתוח"],
@@ -17,8 +17,8 @@ const c: TopicContent = {
       [["Long ago many people thought that sickness was a punishment from the gods. What did the Greek doctor Hippocrates teach instead?", "That illness has natural causes, so doctors should look carefully at the patient", ["That illness comes from bad luck and the stars, so doctors should study the sky first", "That doctors should never touch their patients", "That every illness can be cured with a magic spell"], "Hippocrates lived about 2,400 years ago. He urged doctors to observe patients and look for natural causes, and he is often called the father of medicine."],
         ["לפני הרבה שנים אנשים רבים חשבו שמחלה היא עונש מהאלים. מה לימד במקום זה הרופא היווני היפוקרטס?", "שלמחלות יש סיבות טבעיות, ולכן רופאים צריכים להתבונן היטב במטופל", ["שמחלות באות ממזל רע ומהכוכבים, ולכן רופא צריך להתבונן קודם כול בשמיים", "שרופאים לעולם לא צריכים לגעת במטופלים", "שכל מחלה אפשר לרפא בלחש קסם"], "היפוקרטס חי לפני כ־2,400 שנה. הוא קרא לרופאים להתבונן במטופלים ולחפש סיבות טבעיות, ולעיתים קרובות קוראים לו אבי הרפואה."]],
     ],
-    s: [[["Discoveries in the history of medicine, from earliest to latest", "Hippocrates teaches doctors to observe their patients (about 400 BCE)", "Jenner makes the first vaccine (1796)", "Doctors first use ether as an anaesthetic in a public operation (1846)", "Fleming notices the mould that stops bacteria growing (1928)", "Smallpox is declared wiped out worldwide (1980)"],
-      ["גילויים בתולדות הרפואה, מהמוקדם למאוחר", "היפוקרטס מלמד רופאים להתבונן במטופלים שלהם (בערך 400 לפני הספירה)", "ג׳נר מפתח את החיסון הראשון (1796)", "רופאים משתמשים לראשונה באתר כחומר הרדמה בניתוח פומבי (1846)", "פלמינג מבחין בעובש שעוצר את גדילת החיידקים (1928)", "אבעבועות שחורות מוכרזות כמחוסלות בכל העולם (1980)"]]],
+    s: [[["Discoveries in the history of medicine, from earliest to latest", "Hippocrates teaches medicine in ancient Greece (about 400 BCE)", "Jenner protects a boy from smallpox with cowpox (1796)", "Doctors first use ether as an anaesthetic in a public operation (1846)", "Fleming notices the mould that stops bacteria growing (1928)", "Smallpox is declared wiped out worldwide (1980)"],
+      ["גילויים בתולדות הרפואה, מהמוקדם למאוחר", "היפוקרטס מלמד רפואה ביוון העתיקה (בערך 400 לפני הספירה)", "ג׳נר מגן על ילד מפני אבעבועות שחורות בעזרת אבעבועות הפרות (1796)", "רופאים משתמשים לראשונה באתר כחומר הרדמה בניתוח פומבי (1846)", "פלמינג מבחין בעובש שעוצר את גדילת החיידקים (1928)", "אבעבועות שחורות מוכרזות כמחוסלות בכל העולם (1980)"]]],
   },
   i: {
     t: [

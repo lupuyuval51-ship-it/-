@@ -22,7 +22,7 @@ const c: TopicContent = {
         ["עולים רבים של העלייה החמישית ברחו מאיזו ארץ אחרי עליית הנאצים לשלטון ב־1933?", "גרמניה", ["רוסיה הסובייטית", "תימן", "מרוקו"], "אחרי שהיטלר עלה לשלטון ב־1933 עזבו עשרות אלפי יהודי גרמניה לארץ ישראל. רבים אחרים בגל הזה באו מפולין."]],
     ],
     n: [[5, ["How many numbered waves of aliyah were there before the State of Israel was founded?", "", "Historians count 5 numbered aliyot, from the First Aliyah in 1882 to the Fifth, which ended with the Second World War."], ["כמה עליות ממוספרות היו לפני קום מדינת ישראל?", "", "ההיסטוריונים מונים 5 עליות ממוספרות, מהעלייה הראשונה ב־1882 ועד החמישית, שהסתיימה עם מלחמת העולם השנייה."]]],
-    s: [[["Put the founding of these places in time order", "Rishon LeZion", "Rehovot", "Tel Aviv", "Ein Harod"], ["סדרו לפי סדר ייסודם", "ראשון לציון", "רחובות", "תל אביב", "עין חרוד"]]],
+    s: [[["Put the founding of these places in time order", "Zikhron Ya'akov", "Rehovot", "Tel Aviv", "Ein Harod"], ["סדרו לפי סדר ייסודם", "זכרון יעקב", "רחובות", "תל אביב", "עין חרוד"]]],
   },
   i: {
     t: [

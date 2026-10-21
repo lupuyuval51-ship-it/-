@@ -21,8 +21,8 @@ const c: TopicContent = {
     ],
     n: [[11, ["The tallest walls of the Great Enclosure at Great Zimbabwe are about how many metres high?", "m", "The highest walls of the Great Enclosure reach about 11 metres, as tall as a three- or four-storey building.", "Between 5 and 15"],
       ["החומות הגבוהות ביותר של ״המתחם הגדול״ בזימבבואה הגדולה גבוהות בערך כמה מטרים?", "מטרים", "החומות הגבוהות ביותר של המתחם הגדול מגיעות לגובה של כ־11 מטרים, כמו בניין של שלוש או ארבע קומות.", "בין 5 ל־15"], 1]],
-    s: [[["African kingdoms at the height of their power, from earliest to latest", "Kush, when its kings ruled Egypt as pharaohs", "Aksum, when King Ezana adopted Christianity", "Ghana, the first great gold empire of West Africa", "Mali, in the time of Mansa Musa", "Songhai, the last of the three great West African empires"],
-      ["ממלכות אפריקה בשיא כוחן, מהמוקדמת למאוחרת", "כוש, כשמלכיה שלטו במצרים כפרעונים", "אקסום, כשהמלך עזאנה אימץ את הנצרות", "גאנה, אימפריית הזהב הגדולה הראשונה של מערב אפריקה", "מאלי, בימי מנסא מוסא", "סונגאי, האחרונה משלוש האימפריות הגדולות של מערב אפריקה"]]],
+    s: [[["African kingdoms at the height of their power, from earliest to latest", "Kush, when its kings ruled Egypt as pharaohs", "Aksum, when its king adopted Christianity", "Ghana, the first great gold empire of West Africa", "Mali, at the height of its fame in the 1300s", "Songhai, the last of the three great West African empires"],
+      ["ממלכות אפריקה בשיא כוחן, מהמוקדמת למאוחרת", "כוש, כשמלכיה שלטו במצרים כפרעונים", "אקסום, כשמלכה אימץ את הנצרות", "גאנה, אימפריית הזהב הגדולה הראשונה של מערב אפריקה", "מאלי, בשיא תהילתה במאה ה־14", "סונגאי, האחרונה משלוש האימפריות הגדולות של מערב אפריקה"]]],
   },
   i: {
     t: [

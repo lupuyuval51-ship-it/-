@@ -20,14 +20,14 @@ const c: TopicContent = {
       [["Which spring is one of the main sources of the Jordan River?", "The Dan spring", ["The Gihon spring in Jerusalem", "Ein Gedi by the Dead Sea", "Ein Avdat in the Negev"], "The Dan, at the foot of Mount Hermon, is the largest of the Jordan's sources. The other springs are far to the south and do not feed the upper Jordan."],
         ["איזה מעיין הוא אחד המקורות העיקריים של נהר הירדן?", "מעיינות הדן", ["מעיין הגיחון בירושלים", "עין גדי שליד ים המלח", "עין עבדת שבנגב"], "הדן, למרגלות החרמון, הוא הגדול שבמקורות הירדן. המעיינות האחרים נמצאים רחוק בדרום ולא מזינים את הירדן העליון."]],
     ],
-    s: [[["Places in the north-east, from north to south", "Mount Hermon", "The Hula Valley", "The Kinneret", "Beit She'an"],
-      ["מקומות בצפון־מזרח, מצפון לדרום", "החרמון", "עמק החולה", "הכנרת", "בית שאן"]]],
+    s: [[["Places in the north-east, from north to south", "Metula", "The Hula Valley", "The Kinneret", "Beit She'an"],
+      ["מקומות בצפון־מזרח, מצפון לדרום", "מטולה", "עמק החולה", "הכנרת", "בית שאן"]]],
   },
   i: {
     t: [
       ["Upper Galilee", "the higher, northern part of the Galilee, with Mount Meron and the town of Safed", "הגליל העליון", "החלק הגבוה והצפוני של הגליל, ובו הר מירון והעיר צפת"],
-      ["Lower Galilee", "the southern part of the Galilee, with lower hills, wide valleys and the city of Nazareth", "הגליל התחתון", "החלק הדרומי של הגליל, עם גבעות נמוכות יותר, עמקים רחבים והעיר נצרת"],
-      ["Drainage of the Hula", "the project of the 1950s that dried up the Hula lake and its swamps to make farmland", "ייבוש החולה", "המפעל משנות ה־50 שבו יובשו אגם החולה והביצות שסביבו כדי ליצור אדמה חקלאית"],
+      ["Lower Galilee", "the southern part of the Galilee, with lower hills and the city of Nazareth", "הגליל התחתון", "החלק הדרומי של הגליל, עם גבעות נמוכות יותר והעיר נצרת"],
+      ["Drainage of the Hula", "the project of the 1950s that dried up the Hula lake and the swamps around it", "ייבוש החולה", "המפעל משנות ה־50 שבו יובשו אגם החולה והביצות שסביבו"],
       ["Moshav", "a farming village where each family works its own farm and the families cooperate", "מושב", "כפר חקלאי שבו כל משפחה מעבדת משק משלה, והמשפחות משתפות פעולה"],
     ],
     q: [
@@ -50,14 +50,14 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Basalt", "a dark volcanic rock made of cooled lava, common in the eastern Galilee and around the Kinneret", "בזלת", "סלע געשי כהה שנוצר מלבה שהתקררה, נפוץ במזרח הגליל ובסביבת הכנרת"],
-      ["Karst", "a landscape formed when rainwater slowly dissolves limestone, leaving caves, sinkholes and springs", "קארסט", "נוף שנוצר כשמי גשם ממיסים לאט אבן גיר ומשאירים מערות, בולענים ומעיינות"],
+      ["Rift valley", "a long, deep valley that forms where the Earth's crust pulls apart, such as the Hula and Jordan valleys", "בקע", "עמק ארוך ועמוק שנוצר במקום שבו קרום כדור הארץ נמתח ונפרד, כמו עמק החולה ובקעת הירדן"],
+      ["Karst", "a landscape of limestone that rainwater has slowly dissolved into caves and sinkholes", "קארסט", "נוף של אבן גיר שמי גשם המיסו לאט ויצרו בו מערות ובולענים"],
       ["Migration route", "a path that birds follow every year between their summer homes and their winter homes", "נתיב נדידה", "דרך שעופות עוברים בה מדי שנה בין מקום הקיץ שלהם למקום החורף"],
       ["Agamon Hula", "a small lake created in the 1990s on part of the drained land of the Hula Valley", "אגמון החולה", "אגם קטן שנוצר בשנות ה־90 על חלק מהאדמות המיובשות של עמק החולה"],
     ],
     q: [
-      [["After the Hula was drained, its peat soil dried out, sank, caught fire and blew away. What was done in the 1990s?", "Part of the valley was flooded again to make a small lake", ["The whole valley was covered with a thick layer of concrete", "The Jordan was turned away so that it no longer crossed the valley", "All farming in the north of the country was stopped"], "In the 1990s part of the valley was re-flooded and Agamon Hula was created. It raised the groundwater, protected the soil and brought back birds, which now draw many visitors."],
-        ["אחרי ייבוש החולה, אדמת הכבול התייבשה, שקעה, בערה ועפה ברוח. מה עשו בשנות ה־90?", "הציפו מחדש חלק מהעמק ויצרו אגם קטן", ["כיסו את כל העמק בשכבה עבה של בטון", "הסיטו את הירדן כך שלא יעבור עוד בעמק", "הפסיקו כל חקלאות בצפון הארץ"], "בשנות ה־90 הוצף מחדש חלק מהעמק ונוצר אגמון החולה. הוא העלה את מי התהום, שמר על הקרקע והחזיר את הציפורים, שמושכות היום מבקרים רבים."]],
+      [["In winter, workers at Agamon Hula spread tons of corn for the cranes. Why?", "To keep them from eating the farmers' crops in the fields", ["Cranes cannot digest the wild plants that grow in the valley", "It makes the cranes lay their eggs in Israel instead of in Europe", "The corn helps their feathers grow back before the long flight"], "Tens of thousands of cranes spend the winter in the valley and could ruin the young crops. Feeding them corn in one place keeps them away from the fields, and it also lets visitors watch them up close."],
+        ["בחורף מפזרים העובדים באגמון החולה טונות של תירס בשביל העגורים. למה?", "כדי שלא יאכלו את הגידולים בשדות של החקלאים", ["עגורים לא מסוגלים לעכל את צמחי הבר שגדלים בעמק", "זה גורם לעגורים להטיל ביצים בישראל ולא באירופה", "התירס עוזר לנוצות שלהם לצמוח מחדש לפני הטיסה הארוכה"], "עשרות אלפי עגורים מבלים את החורף בעמק ויכולים להשמיד את הגידולים הצעירים. האכלה בתירס במקום אחד מרחיקה אותם מהשדות, וגם מאפשרת למבקרים לצפות בהם מקרוב."]],
       [["Why do so many birds fly over Israel every spring and autumn?", "Israel is a narrow land bridge between Europe, Asia and Africa", ["Israel's lakes are the warmest lakes in the whole world", "Birds follow the Mediterranean coast on their way to Australia", "The birds come to lay their eggs in the Negev sand"], "Many birds avoid long flights over sea and desert, so they funnel through the narrow strip between the Mediterranean and the desert on their way between Europe or Asia and Africa."],
         ["למה כל כך הרבה ציפורים עפות מעל ישראל בכל אביב ובכל סתיו?", "ישראל היא גשר יבשתי צר בין אירופה, אסיה ואפריקה", ["האגמים של ישראל הם החמים ביותר בעולם כולו", "הציפורים עוקבות אחרי חוף הים התיכון בדרכן לאוסטרליה", "הציפורים מגיעות כדי להטיל ביצים בחולות הנגב"], "ציפורים רבות נמנעות מטיסות ארוכות מעל ים ומדבר, ולכן הן מתרכזות ברצועה הצרה שבין הים התיכון למדבר בדרכן בין אירופה או אסיה לבין אפריקה."]],
       [["Why does the Dan spring keep flowing strongly even at the end of a dry summer?", "Rain and snow on Mount Hermon soak into the rock and flow out slowly", ["Summer rain in the Galilee refills the spring every week", "Water is pumped up to it from the Kinneret all summer", "Melting ice from the Alps reaches it through the ground"], "The Hermon is made largely of limestone full of cracks. Winter rain and melting snow sink into it and travel slowly underground, so the springs at its foot flow all year."],

@@ -5,8 +5,8 @@ const c: TopicContent = {
     t: [
       ["Nature reserve", "an area kept by law so that its plants, animals and landscape stay protected", "שמורת טבע", "אזור שהחוק שומר עליו כדי שהצמחים, בעלי החיים והנוף שבו יישמרו"],
       ["Wildflower", "a flower that grows by itself in nature, without anyone planting it", "פרח בר", "פרח שגדל מעצמו בטבע, בלי שמישהו שתל אותו"],
-      ["Marked trail", "a path with painted signs on rocks or posts that show hikers the way", "שביל מסומן", "דרך שיש בה סימנים צבועים על סלעים או על עמודים, שמראים למטיילים את הכיוון"],
-      ["Rock hyrax", "a small furry animal that lives among rocks and is common at Ein Gedi", "שפן סלע", "בעל חיים קטן ופרוותי שחי בין סלעים ונפוץ בעין גדי"],
+      ["Marked trail", "a path marked on rocks and posts with three painted stripes: white, a colour, white", "שביל מסומן", "דרך שמסומנת על סלעים ועל עמודים בשלושה פסים צבועים: לבן, צבעוני ולבן"],
+      ["Rock hyrax", "a small furry animal that lives in groups among rocks and cliffs and likes to lie in the sun", "שפן סלע", "בעל חיים קטן ופרוותי שחי בקבוצות בין סלעים וצוקים ואוהב להתחמם בשמש"],
     ],
     q: [
       [["Which of these is a rule in every nature reserve?", "Do not pick the flowers", ["Feed the animals you meet on the way", "Take a nice stone home as a souvenir", "Leave the trail to find a shortcut"], "In a reserve everything stays in its place: flowers, stones and animals. Feeding animals is not allowed either, because it harms them."],
@@ -20,14 +20,14 @@ const c: TopicContent = {
       [["Which red wildflower was chosen in a national vote in 2013 as Israel's national flower?", "The anemone", ["The cyclamen", "The tulip", "The sunflower"], "In 2013 the public voted for the red anemone, the kalanit, which colours fields red in winter. The cyclamen and the tulip are wildflowers too, but they were not chosen, and sunflowers are farm plants."],
         ["איזה פרח בר אדום נבחר בהצבעה ארצית ב־2013 לפרח הלאומי של ישראל?", "הכלנית", ["הרקפת", "הצבעוני", "החמנייה"], "ב־2013 בחר הציבור בכלנית האדומה, שצובעת שדות באדום בחורף. גם הרקפת והצבעוני הם פרחי בר, אבל הם לא נבחרו, והחמנייה היא צמח של שדות חקלאיים."]],
     ],
-    s: [[["A day hike in a reserve", "The evening before, choose a trail and check that it is open", "In the morning, fill your bottles with water and leave home", "Walk along the marked trail", "At the end of the hike, take all your rubbish home"],
-      ["טיול יום בשמורה", "בערב שלפני הטיול בוחרים מסלול ובודקים שהוא פתוח", "בבוקר ממלאים בקבוקי מים ויוצאים מהבית", "הולכים לאורך השביל המסומן", "בסוף הטיול לוקחים את כל הפסולת הביתה"]]],
+    s: [[["A day hike in a reserve", "The evening before, choose a trail and check that it is open", "In the morning, fill your bottles with water and leave home", "At the entrance, read the sign with the map of the trails", "Walk along the marked trail", "Finish the hike well before dark"],
+      ["טיול יום בשמורה", "בערב שלפני הטיול בוחרים מסלול ובודקים שהוא פתוח", "בבוקר ממלאים בקבוקי מים ויוצאים מהבית", "בכניסה קוראים את השלט עם מפת המסלולים", "הולכים לאורך השביל המסומן", "מסיימים את הטיול הרבה לפני החשכה"]]],
   },
   i: {
     t: [
-      ["National park", "a protected place kept for its history, ruins or beauty, such as Masada or Caesarea", "גן לאומי", "מקום מוגן שנשמר בגלל ההיסטוריה, השרידים או היופי שלו, כמו מצדה או קיסריה"],
-      ["Protected species", "a plant or animal that the law forbids people to pick, hunt or harm", "מין מוגן", "צמח או בעל חיים שהחוק אוסר לקטוף, לצוד או לפגוע בו"],
-      ["Reintroduction", "bringing an animal back to live in the wild in a land where it had disappeared", "השבה לטבע", "החזרה של בעל חיים לחיות בטבע בארץ שבה הוא נעלם"],
+      ["National park", "a protected place kept for its history, ruins or beauty, such as Beit She'an or Avdat", "גן לאומי", "מקום מוגן שנשמר בגלל ההיסטוריה, השרידים או היופי שלו, כמו בית שאן או עבדת"],
+      ["Protected species", "a plant or animal that the law protects, such as the mountain gazelle or the cyclamen", "מין מוגן", "צמח או בעל חיים שהחוק מגן עליו, כמו צבי ארץ ישראלי או הרקפת"],
+      ["Marsh", "low, wet land that water covers for much of the year, where reeds and rushes grow", "ביצה", "שטח נמוך ורטוב שמים מכסים אותו רוב השנה, וגדלים בו קנים וסוף"],
       ["Papyrus", "a tall water plant with feathery heads that grows in the Hula reserve", "פפירוס", "צמח מים גבוה עם ראשים דמויי נוצות, שגדל בשמורת החולה"],
     ],
     q: [
@@ -37,22 +37,22 @@ const c: TopicContent = {
         ["מהו התפקיד העיקרי של חי־בר יטבתה שבערבה?", "גידול חיות מדבר שנעלמו, כדי להחזירן לטבע", ["הצגת בעלי חיים שהובאו מיערות הגשם של האמזונס", "גידול גמלים ועזים בשביל המשקים בערבה", "גידול עצי תמר למכירה בארצות אחרות"], "חי־בר יטבתה מגדל בעלי חיים שחיו כאן בעבר, כמו הפרא האסייתי והראם הלבן, וחלק מהם משוחררים אחר כך לטבע."]],
       [["Which animal from Hai-Bar was released into the Negev and now roams around Makhtesh Ramon?", "The Asian wild ass", ["The Syrian brown bear", "The African elephant", "The zebra"], "Asian wild asses were released from 1982 on, and herds now live freely in and around Makhtesh Ramon. Brown bears once lived in the north of the land but have not been returned."],
         ["איזה בעל חיים מחי־בר שוחרר לנגב ומסתובב היום באזור מכתש רמון?", "הפרא האסייתי", ["הדוב החום הסורי", "הפיל האפריקני", "הזברה"], "פראים אסייתיים שוחררו החל מ־1982, ועדרים חיים היום בחופשיות במכתש רמון ובסביבתו. דובים חומים חיו פעם בצפון הארץ, אבל הם לא הוחזרו."]],
-      [["Why is Masada both a national park and a World Heritage Site?", "It holds the ruins of Herod's fortress and the story of its siege", ["It protects the largest freshwater lake in the whole of the country", "It protects the last natural forest left in the Negev", "It is home to the only coral reef in Israel"], "On top of the cliff stand Herod's palaces and storehouses, and around it are the Roman siege camps and ramp from the year 73 or 74. It is a place of history, not of lakes or forests."],
-        ["למה מצדה היא גם גן לאומי וגם אתר מורשת עולמית?", "יש בה שרידי מבצר של הורדוס וסיפור המצור עליו", ["היא שומרת על אגם המים המתוקים הגדול ביותר בארץ", "היא שומרת על היער הטבעי האחרון שנשאר בנגב", "יש בה את שונית האלמוגים היחידה בישראל"], "על ראש הצוק עומדים הארמונות והמחסנים של הורדוס, ומסביב נמצאים מחנות המצור והסוללה של הרומאים משנת 73 או 74. זה מקום של היסטוריה, לא של אגמים או יערות."]],
+      [["Why is Masada both a national park and a World Heritage Site?", "It holds the ruins of Herod's fortress and the story of its siege", ["It holds the ruins of a Crusader port city and its harbour", "It holds the palace where King David lived and ruled", "It protects the largest freshwater lake in the whole of the country"], "On top of the cliff stand Herod's palaces and storehouses, and around it are the Roman siege camps and ramp from the year 73 or 74. Its palaces were built by King Herod, not King David, and it lies far from the Mediterranean coast."],
+        ["למה מצדה היא גם גן לאומי וגם אתר מורשת עולמית?", "יש בה שרידי מבצר של הורדוס וסיפור המצור עליו", ["יש בה שרידי עיר נמל צלבנית והנמל הגדול שלה", "יש בה הארמון שבו גר ומלך דוד המלך", "היא שומרת על אגם המים המתוקים הגדול ביותר בארץ"], "על ראש הצוק עומדים הארמונות והמחסנים של הורדוס, ומסביב נמצאים מחנות המצור והסוללה של הרומאים משנת 73 או 74. את הארמונות בנה המלך הורדוס, לא דוד המלך, והיא רחוקה מחוף הים התיכון."]],
       [["In the 1960s a big campaign taught Israelis a new habit about wildflowers. What was it?", "Not to pick them", ["To pick only the red ones", "To water them in the summer", "To plant flowers from abroad in reserves"], "Schools, the Society for the Protection of Nature and a new law asked people not to pick wildflowers. Picking nearly stopped, and flowers that had become rare came back."],
         ["בשנות ה־60 לימד מבצע גדול את הישראלים הרגל חדש בעניין פרחי הבר. מה היה ההרגל?", "לא לקטוף אותם", ["לקטוף רק את האדומים", "להשקות אותם בקיץ", "לשתול בשמורות פרחים מחוץ לארץ"], "בתי הספר, החברה להגנת הטבע וחוק חדש ביקשו מהציבור לא לקטוף פרחי בר. הקטיף כמעט פסק, ופרחים שנעשו נדירים חזרו."]],
       [["Which white wildflower grows on sandy beaches and blooms at the end of summer?", "The sea daffodil", ["The anemone", "The cyclamen", "The Galilee coral peony"], "The sea daffodil grows in coastal sand and opens its fragrant white flowers in late summer, when almost nothing else blooms. Anemones and cyclamens bloom in winter and spring."],
         ["איזה פרח בר לבן גדל בחולות החוף ופורח בסוף הקיץ?", "חבצלת החוף", ["הכלנית", "הרקפת", "אדמונית החורש"], "חבצלת החוף גדלה בחול שליד הים ופותחת את פרחיה הלבנים והריחניים בסוף הקיץ, כשכמעט שום דבר אחר לא פורח. כלניות ורקפות פורחות בחורף ובאביב."]],
     ],
     n: [
-      [16, ["The Hula Nature Reserve was declared in 1964. How many years was that after the State of Israel was founded in 1948?", "years", "1964 − 1948 = 16, so the first reserve was declared 16 years after the state was founded."], ["שמורת החולה הוכרזה ב־1964. כמה שנים אחרי קום המדינה ב־1948 זה היה?", "שנים", "1964 − 1948 = 16, כלומר השמורה הראשונה הוכרזה 16 שנים אחרי קום המדינה."]],
+      [16, ["The Hula Nature Reserve was declared in 1964. How many years was that after the State of Israel was founded in 1948?", "years", "1964 − 1948 = 16, so the Hula reserve was declared 16 years after the state was founded."], ["שמורת החולה הוכרזה ב־1964. כמה שנים אחרי קום המדינה ב־1948 זה היה?", "שנים", "1964 − 1948 = 16, כלומר שמורת החולה הוכרזה 16 שנים אחרי קום המדינה."]],
     ],
   },
   a: {
     t: [
       ["Biodiversity", "the variety of all the kinds of living things in a place", "מגוון ביולוגי", "השונות של כל סוגי היצורים החיים במקום מסוים"],
       ["Endangered species", "a kind of plant or animal so rare that it could die out completely", "מין בסכנת הכחדה", "סוג של צמח או של בעל חיים נדיר כל כך, שהוא עלול להיעלם לגמרי"],
-      ["Ecological corridor", "a strip of open land that links natural areas so that animals can move between them", "מסדרון אקולוגי", "רצועת שטח פתוח שמחברת בין אזורים טבעיים, כדי שבעלי חיים יוכלו לעבור ביניהם"],
+      ["Ecological corridor", "a strip of open land that links two natural areas across roads, fields or towns", "מסדרון אקולוגי", "רצועת שטח פתוח שמחברת בין שני אזורים טבעיים מעבר לכבישים, לשדות או לערים"],
       ["Habitat", "the natural home of a plant or animal, where it finds food, water and shelter", "בית גידול", "המקום הטבעי שבו חי צמח או בעל חיים ומוצא מזון, מים ומחסה"],
     ],
     q: [

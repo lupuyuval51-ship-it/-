@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Translation", "sliding a shape a set distance in a set direction, without turning or flipping it", "הזזה", "העברה של צורה למרחק מסוים בכיוון מסוים, בלי לסובב אותה ובלי להפוך אותה"],
+      ["Translation", "moving a shape by sliding every one of its points the same distance in the same direction", "הזזה", "העברה של צורה שבה כל נקודה שלה זזה אותו מרחק ובאותו כיוון"],
       ["Reflection", "flipping a shape over a mirror line, so each point lands the same distance away on the other side", "שיקוף", "היפוך של צורה מעל קו ראי, כך שכל נקודה נוחתת באותו מרחק מהקו בצד השני שלו"],
       ["Rotation", "turning a shape through a given angle around a fixed point", "סיבוב", "תנועה של צורה בזווית נתונה סביב נקודה קבועה"],
       ["Image", "the new shape or point you get after a transformation", "תמונה", "הצורה או הנקודה החדשה שמתקבלת אחרי העתקה"],

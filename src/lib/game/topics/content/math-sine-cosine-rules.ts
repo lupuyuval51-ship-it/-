@@ -4,7 +4,7 @@ const c: TopicContent = {
   b: {
     t: [
       ["Sine rule", "in every triangle a/sin A = b/sin B = c/sin C: each side divided by the sine of the angle opposite it gives the same number", "משפט הסינוסים", "בכל משולש a/sin A = b/sin B = c/sin C: כל צלע חלקי הסינוס של הזווית שמולה נותנת אותו מספר"],
-      ["Cosine rule", "c² = a² + b² − 2ab·cos C: a formula that links all three sides of a triangle with one of its angles", "משפט הקוסינוסים", "הנוסחה c² = a² + b² − 2ab·cos C קושרת את שלוש הצלעות של משולש עם אחת הזוויות שלו"],
+      ["Cosine rule", "the formula c² = a² + b² − 2ab·cos C, where C is the angle opposite the side c", "משפט הקוסינוסים", "הנוסחה c² = a² + b² − 2ab·cos C, כאשר C היא הזווית שמול הצלע c"],
       ["Included angle", "the angle between two given sides, at the corner where they meet", "הזווית הכלואה", "הזווית שבין שתי צלעות נתונות, בקודקוד שבו הן נפגשות"],
     ],
     q: [
@@ -28,8 +28,8 @@ const c: TopicContent = {
         ["במשולש, הצלע a = 6 ס״מ נמצאת מול הזווית A = 30°. כמה זה a ÷ sin A?", "ס״מ", "מכיוון ש־sin 30° = 0.5, מקבלים a ÷ sin A = 6 ÷ 0.5 = 12 ס״מ. גם כל צלע אחרת חלקי הסינוס של הזווית שמולה נותנת 12."]],
     ],
     s: [
-      [["Using the sine rule to find a side", "Mark the known angle with the side opposite it, and the angle opposite the side you want", "Write the sine rule with those two pairs: a ÷ sin A = b ÷ sin B", "Rearrange to make the unknown side the subject: b = a × sin B ÷ sin A", "Put in the numbers and calculate"],
-        ["שימוש במשפט הסינוסים כדי למצוא צלע", "מסמנים את הזווית הידועה ואת הצלע שמולה, ואת הזווית שמול הצלע שמחפשים", "כותבים את משפט הסינוסים עם שני הזוגות האלה: a ÷ sin A = b ÷ sin B", "מבודדים את הצלע הלא ידועה: b = a × sin B ÷ sin A", "מציבים את המספרים ומחשבים"]],
+      [["Finding side b from side a and the angles A and B, in order", "Mark the known angle with the side opposite it, and the angle opposite the side you want", "Write one equation with those two pairs: a ÷ sin A = b ÷ sin B", "Rearrange to make the unknown side the subject: b = a × sin B ÷ sin A", "Put in the numbers and calculate"],
+        ["מציאת הצלע b לפי הצלע a והזוויות A ו־B, לפי הסדר", "מסמנים את הזווית הידועה ואת הצלע שמולה, ואת הזווית שמול הצלע שמחפשים", "כותבים משוואה אחת עם שני הזוגות האלה: a ÷ sin A = b ÷ sin B", "מבודדים את הצלע הלא ידועה: b = a × sin B ÷ sin A", "מציבים את המספרים ומחשבים"]],
     ],
   },
   i: {
@@ -61,7 +61,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Ambiguous case", "when two sides and an angle that is not between them are given, two different triangles may fit", "מקרה דו־משמעי", "כשנתונות שתי צלעות וזווית שאינה ביניהן, ייתכן ששני משולשים שונים מתאימים לנתונים"],
+      ["Ambiguous case", "when two sides and an angle that is not between them are given, the facts may fit two different triangles, only one, or none", "מקרה דו־משמעי", "כשנתונות שתי צלעות וזווית שאינה ביניהן, ייתכן שהנתונים מתאימים לשני משולשים שונים, למשולש אחד בלבד או לאף משולש"],
       ["Inverse sine", "the function sin⁻¹ that gives back the angle between −90° and 90° whose sine is a given number", "סינוס הפוך", "הפונקציה sin⁻¹ שמחזירה את הזווית שבין −90° ל־90° שהסינוס שלה הוא מספר נתון"],
       ["Heron's formula", "the area of a triangle from its three sides: √(s(s − a)(s − b)(s − c)), where s is half the perimeter", "נוסחת הרון", "השטח של משולש לפי שלוש הצלעות שלו: √(s(s − a)(s − b)(s − c)), כאשר s הוא חצי ההיקף"],
     ],

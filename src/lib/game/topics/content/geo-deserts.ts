@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Desert", "a region that gets very little rain, so only a few plants and animals can live there", "מדבר", "אזור שיורד בו מעט מאוד גשם, ולכן רק מעט צמחים וחיות יכולים לחיות בו"],
+      ["Desert", "a large area where hardly any plants grow, like the Negev in southern Israel", "מדבר", "שטח גדול שכמעט לא גדלים בו צמחים, כמו הנגב שבדרום ישראל"],
       ["Oasis", "a place in a dry land where water is found, so plants can grow and people can stay", "נווה מדבר", "מקום בארץ יבשה שיש בו מים, ולכן צמחים יכולים לגדול ואנשים יכולים להתיישב"],
       ["Dune", "a hill of sand that the wind builds and moves", "דיונה", "גבעת חול שהרוח בונה ומזיזה"],
       ["Nomad", "a person who moves from place to place instead of living in one home all year", "נווד", "אדם שנע ממקום למקום ואינו גר באותו בית כל השנה"],
@@ -21,9 +21,9 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Polar desert", "a freezing, very dry region, such as Antarctica, where hardly any snow or rain falls", "מדבר קוטבי", "אזור קפוא ויבש מאוד, כמו אנטארקטיקה, שכמעט לא יורדים בו שלג או גשם"],
+      ["Polar desert", "a freezing, very dry region near the poles, where hardly any snow or rain falls", "מדבר קוטבי", "אזור קפוא ויבש מאוד ליד הקטבים, שכמעט לא יורדים בו שלג או גשם"],
       ["Wadi", "a dry stream bed in a desert that fills with water only after rain", "ואדי", "ערוץ נחל יבש במדבר שמתמלא במים רק אחרי גשם"],
-      ["Flash flood", "a sudden, powerful rush of water that comes after heavy rain, sometimes rain that fell far away", "שיטפון בזק", "זרם מים פתאומי וחזק שמגיע אחרי גשם כבד, לפעמים גשם שירד רחוק משם"],
+      ["Flash flood", "a sudden, powerful rush of water down a dry channel that comes after heavy rain", "שיטפון בזק", "זרם מים פתאומי וחזק בערוץ יבש, שמגיע אחרי גשם כבד"],
       ["Succulent", "a plant that stores water in thick leaves or stems, like a cactus", "צמח בשרני", "צמח שאוגר מים בעלים או בגבעולים עבים, כמו קקטוס"],
     ],
     q: [
@@ -33,8 +33,8 @@ const c: TopicContent = {
         ["למה במדבר נעשה לעיתים קרובות קר מאוד בלילה, גם אחרי יום חם?", "האוויר היבש והשמיים הבהירים נותנים לחום לברוח מהר אחרי השקיעה", ["השמש מתקרבת מאוד למדבריות במשך היום, ובלילה היא מתרחקת מהם הרבה", "רוחות קרות מהקטבים מגיעות אל המדבריות בכל לילה", "החול מייצר קור משלו בלילה"], "עננים ואוויר לח פועלים כמו שמיכה. כשכמעט אין כאלה, הקרקע מאבדת את החום שלה מהר אחרי שהשמש שוקעת."]],
       [["Why does a cactus have spines instead of wide, flat leaves?", "Spines lose much less water than wide leaves, and they keep thirsty animals away", ["Spines are stronger than leaves, so desert sandstorms cannot tear them off the plant", "Spines help the cactus catch rain clouds", "Spines make the cactus grow faster in the shade", "Spines are only there to look nice"], "A cactus spine is a changed leaf. Little water escapes through it, and the cactus stores water in its thick green stem instead."],
         ["למה לקקטוס יש קוצים במקום עלים רחבים ושטוחים?", "דרך קוצים מתאדים הרבה פחות מים מאשר דרך עלים רחבים, והם מרחיקים חיות צמאות", ["קוצים חזקים יותר מעלים, ולכן סופות החול של המדבר לא יכולות לקרוע אותם מהצמח", "הקוצים עוזרים לקקטוס לתפוס ענני גשם", "הקוצים גורמים לקקטוס לגדול מהר יותר בצל", "הקוצים נמצאים שם רק לנוי"], "קוץ של קקטוס הוא עלה שהשתנה. מעט מאוד מים יוצאים דרכו, והקקטוס אוגר את המים בגבעול הירוק והעבה שלו."]],
-      [["The sky above you is clear, but it is raining hard on the mountains far away. Why is it dangerous to walk in a dry wadi then?", "The rain far away can send a sudden flash flood down the wadi", ["Wadis always fill with deep water at noon", "The clouds over the mountains trap the heat, so the wadi gets too hot to walk in", "Floods happen only in the sea"], "Water from far-away rain can rush down a dry stream bed within minutes. In Israel, never enter or cross a flooded wadi and check the forecast before a desert hike."],
-        ["השמיים מעליכם בהירים, אבל יורד גשם חזק על ההרים הרחוקים. למה מסוכן ללכת אז בוואדי יבש?", "הגשם הרחוק יכול לשלוח שיטפון בזק פתאומי לאורך הוואדי", ["ואדיות תמיד מתמלאים במים עמוקים בצהריים", "העננים מעל ההרים לוכדים את החום, ולכן בוואדי נעשה חם מכדי ללכת בו", "שיטפונות קורים רק בים"], "מים מגשם רחוק יכולים לשטוף ערוץ יבש תוך דקות. בישראל לא נכנסים לנחל זורם ולא חוצים אותו, ובודקים את התחזית לפני טיול במדבר."]],
+      [["The sky above you is clear, but it is raining hard on the mountains far away. Why is it dangerous to walk in a dry wadi then?", "Water from the far-away rain can rush down the wadi within minutes", ["Wadis always fill with deep water at noon", "The clouds over the mountains trap the heat, so the wadi gets too hot to walk in", "Floods happen only in the sea"], "Water from far-away rain can rush down a dry stream bed within minutes. In Israel, never enter or cross a flooded wadi and check the forecast before a desert hike."],
+        ["השמיים מעליכם בהירים, אבל יורד גשם חזק על ההרים הרחוקים. למה מסוכן ללכת אז בוואדי יבש?", "מי הגשם הרחוק יכולים לשעוט במורד הוואדי תוך דקות", ["ואדיות תמיד מתמלאים במים עמוקים בצהריים", "העננים מעל ההרים לוכדים את החום, ולכן בוואדי נעשה חם מכדי ללכת בו", "שיטפונות קורים רק בים"], "מים מגשם רחוק יכולים לשטוף ערוץ יבש תוך דקות. בישראל לא נכנסים לנחל זורם ולא חוצים אותו, ובודקים את התחזית לפני טיול במדבר."]],
       [["What is Makhtesh Ramon in the Negev?", "A huge valley with steep walls that was carved out by erosion", ["A huge crater made long ago by a meteorite that crashed into the desert", "The mouth of an old volcano that collapsed after it erupted", "An artificial lake for drinking water"], "A makhtesh forms when water and weather slowly wash away soft rock under a hard top layer. Makhtesh Ramon is about 40 km long."],
         ["מהו מכתש רמון שבנגב?", "עמק ענקי עם קירות תלולים שנוצר בתהליך של סחיפה", ["מכתש ענקי שנוצר לפני זמן רב, כשמטאוריט נפל והתרסק במדבר", "פתח של הר געש עתיק שקרס אחרי שהתפרץ", "אגם מלאכותי למי שתייה"], "מכתש נוצר כשמים ובליה סוחפים לאט סלע רך שנמצא מתחת לשכבה קשה. אורכו של מכתש רמון כ־40 ק״מ."]],
       [["On a hot day in the desert you see what looks like a pool of water ahead, but it disappears as you get closer. What is it?", "A mirage: hot air near the ground bends light from the sky", ["Real water from a hidden spring that dries up in the sun as you walk", "An oasis that moves away from people", "A dream caused by too much sleep"], "Light from the sky bends as it passes through very hot air near the ground, so you see a shimmering picture of the sky that looks like water."],
@@ -47,10 +47,10 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Desertification", "the turning of dry but fertile land into desert, often through drought, overgrazing and cutting trees", "מדבור", "הפיכה של אדמה יבשה אבל פורייה לשממה, לעיתים קרובות בגלל בצורת, רעייה מוגזמת וכריתת עצים"],
-      ["Aquifer", "a layer of rock or sand underground that holds water which can be pumped out", "אקוויפר", "שכבת סלע או חול מתחת לאדמה שמחזיקה מים שאפשר לשאוב"],
-      ["Coastal desert", "a dry strip next to a cold ocean current, where the cool air brings fog but almost no rain", "מדבר חופי", "רצועה יבשה ליד זרם ים קר, שבה האוויר הקריר מביא ערפל אבל כמעט שום גשם"],
-      ["Drip irrigation", "watering plants drop by drop at their roots through thin pipes, which saves a lot of water", "השקיה בטפטוף", "השקיית צמחים טיפה אחר טיפה ליד השורשים דרך צינורות דקים, שחוסכת הרבה מים"],
+      ["Desertification", "the slow turning of dry but fertile land into barren, desert-like land", "מדבור", "הפיכה הדרגתית של אדמה יבשה אבל פורייה לשממה דמוית מדבר"],
+      ["Aquifer", "a layer of rock or sand deep underground whose pores and cracks are full of water", "אקוויפר", "שכבת סלע או חול עמוק מתחת לאדמה, שהנקבוביות והסדקים שבה מלאים מים"],
+      ["Coastal desert", "a desert that stretches along a seashore, such as the Namib in south-western Africa", "מדבר חופי", "מדבר שמשתרע לאורך חוף ים, כמו מדבר נמיב בדרום־מערב אפריקה"],
+      ["Rain shadow", "the dry side of a mountain range, where the clouds have already dropped their rain on the other side, as in the Judean Desert", "צל גשם", "הצד היבש של רכס הרים, שהעננים כבר הורידו את הגשם שלהם בצדו השני, כמו במדבר יהודה"],
     ],
     q: [
       [["Many big hot deserts, like the Sahara and the Arabian Desert, lie roughly 30° north or south of the equator. Why?", "Dry air sinks there and warms up, so clouds rarely form", ["Those places are the closest to the sun, so their water dries up", "The sea there is too salty to make rain", "Volcanoes there dry out the air"], "Air that rises near the equator drops its rain there, then sinks again around 30°. Sinking air warms and dries, so rain clouds hardly ever form."],
@@ -66,8 +66,8 @@ const c: TopicContent = {
     ],
     n: [[180, ["A common rule says a place with less than about 250 mm of rain a year is a desert. A town gets 15 mm of rain each month on average. How many millimetres is that in a year?", "mm", "15 × 12 = 180 mm a year, which is less than 250 mm, so the town is in a desert."],
       ["לפי כלל מקובל, מקום שיורדים בו פחות מכ־250 מ״מ גשם בשנה הוא מדבר. בעיירה יורדים בממוצע 15 מ״מ גשם בכל חודש. כמה מילימטרים זה בשנה?", "מ״מ", "15 × 12 = 180 מ״מ בשנה, פחות מ־250 מ״מ, ולכן העיירה נמצאת במדבר."]]],
-    s: [[["How desertification can happen, in order", "A long drought hits a dry grassland", "Too many animals graze and trees are cut for firewood", "Plant roots no longer hold the soil together", "Wind and rare heavy rains carry the topsoil away", "The land becomes desert-like and hard to farm"],
-      ["איך מדבור יכול לקרות, לפי הסדר", "בצורת ארוכה פוגעת בשטח עשב יבש", "יותר מדי בעלי חיים רועים, ועצים נכרתים לעצי הסקה", "שורשי הצמחים כבר לא מחזיקים את הקרקע", "הרוח והגשמים הנדירים והחזקים סוחפים את שכבת הקרקע העליונה", "האדמה נעשית דומה למדבר וקשה לעבד אותה"]]],
+    s: [[["How desert rock can break down into sand, in order", "The sun heats the bare rock strongly by day, and it cools fast at night", "Again and again, the surface of the rock swells and shrinks", "Thin cracks open, and flakes and pieces break off", "Wind and rare floods knock the pieces against each other", "Over a long time they are ground down into grains of sand"],
+      ["איך סלע במדבר יכול להתפורר לחול, לפי הסדר", "השמש מחממת מאוד את הסלע החשוף ביום, ובלילה הוא מתקרר מהר", "שוב ושוב פני הסלע מתרחבים ומתכווצים", "נפתחים סדקים דקים, ופתיתים וחתיכות מתנתקים מהסלע", "הרוח והשיטפונות הנדירים מטיחים את החתיכות זו בזו", "במשך זמן רב הן נשחקות לגרגרי חול"]]],
   },
 };
 export default c;

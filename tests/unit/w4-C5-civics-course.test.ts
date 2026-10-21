@@ -84,9 +84,9 @@ describe("civics topics (C5)", () => {
     expect(elected[0]).toBe(10);
     const against = c.a.n!.find(([, en]) => /voted against/.test(en[0]))!;
     expect(against[0]).toBe(15 - 9);
-    // the time order is real: 1918, 1920, 1945, 1949, 2011
+    // the time order is real: 1918, 1939, 1945, 1949, 2011 (the League of Nations left the ordering: it answered a question of the level)
     const [en, he] = c.i.s![0]!;
-    expect(en.slice(1)).toEqual(["The First World War ends", "The League of Nations is founded", "The United Nations is founded", "Israel becomes a member of the UN", "South Sudan joins the UN"]);
+    expect(en.slice(1)).toEqual(["The First World War ends", "The Second World War begins", "The United Nations is founded", "Israel becomes a member of the UN", "South Sudan joins the UN"]);
     expect(he.length).toBe(en.length);
   });
 });

@@ -3,16 +3,16 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Atom", "the tiny particle that all matter is built from", "אטום", "החלקיק הזעיר שממנו בנוי כל החומר"],
-      ["Element", "a pure substance made of only one kind of atom, like gold or oxygen", "יסוד", "חומר טהור שבנוי מסוג אחד בלבד של אטומים, כמו זהב או חמצן"],
+      ["Atom", "a particle with a nucleus at its centre and electrons moving around it", "אטום", "חלקיק שבמרכזו גרעין, וסביבו נעים אלקטרונים"],
+      ["Element", "a pure substance made of only one kind of atom, like iron or oxygen", "יסוד", "חומר טהור שבנוי מסוג אחד בלבד של אטומים, כמו ברזל או חמצן"],
       ["Molecule", "two or more atoms joined together, like a water particle", "מולקולה", "שני אטומים או יותר שמחוברים יחד, כמו חלקיק של מים"],
       ["Compound", "a substance made of two or more different elements joined chemically", "תרכובת", "חומר שבנוי משני יסודות שונים או יותר שקשורים בקשר כימי"],
     ],
     q: [
       [["Water is H₂O. Which atoms is it made of?", "Two hydrogen atoms and one oxygen atom", ["One hydrogen and two oxygen atoms", "Only oxygen", "Helium and oxygen"], "H stands for hydrogen and O for oxygen; the small 2 means two hydrogen atoms."],
         ["מים הם H₂O. מאילו אטומים הם בנויים?", "שני אטומי מימן ואטום חמצן אחד", ["אטום מימן אחד ושני אטומי חמצן", "רק חמצן", "הליום וחמצן"], "H מסמל מימן ו־O חמצן; ה־2 הקטן פירושו שני אטומי מימן."]],
-      [["Can you see a single atom with your eyes?", "No, atoms are far too small", ["Yes, with good eyesight", "Only in sunlight", "Only big atoms like gold"], "Atoms are about a ten-millionth of a millimetre across; even ordinary microscopes cannot show them."],
-        ["אפשר לראות אטום בודד בעין?", "לא, אטומים קטנים מדי", ["כן, עם ראייה טובה", "רק באור השמש", "רק אטומים גדולים כמו זהב"], "קוטר של אטום הוא בערך עשירית מיליונית של מילימטר; אפילו מיקרוסקופ רגיל לא מראה אותו."]],
+      [["Can you see a single atom with your eyes?", "No, atoms are far too small", ["Yes, with good eyesight", "Only in sunlight", "Only heavy atoms, such as lead"], "Atoms are about a ten-millionth of a millimetre across; even ordinary microscopes cannot show them."],
+        ["אפשר לראות אטום בודד בעין?", "לא, אטומים קטנים מדי", ["כן, עם ראייה טובה", "רק באור השמש", "רק אטומים כבדים, כמו עופרת"], "קוטר של אטום הוא בערך עשירית מיליונית של מילימטר; אפילו מיקרוסקופ רגיל לא מראה אותו."]],
       [["Which of these is an element?", "Gold", ["Table salt", "Water", "Carbon dioxide"], "Gold is made of only one kind of atom, so it is an element. Salt, water and carbon dioxide are compounds: each is made of atoms of different elements joined together."],
         ["איזה מהבאים הוא יסוד?", "זהב", ["מלח שולחן", "מים", "פחמן דו־חמצני"], "זהב בנוי מסוג אחד בלבד של אטומים, ולכן הוא יסוד. מלח, מים ופחמן דו־חמצני הם תרכובות: כל אחת בנויה מאטומים של יסודות שונים שקשורים זה לזה."]],
       [["Oxygen gas is written O₂. What is one molecule of it made of?", "Two oxygen atoms joined together", ["One oxygen atom and one hydrogen atom", "Two different elements", "One oxygen atom and one nitrogen atom"], "The small 2 means two atoms. A molecule can be made of atoms of the same element, as in O₂, or of different elements, as in water."],
@@ -33,8 +33,8 @@ const c: TopicContent = {
         ["מה קובע לאיזה יסוד שייך אטום?", "מספר הפרוטונים", ["מספר הנייטרונים", "מספר המולקולות", "הצבע שלו"], "מספר הפרוטונים (המספר האטומי) מגדיר את היסוד: לכל אטום פחמן יש 6 פרוטונים."]],
       [["A neutral atom has 8 protons. How many electrons does it have?", "8", ["16", "0", "4"], "In a neutral atom the negative electrons balance the positive protons: 8 and 8."],
         ["לאטום נייטרלי יש 8 פרוטונים. כמה אלקטרונים יש לו?", "8", ["16", "0", "4"], "באטום נייטרלי האלקטרונים השליליים מאזנים את הפרוטונים החיוביים: 8 מול 8."]],
-      [["Which two kinds of particle are found in the nucleus of an atom?", "Protons and neutrons", ["Protons and electrons", "Neutrons and electrons", "Electrons only"], "The nucleus holds the protons and the neutrons. The electrons are outside it, moving around the nucleus."],
-        ["אילו שני סוגי חלקיקים נמצאים בגרעין האטום?", "פרוטונים ונייטרונים", ["פרוטונים ואלקטרונים", "נייטרונים ואלקטרונים", "אלקטרונים בלבד"], "בגרעין נמצאים הפרוטונים והנייטרונים. האלקטרונים נמצאים מחוץ לו ונעים סביבו."]],
+      [["What keeps the electrons of an atom close to its nucleus?", "The pull between the negative electrons and the positive protons", ["Gravity, which pulls the electrons in towards the centre of the atom", "The neutrons, which push the electrons back towards the centre", "A thin, hard skin around the atom that the electrons cannot cross"], "Opposite charges attract, so the positive protons in the nucleus pull on the negative electrons. Gravity between such tiny particles is far too weak to matter, and neutrons have no charge at all."],
+        ["מה מחזיק את האלקטרונים של אטום קרוב לגרעין שלו?", "המשיכה בין האלקטרונים השליליים לפרוטונים החיוביים", ["כוח הכבידה, שמושך את האלקטרונים פנימה אל מרכז האטום", "הנייטרונים, שדוחפים את האלקטרונים בחזרה אל המרכז", "קליפה דקה וקשה סביב האטום, שהאלקטרונים לא יכולים לעבור"], "מטענים הפוכים נמשכים זה לזה, ולכן הפרוטונים החיוביים שבגרעין מושכים את האלקטרונים השליליים. כוח הכבידה בין חלקיקים זעירים כאלה חלש מכדי להשפיע, ולנייטרונים אין מטען בכלל."]],
       [["Which particle has by far the smallest mass?", "The electron", ["The proton", "The neutron", "All three have about the same mass"], "A proton or a neutron is about 1,800 times heavier than an electron, so almost all of an atom's mass is in its nucleus."],
         ["לאיזה חלקיק יש המסה הקטנה ביותר, בהפרש גדול?", "לאלקטרון", ["לפרוטון", "לנייטרון", "לשלושתם יש בערך אותה מסה"], "פרוטון או נייטרון כבדים בערך פי 1,800 מאלקטרון, ולכן כמעט כל המסה של אטום נמצאת בגרעין שלו."]],
       [["Which scientist discovered the electron in 1897?", "J. J. Thomson", ["Marie Curie", "Albert Einstein", "Dmitri Mendeleev"], "Thomson showed that atoms contain tiny negatively charged particles. Mendeleev arranged the elements in a table, Curie studied radioactivity and Einstein explained light and the relation of mass to energy."],
@@ -47,7 +47,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Isotope", "atoms of the same element with different numbers of neutrons", "איזוטופ", "אטומים של אותו יסוד עם מספר שונה של נייטרונים"],
+      ["Isotope", "atoms of the same element that differ in mass, such as carbon-12 and carbon-14", "איזוטופ", "אטומים של אותו יסוד שנבדלים זה מזה במסה, כמו פחמן־12 ופחמן־14"],
       ["Ion", "an atom that has gained or lost electrons and so carries a charge", "יון", "אטום שקיבל או איבד אלקטרונים ולכן יש לו מטען"],
       ["Mass number", "the total number of protons and neutrons in a nucleus", "מספר מסה", "סך הפרוטונים והנייטרונים בגרעין"],
       ["Electron shell", "an energy level around the nucleus where electrons are found", "קליפת אלקטרונים", "רמת אנרגיה סביב הגרעין שבה נמצאים אלקטרונים"],
@@ -67,8 +67,8 @@ const c: TopicContent = {
         ["איזה חלק של אטום משתתף כשאטומים מתחברים בתגובה כימית?", "האלקטרונים החיצוניים ביותר", ["הגרעין", "הנייטרונים", "כל הפרוטונים"], "בתגובה כימית אטומים מקבלים, מאבדים או חולקים את האלקטרונים החיצוניים שלהם. הגרעין נשאר ללא שינוי, ולכן תגובה כימית אף פעם לא הופכת יסוד אחד לאחר."]],
     ],
     n: [
-      [18, ["A sulfur atom has 16 protons. A sulfide ion, S²⁻, has gained 2 electrons. How many electrons does it have now?", "", "A neutral sulfur atom has 16 electrons, balancing its 16 protons. Gaining 2 more makes 18 electrons, and the charge is 2−."],
-        ["לאטום גופרית יש 16 פרוטונים. יון סולפיד, S²⁻, קיבל 2 אלקטרונים. כמה אלקטרונים יש לו עכשיו?", "", "לאטום גופרית נייטרלי יש 16 אלקטרונים, שמאזנים את 16 הפרוטונים שלו. קבלת 2 נוספים נותנת 18 אלקטרונים, והמטען הוא 2−."]],
+      [18, ["A sulfur atom has 16 protons. How many electrons does a sulfide ion, S²⁻, have?", "", "A neutral sulfur atom has 16 electrons, balancing its 16 protons. The charge 2− means 2 electrons more than protons, so the ion has 16 + 2 = 18 electrons."],
+        ["לאטום גופרית יש 16 פרוטונים. כמה אלקטרונים יש ליון סולפיד, S²⁻?", "", "לאטום גופרית נייטרלי יש 16 אלקטרונים, שמאזנים את 16 הפרוטונים שלו. המטען 2− פירושו 2 אלקטרונים יותר מפרוטונים, ולכן ליון יש 16 + 2 = 18 אלקטרונים."]],
     ],
   },
 };

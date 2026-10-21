@@ -3,8 +3,8 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Rainforest", "a thick, tall forest where it rains a great deal, usually warm all year and near the equator", "יער גשם", "יער סבוך וגבוה שיורד בו הרבה מאוד גשם, בדרך כלל חם כל השנה וקרוב לקו המשווה"],
-      ["Canopy", "the thick roof of leaves and branches formed by the crowns of most of the trees", "חופת היער", "הגג הצפוף של עלים וענפים שנוצר מצמרות רוב העצים"],
+      ["Rainforest", "a thick, tall forest where it rains a great deal, home to a huge variety of plants and animals", "יער גשם", "יער סבוך וגבוה שיורד בו הרבה מאוד גשם, ויש בו מגוון עצום של צמחים ובעלי חיים"],
+      ["Canopy", "the high layer of the forest formed by the crowns of most of the trees, where many animals live", "חופת היער", "הקומה הגבוהה של היער, שנוצרת מצמרות רוב העצים, ושבה חיים בעלי חיים רבים"],
       ["Forest floor", "the lowest layer of the forest: the ground, covered with fallen leaves", "רצפת היער", "הקומה הנמוכה ביותר של היער: האדמה, שמכוסה בעלים שנשרו"],
     ],
     q: [
@@ -16,15 +16,15 @@ const c: TopicContent = {
         ["למה גדלים מעט צמחים על רצפת יער הגשם?", "העלים למעלה חוסמים את רוב האור", ["קר מדי שם למטה, על האדמה הלחה", "על האדמה אף פעם לא יורד גשם", "בעלי חיים אוכלים כל זרע שנופל"], "העלים שלמעלה קולטים כמעט את כל אור השמש. רק מעט אור מגיע אל רצפת היער החשוכה, ולכן גדלים בה בעיקר צמחים שיכולים לחיות בצל עמוק."]],
       [["Which great ape lives in the wild only in the rainforests of Borneo and Sumatra?", "The orangutan", ["The gorilla", "The chimpanzee", "The polar bear"], "Orangutans spend most of their lives high in the trees of Borneo and Sumatra. Gorillas and chimpanzees live in the rainforests of Africa."],
         ["איזה קוף אדם חי בטבע רק ביערות הגשם של בורנאו וסומטרה?", "האורנגאוטן", ["הגורילה", "השימפנזה", "דוב הקוטב"], "אורנגאוטנים מבלים את רוב חייהם גבוה בעצים של בורנאו וסומטרה. גורילות ושימפנזות חיות ביערות הגשם של אפריקה."]],
-      [["Which of these foods comes from a tree that first grew in the Amazon rainforest?", "Chocolate, from cacao", ["Bread, made from wheat", "Olive oil, from olives", "Apples"], "Chocolate is made from the seeds of the cacao tree, which first grew wild in the Amazon region. Wheat, olives and apples come from other parts of the world."],
-        ["איזה מהמאכלים האלה בא מעץ שגדל לראשונה ביער הגשם של האמזונס?", "שוקולד, מקקאו", ["לחם, שעשוי מחיטה", "שמן זית, מזיתים", "תפוחים"], "שוקולד עשוי מהזרעים של עץ הקקאו, שגדל לראשונה בטבע באזור האמזונס. חיטה, זיתים ותפוחים באים מחלקים אחרים של העולם."]],
+      [["Which of these foods comes from a tree that first grew wild in the rainforests of South America?", "Chocolate, from cacao", ["Bread, made from wheat", "Olive oil, from olives", "Apples"], "Chocolate is made from the seeds of the cacao tree, which first grew wild in the Amazon region. Wheat, olives and apples come from other parts of the world."],
+        ["איזה מהמאכלים האלה בא מעץ שגדל לראשונה בטבע ביערות הגשם של דרום אמריקה?", "שוקולד, מקקאו", ["לחם, שעשוי מחיטה", "שמן זית, מזיתים", "תפוחים"], "שוקולד עשוי מהזרעים של עץ הקקאו, שגדל לראשונה בטבע באזור האמזונס. חיטה, זיתים ותפוחים באים מחלקים אחרים של העולם."]],
       [["Why are rainforests shrinking?", "People cut and burn them for farms, ranches and wood", ["The trees grow so tall that they all fall over in storms", "Monkeys eat the trees", "Too much rain washes them away"], "Large areas are cleared to graze cattle, to grow crops such as soy and oil palms, and to sell the wood. Every year a big area of rainforest disappears."],
         ["למה יערות הגשם הולכים ומצטמצמים?", "אנשים כורתים ושורפים אותם לחקלאות, למרעה ולעצים", ["העצים גדלים גבוה כל כך שבסוף כולם נופלים בסערות", "קופים אוכלים את העצים", "יותר מדי גשם שוטף אותם"], "שטחים גדולים מבוראים כדי לרעות בקר, לגדל גידולים כמו סויה ודקלי שמן ולמכור את העצים. בכל שנה נעלם שטח גדול של יער גשם."]],
     ],
     n: [[4, ["Many rainforests get about 2,000 mm of rain a year. Tel Aviv gets about 500 mm. How many times more rain is that?", "", "2,000 ÷ 500 = 4, so such a rainforest gets 4 times as much rain as Tel Aviv."],
       ["ביערות גשם רבים יורדים כ־2,000 מ״מ גשם בשנה. בתל אביב יורדים כ־500 מ״מ. פי כמה יותר גשם זה?", "", "2,000 ÷ 500 = 4, ולכן ביער גשם כזה יורד פי 4 יותר גשם מאשר בתל אביב."]]],
-    s: [[["The layers of a rainforest, from the top down", "The emergent layer: a few giant trees that stick out above the rest", "The canopy: the thick roof of treetops", "The understory: young trees and bushes in the shade", "The forest floor: dark ground covered with fallen leaves"],
-      ["הקומות של יער הגשם, מלמעלה למטה", "הקומה הבולטת: כמה עצים ענקיים שבולטים מעל כל השאר", "החופה: הגג הצפוף של צמרות העצים", "תת־החופה: עצים צעירים ושיחים בצל", "רצפת היער: אדמה חשוכה שמכוסה בעלים שנשרו"]]],
+    s: [[["The layers of a rainforest, from the top down", "The emergent layer: a few giant trees that stick out above the rest", "The canopy: the crowns of most of the trees", "The understory: young trees and bushes in the shade", "The forest floor: the ground under all the other layers"],
+      ["הקומות של יער הגשם, מלמעלה למטה", "הקומה הבולטת: כמה עצים ענקיים שבולטים מעל כל השאר", "החופה: הצמרות של רוב העצים", "תת־החופה: עצים צעירים ושיחים בצל", "רצפת היער: האדמה שמתחת לכל הקומות האחרות"]]],
   },
   i: {
     t: [
@@ -54,7 +54,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["Biodiversity", "the variety of all the different kinds of life in one place", "מגוון ביולוגי", "השונות של כל סוגי החיים השונים במקום אחד"],
-      ["Carbon sink", "a forest, ocean or soil that takes in more carbon dioxide from the air than it gives out", "בולע פחמן", "יער, אוקיינוס או קרקע שקולטים מהאוויר יותר פחמן דו־חמצני ממה שהם פולטים"],
+      ["Endemic species", "a kind of plant or animal that lives naturally in only one region of the world", "מין אנדמי", "סוג של צמח או בעל חיים שחי בטבע רק באזור אחד בעולם"],
       ["Indigenous peoples", "the first peoples of a land, such as the many nations that have lived in the Amazon for thousands of years", "עמים ילידים", "העמים הראשונים של ארץ מסוימת, כמו העמים הרבים שחיים באמזונס כבר אלפי שנים"],
     ],
     q: [
@@ -73,8 +73,8 @@ const c: TopicContent = {
     ],
     n: [[3.3, ["The Amazon rainforest covers about 5.5 million km², and about 60% of it is in Brazil. About how many million km² of it are in Brazil?", "million km²", "60% of 5.5 is 5.5 × 0.6 = 3.3, so about 3.3 million km² of the forest lie in Brazil."],
       ["יער הגשם של האמזונס משתרע על כ־5.5 מיליון קמ״ר, וכ־60% ממנו נמצאים בברזיל. כמה מיליוני קמ״ר ממנו נמצאים בערך בברזיל?", "מיליון קמ״ר", "60% מ־5.5 הם 5.5 × 0.6 = 3.3, ולכן כ־3.3 מיליון קמ״ר מהיער נמצאים בברזיל."], 0.1]],
-    s: [[["Slash-and-burn farming, in order", "Farmers cut down the trees on a patch of forest", "They burn the cut plants, and the ash feeds the soil", "They grow crops there for a few years", "The soil wears out and the harvests get smaller", "They move on and clear a new patch"],
-      ["חקלאות של כריתה ושריפה, לפי הסדר", "חקלאים כורתים את העצים בחלקת יער", "הם שורפים את הצמחים הכרותים, והאפר מזין את הקרקע", "הם מגדלים שם יבולים במשך כמה שנים", "הקרקע מתדלדלת והיבולים קטנים", "הם עוברים הלאה וכורתים חלקה חדשה"]]],
+    s: [[["Slash-and-burn farming, in order", "Farmers cut down the trees on a patch of forest", "They burn the cut plants on the ground", "They plant crops among the ashes", "After a few years the harvests get smaller", "They move on and clear a new patch"],
+      ["חקלאות של כריתה ושריפה, לפי הסדר", "חקלאים כורתים את העצים בחלקת יער", "הם שורפים את הצמחים הכרותים על הקרקע", "הם זורעים יבולים בין האפר", "אחרי כמה שנים היבולים קטנים", "הם עוברים הלאה וכורתים חלקה חדשה"]]],
   },
 };
 export default c;

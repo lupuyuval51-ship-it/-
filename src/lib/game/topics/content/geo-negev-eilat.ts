@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Negev", "the big desert in southern Israel, which covers more than half of the country", "נגב", "המדבר הגדול שבדרום ישראל, שמשתרע על יותר ממחצית שטח המדינה"],
-      ["Desert", "a place that gets very little rain, so only a few plants can grow there", "מדבר", "אזור שיורד בו מעט מאוד גשם, ולכן גדלים בו רק מעט צמחים"],
-      ["Coral reef", "an underwater ridge built over many years by tiny sea animals with stony skeletons", "שונית אלמוגים", "רכס תת־ימי שנבנה במשך שנים רבות בידי בעלי חיים ימיים זעירים בעלי שלד אבני"],
+      ["Negev", "the big desert in southern Israel, shaped roughly like a triangle with its tip at Eilat", "נגב", "המדבר הגדול שבדרום ישראל, שצורתו בערך משולש שקודקודו באילת"],
+      ["Canyon", "a deep, narrow valley with steep rock walls that a stream cut over a very long time", "קניון", "עמק עמוק וצר עם קירות סלע תלולים, שנחל חצב במשך זמן רב מאוד"],
+      ["Coral reef", "a colourful underwater ridge near the coast where many fish find food and shelter", "שונית אלמוגים", "רכס תת־ימי צבעוני ליד החוף, שבו דגים רבים מוצאים מזון ומחסה"],
       ["Oasis", "a green spot in a dry land where there is water from a spring or a well", "נווה מדבר", "מקום ירוק בארץ יבשה, שיש בו מים ממעיין או מבאר"],
     ],
     q: [
@@ -29,9 +29,9 @@ const c: TopicContent = {
   i: {
     t: [
       ["Makhtesh", "a deep valley with steep walls all around and one outlet, carved when soft rock wore away under a hard top layer", "מכתש", "עמק עמוק שמוקף קירות תלולים ויש לו מוצא אחד, ושנוצר כשסלע רך נסחף מתחת לשכבה עליונה קשה"],
-      ["Incense Route", "an ancient trade road on which camel caravans carried incense and spices from Arabia to the Mediterranean", "דרך הבשמים", "דרך מסחר עתיקה שבה הובילו שיירות גמלים לבונה ותבלינים מחצי האי ערב אל הים התיכון"],
+      ["Incense Route", "an ancient trade road on which camel caravans crossed the Negev from Arabia to the port of Gaza", "דרך הבשמים", "דרך מסחר עתיקה שבה עברו שיירות גמלים בנגב מחצי האי ערב אל נמל עזה"],
       ["Nabataeans", "an ancient Arab people of traders who built desert towns such as Avdat and Mamshit", "הנבטים", "עם ערבי קדום של סוחרים, שבנה ערי מדבר כמו עבדת וממשית"],
-      ["Flash flood", "a sudden rush of water down a dry streambed after heavy rain, sometimes rain that fell far away", "שיטפון", "זרם מים פתאומי בערוץ נחל יבש אחרי גשם חזק, לפעמים גשם שירד רחוק מאוד"],
+      ["Flash flood", "a sudden, powerful rush of water down a dry streambed during or after heavy rain", "שיטפון", "זרם מים פתאומי וחזק בערוץ נחל יבש, בזמן גשם חזק או אחריו"],
     ],
     q: [
       [["Which is the largest makhtesh in the Negev?", "Makhtesh Ramon", ["HaMakhtesh HaGadol", "HaMakhtesh HaKatan", "The Timna Valley"], "Despite its name, HaMakhtesh HaGadol (the Big Makhtesh) is smaller than Makhtesh Ramon, which is about 40 kilometres long. The Timna Valley, in the far south, is much smaller still."],
@@ -46,7 +46,7 @@ const c: TopicContent = {
         ["אילו ערים שכנות שוכנות ממש ליד אילת, לחוף המפרץ?", "עקבה שבירדן וטאבה שבמצרים", ["פטרה שבירדן וקהיר שבמצרים", "עמאן שבירדן וסואץ שבמצרים", "עזה ואשקלון"], "החוף הקצר של אילת נמצא בין עקבה שבירדן, ממזרח, לבין טאבה שבמצרים, ממש מדרום־מערב. פטרה, עמאן וקהיר רחוקות מהחוף."]],
     ],
     n: [
-      [40, ["About how many kilometres long is Makhtesh Ramon?", "km", "Makhtesh Ramon is about 40 kilometres long, between 2 and 10 kilometres wide and about 500 metres deep."], ["בערך כמה קילומטרים אורכו של מכתש רמון?", "ק״מ", "אורכו של מכתש רמון כ־40 קילומטר, רוחבו בין 2 ל־10 קילומטרים ועומקו כ־500 מטר."], 3],
+      [240, ["Suppose a flash flood rushes down a dry streambed at 4 metres every second. How many metres does the water travel in one minute?", "metres", "A minute has 60 seconds, so the water travels 60 × 4 = 240 metres, far faster than anyone can walk out of a narrow canyon."], ["נניח ששיטפון שועט בערוץ נחל יבש במהירות של 4 מטרים בכל שנייה. כמה מטרים עוברים המים בדקה אחת?", "מטר", "בדקה יש 60 שניות, ולכן המים עוברים 60 × 4 = 240 מטר, מהר הרבה יותר ממה שאפשר ללכת ולצאת מקניון צר."]],
       [1949, ["In which year did Israeli soldiers reach Umm Rashrash, where Eilat later grew, and raise the Ink Flag?", "", "In March 1949, near the end of the War of Independence, soldiers reached Umm Rashrash and raised a hand-drawn flag, the Ink Flag. The city of Eilat grew there."], ["באיזו שנה הגיעו חיילי צה״ל לאום רשרש, שבה צמחה אחר כך אילת, והניפו את ״דגל הדיו״?", "", "במרץ 1949, לקראת סוף מלחמת העצמאות, הגיעו חיילים לאום רשרש והניפו דגל מצויר ביד, ״דגל הדיו״. במקום הזה צמחה העיר אילת."]],
     ],
   },
@@ -55,11 +55,11 @@ const c: TopicContent = {
       ["Erosion", "the wearing away and carrying off of rock and soil by water and wind", "סחיפה", "שחיקה והובלה של סלע וקרקע בידי מים ורוח"],
       ["Symbiosis", "two kinds of living things living closely together for a long time, often in a way that helps both, like corals and the algae inside them", "סימביוזה", "חיים משותפים וצמודים לאורך זמן של שני סוגים של יצורים חיים, לעיתים קרובות באופן שמועיל לשניהם, כמו אלמוגים והאצות שבתוכם"],
       ["Coral bleaching", "corals losing the colourful algae inside them when the water gets too warm, which can starve them", "הלבנת אלמוגים", "מצב שבו האלמוגים מאבדים את האצות הצבעוניות שבתוכם כשהמים מתחממים מדי, מה שעלול להרעיב אותם"],
-      ["Runoff farming", "growing crops in a desert by leading rainwater that flows off the slopes into small walled fields", "חקלאות נגר", "גידול יבולים במדבר בעזרת הובלת מי גשם שזורמים במורד המדרונות אל חלקות קטנות מוקפות בסוללות"],
+      ["Fossil", "the remains or the print of a living thing from long ago, preserved in rock", "מאובן", "שרידים או טביעה של יצור חי מלפני זמן רב, שנשמרו בסלע"],
     ],
     q: [
-      [["Makhtesh Ramon is not a meteorite crater. How did it form?", "Water wore away soft rock that lay beneath a harder top layer", ["A meteorite struck the ground and blasted a deep hole into it", "A volcano erupted, and its top later collapsed inward", "The ground sank into a huge underground salt cave"], "Once streams cut through the hard limestone cap of a long ridge, the soft sandstone below washed away quickly through a single outlet, leaving a valley with steep walls. No impact or volcano dug it."],
-        ["מכתש רמון אינו מכתש של מטאוריט. איך הוא נוצר?", "מים סחפו סלע רך שהיה מתחת לשכבה עליונה קשה יותר", ["מטאוריט ענק פגע בקרקע ופער בה בור עמוק ורחב מאוד", "הר געש התפרץ, ופסגתו קרסה פנימה מאוחר יותר", "הקרקע שקעה לתוך מערת מלח תת־קרקעית ענקית"], "אחרי שנחלים חתכו את כיפת הגיר הקשה של רכס ארוך, אבן החול הרכה שמתחתיה נסחפה מהר דרך מוצא יחיד, ונשאר עמק עם קירות תלולים. שום פגיעה או הר געש לא חפרו אותו."]],
+      [["Fossils of ammonites, sea animals with coiled shells, are found in the rock walls of Makhtesh Ramon, in the middle of the desert. What do they show?", "A shallow sea covered the area long ago, before it became desert", ["Traders on the ancient Incense Route dropped the shells there", "Birds carried the shells from the Red Sea and left them in the cliffs", "Ammonites were desert snails that lived in the sand"], "Ammonites lived only in the sea. Their fossils in the walls of the makhtesh show that a sea covered the Negev many millions of years ago, and its mud and shells slowly hardened into rock."],
+        ["מאובנים של אמוניטים, בעלי חיים ימיים עם קונכייה מסולסלת, נמצאים בקירות הסלע של מכתש רמון, באמצע המדבר. מה הם מראים?", "ים רדוד כיסה את האזור לפני זמן רב, לפני שהיה למדבר", ["סוחרים בדרך הבשמים העתיקה השאירו שם את הקונכיות", "ציפורים הביאו את הקונכיות מים סוף והשאירו אותן בצוקים", "אמוניטים היו חלזונות מדבר שחיו בחול"], "אמוניטים חיו רק בים. המאובנים שלהם בקירות המכתש מראים שים כיסה את הנגב לפני מיליוני שנים רבים, והבוץ והקונכיות שלו התקשו לאט והפכו לסלע."]],
       [["How could the Nabataeans build towns such as Avdat in the desert?", "They stored rare rainwater in cisterns and led runoff to fields", ["The Negev had a wet, tropical climate with big rivers in their time", "They brought water through long pipes from the Nile", "They desalinated water taken from the Red Sea"], "The Nabataeans were masters of water: they dug cisterns, built dams and terraces, and guided the water that ran off the slopes in winter storms to their fields."],
         ["איך יכלו הנבטים לבנות במדבר ערים כמו עבדת?", "הם אגרו את מי הגשם הנדירים בבורות והובילו נגר אל השדות", ["בנגב היה בימיהם אקלים טרופי ולח עם נהרות גדולים שזרמו כל השנה", "הם הביאו מים בצינורות ארוכים מהנילוס", "הם התפילו מים שלקחו מים סוף"], "הנבטים היו מומחים למים: הם חצבו בורות מים, בנו סכרים וטרסות, והובילו אל השדות את המים שזרמו במורד המדרונות בסופות החורף."]],
       [["The water of the Gulf of Eilat is unusually clear, which helps its corals. Why?", "Almost no rivers carry mud into it, as the land around is desert", ["Its water is fresh rather than salty, so it does not get cloudy at all", "The corals filter out every grain of sand from the whole gulf", "Strong winter storms wash the dirty water out into the ocean"], "Around the gulf there is desert with almost no rivers, so very little mud and few nutrients reach the sea. Clear water lets sunlight reach the algae living inside the corals. The Red Sea is in fact very salty."],
@@ -70,7 +70,7 @@ const c: TopicContent = {
         ["למה צפון הנגב, סביב באר שבע, ירוק יותר מהדרום הרחוק שליד אילת?", "כמות הגשם פוחתת מצפון לדרום, ולכן בצפון יורד יותר", ["הדרום הרחוק גבוה יותר בהרים, ושם קר מדי בשביל רוב הצמחים", "רוחות מים סוף מייבשות את צפון הנגב", "האדמה ליד אילת קפואה רוב החורף"], "ענני הגשם של החורף מגיעים בעיקר מהים התיכון שבצפון־מערב, ולכן לדרום נשאר פחות ופחות גשם. בבאר שבע יורד גשם פי כמה מאשר באילת."]],
     ],
     n: [
-      [8, ["Suppose Eilat gets about 25 mm of rain a year and Be'er Sheva about 200 mm. How many times more rain falls in Be'er Sheva?", "", "Divide the two amounts: 200 ÷ 25 = 8, so Be'er Sheva gets about 8 times more rain than Eilat."], ["נניח שבאילת יורדים כ־25 מ״מ גשם בשנה ובבאר שבע כ־200 מ״מ. פי כמה יותר גשם יורד בבאר שבע?", "", "מחלקים את הכמויות: 200 ÷ 25 = 8, ולכן בבאר שבע יורד גשם פי 8 בערך מאשר באילת."]],
+      [8, ["Makhtesh Ramon is about 40 km long. A hiker walks about 5 km an hour. How many hours of walking would it take to cross its whole length?", "hours", "40 ÷ 5 = 8, so crossing the makhtesh from end to end would take about 8 hours of walking, a full day in the desert."], ["אורכו של מכתש רמון כ־40 ק״מ. מטייל הולך כ־5 ק״מ בשעה. כמה שעות הליכה יידרשו לו כדי לעבור את כל אורכו?", "שעות", "40 ÷ 5 = 8, ולכן מעבר המכתש מקצה לקצה יימשך כ־8 שעות הליכה, יום שלם במדבר."]],
       [1037, ["Mount Ramon is the highest peak in the Negev. About how many metres above sea level is it?", "metres", "Mount Ramon, near the western end of Makhtesh Ramon, rises to about 1037 metres above sea level, the highest point in the Negev."], ["הר רמון הוא הפסגה הגבוהה ביותר בנגב. בערך כמה מטרים מעל פני הים הוא מתנשא?", "מטר", "הר רמון, ליד הקצה המערבי של מכתש רמון, מתנשא לכ־1037 מטר מעל פני הים, והוא הנקודה הגבוהה ביותר בנגב."], 20],
     ],
     s: [[["How a makhtesh forms", "Over millions of years, layers of rock build up: soft sandstone below and hard limestone on top", "The layers are pushed up into a long ridge", "Streams cut a gap through the hard top layer", "Water washes the soft sandstone out through that single gap", "The steep walls crumble back, leaving a wide valley with one narrow outlet"],

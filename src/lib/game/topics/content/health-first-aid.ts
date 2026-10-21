@@ -4,9 +4,9 @@ const c: TopicContent = {
   b: {
     t: [
       ["First aid", "the first help given to someone who is hurt or ill, until professionals arrive", "עזרה ראשונה", "הטיפול הראשון שנותנים למי שנפצע או חלה, עד שמגיעים אנשי מקצוע"],
-      ["Emergency number", "the phone number for urgent help; in Israel 101 is Magen David Adom", "מספר חירום", "מספר הטלפון לעזרה דחופה; בישראל 101 הוא מגן דוד אדום"],
+      ["Emergency number", "a short phone number you call for urgent help, such as an ambulance, the police or firefighters", "מספר חירום", "מספר טלפון קצר שמתקשרים אליו כדי לקבל עזרה דחופה, כמו אמבולנס, משטרה או כבאים"],
       ["Plaster", "a small sticky bandage for a minor cut", "פלסטר", "תחבושת דביקה קטנה לחתך קל"],
-      ["Trusted adult", "a grown-up you can call for help, like a parent, teacher or lifeguard", "מבוגר אחראי", "אדם מבוגר שאפשר לקרוא לו לעזרה, כמו הורה, מורה או מציל"],
+      ["Ambulance", "a vehicle with a trained medical crew that comes fast to help and takes the hurt or ill to hospital", "אמבולנס", "רכב עם צוות רפואי מיומן שמגיע מהר לעזור ומביא פצועים וחולים לבית החולים"],
     ],
     q: [
       [["Which number do you call in Israel for an ambulance (Magen David Adom)?", "101", ["100", "102", "911"], "101 is MDA; 100 is the police and 102 the fire service."],
@@ -16,13 +16,13 @@ const c: TopicContent = {
       [["Someone at the playground is badly hurt. Who should you tell straight away?", "A trusted adult nearby, such as a teacher or a lifeguard", ["Nobody, because the person might get into trouble for falling", "Only the other children, so that they can come and watch", "Your family, when you get home in the evening"], "When someone is badly hurt, tell a trusted adult straight away or call 101. Getting help quickly matters more than anything else."],
         ["מישהו נפגע קשה בגן השעשועים. למי צריך לספר מיד?", "למבוגר אחראי שנמצא קרוב, כמו מורה או מציל", ["לאף אחד, כי מי שנפל עלול להסתבך בגלל הנפילה", "רק לילדים האחרים, כדי שיבואו להסתכל", "למשפחה, כשמגיעים הביתה בערב"], "כשמישהו נפגע קשה, מספרים מיד למבוגר אחראי או מתקשרים ל־101. לקבל עזרה מהר זה הדבר החשוב ביותר."]],
     ],
-    s: [[["What to do when you find someone hurt, in order", "Check that it is safe for you to go closer", "Check whether the person answers when you talk to them", "Call 101 or shout for an adult to help", "Stay with them and help until the ambulance arrives"],
-      ["מה עושים כשמוצאים מישהו פצוע, לפי הסדר", "בודקים שבטוח לכם להתקרב", "בודקים אם האדם עונה כשמדברים אליו", "מתקשרים ל־101 או קוראים בקול למבוגר שיעזור", "נשארים לידו ועוזרים עד שהאמבולנס מגיע"]]],
+    s: [[["What to do when you find someone hurt, in order", "Check that it is safe for you to go closer", "Check whether the person answers when you talk to them", "Get help fast: call for an ambulance or send someone to fetch help", "Stay with them and help until the ambulance arrives"],
+      ["מה עושים כשמוצאים מישהו פצוע, לפי הסדר", "בודקים שבטוח לכם להתקרב", "בודקים אם האדם עונה כשמדברים אליו", "מזעיקים עזרה מהר: מתקשרים לאמבולנס או שולחים מישהו לקרוא לעזרה", "נשארים לידו ועוזרים עד שהאמבולנס מגיע"]]],
   },
   i: {
     t: [
       ["Pressure on a wound", "pressing firmly on a bleeding cut with a clean cloth to slow the bleeding", "לחץ על פצע", "לחיצה חזקה על חתך שמדמם בעזרת בד נקי כדי להאט את הדימום"],
-      ["Cooling a burn", "holding a burn under cool running water for about 20 minutes", "קירור כווייה", "החזקת כווייה מתחת למים זורמים קרירים כ־20 דקות"],
+      ["Blister", "a small bubble of fluid that forms under the skin after a burn or a lot of rubbing", "שלפוחית", "בועה קטנה של נוזל שנוצרת מתחת לעור אחרי כווייה או אחרי שפשוף רב"],
       ["Recovery position", "lying an unconscious person who is breathing on their side to keep the airway open", "תנוחת התאוששות", "השכבה על הצד של אדם מחוסר הכרה שנושם, כדי לשמור על נתיב האוויר פתוח"],
       ["First aid kit", "a box of supplies such as bandages, gauze and gloves", "ערכת עזרה ראשונה", "קופסה עם ציוד כמו תחבושות, גזה וכפפות"],
     ],
@@ -40,7 +40,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["CPR", "chest compressions (and rescue breaths) given when someone is not breathing normally", "החייאה", "לחיצות חזה (והנשמות) שנותנים כשאדם לא נושם כרגיל"],
-      ["Defibrillator (AED)", "a device that gives an electric shock to restart a normal heart rhythm, with spoken instructions", "דפיברילטור", "מכשיר שנותן מכת חשמל כדי להחזיר קצב לב תקין, ונותן הוראות קוליות"],
+      ["Defibrillator (AED)", "a portable device that gives an electric shock to the chest to stop a dangerous heart rhythm, so that a normal one can return", "דפיברילטור", "מכשיר נייד שנותן מכת חשמל לחזה כדי לעצור קצב לב מסוכן, כך שקצב תקין יוכל לחזור"],
       ["Choking", "something blocking the airway so the person cannot breathe or speak", "חנק", "משהו שחוסם את נתיב האוויר, כך שהאדם לא יכול לנשום או לדבר"],
       ["Chain of survival", "the linked steps that save lives: call for help, early CPR, early defibrillation and advanced care", "שרשרת ההישרדות", "הצעדים המקושרים שמצילים חיים: קריאה לעזרה, החייאה מוקדמת, דפיברילציה מוקדמת וטיפול מתקדם"],
     ],

@@ -31,12 +31,12 @@ const c: TopicContent = {
   i: {
     t: [
       ["Backdrop", "a picture that fills the whole stage behind all the sprites", "רקע", "תמונה שממלאת את כל הבמה מאחורי כל הדמויות"],
-      ["x position", "how far left or right a sprite is; 0 is the middle, and bigger numbers are further right", "מיקום x", "כמה ימינה או שמאלה נמצאת דמות; 0 הוא האמצע, ומספרים גדולים יותר הם ימינה יותר"],
-      ["y position", "how far up or down a sprite is; 0 is the middle, and bigger numbers are higher up", "מיקום y", "כמה למעלה או למטה נמצאת דמות; 0 הוא האמצע, ומספרים גדולים יותר הם גבוה יותר"],
+      ["x position", "the number that says how far left or right a sprite is on the stage", "מיקום x", "המספר שאומר כמה ימינה או שמאלה נמצאת דמות על הבמה"],
+      ["y position", "the number that says how far up or down a sprite is on the stage", "מיקום y", "המספר שאומר כמה למעלה או למטה נמצאת דמות על הבמה"],
     ],
     q: [
-      [["What are the x and y of the exact middle of the stage?", "x: 0, y: 0", ["x: 240, y: 180", "x: 100, y: 100", "x: 480, y: 360"], "The middle of the stage is the point (0, 0). x goes from -240 on the left to 240 on the right, and y from -180 at the bottom to 180 at the top."],
-        ["מהם x ו־y של הנקודה שנמצאת בדיוק באמצע הבמה?", "x: 0, y: 0", ["x: 240, y: 180", "x: 100, y: 100", "x: 480, y: 360"], "אמצע הבמה הוא הנקודה (0, 0). ציר x עובר ממינוס 240 בצד שמאל עד 240 בצד ימין, וציר y ממינוס 180 למטה עד 180 למעלה."]],
+      [["What are the x and y of the exact middle of the stage?", "x: 0, y: 0", ["x: 0, y: 180", "x: 240, y: 180", "x: 480, y: 360"], "The middle of the stage is the point (0, 0). x goes from -240 on the left to 240 on the right, and y from -180 at the bottom to 180 at the top."],
+        ["מהם x ו־y של הנקודה שנמצאת בדיוק באמצע הבמה?", "x: 0, y: 0", ["x: 0, y: 180", "x: 240, y: 180", "x: 480, y: 360"], "אמצע הבמה הוא הנקודה (0, 0). ציר x עובר ממינוס 240 בצד שמאל עד 240 בצד ימין, וציר y ממינוס 180 למטה עד 180 למעלה."]],
       [["A sprite runs  change y by 10 . Which way does it move?", "Up, by 10 steps", ["Down, by 10 steps", "Right, by 10 steps", "Nowhere; it grows bigger"], "y is the up-and-down position, and adding to y moves a sprite higher. A negative number, such as change y by -10, would move it down."],
         ["דמות מריצה ״שנה את ערך y ב־10״. לאן היא זזה?", "למעלה, 10 צעדים", ["למטה, 10 צעדים", "ימינה, 10 צעדים", "לשום מקום; היא גדלה"], "y הוא המיקום למעלה ולמטה, והוספה ל־y מזיזה את הדמות גבוה יותר. מספר שלילי, כמו שינוי של y במינוס 10, היה מזיז אותה למטה."]],
       [["Which block changes a sprite to its next look?", "next costume", ["next backdrop", "change size by 10", "show"], "next costume switches the sprite to the following costume in its list. next backdrop changes the picture of the stage instead."],
@@ -59,8 +59,8 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Broadcast", "sending a message that other sprites or the stage can react to with a matching hat block", "שידור מסר", "שליחת הודעה שדמויות אחרות או הבמה יכולות להגיב לה בלבנת ״כאשר מתקבל מסר״"],
-      ["Clone", "a copy of a sprite made while the project runs, which can run scripts of its own", "כפיל (clone)", "עותק של דמות שנוצר בזמן שהפרויקט רץ, ויכול להריץ תסריטים משלו"],
+      ["Broadcast", "sending a message that other sprites or the stage can react to with a matching hat block", "שידור מסר", "שליחת הודעה שדמויות אחרות או הבמה יכולות להגיב לה בלבנת כובע מתאימה"],
+      ["Clone", "a copy of a sprite that a script makes, which can run scripts of its own", "כפיל (clone)", "עותק של דמות שתסריט יוצר, ויכול להריץ תסריטים משלו"],
       ["Hat block", "a block with a rounded top that starts a script when its event happens", "לבנת כובע", "לבנה עם חלק עליון מעוגל, שמתחילה תסריט כשהאירוע שלה קורה"],
     ],
     q: [
@@ -68,8 +68,8 @@ const c: TopicContent = {
         ["דמות החתול מריצה ״שדר מסר התחלה״. איזו לבנה מאפשרת לדמות הכלב להגיב?", "״כאשר מתקבל מסר התחלה״", ["״שדר מסר התחלה וחכה״", "״כאשר לוחצים על דמות זו״", "״כאשר לוחצים על הדגל הירוק״"], "שומעים מסר בעזרת לבנת ״כאשר מתקבל מסר״ עם אותו שם של מסר. ״שדר מסר וחכה״ גם היא שולחת מסר, ולא מקבלת אותו."]],
       [["A variable is made  For all sprites . Who can use it?", "Every sprite and the stage", ["Only the sprite that made it", "Only the stage", "Only the clones of that sprite"], "For all sprites makes a global variable that every sprite, and the stage, can read and change. For this sprite only would limit it to one sprite."],
         ["משתנה נוצר עם האפשרות ״לכל הדמויות״. מי יכול להשתמש בו?", "כל הדמויות וגם הבמה", ["רק הדמות שיצרה אותו", "רק הבמה", "רק הכפילים של אותה דמות"], "״לכל הדמויות״ יוצרת משתנה כללי שכל דמות, וגם הבמה, יכולות לקרוא ולשנות. ״רק לדמות זו״ הייתה מגבילה אותו לדמות אחת."]],
-      [["Which block makes a copy of a sprite while the project is running?", "create clone of myself", ["the right-click Duplicate option", "next costume", "show"], "create clone of myself makes a clone during the run, and clones disappear when the project stops. Duplicate in the right-click menu copies a sprite while you build, not while the project runs."],
-        ["איזו לבנה יוצרת עותק של דמות בזמן שהפרויקט רץ?", "״יצירת כפיל של עצמי״", ["האפשרות ״שכפול״ בתפריט של הלחצן הימני", "״התלבושת הבאה״", "״הצג״"], "״יצירת כפיל של עצמי״ יוצרת כפיל בזמן הריצה, והכפילים נעלמים כשעוצרים את הפרויקט. האפשרות ״שכפול״ בתפריט של הלחצן הימני מעתיקה דמות בזמן הבנייה, ולא בזמן שהפרויקט רץ."]],
+      [["While a project runs, a sprite makes 5 clones of itself. What happens to them when the stop sign is clicked?", "They are deleted, and only the original sprite is left", ["They are saved and come back at the next click on the green flag", "They are added to the sprite list as 5 new sprites", "They stop moving, but stay on the stage until you delete them"], "Clones exist only while the project runs: the stop sign deletes every clone at once. A copy made with Duplicate in the right-click menu, by contrast, is a real new sprite that stays in the project."],
+        ["בזמן שפרויקט רץ, דמות יוצרת 5 כפילים של עצמה. מה קורה להם כשלוחצים על תמרור העצירה?", "הם נמחקים, ונשארת רק הדמות המקורית", ["הם נשמרים וחוזרים בלחיצה הבאה על הדגל הירוק", "הם נוספים לרשימת הדמויות כ־5 דמויות חדשות", "הם מפסיקים לזוז, אבל נשארים על הבמה עד שמוחקים אותם"], "כפילים קיימים רק בזמן שהפרויקט רץ: תמרור העצירה מוחק את כל הכפילים בבת אחת. עותק שנוצר באפשרות ״שכפול״ בתפריט של הלחצן הימני, לעומת זאת, הוא דמות חדשה של ממש שנשארת בפרויקט."]],
       [["In the Pen extension, which block must run before a moving sprite leaves a line behind it?", "pen down", ["pen up", "erase all", "stamp"], "pen down makes the sprite draw wherever it moves, and pen up stops the drawing. stamp prints one picture of the sprite and draws no line."],
         ["בהרחבת העט, איזו לבנה צריכה לרוץ לפני שדמות שזזה משאירה אחריה קו?", "״עט מטה״", ["״עט מעלה״", "״מחק הכול״", "״חתום״"], "״עט מטה״ גורמת לדמות לצייר בכל מקום שהיא זזה, ו״עט מעלה״ מפסיקה את הציור. ״חתום״ מדפיסה תמונה אחת של הדמות ולא מציירת קו."]],
       [["Why put  if touching edge  inside a  forever  loop instead of using it once?", "Alone it checks once; inside forever it checks all the time", ["Alone it checks only when the green flag is clicked a second time", "forever makes the check run faster, but still only once", "if blocks are not allowed outside a forever loop"], "An if block tests its condition only at the moment it runs. Inside forever it runs again and again, so the sprite also reacts when it reaches the edge later on."],
@@ -82,8 +82,8 @@ const c: TopicContent = {
         ["דמות שפונה לכיוון 90 נמצאת ב־x שווה מינוס 100. כמה לבנים של ״זוז 10 צעדים״ היא צריכה כדי להגיע ל־x שווה 100?", "", "ממינוס 100 עד 100 יש 200 צעדים, וכל לבנה מזיזה 10, ולכן צריך 200 ÷ 10 = 20 לבנים."]],
     ],
     s: [
-      [["What happens after the cat runs  broadcast start and wait", "The message start is sent to every sprite and the stage", "Every script that begins with  when I receive start  starts to run", "The cat waits while those scripts run", "When they have all finished, the cat runs its next block"],
-        ["מה קורה אחרי שהחתול מריץ ״שדר מסר התחלה וחכה״", "המסר ״התחלה״ נשלח לכל הדמויות ולבמה", "כל תסריט שמתחיל ב״כאשר מתקבל מסר התחלה״ מתחיל לרוץ", "החתול מחכה בזמן שהתסריטים האלה רצים", "כשכולם מסתיימים, החתול מריץ את הלבנה הבאה שלו"]],
+      [["What happens after the cat runs  broadcast start and wait", "The message start goes out to the whole project at once", "Every script that is waiting for that message starts to run", "The cat waits while those scripts run", "When they have all finished, the cat runs its next block"],
+        ["מה קורה אחרי שהחתול מריץ ״שדר מסר התחלה וחכה״", "המסר ״התחלה״ יוצא לכל הפרויקט בבת אחת", "כל תסריט שמחכה למסר הזה מתחיל לרוץ", "החתול מחכה בזמן שהתסריטים האלה רצים", "כשכולם מסתיימים, החתול מריץ את הלבנה הבאה שלו"]],
     ],
   },
 };

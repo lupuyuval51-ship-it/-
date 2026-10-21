@@ -8,10 +8,10 @@ const c: TopicContent = {
       ["Royal Road", "a long route the Persians kept up from Sardis to Susa, with stations for the king's messengers", "דרך המלך", "נתיב ארוך שהפרסים תחזקו מסרדיס עד שושן, עם תחנות לשליחים של השליט"],
     ],
     q: [
-      [["Who founded the Persian Empire around 550 BCE?", "Cyrus the Great", ["Darius I", "Alexander the Great", "Julius Caesar"], "Cyrus the Great united the Persians and the Medes and went on to conquer Lydia and Babylon, building the largest empire the world had yet seen."],
-        ["מי ייסד את האימפריה הפרסית בסביבות 550 לפני הספירה?", "כורש הגדול", ["דריווש הראשון", "אלכסנדר מוקדון", "יוליוס קיסר"], "כורש הגדול איחד את הפרסים ואת המדים, ואחר כך כבש את לידיה ואת בבל ובנה את האימפריה הגדולה ביותר שהעולם הכיר עד אז."]],
-      [["After Cyrus conquered Babylon in 539 BCE, what did he allow the exiled Jews to do?", "Return to Judah and rebuild the Temple in Jerusalem", ["Stay and settle in Persia, but never go back to their own land", "Build a new temple in Babylon instead", "Join his army as his royal guard"], "The Book of Ezra tells of Cyrus's declaration letting the Jews go home and rebuild the Temple. He let many conquered peoples keep their gods and customs."],
-        ["אחרי שכורש כבש את בבל ב־539 לפני הספירה, מה הוא התיר לגולי יהודה לעשות?", "לשוב ליהודה ולבנות מחדש את המקדש בירושלים", ["להישאר ולהתיישב בפרס, אבל לעולם לא לשוב לארצם", "לבנות במקום זה מקדש חדש בבבל", "להצטרף לצבא שלו כמשמר המלך"], "ספר עזרא מספר על הצהרת כורש, שהתירה ליהודים לשוב לארצם ולבנות מחדש את המקדש. כורש הניח לעמים כבושים רבים לשמור על האלים ועל המנהגים שלהם."]],
+      [["The Persian Empire grew from the homeland of the Persians. In which country of today is that homeland?", "Iran", ["Iraq", "Turkey", "Egypt"], "The Persians came from Persis, today the province of Fars in south-western Iran. Babylon lay in today's Iraq, while Egypt and the west of today's Turkey were lands that the Persians conquered."],
+        ["האימפריה הפרסית צמחה מארץ המולדת של הפרסים. באיזו מדינה של היום נמצאת המולדת הזאת?", "איראן", ["עיראק", "טורקיה", "מצרים"], "הפרסים באו מפרסיס, היום מחוז פארס שבדרום־מערב איראן. בבל שכנה בעיראק של היום, ואילו מצרים ומערב טורקיה של היום היו ארצות שהפרסים כבשו."]],
+      [["After Cyrus conquered Babylon, what did he allow the exiled Jews to do?", "Return to Judah and rebuild the Temple in Jerusalem", ["Stay and settle in Persia, but never go back to their own land", "Build a new temple in Babylon instead", "Join his army as his royal guard"], "The Book of Ezra tells of Cyrus's declaration letting the Jews go home and rebuild the Temple. He let many conquered peoples keep their gods and customs."],
+        ["אחרי שכורש כבש את בבל, מה הוא התיר לגולי יהודה לעשות?", "לשוב ליהודה ולבנות מחדש את המקדש בירושלים", ["להישאר ולהתיישב בפרס, אבל לעולם לא לשוב לארצם", "לבנות במקום זה מקדש חדש בבבל", "להצטרף לצבא שלו כמשמר המלך"], "ספר עזרא מספר על הצהרת כורש, שהתירה ליהודים לשוב לארצם ולבנות מחדש את המקדש. כורש הניח לעמים כבושים רבים לשמור על האלים ועל המנהגים שלהם."]],
       [["In 480 BCE a small Greek force, led by 300 Spartans, held a narrow pass against the huge army of Xerxes. Where?", "Thermopylae", ["Marathon", "Salamis", "Gaugamela"], "At Thermopylae King Leonidas of Sparta and his allies blocked the pass for days. They were finally surrounded and killed, but their stand became a famous story of courage."],
         ["ב־480 לפני הספירה כוח יווני קטן, בהנהגת 300 ספרטנים, החזיק מעבר צר מול הצבא העצום של אחשוורוש (קסרקסס). איפה זה היה?", "בתרמופילאי", ["במרתון", "בסלמיס", "בגאוגמלה"], "בתרמופילאי חסמו המלך לאונידס מספרטה ובני בריתו את המעבר במשך כמה ימים. לבסוף כותרו ונהרגו, אבל עמידתם נעשתה לסיפור מפורסם על אומץ."]],
       [["At the Battle of Marathon in 490 BCE, who defeated the Persian army?", "The Athenians and their allies from Plataea", ["The Spartans, who fought the battle on their own without Athens", "The Egyptians", "The Babylonians"], "The Athenians, helped by soldiers from Plataea, beat the force Darius had sent, on the plain of Marathon. The Spartans arrived only after the battle."],
@@ -45,8 +45,8 @@ const c: TopicContent = {
     ],
     n: [[10, ["How many years passed between the Battle of Marathon (490 BCE) and the Battle of Thermopylae (480 BCE)?", "years", "Both years are BCE, so subtract the smaller number from the larger one: 490 − 480 = 10 years."],
       ["כמה שנים עברו בין קרב מרתון (490 לפני הספירה) לקרב תרמופילאי (480 לפני הספירה)?", "שנים", "שתי השנים הן לפני הספירה, ולכן מחסירים את המספר הקטן מהגדול: 490 − 480 = 10 שנים."]]],
-    s: [[["The wars between Persia and the Greeks, in order", "The Ionian Greeks revolt against Persian rule", "The Persian force is beaten at Marathon", "Xerxes's army breaks through at Thermopylae", "The Greek fleet wins at Salamis", "The Greeks defeat the Persian army at Plataea"],
-      ["המלחמות בין פרס ליוונים, לפי הסדר", "היוונים באיוניה מורדים בשלטון הפרסי", "הכוח הפרסי מובס במרתון", "צבא אחשוורוש פורץ את המעבר בתרמופילאי", "הצי היווני מנצח בסלמיס", "היוונים מביסים את הצבא הפרסי בפלטאה"]]],
+    s: [[["The wars between Persia and the Greeks, in order", "The Ionian Greeks revolt against Persian rule", "The Persian force is beaten at Marathon", "Xerxes's army breaks through at Thermopylae", "The Greek fleet beats the Persian navy in a narrow strait", "The Greeks defeat the Persian army at Plataea"],
+      ["המלחמות בין פרס ליוונים, לפי הסדר", "היוונים באיוניה מורדים בשלטון הפרסי", "הכוח הפרסי מובס במרתון", "צבא אחשוורוש פורץ את המעבר בתרמופילאי", "הצי היווני מביס את הצי הפרסי במצר צר", "היוונים מביסים את הצבא הפרסי בפלטאה"]]],
   },
   a: {
     t: [
@@ -68,8 +68,8 @@ const c: TopicContent = {
     ],
     n: [[220, ["The Achaemenid Empire lasted from about 550 BCE to 330 BCE. About how many years is that?", "years", "Both years are BCE, so subtract: 550 − 330 = 220 years."],
       ["האימפריה האחמנית התקיימה מכ־550 לפני הספירה ועד 330 לפני הספירה. כמה שנים זה בערך?", "שנים", "שתי השנים הן לפני הספירה, ולכן מחסירים: 550 − 330 = 220 שנים."]]],
-    s: [[["Alexander's war against Persia, in order", "Alexander crosses into Asia and wins at the river Granicus", "He defeats Darius III for the first time at Issus", "He captures the island city of Tyre after a long siege", "He crushes Darius III's army at Gaugamela", "The palace of Persepolis goes up in flames"],
-      ["המלחמה של אלכסנדר בפרס, לפי הסדר", "אלכסנדר עובר לאסיה ומנצח ליד נהר גרניקוס", "הוא מביס את דריווש השלישי בפעם הראשונה באיסוס", "הוא כובש את עיר האי צור אחרי מצור ארוך", "הוא מנחיל תבוסה מוחצת לצבא של דריווש השלישי בגאוגמלה", "ארמון פרספוליס עולה באש"]]],
+    s: [[["Alexander's war against Persia, in order", "Alexander crosses into Asia and wins at the river Granicus", "He defeats the Persian king for the first time at Issus", "He captures the island city of Tyre after a long siege", "He crushes the Persian army at Gaugamela", "The palace of Persepolis goes up in flames"],
+      ["המלחמה של אלכסנדר בפרס, לפי הסדר", "אלכסנדר עובר לאסיה ומנצח ליד נהר גרניקוס", "הוא מביס את מלך פרס בפעם הראשונה באיסוס", "הוא כובש את עיר האי צור אחרי מצור ארוך", "הוא מנחיל תבוסה מוחצת לצבא הפרסי בגאוגמלה", "ארמון פרספוליס עולה באש"]]],
   },
 };
 export default c;

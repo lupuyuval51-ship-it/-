@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Zionism", "the national movement of the Jewish people to return to the Land of Israel and build a state there", "ציונות", "התנועה הלאומית של העם היהודי לשוב לארץ ישראל ולבנות בה מדינה"],
       ["Hovevei Zion", "groups founded in the 1880s, mostly in Eastern Europe, to support Jewish farming villages in the Land of Israel", "חובבי ציון", "אגודות שקמו בשנות ה־80 של המאה ה־19, בעיקר במזרח אירופה, כדי לתמוך במושבות חקלאיות יהודיות בארץ ישראל"],
-      ["Basel", "the Swiss city where the First Zionist Congress met in 1897", "בזל", "העיר בשווייץ שבה התכנס הקונגרס הציוני הראשון ב־1897"],
+      ["Basel", "the city where Herzl gathered the First Zionist Congress in 1897", "בזל", "העיר שבה כינס הרצל את הקונגרס הציוני הראשון ב־1897"],
     ],
     q: [
       [["What was the name of the book Herzl published in 1896?", "The Jewish State", ["Old New Land", "The New Land of Israel", "The Hebrew Nation"], "In “The Jewish State” Herzl explained why the Jews needed a state of their own. “Old New Land” is a novel he wrote later, in 1902."],
@@ -16,17 +16,17 @@ const c: TopicContent = {
         ["מה היה מקצועו של בנימין זאב הרצל כשהפך למנהיג ציוני?", "עיתונאי וסופר בווינה", ["רב ומורה בירושלים", "איכר במושבה חדשה בגליל", "בנקאי בלונדון"], "הרצל כתב בעיתון חשוב בווינה וגם כתב מחזות. ככתב בפריז ראה שנאת יהודים חזקה, וזה דחף אותו אל הציונות."]],
       [["Which famous saying comes from Herzl?", "If you will it, it is no dream", ["Next year in Jerusalem", "A land of milk and honey", "Hear, O Israel"], "Herzl used this as the motto of his novel “Old New Land”. The other sayings are much older and come from the Bible and from Jewish prayer."],
         ["איזו אמרה מפורסמת היא של הרצל?", "אם תרצו, אין זו אגדה", ["לשנה הבאה בירושלים", "ארץ זבת חלב ודבש", "שמע ישראל"], "הרצל נתן את המוטו הזה לרומן שלו ״אלטנוילנד״. שאר האמרות עתיקות בהרבה, והן מהתנ״ך ומהתפילה."]],
-      [["Where is Herzl buried today?", "On Mount Herzl in Jerusalem", ["In a cemetery in Vienna, Austria", "In Basel, Switzerland", "In Tel Aviv"], "Herzl died in 1904 and was buried in Vienna. As he had asked, his remains were brought to Israel in 1949 and buried on the hill named after him in Jerusalem."],
-        ["איפה קבור הרצל היום?", "בהר הרצל בירושלים", ["בבית קברות בווינה שבאוסטריה", "בבזל שבשווייץ", "בתל אביב"], "הרצל מת ב־1904 ונקבר בווינה. כפי שביקש, עצמותיו הועלו לישראל ב־1949 ונקברו בגבעה שנקראת על שמו בירושלים."]],
+      [["Where is Herzl buried today?", "On Mount Herzl in Jerusalem", ["In a cemetery in Vienna, Austria", "In Budapest, where he was born", "In Tel Aviv"], "Herzl died in 1904 and was buried in Vienna. As he had asked, his remains were brought to Israel in 1949 and buried on the hill named after him in Jerusalem."],
+        ["איפה קבור הרצל היום?", "בהר הרצל בירושלים", ["בבית קברות בווינה שבאוסטריה", "בבודפשט, העיר שבה נולד", "בתל אביב"], "הרצל מת ב־1904 ונקבר בווינה. כפי שביקש, עצמותיו הועלו לישראל ב־1949 ונקברו בגבעה שנקראת על שמו בירושלים."]],
       [["What did the Balfour Declaration of 1917 support?", "A Jewish national home in the Land of Israel", ["Jewish farming villages in British East Africa", "An end to all the wars in Europe", "A new capital city for the British Empire"], "In the declaration, Britain said it viewed with favour a national home for the Jewish people in the Land of Israel and would help to bring it about."],
         ["במה תמכה הצהרת בלפור מ־1917?", "בבית לאומי לעם היהודי בארץ ישראל", ["בכפרים חקלאיים יהודיים במזרח אפריקה", "בסיום כל המלחמות באירופה", "בעיר בירה חדשה לאימפריה הבריטית"], "בהצהרה כתבה בריטניה שהיא רואה בעין יפה הקמת בית לאומי לעם היהודי בארץ ישראל ותעזור להשיג זאת."]],
     ],
     n: [[44, ["Herzl was born in 1860 and died in 1904. How many years did he live?", "years", "1904 − 1860 = 44, so Herzl died at the age of 44, only seven years after the First Zionist Congress."], ["הרצל נולד ב־1860 ומת ב־1904. כמה שנים חי?", "שנים", "1904 − 1860 = 44, כלומר הרצל מת בגיל 44, שבע שנים בלבד אחרי הקונגרס הציוני הראשון."]]],
-    s: [[["Put Herzl's life in order", "He is born in Budapest", "He works as a journalist in Vienna and Paris", "He publishes “The Jewish State”", "He gathers the First Zionist Congress in Basel", "He dies and is buried in Vienna", "He is reburied on Mount Herzl in Jerusalem"], ["סדרו את חייו של הרצל לפי הסדר", "הוא נולד בבודפשט", "הוא עובד כעיתונאי בווינה ובפריז", "הוא מפרסם את ״מדינת היהודים״", "הוא מכנס את הקונגרס הציוני הראשון בבזל", "הוא מת ונקבר בווינה", "הוא נקבר מחדש בהר הרצל בירושלים"]]],
+    s: [[["Put Herzl's life in order", "He is born in Budapest", "He lives in Paris and sees strong hatred of Jews there", "He publishes his first Zionist book", "He gathers the First Zionist Congress in Basel", "He dies and is buried in Vienna", "He is reburied, as he had asked in his will"], ["סדרו את חייו של הרצל לפי הסדר", "הוא נולד בבודפשט", "הוא חי בפריז ורואה שם שנאת יהודים חזקה", "הוא מפרסם את ספרו הציוני הראשון", "הוא מכנס את הקונגרס הציוני הראשון בבזל", "הוא מת ונקבר בווינה", "הוא נקבר מחדש, כפי שביקש בצוואתו"]]],
   },
   i: {
     t: [
-      ["Basel Program", "the goal agreed in 1897: a home for the Jewish people in the Land of Israel, secured by public law", "תוכנית בזל", "המטרה שנקבעה ב־1897: בית לעם היהודי בארץ ישראל, המובטח במשפט הציבורי"],
+      ["Basel Program", "the programme of 1897 that set the aim of the Zionist movement and four ways of working towards it", "תוכנית בזל", "התוכנית מ־1897 שקבעה את מטרת התנועה הציונית וארבע דרכים לפעול להשגתה"],
       ["Jewish National Fund", "the fund founded in 1901 to buy land in the Land of Israel, known for its blue collection box", "קרן קיימת לישראל", "הקרן שנוסדה ב־1901 כדי לקנות אדמות בארץ ישראל, ונודעה בזכות ״הקופסה הכחולה״"],
       ["Dreyfus affair", "the false conviction for treason, in 1894, of a Jewish officer in the French army", "פרשת דרייפוס", "הרשעת שווא בבגידה, ב־1894, של קצין יהודי בצבא צרפת"],
       ["Political Zionism", "Herzl's approach: first win the backing of the great powers, then settle the land in large numbers", "ציונות מדינית", "הגישה של הרצל: קודם להשיג את תמיכת המעצמות, ואחר כך להתיישב בארץ בהמוניהם"],
@@ -46,12 +46,12 @@ const c: TopicContent = {
         ["למי הייתה מופנית הצהרת בלפור?", "ללורד רוטשילד, ממנהיגי יהודי בריטניה", ["לחיים ויצמן, מנהיג התנועה הציונית בבריטניה", "לבנימין זאב הרצל, מייסד התנועה", "לדוד בן־גוריון, מנהיג תנועת העבודה"], "ארתור בלפור שלח את המכתב ללורד וולטר רוטשילד כדי שיעביר אותו להתאחדות הציונית. ויצמן פעל רבות כדי להשיג אותה, והרצל מת 13 שנים קודם לכן."]],
     ],
     n: [[20, ["The First Zionist Congress met in 1897 and the Balfour Declaration was issued in 1917. How many years apart were they?", "years", "1917 − 1897 = 20, so the Balfour Declaration came 20 years after the First Zionist Congress."], ["הקונגרס הציוני הראשון התכנס ב־1897 והצהרת בלפור ניתנה ב־1917. כמה שנים ביניהם?", "שנים", "1917 − 1897 = 20, כלומר הצהרת בלפור ניתנה 20 שנים אחרי הקונגרס הציוני הראשון."]]],
-    s: [[["Put these in time order", "Hovevei Zion groups form after the pogroms", "The Dreyfus affair begins in France", "The Jewish National Fund is founded", "The Zionist Congress debates the Uganda Scheme", "Britain issues the Balfour Declaration"], ["סדרו לפי סדר הזמן", "אגודות ״חובבי ציון״ קמות אחרי הפוגרומים", "פרשת דרייפוס מתחילה בצרפת", "הקרן הקיימת לישראל נוסדת", "הקונגרס הציוני מתווכח על תוכנית אוגנדה", "בריטניה מפרסמת את הצהרת בלפור"]]],
+    s: [[["Put these in time order", "Hovevei Zion groups form in Eastern Europe", "The Dreyfus affair begins in France", "The Jewish National Fund is founded", "The Zionist Congress debates the Uganda Scheme", "Britain issues the Balfour Declaration"], ["סדרו לפי סדר הזמן", "אגודות ״חובבי ציון״ קמות במזרח אירופה", "פרשת דרייפוס מתחילה בצרפת", "הקרן הקיימת לישראל נוסדת", "הקונגרס הציוני מתווכח על תוכנית אוגנדה", "בריטניה מפרסמת את הצהרת בלפור"]]],
   },
   a: {
     t: [
-      ["Practical Zionism", "the view that Jews should buy land and build villages at once, without waiting for international backing", "ציונות מעשית", "הגישה שיהודים צריכים לקנות אדמות ולבנות יישובים מיד, בלי לחכות לגיבוי בין־לאומי"],
-      ["Cultural Zionism", "Ahad Ha'am's idea of a spiritual and cultural centre for the Jewish people in the Land of Israel", "ציונות רוחנית", "רעיונו של אחד העם: מרכז רוחני ותרבותי לעם היהודי בארץ ישראל"],
+      ["Religious Zionism", "the stream that joined Zionism with a religious Jewish way of life; its Mizrachi movement was founded in 1902", "ציונות דתית", "הזרם שחיבר בין הציונות לאורח חיים יהודי דתי; תנועת ״המזרחי״ שלו נוסדה ב־1902"],
+      ["Zionist Organization", "the body founded at the First Zionist Congress in 1897 to work for the movement's goals, with Herzl as its first president", "ההסתדרות הציונית", "הגוף שנוסד בקונגרס הציוני הראשון ב־1897 כדי לפעול למען מטרות התנועה, והרצל היה הנשיא הראשון שלו"],
       ["Altneuland", "Herzl's 1902 novel imagining a modern Jewish society in the Land of Israel", "אלטנוילנד", "הרומן של הרצל מ־1902 שמתאר חברה יהודית מודרנית בארץ ישראל"],
     ],
     q: [
@@ -70,7 +70,7 @@ const c: TopicContent = {
     ],
     n: [
       [8, ["Herzl's novel came out in 1902, and its Hebrew title was “Tel Aviv”. The new Jewish neighbourhood near Jaffa took that name in 1910. How many years later was that?", "years", "1910 − 1902 = 8, so the neighbourhood took the novel's Hebrew title 8 years after the book appeared."], ["הרומן של הרצל יצא ב־1902, ושמו בתרגום העברי היה ״תל אביב״. השכונה היהודית החדשה ליד יפו קיבלה את השם הזה ב־1910. כמה שנים אחר כך?", "שנים", "1910 − 1902 = 8, כלומר השכונה קיבלה את שם התרגום העברי של הרומן 8 שנים אחרי שהספר יצא."]],
-      [51, ["How many years passed between the First Zionist Congress in 1897 and the founding of Israel in 1948?", "years", "1948 − 1897 = 51, so the state was founded 51 years after the congress, close to Herzl's prediction of fifty."], ["כמה שנים עברו מהקונגרס הציוני הראשון ב־1897 ועד הקמת מדינת ישראל ב־1948?", "שנים", "1948 − 1897 = 51, כלומר המדינה קמה 51 שנים אחרי הקונגרס, קרוב לחמישים השנים שהרצל חזה."]],
+      [15, ["Leon Pinsker's “Auto-Emancipation” came out in 1882, and the First Zionist Congress met in 1897. How many years apart were they?", "years", "1897 − 1882 = 15, so the congress met 15 years after Pinsker called on Jews to free themselves in a land of their own."], ["החיבור ״אוטואמנציפציה״ של יהודה לייב פינסקר יצא ב־1882, והקונגרס הציוני הראשון התכנס ב־1897. כמה שנים ביניהם?", "שנים", "1897 − 1882 = 15, כלומר הקונגרס התכנס 15 שנים אחרי שפינסקר קרא ליהודים לשחרר את עצמם בארץ משלהם."]],
     ],
     s: [[["Put these in time order", "Britain issues the Balfour Declaration", "British forces take Jerusalem from the Ottomans", "The San Remo conference gives Britain the Mandate", "The League of Nations approves the Mandate"], ["סדרו לפי סדר הזמן", "בריטניה מפרסמת את הצהרת בלפור", "כוחות בריטיים כובשים את ירושלים מידי העות׳מאנים", "ועידת סן רמו מעניקה לבריטניה את המנדט", "חבר הלאומים מאשר את המנדט"]]],
   },

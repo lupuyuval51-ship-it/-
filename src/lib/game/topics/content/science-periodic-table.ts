@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Element", "a pure substance made of only one kind of atom", "יסוד", "חומר טהור שבנוי מסוג אחד בלבד של אטומים"],
       ["Chemical symbol", "a short code of one or two letters for an element, such as O for oxygen", "סמל כימי", "קיצור של אות אחת או שתיים שמייצג יסוד, כמו O לחמצן"],
-      ["Metal", "a shiny element that conducts heat and electricity well, such as iron or copper", "מתכת", "יסוד מבריק שמוליך היטב חום וחשמל, כמו ברזל או נחושת"],
+      ["Metal", "a shiny element that conducts heat and electricity well, such as iron or silver", "מתכת", "יסוד מבריק שמוליך היטב חום וחשמל, כמו ברזל או כסף"],
     ],
     q: [
       [["What is the chemical symbol for gold?", "Au", ["Ag", "Go", "Gd"], "Au comes from aurum, the Latin word for gold. Ag is the symbol for silver, from its Latin name argentum, and Gd stands for gadolinium."],
@@ -54,8 +54,8 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Atomic number", "the number of protons in the nucleus of an atom, which fixes its place in the table", "מספר אטומי", "מספר הפרוטונים בגרעין של אטום, שקובע את מקומו בטבלה"],
-      ["Valence electrons", "the electrons in an atom's outer shell, which decide how it reacts", "אלקטרוני ערכיות", "האלקטרונים בקליפה החיצונית של האטום, שקובעים איך הוא מגיב"],
+      ["Atomic number", "the number that gives an element its place in the table, counting from hydrogen, which is number 1", "מספר אטומי", "המספר שקובע את מקומו של יסוד בטבלה, כשסופרים ממימן, שמספרו 1"],
+      ["Valence electrons", "the electrons in the outermost shell of an atom; a sodium atom, for example, has one", "אלקטרוני ערכיות", "האלקטרונים בקליפה החיצונית ביותר של אטום; לאטום נתרן, למשל, יש אחד כזה"],
       ["Halogens", "the reactive non-metals of group 17, such as fluorine and chlorine", "הלוגנים", "האל־מתכות הפעילות של טור 17, כמו פלואור וכלור"],
       ["Transition metals", "the wide block of metals in the middle of the table, such as iron, copper and gold", "מתכות מעבר", "גוש המתכות הרחב שבאמצע הטבלה, כמו ברזל, נחושת וזהב"],
     ],

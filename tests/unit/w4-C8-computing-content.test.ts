@@ -146,9 +146,10 @@ describe("computing topics (C8)", () => {
     expect(enigma[3]).toMatch(/פולנים/);
     // passive UHF tags (the same topic's advanced level) are powered by radio waves on a dipole, not by a coil
     const contactless = await load("cs-contactless");
-    const induction = contactless.i.q!.find(([[, answer]]) => answer.includes("magnetic field"))!;
-    expect(induction[0][0]).toMatch(/card/);
-    expect(induction[1][0]).toMatch(/כרטיס/);
+    // (the question now asks for the effect's name, so its prompt no longer reads like the coil term)
+    const induction = contactless.i.q!.find(([[, answer]]) => answer === "Electromagnetic induction")!;
+    expect(induction[0][0]).toMatch(/magnetic field/);
+    expect(induction[1][1]).toBe("השראה אלקטרומגנטית");
   });
 
   it("cryptography builds a full, finishable two-area game at every level in both languages", async () => {

@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Kinneret", "Israel's largest freshwater lake, in the north-east, fed by the Jordan River", "כנרת", "אגם המים המתוקים הגדול ביותר בישראל, בצפון־מזרח הארץ, שנהר הירדן מזין אותו"],
+      ["Kinneret", "Israel's largest freshwater lake, in the north-east, lying far below sea level", "כנרת", "אגם המים המתוקים הגדול ביותר בישראל, בצפון־מזרח הארץ, הרבה מתחת לפני הים"],
       ["Desalination", "taking the salt out of seawater so that people can drink it", "התפלה", "הוצאת המלח ממי ים כדי שאפשר יהיה לשתות אותם"],
       ["Aquifer", "a layer of rock under the ground that holds water, which can be pumped up through wells", "אקוויפר", "שכבת סלע מתחת לפני הקרקע שמחזיקה מים, ואפשר לשאוב אותם בבארות"],
       ["Drought", "a long period with much less rain than usual", "בצורת", "תקופה ארוכה שבה יורד הרבה פחות גשם מהרגיל"],
@@ -13,10 +13,10 @@ const c: TopicContent = {
         ["איזה נהר זורם אל הכנרת?", "נהר הירדן", ["נחל הירקון", "נחל הקישון", "הנילוס"], "הירדן נכנס לכנרת מצפון ויוצא ממנה בדרום. הירקון והקישון זורמים מערבה אל הים התיכון, והנילוס נמצא באפריקה."]],
       [["In which season does almost all of Israel's rain fall?", "In winter", ["In spring and summer together", "Evenly all through the year", "Only in August"], "Israel has rainy winters and dry summers: rain falls roughly between October and April, and in summer it almost never rains."],
         ["באיזו עונה יורד כמעט כל הגשם בישראל?", "בחורף", ["באביב ובקיץ יחד", "באופן שווה לאורך כל השנה", "רק באוגוסט"], "בישראל החורף גשום והקיץ יבש: הגשם יורד בערך בין אוקטובר לאפריל, ובקיץ כמעט אף פעם לא יורד גשם."]],
-      [["What does a desalination plant do?", "It removes salt from seawater to make fresh water", ["It stores rainwater in large tanks under the ground", "It adds salt to river water for fish ponds", "It freezes seawater to make blocks of ice"], "A desalination plant takes in seawater and separates out the salt, so the water that comes out is fresh and safe to drink."],
-        ["מה עושה מתקן התפלה?", "מוציא את המלח ממי ים ומפיק מהם מים מתוקים", ["אוגר מי גשמים במכלים גדולים מתחת לאדמה", "מוסיף מלח למי נהר בשביל בריכות דגים", "מקפיא מי ים והופך אותם לגושי קרח"], "מתקן התפלה קולט מי ים ומפריד מהם את המלח, וכך המים שיוצאים ממנו מתוקים וראויים לשתייה."]],
-      [["Where are Israel's big desalination plants built?", "On the Mediterranean coast", ["Next to the Kinneret", "In the hills around Jerusalem", "In the middle of the Negev desert"], "Desalination plants need a lot of seawater, so they stand on the coast, at places such as Ashkelon, Ashdod, Sorek and Hadera."],
-        ["איפה בנויים מתקני ההתפלה הגדולים של ישראל?", "לחוף הים התיכון", ["ליד הכנרת", "בהרים שמסביב לירושלים", "באמצע מדבר הנגב"], "מתקני התפלה צריכים הרבה מי ים, ולכן הם עומדים על החוף, במקומות כמו אשקלון, אשדוד, שורק וחדרה."]],
+      [["Which part of Israel gets the most rain?", "The north, around the Upper Galilee", ["The south, around the Negev highlands", "The Arava valley, near Eilat", "The shores of the Dead Sea"], "Rain clouds come mostly from the Mediterranean, and they drop more rain in the north and on high ground. The Upper Galilee gets several times more rain than the Negev, and the Arava and the Dead Sea area get very little."],
+        ["איזה אזור בישראל מקבל הכי הרבה גשם?", "הצפון, באזור הגליל העליון", ["הדרום, באזור הר הנגב והמכתשים", "הערבה, ליד אילת", "חופי ים המלח"], "ענני הגשם מגיעים בעיקר מהים התיכון, ומורידים יותר גשם בצפון ובמקומות גבוהים. בגליל העליון יורד גשם פי כמה מאשר בנגב, ובערבה ובאזור ים המלח יורד מעט מאוד."]],
+      [["Where are Israel's big desalination plants built?", "On the Mediterranean coast", ["On the shore of the Dead Sea", "Next to the Kinneret", "In the hills around Jerusalem"], "Desalination plants need a lot of seawater, so they stand on the Mediterranean coast, at places such as Ashkelon, Ashdod, Sorek and Hadera. The Dead Sea is far too salty for them."],
+        ["איפה בנויים מתקני ההתפלה הגדולים של ישראל?", "לחוף הים התיכון", ["לחוף ים המלח", "ליד הכנרת", "בהרים שמסביב לירושלים"], "מתקני התפלה צריכים הרבה מי ים, ולכן הם עומדים לחוף הים התיכון, במקומות כמו אשקלון, אשדוד, שורק וחדרה. ים המלח מלוח מדי בשבילם."]],
       [["Which habit saves water at home?", "Turning off the tap while brushing your teeth", ["Watering the garden at noon on a hot day", "Taking a long, full bath every evening", "Leaving the tap running the whole time while washing dishes"], "Water that runs while you brush is wasted. Watering at noon is also wasteful, because much of the water evaporates in the heat before the plants can use it."],
         ["איזה הרגל חוסך מים בבית?", "לסגור את הברז בזמן צחצוח השיניים", ["להשקות את הגינה בצהריים ביום חם", "לעשות אמבטיה ארוכה ומלאה כל ערב", "להשאיר את הברז פתוח בזמן שטיפת הכלים"], "מים שזורמים בזמן הצחצוח הולכים לאיבוד. גם השקיה בצהריים בזבזנית, כי חלק גדול מהמים מתאדה בחום לפני שהצמחים מספיקים להשתמש בהם."]],
     ],
@@ -31,8 +31,8 @@ const c: TopicContent = {
     t: [
       ["National Water Carrier", "the canals, tunnels and pipes that carry water from the Kinneret to the centre and the south", "המוביל הארצי", "מערכת התעלות, המנהרות והצינורות שמובילה מים מהכנרת אל המרכז ואל הדרום"],
       ["Mekorot", "Israel's national water company, which runs the main pipelines, wells and pumping stations", "מקורות", "חברת המים הלאומית של ישראל, שמפעילה את קווי המים הראשיים, הבארות ותחנות השאיבה"],
-      ["Drip irrigation", "watering plants drop by drop through thin pipes laid right next to their roots", "השקיה בטפטוף", "השקיית צמחים טיפה אחר טיפה בצינורות דקים שמונחים ממש ליד השורשים"],
-      ["Treated wastewater", "sewage cleaned at a treatment plant so it can be used again, mostly to water crops", "מי קולחין", "מי ביוב שטוהרו במכון טיהור כדי להשתמש בהם שוב, בעיקר להשקיית גידולים"],
+      ["Drip irrigation", "watering plants drop by drop through thin pipes with tiny holes, a method developed in Israel in the 1960s", "השקיה בטפטוף", "השקיית צמחים טיפה אחר טיפה בצינורות דקים עם חורים זעירים, שיטה שפותחה בישראל בשנות ה־60"],
+      ["Treated wastewater", "sewage that has been cleaned at a treatment plant so that it can be used again", "מי קולחין", "מי ביוב שטוהרו במכון טיהור כדי שאפשר יהיה להשתמש בהם שוב"],
     ],
     q: [
       [["Through which valley does the Jordan River flow before it enters the Kinneret?", "The Hula Valley", ["The Jezreel Valley", "The Arava", "The Coastal Plain"], "The streams that form the Jordan join in the far north and flow south through the Hula Valley into the Kinneret. The Arava lies far to the south, between the Dead Sea and Eilat."],
@@ -50,15 +50,15 @@ const c: TopicContent = {
       [1964, ["In which year did the National Water Carrier start carrying water from the Kinneret?", "", "The National Water Carrier was opened in 1964 and began carrying water from the Kinneret to the centre and the south."], ["באיזו שנה התחיל המוביל הארצי להוביל מים מהכנרת?", "", "המוביל הארצי נחנך ב־1964 והתחיל להוביל מים מהכנרת אל המרכז ואל הדרום."]],
       [210, ["About how many metres below sea level is the surface of the Kinneret?", "metres", "The surface of the Kinneret lies about 210 metres below sea level. It rises a little in rainy years and falls in dry ones."], ["בערך כמה מטרים מתחת לפני הים נמצאים פני המים של הכנרת?", "מטר", "פני הכנרת נמצאים בערך 210 מטר מתחת לפני הים. המפלס עולה מעט בשנים גשומות ויורד בשנים שחונות."], 5],
     ],
-    s: [[["The Jordan River from its sources to its end", "Streams from around Mount Hermon (the Dan, the Banias and the Hatzbani) join together", "The river flows south through the Hula Valley", "It enters the Kinneret from the north", "It leaves the Kinneret at the lake's southern end", "The Yarmouk River joins it from the east", "It reaches the Dead Sea"],
-      ["נהר הירדן ממקורותיו ועד סופו", "נחלים מאזור החרמון (הדן, הבניאס והחצבאני) מתאחדים", "הנהר זורם דרומה דרך עמק החולה", "הוא נכנס לכנרת מצפון", "הוא יוצא מהכנרת בקצה הדרומי של האגם", "נהר הירמוך מצטרף אליו ממזרח", "הוא מגיע לים המלח"]]],
+    s: [[["The Jordan River from its sources, in order", "Streams from around Mount Hermon (the Dan, the Banias and the Hatzbani) join together", "The river flows south through a wide valley of fields and wetlands", "It enters the Kinneret from the north", "It leaves the Kinneret at the lake's southern end", "The Yarmouk River joins it from the east"],
+      ["נהר הירדן ממקורותיו, לפי הסדר", "נחלים מאזור החרמון (הדן, הבניאס והחצבאני) מתאחדים", "הנהר זורם דרומה דרך עמק רחב של שדות ואזורים לחים", "הוא נכנס לכנרת מצפון", "הוא יוצא מהכנרת בקצה הדרומי של האגם", "נהר הירמוך מצטרף אליו ממזרח"]]],
   },
   a: {
     t: [
       ["Reverse osmosis", "pushing seawater at high pressure through a membrane that lets water through but holds back the salt", "אוסמוזה הפוכה", "דחיקת מי ים בלחץ גבוה דרך קרום שמעביר מים ועוצר את המלח"],
-      ["Brine", "the extra-salty water left over after desalination, which is returned to the sea", "תמלחת", "המים המלוחים במיוחד שנשארים אחרי ההתפלה ומוחזרים לים"],
+      ["Cloud seeding", "spreading tiny particles into clouds to help them drop more rain, which Israel tried for many years", "זריעת עננים", "פיזור חלקיקים זעירים בתוך עננים כדי לעזור להם להוריד יותר גשם, שישראל ניסתה במשך שנים רבות"],
       ["Lower red line", "the Kinneret level below which pumping should stop, set to protect the lake's water", "הקו האדום התחתון", "מפלס הכנרת שמתחתיו צריך להפסיק לשאוב, שנקבע כדי להגן על מי האגם"],
-      ["Seawater intrusion", "salty water from the sea seeping into a coastal aquifer when too much fresh water is pumped out", "חדירת מי ים", "מים מלוחים מהים שמחלחלים אל מי התהום שליד החוף כששואבים מהם יותר מדי מים מתוקים"],
+      ["Water table", "the level under the ground below which the soil and rock are soaked with water", "מפלס מי התהום", "הגובה מתחת לפני הקרקע שמתחתיו הקרקע והסלע רוויים במים"],
     ],
     q: [
       [["Why can pumping too much from the coastal aquifer spoil it?", "Seawater seeps in to replace the fresh water and makes it salty", ["The aquifer rock dissolves, and the coastline then sinks into the sea", "Rain stops falling over land where many wells are dug", "Pumping heats the water until it boils away underground"], "Fresh groundwater near the coast holds back the sea. When its level drops too far, salty seawater moves in, and a salty well is very hard to fix."],

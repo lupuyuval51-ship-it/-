@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Athens", "a Greek city-state famous for democracy, philosophy and the Parthenon", "אתונה", "עיר־מדינה יוונית שהתפרסמה בדמוקרטיה, בפילוסופיה ובפרתנון"],
       ["Sparta", "a Greek city-state famous for its strict military training", "ספרטה", "עיר־מדינה יוונית שהתפרסמה באימון הצבאי הנוקשה שלה"],
-      ["Olympic Games", "sports contests held every four years at Olympia in honour of Zeus", "המשחקים האולימפיים", "תחרויות ספורט שנערכו כל ארבע שנים באולימפיה לכבוד זאוס"],
+      ["Olympic Games", "sports contests held at Olympia in honour of Zeus, during a truce that let athletes travel safely", "המשחקים האולימפיים", "תחרויות ספורט שנערכו באולימפיה לכבוד זאוס, בזמן הפסקת אש שאפשרה לספורטאים לנסוע בבטחה"],
       ["Myth", "a traditional story about gods and heroes", "מיתוס", "סיפור מסורתי על אלים וגיבורים"],
     ],
     q: [
@@ -22,7 +22,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["City-state", "an independent city that ruled itself and the land around it", "עיר־מדינה", "עיר עצמאית ששלטה בעצמה ובשטח שסביבה"],
-      ["Democracy", "rule by the people; in Athens, male citizens voted on laws themselves", "דמוקרטיה", "שלטון העם; באתונה, אזרחים גברים הצביעו בעצמם על החוקים"],
+      ["Democracy", "rule by the people; in Athens, the Assembly voted on the laws directly instead of electing representatives", "דמוקרטיה", "שלטון העם; באתונה, האספה הצביעה על החוקים ישירות, בלי לבחור נציגים"],
       ["Acropolis", "the high, fortified hill of a Greek city, often topped with temples", "אקרופוליס", "הגבעה הגבוהה והמבוצרת של עיר יוונית, שעליה עמדו לרוב מקדשים"],
       ["Philosopher", "a thinker who asks deep questions about life, truth and knowledge", "פילוסוף", "הוגה ששואל שאלות עמוקות על החיים, האמת והידיעה"],
     ],
@@ -41,7 +41,7 @@ const c: TopicContent = {
     t: [
       ["Socrates", "the Athenian thinker who taught by asking questions and was sentenced to death in 399 BCE", "סוקרטס", "ההוגה האתונאי שלימד בעזרת שאלות ונידון למוות ב־399 לפנה״ס"],
       ["Aristotle", "a student of Plato who wrote about science, logic and politics and taught Alexander the Great", "אריסטו", "תלמידו של אפלטון שכתב על מדע, לוגיקה ופוליטיקה ולימד את אלכסנדר מוקדון"],
-      ["Hellenistic period", "the age after Alexander's conquests, when Greek culture spread across the Middle East", "התקופה ההלניסטית", "התקופה שאחרי כיבושי אלכסנדר, כשהתרבות היוונית התפשטה ברחבי המזרח התיכון"],
+      ["Hellenistic period", "the period of about 300 years that followed the death of Alexander the Great in 323 BCE", "התקופה ההלניסטית", "התקופה של כ־300 שנה שאחרי מותו של אלכסנדר מוקדון ב־323 לפנה״ס"],
       ["Peloponnesian War", "the long war between Athens and Sparta, 431–404 BCE, won by Sparta", "מלחמת הפלופונסוס", "המלחמה הארוכה בין אתונה לספרטה, 431–404 לפנה״ס, שבה ניצחה ספרטה"],
     ],
     q: [
@@ -52,7 +52,7 @@ const c: TopicContent = {
       [["In 480 BCE a small Greek force led by Spartans held the narrow pass of Thermopylae against a huge army. Whose army was it?", "The Persian army of Xerxes", ["The Roman army of Julius Caesar", "The Egyptian army of Ramesses II", "The army of Alexander the Great"], "King Leonidas, his 300 Spartans and a few thousand other Greeks held the pass for three days. The Persians won there, but in the same year they lost the sea battle of Salamis."],
         ["ב־480 לפנה״ס כוח יווני קטן בהנהגת ספרטנים החזיק את המעבר הצר בתרמופילאי מול צבא עצום. של מי היה הצבא הזה?", "הצבא הפרסי של קסרקסס", ["הצבא הרומי של יוליוס קיסר", "הצבא המצרי של רעמסס השני", "צבאו של אלכסנדר מוקדון"], "המלך לאונידס, 300 הספרטנים שלו וכמה אלפי יוונים נוספים החזיקו את המעבר שלושה ימים. הפרסים ניצחו שם, אבל באותה שנה הפסידו בקרב הימי בסלמיס."]],
     ],
-    s: [[["Put these in time order", "Homer's epics are written down", "Athens becomes a democracy", "The Parthenon is built", "Alexander the Great's conquests"], ["סדרו לפי סדר הזמן", "האפוסים של הומרוס עוברים לכתב", "אתונה הופכת לדמוקרטיה", "הפרתנון נבנה", "כיבושי אלכסנדר מוקדון"]]],
+    s: [[["Put these in time order", "Homer's epics are written down", "Athens becomes a democracy", "The Parthenon is built", "Alexander the Great becomes king of Macedon"], ["סדרו לפי סדר הזמן", "האפוסים של הומרוס עוברים לכתב", "אתונה הופכת לדמוקרטיה", "הפרתנון נבנה", "אלכסנדר מוקדון נעשה מלך מקדוניה"]]],
   },
 };
 export default c;

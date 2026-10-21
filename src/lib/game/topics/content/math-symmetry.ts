@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Line of symmetry", "a fold line that splits a shape into two matching halves, each the reflection of the other", "ציר סימטרייה", "קו קיפול שמחלק צורה לשני חצאים תואמים, שכל אחד מהם הוא השתקפות של השני"],
-      ["Symmetrical shape", "a shape that has at least one line that splits it into two halves that match exactly", "צורה סימטרית", "צורה שיש לה לפחות קו אחד שמחלק אותה לשני חצאים שמתלכדים בדיוק"],
-      ["Asymmetrical shape", "a shape with no fold line at all that makes its two halves match", "צורה לא סימטרית", "צורה שאין בה אף קו קיפול שמביא את שני החצאים שלה להתלכד"],
+      ["Line of symmetry", "a line that splits a shape into two halves, each the mirror image of the other", "ציר סימטרייה", "קו שמחלק צורה לשני חצאים, שכל אחד מהם הוא תמונת ראי של השני"],
+      ["Symmetrical shape", "a shape with at least one line of symmetry, like a heart", "צורה סימטרית", "צורה שיש לה לפחות ציר סימטרייה אחד, כמו לב"],
+      ["Asymmetrical shape", "a shape that no line can split into two mirror-image halves", "צורה לא סימטרית", "צורה שאף קו לא מחלק אותה לשני חצאים שהם תמונת ראי זה של זה"],
     ],
     q: [
       [["How many lines of symmetry does a square have?", "4", ["2", "8", "1"], "A square has 4 lines of symmetry: one up and down, one from side to side, and one along each of its two diagonals. Folding along any of them makes the halves match."],

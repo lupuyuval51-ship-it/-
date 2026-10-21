@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Renaissance", "a 'rebirth' of art and learning in Europe from about the 1300s to the 1600s, starting in Italy", "רנסנס", "״לידה מחדש״ של האמנות והלימוד באירופה מהמאה ה־14 בערך ועד המאה ה־17, שהתחילה באיטליה"],
-      ["Leonardo da Vinci", "the Italian painter, inventor and scientist who painted the Mona Lisa", "לאונרדו דה וינצ׳י", "הצייר, הממציא והמדען האיטלקי שצייר את המונה ליזה"],
-      ["Michelangelo", "the Italian artist who carved the statue of David and painted the Sistine Chapel ceiling", "מיכלאנג׳לו", "האמן האיטלקי שפיסל את פסל דוד וצייר את תקרת הקפלה הסיסטינית"],
+      ["Renaissance", "a period when art, science and learning flourished in Europe, from about the 1300s to the 1600s", "רנסנס", "תקופה שבה פרחו האמנות, המדע והלימוד באירופה, מהמאה ה־14 בערך ועד המאה ה־17"],
+      ["Leonardo da Vinci", "the painter, inventor and scientist who painted the Mona Lisa", "לאונרדו דה וינצ׳י", "הצייר, הממציא והמדען שצייר את המונה ליזה"],
+      ["Michelangelo", "the artist who carved the statue of David and painted the Sistine Chapel ceiling", "מיכלאנג׳לו", "האמן שפיסל את פסל דוד וצייר את תקרת הקפלה הסיסטינית"],
       ["Fresco", "a painting made on wet plaster on a wall or ceiling", "פרסקו", "ציור שנעשה על טיח רטוב בקיר או בתקרה"],
     ],
     q: [
@@ -22,7 +22,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["Humanism", "a movement that studied ancient texts and focused on human abilities and achievements", "הומניזם", "תנועה שחקרה טקסטים עתיקים והתמקדה ביכולות ובהישגים של האדם"],
-      ["Perspective", "a drawing method that makes a flat picture look deep and three-dimensional", "פרספקטיבה", "שיטת ציור שגורמת לתמונה שטוחה להיראות עמוקה ותלת־ממדית"],
+      ["Apprentice", "a young person who learned a craft by working for a master, as Leonardo did in Verrocchio's workshop", "שוליה", "צעיר שלמד מלאכה כשעבד אצל אמן מומחה, כמו לאונרדו בסדנה של ורוקיו"],
       ["Patron", "a wealthy person who paid artists to make works", "פטרון", "אדם עשיר ששילם לאמנים כדי שייצרו יצירות"],
       ["The Medici", "the rich banking family of Florence who supported many artists", "משפחת מדיצ׳י", "משפחת הבנקאים העשירה מפירנצה שתמכה באמנים רבים"],
     ],
@@ -39,10 +39,11 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Galileo Galilei", "the Italian scientist who used a telescope to support the idea that Earth moves around the sun", "גלילאו גליליי", "המדען האיטלקי שהשתמש בטלסקופ כדי לתמוך ברעיון שכדור הארץ סובב סביב השמש"],
+      ["Galileo Galilei", "the Italian scientist who in 1610 saw four moons circling Jupiter through his telescope", "גלילאו גליליי", "המדען האיטלקי שב־1610 ראה בטלסקופ שלו ארבעה ירחים שמקיפים את צדק"],
       ["Copernicus", "the Polish astronomer who in 1543 published a model with the sun at the centre", "קופרניקוס", "האסטרונום הפולני שפרסם ב־1543 מודל שבו השמש במרכז"],
       ["Reformation", "the 16th-century movement, begun by Martin Luther in 1517, that split Western Christianity", "הרפורמציה", "התנועה של המאה ה־16, שהחלה במרטין לותר ב־1517, ופילגה את הנצרות המערבית"],
       ["Renaissance man", "a person skilled in many fields, like Leonardo", "איש אשכולות", "אדם שמומחה בתחומים רבים, כמו לאונרדו"],
+      ["Perspective", "a drawing method that makes a flat picture look deep and three-dimensional", "פרספקטיבה", "שיטת ציור שגורמת לתמונה שטוחה להיראות עמוקה ותלת־ממדית"],
     ],
     q: [
       [["Why did Galileo get into trouble with the Church authorities in 1633?", "He defended the view that Earth moves around the sun", ["He taught that the sun moves around an Earth that stands still", "He refused to paint the Sistine Chapel", "He sailed to America"], "He was tried and forced to recant, then kept under house arrest until his death in 1642. The Church's official view was the opposite: a motionless Earth at the centre."],
