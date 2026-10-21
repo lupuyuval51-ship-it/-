@@ -198,11 +198,13 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
       setBoot({ status: "ready", data: d });
       if (d.resumed && !restart) toast(t("hud.resumed"), "info");
     } catch (e) {
+      // a sign-in that expired before the game opened goes back to the sign-in page, as it does during play
+      if (e instanceof ApiFailure && e.status === 401) { router.push("/login"); return; }
       setBoot({ status: "error", message: t(bootErrorKey(e, saveErrorKey)) });
     } finally {
       staleReload.current = false;
     }
-  }, [gameId, saveErrorKey, t, toast, transport]);
+  }, [gameId, router, saveErrorKey, t, toast, transport]);
   /** (Re)start from an event handler: show the loading screen, close overlays, then fetch the session. */
   const start = useCallback((restart = false) => {
     dataRef.current = null; // from now on, answers to events of the run being left are dropped (see `SupersededRun`)
@@ -400,9 +402,11 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   useEffect(() => {
     input.onPause = () => setOverlay((o) => (o.type === "none" ? { type: "pause" } : o.type === "pause" ? { type: "none" } : o));
     const detach = host.current ? input.attach(host.current) : () => undefined;
+    // every gesture, not only the first: iOS can leave the context suspended after a phone call or the background, and
+    // only a new gesture may resume it (unlock is cheap and does nothing while the sound is running)
     const unlock = () => audio.unlock();
-    window.addEventListener("pointerdown", unlock, { once: true });
-    window.addEventListener("keydown", unlock, { once: true });
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
     return () => { detach(); input.onPause = null; window.removeEventListener("pointerdown", unlock); window.removeEventListener("keydown", unlock); };
   }, [audio, input, boot.status]);
 
