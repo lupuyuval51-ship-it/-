@@ -151,6 +151,8 @@ describe("course chapters build games that teach first", () => {
             const spec = generateOffline(request(id, d, lang, mode), new Date(0), "A", c).spec;
             const label = `${id}/${d}/${lang}/${mode}`;
             lessonOrder(spec, label);
+            // the next game of the chapter at this level (other questions first) still teaches first
+            lessonOrder(generateOffline(request(id, d, lang, mode), new Date(0), "A", c, 1).spec, `${label}/round 1`);
             expect(spec.meta.generator?.kind, label).toBe("catalog");
             if (mode === "FULL") {
               expect(spec.areas.length, label).toBe(2);
