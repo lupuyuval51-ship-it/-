@@ -93,9 +93,12 @@ const stem = (w: string) => {
   stemMemo.set(w, out);
   return out;
 };
+/** A three-letter Hebrew word with a one-letter prefix ("התא", "לתא", "בתא") on a two-letter word: the two-letter word. */
+const shortRoot = (w: string) => (hasHebrew(w) && w.length === 3 && /^[והבכלמש]/u.test(w) ? w.slice(1) : w);
 const sameWord = (a: string, b: string) => {
   const x = stem(a), y = stem(b);
-  return x === y || (x.length >= 3 && y.includes(x)) || (y.length >= 3 && x.includes(y));
+  // "לתא" is "התא" with another prefix: never a wrong option next to it
+  return x === y || (x.length >= 3 && y.includes(x)) || (y.length >= 3 && x.includes(y)) || shortRoot(x) === shortRoot(y);
 };
 
 /** A Hebrew clitic prefix (ו/ה/ב/כ/ל/מ/ש, up to two) that is really attached: the rest must itself be a word of the material. */
@@ -466,7 +469,8 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
     // a loose word of the notes is a weak wrong option ("Earth's" next to three real terms): it only fills in when fewer than two other terms exist
     const fillers = otherTerms.length >= 2 || d.short ? [] : keywords
-      .filter((k) => k.text.length >= 4 && !UNIT_WORDS.has(k.lower) && hasHebrew(k.text) === hasHebrew(d.term) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
+      // a Hebrew word with a preposition in front ("בתאי": in the cells of) reads as a fragment, not a term
+      .filter((k) => k.text.length >= 4 && !UNIT_WORDS.has(k.lower) && hasHebrew(k.text) === hasHebrew(d.term) && !(hasHebrew(k.text) && /^[בלכ]/u.test(k.text)) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
       .sort((a, b) => Number(b.proper) - Number(a.proper) || b.count - a.count || Math.abs(a.text.length - d.term.length) - Math.abs(b.text.length - d.term.length) || a.lower.localeCompare(b.lower))
       .slice(0, 2 - otherTerms.length)
       // a stand-alone option reads better without a leading Hebrew "and" (ו־) or an English possessive ("Earth's")
