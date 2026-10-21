@@ -232,9 +232,11 @@ characters, Hebrew, English or any script); with no AI provider configured the e
 text is passed to the model as *data it must stick to* (`<study_material>`, tag break-outs stripped), so every question is about what was pasted.
 
 * **What it extracts (deterministically, nothing invented):** a title (first line or Markdown heading), `term: meaning` / `term - meaning` / `term = meaning`
-  lines, table rows (Markdown `| term | meaning |` or columns pasted from a spreadsheet), “X is …” sentences, questions the learner already wrote with their
-  answers (`Q:`/`A:`, `ש:`/`ת:`, a question line followed by its answer, or `question? answer`), numbered lists (steps), sentences with exactly one number,
-  and plain statements. From those it builds seven kinds of challenge: *answer the learner's own question* (numeric when the answer is a number),
+  lines, table rows (Markdown `| term | meaning |` or columns pasted from a spreadsheet; a two-column table of numbers becomes facts such as
+  “Mars – Moons: 2”), “X is …” sentences, questions the learner already wrote with their answers (`Q:`/`A:`, `ש:`/`ת:`, a question line followed by its
+  answer, `question? answer`, or a numbered quiz with lettered options and an “Answer: B” line, whose own wrong options are kept), numbered lists (steps),
+  sentences with exactly one number, and plain statements. A first line that names the notes (“שאלות לחזרה – …”, “Ecosystems – key ideas”, the line
+  above a bulleted list) is their title, not a term. From those it builds seven kinds of challenge: *answer the learner's own question* (numeric when the answer is a number),
   *match the terms*, *name the term from its description*, *fill the gap* (wrong options are other words of the material that look like the right one),
   *put the steps in order*, *which step comes first / right after this one* (from a list of four or more different steps, so a recipe
   or a procedure alone makes a game), *find the missing number*, and *true or false* (only as a last resort for very short material). Hints, explanations and
