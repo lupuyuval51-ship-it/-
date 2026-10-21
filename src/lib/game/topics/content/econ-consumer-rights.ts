@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Consumer", "a person who buys goods or services for their own use", "צרכן", "אדם שקונה מוצרים או שירותים לשימוש שלו"],
       ["Receipt", "a paper or digital note that shows what you bought, when, and how much you paid", "קבלה", "פתק מנייר או דיגיטלי שמראה מה קניתם, מתי וכמה שילמתם"],
-      ["Warranty", "a promise to repair or replace a product if it breaks within a set time", "אחריות", "התחייבות לתקן מוצר או להחליף אותו אם הוא מתקלקל בתוך תקופה מסוימת"],
+      ["Warranty", "a promise from the maker or the seller that covers faults in a product for a set time", "אחריות", "התחייבות של היצרן או של המוכר לטפל בתקלות במוצר במשך תקופה מסוימת"],
       ["Refund", "money given back to a customer who returns a product", "החזר כספי", "כסף שמוחזר ללקוח שמחזיר מוצר"],
     ],
     q: [
@@ -26,7 +26,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["Cancelling a deal", "ending a purchase within the time the law allows, and getting your money back", "ביטול עסקה", "סיום של קנייה בתוך הזמן שהחוק מאפשר וקבלת הכסף בחזרה"],
-      ["Distance sale", "a sale made without meeting the seller, such as online or by phone", "עסקת מכר מרחוק", "מכירה שנעשית בלי לפגוש את המוכר, למשל באינטרנט או בטלפון"],
+      ["Distance sale", "a sale in which the buyer and the seller never meet face to face", "עסקת מכר מרחוק", "מכירה שבה הקונה והמוכר לא נפגשים פנים אל פנים"],
       ["Credit note", "a note from a shop that lets you buy something else there for the same value, instead of cash", "פתק זיכוי", "שובר מחנות שמאפשר לקנות בה משהו אחר באותו ערך, במקום לקבל מזומן"],
       ["Fine print", "the small, easy-to-miss text in a contract or an advert that holds important conditions", "האותיות הקטנות", "הטקסט הזעיר, שקל לפספס, בחוזה או בפרסומת, ובו תנאים חשובים"],
     ],
@@ -42,8 +42,8 @@ const c: TopicContent = {
       [["Which of these purchases is a distance sale?", "Ordering shoes from a website", ["Buying shoes in a shop after trying them on in front of the mirror", "Buying bread at the corner shop", "Swapping stickers with a friend"], "In a distance sale the buyer and the seller do not meet, as when you order online or by phone. Buying in a shop, where you can see and try the item, is not a distance sale."],
         ["איזו מהקניות האלה היא עסקת מכר מרחוק?", "הזמנת נעליים מאתר אינטרנט", ["קניית נעליים בחנות אחרי שמדדתם אותן מול המראה", "קניית לחם במכולת השכונתית", "החלפת מדבקות עם חבר"], "בעסקת מכר מרחוק הקונה והמוכר לא נפגשים, כמו כשמזמינים באינטרנט או בטלפון. קנייה בחנות, שבה אפשר לראות ולמדוד את המוצר, אינה עסקת מכר מרחוק."]],
     ],
-    n: [[50, ["You cancel an online order that cost 1,000 shekels. The fee may be 5% of the price or 100 shekels, whichever is lower. How many shekels is the fee?", "shekels", "5% of 1,000 is 50 shekels, which is lower than 100 shekels, so the fee is 50 shekels."],
-      ["ביטלתם הזמנה מהאינטרנט שעלתה 1,000 שקלים. דמי הביטול יכולים להיות 5% מהמחיר או 100 שקלים, הנמוך מביניהם. כמה שקלים הם דמי הביטול?", "שקלים", "החישוב: 5% מ־1,000 הם 50 שקלים, וזה פחות מ־100 שקלים, ולכן דמי הביטול הם 50 שקלים."]]],
+    n: [[50, ["You cancel an online order that cost 1,000 shekels, and the business keeps the largest cancellation fee the law allows. How many shekels is the fee?", "shekels", "The fee may be at most 5% of the price or 100 shekels, whichever is lower. 5% of 1,000 is 50 shekels, which is lower than 100 shekels, so the fee is 50 shekels."],
+      ["ביטלתם הזמנה מהאינטרנט שעלתה 1,000 שקלים, והעסק גובה את דמי הביטול הגבוהים ביותר שהחוק מתיר. כמה שקלים הם דמי הביטול?", "שקלים", "דמי הביטול יכולים להיות לכל היותר 5% מהמחיר או 100 שקלים, הנמוך מביניהם. 5% מ־1,000 הם 50 שקלים, וזה פחות מ־100 שקלים, ולכן דמי הביטול הם 50 שקלים."]]],
     s: [[["What to do when a product you bought turns out to be faulty, in order", "Stop using it and find the receipt and the warranty", "Contact the shop or the service centre named in the warranty", "Explain the fault and ask for a repair, a replacement or a refund", "If they refuse, send a written complaint and keep a copy", "If it is still not solved, turn to the consumer authority or a small claims court"],
       ["מה עושים כשמוצר שקניתם מתגלה כפגום, לפי הסדר", "מפסיקים להשתמש בו ומוצאים את הקבלה ואת תעודת האחריות", "פונים לחנות או למעבדת השירות שכתובה בתעודת האחריות", "מסבירים מה התקלה ומבקשים תיקון, החלפה או החזר כספי", "אם מסרבים, שולחים תלונה בכתב ושומרים עותק", "אם הבעיה עדיין לא נפתרה, פונים לרשות להגנת הצרכן או לבית משפט לתביעות קטנות"]]],
   },
@@ -52,7 +52,7 @@ const c: TopicContent = {
       ["Small claims court", "a simple court for disputes over small sums, where people can sue without a lawyer", "בית משפט לתביעות קטנות", "ערכאה פשוטה לסכסוכים על סכומים קטנים, שבה אפשר לתבוע בלי עורך דין"],
       ["Misleading advertising", "an advert that makes people believe something false about a product", "פרסום מטעה", "פרסומת שגורמת לאנשים להאמין במשהו לא נכון על מוצר"],
       ["Class action", "one lawsuit brought on behalf of a whole group of people harmed in the same way", "תובענה ייצוגית", "תביעה אחת שמוגשת בשם קבוצה שלמה של אנשים שנפגעו באותה דרך"],
-      ["Unfair term", "a condition in a contract that is unfairly harsh on the customer, which a court can cancel", "תנאי מקפח", "סעיף בחוזה שפוגע בלקוח שלא בהגינות, ושבית משפט יכול לבטל"],
+      ["Unfair term", "a condition in a ready-made contract that is unfairly harsh on the customer", "תנאי מקפח", "סעיף בחוזה מוכן מראש שפוגע בלקוח שלא בהגינות"],
     ],
     q: [
       [["A gym's standard contract says, in tiny letters, that the gym may raise the price at any time and that you can never cancel. What can a court in Israel do with such a clause?", "Cancel it as an unfair term in a standard contract", ["Nothing, because anything you sign must always be kept exactly as it is written", "Double the price", "Order the gym to close"], "Under Israel's Standard Contracts Law, a court can cancel or change a term in a ready-made contract that unfairly harms the customer, even if the customer signed it."],

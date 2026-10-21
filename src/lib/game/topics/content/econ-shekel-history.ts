@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Shekel", "Israel's money; in ancient times it was a weight of silver", "שקל", "הכסף של ישראל; בימי קדם זו הייתה יחידה לשקילת מתכות יקרות כמו כסף"],
-      ["New shekel", "Israel's currency since 1985, written ₪ or NIS", "שקל חדש", "המטבע של ישראל מאז 1985, שמסומן ₪ או ש״ח"],
-      ["Bank of Israel", "the central bank that issues the country's banknotes and coins", "בנק ישראל", "הבנק המרכזי שמנפיק את השטרות ואת המטבעות של המדינה"],
+      ["Shekel", "the money that replaced the Israeli lira in 1980", "שקל", "הכסף שהחליף את הלירה הישראלית ב־1980"],
+      ["New shekel", "Israel's currency since 1985, divided into 100 agorot", "שקל חדש", "המטבע של ישראל מאז 1985, שמתחלק ל־100 אגורות"],
+      ["Bank of Israel", "Israel's central bank, which sets the country's main interest rate", "בנק ישראל", "הבנק המרכזי של ישראל, שקובע את הריבית העיקרית במשק"],
     ],
     q: [
       [["What does the symbol ₪ stand for?", "New shekel", ["Israeli lira", "Palestine pound", "Agora"], "₪ joins the Hebrew letters shin and het, the first letters of \"shekel hadash\", which means new shekel. The lira and the Palestine pound were Israel's older money."],
@@ -16,8 +16,8 @@ const c: TopicContent = {
         ["מאיפה מגיעה המילה ״שקל״?", "מפועל עברי עתיק שפירושו לשקול", ["משמו של מלך קדום של יהודה", "מהמילה היוונית למטבע עגול", "מהצליל שמטבע עושה כשהוא נופל"], "בעבר שילמו בשקילת כסף, והשקל היה יחידת משקל. בתנ״ך אברהם משלם 400 שקל כסף על מערת המכפלה."]],
       [["Rachel, Shaul Tchernichovsky, Leah Goldberg and Nathan Alterman appear on today's banknotes. What do they have in common?", "They were all Hebrew poets", ["They were all prime ministers of Israel", "They were all governors of the Bank of Israel", "They were all famous football players"], "The banknote series issued from 2014 honours four great Hebrew poets: Rachel on 20 ₪, Tchernichovsky on 50 ₪, Leah Goldberg on 100 ₪ and Alterman on 200 ₪."],
         ["רחל, שאול טשרניחובסקי, לאה גולדברג ונתן אלתרמן מופיעים על השטרות של היום. מה משותף להם?", "כולם היו משוררים עבריים", ["כולם היו ראשי ממשלה של ישראל", "כולם היו נגידי בנק ישראל", "כולם היו שחקני כדורגל מפורסמים"], "סדרת השטרות שהונפקה החל מ־2014 מוקדשת לארבעה משוררים עבריים גדולים: רחל על 20 ₪, טשרניחובסקי על 50 ₪, לאה גולדברג על 100 ₪ ואלתרמן על 200 ₪."]],
-      [["Which of these is a real coin of today's new shekel?", "2 shekels", ["3 shekels", "4 shekels", "20 agorot"], "Today's coins are 10 agorot, half a shekel, and 1, 2, 5 and 10 shekels. There is no coin of 3 shekels, 4 shekels or 20 agorot."],
-        ["איזה מאלה הוא מטבע אמיתי של השקל החדש היום?", "2 שקלים", ["3 שקלים", "4 שקלים", "20 אגורות"], "המטבעות של היום הם 10 אגורות, חצי שקל, ו־1, 2, 5 ו־10 שקלים. אין מטבע של 3 שקלים, של 4 שקלים או של 20 אגורות."]],
+      [["Which of these is a real coin in use in Israel today?", "2 shekels", ["3 shekels", "4 shekels", "20 agorot"], "Today's coins are 10 agorot, half a shekel, and 1, 2, 5 and 10 shekels. There is no coin of 3 shekels, 4 shekels or 20 agorot."],
+        ["איזה מאלה הוא מטבע אמיתי שמשתמשים בו בישראל היום?", "2 שקלים", ["3 שקלים", "4 שקלים", "20 אגורות"], "המטבעות של היום הם 10 אגורות, חצי שקל, ו־1, 2, 5 ו־10 שקלים. אין מטבע של 3 שקלים, של 4 שקלים או של 20 אגורות."]],
     ],
     n: [[500, ["Until 1960 the Israeli lira was split into 1,000 prutot. How many prutot were there in half a lira?", "", "Half a lira is half of its 1,000 prutot: 1,000 ÷ 2 = 500 prutot."],
       ["עד 1960 הלירה הישראלית התחלקה ל־1,000 פרוטות. כמה פרוטות היו בחצי לירה?", "", "חצי לירה הוא חצי מ־1,000 הפרוטות שבה: 1,000 ÷ 2 = 500 פרוטות."]]],
@@ -26,7 +26,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Palestine pound", "the money of the British Mandate, in use from 1927 and split into 1,000 mils", "לירה ארץ־ישראלית", "הכסף של תקופת המנדט הבריטי, שהיה בשימוש מ־1927 וחולק ל־1,000 מיל"],
+      ["Palestine pound", "the money used in the land of Israel from 1927 until 1948, split into 1,000 mils", "לירה ארץ־ישראלית", "הכסף שהיה בשימוש בארץ ישראל מ־1927 ועד 1948, וחולק ל־1,000 מיל"],
       ["Pruta", "the small coin of the early Israeli lira; 1,000 of them made one lira", "פרוטה", "המטבע הקטן של הלירה הישראלית בשנותיה הראשונות; 1,000 כאלה היו לירה אחת"],
       ["Hyperinflation", "prices rising so fast that money loses much of its value within months", "היפר־אינפלציה", "עליית מחירים מהירה כל כך, שהכסף מאבד חלק גדול מערכו בתוך חודשים"],
     ],
@@ -51,9 +51,9 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Currency reform", "replacing the unit of money with a new one that drops zeros, without changing what money buys", "רפורמה במטבע", "החלפת יחידת הכסף ביחידה חדשה שמוחקת אפסים, בלי לשנות את מה שאפשר לקנות בכסף"],
+      ["Currency reform", "replacing a country's unit of money with a new one, for example by dropping zeros", "רפורמה במטבע", "החלפת יחידת הכסף של מדינה ביחידה חדשה, למשל במחיקת אפסים"],
       ["Exchange rate", "the price of one country's money in another country's money", "שער חליפין", "המחיר של הכסף של מדינה אחת במונחים של הכסף של מדינה אחרת"],
-      ["Stabilisation plan", "the 1985 economic plan that cut the budget deficit and brought Israel's hyperinflation down", "התוכנית לייצוב המשק", "התוכנית הכלכלית של 1985, שצמצמה את הגירעון בתקציב ועצרה את ההיפר־אינפלציה בישראל"],
+      ["Stabilisation plan", "the 1985 economic plan that brought Israel's hyperinflation down", "התוכנית לייצוב המשק", "התוכנית הכלכלית של 1985, שעצרה את ההיפר־אינפלציה בישראל"],
     ],
     q: [
       [["A currency reform drops three zeros from every price, wage and bank balance. What does it do to people's wealth?", "Nothing: prices and wages are divided by the same number", ["It makes them poorer, because savings shrink a thousand times", "It makes them richer, because every price is 1,000 times smaller", "It makes them richer, because new banknotes are worth more"], "If a salary of 3,000,000 becomes 3,000 and a loaf of 1,000 becomes 1, a month's pay still buys the same 3,000 loaves. Only the numbers change."],

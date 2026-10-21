@@ -15,6 +15,8 @@ const c: TopicContent = {
         ["איזו עיר היא בירת מצרים?", "קהיר", ["אלכסנדריה", "לאגוס", "ניירובי"], "קהיר, על גדות הנילוס, היא הבירה והעיר הגדולה ביותר של מצרים. אלכסנדריה היא נמל גדול בחוף הים התיכון, לאגוס היא העיר הגדולה ביותר בניגריה וניירובי היא בירת קניה."]],
       [["What is the capital of China?", "Beijing", ["Shanghai", "Hong Kong", "Tokyo"], "Beijing is the capital of China. Shanghai is a huge port city on China's east coast, and Tokyo is the capital of Japan."],
         ["מהי בירת סין?", "בייג׳ינג", ["שנגחאי", "הונג קונג", "טוקיו"], "בייג׳ינג היא בירת סין. שנגחאי היא עיר נמל ענקית בחוף המזרחי של סין, וטוקיו היא בירת יפן."]],
+      [["Which city is the capital of Lebanon, Israel's neighbour to the north?", "Beirut", ["Damascus", "Baghdad", "Nicosia"], "Beirut, on the Mediterranean coast, is the capital and the largest city of Lebanon. Damascus is the capital of Syria, Baghdad of Iraq and Nicosia of Cyprus."],
+        ["איזו עיר היא בירת לבנון, השכנה של ישראל מצפון?", "ביירות", ["דמשק", "בגדד", "ניקוסיה"], "ביירות, לחוף הים התיכון, היא הבירה והעיר הגדולה ביותר של לבנון. דמשק היא בירת סוריה, בגדד היא בירת עיראק וניקוסיה היא בירת קפריסין."]],
     ],
   },
   i: {
@@ -41,7 +43,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Abuja", "the capital of Nigeria since 1991, a planned city built in the middle of the country to replace Lagos", "אבוג׳ה", "בירת ניגריה מאז 1991, עיר מתוכננת שנבנתה במרכז המדינה במקום לאגוס"],
+      ["Abuja", "the capital of Nigeria since 1991, a planned city built from scratch", "אבוג׳ה", "בירת ניגריה מאז 1991, עיר מתוכננת שנבנתה מאפס"],
       ["Rabat", "the capital of Morocco, on the Atlantic coast, although Casablanca is its largest city", "רבאט", "בירת מרוקו, לחוף האוקיינוס האטלנטי, אף שקזבלנקה היא העיר הגדולה בה"],
       ["Addis Ababa", "the capital of Ethiopia, high in the mountains, where the African Union has its headquarters", "אדיס אבבה", "בירת אתיופיה, גבוה בהרים, שבה נמצא המטה של האיחוד האפריקאי"],
       ["Kyoto", "the old capital of Japan, home of the emperors for more than a thousand years until 1869", "קיוטו", "הבירה הישנה של יפן, מקום מושבם של הקיסרים יותר מאלף שנה, עד 1869"],
@@ -58,8 +60,8 @@ const c: TopicContent = {
     ],
     n: [[54, ["How many countries in Africa are members of the United Nations?", "countries", "Africa has 54 UN member countries, more than any other continent."],
       ["כמה מדינות באפריקה חברות באו״ם?", "מדינות", "באפריקה יש 54 מדינות שחברות באו״ם, יותר מבכל יבשת אחרת."]]],
-    s: [[["Capitals from north to south", "Tunis (Tunisia)", "Cairo (Egypt)", "Addis Ababa (Ethiopia)", "Nairobi (Kenya)", "Pretoria (South Africa)"],
-      ["בירות מצפון לדרום", "תוניס (תוניסיה)", "קהיר (מצרים)", "אדיס אבבה (אתיופיה)", "ניירובי (קניה)", "פרטוריה (דרום אפריקה)"]]],
+    s: [[["Capitals from north to south", "Tunis (Tunisia)", "Cairo (Egypt)", "Addis Ababa (Ethiopia)", "Nairobi (Kenya)", "Harare (Zimbabwe)"],
+      ["בירות מצפון לדרום", "תוניס (תוניסיה)", "קהיר (מצרים)", "אדיס אבבה (אתיופיה)", "ניירובי (קניה)", "הררה (זימבבואה)"]]],
   },
 };
 export default c;

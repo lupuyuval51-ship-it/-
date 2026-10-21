@@ -10,8 +10,8 @@ const c: TopicContent = {
     q: [
       [["A farmer has eggs and wants shoes, but the shoemaker does not want eggs. What is the problem with barter here?", "The shoemaker does not want what the farmer has", ["The shoes cost more than every egg in the whole village", "Barter was only allowed on market days", "Eggs and shoes are not real goods"], "Barter only works when each side wants what the other has. Money solves this: the farmer can sell eggs to anyone and pay the shoemaker with the money."],
         ["לחקלאית יש ביצים והיא רוצה נעליים, אבל הסנדלר לא רוצה ביצים. מה הבעיה בסחר החליפין כאן?", "הסנדלר לא רוצה את מה שיש לחקלאית", ["הנעליים עולות יותר מכל הביצים בכפר כולו", "סחר חליפין היה מותר רק בימי שוק", "ביצים ונעליים הן לא סחורות אמיתיות"], "סחר חליפין עובד רק כשכל צד רוצה את מה שיש לצד השני. כסף פותר את זה: החקלאית מוכרת ביצים למי שרוצה ומשלמת לסנדלר בכסף."]],
-      [["Which of these was used as money long ago?", "Cowrie shells", ["Plastic bottles", "Paper clips", "Light bulbs"], "Cowrie shells were small, strong, easy to count and hard to fake, so for centuries people in parts of Africa and Asia used them as money. Plastic, paper clips and light bulbs were invented much later."],
-        ["איזה מאלה שימש ככסף לפני הרבה שנים?", "צדפות קאורי", ["בקבוקי פלסטיק", "מהדקי נייר", "נורות חשמל"], "צדפות קאורי היו קטנות, חזקות, קלות לספירה וקשות לזיוף, ולכן במשך מאות שנים השתמשו בהן ככסף בחלקים של אפריקה ואסיה. פלסטיק, מהדקים ונורות הומצאו הרבה יותר מאוחר."]],
+      [["Why did cowrie shells work well as money for hundreds of years?", "They were strong, easy to count and hard to fake", ["They washed up on every beach, so anyone could collect more", "They were big enough to write prices on", "They tasted good, so they could also be eaten"], "Cowries are tough, all about the same size and very hard to copy, and most came from a few far-off islands such as the Maldives, so they stayed scarce. Shells that anyone could pick up for free would soon have been worth nothing."],
+        ["למה צדפות קאורי התאימו לשמש ככסף במשך מאות שנים?", "הן היו חזקות, קלות לספירה וקשות לזיוף", ["הן נפלטו לכל חוף, כך שכל אחד יכול היה לאסוף עוד", "הן היו גדולות מספיק כדי לכתוב עליהן מחירים", "היה להן טעם טוב, כך שאפשר היה גם לאכול אותן"], "צדפות קאורי קשות, כמעט כולן באותו גודל וקשה מאוד לחקות אותן, ורובן הגיעו מכמה איים רחוקים כמו האיים המלדיביים, ולכן הן נשארו נדירות. צדפות שכל אחד יכול להרים בחינם היו מאבדות מהר את ערכן."]],
       [["Which of these came first in history?", "Barter", ["Paper money", "Credit cards", "Payment apps"], "People swapped goods directly thousands of years ago. Paper money came about 1,000 years ago, plastic cards in the 20th century and payment apps only in our own time."],
         ["מה מאלה הופיע ראשון בהיסטוריה?", "סחר חליפין", ["כסף מנייר", "כרטיסי אשראי", "אפליקציות תשלום"], "אנשים החליפו סחורות זו בזו כבר לפני אלפי שנים. כסף מנייר הופיע לפני כ־1,000 שנה, כרטיסי פלסטיק במאה ה־20 ואפליקציות תשלום רק בימינו."]],
       [["Why were many old coins made of gold and silver?", "These metals were valuable and did not rot or rust", ["Gold and silver could be picked up in every garden and field", "They were the only metals that people could melt", "They were lighter than feathers"], "Gold and silver are rare, so a little is worth a lot, and they last for a very long time. Coins made of them kept their value for hundreds of years."],
@@ -19,15 +19,15 @@ const c: TopicContent = {
       [["In which country was paper money first used, about 1,000 years ago?", "China", ["Italy", "England", "Egypt"], "Chinese merchants and then the Chinese government used paper notes about 1,000 years ago. Europe started using banknotes only hundreds of years later."],
         ["באיזו ארץ השתמשו לראשונה בכסף מנייר, לפני כ־1,000 שנה?", "סין", ["איטליה", "אנגליה", "מצרים"], "סוחרים בסין, ואחריהם השלטון הסיני, השתמשו בשטרות מנייר לפני כ־1,000 שנה. באירופה התחילו להשתמש בשטרות רק מאות שנים אחר כך."]],
     ],
-    n: [[12, ["In a barter village, 3 chickens can be swapped for 1 goat. How many chickens are needed for 4 goats?", "", "Each goat costs 3 chickens, so 4 goats cost 3 × 4 = 12 chickens."],
-      ["בכפר של סחר חליפין אפשר להחליף 3 תרנגולות בעז אחת. כמה תרנגולות צריך בשביל 4 עזים?", "", "כל עז שווה 3 תרנגולות, ולכן 4 עזים שוות 3 × 4 = 12 תרנגולות."]]],
-    s: [[["The story of money, from the oldest to the newest", "Using things like shells and grain as money", "The first metal coins, in Lydia", "The first paper money, in China", "Plastic payment cards", "Paying with an app on a phone"],
-      ["סיפור הכסף, מהישן ביותר לחדש ביותר", "שימוש בדברים כמו צדפות ותבואה ככסף", "המטבעות הראשונים ממתכת, בלידיה", "הכסף הראשון מנייר, בסין", "כרטיסי תשלום מפלסטיק", "תשלום באפליקציה בטלפון"]]],
+    n: [[12, ["In a village with no money, 3 chickens can be swapped for 1 goat. How many chickens are needed for 4 goats?", "", "Each goat costs 3 chickens, so 4 goats cost 3 × 4 = 12 chickens."],
+      ["בכפר שאין בו כסף אפשר להחליף 3 תרנגולות בעז אחת. כמה תרנגולות צריך בשביל 4 עזים?", "", "כל עז שווה 3 תרנגולות, ולכן 4 עזים שוות 3 × 4 = 12 תרנגולות."]]],
+    s: [[["The story of money, from the oldest to the newest", "Using things like shells and grain as money", "The first metal coins, in Lydia", "The first banknotes made of paper", "Plastic payment cards", "Paying with an app on a phone"],
+      ["סיפור הכסף, מהישן ביותר לחדש ביותר", "שימוש בדברים כמו צדפות ותבואה ככסף", "המטבעות הראשונים ממתכת, בלידיה", "השטרות הראשונים מנייר", "כרטיסי תשלום מפלסטיק", "תשלום באפליקציה בטלפון"]]],
   },
   i: {
     t: [
       ["Commodity money", "an object that is useful or valuable in itself and is used for paying, like salt or grain", "כסף סחורתי", "חפץ שיש לו שימוש או ערך משלו ושמשלמים בו, כמו מלח או תבואה"],
-      ["Moneychanger", "a person who swapped one city's coins for another's, often at a bench in the market", "חלפן כספים", "אדם שהחליף מטבעות של עיר אחת במטבעות של עיר אחרת, לרוב ליד ספסל בשוק"],
+      ["Moneychanger", "a person who swapped one city's or country's coins for another's, for a small fee", "חלפן כספים", "אדם שהחליף מטבעות של עיר או ארץ אחת במטבעות של אחרת, תמורת עמלה קטנה"],
       ["Counterfeit money", "fake notes or coins made to cheat people", "כסף מזויף", "שטרות או מטבעות לא אמיתיים שמכינים כדי לרמות"],
     ],
     q: [

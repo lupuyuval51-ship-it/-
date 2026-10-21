@@ -5,16 +5,16 @@ const c: TopicContent = {
     t: [
       ["Gross pay", "the full amount earned in the pay period, before anything is taken off", "שכר ברוטו", "הסכום המלא שהרווחתם בתקופת התשלום, לפני שמורידים ממנו משהו"],
       ["Net pay", "the money that actually reaches your bank account after everything is taken off", "שכר נטו", "הכסף שמגיע בפועל לחשבון הבנק שלכם אחרי שהורידו את כל מה שצריך"],
-      ["Deduction", "an amount taken off the pay, such as income tax or a pension payment", "ניכוי", "סכום שמורידים מהשכר, כמו מס הכנסה או תשלום לפנסיה"],
-      ["Payslip", "the monthly document from the employer that shows how the pay was worked out", "תלוש שכר", "מסמך חודשי מהמעסיק שמראה איך חושב השכר"],
+      ["Deduction", "an amount taken off the pay, such as a payment into a pension fund", "ניכוי", "סכום שמורידים מהשכר, כמו תשלום לקרן הפנסיה"],
+      ["Payslip", "the monthly document that shows how a worker's pay was worked out", "תלוש שכר", "מסמך חודשי שמראה איך חושב השכר של העובד"],
     ],
     q: [
       [["Which of these figures on a payslip is normally the largest?", "Gross pay", ["Net pay", "Income tax", "The pension deduction"], "Net pay is what is left after tax and the other deductions are taken off the gross pay, so the gross figure is the largest: the tax and the deductions are only parts of it."],
         ["איזה מהסכומים האלה בתלוש השכר הוא בדרך כלל הגדול ביותר?", "השכר ברוטו", ["השכר נטו", "מס ההכנסה", "הניכוי לפנסיה"], "השכר נטו הוא מה שנשאר אחרי שמורידים מהברוטו מס וניכויים אחרים, ולכן הברוטו הוא הסכום הגדול ביותר: המס והניכויים הם רק חלקים ממנו."]],
       [["Who gives a worker a payslip?", "The employer", ["The tax authority", "The worker's bank", "The worker's old school"], "The employer works out the pay, takes off the deductions and gives the worker a payslip that shows how it was all calculated."],
         ["מי נותן לעובד תלוש שכר?", "המעסיק", ["רשות המסים", "הבנק של העובד", "בית הספר שבו העובד למד"], "המעסיק מחשב את השכר, מוריד ממנו את הניכויים ונותן לעובד תלוש שמראה איך הכול חושב."]],
-      [["Where does the income tax taken from your pay end up?", "With the state, to pay for public services", ["With the employer, as part of the firm's profit", "In a savings account in your own name", "In the shops where you buy your food"], "The employer passes the income tax it takes from your pay on to the tax authority, and the state uses tax money for schools, roads, hospitals and other services."],
-        ["לאן מגיע מס ההכנסה שמורידים מהשכר שלכם?", "למדינה, שמממנת בו שירותים ציבוריים", ["למעסיק, שמוסיף אותו לרווח של החברה שלו", "לחשבון חיסכון שנפתח על שמכם", "לחנויות שבהן אתם קונים אוכל"], "המעסיק מעביר את מס ההכנסה שהוריד מהשכר לרשות המסים, והמדינה משתמשת בכספי המסים לבתי ספר, לכבישים, לבתי חולים ולשירותים נוספים."]],
+      [["Where does the income tax shown on your payslip end up?", "With the state, to pay for public services", ["With the employer, as part of the firm's profit", "In a savings account in your own name", "In the shops where you buy your food"], "The employer passes the income tax it takes from your pay on to the tax authority, and the state uses tax money for schools, roads, hospitals and other services."],
+        ["לאן מגיע מס ההכנסה שמופיע בתלוש השכר שלכם?", "למדינה, שמממנת בו שירותים ציבוריים", ["למעסיק, שמוסיף אותו לרווח של החברה שלו", "לחשבון חיסכון שנפתח על שמכם", "לחנויות שבהן אתם קונים אוכל"], "המעסיק מעביר את מס ההכנסה שהוריד מהשכר לרשות המסים, והמדינה משתמשת בכספי המסים לבתי ספר, לכבישים, לבתי חולים ולשירותים נוספים."]],
       [["Which line on a payslip is a deduction?", "Income tax", ["Overtime pay", "Base salary", "Hours worked"], "Income tax is taken off the pay. Overtime pay and base salary are added together to make the gross pay, and hours worked is only a count."],
         ["איזו שורה בתלוש השכר היא ניכוי?", "מס הכנסה", ["תשלום על שעות נוספות", "שכר יסוד", "מספר שעות העבודה"], "מס הכנסה יורד מהשכר. התשלום על שעות נוספות ושכר היסוד מצטרפים יחד לשכר ברוטו, ומספר שעות העבודה הוא רק נתון."]],
       [["Why is it worth checking your payslip every month?", "To catch mistakes in hours, pay or deductions", ["Because you must sign it and send it to the tax authority", "Because the bank will not pay you without seeing it", "Because a payslip works like a lottery ticket"], "Mistakes happen: a missing hour or a wrong deduction changes what you receive, and you can only ask for a fix for what you have noticed."],
@@ -25,8 +25,8 @@ const c: TopicContent = {
         ["עובד עבד 80 שעות בחודש בשכר של 40 ₪ לשעה. מהו השכר ברוטו?", "₪", "שכר ברוטו הוא מספר השעות כפול השכר לשעה: 80 × 40 = 3,200 ₪, לפני שמורידים ממנו ניכויים."]],
     ],
     s: [
-      [["From work to money in the bank", "You work your hours during the month", "The employer adds up your gross pay", "Tax and other deductions are taken off", "The net pay is paid into your bank account"],
-        ["מהעבודה ועד הכסף בבנק", "עובדים את השעות במהלך החודש", "המעסיק מחשב את השכר ברוטו", "מורידים מהשכר מס וניכויים אחרים", "השכר נטו מועבר לחשבון הבנק"]],
+      [["From work to money in the bank", "You work your hours during the month", "Your pay for those hours is worked out", "The deductions are taken off the pay", "The net pay is paid into your bank account"],
+        ["מהעבודה ועד הכסף בבנק", "עובדים את השעות במהלך החודש", "מחשבים כמה הרווחתם על השעות האלה", "מורידים מהשכר את הניכויים", "השכר נטו מועבר לחשבון הבנק"]],
     ],
   },
   i: {
@@ -34,7 +34,7 @@ const c: TopicContent = {
       ["National Insurance", "a compulsory payment from pay that funds state benefits such as old-age, unemployment and maternity pay", "ביטוח לאומי", "תשלום חובה מהשכר שמממן קצבאות של המדינה, כמו קצבת זקנה, דמי אבטלה ודמי לידה"],
       ["Health tax", "in Israel, a compulsory payment from pay that helps fund the health care every resident gets through a health fund", "מס בריאות", "בישראל, תשלום חובה מהשכר שעוזר לממן את שירותי הבריאות שכל תושב מקבל דרך קופת חולים"],
       ["Overtime", "hours worked beyond the normal working day, usually paid at a higher rate", "שעות נוספות", "שעות עבודה מעבר ליום העבודה הרגיל, שמשולמות בדרך כלל בתעריף גבוה יותר"],
-      ["Employer contribution", "money the employer pays on top of your pay, for example into your pension, without taking it off your pay", "הפרשת מעסיק", "כסף שהמעסיק משלם מעבר לשכר שלכם, למשל לקרן הפנסיה, בלי להוריד אותו מהשכר"],
+      ["Employer contribution", "money the employer pays into a worker's pension fund or other funds", "הפרשת מעסיק", "כסף שהמעסיק מפריש לקרן הפנסיה של העובד או לקרנות אחרות"],
     ],
     q: [
       [["Your payslip's pension lines show your own contribution and an employer contribution. Which statement is true?", "Only your own part is taken off your gross pay", ["Both parts are taken off your gross pay", "Neither part ever reaches your pension fund", "The employer's part is sent to the tax authority instead"], "Your own contribution is a deduction; the employer's contribution is extra money paid into the same fund on top of your pay. Both reach your pension, but only yours lowers your net pay."],
@@ -60,7 +60,7 @@ const c: TopicContent = {
       ["Tax credit points", "units that lower the income tax a person in Israel pays; residents, parents and others receive them", "נקודות זיכוי", "יחידות שמקטינות את מס ההכנסה שאדם בישראל משלם; תושבים, הורים ואחרים מקבלים אותן"],
       ["Marginal tax rate", "the rate charged on the next shekel earned, set by the highest bracket the income reaches", "שיעור מס שולי", "השיעור שנגבה על השקל הבא שמרוויחים, לפי המדרגה הגבוהה ביותר שההכנסה מגיעה אליה"],
       ["Study fund", "in Israel, a savings fund that worker and employer pay into, which can usually be withdrawn after six years", "קרן השתלמות", "בישראל, קופת חיסכון שהעובד והמעסיק מפרישים אליה, ובדרך כלל אפשר למשוך ממנה אחרי שש שנים"],
-      ["Employer cost", "the full price of a job to the employer: the gross pay plus the employer's own contributions", "עלות מעביד", "המחיר המלא של משרה למעסיק: השכר ברוטו ועוד ההפרשות שהוא משלם בעצמו"],
+      ["Employer cost", "the full amount that a job costs the employer every month", "עלות מעביד", "הסכום המלא שמשרה עולה למעסיק בכל חודש"],
     ],
     q: [
       [["After a raise you move into a higher tax bracket. A friend says you will now take home less than before. What is wrong with that?", "Only the income above the threshold pays the higher rate", ["Nothing: crossing into a higher bracket raises the tax on every shekel", "Tax brackets apply to employers, not to workers", "Higher brackets actually have lower tax rates"], "Brackets work in slices: income below the threshold is still taxed at the lower rate and only the extra part pays more, so after a raise you still take home more than before."],
