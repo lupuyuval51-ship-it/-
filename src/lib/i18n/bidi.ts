@@ -24,7 +24,7 @@ const VAR = String.raw`(?:x(?![A-Za-z])|\p{Script=Greek}(?!\p{L}))`;
 const OPERAND = String.raw`(?:${SIGN}√?(?:${PI}|${NUM}(?:${VAR}\d*)?)|x\d*|${VAR}|…|☐)${SUP}`;
 // between two operands: a maths sign or a comparison ("12 > 10", "1 == 1", "7 // 2", "n * 2" in a code lesson), a hyphen with a
 // space on each side ("5 - 3"; a hyphen glued to a word is not one), or a colon with no space ("15:40", "3:4"; "0.333…: " ends a clause)
-const OP = String.raw`(?:\s*(?:[=!<>]=|\/\/|[×÷−+=≈/<>≤≥*·])\s*|\s+-\s+|:(?=\d))`;
+const OP = String.raw`(?:\s*(?:[=!<>]=|\/\/|[×÷−+=≈/<>≤≥*·])\s*|\s+[-☐]\s+|:(?=\d))`;
 // a bracket: "(2 + 3)", a point or a vector "(2, −3)", a root "√(21 × 8)", raised to a power "(√4)³"
 const PAREN = String.raw`√?\(\s*${OPERAND}(?:(?:${OP}|,\s*)${OPERAND})*\s*\)${SUP}`;
 // an absolute value: "|−5|"
@@ -41,13 +41,17 @@ export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\
 /*
  * Latin letters with maths or code: "3x + 2y = 16", "a + 2b", "=SUM(A1:A3)", "C1", "IPv6", "3D", "C++", "log₂ 10", "sin 2 ≈ 0.91".
  * The number runs above would cut them apart ("C1" drawn "1C", "16 = 3x + 2y" mirrored), so each such piece of the line is one
- * run of its own: the stretch between two Hebrew words, cut at list and sentence breaks (", " ". " ": ") and at a right-to-left
- * arrow (←), without the punctuation around it. A piece of plain words ("JPEG", "Shift, Enter") is left to the bidi algorithm.
+ * run of its own: the stretch between two Hebrew words, cut at list and sentence breaks (", " ". " "? ") outside brackets and at
+ * a right-to-left arrow (←), never at ": " or "; " (one line of code: "def add(a, b): return a + b"), without the punctuation
+ * around it. A piece of plain words ("JPEG", "Shift, Enter") is left to the bidi algorithm.
  */
 const STRETCH = /[^\p{Script=Hebrew}]+/gu;
-const BREAK = /[,;:.?!]\s+|\s*←\s*/gu;
+const BREAK = /[,.?!]\s+|\s*←\s*/gu;
 const MATHS_OR_CODE = /\d|[=+×÷−*/^≈<>≤≥()[\]·°⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉]/u;
 const count = (s: string, c: string) => s.split(c).length - 1;
+
+/** A line of code keeps the ";" or ":" it ends with ("const total = 10;", "class Puppy(Dog):"), or the bidi algorithm draws it in front. */
+const keepsEnd = (piece: string) => /;$/u.test(piece) || /^(?:def|class|for|while|if|elif|else|try|except|with)\b.*:$/u.test(piece);
 
 /** A piece without the spaces, punctuation and unpaired brackets or quotes around it. */
 function trimPiece(text: string, from: number, to: number, afterHebrew: boolean): [number, number] {
@@ -57,7 +61,7 @@ function trimPiece(text: string, from: number, to: number, afterHebrew: boolean)
     const piece = text.slice(a, b), first = text[a]!, lastChar = text[b - 1]!;
     // "ל-A4": a hyphen glued to the Hebrew word before is a prefix, not a minus
     if (/[\s,;:.?!)\]]/u.test(first) || (first === "-" && a === from && afterHebrew) || (first === "(" && count(piece, "(") > count(piece, ")")) || (/["']/u.test(first) && count(piece, first) % 2 === 1)) { a++; changed = true; continue; }
-    if (/[\s,;:.?!([-]/u.test(lastChar) || (lastChar === ")" && count(piece, ")") > count(piece, "(")) || (lastChar === "]" && count(piece, "]") > count(piece, "[")) || (/["']/u.test(lastChar) && count(piece, lastChar) % 2 === 1)) { b--; changed = true; }
+    if ((/[\s,;:.?!([-]/u.test(lastChar) && !keepsEnd(piece)) || (lastChar === ")" && count(piece, ")") > count(piece, "(")) || (lastChar === "]" && count(piece, "]") > count(piece, "[")) || (/["']/u.test(lastChar) && count(piece, lastChar) % 2 === 1)) { b--; changed = true; }
   }
   return [a, b];
 }
@@ -76,7 +80,7 @@ function latinPieces(text: string): [number, number][] {
     for (const cut of m[0].matchAll(BREAK)) {
       // a comma inside brackets is not a list: "P(2, 6)", "(x, y)", "(on Monday, on 5 May)"
       const before = m[0].slice(0, cut.index!);
-      if (count(before, "(") > count(before, ")")) continue;
+      if (count(before, "(") > count(before, ")") || count(before, "[") > count(before, "]") || count(before, "{") > count(before, "}")) continue;
       take(at, cut.index!);
       at = cut.index! + cut[0].length;
     }

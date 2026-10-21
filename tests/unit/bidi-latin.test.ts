@@ -76,3 +76,19 @@ describe("a < or > in a Hebrew line", () => {
     expect(mirroredSign("x > 6")).toBe(false);
   });
 });
+
+describe("one line of code in a Hebrew line", () => {
+  it("is one run: lists, statements after a colon, braces, and the ';' or ':' it ends with", () => {
+    expect(runs("מה מכילה let nums = [5, 10, 15, 20] אחרי השורה?")).toEqual(["let nums = [5, 10, 15, 20]"]);
+    expect(runs('הרשימה pets = ["cat", "dog", "fish"] מכילה')).toEqual(['pets = ["cat", "dog", "fish"]']);
+    expect(runs("הפונקציה def add(a, b): return a + b מחזירה סכום")).toEqual(["def add(a, b): return a + b"]);
+    expect(runs("הלולאה for i in range(3): print(i) מדפיסה")).toEqual(["for i in range(3): print(i)"]);
+    expect(runs("הלולאה while n > 0: n = n - 1 רצה")).toEqual(["while n > 0: n = n - 1"]);
+    expect(runs("השורה const total = 10; שומרת")).toEqual(["const total = 10;"]);
+    expect(runs("המחלקה class Puppy(Dog): יורשת")).toEqual(["class Puppy(Dog):"]);
+  });
+
+  it("a box between two numbers is one run ('which sign goes in the box')", () => {
+    expect(runs("איזה סימן חסר: 0.5 ☐ 0.25?")).toEqual(["0.5 ☐ 0.25"]);
+  });
+});
