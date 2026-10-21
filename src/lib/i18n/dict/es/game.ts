@@ -211,7 +211,7 @@ export const gameEs: Record<keyof typeof game.en, string> = {
   "toast.respawn.hazard": "¡Ay! Vuelves al punto de control",
   "toast.area": "Entraste en {name}",
   "toast.saved": "Progreso guardado",
-  "toast.offline": "Problema de conexión: reintentando…",
+  "toast.offline": "Problema de conexión: inténtalo de nuevo.",
   "done.title": "¡Misión cumplida!",
   "done.score": "{score}/{max} puntos",
   "done.results": "Ver resultados de aprendizaje",

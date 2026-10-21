@@ -19,7 +19,7 @@ import { useAccount } from "../cloud/account";
 import { getSettings, store } from "../app-state";
 import { modeForMinutes } from "@/lib/offline/first-run";
 import {
-  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
+  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, decodeTextFile, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
   type ContentLang, type CreateAction, type CreateFormValues,
 } from "./createForm";
 import { EXAMPLES } from "./examples";
@@ -55,6 +55,9 @@ function localStorageOrNull(): { getItem(k: string): string | null; setItem(k: s
 }
 
 const formatDay = (ms: number, locale: string): string => new Date(ms).toLocaleDateString(locale === "he" ? "he-IL" : locale === "es" ? "es-ES" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+/** The clock at the moment a game is saved (a submit handler runs long after the render that made it). */
+const clockNow = (): number => Date.now();
 
 export function CreatePage() {
   const t = useT();
@@ -133,7 +136,8 @@ export function CreatePage() {
   async function loadFile(file: File) {
     try {
       if (file.size > MAX_FILE_BYTES) throw new Error("too big");
-      const loaded = materialFromFileText(await file.text());
+      // decoded by the bytes, not as UTF-8 only: a Hebrew note saved by an old Windows editor (windows-1255) or as UTF-16 loads too
+      const loaded = materialFromFileText(decodeTextFile(new Uint8Array(await file.arrayBuffer())));
       if (!loaded.ok) throw new Error("not text");
       dispatch({ type: "file", text: loaded.text, subject: subjectFromFileName(file.name) });
       setFileNote(loaded.trimmed
@@ -182,7 +186,7 @@ export function CreatePage() {
         }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
     } catch (err) {
       if (err instanceof AiError) setAiFailure(err.failure);
-      else dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form) });
+      else dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form, topic?.id) });
       setBusy(false);
       return;
     }
@@ -192,7 +196,7 @@ export function CreatePage() {
     let id: string;
     try {
       id = store.addGame(spec).id;
-      if (topic) recordTopic(localStorageOrNull(), topic.id, now);
+      if (topic) recordTopic(localStorageOrNull(), topic.id, clockNow());
     } catch (err) {
       dispatch({ type: "problem", problem: classifySaveError(err) });
       setBusy(false);
@@ -216,6 +220,7 @@ export function CreatePage() {
       case "material": return t("create.error.validation");
       case "notes": return t("mob.create.error.notes");
       case "limit": return t("mob.create.error.limit");
+      case "topic": return t("mob.create.error.topic");
       case "tier": return problem.mode && problem.gameType
         ? t("mob.create.error.tier.both", { mode: modeName, type: typeName })
         : problem.mode ? t("mob.create.error.tier.mode", { mode: modeName, other: t("mode.FAST") }) : t("mob.create.error.tier.type", { type: typeName });
@@ -382,7 +387,7 @@ export function CreatePage() {
         {alertText && (
           <Alert tone="error" data-testid="mobile-create-error" className="space-y-2">
             <p>{alertText}</p>
-            {problem?.kind === "limit" && <Button type="button" size="sm" variant="secondary" onClick={() => navigate("/plans")} data-testid="create-to-plans">{t("mob.create.error.limit.cta")}</Button>}
+            {(problem?.kind === "limit" || problem?.kind === "topic") && <Button type="button" size="sm" variant="secondary" onClick={() => navigate("/plans")} data-testid="create-to-plans">{t("mob.create.error.limit.cta")}</Button>}
             {problem?.kind === "notes" && <Button type="button" size="sm" variant="secondary" onClick={() => { dispatch({ type: "problem", problem: null }); setSource("library"); }} data-testid="create-to-library">{t("mob.create.toLibrary")}</Button>}
           </Alert>
         )}

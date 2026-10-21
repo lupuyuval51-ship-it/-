@@ -21,7 +21,7 @@ export function PlansPage() {
   const t = useT();
   const [plan, setPlan] = useState(() => getOfflinePlan());
   const [busy, setBusy] = useState<PaidPlanId | "restore" | null>(null);
-  const [message, setMessage] = useState<"CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
+  const [message, setMessage] = useState<"BOUGHT" | "CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
   const [prices, setPrices] = useState<Partial<Record<PaidPlanId, string>>>({});
   const canBuy = billingAvailable();
 
@@ -38,7 +38,9 @@ export function PlansPage() {
     setMessage(null);
     const res = await buyPlan(p);
     setPlan(getOfflinePlan());
-    if (!res.ok && res.reason !== "UNAVAILABLE") setMessage(res.reason);
+    // a purchase that went through says so (the card also turns to "This is your plan")
+    if (res.ok) setMessage("BOUGHT");
+    else if (res.reason !== "UNAVAILABLE") setMessage(res.reason);
     // a plan is changed or cancelled on Google Play's own page: a second subscription would be billed next to the first
     if (!res.ok && res.reason === "SUBSCRIBED") void manageSubscription();
     setBusy(null);
@@ -59,7 +61,7 @@ export function PlansPage() {
       <a href="#/settings" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
       <h1 className="text-2xl font-extrabold">{t("pricing.title")}</h1>
       <Alert tone="info" data-testid="plans-current">{t("mob.plans.current", { plan: t(`plan.${plan}`) })}</Alert>
-      {message && <Alert tone={message === "RESTORED" ? "info" : "warn"} data-testid="plans-message">{t(`mob.plans.msg.${message}`)}</Alert>}
+      {message && <Alert tone={message === "RESTORED" ? "info" : message === "BOUGHT" ? "success" : "warn"} data-testid="plans-message">{t(`mob.plans.msg.${message}`)}</Alert>}
       <div className="space-y-3">
         {PLAN_IDS.map((id) => {
           const price = planPriceText(id, "IL");

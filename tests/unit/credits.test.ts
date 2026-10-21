@@ -19,11 +19,11 @@ describe("credits / about content", () => {
   for (const locale of LOCALES) {
     const t = makeT(DICTIONARIES[locale]);
 
-    it(`renders in ${locale}: made by LUPU, the three provenance labels with their meaning, the open-source list`, () => {
+    it(`renders in ${locale}: made by LUPU, the four provenance labels with their meaning, the open-source list`, () => {
       const html = renderToStaticMarkup(h(Credits, { t }));
       expect(html).toContain("LUPU");
       expect(html).toContain(t("about.madeBy"));
-      for (const [badge, text] of [["ai.badge", "about.labels.ai.text"], ["engine.badge", "about.labels.engine.text"], ["demo.badge", "about.labels.demo.text"]] as const) {
+      for (const [badge, text] of [["catalog.badge", "about.labels.catalog.text"], ["ai.badge", "about.labels.ai.text"], ["engine.badge", "about.labels.engine.text"], ["demo.badge", "about.labels.demo.text"]] as const) {
         expect(html).toContain(t(badge));
         expect(html).toContain(t(text));
       }

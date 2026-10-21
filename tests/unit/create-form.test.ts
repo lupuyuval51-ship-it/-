@@ -81,6 +81,15 @@ describe("explaining a failure", () => {
     expect(classifyGenerationError(caught, "C", { mode: "FULL", gameType: "adventure" })).toMatchObject({ kind: "tier", mode: true, gameType: true });
   });
 
+  it("a library topic the plan does not open is reported as the topic, not as the mode or the game type", () => {
+    const err = new OfflineGenerationError("TIER_LOCKED", "Plus or Pro");
+    expect(classifyGenerationError(err, "A", { mode: "FAST", gameType: "exploration" }, "geo-capitals-europe")).toEqual({ kind: "topic" });
+    // a choice the tier really lacks still names that choice, topic or not
+    expect(classifyGenerationError(err, "C", { mode: "FULL", gameType: "exploration" }, "geo-capitals-europe")).toMatchObject({ kind: "tier", mode: true });
+    // without a topic the old rule stays: blame the game type
+    expect(classifyGenerationError(err, "A", { mode: "FAST", gameType: "exploration" })).toMatchObject({ kind: "tier", gameType: true });
+  });
+
   it("unusable notes keep the engine's own message", () => {
     let caught: unknown;
     try { generateOffline({ mode: "FAST", subject: "x", learningGoal: "x", difficulty: "beginner", gameType: "exploration", contentLanguage: "en", material: "hello there, this is not really a lesson at all ok" }); } catch (e) { caught = e; }

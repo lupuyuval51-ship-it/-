@@ -5,6 +5,7 @@ import type { TFn } from "@/lib/i18n";
 /** The About / Credits content, shared by the website's `/about` page and the Android app. Presentational: no hooks, so it renders on the server too. */
 export function Credits({ t, version }: { t: TFn; version?: string | null }) {
   const labels = [
+    { id: "catalog", badge: t("catalog.badge"), text: t("about.labels.catalog.text") },
     { id: "ai", badge: t("ai.badge"), text: t("about.labels.ai.text") },
     { id: "engine", badge: t("engine.badge"), text: t("about.labels.engine.text") },
     { id: "demo", badge: t("demo.badge"), text: t("about.labels.demo.text") },

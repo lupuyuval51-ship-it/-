@@ -231,6 +231,8 @@ export type CreateProblem =
   | { kind: "notes" }
   /** a new library topic, but this half-year's topics are used up (`tracks.ts`) */
   | { kind: "limit" }
+  /** the library topic is not open to the plan any more (the plan changed while the screen was open) */
+  | { kind: "topic" }
   | { kind: "storage" }
   | { kind: "generic" };
 
@@ -242,10 +244,12 @@ export function isStorageFull(err: unknown): boolean {
 }
 
 /** What went wrong while building a game, in terms the screen can show next to the right field. */
-export function classifyGenerationError(err: unknown, tier: FeatureTier, form: Pick<CreateFormValues, "mode" | "gameType">): CreateProblem {
+export function classifyGenerationError(err: unknown, tier: FeatureTier, form: Pick<CreateFormValues, "mode" | "gameType">, topicId?: string | null): CreateProblem {
   if (err instanceof OfflineGenerationError) {
     if (err.code === "TIER_LOCKED") {
       const locked = lockedChoices(tier, form);
+      // a library topic the plan does not open is refused with the same code: it is the topic, not the mode or the game type
+      if (topicId && !locked.mode && !locked.gameType) return { kind: "topic" };
       // the generator refused, so at least one is locked; if our own check disagrees, blame the game type
       return { kind: "tier", mode: locked.mode, gameType: locked.gameType || !locked.mode };
     }
