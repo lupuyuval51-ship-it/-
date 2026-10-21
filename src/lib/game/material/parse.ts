@@ -272,6 +272,14 @@ export function parseMaterial(raw: string): Knowledge {
 
   // 0b) questions the learner already wrote, with their answers
   const qa: QuestionAnswer[] = [];
+  /** A quiz numbers its questions ("1. Which planet…?"): the number is not part of the question. */
+  const unnumbered = (s: string) => NUMBERED.exec(s)?.[2] ?? s;
+  // Two or more numbered lines that are questions make the list a quiz, not steps: then "3. What is the largest planet? Jupiter"
+  // is a question with its answer (a list of steps where one step happens to hold a question stays a list of steps)
+  const quiz = lines.filter((l) => {
+    const m = NUMBERED.exec(l.replace(BULLET, ""));
+    return m && (INLINE_QA.test(m[2]!) || /[?？؟]$/u.test(m[2]!));
+  }).length >= 2;
   for (let i = 0; i < lines.length; i++) {
     if (consumed.has(i) || !lines[i]) continue;
     const line = lines[i]!.replace(BULLET, "");
@@ -283,7 +291,7 @@ export function parseMaterial(raw: string): Knowledge {
     // with the option the quiz names as right, or left out when the quiz does not say which one is right
     const mc = q || /[?？؟]$/u.test(line) ? multipleChoiceAfter(lines, consumed, i) : null; // (a question line)
     if (mc) {
-      const pair = mc.right ? asQa(q ? q[1]! : line, mc.right) : null;
+      const pair = mc.right ? asQa(unnumbered(q ? q[1]! : line), mc.right) : null;
       if (pair) qa.push(pair);
       consumed.add(i);
       mc.used.forEach((k) => consumed.add(k));
@@ -296,8 +304,8 @@ export function parseMaterial(raw: string): Knowledge {
       consumed.add(i).add(nextIdx);
       continue;
     }
-    const inline = INLINE_QA.exec(line);
-    if (inline && !NUMBERED.test(line)) {
+    const inline = INLINE_QA.exec(quiz ? unnumbered(line) : line);
+    if (inline && (quiz || !NUMBERED.test(line))) {
       const pair = asQa(inline[1]!, inline[2]!);
       if (pair) {
         qa.push(pair);
@@ -307,7 +315,7 @@ export function parseMaterial(raw: string): Knowledge {
     }
     // a line that is only a question, followed by a short line that answers it
     if (/[?？؟]$/u.test(line) && line.length <= 200 && next && !/[?？؟]$/u.test(next) && next.length <= 120 && !NUMBERED.test(next) && !QA_Q.test(next) && !asDefinition(next) && !/^#/.test(next)) {
-      const pair = asQa(line, next);
+      const pair = asQa(unnumbered(line), next);
       if (pair) {
         qa.push(pair);
         consumed.add(i).add(nextIdx);
@@ -323,7 +331,8 @@ export function parseMaterial(raw: string): Knowledge {
     const group: { n: number; text: string; idx: number }[] = [];
     let j = i;
     while (j < lines.length) {
-      const m = NUMBERED.exec(lines[j]!.replace(BULLET, ""));
+      // a line already read as a question and its answer (a numbered quiz) is not a step
+      const m = consumed.has(j) ? null : NUMBERED.exec(lines[j]!.replace(BULLET, ""));
       if (!m) break;
       group.push({ n: Number(m[1]), text: trimEnd(m[2]!), idx: j });
       j++;
