@@ -13,6 +13,7 @@ import { getOfflinePlan, getOfflineTier } from "@/lib/offline/entitlement";
 import { canStartTopic, halfYear, loadTracks, recordTopic, tracksLeft } from "@/lib/offline/tracks";
 import { APP_TRACKS } from "@/config/plans";
 import { generateOfflineWithProgress, type OfflineStage } from "@/lib/offline/generate";
+import { topicRound } from "@/lib/game/topics/build";
 import { hashQuery } from "@/lib/offline/onboarding";
 import { AiError, generateWithAi, type AiFailure } from "../cloud/ai";
 import { useAccount } from "../cloud/account";
@@ -184,7 +185,7 @@ export function CreatePage() {
           mode: form.mode, subject, learningGoal: cleanPastedText(form.goal).trim() || subject, difficulty: form.difficulty, gameType: form.gameType, contentLanguage: form.language,
           material: cleanPastedText(form.material).trim() || undefined,
           device: "phone", // this app only runs on phones and tablets: fit the game to a touch screen
-        }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier));
+        }, (percent, stage) => setProgress({ percent, stage }), new Date(), tier, topic ? topicRound(store.listGames(), topic.id, form.difficulty) : 0));
     } catch (err) {
       if (err instanceof AiError) setAiFailure(err.failure);
       else dispatch({ type: "problem", problem: classifyGenerationError(err, tier, form, topic?.id) });

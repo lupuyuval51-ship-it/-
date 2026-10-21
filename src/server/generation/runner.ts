@@ -107,10 +107,14 @@ export async function runGenerationJob(jobId: string, opts: { backend?: Generati
 
     // Games saved before tiers existed count as tier A (they keep everything they have).
     const tier = request.mode === "EXTEND" && base ? maxTier(job.featureTier, base.spec.meta.featureTier ?? "A") : job.featureTier;
+    // a second game of the same topic and level starts with the questions the first did not show
+    const topicRound = request.topicId
+      ? await db.game.count({ where: { ownerId: job.userId, deletedAt: null, difficulty: request.difficulty, spec: { path: ["meta", "generator", "templateId"], equals: request.topicId } } })
+      : 0;
     const out = await runPipeline({
       // (an unavailable backend only gets this far for a topic-library request, which never touches it)
       backend: backend as Exclude<GenerationBackend, { type: "unavailable" }>, request, tier, base: base?.spec ?? null, deadline: job.deadlineAt.getTime(), callTimeoutMs: env.AI_CALL_TIMEOUT_MS,
-      onStage: (stage) => updateJobProgress(jobId, { stage }),
+      onStage: (stage) => updateJobProgress(jobId, { stage }), topicRound,
     });
 
     await updateJobProgress(jobId, { stage: "save", attempts: out.attempts, warnings: out.warnings.slice(0, 20) });

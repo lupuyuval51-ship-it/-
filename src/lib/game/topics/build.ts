@@ -178,7 +178,8 @@ function otherTerms(term: Term, own: readonly Term[], all: readonly Term[], lang
   return out;
 }
 
-function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t: Tr, rnd: () => number): { name: Candidate[]; define: Candidate[] } {
+/** Every other term is asked by its description ("name"), the rest by the term ("define"); `swap` exchanges the two halves. */
+function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t: Tr, rnd: () => number, swap = false): { name: Candidate[]; define: Candidate[] } {
   const own = level.t ?? [];
   const pick = (x: Term): [string, string] => (lang === "he" ? [x[2], x[3]] : [x[0], x[1]]);
   const name: Candidate[] = [];
@@ -187,7 +188,7 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
     const [word, meaning] = pick(term);
     const others = otherTerms(term, own, all, lang, rnd);
     if (others.length < 2) return;
-    if (i % 2 === 0) {
+    if ((i + (swap ? 1 : 0)) % 2 === 0) {
       name.push({
         kind: "name", objective: "terms",
         make: (id, lvl, objectiveId) => {
@@ -341,17 +342,28 @@ const BASE_LEVEL: Record<GenerationRequest["difficulty"], Level> = { beginner: 1
 
 export const topicTitle = (entry: TopicEntry, lang: Lang): string => (lang === "he" ? entry.he[0] : entry.en[0]);
 
-export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, content: TopicContent): TopicBuild {
+/** How many of these games were built from `topicId` at `difficulty`: the `round` of the next game of that topic. */
+export const topicRound = (games: readonly { templateId?: string; difficulty?: string }[], topicId: string, difficulty: string): number =>
+  games.filter((g) => g.templateId === topicId && g.difficulty === difficulty).length;
+
+/**
+ * `round` is how many games of this topic at this level the learner already has (round 0 is the first game). A level often
+ * holds more items than one game shows, so each next game starts each kind of question where the previous one stopped and
+ * wraps around once all were shown; a kind shown in full comes in another order, every other game asks the terms the other
+ * way round, and the options are drawn again.
+ */
+export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, content: TopicContent, round = 0): TopicBuild {
   const lang: Lang = req.contentLanguage === "he" ? "he" : "en";
   const t = translator(lang);
   const full = req.mode === "FULL";
   const levelContent = content[LEVEL_KEY[req.difficulty]];
   const title = topicTitle(entry, lang);
   const description = lang === "he" ? entry.he[1] : entry.en[1];
-  const rnd = mulberry32(hashSeed(`${entry.id}|${req.difficulty}|${lang}|${req.mode}`));
+  const rnd = mulberry32(hashSeed(`${entry.id}|${req.difficulty}|${lang}|${req.mode}${round ? `|${round}` : ""}`));
   const allTerms = [...(content.b.t ?? []), ...(content.i.t ?? []), ...(content.a.t ?? [])];
 
-  const terms = termCandidates(levelContent, allTerms, lang, t, rnd);
+  // the next game asks the other half of the terms by their description, and the first half by the term
+  const terms = termCandidates(levelContent, allTerms, lang, t, rnd, round % 2 === 1);
   const pools: Record<Candidate["kind"], Candidate[]> = {
     q: questionCandidates(levelContent, lang, t, rnd, clip(title, 60)),
     name: terms.name,
@@ -360,7 +372,15 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
     s: orderCandidates(levelContent, lang, t),
     match: [matchCandidate(levelContent.t ?? [], lang, t)].filter((c): c is Candidate => c !== null),
   };
-  const picked = select(pools, full ? 10 : 4, !full);
+  const max = full ? 10 : 4;
+  let picked = select(pools, max, !full);
+  if (round > 0) {
+    const shown = (kind: Candidate["kind"]) => picked.filter((c) => c.kind === kind).length;
+    const turned = (list: Candidate[], by: number) => (list.length ? [...list.slice(by % list.length), ...list.slice(0, by % list.length)] : list);
+    // a kind the first game showed in full comes in another order (so another question opens the game, and another closes it)
+    const by = (kind: Candidate["kind"], list: Candidate[]) => (shown(kind) < list.length ? round * shown(kind) : round);
+    picked = select(Object.fromEntries(Object.entries(pools).map(([kind, list]) => [kind, turned(list, by(kind as Candidate["kind"], list))])) as typeof pools, max, !full);
+  }
   if (picked.length < 3) throw new TopicError("TOO_LITTLE", `topic ${entry.id} has too little content at ${req.difficulty}`);
 
   const base = BASE_LEVEL[req.difficulty];

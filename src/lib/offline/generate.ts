@@ -39,7 +39,8 @@ function applyRequest(raw: unknown, req: GenerationRequest, language: string): u
  */
 const requiredFor = (topicId: string): string => (planOpeningTopic(topicId) === "PRO" ? "This topic is part of Pro." : "This topic is part of Plus and Pro.");
 
-export function generateOffline(input: unknown, now = new Date(), tier: FeatureTier = "A", topic?: TopicContent): { spec: GameSpec; warnings: string[] } {
+/** `round`: for a topic-library game, how many games of that topic at that level are already on the device (see `buildTopicSpec`). */
+export function generateOffline(input: unknown, now = new Date(), tier: FeatureTier = "A", topic?: TopicContent, round = 0): { spec: GameSpec; warnings: string[] } {
   const parsed = generationRequestSchema.safeParse(input);
   if (!parsed.success || parsed.data.mode === "EXTEND") throw new OfflineGenerationError("INVALID_REQUEST", "The request is invalid.");
   const entry = parsed.data.topicId ? findTopic(parsed.data.topicId) : undefined;
@@ -58,7 +59,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
   let templateId: string | undefined;
   try {
     if (entry && topic) {
-      const built = buildTopicSpec(req, entry, topic);
+      const built = buildTopicSpec(req, entry, topic, round);
       raw = built.raw as Record<string, unknown>;
       notes = built.notes;
       catalog = true;
@@ -102,7 +103,7 @@ export function generateOffline(input: unknown, now = new Date(), tier: FeatureT
 export type OfflineStage = "reading" | "building" | "checking" | "saving";
 
 /** Real stages of the build with a percentage; yields to the UI between stages so the bar actually paints. */
-export async function generateOfflineWithProgress(input: unknown, onProgress: (percent: number, stage: OfflineStage) => void, now = new Date(), tier: FeatureTier = "A"): Promise<{ spec: GameSpec; warnings: string[] }> {
+export async function generateOfflineWithProgress(input: unknown, onProgress: (percent: number, stage: OfflineStage) => void, now = new Date(), tier: FeatureTier = "A", round = 0): Promise<{ spec: GameSpec; warnings: string[] }> {
   const tick = () => new Promise<void>((r) => setTimeout(r, 150));
   onProgress(5, "reading");
   await tick();
@@ -112,7 +113,7 @@ export async function generateOfflineWithProgress(input: unknown, onProgress: (p
   if (typeof topicId === "string" && !topic) throw new OfflineGenerationError("INVALID_REQUEST", "The topic could not be loaded.");
   onProgress(30, "building");
   await tick();
-  const result = generateOffline(input, now, tier, topic ?? undefined); // notes or topic → challenges → world → validation (runs in one go)
+  const result = generateOffline(input, now, tier, topic ?? undefined, round); // notes or topic → challenges → world → validation (runs in one go)
   onProgress(85, "checking");
   await tick();
   return result;

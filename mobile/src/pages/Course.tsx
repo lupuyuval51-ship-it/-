@@ -10,6 +10,7 @@ import { courseChapters, findCourse, type Course } from "@/lib/game/topics/cours
 import { contentLangOf, type DictKey } from "@/lib/i18n";
 import { getOfflineTier } from "@/lib/offline/entitlement";
 import { generateOfflineWithProgress } from "@/lib/offline/generate";
+import { topicRound } from "@/lib/game/topics/build";
 import { store } from "../app-state";
 import { useAccount } from "../cloud/account";
 import { chapterFailure, loadCourseProgress, type ChapterProgress } from "../course-model";
@@ -66,7 +67,7 @@ function CourseView({ course }: { course: Course }) {
       const { spec } = await generateOfflineWithProgress({
         mode: modeAllowed(tier, "FULL") ? "FULL" : "FAST", subject: entry[lang][0], learningGoal: entry[lang][1], difficulty: level,
         gameType: gameTypeAllowed(tier, "adventure") ? "adventure" : "exploration", contentLanguage: lang, topicId: entry.id, device: "phone",
-      }, (percent) => { if (alive.current) setBusy({ n: ch.number, percent }); }, new Date(), tier);
+      }, (percent) => { if (alive.current) setBusy({ n: ch.number, percent }); }, new Date(), tier, topicRound(store.listGames(), entry.id, level));
       if (!alive.current) return;
       const id = store.addGame(spec).id;
       navigate(`/play/${id}`);

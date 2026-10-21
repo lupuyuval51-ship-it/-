@@ -36,6 +36,20 @@ async function generate(userId: string, request: GenerationRequest, backend: Gen
 }
 
 describe("topic library — curated topics become games without any model", () => {
+  it("a second game of the same topic and level starts with other questions; another level starts from the beginning", async () => {
+    const u = await createTestUser();
+    await grantSubscription(u.id, "PRO");
+    const prompts = (g: { spec: unknown } | null) => (g!.spec as GameSpec).challenges.filter((c) => /^c-\d+$/.test(c.id)).map((c) => c.prompt);
+    const first = await generate(u.id, req({ mode: "FULL" }), DEMO);
+    const second = await generate(u.id, req({ mode: "FULL" }), DEMO);
+    expect([first.job.status, second.job.status]).toEqual(["SUCCEEDED", "SUCCEEDED"]);
+    expect(prompts(second.game)).not.toEqual(prompts(first.game));
+    // the first game of another level, or of another learner, is that level's first game
+    const other = await createTestUser();
+    await grantSubscription(other.id, "PRO");
+    expect(prompts((await generate(other.id, req({ mode: "FULL" }), DEMO)).game)).toEqual(prompts(first.game));
+  });
+
   it("demo backend: a valid game, labelled as the topic library, charging exactly one credit", async () => {
     const u = await createTestUser();
     const { job, game } = await generate(u.id, req(), DEMO);

@@ -40,6 +40,8 @@ export interface PipelineInput {
   callTimeoutMs: number;
   onStage: (stage: string) => Promise<void> | void;
   now?: () => number;
+  /** Topic library only: how many games of this topic at this level the learner already has (see `buildTopicSpec`). */
+  topicRound?: number;
 }
 
 export interface PipelineOutput {
@@ -307,7 +309,7 @@ async function runTopicLibrary(input: PipelineInput): Promise<PipelineOutput> {
   const req = topicRequest(input.request, entry);
   let built;
   try {
-    built = buildTopicSpec(req, entry, content);
+    built = buildTopicSpec(req, entry, content, input.topicRound ?? 0);
   } catch (e) {
     if (e instanceof TopicError) throw new PipelineError("INVALID_OUTPUT", "This topic could not be built at this level. You were not charged.", e.message);
     throw e;
