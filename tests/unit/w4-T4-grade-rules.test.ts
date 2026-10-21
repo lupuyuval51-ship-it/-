@@ -407,3 +407,15 @@ describe("the engine's own sentences", () => {
     for (const key of keys) expect(msg("en", key)).not.toMatch(/undefined|null|NaN/);
   });
 });
+
+describe("an ordering is never shown solved", () => {
+  it("whatever the seed, a list that must differ comes out in another order", async () => {
+    const { seededShuffle } = await import("@/lib/game/challenges/grade");
+    const items = ["a", "b", "c"];
+    for (let s = 0; s < 200_000; s++) {
+      const out = seededShuffle(items, `seed-${s}`, true);
+      if (out.every((v, i) => v === items[i])) throw new Error(`seed-${s} shows the list solved`);
+    }
+    expect(seededShuffle(["x"], "one", true)).toEqual(["x"]);
+  }, 60_000);
+});

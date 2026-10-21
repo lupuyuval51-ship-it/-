@@ -284,6 +284,8 @@ export function seededShuffle<T>(items: readonly T[], seed: string, mustDiffer =
     }
     if (!mustDiffer || out.some((v, i) => v !== items[i])) break;
   }
+  // six shuffles that all came out solved (about once in 40,000 three-item orderings): turn the list by one, never show it solved
+  if (mustDiffer && out.length > 1 && out.every((v, i) => v === items[i])) out.push(out.shift()!);
   return out;
 }
 
