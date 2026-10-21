@@ -140,7 +140,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
           <input type="range" min={ANGLE_RANGE.min} max={ANGLE_RANGE.max} value={angle} disabled={disabled} onChange={(e) => setAngle(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.angle")} aria-valuetext={t("a11y.unit.deg", { n: angle })} />
         </label>
         <label className="block space-y-1 text-sm">
-          <span>{t("sim.speed")}: <b>{speed} m/s</b></span>
+          <span>{t("sim.speed")}: <b>{t("sim.unit.mps", { n: speed })}</b></span>
           <input type="range" min={speedSliderMin(sim)} max={sim.maxSpeed} step={SPEED_STEP} value={speed} disabled={disabled} onChange={(e) => setSpeed(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.speed")} aria-valuetext={t("a11y.unit.mps", { n: speed })} />
         </label>
       </div>
@@ -152,6 +152,9 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
   // a balanced beam (as the grader counts it) lies level, so the picture never contradicts the "balanced" label under it
   const tilt = balanced ? 0 : Math.max(-14, Math.min(14, torque * 0.35));
   const px = leverScale(sim);
+  // the drawing is left to right; a Hebrew unit label ("5 ק״ג") is drawn right to left inside it, so it reads in the right order
+  const kg = (n: number) => { const text = t("sim.unit.kg", { n }); return { text, direction: /[\u0590-\u05FF]/.test(text) ? ("rtl" as const) : ("ltr" as const) }; };
+  const leftKg = kg(sim.leftWeight), rightKg = kg(sim.rightWeight);
   return (
     <div ref={host} className="space-y-3">
       <svg viewBox="0 0 600 200" className="w-full rounded-xl bg-ink-900" role="img" aria-label={t("a11y.sim.lever", { state: balanced ? t("sim.lever.balanced") : torque > 0 ? t("sim.lever.leftHeavy") : t("sim.lever.rightHeavy") })} style={{ direction: "ltr" }}>
@@ -159,9 +162,9 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
         <g style={{ transform: `rotate(${tilt}deg)`, transformOrigin: "300px 170px", transition: reduced ? "none" : "transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1)" }}>
           <rect x="40" y="162" width="520" height="10" rx="4" fill={balanced ? "#a3ff4f" : "#9aa6d4"} />
           <rect x={300 - sim.leftDistance * px - 24} y={162 - 18 - sim.leftWeight * 0.2} width="48" height={18 + sim.leftWeight * 0.2} fill="#ff4fd8" rx="4" />
-          <text x={300 - sim.leftDistance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.leftWeight} kg</text>
+          <text x={300 - sim.leftDistance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle" direction={leftKg.direction}>{leftKg.text}</text>
           <rect x={300 + distance * px - 24} y={162 - 18 - sim.rightWeight * 0.2} width="48" height={18 + sim.rightWeight * 0.2} fill="#22e6ff" rx="4" />
-          <text x={300 + distance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.rightWeight} kg</text>
+          <text x={300 + distance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle" direction={rightKg.direction}>{rightKg.text}</text>
         </g>
       </svg>
       <p className={balanced ? "text-sm font-semibold text-lime" : "text-sm font-medium text-neon"} data-testid="lever-state" aria-live="polite">
@@ -169,7 +172,7 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
       </p>
       <p className="text-sm text-muted">{t("sim.lever.left", { w: sim.leftWeight, d: sim.leftDistance })} · {t("sim.lever.right", { w: sim.rightWeight })}</p>
       <label className="block space-y-1 text-sm">
-        <span>{t("sim.lever.distance")}: <b>{distance} m</b></span>
+        <span>{t("sim.lever.distance")}: <b>{t("sim.unit.m", { n: distance })}</b></span>
         <input type="range" min={LEVER_SLIDER_MIN} max={sim.maxDistance} step={DISTANCE_STEP} value={distance} disabled={disabled} onChange={(e) => setDistance(Number(e.target.value))} className="h-11 w-full accent-[var(--color-neon)]" aria-label={t("sim.lever.distance")} aria-valuetext={t("a11y.unit.m", { n: distance })} />
       </label>
     </div>
