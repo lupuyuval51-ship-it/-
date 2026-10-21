@@ -16,3 +16,16 @@ describe("simulation grading on the tolerance edge", () => {
     expect(grade(2.25)).toBe(false);
   });
 });
+
+describe("the lever drawing", () => {
+  it("keeps 24 px a metre up to 10 m and shrinks a longer lever so the weight stays on the beam", async () => {
+    const { leverScale } = await import("@/components/game/hud/SimulationPanel");
+    expect(leverScale({ maxDistance: 10, leftDistance: 2 })).toBe(24);
+    expect(leverScale({ maxDistance: 6, leftDistance: 3 })).toBe(24);
+    for (const maxDistance of [12, 15, 20]) {
+      const px = leverScale({ maxDistance, leftDistance: 2 });
+      expect(300 + maxDistance * px + 24).toBeLessThanOrEqual(564); // the box's far edge at most where it is at 10 m today
+    }
+    expect(300 - 18 * leverScale({ maxDistance: 10, leftDistance: 18 }) - 24).toBeGreaterThanOrEqual(36);
+  });
+});

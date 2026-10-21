@@ -36,10 +36,15 @@ export function speedSliderMin(sim: Pick<ProjectileSim, "maxSpeed">): number {
 
 /** The preview's "balanced": exactly the grader's rule (within the tolerance of the balance point), so it never says "balanced" for a wrong answer, or "heavier" for a right one. */
 export function leverBalanced(sim: LeverSim, distance: number): boolean {
-  return Math.abs(distance - leverBalanceDistance(sim)) <= sim.tolerance;
+  return Math.abs(distance - leverBalanceDistance(sim)) <= sim.tolerance + 1e-9; // the grader's margin for floating-point error
 }
 
-const projectileHit = (sim: ProjectileSim, angle: number, speed: number) => Math.abs(projectileRange(speed, angle, sim.gravity) - sim.targetDistance) <= sim.tolerance;
+/**
+ * Pixels per metre on the lever drawing (beam 40…560, pivot at 300). 24 up to the usual 10 m; a longer lever (the schema
+ * allows 20 m) is drawn smaller, so the weight the learner moves stays on the beam instead of sliding off the picture.
+ */
+export const leverScale = (sim: Pick<LeverSim, "maxDistance" | "leftDistance">): number => Math.min(24, 240 / Math.max(sim.maxDistance, sim.leftDistance, 1));
+const projectileHit = (sim: ProjectileSim, angle: number, speed: number) => Math.abs(projectileRange(speed, angle, sim.gravity) - sim.targetDistance) <= sim.tolerance + 1e-9;
 
 /**
  * Where the sliders start: on a value the slider can show (its step grid), and never on an answer that is already right, so
@@ -146,16 +151,17 @@ export function SimulationPanel({ challenge, disabled, onChange }: { challenge: 
   const balanced = leverBalanced(sim, distance);
   // a balanced beam (as the grader counts it) lies level, so the picture never contradicts the "balanced" label under it
   const tilt = balanced ? 0 : Math.max(-14, Math.min(14, torque * 0.35));
+  const px = leverScale(sim);
   return (
     <div ref={host} className="space-y-3">
       <svg viewBox="0 0 600 200" className="w-full rounded-xl bg-ink-900" role="img" aria-label={t("a11y.sim.lever", { state: balanced ? t("sim.lever.balanced") : torque > 0 ? t("sim.lever.leftHeavy") : t("sim.lever.rightHeavy") })} style={{ direction: "ltr" }}>
         <polygon points="300,170 280,195 320,195" fill="#2a3769" />
         <g style={{ transform: `rotate(${tilt}deg)`, transformOrigin: "300px 170px", transition: reduced ? "none" : "transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1)" }}>
           <rect x="40" y="162" width="520" height="10" rx="4" fill={balanced ? "#a3ff4f" : "#9aa6d4"} />
-          <rect x={300 - sim.leftDistance * 24 - 24} y={162 - 18 - sim.leftWeight * 0.2} width="48" height={18 + sim.leftWeight * 0.2} fill="#ff4fd8" rx="4" />
-          <text x={300 - sim.leftDistance * 24} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.leftWeight} kg</text>
-          <rect x={300 + distance * 24 - 24} y={162 - 18 - sim.rightWeight * 0.2} width="48" height={18 + sim.rightWeight * 0.2} fill="#22e6ff" rx="4" />
-          <text x={300 + distance * 24} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.rightWeight} kg</text>
+          <rect x={300 - sim.leftDistance * px - 24} y={162 - 18 - sim.leftWeight * 0.2} width="48" height={18 + sim.leftWeight * 0.2} fill="#ff4fd8" rx="4" />
+          <text x={300 - sim.leftDistance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.leftWeight} kg</text>
+          <rect x={300 + distance * px - 24} y={162 - 18 - sim.rightWeight * 0.2} width="48" height={18 + sim.rightWeight * 0.2} fill="#22e6ff" rx="4" />
+          <text x={300 + distance * px} y="150" fontSize="13" fill="#fff" textAnchor="middle">{sim.rightWeight} kg</text>
         </g>
       </svg>
       <p className={balanced ? "text-sm font-semibold text-lime" : "text-sm font-medium text-neon"} data-testid="lever-state" aria-live="polite">
