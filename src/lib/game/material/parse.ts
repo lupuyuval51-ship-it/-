@@ -92,6 +92,8 @@ const VOCAB = /^(.{1,40}?)(?:\s+[=–—-]\s+|\s*[=:：]\s+|\s+\|\s+)(.{1,40})$/
 const LEAD_IN = /[:：]$/u;
 /** A first line such as "שאלות לחזרה – גוף האדם" or "Chapter 3 - Cells" names the notes: it is their title, not a term and its meaning. */
 const TITLE_TERM = /^(?:שאלות(?: לחזרה)?|חזרה|סיכום|פרק|יחידה|נושא|מבחן|בוחן|review(?: questions)?|revision|summary|chapter|unit|topic|quiz|test|questions|(?:study )?notes)(?=$|[\s\d:：–—-])/iu;
+/** …or ends with a phrase that names notes ("Ecosystems – key ideas", "התא – מושגים מרכזיים"). */
+const TITLE_TAIL = /[–—:-]\s*(?:(?:the )?(?:key|main|big) (?:ideas|points|terms|facts|concepts)|summary|overview|notes|review|revision|basics|introduction|glossary|vocabulary|definitions|key terms|מושגים(?: מרכזיים| עיקריים)?|רעיונות (?:מרכזיים|עיקריים)|עיקרי הדברים|סיכום|הגדרות|מבוא|חזרה|נקודות (?:מרכזיות|עיקריות))\s*$/iu;
 /** Compare sentences without caring about case, spacing or punctuation. */
 const sameKey = (s: string) => s.toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, " ").trim();
 
@@ -405,9 +407,12 @@ export function parseMaterial(raw: string): Knowledge {
     const line = rawLine.replace(BULLET, "");
     // a first line that names the notes ("שאלות לחזרה – …", "Chapter 3 - Cells") heads them even in the shape of "term – meaning", and
     // even when every line after it is a question and answer already taken above
-    const namesNotes = TITLE_TERM.test(line);
+    // …or it is the only line without a bullet above a bulleted list
+    const laterBulleted = lines.filter((l, k) => k > i && l && BULLET.test(l)).length;
+    const laterContent = lines.filter((l, k) => k > i && l).length;
+    const namesNotes = TITLE_TERM.test(line) || TITLE_TAIL.test(line) || (!BULLET.test(rawLine) && laterBulleted >= 3 && laterBulleted === laterContent);
     if (i === firstContent && title === undefined && (!vocabAt.has(i) || namesNotes) && line.length <= 70 && !/[.!?:：]$/.test(line) && (namesNotes || lines.some((l, k) => k > i && l && !consumed.has(k))) && wordCount(line) <= 9
-      && !startsList(i, line)) {
+      && (namesNotes || !startsList(i, line))) {
       title = line;
       return;
     }

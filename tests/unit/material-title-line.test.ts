@@ -38,6 +38,14 @@ describe("a first line that names the notes is their title", () => {
     expect(k.definitions.map((d) => d.term)).toEqual(["hola", "adiós", "gracias", "por favor", "perro"]);
   });
 
+  it("a first line above a bulleted list, or ending in 'key ideas' / 'מושגים מרכזיים', is the title", () => {
+    const bullets = "Ecosystems – key ideas\n• Producer — an organism that makes its own food, like a plant.\n• Consumer — an organism that eats other living things.\n• Decomposer — an organism that breaks down dead material, like fungi.";
+    expect(parseMaterial(bullets).title).toBe("Ecosystems – key ideas");
+    expect(parseMaterial(bullets).definitions.map((d) => d.term)).toEqual(["Producer", "Consumer", "Decomposer"]);
+    expect(parseMaterial("Plants - overview\nRoot: the part that takes in water.\nLeaf: the part that makes food.\nStem: the part that holds the plant up.").title).toBe("Plants - overview");
+    expect(parseMaterial("התא – מושגים מרכזיים\nגרעין: מרכז הבקרה של התא.\nקרום: השכבה שעוטפת את התא.\nמיטוכונדריה: תחנת הכוח של התא.").title).toBe("התא – מושגים מרכזיים");
+  });
+
   it("'Chapter 3 - Cells' heads English notes", () => {
     expect(parseMaterial("Chapter 3 - Cells\nCell: the smallest unit of life.\nNucleus: the control centre of the cell.\nMembrane: the thin layer around a cell.").title).toBe("Chapter 3 - Cells");
   });
