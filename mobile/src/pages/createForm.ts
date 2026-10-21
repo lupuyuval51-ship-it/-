@@ -10,6 +10,7 @@ import { gameTypeAllowed, modeAllowed } from "@/lib/game/spec/tier";
 import { OfflineGenerationError } from "@/lib/offline/generate";
 import { storageErrorCode } from "@/lib/offline/store";
 import { looksLikeBinary } from "@/lib/game/material/file";
+import { CREATE_DRAFT_KEY } from "../reset";
 import { EXAMPLE_NOTES, exampleById, findExample, isExampleText } from "./examples";
 
 export type CreateMode = "FAST" | "FULL";
@@ -126,7 +127,8 @@ export const isBlankForm = (f: Pick<CreateFormValues, "subject" | "goal" | "mate
 
 // ───────────────────────────── the local draft ─────────────────────────────
 
-export const DRAFT_KEY = "levelup.mobile.createDraft";
+/** The one key of the draft, shared with the "delete everything" reset (reset.ts) so the two can never drift apart. */
+export const DRAFT_KEY = CREATE_DRAFT_KEY;
 
 /** The part of `Storage` the draft needs, so tests can pass a plain object. */
 export interface DraftStorage {
