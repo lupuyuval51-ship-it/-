@@ -285,8 +285,9 @@ function articleOf(word: string): "a" | "an" {
  * (-ly) or a noun. A wrong option of another kind than the right one is ruled out by grammar alone ("an _____ between":
  * "agreement" among "invaded", "ended"; "A keep is a system…"). Hebrew words are not told apart this way.
  */
-function wordKind(k: Keyword, ctx: Context): "he" | "verb" | "adverb" | "noun" {
-  if (hasHebrew(k.text)) return "he";
+function wordKind(k: Keyword, ctx: Context): "he" | "he-verb" | "verb" | "adverb" | "noun" {
+  // Hebrew has few sure signs; one is a past-tense plural with ה in front ("העסיקו", "התאגדו", "הגיעו"), which no gap for a noun takes
+  if (hasHebrew(k.text)) return !k.proper && /^ה\p{L}{3,}ו$/u.test(k.text) && !/יו$/u.test(k.text) ? "he-verb" : "he";
   const shape = shapeOf(k.text);
   const afterTo = !k.proper && (ctx.before.get(wordsOf(k.text)[0]?.text.toLowerCase() ?? "")?.has("to") ?? false);
   return afterTo || shape === "ed" || shape === "ing" ? "verb" : shape === "ly" ? "adverb" : "noun";
