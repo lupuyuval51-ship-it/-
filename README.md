@@ -264,6 +264,10 @@ half, the more advanced ones, need Pro: Free opens 146 topics, Plus 320, Pro all
 in Hebrew and English for **three levels**: beginner (key terms and simple facts), intermediate (connections, examples and numbers) and advanced
 (reasoning and multi-step questions). The game is built deterministically from that level's content only — **no model is ever called**, even when an
 AI provider is configured — and adapts while playing (an easier two-option version after two misses, a harder version with more options after a streak).
+A level holds more items than one game shows, so the next game of the same topic at the same level is not a copy: `buildTopicSpec(…, round)` (round =
+the learner's games of that topic at that level, counted from the database on the server and from the library on the phone) starts each kind of
+question where the previous game stopped, asks the terms the other way round every other game and draws the options again. `scripts/length-tell.ts`
+measures how often a topic's right answer is the longest option (the bar is 40 % per topic).
 
 * **Code:** `src/lib/game/topics/` — `catalog.ts` and `catalog-plus-pro.ts` (the catalogue the picker shows: id, he/en title and description,
   category, ages; kept out of the app's first chunk), `premium.ts` (which tier each topic is: free, Plus or Pro),
