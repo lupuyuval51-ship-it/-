@@ -77,6 +77,8 @@ export interface GameSummaryRow {
   /** Share of missions finished in the unfinished run (0–100). */
   percent: number;
   lastSessionId: string | null;
+  /** The newest FINISHED run (null if none): what "Results" shows, even while a replay is under way. */
+  lastDoneSessionId?: string | null;
   /** When the learner last moved in any run of this game (phone clock, ms), or null if it was never started. */
   lastPlayedAt: number | null;
   /** The game's level as stored in its spec, so a screen that lists games need not read every spec again for it. */
@@ -319,7 +321,7 @@ export class OfflineStore {
         id, title: g.title, subject: g.spec.meta.subject, createdAt: g.createdAt, generatorKind: g.spec.meta.generator?.kind ?? "demo",
         environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
         bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
-        inProgress: sessions.some((s) => s.status === "ACTIVE"), completed: done.length > 0, percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
+        inProgress: sessions.some((s) => s.status === "ACTIVE"), completed: done.length > 0, percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null, lastDoneSessionId: done[0]?.id ?? null,
         lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
         difficulty: g.spec.meta.difficulty, ...(templateId ? { templateId } : {}),
       };

@@ -125,7 +125,8 @@ export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; 
       {g.bestStars > 0 && <div className="flex flex-wrap items-center gap-2 text-sm"><Stars n={g.bestStars} size="sm" /><span className="ltr-num text-muted">{g.bestScore}/{g.maxScore}</span></div>}
       <div className="flex items-center gap-2">
         <a href={`#/play/${g.id}`} data-testid="mobile-play" aria-label={t("a11y.forGame", { action, title: g.title })} className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-neon px-5 font-bold text-ink-950 transition active:scale-[0.98]">{action}</a>
-        {g.lastSessionId && <a href={`#/games/${g.id}/results/${g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-12 shrink-0 items-center whitespace-nowrap rounded-xl border border-line px-4 text-sm font-semibold transition hover:bg-text/10 active:scale-[0.98]">{t("mob.results")}</a>}
+        {/* the last finished run, not a replay under way (that one is what the play button continues) */}
+        {(g.lastDoneSessionId ?? g.lastSessionId) && <a href={`#/games/${g.id}/results/${g.lastDoneSessionId ?? g.lastSessionId}`} aria-label={t("a11y.forGame", { action: t("mob.results"), title: g.title })} className="inline-flex min-h-12 shrink-0 items-center whitespace-nowrap rounded-xl border border-line px-4 text-sm font-semibold transition hover:bg-text/10 active:scale-[0.98]">{t("mob.results")}</a>}
         <button type="button" className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl text-muted transition hover:bg-text/10 hover:text-rose active:scale-[0.98]" title={t("mob.delete")} aria-label={t("a11y.forGame", { action: t("mob.delete"), title: g.title })} onClick={() => onDelete(g.id)}>
           <Trash2 aria-hidden className="size-5" />
         </button>

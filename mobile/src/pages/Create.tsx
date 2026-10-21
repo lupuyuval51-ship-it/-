@@ -17,6 +17,7 @@ import { hashQuery } from "@/lib/offline/onboarding";
 import { AiError, generateWithAi, type AiFailure } from "../cloud/ai";
 import { useAccount } from "../cloud/account";
 import { getSettings, store } from "../app-state";
+import { showPlans } from "../features";
 import { modeForMinutes } from "@/lib/offline/first-run";
 import {
   anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, decodeTextFile, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
@@ -387,7 +388,7 @@ export function CreatePage() {
         {alertText && (
           <Alert tone="error" data-testid="mobile-create-error" className="space-y-2">
             <p>{alertText}</p>
-            {(problem?.kind === "limit" || problem?.kind === "topic") && <Button type="button" size="sm" variant="secondary" onClick={() => navigate("/plans")} data-testid="create-to-plans">{t("mob.create.error.limit.cta")}</Button>}
+            {(problem?.kind === "limit" || problem?.kind === "topic") && showPlans() && <Button type="button" size="sm" variant="secondary" onClick={() => navigate("/plans")} data-testid="create-to-plans">{t("mob.create.error.limit.cta")}</Button>}
             {problem?.kind === "notes" && <Button type="button" size="sm" variant="secondary" onClick={() => { dispatch({ type: "problem", problem: null }); setSource("library"); }} data-testid="create-to-library">{t("mob.create.toLibrary")}</Button>}
           </Alert>
         )}
