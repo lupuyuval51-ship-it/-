@@ -18,6 +18,7 @@ import { fitForDevice } from "@/lib/game/spec/device";
 import type { GameSpec } from "@/lib/game/spec/schema";
 import { clampToFeatureTier } from "@/lib/game/spec/tier";
 import { normalizeRawSpec, validateGameSpec } from "@/lib/game/spec/validate";
+import { mirroredSign } from "@/lib/i18n/bidi";
 import { playThrough } from "@/lib/game/world/flow";
 import { findTopic, TOPICS } from "@/lib/game/topics/catalog";
 import { buildTopicSpec, topicRequest } from "@/lib/game/topics/build";
@@ -77,7 +78,8 @@ function checkContent(t: TopicEntry, c: TopicContent, errs: string[]) {
     }
     if (!t.id.startsWith("lang-he-")) for (const s of en) if (HEBREW.test(s)) errs.push(`${l} en has Hebrew: "${s}"`);
     for (const s of he) if (LETTER.test(s.replace(/[A-Za-z]+/g, (w) => (w.length <= 6 ? "" : w))) && !HEBREW.test(s)) errs.push(`${l} he is not Hebrew: "${s}"`);
-    for (const s of he) if (/[<>]/.test(s)) errs.push(`${l} he uses < or > (mirrored in RTL): "${s}"`);
+    // "x > 7" is drawn left to right (MathText); a sign in Hebrew prose is mirrored
+    for (const s of he) if (mirroredSign(s)) errs.push(`${l} he uses < or > outside a maths expression (mirrored in RTL): "${s}"`);
     for (const pair of lv.q ?? []) {
       for (const [q, answer, wrong, explanation] of pair) {
         const keys = [answer, ...wrong].map((o) => o.trim().toLowerCase().replace(/\s+/g, " "));

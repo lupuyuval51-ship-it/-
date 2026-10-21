@@ -8,6 +8,7 @@ import type { CorpusItem } from "@/lib/game/sim-balance/corpus";
 import { TOPICS, TOPIC_CATEGORIES, findTopic, searchTopics } from "@/lib/game/topics/catalog";
 import { PLUS_PRO_TOPICS } from "@/lib/game/topics/catalog-plus-pro";
 import { TOPIC_LOADERS, loadTopicContent } from "@/lib/game/topics/loaders";
+import { mirroredSign } from "@/lib/i18n/bidi";
 import { numberValue, rangeHint } from "@/lib/game/topics/build";
 import { translator } from "@/lib/game/builders";
 import type { GameSpec } from "@/lib/game/spec/schema";
@@ -299,8 +300,8 @@ describe("the Plus and Pro collection", () => {
     }
   });
 
-  it("Hebrew text never uses < or > (a right-to-left line draws them mirrored)", () => {
-    for (const t of PLUS_PRO_TOPICS) {
+  it("Hebrew text uses < or > only inside a maths expression (a right-to-left line draws them mirrored; MathText draws \"x > 7\" left to right)", () => {
+    for (const t of TOPICS) {
       const c = contents.get(t.id)!;
       const he = LEVELS.flatMap((lv) => [
         ...(c[lv].t ?? []).flatMap((x) => [x[2], x[3]]),
@@ -308,7 +309,7 @@ describe("the Plus and Pro collection", () => {
         ...(c[lv].n ?? []).flatMap(([, , h]) => [h[0], h[2], h[3] ?? ""]),
         ...(c[lv].s ?? []).flatMap(([, h]) => h),
       ]);
-      for (const s of he) expect(/[<>]/.test(s), `${t.id}: ${s}`).toBe(false);
+      for (const s of he) expect(mirroredSign(s), `${t.id}: ${s}`).toBe(false);
     }
   });
 });

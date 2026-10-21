@@ -35,8 +35,8 @@ const RUN = new RegExp(String.raw`${GROUP}(?:${OP}${GROUP}|(?=√?\()${PAREN})*`
 
 export interface TextPart { text: string; math: boolean }
 
-/** A line that is nothing but arithmetic ("4/8", "2/3 = 4/6", "1 1/4 m" is not): numbers, x, spaces and maths signs. */
-export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\d.,/%…×÷−+=≈()x-]*$/.test(text);
+/** A line that is nothing but arithmetic ("4/8", "2/3 = 4/6", "3 > 2"; "1 1/4 m" is not): numbers, x, spaces and maths signs. */
+export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\d.,/%…×÷−+=≈<>≤≥()x-]*$/.test(text);
 
 /*
  * Latin letters with maths or code: "3x + 2y = 16", "a + 2b", "=SUM(A1:A3)", "C1", "IPv6", "3D", "C++", "log₂ 10", "sin 2 ≈ 0.91".
@@ -106,3 +106,6 @@ export function mathRuns(text: string): TextPart[] {
   if (at < text.length) parts.push({ text: text.slice(at), math: false });
   return parts.length ? parts : [{ text, math: false }];
 }
+
+/** A "<" or ">" that a right-to-left line would draw mirrored: one in Hebrew prose. Inside a maths run ("x > 7") it is drawn left to right. */
+export const mirroredSign = (text: string): boolean => HEBREW.test(text) && mathRuns(text).some((p) => !p.math && /[<>]/.test(p.text));

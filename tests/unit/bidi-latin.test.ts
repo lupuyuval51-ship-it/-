@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mathRuns } from "@/lib/i18n/bidi";
+import { mathRuns, mirroredSign } from "@/lib/i18n/bidi";
 
 // Measured in Chromium (each character's position on screen): before this change a Hebrew line drew "C1" as "1C",
 // "IPv6" as "6IPv", "15:40" as "40:15", "115°" as "°115", "(2, −3)" as "(−3 ,2)" and "16 = 3x + 2y" mirrored.
@@ -62,5 +62,17 @@ describe("numbers in a Hebrew line: times, ratios, degrees, roots, π, powers, p
     for (const line of ["בתא C1 יש =A1*B1. מעתיקים אותו ל־C2.", "הנקודה P(2, 6) ← (2, −3), ו־σ = 10", "ב־π/6 (30°) וב־5π/6 (150°), ציר y", "השם 2xyz הוא שם"]) {
       expect(mathRuns(line).map((p) => p.text).join("")).toBe(line);
     }
+  });
+});
+
+describe("a < or > in a Hebrew line", () => {
+  it("is drawn left to right inside an expression, and mirrored only in prose", () => {
+    expect(mirroredSign("הפירוש של x > 7 הוא גדול מ־7")).toBe(false);
+    expect(mirroredSign("פתרו: −2x < 8")).toBe(false);
+    expect(mirroredSign("כמה מספרים שלמים x מקיימים −3 ≤ x < 2?")).toBe(false);
+    expect(mirroredSign("12 > 10 הוא True")).toBe(false);
+    expect(mirroredSign("החץ > מצביע ימינה")).toBe(true);
+    // a line without Hebrew is drawn left to right as a whole
+    expect(mirroredSign("x > 6")).toBe(false);
   });
 });
