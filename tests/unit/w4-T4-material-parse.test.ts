@@ -252,14 +252,14 @@ describe("known gaps in reading notes (skipped until the parser is fixed)", () =
   // BUG (src/lib/game/material/parse.ts, step 1 "numbered lists"): the group of numbered lines stops at the first blank line, so a list
   // written with a blank line between the items (a Markdown "loose" list, most pastes from a web page or a document) is no list of steps:
   // no ordering question is made, and the lines are left as one odd statement.
-  it.skip("a numbered list with a blank line between its items is still a list of steps", () => {
+  it("a numbered list with a blank line between its items is still a list of steps", () => {
     const k = parseMaterial("How to boil an egg:\n\n1. Fill a pot with water\n\n2. Bring the water to the boil\n\n3. Lower the egg in for seven minutes\n\n4. Cool the egg in cold water");
     expect(k.steps).toEqual([["Fill a pot with water", "Bring the water to the boil", "Lower the egg in for seven minutes", "Cool the egg in cold water"]]);
   });
 
   // BUG (parse.ts, NUMBER / asFact): a decimal comma ("36,6 grados", "3,5 degrees") is read as the whole number 36 followed by ",6", so the
   // question shows "___,6 grados" and its right answer is 36: a question that cannot be answered as the learner wrote the number.
-  it.skip("a decimal comma never leaves half of the number in the question", () => {
+  it("a decimal comma never leaves half of the number in the question", () => {
     for (const sentence of ["La temperatura media de la habitación fue de 36,6 grados durante todo el invierno.", "The average temperature of the room was 3,5 degrees in the winter months."]) {
       for (const f of parseMaterial(sentence).facts) expect(f.blanked, sentence).not.toMatch(/___,\d/);
     }
@@ -267,7 +267,7 @@ describe("known gaps in reading notes (skipped until the parser is fixed)", () =
 
   // BUG (parse.ts, NUMBER / asFact): the marker of a list written "(1) …" or "1 - …" is taken for a number fact ("(___) Fill a pot with
   // water", answer 1), and the list is not steps either. Reading these markers as steps, or leaving the lines out, would both be fine.
-  it.skip("the number of a list marker is not a number fact", () => {
+  it("the number of a list marker is not a number fact", () => {
     for (const text of [
       "(1) Fill a pot with water\n(2) Bring the water to the boil\n(3) Lower the egg in for seven minutes",
       "1 - Fill a pot with water\n2 - Bring the water to the boil\n3 - Lower the egg in for seven minutes",

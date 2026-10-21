@@ -31,35 +31,57 @@ export class MaterialError extends Error {
 
 // ───────────────────────────── world flavour ─────────────────────────────
 
-const CATEGORY: [SubjectCategory, RegExp][] = [
-  ["programming", /\b(?:python|java(?:script)?|code|coding|program(?:ming)?|algorithm|loop|variable|function|software|computer|html|css|sql)(?:s|es)?\b|תכנות|קוד|אלגוריתם|מחשב/i],
-  ["math", /\b(?:math(?:s|ematics)?|algebra|geometry|fraction|equation|arithmetic|calculus|percent)(?:s|es)?\b|מתמטיקה|חשבון|שבר|משוואה|גיאומטריה|אחוז/i],
-  ["science", /\b(?:science|physics|chemistry|biology|atom|cell|energy|force|planet|space|ecosystem|photosynthesis|gravity|molecule|animal|plant|weather|ocean|sea|climate)(?:s|es)?\b|מדע|פיזיקה|כימיה|ביולוגיה|אנרגיה|כוח|כוכב|חלל|תא|צמח|חיה|אקלים|ים|אוקיינוס/i],
-  ["history", /\b(?:history|ancient|empire|war|revolution|king|queen|dynasty|medieval|civilization|century|egypt|rome|greece)(?:s|es)?\b|היסטוריה|עתיק|אימפריה|מלחמה|מהפכה|מלך|תקופה|מצרים|רומא|יוון/i],
-  ["language", /\b(?:language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|translate|words?)(?:s|es)?\b|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
+const CATEGORY: [SubjectCategory, RegExp, readonly string[]][] = [
+  ["programming", /\b(?:python|java(?:script)?|code|coding|program(?:ming)?|algorithm|loop|variable|function|software|computer|html|css|sql)(?:s|es)?\b/i, ["תכנות", "קוד", "אלגוריתם", "מחשב"]],
+  ["math", /\b(?:math(?:s|ematics)?|algebra|geometry|fraction|equation|arithmetic|calculus|percent)(?:s|es)?\b/i, ["מתמטיקה", "חשבון", "שבר", "משוואה", "גיאומטריה", "אחוז"]],
+  ["science", /\b(?:science|physics|chemistry|biology|atom|cell|energy|force|planet|space|ecosystem|photosynthesis|gravity|molecule|animal|plant|weather|ocean|sea|climate)(?:s|es)?\b/i, ["מדע", "פיזיקה", "כימיה", "ביולוגיה", "אנרגיה", "כוח", "כוכב", "חלל", "תא", "תאים", "צמח", "חיה", "אקלים", "ים", "אוקיינוס"]],
+  ["history", /\b(?:history|ancient|empire|war|revolution|king|queen|dynasty|medieval|civilization|century|egypt|rome|greece)(?:s|es)?\b/i, ["היסטוריה", "עתיק", "אימפריה", "מלחמה", "מהפכה", "מלך", "תקופה", "מצרים", "רומא", "יוון"]],
+  ["language", /\b(?:language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|translate|words?)(?:s|es)?\b/i, ["שפה", "אוצר מילים", "דקדוק", "ספרדית", "צרפתית", "אנגלית", "עברית", "ערבית"]],
 ];
 
-const ENV: [Environment, RegExp][] = [
-  ["ocean-floor", /\b(?:ocean|sea|marine|fish|coral|whale|dolphin|underwater|reef)(?:s|es)?\b|ים|אוקיינוס|דג|אלמוג|לווייתן/i],
-  ["space-station", /\b(?:space|planet|star|galaxy|astronaut|rocket|orbit|solar system|moon|mars)(?:s|es)?\b|חלל|כוכב|גלקסיה|אסטרונאוט|טיל|מסלול|ירח|מאדים/i],
-  ["desert-ruins", /\b(?:egypt|pyramid|pharaoh|nile|desert|ancient|mesopotamia|bronze age)(?:s|es)?\b|מצרים|פירמידה|פרעה|נילוס|מדבר|עתיק/i],
-  ["castle", /\b(?:castle|medieval|knight|king|queen|kingdom|rome|roman|greece|greek|empire|math(?:s|ematics)?|algebra|geometry)(?:s|es)?\b|טירה|ימי הביניים|אביר|מלך|ממלכה|רומא|יוון|אימפריה|מתמטיקה|אלגברה|גיאומטריה/i],
-  ["neon-city", /\b(?:code|coding|program|python|java(?:script)?|algorithm|computer|software|internet|network|robot|ai|data)(?:s|es)?\b|קוד|תכנות|אלגוריתם|מחשב|תוכנה|אינטרנט|רשת|רובוט|נתונים/i],
-  ["laboratory", /\b(?:science|physics|chemistry|biology|atom|molecule|cell|energy|force|experiment|lab|body|health)(?:s|es)?\b|מדע|פיזיקה|כימיה|ביולוגיה|אטום|מולקולה|תא|אנרגיה|כוח|ניסוי|גוף|בריאות/i],
-  ["sky-islands", /\b(?:weather|cloud|climate|geography|bird|flight|air|wind|mountain|continent|map)(?:s|es)?\b|מזג אוויר|ענן|אקלים|גיאוגרפיה|ציפור|טיסה|אוויר|רוח|הר|יבשת|מפה/i],
-  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|photosynthesis|chlorophyll|leaf|leaves|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)(?:s|es)?\b|יער|טבע|צמח|עץ|חיה|פוטוסינתזה|כלורופיל|דבורה|דבורים|חרק|פרח|גינה|חווה|מערכת אקולוגית|שפה|אוצר מילים|דקדוק|ספרדית|צרפתית|אנגלית|עברית|ערבית/i],
+const ENV: [Environment, RegExp, readonly string[]][] = [
+  ["ocean-floor", /\b(?:ocean|sea|marine|fish|coral|whale|dolphin|underwater|reef)(?:s|es)?\b/i, ["ים", "אוקיינוס", "דג", "דגים", "אלמוג", "לווייתן"]],
+  ["space-station", /\b(?:space|planet|star|galaxy|astronaut|rocket|orbit|solar system|moon|mars)(?:s|es)?\b/i, ["חלל", "כוכב", "גלקסיה", "אסטרונאוט", "טיל", "מסלול", "ירח", "מאדים"]],
+  ["desert-ruins", /\b(?:egypt|pyramid|pharaoh|nile|desert|ancient|mesopotamia|bronze age)(?:s|es)?\b/i, ["מצרים", "פירמידה", "פרעה", "נילוס", "מדבר", "עתיק"]],
+  ["castle", /\b(?:castle|medieval|knight|king|queen|kingdom|rome|roman|greece|greek|empire|math(?:s|ematics)?|algebra|geometry)(?:s|es)?\b/i, ["טירה", "ימי הביניים", "אביר", "מלך", "ממלכה", "רומא", "יוון", "אימפריה", "מתמטיקה", "אלגברה", "גיאומטריה"]],
+  ["neon-city", /\b(?:code|coding|program|python|java(?:script)?|algorithm|computer|software|internet|network|robot|ai|data)(?:s|es)?\b/i, ["קוד", "תכנות", "אלגוריתם", "מחשב", "תוכנה", "אינטרנט", "רשת", "רובוט", "נתונים"]],
+  ["laboratory", /\b(?:science|physics|chemistry|biology|atom|molecule|cell|energy|force|experiment|lab|body|health)(?:s|es)?\b/i, ["מדע", "פיזיקה", "כימיה", "ביולוגיה", "אטום", "מולקולה", "תא", "תאים", "אנרגיה", "כוח", "ניסוי", "גוף", "בריאות"]],
+  ["sky-islands", /\b(?:weather|cloud|climate|geography|bird|flight|air|wind|mountain|continent|map)(?:s|es)?\b/i, ["מזג אוויר", "ענן", "אקלים", "גיאוגרפיה", "ציפור", "טיסה", "אוויר", "רוח", "הר", "הרים", "יבשת", "מפה"]],
+  ["forest", /\b(?:forest|nature|plant|tree|animal|bees?|insects?|honey|flowers?|garden|farm|ecosystem|habitat|photosynthesis|chlorophyll|leaf|leaves|language|vocabulary|grammar|spanish|french|german|english|hebrew|arabic|words?)(?:s|es)?\b/i, ["יער", "טבע", "צמח", "עץ", "עצים", "חיה", "פוטוסינתזה", "כלורופיל", "דבורה", "דבורים", "חרק", "פרח", "גינה", "חווה", "מערכת אקולוגית", "שפה", "אוצר מילים", "דקדוק", "ספרדית", "צרפתית", "אנגלית", "עברית", "ערבית"]],
 ];
 
 // A subject that names no world gets a calm, daylight one: the night-time neon city is kept for computing subjects.
 const ENV_BY_TYPE: Record<GameType, Environment> = { exploration: "forest", puzzle: "castle", platformer: "sky-islands", simulation: "laboratory", adventure: "forest" };
 
+/** Common words that only look like a keyword with a prefix or an ending ("מתאים" is not cells, "מחשבה" is not a computer). */
+const NOT_KEYWORDS = new Set(["מתאים", "מתאימה", "מתאימים", "מתאימות", "מחשבה", "מחשבות", "משבר", "משברים", "ימים", "ימי", "מחשבון"]);
+const HE_PREFIX = /^[והבכלמש]/u;
+const HE_ENDING = /(?:יים|ים|ות|יות|ית|ה|י)$/u;
+
+/**
+ * A Hebrew keyword as a whole word: with a clitic in front (ו ה ב כ ל מ ש: "הים", "באוקיינוס") and, for a word of three letters
+ * or more, a plural or feminine ending ("הצמחים", "העתיקה"); never inside another word ("ים" in "מצרים", "תא" in "מתאים").
+ */
+function hebrewHit(subject: string, words: readonly string[]): boolean {
+  const single = new Set(words.filter((w) => !w.includes(" ")));
+  if (words.some((w) => w.includes(" ") && new RegExp(`(?<!\\p{L})[והבכלמש]?${w}(?!\\p{L})`, "u").test(subject))) return true;
+  for (const token of subject.match(/\p{Script=Hebrew}+/gu) ?? []) {
+    if (NOT_KEYWORDS.has(token)) continue;
+    const bare = [token];
+    for (let w = token, k = 0; k < 2 && HE_PREFIX.test(w) && w.length >= 3; k++) bare.push((w = w.slice(1)));
+    if (bare.some((w) => single.has(w) || (w.replace(HE_ENDING, "").length >= 3 && single.has(w.replace(HE_ENDING, ""))))) return true;
+  }
+  return false;
+}
+const hits = (subject: string, en: RegExp, he: readonly string[]) => en.test(subject) || hebrewHit(subject, he);
+
 export function pickCategory(subject: string): SubjectCategory {
-  return CATEGORY.find(([, re]) => re.test(subject))?.[0] ?? "other";
+  return CATEGORY.find(([, en, he]) => hits(subject, en, he))?.[0] ?? "other";
 }
 
 /** The subject decides (a word like "queen" deep in the notes must not move a bee lesson into a castle). */
 export function pickEnvironment(subject: string, gameType: GameType): Environment {
-  return ENV.find(([, re]) => re.test(subject))?.[0] ?? ENV_BY_TYPE[gameType];
+  return ENV.find(([, en, he]) => hits(subject, en, he))?.[0] ?? ENV_BY_TYPE[gameType];
 }
 
 type Collectible = "gem" | "data-core" | "star" | "leaf" | "coin";

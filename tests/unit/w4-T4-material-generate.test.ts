@@ -405,7 +405,7 @@ describe("the subject's world", () => {
   // Ancient Egypt ("מצרים העתיקה") is filed under science and played on the ocean floor, "הדבורים" (the bees) and "שברים" (fractions)
   // too, "אוצר מילים באנגלית" (English vocabulary) is science instead of language. Hebrew keywords need a letter boundary on both
   // sides, allowing the clitic prefixes ו ה ב כ ל מ ש in front (ים, הים, בים, מהים).
-  it.skip("a Hebrew subject is not taken for the sea (or a cell, a tree…) because a plural ends in -ים", () => {
+  it("a Hebrew subject is not taken for the sea (or a cell, a tree…) because a plural ends in -ים", () => {
     expect(pickCategory("מצרים העתיקה")).toBe("history");
     expect(pickEnvironment("מצרים העתיקה", "adventure")).toBe("desert-ruins");
     expect(pickEnvironment("הדבורים", "adventure")).toBe("forest");

@@ -66,7 +66,8 @@ export interface Knowledge {
 }
 
 const BULLET = /^[-*•–—·▪●○]\s+/;
-const NUMBERED = /^(?:step|שלב)?\s*(\d{1,2})\s*[.):]\s+(.{3,})$/iu;
+// "1. …", "2) …", "3: …", "(4) …", and "5 - …" when a word follows (so "1 - 2 = −1" stays a sum)
+const NUMBERED = /^(?:step|שלב)?\s*\(?(\d{1,2})(?:\s*[.):]|\s+[-–](?=\s+\p{L}))\s+(.{3,})$/iu;
 const NOT_A_TERM = /^(?:note|notes|example|examples|tip|remember|summary|question|answer|q|a|שים לב|הערה|דוגמה|דוגמאות|למשל|תזכורת|סיכום|שאלה|תשובה)$/iu;
 
 const QA_Q = /^(?:q|question|ש|שאלה)\s*[.:)]\s*(.{5,})$/iu;
@@ -87,7 +88,8 @@ const DEF_IS_EN = /^(?:(?:an?|the)\s+)?(\p{Lu}[^,.;:()]{1,40}?)\s+(?:is|are|mean
 const DEF_IS_HE = /^([^\s,.;:()]+(?:\s[^\s,.;:()]+){0,3})\s+(?:הוא|היא|הם|הן|פירושו|פירושה|נקרא|נקראת|נקראים|נקראות)\s+(.{10,})$/u;
 
 // a minus sign counts only when it stands alone before the number ("fell to -30 degrees"), never as a hyphen ("ב-1991", "pages 3-5")
-const NUMBER = /(?<![\p{L}\p{N}.,/:]|\d[-–])((?<=^|[\s(])[-−])?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?![\p{L}\p{N}/:]|[-–]\d)/u;
+// (a decimal comma, "36,6", makes no number: read as 36 it would leave ",6" in the question)
+const NUMBER = /(?<![\p{L}\p{N}.,/:]|\d[-–])((?<=^|[\s(])[-−])?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?![\p{L}\p{N}/:]|[-–]\d|,\d)/u;
 const VOCAB = /^(.{1,40}?)(?:\s+[=–—-]\s+|\s*[=:：]\s+|\s+\|\s+)(.{1,40})$/u;
 const LEAD_IN = /[:：]$/u;
 /** A first line such as "שאלות לחזרה – גוף האדם" or "Chapter 3 - Cells" names the notes: it is their title, not a term and its meaning. */
@@ -196,6 +198,8 @@ function asFact(sentence: string, tableRow = false): Fact | null {
   const magnitude = Number(m[3] ? `${whole}.${m[3]}` : whole);
   const value = m[1] ? -magnitude : magnitude;
   if (!Number.isFinite(value) || Math.abs(value) > 1e12) return null;
+  // the number of a list marker ("(1) Fill a pot", "1 - Fill a pot") is not a fact; a year in a timeline ("1947 – …") is
+  if (m[2]!.length <= 2 && /^\(?$/u.test(s.slice(0, m.index).trim()) && /^(?:\)|\s+[-–]\s)/u.test(s.slice(m.index + m[0].length))) return null;
   const blanked = `${s.slice(0, m.index)}___${s.slice(m.index + m[0].length)}`;
   // a table row is short by nature ("Mars – Moons: ___"); a sentence that short is usually not a fact worth asking about
   if (tableRow ? blanked.length < 8 : blanked.length < 25 || blanked.length > 230 || wordCount(blanked) < 5) return null;
@@ -340,6 +344,14 @@ export function parseMaterial(raw: string): Knowledge {
     const group: { n: number; text: string; idx: number }[] = [];
     let j = i;
     while (j < lines.length) {
+      // a blank line between two items ("1. …", "", "2. …": a loose Markdown list, a paste from a page) does not end the list
+      if (!lines[j] && group.length) {
+        let k = j;
+        while (k < lines.length && !lines[k]) k++;
+        const next = k < lines.length && !consumed.has(k) ? NUMBERED.exec(lines[k]!.replace(BULLET, "")) : null;
+        if (next && Number(next[1]) === group[group.length - 1]!.n + 1) { j = k; continue; }
+        break;
+      }
       // a line already read as a question and its answer (a numbered quiz) is not a step
       const m = consumed.has(j) ? null : NUMBERED.exec(lines[j]!.replace(BULLET, ""));
       if (!m) break;
