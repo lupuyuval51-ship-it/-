@@ -108,6 +108,13 @@ function dupes(ids: string[]): string[] {
   return [...out];
 }
 
+/**
+ * Two texts the player cannot tell apart. Only spacing is ignored: a sign, a bracket or a capital letter can be the
+ * whole point of a maths, code or spelling option ("−5" and "5", "x > 4" and "x < 4", "<p>" and "</p>").
+ */
+const sameText = (s: string) => s.replace(/\s+/g, " ").trim();
+const dupeTexts = (texts: string[]): string[] => dupes(texts.map(sameText));
+
 /** Everything Zod cannot express: references, reachability, completability, solvability. */
 export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
@@ -161,13 +168,19 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
       case "choice": {
         if (dupes(c.options.map((o) => o.id)).length) err(`challenge "${c.id}" has duplicate option ids`);
         if (!c.options.some((o) => o.id === c.correctOptionId)) err(`challenge "${c.id}" correctOptionId "${c.correctOptionId}" is not one of its options`);
+        // Answers are graded by id: two options that read the same would make one of them wrong for no reason the player can see.
+        if (dupeTexts(c.options.map((o) => o.text)).length) err(`challenge "${c.id}" has two options with the same text`);
         break;
       }
       case "sequence":
         if (dupes(c.items.map((i) => i.id)).length) err(`challenge "${c.id}" has duplicate item ids`);
+        // Graded by id in place, so identical items make the order a guess. A warning (not an error): the study engine can
+        // still build this from repetitive notes, and the game stays playable.
+        if (dupeTexts(c.items.map((i) => i.text)).length) warnings.push(`challenge "${c.id}" has two items with the same text (their order could not be told apart)`);
         break;
       case "match":
         if (dupes(c.pairs.map((p) => p.id)).length) err(`challenge "${c.id}" has duplicate pair ids`);
+        if (dupeTexts(c.pairs.map((p) => p.left)).length || dupeTexts(c.pairs.map((p) => p.right)).length) warnings.push(`challenge "${c.id}" has two pairs with the same text on one side (the match could not be told apart)`);
         break;
       case "program": {
         const { grid } = c;
@@ -188,6 +201,10 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
         if (c.sim.kind === "lever" && !leverSolvable(c.sim)) err(`challenge "${c.id}" balance point is outside the lever (0.2..${c.sim.maxDistance}) or too close to the pivot for the slider (from ${LEVER_SLIDER_MIN} m) to reach it within the tolerance`);
         break;
       case "numeric":
+        // The grader accepts the answer first, so a "mistake" inside the tolerance is a right answer labelled wrong.
+        for (const m of c.commonMistakes) {
+          if (Math.abs(m.value - c.answer) <= c.tolerance + 1e-9) err(`challenge "${c.id}" lists the correct answer (${m.value}, within tolerance ${c.tolerance}) as a common mistake`);
+        }
         break;
     }
   }
@@ -333,8 +350,10 @@ export function sealPortals(spec: GameSpec): string[] {
   for (const area of spec.areas) {
     if (!area.portal) continue;
     const here = spec.missions.filter((m) => m.areaId === area.id);
-    // "Final" missions: nothing else in this area builds on them (finishing those finishes their prerequisites).
-    const final = here.filter((m) => !m.optional && !here.some((o) => o.requires.includes(m.id)));
+    // "Final" missions: no required mission in this area builds on them (finishing those finishes their prerequisites).
+    // A side mission that builds on one does not count: the game is finished without it, so it must not hide the
+    // required mission from the portal.
+    const final = here.filter((m) => !m.optional && !here.some((o) => !o.optional && o.requires.includes(m.id)));
     const wanted = [...new Set([...area.portal.requiresMissionIds, ...final.map((m) => m.id)])];
     // The schema allows four; keep the portal's own requirements first, then as many final missions as fit.
     const next = wanted.slice(0, 4);

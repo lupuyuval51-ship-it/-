@@ -294,7 +294,9 @@ export function recompute(spec: GameSpec, state: PlayState): { newlyCompleted: s
   if (state.finished) {
     grant("completed", true);
     grant("no_hints", state.hintsUsed === 0);
-    grant("flawless", recs.every((r) => r.correct && r.wrong === 0));
+    // "Every challenge right on the first try" needs at least one answered challenge: a game finished through talk,
+    // visit or collect objectives alone has nothing to be flawless at (`[].every` is true).
+    grant("flawless", recs.length > 0 && recs.every((r) => r.correct && r.wrong === 0));
   }
   const newAchievements = [...have].filter((a) => !state.achievements.includes(a));
   state.achievements = [...have];
@@ -389,8 +391,10 @@ export function summarize(spec: GameSpec, state: PlayState, now = Date.now()): L
       const mastery = rec.correct ? Math.max(0.25, 1 - 0.25 * rec.wrong - 0.1 * rec.hints) : 0;
       objectiveScores.set(ch.objectiveId, [...(objectiveScores.get(ch.objectiveId) ?? []), mastery]);
     }
+    // The same set as `buildReview` and the practice round (any miss): the results page lists these next to its "review
+    // my mistakes" button, so a challenge solved on the second try must not read "nothing to review" beside that button.
     if (rec.revealed) review.push({ challengeId: cid, title: ch.title, concept: ch.concept, reason: "revealed" });
-    else if (rec.wrong >= 2) review.push({ challengeId: cid, title: ch.title, concept: ch.concept, reason: "multiple_attempts" });
+    else if (rec.wrong > 0) review.push({ challengeId: cid, title: ch.title, concept: ch.concept, reason: "multiple_attempts" });
   }
   return {
     score: state.score, maxScore: max, percent, stars: starsFor(percent, state.finished), completed: state.finished,

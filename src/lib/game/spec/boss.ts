@@ -99,7 +99,8 @@ export function addFinalBoss(base: GameSpec): BossOutcome {
   const missionId = uniqueId("m-boss", takenMissions);
 
   const here = base.missions.filter((m) => m.areaId === area.id);
-  const final = here.filter((m) => !m.optional && !here.some((o) => o.requires.includes(m.id)));
+  // The battle waits for every required mission of the area; a side mission that builds on one does not hide it.
+  const final = here.filter((m) => !m.optional && !here.some((o) => !o.optional && o.requires.includes(m.id)));
   const boss: Boss = {
     id: bossId, areaId: area.id, name: text.name, title: text.title, intro: text.intro, defeatLine: text.defeat,
     look: { color: "#ff4d6d", shape: "creature" }, phaseStationIds: chosen.map((s) => s.id),

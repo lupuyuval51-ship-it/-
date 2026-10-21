@@ -77,6 +77,8 @@ export function mergeExtension(base: GameSpec, ext: GameExtension): MergeOutcome
   for (const [oldId, newId] of rename.station) stationOld.set(newId, oldId);
   for (const a of extAreas) {
     for (const s of a.stations) if (s.challengeId) s.challengeId = map("challenge", s.challengeId);
+    // A reaction to a renamed new mission must follow it, or it would silently answer the old mission of the same name.
+    for (const n of a.npcs) for (const r of n.reactions) r.afterMissionId = map("mission", r.afterMissionId);
     if (a.portal) {
       a.portal.toAreaId = map("area", a.portal.toAreaId);
       a.portal.requiresMissionIds = a.portal.requiresMissionIds.map((id) => map("mission", id));
