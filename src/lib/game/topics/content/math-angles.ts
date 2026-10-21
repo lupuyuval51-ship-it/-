@@ -10,8 +10,10 @@ const c: TopicContent = {
       ["Protractor", "a tool for measuring angles in degrees", "מדזווית", "כלי למדידת זוויות במעלות"],
     ],
     q: [
-      [["What kind of angle is 45°?", "Acute", ["Obtuse", "Right", "Straight"], "45° is smaller than 90°, so it is acute."],
-        ["איזו זווית היא 45°?", "חדה", ["קהה", "ישרה", "שטוחה"], "45° קטנה מ־90°, ולכן היא זווית חדה."]],
+      [["What kind of angle is 45°?", "Acute", ["Obtuse", "Right", "Straight"], "45° is smaller than 90°, so it is acute. A right angle is exactly 90°, and an obtuse angle is bigger than 90°."],
+        ["מאיזה סוג היא זווית של 45°?", "חדה", ["קהה", "ישרה", "שטוחה"], "45° קטנה מ־90°, ולכן היא זווית חדה. זווית ישרה היא 90° בדיוק, וזווית קהה גדולה מ־90°."]],
+      [["Which of these angles is obtuse?", "120°", ["90°", "200°", "60°"], "An obtuse angle is bigger than 90° but smaller than 180°, and only 120° is in that range: 90° is a right angle, 60° is acute and 200° is more than a straight angle."],
+        ["איזו מהזוויות הבאות היא זווית קהה?", "120°", ["90°", "200°", "60°"], "זווית קהה גדולה מ־90° וקטנה מ־180°, ורק 120° נמצאת בתחום הזה: 90° היא זווית ישרה, 60° היא זווית חדה ו־200° גדולה מזווית שטוחה."]],
       [["How many degrees are in a full turn?", "360°", ["180°", "90°", "100°"], "A full turn brings you back to where you started: 360°."],
         ["כמה מעלות יש בסיבוב שלם?", "360°", ["180°", "90°", "100°"], "סיבוב שלם מחזיר אותנו למקום שבו התחלנו: 360°."]],
     ],
@@ -30,7 +32,10 @@ const c: TopicContent = {
       [["Two angles of a triangle are 50° and 60°. What is the third angle?", "70°", ["80°", "110°", "90°"], "The angles of a triangle add up to 180°: 180 − 50 − 60 = 70°."],
         ["שתי זוויות במשולש הן 50° ו־60°. מהי הזווית השלישית?", "70°", ["80°", "110°", "90°"], "סכום הזוויות במשולש הוא 180°: 180 − 50 − 60 = 70°."]],
     ],
-    n: [[145, ["An angle on a straight line is 35°. What is the angle next to it on the same line?", "°", "Angles on a straight line add up to 180°: 180 − 35 = 145°."], ["זווית על קו ישר היא 35°. מהי הזווית הצמודה לה?", "°", "זוויות צמודות מסתכמות ב־180°: 180 − 35 = 145°."]]],
+    n: [
+      [145, ["An angle on a straight line is 35°. What is the angle next to it on the same line?", "°", "Angles on a straight line add up to 180°: 180 − 35 = 145°."], ["זווית על קו ישר היא 35°. מהי הזווית הצמודה לה?", "°", "זוויות צמודות מסתכמות ב־180°: 180 − 35 = 145°."]],
+      [65, ["Two angles are complementary, and one of them is 25°. What is the other one?", "°", "Complementary angles add up to 90°: 90 − 25 = 65°."], ["שתי זוויות משלימות זו את זו ל־90°, ואחת מהן היא 25°. מהי הזווית השנייה?", "°", "זוויות משלימות ל־90° מסתכמות ב־90°: 90 − 25 = 65°."]],
+    ],
   },
   a: {
     t: [
@@ -40,8 +45,8 @@ const c: TopicContent = {
       ["Interior angle sum", "the total of the angles inside a polygon: (n − 2) × 180° for n sides", "סכום הזוויות הפנימיות", "סך הזוויות שבתוך מצולע: (n − 2) × 180° כשיש n צלעות"],
     ],
     q: [
-      [["What is the sum of the interior angles of a pentagon (5 sides)?", "540°", ["360°", "720°", "900°"], "(n − 2) × 180° = (5 − 2) × 180° = 540°."],
-        ["מהו סכום הזוויות הפנימיות במחומש (5 צלעות)?", "540°", ["360°", "720°", "900°"], "(n − 2) × 180° = (5 − 2) × 180° = 540°."]],
+      [["What is the sum of the interior angles of a pentagon (5 sides)?", "540°", ["360°", "720°", "900°"], "From one corner a pentagon splits into 3 triangles: (n − 2) × 180° = (5 − 2) × 180° = 540°."],
+        ["מהו סכום הזוויות הפנימיות במחומש (5 צלעות)?", "540°", ["360°", "720°", "900°"], "מקודקוד אחד אפשר לחלק מחומש ל־3 משולשים: (n − 2) × 180° = (5 − 2) × 180° = 540°."]],
       [["Each interior angle of a regular hexagon is…", "120°", ["108°", "135°", "60°"], "The angles add up to (6 − 2) × 180° = 720°, and 720 ÷ 6 = 120°."],
         ["כל זווית פנימית במשושה משוכלל היא…", "120°", ["108°", "135°", "60°"], "סכום הזוויות הוא (6 − 2) × 180° = 720°, ו־720 ÷ 6 = 120°."]],
       [["In a triangle, an exterior angle is 130° and one of the far interior angles is 50°. What is the other far interior angle?", "80°", ["50°", "130°", "100°"], "An exterior angle equals the sum of the two interior angles not next to it: 130 − 50 = 80°."],
