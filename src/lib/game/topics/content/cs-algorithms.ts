@@ -22,7 +22,7 @@ const c: TopicContent = {
     t: [
       ["Condition", "a question with a yes/no answer that decides which steps run (if … then … else)", "תנאי", "שאלה עם תשובה של כן או לא שקובעת אילו צעדים יתבצעו (אם … אז … אחרת)"],
       ["Linear search", "checking items one by one from the start until you find what you are looking for", "חיפוש סדרתי", "בדיקה של פריטים אחד אחרי השני מההתחלה, עד שמוצאים את מה שמחפשים"],
-      ["Binary search", "finding an item in a sorted list by checking the middle and throwing away half each time", "חיפוש בינארי", "מציאת פריט ברשימה ממוינת בבדיקת האמצע והשלכת מחצית בכל פעם"],
+      ["Binary search", "finding an item by checking the middle of the list and throwing away the half it cannot be in, again and again", "חיפוש בינארי", "מציאת פריט בבדיקת האמצע של הרשימה והשלכת המחצית שהוא לא יכול להיות בה, שוב ושוב"],
       ["Sorting", "putting items in order, such as from smallest to largest", "מיון", "סידור פריטים לפי סדר, למשל מהקטן לגדול"],
     ],
     q: [

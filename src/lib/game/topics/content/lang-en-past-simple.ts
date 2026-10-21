@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Past simple", "the tense for finished actions in the past: “I visited Grandma yesterday.”", "עבר פשוט", "הזמן לפעולות שהסתיימו בעבר: ״I visited Grandma yesterday.״"],
-      ["Regular verb", "a verb whose past form just adds -ed: play → played", "פועל רגיל", "פועל שבעבר פשוט מוסיפים לו ed: play → played"],
-      ["Irregular verb", "a verb with its own special past form: go → went", "פועל לא רגיל", "פועל שיש לו צורת עבר מיוחדת משלו: go → went"],
+      ["Past simple", "the tense for actions that ended in the past: “I visited Grandma yesterday.”", "עבר פשוט", "הזמן לפעולות שהסתיימו בעבר: ״I visited Grandma yesterday.״"],
+      ["Regular verb", "a verb whose past form just adds -ed: walk → walked", "פועל רגיל", "פועל שבעבר פשוט מוסיפים לו ed: walk → walked"],
+      ["Irregular verb", "a verb with its own special past form: eat → ate", "פועל לא רגיל", "פועל שיש לו צורת עבר מיוחדת משלו: eat → ate"],
       ["Time expression", "words that show when something happened, like yesterday, last week or two days ago", "ביטוי זמן", "מילים שמראות מתי משהו קרה, כמו yesterday, last week או two days ago"],
     ],
     q: [
@@ -24,13 +24,13 @@ const c: TopicContent = {
       ["did", "the helper verb for questions and negatives in the past simple", "did", "פועל העזר לשאלות ולשלילה בעבר פשוט"],
       ["didn't", "the short form of did not, used before the base verb", "didn't", "הקיצור של did not, שבא לפני הפועל בצורת הבסיס"],
       ["was / were", "the past forms of be: I/he/she/it was, you/we/they were", "was / were", "צורות העבר של be: I/he/she/it was, you/we/they were"],
-      ["Doubling rule", "short verbs ending in one vowel and one consonant double it before -ed: stop → stopped", "כלל ההכפלה", "פעלים קצרים שמסתיימים בתנועה אחת ועיצור אחד מכפילים אותו לפני ed: stop → stopped"],
+      ["Doubling rule", "short verbs ending in one vowel and one consonant double it before -ed: plan → planned", "כלל ההכפלה", "פעלים קצרים שמסתיימים בתנועה אחת ועיצור אחד מכפילים אותו לפני ed: plan → planned"],
     ],
     q: [
       [["Choose the correct question.", "Did you see the film?", ["Did you saw the film?", "Do you saw the film?", "Saw you the film?"], "After did, the main verb goes back to its base form: Did you see…?"],
         ["בחרו את השאלה הנכונה.", "Did you see the film?", ["Did you saw the film?", "Do you saw the film?", "Saw you the film?"], "אחרי did הפועל העיקרי חוזר לצורת הבסיס: Did you see…?"]],
-      [["Complete: “They ___ at home last night.”", "were", ["was", "are", "have been"], "They takes were in the past: they were at home. Was goes with I, he, she and it, are is the present, and have been does not go with a finished time like last night."],
-        ["השלימו: ״They ___ at home last night.״", "were", ["was", "are", "have been"], "עם they משתמשים בעבר ב־were: they were at home. את was אומרים עם I, he, she ו־it, are הוא הווה, ו־have been לא מתאים לזמן שהסתיים כמו last night."]],
+      [["Complete: “There ___ a lot of people at the party last night.”", "were", ["was", "are", "have been"], "A lot of people is plural, so there takes were in the past: there were a lot of people. Was goes with one thing (there was a cake), are is the present, and have been does not go with a finished time like last night."],
+        ["השלימו: ״There ___ a lot of people at the party last night.״", "were", ["was", "are", "have been"], "a lot of people הוא רבים, ולכן אחרי there בא בעבר were: there were a lot of people. את was אומרים על דבר אחד (there was a cake), are הוא הווה, ו־have been לא מתאים לזמן שהסתיים כמו last night."]],
       [["Which past form is spelled correctly?", "stopped", ["stoped", "stopt", "stopd"], "Stop ends in one vowel + one consonant, so the p is doubled: stopped."],
         ["איזו צורת עבר כתובה נכון?", "stopped", ["stoped", "stopt", "stopd"], "stop מסתיים בתנועה אחת ועיצור אחד, ולכן מכפילים את ה־p: stopped."]],
       [["Choose the correct negative.", "We didn't go to school on Friday.", ["We didn't went to school on Friday.", "We not went to school on Friday.", "We wasn't go to school on Friday."], "In the past simple, the negative is didn't + the base form: We didn't go. After didn't the verb never takes its past form, so didn't went is wrong."],
@@ -39,7 +39,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Past continuous", "was/were + -ing, for an action in progress in the past: “I was reading.”", "עבר מתמשך", "was/were ועוד ing, לפעולה שנמשכה בעבר: ״I was reading.״"],
+      ["Past continuous", "was/were + -ing, for an action in progress in the past: “They were reading.”", "עבר מתמשך", "was/were ועוד ing, לפעולה שנמשכה בעבר: ״They were reading.״"],
       ["Present perfect", "have/has + past participle, linking the past to now: “I have finished.”", "הווה מושלם", "have/has ועוד צורת בינוני פעול, שמחברת את העבר להווה: ״I have finished.״"],
       ["used to", "a form for past habits that are no longer true, as in “I ___ live in Haifa (but now I don't).”", "used to", "צורה להרגלים בעבר שכבר אינם נכונים, כמו ב״I ___ live in Haifa״ (אבל היום כבר לא)"],
       ["Past participle", "the third verb form, used with have or in the passive: go → gone, write → written", "בינוני פעול", "הצורה השלישית של הפועל, שבאה עם have או בסביל: go → gone, write → written"],

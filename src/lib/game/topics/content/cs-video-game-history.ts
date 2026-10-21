@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Arcade machine", "a large coin-operated game cabinet found in public places", "מכונת ארקייד", "ארון משחק גדול שמפעילים בעזרת מטבע, ונמצא במקומות ציבוריים"],
+      ["Arcade machine", "a large game cabinet with its own screen and controls, found in public places", "מכונת ארקייד", "ארון משחק גדול עם מסך ובקרים משלו, שנמצא במקומות ציבוריים"],
       ["Console", "a machine made mainly for playing games, usually connected to a TV", "קונסולה", "מכשיר שנועד בעיקר למשחקים, ובדרך כלל מחברים אותו לטלוויזיה"],
       ["Pixel", "one tiny dot of colour on a screen; pictures are made of many of them", "פיקסל", "נקודת צבע זעירה אחת על מסך; תמונות בנויות מהרבה כאלה"],
     ],
@@ -24,8 +24,8 @@ const c: TopicContent = {
         ["בטטריס, מכמה ריבועים בנויה כל צורה שנופלת?", "ריבועים", "כל צורה בטטריס בנויה מ־4 ריבועים שמחוברים צלע אל צלע, ויש 7 צורות שונות."]],
     ],
     s: [
-      [["From the oldest game to the newest", "Pong", "Pac-Man", "Super Mario Bros.", "Minecraft"],
-        ["מהמשחק הוותיק ביותר לחדש ביותר", "פונג", "פקמן", "האחים סופר מריו", "מיינקראפט"]],
+      [["From the oldest game to the newest", "Pong", "Pac-Man", "Tetris", "Minecraft"],
+        ["מהמשחק הוותיק ביותר לחדש ביותר", "פונג", "פקמן", "טטריס", "מיינקראפט"]],
     ],
   },
   i: {
@@ -76,8 +76,8 @@ const c: TopicContent = {
         ["לקונסולת ה־NES, שעליה רץ ״האחים סופר מריו״, היה זיכרון עבודה של 2 קילובייט. אם קילובייט אחד הוא 1,024 בתים, כמה בתים זה?", "בתים", "2 × 1,024 = 2,048 בתים. בטלפון מודרני יש פי מיליונים יותר זיכרון."]],
     ],
     s: [
-      [["Milestones of video games, from earliest to latest", "Tennis for Two appears on a laboratory screen", "The Magnavox Odyssey brings games into homes", "Space Invaders fills arcades with players", "Super Mario 64 opens up a 3D world", "Wii controllers follow the players' movements"],
-        ["אבני דרך במשחקי וידאו, מהמוקדמת למאוחרת", "״טניס לשניים״ מופיע על מסך במעבדה", "המגנבוקס אודיסיי מביא משחקים הביתה", "״פולשי החלל״ ממלא את אולמות הארקייד בשחקנים", "״סופר מריו 64״ פותח עולם תלת־ממדי", "הבקרים של ה־Wii עוקבים אחרי התנועות של השחקנים"]],
+      [["Milestones of video games, from earliest to latest", "Tennis for Two appears on a laboratory screen", "The Magnavox Odyssey brings games into homes", "Space Invaders fills arcades with players", "Super Mario 64 opens up a 3D world", "The Wii draws whole families into playing"],
+        ["אבני דרך במשחקי וידאו, מהמוקדמת למאוחרת", "״טניס לשניים״ מופיע על מסך במעבדה", "המגנבוקס אודיסיי מביא משחקים הביתה", "״פולשי החלל״ ממלא את אולמות הארקייד בשחקנים", "״סופר מריו 64״ פותח עולם תלת־ממדי", "ה־Wii מושך משפחות שלמות לשחק"]],
     ],
   },
 };

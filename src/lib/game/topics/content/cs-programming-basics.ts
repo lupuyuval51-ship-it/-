@@ -5,8 +5,8 @@ const c: TopicContent = {
     t: [
       ["Program", "a set of instructions that tells a computer what to do", "תוכנית", "אוסף הוראות שאומר למחשב מה לעשות"],
       ["Instruction", "one step that the computer carries out", "הוראה", "צעד אחד שהמחשב מבצע"],
-      ["Output", "what a program shows or produces, like text on the screen", "פלט", "מה שתוכנית מציגה או מפיקה, כמו טקסט על המסך"],
-      ["Input", "information given to a program, like a key press or a typed name", "קלט", "מידע שניתן לתוכנית, כמו לחיצה על מקש או שם מוקלד"],
+      ["Output", "what a program shows or produces, like a sound or a printed page", "פלט", "מה שתוכנית מציגה או מפיקה, כמו צליל או דף מודפס"],
+      ["Input", "information given to a program, like a spoken command or a photo from the camera", "קלט", "מידע שניתן לתוכנית, כמו פקודה קולית או תמונה מהמצלמה"],
     ],
     q: [
       [["A computer follows instructions…", "exactly as written, in order", ["the way it guesses you meant", "in random order", "only if they are polite"], "Computers do precisely what the program says — so a small mistake changes the result."],
@@ -21,16 +21,16 @@ const c: TopicContent = {
         ["תוכנית מזיזה דמות 2 צעדים קדימה, אחר כך 3 צעדים קדימה, ואז צעד אחד אחורה. כמה צעדים מנקודת ההתחלה היא מסיימת?", "צעדים", "המחשב מבצע את ההוראות לפי הסדר: 2 + 3 = 5 צעדים קדימה, ואז צעד אחד אחורה, ולכן הדמות מסיימת 5 − 1 = 4 צעדים מנקודת ההתחלה."]],
     ],
     s: [
-      [["A program that greets you, in order", "It asks for your name", "It waits while you type it (input)", "It keeps the name in memory", "It shows “Hello” and your name (output)"],
-        ["תוכנית שמברכת אתכם לשלום, לפי הסדר", "היא שואלת מה השם שלכם", "היא מחכה שתקלידו אותו (קלט)", "היא שומרת את השם בזיכרון", "היא מציגה ״שלום״ ואת השם שלכם (פלט)"]],
+      [["A program that greets you, in order", "It asks for your name", "It waits while you type it", "It keeps the name in memory", "It shows “Hello” and your name"],
+        ["תוכנית שמברכת אתכם לשלום, לפי הסדר", "היא שואלת מה השם שלכם", "היא מחכה שתקלידו אותו", "היא שומרת את השם בזיכרון", "היא מציגה ״שלום״ ואת השם שלכם"]],
     ],
   },
   i: {
     t: [
       ["Variable", "a named box in memory that stores a value which can change", "משתנה", "תיבה בעלת שם בזיכרון ששומרת ערך שיכול להשתנות"],
-      ["String", "a piece of text in a program, written in quotes", "מחרוזת", "קטע טקסט בתוכנית, שנכתב בתוך מירכאות"],
+      ["String", "a piece of text stored in a program, like a name or a message", "מחרוזת", "קטע טקסט שנשמר בתוכנית, כמו שם או הודעה"],
       ["Integer", "a whole number value, like 7 or −3", "מספר שלם (int)", "ערך מספרי שלם, כמו 7 או −3"],
-      ["Boolean", "a value that is either true or false", "ערך בוליאני", "ערך שהוא אמת או שקר"],
+      ["Boolean", "a yes-or-no value with only two possible states, used in conditions", "ערך בוליאני", "ערך של כן או לא, עם שני מצבים אפשריים בלבד, שמשמש בתנאים"],
     ],
     q: [
       [["After the code  x = 5  then  x = x + 2 , what is x?", "7", ["5", "2", "52"], "x starts as 5; then x + 2 = 7 is stored back in x."],
@@ -54,7 +54,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["Function", "a named block of code that can be called many times, often with parameters", "פונקציה", "קטע קוד בעל שם שאפשר לקרוא לו פעמים רבות, לעיתים קרובות עם פרמטרים"],
-      ["Parameter", "a value passed into a function so it can work on different data", "פרמטר", "ערך שמועבר לפונקציה כדי שתוכל לעבוד על נתונים שונים"],
+      ["Parameter", "a named input of a function, which can get a different value each time the function is called", "פרמטר", "קלט בעל שם של פונקציה, שיכול לקבל ערך אחר בכל פעם שקוראים לפונקציה"],
       ["Return value", "the result a function sends back to the code that called it", "ערך מוחזר", "התוצאה שפונקציה שולחת בחזרה לקוד שקרא לה"],
       ["Array (list)", "an ordered collection of values stored under one name", "מערך (רשימה)", "אוסף מסודר של ערכים שנשמר תחת שם אחד"],
     ],
@@ -69,8 +69,8 @@ const c: TopicContent = {
         ["הפונקציה add(a, b) מחזירה a + b. בקריאה add(4, 6), מה הם 4 ו־6?", "ערכים שמועברים לפרמטרים a ו־b", ["הערכים שהפונקציה מחזירה בסוף", "שני שמות חדשים לפונקציה", "המקומות של שני פריטים ברשימה"], "כשקוראים לפונקציה, a מקבל 4 ו־b מקבל 6, ולכן add(4, 6) מחזירה 10. הערך המוחזר הוא מה שיוצא מהפונקציה, לא מה שנכנס אליה."]],
     ],
     n: [
-      [4, ["A list has 5 items, and its positions are counted from 0. What is the index of its last item?", "", "The positions are 0, 1, 2, 3 and 4, so the last of the 5 items is at index 5 − 1 = 4."],
-        ["ברשימה יש 5 פריטים, והמקומות בה נספרים מ־0. מה האינדקס של הפריט האחרון שלה?", "", "המקומות הם 0, 1, 2, 3 ו־4, ולכן הפריט האחרון מתוך 5 הפריטים נמצא באינדקס 5 − 1 = 4."]],
+      [4, ["In most languages, what is the index of the last item of a list that has 5 items?", "", "Most languages count list positions from 0, so the positions are 0, 1, 2, 3 and 4, and the last of the 5 items is at index 5 − 1 = 4."],
+        ["ברוב שפות התכנות, מה האינדקס של הפריט האחרון ברשימה שיש בה 5 פריטים?", "", "רוב השפות סופרות מקומות ברשימה מ־0, ולכן המקומות הם 0, 1, 2, 3 ו־4, והפריט האחרון מתוך 5 הפריטים נמצא באינדקס 5 − 1 = 4."]],
     ],
   },
 };

@@ -4,13 +4,13 @@ const c: TopicContent = {
   b: {
     t: [
       ["Adjective", "a word that describes a noun: big, red, happy", "שם תואר", "מילה שמתארת שם עצם: big, red, happy"],
-      ["Comparative", "the form that compares two things: bigger, taller", "דרגת היתרון", "הצורה שמשווה בין שני דברים: bigger, taller"],
-      ["Superlative", "the form for the top of a group: the biggest, the tallest", "דרגת ההפלגה", "הצורה לראשון בקבוצה: the biggest, the tallest"],
-      ["than", "the word used after a comparative, as in “taller ___ me”", "than", "המילה שבאה אחרי דרגת היתרון, כמו ב״taller ___ me״"],
+      ["Comparative", "the form that compares two things: taller, longer", "דרגת היתרון", "הצורה שמשווה בין שני דברים: taller, longer"],
+      ["Superlative", "the form for the top of a group: the tallest, the longest", "דרגת ההפלגה", "הצורה לראשון בקבוצה: the tallest, the longest"],
+      ["Syllable", "a part of a word with one vowel sound: tall has one, careful has two", "הברה", "חלק של מילה עם צליל תנועה אחד: ב־tall יש אחת, וב־careful יש שתיים"],
     ],
     q: [
-      [["Complete: “An elephant is ___ than a dog.”", "bigger", ["biggest", "more big", "big"], "Short adjectives add -er; big doubles the g: bigger."],
-        ["השלימו: ״An elephant is ___ than a dog.״", "bigger", ["biggest", "more big", "big"], "שמות תואר קצרים מקבלים er; ב־big מכפילים את ה־g: bigger."]],
+      [["Complete: “An elephant is big, but a blue whale is even ___.”", "bigger", ["biggest", "more big", "big"], "Comparing the blue whale with the elephant needs the comparative. Short adjectives add -er, and big doubles the g: bigger."],
+        ["השלימו: ״An elephant is big, but a blue whale is even ___.״", "bigger", ["biggest", "more big", "big"], "השוואה בין הלווייתן הכחול לפיל צריכה דרגת יתרון. שמות תואר קצרים מקבלים er, וב־big מכפילים את ה־g: bigger."]],
       [["Complete: “Mount Everest is the ___ mountain in the world.”", "highest", ["higher", "most high", "high"], "The top of a group needs the superlative with the: the highest."],
         ["השלימו: ״Mount Everest is the ___ mountain in the world.״", "highest", ["higher", "most high", "high"], "לראשון בקבוצה צריך דרגת הפלגה עם the: the highest."]],
       [["Complete: “A cheetah is faster ___ a horse.”", "than", ["then", "that", "as"], "After a comparative such as faster we use than. Then, spelt with an e, is about time (first this, then that)."],
@@ -23,8 +23,8 @@ const c: TopicContent = {
     t: [
       ["more / most", "used with long adjectives: more beautiful, the most beautiful", "more / most", "משמשים עם שמות תואר ארוכים: more beautiful, the most beautiful"],
       ["Irregular forms", "adjectives with special forms, like good → better → best", "צורות לא רגילות", "שמות תואר עם צורות מיוחדות, כמו good → better → best"],
-      ["-y to -ier", "adjectives ending in -y change it to -ier: happy → happier", "y שהופך ל־ier", "שמות תואר שמסתיימים ב־y משנים אותו ל־ier: happy → happier"],
-      ["as … as", "a pattern that says two things are equal: as tall as", "as … as", "תבנית שאומרת ששני דברים שווים: as tall as"],
+      ["-y to -ier", "adjectives ending in a consonant + y swap the y for -ier: busy → busier", "y שהופך ל־ier", "שמות תואר שמסתיימים בעיצור ו־y משנים את ה־y ל־ier: busy → busier"],
+      ["Equal comparison", "a pattern that shows two things are the same in some way, for example in height or weight", "השוואת שוויון", "תבנית שמראה ששני דברים זהים במשהו, למשל בגובה או במשקל"],
     ],
     q: [
       [["Complete: “This book is ___ than that one.” (interesting)", "more interesting", ["interestinger", "most interesting", "more interestinger"], "Long adjectives use more: more interesting."],
@@ -39,10 +39,10 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Double comparative", "a pattern showing two changes linked together: the more…, the better", "השוואה כפולה", "תבנית שמראה שני שינויים קשורים: the more…, the better"],
+      ["Double comparative", "a pattern showing two changes linked together: the higher you climb, the colder it gets", "השוואה כפולה", "תבנית שמראה שני שינויים קשורים: the higher you climb, the colder it gets"],
       ["far / further", "an irregular adjective: far → farther/further → farthest/furthest", "far / further", "שם תואר לא רגיל: far → farther/further → farthest/furthest"],
-      ["less / least", "used to compare downwards: less expensive, the least expensive", "less / least", "משמשים להשוואה כלפי מטה: less expensive, the least expensive"],
-      ["much / a lot + comparative", "words that make a comparison stronger: much bigger", "much / a lot", "מילים שמחזקות השוואה: much bigger"],
+      ["less / least", "words for comparing downwards, the opposite of more and most", "less / least", "מילים להשוואה כלפי מטה, ההפך של more ו־most"],
+      ["Intensifier", "a word put before a comparative to show that the difference is big", "מילת חיזוק", "מילה שבאה לפני דרגת היתרון ומראה שההבדל גדול"],
     ],
     q: [
       [["Which sentence is correct?", "The more you practise, the better you get.", ["More you practise, better you get.", "The more you practise, the gooder you get.", "The most you practise, the best you get."], "The double comparative pattern is “the + comparative …, the + comparative …”."],

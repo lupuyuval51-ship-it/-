@@ -23,7 +23,7 @@ const c: TopicContent = {
     t: [
       ["Word family", "a group of words that share the same root, like play, player, playful and replay", "משפחת מילים", "קבוצת מילים שיש להן אותו בסיס, כמו play, player, playful ו־replay"],
       ["Negative prefix", "a prefix that means “not” or turns a word into its opposite, like un-, dis- or im-", "תחילית שלילה", "תחילית שפירושה ״לא״ או שהופכת מילה להפך שלה, כמו un, dis או im"],
-      ["Noun suffix", "an ending such as -ness or -ment that turns another word into a naming word, like kindness", "סיומת של שם עצם", "סיומת כמו ness או ment שהופכת מילה אחרת לשם של דבר, כמו kindness"],
+      ["Noun suffix", "an ending such as -ment or -ion that turns another word into a naming word, like enjoyment", "סיומת של שם עצם", "סיומת כמו ment או ion שהופכת מילה אחרת לשם של דבר, כמו enjoyment"],
       ["Adverb", "a word that tells how something is done, often made by adding -ly, like quickly", "תואר הפועל", "מילה שמתארת איך פעולה נעשית, ובאנגלית נוצרת לעיתים קרובות בעזרת ly, כמו quickly"],
     ],
     q: [
@@ -40,8 +40,8 @@ const c: TopicContent = {
       [["How do you spell happy + -ness?", "happiness", ["happyness", "hapiness", "happines"], "When a word ends in a consonant and y, the y usually changes to i before a suffix: happy → happiness, busy → business."],
         ["איך כותבים happy + ness?", "happiness", ["happyness", "hapiness", "happines"], "כשמילה מסתיימת בעיצור ואחריו y, בדרך כלל ה־y הופכת ל־i לפני סיומת: happy → happiness, busy → business."]],
     ],
-    s: [[["Building a longer word step by step, in order", "Start with the root word “help”", "Add the suffix -ful to make “helpful”", "Add the prefix un- to make “unhelpful”", "Add the suffix -ly to make “unhelpfully”"],
-      ["בונים מילה ארוכה צעד אחר צעד, לפי הסדר", "מתחילים במילת הבסיס help", "מוסיפים את הסיומת ful ומקבלים helpful", "מוסיפים את התחילית un ומקבלים unhelpful", "מוסיפים את הסיומת ly ומקבלים unhelpfully"]]],
+    s: [[["Building a longer word step by step, in order", "Start with the root word “respect”", "Add the suffix -ful to make “respectful”", "Add the prefix dis- to make “disrespectful”", "Add the suffix -ly to make “disrespectfully”"],
+      ["בונים מילה ארוכה צעד אחר צעד, לפי הסדר", "מתחילים במילת הבסיס respect", "מוסיפים את הסיומת ful ומקבלים respectful", "מוסיפים את התחילית dis ומקבלים disrespectful", "מוסיפים את הסיומת ly ומקבלים disrespectfully"]]],
   },
   a: {
     t: [

@@ -4,7 +4,7 @@ const c: TopicContent = {
   b: {
     t: [
       ["Satellite", "a machine launched into space that keeps circling the Earth", "לוויין", "מכשיר ששוגר לחלל וממשיך להקיף את כדור הארץ"],
-      ["Latitude", "how far north or south of the equator a place is, measured in degrees", "קו רוחב", "המרחק של מקום צפונה או דרומה מקו המשווה, שנמדד במעלות"],
+      ["Latitude", "how far north or south a place is on the globe, measured in degrees", "קו רוחב", "כמה רחוק מקום נמצא צפונה או דרומה על פני כדור הארץ, במעלות"],
       ["Longitude", "how far east or west a place is from the line through Greenwich in London, in degrees", "קו אורך", "המרחק של מקום מזרחה או מערבה מהקו שעובר בגריניץ׳ שבלונדון, במעלות"],
       ["GPS receiver", "a device that picks up signals from navigation satellites and works out its own position", "מקלט GPS", "מכשיר שקולט אותות מלווייני ניווט ומחשב בעצמו איפה הוא נמצא"],
     ],
@@ -56,7 +56,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Clock bias", "the unknown amount by which a receiver's cheap clock is off, solved together with the position", "סטיית השעון", "הכמות הלא ידועה שבה השעון הזול של המקלט טועה, ומחשבים אותה יחד עם המיקום"],
+      ["Clock bias", "the amount by which a receiver's cheap clock is off compared with the satellites' atomic clocks", "סטיית השעון", "הכמות שבה השעון הזול של המקלט טועה לעומת השעונים האטומיים של הלוויינים"],
       ["Assisted GPS", "a phone getting satellite orbit data over the mobile network, so it finds its position faster", "ניווט לוויני בסיוע הרשת (A-GPS)", "טלפון שמקבל נתוני מסלול של הלוויינים דרך הרשת הסלולרית, וכך מוצא את מיקומו מהר יותר"],
       ["Orbital plane", "a flat slice of space in which a group of satellites circle; GPS uses six of them", "מישור מסלול", "משטח שטוח דמיוני בחלל שבו מקיפה קבוצה של לוויינים; ב־GPS יש שישה כאלה"],
     ],

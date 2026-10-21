@@ -76,8 +76,8 @@ const c: TopicContent = {
         ["פתרו: 2x + 3y = 12 ו־3x − 2y = 5.", "x = 3, y = 2", ["x = 2, y = 3", "x = 3, y = −2", "x = 6, y = 0"], "כופלים את הראשונה ב־2 ואת השנייה ב־3: 4x + 6y = 24 ו־9x − 6y = 15. החיבור נותן 13x = 39, ולכן x = 3, ואז 6 + 3y = 12 נותן y = 2."]],
     ],
     n: [
-      [2, ["For which value of k does the system 3x + 6y = 9 and x + ky = 5 have no solution?", "", "The lines are parallel when the coefficients are in the same ratio: 3/1 = 6/k, so k = 2. Then the first equation becomes x + 2y = 3 and the second x + 2y = 5, which can never both hold."],
-        ["לאיזה ערך של k אין פתרון למערכת 3x + 6y = 9 ו־x + ky = 5?", "", "הישרים מקבילים כשהמקדמים באותו יחס: 3/1 = 6/k, ולכן k = 2. אז המשוואה הראשונה היא x + 2y = 3 והשנייה x + 2y = 5, ושתיהן לא יכולות להתקיים יחד."]],
+      [2, ["For which value of k is the system 3x + 6y = 9 and x + ky = 5 inconsistent?", "", "An inconsistent system has parallel lines, and the lines are parallel when the coefficients are in the same ratio: 3/1 = 6/k, so k = 2. Then the first equation becomes x + 2y = 3 and the second x + 2y = 5, which can never both hold."],
+        ["לאיזה ערך של k המערכת 3x + 6y = 9 ו־x + ky = 5 היא מערכת סותרת?", "", "במערכת סותרת הישרים מקבילים, והם מקבילים כשהמקדמים באותו יחס: 3/1 = 6/k, ולכן k = 2. אז המשוואה הראשונה היא x + 2y = 3 והשנייה x + 2y = 5, ושתיהן לא יכולות להתקיים יחד."]],
       [8, ["The lines y = 3x − 1 and y = x + 5 meet at one point. What is its y-coordinate?", "", "At the meeting point 3x − 1 = x + 5, so 2x = 6 and x = 3. Then y = 3 + 5 = 8, and the point is (3, 8)."],
         ["הישרים y = 3x − 1 ו־y = x + 5 נפגשים בנקודה אחת. מהו שיעור ה־y שלה?", "", "בנקודת המפגש 3x − 1 = x + 5, ולכן 2x = 6 ו־x = 3. אז y = 3 + 5 = 8, והנקודה היא (3, 8)."]],
     ],

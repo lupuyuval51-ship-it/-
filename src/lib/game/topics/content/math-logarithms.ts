@@ -3,8 +3,8 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Logarithm", "the power a base must be raised to in order to give a number: log₂ 8 = 3 because 2³ = 8", "לוגריתם", "החזקה שצריך להעלות אליה בסיס כדי לקבל מספר: log₂ 8 = 3 כי 2³ = 8"],
-      ["Base of a logarithm", "the number that is raised to a power; in log₃ 81 = 4 it is 3", "בסיס הלוגריתם", "המספר שמעלים בחזקה; ב־log₃ 81 = 4 זה המספר 3"],
+      ["Logarithm", "the power a base must be raised to in order to give a number: log₄ 16 = 2 because 4² = 16", "לוגריתם", "החזקה שצריך להעלות אליה בסיס כדי לקבל מספר: log₄ 16 = 2 כי 4² = 16"],
+      ["Base of a logarithm", "the number that is raised to a power; in log₇ 49 = 2 it is 7", "בסיס הלוגריתם", "המספר שמעלים בחזקה; ב־log₇ 49 = 2 זה המספר 7"],
       ["Common logarithm", "a logarithm with base 10, usually written log without a base: log 1000 = 3", "לוגריתם עשרוני", "לוגריתם שהבסיס שלו 10, ולרוב כותבים אותו log בלי בסיס: log 1000 = 3"],
     ],
     q: [
@@ -47,8 +47,8 @@ const c: TopicContent = {
         ["ה־pH של תמיסה הוא −log c, כאשר c הוא הריכוז של יוני המימן. אם c גדל פי 100, איך משתנה ה־pH?", "הוא יורד ב־2", ["הוא עולה ב־2", "הוא יורד ב־100", "הוא מתחלק ב־100"], "לפי חוקי הלוגריתמים log(100c) = log 100 + log c = 2 + log c, ולכן −log c קטן ב־2. זו הסיבה שכל צעד בסולם ה־pH פירושו שינוי פי 10 בריכוז."]],
     ],
     n: [
-      [0.903, ["log 2 ≈ 0.301. Using the log rules, what is log 8, to three decimal places?", "", "log 8 = log 2³ = 3 × log 2 ≈ 3 × 0.301 = 0.903."],
-        ["נתון ש־log 2 ≈ 0.301. בעזרת חוקי הלוגריתמים, כמה זה log 8, בדיוק של שלוש ספרות אחרי הנקודה?", "", "לפי הלוגריתם של חזקה: log 8 = log 2³ = 3 × log 2 ≈ 3 × 0.301 = 0.903."], 0.001],
+      [1.301, ["log 2 ≈ 0.301. Using the log rules, what is log 20, to three decimal places?", "", "20 = 2 × 10, so by the product rule log 20 = log 2 + log 10 ≈ 0.301 + 1 = 1.301."],
+        ["נתון ש־log 2 ≈ 0.301. בעזרת חוקי הלוגריתמים, כמה זה log 20, בדיוק של שלוש ספרות אחרי הנקודה?", "", "לפי הלוגריתם של מכפלה: 20 = 2 × 10, ולכן log 20 = log 2 + log 10 ≈ 0.301 + 1 = 1.301."], 0.001],
       [8, ["log₄ x = 1.5. What is x?", "", "By the definition, x = 4 to the power 1.5 = (√4)³ = 2³ = 8."],
         ["נתון ש־log₄ x = 1.5. מהו x?", "", "לפי ההגדרה, x = 4 בחזקת 1.5, כלומר (√4)³ = 2³ = 8."]],
     ],

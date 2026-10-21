@@ -5,8 +5,8 @@ const c: TopicContent = {
     t: [
       ["a / an", "words for one thing that is not specific: a book, an apple", "a / an", "מילים לדבר אחד שאינו מסוים: a book, an apple"],
       ["Noun", "a word for a person, place, animal or thing", "שם עצם", "מילה לאדם, מקום, בעל חיים או חפץ"],
-      ["Plural", "the form for more than one: cats, boxes", "רבים", "הצורה ליותר מאחד: cats, boxes"],
-      ["Singular", "the form for exactly one: cat, box", "יחיד", "הצורה לאחד בדיוק: cat, box"],
+      ["Plural", "the form for more than one: cats, books", "רבים", "הצורה ליותר מאחד: cats, books"],
+      ["Singular", "the form for exactly one: cat, book", "יחיד", "הצורה לאחד בדיוק: cat, book"],
     ],
     q: [
       [["Choose the correct phrase.", "an orange", ["a orange", "an banana", "a apple"], "Use an before a vowel sound: an orange, an apple; a before a consonant sound: a banana."],
@@ -16,14 +16,14 @@ const c: TopicContent = {
       [["Complete: “There are three ___ in the bag.”", "apples", ["apple", "an apple", "applees"], "After a number bigger than one we need the plural: three apples. Apple and an apple are for exactly one, and applees is not a word."],
         ["השלימו: ״There are three ___ in the bag.״", "apples", ["apple", "an apple", "applees"], "אחרי מספר גדול מאחד צריך צורת רבים: three apples. הצורות apple ו־an apple הן לדבר אחד בלבד, והמילה applees לא קיימת."]],
     ],
-    n: [[2, ["How many plural nouns are in “a box, two foxes and three dishes”?", "", "There are 2: foxes and dishes, more than one of each. Box is singular: there is a in front of it."],
-      ["כמה שמות עצם ברבים יש בצירוף ״a box, two foxes and three dishes״?", "", "יש 2: foxes ו־dishes, כי יש יותר מאחד מכל אחד מהם. box הוא ביחיד, ולפניו בא a."]]],
+    n: [[2, ["How many plural nouns are in “a bus, two cups and three pencils”?", "", "There are 2: cups and pencils, more than one of each. Bus is singular even though it ends in s: there is a in front of it."],
+      ["כמה שמות עצם ברבים יש בצירוף ״a bus, two cups and three pencils״?", "", "יש 2: cups ו־pencils, כי יש יותר מאחד מכל אחד מהם. bus הוא ביחיד אף שהוא מסתיים ב־s, ולפניו בא a."]]],
   },
   i: {
     t: [
       ["the", "used for a specific thing both speakers know, as in “___ sun”", "the", "מילה לדבר מסוים שידוע לשני הדוברים, כמו ב״___ sun״"],
-      ["Irregular plural", "a plural that does not just add -s: child → children, mouse → mice", "רבים לא רגיל", "צורת רבים שלא רק מוסיפה s: child → children, mouse → mice"],
-      ["Uncountable noun", "a noun with no plural that you cannot count one by one: water, rice, information", "שם עצם שאינו ספיר", "שם עצם בלי צורת רבים שאי אפשר לספור אחד־אחד: water, rice, information"],
+      ["Irregular plural", "a plural that does not just add -s: mouse → mice, tooth → teeth", "רבים לא רגיל", "צורת רבים שלא רק מוסיפה s: mouse → mice, tooth → teeth"],
+      ["Uncountable noun", "a noun with no plural that you cannot count one by one: milk, sand, advice", "שם עצם שאינו ספיר", "שם עצם בלי צורת רבים שאי אפשר לספור אחד־אחד: milk, sand, advice"],
       ["-y to -ies", "a noun ending in consonant + y changes to -ies: baby → babies", "y שהופך ל־ies", "שם עצם שמסתיים בעיצור ו־y משתנה ל־ies: baby → babies"],
     ],
     q: [
@@ -40,9 +40,9 @@ const c: TopicContent = {
   a: {
     t: [
       ["Zero article", "using no article, as with general plurals and many names: Dogs are loyal. I live in Israel.", "היעדר יידוע", "שימוש בלי a, an או the, כמו ברבים כלליים ובשמות רבים: Dogs are loyal. I live in Israel."],
-      ["Vowel sound rule", "a/an depends on sound, not spelling: an hour, a university", "כלל צליל התנועה", "הבחירה בין a ל־an תלויה בצליל ולא בכתיב: an hour, a university"],
+      ["Vowel sound rule", "a/an depends on sound, not spelling: an X-ray, a one-way street", "כלל צליל התנועה", "הבחירה בין a ל־an תלויה בצליל ולא בכתיב: an X-ray, a one-way street"],
       ["Collective noun", "a singular word for a group: team, family, class", "שם קיבוצי", "מילה ביחיד שמתארת קבוצה: team, family, class"],
-      ["Plural-only noun", "a noun used only in the plural: scissors, trousers, glasses", "שם עצם שבא רק ברבים", "שם עצם שמשמש רק בצורת רבים: scissors, trousers, glasses"],
+      ["Plural-only noun", "a noun used only in the plural: jeans, trousers, pyjamas", "שם עצם שבא רק ברבים", "שם עצם שמשמש רק בצורת רבים: jeans, trousers, pyjamas"],
     ],
     q: [
       [["Which phrase uses a or an correctly?", "an hour", ["a hour", "an university", "a honest man"], "Hour starts with a vowel sound (the h is silent), so an hour; university starts with a “you” sound, so a university."],

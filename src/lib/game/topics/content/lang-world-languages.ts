@@ -25,7 +25,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["Semitic languages", "a language family that includes Hebrew, Arabic and Amharic", "השפות השמיות", "משפחת שפות שכוללת את העברית, הערבית והאמהרית"],
-      ["Indo-European languages", "the language family with the most speakers, including English, Hindi, Russian and Spanish", "השפות ההודו־אירופיות", "משפחת השפות עם מספר הדוברים הגדול ביותר, ובה אנגלית, הינדית, רוסית וספרדית"],
+      ["Indo-European languages", "the language family with the most speakers, including Hindi, Russian, Persian and German", "השפות ההודו־אירופיות", "משפחת השפות עם מספר הדוברים הגדול ביותר, ובה הינדית, רוסית, פרסית וגרמנית"],
       ["Logographic writing", "a way of writing in which each sign stands for a whole word or a meaningful part of a word, as in Chinese", "כתב לוגוגרפי", "שיטת כתיבה שבה כל סימן מייצג מילה שלמה או חלק של מילה שיש לו משמעות, כמו בסינית"],
       ["Official language", "a language a country uses in its laws, courts and government", "שפה רשמית", "שפה שמדינה משתמשת בה בחוקים, בבתי המשפט ובממשלה"],
       ["Loanword", "a word one language takes from another, such as “pizza” from Italian", "מילה שאולה", "מילה ששפה אחת לוקחת משפה אחרת, כמו ״פיצה״ מאיטלקית"],

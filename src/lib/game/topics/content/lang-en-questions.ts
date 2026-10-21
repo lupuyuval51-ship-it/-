@@ -21,8 +21,8 @@ const c: TopicContent = {
         ["השלימו: ״___ old are you?״ — ״I'm nine.״", "How", ["How much", "What", "Which"], "כדי לשאול על גיל אומרים How old are you? המילים how much שואלות על כמות או על מחיר, ו־what ו־which לא באות לפני old."]],
     ],
     n: [
-      [3, ["How many question words are in this list: who, chair, where, blue, why?", "", "Who, where and why start questions, so there are 3. Chair is a thing and blue is a colour, not question words."],
-        ["כמה מילות שאלה יש ברשימה: who, chair, where, blue, why?", "", "who, where ו־why פותחות שאלות, ולכן יש 3. chair הוא חפץ ו־blue הוא צבע, והם אינם מילות שאלה."]],
+      [3, ["Count the question words in this list: what, chair, which, blue, whose.", "", "What, which and whose start questions, so there are 3. Chair is a thing and blue is a colour, not question words."],
+        ["ספרו את מילות השאלה ברשימה: what, chair, which, blue, whose.", "", "what, which ו־whose פותחות שאלות, ולכן יש 3. chair הוא חפץ ו־blue הוא צבע, והם אינם מילות שאלה."]],
     ],
   },
   i: {
@@ -30,7 +30,7 @@ const c: TopicContent = {
       ["Yes/no question", "a question answered with yes or no, starting with a helper verb: Do you…? Is she…?", "שאלת כן/לא", "שאלה שעונים עליה בכן או לא, ומתחילה בפועל עזר: Do you…? Is she…?"],
       ["how many / how much", "how many is for things you can count; how much is for amounts you cannot count", "how many / how much", "how many לדברים שאפשר לספור; how much לכמויות שאי אפשר לספור"],
       ["which", "asks to choose from a limited set: ___ colour do you want?", "which", "שואלת על בחירה מתוך קבוצה מוגבלת: ___ colour do you want?"],
-      ["Short answer", "a reply that repeats the helper verb: Yes, I do. No, she isn't.", "תשובה קצרה", "תשובה שחוזרת על פועל העזר: Yes, I do. No, she isn't."],
+      ["Short answer", "a reply that repeats the helper verb: Yes, she can. No, they haven't.", "תשובה קצרה", "תשובה שחוזרת על פועל העזר: Yes, she can. No, they haven't."],
     ],
     q: [
       [["Choose the correct question.", "How much water do you drink?", ["How many water do you drink?", "How much waters do you drink?", "How many waters you drink?"], "Water is uncountable, so we use how much, and water stays without -s. How many is only for things we can count, like apples."],
@@ -51,8 +51,8 @@ const c: TopicContent = {
     t: [
       ["Indirect question", "a polite question inside another sentence, with normal word order: Could you tell me where the station is?", "שאלה עקיפה", "שאלה מנומסת בתוך משפט אחר, בסדר מילים רגיל: Could you tell me where the station is?"],
       ["Tag question", "a short question added to the end of a sentence: It's cold, isn't it?", "שאלת זנב", "שאלה קצרה שמוסיפים לסוף משפט: It's cold, isn't it?"],
-      ["Subject question", "a question about the subject, which needs no do: Who called you?", "שאלה על הנושא", "שאלה שבה מילת השאלה היא עצמה הנושא, ולכן לא צריך do: Who called you?"],
-      ["Object question", "a question about the object, which uses do/does/did: Who did you call?", "שאלה על המושא", "שאלה שבה מילת השאלה מחליפה את המושא, ולכן משתמשים ב־do/does/did: Who did you call?"],
+      ["Subject question", "a question about the subject, which needs no do: Who won the game?", "שאלה על הנושא", "שאלה שבה מילת השאלה היא עצמה הנושא, ולכן לא צריך do: Who won the game?"],
+      ["Object question", "a question about the object, which uses do/does/did: What did you see?", "שאלה על המושא", "שאלה שבה מילת השאלה מחליפה את המושא, ולכן משתמשים ב־do/does/did: What did you see?"],
     ],
     q: [
       [["Choose the correct indirect question.", "Do you know what time it is?", ["Do you know what time is it?", "Do you know what is the time it?", "Do you know time what it is?"], "In indirect questions the word order is like a statement: what time it is."],

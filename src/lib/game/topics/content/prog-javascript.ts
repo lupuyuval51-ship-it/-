@@ -5,13 +5,13 @@ const c: TopicContent = {
     t: [
       ["let", "the keyword that creates a variable whose value can be changed afterwards", "let", "המילה השמורה שיוצרת משתנה שאפשר לשנות את הערך שלו בהמשך"],
       ["const", "the keyword that creates a variable that can never be given a new value", "const", "המילה השמורה שיוצרת משתנה שאי אפשר לתת לו ערך חדש"],
-      ["String", 'a piece of text written between quotes, such as "hello"', "מחרוזת", 'קטע טקסט שכתוב בין מירכאות, כמו "hello"'],
+      ["String", "a value made of text, such as a name or a whole sentence", "מחרוזת", "ערך שמורכב מטקסט, כמו שם או משפט שלם"],
     ],
     q: [
       [["In JavaScript, what does  console.log(2 + 3)  show in the console?", "5", ["23", "2 + 3", "an error"], "Without quotes, 2 + 3 is a sum of two numbers, so JavaScript works it out first and console.log shows 5."],
         ["ב־JavaScript, מה מציג  console.log(2 + 3)  במסוף?", "5", ["23", "2 + 3", "שגיאה"], "בלי מירכאות 2 + 3 הוא חיבור של שני מספרים, ולכן JavaScript מחשבת אותו קודם, ו־console.log מציג 5."]],
-      [['What does the line  const name = "Maya";  do?', "Makes a variable called name holding the text Maya", ["Prints the word Maya in the console straight away", "Asks the user to type a name and stores the answer", "Checks whether the variable name is equal to Maya"], 'const makes a new variable, and the = puts the string "Maya" into it. Nothing is printed and nothing is checked.'],
-        ['מה עושה השורה  const name = "Maya" ?', "יוצרת משתנה בשם name ששומר את הטקסט Maya", ["מדפיסה מיד את המילה Maya במסוף", "מבקשת מהמשתמש להקליד שם ושומרת את התשובה", "בודקת אם הערך של המשתנה name שווה ל־Maya"], 'const יוצר משתנה חדש, והסימן = שם בתוכו את המחרוזת "Maya". שום דבר לא מודפס ושום דבר לא נבדק.']],
+      [['After  const name = "Maya"; , what does  console.log(name)  show?', "Maya", ["name", "const name", "an error"], 'Without quotes, name is the variable, so console.log shows the value stored in it: the text Maya. To show the word name itself, it would need quotes, as in console.log("name").'],
+        ['אחרי  const name = "Maya"  מה מציג  console.log(name) ?', "Maya", ["name", "const name", "שגיאה"], 'בלי מירכאות name הוא המשתנה, ולכן console.log מציג את הערך ששמור בו: הטקסט Maya. כדי להציג את המילה name עצמה צריך מירכאות, כמו ב־console.log("name").']],
       [["In JavaScript, which of these values is a string?", '"42"', ["42", "true", "null"], 'Quotes make a string, so "42" is text made of the characters 4 and 2. Without quotes, 42 is a number, true is a boolean and null means “no value”.'],
         ["ב־JavaScript, איזה מהערכים האלה הוא מחרוזת?", '"42"', ["42", "true", "null"], 'מירכאות יוצרות מחרוזת, ולכן "42" הוא טקסט שמורכב מהתווים 4 ו־2. בלי מירכאות 42 הוא מספר, true הוא ערך בוליאני ו־null פירושו ״אין ערך״.']],
       [["In JavaScript, what happens to a line that starts with  // ?", "JavaScript skips it, because it is a comment", ["It prints the rest of the line in the console", "It divides the two numbers written after it", "It stops the whole program at that line"], "// starts a comment: a note for people reading the code. JavaScript ignores everything after it on that line."],
@@ -47,7 +47,7 @@ const c: TopicContent = {
         ["איזו מילה שמורה מחזירה ערך מתוך פונקציה אל הקוד שקרא לה?", "return", ["console.log", "break", "let"], "return מסיימת את הפונקציה ומוסרת את הערך למי שקרא לה. console.log רק מציג ערך במסוף ולא מחזיר אותו."]],
     ],
     n: [
-      [14, ["function double(n) { return n * 2; }  What does  double(7)  give?", "", "The function returns n * 2. With n = 7 it returns 7 * 2 = 14."],
+      [14, ["function double(n)  gives back  n * 2 . What does  double(7)  give?", "", "The function returns n * 2. With n = 7 it returns 7 * 2 = 14."],
         ["הפונקציה double מחזירה  n * 2 . מה מחזירה הקריאה  double(7) ?", "", "הפונקציה מחזירה את n * 2. כש־n = 7 היא מחזירה 7 * 2 = 14."]],
       [4, ["What is  nums.length  after  let nums = [5, 10, 15, 20]; ?", "", "length counts the items in the array, not their values: 5, 10, 15 and 20 are 4 items."],
         ["מה הערך של  nums.length  אחרי  let nums = [5,10,15,20] ?", "", "length סופר את הפריטים במערך ולא את הערכים שלהם: 5, 10, 15 ו־20 הם 4 פריטים."]],
@@ -60,7 +60,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["Strict equality (===)", "comparing both the value and the type, without converting either side first", "שוויון מחמיר (===)", "השוואה של הערך וגם של הסוג, בלי להמיר קודם אף אחד מהצדדים"],
-      ["Type coercion", "JavaScript's automatic change of a value from one type to another, such as a number into a string", "המרת טיפוסים אוטומטית", "שינוי של ערך מסוג אחד לסוג אחר ש־JavaScript עושה מעצמה, למשל ממספר למחרוזת"],
+      ["Type coercion", "JavaScript's automatic change of a value from one type to another, as in null + 1, where null is turned into the number 0", "המרת טיפוסים אוטומטית", "שינוי של ערך מסוג אחד לסוג אחר ש־JavaScript עושה מעצמה, כמו ב־null + 1, שבו null הופך למספר 0"],
       ["Floating-point number", "a number stored in binary with a fixed number of digits, so decimals such as 0.1 are only close, not exact", "מספר נקודה צפה", "מספר שנשמר בבסיס 2 עם כמות קבועה של ספרות, ולכן שברים עשרוניים כמו 0.1 נשמרים רק בקירוב"],
     ],
     q: [

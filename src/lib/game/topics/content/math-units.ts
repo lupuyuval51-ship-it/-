@@ -4,9 +4,9 @@ const c: TopicContent = {
   b: {
     t: [
       ["Metre", "the basic unit of length in the metric system", "מטר", "יחידת האורך הבסיסית בשיטה המטרית"],
-      ["Kilogram", "the basic unit of mass, equal to 1,000 grams", "קילוגרם", "יחידת המסה הבסיסית, ששווה ל־1,000 גרם"],
-      ["Litre", "a unit of liquid volume, equal to 1,000 millilitres", "ליטר", "יחידה של נפח נוזל, ששווה ל־1,000 מיליליטר"],
-      ["Centimetre", "one hundredth of a metre", "סנטימטר", "מאית של מטר"],
+      ["Kilogram", "the basic unit of mass in the metric system, written kg", "קילוגרם", "יחידת המסה הבסיסית בשיטה המטרית, ונכתבת ק״ג"],
+      ["Litre", "a unit of liquid volume; a carton of milk often holds exactly one", "ליטר", "יחידה של נפח נוזל; קרטון חלב מכיל לרוב בדיוק יחידה אחת כזאת"],
+      ["Centimetre", "a small unit of length, about the width of a fingernail, written cm", "סנטימטר", "יחידת אורך קטנה, בערך הרוחב של ציפורן, ונכתבת ס״מ"],
     ],
     q: [
       [["How many centimetres are in 1 metre?", "100", ["10", "1,000", "60"], "Centi- means one hundredth, so one centimetre is a hundredth of a metre: 100 cm = 1 m."],
@@ -60,7 +60,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["SI units", "the international system of units, including the metre, kilogram and second", "יחידות SI", "השיטה הבין־לאומית של יחידות, ובה המטר, הקילוגרם והשנייה"],
-      ["Area unit conversion", "converting square units multiplies by the factor squared: 1 m² = 10,000 cm²", "המרת יחידות שטח", "בהמרת יחידות ריבועיות כופלים בגורם בריבוע: 1 מ״ר = 10,000 סמ״ר"],
+      ["Area unit conversion", "converting square units multiplies by the length factor squared: 1 cm = 10 mm, so 1 cm² = 100 mm²", "המרת יחידות שטח", "בהמרת יחידות ריבועיות כופלים בריבוע של גורם האורך: 1 ס״מ = 10 מ״מ, ולכן 1 סמ״ר = 100 ממ״ר"],
       ["Compound unit", "a unit made of two units, like km/h or g/cm³", "יחידה מורכבת", "יחידה שבנויה משתי יחידות, כמו קמ״ש או גרם לסמ״ק"],
       ["Density", "mass divided by volume", "צפיפות", "מסה חלקי נפח"],
     ],
@@ -75,8 +75,8 @@ const c: TopicContent = {
         ["כמה ליטרים יש במטר מעוקב אחד?", "1,000 ליטרים", ["100 ליטרים", "10 ליטרים", "1,000,000 ליטרים"], "1 מ׳ = 10 דצ״מ, ולכן 1 מ״ק = 10 × 10 × 10 = 1,000 דצ״מ מעוקבים, ודצימטר מעוקב אחד הוא בדיוק ליטר אחד. המספר 1,000,000 הוא מספר הסמ״ק במטר מעוקב אחד, ולא מספר הליטרים."]],
       [["A rug is 2 m by 3 m. What is its area in square centimetres?", "60,000 cm²", ["600 cm²", "6,000 cm²", "6 cm²"], "The area is 2 × 3 = 6 m², and 1 m² = 10,000 cm², so 6 × 10,000 = 60,000 cm². With 200 cm and 300 cm the result is the same: 200 × 300 = 60,000."],
         ["שטיח באורך 2 מ׳ וברוחב 3 מ׳. מהו שטחו בסנטימטרים רבועים?", "60,000 סמ״ר", ["600 סמ״ר", "6,000 סמ״ר", "6 סמ״ר"], "השטח הוא 2 × 3 = 6 מ״ר, ו־1 מ״ר = 10,000 סמ״ר, ולכן 6 × 10,000 = 60,000 סמ״ר. עם 200 ס״מ ו־300 ס״מ מקבלים אותו דבר: 200 × 300 = 60,000."]],
-      [["Water has a density of 1 g/cm³. Which of these floats on it?", "Wood with a density of 0.6 g/cm³", ["Aluminium with a density of 2.7 g/cm³", "Iron with a density of 7.9 g/cm³", "A stone with a density of 2.5 g/cm³"], "An object floats when its density is less than that of the liquid. Wood at 0.6 g/cm³ is lighter than water for the same volume, so it floats; the other three are denser than water and sink."],
-        ["לצפיפות של מים יש ערך של 1 גרם לסמ״ק. איזה מהחומרים האלה צף עליהם?", "עץ שצפיפותו 0.6 גרם לסמ״ק", ["אלומיניום שצפיפותו 2.7 גרם לסמ״ק", "ברזל שצפיפותו 7.9 גרם לסמ״ק", "אבן שצפיפותה 2.5 גרם לסמ״ק"], "גוף צף כשהצפיפות שלו נמוכה מזו של הנוזל. עץ בצפיפות 0.6 גרם לסמ״ק קל ממים באותו נפח, ולכן הוא צף; שלושת האחרים צפופים ממים ושוקעים."]],
+      [["Water has a density of 1 g/cm³. Which of these floats on it?", "Wood with a density of 0.6 g/cm³", ["A stone with a density of 2.5 g/cm³", "Iron with a density of 7.9 g/cm³", "Gold with a density of 19.3 g/cm³"], "An object floats when its density is less than that of the liquid. Wood at 0.6 g/cm³ is lighter than water for the same volume, so it floats; the other three are denser than water and sink."],
+        ["לצפיפות של מים יש ערך של 1 גרם לסמ״ק. איזה מהחומרים האלה צף עליהם?", "עץ שצפיפותו 0.6 גרם לסמ״ק", ["אבן שצפיפותה 2.5 גרם לסמ״ק", "ברזל שצפיפותו 7.9 גרם לסמ״ק", "זהב שצפיפותו 19.3 גרם לסמ״ק"], "גוף צף כשהצפיפות שלו נמוכה מזו של הנוזל. עץ בצפיפות 0.6 גרם לסמ״ק קל ממים באותו נפח, ולכן הוא צף; שלושת האחרים צפופים ממים ושוקעים."]],
     ],
     n: [
       [18, ["A cyclist rides at 5 m/s. What is that speed in km/h?", "km/h", "An hour has 3,600 seconds, so 5 m/s covers 5 × 3,600 = 18,000 m, which is 18 km, in an hour: 18 km/h."],

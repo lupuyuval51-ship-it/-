@@ -30,7 +30,7 @@ const c: TopicContent = {
       ["boil", "to heat a liquid until it bubbles, or to cook food in bubbling water", "boil", "לחמם נוזל עד שהוא מבעבע, או לבשל אוכל במים מבעבעים"],
       ["chop", "to cut food into small pieces with a knife", "chop", "לחתוך אוכל לחתיכות קטנות בסכין"],
       ["peel", "to take the skin off a fruit or a vegetable", "peel", "להסיר את הקליפה מפרי או מירק"],
-      ["loaf", "bread baked in one big piece, before it is cut into slices", "loaf", "לחם שנאפה בחתיכה אחת גדולה, לפני שפורסים אותו"],
+      ["loaf", "bread baked in one big piece, before anyone cuts it", "loaf", "לחם שנאפה בחתיכה אחת גדולה, לפני שחותכים אותו"],
     ],
     q: [
       [["Complete: “Can I have a ___ of bread, please?”", "slice", ["carton", "bottle", "can"], "Bread is cut into slices, so you ask for a slice of bread. Bottles and cartons hold drinks like water or milk, and cans hold drinks or soup, not bread."],
@@ -49,8 +49,8 @@ const c: TopicContent = {
         ["ביצים נמכרות הרבה פעמים ב־dozen. כמה ביצים יש ב־dozen אחד?", "", "dozen פירושו תריסר, כלומר 12, ולכן a dozen eggs הן 12 ביצים, ו־half a dozen הן 6."]],
     ],
     s: [
-      [["Making a cheese sandwich, in order", "Take two slices of bread", "Spread butter on both slices", "Put some cheese on one slice", "Cover it with the other slice", "Cut the sandwich in half"],
-        ["מכינים כריך גבינה, לפי הסדר", "״Take two slices of bread״ — לוקחים שתי פרוסות לחם", "״Spread butter on both slices״ — מורחים חמאה על שתיהן", "״Put some cheese on one slice״ — שמים גבינה על פרוסה אחת", "״Cover it with the other slice״ — מכסים בפרוסה השנייה", "״Cut the sandwich in half״ — חותכים את הכריך לשניים"]],
+      [["Making a cheese sandwich, in order", "Take two pieces of bread", "Spread butter on both pieces", "Put some cheese on one piece", "Cover it with the other piece", "Cut the sandwich in half"],
+        ["מכינים כריך גבינה, לפי הסדר", "״Take two pieces of bread״ — לוקחים שתי חתיכות לחם", "״Spread butter on both pieces״ — מורחים חמאה על שתיהן", "״Put some cheese on one piece״ — שמים גבינה על אחת מהן", "״Cover it with the other piece״ — מכסים בחתיכה השנייה", "״Cut the sandwich in half״ — חותכים את הכריך לשניים"]],
     ],
   },
   a: {
@@ -65,8 +65,8 @@ const c: TopicContent = {
         ["השלימו: ״How ___ sugar do you take in your tea?״", "much", ["many", "lot", "few"], "sugar (סוכר) הוא שם עצם שאי אפשר לספור, ולכן שואלים how much. את how many שואלים על דברים שאפשר לספור, כמו how many eggs או how many apples."]],
       [["Complete: “Add a ___ salt and a few tomatoes.”", "little", ["few", "plenty", "many"], "Salt cannot be counted, so a small amount of it is a little salt; a few goes with plurals you can count, like a few tomatoes. We say plenty of salt, never a plenty, and many is only for plurals."],
         ["השלימו: ״Add a ___ salt and a few tomatoes.״", "little", ["few", "plenty", "many"], "מלח אי אפשר לספור, ולכן כמות קטנה ממנו היא a little salt; a few בא עם רבים שאפשר לספור, כמו a few tomatoes. אומרים plenty of salt ולא a plenty, ו־many בא רק עם רבים."]],
-      [["Which of these words can you count, with a number before it?", "egg", ["butter", "flour", "milk"], "You can say one egg, two eggs, so egg is countable. Butter, flour and milk are uncountable: we say some butter or a bag of flour, not two flours."],
-        ["איזו מהמילים האלה אפשר לספור, עם מספר לפניה?", "egg", ["butter", "flour", "milk"], "אפשר לומר one egg, two eggs, ולכן egg הוא שם עצם שנספר. את butter, flour ו־milk אי אפשר לספור: אומרים some butter או a bag of flour, ולא two flours."]],
+      [["Which of these words can you count, with a number before it?", "apple", ["butter", "flour", "milk"], "You can say one apple, two apples, so apple is countable. Butter, flour and milk are uncountable: we say some butter or a bag of flour, not two flours."],
+        ["איזו מהמילים האלה אפשר לספור, עם מספר לפניה?", "apple", ["butter", "flour", "milk"], "אפשר לומר one apple, two apples, ולכן apple הוא שם עצם שנספר. את butter, flour ו־milk אי אפשר לספור: אומרים some butter או a bag of flour, ולא two flours."]],
       [["In a recipe, which verb means to rub cheese on a tool with small sharp holes to make thin strips?", "grate", ["slice", "chop", "melt"], "To grate is to rub food like cheese or carrots on a grater, which turns it into thin strips. Slicing and chopping are done with a knife, and melting is done with heat."],
         ["באיזה פועל משתמשים במתכון כשמשפשפים גבינה על כלי עם חורים קטנים וחדים, כדי לקבל רצועות דקות?", "grate", ["slice", "chop", "melt"], "grate פירושו לגרר: לשפשף אוכל כמו גבינה או גזר על פומפייה, grater, ולקבל רצועות דקות. את slice ו־chop עושים בסכין, ואת melt, ההמסה, עושים בעזרת חום."]],
       [["Which is the most polite way to order in a café?", "I'd like a glass of orange juice, please.", ["I want a glass of orange juice, and I want it now.", "Give me a glass of orange juice, waiter, quickly.", "Bring orange juice to my table, fast."], "I'd like (I would like) with please is the polite way to order. I want… now, Give me and Bring… fast sound rude, even though the words for the drink are right."],

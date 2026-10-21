@@ -71,7 +71,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["Improper fraction", "a number like 9/4, whose numerator is equal to or bigger than its denominator", "שבר מדומה", "מספר כמו 9/4, שהמונה שלו שווה למכנה או גדול ממנו"],
-      ["Mixed number", "a whole number written together with a part smaller than one, such as 2 1/4", "מספר מעורב", "מספר שלם שכתוב יחד עם חלק קטן מ־1, כמו 2 1/4"],
+      ["Mixed number", "a whole number written together with a part smaller than one, such as 1 1/2", "מספר מעורב", "מספר שלם שכתוב יחד עם חלק קטן מ־1, כמו 1 1/2"],
     ],
     q: [
       [["Three friends share 2 pizzas equally. How much does each one get?", "2/3 of a pizza", ["3/2 of a pizza", "1/3 of a pizza", "1/2 of a pizza"], "Sharing 2 wholes among 3 people is 2 ÷ 3 = 2/3: cut each pizza into thirds, and each friend gets one third of each pizza."],

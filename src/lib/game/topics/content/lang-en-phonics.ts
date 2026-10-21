@@ -17,8 +17,8 @@ const c: TopicContent = {
         ["איזו מילה מתחרזת עם cat?", "hat", ["cot", "cut", "cap"], "מילים מתחרזות כשהן נגמרות באותו צליל: c-at ו־h-at נגמרות שתיהן ב־at. ב־cot וב־cut התנועה שונה, וב־cap הצליל האחרון שונה."]],
       [["Which word has a long e sound, like in “tree”?", "green", ["bread", "bed", "pet"], "In green, the letters ee make a long e sound, like in tree. In bread, bed and pet the e sound is short."],
         ["באיזו מילה יש e ארוכה, כמו ב־tree?", "green", ["bread", "bed", "pet"], "ב־green האותיות ee יוצרות e ארוכה, כמו ב־tree. ב־bread, ב־bed וב־pet הצליל e קצר."]],
-      [["Which letter is a vowel?", "o", ["b", "t", "m"], "The vowel letters are a, e, i, o and u, so o is a vowel. B, t and m are consonants."],
-        ["איזו אות היא אות תנועה?", "o", ["b", "t", "m"], "אותיות התנועה הן a, e, i, o ו־u, ולכן o היא אות תנועה. b, t ו־m הן עיצורים."]],
+      [["Which word has two vowel letters?", "boat", ["bat", "milk", "jump"], "Boat has two vowel letters, o and a. Bat, milk and jump each have only one vowel letter: a, i and u; all their other letters are consonants."],
+        ["באיזו מילה יש שתי אותיות תנועה?", "boat", ["bat", "milk", "jump"], "ב־boat יש שתי אותיות תנועה, o ו־a. ב־bat, ב־milk וב־jump יש רק אות תנועה אחת: a, i ו־u; כל שאר האותיות שלהן הן עיצורים."]],
     ],
     n: [
       [26, ["How many letters are in the English alphabet?", "", "The English alphabet has 26 letters, from a to z: 5 vowel letters (a, e, i, o, u) and 21 consonants, though y sometimes works as a vowel."],
@@ -32,8 +32,8 @@ const c: TopicContent = {
   i: {
     t: [
       ["Magic e", "a silent e at the end of a word that makes the vowel before it say its name: cap → cape", "ה־e השקטה", "e בסוף מילה שלא הוגים אותה, והיא גורמת לתנועה שלפניה להישמע כמו שם האות: cap → cape"],
-      ["Digraph", "two letters that together make one sound, like sh, ch, th or ck", "צמד אותיות", "שתי אותיות שיחד יוצרות צליל אחד, כמו sh, ch, th או ck"],
-      ["Blend", "two or three consonants side by side where you still hear each sound, like bl, st or str", "צירוף עיצורים", "שניים או שלושה עיצורים צמודים שעדיין שומעים בהם כל צליל, כמו bl, st או str"],
+      ["Digraph", "two letters that together make one sound, like sh, ch, th or wh", "צמד אותיות", "שתי אותיות שיחד יוצרות צליל אחד, כמו sh, ch, th או wh"],
+      ["Blend", "two or three consonants side by side where you still hear each sound, like bl, gr or spr", "צירוף עיצורים", "שניים או שלושה עיצורים צמודים שעדיין שומעים בהם כל צליל, כמו bl, gr או spr"],
     ],
     q: [
       [["Add a magic e to “kit”. Which word do you get?", "kite", ["kitt", "kiet", "kites"], "The e at the end is silent, but it makes the i say its name: kit → kite."],
@@ -58,8 +58,8 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Silent letter", "a letter that is written but not heard, like the k in knee", "אות שלא הוגים", "אות שכותבים אבל לא שומעים, כמו k ב־knee"],
-      ["Soft c", "a c that sounds like s, which often happens before e, i or y: city, face", "c רכה", "c שנשמעת כמו s, מה שקורה לרוב לפני e, i או y: city, face"],
+      ["Silent letter", "a letter that is written but not heard, like the k in knife", "אות שלא הוגים", "אות שכותבים אבל לא שומעים, כמו k ב־knife"],
+      ["Soft c", "a c that sounds like s, which often happens before e, i or y: face, pencil", "c רכה", "c שנשמעת כמו s, מה שקורה לרוב לפני e, i או y: face, pencil"],
       ["y as a vowel", "at the end of a word, y can sound like a long i (my) or a long e (happy)", "y כתנועה", "בסוף מילה y יכולה להישמע כמו i ארוכה (my) או כמו e ארוכה (happy)"],
     ],
     q: [

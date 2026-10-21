@@ -65,7 +65,7 @@ const c: TopicContent = {
     n: [
       [4, ["3 litres of juice are poured into bottles of 3/4 litre. How many bottles are filled?", "bottles", "3 ÷ 3/4 = 3 × 4/3 = 12/3 = 4 bottles. Check: 4 × 3/4 = 12/4 = 3 litres."], ["3 ליטר מיץ נמזגים לבקבוקים של 3/4 ליטר. כמה בקבוקים מתמלאים?", "בקבוקים", "3 ÷ 3/4 = 3 × 4/3 = 12/3 = 4 בקבוקים. בדיקה: 4 × 3/4 = 12/4 = 3 ליטר."]],
       [6, ["5/6 ÷ 5 = 1/x. What is the denominator?", "", "Dividing by 5 is multiplying by 1/5: 5/6 × 1/5 = 5/30 = 1/6. A fifth of five sixths is one sixth."], ["5/6 ÷ 5 = 1/x. מהו המכנה?", "", "חילוק ב־5 הוא כפל ב־1/5: 5/6 × 1/5 = 5/30 = 1/6. חמישית מחמש שישיות היא שישית אחת."]],
-      [10, ["How many pieces of 2/5 fit into 4?", "", "4 ÷ 2/5 = 4 × 5/2 = 20/2 = 10. Check: 10 × 2/5 = 20/5 = 4."], ["כמה חלקים של 2/5 נכנסים ב־4?", "", "4 ÷ 2/5 = 4 × 5/2 = 20/2 = 10. בדיקה: 10 × 2/5 = 20/5 = 4."]],
+      [10, ["How many pieces of 3/5 fit into 6?", "", "6 ÷ 3/5 = 6 × 5/3 = 30/3 = 10. Check: 10 × 3/5 = 30/5 = 6."], ["כמה חלקים של 3/5 נכנסים ב־6?", "", "6 ÷ 3/5 = 6 × 5/3 = 30/3 = 10. בדיקה: 10 × 3/5 = 30/5 = 6."]],
     ],
     s: [[["Dividing mixed numbers, like 2 1/4 ÷ 3/4", "Write every mixed number as a fraction: 9/4 ÷ 3/4", "Replace ÷ by × and the second fraction by its reciprocal: 9/4 × 4/3", "Multiply numerator by numerator and denominator by denominator: 36/12", "Simplify the result: 3"], ["חילוק מספרים מעורבים, כמו 2 1/4 ÷ 3/4", "כותבים כל מספר מעורב כשבר: 9/4 ÷ 3/4", "מחליפים את ÷ ב־× ואת השבר השני בהופכי שלו: 9/4 × 4/3", "כופלים מונה במונה ומכנה במכנה: 36/12", "מצמצמים את התוצאה: 3"]]],
   },

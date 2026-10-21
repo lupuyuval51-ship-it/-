@@ -21,7 +21,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Apostrophe", "a mark (') that shows missing letters, as in don't, or belonging, as in Dan's bag", "אפוסטרוף", "סימן (') שמראה שחסרות אותיות, כמו ב־don't, או שייכות, כמו ב־Dan's bag"],
+      ["Apostrophe", "a mark (') that shows missing letters, as in I'm, or belonging, as in Maya's book", "אפוסטרוף", "סימן (') שמראה שחסרות אותיות, כמו ב־I'm, או שייכות, כמו ב־Maya's book"],
       ["Quotation marks", "marks placed around the exact words that someone says", "מירכאות", "סימנים שמקיפים את המילים המדויקות שמישהו אומר"],
       ["Contraction", "a short form made by joining two words and leaving out letters, such as can't", "צורה מקוצרת", "מילה קצרה שנוצרת מחיבור של שתי מילים והשמטת אותיות, כמו can't"],
       ["Proper noun", "the name of one particular person, place or thing, written with a capital letter", "שם עצם פרטי", "שם של אדם, מקום או דבר מסוים, שבאנגלית נכתב תמיד באות גדולה"],
@@ -38,8 +38,8 @@ const c: TopicContent = {
       [["Maya says that she is hungry. Which sentence shows her exact words correctly?", "Maya said, “I am hungry.”", ["Maya said, I am hungry.”", "Maya said “I am hungry.", "“Maya said, I am hungry.”"], "Quotation marks go around the exact words someone says: one mark where the words begin and one where they end."],
         ["מאיה אומרת שהיא רעבה. איזה משפט מציג נכון את המילים המדויקות שלה?", "Maya said, “I am hungry.”", ["Maya said, I am hungry.”", "Maya said “I am hungry.", "“Maya said, I am hungry.”"], "מירכאות מקיפות את המילים המדויקות שמישהו אומר: סימן אחד במקום שבו המילים מתחילות ואחד במקום שבו הן נגמרות."]],
     ],
-    n: [[5, ["How many capital letters does this sentence need? “on monday dan and i visited paris.”", "", "On, Monday, Dan, I and Paris: 5 capital letters."],
-      ["כמה אותיות גדולות צריכות להיות במשפט הזה? ״on monday dan and i visited paris.״", "", "On, Monday, Dan, I ו־Paris: צריך 5 אותיות גדולות."]]],
+    n: [[5, ["How many capital letters does this sentence need? “on friday dan and i visited paris.”", "", "On, Friday, Dan, I and Paris: 5 capital letters, for the start of the sentence, a day, two names and the word I."],
+      ["כמה אותיות גדולות צריכות להיות במשפט הזה? ״on friday dan and i visited paris.״", "", "On, Friday, Dan, I ו־Paris: צריך 5 אותיות גדולות, לתחילת המשפט, ליום בשבוע, לשני שמות ולמילה I."]]],
   },
   a: {
     t: [

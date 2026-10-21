@@ -25,14 +25,14 @@ const c: TopicContent = {
         ["כשאתם מוכנים להקליד, כמה אצבעות מונחות על שורת הבית, בלי לספור את האגודלים?", "", "ארבע אצבעות מכל יד מונחות על שורת הבית: 4 + 4 = 8. האגודלים נחים על מקש הרווח."]],
     ],
     s: [
-      [["Copy a word and paste it somewhere else", "Select the word", "Press Ctrl+C to copy it", "Click where you want it to go", "Press Ctrl+V to paste it"],
-        ["העתקה של מילה והדבקה שלה במקום אחר", "מסמנים את המילה", "לוחצים Ctrl+C כדי להעתיק אותה", "לוחצים במקום שאליו המילה צריכה להגיע", "לוחצים Ctrl+V כדי להדביק אותה"]],
+      [["Copy a word and paste it somewhere else", "Select the word", "Copy the selected word", "Click where you want it to go", "Paste the word there"],
+        ["העתקה של מילה והדבקה שלה במקום אחר", "מסמנים את המילה", "מעתיקים את המילה המסומנת", "לוחצים במקום שאליו המילה צריכה להגיע", "מדביקים שם את המילה"]],
     ],
   },
   i: {
     t: [
       ["Keyboard shortcut", "two or more keys pressed together to do a job quickly without the mouse", "קיצור מקשים", "שני מקשים או יותר שלוחצים יחד כדי לבצע פעולה מהר, בלי העכבר"],
-      ["Undo", "taking back the last change you made, usually with Ctrl+Z", "ביטול פעולה", "החזרת המצב למה שהיה לפני השינוי האחרון, בדרך כלל עם Ctrl+Z"],
+      ["Undo", "taking back the last change you made, so that things are as they were just before it", "ביטול פעולה", "החזרת המצב למה שהיה ממש לפני השינוי האחרון שעשיתם"],
       ["Cursor", "the blinking line that shows where the next letter will appear", "סמן", "הקו המהבהב שמראה איפה תופיע האות הבאה"],
       ["Clipboard", "a hidden place in memory where copied or cut text waits until you paste it", "לוח ההעתקה (Clipboard)", "מקום נסתר בזיכרון שבו טקסט שהועתק או נגזר מחכה עד שמדביקים אותו"],
     ],
@@ -59,7 +59,7 @@ const c: TopicContent = {
     t: [
       ["QWERTY", "the usual layout of English keys, named after the first six letters on the top letter row", "פריסת QWERTY", "הסידור הנפוץ של המקשים באנגלית, שנקרא על שם שש האותיות הראשונות בשורת האותיות העליונה"],
       ["Modifier key", "a key such as Ctrl, Alt or Shift that changes what another key does while held down", "מקש משנה", "מקש כמו Ctrl, Alt או Shift, שמשנה את מה שמקש אחר עושה כל עוד מחזיקים אותו לחוץ"],
-      ["Redo", "doing again an action you have just taken back, often with Ctrl+Y", "ביצוע מחדש", "חזרה על פעולה שבוטלה זה עתה, לרוב עם Ctrl+Y"],
+      ["Redo", "doing again an action you have just undone, as if you had never undone it", "ביצוע מחדש", "ביצוע שוב של פעולה שביטלתם זה עתה, כאילו לא ביטלתם אותה"],
       ["Function keys", "the row of keys F1 to F12 at the top, which do special jobs in each program", "מקשי הפונקציות", "שורת המקשים F1 עד F12 בראש המקלדת, שמבצעים פעולות מיוחדות בכל תוכנה"],
     ],
     q: [

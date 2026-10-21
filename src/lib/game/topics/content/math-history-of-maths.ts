@@ -20,8 +20,8 @@ const c: TopicContent = {
         ["איפה התפתחו לראשונה הספרות 0 עד 9 שבהן משתמשים היום?", "בהודו", ["בחצי האי ערב, כפי ששמן מרמז", "ברומא העתיקה", "ביוון העתיקה"], "הספרות ורעיון ערך המקום התפתחו בהודו. מלומדים ערבים אימצו אותן והעבירו אותן לאירופה, ולכן הן נקראות ספרות הודיות־ערביות."]],
     ],
     n: [
-      [14, ["What number is written XIV in Roman numerals?", "", "X is 10 and IV is 4 (I before V means 5 − 1), so XIV = 10 + 4 = 14."],
-        ["איזה מספר נכתב XIV בספרות רומיות?", "", "X הוא 10 ו־IV הוא 4 (I לפני V פירושו 5 − 1), ולכן XIV = 10 + 4 = 14."]],
+      [14, ["What number did the ancient Romans write as XIV?", "", "X is 10 and IV is 4 (I before V means 5 − 1), so XIV = 10 + 4 = 14."],
+        ["איזה מספר כתבו הרומאים הקדמונים בסימנים XIV?", "", "X הוא 10 ו־IV הוא 4 (I לפני V פירושו 5 − 1), ולכן XIV = 10 + 4 = 14."]],
       [13, ["The Elements, the famous ancient Greek geometry book, is divided into parts called books. How many books does it have?", "", "The Elements has 13 books, covering flat geometry, numbers and solid shapes."],
         ["״היסודות״, ספר הגאומטריה היווני העתיק המפורסם, מחולק לחלקים שנקראים ספרים. כמה ספרים יש בו?", "", "ב״יסודות״ יש 13 ספרים, והם עוסקים בגאומטריה של המישור, במספרים ובגופים במרחב."]],
     ],

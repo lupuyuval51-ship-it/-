@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Function machine", "a rule that takes an input number and gives an output, like “add 3”", "מכונת פעולה", "כלל שמקבל מספר בכניסה ונותן מספר ביציאה, כמו ״הוסף 3״"],
+      ["Function machine", "a rule that takes an input number and gives an output, like “multiply by 10”", "מכונת פעולה", "כלל שמקבל מספר בכניסה ונותן מספר ביציאה, כמו ״כפול 10״"],
       ["Input", "the number that goes into a rule", "קלט", "המספר שנכנס לכלל"],
       ["Output", "the number that comes out of a rule", "פלט", "המספר שיוצא מהכלל"],
       ["Table of values", "a table that lists inputs and their outputs", "טבלת ערכים", "טבלה שמפרטת קלטים ואת הפלטים שלהם"],
@@ -21,7 +21,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Linear function", "a function whose graph is a straight line, like y = 2x + 1", "פונקציה קווית", "פונקציה שהגרף שלה הוא קו ישר, כמו y = 2x + 1"],
+      ["Linear function", "a function whose graph is a straight line, like y = 4x − 1", "פונקציה קווית", "פונקציה שהגרף שלה הוא קו ישר, כמו y = 4x − 1"],
       ["Gradient", "how much y changes when x increases by 1", "שיפוע", "בכמה y משתנה כש־x גדל ב־1"],
       ["Intercept", "where a graph crosses the y-axis", "נקודת חיתוך עם ציר y", "המקום שבו הגרף חותך את ציר y"],
       ["Graph", "a picture of a function drawn on axes", "גרף", "תמונה של פונקציה שמשורטטת על צירים"],

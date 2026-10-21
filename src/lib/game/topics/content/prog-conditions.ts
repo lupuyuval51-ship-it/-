@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Condition", "a question with a True or False answer that decides what the program does next", "תנאי", "שאלה שהתשובה עליה True או False, והיא קובעת מה התוכנית תעשה עכשיו"],
       ["if statement", "code that runs only when its condition is True", "משפט if", "קוד שרץ רק כשהתנאי שלו True"],
-      ["else branch", "the part that runs when the condition of the if is False", "ענף else", "החלק שרץ כשהתנאי של ה־if הוא False"],
+      ["else branch", "the part of an if statement that comes after the word else and has no condition of its own", "ענף else", "החלק של משפט if שבא אחרי המילה else ואין לו תנאי משלו"],
       ["Comparison", "checking how two values relate: equal, bigger or smaller", "השוואה", "בדיקה של הקשר בין שני ערכים: שווים, גדול או קטן"],
     ],
     q: [
@@ -15,8 +15,8 @@ const c: TopicContent = {
         ["איזה סימן בודק ב־Python אם שני ערכים שווים?", "==", ["=", "!=", "=>"], "הסימן == משווה בין שני ערכים. סימן = אחד שומר ערך במשתנה, והצירוף x != y פירושו ״x לא שווה ל־y״."]],
       [['A game has the rule  if lives == 0: show "Game over" . When is “Game over” shown?', "Only when lives is exactly 0", ["Whenever lives changes", "When lives is more than 0", "All the time"], "The condition lives == 0 is True only when lives is 0, so only then does the message appear."],
         ['במשחק יש כלל  if lives == 0: show "Game over" . מתי תוצג ההודעה Game over?', "רק כש־lives שווה בדיוק ל־0", ["בכל פעם ש־lives משתנה", "כש־lives גדול מ־0", "כל הזמן"], "התנאי lives == 0 הוא True רק כש־lives הוא 0, ורק אז ההודעה מופיעה."]],
-      [["Which two values can a Boolean have?", "True and False", ["Yes and No", "Any whole number", "Any piece of text"], "A Boolean has exactly two possible values in Python: True and False. Yes and No are not Python values, and numbers and text are other kinds of data."],
-        ["אילו שני ערכים יכול להיות ל־Boolean?", "True ו־False", ["כן ולא", "כל מספר שלם", "כל טקסט"], "ל־Boolean יש בדיוק שני ערכים אפשריים ב־Python: True ו־False. ״כן״ ו״לא״ אינם ערכים של Python, ומספרים וטקסט הם סוגים אחרים של נתונים."]],
+      [["In Python 3, after  age = 9 , which of these is a condition, with the value True or False?", "age < 12", ["age = 12", "age + 12", "age * 12"], "age < 12 compares two values, so its value is True or False: here True, because 9 is less than 12. age = 12 stores a new value, and age + 12 and age * 12 work out a number."],
+        ["ב־Python 3, אחרי  age = 9 , איזה מהבאים הוא תנאי, שהערך שלו True או False?", "age < 12", ["age = 12", "age + 12", "age * 12"], "age < 12 משווה בין שני ערכים, ולכן הערך שלו True או False: כאן True, כי 9 קטן מ־12. age = 12 שומר ערך חדש, ו־age + 12 ו־age * 12 מחשבים מספר."]],
       [['In Python 3, after  x = 4 , the program checks  if x != 4  (prints "different"), and otherwise (else) prints "same". What is printed?', "same", ["different", "different, then same", "nothing"], "x != 4 means that x is not equal to 4. Here x is 4, so the condition is False, and the else part runs and prints same."],
         ['ב־Python 3, אחרי  x = 4  התוכנית בודקת  if x != 4  (מדפיסה "different"), ואחרת (else) מדפיסה "same". מה מודפס?', "same", ["different", "different ואחריו same", "כלום"], "x != 4 פירושו ש־x לא שווה ל־4. כאן x הוא 4, ולכן התנאי הוא False, וחלק ה־else רץ ומדפיס same."]],
       [["What does the else part of an if statement do?", "It runs only when the condition of the if is False", ["It runs every time, after the if part", "It runs only when the condition of the if is True", "It checks a second condition"], "else has no condition of its own: it is the way out when the if condition was False. To check a second condition, Python uses elif."],

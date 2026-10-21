@@ -4,9 +4,9 @@ const c: TopicContent = {
   b: {
     t: [
       ["can", "used for ability or permission: I ___ swim. ___ I go out?", "can", "משמש ליכולת או לרשות: I ___ swim. ___ I go out?"],
-      ["must", "used for strong obligation or rules: You ___ wear a seat belt.", "must", "משמש לחובה חזקה או לכללים: You ___ wear a seat belt."],
-      ["should", "used for advice: You ___ drink more water.", "should", "משמש לעצה: You ___ drink more water."],
-      ["Modal verb", "a helper verb like can, must or should, followed by the base form", "פועל מודלי", "פועל עזר כמו can, must או should, שבא אחריו פועל בצורת הבסיס"],
+      ["must", "used for strong obligation or rules: I ___ finish this today.", "must", "משמש לחובה חזקה או לכללים: I ___ finish this today."],
+      ["should", "used for advice: Maybe we ___ ask the teacher.", "should", "משמש לעצה: Maybe we ___ ask the teacher."],
+      ["Modal verb", "a helper verb like can, may or will, followed by the base form", "פועל מודלי", "פועל עזר כמו can, may או will, שבא אחריו פועל בצורת הבסיס"],
     ],
     q: [
       [["Choose the correct sentence.", "She can play the guitar.", ["She cans play the guitar.", "She can plays the guitar.", "She can to play the guitar."], "Modals do not take -s, and the next verb stays in the base form."],
@@ -24,7 +24,7 @@ const c: TopicContent = {
       ["mustn't", "used when something is not allowed: You ___ run near the pool.", "mustn't", "משמש כשמשהו אסור: You ___ run near the pool."],
       ["don't have to", "used when something is not necessary, but allowed", "don't have to", "משמש כשמשהו לא הכרחי, אבל מותר"],
       ["could", "the past of can, and a polite way to ask: ___ you help me?", "could", "צורת העבר של can, וגם דרך מנומסת לבקש: ___ you help me?"],
-      ["might", "used for a small possibility: It ___ rain later.", "might", "משמש לאפשרות קטנה: It ___ rain later."],
+      ["might", "used for a small possibility: We ___ go to the beach tomorrow.", "might", "משמש לאפשרות קטנה: We ___ go to the beach tomorrow."],
     ],
     q: [
       [["“You mustn't touch it” and “You don't have to touch it” — what is the difference?", "Mustn't means it is forbidden; don't have to means it is not necessary", ["Don't have to means it is forbidden; mustn't means it is not necessary", "They mean the same thing: in both sentences you are not allowed to touch it", "Mustn't means that maybe you will touch it later"], "Mustn't = do not do it; don't have to = you may, but you need not."],
@@ -42,7 +42,7 @@ const c: TopicContent = {
       ["must have + past participle", "a strong guess about the past: She ___ left already — her coat is gone.", "must have", "ניחוש חזק על העבר: She ___ left already — her coat is gone."],
       ["should have + past participle", "regret or criticism about the past: I ___ studied more.", "should have", "חרטה או ביקורת על העבר: I ___ studied more."],
       ["can't have + past participle", "being sure something did not happen: He ___ seen me; I was hiding.", "can't have", "ביטחון שמשהו לא קרה: He ___ seen me; I was hiding."],
-      ["be able to", "a form that expresses ability in tenses where can has no form: I will ___ come.", "be able to", "צורה שמבטאת יכולת בזמנים שבהם ל־can אין צורה: I will ___ come."],
+      ["be able to", "a form that expresses ability where can cannot be used, as in I'd love to ___ fly.", "be able to", "צורה שמבטאת יכולת במקומות שבהם אי אפשר להשתמש ב־can, כמו I'd love to ___ fly."],
     ],
     q: [
       [["The ground is wet, but I didn't see rain. Which sentence fits?", "It must have rained.", ["It must rain.", "It should rain yesterday.", "It can have rained yesterday surely."], "Must have + past participle makes a confident deduction about the past."],

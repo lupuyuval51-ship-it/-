@@ -5,14 +5,14 @@ const c: TopicContent = {
     t: [
       ["reported speech", "telling what someone said without quoting their exact words", "דיבור עקיף", "מסירה של מה שמישהו אמר, בלי לצטט את המילים המדויקות שלו"],
       ["direct speech", "the exact words someone said, written inside quotation marks", "דיבור ישיר", "המילים המדויקות שמישהו אמר, כתובות בתוך מירכאות"],
-      ["backshift", "moving a verb one tense back, as when am becomes was", "הזזת הזמן אחורה", "העברה של הפועל זמן אחד אחורה, כמו כש־am הופך ל־was"],
+      ["backshift", "moving a verb one tense back, as when go becomes went", "הזזת הזמן אחורה", "העברה של הפועל זמן אחד אחורה, כמו כש־go הופך ל־went"],
       ["quotation marks", "the signs placed around someone's exact words when you write them", "מירכאות", "הסימנים שמקיפים את המילים המדויקות של מישהו כשכותבים אותן"],
     ],
     q: [
-      [["Complete: “She ___ me that she was tired.”", "told", ["said", "spoke", "talked"], "Tell is followed directly by the person: she told me. Say is used without the person (she said that she was tired) or with to (she said to me)."],
-        ["השלימו: ״She ___ me that she was tired.״", "told", ["said", "spoke", "talked"], "אחרי tell בא מיד האדם שמדברים אליו: she told me. את say אומרים בלי האדם (she said that she was tired) או עם to (she said to me)."]],
-      [["Complete: “He ___ that he liked pizza.”", "said", ["told", "told to", "spoke"], "Without a person after the verb we use say: He said that he liked pizza. Tell needs a person (he told me), and spoke is not used with that to report words."],
-        ["השלימו: ״He ___ that he liked pizza.״", "said", ["told", "told to", "spoke"], "כשאחרי הפועל לא בא אדם, משתמשים ב־say: He said that he liked pizza. אחרי tell חייב לבוא אדם (he told me), ו־spoke לא משמש עם that כדי למסור דברים."]],
+      [["Complete: “She ___ me that she had a new puppy.”", "told", ["said", "spoke", "talked"], "Tell is followed directly by the person: she told me. Say is used without the person (she said that she had a new puppy) or with to (she said to me)."],
+        ["השלימו: ״She ___ me that she had a new puppy.״", "told", ["said", "spoke", "talked"], "אחרי tell בא מיד האדם שמדברים אליו: she told me. את say אומרים בלי האדם (she said that she had a new puppy) או עם to (she said to me)."]],
+      [["“I feel sick,” said Omer. Complete the report: “Omer said that he ___ sick.”", "felt", ["feel", "feeled", "feeling"], "In reported speech the verb usually moves one tense back, so feel becomes its past form, felt. He feel is not correct, feeled is not a word, and feeling would need was before it."],
+        ["״I feel sick,״ said Omer. השלימו את הדיווח: ״Omer said that he ___ sick.״", "felt", ["feel", "feeled", "feeling"], "בדיבור עקיף הפועל בדרך כלל זז זמן אחד אחורה, ולכן feel הופך לצורת העבר שלו, felt. הצירוף he feel אינו נכון, feeled אינה מילה, ולפני feeling היה צריך was."]],
       [["“I am hungry,” said Tom. Complete the report: “Tom said that he ___ hungry.”", "was", ["am", "were", "be"], "In reported speech the verb usually moves one tense back, so am becomes was, and I becomes he. He am is not English, and he takes was, not were."],
         ["״I am hungry,״ said Tom. השלימו את הדיווח: ״Tom said that he ___ hungry.״", "was", ["am", "were", "be"], "בדיבור עקיף הפועל בדרך כלל זז זמן אחד אחורה, ולכן am הופך ל־was, ו־I הופך ל־he. הצירוף he am אינו אנגלית, ו־he בא עם was ולא עם were."]],
       [["“I like your dog,” Mia said to me. Complete my report: “Mia said that she liked ___ dog.”", "my", ["your", "her", "his"], "Mia was talking to me, so her word your means me, and in my report it becomes my: Mia said that she liked my dog. Her dog would be Mia's own dog."],
@@ -21,8 +21,8 @@ const c: TopicContent = {
         ["איזה משפט כתוב בדיבור עקיף?", "Dan said that he was ready.", ["Dan said, “I am ready to go now.”", "“I'm ready,” Dan said to us.", "Dan is ready to go now."], "דיבור עקיף מוסר את התוכן בלי מירכאות, בדרך כלל עם that ועם פועל שזז אחורה: he was ready. המשפטים עם המירכאות כתובים בדיבור ישיר."]],
     ],
     n: [
-      [2, ["“I am happy, and I want to play,” said Lily. How many verbs move back a tense in “Lily said that she was happy and wanted to play”?", "", "Am becomes was and want becomes wanted, so 2 verbs move back; play stays as it is after to."],
-        ["״I am happy, and I want to play,״ said Lily. כמה פעלים זזו זמן אחורה במשפט ״Lily said that she was happy and wanted to play״?", "", "am הופך ל־was ו־want הופך ל־wanted, ולכן 2 פעלים זזו אחורה; ו־play נשאר כמו שהוא אחרי to."]],
+      [2, ["“I like cats, and I want to play with them,” said Lily. How many verbs move back a tense in “Lily said that she liked cats and wanted to play with them”?", "", "Like becomes liked and want becomes wanted, so 2 verbs move back; play stays as it is after to."],
+        ["״I like cats, and I want to play with them,״ said Lily. כמה פעלים זזו זמן אחורה במשפט ״Lily said that she liked cats and wanted to play with them״?", "", "like הופך ל־liked ו־want הופך ל־wanted, ולכן 2 פעלים זזו אחורה; ו־play נשאר כמו שהוא אחרי to."]],
     ],
   },
   i: {

@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Web browser", "a program for visiting and viewing websites, such as Chrome, Firefox, Safari or Edge", "דפדפן", "תוכנה לביקור ולצפייה באתרי אינטרנט, כמו Chrome, Firefox, Safari או Edge"],
+      ["Web browser", "a program for visiting and viewing websites, such as Chrome, Safari or Edge", "דפדפן", "תוכנה לביקור ולצפייה באתרי אינטרנט, כמו Chrome, Safari או Edge"],
       ["Tab", "one page open inside a browser window; you can switch between several", "לשונית", "דף אחד שפתוח בתוך חלון הדפדפן; אפשר לעבור בין כמה כאלה"],
       ["Address bar", "the box at the top where you type a website's address", "שורת הכתובת", "התיבה בחלק העליון שבה מקלידים את כתובת האתר"],
       ["Bookmark", "a saved link to a page, so you can return to it quickly", "סימנייה", "קישור שמור לדף, כדי לחזור אליו מהר"],
@@ -31,7 +31,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["URL", "the full address of a page on the web, such as https://example.com/news", "כתובת URL", "הכתובת המלאה של דף ברשת, למשל https://example.com/news"],
+      ["URL", "the full address of a page on the web, such as https://example.org/news", "כתובת URL", "הכתובת המלאה של דף ברשת, למשל https://example.org/news"],
       ["Browsing history", "the list of pages you have visited, which the browser keeps", "היסטוריית גלישה", "רשימת הדפים שביקרתם בהם, שהדפדפן שומר"],
       ["Home page", "the page a browser shows when it starts or when you press its Home button", "דף הבית", "הדף שהדפדפן מציג כשהוא נפתח או כשלוחצים על כפתור הבית שלו"],
       ["Link", "a word or picture you click to go to another page", "קישור", "מילה או תמונה שלוחצים עליה כדי לעבור לדף אחר"],

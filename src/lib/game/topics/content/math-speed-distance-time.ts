@@ -20,8 +20,8 @@ const c: TopicContent = {
         ["אצנית שומרת על אותה מהירות. אם היא רצה זמן כפול, מה קורה לדרך שהיא עוברת?", "היא גדלה פי 2", ["היא קטנה פי 2", "היא לא משתנה", "היא גדלה ב־2 ק״מ בדיוק"], "במהירות קבועה, דרך = מהירות × זמן, ולכן כשהזמן גדל פי 2 גם הדרך גדלה פי 2: שעתיים ב־8 קמ״ש הן 16 ק״מ, פי 2 מה־8 ק״מ של שעה אחת."]],
     ],
     n: [
-      [180, ["A car drives at 60 km/h for 3 hours. How far does it go?", "km", "In each hour the car covers 60 km, so in 3 hours it covers 60 × 3 = 180 km."],
-        ["מכונית נוסעת במהירות של 60 קמ״ש במשך 3 שעות. איזו דרך היא עוברת?", "ק״מ", "בכל שעה המכונית עוברת 60 ק״מ, ולכן ב־3 שעות היא עוברת 60 × 3 = 180 ק״מ."]],
+      [120, ["A car drives at 60 km/h for 2 hours. How far does it go?", "km", "In each hour the car covers 60 km, so in 2 hours it covers 60 × 2 = 120 km."],
+        ["מכונית נוסעת במהירות של 60 קמ״ש במשך שעתיים. איזו דרך היא עוברת?", "ק״מ", "בכל שעה המכונית עוברת 60 ק״מ, ולכן בשעתיים היא עוברת 60 × 2 = 120 ק״מ."]],
       [50, ["A train travels at 100 km/h. How far does it go in half an hour?", "km", "Half an hour is half of 1 hour, so the train covers half of 100 km: 100 × 0.5 = 50 km."],
         ["רכבת נוסעת במהירות של 100 קמ״ש. איזו דרך היא עוברת בחצי שעה?", "ק״מ", "חצי שעה היא מחצית משעה אחת, ולכן הרכבת עוברת מחצית מ־100 ק״מ: 100 × 0.5 = 50 ק״מ."]],
     ],
@@ -45,8 +45,8 @@ const c: TopicContent = {
         ["בגרף דרך־זמן, מה מראה קטע שטוח, אופקי, של הקו?", "הגוף עומד במקום", ["הגוף נע במהירות קבועה", "הגוף מאיץ", "הגוף חוזר לנקודת ההתחלה"], "קו שטוח פירושו שהזמן עובר אבל הדרך לא משתנה, ולכן הגוף לא זז. קו ישר משופע היה מראה מהירות קבועה."]],
       [["A car travels 90 km at 60 km/h. How long does the trip take?", "1 hour 30 minutes", ["1 hour 50 minutes", "1 hour 15 minutes", "2 hours 30 minutes"], "Time = 90 ÷ 60 = 1.5 hours. Half an hour is 30 minutes, not 50, so 1.5 hours is 1 hour 30 minutes."],
         ["מכונית עוברת 90 ק״מ במהירות של 60 קמ״ש. כמה זמן נמשכת הנסיעה?", "שעה ו־30 דקות", ["שעה ו־50 דקות", "שעה ו־15 דקות", "שעתיים ו־30 דקות"], "זמן = 90 ÷ 60 = 1.5 שעות. חצי שעה היא 30 דקות ולא 50, ולכן 1.5 שעות הן שעה ו־30 דקות."]],
-      [["Two cars leave the same town at the same time, driving in opposite directions at 50 km/h and 70 km/h. How far apart are they after 2 hours?", "240 km", ["40 km", "120 km", "140 km"], "Each hour the gap grows by 50 + 70 = 120 km, so after 2 hours they are 240 km apart. 40 km would be right only if they drove in the same direction."],
-        ["שתי מכוניות יוצאות מאותה עיר באותו זמן ונוסעות בכיוונים מנוגדים, במהירות של 50 קמ״ש ושל 70 קמ״ש. מה המרחק ביניהן אחרי 2 שעות?", "240 ק״מ", ["40 ק״מ", "120 ק״מ", "140 ק״מ"], "בכל שעה המרחק ביניהן גדל ב־50 + 70 = 120 ק״מ, ולכן אחרי 2 שעות הן במרחק 240 ק״מ זו מזו. 40 ק״מ היה נכון רק אילו נסעו לאותו כיוון."]],
+      [["Two cars leave the same town at the same time, driving in opposite directions at 55 km/h and 65 km/h. How far apart are they after 2 hours?", "240 km", ["20 km", "120 km", "130 km"], "Each hour the gap grows by 55 + 65 = 120 km, so after 2 hours they are 240 km apart. 20 km would be right only if they drove in the same direction."],
+        ["שתי מכוניות יוצאות מאותה עיר באותו זמן ונוסעות בכיוונים מנוגדים, במהירות של 55 קמ״ש ושל 65 קמ״ש. מה המרחק ביניהן אחרי 2 שעות?", "240 ק״מ", ["20 ק״מ", "120 ק״מ", "130 ק״מ"], "בכל שעה המרחק ביניהן גדל ב־55 + 65 = 120 ק״מ, ולכן אחרי 2 שעות הן במרחק 240 ק״מ זו מזו. 20 ק״מ היה נכון רק אילו נסעו לאותו כיוון."]],
     ],
     n: [
       [5, ["A runner covers 400 m in 80 seconds at a steady pace. What is her speed in metres per second?", "m/s", "Speed = distance ÷ time = 400 ÷ 80 = 5 m/s: she covers 5 metres every second."],
@@ -84,8 +84,8 @@ const c: TopicContent = {
         ["אם מהירות הקול באוויר היא 340 מ׳ לשנייה, באיזה מרחק היכה הברק כששומעים את הרעם 3 שניות אחרי ההבזק?", "מ׳", "האור מגיע כמעט מיד, ולכן 3 השניות הן הזמן שלוקח לקול להגיע: 340 × 3 = 1020 מ׳, בערך 1 ק״מ."]],
     ],
     s: [
-      [["Put these journeys in order of average speed, from the slowest to the fastest", "45 km in 1 hour 30 minutes", "120 km in 3 hours", "90 km in 2 hours", "10 km in 12 minutes", "100 km in 1 hour 20 minutes"],
-        ["סדרו את המסעות לפי המהירות הממוצעת, מהאיטית ביותר למהירה ביותר", "45 ק״מ בשעה ו־30 דקות", "120 ק״מ ב־3 שעות", "90 ק״מ בשעתיים", "10 ק״מ ב־12 דקות", "100 ק״מ בשעה ו־20 דקות"]],
+      [["Put these journeys in order of average speed, from the slowest to the fastest", "45 km in 1 hour 30 minutes", "120 km in 3 hours", "180 km in 4 hours", "10 km in 12 minutes", "100 km in 1 hour 20 minutes"],
+        ["סדרו את המסעות לפי המהירות הממוצעת, מהאיטית ביותר למהירה ביותר", "45 ק״מ בשעה ו־30 דקות", "120 ק״מ ב־3 שעות", "180 ק״מ ב־4 שעות", "10 ק״מ ב־12 דקות", "100 ק״מ בשעה ו־20 דקות"]],
     ],
   },
 };

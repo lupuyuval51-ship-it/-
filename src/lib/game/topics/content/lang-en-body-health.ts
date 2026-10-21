@@ -28,7 +28,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["cough", "to push air out of your throat suddenly and noisily", "cough", "להוציא אוויר מהגרון בבת אחת וברעש"],
-      ["sprain", "to hurt a joint, like an ankle or a wrist, by twisting it suddenly", "sprain", "לפצוע מפרק, כמו קרסול או שורש כף היד, בסיבוב פתאומי"],
+      ["sprain", "to injure a joint, like an ankle or a wrist, by twisting it suddenly", "sprain", "לפצוע מפרק, כמו קרסול או שורש כף היד, בסיבוב פתאומי"],
       ["bruise", "a blue or purple mark on the skin after a knock or a fall", "bruise", "סימן כחול או סגול על העור אחרי מכה או נפילה"],
       ["fever", "a body temperature higher than normal, often when you are ill", "fever", "חום גוף גבוה מהרגיל, לרוב כשחולים"],
     ],

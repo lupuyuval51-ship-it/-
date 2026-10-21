@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Variable", "a named place in memory that stores a value the program can use and change", "משתנה", "מקום בעל שם בזיכרון ששומר ערך שהתוכנית יכולה להשתמש בו ולשנות אותו"],
       ["Value", 'the piece of data that is stored, such as 7 or "cat"', "ערך", 'פיסת המידע שנשמרת, כמו 7 או "cat"'],
-      ["Assignment", "putting a value into a variable; in Python it is written with =", "השמה", "הכנסת ערך לתוך משתנה; ב־Python כותבים אותה עם ="],
+      ["Assignment", "the step that puts a value into a variable, so the program can use it later", "השמה", "הפעולה שמכניסה ערך לתוך משתנה, כדי שהתוכנית תוכל להשתמש בו אחר כך"],
       ["Memory", "the part of the computer where a running program keeps its data", "זיכרון", "החלק במחשב שבו תוכנית שרצה שומרת את הנתונים שלה"],
     ],
     q: [
@@ -24,10 +24,10 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Integer (int)", "a whole number with no decimal part, such as 7, 0 or −3", "מספר שלם (int)", "מספר בלי חלק עשרוני, כמו 7, 0 או −3"],
-      ["Float", "a number written with a decimal point, such as 2.5 or 3.0", "מספר ממשי (float)", "מספר שנכתב עם נקודה עשרונית, כמו 2.5 או 3.0"],
+      ["Integer (int)", "a whole number with no decimal part, such as 12, 0 or −3", "מספר שלם (int)", "מספר בלי חלק עשרוני, כמו 12, 0 או −3"],
+      ["Float", "a number written with a decimal point, such as 2.5 or 0.75", "מספר ממשי (float)", "מספר שנכתב עם נקודה עשרונית, כמו 2.5 או 0.75"],
       ["String (str)", 'text written between quotes, such as "hello" or "42"', "מחרוזת (str)", 'טקסט שנכתב בין מירכאות, כמו "hello" או "42"'],
-      ["Boolean (bool)", "a value that can only be True or False", "ערך בוליאני (bool)", "ערך שיכול להיות רק True או False"],
+      ["Boolean (bool)", "the type of a value that tells whether something holds, such as the result of comparing two numbers", "ערך בוליאני (bool)", "הסוג של ערך שאומר אם משהו מתקיים, כמו התוצאה של השוואה בין שני מספרים"],
     ],
     q: [
       [["In Python 3, what is the type of the value 3.0?", "float", ["int", "str", "bool"], "The decimal point makes it a float, even though 3.0 is equal to the whole number 3."],

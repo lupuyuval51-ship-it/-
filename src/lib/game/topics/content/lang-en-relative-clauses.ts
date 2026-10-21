@@ -3,8 +3,8 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["relative clause", "a part of a sentence that gives more information about a noun, as in the girl who sings", "פסוקית זיקה", "חלק במשפט שמוסיף מידע על שם עצם, כמו the girl who sings"],
-      ["relative pronoun", "a word like who, which or that, which starts a relative clause", "מילת זיקה", "מילה כמו who, which או that, שפותחת פסוקית זיקה"],
+      ["relative clause", "a group of words with its own verb, coming after a noun to tell us more about it", "פסוקית זיקה", "קבוצת מילים עם פועל משלה, שבאה אחרי שם עצם ומוסיפה עליו מידע"],
+      ["relative pronoun", "a word such as who, which or whose, used to open a relative clause", "מילת זיקה", "מילה כמו who, which או whose, שפותחת פסוקית זיקה"],
       ["who", "the relative pronoun for people", "who", "מילת הזיקה לאנשים"],
       ["which", "the relative pronoun for things and animals", "which", "מילת הזיקה לדברים ולבעלי חיים"],
     ],
@@ -17,12 +17,12 @@ const c: TopicContent = {
         ["השלימו: ״That's the café ___ we first met.״", "where", ["which", "who", "whose"], "where משמש למקום, במשמעות ״שבו״ או ״שם״: the café where we first met. עם which היה צריך להוסיף at: the café which we first met at."]],
       [["Complete: “I have a friend ___ mother is a famous chef.”", "whose", ["who's", "who", "which"], "Whose shows that something belongs to someone: my friend's mother becomes a friend whose mother. Who's means who is, so it does not fit."],
         ["השלימו: ״I have a friend ___ mother is a famous chef.״", "whose", ["who's", "who", "which"], "whose מראה שמשהו שייך למישהו: my friend's mother הופך ל־a friend whose mother. ואילו who's פירושו who is, ולכן הוא לא מתאים."]],
-      [["Which word can replace who in “the girl who sings” and which in “the bike which I bought”?", "that", ["what", "whose", "where"], "That can be used for both people and things in a defining clause: the girl that sings, the bike that I bought. What is never used like this: not the bike what I bought."],
-        ["איזו מילה יכולה להחליף את who ב־״the girl who sings״ ואת which ב־״the bike which I bought״?", "that", ["what", "whose", "where"], "את that אפשר להגיד גם על אנשים וגם על דברים בפסוקית מגדירה: the girl that sings, the bike that I bought. ב־what לא משתמשים כך: לא אומרים the bike what I bought."]],
+      [["Which one word fits both gaps: “the girl ___ sings” and “the bike ___ I bought”?", "that", ["who", "which", "what"], "That can be used for both people and things in a defining clause: the girl that sings, the bike that I bought. Who fits only the girl, which fits only the bike, and what is never used like this."],
+        ["איזו מילה אחת מתאימה לשני החסרים: ״the girl ___ sings״ ו־״the bike ___ I bought״?", "that", ["who", "which", "what"], "את that אפשר להגיד גם על אנשים וגם על דברים בפסוקית מגדירה: the girl that sings, the bike that I bought. who מתאימה רק לילדה, which רק לאופניים, וב־what לא משתמשים כך."]],
     ],
     n: [
-      [2, ["How many relative clauses are in this sentence? “The boy who won the race is the one that I sit next to in class.”", "", "Who won the race tells us which boy, and that I sit next to in class tells us which one: 2 relative clauses."],
-        ["כמה פסוקיות זיקה יש במשפט? ״The boy who won the race is the one that I sit next to in class.״", "", "who won the race אומרת לנו על איזה ילד מדובר, ו־that I sit next to in class אומרת לנו מי הוא: 2 פסוקיות זיקה."]],
+      [3, ["How many of these words can start a relative clause: who, chair, which, green, where?", "", "Who, which and where can each start a relative clause, so there are 3. Chair is a noun and green is an adjective, so they cannot."],
+        ["כמה מהמילים האלה יכולות לפתוח פסוקית זיקה: who, chair, which, green, where?", "", "who, which ו־where יכולות כל אחת לפתוח פסוקית זיקה, ולכן יש 3. chair הוא שם עצם ו־green הוא שם תואר, ולכן הן לא יכולות."]],
     ],
   },
   i: {
@@ -46,14 +46,14 @@ const c: TopicContent = {
         ["איזה משפט על כלב משתמש במילת הזיקה הנכונה?", "We have a dog that loves water.", ["We have a dog what loves water.", "We have a dog, that loves water.", "We have a dog who's loves water."], "that (או which) פותחת פסוקית מגדירה על הכלב. what אף פעם לא משמשת מילת זיקה אחרי שם עצם, that לא באה אחרי פסיק, ו־who's פירושו who is."]],
     ],
     n: [
-      [2, ["How many of these sentences need commas around the clause? “My mother who is a nurse works at night.” “The boy who won is my cousin.” “Mount Everest which is in Asia is the highest mountain on Earth.” “The book that I lent you is mine.”", "", "There is only one mother and one Mount Everest, so those clauses add extra information and need commas: 2 sentences. The other clauses tell us which boy and which book."],
-        ["כמה מהמשפטים האלה צריכים פסיקים סביב הפסוקית? ״My mother who is a nurse works at night.״ ״The boy who won is my cousin.״ ״Mount Everest which is in Asia is the highest mountain on Earth.״ ״The book that I lent you is mine.״", "", "יש רק אמא אחת והר אוורסט אחד, ולכן הפסוקיות שלהם מוסיפות מידע נוסף וצריכות פסיקים: 2 משפטים. הפסוקיות האחרות אומרות לנו על איזה ילד ועל איזה ספר מדובר."]],
+      [2, ["How many of these sentences need commas around the clause? “My mother who is a nurse works at night.” “The boy who won is my cousin.” “The Moon whose surface is full of craters goes round the Earth.” “The book that I lent you is mine.”", "", "There is only one mother and one Moon, so those clauses add extra information and need commas: 2 sentences. The other clauses tell us which boy and which book."],
+        ["כמה מהמשפטים האלה צריכים פסיקים סביב הפסוקית? ״My mother who is a nurse works at night.״ ״The boy who won is my cousin.״ ״The Moon whose surface is full of craters goes round the Earth.״ ״The book that I lent you is mine.״", "", "יש רק אמא אחת וירח אחד, ולכן הפסוקיות שלהם מוסיפות מידע נוסף וצריכות פסיקים: 2 משפטים. הפסוקיות האחרות אומרות לנו על איזה ילד ועל איזה ספר מדובר."]],
     ],
   },
   a: {
     t: [
       ["whom", "a formal word for who when it is the object of a verb or comes after a preposition", "whom", "מילה רשמית במקום who, כשהיא מושא של הפועל או באה אחרי מילת יחס"],
-      ["sentential relative clause", "a clause with which that comments on the whole idea before it, as in He was late, which annoyed me", "פסוקית על משפט שלם", "פסוקית עם which שמתייחסת לכל הרעיון שלפניה, כמו He was late, which annoyed me"],
+      ["sentential relative clause", "a clause after a comma that comments on the whole idea before it, not on one noun", "פסוקית על משפט שלם", "פסוקית אחרי פסיק שמתייחסת לכל הרעיון שלפניה, ולא לשם עצם אחד"],
       ["reduced relative clause", "a shorter clause with no pronoun and no be, as in the boy sitting there", "פסוקית זיקה מקוצרת", "פסוקית קצרה יותר, בלי מילת זיקה ובלי be, כמו the boy sitting there"],
     ],
     q: [

@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["gerund", "the -ing form of a verb used like a noun, as in Swimming is fun", "gerund", "צורת ing של פועל שמשמשת כמו שם עצם, כמו Swimming is fun"],
+      ["gerund", "the -ing form of a verb used like a noun, as in the sign No running", "gerund", "צורת ing של פועל שמשמשת כמו שם עצם, כמו בשלט No running"],
       ["infinitive", "to + the base form of a verb, as in to swim", "שם הפועל", "to ועוד צורת הבסיס של הפועל, כמו to swim"],
       ["base form", "the simplest form of a verb, with nothing added, like swim or eat", "צורת הבסיס", "הצורה הפשוטה ביותר של הפועל, בלי שום תוספת, כמו swim או eat"],
       ["mind", "a verb meaning to be bothered by something, as in Do you ___ waiting?", "mind", "פועל שפירושו להיות מוטרדים ממשהו, כמו Do you ___ waiting?"],

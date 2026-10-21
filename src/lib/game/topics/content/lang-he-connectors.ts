@@ -4,9 +4,9 @@ const c: TopicContent = {
   b: {
     t: [
       ["Connective (milat kishur)", "a word that links two ideas and shows how they are related, like אבל, כי or לכן", "מילת קישור", "מילה שמחברת בין שני רעיונות ומראה מה היחס ביניהם, כמו ״אבל״, ״כי״ או ״לכן״"],
-      ["Contrast", "a relation between two ideas that differ or clash, shown by אבל or אולם", "ניגוד", "יחס בין שני רעיונות שונים או סותרים, שמבטאים אותו ב״אבל״ או ב״אולם״"],
+      ["Contrast", "a relation between two ideas that differ or clash, shown by words like אולם or אך", "ניגוד", "יחס בין שני רעיונות שונים או סותרים, שמבטאים אותו במילים כמו ״אולם״ או ״אך״"],
       ["Cause", "the reason that something happens, shown by כי or מפני ש", "סיבה", "הגורם לכך שמשהו קורה, שמבטאים אותו ב״כי״ או ב״מפני ש״"],
-      ["Result", "what happens because of something else, shown by לכן or ולכן", "תוצאה", "מה שקורה בעקבות דבר אחר, שמבטאים אותו ב״לכן״ או ב״ולכן״"],
+      ["Result", "what happens because of something else, shown by words like לפיכך or על כן", "תוצאה", "מה שקורה בעקבות דבר אחר, שמבטאים אותו במילים כמו ״לפיכך״ או ״על כן״"],
     ],
     q: [
       [["Which connective fits: רציתי לצאת, ___ ירד גשם חזק (I wanted to go out, ___ it rained hard)?", "אבל", ["לכן", "כי", "וגם"], "The rain worked against the wish to go out, so the relation is contrast: אבל. לכן would make the rain a result of wanting to go out, and כי would make it the reason for wanting to."],
@@ -25,9 +25,9 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Concession", "a relation in which something happens even though a reason pointed the other way, as with למרות ש", "ויתור", "יחס שבו משהו קורה אף שהייתה סיבה שלא יקרה, כמו אחרי ״למרות ש״"],
-      ["Purpose", "the goal an action is meant to reach, shown by כדי or על מנת", "תכלית", "המטרה שפעולה נועדה להשיג, שמבטאים אותה ב״כדי״ או ב״על מנת״"],
-      ["Condition", "something that must be true for something else to happen, as after אם", "תנאי", "דבר שצריך להתקיים כדי שדבר אחר יקרה, כמו אחרי ״אם״"],
+      ["Concession", "a relation in which something happens even though a reason pointed the other way, as with בכל זאת", "ויתור", "יחס שבו משהו קורה גם כשסיבה כלשהי הייתה אמורה למנוע אותו, כמו ב״בכל זאת״"],
+      ["Purpose", "the goal an action is meant to reach, shown by words like על מנת or במטרה ש", "תכלית", "המטרה שפעולה נועדה להשיג, שמבטאים אותה במילים כמו ״על מנת״ או ״במטרה ש״"],
+      ["Condition", "something that must be true for something else to happen, as after במקרה ש", "תנאי", "דבר שצריך להתקיים כדי שדבר אחר יקרה, כמו אחרי ״במקרה ש״"],
       ["Addition", "a relation that adds a point in the same direction, shown by וגם or בנוסף", "הוספה", "יחס שמוסיף טענה או פרט באותו כיוון, שמבטאים אותו ב״וגם״ או ב״בנוסף״"],
     ],
     q: [
@@ -41,13 +41,13 @@ const c: TopicContent = {
         ["איזו מילת קישור יכולה לבוא במקום ״כי״ בלי לשנות את המשמעות?", "מפני ש", ["כדי ש", "אף על פי ש", "לכן"], "״כי״ ו״מפני ש״ פותחות שתיהן סיבה, ולכן אפשר להחליף ביניהן. ״כדי ש״ פותחת תכלית, ״אף על פי ש״ ויתור, ו״לכן״ באה לפני תוצאה ולא לפני סיבה."]],
       [["In הוא למד הרבה כדי לעבור את המבחן (he studied a lot in order to pass the test), what relation does כדי show?", "Purpose", ["Cause", "Result", "Condition"], "כדי tells the goal of studying, passing the test, so the relation is purpose. A cause would explain what made him study, as in כי המבחן קשה."],
         ["במשפט ״הוא למד הרבה כדי לעבור את המבחן״, איזה יחס מבטאת ״כדי״?", "תכלית", ["סיבה", "תוצאה", "תנאי"], "״כדי״ מציינת את המטרה של הלמידה – לעבור את המבחן – ולכן היחס הוא תכלית. סיבה הייתה מסבירה מה גרם לו ללמוד, כמו ״כי המבחן קשה״."]],
-      [["Which sentence states a condition?", "נצא לטיול בתנאי שלא ירד גשם", ["יצאנו לטיול אף שירד גשם", "לא יצאנו לטיול כי ירד גשם", "יצאנו לטיול, ואחר כך ירד גשם"], "בתנאי ש (on condition that) makes the trip depend on the weather: a condition. The others show concession, cause and order in time."],
-        ["איזה משפט מבטא תנאי?", "נצא לטיול בתנאי שלא ירד גשם", ["יצאנו לטיול אף שירד גשם", "לא יצאנו לטיול כי ירד גשם", "יצאנו לטיול, ואחר כך ירד גשם"], "״בתנאי ש״ קושרת את הטיול למזג האוויר: זה תנאי. המשפטים האחרים מבטאים ויתור, סיבה ורצף בזמן."]],
+      [["Which sentence states a condition?", "נצא לטיול אם לא ירד גשם", ["יצאנו לטיול אף שירד גשם", "לא יצאנו לטיול כי ירד גשם", "יצאנו לטיול, ואחר כך ירד גשם"], "אם (if) makes the trip depend on the weather: it happens only if no rain falls, so this is a condition. The others show concession, cause and order in time."],
+        ["איזה משפט מבטא תנאי?", "נצא לטיול אם לא ירד גשם", ["יצאנו לטיול אף שירד גשם", "לא יצאנו לטיול כי ירד גשם", "יצאנו לטיול, ואחר כך ירד גשם"], "״אם״ קושרת את הטיול למזג האוויר: הוא יתקיים רק אם לא ירד גשם, ולכן זה תנאי. המשפטים האחרים מבטאים ויתור, סיבה ורצף בזמן."]],
     ],
   },
   a: {
     t: [
-      ["Hypothetical condition", "a condition that did not or cannot come true, opened by אילו or לו", "תנאי בטל", "תנאי שלא התקיים או שאינו יכול להתקיים, שנפתח ב״אילו״ או ב״לו״"],
+      ["Hypothetical condition", "a condition that did not or cannot come true, opened by לו or אלמלא", "תנאי בטל", "תנאי שלא התקיים או שאינו יכול להתקיים, שנפתח ב״לו״ או ב״אלמלא״"],
       ["Logical relation", "the meaning link between two parts of a text, such as cause, result or contrast", "קשר לוגי", "היחס בין שני חלקים בטקסט מבחינת המשמעות, כמו סיבה, תוצאה או ניגוד"],
       ["Restriction", "a relation that limits what was said or names an exception, shown by אלא אם כן or מלבד", "הסתייגות", "יחס שמגביל את מה שנאמר או מציין יוצא מן הכלל, כמו ב״אלא אם כן״ וב״מלבד״"],
       ["Clarification", "a relation that says an idea again in clearer words, shown by כלומר or דהיינו", "הבהרה", "יחס שבו חוזרים על רעיון במילים ברורות יותר, כמו ב״כלומר״ וב״דהיינו״"],

@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Operating system", "the main software that manages a device and lets all its other programs run, such as Windows, macOS or Android", "מערכת הפעלה", "התוכנה הראשית שמנהלת מכשיר ומאפשרת לכל שאר התוכניות שלו לרוץ, כמו Windows, macOS או Android"],
+      ["Operating system", "the main software that manages a device and lets all its other programs run, such as Windows, macOS or iOS", "מערכת הפעלה", "התוכנה הראשית שמנהלת מכשיר ומאפשרת לכל שאר התוכניות שלו לרוץ, כמו Windows, macOS או iOS"],
       ["File", "a named collection of information saved on a device, such as a photo, a song or a school essay", "קובץ", "אוסף מידע בעל שם ששמור במכשיר, כמו תמונה, שיר או חיבור לבית הספר"],
-      ["Folder", "a named place on a device that groups files together so they are easy to find", "תיקייה", "מקום עם שם במכשיר שמקבץ קבצים יחד כדי שיהיה קל למצוא אותם"],
+      ["Folder", "a named place on a device that can hold files and other folders inside it", "תיקייה", "מקום עם שם במכשיר, שיכולים להיות בתוכו קבצים ותיקיות אחרות"],
       ["App", "a program made to do one kind of job for the user, such as a game, a camera or a calculator", "אפליקציה", "תוכנית שנועדה לעשות סוג אחד של משימה בשביל המשתמש, כמו משחק, מצלמה או מחשבון"],
     ],
     q: [
@@ -22,7 +22,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["File extension", "the letters after the dot in a file's name, such as jpg or mp3, that show what kind of file it is", "סיומת קובץ", "האותיות שאחרי הנקודה בשם של קובץ, כמו jpg או mp3, שמראות מאיזה סוג הוא"],
-      ["Update", "a new version of software from its maker that fixes problems, closes security holes or adds features", "עדכון", "גרסה חדשה של תוכנה מהיצרן שלה, שמתקנת תקלות, סוגרת פרצות אבטחה או מוסיפה יכולות"],
+      ["Update", "a newer version of software that its maker sends out to replace the version you have", "עדכון", "גרסה חדשה יותר של תוכנה, שהיצרן שולח כדי להחליף את הגרסה שמותקנת אצלכם"],
       ["Backup", "an extra copy of your files kept in another place, in case the original is lost or damaged", "גיבוי", "עותק נוסף של הקבצים שנשמר במקום אחר, למקרה שהמקור יאבד או ייפגע"],
       ["Cloud storage", "keeping files on a company's computers over the internet, so you can reach them from any device", "אחסון בענן", "שמירת קבצים במחשבים של חברה דרך האינטרנט, כך שאפשר להגיע אליהם מכל מכשיר"],
     ],
@@ -42,8 +42,8 @@ const c: TopicContent = {
   a: {
     t: [
       ["Kernel", "the core of an operating system, which controls the processor, the memory and the devices", "ליבת מערכת ההפעלה", "החלק המרכזי של מערכת ההפעלה, ששולט במעבד, בזיכרון ובהתקנים"],
-      ["Driver", "a small program that lets the operating system talk to a piece of hardware, such as a printer", "מנהל התקן", "תוכנה קטנה שמאפשרת למערכת ההפעלה לתקשר עם רכיב חומרה, כמו מדפסת"],
-      ["Multitasking", "running several programs at the same time by sharing the processor and memory between them", "ריבוי משימות", "הרצה של כמה תוכניות בו־זמנית בעזרת חלוקת המעבד והזיכרון ביניהן"],
+      ["Driver", "software that tells the operating system how to control one kind of device, such as a webcam or a graphics card", "מנהל התקן", "תוכנה שמסבירה למערכת ההפעלה איך לשלוט בסוג מסוים של רכיב, כמו מצלמת רשת או כרטיס מסך"],
+      ["Multitasking", "having several programs open and working on a device at the same time", "ריבוי משימות", "כמה תוכניות שפתוחות ועובדות במכשיר באותו זמן"],
       ["Permission", "the right an app gets from you to use something, such as the camera, the microphone or your location", "הרשאה", "הזכות שאפליקציה מקבלת מכם להשתמש במשהו, כמו המצלמה, המיקרופון או המיקום"],
     ],
     q: [

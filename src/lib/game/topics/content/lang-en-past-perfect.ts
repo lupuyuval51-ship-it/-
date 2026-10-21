@@ -6,11 +6,11 @@ const c: TopicContent = {
       ["past perfect", "a tense made with had + the past participle, as in she had left", "עבר מושלם", "זמן שנבנה מ־had ועוד צורת הפועל השלישית, כמו she had left"],
       ["had", "the helper verb of the past perfect, the same for every person", "had", "פועל העזר של העבר המושלם, אותו פועל לכל הגופים"],
       ["earlier event", "the action that happened first when two past actions are told", "האירוע המוקדם", "הפעולה שקרתה ראשונה כשמספרים על שתי פעולות בעבר"],
-      ["by the time", "a phrase meaning when or before, as in ___ we arrived, the film had started", "by the time", "ביטוי שפירושו ״עד ש־״ או ״כש־״, כמו ___ we arrived, the film had started"],
+      ["by the time", "a phrase meaning when or before, as in ___ we got to the shop, it had closed", "by the time", "ביטוי שפירושו ״עד ש־״ או ״כש־״, כמו ___ we got to the shop, it had closed"],
     ],
     q: [
-      [["Complete: “When we arrived, the film ___ already started.”", "had", ["has", "have", "did"], "The film started before we arrived, so the earlier action takes the past perfect: had + started. Has and have make the present perfect, which does not fit a story in the past, and did is followed by the base form."],
-        ["השלימו: ״When we arrived, the film ___ already started.״", "had", ["has", "have", "did"], "הסרט התחיל לפני שהגענו, ולכן הפעולה המוקדמת באה בעבר מושלם: had ועוד started. has ו־have יוצרים הווה מושלם, שלא מתאים לסיפור בעבר, ואחרי did בא הפועל בצורת הבסיס."]],
+      [["Complete: “When we arrived, the film ___.” (It began before we came.)", "had already begun", ["had already began", "has already begun", "have already begun"], "The film began before we arrived, so the earlier action takes the past perfect: had + the past participle, begun. Began is the past simple, not the participle, and has or have begun make the present perfect, which does not fit a story in the past."],
+        ["השלימו: ״When we arrived, the film ___.״ (הוא התחיל לפני שבאנו.)", "had already begun", ["had already began", "has already begun", "have already begun"], "הסרט התחיל לפני שהגענו, ולכן הפעולה המוקדמת באה בעבר מושלם: had ועוד הצורה השלישית, begun. began היא צורת העבר הפשוט ולא הצורה השלישית, ו־has begun או have begun יוצרים הווה מושלם, שלא מתאים לסיפור בעבר."]],
       [["Which action happened first? “When I got to the station, the train had left.”", "The train left.", ["I got to the station.", "Both happened at the same time."], "Had left is the past perfect, which marks the earlier action: the train left first, and then I got to the station."],
         ["איזו פעולה קרתה קודם? ״When I got to the station, the train had left.״", "הרכבת יצאה", ["הגעתי לתחנה", "שתיהן קרו באותו זמן"], "had left הוא עבר מושלם, שמסמן את הפעולה המוקדמת: קודם הרכבת יצאה, ורק אחר כך הגעתי לתחנה."]],
       [["What is the past perfect of “they eat”?", "they had eaten", ["they had ate", "they have eaten", "they were eating"], "The past perfect is had + the past participle, and the participle of eat is eaten: they had eaten. Had ate uses the past simple form by mistake."],
@@ -27,7 +27,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["past simple", "the tense for finished past actions, often the main events of a story, like walked or saw", "עבר פשוט", "הזמן של פעולות שהסתיימו בעבר, שהן לרוב האירועים המרכזיים בסיפור, כמו walked או saw"],
+      ["past simple", "the tense for finished past actions, often the main events of a story, like walked or ate", "עבר פשוט", "הזמן של פעולות שהסתיימו בעבר, שהן לרוב האירועים המרכזיים בסיפור, כמו walked או ate"],
       ["past continuous", "was or were + -ing, for an action in progress at a past moment, often the background of a story", "עבר מתמשך", "was או were ועוד ing, לפעולה שנמשכה ברגע מסוים בעבר, ולרוב הרקע של הסיפור"],
       ["background", "what was already going on when the main events of a story happened", "רקע", "מה שכבר התרחש כשקרו האירועים המרכזיים בסיפור"],
     ],

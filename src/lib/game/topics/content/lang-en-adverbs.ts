@@ -4,7 +4,7 @@ const c: TopicContent = {
   b: {
     t: [
       ["Adverb", "a word that tells more about a verb: how, when, where or how often something happens", "תואר הפועל", "מילה שמוסיפה מידע על הפועל: איך, מתי, איפה או כמה פעמים משהו קורה"],
-      ["Adverb of manner", "an adverb that says how something is done, like slowly, carefully or loudly", "תואר אופן", "תואר פועל שאומר איך משהו נעשה, כמו slowly, carefully או loudly"],
+      ["Adverb of manner", "an adverb that says how something is done, like quietly, gently or badly", "תואר אופן", "תואר פועל שאומר איך משהו נעשה, כמו quietly, gently או badly"],
       ["-ly", "the ending added to many adjectives to turn them into adverbs: quick → quickly", "הסיומת ly", "מה שמוסיפים לסוף של הרבה שמות תואר כדי להפוך אותם לתוארי פועל: quick → quickly"],
     ],
     q: [
@@ -22,14 +22,14 @@ const c: TopicContent = {
         ["הפכו את שם התואר sad לתואר פועל.", "sadly", ["sadlly", "sadely", "sadness"], "מוסיפים ly ל־sad ומקבלים את תואר הפועל sadly. המילה sadness היא שם עצם, לא תואר פועל."]],
     ],
     n: [
-      [3, ["How many adverbs are in this sentence: “Tomorrow we will play outside happily.”", "", "There are 3: tomorrow (when), outside (where) and happily (how)."],
-        ["כמה תוארי פועל יש במשפט: ״Tomorrow we will play outside happily.״", "", "יש 3: tomorrow (מתי), outside (איפה) ו־happily (איך)."]],
+      [3, ["How many adverbs are in this sentence: “Tomorrow we will play outside nicely.”", "", "There are 3: tomorrow (when), outside (where) and nicely (how)."],
+        ["כמה תוארי פועל יש במשפט: ״Tomorrow we will play outside nicely.״", "", "יש 3: tomorrow (מתי), outside (איפה) ו־nicely (איך)."]],
     ],
   },
   i: {
     t: [
       ["Adverb of frequency", "an adverb that tells how often, like always, often, sometimes or never", "תואר תדירות", "תואר פועל שאומר כמה פעמים, כמו always, often, sometimes או never"],
-      ["Irregular adverb", "an adverb not made by adding -ly to its adjective, like well (from good), fast or hard", "תואר פועל חריג", "תואר פועל שלא נוצר מהוספת ly לשם התואר שלו, כמו well (מ־good), fast או hard"],
+      ["Irregular adverb", "an adverb not made by adding -ly to its adjective, like straight, early or high", "תואר פועל חריג", "תואר פועל שלא נוצר מהוספת ly לשם התואר שלו, כמו straight, early או high"],
       ["Adverb of place", "an adverb that tells where, like here, there, outside or upstairs", "תואר מקום", "תואר פועל שאומר איפה, כמו here, there, outside או upstairs"],
     ],
     q: [
@@ -47,8 +47,8 @@ const c: TopicContent = {
         ["״I haven't seen him lately.״ מה פירוש lately כאן?", "לאחרונה", ["אחרי הזמן הרגיל", "לאט", "מוקדם"], "lately פירושו ״לאחרונה״, בימים או בשבועות האחרונים. תואר הפועל late (ולא lately) פירושו ״באיחור, אחרי הזמן הרגיל״."]],
     ],
     n: [
-      [3, ["How many of these adverbs do NOT end in -ly: well, quickly, fast, hard, softly?", "", "3 of them: well, fast and hard are irregular adverbs with no -ly."],
-        ["כמה מתוארי הפועל האלה אינם מסתיימים ב־ly: well, quickly, fast, hard, softly?", "", "3 מהם: well, fast ו־hard הם תוארי פועל חריגים בלי ly."]],
+      [3, ["How many of these adverbs do NOT end in -ly: soon, quickly, here, often, softly?", "", "3 of them: soon, here and often are adverbs with no -ly, because not every adverb ends in -ly."],
+        ["כמה מתוארי הפועל האלה אינם מסתיימים ב־ly: soon, quickly, here, often, softly?", "", "3 מהם: soon, here ו־often הם תוארי פועל בלי ly, כי לא כל תואר פועל מסתיים ב־ly."]],
     ],
     s: [
       [["Adverbs of frequency, from most often to least often", "always", "usually", "often", "sometimes", "rarely", "never"],
@@ -59,7 +59,7 @@ const c: TopicContent = {
     t: [
       ["Degree adverb", "an adverb that tells how much, often before an adjective: very, quite, extremely", "תואר מידה", "תואר פועל שאומר באיזו מידה, ולרוב בא לפני שם תואר: very, quite, extremely"],
       ["Linking verb", "a verb like be, seem, look or feel that is often followed by an adjective describing the subject, not an adverb", "פועל מקשר", "פועל כמו be, seem, look או feel שאחריו בא לרוב שם תואר שמתאר את הנושא, ולא תואר פועל"],
-      ["Sentence adverb", "an adverb that comments on a whole sentence, like fortunately or luckily", "תואר משפט", "תואר פועל שמביע עמדה על המשפט כולו, כמו fortunately או luckily"],
+      ["Comment adverb", "an adverb that shows what the speaker thinks or feels about what is said, like honestly or surprisingly", "תואר עמדה", "תואר פועל שמראה מה הדובר חושב או מרגיש על מה שנאמר, כמו honestly או surprisingly"],
     ],
     q: [
       [["Which sentence is correct?", "The soup smells good.", ["The soup smells well.", "The soup smells goodly.", "The soup good smells."], "Here smell is a linking verb: it describes the soup, not an action, so it takes the adjective good."],
@@ -70,8 +70,8 @@ const c: TopicContent = {
         ["מה משנה המילה only? (A) ״Only Tom ate cake.״ (B) ״Tom ate only cake.״", "A: אף אחד אחר לא אכל עוגה; B: תום לא אכל שום דבר אחר", ["A: תום לא אכל שום דבר אחר; B: אף אחד אחר לא אכל עוגה", "שניהם אומרים שתום אכל קצת עוגה", "A הוא שאלה ו־B הוא משפט חיווי"], "only מתמקד במילה שבאה מיד אחריו: only Tom פירושו שאף אדם אחר לא אכל, ו־only cake פירושו שלא היה שום אוכל אחר."]],
       [["In which sentence does the adverb describe an adjective?", "The test was really hard.", ["She ran really fast.", "He spoke loudly.", "They arrived at the station yesterday."], "In The test was really hard, really describes hard, an adjective after was. In She ran really fast, fast is an adverb, so there really describes an adverb."],
         ["באיזה משפט תואר הפועל מתאר שם תואר?", "The test was really hard.", ["She ran really fast.", "He spoke loudly.", "They arrived at the station yesterday."], "במשפט The test was really hard המילה really מתארת את hard, שם תואר שבא אחרי was. במשפט She ran really fast המילה fast היא תואר פועל, ולכן שם really מתאר תואר פועל."]],
-      [["“Fortunately, nobody was hurt.” What does fortunately describe?", "the whole sentence", ["only the word nobody", "only the verb was hurt", "how badly people were hurt"], "Fortunately is a sentence adverb: it comments on the whole event and shows that the speaker is glad about it."],
-        ["״Fortunately, nobody was hurt.״ את מה מתארת המילה fortunately?", "את המשפט כולו", ["רק את המילה nobody", "רק את הפועל was hurt", "כמה קשה נפגעו אנשים"], "fortunately הוא תואר משפט: הוא מביע עמדה על כל האירוע ומראה שהדובר שמח על מה שקרה."]],
+      [["“Fortunately, nobody was hurt.” What does fortunately describe?", "the whole sentence", ["only the word nobody", "only the verb was hurt", "how badly people were hurt"], "Fortunately is a comment adverb, also called a sentence adverb: it comments on the whole event and shows that the speaker is glad about it."],
+        ["״Fortunately, nobody was hurt.״ את מה מתארת המילה fortunately?", "את המשפט כולו", ["רק את המילה nobody", "רק את הפועל was hurt", "כמה קשה נפגעו אנשים"], "fortunately הוא תואר עמדה, שנקרא גם תואר משפט: הוא מביע עמדה על כל האירוע ומראה שהדובר שמח על מה שקרה."]],
       [["Choose the sentence with the usual English word order.", "She sang beautifully at the concert last night.", ["She sang last night beautifully at the concert.", "She sang at the concert beautifully last night.", "She beautifully last night sang at the concert."], "The usual order after the verb is how, then where, then when: beautifully (how), at the concert (where), last night (when)."],
         ["בחרו את המשפט שבו סדר המילים הוא הרגיל באנגלית.", "She sang beautifully at the concert last night.", ["She sang last night beautifully at the concert.", "She sang at the concert beautifully last night.", "She beautifully last night sang at the concert."], "הסדר הרגיל אחרי הפועל הוא: איך, אחר כך איפה, ואחר כך מתי: beautifully (איך), at the concert (איפה), last night (מתי)."]],
     ],

@@ -25,14 +25,14 @@ const c: TopicContent = {
       [4, ["Israeli school grades are named by letters. Which grade number is grade dalet?", "", "Dalet is the fourth letter and has the value 4, so grade dalet is the fourth grade."],
         ["בישראל הכיתות בבית הספר נקראות לפי אותיות. איזו כיתה במספר היא כיתה ד׳?", "", "ד׳ היא האות הרביעית וערכה 4, ולכן כיתה ד׳ היא הכיתה הרביעית."]],
     ],
-    s: [[["Order the letters from the smallest value to the largest", "Alef", "Gimel", "Hei", "Zayin", "Tet"],
-      ["סדרו את האותיות מהערך הקטן ביותר לגדול ביותר", "א׳", "ג׳", "ה׳", "ז׳", "ט׳"]]],
+    s: [[["Order the letters from the smallest value to the largest", "Alef", "Gimel", "Vav", "Zayin", "Tet"],
+      ["סדרו את האותיות מהערך הקטן ביותר לגדול ביותר", "א׳", "ג׳", "ו׳", "ז׳", "ט׳"]]],
   },
   i: {
     t: [
       ["Gershayim", "the mark like a double quotation mark, written before the last letter of a number that has two or more letters", "גרשיים", "הסימן ״ שכותבים לפני האות האחרונה במספר של שתי אותיות או יותר"],
-      ["Tens letters", "the nine letters from yod to tsadi, worth 10, 20, 30 and so on up to 90", "אותיות העשרות", "תשע האותיות מי׳ עד צ׳, שערכן 10, 20, 30 וכן הלאה עד 90"],
-      ["Hundreds letters", "the four letters kuf, resh, shin and tav, worth 100, 200, 300 and 400", "אותיות המאות", "ארבע האותיות ק׳, ר׳, ש׳ ות׳, שערכן 100, 200, 300 ו־400"],
+      ["Tens letters", "the nine letters that stand for whole tens, from 10 up to 90", "אותיות העשרות", "תשע האותיות שמייצגות עשרות שלמות, מ־10 ועד 90"],
+      ["Hundreds letters", "the four letters that stand for whole hundreds, up to 400", "אותיות המאות", "ארבע האותיות שמייצגות מאות שלמות, עד 400"],
     ],
     q: [
       [["Which is the usual way to write 15 in Hebrew letters?", "Tet-vav (9 + 6)", ["Yod-hei (10 + 5)", "Yod-vav (10 + 6)", "Yod-dalet (10 + 4)"], "Yod-hei would spell a short name of God, so by custom 15 is written as 9 + 6: tet-vav. In the same way, 16 is written tet-zayin (9 + 7)."],
@@ -58,7 +58,7 @@ const c: TopicContent = {
   a: {
     t: [
       ["Hebrew year", "a year counted in the Jewish calendar, about 3,760 more than the common year", "שנה עברית", "שנה לפי הלוח העברי, בערך 3,760 יותר מהשנה הלועזית"],
-      ["Lifrat katan", "a note that a Hebrew year is written without its thousands, like 708 for 5708", "לפרט קטן", "ציון לכך ששנה עברית נכתבה בלי האלפים, כמו תש״ח במקום ה׳תש״ח"],
+      ["Lifrat katan", "a note that a Hebrew year is written without its thousands, like 784 for 5784", "לפרט קטן", "ציון לכך ששנה עברית נכתבה בלי האלפים, כמו תשפ״ד במקום ה׳תשפ״ד"],
       ["Final letters", "the five letters that change shape at the end of a word: kaf, mem, nun, pei and tsadi", "אותיות סופיות", "חמש האותיות שמשנות צורה בסוף מילה: ך, ם, ן, ף, ץ"],
     ],
     q: [

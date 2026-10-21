@@ -9,8 +9,8 @@ const c: TopicContent = {
       ["Change", "the money you get back when you pay more than the price", "עודף", "הכסף שמקבלים בחזרה כשמשלמים יותר מהמחיר"],
     ],
     q: [
-      [["How many agorot are there in one shekel?", "100", ["10", "50", "1,000"], "One shekel is worth 100 agorot, just as one metre has 100 centimetres. Two half-shekel coins make one shekel."],
-        ["כמה אגורות יש בשקל אחד?", "100", ["10", "50", "1,000"], "שקל אחד שווה 100 אגורות, כמו שבמטר אחד יש 100 סנטימטרים. שני מטבעות של חצי שקל הם שקל אחד."]],
+      [["How many agorot are there in 3 shekels?", "300", ["30", "103", "3,000"], "Every shekel is worth 100 agorot, so 3 shekels are 3 × 100 = 300 agorot. 30 would be right only if a shekel had 10 agorot."],
+        ["כמה אגורות יש ב־3 שקלים?", "300", ["30", "103", "3,000"], "כל שקל שווה 100 אגורות, ולכן 3 שקלים הם 3 × 100 = 300 אגורות. התשובה 30 הייתה נכונה רק אילו בשקל היו 10 אגורות."]],
       [["Which of these coins is worth the most?", "10 shekels", ["5 shekels", "2 shekels", "Half a shekel (50 agorot)"], "The 10-shekel coin has the highest value of the Israeli coins in everyday use. The 5-shekel coin is worth half of it, and half a shekel is only 50 agorot."],
         ["איזה מהמטבעות שווה הכי הרבה?", "10 שקלים", ["5 שקלים", "2 שקלים", "חצי שקל (50 אגורות)"], "למטבע של 10 שקלים יש הערך הגבוה ביותר מכל המטבעות שבשימוש יומיומי בישראל. מטבע של 5 שקלים שווה חצי ממנו, וחצי שקל הוא רק 50 אגורות."]],
       [["A pencil costs 3 shekels and a notebook costs 5 shekels. How much do they cost together?", "8 shekels", ["7 shekels", "2 shekels", "15 shekels"], "Add the prices: 3 + 5 = 8 shekels. 2 shekels is the difference between the prices, and 15 comes from multiplying them."],
@@ -80,8 +80,8 @@ const c: TopicContent = {
       [8, ["A cinema ticket costs 35 shekels and popcorn costs 17 shekels. You pay with a 50-shekel note and a 10-shekel coin. How much change do you get?", "shekels", "35 + 17 = 52 shekels. You paid 50 + 10 = 60 shekels, so the change is 60 − 52 = 8 shekels."],
         ["כרטיס לקולנוע עולה 35 שקלים ופופקורן עולה 17 שקלים. שילמתם בשטר של 50 שקלים ובמטבע של 10 שקלים. כמה עודף תקבלו?", "שקלים", "35 + 17 = 52 שקלים. שילמתם 50 + 10 = 60 שקלים, ולכן העודף הוא 60 − 52 = 8 שקלים."]],
     ],
-    s: [[["Bags of apples: order from the cheapest price per kilogram to the most expensive", "4 kg for 14 shekels", "3 kg for 12 shekels", "2 kg for 9 shekels", "1 kg for 5 shekels"],
-      ["שקיות תפוחים: סדרו מהמחיר הזול ביותר לקילוגרם ועד היקר ביותר", "4 קילוגרם ב־14 שקלים", "3 קילוגרם ב־12 שקלים", "2 קילוגרם ב־9 שקלים", "קילוגרם אחד ב־5 שקלים"]]],
+    s: [[["Bags of apples: order from the cheapest price per kilogram to the most expensive", "4 kg for 14 shekels", "3 kg for 12 shekels", "2 kg for 9 shekels", "1 kg for 7 shekels"],
+      ["שקיות תפוחים: סדרו מהמחיר הזול ביותר לקילוגרם ועד היקר ביותר", "4 קילוגרם ב־14 שקלים", "3 קילוגרם ב־12 שקלים", "2 קילוגרם ב־9 שקלים", "קילוגרם אחד ב־7 שקלים"]]],
   },
 };
 export default c;

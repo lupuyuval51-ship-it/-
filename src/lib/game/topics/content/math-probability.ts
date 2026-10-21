@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Probability", "how likely something is to happen, from 0 (impossible) to 1 (certain)", "הסתברות", "עד כמה סביר שמשהו יקרה, מ־0 (בלתי אפשרי) עד 1 (ודאי)"],
+      ["Probability", "a number from 0 to 1 that says how likely something is to happen", "הסתברות", "מספר מ־0 עד 1 שאומר עד כמה סביר שמשהו יקרה"],
       ["Impossible", "an event that can never happen, with probability 0", "בלתי אפשרי", "מאורע שלעולם לא יקרה, וההסתברות שלו 0"],
       ["Certain", "an event that will surely happen, with probability 1", "ודאי", "מאורע שבטוח יקרה, וההסתברות שלו 1"],
       ["Outcome", "one possible result of an experiment, like getting 4 when rolling a die", "תוצאה", "אחת האפשרויות שיכולות לצאת בניסוי, כמו 4 בהטלת קובייה"],

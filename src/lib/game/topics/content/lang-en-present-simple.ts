@@ -3,7 +3,7 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Present simple", "the tense for habits, routines and facts: “I walk to school.”", "הווה פשוט", "הזמן שמתאר הרגלים, שגרה ועובדות: ״I walk to school.״"],
+      ["Present simple", "the tense for habits, routines and facts: “I get up at seven.”", "הווה פשוט", "הזמן שמתאר הרגלים, שגרה ועובדות: ״I get up at seven.״"],
       ["Verb", "a word for an action or a state, like run, eat or be", "פועל", "מילה שמתארת פעולה או מצב, כמו run, eat או be"],
       ["Subject", "who or what does the action in a sentence", "נושא", "מי או מה שעושה את הפעולה במשפט"],
       ["Third person singular", "he, she or it — the form that adds -s to the verb in the present simple", "גוף שלישי יחיד", "he, she או it — הצורה שבה מוסיפים s לפועל בהווה הפשוט"],
@@ -24,7 +24,7 @@ const c: TopicContent = {
       ["do / does", "helper verbs for questions and negatives in the present simple", "do / does", "פעלי עזר לשאלות ולשלילה בהווה הפשוט"],
       ["Adverb of frequency", "a word that says how often, like always, usually, sometimes or never", "תואר תדירות", "מילה שאומרת כמה פעמים, כמו always, usually, sometimes או never"],
       ["Negative", "a sentence that says something is not true, using don't or doesn't", "שלילה", "משפט שאומר שמשהו לא נכון, בעזרת don't או doesn't"],
-      ["Spelling rule -es", "verbs ending in -s, -sh, -ch, -x or -o add -es: watches, goes", "כלל הכתיב -es", "פעלים שמסתיימים ב־s, sh, ch, x או o מקבלים es: watches, goes"],
+      ["Spelling rule -es", "verbs ending in -s, -sh, -ch, -x or -o add -es: washes, fixes, goes", "כלל הכתיב -es", "פעלים שמסתיימים ב־s, sh, ch, x או o מקבלים es: washes, fixes, goes"],
     ],
     q: [
       [["Choose the correct question.", "Does he like pizza?", ["Do he like pizza?", "Does he likes pizza?", "Likes he pizza?"], "In questions with he, she or it use does, and the main verb has no -s: Does he like…?"],
@@ -41,7 +41,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Stative verb", "a verb for a state, not an action, usually not used in -ing forms: know, believe, own", "פועל מצב", "פועל שמתאר מצב ולא פעולה, ובדרך כלל לא בא בצורת ing: know, believe, own"],
+      ["Stative verb", "a verb for a state, not an action, usually not used in -ing forms: believe, own, understand", "פועל מצב", "פועל שמתאר מצב ולא פעולה, ובדרך כלל לא בא בצורת ing: believe, own, understand"],
       ["Present continuous", "the tense for actions happening now: “She is reading.”", "הווה מתמשך", "הזמן לפעולות שקורות עכשיו: ״She is reading.״"],
       ["Timetable future", "using the present simple for scheduled events: “The train leaves at 8.”", "עתיד לפי לוח זמנים", "שימוש בהווה פשוט לאירועים מתוכננים: ״The train leaves at 8.״"],
       ["General truth", "a fact that is always true, written in the present simple: “Water boils at 100 °C.”", "אמת כללית", "עובדה שתמיד נכונה, נכתבת בהווה פשוט: ״Water boils at 100 °C.״"],

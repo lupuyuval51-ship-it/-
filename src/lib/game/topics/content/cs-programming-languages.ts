@@ -8,8 +8,8 @@ const c: TopicContent = {
       ["Syntax", "the rules for how the words and symbols of a language must be put together", "תחביר", "הכללים שקובעים איך צריך לחבר את המילים והסימנים של שפה"],
     ],
     q: [
-      [["Which of these is a programming language?", "Python", ["HTML", "Wi-Fi", "Bluetooth"], "Python can calculate, decide and repeat. HTML only describes the parts of a web page, while Wi-Fi and Bluetooth are ways for devices to connect without wires."],
-        ["איזו מאלה היא שפת תכנות?", "Python", ["HTML", "Wi-Fi", "Bluetooth"], "ב־Python אפשר לחשב, להחליט ולחזור על פעולות. HTML רק מתארת את החלקים של דף אינטרנט, ו־Wi-Fi ו־Bluetooth הן דרכים לחבר מכשירים בלי חוטים."]],
+      [["Which of these is a programming language?", "Java", ["HTML", "Wi-Fi", "Bluetooth"], "In Java you can write instructions that calculate, decide and repeat. HTML only describes the parts of a web page, while Wi-Fi and Bluetooth are ways for devices to connect without wires."],
+        ["איזו מאלה היא שפת תכנות?", "Java", ["HTML", "Wi-Fi", "Bluetooth"], "ב־Java אפשר לכתוב הוראות שמחשבות, מחליטות וחוזרות על פעולות. HTML רק מתארת את החלקים של דף אינטרנט, ו־Wi-Fi ו־Bluetooth הן דרכים לחבר מכשירים בלי חוטים."]],
       [["What is a syntax error?", "Code that breaks the rules, like a missing bracket", ["A program that runs to the end but gives the wrong answer", "A computer that is too slow for the program", "A virus that secretly changes the code"], "A syntax error means the code is not written the way the language allows, so it cannot run at all. A wrong answer from working code is a logic error."],
         ["מהי שגיאת תחביר?", "קוד שמפר את הכללים, כמו סוגר שחסר", ["תוכנית שרצה עד הסוף אבל נותנת תשובה שגויה", "מחשב שאיטי מדי בשביל התוכנית", "וירוס שמשנה את הקוד בסתר"], "שגיאת תחביר פירושה שהקוד לא כתוב בדרך שהשפה מרשה, ולכן הוא לא יכול לרוץ בכלל. תשובה שגויה מקוד שרץ היא שגיאה לוגית."]],
       [["What is the language Python named after?", "The comedy show Monty Python", ["A large snake found in Africa and Asia", "The family name of its inventor", "The first computer that ran it"], "Guido van Rossum, who created Python, named it after the British comedy series Monty Python's Flying Circus, not after the snake."],
@@ -54,7 +54,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Bytecode", "a compact in-between code that a virtual machine runs instead of the real processor", "קוד ביניים (bytecode)", "קוד קומפקטי שנמצא בשלב שבין קוד המקור לשפת המכונה, ושמכונה וירטואלית מריצה במקום המעבד האמיתי"],
+      ["Bytecode", "a compact in-between code, halfway from source code to machine code, that stays the same on every kind of computer", "קוד ביניים (bytecode)", "קוד קומפקטי שנמצא בשלב שבין קוד המקור לשפת המכונה, ונשאר זהה בכל סוג של מחשב"],
       ["Portability", "how easily a program can be moved to run on a different kind of computer", "ניידות", "עד כמה קל להעביר תוכנית כדי שתרוץ על סוג אחר של מחשב"],
       ["Assembler", "the program that turns assembly language into machine code", "אסמבלר", "התוכנה שמתרגמת שפת סף לשפת מכונה"],
     ],
@@ -65,8 +65,8 @@ const c: TopicContent = {
         ["למה תוכנית C שהודרה למחשב Windows לא יכולה פשוט לרוץ בטלפון עם מעבד אחר?", "היא תורגמה לשפת מכונה של סוג אחד של מעבד ומערכת", ["תוכנית C יכולה לרוץ רק פעם אחת, ואז צריך להדר אותה שוב", "טלפונים לא יכולים להריץ שום תוכנית מהודרת", "הטלפון צריך את ההערות מקוד המקור"], "שפת המכונה שונה בכל משפחה של מעבדים, והתוכנית גם מצפה למערכת הפעלה מסוימת. צריך להדר אותה מחדש בשביל הטלפון."]],
       [["A program has correct syntax, but it adds where it should subtract. What kind of error is that?", "A logic error", ["A syntax error", "A compiler error", "A hardware fault"], "The code follows the rules of the language, so it runs, but it does the wrong thing. The compiler cannot spot this kind of error; careful testing is how it is usually found."],
         ["התחביר של תוכנית נכון, אבל היא מחברת במקום שהיא צריכה לחסר. איזו שגיאה זו?", "שגיאה לוגית", ["שגיאת תחביר", "שגיאת מהדר", "תקלת חומרה"], "הקוד עומד בכללי השפה ולכן הוא רץ, אבל הוא עושה את הדבר הלא נכון. המהדר לא יכול לזהות שגיאה מהסוג הזה, ובדרך כלל מגלים אותה בבדיקות קפדניות."]],
-      [["Which language checks the types of its variables before the program runs, when it is compiled?", "Java", ["Python", "JavaScript", "Ruby"], "Java is statically typed: each variable has a declared type, and the compiler rejects mismatches. Python, JavaScript and Ruby check types only while the program runs."],
-        ["איזו שפה בודקת את הסוגים של המשתנים שלה לפני שהתוכנית רצה, בזמן ההידור?", "Java", ["Python", "JavaScript", "Ruby"], "Java היא שפה עם טיפוסים סטטיים: לכל משתנה יש סוג מוצהר, והמהדר דוחה אי־התאמות. Python, JavaScript ו־Ruby בודקות סוגים רק בזמן הריצה."]],
+      [["Which language checks the types of its variables before the program runs?", "Java", ["Python", "JavaScript", "Ruby"], "Java is statically typed: each variable has a declared type, and the compiler rejects mismatches. Python, JavaScript and Ruby check types only while the program runs."],
+        ["איזו שפה בודקת את הסוגים של המשתנים שלה לפני שהתוכנית רצה?", "Java", ["Python", "JavaScript", "Ruby"], "Java היא שפה עם טיפוסים סטטיים: לכל משתנה יש סוג מוצהר, והמהדר דוחה אי־התאמות. Python, JavaScript ו־Ruby בודקות סוגים רק בזמן הריצה."]],
       [["Which language did Bjarne Stroustrup create by adding classes to C?", "C++", ["C#", "Java", "Python"], "Stroustrup started C with Classes in 1979, and it was renamed C++ in 1983. C# is a different language, announced by Microsoft in 2000."],
         ["איזו שפה יצר ביארנה סטרוסטרופ כשהוסיף מחלקות לשפת C?", "C++", ["C#", "Java", "Python"], "סטרוסטרופ התחיל את ״C עם מחלקות״ ב־1979, וב־1983 שונה שמה ל־C++. C# היא שפה אחרת, ש־Microsoft הכריזה עליה ב־2000."]],
     ],

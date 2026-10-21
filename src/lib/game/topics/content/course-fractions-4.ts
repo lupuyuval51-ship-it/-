@@ -47,7 +47,7 @@ const c: TopicContent = {
   },
   i: {
     t: [
-      ["Mixed number", "a whole number together with a part smaller than 1, like 2 3/4", "מספר מעורב", "מספר שלם יחד עם חלק קטן מ־1, כמו 2 3/4"],
+      ["Mixed number", "a whole number together with a part smaller than 1, like 2 2/5", "מספר מעורב", "מספר שלם יחד עם חלק קטן מ־1, כמו 2 2/5"],
       ["Regrouping", "changing a whole into equal parts so you can take some away, like 1 = 4/4", "פריטה", "החלפה של שלם בחלקים שווים כדי שאפשר יהיה לחסר, כמו 1 = 4/4"],
     ],
     q: [
@@ -63,15 +63,15 @@ const c: TopicContent = {
         ["כמה זה 2 − 1/4?", "1 3/4", ["1 1/4", "2 1/4", "1/4"], "פורטים שלם אחד ל־4/4: 2 = 1 4/4. אז 1 4/4 − 1/4 = 1 3/4."]],
     ],
     n: [
-      [11, ["1/4 + 2/3 = x/12. What is the numerator?", "", "With denominator 12: 1/4 = 3/12 and 2/3 = 8/12. 3 + 8 = 11, so the sum is 11/12."], ["1/4 + 2/3 = x/12. מהו המונה?", "", "עם מכנה 12: 1/4 = 3/12 ו־2/3 = 8/12. 3 + 8 = 11, ולכן הסכום הוא 11/12."]],
-      [5, ["Mia walked 3/4 km to school and then 1/2 km to the library. How many quarters of a km did she walk in all?", "", "1/2 km = 2/4 km, so 3/4 + 2/4 = 5/4 km, which is 1 1/4 km: 5 quarters of a kilometre."], ["מיה הלכה 3/4 ק״מ לבית הספר ואחר כך 1/2 ק״מ לספרייה. כמה רבעי ק״מ היא הלכה בסך הכול?", "", "1/2 ק״מ = 2/4 ק״מ, ולכן 3/4 + 2/4 = 5/4 ק״מ, שזה 1 1/4 ק״מ: 5 רבעים של קילומטר."]],
-      [3, ["3 1/2 − 1 3/4 = 1 x/4. What is x?", "", "3 1/2 = 3 2/4. You cannot take 3/4 from 2/4, so regroup: 3 2/4 = 2 6/4. Then 2 6/4 − 1 3/4 = 1 3/4."], ["3 1/2 − 1 3/4 = 1 x/4. מהו x?", "", "3 1/2 = 3 2/4. אי אפשר להוריד 3/4 מ־2/4, ולכן פורטים: 3 2/4 = 2 6/4. אז 2 6/4 − 1 3/4 = 1 3/4."]],
+      [11, ["2/5 + 1/3 = x/15. What is the numerator?", "", "With denominator 15: 2/5 = 6/15 and 1/3 = 5/15. 6 + 5 = 11, so the sum is 11/15."], ["2/5 + 1/3 = x/15. מהו המונה?", "", "עם מכנה 15: 2/5 = 6/15 ו־1/3 = 5/15. 6 + 5 = 11, ולכן הסכום הוא 11/15."]],
+      [7, ["Mia walked 2/3 km to school and then 1/2 km to the library. How many sixths of a km did she walk in all?", "", "2/3 km = 4/6 km and 1/2 km = 3/6 km, so 4/6 + 3/6 = 7/6 km, which is 1 1/6 km: 7 sixths of a kilometre."], ["מיה הלכה 2/3 ק״מ לבית הספר ואחר כך 1/2 ק״מ לספרייה. כמה שישיות ק״מ היא הלכה בסך הכול?", "", "2/3 ק״מ = 4/6 ק״מ ו־1/2 ק״מ = 3/6 ק״מ, ולכן 4/6 + 3/6 = 7/6 ק״מ, שזה 1 1/6 ק״מ: 7 שישיות של קילומטר."]],
+      [4, ["3 1/2 − 1 5/6 = 1 x/6. What is x?", "", "3 1/2 = 3 3/6. You cannot take 5/6 from 3/6, so regroup: 3 3/6 = 2 9/6. Then 2 9/6 − 1 5/6 = 1 4/6."], ["3 1/2 − 1 5/6 = 1 x/6. מהו x?", "", "3 1/2 = 3 3/6. אי אפשר להוריד 5/6 מ־3/6, ולכן פורטים: 3 3/6 = 2 9/6. אז 2 9/6 − 1 5/6 = 1 4/6."]],
     ],
     s: [[["Adding fractions with different denominators", "Find a common denominator", "Expand each fraction to that denominator", "Add the numerators and keep the denominator", "Simplify the answer if you can"], ["חיבור שברים עם מכנים שונים", "מוצאים מכנה משותף", "מרחיבים כל שבר למכנה הזה", "מחברים את המונים ומשאירים את המכנה", "מצמצמים את התוצאה אם אפשר"]]],
   },
   a: {
     t: [
-      ["Common multiple", "a number that two numbers both divide into, like 24 for 3 and 4", "כפולה משותפת", "מספר ששני מספרים מחלקים אותו, כמו 24 עבור 3 ו־4"],
+      ["Common multiple", "a number that two numbers both divide into, like 12 for 3 and 4", "כפולה משותפת", "מספר ששני מספרים מחלקים אותו, כמו 12 עבור 3 ו־4"],
       ["Inverse operations", "two operations that undo each other, like adding and subtracting", "פעולות הפוכות", "שתי פעולות שמבטלות זו את זו, כמו חיבור וחיסור"],
     ],
     q: [

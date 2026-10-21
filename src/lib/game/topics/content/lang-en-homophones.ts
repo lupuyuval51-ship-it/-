@@ -22,16 +22,16 @@ const c: TopicContent = {
         ["איזה צמד הוא צמד הומופונים?", "sea and see", ["sea and sit", "see and saw", "sun and soon"], "sea (ים) ו־see (לראות) נשמעות בדיוק אותו דבר, אבל נכתבות אחרת ומשמעותן שונה."]],
     ],
     n: [
-      [3, ["In “I want to eat two cakes too.”, how many words are homophones of two (count two itself)?", "", "There are 3: to, two and too all sound the same but are spelled differently and mean different things."],
-        ["במשפט ״I want to eat two cakes too.״, כמה מילים הן הומופונים של two (כולל two עצמה)?", "", "יש 3: to, two ו־too נשמעות אותו דבר, אבל הן נכתבות אחרת ומשמעותן שונה."]],
+      [2, ["In “These four flowers are for you.”, how many words sound exactly like four (count four itself)?", "", "There are 2: four (the number 4) and for (as in for you) sound the same but are spelled differently and mean different things."],
+        ["במשפט ״These four flowers are for you.״, כמה מילים נשמעות בדיוק כמו four (כולל four עצמה)?", "", "יש 2: four (המספר 4) ו־for (כמו ב־for you) נשמעות אותו דבר, אבל הן נכתבות אחרת ומשמעותן שונה."]],
     ],
   },
   i: {
     t: [
       ["your", "a word that shows something belongs to the person you are talking to: “Is this ___ pen?”", "your", "מילה שמראה שמשהו שייך למי שמדברים אליו: ״Is this ___ pen?״"],
-      ["you're", "the short form of you are: “___ my friend.”", "you're", "הקיצור של you are: ״___ my friend.״"],
+      ["you're", "the short form of you are: “___ late again!”", "you're", "הקיצור של you are: ״___ late again!״"],
       ["it's", "the short form of it is or it has: “___ a sunny day.”", "it's", "הקיצור של it is או של it has: ״___ a sunny day.״"],
-      ["its", "belonging to a thing or an animal, with no apostrophe: “The dog wagged ___ tail.”", "its", "שייך לחפץ או לבעל חיים, בלי גרש: ״The dog wagged ___ tail.״"],
+      ["its", "belonging to a thing or an animal, with no apostrophe: “The tree lost ___ leaves.”", "its", "שייך לחפץ או לבעל חיים, בלי גרש: ״The tree lost ___ leaves.״"],
     ],
     q: [
       [["Complete: “___ my best friend.” (You are…)", "You're", ["Your", "You'are", "Yore"], "You're is the short form of you are. Your shows that something belongs to you, as in your bag."],
@@ -48,15 +48,15 @@ const c: TopicContent = {
         ["השלימו: ״___ bag is this?״", "Whose", ["Who's", "Whos", "Hoos"], "Whose שואל למי משהו שייך. who's הוא הקיצור של who is או של who has, וזה לא מתאים לפני bag."]],
     ],
     n: [
-      [3, ["How many words are wrong in this sentence? “Its time to pack you're bags and go over their.”", "", "3 words are wrong: Its should be It's, you're should be your, and their should be there."],
-        ["כמה מילים שגויות יש במשפט? ״Its time to pack you're bags and go over their.״", "", "3 מילים שגויות: במקום Its צריך It's, במקום you're צריך your, ובמקום their צריך there."]],
+      [3, ["How many words are wrong in this sentence? “I no it will be sunny, so meat me hear at the park.”", "", "3 words are wrong: no should be know, meat should be meet, and hear should be here. Each wrong word sounds right but has another meaning."],
+        ["כמה מילים שגויות יש במשפט? ״I no it will be sunny, so meat me hear at the park.״", "", "3 מילים שגויות: במקום no צריך know, במקום meat צריך meet, ובמקום hear צריך here. כל מילה שגויה נשמעת נכון, אבל משמעותה אחרת."]],
     ],
   },
   a: {
     t: [
       ["Homograph", "a word spelled the same as another but with a different meaning, and sometimes a different sound: a bow / to bow", "הומוגרף", "מילה שנכתבת כמו מילה אחרת אבל משמעותה שונה, ולפעמים גם ההגייה שלה: a bow / to bow"],
       ["Easily confused words", "words that look or sound a bit alike but mean different things, like desert and dessert", "מילים שקל לבלבל", "מילים שנראות או נשמעות דומות אבל משמעותן שונה, כמו desert ו־dessert"],
-      ["stationery", "paper, pens, envelopes and other things for writing", "stationery", "נייר, עטים, מעטפות ושאר כלי כתיבה"],
+      ["complement", "something that completes another thing or goes well with it; a compliment, with an i, is a kind remark", "complement", "משהו שמשלים דבר אחר או מתאים לו; compliment, עם i, היא מחמאה"],
     ],
     q: [
       [["Complete: “The cold weather can ___ your mood.”", "affect", ["effect", "afect", "affekt"], "Affect is usually the verb (to change something); effect is usually the noun (the result), as in the weather has an effect on you."],

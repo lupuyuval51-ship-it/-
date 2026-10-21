@@ -4,7 +4,7 @@ const c: TopicContent = {
   b: {
     t: [
       ["Present continuous", "the tense for actions happening right now, made with am, is or are + a verb ending in -ing", "הווה מתמשך", "הזמן לפעולות שקורות ממש עכשיו, שנבנה מ־am, is או are ועוד פועל עם הסיומת ing"],
-      ["-ing form", "a verb with the ending -ing added, like playing, eating or reading", "צורת ה־ing", "הפועל כשמוסיפים לו את הסיומת ing, כמו playing, eating או reading"],
+      ["-ing form", "a verb with the ending -ing added, like playing, jumping or singing", "צורת ה־ing", "הפועל כשמוסיפים לו את הסיומת ing, כמו playing, jumping או singing"],
       ["at the moment", "a time expression that means now, as in “She is working ___.”", "at the moment", "ביטוי זמן שפירושו ״עכשיו״, כמו ב״She is working ___.״"],
     ],
     q: [
@@ -20,8 +20,8 @@ const c: TopicContent = {
         ["מהי צורת ה־ing של eat?", "eating", ["eatting", "eatin", "eting"], "ב־eat יש שתי תנועות לפני ה־t, ולכן פשוט מוסיפים ing בלי להכפיל אות: eat → eating."]],
     ],
     n: [
-      [2, ["How many -ing verbs are in this sentence: “I am eating and you are drinking.”", "", "There are 2: eating and drinking. Each one comes after a form of be (am, are)."],
-        ["כמה פעלים עם ing יש במשפט: ״I am eating and you are drinking.״", "", "יש 2: eating ו־drinking. כל אחד מהם בא אחרי צורה של be (am, are)."]],
+      [2, ["How many -ing verbs are in this sentence: “Look at the dogs running and the birds singing.”", "", "There are 2: running and singing both have the ending -ing. Look is a verb too, but it has no -ing."],
+        ["כמה פעלים עם ing יש במשפט: ״Look at the dogs running and the birds singing.״", "", "יש 2: ל־running ול־singing יש הסיומת ing. גם look הוא פועל, אבל אין לו ing."]],
     ],
     s: [
       [["Building “She is dancing.”, in order", "Start with the subject: she", "Add the right form of be: is", "Add the verb with -ing: dancing"],
@@ -31,8 +31,8 @@ const c: TopicContent = {
   i: {
     t: [
       ["Drop the e", "the rule for verbs ending in a silent e: take it away before adding -ing, as in make → making", "השמטת ה־e", "הכלל לפעלים שמסתיימים ב־e שקטה: מורידים אותה לפני שמוסיפים ing, כמו make → making"],
-      ["Double the consonant", "the rule for short verbs ending in one vowel + one consonant (not w, x or y): write it twice, as in swim → swimming", "הכפלת העיצור", "הכלל לפעלים קצרים שמסתיימים בתנועה אחת ועיצור אחד (לא w, x או y): כותבים אותו פעמיים, כמו swim → swimming"],
-      ["ie becomes y", "the rule for verbs ending in -ie: change those letters to y before adding -ing, as in lie → lying", "ie הופך ל־y", "הכלל לפעלים שמסתיימים ב־ie: מחליפים את שתי האותיות ב־y לפני שמוסיפים ing, כמו lie → lying"],
+      ["Double the consonant", "the rule for short verbs ending in one vowel + one consonant (not w, x or y): write it twice, as in get → getting", "הכפלת העיצור", "הכלל לפעלים קצרים שמסתיימים בתנועה אחת ועיצור אחד (לא w, x או y): כותבים אותו פעמיים, כמו get → getting"],
+      ["ie becomes y", "the rule for verbs ending in -ie: change those letters to y before adding -ing, as in tie → tying", "ie הופך ל־y", "הכלל לפעלים שמסתיימים ב־ie: מחליפים את שתי האותיות ב־y לפני שמוסיפים ing, כמו tie → tying"],
     ],
     q: [
       [["What is the -ing form of “swim”?", "swimming", ["swiming", "swimeing", "swimmming"], "Swim is short and ends in one vowel + one consonant (i + m), so we double the m: swimming."],
@@ -57,7 +57,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Stative verb", "a verb for a state rather than an action, like know, want or belong, usually not used with -ing", "פועל מצב", "פועל שמתאר מצב ולא פעולה, כמו know, want או belong, ובדרך כלל לא בא עם ing"],
+      ["Stative verb", "a verb for a state rather than an action, like need, seem or belong, usually not used with -ing", "פועל מצב", "פועל שמתאר מצב ולא פעולה, כמו need, seem או belong, ובדרך כלל לא בא עם ing"],
       ["Temporary situation", "something true for now but not for ever, as in “I'm staying with my aunt this week.”", "מצב זמני", "משהו שנכון לעכשיו אבל לא לתמיד, כמו ״I'm staying with my aunt this week.״"],
       ["Future arrangement", "a plan already fixed with other people, which this tense can describe: “We're meeting at six.”", "תוכנית מתואמת לעתיד", "תוכנית שכבר נקבעה עם אנשים אחרים, ואפשר לתאר אותה בזמן הזה: ״We're meeting at six.״"],
     ],

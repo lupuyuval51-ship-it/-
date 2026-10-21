@@ -28,8 +28,8 @@ const c: TopicContent = {
     q: [
       [["Using π ≈ 3.14, what is the perimeter of a circle with diameter 10 cm?", "31.4 cm", ["314 cm", "15.7 cm", "62.8 cm"], "Perimeter = π × diameter ≈ 3.14 × 10 = 31.4 cm. 62.8 cm comes from using the diameter as if it were the radius."],
         ["בעזרת π ≈ 3.14, מה היקף מעגל שקוטרו 10 ס״מ?", "31.4 ס״מ", ["314 ס״מ", "15.7 ס״מ", "62.8 ס״מ"], "היקף = π × קוטר ≈ 3.14 × 10 = 31.4 ס״מ. את 62.8 ס״מ מקבלים כשמשתמשים בקוטר כאילו הוא הרדיוס."]],
-      [["What is the longest chord of a circle?", "The diameter", ["Any radius", "An arc", "There is no longest chord"], "A chord through the centre is the diameter, and no chord is longer."],
-        ["מהו המיתר הארוך ביותר במעגל?", "הקוטר", ["כל רדיוס", "קשת", "אין מיתר ארוך ביותר"], "מיתר שעובר דרך המרכז הוא הקוטר, ואין מיתר ארוך ממנו."]],
+      [["A circle has a radius of 7 cm. How long is its longest chord?", "14 cm", ["7 cm", "44 cm", "There is no longest chord"], "The longest chord goes through the centre, so it is the diameter: 2 × 7 = 14 cm. 7 cm is only the radius, and about 44 cm is the perimeter, which is curved and not a chord."],
+        ["למעגל רדיוס של 7 ס״מ. מה אורך המיתר הארוך ביותר שלו?", "14 ס״מ", ["7 ס״מ", "44 ס״מ", "אין מיתר ארוך ביותר"], "המיתר הארוך ביותר עובר דרך המרכז, ולכן הוא הקוטר: 2 × 7 = 14 ס״מ. 7 ס״מ הוא רק הרדיוס, וכ־44 ס״מ הוא ההיקף, שהוא קו מעוקל ולא מיתר."]],
       [["One circle's diameter is twice as long as another's. How many times as long is its perimeter?", "2 times", ["4 times", "π times", "8 times"], "Perimeter = π × diameter, so doubling the diameter doubles the perimeter: 2 times. It is the area that grows 4 times, because it grows in both directions."],
         ["הקוטר של עיגול אחד ארוך פי 2 מהקוטר של עיגול אחר. פי כמה ארוך ההיקף שלו?", "פי 2", ["פי 4", "פי π", "פי 8"], "היקף = π × קוטר, ולכן כשהקוטר גדל פי 2, גם ההיקף גדל פי 2. השטח הוא שגדל פי 4, כי הוא גדל בשני הכיוונים."]],
     ],

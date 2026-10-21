@@ -3,8 +3,8 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Synonym", "a word that means the same or almost the same as another word: big – large", "מילה נרדפת", "מילה שמשמעותה זהה או כמעט זהה למשמעות של מילה אחרת: big – large"],
-      ["Antonym", "a word that means the opposite of another word: hot – cold", "הפך", "מילה שמשמעותה הפוכה למשמעות של מילה אחרת: hot – cold"],
+      ["Synonym", "a word that means the same or almost the same as another word: smart – clever", "מילה נרדפת", "מילה שמשמעותה זהה או כמעט זהה למשמעות של מילה אחרת: smart – clever"],
+      ["Antonym", "a word that means the opposite of another word: day – night", "הפך", "מילה שמשמעותה הפוכה למשמעות של מילה אחרת: day – night"],
       ["Thesaurus", "a book or website that lists words with similar meanings", "מילון מילים נרדפות", "ספר או אתר שמרכז מילים בעלות משמעות דומה"],
     ],
     q: [
@@ -22,8 +22,8 @@ const c: TopicContent = {
         ["איזו מילה נרדפת ל־shout?", "yell", ["whisper", "smile", "listen"], "yell פירושה ״לצעוק״, לומר משהו בקול רם מאוד. whisper היא כמעט ההפך: לדבר בשקט מאוד."]],
     ],
     n: [
-      [2, ["How many of these pairs are opposites: up – down, big – large, fast – slow, quiet – silent?", "", "There are 2: up – down and fast – slow. Big – large and quiet – silent are synonyms."],
-        ["כמה מהצמדים האלה הם הפכים: up – down, big – large, fast – slow, quiet – silent?", "", "יש 2: up – down ו־fast – slow. הצמדים big – large ו־quiet – silent הם מילים נרדפות."]],
+      [2, ["How many of these pairs are opposites: up – down, sick – ill, fast – slow, quiet – silent?", "", "There are 2: up – down and fast – slow. Sick – ill and quiet – silent are synonyms."],
+        ["כמה מהצמדים האלה הם הפכים: up – down, sick – ill, fast – slow, quiet – silent?", "", "יש 2: up – down ו־fast – slow. הצמדים sick – ill ו־quiet – silent הם מילים נרדפות."]],
     ],
     s: [
       [["From smallest to biggest", "tiny", "small", "big", "huge"],

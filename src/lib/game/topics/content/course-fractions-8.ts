@@ -71,7 +71,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["Repeating decimal", "a decimal whose digits go on for ever in a pattern, like 0.333… for 1/3", "מספר עשרוני מחזורי", "מספר שהספרות שלו חוזרות בלי סוף, כמו 0.333… עבור 1/3"],
+      ["Repeating decimal", "a decimal whose digits go on for ever in a pattern, like 0.666… for 2/3", "מספר עשרוני מחזורי", "מספר שהספרות שלו חוזרות בלי סוף, כמו 0.666… עבור 2/3"],
       ["Decimal places", "the number of digits after the decimal point", "ספרות אחרי הנקודה", "כמה ספרות כתובות מימין לנקודה העשרונית"],
     ],
     q: [
