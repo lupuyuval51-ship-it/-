@@ -89,7 +89,7 @@ WORLD & MECHANICS
 - The world is built from your data: layouts are plaza | corridor | rooms | terraces | lab; stations are interactive terminals; missions chain areas together.
 - Supported optional mechanics (anything else is dropped): ${mechanics}.
 - Boss battles (optional "bosses", ≤${SPEC_LIMITS.bosses}): a boss lives in one area and is fought through ${SPEC_LIMITS.bossPhasesMin}–${SPEC_LIMITS.bossPhasesMax} of that area's own challenge stations ("phaseStationIds", in fighting order: easier first). The phases open one after another and each one solved wounds the boss. Give it a name, an epithet ("title"), an "intro" and a "defeatLine". A mission can have the objective {"type":"defeat","bossId":…}. A phase station must not belong to a mission that only unlocks after a LATER phase, or the game could not be finished.
-- Side missions: set "optional": true on a mission to make it a side mission (it pays a bonus but is not needed to finish; nothing required may depend on it).
+- Side missions: set "optional": true on a mission to make it a side mission (it pays a bonus but is not needed to finish; nothing required may depend on it). Portals lead forward only, so a mission may require only missions of its own area or an earlier one.
 - Character reactions: an NPC may have "reactions": [{"afterMissionId":…,"lines":[…]}] — what it says once that mission is done, so the world answers the player's progress.
 - Limits: ≤${SPEC_LIMITS.areas} areas, ≤${SPEC_LIMITS.stationsPerArea} stations per area, ≤${SPEC_LIMITS.missions} missions, ≤${SPEC_LIMITS.challenges} challenges, ≤${SPEC_LIMITS.npcsPerArea} NPCs per area.
 

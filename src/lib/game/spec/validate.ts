@@ -306,6 +306,7 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
 
   // ── portals only lead forward: a mission can never wait for a mission of a LATER area (once the player is there, there is
   // no way back to finish it). The "finish everything possible" pass below keeps earlier areas open, so it cannot see this.
+  // A required mission like that blocks the game (an error); a side mission only stays locked, so the game is kept with a warning.
   if (errors.length === 0) {
     const order = new Map<string, number>();
     for (let a: (typeof spec.areas)[number] | undefined = spec.areas[0]; a && !order.has(a.id); a = a.portal ? areaById.get(a.portal.toAreaId) : undefined) order.set(a.id, order.size);
@@ -313,7 +314,9 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
       for (const r of m.requires) {
         const req = missionById.get(r);
         if (!req || !order.has(m.areaId) || !order.has(req.areaId)) continue;
-        if (order.get(req.areaId)! > order.get(m.areaId)!) err(`mission "${m.id}" can never be completed: it requires "${r}" from the later area "${req.areaId}", and portals only lead forward`);
+        if (order.get(req.areaId)! <= order.get(m.areaId)!) continue;
+        const why = `mission "${m.id}" can never be completed: it requires "${r}" from the later area "${req.areaId}", and portals only lead forward`;
+        if (m.optional) warnings.push(`${why} (a side mission, so it stays locked)`); else err(why);
       }
     }
   }

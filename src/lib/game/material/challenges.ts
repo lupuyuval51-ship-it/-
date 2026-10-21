@@ -1,5 +1,5 @@
 /**
- * Build challenges from parsed knowledge. Eleven kinds, all extractive: every question, option and explanation is made of
+ * Build challenges from parsed knowledge. Twelve kinds, all extractive: every question, option and explanation is made of
  * the learner's own words (plus a few neutral scaffolding phrases in English or Hebrew), so nothing can be "wrong
  * facts" that the learner did not provide. The only invented text is a wrong *number* next to a number fact when the notes
  * hold too few others, and it is always labelled as not the number of the material. The output is raw spec JSON that
@@ -12,7 +12,7 @@ import { clip, distinctStart, isStop, shuffled, startHintText, wordsOf, type Wor
 type Raw = Record<string, unknown>;
 type Level = 1 | 2 | 3;
 type Tr = ReturnType<typeof translator>;
-export type ChallengeKind = "qa" | "match" | "term" | "define" | "cloze" | "steps" | "number" | "truefalse" | "factpick" | "statement" | "odd" | "timeline";
+export type ChallengeKind = "qa" | "match" | "term" | "define" | "cloze" | "steps" | "next" | "number" | "truefalse" | "factpick" | "statement" | "odd" | "timeline";
 type Objective = "questions" | "terms" | "facts" | "steps" | "ideas";
 
 interface Candidate {
@@ -755,6 +755,60 @@ function stepCandidates(groups: string[][], titles: (string | undefined)[], t: T
 }
 
 /**
+ * "Which step comes right after …?" and "Which step comes first?" from a list of at least four different steps, so a recipe
+ * or a procedure on its own still makes a game. The wrong options are the list's own other steps, led by the usual slips:
+ * the step just before (going back) and the one after next (skipping one). At most three "after" questions per list,
+ * spread over it, so a long list does not crowd out the rest of the notes.
+ */
+function nextStepCandidates(groups: string[][], titles: (string | undefined)[], rnd: () => number, t: Tr): Candidate[] {
+  const out: Candidate[] = [];
+  groups.forEach((raw, g) => {
+    const items = distinctSteps(raw);
+    const n = items.length;
+    if (n < 4) return;
+    const name = titles[g];
+    const where = name ? t(`In “${clip(name, 100)}”`, `ב״${clip(name, 100)}״`) : t("In your material", "בחומר שלכם");
+    const concept = name ? clip(name, 60) : t("order of the steps", "סדר השלבים");
+    const list = items.map((x, i) => `${i + 1}. ${x}`).join("  ");
+    /** One question: the right step, the wrong ones (best first), the feedback for a wrong step and the one for the right step (`told`). */
+    const ask = (key: string, level: Level, right: number, wrongOrder: number[], why: (w: number) => string, text: { title: string; prompt: string; told: string }) => {
+      const picked = wrongOrder.slice(0, 3);
+      const correctAt = Math.floor(rnd() * (picked.length + 1));
+      const options = picked.map((w) => [clip(items[w]!, 200), why(w)] as [string, string]);
+      options.splice(correctAt, 0, [clip(items[right]!, 200), text.told]);
+      const start = distinctStart(items[right]!, picked.map((w) => items[w]!));
+      out.push({
+        kind: "next", objective: "steps", level, keys: [key],
+        make: (id, lvl, objectiveId) => choice({
+          id, level: lvl, objectiveId, options, correct: correctAt, title: text.title, concept, prompt: text.prompt,
+          hint: start ? startHintText(start, t) : t("Think about what has to be ready before that step can start.", "חשבו מה צריך להיות מוכן לפני שאפשר להתחיל את השלב הזה."),
+          explanation: clip(list, 600),
+        }),
+      });
+    };
+    // which step is first: the second step is the usual slip, then the last and a middle one
+    ask(`steps-${g}-first`, 1, 0, [1, n - 1, Math.floor(n / 2)].filter((w, i, a) => w > 0 && a.indexOf(w) === i),
+      () => t("That step comes later in your material, not first.", "השלב הזה בא מאוחר יותר בחומר שלכם, לא ראשון."),
+      { title: t("Where does it start?", "במה מתחילים?"), prompt: t(`${where}, which step comes first?`, `${where}, איזה שלב בא ראשון?`),
+        told: t("Yes — that is where your material starts.", "נכון — בזה מתחיל החומר שלכם.") });
+    // which step comes right after step k (k from the second step on: the first is asked above)
+    const ks = [1, Math.floor((n - 1) / 2), n - 2].filter((k, i, a) => k >= 1 && k <= n - 2 && a.indexOf(k) === i);
+    for (const k of ks) {
+      const others = shuffled(items.map((_, i) => i).filter((i) => i !== k && i !== k + 1 && i !== k - 1 && i !== k + 2), rnd);
+      const order = [k - 1, k + 2, ...others].filter((w) => w >= 0 && w < n);
+      ask(`steps-${g}-after-${k}`, 2, k + 1, order,
+        (w) => w < k
+          ? t(`That step comes before “${clip(items[k]!, 80)}”, not after it.`, `השלב הזה בא לפני ״${clip(items[k]!, 80)}״, לא אחריו.`)
+          : t("That step comes later, not straight after.", "השלב הזה בא מאוחר יותר, לא מיד אחרי."),
+        { title: t("What comes next?", "מה בא אחר כך?"),
+          prompt: t(`${where}, which step comes right after “${clip(items[k]!, 120)}”?`, `${where}, איזה שלב בא מיד אחרי ״${clip(items[k]!, 120)}״?`),
+          told: t(`Yes — in your material it comes right after “${clip(items[k]!, 80)}”.`, `נכון — בחומר שלכם הוא בא מיד אחרי ״${clip(items[k]!, 80)}״.`) });
+    }
+  });
+  return out;
+}
+
+/**
  * Dated events from the learner's notes, put in order: every sentence that holds exactly one year, with the year hidden.
  * One event per year (two events of the same year cannot be ordered), at most five to a question and two questions to a
  * game; a long list is cut into consecutive stretches of time, so each question is about one period.
@@ -909,7 +963,8 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
 
 // ───────────────────────────── selection ─────────────────────────────
 
-const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "timeline", "match", "number", "term", "define", "cloze", "factpick", "statement", "odd"];
+// "next" comes last: it asks about the same lists as "steps", so it fills what the other kinds leave
+const ROUND_ROBIN: ChallengeKind[] = ["qa", "steps", "timeline", "match", "number", "term", "define", "cloze", "factpick", "statement", "odd", "next"];
 
 export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generated {
   for (const memo of textMemos) memo.clear();
@@ -925,6 +980,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   const pools: Record<ChallengeKind, Candidate[]> = {
     qa: qaCandidates(k, rnd, t),
     steps: stepCandidates(k.steps, k.stepTitles, t),
+    next: nextStepCandidates(k.steps, k.stepTitles, rnd, t),
     timeline: timelineCandidates(k.facts, t),
     match: matchCandidates(k.definitions, t),
     number: numberCandidates(k.facts, k.qa, t),
@@ -987,7 +1043,7 @@ export function generateChallenges(k: Knowledge, opts: GenerateOptions): Generat
   }
   const objText = OBJECTIVE_TEXT(t);
   const used = new Set<Objective>();
-  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, define: 0, cloze: 0, steps: 0, number: 0, truefalse: 0, factpick: 0, statement: 0, odd: 0, timeline: 0 };
+  const counts: Record<ChallengeKind, number> = { qa: 0, match: 0, term: 0, define: 0, cloze: 0, steps: 0, next: 0, number: 0, truefalse: 0, factpick: 0, statement: 0, odd: 0, timeline: 0 };
   const challenges = ordered.map((c, i) => {
     used.add(c.objective);
     counts[c.kind]++;

@@ -11,7 +11,7 @@ function twoAreas(): GameSpec {
 }
 
 describe("portals only lead forward", () => {
-  it("a mission that waits for a mission of a later area is an error (there is no way back to finish it)", () => {
+  it("a side mission that waits for a mission of a later area is reported (it stays locked: there is no way back)", () => {
     const spec = twoAreas();
     const [a, b] = [spec.areas[0]!, spec.areas[1]!];
     const later = spec.missions.find((m) => m.areaId === b.id)!;
@@ -19,8 +19,19 @@ describe("portals only lead forward", () => {
     // a side mission in the first area that waits for a mission of the second: the HUD would show it locked for ever
     const first = spec.missions.find((m) => m.areaId === a.id)!;
     spec.missions.push({ ...structuredClone(first), id: "m-side", title: "Side quest", optional: true, requires: [later.id] });
+    const res = crossCheck(spec);
+    expect(res.errors.filter((e) => e.includes("later area"))).toEqual([]);
+    expect(res.warnings.some((w) => w.includes('mission "m-side" can never be completed') && w.includes("later area"))).toBe(true);
+  });
+
+  it("a required mission that waits for a mission of a later area is an error", () => {
+    const spec = twoAreas();
+    const [a, b] = [spec.areas[0]!, spec.areas[1]!];
+    const later = spec.missions.find((m) => m.areaId === b.id)!;
+    const first = spec.missions.find((m) => m.areaId === a.id && !m.optional)!;
+    spec.missions.push({ ...structuredClone(first), id: "m-extra", title: "Extra", requires: [later.id] });
     const errors = crossCheck(spec).errors;
-    expect(errors.some((e) => e.includes('mission "m-side" can never be completed') && e.includes("later area"))).toBe(true);
+    expect(errors.some((e) => e.includes('mission "m-extra" can never be completed') && e.includes("later area")), errors.join("; ")).toBe(true);
   });
 
   it("waiting for a mission of an earlier area is fine", () => {
