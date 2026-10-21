@@ -11,6 +11,15 @@ export const PLAY_PRODUCTS: Readonly<Record<PaidPlanId, { productId: string; bas
   PRO: { productId: "levelup_pro", basePlanId: "monthly" },
 });
 
+/** The one-time ("for good") products: in-app products with no base plan, bought once and kept. */
+export const PLAY_LIFETIME_PRODUCTS: Readonly<Record<PaidPlanId, string>> = Object.freeze({ PLUS: "levelup_plus_lifetime", PRO: "levelup_pro_lifetime" });
+
+/**
+ * A one-time purchase has no end date, but Play is asked again at every start: a refunded one is gone from the list, and the
+ * phone keeps the plan this long after the last time Play confirmed it (a year offline is more than a phone is ever away).
+ */
+export const LIFETIME_RECHECK_MS = 365 * 86_400_000;
+
 const KEY = "levelup.plan.v1";
 /**
  * A subscription that Play has not confirmed again keeps working this long after its expiry (offline, renewal delayed).
@@ -47,14 +56,24 @@ export interface PurchaseLike {
   isAcknowledged?: boolean;
 }
 
-const planOfProduct = (productId: string): PaidPlanId | null => PAID_PLAN_IDS.find((p) => PLAY_PRODUCTS[p].productId === productId) ?? null;
+const planOfProduct = (productId: string): PaidPlanId | null =>
+  PAID_PLAN_IDS.find((p) => PLAY_PRODUCTS[p].productId === productId || PLAY_LIFETIME_PRODUCTS[p] === productId) ?? null;
+const isLifetime = (productId: string): boolean => PAID_PLAN_IDS.some((p) => PLAY_LIFETIME_PRODUCTS[p] === productId);
 
-/** The best paid plan among the purchases that are still running at `now` (Pro over Plus), or Free. */
+/** The best paid plan among the purchases that are still running at `now` (Pro over Plus, a subscription or a one-time purchase), or Free. */
 export function planFromPurchases(purchases: readonly PurchaseLike[], now: number): PlanState {
   let best: PlanState = { plan: "FREE", expiresAt: null, checkedAt: now };
   for (const p of purchases) {
     const plan = planOfProduct(p.productIdentifier);
     if (!plan || p.revocationDate) continue;
+    if (isLifetime(p.productIdentifier)) {
+      // bought once: running while Play lists it as paid (it lists no refunded one); the stored plan is re-checked a year on
+      if (p.isActive === true || p.purchaseState === "1") {
+        const expiresAt = now + LIFETIME_RECHECK_MS;
+        if ((plan === "PRO" ? 2 : plan === "PLUS" ? 1 : 0) > (best.plan === "PRO" ? 2 : best.plan === "PLUS" ? 1 : 0) || (plan === best.plan && (best.expiresAt ?? 0) < expiresAt)) best = { plan, expiresAt, checkedAt: now };
+      }
+      continue;
+    }
     const expires = p.expirationDate ? Date.parse(p.expirationDate) : NaN;
     const dated = Number.isFinite(expires);
     // Android (no isActive, no expiry): Play lists only subscriptions that are still running, and a paid one is purchaseState "1".

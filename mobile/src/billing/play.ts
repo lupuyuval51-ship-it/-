@@ -7,7 +7,7 @@ import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import type { PaidPlanId } from "@/config/plans";
 import {
-  PLAY_PRODUCTS, classifyPurchaseError, loadPlanState, planAfterRefresh, planFromPurchases, purchasesToAcknowledge, savePlanState,
+  PLAY_LIFETIME_PRODUCTS, PLAY_PRODUCTS, classifyPurchaseError, loadPlanState, planAfterRefresh, planFromPurchases, purchasesToAcknowledge, savePlanState,
   type PlanState, type PurchaseFailure, type PurchaseLike,
 } from "@/lib/offline/billing-state";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
@@ -54,6 +54,10 @@ async function refreshNow(justBought: readonly PurchaseLike[] = []): Promise<Pla
     } catch (err) {
       if (justBought.length === 0) throw err; // nothing certain to keep: the stored plan stays as it is
     }
+    // the one-time purchases are a second list; a failed query leaves them out (the stored plan then still runs, see planAfterRefresh)
+    try {
+      listed = [...listed, ...(await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.INAPP })).purchases];
+    } catch { /* kept as it is */ }
     const purchases = [...listed, ...justBought];
     const state = planAfterRefresh(loadPlanState(localStorage), planFromPurchases(purchases, now), now);
     savePlanState(localStorage, state);
@@ -73,22 +77,32 @@ export async function refreshPlan(): Promise<PlanState | null> {
   return inLine(refreshNow);
 }
 
-export type BuyResult = { ok: true } | { ok: false; reason: "UNAVAILABLE" | "SUBSCRIBED" | PurchaseFailure };
+export type BuyResult = { ok: true } | { ok: false; reason: "UNAVAILABLE" | "SUBSCRIBED" | "OWNED" | PurchaseFailure };
+
+/** How a plan is bought: the monthly subscription, or once and for good. */
+export type BuyKind = "monthly" | "lifetime";
+
+const RANK: Record<string, number> = { FREE: 0, PLUS: 1, PRO: 2 };
 
 /**
  * Starts Play's purchase sheet for a plan; on success the new plan is read back from Play, counting the purchase the sheet itself
  * confirmed (the plugin resolves only for a paid purchase, state "1"; pending and everything else reject). Plus and Pro are two
  * separate Play subscriptions and the plugin cannot replace one with the other, so a learner who already has a plan is not sold a
  * second one (it would be billed next to the first): `SUBSCRIBED` sends them to Play's own subscription page instead.
+ * The one-time purchase (`lifetime`) is billed once, so a learner may buy it for a plan higher than the one they have (Plus, then
+ * Pro for good); a plan they already have or a lower one is `OWNED`.
  */
-export async function buyPlan(plan: PaidPlanId): Promise<BuyResult> {
+export async function buyPlan(plan: PaidPlanId, kind: BuyKind = "monthly"): Promise<BuyResult> {
   if (!billingAvailable()) return { ok: false, reason: "UNAVAILABLE" };
   const { productId, basePlanId } = PLAY_PRODUCTS[plan];
   return inLine(async (): Promise<BuyResult> => {
-    if (getOfflinePlan() !== "FREE") return { ok: false, reason: "SUBSCRIBED" };
+    const have = getOfflinePlan();
+    if (kind === "lifetime" ? (RANK[have] ?? 0) >= RANK[plan]! : have !== "FREE") return { ok: false, reason: kind === "lifetime" ? "OWNED" : "SUBSCRIBED" };
     let bought: PurchaseLike | null;
     try {
-      bought = await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
+      bought = kind === "lifetime"
+        ? await NativePurchases.purchaseProduct({ productIdentifier: PLAY_LIFETIME_PRODUCTS[plan], productType: PURCHASE_TYPE.INAPP })
+        : await NativePurchases.purchaseProduct({ productIdentifier: productId, planIdentifier: basePlanId, productType: PURCHASE_TYPE.SUBS });
     } catch (err) {
       return { ok: false, reason: classifyPurchaseError(err) };
     }
@@ -120,6 +134,22 @@ export async function playPrices(): Promise<Partial<Record<PaidPlanId, string>>>
     try {
       const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(PLAY_PRODUCTS).map((p) => p.productId), productType: PURCHASE_TYPE.SUBS });
       for (const [plan, { productId }] of Object.entries(PLAY_PRODUCTS) as [PaidPlanId, { productId: string }][]) {
+        const p = products.find((x) => x.identifier === productId);
+        if (p?.priceString) out[plan] = p.priceString;
+      }
+    } catch { /* the configured price is shown instead */ }
+    return out;
+  });
+}
+
+/** The one-time price Play will charge, when Play can tell (the configured price is shown otherwise). */
+export async function playLifetimePrices(): Promise<Partial<Record<PaidPlanId, string>>> {
+  if (!billingAvailable()) return {};
+  return inLine(async () => {
+    const out: Partial<Record<PaidPlanId, string>> = {};
+    try {
+      const { products } = await NativePurchases.getProducts({ productIdentifiers: Object.values(PLAY_LIFETIME_PRODUCTS), productType: PURCHASE_TYPE.INAPP });
+      for (const [plan, productId] of Object.entries(PLAY_LIFETIME_PRODUCTS) as [PaidPlanId, string][]) {
         const p = products.find((x) => x.identifier === productId);
         if (p?.priceString) out[plan] = p.priceString;
       }

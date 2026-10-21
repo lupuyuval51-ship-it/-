@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
 import { planHasTierA, planPriceText, topicsOpen } from "@/components/pricing/PlanPrice";
-import { APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId, type PlanId } from "@/config/plans";
+import { APP_LIFETIME_PRICES_ILS, APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, formatMoney, type PaidPlanId, type PlanId } from "@/config/plans";
 import type { DictKey } from "@/lib/i18n";
 import { getOfflinePlan, type OfflinePlan } from "@/lib/offline/entitlement";
-import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases, type BuyResult } from "../billing/play";
+import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playLifetimePrices, playPrices, refreshPlan, restorePurchases, type BuyKind, type BuyResult } from "../billing/play";
 
 /**
  * The plans and their prices, and the way to buy: Google Play Billing (the only payment an app from Google Play may use).
@@ -24,7 +24,7 @@ export function chooseFrom(t: ReturnType<typeof useT>, id: PlanId): string {
 }
 
 /** The one line the screen says after the learner bought or restored (`UNREACHABLE`: Play could not be asked). */
-export type PlansMessage = "BOUGHT" | "CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | "UNREACHABLE";
+export type PlansMessage = "BOUGHT" | "CANCELLED" | "PENDING" | "SUBSCRIBED" | "OWNED" | "FAILED" | "RESTORED" | "NOTHING" | "UNREACHABLE";
 
 /**
  * After Play's purchase sheet. What counts is the plan the phone now uses: a purchase whose answer could not be read as a paid plan
@@ -47,9 +47,10 @@ export const plansMessageKey = (m: PlansMessage): DictKey => (m === "UNREACHABLE
 export function PlansPage() {
   const t = useT();
   const [plan, setPlan] = useState(() => getOfflinePlan());
-  const [busy, setBusy] = useState<PaidPlanId | "restore" | null>(null);
+  const [busy, setBusy] = useState<`${PaidPlanId}:${BuyKind}` | "restore" | null>(null);
   const [message, setMessage] = useState<PlansMessage | null>(null);
   const [prices, setPrices] = useState<Partial<Record<PaidPlanId, string>>>({});
+  const [lifetimePrices, setLifetimePrices] = useState<Partial<Record<PaidPlanId, string>>>({});
   const canBuy = billingAvailable();
 
   useEffect(() => {
@@ -57,15 +58,16 @@ export function PlansPage() {
     window.addEventListener(PLAN_EVENT, sync);
     void refreshPlan().then(sync);
     void playPrices().then(setPrices);
+    void playLifetimePrices().then(setLifetimePrices);
     return () => window.removeEventListener(PLAN_EVENT, sync);
   }, []);
 
   // The buttons are given back whatever happens: a call that failed in an unexpected way must never leave them all disabled.
-  async function buy(p: PaidPlanId) {
-    setBusy(p);
+  async function buy(p: PaidPlanId, kind: BuyKind) {
+    setBusy(`${p}:${kind}`);
     setMessage(null);
     try {
-      const res = await buyPlan(p);
+      const res = await buyPlan(p, kind);
       const now = getOfflinePlan();
       setPlan(now);
       // a purchase that went through says so (the card also turns to "This is your plan")
@@ -121,9 +123,16 @@ export function PlansPage() {
                 plan === id ? (
                   <p className="text-sm font-bold text-neon" data-testid={`plan-active-${id}`}>{t("mob.plans.active")}</p>
                 ) : (
-                  <Button type="button" className="w-full" disabled={!canBuy || busy !== null} onClick={() => void buy(id as PaidPlanId)} data-testid={`plan-buy-${id}`}>
-                    {busy === id ? t("common.loading") : t("mob.plans.subscribe", { plan: t(`plan.${id}`) })}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button type="button" className="w-full" disabled={!canBuy || busy !== null} onClick={() => void buy(id as PaidPlanId, "monthly")} data-testid={`plan-buy-${id}`}>
+                      {busy === `${id}:monthly` ? t("common.loading") : t("mob.plans.subscribe", { plan: t(`plan.${id}`) })}
+                    </Button>
+                    {(plan === "FREE" || (plan === "PLUS" && id === "PRO")) && (
+                      <Button type="button" variant="secondary" className="w-full" disabled={!canBuy || busy !== null} onClick={() => void buy(id as PaidPlanId, "lifetime")} data-testid={`plan-buy-lifetime-${id}`}>
+                        {busy === `${id}:lifetime` ? t("common.loading") : t("mob.plans.lifetime", { plan: t(`plan.${id}`), price: lifetimePrices[id as PaidPlanId] ?? formatMoney(APP_LIFETIME_PRICES_ILS[id as PaidPlanId], "ILS") })}
+                      </Button>
+                    )}
+                  </div>
                 )
               )}
             </Card>

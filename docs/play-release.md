@@ -165,7 +165,7 @@ an e-mail address, so `listing.md`'s old "no data collection" line is not true f
 the target audience to 13+ (or older) in Play Console; if you want under-13s, get legal advice first (parental consent, or a
 build without accounts).
 
-**Ads**: no. **In-app purchases**: yes, two monthly subscriptions through Google Play Billing (see "Subscriptions in the Play Console" below), never Stripe. **Government/news/health/
+**Ads**: no. **In-app purchases**: yes, two monthly subscriptions and two one-time products through Google Play Billing (see "Subscriptions in the Play Console" below), never Stripe. **Government/news/health/
 financial declarations**: none.
 
 ## 6. What needs the owner
@@ -232,8 +232,16 @@ phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to
 3. Monetise → Subscriptions → create two subscriptions with exactly these **product IDs**: `levelup_plus` and `levelup_pro`.
    Each gets one **base plan** with the ID `monthly`, auto-renewing, billing period 1 month, price **₪5** (Plus) and **₪20** (Pro)
    (`src/config/plans.ts` is the source of the numbers). Activate both.
-4. Setup → License testing: add the testers' Gmail accounts, so they can buy without being charged.
-5. Data safety: the purchase itself is handled by Google; the app stores only the plan Play reports, on the phone.
+4. Monetise → In-app products → create two **one-time products** (managed, non-consumable) with exactly these **product IDs**:
+   `levelup_plus_lifetime` (price **₪15**) and `levelup_pro_lifetime` (price **₪40**; `APP_LIFETIME_PRICES_ILS` in
+   `src/config/plans.ts` is the source of the numbers). Activate both. They give the same plan as the subscription, with no renewal:
+   the app lists them with `getPurchases({ productType: "inapp" })` beside the subscriptions, the best plan of all purchases wins, the
+   phone keeps a one-time plan for a year after Play last confirmed it (`LIFETIME_RECHECK_MS`; a refunded one is gone from Play's
+   list), and a one-time purchase may raise the plan (Plus, then Pro) but is never sold for a plan the learner already has. A learner
+   who upgrades from Plus pays the full price of Pro (Play has no proration between one-time products; add a cheaper "upgrade" product
+   if that matters).
+5. Setup → License testing: add the testers' Gmail accounts, so they can buy without being charged.
+6. Data safety: the purchase itself is handled by Google; the app stores only the plan Play reports, on the phone.
 
 How the app uses it: at start and whenever it comes back to the screen it asks Play for the learner's purchases
 (`getPurchases`), keeps the plan on the phone and works offline from that. Play on Android gives no expiry date (the plugin returns

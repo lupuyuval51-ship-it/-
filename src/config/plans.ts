@@ -184,6 +184,12 @@ export const PLANS: Readonly<Record<PlanId, PlanDefinition>> = Object.freeze({
  */
 export const APP_TRACKS: Readonly<Record<PlanId, number>> = Object.freeze({ FREE: 1, PLUS: 4, PRO: 7 });
 
+/**
+ * The app also sells each paid plan once, for good (a one-time Google Play product beside the monthly subscription), in agorot
+ * (shekels only). The same plan, the same topics and tracks; only the way to pay differs. Play shows its own final price.
+ */
+export const APP_LIFETIME_PRICES_ILS: Readonly<Record<PaidPlanId, number>> = Object.freeze({ PLUS: 1500, PRO: 4000 });
+
 // ───────────────────────────── allowance: a quota per level ─────────────────────────────
 
 /** The levels a plan can make, highest first. */
