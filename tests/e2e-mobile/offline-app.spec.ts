@@ -129,3 +129,18 @@ test("'Try an example' fills real notes, the help explains the format, and the e
   await page.getByTestId("mobile-create-submit").click();
   await expect(page.getByTestId("play-root")).toHaveAttribute("data-source", "engine", { timeout: 60_000 });
 });
+
+test("Hebrew notes that are only a recipe build a game whose questions ask about the steps", async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto("/");
+  await page.getByTestId("mobile-new").click();
+  await page.locator("#subject").fill("אפיית לחם");
+  await page.locator("#material").fill("איך אופים לחם:\n1. מערבבים קמח, מים, שמרים ומלח.\n2. לשים את הבצק עשר דקות.\n3. משאירים את הבצק לתפוח שעה.\n4. מעצבים את כיכר הלחם.\n5. נותנים לו לתפוח פעם שנייה.\n6. אופים ב-220 מעלות במשך 30 דקות.");
+  await expect(page.getByTestId("material-preview")).toHaveAttribute("data-ok", "1"); // the preview says it is enough for a game
+  await page.getByTestId("mobile-create-submit").click();
+  await waitForWorld(page);
+  const spec = await storedSpec(page, page.url().split("/play/")[1]!);
+  expect(spec.challenges.some((c) => c.type === "sequence")).toBe(true);
+  expect(spec.challenges.some((c) => c.type === "choice" && c.prompt.includes("איזה שלב בא"))).toBe(true);
+  expect(errors).toEqual([]);
+});
