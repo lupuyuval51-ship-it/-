@@ -164,6 +164,13 @@ describe("band for the objective marker", () => {
     expect(800 - g.bottom).toBeGreaterThan(g.top + 80);
   });
 
+  it("reserves the gesture-bar inset when it is taller than the controls' own bottom padding (as the controls do)", () => {
+    const plain = guideInsets({ hudBottom: 150, viewportHeight: 800, touch: true, scale: "regular" });
+    expect(guideInsets({ hudBottom: 150, viewportHeight: 800, touch: true, scale: "regular", safeBottomPx: 8 }).bottom).toBe(plain.bottom); // smaller than 1rem
+    expect(guideInsets({ hudBottom: 150, viewportHeight: 800, touch: true, scale: "regular", safeBottomPx: 48 }).bottom).toBe(Math.round(8.25 * 16 + 48) + 18);
+    expect(guideInsets({ hudBottom: 150, viewportHeight: 800, touch: true, scale: "regular", safeBottomPx: Number.NaN }).bottom).toBe(plain.bottom);
+  });
+
   it("gives bigger controls more room, and keyboard players less", () => {
     const phone = guideInsets({ hudBottom: 100, viewportHeight: 900, touch: true, scale: "regular" });
     const tablet = guideInsets({ hudBottom: 100, viewportHeight: 900, touch: true, scale: "large" });

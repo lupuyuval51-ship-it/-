@@ -70,6 +70,20 @@ const readPref = (k: string, d: boolean): boolean => {
 
 export type { Feedback };
 
+/** The gesture-bar / home-indicator inset in pixels (`env(safe-area-inset-bottom)`, 0 where there is none), read through a probe. */
+function safeAreaBottomPx(): number {
+  try {
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding-bottom:env(safe-area-inset-bottom,0px)";
+    document.body.appendChild(probe);
+    const px = parseFloat(getComputedStyle(probe).paddingBottom) || 0;
+    probe.remove();
+    return px;
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * `onFeedback` lets a host add device feedback (the Android app vibrates). The page also listens for a `levelup:back`
  * window event (the Android back button): it closes the open panel, or pauses, or — from the pause menu — leaves the game.
@@ -109,7 +123,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
   useEffect(() => {
     // control sizes are in rem, so they grow with the system font size: measure what a rem is right now
     const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale, rootPx });
+    markerInsets.current = guideInsets({ hudBottom, viewportHeight: layout.height, touch, scale: layout.touchScale, rootPx, safeBottomPx: touch ? safeAreaBottomPx() : 0 });
   }, [hudBottom, layout.height, layout.touchScale, touch]);
   // On a phone a downward drag must never pull the page down to refresh it, and a quick double tap on a button must not zoom.
   useEffect(() => {

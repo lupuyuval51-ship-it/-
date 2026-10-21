@@ -115,10 +115,12 @@ export function applyDeadzone(x: number, y: number, zone = STICK_DEADZONE): { x:
  * The band the objective marker may use: under the top bar (measured by the bar itself) and above the on-screen controls
  * (their size from the touch metrics). Before the bar has reported its size the old fixed band is used.
  */
-export function guideInsets(o: { hudBottom: number | undefined; viewportHeight: number; touch: boolean; scale: TouchScale; rootPx?: number }): GuideInsets {
+export function guideInsets(o: { hudBottom: number | undefined; viewportHeight: number; touch: boolean; scale: TouchScale; rootPx?: number; safeBottomPx?: number }): GuideInsets {
   const rootPx = o.rootPx ?? 16;
   const top = o.hudBottom === undefined || !Number.isFinite(o.hudBottom) ? DEFAULT_GUIDE_INSETS.top : Math.round(o.hudBottom + 14);
-  const controls = o.touch ? Math.round((controlsHeightRem(o.scale) + controlsPadRem(o.scale).bottom) * rootPx) + 18 : 72;
+  // the controls' bottom padding is the scale's own or the gesture-bar inset, whichever is larger (`controlsInsetStyle`)
+  const padBottom = Math.max(controlsPadRem(o.scale).bottom * rootPx, o.safeBottomPx && Number.isFinite(o.safeBottomPx) ? o.safeBottomPx : 0);
+  const controls = o.touch ? Math.round(controlsHeightRem(o.scale) * rootPx + padBottom) + 18 : 72;
   // on a very short screen the controls win the argument: keep a usable band between the two
   const room = o.viewportHeight - top - MIN_BAND_PX;
   const bottom = Math.max(16, Math.min(controls, Number.isFinite(room) ? room : controls));
