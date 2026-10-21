@@ -29,7 +29,7 @@ vi.mock("../../mobile/src/cloud/account", () => ({
   deleteAccount: async () => ({ ok: true }),
   syncNow: async () => undefined,
 }));
-vi.mock("../../mobile/src/cloud/google-native", () => ({ onGoogleResult: () => () => undefined, signInWithGoogle: async () => ({ ok: false, reason: "failed" }) }));
+vi.mock("../../mobile/src/cloud/google-native", () => ({ isFinishingGoogleSignIn: () => false, onGoogleResult: () => () => undefined, signInWithGoogle: async () => ({ ok: false, reason: "failed" }) }));
 
 const mem = new Map<string, string>();
 const fakeStorage = {

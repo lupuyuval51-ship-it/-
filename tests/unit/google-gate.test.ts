@@ -5,7 +5,7 @@ import { I18nProvider } from "@/components/I18nProvider";
 import { DICTIONARIES, type Locale } from "@/lib/i18n";
 import { googleAuthEnabled, googleRequired } from "../../mobile/src/cloud/google";
 
-vi.mock("../../mobile/src/cloud/google-native", () => ({ onGoogleResult: () => () => undefined, onAppResume: () => () => undefined, signInWithGoogle: async () => ({ ok: true }) }));
+vi.mock("../../mobile/src/cloud/google-native", () => ({ isFinishingGoogleSignIn: () => false, onGoogleResult: () => () => undefined, onAppResume: () => () => undefined, signInWithGoogle: async () => ({ ok: true }) }));
 const { GoogleGate } = await import("../../mobile/src/pages/GoogleGate");
 
 const Provider = I18nProvider as unknown as ComponentType<Omit<ComponentProps<typeof I18nProvider>, "children">>;

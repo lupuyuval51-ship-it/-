@@ -105,4 +105,18 @@ describe("the deep link of a sign-in", () => {
     expect(h.connectAccount).not.toHaveBeenCalled();
     off();
   });
+
+  it("while a link that came back is being finished, the gate is told so (a second tap would overwrite the verifier)", async () => {
+    vi.stubEnv("VITE_GOOGLE_AUTH", "1");
+    let release!: (c: unknown) => void;
+    h.connectAccount.mockReturnValue(new Promise((r) => { release = r; })); // a slow connection: the exchange has not started yet
+    const off = native.onGoogleResult(() => undefined);
+    native.installGoogleDeepLink();
+    expect(native.isFinishingGoogleSignIn()).toBe(false);
+    h.listeners.get("appUrlOpen")!({ url: "app.levelup.learn3d://auth?code=abc" } as never);
+    expect(native.isFinishingGoogleSignIn()).toBe(true);
+    release({ auth: { exchangeCodeForSession: async () => ({ error: null }) } });
+    await vi.waitFor(() => expect(native.isFinishingGoogleSignIn()).toBe(false)); // done, whatever the answer was
+    off();
+  });
 });

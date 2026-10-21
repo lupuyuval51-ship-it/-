@@ -36,13 +36,26 @@ export function onAppResume(fn: () => void): () => void {
   return () => void added.then((h) => h.remove()).catch(() => undefined);
 }
 
+let finishing = 0;
+/**
+ * Whether a sign-in link that came back is still being finished (the cloud library loads, then the code is exchanged over the
+ * network, which can take seconds on a slow connection). The gate keeps its button busy meanwhile: a second tap would open the
+ * browser again and overwrite the verifier this exchange needs.
+ */
+export const isFinishingGoogleSignIn = (): boolean => finishing > 0;
+
 async function handle(url: string): Promise<void> {
   if (!parseGoogleCallback(url)) return; // not our sign-in link: the cloud library is not even loaded
-  // a cloud library that cannot be loaded is a failed sign-in, not a lost one (the gate would wait for an answer forever)
-  const result = await connectAccount().then((db) => finishGoogleSignIn(db, url)).catch((): GoogleResult => ({ ok: false, reason: "failed" }));
-  if (!result) return;
-  if (result.ok) void syncNow();
-  listeners.forEach((l) => l(result));
+  finishing++;
+  try {
+    // a cloud library that cannot be loaded is a failed sign-in, not a lost one (the gate would wait for an answer forever)
+    const result = await connectAccount().then((db) => finishGoogleSignIn(db, url)).catch((): GoogleResult => ({ ok: false, reason: "failed" }));
+    if (!result) return;
+    if (result.ok) void syncNow();
+    listeners.forEach((l) => l(result));
+  } finally {
+    finishing--;
+  }
 }
 
 /**

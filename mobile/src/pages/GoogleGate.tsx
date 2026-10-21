@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { GoogleLogo } from "@/components/forms/GoogleButton";
 import { Alert, Button } from "@/components/ui";
-import { onAppResume, onGoogleResult, signInWithGoogle } from "../cloud/google-native";
+import { isFinishingGoogleSignIn, onAppResume, onGoogleResult, signInWithGoogle } from "../cloud/google-native";
 
 /** After the learner is back from the browser, how long a deep link that is still arriving may win before the button is given back. */
 const RESUME_GRACE_MS = 1500;
+/** While a link that did arrive is still being finished, the button waits in steps of this, for at most `FINISH_WAIT_MAX_MS`. */
+const FINISH_POLL_MS = 500;
+const FINISH_WAIT_MAX_MS = 30_000;
 
 /**
  * The first screen of a phone that is not signed in: the app needs a Google sign-in (Supabase Auth, the system browser, back
@@ -23,7 +26,16 @@ export function GoogleGate() {
   useEffect(() => {
     if (!busy) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const stop = onAppResume(() => { clearTimeout(timer); timer = setTimeout(() => setBusy(false), RESUME_GRACE_MS); });
+    const stop = onAppResume(() => {
+      clearTimeout(timer);
+      let waited = 0;
+      const giveBack = () => {
+        // a link that arrived is still being exchanged: its answer gives the button back (onGoogleResult)
+        if (isFinishingGoogleSignIn() && waited < FINISH_WAIT_MAX_MS) { waited += FINISH_POLL_MS; timer = setTimeout(giveBack, FINISH_POLL_MS); return; }
+        setBusy(false);
+      };
+      timer = setTimeout(giveBack, RESUME_GRACE_MS);
+    });
     return () => { stop(); clearTimeout(timer); };
   }, [busy]);
 
