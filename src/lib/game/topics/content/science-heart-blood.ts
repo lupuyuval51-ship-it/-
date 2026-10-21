@@ -58,7 +58,7 @@ const c: TopicContent = {
     ],
     n: [[4900, ["The left ventricle pumps about 70 mL of blood with each beat, and the heart beats 70 times a minute. About how many millilitres does it pump in one minute?", "mL", "70 × 70 = 4,900 mL, nearly 5 litres: about as much blood as an adult has, so the blood goes all the way round about once a minute."],
       ["החדר השמאלי שואב בערך 70 מ״ל דם בכל פעימה, והלב פועם 70 פעמים בדקה. בערך כמה מיליליטרים הוא שואב בדקה אחת?", "מ״ל", "70 × 70 = 4,900 מ״ל, כמעט 5 ליטר: בערך כמות הדם שיש במבוגר, כך שהדם עושה את כל הדרך בערך פעם בדקה."]]],
-    s: [[["The path of blood through the heart, from the body", "Vena cava", "Right atrium", "Right ventricle", "Pulmonary artery to the lungs", "Pulmonary vein back to the left atrium"], ["מסלול הדם בלב, מהגוף", "הווריד הנבוב", "העלייה הימנית", "החדר הימני", "עורק הריאה אל הריאות", "וריד הריאה בחזרה אל העלייה השמאלית"]]],
+    s: [[["The path of blood through the heart, from the body", "Vena cava", "Right atrium", "Right ventricle", "The lungs, where the blood takes in oxygen", "Pulmonary vein back to the left atrium"], ["מסלול הדם בלב, מהגוף", "הווריד הנבוב", "העלייה הימנית", "החדר הימני", "הריאות, שבהן הדם קולט חמצן", "וריד הריאה בחזרה אל העלייה השמאלית"]]],
   },
 };
 export default c;
