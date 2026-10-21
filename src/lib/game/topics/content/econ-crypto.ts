@@ -75,8 +75,8 @@ const c: TopicContent = {
         ["מטבע עלה ב־1,000% בשנה אחת אחרי שהפך לוויראלי ברשתות החברתיות. מה צריך להסיק משקיע זהיר?", "עליות בעבר לא מנבאות עליות בעתיד, ומחיר שמונע מהתלהבות יכול לקרוס", ["עכשיו בטוח שהמטבע ימשיך לעלות באותה מהירות בשנים הקרובות", "הוא בטח מגובה בזהב", "הרשתות החברתיות קובעות מחירים לפי חוק"], "עלייה שמונעת מהתלהבות ולא משימוש אמיתי היא סימן קלסי לבועה. מטבעות רבים שזינקו כך איבדו מאוחר יותר כמעט את כל ערכם."]],
     ],
     n: [
-      [6.25, ["When Bitcoin began, each new block earned the miner 50 bitcoins. After three halvings, how many bitcoins does a new block earn?", "bitcoins", "Each halving cuts the reward in two: 50 → 25 → 12.5 → 6.25 bitcoins per block."],
-        ["כשהביטקוין התחיל, כל בלוק חדש זיכה את הכורה ב־50 ביטקוין. אחרי שלושה הלווינגים, בכמה ביטקוין מזכה בלוק חדש?", "ביטקוין", "כל הלווינג מקצץ את הפרס בחצי: 50, אחר כך 25, אחר כך 12.5, ולבסוף 6.25 ביטקוין לבלוק."]],
+      [6.25, ["When Bitcoin began, each new block earned the miner 50 bitcoins. After three halvings, how many bitcoins does a new block earn?", "bitcoins", "Each halving cuts the reward in two: 50 → 25 → 12.5 → 6.25 bitcoins per block. The fourth halving, in 2024, cut it again, to 3.125."],
+        ["כשהביטקוין התחיל, כל בלוק חדש זיכה את הכורה ב־50 ביטקוין. אחרי שלושה הלווינגים, בכמה ביטקוין מזכה בלוק חדש?", "ביטקוין", "כל הלווינג מקצץ את הפרס בחצי: 50, אחר כך 25, אחר כך 12.5, ולבסוף 6.25 ביטקוין לבלוק. ההלווינג הרביעי, ב־2024, קיצץ אותו שוב, ל־3.125."]],
       [750, ["You hold a coin worth 1,000 shekels. Its price falls by 50%, then rises by 50%. How many shekels is it worth now?", "shekels", "After the fall it is worth 500 shekels; a 50% rise adds 250, so it is worth 750 shekels. A rise of the same percentage does not undo a fall."],
         ["יש לכם מטבע ששווה 1,000 שקלים. המחיר שלו יורד ב־50%, ואחר כך עולה ב־50%. כמה שקלים הוא שווה עכשיו?", "שקלים", "אחרי הירידה הוא שווה 500 שקלים; עלייה של 50% מוסיפה 250, ולכן הוא שווה 750 שקלים. עלייה באותו אחוז לא מבטלת ירידה."]],
     ],

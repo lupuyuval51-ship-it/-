@@ -21,8 +21,8 @@ const c: TopicContent = {
       [["When a central bank raises its interest rate, what usually happens to loans from ordinary banks?", "They become more expensive", ["They become cheaper", "They become completely free", "They are banned"], "Banks borrow at rates linked to the central bank's rate, so when it goes up they charge their own borrowers more interest too."],
         ["כשבנק מרכזי מעלה את הריבית, מה קורה בדרך כלל להלוואות מהבנקים הרגילים?", "הן מתייקרות", ["הן מוזלות", "הן נעשות חינמיות לגמרי", "הן נאסרות"], "הבנקים לווים בריבית שקשורה לריבית של הבנק המרכזי, ולכן כשהיא עולה הם גובים גם מהלווים שלהם ריבית גבוהה יותר."]],
     ],
-    n: [[6, ["The State of Israel was founded in 1948 and the Bank of Israel in 1954. How many years later was the bank founded?", "years", "1954 − 1948 = 6 years. Until then a commercial bank issued the country's money."],
-      ["מדינת ישראל קמה ב־1948 ובנק ישראל הוקם ב־1954. כמה שנים אחר כך הוקם הבנק?", "שנים", "1954 − 1948 = 6 שנים. עד אז בנק מסחרי הנפיק את הכסף של המדינה."]]],
+    n: [[6, ["The State of Israel was founded in 1948 and the Bank of Israel in 1954. How many years later was the bank founded?", "years", "1954 − 1948 = 6 years. Until then the country's banknotes were issued by a commercial bank, the Anglo-Palestine Bank, later renamed Bank Leumi."],
+      ["מדינת ישראל קמה ב־1948 ובנק ישראל הוקם ב־1954. כמה שנים אחר כך הוקם הבנק?", "שנים", "1954 − 1948 = 6 שנים. עד אז הנפיק את השטרות של המדינה בנק מסחרי, בנק אנגלו־פלשתינה, שנקרא אחר כך בנק לאומי."]]],
   },
   i: {
     t: [

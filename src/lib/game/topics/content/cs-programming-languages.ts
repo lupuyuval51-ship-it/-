@@ -37,7 +37,7 @@ const c: TopicContent = {
     ],
     q: [
       [["Who built one of the very first compilers, called A-0, in 1952?", "Grace Hopper", ["Ada Lovelace", "Alan Turing", "Bill Gates"], "Grace Hopper, an American computer scientist who was also a US Navy officer, wrote A-0 in 1952 and later helped create the language COBOL."],
-        ["מי בנתה את אחד המהדרים הראשונים, שנקרא A-0, ב־1952?", "גרייס הופר", ["עדה לאבלייס", "אלן טיורינג", "ביל גייטס"], "גרייס הופר, מדענית מחשב אמריקאית שהייתה גם קצינה בצי האמריקאי, כתבה את A-0 ב־1952, ומאוחר יותר עזרה ליצור את שפת COBOL."]],
+        ["בידי מי נבנה ב־1952 אחד המהדרים הראשונים, שנקרא A-0?", "גרייס הופר", ["עדה לאבלייס", "אלן טיורינג", "ביל גייטס"], "גרייס הופר, מדענית מחשב אמריקאית שהייתה גם קצינה בצי האמריקאי, כתבה את A-0 ב־1952, ומאוחר יותר עזרה ליצור את שפת COBOL."]],
       [["Which language did Dennis Ritchie create at Bell Labs in the early 1970s?", "C", ["Java", "Python", "Scratch"], "Dennis Ritchie created C around 1972 and, with Ken Thompson, used it to rewrite the Unix operating system."],
         ["איזו שפה יצר דניס ריצ׳י במעבדות בל בתחילת שנות ה־70?", "C", ["Java", "Python", "Scratch"], "דניס ריצ׳י יצר את C בסביבות 1972, ויחד עם קן תומפסון השתמש בה כדי לכתוב מחדש את מערכת ההפעלה Unix."]],
       [["What is the main difference between a compiler and an interpreter?", "A compiler translates all the code first; an interpreter runs it bit by bit", ["A compiler is for games; an interpreter is for websites", "A compiler finds no errors; an interpreter finds all of them", "An interpreter can only read machine code"], "A compiler turns the whole program into machine code before it runs. An interpreter reads the code and carries it out piece by piece while it runs."],
@@ -45,7 +45,7 @@ const c: TopicContent = {
       [["Which was one of the first widely used high-level languages, released in 1957?", "FORTRAN", ["COBOL", "Python", "JavaScript"], "FORTRAN, made by a team at IBM led by John Backus, appeared in 1957 for scientific calculations. COBOL followed in 1959."],
         ["איזו הייתה אחת השפות העיליות הנפוצות הראשונות, ששוחררה ב־1957?", "FORTRAN", ["COBOL", "Python", "JavaScript"], "FORTRAN, שפיתח צוות ב־IBM בהובלת ג׳ון בקוס, הופיעה ב־1957 לחישובים מדעיים. COBOL הגיעה אחריה, ב־1959."]],
       [["Who wrote what is often called the first computer program, in 1843?", "Ada Lovelace", ["Grace Hopper", "Alan Turing", "Steve Jobs"], "Ada Lovelace published a method for Charles Babbage's planned Analytical Engine to calculate Bernoulli numbers, and it is often called the first program."],
-        ["מי כתבה ב־1843 את מה שנקרא לעיתים קרובות תוכנית המחשב הראשונה?", "עדה לאבלייס", ["גרייס הופר", "אלן טיורינג", "סטיב ג׳ובס"], "עדה לאבלייס פרסמה שיטה שבה המנוע האנליטי שתכנן צ׳ארלס בבג׳ יחשב את מספרי ברנולי, ולעיתים קרובות קוראים לה תוכנית המחשב הראשונה."]],
+        ["בידי מי נכתבה ב־1843 התוכנית שלעיתים קרובות מכנים אותה תוכנית המחשב הראשונה?", "עדה לאבלייס", ["גרייס הופר", "אלן טיורינג", "סטיב ג׳ובס"], "עדה לאבלייס פרסמה שיטה שבה המנוע האנליטי שתכנן צ׳ארלס בבג׳ יחשב את מספרי ברנולי, ולעיתים קרובות קוראים לה תוכנית המחשב הראשונה."]],
     ],
     n: [
       [1995, ["In which year did Sun Microsystems release Java?", "", "Java, designed by James Gosling's team at Sun Microsystems, was released in 1995 with the idea of write once, run anywhere."],

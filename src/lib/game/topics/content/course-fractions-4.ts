@@ -10,7 +10,7 @@ const c: TopicContent = {
         "When the denominators are different, first give the fractions a common denominator, then add: 1/2 + 1/3 = 3/6 + 2/6 = 5/6. With mixed numbers, add wholes to wholes and fractions to fractions: 1 1/4 + 2 2/4 = 3 3/4. If the fraction part comes out 1 or more, take a whole out of it: 7/4 = 1 3/4.",
       ],
       example: "Example: a cake needs 3/4 cup of milk and there is only 1/3 cup in the fridge. How much is missing? Work out 3/4 − 1/3 with denominator 12: 9/12 − 4/12 = 5/12. 5/12 of a cup is missing — a little less than half a cup.",
-      task: "Measure half a cup of water in a measuring cup (or an ordinary cup) and add a quarter of a cup more. How much water is there now? Write the exercise: 1/2 + 1/4 = ?. Check with your eyes that the answer (3/4) looks right, then pour a quarter of a cup back out — how much is left?",
+      task: "Measure half a cup of water in a measuring cup (or an ordinary cup) and add a quarter of a cup more. How much water is there now? Write the exercise: 1/2 + 1/4 = x. Check with your eyes that the answer (3/4) looks right, then pour a quarter of a cup back out — how much is left?",
     },
     he: {
       title: "חיבור וחיסור שברים",
@@ -18,8 +18,8 @@ const c: TopicContent = {
         "כשהמכנים שווים, מחברים או מחסרים רק את המונים, והמכנה נשאר: 2/7 + 3/7 = 5/7, כי שתי שביעיות ועוד שלוש שביעיות הן חמש שביעיות. טעות נפוצה היא לחבר גם את המכנים — 2/7 + 3/7 אינו 5/14.",
         "כשהמכנים שונים, קודם מביאים למכנה משותף ואז מחברים: 1/2 + 1/3 = 3/6 + 2/6 = 5/6. במספרים מעורבים מחברים שלמים עם שלמים ושברים עם שברים: 1 1/4 + 2 2/4 = 3 3/4. אם חלק השבר יוצא 1 או יותר, מוציאים ממנו שלם: 7/4 = 1 3/4.",
       ],
-      example: "דוגמה: לעוגה צריך 3/4 כוס חלב, ובמקרר יש רק 1/3 כוס. כמהו x? מחשבים 3/4 − 1/3 עם מכנה 12: 9/12 − 4/12 = 5/12. חסרות 5/12 כוס — קצת פחות מחצי כוס.",
-      task: "מדדו בכוס מדידה (או בכוס רגילה) חצי כוס מים, והוסיפו עוד רבע כוס. כמה מים יש עכשיו? כתבו את התרגיל: 1/2 + 1/4 = ?. בדקו בעיניים שהתשובה (3/4) נראית נכונה, ואז שפכו רבע כוס בחזרה — כמה נשאר?",
+      example: "דוגמה: לעוגה צריך 3/4 כוס חלב, ובמקרר יש רק 1/3 כוס. כמה חסר? מחשבים 3/4 − 1/3 עם מכנה 12: 9/12 − 4/12 = 5/12. חסרות 5/12 כוס — קצת פחות מחצי כוס.",
+      task: "מדדו בכוס מדידה (או בכוס רגילה) חצי כוס מים, והוסיפו עוד רבע כוס. כמה מים יש עכשיו? כתבו את התרגיל: 1/2 + 1/4 = x. בדקו בעיניים שהתשובה (3/4) נראית נכונה, ואז שפכו רבע כוס בחזרה — כמה נשאר?",
     },
   },
   b: {

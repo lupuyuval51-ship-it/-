@@ -10,7 +10,7 @@ const c: TopicContent = {
         "The rule: to divide by a fraction, multiply by the reciprocal — swap its numerator and denominator. The reciprocal of 2/3 is 3/2, so 4 ÷ 2/3 = 4 × 3/2 = 12/2 = 6. To divide a fraction by a whole number: 3/4 ÷ 3 = 3/4 × 1/3 = 3/12 = 1/4 — a third of three quarters is one quarter.",
       ],
       example: "Example: there are 2 1/2 litres of juice, poured into glasses of 1/4 litre. How many glasses? 2 1/2 = 5/2. Work out 5/2 ÷ 1/4 = 5/2 × 4/1 = 20/2 = 10. Answer: 10 glasses. Check: 10 × 1/4 = 10/4 = 2 1/2.",
-      task: "Fill a half-litre bottle with water and pour it into small cups (for example quarter-litre cups — ask an adult how much a cup holds). How many cups did you fill? Write the exercise: 1/2 ÷ 1/4 = ?. Guess before you pour, then check.",
+      task: "Fill a half-litre bottle with water and pour it into small cups (for example quarter-litre cups — ask an adult how much a cup holds). How many cups did you fill? Write the exercise: 1/2 ÷ 1/4 = x. Guess x before you pour, then check.",
     },
     he: {
       title: "חילוק בשבר",
@@ -19,7 +19,7 @@ const c: TopicContent = {
         "הכלל: כדי לחלק בשבר, כופלים במספר ההופכי שלו — מחליפים בין המונה למכנה. ההופכי של 2/3 הוא 3/2, ולכן 4 ÷ 2/3 = 4 × 3/2 = 12/2 = 6. וכשמחלקים שבר במספר שלם: 3/4 ÷ 3 = 3/4 × 1/3 = 3/12 = 1/4 — שליש משלושה רבעים הוא רבע.",
       ],
       example: "דוגמה: יש 2 1/2 ליטר מיץ, ומוזגים אותו לכוסות של 1/4 ליטר. כמה כוסות? 2 1/2 = 5/2. מחשבים 5/2 ÷ 1/4 = 5/2 × 4/1 = 20/2 = 10. תשובה: 10 כוסות. בדיקה: 10 × 1/4 = 10/4 = 2 1/2.",
-      task: "מלאו בקבוק של חצי ליטר במים ומזגו אותו לכוסות קטנות (למשל כוסות של רבע ליטר — שאלו מבוגר כמה מחזיקה כוס). כמה כוסות מילאתם? כתבו את התרגיל: 1/2 ÷ 1/4 = ?. נחשו לפני שמוזגים, ואז בדקו.",
+      task: "מלאו בקבוק של חצי ליטר במים ומזגו אותו לכוסות קטנות (למשל כוסות של רבע ליטר — שאלו מבוגר כמה מחזיקה כוס). כמה כוסות מילאתם? כתבו את התרגיל: 1/2 ÷ 1/4 = x. נחשו את x לפני שמוזגים, ואז בדקו.",
     },
   },
   b: {
