@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>בונה הברכות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Secular+One&display=swap">
+<style>
+/* Layout: form | suggestions + editor | sticky card preview (stacks on narrow screens) */
+:root{
+  --bg:#F5F3F8; --surface:#FFFFFF; --field:#FFFFFF; --ink:#1E1A25; --muted:#665E72; --line:#E2DDEA;
+  --accent:#C2255C; --on-accent:#FFFFFF; --accent-soft:#FCE8F0; --ok:#0E7C57;
+  --radius:14px;
+  --font-body:"Heebo","Assistant","Segoe UI",Arial,"Noto Sans Hebrew",system-ui,sans-serif;
+  --font-display:"Secular One","Heebo",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#15111B; --surface:#1E1927; --field:#251F30; --ink:#F3EFF8; --muted:#A9A0B6; --line:#363046;
+    --accent:#F06595; --on-accent:#2A0A18; --accent-soft:#3A1B2B; --ok:#4FD1A1; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15111B; --surface:#1E1927; --field:#251F30; --ink:#F3EFF8; --muted:#A9A0B6; --line:#363046;
+  --accent:#F06595; --on-accent:#2A0A18; --accent-soft:#3A1B2B; --ok:#4FD1A1; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 var(--font-body);
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.vh{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+h1,h2,h3{margin:0}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;max-width:1280px;margin:0 auto 20px}
+.top h1{font:400 clamp(30px,5vw,44px)/1.1 var(--font-display);color:var(--accent)}
+.top p{margin:6px 0 0;color:var(--muted);max-width:56ch}
+.app{display:grid;gap:16px;max-width:760px;margin-inline:auto}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;min-width:0}
+.panel h2{font:700 20px/1.3 var(--font-body)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+@media (min-width:1100px){
+  .app{max-width:1280px;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 360px;
+    grid-template-areas:"form results card" "form saved card";align-items:start}
+  .form{grid-area:form}.results{grid-area:results}.cardcol{grid-area:card;align-self:stretch}.saved{grid-area:saved}
+  .card-wrap{position:sticky;top:16px}
+}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend,.lbl{padding:0;font:700 14px/1.4 var(--font-body);color:var(--muted);margin-bottom:8px;display:block}
+.group{display:flex;flex-direction:column;gap:14px;padding-block:18px;border-top:1px solid var(--line)}
+.group:first-of-type{border-top:0;padding-top:0}
+.group h3{font:700 16px/1.3 var(--font-body)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;min-width:0}
+input[type=text],input[type=number],select,textarea{width:100%;font:400 16px/1.5 var(--font-body);color:var(--ink);background:var(--field);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px}
+textarea{resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visible,.variant:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.chip{position:relative;display:block}
+.chip span{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding:10px 6px;border:1px solid var(--line);
+  border-radius:12px;background:var(--field);font-size:14px;line-height:1.3;cursor:pointer;height:100%}
+.chip i{font-style:normal;font-size:24px;line-height:1.2}
+.chip input:checked+span,.seg input:checked+span{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.chip input:focus-visible+span,.seg input:focus-visible+span,.sw input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg label{position:relative}
+.seg span{display:block;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--field);font-size:14px;cursor:pointer}
+fieldset:disabled{opacity:.5}
+.check{display:flex;gap:10px;align-items:center;font-size:15px;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  font:700 15px var(--font-body);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.wa{color:var(--ok);border-color:var(--ok)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.variants{display:grid;gap:10px;margin-bottom:18px}
+.variant{display:block;text-align:start;width:100%;font:inherit;color:inherit;background:var(--field);border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;cursor:pointer}
+.variant[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft)}
+.variant .tag{display:block;font:700 12px/1.4 var(--font-body);color:var(--accent);margin-bottom:4px;letter-spacing:.03em}
+.variant .vtext{white-space:pre-wrap;font-size:15px;line-height:1.55;overflow-wrap:anywhere}
+.editor{display:flex;flex-direction:column;gap:14px}
+.meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:4px}
+.note{background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+canvas{display:block;width:100%;max-width:420px;height:auto;aspect-ratio:1080/1350;margin:14px auto;border-radius:12px;border:1px solid var(--line)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:14px}
+.sw{position:relative}
+.sw span{display:block;width:34px;height:34px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);
+  background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%);cursor:pointer}
+.sw input:checked+span{box-shadow:0 0 0 3px var(--accent)}
+.card-wrap .btn{width:100%}
+.saved ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.saved li{display:flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.saved li div{min-width:0}
+.saved li b{display:block;overflow-wrap:anywhere}
+.saved li small{display:block;color:var(--muted);overflow-wrap:anywhere}
+.saved li .btn{min-height:36px;padding:0 12px}
+.empty{margin:0;color:var(--muted);font-size:14px}
+#toast{position:fixed;inset-inline:0;bottom:calc(24px + env(safe-area-inset-bottom,0px));margin:auto;width:max-content;max-width:90vw;
+  background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>בונה הברכות</h1>
+    <p>בוחרים אירוע, ממלאים כמה פרטים, ומקבלים ברכה בלשון הנכונה, כרטיס מעוצב ושליחה בלחיצה.</p>
+  </div>
+  <button class="btn" id="themeBtn" type="button">מצב תצוגה: אוטומטי</button>
+</header>
+
+<main class="app">
+  <section class="panel form" id="formPanel" aria-label="פרטי הברכה">
+    <fieldset class="group">
+      <legend class="lbl">על מה מברכים?</legend>
+      <div class="chips" id="occ"></div>
+    </fieldset>
+
+    <div class="group">
+      <h3>למי הברכה</h3>
+      <div class="row">
+        <div class="field"><label class="lbl" for="name">שם</label><input type="text" id="name" maxlength="40" placeholder="למשל: נועה"></div>
+        <div class="field"><label class="lbl" for="relation">הקשר</label><select id="relation"></select></div>
+      </div>
+      <fieldset class="field"><legend>לשון הפנייה</legend><div class="seg" id="rg"></div>
+        <p class="hint">קובע אם הברכה תהיה ב"אתה", "את" או "אתם".</p></fieldset>
+      <div class="field" id="ageField" hidden><label class="lbl" for="age" id="ageLbl">גיל</label>
+        <input type="text" id="age" inputmode="numeric" maxlength="3" placeholder="לא חובה"></div>
+    </div>
+
+    <div class="group">
+      <h3>ממי הברכה</h3>
+      <div class="field"><label class="lbl" for="sender">השם שלך</label><input type="text" id="sender" maxlength="40" placeholder="יופיע בחתימה"></div>
+      <fieldset class="field"><legend>מי שולח</legend><div class="seg" id="sg"></div></fieldset>
+    </div>
+
+    <div class="group">
+      <h3>סגנון</h3>
+      <fieldset class="field"><legend>טון</legend><div class="seg" id="tone"></div></fieldset>
+      <fieldset class="field" id="lenSet"><legend>אורך</legend><div class="seg" id="len"></div>
+        <p class="hint">בסגנון "קצר" האורך קבוע.</p></fieldset>
+      <label class="check"><input type="checkbox" id="emoji"> להוסיף אימוג'י</label>
+      <div class="field"><label class="lbl" for="personal">משפט אישי (לא חובה)</label>
+        <textarea id="personal" rows="2" maxlength="160" placeholder="משהו שרק אתם יודעים. יתווסף לברכה כמו שהוא."></textarea></div>
+    </div>
+  </section>
+
+  <section class="panel results" aria-label="הצעות ועריכה">
+    <div class="panel-head"><h2>הצעות</h2><button class="btn" id="shuffle" type="button">הצעות חדשות</button></div>
+    <div class="variants" id="variants"></div>
+    <div class="editor">
+      <h2>עריכה ושליחה</h2>
+      <div class="field"><label class="lbl" for="head">כותרת</label><input type="text" id="head" maxlength="80"></div>
+      <div class="field"><label class="lbl" for="body">הברכה</label><textarea id="body" rows="10"></textarea>
+        <div class="meta"><span id="count"></span></div></div>
+      <div class="note" id="dirtyNote" hidden><span>ערכת את הטקסט. שינויים בטופס לא ידרסו אותו.</span>
+        <button class="btn" id="applyVariant" type="button">חזרה להצעה</button></div>
+      <label class="check"><input type="checkbox" id="inclHead"> לכלול את הכותרת בהעתקה ובשליחה</label>
+      <div class="actions">
+        <button class="btn primary" id="copy" type="button">העתקה</button>
+        <a class="btn wa" id="wa" target="_blank" rel="noopener" href="#">שליחה בוואטסאפ</a>
+        <button class="btn" id="share" type="button" hidden>שיתוף</button>
+        <button class="btn" id="save" type="button">שמירה ברשימה</button>
+      </div>
+    </div>
+  </section>
+
+  <aside class="cardcol" aria-label="כרטיס">
+    <div class="panel card-wrap">
+      <h2>הכרטיס</h2>
+      <canvas id="card" width="1080" height="1350" role="img" aria-label="תצוגה מקדימה של כרטיס הברכה"></canvas>
+      <div class="swatches" id="themes" role="radiogroup" aria-label="עיצוב הכרטיס"></div>
+      <button class="btn primary" id="download" type="button">הורדת הכרטיס כתמונה</button>
+    </div>
+  </aside>
+
+  <section class="panel saved" aria-label="ברכות שמורות">
+    <h2>ברכות ששמרתי</h2>
+    <p class="hint">נשמרות רק בדפדפן הזה.</p>
+    <p class="empty" id="savedEmpty">עדיין אין ברכות שמורות. אחרי שתשמרו, הן יופיעו כאן.</p>
+    <ul id="savedList"></ul>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(arr,rnd){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+
+/* Gender syntax: {זכר|נקבה|רבים} follows the recipient, [זכר|נקבה|רבים] follows the sender. $name = recipient name. */
+function render(t,c){
+  t=t.replace(/\{([^{}|]*)\|([^{}|]*)\|([^{}|]*)\}/g,(_,m,f,p)=>({m,f,p})[c.rg]);
+  t=t.replace(/\[([^\[\]|]*)\|([^\[\]|]*)\|([^\[\]|]*)\]/g,(_,m,f,p)=>({m,f,p})[c.sg]);
+  t=t.replace(/\$name/g,c.name.trim());
+  return t.replace(/[ \t]+([,!.?:;])/g,'$1').replace(/^[ ,]+/gm,'').replace(/ {2,}/g,' ').trim();
+}
+
+/* ---------- content ---------- */
+const ORDER=['birthday','wedding','anniversary','newborn','barmitzvah','graduation','newjob','newhome','getwell','thanks','roshhashana','pesach','hanukkah','general'];
+const OCC={
+birthday:{label:'יום הולדת',icon:'🎂',emojis:'🎂🎈🎉',theme:'party',unit:'גיל',
+ head:c=>c.age?`יום הולדת ${c.age} שמח`:'יום הולדת שמח',
+ warm:[
+  "[אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} יום הולדת מלא באהבה, בצחוק ובכל הדברים הטובים שיש בעולם.",
+  "שתהי{ה|י|ו} בריא{|ה|ים}, שמח{|ה|ים} ומוקף{|ת|ים} באנשים שאוהבים {אותך|אותך|אתכם} בדיוק כמו שאת{ה||ם}.",
+  "שנה חדשה מתחילה, ו[אני מאמין|אני מאמינה|אנחנו מאמינים] שהיא תהיה אחת הטובות ביותר שהיו {לך|לך|לכם}.",
+  "תודה על כל הרגעים הטובים, ועל זה שאת{ה||ם} פשוט את{ה||ם}. שתזכ{ה|י|ו} לשנה של בריאות, הצלחה והגשמת חלומות.",
+  "הלב {שלך|שלך|שלכם} גדול, הצחוק {שלך|שלך|שלכם} מדבק, והעולם יפה יותר כי את{ה||ם} בו."],
+ funny:[
+  "עוד שנה עברה ו{אתה|את|אתם} רק משתפר{|ת|ים}, בדיוק כמו יין, רק עם יותר עוגה.",
+  "המדע הוכיח: מי שחוגג הכי הרבה ימי הולדת, חי הכי הרבה זמן. אז {חגוג|חגגי|חגגו} בכיף ו{אל תספור|אל תספרי|אל תספרו} נרות.",
+  "יש גיל שבו מפסיקים לספור נרות ומתחילים לספור קלוריות. היום זה עדיין לא היום, אז {תיקח|תיקחי|תיקחו} עוד פרוסה.",
+  "[הבטחתי|הבטחתי|הבטחנו] לא להזכיר את הגיל, אז רק [אגיד|אגיד|נגיד] שאת העוגה כדאי לצלם לפני שהכבאים מגיעים."],
+ formal:[
+  "לרגל יום הולדת{ך|ך|כם}, [אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} שנה של בריאות איתנה, הצלחה ושמחה בכל אשר תפנ{ה|י|ו}.",
+  "[אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} שנה מלאת הישגים, סיפוק אישי ורגעי אושר עם היקרים {לך|לך|לכם}.",
+  "יהי רצון שהשנה החדשה בחיי{ך|ך|כם} תביא עמה הצלחה, שלווה ובריאות."],
+ poem:[
+  "יום הולדת הגיע, הגיע הזמן לחגוג,\nעם עוגה ועם שירים ובלי מה לדאוג.\nשנה חדשה נפתחת ומחכה {לך|לך|לכם} עולם,\nמלא אושר ובריאות ואהבה מכולם.",
+  "עוד נר על העוגה ועוד משאלה בלב,\nשיהיה {לך|לך|לכם} תמיד רק טוב.\nושכל יום יהיה חגיגה קטנה,\nמלאה בבריאות, באור וברוח טובה."],
+ brief:[
+  "יום הולדת שמח! שתהי{ה|י|ו} בריא{|ה|ים}, אהוב{|ה|ים} ומאושר{|ת|ים}.",
+  "מזל טוב! שהשנה תהיה הכי טובה עד היום.",
+  "שנה מתוקה כמו העוגה, ושמחה כמו המסיבה."]},
+wedding:{label:'חתונה',icon:'💍',emojis:'💍🥂💐',theme:'gala',
+ head:()=>'מזל טוב לחתונה',
+ warm:[
+  "[אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} חיים של אהבה, צחוק ושותפות אמיתית, ושהבית שיוקם יהיה מלא באור.",
+  "מרגש לראות אהבה אמיתית. שתזכ{ה|י|ו} לכל הטוב שבעולם, יחד, בכל יום מחדש.",
+  "שהחופה תהיה רק ההתחלה של מסע ארוך, יפה ומלא הפתעות טובות.",
+  "[אני שמח|אני שמחה|אנחנו שמחים] להיות חלק מהיום המיוחד הזה, ו[מאחל|מאחלת|מאחלים] {לך|לך|לכם} אושר בלי סוף.",
+  "{זכור|זכרי|זכרו} שאהבה היא בחירה שעושים מחדש בכל יום, ושיחד אפשר לעבור הכל."],
+ funny:[
+  "מזל טוב! מהיום יש מי שיזכיר {לך|לך|לכם} להוציא את הזבל. זו אהבה אמיתית.",
+  "הסוד לנישואין מאושרים: לדעת מתי להגיד ‘צודק/ת’ ומתי להציע לאכול משהו.",
+  "שהמריבה היחידה {שלך|שלך|שלכם} תהיה על השלט של הטלוויזיה, ושגם היא תסתיים בחיבוק."],
+ formal:[
+  "[אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} מזל טוב לרגל נישואי{ך|ך|כם}, ושיהיה זה בית נאמן, מלא אהבה, הבנה ושלווה.",
+  "יהי רצון שדרך חיי{ך|ך|כם} החדשה תהיה רצופה באהבה, בבריאות ובהצלחה.",
+  "ברכות חמות לרגל שמחת{ך|ך|כם}. שתזכ{ה|י|ו} לראות ברכה בכל מעשי{ך|ך|כם}."],
+ poem:[
+  "היום נפתח פרק חדש בשניים,\nפרק של אור, של שמחה ושל ימים טובים.\nשהבית יהיה מלא שלווה ואהבה,\nושכל מעשה {שלך|שלך|שלכם} יביא ברכה.",
+  "שני לבבות וחיוך אחד גדול,\nעם הרבה אמון וחלום בלי גבול.\nשתזכ{ה|י|ו} לאהבה שגדלה עם השנים,\nולבית שכולו חום, צחוק וחיבוקים."],
+ brief:[
+  "מזל טוב! שתזכ{ה|י|ו} לאהבה גדולה ולבית מלא אור.",
+  "מזל טוב לחתונה! אהבה, שמחה ובית חם לכל החיים.",
+  "ברכות חמות ליום הגדול! בשעה טובה."]},
+anniversary:{label:'יום נישואין',icon:'💞',emojis:'💞🥂🌹',theme:'plum',unit:'מספר שנות נישואין',
+ head:c=>c.age?`מזל טוב ל-${c.age} שנות נישואין`:'מזל טוב ליום הנישואין',
+ warm:[
+  "[אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} המשך דרך מלא באהבה, בצחוק ובחיבוקים, כמו ביום הראשון ואפילו יותר.",
+  "אהבה כמו {שלך|שלך|שלכם} היא מתנה נדירה. תודה שאת{ה||ם} {מראה|מראה|מראים} לכולנו איך זה נראה.",
+  "כל שנה יחד היא עוד פרק בסיפור, ו[אני שמח|אני שמחה|אנחנו שמחים] לראות איך הסיפור {שלך|שלך|שלכם} ממשיך להיכתב.",
+  "שהשנים יוסיפו עוד ועוד עומק, הבנה וחיוכים, ושהלב יישאר צעיר כמו ביום הראשון."],
+ funny:[
+  "עוד שנה ביחד ועדיין שניכם מחייכים בתמונות. זה כבר הישג אולימפי.",
+  "הסוד לנישואין ארוכים: לצחוק על אותן בדיחות גם בפעם המאה, ולהתעלם בכבוד מהגרביים על הרצפה.",
+  "נישואין הם שיעור בויתור: מי שמוותר ראשון על השלט, מנצח את הערב."],
+ formal:[
+  "לרגל יום הנישואין, [אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} המשך חיים משותפים רצופי אהבה, בריאות ונחת.",
+  "מזל טוב לציון יום הנישואין. שתזכ{ה|י|ו} לעוד שנים רבות של שותפות, כבוד הדדי ושמחה.",
+  "יהי רצון שהאהבה שליוותה {אותך|אותך|אתכם} עד כה תמשיך ללוות {אותך|אותך|אתכם} כל הימים."],
+ poem:[
+  "עוד שנה עברה, עוד פרק נכתב,\nבאהבה, בצחוק ובלב שאוהב.\nשהדרך {שלך|שלך|שלכם} תמשיך באור ובשלווה,\nעם הרבה חיבוקים ועם אהבה.",
+  "שנים חולפות והאהבה נשארת,\nכמו יין משובח, היא רק מתבגרת."],
+ brief:[
+  "מזל טוב ליום הנישואין! שהאהבה תמשיך לגדול.",
+  "{תמשיך|תמשיכי|תמשיכו} להאיר! מזל טוב ליום הנישואין.",
+  "שנים של אהבה, ועוד המון לפניכם. מזל טוב!"]},
+newborn:{label:'לידה',icon:'👶',emojis:'👶🍼🎀',theme:'sky',
+ head:()=>'מזל טוב ללידה',
+ warm:[
+  "מזל טוב! [אני מתרגש|אני מתרגשת|אנחנו מתרגשים] יחד {איתך|איתך|איתכם}. שהנשמה הקטנה תגדל לתפארת, ושתזכ{ה|י|ו} לגדל אותה מתוך אהבה, בריאות ונחת.",
+  "{ברוך הבא|ברוכה הבאה|ברוכים הבאים} לעולם הנפלא של ההורות: פחות שינה, יותר אהבה, ולב שמתרחב בכל יום.",
+  "[אני שמח|אני שמחה|אנחנו שמחים] שהמשפחה {שלך|שלך|שלכם} גדלה! שתהיה ברכה ושמחה בכל חיוך ובכל חיבוק.",
+  "שתזכ{ה|י|ו} ליהנות מכל רגע קטן, כי הם גדלים כל כך מהר. המון בריאות, אושר ונחת לכולם.",
+  "הלב {שלך|שלך|שלכם} גדול, ועכשיו יש בו עוד מקום לאהבה אחת קטנה ומושלמת."],
+ funny:[
+  "מזל טוב! מהיום השינה היא זיכרון רחוק והקפה הוא החבר הכי טוב. {תתחזק|תתחזקי|תתחזקו}!",
+  "ברוכים הבאים לעולם שבו ‘רק רגע’ אומר שעתיים, ופיג'מה היא קוד לבוש רשמי. מזל טוב!",
+  "מזל טוב על התוספת החדשה! היא כבר משתלטת על הלילות ועל הכביסה."],
+ formal:[
+  "[אני מברך|אני מברכת|אנו מברכים] {אותך|אותך|אתכם} בלב שלם לרגל הולדת התוספת החדשה למשפחה. שתזכ{ה|י|ו} לגדל אותה בבריאות, באהבה ובנחת.",
+  "ברכות חמות לרגל השמחה במשפחה. בריאות, נחת ואושר {לך|לך|לכם} ולכל המשפחה.",
+  "יהי רצון שהשמחה הזו תלווה {אותך|אותך|אתכם} כל ימי חיי{ך|ך|כם}."],
+ poem:[
+  "הגיע לעולם פלא קטן ויקר,\nוכל המשפחה מתמלאת באור ובשיר.\nושהבית יתמלא בנחת ובגאווה,\nובכל יום חדש תהיה עוד אהבה.",
+  "ידיים קטנות ועיניים בורקות,\nולב שלם מתמלא באהבה ושמחות.\nמזל טוב להורים ולכל המשפחה,\nשיהיה {לך|לך|לכם} תמיד נחת, בריאות וברכה."],
+ brief:[
+  "מזל טוב להולדת התוספת החדשה! שתגדלו אותה לנחת.",
+  "מזל טוב! שיהיה בשעה טובה ובבריאות שלמה.",
+  "ברוכה הבאה לעולם, נשמה קטנה! מזל טוב להורים."]},
+barmitzvah:{label:'בר או בת מצווה',icon:'📜',emojis:'📜🎊✨',theme:'night',
+ head:c=>c.rg==='f'?'מזל טוב לבת המצווה':c.rg==='m'?'מזל טוב לבר המצווה':'מזל טוב על השמחה',
+ warm:[
+  "היום המרגש הזה הוא רק ההתחלה של דרך ארוכה ומלאה בהצלחות. [אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} המון נחת, שמחה וגאווה.",
+  "שמחה גדולה ליום המרגש הזה! שתזכ{ה|י|ו} תמיד ללכת בדרך של טוב, ללמוד, לצמוח ולהגשים חלומות.",
+  "מזל טוב על הרגע המרגש. שהמשפחה כולה תזכה לראות הרבה נחת, הרבה שמחה, ועוד אירועים משמחים.",
+  "יום מיוחד כל כך, ואנשים מיוחדים סביב. שהשמחה הזו תלווה {אותך|אותך|אתכם} הרבה שנים קדימה."],
+ funny:[
+  "מזל טוב! מהיום מותר להגיד ‘אני כבר {גדול|גדולה|גדולים}’, אבל עדיין חובה לשים כביסה בסל.",
+  "הנאום נגמר, הרחבה נפתחת, והמתנות מחכות. הכל מוכן לחגיגה. מזל טוב!",
+  "שהתוכנית להיום תהיה פשוטה: לשמוח, לרקוד, לאכול, ולא לספור כמה פעמים סבתא צילמה."],
+ formal:[
+  "[אני מברך|אני מברכת|אנו מברכים] {אותך|אותך|אתכם} לרגל השמחה המרגשת. יהי רצון שתזכ{ה|י|ו} לנחת ולהצלחה בכל דרך.",
+  "בברכת מזל טוב לרגל המעמד המרגש. שיהיה יום של שמחה, והמשך של הצלחות רבות.",
+  "ברכות חמות ליום המיוחד. שהשמחה תלווה את המשפחה כולה, ושהדרך קדימה תהיה רצופה בנחת."],
+ poem:[
+  "יום גדול הגיע וכולם מתרגשים,\nעם שירים וחיוכים ועם הרבה חיבוקים.\nשתהי{ה|י|ו} בדרך טובה, בבריאות ובאור,\nושכל חלום יהפוך למציאות ולשיר.",
+  "מזל טוב ליום החגיגה והשמחה,\nש{תלך|תלכי|תלכו} תמיד בדרך טובה ובלב מלא תקווה."],
+ brief:[
+  "מזל טוב ליום המרגש! שיהיה בשעה טובה.",
+  "יום מרגש ושמח! מזל טוב לכל המשפחה.",
+  "מזל טוב ובהצלחה בדרך החדשה!"]},
+graduation:{label:'סיום לימודים',icon:'🎓',emojis:'🎓📚✨',theme:'meadow',
+ head:()=>'מזל טוב על סיום הלימודים',
+ warm:[
+  "[אני גאה|אני גאה|אנחנו גאים] {בך|בך|בכם}! שנים של עבודה קשה, לילות ארוכים ונחישות הגיעו לרגע המרגש הזה.",
+  "הידע שצבר{ת|ת|תם} הוא רק חלק מהסיפור. האופי, ההתמדה והלב {שלך|שלך|שלכם} הם מה שיוביל {אותך|אותך|אתכם} רחוק.",
+  "ברכות חמות על ההישג! שכל השערים ייפתחו בפני{ך|ך|כם}, ו{תמצא|תמצאי|תמצאו} בדיוק את הדרך שמתאימה {לך|לך|לכם}.",
+  "זה רק סוף של פרק, והספר רק מתחיל. [אני מאמין|אני מאמינה|אנחנו מאמינים] ש{אתה|את|אתם} ת{עשה|עשי|עשו} דברים גדולים."],
+ funny:[
+  "מזל טוב! סוף סוף אפשר לישון בלי שהמחשבה ‘מתי ההגשה’ תרדוף {אותך|אותך|אתכם}. {תיהנה|תיהני|תיהנו} מזה ביומיים הקרובים.",
+  "קיבל{ת|ת|תם} תואר, ועכשיו נשאר רק לגלות מה עושים איתו. בינתיים חוגגים, ואחר כך נחשוב.",
+  "תעודה? יש. כובע מצחיק? יש. עכשיו נשאר רק לגרום להורים להפסיק לשאול ‘ומה עכשיו’."],
+ formal:[
+  "[אני מברך|אני מברכת|אנו מברכים] {אותך|אותך|אתכם} לרגל סיום לימודי{ך|ך|כם} בהצלחה. יישר כוח על ההשקעה וההתמדה.",
+  "בהצלחה רבה בהמשך הדרך המקצועית. שתזכ{ה|י|ו} לממש את הידע ביושרה, בהצלחה ובסיפוק.",
+  "ברכות על ההישג המרשים. שהשנים הבאות יביאו עמן הזדמנויות, צמיחה והצלחה."],
+ poem:[
+  "סיימ{ת|ת|תם}, הצלח{ת|ת|תם}, הגע{ת|ת|תם} עד הלום,\nמגיע {לך|לך|לכם} לחגוג בגדול את היום.\nוהדרך קדימה פתוחה ורחבה,\nושכל חלום יגיע בשמחה ובברכה.",
+  "כובע ותעודה, חיוך גדול על הפנים,\nמחכים {לך|לך|לכם} רק הצלחות וימים טובים."],
+ brief:[
+  "מזל טוב על סיום הלימודים! הדרך רק מתחילה.",
+  "[אני גאה|אני גאה|אנחנו גאים] {בך|בך|בכם}! מזל טוב על התואר.",
+  "כל הכבוד על ההישג! עכשיו הולכים לחגוג."]},
+newjob:{label:'עבודה חדשה או קידום',icon:'💼',emojis:'💼🚀🌟',theme:'sky',
+ head:()=>'מזל טוב על האתגר החדש',
+ warm:[
+  "מזל טוב על האתגר החדש! מגיע {לך|לך|לכם} כל כך, ו[אני שמח|אני שמחה|אנחנו שמחים] בשמחת{ך|ך|כם}.",
+  "אתגר חדש, הזדמנויות חדשות ופרק מרגש בדרך. ש{תצליח|תצליחי|תצליחו} בגדול ו{תיהנה|תיהני|תיהנו} מכל רגע.",
+  "הכישרון והמסירות {שלך|שלך|שלכם} פתחו את הדלת הזו, ו[אני מאמין|אני מאמינה|אנחנו מאמינים] ש{אתה|את|אתם} ת{עשה|עשי|עשו} שם דברים גדולים.",
+  "פרק חדש מתחיל, והשמיים הם הגבול. שיהיה בהצלחה גדולה!"],
+ funny:[
+  "מזל טוב על העבודה החדשה! {זכור|זכרי|זכרו}: הקפה במשרד תמיד חלש מהציפיות, וכל פגישה אפשר היה לסכם במייל.",
+  "קידום! עכשיו אפשר להגיד ‘זה בתחום האחריות שלי’ ולהתכוון לזה. מזל טוב!",
+  "מזל טוב! שהישיבות יהיו קצרות, המיילים מעטים, והבונוס עצום."],
+ formal:[
+  "[אני מברך|אני מברכת|אנו מברכים] {אותך|אותך|אתכם} על התפקיד החדש. ביטחון מלא ש{תמלא|תמלאי|תמלאו} אותו בהצלחה רבה.",
+  "מאחלים הצלחה רבה בדרך המקצועית החדשה, ומחכים לשמוע על הישגים נוספים.",
+  "ברכות חמות לרגל הקידום. מגיע {לך|לך|לכם} ביושר, ואנו מאחלים המשך הצלחה."],
+ poem:[
+  "אתגר חדש, דרך חדשה,\nומחכה {לך|לך|לכם} הצלחה גדולה ושמחה.\nשהעבודה תהיה מעניינת ומלאה סיפוק,\nושהימים יעברו בקלות ובלי שום עיכוב.",
+  "מזל טוב על הקידום המגיע,\nשהחשבון בבנק יהיה כל חודש מרגיע."],
+ brief:[
+  "מזל טוב על האתגר החדש! בהצלחה!",
+  "ברכות על התפקיד החדש, מגיע {לך|לך|לכם}!",
+  "שהצלחות יגיעו בלי הפסקה. מזל טוב!"]},
+newhome:{label:'בית חדש',icon:'🏡',emojis:'🏡🔑🌿',theme:'meadow',
+ head:()=>'מזל טוב לבית החדש',
+ warm:[
+  "מזל טוב לבית החדש! שיהיה בית של שמחה, אור, צחוק ואהבה, ושכל קיר בו יספר סיפור טוב.",
+  "[אני שמח|אני שמחה|אנחנו שמחים] בשמחת{ך|ך|כם}. שתזכ{ה|י|ו} לחיות בבית החדש בבריאות, בשלווה וברוב נחת.",
+  "בית הוא לא רק קירות. הוא הלב, והלב {שלך|שלך|שלכם} ימלא אותו באהבה.",
+  "שהמפתח החדש ייפתח דלתות לימים יפים, לאורחים אוהבים ולרגעים טובים שלא נשכח."],
+ funny:[
+  "מזל טוב על הבית החדש! עכשיו אפשר לארח, ולהתעלם בכבוד מהקרטונים שעדיין לא נפתחו.",
+  "מזל טוב! שהשכנים יהיו נחמדים, הקירות עבים, והמשכנתא קלה.",
+  "בית חדש הוא תירוץ מצוין לקנות עוד דברים. {תיהנה|תיהני|תיהנו}!"],
+ formal:[
+  "[אני מברך|אני מברכת|אנו מברכים] {אותך|אותך|אתכם} לרגל המעבר לבית החדש. שיהיה זה בית של שלווה, אושר ובריאות טובה.",
+  "ברכות לרגל חנוכת הבית. יהי רצון שדלתו תמיד תהיה פתוחה לשמחות ולחברים.",
+  "מזל טוב לבית החדש, ובהצלחה בהתאקלמות."],
+ poem:[
+  "בית חדש נפתח לאושר ולאור,\nשיהיה בו הרבה צחוק והרבה שיר.\nשהמפתח יפתח לימים של טוב,\nולחברים, לחיבוק ולכוס יין אהוב.",
+  "קירות חדשים וריח של צבע,\nשיהיה בבית הזה הרבה טוב ורוגע."],
+ brief:[
+  "מזל טוב לבית החדש! שיהיה בשעה טובה.",
+  "בית חדש, התחלה חדשה. שיהיה בו הרבה אושר!",
+  "מזל טוב על חנוכת הבית!"]},
+getwell:{label:'החלמה',icon:'💐',emojis:'💐🌞💪',theme:'meadow',
+ head:()=>'רפואה שלמה',
+ warm:[
+  "[רציתי|רציתי|רצינו] לשלוח {לך|לך|לכם} חיבוק גדול ואיחולי החלמה מהירה. {תנוח|תנוחי|תנוחו}, {תתחזק|תתחזקי|תתחזקו}, ו{תחזור|תחזרי|תחזרו} אלינו בריא{|ה|ים}.",
+  "[אני חושב|אני חושבת|אנחנו חושבים] {עליך|עליך|עליכם} המון. שהכאב יחלוף במהירות, והכוחות יחזרו.",
+  "{אתה|את|אתם} חזק{|ה|ים} מהכל, וכל הכוחות הטובים {איתך|איתך|איתכם}. רפואה שלמה ומהירה!",
+  "שהימים הקרובים יעברו בשלווה, וש{תחזור|תחזרי|תחזרו} לעצמ{ך|ך|כם} מהר, חזק{|ה|ים} מתמיד."],
+ funny:[
+  "החלמה מהירה! הרופאים אומרים מנוחה, אז זה הזמן הרשמי לראות סדרות בלי רגשות אשמה.",
+  "אין מה לעשות, גם גיבורים צריכים לנוח. {תתפנק|תתפנקי|תתפנקו}, ו{תחזור|תחזרי|תחזרו} מהר, כי בלעדי{ך|ך|כם} זה פשוט לא אותו דבר.",
+  "שומרים {לך|לך|לכם} את המקום, את הבדיחות ואת הקפה. רק {תתרפא|תתרפאי|תתרפאו} מהר."],
+ formal:[
+  "[אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} רפואה שלמה ומהירה, וש{תשוב|תשובי|תשובו} לאיתנ{ך|ך|כם} במהרה.",
+  "בברכת החלמה מהירה ובריאות איתנה. אנו חושבים {עליך|עליך|עליכם} ומאחלים כוחות.",
+  "יהי רצון שתזכ{ה|י|ו} לרפואה שלמה, ולחזור בקרוב לשגרה בריא{|ה|ים} ושלם{|ה|ים}."],
+ poem:[
+  "שהכאב יעבור, שהחולי יחלוף,\nשהבריאות תחזור, שהחיוך ירחף.\nרפואה שלמה ומהירה, מכל הלב.",
+  "קצת מנוחה ושמיכה חמימה,\nוהבריאות תחזור שלמה."],
+ brief:[
+  "רפואה שלמה ומהירה!",
+  "החלמה מהירה, וש{תחזור|תחזרי|תחזרו} חזק{|ה|ים} מתמיד!",
+  "חיבוק חם ואיחולי החלמה."]},
+thanks:{label:'תודה',icon:'🙏',emojis:'💛🌸🙏',theme:'honey',
+ head:()=>'תודה רבה',
+ warm:[
+  "[אני רוצה|אני רוצה|אנחנו רוצים] להגיד תודה מכל הלב. מה שעשי{ת|ת|תם} בשביל[י|י|נו] נגע [ללבי|ללבי|ללבנו], ו[אני לא אשכח|אני לא אשכח|לא נשכח] את זה.",
+  "תודה על העזרה, על הזמן ועל הלב הגדול. אנשים כמ{וך|וך|וכם} הופכים את העולם לטוב יותר.",
+  "לא תמיד קל להגיד תודה במילים, אבל [אני רוצה|אני רוצה|אנחנו רוצים] ש{תדע|תדעי|תדעו} כמה זה חשוב ל[י|י|נו].",
+  "תודה שאת{ה||ם} תמיד שם בשביל[י|י|נו]. זו מתנה אמיתית."],
+ funny:[
+  "תודה! [אני חייב|אני חייבת|אנחנו חייבים] {לך|לך|לכם} אחת גדולה. או לפחות קפה ועוגה.",
+  "תודה, {אתה|את|אתם} פשוט {מלאך|מלאך|מלאכים}. אם אי פעם {תצטרך|תצטרכי|תצטרכו} משהו, יש {לך|לך|לכם} [אותי|אותי|אותנו].",
+  "{הצלת|הצלת|הצלתם} ל[י|י|נו] את היום, וזה ממש לא מובן מאליו."],
+ formal:[
+  "[אני מודה|אני מודה|אנו מודים] {לך|לך|לכם} מקרב לב על העזרה, התמיכה והנכונות. תרומת{ך|ך|כם} משמעותית ביותר.",
+  "בתודה והערכה על שיתוף הפעולה הפורה. [אני מקווה|אני מקווה|אנו מקווים] להמשיך ולעבוד יחד בהצלחה.",
+  "תודה רבה על הסיוע והמסירות. מעשי{ך|ך|כם} ראויים להערכה רבה."],
+ poem:[
+  "תודה על הלב, על הזמן ועל העזרה,\nעל כל מילה טובה ועל חיוך של חמלה.\nואנשים כמ{וך|וך|וכם} הם מתנה.",
+  "תודה, תודה, שתי מילים פשוטות,\nשנושאות איתן הרבה הערכה ואהבות."],
+ brief:[
+  "תודה רבה מכל הלב!",
+  "תודה על הכל, זה ממש לא מובן מאליו.",
+  "תודה, {אתה|את|אתם} {מדהים|מדהימה|מדהימים}!"]},
+roshhashana:{label:'ראש השנה',icon:'🍎',emojis:'🍎🍯🌿',theme:'honey',
+ head:()=>'שנה טובה ומתוקה',
+ warm:[
+  "שתהיה שנה טובה ומתוקה, שנה של בריאות, שמחה, הצלחה ושפע. שנה שבה כל משאלה טובה {שלך|שלך|שלכם} תתגשם.",
+  "בפתחה של שנה חדשה, [אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} ולכל יקירי{ך|ך|כם} שנה של שלווה, אהבה וימים מלאי אור.",
+  "לשנה טובה {תיכתב|תיכתבי|תיכתבו} ו{תיחתם|תיחתמי|תיחתמו}! שתהיה שנה של התחלות חדשות ורגעים מרגשים.",
+  "שנה חדשה, התחלה חדשה. שכל מה שהיה קשה יישאר מאחור, וכל מה שטוב יגדל וישגשג."],
+ funny:[
+  "שנה טובה! שהשנה תהיה מתוקה כמו הדבש, רעננה כמו התפוח, ובלי התחלת דיאטה עד אחרי החגים.",
+  "שנה חדשה, החלטות חדשות. ממליצים להתחיל אותן מאוחר, לפחות אחרי הסעודה.",
+  "שנה טובה! שתהיה {לך|לך|לכם} שנה בלי פקקים, בלי מיילים של ‘כמעט חמש’, ועם הרבה דבש."],
+ formal:[
+  "לקראת השנה החדשה, [אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} ולמשפחת{ך|ך|כם} שנה טובה ומתוקה, מלאה בבריאות, בהצלחה ובשמחה.",
+  "שנה טובה ומתוקה! בברכת כתיבה וחתימה טובה, ושנה של שלום ושלווה.",
+  "יהי רצון שהשנה החדשה תביא עמה ברכה והצלחה {לך|לך|לכם} ולכל יקירי{ך|ך|כם}."],
+ poem:[
+  "תפוח בדבש, שנה חדשה בפתח,\nשתהיה {לך|לך|לכם} שנה של שמחה ושל כוח.\nשנה של בריאות, של אהבה ושל נחת,\nשתהיה מתוקה, מאירה ומאושרת.",
+  "שנה חולפת ושנה חדשה באה,\nעם הרבה תקווה, אהבה ושמחה.\nשתהיה שנה של ברכה והצלחה,\nבלי דאגות, רק בריאות ושלווה."],
+ brief:[
+  "שנה טובה ומתוקה!",
+  "לשנה טובה {תיכתב|תיכתבי|תיכתבו} ו{תיחתם|תיחתמי|תיחתמו}!",
+  "שנה של בריאות, שמחה והצלחה. שנה טובה!"]},
+pesach:{label:'פסח',icon:'🍷',emojis:'🍷🌿✨',theme:'meadow',
+ head:()=>'חג פסח שמח',
+ warm:[
+  "חג חירות שמח! [אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} ולמשפחת{ך|ך|כם} ליל סדר מרגש, חם ומלא באהבה.",
+  "שנצא כולנו מכל מצרים אישית: מהדאגות, מהלחצים ומכל מה שמכביד. חג של חירות ורוגע.",
+  "שיהיה חג של שולחן עמוס, משפחה סביב וצחוק שנשמע עד הרחוב.",
+  "פסח כשר ושמח! שהאביב ימלא את הלב באור, ושהחג יביא איתו שלווה ושמחה."],
+ funny:[
+  "חג שמח! שהמצות יהיו פריכות, הסדר קצר, ושכולם יזכרו את המילים לפחות של ‘חד גדיא’.",
+  "שנהיה חופשיים מכל מה שמלחיץ, חוץ מניקיון הפסח. אותו אי אפשר לחסוך. חג שמח!",
+  "פסח שמח! שהאפיקומן יימצא בלי שנצטרך לשחד אף אחד."],
+ formal:[
+  "לקראת חג הפסח, [אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} ולבני משפחת{ך|ך|כם} חג חירות שמח וכשר, מלא שמחה, בריאות ושלווה.",
+  "חג שמח וכשר! יהי רצון שנזכה לחג של חירות, שלום וברכה.",
+  "בברכת חג אביב ופסח שמח {לך|לך|לכם} ולכל בית{ך|ך|כם}."],
+ poem:[
+  "חג האביב הגיע עם אור ופריחה,\nהשולחן ערוך עם חום ושמחה.\nשיהיה {לך|לך|לכם} חג של חירות ואהבה,\nעם משפחה סביב ועם הרבה ברכה.",
+  "מצה ויין, הגדה ושיר,\nחג חירות שמח לכל מי שיקר."],
+ brief:[
+  "חג פסח שמח וכשר!",
+  "חג חירות ואביב שמח!",
+  "פסח שמח {לך|לך|לכם} ולכל המשפחה!"]},
+hanukkah:{label:'חנוכה',icon:'🕎',emojis:'🕎🍩✨',theme:'night',
+ head:()=>'חג חנוכה שמח',
+ warm:[
+  "חג אורים שמח! [אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} שהנרות יאירו את הבית באור חם, ושהלב יתמלא בשמחה ובתקווה.",
+  "שמכל נר שנדליק יזרח אור של תקווה, ושהחג הזה יביא חום, שמחה והרבה רגעים טובים ביחד.",
+  "נס גדול היה שם, ו[אני מאחל|אני מאחלת|אנחנו מאחלים] {לך|לך|לכם} נס קטן בכל יום: חיוך, בריאות ורגע של שקט.",
+  "בימים הקצרים והחשוכים, [שלחתי|שלחתי|שלחנו] {לך|לך|לכם} קצת אור. חג חנוכה שמח!"],
+ funny:[
+  "חנוכה שמח! שהסופגניות יהיו רכות, הלביבות פריכות, והמשקל לא יבין שום דבר עד פברואר.",
+  "שמונה ימים, שמונה נרות, ובערך שמונים סופגניות. {אל תספור|אל תספרי|אל תספרו}, פשוט {תיהנה|תיהני|תיהנו}!",
+  "חג אורים שמח! שהנרות יידלקו בלי שהאש תגיע לווילונות."],
+ formal:[
+  "לרגל חג החנוכה, [אני מאחל|אני מאחלת|אנו מאחלים] {לך|לך|לכם} ולכל בני משפחת{ך|ך|כם} חג אורים שמח, מלא שלווה, בריאות והצלחה.",
+  "חנוכה שמח! יהי רצון שאור הנרות יביא בשורות טובות ושמחה.",
+  "בברכת חג חנוכה שמח ומואר."],
+ poem:[
+  "נר אחר נר, האור מתרבה,\nוהלב מלא בשמחה ואהבה.\nסביבון מסתובב על הרצפה,\nשיהיה חג שמח, חם ומאיר בלי הפסקה.",
+  "נר קטן בחלון, אור גדול בלב,\nחג חנוכה שמח, מלא שמחה וטוב."],
+ brief:[
+  "חנוכה שמח!",
+  "חג אורים שמח {לך|לך|לכם}!",
+  "שיאירו {לך|לך|לכם} כל הנרות. חנוכה שמח!"]},
+general:{label:'סתם ככה',icon:'💛',emojis:'💛☀️✨',theme:'party',
+ head:()=>'חיבוק גדול',
+ warm:[
+  "[רציתי|רציתי|רצינו] להגיד שאת{ה||ם} חשוב{|ה|ים} ל[י|י|נו] מאוד, ושתמיד יש {לך|לך|לכם} על מי לסמוך.",
+  "תודה שאת{ה||ם} חלק מהחיים ש[לי|לי|לנו].",
+  "שיהיה {לך|לך|לכם} יום קל, שבוע טוב, וחיוך בלב שלא עוזב.",
+  "[אני חושב|אני חושבת|אנחנו חושבים] {עליך|עליך|עליכם} ומקווה שהכל טוב. ש{תדע|תדעי|תדעו} שיש מי שאוהב {אותך|אותך|אתכם}."],
+ funny:[
+  "הודעה חשובה: את{ה||ם} {מדהים|מדהימה|מדהימים}. זהו, זה הכל. אפשר להמשיך ביום.",
+  "בדקתי: העולם יפה יותר כשאת{ה||ם} בו. אין צורך להגיב, פשוט לחייך.",
+  "אזהרה: ברכה חמה בדרך. תנאי השימוש: לחייך חצי דקה לפחות."],
+ formal:[
+  "[אני שולח|אני שולחת|אנו שולחים] {לך|לך|לכם} ברכה חמה ואיחולי הצלחה והמשך שבוע נעים.",
+  "בברכה חמה ובאיחולים לימים טובים, רגועים ומוצלחים.",
+  "מאחלים {לך|לך|לכם} המשך יום נעים ושבוע מוצלח."],
+ poem:[
+  "סתם ככה, בלי חג ובלי סיבה גדולה,\n[שלחתי|שלחתי|שלחנו] {לך|לך|לכם} חיבוק וחיוך ושמחה.\nשיהיה {לך|לך|לכם} יום קל ומלא אור,\nוערב שקט שנגמר בשיר.",
+  "אין חג היום ואין יום הולדת, אבל זו סיבה טובה,\nלהגיד {לך|לך|לכם} שיש בלב מקום גדול ושמחה."],
+ brief:[
+  "חיבוק גדול ויום מעולה!",
+  "[אני חושב|אני חושבת|אנחנו חושבים] {עליך|עליך|עליכם}.",
+  "שיהיה {לך|לך|לכם} יום טוב!"]}
+};
+
+const OPEN={
+ warm:['$name {יקר|יקרה|יקרים},','היי $name {היקר|היקרה|היקרים},','$name {האהוב|האהובה|האהובים},','שלום $name,'],
+ funny:['{עצור|עצרי|עצרו} הכל $name, יש הודעה חשובה:','$name, {שמעת|שמעת|שמעתם} כבר?','אזהרה: ברכה בדרך {אליך|אליך|אליכם}!','היי $name, יש לי משהו להגיד {לך|לך|לכם}:'],
+ formal:['$name {היקר|היקרה|היקרים},','$name {הנכבד|הנכבדת|הנכבדים},','שלום $name,'],
+ poem:['$name, {קבל|קבלי|קבלו} כמה שורות בחרוזים:','$name {היקר|היקרה|היקרים}, חרוזים בדרך:','היי $name, הפעם בחרוזים:'],
+ brief:[]
+};
+const CLOSE={
+ warm:{default:['באהבה,','באהבה גדולה,','מכל הלב,','בחיבוק גדול,'],
+  friend:['באהבה,','חיבוק ענק,','תמיד {איתך|איתך|איתכם},'],
+  family:['באהבה גדולה,','באהבה ובחיבוקים,','מכל הלב,'],
+  partner:['{שלך|שלך|שלכם} באהבה,','באהבה אינסופית,','תמיד {שלך|שלך|שלכם},'],
+  colleague:['בהערכה ובידידות,','בברכה חמה,','בידידות,'],
+  boss:['בהערכה רבה,','בכבוד והערכה,'],
+  client:['בברכה ובהערכה,','בתודה ובהערכה,'],
+  teacher:['בהערכה ובתודה,','בתודה גדולה,'],
+  neighbor:['בברכת שכנות טובה,','בחיוך ובברכה,']},
+ funny:{default:['בחיבוק (ובלי לחץ),','בחיוך גדול,','עם הרבה אהבה וקצת סרקזם,']},
+ formal:{default:['בברכה,','בכבוד רב,','בברכת הצלחה,'],client:['בברכה ובהערכה,','בתודה ובברכה,'],boss:['בהערכה רבה,','בכבוד והערכה,'],teacher:['בהערכה רבה,','בכבוד והערכה,']},
+ poem:{default:['באהבה,','בחרוזים ובחיבוק,','בשמחה,']}
+};
+const REL={
+ friend:["{אתה|את|אתם} חלק מהמשפחה ש[בחרתי|בחרתי|בחרנו], ו[אני שמח|אני שמחה|אנחנו שמחים] על כל רגע ביחד.","תודה על החברות, על הצחוקים ועל הכתף הטובה."],
+ family:["המשפחה היא הבית, ו{אתה|את|אתם} חלק חשוב מהבית הזה.","אין כמו משפחה, ואין כמ{וך|וך|וכם} במשפחה שלנו."],
+ partner:["{אתה|את|אתם} הסיבה לחיוך ש[לי|לי|לנו], היום ובכל יום.","[אני אוהב|אני אוהבת|אנחנו אוהבים] {אותך|אותך|אתכם} יותר ממה שמילים יכולות להגיד."],
+ colleague:["תענוג לעבוד עם {אדם|אדם|אנשים} כמ{וך|וך|וכם}.","תודה על שיתוף הפעולה ועל האווירה הטובה."],
+ boss:["תודה על ההנחיה, על ההבנה ועל האמון.","זכות ללמוד ולעבוד תחת הנהגת{ך|ך|כם}."],
+ client:["תודה על האמון ועל שיתוף הפעולה לאורך הדרך.","[אני מעריך|אני מעריכה|אנחנו מעריכים] את הקשר ו[מצפה|מצפה|מצפים] להמשך שיתוף פעולה."],
+ teacher:["תודה על כל מה שלימד{ת|ת|תם} [אותי|אותי|אותנו].","{מורה|מורה|מורים} כמ{וך|וך|וכם} הם מתנה לכל תלמיד."],
+ neighbor:["תודה על שכנות טובה ועל החיוך במדרגות.","כיף לגור ליד {אדם|אדם|אנשים} כמ{וך|וך|וכם}."]
+};
+const THEMES={
+ party:{name:'חגיגה',bg:'#C2255C',ink:'#FFFFFF',accent:'#FFD43B',accent2:'#66D9E8',decor:'confetti'},
+ gala:{name:'ערב חגיגי',bg:'#14213D',ink:'#FFFFFF',accent:'#E2B64B',accent2:'#F4E3A8',decor:'frame'},
+ meadow:{name:'אחו',bg:'#D3F0E0',ink:'#0B3B32',accent:'#1F9D6B',accent2:'#F2B705',decor:'arcs'},
+ sky:{name:'שמיים',bg:'#D9E9FF',ink:'#11305C',accent:'#3B82F6',accent2:'#FFFFFF',decor:'bubbles'},
+ honey:{name:'דבש',bg:'#F6B93B',ink:'#3A2200',accent:'#C0392B',accent2:'#FFF3D6',decor:'rays'},
+ night:{name:'לילה',bg:'#1E1B4B',ink:'#F5F3FF',accent:'#A5B4FC',accent2:'#FDE68A',decor:'stars'},
+ plum:{name:'שזיף',bg:'#4A1D5C',ink:'#FBEFFF',accent:'#FF8FB1',accent2:'#FFD6A5',decor:'bubbles'}
+};
+const TONES=[['warm','חם ורגשי'],['funny','מצחיק'],['formal','רשמי'],['poem','בחרוזים'],['brief','קצר']];
+const LENS=[['s','קצר'],['m','בינוני'],['l','ארוך']];
+const RG=[['m','גבר'],['f','אישה'],['p','זוג או קבוצה']];
+const SG=[['m','גבר'],['f','אישה'],['p','אנחנו']];
+const RELS=[['friend','חבר או חברה'],['family','בן או בת משפחה'],['partner','בן או בת זוג'],['colleague','עמית או עמיתה לעבודה'],['boss','מנהל או מנהלת'],['client','לקוח או לקוחה'],['teacher','מורה'],['neighbor','שכן או שכנה'],['other','אחר']];
+
+/* ---------- generator ---------- */
+function ctxOf(s){
+  return {occ:s.occ,name:s.name,rg:s.rg,sg:s.sg,relation:s.relation,sender:s.sender,tone:s.tone,len:s.len,emoji:s.emoji,
+    age:OCC[s.occ].unit?s.age.trim():'',personal:s.personal,seed:s.seed};
+}
+function buildVariants(c){
+  const O=OCC[c.occ],T=c.tone;
+  const rnd=mulberry32(hash(c.occ+'|'+T)+c.seed*7919);
+  const idx=n=>shuffle(Array.from({length:Math.max(n,1)},(_,i)=>i),rnd);
+  const pool=O[T],oW=idx(pool.length);
+  const openers=OPEN[T],oO=idx(openers.length);
+  const cl=CLOSE[T]?(CLOSE[T][c.relation]||CLOSE[T].default):[],oC=idx(cl.length);
+  const rels=(T==='warm'||T==='funny')?(REL[c.relation]||[]):[],oR=idx(rels.length);
+  const nW=c.len==='s'?1:c.len==='l'?3:2;
+  const take=(o,n,st)=>Array.from({length:n},(_,k)=>o[(st+k)%o.length]);
+  const R=s=>render(s,c);
+  const sender=c.sender.trim();
+  const head=render(O.head(c),c)+(c.name.trim()?', '+c.name.trim():'')+'!';
+  const out=[];
+  for(let v=0;v<3;v++){
+    const b=[];
+    if(T==='brief'){
+      let line=R(pool[take(oW,1,v)[0]]);
+      if(c.emoji)line+=' '+O.emojis;
+      b.push(line);
+      if(sender)b.push(sender);
+    }else{
+      b.push(R(openers[oO[v%oO.length]]));
+      if(T==='poem'){
+        const nV=c.len==='l'?2:1;
+        take(oW,nV,v*nV).forEach(i=>b.push(R(pool[i])));
+      }else{
+        const ws=take(oW,nW,v*nW).map(i=>R(pool[i]));
+        const rel=(c.len==='l'&&rels.length)?R(rels[oR[v%oR.length]]):'';
+        if(nW===3){b.push(ws[0]+' '+ws[1]);b.push((ws[2]+' '+rel).trim());}
+        else b.push(ws.join(' '));
+      }
+      if(c.personal.trim())b.push(c.personal.trim());
+      if(c.emoji)b.push(T==='formal'?Array.from(O.emojis)[0]:O.emojis);
+      const closing=R(cl[oC[v%oC.length]]);
+      b.push(sender?closing+'\n'+sender:closing.replace(/,$/,'.'));
+    }
+    out.push({head,body:b.filter(Boolean).join('\n\n')});
+  }
+  return out;
+}
+
+/* ---------- state ---------- */
+const KEY='greeting-builder:v1',SKEY='greeting-builder:saved',TKEY='greeting-builder:theme';
+const DEFAULTS={occ:'birthday',name:'נועה',rg:'f',relation:'friend',sender:'',sg:'m',tone:'warm',len:'m',emoji:true,age:'',personal:'',seed:1,theme:'party',sel:0,head:'',body:'',dirty:false,inclHead:false};
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let state=Object.assign({},DEFAULTS,lsGet(KEY)||{});
+if(!OCC[state.occ])state.occ='birthday';
+if(!THEMES[state.theme])state.theme=OCC[state.occ].theme;
+if(!['m','f','p'].includes(state.rg))state.rg='f';
+if(!['m','f','p'].includes(state.sg))state.sg='m';
+if(!OPEN[state.tone])state.tone='warm';
+if(!['s','m','l'].includes(state.len))state.len='m';
+if(!REL[state.relation]&&state.relation!=='other')state.relation='friend';
+let saved=Array.isArray(lsGet(SKEY))?lsGet(SKEY):[];
+let variants=[];
+
+/* ---------- UI build ---------- */
+function radios(host,name,items,cls){
+  host.innerHTML=items.map(([v,l,i])=>`<label class="${cls}"><input class="vh" type="radio" name="${name}" value="${v}"><span>${i?`<i>${i}</i>`:''}${l}</span></label>`).join('');
+}
+radios($('#occ'),'occ',ORDER.map(k=>[k,OCC[k].label,OCC[k].icon]),'chip');
+radios($('#rg'),'rg',RG,'');radios($('#sg'),'sg',SG,'');radios($('#tone'),'tone',TONES,'');radios($('#len'),'len',LENS,'');
+$('#relation').innerHTML=RELS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+$('#themes').innerHTML=Object.entries(THEMES).map(([k,t])=>`<label class="sw"><input class="vh" type="radio" name="theme" value="${k}" aria-label="${t.name}"><span title="${t.name}" style="--c1:${t.bg};--c2:${t.accent}"></span></label>`).join('');
+const checkRadio=(n,v)=>{const r=document.querySelector(`input[name="${n}"][value="${v}"]`);if(r)r.checked=true};
+const val=n=>{const r=document.querySelector(`input[name="${n}"]:checked`);return r?r.value:null};
+
+function syncForm(){
+  checkRadio('occ',state.occ);checkRadio('rg',state.rg);checkRadio('sg',state.sg);checkRadio('tone',state.tone);checkRadio('len',state.len);checkRadio('theme',state.theme);
+  $('#name').value=state.name;$('#sender').value=state.sender;$('#relation').value=state.relation;$('#emoji').checked=state.emoji;
+  $('#age').value=state.age;$('#personal').value=state.personal;$('#inclHead').checked=state.inclHead;
+  const u=OCC[state.occ].unit;$('#ageField').hidden=!u;if(u)$('#ageLbl').textContent=u;
+  $('#lenSet').disabled=state.tone==='brief';
+}
+function readForm(){
+  const prev=state.occ;
+  state.occ=val('occ')||state.occ;state.rg=val('rg')||state.rg;state.sg=val('sg')||state.sg;
+  state.tone=val('tone')||state.tone;state.len=val('len')||state.len;
+  state.name=$('#name').value;state.sender=$('#sender').value;state.relation=$('#relation').value;
+  state.emoji=$('#emoji').checked;state.personal=$('#personal').value;
+  state.age=$('#age').value.replace(/\D/g,'').slice(0,3);if($('#age').value!==state.age)$('#age').value=state.age;
+  if(state.occ!==prev){state.theme=OCC[state.occ].theme;state.sel=0;state.dirty=false;}
+  syncForm();
+}
+
+function renderVariants(){
+  const host=$('#variants');host.textContent='';
+  const tags=['הצעה א׳','הצעה ב׳','הצעה ג׳'];
+  variants.forEach((v,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='variant';
+    const t=document.createElement('span');t.className='tag';t.textContent=tags[i];
+    const x=document.createElement('span');x.className='vtext';x.textContent=v.body;
+    b.append(t,x);b.addEventListener('click',()=>pick(i));host.append(b);
+  });
+  markVariants();
+}
+function markVariants(){
+  Array.from($('#variants').children).forEach((b,i)=>b.setAttribute('aria-pressed',String(!state.dirty&&i===state.sel)));
+  $('#dirtyNote').hidden=!state.dirty;
+}
+function pick(i){
+  state.sel=i;state.dirty=false;const v=variants[i];state.head=v.head;state.body=v.body;
+  syncEditor();markVariants();afterEdit();
+}
+function syncEditor(){$('#head').value=state.head;$('#body').value=state.body}
+function regen(){
+  variants=buildVariants(ctxOf(state));
+  if(state.sel>2)state.sel=0;
+  renderVariants();
+  if(!state.dirty){const v=variants[state.sel];state.head=v.head;state.body=v.body;syncEditor();}
+  afterEdit();
+}
+function fullText(){return(state.inclHead&&state.head.trim()?state.head.trim()+'\n\n':'')+state.body}
+function afterEdit(){
+  $('#count').textContent=state.body.length+' תווים';
+  $('#wa').href='https://wa.me/?text='+encodeURIComponent(fullText());
+  drawCard();lsSet(KEY,state);
+}
+
+/* ---------- toast / actions ---------- */
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200)}
+async function copy(){
+  const txt=fullText();
+  try{await navigator.clipboard.writeText(txt);toast('הועתק');return}catch(e){}
+  const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.append(ta);ta.select();
+  try{document.execCommand('copy');toast('הועתק')}catch(e){toast('לא הצלחתי להעתיק. סמנו את הטקסט והעתיקו ידנית.')}
+  ta.remove();
+}
+function cardBlob(){return new Promise(r=>$('#card').toBlob(r,'image/png'))}
+async function download(){
+  const blob=await cardBlob();if(!blob){toast('לא הצלחתי ליצור תמונה');return}
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='ברכה-'+OCC[state.occ].label.replace(/\s+/g,'-')+'.png';document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);toast('הכרטיס נשמר');
+}
+async function share(){
+  try{
+    const blob=await cardBlob();const file=new File([blob],'ברכה.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text:fullText()});
+    else await navigator.share({text:fullText()});
+  }catch(e){}
+}
+function saveCurrent(){
+  saved.unshift({id:Date.now(),occ:state.occ,head:state.head,body:state.body,theme:state.theme,emoji:state.emoji});
+  saved=saved.slice(0,30);lsSet(SKEY,saved);renderSaved();toast('נשמר ברשימה');
+}
+function renderSaved(){
+  const ul=$('#savedList');ul.textContent='';$('#savedEmpty').hidden=saved.length>0;
+  saved.forEach(it=>{
+    const li=document.createElement('li'),d=document.createElement('div');
+    const b=document.createElement('b');b.textContent=it.head||OCC[it.occ].label;
+    const s=document.createElement('small');s.textContent=it.body.replace(/\s+/g,' ').slice(0,70)+(it.body.length>70?'…':'');
+    d.append(b,s);
+    const box=document.createElement('div');box.style.display='flex';box.style.gap='6px';box.style.flexShrink='0';
+    const l=document.createElement('button');l.type='button';l.className='btn';l.textContent='טעינה';
+    l.addEventListener('click',()=>{
+      state.occ=it.occ;state.theme=it.theme;state.emoji=it.emoji;state.head=it.head;state.body=it.body;state.dirty=true;
+      syncForm();variants=buildVariants(ctxOf(state));renderVariants();syncEditor();afterEdit();
+      window.scrollTo({top:0,behavior:'smooth'});toast('הברכה נטענה');
+    });
+    const x=document.createElement('button');x.type='button';x.className='btn';x.textContent='מחיקה';x.setAttribute('aria-label','מחיקת הברכה');
+    x.addEventListener('click',()=>{saved=saved.filter(z=>z.id!==it.id);lsSet(SKEY,saved);renderSaved()});
+    box.append(l,x);li.append(d,box);ul.append(li);
+  });
+}
+
+/* ---------- card ---------- */
+const W=1080,H=1350,DISPLAY='"Secular One","Heebo",Arial,sans-serif',BODYF='"Heebo","Assistant","Segoe UI",Arial,sans-serif';
+function wrap(ctx,text,maxW){
+  const words=text.split(/\s+/).filter(Boolean),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(!cur||ctx.measureText(t).width<=maxW)cur=t;else{lines.push(cur);cur=w}}
+  if(cur)lines.push(cur);return lines;
+}
+function star(ctx,x,y,r){ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.quadraticCurveTo(x,y,x,y+r);ctx.quadraticCurveTo(x,y,x-r,y);ctx.quadraticCurveTo(x,y,x,y-r);ctx.fill()}
+const inText=(x,y)=>x>110&&x<970&&y>100&&y<1250;
+const DECOR={
+ confetti(ctx,th,r){
+  const cols=[th.accent,th.accent2,'#FFFFFF'];
+  for(let i=0,n=0;i<400&&n<80;i++){const x=r()*W,y=r()*H;if(inText(x,y))continue;n++;
+   ctx.fillStyle=cols[Math.floor(r()*cols.length)];ctx.save();ctx.translate(x,y);ctx.rotate(r()*6);
+   if(r()<.5){ctx.beginPath();ctx.arc(0,0,6+r()*9,0,7);ctx.fill()}else ctx.fillRect(-5,-12,10,24);ctx.restore()}
+ },
+ frame(ctx,th){
+  ctx.strokeStyle=th.accent;ctx.lineWidth=3;ctx.strokeRect(48,48,W-96,H-96);ctx.lineWidth=1.5;ctx.strokeRect(68,68,W-136,H-136);
+  ctx.fillStyle=th.accent;[[68,68],[W-68,68],[68,H-68],[W-68,H-68]].forEach(([x,y])=>{ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillRect(-9,-9,18,18);ctx.restore()});
+ },
+ bubbles(ctx,th){
+  ctx.fillStyle=th.accent;ctx.globalAlpha=.16;
+  [[0,0,320],[W,200,200],[90,H,260],[W,H,340],[W-120,H*.55,70]].forEach(([x,y,rr])=>{ctx.beginPath();ctx.arc(x,y,rr,0,7);ctx.fill()});
+  ctx.globalAlpha=1;
+ },
+ arcs(ctx,th){
+  ctx.strokeStyle=th.accent;ctx.globalAlpha=.3;ctx.lineWidth=10;
+  for(let i=0;i<6;i++){const rr=200+i*70;ctx.beginPath();ctx.arc(0,H,rr,-Math.PI/2,0);ctx.stroke();ctx.beginPath();ctx.arc(W,0,rr,Math.PI/2,Math.PI);ctx.stroke()}
+  ctx.globalAlpha=1;
+ },
+ rays(ctx,th){
+  ctx.fillStyle=th.accent2;ctx.globalAlpha=.3;const n=24,st=Math.PI/n;
+  for(let i=0;i<n;i+=2){ctx.beginPath();ctx.moveTo(W/2,-80);ctx.arc(W/2,-80,2200,i*st,(i+1)*st);ctx.closePath();ctx.fill()}
+  ctx.globalAlpha=1;
+ },
+ stars(ctx,th,r){
+  for(let i=0,n=0;i<400&&n<50;i++){const x=r()*W,y=r()*H;if(inText(x,y))continue;n++;
+   ctx.fillStyle=r()<.5?th.accent:th.accent2;star(ctx,x,y,6+r()*20)}
+ }
+};
+function layoutBody(ctx,text,maxW,maxH){
+  const paras=text.split('\n');let res;
+  for(let size=46;size>=22;size-=2){
+    ctx.font=`500 ${size}px ${BODYF}`;const lh=size*1.5,items=[];let h=0;
+    for(const p of paras){
+      if(!p.trim()){items.push(null);h+=lh*.55;continue}
+      wrap(ctx,p,maxW).forEach(l=>{items.push(l);h+=lh});
+    }
+    res={size,lh,items,h};if(h<=maxH)break;
+  }
+  return res;
+}
+function drawCard(){
+  const cv=$('#card'),ctx=cv.getContext('2d'),th=THEMES[state.theme];
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=th.bg;ctx.fillRect(0,0,W,H);
+  DECOR[th.decor](ctx,th,mulberry32(hash(state.theme)));
+  ctx.direction='rtl';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillStyle=th.ink;
+  let y=150;
+  if(state.emoji){ctx.font='110px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';ctx.fillText(OCC[state.occ].icon,W/2,y+60);y+=150}
+  const head=state.head.trim();
+  if(head){
+    let size=96,lines;
+    for(;size>=48;size-=6){ctx.font=`400 ${size}px ${DISPLAY}`;lines=wrap(ctx,head,860);if(lines.length<=2)break}
+    ctx.fillStyle=th.ink;lines.forEach((l,i)=>ctx.fillText(l,W/2,y+size*.9+i*size*1.2));
+    y+=lines.length*size*1.2+10;
+  }
+  ctx.fillStyle=th.accent;ctx.fillRect(W/2-60,y+10,120,8);y+=60;
+  const top=y,bottom=H-130,L=layoutBody(ctx,state.body,840,bottom-top);
+  let cy=top+Math.max(0,(bottom-top-L.h)/2);
+  ctx.font=`500 ${L.size}px ${BODYF}`;ctx.fillStyle=th.ink;
+  for(const it of L.items){
+    if(it===null){cy+=L.lh*.55;continue}
+    if(cy+L.lh>H-60)break;
+    ctx.fillText(it,W/2,cy+L.lh*.72);cy+=L.lh;
+  }
+}
+
+/* ---------- theme toggle ---------- */
+const MODES=['auto','light','dark'],MODE_LBL={auto:'אוטומטי',light:'בהיר',dark:'כהה'};
+let mode=lsGet(TKEY)||'auto';
+function applyMode(){
+  if(mode==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',mode);
+  $('#themeBtn').textContent='מצב תצוגה: '+MODE_LBL[mode];
+}
+$('#themeBtn').addEventListener('click',()=>{mode=MODES[(MODES.indexOf(mode)+1)%3];lsSet(TKEY,mode);applyMode()});
+
+/* ---------- wiring ---------- */
+const onForm=()=>{readForm();regen()};
+$('#formPanel').addEventListener('input',onForm);
+$('#formPanel').addEventListener('change',onForm);
+$('#themes').addEventListener('change',()=>{state.theme=val('theme');afterEdit()});
+$('#shuffle').addEventListener('click',()=>{state.seed++;state.sel=0;state.dirty=false;regen()});
+$('#applyVariant').addEventListener('click',()=>pick(state.sel));
+function onEditor(){
+  state.head=$('#head').value;state.body=$('#body').value;
+  const v=variants[state.sel];state.dirty=!v||state.head!==v.head||state.body!==v.body;
+  markVariants();afterEdit();
+}
+$('#head').addEventListener('input',onEditor);$('#body').addEventListener('input',onEditor);
+$('#inclHead').addEventListener('change',e=>{state.inclHead=e.target.checked;afterEdit()});
+$('#copy').addEventListener('click',copy);
+$('#download').addEventListener('click',download);
+$('#save').addEventListener('click',saveCurrent);
+if(navigator.share){$('#share').hidden=false;$('#share').addEventListener('click',share)}
+
+applyMode();syncForm();renderSaved();
+if(state.dirty&&state.body){variants=buildVariants(ctxOf(state));renderVariants();syncEditor();afterEdit()}else regen();
+if(document.fonts){
+  Promise.all([document.fonts.load('400 40px "Secular One"'),document.fonts.load('500 30px Heebo')]).then(drawCard,()=>{});
+  document.fonts.ready.then(drawCard);
+}
+</script>
+</body>
+</html>
