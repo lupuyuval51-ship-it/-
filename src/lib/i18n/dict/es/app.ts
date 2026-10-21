@@ -338,6 +338,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "prac.done.great": "Ahora todas están bien — muy bien hecho.",
   "prac.done.more": "Algunas todavía necesitan trabajo. Lee las explicaciones otra vez y vuelve a intentarlo.",
   "prac.done.review": "Volver a las explicaciones",
+  "prac.done.empty": "Ahora no hay nada que practicar aquí.",
   "res.review.revealed": "Necesitó que se revelara la respuesta",
   "res.review.multiple": "Necesitó más de un intento",
   "res.achievements": "Logros",

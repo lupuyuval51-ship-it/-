@@ -36,9 +36,9 @@ export function Backdrop({ world, profile, materials }: { world: WorldModel; pro
   const groundY = world.hasVoid ? world.killY + 3 : -0.03;
 
   const pieces = useMemo(() => {
-    return skylineFor(buildSkyline(world.environment, theme, world.seed, groundY), profile);
+    return skylineFor(buildSkyline(world.environment, theme, world.seed, groundY, world.bounds), profile);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [world.environment, world.seed, theme, groundY, profile.environmentDetail, profile.limits.skylineMin, profile.limits.skylinePieces]);
+  }, [world.environment, world.seed, theme, groundY, world.bounds, profile.environmentDetail, profile.limits.skylineMin, profile.limits.skylinePieces]);
 
   const groups = useMemo(() => {
     const m = new Map<SkylineGeo, typeof pieces>();

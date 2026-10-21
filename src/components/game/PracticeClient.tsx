@@ -57,8 +57,9 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
     return (
       <div className="mx-auto max-w-xl space-y-5 text-center" data-testid="practice-done">
         <h1 className="text-3xl font-extrabold">{t("prac.done.title")}</h1>
-        <p className="text-xl" data-testid="practice-score">{t("prac.done.score", { right, total: items.length })}</p>
-        <Card className="text-sm text-muted">{right === items.length ? t("prac.done.great") : t("prac.done.more")}</Card>
+        {items.length > 0 && <p className="text-xl" data-testid="practice-score">{t("prac.done.score", { right, total: items.length })}</p>}
+        {/* a round with no question to ask (its game is gone or damaged) gets no score and no praise */}
+        <Card className="text-sm text-muted">{items.length === 0 ? t("prac.done.empty") : right === items.length ? t("prac.done.great") : t("prac.done.more")}</Card>
         <div className="flex flex-wrap justify-center gap-3">
           {reviewLink && <Link href={reviewLink} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("prac.done.review")}</Link>}
           <Link href={back} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t("rev.back")}</Link>

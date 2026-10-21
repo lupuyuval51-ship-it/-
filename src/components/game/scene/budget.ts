@@ -115,7 +115,7 @@ export function sceneBudget(world: WorldModel, profile: RenderProfile): SceneBud
   }
 
   const groundY = world.hasVoid ? world.killY + 3 : -0.03;
-  const sky = skylineFor(buildSkyline(world.environment, world.theme, world.seed, groundY), profile);
+  const sky = skylineFor(buildSkyline(world.environment, world.theme, world.seed, groundY, world.bounds), profile);
   const skylineDrawCalls = new Set(sky.map((p) => p.geo)).size;
   for (const p of sky) triangles += skylineTriangles(p.geo, detail);
   const water = world.hasVoid || profile.limits.water === 0 ? [] : buildWater(world.environment, world.theme, world.seed, world.bounds);

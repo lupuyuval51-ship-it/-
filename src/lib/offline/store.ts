@@ -494,7 +494,14 @@ export class OfflineStore {
   }
 
   deckSummary(): { total: number; due: number; nextDue: number | null } {
-    const cards = Object.values(this.syncDeck()).filter((c) => !c.mastered);
+    // only the cards a round can really ask (the same test as "start"), so the badge never offers an empty round
+    const games = new Map<string, StoredGame | null>();
+    const askable = (c: DeckCard) => {
+      if (!games.has(c.gameId)) games.set(c.gameId, this.getGame(c.gameId));
+      const game = games.get(c.gameId);
+      return !!game && !!findChallenge(game.spec, c.challengeId);
+    };
+    const cards = Object.values(this.syncDeck()).filter((c) => !c.mastered && askable(c));
     const now = this.clock();
     const future = cards.filter((c) => c.due > now).map((c) => c.due);
     return { total: cards.length, due: cards.filter((c) => c.due <= now).length, nextDue: future.length ? Math.min(...future) : null };
