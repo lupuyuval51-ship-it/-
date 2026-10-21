@@ -34,7 +34,7 @@ describe("LEVEL UP AI client (the app side)", () => {
 
   it("turns every failure into a plain reason", async () => {
     expect((await failure(async () => { throw new TypeError("network"); })).failure).toBe("OFFLINE");
-    for (const [code, want] of [["UNAUTHENTICATED", "SIGN_IN"], ["DAILY_LIMIT", "DAILY_LIMIT"], ["ONE_AT_A_TIME", "BUSY"], ["AI_UNAVAILABLE", "UNAVAILABLE"], ["TIMEOUT", "TIMEOUT"], ["INVALID_OUTPUT", "INVALID"], ["???", "GENERIC"]] as const) {
+    for (const [code, want] of [["UNAUTHENTICATED", "SIGN_IN"], ["DAILY_LIMIT", "DAILY_LIMIT"], ["ONE_AT_A_TIME", "BUSY"], ["AI_UNAVAILABLE", "UNAVAILABLE"], ["TIMEOUT", "TIMEOUT"], ["INVALID_OUTPUT", "INVALID"], ["OUTPUT_TRUNCATED", "INVALID"], ["PROVIDER_REFUSED", "INVALID"], ["???", "GENERIC"]] as const) {
       expect((await failure(reply(400, { error: { code, message: "details never shown" } }))).failure, code).toBe(want);
     }
     expect((await failure((async () => new Response("<html>", { status: 502 })) as unknown as typeof fetch)).failure).toBe("GENERIC");
@@ -65,6 +65,13 @@ describe("LEVEL UP AI client (the app side)", () => {
       expect(spec.meta.featureTier).toBe("B");
       expect(spec.meta.generator?.kind).toBe("ai");
       expect(validateGameSpec(spec, { alignGameType: spec.meta.gameType }).ok).toBe(true);
+    });
+
+    it("tells the function the phone's level, so it writes the game at that level (it can only lower its own)", async () => {
+      let sent: Record<string, unknown> = {};
+      const capture = (async (_url: string, init: RequestInit) => { sent = JSON.parse(init.body as string) as Record<string, unknown>; return new Response(JSON.stringify({ spec: full() }), { status: 200 }); }) as unknown as typeof fetch;
+      await generateWithAi(fullReq, "tok", undefined, capture, "B");
+      expect(sent.level).toBe("B");
     });
 
     it("a single-area tier gets a single-area game", async () => {

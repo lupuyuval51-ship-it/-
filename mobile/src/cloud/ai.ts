@@ -18,7 +18,7 @@ export class AiError extends Error {
 
 const BY_CODE: Record<string, AiFailure> = {
   UNAUTHENTICATED: "SIGN_IN", DAILY_LIMIT: "DAILY_LIMIT", ONE_AT_A_TIME: "BUSY", AI_UNAVAILABLE: "UNAVAILABLE",
-  TIMEOUT: "TIMEOUT", INVALID_OUTPUT: "INVALID", TIER_BUILD_FAILED: "INVALID",
+  TIMEOUT: "TIMEOUT", INVALID_OUTPUT: "INVALID", TIER_BUILD_FAILED: "INVALID", OUTPUT_TRUNCATED: "INVALID", PROVIDER_REFUSED: "INVALID",
   PROVIDER_UNAVAILABLE: "UNAVAILABLE", PROVIDER_RATE_LIMITED: "UNAVAILABLE", PROVIDER_AUTH: "UNAVAILABLE", PROVIDER_TIMEOUT: "TIMEOUT",
 };
 
@@ -37,7 +37,9 @@ export async function generateWithAi(request: GenerationRequest, accessToken: st
     res = await fetchImpl(`${AI_URL}/functions/v1/generate-game`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-      body: JSON.stringify(request),
+      // the phone's level: the function writes and clamps the game at it (it can only lower the server's tier), so a game the
+      // phone would cut down is never counted as a full one
+      body: JSON.stringify({ ...request, level: tier }),
       signal,
     });
   } catch {

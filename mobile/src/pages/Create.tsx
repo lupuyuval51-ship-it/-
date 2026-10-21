@@ -327,7 +327,7 @@ export function CreatePage() {
           </div>
         </Alert>
       )}
-      <MaterialPreview material={form.material} full={form.mode === "FULL"} />
+      <MaterialPreview material={form.material} full={form.mode === "FULL"} lang={form.language === "he" ? "he" : "en"} />
       </div>
       )}
       <div className="min-w-0 space-y-4" data-testid="create-options-column">
