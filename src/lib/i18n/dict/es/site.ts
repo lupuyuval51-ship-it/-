@@ -132,6 +132,7 @@ export const siteEs: Record<keyof typeof site.en, string> = {
   "auth.password.hide": "Ocultar contraseña",
   "page.details": "Detalles del juego",
   "about.title": "Acerca de LEVEL UP",
+  "privacy.title": "Política de privacidad",
   "acc.intro": "Tu LUPU ID es tu cuenta de LEVEL UP. Puedes iniciar sesión con correo o con Google.",
   "about.madeBy": "LEVEL UP es obra de LUPU.",
   "about.version": "Versión de la app {version}",

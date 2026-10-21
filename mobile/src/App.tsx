@@ -28,6 +28,7 @@ const ReviewPage = lazy(() => import("./pages/Results").then((m) => ({ default: 
 const AboutPage = lazy(() => import("./pages/About").then((m) => ({ default: m.AboutPage })));
 const PlansPage = lazy(() => import("./pages/Plans").then((m) => ({ default: m.PlansPage })));
 const SettingsPage = lazy(() => import("./pages/Settings").then((m) => ({ default: m.SettingsPage })));
+const PrivacyPage = lazy(() => import("./pages/Privacy").then((m) => ({ default: m.PrivacyPage })));
 const GoogleGate = lazy(() => import("./pages/GoogleGate").then((m) => ({ default: m.GoogleGate })));
 const CoursePage = lazy(() => import("./pages/Course").then((m) => ({ default: m.CoursePage })));
 
@@ -36,6 +37,7 @@ function route(path: string) {
   if (path === "/create") return <CreatePage />;
   if (path === "/settings") return <SettingsPage />;
   if (path === "/about") return <AboutPage />;
+  if (path === "/privacy") return <PrivacyPage />;
   if (path === "/plans" && showPlans()) return <PlansPage />;
   if (path === "/review") return <DeckPage />;
   if ((m = path.match(/^\/course\/([\w-]+)$/))) return <CoursePage key={m[1]} courseId={m[1]!} />;

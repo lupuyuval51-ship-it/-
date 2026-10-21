@@ -9,7 +9,7 @@ const TABS = [
 ] as const;
 
 /** Is `path` this tab's screen (or a screen opened from it, e.g. a game's results belong to Home)? */
-const isActive = (href: string, path: string) => (href === "/" ? !["/create", "/review", "/settings", "/plans", "/about"].some((p) => path.startsWith(p)) : path.startsWith(href) || (href === "/settings" && (path.startsWith("/plans") || path.startsWith("/about"))));
+const isActive = (href: string, path: string) => (href === "/" ? !["/create", "/review", "/settings", "/plans", "/about", "/privacy"].some((p) => path.startsWith(p)) : path.startsWith(href) || (href === "/settings" && (path.startsWith("/plans") || path.startsWith("/about") || path.startsWith("/privacy"))));
 
 /**
  * The app's main navigation, at the bottom of the screen where a thumb reaches it: four large tabs (at least 56 px tall),

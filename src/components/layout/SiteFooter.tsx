@@ -10,6 +10,7 @@ export async function SiteFooter() {
         <p>{t("footer.demo")}</p>
         <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span data-testid="footer-rights">{t("footer.rights", { year: new Date().getFullYear() })}</span>
+          <Link href="/privacy" className="underline underline-offset-2 hover:text-text" data-testid="footer-privacy">{t("privacy.title")}</Link>
           <Link href="/about" className="underline underline-offset-2 hover:text-text" data-testid="footer-about">{t("footer.about")}</Link>
         </p>
       </div>

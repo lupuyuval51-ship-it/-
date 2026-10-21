@@ -105,6 +105,7 @@ export function SettingsPage() {
             </div>
             <div className="space-y-2">
               {showPlans() && <LinkRow label={t("pricing.title")} testId="open-plans" onOpen={() => navigate("/plans")} />}
+              <LinkRow label={t("privacy.title")} testId="open-privacy" onOpen={() => navigate("/privacy")} />
               <LinkRow label={t("mob.settings.credits")} testId="about-credits" onOpen={() => navigate("/about")} />
               <LinkRow label={t("mob.settings.setupAgain")} testId="setup-again" onOpen={() => { setSettings({ setupDone: false }); navigate("/"); }} />
               <LinkRow label={t("mob.settings.welcome")} testId="welcome-again" onOpen={() => navigate("/?welcome=1")} />
