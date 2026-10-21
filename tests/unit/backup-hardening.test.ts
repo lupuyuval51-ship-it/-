@@ -327,7 +327,8 @@ describe("property: a backup restores exactly what was exported", () => {
       expect(r.rejectedGames, `seed ${seed}`).toEqual([]);
       expect(r.droppedSessions + r.droppedCards, `seed ${seed}`).toBe(0);
       expect(content(dst.store), `seed ${seed}`).toEqual(before);
-      const rows = (store: OfflineStore) => store.listGames().map((g) => ({ ...g, createdAt: 0 })).sort((x, y) => x.id.localeCompare(y.id));
+      // createdAt and the newest run's store stamp (lastStampAt) are this device's own clock: an import stamps them anew
+      const rows = (store: OfflineStore) => store.listGames().map((g) => ({ ...g, createdAt: 0, lastStampAt: 0 })).sort((x, y) => x.id.localeCompare(y.id));
       expect(rows(dst.store), `seed ${seed}`).toEqual(rows(src.store));
       const again = importBackup(dst.store, text);
       expect(again, `seed ${seed}`).toMatchObject({ gamesAdded: 0, gamesUpdated: 0, sessionsImported: 0, cardsImported: 0 });
