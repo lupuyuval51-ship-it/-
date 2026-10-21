@@ -62,7 +62,8 @@ export function chapterGames(src: CourseSource, chapterIds: readonly string[], r
       const topicId = kind === "catalog" ? (fromRow ? g.templateId : meta?.generator?.templateId) : undefined;
       const difficulty = fromRow ? g.difficulty : meta?.difficulty;
       if (!topicId || !wanted.has(topicId) || !isDifficulty(difficulty)) return [];
-      return [{ id: g.id, topicId, difficulty, done: g.bestScore > 0 || g.bestStars > 0, inProgress: g.inProgress, lastPlayedAt: g.lastPlayedAt ?? g.createdAt }];
+      // a chapter played to the end is done even when it scored nothing (every answer revealed): the course moves on
+      return [{ id: g.id, topicId, difficulty, done: g.completed ?? (g.bestScore > 0 || g.bestStars > 0), inProgress: g.inProgress, lastPlayedAt: g.lastPlayedAt ?? g.createdAt }];
     } catch {
       return [];
     }

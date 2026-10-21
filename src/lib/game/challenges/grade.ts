@@ -176,7 +176,8 @@ function gradeRaw(ch: Challenge, answer: Answer, lang: ContentLanguage): GradeRe
         }
         const range = projectileRange(speed, angle, sim.gravity);
         const diff = range - sim.targetDistance;
-        const correct = Math.abs(diff) <= sim.tolerance;
+        // the same margin as a numeric answer: a slider exactly on the edge is inside (0.25000000000000022 is 0.25)
+        const correct = Math.abs(diff) <= sim.tolerance + 1e-9;
         const feedback = correct
           ? msg(lang, "simProjHit", { r: round(range) })
           : diff > 0
@@ -188,7 +189,7 @@ function gradeRaw(ch: Challenge, answer: Answer, lang: ContentLanguage): GradeRe
       const d = a.params.distance;
       if (d === undefined || d <= 0 || d > sim.maxDistance) return { correct: false, feedback: msg(lang, "invalidAnswer") };
       const balance = leverBalanceDistance(sim);
-      const correct = Math.abs(d - balance) <= sim.tolerance;
+      const correct = Math.abs(d - balance) <= sim.tolerance + 1e-9;
       const torque = sim.leftWeight * sim.leftDistance - sim.rightWeight * d;
       return {
         correct,

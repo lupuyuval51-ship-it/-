@@ -31,3 +31,17 @@ describe("study engine: ordering questions only from distinct steps", () => {
     expect(steps?.items).toHaveLength(3);
   });
 });
+
+describe("study engine: the Hebrew refusal counts its questions right", () => {
+  it("never 'ל-1 שאלות' or 'ל-0 שאלות'", async () => {
+    const { MaterialError } = await import("@/lib/game/material/build");
+    const seen: string[] = [];
+    for (const material of ["דבורים: חרקים שאוספים צוף ומייצרים דבש בכוורת.", "דבורים: חרקים שאוספים צוף.\nנמלים: חרקים שחיים במושבות גדולות מתחת לאדמה.", "שלום לכולם, היום יום יפה מאוד בחוץ."]) {
+      try { buildMaterialSpec(request({ material, subject: "בדיקה", contentLanguage: "he", mode: "FAST" } as never) as never); } catch (e) { if (e instanceof MaterialError) seen.push(e.userMessage("he")); }
+    }
+    expect(seen.length).toBeGreaterThan(0);
+    for (const he of seen) expect(he).not.toMatch(/ל-[01] שאלות/);
+    const { heEnough } = await import("@/lib/game/material/build");
+    expect([heEnough(0), heEnough(1), heEnough(2)]).toEqual(["לאף שאלה", "רק לשאלה אחת", "רק ל-2 שאלות"]);
+  });
+});

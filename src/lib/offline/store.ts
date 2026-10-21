@@ -72,6 +72,8 @@ export interface GameSummaryRow {
   bestStars: number;
   maxScore: number;
   inProgress: boolean;
+  /** Whether a run of this game was ever finished (a finished run may score 0: every answer revealed). */
+  completed?: boolean;
   /** Share of missions finished in the unfinished run (0–100). */
   percent: number;
   lastSessionId: string | null;
@@ -317,7 +319,7 @@ export class OfflineStore {
         id, title: g.title, subject: g.spec.meta.subject, createdAt: g.createdAt, generatorKind: g.spec.meta.generator?.kind ?? "demo",
         environment: g.spec.theme.environment, maxScore: maxScore(g.spec),
         bestScore: Math.max(0, ...best.map((b) => b.score)), bestStars: Math.max(0, ...best.map((b) => b.stars)),
-        inProgress: sessions.some((s) => s.status === "ACTIVE"), percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
+        inProgress: sessions.some((s) => s.status === "ACTIVE"), completed: done.length > 0, percent: activePercent(g.spec, sessions), lastSessionId: sessions[0]?.id ?? null,
         lastPlayedAt: sessions.length ? Math.max(...sessions.map((s) => Math.max(s.state.updatedAt, s.finishedAt ?? 0, s.startedAt))) : null,
         difficulty: g.spec.meta.difficulty, ...(templateId ? { templateId } : {}),
       };

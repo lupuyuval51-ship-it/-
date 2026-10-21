@@ -106,7 +106,7 @@ function prepare(req: GenerationRequest, max: number, idPrefix = "", variants = 
   if (gen.challenges.length < MIN_CHALLENGES) {
     throw new MaterialError("TOO_LITTLE", {
       en: `Your material only has enough for ${gen.challenges.length} question(s); a game needs at least ${MIN_CHALLENGES}. Add more sentences, “term: meaning” lines, numbered steps or facts with numbers.`,
-      he: `החומר שלכם מספיק רק ל-${gen.challenges.length} שאלות; משחק צריך לפחות ${MIN_CHALLENGES}. הוסיפו עוד משפטים, שורות ״מושג: הסבר״, שלבים ממוספרים או עובדות עם מספרים.`,
+      he: `החומר שלכם מספיק ${heEnough(gen.challenges.length)}; משחק צריך לפחות ${MIN_CHALLENGES}. הוסיפו עוד משפטים, שורות ״מושג: הסבר״, שלבים ממוספרים או עובדות עם מספרים.`,
     });
   }
   return { know, gen, lang, material };
@@ -198,6 +198,9 @@ function missionsFor(o: { area: Raw; index: number; challenges: Raw[]; lang: Lan
     },
   ];
 }
+
+/** "enough for N questions" in Hebrew, with the singular and the zero form ("ל-1 שאלות" is wrong Hebrew). */
+export const heEnough = (n: number): string => (n === 0 ? "לאף שאלה" : n === 1 ? "רק לשאלה אחת" : `רק ל-${n} שאלות`);
 
 export function buildMaterialSpec(req: GenerationRequest): MaterialBuild {
   const full = req.mode === "FULL";

@@ -1,4 +1,5 @@
 import { revealSolution, toPublicAnswer, type Answer } from "@/lib/game/challenges/grade";
+import { leverBalanceDistance, projectileRange } from "@/lib/game/challenges/simulations";
 import { GAME_TYPES, type GameType } from "@/lib/game/spec/constants";
 import type { Challenge, GameSpec } from "@/lib/game/spec/schema";
 import { validateGameSpec } from "@/lib/game/spec/validate";
@@ -43,6 +44,20 @@ export function wrongAnswer(ch: Challenge, seed?: string): Answer {
   return seed === undefined ? raw : toPublicAnswer(ch, raw, seed);
 }
 
+/**
+ * Simulation parameters that really miss. A fixed guess does not: a weak shot lands near 0 m, inside the tolerance of a small
+ * target, and 0.5 m can be a lever's balance point, so a "wrong" answer would be graded right.
+ */
+function wrongSim(sim: Extract<Challenge, { type: "simulation" }>["sim"]): Record<string, number> {
+  if (sim.kind === "projectile") {
+    const misses = (p: { angle: number; speed: number }) => Math.abs(projectileRange(p.speed, p.angle, sim.gravity) - sim.targetDistance) > sim.tolerance + 1e-6;
+    return [{ angle: 10, speed: 1 }, { angle: 45, speed: sim.maxSpeed }, { angle: 80, speed: 1 }].find(misses) ?? { angle: 10, speed: 1 };
+  }
+  const balance = leverBalanceDistance(sim);
+  const far = balance + sim.tolerance + 0.5;
+  return { distance: far <= sim.maxDistance ? far : Math.max(0.05, balance - sim.tolerance - 0.5) };
+}
+
 function wrongRaw(ch: Challenge): Answer {
   switch (ch.type) {
     case "choice": return { type: "choice", optionId: ch.options.find((o) => o.id !== ch.correctOptionId)!.id };
@@ -50,7 +65,7 @@ function wrongRaw(ch: Challenge): Answer {
     case "sequence": return { type: "sequence", order: [...ch.items.map((i) => i.id)].reverse() };
     case "match": return { type: "match", pairs: ch.pairs.map((p, i) => ({ leftId: p.id, rightId: ch.pairs[(i + 1) % ch.pairs.length]!.id })) };
     case "program": return { type: "program", program: [{ t: "left" }] };
-    case "simulation": return { type: "simulation", params: ch.sim.kind === "projectile" ? { angle: 10, speed: 1 } : { distance: 0.5 } };
+    case "simulation": return { type: "simulation", params: wrongSim(ch.sim) };
   }
 }
 

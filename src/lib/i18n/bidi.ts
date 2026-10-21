@@ -11,17 +11,21 @@ const HEBREW = /\p{Script=Hebrew}/u;
 
 // a number: 1,200 · 3.47 · 3/4 · 25% · 0.333… · a mixed number 2 1/4 · a blank x/9, 7/x
 const NUM = String.raw`(?:\d+ (?:\d+|x)\/\d+|\d+(?:[.,]\d+)*(?:\/(?:\d+|x))?(?:…|%)?|x\/\d+)`;
+// a sign in front of a number ("-30", "−2") belongs to it, unless a letter is glued to it: "ל-0" is the prefix ל ("to") and 0
+const SIGN = String.raw`(?:(?<![\p{L}\p{N}])[−-](?=\d))?`;
 // an operand: a number, optionally written straight into a variable ("3x", "3x3"), or x; with superscript exponents ("2²", "x²")
-const OPERAND = String.raw`(?:${NUM}(?:x(?![A-Za-z])\d*)?|x\d*)[⁰¹²³⁴⁵⁶⁷⁸⁹]*`;
-const PAREN = String.raw`\(\s*${OPERAND}(?:\s*[×÷−+=≈/]\s*${OPERAND})*\s*\)`;
+const OPERAND = String.raw`(?:${SIGN}${NUM}(?:x(?![A-Za-z])\d*)?|x\d*)[⁰¹²³⁴⁵⁶⁷⁸⁹]*`;
+// between two operands: a maths sign, or a hyphen with a space on each side ("5 - 3"; a hyphen glued to a word is not one)
+const OP = String.raw`(?:\s*[×÷−+=≈/]\s*|\s+-\s+)`;
+const PAREN = String.raw`\(\s*${OPERAND}(?:${OP}${OPERAND})*\s*\)`;
 const GROUP = String.raw`(?:${OPERAND}|${PAREN})`;
 // a bracket written straight after a factor is a product too: "2(x + 1)", "(x + 2)(x − 3)"
-const RUN = new RegExp(String.raw`${GROUP}(?:\s*[×÷−+=≈/]\s*${GROUP}|(?=\()${PAREN})*`, "gu");
+const RUN = new RegExp(String.raw`${GROUP}(?:${OP}${GROUP}|(?=\()${PAREN})*`, "gu");
 
 export interface TextPart { text: string; math: boolean }
 
 /** A line that is nothing but arithmetic ("4/8", "2/3 = 4/6", "1 1/4 m" is not): numbers, x, spaces and maths signs. */
-export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\d.,/%…×÷−+=≈()x]*$/.test(text);
+export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\d.,/%…×÷−+=≈()x-]*$/.test(text);
 
 /** The parts of a line: maths runs (containing at least one digit) and the text between them. Non-Hebrew text is one part (maths when it is all arithmetic). */
 export function mathRuns(text: string): TextPart[] {

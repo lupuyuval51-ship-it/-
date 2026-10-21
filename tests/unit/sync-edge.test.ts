@@ -55,7 +55,7 @@ describe("cloud rows are untrusted like a backup file", () => {
     expect(b.store.listGames()).toEqual([]);
   });
 
-  it("a pulled game that claims a feature tier or generator keeps the honest ones and loses the AI claim", async () => {
+  it("a pulled game keeps its feature tier and its generator label, LEVEL UP AI included", async () => {
     const cloud = cloudAt(2_000_000);
     const a = phone(1_000_000);
     const g = addGame(a);
@@ -64,7 +64,7 @@ describe("cloud rows are untrusted like a backup file", () => {
     cloud.games.get(g.id)!.updatedAt = new Date(cloud.tick += 1000).toISOString();
     const b = phone(5_000_000);
     await b.sync(cloud);
-    expect(b.store.getGame(g.id)!.spec.meta.generator).toBeUndefined();
+    expect(b.store.getGame(g.id)!.spec.meta.generator?.kind).toBe("ai");
     expect(b.store.getGame(g.id)!.spec.meta.featureTier).toBe("A");
   });
 });

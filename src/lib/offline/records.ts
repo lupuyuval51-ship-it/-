@@ -181,15 +181,18 @@ const rank = (t: FeatureTier) => FEATURE_TIERS.indexOf(t);
 /**
  * Validate a spec from outside (backup, cloud) and give back the sanitised copy.
  * `validateGameSpec` strips `meta.generator` and `meta.featureTier` (a model must not set them). A game of this device keeps its
- * honest label, so both are restored from the input when well-formed: the generator unless it claims "ai" (this app has no AI,
- * so that is shown as a demo), the tier only up to what this device is entitled to (anything above it is clamped down).
+ * honest label, so both are restored from the input when well-formed: the generator as it is (LEVEL UP AI's "ai" too), the tier
+ * only up to what this device is entitled to (anything above it is clamped down).
  */
 export function revalidateSpec(input: unknown, deviceTier: FeatureTier = getOfflineTier()): { ok: true; spec: GameSpec } | { ok: false; reason: string } {
   const res = validateGameSpec(input);
   if (!res.ok) return { ok: false, reason: res.errors[0] ?? "invalid game" };
   const meta = isObj(input) && isObj(input.meta) ? input.meta : {};
   const declared = generatorInfoSchema.safeParse(meta.generator);
-  if (declared.success && declared.data.kind !== "ai") res.spec.meta.generator = declared.data;
+  // Every honest label is kept, LEVEL UP AI's included: the app makes AI games itself now (mobile/src/cloud/ai.ts labels them "ai"),
+  // and dropping the label made such a game read "Ready-made template" on the next phone. A label is only ever said of a game,
+  // never trusted for anything (validation, scoring, plans), so a file that claims "ai" changes nothing but its own badge.
+  if (declared.success) res.spec.meta.generator = declared.data;
   const tier = tierSchema.safeParse(meta.featureTier);
   if (tier.success && rank(tier.data) <= rank(deviceTier)) {
     res.spec.meta.featureTier = tier.data;

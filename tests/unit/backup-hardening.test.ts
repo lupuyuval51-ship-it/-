@@ -78,14 +78,14 @@ describe("backup round trip keeps everything the rules depend on", () => {
     expect(kept.ok && kept.spec.meta.featureTier).toBe("C");
   });
 
-  it("an AI claim in the file is shown as demo-less (dropped), a demo/engine label is kept", () => {
+  it("a LEVEL UP AI label in the file is kept (an AI game made on another phone stays labelled AI)", () => {
     const src = populated();
     const b = JSON.parse(exportText(src.store)) as { games: { spec: { meta: { generator: Record<string, unknown> } } }[] };
     b.games[0]!.spec.meta.generator = { kind: "ai", provider: "x", model: "y", mode: "FULL", generatedAt: "2030-01-01T00:00:00Z" };
     const dst = phone(9_000_000).store;
     importBackup(dst, JSON.stringify(b));
-    expect(dst.getGame(src.game.id)!.spec.meta.generator).toBeUndefined();
-    expect(dst.listGames()[0]!.generatorKind).toBe("demo");
+    expect(dst.getGame(src.game.id)!.spec.meta.generator?.kind).toBe("ai");
+    expect(dst.listGames()[0]!.generatorKind).toBe("ai");
   });
 });
 

@@ -1,6 +1,7 @@
 import { App } from "@capacitor/app";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+import { webHaptic } from "@/components/game/haptics";
 import type { Feedback } from "@/components/game/PlayClient";
 import { getSettings } from "./app-state";
 import { backAction, dispatchGameBack } from "./back";
@@ -103,5 +104,5 @@ export function haptic(kind: Feedback): void {
     else void Haptics.impact({ style: ImpactStyle.Light });
     return;
   }
-  navigator.vibrate?.(kind === "wrong" ? [25, 50, 25] : kind === "victory" ? [30, 50, 30, 50, 80] : kind === "streak" ? [15, 40, 25] : kind === "collect" || kind === "gate" ? 15 : 30);
+  webHaptic(kind); // the website's patterns (one table for both), skipped quietly before the first tap
 }

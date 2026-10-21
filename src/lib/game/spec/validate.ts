@@ -21,8 +21,14 @@ export type ValidationResult =
 const BAD_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F‎‏‪-‮⁦-⁩]/g;
 
 /** Remove control / bidi-override characters and normalise newlines in every string; drop nulls. */
+/**
+ * Half of a surrogate pair on its own (half an emoji from a pasted text or a cut file name). It is not text: it shows as a box,
+ * and Postgres refuses it in jsonb, so a game holding one could not be backed up to the cloud.
+ */
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
 export function sanitizeDeep(value: unknown): unknown {
-  if (typeof value === "string") return value.replace(/\r\n?/g, "\n").replace(BAD_CHARS, "").replace(/\n{3,}/g, "\n\n").trim();
+  if (typeof value === "string") return value.replace(/\r\n?/g, "\n").replace(BAD_CHARS, "").replace(LONE_SURROGATE, "").replace(/\n{3,}/g, "\n\n").trim();
   if (Array.isArray(value)) return value.map(sanitizeDeep);
   if (value && typeof value === "object") {
     const out: Record<string, unknown> = {};
@@ -297,6 +303,20 @@ export function crossCheck(spec: GameSpec): { errors: string[]; warnings: string
     for (const a of spec.areas) if (reachable.has(a.id) && a.portal && areaById.has(a.portal.toAreaId)) reachable.add(a.portal.toAreaId);
   }
   for (const a of spec.areas) if (!reachable.has(a.id)) err(`area "${a.id}" cannot be reached: link it with a portal from an earlier area`);
+
+  // ── portals only lead forward: a mission can never wait for a mission of a LATER area (once the player is there, there is
+  // no way back to finish it). The "finish everything possible" pass below keeps earlier areas open, so it cannot see this.
+  if (errors.length === 0) {
+    const order = new Map<string, number>();
+    for (let a: (typeof spec.areas)[number] | undefined = spec.areas[0]; a && !order.has(a.id); a = a.portal ? areaById.get(a.portal.toAreaId) : undefined) order.set(a.id, order.size);
+    for (const m of spec.missions) {
+      for (const r of m.requires) {
+        const req = missionById.get(r);
+        if (!req || !order.has(m.areaId) || !order.has(req.areaId)) continue;
+        if (order.get(req.areaId)! > order.get(m.areaId)!) err(`mission "${m.id}" can never be completed: it requires "${r}" from the later area "${req.areaId}", and portals only lead forward`);
+      }
+    }
+  }
 
   // ── completability: simulate "finish everything possible" using only static rules
   if (errors.length === 0) {
