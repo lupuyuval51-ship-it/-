@@ -321,19 +321,20 @@ function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () 
 
 /**
  * A Hebrew line about one of the learner's words, with verbs that agree whatever the word's own gender:
- * "המילה" (feminine) for one word, "הביטוי" for several and "המספר" for a number (both masculine).
+ * "המילה" (feminine) for one word, "הביטוי" for several, "השם" for a name and "המספר" for a number (masculine).
  */
-function heWord(w: string): { name: string; fits: string; comes: string; appears: string } {
+function heWord(w: string, proper = false): { name: string; fits: string; comes: string; appears: string } {
   if (/^[\d.,%\s-]+$/u.test(w)) return { name: `המספר ״${w}״`, fits: "מתאים", comes: "הוא לקוח", appears: "מופיע" };
+  if (proper) return { name: `השם ״${w}״`, fits: "מתאים", comes: "הוא לקוח", appears: "מופיע" };
   return /\s/u.test(w.trim())
     ? { name: `הביטוי ״${w}״`, fits: "מתאים", comes: "הוא לקוח", appears: "מופיע" }
     : { name: `המילה ״${w}״`, fits: "מתאימה", comes: "היא לקוחה", appears: "מופיעה" };
 }
 
 /** Wrong options of a gap, each told where the learner has seen that word instead. */
-function whyNot(word: string, original: string, ctx: Context, t: Tr): string {
+function whyNot(word: string, original: string, ctx: Context, t: Tr, proper = false): string {
   const home = ctx.home.get(original.toLowerCase());
-  const he = heWord(word);
+  const he = heWord(word, proper);
   return home
     ? t(`“${word}” does not fit here. It comes from another sentence of yours: “${clip(home, 110)}”`, `${he.name} לא ${he.fits} כאן. ${he.comes} ממשפט אחר שלכם: ״${clip(home, 110)}״`)
     : t(`“${word}” does not fit here — re-read the sentence in your material.`, `${he.name} לא ${he.fits} כאן — קראו שוב את המשפט בחומר שלכם.`);
@@ -359,7 +360,7 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context,
     usedTargets.add(plan.target.lower);
     const blanked = `${s.slice(0, plan.start)}_____${s.slice(plan.end)}`;
     const correctAt = Math.floor(rnd() * 4);
-    const options = forms.map((d, i) => [d, whyNot(d, distractors[i]!.text, ctx, t)] as [string, string]);
+    const options = forms.map((d, i) => [d, whyNot(d, distractors[i]!.text, ctx, t, distractors[i]!.proper)] as [string, string]);
     options.splice(correctAt, 0, [plan.target.text, t("Yes — that is how your material puts it.", "נכון — כך החומר שלכם מנסח זאת.")]);
     const letters = plan.target.text.replace(/\s/g, "").length;
     // the start is shown, so it has to differ from the starts of the wrong words
@@ -490,8 +491,8 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
       .sort((a, b) => Number(b.proper) - Number(a.proper) || b.count - a.count || Math.abs(a.text.length - d.term.length) - Math.abs(b.text.length - d.term.length) || a.lower.localeCompare(b.lower))
       .slice(0, 2 - otherTerms.length)
       // a stand-alone option reads better without a leading Hebrew "and" (ו־) or an English possessive ("Earth's")
-      .map((k) => k.text.replace(/^ו(?=\p{L}{3,})/u, "").replace(/['’]s$/u, ""))
-      .map((w) => ({ w, he: heWord(w) }))
+      .map((k) => ({ w: k.text.replace(/^ו(?=\p{L}{3,})/u, "").replace(/['’]s$/u, ""), proper: k.proper }))
+      .map(({ w, proper }) => ({ w, he: heWord(w, proper) }))
       .map(({ w, he }) => ({ text: w, why: t(`“${w}” appears in your notes, but not with this description.`, `${he.name} ${he.appears} בפתקים שלכם, אבל לא עם ההסבר הזה.`) }));
     const wrong = [...otherTerms.slice(0, 3), ...fillers].slice(0, 3);
     if (wrong.length < 2) continue;

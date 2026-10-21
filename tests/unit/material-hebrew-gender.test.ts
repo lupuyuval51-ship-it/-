@@ -19,7 +19,7 @@ describe("Hebrew feedback on a wrong option", () => {
     const told = feedback.filter((f) => /לא מתאימה? כאן|מופיעה? בפתקים|מוגדר אחרת|מתואר אחרת/u.test(f));
     expect(told.length).toBeGreaterThan(0);
     for (const f of told) {
-      expect(f, f).toMatch(/^(?:נכון — )?(?:המילה|הביטוי|המספר|המונח) ״/u);
+      expect(f, f).toMatch(/^(?:נכון — )?(?:המילה|הביטוי|השם|המספר|המונח) ״/u);
       if (f.startsWith("המילה")) expect(f, f).not.toMatch(/לא מתאים כאן|הוא לקוח|״ מופיע /u);
     }
   });
