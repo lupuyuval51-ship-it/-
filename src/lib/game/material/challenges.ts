@@ -955,10 +955,14 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
       // a term or description that shares a word with the answer ("sun's heat" next to "the energy of the sun") may be right too
       && (x.rank === 0 || !sharesWord(x.text, qa.answer)));
     const ranked = pool.sort((a, b) => a.rank + answerDistance(a.text, qa.answer) - (b.rank + answerDistance(b.text, qa.answer)) || a.text.localeCompare(b.text));
-    const distractors = shuffled(ranked.slice(0, 5), rnd).slice(0, 3);
+    // the learner's own quiz options are the wrong options it was written with ("רומא", "ברלין" for the capital of France)
+    const own = (qa.wrong ?? []).map((text) => ({ text, about: qa.question, rank: -1 }));
+    const distractors = own.length >= 2 ? shuffled(own, rnd).slice(0, 3) : shuffled(ranked.slice(0, 5), rnd).slice(0, 3);
     if (distractors.length < 2) continue;
     const correctAt = Math.floor(rnd() * (distractors.length + 1));
-    const options = distractors.map((d) => [clip(d.text, 200), d.rank === 0
+    const options = distractors.map((d) => [clip(d.text, 200), d.rank === -1
+      ? t("That is one of your quiz's options, but not the right one.", "זו אחת האפשרויות בבוחן שלכם, אבל לא הנכונה.")
+      : d.rank === 0
       ? t(`That is the answer to a different question: “${clip(d.about, 110)}”`, `זו התשובה לשאלה אחרת: ״${clip(d.about, 110)}״`)
       : t("That answers a different question in your notes.", "זו תשובה לשאלה אחרת בפתקים שלכם.")] as [string, string]);
     options.splice(correctAt, 0, [clip(qa.answer, 200), t("Yes — that is the answer in your notes.", "נכון — זו התשובה בפתקים שלכם.")]);

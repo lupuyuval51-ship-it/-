@@ -33,6 +33,8 @@ export interface QuestionAnswer {
   /** Set when the answer is just a number (optionally with a unit), so it can be asked as a numeric challenge. */
   value?: number;
   decimals: number;
+  /** A multiple-choice question of the learner's quiz: its other options (the best wrong options there are: the learner chose them). */
+  wrong?: string[];
 }
 
 export interface Keyword {
@@ -204,7 +206,7 @@ function asFact(sentence: string, tableRow = false): Fact | null {
  * The lettered options (A, B, C…) that follow the question at line `at`, in order from A, and the right one when an
  * "Answer: B" line follows them. Null when the lines after the question are not such a list (at least two options).
  */
-function multipleChoiceAfter(lines: string[], consumed: Set<number>, at: number): { used: number[]; right?: string } | null {
+function multipleChoiceAfter(lines: string[], consumed: Set<number>, at: number): { used: number[]; right?: string; options: string[] } | null {
   const used: number[] = [];
   const options: string[] = [];
   let k = at + 1;
@@ -218,7 +220,7 @@ function multipleChoiceAfter(lines: string[], consumed: Set<number>, at: number)
   if (options.length < 2) return null;
   const answer = k < lines.length && !consumed.has(k) ? MC_ANSWER.exec(lines[k]!.replace(BULLET, "")) : null;
   if (answer) used.push(k);
-  return { used, right: answer ? options[letterIndex(answer[1]!)] : undefined };
+  return { used, right: answer ? options[letterIndex(answer[1]!)] : undefined, options };
 }
 
 /** What kind of item of a list a line is (a definition, a fact with a number, an "X is Y" statement), or null when it is plain text. */
@@ -292,6 +294,10 @@ export function parseMaterial(raw: string): Knowledge {
     const mc = q || /[?？؟]$/u.test(line) ? multipleChoiceAfter(lines, consumed, i) : null; // (a question line)
     if (mc) {
       const pair = mc.right ? asQa(unnumbered(q ? q[1]! : line), mc.right) : null;
+      if (pair && pair.value === undefined) {
+        const wrong = mc.options.map((o) => trimEnd(o)).filter((o) => o.toLowerCase() !== pair.answer.toLowerCase() && o.length <= 140);
+        if (wrong.length >= 2) pair.wrong = wrong;
+      }
       if (pair) qa.push(pair);
       consumed.add(i);
       mc.used.forEach((k) => consumed.add(k));

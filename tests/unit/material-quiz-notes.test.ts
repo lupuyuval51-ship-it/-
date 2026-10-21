@@ -42,4 +42,14 @@ describe("a numbered quiz is questions, not steps", () => {
     expect(k.steps.flat().length).toBe(4);
     expect(k.qa).toEqual([]);
   });
+
+  it("a multiple-choice question keeps the quiz's own wrong options (Hebrew)", () => {
+    const notes = "בוחן בגיאוגרפיה\n1. מהי בירת צרפת?\nא. רומא\nב. פריז\nג. ברלין\nתשובה: ב\n2. מהו הנהר הארוך ביותר באפריקה?\nא. הנילוס\nב. הקונגו\nג. הניז'ר\nתשובה: א\n3. כמה יבשות יש בעולם? 7\n4. מהו האוקיינוס הגדול ביותר? האוקיינוס השקט\n5. באיזו יבשת נמצאת מצרים? אפריקה";
+    const { spec } = generateOffline(request({ material: notes, subject: "גיאוגרפיה", mode: "FAST", contentLanguage: "he" }));
+    const capital = spec.challenges.find((c) => c.prompt === "מהי בירת צרפת?");
+    expect(capital?.type).toBe("choice");
+    if (capital?.type !== "choice") return;
+    expect(capital.options.map((o) => o.text).sort()).toEqual(["ברלין", "פריז", "רומא"]);
+    expect(capital.options.find((o) => o.id === capital.correctOptionId)!.text).toBe("פריז");
+  });
 });
