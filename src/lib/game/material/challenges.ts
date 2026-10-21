@@ -612,17 +612,20 @@ function numberLike(n: number, f: Fact): string {
   return f.decimals > 0 ? n.toFixed(f.decimals) : String(Math.round(n));
 }
 
+/** "in the 18th century", "במאה ה-18": a number of a century, which a wrong option must not push past the 21st. */
+const isCentury = (f: Fact) => /מאה ה[-־]?\s*$/u.test(f.source.slice(0, f.numAt)) || /^(?:st|nd|rd|th)?[\s-]+century/iu.test(f.source.slice(f.numAt + f.numText.length));
+
 /** Plausible wrong numbers near a fact's number, for when the notes hold too few others of the same kind. Never equal to a number in `taken`. */
 function nearNumbers(f: Fact, taken: ReadonlySet<string>, rnd: () => number, count: number): string[] {
   if (count <= 0) return [];
-  const v = f.value, mag = Math.abs(v);
+  const v = f.value, mag = Math.abs(v), century = isCentury(f);
   const unit = f.decimals > 0 ? 10 ** -f.decimals : 1;
   const steps = f.isYear ? [1, 2, 3, 5, 10, 20] : mag < 20 ? [1, 2, 3, 4, 5, 6] : [0.1, 0.2, 0.3, 0.5, 1].map((p) => Math.max(unit, Math.round((mag * p) / unit) * unit));
   const out = new Set<string>();
   const seen = new Set<string>([numberLike(v, f), ...taken]);
   for (const step of shuffled(steps.flatMap((s) => [s, -s]), rnd)) {
     const n = v + (f.isYear || mag >= 20 || f.decimals === 0 ? step : step * unit);
-    if (!Number.isFinite(n) || (v >= 0 && n < 0) || (f.isYear && (n < 1000 || n > 2100))) continue;
+    if (!Number.isFinite(n) || (v >= 0 && n < 0) || (f.isYear && (n < 1000 || n > 2100)) || (century && (n < 1 || n > 21))) continue;
     const text = numberLike(n, f);
     if (seen.has(text)) continue;
     seen.add(text);
