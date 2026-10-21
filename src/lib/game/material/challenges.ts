@@ -254,6 +254,8 @@ function pickTarget(sentence: string, keywords: Map<string, Keyword>): ClozePlan
     const k = keywords.get(span.text.toLowerCase());
     // the first word of a sentence is capitalised anyway, and says little
     if (!k || span.first === 0) continue;
+    // a Hebrew word with the relative "ש" in front ("שנכנס": that goes in) is a verb of a clause: a poor gap among nouns
+    if (!k.proper && /^ו?ש\p{L}{3,}/u.test(span.text) && hasHebrew(span.text)) continue;
     // the word (or a form of it) must not stay visible elsewhere in the sentence
     const parts = wordsOf(span.text);
     const rest = ws.filter((w) => w.end <= span.start || w.start >= span.end);
@@ -309,7 +311,9 @@ function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () 
   };
   // a word of another kind is ruled out by grammar alone (see `wordKind`): such words only fill in
   const kind = wordKind(t, ctx);
-  const score = (k: Keyword) => (wordKind(k, ctx) === kind ? 0 : 12) + (k.proper === t.proper ? 0 : 10) + (shapeOf(k.text) === shapeOf(t.text) ? 0 : 4) + (last(k.text) === last(t.text) ? 0 : 1) + (heShape(k.text) === heShape(t.text) ? 0 : 6)
+  // Hebrew: a word with a preposition in front ("בתאי": in the cells of) reads as a fragment next to a bare word
+  const fragment = (k: Keyword) => hasHebrew(k.text) && /^[בלכ]\p{L}{2,}/u.test(k.text) && k.text[0] !== t.text[0];
+  const score = (k: Keyword) => (wordKind(k, ctx) === kind ? 0 : 12) + (fragment(k) ? 8 : 0) + (k.proper === t.proper ? 0 : 10) + (shapeOf(k.text) === shapeOf(t.text) ? 0 : 4) + (last(k.text) === last(t.text) ? 0 : 1) + (heShape(k.text) === heShape(t.text) ? 0 : 6)
     + (wordsOf(k.text).length === wordsOf(t.text).length ? 0 : 4) + Math.abs(k.text.length - t.text.length) * 0.7 - Math.min(k.count, 3) * 0.8 - fit(k) * 4;
   const ranked = fits.sort((a, b) => score(a) - score(b) || a.lower.localeCompare(b.lower));
   return shuffled(ranked.slice(0, n + 3), rnd).slice(0, n);
@@ -725,6 +729,9 @@ function statementCandidates(sentences: string[], facts: Fact[], keywords: Keywo
     if (s.length > 170) continue;
     const plan = pickTarget(s, map);
     if (!plan || usedTargets.has(plan.target.lower)) continue;
+    // Hebrew has no word kinds to compare (see `wordKind`): a word said once is often a verb ("שנכנס"), and a noun swapped in for it
+    // makes nonsense that gives itself away; a name or a word the notes repeat is a topic word, swapped for other topic words
+    if (hasHebrew(plan.target.text) && !plan.target.proper && plan.target.count < 2) continue;
     const swaps = distractorsFor(plan, keywords, ctx, rnd, 4).map((d) => formLike(plan.target.text, d.text, known));
     build(s, swaps.map((w) => `${s.slice(0, plan.start)}${w}${s.slice(plan.end)}`), plan.target.lower);
   }

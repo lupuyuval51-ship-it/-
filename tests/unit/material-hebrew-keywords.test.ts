@@ -49,6 +49,8 @@ describe("Hebrew: a word with another prefix is the same word", () => {
         expect(o.text, `${c.id}`).not.toBe("בתאי");
         if (right.includes("גרעין התא")) expect(o.text, c.id).not.toContain("גרעין לתא");
       }
+      // a relative-clause verb ("שנכנס") is never the word to fill in
+      if (c.prompt.startsWith("איזו מילה משלימה")) expect(right, c.id).not.toMatch(/^ו?ש\p{L}{3,}/u);
     }
   });
 });
