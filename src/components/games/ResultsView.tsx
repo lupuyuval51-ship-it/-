@@ -7,7 +7,7 @@ import type { ReviewItem } from "@/lib/game/state/review";
 import { recommendedNext, type NextAction } from "@/lib/offline/onboarding";
 
 /** Learning results. Presentational only: shared by the web results page and the offline app. */
-export function ResultsView({ t, s, game, sessionId, conclusion, review, libraryHref = "/games" }: { t: TFn; s: LearningSummary; game: { id: string; title: string }; sessionId: string; conclusion: string; review: readonly ReviewItem[]; libraryHref?: string }) {
+export function ResultsView({ t, s, game, sessionId, conclusion, review, libraryHref = "/games", gameHref }: { t: TFn; s: LearningSummary; game: { id: string; title: string }; sessionId: string; conclusion: string; review: readonly ReviewItem[]; libraryHref?: string; /** where the game's title leads (the website's game page; the app has none and leads to the library) */ gameHref?: string }) {
   const minutes = Math.max(1, Math.round(s.durationMs / 60000));
   const spec = { learning: { conclusion } };
   const r = { review };
@@ -21,7 +21,7 @@ export function ResultsView({ t, s, game, sessionId, conclusion, review, library
   const actions = all.filter((a) => a.id !== "review" || review.length > 0).sort((a, b) => Number(b.id === next) - Number(a.id === next));
   return (
     <div className="mx-auto max-w-3xl space-y-6" data-testid="results">
-      <Link href={`/games/${game.id}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
+      <Link href={gameHref ?? `/games/${game.id}`} className="inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-text"><Arrow back /> {game.title}</Link>
       <header className="space-y-3 text-center">
         <h1 className="text-3xl font-extrabold">{t("res.title")}</h1>
         <div className="flex justify-center"><Stars n={s.stars} size="lg" label={t("common.stars", { n: s.stars })} /></div>

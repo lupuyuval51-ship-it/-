@@ -105,6 +105,8 @@ describe("results page on the phone", () => {
     expect(quick).toBeTruthy();
     expect(quick).toBe(card);
     expect(html).toMatch(/class="[^"]*min-h-11[^"]*"[^>]*data-testid="results-quick-next"|data-testid="results-quick-next"[^>]*class="[^"]*min-h-11/);
+    // the app has no game page: the title at the top leads to the library, not to a #/games/<id> it cannot open
+    expect(html).not.toContain(`href="#/games/${game.id}"`);
   });
 
   it("a weaker second run shows the record to beat instead of 'best'", () => {

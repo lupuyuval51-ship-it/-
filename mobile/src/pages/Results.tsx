@@ -81,7 +81,7 @@ export function ResultsPage({ gameId, sessionId }: { gameId: string; sessionId: 
     <>
       {gen?.kind === "catalog" && gen.templateId && <BackToCourse topicId={gen.templateId} />}
       <QuickNext gameId={gameId} sessionId={sessionId} summary={r.summary} reviewCount={r.review.length} />
-      <ResultsView t={t} s={r.summary} game={{ id: r.game.id, title: r.game.title }} sessionId={sessionId} conclusion={r.game.spec.learning.conclusion} review={r.review} libraryHref="/" />
+      <ResultsView t={t} s={r.summary} game={{ id: r.game.id, title: r.game.title }} sessionId={sessionId} conclusion={r.game.spec.learning.conclusion} review={r.review} libraryHref="/" gameHref="/" />
     </>
   );
 }
