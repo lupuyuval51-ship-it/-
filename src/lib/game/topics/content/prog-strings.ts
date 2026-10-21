@@ -36,7 +36,7 @@ const c: TopicContent = {
         ['ב־Python 3, מה הערך של  "Hi" + " " + "Dana" ?', "Hi Dana", ["HiDana", "Hi + Dana", "שגיאה"], 'המחרוזת האמצעית " " היא רווח, ולכן הוא נכנס בין שתי המילים.']],
     ],
     n: [
-      [8, ['In Python 3, what is  len("hi there") ?', "", "The space counts as a character too: 2 + 1 + 5 = 8."], ['ב־Python 3, מה הערך של  len("hi there") ?', "", "גם הרווח נחשב תו: 2 + 1 + 5 = 8."]],
+      [8, ['In Python 3, what is  len("hi there") ?', "", "The space counts as a character too: 2 + 1 + 5 = 8."], ['ב־Python 3, מה הערך של  len("hi there") ?', "", "גם הרווח נחשב תו, ולכן ספירת התווים היא 2 + 1 + 5 = 8."]],
       [3, ['In Python 3, what is  "banana".count("a") ?', "", "banana has the letter a three times, so count gives 3."], ['ב־Python 3, מה הערך של  "banana".count("a") ?', "", "במילה banana האות a מופיעה שלוש פעמים, ולכן count נותן 3."]],
     ],
   },

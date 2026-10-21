@@ -69,6 +69,8 @@ const c: TopicContent = {
     ],
     n: [[8, ["In round 1, one person tells a secret to 2 friends. In each later round, everyone who just heard it tells 2 new people. How many new people hear it in round 3?", "people", "Round 1: 2 people. Round 2: each of them tells 2, so 4. Round 3: each of those 4 tells 2, so 8. Each effect becomes the cause of more."],
       ["בסבב 1 אדם אחד מספר סוד ל־2 חברים. בכל סבב נוסף, כל מי ששמע אותו זה עתה מספר ל־2 אנשים חדשים. כמה אנשים חדשים שומעים אותו בסבב 3?", "אנשים", "סבב 1: 2 אנשים. סבב 2: כל אחד מהם מספר ל־2, כלומר 4. סבב 3: כל אחד מה־4 מספר ל־2, כלומר 8. כל תוצאה הופכת לסיבה של עוד."]]],
+    s: [[["Testing a cause with a fair test, in order", "Ask which thing might be the cause", "Make two matching groups", "Change only that one thing in one of the groups", "Measure the result in both groups", "Compare the two results and decide what they show"],
+      ["בודקים סיבה בניסוי הוגן, לפי הסדר", "שואלים איזה דבר עשוי להיות הסיבה", "מכינים שתי קבוצות זהות", "משנים רק את הדבר הזה באחת הקבוצות", "מודדים את התוצאה בשתי הקבוצות", "משווים בין שתי התוצאות ומחליטים מה הן מראות"]]],
   },
 };
 export default c;

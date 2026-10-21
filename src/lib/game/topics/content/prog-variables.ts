@@ -15,6 +15,11 @@ const c: TopicContent = {
         ["ב־Python 3, אחרי  x = 3  ואז  x = 8 , מה שמור ב־x?", "8", ["3 וגם 8", "11", "3"], "משתנה מחזיק ערך אחד בכל רגע: ההשמה החדשה מחליפה את הערך הישן."]],
       [["In Python, what does the = sign in  score = 0  do?", "It stores 0 in the variable score", ["It checks whether score equals 0", "It prints score", "It deletes score"], "In Python, = means assignment: the value on the right goes into the variable on the left. Checking whether two values are equal uses ==."],
         ["ב־Python, מה עושה הסימן = בקוד  score = 0 ?", "שומר את 0 במשתנה score", ["בודק אם score שווה ל־0", "מדפיס את score", "מוחק את score"], "ב־Python הסימן = הוא השמה: הערך שמימין נכנס למשתנה שמשמאל. בדיקה אם שני ערכים שווים נכתבת עם ==."]],
+      [['In Python 3, which line stores the text Dana in a variable called name?', 'name = "Dana"', ['"Dana" = name', 'name == "Dana"', 'name = Dana'], 'The variable goes on the left and the value on the right. Without quotes, Dana would be read as the name of another variable, and == only compares two values.'],
+        ['ב־Python 3, איזו שורה שומרת את הטקסט Dana במשתנה בשם name?', 'name = "Dana"', ['"Dana" = name', 'name == "Dana"', 'name = Dana'], 'המשתנה כתוב משמאל והערך מימין. בלי מירכאות, Dana ייקרא כשם של משתנה אחר, והסימן == רק משווה בין שני ערכים.']],
+    ],
+    n: [
+      [7, ["In Python 3, after  x = 5 , then  y = x + 2 , then  x = 10 , what is the value of y?", "", "y = x + 2 was worked out when x was 5, so y holds 7. Changing x afterwards does not change y."], ["ב־Python 3, אחרי  x = 5 , ואז  y = x + 2 , ואז  x = 10 , מה הערך של y?", "", "הביטוי y = x + 2 חושב כשהערך של x היה 5, ולכן y שומר 7. שינוי של x אחר כך לא משנה את y."]],
     ],
   },
   i: {
@@ -45,10 +50,10 @@ const c: TopicContent = {
     q: [
       [["In Python 3, what does  print(7 / 2)  show?", "3.5", ["3", "3.0", "1"], "In Python 3, / always gives a float: 7 / 2 is 3.5. Use // for the whole part (3) and % for the remainder (1)."],
         ["מה מציג  print(7 / 2)  ב־Python 3?", "3.5", ["3", "3.0", "1"], "ב־Python 3 הסימן / תמיד נותן float: 7 / 2 הוא 3.5. בשביל החלק השלם (3) משתמשים ב־//, ובשביל השארית (1) ב־%."]],
-      [["In Python 3, what type is the result of  5 > 2 ?", "bool", ["int", "str", "float"], "A comparison gives True or False (here True), and those are bool values."],
-        ["ב־Python 3, מה הסוג של התוצאה של  5 > 2 ?", "bool", ["int", "str", "float"], "השוואה נותנת True או False (כאן True), ואלה ערכים מסוג bool."]],
-      [['In Python 3, what happens when you run  print("Age: " + 12) ?', "A TypeError: a str and an int cannot be joined with +", ["It prints Age: 12", "It prints Age: 0", "It prints nothing"], 'Python will not mix str and int with +. Writing "Age: " + str(12) prints Age: 12.'],
-        ['מה קורה ב־Python 3 כשמריצים  print("Age: " + 12) ?', "שגיאת TypeError: אי אפשר לחבר str ו־int עם +", ["מודפס Age: 12", "מודפס Age: 0", "לא מודפס כלום"], 'Python לא מערבב str ו־int עם +. הקוד "Age: " + str(12) ידפיס Age: 12.']],
+      [["In Python 3, what type is the result of  3 == 3 ?", "bool", ["int", "str", "float"], "A comparison gives True or False (here True), and those are bool values."],
+        ["ב־Python 3, מה הסוג של התוצאה של  3 == 3 ?", "bool", ["int", "str", "float"], "השוואה נותנת True או False (כאן True), ואלה ערכים מסוג bool."]],
+      [['In Python 3, what happens when you run  print("Age: " + 12) ?', "A TypeError: a str and an int cannot be joined with +", ["It prints Age: 12, because Python turns the number into text", "It prints Age: 0, because the number is ignored", "It prints nothing, because print only shows numbers"], 'Python will not mix str and int with +. Writing "Age: " + str(12) prints Age: 12.'],
+        ['מה קורה ב־Python 3 כשמריצים  print("Age: " + 12) ?', "שגיאת TypeError: אי אפשר לחבר str ו־int עם +", ["מודפס Age: 12, כי Python הופך את המספר לטקסט", "מודפס Age: 0, כי המספר מתעלמים ממנו", "לא מודפס כלום, כי print מציג רק מספרים"], 'Python לא מערבב str ו־int עם +. הקוד "Age: " + str(12) ידפיס Age: 12.']],
     ],
     n: [
       [1, ["In Python 3, what does  print(17 % 4)  show?", "", "17 = 4 × 4 + 1, so the remainder 17 % 4 is 1."], ["מה מציג  print(17 % 4)  ב־Python 3?", "", "17 = 4 × 4 + 1, ולכן השארית 17 % 4 היא 1."]],

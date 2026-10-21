@@ -48,6 +48,8 @@ const c: TopicContent = {
     ],
     n: [[10, ["Suppose that each switch between homework and messages costs you 30 seconds to refocus. If you switch 20 times in an evening, how many minutes do you lose?", "minutes", "20 × 30 = 600 seconds, and 600 ÷ 60 = 10 minutes lost just to switching."],
       ["נניח שכל מעבר בין שיעורי הבית להודעות עולה לכם 30 שניות עד שאתם מתרכזים מחדש. אם עברתם 20 פעמים בערב אחד, כמה דקות הלכו לאיבוד?", "דקות", "20 × 30 = 600 שניות, ו־600 ÷ 60 = 10 דקות שהלכו לאיבוד רק בגלל המעברים."]]],
+    s: [[["Getting your attention ready for homework, in order", "Decide what you must finish tonight", "Put your phone in another room", "Work on one task for a focused block of time", "Take a short break away from the screen", "Start the next block refreshed"],
+      ["מכינים את הקשב לשיעורי בית, לפי הסדר", "מחליטים מה חייבים לסיים הערב", "מניחים את הטלפון בחדר אחר", "עובדים על משימה אחת בפרק זמן ממוקד", "עושים הפסקה קצרה הרחק מהמסך", "מתחילים את הפרק הבא כשאתם רעננים"]]],
   },
   a: {
     t: [
@@ -72,6 +74,8 @@ const c: TopicContent = {
     ],
     n: [[6, ["Two pupils each do two assignments in one evening. One pupil switches between them 13 times, and the other switches only once. If every switch costs 30 seconds, how many more minutes does the first pupil lose?", "minutes", "The first pupil makes 13 − 1 = 12 more switches. 12 × 30 = 360 seconds, and 360 ÷ 60 = 6 minutes."],
       ["שני תלמידים מכינים כל אחד שתי עבודות בערב אחד. תלמיד אחד עובר ביניהן 13 פעמים, והשני עובר רק פעם אחת. אם כל מעבר עולה 30 שניות, כמה דקות יותר מאבד התלמיד הראשון?", "דקות", "התלמיד הראשון עושה 13 − 1 = 12 מעברים יותר. 12 × 30 = 360 שניות, ו־360 ÷ 60 = 6 דקות."]]],
+    s: [[["The invisible gorilla experiment, in order", "Viewers are asked to count the passes made by the white team", "They watch a short video of two teams passing basketballs", "A person in a gorilla suit walks through the game", "The video ends", "Viewers say how many passes they counted and whether they noticed anything unusual"],
+      ["ניסוי הגורילה הבלתי נראית, לפי הסדר", "מבקשים מהצופים לספור את המסירות של הקבוצה הלבנה", "הם צופים בסרטון קצר של שתי קבוצות שמוסרות כדורסל", "אדם בתחפושת גורילה חוצה את המשחק", "הסרטון נגמר", "הצופים אומרים כמה מסירות ספרו והאם שמו לב למשהו חריג"]]],
   },
 };
 export default c;

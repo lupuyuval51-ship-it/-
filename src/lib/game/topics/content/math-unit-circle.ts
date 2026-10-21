@@ -28,6 +28,8 @@ const c: TopicContent = {
       [6.28, ["How many radians are there in a full turn? Round to two decimal places.", "radians", "A full turn is 2π radians, and 2 × 3.14159… ≈ 6.28."],
         ["כמה רדיאנים יש בסיבוב שלם? עגלו לשתי ספרות אחרי הנקודה העשרונית.", "רדיאנים", "סיבוב שלם הוא 2π רדיאנים, ו־2 × 3.14159… ≈ 6.28."], 0.01],
     ],
+    s: [[["Going once around the unit circle, anticlockwise from the positive x-axis", "The first quadrant: from 0° to 90°", "The second quadrant: from 90° to 180°", "The third quadrant: from 180° to 270°", "The fourth quadrant: from 270° to 360°"],
+      ["סיבוב אחד סביב מעגל היחידה, נגד כיוון השעון, מהכיוון החיובי של ציר x", "הרביע הראשון: מ־0° עד 90°", "הרביע השני: מ־90° עד 180°", "הרביע השלישי: מ־180° עד 270°", "הרביע הרביעי: מ־270° עד 360°"]]],
   },
   i: {
     t: [

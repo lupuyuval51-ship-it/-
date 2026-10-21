@@ -16,8 +16,8 @@ const c: TopicContent = {
         ["נועה קראה 9 עמודים ביום שני ו־14 עמודים ביום שלישי. בכמה עמודים יותר היא קראה ביום שלישי?", "5", ["23", "14", "9"], "״בכמה יותר״ שואל על ההפרש בין שני הימים: 14 − 9 = 5. החיבור נותן 23, את הסך הכול, וזו תשובה לשאלה אחרת."]],
       [["What should you do first when you meet a word problem?", "Read it carefully and find out exactly what it asks", ["Add up all the numbers you can see anywhere in the problem", "Write down the biggest number in the problem", "Guess an answer and go on to the next one"], "You can only choose the right operations once you know what the question is asking. Grabbing the numbers and adding them often answers the wrong question."],
         ["מה כדאי לעשות קודם כול כשפוגשים בעיה מילולית?", "לקרוא אותה בעיון ולהבין מה בדיוק שואלים", ["לחבר את כל המספרים שמופיעים בכל מקום בבעיה", "לכתוב את המספר הגדול ביותר שמופיע בבעיה", "לנחש תשובה ולעבור לבעיה הבאה"], "אפשר לבחור את הפעולות הנכונות רק אחרי שמבינים מה השאלה. מי שתופס את המספרים ומחבר אותם עונה לעיתים קרובות על שאלה אחרת."]],
-      [["A problem asks how many buses a school needs, and your calculation gives 3.5. What should you answer?", "4 buses, because half a bus cannot carry anyone", ["3.5 buses, exactly as the calculation says", "3 buses, because you always round down", "35 buses, because the decimal point is a mistake"], "The answer must make sense in the story: you cannot order half a bus, and 3 buses would leave some children behind, so the school needs 4."],
-        ["בעיה שואלת כמה אוטובוסים בית הספר צריך, והחישוב נותן 3.5. מה עונים?", "4 אוטובוסים, כי חצי אוטובוס לא יכול להסיע אף אחד", ["3.5 אוטובוסים, בדיוק כמו שיצא בחישוב", "3 אוטובוסים, כי תמיד מעגלים כלפי מטה", "35 אוטובוסים, כי הנקודה העשרונית היא טעות בחישוב"], "התשובה צריכה להיות הגיונית בסיפור: אי אפשר להזמין חצי אוטובוס, ו־3 אוטובוסים ישאירו חלק מהילדים מאחור, ולכן צריך 4."]],
+      [["A problem asks how many buses a school needs, and your calculation gives 3.5. What should you answer?", "4 buses, because the children who are left still need a whole bus", ["3.5 buses, exactly as the calculation says", "3 buses, because you always round down", "35 buses, because the decimal point is a mistake"], "The answer must make sense in the story: you cannot order half a bus, and 3 buses would leave some children behind, so the school needs 4."],
+        ["בעיה שואלת כמה אוטובוסים בית הספר צריך, והחישוב נותן 3.5. מה עונים?", "4 אוטובוסים, כי הילדים שנשארו עדיין צריכים אוטובוס שלם", ["3.5 אוטובוסים, בדיוק כמו שיצא בחישוב", "3 אוטובוסים, כי תמיד מעגלים כלפי מטה", "35 אוטובוסים, כי הנקודה העשרונית היא טעות בחישוב"], "התשובה צריכה להיות הגיונית בסיפור: אי אפשר להזמין חצי אוטובוס, ו־3 אוטובוסים ישאירו חלק מהילדים מאחור, ולכן צריך 4."]],
     ],
     n: [
       [6, ["24 sweets are shared equally among 4 children. How many sweets does each child get?", "", "Sharing equally means dividing: 24 ÷ 4 = 6 sweets each. Check: 4 × 6 = 24."],
@@ -53,6 +53,10 @@ const c: TopicContent = {
         ["מחצית מ־30 התלמידים בכיתה הולכים לבית הספר ברגל. שליש מהשאר מגיעים באופניים. כמה מגיעים באופניים?", "", "מחצית מ־30 היא 15, ולכן 15 תלמידים לא הולכים ברגל. שליש מ־15 האלה הוא 15 ÷ 3 = 5."]],
       [7, ["Pens are sold in packs of 6. Yael needs 40 pens. How many packs must she buy?", "", "40 ÷ 6 = 6 remainder 4. Six packs give only 36 pens, so she needs one more pack: 7 packs give 42 pens."],
         ["עטים נמכרים בחבילות של 6. יעל צריכה 40 עטים. כמה חבילות עליה לקנות?", "", "40 ÷ 6 = 6 ושארית 4. שש חבילות נותנות רק 36 עטים, ולכן היא צריכה עוד חבילה: 7 חבילות נותנות 42 עטים."]],
+    ],
+    s: [
+      [["Dana buys 3 pens at 4 shekels each and pays with a 20 shekel note: finding her change", "Multiply to find the cost of the pens: 3 × 4 = 12 shekels", "Subtract the cost from the money she paid: 20 − 12", "The change is 8 shekels", "Check: 12 + 8 = 20 shekels"],
+        ["דנה קונה 3 עטים ב־4 שקלים כל אחד ומשלמת בשטר של 20 שקלים: חישוב העודף", "כופלים כדי למצוא את מחיר העטים: 3 × 4 = 12 שקלים", "מחסרים את המחיר מהכסף ששילמה: 20 − 12", "העודף הוא 8 שקלים", "בודקים: 12 + 8 = 20 שקלים"]],
     ],
   },
   a: {

@@ -44,6 +44,8 @@ const c: TopicContent = {
       [["Your sister is upset because you broke her model by accident. What does empathy look like here?", "Understanding why she is upset, even though you didn't mean it", ["Telling her it was an accident, so she has no reason to be upset", "Agreeing that you are a terrible person", "Getting angry back so it is fair"], "Not meaning to do something does not stop it from hurting. You can say \"I'm sorry, I know you worked hard on it\" and offer to help fix it. Telling her she has no reason to be upset dismisses her feeling."],
         ["אחותכם כועסת כי שברתם בטעות את הדגם שבנתה. איך נראית כאן אמפתיה?", "להבין למה היא כועסת, גם אם לא התכוונתם", ["להגיד לה שזו הייתה תאונה, ולכן אין לה סיבה לכעוס", "להסכים שאתם אנשים נוראים", "לכעוס בחזרה כדי שיהיה הוגן"], "גם כשלא מתכוונים, זה עדיין יכול לכאוב. אפשר לומר ״סליחה, אני יודע שעבדת עליו קשה״ ולהציע לעזור לתקן. כשאומרים לה שאין לה סיבה לכעוס, מבטלים את הרגש שלה."]],
     ],
+    s: [[["Helping a friend who is upset, in order", "Stop what you are doing and face your friend", "Listen without interrupting", "Put the feeling into words: \"You sound disappointed\"", "Ask what would help", "Offer help, or simply stay with your friend"],
+      ["עזרה לחבר שנסער, לפי הסדר", "מפסיקים את מה שעושים ופונים אל החבר", "מקשיבים בלי להפריע", "מבטאים במילים את הרגש: ״אתה נשמע מאוכזב״", "שואלים מה יעזור לו", "מציעים עזרה, או פשוט נשארים לידו"]]],
   },
   a: {
     t: [
@@ -66,6 +68,8 @@ const c: TopicContent = {
       [["Two friends both want to be team captain and are arguing. What is the best first step to understand each other?", "Each one explains their view while the other listens without interrupting", ["The louder one decides, and the other has to accept it", "They stop talking to each other for a week", "They ask everyone else to pick a side"], "When each person feels heard, it becomes easier to see the other's reasons, and a fair solution, like taking turns, often appears. Picking sides or going silent leaves both feeling misunderstood."],
         ["שני חברים רוצים להיות קפטן הקבוצה ומתווכחים. מה הצעד הראשון הטוב ביותר כדי להבין זה את זה?", "כל אחד מסביר את עמדתו והשני מקשיב בלי להפריע", ["מי שצועק חזק יותר מחליט, והשני צריך לקבל זאת", "הם מפסיקים לדבר זה עם זה לשבוע", "הם מבקשים מכל השאר לבחור צד"], "כשכל אחד מרגיש שהקשיבו לו, קל יותר לראות את הנימוקים של השני, ולעיתים קרובות עולה פתרון הוגן, כמו להתחלף. בחירת צדדים או שתיקה משאירות את שניהם עם תחושה שלא הבינו אותם."]],
     ],
+    s: [[["Making sense of a disagreement, in order", "Let the other person explain their view in full", "Say back what you heard, to check it", "Ask what matters most to them", "Explain your own view calmly", "Look for a solution that respects both views"],
+      ["הבנה של מחלוקת, לפי הסדר", "נותנים לצד השני להסביר את עמדתו עד הסוף", "חוזרים במילים שלכם על מה ששמעתם, כדי לבדוק", "שואלים מה הכי חשוב לו", "מסבירים את העמדה שלכם ברוגע", "מחפשים פתרון שמכבד את שתי העמדות"]]],
   },
 };
 export default c;

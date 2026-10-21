@@ -44,7 +44,7 @@ const c: TopicContent = {
       [["What is the unit vector in the direction of (6, 8)?", "(0.6, 0.8)", ["(3, 4)", "(6/14, 8/14)", "(1, 1)"], "The length of (6, 8) is √(36 + 64) = 10. Dividing each component by 10 gives (0.6, 0.8), whose length is √(0.36 + 0.64) = 1."],
         ["מהו וקטור היחידה בכיוון של וקטור שרכיביו 6 ו־8?", "(0.6, 0.8)", ["(3, 4)", "(6/14, 8/14)", "(1, 1)"], "האורך של הוקטור הוא √(36 + 64) = 10. מחלקים כל רכיב ב־10 ומקבלים רכיבים 0.6 ו־0.8, ואורכו √(0.36 + 0.64) = 1."]],
       [["u = (1, 2) and v = (3, −1). What is 2u − v?", "(−1, 5)", ["(−1, 3)", "(5, 3)", "(−2, 3)"], "2u = (2, 4), and subtracting v = (3, −1) gives (2 − 3, 4 − (−1)) = (−1, 5). Subtracting −1 means adding 1, which is where (−1, 3) goes wrong."],
-        ["לוקטור u הרכיבים 1 ו־2, ולוקטור v הרכיבים 3 ומינוס 1. מהו 2u − v?", "(−1, 5)", ["(−1, 3)", "(5, 3)", "(−2, 3)"], "הרכיבים של 2u הם 2 ו־4. כשמחסרים את v מקבלים 2 − 3 = −1 ו־4 − (−1) = 5. חיסור של −1 הוא חיבור של 1, ושם טועים מי שמקבלים 3 ברכיב השני."]],
+        ["לוקטור u הרכיבים 1 ו־2, ולוקטור v הרכיבים 3 ומינוס 1. מהו 2u − v?", "(−1, 5)", ["(−1, 3)", "(5, 3)", "(−2, 3)"], "הרכיבים של 2u הם 2 ו־4. כשמחסרים את v מקבלים 2 − 3 = −1 ו־4 − (−1) = 5. חיסור של −1 הוא חיבור של 1, ובדיוק כאן טועה מי שמקבל 3 ברכיב השני."]],
     ],
     n: [
       [500, ["A plane flies 300 km east and then 400 km north. How far is it from where it started?", "km", "The displacement is the vector (300, 400), and its length is √(300² + 400²) = √250000 = 500 km."],
@@ -81,6 +81,8 @@ const c: TopicContent = {
       [5, ["u = (2, 3) and v = (4, −1). What is the dot product u·v?", "", "Multiply matching components and add: u·v = 2 × 4 + 3 × (−1) = 8 − 3 = 5."],
         ["לוקטור u הרכיבים 2 ו־3, ולוקטור v הרכיבים 4 ומינוס 1. מהי המכפלה הסקלרית של u ו־v?", "", "כופלים רכיבים מתאימים ומחברים: 2 × 4 + 3 × (−1) = 8 − 3 = 5."]],
     ],
+    s: [[["Checking whether two vectors are perpendicular", "Write the components of both vectors", "Multiply the matching components: x with x, and y with y", "Add the two products to get the dot product", "If the sum is 0, the vectors are perpendicular; otherwise they are not"],
+      ["בדיקה אם שני וקטורים מאונכים", "כותבים את הרכיבים של שני הוקטורים", "כופלים רכיבים מתאימים: x ב־x, ו־y ב־y", "מחברים את שתי המכפלות ומקבלים את המכפלה הסקלרית", "אם הסכום הוא 0 הוקטורים מאונכים; אחרת הם לא"]]],
   },
 };
 export default c;

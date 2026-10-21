@@ -79,6 +79,10 @@ const c: TopicContent = {
       [30, ["setInterval(spawn, 2000)  adds one enemy every 2 seconds. How many enemies has it added after 1 minute?", "", "1 minute is 60 seconds, and one enemy comes every 2 seconds, so 60 ÷ 2 = 30 enemies."],
         ["הקוד  setInterval(spawn, 2000)  מוסיף אויב אחד כל 2 שניות. כמה אויבים נוספו אחרי דקה?", "", "בדקה יש 60 שניות, ואויב מגיע כל 2 שניות, ולכן נוספים 60 ÷ 2 = 30 אויבים."]],
     ],
+    s: [
+      [["A click arrives while a long handler is still running", "The user clicks while the long handler is still running", "The browser puts the click event in the event queue", "The long handler finishes its work", "The event loop takes the click from the queue", "The handler of the click runs"],
+        ["לחיצה מגיעה כשמטפל ארוך עדיין רץ", "המשתמש לוחץ בזמן שהמטפל הארוך עדיין רץ", "הדפדפן מכניס את אירוע הלחיצה לתור האירועים", "המטפל הארוך מסיים את עבודתו", "לולאת האירועים לוקחת את הלחיצה מהתור", "המטפל של הלחיצה רץ"]],
+    ],
   },
 };
 export default c;
