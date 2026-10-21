@@ -937,6 +937,16 @@ function sharesWord(a: string, b: string): boolean {
   return words(b).some((w) => w.text.length >= 3 && !isStop(w.text) && mine.some((m) => sameWord(m.text, w.text)));
 }
 
+/** What a question asks for: an answer to a question of the same kind ("when" next to "when") is the more plausible wrong option. */
+const ASK_KINDS: [RegExp, string][] = [
+  [/(?:^|[^\p{L}])(?:when|what year|which year)(?![\p{L}])|(?:^|\s)(?:מתי|באיזו שנה|באיזה תאריך)(?=\s|[?,]|$)/iu, "when"],
+  [/(?:^|[^\p{L}])(?:who|whom|whose)(?![\p{L}])|(?:^|\s)(?:מי|את מי|של מי|למי)(?=\s|[?,]|$)/iu, "who"],
+  [/(?:^|[^\p{L}])where(?![\p{L}])|(?:^|\s)(?:איפה|היכן|לאן|מאין|באיזו עיר|באיזו מדינה)(?=\s|[?,]|$)/iu, "where"],
+  [/(?:^|[^\p{L}])(?:why)(?![\p{L}])|(?:^|\s)(?:למה|מדוע)(?=\s|[?,]|$)/iu, "why"],
+  [/(?:^|[^\p{L}])how (?:many|much|long)(?![\p{L}])|(?:^|\s)(?:כמה)(?=\s|[?,]|$)/iu, "amount"],
+];
+const askKind = (question: string): string | null => ASK_KINDS.find(([re]) => re.test(question))?.[1] ?? null;
+
 function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
   const out: Candidate[] = [];
   const numbersElsewhere = (self: QuestionAnswer) => [
@@ -988,7 +998,15 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     const pool = [...fromQa, ...fromTerms].filter((x) => x.text.length <= 200 && !seen.has(sameKey(x.text)) && (seen.add(sameKey(x.text)), true) && !mentions(qa.question, x.text)
       // a term or description that shares a word with the answer ("sun's heat" next to "the energy of the sun") may be right too
       && (x.rank === 0 || !sharesWord(x.text, qa.answer)));
-    const ranked = pool.sort((a, b) => a.rank + answerDistance(a.text, qa.answer) - (b.rank + answerDistance(b.text, qa.answer)) || a.text.localeCompare(b.text));
+    // the answer to a question of the same kind ("when" for "when") first, one of another kind ("who" for "when") last
+    const kind = askKind(qa.question);
+    const fitsKind = (x: { about: string; rank: number }) => { const other = x.rank === 0 ? askKind(x.about) : null; return !kind || !other ? 0 : other === kind ? -1.5 : 1.5; };
+    // "When…?" answered with a date ("on 14 May 1948"): the same date in nearby years are the closest wrong options
+    const years = kind === "when" ? [...qa.answer.matchAll(/(?<!\d)(1\d{3}|20\d{2})(?!\d)/gu)] : [];
+    const nearYears = years.length === 1
+      ? [1, -1, 2, -2, 3].map((d) => Number(years[0]![1]) + d).filter((y) => y <= 2100).map((y) => ({ text: qa.answer.replace(years[0]![1]!, String(y)), about: qa.question, rank: -0.5 }))
+      : [];
+    const ranked = [...shuffled(nearYears, rnd).slice(0, 2), ...pool.sort((a, b) => a.rank + answerDistance(a.text, qa.answer) + fitsKind(a) - (b.rank + answerDistance(b.text, qa.answer) + fitsKind(b)) || a.text.localeCompare(b.text))];
     // the learner's own quiz options are the wrong options it was written with ("רומא", "ברלין" for the capital of France)
     const own = (qa.wrong ?? []).map((text) => ({ text, about: qa.question, rank: -1 }));
     const distractors = own.length >= 2 ? shuffled(own, rnd).slice(0, 3) : shuffled(ranked.slice(0, 5), rnd).slice(0, 3);
@@ -996,6 +1014,8 @@ function qaCandidates(k: Knowledge, rnd: () => number, t: Tr): Candidate[] {
     const correctAt = Math.floor(rnd() * (distractors.length + 1));
     const options = distractors.map((d) => [clip(d.text, 200), d.rank === -1
       ? t("That is one of your quiz's options, but not the right one.", "זו אחת האפשרויות בבוחן שלכם, אבל לא הנכונה.")
+      : d.rank === -0.5
+      ? t("Close, but your notes give a different year.", "קרוב, אבל בפתקים שלכם כתובה שנה אחרת.")
       : d.rank === 0
       ? t(`That is the answer to a different question: “${clip(d.about, 110)}”`, `זו התשובה לשאלה אחרת: ״${clip(d.about, 110)}״`)
       : t("That answers a different question in your notes.", "זו תשובה לשאלה אחרת בפתקים שלכם.")] as [string, string]);

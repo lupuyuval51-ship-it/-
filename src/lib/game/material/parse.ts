@@ -323,7 +323,8 @@ export function parseMaterial(raw: string): Knowledge {
     }
     // a line that is only a question, followed by a short line that answers it
     if (/[?？؟]$/u.test(line) && line.length <= 200 && next && !/[?？؟]$/u.test(next) && next.length <= 120 && !NUMBERED.test(next) && !QA_Q.test(next) && !asDefinition(next) && !/^#/.test(next)) {
-      const pair = asQa(unnumbered(line), next);
+      // ("Answer: …" / "תשובה: …" under a numbered question: the label is not part of the answer)
+      const pair = asQa(unnumbered(line), QA_A.exec(next)?.[1] ?? next);
       if (pair) {
         qa.push(pair);
         consumed.add(i).add(nextIdx);
