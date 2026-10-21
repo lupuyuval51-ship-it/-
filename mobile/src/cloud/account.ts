@@ -21,19 +21,22 @@ const set = (patch: Partial<Snapshot>) => { snap = { ...snap, ...patch }; listen
 export const getAccountSnapshot = (): Snapshot => snap;
 export const useAccount = (): Snapshot => useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, getAccountSnapshot);
 
-let running: Promise<void> | null = null;
+/** The round under way and the account it syncs. */
+let running: { user: string; done: Promise<void> } | null = null;
 /** True when the learner changed something that the last round may not have seen. */
 let pending = false;
 /** One sync at a time; never throws (a failure is shown in Settings and the next trigger retries). */
 export function syncNow(): Promise<void> {
   const session = snap.session;
   if (!session) return Promise.resolve();
-  if (running) return running;
+  // the round of an account that just left (signed out, or into another account) is not this account's: its own follows
+  if (running && running.user !== session.user.id) return running.done.then(() => syncNow());
+  if (running) return running.done;
   pending = false;
   set({ status: "syncing", error: null });
   // A round that finishes after the user signed out (or into another account) must not change what Settings shows.
   const current = () => snap.session?.user.id === session.user.id;
-  running = getSupabase()
+  const done = getSupabase()
     .then((db) => syncOnce(store, browserKV(), supabaseCloud(db), session.user.id))
     .then((r) => { if (current()) set({ status: "ok", lastSyncAt: readSyncState(browserKV()).lastSyncAt, skipped: r.skipped, rejected: r.rejected }); })
     .catch((e: unknown) => { if (current()) set({ status: "error", error: e instanceof Error ? e.message : "sync failed" }); })
@@ -41,7 +44,8 @@ export function syncNow(): Promise<void> {
       running = null;
       if (pending && snap.session) later(); // something changed while the round was running: its own timer found the round busy
     });
-  return running;
+  running = { user: session.user.id, done };
+  return done;
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;

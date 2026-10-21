@@ -242,10 +242,19 @@ describe("reading a notes file", () => {
   // windows-1252 / Latin-1 file are exactly those bytes, so a Spanish or French "ANSI" file is read as windows-1255 and its accents
   // become Hebrew letters ("fotosםntesis"); looksLikeBinary does not catch it, so the learner gets a game with corrupted words.
   // A fix needs one more test: Hebrew text is mostly high bytes (a quarter of the bytes or more), a Latin text only a few.
-  it.skip("a Latin-1 file with accents (Spanish, French 'ANSI' notes) is not turned into Hebrew letters", () => {
+  it("a Latin-1 file with accents (Spanish, French 'ANSI' notes) is not turned into Hebrew letters", () => {
     // "fotosíntesis": í is 0xED in windows-1252, which windows-1255 reads as the Hebrew letter ם
     const latin1 = (s: string) => Uint8Array.from([...s].map((c) => c.charCodeAt(0)));
     const out = decodeTextFile(latin1("La fotosíntesis es el proceso por el cual las plantas convierten la luz en energía."));
     expect(out).not.toMatch(/\p{Script=Hebrew}/u);
+  });
+});
+
+describe("a legacy Latin file", () => {
+  it("keeps its accents (windows-1252), and a legacy Hebrew file still reads as Hebrew", () => {
+    const latin1 = (s: string) => Uint8Array.from([...s].map((c) => c.charCodeAt(0)));
+    expect(decodeTextFile(latin1("La fotosíntesis es el proceso por el cual las plantas convierten la luz en energía."))).toBe("La fotosíntesis es el proceso por el cual las plantas convierten la luz en energía.");
+    // "שלום עולם" in windows-1255
+    expect(decodeTextFile(Uint8Array.from([0xf9, 0xec, 0xe5, 0xed, 0x20, 0xf2, 0xe5, 0xec, 0xed]))).toBe("שלום עולם");
   });
 });

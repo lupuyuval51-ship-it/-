@@ -199,7 +199,7 @@ describe("signing out", () => {
   });
 
   // Found while writing this file (see the report): `syncNow` hands the new session the round of the account that just left.
-  it.skip("an account that signs in while the previous account's round is still running gets its own round (BUG: syncNow returns the old round)", async () => {
+  it("an account that signs in while the previous account's round is still running gets its own round", async () => {
     const acc = await load();
     h.s.session = U1;
     let release!: () => void;
