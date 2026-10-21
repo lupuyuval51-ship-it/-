@@ -319,12 +319,24 @@ function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () 
   return shuffled(ranked.slice(0, n + 3), rnd).slice(0, n);
 }
 
+/**
+ * A Hebrew line about one of the learner's words, with verbs that agree whatever the word's own gender:
+ * "המילה" (feminine) for one word, "הביטוי" for several and "המספר" for a number (both masculine).
+ */
+function heWord(w: string): { name: string; fits: string; comes: string; appears: string } {
+  if (/^[\d.,%\s-]+$/u.test(w)) return { name: `המספר ״${w}״`, fits: "מתאים", comes: "הוא לקוח", appears: "מופיע" };
+  return /\s/u.test(w.trim())
+    ? { name: `הביטוי ״${w}״`, fits: "מתאים", comes: "הוא לקוח", appears: "מופיע" }
+    : { name: `המילה ״${w}״`, fits: "מתאימה", comes: "היא לקוחה", appears: "מופיעה" };
+}
+
 /** Wrong options of a gap, each told where the learner has seen that word instead. */
 function whyNot(word: string, original: string, ctx: Context, t: Tr): string {
   const home = ctx.home.get(original.toLowerCase());
+  const he = heWord(word);
   return home
-    ? t(`“${word}” does not fit here. It comes from another sentence of yours: “${clip(home, 110)}”`, `״${word}״ לא מתאים כאן. הוא לקוח ממשפט אחר שלכם: ״${clip(home, 110)}״`)
-    : t(`“${word}” does not fit here — re-read the sentence in your material.`, `״${word}״ לא מתאים כאן — קראו שוב את המשפט בחומר שלכם.`);
+    ? t(`“${word}” does not fit here. It comes from another sentence of yours: “${clip(home, 110)}”`, `${he.name} לא ${he.fits} כאן. ${he.comes} ממשפט אחר שלכם: ״${clip(home, 110)}״`)
+    : t(`“${word}” does not fit here — re-read the sentence in your material.`, `${he.name} לא ${he.fits} כאן — קראו שוב את המשפט בחומר שלכם.`);
 }
 
 function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context, truths: Set<string>, rnd: () => number, t: Tr): Candidate[] {
@@ -469,7 +481,7 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
     const termLength = words(d.term).length;
     const otherTerms = shuffled(clean, rnd)
       .sort((a, b) => Math.abs(words(a.term).length - termLength) - Math.abs(words(b.term).length - termLength))
-      .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
+      .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `המונח ״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
     // a loose word of the notes is a weak wrong option ("Earth's" next to three real terms): it only fills in when fewer than two other terms exist
     const fillers = otherTerms.length >= 2 || d.short ? [] : keywords
@@ -479,7 +491,8 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
       .slice(0, 2 - otherTerms.length)
       // a stand-alone option reads better without a leading Hebrew "and" (ו־) or an English possessive ("Earth's")
       .map((k) => k.text.replace(/^ו(?=\p{L}{3,})/u, "").replace(/['’]s$/u, ""))
-      .map((w) => ({ text: w, why: t(`“${w}” appears in your notes, but not with this description.`, `״${w}״ מופיע בפתקים שלכם, אבל לא עם ההסבר הזה.`) }));
+      .map((w) => ({ w, he: heWord(w) }))
+      .map(({ w, he }) => ({ text: w, why: t(`“${w}” appears in your notes, but not with this description.`, `${he.name} ${he.appears} בפתקים שלכם, אבל לא עם ההסבר הזה.`) }));
     const wrong = [...otherTerms.slice(0, 3), ...fillers].slice(0, 3);
     if (wrong.length < 2) continue;
     const correctAt = Math.floor(rnd() * (wrong.length + 1));
