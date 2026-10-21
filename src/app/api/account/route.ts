@@ -1,13 +1,14 @@
 import { z } from "zod";
 import { INPUT_LIMITS, RATE_LIMITS } from "@/config/limits";
-import { countrySchema, localeSchema } from "@/lib/schemas/auth";
+import { countrySchema, displayNameSchema, localeSchema } from "@/lib/schemas/auth";
 import { deleteAccount, updateAccount } from "@/server/account";
 import { clearedSessionCookie } from "@/server/auth/session";
 import { apiRoute } from "@/server/http/route";
 import { NextResponse } from "next/server";
 
 const updateSchema = z.object({
-  displayName: z.string().trim().min(1).max(INPUT_LIMITS.nameMax).optional(),
+  // the same rules as at sign-up (no control characters: a NUL made the database refuse the update with a 500)
+  displayName: displayNameSchema.optional(),
   locale: localeSchema.optional(),
   country: countrySchema.nullable().optional(),
   graphicsPreference: z.enum(["A", "B", "C"]).nullable().optional(),

@@ -18,11 +18,11 @@ const schema = z.object({
   /** "demo" is the old name of "none" (there are no demo games any more); kept so an older deployment's setting still starts. */
   AI_PROVIDER: z.preprocess((v) => (v === "demo" ? "none" : v), z.enum(["auto", "anthropic", "openai", "none"]).default("auto")),
   ANTHROPIC_API_KEY: optional(z.string()),
-  ANTHROPIC_MODEL: z.string().default("claude-opus-5-5"),
+  ANTHROPIC_MODEL: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.string().default("claude-opus-5-5")), // a blank value is unset, as in the edge function
   ANTHROPIC_REFUSAL_FALLBACK: bool.default(true),
   OPENAI_API_KEY: optional(z.string()),
   OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
-  OPENAI_MODEL: z.string().default("gpt-4.1"),
+  OPENAI_MODEL: z.preprocess((v) => (typeof v === "string" && v.trim() === "" ? undefined : v), z.string().default("gpt-4.1")), // a blank value is unset, as in the edge function
   AI_CALL_TIMEOUT_MS: z.coerce.number().int().min(1000).max(600_000).default(240_000),
   AI_JOB_DEADLINE_MS: z.coerce.number().int().min(5_000).max(1_800_000).default(600_000),
 
