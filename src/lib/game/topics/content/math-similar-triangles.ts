@@ -25,6 +25,10 @@ const c: TopicContent = {
       [27, ["A triangle with sides of 2, 3 and 4 cm is enlarged with ratio of similarity 3. What is the perimeter of the new triangle?", "cm", "The new sides are 6, 9 and 12 cm, so the perimeter is 6 + 9 + 12 = 27 cm. That is also 3 times the old perimeter of 9 cm."],
         ["משולש שצלעותיו 2, 3 ו־4 ס״מ מוגדל ביחס דמיון 3. מה ההיקף של המשולש החדש?", "ס״מ", "הצלעות החדשות הן 6, 9 ו־12 ס״מ, ולכן ההיקף הוא 6 + 9 + 12 = 27 ס״מ. זה גם פי 3 מההיקף הקודם, 9 ס״מ."]],
     ],
+    s: [
+      [["Finding a missing side of a similar triangle", "Match each side of one triangle with the corresponding side of the other", "Divide a known side of the second triangle by its matching side to find the ratio of similarity", "Multiply the matching side of the first triangle by that ratio", "Check that the answer fits: the larger triangle should have the longer sides"],
+        ["מציאת צלע חסרה במשולש דומה", "מתאימים כל צלע של משולש אחד לצלע המתאימה לה במשולש השני", "מחלקים צלע ידועה של המשולש השני בצלע המתאימה לה כדי למצוא את יחס הדמיון", "כופלים את הצלע המתאימה של המשולש הראשון ביחס הזה", "בודקים שהתשובה הגיונית: במשולש הגדול יותר הצלעות ארוכות יותר"]],
+    ],
   },
   i: {
     t: [
@@ -50,6 +54,10 @@ const c: TopicContent = {
       [7, ["In triangle ABC, D and E are the midpoints of AB and AC, and BC = 14 cm. How long is DE?", "cm", "The segment joining the midpoints of two sides is half the third side: 14 ÷ 2 = 7 cm. Triangle ADE is similar to ABC with ratio 1 : 2."],
         ["במשולש ABC הנקודות D ו־E הן אמצעי הצלעות AB ו־AC, ו־BC = 14 ס״מ. מה אורך DE?", "ס״מ", "הקטע שמחבר את אמצעי שתי הצלעות שווה למחצית הצלע השלישית: 14 ÷ 2 = 7 ס״מ. המשולש ADE דומה ל־ABC ביחס 1 : 2."]],
     ],
+    s: [
+      [["Finding the height of a tree from shadows", "Measure a stick's height and its shadow, and the tree's shadow, at the same moment", "Write the proportion: tree height ÷ tree shadow = stick height ÷ stick shadow", "Solve the proportion for the height of the tree", "Check that a tree with a longer shadow than the stick is taller than the stick"],
+        ["מציאת גובה של עץ לפי צללים", "מודדים באותו רגע את גובה המקל ואת הצל שלו, ואת הצל של העץ", "כותבים את הפרופורציה: גובה העץ ÷ צל העץ = גובה המקל ÷ צל המקל", "פותרים את הפרופורציה ומוצאים את גובה העץ", "בודקים שעץ שהצל שלו ארוך מצל המקל גבוה מהמקל"]],
+    ],
   },
   a: {
     t: [
@@ -74,6 +82,10 @@ const c: TopicContent = {
         ["במשולש ישר־זווית ABC, שהזווית הישרה שלו ב־C, הגובה CD מחלק את היתר לקטעים AD = 4 ו־DB = 9. מה אורך CD?", "", "המשולשים ACD ו־CBD דומים, ולכן AD : CD = CD : DB, ומכאן CD² = 4 × 9 = 36 ו־CD = 6."]],
       [7.5, ["In triangle ABC, DE ∥ BC with D on AB and E on AC. AD = 2, AB = 5 and DE = 3. How long is BC?", "", "Triangle ADE is similar to ABC with ratio AD : AB = 2 : 5, so DE : BC = 2 : 5 as well. Then BC = 3 × 5 ÷ 2 = 7.5."],
         ["במשולש ABC נתון DE ∥ BC, כאשר D על AB ו־E על AC. AD = 2, AB = 5 ו־DE = 3. מה אורך BC?", "", "המשולש ADE דומה ל־ABC ביחס AD : AB = 2 : 5, ולכן גם DE : BC = 2 : 5. מכאן BC = 3 × 5 ÷ 2 = 7.5."]],
+    ],
+    s: [
+      [["Finding the area of a larger similar triangle", "Find the ratio of similarity from a pair of matching sides", "Square the ratio of similarity to get the ratio of the areas", "Multiply the known area by the ratio of the areas", "Write the answer in square units"],
+        ["מציאת השטח של משולש דומה גדול יותר", "מוצאים את יחס הדמיון מזוג של צלעות מתאימות", "מעלים את יחס הדמיון בריבוע ומקבלים את יחס השטחים", "מכפילים את השטח הידוע ביחס השטחים", "כותבים את התשובה ביחידות שטח"]],
     ],
   },
 };

@@ -15,6 +15,8 @@ const c: TopicContent = {
         ["איזה סימן מראה התלהבות או הפתעה חזקה בסוף משפט כמו ״What a great goal״?", "סימן קריאה (!)", ["נקודה (.)", "סימן שאלה (?)", "פסיק (,)"], "סימן קריאה מראה רגש חזק, כמו שמחה, הפתעה או צעקה. סימן שאלה מיועד רק לשאלות."]],
       [["Which sentence has the commas in the right place?", "I bought apples, bananas and grapes.", ["I bought apples bananas and grapes.", "I, bought apples, bananas and grapes.", "I bought apples, bananas and, grapes."], "Put a comma between the things in a list, and let “and” join the last two. A comma does not separate the person from the verb."],
         ["באיזה משפט באנגלית הפסיקים במקום הנכון?", "I bought apples, bananas and grapes.", ["I bought apples bananas and grapes.", "I, bought apples, bananas and grapes.", "I bought apples, bananas and, grapes."], "בין הפריטים ברשימה שמים פסיק, ואת שני האחרונים מחברים במילה and. פסיק לא מפריד בין מי שעושה את הפעולה לבין הפועל."]],
+      [["Which sentence needs a question mark at the end?", "Where do you live", ["Please close the door", "I live in Haifa", "My house is big"], "Where do you live asks something, so it ends with a question mark: Where do you live? The others tell something or ask someone to do something, so they end with a full stop."],
+        ["איזה משפט צריך סימן שאלה בסופו?", "Where do you live", ["Please close the door", "I live in Haifa", "My house is big"], "Where do you live שואל משהו, ולכן הוא נגמר בסימן שאלה: Where do you live? המשפטים האחרים מספרים משהו או מבקשים ממישהו לעשות משהו, ולכן הם נגמרים בנקודה."]],
     ],
   },
   i: {

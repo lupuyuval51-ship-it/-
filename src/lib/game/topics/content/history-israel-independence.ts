@@ -13,7 +13,11 @@ const c: TopicContent = {
         ["באיזו שנה הוכרזה מדינת ישראל?", "1948", ["1897", "1967", "1917"], "מגילת העצמאות הוקראה בתל אביב ב־14 במאי 1948."]],
       [["In which city was the Declaration of Independence read?", "Tel Aviv", ["Jerusalem", "Haifa", "Basel"], "It was read at the Tel Aviv Museum building on Rothschild Boulevard, today called Independence Hall."],
         ["באיזו עיר הוקראה מגילת העצמאות?", "תל אביב", ["ירושלים", "חיפה", "בזל"], "היא הוקראה בבניין מוזיאון תל אביב בשדרות רוטשילד, שנקרא היום היכל העצמאות."]],
+      [["What is the name of Israel's national anthem?", "Hatikvah", ["Jerusalem of Gold", "Hava Nagila", "Shir LaShalom"], "Hatikvah (“The Hope”), from a poem by Naftali Herz Imber, became the anthem of the Zionist movement and is Israel's national anthem. “Jerusalem of Gold” is a famous song by Naomi Shemer from 1967."],
+        ["מה שמו של ההמנון הלאומי של ישראל?", "התקווה", ["ירושלים של זהב", "הבה נגילה", "שיר לשלום"], "״התקווה״, על פי שיר של נפתלי הרץ אימבר, הייתה להמנון התנועה הציונית והיא ההמנון הלאומי של ישראל. ״ירושלים של זהב״ הוא שיר מפורסם של נעמי שמר מ־1967."]],
     ],
+    n: [[51, ["The First Zionist Congress met in 1897, and the State of Israel was declared in 1948. How many years passed between them?", "years", "1948 − 1897 = 51 years. After the congress Herzl wrote in his diary that in fifty years at the latest everyone would see that he had founded the Jewish state."],
+      ["הקונגרס הציוני הראשון התכנס ב־1897, ומדינת ישראל הוכרזה ב־1948. כמה שנים עברו ביניהם?", "שנים", "1948 − 1897 = 51 שנים. אחרי הקונגרס כתב הרצל ביומנו שלכל המאוחר בעוד חמישים שנה כולם יראו שהוא ייסד את מדינת היהודים."]]],
   },
   i: {
     t: [
@@ -27,6 +31,8 @@ const c: TopicContent = {
         ["איפה ומתי התכנס הקונגרס הציוני הראשון?", "בזל, 1897", ["ירושלים, 1948", "לונדון, 1917", "וינה, 1860"], "הרצל כינס את הקונגרס הציוני הראשון בבזל שבשווייץ ב־1897."]],
       [["What did the UN General Assembly vote for on 29 November 1947?", "A plan to divide the land into a Jewish state and an Arab state", ["Israel joining the UN", "The end of the Second World War", "The Balfour Declaration"], "Resolution 181 recommended partition into two states, with Jerusalem under international rule."],
         ["בעד מה הצביעה העצרת הכללית של האו״ם ב־29 בנובמבר 1947?", "תוכנית לחלוקת הארץ למדינה יהודית ולמדינה ערבית", ["צירוף ישראל לאו״ם", "סיום מלחמת העולם השנייה", "הצהרת בלפור"], "החלטה 181 המליצה על חלוקה לשתי מדינות, וירושלים תהיה בשלטון בין־לאומי."]],
+      [["What did the British White Paper of 1939 do?", "It strictly limited Jewish immigration to the land", ["It ended the British Mandate and sent the British army home", "It promised that a Jewish state would be founded at once", "It founded the United Nations"], "The White Paper allowed only 75,000 Jewish immigrants over five years, just as Jews were trying to escape Nazi Europe. Many came anyway in secret, in what was called Aliyah Bet."],
+        ["מה עשה הספר הלבן הבריטי של 1939?", "הוא הגביל מאוד את עליית היהודים לארץ", ["הוא סיים את המנדט הבריטי והוציא את הצבא הבריטי מהארץ", "הוא הבטיח שמדינה יהודית תוקם מיד", "הוא ייסד את האו״ם"], "הספר הלבן התיר רק 75,000 עולים יהודים בחמש שנים, דווקא כשיהודים ניסו להימלט מאירופה הנאצית. רבים הגיעו בכל זאת בסתר, ב״עלייה ב׳״."]],
     ],
     s: [[["Put these in time order", "The First Zionist Congress in Basel", "The Balfour Declaration", "The UN partition vote", "The Declaration of Independence"], ["סדרו לפי סדר הזמן", "הקונגרס הציוני הראשון בבזל", "הצהרת בלפור", "החלטת החלוקה באו״ם", "הכרזת העצמאות"]]],
   },
@@ -42,7 +48,11 @@ const c: TopicContent = {
         ["מתי נערכו הבחירות הראשונות לכנסת?", "בינואר 1949", ["במאי 1948", "בנובמבר 1947", "ב־1950"], "הבחירות לאספה המכוננת, שהפכה לכנסת הראשונה, נערכו ב־25 בינואר 1949."]],
       [["What does the Declaration of Independence promise all inhabitants of the state?", "Full equality of social and political rights, regardless of religion, race or sex", ["Free land for everyone", "Compulsory religious study", "A single official religion for all"], "The declaration commits the state to equal social and political rights and to freedom of religion, conscience, language, education and culture."],
         ["מה מבטיחה מגילת העצמאות לכל תושבי המדינה?", "שוויון זכויות חברתי ומדיני גמור, בלי הבדל דת, גזע ומין", ["אדמה בחינם לכולם", "לימודי דת חובה", "דת רשמית אחת לכולם"], "המגילה מחייבת את המדינה לשוויון זכויות חברתי ומדיני ולחופש דת, מצפון, לשון, חינוך ותרבות."]],
+      [["On 15 May 1948, the day after the declaration, the armies of several neighbouring states invaded. What is this war called in Israel?", "The War of Independence", ["The Sinai Campaign of 1956", "The Six-Day War", "The Yom Kippur War"], "The armies of Egypt, Transjordan, Syria, Lebanon and Iraq invaded, and the fighting ended with the armistice agreements of 1949. The Six-Day War was in 1967 and the Yom Kippur War in 1973."],
+        ["ב־15 במאי 1948, יום אחרי ההכרזה, פלשו לארץ צבאות של כמה מדינות שכנות. איך נקראת המלחמה הזאת בישראל?", "מלחמת העצמאות", ["מבצע קדש של 1956", "מלחמת ששת הימים", "מלחמת יום הכיפורים"], "צבאות מצרים, עבר הירדן, סוריה, לבנון ועיראק פלשו, והלחימה הסתיימה בהסכמי שביתת הנשק של 1949. מלחמת ששת הימים הייתה ב־1967 ומלחמת יום הכיפורים ב־1973."]],
     ],
+    n: [[120, ["How many members sit in the Knesset, the same number as in the first Knesset of 1949?", "members", "The Knesset has 120 members. By tradition it is the number of members of the Great Assembly in the days of the Second Temple."],
+      ["כמה חברים יש בכנסת, אותו מספר כמו בכנסת הראשונה של 1949?", "חברים", "בכנסת יש 120 חברים. לפי המסורת זה מספר החברים בכנסת הגדולה בימי בית שני."]]],
   },
 };
 export default c;

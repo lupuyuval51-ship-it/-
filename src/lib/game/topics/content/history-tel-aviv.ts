@@ -20,7 +20,7 @@ const c: TopicContent = {
         ["איך מכונה תל אביב בזכות הבניינים הלבנים הרבים שלה משנות ה־30?", "״העיר הלבנה״", ["״עיר הזהב״", "״עיר החול״", "״העיר הכחולה״"], "אלפי בניינים פשוטים ובהירים בסגנון המודרני נתנו לתל אביב את הכינוי ״העיר הלבנה״. ״ירושלים של זהב״ הוא שיר על ירושלים."]],
     ],
     n: [[1909, ["In which year was the seashell lottery for the first plots held?", "", "The lottery was held on the dunes north of Jaffa in April 1909, and Tel Aviv marks 1909 as the year it was founded."], ["באיזו שנה נערכה הגרלת הצדפים על המגרשים הראשונים?", "", "ההגרלה נערכה על הדיונות מצפון ליפו באפריל 1909, ותל אביב מציינת את 1909 כשנת הייסוד שלה."]]],
-    s: [[["Put these in time order", "The seashell lottery on the dunes", "Meir Dizengoff begins to lead the town", "The Declaration of Independence is read in Tel Aviv", "Tel Aviv and Jaffa become one city"], ["סדרו לפי סדר הזמן", "הגרלת הצדפים על הדיונות", "מאיר דיזנגוף מתחיל לעמוד בראש היישוב", "מגילת העצמאות מוקראת בתל אביב", "תל אביב ויפו הופכות לעיר אחת"]]],
+    s: [[["Put these in time order", "The seashell lottery on the dunes", "The first houses are built on the sand", "The Declaration of Independence is read in Tel Aviv", "Tel Aviv and Jaffa become one city"], ["סדרו לפי סדר הזמן", "הגרלת הצדפים על הדיונות", "הבתים הראשונים נבנים על החול", "מגילת העצמאות מוקראת בתל אביב", "תל אביב ויפו הופכות לעיר אחת"]]],
   },
   i: {
     t: [

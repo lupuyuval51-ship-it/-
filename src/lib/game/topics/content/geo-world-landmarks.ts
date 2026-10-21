@@ -15,6 +15,8 @@ const c: TopicContent = {
         ["איזה אתר הוא פסל ענק של אישה שמחזיקה לפיד, שעומד בנמל של ניו יורק?", "פסל החירות", ["מגדל אייפל", "החומה הגדולה של סין", "בית האופרה של סידני"], "פסל החירות היה מתנה מצרפת לארצות הברית. מגדל אייפל נמצא בפריז, החומה הגדולה בסין ובית האופרה בסידני."]],
       [["The famous pyramids of Giza stand near which river?", "The Nile", ["The Amazon", "The Rhine", "The Thames"], "The pyramids stand just west of the Nile, near the city of Cairo in Egypt. They were built about 4,500 years ago as tombs for pharaohs."],
         ["הפירמידות המפורסמות בגיזה נמצאות ליד איזה נהר?", "הנילוס", ["האמזונאס", "הריין", "התמזה"], "הפירמידות עומדות מערבית לנילוס, ליד העיר קהיר שבמצרים. הן נבנו לפני כ־4,500 שנה כקברים לפרעונים."]],
+      [["Why was the Great Wall of China built?", "To protect China from attackers coming from the north", ["To keep wild animals like tigers and wolves out of the farms", "To stop the sea from flooding the farms and towns of China", "So that it could be seen from the Moon"], "Rulers of China built and rebuilt the wall over many centuries to keep out raiders from the north. It is very long but narrow, so, despite a famous myth, it cannot be seen from the Moon."],
+        ["למה נבנתה החומה הגדולה של סין?", "כדי להגן על סין מפני תוקפים שהגיעו מהצפון", ["כדי להרחיק חיות בר כמו נמרים וזאבים מהשדות", "כדי לעצור את הים מלהציף את השדות והערים של סין", "כדי שאפשר יהיה לראות אותה מהירח"], "שליטי סין בנו את החומה ושיפצו אותה במשך מאות שנים כדי לעצור פושטים שהגיעו מהצפון. היא ארוכה מאוד אבל צרה, ולכן, בניגוד לאגדה מפורסמת, אי אפשר לראות אותה מהירח."]],
     ],
   },
   i: {
@@ -62,8 +64,8 @@ const c: TopicContent = {
       [["In 2024 Venice in Italy began charging day visitors an entry fee on its busiest days. Why?", "To reduce the crowding and damage caused by too many tourists", ["To stop the people who live there from going out", "Because the city was about to close for good", "Because tourists are no longer allowed in Italy"], "This is a way of fighting overtourism. When too many visitors come, streets become packed, old buildings wear down and life gets hard for the people who live there."],
         ["ב־2024 התחילה ונציה שבאיטליה לגבות דמי כניסה ממבקרים ליום אחד בימים העמוסים ביותר. למה?", "כדי לצמצם את הצפיפות ואת הנזק שגורמים יותר מדי תיירים", ["כדי למנוע מהתושבים לצאת מהבית", "כי העיר עמדה להיסגר לתמיד", "כי באיטליה כבר אסור לקבל תיירים"], "זו דרך להיאבק בתיירות־יתר. כשמגיעים יותר מדי מבקרים, הרחובות נדחסים, מבנים עתיקים נשחקים ולתושבים קשה לחיות בעיר."]],
     ],
-    n: [[93, ["The Statue of Liberty is about 46 metres tall from its feet to the tip of the torch, and its pedestal and base add about 47 metres. About how high above the ground is the torch?", "m", "46 + 47 = 93 metres."],
-      ["פסל החירות גבוה כ־46 מטר מכפות הרגליים ועד קצה הלפיד, והכן והבסיס שלו מוסיפים כ־47 מטר. בערך באיזה גובה מעל הקרקע נמצא הלפיד?", "מטר", "46 + 47 = 93 מטר."]]],
+    n: [[93, ["The Statue of Liberty is about 46 metres tall from its feet to the tip of the torch, and its pedestal and base add about 47 metres. About how high above the ground is the torch?", "m", "Add the statue to what stands under it: 46 + 47 = 93, so the torch is about 93 metres above the ground."],
+      ["פסל החירות גבוה כ־46 מטר מכפות הרגליים ועד קצה הלפיד, והכן והבסיס שלו מוסיפים כ־47 מטר. בערך באיזה גובה מעל הקרקע נמצא הלפיד?", "מטר", "מחברים את גובה הפסל לגובה של מה שעומד מתחתיו: 46 + 47 = 93, כלומר הלפיד נמצא כ־93 מטר מעל הקרקע."]]],
   },
 };
 export default c;

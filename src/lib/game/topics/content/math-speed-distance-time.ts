@@ -54,6 +54,10 @@ const c: TopicContent = {
       [80, ["A train leaves at 10:40 and arrives at 13:10, after travelling 200 km. What is its average speed in km/h?", "km/h", "From 10:40 to 13:10 is 2 hours 30 minutes, or 2.5 hours, and 200 ÷ 2.5 = 80 km/h."],
         ["רכבת יוצאת ב־10:40 ומגיעה ב־13:10, אחרי שעברה 200 ק״מ. מהי המהירות הממוצעת שלה בקמ״ש?", "קמ״ש", "מ־10:40 עד 13:10 עוברות שעתיים ו־30 דקות, כלומר 2.5 שעות, ו־200 ÷ 2.5 = 80 קמ״ש."]],
     ],
+    s: [
+      [["From the slowest speed to the fastest (watch the units)", "3 m/s", "20 km/h", "8 m/s", "60 km/h", "30 m/s"],
+        ["מהמהירות האיטית ביותר למהירה ביותר (שימו לב ליחידות)", "3 מ׳ לשנייה", "20 קמ״ש", "8 מ׳ לשנייה", "60 קמ״ש", "30 מ׳ לשנייה"]],
+    ],
   },
   a: {
     t: [
@@ -78,6 +82,10 @@ const c: TopicContent = {
         ["רכבת שאורכה 200 מ׳ נוסעת במהירות של 20 מ׳ לשנייה. כמה שניות לוקח לה לעבור לגמרי גשר שאורכו 400 מ׳?", "שניות", "החזית צריכה לעבור את הגשר ועוד את אורך הרכבת עצמה, 400 + 200 = 600 מ׳, עד שהסוף יוצא מהגשר. 600 ÷ 20 = 30 שניות."]],
       [1020, ["Taking the speed of sound in air as 340 m/s, how far away is a lightning strike if you hear the thunder 3 seconds after the flash?", "m", "The light arrives almost at once, so the 3 seconds are the time the sound takes: 340 × 3 = 1020 m, about 1 km."],
         ["אם מהירות הקול באוויר היא 340 מ׳ לשנייה, באיזה מרחק היכה הברק כששומעים את הרעם 3 שניות אחרי ההבזק?", "מ׳", "האור מגיע כמעט מיד, ולכן 3 השניות הן הזמן שלוקח לקול להגיע: 340 × 3 = 1020 מ׳, בערך 1 ק״מ."]],
+    ],
+    s: [
+      [["Put these journeys in order of average speed, from the slowest to the fastest", "45 km in 1 hour 30 minutes", "120 km in 3 hours", "90 km in 2 hours", "10 km in 12 minutes", "100 km in 1 hour 20 minutes"],
+        ["סדרו את המסעות לפי המהירות הממוצעת, מהאיטית ביותר למהירה ביותר", "45 ק״מ בשעה ו־30 דקות", "120 ק״מ ב־3 שעות", "90 ק״מ בשעתיים", "10 ק״מ ב־12 דקות", "100 ק״מ בשעה ו־20 דקות"]],
     ],
   },
 };

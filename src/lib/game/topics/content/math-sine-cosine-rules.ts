@@ -27,6 +27,10 @@ const c: TopicContent = {
       [12, ["In a triangle, side a = 6 cm lies opposite angle A = 30°. What is a ÷ sin A?", "cm", "sin 30° = 0.5, so a ÷ sin A = 6 ÷ 0.5 = 12 cm. Every other side divided by the sine of its opposite angle also gives 12."],
         ["במשולש, הצלע a = 6 ס״מ נמצאת מול הזווית A = 30°. כמה זה a ÷ sin A?", "ס״מ", "מכיוון ש־sin 30° = 0.5, מקבלים a ÷ sin A = 6 ÷ 0.5 = 12 ס״מ. גם כל צלע אחרת חלקי הסינוס של הזווית שמולה נותנת 12."]],
     ],
+    s: [
+      [["Using the sine rule to find a side", "Mark the known angle with the side opposite it, and the angle opposite the side you want", "Write the sine rule with those two pairs: a ÷ sin A = b ÷ sin B", "Rearrange to make the unknown side the subject: b = a × sin B ÷ sin A", "Put in the numbers and calculate"],
+        ["שימוש במשפט הסינוסים כדי למצוא צלע", "מסמנים את הזווית הידועה ואת הצלע שמולה, ואת הזווית שמול הצלע שמחפשים", "כותבים את משפט הסינוסים עם שני הזוגות האלה: a ÷ sin A = b ÷ sin B", "מבודדים את הצלע הלא ידועה: b = a × sin B ÷ sin A", "מציבים את המספרים ומחשבים"]],
+    ],
   },
   i: {
     t: [

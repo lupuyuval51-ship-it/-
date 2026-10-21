@@ -45,8 +45,8 @@ const c: TopicContent = {
         ["במה מפורסם אגם טיטיקקה, שבין פרו לבוליביה?", "הוא מהאגמים הגדולים הגבוהים ביותר בעולם", ["הוא האגם הנמוך בעולם, הרבה מתחת לפני הים", "הוא האגם המלוח ביותר בדרום אמריקה", "זה אגם שבני אדם חפרו"], "אגם טיטיקקה נמצא בגובה של כ־3,800 מטר מעל פני הים, גבוה בהרי האנדים. שטות עליו סירות גדולות, ואנשים חיים לחופיו ובאיו כבר אלפי שנים."]],
     ],
     n: [
-      [220, ["The surface of the Kinneret is about 210 m below sea level, and that of the Dead Sea about 430 m below. How many metres lower is the Dead Sea?", "m", "430 − 210 = 220, so the Dead Sea is about 220 m lower than the Kinneret."],
-        ["פני הכנרת נמצאים כ־210 מטר מתחת לפני הים, ופני ים המלח כ־430 מטר מתחת לפני הים. בכמה מטרים נמוך ים המלח מהכנרת?", "מטר", "430 − 210 = 220, ולכן ים המלח נמוך מהכנרת בכ־220 מטר."]],
+      [230, ["The surface of the Kinneret is about 210 m below sea level, and that of the Dead Sea about 440 m below. How many metres lower is the Dead Sea?", "m", "440 − 210 = 230, so the Dead Sea is about 230 m lower than the Kinneret, and the gap grows as the Dead Sea keeps falling."],
+        ["פני הכנרת נמצאים כ־210 מטר מתחת לפני הים, ופני ים המלח כ־440 מטר מתחת לפני הים. בכמה מטרים נמוך ים המלח מהכנרת?", "מטר", "440 − 210 = 230, ולכן ים המלח נמוך מהכנרת בכ־230 מטר, והפער גדל כי מפלס ים המלח ממשיך לרדת."]],
       [5, ["Lake Baikal is about 1,640 m deep, and the Eiffel Tower is about 330 m tall. About how many Eiffel Towers, one on top of another, would reach its bottom?", "", "1,640 ÷ 330 is a little less than 5, so about 5 Eiffel Towers stacked up would reach from the surface to the bottom."],
         ["עומקו של אגם בייקל כ־1,640 מטר, וגובה מגדל אייפל כ־330 מטר. כמה מגדלי אייפל בערך, אחד על גבי השני, יגיעו עד הקרקעית שלו?", "", "1,640 ÷ 330 הוא קצת פחות מ־5, ולכן כ־5 מגדלי אייפל זה על גבי זה יגיעו מפני המים עד הקרקעית."]],
     ],

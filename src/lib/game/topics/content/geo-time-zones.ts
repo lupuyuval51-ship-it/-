@@ -23,7 +23,7 @@ const c: TopicContent = {
     ],
     n: [
       [24, ["In the basic plan, the world is divided into one time zone for each hour of the day. How many time zones is that?", "", "A day has 24 hours, so there are 24 time zones. Real borders bend around countries and a few places use half hours, so in practice there are more than 24 different clock times."],
-        ["בתוכנית הבסיסית, העולם מחולק לאזור זמן אחד לכל שעה ביממה. כמה אזורי זמן יש אז?", "", "ביממה יש 24 שעות, ולכן יש 24 אזורי זמן. הגבולות האמיתיים מתעקלים סביב מדינות, ויש מקומות שמשתמשים בחצאי שעות, כך שבפועל יש יותר מ־24 שעוני זמן שונים."]],
+        ["בתוכנית הבסיסית, העולם מחולק לאזור זמן אחד לכל שעה ביממה. כמה אזורי זמן יש אז?", "", "ביממה יש 24 שעות, ולכן יש 24 אזורי זמן. הגבולות האמיתיים מתעקלים סביב מדינות, ויש מקומות שמשתמשים בחצאי שעות, כך שבפועל יש בעולם יותר מ־24 זמנים רשמיים שונים."]],
       [11, ["Israel's winter time is 2 hours ahead of London. When it is 9:00 in London, what hour is it in Israel?", "", "Israel is ahead, so add 2 hours: 9 + 2 = 11. It is 11:00 in Israel."],
         ["שעון החורף בישראל מקדים את לונדון בשעתיים. כשבלונדון השעה 9:00, מה השעה בישראל?", "", "ישראל מקדימה, ולכן מוסיפים שעתיים: 9 + 2 = 11. בישראל השעה 11:00."]],
     ],

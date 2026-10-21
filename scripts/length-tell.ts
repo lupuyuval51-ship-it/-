@@ -14,7 +14,7 @@ type Question = [string, string, string[]];
 const args = process.argv.slice(2);
 const overAt = args.indexOf("--over");
 const over = overAt >= 0 ? Number(args[overAt + 1]) : -1;
-const ids = args.filter((a, i) => !a.startsWith("--") && i !== overAt + 1);
+const ids = args.filter((a, i) => !a.startsWith("--") && (overAt < 0 || i !== overAt + 1));
 const BAR = 0.4;
 
 async function main(): Promise<void> {

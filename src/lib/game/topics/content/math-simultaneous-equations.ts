@@ -25,6 +25,10 @@ const c: TopicContent = {
       [9, ["a + b = 15 and a − b = 3. What is a?", "", "Adding the two equations cancels b: 2a = 18, so a = 9 and b = 6. Check: 9 + 6 = 15 and 9 − 6 = 3."],
         ["a + b = 15 ו־a − b = 3. מהו a?", "", "חיבור שתי המשוואות מבטל את b: 2a = 18, ולכן a = 9 ו־b = 6. בדיקה: 9 + 6 = 15 ו־9 − 6 = 3."]],
     ],
+    s: [
+      [["Checking whether a pair of values solves a system", "Put the two values into the first equation", "Check that both sides of the first equation are equal", "Put the same two values into the second equation", "Check that both sides of the second equation are equal", "Only if both checks work, the pair is a solution of the system"],
+        ["בדיקה אם זוג ערכים פותר מערכת משוואות", "מציבים את שני הערכים במשוואה הראשונה", "בודקים ששני אגפי המשוואה הראשונה שווים", "מציבים את אותם שני ערכים במשוואה השנייה", "בודקים ששני אגפי המשוואה השנייה שווים", "רק אם שתי הבדיקות מצליחות, הזוג הוא פתרון של המערכת"]],
+    ],
   },
   i: {
     t: [
@@ -76,6 +80,10 @@ const c: TopicContent = {
         ["לאיזה ערך של k אין פתרון למערכת 3x + 6y = 9 ו־x + ky = 5?", "", "הישרים מקבילים כשהמקדמים באותו יחס: 3/1 = 6/k, ולכן k = 2. אז המשוואה הראשונה היא x + 2y = 3 והשנייה x + 2y = 5, ושתיהן לא יכולות להתקיים יחד."]],
       [8, ["The lines y = 3x − 1 and y = x + 5 meet at one point. What is its y-coordinate?", "", "At the meeting point 3x − 1 = x + 5, so 2x = 6 and x = 3. Then y = 3 + 5 = 8, and the point is (3, 8)."],
         ["הישרים y = 3x − 1 ו־y = x + 5 נפגשים בנקודה אחת. מהו שיעור ה־y שלה?", "", "בנקודת המפגש 3x − 1 = x + 5, ולכן 2x = 6 ו־x = 3. אז y = 3 + 5 = 8, והנקודה היא (3, 8)."]],
+    ],
+    s: [
+      [["Solving 2x + 3y = 11 and 3x − 2y = 10 by elimination", "Multiply the first equation by 2 and the second by 3, so the y terms become 6y and −6y", "Add the two new equations, which cancels y and leaves 13x = 52", "Divide by 13 to get x = 4", "Put x = 4 into the first equation: 8 + 3y = 11", "Solve for y to get y = 1"],
+        ["פתרון 2x + 3y = 11 ו־3x − 2y = 10 בשיטת השוואת המקדמים", "כופלים את המשוואה הראשונה ב־2 ואת השנייה ב־3, כך שהאיברים עם y נעשים 6y ו־−6y", "מחברים את שתי המשוואות החדשות, וכך y מתבטל ונשאר 13x = 52", "מחלקים ב־13 ומקבלים x = 4", "מציבים x = 4 במשוואה הראשונה: 8 + 3y = 11", "פותרים את y ומקבלים y = 1"]],
     ],
   },
 };

@@ -9,8 +9,8 @@ const c: TopicContent = {
       ["Experiment", "a planned test that checks whether an idea is true by watching what really happens", "ניסוי", "בדיקה מתוכננת שבוחנת אם רעיון נכון לפי מה שקורה במציאות"],
     ],
     q: [
-      [["Which astronomer published a book in 1543 that put the Sun, not the Earth, near the centre of the universe?", "Nicolaus Copernicus", ["Galileo Galilei", "Isaac Newton", "Aristotle"], "Copernicus's book \"On the Revolutions of the Heavenly Spheres\" came out in 1543, the year he died. Galileo supported the idea later, and Newton explained it, but the model itself was Copernicus's."],
-        ["איזה אסטרונום פרסם ב־1543 ספר שהציב את השמש, ולא את כדור הארץ, קרוב למרכז היקום?", "ניקולאוס קופרניקוס", ["גלילאו גליליי", "אייזק ניוטון", "אריסטו"], "ספרו של קופרניקוס ״על סיבובי הגלגלים השמימיים״ יצא לאור ב־1543, בשנת מותו. גלילאו תמך ברעיון מאוחר יותר וניוטון הסביר אותו, אבל המודל עצמו הוא של קופרניקוס."]],
+      [["Which astronomer published a book in 1543 that put the Sun near the centre of the universe?", "Nicolaus Copernicus", ["Galileo Galilei", "Isaac Newton", "Aristotle"], "Copernicus's book \"On the Revolutions of the Heavenly Spheres\" came out in 1543, the year he died. Galileo supported the idea later, and Newton explained it, but the model itself was Copernicus's."],
+        ["איזה אסטרונום פרסם ב־1543 ספר שהציב את השמש קרוב למרכז היקום?", "ניקולאוס קופרניקוס", ["גלילאו גליליי", "אייזק ניוטון", "אריסטו"], "ספרו של קופרניקוס ״על סיבובי הגלגלים השמימיים״ יצא לאור ב־1543, בשנת מותו. גלילאו תמך ברעיון מאוחר יותר וניוטון הסביר אותו, אבל המודל עצמו הוא של קופרניקוס."]],
       [["In 1610 Galileo pointed his telescope at Jupiter. What did he discover?", "Four moons travelling around the planet", ["A ring of ice and rock around its middle", "That the planet is a flat disc of burning gas", "Oceans and green forests on its surface"], "Galileo saw four small moons circling Jupiter, now called the Galilean moons. It showed that not everything in the sky goes around the Earth."],
         ["ב־1610 כיוון גלילאו את הטלסקופ שלו אל צדק. מה הוא גילה?", "ארבעה ירחים שסובבים סביב כוכב הלכת", ["טבעת של קרח וסלעים סביב אמצעו", "שכוכב הלכת הוא דיסקה שטוחה של גז בוער", "אוקיינוסים ויערות ירוקים על פניו"], "גלילאו ראה ארבעה ירחים קטנים שסובבים סביב צדק, וכיום הם נקראים ״הירחים הגליליים״. התגלית הראתה שלא כל מה שבשמיים סובב סביב כדור הארץ."]],
       [["Which scientist wrote the three laws of motion and the law of universal gravitation?", "Isaac Newton", ["Johannes Kepler", "Galileo Galilei", "Nicolaus Copernicus"], "Newton set out these laws in his book the Principia. Kepler had described how the planets move; Newton explained why they move that way."],
@@ -22,8 +22,8 @@ const c: TopicContent = {
     ],
     n: [[5, ["Before the telescope was invented, how many planets besides the Earth did people know about?", "", "Mercury, Venus, Mars, Jupiter and Saturn are bright enough to follow with the eyes alone, and people knew them since ancient times, so the answer is 5. Uranus was discovered with a telescope only in 1781."],
       ["לפני שהומצא הטלסקופ, כמה כוכבי לכת מלבד כדור הארץ הכירו בני האדם?", "", "כוכב חמה, נוגה, מאדים, צדק ושבתאי בהירים מספיק כדי לעקוב אחריהם בעין בלבד, ואנשים הכירו אותם מימי קדם, ולכן התשובה היא 5. את אורנוס גילו בעזרת טלסקופ רק ב־1781."]]],
-    s: [[["From an Earth-centred to a Sun-centred universe, in order", "Ptolemy describes the Earth at the centre of everything", "Copernicus publishes a model with the Sun near the centre", "Galileo uses a telescope and finds moons around Jupiter", "Newton explains the motion of the planets with gravity"],
-      ["מכדור הארץ במרכז היקום אל השמש במרכז, לפי הסדר", "תלמי מתאר את כדור הארץ במרכז הכול", "קופרניקוס מפרסם מודל שבו השמש קרובה למרכז", "גלילאו משתמש בטלסקופ ומוצא ירחים סביב צדק", "ניוטון מסביר את תנועת כוכבי הלכת בעזרת כוח הכבידה"]]],
+    s: [[["The steps of the scientific method, in order", "Observe something that makes you curious", "Ask a clear question about it", "Suggest a possible explanation (a hypothesis)", "Test the explanation with an experiment", "Look at the results and decide whether the explanation holds"],
+      ["שלבי השיטה המדעית, לפי הסדר", "מתבוננים במשהו שמעורר סקרנות", "שואלים עליו שאלה ברורה", "מציעים הסבר אפשרי (השערה)", "בודקים את ההסבר בניסוי", "מתבוננים בתוצאות ומחליטים אם ההסבר עומד במבחן"]]],
   },
   i: {
     t: [
@@ -48,8 +48,8 @@ const c: TopicContent = {
     ],
     n: [[1758, ["Edmond Halley used Newton's laws to show that a comet seen in 1682 returns about every 76 years. In which year did he predict its return?", "", "1682 + 76 = 1758. The comet did come back at the end of 1758, after Halley had died, and it was named Halley's Comet in his honour.", "Add 76 to 1682."],
       ["אדמונד היילי השתמש בחוקי ניוטון והראה שכוכב שביט שנראה ב־1682 חוזר בערך כל 76 שנים. באיזו שנה הוא חזה שהשביט יחזור?", "", "1682 + 76 = 1758. השביט אכן חזר בסוף 1758, אחרי מותו של היילי, ונקרא על שמו ״השביט של היילי״.", "חברו 76 ל־1682."]]],
-    s: [[["The steps of the scientific method, in order", "Observe something that makes you curious", "Ask a clear question about it", "Suggest a possible explanation (a hypothesis)", "Test the explanation with an experiment", "Look at the results and decide whether the explanation holds"],
-      ["שלבי השיטה המדעית, לפי הסדר", "מתבוננים במשהו שמעורר סקרנות", "שואלים עליו שאלה ברורה", "מציעים הסבר אפשרי (השערה)", "בודקים את ההסבר בניסוי", "מתבוננים בתוצאות ומחליטים אם ההסבר עומד במבחן"]]],
+    s: [[["From an Earth-centred to a Sun-centred universe, in order", "Ptolemy describes the Earth at the centre of everything", "Copernicus publishes a model with the Sun near the centre", "Galileo uses a telescope and finds moons around Jupiter", "Newton explains the motion of the planets with gravity"],
+      ["מכדור הארץ במרכז היקום אל השמש במרכז, לפי הסדר", "תלמי מתאר את כדור הארץ במרכז הכול", "קופרניקוס מפרסם מודל שבו השמש קרובה למרכז", "גלילאו משתמש בטלסקופ ומוצא ירחים סביב צדק", "ניוטון מסביר את תנועת כוכבי הלכת בעזרת כוח הכבידה"]]],
   },
   a: {
     t: [

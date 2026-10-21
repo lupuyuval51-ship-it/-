@@ -22,8 +22,8 @@ const c: TopicContent = {
     n: [
       [2, ["How many forms of be are in this sentence: “I am tall and my brothers are tall too.”", "", "There are 2 forms of be: am (with I) and are (with my brothers)."],
         ["כמה צורות של be יש במשפט: ״I am tall and my brothers are tall too.״", "", "יש במשפט 2 צורות של be: am (עם I) ו־are (עם my brothers)."]],
-      [3, ["How many present forms does be have: one for I, one for he, she and it, and one for you, we and they?", "", "Be has 3 present forms: am with I, is with he, she and it, and are with you, we and they."],
-        ["כמה צורות הווה יש ל־be: אחת ל־I, אחת ל־he, she ו־it, ואחת ל־you, we ו־they?", "", "לפועל be יש בהווה 3 צורות: am עם I, is עם he, she ו־it, ו־are עם you, we ו־they."]],
+      [3, ["How many different present forms does be have with I, you, he, she, it, we and they?", "", "Be has 3 present forms: am with I, is with he, she and it, and are with you, we and they."],
+        ["כמה צורות הווה שונות יש ל־be עם I, you, he, she, it, we ו־they?", "", "לפועל be יש בהווה 3 צורות: am עם I, is עם he, she ו־it, ו־are עם you, we ו־they."]],
     ],
   },
   i: {

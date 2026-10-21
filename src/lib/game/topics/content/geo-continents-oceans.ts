@@ -35,14 +35,14 @@ const c: TopicContent = {
     t: [
       ["Plate tectonics", "the theory that Earth's outer shell is broken into plates that slowly move", "טקטוניקת הלוחות", "התאוריה שלפיה המעטפת החיצונית של כדור הארץ שבורה ללוחות שזזים לאט"],
       ["Pangaea", "the supercontinent that joined almost all land together about 300–200 million years ago", "פנגיאה", "יבשת־העל שבה הייתה כמעט כל היבשה מחוברת לפני כ־300–200 מיליון שנה"],
-      ["Mariana Trench", "the deepest known part of the ocean, nearly 11 km deep, in the western Pacific", "מכתש מריאנה", "החלק העמוק ביותר הידוע באוקיינוס, בעומק של כמעט 11 ק״מ, במערב האוקיינוס השקט"],
+      ["Mariana Trench", "the deepest known part of the ocean, nearly 11 km deep, in the western Pacific", "שוחת מריאנה", "החלק העמוק ביותר הידוע באוקיינוס, בעומק של כמעט 11 ק״מ, במערב האוקיינוס השקט"],
       ["Continental shelf", "the shallow sea floor at the edge of a continent before it drops into the deep ocean", "מדף יבשתי", "קרקעית הים הרדודה בשולי יבשת, לפני הירידה אל האוקיינוס העמוק"],
     ],
     q: [
-      [["The coasts of South America and Africa fit together like puzzle pieces. What explains this?", "They were once joined and drifted apart", ["Sea levels cut them the same way", "Wind shaped both coasts", "It is pure chance"], "Matching coastlines, rocks and fossils support the idea that both were part of one landmass that split as the plates moved."],
-        ["החופים של דרום אמריקה ושל אפריקה מתאימים זה לזה כמו חלקי פאזל. מה מסביר זאת?", "פעם הן היו מחוברות והתרחקו זו מזו", ["מפלס הים חתך אותן באותה צורה", "הרוח עיצבה את שני החופים", "זה צירוף מקרים"], "חופים, סלעים ומאובנים תואמים תומכים ברעיון ששתיהן היו חלק מגוש יבשה אחד שהתפצל כשהלוחות זזו."]],
-      [["The Atlantic Ocean is slowly getting wider. Why?", "New sea floor forms at the Mid-Atlantic Ridge and pushes the plates apart", ["Melting ice adds water", "The Earth is getting bigger", "Rivers wash the coasts away"], "At the mid-ocean ridge, magma rises and forms new crust, spreading the sea floor by a few centimetres a year."],
-        ["האוקיינוס האטלנטי מתרחב לאט. למה?", "קרקעית ים חדשה נוצרת ברכס המרכז־אטלנטי ודוחפת את הלוחות זה מזה", ["קרח נמס מוסיף מים", "כדור הארץ גדל", "נהרות שוטפים את החופים"], "ברכס שבאמצע האוקיינוס מאגמה עולה ויוצרת קרום חדש, וקרקעית הים מתרחבת בכמה סנטימטרים בשנה."]],
+      [["The coasts of South America and Africa fit together like puzzle pieces. What explains this?", "They were once joined and drifted apart", ["The same ocean waves wore both coasts into matching shapes", "Sea levels cut them the same way", "Wind shaped both coasts", "It is pure chance"], "Matching coastlines, rocks and fossils support the idea that both were part of one landmass that split as the plates moved."],
+        ["החופים של דרום אמריקה ושל אפריקה מתאימים זה לזה כמו חלקי פאזל. מה מסביר זאת?", "פעם הן היו מחוברות והתרחקו זו מזו", ["אותם גלי ים שחקו את שני החופים לצורות תואמות", "מפלס הים חתך אותן באותה צורה", "הרוח עיצבה את שני החופים", "זה צירוף מקרים"], "חופים, סלעים ומאובנים תואמים תומכים ברעיון ששתיהן היו חלק מגוש יבשה אחד שהתפצל כשהלוחות זזו."]],
+      [["The Atlantic Ocean is slowly getting wider. Why?", "New sea floor forms at the Mid-Atlantic Ridge and pushes the plates apart", ["Melting ice from Greenland adds so much water that the ocean spreads out sideways", "The Earth is getting bigger", "Rivers wash the coasts away"], "At the mid-ocean ridge, magma rises and forms new crust, spreading the sea floor by a few centimetres a year."],
+        ["האוקיינוס האטלנטי מתרחב לאט. למה?", "קרקעית ים חדשה נוצרת ברכס המרכז־אטלנטי ודוחפת את הלוחות זה מזה", ["קרח שנמס בגרינלנד מוסיף כל כך הרבה מים, עד שהאוקיינוס מתפשט לצדדים", "כדור הארץ גדל", "נהרות שוטפים את החופים"], "ברכס שבאמצע האוקיינוס מאגמה עולה ויוצרת קרום חדש, וקרקעית הים מתרחבת בכמה סנטימטרים בשנה."]],
     ],
   },
 };

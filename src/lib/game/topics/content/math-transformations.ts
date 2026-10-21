@@ -24,6 +24,10 @@ const c: TopicContent = {
       [6, ["Point A is 3 cm from a mirror line. How far is A from its image after the reflection?", "cm", "The image is also 3 cm from the line, on the other side, so the distance between A and its image is 3 + 3 = 6 cm."],
         ["הנקודה A נמצאת במרחק 3 ס״מ מקו ראי. מה המרחק בין A לתמונה שלה אחרי השיקוף?", "ס״מ", "גם התמונה נמצאת במרחק 3 ס״מ מהקו, בצד השני שלו, ולכן המרחק בין A לתמונה שלה הוא 3 + 3 = 6 ס״מ."]],
     ],
+    s: [
+      [["From the smallest turn to the largest", "A quarter turn", "A half turn", "Three quarters of a turn", "A full turn"],
+        ["מהסיבוב הקטן ביותר לגדול ביותר", "רבע סיבוב", "חצי סיבוב", "שלושה רבעי סיבוב", "סיבוב שלם"]],
+    ],
   },
   i: {
     t: [
@@ -77,6 +81,10 @@ const c: TopicContent = {
         ["מגדילים במקדם 2 צורה שהיקפה 12 ס״מ. מה ההיקף של התמונה?", "ס״מ", "כל אורך מוכפל ב־2, ולכן גם ההיקף מוכפל: 12 × 2 = 24 ס״מ. השטח, לעומת זאת, גדל פי 4."]],
       [80, ["Reflecting in two mirror lines that cross at 40° is the same as one rotation about the crossing point. Through how many degrees?", "degrees", "Two reflections in crossing lines make a rotation about the crossing point by twice the angle between the lines: 2 × 40 = 80°."],
         ["שיקוף בשני קווי ראי שנחתכים בזווית של 40° שווה לסיבוב אחד סביב נקודת החיתוך. בכמה מעלות?", "מעלות", "שני שיקופים בקווים נחתכים נותנים סיבוב סביב נקודת החיתוך בזווית כפולה מהזווית שבין הקווים: 2 × 40 = 80°."]],
+    ],
+    s: [
+      [["Enlarging a triangle with scale factor 2 and centre the origin", "Write down the coordinates of each corner of the triangle", "Multiply the x- and y-coordinates of each corner by 2", "Plot the new points on the grid", "Join the new points in the same order as the old corners", "Check that every side is twice as long as before"],
+        ["הגדלת משולש במקדם 2 כשמרכז ההגדלה הוא ראשית הצירים", "רושמים את שיעורי הנקודות של כל פינה במשולש", "מכפילים ב־2 את שיעור ה־x ואת שיעור ה־y של כל פינה", "מסמנים את הנקודות החדשות במערכת הצירים", "מחברים את הנקודות החדשות באותו סדר של הפינות הישנות", "בודקים שכל צלע ארוכה פי 2 מקודם"]],
     ],
   },
 };

@@ -79,6 +79,10 @@ const c: TopicContent = {
       [6, ["54 ÷ x = 9. What is x?", "", "Use the times table: 9 × 6 = 54, so 54 ÷ 6 = 9 and x = 6."],
         ["54 ÷ x = 9. מהו x?", "", "נעזרים בלוח הכפל: 9 × 6 = 54, ולכן 54 ÷ 6 = 9 ו־x = 6."]],
     ],
+    s: [
+      [["From the smallest product to the largest (work each one out)", "6 × 7", "5 × 9", "8 × 6", "7 × 7", "8 × 7"],
+        ["מהמכפלה הקטנה ביותר לגדולה ביותר (חשבו כל אחת)", "6 × 7", "5 × 9", "8 × 6", "7 × 7", "8 × 7"]],
+    ],
   },
 };
 export default c;
