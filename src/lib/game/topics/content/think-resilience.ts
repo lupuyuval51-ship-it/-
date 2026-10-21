@@ -20,6 +20,8 @@ const c: TopicContent = {
       [["Which of these can help when you feel overwhelmed?", "Taking a few slow, deep breaths", ["Shouting at the person standing nearest to you", "Breaking something", "Eating as many sweets as you can"], "Slow breathing calms the body's stress reaction, which makes it easier to think clearly. Shouting or breaking things may feel like a release for a moment, but they usually create new problems."],
         ["מה יכול לעזור כשאתם מרגישים מוצפים?", "כמה נשימות איטיות ועמוקות", ["לצעוק על מי שעומד הכי קרוב אליכם", "לשבור משהו", "לאכול כמה שיותר ממתקים"], "נשימה איטית מרגיעה את תגובת הלחץ של הגוף, וכך קל יותר לחשוב בבהירות. צעקה או שבירת חפצים אולי מרגישות כמו פורקן לרגע, אבל בדרך כלל יוצרות בעיות חדשות."]],
     ],
+    n: [[105, ["After a bad match you decide to practise your passing for 15 minutes every day for one week. How many minutes will you practise in total?", "minutes", "7 days × 15 minutes = 105 minutes. Turning a setback into a small daily plan is one of the best ways to bounce back."],
+      ["אחרי משחק גרוע אתם מחליטים להתאמן במסירות 15 דקות בכל יום במשך שבוע. כמה דקות תתאמנו בסך הכול?", "דקות", "7 ימים × 15 דקות = 105 דקות. הפיכת מכשול לתוכנית יומית קטנה היא אחת הדרכים הטובות ביותר להתאושש."]]],
     s: [[["Bouncing back from a setback, in order", "Notice how you feel", "Calm yourself down", "Think about what happened", "Make a plan for next time", "Try again"],
       ["התאוששות ממכשול, לפי הסדר", "שמים לב למה שמרגישים", "מרגיעים את עצמכם", "חושבים על מה שקרה", "מכינים תוכנית לפעם הבאה", "מנסים שוב"]]],
   },
@@ -44,6 +46,8 @@ const c: TopicContent = {
       [["Why does a good night's sleep help you cope with setbacks?", "Being rested makes it easier to manage feelings and solve problems", ["Because sleeping all day long makes any problem simply disappear by itself", "Because you dream the answer", "It doesn't help at all"], "When you are tired, small problems feel bigger and it is harder to control your mood. Regular sleep gives the brain the energy it needs to think things through calmly."],
         ["למה שינה טובה בלילה עוזרת להתמודד עם מכשולים?", "כשנחים היטב, קל יותר לווסת רגשות ולפתור בעיות", ["כי אם ישנים כל היום, כל בעיה פשוט נעלמת מעצמה בלי לעשות דבר", "כי חולמים את התשובה", "זה לא עוזר בכלל"], "כשעייפים, בעיות קטנות נראות גדולות יותר וקשה יותר לשלוט במצב הרוח. שינה סדירה נותנת למוח את האנרגיה שהוא צריך כדי לחשוב על הדברים ברוגע."]],
     ],
+    n: [[50, ["A calming breathing exercise: breathe in for 4 seconds and out for 6 seconds. How many seconds do 5 full breaths take?", "seconds", "One full breath takes 4 + 6 = 10 seconds, so 5 breaths take 5 × 10 = 50 seconds. That is less than a minute, easy to fit in before a test or a hard talk."],
+      ["תרגיל נשימה מרגיע: שואפים 4 שניות ונושפים 6 שניות. כמה שניות לוקחות 5 נשימות שלמות?", "שניות", "נשימה שלמה אחת לוקחת 4 + 6 = 10 שניות, ולכן 5 נשימות לוקחות 5 × 10 = 50 שניות. זה פחות מדקה, ואפשר להספיק את זה לפני מבחן או שיחה קשה."]]],
   },
   a: {
     t: [
