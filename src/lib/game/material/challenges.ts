@@ -448,12 +448,13 @@ function termCandidates(defs: Definition[], keywords: Keyword[], rnd: () => numb
       .sort((a, b) => Math.abs(words(a.term).length - termLength) - Math.abs(words(b.term).length - termLength))
       .map((o) => ({ text: o.term, why: t(`“${clip(o.term, 60)}” is described differently: ${clip(o.meaning, 120)}`, `״${clip(o.term, 60)}״ מוגדר אחרת: ${clip(o.meaning, 120)}`) }));
     const inMeaning = wordsOf(d.meaning).map((w) => w.text);
-    const fillers = otherTerms.length >= 3 || d.short ? [] : keywords
+    // a loose word of the notes is a weak wrong option ("Earth's" next to three real terms): it only fills in when fewer than two other terms exist
+    const fillers = otherTerms.length >= 2 || d.short ? [] : keywords
       .filter((k) => k.text.length >= 4 && !UNIT_WORDS.has(k.lower) && hasHebrew(k.text) === hasHebrew(d.term) && !sameWord(k.text, d.term) && !inMeaning.some((w) => sameWord(w, k.text)) && !otherTerms.some((o) => sameWord(o.text, k.text)))
       .sort((a, b) => Number(b.proper) - Number(a.proper) || b.count - a.count || Math.abs(a.text.length - d.term.length) - Math.abs(b.text.length - d.term.length) || a.lower.localeCompare(b.lower))
-      .slice(0, 3 - otherTerms.length)
-      // a stand-alone option reads better without a leading Hebrew "and" (ו־)
-      .map((k) => k.text.replace(/^ו(?=\p{L}{3,})/u, ""))
+      .slice(0, 2 - otherTerms.length)
+      // a stand-alone option reads better without a leading Hebrew "and" (ו־) or an English possessive ("Earth's")
+      .map((k) => k.text.replace(/^ו(?=\p{L}{3,})/u, "").replace(/['’]s$/u, ""))
       .map((w) => ({ text: w, why: t(`“${w}” appears in your notes, but not with this description.`, `״${w}״ מופיע בפתקים שלכם, אבל לא עם ההסבר הזה.`) }));
     const wrong = [...otherTerms.slice(0, 3), ...fillers].slice(0, 3);
     if (wrong.length < 2) continue;
