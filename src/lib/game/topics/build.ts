@@ -192,7 +192,7 @@ function termCandidates(level: LevelContent, all: readonly Term[], lang: Lang, t
       name.push({
         kind: "name", objective: "terms",
         make: (id, lvl, objectiveId) => {
-          const wrong = (n: number) => others.slice(0, n).map((o) => { const [w, m] = pick(o); return [w, t(`“${w}” means: ${asSentence(m)}`, `״${w}״ פירושו: ${asSentence(m)}`)] as [string, string]; });
+          const wrong = (n: number) => others.slice(0, n).map((o) => { const [w, m] = pick(o); return [w, t(`“${w}” means: ${asSentence(m)}`, `המושג ״${w}״ פירושו: ${asSentence(m)}`)] as [string, string]; });
           const right: [string, string] = [word, t(...RIGHT_FEEDBACK)];
           const a = arrange(right, wrong(3), rnd);
           const prompt = t(`Which term matches this description?\n“${meaning}”`, `איזה מושג מתאים לתיאור הזה?\n״${meaning}״`);
