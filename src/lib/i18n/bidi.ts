@@ -41,12 +41,12 @@ export const isArithmetic = (text: string): boolean => /\d/.test(text) && /^[\s\
 /*
  * Latin letters with maths or code: "3x + 2y = 16", "a + 2b", "=SUM(A1:A3)", "C1", "IPv6", "3D", "C++", "log₂ 10", "sin 2 ≈ 0.91".
  * The number runs above would cut them apart ("C1" drawn "1C", "16 = 3x + 2y" mirrored), so each such piece of the line is one
- * run of its own: the stretch between two Hebrew words, cut at list and sentence breaks (", " ". " "? ") outside brackets and at
- * a right-to-left arrow (←), never at ": " or "; " (one line of code: "def add(a, b): return a + b"), without the punctuation
- * around it. A piece of plain words ("JPEG", "Shift, Enter") is left to the bidi algorithm.
+ * run of its own: the stretch between two Hebrew words, cut at list and sentence breaks (", " ". " "? ", and ": " after a number)
+ * outside brackets and at a right-to-left arrow (←), never at "; " or at ": " after code (one line of code: "def add(a, b): return
+ * a + b"), without the punctuation around it. A piece of plain words ("JPEG", "Shift, Enter") is left to the bidi algorithm.
  */
 const STRETCH = /[^\p{Script=Hebrew}]+/gu;
-const BREAK = /[,.?!]\s+|\s*←\s*/gu;
+const BREAK = /[,.?!:]\s+|\s*←\s*/gu;
 const MATHS_OR_CODE = /\d|[=+×÷−*/^≈<>≤≥()[\]·°⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉]/u;
 const count = (s: string, c: string) => s.split(c).length - 1;
 
@@ -81,6 +81,8 @@ function latinPieces(text: string): [number, number][] {
       // a comma inside brackets is not a list: "P(2, 6)", "(x, y)", "(on Monday, on 5 May)"
       const before = m[0].slice(0, cut.index!);
       if (count(before, "(") > count(before, ")") || count(before, "[") > count(before, "]") || count(before, "{") > count(before, "}")) continue;
+      // ": " after code ("def add(a, b): return a + b", "elif: …") is part of the line; after a number ("2: 3x = 12") it ends a clause
+      if (cut[0].startsWith(":") && /[A-Za-z]/.test(m[0].slice(at, cut.index!))) continue;
       take(at, cut.index!);
       at = cut.index! + cut[0].length;
     }
