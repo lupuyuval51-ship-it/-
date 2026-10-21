@@ -628,7 +628,7 @@ function factPickCandidates(facts: Fact[], rnd: () => number, t: Tr): Candidate[
         title: pick(FACTPICK_TITLES, id, t),
         concept: clip(f.blanked.replace("___", "…"), 60),
         prompt: t(`Which number goes with this fact from your material?\n“${f.blanked}”`, `איזה מספר מתאים לעובדה הזאת מתוך החומר שלכם?\n״${f.blanked}״`),
-        hint: f.isYear ? t("It is a year.", "זו שנה.") : t(`It has ${digits} digit${digits === 1 ? "" : "s"}.`, `יש בו ${digits} ספרות.`),
+        hint: f.isYear ? t("It is a year.", "זו שנה.") : t(`It has ${digits} digit${digits === 1 ? "" : "s"}.`, digits === 1 ? "יש בו ספרה אחת." : `יש בו ${digits} ספרות.`),
         explanation: clip(f.source, 600),
       }),
     });
@@ -667,7 +667,7 @@ function numberCandidates(facts: Fact[], qa: QuestionAnswer[], t: Tr): Candidate
         title: t("Find the number", "מצאו את המספר"),
         concept: clip(f.blanked.replace("___", "…"), 60),
         prompt: t(`Which number is missing from this sentence in your material?\n“${f.blanked}”`, `איזה מספר חסר במשפט הזה מתוך החומר שלכם?\n״${f.blanked}״`),
-        hint: f.decimals > 0 ? t(`It has ${f.decimals} decimal place${f.decimals === 1 ? "" : "s"}.`, `יש בו ${f.decimals} ספרות אחרי הנקודה.`) : t(`It is a ${digits}-digit number.`, `זה מספר בן ${digits} ספרות.`),
+        hint: f.decimals > 0 ? t(`It has ${f.decimals} decimal place${f.decimals === 1 ? "" : "s"}.`, f.decimals === 1 ? "יש בו ספרה אחת אחרי הנקודה." : `יש בו ${f.decimals} ספרות אחרי הנקודה.`) : t(`It is a ${digits}-digit number.`, digits === 1 ? "זה מספר בן ספרה אחת." : `זה מספר בן ${digits} ספרות.`),
         explanation: clip(f.source, 600),
       }),
     };

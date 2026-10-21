@@ -157,6 +157,12 @@ function asProseDefinition(sentence: string): Definition | null {
 }
 
 /** "hola = hello", "apple - תפוח": a short pair on its own line. Only trusted as a run of lines (see parseMaterial). */
+/** The separator of a "word = meaning" line ("=", "–", ":", "|"…), or null when the line is not one. */
+function vocabSep(line: string): string | null {
+  const m = VOCAB.exec(line);
+  return m ? line.slice(m[1]!.length, line.length - m[2]!.length).trim() : null;
+}
+
 function asVocab(line: string): Definition | null {
   if (/[.!?…。؟]$/u.test(line)) return null;
   const m = VOCAB.exec(line);
@@ -178,7 +184,7 @@ function asQa(question: string, answer: string): QuestionAnswer | null {
   return { question: q, answer: a, decimals: 0 };
 }
 
-function asFact(sentence: string): Fact | null {
+function asFact(sentence: string, tableRow = false): Fact | null {
   const s = sentence.trim();
   const m = NUMBER.exec(s);
   if (!m) return null;
@@ -187,7 +193,8 @@ function asFact(sentence: string): Fact | null {
   const value = m[1] ? -magnitude : magnitude;
   if (!Number.isFinite(value) || Math.abs(value) > 1e12) return null;
   const blanked = `${s.slice(0, m.index)}___${s.slice(m.index + m[0].length)}`;
-  if (blanked.length < 25 || blanked.length > 230 || wordCount(blanked) < 5) return null;
+  // a table row is short by nature ("Mars – Moons: ___"); a sentence that short is usually not a fact worth asking about
+  if (tableRow ? blanked.length < 8 : blanked.length < 25 || blanked.length > 230 || wordCount(blanked) < 5) return null;
   // a second number makes the blank ambiguous ("between 5 and 10"): keep only sentences with exactly one
   if (NUMBER.test(blanked.replace("___", ""))) return null;
   return { source: s, blanked, value, decimals: m[3]?.length ?? 0, isYear: Number.isInteger(value) && value >= 1000 && value <= 2100, numText: m[0], numAt: m.index };
@@ -219,12 +226,33 @@ function itemShape(line: string): "definition" | "fact" | "statement" | null {
   return asDefinition(line) ? "definition" : asFact(line) ? "fact" : asProseDefinition(line) ? "statement" : null;
 }
 
+const cellsOf = (row: string): string[] => row.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+const NUMBER_CELL = /^[-−]?\d[\d,]*(?:\.\d+)?(?:\s*\p{L}{1,8})?$/u;
+
+/**
+ * A two-column table whose second column holds numbers ("| Planet | Moons |", "| Mars | 2 |") has no "term: meaning" in it, so it
+ * made no question at all. Each such row is rewritten in place as a fact with one number in the learner's own words
+ * ("Mars – Moons: 2"), which the number questions below pick up; a row that is not like that is left as it is.
+ */
+function numberRows(lines: string[], header: number, from: number, rows: Set<number>): void {
+  const head = cellsOf(lines[header]!);
+  if (head.length !== 2 || !head.every((h) => /\p{L}/u.test(h) && h.length <= 40)) return;
+  for (let k = from; k < lines.length && lines[k]!.includes("|"); k++) {
+    const cells = cellsOf(lines[k]!);
+    if (cells.length !== 2 || !/\p{L}/u.test(cells[0]!) || cells[0]!.length > 60 || !NUMBER_CELL.test(cells[1]!)) continue;
+    lines[k] = `${cells[0]} – ${head[1]}: ${cells[1]}`;
+    rows.add(k);
+  }
+}
+
 export function parseMaterial(raw: string): Knowledge {
   const text = sanitizeMaterial(raw)
     .replace(/\*\*(.+?)\*\*|__(.+?)__/gu, (_m, a: string | undefined, b: string | undefined) => a ?? b ?? "") // markdown bold
     .replace(/`([^`\n]+)`/gu, "$1");
   const lines = text.split("\n");
   const consumed = new Set<number>();
+  /** Rows of a number table, rewritten as facts (see `numberRows`). */
+  const tableRows = new Set<number>();
   let title: string | undefined;
 
   // 0) markdown headings are section titles (the first one names the material); table separators and header rows are skipped
@@ -235,7 +263,10 @@ export function parseMaterial(raw: string): Knowledge {
       consumed.add(i);
     } else if (TABLE_SEPARATOR.test(l) && l.includes("-")) {
       consumed.add(i);
-      if (i > 0 && lines[i - 1]!.includes("|")) consumed.add(i - 1);
+      if (i > 0 && lines[i - 1]!.includes("|")) {
+        consumed.add(i - 1);
+        numberRows(lines, i - 1, i + 1, tableRows);
+      }
     }
   });
 
@@ -326,9 +357,15 @@ export function parseMaterial(raw: string): Knowledge {
   for (let i = 0; i < lines.length; ) {
     const run: [number, Definition][] = [];
     for (let j = i; j < lines.length && lines[j] && !consumed.has(j); j++) {
-      const v = asVocab(lines[j]!.replace(BULLET, ""));
+      const v = tableRows.has(j) ? null : asVocab(lines[j]!.replace(BULLET, ""));
       if (!v) break;
       run.push([j, v]);
+    }
+    // "Spanish words – week 3" above "hola = hello", "gato = cat"…: a first line written with another separator than every line
+    // under it is the list's heading, not one of its pairs (it becomes the title below)
+    if (run.length >= 4) {
+      const seps = run.map(([idx]) => vocabSep(lines[idx]!.replace(BULLET, "")));
+      if (seps.slice(1).every((x) => x === seps[1]) && seps[0] !== seps[1]) run.shift();
     }
     if (run.length >= 3) run.forEach(([idx, v]) => vocabAt.set(idx, v));
     i += Math.max(1, run.length);
@@ -358,6 +395,11 @@ export function parseMaterial(raw: string): Knowledge {
       && !startsList(i, line)) {
       title = line;
       return;
+    }
+    // a row of a number table is a fact with one number (see `numberRows`)
+    if (tableRows.has(i)) {
+      const fact = asFact(line, true);
+      if (fact) { facts.push(fact); all.push(line); return; }
     }
     const vocab = vocabAt.get(i);
     if (vocab) {

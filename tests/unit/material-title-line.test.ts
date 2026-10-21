@@ -32,6 +32,12 @@ describe("a first line that names the notes is their title", () => {
     expect(k.definitions.map((d) => d.term)).toContain("Photosynthesis");
   });
 
+  it("a word list's heading written with another separator ('Spanish words – week 3' over 'hola = hello') is the title, not a pair", () => {
+    const k = parseMaterial("Spanish words – week 3\nhola = hello\nadiós = goodbye\ngracias = thank you\npor favor = please\nperro = dog");
+    expect(k.title).toBe("Spanish words – week 3");
+    expect(k.definitions.map((d) => d.term)).toEqual(["hola", "adiós", "gracias", "por favor", "perro"]);
+  });
+
   it("'Chapter 3 - Cells' heads English notes", () => {
     expect(parseMaterial("Chapter 3 - Cells\nCell: the smallest unit of life.\nNucleus: the control centre of the cell.\nMembrane: the thin layer around a cell.").title).toBe("Chapter 3 - Cells");
   });
