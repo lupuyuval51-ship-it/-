@@ -111,7 +111,7 @@ describe("a failed generation in the interface language", () => {
   });
 
   it("falls back to the server's message for a code it has no text for (an inherited object key is not a code)", () => {
-    expect(failureText({ code: "EXTEND_CONFLICT", message: "The game was deleted." }, he)).toBe("The game was deleted.");
+    expect(failureText({ code: "SOME_NEW_CODE", message: "The game was deleted." }, he)).toBe("The game was deleted.");
     expect(failureText({ code: "constructor", message: "x" }, he)).toBe("x");
     expect(failureText(null, he)).toBe(he("common.error.generic"));
   });

@@ -130,6 +130,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "create.error.inProgress": "Ya se está generando un juego.",
   "create.error.inProgress.cta": "Ir a verlo",
   "create.error.mismatch": "Este juego no se puede ampliar con el generador actual.",
+  "create.error.extendFull": "Este juego ya tiene todas las zonas que permite su nivel, así que no se puede ampliar. No se te cobró nada — crea un juego nuevo para seguir con el tema.",
   "create.error.validation": "Revisa los campos resaltados.",
   "create.error.required": "Este campo es obligatorio.",
   "create.error.tooLong": "Esto es demasiado largo.",
@@ -174,6 +175,8 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "gen.err.INVALID_OUTPUT": "La IA no pudo crear un juego válido para esta solicitud. No se te cobró nada — inténtalo de nuevo o simplifica el tema.",
   "gen.err.TIMEOUT": "La generación tardó demasiado y se canceló. No se te cobró nada.",
   "gen.err.TIER_BUILD_FAILED": "No pudimos crear este juego con las funciones de tu plan. No se te cobró nada — prueba con otro tema o tipo de juego.",
+  "gen.err.EXTEND_CONFLICT": "El juego cambió o se eliminó mientras se ampliaba. No se añadió nada y no se te cobró — ábrelo de nuevo e inténtalo otra vez.",
+  "gen.err.NO_EXTENSION": "Este juego no tiene más ampliaciones. No se te cobró nada — crea un juego nuevo para seguir con el tema.",
   "gen.err.INTERNAL_ERROR": "Algo salió mal al crear tu juego. No se te cobró nada — inténtalo de nuevo.",
 
   "lib.title": "Mis juegos",

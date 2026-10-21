@@ -253,7 +253,7 @@ async function runStudyEngine(input: PipelineInput): Promise<PipelineOutput> {
     const boss = req.mode === "FULL" && (!input.tier || tierHasBoss(input.tier)) ? addFinalBoss(res.spec) : { spec: res.spec, added: false, notes: [] as string[] };
     return { spec: boss.spec, warnings: [...built.notes, ...res.warnings, ...(boss.added ? boss.notes : [])], attempts: 0, model: "rule-based", usage: noUsage, engine: true };
   } catch (e) {
-    if (e instanceof MaterialError) throw new PipelineError("MATERIAL_UNUSABLE", `${e.userMessage(lang)} You were not charged.`, e.message);
+    if (e instanceof MaterialError) throw new PipelineError("MATERIAL_UNUSABLE", `${e.userMessage(lang)} ${lang === "he" ? "לא חויבתם." : "You were not charged."}`, e.message); // all of it in the game's language
     throw e;
   }
 }
@@ -265,7 +265,7 @@ async function runWithoutAi(input: PipelineInput): Promise<PipelineOutput> {
   const engineBase = req.mode === "EXTEND" && input.base?.meta.generator?.kind === "engine";
   if ((req.mode !== "EXTEND" && req.material) || engineBase) {
     if (engineBase && !req.material) {
-      throw new PipelineError("MATERIAL_UNUSABLE", "Add more study material to extend a game that was built from your material. You were not charged.");
+      throw new PipelineError("MATERIAL_UNUSABLE", req.contentLanguage === "he" ? "הוסיפו עוד חומר לימוד כדי להרחיב משחק שנבנה מהחומר שלכם. לא חויבתם." : "Add more study material to extend a game that was built from your material. You were not charged.");
     }
     return runStudyEngine(input);
   }

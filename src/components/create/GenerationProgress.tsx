@@ -167,7 +167,7 @@ export function GenerationProgress({ initial }: { initial: JobView }) {
 }
 
 /** The server's failure text is in English; for the failures we know, the player gets it in the interface language. */
-const LOCALIZED_FAILURES = ["PROVIDER_UNAVAILABLE", "PROVIDER_TIMEOUT", "PROVIDER_AUTH", "PROVIDER_RATE_LIMITED", "PROVIDER_REFUSED", "PROVIDER_BAD_REQUEST", "OUTPUT_TRUNCATED", "INVALID_OUTPUT", "TIMEOUT", "TIER_BUILD_FAILED", "INTERNAL_ERROR"] as const;
+const LOCALIZED_FAILURES = ["PROVIDER_UNAVAILABLE", "PROVIDER_TIMEOUT", "PROVIDER_AUTH", "PROVIDER_RATE_LIMITED", "PROVIDER_REFUSED", "PROVIDER_BAD_REQUEST", "OUTPUT_TRUNCATED", "INVALID_OUTPUT", "TIMEOUT", "TIER_BUILD_FAILED", "EXTEND_CONFLICT", "NO_EXTENSION", "INTERNAL_ERROR"] as const;
 /** Codes that say the same as one above: `AI_UNAVAILABLE` (the runner found no usable AI provider) is the server's configuration, like `PROVIDER_AUTH`. */
 const SAME_AS: Record<string, (typeof LOCALIZED_FAILURES)[number]> = { AI_UNAVAILABLE: "PROVIDER_AUTH" };
 export function failureText(error: { code: string | null; message: string | null } | null, t: ReturnType<typeof useT>): string {

@@ -129,6 +129,7 @@ export const app = defineDict(
     "create.error.inProgress": "A game is already being generated.",
     "create.error.inProgress.cta": "Go to it",
     "create.error.mismatch": "This game cannot be extended with the current generator.",
+    "create.error.extendFull": "This game already has every area its level allows, so it cannot be extended. Nothing was charged — create a new game to go on with the topic.",
     "create.error.validation": "Please check the highlighted fields.",
     "create.error.required": "This field is required.",
     "create.error.tooLong": "This is too long.",
@@ -173,6 +174,8 @@ export const app = defineDict(
     "gen.err.INVALID_OUTPUT": "The AI could not produce a valid game for this request. You were not charged — please try again or simplify the topic.",
     "gen.err.TIMEOUT": "Generation took too long and was cancelled. You were not charged.",
     "gen.err.TIER_BUILD_FAILED": "We could not build this game within your plan's features. You were not charged — try a different topic or game type.",
+    "gen.err.EXTEND_CONFLICT": "The game was changed or removed while it was being extended. Nothing was added and you were not charged — open it again and try once more.",
+    "gen.err.NO_EXTENSION": "This game has no more extensions. You were not charged — create a new game to go on with the topic.",
     "gen.err.INTERNAL_ERROR": "Something went wrong while creating your game. You were not charged — please try again.",
 
     "lib.title": "My games",
@@ -591,6 +594,7 @@ export const app = defineDict(
     "create.error.inProgress": "כבר יש אצלכם משחק שנמצא ביצירה.",
     "create.error.inProgress.cta": "מעבר אליו",
     "create.error.mismatch": "אי אפשר להרחיב את המשחק הזה עם המחולל הנוכחי.",
+    "create.error.extendFull": "במשחק הזה כבר יש את כל האזורים שהרמה שלו מאפשרת, ולכן אי אפשר להרחיב אותו. לא חויבתם — צרו משחק חדש כדי להמשיך בנושא.",
     "create.error.validation": "בדקו את השדות המסומנים.",
     "create.error.required": "שדה חובה.",
     "create.error.tooLong": "הטקסט ארוך מדי.",
@@ -635,6 +639,8 @@ export const app = defineDict(
     "gen.err.INVALID_OUTPUT": "ה-AI לא הצליח ליצור משחק תקין לבקשה הזו. לא חויבתם — נסו שוב או פשטו את הנושא.",
     "gen.err.TIMEOUT": "יצירת המשחק לקחה יותר מדי זמן ובוטלה. לא חויבתם.",
     "gen.err.TIER_BUILD_FAILED": "לא הצלחנו לבנות את המשחק במסגרת התכונות של התוכנית שלכם. לא חויבתם — נסו נושא או סוג משחק אחר.",
+    "gen.err.EXTEND_CONFLICT": "המשחק השתנה או נמחק בזמן ההרחבה. לא נוסף דבר ולא חויבתם — פתחו אותו שוב ונסו פעם נוספת.",
+    "gen.err.NO_EXTENSION": "אין למשחק הזה עוד הרחבות. לא חויבתם — צרו משחק חדש כדי להמשיך בנושא.",
     "gen.err.INTERNAL_ERROR": "משהו השתבש ביצירת המשחק. לא חויבתם — נסו שוב.",
 
     "lib.title": "המשחקים שלי",

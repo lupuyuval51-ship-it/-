@@ -235,6 +235,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
       const code = json.error?.code;
       if (code === "ALLOWANCE_EXHAUSTED") setError({ text: t("create.error.exhausted") });
       else if (code === "JOB_IN_PROGRESS") setError({ text: t("create.error.inProgress"), jobId: json.error?.details?.jobId ?? undefined });
+      else if (code === "EXTEND_FULL") setError({ text: t("create.error.extendFull") });
       else if (code === "EXTEND_BACKEND_MISMATCH") setError({ text: catalogGame ? t("create.error.catalogExtend") : t("create.error.mismatch") });
       else if (code === "FEATURE_TIER_LOCKED") setError({ text: t("create.error.tierLocked") });
       else if (code === "TOPIC_LOCKED") setError({ text: json.error?.details?.requiredPlan === "PRO" ? t("create.error.topicLockedPro") : t("create.error.topicLocked") });
