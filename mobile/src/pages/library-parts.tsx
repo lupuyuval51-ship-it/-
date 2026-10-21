@@ -106,7 +106,8 @@ export function EmptyLibrary({ t, interest }: { t: TFn; interest?: TopicCategory
 export function GameCard({ game: g, t, onDelete }: { game: LibraryGame; t: TFn; onDelete: (id: string) => void }) {
   const level = DIFFICULTIES.find((d) => d === g.difficulty);
   const progress = t("lib.progress", { n: g.percent });
-  const action = g.inProgress ? t("lib.continue") : t("lib.play");
+  // "Continue" once something was achieved in the open run; a game only opened (0 %) still reads "Play"
+  const action = g.inProgress && g.percent > 0 ? t("lib.continue") : t("lib.play");
   return (
     <Card interactive className="w-full min-w-0 space-y-3 p-4" data-testid="mobile-game">
       <h3 dir="auto" className="wrap-anywhere text-lg font-semibold leading-snug">{g.title}</h3>

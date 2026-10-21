@@ -29,7 +29,12 @@ export function offerText(t: TFn, plan: PlanId): string {
 }
 
 /** "All 201 library topics" / "137 of the 201 library topics": how much of the topic library the plan opens. */
+/** How many library topics a plan opens, out of all of them. */
+export function topicsOpen(plan: PlanId): { open: number; total: number } {
+  return { open: TOPICS.filter((x) => topicOpenFor(plan, x.id)).length, total: TOPICS.length };
+}
+
 export function topicsText(t: TFn, plan: PlanId): string {
-  const open = TOPICS.filter((x) => topicOpenFor(plan, x.id)).length;
-  return open === TOPICS.length ? t("pricing.topics.all", { n: TOPICS.length }) : t("pricing.topics.some", { n: open, total: TOPICS.length });
+  const { open, total } = topicsOpen(plan);
+  return open === total ? t("pricing.topics.all", { n: total }) : t("pricing.topics.some", { n: open, total });
 }

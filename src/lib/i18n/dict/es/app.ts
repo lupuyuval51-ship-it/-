@@ -339,7 +339,7 @@ export const appEs: Record<keyof typeof app.en, string> = {
   "prac.done.more": "Algunas todavía necesitan trabajo. Lee las explicaciones otra vez y vuelve a intentarlo.",
   "prac.done.review": "Volver a las explicaciones",
   "res.review.revealed": "Necesitó que se revelara la respuesta",
-  "res.review.multiple": "Necesitó varios intentos",
+  "res.review.multiple": "Necesitó más de un intento",
   "res.achievements": "Logros",
   "res.conclusion": "Lo que aprendiste",
   "res.collected": "Recogiste {n} de {total} objetos",

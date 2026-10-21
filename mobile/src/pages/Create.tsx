@@ -224,7 +224,7 @@ export function CreatePage() {
     }
   })();
   const materialError = problem?.kind === "material" ? (problem.detail && form.language === locale ? problem.detail : t("mob.create.error.material"))
-    : problem?.kind === "notes" ? t("mob.create.error.notes") : null;
+    : problem?.kind === "notes" ? t("mob.create.error.notes.field") : null;
   const lockedField = t("mob.create.field.locked");
   const lockedLabel = (label: string, ok: boolean) => (ok ? label : `${label} (${t("mob.create.locked")})`);
 

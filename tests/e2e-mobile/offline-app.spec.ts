@@ -87,7 +87,10 @@ test("English: a subject without notes asks for notes or a library topic (no dem
   await page.locator("#subject").fill("Fractions");
   await page.getByTestId("mobile-create-submit").click();
   // nothing is built from a subject alone: the notes are asked for, and the library is one tap away
-  await expect(page.getByTestId("mobile-create-error")).toContainText("Paste your notes");
+  // the field says what to paste, the alert under the form offers the way out (each sentence once)
+  await expect(page.locator("#material-msg")).toContainText("Paste your notes");
+  await expect(page.getByTestId("mobile-create-error")).toContainText("Pick a ready-made topic");
+  await expect(page.getByTestId("mobile-create-error")).not.toContainText("Paste your notes");
   await expect(page.locator("#material")).toBeFocused();
   expect(page.url()).toContain("#/create");
   await page.getByTestId("create-to-library").click();

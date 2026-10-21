@@ -58,6 +58,9 @@ export function connectAccount(): Promise<SupabaseClient> {
     // a sign-in that finished first (its event already set the session) is never overwritten by "nothing saved"
     void db.auth.getSession().then(({ data }) => { if (data.session) { set({ session: data.session }); void syncNow(); } });
     return db;
+  }).catch((e: unknown) => {
+    connected = null; // the library did not load: the next account action (or Google's deep link) tries again instead of failing for good
+    throw e;
   });
   return connected;
 }
@@ -80,7 +83,7 @@ export function startAccount(): void {
 export type AuthResult = { ok: true; needsConfirmation?: boolean } | { ok: false; message: string };
 
 /** The client for an account action; a failure to load it reads like any other failed request. */
-const client = (): Promise<SupabaseClient | null> => connectAccount().catch(() => { connected = null; return null; });
+const client = (): Promise<SupabaseClient | null> => connectAccount().catch(() => null);
 
 export async function signUp(email: string, password: string): Promise<AuthResult> {
   const supabase = await client();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
-import { planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
+import { planHasTierA, planPriceText, topicsOpen } from "@/components/pricing/PlanPrice";
 import { APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId } from "@/config/plans";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
 import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases } from "../billing/play";
@@ -11,6 +11,12 @@ import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, 
  * Prices are in shekels from src/config/plans.ts (Play shows the learner its own final price on the purchase sheet; when Play
  * can tell the price it is shown instead); the offer is the number of library topics per half-year (`APP_TRACKS`).
  */
+/** Where the topics of the line above come from: in the app a plan opens a part of the library, and the learner picks the plan's topics there. */
+function chooseFrom(t: ReturnType<typeof useT>, id: (typeof PLAN_IDS)[number]): string {
+  const { open, total } = topicsOpen(id);
+  return open === total ? t("mob.plans.choose.all", { n: total }) : t("mob.plans.choose.some", { n: open, total });
+}
+
 export function PlansPage() {
   const t = useT();
   const [plan, setPlan] = useState(() => getOfflinePlan());
@@ -69,7 +75,7 @@ export function PlansPage() {
                 </p>
               </div>
               <p className="text-sm" data-testid={`mobile-tracks-${id}`}>{APP_TRACKS[id] === 1 ? t("mob.plans.tracks.one") : t("mob.plans.tracks.many", { n: APP_TRACKS[id] })}</p>
-              <p className="text-sm text-muted" data-testid={`mobile-topics-${id}`}>{topicsText(t, id)}</p>
+              <p className="text-sm text-muted" data-testid={`mobile-topics-${id}`}>{chooseFrom(t, id)}</p>
               <p className="text-sm text-muted">{planHasTierA(id) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
               {paid && (
                 plan === id ? (

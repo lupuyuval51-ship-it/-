@@ -719,8 +719,23 @@ function statementCandidates(sentences: string[], facts: Fact[], keywords: Keywo
 
 // ───────────────────────────── steps and questions ─────────────────────────────
 
+/**
+ * The steps of a list with repeats removed (case and spacing aside; punctuation and signs still count, "x > 4" is not "x < 4").
+ * Two steps that read the same cannot be put in order: the player would only be guessing which copy goes where.
+ */
+function distinctSteps(items: string[]): string[] {
+  const seen = new Set<string>();
+  return items.filter((x) => {
+    const key = x.replace(/\s+/g, " ").trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function stepCandidates(groups: string[][], titles: (string | undefined)[], t: Tr): Candidate[] {
-  return groups.map((items, g) => {
+  // a list that keeps fewer than three different steps once repeats are gone is not an ordering question any more
+  return groups.map((items, g) => ({ items: distinctSteps(items), g })).filter((x) => x.items.length >= 3).map(({ items, g }) => {
     const first = items[0]!.split(/\s+/).slice(0, 4).join(" ");
     const name = titles[g];
     return {
