@@ -113,7 +113,8 @@ describe("maths inside a Hebrew line: a number written into a variable, a bracke
 
   it("dimensions and Latin words next to a number are not broken apart, and every character is kept in order", () => {
     expect(runs("מטריצה 3x3 בגודל")).toEqual(["3x3"]);
-    expect(runs("השם 2xyz הוא שם")).toEqual(["2"]);
+    // the whole name is one left-to-right run: a "2" on its own was drawn on the far side of "xyz"
+    expect(runs("השם 2xyz הוא שם")).toEqual(["2xyz"]);
     const line = "פתרו 3x + 2 = 14, ואז (x − 1)2 = 8 ו־x² = 9";
     expect(mathRuns(line).map((p) => p.text).join("")).toBe(line);
   });
