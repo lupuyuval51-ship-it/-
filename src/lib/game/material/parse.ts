@@ -88,6 +88,8 @@ const DEF_IS_HE = /^([^\s,.;:()]+(?:\s[^\s,.;:()]+){0,3})\s+(?:הוא|היא|ה�
 const NUMBER = /(?<![\p{L}\p{N}.,/:]|\d[-–])((?<=^|[\s(])[-−])?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(?![\p{L}\p{N}/:]|[-–]\d)/u;
 const VOCAB = /^(.{1,40}?)(?:\s+[=–—-]\s+|\s*[=:：]\s+|\s+\|\s+)(.{1,40})$/u;
 const LEAD_IN = /[:：]$/u;
+/** A first line such as "שאלות לחזרה – גוף האדם" or "Chapter 3 - Cells" names the notes: it is their title, not a term and its meaning. */
+const TITLE_TERM = /^(?:שאלות(?: לחזרה)?|חזרה|סיכום|פרק|יחידה|נושא|מבחן|בוחן|review(?: questions)?|revision|summary|chapter|unit|topic|quiz|test|questions|(?:study )?notes)(?=$|[\s\d:：–—-])/iu;
 /** Compare sentences without caring about case, spacing or punctuation. */
 const sameKey = (s: string) => s.toLowerCase().replace(/[\p{P}\p{S}\s]+/gu, " ").trim();
 
@@ -349,7 +351,10 @@ export function parseMaterial(raw: string): Knowledge {
   lines.forEach((rawLine, i) => {
     if (!rawLine || consumed.has(i)) return;
     const line = rawLine.replace(BULLET, "");
-    if (i === firstContent && title === undefined && !vocabAt.has(i) && line.length <= 70 && !/[.!?:：]$/.test(line) && lines.some((l, k) => k > i && l && !consumed.has(k)) && wordCount(line) <= 9
+    // a first line that names the notes ("שאלות לחזרה – …", "Chapter 3 - Cells") heads them even in the shape of "term – meaning", and
+    // even when every line after it is a question and answer already taken above
+    const namesNotes = TITLE_TERM.test(line);
+    if (i === firstContent && title === undefined && (!vocabAt.has(i) || namesNotes) && line.length <= 70 && !/[.!?:：]$/.test(line) && (namesNotes || lines.some((l, k) => k > i && l && !consumed.has(k))) && wordCount(line) <= 9
       && !startsList(i, line)) {
       title = line;
       return;
