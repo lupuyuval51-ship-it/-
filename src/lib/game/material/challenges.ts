@@ -275,6 +275,18 @@ function articleOf(word: string): "a" | "an" {
   return /^[aeiou]/.test(w) ? "an" : "a";
 }
 
+/**
+ * The kind of an English word, as far as its form and its place in the notes tell: a verb (-ed / -ing, or after "to"), an adverb
+ * (-ly) or a noun. A wrong option of another kind than the right one is ruled out by grammar alone ("an _____ between":
+ * "agreement" among "invaded", "ended"; "A keep is a system…"). Hebrew words are not told apart this way.
+ */
+function wordKind(k: Keyword, ctx: Context): "he" | "verb" | "adverb" | "noun" {
+  if (hasHebrew(k.text)) return "he";
+  const shape = shapeOf(k.text);
+  const afterTo = !k.proper && (ctx.before.get(wordsOf(k.text)[0]?.text.toLowerCase() ?? "")?.has("to") ?? false);
+  return afterTo || shape === "ed" || shape === "ing" ? "verb" : shape === "ly" ? "adverb" : "noun";
+}
+
 function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () => number, n = 3): Keyword[] {
   const t = plan.target;
   const sentenceWords = wordsOf(plan.sentence);
@@ -292,7 +304,9 @@ function distractorsFor(plan: ClozePlan, pool: Keyword[], ctx: Context, rnd: () 
     const ws = wordsOf(k.text);
     return Number(ctx.before.get(ws[0]?.text.toLowerCase() ?? "")?.has(plan.prev) ?? false) + Number(ctx.after.get(ws[ws.length - 1]?.text.toLowerCase() ?? "")?.has(plan.next) ?? false);
   };
-  const score = (k: Keyword) => (k.proper === t.proper ? 0 : 10) + (shapeOf(k.text) === shapeOf(t.text) ? 0 : 4) + (last(k.text) === last(t.text) ? 0 : 1) + (heShape(k.text) === heShape(t.text) ? 0 : 6)
+  // a word of another kind is ruled out by grammar alone (see `wordKind`): such words only fill in
+  const kind = wordKind(t, ctx);
+  const score = (k: Keyword) => (wordKind(k, ctx) === kind ? 0 : 12) + (k.proper === t.proper ? 0 : 10) + (shapeOf(k.text) === shapeOf(t.text) ? 0 : 4) + (last(k.text) === last(t.text) ? 0 : 1) + (heShape(k.text) === heShape(t.text) ? 0 : 6)
     + (wordsOf(k.text).length === wordsOf(t.text).length ? 0 : 4) + Math.abs(k.text.length - t.text.length) * 0.7 - Math.min(k.count, 3) * 0.8 - fit(k) * 4;
   const ranked = fits.sort((a, b) => score(a) - score(b) || a.lower.localeCompare(b.lower));
   return shuffled(ranked.slice(0, n + 3), rnd).slice(0, n);
@@ -319,6 +333,8 @@ function clozeCandidates(sentences: string[], keywords: Keyword[], ctx: Context,
     let distractors = distractorsFor(plan, keywords, ctx, rnd);
     if (distractors.some(fillsTruth)) distractors = distractorsFor(plan, keywords, ctx, rnd, 9).filter((d) => !fillsTruth(d)).slice(0, 3);
     if (distractors.length < 3) continue;
+    // with fewer than two wrong words of the right one's kind, grammar alone gives the gap away: ask about another sentence
+    if (distractors.filter((d) => wordKind(d, ctx) === wordKind(plan.target, ctx)).length < 2) continue;
     const forms = distractors.map((d) => formLike(plan.target.text, d.text, known));
     if (new Set([plan.target.text.toLowerCase(), ...forms.map((f) => f.toLowerCase())]).size < 4) continue;
     usedTargets.add(plan.target.lower);
