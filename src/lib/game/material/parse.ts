@@ -410,7 +410,8 @@ export function parseMaterial(raw: string): Knowledge {
       if (phrases.some((p) => w.start >= p.start && w.end <= p.end)) return;
       const lower = w.text.toLowerCase();
       const min = /\p{Script=Hebrew}/u.test(w.text) ? 3 : 4;
-      if (w.text.length < min || isStop(lower) || /^\d+$/.test(w.text)) return;
+      // a word with a digit in it ("ב-14", "1948-ב") is a number, not a term: never a gap or a wrong option for a word
+      if (w.text.length < min || isStop(lower) || /\p{N}/u.test(w.text)) return;
       const k = stats.get(lower) ?? { text: w.text, lower, count: 0, proper: false };
       k.count++;
       if (idx > 0 && /^\p{Lu}/u.test(w.text)) k.proper = true;
