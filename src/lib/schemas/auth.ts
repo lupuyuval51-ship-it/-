@@ -17,10 +17,21 @@ export const passwordSchema = z
 export const localeSchema = z.enum(["he", "en"]);
 export const countrySchema = z.string().regex(/^[A-Za-z]{2}$/).transform((c) => c.toUpperCase());
 
+/**
+ * A name shown to the learner and on their games. Control characters are refused: PostgreSQL text cannot hold a NUL
+ * (the insert failed with a 500 instead of a 400), and a line break or tab has no place in a one-line name.
+ */
+export const displayNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(INPUT_LIMITS.nameMax)
+  .refine((s) => !/[\u0000-\u001F\u007F]/.test(s), "Control characters are not allowed.");
+
 export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  displayName: z.string().trim().min(1).max(INPUT_LIMITS.nameMax),
+  displayName: displayNameSchema,
   locale: localeSchema.default("he"),
   country: countrySchema.nullish(),
 });

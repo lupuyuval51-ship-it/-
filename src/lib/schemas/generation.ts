@@ -11,9 +11,12 @@ const text = (max: number) =>
     .max(max)
     .refine((s) => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(s), "Control characters are not allowed.");
 
+/** An empty or blank box means "not provided" (an optional field must not refuse the whole request for it). */
+const blankIsMissing = (v: unknown): unknown => (typeof v === "string" && v.trim() === "" ? undefined : v);
+
 /** Optional long text: an empty box means "not provided", anything else must be non-blank and free of control characters. */
 const optionalMaterial = z.preprocess(
-  (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
+  blankIsMissing,
   z
     .string()
     .max(INPUT_LIMITS.materialMax)
@@ -36,7 +39,7 @@ export const generationRequestSchema = z
     difficulty: z.enum(DIFFICULTIES),
     gameType: z.enum(GAME_TYPES),
     contentLanguage: z.enum(CONTENT_LANGUAGES).default("en"),
-    notes: text(INPUT_LIMITS.notesMax).optional(),
+    notes: z.preprocess(blankIsMissing, text(INPUT_LIMITS.notesMax).optional()),
     /** The learner's own study material: with it, a game is built from these notes instead of a template. */
     material: optionalMaterial,
     /**

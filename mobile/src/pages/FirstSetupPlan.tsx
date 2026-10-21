@@ -1,15 +1,18 @@
 import { useT } from "@/components/I18nProvider";
 import { Alert, Field, Select } from "@/components/ui";
-import { offerText, planHasTierA, planPriceText, topicsText } from "@/components/pricing/PlanPrice";
+import { planHasTierA, planPriceText } from "@/components/pricing/PlanPrice";
 import { PLAN_IDS, type PlanId } from "@/config/plans";
 import { REGION_CHOICES } from "@/lib/offline/first-run";
 import { regionLabel } from "@/lib/regions";
 import { setSettings, useSettings } from "../app-state";
+import { chooseFrom, tracksText } from "./Plans";
 
 /**
- * The questionnaire's last step, shown only with the plans shown (`features.ts`): the country for prices and the plan the
- * learner would like (a preference only: the app sells nothing). Its own chunk, so the prices and the topic catalogue are
- * not in the app's first bundle.
+ * The questionnaire's last step, shown only with the plans shown (`features.ts`) and VITE_SETUP_PLAN=1: the country for prices and
+ * the plan the learner would like (a preference only: nothing is bought here; the plans are sold through Google Play Billing on
+ * Settings → Plans). Each plan is described as the app gives it, the same lines as that screen (library topics per half-year,
+ * `APP_TRACKS`), not with the website's games per level. Its own chunk, so the prices and the topic catalogue are not in the
+ * app's first bundle.
  */
 export function PlanStep() {
   const t = useT();
@@ -32,13 +35,14 @@ export function PlanStep() {
               <span className="text-lg font-bold">{t(`plan.${plan}`)}</span>
               <span className="ms-auto text-lg font-extrabold" data-testid={`setup-price-${plan}`}><span className="ltr-num">{price.isFree ? t("pricing.free.price") : price.text}</span>{!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}</span>
             </span>
-            <span className="block text-sm text-muted">{offerText(t, plan)}</span>
-            <span className="block text-xs text-muted">{topicsText(t, plan)} · {planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span>
+            <span className="block text-sm text-muted" data-testid={`setup-tracks-${plan}`}>{tracksText(t, plan)}</span>
+            <span className="block text-xs text-muted">{chooseFrom(t, plan)} · {planHasTierA(plan) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</span>
           </label>
         );
       })}
     </fieldset>
-    <Alert tone="info" data-testid="setup-open-now">{t("pricing.open.now")}</Alert>
+    {/* not the website's "every feature is open, free": the app starts on Free and sells Plus and Pro through Google Play */}
+    <Alert tone="info" data-testid="setup-open-now">{t("mob.plans.fineprint")}</Alert>
           </div>
   );
 }

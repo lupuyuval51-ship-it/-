@@ -56,7 +56,9 @@ export function createAnthropicBackend(cfg: AnthropicConfig): LlmBackend {
         }
         const blocks = message.content as { type: string; text?: string }[];
         const text = blocks.flatMap((b) => (b.type === "text" && typeof b.text === "string" ? [b.text] : [])).join("");
-        const finish = message.stop_reason === "refusal" ? "refused" : message.stop_reason === "max_tokens" ? "truncated" : "complete";
+        // Both "max_tokens" and a full context window stop the reply mid-JSON: the repair asks for a smaller game.
+        const cut = message.stop_reason === "max_tokens" || message.stop_reason === "model_context_window_exceeded";
+        const finish = message.stop_reason === "refusal" ? "refused" : cut ? "truncated" : "complete";
         return {
           text,
           model: message.model,

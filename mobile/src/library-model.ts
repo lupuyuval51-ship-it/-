@@ -73,8 +73,12 @@ export function continueGame(games: readonly LibraryGame[]): LibraryGame | null 
   return orderGames(games).find((g) => g.inProgress) ?? null;
 }
 
-/** Finished at least once (the store only scores finished runs). */
-export const isDone = (g: Pick<GameSummaryRow, "bestScore" | "bestStars">): boolean => g.bestScore > 0 || g.bestStars > 0;
+/**
+ * Finished at least once. The store says so itself (`completed`): a finished run can score 0 (every answer revealed), and such a
+ * game is still completed (the course screen counts it the same way). Rows without the flag fall back to the score: the store only
+ * scores finished runs.
+ */
+export const isDone = (g: Pick<GameSummaryRow, "bestScore" | "bestStars" | "completed">): boolean => g.completed ?? (g.bestScore > 0 || g.bestStars > 0);
 
 export function filterGames<T extends LibraryGame>(games: readonly T[], filter: LibraryFilter): T[] {
   if (filter === "progress") return games.filter((g) => g.inProgress);

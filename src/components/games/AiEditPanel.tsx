@@ -17,6 +17,16 @@ export interface EditCapabilities {
 
 type Outcome = { id: number; instruction: string; ok: boolean; text: string };
 
+/**
+ * The body of one edit request. `expectedRevision` is the newest revision this page knows of: the one the last AI edit
+ * returned, or the one the page was (re-)rendered with. A manual edit or a restored version on the same page bumps the
+ * revision and refreshes the page; revisions only ever grow, so the larger of the two is the current one, and an edit
+ * after a restore is no longer refused as a conflict.
+ */
+export function editRequestBody(instruction: string, idempotencyKey: string, revisions: { local: number; page: number }): { instruction: string; idempotencyKey: string; expectedRevision: number } {
+  return { instruction, idempotencyKey, expectedRevision: Math.max(revisions.local, revisions.page) };
+}
+
 const ERROR_KEY: Record<string, DictKey> = {
   EDIT_QUOTA_EXHAUSTED: "det.ai.err.quota",
   EDIT_IN_PROGRESS: "det.ai.err.busy",
@@ -66,7 +76,7 @@ export function AiEditPanel({ gameId, revision, capabilities, editable, aiAvaila
     setBusy(true);
     const id = ++counter.current;
     try {
-      const res = await fetch(`/api/games/${gameId}/edit`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ instruction, idempotencyKey: key, expectedRevision: rev }) });
+      const res = await fetch(`/api/games/${gameId}/edit`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(editRequestBody(instruction, key, { local: rev, page: revision })) });
       const json = (await res.json().catch(() => ({}))) as { summary?: string; revision?: number; capabilities?: EditCapabilities; error?: { code?: string } };
       if (res.ok && json.revision) {
         pending.current = null;
@@ -80,6 +90,8 @@ export function AiEditPanel({ gameId, revision, capabilities, editable, aiAvaila
         const code = json.error?.code ?? "";
         setLog((l) => [{ id, instruction, ok: false, text: t(ERROR_KEY[code] ?? "det.ai.err.failed") }, ...l]);
         if (code === "EDIT_QUOTA_EXHAUSTED") setCaps((c) => ({ ...c, aiEdits: { ...c.aiEdits, remaining: 0, used: c.aiEdits.limit } }));
+        // the game changed elsewhere (another tab): fetch the current version, so the page shows it and the next try is based on it
+        if (code === "EDIT_CONFLICT") router.refresh();
       }
     } catch {
       // Outcome unknown: keep the key so pressing the button again cannot spend a second edit.

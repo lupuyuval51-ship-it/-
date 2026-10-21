@@ -250,7 +250,7 @@ describe("welcome: the whole first-run explanation on one screen", () => {
     });
   }
   it("the short lines stay short enough for a 360px screen", () => {
-    for (const locale of ["en", "he"] as const) {
+    for (const locale of ["en", "he", "es"] as const) {
       const d = DICTIONARIES[locale];
       for (const step of WELCOME_STEPS) expect(d[`mob.welcome.${step}.short`].length).toBeLessThanOrEqual(80);
     }

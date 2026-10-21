@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { I18nProvider, useT } from "@/components/I18nProvider";
 import { Spinner } from "@/components/ui";
 import { DICTIONARIES, dirOf } from "@/lib/i18n";
@@ -16,7 +16,7 @@ import { FirstSetup } from "./pages/FirstSetup";
 import { TabBar } from "./pages/TabBar";
 
 // Only the library (the screen the app opens on) is in the first bundle. Every other screen is its own chunk, loaded when it is
-// opened: the create form carries the offline generator and the demo templates, the play screen the HUD and the runtime
+// opened: the create form carries the offline generator (the study engine and the topic-library builder), the play screen the HUD and the runtime
 // (and, one level deeper, the 3D renderer), the results screens their own views. With everything in one bundle the first
 // chunk was 2.05 MB (587 kB gzip); with the boundaries it is 0.66 MB (193 kB gzip). tests/unit/bundle-boundary.test.ts guards it.
 const CreatePage = lazy(() => import("./pages/Create").then((m) => ({ default: m.CreatePage })));
@@ -64,7 +64,9 @@ export function App() {
   }, [signedIn]);
   const needSignIn = googleRequired() && !signedIn && provider !== "off";
   const dict = useMemo(() => DICTIONARIES[locale], [locale]);
-  useEffect(() => {
+  // Before the first paint: `index.html` starts in Hebrew (rtl), and a passive effect would let an English or Spanish learner see one
+  // mirrored frame at every launch (the Android splash screen goes as soon as the first frame is drawn).
+  useLayoutEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = dirOf(locale);
   }, [locale]);

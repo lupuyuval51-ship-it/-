@@ -8,7 +8,7 @@ import { useLocale, useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Badge, Button, Card, Field, Input, Select, Textarea, cx } from "@/components/ui";
 import { INPUT_LIMITS } from "@/config/limits";
 import { CONTENT_LANGUAGES, DIFFICULTIES, GAME_TYPES, GENERATION_MODES, type GenerationModeId, type Mechanic } from "@/lib/game/spec/constants";
-import type { DictKey } from "@/lib/i18n";
+import { contentLangOf, type DictKey } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
 import { MaterialPreview } from "./MaterialPreview";
 import { TopicPicker } from "./TopicPicker";
@@ -66,6 +66,20 @@ function newKey(): string {
 }
 
 
+/**
+ * Typed or loaded text as the server accepts it. Notes copied from a PDF or a word processor carry page and line breaks
+ * as control characters (form feed, vertical tab) that the request schema refuses, so the whole form came back with a
+ * bare "check the fields" message and no field marked: those breaks become plain line breaks, the other control
+ * characters are dropped, and so is half of a two-unit character (an emoji cut in two), which the database refuses.
+ */
+export function cleanFieldText(s: string): string {
+  return s
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u000B\u000C\u0085\u2028\u2029]/g, "\n")
+    .replace(/[\u0000-\u0008\u000E-\u001F\u007F]/g, "")
+    .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "");
+}
+
 /** A touch-first, small screen: the game is fitted to a phone (a hint only; it can never unlock anything). */
 function playDevice(): "phone" | "desktop" {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return "desktop";
@@ -98,6 +112,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
   const engineGame = selected?.generatorKind === "engine";
   const mismatch = extend && selected !== undefined && backend.kind !== "unavailable" && selected.generatorKind !== backend.kind && !(engineGame && backend.kind === "none") && !(selected.generatorKind === "demo" && backend.subjectOnly);
   const [material, setMaterial] = useState("");
+  /** The content language chosen in the (uncontrolled) select, for the material preview: the engine builds in it. */
+  const [contentLang, setContentLang] = useState<string>(contentLangOf(locale));
   /** "library": a topic from the curated topic library (built without AI); "own": the learner's own subject. */
   const [source, setSource] = useState<"own" | "library">("own");
   const [topicId, setTopicId] = useState<string | null>(null);
@@ -141,7 +157,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
     e.preventDefault();
     if (busy || blocked) return;
     const form = new FormData(e.currentTarget);
-    const get = (k: string) => String(form.get(k) ?? "").trim();
+    // a subject is one line: a break pasted into it becomes a space
+    const get = (k: string) => { const v = cleanFieldText(String(form.get(k) ?? "")); return (k === "subject" ? v.replace(/\s*\n\s*/g, " ") : v).trim(); };
     const errs: Record<string, string> = {};
     const topic = library && topicId ? findTopic(topicId) : undefined;
     if (library && !topic) errs.topicId = t("topics.required");
@@ -259,8 +276,9 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
     if (!file) return;
     try {
       if (file.size > 2_000_000) throw new Error("too big");
-      const text = (await file.text()).replace(/\u0000/g, "");
-      setMaterial(text.slice(0, INPUT_LIMITS.materialMax));
+      const text = cleanFieldText(await file.text());
+      // the cut never leaves half of a two-unit character behind
+      setMaterial(cleanFieldText(text.slice(0, INPUT_LIMITS.materialMax)));
       setFileNote(text.length > INPUT_LIMITS.materialMax ? { tone: "info", text: t("create.material.file.trimmed", { max: INPUT_LIMITS.materialMax }) } : null);
     } catch {
       setFileNote({ tone: "error", text: t("create.material.file.error") });
@@ -281,7 +299,7 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
         <span aria-live="off">{t("create.material.count", { n: material.length, max: INPUT_LIMITS.materialMax })}</span>
       </span>
       {fileNote && <span className={cx("mt-1 block text-xs", fileNote.tone === "error" ? "text-rose" : "text-muted")} data-testid="material-file-note">{fileNote.text}</span>}
-      {backend.kind === "none" && <div className="mt-2"><MaterialPreview material={material} full={mode === "FULL"} /></div>}
+      {backend.kind === "none" && <div className="mt-2"><MaterialPreview material={cleanFieldText(material)} full={mode === "FULL"} lang={!extend && contentLang === "he" ? "he" : "en"} /></div>}
     </Field>
   );
 
@@ -449,7 +467,8 @@ export function CreateForm({ backend, allowance, games, extensionMechanics, leve
               </Select>
             </Field>
             <Field label={t("create.language")} htmlFor="contentLanguage" hint={t("create.language.hint")}>
-              <Select id="contentLanguage" name="contentLanguage" defaultValue={locale} data-testid="create-language">
+              {/* learning content follows the interface in Hebrew and English; a Spanish interface starts on English (the topic library and the study engine have no Spanish) */}
+              <Select id="contentLanguage" name="contentLanguage" defaultValue={contentLangOf(locale)} onChange={(e) => setContentLang(e.target.value)} data-testid="create-language">
                 {(backend.kind === "none" || library ? CONTENT_LANGUAGES.filter((l) => l === "he" || l === "en") : CONTENT_LANGUAGES).map((l) => <option key={l} value={l}>{NATIVE_LANG[l]}</option>)}
               </Select>
             </Field>

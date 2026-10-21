@@ -57,7 +57,9 @@ export function setSettings(patch: Partial<Settings>): void {
   listeners.forEach((l) => l());
 }
 export const getSettings = (): Settings => settings;
-export const useSettings = (): Settings => useSyncExternalStore((cb) => { listeners.add(cb); return () => listeners.delete(cb); }, () => settings);
+/** One subscribe function for every reader: a new one per render would make React unsubscribe and subscribe again on every render. */
+const subscribeSettings = (cb: () => void): (() => void) => { listeners.add(cb); return () => { listeners.delete(cb); }; };
+export const useSettings = (): Settings => useSyncExternalStore(subscribeSettings, getSettings, getSettings);
 
 export const store = new OfflineStore(browserKV());
 // Start-up repair: a crash between two writes, or a damaged list, can leave a stored game out of the library. Relinks only; never deletes.

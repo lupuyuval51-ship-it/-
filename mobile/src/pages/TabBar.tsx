@@ -1,5 +1,6 @@
 import { BookOpen, Home, Plus, Settings } from "lucide-react";
 import { useT } from "@/components/I18nProvider";
+import { showPlans } from "../features";
 
 const TABS = [
   { href: "/", key: "mob.nav.home", Icon: Home, test: "tab-home" },
@@ -8,8 +9,20 @@ const TABS = [
   { href: "/settings", key: "mob.nav.settings", Icon: Settings, test: "tab-settings" },
 ] as const;
 
-/** Is `path` this tab's screen (or a screen opened from it, e.g. a game's results belong to Home)? */
-const isActive = (href: string, path: string) => (href === "/" ? !["/create", "/review", "/settings", "/plans", "/about", "/privacy"].some((p) => path.startsWith(p)) : path.startsWith(href) || (href === "/settings" && (path.startsWith("/plans") || path.startsWith("/about") || path.startsWith("/privacy"))));
+export type TabHref = (typeof TABS)[number]["href"];
+
+/**
+ * The tab whose screen `path` shows (a screen opened from a tab belongs to it: a game's results and a course to Home; plans,
+ * about and privacy to Settings). It follows App's `route()` exactly: a path that `route()` does not know, such as the plans
+ * screen in a build that hides the plans, opens the library, so it belongs to Home and the bar never marks another tab as
+ * the current page above the library.
+ */
+export function tabOf(path: string, plansShown: boolean = showPlans()): TabHref {
+  if (path === "/create") return "/create";
+  if (path === "/review") return "/review";
+  if (path === "/settings" || path === "/about" || path === "/privacy" || (path === "/plans" && plansShown)) return "/settings";
+  return "/";
+}
 
 /**
  * The app's main navigation, at the bottom of the screen where a thumb reaches it: four large tabs (at least 56 px tall),
@@ -17,11 +30,12 @@ const isActive = (href: string, path: string) => (href === "/" ? !["/create", "/
  */
 export function TabBar({ path }: { path: string }) {
   const t = useT();
+  const current = tabOf(path);
   return (
     <nav aria-label={t("mob.nav.label")} className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-ink-950/95 backdrop-blur" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} data-testid="tab-bar">
       <ul className="mx-auto grid max-w-xl grid-cols-4">
         {TABS.map(({ href, key, Icon, test }) => {
-          const active = isActive(href, path);
+          const active = href === current;
           return (
             <li key={href}>
               <a href={`#${href}`} aria-current={active ? "page" : undefined} data-testid={test} data-active={active ? "1" : undefined}

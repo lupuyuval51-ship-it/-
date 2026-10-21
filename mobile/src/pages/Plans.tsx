@@ -2,58 +2,96 @@ import { useEffect, useState } from "react";
 import { useT } from "@/components/I18nProvider";
 import { Alert, Arrow, Button, Card } from "@/components/ui";
 import { planHasTierA, planPriceText, topicsOpen } from "@/components/pricing/PlanPrice";
-import { APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId } from "@/config/plans";
-import { getOfflinePlan } from "@/lib/offline/entitlement";
-import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases } from "../billing/play";
+import { APP_TRACKS, PAID_PLAN_IDS, PLAN_IDS, type PaidPlanId, type PlanId } from "@/config/plans";
+import type { DictKey } from "@/lib/i18n";
+import { getOfflinePlan, type OfflinePlan } from "@/lib/offline/entitlement";
+import { PLAN_EVENT, billingAvailable, buyPlan, manageSubscription, playPrices, refreshPlan, restorePurchases, type BuyResult } from "../billing/play";
 
 /**
  * The plans and their prices, and the way to buy: Google Play Billing (the only payment an app from Google Play may use).
  * Prices are in shekels from src/config/plans.ts (Play shows the learner its own final price on the purchase sheet; when Play
  * can tell the price it is shown instead); the offer is the number of library topics per half-year (`APP_TRACKS`).
  */
+/** What a plan gives in the app: library topics per half-year (`APP_TRACKS`), not the website's games per level. */
+export function tracksText(t: ReturnType<typeof useT>, id: PlanId): string {
+  return APP_TRACKS[id] === 1 ? t("mob.plans.tracks.one") : t("mob.plans.tracks.many", { n: APP_TRACKS[id] });
+}
+
 /** Where the topics of the line above come from: in the app a plan opens a part of the library, and the learner picks the plan's topics there. */
-function chooseFrom(t: ReturnType<typeof useT>, id: (typeof PLAN_IDS)[number]): string {
+export function chooseFrom(t: ReturnType<typeof useT>, id: PlanId): string {
   const { open, total } = topicsOpen(id);
   return open === total ? t("mob.plans.choose.all", { n: total }) : t("mob.plans.choose.some", { n: open, total });
 }
+
+/** The one line the screen says after the learner bought or restored (`UNREACHABLE`: Play could not be asked). */
+export type PlansMessage = "BOUGHT" | "CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | "UNREACHABLE";
+
+/**
+ * After Play's purchase sheet. What counts is the plan the phone now uses: a purchase whose answer could not be read as a paid plan
+ * yet is "waiting for Google Play" (the next refresh turns it on), never "Your plan is on" next to "Your plan: Free". No billing in
+ * this build says nothing here (the screen already explains it).
+ */
+export function messageAfterBuy(res: BuyResult, plan: OfflinePlan): PlansMessage | null {
+  if (res.ok) return plan !== "FREE" ? "BOUGHT" : "PENDING";
+  return res.reason === "UNAVAILABLE" ? null : res.reason;
+}
+
+/** After "Restore": when Play could not be asked nothing was looked up, so it must not say that no subscription was found. */
+export const messageAfterRestore = (reached: boolean, plan: OfflinePlan): PlansMessage => (!reached ? "UNREACHABLE" : plan !== "FREE" ? "RESTORED" : "NOTHING");
+
+/** The plan turned on while the screen is open (Play confirmed a pending payment): "waiting for Google Play" is no longer true. */
+export const messageOnPlanChange = (m: PlansMessage | null, plan: OfflinePlan): PlansMessage | null => (m === "PENDING" && plan !== "FREE" ? "BOUGHT" : m);
+
+export const plansMessageKey = (m: PlansMessage): DictKey => (m === "UNREACHABLE" ? "common.error.network" : `mob.plans.msg.${m}`);
 
 export function PlansPage() {
   const t = useT();
   const [plan, setPlan] = useState(() => getOfflinePlan());
   const [busy, setBusy] = useState<PaidPlanId | "restore" | null>(null);
-  const [message, setMessage] = useState<"BOUGHT" | "CANCELLED" | "PENDING" | "SUBSCRIBED" | "FAILED" | "RESTORED" | "NOTHING" | null>(null);
+  const [message, setMessage] = useState<PlansMessage | null>(null);
   const [prices, setPrices] = useState<Partial<Record<PaidPlanId, string>>>({});
   const canBuy = billingAvailable();
 
   useEffect(() => {
-    const sync = () => setPlan(getOfflinePlan());
+    const sync = () => { const now = getOfflinePlan(); setPlan(now); setMessage((m) => messageOnPlanChange(m, now)); };
     window.addEventListener(PLAN_EVENT, sync);
     void refreshPlan().then(sync);
     void playPrices().then(setPrices);
     return () => window.removeEventListener(PLAN_EVENT, sync);
   }, []);
 
+  // The buttons are given back whatever happens: a call that failed in an unexpected way must never leave them all disabled.
   async function buy(p: PaidPlanId) {
     setBusy(p);
     setMessage(null);
-    const res = await buyPlan(p);
-    setPlan(getOfflinePlan());
-    // a purchase that went through says so (the card also turns to "This is your plan")
-    if (res.ok) setMessage("BOUGHT");
-    else if (res.reason !== "UNAVAILABLE") setMessage(res.reason);
-    // a plan is changed or cancelled on Google Play's own page: a second subscription would be billed next to the first
-    if (!res.ok && res.reason === "SUBSCRIBED") void manageSubscription();
-    setBusy(null);
+    try {
+      const res = await buyPlan(p);
+      const now = getOfflinePlan();
+      setPlan(now);
+      // a purchase that went through says so (the card also turns to "This is your plan")
+      setMessage(messageAfterBuy(res, now));
+      // a plan is changed or cancelled on Google Play's own page: a second subscription would be billed next to the first
+      if (!res.ok && res.reason === "SUBSCRIBED") void manageSubscription();
+    } catch {
+      setMessage("FAILED");
+    } finally {
+      setBusy(null);
+    }
   }
 
   async function restore() {
     setBusy("restore");
     setMessage(null);
-    const ok = await restorePurchases();
-    const now = getOfflinePlan();
-    setPlan(now);
-    setMessage(ok && now !== "FREE" ? "RESTORED" : "NOTHING");
-    setBusy(null);
+    try {
+      const reached = await restorePurchases();
+      const now = getOfflinePlan();
+      setPlan(now);
+      setMessage(messageAfterRestore(reached, now));
+    } catch {
+      setMessage("UNREACHABLE");
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -61,7 +99,7 @@ export function PlansPage() {
       <a href="#/settings" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted"><Arrow back /> {t("mob.back")}</a>
       <h1 className="text-2xl font-extrabold">{t("pricing.title")}</h1>
       <Alert tone="info" data-testid="plans-current">{t("mob.plans.current", { plan: t(`plan.${plan}`) })}</Alert>
-      {message && <Alert tone={message === "RESTORED" ? "info" : message === "BOUGHT" ? "success" : "warn"} data-testid="plans-message">{t(`mob.plans.msg.${message}`)}</Alert>}
+      {message && <Alert tone={message === "RESTORED" ? "info" : message === "BOUGHT" ? "success" : "warn"} data-testid="plans-message">{t(plansMessageKey(message))}</Alert>}
       <div className="space-y-3">
         {PLAN_IDS.map((id) => {
           const price = planPriceText(id, "IL");
@@ -76,7 +114,7 @@ export function PlansPage() {
                   {!price.isFree && <span className="text-sm font-normal text-muted"> {t("pricing.per")}</span>}
                 </p>
               </div>
-              <p className="text-sm" data-testid={`mobile-tracks-${id}`}>{APP_TRACKS[id] === 1 ? t("mob.plans.tracks.one") : t("mob.plans.tracks.many", { n: APP_TRACKS[id] })}</p>
+              <p className="text-sm" data-testid={`mobile-tracks-${id}`}>{tracksText(t, id)}</p>
               <p className="text-sm text-muted" data-testid={`mobile-topics-${id}`}>{chooseFrom(t, id)}</p>
               <p className="text-sm text-muted">{planHasTierA(id) ? t("pricing.graphics.A") : t("pricing.graphics.BC")}</p>
               {paid && (
