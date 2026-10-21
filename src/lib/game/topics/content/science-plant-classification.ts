@@ -3,8 +3,8 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Moss", "a small, soft plant without flowers or true roots that grows in damp places and spreads by spores", "טחב", "צמח קטן ורך בלי פרחים ובלי שורשים אמיתיים, שגדל במקומות לחים ומתרבה בנבגים"],
-      ["Fern", "a plant with large, feathery leaves called fronds that reproduces with spores, not seeds", "שרך", "צמח בעל עלים גדולים ומנוצים שמתרבה בנבגים ולא בזרעים"],
+      ["Moss", "a small, soft plant without flowers or true roots that forms green cushions and spreads by spores", "טחב", "צמח קטן ורך בלי פרחים ובלי שורשים אמיתיים, שיוצר כריות ירוקות ומתרבה בנבגים"],
+      ["Fern", "a plant with large, feathery leaves called fronds that uncurl from tight spirals as they grow", "שרך", "צמח בעל עלים גדולים ומנוצים שמתפרשים מתוך סליל הדוק בזמן שהם גדלים"],
       ["Seed", "a small package holding a baby plant and a store of food, wrapped in a protective coat", "זרע", "חבילה קטנה שבתוכה צמח זעיר ומאגר מזון, עטופה בקליפה מגינה"],
       ["Cone", "the woody part of a pine or cypress tree in which its seeds develop", "אצטרובל", "החלק העצי של אורן או של ברוש שבו מתפתחים הזרעים"],
     ],
@@ -27,7 +27,7 @@ const c: TopicContent = {
     t: [
       ["Spore", "a tiny single cell that can grow into a new plant, with no food store and no seed coat", "נבג", "תא יחיד וזעיר שיכול לגדול לצמח חדש, בלי מאגר מזון ובלי קליפת זרע"],
       ["Vascular tissue", "tubes inside a plant that carry water and food between the roots and the leaves", "רקמת הובלה", "צינורות בתוך הצמח שמובילים מים ומזון בין השורשים לעלים"],
-      ["Conifer", "a tree or shrub that makes its seeds in cones and usually has needle-like leaves", "מחטני", "עץ או שיח שיוצר את זרעיו באצטרובלים, ולרוב יש לו עלים דמויי מחט"],
+      ["Conifer", "a tree or shrub, such as a pine or a cypress, that usually has needle-like or scale-like leaves", "מחטני", "עץ או שיח, כמו אורן או ברוש, שלרוב יש לו עלים דמויי מחט או קשקש"],
       ["Pollen", "a fine powder made by flowers and cones that must reach an egg cell for a seed to form", "אבקה", "אבק דק שנוצר בפרחים ובאצטרובלים, וצריך להגיע אל תא ביצה כדי שייווצר זרע"],
     ],
     q: [
@@ -42,19 +42,19 @@ const c: TopicContent = {
       [["What do mosses and ferns both need in order to reproduce?", "Water, so that their sperm cells can swim to the egg cells", ["Wind that blows their pollen over to other plants nearby", "Bees that visit their flowers", "Fruits that protect their seeds"], "In mosses and ferns the male sex cells must swim through a film of water to reach the egg. That is one reason why both groups grow best in damp places."],
         ["מה דרוש גם לטחבים וגם לשרכים כדי להתרבות?", "מים, כדי שתאי הזרע שלהם יוכלו לשחות אל תאי הביצה", ["רוח שתעיף את האבקה שלהם אל צמחים אחרים בסביבה", "דבורים שיבקרו בפרחים שלהם", "פירות שיגנו על הזרעים שלהם"], "אצל טחבים ושרכים תאי המין הזכריים חייבים לשחות בשכבה דקה של מים כדי להגיע אל תא הביצה. זו אחת הסיבות לכך ששתי הקבוצות גדלות הכי טוב במקומות לחים."]],
     ],
-    s: [[["How a flowering plant makes a new plant, in order", "Pollen is carried from one flower to another", "A cell from the pollen joins with an egg cell inside the flower", "A seed forms, and the part of the flower around it grows into a fruit", "The fruit or the seed is carried away and lands on soil", "The seed sprouts and grows into a new plant"],
-      ["איך צמח פורח יוצר צמח חדש, לפי הסדר", "אבקה עוברת מפרח אחד לפרח אחר", "תא מהאבקה מתאחד עם תא ביצה בתוך הפרח", "נוצר זרע, והחלק של הפרח שסביבו גדל והופך לפרי", "הפרי או הזרע מועברים למקום אחר ונוחתים על אדמה", "הזרע נובט וגדל לצמח חדש"]]],
+    s: [[["How a flowering plant makes a new plant, in order", "Pollen lands on the female part of a flower", "A cell from the pollen joins with an egg cell inside the flower", "A seed forms, and the part of the flower around it grows into a fruit", "The fruit or the seed is carried away and lands on soil", "The seed sprouts and grows into a new plant"],
+      ["איך צמח פורח יוצר צמח חדש, לפי הסדר", "אבקה נוחתת על החלק הנקבי של פרח", "תא מהאבקה מתאחד עם תא ביצה בתוך הפרח", "נוצר זרע, והחלק של הפרח שסביבו גדל והופך לפרי", "הפרי או הזרע מועברים למקום אחר ונוחתים על אדמה", "הזרע נובט וגדל לצמח חדש"]]],
   },
   a: {
     t: [
       ["Gymnosperm", "a seed plant whose seeds are not enclosed in a fruit, such as a pine or a cypress", "חשופי זרע", "צמחי זרע שהזרעים שלהם אינם עטופים בפרי, כמו אורן וברוש"],
       ["Angiosperm", "a seed plant whose seeds grow inside a fruit; every flowering plant is one", "מכוסי זרע", "צמחים שהזרעים שלהם גדלים בתוך פרי; כל הצמחים הפורחים שייכים אליהם"],
       ["Monocot", "a flowering plant with one seed leaf and long leaves with parallel veins, such as a palm", "חד־פסיגי", "צמח פורח עם עלה־זרע אחד ועלים ארוכים בעלי עורקים מקבילים, כמו דקל"],
-      ["Dicot", "a flowering plant with two seed leaves and leaves with branching, net-like veins, such as a bean", "דו־פסיגי", "צמח פורח עם שני עלי־זרע ועלים בעלי עורקים מסתעפים כמו רשת, כמו שעועית"],
+      ["Dicot", "a flowering plant with two seed leaves and leaves with branching, net-like veins, such as a rose", "דו־פסיגי", "צמח פורח עם שני עלי־זרע ועלים בעלי עורקים מסתעפים כמו רשת, כמו ורד"],
     ],
     q: [
-      [["A plant has tubes for water and makes seeds, but it has no flowers and no fruits. Which group does it belong to?", "Gymnosperms, such as conifers", ["Angiosperms, such as roses and oaks", "Ferns, such as the maidenhair fern", "Mosses, which grow on damp walls"], "Having vessels and seeds rules out mosses and ferns, and having no flowers or fruits rules out angiosperms. Plants with naked seeds, like pines, are gymnosperms."],
-        ["לצמח יש צינורות הובלה והוא יוצר זרעים, אבל אין לו פרחים ואין לו פירות. לאיזו קבוצה הוא שייך?", "לחשופי הזרע, כמו המחטניים", ["למכוסי הזרע, כמו ורדים ואלונים", "לשרכים, כמו שערות שולמית", "לטחבים, שגדלים על קירות לחים"], "צינורות הובלה וזרעים פוסלים את הטחבים ואת השרכים, והיעדר פרחים ופירות פוסל את מכוסי הזרע. צמחים שהזרעים שלהם חשופים, כמו האורן, הם חשופי זרע."]],
+      [["Which of these broad-leaved trees is a gymnosperm?", "The ginkgo", ["The eucalyptus", "The oak", "The olive"], "The ginkgo has broad, fan-shaped leaves, yet its seeds hang open on short stalks with no fruit around them, so it is a gymnosperm. Eucalyptus, oak and olive trees have flowers and grow fruits around their seeds."],
+        ["איזה מהעצים רחבי העלים האלה שייך לחשופי הזרע?", "הגינקו", ["האקליפטוס", "האלון", "הזית"], "לגינקו עלים רחבים בצורת מניפה, אבל הזרעים שלו תלויים גלויים על עוקצים קצרים בלי פרי שעוטף אותם, ולכן הוא שייך לחשופי הזרע. לאקליפטוס, לאלון ולזית יש פרחים, והם מגדלים פרי סביב הזרעים."]],
       [["A leaf has long parallel veins, and the seed it grew from had one seed leaf. Which plant could it be?", "Wheat", ["Bean", "Oak", "Sunflower"], "One seed leaf and parallel veins are signs of a monocot. Grasses such as wheat, rice and maize are monocots, while beans, oaks and sunflowers are dicots with net-like veins."],
         ["לעלה יש עורקים ארוכים ומקבילים, ובזרע שממנו צמח היה עלה־זרע אחד. איזה צמח זה יכול להיות?", "חיטה", ["שעועית", "אלון", "חמנייה"], "עלה־זרע אחד ועורקים מקבילים הם סימנים של צמח חד־פסיגי. דגניים כמו חיטה, אורז ותירס הם חד־פסיגיים, ואילו שעועית, אלון וחמנייה הם דו־פסיגיים בעלי עורקים דמויי רשת."]],
       [["Flowering plants are by far the largest plant group. Which of their features helped them spread so widely?", "Flowers use animals to carry pollen, and fruits help spread seeds far away", ["They are the only plants that can make their own food using sunlight", "They are the only plants that have true roots", "They can grow without any water at all"], "All plants make their own food, and ferns and conifers have roots too. What is special about flowering plants is that animals carry their pollen and their fruits help to scatter the seeds."],

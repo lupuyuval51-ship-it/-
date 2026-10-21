@@ -25,8 +25,8 @@ const c: TopicContent = {
         ["הסיפור שלכם צריך להיות באורך 400 מילים, ומונה המילים מראה 250. כמה מילים עוד חסרות?", "מילים", "400 − 250 = 150, ולכן אתם צריכים לכתוב עוד 150 מילים."]],
     ],
     s: [
-      [["Make a title bigger", "Type the title", "Select the title with the mouse", "Choose a bigger font size", "Click somewhere else to see the result"],
-        ["הגדלה של כותרת", "מקלידים את הכותרת", "מסמנים את הכותרת בעזרת העכבר", "בוחרים גודל גופן גדול יותר", "לוחצים במקום אחר כדי לראות את התוצאה"]],
+      [["Make a word bold", "Type the word", "Select the word with the mouse", "Click the Bold button", "Click somewhere else to see the result"],
+        ["הדגשה של מילה", "מקלידים את המילה", "מסמנים את המילה בעזרת העכבר", "לוחצים על כפתור ההדגשה", "לוחצים במקום אחר כדי לראות את התוצאה"]],
     ],
   },
   i: {
@@ -59,7 +59,7 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["PDF", "a file format that keeps a document looking the same on every device and is hard to edit", "קובץ PDF", "סוג קובץ שבו המסמך נראה אותו דבר בכל מכשיר, וקשה לערוך אותו"],
+      ["PDF", "a file format made for sharing and printing finished documents, which is hard to edit", "קובץ PDF", "סוג קובץ שנועד לשיתוף ולהדפסה של מסמכים גמורים, וקשה לערוך אותו"],
       ["Style", "a saved set of formatting, such as font, size and colour, applied in one click", "סגנון", "אוסף שמור של עיצוב, כמו גופן, גודל וצבע, שמחילים בלחיצה אחת"],
       ["Table of contents", "a list of a document's headings with the page number of each", "תוכן עניינים", "רשימה של כותרות המסמך, ולצד כל אחת מספר העמוד שלה"],
       ["Track changes", "a mode that records every edit so others can see it and accept or reject it", "מעקב אחר שינויים", "מצב שרושם כל עריכה, כדי שאחרים יוכלו לראות אותה ולקבל או לדחות אותה"],

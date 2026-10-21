@@ -3,9 +3,9 @@ import type { TopicContent } from "../types";
 const c: TopicContent = {
   b: {
     t: [
-      ["Copper cable", "a cable with metal wires inside that carries data as electrical signals", "כבל נחושת", "כבל שיש בתוכו חוטי מתכת, והוא מעביר מידע כאותות חשמליים"],
-      ["Optical fibre", "a hair-thin strand of glass that carries data as flashes of light", "סיב אופטי", "חוט זכוכית דק כשערה שמעביר מידע כהבזקי אור"],
-      ["Undersea cable", "a cable laid along the ocean floor to link countries and continents", "כבל תת־ימי", "כבל שמונח על קרקעית האוקיינוס ומחבר בין מדינות ויבשות"],
+      ["Copper cable", "a cable with copper wires inside, often used to plug computers into a network", "כבל נחושת", "כבל שיש בתוכו חוטי נחושת, ומשמש לעיתים קרובות לחיבור מחשבים לרשת"],
+      ["Optical fibre", "a hair-thin strand of very pure glass, used in the fastest internet cables", "סיב אופטי", "חוט דק כשערה מזכוכית טהורה מאוד, שמשמש בכבלי האינטרנט המהירים ביותר"],
+      ["Undersea cable", "a cable laid along the sea floor, wrapped in steel armour near the coast", "כבל תת־ימי", "כבל שמונח על קרקעית הים, ובקרבת החוף עטוף בשריון פלדה"],
     ],
     q: [
       [["What does an optical fibre use to carry data?", "Flashes of light", ["Electric current in metal wires", "Radio waves through the air", "Sound waves inside the glass"], "A laser or LED at one end switches on and off very fast, and each flash stands for part of the data. The light travels along the glass to the far end, where a sensor turns it back into data."],
@@ -26,14 +26,14 @@ const c: TopicContent = {
         ["חיבור מעביר 100 מגהביט בכל שנייה. כמה שניות לוקח לקובץ של 500 מגהביט להגיע?", "שניות", "בכל שנייה מגיעים 100 מגהביט, ולכן 500 מגהביט לוקחים 500 ÷ 100 = 5 שניות."]],
     ],
     s: [
-      [["How an email reaches a server on another continent", "Your computer sends the data over Wi-Fi or a cable to your home router", "The router passes it along the street cable to your internet provider", "The provider sends it on to a cable landing station on the coast", "It crosses the ocean through an undersea fibre-optic cable", "It reaches the data centre where the receiving server is"],
-        ["איך דואר אלקטרוני מגיע לשרת ביבשת אחרת", "המחשב שולח את המידע ברשת אלחוטית או בכבל לנתב שבבית", "הנתב מעביר אותו בכבל שברחוב אל ספקית האינטרנט", "הספקית שולחת אותו הלאה לתחנת נחיתה של כבלים על החוף", "המידע חוצה את האוקיינוס בכבל תת־ימי של סיבים אופטיים", "המידע מגיע למרכז הנתונים שבו נמצא השרת המקבל"]],
+      [["How an email reaches a server on another continent", "Your computer sends the data over Wi-Fi or a cable to your home router", "The router passes it along the street cable to your internet provider", "The provider sends it on to a station on the coast, where the link across the sea begins", "It crosses the ocean to the other continent", "It reaches the data centre where the receiving server is"],
+        ["איך דואר אלקטרוני מגיע לשרת ביבשת אחרת", "המחשב שולח את המידע ברשת אלחוטית או בכבל לנתב שבבית", "הנתב מעביר אותו בכבל שברחוב אל ספקית האינטרנט", "הספקית שולחת אותו הלאה לתחנה על החוף, שבה מתחיל הקשר אל מעבר לים", "המידע חוצה את האוקיינוס אל היבשת השנייה", "המידע מגיע למרכז הנתונים שבו נמצא השרת המקבל"]],
     ],
   },
   i: {
     t: [
       ["Bandwidth", "how much data a connection can carry each second", "רוחב פס", "כמות המידע שחיבור יכול להעביר בכל שנייה"],
-      ["Geostationary satellite", "a satellite about 36,000 km above the equator that circles once a day, so it seems to hang still in the sky", "לוויין גאוסטציונרי", "לוויין בגובה של כ־36,000 ק״מ מעל קו המשווה, שמקיף את כדור הארץ פעם ביממה ולכן נראה כאילו הוא תלוי במקום"],
+      ["Geostationary satellite", "a satellite above the equator that circles the Earth once a day, so it seems to hang still in the sky", "לוויין גאוסטציונרי", "לוויין מעל קו המשווה שמקיף את כדור הארץ פעם ביממה, ולכן נראה כאילו הוא תלוי במקום"],
       ["Data centre", "a building packed with servers that store websites and send them out over the network", "מרכז נתונים", "בניין מלא בשרתים ששומרים אתרים ושולחים אותם ברשת"],
     ],
     q: [

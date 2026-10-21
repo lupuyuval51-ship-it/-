@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Network", "a group of computers and devices that are connected so they can share information", "רשת מחשבים", "קבוצת מחשבים ומכשירים שמחוברים זה לזה כדי שיוכלו להעביר ביניהם מידע"],
       ["Router", "a box that passes information between the devices in a home and the internet", "נתב", "קופסה שמעבירה מידע בין המכשירים שבבית לבין האינטרנט"],
-      ["Wi-Fi", "a way of joining a network with radio waves instead of wires", "Wi-Fi", "דרך להתחבר לרשת באמצעות גלי רדיו במקום חוטים"],
+      ["Wi-Fi", "a way of joining a network without plugging in any wires", "Wi-Fi", "דרך להתחבר לרשת בלי לחבר שום חוט"],
       ["Ethernet cable", "a wire that plugs into a computer or a router and carries information as signals", "כבל רשת", "חוט שמתחבר למחשב או לנתב ומעביר מידע בצורת אותות"],
       ["Signal strength", "how strong the wireless link between a device and the router is, often shown as bars", "עוצמת קליטה", "כמה חזק הקשר האלחוטי בין מכשיר לנתב, שמוצג לרוב בפסים"],
     ],
@@ -23,7 +23,7 @@ const c: TopicContent = {
   i: {
     t: [
       ["LAN", "a network that covers a small area such as a home, a school or an office", "רשת מקומית (LAN)", "רשת שמכסה שטח קטן, כמו בית, בית ספר או משרד"],
-      ["Switch", "a box with many sockets that links wired devices in one network and sends each message only where it should go", "מתג רשת", "קופסה עם שקעים רבים שמחברת מכשירים בכבלים בתוך רשת אחת ושולחת כל הודעה רק ליעד שלה"],
+      ["Switch", "a box with many sockets for network cables, which sends each message only to the device it is meant for", "מתג רשת", "קופסה עם שקעים רבים לכבלי רשת, ששולחת כל הודעה רק למכשיר שהיא מיועדת לו"],
       ["SSID", "the name a Wi-Fi network sends out so that devices can find it", "שם הרשת (SSID)", "השם שרשת Wi-Fi משדרת כדי שמכשירים יוכלו למצוא אותה"],
       ["Interference", "other signals or objects that disturb a wireless signal and make it weaker", "הפרעות קליטה", "אותות אחרים או חפצים שמשבשים אות אלחוטי ומחלישים אותו"],
       ["Access point", "a device that adds Wi-Fi to a wired network so that more places get a signal", "נקודת גישה", "מכשיר שמוסיף Wi-Fi לרשת קווית, כדי שהקליטה תגיע ליותר מקומות"],
@@ -47,8 +47,8 @@ const c: TopicContent = {
   },
   a: {
     t: [
-      ["WPA3", "a security standard that scrambles Wi-Fi traffic so that only devices with the right key can read it", "WPA3", "תקן אבטחה שמצפין את התעבורה ב־Wi-Fi, כך שרק מכשירים עם המפתח הנכון יכולים לקרוא אותה"],
-      ["MAC address", "an identifier that a network adapter gets from its maker", "כתובת MAC", "מזהה שכרטיס רשת מקבל מהיצרן שלו"],
+      ["WPA3", "a Wi-Fi security standard, introduced in 2018 as the successor to WPA2", "WPA3", "תקן אבטחה ל־Wi-Fi, שהוצג ב־2018 כממשיך של WPA2"],
+      ["MAC address", "an identifier of a network adapter, written as six pairs of letters and digits, such as 3C:22:FB:4A:91:07", "כתובת MAC", "מזהה של כרטיס רשת, שנכתב כשישה זוגות של אותיות וספרות, למשל 3C:22:FB:4A:91:07"],
       ["Mesh network", "several Wi-Fi units placed around a building that work together as one network", "רשת Mesh", "כמה יחידות Wi-Fi שמפוזרות בבניין ופועלות יחד כרשת אחת"],
       ["Firewall", "a program or device that blocks network traffic that breaks the rules it was given", "חומת אש", "תוכנה או מכשיר שחוסמים תעבורת רשת שמפרה את הכללים שנקבעו להם"],
       ["DHCP", "a service, usually in the router, that hands out IP addresses to devices when they join", "DHCP", "שירות, בדרך כלל בנתב, שמחלק כתובות IP למכשירים כשהם מצטרפים לרשת"],
@@ -56,8 +56,8 @@ const c: TopicContent = {
     q: [
       [["Many routers send Wi-Fi on two bands, 2.4 GHz and 5 GHz. Which is usually true?", "5 GHz is usually faster, but it reaches less far through walls", ["5 GHz is usually faster, and it also passes through walls more easily", "Both bands always give exactly the same speed and range", "2.4 GHz works only through cables"], "Higher-frequency waves can carry more data, but walls weaken them more. 2.4 GHz reaches farther, but it is slower and more crowded."],
         ["נתבים רבים משדרים Wi-Fi בשני תחומי תדרים, 2.4 גיגה־הרץ ו־5 גיגה־הרץ. מה בדרך כלל נכון?", "5 גיגה־הרץ מהיר יותר בדרך כלל, אבל עובר פחות טוב דרך קירות", ["5 גיגה־הרץ מהיר יותר בדרך כלל, וגם עובר בקלות רבה יותר דרך קירות", "שני התחומים תמיד נותנים בדיוק אותה מהירות ואותו טווח", "2.4 גיגה־הרץ עובד רק דרך כבלים"], "גלים בתדר גבוה יותר יכולים לשאת יותר נתונים, אבל קירות מחלישים אותם יותר. 2.4 גיגה־הרץ מגיע רחוק יותר, אבל הוא איטי ועמוס יותר."]],
-      [["A friend's phone joins your home Wi-Fi and gets the address 192.168.1.23 by itself. Which service gave it that address?", "DHCP, in the router", ["DNS, which turns names into addresses", "Bluetooth, from a nearby speaker", "The phone's camera app"], "When a device joins, DHCP in the router lends it a free IP address on the home network. DNS does a different job: it finds a website's address from its name."],
-        ["הטלפון של חבר מתחבר ל־Wi-Fi בבית שלכם ומקבל מעצמו את הכתובת 192.168.1.23. איזה שירות נתן לו את הכתובת?", "DHCP, בנתב", ["DNS, שמתרגם שמות לכתובות", "Bluetooth, מרמקול קרוב", "אפליקציית המצלמה של הטלפון"], "כשמכשיר מצטרף לרשת, שירות ה־DHCP בנתב משאיל לו כתובת IP פנויה ברשת הביתית. ל־DNS יש תפקיד אחר: הוא מוצא את הכתובת של אתר לפי השם שלו."]],
+      [["You type a website's name, such as www.example.com, into a browser. Which service finds that website's IP address?", "DNS (the Domain Name System)", ["DHCP, which hands out addresses", "WPA3, which protects Wi-Fi", "The router's MAC address"], "DNS works like a phone book: it turns a name such as www.example.com into the IP address the browser must contact. DHCP does a different job: it lends addresses to the devices on your own network."],
+        ["מקלידים בדפדפן שם של אתר, כמו www.example.com. איזה שירות מוצא את כתובת ה־IP של האתר?", "DNS (מערכת שמות המתחם)", ["DHCP, שמחלק כתובות למכשירים", "WPA3, שמגן על ה־Wi-Fi", "כתובת ה־MAC של הנתב"], "DNS פועל כמו ספר טלפונים: הוא מתרגם שם כמו www.example.com לכתובת ה־IP שהדפדפן צריך לפנות אליה. ל־DHCP יש תפקיד אחר: הוא משאיל כתובות למכשירים שברשת שלכם."]],
       [["Why does it matter that a home Wi-Fi network uses WPA2 or WPA3 encryption?", "Nobody nearby without the password can read the data in the air", ["It hides the network's name, so that nobody nearby can even find it", "It makes the signal reach twice as far through the walls", "It lets the router work without electricity"], "Radio waves spread in every direction, even outside the home. Encryption scrambles the data, so only devices that know the key can understand it. Hiding the network's name is not encryption: the data could still be read."],
         ["למה חשוב שרשת Wi-Fi ביתית תשתמש בהצפנת WPA2 או WPA3?", "מי שנמצא בקרבת מקום בלי הסיסמה לא יכול לקרוא את הנתונים", ["היא מסתירה את שם הרשת, כך שאף אחד בסביבה לא יכול אפילו למצוא אותה", "היא גורמת לאות להגיע פי שניים רחוק יותר דרך הקירות", "היא מאפשרת לנתב לפעול בלי חשמל"], "גלי רדיו מתפשטים לכל הכיוונים, גם אל מחוץ לבית. ההצפנה מערבלת את הנתונים, כך שרק מכשירים שמכירים את המפתח יכולים להבין אותם. הסתרת שם הרשת היא לא הצפנה: עדיין אפשר היה לקרוא את הנתונים."]],
       [["A large house has rooms far from the router with no Wi-Fi. What helps most?", "Adding mesh units or an access point to spread the signal", ["Hiding the router in a closed metal cabinet to keep it safe", "Choosing a longer, stronger password for the network", "Buying a bigger screen for the computer"], "Extra units placed between the router and the far rooms pass the signal along, so it reaches every corner. Metal around the router would only block it, and a stronger password protects the network but does not make the signal stronger."],

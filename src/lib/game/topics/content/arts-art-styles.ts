@@ -22,8 +22,8 @@ const c: TopicContent = {
   i: {
     t: [
       ["Impressionism", "a style from France in the 1870s that paints light and colour quickly, often outdoors, with visible brushstrokes", "אימפרסיוניזם", "סגנון מצרפת של שנות ה־70 של המאה ה־19, שמצייר אור וצבע במהירות, לרוב בחוץ, במשיחות מכחול גלויות"],
-      ["Cubism", "a style begun by Picasso and Braque that breaks objects into geometric shapes and shows several sides at once", "קוביזם", "סגנון שהתחילו פיקאסו ובראק, שמפרק עצמים לצורות הנדסיות ומראה כמה צדדים שלהם בבת אחת"],
-      ["Pop art", "a style from the 1950s and 1960s that uses everyday things such as adverts, comics and food packets", "פופ ארט", "סגנון משנות ה־50 וה־60 של המאה ה־20, שמשתמש בדברים יומיומיים כמו פרסומות, קומיקס ואריזות מזון"],
+      ["Cubism", "a style begun by Picasso and Braque in Paris around 1907, one of the first big steps towards modern art", "קוביזם", "סגנון שהתחילו פיקאסו ובראק בפריז בסביבות 1907, מהצעדים הגדולים הראשונים לעבר האמנות המודרנית"],
+      ["Pop art", "a style from Britain and the USA in the 1950s and 1960s, often with bright, flat colours and bold outlines", "פופ ארט", "סגנון מבריטניה ומארצות הברית של שנות ה־50 וה־60 של המאה ה־20, לרוב עם צבעים עזים ושטוחים וקווי מתאר בולטים"],
       ["Self-portrait", "a picture that an artist makes of themselves", "דיוקן עצמי", "תמונה שאמן יוצר של עצמו"],
     ],
     q: [
@@ -36,21 +36,21 @@ const c: TopicContent = {
       [["Andy Warhol painted rows of soup cans that looked like products on a shop shelf. Which style is this?", "Pop art", ["Cubism", "Impressionism", "Still life from the Middle Ages"], "Pop art took its subjects from everyday shopping, adverts and comics. Warhol's “Campbell's Soup Cans” (1962) shows 32 kinds of soup."],
         ["אנדי וורהול צייר שורות של פחיות מרק שנראו כמו מוצרים על מדף בחנות. איזה סגנון זה?", "פופ ארט", ["קוביזם", "אימפרסיוניזם", "טבע דומם מימי הביניים"], "הפופ ארט לקח את הנושאים שלו מהקניות היומיומיות, מפרסומות ומקומיקס. ״פחיות המרק של קמפבל״ של וורהול (1962) מציג 32 סוגי מרק."]],
     ],
-    n: [[86, ["Claude Monet was born in 1840 and died in 1926, a few weeks after his birthday. How old was he when he died?", "years", "1926 − 1840 = 86. His birthday in November had already passed, so he was 86 years old."],
-      ["קלוד מונה נולד ב־1840 ומת ב־1926, כמה שבועות אחרי יום הולדתו. בן כמה היה כשמת?", "שנים", "1926 − 1840 = 86. יום ההולדת שלו בנובמבר כבר עבר, ולכן הוא היה בן 86."]]],
-    s: [[["Art through time, oldest first", "Cave paintings of animals, such as those at Lascaux", "The Mona Lisa and the Italian Renaissance", "Impressionism in France", "Cubism with Picasso and Braque", "Pop art with Andy Warhol"],
-      ["אמנות לאורך הזמן, מהישן לחדש", "ציורי מערות של בעלי חיים, כמו בלאסקו", "המונה ליזה והרנסנס האיטלקי", "האימפרסיוניזם בצרפת", "הקוביזם של פיקאסו ובראק", "הפופ ארט של אנדי וורהול"]]],
+    n: [[37, ["Vincent van Gogh was born in March 1853 and died in July 1890. How old was he when he died?", "years", "1890 − 1853 = 37. His birthday in March had already passed by July, so he was 37 years old."],
+      ["וינסנט ואן גוך נולד במרץ 1853 ומת ביולי 1890. בן כמה היה כשמת?", "שנים", "1890 − 1853 = 37. יום ההולדת שלו במרץ כבר עבר עד יולי, ולכן הוא היה בן 37."]]],
+    s: [[["Art through time, oldest first", "Cave paintings of animals, such as those at Lascaux", "The Mona Lisa and the Italian Renaissance", "Impressionism in France", "Cubism with Picasso and Braque", "Pop art in the 1950s and 1960s"],
+      ["אמנות לאורך הזמן, מהישן לחדש", "ציורי מערות של בעלי חיים, כמו בלאסקו", "המונה ליזה והרנסנס האיטלקי", "האימפרסיוניזם בצרפת", "הקוביזם של פיקאסו ובראק", "הפופ ארט בשנות ה־50 וה־60"]]],
   },
   a: {
     t: [
       ["Surrealism", "a style from the 1920s that paints strange, dreamlike scenes that could not happen in real life", "סוריאליזם", "סגנון משנות ה־20 של המאה ה־20 שמצייר מראות מוזרים דמויי חלום, שלא יכולים לקרות במציאות"],
-      ["Pointillism", "painting with many small dots of pure colour that blend together when seen from a distance", "פואנטיליזם", "ציור בעזרת הרבה נקודות קטנות של צבע טהור, שמתמזגות כשמסתכלים מרחוק"],
+      ["Pointillism", "painting a whole picture out of many small, separate dots of pure, unmixed colour", "פואנטיליזם", "ציור של תמונה שלמה מהרבה נקודות קטנות ונפרדות של צבע טהור שלא עורבב"],
       ["Abstract art", "art that does not try to show real things, using only shapes, colours and lines", "אמנות מופשטת", "אמנות שאינה מנסה להראות דברים אמיתיים ומשתמשת רק בצורות, בצבעים ובקווים"],
       ["Composition", "the way the parts of an artwork are arranged in the picture", "קומפוזיציה", "האופן שבו החלקים של יצירת אמנות מסודרים בתמונה"],
     ],
     q: [
-      [["Salvador Dalí's “The Persistence of Memory” (1931) shows soft, melting clocks in a strange, dreamlike landscape. Which style does it belong to?", "Surrealism", ["Impressionism", "Pop art", "Cubism"], "Surrealist artists painted the world of dreams, mixing ordinary things in impossible ways. Melting clocks could never exist in real life."],
-        ["״התמדת הזיכרון״ של סלבדור דאלי (1931) מציג שעונים רכים ונמסים בנוף מוזר דמוי חלום. לאיזה סגנון הוא שייך?", "סוריאליזם", ["אימפרסיוניזם", "פופ ארט", "קוביזם"], "אמנים סוריאליסטים ציירו את עולם החלומות ושילבו דברים רגילים בדרכים בלתי אפשריות. שעונים נמסים לא יכולים להתקיים במציאות."]],
+      [["Salvador Dalí's “The Persistence of Memory” (1931) shows soft, melting pocket watches draped over a tree branch and a strange sleeping creature. Which style does it belong to?", "Surrealism", ["Impressionism", "Pop art", "Cubism"], "Surrealist artists painted the world of dreams, mixing ordinary things in impossible ways. Melting clocks could never exist in real life."],
+        ["״התמדת הזיכרון״ של סלבדור דאלי (1931) מציג שעוני כיס רכים ונמסים שתלויים על ענף עץ ועל יצור מוזר ישן. לאיזה סגנון הוא שייך?", "סוריאליזם", ["אימפרסיוניזם", "פופ ארט", "קוביזם"], "אמנים סוריאליסטים ציירו את עולם החלומות ושילבו דברים רגילים בדרכים בלתי אפשריות. שעונים נמסים לא יכולים להתקיים במציאות."]],
       [["Georges Seurat painted pictures from thousands of tiny dots of colour. Why do the dots look like smooth areas of colour from a distance?", "The viewer's eye blends nearby dots together", ["The dots melt together as the paint dries", "A final layer of paint covers the dots", "The paintings are shown only in dark rooms"], "Up close you see separate dots, but from further away the eye can no longer tell them apart, so the colours seem to mix. The paint itself stays as dots."],
         ["ז׳ורז׳ סרה צייר תמונות מאלפי נקודות צבע זעירות. למה מרחוק הנקודות נראות כמו משטחי צבע חלקים?", "העין של הצופה ממזגת נקודות סמוכות זו בזו", ["הנקודות נמסות זו לתוך זו כשהצבע מתייבש", "שכבת צבע אחרונה מכסה את הנקודות", "את הציורים מציגים רק בחדרים חשוכים"], "מקרוב רואים נקודות נפרדות, אבל מרחוק העין כבר לא מבחינה ביניהן, ולכן נדמה שהצבעים מתערבבים. הצבע עצמו נשאר נקודות."]],
       [["In the 1800s it became much easier for painters such as the Impressionists to work outdoors. Which invention helped?", "Ready-made paint in small metal tubes", ["Electric street lights", "The first cameras that took photographs in colour", "Canvas made from plastic"], "Before paint tubes appeared in the 1840s, artists mixed paint from powder and kept it in pig bladders that were hard to carry. Tubes let painters take many colours outside and paint the changing light on the spot."],
@@ -60,8 +60,8 @@ const c: TopicContent = {
       [["A photographer puts the horizon on a line one third of the way down the picture, not in the exact middle. Which composition guideline is she following?", "The rule of thirds", ["Pointillism", "Perfect symmetry", "The colour wheel"], "The rule of thirds divides a picture into three equal parts across and down. Placing the main lines or subject on those lines often makes a picture feel more balanced and alive than putting it dead centre."],
         ["צלמת מציבה את קו האופק על קו שנמצא בשליש הגובה של התמונה, ולא בדיוק באמצע. באיזה כלל קומפוזיציה היא משתמשת?", "כלל השלישים", ["פואנטיליזם", "סימטריה מושלמת", "מעגל הצבעים"], "כלל השלישים מחלק את התמונה לשלושה חלקים שווים לרוחב ולגובה. הצבת הקווים החשובים או הנושא על הקווים האלה גורמת לרוב לתמונה להיראות מאוזנת וחיה יותר מאשר במרכז המדויק."]],
     ],
-    n: [[20, ["A painting is 60 cm wide. By the rule of thirds, how many centimetres from the left edge is the first vertical third line?", "cm", "The two third lines split the width into three equal parts, so the first one is 60 ÷ 3 = 20 cm from the edge."],
-      ["ציור ברוחב 60 ס״מ. לפי כלל השלישים, כמה סנטימטרים מהקצה השמאלי נמצא קו השליש האנכי הראשון?", "ס״מ", "שני קווי השליש מחלקים את הרוחב לשלושה חלקים שווים, ולכן הראשון נמצא 60 ÷ 3 = 20 ס״מ מהקצה."]]],
+    n: [[20, ["A painting is 60 cm wide. An artist splits its width into three equal parts with two vertical lines. How many centimetres from the left edge is the first line?", "cm", "The two lines split the width into three equal parts, so the first one is 60 ÷ 3 = 20 cm from the left edge."],
+      ["ציור ברוחב 60 ס״מ. אמנית מחלקת את הרוחב שלו לשלושה חלקים שווים בעזרת שני קווים אנכיים. כמה סנטימטרים מהקצה השמאלי נמצא הקו הראשון?", "ס״מ", "שני הקווים מחלקים את הרוחב לשלושה חלקים שווים, ולכן הראשון נמצא 60 ÷ 3 = 20 ס״מ מהקצה השמאלי."]]],
   },
 };
 export default c;

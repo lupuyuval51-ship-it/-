@@ -5,7 +5,7 @@ const c: TopicContent = {
     t: [
       ["Design thinking", "a way of solving problems that starts from the needs of the people who will use the solution", "חשיבה עיצובית", "דרך לפתור בעיות שמתחילה מהצרכים של האנשים שישתמשו בפתרון"],
       ["User", "the person a product or a solution is made for", "משתמש", "האדם שבשבילו מכינים מוצר או פתרון"],
-      ["Prototype", "a quick, simple model of an idea, built so that it can be tried out", "אב טיפוס", "דגם מהיר ופשוט של רעיון, שבונים כדי שאפשר יהיה לנסות אותו"],
+      ["Prototype", "an early model of an idea that people can try out before the real thing is made", "אב טיפוס", "דגם מוקדם של רעיון שאנשים יכולים לנסות לפני שמייצרים את הדבר האמיתי"],
     ],
     q: [
       [["Which stage of design thinking is about understanding the people you are designing for?", "Empathise", ["Define", "Ideate", "Test"], "In the empathise stage you watch, listen to and talk with users to learn what they really need. The other stages build on what you learn there."],
@@ -29,7 +29,7 @@ const c: TopicContent = {
       ["Empathy", "understanding how someone else feels and what they go through", "אמפתיה", "הבנה של מה שאדם אחר מרגיש ושל מה שעובר עליו"],
       ["Problem statement", "a short sentence saying who has a problem, what they need and why", "הגדרת הבעיה", "משפט קצר שאומר למי יש קושי, מה הוא צריך ולמה"],
       ["How might we question", "a question that turns a problem into an open invitation for ideas", "שאלת ״איך נוכל…?״", "שאלה שהופכת קושי להזמנה פתוחה להעלות רעיונות"],
-      ["Brainstorming", "a session of producing many ideas quickly without judging them", "סיעור מוחות", "מפגש שבו מייצרים הרבה רעיונות במהירות בלי לשפוט אותם"],
+      ["Brainstorming", "a group session in which people call out ideas and build on each other's ideas", "סיעור מוחות", "מפגש קבוצתי שבו אנשים זורקים רעיונות וממשיכים זה את הרעיונות של זה"],
     ],
     q: [
       [["Students keep forgetting their water bottles. Which is the best 'How might we…?' question?", "How might we help students remember their bottles?", ["How might we build a robot that carries bottles?", "Why do students forget their bottles?", "Students who forget bottles lose a break"], "A good question names the users and the need but leaves room for many solutions. Building a robot already picks one solution, and the others are not invitations for ideas."],
@@ -39,17 +39,17 @@ const c: TopicContent = {
       [["Which of these is a good problem statement?", "Small children need to reach the sink, because they are too short to wash alone", ["We will build a blue plastic step for every sink and sell it in every school shop", "Children are messy and never wash their hands properly, so they need more rules", "Sinks in schools are badly designed and should all be pulled out and replaced"], "A problem statement says who has the need, what the need is and why, without jumping to a solution. A plastic step is already a solution, and the other two blame instead of describing a need."],
         ["איזה מהבאים הוא הגדרת בעיה טובה?", "ילדים קטנים צריכים להגיע לכיור, כי הם נמוכים מכדי לרחוץ ידיים לבד", ["נבנה שרפרף פלסטיק כחול לכל כיור ונמכור אותו בכל חנות של בית ספר", "ילדים מבולגנים ולא רוחצים ידיים כמו שצריך, ולכן צריך יותר חוקים", "הכיורים בבתי הספר מתוכננים רע, וצריך לעקור את כולם ולהחליף אותם"], "הגדרת בעיה אומרת למי יש צורך, מהו הצורך ולמה, בלי לקפוץ לפתרון. שרפרף פלסטיק הוא כבר פתרון, ושתי האפשרויות האחרות מאשימות במקום לתאר צורך."]],
       [["Why is design thinking called iterative?", "You repeat stages, improving the design each round", ["You do each stage once, in a fixed order", "You begin by testing the finished product", "You only think and never build anything"], "After testing you often go back to define, ideate or prototype again. Each round, or iteration, makes the design a little better."],
-        ["למה אומרים שחשיבה עיצובית היא תהליך איטרטיבי, כלומר חוזר על עצמו?", "חוזרים על שלבים ומשפרים את העיצוב בכל סבב", ["עוברים כל שלב פעם אחת, בסדר קבוע", "מתחילים מבדיקה של המוצר הגמור", "רק חושבים ואף פעם לא בונים שום דבר"], "אחרי הבדיקה חוזרים לעיתים קרובות להגדרה, לרעיונות או לאב הטיפוס. כל סבב משפר את העיצוב עוד קצת."]],
+        ["למה אומרים שחשיבה עיצובית היא תהליך איטרטיבי?", "חוזרים על שלבים ומשפרים את העיצוב בכל סבב", ["עוברים כל שלב פעם אחת, בסדר קבוע", "מתחילים מבדיקה של המוצר הגמור", "רק חושבים ואף פעם לא בונים שום דבר"], "אחרי הבדיקה חוזרים לעיתים קרובות להגדרה, לרעיונות או לאב הטיפוס. כל סבב משפר את העיצוב עוד קצת."]],
       [["In an interview with a user, which question is best?", "Tell me about the last time you used it.", ["You really like using it a lot, don't you?", "Is it good or is it bad?", "What colour is it?"], "An open question invites a story full of details about real use. A question like 'you like it, don't you?' pushes the person towards an answer, and 'good or bad' allows only one word."],
         ["בראיון עם משתמש, איזו שאלה היא הטובה ביותר?", "ספרו לי על הפעם האחרונה שהשתמשתם בזה.", ["אתם ממש אוהבים להשתמש בזה כל הזמן, נכון?", "זה טוב או רע?", "באיזה צבע זה?"], "שאלה פתוחה מזמינה סיפור מלא בפרטים על שימוש אמיתי. שאלה כמו ״אתם אוהבים את זה, נכון?״ דוחפת לתשובה מסוימת, ו״טוב או רע?״ מאפשרת רק מילה אחת."]],
     ],
-    s: [[["Running a user interview", "Explain why you have come and ask if they agree to talk", "Ask open questions about their experience", "Listen closely and ask 'why?' to dig deeper", "Thank them for their time", "Write up your notes straight afterwards"],
-      ["עריכת ראיון עם משתמש", "מסבירים למה באתם ושואלים אם הם מסכימים לשוחח", "שואלים שאלות פתוחות על החוויה שלהם", "מקשיבים היטב ושואלים ״למה?״ כדי להעמיק", "מודים להם על הזמן", "כותבים את הסיכום מיד אחר כך"]]],
+    s: [[["Running a user interview", "Explain why you have come and ask if they agree to talk", "Ask them about their experience with the task", "Listen closely and ask 'why?' to dig deeper", "Thank them for their time", "Write up your notes straight afterwards"],
+      ["עריכת ראיון עם משתמש", "מסבירים למה באתם ושואלים אם הם מסכימים לשוחח", "שואלים אותם על החוויה שלהם עם המשימה", "מקשיבים היטב ושואלים ״למה?״ כדי להעמיק", "מודים להם על הזמן", "כותבים את הסיכום מיד אחר כך"]]],
   },
   a: {
     t: [
       ["Persona", "an imagined but realistic user, built from research, who stands for a group of real users", "פרסונה", "משתמש מדומיין אך מציאותי, שנבנה על סמך מחקר ומייצג קבוצה של משתמשים אמיתיים"],
-      ["Empathy map", "a chart of what a user says, thinks, does and feels", "מפת אמפתיה", "תרשים של מה שמשתמש אומר, חושב, עושה ומרגיש"],
+      ["Empathy map", "a one-page chart that sums up what a team has learned about a user's experience", "מפת אמפתיה", "תרשים בעמוד אחד שמסכם את מה שהצוות למד על החוויה של משתמש"],
       ["Iteration", "one round of building, testing and improving a design", "איטרציה", "סבב אחד של בנייה, בדיקה ושיפור של עיצוב"],
       ["Fidelity", "how close a prototype is to the finished product in look and detail", "רמת נאמנות", "עד כמה אב טיפוס קרוב למוצר הגמור במראה ובפרטים"],
     ],
