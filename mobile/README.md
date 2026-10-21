@@ -69,7 +69,7 @@ npx vitest run --project unit tests/unit/offline.test.ts tests/unit/android-shel
 `npm run mobile:dev` serves the web part with Vite for quick UI work. The unit tests that read `android/` and `mobile/index.html` (`android-shell.test.ts`) must be kept in
 step with `docs/play-release.md` whenever you change either.
 
-Icons and store graphics: `python3 mobile/make-icons.py` (writes launcher icons and `mobile/store/*.png`).
+Icons and store graphics: `node mobile/brand-assets.mjs` (writes the launcher icons, the splash screens and the web icon from one drawing of the mark, and cuts the Play icon and feature graphic from the artwork in `mobile/store/brand-source/`).
 Store text and Play Console answers: `mobile/store/listing.md`. Privacy policy: `mobile/store/privacy-policy.md`.
 
 **Google sign-in (optional; required only with `VITE_REQUIRE_GOOGLE=1`).** Then a phone without a sign-in sees only "Continue with Google" (`pages/GoogleGate.tsx`); after the first sign-in the app works without the network. Build with `VITE_GOOGLE_AUTH=1` to show it at all. Setup (Google client, Supabase provider, redirect URL `app.levelup.learn3d://auth`): `docs/google-signin.md`.

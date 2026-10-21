@@ -46,8 +46,8 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-extrabold tracking-wide" aria-label={t("app.name")}>
-          <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-neon text-ink-950"><LogoMark className="size-5" /></span>
+        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-2 text-lg font-extrabold tracking-[-0.01em]" aria-label={t("app.name")}>
+          <span aria-hidden className="mb-[3px] grid size-8 place-items-center rounded-[22%] bg-neon text-ink-950 shadow-[0_2px_0_0_color-mix(in_oklab,var(--color-neon)_55%,#000),inset_0_1px_0_rgb(255_255_255/0.4)]"><LogoMark className="w-[62%]" /></span>
           <span className="hidden whitespace-nowrap min-[420px]:inline">{t("app.name")}</span>
         </Link>
         <nav className="ms-4 hidden flex-1 items-center gap-1 lg:flex" aria-label={t("nav.main")}>

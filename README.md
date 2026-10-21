@@ -481,8 +481,10 @@ One design system for the website and the Android app (`mobile/` imports the sam
 * **Look:** a chalkboard (dark, default) or a notebook page (light): warm green-black or cream surfaces, a faint squared-paper
   grid behind the pages, chalk-yellow (dark) or ink-green (light) for the main action. Primary buttons stand on a solid ledge and
   sink into it when pressed (`shadow-glow`); no glows, no glass blur, no gradients. Icons are drawn (lucide), never emoji.
-* **Brand:** the mark is a ball hopping up three steps (`src/components/ui/Brand.tsx`); `node mobile/brand-assets.mjs`
-  regenerates the launcher icons, splash screens, web icon and Play Store icon and feature graphic from the same drawing.
+* **Brand:** the mark is a ball hopping up three steps with softly rounded corners (`src/components/ui/Brand.tsx`: a yellow tile with a
+  highlight on its top edge and a solid ledge under it, the mark cut out in the page colour, and a heavy rounded wordmark). `node mobile/brand-assets.mjs`
+  regenerates the launcher icons, splash screens and web icon from the same drawing, and cuts the Play Store icon and feature graphic
+  from the artwork kept in `mobile/store/brand-source/`.
 * **Type:** Rubik (variable, bundled with `@fontsource-variable/rubik`, so the offline app has it too) for Hebrew, Latin and Spanish.
 * **Components** (`src/components/ui`): `Button` (44 px touch target, fluid padding, hover/pressed/disabled), `Card`
   (`flat`/`raised`/`floating` elevation, `interactive` hover-lift + focus), `Field` (wires `id`, `aria-invalid`,
