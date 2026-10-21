@@ -14,8 +14,10 @@ if (process.argv.includes("--json")) {
 }
 
 const groups: [string, (id: string) => boolean][] = [
-  ["engine FULL", (id) => !id.startsWith("demo:") && id.includes("/FULL/")],
-  ["engine FAST", (id) => !id.startsWith("demo:") && id.includes("/FAST/")],
+  // the phone and fuzz games have their own rows, so the engine rows are the desktop engine games only
+  ["engine FULL", (id) => !/^(?:demo:|phone:|fuzz-)/.test(id) && id.includes("/FULL/")],
+  ["engine FAST", (id) => !/^(?:demo:|phone:|fuzz-)/.test(id) && id.includes("/FAST/")],
+  ["phone", (id) => id.startsWith("phone:")],
   ["demo FULL", (id) => id.startsWith("demo:") && id.includes("/FULL/")],
   ["demo FAST", (id) => id.startsWith("demo:") && id.includes("/FAST/")],
   ["extended", (id) => id.startsWith("ext-")],
@@ -28,7 +30,7 @@ for (const [name, test] of groups) {
     const stars = [0, 1, 2, 3].map((n) => runs.filter((x) => x.stars === n).length);
     console.log(
       [name, s.id, runs.length, median(runs.map((x) => x.events)), `${median(runs.map((x) => x.minutes))}/${Math.max(...runs.map((x) => x.minutes))}`,
-        median(runs.map((x) => x.percent)), stars.join("/"), runs.filter((x) => x.stuck).length, (runs.reduce((n, x) => n + x.revealed, 0) / runs.length).toFixed(2)].join(" | "),
+        Math.round(median(runs.map((x) => x.percent)) * 1000) / 1000, stars.join("/"), runs.filter((x) => x.stuck).length, (runs.reduce((n, x) => n + x.revealed, 0) / runs.length).toFixed(2)].join(" | "),
     );
   }
 }
