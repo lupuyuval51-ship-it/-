@@ -56,7 +56,7 @@ The app is suitable for learners of all ages and a LUPU ID is never required. We
 
 If we change how data is handled we will update this page and its date, and ask again in the app where the law requires it.
 
-Contact: **ADD YOUR SUPPORT EMAIL HERE**
+Contact: **yuvallupu338@gmail.com**
 
 **עברית.**
 
@@ -112,4 +112,4 @@ Plus ו-Pro נרכשים ומנוהלים ב-Google Play, כמנוי חודשי 
 
 אם נשנה את אופן הטיפול במידע נעדכן את הדף ואת התאריך שלו, ונבקש הסכמה מחדש באפליקציה כשהחוק מחייב.
 
-יצירת קשר: **הוסיפו כאן את כתובת הדוא"ל לתמיכה**
+יצירת קשר: **yuvallupu338@gmail.com**

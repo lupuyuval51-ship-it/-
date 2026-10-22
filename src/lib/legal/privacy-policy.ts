@@ -106,6 +106,14 @@ export const PRIVACY_POLICY: Record<"en" | "he", PolicyDoc> = {
             "p": "If we change how data is handled we will update this page and its date, and ask again in the app where the law requires it."
           }
         ]
+      },
+      {
+        "heading": "Contact",
+        "blocks": [
+          {
+            "p": "yuvallupu338@gmail.com"
+          }
+        ]
       }
     ]
   },
@@ -209,6 +217,14 @@ export const PRIVACY_POLICY: Record<"en" | "he", PolicyDoc> = {
         "blocks": [
           {
             "p": "אם נשנה את אופן הטיפול במידע נעדכן את הדף ואת התאריך שלו, ונבקש הסכמה מחדש באפליקציה כשהחוק מחייב."
+          }
+        ]
+      },
+      {
+        "heading": "יצירת קשר",
+        "blocks": [
+          {
+            "p": "yuvallupu338@gmail.com"
           }
         ]
       }

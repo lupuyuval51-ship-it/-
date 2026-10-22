@@ -45,7 +45,7 @@ Target API level, the privacy/hardening settings of the Android build, Data safe
 - App name, short and full description (he/en): `listing.md`.
 - Icon 512×512 `play-icon-512.png`, feature graphic 1024×500 `feature-graphic-1024x500.png`, phone screenshots in `screenshots/`
   (regenerate with `node mobile/shots.mjs`; Play needs at least 2).
-- Privacy policy: host `privacy-policy.md` at a public URL, add your support e-mail, paste the URL.
+- Privacy policy: host `privacy-policy.md` at a public URL (the support e-mail is already in it), paste the URL.
 - Data safety form and Data deletion URL: answers in `listing.md`; deletion page `account-deletion.md`.
 - Content rating questionnaire; target audience and ads declaration (**no ads**); **in-app purchases: yes** (two monthly subscriptions through Google Play Billing, see `docs/play-release.md`).
 - The account is optional → reviewers can use the whole app without credentials.
