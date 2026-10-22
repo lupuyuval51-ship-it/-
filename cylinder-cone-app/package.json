@@ -5,6 +5,7 @@
   "description": "Interactive Hebrew/English lesson on the surface area of cylinders and cones",
   "type": "commonjs",
   "scripts": {
+    "build": "node build-single-file.js",
     "test": "node --test"
   },
   "engines": {

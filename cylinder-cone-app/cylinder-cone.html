@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="למדו לחשב שטח פנים של גליל וחרוט: פיתוח הצורה, מחשבון צעד אחר צעד ותרגול. Learn the surface area of cylinders and cones.">
+  <title>שטח פנים של גליל וחרוט</title>
+  <style>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2fa;
+  --text: #182033;
+  --muted: #5d6779;
+  --border: #d8dfeb;
+  --accent: #3461d8;
+  --accent-strong: #2448b5;
+  --accent-soft: rgba(52, 97, 216, 0.1);
+  --shape-fill: rgba(52, 97, 216, 0.18);
+  --shape-face: rgba(52, 97, 216, 0.32);
+  --ok: #1b7f57;
+  --bad: #b83b32;
+  --radius: 14px;
+  font-family: "Segoe UI", Heebo, Arial, "Noto Sans Hebrew", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1321;
+    --surface: #161c2c;
+    --surface-2: #1d2539;
+    --text: #e8edf8;
+    --muted: #9ba6bb;
+    --border: #2a3450;
+    --accent: #7ea0ff;
+    --accent-strong: #a3bcff;
+    --accent-soft: rgba(126, 160, 255, 0.14);
+    --shape-fill: rgba(126, 160, 255, 0.2);
+    --shape-face: rgba(126, 160, 255, 0.34);
+    --ok: #4cc38a;
+    --bad: #ff8a80;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.25;
+  margin: 0;
+}
+
+.container {
+  width: min(100% - 32px, 960px);
+  margin-inline: auto;
+}
+
+.skip {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: -60px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.skip:focus {
+  top: 8px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Top bar */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.lang-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+/* Hero and controls */
+
+.hero {
+  padding: 40px 0 24px;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+}
+
+.hero p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  max-width: 680px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 20px;
+}
+
+.seg-group,
+.tab-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-2);
+  border-radius: 12px;
+}
+
+.seg,
+.tab {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.seg[aria-pressed="true"],
+.tab[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.tab-panel {
+  padding-bottom: 48px;
+}
+
+/* Shared panels */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.lead {
+  margin: 0 0 20px;
+  color: var(--muted);
+  max-width: 720px;
+}
+
+.formula {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: "Cambria Math", "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  direction: ltr;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: start;
+  unicode-bidi: isolate;
+  margin: 2px 0;
+}
+
+.math {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: "Cambria Math", "Times New Roman", serif;
+}
+
+/* SVG drawings (kept left-to-right so labels stay where they are placed) */
+
+.net-svg,
+.solid-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 340px;
+  direction: ltr;
+  overflow: visible;
+}
+
+.solid-body,
+.net-side {
+  fill: var(--shape-fill);
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.solid-face,
+.net-face {
+  fill: var(--shape-face);
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.dim-line {
+  stroke: var(--muted);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.dim-line.dashed {
+  stroke-dasharray: 5 4;
+}
+
+.dim-label {
+  fill: var(--text);
+  font-weight: 600;
+}
+
+/* Learn tab */
+
+.learn-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.net-panel {
+  margin: 0;
+}
+
+.net-panel h3 {
+  margin-bottom: 14px;
+}
+
+.net-panel figcaption {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.card-list {
+  display: grid;
+  gap: 14px;
+}
+
+.card h3 {
+  margin-bottom: 6px;
+}
+
+.card-text {
+  margin: 0 0 10px;
+  color: var(--muted);
+}
+
+/* Calculator tab */
+
+.calc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.calc-side {
+  display: grid;
+  gap: 20px;
+}
+
+.slider-row + .slider-row {
+  margin-top: 18px;
+}
+
+.slider-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.slider-head output {
+  color: var(--accent-strong);
+  white-space: nowrap;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 8px 0 0;
+  accent-color: var(--accent);
+}
+
+.figure-panel {
+  margin: 0;
+  display: grid;
+  place-items: center;
+}
+
+.figure-panel .solid-svg {
+  max-width: 300px;
+}
+
+.calc-result h3 {
+  margin-bottom: 14px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.metric {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.metric-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.metric strong {
+  font-size: 1.2rem;
+}
+
+.metric-value {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.metric-total {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.step {
+  padding-block: 4px;
+  padding-inline-start: 14px;
+  border-inline-start: 3px solid var(--accent);
+}
+
+.step h4 {
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+/* Practice tab */
+
+.practice {
+  display: grid;
+  gap: 16px;
+}
+
+.score {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.question {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.answer-form {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-label {
+  font-weight: 600;
+}
+
+.answer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.answer-input {
+  width: 180px;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.1rem;
+  direction: ltr;
+}
+
+.answer-input:disabled {
+  opacity: 0.7;
+}
+
+.answer-suffix {
+  font-family: "Cambria Math", "Times New Roman", serif;
+  font-size: 1.15rem;
+}
+
+.help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border-inline-start: 4px solid var(--accent);
+}
+
+.feedback {
+  margin: 0;
+  font-weight: 600;
+}
+
+.feedback.ok {
+  color: var(--ok);
+}
+
+.feedback.bad {
+  color: var(--bad);
+}
+
+.solution {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.solution h4 {
+  font-size: 1.05rem;
+}
+
+.answer-line {
+  margin: 0;
+  font-weight: 700;
+}
+
+.footer {
+  padding: 24px 0 40px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .learn-grid,
+  .calc-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .answer-input {
+    width: 140px;
+  }
+}
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+/*
+ * Surface-area formulas for a cylinder and a cone, plus the practice question
+ * generator and answer checker used by the lesson app.
+ *
+ * Areas are returned as a coefficient of π (48 means 48π) together with their
+ * decimal value. Works as a classic browser script (window.Geometry) and in Node.
+ */
+(function (root) {
+  'use strict';
+
+  var PI = Math.PI;
+
+  // Pythagorean triples [r, h, l]: the slant height l is a whole number,
+  // so every practice answer is a whole multiple of π.
+  var CONE_TRIPLES = [
+    [3, 4, 5],
+    [5, 12, 13],
+    [6, 8, 10],
+    [8, 15, 17],
+    [9, 12, 15],
+    [7, 24, 25],
+    [12, 16, 20],
+  ];
+
+  var PARTS = ['lateral', 'base', 'total'];
+
+  function requirePositive(name, value) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+      throw new RangeError(name + ' must be a positive finite number');
+    }
+  }
+
+  function area(coef) {
+    return { coef: coef, value: coef * PI };
+  }
+
+  // For a cylinder, `base` means both bases together (2 × πr²).
+  function cylinderArea(r, h) {
+    requirePositive('r', r);
+    requirePositive('h', h);
+    var lateral = 2 * r * h;
+    var bases = 2 * r * r;
+    return {
+      shape: 'cylinder',
+      r: r,
+      h: h,
+      lateral: area(lateral),
+      base: area(bases),
+      total: area(lateral + bases),
+    };
+  }
+
+  function coneArea(r, h) {
+    requirePositive('r', r);
+    requirePositive('h', h);
+    var slant = Math.sqrt(r * r + h * h);
+    var lateral = r * slant;
+    var base = r * r;
+    return {
+      shape: 'cone',
+      r: r,
+      h: h,
+      slant: slant,
+      sectorAngle: (360 * r) / slant,
+      lateral: area(lateral),
+      base: area(base),
+      total: area(lateral + base),
+    };
+  }
+
+  function pick(list, random) {
+    return list[Math.floor(random() * list.length)];
+  }
+
+  function createQuestion(shape, random) {
+    var rnd = random || Math.random;
+    var chosenShape = shape || pick(['cylinder', 'cone'], rnd);
+    if (chosenShape !== 'cylinder' && chosenShape !== 'cone') {
+      throw new RangeError('shape must be "cylinder" or "cone"');
+    }
+    var part = pick(PARTS, rnd);
+    var r;
+    var h;
+    var result;
+    if (chosenShape === 'cylinder') {
+      r = 1 + Math.floor(rnd() * 9);
+      h = 2 + Math.floor(rnd() * 12);
+      result = cylinderArea(r, h);
+    } else {
+      var triple = pick(CONE_TRIPLES, rnd);
+      var swap = rnd() < 0.5;
+      r = swap ? triple[1] : triple[0];
+      h = swap ? triple[0] : triple[1];
+      result = coneArea(r, h);
+    }
+    return {
+      shape: chosenShape,
+      part: part,
+      r: r,
+      h: h,
+      coef: result[part].coef,
+    };
+  }
+
+  // Accepts the coefficient ("48"), the written form ("48π"), a comma decimal
+  // ("150,8") or a decimal close to the value with π ≈ 3.14 ("150.8").
+  function checkAnswer(question, input) {
+    var cleaned = String(input).replace(/\s+/g, '').replace(',', '.');
+    var writtenWithPi = cleaned.indexOf('π') !== -1;
+    var numeric = cleaned.replace('π', '');
+    if (writtenWithPi && numeric === '') {
+      numeric = '1';
+    }
+    var value = Number(numeric);
+    if (numeric === '' || !Number.isFinite(value)) {
+      return { status: 'invalid' };
+    }
+    var exact = Math.abs(value - question.coef) < 1e-9;
+    var decimalValue = question.coef * PI;
+    var decimal = Math.abs(value - decimalValue) <= decimalValue * 0.01;
+    var correct = writtenWithPi ? exact : exact || decimal;
+    return { status: correct ? 'correct' : 'wrong', value: value };
+  }
+
+  var api = {
+    PI: PI,
+    CONE_TRIPLES: CONE_TRIPLES,
+    cylinderArea: cylinderArea,
+    coneArea: coneArea,
+    createQuestion: createQuestion,
+    checkAnswer: checkAnswer,
+  };
+
+  if (typeof module === 'object' && module.exports) {
+    module.exports = api;
+  } else {
+    root.Geometry = api;
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+</script>
+  <script>
+/*
+ * Lesson UI for the cylinder and cone surface-area app.
+ * All formulas and practice logic come from geometry.js (window.Geometry).
+ */
+(function () {
+  'use strict';
+
+  var G = window.Geometry;
+  var PI = G.PI;
+
+  var STRINGS = {
+    he: {
+      pageTitle: 'שטח פנים של גליל וחרוט',
+      appName: 'שטח פנים: גליל וחרוט',
+      skip: 'דלגו לתוכן',
+      langSwitch: 'English',
+      heroTitle: 'שטח הפנים של גליל וחרוט',
+      heroText: 'למדו מאיפה מגיעות הנוסחאות, חשבו בעצמכם עם מחוונים ובדקו את הידע בתרגול.',
+      shapeGroup: 'בחירת צורה',
+      shapeCylinder: 'גליל',
+      shapeCone: 'חרוט',
+      tabLearn: 'למידה',
+      tabCalc: 'מחשבון',
+      tabPractice: 'תרגול',
+      cm: 'ס״מ',
+      cm2: 'ס״מ²',
+      radiusLabel: 'רדיוס הבסיס r',
+      heightLabel: 'גובה h',
+      leadCylinder: 'שטח הפנים הוא סכום שטחי כל החלקים שמקיפים את הצורה. לגליל יש שלושה חלקים: שטח הצד ושני הבסיסים. כשפורסים את הגליל למישור רואים את כולם יחד.',
+      leadCone: 'שטח הפנים של החרוט הוא סכום שטח הצד (גזרה עיגולית) ושטח הבסיס (עיגול). כשפורסים את החרוט למישור רואים את שני החלקים.',
+      netTitle: 'הפיתוח של הצורה',
+      netNoteCylinder: 'הפיתוח עבור r = {r} ו־h = {h}',
+      netNoteCone: 'הפיתוח עבור r = {r} ו־h = {h}. זווית הגזרה: <span class="math">θ = 360° · r / l ≈ {angle}°</span>',
+      cylLateralTitle: 'שטח הצד',
+      cylLateralText: 'כשפורסים את שטח הצד מקבלים מלבן. צלע אחת שלו היא היקף הבסיס <span class="math">2πr</span>, והצלע השנייה היא הגובה h.',
+      cylBasesTitle: 'שטח שני הבסיסים',
+      cylBasesText: 'יש שני עיגולים זהים, ושטח כל אחד מהם הוא <span class="math">πr²</span>.',
+      cylTotalTitle: 'השטח הכולל',
+      cylTotalText: 'מחברים את שטח הצד ואת שטחי הבסיסים.',
+      coneSlantTitle: 'היוצרת l',
+      coneSlantText: 'היוצרת היא הקטע מהקודקוד אל שפת הבסיס. במשולש ישר הזווית מתקיים משפט פיתגורס.',
+      coneLateralTitle: 'שטח הצד',
+      coneLateralText: 'הגזרה היא חלק מעיגול ברדיוס l. היקף העיגול הגדול הוא <span class="math">2πl</span>, והקשת של הגזרה היא <span class="math">2πr</span>, לכן הגזרה היא <span class="math">r/l</span> מהעיגול: <span class="math">(r/l)·πl² = πrl</span>.',
+      coneBaseTitle: 'שטח הבסיס',
+      coneBaseText: 'הבסיס הוא עיגול ברדיוס r.',
+      coneTotalTitle: 'השטח הכולל',
+      coneTotalText: 'מחברים את שטח הצד ואת שטח הבסיס.',
+      calcTitle: 'חישוב צעד אחר צעד',
+      figureLabel: 'ציור של {shape} לפי המידות שבחרתם',
+      stepSlant: 'חישוב היוצרת l',
+      stepLateral: 'שטח הצד',
+      stepBase: 'שטח הבסיס',
+      stepBases: 'שטח שני הבסיסים',
+      stepTotal: 'השטח הכולל',
+      partLateral: 'שטח הצד',
+      partBasesBoth: 'שטח שני הבסיסים',
+      partBase: 'שטח הבסיס',
+      partTotal: 'השטח הכולל',
+      scoreLine: 'עניתם נכון על {correct} מתוך {asked} שאלות',
+      questionText: '{shape} עם רדיוס בסיס r = {r} ס״מ וגובה h = {h} ס״מ. מהו {part}?',
+      answerLabel: 'התשובה שלכם',
+      answerSuffix: '× π',
+      answerHelp: 'הקלידו את המקדם של π: לדוגמה, עבור 48π הקלידו 48. תשובה עשרונית קרובה (לפי π ≈ 3.14) גם תתקבל.',
+      checkBtn: 'בדיקה',
+      hintBtn: 'רמז',
+      solutionBtn: 'הצגת הפתרון',
+      nextBtn: 'שאלה הבאה',
+      correctMsg: 'נכון! מעולה.',
+      wrongMsg: 'לא מדויק. בדקו את החישוב ונסו שוב, או הציגו את הפתרון.',
+      invalidMsg: 'הקלידו מספר, לדוגמה 48.',
+      hintCylinder: 'שטח הצד הוא מלבן שצלעותיו <span class="math">2πr</span> ו־<span class="math">h</span>. שטח כל בסיס הוא <span class="math">πr²</span>.',
+      hintCone: 'קודם מחשבים את היוצרת l בעזרת פיתגורס, ואז משתמשים בנוסחאות <span class="math">πrl</span> ו־<span class="math">πr²</span>.',
+      solutionTitle: 'הפתרון המלא',
+      answerIs: 'התשובה: {coef}π ≈ {value} ס״מ²',
+      footerNote: 'כל החישובים נעשים בדפדפן שלכם. אין צורך בשרת או בהרשמה.',
+    },
+    en: {
+      pageTitle: 'Surface Area of a Cylinder and a Cone',
+      appName: 'Surface Area: Cylinder & Cone',
+      skip: 'Skip to content',
+      langSwitch: 'עברית',
+      heroTitle: 'Surface area of a cylinder and a cone',
+      heroText: 'Learn where the formulas come from, try values with sliders, and test yourself in practice.',
+      shapeGroup: 'Choose a shape',
+      shapeCylinder: 'Cylinder',
+      shapeCone: 'Cone',
+      tabLearn: 'Learn',
+      tabCalc: 'Calculator',
+      tabPractice: 'Practice',
+      cm: 'cm',
+      cm2: 'cm²',
+      radiusLabel: 'Base radius r',
+      heightLabel: 'Height h',
+      leadCylinder: 'The surface area is the sum of the areas of all the parts that cover the shape. A cylinder has three parts: the lateral area and two bases. When we unroll the cylinder onto a flat plane, we can see all of them together.',
+      leadCone: 'The surface area of a cone is the sum of the lateral area (a sector) and the base area (a circle). When we unroll the cone, we can see both parts.',
+      netTitle: 'The net (the unrolled shape)',
+      netNoteCylinder: 'Net for r = {r} and h = {h}',
+      netNoteCone: 'Net for r = {r} and h = {h}. Sector angle θ = 360° · r / l ≈ {angle}°',
+      cylLateralTitle: 'Lateral area',
+      cylLateralText: 'Unrolled, the side is a rectangle. One side is the base circumference 2πr and the other side is the height h.',
+      cylBasesTitle: 'Area of both bases',
+      cylBasesText: 'There are two identical circles, each with area πr².',
+      cylTotalTitle: 'Total area',
+      cylTotalText: 'Add the lateral area and the areas of the two bases.',
+      coneSlantTitle: 'Slant height l',
+      coneSlantText: 'The slant height runs from the apex to the edge of the base. By the Pythagorean theorem, l² = r² + h².',
+      coneLateralTitle: 'Lateral area',
+      coneLateralText: 'The sector is part of a circle with radius l. That circle has circumference 2πl, and the arc of the sector is 2πr, so the sector is r/l of the circle: (r/l)·πl² = πrl.',
+      coneBaseTitle: 'Base area',
+      coneBaseText: 'The base is a circle with radius r.',
+      coneTotalTitle: 'Total area',
+      coneTotalText: 'Add the lateral area and the base area.',
+      calcTitle: 'Step by step',
+      figureLabel: 'Drawing of a {shape} with the chosen dimensions',
+      stepSlant: 'Slant height l',
+      stepLateral: 'Lateral area',
+      stepBase: 'Base area',
+      stepBases: 'Area of both bases',
+      stepTotal: 'Total area',
+      partLateral: 'lateral area',
+      partBasesBoth: 'area of both bases',
+      partBase: 'base area',
+      partTotal: 'total surface area',
+      scoreLine: 'Correct answers: {correct} out of {asked}',
+      questionText: 'A {shape} has base radius r = {r} cm and height h = {h} cm. What is its {part}?',
+      answerLabel: 'Your answer',
+      answerSuffix: '× π',
+      answerHelp: 'Type the coefficient of π: for 48π, type 48. A decimal answer close to the value (using π ≈ 3.14) is also accepted.',
+      checkBtn: 'Check',
+      hintBtn: 'Hint',
+      solutionBtn: 'Show solution',
+      nextBtn: 'Next question',
+      correctMsg: 'Correct! Well done.',
+      wrongMsg: 'Not quite. Check your calculation and try again, or show the solution.',
+      invalidMsg: 'Type a number, for example 48.',
+      hintCylinder: 'The side is a rectangle with sides 2πr and h. Each base has area πr².',
+      hintCone: 'First find the slant height l with the Pythagorean theorem, then use πrl and πr².',
+      solutionTitle: 'Full solution',
+      answerIs: 'Answer: {coef}π ≈ {value} cm²',
+      footerNote: 'All calculations run in your browser. No server and no account needed.',
+    },
+  };
+
+  var state = {
+    lang: 'he',
+    shape: 'cylinder',
+    tab: 'learn',
+    r: 3,
+    h: 5,
+    practice: null,
+  };
+
+  var appRoot = document.getElementById('app');
+
+  /* ---------- helpers ---------- */
+
+  function t(key, vars) {
+    var dict = STRINGS[state.lang];
+    var text = dict[key] !== undefined ? dict[key] : STRINGS.en[key];
+    if (!vars) {
+      return text;
+    }
+    return text.replace(/\{(\w+)\}/g, function (match, name) {
+      return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match;
+    });
+  }
+
+  function fmt(x) {
+    return Number.isInteger(x) ? String(x) : String(Math.round(x * 100) / 100);
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function shapeName(shape) {
+    return t(shape === 'cylinder' ? 'shapeCylinder' : 'shapeCone');
+  }
+
+  function partName(shape, part) {
+    if (part === 'lateral') {
+      return t('partLateral');
+    }
+    if (part === 'total') {
+      return t('partTotal');
+    }
+    return t(shape === 'cylinder' ? 'partBasesBoth' : 'partBase');
+  }
+
+  function areasFor(shape, r, h) {
+    return shape === 'cylinder' ? G.cylinderArea(r, h) : G.coneArea(r, h);
+  }
+
+  function decimal(coef) {
+    return '≈ ' + fmt(coef * PI) + ' ' + t('cm2');
+  }
+
+  /* ---------- worked steps ---------- */
+
+  function step(title, lines) {
+    return { title: title, lines: lines };
+  }
+
+  function shapeSteps(shape, r, h) {
+    if (shape === 'cylinder') {
+      var lateral = 2 * r * h;
+      var bases = 2 * r * r;
+      var total = lateral + bases;
+      return [
+        step(t('stepLateral'), [
+          '2πr·h = 2π · ' + r + ' · ' + h,
+          '= ' + fmt(lateral) + 'π ' + decimal(lateral),
+        ]),
+        step(t('stepBases'), [
+          '2 · πr² = 2 · π · ' + r + '²',
+          '= ' + fmt(bases) + 'π ' + decimal(bases),
+        ]),
+        step(t('stepTotal'), [
+          '2πr·h + 2πr² = ' + fmt(lateral) + 'π + ' + fmt(bases) + 'π',
+          '= ' + fmt(total) + 'π ' + decimal(total),
+        ]),
+      ];
+    }
+
+    var radicand = r * r + h * h;
+    var slant = Math.sqrt(radicand);
+    var sign = Number.isInteger(slant) ? '=' : '≈';
+    var lateralCone = r * slant;
+    var baseCone = r * r;
+    var totalCone = lateralCone + baseCone;
+    return [
+      step(t('stepSlant'), [
+        'l = √(r² + h²) = √(' + r * r + ' + ' + h * h + ')',
+        '= √' + radicand + ' ' + sign + ' ' + fmt(slant),
+      ]),
+      step(t('stepLateral'), [
+        'πrl = π · ' + r + ' · ' + fmt(slant),
+        sign + ' ' + fmt(lateralCone) + 'π ' + decimal(lateralCone),
+      ]),
+      step(t('stepBase'), [
+        'πr² = π · ' + r + '²',
+        '= ' + fmt(baseCone) + 'π ' + decimal(baseCone),
+      ]),
+      step(t('stepTotal'), [
+        'πrl + πr² = ' + fmt(lateralCone) + 'π + ' + fmt(baseCone) + 'π',
+        sign + ' ' + fmt(totalCone) + 'π ' + decimal(totalCone),
+      ]),
+    ];
+  }
+
+  function stepsHtml(steps) {
+    return steps
+      .map(function (s) {
+        var lines = s.lines
+          .map(function (line) {
+            return '<p class="ltr">' + line + '</p>';
+          })
+          .join('');
+        return '<li class="step"><h4>' + s.title + '</h4>' + lines + '</li>';
+      })
+      .join('');
+  }
+
+  function metricsHtml(shape, areas) {
+    return ['lateral', 'base', 'total']
+      .map(function (part) {
+        var area = areas[part];
+        return (
+          '<div class="metric' + (part === 'total' ? ' metric-total' : '') + '">' +
+          '<span class="metric-label">' + partName(shape, part) + '</span>' +
+          '<strong class="ltr">' + fmt(area.coef) + 'π</strong>' +
+          '<span class="metric-value ltr">' + decimal(area.coef) + '</span>' +
+          '</div>'
+        );
+      })
+      .join('');
+  }
+
+  /* ---------- SVG drawings ---------- */
+
+  function fmtAll(values) {
+    return values.map(fmt).join(' ');
+  }
+
+  function label(x, y, text, size, anchor) {
+    return (
+      '<text class="dim-label" x="' + fmt(x) + '" y="' + fmt(y) +
+      '" font-size="' + fmt(size) + '" text-anchor="' + (anchor || 'middle') +
+      '" dominant-baseline="middle">' + text + '</text>'
+    );
+  }
+
+  function line(x1, y1, x2, y2, cls) {
+    return (
+      '<line class="' + cls + '" x1="' + fmt(x1) + '" y1="' + fmt(y1) +
+      '" x2="' + fmt(x2) + '" y2="' + fmt(y2) + '"/>'
+    );
+  }
+
+  function circle(cx, cy, radius) {
+    return '<circle class="net-face" cx="' + fmt(cx) + '" cy="' + fmt(cy) + '" r="' + fmt(radius) + '"/>';
+  }
+
+  function ellipse(cx, cy, rx, ry) {
+    return '<ellipse class="solid-face" cx="' + fmt(cx) + '" cy="' + fmt(cy) + '" rx="' + fmt(rx) + '" ry="' + fmt(ry) + '"/>';
+  }
+
+  function netSvg(x, y, w, h, content) {
+    return (
+      '<svg class="net-svg" viewBox="' + fmtAll([x, y, w, h]) + '" role="img" aria-label="' +
+      t('netTitle') + '">' + content + '</svg>'
+    );
+  }
+
+  // Unrolled cylinder: a rectangle (the side) with a circle above and below.
+  function cylinderNetSvg(r, h) {
+    var width = 2 * Math.PI * r;
+    var height = 4 * r + h;
+    var pad = 0.12 * Math.max(width, height);
+    var vbW = width + 2 * pad;
+    var vbH = height + 2 * pad;
+    var fs = 0.045 * Math.max(vbW, vbH);
+    var cx = width / 2;
+    var content =
+      '<rect class="net-side" x="0" y="' + fmt(2 * r) + '" width="' + fmt(width) + '" height="' + fmt(h) + '"/>' +
+      circle(cx, r, r) +
+      circle(cx, 3 * r + h, r) +
+      label(cx, 2 * r + h / 2, '2πr', fs) +
+      label(-pad / 2, 2 * r + h / 2, 'h', fs) +
+      label(cx, r, 'r', fs) +
+      label(cx, 3 * r + h, 'r', fs);
+    return netSvg(-pad, -pad, vbW, vbH, content);
+  }
+
+  // Unrolled cone: a sector with radius l (the side) and a circle (the base).
+  function coneNetSvg(r, h) {
+    var l = Math.sqrt(r * r + h * h);
+    var half = (Math.PI * r) / l; // half of the sector angle 2πr / l
+    var large = half > Math.PI / 2 ? 1 : 0;
+    var sx = l * Math.sin(half);
+    var sy = -l * Math.cos(half);
+    var baseCx = 1.25 * l + r;
+    var x0 = -1.1 * l;
+    var x1 = baseCx + r + 0.1 * l;
+    var y0 = -1.25 * l;
+    var y1 = 0.1 * l;
+    var vbW = x1 - x0;
+    var vbH = y1 - y0;
+    var fs = 0.045 * Math.max(vbW, vbH);
+    var content =
+      '<path class="net-side" d="M0 0 L' + fmt(-sx) + ' ' + fmt(sy) +
+      ' A' + fmt(l) + ' ' + fmt(l) + ' 0 ' + large + ' 1 ' + fmt(sx) + ' ' + fmt(sy) + ' Z"/>' +
+      circle(baseCx, -r, r) +
+      label(0, -1.12 * l, '2πr', fs) +
+      label(sx / 2 + 0.1 * l, sy / 2, 'l', fs) +
+      label(0, -0.4 * l, 'θ', fs * 1.2) +
+      label(baseCx, -r, 'r', fs);
+    return netSvg(x0, y0, vbW, vbH, content);
+  }
+
+  // Solid drawing with the chosen proportions, used in the calculator.
+  function solidSvg(shape, r, h) {
+    var scale = 170 / Math.max(2 * r, h);
+    var rx = r * scale;
+    var ry = Math.max(8, rx * 0.28);
+    var height = h * scale;
+    var cx = 120;
+    var x0 = cx - rx;
+    var x1 = cx + rx;
+    var viewHeight;
+    var content;
+
+    if (shape === 'cylinder') {
+      var top = 24 + ry;
+      var bottom = top + height;
+      viewHeight = bottom + ry + 24;
+      content =
+        '<path class="solid-body" d="M' + fmt(x0) + ' ' + fmt(top) +
+        ' V' + fmt(bottom) + ' A' + fmt(rx) + ' ' + fmt(ry) + ' 0 0 0 ' +
+        fmt(x1) + ' ' + fmt(bottom) + ' V' + fmt(top) + ' Z"/>' +
+        ellipse(cx, bottom, rx, ry) +
+        ellipse(cx, top, rx, ry) +
+        line(cx, top, x1, top, 'dim-line') +
+        label(cx + rx / 2, top - 8, 'r', 13) +
+        line(x1 + 12, top, x1 + 12, bottom, 'dim-line') +
+        label(x1 + 24, (top + bottom) / 2, 'h', 13);
+    } else {
+      var apexY = 24;
+      var baseY = apexY + height;
+      viewHeight = baseY + ry + 24;
+      content =
+        '<path class="solid-body" d="M' + fmt(cx) + ' ' + fmt(apexY) +
+        ' L' + fmt(x0) + ' ' + fmt(baseY) + ' A' + fmt(rx) + ' ' + fmt(ry) + ' 0 0 0 ' +
+        fmt(x1) + ' ' + fmt(baseY) + ' Z"/>' +
+        ellipse(cx, baseY, rx, ry) +
+        line(cx, apexY, cx, baseY, 'dim-line dashed') +
+        label(cx - 10, (apexY + baseY) / 2, 'h', 13, 'end') +
+        line(cx, apexY, x1, baseY, 'dim-line') +
+        label((cx + x1) / 2 + 10, (apexY + baseY) / 2, 'l', 13) +
+        line(cx, baseY, x1, baseY, 'dim-line') +
+        label(cx + rx / 2, baseY + 14, 'r', 13);
+    }
+
+    return (
+      '<svg class="solid-svg" viewBox="0 0 240 ' + fmt(viewHeight) + '" role="img" aria-label="' +
+      t('figureLabel', { shape: shapeName(shape).toLowerCase() }) + '">' + content + '</svg>'
+    );
+  }
+
+  /* ---------- learn tab ---------- */
+
+  function cardHtml(card) {
+    return (
+      '<article class="panel card"><h3>' + card.title + '</h3>' +
+      '<p class="card-text">' + card.text + '</p>' +
+      '<p class="formula">' + card.formula + '</p></article>'
+    );
+  }
+
+  function learnHtml() {
+    var shape = state.shape;
+    var r = state.r;
+    var h = state.h;
+    var isCylinder = shape === 'cylinder';
+    var areas = areasFor(shape, r, h);
+    var net = isCylinder ? cylinderNetSvg(r, h) : coneNetSvg(r, h);
+    var netNote = isCylinder
+      ? t('netNoteCylinder', { r: r, h: h })
+      : t('netNoteCone', { r: r, h: h, angle: fmt(areas.sectorAngle) });
+    var cards = isCylinder
+      ? [
+          { title: t('cylLateralTitle'), text: t('cylLateralText'), formula: '2πr·h' },
+          { title: t('cylBasesTitle'), text: t('cylBasesText'), formula: '2πr²' },
+          { title: t('cylTotalTitle'), text: t('cylTotalText'), formula: '2πr·h + 2πr² = 2πr(r + h)' },
+        ]
+      : [
+          { title: t('coneSlantTitle'), text: t('coneSlantText'), formula: 'l = √(r² + h²)' },
+          { title: t('coneLateralTitle'), text: t('coneLateralText'), formula: 'πrl' },
+          { title: t('coneBaseTitle'), text: t('coneBaseText'), formula: 'πr²' },
+          { title: t('coneTotalTitle'), text: t('coneTotalText'), formula: 'πr(r + l) = πrl + πr²' },
+        ];
+
+    return (
+      '<div class="learn">' +
+        '<p class="lead">' + t(isCylinder ? 'leadCylinder' : 'leadCone') + '</p>' +
+        '<div class="learn-grid">' +
+          '<figure class="panel net-panel">' +
+            '<h3>' + t('netTitle') + '</h3>' + net +
+            '<figcaption>' + netNote + '</figcaption>' +
+          '</figure>' +
+          '<div class="card-list">' + cards.map(cardHtml).join('') + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ---------- calculator tab ---------- */
+
+  function sliderHtml(field, text, value) {
+    return (
+      '<div class="slider-row">' +
+        '<div class="slider-head"><label for="' + field + '-range">' + text + '</label>' +
+        '<output id="' + field + '-out">' + value + ' ' + t('cm') + '</output></div>' +
+        '<input type="range" id="' + field + '-range" data-field="' + field +
+        '" min="1" max="20" step="1" value="' + value + '">' +
+      '</div>'
+    );
+  }
+
+  function calcHtml() {
+    return (
+      '<div class="calc-layout">' +
+        '<div class="calc-side">' +
+          '<div class="panel">' +
+            sliderHtml('r', t('radiusLabel'), state.r) +
+            sliderHtml('h', t('heightLabel'), state.h) +
+          '</div>' +
+          '<figure class="panel figure-panel" id="calc-figure"></figure>' +
+        '</div>' +
+        '<section class="panel calc-result">' +
+          '<h3>' + t('calcTitle') + '</h3>' +
+          '<div class="metrics" id="calc-metrics" aria-live="polite"></div>' +
+          '<ol class="steps" id="calc-steps"></ol>' +
+        '</section>' +
+      '</div>'
+    );
+  }
+
+  function renderCalcOutput() {
+    var shape = state.shape;
+    var r = state.r;
+    var h = state.h;
+    document.getElementById('calc-figure').innerHTML = solidSvg(shape, r, h);
+    document.getElementById('calc-metrics').innerHTML = metricsHtml(shape, areasFor(shape, r, h));
+    document.getElementById('calc-steps').innerHTML = stepsHtml(shapeSteps(shape, r, h));
+  }
+
+  /* ---------- practice tab ---------- */
+
+  function nextQuestion(session) {
+    session.question = G.createQuestion(state.shape);
+    session.scored = false;
+    session.done = false;
+    session.feedback = null;
+    session.showHint = false;
+    session.lastInput = '';
+  }
+
+  function newPracticeSession() {
+    var session = { correct: 0, asked: 0 };
+    nextQuestion(session);
+    return session;
+  }
+
+  function solutionHtml(q) {
+    return (
+      '<div class="solution"><h4>' + t('solutionTitle') + '</h4>' +
+      '<ol class="steps">' + stepsHtml(shapeSteps(q.shape, q.r, q.h)) + '</ol>' +
+      '<p class="answer-line">' + t('answerIs', { coef: fmt(q.coef), value: fmt(q.coef * PI) }) + '</p>' +
+      '</div>'
+    );
+  }
+
+  function feedbackHtml(p) {
+    var messages = {
+      correct: ['correctMsg', 'ok'],
+      wrong: ['wrongMsg', 'bad'],
+      invalid: ['invalidMsg', 'bad'],
+    };
+    var entry = messages[p.feedback];
+    return entry ? '<p class="feedback ' + entry[1] + '" role="status">' + t(entry[0]) + '</p>' : '';
+  }
+
+  function practiceHtml() {
+    var p = state.practice;
+    var q = p.question;
+    var disabled = p.done ? ' disabled' : '';
+    var question = t('questionText', {
+      shape: shapeName(q.shape).toLowerCase(),
+      r: q.r,
+      h: q.h,
+      part: partName(q.shape, q.part).toLowerCase(),
+    });
+    var hint = p.showHint
+      ? '<p class="hint">' + t(q.shape === 'cylinder' ? 'hintCylinder' : 'hintCone') + '</p>'
+      : '';
+    var solutionButton = p.done
+      ? ''
+      : '<button type="button" class="btn secondary" data-action="solution">' + t('solutionBtn') + '</button>';
+    var hintButton =
+      '<button type="button" class="btn secondary" data-action="hint"' +
+      (p.showHint || p.done ? ' disabled' : '') + '>' + t('hintBtn') + '</button>';
+    var nextButton = p.done
+      ? '<div class="actions"><button type="button" class="btn primary" data-action="next">' + t('nextBtn') + '</button></div>'
+      : '';
+
+    return (
+      '<section class="panel practice">' +
+        '<p class="score">' + t('scoreLine', { correct: p.correct, asked: p.asked }) + '</p>' +
+        '<h3 class="question">' + question + '</h3>' +
+        '<form id="practice-form" class="answer-form">' +
+          '<label class="answer-label" for="answer-input">' + t('answerLabel') + '</label>' +
+          '<div class="answer-row">' +
+            '<input id="answer-input" class="answer-input" type="text" dir="ltr" inputmode="decimal" autocomplete="off" value="' +
+            escapeHtml(p.lastInput) + '"' + disabled + '>' +
+            '<span class="answer-suffix">' + t('answerSuffix') + '</span>' +
+          '</div>' +
+          '<p class="help">' + t('answerHelp') + '</p>' +
+          '<div class="actions">' +
+            '<button type="submit" class="btn primary"' + disabled + '>' + t('checkBtn') + '</button>' +
+            hintButton +
+            solutionButton +
+          '</div>' +
+        '</form>' +
+        hint +
+        feedbackHtml(p) +
+        (p.done ? solutionHtml(q) : '') +
+        nextButton +
+      '</section>'
+    );
+  }
+
+  function renderPractice() {
+    document.getElementById('panel').innerHTML = practiceHtml();
+    if (!state.practice.done) {
+      document.getElementById('answer-input').focus({ preventScroll: true });
+    }
+  }
+
+  function submitAnswer() {
+    var p = state.practice;
+    if (p.done) {
+      return;
+    }
+    var result = G.checkAnswer(p.question, p.lastInput);
+    if (result.status === 'invalid') {
+      p.feedback = 'invalid';
+    } else {
+      if (!p.scored) {
+        p.scored = true;
+        p.asked += 1;
+      }
+      p.feedback = result.status;
+      if (result.status === 'correct') {
+        p.correct += 1;
+        p.done = true;
+      }
+    }
+    renderPractice();
+  }
+
+  /* ---------- page ---------- */
+
+  function tabButton(tab, text) {
+    var selected = state.tab === tab;
+    return (
+      '<button type="button" role="tab" id="tab-' + tab + '" class="tab' + (selected ? ' active' : '') +
+      '" aria-selected="' + selected + '" aria-controls="panel" data-tab="' + tab + '">' + text + '</button>'
+    );
+  }
+
+  function shapeButton(shape) {
+    var pressed = state.shape === shape;
+    return (
+      '<button type="button" class="seg' + (pressed ? ' active' : '') + '" aria-pressed="' + pressed +
+      '" data-shape="' + shape + '">' + shapeName(shape) + '</button>'
+    );
+  }
+
+  function pageHtml() {
+    var otherLang = state.lang === 'he' ? 'en' : 'he';
+    return (
+      '<a class="skip" href="#main">' + t('skip') + '</a>' +
+      '<header class="topbar"><div class="container topbar-inner">' +
+        '<div class="brand"><span class="brand-mark" aria-hidden="true">π</span><span>' + t('appName') + '</span></div>' +
+        '<button type="button" class="lang-btn" data-lang="' + otherLang + '">' + t('langSwitch') + '</button>' +
+      '</div></header>' +
+      '<main id="main" class="container">' +
+        '<section class="hero"><h1>' + t('heroTitle') + '</h1><p>' + t('heroText') + '</p></section>' +
+        '<div class="controls">' +
+          '<div class="seg-group" role="group" aria-label="' + t('shapeGroup') + '">' +
+            shapeButton('cylinder') + shapeButton('cone') +
+          '</div>' +
+          '<div class="tab-list" role="tablist">' +
+            tabButton('learn', t('tabLearn')) + tabButton('calc', t('tabCalc')) + tabButton('practice', t('tabPractice')) +
+          '</div>' +
+        '</div>' +
+        '<section id="panel" class="tab-panel" role="tabpanel" aria-labelledby="tab-' + state.tab + '"></section>' +
+      '</main>' +
+      '<footer class="container footer">' + t('footerNote') + '</footer>'
+    );
+  }
+
+  function renderTab() {
+    var panel = document.getElementById('panel');
+    if (state.tab === 'learn') {
+      panel.innerHTML = learnHtml();
+    } else if (state.tab === 'calc') {
+      panel.innerHTML = calcHtml();
+      renderCalcOutput();
+    } else {
+      if (!state.practice) {
+        state.practice = newPracticeSession();
+      }
+      renderPractice();
+    }
+  }
+
+  function render() {
+    document.documentElement.lang = state.lang;
+    document.documentElement.dir = state.lang === 'he' ? 'rtl' : 'ltr';
+    document.title = t('pageTitle');
+    appRoot.innerHTML = pageHtml();
+    renderTab();
+  }
+
+  /* ---------- events (delegated on the stable root) ---------- */
+
+  appRoot.addEventListener('click', function (event) {
+    var button = event.target.closest('button');
+    if (!button) {
+      return;
+    }
+    if (button.dataset.lang) {
+      state.lang = button.dataset.lang;
+      render();
+    } else if (button.dataset.shape) {
+      state.shape = button.dataset.shape;
+      state.practice = null;
+      render();
+    } else if (button.dataset.tab) {
+      state.tab = button.dataset.tab;
+      render();
+    } else if (button.dataset.action === 'hint') {
+      state.practice.showHint = true;
+      renderPractice();
+    } else if (button.dataset.action === 'solution') {
+      state.practice.done = true;
+      state.practice.feedback = null;
+      renderPractice();
+    } else if (button.dataset.action === 'next') {
+      nextQuestion(state.practice);
+      renderPractice();
+    }
+  });
+
+  appRoot.addEventListener('submit', function (event) {
+    if (event.target.id !== 'practice-form') {
+      return;
+    }
+    event.preventDefault();
+    submitAnswer();
+  });
+
+  appRoot.addEventListener('input', function (event) {
+    var target = event.target;
+    if (target.dataset.field) {
+      state[target.dataset.field] = Number(target.value);
+      document.getElementById(target.dataset.field + '-out').textContent = target.value + ' ' + t('cm');
+      renderCalcOutput();
+    } else if (target.id === 'answer-input') {
+      state.practice.lastInput = target.value;
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -12,6 +12,14 @@ It has three tabs for the selected shape:
 
 Open `index.html` in a browser. No build step and no server are needed.
 
+## Single HTML file
+
+`cylinder-cone.html` is the same app packed into one self-contained file (CSS and JavaScript inlined, no external references). Send or open that file alone. Regenerate it after changing any source file:
+
+```bash
+npm run build
+```
+
 ## Test
 
 ```bash
@@ -25,3 +33,4 @@ The tests cover the formulas, the practice question generator, and the answer ch
 - `geometry.js`: formulas, practice question generator, and answer checker. Runs in the browser and in Node.
 - `app.js`: UI, strings in Hebrew and English, and SVG drawings.
 - `styles.css`: layout and light/dark colors.
+- `build-single-file.js`: packs the three files above into `cylinder-cone.html`.
