@@ -1,0 +1,13 @@
+{
+  "name": "cylinder-cone-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive Hebrew/English lesson on the surface area of cylinders and cones",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
