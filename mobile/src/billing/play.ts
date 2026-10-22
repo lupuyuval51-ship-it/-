@@ -12,7 +12,6 @@ import {
 } from "@/lib/offline/billing-state";
 import { getOfflinePlan } from "@/lib/offline/entitlement";
 import { createSerialQueue } from "@/lib/offline/serial-queue";
-import { verifyPurchases } from "../cloud/purchases";
 
 /** Fired on `window` whenever the plan the phone uses may have changed. */
 export const PLAN_EVENT = "levelup-plan";
@@ -40,24 +39,6 @@ async function acknowledgeAll(tokens: readonly string[]): Promise<void> {
 }
 
 /**
- * For a signed-in learner, the server asks Google about these purchases too (`verify-purchase`): its definitive answer can raise,
- * lower or end the plan Play's list gave. Not waited for, never throws; signed out, nothing is sent.
- */
-type SessionLike = { user: { id: string }; access_token: string } | null;
-let currentSession: () => SessionLike = () => null;
-/** The app tells billing where the signed-in learner is (kept out of this module so billing never loads the account code). */
-export function setSessionProvider(provider: () => SessionLike): void { currentSession = provider; }
-
-async function checkWithServer(purchases: readonly PurchaseLike[]): Promise<void> {
-  try {
-    const before = getOfflinePlan();
-    const s = currentSession();
-    const next = await verifyPurchases(purchases, { session: s ? { userId: s.user.id, accessToken: s.access_token } : null, store: localStorage, now: Date.now() });
-    if (next && next.plan !== before) announce();
-  } catch { /* the plan stays as Play reported it */ }
-}
-
-/**
  * Never throws: offline keeps what was stored. Runs inside the line (callers go through `refreshPlan`, `buyPlan`, `restorePurchases`).
  * `justBought` is the purchase Play's sheet has just confirmed (`buyPlan`): the query right after a purchase can fail or be cut off
  * (the plugin then answers an empty list, or rejects), and that must never leave a learner who has just paid on Free, so the
@@ -81,7 +62,6 @@ async function refreshNow(justBought: readonly PurchaseLike[] = []): Promise<Pla
     const state = planAfterRefresh(loadPlanState(localStorage), planFromPurchases(purchases, now), now);
     savePlanState(localStorage, state);
     if (state.plan !== before) announce();
-    void checkWithServer(purchases);
     // the plugin acknowledges a new purchase without waiting for Play's answer: make sure it arrived (not waited for here)
     const unacknowledged = purchasesToAcknowledge(purchases);
     if (unacknowledged.length > 0) void inLine(() => acknowledgeAll(unacknowledged));

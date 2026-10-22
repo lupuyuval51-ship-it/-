@@ -2,9 +2,8 @@
 
 Status: **live.** Project `levelup-app` (`yhxwgfgodxbzdvaqtqjz`, eu-central-1, free plan), created 2026-10-16 and used from app 1.16.0 on.
 The three migrations in `migrations/` are applied, the edge function `functions/delete-account` is deployed (JWT required), the security
-advisor was clean (no findings) and the RLS checks in `tests/rls_checks.sql` passed on it the same day. Google Play purchase verification
-lives here too, next to the accounts: the edge function `functions/verify-purchase` and the table `play_purchases` (migration 4 below) are in the
-repository and **deployed 2026-10-22** (migration applied, function version 1, JWT on, security advisor clean; it answers `503 NOT_CONFIGURED` until the owner adds the secret). Owner steps and secrets `PLAY_SERVICE_ACCOUNT_JSON` / `PLAY_PACKAGE_NAME`: `docs/play-release.md`, "Server-side purchase check").
+advisor was clean (no findings) and the RLS checks in `tests/rls_checks.sql` passed on it the same day.
+A server-side check of Google Play purchases was built and then removed on 2026-10-22 (not needed for the launch): the table `play_purchases` of migration 4 was created here and is **unused and empty**; drop it with `drop table public.play_purchases cascade;` in the dashboard SQL editor (the drop hung when sent through the API), and delete the Edge Function `verify-purchase` in the dashboard if it is still listed. The app does not call either.
 The earlier project `level-up` (`dytftgtyugvzfumdcoep`) served app versions up to 1.15.0; its accounts and backups were not copied over (it had none) and it is paused.
 LEVEL UP AI lives in a separate project, `levelup-ai` (`zfkjkbyzurhidhpkzpxr`, https://zfkjkbyzurhidhpkzpxr.supabase.co, eu-central-1): the Edge Function
 `generate-game` (deployed 2026-10-17, `verify_jwt = false` because it checks the caller's **levelup-app** sign-in itself) and the table `ai_requests`
@@ -25,7 +24,7 @@ Migrations (apply in order; schema changes always go through `migrations/`, neve
 1. `20261010000000_levelup_sync.sql`: the three tables, constraints (spec size, session status), owner-only policies, server-stamped `updated_at`.
 2. `20261010000001_deck_cards_mastered.sql`: a mastered review card stays, flagged, so another phone does not bring it back.
 3. `20261010000002_sessions_finished_at.sql`: the real finish time, so results look the same on every phone.
-4. `20261021000000_play_purchases.sql`: `play_purchases` (verdicts of the Play purchase check: product, plan, valid, end date, SHA-256 of the token; owner-read-only, no insert/update/delete policy) and `claim_play_purchase` (atomic "first account to prove a token keeps it", executable only by the service role). Checked on a local Postgres with stand-ins for Supabase's roles: owner sees own rows, another account sees none, no write or function call from `authenticated`, bad hash/product refused, rows cascade on user delete. Run the Supabase security advisor after applying it.
+4. `20261021000000_play_purchases.sql`: **unused** (see the status above): an empty, owner-read-only table and a service-role-only function that the removed purchase check used. Kept because it was applied; drop it as described above.
 
 After **every** schema or policy change: re-run the Supabase security advisor and fix any warning, run the checks in `tests/rls_checks.sql`, and keep this file, `docs/play-release.md`
 (Data safety table) and `mobile/store/privacy-policy.md` in step.

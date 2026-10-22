@@ -124,9 +124,8 @@ no Google token is used by the app and no secret is in the app (the Google clien
 | Personal info → **User IDs** | yes | Supabase user UUID, the `user_id` of every row | Account management, App functionality | yes | no |
 | App activity → **Other user-generated content** | yes | games: title and the generated game spec (built from the user's notes) (`cloud/api.ts`) | App functionality (backup, sync) | yes | no |
 | App activity → **Other actions** | yes | play sessions (progress, answers, score) and the review deck | App functionality (backup, sync) | yes | no |
-| Financial info → **Purchase history** | yes, only when signed in and the learner has a Plus or Pro purchase (from the app version with `verify-purchase`) | the Google Play purchase token, sent to the account project's Edge Function `verify-purchase` (`mobile/src/cloud/purchases.ts`); stored: product, plan, valid or not, end date and the SHA-256 of the token (`play_purchases`) | App functionality, Fraud prevention | yes | no |
 
-Not collected: location, payment details (the card is Google's; only the purchase token goes to us, see the row above), health, messages, photos/videos, audio, files and docs (the notes file and the backup
+Not collected: location, financial info (the purchase and the card are Google's), health, messages, photos/videos, audio, files and docs (the notes file and the backup
 file are read on the device only), contacts, calendar, web browsing, crash logs/diagnostics (no SDK; Play's own Android vitals
 are Google's, not the app's), device or other IDs (no advertising ID, no installation ID), search history, installed apps. There
 are no ads, analytics or third-party SDKs besides Supabase's client library and Google's own Play Billing library (it talks to Google Play
@@ -242,9 +241,7 @@ phone by `src/lib/offline/billing-state.ts`). Prices are in shekels. What has to
    who upgrades from Plus pays the full price of Pro (Play has no proration between one-time products; add a cheaper "upgrade" product
    if that matters).
 5. Setup → License testing: add the testers' Gmail accounts, so they can buy without being charged.
-6. Data safety: the purchase itself is handled by Google; the app keeps the plan Play reports on the phone. For a **signed-in** learner the
-   purchase token is also sent to our server for checking (see "Server-side purchase check" below), which adds the **Financial info →
-   Purchase history** row to the Data safety table.
+6. Data safety: the purchase itself is handled by Google; the app stores only the plan Play reports, on the phone.
 
 How the app uses it: at start and whenever it comes back to the screen it asks Play for the learner's purchases
 (`getPurchases`), keeps the plan on the phone and works offline from that. Play on Android gives no expiry date (the plugin returns
@@ -256,43 +253,10 @@ subscriptions** and the plugin cannot replace one with the other, so a learner w
 page (change or cancel there) instead of being sold a second one, which would be billed next to the first.
 The allowance in the app is library topics per half-year (`src/lib/offline/tracks.ts`, numbers in `APP_TRACKS`): Free 1, Plus 4,
 Pro 7; a started topic stays open at every level of the plan, deleting its games does not give the topic back, and the history starts again
-on 1 January and 1 July. **Server-side purchase check** (below) covers
-the plan; the counters of the topics a learner started still live on the phone only, so a rooted phone could reset those.
-
-### Server-side purchase check (`verify-purchase`)
-
-A signed-in phone sends the purchase tokens Google Play gave it to the Edge Function `verify-purchase` in the account project
-(`levelup-app`; source `src/server/play/verify.ts`, bundle `supabase/functions/verify-purchase/index.ts` built by
-`node scripts/build-verify-function.mjs`, tests `tests/unit/play-verify*.test.ts`). The function asks Google's Play Developer API
-(`purchases.subscriptionsv2.get` for the subscriptions, `purchases.products.get` for the one-time products) with a **service
-account**, and answers with the plan **Google** reports: nothing the phone says (which product, how long) is believed. A paid
-subscription is `ACTIVE`, `IN_GRACE_PERIOD`, or `CANCELED` and not yet ended; `ON_HOLD`, `PAUSED`, `PENDING` and `EXPIRED` are not paid; a
-one-time purchase is paid while `purchaseState` is 0 (a refund turns it to 1). A token belongs to the first account that proves it
-(`claim_play_purchase`, atomic), so one purchase cannot be handed to a second account. The verdicts are stored per account in
-`public.play_purchases` (only the SHA-256 of the token; owner-read-only, written only by the function; migration
-`20261021000000_play_purchases.sql`).
-
-What the phone does with the answer (`src/lib/offline/billing-verify.ts`, `mobile/src/cloud/purchases.ts`): only when signed in (signed out,
-no request at all), at most once per 6 hours per account and set of purchases; a **definitive** answer raises, lowers or ends the plan
-Play's list gave (a refunded one-time purchase that Play still lists becomes Free); anything in doubt (offline, Google or the function
-unavailable, the function not set up, an answer that is not definitive, a token held by another account) leaves the plan as Play reported
-it, so a server problem never puts a learner who paid on Free. CSP `connect-src` is unchanged (the account project's URL is already listed).
-**Honest limit:** the app works offline and decides on the device, so a rooted phone that never signs in, or blocks the network, can still
-fake a plan; the check ends refunds and expired plans for signed-in learners and gives the server a trustworthy record (`play_purchases`)
-for anything server-side that should depend on a plan, such as LEVEL UP AI (not wired to it yet).
-
-Owner steps (nothing here is in the repository; do them once):
-1. Google Cloud Console → a project → **IAM → Service accounts → Create** (no role needed on the project). Enable the **Google Play
-   Android Developer API** for that project. Create a **JSON key** for the service account and keep the file private.
-2. Play Console → **Users and permissions → Invite new users** → the service account's e-mail → app permission **View financial data**
-   (and *View app information*) for this app. It can take up to a few hours to take effect.
-3. Supabase project `levelup-app` → apply the migration `20261021000000_play_purchases.sql` (SQL editor or MCP), then re-run the security
-   advisor. Edge Functions → **Secrets**: `PLAY_SERVICE_ACCOUNT_JSON` = the whole JSON file; optional `PLAY_PACKAGE_NAME` (default
-   `app.levelup.learn3d`). Deploy the function `verify-purchase` from `supabase/functions/verify-purchase/index.ts` with **JWT
-   verification on**.
-4. Data safety: add **Financial info → Purchase history** (collected, optional, not shared, App functionality / Fraud prevention) and publish
-   the updated privacy policy (`mobile/store/privacy-policy.md`, already updated) before shipping this app version.
-The migration is applied and the function is deployed (2026-10-22); only the secret in step 3 is missing. Until it is added the function answers `503 NOT_CONFIGURED` and the app keeps working exactly as before.
+on 1 January and 1 July. **Known limit:** the purchase is not verified by a server (Google Play Developer API with a
+service account), so a rooted phone could fake a plan or reset its counters, and a refunded purchase keeps its plan until Play stops
+listing it. A server check was built and removed on 2026-10-22 as not needed for the launch (it is in git history, commit `0aab8aa`); add it if
+fraud ever shows up.
 
 ## Sign-in is required (Play "App access")
 

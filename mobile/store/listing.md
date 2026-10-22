@@ -36,11 +36,10 @@ Note: a game from notes you paste is built on the phone by a rule-based engine, 
   - Data collected: **Personal info → Email address** and **User IDs** (account management), **Name** (only with Google sign-in),
     **App activity → Other user-generated content** (the games: title and generated content from the user's notes; and, only when
     the learner taps LEVEL UP AI, the subject, goal and notes sent to write that one game, processed ephemerally and not stored)
-    and **Other actions** (play progress, review list) — app functionality, backup/sync; **Financial info → Purchase history** (the Google Play
-    purchase token, checked by our server for a signed-in learner who has Plus or Pro; stored as product, plan, validity, end date and a hash of the token) — app functionality, fraud prevention. All **optional** (only with an account).
+    and **Other actions** (play progress, review list) — app functionality, backup/sync. All **optional** (only with an account).
   - Shared with third parties: **No**. Processed by our backend provider Supabase on our behalf (that is not "sharing").
   - Encrypted in transit: **Yes**. Users can request deletion: **Yes** (in-app + web page `account-deletion.md`).
-  - Without an account nothing is collected. The purchase itself is handled by Google Play; the app keeps the plan Play reports on the phone, and for a signed-in learner our server also checks the purchase token with Google (`docs/play-release.md`, "Server-side purchase check").
+  - Without an account nothing is collected. The purchase itself is handled by Google Play; the app only keeps the plan Play reports, on the phone.
 - Target audience: your decision. The optional account collects an e-mail address, so if under-13s are a target audience the Families policy (COPPA/GDPR, disclosure of personal information collected from children) applies — see `docs/play-release.md` §5. Simplest: 13+.
 - Content rating questionnaire: educational, no violence/sexual content/gambling, no user-to-user communication.
 - Privacy policy URL: host `privacy-policy.md` (e.g. GitHub Pages or Google Sites) and paste the link.

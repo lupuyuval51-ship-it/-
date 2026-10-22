@@ -1,3 +1,4 @@
+-- UNUSED since 2026-10-22: the server-side purchase check that used this table was removed (see supabase/README.md). Kept because it was applied.
 -- LEVEL UP (Android app): Google Play purchases checked by the server.
 -- The Edge Function `verify-purchase` asks Google's Play Developer API about the purchase tokens a signed-in phone sends and
 -- stores the verdict here. Rows are written ONLY by that function (service role): an account can read its own rows and can

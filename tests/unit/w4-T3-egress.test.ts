@@ -25,11 +25,10 @@ const APP_FILES = [...sources("mobile/src"), ...sources("src/lib/offline")];
 
 describe("what can reach the network in the offline app", () => {
   const PRIMITIVES = /\bfetch\b|\bXMLHttpRequest\b|\bsendBeacon\b|\bnew\s+WebSocket\b|\bEventSource\b|\bimportScripts\b/;
-  // the delete-account call, LEVEL UP AI, the check of Supabase's public settings, and the server's check of the Play purchases
-  // (`verify-purchase`, only for a signed-in learner who has a purchase): each only after a tap, a required sign-in or a sign-in
-  const ALLOWED = ["mobile/src/cloud/account.ts", "mobile/src/cloud/ai.ts", "mobile/src/cloud/google.ts", "mobile/src/cloud/purchases.ts"];
+  // the delete-account call, LEVEL UP AI, and the check of Supabase's public settings: each only after a tap or a required sign-in
+  const ALLOWED = ["mobile/src/cloud/account.ts", "mobile/src/cloud/ai.ts", "mobile/src/cloud/google.ts"];
 
-  it("only the four cloud files use a network primitive; everything else in the app and the offline library cannot", () => {
+  it("only the three cloud files use a network primitive; everything else in the app and the offline library cannot", () => {
     const using = APP_FILES.filter((f) => PRIMITIVES.test(code(f)));
     expect(using).toEqual(ALLOWED);
   });
@@ -41,7 +40,6 @@ describe("what can reach the network in the offline app", () => {
     }
     expect(code("mobile/src/cloud/ai.ts")).toContain("${AI_URL}/functions/v1/generate-game");
     expect(code("mobile/src/cloud/account.ts")).toContain("${SUPABASE_URL}/functions/v1/delete-account");
-    expect(code("mobile/src/cloud/purchases.ts")).toContain("${SUPABASE_URL}/functions/v1/verify-purchase");
   });
 
   it("the cloud library (about 200 kB) is only ever imported lazily, so a phone without an account never loads it", () => {

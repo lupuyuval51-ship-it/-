@@ -53,23 +53,3 @@ end $$;
 -- 4) anonymous visitors see nothing
 set local role anon;
 select (select count(*) from public.games) as games, (select count(*) from public.sessions) as sessions, (select count(*) from public.deck_cards) as cards;
-
--- 5) play_purchases (migration 20261021000000): the owner reads, nobody writes from the app, the function claims a token once.
---    Checked 2026-10-21 on a local Postgres 16 with stand-in roles (anon / authenticated / service_role) and auth.uid(), NOT on the
---    project: owner sees own row, another user sees 0, authenticated insert -> 42501, update touches 0 rows, calling claim_play_purchase
---    as authenticated -> 42501, bad hash / unknown product -> 23514, second account claiming a held token -> false, rows cascade on user
---    delete. Re-run on the project once the migration is applied (as service_role for the claim, as authenticated for the rest).
-do $$ declare a uuid := gen_random_uuid(); b uuid := gen_random_uuid(); h text := repeat('a', 64); r1 boolean; r2 boolean; n int; res text := ''; begin
-  insert into auth.users (id, aud, role, email) values (a, 'authenticated', 'authenticated', 'rls-a@example.test'), (b, 'authenticated', 'authenticated', 'rls-b@example.test');
-  r1 := public.claim_play_purchase(a, h, 'levelup_pro', 'PRO', 'SUBSCRIPTION', true, null, now() + interval '5 days', now());
-  r2 := public.claim_play_purchase(b, h, 'levelup_pro', 'PRO', 'SUBSCRIPTION', true, null, now() + interval '5 days', now());
-  set local role authenticated;
-  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role', 'authenticated')::text, true);
-  select count(*) into n from public.play_purchases;
-  res := format('claim a=%s b=%s; b sees %s rows; ', r1, r2, n);
-  begin insert into public.play_purchases values (repeat('b', 64), b, 'levelup_pro', 'PRO', 'LIFETIME', true, null, null, now(), now()); res := res || 'FAIL insert; ';
-  exception when others then res := res || 'insert blocked ' || sqlstate || '; '; end;
-  begin perform public.claim_play_purchase(b, repeat('c', 64), 'levelup_pro', 'PRO', 'LIFETIME', true, null, null, now()); res := res || 'FAIL function; ';
-  exception when others then res := res || 'function blocked ' || sqlstate || '; '; end;
-  raise exception '% (expected: claim a=true b=false; b sees 0 rows; both blocked 42501)', res;
-end $$;
