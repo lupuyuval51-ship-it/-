@@ -420,15 +420,16 @@ export class Game {
   // Four times a second: remove civilians who are too far (beyond 140 m only while hidden, beyond 220 m always), then spawn one if the budget allows.
   spawnPeds(dt) {
     this.pedSpawnT -= dt; if (this.pedSpawnT > 0) return;
-    const P = this.player, hard = pb('despawnHard'), soft = pb('despawnHidden'); let n = 0, far = null, fd = 60;
+    const P = this.player, hard = pb('despawnHard'), soft = pb('despawnHidden'); let n = 0, nn = 0, far = null, fd = 60;
     for (let i = this.peds.length - 1; i >= 0; i--) {
       const p = this.peds[i]; if (p.noDespawn || p.mission || !(p.kind === 'civ' || p.dead)) continue;
       const d = dist(p.x, p.z, P.x, P.z);
       if (d > hard || (d > soft && this.isHiddenFromCamera(p.x, 1, p.z))) { this.removePed(p); continue; }
-      if (p.kind === 'civ' && !p.dead && d > fd) { fd = d; far = p; }
+      if (p.kind === 'civ' && !p.dead) { if (d < 50) nn++; if (d > fd) { fd = d; far = p; } }
     }
     for (const p of this.peds) if (p.kind === 'civ' && !p.dead) n++;
-    const budget = this.pedBudget(); this.pedSpawnT = n < budget * 0.5 ? 0.1 : 0.25;
+    const budget = this.pedBudget(), hr = (this.clock / 60) % 24, short = hr >= 9 && hr < 19 && nn < budget * 0.17; this.pedSpawnT = n < budget * 0.5 || short ? 0.1 : 0.25; // by day fewer than a sixth of the budget within 50 m (a teleport, a quiet quarter) makes room: the farthest hidden civilian leaves and a new one is born near
+    if (short && n >= budget && far && fd > 100 && this.isHiddenFromCamera(far.x, 1, far.z)) { this.removePed(far); n--; }
     if (n > budget + 2 && far && this.isHiddenFromCamera(far.x, 1, far.z)) this.removePed(far); // the tier or the hour lowered the budget: the farthest hidden civilian leaves
     else if (n < budget) { const s = this.pickPedSpot(false); if (s) this.spawnCiv(s); }
   }

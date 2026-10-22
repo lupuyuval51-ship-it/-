@@ -1,6 +1,6 @@
 import * as THREE from '../vendor/three.module.min.js';
 import { CITY } from './config.js';
-import { mulberry, clamp } from './utils.js';
+import { mulberry, clamp, pixGet, pixPut, pixSig } from './utils.js';
 
 // Neon Coast, plants and street lamps (release 3, W1). Two systems live here so that world.js only has to call them:
 //  Flora: every tree, palm, shrub, hedge, flower bed, tuft of grass, pot and wall vine. One 2048 px procedural atlas, ONE shared material (wind sway,
@@ -188,19 +188,24 @@ const _atlases = new Map(); // size -> atlas: at most two (1024 low, 2048 med / 
 function plantAtlas(size) {
   if (_atlases.has(size)) return _atlases.get(size);
   ATLAS_DET = size < 2048 ? 0.5 : 1;
-  const cv = document.createElement('canvas'); cv.width = cv.height = size; const ctx = cv.getContext('2d'), k = size / 2048, cells = packCells(), byId = {};
-  ctx.scale(k, k);
-  for (const c of cells) {
-    byId[c.id] = c; ctx.save(); ctx.translate(c.x, c.y); ctx.beginPath(); ctx.rect(0, 0, c.w, c.h); ctx.clip();
-    if (BARKS[c.id]) BARKS[c.id](ctx, c.w, c.h); else LEAVES[c.id](ctx, c.w, c.h, mulberry([...c.id].reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, 7)));
-    ctx.restore();
+  const cells = packCells(), byId = {}, pkey = 'atlas' + size + pixSig(JSON.stringify(cells) + Object.values(BARKS).join() + Object.values(LEAVES).join() + parseCol + packCells); let px = pixGet(pkey, size, size);
+  if (px) for (const c of cells) byId[c.id] = c;
+  else {
+    const cv = document.createElement('canvas'); cv.width = cv.height = size; const ctx = cv.getContext('2d'), k = size / 2048;
+    ctx.scale(k, k);
+    for (const c of cells) {
+      byId[c.id] = c; ctx.save(); ctx.translate(c.x, c.y); ctx.beginPath(); ctx.rect(0, 0, c.w, c.h); ctx.clip();
+      if (BARKS[c.id]) BARKS[c.id](ctx, c.w, c.h); else LEAVES[c.id](ctx, c.w, c.h, mulberry([...c.id].reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, 7)));
+      ctx.restore();
+    }
+    const img = ctx.getImageData(0, 0, size, size), d = img.data;
+    for (const c of cells) if (c.bg) { // fill the fully transparent texels with the cell colour (premultiplied canvases lose their RGB at alpha 0)
+      const [r, g, b] = parseCol(c.bg), x0 = Math.floor(c.x * k), y0 = Math.floor(c.y * k), x1 = Math.min(size, Math.ceil((c.x + c.w) * k)), y1 = Math.min(size, Math.ceil((c.y + c.h) * k));
+      for (let y = y0; y < y1; y++) for (let x = x0, o = (y * size + x0) * 4; x < x1; x++, o += 4) if (d[o + 3] === 0) { d[o] = r; d[o + 1] = g; d[o + 2] = b; }
+    }
+    px = new Uint8Array(d.buffer.slice(0)); pixPut(pkey, size, size, px);
   }
-  const img = ctx.getImageData(0, 0, size, size), d = img.data;
-  for (const c of cells) if (c.bg) { // fill the fully transparent texels with the cell colour (premultiplied canvases lose their RGB at alpha 0)
-    const [r, g, b] = parseCol(c.bg), x0 = Math.floor(c.x * k), y0 = Math.floor(c.y * k), x1 = Math.min(size, Math.ceil((c.x + c.w) * k)), y1 = Math.min(size, Math.ceil((c.y + c.h) * k));
-    for (let y = y0; y < y1; y++) for (let x = x0, o = (y * size + x0) * 4; x < x1; x++, o += 4) if (d[o + 3] === 0) { d[o] = r; d[o + 1] = g; d[o + 2] = b; }
-  }
-  const tex = new THREE.DataTexture(new Uint8Array(d.buffer.slice(0)), size, size, THREE.RGBAFormat); // rows top-first, so v = y / size (no flip)
+  const tex = new THREE.DataTexture(px, size, size, THREE.RGBAFormat); // rows top-first, so v = y / size (no flip)
   tex.colorSpace = THREE.SRGBColorSpace; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.anisotropy = 8; tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.flipY = false; tex.needsUpdate = true;
   const A = { size, tex, cell: id => { const c = byId[id], e = id[0] === 'b' && id.length > 3 && BARKS[id] ? 1.5 : 0; return { u0: (c.x + e) / 2048, u1: (c.x + c.w - e) / 2048, v0: c.y / 2048, v1: (c.y + c.h) / 2048 }; } };
   _atlases.set(size, A); return A;

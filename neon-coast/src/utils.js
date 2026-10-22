@@ -167,3 +167,37 @@ export function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const lx = cx - ox, ly = cy - oy, lz = cz - oz; const tca = lx * dx + ly * dy + lz * dz; if (tca < 0) return null;
   const d2 = lx * lx + ly * ly + lz * lz - tca * tca; if (d2 > r * r) return null; return tca - Math.sqrt(r * r - d2);
 }
+
+// ---- generated-pixel cache (IndexedDB): the plant atlas and the normal maps are drawn once per device and version, later loads reuse the pixels ----
+const PIX_VERSION = 'w1-v1';
+const _pix = new Map();
+let _pixDb = null, _pixOpen = true;
+export function preloadPixCache(timeoutMs = 1500) {
+  return new Promise(resolve => {
+    let done = false; const fin = () => { if (!done) { done = true; _pixOpen = false; resolve(); } };
+    const timer = setTimeout(fin, timeoutMs);
+    try {
+      if (typeof indexedDB === 'undefined') { clearTimeout(timer); fin(); return; }
+      const rq = indexedDB.open('neon-coast-pix', 1);
+      rq.onupgradeneeded = () => { try { rq.result.createObjectStore('pix'); } catch (e) { /* exists */ } };
+      rq.onerror = rq.onblocked = () => { clearTimeout(timer); fin(); };
+      rq.onsuccess = () => {
+        try {
+          _pixDb = rq.result; const st = _pixDb.transaction('pix', 'readonly').objectStore('pix'), q = st.getAll(), kq = st.getAllKeys();
+          q.onsuccess = () => { try { if (!done) { const ks = kq.result, vs = q.result; for (let i = 0; i < ks.length; i++) { const v = vs[i]; if (v && v.ver === PIX_VERSION && v.px && v.px.length === v.w * v.h * 4) _pix.set(ks[i], v); } } } catch (e) { /* ignore */ } clearTimeout(timer); fin(); };
+          q.onerror = () => { clearTimeout(timer); fin(); };
+        } catch (e) { clearTimeout(timer); fin(); }
+      };
+    } catch (e) { clearTimeout(timer); fin(); }
+  });
+}
+// the cached RGBA bytes for a key at exactly w x h, or null
+export function pixSig(s) { let h = 5381; s = String(s); for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) ^ s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); } // content signature: a changed drawing function changes the key, so a stale atlas is never served
+export function pixGet(key, w, h) { const v = _pix.get(key); if (!v || v.w !== w || v.h !== h) return null; _pix.delete(key); return v.px; } // handed out once: the map does not keep the big array alive
+// store a complete pixel array (fire and forget; any failure is ignored)
+export function pixPut(key, w, h, px) {
+  try {
+    if (!_pixDb || !px || px.length !== w * h * 4) return;
+    const tx = _pixDb.transaction('pix', 'readwrite'); tx.objectStore('pix').put({ ver: PIX_VERSION, w, h, px }, key); tx.onerror = tx.onabort = () => {};
+  } catch (e) { /* ignore */ }
+}

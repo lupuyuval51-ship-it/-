@@ -19,7 +19,7 @@ const K = hex => { let c = _col.get(hex); if (!c) _col.set(hex, c = new THREE.Co
 const mixc = (a, b, t) => K(a).clone().lerp(K(b), t);
 const PAL = { // trim colours per facade id: trim (ledges, cornices), fin (pilasters, fins), cap (parapet, crown), accent (neon lines)
   glass: { trim: 0x1a2232, fin: 0x2c3850, cap: 0x12161e, accent: 0x3ce8f5, look: 'glass' }, tower: { trim: 0x0f131c, fin: 0x1e2638, cap: 0x0b0e15, accent: 0xff4fa3, look: 'glass' },
-  deco: { trim: 0xf6ead8, fin: 0xe9d3bd, cap: 0xd7b79e, accent: 0xff9ad5, look: 'deco' }, mint: { trim: 0xf2fffa, fin: 0xb8e2d2, cap: 0x8fc9b6, accent: 0x3ce8f5, look: 'deco' },
+  deco: { trim: 0xf6ead8, fin: 0xe9d3bd, cap: 0xd7b79e, accent: 0xff9ad5, look: 'deco' }, mint: { trim: 0xf2fffa, fin: 0xb8e2d2, cap: 0xb2e3d1, accent: 0x3ce8f5, look: 'deco' },
   pink: { trim: 0xfff5f7, fin: 0xeaadbf, cap: 0xd98aa2, accent: 0xffd34e, look: 'deco' }, white: { trim: 0xf1efe8, fin: 0xd8d4c8, cap: 0xbab5a8, accent: 0xff5a5a, look: 'deco' },
   concrete: { trim: 0xb2aea8, fin: 0x908c87, cap: 0x7a7773, accent: 0xffb347, look: 'conc' }, brick: { trim: 0xd2c4ae, fin: 0xb59f86, cap: 0x8f7d6a, accent: 0xffcf80, look: 'brick' },
 };
@@ -518,7 +518,7 @@ function planter(db, x, z, y, ed, R) { db.obox(x, z, ed.tx, ed.tz, 0.45, 0.28, y
 const FH = 1 | 2 | 8 | 16 | 32, FV = 1 | 2 | 8, FB = 1 | 2 | 8 | 16;
 function relief(B, rec) {
   const R = rec.rng, pal = rec.pal, look = rec.look, hi = B.q === 'high', Qd = hi ? 1 : 0.6, relDB = B.dbAt('rel', rec.cx, rec.cz), fineDB = B.dbAt('fine', rec.cx, rec.cz), grid = B.w.grid, st = rec.style;
-  const trim = K(pal.trim), fin = K(pal.fin), cap = K(pal.cap), acc = K(pal.accent), ys = FLOOR * (0.45 - st.winH / 2), yh = FLOOR * (0.45 + st.winH / 2), sillC = mixc(pal.trim, 0xffffff, 0.15), dark = K(0x2d3036);
+  const vr = ((rec.id * 37) % 11) / 11, trim = mixc(pal.trim, vr < 0.5 ? 0x9a9690 : 0xffffff, 0.08 + 0.14 * Math.abs(vr - 0.5)), fin = K(pal.fin), cap = mixc(pal.cap, vr < 0.5 ? 0xa8a49e : 0xeeeeee, 0.06 + 0.1 * Math.abs(vr - 0.5)), acc = K(pal.accent), ys = FLOOR * (0.45 - st.winH / 2), yh = FLOOR * (0.45 + st.winH / 2), sillC = mixc(pal.trim, 0xffffff, 0.15), dark = K(0x2d3036);
   const neonLine = !rec.club && (rec.dist === 'beach' || rec.dist === 'downtown') && R() < 0.3, escapeSide = look === 'brick' || (look === 'conc' && R() < 0.3) ? SIDES[Math.floor(R() * 4)] : null, escDone = { v: false };
   const n0 = relDB.n, f0n = fineDB.n; rec.relTris = 0;
   rec.parts.forEach((p, pi) => {
@@ -569,6 +569,7 @@ function relief(B, rec) {
         const step = hi ? 1 : 2, fc = st.id === 'tower' ? fin : mixc(pal.fin, 0x88a0c0, 0.3);
         if (vis) { for (let k = 1; k < nCells; k += step) vstrip(2 * k, 0.1, 0.26, fc, y0 + (first ? 0 : 0.1), y1 - 0.7, ME, FV); for (let f = 0; f < nF; f++) { const yb = hOf(f) + FLOOR; if (yb > y1 - 0.6) break; strip(yb - 0.17, yb + 0.17, 0.2, trim, ME); } }
         vstrip(0.3, 0.6, 0.36, trim, y0, y1, ME); vstrip(L - 0.3, 0.6, 0.36, trim, y0, y1, ME);
+        if (first && street && !rec.poi) { strip(4.5, 4.62, 0.14, mixc(pal.accent, 0x20242c, 0.35), S_, 0, L, 1.1); strip(0.15, 0.6, 0.12, dark, ME, 0, L); } // lit lobby band over the ground floor and a dark steel plinth
         strip(y1 - 0.8, y1, 0.42, cap, ME); strip(y1 - 0.9, y1 - 0.8, 0.34, mixc(pal.accent, 0x20242c, 0.7), S_, 0, L, 0.35);
       } else if (look === 'deco') {
         if (vis) for (let k = 2; k < nCells - 1; k += 2) vstrip(2 * k, 0.5, 0.2, fin, y0, y1 - 1.0);
@@ -585,6 +586,7 @@ function relief(B, rec) {
       } else { // concrete / modern
         if (vis) for (let k = 2; k < nCells; k += 2) vstrip(2 * k, 0.4, 0.22, fin, y0, y1, CO);
         vstrip(0.3, 0.6, 0.28, fin, y0, y1, CO); vstrip(L - 0.3, 0.6, 0.28, fin, y0, y1, CO);
+        if (first && street && !rec.poi) strip(4.5, 4.58, 0.1, mixc(pal.accent, 0x20242c, 0.5), S_, 0, L, 0.8); // lit lobby line
         if (vis) { for (let f = 0; f < nF; f++) { const yb = hOf(f) + FLOOR; if (yb < y1 - 0.2) strip(yb - 0.22, yb, 0.2, trim, CO); }
           if (hi && R() < 0.6) for (let f = 0; f < nF; f++) strip(hOf(f) + yh + 0.08, hOf(f) + yh + 0.15, 0.62, trim, CO); } // sun-shade blades above the windows
         strip(y1 - 0.5, y1, 0.32, cap, CO);

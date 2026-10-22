@@ -23,7 +23,7 @@ export const JOB_STRINGS = {
     summary: '{0} קריאות · בסיס {1} · טיפים {2} · בונוס {3} · סך הכול {4}', summaryNone: 'לא הושלמו קריאות', fines: 'קנס נזק לרכב {0}',
     r_quit: 'סיימתם משמרת', r_mission: 'משימה התחילה', r_dead: 'נפצעתם קשה', r_busted: 'נעצרתם', r_wrecked: 'הרכב נהרס', r_abandoned: 'עזבתם את הרכב', r_lost: 'הרכב אבד', r_switch: 'עברתם לעבודה אחרת',
     leaveWarn: 'חזרו לרכב! המשמרת תסתיים בעוד {0} שנ׳', busy: 'סיימו את המשימה הנוכחית קודם', copsBlock: 'איבדו את המשטרה לפני שמתחילים משמרת', noVehicle: 'אין מקום לרכב העבודה בתחנה',
-    keys: 'J – סיום משמרת בתחנה · N – דלגו על הקריאה', keysSiren: 'G – סירנה', skipped: 'הקריאה בוטלה', level: 'דרגה {0}', levelUp: '{0}: דרגה {1}! {2}', tierUp: 'שדרוג רכב: הרכב החדש מחכה בתחנה (דרגה {0})', streak: 'רצף {0}',
+    keys: 'J – סיום משמרת בתחנה · N – דלגו על הקריאה', keysSiren: 'G – סירנה', keysT: 'עצרו בתחנה לסיום משמרת · N – דלגו על הקריאה', startStop: 'עצרו בסימון כדי להתחיל משמרת: {0}', endStop: 'עצרו כדי לסיים משמרת', skipped: 'הקריאה בוטלה', level: 'דרגה {0}', levelUp: '{0}: דרגה {1}! {2}', tierUp: 'שדרוג רכב: הרכב החדש מחכה בתחנה (דרגה {0})', streak: 'רצף {0}',
     tip: 'טיפ', bonus: 'בונוס', base: 'בסיס', waiting: 'ממתינים לקריאה…', depotHint: 'נקודת עבודה',
     pCalls: 'קריאות', pEarned: 'הרווחתם', pMood: 'מצב רוח הנוסע', pPatient: 'מצב המטופל', pOrder: 'מצב ההזמנה', pTank: 'מים', pComfort: 'נוחות הנסיעה', pCar: 'מצב הרכב', pFare: 'מונה', pStop: 'תחנה {0}/{1}', pPax: 'נוסעים', pFires: 'מוקדי אש', pHeat: 'חיפוש',
     addr: 'בלוק {0}-{1}',
@@ -47,7 +47,7 @@ export const JOB_STRINGS = {
     summary: '{0} calls · base {1} · tips {2} · bonus {3} · total {4}', summaryNone: 'No calls completed', fines: 'Vehicle damage fine {0}',
     r_quit: 'You ended the shift', r_mission: 'A mission started', r_dead: 'You were badly hurt', r_busted: 'You were arrested', r_wrecked: 'The vehicle was wrecked', r_abandoned: 'You left the vehicle', r_lost: 'The vehicle was lost', r_switch: 'You switched jobs',
     leaveWarn: 'Get back in your vehicle! Shift ends in {0} s', busy: 'Finish the current mission first', copsBlock: 'Lose the cops before starting a shift', noVehicle: 'No room for the work vehicle at the depot',
-    keys: 'J – end shift at the depot · N – skip the call', keysSiren: 'G – siren', skipped: 'Call cancelled', level: 'Level {0}', levelUp: '{0}: level {1}! {2}', tierUp: 'Vehicle upgrade: the new vehicle waits at the depot (tier {0})', streak: 'Streak {0}',
+    keys: 'J – end shift at the depot · N – skip the call', keysSiren: 'G – siren', keysT: 'Stop at the depot to end the shift · N – skip the call', startStop: 'Stop in the marker to start a shift: {0}', endStop: 'Stop to end the shift', skipped: 'Call cancelled', level: 'Level {0}', levelUp: '{0}: level {1}! {2}', tierUp: 'Vehicle upgrade: the new vehicle waits at the depot (tier {0})', streak: 'Streak {0}',
     tip: 'Tip', bonus: 'Bonus', base: 'Base', waiting: 'Waiting for a call…', depotHint: 'Job depot',
     pCalls: 'Calls', pEarned: 'Earned', pMood: 'Passenger mood', pPatient: 'Patient', pOrder: 'Order', pTank: 'Water', pComfort: 'Ride comfort', pCar: 'Vehicle', pFare: 'Meter', pStop: 'Stop {0}/{1}', pPax: 'Passengers', pFires: 'Fires', pHeat: 'Heat',
     addr: 'Block {0}-{1}',
@@ -299,7 +299,7 @@ export class Jobs {
     if (v) { this.seat(v); v.special = 'job'; v.jobCar = id; v.parked = false; }
     const r = { id, def, dep, lvl, veh: v, t0: G.time, shift: { calls: 0, base: 0, tips: 0, bonus: 0, xp: 0, fines: 0, fails: 0 }, streak: 0, call: null, nextT: 3, away: 0, st: {}, marks: [], peds: [], h: newHud(), cf: newCf(), sirenOff: false, vmark: null, prompt: null };
     this.active = r; this.stats[id].shifts++; this.prompt = null;
-    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
+    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr(G.input.isTouch ? 'keysT' : 'keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
     try { IM[id].start?.(this, r); } catch (e) { console.error(e); }
     return true;
   }
@@ -338,7 +338,7 @@ export class Jobs {
     const G = this.game, P = G.player, I = G.input; this.prompt = null; let near = null;
     for (const d of this.depots) if (d.dist < JOBS.depotRange + (P.vehicle ? 2 : 0)) near = d;
     if (!near || P.dead || G.state !== 'playing' || G.missions.active) { this.stopT = 0; return; }
-    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = (eOk ? 'E – ' : touch && !foot ? '' : 'J – ') + tr('start', this.name(near.id));
+    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = touch && !foot ? tr('startStop', this.name(near.id)) : (eOk ? 'E – ' : touch ? '' : 'J – ') + tr('start', this.name(near.id));
     if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
     else if (touch && !foot) { this.stopT = (this.stopT || 0) + (P.vehicle.speed < 0.6 ? dt : -this.stopT); if (this.stopT > 1.2) { this.stopT = 0; this.start(near.id); } } // no J key on a touch screen: standing still in the marker starts the shift
   }
@@ -362,8 +362,8 @@ export class Jobs {
     if (!this.active) return;
     if (r.away > 2) h.obj = tr('leaveWarn', Math.max(0, Math.ceil(JOBS.abandon - r.away)));
     // depot: end the shift (not while hauling a stolen car through the yard)
-    const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (r.dep.marker) r.dep.marker.mesh.visible = true;
-    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P); this.prompt = (eOk ? 'E' : 'J') + ' – ' + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
+    const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (dd > JOBS.depotRange + 12) r.outDep = true; if (r.dep.marker) r.dep.marker.mesh.visible = true;
+    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P), tv = I.isTouch && P.vehicle; this.prompt = tv ? (r.outDep ? tr('endStop') : null) : (eOk ? 'E – ' : I.isTouch ? '' : 'J – ') + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); if (tv && r.outDep) { this.stopT = P.vehicle.speed < 0.6 ? (this.stopT || 0) + dt : 0; if (this.stopT > 1.5) { this.stopT = 0; return this.endShift(r, 'quit'); } } }
     // keep the weapon fire of a job vehicle (drive-by) quiet
     if (v && P.vehicle === v && IM[r.id].noGun) P.fireT = Math.max(P.fireT, 0.12);
     // siren: lights flash and the sound plays while the call runs (toggle with G)

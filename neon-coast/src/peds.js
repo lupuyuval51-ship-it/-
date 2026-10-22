@@ -38,7 +38,7 @@ function lookContext(game, x, z) {
 function pickTrait(game, x, z, c, area) {
   const Z = zones(game), hr = c.hour, night = hr >= 20.5 || hr < 4.5, r = Math.random();
   if (Z.club && night && (x - Z.club.x) ** 2 + (z - Z.club.z) ** 2 < 100 * 100 && r < 0.5) return 'clubber';
-  if (!c.rain && ((hr >= 5 && hr < 8.5) || (hr >= 17 && hr < 20)) && r < (area ? 0.2 : 0.11)) return 'jogger';
+  if (!c.rain && ((hr >= 5 && hr < 8.5) || (hr >= 17 && hr < 20)) && r < (area ? (hr < 8.5 ? 0.34 : 0.22) : 0.11)) return 'jogger'; // the beach strip fills with runners at dawn
   if (c.zone === 'beach' && !c.rain && hr >= 8 && hr < 19 && r < 0.2) return 'tourist';
   return null;
 }
@@ -521,6 +521,7 @@ export class Ped {
       case 'fight': if (r < 0.5) this.startGawk(ev); else if (r < 0.7) this.flee(ev.x, ev.z, 6); else if (r < 0.74 && !el && d < 9 && ev.culprit === P) this.startFight(P); break;
       case 'accident': if (r < 0.55) this.startGawk(ev); else if (r < 0.65 && d < 22) this.startHelp(ev.x, ev.z); else if (r < 0.72) this.flee(ev.x, ev.z, 5); break;
       case 'brawl': if (r < 0.6) this.startGawk(ev); else if (r < 0.74) this.flee(ev.x, ev.z, 5); break;
+      case 'siren': if (r < 0.4 && !this.act && (this.state === 'walk' || this.state === 'idle') && !this.staff) { this.wv.x = ev.x; this.wv.z = ev.z; this.lk = 1; this.idleAct('lookAround', null, 2 + Math.random() * 2); } break; // heads turn towards a siren, some stop to look
       case 'heli': if (r < 0.18 && !this.act && ev.pos) this.idleAct('point', { target: ev.pos }, 4 + Math.random() * 3); break;
     }
   }
@@ -740,7 +741,7 @@ export class Ped {
 //   venues    doors, queues, awnings and staff posts of every shop; benches and bus stops come from the street furniture
 //   steering  the neighbour list of the frame, used for separation and for passing on the right
 // =====================================================================================================================
-const EV = { gunfire: { reach: 32, ttl: 14, max: 6 }, explosion: { reach: 45, ttl: 25, max: 14 }, death: { reach: 24, ttl: 22, max: 7 }, fight: { reach: 16, ttl: 14, max: 8 }, accident: { reach: 40, ttl: 30, max: 14 }, brawl: { reach: 28, ttl: 20, max: 10 }, heli: { reach: 80, ttl: 10, max: 0 } };
+const EV = { gunfire: { reach: 32, ttl: 14, max: 6 }, explosion: { reach: 45, ttl: 25, max: 14 }, death: { reach: 24, ttl: 22, max: 7 }, fight: { reach: 16, ttl: 14, max: 8 }, accident: { reach: 40, ttl: 30, max: 14 }, brawl: { reach: 28, ttl: 20, max: 10 }, heli: { reach: 80, ttl: 10, max: 0 }, siren: { reach: 30, ttl: 5, max: 0 } };
 const STAY = { burger: [25, 35], clothes: [40, 70], casino: [60, 140], bank: [30, 50], dealer: [30, 40], guns: [25, 35], hospital: [40, 80], safehouse: [60, 140] };
 export class Crowd {
   constructor(game) {
@@ -774,7 +775,7 @@ export class Crowd {
     const rain = (G.rainLevel || 0) > 0.28; if (rain !== this.raining) { this.raining = rain; if (rain) this.rainEpoch++; }
     this.staffT -= dt; if (this.staffT <= 0) { this.staffT = 1; this.staffUpkeep(); }
     this.wreckT -= dt; if (this.wreckT <= 0) { this.wreckT = 0.8; this.scanWrecks(); }
-    this.groupFresh(); this.aimCheck(); this.brawlCheck(dt); this.heliCheck(dt); this.murmurTick(); this.laughTick(dt);
+    this.groupFresh(); this.aimCheck(); this.brawlCheck(dt); this.heliCheck(dt); this.sirenCheck(dt); this.murmurTick(); this.laughTick(dt);
     for (let i = this.evs.length - 1; i >= 0; i--) if (G.time > this.evs[i].t1) this.evs.splice(i, 1);
   }
   // ---------- events ----------
@@ -948,6 +949,11 @@ export class Crowd {
   }
   // a wreck is an accident for as long as people care to look
   scanWrecks() { const G = this.g, P = G.player; for (const v of G.vehicles) { if (!v.wrecked || v._cw) continue; v._cw = true; if (Math.hypot(v.x - P.x, v.z - P.z) < 170) this.event('accident', v.x, v.z, null); } }
+  // an emergency vehicle with its siren on, within 60 m and moving, turns heads (once every 3 s, no allocation)
+  sirenCheck(dt) {
+    this.sirenT = (this.sirenT || 0) - dt; if (this.sirenT > 0) return; this.sirenT = 3; const G = this.g, P = G.player, V = G.vehicles;
+    for (let i = 0; i < V.length; i++) { const v = V[i]; if (!v.siren || v.wrecked || Math.abs(v.speed) < 4) continue; if ((v.x - P.x) ** 2 + (v.z - P.z) ** 2 < 3600) { this.event('siren', v.x, v.z, null); return; } }
+  }
   heliCheck(dt) {
     const G = this.g, h = G.police && G.police.heli; if (!h || !h.group) return; this.heliT -= dt; if (this.heliT > 0) return; this.heliT = 8; const p = h.group.position; if (Math.hypot(p.x - G.player.x, p.z - G.player.z) < 90) this.event('heli', p.x, p.z, { pos: p });
   }

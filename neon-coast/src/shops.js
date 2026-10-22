@@ -574,6 +574,7 @@ function shelf(ib, x, z, L, d, yaw, o = {}) { // shelving unit: back, sides, boa
   ib.at(x, 0, z, yaw); ib.box('matte', -L / 2, 0, -d / 2, L / 2, h, -d / 2 + 0.04, body, { no: 'S' }); ib.box('matte', -L / 2, 0, -d / 2, -L / 2 + 0.04, h, d / 2, body); ib.box('matte', L / 2 - 0.04, 0, -d / 2, L / 2, h, d / 2, body);
   for (let k = 0; k < n; k++) {
     const y = 0.1 + k * gap; ib.box('matte', -L / 2, y, -d / 2, L / 2, y + 0.03, d / 2, shade(body, 1.2), { no: 'D' });
+    for (let u = -L / 2 + 0.12; u < L / 2 - 0.2; u += 0.26 + r() * 0.12) { ib.box('plastic', u, y + 0.005, d / 2, u + 0.1, y + 0.03, d / 2 + 0.012, 0xf4f0e0, { no: 'D' }); ib.box('plastic', u + 0.01, y + 0.012, d / 2 + 0.012, u + 0.05, y + 0.026, d / 2 + 0.016, pick(r, [0xe0453a, 0xffd34e, 0x1d2027])); } // price tags on the shelf lip
     for (let u = -L / 2 + 0.07; u < L / 2 - 0.2;) { const w = 0.08 + r() * 0.16, hh = iH[0] + r() * (iH[1] - iH[0]), dd = Math.min(d - 0.1, 0.1 + r() * 0.22); ib.box('matte', u, y + 0.03, -d / 2 + 0.05, Math.min(u + w, L / 2 - 0.06), y + 0.03 + hh, -d / 2 + 0.05 + dd, pick(r, pal), { no: 'D' }); u += w + 0.015 + r() * 0.04; }
   }
   ib.col(-L / 2, -d / 2, L / 2, d / 2, h); ib.end();

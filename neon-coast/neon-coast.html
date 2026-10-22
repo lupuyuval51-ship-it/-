@@ -1017,11 +1017,45 @@ function raySphere(ox, oy, oz, dx, dy, dz, cx, cy, cz, r) {
   const d2 = lx * lx + ly * ly + lz * lz - tca * tca; if (d2 > r * r) return null; return tca - Math.sqrt(r * r - d2);
 }
 
-return {clamp, lerp, damp, rand, randInt, pick, dist2, dist, wrapAngle, angleLerp, fmtMoney, fmtTime, mulberry, GeoBuilder, mergeGeometries, xform, M4, StaticGrid, rayBox, disposeGeometries, raySphere};
+// ---- generated-pixel cache (IndexedDB): the plant atlas and the normal maps are drawn once per device and version, later loads reuse the pixels ----
+const PIX_VERSION = 'w1-v1';
+const _pix = new Map();
+let _pixDb = null, _pixOpen = true;
+function preloadPixCache(timeoutMs = 1500) {
+  return new Promise(resolve => {
+    let done = false; const fin = () => { if (!done) { done = true; _pixOpen = false; resolve(); } };
+    const timer = setTimeout(fin, timeoutMs);
+    try {
+      if (typeof indexedDB === 'undefined') { clearTimeout(timer); fin(); return; }
+      const rq = indexedDB.open('neon-coast-pix', 1);
+      rq.onupgradeneeded = () => { try { rq.result.createObjectStore('pix'); } catch (e) { /* exists */ } };
+      rq.onerror = rq.onblocked = () => { clearTimeout(timer); fin(); };
+      rq.onsuccess = () => {
+        try {
+          _pixDb = rq.result; const st = _pixDb.transaction('pix', 'readonly').objectStore('pix'), q = st.getAll(), kq = st.getAllKeys();
+          q.onsuccess = () => { try { if (!done) { const ks = kq.result, vs = q.result; for (let i = 0; i < ks.length; i++) { const v = vs[i]; if (v && v.ver === PIX_VERSION && v.px && v.px.length === v.w * v.h * 4) _pix.set(ks[i], v); } } } catch (e) { /* ignore */ } clearTimeout(timer); fin(); };
+          q.onerror = () => { clearTimeout(timer); fin(); };
+        } catch (e) { clearTimeout(timer); fin(); }
+      };
+    } catch (e) { clearTimeout(timer); fin(); }
+  });
+}
+// the cached RGBA bytes for a key at exactly w x h, or null
+function pixSig(s) { let h = 5381; s = String(s); for (let i = 0; i < s.length; i++) h = (Math.imul(h, 33) ^ s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); } // content signature: a changed drawing function changes the key, so a stale atlas is never served
+function pixGet(key, w, h) { const v = _pix.get(key); if (!v || v.w !== w || v.h !== h) return null; _pix.delete(key); return v.px; } // handed out once: the map does not keep the big array alive
+// store a complete pixel array (fire and forget; any failure is ignored)
+function pixPut(key, w, h, px) {
+  try {
+    if (!_pixDb || !px || px.length !== w * h * 4) return;
+    const tx = _pixDb.transaction('pix', 'readwrite'); tx.objectStore('pix').put({ ver: PIX_VERSION, w, h, px }, key); tx.onerror = tx.onabort = () => {};
+  } catch (e) { /* ignore */ }
+}
+
+return {clamp, lerp, damp, rand, randInt, pick, dist2, dist, wrapAngle, angleLerp, fmtMoney, fmtTime, mulberry, GeoBuilder, mergeGeometries, xform, M4, StaticGrid, rayBox, disposeGeometries, raySphere, preloadPixCache, pixSig, pixGet, pixPut};
 })();
 const __m_textures = (function(){
 const THREE = __three;
-const {mulberry} = __m_utils;
+const {mulberry, pixGet, pixPut, pixSig} = __m_utils;
 
 const cache = new Map();
 function canvasTex(w, h, draw, opts = {}) {
@@ -1303,16 +1337,19 @@ function setTextureQuality(q) { TEX_LOW = q === 'low'; }
 function normalTex(key, w, h, drawHeight, strength = 2.5, clampTex = false) {
   if (TEX_LOW) { w = Math.max(64, w >> 1); h = Math.max(64, h >> 1); }
   return memo('n:' + key, () => {
-    const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d');
-    drawHeight(ctx, w, h);
-    const src = ctx.getImageData(0, 0, w, h).data; const out = ctx.createImageData(w, h); const d = out.data;
-    const H = (x, y) => { x = (x + w) % w; y = (y + h) % h; return src[(y * w + x) * 4] / 255; };
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const dx = (H(x + 1, y) - H(x - 1, y)) * strength, dy = (H(x, y + 1) - H(x, y - 1)) * strength;
-      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); const i = (y * w + x) * 4;
-      d[i] = (nx / l * 0.5 + 0.5) * 255; d[i + 1] = (ny / l * 0.5 + 0.5) * 255; d[i + 2] = (nz / l * 0.5 + 0.5) * 255; d[i + 3] = 255;
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d'), pkey = 'n:' + key + pixSig(drawHeight + '|' + strength + '|' + normalTex), hit = pixGet(pkey, w, h);
+    if (hit) ctx.putImageData(new ImageData(new Uint8ClampedArray(hit.buffer, hit.byteOffset, hit.length), w, h), 0, 0);
+    else {
+      drawHeight(ctx, w, h);
+      const src = ctx.getImageData(0, 0, w, h).data; const out = ctx.createImageData(w, h); const d = out.data;
+      const H = (x, y) => { x = (x + w) % w; y = (y + h) % h; return src[(y * w + x) * 4] / 255; };
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const dx = (H(x + 1, y) - H(x - 1, y)) * strength, dy = (H(x, y + 1) - H(x, y - 1)) * strength;
+        let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); const i = (y * w + x) * 4;
+        d[i] = (nx / l * 0.5 + 0.5) * 255; d[i + 1] = (ny / l * 0.5 + 0.5) * 255; d[i + 2] = (nz / l * 0.5 + 0.5) * 255; d[i + 3] = 255;
+      }
+      ctx.putImageData(out, 0, 0); pixPut(pkey, w, h, new Uint8Array(d.buffer.slice(0)));
     }
-    ctx.putImageData(out, 0, 0);
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = clampTex ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 16; t.needsUpdate = true; return t;
   });
 }
@@ -1541,7 +1578,7 @@ return {envRegister, envUnregister, EnvMap};
 const __m_flora = (function(){
 const THREE = __three;
 const {CITY} = __m_config;
-const {mulberry, clamp} = __m_utils;
+const {mulberry, clamp, pixGet, pixPut, pixSig} = __m_utils;
 
 // Neon Coast, plants and street lamps (release 3, W1). Two systems live here so that world.js only has to call them:
 //  Flora: every tree, palm, shrub, hedge, flower bed, tuft of grass, pot and wall vine. One 2048 px procedural atlas, ONE shared material (wind sway,
@@ -1729,19 +1766,24 @@ const _atlases = new Map(); // size -> atlas: at most two (1024 low, 2048 med / 
 function plantAtlas(size) {
   if (_atlases.has(size)) return _atlases.get(size);
   ATLAS_DET = size < 2048 ? 0.5 : 1;
-  const cv = document.createElement('canvas'); cv.width = cv.height = size; const ctx = cv.getContext('2d'), k = size / 2048, cells = packCells(), byId = {};
-  ctx.scale(k, k);
-  for (const c of cells) {
-    byId[c.id] = c; ctx.save(); ctx.translate(c.x, c.y); ctx.beginPath(); ctx.rect(0, 0, c.w, c.h); ctx.clip();
-    if (BARKS[c.id]) BARKS[c.id](ctx, c.w, c.h); else LEAVES[c.id](ctx, c.w, c.h, mulberry([...c.id].reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, 7)));
-    ctx.restore();
+  const cells = packCells(), byId = {}, pkey = 'atlas' + size + pixSig(JSON.stringify(cells) + Object.values(BARKS).join() + Object.values(LEAVES).join() + parseCol + packCells); let px = pixGet(pkey, size, size);
+  if (px) for (const c of cells) byId[c.id] = c;
+  else {
+    const cv = document.createElement('canvas'); cv.width = cv.height = size; const ctx = cv.getContext('2d'), k = size / 2048;
+    ctx.scale(k, k);
+    for (const c of cells) {
+      byId[c.id] = c; ctx.save(); ctx.translate(c.x, c.y); ctx.beginPath(); ctx.rect(0, 0, c.w, c.h); ctx.clip();
+      if (BARKS[c.id]) BARKS[c.id](ctx, c.w, c.h); else LEAVES[c.id](ctx, c.w, c.h, mulberry([...c.id].reduce((h, ch) => Math.imul(h, 31) + ch.charCodeAt(0) | 0, 7)));
+      ctx.restore();
+    }
+    const img = ctx.getImageData(0, 0, size, size), d = img.data;
+    for (const c of cells) if (c.bg) { // fill the fully transparent texels with the cell colour (premultiplied canvases lose their RGB at alpha 0)
+      const [r, g, b] = parseCol(c.bg), x0 = Math.floor(c.x * k), y0 = Math.floor(c.y * k), x1 = Math.min(size, Math.ceil((c.x + c.w) * k)), y1 = Math.min(size, Math.ceil((c.y + c.h) * k));
+      for (let y = y0; y < y1; y++) for (let x = x0, o = (y * size + x0) * 4; x < x1; x++, o += 4) if (d[o + 3] === 0) { d[o] = r; d[o + 1] = g; d[o + 2] = b; }
+    }
+    px = new Uint8Array(d.buffer.slice(0)); pixPut(pkey, size, size, px);
   }
-  const img = ctx.getImageData(0, 0, size, size), d = img.data;
-  for (const c of cells) if (c.bg) { // fill the fully transparent texels with the cell colour (premultiplied canvases lose their RGB at alpha 0)
-    const [r, g, b] = parseCol(c.bg), x0 = Math.floor(c.x * k), y0 = Math.floor(c.y * k), x1 = Math.min(size, Math.ceil((c.x + c.w) * k)), y1 = Math.min(size, Math.ceil((c.y + c.h) * k));
-    for (let y = y0; y < y1; y++) for (let x = x0, o = (y * size + x0) * 4; x < x1; x++, o += 4) if (d[o + 3] === 0) { d[o] = r; d[o + 1] = g; d[o + 2] = b; }
-  }
-  const tex = new THREE.DataTexture(new Uint8Array(d.buffer.slice(0)), size, size, THREE.RGBAFormat); // rows top-first, so v = y / size (no flip)
+  const tex = new THREE.DataTexture(px, size, size, THREE.RGBAFormat); // rows top-first, so v = y / size (no flip)
   tex.colorSpace = THREE.SRGBColorSpace; tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.anisotropy = 8; tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping; tex.flipY = false; tex.needsUpdate = true;
   const A = { size, tex, cell: id => { const c = byId[id], e = id[0] === 'b' && id.length > 3 && BARKS[id] ? 1.5 : 0; return { u0: (c.x + e) / 2048, u1: (c.x + c.w - e) / 2048, v0: c.y / 2048, v1: (c.y + c.h) / 2048 }; } };
   _atlases.set(size, A); return A;
@@ -3454,7 +3496,7 @@ function crewLook(base) {
 const FAB = { denim: 1, jersey: 2, poplin: 3, knit: 4, fleece: 5, wool: 6, leather: 7, nylon: 8, satin: 9, canvas: 10, cord: 11, pique: 12, pinstripe: 13, rubber: 14, straw: 15, plaid: 16, spandex: 17, twill: 18, mesh: 19, glitter: 20, glass: 21, metal: 22, felt: 23 };
 // per layer: tiles per metre, bump height (m), base roughness, roughness swing with the height
 const FAB_INFO = [null,
-  { tile: 9, amp: 0.00045, rough: 0.9, swing: 0.12 }, { tile: 12, amp: 0.0007, rough: 0.92, swing: 0.1 }, { tile: 11, amp: 0.0003, rough: 0.78, swing: 0.1 }, { tile: 7, amp: 0.0016, rough: 1.0, swing: 0.05 },
+  { tile: 9, amp: 0.00045, rough: 0.9, swing: 0.12 }, { tile: 12, amp: 0.0007, rough: 0.92, swing: 0.1 }, { tile: 11, amp: 0.0003, rough: 0.78, swing: 0.1 }, { tile: 10, amp: 0.0012, rough: 1.0, swing: 0.05 },
   { tile: 9, amp: 0.0008, rough: 1.0, swing: 0.02 }, { tile: 8, amp: 0.0005, rough: 0.84, swing: 0.1 }, { tile: 14, amp: 0.0009, rough: 0.46, swing: 0.4 }, { tile: 8, amp: 0.0005, rough: 0.52, swing: 0.25 },
   { tile: 6, amp: 0.0001, rough: 0.34, swing: 0.1 }, { tile: 10, amp: 0.0008, rough: 0.95, swing: 0.05 }, { tile: 12, amp: 0.0012, rough: 0.95, swing: 0.05 }, { tile: 12, amp: 0.0009, rough: 0.88, swing: 0.1 },
   { tile: 8, amp: 0.0004, rough: 0.82, swing: 0.1 }, { tile: 10, amp: 0.0003, rough: 0.58, swing: 0.2 }, { tile: 9, amp: 0.0016, rough: 0.9, swing: 0.1 }, { tile: 5, amp: 0.0005, rough: 0.86, swing: 0.1 },
@@ -3484,14 +3526,14 @@ function voro(u, v, G, s, o) {
 const FAB_GEN = [null,
   (x, y, o) => { const u = x / FS, v = y / FS, tw = ((x + y) & 3) < 2 ? 1 : 0, fade = pfbm(u, v, 4, 11), st = pn(u * 32, v * 2, 32, 3), sl = hash2(x, y, 5), l = 0.83 + 0.1 * tw + 0.3 * (fade - 0.5) + 0.1 * (st - 0.5) + 0.07 * (sl - 0.5); o[0] = l * 0.98; o[1] = l; o[2] = l * 1.04; o[3] = 0.3 + 0.45 * tw + 0.25 * sl; }, // 1 denim: twill diagonal, fade patches, streaks
   (x, y, o) => { const c = 0.5 + 0.5 * Math.sin(x / 4 * TAU), r = ((y >> 2) & 1) * 0.5, l = 0.9 + 0.07 * c + 0.05 * Math.sin((y / 4 + r) * TAU) + 0.12 * (pfbm(x / FS, y / FS, 8, 17) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.5 + 0.3 * c; }, // 2 jersey knit
-  (x, y, o) => { const w = ((x >> 1) + (y >> 1)) & 1, l = 0.95 + 0.04 * w + 0.05 * (hash2(x, y, 9) - 0.5) + 0.03 * (pfbm(x / FS, y / FS, 6, 4) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.4 + 0.3 * w; }, // 3 poplin
+  (x, y, o) => { const w = ((x >> 2) + (y >> 2)) & 1, l = 0.95 + 0.04 * w + 0.05 * (hash2(x, y, 9) - 0.5) + 0.03 * (pfbm(x / FS, y / FS, 6, 4) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.4 + 0.3 * w; }, // 3 poplin
   (x, y, o) => { const u8 = (x & 7) / 8, v8 = (y & 7) / 8, h = Math.pow(Math.sin(Math.PI * u8), 1.3) * (0.78 + 0.22 * Math.cos((v8 + 0.5 * Math.abs(u8 - 0.5)) * TAU)), l = 0.6 + 0.4 * h + 0.06 * (hash2(x, y, 2) - 0.5); o[0] = o[1] = o[2] = l; o[3] = h; }, // 4 knit: rib columns with V stitches
   (x, y, o) => { const l = 0.86 + 0.2 * (hash2(x, y, 6) - 0.5) + 0.14 * (pfbm(x / FS, y / FS, 8, 21) - 0.5); o[0] = o[1] = o[2] = l; o[3] = hash2(x >> 1, y >> 1, 8); }, // 5 fleece
   (x, y, o) => { const d = ((y >> 3) & 1) ? x + y : x - y + 256, t = tri(d / 8), l = 0.82 + 0.13 * t + 0.07 * (hash2(x, y, 12) - 0.5) + 0.08 * (pfbm(x / FS, y / FS, 8, 5) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t; }, // 6 wool: herringbone
   (x, y, o) => { const u = x / FS, v = y / FS, d = voro(u, v, 11, 4, o), e = sst(0.02, 0.22, d), cr = pfbm(u, v, 5, 33), l = 0.6 + 0.4 * e + 0.12 * (cr - 0.5) - 0.06 * (1 - sst(0.0, 0.5, o[4])); o[0] = l * 1.02; o[1] = l; o[2] = l * 0.97; o[3] = 0.25 + 0.65 * e; }, // 7 leather: pebble grain, creases
   (x, y, o) => { const line = (x & 15) === 0 || (y & 15) === 0 ? 1 : 0, wv = (x + y) & 1, l = 0.96 - 0.12 * line + 0.03 * wv + 0.03 * (hash2(x, y, 14) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.25 * wv + 0.55 * line + 0.2; }, // 8 nylon: ripstop grid
   (x, y, o) => { const l = 0.97 + 0.07 * Math.sin((x + y) / FS * TAU * 2) + 0.02 * (pfbm(x / FS, y / FS, 4, 8) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.5 + 0.3 * Math.sin((x - y) / FS * TAU * 3); }, // 9 satin
-  (x, y, o) => { const w = ((x >> 1) ^ (y >> 1)) & 1, l = 0.8 + 0.12 * w + 0.1 * (hash2(x, y, 3) - 0.5) + 0.1 * (pfbm(x / FS, y / FS, 6, 31) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.3 + 0.6 * w; }, // 10 canvas: coarse plain weave
+  (x, y, o) => { const w = ((x >> 2) ^ (y >> 2)) & 1, l = 0.8 + 0.12 * w + 0.1 * (hash2(x, y, 3) - 0.5) + 0.1 * (pfbm(x / FS, y / FS, 6, 31) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.3 + 0.6 * w; }, // 10 canvas: coarse plain weave
   (x, y, o) => { const t = 0.5 + 0.5 * Math.sin(x / 8 * TAU), l = 0.7 + 0.3 * t + 0.05 * (hash2(x, y, 6) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t; }, // 11 corduroy wales
   (x, y, o) => { const a = tri(x / 8), b = tri(y / 8), d = Math.abs(a - 0.5) + Math.abs(b - 0.5), l = 0.76 + 0.3 * sst(0.2, 0.5, d) + 0.05 * (hash2(x, y, 1) - 0.5); o[0] = o[1] = o[2] = l; o[3] = d; }, // 12 piqué waffle
   (x, y, o) => { const d = ((y >> 3) & 1) ? x + y : x - y + 256, t = tri(d / 8), st = (x & 31) === 8 ? 1 : (x & 31) === 9 ? 0.5 : 0, l = 0.8 + 0.07 * t + 0.4 * st + 0.06 * (pfbm(x / FS, y / FS, 8, 9) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t * 0.8; }, // 13 pinstripe suit
@@ -3527,12 +3569,14 @@ const float chAmp[${NFAB}] = float[${NFAB}](${GL_ARR('amp', 0)});
 const float chRgh[${NFAB}] = float[${NFAB}](${GL_ARR('rough', 0.8)});
 const float chSwg[${NFAB}] = float[${NFAB}](${GL_ARR('swing', 0)});`;
 const GL_MAP = `
-vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAbsK = 0.0, chTintK = 0.0, chAlpha = 1.0;
+vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chFade = 1.0, chRough = 0.8, chH = 0.0, chAbsK = 0.0, chTintK = 0.0, chAlpha = 1.0;
 {
   vec2 uvq = vMapUv; vec2 g1 = dFdx(uvq), g2 = dFdy(uvq); vec3 fx = dFdx(vFabP), fy = dFdy(vFabP);
   if (uvq.x <= -0.5) {
     int fid = int(-uvq.x + 0.5); float tl = chTile[fid], L = float(fid - 1);
     vec3 w = pow(abs(normalize(vFabN)), vec3(4.0)); vec3 p = vFabP * tl, px = fx * tl, py = fy * tl; vec4 t = vec4(0.0); float ws = 0.0;
+    float fpx = sqrt(max(dot(px, px), dot(py, py))) * ${FS}.0; // texels per pixel: the weave is blurred (x1.8 gradients) and its contrast fades out before it can alias
+    px *= 1.8; py *= 1.8; chFade = 1.0 - smoothstep(0.35, 1.4, fpx);
     #ifdef CH_LOW
       if (w.x > w.y && w.x > w.z) t = textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); else if (w.z > w.y) t = textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); else t = textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz);
       ws = 1.0;
@@ -3542,7 +3586,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
       if (w.y > 0.05) { t += w.y * textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz); ws += w.y; }
       if (w.z > 0.05) { t += w.z * textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); ws += w.z; }
     #endif
-    t /= max(ws, 0.001); chMul = t.rgb * 1.25; chH = t.a * chAmp[fid]; chRough = clamp(chRgh[fid] + (t.a - 0.5) * chSwg[fid], 0.12, 1.0);
+    t /= max(ws, 0.001); chMul = mix(vec3(0.94), t.rgb * 1.25, 0.72 * chFade); chH = t.a * chAmp[fid] * chFade; chRough = clamp(chRgh[fid] + (t.a - 0.5) * chSwg[fid], 0.12, 1.0);
   } else if (uvq.x > 0.0005) {
     vec4 c = textureGrad(map, uvq, g1, g2), ma = textureGrad(chMaskA, uvq, g1, g2), mb = textureGrad(chMaskB, uvq, g1, g2);
     chMul = c.rgb * 1.25 * mix(1.0, vTint.a, ma.r); chAlpha = mb.b; chAbsC = c.rgb; chAbsK = ma.b; chTintK = ma.g; chRough = mb.r; chH = mb.g * 0.004;
@@ -3741,8 +3785,8 @@ function vnoise(x, y, z) {
 // ---------- body spec: proportions of one body type ----------
 // Base = an average adult male (1.73 m). Rows are [y, half width x, front depth z, back depth z] for the trunk, [y, half width, half depth, centre z] for a limb. Sex and build scale them by zone.
 const TK0 = [[0.70, 0.062, 0.030, 0.050], [0.73, 0.088, 0.032, 0.050], [0.76, 0.115, 0.036, 0.056], [0.79, 0.140, 0.044, 0.068], [0.82, 0.158, 0.064, 0.086], [0.86, 0.170, 0.094, 0.110], [0.94, 0.165, 0.100, 0.112], [1.02, 0.150, 0.097, 0.099], [1.08, 0.141, 0.094, 0.092], [1.15, 0.148, 0.097, 0.093], [1.23, 0.160, 0.104, 0.096],
-  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.150, 0.085, 0.083], [1.452, 0.119, 0.072, 0.074], [1.476, 0.087, 0.062, 0.064], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
-const AK0 = [[1.422, 0.014, 0.018, 0], [1.415, 0.034, 0.038, 0], [1.401, 0.050, 0.053, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
+  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.162, 0.094, 0.089], [1.432, 0.132, 0.080, 0.080], [1.452, 0.106, 0.069, 0.071], [1.476, 0.074, 0.060, 0.062], [1.50, 0.058, 0.055, 0.056], [1.525, 0.056, 0.054, 0.054]];
+const AK0 = [[1.430, 0.010, 0.013, 0], [1.424, 0.026, 0.030, 0], [1.415, 0.040, 0.044, 0], [1.401, 0.052, 0.055, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
   [1.130, 0.040, 0.042, -0.004], [1.090, 0.043, 0.044, 0], [1.030, 0.040, 0.040, 0], [0.965, 0.033, 0.033, 0], [0.915, 0.027, 0.029, 0], [0.888, 0.021, 0.027, 0]];
 const LK0 = [[1.00, 0.042, 0.050, 0], [0.94, 0.050, 0.060, -0.002], [0.88, 0.060, 0.074, -0.002], [0.84, 0.072, 0.088, -0.002], [0.80, 0.086, 0.098, -0.001], [0.76, 0.088, 0.094, 0], [0.66, 0.078, 0.083, 0.003], [0.58, 0.066, 0.071, 0.004], [0.525, 0.059, 0.064, 0.005], [0.485, 0.058, 0.060, 0.002],
   [0.43, 0.058, 0.064, -0.004], [0.36, 0.060, 0.069, -0.008], [0.28, 0.051, 0.058, -0.006], [0.19, 0.040, 0.045, -0.003], [0.13, 0.036, 0.040, 0], [0.085, 0.037, 0.041, 0.004], [0.055, 0.036, 0.041, 0.004]];
@@ -4097,7 +4141,7 @@ function facePlan(look, fem) {
   look._iris = look.eye === undefined || look.eye === 0x1c1612 ? pick(IRIS) : look.eye;
   look._nose = [0.9 + q() * 0.26, 0.86 + q() * 0.3, q()]; // width, protrusion, tip turn-up
   look._tie = pick([0xd1345b, 0x14161c, 0xf5c542, 0x3ce8f5, 0xffffff, 0x7b4fbf, 0x2aa198, 0xff7f50]); // hair tie / scrunchie colour
-  look._lip = look.lipstick === true ? pick([0xb0174a, 0xc2185b, 0x8a1c2e, 0xd2455c, 0x6f2a55]) : (look.lipstick || 0);
+  look._lip = look.lipstick === true ? pick([0xc04a62, 0xd05a78, 0xb04658, 0xd9706a, 0xa8506e]) : (look.lipstick || 0);
   return look;
 }
 // writes the atlas UVs of every tagged part of a head from the look's expression state: the whole expression change
@@ -4170,7 +4214,7 @@ function buildHeadBase(look, fem) {
   // brow and stubble darkness: the hair's luminance against the skin; on dark skin the floor is a fraction of the skin, so a brow still reads on it
   const hairL = lumi(col(look.hair === undefined ? 0x2b2b2b : look.hair)), skinL = Math.max(lumi(skin), 0.03), dk = clamp((0.2 - skinL) / 0.12, 0, 1);
   const bk = clamp(Math.min(hairL, skinL * (1 - 0.55 * dk)) / skinL * 0.85 + 0.09, 0.1, 0.92), fg = headSkin(H.face, info, look.freckles), TI = new Uint8Array(H.face.n * 4), lipC = look._lip ? col(look._lip) : null;
-  for (let i = 0; i < H.face.n; i++) { if (lipC) { TI[i * 4] = lipC.r * 255; TI[i * 4 + 1] = lipC.g * 255; TI[i * 4 + 2] = lipC.b * 255; } TI[i * 4 + 3] = bk * 255; }
+  for (let i = 0; i < H.face.n; i++) { if (lipC) { TI[i * 4] = lipC.r * 255; TI[i * 4 + 1] = lipC.g * 255; TI[i * 4 + 2] = lipC.b * 255; } TI[i * 4 + 3] = (lipC ? bk * 0.7 : bk) * 255; }
   fg.setAttribute('tint', new THREE.BufferAttribute(TI, 4, true)); fg.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(H.face.n * 2), 2)); fg.userData.tag = { kind: 'face', local: H.face.local }; put(fg);
   buildEyes(look, HS, fem, skin); buildNose(look, HS, info); buildEars(look, HS, info, skin);
   return HS;
@@ -4248,7 +4292,11 @@ function paintFace(X, ex, fk, rnd) {
   const bt = fem ? 0.0052 : 0.0100, arch = fem ? 0.0058 : 0.0035, bI = [0.0125, LMK.brow - 0.005 + x.bi], bP = [0.0385, LMK.brow + 0.0042 + arch * (fem ? 1 : 0.6) + x.bp], bO = [0.0605, LMK.brow - 0.0045 + x.bo + (fem ? 0.0012 : 0)];
   for (const s of [1, -1]) {
     const cv = t => { const a = 1 - t, y = a * a * bI[1] + 2 * a * t * bP[1] + t * t * bO[1], xx = a * a * bI[0] + 2 * a * t * bP[0] + t * t * bO[0], th = bt * (0.5 + 0.7 * Math.sin(Math.min(1, t * 1.5) * Math.PI * 0.5) * (1 - 0.8 * t * t)) * (age ? 0.8 : 1); return [s * xx, y, th]; };
-    const pts = [0, 0.25, 0.5, 0.75, 1].map(t => cv(t)); stroke(X, pts.map(p => [p[0], p[1]]), bt * 0.9, fem ? 0.62 : 0.88, [0.9, 0.86, 0.86], [1, 0, 0]);
+    const pts = [0, 0.25, 0.5, 0.75, 1].map(t => cv(t)); stroke(X, pts.map(p => [p[0], p[1]]), bt * 0.9, fem ? 0.78 : 0.92, [0.9, 0.86, 0.86], [1, 0, 0]);
+    stroke(X, [[s * 0.0215, E + 0.0125 + 0.4 * x.bi], [s * 0.034, E + 0.0152 + 0.4 * x.bp], [s * 0.0475, E + 0.0105]], 0.0010, 0.42, [0.8, 0.7, 0.7], null, [0.62, 0.2, 0]);   // eyelid crease
+    stroke(X, [[s * 0.0215, E + 0.0062], [s * 0.034, E + 0.0086], [s * 0.0475, E + 0.0055]], 0.0007, fem ? 0.7 : 0.5, [0.45, 0.4, 0.4]);   // upper lash line
+    blob(X, s * 0.0045, E + 0.0005, 0.007, 0.012, 0.3, [0.84, 0.74, 0.74]);   // nose bridge side shadow
+    blob(X, s * 0.043, 1.552, 0.02, 0.014, 0.16, [0.93, 0.88, 0.88]);   // soft warm shade over the jaw
     for (let i = 0; i < (fem ? 46 : 64); i++) { const t = rnd(), p = cv(t), q = cv(Math.min(1, t + 0.06)), th = p[2]; let dx = q[0] - p[0], dy = q[1] - p[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l; const ox = (rnd() - 0.5) * th * 0.9, oy = (rnd() - 0.5) * th * 0.9, ln = 0.0042 + rnd() * 0.0035; ink(X, c => { c.beginPath(); c.moveTo(p[0] + ox - dx * 0.0008, p[1] + oy - dy * 0.0008 + th * 0.12 * (1 - t)); c.lineTo(p[0] + ox + dx * ln, p[1] + oy + dy * ln + th * 0.1 * t * (rnd() - 0.4)); c.lineWidth = 0.00055; c.lineCap = 'round'; c.stroke(); }, null, [1, 0, 0], null, 0.85); }
     if (x.fu) stroke(X, [[s * 0.004, LMK.brow + 0.001], [s * 0.0055, LMK.brow + 0.011 + 0.005 * x.fu]], 0.0016, 0.6 * x.fu, [0.78, 0.68, 0.68], null, [0.62, 0.3, 0]);   // furrow between the brows
     // crow's feet and old-age lines
@@ -4268,7 +4316,9 @@ function paintFace(X, ex, fk, rnd) {
   fillp(X, lipsOutline, 0.96, lipM, [0, 1, 0], [0.68, 0.32, 0]);                              // lips: colour, lipstick mask (only where tint is set), gloss and a little height
   stroke(X, topO, 0.0007, 0.5, [0.8, 0.52, 0.52]); stroke(X, botO, 0.0007, 0.4, [0.85, 0.58, 0.58]);
   if (mo < 0.002) stroke(X, upper.map((p, i) => [p[0], p[1] - 0.0004 + (lower[i][1] - p[1]) * 0.5]), 0.0011, 0.9, [0.38, 0.24, 0.24], null, [0.62, 0.15, 0]); // the closed mouth: a dark line where the lips meet                 // the vermilion border
-  blob(X, 0, yc - bH * 0.55 - mo * 0.5, 0.012, 0.0028, 0.5, [1.14, 1.0, 1.0], null, [0.3, 0.2, 0]);                  // light on the lower lip
+  blob(X, 0, yc - bH * 0.55 - mo * 0.5, 0.013, 0.0034, 0.7, [1.2, 1.04, 1.04], null, [0.34, 0.2, 0]);
+  blob(X, 0, yc - bH * 1.0 - mo * 0.5, 0.012, 0.0026, 0.3, [0.86, 0.76, 0.76]);   // shadow under the lower lip
+  if (rnd() < 0.3) { const mx = (rnd() < 0.5 ? 1 : -1) * (0.02 + rnd() * 0.03), my = 1.54 + rnd() * 0.05; blob(X, mx, my, 0.0016, 0.0016, 0.9, [0.5, 0.38, 0.34]); }   // a mole on some faces                  // light on the lower lip
   if (mo > 0.0012) { // the opening: dark inside, teeth, tongue (absolute colours)
     const hole = upper.concat(lower.slice().reverse());
     ink(X, c => { spath(c, hole, true); c.fill(); }, { abs: 0x2a0d12 }, [0, 0, 1], [0.35, 0, 0]);
@@ -4885,7 +4935,7 @@ function buildBody(look, fem, gm) {
   // ----- the top -----
   let front = TL; // offset of the outermost layer on the trunk (for decals)
   const SLV = TL - 0.007; // sleeves hug the arm closer than the trunk garment hangs
-  const sleeves = (c, off, yEnd, o) => { if (sl !== 'none') for (const s of [1, -1]) shellArm(s, 1.422, yEnd, off, c, Object.assign({ capLo: true, lip: 'b' }, o)); };
+  const sleeves = (c, off, yEnd, o) => { if (sl !== 'none') for (const s of [1, -1]) shellArm(s, 1.412, yEnd, off, c, Object.assign({ capLo: true, lip: 'b' }, o)); };
   const shortEnd = 1.25, longEnd = 0.918, rolled = sl === 'rolled' ? 1.12 : null;
   const elbow = y => 0.0032 * Math.sin(y * 52) * gaus(y, 1.13, 0.08), waist = y => 0.0042 * (0.5 + 0.5 * Math.sin(y * 50)) * smx(1.08, 0.92, y);
   const cuffs = (c, y0, y1, off, f) => { for (const s of [1, -1]) shellArm(s, y0, y1, off, c, { lip: 'ab', noise: 0, fab: f || F.top }); };
@@ -4907,7 +4957,7 @@ function buildBody(look, fem, gm) {
     if (puffer || longC) for (const sd of [1, -1]) shellTorso(lo + 0.02, NY, ofs + 0.003, mat(outer, 0.86), { lip: 'ab', arcFn: y => { const a = g(y); return [sd > 0 ? HALF_PI + a : HALF_PI - a - 0.1, 0.1]; }, noise: 0, fab: F.top });
     const sleeveOff = ofs - 0.007 + (puffer ? 0.004 : 0), end = rolled ? 1.12 : longEnd + 0.01;
     for (const s of [1, -1]) {
-      shellArm(s, 1.422, end, sleeveOff, outer, { capLo: true, lip: 'b', drape: y => 0.006 * smx(1.25, 0.95, y) + elbow(y) + (puffer ? 0.007 * Math.pow(Math.abs(Math.sin(y * 40)), 0.6) : 0), noise: 0.015, fab: F.top, step: puffer ? 0.024 : undefined });
+      shellArm(s, 1.412, end, sleeveOff, outer, { capLo: true, lip: 'b', drape: y => 0.006 * smx(1.25, 0.95, y) + elbow(y) + (puffer ? 0.007 * Math.pow(Math.abs(Math.sin(y * 40)), 0.6) : 0), noise: 0.015, fab: F.top, step: puffer ? 0.024 : undefined });
       if (!rolled) shellArm(s, 0.95, 0.905, SLV + 0.002, col(gm.inner), { lip: 'ab', fab: F.inner }); // shirt cuff
       if (puffer || leath || k === 'jacket' || para) shellArm(s, end + 0.02, end - 0.0, sleeveOff + 0.003, mat(outer, 0.7), { lip: 'ab', noise: 0, fab: FAB.knit }); // ribbed cuffs
     }
@@ -5884,7 +5934,7 @@ function lookContext(game, x, z) {
 function pickTrait(game, x, z, c, area) {
   const Z = zones(game), hr = c.hour, night = hr >= 20.5 || hr < 4.5, r = Math.random();
   if (Z.club && night && (x - Z.club.x) ** 2 + (z - Z.club.z) ** 2 < 100 * 100 && r < 0.5) return 'clubber';
-  if (!c.rain && ((hr >= 5 && hr < 8.5) || (hr >= 17 && hr < 20)) && r < (area ? 0.2 : 0.11)) return 'jogger';
+  if (!c.rain && ((hr >= 5 && hr < 8.5) || (hr >= 17 && hr < 20)) && r < (area ? (hr < 8.5 ? 0.34 : 0.22) : 0.11)) return 'jogger'; // the beach strip fills with runners at dawn
   if (c.zone === 'beach' && !c.rain && hr >= 8 && hr < 19 && r < 0.2) return 'tourist';
   return null;
 }
@@ -6367,6 +6417,7 @@ class Ped {
       case 'fight': if (r < 0.5) this.startGawk(ev); else if (r < 0.7) this.flee(ev.x, ev.z, 6); else if (r < 0.74 && !el && d < 9 && ev.culprit === P) this.startFight(P); break;
       case 'accident': if (r < 0.55) this.startGawk(ev); else if (r < 0.65 && d < 22) this.startHelp(ev.x, ev.z); else if (r < 0.72) this.flee(ev.x, ev.z, 5); break;
       case 'brawl': if (r < 0.6) this.startGawk(ev); else if (r < 0.74) this.flee(ev.x, ev.z, 5); break;
+      case 'siren': if (r < 0.4 && !this.act && (this.state === 'walk' || this.state === 'idle') && !this.staff) { this.wv.x = ev.x; this.wv.z = ev.z; this.lk = 1; this.idleAct('lookAround', null, 2 + Math.random() * 2); } break; // heads turn towards a siren, some stop to look
       case 'heli': if (r < 0.18 && !this.act && ev.pos) this.idleAct('point', { target: ev.pos }, 4 + Math.random() * 3); break;
     }
   }
@@ -6586,7 +6637,7 @@ class Ped {
 //   venues    doors, queues, awnings and staff posts of every shop; benches and bus stops come from the street furniture
 //   steering  the neighbour list of the frame, used for separation and for passing on the right
 // =====================================================================================================================
-const EV = { gunfire: { reach: 32, ttl: 14, max: 6 }, explosion: { reach: 45, ttl: 25, max: 14 }, death: { reach: 24, ttl: 22, max: 7 }, fight: { reach: 16, ttl: 14, max: 8 }, accident: { reach: 40, ttl: 30, max: 14 }, brawl: { reach: 28, ttl: 20, max: 10 }, heli: { reach: 80, ttl: 10, max: 0 } };
+const EV = { gunfire: { reach: 32, ttl: 14, max: 6 }, explosion: { reach: 45, ttl: 25, max: 14 }, death: { reach: 24, ttl: 22, max: 7 }, fight: { reach: 16, ttl: 14, max: 8 }, accident: { reach: 40, ttl: 30, max: 14 }, brawl: { reach: 28, ttl: 20, max: 10 }, heli: { reach: 80, ttl: 10, max: 0 }, siren: { reach: 30, ttl: 5, max: 0 } };
 const STAY = { burger: [25, 35], clothes: [40, 70], casino: [60, 140], bank: [30, 50], dealer: [30, 40], guns: [25, 35], hospital: [40, 80], safehouse: [60, 140] };
 class Crowd {
   constructor(game) {
@@ -6620,7 +6671,7 @@ class Crowd {
     const rain = (G.rainLevel || 0) > 0.28; if (rain !== this.raining) { this.raining = rain; if (rain) this.rainEpoch++; }
     this.staffT -= dt; if (this.staffT <= 0) { this.staffT = 1; this.staffUpkeep(); }
     this.wreckT -= dt; if (this.wreckT <= 0) { this.wreckT = 0.8; this.scanWrecks(); }
-    this.groupFresh(); this.aimCheck(); this.brawlCheck(dt); this.heliCheck(dt); this.murmurTick(); this.laughTick(dt);
+    this.groupFresh(); this.aimCheck(); this.brawlCheck(dt); this.heliCheck(dt); this.sirenCheck(dt); this.murmurTick(); this.laughTick(dt);
     for (let i = this.evs.length - 1; i >= 0; i--) if (G.time > this.evs[i].t1) this.evs.splice(i, 1);
   }
   // ---------- events ----------
@@ -6794,6 +6845,11 @@ class Crowd {
   }
   // a wreck is an accident for as long as people care to look
   scanWrecks() { const G = this.g, P = G.player; for (const v of G.vehicles) { if (!v.wrecked || v._cw) continue; v._cw = true; if (Math.hypot(v.x - P.x, v.z - P.z) < 170) this.event('accident', v.x, v.z, null); } }
+  // an emergency vehicle with its siren on, within 60 m and moving, turns heads (once every 3 s, no allocation)
+  sirenCheck(dt) {
+    this.sirenT = (this.sirenT || 0) - dt; if (this.sirenT > 0) return; this.sirenT = 3; const G = this.g, P = G.player, V = G.vehicles;
+    for (let i = 0; i < V.length; i++) { const v = V[i]; if (!v.siren || v.wrecked || Math.abs(v.speed) < 4) continue; if ((v.x - P.x) ** 2 + (v.z - P.z) ** 2 < 3600) { this.event('siren', v.x, v.z, null); return; } }
+  }
   heliCheck(dt) {
     const G = this.g, h = G.police && G.police.heli; if (!h || !h.group) return; this.heliT -= dt; if (this.heliT > 0) return; this.heliT = 8; const p = h.group.position; if (Math.hypot(p.x - G.player.x, p.z - G.player.z) < 90) this.event('heli', p.x, p.z, { pos: p });
   }
@@ -7414,6 +7470,7 @@ function shelf(ib, x, z, L, d, yaw, o = {}) { // shelving unit: back, sides, boa
   ib.at(x, 0, z, yaw); ib.box('matte', -L / 2, 0, -d / 2, L / 2, h, -d / 2 + 0.04, body, { no: 'S' }); ib.box('matte', -L / 2, 0, -d / 2, -L / 2 + 0.04, h, d / 2, body); ib.box('matte', L / 2 - 0.04, 0, -d / 2, L / 2, h, d / 2, body);
   for (let k = 0; k < n; k++) {
     const y = 0.1 + k * gap; ib.box('matte', -L / 2, y, -d / 2, L / 2, y + 0.03, d / 2, shade(body, 1.2), { no: 'D' });
+    for (let u = -L / 2 + 0.12; u < L / 2 - 0.2; u += 0.26 + r() * 0.12) { ib.box('plastic', u, y + 0.005, d / 2, u + 0.1, y + 0.03, d / 2 + 0.012, 0xf4f0e0, { no: 'D' }); ib.box('plastic', u + 0.01, y + 0.012, d / 2 + 0.012, u + 0.05, y + 0.026, d / 2 + 0.016, pick(r, [0xe0453a, 0xffd34e, 0x1d2027])); } // price tags on the shelf lip
     for (let u = -L / 2 + 0.07; u < L / 2 - 0.2;) { const w = 0.08 + r() * 0.16, hh = iH[0] + r() * (iH[1] - iH[0]), dd = Math.min(d - 0.1, 0.1 + r() * 0.22); ib.box('matte', u, y + 0.03, -d / 2 + 0.05, Math.min(u + w, L / 2 - 0.06), y + 0.03 + hh, -d / 2 + 0.05 + dd, pick(r, pal), { no: 'D' }); u += w + 0.015 + r() * 0.04; }
   }
   ib.col(-L / 2, -d / 2, L / 2, d / 2, h); ib.end();
@@ -7804,7 +7861,7 @@ const K = hex => { let c = _col.get(hex); if (!c) _col.set(hex, c = new THREE.Co
 const mixc = (a, b, t) => K(a).clone().lerp(K(b), t);
 const PAL = { // trim colours per facade id: trim (ledges, cornices), fin (pilasters, fins), cap (parapet, crown), accent (neon lines)
   glass: { trim: 0x1a2232, fin: 0x2c3850, cap: 0x12161e, accent: 0x3ce8f5, look: 'glass' }, tower: { trim: 0x0f131c, fin: 0x1e2638, cap: 0x0b0e15, accent: 0xff4fa3, look: 'glass' },
-  deco: { trim: 0xf6ead8, fin: 0xe9d3bd, cap: 0xd7b79e, accent: 0xff9ad5, look: 'deco' }, mint: { trim: 0xf2fffa, fin: 0xb8e2d2, cap: 0x8fc9b6, accent: 0x3ce8f5, look: 'deco' },
+  deco: { trim: 0xf6ead8, fin: 0xe9d3bd, cap: 0xd7b79e, accent: 0xff9ad5, look: 'deco' }, mint: { trim: 0xf2fffa, fin: 0xb8e2d2, cap: 0xb2e3d1, accent: 0x3ce8f5, look: 'deco' },
   pink: { trim: 0xfff5f7, fin: 0xeaadbf, cap: 0xd98aa2, accent: 0xffd34e, look: 'deco' }, white: { trim: 0xf1efe8, fin: 0xd8d4c8, cap: 0xbab5a8, accent: 0xff5a5a, look: 'deco' },
   concrete: { trim: 0xb2aea8, fin: 0x908c87, cap: 0x7a7773, accent: 0xffb347, look: 'conc' }, brick: { trim: 0xd2c4ae, fin: 0xb59f86, cap: 0x8f7d6a, accent: 0xffcf80, look: 'brick' },
 };
@@ -8303,7 +8360,7 @@ function planter(db, x, z, y, ed, R) { db.obox(x, z, ed.tx, ed.tz, 0.45, 0.28, y
 const FH = 1 | 2 | 8 | 16 | 32, FV = 1 | 2 | 8, FB = 1 | 2 | 8 | 16;
 function relief(B, rec) {
   const R = rec.rng, pal = rec.pal, look = rec.look, hi = B.q === 'high', Qd = hi ? 1 : 0.6, relDB = B.dbAt('rel', rec.cx, rec.cz), fineDB = B.dbAt('fine', rec.cx, rec.cz), grid = B.w.grid, st = rec.style;
-  const trim = K(pal.trim), fin = K(pal.fin), cap = K(pal.cap), acc = K(pal.accent), ys = FLOOR * (0.45 - st.winH / 2), yh = FLOOR * (0.45 + st.winH / 2), sillC = mixc(pal.trim, 0xffffff, 0.15), dark = K(0x2d3036);
+  const vr = ((rec.id * 37) % 11) / 11, trim = mixc(pal.trim, vr < 0.5 ? 0x9a9690 : 0xffffff, 0.08 + 0.14 * Math.abs(vr - 0.5)), fin = K(pal.fin), cap = mixc(pal.cap, vr < 0.5 ? 0xa8a49e : 0xeeeeee, 0.06 + 0.1 * Math.abs(vr - 0.5)), acc = K(pal.accent), ys = FLOOR * (0.45 - st.winH / 2), yh = FLOOR * (0.45 + st.winH / 2), sillC = mixc(pal.trim, 0xffffff, 0.15), dark = K(0x2d3036);
   const neonLine = !rec.club && (rec.dist === 'beach' || rec.dist === 'downtown') && R() < 0.3, escapeSide = look === 'brick' || (look === 'conc' && R() < 0.3) ? SIDES[Math.floor(R() * 4)] : null, escDone = { v: false };
   const n0 = relDB.n, f0n = fineDB.n; rec.relTris = 0;
   rec.parts.forEach((p, pi) => {
@@ -8354,6 +8411,7 @@ function relief(B, rec) {
         const step = hi ? 1 : 2, fc = st.id === 'tower' ? fin : mixc(pal.fin, 0x88a0c0, 0.3);
         if (vis) { for (let k = 1; k < nCells; k += step) vstrip(2 * k, 0.1, 0.26, fc, y0 + (first ? 0 : 0.1), y1 - 0.7, ME, FV); for (let f = 0; f < nF; f++) { const yb = hOf(f) + FLOOR; if (yb > y1 - 0.6) break; strip(yb - 0.17, yb + 0.17, 0.2, trim, ME); } }
         vstrip(0.3, 0.6, 0.36, trim, y0, y1, ME); vstrip(L - 0.3, 0.6, 0.36, trim, y0, y1, ME);
+        if (first && street && !rec.poi) { strip(4.5, 4.62, 0.14, mixc(pal.accent, 0x20242c, 0.35), S_, 0, L, 1.1); strip(0.15, 0.6, 0.12, dark, ME, 0, L); } // lit lobby band over the ground floor and a dark steel plinth
         strip(y1 - 0.8, y1, 0.42, cap, ME); strip(y1 - 0.9, y1 - 0.8, 0.34, mixc(pal.accent, 0x20242c, 0.7), S_, 0, L, 0.35);
       } else if (look === 'deco') {
         if (vis) for (let k = 2; k < nCells - 1; k += 2) vstrip(2 * k, 0.5, 0.2, fin, y0, y1 - 1.0);
@@ -8370,6 +8428,7 @@ function relief(B, rec) {
       } else { // concrete / modern
         if (vis) for (let k = 2; k < nCells; k += 2) vstrip(2 * k, 0.4, 0.22, fin, y0, y1, CO);
         vstrip(0.3, 0.6, 0.28, fin, y0, y1, CO); vstrip(L - 0.3, 0.6, 0.28, fin, y0, y1, CO);
+        if (first && street && !rec.poi) strip(4.5, 4.58, 0.1, mixc(pal.accent, 0x20242c, 0.5), S_, 0, L, 0.8); // lit lobby line
         if (vis) { for (let f = 0; f < nF; f++) { const yb = hOf(f) + FLOOR; if (yb < y1 - 0.2) strip(yb - 0.22, yb, 0.2, trim, CO); }
           if (hi && R() < 0.6) for (let f = 0; f < nF; f++) strip(hOf(f) + yh + 0.08, hOf(f) + yh + 0.15, 0.62, trim, CO); } // sun-shade blades above the windows
         strip(y1 - 0.5, y1, 0.32, cap, CO);
@@ -11380,7 +11439,7 @@ const JOB_STRINGS = {
     summary: '{0} קריאות · בסיס {1} · טיפים {2} · בונוס {3} · סך הכול {4}', summaryNone: 'לא הושלמו קריאות', fines: 'קנס נזק לרכב {0}',
     r_quit: 'סיימתם משמרת', r_mission: 'משימה התחילה', r_dead: 'נפצעתם קשה', r_busted: 'נעצרתם', r_wrecked: 'הרכב נהרס', r_abandoned: 'עזבתם את הרכב', r_lost: 'הרכב אבד', r_switch: 'עברתם לעבודה אחרת',
     leaveWarn: 'חזרו לרכב! המשמרת תסתיים בעוד {0} שנ׳', busy: 'סיימו את המשימה הנוכחית קודם', copsBlock: 'איבדו את המשטרה לפני שמתחילים משמרת', noVehicle: 'אין מקום לרכב העבודה בתחנה',
-    keys: 'J – סיום משמרת בתחנה · N – דלגו על הקריאה', keysSiren: 'G – סירנה', skipped: 'הקריאה בוטלה', level: 'דרגה {0}', levelUp: '{0}: דרגה {1}! {2}', tierUp: 'שדרוג רכב: הרכב החדש מחכה בתחנה (דרגה {0})', streak: 'רצף {0}',
+    keys: 'J – סיום משמרת בתחנה · N – דלגו על הקריאה', keysSiren: 'G – סירנה', keysT: 'עצרו בתחנה לסיום משמרת · N – דלגו על הקריאה', startStop: 'עצרו בסימון כדי להתחיל משמרת: {0}', endStop: 'עצרו כדי לסיים משמרת', skipped: 'הקריאה בוטלה', level: 'דרגה {0}', levelUp: '{0}: דרגה {1}! {2}', tierUp: 'שדרוג רכב: הרכב החדש מחכה בתחנה (דרגה {0})', streak: 'רצף {0}',
     tip: 'טיפ', bonus: 'בונוס', base: 'בסיס', waiting: 'ממתינים לקריאה…', depotHint: 'נקודת עבודה',
     pCalls: 'קריאות', pEarned: 'הרווחתם', pMood: 'מצב רוח הנוסע', pPatient: 'מצב המטופל', pOrder: 'מצב ההזמנה', pTank: 'מים', pComfort: 'נוחות הנסיעה', pCar: 'מצב הרכב', pFare: 'מונה', pStop: 'תחנה {0}/{1}', pPax: 'נוסעים', pFires: 'מוקדי אש', pHeat: 'חיפוש',
     addr: 'בלוק {0}-{1}',
@@ -11404,7 +11463,7 @@ const JOB_STRINGS = {
     summary: '{0} calls · base {1} · tips {2} · bonus {3} · total {4}', summaryNone: 'No calls completed', fines: 'Vehicle damage fine {0}',
     r_quit: 'You ended the shift', r_mission: 'A mission started', r_dead: 'You were badly hurt', r_busted: 'You were arrested', r_wrecked: 'The vehicle was wrecked', r_abandoned: 'You left the vehicle', r_lost: 'The vehicle was lost', r_switch: 'You switched jobs',
     leaveWarn: 'Get back in your vehicle! Shift ends in {0} s', busy: 'Finish the current mission first', copsBlock: 'Lose the cops before starting a shift', noVehicle: 'No room for the work vehicle at the depot',
-    keys: 'J – end shift at the depot · N – skip the call', keysSiren: 'G – siren', skipped: 'Call cancelled', level: 'Level {0}', levelUp: '{0}: level {1}! {2}', tierUp: 'Vehicle upgrade: the new vehicle waits at the depot (tier {0})', streak: 'Streak {0}',
+    keys: 'J – end shift at the depot · N – skip the call', keysSiren: 'G – siren', keysT: 'Stop at the depot to end the shift · N – skip the call', startStop: 'Stop in the marker to start a shift: {0}', endStop: 'Stop to end the shift', skipped: 'Call cancelled', level: 'Level {0}', levelUp: '{0}: level {1}! {2}', tierUp: 'Vehicle upgrade: the new vehicle waits at the depot (tier {0})', streak: 'Streak {0}',
     tip: 'Tip', bonus: 'Bonus', base: 'Base', waiting: 'Waiting for a call…', depotHint: 'Job depot',
     pCalls: 'Calls', pEarned: 'Earned', pMood: 'Passenger mood', pPatient: 'Patient', pOrder: 'Order', pTank: 'Water', pComfort: 'Ride comfort', pCar: 'Vehicle', pFare: 'Meter', pStop: 'Stop {0}/{1}', pPax: 'Passengers', pFires: 'Fires', pHeat: 'Heat',
     addr: 'Block {0}-{1}',
@@ -11656,7 +11715,7 @@ class Jobs {
     if (v) { this.seat(v); v.special = 'job'; v.jobCar = id; v.parked = false; }
     const r = { id, def, dep, lvl, veh: v, t0: G.time, shift: { calls: 0, base: 0, tips: 0, bonus: 0, xp: 0, fines: 0, fails: 0 }, streak: 0, call: null, nextT: 3, away: 0, st: {}, marks: [], peds: [], h: newHud(), cf: newCf(), sirenOff: false, vmark: null, prompt: null };
     this.active = r; this.stats[id].shifts++; this.prompt = null;
-    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr('keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
+    G.hud.missionTitle(this.name(id)); this.toast(tr('shiftStart', this.name(id)), 'obj', 5); this.toast(tr(G.input.isTouch ? 'keysT' : 'keys') + (EMERGENCY.has(def.vehicle) ? ' · ' + tr('keysSiren') : ''), 'dim', 8); G.audio.pickup(); if (this.stats[id].shifts <= 2) this.toast(tr('hint_' + id), 'dim', 10);
     try { IM[id].start?.(this, r); } catch (e) { console.error(e); }
     return true;
   }
@@ -11695,7 +11754,7 @@ class Jobs {
     const G = this.game, P = G.player, I = G.input; this.prompt = null; let near = null;
     for (const d of this.depots) if (d.dist < JOBS.depotRange + (P.vehicle ? 2 : 0)) near = d;
     if (!near || P.dead || G.state !== 'playing' || G.missions.active) { this.stopT = 0; return; }
-    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = (eOk ? 'E – ' : touch && !foot ? '' : 'J – ') + tr('start', this.name(near.id));
+    const foot = !P.vehicle, touch = !!I.isTouch; const eOk = foot && this.eFree(P); this.prompt = touch && !foot ? tr('startStop', this.name(near.id)) : (eOk ? 'E – ' : touch ? '' : 'J – ') + tr('start', this.name(near.id));
     if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) this.start(near.id);
     else if (touch && !foot) { this.stopT = (this.stopT || 0) + (P.vehicle.speed < 0.6 ? dt : -this.stopT); if (this.stopT > 1.2) { this.stopT = 0; this.start(near.id); } } // no J key on a touch screen: standing still in the marker starts the shift
   }
@@ -11719,8 +11778,8 @@ class Jobs {
     if (!this.active) return;
     if (r.away > 2) h.obj = tr('leaveWarn', Math.max(0, Math.ceil(JOBS.abandon - r.away)));
     // depot: end the shift (not while hauling a stolen car through the yard)
-    const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (r.dep.marker) r.dep.marker.mesh.visible = true;
-    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P); this.prompt = (eOk ? 'E' : 'J') + ' – ' + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); }
+    const dd = dist(P.x, P.z, r.dep.x, r.dep.z); this.prompt = null; if (dd > JOBS.depotRange + 12) r.outDep = true; if (r.dep.marker) r.dep.marker.mesh.visible = true;
+    if (dd < JOBS.depotRange + (P.vehicle ? 2.5 : 0) && !(IM[r.id].noEnd?.(r))) { const eOk = this.eFree(P), tv = I.isTouch && P.vehicle; this.prompt = tv ? (r.outDep ? tr('endStop') : null) : (eOk ? 'E – ' : I.isTouch ? '' : 'J – ') + tr('end'); if ((eOk && (I.once('KeyE') || I.btnOnce('enter'))) || I.once('KeyJ')) return this.endShift(r, 'quit'); if (tv && r.outDep) { this.stopT = P.vehicle.speed < 0.6 ? (this.stopT || 0) + dt : 0; if (this.stopT > 1.5) { this.stopT = 0; return this.endShift(r, 'quit'); } } }
     // keep the weapon fire of a job vehicle (drive-by) quiet
     if (v && P.vehicle === v && IM[r.id].noGun) P.fireT = Math.max(P.fireT, 0.12);
     // siren: lights flash and the sound plays while the call runs (toggle with G)
@@ -13200,15 +13259,16 @@ class Game {
   // Four times a second: remove civilians who are too far (beyond 140 m only while hidden, beyond 220 m always), then spawn one if the budget allows.
   spawnPeds(dt) {
     this.pedSpawnT -= dt; if (this.pedSpawnT > 0) return;
-    const P = this.player, hard = pb('despawnHard'), soft = pb('despawnHidden'); let n = 0, far = null, fd = 60;
+    const P = this.player, hard = pb('despawnHard'), soft = pb('despawnHidden'); let n = 0, nn = 0, far = null, fd = 60;
     for (let i = this.peds.length - 1; i >= 0; i--) {
       const p = this.peds[i]; if (p.noDespawn || p.mission || !(p.kind === 'civ' || p.dead)) continue;
       const d = dist(p.x, p.z, P.x, P.z);
       if (d > hard || (d > soft && this.isHiddenFromCamera(p.x, 1, p.z))) { this.removePed(p); continue; }
-      if (p.kind === 'civ' && !p.dead && d > fd) { fd = d; far = p; }
+      if (p.kind === 'civ' && !p.dead) { if (d < 50) nn++; if (d > fd) { fd = d; far = p; } }
     }
     for (const p of this.peds) if (p.kind === 'civ' && !p.dead) n++;
-    const budget = this.pedBudget(); this.pedSpawnT = n < budget * 0.5 ? 0.1 : 0.25;
+    const budget = this.pedBudget(), hr = (this.clock / 60) % 24, short = hr >= 9 && hr < 19 && nn < budget * 0.17; this.pedSpawnT = n < budget * 0.5 || short ? 0.1 : 0.25; // by day fewer than a sixth of the budget within 50 m (a teleport, a quiet quarter) makes room: the farthest hidden civilian leaves and a new one is born near
+    if (short && n >= budget && far && fd > 100 && this.isHiddenFromCamera(far.x, 1, far.z)) { this.removePed(far); n--; }
     if (n > budget + 2 && far && this.isHiddenFromCamera(far.x, 1, far.z)) this.removePed(far); // the tier or the hour lowered the budget: the farthest hidden civilian leaves
     else if (n < budget) { const s = this.pickPedSpot(false); if (s) this.spawnCiv(s); }
   }
@@ -13258,13 +13318,15 @@ return {Game};
 (function(){
 const {initLang} = __m_i18n;
 const {Game} = __m_game;
+const {preloadPixCache} = __m_utils;
 // While the loading screen is still up, a startup error (no WebGL, a shader that does not compile, out of memory) is written onto it, so a phone shows what went wrong instead of a spinner or a blank page.
 const showFail = msg => { const l = document.getElementById('loading'); if (!l || l.hidden) return; const p = l.querySelector('p'), s = l.querySelector('.spinner'); if (s) s.style.display = 'none'; if (p) { p.style.direction = 'ltr'; p.style.padding = '0 20px'; p.style.wordBreak = 'break-word'; p.textContent = 'Could not start: ' + msg; } };
 window.addEventListener('error', e => showFail(e.message || 'script error'));
 window.addEventListener('unhandledrejection', e => showFail(String((e.reason && e.reason.message) || e.reason)));
 initLang();
 const boot = () => { try { const game = new Game(document.getElementById('c')); window.__game = game; game.boot(); } catch (e) { console.error(e); showFail(e && e.message ? e.message : String(e)); } };
-if (document.fonts?.ready) document.fonts.ready.then(boot, boot); else boot();
+const fontsReady = document.fonts?.ready ? document.fonts.ready.catch(() => {}) : Promise.resolve(); // the pixel cache is read in parallel with the fonts and never waits longer than 1.5 s
+Promise.all([fontsReady, preloadPixCache(1500).catch(() => {})]).then(boot, boot);
 
 })();
 </script>

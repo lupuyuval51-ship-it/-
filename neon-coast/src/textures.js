@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three.module.min.js';
-import { mulberry } from './utils.js';
+import { mulberry, pixGet, pixPut, pixSig } from './utils.js';
 
 const cache = new Map();
 function canvasTex(w, h, draw, opts = {}) {
@@ -281,16 +281,19 @@ export function setTextureQuality(q) { TEX_LOW = q === 'low'; }
 function normalTex(key, w, h, drawHeight, strength = 2.5, clampTex = false) {
   if (TEX_LOW) { w = Math.max(64, w >> 1); h = Math.max(64, h >> 1); }
   return memo('n:' + key, () => {
-    const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d');
-    drawHeight(ctx, w, h);
-    const src = ctx.getImageData(0, 0, w, h).data; const out = ctx.createImageData(w, h); const d = out.data;
-    const H = (x, y) => { x = (x + w) % w; y = (y + h) % h; return src[(y * w + x) * 4] / 255; };
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const dx = (H(x + 1, y) - H(x - 1, y)) * strength, dy = (H(x, y + 1) - H(x, y - 1)) * strength;
-      let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); const i = (y * w + x) * 4;
-      d[i] = (nx / l * 0.5 + 0.5) * 255; d[i + 1] = (ny / l * 0.5 + 0.5) * 255; d[i + 2] = (nz / l * 0.5 + 0.5) * 255; d[i + 3] = 255;
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const ctx = c.getContext('2d'), pkey = 'n:' + key + pixSig(drawHeight + '|' + strength + '|' + normalTex), hit = pixGet(pkey, w, h);
+    if (hit) ctx.putImageData(new ImageData(new Uint8ClampedArray(hit.buffer, hit.byteOffset, hit.length), w, h), 0, 0);
+    else {
+      drawHeight(ctx, w, h);
+      const src = ctx.getImageData(0, 0, w, h).data; const out = ctx.createImageData(w, h); const d = out.data;
+      const H = (x, y) => { x = (x + w) % w; y = (y + h) % h; return src[(y * w + x) * 4] / 255; };
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const dx = (H(x + 1, y) - H(x - 1, y)) * strength, dy = (H(x, y + 1) - H(x, y - 1)) * strength;
+        let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); const i = (y * w + x) * 4;
+        d[i] = (nx / l * 0.5 + 0.5) * 255; d[i + 1] = (ny / l * 0.5 + 0.5) * 255; d[i + 2] = (nz / l * 0.5 + 0.5) * 255; d[i + 3] = 255;
+      }
+      ctx.putImageData(out, 0, 0); pixPut(pkey, w, h, new Uint8Array(d.buffer.slice(0)));
     }
-    ctx.putImageData(out, 0, 0);
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = clampTex ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping; t.colorSpace = THREE.NoColorSpace; t.anisotropy = 16; t.needsUpdate = true; return t;
   });
 }

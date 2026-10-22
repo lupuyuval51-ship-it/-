@@ -312,7 +312,7 @@ export function crewLook(base) {
 export const FAB = { denim: 1, jersey: 2, poplin: 3, knit: 4, fleece: 5, wool: 6, leather: 7, nylon: 8, satin: 9, canvas: 10, cord: 11, pique: 12, pinstripe: 13, rubber: 14, straw: 15, plaid: 16, spandex: 17, twill: 18, mesh: 19, glitter: 20, glass: 21, metal: 22, felt: 23 };
 // per layer: tiles per metre, bump height (m), base roughness, roughness swing with the height
 const FAB_INFO = [null,
-  { tile: 9, amp: 0.00045, rough: 0.9, swing: 0.12 }, { tile: 12, amp: 0.0007, rough: 0.92, swing: 0.1 }, { tile: 11, amp: 0.0003, rough: 0.78, swing: 0.1 }, { tile: 7, amp: 0.0016, rough: 1.0, swing: 0.05 },
+  { tile: 9, amp: 0.00045, rough: 0.9, swing: 0.12 }, { tile: 12, amp: 0.0007, rough: 0.92, swing: 0.1 }, { tile: 11, amp: 0.0003, rough: 0.78, swing: 0.1 }, { tile: 10, amp: 0.0012, rough: 1.0, swing: 0.05 },
   { tile: 9, amp: 0.0008, rough: 1.0, swing: 0.02 }, { tile: 8, amp: 0.0005, rough: 0.84, swing: 0.1 }, { tile: 14, amp: 0.0009, rough: 0.46, swing: 0.4 }, { tile: 8, amp: 0.0005, rough: 0.52, swing: 0.25 },
   { tile: 6, amp: 0.0001, rough: 0.34, swing: 0.1 }, { tile: 10, amp: 0.0008, rough: 0.95, swing: 0.05 }, { tile: 12, amp: 0.0012, rough: 0.95, swing: 0.05 }, { tile: 12, amp: 0.0009, rough: 0.88, swing: 0.1 },
   { tile: 8, amp: 0.0004, rough: 0.82, swing: 0.1 }, { tile: 10, amp: 0.0003, rough: 0.58, swing: 0.2 }, { tile: 9, amp: 0.0016, rough: 0.9, swing: 0.1 }, { tile: 5, amp: 0.0005, rough: 0.86, swing: 0.1 },
@@ -342,14 +342,14 @@ function voro(u, v, G, s, o) {
 const FAB_GEN = [null,
   (x, y, o) => { const u = x / FS, v = y / FS, tw = ((x + y) & 3) < 2 ? 1 : 0, fade = pfbm(u, v, 4, 11), st = pn(u * 32, v * 2, 32, 3), sl = hash2(x, y, 5), l = 0.83 + 0.1 * tw + 0.3 * (fade - 0.5) + 0.1 * (st - 0.5) + 0.07 * (sl - 0.5); o[0] = l * 0.98; o[1] = l; o[2] = l * 1.04; o[3] = 0.3 + 0.45 * tw + 0.25 * sl; }, // 1 denim: twill diagonal, fade patches, streaks
   (x, y, o) => { const c = 0.5 + 0.5 * Math.sin(x / 4 * TAU), r = ((y >> 2) & 1) * 0.5, l = 0.9 + 0.07 * c + 0.05 * Math.sin((y / 4 + r) * TAU) + 0.12 * (pfbm(x / FS, y / FS, 8, 17) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.5 + 0.3 * c; }, // 2 jersey knit
-  (x, y, o) => { const w = ((x >> 1) + (y >> 1)) & 1, l = 0.95 + 0.04 * w + 0.05 * (hash2(x, y, 9) - 0.5) + 0.03 * (pfbm(x / FS, y / FS, 6, 4) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.4 + 0.3 * w; }, // 3 poplin
+  (x, y, o) => { const w = ((x >> 2) + (y >> 2)) & 1, l = 0.95 + 0.04 * w + 0.05 * (hash2(x, y, 9) - 0.5) + 0.03 * (pfbm(x / FS, y / FS, 6, 4) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.4 + 0.3 * w; }, // 3 poplin
   (x, y, o) => { const u8 = (x & 7) / 8, v8 = (y & 7) / 8, h = Math.pow(Math.sin(Math.PI * u8), 1.3) * (0.78 + 0.22 * Math.cos((v8 + 0.5 * Math.abs(u8 - 0.5)) * TAU)), l = 0.6 + 0.4 * h + 0.06 * (hash2(x, y, 2) - 0.5); o[0] = o[1] = o[2] = l; o[3] = h; }, // 4 knit: rib columns with V stitches
   (x, y, o) => { const l = 0.86 + 0.2 * (hash2(x, y, 6) - 0.5) + 0.14 * (pfbm(x / FS, y / FS, 8, 21) - 0.5); o[0] = o[1] = o[2] = l; o[3] = hash2(x >> 1, y >> 1, 8); }, // 5 fleece
   (x, y, o) => { const d = ((y >> 3) & 1) ? x + y : x - y + 256, t = tri(d / 8), l = 0.82 + 0.13 * t + 0.07 * (hash2(x, y, 12) - 0.5) + 0.08 * (pfbm(x / FS, y / FS, 8, 5) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t; }, // 6 wool: herringbone
   (x, y, o) => { const u = x / FS, v = y / FS, d = voro(u, v, 11, 4, o), e = sst(0.02, 0.22, d), cr = pfbm(u, v, 5, 33), l = 0.6 + 0.4 * e + 0.12 * (cr - 0.5) - 0.06 * (1 - sst(0.0, 0.5, o[4])); o[0] = l * 1.02; o[1] = l; o[2] = l * 0.97; o[3] = 0.25 + 0.65 * e; }, // 7 leather: pebble grain, creases
   (x, y, o) => { const line = (x & 15) === 0 || (y & 15) === 0 ? 1 : 0, wv = (x + y) & 1, l = 0.96 - 0.12 * line + 0.03 * wv + 0.03 * (hash2(x, y, 14) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.25 * wv + 0.55 * line + 0.2; }, // 8 nylon: ripstop grid
   (x, y, o) => { const l = 0.97 + 0.07 * Math.sin((x + y) / FS * TAU * 2) + 0.02 * (pfbm(x / FS, y / FS, 4, 8) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.5 + 0.3 * Math.sin((x - y) / FS * TAU * 3); }, // 9 satin
-  (x, y, o) => { const w = ((x >> 1) ^ (y >> 1)) & 1, l = 0.8 + 0.12 * w + 0.1 * (hash2(x, y, 3) - 0.5) + 0.1 * (pfbm(x / FS, y / FS, 6, 31) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.3 + 0.6 * w; }, // 10 canvas: coarse plain weave
+  (x, y, o) => { const w = ((x >> 2) ^ (y >> 2)) & 1, l = 0.8 + 0.12 * w + 0.1 * (hash2(x, y, 3) - 0.5) + 0.1 * (pfbm(x / FS, y / FS, 6, 31) - 0.5); o[0] = o[1] = o[2] = l; o[3] = 0.3 + 0.6 * w; }, // 10 canvas: coarse plain weave
   (x, y, o) => { const t = 0.5 + 0.5 * Math.sin(x / 8 * TAU), l = 0.7 + 0.3 * t + 0.05 * (hash2(x, y, 6) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t; }, // 11 corduroy wales
   (x, y, o) => { const a = tri(x / 8), b = tri(y / 8), d = Math.abs(a - 0.5) + Math.abs(b - 0.5), l = 0.76 + 0.3 * sst(0.2, 0.5, d) + 0.05 * (hash2(x, y, 1) - 0.5); o[0] = o[1] = o[2] = l; o[3] = d; }, // 12 piqué waffle
   (x, y, o) => { const d = ((y >> 3) & 1) ? x + y : x - y + 256, t = tri(d / 8), st = (x & 31) === 8 ? 1 : (x & 31) === 9 ? 0.5 : 0, l = 0.8 + 0.07 * t + 0.4 * st + 0.06 * (pfbm(x / FS, y / FS, 8, 9) - 0.5); o[0] = o[1] = o[2] = l; o[3] = t * 0.8; }, // 13 pinstripe suit
@@ -385,12 +385,14 @@ const float chAmp[${NFAB}] = float[${NFAB}](${GL_ARR('amp', 0)});
 const float chRgh[${NFAB}] = float[${NFAB}](${GL_ARR('rough', 0.8)});
 const float chSwg[${NFAB}] = float[${NFAB}](${GL_ARR('swing', 0)});`;
 const GL_MAP = `
-vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAbsK = 0.0, chTintK = 0.0, chAlpha = 1.0;
+vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chFade = 1.0, chRough = 0.8, chH = 0.0, chAbsK = 0.0, chTintK = 0.0, chAlpha = 1.0;
 {
   vec2 uvq = vMapUv; vec2 g1 = dFdx(uvq), g2 = dFdy(uvq); vec3 fx = dFdx(vFabP), fy = dFdy(vFabP);
   if (uvq.x <= -0.5) {
     int fid = int(-uvq.x + 0.5); float tl = chTile[fid], L = float(fid - 1);
     vec3 w = pow(abs(normalize(vFabN)), vec3(4.0)); vec3 p = vFabP * tl, px = fx * tl, py = fy * tl; vec4 t = vec4(0.0); float ws = 0.0;
+    float fpx = sqrt(max(dot(px, px), dot(py, py))) * ${FS}.0; // texels per pixel: the weave is blurred (x1.8 gradients) and its contrast fades out before it can alias
+    px *= 1.8; py *= 1.8; chFade = 1.0 - smoothstep(0.35, 1.4, fpx);
     #ifdef CH_LOW
       if (w.x > w.y && w.x > w.z) t = textureGrad(chFab, vec3(p.zy, L), px.zy, py.zy); else if (w.z > w.y) t = textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); else t = textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz);
       ws = 1.0;
@@ -400,7 +402,7 @@ vec3 chMul = vec3(1.0), chAbsC = vec3(0.0); float chRough = 0.8, chH = 0.0, chAb
       if (w.y > 0.05) { t += w.y * textureGrad(chFab, vec3(p.xz, L), px.xz, py.xz); ws += w.y; }
       if (w.z > 0.05) { t += w.z * textureGrad(chFab, vec3(p.xy, L), px.xy, py.xy); ws += w.z; }
     #endif
-    t /= max(ws, 0.001); chMul = t.rgb * 1.25; chH = t.a * chAmp[fid]; chRough = clamp(chRgh[fid] + (t.a - 0.5) * chSwg[fid], 0.12, 1.0);
+    t /= max(ws, 0.001); chMul = mix(vec3(0.94), t.rgb * 1.25, 0.72 * chFade); chH = t.a * chAmp[fid] * chFade; chRough = clamp(chRgh[fid] + (t.a - 0.5) * chSwg[fid], 0.12, 1.0);
   } else if (uvq.x > 0.0005) {
     vec4 c = textureGrad(map, uvq, g1, g2), ma = textureGrad(chMaskA, uvq, g1, g2), mb = textureGrad(chMaskB, uvq, g1, g2);
     chMul = c.rgb * 1.25 * mix(1.0, vTint.a, ma.r); chAlpha = mb.b; chAbsC = c.rgb; chAbsK = ma.b; chTintK = ma.g; chRough = mb.r; chH = mb.g * 0.004;
@@ -599,8 +601,8 @@ function vnoise(x, y, z) {
 // ---------- body spec: proportions of one body type ----------
 // Base = an average adult male (1.73 m). Rows are [y, half width x, front depth z, back depth z] for the trunk, [y, half width, half depth, centre z] for a limb. Sex and build scale them by zone.
 const TK0 = [[0.70, 0.062, 0.030, 0.050], [0.73, 0.088, 0.032, 0.050], [0.76, 0.115, 0.036, 0.056], [0.79, 0.140, 0.044, 0.068], [0.82, 0.158, 0.064, 0.086], [0.86, 0.170, 0.094, 0.110], [0.94, 0.165, 0.100, 0.112], [1.02, 0.150, 0.097, 0.099], [1.08, 0.141, 0.094, 0.092], [1.15, 0.148, 0.097, 0.093], [1.23, 0.160, 0.104, 0.096],
-  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.170, 0.096, 0.090], [1.432, 0.150, 0.085, 0.083], [1.452, 0.119, 0.072, 0.074], [1.476, 0.087, 0.062, 0.064], [1.50, 0.062, 0.056, 0.057], [1.525, 0.056, 0.054, 0.054]];
-const AK0 = [[1.422, 0.014, 0.018, 0], [1.415, 0.034, 0.038, 0], [1.401, 0.050, 0.053, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
+  [1.31, 0.172, 0.112, 0.098], [1.37, 0.178, 0.107, 0.093], [1.41, 0.162, 0.094, 0.089], [1.432, 0.132, 0.080, 0.080], [1.452, 0.106, 0.069, 0.071], [1.476, 0.074, 0.060, 0.062], [1.50, 0.058, 0.055, 0.056], [1.525, 0.056, 0.054, 0.054]];
+const AK0 = [[1.430, 0.010, 0.013, 0], [1.424, 0.026, 0.030, 0], [1.415, 0.040, 0.044, 0], [1.401, 0.052, 0.055, 0.001], [1.381, 0.058, 0.060, 0.002], [1.345, 0.057, 0.060, 0.003], [1.285, 0.051, 0.056, 0.006], [1.215, 0.045, 0.049, 0.004], [1.165, 0.041, 0.043, 0],
   [1.130, 0.040, 0.042, -0.004], [1.090, 0.043, 0.044, 0], [1.030, 0.040, 0.040, 0], [0.965, 0.033, 0.033, 0], [0.915, 0.027, 0.029, 0], [0.888, 0.021, 0.027, 0]];
 const LK0 = [[1.00, 0.042, 0.050, 0], [0.94, 0.050, 0.060, -0.002], [0.88, 0.060, 0.074, -0.002], [0.84, 0.072, 0.088, -0.002], [0.80, 0.086, 0.098, -0.001], [0.76, 0.088, 0.094, 0], [0.66, 0.078, 0.083, 0.003], [0.58, 0.066, 0.071, 0.004], [0.525, 0.059, 0.064, 0.005], [0.485, 0.058, 0.060, 0.002],
   [0.43, 0.058, 0.064, -0.004], [0.36, 0.060, 0.069, -0.008], [0.28, 0.051, 0.058, -0.006], [0.19, 0.040, 0.045, -0.003], [0.13, 0.036, 0.040, 0], [0.085, 0.037, 0.041, 0.004], [0.055, 0.036, 0.041, 0.004]];
@@ -955,7 +957,7 @@ function facePlan(look, fem) {
   look._iris = look.eye === undefined || look.eye === 0x1c1612 ? pick(IRIS) : look.eye;
   look._nose = [0.9 + q() * 0.26, 0.86 + q() * 0.3, q()]; // width, protrusion, tip turn-up
   look._tie = pick([0xd1345b, 0x14161c, 0xf5c542, 0x3ce8f5, 0xffffff, 0x7b4fbf, 0x2aa198, 0xff7f50]); // hair tie / scrunchie colour
-  look._lip = look.lipstick === true ? pick([0xb0174a, 0xc2185b, 0x8a1c2e, 0xd2455c, 0x6f2a55]) : (look.lipstick || 0);
+  look._lip = look.lipstick === true ? pick([0xc04a62, 0xd05a78, 0xb04658, 0xd9706a, 0xa8506e]) : (look.lipstick || 0);
   return look;
 }
 // writes the atlas UVs of every tagged part of a head from the look's expression state: the whole expression change
@@ -1028,7 +1030,7 @@ function buildHeadBase(look, fem) {
   // brow and stubble darkness: the hair's luminance against the skin; on dark skin the floor is a fraction of the skin, so a brow still reads on it
   const hairL = lumi(col(look.hair === undefined ? 0x2b2b2b : look.hair)), skinL = Math.max(lumi(skin), 0.03), dk = clamp((0.2 - skinL) / 0.12, 0, 1);
   const bk = clamp(Math.min(hairL, skinL * (1 - 0.55 * dk)) / skinL * 0.85 + 0.09, 0.1, 0.92), fg = headSkin(H.face, info, look.freckles), TI = new Uint8Array(H.face.n * 4), lipC = look._lip ? col(look._lip) : null;
-  for (let i = 0; i < H.face.n; i++) { if (lipC) { TI[i * 4] = lipC.r * 255; TI[i * 4 + 1] = lipC.g * 255; TI[i * 4 + 2] = lipC.b * 255; } TI[i * 4 + 3] = bk * 255; }
+  for (let i = 0; i < H.face.n; i++) { if (lipC) { TI[i * 4] = lipC.r * 255; TI[i * 4 + 1] = lipC.g * 255; TI[i * 4 + 2] = lipC.b * 255; } TI[i * 4 + 3] = (lipC ? bk * 0.7 : bk) * 255; }
   fg.setAttribute('tint', new THREE.BufferAttribute(TI, 4, true)); fg.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(H.face.n * 2), 2)); fg.userData.tag = { kind: 'face', local: H.face.local }; put(fg);
   buildEyes(look, HS, fem, skin); buildNose(look, HS, info); buildEars(look, HS, info, skin);
   return HS;
@@ -1106,7 +1108,11 @@ function paintFace(X, ex, fk, rnd) {
   const bt = fem ? 0.0052 : 0.0100, arch = fem ? 0.0058 : 0.0035, bI = [0.0125, LMK.brow - 0.005 + x.bi], bP = [0.0385, LMK.brow + 0.0042 + arch * (fem ? 1 : 0.6) + x.bp], bO = [0.0605, LMK.brow - 0.0045 + x.bo + (fem ? 0.0012 : 0)];
   for (const s of [1, -1]) {
     const cv = t => { const a = 1 - t, y = a * a * bI[1] + 2 * a * t * bP[1] + t * t * bO[1], xx = a * a * bI[0] + 2 * a * t * bP[0] + t * t * bO[0], th = bt * (0.5 + 0.7 * Math.sin(Math.min(1, t * 1.5) * Math.PI * 0.5) * (1 - 0.8 * t * t)) * (age ? 0.8 : 1); return [s * xx, y, th]; };
-    const pts = [0, 0.25, 0.5, 0.75, 1].map(t => cv(t)); stroke(X, pts.map(p => [p[0], p[1]]), bt * 0.9, fem ? 0.62 : 0.88, [0.9, 0.86, 0.86], [1, 0, 0]);
+    const pts = [0, 0.25, 0.5, 0.75, 1].map(t => cv(t)); stroke(X, pts.map(p => [p[0], p[1]]), bt * 0.9, fem ? 0.78 : 0.92, [0.9, 0.86, 0.86], [1, 0, 0]);
+    stroke(X, [[s * 0.0215, E + 0.0125 + 0.4 * x.bi], [s * 0.034, E + 0.0152 + 0.4 * x.bp], [s * 0.0475, E + 0.0105]], 0.0010, 0.42, [0.8, 0.7, 0.7], null, [0.62, 0.2, 0]);   // eyelid crease
+    stroke(X, [[s * 0.0215, E + 0.0062], [s * 0.034, E + 0.0086], [s * 0.0475, E + 0.0055]], 0.0007, fem ? 0.7 : 0.5, [0.45, 0.4, 0.4]);   // upper lash line
+    blob(X, s * 0.0045, E + 0.0005, 0.007, 0.012, 0.3, [0.84, 0.74, 0.74]);   // nose bridge side shadow
+    blob(X, s * 0.043, 1.552, 0.02, 0.014, 0.16, [0.93, 0.88, 0.88]);   // soft warm shade over the jaw
     for (let i = 0; i < (fem ? 46 : 64); i++) { const t = rnd(), p = cv(t), q = cv(Math.min(1, t + 0.06)), th = p[2]; let dx = q[0] - p[0], dy = q[1] - p[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l; const ox = (rnd() - 0.5) * th * 0.9, oy = (rnd() - 0.5) * th * 0.9, ln = 0.0042 + rnd() * 0.0035; ink(X, c => { c.beginPath(); c.moveTo(p[0] + ox - dx * 0.0008, p[1] + oy - dy * 0.0008 + th * 0.12 * (1 - t)); c.lineTo(p[0] + ox + dx * ln, p[1] + oy + dy * ln + th * 0.1 * t * (rnd() - 0.4)); c.lineWidth = 0.00055; c.lineCap = 'round'; c.stroke(); }, null, [1, 0, 0], null, 0.85); }
     if (x.fu) stroke(X, [[s * 0.004, LMK.brow + 0.001], [s * 0.0055, LMK.brow + 0.011 + 0.005 * x.fu]], 0.0016, 0.6 * x.fu, [0.78, 0.68, 0.68], null, [0.62, 0.3, 0]);   // furrow between the brows
     // crow's feet and old-age lines
@@ -1126,7 +1132,9 @@ function paintFace(X, ex, fk, rnd) {
   fillp(X, lipsOutline, 0.96, lipM, [0, 1, 0], [0.68, 0.32, 0]);                              // lips: colour, lipstick mask (only where tint is set), gloss and a little height
   stroke(X, topO, 0.0007, 0.5, [0.8, 0.52, 0.52]); stroke(X, botO, 0.0007, 0.4, [0.85, 0.58, 0.58]);
   if (mo < 0.002) stroke(X, upper.map((p, i) => [p[0], p[1] - 0.0004 + (lower[i][1] - p[1]) * 0.5]), 0.0011, 0.9, [0.38, 0.24, 0.24], null, [0.62, 0.15, 0]); // the closed mouth: a dark line where the lips meet                 // the vermilion border
-  blob(X, 0, yc - bH * 0.55 - mo * 0.5, 0.012, 0.0028, 0.5, [1.14, 1.0, 1.0], null, [0.3, 0.2, 0]);                  // light on the lower lip
+  blob(X, 0, yc - bH * 0.55 - mo * 0.5, 0.013, 0.0034, 0.7, [1.2, 1.04, 1.04], null, [0.34, 0.2, 0]);
+  blob(X, 0, yc - bH * 1.0 - mo * 0.5, 0.012, 0.0026, 0.3, [0.86, 0.76, 0.76]);   // shadow under the lower lip
+  if (rnd() < 0.3) { const mx = (rnd() < 0.5 ? 1 : -1) * (0.02 + rnd() * 0.03), my = 1.54 + rnd() * 0.05; blob(X, mx, my, 0.0016, 0.0016, 0.9, [0.5, 0.38, 0.34]); }   // a mole on some faces                  // light on the lower lip
   if (mo > 0.0012) { // the opening: dark inside, teeth, tongue (absolute colours)
     const hole = upper.concat(lower.slice().reverse());
     ink(X, c => { spath(c, hole, true); c.fill(); }, { abs: 0x2a0d12 }, [0, 0, 1], [0.35, 0, 0]);
@@ -1743,7 +1751,7 @@ function buildBody(look, fem, gm) {
   // ----- the top -----
   let front = TL; // offset of the outermost layer on the trunk (for decals)
   const SLV = TL - 0.007; // sleeves hug the arm closer than the trunk garment hangs
-  const sleeves = (c, off, yEnd, o) => { if (sl !== 'none') for (const s of [1, -1]) shellArm(s, 1.422, yEnd, off, c, Object.assign({ capLo: true, lip: 'b' }, o)); };
+  const sleeves = (c, off, yEnd, o) => { if (sl !== 'none') for (const s of [1, -1]) shellArm(s, 1.412, yEnd, off, c, Object.assign({ capLo: true, lip: 'b' }, o)); };
   const shortEnd = 1.25, longEnd = 0.918, rolled = sl === 'rolled' ? 1.12 : null;
   const elbow = y => 0.0032 * Math.sin(y * 52) * gaus(y, 1.13, 0.08), waist = y => 0.0042 * (0.5 + 0.5 * Math.sin(y * 50)) * smx(1.08, 0.92, y);
   const cuffs = (c, y0, y1, off, f) => { for (const s of [1, -1]) shellArm(s, y0, y1, off, c, { lip: 'ab', noise: 0, fab: f || F.top }); };
@@ -1765,7 +1773,7 @@ function buildBody(look, fem, gm) {
     if (puffer || longC) for (const sd of [1, -1]) shellTorso(lo + 0.02, NY, ofs + 0.003, mat(outer, 0.86), { lip: 'ab', arcFn: y => { const a = g(y); return [sd > 0 ? HALF_PI + a : HALF_PI - a - 0.1, 0.1]; }, noise: 0, fab: F.top });
     const sleeveOff = ofs - 0.007 + (puffer ? 0.004 : 0), end = rolled ? 1.12 : longEnd + 0.01;
     for (const s of [1, -1]) {
-      shellArm(s, 1.422, end, sleeveOff, outer, { capLo: true, lip: 'b', drape: y => 0.006 * smx(1.25, 0.95, y) + elbow(y) + (puffer ? 0.007 * Math.pow(Math.abs(Math.sin(y * 40)), 0.6) : 0), noise: 0.015, fab: F.top, step: puffer ? 0.024 : undefined });
+      shellArm(s, 1.412, end, sleeveOff, outer, { capLo: true, lip: 'b', drape: y => 0.006 * smx(1.25, 0.95, y) + elbow(y) + (puffer ? 0.007 * Math.pow(Math.abs(Math.sin(y * 40)), 0.6) : 0), noise: 0.015, fab: F.top, step: puffer ? 0.024 : undefined });
       if (!rolled) shellArm(s, 0.95, 0.905, SLV + 0.002, col(gm.inner), { lip: 'ab', fab: F.inner }); // shirt cuff
       if (puffer || leath || k === 'jacket' || para) shellArm(s, end + 0.02, end - 0.0, sleeveOff + 0.003, mat(outer, 0.7), { lip: 'ab', noise: 0, fab: FAB.knit }); // ribbed cuffs
     }
