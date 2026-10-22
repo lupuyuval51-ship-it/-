@@ -231,3 +231,7 @@ For a real public deployment, use PostgreSQL/private object storage rather than 
 - Add malware scanning and signed file delivery.
 - Run accessibility audit with assistive technology.
 - Run independent security/privacy review and jurisdiction-specific legal review.
+
+## BlockRealm (ממלכת הקוביות)
+
+`blockrealm/` contains a separate, dependency-free realistic voxel sandbox game (Minecraft-style) built with WebGL2: procedural biomes and caves, real-time shadows, normal-mapped textures, reflective water, day/night and weather, mobs, and Creative/Survival modes. Open `blockrealm/dist/blockrealm.html` in a browser to play; see `blockrealm/README.md` for details. It does not interact with the LEVELUP AI server.

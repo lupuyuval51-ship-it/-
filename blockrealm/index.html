@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ממלכת הקוביות</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="BlockRealm – עולם קוביות ריאליסטי בדפדפן: בונים, חוקרים ושורדים.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&family=Secular+One&display=swap">
+<style>
+:root {
+  /* Layout: the live world fills the frame; UI rides on basalt slabs pinned to its edges, torchlight ochre marks what is active. */
+  --ground: #0c0f0e;
+  --slab: rgba(17, 21, 19, 0.82);
+  --slab-strong: rgba(13, 16, 15, 0.94);
+  --stone-hi: #4b514b;
+  --stone: #353a36;
+  --edge: rgba(240, 232, 212, 0.16);
+  --ink: #f2ebd9;
+  --ink-dim: #b9b19c;
+  --torch: #e0a23e;
+  --torch-deep: #a86f1e;
+  --moss: #86b35e;
+  --ember: #dc5539;
+  --water: #66b3de;
+  --display: 'Secular One', 'Rubik', 'Arial Hebrew', system-ui, sans-serif;
+  --body: 'Rubik', 'Segoe UI', 'Arial Hebrew', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --slot: 50px;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink); font: 15px/1.45 var(--body);
+  overflow: hidden; -webkit-user-select: none; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #0c0f0e; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--torch); outline-offset: 2px; }
+
+/* ---------- screens ---------- */
+.screen {
+  position: fixed; inset: 0; display: grid; place-items: center; z-index: 20; overflow: auto;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(120% 90% at 50% 40%, rgba(6, 8, 7, 0.1), rgba(6, 8, 7, 0.62));
+}
+#menu { place-items: center start; background: linear-gradient(to left, rgba(6, 8, 7, 0.72), rgba(6, 8, 7, 0.2) 55%, rgba(6, 8, 7, 0)); }
+html[dir="ltr"] #menu { background: linear-gradient(to right, rgba(6, 8, 7, 0.72), rgba(6, 8, 7, 0.2) 55%, rgba(6, 8, 7, 0)); }
+.panel {
+  width: min(430px, 100%); max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 14px;
+  background: var(--slab); border: 1px solid var(--edge); border-radius: 4px; padding: 22px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.panel.wide { width: min(980px, 100%); }
+#menu .panel { background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 8px 4px; width: min(400px, 100%); }
+.brand { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.eyebrow { margin: 0; font: 600 12px var(--mono); letter-spacing: 0.32em; color: var(--torch); }
+.eyebrow:lang(he) { font: 500 14px var(--body); letter-spacing: 0.02em; }
+html[lang="en"] h1 { font-size: clamp(44px, 8.4vw, 66px); }
+h1 {
+  margin: 0; font: 400 clamp(46px, 10vw, 80px)/0.98 var(--display); letter-spacing: -0.01em; text-wrap: balance; overflow-wrap: anywhere;
+  text-shadow: 0 4px 0 rgba(0, 0, 0, 0.55), 0 0 32px rgba(224, 162, 62, 0.28);
+}
+.tag { margin: 0; color: var(--ink-dim); font-size: 16px; max-width: 34ch; text-wrap: balance; text-shadow: 0 1px 2px #000; }
+h2 { margin: 0; font: 400 28px/1.1 var(--display); text-wrap: balance; }
+h3 { margin: 0; font: 500 13px var(--body); letter-spacing: 0.08em; color: var(--ink-dim); text-transform: uppercase; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1 1 140px; }
+.btn {
+  display: block; width: 100%; padding: 12px 16px; border-radius: 4px; cursor: pointer; text-align: center;
+  font: 500 16px var(--body); color: var(--ink); background: linear-gradient(var(--stone-hi), var(--stone));
+  border: 1px solid rgba(0, 0, 0, 0.6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), inset 0 -3px 0 rgba(0, 0, 0, 0.35);
+}
+.btn:hover { border-color: var(--torch); }
+.btn:active { transform: translateY(1px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.35); }
+.btn.primary { background: linear-gradient(#ecb456, var(--torch-deep)); color: #1f1406; font-weight: 700; }
+.btn.ghost { background: transparent; box-shadow: none; border-color: var(--edge); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.link { background: none; border: 0; padding: 0; color: var(--torch); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.meta { margin: 6px 0 0; color: var(--ink-dim); font-size: 13px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; text-shadow: 0 1px 2px #000; }
+.hint { margin: 0; color: var(--ink-dim); font-size: 13px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label, .seg legend { font-size: 13px; color: var(--ink-dim); }
+input[type="text"] {
+  font: 500 15px var(--mono); color: var(--ink); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge);
+  border-radius: 4px; padding: 10px 12px; -webkit-user-select: text; user-select: text;
+}
+.seg { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg legend { margin-bottom: 6px; }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg span { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--edge); border-radius: 4px; background: rgba(0, 0, 0, 0.25); }
+.seg span b { font-weight: 700; }
+.seg span small { color: var(--ink-dim); font-size: 12px; line-height: 1.35; }
+.seg input:checked + span { border-color: var(--torch); background: rgba(224, 162, 62, 0.12); }
+.seg input:focus-visible + span { outline: 2px solid var(--torch); outline-offset: 2px; }
+details { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--edge); border-radius: 4px; padding: 10px 12px; }
+summary { cursor: pointer; font-weight: 500; }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 2px; font-size: 13px; }
+.keys dt { font-family: var(--mono); color: var(--torch); white-space: nowrap; }
+.keys dd { margin: 0; color: var(--ink); }
+.phead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.phead .btn { width: auto; }
+
+/* settings */
+.set { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+.set label { font-size: 14px; }
+.set output { font: 500 13px var(--mono); color: var(--torch); min-width: 4ch; text-align: end; }
+.set input[type="range"], .set select { grid-column: 1 / -1; width: 100%; accent-color: var(--torch); }
+.set select { font: inherit; color: var(--ink); background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); border-radius: 4px; padding: 8px; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--torch); }
+
+/* ---------- HUD ---------- */
+#hud { position: fixed; inset: 0; z-index: 7; pointer-events: none; }
+#veil { position: absolute; inset: 0; transition: background 0.25s; }
+#hud.underwater #veil { background: radial-gradient(ellipse at center, rgba(20, 70, 110, 0.12), rgba(4, 22, 40, 0.5)); }
+#hud.hurt #veil { background: radial-gradient(ellipse at center, rgba(200, 30, 20, 0) 40%, rgba(200, 30, 20, 0.45)); transition: none; }
+#crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); }
+#crosshair::before, #crosshair::after { content: ""; position: absolute; background: rgba(255, 255, 255, 0.86); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); }
+#crosshair::before { left: 10px; top: 2px; width: 2px; height: 18px; }
+#crosshair::after { top: 10px; left: 2px; height: 2px; width: 18px; }
+#ring { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%, -50%) rotate(-90deg); }
+#ring circle { fill: none; stroke: var(--torch); stroke-width: 3; stroke-dasharray: 100 100; stroke-linecap: round; }
+.chips {
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 12px); inset-inline-start: max(14px, env(safe-area-inset-right, 0px));
+  display: flex; gap: 6px; flex-wrap: wrap; max-width: calc(100% - 120px);
+}
+.chips span { background: var(--slab); border: 1px solid var(--edge); border-radius: 3px; padding: 3px 8px; font-size: 12px; white-space: nowrap; }
+#debug {
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 46px); inset-inline-start: max(14px, env(safe-area-inset-right, 0px)); margin: 0;
+  background: var(--slab-strong); border: 1px solid var(--edge); padding: 8px 10px; font: 12px/1.5 var(--mono); white-space: pre; direction: ltr; text-align: left;
+}
+#bar {
+  position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; width: max-content; max-width: calc(100vw - 24px);
+}
+#vitals { display: flex; justify-content: space-between; width: calc(var(--slot) * 9 + 16px); max-width: 100%; direction: ltr; gap: 8px; }
+#hearts, #bubbles { display: flex; gap: 1px; }
+#vitals svg { width: 17px; height: 17px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7)); }
+.heart .fill { fill: var(--ember); } .heart .bg { fill: rgba(20, 10, 8, 0.75); stroke: rgba(0, 0, 0, 0.7); stroke-width: 1.5; }
+.bubble circle { fill: rgba(102, 179, 222, 0.85); stroke: #dff2ff; stroke-width: 1.4; }
+#itemName { min-height: 22px; font: 500 14px var(--body); text-shadow: 0 1px 3px #000, 0 0 8px #000; transition: opacity 0.4s; }
+#hotbar { display: flex; gap: 2px; padding: 3px; background: var(--slab-strong); border: 1px solid rgba(0, 0, 0, 0.8); border-radius: 4px; pointer-events: auto; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45); }
+.slot {
+  position: relative; width: var(--slot); height: var(--slot); padding: 0; border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px; background: rgba(255, 255, 255, 0.04); cursor: pointer; display: grid; place-items: center;
+}
+.slot img { width: 76%; height: 76%; image-rendering: pixelated; pointer-events: none; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.5)); }
+.slot img[src=""] { visibility: hidden; }
+.slot .n { position: absolute; right: 3px; bottom: 1px; font: 700 12px var(--body); text-shadow: 1px 1px 0 #000, 0 0 3px #000; pointer-events: none; }
+.slot kbd { position: absolute; left: 3px; top: 1px; font: 500 9px var(--mono); color: rgba(242, 235, 217, 0.45); pointer-events: none; }
+.slot.sel { border-color: var(--torch); background: rgba(224, 162, 62, 0.16); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 0 14px rgba(224, 162, 62, 0.35); }
+.slot.pick { border-color: var(--moss); }
+#toasts { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 54px); left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.toast { background: var(--slab-strong); border: 1px solid var(--edge); border-radius: 3px; padding: 6px 12px; font-size: 14px; animation: toast 2.4s forwards; white-space: nowrap; }
+@keyframes toast { 0% { opacity: 0; transform: translateY(-6px); } 8%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+#loading { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); transform: translateX(-50%); z-index: 25; width: min(320px, calc(100vw - 32px));
+  background: var(--slab-strong); border: 1px solid var(--edge); border-radius: 4px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+#loading .track { height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 3px; overflow: hidden; }
+#loading .fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--moss), var(--torch)); transition: width 0.2s; }
+
+/* ---------- inventory ---------- */
+.grid { display: grid; grid-template-columns: repeat(9, var(--slot)); gap: 3px; justify-content: center; direction: ltr; }
+#invGrid { max-height: min(46vh, 360px); overflow: auto; padding: 2px; }
+.invcols { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+#recipes { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow: auto; }
+@media (min-width: 900px) {
+  .invcols:has(#craft:not([hidden])) { grid-template-columns: auto minmax(260px, 1fr); }
+  .invcols #craft { min-width: 0; }
+  .invcols #recipes { max-height: min(46vh, 360px); }
+}
+.recipe { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 1px solid var(--edge); border-radius: 4px; background: rgba(0, 0, 0, 0.25); cursor: pointer; text-align: start; width: 100%; }
+.recipe:disabled { opacity: 0.4; cursor: not-allowed; }
+.recipe:not(:disabled):hover { border-color: var(--torch); }
+.recipe img { width: 28px; height: 28px; image-rendering: pixelated; }
+.recipe .need { display: flex; gap: 6px; align-items: center; margin-inline-start: auto; font: 12px var(--mono); color: var(--ink-dim); direction: ltr; }
+.recipe .need img { width: 20px; height: 20px; }
+.recipe b { font-weight: 500; font-size: 14px; }
+#invLabel { min-height: 20px; font-size: 13px; color: var(--torch); text-align: center; }
+
+/* ---------- touch ---------- */
+#touch { position: fixed; inset: 0; z-index: 6; }
+#stick { position: absolute; width: 132px; height: 132px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.22); background: rgba(10, 12, 11, 0.28);
+  left: max(28px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); transform: translate(0, 0); pointer-events: none; }
+#knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(242, 235, 217, 0.32); border: 2px solid rgba(255, 255, 255, 0.4); }
+.tb { position: absolute; display: grid; place-items: center; width: 62px; height: 62px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.28);
+  background: rgba(10, 12, 11, 0.42); color: var(--ink); font: 700 12px var(--body); padding: 0; touch-action: none; }
+.tb svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.tb.on, .tb:active { background: rgba(224, 162, 62, 0.4); border-color: var(--torch); }
+.tb.small { width: 46px; height: 46px; border-radius: 6px; }
+.tb.small svg { width: 22px; height: 22px; }
+[data-btn="jump"] { width: 76px; height: 76px; right: max(26px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 104px); }
+[data-btn="sneak"] { right: max(118px, calc(env(safe-area-inset-right, 0px) + 92px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); }
+[data-btn="break"] { right: max(34px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 196px); }
+[data-btn="place"] { right: max(110px, calc(env(safe-area-inset-right, 0px) + 84px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 170px); }
+[data-btn="pause"] { right: max(14px, env(safe-area-inset-right, 0px)); top: calc(env(safe-area-inset-top, 0px) + 12px); }
+[data-btn="inv"] { right: max(68px, calc(env(safe-area-inset-right, 0px) + 54px)); top: calc(env(safe-area-inset-top, 0px) + 12px); }
+[data-btn="fly"] { right: max(122px, calc(env(safe-area-inset-right, 0px) + 108px)); top: calc(env(safe-area-inset-top, 0px) + 12px); }
+body.touch .slot kbd { display: none; }
+body.touch #debug { display: none; }
+body.touch .chips { inset-inline-start: auto; left: max(14px, env(safe-area-inset-left, 0px)); right: auto; max-width: calc(100% - 210px); }
+
+#fatal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 24px; }
+
+@media (max-width: 560px), (max-height: 480px) {
+  :root { --slot: 38px; }
+  .panel { padding: 16px; }
+  #vitals svg { width: 14px; height: 14px; }
+  .slot .n { font-size: 11px; }
+}
+@media (max-height: 480px) {
+  h1 { font-size: 40px; }
+  .tag { display: none; }
+  [data-btn="break"] { bottom: calc(env(safe-area-inset-bottom, 0px) + 160px); }
+  [data-btn="place"] { bottom: calc(env(safe-area-inset-bottom, 0px) + 140px); }
+}
+@media (prefers-reduced-motion: reduce) { .toast { animation-duration: 0.01s; animation-delay: 2.3s; } }
+</style>
+</head>
+<body>
+<canvas id="gl" aria-label="עולם המשחק" data-i18n-aria="worldAria"></canvas>
+
+<div id="hud" hidden>
+  <div id="veil"></div>
+  <div id="crosshair"></div>
+  <svg id="ring" viewBox="0 0 36 36" hidden><circle cx="18" cy="18" r="15.9" pathLength="100"></circle></svg>
+  <div class="chips"><span id="chipBiome"></span><span id="chipTime" class="mono" dir="ltr"></span><span id="chipPos" class="mono" dir="ltr"></span></div>
+  <pre id="debug" hidden></pre>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="bar">
+    <div id="vitals"><div id="hearts"></div><div id="bubbles"></div></div>
+    <div id="itemName"></div>
+    <div id="hotbar" dir="ltr"></div>
+  </div>
+</div>
+
+<div id="touch" hidden>
+  <div id="stick"><div id="knob"></div></div>
+  <button class="tb small" data-btn="pause" aria-label="השהיה" data-i18n-aria="pause"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  <button class="tb small" data-btn="inv" aria-label="מלאי" data-i18n-aria="inventory"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></button>
+  <button class="tb small" data-btn="fly" aria-label="תעופה" data-i18n-aria="fly"><svg viewBox="0 0 24 24"><path d="M3 14c4-1 6-5 9-9 3 4 5 8 9 9-4 0-6 2-9 5-3-3-5-5-9-5z"/></svg></button>
+  <button class="tb" data-btn="break" aria-label="שבירה" data-i18n-aria="break"><svg viewBox="0 0 24 24"><path d="M4 9c4-5 12-5 16 0"/><path d="M12 6v14"/></svg></button>
+  <button class="tb" data-btn="place" aria-label="הנחה" data-i18n-aria="place"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></button>
+  <button class="tb" data-btn="sneak" aria-label="התכופפות" data-i18n-aria="sneak"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button class="tb" data-btn="jump" aria-label="קפיצה" data-i18n-aria="jump"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+</div>
+
+<section id="menu" class="screen">
+  <div class="panel">
+    <header class="brand">
+      <p class="eyebrow" id="eyebrow" lang="en">BLOCKREALM</p>
+      <h1 data-i18n="title">ממלכת הקוביות</h1>
+      <p class="tag" data-i18n="tagline">עולם קוביות ריאליסטי: בונים, חוקרים ושורדים עד הזריחה.</p>
+    </header>
+    <div id="menuMain" class="stack">
+      <button id="continueBtn" class="btn primary" data-i18n="continue" hidden>המשך לשחק</button>
+      <button id="newBtn" class="btn" data-i18n="newWorld">עולם חדש</button>
+      <button id="menuSettings" class="btn" data-i18n="settings">הגדרות</button>
+      <details>
+        <summary data-i18n="howto">איך משחקים</summary>
+        <dl class="keys" id="keysDesktop"></dl>
+      </details>
+    </div>
+    <form id="newForm" class="stack" hidden>
+      <div class="field">
+        <label for="seedInput" data-i18n="seedLabel">זרע עולם (ריק = אקראי)</label>
+        <input id="seedInput" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="4815162342">
+      </div>
+      <fieldset class="seg">
+        <legend data-i18n="modeLabel">מצב משחק</legend>
+        <label><input type="radio" name="mode" id="modeCreative" value="creative" checked><span><b data-i18n="creative">יצירתי</b><small data-i18n="creativeDesc">כל הקוביות, תעופה חופשית, בלי נזק.</small></span></label>
+        <label><input type="radio" name="mode" id="modeSurvival" value="survival"><span><b data-i18n="survival">הישרדות</b><small data-i18n="survivalDesc">אוספים חומרים, מכינים קוביות ושורדים את הלילה.</small></span></label>
+      </fieldset>
+      <p id="overwriteNote" class="hint" data-i18n="overwrite" hidden>עולם חדש יחליף את העולם השמור בדפדפן הזה.</p>
+      <div class="row">
+        <button type="submit" class="btn primary" data-i18n="create">צרו עולם</button>
+        <button type="button" id="newBack" class="btn ghost" data-i18n="back">חזרה</button>
+      </div>
+    </form>
+    <p class="meta"><span><span data-i18n="seedMeta">זרע</span>: <span id="menuSeed" class="mono"></span></span><button id="langBtn" class="link" type="button">English</button></p>
+  </div>
+</section>
+
+<section id="pause" class="screen" hidden>
+  <div class="panel">
+    <h2 data-i18n="paused">המשחק מושהה</h2>
+    <button id="resumeBtn" class="btn primary" data-i18n="resume">חזרה למשחק</button>
+    <button id="pauseSettings" class="btn" data-i18n="settings">הגדרות</button>
+    <button id="quitBtn" class="btn" data-i18n="saveQuit">שמור וצא לתפריט</button>
+    <p class="hint" data-i18n="autosave">המשחק נשמר אוטומטית בדפדפן הזה.</p>
+  </div>
+</section>
+
+<section id="settings" class="screen" hidden>
+  <form class="panel" id="settingsForm">
+    <div class="phead"><h2 data-i18n="settings">הגדרות</h2></div>
+    <div class="set"><label for="setDist" data-i18n="renderDist">טווח ראייה (צ'אנקים)</label><output id="outDist" for="setDist"></output><input type="range" id="setDist" min="2" max="12" step="1"></div>
+    <div class="set"><label for="setQuality" data-i18n="quality">איכות גרפיקה</label><span></span>
+      <select id="setQuality"><option value="low" data-i18n="qLow">נמוכה (בלי צללים)</option><option value="medium" data-i18n="qMed">בינונית</option><option value="high" data-i18n="qHigh">גבוהה</option></select></div>
+    <div class="set"><label for="setFov" data-i18n="fov">שדה ראייה</label><output id="outFov" for="setFov"></output><input type="range" id="setFov" min="55" max="100" step="1"></div>
+    <div class="set"><label for="setSens" data-i18n="sens">רגישות מבט</label><output id="outSens" for="setSens"></output><input type="range" id="setSens" min="0.2" max="3" step="0.1"></div>
+    <div class="set"><label for="setBright" data-i18n="bright">בהירות</label><output id="outBright" for="setBright"></output><input type="range" id="setBright" min="0" max="1" step="0.05"></div>
+    <div class="set"><label for="setVol" data-i18n="volume">עוצמת קול</label><output id="outVol" for="setVol"></output><input type="range" id="setVol" min="0" max="1" step="0.05"></div>
+    <div class="set"><label for="setTime" data-i18n="timeOfDay">שעה ביום</label><output id="outTime" for="setTime"></output><input type="range" id="setTime" min="0" max="23.75" step="0.25"></div>
+    <label class="check"><input type="checkbox" id="setBob"><span data-i18n="bob">נדנוד מצלמה בהליכה</span></label>
+    <label class="check"><input type="checkbox" id="setAutoJump"><span data-i18n="autojump">קפיצה אוטומטית מעל מדרגה</span></label>
+    <button type="submit" class="btn primary" data-i18n="done">סיום</button>
+  </form>
+</section>
+
+<section id="inventory" class="screen" hidden>
+  <div class="panel wide">
+    <div class="phead"><h2 id="invTitle"></h2><button type="button" id="invClose" class="btn ghost" data-i18n="close">סגירה</button></div>
+    <p id="invHint" class="hint"></p>
+    <div class="invcols">
+      <div id="invGrid" class="grid"></div>
+      <div id="craft" class="stack" hidden><h3 data-i18n="craft">הכנה</h3><div id="recipes"></div></div>
+    </div>
+    <div class="stack"><h3 data-i18n="hotbar">סרגל מהיר</h3><div id="invHotbar" class="grid"></div></div>
+    <div id="invLabel"></div>
+  </div>
+</section>
+
+<section id="death" class="screen" hidden>
+  <div class="panel">
+    <h2 data-i18n="died">מתתם</h2>
+    <p class="hint" data-i18n="deathHint">המלאי נשמר אצלכם. תופיעו מחדש בנקודת ההתחלה.</p>
+    <button id="respawnBtn" class="btn primary" data-i18n="respawn">הופעה מחדש</button>
+    <button id="deathQuit" class="btn" data-i18n="saveQuit">שמור וצא לתפריט</button>
+  </div>
+</section>
+
+<div id="loading" hidden><span data-i18n="loading">טוען עולם…</span><div class="track"><div class="fill" id="loadFill"></div></div></div>
+<div id="fatal" hidden><div class="panel"><h2 data-i18n="fatalTitle">לא ניתן להציג את העולם</h2><p class="hint" id="fatalMsg"></p></div></div>
+
+<script src="src/core.js"></script>
+<script src="src/blocks.js"></script>
+<script src="src/world.js"></script>
+<script src="src/mesher.js"></script>
+<script src="src/render.js"></script>
+<script src="src/entities.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/main.js"></script>
+</body>
+</html>
