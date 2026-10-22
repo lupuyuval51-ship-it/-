@@ -134,9 +134,9 @@ class World {
       TP[i] = bl(GT, k, fx, fz); MO[i] = bl(GM, k, fx, fz);
     }
     const BIO = new Uint8Array(W * W), HI = new Int16Array(W * W);
+    for (let i = 0; i < W * W; i++) HI[i] = Math.floor(H[i]);
     for (let z = 1; z < W - 1; z++) for (let x = 1; x < W - 1; x++) {
       const i = z * W + x;
-      HI[i] = Math.floor(H[i]);
       const slope = Math.abs(H[i + 1] - H[i - 1]) + Math.abs(H[i + W] - H[i - W]);
       BIO[i] = g.biomeOf(H[i], TP[i], MO[i], slope);
     }
@@ -525,7 +525,7 @@ class World {
       if (BLOCKS[above].support) this.setBlock(x, y + 1, z, 0);
       else if (BLOCKS[above].gravity) this.dropColumn(x, y + 1, z);
     }
-    if (BLOCKS[id].gravity) this.dropColumn(x, y, z);
+    if (BLOCKS[id].gravity) this.dropColumn(x, y, z, LIQUID[prev] ? prev : 0);
     if (id === 0) {
       const nb = [[0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
       for (const [dx, dy, dz] of nb) if (this.getBlock(x + dx, y + dy, z + dz) === B.water) { this.flowQueue.push([x, y, z, 0]); break; }
@@ -535,7 +535,8 @@ class World {
     }
   }
 
-  dropColumn(x, y, z) {
+  /* Let sand/gravel fall; `fill` is what the first vacated cell becomes (the water it was dropped into). */
+  dropColumn(x, y, z, fill = 0) {
     for (let guard = 0; guard < 64; guard++) {
       const id = this.getBlock(x, y, z);
       if (!BLOCKS[id].gravity) return;
@@ -545,7 +546,7 @@ class World {
         if (b === 0 || LIQUID[b] || RENDERT[b] === RENDER.CROSS) ty--; else break;
       }
       if (ty === y) return;
-      this.setBlock(x, y, z, 0, { noPhysics: true });
+      this.setBlock(x, y, z, guard === 0 ? fill : 0, { noPhysics: true });
       this.setBlock(x, ty, z, id, { noPhysics: true });
       y++;
     }

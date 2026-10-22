@@ -122,6 +122,7 @@ class Player {
     this.inWater = feet === B.water || mid === B.water;
     this.inLava = feet === B.lava || mid === B.lava;
     this.headInWater = head === B.water;
+    if (this.inWater || this.inLava) this.fallStart = null;
     if (this.inWater && !wasInWater && this.vy < -4) ev.push({ type: 'splash' });
 
     if (this.flying || liquid || this.vy > 0) this.fallStart = null;

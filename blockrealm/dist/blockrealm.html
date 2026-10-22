@@ -1309,9 +1309,9 @@ class World {
       TP[i] = bl(GT, k, fx, fz); MO[i] = bl(GM, k, fx, fz);
     }
     const BIO = new Uint8Array(W * W), HI = new Int16Array(W * W);
+    for (let i = 0; i < W * W; i++) HI[i] = Math.floor(H[i]);
     for (let z = 1; z < W - 1; z++) for (let x = 1; x < W - 1; x++) {
       const i = z * W + x;
-      HI[i] = Math.floor(H[i]);
       const slope = Math.abs(H[i + 1] - H[i - 1]) + Math.abs(H[i + W] - H[i - W]);
       BIO[i] = g.biomeOf(H[i], TP[i], MO[i], slope);
     }
@@ -1700,7 +1700,7 @@ class World {
       if (BLOCKS[above].support) this.setBlock(x, y + 1, z, 0);
       else if (BLOCKS[above].gravity) this.dropColumn(x, y + 1, z);
     }
-    if (BLOCKS[id].gravity) this.dropColumn(x, y, z);
+    if (BLOCKS[id].gravity) this.dropColumn(x, y, z, LIQUID[prev] ? prev : 0);
     if (id === 0) {
       const nb = [[0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
       for (const [dx, dy, dz] of nb) if (this.getBlock(x + dx, y + dy, z + dz) === B.water) { this.flowQueue.push([x, y, z, 0]); break; }
@@ -1710,7 +1710,8 @@ class World {
     }
   }
 
-  dropColumn(x, y, z) {
+  /* Let sand/gravel fall; `fill` is what the first vacated cell becomes (the water it was dropped into). */
+  dropColumn(x, y, z, fill = 0) {
     for (let guard = 0; guard < 64; guard++) {
       const id = this.getBlock(x, y, z);
       if (!BLOCKS[id].gravity) return;
@@ -1720,7 +1721,7 @@ class World {
         if (b === 0 || LIQUID[b] || RENDERT[b] === RENDER.CROSS) ty--; else break;
       }
       if (ty === y) return;
-      this.setBlock(x, y, z, 0, { noPhysics: true });
+      this.setBlock(x, y, z, guard === 0 ? fill : 0, { noPhysics: true });
       this.setBlock(x, ty, z, id, { noPhysics: true });
       y++;
     }
@@ -1890,7 +1891,6 @@ class Mesher {
         const fi = pi + DF[f], nid = PB[fi];
         if (OPAQUE[nid]) continue;
         if (nid === id && (liquid || d.cullSelf)) continue;
-        if (liquid && LIQUID[nid]) continue;
         const layer = d.tex[f === 2 ? 0 : f === 3 ? 1 : 2];
         let r = 128, g = 128, b = 128;
         if (d.tintAll || (d.tintTop && f === 2)) { r = tr; g = tg; b = tb; }
@@ -2614,7 +2614,7 @@ class Renderer {
   collectLights(world, cam, time) {
     const cand = [];
     const pcx = Math.floor(cam.x / CS), pcz = Math.floor(cam.z / CS);
-    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
       const c = world.getChunk(pcx + dx, pcz + dz);
       if (!c) continue;
       for (const e of c.emitters) {
@@ -3045,6 +3045,7 @@ class Player {
     this.inWater = feet === B.water || mid === B.water;
     this.inLava = feet === B.lava || mid === B.lava;
     this.headInWater = head === B.water;
+    if (this.inWater || this.inLava) this.fallStart = null;
     if (this.inWater && !wasInWater && this.vy < -4) ev.push({ type: 'splash' });
 
     if (this.flying || liquid || this.vy > 0) this.fallStart = null;
@@ -3510,7 +3511,7 @@ const STRINGS = {
     died: 'מתתם', deathHint: 'המלאי נשמר אצלכם. תופיעו מחדש בנקודת ההתחלה.', respawn: 'הופעה מחדש',
     fatalTitle: 'לא ניתן להציג את העולם', fatalMsg: 'הדפדפן הזה לא תומך ב-WebGL2, שנדרש להצגת העולם. נסו גרסה עדכנית של Chrome, Edge, Firefox או Safari.',
     pause: 'השהיה', fly: 'תעופה', break: 'שבירה', place: 'הנחה', sneak: 'התכופפות', jump: 'קפיצה',
-    saved: 'המשחק נשמר', flyOn: 'תעופה פעילה', flyOff: 'תעופה כבויה', crafted: 'הוכן', full: 'המלאי מלא', ate: 'אכלתם',
+    noStorage: 'הדפדפן חוסם שמירה, ולכן העולם יישמר רק עד שתסגרו את הדף.', saved: 'המשחק נשמר', flyOn: 'תעופה פעילה', flyOff: 'תעופה כבויה', crafted: 'הוכן', full: 'המלאי מלא', ate: 'אכלתם',
     clickToPlay: 'לחצו על המסך כדי לשחק',
     keys: [['W A S D', 'תנועה'], ['עכבר', 'הסתכלות'], ['רווח', 'קפיצה · לחיצה כפולה לתעופה במצב יצירתי'], ['Shift', 'התכופפות / ירידה בתעופה'],
       ['Ctrl', 'ריצה'], ['לחיצה שמאלית', 'שבירה ותקיפה (בהישרדות: להחזיק)'], ['לחיצה ימנית', 'הנחת קובייה · אכילה'], ['1–9 · גלגלת', 'בחירת משבצת'],
@@ -3533,7 +3534,7 @@ const STRINGS = {
     died: 'You died', deathHint: 'You keep your inventory and respawn at the starting point.', respawn: 'Respawn',
     fatalTitle: 'The world can\'t be shown', fatalMsg: 'This browser doesn\'t support WebGL2, which the world needs. Try a current Chrome, Edge, Firefox or Safari.',
     pause: 'Pause', fly: 'Fly', break: 'Break', place: 'Place', sneak: 'Sneak', jump: 'Jump',
-    saved: 'Game saved', flyOn: 'Flying on', flyOff: 'Flying off', crafted: 'Crafted', full: 'Inventory full', ate: 'Ate',
+    noStorage: 'This browser blocks saving, so the world only lasts until you close the page.', saved: 'Game saved', flyOn: 'Flying on', flyOff: 'Flying off', crafted: 'Crafted', full: 'Inventory full', ate: 'Ate',
     clickToPlay: 'Click the screen to play',
     keys: [['W A S D', 'Move'], ['Mouse', 'Look'], ['Space', 'Jump · double-tap to fly in Creative'], ['Shift', 'Sneak / fly down'],
       ['Ctrl', 'Sprint'], ['Left click', 'Break and attack (hold in Survival)'], ['Right click', 'Place block · eat'], ['1–9 · wheel', 'Pick hotbar slot'],
@@ -3580,7 +3581,7 @@ class UI {
   bind() {
     const g = this.g;
     $('continueBtn').addEventListener('click', () => { g.sound.init(); g.continueGame(); });
-    $('newBtn').addEventListener('click', () => { $('menuMain').hidden = true; $('newForm').hidden = false; $('overwriteNote').hidden = !g.hasSave; $('seedInput').focus(); });
+    $('newBtn').addEventListener('click', () => { $('menuMain').hidden = true; $('newForm').hidden = false; $('overwriteNote').hidden = !(g.hasSave || g.started); $('seedInput').focus(); });
     $('newBack').addEventListener('click', () => { $('menuMain').hidden = false; $('newForm').hidden = true; });
     $('newForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -3813,7 +3814,9 @@ class Input {
       if (c === 'Escape' && g.state === 'inventory') { g.closeInventory(); return; }
       if (c === 'Escape' && g.state === 'playing' && !this.locked) { g.pause(); return; }
       if (g.state !== 'playing') return;
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(c) || (e.ctrlKey && c === 'KeyW')) e.preventDefault();
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(c)) e.preventDefault();
+      // Ctrl is the sprint key: keep Ctrl+D/S/F/A/E… from opening browser dialogs mid-game (Ctrl+W can't be blocked).
+      if ((e.ctrlKey || e.metaKey) && /^(Key[WASDEFQ]|Digit\d|Space|Arrow)/.test(c)) e.preventDefault();
       if (c.startsWith('Digit')) { const n = parseInt(c.slice(5), 10); if (n >= 1 && n <= 9) g.selectSlot(n - 1); }
       if (c === 'Space' && !e.repeat) {
         const now = performance.now();
@@ -3864,6 +3867,7 @@ class Input {
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === cv;
       this.skipMoves = 2; this.moveAvg = 0;
+      if (this.locked && g.state !== 'playing' && g.state !== 'loading') { this.ignoreUnlock = true; document.exitPointerLock(); return; }
       if (this.locked) this.freeLook = false;
       if (!this.locked && g.state === 'playing' && !this.ignoreUnlock && !IS_TOUCH) g.pause();
       this.ignoreUnlock = false;
@@ -4053,6 +4057,19 @@ class Game {
       else this.sound.resume();
     });
     window.addEventListener('pagehide', () => this.save());
+    this.canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.contextLost = true;
+      if (this.state === 'playing') this.pause();
+      this.save();
+    });
+    this.canvas.addEventListener('webglcontextrestored', () => {
+      try { this.renderer = new Renderer(this.canvas, { antialias: !IS_TOUCH }); } catch (err) { console.error(err); return; }
+      for (const c of this.world.chunks.values()) { c.gpu = null; c.meshed = false; c.needMesh = false; }
+      this.handDirty = true;
+      this.contextLost = false;
+      this.resize();
+    });
     this.resize();
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -4113,17 +4130,20 @@ class Game {
     const p = this.player;
     const data = {
       v: 1, seed: this.world.seed, mode: this.mode, time: this.time, spawn: this.spawn, weather: this.weather,
-      player: { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3), yaw: +p.yaw.toFixed(4), pitch: +p.pitch.toFixed(4), health: p.dead ? 20 : p.health, flying: p.flying },
+      player: p.dead
+        ? { x: this.spawn[0], y: this.spawn[1], z: this.spawn[2], yaw: p.yaw, pitch: 0, health: 20, flying: false }
+        : { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3), yaw: +p.yaw.toFixed(4), pitch: +p.pitch.toFixed(4), health: p.health, flying: p.flying },
       inv: this.inv.slots, sel: this.inv.sel, edits: this.world.serializeEdits(),
     };
     this.lastSave = data;
     if (storeSet(SAVE_KEY, JSON.stringify(data))) this.hasSave = true;
+    else if (!this.warnedStorage) { this.warnedStorage = true; this.ui.toast(t('noStorage')); }
     return data;
   }
 
   newGame(seedText, mode) {
     const txt = String(seedText || '').trim();
-    const fresh = !this.hasSave && this.world.edits.size === 0;
+    const fresh = !this.hasSave && !this.started && this.world.edits.size === 0;
     const seed = txt ? hashString(txt) : fresh ? this.world.seed : (Math.random() * 2147483647) | 0;
     const reuse = !txt && fresh;
     if (reuse) this.mode = mode; else this.createWorld(seed, mode, null);
@@ -4137,7 +4157,10 @@ class Game {
     this.mobs = new MobManager(seed);
     this.startLoading();
   }
-  continueGame() { this.startLoading(); }
+  continueGame() {
+    if (this.player.dead) { this.respawn(); return; }
+    this.startLoading();
+  }
   startLoading() {
     this.started = true;
     this.state = 'loading';
@@ -4190,7 +4213,7 @@ class Game {
     this.input.releaseLock();
     this.state = 'menu';
     $('hud').hidden = true; $('touch').hidden = true; $('loading').hidden = true;
-    $('continueBtn').hidden = !this.hasSave;
+    $('continueBtn').hidden = !(this.hasSave || this.started);
     $('menuSeed').textContent = this.world.seed;
     this.ui.screen('menu');
   }
@@ -4436,6 +4459,7 @@ class Game {
 
   loop(now) {
     requestAnimationFrame((t2) => this.loop(t2));
+    if (this.contextLost) return;
     if (this.last) this.adaptResolution((now - this.last) / 1000);
     const dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000 || 0.016));
     this.last = now;

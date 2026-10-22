@@ -99,7 +99,6 @@ class Mesher {
         const fi = pi + DF[f], nid = PB[fi];
         if (OPAQUE[nid]) continue;
         if (nid === id && (liquid || d.cullSelf)) continue;
-        if (liquid && LIQUID[nid]) continue;
         const layer = d.tex[f === 2 ? 0 : f === 3 ? 1 : 2];
         let r = 128, g = 128, b = 128;
         if (d.tintAll || (d.tintTop && f === 2)) { r = tr; g = tg; b = tb; }

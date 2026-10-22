@@ -17,7 +17,7 @@ const STRINGS = {
     died: 'מתתם', deathHint: 'המלאי נשמר אצלכם. תופיעו מחדש בנקודת ההתחלה.', respawn: 'הופעה מחדש',
     fatalTitle: 'לא ניתן להציג את העולם', fatalMsg: 'הדפדפן הזה לא תומך ב-WebGL2, שנדרש להצגת העולם. נסו גרסה עדכנית של Chrome, Edge, Firefox או Safari.',
     pause: 'השהיה', fly: 'תעופה', break: 'שבירה', place: 'הנחה', sneak: 'התכופפות', jump: 'קפיצה',
-    saved: 'המשחק נשמר', flyOn: 'תעופה פעילה', flyOff: 'תעופה כבויה', crafted: 'הוכן', full: 'המלאי מלא', ate: 'אכלתם',
+    noStorage: 'הדפדפן חוסם שמירה, ולכן העולם יישמר רק עד שתסגרו את הדף.', saved: 'המשחק נשמר', flyOn: 'תעופה פעילה', flyOff: 'תעופה כבויה', crafted: 'הוכן', full: 'המלאי מלא', ate: 'אכלתם',
     clickToPlay: 'לחצו על המסך כדי לשחק',
     keys: [['W A S D', 'תנועה'], ['עכבר', 'הסתכלות'], ['רווח', 'קפיצה · לחיצה כפולה לתעופה במצב יצירתי'], ['Shift', 'התכופפות / ירידה בתעופה'],
       ['Ctrl', 'ריצה'], ['לחיצה שמאלית', 'שבירה ותקיפה (בהישרדות: להחזיק)'], ['לחיצה ימנית', 'הנחת קובייה · אכילה'], ['1–9 · גלגלת', 'בחירת משבצת'],
@@ -40,7 +40,7 @@ const STRINGS = {
     died: 'You died', deathHint: 'You keep your inventory and respawn at the starting point.', respawn: 'Respawn',
     fatalTitle: 'The world can\'t be shown', fatalMsg: 'This browser doesn\'t support WebGL2, which the world needs. Try a current Chrome, Edge, Firefox or Safari.',
     pause: 'Pause', fly: 'Fly', break: 'Break', place: 'Place', sneak: 'Sneak', jump: 'Jump',
-    saved: 'Game saved', flyOn: 'Flying on', flyOff: 'Flying off', crafted: 'Crafted', full: 'Inventory full', ate: 'Ate',
+    noStorage: 'This browser blocks saving, so the world only lasts until you close the page.', saved: 'Game saved', flyOn: 'Flying on', flyOff: 'Flying off', crafted: 'Crafted', full: 'Inventory full', ate: 'Ate',
     clickToPlay: 'Click the screen to play',
     keys: [['W A S D', 'Move'], ['Mouse', 'Look'], ['Space', 'Jump · double-tap to fly in Creative'], ['Shift', 'Sneak / fly down'],
       ['Ctrl', 'Sprint'], ['Left click', 'Break and attack (hold in Survival)'], ['Right click', 'Place block · eat'], ['1–9 · wheel', 'Pick hotbar slot'],
@@ -87,7 +87,7 @@ class UI {
   bind() {
     const g = this.g;
     $('continueBtn').addEventListener('click', () => { g.sound.init(); g.continueGame(); });
-    $('newBtn').addEventListener('click', () => { $('menuMain').hidden = true; $('newForm').hidden = false; $('overwriteNote').hidden = !g.hasSave; $('seedInput').focus(); });
+    $('newBtn').addEventListener('click', () => { $('menuMain').hidden = true; $('newForm').hidden = false; $('overwriteNote').hidden = !(g.hasSave || g.started); $('seedInput').focus(); });
     $('newBack').addEventListener('click', () => { $('menuMain').hidden = false; $('newForm').hidden = true; });
     $('newForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -320,7 +320,9 @@ class Input {
       if (c === 'Escape' && g.state === 'inventory') { g.closeInventory(); return; }
       if (c === 'Escape' && g.state === 'playing' && !this.locked) { g.pause(); return; }
       if (g.state !== 'playing') return;
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(c) || (e.ctrlKey && c === 'KeyW')) e.preventDefault();
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(c)) e.preventDefault();
+      // Ctrl is the sprint key: keep Ctrl+D/S/F/A/E… from opening browser dialogs mid-game (Ctrl+W can't be blocked).
+      if ((e.ctrlKey || e.metaKey) && /^(Key[WASDEFQ]|Digit\d|Space|Arrow)/.test(c)) e.preventDefault();
       if (c.startsWith('Digit')) { const n = parseInt(c.slice(5), 10); if (n >= 1 && n <= 9) g.selectSlot(n - 1); }
       if (c === 'Space' && !e.repeat) {
         const now = performance.now();
@@ -371,6 +373,7 @@ class Input {
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === cv;
       this.skipMoves = 2; this.moveAvg = 0;
+      if (this.locked && g.state !== 'playing' && g.state !== 'loading') { this.ignoreUnlock = true; document.exitPointerLock(); return; }
       if (this.locked) this.freeLook = false;
       if (!this.locked && g.state === 'playing' && !this.ignoreUnlock && !IS_TOUCH) g.pause();
       this.ignoreUnlock = false;

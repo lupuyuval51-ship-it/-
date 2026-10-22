@@ -620,7 +620,7 @@ class Renderer {
   collectLights(world, cam, time) {
     const cand = [];
     const pcx = Math.floor(cam.x / CS), pcz = Math.floor(cam.z / CS);
-    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -2; dz <= 2; dz++) for (let dx = -2; dx <= 2; dx++) {
       const c = world.getChunk(pcx + dx, pcz + dz);
       if (!c) continue;
       for (const e of c.emitters) {

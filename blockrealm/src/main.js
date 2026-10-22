@@ -61,6 +61,19 @@ class Game {
       else this.sound.resume();
     });
     window.addEventListener('pagehide', () => this.save());
+    this.canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.contextLost = true;
+      if (this.state === 'playing') this.pause();
+      this.save();
+    });
+    this.canvas.addEventListener('webglcontextrestored', () => {
+      try { this.renderer = new Renderer(this.canvas, { antialias: !IS_TOUCH }); } catch (err) { console.error(err); return; }
+      for (const c of this.world.chunks.values()) { c.gpu = null; c.meshed = false; c.needMesh = false; }
+      this.handDirty = true;
+      this.contextLost = false;
+      this.resize();
+    });
     this.resize();
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -121,17 +134,20 @@ class Game {
     const p = this.player;
     const data = {
       v: 1, seed: this.world.seed, mode: this.mode, time: this.time, spawn: this.spawn, weather: this.weather,
-      player: { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3), yaw: +p.yaw.toFixed(4), pitch: +p.pitch.toFixed(4), health: p.dead ? 20 : p.health, flying: p.flying },
+      player: p.dead
+        ? { x: this.spawn[0], y: this.spawn[1], z: this.spawn[2], yaw: p.yaw, pitch: 0, health: 20, flying: false }
+        : { x: +p.x.toFixed(3), y: +p.y.toFixed(3), z: +p.z.toFixed(3), yaw: +p.yaw.toFixed(4), pitch: +p.pitch.toFixed(4), health: p.health, flying: p.flying },
       inv: this.inv.slots, sel: this.inv.sel, edits: this.world.serializeEdits(),
     };
     this.lastSave = data;
     if (storeSet(SAVE_KEY, JSON.stringify(data))) this.hasSave = true;
+    else if (!this.warnedStorage) { this.warnedStorage = true; this.ui.toast(t('noStorage')); }
     return data;
   }
 
   newGame(seedText, mode) {
     const txt = String(seedText || '').trim();
-    const fresh = !this.hasSave && this.world.edits.size === 0;
+    const fresh = !this.hasSave && !this.started && this.world.edits.size === 0;
     const seed = txt ? hashString(txt) : fresh ? this.world.seed : (Math.random() * 2147483647) | 0;
     const reuse = !txt && fresh;
     if (reuse) this.mode = mode; else this.createWorld(seed, mode, null);
@@ -145,7 +161,10 @@ class Game {
     this.mobs = new MobManager(seed);
     this.startLoading();
   }
-  continueGame() { this.startLoading(); }
+  continueGame() {
+    if (this.player.dead) { this.respawn(); return; }
+    this.startLoading();
+  }
   startLoading() {
     this.started = true;
     this.state = 'loading';
@@ -198,7 +217,7 @@ class Game {
     this.input.releaseLock();
     this.state = 'menu';
     $('hud').hidden = true; $('touch').hidden = true; $('loading').hidden = true;
-    $('continueBtn').hidden = !this.hasSave;
+    $('continueBtn').hidden = !(this.hasSave || this.started);
     $('menuSeed').textContent = this.world.seed;
     this.ui.screen('menu');
   }
@@ -444,6 +463,7 @@ class Game {
 
   loop(now) {
     requestAnimationFrame((t2) => this.loop(t2));
+    if (this.contextLost) return;
     if (this.last) this.adaptResolution((now - this.last) / 1000);
     const dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000 || 0.016));
     this.last = now;
