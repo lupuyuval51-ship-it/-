@@ -160,10 +160,11 @@ const randomId = (): string => {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 };
 
+/** The missions done in the run under way, or else in the latest finished run (a finished game shows its result, not an empty bar). */
 function activePercent(spec: GameSpec, sessions: StoredSession[]): number {
-  const active = sessions.find((s) => s.status === "ACTIVE");
-  if (!active || spec.missions.length === 0) return 0;
-  return Math.round((active.state.missionsDone.length / spec.missions.length) * 100);
+  const run = sessions.find((s) => s.status === "ACTIVE") ?? sessions.find((s) => s.status === "COMPLETED");
+  if (!run || spec.missions.length === 0) return 0;
+  return Math.min(100, Math.round((run.state.missionsDone.length / spec.missions.length) * 100));
 }
 
 /** The shuffle/opaque-id seed of one review card: it changes with every review, so the same question looks different each time. */

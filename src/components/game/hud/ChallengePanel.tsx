@@ -1,5 +1,6 @@
 "use client";
 
+import { repeatsLabel } from "./result-text";
 import { Fragment, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { ChevronDown, CircleCheck, CircleX, X } from "lucide-react";
 import { useDir, useT } from "@/components/I18nProvider";
@@ -253,7 +254,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                   {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
                   {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
                 </p>
-                <p dir="auto"><MathText text={result.feedback} /></p>
+                {!repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) && <p dir="auto"><MathText text={result.feedback} /></p>}
                 {!result.resolved && <p className="text-muted">{t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
                 {result.revealed && result.reveal && (
                   <div className="space-y-1 rounded-lg bg-ink-900 p-2">
