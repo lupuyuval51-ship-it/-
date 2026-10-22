@@ -292,7 +292,7 @@ Owner steps (nothing here is in the repository; do them once):
    verification on**.
 4. Data safety: add **Financial info → Purchase history** (collected, optional, not shared, App functionality / Fraud prevention) and publish
    the updated privacy policy (`mobile/store/privacy-policy.md`, already updated) before shipping this app version.
-Until step 3 is done the function answers `503 NOT_CONFIGURED` and the app keeps working exactly as before.
+The migration is applied and the function is deployed (2026-10-22); only the secret in step 3 is missing. Until it is added the function answers `503 NOT_CONFIGURED` and the app keeps working exactly as before.
 
 ## Sign-in is required (Play "App access")
 

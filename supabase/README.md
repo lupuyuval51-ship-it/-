@@ -4,7 +4,7 @@ Status: **live.** Project `levelup-app` (`yhxwgfgodxbzdvaqtqjz`, eu-central-1, f
 The three migrations in `migrations/` are applied, the edge function `functions/delete-account` is deployed (JWT required), the security
 advisor was clean (no findings) and the RLS checks in `tests/rls_checks.sql` passed on it the same day. Google Play purchase verification
 lives here too, next to the accounts: the edge function `functions/verify-purchase` and the table `play_purchases` (migration 4 below) are in the
-repository and **not deployed yet** (owner steps and secrets `PLAY_SERVICE_ACCOUNT_JSON` / `PLAY_PACKAGE_NAME`: `docs/play-release.md`, "Server-side purchase check").
+repository and **deployed 2026-10-22** (migration applied, function version 1, JWT on, security advisor clean; it answers `503 NOT_CONFIGURED` until the owner adds the secret). Owner steps and secrets `PLAY_SERVICE_ACCOUNT_JSON` / `PLAY_PACKAGE_NAME`: `docs/play-release.md`, "Server-side purchase check").
 The earlier project `level-up` (`dytftgtyugvzfumdcoep`) served app versions up to 1.15.0; its accounts and backups were not copied over (it had none) and it is paused.
 LEVEL UP AI lives in a separate project, `levelup-ai` (`zfkjkbyzurhidhpkzpxr`, https://zfkjkbyzurhidhpkzpxr.supabase.co, eu-central-1): the Edge Function
 `generate-game` (deployed 2026-10-17, `verify_jwt = false` because it checks the caller's **levelup-app** sign-in itself) and the table `ai_requests`

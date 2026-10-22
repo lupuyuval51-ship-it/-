@@ -1,7 +1,7 @@
 # `verify-purchase`: server-side check of Google Play purchases
 
 Supabase project **levelup-app** (`yhxwgfgodxbzdvaqtqjz`), Edge Function `verify-purchase`, **JWT verification on**.
-**Not deployed yet.** Source and tests: `src/server/play/verify.ts`, `tests/unit/play-verify.test.ts`; the app side is
+**Deployed 2026-10-22** (version 1; the migration is applied; without the secret it answers `503 NOT_CONFIGURED`). Source and tests: `src/server/play/verify.ts`, `tests/unit/play-verify.test.ts`; the app side is
 `mobile/src/cloud/purchases.ts` and `src/lib/offline/billing-verify.ts` (`tests/unit/play-verify-client.test.ts`).
 
 What it does, in order:
