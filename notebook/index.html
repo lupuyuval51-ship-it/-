@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מחברת</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f2ee;
+  --panel: #ffffff;
+  --panel-2: #f0eee8;
+  --text: #1e1e1c;
+  --muted: #7a776d;
+  --line: #e2dfd6;
+  --accent: #4658d6;
+  --accent-soft: #e4e8ff;
+  --danger: #d64545;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131318;
+    --panel: #1c1c23;
+    --panel-2: #26262f;
+    --text: #ececf1;
+    --muted: #9a9aa6;
+    --line: #33333d;
+    --accent: #8d9cff;
+    --accent-soft: #2a3163;
+    --danger: #ff7a7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131318;
+  --panel: #1c1c23;
+  --panel-2: #26262f;
+  --text: #ececf1;
+  --muted: #9a9aa6;
+  --line: #33333d;
+  --accent: #8d9cff;
+  --accent-soft: #2a3163;
+  --danger: #ff7a7a;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: Heebo, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+.topbar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.brand { font-size: 18px; font-weight: 700; white-space: nowrap; }
+#search {
+  flex: 1; min-width: 180px; max-width: 420px;
+  padding: 8px 14px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel-2);
+  outline: none;
+}
+#search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.top-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-inline-start: auto; }
+
+.btn {
+  padding: 7px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel);
+  white-space: nowrap;
+}
+.btn:hover { background: var(--panel-2); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.danger:hover { color: var(--danger); }
+
+.icon-btn {
+  width: 30px; height: 30px;
+  border: 0; border-radius: 8px;
+  background: transparent;
+  font-size: 20px; line-height: 1;
+}
+.icon-btn:hover { background: var(--panel-2); }
+
+.layout {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: 230px 290px minmax(0, 1fr);
+}
+.panel { display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+.notebooks, .pages { border-inline-end: 1px solid var(--line); }
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 14px 14px 6px;
+}
+.panel-head h2 {
+  margin: 0; min-width: 0;
+  font-size: 13px; font-weight: 600; letter-spacing: .02em;
+  color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.list {
+  flex: 1; min-height: 0;
+  margin: 0; padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+}
+.item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.item:hover { background: var(--panel-2); }
+.item.active { background: var(--accent-soft); }
+.item .name {
+  flex: 1; min-width: 0;
+  font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item .count { font-size: 12px; color: var(--muted); }
+.dot-btn {
+  width: 12px; height: 12px; flex: none;
+  padding: 0; border: 0; border-radius: 50%;
+  background: var(--c);
+}
+.mini {
+  display: none;
+  padding: 2px 4px;
+  border: 0; border-radius: 6px;
+  background: transparent;
+  font-size: 13px;
+}
+.item:hover .mini, .item.active .mini { display: inline-block; }
+.mini:hover { background: var(--panel); }
+@media (hover: none) {
+  .mini { display: inline-block; opacity: .6; }
+}
+.page-item { flex-direction: column; align-items: stretch; gap: 3px; padding: 10px; }
+.page-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.page-title {
+  flex: 1; min-width: 0;
+  font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.snippet {
+  color: var(--muted); font-size: 13px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.date { color: var(--muted); font-size: 12px; }
+.hint { padding: 16px 12px; color: var(--muted); font-size: 14px; }
+
+.editor { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.empty {
+  margin: auto; padding: 24px;
+  text-align: center;
+  color: var(--muted); font-size: 18px;
+}
+.editor-inner { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.editor-bar, .toolbar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.select {
+  max-width: 220px; margin-inline-end: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel-2);
+}
+.tb {
+  min-width: 34px; height: 32px; padding: 0 8px;
+  border: 0; border-radius: 8px;
+  background: transparent;
+  font-weight: 600;
+}
+.tb:hover { background: var(--panel-2); }
+.tb.on { background: var(--accent-soft); color: var(--accent); }
+.sep { width: 1px; height: 20px; margin: 0 6px; background: var(--line); }
+
+.editor-main { flex: 1; min-height: 0; overflow-y: auto; }
+.sheet {
+  max-width: 820px; min-height: calc(100% - 40px);
+  margin: 20px auto; padding: 32px 40px 96px;
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+.title {
+  display: block; width: 100%;
+  margin: 0 0 4px; padding: 0;
+  border: 0; outline: none;
+  background: transparent;
+  font-size: 30px; font-weight: 700; line-height: 1.3;
+}
+.meta {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  margin-bottom: 20px;
+  color: var(--muted); font-size: 13px;
+}
+#saveState[data-kind="error"] { color: var(--danger); }
+.body {
+  min-height: 55vh;
+  font-size: 17px; line-height: 1.8;
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.body:empty::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
+}
+.body h2 { margin: 1.1em 0 .3em; font-size: 24px; line-height: 1.3; }
+.body h3 { margin: 1em 0 .3em; font-size: 20px; line-height: 1.3; }
+.body ul, .body ol { padding-inline-start: 1.5em; }
+.body mark, .body span[style] { color: #1e1e1c; border-radius: 3px; padding: 0 2px; }
+.body input[type="checkbox"] {
+  width: 17px; height: 17px;
+  margin: 0 4px;
+  vertical-align: -3px;
+  accent-color: var(--accent);
+}
+
+@media (max-width: 760px) {
+  .app { height: auto; min-height: 100vh; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .notebooks, .pages { border-inline-end: 0; border-bottom: 1px solid var(--line); }
+  .notebooks .list { display: flex; overflow-x: auto; overflow-y: hidden; }
+  .notebooks .item { flex: none; }
+  .pages .list { max-height: 45vh; }
+  .editor-main { overflow: visible; }
+  .sheet { margin: 0; padding: 20px 16px 80px; min-height: 60vh; border-radius: 0; box-shadow: none; }
+  .title { font-size: 24px; }
+  .topbar { padding: 10px 12px; }
+  #search { order: 3; flex-basis: 100%; max-width: none; }
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><span aria-hidden="true">📓</span> <span data-i18n="appName">מחברת</span></div>
+      <input id="search" type="search" autocomplete="off" data-i18n-placeholder="search">
+      <div class="top-actions">
+        <button id="btnLang" class="btn ghost" type="button"></button>
+        <button id="btnTheme" class="btn ghost" type="button" data-i18n-title="theme">🌓</button>
+        <button id="btnExport" class="btn ghost" type="button" data-i18n="export">ייצוא</button>
+        <button id="btnImport" class="btn ghost" type="button" data-i18n="import">ייבוא</button>
+        <input id="fileImport" type="file" accept="application/json,.json" hidden>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel notebooks">
+        <div class="panel-head">
+          <h2 data-i18n="notebooks">מחברות</h2>
+          <button id="btnNewNotebook" class="icon-btn" type="button" data-i18n-title="newNotebook">+</button>
+        </div>
+        <ul id="notebookList" class="list"></ul>
+      </aside>
+
+      <section class="panel pages">
+        <div class="panel-head">
+          <h2 id="listTitle"></h2>
+          <button id="btnNewPage" class="icon-btn" type="button" data-i18n-title="newPage">+</button>
+        </div>
+        <ul id="pageList" class="list"></ul>
+      </section>
+
+      <section class="editor">
+        <div id="emptyState" class="empty" data-i18n="empty"></div>
+        <div id="editorInner" class="editor-inner" hidden>
+          <div class="editor-bar">
+            <select id="moveSelect" class="select" data-i18n-title="move"></select>
+            <button id="btnPin" class="btn ghost" type="button"></button>
+            <button id="btnDup" class="btn ghost" type="button" data-i18n="duplicate"></button>
+            <button id="btnDelete" class="btn ghost danger" type="button" data-i18n="remove"></button>
+          </div>
+          <div id="toolbar" class="toolbar">
+            <button class="tb" type="button" data-cmd="bold" data-i18n-title="bold"><b>B</b></button>
+            <button class="tb" type="button" data-cmd="italic" data-i18n-title="italic"><i>I</i></button>
+            <button class="tb" type="button" data-cmd="underline" data-i18n-title="underline"><u>U</u></button>
+            <span class="sep"></span>
+            <button class="tb" type="button" data-cmd="h2" data-i18n-title="h2">H2</button>
+            <button class="tb" type="button" data-cmd="h3" data-i18n-title="h3">H3</button>
+            <button class="tb" type="button" data-cmd="p" data-i18n-title="normal">¶</button>
+            <span class="sep"></span>
+            <button class="tb" type="button" data-cmd="ul" data-i18n-title="ul">•</button>
+            <button class="tb" type="button" data-cmd="ol" data-i18n-title="ol">1.</button>
+            <button class="tb" type="button" data-cmd="todo" data-i18n-title="todo">☑</button>
+            <span class="sep"></span>
+            <button class="tb" type="button" data-cmd="highlight" data-i18n-title="highlight">🖍</button>
+            <button class="tb" type="button" data-cmd="clear" data-i18n-title="clear">Tx</button>
+          </div>
+          <div class="editor-main">
+            <article class="sheet">
+              <input id="pageTitle" class="title" type="text" dir="auto" autocomplete="off">
+              <div class="meta"><span id="meta"></span><span id="saveState"></span></div>
+              <div id="body" class="body" contenteditable="true" dir="auto" spellcheck="true"></div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- Constants ---------- */
+  const STORAGE_KEY = 'notebook-app:v1';
+  const COLORS = ['#4658d6', '#e4572e', '#17a673', '#f2a900', '#9b5de5', '#0fa3b1'];
+  const ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'MARK', 'H2', 'H3', 'P', 'DIV', 'BR', 'UL', 'OL', 'LI', 'SPAN', 'INPUT']);
+  const DROPPED_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'SVG', 'MATH', 'TEMPLATE', 'NOSCRIPT', 'TEXTAREA', 'SELECT', 'BUTTON', 'FORM']);
+  const HIGHLIGHT_STYLE = /^background-color:\s*(#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\)|[a-z]+);?$/i;
+
+  const I18N = {
+    he: {
+      appName: 'מחברת',
+      search: 'חיפוש בכל המחברות (Ctrl+K)',
+      notebooks: 'מחברות',
+      newNotebook: 'מחברת חדשה',
+      newPage: 'דף חדש (Alt+N)',
+      notebookPrompt: 'שם המחברת החדשה:',
+      renamePrompt: 'שם חדש למחברת:',
+      deleteNotebook: 'למחוק את המחברת וכל הדפים שבה?',
+      lastNotebook: 'חייבת להישאר לפחות מחברת אחת',
+      color: 'החלפת צבע',
+      rename: 'שינוי שם',
+      deleteNb: 'מחיקת מחברת',
+      results: 'תוצאות חיפוש',
+      noResults: 'לא נמצאו תוצאות',
+      noPages: 'אין דפים עדיין – צרו את הראשון ✨',
+      empty: 'בחרו דף מהרשימה או צרו דף חדש ✨',
+      untitled: 'ללא כותרת',
+      titlePh: 'כותרת הדף',
+      bodyPh: 'התחילו לכתוב כאן…',
+      pin: 'הצמדה',
+      unpin: 'ביטול הצמדה',
+      duplicate: 'שכפול',
+      remove: 'מחיקה',
+      move: 'העברה למחברת אחרת',
+      deletePage: 'למחוק את הדף לצמיתות?',
+      copySuffix: ' (עותק)',
+      saved: '✓ נשמר',
+      saving: 'שומר…',
+      saveError: 'שגיאה בשמירה – נסו לייצא גיבוי',
+      words: 'מילים',
+      updated: 'עודכן',
+      bold: 'מודגש (Ctrl+B)',
+      italic: 'נטוי (Ctrl+I)',
+      underline: 'קו תחתון (Ctrl+U)',
+      h2: 'כותרת',
+      h3: 'כותרת משנה',
+      normal: 'טקסט רגיל',
+      ul: 'רשימת נקודות',
+      ol: 'רשימה ממוספרת',
+      todo: 'תיבת סימון',
+      highlight: 'סימון צהוב',
+      clear: 'ניקוי עיצוב',
+      theme: 'החלפת ערכת נושא',
+      export: 'ייצוא',
+      import: 'ייבוא',
+      importError: 'הקובץ אינו גיבוי תקין של מחברת',
+      importDone: 'הייבוא הושלם בהצלחה ✅',
+    },
+    en: {
+      appName: 'Notebook',
+      search: 'Search all notebooks (Ctrl+K)',
+      notebooks: 'Notebooks',
+      newNotebook: 'New notebook',
+      newPage: 'New page (Alt+N)',
+      notebookPrompt: 'New notebook name:',
+      renamePrompt: 'New name:',
+      deleteNotebook: 'Delete this notebook and all its pages?',
+      lastNotebook: 'You need to keep at least one notebook',
+      color: 'Change color',
+      rename: 'Rename',
+      deleteNb: 'Delete notebook',
+      results: 'Search results',
+      noResults: 'No results found',
+      noPages: 'No pages yet – create the first one ✨',
+      empty: 'Pick a page from the list or create a new one ✨',
+      untitled: 'Untitled',
+      titlePh: 'Page title',
+      bodyPh: 'Start writing here…',
+      pin: 'Pin',
+      unpin: 'Unpin',
+      duplicate: 'Duplicate',
+      remove: 'Delete',
+      move: 'Move to another notebook',
+      deletePage: 'Delete this page permanently?',
+      copySuffix: ' (copy)',
+      saved: '✓ Saved',
+      saving: 'Saving…',
+      saveError: 'Save failed – try exporting a backup',
+      words: 'Words',
+      updated: 'Updated',
+      bold: 'Bold (Ctrl+B)',
+      italic: 'Italic (Ctrl+I)',
+      underline: 'Underline (Ctrl+U)',
+      h2: 'Heading',
+      h3: 'Subheading',
+      normal: 'Normal text',
+      ul: 'Bulleted list',
+      ol: 'Numbered list',
+      todo: 'Checkbox',
+      highlight: 'Highlight',
+      clear: 'Clear formatting',
+      theme: 'Toggle theme',
+      export: 'Export',
+      import: 'Import',
+      importError: 'This file is not a valid notebook backup',
+      importDone: 'Import completed ✅',
+    },
+  };
+
+  const WELCOME_HTML = `
+    <h2>שלום! 👋 זו המחברת שלכם</h2>
+    <p>כתבו כאן – הכול נשמר אוטומטית בדפדפן שלכם.</p>
+    <ul>
+      <li><b>מחברות ודפים</b> – צרו והתארגנו בעמודות שבצד.</li>
+      <li><b>עיצוב</b> – <b>מודגש</b>, <i>נטוי</i>, <u>קו תחתון</u>, <mark>סימון צהוב</mark> וכותרות.</li>
+      <li><b>משימות</b> – הוסיפו תיבות סימון ותסמנו מה נעשה:</li>
+    </ul>
+    <div><input type="checkbox"> לקנות חלב</div>
+    <div><input type="checkbox" checked> לשלוח את המחברת לחברים 🚀</div>
+    <p>חיפוש (Ctrl+K), הצמדה, שכפול וגיבוי לקובץ נמצאים למעלה.</p>
+  `;
+
+  /* ---------- Helpers ---------- */
+  const $ = selector => document.querySelector(selector);
+  const uid = () => globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  const t = key => I18N[state.lang]?.[key] ?? I18N.he[key] ?? key;
+  const fmtDate = ts => new Intl.DateTimeFormat(state.lang === 'he' ? 'he-IL' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(ts);
+
+  function h(tag, className = '', text = null, attrs = {}) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== null) node.textContent = text;
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+    return node;
+  }
+
+  function textOf(html) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html.replace(/<br\s*\/?>|<\/(div|p|li|h[23])>/gi, '\n');
+    return tpl.content.textContent;
+  }
+
+  const countWords = html => textOf(html).trim().split(/\s+/).filter(Boolean).length;
+
+  // Whitelist sanitizer: pages come from storage, imports and pastes, so never trust their markup.
+  function sanitize(html) {
+    const tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    cleanChildren(tpl.content);
+    return tpl.innerHTML;
+  }
+
+  function cleanChildren(parent) {
+    for (const node of [...parent.childNodes]) {
+      if (node.nodeType === Node.TEXT_NODE) continue;
+      if (node.nodeType !== Node.ELEMENT_NODE) { node.remove(); continue; }
+      const tag = node.tagName.toUpperCase();
+      const isCheckbox = (node.getAttribute('type') || '').toLowerCase() === 'checkbox';
+      if (DROPPED_TAGS.has(tag) || (tag === 'INPUT' && !isCheckbox)) { node.remove(); continue; }
+      if (!ALLOWED_TAGS.has(tag)) { cleanChildren(node); node.replaceWith(...node.childNodes); continue; }
+      for (const { name, value } of [...node.attributes]) {
+        const keep = (tag === 'SPAN' && name === 'style' && HIGHLIGHT_STYLE.test(value))
+          || (tag === 'INPUT' && (name === 'type' || name === 'checked'));
+        if (!keep) node.removeAttribute(name);
+      }
+      cleanChildren(node);
+    }
+  }
+
+  function cleanNotebook(nb) {
+    if (!nb || typeof nb.id !== 'string' || typeof nb.name !== 'string') return null;
+    return {
+      id: nb.id,
+      name: nb.name.trim().slice(0, 80) || 'מחברת',
+      color: COLORS.includes(nb.color) ? nb.color : COLORS[0],
+      createdAt: Number(nb.createdAt) || Date.now(),
+    };
+  }
+
+  function cleanPage(page) {
+    if (!page || typeof page.id !== 'string' || typeof page.notebookId !== 'string') return null;
+    const now = Date.now();
+    return {
+      id: page.id,
+      notebookId: page.notebookId,
+      title: String(page.title ?? '').slice(0, 200),
+      html: sanitize(String(page.html ?? '')),
+      pinned: Boolean(page.pinned),
+      createdAt: Number(page.createdAt) || now,
+      updatedAt: Number(page.updatedAt) || now,
+    };
+  }
+
+  function normalize(data) {
+    if (!Array.isArray(data?.notebooks) || !Array.isArray(data?.pages)) return null;
+    const notebooks = data.notebooks.map(cleanNotebook).filter(Boolean);
+    if (!notebooks.length) return null;
+    const pages = data.pages.map(cleanPage).filter(p => p && notebooks.some(n => n.id === p.notebookId));
+    return {
+      notebooks,
+      pages,
+      activeNotebookId: data.activeNotebookId ?? null,
+      activePageId: data.activePageId ?? null,
+      lang: data.lang === 'en' ? 'en' : 'he',
+      theme: data.theme === 'dark' || data.theme === 'light' ? data.theme : null,
+    };
+  }
+
+  function load() {
+    let raw = null;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch { return null; }
+    if (!raw) return null;
+    try {
+      const data = normalize(JSON.parse(raw));
+      if (data) return data;
+    } catch { /* corrupted JSON: keep a copy below and start fresh */ }
+    try { localStorage.setItem(`${STORAGE_KEY}:backup`, raw); } catch { /* storage unavailable */ }
+    return null;
+  }
+
+  function seed() {
+    const now = Date.now();
+    const notebook = { id: uid(), name: 'המחברת הראשונה', color: COLORS[0], createdAt: now };
+    const page = { id: uid(), notebookId: notebook.id, title: 'ברוכים הבאים 👋', html: WELCOME_HTML, pinned: true, createdAt: now, updatedAt: now };
+    return { notebooks: [notebook], pages: [page], activeNotebookId: notebook.id, activePageId: page.id, lang: 'he', theme: null };
+  }
+
+  /* ---------- State ---------- */
+  const loaded = load();
+  let state = loaded ?? seed();
+  let query = '';
+  let saveTimer = 0;
+  let saveKind = '';
+  let loadedPageId = null;
+
+  const els = {
+    search: $('#search'),
+    btnLang: $('#btnLang'),
+    btnTheme: $('#btnTheme'),
+    btnExport: $('#btnExport'),
+    btnImport: $('#btnImport'),
+    fileImport: $('#fileImport'),
+    btnNewNotebook: $('#btnNewNotebook'),
+    btnNewPage: $('#btnNewPage'),
+    notebookList: $('#notebookList'),
+    pageList: $('#pageList'),
+    listTitle: $('#listTitle'),
+    emptyState: $('#emptyState'),
+    editorInner: $('#editorInner'),
+    moveSelect: $('#moveSelect'),
+    btnPin: $('#btnPin'),
+    btnDup: $('#btnDup'),
+    btnDelete: $('#btnDelete'),
+    toolbar: $('#toolbar'),
+    title: $('#pageTitle'),
+    body: $('#body'),
+    meta: $('#meta'),
+    saveState: $('#saveState'),
+  };
+
+  const currentNotebook = () => state.notebooks.find(n => n.id === state.activeNotebookId);
+  const currentPage = () => state.pages.find(p => p.id === state.activePageId);
+  const notebookName = id => state.notebooks.find(n => n.id === id)?.name ?? '';
+  const sortPages = pages => pages.sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
+  const pagesIn = notebookId => sortPages(state.pages.filter(p => p.notebookId === notebookId));
+  const searchPages = q => sortPages(state.pages.filter(p => `${p.title} ${textOf(p.html)}`.toLowerCase().includes(q)));
+  const upsert = (list, item) => {
+    const i = list.findIndex(x => x.id === item.id);
+    if (i === -1) list.push(item); else list[i] = item;
+  };
+
+  function ensureActive() {
+    if (!state.notebooks.some(n => n.id === state.activeNotebookId)) state.activeNotebookId = state.notebooks[0].id;
+    if (!state.pages.some(p => p.id === state.activePageId && p.notebookId === state.activeNotebookId)) {
+      state.activePageId = pagesIn(state.activeNotebookId)[0]?.id ?? null;
+    }
+  }
+
+  /* ---------- Saving ---------- */
+  function setSaveState(kind) {
+    saveKind = kind;
+    els.saveState.dataset.kind = kind;
+    els.saveState.textContent = { saving: t('saving'), saved: t('saved'), error: t('saveError') }[kind] ?? '';
+  }
+
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setSaveState('saved');
+    } catch {
+      setSaveState('error');
+    }
+  }
+
+  function queueSave() {
+    setSaveState('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { persist(); renderNotebooks(); renderPages(); }, 400);
+  }
+
+  // Structural changes (create, delete, switch) save and re-render at once.
+  function commit() {
+    persist();
+    renderAll();
+  }
+
+  /* ---------- Rendering ---------- */
+  function applyTheme() {
+    const root = document.documentElement;
+    if (state.theme) root.dataset.theme = state.theme;
+    else delete root.dataset.theme;
+  }
+
+  function applyStaticI18n() {
+    const root = document.documentElement;
+    root.lang = state.lang;
+    root.dir = state.lang === 'he' ? 'rtl' : 'ltr';
+    document.title = t('appName');
+    document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-title]').forEach(node => {
+      node.title = t(node.dataset.i18nTitle);
+      node.setAttribute('aria-label', node.title);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(node => { node.placeholder = t(node.dataset.i18nPlaceholder); });
+    els.title.placeholder = t('titlePh');
+    els.body.dataset.placeholder = t('bodyPh');
+    els.btnLang.textContent = state.lang === 'he' ? 'English' : 'עברית';
+    if (saveKind) setSaveState(saveKind);
+  }
+
+  function renderNotebooks() {
+    els.notebookList.replaceChildren(...state.notebooks.map(nb => {
+      const li = h('li', `item${nb.id === state.activeNotebookId ? ' active' : ''}`);
+      li.dataset.id = nb.id;
+      li.append(
+        h('button', 'dot-btn', null, { type: 'button', 'data-act': 'color', title: t('color'), style: `--c:${nb.color}` }),
+        h('span', 'name', nb.name, { dir: 'auto' }),
+        h('span', 'count', String(state.pages.filter(p => p.notebookId === nb.id).length)),
+        h('button', 'mini', '✎', { type: 'button', 'data-act': 'rename', title: t('rename') }),
+        h('button', 'mini', '🗑', { type: 'button', 'data-act': 'delete', title: t('deleteNb') }),
+      );
+      return li;
+    }));
+  }
+
+  function renderPages() {
+    const q = query.trim().toLowerCase();
+    const pages = q ? searchPages(q) : pagesIn(state.activeNotebookId);
+    els.listTitle.textContent = q ? t('results') : (currentNotebook()?.name ?? '');
+    if (!pages.length) {
+      els.pageList.replaceChildren(h('li', 'hint', q ? t('noResults') : t('noPages')));
+      return;
+    }
+    els.pageList.replaceChildren(...pages.map(page => {
+      const li = h('li', `item page-item${page.id === state.activePageId ? ' active' : ''}`);
+      li.dataset.id = page.id;
+      const row = h('div', 'page-row');
+      if (page.pinned) row.append(h('span', '', '📌'));
+      row.append(h('span', 'page-title', page.title.trim() || t('untitled'), { dir: 'auto' }));
+      const snippet = textOf(page.html).replace(/\s+/g, ' ').trim();
+      const info = fmtDate(page.updatedAt) + (q ? ` · ${notebookName(page.notebookId)}` : '');
+      li.append(row, h('div', 'snippet', snippet, { dir: 'auto' }), h('div', 'date', info));
+      return li;
+    }));
+  }
+
+  function updateMeta() {
+    const page = currentPage();
+    if (!page) return;
+    els.meta.textContent = `${t('words')}: ${countWords(page.html)} · ${t('updated')} ${fmtDate(page.updatedAt)}`;
+  }
+
+  function renderEditor() {
+    const page = currentPage();
+    els.emptyState.hidden = Boolean(page);
+    els.editorInner.hidden = !page;
+    if (!page) return;
+    if (loadedPageId !== page.id) {
+      loadedPageId = page.id;
+      els.title.value = page.title;
+      els.body.innerHTML = page.html;
+    }
+    els.btnPin.textContent = `📌 ${page.pinned ? t('unpin') : t('pin')}`;
+    els.moveSelect.replaceChildren(...state.notebooks.map(nb => h('option', '', nb.name, { value: nb.id })));
+    els.moveSelect.value = page.notebookId;
+    updateMeta();
+  }
+
+  const blockIs = tag => document.queryCommandValue('formatBlock').toLowerCase() === tag;
+  const ACTIVE_CHECKS = {
+    bold: () => document.queryCommandState('bold'),
+    italic: () => document.queryCommandState('italic'),
+    underline: () => document.queryCommandState('underline'),
+    ul: () => document.queryCommandState('insertUnorderedList'),
+    ol: () => document.queryCommandState('insertOrderedList'),
+    h2: () => blockIs('h2'),
+    h3: () => blockIs('h3'),
+  };
+
+  function updateToolbar() {
+    const focused = document.activeElement === els.body;
+    for (const btn of els.toolbar.querySelectorAll('[data-cmd]')) {
+      const check = ACTIVE_CHECKS[btn.dataset.cmd];
+      btn.classList.toggle('on', focused && Boolean(check?.()));
+    }
+  }
+
+  function renderAll() {
+    ensureActive();
+    renderNotebooks();
+    renderPages();
+    renderEditor();
+    updateToolbar();
+  }
+
+  /* ---------- Editing ---------- */
+  function touch(page) {
+    page.updatedAt = Date.now();
+    updateMeta();
+    queueSave();
+  }
+
+  function syncCheckboxes() {
+    // Keep the checked state in the markup so sanitize() saves it.
+    for (const box of els.body.querySelectorAll('input[type="checkbox"]')) box.toggleAttribute('checked', box.checked);
+  }
+
+  function onBodyEdit() {
+    const page = currentPage();
+    if (!page) return;
+    syncCheckboxes();
+    page.html = sanitize(els.body.innerHTML);
+    touch(page);
+  }
+
+  const COMMANDS = {
+    bold: () => document.execCommand('bold'),
+    italic: () => document.execCommand('italic'),
+    underline: () => document.execCommand('underline'),
+    h2: () => document.execCommand('formatBlock', false, 'H2'),
+    h3: () => document.execCommand('formatBlock', false, 'H3'),
+    p: () => document.execCommand('formatBlock', false, 'P'),
+    ul: () => document.execCommand('insertUnorderedList'),
+    ol: () => document.execCommand('insertOrderedList'),
+    todo: () => document.execCommand('insertHTML', false, '<input type="checkbox">&nbsp;'),
+    highlight: () => document.execCommand('hiliteColor', false, '#fff0a0'),
+    clear: () => {
+      document.execCommand('removeFormat');
+      document.execCommand('formatBlock', false, 'P');
+    },
+  };
+
+  function createPage() {
+    const now = Date.now();
+    const page = { id: uid(), notebookId: state.activeNotebookId, title: '', html: '', pinned: false, createdAt: now, updatedAt: now };
+    state.pages.push(page);
+    state.activePageId = page.id;
+    query = '';
+    els.search.value = '';
+    commit();
+    els.title.focus();
+  }
+
+  /* ---------- Backup ---------- */
+  function exportBackup() {
+    const payload = { app: 'notebook', version: 1, exportedAt: new Date().toISOString(), notebooks: state.notebooks, pages: state.pages };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+    const link = h('a', '', null, { href: url, download: `notebook-backup-${new Date().toISOString().slice(0, 10)}.json` });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  // Imported items merge in by id: same id overwrites the local copy, new ids are added.
+  async function importBackup(file) {
+    try {
+      const data = JSON.parse(await file.text());
+      if (!Array.isArray(data?.notebooks) || !Array.isArray(data?.pages)) throw new Error('not a backup');
+      for (const nb of data.notebooks.map(cleanNotebook).filter(Boolean)) upsert(state.notebooks, nb);
+      for (const page of data.pages.map(cleanPage).filter(Boolean)) {
+        if (state.notebooks.some(n => n.id === page.notebookId)) upsert(state.pages, page);
+      }
+      loadedPageId = null;
+      commit();
+      alert(t('importDone'));
+    } catch {
+      alert(t('importError'));
+    }
+  }
+
+  /* ---------- Events ---------- */
+  els.search.addEventListener('input', () => {
+    query = els.search.value;
+    renderPages();
+  });
+  els.search.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      query = '';
+      els.search.value = '';
+      renderPages();
+      els.search.blur();
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      els.search.focus();
+      els.search.select();
+    } else if (e.altKey && e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      createPage();
+    }
+  });
+
+  els.btnNewNotebook.addEventListener('click', () => {
+    const name = prompt(t('notebookPrompt'))?.trim();
+    if (!name) return;
+    const nb = { id: uid(), name: name.slice(0, 80), color: COLORS[state.notebooks.length % COLORS.length], createdAt: Date.now() };
+    state.notebooks.push(nb);
+    state.activeNotebookId = nb.id;
+    state.activePageId = null;
+    query = '';
+    els.search.value = '';
+    commit();
+  });
+
+  els.notebookList.addEventListener('click', e => {
+    const li = e.target.closest('li[data-id]');
+    const nb = li && state.notebooks.find(n => n.id === li.dataset.id);
+    if (!nb) return;
+    const act = e.target.closest('[data-act]')?.dataset.act;
+
+    if (act === 'color') {
+      nb.color = COLORS[(COLORS.indexOf(nb.color) + 1) % COLORS.length];
+      return commit();
+    }
+    if (act === 'rename') {
+      const name = prompt(t('renamePrompt'), nb.name)?.trim();
+      if (name) nb.name = name.slice(0, 80);
+      return commit();
+    }
+    if (act === 'delete') {
+      if (state.notebooks.length === 1) return alert(t('lastNotebook'));
+      if (!confirm(t('deleteNotebook'))) return;
+      state.notebooks = state.notebooks.filter(n => n.id !== nb.id);
+      state.pages = state.pages.filter(p => p.notebookId !== nb.id);
+      state.activeNotebookId = state.notebooks[0].id;
+      state.activePageId = pagesIn(state.activeNotebookId)[0]?.id ?? null;
+      loadedPageId = null;
+      return commit();
+    }
+
+    query = '';
+    els.search.value = '';
+    state.activeNotebookId = nb.id;
+    state.activePageId = pagesIn(nb.id)[0]?.id ?? null;
+    commit();
+  });
+
+  els.btnNewPage.addEventListener('click', createPage);
+
+  els.pageList.addEventListener('click', e => {
+    const li = e.target.closest('li[data-id]');
+    const page = li && state.pages.find(p => p.id === li.dataset.id);
+    if (!page) return;
+    state.activeNotebookId = page.notebookId;
+    state.activePageId = page.id;
+    commit();
+  });
+
+  els.title.addEventListener('input', () => {
+    const page = currentPage();
+    if (!page) return;
+    page.title = els.title.value.slice(0, 200);
+    touch(page);
+  });
+  els.title.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      els.body.focus();
+    }
+  });
+
+  els.body.addEventListener('input', onBodyEdit);
+  els.body.addEventListener('change', onBodyEdit);
+  els.body.addEventListener('paste', e => {
+    e.preventDefault();
+    const html = e.clipboardData.getData('text/html');
+    if (html) document.execCommand('insertHTML', false, sanitize(html));
+    else document.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+    onBodyEdit();
+  });
+  document.addEventListener('selectionchange', updateToolbar);
+
+  // Keep focus in the editor when a toolbar button is pressed, so the selection survives.
+  els.toolbar.addEventListener('mousedown', e => {
+    if (e.target.closest('button')) e.preventDefault();
+  });
+  els.toolbar.addEventListener('click', e => {
+    const btn = e.target.closest('[data-cmd]');
+    if (!btn || !currentPage()) return;
+    els.body.focus();
+    COMMANDS[btn.dataset.cmd]();
+    onBodyEdit();
+    updateToolbar();
+  });
+
+  els.btnPin.addEventListener('click', () => {
+    const page = currentPage();
+    if (!page) return;
+    page.pinned = !page.pinned;
+    commit();
+  });
+
+  els.btnDup.addEventListener('click', () => {
+    const page = currentPage();
+    if (!page) return;
+    const now = Date.now();
+    const copy = { ...page, id: uid(), title: (page.title || t('untitled')) + t('copySuffix'), pinned: false, createdAt: now, updatedAt: now };
+    state.pages.push(copy);
+    state.activePageId = copy.id;
+    commit();
+  });
+
+  els.btnDelete.addEventListener('click', () => {
+    const page = currentPage();
+    if (!page || !confirm(t('deletePage'))) return;
+    state.pages = state.pages.filter(p => p.id !== page.id);
+    state.activePageId = pagesIn(state.activeNotebookId)[0]?.id ?? null;
+    loadedPageId = null;
+    commit();
+  });
+
+  els.moveSelect.addEventListener('change', () => {
+    const page = currentPage();
+    if (!page) return;
+    page.notebookId = els.moveSelect.value;
+    state.activeNotebookId = page.notebookId;
+    touch(page);
+    commit();
+  });
+
+  els.btnTheme.addEventListener('click', () => {
+    const root = document.documentElement;
+    const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    state.theme = isDark ? 'light' : 'dark';
+    applyTheme();
+    persist();
+  });
+
+  els.btnLang.addEventListener('click', () => {
+    state.lang = state.lang === 'he' ? 'en' : 'he';
+    applyStaticI18n();
+    renderAll();
+    persist();
+  });
+
+  els.btnExport.addEventListener('click', exportBackup);
+  els.btnImport.addEventListener('click', () => els.fileImport.click());
+  els.fileImport.addEventListener('change', () => {
+    const file = els.fileImport.files[0];
+    els.fileImport.value = '';
+    if (file) importBackup(file);
+  });
+
+  const flush = () => { if (saveTimer) persist(); };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+  window.addEventListener('pagehide', flush);
+
+  /* ---------- Start ---------- */
+  applyTheme();
+  applyStaticI18n();
+  renderAll();
+  if (!loaded) persist();
+})();
+</script>
+</body>
+</html>
