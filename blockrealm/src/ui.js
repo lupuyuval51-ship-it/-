@@ -52,7 +52,9 @@ const STRINGS = {
 let LANG = 'he';
 const t = (k) => (STRINGS[LANG][k] !== undefined ? STRINGS[LANG][k] : STRINGS.he[k] !== undefined ? STRINGS.he[k] : k);
 const $ = (id) => document.getElementById(id);
-const IS_TOUCH = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+/* Touch UI only when the primary pointer is coarse (phones/tablets); touchscreen laptops keep mouse + pointer lock.
+   A real touch on any device switches the touch controls on (see Input.bindTouch). */
+let IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
 const HEART_PATH = 'M10 17.6 3.1 10.8A4.4 4.4 0 0 1 10 5.2a4.4 4.4 0 0 1 6.9 5.6z';
 
@@ -185,11 +187,15 @@ class UI {
     }
   }
 
+  setText(id, v) {
+    const c = this.textCache || (this.textCache = {});
+    if (c[id] !== v) { c[id] = v; $(id).textContent = v; }
+  }
   updateHud(dt) {
     const g = this.g, p = g.player;
     if (this.nameTimer > 0) { this.nameTimer -= dt; if (this.nameTimer <= 0) $('itemName').style.opacity = 0; }
     const survival = g.mode === 'survival';
-    $('vitals').style.visibility = survival ? 'visible' : 'hidden';
+    if (this.survivalShown !== survival) { this.survivalShown = survival; $('vitals').style.visibility = survival ? 'visible' : 'hidden'; }
     if (survival && this.lastHealth !== p.health) {
       this.lastHealth = p.health;
       this.heartEls.forEach((el, i) => {
@@ -205,9 +211,9 @@ class UI {
       this.bubbleEls.forEach((el, i) => { el.style.opacity = i < air ? 1 : 0.15; });
     }
     const w = g.world;
-    $('chipBiome').textContent = BIOME_NAMES[LANG][w.biomeAt(Math.floor(p.x), Math.floor(p.z))];
-    $('chipTime').textContent = this.fmtHour(g.hourOfDay());
-    $('chipPos').textContent = `${Math.floor(p.x)}, ${Math.floor(p.y)}, ${Math.floor(p.z)}`;
+    this.setText('chipBiome', BIOME_NAMES[LANG][w.biomeAt(Math.floor(p.x), Math.floor(p.z))]);
+    this.setText('chipTime', this.fmtHour(g.hourOfDay()));
+    this.setText('chipPos', `${Math.floor(p.x)}, ${Math.floor(p.y)}, ${Math.floor(p.z)}`);
     const ring = $('ring'), prog = g.breaking ? Math.min(1, g.breaking.t) : 0;
     ring.hidden = prog <= 0;
     if (prog > 0) ring.firstChild.style.strokeDasharray = `${prog * 100} 100`;
@@ -296,7 +302,7 @@ class Input {
     this.keys = new Set();
     this.lookDX = 0; this.lookDY = 0;
     this.attack = false; this.use = false; this.attackPressed = false; this.usePressed = false; this.pickPressed = false;
-    this.locked = false; this.freeLook = false; this.ignoreUnlock = false;
+    this.locked = false; this.freeLook = false; this.ignoreUnlock = false; this.skipMoves = 0; this.moveAvg = 0;
     this.lastSpace = 0;
     this.stick = { id: null, x: 0, y: 0, vx: 0, vz: 0 };
     this.lookT = { id: null, x: 0, y: 0, t0: 0, moved: false, long: false };
@@ -334,9 +340,14 @@ class Input {
   bindMouse() {
     const g = this.g, cv = this.canvas;
     cv.addEventListener('mousedown', (e) => {
-      if (IS_TOUCH && e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
       if (g.state !== 'playing') return;
-      if (!this.locked && !this.freeLook) { this.requestLock(); return; }
+      if (!this.locked) {
+        // Always retry the lock on click; act on the click only if the lock is unavailable.
+        const wasFree = this.freeLook;
+        this.requestLock();
+        if (!wasFree) return;
+      }
       if (e.button === 0) { this.attack = true; this.attackPressed = true; }
       if (e.button === 2) { this.use = true; this.usePressed = true; }
       if (e.button === 1) { e.preventDefault(); this.pickPressed = true; }
@@ -345,11 +356,21 @@ class Input {
     cv.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('mousemove', (e) => {
       if (g.state !== 'playing') return;
-      if (this.locked || (this.freeLook && e.target === cv)) { this.lookDX += e.movementX || 0; this.lookDY += e.movementY || 0; }
+      if (!this.locked && !(this.freeLook && e.target === cv)) return;
+      const dx = e.movementX || 0, dy = e.movementY || 0;
+      if (this.skipMoves > 0) { this.skipMoves--; return; }
+      // Browsers occasionally report one huge bogus delta (lock changes, cursor re-entering, a Chrome bug
+      // on some mice); drop isolated spikes but let genuinely fast flicks through as they ramp up.
+      const mag = Math.abs(dx) + Math.abs(dy);
+      if (mag > 160 && mag > this.moveAvg * 6 + 60) { this.moveAvg = this.moveAvg * 0.85 + 25; return; }
+      this.moveAvg = this.moveAvg * 0.8 + mag * 0.2;
+      this.lookDX += dx; this.lookDY += dy;
     });
+    cv.addEventListener('mouseenter', () => { if (this.freeLook) this.skipMoves = 1; });
     cv.addEventListener('wheel', (e) => { if (g.state === 'playing') { e.preventDefault(); g.scrollSlot(Math.sign(e.deltaY)); } }, { passive: false });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === cv;
+      this.skipMoves = 2; this.moveAvg = 0;
       if (this.locked) this.freeLook = false;
       if (!this.locked && g.state === 'playing' && !this.ignoreUnlock && !IS_TOUCH) g.pause();
       this.ignoreUnlock = false;
@@ -360,10 +381,17 @@ class Input {
     if (IS_TOUCH) return;
     const cv = this.canvas;
     if (!cv.requestPointerLock) { this.freeLook = true; return; }
+    const plain = () => {
+      try {
+        const r = cv.requestPointerLock();
+        if (r && r.catch) r.catch(() => { this.freeLook = true; });
+      } catch (e) { this.freeLook = true; }
+    };
+    // Raw (unaccelerated) mouse input where supported: steadier deltas, no OS acceleration jumps.
     try {
-      const r = cv.requestPointerLock();
-      if (r && r.catch) r.catch(() => { this.freeLook = true; });
-    } catch (e) { this.freeLook = true; }
+      const r = cv.requestPointerLock({ unadjustedMovement: true });
+      if (r && r.catch) r.catch((err) => { if (err && err.name === 'NotSupportedError') plain(); else this.freeLook = true; });
+    } catch (e) { plain(); }
   }
   releaseLock() {
     if (document.pointerLockElement) { this.ignoreUnlock = true; document.exitPointerLock(); }
@@ -372,6 +400,7 @@ class Input {
     const g = this.g, layer = $('touch'), stickEl = $('stick'), knob = $('knob');
     const R = 56;
     const opts = { passive: false };
+    window.addEventListener('touchstart', () => { if (!IS_TOUCH) g.enableTouch(); }, { passive: true });
     layer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       g.sound.init();

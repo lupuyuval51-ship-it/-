@@ -410,7 +410,8 @@ class Precip {
     const R = 12, n = Math.floor(this.n * clamp(intensity, 0, 1)), d = this.d, v = this.verts, r = this.rnd;
     const speed = snow ? 2.4 : 18, wind = snow ? 0.6 : 1.6, len = 1.05;
     const rx = Math.cos(cam.yaw) * 0.016, rz = -Math.sin(cam.yaw) * 0.016, sl = -wind * 0.045;
-    let k = 0;
+    let k = 0, w = 0;
+    const put = (x, y, z, a) => { v[w++] = x; v[w++] = y; v[w++] = z; v[w++] = a; };
     for (let i = 0; i < n; i++) {
       const o = i * 4;
       if (d[o + 1] < -1e3 || Math.abs(d[o] - cam.x) > R || Math.abs(d[o + 2] - cam.z) > R || d[o + 1] > cam.y + 22) {
@@ -426,10 +427,10 @@ class Precip {
       if (d[o + 1] < ground || d[o + 1] < cam.y - 14) { d[o + 1] = cam.y + 10 + r() * 10; d[o] = cam.x + (r() * 2 - 1) * R; d[o + 2] = cam.z + (r() * 2 - 1) * R; continue; }
       if (snow) { const q = k * 4; v[q] = d[o]; v[q + 1] = d[o + 1]; v[q + 2] = d[o + 2]; v[q + 3] = 1; }
       else {
-        const x0 = d[o], y0 = d[o + 1], z0 = d[o + 2], y1 = y0 + len, q = k * 24;
-        const quad = [[x0 - rx + sl, y1, z0 - rz, 0.3], [x0 + rx + sl, y1, z0 + rz, 0.3], [x0 + rx, y0, z0 + rz, 1], [x0 - rx, y0, z0 - rz, 1]];
-        let w = q;
-        for (const vi of [0, 1, 2, 0, 2, 3]) { const c = quad[vi]; v[w++] = c[0]; v[w++] = c[1]; v[w++] = c[2]; v[w++] = c[3]; }
+        const x0 = d[o], y0 = d[o + 1], z0 = d[o + 2], y1 = y0 + len;
+        w = k * 24;
+        put(x0 - rx + sl, y1, z0 - rz, 0.3); put(x0 + rx + sl, y1, z0 + rz, 0.3); put(x0 + rx, y0, z0 + rz, 1);
+        put(x0 - rx + sl, y1, z0 - rz, 0.3); put(x0 + rx, y0, z0 + rz, 1); put(x0 - rx, y0, z0 - rz, 1);
       }
       k++;
     }

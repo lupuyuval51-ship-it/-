@@ -1207,9 +1207,10 @@ class TerrainGen {
     this.seed = seed | 0;
     const n = (k) => new Simplex((seed | 0) * 31 + k * 7919);
     this.nCont = n(1); this.nEro = n(2); this.nHill = n(3); this.nRidge = n(4);
-    this.nTemp = n(5); this.nMoist = n(6); this.nCave1 = n(7); this.nCave2 = n(8); this.nCave3 = n(9);
+    this.nTemp = n(5); this.nMoist = n(6); this.nCave1 = n(7); this.nCave2 = n(8); this.nCave3 = n(9); this.nDetail = n(10);
   }
-  height(wx, wz) {
+  /* Smooth large-scale height; sampled on a coarse grid during generation and interpolated. */
+  baseHeight(wx, wz) {
     const cont = fbm2(this.nCont, wx / 720, wz / 720, 5);
     const ero = fbm2(this.nEro, wx / 380, wz / 380, 3);
     const hills = fbm2(this.nHill, wx / 96, wz / 96, 4);
@@ -1217,8 +1218,10 @@ class TerrainGen {
     let h = SEA + 6 + cont * 36;
     h += hills * (4 + 8 * smoothstep(-0.4, 0.6, ero));
     h += smoothstep(0.12, 0.5, cont + ero * 0.35) * ridge * ridge * 58;
-    return clamp(h, 6, CH - 12);
+    return h;
   }
+  detail(wx, wz) { return this.nDetail.noise2(wx / 13, wz / 13) * 1.4; }
+  height(wx, wz) { return clamp(this.baseHeight(wx, wz) + this.detail(wx, wz), 6, CH - 12); }
   climate(wx, wz) {
     return [fbm2(this.nTemp, wx / 900, wz / 900, 3) * 1.6, fbm2(this.nMoist, wx / 700, wz / 700, 3) * 1.6];
   }
@@ -1248,6 +1251,7 @@ class TerrainGen {
 }
 
 const TREE_CHANCE = [0, 0, 0, 0.0045, 0.05, 0.006, 0.03, 0.018, 0.01];
+const BEDROCK_ID = B.bedrock, STONE_ID = B.stone, SANDSTONE_ID = B.sandstone, WATER_ID = B.water, ICE_ID = B.ice;
 
 class World {
   constructor(seed, edits) {
@@ -1290,10 +1294,19 @@ class World {
   generate(c) {
     const g = this.gen, ox = c.cx * CS, oz = c.cz * CS, M = 4, W = CS + 2 * M;
     const H = new Float32Array(W * W), TP = new Float32Array(W * W), MO = new Float32Array(W * W);
+    // Coarse samples every S blocks on a world-aligned grid (so neighbouring chunks agree), then bilinear.
+    const S = 4, GW = W / S + 1, GH = new Float32Array(GW * GW), GT = new Float32Array(GW * GW), GM = new Float32Array(GW * GW);
+    for (let gz = 0; gz < GW; gz++) for (let gx = 0; gx < GW; gx++) {
+      const wx = ox - M + gx * S, wz = oz - M + gz * S, k = gz * GW + gx;
+      GH[k] = g.baseHeight(wx, wz);
+      const cl = g.climate(wx, wz); GT[k] = cl[0]; GM[k] = cl[1];
+    }
+    const bl = (A, k, fx, fz) => lerp(lerp(A[k], A[k + 1], fx), lerp(A[k + GW], A[k + GW + 1], fx), fz);
     for (let z = 0; z < W; z++) for (let x = 0; x < W; x++) {
-      const wx = ox + x - M, wz = oz + z - M, i = z * W + x;
-      H[i] = g.height(wx, wz);
-      const cl = g.climate(wx, wz); TP[i] = cl[0]; MO[i] = cl[1];
+      const gx = Math.min(GW - 2, (x / S) | 0), gz = Math.min(GW - 2, (z / S) | 0), fx = (x - gx * S) / S, fz = (z - gz * S) / S;
+      const k = gz * GW + gx, i = z * W + x;
+      H[i] = clamp(bl(GH, k, fx, fz) + g.detail(ox + x - M, oz + z - M), 6, CH - 12);
+      TP[i] = bl(GT, k, fx, fz); MO[i] = bl(GM, k, fx, fz);
     }
     const BIO = new Uint8Array(W * W), HI = new Int16Array(W * W);
     for (let z = 1; z < W - 1; z++) for (let x = 1; x < W - 1; x++) {
@@ -1326,16 +1339,17 @@ class World {
         default:
           if (slope > 6) { top = B.stone; fill = B.stone; }
       }
-      const fillDepth = 3 + ((r * 3) | 0);
-      for (let y = 0; y <= Math.max(h, SEA); y++) {
+      const fillDepth = 3 + ((r * 3) | 0), fillStart = h - fillDepth, deepSplit = fillStart - 3, yTop = Math.max(h, SEA);
+      const frozen = bio === BIOME.FROZEN_OCEAN, sandDeep = deep === SANDSTONE_ID, seed = this.seed;
+      for (let y = 0, bi = z * CS + x; y <= yTop; y++, bi += CS2) {
         let id;
-        if (y === 0) id = B.bedrock;
-        else if (y < 4 && hash3(wx, y, wz, this.seed) < 0.55 - y * 0.15) id = B.bedrock;
-        else if (y < h - fillDepth) id = deep === B.sandstone && y < h - fillDepth - 3 ? B.stone : deep;
-        else if (y < h) id = fill;
+        if (y < fillStart) {
+          if (y === 0 || (y < 4 && hash3(wx, y, wz, seed) < 0.55 - y * 0.15)) id = BEDROCK_ID;
+          else id = sandDeep && y < deepSplit ? STONE_ID : deep;
+        } else if (y < h) id = fill;
         else if (y === h) id = top;
-        else id = (bio === BIOME.FROZEN_OCEAN && y === SEA) ? B.ice : B.water;
-        blocks[bidx(x, y, z)] = id;
+        else id = frozen && y === SEA ? ICE_ID : WATER_ID;
+        blocks[bi] = id;
       }
     }
     this.carveCaves(c, HI, W, M);
@@ -1532,6 +1546,21 @@ class World {
     seed(this.getChunk(c.cx + 1, c.cz), (k) => k * CS, 15, 0, 0, 1);
     seed(this.getChunk(c.cx, c.cz - 1), (k) => 15 * CS + k, 0, 0, 1, 0);
     seed(this.getChunk(c.cx, c.cz + 1), (k) => k, 0, 15, 1, 0);
+    // Light that already spread inside lit neighbours flows across the border too (caves, overhangs).
+    const sides = [
+      [this.getChunk(c.cx - 1, c.cz), 0, 15, true], [this.getChunk(c.cx + 1, c.cz), 15, 0, true],
+      [this.getChunk(c.cx, c.cz - 1), 0, 15, false], [this.getChunk(c.cx, c.cz + 1), 15, 0, false],
+    ];
+    for (const [nb, a, bb, alongZ] of sides) {
+      if (!nb || !nb.lit) continue;
+      const yMax = Math.min(CH - 1, Math.max(c.maxY, nb.maxY) + 1);
+      for (let k = 0; k < CS; k++) for (let y = 0; y <= yMax; y++) {
+        const i = alongZ ? bidx(a, y, k) : bidx(k, y, a), id = blocks[i];
+        if (OPAQUE[id]) continue;
+        const v = nb.light[alongZ ? bidx(bb, y, k) : bidx(k, y, bb)] - 1 - ATTEN[id];
+        if (v > L[i]) { L[i] = v; q[tail] = i; tail = (tail + 1) & MASK; }
+      }
+    }
     while (head !== tail) {
       const i = q[head]; head = (head + 1) & MASK;
       const l = L[i];
@@ -1553,6 +1582,18 @@ class World {
     }
     c.lit = true;
     c.needLight = false;
+    // If our border is now brighter than what a lit neighbour holds there, it needs relighting.
+    for (const [nb, a, bb, alongZ] of sides) {
+      if (!nb || !nb.lit || nb.needLight) continue;
+      const yMax = Math.min(CH - 1, Math.max(c.maxY, nb.maxY) + 1);
+      let brighter = false;
+      for (let k = 0; k < CS && !brighter; k++) for (let y = 0; y <= yMax; y++) {
+        const j = alongZ ? bidx(bb, y, k) : bidx(k, y, bb), nid = nb.blocks[j];
+        if (OPAQUE[nid]) continue;
+        if (L[alongZ ? bidx(a, y, k) : bidx(k, y, a)] - 1 - ATTEN[nid] > nb.light[j]) { brighter = true; break; }
+      }
+      if (brighter) { nb.needLight = true; if (nb.meshed) nb.needMesh = true; }
+    }
   }
 
   neighborsReady(c, stage) {
@@ -3292,7 +3333,8 @@ class Precip {
     const R = 12, n = Math.floor(this.n * clamp(intensity, 0, 1)), d = this.d, v = this.verts, r = this.rnd;
     const speed = snow ? 2.4 : 18, wind = snow ? 0.6 : 1.6, len = 1.05;
     const rx = Math.cos(cam.yaw) * 0.016, rz = -Math.sin(cam.yaw) * 0.016, sl = -wind * 0.045;
-    let k = 0;
+    let k = 0, w = 0;
+    const put = (x, y, z, a) => { v[w++] = x; v[w++] = y; v[w++] = z; v[w++] = a; };
     for (let i = 0; i < n; i++) {
       const o = i * 4;
       if (d[o + 1] < -1e3 || Math.abs(d[o] - cam.x) > R || Math.abs(d[o + 2] - cam.z) > R || d[o + 1] > cam.y + 22) {
@@ -3308,10 +3350,10 @@ class Precip {
       if (d[o + 1] < ground || d[o + 1] < cam.y - 14) { d[o + 1] = cam.y + 10 + r() * 10; d[o] = cam.x + (r() * 2 - 1) * R; d[o + 2] = cam.z + (r() * 2 - 1) * R; continue; }
       if (snow) { const q = k * 4; v[q] = d[o]; v[q + 1] = d[o + 1]; v[q + 2] = d[o + 2]; v[q + 3] = 1; }
       else {
-        const x0 = d[o], y0 = d[o + 1], z0 = d[o + 2], y1 = y0 + len, q = k * 24;
-        const quad = [[x0 - rx + sl, y1, z0 - rz, 0.3], [x0 + rx + sl, y1, z0 + rz, 0.3], [x0 + rx, y0, z0 + rz, 1], [x0 - rx, y0, z0 - rz, 1]];
-        let w = q;
-        for (const vi of [0, 1, 2, 0, 2, 3]) { const c = quad[vi]; v[w++] = c[0]; v[w++] = c[1]; v[w++] = c[2]; v[w++] = c[3]; }
+        const x0 = d[o], y0 = d[o + 1], z0 = d[o + 2], y1 = y0 + len;
+        w = k * 24;
+        put(x0 - rx + sl, y1, z0 - rz, 0.3); put(x0 + rx + sl, y1, z0 + rz, 0.3); put(x0 + rx, y0, z0 + rz, 1);
+        put(x0 - rx + sl, y1, z0 - rz, 0.3); put(x0 + rx, y0, z0 + rz, 1); put(x0 - rx, y0, z0 - rz, 1);
       }
       k++;
     }
@@ -3503,7 +3545,9 @@ const STRINGS = {
 let LANG = 'he';
 const t = (k) => (STRINGS[LANG][k] !== undefined ? STRINGS[LANG][k] : STRINGS.he[k] !== undefined ? STRINGS.he[k] : k);
 const $ = (id) => document.getElementById(id);
-const IS_TOUCH = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+/* Touch UI only when the primary pointer is coarse (phones/tablets); touchscreen laptops keep mouse + pointer lock.
+   A real touch on any device switches the touch controls on (see Input.bindTouch). */
+let IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
 const HEART_PATH = 'M10 17.6 3.1 10.8A4.4 4.4 0 0 1 10 5.2a4.4 4.4 0 0 1 6.9 5.6z';
 
@@ -3636,11 +3680,15 @@ class UI {
     }
   }
 
+  setText(id, v) {
+    const c = this.textCache || (this.textCache = {});
+    if (c[id] !== v) { c[id] = v; $(id).textContent = v; }
+  }
   updateHud(dt) {
     const g = this.g, p = g.player;
     if (this.nameTimer > 0) { this.nameTimer -= dt; if (this.nameTimer <= 0) $('itemName').style.opacity = 0; }
     const survival = g.mode === 'survival';
-    $('vitals').style.visibility = survival ? 'visible' : 'hidden';
+    if (this.survivalShown !== survival) { this.survivalShown = survival; $('vitals').style.visibility = survival ? 'visible' : 'hidden'; }
     if (survival && this.lastHealth !== p.health) {
       this.lastHealth = p.health;
       this.heartEls.forEach((el, i) => {
@@ -3656,9 +3704,9 @@ class UI {
       this.bubbleEls.forEach((el, i) => { el.style.opacity = i < air ? 1 : 0.15; });
     }
     const w = g.world;
-    $('chipBiome').textContent = BIOME_NAMES[LANG][w.biomeAt(Math.floor(p.x), Math.floor(p.z))];
-    $('chipTime').textContent = this.fmtHour(g.hourOfDay());
-    $('chipPos').textContent = `${Math.floor(p.x)}, ${Math.floor(p.y)}, ${Math.floor(p.z)}`;
+    this.setText('chipBiome', BIOME_NAMES[LANG][w.biomeAt(Math.floor(p.x), Math.floor(p.z))]);
+    this.setText('chipTime', this.fmtHour(g.hourOfDay()));
+    this.setText('chipPos', `${Math.floor(p.x)}, ${Math.floor(p.y)}, ${Math.floor(p.z)}`);
     const ring = $('ring'), prog = g.breaking ? Math.min(1, g.breaking.t) : 0;
     ring.hidden = prog <= 0;
     if (prog > 0) ring.firstChild.style.strokeDasharray = `${prog * 100} 100`;
@@ -3747,7 +3795,7 @@ class Input {
     this.keys = new Set();
     this.lookDX = 0; this.lookDY = 0;
     this.attack = false; this.use = false; this.attackPressed = false; this.usePressed = false; this.pickPressed = false;
-    this.locked = false; this.freeLook = false; this.ignoreUnlock = false;
+    this.locked = false; this.freeLook = false; this.ignoreUnlock = false; this.skipMoves = 0; this.moveAvg = 0;
     this.lastSpace = 0;
     this.stick = { id: null, x: 0, y: 0, vx: 0, vz: 0 };
     this.lookT = { id: null, x: 0, y: 0, t0: 0, moved: false, long: false };
@@ -3785,9 +3833,14 @@ class Input {
   bindMouse() {
     const g = this.g, cv = this.canvas;
     cv.addEventListener('mousedown', (e) => {
-      if (IS_TOUCH && e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
+      if (e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return;
       if (g.state !== 'playing') return;
-      if (!this.locked && !this.freeLook) { this.requestLock(); return; }
+      if (!this.locked) {
+        // Always retry the lock on click; act on the click only if the lock is unavailable.
+        const wasFree = this.freeLook;
+        this.requestLock();
+        if (!wasFree) return;
+      }
       if (e.button === 0) { this.attack = true; this.attackPressed = true; }
       if (e.button === 2) { this.use = true; this.usePressed = true; }
       if (e.button === 1) { e.preventDefault(); this.pickPressed = true; }
@@ -3796,11 +3849,21 @@ class Input {
     cv.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('mousemove', (e) => {
       if (g.state !== 'playing') return;
-      if (this.locked || (this.freeLook && e.target === cv)) { this.lookDX += e.movementX || 0; this.lookDY += e.movementY || 0; }
+      if (!this.locked && !(this.freeLook && e.target === cv)) return;
+      const dx = e.movementX || 0, dy = e.movementY || 0;
+      if (this.skipMoves > 0) { this.skipMoves--; return; }
+      // Browsers occasionally report one huge bogus delta (lock changes, cursor re-entering, a Chrome bug
+      // on some mice); drop isolated spikes but let genuinely fast flicks through as they ramp up.
+      const mag = Math.abs(dx) + Math.abs(dy);
+      if (mag > 160 && mag > this.moveAvg * 6 + 60) { this.moveAvg = this.moveAvg * 0.85 + 25; return; }
+      this.moveAvg = this.moveAvg * 0.8 + mag * 0.2;
+      this.lookDX += dx; this.lookDY += dy;
     });
+    cv.addEventListener('mouseenter', () => { if (this.freeLook) this.skipMoves = 1; });
     cv.addEventListener('wheel', (e) => { if (g.state === 'playing') { e.preventDefault(); g.scrollSlot(Math.sign(e.deltaY)); } }, { passive: false });
     document.addEventListener('pointerlockchange', () => {
       this.locked = document.pointerLockElement === cv;
+      this.skipMoves = 2; this.moveAvg = 0;
       if (this.locked) this.freeLook = false;
       if (!this.locked && g.state === 'playing' && !this.ignoreUnlock && !IS_TOUCH) g.pause();
       this.ignoreUnlock = false;
@@ -3811,10 +3874,17 @@ class Input {
     if (IS_TOUCH) return;
     const cv = this.canvas;
     if (!cv.requestPointerLock) { this.freeLook = true; return; }
+    const plain = () => {
+      try {
+        const r = cv.requestPointerLock();
+        if (r && r.catch) r.catch(() => { this.freeLook = true; });
+      } catch (e) { this.freeLook = true; }
+    };
+    // Raw (unaccelerated) mouse input where supported: steadier deltas, no OS acceleration jumps.
     try {
-      const r = cv.requestPointerLock();
-      if (r && r.catch) r.catch(() => { this.freeLook = true; });
-    } catch (e) { this.freeLook = true; }
+      const r = cv.requestPointerLock({ unadjustedMovement: true });
+      if (r && r.catch) r.catch((err) => { if (err && err.name === 'NotSupportedError') plain(); else this.freeLook = true; });
+    } catch (e) { plain(); }
   }
   releaseLock() {
     if (document.pointerLockElement) { this.ignoreUnlock = true; document.exitPointerLock(); }
@@ -3823,6 +3893,7 @@ class Input {
     const g = this.g, layer = $('touch'), stickEl = $('stick'), knob = $('knob');
     const R = 56;
     const opts = { passive: false };
+    window.addEventListener('touchstart', () => { if (!IS_TOUCH) g.enableTouch(); }, { passive: true });
     layer.addEventListener('touchstart', (e) => {
       e.preventDefault();
       g.sound.init();
@@ -3964,6 +4035,7 @@ class Game {
     this.state = 'menu';
     this.breaking = null; this.attackCd = 0; this.useCd = 0; this.swingT = 0; this.handDirty = true;
     this.saveTimer = 0; this.cameraUnderwater = false; this.fovCur = this.settings.fov;
+    this.perf = { acc: 0, n: 0, scale: 1 };
     this.inv = { slots: new Array(36).fill(null), sel: 0 };
 
     const save = (hotData && hotData.save) || this.loadJSON(SAVE_KEY);
@@ -3998,7 +4070,7 @@ class Game {
   resize() {
     if (!this.renderer) return;
     const q = this.quality || QUALITY.medium;
-    this.renderer.resize(Math.min(window.devicePixelRatio || 1, q.scaleCap));
+    this.renderer.resize(Math.min(window.devicePixelRatio || 1, q.scaleCap) * (this.perf ? this.perf.scale : 1));
   }
 
   /* ---------- world lifecycle ---------- */
@@ -4130,6 +4202,13 @@ class Game {
     this.ui.screen(null);
     this.startLoading();
     this.playerPlaced = true;
+  }
+  enableTouch() {
+    IS_TOUCH = true;
+    this.input.releaseLock();
+    document.body.classList.add('touch');
+    if (this.state !== 'menu') $('touch').hidden = false;
+    this.ui.applyLang();
   }
   toggleInventory() { if (this.state === 'inventory') this.closeInventory(); else if (this.state === 'playing') this.openInventory(); }
   openInventory() {
@@ -4341,8 +4420,23 @@ class Game {
   }
 
   /* ---------- loop ---------- */
+  /* Dynamic resolution: keep turning smooth on slower GPUs by trading pixels for frame rate. */
+  adaptResolution(rawDt) {
+    const pf = this.perf;
+    if (this.state !== 'playing' || rawDt > 0.25) return;
+    pf.acc += rawDt; pf.n++;
+    if (pf.acc < 1.5) return;
+    const avg = pf.acc / pf.n;
+    pf.acc = 0; pf.n = 0;
+    const old = pf.scale;
+    if (avg > 1 / 42) pf.scale = Math.max(0.5, pf.scale * 0.85);
+    else if (avg < 1 / 55) pf.scale = Math.min(1, pf.scale * 1.1);
+    if (pf.scale !== old) this.resize();
+  }
+
   loop(now) {
     requestAnimationFrame((t2) => this.loop(t2));
+    if (this.last) this.adaptResolution((now - this.last) / 1000);
     const dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000 || 0.016));
     this.last = now;
     this.clock += dt;
@@ -4378,7 +4472,7 @@ class Game {
         if (ready === total || done) this.finishLoading();
       }
       if (playing) {
-        const sens = 0.0022 * this.settings.sens;
+        const sens = 0.0018 * this.settings.sens;
         p.yaw -= this.input.lookDX * sens;
         p.pitch = clamp(p.pitch - this.input.lookDY * sens, -1.55, 1.55);
         inp.autoJump = this.settings.autoJump;

@@ -43,6 +43,7 @@ class Game {
     this.state = 'menu';
     this.breaking = null; this.attackCd = 0; this.useCd = 0; this.swingT = 0; this.handDirty = true;
     this.saveTimer = 0; this.cameraUnderwater = false; this.fovCur = this.settings.fov;
+    this.perf = { acc: 0, n: 0, scale: 1 };
     this.inv = { slots: new Array(36).fill(null), sel: 0 };
 
     const save = (hotData && hotData.save) || this.loadJSON(SAVE_KEY);
@@ -77,7 +78,7 @@ class Game {
   resize() {
     if (!this.renderer) return;
     const q = this.quality || QUALITY.medium;
-    this.renderer.resize(Math.min(window.devicePixelRatio || 1, q.scaleCap));
+    this.renderer.resize(Math.min(window.devicePixelRatio || 1, q.scaleCap) * (this.perf ? this.perf.scale : 1));
   }
 
   /* ---------- world lifecycle ---------- */
@@ -209,6 +210,13 @@ class Game {
     this.ui.screen(null);
     this.startLoading();
     this.playerPlaced = true;
+  }
+  enableTouch() {
+    IS_TOUCH = true;
+    this.input.releaseLock();
+    document.body.classList.add('touch');
+    if (this.state !== 'menu') $('touch').hidden = false;
+    this.ui.applyLang();
   }
   toggleInventory() { if (this.state === 'inventory') this.closeInventory(); else if (this.state === 'playing') this.openInventory(); }
   openInventory() {
@@ -420,8 +428,23 @@ class Game {
   }
 
   /* ---------- loop ---------- */
+  /* Dynamic resolution: keep turning smooth on slower GPUs by trading pixels for frame rate. */
+  adaptResolution(rawDt) {
+    const pf = this.perf;
+    if (this.state !== 'playing' || rawDt > 0.25) return;
+    pf.acc += rawDt; pf.n++;
+    if (pf.acc < 1.5) return;
+    const avg = pf.acc / pf.n;
+    pf.acc = 0; pf.n = 0;
+    const old = pf.scale;
+    if (avg > 1 / 42) pf.scale = Math.max(0.5, pf.scale * 0.85);
+    else if (avg < 1 / 55) pf.scale = Math.min(1, pf.scale * 1.1);
+    if (pf.scale !== old) this.resize();
+  }
+
   loop(now) {
     requestAnimationFrame((t2) => this.loop(t2));
+    if (this.last) this.adaptResolution((now - this.last) / 1000);
     const dt = Math.min(0.05, Math.max(0.001, (now - this.last) / 1000 || 0.016));
     this.last = now;
     this.clock += dt;
@@ -457,7 +480,7 @@ class Game {
         if (ready === total || done) this.finishLoading();
       }
       if (playing) {
-        const sens = 0.0022 * this.settings.sens;
+        const sens = 0.0018 * this.settings.sens;
         p.yaw -= this.input.lookDX * sens;
         p.pitch = clamp(p.pitch - this.input.lookDY * sens, -1.55, 1.55);
         inp.autoJump = this.settings.autoJump;

@@ -32,9 +32,10 @@ class TerrainGen {
     this.seed = seed | 0;
     const n = (k) => new Simplex((seed | 0) * 31 + k * 7919);
     this.nCont = n(1); this.nEro = n(2); this.nHill = n(3); this.nRidge = n(4);
-    this.nTemp = n(5); this.nMoist = n(6); this.nCave1 = n(7); this.nCave2 = n(8); this.nCave3 = n(9);
+    this.nTemp = n(5); this.nMoist = n(6); this.nCave1 = n(7); this.nCave2 = n(8); this.nCave3 = n(9); this.nDetail = n(10);
   }
-  height(wx, wz) {
+  /* Smooth large-scale height; sampled on a coarse grid during generation and interpolated. */
+  baseHeight(wx, wz) {
     const cont = fbm2(this.nCont, wx / 720, wz / 720, 5);
     const ero = fbm2(this.nEro, wx / 380, wz / 380, 3);
     const hills = fbm2(this.nHill, wx / 96, wz / 96, 4);
@@ -42,8 +43,10 @@ class TerrainGen {
     let h = SEA + 6 + cont * 36;
     h += hills * (4 + 8 * smoothstep(-0.4, 0.6, ero));
     h += smoothstep(0.12, 0.5, cont + ero * 0.35) * ridge * ridge * 58;
-    return clamp(h, 6, CH - 12);
+    return h;
   }
+  detail(wx, wz) { return this.nDetail.noise2(wx / 13, wz / 13) * 1.4; }
+  height(wx, wz) { return clamp(this.baseHeight(wx, wz) + this.detail(wx, wz), 6, CH - 12); }
   climate(wx, wz) {
     return [fbm2(this.nTemp, wx / 900, wz / 900, 3) * 1.6, fbm2(this.nMoist, wx / 700, wz / 700, 3) * 1.6];
   }
@@ -73,6 +76,7 @@ class TerrainGen {
 }
 
 const TREE_CHANCE = [0, 0, 0, 0.0045, 0.05, 0.006, 0.03, 0.018, 0.01];
+const BEDROCK_ID = B.bedrock, STONE_ID = B.stone, SANDSTONE_ID = B.sandstone, WATER_ID = B.water, ICE_ID = B.ice;
 
 class World {
   constructor(seed, edits) {
@@ -115,10 +119,19 @@ class World {
   generate(c) {
     const g = this.gen, ox = c.cx * CS, oz = c.cz * CS, M = 4, W = CS + 2 * M;
     const H = new Float32Array(W * W), TP = new Float32Array(W * W), MO = new Float32Array(W * W);
+    // Coarse samples every S blocks on a world-aligned grid (so neighbouring chunks agree), then bilinear.
+    const S = 4, GW = W / S + 1, GH = new Float32Array(GW * GW), GT = new Float32Array(GW * GW), GM = new Float32Array(GW * GW);
+    for (let gz = 0; gz < GW; gz++) for (let gx = 0; gx < GW; gx++) {
+      const wx = ox - M + gx * S, wz = oz - M + gz * S, k = gz * GW + gx;
+      GH[k] = g.baseHeight(wx, wz);
+      const cl = g.climate(wx, wz); GT[k] = cl[0]; GM[k] = cl[1];
+    }
+    const bl = (A, k, fx, fz) => lerp(lerp(A[k], A[k + 1], fx), lerp(A[k + GW], A[k + GW + 1], fx), fz);
     for (let z = 0; z < W; z++) for (let x = 0; x < W; x++) {
-      const wx = ox + x - M, wz = oz + z - M, i = z * W + x;
-      H[i] = g.height(wx, wz);
-      const cl = g.climate(wx, wz); TP[i] = cl[0]; MO[i] = cl[1];
+      const gx = Math.min(GW - 2, (x / S) | 0), gz = Math.min(GW - 2, (z / S) | 0), fx = (x - gx * S) / S, fz = (z - gz * S) / S;
+      const k = gz * GW + gx, i = z * W + x;
+      H[i] = clamp(bl(GH, k, fx, fz) + g.detail(ox + x - M, oz + z - M), 6, CH - 12);
+      TP[i] = bl(GT, k, fx, fz); MO[i] = bl(GM, k, fx, fz);
     }
     const BIO = new Uint8Array(W * W), HI = new Int16Array(W * W);
     for (let z = 1; z < W - 1; z++) for (let x = 1; x < W - 1; x++) {
@@ -151,16 +164,17 @@ class World {
         default:
           if (slope > 6) { top = B.stone; fill = B.stone; }
       }
-      const fillDepth = 3 + ((r * 3) | 0);
-      for (let y = 0; y <= Math.max(h, SEA); y++) {
+      const fillDepth = 3 + ((r * 3) | 0), fillStart = h - fillDepth, deepSplit = fillStart - 3, yTop = Math.max(h, SEA);
+      const frozen = bio === BIOME.FROZEN_OCEAN, sandDeep = deep === SANDSTONE_ID, seed = this.seed;
+      for (let y = 0, bi = z * CS + x; y <= yTop; y++, bi += CS2) {
         let id;
-        if (y === 0) id = B.bedrock;
-        else if (y < 4 && hash3(wx, y, wz, this.seed) < 0.55 - y * 0.15) id = B.bedrock;
-        else if (y < h - fillDepth) id = deep === B.sandstone && y < h - fillDepth - 3 ? B.stone : deep;
-        else if (y < h) id = fill;
+        if (y < fillStart) {
+          if (y === 0 || (y < 4 && hash3(wx, y, wz, seed) < 0.55 - y * 0.15)) id = BEDROCK_ID;
+          else id = sandDeep && y < deepSplit ? STONE_ID : deep;
+        } else if (y < h) id = fill;
         else if (y === h) id = top;
-        else id = (bio === BIOME.FROZEN_OCEAN && y === SEA) ? B.ice : B.water;
-        blocks[bidx(x, y, z)] = id;
+        else id = frozen && y === SEA ? ICE_ID : WATER_ID;
+        blocks[bi] = id;
       }
     }
     this.carveCaves(c, HI, W, M);
@@ -357,6 +371,21 @@ class World {
     seed(this.getChunk(c.cx + 1, c.cz), (k) => k * CS, 15, 0, 0, 1);
     seed(this.getChunk(c.cx, c.cz - 1), (k) => 15 * CS + k, 0, 0, 1, 0);
     seed(this.getChunk(c.cx, c.cz + 1), (k) => k, 0, 15, 1, 0);
+    // Light that already spread inside lit neighbours flows across the border too (caves, overhangs).
+    const sides = [
+      [this.getChunk(c.cx - 1, c.cz), 0, 15, true], [this.getChunk(c.cx + 1, c.cz), 15, 0, true],
+      [this.getChunk(c.cx, c.cz - 1), 0, 15, false], [this.getChunk(c.cx, c.cz + 1), 15, 0, false],
+    ];
+    for (const [nb, a, bb, alongZ] of sides) {
+      if (!nb || !nb.lit) continue;
+      const yMax = Math.min(CH - 1, Math.max(c.maxY, nb.maxY) + 1);
+      for (let k = 0; k < CS; k++) for (let y = 0; y <= yMax; y++) {
+        const i = alongZ ? bidx(a, y, k) : bidx(k, y, a), id = blocks[i];
+        if (OPAQUE[id]) continue;
+        const v = nb.light[alongZ ? bidx(bb, y, k) : bidx(k, y, bb)] - 1 - ATTEN[id];
+        if (v > L[i]) { L[i] = v; q[tail] = i; tail = (tail + 1) & MASK; }
+      }
+    }
     while (head !== tail) {
       const i = q[head]; head = (head + 1) & MASK;
       const l = L[i];
@@ -378,6 +407,18 @@ class World {
     }
     c.lit = true;
     c.needLight = false;
+    // If our border is now brighter than what a lit neighbour holds there, it needs relighting.
+    for (const [nb, a, bb, alongZ] of sides) {
+      if (!nb || !nb.lit || nb.needLight) continue;
+      const yMax = Math.min(CH - 1, Math.max(c.maxY, nb.maxY) + 1);
+      let brighter = false;
+      for (let k = 0; k < CS && !brighter; k++) for (let y = 0; y <= yMax; y++) {
+        const j = alongZ ? bidx(bb, y, k) : bidx(k, y, bb), nid = nb.blocks[j];
+        if (OPAQUE[nid]) continue;
+        if (L[alongZ ? bidx(a, y, k) : bidx(k, y, a)] - 1 - ATTEN[nid] > nb.light[j]) { brighter = true; break; }
+      }
+      if (brighter) { nb.needLight = true; if (nb.meshed) nb.needMesh = true; }
+    }
   }
 
   neighborsReady(c, stage) {
