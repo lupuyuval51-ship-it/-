@@ -22,7 +22,7 @@
     [12, 16, 20],
   ];
 
-  var PARTS = ['lateral', 'base', 'total'];
+  var PARTS = ['lateral', 'base', 'total', 'circumference'];
 
   function requirePositive(name, value) {
     if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
@@ -47,6 +47,7 @@
       lateral: area(lateral),
       base: area(bases),
       total: area(lateral + bases),
+      circumference: area(2 * r),
     };
   }
 
@@ -65,6 +66,7 @@
       lateral: area(lateral),
       base: area(base),
       total: area(lateral + base),
+      circumference: area(2 * r),
     };
   }
 

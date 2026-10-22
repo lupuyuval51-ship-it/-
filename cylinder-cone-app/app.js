@@ -56,6 +56,11 @@
       partBasesBoth: 'שטח שני הבסיסים',
       partBase: 'שטח הבסיס',
       partTotal: 'השטח הכולל',
+      partCircumference: 'היקף הבסיס',
+      stepCircumference: 'היקף הבסיס',
+      circumferenceTitle: 'היקף הבסיס',
+      circumferenceText: 'היקף הבסיס הוא אורך המעגל שמקיף את הבסיס. בפיתוח הוא צלע המלבן (בגליל) או אורך הקשת של הגזרה (בחרוט).',
+      hintCircumference: 'היקף הבסיס הוא היקף העיגול: 2πr.',
       scoreLine: 'עניתם נכון על {correct} מתוך {asked} שאלות',
       questionText: '{shape} עם רדיוס בסיס r = {r} ס״מ וגובה h = {h} ס״מ. מהו {part}?',
       answerLabel: 'התשובה שלכם',
@@ -71,7 +76,7 @@
       hintCylinder: 'שטח הצד הוא מלבן שצלעותיו <span class="math">2πr</span> ו־<span class="math">h</span>. שטח כל בסיס הוא <span class="math">πr²</span>.',
       hintCone: 'קודם מחשבים את היוצרת l בעזרת פיתגורס, ואז משתמשים בנוסחאות <span class="math">πrl</span> ו־<span class="math">πr²</span>.',
       solutionTitle: 'הפתרון המלא',
-      answerIs: 'התשובה: {coef}π ≈ {value} ס״מ²',
+      answerIs: 'התשובה: {coef}π ≈ {value} {unit}',
       footerNote: 'כל החישובים נעשים בדפדפן שלכם. אין צורך בשרת או בהרשמה.',
     },
     en: {
@@ -121,6 +126,11 @@
       partBasesBoth: 'area of both bases',
       partBase: 'base area',
       partTotal: 'total surface area',
+      partCircumference: 'base circumference',
+      stepCircumference: 'Base circumference',
+      circumferenceTitle: 'Base circumference',
+      circumferenceText: 'The base circumference is the length of the circle around the base. In the net it is the side of the rectangle (cylinder) or the arc of the sector (cone).',
+      hintCircumference: 'The base circumference is the circumference of the circle: 2πr.',
       scoreLine: 'Correct answers: {correct} out of {asked}',
       questionText: 'A {shape} has base radius r = {r} cm and height h = {h} cm. What is its {part}?',
       answerLabel: 'Your answer',
@@ -136,7 +146,7 @@
       hintCylinder: 'The side is a rectangle with sides 2πr and h. Each base has area πr².',
       hintCone: 'First find the slant height l with the Pythagorean theorem, then use πrl and πr².',
       solutionTitle: 'Full solution',
-      answerIs: 'Answer: {coef}π ≈ {value} cm²',
+      answerIs: 'Answer: {coef}π ≈ {value} {unit}',
       footerNote: 'All calculations run in your browser. No server and no account needed.',
     },
   };
@@ -182,6 +192,9 @@
   }
 
   function partName(shape, part) {
+    if (part === 'circumference') {
+      return t('partCircumference');
+    }
     if (part === 'lateral') {
       return t('partLateral');
     }
@@ -195,8 +208,8 @@
     return shape === 'cylinder' ? G.cylinderArea(r, h) : G.coneArea(r, h);
   }
 
-  function decimal(coef) {
-    return '≈ ' + fmt(coef * PI) + ' ' + t('cm2');
+  function decimal(coef, unit) {
+    return '≈ ' + fmt(coef * PI) + ' ' + (unit || t('cm2'));
   }
 
   /* ---------- worked steps ---------- */
@@ -206,6 +219,14 @@
   }
 
   function shapeSteps(shape, r, h) {
+    var circumference = step(t('stepCircumference'), [
+      '2πr = 2π · ' + r,
+      '= ' + fmt(2 * r) + 'π ' + decimal(2 * r, t('cm')),
+    ]);
+    return [circumference].concat(areaSteps(shape, r, h));
+  }
+
+  function areaSteps(shape, r, h) {
     if (shape === 'cylinder') {
       var lateral = 2 * r * h;
       var bases = 2 * r * r;
@@ -431,13 +452,16 @@
     var netNote = isCylinder
       ? t('netNoteCylinder', { r: r, h: h })
       : t('netNoteCone', { r: r, h: h, angle: fmt(areas.sectorAngle) });
+    var circumferenceCard = { title: t('circumferenceTitle'), text: t('circumferenceText'), formula: '2πr' };
     var cards = isCylinder
       ? [
+          circumferenceCard,
           { title: t('cylLateralTitle'), text: t('cylLateralText'), formula: '2πr·h' },
           { title: t('cylBasesTitle'), text: t('cylBasesText'), formula: '2πr²' },
           { title: t('cylTotalTitle'), text: t('cylTotalText'), formula: '2πr·h + 2πr² = 2πr(r + h)' },
         ]
       : [
+          circumferenceCard,
           { title: t('coneSlantTitle'), text: t('coneSlantText'), formula: 'l = √(r² + h²)' },
           { title: t('coneLateralTitle'), text: t('coneLateralText'), formula: 'πrl' },
           { title: t('coneBaseTitle'), text: t('coneBaseText'), formula: 'πr²' },
@@ -520,7 +544,11 @@
     return (
       '<div class="solution"><h4>' + t('solutionTitle') + '</h4>' +
       '<ol class="steps">' + stepsHtml(shapeSteps(q.shape, q.r, q.h)) + '</ol>' +
-      '<p class="answer-line">' + t('answerIs', { coef: fmt(q.coef), value: fmt(q.coef * PI) }) + '</p>' +
+      '<p class="answer-line">' + t('answerIs', {
+        coef: fmt(q.coef),
+        value: fmt(q.coef * PI),
+        unit: t(q.part === 'circumference' ? 'cm' : 'cm2'),
+      }) + '</p>' +
       '</div>'
     );
   }
@@ -545,9 +573,10 @@
       h: q.h,
       part: partName(q.shape, q.part).toLowerCase(),
     });
-    var hint = p.showHint
-      ? '<p class="hint">' + t(q.shape === 'cylinder' ? 'hintCylinder' : 'hintCone') + '</p>'
-      : '';
+    var hintKey = q.part === 'circumference'
+      ? 'hintCircumference'
+      : q.shape === 'cylinder' ? 'hintCylinder' : 'hintCone';
+    var hint = p.showHint ? '<p class="hint">' + t(hintKey) + '</p>' : '';
     var solutionButton = p.done
       ? ''
       : '<button type="button" class="btn secondary" data-action="solution">' + t('solutionBtn') + '</button>';

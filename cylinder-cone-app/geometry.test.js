@@ -42,6 +42,13 @@ test('cone: total area equals πr(r+l) for every Pythagorean triple', () => {
   }
 });
 
+test('base circumference is 2πr for both shapes', () => {
+  const c = G.cylinderArea(4, 7).circumference;
+  assert.equal(c.coef, 8);
+  near(c.value, 8 * Math.PI);
+  assert.equal(G.coneArea(3, 4).circumference.coef, 6);
+});
+
 test('cone: non-integer slant height keeps decimal coefficients', () => {
   const a = G.coneArea(1, 1);
   near(a.slant, Math.SQRT2);
