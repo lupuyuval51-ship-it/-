@@ -184,7 +184,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     onSubmit(answer);
   };
   // One always-mounted live region: result and hint are announced even though their visible boxes appear later.
-  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: result.feedback }) + (result.resolved ? "" : ` ${t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
+  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) ? "" : result.feedback }).trim() + (result.resolved ? "" : ` ${t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
   const setProgram = useCallback((program: Block[]) => setAnswer(program.length ? { type: "program", program } : null), []);
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 

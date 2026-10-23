@@ -62,7 +62,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
         <Card className="text-sm text-muted">{items.length === 0 ? t("prac.done.empty") : right === items.length ? t("prac.done.great") : t("prac.done.more")}</Card>
         <div className="flex flex-wrap justify-center gap-3">
           {reviewLink && <Link href={reviewLink} className="inline-flex min-h-12 items-center rounded-xl bg-neon px-6 font-semibold text-ink-950 hover:brightness-110">{t("prac.done.review")}</Link>}
-          <Link href={back} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t("rev.back")}</Link>
+          <Link href={back} className="inline-flex min-h-12 items-center rounded-xl border border-line px-6 font-semibold hover:bg-text/10"><Arrow back /> {t(backHref ? "res.library" : "rev.back")}</Link>
         </div>
       </div>
     );
@@ -86,7 +86,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
   return (
     <div className="space-y-3" data-testid="practice">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link href={reviewLink ?? back} className="text-sm text-muted hover:text-text"><Arrow back /> {t("rev.back")}</Link>
+        <Link href={reviewLink ?? back} className="text-sm text-muted hover:text-text"><Arrow back /> {t(backHref ? "res.library" : "rev.back")}</Link>
         <p className="text-sm font-semibold" data-testid="practice-progress">{t("prac.progress", { n: index + 1, total: items.length })}</p>
       </div>
       <p className="text-xs text-muted">{t("prac.note")}</p>
