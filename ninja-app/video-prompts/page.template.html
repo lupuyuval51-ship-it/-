@@ -1,0 +1,214 @@
+<title>פרומטים לסרטוני טכניקה</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rubik:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one centred column; a sticky filter bar; one card per prompt with a big copy button */
+:root{
+  --bg:#05070d;--card:#0c1427;--card2:#111c35;--line:rgba(140,210,255,.14);--line2:rgba(140,210,255,.28);
+  --text:#e8f4ff;--muted:#9ab0cf;--dim:#7086ab;--blue:#22d3ff;--blue-hi:#8ef0ff;--blue-soft:rgba(34,211,255,.13);
+  --orange:#ff6a1a;--orange-hi:#ffb37a;--orange-soft:rgba(255,106,26,.13);--on-orange:#1a0700;
+  --good:#3ddc97;--bad:#ff6b85;--warn:#ffc145;
+  --f-ui:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:16px;line-height:1.55;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 40% at 0% 0%,rgba(34,211,255,.10),transparent 70%),radial-gradient(55% 40% at 100% 100%,rgba(255,106,26,.08),transparent 70%)}
+#app{max-width:760px;margin:auto;display:grid;gap:18px}
+#app>*{min-width:0}
+h1,h2,h3,p{margin:0}
+h1{font-size:1.7rem;font-weight:800;line-height:1.2;text-wrap:balance}
+.lead{color:var(--muted);margin-top:6px}
+.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.08em;color:var(--blue-hi);text-transform:uppercase}
+:focus-visible{outline:2px solid var(--blue-hi);outline-offset:2px}
+.prog{display:grid;gap:8px}
+.prog-row{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;color:var(--muted)}
+.prog-row b{color:var(--text);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.bar{height:8px;border-radius:99px;background:rgba(140,210,255,.1);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(270deg,var(--blue),var(--blue-hi));transition:width .25s}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel h2{font-size:1.02rem;font-weight:700;margin-bottom:8px}
+.panel ol,.panel ul{margin:0;padding-inline-start:22px;display:grid;gap:6px;color:var(--muted)}
+.panel li b{color:var(--text)}
+.warn{border-color:rgba(255,193,69,.4);background:rgba(255,193,69,.07)}
+.warn h2{color:var(--warn)}
+details.panel>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:32px}
+details.panel>summary::-webkit-details-marker{display:none}
+details.panel>summary::after{content:"+";font-family:var(--f-mono);color:var(--blue-hi)}
+details.panel[open]>summary::after{content:"−"}
+details.panel>*:not(summary){margin-top:10px}
+.filters{display:grid;gap:8px}
+.pills-bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:rgba(5,7,13,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:8px 0;border-bottom:1px solid var(--line)}
+.search{width:100%;min-height:46px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line2);background:var(--card);color:var(--text);font:inherit}
+.search:focus{border-color:var(--blue);outline:none}
+.pills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--card);color:var(--muted);font:inherit;font-weight:500;cursor:pointer;white-space:nowrap}
+.pill[aria-pressed=true]{background:var(--blue-soft);border-color:rgba(34,211,255,.55);color:var(--blue-hi);font-weight:600}
+.pill.mis[aria-pressed=true]{background:rgba(255,107,133,.12);border-color:rgba(255,107,133,.5);color:#ffb0bf}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:.9rem}
+.row label{display:inline-flex;align-items:center;gap:8px;min-height:36px;cursor:pointer}
+.row input{width:18px;height:18px;accent-color:var(--blue)}
+.list{display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.card.done{opacity:.62}
+.card.mistake{border-color:rgba(255,107,133,.35)}
+.card-h{display:flex;align-items:flex-start;gap:12px}
+.chk{flex:none;position:relative;width:44px;height:44px;display:grid;place-items:center;margin:-6px -6px -6px 0;cursor:pointer}
+.chk input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+.chk .box{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line2);display:grid;place-items:center;color:transparent;transition:background .15s}
+.chk input:checked+.box{background:var(--good);border-color:var(--good);color:#04140c}
+.chk input:focus-visible+.box{outline:2px solid var(--blue-hi);outline-offset:2px}
+.chk svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ttl{flex:1;min-width:0}
+.ttl h3{font-size:1.05rem;font-weight:700;line-height:1.3}
+.ttl .en{font-family:var(--f-mono);font-size:.76rem;color:var(--dim);margin-top:2px;overflow-wrap:anywhere}
+.copy{flex:none;min-height:44px;padding:0 16px;border-radius:12px;border:0;background:linear-gradient(180deg,#ff9a52,#ff6a1a 60%,#f25a00);color:var(--on-orange);font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 20px -10px rgba(255,106,26,.8)}
+.copy:active{transform:scale(.98)}
+.copy.ok{background:var(--good);box-shadow:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;min-height:26px;padding:1px 10px;border-radius:999px;font-size:.76rem;border:1px solid var(--line2);color:var(--muted);background:rgba(140,210,255,.05)}
+.chip.safe{color:var(--good);border-color:rgba(61,220,151,.4);background:rgba(61,220,151,.08)}
+.chip.mixed{color:var(--warn);border-color:rgba(255,193,69,.4);background:rgba(255,193,69,.07)}
+.chip.hard{color:var(--orange-hi);border-color:rgba(255,138,61,.5);background:var(--orange-soft)}
+.chip.mis{color:#ffb0bf;border-color:rgba(255,107,133,.5);background:rgba(255,107,133,.1)}
+.qa{font-size:.9rem;color:var(--muted)}
+.qa b{color:var(--text);font-weight:600}
+.prompt{margin:0;padding:12px;border-radius:12px;background:#070d1c;border:1px solid var(--line);font-family:var(--f-mono);font-size:.78rem;line-height:1.6;color:#cfe4ff;white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;max-height:7.2em;overflow:hidden;position:relative}
+.prompt.open{max-height:none}
+.prompt:not(.open)::after{content:"";position:absolute;inset:auto 0 0;height:2.6em;background:linear-gradient(to top,#070d1c,transparent)}
+.more{justify-self:start;min-height:40px;padding:0 4px;border:0;background:none;color:var(--blue-hi);font:inherit;font-size:.88rem;cursor:pointer}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);border:1px dashed var(--line2);border-radius:16px}
+.foot{font-size:.82rem;color:var(--dim);text-align:center}
+@media (max-width:480px){h1{font-size:1.45rem}.card-h{flex-wrap:wrap}.copy{order:3;width:100%}.chk{order:1}.ttl{order:2}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div id="app" dir="rtl" lang="he">
+  <header>
+    <p class="eyebrow">NINJA CIRCUIT</p>
+    <h1>פרומטים לסרטוני טכניקה</h1>
+    <p class="lead" id="lead"></p>
+  </header>
+
+  <div class="prog" role="group" aria-label="התקדמות">
+    <div class="prog-row"><span>סרטונים שהושלמו</span><b id="progTxt" dir="ltr">0 / 0</b></div>
+    <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progBar"><i style="width:0%"></i></div>
+  </div>
+
+  <section class="panel warn">
+    <h2>לפני שמתחילים: הסרטונים הם הדגמה, לא מאמן</h2>
+    <ul>
+      <li>מודלי וידאו נוטים לטעות בתנועה: ספירת חזרות, כיוון התנועה, ידיים ואצבעות. <b>צפו בכל סרטון מול "מה לבדוק"</b> ויצרו שוב אם משהו לא נכון.</li>
+      <li>תרגילים מסומנים <b>"קשה ל־AI"</b> (שכיבות סמיכה ביד אחת, לאץ׳, קיר ענק, בהונות למוט ועוד) יוצאים שגויים לעיתים קרובות. אפשר לדלג עליהם ולצלם אדם אמיתי.</li>
+      <li>לפני שמציגים את הסרטונים באפליקציה כהוראת ביצוע, כדאי שמאמן יעבור עליהם. טכניקה שגויה בסרטון יכולה לגרום לפציעה.</li>
+    </ul>
+  </section>
+
+  <details class="panel">
+    <summary>איך משתמשים</summary>
+    <ol>
+      <li><b>(אופציונלי) יוצרים שתי תמונות ייחוס</b> בתחתית הדף: הספורטאי והאולם. אם Gemini מאפשר להעלות תמונה לסרטון, מעלים אותה בכל פעם, וכך הספורטאי נראה אותו דבר בכל הסרטונים.</li>
+      <li><b>מעתיקים פרומט</b> בכפתור הכתום ומדביקים אותו ב־Gemini במצב יצירת סרטון. כל פרומט עומד בפני עצמו, כי Gemini לא זוכר פרומטים קודמים.</li>
+      <li><b>בודקים את התוצאה</b> מול "מה לבדוק". כדאי ליצור 2–3 גרסאות לכל תרגיל ולבחור את הנכונה.</li>
+      <li><b>שומרים את הקובץ בשם המופיע ליד התרגיל</b> (למשל <span dir="ltr">pullup.mp4</span>), ומסמנים וי. כך אפשר לחבר אותם לאפליקציה לפי שם.</li>
+    </ol>
+    <p class="qa">הפרומטים באנגלית כי מודלי הווידאו מבינים אותה הכי טוב. אורך סרטון כ־8 שניות. אם אפשר לבחור יחס מסך, בחרו אנכי 9:16. אם אי אפשר, בחרו 16:9 וחתכו אחר כך. יש הגבלה יומית על כמות הסרטונים ב־Gemini, ובודקים אותה בחשבון שלכם.</p>
+  </details>
+
+  <div class="filters">
+    <label for="q" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">חיפוש תרגיל</label>
+    <input class="search" id="q" type="search" placeholder="חיפוש תרגיל, למשל מתח" autocomplete="off" dir="auto">
+    <div class="row"><label><input type="checkbox" id="hideDone"> הסתרת סרטונים שהושלמו</label><span id="count"></span></div>
+  </div>
+  <div class="pills-bar"><div class="pills" id="pills" role="group" aria-label="קטגוריה"></div></div>
+
+  <main class="list" id="list" aria-live="polite"></main>
+
+  <p class="foot">הסימונים נשמרים בדפדפן הזה בלבד.</p>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const D = JSON.parse(document.getElementById('data').textContent);
+  const ITEMS = D.items, CATS = D.cats;
+  const $ = (s, r = document) => r.querySelector(s);
+  const DIFF = { safe: 'סיכוי טוב לצאת נכון', mixed: 'יוצא לפעמים', hard: 'קשה ל־AI' };
+  const KEY = 'ninja-prompts-done';
+  let done = new Set();
+  try { done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) {} };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const state = { cat: 'all', q: '', hide: false, open: new Set() };
+
+  const tech = ITEMS.filter(i => i.kind === 'tech').length, mis = ITEMS.filter(i => i.kind === 'mistake').length;
+  $('#lead').textContent = tech + ' פרומטים לתרגילי האפליקציה, ' + mis + ' להדגמת טעויות נפוצות ושני פרומטים לתמונות ייחוס. כל פרומט מוכן להדבקה ב־Gemini.';
+
+  const pills = [['all', 'הכול'], ['ref', 'תמונות ייחוס'], ...CATS.map(c => [c.key, c.he]), ['mistake', 'טעויות נפוצות']];
+  $('#pills').innerHTML = pills.map(([k, l]) => '<button type="button" class="pill ' + (k === 'mistake' ? 'mis' : '') + '" data-cat="' + k + '" aria-pressed="' + (k === 'all') + '">' + esc(l) + '</button>').join('');
+
+  function visible() {
+    const q = state.q.trim().toLowerCase();
+    return ITEMS.filter(i => {
+      if (state.cat === 'mistake' ? i.kind !== 'mistake' : state.cat === 'ref' ? i.kind !== 'ref' : state.cat !== 'all' && (i.kind === 'ref' || i.kind === 'mistake' || i.cat !== state.cat)) return false;
+      if (state.hide && done.has(i.key)) return false;
+      if (q && !(i.he + ' ' + i.en + ' ' + i.id + ' ' + (i.cue || '')).toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }
+  const check = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  function card(i) {
+    const open = state.open.has(i.key);
+    return '<article class="card ' + (done.has(i.key) ? 'done ' : '') + (i.kind === 'mistake' ? 'mistake' : '') + '" data-key="' + i.key + '">' +
+      '<div class="card-h"><label class="chk"><input type="checkbox" data-done="' + i.key + '" ' + (done.has(i.key) ? 'checked' : '') + ' aria-label="סימון כהושלם: ' + esc(i.he) + '"><span class="box">' + check + '</span></label>' +
+      '<div class="ttl"><h3>' + esc(i.he) + '</h3><p class="en" dir="ltr">' + esc(i.en) + ' · ' + esc(i.file) + '</p></div>' +
+      '<button type="button" class="copy" data-copy="' + i.key + '">העתקת פרומט</button></div>' +
+      '<div class="chips">' + (i.kind === 'mistake' ? '<span class="chip mis">טעות נפוצה: תייגו באדום באפליקציה</span>' : '') + (i.diff ? '<span class="chip ' + i.diff + '">' + DIFF[i.diff] + '</span>' : '') + (i.camHe ? '<span class="chip">מצלמה: ' + esc(i.camHe) + '</span>' : '') + '</div>' +
+      (i.cue ? '<p class="qa"><b>' + (i.kind === 'mistake' ? 'מה אמור להיראות: ' : 'מה לבדוק בסרטון: ') + '</b>' + esc(i.cue) + '</p>' : '') +
+      '<pre class="prompt ' + (open ? 'open' : '') + '" id="p-' + i.key + '">' + esc(i.prompt) + '</pre>' +
+      '<button type="button" class="more" data-more="' + i.key + '" aria-expanded="' + open + '">' + (open ? 'הסתרת הפרומט המלא' : 'הצגת הפרומט המלא') + '</button></article>';
+  }
+  function progress() {
+    const n = ITEMS.length, d = ITEMS.filter(i => done.has(i.key)).length, p = Math.round(d / n * 100);
+    $('#progTxt').textContent = d + ' / ' + n;
+    $('#progBar').setAttribute('aria-valuenow', p); $('#progBar').firstElementChild.style.width = p + '%';
+  }
+  function render() {
+    const list = visible();
+    $('#list').innerHTML = list.length ? list.map(card).join('') : '<div class="empty">לא נמצאו פרומטים. נסו לנקות את החיפוש או את הסינון.</div>';
+    $('#count').textContent = list.length + ' מוצגים';
+    progress();
+  }
+
+  async function copy(key, btn) {
+    const it = ITEMS.find(x => x.key === key); if (!it) return;
+    let ok = false;
+    try { await navigator.clipboard.writeText(it.prompt); ok = true; } catch (e) {}
+    if (!ok) {
+      const ta = document.createElement('textarea'); ta.value = it.prompt; ta.readOnly = true; ta.style.cssText = 'position:fixed;top:0;opacity:0';
+      document.body.appendChild(ta); ta.select(); try { ok = document.execCommand('copy'); } catch (e) {} ta.remove();
+    }
+    if (!ok) { state.open.add(key); render(); const pre = document.getElementById('p-' + key); if (pre) { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } return; }
+    btn.classList.add('ok'); btn.textContent = 'הועתק ✓';
+    setTimeout(() => { btn.classList.remove('ok'); btn.textContent = 'העתקת פרומט'; }, 1600);
+  }
+
+  document.addEventListener('click', e => {
+    const c = e.target.closest('[data-copy]'); if (c) return copy(c.dataset.copy, c);
+    const m = e.target.closest('[data-more]'); if (m) { const k = m.dataset.more; state.open.has(k) ? state.open.delete(k) : state.open.add(k); const pre = document.getElementById('p-' + k); pre.classList.toggle('open'); const o = state.open.has(k); m.textContent = o ? 'הסתרת הפרומט המלא' : 'הצגת הפרומט המלא'; m.setAttribute('aria-expanded', o); return; }
+    const p = e.target.closest('[data-cat]'); if (p) { state.cat = p.dataset.cat; document.querySelectorAll('.pill').forEach(b => b.setAttribute('aria-pressed', b === p)); render(); }
+  });
+  document.addEventListener('change', e => {
+    const d = e.target.dataset && e.target.dataset.done;
+    if (d) { e.target.checked ? done.add(d) : done.delete(d); save(); if (state.hide) render(); else { e.target.closest('.card').classList.toggle('done', e.target.checked); progress(); } return; }
+    if (e.target.id === 'hideDone') { state.hide = e.target.checked; render(); }
+  });
+  $('#q').addEventListener('input', e => { state.q = e.target.value; render(); });
+  render();
+})();
+</script>
