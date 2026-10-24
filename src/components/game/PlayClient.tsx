@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lockedText } from "@/lib/game/a11y/scene";
 import { useT } from "@/components/I18nProvider";
 import type { DictKey } from "@/lib/i18n";
 import { Button, Spinner } from "@/components/ui";
@@ -399,7 +400,7 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
         .catch(handleError);
     } else if (target.status === "locked") {
       feedback.current?.("wrong");
-      toast(t(target.lockedByBoss ? "prompt.station.lockedBoss" : "prompt.station.locked", { label: target.label }), "warn");
+      toast(lockedText(target, t), "warn");
     } else if (target.status === "done") {
       toast(t("prompt.station.done", { label: target.label }), "info");
     } else if (target.stationKind === "lore") {

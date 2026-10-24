@@ -82,13 +82,19 @@ export function describeSurroundings(args: { points: ScenePoint[]; player: Pt; y
 
 // ───────────────────────── interact prompt ─────────────────────────
 
+/** Why a station is locked, naming the mission to finish next when missions lock it. */
+export function lockedText(target: Extract<Interactable, { kind: "station" }>, t: TFn): string {
+  if (target.lockedByBoss) return t("prompt.station.lockedBoss", { label: target.label });
+  return target.blockedBy ? t("prompt.station.lockedBy", { label: target.label, mission: target.blockedBy }) : t("prompt.station.locked", { label: target.label });
+}
+
 /** The text of the interact prompt for a nearby target, and whether activating it does anything. */
 export function interactablePrompt(target: Interactable, t: TFn): { text: string; enabled: boolean } {
   if (target.kind === "npc") return { text: t("prompt.npc", { label: target.label }), enabled: true };
   if (target.kind === "boss") return { text: t("prompt.boss", { label: target.label }), enabled: true };
   if (target.kind === "portal") return { text: target.open ? t("prompt.portal", { label: target.label }) : t("prompt.portal.locked", { label: target.label }), enabled: target.open };
   if (target.status === "done") return { text: t("prompt.station.done", { label: target.label }), enabled: true };
-  if (target.status === "locked") return { text: t(target.lockedByBoss ? "prompt.station.lockedBoss" : "prompt.station.locked", { label: target.label }), enabled: false };
+  if (target.status === "locked") return { text: lockedText(target, t), enabled: false };
   return { text: t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label }), enabled: true };
 }
 

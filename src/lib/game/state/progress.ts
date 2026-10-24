@@ -181,6 +181,25 @@ export function stationActive(spec: GameSpec, state: Pick<PlayState, "missionsDo
   return wanted.some((m) => missionUnlocked(state, m));
 }
 
+/**
+ * The mission a player has to finish next to open a locked station: the first unfinished mission a mission of this station
+ * waits for, followed back to one that is itself open (so the hint names something the player can do now). Null when the
+ * station is not locked by missions (no mission mentions it, or a boss round locks it).
+ */
+export function blockingMission(spec: GameSpec, state: Pick<PlayState, "missionsDone">, station: Station): Mission | null {
+  const wanted = spec.missions.filter((m) =>
+    m.objectives.some((o) => (o.type === "solve" && station.kind === "challenge" && o.challengeIds.includes(station.challengeId ?? "")) || (o.type === "visit" && o.stationIds.includes(station.id))),
+  );
+  let next = wanted.find((m) => !missionUnlocked(state, m));
+  for (let hops = 0; next && hops < spec.missions.length; hops++) {
+    const missing = next.requires.map((id) => spec.missions.find((m) => m.id === id)).find((m) => m && !state.missionsDone.includes(m.id));
+    if (!missing) return null;
+    if (missionUnlocked(state, missing)) return missing;
+    next = missing;
+  }
+  return null;
+}
+
 export function portalOpen(_spec: GameSpec, state: Pick<PlayState, "missionsDone">, area: Area): boolean {
   if (!area.portal) return false;
   return area.portal.requiresMissionIds.every((id) => state.missionsDone.includes(id));

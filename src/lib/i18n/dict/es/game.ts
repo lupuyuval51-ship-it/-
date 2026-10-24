@@ -55,6 +55,7 @@ export const gameEs: Record<keyof typeof game.en, string> = {
   "prompt.station.lore": "Leer {label}",
   "prompt.station.done": "{label}: completado",
   "prompt.station.locked": "{label}: bloqueado. Termina antes las misiones anteriores.",
+  "prompt.station.lockedBy": "{label}: bloqueado. Para abrirlo, antes: {mission}.",
   "prompt.npc": "Hablar con {label}",
   "prompt.boss": "Enfrentar a {label}",
   "prompt.station.lockedBoss": "{label}: bloqueado. Gana antes las rondas anteriores del combate.",
