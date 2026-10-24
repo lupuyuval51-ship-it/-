@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#05070d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NINJA CIRCUIT">
 <!-- @artifact-start -->
 <title>Ninja Circuit</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -407,6 +414,16 @@ he: {
   strNoteL: 'משהו נוסף? כתבו במילים שלכם (לא חובה)', strNoteP: 'למשל: אחיזה טובה והרגליים חזקות מכדורגל', strNoteH: 'זה נשמר בפרופיל, והמאמן החכם רואה את זה כשהוא עונה לכם.',
   myStrengths: 'החוזקות שלי', strLevelL: 'רמת כוח', strLevelN: 'רמה {n} מתוך 10', strSaved: 'רמת הכוח עודכנה', levelPickT: 'רמת כוח (שכיבות סמיכה)',
   strEffect: 'בתחומים שסימנתם העומס מתחיל דרגה אחת מעל, ושכיבות הסמיכה באימונים נבחרות לפי רמת הכוח.',
+  novN: '{n} תרגילים חדשים לעומת הפעם הקודמת', varNote: 'התרגילים מתחלפים בכל שבוע, כך שכל אימון שונה מהקודם.',
+  remT: 'תזכורות לאימון', remS: 'בחרו שעה, ונזכיר לכם בימי האימון שלכם.', remTimeL: 'שעת האימון',
+  remCal: 'הוספה ליומן הטלפון', remCalD: 'הדרך המהימנה ביותר: היומן שולח התראה בכל יום אימון, גם כשהאפליקציה סגורה. אחרי ההורדה פותחים את הקובץ והיומן מוסיף את האימונים.', remCalDone: 'קובץ היומן נשמר',
+  remBrowser: 'התראות בדפדפן', remBrowserD: 'מופיעות כשהאפליקציה פתוחה, או מותקנת במסך הבית ופעילה ברקע. כשהיא סגורה לגמרי הן לא תמיד מגיעות.',
+  remDenied: 'ההתראות חסומות בדפדפן. אפשר לאשר אותן בהגדרות האתר.', remOn: 'ההתראות הופעלו', remTest: 'שליחת התראת ניסיון',
+  remNotifTitle: 'הגיע הזמן להתאמן', remNotifBody: '{n} · כ־{m} דק׳. לחצו כדי להתחיל.',
+  remAsk: 'רוצים תזכורת לאימונים?', remAskD: 'נוסיף את האימונים ליומן עם התראה, ואפשר להפעיל גם התראות בדפדפן.', remSet: 'הגדרת תזכורות', remLater: 'לא עכשיו',
+  remNoSupport: 'הדפדפן הזה לא תומך בהתראות. אפשר להשתמש בתזכורות היומן.',
+  remViewer: 'בתוך Claude אי אפשר להפעיל התראות דפדפן. פתחו את האפליקציה כקובץ עצמאי כדי להפעיל אותן. תזכורות היומן עובדות גם כאן.',
+  icsTitle: 'אימון נינג׳ה · {n}', icsDesc: 'פותחים את NINJA CIRCUIT ומתחילים. האימון משתנה בכל יום.', icsAlarm: 'האימון מתחיל בעוד 10 דקות',
   q8: 'מתי מתאמנים?', q8s: 'בחרו 2–6 ימים ואת משך האימון.',
   daysL: 'ימי אימון', minL: 'משך אימון', daysN: '{n} אימונים בשבוע', minN: '{n} דק׳',
   q9: 'משהו שחשוב שנדע?', q9s: 'נחליף תרגילים שמעמיסים על אזורים רגישים.',
@@ -545,6 +562,16 @@ en: {
   strNoteL: 'Anything else? Say it in your own words (optional)', strNoteP: 'e.g. good grip, and strong legs from soccer', strNoteH: 'Saved in your profile, and the smart coach sees it when it answers you.',
   myStrengths: 'My strengths', strLevelL: 'Strength level', strLevelN: 'Level {n} of 10', strSaved: 'Strength level updated', levelPickT: 'Strength level (push-ups)',
   strEffect: 'In the areas you mark, load starts one step higher, and the push-up variation in your sessions follows your strength level.',
+  novN: '{n} new exercises since last time', varNote: 'Exercises rotate every week, so each session differs from the last.',
+  remT: 'Training reminders', remS: 'Pick a time and we’ll remind you on your training days.', remTimeL: 'Training time',
+  remCal: 'Add to phone calendar', remCalD: 'The most reliable way: your calendar alerts you on every training day, even when the app is closed. After the download, open the file and your calendar adds the sessions.', remCalDone: 'Calendar file saved',
+  remBrowser: 'Browser notifications', remBrowserD: 'Shown while the app is open, or installed on your home screen and running in the background. They don’t always arrive when it’s fully closed.',
+  remDenied: 'Notifications are blocked in this browser. Allow them in the site settings.', remOn: 'Notifications turned on', remTest: 'Send a test notification',
+  remNotifTitle: 'Time to train', remNotifBody: '{n} · about {m} min. Tap to start.',
+  remAsk: 'Want training reminders?', remAskD: 'We’ll add your sessions to your calendar with an alert, and you can turn on browser notifications too.', remSet: 'Set reminders', remLater: 'Not now',
+  remNoSupport: 'This browser doesn’t support notifications. Calendar reminders still work.',
+  remViewer: 'Browser notifications can’t run inside Claude. Open the app as a standalone file to turn them on. Calendar reminders work here too.',
+  icsTitle: 'Ninja training · {n}', icsDesc: 'Open NINJA CIRCUIT and start. Your workout changes every day.', icsAlarm: 'Training starts in 10 minutes',
   q8: 'When do you train?', q8s: 'Pick 2–6 days and a session length.',
   daysL: 'Training days', minL: 'Session length', daysN: '{n} sessions a week', minN: '{n} min',
   q9: 'Anything we should know?', q9s: 'We’ll swap exercises that load sensitive areas.',
@@ -742,12 +769,17 @@ const EX_RAW = [
 ['boulder','grip','wall','t',[[3,45,90],[3,60,90],[4,90,90],[4,120,90]],'',0,'טרוורס בקיר טיפוס','Bouldering traverse','תנועה רצופה לרוחב הקיר, ידיים ישרות ככל האפשר, הרגליים עובדות.','Move continuously across the wall, arms as straight as possible, legs doing the work.'],
 ['neg-pullup','pull','bar','r',[[3,3,90],[3,5,90],0,0],'',0,'מתח שלילי','Negative pull-up','קופצים למעלה ויורדים לאט, 4 שניות לכל ירידה.','Jump to the top and lower slowly, 4 seconds per rep.'],
 ['pullup','pull','bar','r',[0,[4,3,120],[4,6,120],[5,9,120]],'',0,'מתח','Pull-up','מתחילים מתלייה מלאה, סנטר מעל המוט, בלי טלטולים.','Start from a full hang, chin over the bar, no kipping.'],
+['chinup','pull','bar','r',[0,[4,3,120],[4,6,120],[5,9,120]],'elbow',0,'מתח באחיזה הפוכה','Chin-up','כפות הידיים אליכם, סנטר מעל המוט. יותר עבודה לשרירי הזרוע.','Palms facing you, chin over the bar. More biceps work.'],
+['wide-pullup','pull','bar','r',[0,[4,2,120],[4,5,120],[5,8,120]],'shoulder',0,'מתח באחיזה רחבה','Wide-grip pull-up','ידיים רחבות מהכתפיים. תנועה קצרה יותר שבונה גב ואחיזה.','Hands wider than your shoulders. A shorter range that builds back and grip.'],
+['towel-pullup','pull','bar,towel','r',[0,0,[4,3,120],[4,5,120]],'elbow',0,'מתח עם מגבות','Towel pull-up','מגבת על המוט בכל יד. אחיזה קשה שמדמה חבלים.','A towel over the bar in each hand. A hard grip that mimics ropes.'],
 ['aus-row','pull','bar|rings','r',[[3,6,60],[3,10,60],[4,12,60],[4,15,60]],'',0,'חתירה אוסטרלית','Australian row','מוט נמוך, גוף ישר כמו קרש, מושכים את החזה למוט.','Low bar, body straight as a plank, pull your chest to the bar.'],
 ['towel-row','pull','towel','r',[[3,8,45],[3,12,45],[4,15,45],[4,18,45]],'',0,'חתירה עם מגבת בדלת','Door towel row','מגבת סביב ידית של דלת סגורה ויציבה, נשענים אחורה ומושכים.','Towel around the handle of a closed, sturdy door; lean back and pull.'],
 ['ytw','pull','','r',[[2,8,30],[3,8,30],[3,10,30],[3,12,30]],'',0,'Y-T-W בשכיבה על הבטן','Prone Y-T-W raises','שוכבים על הבטן ומרימים ידיים בצורות Y, T ו־W, עם החזקה קצרה למעלה.','Lie face down and lift your arms into Y, T and W shapes, pausing at the top.'],
 ['explosive-pullup','pull','bar','r',[0,0,[4,3,120],[5,4,150]],'shoulder,elbow,kid',0,'מתח מתפרץ','Explosive pull-up','מושכים הכי מהר שאפשר, חזה למוט, וירידה מבוקרת.','Pull as fast as you can, chest to bar, then lower under control.'],
 ['rope-climb','pull','rope','r',[0,[3,1,120],[4,2,120],[5,2,120]],'elbow',0,'טיפוס חבל','Rope climb','נעילת חבל עם הרגליים ועזרה מהן. בשלב מתקדם, ידיים בלבד.','Lock the rope with your feet and use your legs. Advanced: arms only.'],
 ['pushup','push','','r',[[3,6,60],[3,10,60],[3,15,60],[4,20,60]],'elbow',0,'שכיבות סמיכה','Push-ups','גוף ישר, מרפקים בזווית 45 מעלות, חזה כמעט נוגע ברצפה.','Straight body, elbows at 45°, chest almost touching the floor.'],
+['pu-tempo','push','','r',[[3,3,60],[3,5,60],[3,8,60],[3,10,60]],'elbow',0,'שכיבות סמיכה איטיות','Tempo push-ups','3 שניות ירידה, עצירה קצרה למטה ועלייה חזקה.','3 seconds down, a short pause at the bottom, then press up hard.'],
+['pu-wide','push','','r',[[3,4,60],[3,8,60],[3,12,60],[3,15,60]],'shoulder,elbow',0,'שכיבות סמיכה בידיים רחבות','Wide push-ups','ידיים רחבות מהכתפיים, גוף ישר מהראש עד העקבים.','Hands wider than your shoulders, body straight from head to heels.'],
 ['pu-knee','push','','r',[3,10,60],'elbow',0,'שכיבות סמיכה על הברכיים','Knee push-ups','ברכיים על הרצפה, קו ישר מהראש עד הברכיים, חזה כמעט נוגע ברצפה.','Knees on the floor, a straight line from head to knees, chest almost touching the floor.'],
 ['pu-diamond','push','','r',[3,12,60],'elbow',0,'שכיבות סמיכה יהלום','Diamond push-ups','ידיים צמודות מתחת לחזה בצורת יהלום, מרפקים קרובים לגוף.','Hands together under your chest in a diamond, elbows close to your body.'],
 ['pu-clap','push','','r',[4,6,75],'shoulder,elbow,kid',0,'שכיבות סמיכה עם מחיאת כף','Clap push-ups','דוחפים חזק עד שהידיים עוזבות את הרצפה, מוחאים כף ונוחתים רך עם מרפקים מכופפים.','Push hard enough for your hands to leave the floor, clap, and land softly with bent elbows.'],
@@ -791,7 +823,7 @@ for (const r of EX_RAW) EX[r[0]] = { id: r[0], cat: r[1], eq: r[2] ? r[2].split(
 
 const TPL = {
   A: { icon: 'hand', name: { he: 'אחיזה ומשיכה', en: 'Grip & Pull' }, desc: { he: 'אחיזה חזקה ומשיכות: הבסיס של כל מכשול תלוי.', en: 'Grip strength and pulling: the base of every hanging obstacle.' }, covers: ['grip', 'pull'],
-    main: [['pullup','neg-pullup','aus-row','towel-row'],['dead-hang','rings-hang','rope-hang','towel-wring','fist-squeeze'],['pushup'],['aus-row','towel-row','ytw'],['towel-hang','hang-switch','farmer-carry','towel-wring','fist-squeeze'],['hang-knee','hollow','dead-bug'],['boulder','monkey','rope-climb','ytw']],
+    main: [['pullup','chinup','wide-pullup','towel-pullup','|','neg-pullup','aus-row','towel-row'],['dead-hang','rings-hang','rope-hang','towel-wring','fist-squeeze'],['pushup'],['aus-row','towel-row','ytw'],['towel-hang','hang-switch','farmer-carry','towel-wring','fist-squeeze'],['hang-knee','hollow','dead-bug'],['boulder','monkey','rope-climb','ytw']],
     cool: ['stretch-forearm','stretch-shoulder','breathe'] },
   B: { icon: 'target', name: { he: 'קפיצה ואיזון', en: 'Jump & Balance' }, desc: { he: 'כוח רגליים, נחיתות שקטות ודיוק על מכשולי איזון.', en: 'Leg power, quiet landings and precision on balance obstacles.' }, covers: ['legs', 'balance'],
     main: [['broad-jump','squat-jump','glute-bridge'],['beam-walk','line-walk','single-leg'],['split-squat','wall-sit','glute-bridge'],['q-steps','precision-jumps','single-leg'],['lateral-bounds','box-jump','wall-sit'],['side-plank','plank','dead-bug']],
@@ -804,7 +836,7 @@ const TPL = {
     main: [['kip-swing','hang-knee','hollow'],['lache','ring-traverse','monkey','hang-switch','dead-hang','towel-wring'],['ring-swing','kip-swing','aus-row','ytw'],['toes-bar','hang-knee','dead-bug'],['rope-hang','rings-hang','dead-hang','fist-squeeze'],['precision-jumps','single-leg']],
     cool: ['stretch-shoulder','stretch-forearm','breathe'] },
   E: { icon: 'bolt', name: { he: 'כוח מתפרץ', en: 'Explosive Power' }, desc: { he: 'משיכות וקפיצות מהירות, בשביל הקיר הענק והלאצ׳ים.', en: 'Fast pulls and jumps, for the warped wall and lache.' }, covers: ['pull', 'legs'],
-    main: [['explosive-pullup','pullup','neg-pullup','aus-row','towel-row'],['box-jump','broad-jump','squat-jump','wall-sit'],['pushup','plank'],['rope-climb','towel-hang','dead-hang','towel-wring'],['farmer-carry','fist-squeeze','towel-wring'],['hollow','side-plank','dead-bug']],
+    main: [['explosive-pullup','pullup','chinup','|','neg-pullup','aus-row','towel-row'],['box-jump','broad-jump','squat-jump','wall-sit'],['pushup','plank'],['rope-climb','towel-hang','dead-hang','towel-wring'],['farmer-carry','fist-squeeze','towel-wring'],['hollow','side-plank','dead-bug']],
     cool: ['stretch-shoulder','stretch-hip','breathe'] },
   F: { icon: 'leaf', name: { he: 'ניידות והתאוששות', en: 'Mobility & Recovery' }, desc: { he: 'שחרור, טווחי תנועה ונשימה, כדי לחזור חזקים.', en: 'Release, range of motion and breathing, to come back stronger.' }, covers: [],
     main: [['open-book'],['stretch-hip'],['glute-bridge'],['dead-bug'],['single-leg'],['stretch-ham']],
@@ -824,8 +856,20 @@ const TESTS = {
   jump: { kind: 'num', icon: 'flame', axis: 'jump', unit: 'uCm', score: v => (v - 100) / 170 }
 };
 const EST = { pull: [0, 2, 6, 12, 18], hang: [10, 22, 45, 75], push: [3, 10, 22, 35], balance: [15, 25, 35, 45], jump: [140, 170, 200, 230] };
-// Strength level 1-10, measured on a push-up ladder. It sets which push-up variation a session uses and feeds the level and radar.
-const PUSH_LADDER = [['pu-knee', [3, 10, 60]], ['pushup', [4, 3, 75]], ['pushup', [3, 8, 60]], ['pushup', [3, 14, 60]], ['pu-diamond', [3, 12, 60]], ['pu-clap', [4, 6, 75]], ['pu-archer', [4, 5, 90]], ['pu-one-assist', [4, 4, 90]], ['pu-one', [4, 3, 90]], ['pu-one-clap', [5, 2, 120]]];
+// Strength level 1-10, measured on a push-up ladder. Each level has a pool of push-up variations that rotate week by week
+// (the level's own variation first, then neighbours of similar difficulty); the level also feeds the program level and radar.
+const PUSH_POOL = [
+  [['pu-knee', [3, 10, 60]]],
+  [['pushup', [4, 3, 75]], ['pu-tempo', [4, 2, 75]], ['pu-wide', [4, 3, 75]]],
+  [['pushup', [3, 8, 60]], ['pu-tempo', [3, 5, 60]], ['pu-wide', [3, 8, 60]]],
+  [['pushup', [3, 14, 60]], ['pu-tempo', [3, 8, 60]], ['pu-wide', [3, 12, 60]]],
+  [['pu-diamond', [3, 12, 60]], ['pu-tempo', [3, 10, 60]], ['pu-wide', [3, 15, 60]]],
+  [['pu-clap', [4, 6, 75]], ['pu-diamond', [3, 12, 60]], ['pu-tempo', [3, 10, 60]]],
+  [['pu-archer', [4, 5, 90]], ['pu-clap', [4, 6, 75]], ['pu-diamond', [3, 12, 60]]],
+  [['pu-one-assist', [4, 4, 90]], ['pu-archer', [4, 5, 90]], ['pu-clap', [4, 6, 75]]],
+  [['pu-one', [4, 3, 90]], ['pu-one-assist', [4, 4, 90]], ['pu-archer', [4, 5, 90]]],
+  [['pu-one-clap', [5, 2, 120]], ['pu-one', [4, 3, 90]], ['pu-one-assist', [4, 4, 90]]]
+];
 const STRENGTH_REPS = [2, 5, 11, 22, 35, 45, 55, 65, 80, 100];
 // Strength keys match exercise categories: a marked strength starts that category one load step higher.
 const STRENGTH_KEYS = ['grip', 'pull', 'legs', 'balance', 'swing', 'core'];
@@ -840,7 +884,7 @@ function defaultCourse() {
   return { id: 'c-default', name: t('defCourse'), sx: 22, sy: 148, obs: names.map((n, i) => ({ id: rid(), name: n, ...autoPos(i, names.length) })) };
 }
 function autoPos(i, n) { const x = n > 1 ? 70 + i * (210 / (n - 1)) : 150; return { x: Math.round(x), y: i % 2 ? 46 : 112 - (i % 3) * 8 }; }
-function blank() { return { v: 1, profile: null, prefs: { lang: 'he', sound: true, vibe: true, countdown: true }, courses: [], logs: {}, meta: { pu: 0, cu: 0, resetAt: 0 } }; }
+function blank() { return { v: 1, profile: null, prefs: { lang: 'he', sound: true, vibe: true, countdown: true, remindOn: false, remindTime: '18:00', remindAsked: false }, courses: [], logs: {}, meta: { pu: 0, cu: 0, resetAt: 0 } }; }
 let S = blank();
 try {
   const raw = JSON.parse(localStorage.getItem(LS) || 'null');
@@ -1007,10 +1051,10 @@ function levelFrom(a) {
   if (a.age === 0) lv = Math.min(lv, 1);
   return lv;
 }
-// The hardest push-up variation the athlete's strength level allows, stepping down past anything their age or limits rule out.
-function pushRung(P) {
-  for (let i = profStrength(P) - 1; i >= 0; i--) { const r = PUSH_LADDER[i]; if (!blocked(EX[r[0]], P)) return r; }
-  return null;
+// The push-up variations the athlete's strength level allows, stepping down a level when age or limits rule out the whole pool.
+function pushPool(P) {
+  for (let i = profStrength(P) - 1; i >= 0; i--) { const pool = PUSH_POOL[i].filter(r => !blocked(EX[r[0]], P)); if (pool.length) return pool; }
+  return [];
 }
 function doseOf(ex, lv) { const d = Array.isArray(ex.dose[0]) || ex.dose[0] === 0 ? ex.dose[lv] : ex.dose; return d && d[0] ? d : null; }
 function blocked(ex, P) { return ex.avoid.some(a => (a === 'kid' ? P.age === 0 : P.limits.includes(a))); }
@@ -1028,8 +1072,23 @@ function buildSession(P, type, week) {
   const boost = new Set(type === 'F' ? [] : (P.strengths || [])), cap = P.age === 0 ? 1 : 3;
   const lvOf = ex => boost.has(ex.cat) && lv < cap ? lv + 1 : lv;
   const dOver = {};
-  const resolve = id => { if (id !== 'pushup') return EX[id]; const r = pushRung(P); if (!r) return null; dOver[r[0]] = r[1]; return EX[r[0]]; };
-  const pick = cands => { for (const id of cands) { const ex = resolve(id); if (ex && !used.has(ex.id) && usable(ex, P, lvOf(ex))) { used.add(ex.id); return ex; } } return null; };
+  // Variety: each slot lists interchangeable exercises and the choice rotates every week, so the same session type never
+  // repeats the same exercises two weeks running. A '|' splits a slot into a preferred group and a fallback group.
+  let calls = 0;
+  const pick = cands => {
+    const c = calls++;
+    if (cands[0] === 'pushup') {
+      const pool = pushPool(P).filter(r => !used.has(r[0]));
+      if (pool.length) { const r = pool[(week - 1 + c) % pool.length]; dOver[r[0]] = r[1]; used.add(r[0]); return EX[r[0]]; }
+      cands = cands.slice(1);
+    }
+    const bar = cands.indexOf('|');
+    for (const group of bar < 0 ? [cands] : [cands.slice(0, bar), cands.slice(bar + 1)]) {
+      const list = group.map(id => EX[id]).filter(ex => ex && !used.has(ex.id) && usable(ex, P, lvOf(ex)));
+      if (list.length) { const ex = list[(week - 1 + c) % list.length]; used.add(ex.id); return ex; }
+    }
+    return null;
+  };
   const item = (ex, light) => {
     let [sets, amt, rest] = dOver[ex.id] || doseOf(ex, lvOf(ex));
     if (!light) { amt = scaleAmt(ex.kind, amt, f); if (deload) sets = Math.max(1, sets - 1); }
@@ -1254,9 +1313,12 @@ function vToday() {
   let hero;
   if (W.next >= 0) {
     const type = W.plan[W.next], sess = buildSession(P, type, W.week);
-    const names = sess.blocks.filter(b => b.k !== 'warm' && b.k !== 'cool').flatMap(b => b.items).slice(0, 4).map(it => L(EX[it.ex].name));
+    const mainItems = sess.blocks.filter(b => b.k !== 'warm' && b.k !== 'cool').flatMap(b => b.items);
+    const names = mainItems.slice(0, 4).map(it => L(EX[it.ex].name));
+    const lastSame = [...ss].reverse().find(s => s.type === type), lastIds = lastSame ? new Set((lastSame.sets || []).map(x => x[0])) : null;
+    const fresh = lastIds ? mainItems.filter(it => !lastIds.has(it.ex)).length : 0;
     hero = `<section class="card hero" aria-labelledby="nextT"><div class="eyebrow">${t('nextUp')} · ${W.next + 1}/${W.plan.length}</div><h2 class="sess-title" id="nextT">${esc(L(TPL[type].name))}</h2>
-<div class="meta"><span>${ic('clock')}${t('aboutMin', { m: sess.est })}</span><span>${ic('dumbbell')}${t('nEx', { n: mainCount(sess) })}</span>${W.deload ? `<span>${ic('leaf')}${t('phDel')}</span>` : ''}</div>
+<div class="meta"><span>${ic('clock')}${t('aboutMin', { m: sess.est })}</span><span>${ic('dumbbell')}${t('nEx', { n: mainCount(sess) })}</span>${W.deload ? `<span>${ic('leaf')}${t('phDel')}</span>` : ''}${fresh ? `<span style="color:var(--good)">${ic('sparkle')}${t('novN', { n: fresh })}</span>` : ''}</div>
 <div class="chips" style="margin-bottom:14px">${names.map(n => `<span class="chip">${esc(n)}</span>`).join('')}</div>
 <div class="btns"><button class="btn pri lg" data-act="start-sess" data-type="${type}" data-idx="${W.next}">${ic('play')} ${t('startW')}</button><button class="btn sm" style="flex:0 1 auto" data-act="sess-sheet" data-type="${type}" data-idx="${W.next}">${t('preview')}</button></div></section>`;
   } else {
@@ -1268,6 +1330,7 @@ function vToday() {
   return `<div><p class="muted" style="font-size:.95rem">${esc(greeting())}${P.name ? `, <bdi>${esc(P.name)}</bdi>` : ''}</p><p class="dim" style="font-size:.85rem">${t('weekLine', { w: W.week, p: W.deload ? t('phDel') : t('phUp') })}</p></div>
 <div class="week" role="list">${strip}</div>
 ${hero}
+${remindAsk()}
 <div class="hscroll">
   <button class="btn sm" data-act="tab" data-v="run">${ic('timer')} ${t('goRun')}</button>
   <button class="btn sm" data-act="test" data-v="hang">${ic('hand')} ${t('hangTest')}</button>
@@ -1304,7 +1367,7 @@ function vPlan() {
 <div style="margin-top:14px"><span class="lbl note">${t('changeLevel')}</span><div class="chips" style="margin-top:6px">${[0, 1, 2, 3].map(i => `<button class="pill-btn ${P.level === i ? 'on' : ''}" data-act="set-level" data-v="${i}" aria-pressed="${P.level === i}">${t('lvl' + i)}</button>`).join('')}</div></div>
 ${adapt.length ? `<p class="note" style="margin-top:10px">${t('adaptL', { p: adapt.map(([k, v]) => `${L(TPL[k].name)} ${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`).join(' · ') })}</p>` : ''}</section>
 <section><div class="sec-h"><h2>${t('cycle')}</h2></div><div style="display:flex;gap:8px;align-items:flex-end">${cyc}</div><p class="note" style="margin-top:8px">${t('cycleNote')}</p></section>
-<section><div class="sec-h"><h2>${t('weekSess')}</h2></div><div class="card" style="padding-block:4px"><div class="list">${list}</div></div></section>
+<section><div class="sec-h"><h2>${t('weekSess')}</h2></div><div class="card" style="padding-block:4px"><div class="list">${list}</div></div><p class="note" style="margin-top:8px">${t('varNote')}</p></section>
 <section><div class="sec-h"><h2>${t('library')}</h2></div><div class="hscroll" style="margin-bottom:10px">${cats.map(c => `<button class="pill-btn ${UI.libCat === c ? 'on' : ''}" data-act="lib-cat" data-v="${c}" aria-pressed="${UI.libCat === c}">${c === 'all' ? t('all') : t('cat_' + c)}</button>`).join('')}</div><div class="card" style="padding-block:4px"><div class="list">${lib}</div></div></section>`;
 }
 const CAT_ICON = { warm: 'flame', grip: 'hand', pull: 'up', push: 'dumbbell', core: 'shield', legs: 'bolt', balance: 'target', swing: 'rings', cool: 'leaf' };
@@ -1487,6 +1550,7 @@ function vProfile() {
 <div class="field" style="margin-top:12px"><label for="pNote" class="note">${t('strNoteL')}</label><textarea class="inp" id="pNote" data-bind="p-note" maxlength="300" dir="auto" placeholder="${esc(t('strNoteP'))}">${esc(P.strengthNote || '')}</textarea></div>
 <button class="li" data-act="open-ladder"><span class="lvnum ${sNow >= 7 ? 'hi' : ''}">${sNow}</span><span class="grow"><span class="t">${t('strLevelL')} · ${t('strLevelN', { n: sNow })}</span><span class="s">${esc(t('sl' + sNow))}</span></span>${ic('chev', 'flip dim')}</button>
 <p class="note" style="margin-top:6px">${t('strEffect')}</p></section>
+<section class="card"><div class="sec-h"><h2>${t('remT')}</h2></div>${remindBody()}</section>
 <section class="card"><div class="sec-h"><h2>${t('settings')}</h2></div><div class="set-row"><span class="grow">${t('langL')}</span>${langSeg()}</div>${sw('sound', t('soundL'))}${sw('vibe', t('vibeL'))}${sw('countdown', t('countL'))}</section>
 <section class="card"><div class="sec-h"><h2>${t('programL')}</h2></div><button class="btn block" data-act="edit-ob">${ic('edit')} ${t('rebuild')}</button></section>
 <section class="card"><div class="sec-h"><h2>${t('dataL')}</h2></div><div class="row" style="align-items:flex-start;margin-bottom:12px"><span class="badge-ic ${Sync.status === 'cloud' ? 'g' : 'd'}">${ic(Sync.status === 'cloud' ? 'cloud' : 'wifiOff')}</span><p class="note grow">${syncTxt}</p></div>
@@ -1860,6 +1924,7 @@ const SHEETS = {
   },
   coach: () => ({ title: t('coachT'), body: `<p class="note">${t('coachNote')}</p><div class="chat" aria-live="polite">${Coach.turns.length ? Coach.turns.map((m, i) => `<div class="msg ${m.role === 'user' ? 'me' : 'ai'}" ${i === Coach.turns.length - 1 && m.role === 'assistant' ? 'id="chatLast"' : ''}>${m.role === 'user' ? esc(m.content) : (m.content ? mdLite(m.content) : `<span class="typing">${t('thinking')}</span>`)}</div>`).join('') : `<div class="chips">${['cs1', 'cs2', 'cs3'].map(k => `<button class="pill-btn" data-act="coach-q" data-q="${esc(t(k))}">${esc(t(k))}</button>`).join('')}</div>`}${Coach.err ? `<div class="msg ai err">${esc(Coach.err)}</div>` : ''}</div>
 <form class="field" data-form="coach" style="grid-template-columns:1fr auto;align-items:end"><label class="sr" for="coachIn">${t('coachPh')}</label><textarea class="inp" id="coachIn" rows="2" style="min-height:52px" placeholder="${t('coachPh')}" maxlength="600" dir="auto" ${Coach.busy ? 'disabled' : ''}></textarea>${Coach.busy ? `<button type="button" class="btn" data-act="coach-stop">${t('stopGen')}</button>` : `<button type="submit" class="btn pri">${t('send')}</button>`}</form>` }),
+  remind: () => ({ title: t('remT'), body: remindBody() }),
   ladder: () => ({ title: t('levelPickT'), body: `<p class="note">${t('ladderNote')}</p>${ladderRows(profStrength(S.profile), 'set-strength')}` }),
   export: d => ({ title: t('exportB'), body: `<p class="note">${t('exportTxt')}</p><textarea class="inp mono" id="expTxt" readonly style="min-height:160px;font-size:.75rem;direction:ltr">${esc(d.json)}</textarea><button class="btn pri block" data-act="copy-exp">${ic('copy')} ${t('copy')}</button>` }),
   import: () => ({ title: t('importB'), body: `<label class="btn block" for="impFile" style="cursor:pointer">${ic('upload')} ${t('chooseFile')}</label><input type="file" id="impFile" accept=".json,application/json,text/plain" class="sr" data-bind="imp-file">
@@ -1923,6 +1988,17 @@ const ACT = {
   'set-level': a => { S.profile.level = +a.dataset.v; touchProfile(); renderMain(); },
   'pr-strength': a => { const P = S.profile, k = a.dataset.v; P.strengths = P.strengths || []; const i = P.strengths.indexOf(k); if (i >= 0) P.strengths.splice(i, 1); else P.strengths.push(k); touchProfile(); renderMain(); },
   'open-ladder': () => openSheet('ladder'),
+  'rem-open': () => { S.prefs.remindAsked = true; touchProfile(); renderMain(); openSheet('remind'); },
+  'rem-later': () => { S.prefs.remindAsked = true; touchProfile(); renderMain(); },
+  'rem-ics': async () => { if (!S.profile) return; if (await saveFile('ninja-circuit-reminders.ics', buildICS(), 'text/calendar')) toast(t('remCalDone')); },
+  'rem-test': () => { const n = todayNote(); if (n) notify(n.title, n.body); },
+  'rem-toggle': async () => {
+    if (S.prefs.remindOn && Notification.permission === 'granted') { S.prefs.remindOn = false; touchProfile(); refreshRemind(); return; }
+    let perm = Notification.permission;
+    if (perm === 'default') { try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; } }
+    if (perm === 'granted') { S.prefs.remindOn = true; S.prefs.remindAsked = true; touchProfile(); toast(t('remOn')); checkReminder(); }
+    refreshRemind();
+  },
   'set-strength': a => { const P = S.profile; P.strength = +a.dataset.v; P.push = pushFromStrength(P.strength); touchProfile(); closeSheet(); renderMain(); toast(t('strSaved')); },
   // player
   'pl-go': () => startTimed(),
@@ -2029,6 +2105,7 @@ document.addEventListener('change', e => {
   const b = e.target.dataset && e.target.dataset.bind; if (!b) return;
   if (b === 'p-name') { S.profile.name = e.target.value.trim(); touchProfile(); }
   if (b === 'p-note') { S.profile.strengthNote = e.target.value.trim().slice(0, 300); touchProfile(); }
+  if (b === 'rem-time' && /^\d{2}:\d{2}$/.test(e.target.value)) { S.prefs.remindTime = e.target.value; touchProfile(); }
   if (b === 'imp-file') {
     const file = e.target.files && e.target.files[0]; if (!file) return;
     const rd = new FileReader();
@@ -2037,8 +2114,98 @@ document.addEventListener('change', e => {
   }
 });
 
+/* ═════════════════ Reminders: calendar file and browser notifications ═════════════════ */
+const inViewer = () => !!(window.claude && typeof window.claude.use === 'function');
+const refreshRemind = () => { if (UI.sheet && UI.sheet.kind === 'remind') renderSheet(); else renderMain(); };
+function remindBody() {
+  const P = S.profile, time = S.prefs.remindTime || '18:00';
+  const supported = 'Notification' in window && !inViewer();
+  const perm = supported ? Notification.permission : 'default';
+  const live = !!S.prefs.remindOn && perm === 'granted';
+  const days = P.days.map(d => DAYS_SHORT[lang][d]).join(' · ');
+  return `<p class="note">${t('remS')}</p>
+<div class="field"><label for="remTime">${t('remTimeL')}</label><input class="inp mono" id="remTime" data-bind="rem-time" type="time" value="${esc(time)}" dir="ltr" style="max-width:180px;text-align:center"><span class="note">${esc(days)}</span></div>
+<div><button class="btn pri block" data-act="rem-ics">${ic('calendar')} ${t('remCal')}</button><p class="note" style="margin-top:6px">${t('remCalD')}</p></div>
+${supported ? `<div class="set-row"><span class="grow"><b>${t('remBrowser')}</b><span class="note" style="display:block">${t('remBrowserD')}</span></span><button class="switch" role="switch" aria-checked="${live}" aria-label="${esc(t('remBrowser'))}" data-act="rem-toggle"></button></div>${perm === 'denied' ? `<p class="note" style="color:var(--bad)">${t('remDenied')}</p>` : ''}${live ? `<button class="btn sm" data-act="rem-test">${ic('bolt')} ${t('remTest')}</button>` : ''}` : `<p class="note">${inViewer() ? t('remViewer') : t('remNoSupport')}</p>`}`;
+}
+function remindAsk() {
+  if (S.prefs.remindAsked || S.prefs.remindOn) return '';
+  return `<section class="card"><div class="row"><span class="badge-ic o">${ic('clock')}</span><div class="grow"><h2 style="font-size:1.05rem">${t('remAsk')}</h2><p class="note">${t('remAskD')}</p></div></div><div class="btns" style="margin-top:12px"><button class="btn pri" data-act="rem-open">${t('remSet')}</button><button class="btn ghost" data-act="rem-later">${t('remLater')}</button></div></section>`;
+}
+// Saves a text file: through the viewer's download prompt inside Claude, or a normal browser download elsewhere.
+async function saveFile(name, text, mime) {
+  if (Caps.downloads) {
+    try { const r = await Caps.downloads.save({ filename: name, data: text }); return !!r; }
+    catch (e) { if (e && e.code === 'cancelled') return false; }
+  }
+  try {
+    const url = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000); return true;
+  } catch (e) { return false; }
+}
+const icsEsc = x => String(x).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+function icsFold(line) {
+  const enc = new TextEncoder();
+  if (enc.encode(line).length <= 75) return line;
+  let out = '', cur = '', bytes = 0;
+  for (const ch of line) { const b = enc.encode(ch).length; if (bytes + b > 75) { out += cur + '\r\n '; cur = ''; bytes = 1; } cur += ch; bytes += b; }
+  return out + cur;
+}
+// One repeating weekly event per training day, in floating local time, with an alert 10 minutes before. Re-importing updates the same events (stable UIDs).
+function buildICS() {
+  const P = S.profile, W = weekInfo(), [hh, mm] = (S.prefs.remindTime || '18:00').split(':').map(Number);
+  const BY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'], now = new Date();
+  const loc = d => `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}T${pad2(d.getHours())}${pad2(d.getMinutes())}00`;
+  const stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const url = /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : '';
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//NINJA CIRCUIT//1.0//HE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  P.days.forEach((dow, i) => {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    start.setDate(start.getDate() + (dow - start.getDay() + 7) % 7);
+    if (start <= now) start.setDate(start.getDate() + 7);
+    const end = new Date(start.getTime() + P.minutes * 60000);
+    lines.push('BEGIN:VEVENT', `UID:ninja-circuit-${dow}@ninja-circuit`, `DTSTAMP:${stamp}`, `DTSTART:${loc(start)}`, `DTEND:${loc(end)}`, `RRULE:FREQ=WEEKLY;BYDAY=${BY[dow]}`,
+      `SUMMARY:${icsEsc(t('icsTitle', { n: L(TPL[W.plan[i]].name) }))}`, `DESCRIPTION:${icsEsc(t('icsDesc'))}`);
+    if (url) lines.push(`URL:${url}`);
+    lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsEsc(t('icsAlarm'))}`, 'TRIGGER:-PT10M', 'END:VALARM', 'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  return lines.map(icsFold).join('\r\n') + '\r\n';
+}
+function todayNote() {
+  const P = S.profile; if (!P) return null;
+  const W = weekInfo(); if (W.next < 0) return null;
+  const type = W.plan[W.next], sess = buildSession(P, type, W.week);
+  return { title: t('remNotifTitle'), body: t('remNotifBody', { n: L(TPL[type].name), m: sess.est }) };
+}
+// Android only allows notifications through the service worker; desktop browsers also accept the plain constructor.
+async function notify(title, body) {
+  const opts = { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'ninja-daily', lang, dir: lang === 'he' ? 'rtl' : 'ltr' };
+  try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg && reg.active) { await reg.showNotification(title, opts); return true; } } catch (e) {}
+  try { new Notification(title, opts); return true; } catch (e) { return false; }
+}
+let notifiedKey = '';
+function checkReminder() {
+  const P = S.profile;
+  if (!P || !S.prefs.remindOn || inViewer() || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const now = new Date(), key = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+  if (!P.days.includes(now.getDay())) return;
+  const [hh, mm] = (S.prefs.remindTime || '18:00').split(':').map(Number), mins = now.getHours() * 60 + now.getMinutes(), at = hh * 60 + mm;
+  if (mins < at || mins > at + 360) return;
+  if (sessions().some(x => sameDay(x.ts, now))) return;
+  let seen = notifiedKey; try { seen = localStorage.getItem('ninja-circuit-notified') || seen; } catch (e) {}
+  if (seen === key) return;
+  const n = todayNote(); if (!n) return;
+  // Only mark the day as notified once the browser accepted it, so a failure (for example before the service worker is ready) is retried.
+  notifiedKey = key;
+  notify(n.title, n.body).then(ok => { if (ok) { try { localStorage.setItem('ninja-circuit-notified', key); } catch (e) {} } else notifiedKey = ''; });
+}
+
 /* ═════════════════ Boot ═════════════════ */
 render();
+setInterval(checkReminder, 30000); setTimeout(checkReminder, 1500);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkReminder(); });
 (async () => {
   const c = window.claude;
   if (!c || typeof c.use !== 'function') return;
@@ -2049,5 +2216,9 @@ render();
 })();
 </script>
 <!-- @artifact-end -->
+<script>
+// Offline support and notifications need a service worker, which only runs when the app is served over http(s).
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
 </body>
 </html>
