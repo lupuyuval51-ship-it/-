@@ -1,0 +1,78 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Boolean value", "a value that can only be true or false", "ערך בוליאני", "ערך שיכול להיות רק אמת או שקר"],
+      ["AND", "a rule that gives true only when both inputs are true", "AND (וגם)", "כלל שנותן אמת רק כששני הקלטים אמיתיים"],
+      ["OR", "a rule that gives true when at least one input is true", "OR (או)", "כלל שנותן אמת כשלפחות קלט אחד אמיתי"],
+      ["NOT", "a rule that flips a value: true becomes false and false becomes true", "NOT (לא)", "כלל שהופך ערך: אמת הופכת לשקר ושקר הופך לאמת"],
+    ],
+    q: [
+      [["Is the statement “5 is bigger than 3 AND 2 is bigger than 4” true or false?", "False", ["True", "Both true and false", "It cannot be checked"], "AND needs both parts to be true. The first part is true, but 2 is not bigger than 4, so the whole statement is false."],
+        ["האם המשפט ״5 גדול מ־3 וגם 2 גדול מ־4״ הוא אמת או שקר?", "שקר", ["אמת", "גם אמת וגם שקר", "אי אפשר לבדוק"], "AND דורש ששני החלקים יהיו אמיתיים. החלק הראשון אמת, אבל 2 אינו גדול מ־4, ולכן כל המשפט שקר."]],
+      [["A hallway lamp turns on if the switch is on OR the motion sensor sees someone. The switch is off, but the sensor sees someone. What does the lamp do?", "The lamp turns on", ["The lamp stays off", "The lamp flashes", "The lamp breaks"], "OR needs just one true input. The sensor input is true, so the lamp turns on even though the switch is off."],
+        ["מנורה במסדרון נדלקת אם המתג דלוק או אם חיישן התנועה מזהה מישהו. המתג כבוי, אבל החיישן מזהה מישהו. מה קורה למנורה?", "המנורה נדלקת", ["המנורה נשארת כבויה", "המנורה מהבהבת", "המנורה נשברת"], "כדי ש־OR ייתן אמת מספיק קלט אחד אמיתי. קלט החיישן אמיתי, ולכן המנורה נדלקת גם כשהמתג כבוי."]],
+      [["A game plays music if the sound is NOT muted. The player mutes the sound. What happens?", "The music does not play", ["The music plays", "The music plays twice as loud", "The game closes"], "“Muted” is true, so “NOT muted” is false, and the game does not play music."],
+        ["משחק מנגן מוזיקה אם הצליל אינו מושתק. השחקן משתיק את הצליל. מה קורה?", "המוזיקה לא מתנגנת", ["המוזיקה מתנגנת", "המוזיקה מתנגנת בעוצמה כפולה", "המשחק נסגר"], "״מושתק״ הוא אמת, ולכן ״לא מושתק״ הוא שקר, והמשחק לא מנגן מוזיקה."]],
+    ],
+    s: [[["Checking the rule “homework done AND room tidy”", "Write down the rule with its two conditions", "Find out whether the first condition is true", "Find out whether the second condition is true", "Put the two answers through AND", "Read the result: true only if both were true"],
+      ["בדיקת הכלל ״שיעורי הבית הושלמו וגם החדר מסודר״", "כותבים את הכלל עם שני התנאים שלו", "בודקים אם התנאי הראשון מתקיים", "בודקים אם התנאי השני מתקיים", "מעבירים את שתי התשובות דרך AND", "קוראים את התוצאה: אמת רק אם שניהם התקיימו"]]],
+  },
+  i: {
+    t: [
+      ["Truth table", "a table that lists every combination of inputs and the output for each one", "טבלת אמת", "טבלה שמפרטת כל צירוף אפשרי של קלטים ואת הפלט של כל אחד מהם"],
+      ["Logic gate", "a tiny electronic circuit that takes on/off inputs and gives one on/off output", "שער לוגי", "מעגל חשמלי זעיר שמקבל קלטים של דלוק או כבוי ומוציא פלט אחד של דלוק או כבוי"],
+      ["XOR", "a rule that gives true when exactly one of two inputs is true, but not both", "XOR (או בלעדי)", "כלל שנותן אמת כשבדיוק אחד משני הקלטים אמיתי, אבל לא שניהם"],
+      ["Condition", "a question in a program whose answer is true or false and decides what happens next", "תנאי", "שאלה בתוכנית שהתשובה עליה היא אמת או שקר, והיא קובעת מה יקרה אחר כך"],
+      ["George Boole", "the English mathematician of the 1800s who described logic as a kind of algebra of true and false", "ג׳ורג׳ בול", "המתמטיקאי האנגלי מהמאה ה־19 שתיאר את הלוגיקה כמעין אלגברה של אמת ושקר"],
+    ],
+    q: [
+      [["In computer circuits, 1 means true and 0 means false. What is 1 AND 0?", "0", ["1", "2", "10"], "AND gives 1 only when both inputs are 1. Here one input is 0, so the output is 0. This is logic, not adding, so the answer is never 2."],
+        ["במעגלים של מחשב, 1 פירושו אמת ו־0 פירושו שקר. כמה זה 1 AND 0?", "0", ["1", "2", "10"], "AND נותן 1 רק כששני הקלטים הם 1. כאן אחד הקלטים הוא 0, ולכן הפלט הוא 0. זו לוגיקה ולא חיבור, ולכן התשובה אף פעם לא 2."]],
+      [["A truth table for AND with two inputs has four rows. In how many of those rows is the output true?", "Only one: when both inputs are true", ["In all four rows", "In three rows", "In two rows"], "The four rows are false-false, false-true, true-false and true-true. AND is true only in the last one. (OR, by contrast, is true in three rows.)"],
+        ["לטבלת אמת של AND עם שני קלטים יש ארבע שורות. בכמה מהשורות האלה הפלט הוא אמת?", "רק באחת: כששני הקלטים אמיתיים", ["בכל ארבע השורות", "בשלוש שורות", "בשתי שורות"], "ארבע השורות הן שקר־שקר, שקר־אמת, אמת־שקר ואמת־אמת. AND הוא אמת רק באחרונה. (OR, לעומת זאת, הוא אמת בשלוש שורות.)"]],
+      [["A quiz rule says: “You win a sticker if you answer question A or question B correctly, but not if you answer both.” Which rule is this?", "XOR", ["AND", "OR", "NOT"], "XOR, “exclusive or”, is true when exactly one input is true. Plain OR would also give a sticker for answering both."],
+        ["כלל בחידון אומר: ״מקבלים מדבקה אם עונים נכון על שאלה א׳ או על שאלה ב׳, אבל לא אם עונים נכון על שתיהן.״ איזה כלל זה?", "XOR", ["AND", "OR", "NOT"], "XOR, ״או בלעדי״, הוא אמת כשבדיוק קלט אחד אמיתי. OR רגיל היה נותן מדבקה גם למי שענה על שתיהן."]],
+      [["The statement “it is raining AND it is cold” is false. What do you know for sure?", "At least one of the two parts is false", ["Both parts must be false, since the whole statement is false","It is not raining", "It is warm"], "AND is false whenever one or both parts are false. You know that at least one part is false, but not which one."],
+        ["המשפט ״יורד גשם וגם קר״ הוא שקר. מה אפשר לדעת בוודאות?", "לפחות אחד משני החלקים הוא שקר", ["שני החלקים חייבים להיות שקר, כי כל המשפט שקר","לא יורד גשם", "חם בחוץ"], "AND הוא שקר בכל פעם שחלק אחד או שני החלקים הם שקר. ידוע שלפחות חלק אחד שקר, אבל לא ידוע איזה."]],
+      [["A library search for “cats AND dogs” is compared with a search for “cats OR dogs”. Which usually finds more books?", "“cats OR dogs”, because a book needs only one of the two words", ["“cats AND dogs”, because AND adds the results together", "They always find exactly the same books", "Neither search can find any books"], "OR accepts books with either word, so it finds more. AND keeps only books that have both words, so it narrows the search."],
+        ["בחיפוש בספרייה משווים בין ״חתולים AND כלבים״ ובין ״חתולים OR כלבים״. איזה חיפוש מוצא בדרך כלל יותר ספרים?", "״חתולים OR כלבים״, כי מספיק שבספר תופיע אחת משתי המילים", ["״חתולים AND כלבים״, כי AND מחבר את התוצאות יחד", "שני החיפושים תמיד מוצאים בדיוק אותם ספרים", "אף אחד משני החיפושים לא מוצא ספרים"], "OR מקבל ספרים עם כל אחת מהמילים, ולכן הוא מוצא יותר. AND משאיר רק ספרים שיש בהם את שתי המילים, ולכן הוא מצמצם את החיפוש."]],
+      [["Who first described logic as a kind of algebra of true and false, and gave “Boolean” its name?", "George Boole, a mathematician of the 1800s", ["Alan Turing, a code-breaker of the 1940s", "Ada Lovelace, who wrote about Babbage's machine", "Isaac Newton, who studied gravity"], "Boole published his books on the algebra of logic in 1847 and 1854. About a hundred years later his ideas became the basis of computer circuits."],
+        ["מי תיאר לראשונה את הלוגיקה כמעין אלגברה של אמת ושקר, ונתן את שמו למילה ״בוליאני״?", "ג׳ורג׳ בול, מתמטיקאי מהמאה ה־19", ["אלן טיורינג, מפצח צפנים משנות ה־40 של המאה ה־20", "עדה לאבלייס, שכתבה על המכונה של בבג׳", "אייזק ניוטון, שחקר את כוח הכבידה"], "בול פרסם את ספריו על האלגברה של הלוגיקה ב־1847 וב־1854. כמאה שנה אחר כך הרעיונות שלו נעשו הבסיס למעגלים של המחשב."]],
+    ],
+    n: [[8, ["A truth table lists every combination of inputs. How many rows does a truth table with 3 inputs have?", "rows", "Each input can be true or false, so there are 2 × 2 × 2 = 8 combinations, and 8 rows."],
+      ["טבלת אמת מפרטת כל צירוף של קלטים. כמה שורות יש בטבלת אמת עם 3 קלטים?", "שורות", "כל קלט יכול להיות אמת או שקר, ולכן יש 2 × 2 × 2 = 8 צירופים, ו־8 שורות."]]],
+    s: [[["Working out NOT (A OR B) when A is true and B is false, in order", "Read the inputs: A is true and B is false", "Start with the brackets: A OR B", "A OR B is true, because A is true", "Apply NOT to that result", "The final answer is false"],
+      ["חישוב NOT (A OR B) כש־A אמת ו־B שקר, לפי הסדר", "קוראים את הקלטים: A אמת ו־B שקר", "מתחילים בסוגריים: A OR B", "A OR B הוא אמת, כי A אמת", "מפעילים NOT על התוצאה הזאת", "התשובה הסופית היא שקר"]]],
+  },
+  a: {
+    t: [
+      ["NAND", "a gate whose output is false only when all its inputs are true", "NAND (לא־וגם)", "שער שהפלט שלו הוא שקר רק כשכל הקלטים שלו אמיתיים"],
+      ["Half adder", "a small circuit of logic gates that adds two bits and gives a sum bit and a carry bit", "חצי מחבר", "מעגל קטן של שערים לוגיים שמחבר שתי סיביות ומוציא סיבית סכום וסיבית נשא"],
+      ["De Morgan's laws", "rules for rewriting NOT of a whole AND or OR expression by flipping each part", "חוקי דה מורגן", "כללים לכתיבה מחדש של NOT על ביטוי AND או OR שלם, על ידי היפוך כל חלק"],
+      ["Transistor", "a tiny electronic switch; computer chips use billions of them to build logic gates", "טרנזיסטור", "מתג אלקטרוני זעיר; שבבי מחשב משתמשים במיליארדים כאלה כדי לבנות שערים לוגיים"],
+    ],
+    q: [
+      [["Which expression always means the same as NOT (A AND B)?", "(NOT A) OR (NOT B)", ["(NOT A) AND (NOT B)", "A OR B", "A AND B"], "By De Morgan's laws, “not both” means “at least one is not”. (NOT A) AND (NOT B) is stricter: it needs both to be false."],
+        ["איזה ביטוי שווה תמיד ל־NOT (A AND B)?", "(NOT A) OR (NOT B)", ["(NOT A) AND (NOT B)", "A OR B", "A AND B"], "לפי חוקי דה מורגן, ״לא שניהם״ פירושו ״לפחות אחד מהם לא״. (NOT A) AND (NOT B) מחמיר יותר: הוא דורש ששניהם יהיו שקר."]],
+      [["Why are NAND gates sometimes called “universal” gates?", "Every other logic gate can be built from NAND gates alone", ["They work without electricity", "They are the only gates that can store files", "They always have exactly three inputs"], "For example, a NAND gate with both inputs joined acts as NOT, and NOT after NAND gives AND. So a whole chip could in principle be made of NAND gates."],
+        ["למה שערי NAND נקראים לפעמים שערים ״אוניברסליים״?", "אפשר לבנות כל שער לוגי אחר משערי NAND בלבד", ["הם פועלים בלי חשמל", "הם השערים היחידים שיכולים לשמור קבצים", "תמיד יש להם בדיוק שלושה קלטים"], "לדוגמה, שער NAND ששני הקלטים שלו מחוברים יחד פועל כמו NOT, ו־NOT אחרי NAND נותן AND. לכן אפשר עקרונית לבנות שבב שלם משערי NAND."]],
+      [["A half adder adds two bits, A and B. Which gate gives the carry bit?", "AND", ["XOR", "OR", "NOT"], "A carry happens only when both bits are 1, which is exactly AND. The sum bit comes from XOR."],
+        ["חצי מחבר מחבר שתי סיביות, A ו־B. איזה שער נותן את סיבית הנשא?", "AND", ["XOR", "OR", "NOT"], "נשא נוצר רק כששתי הסיביות הן 1, וזה בדיוק AND. סיבית הסכום מגיעה מ־XOR."]],
+      [["A half adder gets the inputs 1 and 1. What does it give?", "Sum 0, carry 1", ["Sum 1, carry 1", "Sum 1, carry 0", "Sum 0, carry 0"], "1 + 1 = 2, which is 10 in binary: the sum bit is 0 and 1 is carried to the next place."],
+        ["חצי מחבר מקבל את הקלטים 1 ו־1. מה הוא מוציא?", "סכום 0, נשא 1", ["סכום 1, נשא 1", "סכום 1, נשא 0", "סכום 0, נשא 0"], "החיבור 1 + 1 נותן 2, שבבינארי נכתב 10: סיבית הסכום היא 0, ו־1 עובר כנשא למקום הבא."]],
+      [["A program checks: if (age >= 13 AND hasPermission). The age is 10. Why do many programming languages not even check hasPermission?", "The first part is already false, so the whole AND must be false", ["hasPermission is always true, so checking it would be a waste of time","Programs can only check one thing at a time", "AND checks the parts from right to left"], "This is called short-circuit evaluation. Once one part of an AND is false, the answer cannot be true, so the rest is skipped and time is saved."],
+        ["תוכנית בודקת את התנאי ״הגיל הוא לפחות 13 AND hasPermission״. הגיל הוא 10. למה שפות תכנות רבות אפילו לא בודקות את hasPermission?", "החלק הראשון כבר שקר, ולכן כל ה־AND חייב להיות שקר", ["hasPermission הוא תמיד אמת, ולכן אין שום טעם לבדוק אותו", "תוכניות יכולות לבדוק רק דבר אחד בכל פעם", "AND בודק את החלקים מימין לשמאל"], "זה נקרא ״הערכה מקוצרת״. ברגע שחלק אחד של AND הוא שקר, התשובה לא יכולה להיות אמת, ולכן מדלגים על השאר וחוסכים זמן."]],
+      [["Which expression is true only when exactly one of A and B is true?", "(A OR B) AND NOT (A AND B)", ["(A AND B) OR NOT A", "NOT (A OR B)", "A AND NOT A"], "“A OR B” allows one or both, and “NOT (A AND B)” removes the case of both. Together they give XOR."],
+        ["איזה ביטוי הוא אמת רק כשבדיוק אחד מ־A ו־B אמיתי?", "(A OR B) AND NOT (A AND B)", ["(A AND B) OR NOT A", "NOT (A OR B)", "A AND NOT A"], "״A OR B״ מתיר אחד מהם או את שניהם, ו־״NOT (A AND B)״ מוציא את המקרה של שניהם. יחד הם נותנים XOR."]],
+      [["In 1937 Claude Shannon wrote a famous thesis about Boolean logic. What did he show?", "That circuits of electric switches can carry out Boolean logic", ["That computers can think like people", "That true and false are really the same", "That logic gates must be made of glass"], "Shannon showed that switches that are on or off follow Boole's algebra. This idea is at the heart of every digital computer."],
+        ["ב־1937 כתב קלוד שאנון עבודת מחקר מפורסמת על לוגיקה בוליאנית. מה הוא הראה?", "שמעגלים של מתגים חשמליים יכולים לבצע לוגיקה בוליאנית", ["שמחשבים יכולים לחשוב כמו בני אדם", "שאמת ושקר הם בעצם אותו הדבר", "ששערים לוגיים חייבים להיות עשויים מזכוכית"], "שאנון הראה שמתגים שהם דלוקים או כבויים מצייתים לאלגברה של בול. הרעיון הזה נמצא בלב של כל מחשב דיגיטלי."]],
+    ],
+    n: [[16, ["A truth table with 2 inputs has 4 rows, and each row's output can be 0 or 1. How many different 2-input truth tables are possible?", "", "Each of the 4 rows has 2 choices, so there are 2 × 2 × 2 × 2 = 16 possible tables, including AND, OR, XOR and NAND."],
+      ["לטבלת אמת עם 2 קלטים יש 4 שורות, והפלט בכל שורה יכול להיות 0 או 1. כמה טבלאות אמת שונות עם 2 קלטים אפשריות?", "", "לכל אחת מ־4 השורות יש 2 אפשרויות, ולכן יש 2 × 2 × 2 × 2 = 16 טבלאות אפשריות, וביניהן AND, OR, XOR ו־NAND."]]],
+    s: [[["How a half adder works out 1 + 1, in order", "Both inputs, A and B, are 1", "The XOR gate gets 1 and 1 and gives 0", "The AND gate gets 1 and 1 and gives 1", "The sum bit is 0 and the carry bit is 1", "Read together, carry then sum, they make 10, which is 2 in binary"],
+      ["איך חצי מחבר מחשב 1 + 1, לפי הסדר", "שני הקלטים, A ו־B, הם 1", "שער ה־XOR מקבל 1 ו־1 ומוציא 0", "שער ה־AND מקבל 1 ו־1 ומוציא 1", "סיבית הסכום היא 0 וסיבית הנשא היא 1", "כשקוראים אותן יחד, הנשא ואחריו הסכום, מתקבל 10, שהוא 2 בבינארי"]]],
+  },
+};
+export default c;

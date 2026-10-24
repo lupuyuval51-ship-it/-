@@ -1,0 +1,47 @@
+# dependencies
+node_modules
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# env — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# generated
+src/generated/
+*.tsbuildinfo
+
+# tests / tooling output
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# local database cluster (scripts/pg-local.sh)
+.pgdata/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log
+.scratch/
+
+# Unity
+unity/**/Library/
+unity/**/Temp/
+unity/**/Logs/
+unity/**/obj/
+unity/**/UserSettings/
+/public/unity/
+unity/**/Builds/
+
+# Offline app build output
+/mobile/dist/
+
+# topic factory drafts (beginner level only, finished and moved into src/lib/game/topics/content by the finisher)
+.topic-staging/

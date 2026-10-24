@@ -1,0 +1,91 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Order of operations", "the agreed order for working out a calculation with several operations", "סדר פעולות חשבון", "הסדר המוסכם לחישוב תרגיל שיש בו כמה פעולות"],
+      ["Brackets", "the signs ( ) that show which part to work out first", "סוגריים", "הסימנים ( ) שמראים איזה חלק מחשבים קודם"],
+      ["Product", "the answer to a multiplication", "מכפלה", "התוצאה של תרגיל כפל"],
+      ["Sum", "the answer to an addition", "סכום", "התוצאה של תרגיל חיבור"],
+    ],
+    q: [
+      [["What is 2 + 3 × 4?", "14", ["20", "24", "9"], "Multiply before adding: 3 × 4 = 12, then 2 + 12 = 14. Working from left to right would give 20, which breaks the rule."],
+        ["כמה זה 2 + 3 × 4?", "14", ["20", "24", "9"], "כפל לפני חיבור: 3 × 4 = 12, ואז 2 + 12 = 14. חישוב משמאל לימין היה נותן 20, וזה מפר את הכלל."]],
+      [["What is (2 + 3) × 4?", "20", ["14", "24", "9"], "Brackets first: 2 + 3 = 5, then 5 × 4 = 20. The brackets change the answer from 14 to 20."],
+        ["כמה זה (2 + 3) × 4?", "20", ["14", "24", "9"], "קודם הסוגריים: 2 + 3 = 5, ואז 5 × 4 = 20. הסוגריים משנים את התוצאה מ־14 ל־20."]],
+      [["What is 8 − 2 × 3?", "2", ["18", "9", "6"], "Multiply before subtracting: 2 × 3 = 6, then 8 − 6 = 2. Working from left to right gives 18, which breaks the order rule."],
+        ["כמה זה 8 − 2 × 3?", "2", ["18", "9", "6"], "כפל לפני חיסור: 2 × 3 = 6, ואז 8 − 6 = 2. חישוב משמאל לימין נותן 18, וזה מפר את כלל הסדר."]],
+      [["In 5 + 6 × 2, which operation do you work out first?", "6 × 2, the multiplication", ["5 + 6, the addition, because it comes first from the left", "It does not matter which one comes first"], "Multiplication comes before addition, so 6 × 2 = 12 is worked out first, and then 5 + 12 = 17. Doing 5 + 6 first would give 22, so the order really matters."],
+        ["ב־5 + 6 × 2, איזו פעולה מחשבים קודם?", "6 × 2, פעולת הכפל", ["5 + 6, פעולת החיבור, כי היא באה ראשונה משמאל", "זה לא משנה איזו מהן באה קודם"], "כפל בא לפני חיבור, ולכן מחשבים קודם 6 × 2 = 12, ואחר כך 5 + 12 = 17. אם מחשבים קודם 5 + 6, מקבלים 22, כך שהסדר באמת משנה."]],
+      [["What is 12 − (4 + 3)?", "5", ["11", "19", "9"], "Brackets first: 4 + 3 = 7, then 12 − 7 = 5. Ignoring the brackets, 12 − 4 + 3, would give 11.", "Work out what is inside the brackets before anything else."],
+        ["כמה זה 12 − (4 + 3)?", "5", ["11", "19", "9"], "קודם הסוגריים: 4 + 3 = 7, ואז 12 − 7 = 5. אם מתעלמים מהסוגריים, 12 − 4 + 3, מקבלים 11.", "חשבו קודם את מה שבתוך הסוגריים."]],
+    ],
+    n: [
+      [7, ["What is 10 − 6 ÷ 2?", "", "Divide first: 6 ÷ 2 = 3, then 10 − 3 = 7. Working from left to right would give 2, which breaks the rule."],
+        ["כמה זה 10 − 6 ÷ 2?", "", "קודם חילוק: 6 ÷ 2 = 3, ואז 10 − 3 = 7. חישוב משמאל לימין היה נותן 2, וזה מפר את הכלל."]],
+      [22, ["What is 2 × 5 + 3 × 4?", "", "Do both multiplications first: 2 × 5 = 10 and 3 × 4 = 12. Then add: 10 + 12 = 22."],
+        ["כמה זה 2 × 5 + 3 × 4?", "", "קודם שני תרגילי הכפל: 2 × 5 = 10 ו־3 × 4 = 12. אחר כך מחברים: 10 + 12 = 22."]],
+    ],
+    s: [[["Working out 3 + 4 × 5, in order", "Look for the multiplication: 4 × 5", "Work it out first: 4 × 5 = 20", "Put the result back into the line: 3 + 20", "Add: 3 + 20 = 23"],
+      ["חישוב 3 + 4 × 5, לפי הסדר", "מחפשים את פעולת הכפל: 4 × 5", "מחשבים אותה קודם: 4 × 5 = 20", "מחזירים את התוצאה לתרגיל: 3 + 20", "מחברים: 3 + 20 = 23"]]],
+  },
+  i: {
+    t: [
+      ["Left to right", "the rule for operations of equal rank, like several additions and subtractions", "משמאל לימין", "הכלל לפעולות מאותה דרגה, כמו כמה פעולות חיבור וחיסור"],
+      ["Power", "a number multiplied by itself several times, like 2³ = 2 × 2 × 2", "חזקה", "מספר שכופלים בעצמו כמה פעמים, כמו 2³ = 2 × 2 × 2"],
+      ["Expression", "numbers and operation signs written together, without an equals sign", "ביטוי", "מספרים וסימני פעולה שכתובים יחד, בלי סימן שוויון"],
+      ["Quotient", "the answer to a division", "מנה", "התוצאה של תרגיל חילוק"],
+    ],
+    q: [
+      [["What is 20 − 8 + 2?", "14", ["10", "30", "26"], "Addition and subtraction have the same rank, so work left to right: 20 − 8 = 12, then 12 + 2 = 14. The answer 10 comes from adding 8 + 2 first."],
+        ["כמה זה 20 − 8 + 2?", "14", ["10", "30", "26"], "לחיבור ולחיסור יש אותה דרגה, ולכן מחשבים משמאל לימין: 20 − 8 = 12, ואז 12 + 2 = 14. את התשובה 10 מקבלים אם מחברים קודם 8 + 2."]],
+      [["What is 3 + 2²?", "7", ["25", "10", "11"], "Powers come before addition: 2² = 4, then 3 + 4 = 7. The answer 25 comes from adding first, (3 + 2)², which is a different problem."],
+        ["כמה זה 3 + 2²?", "7", ["25", "10", "11"], "חזקה לפני חיבור: 2² = 4, ואז 3 + 4 = 7. את התשובה 25 מקבלים אם מחברים קודם, (3 + 2)², וזה תרגיל אחר."]],
+      [["What is 18 ÷ 3 × 2?", "12", ["3", "6", "36"], "Multiplication and division have the same rank, so work left to right: 18 ÷ 3 = 6, then 6 × 2 = 12. Doing the multiplication first would give 18 ÷ 6 = 3."],
+        ["כמה זה 18 ÷ 3 × 2?", "12", ["3", "6", "36"], "לכפל ולחילוק יש אותה דרגה, ולכן מחשבים משמאל לימין: 18 ÷ 3 = 6, ואז 6 × 2 = 12. אם מחשבים קודם את הכפל, מקבלים 18 ÷ 6 = 3."]],
+      [["What is (6 + 2) × 3 − 4?", "20", ["8", "24", "−8"], "Brackets first: 6 + 2 = 8. Then multiply: 8 × 3 = 24, and subtract: 24 − 4 = 20. Ignoring the brackets, 6 + 2 × 3 − 4, would give 8."],
+        ["כמה זה (6 + 2) × 3 − 4?", "20", ["8", "24", "−8"], "קודם הסוגריים: 6 + 2 = 8. אחר כך כפל: 8 × 3 = 24, ואז חיסור: 24 − 4 = 20. אם מתעלמים מהסוגריים, 6 + 2 × 3 − 4, מקבלים 8."]],
+      [["Where should brackets go in 10 − 4 ÷ 2 to make the answer 3?", "(10 − 4) ÷ 2", ["10 − (4 ÷ 2)", "(10 − 4 ÷ 2)"], "The brackets must make the subtraction come first: (10 − 4) ÷ 2 = 6 ÷ 2 = 3. In the other two versions the division still comes first, so the answer is 10 − 2 = 8."],
+        ["איפה צריך לשים סוגריים ב־10 − 4 ÷ 2 כדי שהתוצאה תהיה 3?", "(10 − 4) ÷ 2", ["10 − (4 ÷ 2)", "(10 − 4 ÷ 2)"], "הסוגריים צריכים לגרום לחיסור לבוא קודם: (10 − 4) ÷ 2 = 6 ÷ 2 = 3. בשתי הגרסאות האחרות החילוק עדיין בא קודם, ולכן התוצאה היא 10 − 2 = 8."]],
+    ],
+    n: [
+      [4, ["What is 24 ÷ 4 ÷ 2 + 1?", "", "Divide left to right: 24 ÷ 4 = 6, 6 ÷ 2 = 3, then 3 + 1 = 4."],
+        ["כמה זה 24 ÷ 4 ÷ 2 + 1?", "", "מחלקים משמאל לימין: 24 ÷ 4 = 6, 6 ÷ 2 = 3, ואז 3 + 1 = 4."]],
+      [20, ["What is 2³ + 4 × 3?", "", "Powers first: 2³ = 8, and the multiplication gives 4 × 3 = 12. Then add: 8 + 12 = 20."],
+        ["כמה זה 2³ + 4 × 3?", "", "קודם חזקה: 2³ = 8, ותרגיל הכפל נותן 4 × 3 = 12. אחר כך מחברים: 8 + 12 = 20."]],
+    ],
+    s: [[["Working out 2 + 3² × 4 − 5, in order", "Powers first: 3² = 9", "Then the multiplication: 9 × 4 = 36", "The line is now 2 + 36 − 5", "Add and subtract from left to right: 2 + 36 = 38, then 38 − 5 = 33"],
+      ["חישוב 2 + 3² × 4 − 5, לפי הסדר", "קודם חזקה: 3² = 9", "אחר כך כפל: 9 × 4 = 36", "עכשיו התרגיל הוא 2 + 36 − 5", "מחברים ומחסרים משמאל לימין: 2 + 36 = 38, ואז 38 − 5 = 33"]]],
+  },
+  a: {
+    t: [
+      ["Nested brackets", "brackets inside brackets, worked out from the innermost outwards", "סוגריים מקוננים", "סוגריים בתוך סוגריים, שמחשבים מהפנימיים כלפי חוץ"],
+      ["Fraction bar", "the line of a fraction, which acts like brackets around the top and the bottom", "קו השבר", "הקו של שבר, שפועל כמו סוגריים סביב המונה וסביב המכנה"],
+      ["Negative base", "in (−3)² the minus is part of the base; in −3² it is not", "בסיס שלילי", "ב־(−3)² המינוס הוא חלק מהבסיס; ב־−3² הוא לא"],
+      ["Commutative law", "for addition and multiplication, the order of the numbers does not change the result", "חוק החילוף", "בחיבור ובכפל, סדר המספרים לא משנה את התוצאה"],
+    ],
+    q: [
+      [["What is −3²?", "−9", ["9", "−6", "6"], "The power applies only to 3: −(3²) = −9. With brackets, (−3)² = 9."],
+        ["כמה זה −3²?", "−9", ["9", "−6", "6"], "החזקה חלה רק על 3: −(3²) = −9. עם סוגריים, (−3)² = 9."]],
+      [["What is 2 × [10 − (3 + 1)²]?", "−12", ["12", "4", "8"], "Innermost first: 3 + 1 = 4, 4² = 16, 10 − 16 = −6, then 2 × (−6) = −12."],
+        ["כמה זה 2 × [10 − (3 + 1)²]?", "−12", ["12", "4", "8"], "מבפנים החוצה: 3 + 1 = 4, 4² = 16, 10 − 16 = −6, ואז 2 × (−6) = −12."]],
+      [["What is (8 + 4) / (5 − 2)?", "4", ["6.8", "12", "3"], "The fraction bar groups the top and the bottom: 12 ÷ 3 = 4. Without that grouping, 8 + 4 ÷ 5 − 2 would be 6.8."],
+        ["כמה זה (8 + 4) / (5 − 2)?", "4", ["6.8", "12", "3"], "קו השבר מקבץ את המונה ואת המכנה: 12 ÷ 3 = 4. בלי הקיבוץ הזה, 8 + 4 ÷ 5 − 2 היה שווה 6.8."]],
+      [["What is (−3)² − 3²?", "0", ["18", "−18", "−6"], "In (−3)² the minus is inside the brackets, so (−3)² = 9. In 3² there is no minus, so 3² = 9. Then 9 − 9 = 0."],
+        ["כמה זה (−3)² − 3²?", "0", ["18", "−18", "−6"], "ב־(−3)² המינוס נמצא בתוך הסוגריים, ולכן (−3)² = 9. ב־3² אין מינוס, ולכן 3² = 9. אז 9 − 9 = 0."]],
+      [["What is −2 × 3²?", "−18", ["36", "18", "−36"], "The power comes first, and it applies only to the 3: 3² = 9, then −2 × 9 = −18. Reading it as (−2 × 3)² would give 36."],
+        ["כמה זה −2 × 3²?", "−18", ["36", "18", "−36"], "החזקה באה קודם, והיא חלה רק על ה־3: 3² = 9, ואז −2 × 9 = −18. אם קוראים את זה כ־(−2 × 3)² מקבלים 36."]],
+      [["Which statement about the order of operations is true?", "Multiplication and division have equal rank, so they go left to right", ["Multiplication always comes before division, because it is listed first", "Addition always comes before subtraction, so 10 − 3 + 2 equals 5", "Brackets are worked out last, after all the other operations"], "Multiplication and division have the same rank, and so do addition and subtraction, so each pair is worked out from left to right: 12 ÷ 3 × 2 = 4 × 2 = 8 and 10 − 3 + 2 = 7 + 2 = 9."],
+        ["איזו טענה על סדר הפעולות נכונה?", "לכפל ולחילוק יש אותה דרגה, ולכן מחשבים אותם משמאל לימין", ["כפל תמיד בא לפני חילוק, כי בכתיבה הוא מופיע ראשון ברשימה", "חיבור תמיד בא לפני חיסור, ולכן 10 − 3 + 2 שווה 5", "סוגריים מחשבים אחרונים, אחרי כל שאר הפעולות בתרגיל"], "לכפל ולחילוק יש אותה דרגה, וכך גם לחיבור ולחיסור, ולכן מחשבים כל זוג משמאל לימין: 12 ÷ 3 × 2 = 4 × 2 = 8 ו־10 − 3 + 2 = 7 + 2 = 9."]],
+    ],
+    n: [
+      [20, ["What is 2 + 3 × (4 + 2)² ÷ 6?", "", "Brackets: 4 + 2 = 6. Power: 6² = 36. Then 3 × 36 = 108 and 108 ÷ 6 = 18. Finally 2 + 18 = 20."],
+        ["כמה זה 2 + 3 × (4 + 2)² ÷ 6?", "", "סוגריים: 4 + 2 = 6. חזקה: 6² = 36. אחר כך 3 × 36 = 108 ו־108 ÷ 6 = 18. לבסוף 2 + 18 = 20."]],
+      [30, ["What is 50 − 2 × (3² + 1)?", "", "Brackets first, and inside them the power comes before the addition: 3² = 9 and 9 + 1 = 10. Then 2 × 10 = 20 and 50 − 20 = 30."],
+        ["כמה זה 50 − 2 × (3² + 1)?", "", "קודם הסוגריים, ובתוכם החזקה באה לפני החיבור: 3² = 9 ו־9 + 1 = 10. אחר כך 2 × 10 = 20 ו־50 − 20 = 30."]],
+    ],
+    s: [[["Working out 3 + 2 × (8 − 5)² − 4, in order", "Brackets first: 8 − 5 = 3", "Then the power: 3² = 9", "Then the multiplication: 2 × 9 = 18", "Add and subtract from left to right: 3 + 18 − 4 = 17"],
+      ["חישוב 3 + 2 × (8 − 5)² − 4, לפי הסדר", "קודם סוגריים: 8 − 5 = 3", "אחר כך חזקה: 3² = 9", "אחר כך כפל: 2 × 9 = 18", "מחברים ומחסרים משמאל לימין: 3 + 18 − 4 = 17"]]],
+  },
+};
+export default c;

@@ -1,0 +1,76 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Ones", "the digit at the far right of a whole number", "יחידות", "הספרה הימנית ביותר במספר שלם"],
+      ["Tens", "the second digit from the right: 3 in 35 means 30", "עשרות", "הספרה השנייה מימין: 3 ב־35 פירושו 30"],
+      ["Hundreds", "the third digit from the right: 2 in 245 means 200", "מאות", "הספרה השלישית מימין: 2 ב־245 פירושו 200"],
+      ["Digit value", "how much a digit is worth in its place", "ערך הספרה", "כמה שווה ספרה לפי המקום שלה"],
+    ],
+    q: [
+      [["What is the value of the 7 in 472?", "70", ["7", "700", "4"], "The 7 is in the tens place, so it means 7 tens: 7 × 10 = 70, not just 7. The 4 is in the hundreds place and is worth 400."],
+        ["מה הערך של הספרה 7 במספר 472?", "70", ["7", "700", "4"], "הספרה 7 נמצאת במקום העשרות, ולכן היא מייצגת 7 עשרות: 7 × 10 = 70 ולא סתם 7. הספרה 4 נמצאת במקום המאות והערך שלה 400."]],
+      [["Which number is three hundred and six?", "306", ["36", "360", "3,006"], "Three hundred and six is 3 hundreds, 0 tens and 6 ones: 306. The 0 holds the empty tens place, so 36 is too small and 3,006 is too big."],
+        ["איזה מספר הוא שלוש מאות ושש?", "306", ["36", "360", "3,006"], "שלוש מאות ושש הן 3 מאות, 0 עשרות ו־6 יחידות: 306. ה־0 שומר את מקום העשרות הריק, ולכן 36 קטן מדי ו־3,006 גדול מדי."]],
+      [["Which number is 4 hundreds, 2 tens and 9 ones?", "429", ["492", "249", "4,290"], "4 hundreds is 400, 2 tens is 20 and 9 ones is 9: 400 + 20 + 9 = 429. In 492 the 2 and the 9 have swapped places.", "Write the hundreds digit first, then the tens digit, then the ones digit."],
+        ["איזה מספר הוא 4 מאות, 2 עשרות ו־9 יחידות?", "429", ["492", "249", "4,290"], "4 מאות הן 400, 2 עשרות הן 20 ו־9 יחידות הן 9: 400 + 20 + 9 = 429. ב־492 הספרות 2 ו־9 החליפו מקומות.", "כותבים קודם את ספרת המאות, אחר כך את ספרת העשרות ואחר כך את ספרת היחידות."]],
+      [["Which number is the same as 60 + 5?", "65", ["605", "56", "11"], "60 is 6 tens and 5 is 5 ones, so 60 + 5 = 65. Writing 605 would mean 6 hundreds and 5 ones."],
+        ["איזה מספר שווה ל־60 + 5?", "65", ["605", "56", "11"], "60 הוא 6 עשרות ו־5 הם 5 יחידות, ולכן 60 + 5 = 65. הכתיבה 605 פירושה 6 מאות ו־5 יחידות."]],
+      [["Which number has the digit 9 in the tens place?", "391", ["913", "139", "931"], "In 391 the 9 is in the tens place. In 913 and 931 it is in the hundreds place, and in 139 it is in the ones place."],
+        ["באיזה מספר הספרה 9 נמצאת במקום העשרות?", "391", ["913", "139", "931"], "ב־391 הספרה 9 נמצאת במקום העשרות. ב־913 וב־931 היא נמצאת במקום המאות, וב־139 היא נמצאת במקום היחידות."]],
+    ],
+    n: [[400, ["What number comes right after 399?", "", "399 + 1 = 400: the 9 ones and the 9 tens both turn into 0, and the hundreds digit goes up from 3 to 4.", "What happens when you add 1 to 9 ones, and then to 9 tens?"], ["איזה מספר בא מיד אחרי 399?", "", "399 + 1 = 400: גם ספרת היחידות וגם ספרת העשרות הופכות מ־9 ל־0, וספרת המאות עולה מ־3 ל־4.", "מה קורה כשמוסיפים 1 ל־9 יחידות, ואחר כך ל־9 עשרות?"]]],
+    s: [[["Order these numbers from the smallest to the largest.", "58", "85", "508", "580"],
+      ["סדרו את המספרים מהקטן ביותר לגדול ביותר.", "58", "85", "508", "580"]]],
+  },
+  i: {
+    t: [
+      ["Thousands", "the fourth place from the right in a whole number", "אלפים", "המקום הרביעי מימין במספר שלם"],
+      ["Million", "a thousand thousands: 1,000,000", "מיליון", "אלף אלפים: 1,000,000"],
+      ["Rounding to the nearest ten", "choosing the closest multiple of 10, like 47 → 50", "עיגול לעשרת הקרובה", "בחירת הכפולה של 10 הקרובה ביותר, כמו 47 ← 50"],
+      ["Estimate", "a quick, sensible guess at an answer, often using rounded numbers", "אומדן", "ניחוש מהיר והגיוני של תשובה, לרוב בעזרת מספרים מעוגלים"],
+    ],
+    q: [
+      [["Round 3,648 to the nearest hundred.", "3,600", ["3,700", "3,650", "4,000"], "The tens digit is 4 (less than 5), so round down: 3,600."],
+        ["עגלו את 3,648 למאה הקרובה.", "3,600", ["3,700", "3,650", "4,000"], "ספרת העשרות היא 4 (פחות מ־5), ולכן מעגלים כלפי מטה: 3,600."]],
+      [["Estimate 49 × 21.", "About 1,000", ["About 100", "About 70", "About 10,000"], "Round to 50 × 20 = 1,000 (the exact answer is 1,029)."],
+        ["תנו אומדן ל־49 × 21.", "בערך 1,000", ["בערך 100", "בערך 70", "בערך 10,000"], "מעגלים ל־50 × 20 = 1,000 (התשובה המדויקת היא 1,029)."]],
+      [["Which number is five thousand and forty?", "5,040", ["5,400", "5,004", "540"], "Five thousand is 5,000 and forty is 40, so the number is 5,040. In 5,004 the last digit is only 4 ones, and 5,400 is five thousand four hundred."],
+        ["איזה מספר הוא חמשת אלפים וארבעים?", "5,040", ["5,400", "5,004", "540"], "חמשת אלפים הם 5,000 וארבעים הם 40, ולכן המספר הוא 5,040. ב־5,004 הספרה האחרונה היא רק 4 יחידות, ו־5,400 הוא חמשת אלפים וארבע מאות."]],
+      [["How many hundreds are there in 3,400?", "34", ["3", "4", "340"], "3,400 is 3 thousands and 4 hundreds. Each thousand is 10 hundreds, so 3,400 = 30 hundreds + 4 hundreds = 34 hundreds.", "How many hundreds make one thousand?"],
+        ["כמה מאות יש ב־3,400?", "34", ["3", "4", "340"], "3,400 הם 3 אלפים ו־4 מאות. כל אלף הוא 10 מאות, ולכן 3,400 = 30 מאות + 4 מאות = 34 מאות.", "כמה מאות יש באלף אחד?"]],
+      [["Round 7,450 to the nearest thousand.", "7,000", ["8,000", "7,500", "7,400"], "Look only at the hundreds digit, 4. It is less than 5, so round down to 7,000. Rounding to 7,500 first and then to 8,000 is a common mistake.", "Which digit decides: the tens digit or the hundreds digit?"],
+        ["עגלו את 7,450 לאלף הקרוב.", "7,000", ["8,000", "7,500", "7,400"], "מסתכלים רק על ספרת המאות, 4. היא קטנה מ־5, ולכן מעגלים כלפי מטה ל־7,000. טעות נפוצה היא לעגל קודם ל־7,500 ואז ל־8,000.", "איזו ספרה מכריעה: ספרת העשרות או ספרת המאות?"]],
+      [["What is the value of the digit 6 in 2,604,000?", "600,000", ["60,000", "6,000", "6,000,000"], "2,604,000 is 2 millions, 6 hundred thousands and 4 thousands, so the 6 is in the hundred thousands place and is worth 600,000."],
+        ["מה הערך של הספרה 6 במספר 2,604,000?", "600,000", ["60,000", "6,000", "6,000,000"], "2,604,000 הם 2 מיליונים, 6 מאות אלפים ו־4 אלפים, ולכן הספרה 6 נמצאת במקום מאות האלפים והערך שלה 600,000."]],
+      [["Which is the best estimate for 398 + 205?", "About 600", ["About 500", "About 700", "About 800"], "Round to 400 + 200 = 600 (the exact answer is 603)."],
+        ["מה האומדן הטוב ביותר ל־398 + 205?", "בערך 600", ["בערך 500", "בערך 700", "בערך 800"], "מעגלים ל־400 + 200 = 600 (התשובה המדויקת היא 603)."]],
+    ],
+    n: [[49000, ["A stadium has 48,700 seats. Round that to the nearest thousand.", "", "The hundreds digit is 7, which is 5 or more, so round up: 48,700 becomes 49,000."], ["באצטדיון יש 48,700 מושבים. עגלו את המספר לאלף הקרוב.", "", "ספרת המאות היא 7, שהיא 5 או יותר, ולכן מעגלים כלפי מעלה: 48,700 הופך ל־49,000."]]],
+  },
+  a: {
+    t: [
+      ["Billion", "a thousand millions: 1,000,000,000", "מיליארד", "אלף מיליונים: 1,000,000,000"],
+      ["Order of magnitude", "the size of a number measured in powers of ten", "סדר גודל", "הגודל של מספר, שנמדד בחזקות של עשר"],
+      ["Standard form", "writing a number as A × 10ⁿ, with A from 1 up to (not including) 10", "כתיב מדעי", "כתיבת מספר בצורה A × 10ⁿ, כאשר A בין 1 (כולל) ל־10 (לא כולל)"],
+      ["Truncate", "cut off digits without rounding", "קטיעה", "חיתוך ספרות בלי לעגל"],
+    ],
+    q: [
+      [["Write 4,500,000 in standard form.", "4.5 × 10⁶", ["45 × 10⁵", "4.5 × 10⁵", "0.45 × 10⁷"], "Move the point 6 places: 4.5 × 10⁶ (A must be at least 1 and less than 10)."],
+        ["כתבו את 4,500,000 בכתיב מדעי.", "4.5 × 10⁶", ["45 × 10⁵", "4.5 × 10⁵", "0.45 × 10⁷"], "מזיזים את הנקודה 6 מקומות: 4.5 × 10⁶ (A חייב להיות לפחות 1 וקטן מ־10)."]],
+      [["About how many seconds are there in a year?", "About 30 million", ["About 300 thousand", "About 3 billion", "About 3 million"], "365 days × 24 hours × 3,600 seconds an hour ≈ 31.5 million seconds, so about 30 million."],
+        ["בערך כמה שניות יש בשנה?", "כ־30 מיליון", ["כ־300 אלף", "כ־3 מיליארד", "כ־3 מיליון"], "365 ימים × 24 שעות × 3,600 שניות בשעה ≈ 31.5 מיליון שניות, כלומר בערך 30 מיליון."]],
+      [["Write 0.0007 in standard form.", "7 × 10⁻⁴", ["7 × 10⁻³", "0.7 × 10⁻³", "7 × 10⁴"], "Move the point 4 places to the right to get 7, so the power of ten is −4: 7 × 10⁻⁴. A small number has a negative power, and A must be at least 1 and less than 10.", "How many places must the point move to get a number from 1 up to 10?"],
+        ["כתבו את 0.0007 בכתיב מדעי.", "7 × 10⁻⁴", ["7 × 10⁻³", "0.7 × 10⁻³", "7 × 10⁴"], "מזיזים את הנקודה 4 מקומות ימינה ומקבלים 7, ולכן החזקה של 10 היא −4: 7 × 10⁻⁴. למספר קטן יש חזקה שלילית, ו־A חייב להיות לפחות 1 וקטן מ־10.", "כמה מקומות צריך להזיז את הנקודה כדי לקבל מספר מ־1 עד 10?"]],
+      [["Which number is larger: 3 × 10⁵ or 9 × 10⁴?", "3 × 10⁵", ["9 × 10⁴", "They are equal", "You cannot tell without a calculator"], "3 × 10⁵ = 300,000 and 9 × 10⁴ = 90,000. The power of ten matters more than the first number, because it says how big the number is."],
+        ["איזה מספר גדול יותר: 3 × 10⁵ או 9 × 10⁴?", "3 × 10⁵", ["9 × 10⁴", "הם שווים", "אי אפשר לדעת בלי מחשבון"], "3 × 10⁵ = 300,000 ו־9 × 10⁴ = 90,000. החזקה של 10 חשובה יותר מהמספר הראשון, כי היא קובעת עד כמה המספר גדול."]],
+      [["A billion is how many millions?", "1,000", ["100", "10,000", "1,000,000"], "A billion is 1,000,000,000 and a million is 1,000,000. Dividing, 1,000,000,000 ÷ 1,000,000 = 1,000, so a billion is a thousand millions."],
+        ["מיליארד הוא כמה מיליונים?", "1,000", ["100", "10,000", "1,000,000"], "מיליארד הוא 1,000,000,000 ומיליון הוא 1,000,000. בחילוק, 1,000,000,000 ÷ 1,000,000 = 1,000, ולכן מיליארד הוא אלף מיליונים."]],
+      [["A scientist writes a distance as 3.2 × 10⁴ km. What is that number written in full?", "32,000", ["320,000", "3,200", "3,200,000"], "10⁴ means moving the point 4 places to the right: 3.2 becomes 32,000. So 3.2 × 10⁴ = 32,000 km."],
+        ["מדען כותב מרחק כ־3.2 × 10⁴ ק״מ. איך כותבים את המספר הזה במלואו?", "32,000", ["320,000", "3,200", "3,200,000"], "10⁴ פירושו הזזת הנקודה 4 מקומות ימינה: 3.2 הופך ל־32,000. לכן 3.2 × 10⁴ = 32,000 ק״מ."]],
+    ],
+    n: [[9, ["How many zeros does the number one billion have?", "", "One billion is 1,000,000,000, which has 9 zeros: it is a thousand millions, or 10⁹."], ["כמה אפסים יש במספר מיליארד?", "", "מיליארד הוא 1,000,000,000, ובו 9 אפסים: זה אלף מיליונים, או 10⁹."]]],
+  },
+};
+export default c;

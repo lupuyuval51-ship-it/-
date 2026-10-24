@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 11 and older (data_extraction_rules.xml is read on Android 12+): Auto Backup keeps the app's data directory (the WebView's
+  local storage with the games, progress and settings) and leaves the caches out, so the rules agree with the Android 12+ file.
+-->
+<full-backup-content>
+    <include domain="root" path="." />
+    <exclude domain="root" path="app_webview/Default/Cache" />
+    <exclude domain="root" path="app_webview/Default/Code Cache" />
+    <exclude domain="root" path="app_webview/Default/GPUCache" />
+</full-backup-content>
