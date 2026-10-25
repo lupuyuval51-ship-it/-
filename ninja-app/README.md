@@ -15,7 +15,7 @@ A personal Ninja Warrior training app in one dependency-free HTML file. Hebrew/R
 
 ## Storage
 
-Data is saved to `localStorage` on every change. Inside a Claude artifact, the app also syncs to the viewer's private `db` subtree (`data/users/<id>/profile`, `courses`, `m-YYYY-MM`). Records merge by id and update time across devices. Backups export and import as JSON.
+Data is saved to `localStorage` on every change. Inside a hosted viewer, the app also syncs to the viewer's private `db` subtree (`data/users/<id>/profile`, `courses`, `m-YYYY-MM`). Records merge by id and update time across devices. Backups export and import as JSON.
 
 ## Installing as an app
 
@@ -23,9 +23,8 @@ Serve this folder over https (any static host, for example GitHub Pages, Netlify
 
 ## Files
 
-- `index.html`: the whole app. The part between `@artifact-start` and `@artifact-end` is what gets published as the Claude artifact.
+- `index.html`: the whole app. The part between `@artifact-start` and `@artifact-end` is what gets published as the hosted viewer.
 - `manifest.webmanifest`, `sw.js`, `icons/`: install, offline and notification support.
 - `videos/<exercise id>.mp4`: the technique clips (540×960, about 17 MB in total). The app looks for them next to `index.html`; the service worker leaves them to the browser cache.
-- `videos-map.json`: exercise id to the URL of the same clip in the Claude artifact's asset store.
+- `videos-map.json`: exercise id to the URL of the same clip in the hosted viewer's asset store.
 - `tools/build-artifact.mjs`: `node tools/build-artifact.mjs out.html` builds the artifact page and fills `VIDEO_MAP` from `videos-map.json`.
-- `video-prompts/`: the Gemini/Kling prompts, the generation log (`generated.json`) and the page template for the prompt list.

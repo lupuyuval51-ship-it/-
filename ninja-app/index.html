@@ -807,7 +807,7 @@ const EX_RAW = [
 const EX = {};
 for (const r of EX_RAW) EX[r[0]] = { id: r[0], cat: r[1], eq: r[2] ? r[2].split(',') : [], kind: r[3], dose: r[4], avoid: r[5] ? r[5].split(',') : [], side: !!r[6], name: { he: r[7], en: r[8] }, cue: { he: r[9], en: r[10] } };
 
-/* Technique videos (8 s silent loops, 540×960). As a plain file or PWA they live in videos/<id>.mp4; in the Claude artifact the build step swaps VIDEO_MAP for the uploaded asset URLs. */
+/* Technique videos (8 s silent loops, 540×960). As a plain file or PWA they live in videos/<id>.mp4; in the hosted viewer the build step swaps VIDEO_MAP for stored asset URLs. */
 const VIDEO_IDS = new Set('arm-circles aus-row beam-walk boulder box-jump breathe broad-jump chinup dead-bug dead-hang explosive-pullup farmer-carry fist-squeeze glute-bridge hang-knee hang-switch hollow jacks kip-swing lache lateral-bounds line-walk lunge-twist march monkey neg-pullup open-book plank pogo precision-jumps pu-archer pu-clap pu-diamond pu-knee pu-one pu-one-assist pu-tempo pu-wide pullup pushup q-steps ring-swing ring-traverse rings-hang rope-climb rope-hang scap-pulls side-plank single-leg split-squat sprint squat-jump stretch-forearm stretch-ham stretch-hip stretch-shoulder toes-bar towel-hang towel-pullup towel-row towel-wring wall-sit warped-run wide-pullup wrist-prep ytw'.split(' '));
 const VIDEO_MAP = /*@video-map*/null;
 const vidSrc = id => VIDEO_MAP ? VIDEO_MAP[id] || null : VIDEO_IDS.has(id) ? 'videos/' + id + '.mp4' : null;
@@ -2067,7 +2067,7 @@ function remindAsk() {
   if (S.prefs.remindAsked || S.prefs.remindOn) return '';
   return `<section class="card"><div class="row"><span class="badge-ic o">${ic('clock')}</span><div class="grow"><h2 style="font-size:1.05rem">${t('remAsk')}</h2><p class="note">${t('remAskD')}</p></div></div><div class="btns" style="margin-top:12px"><button class="btn pri" data-act="rem-open">${t('remSet')}</button><button class="btn ghost" data-act="rem-later">${t('remLater')}</button></div></section>`;
 }
-// Saves a text file: through the viewer's download prompt inside Claude, or a normal browser download elsewhere.
+// Saves a text file: through the viewer's download prompt, or a normal browser download elsewhere.
 async function saveFile(name, text, mime) {
   if (Caps.downloads) {
     try { const r = await Caps.downloads.save({ filename: name, data: text }); return !!r; }
