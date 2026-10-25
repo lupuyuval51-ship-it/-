@@ -11,15 +11,12 @@ A personal Ninja Warrior training app in one dependency-free HTML file. Hebrew/R
 - **Workout player:** set-by-set guidance, timers with countdown, rest timers, beeps, vibration and screen wake lock. Exercises can be swapped or skipped.
 - **Course stopwatch:** editable courses with a draggable route map, per-obstacle splits, falls, and personal bests with split deltas.
 - **Fitness tests and progress:** hang, pull-ups, push-ups, balance and broad jump; weekly chart, 12-week activity map, ability radar, achievements, XP levels, history.
+- **Technique videos:** every exercise has an 8-second silent loop (66 clips). They play in the exercise sheet, as a small preview next to the exercise name during a workout, and as a preview of the next exercise on the rest screen. Tap a clip to pause it; a clip that fails to load just disappears.
 - **Smart coach:** asks Claude with the athlete's profile and recent history (only inside a Claude artifact viewer).
 
 ## Storage
 
 Data is saved to `localStorage` on every change. Inside a Claude artifact, the app also syncs to the viewer's private `db` subtree (`data/users/<id>/profile`, `courses`, `m-YYYY-MM`). Records merge by id and update time across devices. Backups export and import as JSON.
-
-## Files
-
-`index.html` is the standalone app: open it directly in a browser. The part between `@artifact-start` and `@artifact-end` is what gets published as the Claude artifact.
 
 ## Installing as an app
 
@@ -29,3 +26,7 @@ Serve this folder over https (any static host, for example GitHub Pages, Netlify
 
 - `index.html`: the whole app. The part between `@artifact-start` and `@artifact-end` is what gets published as the Claude artifact.
 - `manifest.webmanifest`, `sw.js`, `icons/`: install, offline and notification support.
+- `videos/<exercise id>.mp4`: the technique clips (540×960, about 17 MB in total). The app looks for them next to `index.html`; the service worker leaves them to the browser cache.
+- `videos-map.json`: exercise id to the URL of the same clip in the Claude artifact's asset store.
+- `tools/build-artifact.mjs`: `node tools/build-artifact.mjs out.html` builds the artifact page and fills `VIDEO_MAP` from `videos-map.json`.
+- `video-prompts/`: the Gemini/Kling prompts, the generation log (`generated.json`) and the page template for the prompt list.

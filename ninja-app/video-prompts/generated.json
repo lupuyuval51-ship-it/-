@@ -7,7 +7,7 @@
   "sound": "off",
   "source": "prompts.json (build.mjs)"
  },
- "note": "id -> Higgsfield job id. result URLs are added once jobs finish.",
+ "note": "id -> Higgsfield job id (Kling 3.0, 8 s, 9:16, pro, no sound). \"retries\" are second renders of clips whose first render broke the brief; the compressed finals live in videos/.",
  "pilot": {
   "plank-v1": "1d3877a5-85b9-499d-9f73-616e0fffee0f",
   "pushup": "686484fc-6886-41ff-b939-b65388a57c9b",
@@ -80,5 +80,41 @@
   "open-book": "c793b298-5ad5-45ce-a9a7-d9a99abbb2e9",
   "breathe": "054ed860-d067-4111-9226-c65d0e5fe6e0",
   "split-squat": "f60c2935-09bd-4daf-9be0-5ef3c8a6d2e7"
- }
+ },
+ "retries": {
+  "rope-hang": "84c195a2-b57a-4e27-927b-55eac3ac89d4",
+  "rings-hang": "bd5e9b31-ca94-41d6-a026-af3bee83c90b",
+  "hang-knee": "a489c09a-0c8a-4544-afaf-3cc1b2aa8914",
+  "toes-bar": "8cc10ce2-61f9-42d1-9e2c-0ff804b0af63",
+  "lache": "e4ea19e5-3134-401b-9a7d-39fc99f46186",
+  "ring-traverse": "34261583-b668-4be9-b094-715d9096cd76",
+  "pu-one-assist": "fd7a30f3-bac5-4252-b44f-7c581b2c1d26",
+  "pu-one-clap": "cc852bd0-8b2c-48b1-96c7-c049c69b8d1b",
+  "stretch-forearm": "3b118f4a-ef7c-4357-91c8-beea25393ae3",
+  "hang-knee-v2": "cf1c8933-ee9a-4313-93e3-8c79a9db6bbb",
+  "toes-bar-v2": "fadbae68-ad93-42bc-b5f8-fa0ba2b1fe22"
+ },
+ "finalFromRetry": [
+  "rope-hang",
+  "rings-hang",
+  "lache",
+  "ring-traverse",
+  "pu-one-assist",
+  "stretch-forearm",
+  "hang-knee",
+  "toes-bar"
+ ],
+ "noVideo": {
+  "pu-one-clap": "Kling rendered a two-hand clap push-up, then a plain push-up with a torso rotation; shown as text only"
+ },
+ "reviewNotes": {
+  "ring-traverse": "partial: reaches for the next ring but returns to the first",
+  "hollow": "approximate: legs stay high, torso close to the floor",
+  "lateral-bounds": "approximate: reads as fast alternating steps, little sideways travel",
+  "dead-bug": "approximate: shin angle not a strict 90 degrees",
+  "aus-row": "approximate: high bar, body inclined",
+  "wide-pullup": "grip only slightly wider than a normal pull-up",
+  "hang-switch": "subtle: the hand swap is quick"
+ },
+ "creditsSpent": 960
 }

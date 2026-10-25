@@ -1,5 +1,5 @@
 // NINJA CIRCUIT service worker: works offline, and lets the app show notifications on Android.
-const CACHE = 'ninja-circuit-v3';
+const CACHE = 'ninja-circuit-v4';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -15,6 +15,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const fonts = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   if (!fonts && url.origin !== location.origin) return;
+  if (url.pathname.includes('/videos/')) return; // clips are streamed with range requests: leave them to the browser cache
   if (req.mode === 'navigate') {
     // Pages: try the network first so updates arrive, fall back to the cached copy when offline.
     e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put('index.html', copy)); return res; }).catch(() => caches.match('index.html')));

@@ -244,6 +244,16 @@ textarea.inp{min-height:96px;resize:vertical;line-height:1.5}
 .pl-block{font-size:.78rem;font-weight:600;letter-spacing:.06em;color:var(--blue-hi);text-transform:uppercase}
 .pl-name{font-size:clamp(1.6rem,7vw,2.1rem);font-weight:800;line-height:1.15}
 .pl-cue{color:var(--muted);font-size:.95rem;line-height:1.5}
+.pl-row{display:flex;align-items:flex-start;gap:14px}
+.pl-row>.grow{min-width:0;display:grid;gap:6px}
+.tvid{position:relative;display:block;width:min(100%,240px);margin:0 auto;padding:0;border:1px solid var(--line2);border-radius:16px;overflow:hidden;background:#000;aspect-ratio:9/16;cursor:pointer}
+.tvid video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.tvid-ic{position:absolute;inset:auto 8px 8px auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(5,7,13,.7);color:var(--text);opacity:0;transition:opacity .15s}
+.tvid-ic .ic{width:16px;height:16px;fill:currentColor;stroke:none}
+.tvid.paused .tvid-ic,.tvid:focus-visible .tvid-ic{opacity:1}
+.tvid.thumb{width:72px;margin:0;flex:none;border-radius:12px}
+.next-up>span{flex:1;min-width:0}
+.next-up .tvid.thumb{width:64px}
 .ring{position:relative;width:min(70vw,250px);aspect-ratio:1;margin:4px auto;display:grid;place-items:center}
 .ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
 .ring .trk{fill:none;stroke:rgba(140,210,255,.1);stroke-width:7}
@@ -449,6 +459,7 @@ he: {
   myPlan: 'התוכנית שלי', editAnswers: 'עריכת התשובות', daysPerWeek: 'ימים', minutes: 'דקות', focusL: 'מיקוד',
   cycle: 'מחזור 4 שבועות', wkN: 'שבוע {n}', deload: 'הקלה', weekSess: 'האימונים של השבוע',
   stDone: 'בוצע', stNext: 'הבא', stLater: 'בהמשך', adaptL: 'מותאם למשוב שלכם: {p}',
+  vidToggle: 'הפעלה או עצירה של סרטון הטכניקה', watchTech: 'צפייה בטכניקה: {n}',
   library: 'ספריית תרגילים', all: 'הכול', missing: 'חסר ציוד', notForYou: 'לא מומלץ עבורכם',
   doseFor: 'המינון שלכם', equipL: 'ציוד', noEquip: 'בלי ציוד', changeLevel: 'רמת עומס',
   // blocks / types
@@ -595,6 +606,7 @@ en: {
   myPlan: 'My program', editAnswers: 'Edit answers', daysPerWeek: 'days', minutes: 'minutes', focusL: 'Focus',
   cycle: '4-week cycle', wkN: 'Week {n}', deload: 'lighter', weekSess: 'This week’s sessions',
   stDone: 'Done', stNext: 'Next', stLater: 'Later', adaptL: 'Tuned to your feedback: {p}',
+  vidToggle: 'Play or pause the technique video', watchTech: 'Watch the technique: {n}',
   library: 'Exercise library', all: 'All', missing: 'Needs equipment', notForYou: 'Not recommended for you',
   doseFor: 'Your dose', equipL: 'Equipment', noEquip: 'No equipment', changeLevel: 'Load level',
   bk_warm: 'Warm-up', bk_main: 'Main set', bk_focus: 'Your focus', bk_obst: 'Obstacle practice', bk_circuit: 'Course circuit', bk_cool: 'Cool-down',
@@ -820,6 +832,14 @@ const EX_RAW = [
 ];
 const EX = {};
 for (const r of EX_RAW) EX[r[0]] = { id: r[0], cat: r[1], eq: r[2] ? r[2].split(',') : [], kind: r[3], dose: r[4], avoid: r[5] ? r[5].split(',') : [], side: !!r[6], name: { he: r[7], en: r[8] }, cue: { he: r[9], en: r[10] } };
+
+/* Technique videos (8 s silent loops, 540×960). As a plain file or PWA they live in videos/<id>.mp4; in the Claude artifact the build step swaps VIDEO_MAP for the uploaded asset URLs. */
+const VIDEO_IDS = new Set('arm-circles aus-row beam-walk boulder box-jump breathe broad-jump chinup dead-bug dead-hang explosive-pullup farmer-carry fist-squeeze glute-bridge hang-knee hang-switch hollow jacks kip-swing lache lateral-bounds line-walk lunge-twist march monkey neg-pullup open-book plank pogo precision-jumps pu-archer pu-clap pu-diamond pu-knee pu-one pu-one-assist pu-tempo pu-wide pullup pushup q-steps ring-swing ring-traverse rings-hang rope-climb rope-hang scap-pulls side-plank single-leg split-squat sprint squat-jump stretch-forearm stretch-ham stretch-hip stretch-shoulder toes-bar towel-hang towel-pullup towel-row towel-wring wall-sit warped-run wide-pullup wrist-prep ytw'.split(' '));
+const VIDEO_MAP = /*@video-map*/null;
+const vidSrc = id => VIDEO_MAP ? VIDEO_MAP[id] || null : VIDEO_IDS.has(id) ? 'videos/' + id + '.mp4' : null;
+const vidTag = id => `<video src="${esc(vidSrc(id))}#t=0.1" muted loop playsinline preload="metadata"${reduce ? '' : ' autoplay'} aria-hidden="true"></video>`;
+const vidBox = id => vidSrc(id) ? `<button class="tvid${reduce ? ' paused' : ''}" data-act="vid-toggle" aria-label="${t('vidToggle')}">${vidTag(id)}<span class="tvid-ic">${ic('play')}</span></button>` : '';
+const vidThumb = (id, name) => vidSrc(id) ? `<button class="tvid thumb" data-act="ex-sheet" data-v="${id}" aria-label="${esc(t('watchTech', { n: name }))}">${vidTag(id)}</button>` : '';
 
 const TPL = {
   A: { icon: 'hand', name: { he: 'אחיזה ומשיכה', en: 'Grip & Pull' }, desc: { he: 'אחיזה חזקה ומשיכות: הבסיס של כל מכשול תלוי.', en: 'Grip strength and pulling: the base of every hanging obstacle.' }, covers: ['grip', 'pull'],
@@ -1654,7 +1674,7 @@ function vPlayer(p) {
     const ns = p.steps[p.i + 1], nex = EX[ns.ex];
     return head + `<div class="pl-block">${t('rest')}</div><h2 class="pl-name">${t('rest')}</h2>
 <div class="ring rest"><svg viewBox="0 0 200 200"><circle class="trk" cx="100" cy="100" r="88"/><circle class="arc" id="plArc" cx="100" cy="100" r="88" pathLength="100" stroke-dasharray="100 100"/></svg><span class="big" id="plBig">${fmtMS(p.total)}</span></div>
-<div class="next-up">${ic('chev', 'flip')}<span>${t('nextX')} <b>${esc(L(nex.name))}</b> · ${esc(stepLabel(ns))} · ${esc(amtStr(nex.kind, ns.amt))}${nex.side ? ' ' + t('perSide') : ''}</span></div>
+<div class="next-up">${vidSrc(ns.ex) ? '' : ic('chev', 'flip')}<span>${t('nextX')} <b>${esc(L(nex.name))}</b> · ${esc(stepLabel(ns))} · ${esc(amtStr(nex.kind, ns.amt))}${nex.side ? ' ' + t('perSide') : ''}</span>${vidThumb(ns.ex, L(nex.name))}</div>
 <div class="spacer"></div><div class="btns"><button class="btn" data-act="pl-plus">${t('plus15')}</button><button class="btn pri lg" data-act="pl-skiprest">${t('skipRest')} ${ic('skip', 'flip')}</button></div>`;
   }
   const label = stepLabel(st);
@@ -1669,7 +1689,7 @@ function vPlayer(p) {
     center = `<div class="target"><span class="note">${t('howMany')}</span><div class="stepper"><button class="icon-btn" data-act="pl-dec" aria-label="−1">${ic('minus')}</button><span class="big" id="plVal" aria-live="polite">${p.val}</span><button class="icon-btn" data-act="pl-inc" aria-label="+1">${ic('plus')}</button></div><span class="chip blue">${esc(amtStr(ex.kind, st.amt))}${ex.side ? ' ' + t('perSide') : ''}</span></div>`;
     actions = `<button class="btn pri lg block" data-act="pl-done">${ic('check')} ${t('doneBtn')}</button>`;
   }
-  return head + `<div class="pl-block">${t('bk_' + st.bk)} · ${esc(label)}</div><h2 class="pl-name" tabindex="-1" id="plName">${esc(L(ex.name))}</h2><p class="pl-cue">${esc(L(ex.cue))}</p>
+  return head + `<div class="pl-block">${t('bk_' + st.bk)} · ${esc(label)}</div><div class="pl-row"><div class="grow"><h2 class="pl-name" tabindex="-1" id="plName">${esc(L(ex.name))}</h2><p class="pl-cue">${esc(L(ex.cue))}</p></div>${vidThumb(st.ex, L(ex.name))}</div>
 ${center}${nextTxt ? `<div class="next-up">${ic('chev', 'flip')}<span>${t('nextX')} <b>${esc(nextTxt)}</b></span></div>` : p.i === p.steps.length - 1 ? `<div class="next-up">${ic('flag')}<span>${t('last')}</span></div>` : ''}
 <div class="spacer"></div>${actions}<button class="btn ghost block sm" data-act="pl-skip">${ic('skip', 'flip')} ${t('skipEx')}</button>`;
 }
@@ -1892,7 +1912,7 @@ const SHEETS = {
     const P = S.profile, ex = EX[d.id], dz = doseOf(ex, ex.cat === 'warm' || ex.cat === 'cool' ? 0 : P.level);
     const eq = ex.eq.length ? ex.eq.map(r => r.split('|').map(q => L(EQ_NAME[q])).join(' / ')).join(' + ') : t('noEquip');
     const why = blocked(ex, P) ? t('notForYou') : !hasEquip(ex, P) ? t('missing') : '';
-    return { title: L(ex.name), body: `<div class="chips"><span class="chip blue">${ic(CAT_ICON[ex.cat])}${t('cat_' + ex.cat)}</span>${why ? `<span class="chip orange">${why}</span>` : ''}</div><p>${esc(L(ex.cue))}</p>
+    return { title: L(ex.name), body: `${vidBox(ex.id)}<div class="chips"><span class="chip blue">${ic(CAT_ICON[ex.cat])}${t('cat_' + ex.cat)}</span>${why ? `<span class="chip orange">${why}</span>` : ''}</div><p>${esc(L(ex.cue))}</p>
 <div class="kpis"><div class="kpi"><b style="font-size:1.05rem">${dz ? esc(doseStr(ex, { sets: dz[0], amt: dz[1] })) : '—'}</b><span>${t('doseFor')}</span></div><div class="kpi"><b style="font-size:1.05rem">${dz && dz[2] ? dz[2] + ' ' + t('uSec') : '—'}</b><span>${t('rest')}</span></div></div><p class="note">${t('equipL')}: ${esc(eq)}</p>` };
   },
   swap: () => {
@@ -1984,6 +2004,7 @@ const ACT = {
   'start-sess': a => { closeSheet(); startPlayer(a.dataset.type, a.dataset.idx); },
   'sess-sheet': a => openSheet('session', { type: a.dataset.type, idx: a.dataset.idx }),
   'ex-sheet': a => openSheet('exercise', { id: a.dataset.v }),
+  'vid-toggle': a => { const v = a.querySelector('video'); if (!v) return; if (v.paused) { v.play().catch(() => {}); a.classList.remove('paused'); } else { v.pause(); a.classList.add('paused'); } },
   'lib-cat': a => { UI.libCat = a.dataset.v; renderMain(); },
   'set-level': a => { S.profile.level = +a.dataset.v; touchProfile(); renderMain(); },
   'pr-strength': a => { const P = S.profile, k = a.dataset.v; P.strengths = P.strengths || []; const i = P.strengths.indexOf(k); if (i >= 0) P.strengths.splice(i, 1); else P.strengths.push(k); touchProfile(); renderMain(); },
@@ -2081,6 +2102,8 @@ document.addEventListener('click', e => {
   const fn = ACT[a.dataset.act];
   if (fn) fn(a, e);
 });
+// A clip that fails to load simply disappears: the exercise text stays.
+document.addEventListener('error', e => { const v = e.target; if (v && v.tagName === 'VIDEO') (v.closest('.tvid') || v).remove(); }, true);
 document.addEventListener('submit', e => {
   const f = e.target.closest('[data-form]'); if (!f) return;
   e.preventDefault();
