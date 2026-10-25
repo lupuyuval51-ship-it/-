@@ -3,7 +3,8 @@ const bare = (s: string): string => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, 
 /** Whether a feedback line only says again what the heading above it already says ("Correct!" under "Correct!"). */
 export const repeatsLabel = (feedback: string, label: string): boolean => bare(feedback) !== "" && bare(feedback) === bare(label);
 
-const RIGHT_LEAD = /^(?:נכון|yes|correct|right)\s*[—–-]\s*/iu;
+// only a lead set off by a spaced dash: "Right-click …" and "Yes -5 is …" are left alone
+const RIGHT_LEAD = /^(?:נכון|yes|correct|right)(?:\s+[-–—]|\s*[–—])\s+/iu;
 
 /**
  * The feedback of a right answer without the "Correct — " it often starts with: the heading above it already says so
@@ -13,5 +14,6 @@ export function withoutRightLead(feedback: string, correct: boolean): string {
   if (!correct) return feedback;
   const rest = feedback.replace(RIGHT_LEAD, "");
   if (rest === feedback || !rest.trim()) return feedback;
-  return rest.charAt(0).toUpperCase() + rest.slice(1);
+  // "that is …" becomes "That is …"; "x = 4", "pH" and "mRNA" keep their case
+  return /^\p{Ll}{2}/u.test(rest) ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest;
 }

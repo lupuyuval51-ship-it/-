@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { I18nProvider } from "@/components/I18nProvider";
 import { ChallengePanel } from "@/components/game/hud/ChallengePanel";
 import { withoutRightLead } from "@/components/game/hud/result-text";
-import { MathText } from "@/components/ui/MathText";
+import { MathText, keepWhole } from "@/components/ui/MathText";
 import { interactablePrompt } from "@/lib/game/a11y/scene";
 import { toPublicChallenge } from "@/lib/game/challenges/grade";
 import type { Challenge } from "@/lib/game/spec/schema";
@@ -63,6 +63,11 @@ describe("a right answer's feedback does not stutter 'correct' under the 'Correc
     expect(withoutRightLead("לא נכון. המילה ״x״ מופיעה בפתקים שלכם", false)).toBe("לא נכון. המילה ״x״ מופיעה בפתקים שלכם");
     expect(withoutRightLead("נכון — ", true)).toBe("נכון — ");
     expect(withoutRightLead("נכונות התשובה תלויה בהקשר.", true)).toBe("נכונות התשובה תלויה בהקשר.");
+    // a hyphenated first word, a negative number and a variable are never touched
+    expect(withoutRightLead("Right-click opens the menu.", true)).toBe("Right-click opens the menu.");
+    expect(withoutRightLead("Yes -5 is less than -3.", true)).toBe("Yes -5 is less than -3.");
+    expect(withoutRightLead("Correct — x = 4 makes both sides equal.", true)).toBe("x = 4 makes both sides equal.");
+    expect(withoutRightLead("Right — mRNA carries the code.", true)).toBe("mRNA carries the code.");
   });
 });
 
@@ -71,6 +76,15 @@ describe("a short equation is never broken across two lines", () => {
     const html = renderHe(h(MathText, { text: "שמונה חלקים: 2 × 8 = 16. וגם let nums = [5, 10, 15, 20, 25, 30]" }));
     expect(html).toContain('<bdi dir="ltr" class="whitespace-nowrap">2 × 8 = 16</bdi>');
     expect(html).toContain('<bdi dir="ltr">let nums = [5, 10, 15, 20, 25, 30]</bdi>');
+    // URLs, code and English words fill whole cards in a narrow column: they still wrap
+    expect(renderHe(h(MathText, { text: "כמו https://example.com/page" }))).not.toContain("whitespace-nowrap");
+    expect(renderHe(h(MathText, { text: "ומתקיים log(xy) = log x + log y" }))).not.toContain("whitespace-nowrap");
+  });
+
+  it("an answer of several lines keeps its line breaks", () => {
+    expect(keepWhole("1. 58\n2. 85")).toBe(false);
+    expect(keepWhole("2 × 8 = 16")).toBe(true);
+    expect(keepWhole("2(x + 1) = 2x + 2")).toBe(true);
   });
 });
 

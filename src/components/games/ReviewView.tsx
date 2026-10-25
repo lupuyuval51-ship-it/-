@@ -9,7 +9,7 @@ export function ReviewView({ t, id, sessionId, review }: { t: TFn; id: string; s
   const r = { review };
   return (
     <div className="mx-auto max-w-3xl space-y-6" data-testid="review">
-      <Link href={`/games/${id}/results/${sessionId}`} className="relative text-sm text-muted before:absolute before:inset-x-0 before:-inset-y-4 before:content-[''] hover:text-text"><Arrow back /> {t("rev.back")}</Link>
+      <Link href={`/games/${id}/results/${sessionId}`} className="relative text-sm text-muted before:absolute before:inset-x-0 before:-top-4 before:-bottom-1 before:content-[''] hover:text-text"><Arrow back /> {t("rev.back")}</Link>
       <header className="space-y-2">
         <h1 className="text-3xl font-extrabold">{t("rev.title")}</h1>
         <p className="text-sm text-muted">{t("rev.intro")}</p>
