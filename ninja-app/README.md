@@ -12,7 +12,6 @@ A personal Ninja Warrior training app in one dependency-free HTML file. Hebrew/R
 - **Course stopwatch:** editable courses with a draggable route map, per-obstacle splits, falls, and personal bests with split deltas.
 - **Fitness tests and progress:** hang, pull-ups, push-ups, balance and broad jump; weekly chart, 12-week activity map, ability radar, achievements, XP levels, history.
 - **Technique videos:** every exercise has an 8-second silent loop (66 clips). They play in the exercise sheet, as a small preview next to the exercise name during a workout, and as a preview of the next exercise on the rest screen. Tap a clip to pause it; a clip that fails to load just disappears.
-- **Smart coach:** asks Claude with the athlete's profile and recent history (only inside a Claude artifact viewer).
 
 ## Storage
 
