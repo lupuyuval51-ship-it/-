@@ -1,9 +1,9 @@
 {
   "name": "NINJA CIRCUIT",
   "short_name": "Ninja Circuit",
-  "description": "אפליקציית אימוני נינג׳ה אישית: תוכנית שבועית, נגן אימון וסטופר מסלול.",
-  "lang": "he",
-  "dir": "rtl",
+  "description": "A personal ninja-warrior training app: weekly plan, workout player and course stopwatch.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
