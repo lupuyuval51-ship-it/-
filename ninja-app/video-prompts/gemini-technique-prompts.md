@@ -127,7 +127,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Scapular pulls (a warm-up exercise).
 Camera: static shot from directly behind the athlete at shoulder height, the whole body and the bar fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms fully straight, feet off the floor.
+Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms fully straight, feet off the floor. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Keeping the elbows locked straight, pull the shoulder blades down and back so the body rises about 5 cm, hold for 1 second, then relax back down to the full hang. Do 3 slow repetitions.
 Show clearly: elbows stay straight, only the shoulder blades move, head stays neutral, no swinging.
 
@@ -186,7 +186,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Dead hang (a grip exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, thumbs wrapped around the bar, arms fully straight, feet off the floor, legs together.
+Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, thumbs wrapped around the bar, arms fully straight, feet off the floor, legs together. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Hold the position perfectly still for about 6 seconds, with only natural breathing movement. The shoulders are active: pulled slightly down and away from the ears, not shrugged up. At the end the athlete lets go and drops gently onto the mat.
 Show clearly: thumbs wrapped around the bar, shoulders active and away from the ears, arms straight, body still with no swinging.
 
@@ -205,7 +205,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Towel hang (a grip exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Two small hand towels are draped over a pull-up bar, one in front of each shoulder. The athlete hangs from the hanging ends of the towels with one fist gripping each towel, arms straight, feet off the floor.
+Setup: Two small hand towels are draped over a pull-up bar, one in front of each shoulder. The athlete hangs from the hanging ends of the towels with one fist gripping each towel, arms straight, feet off the floor. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Hold the position perfectly still for about 6 seconds, with only natural breathing movement.
 Show clearly: crushing grip on the towels, arms straight, body still.
 
@@ -224,7 +224,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Hand-switch hang (a grip exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms straight, feet off the floor.
+Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms straight, feet off the floor. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Keeping the body as still as possible, briefly let go with the right hand for about half a second and give it a small shake, then re-grip the bar firmly. Then do the same with the left hand, then once more with the right. The other hand never lets go.
 Show clearly: the gripping hand stays tight, only small controlled movement, the body does not swing.
 
@@ -243,7 +243,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Monkey bars (a grip exercise).
 Camera: smooth, slow lateral tracking shot that follows the athlete at the same speed, the whole body always in frame, no zoom.
-Setup: Under a row of overhead monkey bars (horizontal rungs about 40 cm apart), the athlete hanging from the first rung.
+Setup: Under a row of overhead monkey bars (horizontal rungs about 40 cm apart), the athlete hanging from the first rung. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Travel forward across 4 rungs with a smooth, continuous rhythm: a small swing from the hips, the leading hand reaches and grabs the next rung while the other hand releases, eyes on the next rung, the grip fully closed before every release.
 Show clearly: swing driven from the hips, full grip before letting go, eyes on the next rung, smooth rhythm.
 
@@ -319,7 +319,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Rope hang (a grip exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a thick climbing rope with both hands stacked one above the other, feet off the floor and crossed, arms straight.
+Setup: Hanging from a thick climbing rope with both hands stacked one above the other, feet off the floor and crossed, arms straight. The rig is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Hold the position perfectly still for about 6 seconds, with only natural breathing movement.
 Show clearly: hands stacked one above the other, tight grip, body still, shoulders active.
 
@@ -338,7 +338,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Ring hang (a grip exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from two gymnastic rings at shoulder width, arms straight, feet off the floor.
+Setup: Hanging from two gymnastic rings at shoulder width, arms straight, feet off the floor. The rig is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Hold the position perfectly still for about 6 seconds, with only natural breathing movement.
 Show clearly: the rings stay steady, shoulders active, arms straight.
 
@@ -378,7 +378,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Negative pull-up (a pulling exercise).
 Camera: static three-quarter front angle, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Under a pull-up bar, the athlete is already at the top position with an overhand shoulder-width grip and the chin above the bar.
+Setup: Under a pull-up bar, the athlete is already at the top position with an overhand shoulder-width grip and the chin above the bar. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: 0-1 s: hold the top position with the chin over the bar and the chest high. 1-6 s: lower very slowly and steadily until the arms are fully straight in a dead hang. 6-8 s: let go and drop onto the mat.
 Show clearly: slow steady lowering of about 4 seconds, no dropping, chest stays up, full range down to straight arms.
 
@@ -397,7 +397,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Pull-up (a pulling exercise).
 Camera: static three-quarter front angle, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, arms straight, legs together and still.
+Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, arms straight, legs together and still. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 strict pull-ups: first pull the shoulder blades down, then drive the elbows toward the ribs until the chin is clearly above the bar (about 1.5 s), pause briefly, then lower with control (about 2 s) to fully straight arms. No swinging, no kicking.
 Show clearly: full range from straight arms to chin over the bar, no kipping, controlled lowering, neck neutral.
 
@@ -416,7 +416,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Chin-up (a pulling exercise).
 Camera: static three-quarter front angle, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an underhand grip (palms facing the athlete) at shoulder width, arms straight, legs together and still.
+Setup: Hanging from a pull-up bar with an underhand grip (palms facing the athlete) at shoulder width, arms straight, legs together and still. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 strict chin-ups: pull until the chin is clearly above the bar with the elbows staying close to the body (about 1.5 s), pause briefly, then lower with control (about 2 s) to fully straight arms.
 Show clearly: palms facing the athlete, elbows close to the ribs, chin over the bar, controlled lowering, no kipping.
 
@@ -435,7 +435,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Wide-grip pull-up (a pulling exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip about 1.5 times shoulder width, arms straight, legs together and still.
+Setup: Hanging from a pull-up bar with an overhand grip about 1.5 times shoulder width, arms straight, legs together and still. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 strict wide-grip pull-ups: pull until the chin is above the bar (a shorter range than a normal pull-up) with the elbows pointing out and down, pause briefly, then lower with control to straight arms.
 Show clearly: hands clearly wider than the shoulders, chin over the bar, controlled lowering, no swinging.
 
@@ -454,7 +454,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Towel pull-up (a pulling exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Two hand towels draped over a pull-up bar, one in front of each shoulder; the athlete grips the hanging ends of the towels with both fists, arms straight, feet off the floor.
+Setup: Two hand towels draped over a pull-up bar, one in front of each shoulder; the athlete grips the hanging ends of the towels with both fists, arms straight, feet off the floor. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 slow pull-ups holding the towels, bringing the chin up level with the hands, then lowering under control to straight arms; the grip stays tight the whole time.
 Show clearly: strong crush grip on the towels, chin up to hand height, controlled lowering, no swinging.
 
@@ -530,7 +530,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Explosive pull-up (a pulling exercise).
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms straight.
+Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms straight. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 explosive pull-ups: pull as fast and powerfully as possible (about 0.6 s) until the chest reaches the bar, then lower slowly under control (about 2 s) to straight arms.
 Show clearly: fast powerful pull, chest to the bar, controlled lowering, no kicking.
 
@@ -800,7 +800,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Hanging knee raises (a core exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar, arms straight, body still, legs together.
+Setup: Hanging from a pull-up bar, arms straight, body still, legs together. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 3 hanging knee raises: curl the knees up toward the chest by tilting the pelvis, then lower slowly with control. No swinging.
 Show clearly: no swinging, the pelvis tilts, knees reach the chest, slow lowering.
 
@@ -819,7 +819,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Toes-to-bar (a core exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip, arms straight.
+Setup: Hanging from a pull-up bar with an overhand grip, arms straight. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 2 toes-to-bar: keep the legs straight, lift them in a controlled motion until the toes touch the bar, then lower slowly under control. Minimal swinging.
 Show clearly: straight legs, the toes touch the bar, controlled lowering, minimal swing.
 
@@ -838,7 +838,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Plank (a core exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: A forearm plank on a mat: elbows directly under the shoulders, forearms parallel, the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.
+Setup: A forearm plank on a mat: elbows directly under the shoulders, the forearms flat on the mat and parallel to each other with the hands apart and open (not clasped together), the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.
 Action: Hold the position perfectly still for about 6 seconds, with only natural breathing movement.
 Show clearly: a straight line from head to heels, hips neither sagging nor piked, tight glutes and abs, relaxed neck.
 
@@ -1148,7 +1148,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Kip swing (a swinging exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip, arms straight.
+Setup: Hanging from a pull-up bar with an overhand grip, arms straight. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 3 smooth kipping swings: swing the feet forward into a slight hollow shape with the chest back, then swing back into a slight arch with the chest pushed forward through the arms and the legs behind, driving the movement from the hips. The arms stay straight throughout.
 Show clearly: arms stay straight, the movement comes from the hips, a smooth rhythm, no pulling with the arms.
 
@@ -1167,7 +1167,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Ring swings (a swinging exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from two gymnastic rings at shoulder width, arms straight.
+Setup: Hanging from two gymnastic rings at shoulder width, arms straight. The rig is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Do 3 controlled forward and backward swings like a pendulum, keeping the shoulders active (pulled down, not shrugged) and the body tight; the rings stay close together.
 Show clearly: shoulders active, a tight body, a controlled pendulum swing, the rings stay together.
 
@@ -1186,7 +1186,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Ring traverse (a swinging exercise).
 Camera: smooth, slow lateral tracking shot that follows the athlete at the same speed, the whole body always in frame, no zoom.
-Setup: Under a row of three gymnastic rings hanging from a rig about 1 m apart, the athlete hanging from the first ring.
+Setup: Under a row of three gymnastic rings hanging from a rig about 1 m apart, the athlete hanging from the first ring. The rig is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Travel across the rings: swing forward, reach and grab the second ring with the lead hand, release the rear hand, swing again, then grab the third ring; the swing keeps going.
 Show clearly: use the swing, the lead hand grabs before the rear hand lets go, eyes on the next ring.
 
@@ -1205,7 +1205,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Exercise: Lache bar-to-bar (a swinging exercise).
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Under two horizontal bars of a ninja rig about 1.5 m apart, with a deep foam pit below; the athlete hangs from the first bar.
+Setup: Under two horizontal bars of a ninja rig about 1.5 m apart, with a deep foam pit below; the athlete hangs from the first bar. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: Swing back and forward twice, and at the peak of the forward swing release the first bar, fly forward and catch the second bar with both hands; the clip ends as the athlete hangs from the second bar.
 Show clearly: a big swing, release at the peak of the forward swing, eyes on the next bar, catch with both hands.
 
@@ -1344,7 +1344,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Common-mistake demonstration of Scapular pulls (a warm-up exercise), performed with bad form on purpose so that viewers learn what to avoid: bending the elbows and swinging.
 Camera: static shot from directly behind the athlete at shoulder height, the whole body and the bar fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms fully straight, feet off the floor.
+Setup: Hanging from a pull-up bar with an overhand shoulder-width grip, arms fully straight, feet off the floor. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: The athlete bends the elbows to pull the body up like a small pull-up and swings the legs, instead of moving only the shoulder blades. Keep the movement realistic and not dangerous.
 
 No on-screen text, captions, logos or watermarks. No other people. No camera shake, zoom or cuts. Natural human anatomy with correct hands and five fingers per hand, no extra limbs, no warped equipment, nothing passing through the body.
@@ -1362,7 +1362,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Common-mistake demonstration of Dead hang (a grip exercise), performed with bad form on purpose so that viewers learn what to avoid: passive, shrugged shoulders.
 Camera: static front-on shot, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, thumbs wrapped around the bar, arms fully straight, feet off the floor, legs together.
+Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, thumbs wrapped around the bar, arms fully straight, feet off the floor, legs together. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: The athlete hangs with the shoulders shrugged up to the ears, loose arms, and the body slowly swinging from side to side. Keep the movement realistic and not dangerous.
 
 No on-screen text, captions, logos or watermarks. No other people. No camera shake, zoom or cuts. Natural human anatomy with correct hands and five fingers per hand, no extra limbs, no warped equipment, nothing passing through the body.
@@ -1398,7 +1398,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Common-mistake demonstration of Pull-up (a pulling exercise), performed with bad form on purpose so that viewers learn what to avoid: half reps with kicking.
 Camera: static three-quarter front angle, camera at chest height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, arms straight, legs together and still.
+Setup: Hanging from a pull-up bar with an overhand grip at shoulder width, arms straight, legs together and still. The bar is set high enough that the athlete's feet always stay at least 30 cm above the mat, never touching it.
 Action: The athlete does 2 sloppy pull-ups: kicking and swinging the legs, stopping with the chin below the bar, not straightening the arms at the bottom, and craning the neck forward. Keep the movement realistic and not dangerous.
 
 No on-screen text, captions, logos or watermarks. No other people. No camera shake, zoom or cuts. Natural human anatomy with correct hands and five fingers per hand, no extra limbs, no warped equipment, nothing passing through the body.
@@ -1470,7 +1470,7 @@ Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One ath
 
 Common-mistake demonstration of Plank (a core exercise), performed with bad form on purpose so that viewers learn what to avoid: sagging hips.
 Camera: static side-on profile shot, camera at hip height about 3 m away, the whole body and all equipment fully in frame, camera does not move.
-Setup: A forearm plank on a mat: elbows directly under the shoulders, forearms parallel, the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.
+Setup: A forearm plank on a mat: elbows directly under the shoulders, the forearms flat on the mat and parallel to each other with the hands apart and open (not clasped together), the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.
 Action: The hips sag toward the floor, the lower back is arched, and the head hangs down. Keep the movement realistic and not dangerous.
 
 No on-screen text, captions, logos or watermarks. No other people. No camera shake, zoom or cuts. Natural human anatomy with correct hands and five fingers per hand, no extra limbs, no warped equipment, nothing passing through the body.

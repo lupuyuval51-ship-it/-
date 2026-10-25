@@ -24,6 +24,12 @@ const MISTAKE_HE = {
 const STYLE = 'Photorealistic vertical 9:16 video, 8 seconds, clear instructional look. One athlete only: an athletic adult in their late 20s with short dark hair, wearing a fitted black training t-shirt, charcoal shorts and black low-profile training shoes. Setting: a modern dark ninja-warrior training gym with matte black walls, a steel truss overhead, thick dark-blue crash mats and soft cyan and orange LED strip lights glowing in the background. Bright, even front lighting so every joint stays clearly visible; the background is slightly out of focus. Natural gym ambience and quiet breathing only, no music, no speech.';
 const AVOID = 'No on-screen text, captions, logos or watermarks. No other people. No camera shake, zoom or cuts. Natural human anatomy with correct hands and five fingers per hand, no extra limbs, no warped equipment, nothing passing through the body.';
 
+// Lesson from the first Kling test: on a low bar the athlete's feet touched the floor in the bottom position.
+const HANGERS = new Set(['scap-pulls', 'dead-hang', 'towel-hang', 'hang-switch', 'monkey', 'rope-hang', 'rings-hang', 'neg-pullup', 'pullup', 'chinup', 'wide-pullup', 'towel-pullup', 'explosive-pullup', 'hang-knee', 'toes-bar', 'kip-swing', 'ring-swing', 'ring-traverse', 'lache']);
+const HANG_NOTE = ' The bar is set high enough that the athlete\'s feet always stay at least 30 cm above the mat, never touching it.';
+const RIG_ONLY = new Set(['rope-hang', 'rings-hang', 'ring-swing', 'ring-traverse']); // no bar in the scene, so say "rig"
+for (const id of HANGERS) if (M[id]) M[id].setup += RIG_ONLY.has(id) ? HANG_NOTE.replace('The bar', 'The rig') : HANG_NOTE;
+
 const ids = EX_RAW.map(r => r[0]);
 const missing = ids.filter(id => !M[id]), extra = Object.keys(M).filter(id => !ids.includes(id));
 if (missing.length || extra.length) { console.error('Motion scripts out of sync with the app.\n  missing:', missing, '\n  not in app:', extra); process.exit(1); }

@@ -197,7 +197,7 @@ export const M = {
     action: 'Do 2 toes-to-bar: keep the legs straight, lift them in a controlled motion until the toes touch the bar, then lower slowly under control. Minimal swinging.',
     key: 'straight legs, the toes touch the bar, controlled lowering, minimal swing' },
   plank: { diff: 'safe', cam: 'side',
-    setup: 'A forearm plank on a mat: elbows directly under the shoulders, forearms parallel, the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.',
+    setup: 'A forearm plank on a mat: elbows directly under the shoulders, the forearms flat on the mat and parallel to each other with the hands apart and open (not clasped together), the body in one straight line from head to heels, glutes and abs tight, neck neutral looking at the floor.',
     action: HOLD,
     key: 'a straight line from head to heels, hips neither sagging nor piked, tight glutes and abs, relaxed neck',
     mistake: { title: 'sagging hips', what: 'The hips sag toward the floor, the lower back is arched, and the head hangs down.' } },
