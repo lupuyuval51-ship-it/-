@@ -329,6 +329,37 @@ textarea.inp{min-height:96px;resize:vertical;line-height:1.5}
 
 @media (min-width:700px){.ring{width:270px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Sport look: footage, hard edges, heavy type */
+.card{border-radius:12px}
+.card.hero.vid{position:relative;overflow:hidden;padding:0;min-height:310px;display:flex;border-color:rgba(255,106,26,.55)}
+.hero-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;pointer-events:none}
+.hero-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,16,18,.96) 30%,rgba(15,16,18,.25) 100%)}
+.hero-in{position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;padding:18px}
+.hero-in .eyebrow{text-transform:none}
+.sess-title{font-size:2.1rem!important;font-weight:900!important;line-height:1.05;letter-spacing:-.01em}
+.btn{border-radius:10px}
+.btn.pri,.btns>.btn.pri{border-radius:0;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));font-weight:800}
+.btn.lg{border-radius:10px}
+.btn.pri.lg{border-radius:0}
+.top h1{font-size:1.25rem;font-weight:800}
+.sec-h h2{font-size:1.2rem;font-weight:800}
+.tab.on{color:var(--orange)}
+.tab.on::before{top:0;width:30px;height:3px;border-radius:0;background:var(--orange)}
+.kpi{border-radius:10px}
+.kpi b{color:var(--text)}
+.wl-bg{position:fixed;inset:0 0 auto 0;height:68vh;overflow:hidden;z-index:-1;-webkit-mask-image:linear-gradient(to bottom,#000 40%,transparent);mask-image:linear-gradient(to bottom,#000 40%,transparent)}
+.wl-bg video{width:100%;height:100%;object-fit:cover;opacity:.5}
+.welcome{position:relative}
+.welcome .logo{width:min(34vw,130px);margin-top:12vh}
+.wordmark .w1{font-size:clamp(3.2rem,15vw,4.4rem);font-weight:900;font-style:italic;letter-spacing:.02em;transform:skewX(-8deg)}
+.wordmark .w2{font-weight:700}
+.pl-name{font-weight:900}
+.ring .trk{stroke-width:9}
+.ring .arc{stroke-width:9;stroke-linecap:butt}
+.opt{border-radius:10px}
+.chip{border-radius:6px}
+.pill-btn{border-radius:8px}
 </style>
 </head>
 <body>
@@ -1195,7 +1226,7 @@ function pillRow(o, field, items, multi) {
 function vOb(o) {
   const a = o.ans;
   if (o.step === 0) return `<div class="ov-top"><span class="spacer"></span>${langSeg()}</div>
-<div class="welcome"><div class="logo anim">${logoSVG()}</div>
+<div class="welcome">${vidSrc('warped-run') ? `<div class="wl-bg"><video src="${esc(vidSrc('warped-run'))}" muted loop playsinline${reduce ? '' : ' autoplay'} aria-hidden="true"></video></div>` : ''}<div class="logo anim">${logoSVG()}</div>
 <div class="wordmark"><span class="w1">NINJA</span><span class="w2">CIRCUIT</span></div>
 <h2>${t('wTitle')}</h2><p>${t('wSub')}</p></div>
 <div class="spacer"></div>
@@ -1275,13 +1306,14 @@ function vToday() {
   if (W.next >= 0) {
     const type = W.plan[W.next], sess = buildSession(P, type, W.week);
     const mainItems = sess.blocks.filter(b => b.k !== 'warm' && b.k !== 'cool').flatMap(b => b.items);
+    const heroVid = (mainItems.find(it => vidSrc(it.ex)) || {}).ex;
     const names = mainItems.slice(0, 4).map(it => L(EX[it.ex].name));
     const lastSame = [...ss].reverse().find(s => s.type === type), lastIds = lastSame ? new Set((lastSame.sets || []).map(x => x[0])) : null;
     const fresh = lastIds ? mainItems.filter(it => !lastIds.has(it.ex)).length : 0;
-    hero = `<section class="card hero" aria-labelledby="nextT"><div class="eyebrow">${t('nextUp')} · ${W.next + 1}/${W.plan.length}</div><h2 class="sess-title" id="nextT">${esc(L(TPL[type].name))}</h2>
-<div class="meta"><span>${ic('clock')}${t('aboutMin', { m: sess.est })}</span><span>${ic('dumbbell')}${t('nEx', { n: mainCount(sess) })}</span>${W.deload ? `<span>${ic('leaf')}${t('phDel')}</span>` : ''}${fresh ? `<span style="color:var(--good)">${ic('sparkle')}${t('novN', { n: fresh })}</span>` : ''}</div>
+    hero = `<section class="card hero vid" aria-labelledby="nextT">${heroVid ? `<video class="hero-v" src="${esc(vidSrc(heroVid))}" muted loop playsinline${reduce ? '' : ' autoplay'} aria-hidden="true"></video>` : ''}<div class="hero-shade"></div><div class="hero-in"><div class="eyebrow">${t('nextUp')} · ${W.next + 1}/${W.plan.length}</div><h2 class="sess-title" id="nextT">${esc(L(TPL[type].name))}</h2>
+<div class="meta"><span>${ic('clock')}${t('aboutMin', { m: sess.est })}</span><span>${ic('dumbbell')}${t('nEx', { n: mainCount(sess) })}</span>${W.deload ? `<span>${ic('leaf')}${t('phDel')}</span>` : ''}${fresh ? `<span style="color:var(--good)">${ic('bolt')}${t('novN', { n: fresh })}</span>` : ''}</div>
 <div class="chips" style="margin-bottom:14px">${names.map(n => `<span class="chip">${esc(n)}</span>`).join('')}</div>
-<div class="btns"><button class="btn pri lg" data-act="start-sess" data-type="${type}" data-idx="${W.next}">${ic('play')} ${t('startW')}</button><button class="btn sm" style="flex:0 1 auto" data-act="sess-sheet" data-type="${type}" data-idx="${W.next}">${t('preview')}</button></div></section>`;
+<div class="btns"><button class="btn pri lg" data-act="start-sess" data-type="${type}" data-idx="${W.next}">${ic('play')} ${t('startW')}</button><button class="btn sm" style="flex:0 1 auto" data-act="sess-sheet" data-type="${type}" data-idx="${W.next}">${t('preview')}</button></div></div></section>`;
   } else {
     hero = `<section class="card warm"><div class="row"><span class="badge-ic o">${ic('trophy')}</span><div class="grow"><h2 style="font-size:1.25rem">${t('weekDone')}</h2><p class="note">${t('weekDoneS', { n: W.plan.length })}</p></div></div>
 <div class="btns" style="margin-top:14px"><button class="btn blue" data-act="start-sess" data-type="F" data-idx="">${ic('leaf')} ${t('mobility')}</button><button class="btn" data-act="tab" data-v="run">${ic('timer')} ${t('goRun')}</button></div></section>`;
