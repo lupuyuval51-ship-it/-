@@ -455,6 +455,7 @@ he: {
   // today
   gm: 'בוקר טוב', ga: 'צהריים טובים', ge: 'ערב טוב', gn: 'לילה טוב',
   weekLine: 'שבוע {w} בתוכנית · {p}', phUp: 'עלייה בעומס', phDel: 'שבוע הקלה',
+  resumeT: 'נקטע אימון באמצע', resumeS: 'בוצעו {n} מתוך {m} סטים', resumeGo: 'המשיכו', resumeNo: 'מחיקה',
   nextUp: 'האימון הבא', startW: 'התחילו אימון', preview: 'מה יש באימון', nEx: '{n} תרגילים', aboutMin: '~{m} דק׳',
   weekDone: 'השבוע הושלם!', weekDoneS: 'עשיתם את כל {n} האימונים של השבוע. רוצים עוד משהו קל?',
   mobility: 'ניידות והתאוששות', goRun: 'ריצת מסלול', hangTest: 'מבחן תלייה', thisWeek: 'השבוע', sessWeek: 'אימונים', minWeek: 'דקות', levelN: 'רמה {n}',
@@ -596,6 +597,7 @@ en: {
   lvl0: 'Beginner', lvl1: 'Foundation', lvl2: 'Advanced', lvl3: 'Elite', levelL: 'Level',
   gm: 'Good morning', ga: 'Good afternoon', ge: 'Good evening', gn: 'Good night',
   weekLine: 'Week {w} of your program · {p}', phUp: 'building load', phDel: 'lighter week',
+  resumeT: 'Workout interrupted', resumeS: '{n} of {m} sets done', resumeGo: 'Continue', resumeNo: 'Discard',
   nextUp: 'Next session', startW: 'Start session', preview: 'What’s inside', nEx: '{n} exercises', aboutMin: '~{m} min',
   weekDone: 'Week complete!', weekDoneS: 'You did all {n} sessions this week. Want something light?',
   mobility: 'Mobility & Recovery', goRun: 'Course run', hangTest: 'Hang test', thisWeek: 'This week', sessWeek: 'sessions', minWeek: 'minutes', levelN: 'Level {n}',
@@ -1322,7 +1324,7 @@ function vToday() {
   const xp = xpOf(), lv = levelOf(xp);
   return `<div><p class="muted" style="font-size:.95rem">${esc(greeting())}${P.name ? `, <bdi>${esc(P.name)}</bdi>` : ''}</p><p class="dim" style="font-size:.85rem">${t('weekLine', { w: W.week, p: W.deload ? t('phDel') : t('phUp') })}</p></div>
 <div class="week" role="list">${strip}</div>
-${hero}
+${resumeCard()}${hero}
 ${remindAsk()}
 <div class="hscroll">
   <button class="btn sm" data-act="tab" data-v="run">${ic('timer')} ${t('goRun')}</button>
@@ -1361,6 +1363,12 @@ ${adapt.length ? `<p class="note" style="margin-top:10px">${t('adaptL', { p: ada
 <section><div class="sec-h"><h2>${t('library')}</h2></div><div class="hscroll" style="margin-bottom:10px">${cats.map(c => `<button class="pill-btn ${UI.libCat === c ? 'on' : ''}" data-act="lib-cat" data-v="${c}" aria-pressed="${UI.libCat === c}">${c === 'all' ? t('all') : t('cat_' + c)}</button>`).join('')}</div><div class="card" style="padding-block:4px"><div class="list">${lib}</div></div></section>`;
 }
 const CAT_ICON = { warm: 'flame', grip: 'hand', pull: 'up', push: 'dumbbell', core: 'shield', legs: 'bolt', balance: 'target', swing: 'rings', cool: 'leaf' };
+function resumeCard() {
+  const a = loadActive(); if (!a || UI.ov) return '';
+  const n = a.done.filter(v => v != null).length;
+  return `<section class="card warm"><div class="row"><span class="badge-ic o">${ic('play')}</span><div class="grow"><h2 style="font-size:1.15rem">${t('resumeT')}</h2><p class="note">${esc(L(TPL[a.type].name))} · ${t('resumeS', { n, m: a.steps.length })}</p></div></div>
+<div class="btns" style="margin-top:14px"><button class="btn pri" data-act="resume-active">${ic('play')} ${t('resumeGo')}</button><button class="btn" data-act="discard-active">${t('resumeNo')}</button></div></section>`;
+}
 function sessBody(sess) {
   return sess.blocks.filter(b => b.items.length).map(b => `<div><div class="sec-h" style="margin-bottom:4px"><h2 style="font-size:.95rem;color:var(--blue-hi)">${t('bk_' + b.k)}${b.k === 'circuit' ? ' · ' + t('rounds', { n: b.rounds }) : ''}</h2></div><div class="list">${b.items.map(it => { const ex = EX[it.ex]; return `<button class="li" style="min-height:48px" data-act="ex-sheet" data-v="${ex.id}"><span class="grow"><span class="t">${esc(L(ex.name))}</span></span><span class="mono muted" style="font-size:.85rem;white-space:nowrap">${esc(doseStr(ex, it, b.k === 'circuit'))}</span></button>`; }).join('')}</div></div>`).join('');
 }
@@ -1579,6 +1587,20 @@ function flatten(sess) {
   return steps;
 }
 let tick = 0;
+/* An interrupted workout can be picked up again (kept for 8 hours, only once a set is done). */
+const ACTIVE_KEY = 'ninja-circuit-active';
+function saveActive(nextI) {
+  const p = UI.ov; if (!p || p.kind !== 'player') return;
+  try { localStorage.setItem(ACTIVE_KEY, JSON.stringify({ type: p.type, idx: p.idx, week: p.week, steps: p.steps, i: nextI, done: p.done, startTs: p.startTs, savedAt: Date.now() })); } catch (e) {}
+}
+function clearActive() { try { localStorage.removeItem(ACTIVE_KEY); } catch (e) {} }
+function loadActive() {
+  try {
+    const a = JSON.parse(localStorage.getItem(ACTIVE_KEY) || 'null');
+    if (a && TPL[a.type] && Array.isArray(a.steps) && a.i < a.steps.length && a.steps.every(x => EX[x.ex]) && Date.now() - a.savedAt < 8 * 3600e3 && a.done.some(v => v != null)) return a;
+  } catch (e) {}
+  return null;
+}
 function startPlayer(type, idx) {
   const P = S.profile, W = weekInfo();
   const sess = buildSession(P, type, W.week);
@@ -1608,6 +1630,7 @@ function finishStep(val) {
   const p = UI.ov, st = curStep();
   p.done[p.i] = val;
   buzz(60);
+  saveActive(p.i + 1);
   if (p.i >= p.steps.length - 1) { endPlayer(); return; }
   if (st.rest >= 10) { p.phase = 'rest'; p.endAt = Date.now() + st.rest * 1000; p.total = st.rest; p.cues = {}; renderOv(); }
   else advance();
@@ -1666,6 +1689,7 @@ ${center}${nextTxt ? `<div class="next-up">${ic('chev', 'flip')}<span>${t('nextX
 const stepLabel = st => st.circuit ? t('roundOf', { s: st.set, n: st.sets }) : t('setOf', { s: st.set, n: st.sets });
 function curNextName(p) { const ns = p.steps[p.i + 1]; return ns ? L(EX[ns.ex].name) : null; }
 function endPlayer() {
+  clearActive();
   const p = UI.ov; clearInterval(tick); keepAwake(false);
   p.phase = 'summary'; p.endTs = Date.now(); p.rpe = 0; p.note = '';
   renderOv(); beep(988, .15); setTimeout(() => beep(1318, .25), 160);
@@ -1680,6 +1704,7 @@ function vSummary(p) {
 <div class="spacer"></div><button class="btn pri lg block" data-act="pl-save">${ic('check')} ${t('saveW')}</button>`;
 }
 function savePlayer() {
+  clearActive();
   const p = UI.ov, P = S.profile;
   const sets = p.steps.map((st, i) => [st.ex, st.amt, p.done[i]]).filter(x => x[2] != null);
   const n = sets.length;
@@ -1966,8 +1991,15 @@ const ACT = {
     const any = p.done.some(v => v != null);
     confirmSheet({ title: t('exitQ'), ok: any ? t('exitSave') : t('exitDiscard'), danger: !any, cancel: t('keepGoing'), alt: any ? t('exitDiscard') : null,
       onOk: () => { if (any) endPlayer(); else { clearInterval(tick); keepAwake(false); UI.ov = null; render(); } },
-      onAlt: () => { clearInterval(tick); keepAwake(false); UI.ov = null; render(); } });
+      onAlt: () => { clearActive(); clearInterval(tick); keepAwake(false); UI.ov = null; render(); } });
   },
+  'resume-active': () => {
+    const a = loadActive(); if (!a) { renderMain(); return; }
+    UI.ov = { kind: 'player', type: a.type, idx: a.idx, week: a.week, steps: a.steps, i: a.i, phase: 'idle', endAt: 0, left: 0, paused: false, val: 0, startTs: Date.now() - (a.savedAt - a.startTs), done: a.done, cues: {} };
+    audioUnlock(); keepAwake(true); enterStep(); render();
+    clearInterval(tick); tick = setInterval(tickPlayer, 100);
+  },
+  'discard-active': () => { clearActive(); renderMain(); },
   'pl-rpe': a => { UI.ov.rpe = +a.dataset.v; const note = $('#plNote'); if (note) UI.ov.note = note.value; renderOv(); },
   'pl-save': () => { const note = $('#plNote'); if (note) UI.ov.note = note.value; savePlayer(); },
   // courses & runner
