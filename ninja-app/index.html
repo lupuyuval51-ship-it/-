@@ -425,6 +425,13 @@ h1,h2,.top h1,.sec-h h2,.sess-title,.pl-name,.welcome h2,.sheet-h h2,.ob-q h2,.g
 .why li{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
 .why .ic{color:var(--volt);flex:none;margin-top:3px}
 .tab{font-size:.66rem}
+.pill-btn.on.l1{background:rgba(255,193,69,.16);border-color:var(--warn);color:var(--warn)}
+.pill-btn.on.l2{background:rgba(255,107,133,.16);border-color:var(--bad);color:var(--bad)}
+.chip.lim.l1{border-color:var(--warn);color:var(--warn)}.chip.lim.l2{border-color:var(--bad);color:var(--bad)}
+.adj-l{margin:0;padding:0;list-style:none;display:grid;gap:8px}.adj-l li{position:relative;padding-inline-start:16px;font-size:.88rem;line-height:1.45;color:var(--muted)}
+.adj-l li::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--good)}
+.adj.bare{margin-bottom:14px;padding:12px 14px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:14px}
+.adj .sec-h h2{display:flex;gap:6px;align-items:center;font-size:.95rem}
 </style>
 </head>
 <body>
@@ -514,8 +521,13 @@ he: {
   icsTitle: 'אימון נינג׳ה · {n}', icsDesc: 'פותחים את NINJA CIRCUIT ומתחילים. האימון משתנה בכל יום.', icsAlarm: 'האימון מתחיל בעוד 10 דקות',
   q8: 'מתי מתאמנים?', q8s: 'בחרו 2–6 ימים ואת משך האימון.',
   daysL: 'ימי אימון', minL: 'משך אימון', daysN: '{n} אימונים בשבוע', minN: '{n} דק׳',
-  q9: 'משהו שחשוב שנדע?', q9s: 'נחליף תרגילים שמעמיסים על אזורים רגישים.',
-  lim_shoulder: 'כתפיים', lim_elbow: 'מרפקים או פרקי ידיים', lim_knee: 'ברכיים', lim_back: 'גב תחתון', lim_none: 'הכול תקין',
+  q9: 'משהו שחשוב שנדע?', q9s: 'כל אזור נבדק בנפרד: נקל, נחליף ונוסיף תרגילי מניעה.',
+  lim_shoulder: 'כתפיים', lim_elbow: 'מרפקים', lim_wrist: 'פרקי ידיים', lim_back: 'גב תחתון', lim_hip: 'ירכיים', lim_knee: 'ברכיים', lim_ankle: 'קרסוליים', lim_none: 'הכול תקין',
+  limLv1: 'קל', limLv2: 'משמעותי', limHint: 'לחיצה אחת: אי נוחות קלה (מקלים כמויות ומורידים תרגילים מתפרצים). שתיים: פציעה או כאב משמעותי (מורידים כל תרגיל שמעמיס על האזור). שלוש: ביטול.',
+  adjT: 'מותאם בשבילך', adj_inj1: '{a}: הקלנו כמויות, ירדו תרגילים מתפרצים ונוסף חימום ממוקד.', adj_inj2: '{a}: ירדו כל התרגילים שמעמיסים על האזור ונוסף תרגיל שיקום עדין.',
+  adj_age0: 'גיל צעיר: בלי עומסים קיצוניים, רמה מוגבלת ודגש על טכניקה.', adj_age1: 'גיל 13–17: רמה מוגבלת לבינונית, חימום מלא ועומס מעט מתון לפרקים בצמיחה.', adj_age3: 'גיל 30–44: חימום ושחרור מלאים ומנוחות ארוכות ב־10 שניות.', adj_age4: 'גיל 45+: בלי קפיצות ונחיתות חזקות, מנוחות ארוכות, קצב עליה מתון וחימום מלא.',
+  rdT: 'איך הגוף היום?', rdS: 'נתאים את העומס של האימון להיום.', rd1: 'עייף', rd2: 'רגיל', rd3: 'במיטבי', adj_rd1: 'מרגיש עייף: כ־20% פחות עומס וסט אחד פחות בתרגילים הראשיים.', adj_rd3: 'מרגיש במיטבו: כ־5% יותר עומס.', rdSet: 'נקבע להיום',
+  prehabTag: 'מניעה', myLimits: 'אזורים רגישים', noLimits: 'לא סימנת אזורים רגישים.', editLimits: 'עדכון פציעות והתאמות',
   ack: 'הבנתי: זו תוכנית אימון כללית ולא ייעוץ רפואי. אם משהו כואב עוצרים, ובמקרה של פציעה פונים לאיש מקצוע.',
   kidNote: 'מתחת לגיל 18? מתאמנים עם מאמן או מבוגר בסביבה, ובלי מבחני מקסימום לבד.',
   building: 'בונים את התוכנית שלכם', b1: 'מתאימים תרגילים לציוד שלכם', b2: 'מכיילים עומס לרמה שלכם', b3: 'מסדרים את השבוע',
@@ -663,8 +675,13 @@ en: {
   icsTitle: 'Ninja training · {n}', icsDesc: 'Open NINJA CIRCUIT and start. Your workout changes every day.', icsAlarm: 'Training starts in 10 minutes',
   q8: 'When do you train?', q8s: 'Pick 2–6 days and a session length.',
   daysL: 'Training days', minL: 'Session length', daysN: '{n} sessions a week', minN: '{n} min',
-  q9: 'Anything we should know?', q9s: 'We’ll swap exercises that load sensitive areas.',
-  lim_shoulder: 'Shoulders', lim_elbow: 'Elbows or wrists', lim_knee: 'Knees', lim_back: 'Lower back', lim_none: 'All good',
+  q9: 'Anything we should know?', q9s: 'We handle each area separately: ease, swap and add prehab.',
+  lim_shoulder: 'Shoulders', lim_elbow: 'Elbows', lim_wrist: 'Wrists', lim_back: 'Lower back', lim_hip: 'Hips', lim_knee: 'Knees', lim_ankle: 'Ankles', lim_none: 'All good',
+  limLv1: 'Mild', limLv2: 'Serious', limHint: 'Tap once: mild discomfort (lighter volume, no explosive moves). Twice: injury or real pain (every exercise that loads the area is removed). Three times: clear.',
+  adjT: 'Adapted for you', adj_inj1: '{a}: lighter volume, explosive moves removed and a targeted warm-up added.', adj_inj2: '{a}: every exercise that loads the area was removed and a gentle rehab move was added.',
+  adj_age0: 'Young athlete: no extreme loads, capped level and a focus on technique.', adj_age1: 'Ages 13–17: level capped at intermediate, full warm-up and a slightly gentler load for growing joints.', adj_age3: 'Ages 30–44: full warm-up and release work, rest 10 s longer.', adj_age4: 'Ages 45+: no hard jumping or landings, longer rests, a gentler progression and a full warm-up.',
+  rdT: 'How is your body today?', rdS: 'We tune today’s workload to it.', rd1: 'Tired', rd2: 'Normal', rd3: 'Peak', adj_rd1: 'Feeling tired: about 20% less load and one set fewer on the main moves.', adj_rd3: 'Feeling peak: about 5% more load.', rdSet: 'Set for today',
+  prehabTag: 'Prehab', myLimits: 'Sensitive areas', noLimits: 'No sensitive areas marked.', editLimits: 'Update injuries and adjustments',
   ack: 'Got it: this is a general training plan, not medical advice. If something hurts, stop, and see a professional for injuries.',
   kidNote: 'Under 18? Train with a coach or adult nearby, and no max-effort tests alone.',
   building: 'Building your program', b1: 'Matching exercises to your equipment', b2: 'Calibrating load to your level', b3: 'Arranging your week',
@@ -813,7 +830,7 @@ const PLACE_ICON = { ninja: 'flag', gym: 'dumbbell', home: 'home', park: 'leaf' 
 const PLACE_EQ = { ninja: ['bar', 'rings', 'rope', 'monkey', 'beam', 'wall', 'box', 'towel', 'ninja'], gym: ['bar', 'box', 'weights', 'towel', 'rope'], home: ['towel'], park: ['bar', 'monkey', 'box', 'towel'] };
 const FOCI = ['grip', 'pull', 'balance', 'speed', 'legs', 'endurance', 'swing'];
 const FOCUS_ICON = { grip: 'hand', pull: 'up', balance: 'target', speed: 'bolt', legs: 'flame', endurance: 'clock', swing: 'rings' };
-const LIMITS = ['shoulder', 'elbow', 'knee', 'back', 'none'];
+const LIMITS = ['shoulder', 'elbow', 'wrist', 'back', 'hip', 'knee', 'ankle', 'none'];
 
 // [id, category, equipment ("a,b" = all of, "a|b" = any of), kind (t=seconds r=reps m=meters l=lengths),
 //  dose [sets, amount, rest] or one per level, avoid tags, per-side, he, en, cue he, cue en]
@@ -884,10 +901,33 @@ const EX_RAW = [
 ['stretch-hip','cool','','t',[1,30,0],'',1,'מתיחת מכופפי ירך','Hip flexor stretch','ברך על הרצפה, אגן קדימה, גב זקוף.','Knee on the floor, hips forward, tall back.'],
 ['stretch-ham','cool','','t',[1,40,0],'',0,'מתיחה אחורית לרגליים','Hamstring stretch','רגל ישרה על משטח נמוך, מתכופפים מהאגן עם גב ישר.','Straight leg on a low surface, hinge from the hips with a flat back.'],
 ['open-book','cool','','r',[1,6,0],'',1,'פתיחת בית חזה בשכיבה צידית','Open book','שוכבים על הצד, ברכיים מכופפות, פותחים את היד העליונה כמו ספר.','Lie on your side, knees bent, open the top arm like a book.'],
-['breathe','cool','','t',[1,60,0],'',0,'נשימה 4-4-4','Box breathing','שאיפה 4 שניות, החזקה 4, נשיפה 4.','Breathe in for 4, hold for 4, out for 4.']
+['breathe','cool','','t',[1,60,0],'',0,'נשימה 4-4-4','Box breathing','שאיפה 4 שניות, החזקה 4, נשיפה 4.','Breathe in for 4, hold for 4, out for 4.'],
+['wall-slide','warm','','r',[2,10,20],'',0,'החלקות קיר לכתפיים','Wall slides','גב וידיים צמודים לקיר, מחליקים ידיים למעלה ולמטה בלי להרים צלעות.','Back and arms on the wall; slide up and down without flaring your ribs.'],
+['wrist-stretch','warm','','t',[1,40,5],'',0,'מתיחת אמות ופרקי ידיים','Forearm & wrist stretch','כפות ידיים על הרצפה או על קיר, מתיחה עדינה לכל כיוון.','Palms on the floor or a wall, gentle stretch in each direction.'],
+['cat-cow','warm','','r',[1,10,10],'',0,'חתול־פרה','Cat–cow','על ארבע, מקמרים ומעגלים את הגב לסירוגין לאט ועם נשימה.','On all fours, slowly arch and round your spine with your breath.'],
+['bird-dog','warm','','r',[2,6,15],'',1,'ציפור־כלב','Bird-dog','יד אחת ורגל נגדית נמתחות, האגן יציב ובלי להסתובב.','Reach the opposite arm and leg while keeping your hips level.'],
+['clam-shell','warm','','r',[2,12,15],'',1,'צדפה לשרירי הירך','Clamshell','שוכבים על הצד עם ברכיים כפופות, פותחים ברך עליונה בלי לגלגל את האגן.','Side-lying with bent knees; open the top knee without rolling the pelvis.'],
+['calf-raise','warm','','r',[2,15,20],'',0,'עליות על קצות האצבעות','Calf raises','עולים לאט, עוצרים רגע למעלה ויורדים בשליטה.','Rise slowly, pause at the top, lower with control.'],
+['ankle-circles','warm','','t',[1,30,5],'',1,'סיבובי קרסול','Ankle circles','מעגלים גדולים לשני הכיוונים בכל רגל.','Big circles both ways on each foot.']
 ];
 const EX = {};
 for (const r of EX_RAW) EX[r[0]] = { id: r[0], cat: r[1], eq: r[2] ? r[2].split(',') : [], kind: r[3], dose: r[4], avoid: r[5] ? r[5].split(',') : [], side: !!r[6], name: { he: r[7], en: r[8] }, cue: { he: r[9], en: r[10] } };
+// Areas that the table above does not tag directly: which exercises load a wrist, hip or ankle.
+const LIM_EXTRA = {
+  wrist: 'pushup pu-tempo pu-wide pu-knee pu-diamond pu-clap pu-archer pu-one-assist pu-one pu-one-clap plank side-plank towel-wring farmer-carry',
+  hip: 'lunge-twist split-squat lateral-bounds box-jump broad-jump squat-jump hang-knee toes-bar sprint warped-run',
+  ankle: 'jacks pogo squat-jump broad-jump box-jump lateral-bounds precision-jumps q-steps sprint warped-run single-leg beam-walk line-walk'
+};
+for (const [area, ids] of Object.entries(LIM_EXTRA)) for (const id of ids.split(' ')) if (EX[id] && !EX[id].avoid.includes(area)) EX[id].avoid.push(area);
+// Hard landings and ballistic pulls: removed even for a mild complaint, and for 45+.
+const IMPACT = new Set('jacks pogo squat-jump broad-jump box-jump lateral-bounds precision-jumps sprint warped-run q-steps'.split(' '));
+const HIGH = new Set([...IMPACT, ...'explosive-pullup kip-swing lache rope-climb hang-switch pu-clap pu-one-clap'.split(' ')]);
+const PREHAB = { shoulder: ['wall-slide', 'ytw'], elbow: ['wrist-stretch'], wrist: ['wrist-stretch'], back: ['cat-cow', 'bird-dog'], hip: ['clam-shell', 'stretch-hip'], knee: ['clam-shell', 'calf-raise'], ankle: ['ankle-circles', 'calf-raise'] };
+// Age rules: level cap, load factor, extra rest in seconds, a full warm-up and no hard landings.
+const AGE_MODS = [{ cap: 1, f: 1, rest: 0 }, { cap: 2, f: .95, rest: 0, full: 1 }, { cap: 3, f: 1, rest: 0 }, { cap: 3, f: .97, rest: 10, full: 1 }, { cap: 2, f: .9, rest: 20, full: 1, noImpact: 1 }];
+const ageMods = P => AGE_MODS[P.age] || AGE_MODS[2];
+const limLv = (P, a) => (P.limLv && P.limLv[a]) || 2;
+const readyNow = () => (S.ready && sameDay(S.ready.ts, Date.now()) ? S.ready.v : 0);
 
 /* Technique videos (8 s silent loops, 540×960). As a plain file or PWA they live in videos/<id>.mp4; in the hosted viewer the build step swaps VIDEO_MAP for stored asset URLs. */
 const VIDEO_IDS = new Set('arm-circles aus-row beam-walk boulder box-jump breathe broad-jump chinup dead-bug dead-hang explosive-pullup farmer-carry fist-squeeze glute-bridge hang-knee hang-switch hollow jacks kip-swing lache lateral-bounds line-walk lunge-twist march monkey neg-pullup open-book plank pogo precision-jumps pu-archer pu-clap pu-diamond pu-knee pu-one pu-one-assist pu-tempo pu-wide pullup pushup q-steps ring-swing ring-traverse rings-hang rope-climb rope-hang scap-pulls side-plank single-leg split-squat sprint squat-jump stretch-forearm stretch-ham stretch-hip stretch-shoulder toes-bar towel-hang towel-pullup towel-row towel-wring wall-sit warped-run wide-pullup wrist-prep ytw'.split(' '));
@@ -1132,7 +1172,7 @@ function levelFrom(a) {
   const hang = a.hang == null ? 1 : a.hang;
   const score = a.exp * 1.2 + a.pull * .9 + hang * .8 + ((a.strength ?? 3) - 1) / 9 * 3 * .5;
   let lv = score < 2.5 ? 0 : score < 5 ? 1 : score < 7.5 ? 2 : 3;
-  if (a.age === 0) lv = Math.min(lv, 1);
+  lv = Math.min(lv, (AGE_MODS[a.age] || AGE_MODS[2]).cap);
   return lv;
 }
 // The push-up variations the athlete's strength level allows, stepping down a level when age or limits rule out the whole pool.
@@ -1141,7 +1181,11 @@ function pushPool(P) {
   return [];
 }
 function doseOf(ex, lv) { const d = Array.isArray(ex.dose[0]) || ex.dose[0] === 0 ? ex.dose[lv] : ex.dose; return d && d[0] ? d : null; }
-function blocked(ex, P) { return ex.avoid.some(a => (a === 'kid' ? P.age === 0 : P.limits.includes(a))); }
+function blocked(ex, P) {
+  if (ageMods(P).noImpact && IMPACT.has(ex.id)) return true;
+  return ex.avoid.some(a => (a === 'kid' ? P.age === 0 : P.limits.includes(a) && (limLv(P, a) === 2 || HIGH.has(ex.id))));
+}
+const eased = (ex, P) => ex.avoid.some(a => a !== 'kid' && P.limits.includes(a) && limLv(P, a) === 1);
 function hasEquip(ex, P) { return ex.eq.every(req => req.split('|').some(q => P.equip.includes(q))); }
 function usable(ex, P, lv) { return !!doseOf(ex, lv) && !blocked(ex, P) && hasEquip(ex, P); }
 function scaleAmt(kind, amt, f) {
@@ -1152,8 +1196,9 @@ function scaleAmt(kind, amt, f) {
 function buildSession(P, type, week) {
   const T = TPL[type], lv = type === 'F' ? 0 : P.level, used = new Set();
   const deload = (week - 1) % 4 === 3;
-  const f = PROG[(week - 1) % 4] * clamp(P.adapt?.[type] || 1, .75, 1.35);
-  const boost = new Set(type === 'F' ? [] : (P.strengths || [])), cap = P.age === 0 ? 1 : 3;
+  const am = ageMods(P), rd = type === 'F' ? 0 : readyNow();
+  const f = PROG[(week - 1) % 4] * clamp(P.adapt?.[type] || 1, .75, 1.35) * am.f * (rd === 1 ? .8 : rd === 3 ? 1.05 : 1);
+  const boost = new Set(type === 'F' ? [] : (P.strengths || [])), cap = am.cap;
   const lvOf = ex => boost.has(ex.cat) && lv < cap ? lv + 1 : lv;
   const dOver = {};
   // Variety: each slot lists interchangeable exercises and the choice rotates every week, so the same session type never
@@ -1175,11 +1220,23 @@ function buildSession(P, type, week) {
   };
   const item = (ex, light) => {
     let [sets, amt, rest] = dOver[ex.id] || doseOf(ex, lvOf(ex));
-    if (!light) { amt = scaleAmt(ex.kind, amt, f); if (deload) sets = Math.max(1, sets - 1); }
+    const ez = eased(ex, P) ? .7 : 1;
+    if (!light) { amt = scaleAmt(ex.kind, amt, f * ez); if (deload) sets = Math.max(1, sets - 1); if (rd === 1 && sets > 2) sets -= 1; rest += am.rest; }
+    else if (ez < 1) amt = scaleAmt(ex.kind, amt, ez);
+    if (ez < 1) rest += 15;
     return { ex: ex.id, sets, amt, rest };
   };
   const blocks = [];
-  const warm = (P.minutes <= 20 ? WARM.slice(0, 3) : WARM).map(pick).filter(Boolean).map(e => item(e, true));
+  const warm = (P.minutes <= 20 && !am.full ? WARM.slice(0, 3) : WARM).map(pick).filter(Boolean).map(e => item(e, true));
+  // Prehab: one gentle move per sensitive area goes into the warm-up (the sheet marks it).
+  if (type !== 'F') {
+    const room = P.minutes <= 20 ? 1 : 3;
+    for (const area of P.limits) {
+      if (warm.filter(w => w.pre).length >= room) break;
+      const ex = (PREHAB[area] || []).map(id => EX[id]).find(e => e && !used.has(e.id) && usable(e, P, 0));
+      if (ex) { used.add(ex.id); warm.push({ ...item(ex, true), pre: 1 }); }
+    }
+  }
   blocks.push({ k: 'warm', items: warm });
   if (type === 'C') {
     const ob = T.obst.map(pick).filter(Boolean).map(e => item(e));
@@ -1188,7 +1245,7 @@ function buildSession(P, type, week) {
     const items = [];
     for (const slot of T.circuit) { if (items.length >= n) break; const ex = pick(slot); if (ex) { const it = item(ex); it.sets = 1; it.rest = 15; items.push(it); } }
     let rounds = [2, 3, 3, 4][P.level] + (P.minutes >= 45 ? 1 : 0) - (P.minutes <= 20 ? 1 : 0) + (P.focus.includes('endurance') ? 1 : 0);
-    if (deload) rounds -= 1;
+    if (deload || rd === 1) rounds -= 1;
     blocks.push({ k: 'circuit', rounds: clamp(rounds, 2, 5), roundRest: 75, items });
   } else {
     const n = MAIN_N[P.minutes] || 3, main = [];
@@ -1200,9 +1257,12 @@ function buildSession(P, type, week) {
       if (ex) blocks.push({ k: 'focus', items: [item(ex)] });
     }
   }
-  const cool = (P.minutes <= 20 ? T.cool.slice(0, 2) : T.cool).map(id => pick([id])).filter(Boolean).map(e => item(e, true));
+  const cool = (P.minutes <= 20 && !am.full ? T.cool.slice(0, 2) : T.cool).map(id => pick([id])).filter(Boolean).map(e => item(e, true));
   blocks.push({ k: 'cool', items: cool });
-  return { type, week, blocks, est: estimate(blocks) };
+  const notes = P.limits.map(a => ({ k: 'inj', a, lv: limLv(P, a) }));
+  if (P.age === 0 || P.age === 1 || P.age >= 3) notes.push({ k: 'age' + P.age });
+  if (rd === 1 || rd === 3) notes.push({ k: 'rd' + rd });
+  return { type, week, blocks, notes, est: estimate(blocks) };
 }
 const workSec = (ex, amt) => ex.kind === 't' ? amt : ex.kind === 'r' ? amt * 3.2 : ex.kind === 'm' ? 8 : amt * 20;
 function estimate(blocks) {
@@ -1213,6 +1273,8 @@ function estimate(blocks) {
   }
   return Math.max(5, Math.round(s / 60));
 }
+const noteText = n => (n.k === 'inj' ? t('adj_inj' + n.lv, { a: t('lim_' + n.a) }) : t('adj_' + n.k));
+const adjCard = (notes, bare) => (notes && notes.length ? `<section class="${bare ? 'adj bare' : 'card adj'}"><div class="sec-h"><h2>${ic('shield')} ${t('adjT')}</h2></div><ul class="adj-l">${notes.map(n => `<li>${esc(noteText(n))}</li>`).join('')}</ul></section>` : '');
 const mainCount = sess => sess.blocks.filter(b => b.k !== 'warm' && b.k !== 'cool').reduce((n, b) => n + b.items.length, 0);
 function amtStr(kind, amt) {
   if (kind === 't') return `${amt} ${t('uSec')}`;
@@ -1281,7 +1343,7 @@ function renderSheet() {
 function confirmSheet(o) { openSheet('confirm', o); }
 
 /* ═════════════════ Questionnaire ═════════════════ */
-function newAnswers() { return { name: '', age: null, exp: null, goal: null, places: [], equip: ['towel'], pull: null, hang: null, strength: null, strengths: [], strengthNote: '', focus: [], days: [0, 2, 4], minutes: 30, limits: [], ack: false }; }
+function newAnswers() { return { name: '', age: null, exp: null, goal: null, places: [], equip: ['towel'], pull: null, hang: null, strength: null, strengths: [], strengthNote: '', focus: [], days: [0, 2, 4], minutes: 30, limits: [], limLv: {}, ack: false }; }
 const OB_N = 11;
 const NUMF = new Set(['age', 'exp', 'goal', 'pull', 'hang', 'strength', 'days', 'minutes']);
 function obValid(o) {
@@ -1330,7 +1392,7 @@ function vOb(o) {
   const q = (title, sub) => `<div class="ob-q"><h2 tabindex="-1" id="obQ">${title}</h2>${sub ? `<p>${sub}</p>` : ''}</div>`;
   switch (o.step) {
     case 1: body = q(t('q1'), t('q1s')) + `<div class="field"><label for="obName">${t('nameL')}</label><input class="inp" id="obName" data-bind="ob-name" value="${esc(a.name)}" placeholder="${t('nameP')}" autocomplete="given-name" maxlength="30" dir="auto"></div>
-<div class="field"><span class="lbl">${t('ageL')}</span>${pillRow(o, 'age', [0, 1, 2, 3, 4].map(i => ({ v: i, t: t('age' + i) })), false)}</div>${a.age != null && a.age < 2 ? `<div class="warnbox">${ic('shield')}<span>${t('kidNote')}</span></div>` : ''}`; break;
+<div class="field"><span class="lbl">${t('ageL')}</span>${pillRow(o, 'age', [0, 1, 2, 3, 4].map(i => ({ v: i, t: t('age' + i) })), false)}</div>${a.age != null && a.age < 2 ? `<div class="warnbox">${ic('shield')}<span>${t('kidNote')}</span></div>` : ''}${a.age === 1 || a.age >= 3 ? `<div class="warnbox">${ic('shield')}<span>${t('adj_age' + a.age)}</span></div>` : ''}`; break;
     case 2: body = q(t('q2')) + optList(o, 'exp', [0, 1, 2, 3].map(i => ({ v: i, t: t('exp' + i), d: t('exp' + i + 'd'), i: ['flame', 'dumbbell', 'flag', 'trophy'][i] })), false); break;
     case 3: body = q(t('q3')) + optList(o, 'goal', [0, 1, 2, 3].map(i => ({ v: i, t: t('goal' + i), d: t('goal' + i + 'd'), i: ['flag', 'trophy', 'flame', 'timer'][i] })), false); break;
     case 4: body = q(t('q4'), t('q4s')) + optList(o, 'places', PLACES.map(p => ({ v: p, t: t('pl_' + p), d: t('pl_' + p + 'd'), i: PLACE_ICON[p] })), true); break;
@@ -1342,14 +1404,14 @@ function vOb(o) {
     case 9: body = q(t('q7'), t('q7s')) + optList(o, 'focus', FOCI.map(f => ({ v: f, t: t('f_' + f), d: t('f_' + f + 'd'), i: FOCUS_ICON[f] })), true); break;
     case 10: body = q(t('q8'), t('q8s')) + `<div class="field"><span class="lbl">${t('daysL')}</span><div class="days7">${DAYS_SHORT[lang].map((d, i) => { const on = a.days.includes(i); return `<button type="button" class="pill-btn ${on ? 'on' : ''}" data-act="ob-pick" data-f="days" data-v="${i}" data-m="1" role="checkbox" aria-checked="${on}" aria-label="${esc(DAYS_LONG()[i])}">${d}</button>`; }).join('')}</div><p class="note">${t('daysN', { n: a.days.length })}</p></div>
 <div class="field"><span class="lbl">${t('minL')}</span>${pillRow(o, 'minutes', [20, 30, 45, 60].map(m => ({ v: m, t: t('minN', { n: m }) })), false)}</div>`; break;
-    case 11: body = q(t('q9'), t('q9s')) + `<div class="chips">${LIMITS.map(l => { const on = a.limits.includes(l); return `<button type="button" class="pill-btn ${on ? 'on' : ''}" data-act="ob-pick" data-f="limits" data-v="${l}" data-m="1" role="checkbox" aria-checked="${on}">${t('lim_' + l)}</button>`; }).join('')}</div>
+    case 11: body = q(t('q9'), t('q9s')) + `<p class="note">${t('limHint')}</p><div class="chips">${LIMITS.map(l => { const lv = l === 'none' ? +a.limits.includes('none') : (a.limLv || {})[l] || 0; const txt = t('lim_' + l) + (l !== 'none' && lv ? ' · ' + t('limLv' + lv) : ''); return `<button type="button" class="pill-btn ${lv ? 'on l' + (l === 'none' ? 0 : lv) : ''}" data-act="ob-lim" data-f="limits" data-v="${l}" aria-pressed="${!!lv}" aria-label="${esc(txt)}">${txt}</button>`; }).join('')}</div>
 <button type="button" class="check ${a.ack ? 'on' : ''}" data-act="ob-ack" role="checkbox" aria-checked="${a.ack}"><span class="box">${ic('check')}</span><span>${t('ack')}</span></button>${a.age != null && a.age < 2 ? `<div class="warnbox">${ic('shield')}<span>${t('kidNote')}</span></div>` : ''}`; break;
   }
   return head + body + `<div class="spacer"></div><div class="ob-nav"><button class="btn pri lg" data-act="ob-next" ${obValid(o) ? '' : 'disabled'}>${t('next')} ${ic('arrow', 'flip')}</button></div>`;
 }
 function draftProfile(o) {
   const a = o.ans, prev = S.profile;
-  const P = { name: a.name.trim(), age: a.age, exp: a.exp, goal: a.goal, places: [...a.places], equip: [...a.equip], pull: a.pull, hang: a.hang, push: pushFromStrength(a.strength), strength: a.strength, strengths: a.strengths.filter(k => STRENGTH_KEYS.includes(k)), strengthNote: (a.strengthNote || '').trim().slice(0, 300), focus: [...a.focus], days: [...a.days].sort((x, y) => x - y), minutes: a.minutes, limits: a.limits.filter(x => x !== 'none') };
+  const P = { name: a.name.trim(), age: a.age, exp: a.exp, goal: a.goal, places: [...a.places], equip: [...a.equip], pull: a.pull, hang: a.hang, push: pushFromStrength(a.strength), strength: a.strength, strengths: a.strengths.filter(k => STRENGTH_KEYS.includes(k)), strengthNote: (a.strengthNote || '').trim().slice(0, 300), focus: [...a.focus], days: [...a.days].sort((x, y) => x - y), minutes: a.minutes, limits: a.limits.filter(x => x !== 'none'), limLv: Object.fromEntries(a.limits.filter(x => x !== 'none').map(x => [x, (a.limLv || {})[x] || 2])) };
   P.level = levelFrom(a);
   P.startTs = prev ? prev.startTs : weekStart(Date.now());
   P.createdTs = prev ? prev.createdTs : Date.now();
@@ -1363,7 +1425,7 @@ function vObDone(o) {
   return `<div class="ov-top"><button class="icon-btn" data-act="ob-back" aria-label="${t('back')}">${ic('back', 'flip')}</button><span class="spacer"></span></div>
 <div class="ob-q"><div class="eyebrow">${t('ready')}</div><h2 tabindex="-1" id="obQ">${P.name ? `<bdi>${esc(P.name)}</bdi>, ` : ''}${t('planN', { n: plan.length })}</h2></div>
 <div class="chips"><span class="chip blue">${ic('bolt')}${t('levelL')}: ${t('lvl' + P.level)}</span><span class="chip">${ic('clock')}${t('perSess', { m: first.est })}</span><span class="chip blue">${ic('dumbbell')}${t('strLevelL')}: <span class="ltr">${P.strength}/10</span></span>${P.strengths.map(k => `<span class="chip good">${ic('check')}${t('st_' + k)}</span>`).join('')}${P.focus.map(f => `<span class="chip orange">${ic(FOCUS_ICON[f])}${t('f_' + f)}</span>`).join('')}</div>
-<p class="note">${t('cycleNote')}</p>
+<p class="note">${t('cycleNote')}</p>${adjCard(first.notes)}
 <div><div class="sec-h"><h2>${t('yourWeek')}</h2></div><div class="plan-days">${plan.map((ty, i) => `<div class="plan-day"><span class="d">${esc(days[P.days[i]])}</span><span class="badge-ic ${i % 2 ? 'o' : ''}">${ic(TPL[ty].icon)}</span><span class="grow" style="flex:1;min-width:0"><b style="display:block">${esc(L(TPL[ty].name))}</b><small class="muted">${esc(L(TPL[ty].desc))}</small></span></div>`).join('')}</div></div>
 ${P.age < 2 ? `<div class="warnbox">${ic('shield')}<span>${t('kidNote')}</span></div>` : ''}
 <div class="spacer"></div><div class="ob-nav"><button class="btn pri lg" data-act="ob-finish">${o.editing ? t('savePlan') : t('letsGo')} ${ic('arrow', 'flip')}</button></div>`;
@@ -1384,6 +1446,10 @@ function ladderRows(sel, act) {
 
 /* ═════════════════ Today ═════════════════ */
 function greeting() { const h = new Date().getHours(); return h >= 5 && h < 12 ? t('gm') : h < 17 && h >= 12 ? t('ga') : h >= 17 && h < 22 ? t('ge') : t('gn'); }
+function readyCard() {
+  const v = readyNow();
+  return `<section class="card ready"><div class="sec-h"><h2>${t('rdT')}</h2></div><p class="note" style="margin:-4px 0 10px">${t('rdS')}</p><div class="chips" role="group" aria-label="${t('rdT')}">${[1, 2, 3].map(k => `<button type="button" class="pill-btn ${v === k ? 'on' : ''}" data-act="ready" data-v="${k}" aria-pressed="${v === k}">${t('rd' + k)}</button>`).join('')}</div></section>`;
+}
 function vToday() {
   const P = S.profile, W = weekInfo(), ss = sessions();
   const today = Date.now();
@@ -1412,7 +1478,8 @@ function vToday() {
   const xp = xpOf(), lv = levelOf(xp);
   return `<div class="greet"><span class="g1">${esc(greeting())}${P.name ? `, <bdi>${esc(P.name)}</bdi>` : ''}</span><span class="g2">${t('weekLine', { w: W.week, p: W.deload ? t('phDel') : t('phUp') })}</span></div>
 <div class="week" role="list">${strip}</div>
-${resumeCard()}${hero}
+${resumeCard()}${readyCard()}${hero}
+${adjCard(W.next >= 0 ? buildSession(P, W.plan[W.next], W.week).notes : [])}
 ${remindAsk()}
 <div class="hscroll">
   <button class="btn sm" data-act="tab" data-v="run">${ic('timer')} ${t('goRun')}</button>
@@ -1488,7 +1555,7 @@ function resumeCard() {
 <div class="btns" style="margin-top:14px"><button class="btn pri" data-act="resume-active">${ic('play')} ${t('resumeGo')}</button><button class="btn" data-act="discard-active">${t('resumeNo')}</button></div></section>`;
 }
 function sessBody(sess) {
-  return sess.blocks.filter(b => b.items.length).map(b => `<div><div class="sec-h" style="margin-bottom:4px"><h2 style="font-size:.95rem;color:var(--blue-hi)">${t('bk_' + b.k)}${b.k === 'circuit' ? ' · ' + t('rounds', { n: b.rounds }) : ''}</h2></div><div class="list">${b.items.map(it => { const ex = EX[it.ex]; return `<button class="li" style="min-height:48px" data-act="ex-sheet" data-v="${ex.id}"><span class="grow"><span class="t">${esc(L(ex.name))}</span></span><span class="mono muted" style="font-size:.85rem;white-space:nowrap">${esc(doseStr(ex, it, b.k === 'circuit'))}</span></button>`; }).join('')}</div></div>`).join('');
+  return adjCard(sess.notes, 1) + sess.blocks.filter(b => b.items.length).map(b => `<div><div class="sec-h" style="margin-bottom:4px"><h2 style="font-size:.95rem;color:var(--blue-hi)">${t('bk_' + b.k)}${b.k === 'circuit' ? ' · ' + t('rounds', { n: b.rounds }) : ''}</h2></div><div class="list">${b.items.map(it => { const ex = EX[it.ex]; return `<button class="li" style="min-height:48px" data-act="ex-sheet" data-v="${ex.id}"><span class="grow"><span class="t">${esc(L(ex.name))}</span></span><span class="mono muted" style="font-size:.85rem;white-space:nowrap">${esc(doseStr(ex, it, b.k === 'circuit'))}</span></button>`; }).join('')}</div></div>`).join('');
 }
 
 /* ═════════════════ Course stopwatch ═════════════════ */
@@ -1666,6 +1733,7 @@ function vProfile() {
 <div class="field" style="margin-top:12px"><label for="pNote" class="note">${t('strNoteL')}</label><textarea class="inp" id="pNote" data-bind="p-note" maxlength="300" dir="auto" placeholder="${esc(t('strNoteP'))}">${esc(P.strengthNote || '')}</textarea></div>
 <button class="li" data-act="open-ladder"><span class="lvnum ${sNow >= 7 ? 'hi' : ''}">${sNow}</span><span class="grow"><span class="t">${t('strLevelL')} · ${t('strLevelN', { n: sNow })}</span><span class="s">${esc(t('sl' + sNow))}</span></span>${ic('chev', 'flip dim')}</button>
 <p class="note" style="margin-top:6px">${t('strEffect')}</p></section>
+<section class="card"><div class="sec-h"><h2>${t('myLimits')}</h2></div>${P.limits.length ? `<div class="chips">${P.limits.map(k => `<span class="chip lim l${limLv(P, k)}">${t('lim_' + k)} · ${t('limLv' + limLv(P, k))}</span>`).join('')}</div>` : `<p class="note">${t('noLimits')}</p>`}<button class="btn sm block" style="margin-top:10px" data-act="edit-ob">${ic('edit')} ${t('editLimits')}</button></section>
 <section class="card"><div class="sec-h"><h2>${t('remT')}</h2></div>${remindBody()}</section>
 <section class="card"><div class="sec-h"><h2>${t('settings')}</h2></div><div class="set-row"><span class="grow">${t('langL')}</span>${langSeg()}</div>${sw('sound', t('soundL'))}${sw('vibe', t('vibeL'))}${sw('countdown', t('countL'))}</section>
 <section class="card"><div class="sec-h"><h2>${t('programL')}</h2></div><button class="btn block" data-act="edit-ob">${ic('edit')} ${t('rebuild')}</button></section>
@@ -2068,13 +2136,24 @@ const ACT = {
     o.keepScroll = true; renderOv();
     if (!multi && (o.step === 2 || o.step === 3)) { clearTimeout(obAdvanceTimer); obAdvanceTimer = setTimeout(() => { if (UI.ov === o && (o.step === 2 || o.step === 3)) obNext(); }, 280); }
   },
+  'ob-lim': a => {
+    const A = UI.ov.ans, k = a.dataset.v; A.limLv = A.limLv || {};
+    if (k === 'none') { A.limits = A.limits.includes('none') ? [] : ['none']; A.limLv = {}; }
+    else {
+      A.limits = A.limits.filter(x => x !== 'none');
+      const nx = ((A.limLv[k] || 0) + 1) % 3;
+      if (nx) { A.limLv[k] = nx; if (!A.limits.includes(k)) A.limits.push(k); } else { delete A.limLv[k]; A.limits = A.limits.filter(x => x !== k); }
+    }
+    UI.ov.keepScroll = true; renderOv();
+  },
+  ready: a => { S.ready = { ts: Date.now(), v: +a.dataset.v }; saveLocal(); renderMain(); toast(t('rdSet')); },
   'ob-ack': () => { const o = UI.ov; o.ans.ack = !o.ans.ack; o.keepScroll = true; renderOv(); },
   'ob-finish': () => {
     const o = UI.ov; const P = draftProfile(o); const editing = o.editing;
     S.profile = P; touchProfile(); UI.ov = null; UI.tab = editing ? UI.tab : 'today';
     render(); window.scrollTo(0, 0); if (editing) toast(t('planSaved'));
   },
-  'edit-ob': () => { const P = S.profile; UI.ov = { kind: 'ob', step: 1, editing: true, ans: { name: P.name, age: P.age, exp: P.exp, goal: P.goal, places: [...P.places], equip: [...P.equip], pull: P.pull, hang: P.hang, strength: profStrength(P), strengths: [...(P.strengths || [])], strengthNote: P.strengthNote || '', focus: [...P.focus], days: [...P.days], minutes: P.minutes, limits: P.limits.length ? [...P.limits] : ['none'], ack: true } }; render(); focusQ(); },
+  'edit-ob': () => { const P = S.profile; UI.ov = { kind: 'ob', step: 1, editing: true, ans: { name: P.name, age: P.age, exp: P.exp, goal: P.goal, places: [...P.places], equip: [...P.equip], pull: P.pull, hang: P.hang, strength: profStrength(P), strengths: [...(P.strengths || [])], strengthNote: P.strengthNote || '', focus: [...P.focus], days: [...P.days], minutes: P.minutes, limits: P.limits.length ? [...P.limits] : ['none'], limLv: Object.fromEntries(P.limits.map(k => [k, limLv(P, k)])), ack: true } }; render(); focusQ(); },
   // today / plan
   'start-sess': a => { closeSheet(); startPlayer(a.dataset.type, a.dataset.idx); },
   'sess-sheet': a => openSheet('session', { type: a.dataset.type, idx: a.dataset.idx }),
