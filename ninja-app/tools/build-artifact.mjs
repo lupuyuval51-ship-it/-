@@ -22,5 +22,13 @@ if (fs.existsSync(mapFile)) {
   console.log(Object.keys(map).length + ' videos mapped');
 } else { page = page.replace('/*@video-map*/null', '{}'); console.log('no videos-map.json: the artifact will have no videos'); }
 
+const foodFile = path.join(root, 'food-map.json');
+if (fs.existsSync(foodFile)) {
+  const fmap = JSON.parse(fs.readFileSync(foodFile, 'utf8'));
+  if (!page.includes('/*@food-map*/null')) throw new Error('FOOD_MAP placeholder not found');
+  page = page.replace('/*@food-map*/null', JSON.stringify(fmap));
+  console.log(Object.keys(fmap).length + ' food photos mapped');
+} else page = page.replace('/*@food-map*/null', '{}');
+
 fs.writeFileSync(out, page);
 console.log('wrote ' + out + ' (' + Buffer.byteLength(page) + ' bytes)');

@@ -11,6 +11,7 @@ A personal Ninja Warrior training app in one dependency-free HTML file. Hebrew/R
 - **Workout player:** set-by-set guidance, timers with countdown, rest timers, beeps, vibration and screen wake lock. Exercises can be swapped or skipped.
 - **Course stopwatch:** editable courses with a draggable route map, per-obstacle splits, falls, and personal bests with split deltas.
 - **Fitness tests and progress:** hang, pull-ups, push-ups, balance and broad jump; weekly chart, 12-week activity map, ability radar, achievements, XP levels, history.
+- **Nutrition:** 300 everyday dishes (breakfast, before and after training, lunch, dinner, snacks, drinks), each with a photo, estimated calories, protein, carbs and fat, ingredients and why it suits training. Search, category and tag filters (high protein, vegetarian, vegan, quick, kids like it), favorites, and a sample training day that changes daily. Athletes under 18 get no calorie targets.
 - **Technique videos:** every exercise has an 8-second silent loop (66 clips). They play in the exercise sheet, as a small preview next to the exercise name during a workout, and as a preview of the next exercise on the rest screen. Tap a clip to pause it; a clip that fails to load just disappears.
 
 ## Storage
@@ -26,5 +27,7 @@ Serve this folder over https (any static host, for example GitHub Pages, Netlify
 - `index.html`: the whole app. The part between `@artifact-start` and `@artifact-end` is what gets published as the hosted viewer.
 - `manifest.webmanifest`, `sw.js`, `icons/`: install, offline and notification support.
 - `videos/<exercise id>.mp4`: the technique clips (540×960, about 17 MB in total). The app looks for them next to `index.html`; the service worker leaves them to the browser cache.
+- `food/<dish id>.webp`: dish photos (480×480, about 9 MB in total). `nutrition/dishes.json` is built from `tools/dishes_a.py`, `dishes_b.py` and `dishes_c.py` by `tools/build-dishes.py`.
+- `food-map.json`: dish id to the URL of the same photo in the hosted viewer's asset store.
 - `videos-map.json`: exercise id to the URL of the same clip in the hosted viewer's asset store.
 - `tools/build-artifact.mjs`: `node tools/build-artifact.mjs out.html` builds the artifact page and fills `VIDEO_MAP` from `videos-map.json`.
