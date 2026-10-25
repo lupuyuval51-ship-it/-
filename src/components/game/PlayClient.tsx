@@ -401,11 +401,12 @@ export default function PlayClient({ gameId, soundDefault, musicDefault, transpo
     } else if (target.status === "locked") {
       feedback.current?.("wrong");
       toast(lockedText(target, t), "warn");
+    } else if (target.stationKind === "lore") {
+      // a board can be read again at any time ("read the lesson again" is what the guide advises); only the first read counts
+      setOverlay({ type: "lore", stationId: target.id });
+      if (target.status !== "done") send({ type: "visit", stationId: target.id }).catch(handleError);
     } else if (target.status === "done") {
       toast(t("prompt.station.done", { label: target.label }), "info");
-    } else if (target.stationKind === "lore") {
-      setOverlay({ type: "lore", stationId: target.id });
-      send({ type: "visit", stationId: target.id }).catch(handleError);
     } else {
       audio.play("open");
       send<EventResponse & { data: { challenge: PublicChallenge } }>({ type: "open", stationId: target.id })

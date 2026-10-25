@@ -52,13 +52,13 @@ describe("a revealed solution, as the server or the offline backend sends it", (
     const challenge: PublicChallenge = { id: "c", title: "שברים", prompt: "איזה שבר שווה?", concept: "שברים", level: 1, hasHint: false, type: "choice", options: [{ id: "o1", text: "כי 1/3 = 3/9" }, { id: "o2", text: "כי 1/2 = 3/9" }] };
     const result: AnswerResult = { correct: false, feedback: "לא", resolved: true, revealed: true, pointsAwarded: 0, attemptsLeft: 0, reveal: { optionId: "o1" } };
     const box = revealedBox(render(challenge, result, "he"), "he");
-    expect(box).toContain('<bdi dir="ltr">1/3 = 3/9</bdi>');
+    expect(box).toContain('<bdi dir="ltr" class="whitespace-nowrap">1/3 = 3/9</bdi>');
     // a multi-line solution keeps its line breaks, and every line is isolated on its own
     const seq: PublicChallenge = { id: "s", title: "סדר", prompt: "p", concept: "c", level: 1, hasHint: false, type: "sequence", items: [{ id: "i1", text: "מחסרים 2: 3x = 12" }, { id: "i2", text: "מחלקים ב־3: x = 4" }] };
     const seqBox = revealedBox(render(seq, { ...result, reveal: { order: ["i1", "i2"] } }, "he"), "he");
-    expect(seqBox).toContain('<bdi dir="ltr">3x = 12</bdi>');
-    expect(seqBox).toContain('<bdi dir="ltr">x = 4</bdi>');
-    expect(seqBox).toMatch(/12<\/bdi>\n<bdi dir="ltr">2<\/bdi>\. מחלקים/);
+    expect(seqBox).toContain('<bdi dir="ltr" class="whitespace-nowrap">3x = 12</bdi>');
+    expect(seqBox).toContain('<bdi dir="ltr" class="whitespace-nowrap">x = 4</bdi>');
+    expect(seqBox).toMatch(/12<\/bdi>\n<bdi dir="ltr" class="whitespace-nowrap">2<\/bdi>\. מחלקים/);
   });
 
   it("English solutions are unchanged (no isolation added to prose)", () => {

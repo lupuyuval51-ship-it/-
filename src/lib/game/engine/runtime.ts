@@ -4,14 +4,14 @@
  */
 import { mechanicsForArea } from "../spec/mechanics";
 import type { PublicSpec } from "../spec/public";
-import { blockingMission, bossPhaseOpen, portalOpen, stationActive, stationDone, type ClientState } from "../state/progress";
+import { blockingStep, bossPhaseOpen, portalOpen, stationActive, stationDone, type ClientState } from "../state/progress";
 import { buildWorld } from "../world/build";
 import type { WorldModel } from "../world/types";
 import { INTERACT_RADIUS, PICKUP_RADIUS } from "./constants";
 import { WorldSim, type SimInput } from "./sim";
 
 export type Interactable =
-  | { kind: "station"; id: string; label: string; stationKind: "challenge" | "lore"; status: "active" | "locked" | "done"; /** Locked because an earlier round of a boss battle is still open. */ lockedByBoss?: boolean; /** The mission to finish next to open it (when missions lock it). */ blockedBy?: string; x: number; z: number }
+  | { kind: "station"; id: string; label: string; stationKind: "challenge" | "lore"; status: "active" | "locked" | "done"; /** Locked because an earlier round of a boss battle is still open. */ lockedByBoss?: boolean; /** What to do next to open it, in the game's words (when missions lock it). */ blockedBy?: string; x: number; z: number }
   | { kind: "npc"; id: string; label: string; x: number; z: number }
   | { kind: "boss"; id: string; label: string; x: number; z: number }
   | { kind: "portal"; id: string; label: string; open: boolean; x: number; z: number };
@@ -140,7 +140,7 @@ export class GameRuntime {
       const done = stationDone(this.client, s.stationId);
       const status = done ? "done" : stationActive(this.spec, this.client, def) ? "active" : "locked";
       const lockedByBoss = status === "locked" && !bossPhaseOpen(this.spec, this.client, s.stationId);
-      const blockedBy = status === "locked" && !lockedByBoss ? blockingMission(this.spec, this.client, def)?.title : undefined;
+      const blockedBy = status === "locked" && !lockedByBoss ? blockingStep(this.spec, this.client, def) ?? undefined : undefined;
       best = { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, lockedByBoss, ...(blockedBy ? { blockedBy } : {}), x: s.x, z: s.z };
       bestD = d;
     }

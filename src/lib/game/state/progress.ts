@@ -200,6 +200,17 @@ export function blockingMission(spec: GameSpec, state: Pick<PlayState, "missions
   return null;
 }
 
+/**
+ * What to do next to open a locked station, in the words of the game: the first unfinished objective of `blockingMission`
+ * ("Talk to the guide"), or that mission's title when every objective is somehow done. Null when missions do not lock it.
+ */
+export function blockingStep(spec: GameSpec, state: ProgressView, station: Station): string | null {
+  const m = blockingMission(spec, state, station);
+  if (!m) return null;
+  const i = m.objectives.findIndex((_, k) => !objectiveProgress(spec, state, m, k).done);
+  return i >= 0 ? m.objectives[i]!.text : m.title;
+}
+
 export function portalOpen(_spec: GameSpec, state: Pick<PlayState, "missionsDone">, area: Area): boolean {
   if (!area.portal) return false;
   return area.portal.requiresMissionIds.every((id) => state.missionsDone.includes(id));

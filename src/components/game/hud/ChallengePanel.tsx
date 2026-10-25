@@ -1,6 +1,6 @@
 "use client";
 
-import { repeatsLabel } from "./result-text";
+import { repeatsLabel, withoutRightLead } from "./result-text";
 import { Fragment, useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { ChevronDown, CircleCheck, CircleX, X } from "lucide-react";
 import { useDir, useT } from "@/components/I18nProvider";
@@ -133,6 +133,8 @@ interface Props {
   stationLabel: string;
   result: AnswerResult | null;
   hint: string | null;
+  /** Practice: a hint costs nothing there, so its button does not say it costs points. */
+  freeHints?: boolean;
   busy: boolean;
   onSubmit: (a: Answer) => void;
   onHint: () => void;
@@ -141,7 +143,7 @@ interface Props {
   embedded?: boolean;
 }
 
-export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose, embedded = false }: Props) {
+export function ChallengePanel({ challenge, stationLabel, result, hint, busy, onSubmit, onHint, onClose, embedded = false, freeHints = false }: Props) {
   const t = useT();
   const resolved = result?.resolved ?? false;
   const ref = useRef<HTMLDivElement>(null);
@@ -184,7 +186,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
     onSubmit(answer);
   };
   // One always-mounted live region: result and hint are announced even though their visible boxes appear later.
-  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) ? "" : result.feedback }).trim() + (result.resolved ? "" : ` ${t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
+  const spoken = result ? t(result.correct ? "a11y.result.correct" : "a11y.result.incorrect", { feedback: repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) ? "" : withoutRightLead(result.feedback, result.correct) }).trim() + (result.resolved ? "" : ` ${t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}`) + (result.explanation ? ` ${t("challenge.explanation")}: ${result.explanation}` : "") : "";
   const setProgram = useCallback((program: Block[]) => setAnswer(program.length ? { type: "program", program } : null), []);
   const setSim = useCallback((params: Record<string, number>) => setAnswer({ type: "simulation", params }), []);
 
@@ -254,7 +256,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
                   {result.correct ? <><CircleCheck aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.correct")}</> : <><CircleX aria-hidden className="inline size-4 align-[-2px]" /> {t("challenge.incorrect")}</>}
                   {result.pointsAwarded > 0 && <span className="ms-2 text-lime">{t("challenge.points", { n: result.pointsAwarded })}</span>}
                 </p>
-                {!repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) && <p dir="auto"><MathText text={result.feedback} /></p>}
+                {!repeatsLabel(result.feedback, t(result.correct ? "challenge.correct" : "challenge.incorrect")) && <p dir="auto"><MathText text={withoutRightLead(result.feedback, result.correct)} /></p>}
                 {!result.resolved && <p className="text-muted">{t(result.attemptsLeft === 1 ? "challenge.attemptsLeft.one" : "challenge.attemptsLeft", { n: result.attemptsLeft })}</p>}
                 {result.revealed && result.reveal && (
                   <div className="space-y-1 rounded-lg bg-ink-900 p-2">
@@ -277,7 +279,7 @@ export function ChallengePanel({ challenge, stationLabel, result, hint, busy, on
         </div>
 
         <footer className={cx("relative z-20 flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-line bg-ink-800", shortLandscape ? "p-2" : lifted ? "p-3" : "p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]")}>
-          {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t("challenge.hint")}</Button> : <span />}
+          {!resolved && challenge.hasHint && !hint ? <Button variant="ghost" size="sm" onClick={onHint} disabled={busy}>{t(freeHints ? "challenge.hintFree" : "challenge.hint")}</Button> : <span />}
           {resolved ? (
             <Button onClick={onClose} data-testid="challenge-close" className="touch-manipulation">{t("challenge.close")}</Button>
           ) : (

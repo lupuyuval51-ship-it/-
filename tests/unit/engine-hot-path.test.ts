@@ -9,7 +9,7 @@ import { INTERACT_RADIUS } from "@/lib/game/engine/constants";
 import { GameRuntime, type Interactable } from "@/lib/game/engine/runtime";
 import { toPublicSpec } from "@/lib/game/spec/public";
 import type { ClientState } from "@/lib/game/state/progress";
-import { blockingMission, bossPhaseOpen, initialState, portalOpen, stationActive, stationDone, toClientState } from "@/lib/game/state/progress";
+import { blockingStep, bossPhaseOpen, initialState, portalOpen, stationActive, stationDone, toClientState } from "@/lib/game/state/progress";
 import { mulberry32 } from "@/lib/game/util/prng";
 import type { WorldBox } from "@/lib/game/world/types";
 import { validDemoSpec } from "./helpers";
@@ -104,7 +104,7 @@ function referenceNearby(rt: GameRuntime): Interactable | null {
     const done = stationDone(rt.client, s.stationId);
     const status = done ? "done" : stationActive(rt.spec, rt.client, def) ? "active" : "locked";
     const lockedByBoss = status === "locked" && !bossPhaseOpen(rt.spec, rt.client, s.stationId);
-    const blockedBy = status === "locked" && !lockedByBoss ? blockingMission(rt.spec, rt.client, def)?.title : undefined;
+    const blockedBy = status === "locked" && !lockedByBoss ? blockingStep(rt.spec, rt.client, def) ?? undefined : undefined;
     consider(Math.hypot(p.x - s.x, p.z - s.z), p.y - s.y, { kind: "station", id: s.stationId, label: s.label, stationKind: s.kind, status, lockedByBoss, ...(blockedBy ? { blockedBy } : {}), x: s.x, z: s.z });
   }
   for (const n of rt.world.npcs) consider(Math.hypot(p.x - n.x, p.z - n.z), p.y - n.y, { kind: "npc", id: n.npcId, label: n.name, x: n.x, z: n.z });

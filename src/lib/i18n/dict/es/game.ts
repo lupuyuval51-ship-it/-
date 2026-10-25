@@ -162,6 +162,7 @@ export const gameEs: Record<keyof typeof game.en, string> = {
   "lore.close": "Cerrar",
   "challenge.check": "Comprobar respuesta",
   "challenge.hint": "Ver pista (−15% de los puntos)",
+  "challenge.hintFree": "Ver pista",
   "challenge.hintShown": "Pista",
   "challenge.attemptsLeft": "Te quedan {n} intentos",
   "challenge.attemptsLeft.one": "Te queda 1 intento",

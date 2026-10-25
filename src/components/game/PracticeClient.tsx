@@ -86,7 +86,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
   return (
     <div className="space-y-3" data-testid="practice">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Link href={reviewLink ?? back} className="text-sm text-muted hover:text-text"><Arrow back /> {t(backHref ? "res.library" : "rev.back")}</Link>
+        <Link href={reviewLink ?? back} className="relative text-sm text-muted before:absolute before:inset-x-0 before:-inset-y-4 before:content-[''] hover:text-text"><Arrow back /> {t(backHref ? "res.library" : "rev.back")}</Link>
         <p className="text-sm font-semibold" data-testid="practice-progress">{t("prac.progress", { n: index + 1, total: items.length })}</p>
       </div>
       <p className="text-xs text-muted">{t("prac.note")}</p>
@@ -94,6 +94,7 @@ export function PracticeClient({ gameId, sessionId, transport = httpTransport, b
         <ChallengePanel
           key={current.id}
           embedded
+          freeHints
           challenge={current}
           stationLabel={t("prac.label")}
           result={result}

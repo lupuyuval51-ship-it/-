@@ -93,7 +93,7 @@ export function interactablePrompt(target: Interactable, t: TFn): { text: string
   if (target.kind === "npc") return { text: t("prompt.npc", { label: target.label }), enabled: true };
   if (target.kind === "boss") return { text: t("prompt.boss", { label: target.label }), enabled: true };
   if (target.kind === "portal") return { text: target.open ? t("prompt.portal", { label: target.label }) : t("prompt.portal.locked", { label: target.label }), enabled: target.open };
-  if (target.status === "done") return { text: t("prompt.station.done", { label: target.label }), enabled: true };
+  if (target.status === "done") return { text: t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.done", { label: target.label }), enabled: true };
   if (target.status === "locked") return { text: lockedText(target, t), enabled: false };
   return { text: t(target.stationKind === "lore" ? "prompt.station.lore" : "prompt.station.active", { label: target.label }), enabled: true };
 }

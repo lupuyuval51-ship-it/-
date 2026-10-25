@@ -124,9 +124,9 @@ describe("maths inside a Hebrew line: a number written into a variable, a bracke
 
   it("sequence steps and matching cards draw their maths left to right", () => {
     const seq: PublicChallenge = { id: "s", title: "סדר", prompt: "p", concept: "c", level: 1, hasHint: false, type: "sequence", items: [{ id: "1", text: "מחסרים 2 משני האגפים: 3x = 12" }, { id: "2", text: "מחלקים ב-3" }] };
-    expect(render(seq)).toContain('<bdi dir="ltr">3x = 12</bdi>');
+    expect(render(seq)).toContain('<bdi dir="ltr" class="whitespace-nowrap">3x = 12</bdi>');
     const match: PublicChallenge = { id: "m", title: "התאמה", prompt: "p", concept: "c", level: 1, hasHint: false, type: "match", lefts: [{ id: "1", text: "משוואה" }], rights: [{ id: "1", text: "כמו 2(x + 1) = 2x + 2" }] };
-    expect(render(match)).toContain('<bdi dir="ltr">2(x + 1) = 2x + 2</bdi>');
+    expect(render(match)).toContain('<bdi dir="ltr" class="whitespace-nowrap">2(x + 1) = 2x + 2</bdi>');
     // English content is untouched: no isolation element is added
     const english: PublicChallenge = { ...match, rights: [{ id: "1", text: "e.g. 2(x + 1) = 2x + 2" }] } as PublicChallenge;
     expect(render(english, "en")).not.toContain("<bdi");
