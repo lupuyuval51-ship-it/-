@@ -432,6 +432,50 @@ h1,h2,.top h1,.sec-h h2,.sess-title,.pl-name,.welcome h2,.sheet-h h2,.ob-q h2,.g
 .adj-l li::before{content:"";position:absolute;inset-inline-start:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--good)}
 .adj.bare{margin-bottom:14px;padding:12px 14px;border:1px solid var(--line,rgba(255,255,255,.14));border-radius:14px}
 .adj .sec-h h2{display:flex;gap:6px;align-items:center;font-size:.95rem}
+
+/* ── v2.3: consumer-fitness look (rings, soft cards, glass tab bar) ── */
+body{background:radial-gradient(120% 60% at 50% -10%,#1b1410 0%,var(--bg) 55%)}
+.top{background:rgba(11,11,12,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)}
+.card{border-radius:22px;background:linear-gradient(180deg,#19191c,#121214);border:1px solid rgba(255,255,255,.07);box-shadow:0 10px 28px rgba(0,0,0,.38)}
+.card.hero.vid{border-radius:28px;min-height:420px;box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.hero-shade{background:linear-gradient(to top,rgba(8,8,9,.98) 22%,rgba(8,8,9,.45) 58%,rgba(8,8,9,.1) 100%)}
+.hero-v{opacity:.8;filter:contrast(1.05)}
+.hero .meta span,.hero-in .meta span{background:rgba(255,255,255,.12);padding:6px 11px;border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#f3f1ec;font-weight:600}
+.hero-in .chip{border-radius:999px;border:0;background:rgba(255,255,255,.1)}
+.sess-title{font-size:3rem;line-height:.95}
+.btn,.btn.sm{border-radius:16px}
+.btn.pri,.btns>.btn.pri{border-radius:18px;clip-path:none;background:linear-gradient(135deg,#ff7a2e,#ff5a0a);box-shadow:0 8px 22px rgba(255,106,26,.4);font-weight:800;letter-spacing:.01em}
+.btn.pri.lg{min-height:56px}
+.pill-btn,.chip{border-radius:999px}
+.kpi{border-radius:18px;background:linear-gradient(180deg,#19191c,#121214);border-color:rgba(255,255,255,.07)}
+.week{gap:4px}
+.wd{border-radius:16px}
+.wd.today{background:linear-gradient(180deg,#ff7a2e,#ff5a0a);color:#fff;box-shadow:0 6px 16px rgba(255,106,26,.35)}
+.wd.today b{color:#fff}
+.wd.today .dot,.wd.today.plan .dot{border-color:rgba(255,255,255,.85)}
+.wd.today.done .dot{background:#fff;color:var(--orange)}
+.wd.done .dot{background:var(--orange);color:#fff}
+.tabs{background:rgba(12,12,13,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.07);border-radius:24px 24px 0 0}
+.tab.on::before{top:8px;left:50%;width:46px;height:30px;transform:translateX(-50%);border-radius:999px;background:var(--orange-soft);height:30px}
+.tab.on{color:var(--orange-hi)}
+.rings{display:grid;grid-template-columns:136px 1fr;gap:18px;align-items:center;padding:18px}
+.rings svg{width:136px;height:136px;display:block}
+.rleg{display:grid;gap:10px}
+.rrow{display:flex;align-items:center;gap:10px}
+.rrow i{width:10px;height:28px;border-radius:5px;flex:none}
+.rrow b{display:block;font:800 1.35rem/1 var(--f-mono);font-style:italic;color:var(--text)}
+.rrow b small{font-size:.8rem;color:var(--dim);font-weight:600}
+.rrow span{font-size:.76rem;color:var(--muted)}
+.ready .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ready .pill-btn{justify-content:center;min-height:46px;border-radius:14px}
+.ready .pill-btn[data-v="1"].on{background:rgba(255,193,69,.16);border-color:var(--warn);color:var(--warn)}
+.ready .pill-btn[data-v="2"].on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4);color:#fff}
+.ready .pill-btn[data-v="3"].on{background:rgba(61,220,151,.16);border-color:var(--good);color:var(--good)}
+.ready.card{padding:14px 16px}
+.ready .sec-h{margin-bottom:2px}.ready .sec-h h2{font-size:1.35rem}
+.adj.card{background:linear-gradient(180deg,rgba(61,220,151,.08),rgba(61,220,151,.02));border-color:rgba(61,220,151,.22)}
+.greet .g1{font-size:2.5rem}
+.li,.set-row{border-radius:16px}
 </style>
 </head>
 <body>
@@ -1446,6 +1490,14 @@ function ladderRows(sel, act) {
 
 /* ═════════════════ Today ═════════════════ */
 function greeting() { const h = new Date().getHours(); return h >= 5 && h < 12 ? t('gm') : h < 17 && h >= 12 ? t('ga') : h >= 17 && h < 22 ? t('ge') : t('gn'); }
+function ringsCard(W, mins, xp, lv) {
+  const P = S.profile, pc = (v, m) => Math.round(clamp(v / Math.max(1, m), 0, 1) * 100);
+  const tgtMin = P.days.length * P.minutes, lvPct = pc(xp - lv.from, lv.to - lv.from), st = weekStreak();
+  const ring = (r, w, pct, c) => `<circle cx="60" cy="60" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="${w}"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" pathLength="100" stroke-dasharray="${Math.max(pct, 1)} 100" transform="rotate(-90 60 60)"/>`;
+  const row = (c, v, l) => `<div class="rrow"><i style="background:${c}"></i><div><b class="ltr">${v}</b><span>${l}</span></div></div>`;
+  return `<div class="card rings"><svg viewBox="0 0 120 120" role="img" aria-label="${t('thisWeek')}">${ring(52, 9, pc(W.done.size, W.plan.length), 'var(--orange)')}${ring(40, 9, pc(mins, tgtMin), 'var(--volt)')}${ring(28, 9, lvPct, '#f1efe9')}</svg>
+<div class="rleg">${row('var(--orange)', `${W.done.size}<small>/${W.plan.length}</small>`, t('sessWeek'))}${row('var(--volt)', `${mins}<small>/${tgtMin}</small>`, t('minWeek'))}${row('#f1efe9', t('levelN', { n: lv.n }), `${xp - lv.from}/${lv.to - lv.from} XP`)}${row('var(--warn)', st, t('kStreak'))}</div></div>`;
+}
 function readyCard() {
   const v = readyNow();
   return `<section class="card ready"><div class="sec-h"><h2>${t('rdT')}</h2></div><p class="note" style="margin:-4px 0 10px">${t('rdS')}</p><div class="chips" role="group" aria-label="${t('rdT')}">${[1, 2, 3].map(k => `<button type="button" class="pill-btn ${v === k ? 'on' : ''}" data-act="ready" data-v="${k}" aria-pressed="${v === k}">${t('rd' + k)}</button>`).join('')}</div></section>`;
@@ -1485,11 +1537,7 @@ ${remindAsk()}
   <button class="btn sm" data-act="tab" data-v="run">${ic('timer')} ${t('goRun')}</button>
   <button class="btn sm" data-act="test" data-v="hang">${ic('hand')} ${t('hangTest')}</button>
 </div>
-<section><div class="sec-h"><h2>${t('thisWeek')}</h2></div><div class="kpis t3">
-  <div class="kpi"><b><span class="ltr">${W.done.size}<span class="dim" style="font-size:.9rem">/${W.plan.length}</span></span></b><span>${t('sessWeek')}</span></div>
-  <div class="kpi"><b>${mins}</b><span>${t('minWeek')}</span></div>
-  <div class="kpi wide"><b>${t('levelN', { n: lv.n })}</b><div class="bar" style="margin:6px 0 4px"><i style="width:${Math.round((xp - lv.from) / (lv.to - lv.from) * 100)}%"></i></div><span class="mono ltr">${xp - lv.from}/${lv.to - lv.from} XP</span></div>
-</div></section>
+<section><div class="sec-h"><h2>${t('thisWeek')}</h2></div>${ringsCard(W, mins, xp, lv)}</section>
 <section><div class="sec-h"><h2>${t('recent')}</h2></div>${historyList(3) || `<div class="empty">${t('noRecent')}</div>`}</section>`;
 }
 
