@@ -584,7 +584,7 @@ he: {
   strNoteL: 'משהו נוסף? כתבו במילים שלכם (לא חובה)', strNoteP: 'למשל: אחיזה טובה והרגליים חזקות מכדורגל', strNoteH: 'זה נשמר בפרופיל, והמאמן החכם רואה את זה כשהוא עונה לכם.',
   myStrengths: 'החוזקות שלי', strLevelL: 'רמת כוח', strLevelN: 'רמה {n} מתוך 10', strSaved: 'רמת הכוח עודכנה', levelPickT: 'רמת כוח (שכיבות סמיכה)',
   strEffect: 'בתחומים שסימנתם העומס מתחיל דרגה אחת מעל, ושכיבות הסמיכה באימונים נבחרות לפי רמת הכוח.',
-  novN: '{n} תרגילים חדשים לעומת הפעם הקודמת', varNote: 'התרגילים מתחלפים בכל שבוע, כך שכל אימון שונה מהקודם.',
+  novN: '{n} תרגילים חדשים לעומת הפעם הקודמת', varNote: 'התרגילים מתחלפים בכל שבוע, כך שכל אימון שונה מהקודם.', varNoteFit: 'התרגילים הראשיים נשארים אותו דבר לאורך 4 שבועות והעומס עולה, ואז הם מתחלפים.', wHidden: '{n} אימונים מוסתרים בגלל הפציעות או הגיל שסימנתם.',
   remT: 'תזכורות לאימון', remS: 'בחרו שעה, ונזכיר לכם בימי האימון שלכם.', remTimeL: 'שעת האימון',
   remCal: 'הוספה ליומן הטלפון', remCalD: 'הדרך המהימנה ביותר: היומן שולח התראה בכל יום אימון, גם כשהאפליקציה סגורה. אחרי ההורדה פותחים את הקובץ והיומן מוסיף את האימונים.', remCalDone: 'קובץ היומן נשמר',
   remBrowser: 'התראות בדפדפן', remBrowserD: 'מופיעות כשהאפליקציה פתוחה, או מותקנת במסך הבית ופעילה ברקע. כשהיא סגורה לגמרי הן לא תמיד מגיעות.',
@@ -758,7 +758,7 @@ en: {
   strNoteL: 'Anything else? Say it in your own words (optional)', strNoteP: 'e.g. good grip, and strong legs from soccer', strNoteH: 'Saved in your profile, and the smart coach sees it when it answers you.',
   myStrengths: 'My strengths', strLevelL: 'Strength level', strLevelN: 'Level {n} of 10', strSaved: 'Strength level updated', levelPickT: 'Strength level (push-ups)',
   strEffect: 'In the areas you mark, load starts one step higher, and the push-up variation in your sessions follows your strength level.',
-  novN: '{n} new exercises since last time', varNote: 'Exercises rotate every week, so each session differs from the last.',
+  novN: '{n} new exercises since last time', varNote: 'Exercises rotate every week, so each session differs from the last.', varNoteFit: 'The main exercises stay the same for 4 weeks while the load rises, then they change.', wHidden: '{n} workouts hidden because of your sore spots or age.',
   remT: 'Training reminders', remS: 'Pick a time and we’ll remind you on your training days.', remTimeL: 'Training time',
   remCal: 'Add to phone calendar', remCalD: 'The most reliable way: your calendar alerts you on every training day, even when the app is closed. After the download, open the file and your calendar adds the sessions.', remCalDone: 'Calendar file saved',
   remBrowser: 'Browser notifications', remBrowserD: 'Shown while the app is open, or installed on your home screen and running in the background. They don’t always arrive when it’s fully closed.',
@@ -1215,7 +1215,7 @@ const READY_RAW = /*@ready-start*/[
 const LIM_EXTRA = {
   wrist: 'pushup pu-tempo pu-wide pu-knee pu-diamond pu-clap pu-archer pu-one-assist pu-one pu-one-clap plank side-plank towel-wring farmer-carry',
   hip: 'lunge-twist split-squat lateral-bounds box-jump broad-jump squat-jump hang-knee toes-bar sprint warped-run',
-  shoulder: 'pushup pu-tempo pu-wide pu-knee pu-diamond pu-clap pu-archer pu-one-assist pu-one pu-one-clap incline-pushup decline-pushup pike-pushup bench-press db-chest-press db-floor-press incline-db-press chest-press-machine pec-fly pullup chinup neg-pullup wide-pullup towel-pullup explosive-pullup lat-pulldown bench-dip',
+  shoulder: 'pushup pu-tempo pu-wide pu-knee pu-diamond pu-clap pu-archer pu-one-assist pu-one pu-one-clap incline-pushup decline-pushup pike-pushup bench-press db-chest-press db-floor-press incline-db-press chest-press-machine pec-fly pullup chinup neg-pullup wide-pullup towel-pullup explosive-pullup lat-pulldown bench-dip shoulder-press-machine rope-climb dead-hang rope-hang towel-hang hang-knee hanging-leg-raise toes-bar hang-switch kip-swing ring-swing ring-traverse lache',
   ankle: 'jacks pogo squat-jump broad-jump box-jump lateral-bounds precision-jumps q-steps sprint warped-run single-leg beam-walk line-walk'
 };
 for (const [area, ids] of Object.entries(LIM_EXTRA)) for (const id of ids.split(' ')) if (EX[id] && !EX[id].avoid.includes(area)) EX[id].avoid.push(area);
@@ -1226,7 +1226,7 @@ const HIGH = new Set([...IMPACT, ...'explosive-pullup kip-swing lache rope-climb
 const MILD_BLOCK = {
   knee: new Set('walking-lunge reverse-lunge lateral-lunge curtsy-lunge bulgarian-split db-lunge split-squat lunge-twist jump-lunge wall-sit step-up db-step-up'.split(' ')),
   back: new Set('deadlift romanian-deadlift barbell-row good-morning kettlebell-swing db-rdl single-leg-rdl'.split(' ')),
-  shoulder: new Set('overhead-press bench-dip pike-pushup db-shoulder-press lateral-raise pec-fly pu-wide pu-clap'.split(' '))
+  shoulder: new Set('overhead-press bench-dip pike-pushup db-shoulder-press shoulder-press-machine lateral-raise pec-fly pu-wide pu-clap pu-diamond pu-archer decline-pushup toes-bar'.split(' '))
 };
 const PREHAB = { shoulder: ['wall-slide', 'ytw'], elbow: ['wrist-stretch'], wrist: ['wrist-stretch'], back: ['cat-cow', 'bird-dog'], hip: ['clam-shell', 'stretch-hip'], knee: ['clam-shell', 'calf-raise'], ankle: ['ankle-circles', 'calf-raise'] };
 // Age rules: level cap, load factor, extra rest in seconds, a full warm-up and no hard landings.
@@ -1318,8 +1318,10 @@ const SEQF = {
   lean:    { 2: ['X','H'], 3: ['X','H','Y'], 4: ['X','H','Y','Z'], 5: ['X','H','Y','Z','K'], 6: ['X','H','Y','Z','K','F'] },
   athlete: { 2: ['V','X'], 3: ['V','X','Z'], 4: ['V','X','Z','K'], 5: ['V','L','P','Z','K'], 6: ['V','L','P','Q','Z','F'] }
 };
-const FIT_SLOT = { abs: ['crunch','bicycle-crunch','leg-raise','plank','reverse-crunch'], glutes: ['glute-bridge','donkey-kick','fire-hydrant','single-leg-bridge','bw-hip-thrust'], legs: ['bw-squat','reverse-lunge','goblet-squat','walking-lunge'], arms: ['db-curl','lateral-raise','pu-diamond','db-tricep-ext'], back: ['superman','db-row','lat-pulldown','band-row'], chest: ['pushup','incline-pushup','db-chest-press','pu-wide'], cardio: ['burpee','high-knees','mountain-climber','shadow-boxing','step-jack'] };
+const FIT_SLOT = { abs: ['crunch','bicycle-crunch','leg-raise','plank','reverse-crunch'], glutes: ['glute-bridge','donkey-kick','fire-hydrant','single-leg-bridge','bw-hip-thrust'], legs: ['bw-squat','reverse-lunge','goblet-squat','walking-lunge'], arms: ['db-curl','lateral-raise','db-tricep-ext','tricep-pushdown'], back: ['superman','db-row','lat-pulldown','band-row'], chest: ['pushup','incline-pushup','db-chest-press','pu-wide'], cardio: ['burpee','high-knees','mountain-climber','shadow-boxing','step-jack'] };
 const planOf = P => (isNinja(P) ? SEQ : SEQF[P.track] || SEQF.general)[clamp(P.days.length, 2, 6)];
+// Safe fillers when an injury strips most of a day: core and gentle lower-body work.
+const FILL = ['plank', 'dead-bug', 'bird-dog', 'glute-bridge', 'bw-squat', 'side-plank', 'crunch', 'calf-raise'];
 const focusSlot = (P, k) => (isNinja(P) ? FOCUS_SLOT : FIT_SLOT)[k] || [];
 
 const TESTS = {
@@ -1539,11 +1541,12 @@ function blocked(ex, P) {
 const eased = (ex, P) => ex.avoid.some(a => a !== 'kid' && P.limits.includes(a) && limLv(P, a) === 1);
 function hasEquip(ex, P) { return ex.eq.every(req => req.split('|').some(q => P.equip.includes(q))); }
 const PUSH_IDS = new Set(PUSH_POOL.flat().map(r => r[0]));
-const pushOk = (e, P) => !PUSH_IDS.has(e.id) || pushPool(P).some(r => r[0] === e.id);
+const PUSH_NEED = { 'decline-pushup': 3, 'pike-pushup': 3 };
+const pushOk = (e, P) => (!PUSH_IDS.has(e.id) || pushPool(P).some(r => r[0] === e.id)) && (PUSH_NEED[e.id] || 0) <= profStrength(P);
 // Pull-ups in a row (profile pull: 0 / 1-3 / 4-8 / 9-15 / 16+) an exercise needs before it is programmed; below that the negative pull-up stands in.
 const PULL_NEED = { pullup: 2, chinup: 2, 'wide-pullup': 2, 'towel-pullup': 3, 'explosive-pullup': 3 };
 const pullOK = (ex, P) => P.pull == null || P.pull >= (PULL_NEED[ex.id] || 0);
-function usable(ex, P, lv) { return !!doseOf(ex, lv) && !blocked(ex, P) && hasEquip(ex, P) && pullOK(ex, P); }
+function usable(ex, P, lv) { return !!doseOf(ex, lv) && !blocked(ex, P) && hasEquip(ex, P) && pullOK(ex, P) && pushOk(ex, P); }
 function scaleAmt(kind, amt, f) {
   if (kind === 't') return Math.max(5, Math.round(amt * f / 5) * 5);
   if (kind === 'r') return Math.max(1, Math.round(amt * f));
@@ -1609,6 +1612,7 @@ function buildSession(P, type, week) {
   } else {
     const n = (T.fit ? FIT_N : MAIN_N)[P.minutes] || 3, main = [];
     for (const slot of T.main) { if (main.length >= n) break; const ex = pick(slot); if (ex) main.push(item(ex, !!T.rec)); }
+    if (!T.rec && main.length < 3) for (const id of FILL) { if (main.length >= 4) break; const ex = EX[id]; if (ex && !used.has(id) && usable(ex, P, lvOf(ex))) { used.add(id); main.push(item(ex)); } }
     blocks.push({ k: 'main', items: main });
     if (!T.rec && P.minutes >= 30) {
       const fc = P.focus.find(x => !T.covers.includes(x));
@@ -1671,7 +1675,7 @@ function buildReady(P, id, week) {
     return circ ? { ex: ex.id, sets: 1, amt, rest: o && o.rest >= 0 ? o.rest : 15 } : { ex: ex.id, sets, amt, rest };
   };
   const swapFor = ex => {
-    const pool = Object.values(EX).filter(e => e.cat === ex.cat && e.id !== ex.id && !used.has(e.id) && !w.items.some(i => i.ex === e.id) && !blocked(e, P) && okEq(e) && dz(e) && pushOk(e, P));
+    const pool = Object.values(EX).filter(e => e.cat === ex.cat && e.id !== ex.id && !used.has(e.id) && !w.items.some(i => i.ex === e.id) && !blocked(e, P) && okEq(e) && dz(e) && pushOk(e, P) && pullOK(e, P));
     const gear = new Set(ex.eq);
     return pool.sort((a, b) => (a.eq.every(q => gear.has(q)) ? 0 : 1) - (b.eq.every(q => gear.has(q)) ? 0 : 1) || (a.side === ex.side ? 0 : 1) - (b.side === ex.side ? 0 : 1))[0] || null;
   };
@@ -1694,7 +1698,7 @@ function buildReady(P, id, week) {
       const free = [...pp.keys()].filter(k => !used.has(k) && !w.items.some(i => i.ex === k));
       if (free.length) { ex = EX[free[pk++ % free.length]]; o = { sets: 0, amt: 0, rest: -1 }; }
     }
-    if (blocked(ex, P)) { const alt = swapFor(ex); if (!alt) { dropped++; continue; } swapped++; ex = alt; o = { sets: 0, amt: 0, rest: -1 }; }
+    if (blocked(ex, P) || !pushOk(ex, P) || !pullOK(ex, P)) { const alt = swapFor(ex); if (!alt) { dropped++; continue; } swapped++; ex = alt; o = { sets: 0, amt: 0, rest: -1 }; }
     used.add(ex.id); const it = item(ex, o, false, w.rounds > 0); if (it) main.push(it);
   }
   if (w.rounds > 0) blocks.push({ k: 'circuit', rounds: clamp(w.rounds - (rd === 1 ? 1 : 0), 2, 6), roundRest: 45, items: main });
@@ -1951,9 +1955,15 @@ const workCover = w => (WORK_MAP ? WORK_MAP['w-' + w.id] || '' : 'workouts/w/' +
 const hasJumps = sess => sess.blocks.some(b => b.items.some(i => IMPACT.has(i.ex)));
 const wLevel = P => clamp(P.level, 0, 2), wCap = P => (isMinor(P) ? 1 : 2);
 function wPlaceOf(P) { return UI.wp || (P.places.includes('home') ? 'home' : P.places.includes('gym') ? 'gym' : 'all'); }
+const readyFits = (P, w) => {
+  if (!P.limits.length && P.age !== 0 && P.age !== 1 && P.age !== 4) return true;
+  const base = mainCount(buildSession(Object.assign({}, P, { limits: [], limLv: {}, age: 2 }), 'R:' + w.id, 1));
+  return mainCount(buildSession(P, 'R:' + w.id, 1)) >= Math.min(3, base);
+};
 function wList(P) {
   const nj = isNinja(P), place = wPlaceOf(P), cat = UI.wc || 'all', q = (UI.wq || '').trim().toLowerCase(), fav = S.prefs.favW || [], wl = wLevel(P), cap = wCap(P);
   let list = READY.filter(w => (nj || w.place !== 'ninja') && w.lvl <= cap && (place === 'all' || w.place === place) && (cat === 'all' || (cat === 'glutes' ? isGlute(w) : w.cat === cat)) && (!UI.wfav || fav.includes(w.id)) && (!q || (w.name.en + ' ' + w.name.he + ' ' + w.desc.en).toLowerCase().includes(q)));
+  list = list.filter(w => readyFits(P, w));
   if (UI.wt) list = list.filter(w => buildSession(P, 'R:' + w.id, 1).est <= 20);
   return list.map((w, i) => [w, i]).sort((a, b) => Math.abs(a[0].lvl - wl) - Math.abs(b[0].lvl - wl) || a[1] - b[1]).map(x => x[0]);
 }
@@ -1962,7 +1972,7 @@ function wCard(w, cls = '') {
   const fav = (S.prefs.favW || []).includes(w.id);
   return `<button class="wcard ${cls}" data-act="ready-sheet" data-v="${w.id}" style="--g1:${g[0]};--g2:${g[1]}"><span class="wc-img">${src ? `<img src="${esc(src)}" data-fb="${esc(fb)}" alt="" loading="lazy" data-hide="1">` : ''}<span class="wc-ic">${ic(W_ICON[w.cat])}</span><span class="wc-min">${t('minShort', { m: sess.est })}</span>${hasJumps(sess) ? `<span class="wc-j" title="${esc(t('wJumpsLong'))}">${ic('bolt')}</span>` : ''}${fav ? `<span class="wc-fav">${ic('heart')}</span>` : ''}</span><span class="wc-b"><b>${esc(L(w.name))}</b><small>${t('wl' + w.lvl)} · ${t('nEx', { n: mainCount(sess) })}</small></span></button>`;
 }
-const wGrid = P => { const list = wList(P); return list.length ? `<div class="wgrid">${list.map(w => wCard(w)).join('')}</div>` : `<div class="empty">${t('wEmpty')}</div>`; };
+const wGrid = P => { const list = wList(P), hid = READY.filter(w => (isNinja(P) || w.place !== 'ninja') && w.lvl <= wCap(P) && !readyFits(P, w)).length; return (list.length ? `<div class="wgrid">${list.map(w => wCard(w)).join('')}</div>` : `<div class="empty">${t('wEmpty')}</div>`) + (hid ? `<p class="note" style="margin-top:10px">${t('wHidden', { n: hid })}</p>` : ''); };
 function vWorkouts() {
   const P = S.profile, nj = isNinja(P), place = wPlaceOf(P), cat = UI.wc || 'all';
   const places = ['all', 'home', 'gym', ...(nj ? ['ninja'] : [])];
@@ -1977,7 +1987,7 @@ ${nj ? `<div class="hscroll fl"><button class="btn sm" data-act="tab" data-v="ru
 }
 function quickPicks(P) {
   const nj = isNinja(P), place = homePlace(P), day = Math.floor(Date.now() / DAY), wl = wLevel(P), cap = wCap(P);
-  const pickOf = (cat, pl) => { const c = READY.filter(w => w.cat === cat && w.place === pl && w.lvl <= Math.min(cap, wl + (wl === 0 ? 1 : 0)) && w.lvl >= wl - 1); return c.length ? c[day % c.length] : null; };
+  const pickOf = (cat, pl) => { const c = READY.filter(w => readyFits(P, w) && w.cat === cat && w.place === pl && w.lvl <= Math.min(cap, wl + (wl === 0 ? 1 : 0)) && w.lvl >= wl - 1); return c.length ? c[day % c.length] : null; };
   const picks = (nj ? [pickOf('ninja', 'ninja')] : []).concat(['full', 'abs', 'cardio', 'legs', 'upper', 'women', 'stretch'].map(c => pickOf(c, place))).filter(Boolean).slice(0, 6);
   return `<section><div class="sec-h"><h2>${t('quickT')}</h2><button class="act" data-act="tab" data-v="workouts">${t('seeAll')}</button></div><div class="hscroll hw">${picks.map(w => wCard(w, 'sm')).join('')}</div></section>`;
 }
@@ -2007,7 +2017,7 @@ function vPlan() {
 <div style="margin-top:14px"><span class="lbl note">${t('changeLevel')}</span><div class="chips" style="margin-top:6px">${[0, 1, 2, 3].filter(i => i <= ageMods(P).cap).map(i => `<button class="pill-btn ${P.level === i ? 'on' : ''}" data-act="set-level" data-v="${i}" aria-pressed="${P.level === i}">${t('lvl' + i)}</button>`).join('')}</div></div>
 ${adapt.length ? `<p class="note" style="margin-top:10px">${t('adaptL', { p: adapt.map(([k, v]) => `${L(tpl(k).name)} ${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`).join(' · ') })}</p>` : ''}</section>
 <section><div class="sec-h"><h2>${t('cycle')}</h2></div><div style="display:flex;gap:8px;align-items:flex-end">${cyc}</div><p class="note" style="margin-top:8px">${t('cycleNote')}</p></section>
-<section><div class="sec-h"><h2>${t('weekSess')}</h2></div><div class="card" style="padding-block:4px"><div class="list">${list}</div></div><p class="note" style="margin-top:8px">${t('varNote')}</p></section>
+<section><div class="sec-h"><h2>${t('weekSess')}</h2></div><div class="card" style="padding-block:4px"><div class="list">${list}</div></div><p class="note" style="margin-top:8px">${t(isNinja(P) ? 'varNote' : 'varNoteFit')}</p></section>
 <section><div class="sec-h"><h2>${t('library')}</h2></div><div class="hscroll" style="margin-bottom:10px">${cats.map(c => `<button class="pill-btn ${UI.libCat === c ? 'on' : ''}" data-act="lib-cat" data-v="${c}" aria-pressed="${UI.libCat === c}">${c === 'all' ? t('all') : t('cat_' + c)}</button>`).join('')}</div><div class="card" style="padding-block:4px"><div class="list">${lib}</div></div></section>`;
 }
 const CAT_ICON = { glutes: 'flame', arms: 'dumbbell', cardio: 'bolt', warm: 'flame', grip: 'hand', pull: 'up', push: 'dumbbell', core: 'shield', legs: 'bolt', balance: 'target', swing: 'rings', cool: 'leaf' };
@@ -2568,7 +2578,8 @@ const SHEETS = {
   },
   swap: () => {
     const p = UI.ov, st = curStep(), cur = EX[st.ex], P = S.profile, lv = tpl(p.type).rec ? 0 : P.level;
-    const alts = Object.values(EX).filter(e => e.cat === cur.cat && e.id !== cur.id && (usable(e, P, lv) || (e.cat === 'warm' || e.cat === 'cool') && hasEquip(e, P) && !blocked(e, P)) && pushOk(e, P));
+    const swapCats = cur.cat === 'legs' || cur.cat === 'glutes' ? ['legs', 'glutes'] : [cur.cat];
+    const alts = Object.values(EX).filter(e => swapCats.includes(e.cat) && e.id !== cur.id && (usable(e, P, lv) || (e.cat === 'warm' || e.cat === 'cool') && hasEquip(e, P) && !blocked(e, P)) && pushOk(e, P));
     return { title: t('swapT'), body: `<p class="note">${t('swapS')}</p>${alts.length ? `<div class="list">${alts.map(e => `<button class="li" data-act="pl-swapto" data-v="${e.id}"><span class="badge-ic">${ic(CAT_ICON[e.cat])}</span><span class="grow"><span class="t">${esc(L(e.name))}</span><span class="s">${esc(L(e.cue))}</span></span></button>`).join('')}</div>` : `<div class="empty">${t('noAlt')}</div>`}` };
   },
   course: d => {
