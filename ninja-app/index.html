@@ -1675,7 +1675,8 @@ function buildReady(P, id, week) {
     return circ ? { ex: ex.id, sets: 1, amt, rest: o && o.rest >= 0 ? o.rest : 15 } : { ex: ex.id, sets, amt, rest };
   };
   const swapFor = ex => {
-    const pool = Object.values(EX).filter(e => e.cat === ex.cat && e.id !== ex.id && !used.has(e.id) && !w.items.some(i => i.ex === e.id) && !blocked(e, P) && okEq(e) && dz(e) && pushOk(e, P) && pullOK(e, P));
+    const lg = ex.cat === 'legs' || ex.cat === 'glutes';
+    const pool = Object.values(EX).filter(e => (lg ? e.cat === 'legs' || e.cat === 'glutes' : e.cat === ex.cat) && e.id !== ex.id && !used.has(e.id) && !w.items.some(i => i.ex === e.id) && !blocked(e, P) && okEq(e) && dz(e) && pushOk(e, P) && pullOK(e, P));
     const gear = new Set(ex.eq);
     return pool.sort((a, b) => (a.eq.every(q => gear.has(q)) ? 0 : 1) - (b.eq.every(q => gear.has(q)) ? 0 : 1) || (a.side === ex.side ? 0 : 1) - (b.side === ex.side ? 0 : 1))[0] || null;
   };
