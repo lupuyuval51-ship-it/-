@@ -476,6 +476,9 @@ body{background:radial-gradient(120% 60% at 50% -10%,#1b1410 0%,var(--bg) 55%)}
 .adj.card{background:linear-gradient(180deg,rgba(61,220,151,.08),rgba(61,220,151,.02));border-color:rgba(61,220,151,.22)}
 .greet .g1{font-size:2.5rem}
 .li,.set-row{border-radius:16px}
+/* grid rows may shrink below their content, so long labels ellipsize instead of widening the page */
+.list{grid-template-columns:minmax(0,1fr)}.list>*,.li{min-width:0}
+.wrap{grid-template-columns:minmax(0,1fr)}.wrap>*{min-width:0}
 </style>
 </head>
 <body>
