@@ -1773,6 +1773,7 @@ function setInert() {
 }
 function render() {
   relocalizeDefaultCourse();
+  if (NINJA_ONLY && S.profile && (S.profile.track !== 'ninja' || !S.profile.ninja)) { const P0 = S.profile; P0.track = 'ninja'; P0.ninja = true; P0.focus = (P0.focus || []).filter(f => FOCI.includes(f)); if (!P0.focus.length) P0.focus = ['grip']; } // a profile saved by the general-fitness edition moves into ninja mode
   if (S.profile && S.profile.level > ageMods(S.profile).cap) S.profile.level = ageMods(S.profile).cap; // minors never run above their age cap, whatever an old backup or a tap says
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
