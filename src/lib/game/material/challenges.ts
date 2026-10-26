@@ -803,7 +803,8 @@ function stepCandidates(groups: string[][], titles: (string | undefined)[], t: T
           ? t(`Put the steps of “${clip(name, 120)}” from your material in the right order.`, `סדרו את השלבים של ״${clip(name, 120)}״ מתוך החומר שלכם בסדר הנכון.`)
           : t("Put these steps from your material in the right order.", "סדרו את השלבים האלה מתוך החומר שלכם בסדר הנכון."),
         hint: t(`The first step starts with “${first}…”.`, `השלב הראשון מתחיל ב״${first}…״.`),
-        explanation: clip(items.map((x, i) => `${i + 1}. ${x}`).join("  "), 600),
+        // one line on every screen that shows it: the steps are told apart by " · ", not by spaces a paragraph swallows
+        explanation: clip(items.map((x, i) => `${i + 1}. ${x}`).join(" · "), 600),
       }),
     };
   });
