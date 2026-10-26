@@ -655,7 +655,7 @@ he: {
   // blocks / types
   bk_warm: 'חימום', bk_main: 'עיקר האימון', bk_focus: 'מיקוד אישי', bk_obst: 'תרגול מכשולים', bk_circuit: 'מעגל', bk_cool: 'שחרור',
   rounds: '{n} סבבים', perSide: 'לכל צד',
-  uSec: 'ש׳', uReps: 'חזרות', uRep1: 'חזרה אחת', uM: 'מ׳', uLen: 'מעברים', uLen1: 'מעבר אחד',
+  uSec: 'שנ׳', uReps: 'חזרות', uRep1: 'חזרה אחת', uM: 'מ׳', uLen: 'מעברים', uLen1: 'מעבר אחד',
   cat_warm: 'חימום', cat_grip: 'אחיזה', cat_pull: 'משיכה', cat_push: 'דחיפה', cat_core: 'ליבה', cat_legs: 'רגליים', cat_balance: 'איזון', cat_swing: 'תנופה', cat_cool: 'שחרור',
   // player
   setOf: 'סט {s} מתוך {n}', roundOf: 'סבב {s} מתוך {n}', go: 'התחילו', doneBtn: 'סיימתי', stopEarly: 'סיום מוקדם',
@@ -1375,6 +1375,16 @@ function defaultCourse() {
   const names = t('defObs').split('|');
   return { id: 'c-default', name: t('defCourse'), sx: 22, sy: 148, obs: names.map((n, i) => ({ id: rid(), name: n, ...autoPos(i, names.length) })) };
 }
+// The built-in course is created in whatever language was active at first launch; follow the language while it is still untouched.
+function relocalizeDefaultCourse() {
+  const c = S.courses.find(x => x.id === 'c-default'); if (!c) return;
+  const names = t('defObs').split('|');
+  for (const l of Object.keys(DICT)) {
+    if (l === lang) continue;
+    const a = DICT[l].defObs.split('|');
+    if (c.name === DICT[l].defCourse && c.obs.length === a.length && c.obs.every((o, i) => o.name === a[i])) { c.name = t('defCourse'); c.obs.forEach((o, i) => { o.name = names[i]; }); touchCourses(); return; }
+  }
+}
 function autoPos(i, n) { const x = n > 1 ? 70 + i * (210 / (n - 1)) : 150; return { x: Math.round(x), y: i % 2 ? 46 : 112 - (i % 3) * 8 }; }
 function blank() { return { v: 1, profile: null, prefs: { lang: 'en', sound: true, vibe: true, countdown: true, remindOn: false, remindTime: '18:00', remindAsked: false }, courses: [], logs: {}, meta: { pu: 0, cu: 0, resetAt: 0 } }; }
 let S = blank();
@@ -1760,6 +1770,7 @@ function setInert() {
   $('#ov').inert = !!(UI.ov && UI.sheet);
 }
 function render() {
+  relocalizeDefaultCourse();
   if (S.profile && S.profile.level > ageMods(S.profile).cap) S.profile.level = ageMods(S.profile).cap; // minors never run above their age cap, whatever an old backup or a tap says
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
