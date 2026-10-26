@@ -617,6 +617,7 @@ he: {
   wl0: 'מתחילים', wl1: 'בינוניים', wl2: 'מתקדמים', wNeeds: 'צריך', wMissing: 'לא ברשימת הציוד שלכם', wNoEq: 'בלי ציוד', wEmpty: 'אין אימונים בסינון הזה.', wCount: '{n} אימונים',
   quickT: 'להתחיל עכשיו', seeAll: 'לכל האימונים', adj_swap: '{n} תרגילים הוחלפו או הוסרו בגלל הפציעות שסימנתם.',
   wSubN: 'אימוני נינג׳ה מוכנים, תוכנית אישית, אחיזה, משיכות וסטופר מסלול. מתחילים בלחיצה אחת.', wSkipN: 'רק תראו לי אימוני נינג׳ה',
+  moreN: 'עוד {n}',
   wSkip: 'רק תראו לי אימונים', ninjaSw: 'אני מתאמן נינג׳ה', ninjaSwD: 'פותח מסלולים, אחיזה ותוכנית נינג׳ה מלאה', trackL: 'מסלול אימון', personalize: 'התאמה אישית של התוכנית', personalizeD: 'עונים על כמה שאלות והתוכנית מתאימה לכם: יעד, ציוד, פציעות וגיל.', quickNote: 'האימונים כרגע כלליים. אפשר להתאים אותם אליכם בכל רגע.',
   qTrack: 'מה אתם מתאמנים?', qTrackS: 'אפשר לשנות בכל רגע בפרופיל.',
   tr_general: 'כושר כללי', tr_generald: 'להיות חזקים, בריאים ובכושר', tr_muscle: 'בניית שריר', tr_muscled: 'פיצול דחיפה, משיכה ורגליים', tr_lean: 'חיטוב ושריפת שומן', tr_leand: 'כוח ומעגלים להורדת אחוזי שומן', tr_athlete: 'ספורטאי', tr_athleted: 'כוח, פיצוץ וסיבולת לספורט', tr_ninja: 'נינג׳ה ווריור', tr_ninjad: 'אחיזה, משיכות, מסלולים ומכשולים',
@@ -798,6 +799,7 @@ en: {
   wl0: 'Beginner', wl1: 'Intermediate', wl2: 'Advanced', wNeeds: 'Needs', wMissing: 'not in your equipment list', wNoEq: 'No equipment', wEmpty: 'No workouts match this filter.', wCount: '{n} workouts',
   quickT: 'Start now', seeAll: 'See all', adj_swap: '{n} exercises were swapped or removed because of the injuries you marked.',
   wSubN: 'Ready-made ninja workouts, a personal program, grip, pulls and a course timer. Start in one tap.', wSkipN: 'Just show me ninja workouts',
+  moreN: 'Show {n} more',
   wSkip: 'Just show me workouts', ninjaSw: 'I train ninja warrior', ninjaSwD: 'Unlocks courses, grip work and the full ninja program', trackL: 'Training track', personalize: 'Personalize my plan', personalizeD: 'Answer a few questions and your plan fits you: goal, equipment, injuries and age.', quickNote: 'These workouts are general for now. You can tailor them to you any time.',
   qTrack: 'What are you training for?', qTrackS: 'You can change this any time in your profile.',
   tr_general: 'General fitness', tr_generald: 'Get strong, healthy and fit', tr_muscle: 'Build muscle', tr_muscled: 'Push, pull and legs split', tr_lean: 'Get lean', tr_leand: 'Strength and circuits to burn fat', tr_athlete: 'Athlete', tr_athleted: 'Strength, power and conditioning for sport', tr_ninja: 'Ninja warrior', tr_ninjad: 'Grip, pulls, courses and obstacles',
@@ -2040,11 +2042,12 @@ function vPlan() {
     return `<button class="li" data-act="sess-sheet" data-type="${ty}" data-idx="${i}"><span class="badge-ic ${st === 'done' ? 'g' : st === 'next' ? 'o' : ''}">${ic(st === 'done' ? 'check' : tpl(ty).icon)}</span><span class="grow"><span class="t">${esc(L(tpl(ty).name))}</span><span class="s">${esc(DAYS_LONG()[P.days[i]] || '')} · ${t('aboutMin', { m: sess.est })} · ${t('nEx', { n: mainCount(sess) })}</span></span><span class="chip ${st === 'done' ? 'good' : st === 'next' ? 'orange' : ''}">${t(st === 'done' ? 'stDone' : st === 'next' ? 'stNext' : 'stLater')}</span></button>`;
   }).join('');
   const cats = isNinja(P) ? ['all', 'grip', 'pull', 'push', 'core', 'legs', 'glutes', 'arms', 'cardio', 'balance', 'swing', 'warm', 'cool'] : ['all', 'legs', 'glutes', 'push', 'pull', 'arms', 'core', 'cardio', 'warm', 'cool'];
-  const lib = Object.values(EX).filter(e => UI.libCat === 'all' || e.cat === UI.libCat).map(e => {
+  const libAll = Object.values(EX).filter(e => UI.libCat === 'all' || e.cat === UI.libCat), libN = UI.libN || 24;
+  const lib = libAll.slice(0, libN).map(e => {
     const ok = usable(e, P, P.level) || (e.cat === 'warm' || e.cat === 'cool') && hasEquip(e, P) && !blocked(e, P);
     const why = blocked(e, P) ? t('notForYou') : !hasEquip(e, P) ? t('missing') : '';
     return `<button class="li" data-act="ex-sheet" data-v="${e.id}"><span class="badge-ic ${ok ? '' : 'd'}">${ic(CAT_ICON[e.cat])}</span><span class="grow"><span class="t">${esc(L(e.name))}</span><span class="s">${t('cat_' + e.cat)}${why ? ' · ' + why : ''}</span></span>${ic('chev', 'flip dim')}</button>`;
-  }).join('');
+  }).join('') + (libAll.length > libN ? `<button class="btn block" style="margin-top:10px" data-act="lib-more">${t('moreN', { n: Math.min(24, libAll.length - libN) })}</button>` : '');
   return `<section class="card"><div class="row" style="align-items:flex-start"><div class="grow"><div class="eyebrow">${t('levelL')}: ${t('lvl' + P.level)}</div><h2 style="font-size:1.3rem;margin-top:4px">${t('planN', { n: W.plan.length })}</h2></div><button class="btn sm" data-act="edit-ob">${ic('edit')} ${t('editAnswers')}</button></div>
 <div class="chips" style="margin-top:12px"><span class="chip">${ic('clock')}${t('minN', { n: P.minutes })}</span><span class="chip blue">${ic('dumbbell')}${t('strLevelL')}: <span class="ltr">${profStrength(P)}/10</span></span><span class="chip">${ic('target')}${t('tr_' + (P.track || 'ninja'))}</span>${(P.strengths || []).map(k => `<span class="chip good">${ic('check')}${t('st_' + k)}</span>`).join('')}${P.focus.map(f => `<span class="chip orange">${ic(FOCUS_ICON[f])}${focusName(P, f)}</span>`).join('')}</div>
 <div style="margin-top:14px"><span class="lbl note">${t('changeLevel')}</span><div class="chips" style="margin-top:6px">${[0, 1, 2, 3].filter(i => i <= ageMods(P).cap).map(i => `<button class="pill-btn ${P.level === i ? 'on' : ''}" data-act="set-level" data-v="${i}" aria-pressed="${P.level === i}">${t('lvl' + i)}</button>`).join('')}</div></div>
@@ -2058,7 +2061,7 @@ function foodList() {
   const q = (UI.foodQ || '').trim().toLowerCase(), cat = UI.foodCat || 'all', tags = UI.foodTags || [], fav = S.prefs.favFood || [];
   const list = DISHES.filter(d => (cat === 'all' || (cat === 'fav' ? fav.includes(d.id) : d.cat === cat)) && tags.every(g => d.tags.includes(g))
     && (!q || [d.name.he, d.name.en, d.ing.he, d.ing.en].some(x => x.toLowerCase().includes(q))));
-  return `<p class="dim food-count" aria-live="polite">${t('foodN', { n: list.length })}</p>` + (list.length ? `<div class="fgrid">${list.map(dishCard).join('')}</div>` : `<div class="empty">${t('foodNone')}</div>`);
+  return `<p class="dim food-count" aria-live="polite">${t('foodN', { n: list.length })}</p>` + (list.length ? `<div class="fgrid">${list.slice(0, UI.foodN || 36).map(dishCard).join('')}</div>${list.length > (UI.foodN || 36) ? `<button class="btn block" style="margin-top:12px" data-act="food-more">${t('moreN', { n: Math.min(36, list.length - (UI.foodN || 36)) })}</button>` : ''}` : `<div class="empty">${t('foodNone')}</div>`);
 }
 const dishCard = d => `<button class="fcard" data-act="dish" data-v="${d.id}"><span class="fimg"><img src="${esc(foodSrc(d.id))}" alt="" loading="lazy" decoding="async"></span><span class="fname">${esc(L(d.name))}</span><span class="fmeta">${S.profile && isMinor(S.profile) ? d.tags.slice(0, 2).map(g => t('ft_' + g)).join(' · ') : `<b class="ltr">${d.kcal}</b> ${t('kcal')} · <b class="ltr">${d.p}</b>${t('gProt')}`}</span></button>`;
 function dayPicks() {
@@ -2763,7 +2766,8 @@ const ACT = {
   'sess-sheet': a => openSheet('session', { type: a.dataset.type, idx: a.dataset.idx }),
   'ex-sheet': a => openSheet('exercise', { id: a.dataset.v }),
   'vid-toggle': a => { const v = a.querySelector('video'); if (!v) return; if (v.paused) { v.play().catch(() => {}); a.classList.remove('paused'); } else { v.pause(); a.classList.add('paused'); } },
-  'lib-cat': a => { UI.libCat = a.dataset.v; renderMain(); },
+  'lib-cat': a => { UI.libCat = a.dataset.v; UI.libN = 24; renderMain(); },
+  'lib-more': () => { UI.libN = (UI.libN || 24) + 24; renderMain(); },
   'ready-sheet': a => openSheet('ready', { id: a.dataset.v }),
   'work-place': a => { UI.wp = a.dataset.v; renderMain(); },
   'work-cat': a => { UI.wc = a.dataset.v; renderMain(); },
@@ -2844,8 +2848,9 @@ const ACT = {
   'discard-active': () => { clearActive(); renderMain(); },
   dish: a => openSheet('dish', { id: a.dataset.v }),
   'dish-fav': a => { const P = S.prefs, id = a.dataset.v; P.favFood = P.favFood || []; const i = P.favFood.indexOf(id); if (i >= 0) P.favFood.splice(i, 1); else P.favFood.push(id); touchProfile(); renderSheet(); if (UI.tab === 'food') { const fl = $('#foodList'); if (fl) fl.innerHTML = foodList(); } },
-  'food-cat': a => { UI.foodCat = a.dataset.v; renderMain(); },
-  'food-tag': a => { const g = a.dataset.v; UI.foodTags = UI.foodTags || []; const i = UI.foodTags.indexOf(g); if (i >= 0) UI.foodTags.splice(i, 1); else UI.foodTags.push(g); renderMain(); },
+  'food-more': () => { UI.foodN = (UI.foodN || 36) + 36; const fl = $('#foodList'); if (fl) fl.innerHTML = foodList(); },
+  'food-cat': a => { UI.foodCat = a.dataset.v; UI.foodN = 36; renderMain(); },
+  'food-tag': a => { const g = a.dataset.v; UI.foodTags = UI.foodTags || []; const i = UI.foodTags.indexOf(g); if (i >= 0) UI.foodTags.splice(i, 1); else UI.foodTags.push(g); UI.foodN = 36; renderMain(); },
   'food-shuffle': () => { UI.foodSeed = (UI.foodSeed || 0) + 1; renderMain(); },
   'pl-rpe': a => { UI.ov.rpe = +a.dataset.v; const note = $('#plNote'); if (note) UI.ov.note = note.value; renderOv(); },
   'pl-save': () => { const note = $('#plNote'); if (note) UI.ov.note = note.value; savePlayer(); },
@@ -2907,7 +2912,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('input', e => {
   const b = e.target.dataset && e.target.dataset.bind; if (!b) return;
-  if (b === 'food-q') { UI.foodQ = e.target.value; const fl = $('#foodList'); if (fl) fl.innerHTML = foodList(); return; }
+  if (b === 'food-q') { UI.foodQ = e.target.value; UI.foodN = 36; const fl = $('#foodList'); if (fl) fl.innerHTML = foodList(); return; }
   if (b === 'ob-name' && UI.ov) UI.ov.ans.name = e.target.value;
   if (b === 'pl-note' && UI.ov) UI.ov.note = e.target.value;
   if (b === 'c-name' && UI.sheet) UI.sheet.data.draft.name = e.target.value;
