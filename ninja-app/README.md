@@ -46,3 +46,14 @@ The program and the injury handling are general guidance, not treatment. Stop if
 ## Ninja-only edition
 
 `index.html` has a build flag, `const NINJA_ONLY = /*@ninja-only*/false;`. Setting it to `true` (replace `false` with `true` in a copy) locks ninja mode on: no track question, no ninja switch or track chips in Profile, Workouts lists only the 12 ninja sessions, and the welcome copy is ninja-specific. The Android build for it uses the package `com.ninjacircuit.ninja` (set `applicationId`, `appId` and the strings), so it is a separate store listing from the general-fitness app.
+
+## Development
+
+```
+npm install            # eslint and playwright (dev only; the app itself has no dependencies)
+npm run lint           # static check of the app script (undefined names, duplicate keys, unreachable code)
+npm test               # 17 browser suites: programs, injuries, ages, workouts, nutrition targets, ninja edition, a 292-view crawl and a 76,800-session stress run
+npm run build          # dist/fitness and dist/ninja, ready to wrap with Capacitor
+```
+
+Tests build `index.test.html` and `index.ninja.html` (with a `window.__eval` hook) next to `index.html`; both are git-ignored and removed by the runner. Run one suite with `node tests/run.cjs week-flow`.
