@@ -42,3 +42,7 @@ Serve this folder over https and open it on the phone. `manifest.webmanifest`, `
 ## This is not medical advice
 
 The program and the injury handling are general guidance, not treatment. Stop if something hurts and see a professional.
+
+## Ninja-only edition
+
+`index.html` has a build flag, `const NINJA_ONLY = /*@ninja-only*/false;`. Setting it to `true` (replace `false` with `true` in a copy) locks ninja mode on: no track question, no ninja switch or track chips in Profile, Workouts lists only the 12 ninja sessions, and the welcome copy is ninja-specific. The Android build for it uses the package `com.ninjacircuit.ninja` (set `applicationId`, `appId` and the strings), so it is a separate store listing from the general-fitness app.

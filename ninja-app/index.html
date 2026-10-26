@@ -616,6 +616,7 @@ he: {
   wc_all: 'הכול', wc_full: 'כל הגוף', wc_abs: 'בטן', wc_legs: 'רגליים וישבן', wc_upper: 'פלג גוף עליון', wc_cardio: 'קרדיו', wc_women: 'לנשים', wc_stretch: 'מתיחות', wc_ninja: 'נינג׳ה',
   wl0: 'מתחילים', wl1: 'בינוניים', wl2: 'מתקדמים', wNeeds: 'צריך', wMissing: 'לא ברשימת הציוד שלכם', wNoEq: 'בלי ציוד', wEmpty: 'אין אימונים בסינון הזה.', wCount: '{n} אימונים',
   quickT: 'להתחיל עכשיו', seeAll: 'לכל האימונים', adj_swap: '{n} תרגילים הוחלפו או הוסרו בגלל הפציעות שסימנתם.',
+  wSubN: 'אימוני נינג׳ה מוכנים, תוכנית אישית, אחיזה, משיכות וסטופר מסלול. מתחילים בלחיצה אחת.', wSkipN: 'רק תראו לי אימוני נינג׳ה',
   wSkip: 'רק תראו לי אימונים', ninjaSw: 'אני מתאמן נינג׳ה', ninjaSwD: 'פותח מסלולים, אחיזה ותוכנית נינג׳ה מלאה', trackL: 'מסלול אימון', personalize: 'התאמה אישית של התוכנית', personalizeD: 'עונים על כמה שאלות והתוכנית מתאימה לכם: יעד, ציוד, פציעות וגיל.', quickNote: 'האימונים כרגע כלליים. אפשר להתאים אותם אליכם בכל רגע.',
   qTrack: 'מה אתם מתאמנים?', qTrackS: 'אפשר לשנות בכל רגע בפרופיל.',
   tr_general: 'כושר כללי', tr_generald: 'להיות חזקים, בריאים ובכושר', tr_muscle: 'בניית שריר', tr_muscled: 'פיצול דחיפה, משיכה ורגליים', tr_lean: 'חיטוב ושריפת שומן', tr_leand: 'כוח ומעגלים להורדת אחוזי שומן', tr_athlete: 'ספורטאי', tr_athleted: 'כוח, פיצוץ וסיבולת לספורט', tr_ninja: 'נינג׳ה ווריור', tr_ninjad: 'אחיזה, משיכות, מסלולים ומכשולים',
@@ -796,6 +797,7 @@ en: {
   wc_all: 'All', wc_full: 'Full body', wc_abs: 'Abs', wc_legs: 'Legs & glutes', wc_upper: 'Upper body', wc_cardio: 'Cardio', wc_women: 'Women', wc_stretch: 'Stretch', wc_ninja: 'Ninja',
   wl0: 'Beginner', wl1: 'Intermediate', wl2: 'Advanced', wNeeds: 'Needs', wMissing: 'not in your equipment list', wNoEq: 'No equipment', wEmpty: 'No workouts match this filter.', wCount: '{n} workouts',
   quickT: 'Start now', seeAll: 'See all', adj_swap: '{n} exercises were swapped or removed because of the injuries you marked.',
+  wSubN: 'Ready-made ninja workouts, a personal program, grip, pulls and a course timer. Start in one tap.', wSkipN: 'Just show me ninja workouts',
   wSkip: 'Just show me workouts', ninjaSw: 'I train ninja warrior', ninjaSwD: 'Unlocks courses, grip work and the full ninja program', trackL: 'Training track', personalize: 'Personalize my plan', personalizeD: 'Answer a few questions and your plan fits you: goal, equipment, injuries and age.', quickNote: 'These workouts are general for now. You can tailor them to you any time.',
   qTrack: 'What are you training for?', qTrackS: 'You can change this any time in your profile.',
   tr_general: 'General fitness', tr_generald: 'Get strong, healthy and fit', tr_muscle: 'Build muscle', tr_muscled: 'Push, pull and legs split', tr_lean: 'Get lean', tr_leand: 'Strength and circuits to burn fat', tr_athlete: 'Athlete', tr_athleted: 'Strength, power and conditioning for sport', tr_ninja: 'Ninja warrior', tr_ninjad: 'Grip, pulls, courses and obstacles',
@@ -967,7 +969,9 @@ Object.assign(EQ_NAME, {
 const PLACES_FIT = ['gym', 'home', 'park'];
 const FIT_FOCI = ['abs', 'glutes', 'legs', 'arms', 'back', 'chest', 'cardio'];
 const TRACKS = ['general', 'muscle', 'lean', 'athlete', 'ninja'];
-const isNinja = P => (P.ninja == null ? true : !!P.ninja);
+// Build flag: the ninja-only edition (separate store listing) locks ninja mode on and drops the general-fitness choices.
+const NINJA_ONLY = /*@ninja-only*/false;
+const isNinja = P => NINJA_ONLY || (P.ninja == null ? true : !!P.ninja);
 const isMinor = P => P.age != null && P.age < 2;
 const focusName = (P, f) => { const k = (isNinja(P) ? 'f_' : 'ff_') + f; return DICT[lang][k] != null ? t(k) : t(DICT[lang]['f_' + f] != null ? 'f_' + f : 'ff_' + f); };
 
@@ -1794,10 +1798,10 @@ function renderSheet() {
 function confirmSheet(o) { openSheet('confirm', o); }
 
 /* ═════════════════ Questionnaire ═════════════════ */
-function newAnswers() { return { name: '', age: null, exp: null, goal: null, track: null, places: [], equip: ['towel'], pull: null, hang: null, strength: null, strengths: [], strengthNote: '', focus: [], days: [0, 2, 4], minutes: 30, limits: [], limLv: {}, ack: false }; }
+function newAnswers() { return { name: '', age: null, exp: null, goal: null, track: NINJA_ONLY ? 'ninja' : null, places: [], equip: ['towel'], pull: null, hang: null, strength: null, strengths: [], strengthNote: '', focus: [], days: [0, 2, 4], minutes: 30, limits: [], limLv: {}, ack: false }; }
 const OB_N = 11;
 // Step ids in the order they appear; general-fitness tracks skip the ninja-only steps.
-const obList = a => (a.track === 'ninja' ? [1, 11, 3, 2, 4, 5, 6, 7, 8, 9, 10] : a.equip.includes('bar') ? [1, 11, 3, 2, 4, 5, 6, 7, 9, 10] : [1, 11, 3, 2, 4, 5, 7, 9, 10]);
+const obList = a => NINJA_ONLY ? [1, 11, 2, 4, 5, 6, 7, 8, 9, 10] : (a.track === 'ninja' ? [1, 11, 3, 2, 4, 5, 6, 7, 8, 9, 10] : a.equip.includes('bar') ? [1, 11, 3, 2, 4, 5, 6, 7, 9, 10] : [1, 11, 3, 2, 4, 5, 7, 9, 10]);
 const NUMF = new Set(['age', 'exp', 'goal', 'pull', 'hang', 'strength', 'days', 'minutes']);
 function obValid(o) {
   const a = o.ans;
@@ -1831,13 +1835,13 @@ function pillRow(o, field, items, multi) {
 function vOb(o) {
   const a = o.ans, ek = a.track === 'ninja' ? 'exp' : 'fexp', ol = obList(a), pos = ol.indexOf(o.step) + 1;
   if (o.step === 0) return `<div class="ov-top"><span class="spacer"></span>${langSeg()}</div>
-<div class="welcome">${coverSrc('full', 'gym') ? `<div class="wl-bg"><img src="${esc(coverSrc('full', 'gym'))}" alt="" data-hide="1"></div>` : ''}<div class="logo anim">${logoSVG()}</div>
+<div class="welcome">${coverSrc(NINJA_ONLY ? 'ninja' : 'full', 'gym') ? `<div class="wl-bg"><img src="${esc(coverSrc(NINJA_ONLY ? 'ninja' : 'full', 'gym'))}" alt="" data-hide="1"></div>` : ''}<div class="logo anim">${logoSVG()}</div>
 <div class="wordmark"><span class="w1">NINJA</span><span class="w2">CIRCUIT</span></div>
-<h2>${t('wTitle')}</h2><p>${t('wSub')}</p></div>
+<h2>${t('wTitle')}</h2><p>${t(NINJA_ONLY ? 'wSubN' : 'wSub')}</p></div>
 <div class="spacer"></div>
 <div style="display:grid;gap:10px"><button class="btn pri lg block" data-act="ob-next">${t('wCta')} ${ic('arrow', 'flip')}</button>
 <p class="note" style="text-align:center">${t('wTime')}</p>
-<button class="btn block" data-act="ob-skip">${ic('play')} ${t('wSkip')}</button>
+<button class="btn block" data-act="ob-skip">${ic('play')} ${t(NINJA_ONLY ? 'wSkipN' : 'wSkip')}</button>
 <button class="btn ghost block" data-act="open-import">${ic('upload')} ${t('wImport')}</button></div>`;
   if (o.step === OB_N + 1) return vObDone(o);
   const head = `<div class="ov-top"><button class="icon-btn" data-act="ob-back" aria-label="${t('back')}">${ic('back', 'flip')}</button><div class="ob-prog" aria-hidden="true">${ol.map((_, i) => `<i class="${i < pos ? 'on' : ''}"></i>`).join('')}</div>${o.editing ? `<button class="icon-btn" data-act="ob-cancel" aria-label="${t('close')}">${ic('x')}</button>` : ''}</div>
@@ -1969,7 +1973,7 @@ const isGlute = w => w.items.filter(i => GLUTE_EX.has(i.ex)).length >= 2;
 const workCover = w => (WORK_MAP ? WORK_MAP['w-' + w.id] || '' : 'workouts/w/' + w.id + '.webp');
 const hasJumps = sess => sess.blocks.some(b => b.items.some(i => IMPACT.has(i.ex)));
 const wLevel = P => clamp(P.level, 0, 2), wCap = P => (isMinor(P) ? 1 : 2);
-function wPlaceOf(P) { return UI.wp || (P.places.includes('home') ? 'home' : P.places.includes('gym') ? 'gym' : 'all'); }
+function wPlaceOf(P) { if (NINJA_ONLY) return 'all'; return UI.wp || (P.places.includes('home') ? 'home' : P.places.includes('gym') ? 'gym' : 'all'); }
 const readyFits = (P, w) => {
   if (!P.limits.length && P.age !== 0 && P.age !== 1 && P.age !== 4) return true;
   const base = mainCount(buildSession(Object.assign({}, P, { limits: [], limLv: {}, age: 2 }), 'R:' + w.id, 1));
@@ -1977,7 +1981,7 @@ const readyFits = (P, w) => {
 };
 function wList(P) {
   const nj = isNinja(P), place = wPlaceOf(P), cat = UI.wc || 'all', q = (UI.wq || '').trim().toLowerCase(), fav = S.prefs.favW || [], wl = wLevel(P), cap = wCap(P);
-  let list = READY.filter(w => (nj || w.place !== 'ninja') && w.lvl <= cap && (place === 'all' || w.place === place) && (cat === 'all' || (cat === 'glutes' ? isGlute(w) : w.cat === cat)) && (!UI.wfav || fav.includes(w.id)) && (!q || (w.name.en + ' ' + w.name.he + ' ' + w.desc.en).toLowerCase().includes(q)));
+  let list = READY.filter(w => (NINJA_ONLY ? w.cat === 'ninja' : (nj || w.place !== 'ninja')) && w.lvl <= cap && (place === 'all' || w.place === place) && (cat === 'all' || (cat === 'glutes' ? isGlute(w) : w.cat === cat)) && (!UI.wfav || fav.includes(w.id)) && (!q || (w.name.en + ' ' + w.name.he + ' ' + w.desc.en).toLowerCase().includes(q)));
   list = list.filter(w => readyFits(P, w));
   if (UI.wt) list = list.filter(w => buildSession(P, 'R:' + w.id, 1).est <= 20);
   return list.map((w, i) => [w, i]).sort((a, b) => Math.abs(a[0].lvl - wl) - Math.abs(b[0].lvl - wl) || a[1] - b[1]).map(x => x[0]);
@@ -1987,11 +1991,11 @@ function wCard(w, cls = '') {
   const fav = (S.prefs.favW || []).includes(w.id);
   return `<button class="wcard ${cls}" data-act="ready-sheet" data-v="${w.id}" style="--g1:${g[0]};--g2:${g[1]}"><span class="wc-img">${src ? `<img src="${esc(src)}" data-fb="${esc(fb)}" alt="" loading="lazy" data-hide="1">` : ''}<span class="wc-ic">${ic(W_ICON[w.cat])}</span><span class="wc-min">${t('minShort', { m: sess.est })}</span>${hasJumps(sess) ? `<span class="wc-j" title="${esc(t('wJumpsLong'))}">${ic('bolt')}</span>` : ''}${fav ? `<span class="wc-fav">${ic('heart')}</span>` : ''}</span><span class="wc-b"><b>${esc(L(w.name))}</b><small>${t('wl' + w.lvl)} · ${t('nEx', { n: mainCount(sess) })}</small></span></button>`;
 }
-const wGrid = P => { const list = wList(P), hid = READY.filter(w => (isNinja(P) || w.place !== 'ninja') && w.lvl <= wCap(P) && !readyFits(P, w)).length; return (list.length ? `<div class="wgrid">${list.map(w => wCard(w)).join('')}</div>` : `<div class="empty">${t('wEmpty')}</div>`) + (hid ? `<p class="note" style="margin-top:10px">${t('wHidden', { n: hid })}</p>` : ''); };
+const wGrid = P => { const list = wList(P), hid = READY.filter(w => (NINJA_ONLY ? w.cat === 'ninja' : (isNinja(P) || w.place !== 'ninja')) && w.lvl <= wCap(P) && !readyFits(P, w)).length; return (list.length ? `<div class="wgrid">${list.map(w => wCard(w)).join('')}</div>` : `<div class="empty">${t('wEmpty')}</div>`) + (hid ? `<p class="note" style="margin-top:10px">${t('wHidden', { n: hid })}</p>` : ''); };
 function vWorkouts() {
   const P = S.profile, nj = isNinja(P), place = wPlaceOf(P), cat = UI.wc || 'all';
-  const places = ['all', 'home', 'gym', ...(nj ? ['ninja'] : [])];
-  const showCats = place !== 'ninja';
+  const places = NINJA_ONLY ? [] : ['all', 'home', 'gym', ...(nj ? ['ninja'] : [])];
+  const showCats = !NINJA_ONLY && place !== 'ninja';
   return `<div class="srch" style="margin-top:0">${ic('search')}<input class="inp" id="wSearch" type="search" data-bind="w-search" value="${esc(UI.wq || '')}" placeholder="${esc(t('wSearch'))}" autocomplete="off" dir="auto"></div>
 <div class="hscroll fl" role="group" aria-label="${t('plc_all')}">${places.map(k => `<button class="pill-btn ${place === k ? 'on' : ''}" data-act="work-place" data-v="${k}" aria-pressed="${place === k}">${t('plc_' + k)}</button>`).join('')}<button class="pill-btn ${UI.wt ? 'on' : ''}" data-act="work-time" aria-pressed="${!!UI.wt}">${ic('clock')} ${t('wQuick')}</button><button class="pill-btn ${UI.wfav ? 'on' : ''}" data-act="work-fav" aria-pressed="${!!UI.wfav}">${ic('heart')} ${t('wSaved')}</button></div>
 ${showCats ? `<div class="hscroll fl">${W_CATS.map(c => `<button class="pill-btn ${cat === c ? 'on' : ''}" data-act="work-cat" data-v="${c}" aria-pressed="${cat === c}">${t('wc_' + c)}</button>`).join('')}</div>` : ''}
@@ -2003,7 +2007,8 @@ ${nj ? `<div class="hscroll fl"><button class="btn sm" data-act="tab" data-v="ru
 function quickPicks(P) {
   const nj = isNinja(P), place = homePlace(P), day = Math.floor(Date.now() / DAY), wl = wLevel(P), cap = wCap(P);
   const pickOf = (cat, pl) => { const c = READY.filter(w => readyFits(P, w) && w.cat === cat && w.place === pl && w.lvl <= Math.min(cap, wl + (wl === 0 ? 1 : 0)) && w.lvl >= wl - 1); return c.length ? c[day % c.length] : null; };
-  const picks = (nj ? [pickOf('ninja', 'ninja')] : []).concat(['full', 'abs', 'cardio', 'legs', 'upper', 'women', 'stretch'].map(c => pickOf(c, place))).filter(Boolean).slice(0, 6);
+  const nin = READY.filter(w => w.cat === 'ninja' && w.lvl <= cap && readyFits(P, w)), rot = [...nin.slice(day % Math.max(nin.length, 1)), ...nin.slice(0, day % Math.max(nin.length, 1))];
+  const picks = NINJA_ONLY ? rot.slice(0, 6) : (nj ? [pickOf('ninja', 'ninja')] : []).concat(['full', 'abs', 'cardio', 'legs', 'upper', 'women', 'stretch'].map(c => pickOf(c, place))).filter(Boolean).slice(0, 6);
   return `<section><div class="sec-h"><h2>${t('quickT')}</h2><button class="act" data-act="tab" data-v="workouts">${t('seeAll')}</button></div><div class="hscroll hw">${picks.map(w => wCard(w, 'sm')).join('')}</div></section>`;
 }
 function sheetReady(d) {
@@ -2291,10 +2296,10 @@ function vProfile() {
 <div class="field" ${nj ? '' : 'hidden'} style="margin-top:12px"><label for="pNote" class="note">${t('strNoteL')}</label><textarea class="inp" id="pNote" data-bind="p-note" maxlength="300" dir="auto" placeholder="${esc(t('strNoteP'))}">${esc(P.strengthNote || '')}</textarea></div>
 <button class="li" data-act="open-ladder"><span class="lvnum ${sNow >= 7 ? 'hi' : ''}">${sNow}</span><span class="grow"><span class="t">${t('strLevelL')} · ${t('strLevelN', { n: sNow })}</span><span class="s">${esc(t('sl' + sNow))}</span></span>${ic('chev', 'flip dim')}</button>
 ${nj ? `<p class="note" style="margin-top:6px">${t('strEffect')}</p>` : ''}</section>
-<section class="card"><div class="sec-h"><h2>${t('trackL')}</h2></div>
+${NINJA_ONLY ? (P.quick ? `<section class="card"><button class="btn sm block" data-act="edit-ob">${ic('target')} ${t('personalize')}</button><p class="note" style="margin-top:6px">${t('quickNote')}</p></section>` : '') : `<section class="card"><div class="sec-h"><h2>${t('trackL')}</h2></div>
 <div class="set-row"><span class="grow"><b>${t('ninjaSw')}</b><small class="note" style="display:block">${t('ninjaSwD')}</small></span><button class="switch" role="switch" aria-checked="${nj}" aria-label="${esc(t('ninjaSw'))}" data-act="toggle-ninja"></button></div>
 ${nj ? '' : `<div class="chips" style="margin-top:10px" role="group">${['general', 'muscle', 'lean', 'athlete'].filter(k => !(k === 'lean' && isMinor(P))).map(k => `<button class="pill-btn ${P.track === k ? 'on' : ''}" data-act="set-track" data-v="${k}" aria-pressed="${P.track === k}">${t('tr_' + k)}</button>`).join('')}</div>`}
-${P.quick ? `<button class="btn sm block" style="margin-top:10px" data-act="edit-ob">${ic('target')} ${t('personalize')}</button><p class="note" style="margin-top:6px">${t('quickNote')}</p>` : ''}</section>
+${P.quick ? `<button class="btn sm block" style="margin-top:10px" data-act="edit-ob">${ic('target')} ${t('personalize')}</button><p class="note" style="margin-top:6px">${t('quickNote')}</p>` : ''}</section>`}
 <section class="card"><div class="sec-h"><h2>${t('myLimits')}</h2></div>${P.limits.length ? `<div class="chips">${P.limits.map(k => `<span class="chip lim l${limLv(P, k)}">${t('lim_' + k)} · ${t('limLv' + limLv(P, k))}</span>`).join('')}</div>` : `<p class="note">${t('noLimits')}</p>`}<button class="btn sm block" style="margin-top:10px" data-act="edit-ob">${ic('edit')} ${t('editLimits')}</button></section>
 <section class="card"><div class="sec-h"><h2>${t('remT')}</h2></div>${remindBody()}</section>
 <section class="card"><div class="sec-h"><h2>${t('settings')}</h2></div><div class="set-row"><span class="grow">${t('langL')}</span>${langSeg()}</div>${sw('sound', t('soundL'))}${sw('vibe', t('vibeL'))}${sw('countdown', t('countL'))}</section>
@@ -2695,7 +2700,7 @@ let obAdvanceTimer = 0;
 document.addEventListener('error', e => { const el = e.target; if (el && el.tagName === 'IMG' && el.dataset.hide) { if (el.dataset.fb && !el.dataset.tried) { el.dataset.tried = '1'; el.src = el.dataset.fb; } else el.remove(); } }, true);
 function quickProfile() {
   const ws = weekStart(Date.now());
-  return { name: '', age: 2, exp: 1, goal: 2, track: 'general', ninja: false, places: ['home'], equip: ['towel'], pull: 1, hang: 1, push: pushFromStrength(3), strength: 3, strengths: [], strengthNote: '', focus: [], days: [1, 3, 5], minutes: 30, limits: [], limLv: {}, level: 1, startTs: ws, createdTs: Date.now(), adapt: {}, quick: true };
+  return { name: '', age: 2, exp: 1, goal: 2, track: NINJA_ONLY ? 'ninja' : 'general', ninja: !!NINJA_ONLY, places: ['home'], equip: ['towel'], pull: 1, hang: 1, push: pushFromStrength(3), strength: 3, strengths: [], strengthNote: '', focus: [], days: [1, 3, 5], minutes: 30, limits: [], limLv: {}, level: 1, startTs: ws, createdTs: Date.now(), adapt: {}, quick: true };
 }
 const ACT = {
   tab: a => { UI.tab = a.dataset.v; try { localStorage.setItem('ninja-circuit-tab', UI.tab); } catch (e) {} renderMain(); window.scrollTo(0, 0); $('#main')?.focus?.(); },
