@@ -30,5 +30,13 @@ if (fs.existsSync(foodFile)) {
   console.log(Object.keys(fmap).length + ' food photos mapped');
 } else page = page.replace('/*@food-map*/null', '{}');
 
+// Workout cover photos and exercise photos: id -> uploaded asset URL (optional files)
+for (const [file, token, label] of [['work-map.json', '/*@work-map*/null', 'workout covers'], ['ex-map.json', '/*@ex-map*/null', 'exercise photos']]) {
+  const f = path.join(root, file);
+  if (!page.includes(token)) throw new Error(token + ' placeholder not found');
+  if (fs.existsSync(f)) { const m = JSON.parse(fs.readFileSync(f, 'utf8')); page = page.replace(token, JSON.stringify(m)); console.log(Object.keys(m).length + ' ' + label + ' mapped'); }
+  else page = page.replace(token, '{}');
+}
+
 fs.writeFileSync(out, page);
 console.log('wrote ' + out + ' (' + Buffer.byteLength(page) + ' bytes)');
