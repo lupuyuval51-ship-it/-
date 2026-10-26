@@ -1,33 +1,43 @@
-# NINJA CIRCUIT — training app
+# NINJA CIRCUIT: fitness app
 
-A personal Ninja Warrior training app in one dependency-free HTML file. Hebrew/RTL by default, English/LTR from the language switch.
+A fitness app in one dependency-free HTML file. English by default, Hebrew (right to left) from the language switch. It starts as **general fitness** and turns into a **ninja warrior** app with one switch in Profile.
 
 ## What it does
 
-- **Questionnaire (11 steps):** age group, experience, goal, places, equipment, baseline (pull-ups, hang), a 1–10 strength level on a push-up ladder (knee push-ups at 1 up to a one-arm clap push-up at 10), strengths (chips plus free text), focus areas, training days and length, limitations and a safety acknowledgement.
-- **Program engine:** picks a level from the answers and builds 2–6 weekly sessions (Grip & Pull, Jump & Balance, Course & Endurance, Swing & Technique, Explosive Power, Mobility). Exercises are filtered by equipment, injuries and age (under 13: no weighted carries, explosive pulls, lache, clap or one-arm push-ups). The strength level picks the push-up variation in Grip & Pull and Explosive Power sessions, stepping down past anything age or limits rule out. Each marked strength (grip, pull, legs, balance, swing, core) starts that exercise category one load step higher, capped at level 1 for under 13. Strengths and the strength level can be edited from Profile at any time. A 4-week cycle raises load for 3 weeks, then lightens. Post-session effort ratings tune each session type ±4–8%.
-- **A different workout every training day:** every exercise slot lists interchangeable options and the pick rotates each week, so a session type never repeats the same exercises two weeks in a row. Pull-ups rotate between regular, chin-up, wide and towel grips, and push-ups rotate inside a pool for the strength level. Today shows how many exercises are new since the last session of that type.
-- **Reminders:** a calendar file (.ics) with one repeating weekly event per training day and an alert 10 minutes before works with any phone calendar, even when the app is closed. Browser notifications fire at the chosen time on training days when the app is open, or installed and running in the background; they are not guaranteed when the app is fully closed. Real background push would need a server and is not included.
-- **Workout player:** set-by-set guidance, timers with countdown, rest timers, beeps, vibration and screen wake lock. Exercises can be swapped or skipped.
-- **Course stopwatch:** editable courses with a draggable route map, per-obstacle splits, falls, and personal bests with split deltas.
-- **Fitness tests and progress:** hang, pull-ups, push-ups, balance and broad jump; weekly chart, 12-week activity map, ability radar, achievements, XP levels, history.
-- **Nutrition:** 300 everyday dishes (breakfast, before and after training, lunch, dinner, snacks, drinks), each with a photo, estimated calories, protein, carbs and fat, ingredients and why it suits training. Search, category and tag filters (high protein, vegetarian, vegan, quick, kids like it), favorites, and a sample training day that changes daily. Athletes under 18 get no calorie targets.
-- **Technique videos:** every exercise has an 8-second silent loop (66 clips). They play in the exercise sheet, as a small preview next to the exercise name during a workout, and as a preview of the next exercise on the rest screen. Tap a clip to pause it; a clip that fails to load just disappears.
+- **Ready workouts, no questions asked.** The first screen has "Just show me workouts": 62 ready-made sessions open straight away.
+  - 25 for **home** (no equipment, a few with dumbbells), 25 for the **gym** (barbell, dumbbells, machines, cardio machines), 12 **ninja** workouts (grip, pulls, swing, balance, course circuits).
+  - Categories: full body, abs, legs and glutes, glutes, upper body, cardio and HIIT, women, stretch. Search, "under 20 minutes", saved workouts, a "jumps" badge, and a level label on every card.
+  - Every workout is built for you when you open it: injuries swap or remove exercises, age and the daily "how is your body" check scale the load, push-ups follow your push-up level, and the estimated length is real.
+- **Personal program (9 to 11 questions).** Age, then injuries, then a track: **general fitness, build muscle (push/pull/legs), get lean, athlete, ninja**. Experience, places, equipment, push-up level, focus area (abs, glutes, legs, arms, back, chest, cardio), days and length (15 to 60 minutes). Ninja adds pull-up and hang baselines, strengths and ninja focus areas.
+- **Injuries that change the training.** Seven areas (shoulders, elbows, wrists, lower back, hips, knees, ankles), each marked **sore** or **injured**. Injured removes every exercise that loads the area. Sore removes the heavy, deep and explosive ones and lightens the rest. A gentle prehab move is added to the warm-up.
+- **Age rules.** Under 13 and 13 to 17: capped level, no max tests, no calorie numbers, no "get lean" track, no advanced workouts. 30 to 44 and 45+: full warm-ups, longer rests, and no hard jumping or landings for 45+.
+- **Readiness.** A one-tap "tired / normal / peak" on Today lowers or raises the day's load and explains what was adapted.
+- **Workout player.** Set-by-set, timers, rest, beeps, vibration, wake lock, swap and skip. Weighted exercises get a weight stepper (2.5 kg steps) that remembers your last weight; Progress shows a Lifts card with last and best.
+- **Programs.** 4-week blocks with a lighter fourth week. Main lifts stay the same through a block (progressive overload) and change in the next one. Sessions are trimmed to fit the chosen length.
+- **Ninja mode** (Profile switch, with a confirmation). Adds the Course stopwatch tab, the grip, pull, swing and balance program, hang and other tests (18+), and the ninja workouts. Switching back keeps all history.
+- **Nutrition:** 300 dishes with photos, search, filters, favorites and a sample training day (no calories shown under 18).
+- **Progress:** weekly rings, streak, XP, charts, tests, achievements, history, reminders (calendar file).
+
+## Media
+
+- `workouts/<category>-<home|gym>.webp` and `workouts/ninja.webp`: category covers (fallbacks). `workouts/w/<workout id>.webp`: one cover per ready workout.
+- `ex/<exercise id>.webp`: a photo for each of the 107 new exercises (the original ninja exercises have 8-second clips in `videos/`).
+- `videos/<id>.mp4` (72 clips), `food/<id>.webp` (300 dish photos).
+
+## Data and tools
+
+- `tools/fit_ex.py`: the general-fitness exercises. `tools/fit_ready.py`: the 62 ready workouts. `python3 tools/gen-fitness.py` splices both into `index.html` (between the `@fit-ex` and `@ready` markers) and refreshes the list of exercise photos.
+- `tools/build-artifact.mjs <out.html>`: builds the hosted-viewer page. Optional `videos-map.json`, `food-map.json`, `work-map.json`, `ex-map.json` map ids to uploaded asset URLs; without the last two the page uses the relative image files published beside it.
+- Exercise rows: `[id, category, equipment, kind, dose, avoid tags, per side, he, en, cue he, cue en]`. Equipment tokens: `bar rings rope monkey beam wall box weights towel ninja barbell machine band cardiom`.
 
 ## Storage
 
-Data is saved to `localStorage` on every change. Inside a hosted viewer, the app also syncs to the viewer's private `db` subtree (`data/users/<id>/profile`, `courses`, `m-YYYY-MM`). Records merge by id and update time across devices. Backups export and import as JSON.
+Data is saved to `localStorage` on every change (key `ninja-circuit-v1`). Inside a hosted viewer the app also syncs to the viewer's private `db` subtree. Backups export and import as JSON.
 
 ## Installing as an app
 
-Serve this folder over https (any static host, for example GitHub Pages, Netlify or Vercel) and open it on the phone. `manifest.webmanifest`, `sw.js` and `icons/` make it installable ("Add to Home screen") and let it work offline. Opened directly as a file, `index.html` still works, but notifications and offline caching need the https version.
+Serve this folder over https and open it on the phone. `manifest.webmanifest`, `sw.js` and `icons/` make it installable and let it work offline. Opened directly as a file, `index.html` still works.
 
-## Files
+## This is not medical advice
 
-- `index.html`: the whole app. The part between `@artifact-start` and `@artifact-end` is what gets published as the hosted viewer.
-- `manifest.webmanifest`, `sw.js`, `icons/`: install, offline and notification support.
-- `videos/<exercise id>.mp4`: the technique clips (540×960, about 17 MB in total). The app looks for them next to `index.html`; the service worker leaves them to the browser cache.
-- `food/<dish id>.webp`: dish photos (480×480, about 9 MB in total). `nutrition/dishes.json` is built from `tools/dishes_a.py`, `dishes_b.py` and `dishes_c.py` by `tools/build-dishes.py`.
-- `food-map.json`: dish id to the URL of the same photo in the hosted viewer's asset store.
-- `videos-map.json`: exercise id to the URL of the same clip in the hosted viewer's asset store.
-- `tools/build-artifact.mjs`: `node tools/build-artifact.mjs out.html` builds the artifact page and fills `VIDEO_MAP` from `videos-map.json`.
+The program and the injury handling are general guidance, not treatment. Stop if something hurts and see a professional.

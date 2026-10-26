@@ -35,7 +35,7 @@ for (const [file, token, label] of [['work-map.json', '/*@work-map*/null', 'work
   const f = path.join(root, file);
   if (!page.includes(token)) throw new Error(token + ' placeholder not found');
   if (fs.existsSync(f)) { const m = JSON.parse(fs.readFileSync(f, 'utf8')); page = page.replace(token, JSON.stringify(m)); console.log(Object.keys(m).length + ' ' + label + ' mapped'); }
-  else page = page.replace(token, '{}');
+  else page = page.replace(token, 'null'); // no map: the page uses the relative files published beside it
 }
 
 fs.writeFileSync(out, page);
