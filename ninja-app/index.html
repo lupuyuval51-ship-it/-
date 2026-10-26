@@ -312,6 +312,7 @@ textarea.inp{min-height:96px;resize:vertical;line-height:1.5}
 .set-row:last-child{border-bottom:0}
 .set-row .grow{flex:1;min-width:0}
 .switch{width:52px;height:32px;flex:none;border-radius:99px;border:1px solid var(--line2);background:rgba(255,255,255,.1);position:relative;cursor:pointer;padding:0}
+.switch::before{content:"";position:absolute;inset:-8px -4px}
 .switch::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:var(--muted);transition:inset-inline-start .2s,background .2s}
 .switch[aria-checked=true]{background:var(--blue-soft);border-color:rgba(255,255,255,.5)}
 .switch[aria-checked=true]::after{inset-inline-start:23px;background:var(--blue-hi)}
@@ -597,7 +598,7 @@ he: {
   daysL: 'ימי אימון', minL: 'משך אימון', daysN: '{n} אימונים בשבוע', minN: '{n} דק׳',
   q9: 'משהו שחשוב שנדע?', q9s: 'כל אזור נבדק בנפרד: נקל, נחליף ונוסיף תרגילי מניעה.',
   ninjaOn: 'מצב נינג׳ה פעיל', ninjaOff: 'חזרתם לכושר כללי',
-  nothingLogged: 'לא נעשו סטים, אז לא נשמר כלום.', nothingLoggedT: 'לא נרשם כלום', maxTestsMinor: 'מבחני מקסימום מגיל 18 ומעלה ועם מאמן.',
+  nothingLogged: 'לא נעשו סטים, אז לא נשמר כלום.', nothingLoggedT: 'לא נרשם כלום', maxTestsMinor: 'מבחני מקסימום מגיל 18 ומעלה ועם מאמן.', q6sMinor: 'הערכה גסה מספיקה. אין צורך לבדוק את עצמכם עכשיו.', strNoteHMinor: 'אל תכתבו כאן שם מלא, כתובת, בית ספר או טלפון.', foodNoteMinor: 'מתאמנים מתחת לגיל 18 לא סופרים קלוריות: אוכלים מגוון, מספיק, ושותים מים. לשאלות אישיות פונים לדיאטנית.', catchUp: 'השלמה',
   p16: '16 ומעלה', qPush: 'כמה שכיבות סמיכה אתם עושים?', qPushS: 'הערכה כנה מספיקה.', fsl1: 'עוד לא מצליחים שכיבת סמיכה מלאה', fsl3: 'כמה שכיבות סמיכה מלאות (עד 10)', fsl5: '10 עד 25 ברצף', fsl8: 'יותר מ־25, או וריאציות קשות',
   obH1: 'בחרו קבוצת גיל כדי להמשיך', obH2: 'בחרו את הניסיון שלכם', obH3: 'בחרו מסלול אחד', obH4: 'בחרו לפחות מקום אחד', obH5: '', obH6: 'ענו על שתי השאלות', obH7: 'בחרו את הרמה שלכם', obH8: '', obH9: 'בחרו לפחות תחום אחד', obH10: 'בחרו 2 עד 6 ימי אימון', obH11: 'סמנו את תיבת האישור כדי להמשיך',
   wTough: 'קשה מהרמה שלכם', wJumps: 'קפיצות', wJumpsLong: 'כולל קפיצות', wSearch: 'חיפוש אימון', wQuick: 'עד 20 דקות', wSaved: 'שמורים', wFavAdd: 'שמירה', wFavOn: 'שמור', wc_glutes: 'ישבן',
@@ -771,7 +772,7 @@ en: {
   daysL: 'Training days', minL: 'Session length', daysN: '{n} sessions a week', minN: '{n} min',
   q9: 'Anything we should know?', q9s: 'We handle each area separately: ease, swap and add prehab.',
   ninjaOn: 'Ninja mode on', ninjaOff: 'Back to general fitness',
-  nothingLogged: 'No sets were done, so nothing was saved.', nothingLoggedT: 'Nothing logged', maxTestsMinor: 'Max tests are for 18+ and with a coach.',
+  nothingLogged: 'No sets were done, so nothing was saved.', nothingLoggedT: 'Nothing logged', maxTestsMinor: 'Max tests are for 18+ and with a coach.', q6sMinor: 'A rough guess is enough. No need to test yourself now.', strNoteHMinor: 'Please don’t write your full name, address, school or phone number here.', foodNoteMinor: 'Athletes under 18 don’t count calories: eat a variety, eat enough, and drink water. For personal questions, see a dietitian.', catchUp: 'Catch-up',
   p16: '16+', qPush: 'How many push-ups can you do?', qPushS: 'An honest guess is enough.', fsl1: 'I can’t do a full push-up yet', fsl3: 'A few full push-ups (up to 10)', fsl5: '10 to 25 in a row', fsl8: 'More than 25, or hard variations',
   obH1: 'Pick an age group to continue', obH2: 'Pick your experience', obH3: 'Choose one to continue', obH4: 'Pick at least one place', obH5: '', obH6: 'Answer both questions', obH7: 'Pick your level', obH8: '', obH9: 'Pick at least one area', obH10: 'Pick 2 to 6 training days', obH11: 'Tick the box to continue',
   wTough: 'Tougher than your level', wJumps: 'Jumps', wJumpsLong: 'Includes jumping', wSearch: 'Search workouts', wQuick: 'Under 20 min', wSaved: 'Saved', wFavAdd: 'Save', wFavOn: 'Saved', wc_glutes: 'Glutes',
@@ -1539,7 +1540,10 @@ const eased = (ex, P) => ex.avoid.some(a => a !== 'kid' && P.limits.includes(a) 
 function hasEquip(ex, P) { return ex.eq.every(req => req.split('|').some(q => P.equip.includes(q))); }
 const PUSH_IDS = new Set(PUSH_POOL.flat().map(r => r[0]));
 const pushOk = (e, P) => !PUSH_IDS.has(e.id) || pushPool(P).some(r => r[0] === e.id);
-function usable(ex, P, lv) { return !!doseOf(ex, lv) && !blocked(ex, P) && hasEquip(ex, P); }
+// Pull-ups in a row (profile pull: 0 / 1-3 / 4-8 / 9-15 / 16+) an exercise needs before it is programmed; below that the negative pull-up stands in.
+const PULL_NEED = { pullup: 2, chinup: 2, 'wide-pullup': 2, 'towel-pullup': 3, 'explosive-pullup': 3 };
+const pullOK = (ex, P) => P.pull == null || P.pull >= (PULL_NEED[ex.id] || 0);
+function usable(ex, P, lv) { return !!doseOf(ex, lv) && !blocked(ex, P) && hasEquip(ex, P) && pullOK(ex, P); }
 function scaleAmt(kind, amt, f) {
   if (kind === 't') return Math.max(5, Math.round(amt * f / 5) * 5);
   if (kind === 'r') return Math.max(1, Math.round(amt * f));
@@ -1735,6 +1739,7 @@ function setInert() {
   $('#ov').inert = !!(UI.ov && UI.sheet);
 }
 function render() {
+  if (S.profile && S.profile.level > ageMods(S.profile).cap) S.profile.level = ageMods(S.profile).cap; // minors never run above their age cap, whatever an old backup or a tap says
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
   if (!S.profile && !UI.ov) UI.ov = { kind: 'ob', step: 0, ans: newAnswers() };
@@ -1829,10 +1834,10 @@ function vOb(o) {
     case 3: body = q(t('qTrack'), t('qTrackS')) + optList(o, 'track', TRACKS.filter(k => !(k === 'lean' && a.age != null && a.age < 2)).map(k => ({ v: k, t: t('tr_' + k), d: t('tr_' + k + 'd'), i: { general: 'heart', muscle: 'dumbbell', lean: 'flame', athlete: 'bolt', ninja: 'flag' }[k] })), false); break;
     case 4: body = q(t('q4'), t('q4s')) + optList(o, 'places', (a.track === 'ninja' ? PLACES : PLACES_FIT).map(p => ({ v: p, t: t('pl_' + p), d: t('pl_' + p + 'd'), i: PLACE_ICON[p] })), true); break;
     case 5: body = q(t('q5'), t('q5s')) + `<div class="chips">${(a.track === 'ninja' ? EQUIP : EQUIP_FIT).map(e => { const on = a.equip.includes(e); return `<button type="button" class="pill-btn ${on ? 'on' : ''}" data-act="ob-pick" data-f="equip" data-v="${e}" data-m="1" role="checkbox" aria-checked="${on}">${esc(L(EQ_NAME[e]))}</button>`; }).join('')}</div><p class="note">${t('q5none')}</p>`; break;
-    case 6: body = q(t('q6'), t('q6s')) + `<div class="field"><span class="lbl">${t('bPull')}</span>${pillRow(o, 'pull', ['0', '1–3', '4–8', '9–15', t('p16')].map((x, i) => ({ v: i, t: x })), false)}</div>
+    case 6: body = q(t('q6'), t(a.age < 2 ? 'q6sMinor' : 'q6s')) + `<div class="field"><span class="lbl">${t('bPull')}</span>${pillRow(o, 'pull', ['0', '1–3', '4–8', '9–15', t('p16')].map((x, i) => ({ v: i, t: x })), false)}</div>
 ${a.track === 'ninja' ? `<div class="field"><span class="lbl">${t('bHang')}</span>${pillRow(o, 'hang', [0, 1, 2, 3].map(i => ({ v: i, t: t('hang' + i) })), false)}</div>` : ''}`; break;
     case 7: body = a.track === 'ninja' ? q(t('qLevel'), t('qLevelS')) + ladderRows(a.strength, 'ob-pick') + `<p class="note">${t('ladderNote')}</p>` : q(t('qPush'), t('qPushS')) + fitLadder(a.strength); break;
-    case 8: body = q(t('qStrengths'), t('qStrengthsS')) + pillRow(o, 'strengths', STRENGTH_KEYS.map(k => ({ v: k, t: t('st_' + k) })), true) + `<div class="field"><label for="obNote">${t('strNoteL')}</label><textarea class="inp" id="obNote" data-bind="ob-note" maxlength="300" dir="auto" placeholder="${esc(t('strNoteP'))}">${esc(a.strengthNote)}</textarea><small class="note">${t('strNoteH')}</small></div>`; break;
+    case 8: body = q(t('qStrengths'), t('qStrengthsS')) + pillRow(o, 'strengths', STRENGTH_KEYS.map(k => ({ v: k, t: t('st_' + k) })), true) + `<div class="field"><label for="obNote">${t('strNoteL')}</label><textarea class="inp" id="obNote" data-bind="ob-note" maxlength="300" dir="auto" placeholder="${esc(t('strNoteP'))}">${esc(a.strengthNote)}</textarea><small class="note">${t(a.age < 2 ? 'strNoteHMinor' : 'strNoteH')}</small></div>`; break;
     case 9: body = q(t('q7'), t('q7s')) + optList(o, 'focus', (a.track === 'ninja' ? FOCI : FIT_FOCI).map(f => { const fk = a.track === 'ninja' ? 'f_' : 'ff_'; return { v: f, t: t(fk + f), d: t(fk + f + 'd'), i: FOCUS_ICON[f] }; }), true); break;
     case 10: body = q(t('q8'), t('q8s')) + `<div class="field"><span class="lbl">${t('daysL')}</span><div class="days7">${DAYS_SHORT[lang].map((d, i) => { const on = a.days.includes(i); return `<button type="button" class="pill-btn ${on ? 'on' : ''}" data-act="ob-pick" data-f="days" data-v="${i}" data-m="1" role="checkbox" aria-checked="${on}" aria-label="${esc(DAYS_LONG()[i])}">${d}</button>`; }).join('')}</div><p class="note">${t('daysN', { n: a.days.length })}</p></div>
 <div class="field"><span class="lbl">${t('minL')}</span>${pillRow(o, 'minutes', [15, 20, 30, 45, 60].map(m => ({ v: m, t: t('minN', { n: m }) })), false)}</div>`; break;
@@ -1912,7 +1917,7 @@ function vToday() {
     const names = mainItems.slice(0, 4).map(it => L(EX[it.ex].name));
     const lastSame = [...ss].reverse().find(s => s.type === type), lastIds = lastSame ? new Set((lastSame.sets || []).map(x => x[0])) : null;
     const fresh = lastIds ? mainItems.filter(it => !lastIds.has(it.ex)).length : 0;
-    hero = `<section class="card hero vid" aria-labelledby="nextT">${heroCover ? `<img class="hero-v" src="${esc(heroCover)}" alt="" data-hide="1">` : ''}${heroVid ? `<video class="hero-v" src="${esc(vidSrc(heroVid))}" muted loop playsinline${reduce ? '' : ' autoplay'} aria-hidden="true"></video>` : ''}<div class="hero-shade"></div><div class="hero-in"><div class="eyebrow">${t('nextUp')} · ${W.next + 1}/${W.plan.length} · ${P.days[W.next] === new Date().getDay() ? t('tabToday') : DAYS_LONG()[P.days[W.next]] || ''}</div><h2 class="sess-title" id="nextT">${esc(L(tpl(type).name))}</h2>
+    hero = `<section class="card hero vid" aria-labelledby="nextT">${heroCover ? `<img class="hero-v" src="${esc(heroCover)}" alt="" data-hide="1">` : ''}${heroVid ? `<video class="hero-v" src="${esc(vidSrc(heroVid))}" muted loop playsinline${reduce ? '' : ' autoplay'} aria-hidden="true"></video>` : ''}<div class="hero-shade"></div><div class="hero-in"><div class="eyebrow">${t('nextUp')} · ${W.next + 1}/${W.plan.length} · ${P.days[W.next] === new Date().getDay() ? t('tabToday') : P.days[W.next] < new Date().getDay() ? t('catchUp') : DAYS_LONG()[P.days[W.next]] || ''}</div><h2 class="sess-title" id="nextT">${esc(L(tpl(type).name))}</h2>
 <div class="meta"><span>${ic('clock')}${t('aboutMin', { m: sess.est })}</span><span>${ic('dumbbell')}${t('nEx', { n: mainCount(sess) })}</span>${W.deload ? `<span>${ic('leaf')}${t('phDel')}</span>` : ''}${fresh ? `<span style="color:var(--good)">${ic('bolt')}${t('novN', { n: fresh })}</span>` : ''}</div>
 <div class="chips" style="margin-bottom:14px">${names.map(n => `<span class="chip">${esc(n)}</span>`).join('')}</div>
 <div class="btns"><button class="btn pri lg" data-act="start-sess" data-type="${type}" data-idx="${W.next}">${ic('play')} ${t('startW')}</button><button class="btn sm" style="flex:0 1 auto" data-act="sess-sheet" data-type="${type}" data-idx="${W.next}">${t('preview')}</button></div></div></section>`;
@@ -1999,7 +2004,7 @@ function vPlan() {
   }).join('');
   return `<section class="card"><div class="row" style="align-items:flex-start"><div class="grow"><div class="eyebrow">${t('levelL')}: ${t('lvl' + P.level)}</div><h2 style="font-size:1.3rem;margin-top:4px">${t('planN', { n: W.plan.length })}</h2></div><button class="btn sm" data-act="edit-ob">${ic('edit')} ${t('editAnswers')}</button></div>
 <div class="chips" style="margin-top:12px"><span class="chip">${ic('clock')}${t('minN', { n: P.minutes })}</span><span class="chip blue">${ic('dumbbell')}${t('strLevelL')}: <span class="ltr">${profStrength(P)}/10</span></span><span class="chip">${ic('target')}${t('tr_' + (P.track || 'ninja'))}</span>${(P.strengths || []).map(k => `<span class="chip good">${ic('check')}${t('st_' + k)}</span>`).join('')}${P.focus.map(f => `<span class="chip orange">${ic(FOCUS_ICON[f])}${focusName(P, f)}</span>`).join('')}</div>
-<div style="margin-top:14px"><span class="lbl note">${t('changeLevel')}</span><div class="chips" style="margin-top:6px">${[0, 1, 2, 3].map(i => `<button class="pill-btn ${P.level === i ? 'on' : ''}" data-act="set-level" data-v="${i}" aria-pressed="${P.level === i}">${t('lvl' + i)}</button>`).join('')}</div></div>
+<div style="margin-top:14px"><span class="lbl note">${t('changeLevel')}</span><div class="chips" style="margin-top:6px">${[0, 1, 2, 3].filter(i => i <= ageMods(P).cap).map(i => `<button class="pill-btn ${P.level === i ? 'on' : ''}" data-act="set-level" data-v="${i}" aria-pressed="${P.level === i}">${t('lvl' + i)}</button>`).join('')}</div></div>
 ${adapt.length ? `<p class="note" style="margin-top:10px">${t('adaptL', { p: adapt.map(([k, v]) => `${L(tpl(k).name)} ${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`).join(' · ') })}</p>` : ''}</section>
 <section><div class="sec-h"><h2>${t('cycle')}</h2></div><div style="display:flex;gap:8px;align-items:flex-end">${cyc}</div><p class="note" style="margin-top:8px">${t('cycleNote')}</p></section>
 <section><div class="sec-h"><h2>${t('weekSess')}</h2></div><div class="card" style="padding-block:4px"><div class="list">${list}</div></div><p class="note" style="margin-top:8px">${t('varNote')}</p></section>
@@ -2025,7 +2030,7 @@ function vFood() {
 <div class="hscroll" style="margin-top:12px">${['all', 'fav', ...FOOD_CATS].map(c => `<button class="pill-btn ${cat === c ? 'on' : ''}" data-act="food-cat" data-v="${c}" aria-pressed="${cat === c}">${c === 'fav' ? ic('heart') + ' ' : ''}${t('fc_' + c)}</button>`).join('')}</div>
 <div class="chips" style="margin-top:10px">${FOOD_TAGS.map(g => `<button class="chip ftag ${tags.includes(g) ? 'on' : ''}" data-act="food-tag" data-v="${g}" aria-pressed="${tags.includes(g)}">${t('ft_' + g)}</button>`).join('')}</div></section>
 <section id="foodList">${foodList()}</section>
-<p class="note">${t('foodNote')}</p>`;
+<p class="note">${t(S.profile && isMinor(S.profile) ? 'foodNoteMinor' : 'foodNote')}</p>`;
 }
 function foodWhy(d) {
   const w = [];
@@ -2108,7 +2113,7 @@ function vProgress() {
 <section class="card"><div class="sec-h"><h2>${t('weeklyT')}</h2><span class="note">${t('targetN', { n: P.days.length })}</span></div>${weeklyChart()}</section>
 <section class="card"><div class="sec-h"><h2>${t('heatT')}</h2><span class="note">${t('heatS')}</span></div>${heatmap()}</section>
 <section class="card"><div class="sec-h"><h2>${t('radarT')}</h2></div>${radar()}</section>
-<section class="card"><div class="sec-h"><h2>${t('testsT')}</h2></div>${isMinor(P) ? `<p class="note">${t('maxTestsMinor')}</p>` : ''}${Object.keys(TESTS).map(testRow).join('')}</section>
+<section class="card"><div class="sec-h"><h2>${t('testsT')}</h2></div>${isMinor(P) ? `<p class="note">${t('maxTestsMinor')}</p>` : ''}${Object.keys(TESTS).filter(k => !isMinor(P) || tests().some(x => x.test === k)).map(testRow).join('')}</section>
 ${liftsCard()}
 ${isNinja(P) ? coursePBs() : ''}
 <section><div class="sec-h"><h2>${t('achT')}</h2></div><div class="ach">${achievements().filter(a => isNinja(P) || !['run1', 'buzzer', 'pb'].includes(a.k)).map(a => `<div class="${a.on ? '' : 'off'}"><span class="badge-ic ${a.on ? 'o' : 'd'}">${ic(a.icon)}</span><span style="min-width:0"><b>${t('a_' + a.k)}</b><small>${t('a_' + a.k + 'd')}</small></span></div>`).join('')}</div></section>
@@ -2597,7 +2602,7 @@ ${isMinor(S.profile) ? '' : ''}<div class="kpis k4 macro" ${isMinor(S.profile) ?
 <div><span class="lbl note">${t('ingL')}</span><p>${esc(L(d.ing))}</p></div>
 ${why.length ? `<ul class="why">${why.map(x => `<li>${ic('check')}<span>${x}</span></li>`).join('')}</ul>` : ''}
 <button class="btn block ${fav ? 'pri' : ''}" data-act="dish-fav" data-v="${d.id}" aria-pressed="${fav}">${ic('heart')} ${fav ? t('favOn') : t('favAdd')}</button>
-<p class="note">${t('foodNote')}</p>` };
+<p class="note">${t(S.profile && isMinor(S.profile) ? 'foodNoteMinor' : 'foodNote')}</p>` };
   },
   ladder: () => ({ title: t('levelPickT'), body: `<p class="note">${t('ladderNote')}</p>${ladderRows(profStrength(S.profile), 'set-strength')}` }),
   export: d => ({ title: t('exportB'), body: `<p class="note">${t('exportTxt')}</p><textarea class="inp mono" id="expTxt" readonly style="min-height:160px;font-size:.75rem;direction:ltr">${esc(d.json)}</textarea><button class="btn pri block" data-act="copy-exp">${ic('copy')} ${t('copy')}</button>` }),
@@ -2693,7 +2698,7 @@ const ACT = {
     } });
   },
   'set-track': a => { const P = S.profile; P.track = a.dataset.v; P.ninja = false; touchProfile(); renderMain(); },
-  'set-level': a => { S.profile.level = +a.dataset.v; touchProfile(); renderMain(); },
+  'set-level': a => { S.profile.level = Math.min(+a.dataset.v, ageMods(S.profile).cap); touchProfile(); renderMain(); },
   'pr-strength': a => { const P = S.profile, k = a.dataset.v; P.strengths = P.strengths || []; const i = P.strengths.indexOf(k); if (i >= 0) P.strengths.splice(i, 1); else P.strengths.push(k); touchProfile(); renderMain(); },
   'open-ladder': () => openSheet('ladder'),
   'rem-open': () => { S.prefs.remindAsked = true; touchProfile(); renderMain(); openSheet('remind'); },

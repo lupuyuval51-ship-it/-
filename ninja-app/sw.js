@@ -1,5 +1,5 @@
 // NINJA CIRCUIT service worker: works offline, and lets the app show notifications on Android.
-const CACHE = 'ninja-circuit-v9';
+const CACHE = 'ninja-circuit-v10';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', e => {
