@@ -15,6 +15,7 @@ A fitness app in one dependency-free HTML file. English by default, Hebrew (righ
 - **Workout player.** Set-by-set, timers, rest, beeps, vibration, wake lock, swap and skip. Weighted exercises get a weight stepper (2.5 kg steps) that remembers your last weight; Progress shows a Lifts card with last and best.
 - **Programs.** 4-week blocks with a lighter fourth week. Main lifts stay the same through a block (progressive overload) and change in the next one. Sessions are trimmed to fit the chosen length.
 - **Ninja mode** (Profile switch, with a confirmation). Adds the Course stopwatch tab, the grip, pull, swing and balance program, hang and other tests (18+), and the ninja workouts. Switching back keeps all history.
+- **Daily target and weight log (adults).** Body details (sex, height, weight) give a daily calorie and protein target from the track (Mifflin-St Jeor, activity from training days, about 20% deficit for get lean, 10% surplus for muscle, never below a safe floor) with the expected pace, and the sample day is chosen to match it. A weight log with a trend sits in Progress. Minors get no targets and no weight tracking.
 - **Nutrition:** 300 dishes with photos, search, filters, favorites and a sample training day (no calories shown under 18).
 - **Progress:** weekly rings, streak, XP, charts, tests, achievements, history, reminders (calendar file).
 
