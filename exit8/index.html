@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c0e">
+  <meta name="description" content="EXIT 8 — מסדרון תת־קרקעי שחוזר על עצמו. מצא את האנומליות, חזור אחורה כשצריך, וצא דרך יציאה 8.">
+  <title>EXIT 8</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap">
+  <style>
+    :root {
+      --bg: #0b0c0e;
+      --panel: rgba(13, 14, 17, 0.86);
+      --line: rgba(255, 255, 255, 0.09);
+      --text: #ececea;
+      --muted: #a3a6ab;
+      --yellow: #f4c20d;
+      --ink: #141414;
+      --danger: #e5484d;
+      --ok: #3fb47a;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); overflow: hidden; }
+    body { font-family: "Rubik", "Segoe UI", "Arial Hebrew", Arial, sans-serif; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+    canvas#view { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; outline: none; touch-action: none; }
+
+    .screen { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); overflow-y: auto; touch-action: pan-y; background: radial-gradient(ellipse at center, rgba(0,0,0,0.25), rgba(0,0,0,0.78)); }
+    .screen.show { display: flex; }
+    .panel { width: min(560px, 100%); margin: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 28px 26px; box-shadow: 0 30px 80px rgba(0,0,0,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .panel.narrow { width: min(420px, 100%); }
+    h1, h2, h3 { margin: 0; font-weight: 800; }
+    h2 { font-size: 1.05rem; letter-spacing: 0.02em; color: var(--yellow); margin: 22px 0 10px; }
+    p { margin: 0; line-height: 1.6; }
+
+    .sign-logo { display: inline-flex; align-items: center; gap: 14px; background: var(--yellow); color: var(--ink); border-radius: 8px; padding: 8px 18px 8px 8px; box-shadow: 0 0 0 3px #222 inset, 0 10px 40px rgba(244,194,13,0.18); direction: ltr; }
+    .sign-logo .num { background: var(--ink); color: #fff; font-weight: 900; font-size: 46px; line-height: 1; width: 62px; height: 62px; display: grid; place-items: center; border-radius: 6px; }
+    .sign-logo .jp { font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif; font-weight: 900; font-size: 40px; }
+    .sign-logo .en { font-weight: 800; font-size: 34px; }
+    .sign-logo svg { width: 28px; height: 36px; }
+    .subtitle { margin-top: 14px; font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .tagline { margin-top: 6px; color: var(--muted); font-size: 0.95rem; }
+
+    ol.rules { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; counter-reset: r; }
+    ol.rules li { counter-increment: r; display: flex; gap: 12px; align-items: flex-start; line-height: 1.5; }
+    ol.rules li::before { content: counter(r); flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--yellow); color: var(--ink); font-weight: 800; display: grid; place-items: center; font-size: 0.85rem; margin-top: 1px; }
+    .hint { margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
+    .controls { margin-top: 16px; color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+    .found { margin-top: 6px; color: var(--muted); font-size: 0.82rem; }
+
+    .btn { font: inherit; font-weight: 600; color: var(--text); background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 12px; padding: 11px 16px; min-height: 46px; cursor: pointer; transition: background .15s, transform .1s, border-color .15s; }
+    .btn:hover { background: rgba(255,255,255,0.11); }
+    .btn:active { transform: translateY(1px); }
+    .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
+    .btn.primary { display: block; width: 100%; margin-top: 22px; background: var(--yellow); color: var(--ink); border-color: transparent; font-weight: 800; font-size: 1.08rem; min-height: 54px; }
+    .btn.primary:hover { background: #ffd23a; }
+    .btn.danger { color: #ffb3b5; }
+    .row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .row .btn { flex: 1 1 120px; }
+    .stack { display: grid; gap: 10px; margin-top: 18px; }
+
+    .codex-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .codex-count { color: var(--muted); font-size: 0.9rem; }
+    .bar { height: 6px; border-radius: 6px; background: rgba(255,255,255,0.08); margin: 14px 0 16px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; background: var(--yellow); width: 0; transition: width .4s; }
+    ul.codex { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; max-height: min(52vh, 460px); overflow-y: auto; padding-inline-end: 4px; }
+    ul.codex li { border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; font-size: 0.9rem; display: flex; gap: 9px; align-items: center; background: rgba(255,255,255,0.03); }
+    ul.codex li .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 0.78rem; min-width: 1.6em; }
+    ul.codex li.locked { color: #6c6f75; }
+    ul.codex li.new { border-color: rgba(244,194,13,0.6); }
+    .empty { color: var(--muted); font-size: 0.9rem; margin-bottom: 12px; }
+
+    .field { display: grid; gap: 8px; margin-top: 16px; }
+    .field label { font-weight: 600; font-size: 0.95rem; display: flex; justify-content: space-between; }
+    .field output { color: var(--muted); font-variant-numeric: tabular-nums; }
+    input[type=range] { width: 100%; accent-color: var(--yellow); height: 28px; }
+    .check { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-weight: 600; cursor: pointer; }
+    .check input { width: 22px; height: 22px; accent-color: var(--yellow); }
+    select { font: inherit; color: var(--text); background: #1a1b1f; border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 44px; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px; }
+    .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px; text-align: center; background: rgba(255,255,255,0.03); }
+    .stat b { display: block; font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: 0.8rem; }
+    .best { margin-top: 14px; text-align: center; color: var(--muted); }
+    .best.newbest { color: var(--yellow); font-weight: 700; }
+    .spotted { margin-top: 10px; color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+    .end-title { font-size: 2rem; }
+    .end-text { color: var(--muted); margin-top: 6px; }
+
+    #loading p { color: var(--muted); margin-top: 16px; }
+    #loading .inner { text-align: center; }
+    .spinner { width: 36px; height: 36px; margin: 0 auto; border-radius: 50%; border: 3px solid rgba(255,255,255,0.12); border-top-color: var(--yellow); animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .error { color: #ffb3b5; max-width: 420px; text-align: center; line-height: 1.6; }
+
+    #crosshair { position: fixed; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(255,255,255,0.55); pointer-events: none; display: none; }
+    body.playing #crosshair { display: block; }
+    body.touchmode #crosshair { display: none; }
+
+    .toast { position: fixed; inset-inline: 0; bottom: max(28px, env(safe-area-inset-bottom)); margin: auto; width: fit-content; max-width: calc(100% - 32px); background: rgba(10,10,12,0.82); border: 1px solid var(--line); color: var(--text); padding: 10px 16px; border-radius: 999px; font-size: 0.92rem; opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: none; }
+
+    #touchUi { display: none; }
+    body.touchmode.playing #touchUi { display: block; }
+    #joy { position: fixed; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.05); pointer-events: none; display: none; }
+    #joy i { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255,255,255,0.28); }
+    #joy.run i { background: rgba(244,194,13,0.7); }
+    #touchHint { position: fixed; bottom: max(22px, env(safe-area-inset-bottom)); inset-inline: 22px; text-align: center; color: rgba(255,255,255,0.5); font-size: 0.8rem; pointer-events: none; transition: opacity 1.2s; }
+    body.hint-done #touchHint { opacity: 0; }
+    #btnPauseTouch { position: fixed; top: max(14px, env(safe-area-inset-top)); inset-inline-end: 14px; width: 48px; height: 48px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,0.35); }
+    #btnPauseTouch svg { width: 18px; height: 18px; }
+
+    @media (max-height: 640px) { .panel { padding: 20px 18px; } h2 { margin-top: 14px; } .tagline { display: none; } }
+    @media (max-width: 420px) { .sign-logo .jp { font-size: 30px; } .sign-logo .en { font-size: 26px; } .sign-logo .num { width: 50px; height: 50px; font-size: 36px; } .stats { gap: 6px; } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } .toast, .btn, .bar > i { transition: none; } }
+  </style>
+</head>
+<body>
+  <canvas id="view" tabindex="0" aria-label="EXIT 8"></canvas>
+  <div id="crosshair" aria-hidden="true"></div>
+
+  <section id="loading" class="screen show" aria-live="polite">
+    <div class="inner">
+      <div class="spinner" aria-hidden="true"></div>
+      <p data-i18n="loading">טוען את המסדרון…</p>
+    </div>
+  </section>
+
+  <section id="menu" class="screen" aria-labelledby="menuTitle">
+    <div class="panel">
+      <h1 id="menuTitle" class="sign-logo" aria-label="EXIT 8">
+        <span class="num">8</span><span class="jp">出口</span><span class="en">Exit</span>
+        <svg viewBox="0 0 28 36" aria-hidden="true"><path d="M14 0 28 15H19V36H9V15H0Z" fill="#141414"/></svg>
+      </h1>
+      <p class="subtitle" data-i18n="subtitle"></p>
+      <p class="tagline" data-i18n="tagline"></p>
+      <h2 data-i18n="rulesTitle"></h2>
+      <ol class="rules" id="rulesList"></ol>
+      <p class="hint" data-i18n="rulesHint"></p>
+      <button class="btn primary" id="btnStart" data-i18n="start"></button>
+      <div class="row">
+        <button class="btn" id="btnCodex" data-i18n="codex"></button>
+        <button class="btn" id="btnSettings" data-i18n="settings"></button>
+        <button class="btn" id="btnLang" lang="en"></button>
+      </div>
+      <p class="controls" id="controlsText"></p>
+      <p class="found" id="foundText"></p>
+    </div>
+  </section>
+
+  <section id="pause" class="screen" aria-labelledby="pauseTitle">
+    <div class="panel narrow">
+      <h1 id="pauseTitle" data-i18n="paused"></h1>
+      <div class="stack">
+        <button class="btn primary" id="btnResume" data-i18n="resume" style="margin-top:0"></button>
+        <button class="btn" id="btnCodex2" data-i18n="codex"></button>
+        <button class="btn" id="btnSettings2" data-i18n="settings"></button>
+        <button class="btn" id="btnRestart" data-i18n="restart"></button>
+        <button class="btn" id="btnMenu" data-i18n="toMenu"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="codex" class="screen" aria-labelledby="codexTitle">
+    <div class="panel">
+      <div class="codex-head">
+        <h1 id="codexTitle" data-i18n="codex"></h1>
+        <span class="codex-count" id="codexCount"></span>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="codexBar"></i></div>
+      <p class="empty" id="codexEmpty" data-i18n="codexEmpty"></p>
+      <ul class="codex" id="codexList"></ul>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="btnCodexBack" data-i18n="back"></button>
+        <button class="btn danger" id="btnCodexReset" data-i18n="resetCodex"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="settings" class="screen" aria-labelledby="settingsTitle">
+    <div class="panel narrow">
+      <h1 id="settingsTitle" data-i18n="settings"></h1>
+      <div class="field">
+        <label for="optSens"><span data-i18n="sensitivity"></span><output id="outSens"></output></label>
+        <input id="optSens" type="range" min="0.3" max="3" step="0.1">
+      </div>
+      <div class="field">
+        <label for="optVol"><span data-i18n="volume"></span><output id="outVol"></output></label>
+        <input id="optVol" type="range" min="0" max="1" step="0.05">
+      </div>
+      <div class="field">
+        <label for="optQuality" data-i18n="quality"></label>
+        <select id="optQuality">
+          <option value="high" data-i18n="qualityHigh"></option>
+          <option value="low" data-i18n="qualityLow"></option>
+        </select>
+      </div>
+      <label class="check"><input id="optFlash" type="checkbox"><span data-i18n="reduceFlash"></span></label>
+      <button class="btn primary" id="btnSettingsBack" data-i18n="back"></button>
+    </div>
+  </section>
+
+  <section id="end" class="screen" aria-labelledby="endTitle">
+    <div class="panel">
+      <h1 id="endTitle" class="end-title" data-i18n="endTitle"></h1>
+      <p class="end-text" data-i18n="endText"></p>
+      <div class="stats">
+        <div class="stat"><b id="stTime"></b><span data-i18n="statTime"></span></div>
+        <div class="stat"><b id="stLoops"></b><span data-i18n="statLoops"></span></div>
+        <div class="stat"><b id="stMistakes"></b><span data-i18n="statMistakes"></span></div>
+      </div>
+      <p class="best" id="stBest"></p>
+      <p class="spotted" id="stSpotted"></p>
+      <button class="btn primary" id="btnAgain" data-i18n="playAgain"></button>
+      <div class="row">
+        <button class="btn" id="btnCodex3" data-i18n="codex"></button>
+        <button class="btn" id="btnMenu2" data-i18n="toMenu"></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="fatal" class="screen"><p class="error" id="fatalText"></p></section>
+
+  <div id="touchUi">
+    <div id="joy" aria-hidden="true"><i></i></div>
+    <p id="touchHint"></p>
+    <button class="btn" id="btnPauseTouch" aria-label="השהיה">
+      <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="3" y="2" width="4" height="14" rx="1" fill="#fff"/><rect x="11" y="2" width="4" height="14" rx="1" fill="#fff"/></svg>
+    </button>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/logic.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/textures.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/actors.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
