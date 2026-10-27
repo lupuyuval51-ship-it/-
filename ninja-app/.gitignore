@@ -1,0 +1,9 @@
+*.pyc
+__pycache__/
+index.test.html
+index.ninja.html
+shots/
+node_modules/
+tools/lint-target.js
+dist/
+undefined/
