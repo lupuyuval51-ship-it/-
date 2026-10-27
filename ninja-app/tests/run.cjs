@@ -1,7 +1,7 @@
 // Runs every suite against fresh test pages and prints one line per suite. Usage: node tests/run.cjs [name ...]
 const { spawnSync } = require('child_process'), path = require('path'), fs = require('fs');
 const build = require('./build-test-pages.cjs');
-const ALL = ['ready-workouts', 'weights-and-search', 'injuries-readiness', 'language', 'strength', 'resume-workout', 'food', 'teen-safety', 'injury-personalization', 'week-flow', 'nutrition-targets', 'course-language', 'paged-lists', 'ninja-edition', 'ninja-migration', 'security', 'csp', 'crawl', 'stress'];
+const ALL = ['ready-workouts', 'weights-and-search', 'injuries-readiness', 'language', 'strength', 'resume-workout', 'food', 'teen-safety', 'injury-personalization', 'week-flow', 'nutrition-targets', 'course-language', 'paged-lists', 'ninja-edition', 'ninja-migration', 'security', 'csp', 'layout', 'crawl', 'stress'];
 const want = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 let bad = 0;
 for (const name of want) {
