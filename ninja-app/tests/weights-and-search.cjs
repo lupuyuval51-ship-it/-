@@ -63,7 +63,7 @@ require('./build-test-pages.cjs')();
   await ev(p, () => { const ws = weekStart(Date.now()); localStorage.setItem('ninja-circuit-v1', JSON.stringify({ v: 1, profile: { name: 'T', age: 2, exp: 1, track: 'general', ninja: false, places: ['gym'], equip: ['bar', 'box', 'weights', 'towel', 'barbell', 'machine'], pull: 2, hang: 1, push: 1, strength: 3, strengths: [], focus: [], days: [1, 3, 5], minutes: 45, limits: [], limLv: {}, level: 0, startTs: ws, createdTs: Date.now(), adapt: {}, quick: true }, prefs: { lang: 'en', sound: false, vibe: false, countdown: false, remindAsked: true }, courses: [], logs: {}, meta: { pu: 1, cu: 0, resetAt: 0 } })); });
   await p.reload(); await p.waitForTimeout(600);
   await click(p, '[data-act="tab"][data-v="today"]'); const td = await text(p); check('beginner: quick picks show no Advanced workout', !/Advanced/.test(await p.$eval('.hw', e => e.innerText).catch(() => '')));
-  check('Today names the planned day', /Next session · 1\/3 · (Today|[A-Z][a-z]+day)/.test(td), td.slice(0, 300));
+  check('Today names the planned day', /Next session · 1\/3 · (Today|Catch-up|[A-Z][a-z]+day)/.test(td), td.slice(0, 300));
   await click(p, '[data-act="tab"][data-v="workouts"]');
   check('quick profile is offered a sore-spots shortcut', (await text(p)).includes('Mark sore spots'));
   await click(p, '[data-act="inj-sheet"]'); await click(p, '[data-act="inj-toggle"][data-v="knee"]'); await click(p, '[data-act="inj-lv"][data-k="knee"][data-v="2"]'); await click(p, '[data-act="inj-save"]');

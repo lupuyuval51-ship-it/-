@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1012">
+<!-- Only the app's own files, inline code and Google Fonts may load; nothing can be sent anywhere (connect-src self). Outside the @artifact markers, so the hosted viewer build is unaffected. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1393,6 +1395,9 @@ let S = blank();
 try {
   const raw = JSON.parse(localStorage.getItem(LS) || 'null');
   if (raw && raw.v === 1) S = Object.assign(blank(), raw, { meta: Object.assign(blank().meta, raw.meta || {}) });
+  if (!S.prefs || typeof S.prefs !== 'object') S.prefs = blank().prefs;
+  if (!Array.isArray(S.courses)) S.courses = [];
+  if (!S.logs || typeof S.logs !== 'object' || Array.isArray(S.logs)) S.logs = {};
 } catch (e) { /* storage blocked: run in memory */ }
 lang = S.prefs.lang === 'he' ? 'he' : 'en';
 if (!S.courses.length) { S.courses = [defaultCourse()]; }
@@ -1438,6 +1443,7 @@ async function flush() {
 function setSync(st) { Sync.status = st; const el = $('#syncDot'); if (el) el.outerHTML = syncDot(); if (UI.tab === 'profile' && !UI.ov) renderMain(); }
 function mergeRemote(R) {
   let changed = false;
+  if (R.profile && !cObj(R.profile)) R.profile = null;
   const rp = R.profile;
   const resetAt = Math.max(S.meta.resetAt || 0, rp?.resetAt || 0);
   if (rp) {
@@ -1467,6 +1473,7 @@ function mergeRemote(R) {
   }
   if (!S.courses.length) { S.courses = [defaultCourse()]; S.meta.cu = Date.now(); Sync.dirty.add('courses'); }
   saveLocal();
+  if (changed) { const keep = S.meta; S = cleanState(S); S.meta = Object.assign(S.meta, keep); }
   return changed;
 }
 async function connectCloud() {
@@ -2295,7 +2302,7 @@ function historyList(n) {
   return `<div class="card" style="padding-block:4px"><div class="list">${items.map(({ k, r }) => {
     const date = fmtDate(r.ts, { weekday: 'short', day: 'numeric', month: 'short' });
     if (k === 'sessions') return `<button class="li" data-act="hist" data-k="sessions" data-v="${r.id}"><span class="badge-ic">${ic(tpl(r.type)?.icon || 'dumbbell')}</span><span class="grow"><span class="t">${esc(L(tpl(r.type)?.name) || t('sessRec'))}</span><span class="s">${esc(date)} · ${fmtMS(r.dur || 0)} · ${r.n || 0} ${t('setsL')}</span></span>${r.rpe ? `<span class="chip">${t('rpe' + r.rpe)}</span>` : ''}</button>`;
-    if (k === 'runs') { const c = S.courses.find(x => x.id === r.course); return `<button class="li" data-act="hist" data-k="runs" data-v="${r.id}"><span class="badge-ic o">${ic('timer')}</span><span class="grow"><span class="t">${esc(c ? c.name : t('runRec'))}</span><span class="s">${esc(date)} · ${r.done ? t('completed') : t('fellAt', { o: c?.obs[r.fell]?.name || '?' })}</span></span><b class="mono ltr">${fmtClock(r.total)}</b></button>`; }
+    if (k === 'runs') { const c = S.courses.find(x => x.id === r.course); return `<button class="li" data-act="hist" data-k="runs" data-v="${r.id}"><span class="badge-ic o">${ic('timer')}</span><span class="grow"><span class="t">${esc(c ? c.name : t('runRec'))}</span><span class="s">${esc(date)} · ${r.done ? t('completed') : t('fellAt', { o: esc(c?.obs[r.fell]?.name || '?') })}</span></span><b class="mono ltr">${fmtClock(r.total)}</b></button>`; }
     return `<button class="li" data-act="hist" data-k="tests" data-v="${r.id}"><span class="badge-ic g">${ic(TESTS[r.test]?.icon || 'target')}</span><span class="grow"><span class="t">${t('t_' + r.test)}</span><span class="s">${esc(date)}</span></span><b class="mono">${r.value} ${t(TESTS[r.test]?.unit || 'uSec')}</b></button>`;
   }).join('')}</div></div>`;
 }
@@ -2561,7 +2568,7 @@ function vRunner(r) {
   if (r.phase === 'ready') main = `<button class="tap go" data-act="rn-go">${ic('play')}<span>${t('tapStart')}</span>${pb ? `<small class="note mono ltr">${t('pb')} ${fmtClock(pb.total)}</small>` : ''}</button>`;
   else if (r.phase === 'count') main = `<div class="tap go" aria-live="assertive">${ic('timer')}<span>${t('getReady')}</span></div>`;
   else if (r.phase === 'run') { const o = c.obs[cur]; main = `<div class="run-obs"><span class="note">${t('obsOf', { i: cur + 1, n: c.obs.length })}</span><b>${esc(o.name)}</b>${pb && pb.splits[cur] != null ? `<span class="note mono ltr">${t('pbSplit', { t: fmtClock(pb.splits[cur] - (cur ? pb.splits[cur - 1] : 0)) })}</span>` : ''}</div><button class="tap" data-act="rn-split">${ic('check')}<span>${t('passed')}</span></button><div class="btns"><button class="btn danger" data-act="rn-fell">${t('fell')}</button><button class="btn" data-act="rn-abort">${t('abort')}</button></div>`; }
-  else main = `<div class="welcome" style="padding-top:0"><span class="badge-ic ${r.done ? 'o' : 'd'}" style="width:60px;height:60px;border-radius:18px">${ic(r.done ? 'trophy' : 'flag')}</span><h2 style="font-size:1.6rem" tabindex="-1" id="rnH">${r.done ? (r.isPB && pb ? t('newPB') : t('buzzer')) : t('fellAt', { o: c.obs[r.fell]?.name || '' })}</h2>${r.done && pb && !r.isPB ? `<p class="mono ltr">${t('pb')} ${fmtClock(pb.total)}</p>` : ''}</div><div class="btns"><button class="btn" data-act="rn-close">${t('close')}</button><button class="btn pri" data-act="rn-again">${ic('reset')} ${t('again')}</button></div>`;
+  else main = `<div class="welcome" style="padding-top:0"><span class="badge-ic ${r.done ? 'o' : 'd'}" style="width:60px;height:60px;border-radius:18px">${ic(r.done ? 'trophy' : 'flag')}</span><h2 style="font-size:1.6rem" tabindex="-1" id="rnH">${r.done ? (r.isPB && pb ? t('newPB') : t('buzzer')) : t('fellAt', { o: esc(c.obs[r.fell]?.name || '') })}</h2>${r.done && pb && !r.isPB ? `<p class="mono ltr">${t('pb')} ${fmtClock(pb.total)}</p>` : ''}</div><div class="btns"><button class="btn" data-act="rn-close">${t('close')}</button><button class="btn pri" data-act="rn-again">${ic('reset')} ${t('again')}</button></div>`;
   return `<div class="ov-top"><button class="icon-btn" data-act="rn-x" aria-label="${t('close')}">${ic('x')}</button><div class="grow">${esc(c.name)}</div><span style="width:44px"></span></div>
 <div class="run-time" id="rnTime" role="timer">${timeHtml}</div>${main}<div class="splits">${splits}</div>${r.phase === 'ready' ? `<p class="note" style="text-align:center">${t('lastSplitHint')}</p>` : ''}`;
 }
@@ -2606,11 +2613,104 @@ async function doExport() {
   }
   openSheet('export', { json });
 }
+/* ═════════════════ Untrusted data ═════════════════ */
+// A backup file, storage written by an older or tampered copy, or the viewer's synced documents can hold anything.
+// State is rebuilt field by field: unknown keys are dropped, text is capped, numbers must be finite and in range,
+// and ids must name something that exists. A record that fails is dropped, so it can never reach the page.
+const cStr = (v, max) => (typeof v === 'string' ? v.slice(0, max) : '');
+const cNum = (v, lo, hi, def = null) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def);
+const cInt = (v, lo, hi, def = null) => { const n = cNum(v, lo, hi); return n == null ? def : Math.round(n); };
+const cBool = (v, def = false) => (typeof v === 'boolean' ? v : def);
+const cOne = (v, list, def = null) => (list.includes(v) ? v : def);
+const cSet = (v, list, max = 20) => (Array.isArray(v) ? [...new Set(v.filter(x => list.includes(x)))].slice(0, max) : []);
+const cId = v => (typeof v === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(v) ? v : rid());
+const cObj = v => v && typeof v === 'object' && !Array.isArray(v);
+const cTs = v => cNum(v, 946684800000, Date.now() + 2 * DAY);
+const typeOk = ty => typeof ty === 'string' && (Object.prototype.hasOwnProperty.call(TPL, ty) || (ty.startsWith('R:') && Object.prototype.hasOwnProperty.call(READY_BY, ty.slice(2))));
+const MINUTES = [15, 20, 30, 45, 60];
+
+function cleanProfile(p) {
+  if (!cObj(p)) return null;
+  const age = cInt(p.age, 0, 4);
+  if (age == null) return null;
+  // Profiles saved before the general-fitness edition have no track or ninja flag: they were ninja profiles.
+  const legacy = p.ninja == null && p.track == null, track = cOne(p.track, TRACKS, legacy || p.ninja === true ? 'ninja' : 'general'), strength = cInt(p.strength, 1, 10); // no strength level in older saves: the push-up level stands in for it
+  const limits = cSet(p.limits, LIMITS.filter(l => l !== 'none'), 7), limLv = {};
+  if (cObj(p.limLv)) for (const l of limits) { const v = cInt(p.limLv[l], 1, 2); if (v) limLv[l] = v; }
+  const days = Array.isArray(p.days) ? [...new Set(p.days.map(d => cInt(d, 0, 6)).filter(d => d != null))].slice(0, 7) : [];
+  const adapt = {};
+  if (cObj(p.adapt)) for (const [k, v] of Object.entries(p.adapt)) if (typeOk(k)) { const n = cNum(v, .5, 1.5); if (n != null) adapt[k] = n; }
+  const P = {
+    name: cStr(p.name, 40).trim(), track, ninja: cBool(p.ninja, legacy || track === 'ninja'), age,
+    exp: cInt(p.exp, 0, 3, 1), goal: cInt(p.goal, 0, 3), places: cSet(p.places, [...new Set([...PLACES, ...PLACES_FIT])], 6),
+    equip: cSet(p.equip, [...new Set([...EQUIP, ...EQUIP_FIT])], 20), pull: cInt(p.pull, 0, 4, 1), hang: cInt(p.hang, 0, 3, 1),
+    push: cInt(p.push, 0, 3, pushFromStrength(strength ?? 3)), strengths: cSet(p.strengths, STRENGTH_KEYS, 6),
+    strengthNote: cStr(p.strengthNote, 300), focus: cSet(p.focus, [...new Set([...FOCI, ...FIT_FOCI])], 3),
+    days: days.length ? days : [1, 3, 5], minutes: cOne(p.minutes, MINUTES, 30), limits, limLv,
+    level: cInt(p.level, 0, 3, 1), startTs: cTs(p.startTs) ?? weekStart(Date.now()), createdTs: cTs(p.createdTs) ?? Date.now(), adapt, quick: cBool(p.quick)
+  };
+  if (strength != null) P.strength = strength;
+  if (!P.places.length) P.places = ['home'];
+  if (!P.equip.length) P.equip = ['towel'];
+  const prev = cOne(p.prevTrack, TRACKS); if (prev) P.prevTrack = prev;
+  if (cObj(p.body)) { const h = cNum(p.body.h, 120, 230), w = cNum(p.body.w, 30, 250); if (h && w) P.body = { sex: cOne(p.body.sex, ['m', 'f'], 'm'), h: Math.round(h), w: Math.round(w * 10) / 10 }; }
+  if (Array.isArray(p.wlog)) P.wlog = p.wlog.slice(-400).map(e => (Array.isArray(e) && cTs(e[0]) && cNum(e[1], 30, 250) ? [e[0], Math.round(e[1] * 10) / 10] : null)).filter(Boolean);
+  return P;
+}
+function cleanPrefs(q) {
+  const d = blank().prefs; if (!cObj(q)) return d;
+  return {
+    lang: cOne(q.lang, ['en', 'he'], d.lang), sound: cBool(q.sound, d.sound), vibe: cBool(q.vibe, d.vibe), countdown: cBool(q.countdown, d.countdown),
+    remindOn: cBool(q.remindOn), remindTime: typeof q.remindTime === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(q.remindTime) ? q.remindTime : d.remindTime,
+    remindAsked: cBool(q.remindAsked), injAsked: cBool(q.injAsked),
+    favFood: cSet(q.favFood, Object.keys(DISH), 300), favW: cSet(q.favW, Object.keys(READY_BY), 100)
+  };
+}
+function cleanCourses(list) {
+  const out = (Array.isArray(list) ? list.slice(0, 20) : []).filter(cObj).map(c => ({
+    id: cId(c.id), name: cStr(c.name, 40), sx: cNum(c.sx, 0, 400, 22), sy: cNum(c.sy, 0, 400, 148),
+    obs: (Array.isArray(c.obs) ? c.obs.slice(0, 30) : []).filter(cObj).map(o => ({ id: cId(o.id), name: cStr(o.name, 40), x: cNum(o.x, 0, 400, 150), y: cNum(o.y, 0, 400, 80) }))
+  })).filter(c => c.obs.length);
+  return out.length ? out : [defaultCourse()];
+}
+function cleanRec(kind, r) {
+  if (!cObj(r)) return null;
+  const ts = cTs(r.ts); if (ts == null) return null;
+  const base = { id: cId(r.id), u: cNum(r.u, 0, Date.now() + 2 * DAY, 0), ts };
+  if (r.deleted === true) base.deleted = true;
+  if (kind === 'sessions') {
+    if (!typeOk(r.type)) return null;
+    const sets = (Array.isArray(r.sets) ? r.sets.slice(0, 400) : []).map(x => (Array.isArray(x) && typeof x[0] === 'string' && Object.prototype.hasOwnProperty.call(EX, x[0]) ? [x[0], cNum(x[1], 0, 1e5, 0), cNum(x[2], 0, 1e5), cNum(x[3], 0, 1000, 0)] : null)).filter(Boolean);
+    return { ...base, type: r.type, idx: cInt(r.idx, 0, 9), week: cInt(r.week, 1, 9999, 1), dur: cInt(r.dur, 0, 86400, 0), n: cInt(r.n, 0, 9999, sets.length), sets, rpe: cInt(r.rpe, 1, 5), note: cStr(r.note, 500) };
+  }
+  if (kind === 'runs') {
+    const total = cNum(r.total, 0, 864e5); if (total == null) return null;
+    return { ...base, course: typeof r.course === 'string' ? cId(r.course) : '', splits: (Array.isArray(r.splits) ? r.splits.slice(0, 50) : []).map(x => cNum(x, 0, 864e5)).filter(x => x != null), total, done: cBool(r.done), fell: cInt(r.fell, 0, 50) };
+  }
+  const test = cOne(r.test, Object.keys(TESTS)), value = cNum(r.value, 0, 1e5);
+  return test && value != null ? { ...base, test, value } : null;
+}
+function cleanLogs(logs) {
+  const out = {}; if (!cObj(logs)) return out;
+  for (const [m, M] of Object.entries(logs)) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(m) || !cObj(M)) continue;
+    out[m] = {}; for (const k of ['sessions', 'runs', 'tests']) out[m][k] = (Array.isArray(M[k]) ? M[k].slice(0, 3000) : []).map(r => cleanRec(k, r)).filter(Boolean);
+  }
+  return out;
+}
+function cleanState(d) {
+  d = cObj(d) ? d : {};
+  const meta = cObj(d.meta) ? d.meta : {}, ready = cObj(d.ready) && cTs(d.ready.ts) && cInt(d.ready.v, 1, 3) ? { ts: d.ready.ts, v: cInt(d.ready.v, 1, 3) } : null;
+  const out = { v: 1, profile: cleanProfile(d.profile), prefs: cleanPrefs(d.prefs), courses: cleanCourses(d.courses), logs: cleanLogs(d.logs), meta: { pu: cNum(meta.pu, 0, Infinity, 0), cu: cNum(meta.cu, 0, Infinity, 0), resetAt: cNum(meta.resetAt, 0, Infinity, 0) } };
+  if (ready) out.ready = ready;
+  return out;
+}
 function parseBackup(txt) {
   try { const o = JSON.parse(txt); if (o && o.app === 'ninja-circuit' && o.data && typeof o.data.logs === 'object' && Array.isArray(o.data.courses)) return o.data; } catch (e) {}
   return null;
 }
 function applyBackup(d) {
+  d = cleanState({ ...d, meta: S.meta });
   const now = Date.now();
   S.profile = d.profile || null; S.prefs = Object.assign(blank().prefs, d.prefs || {}); S.courses = d.courses.length ? d.courses : [defaultCourse()];
   for (const m of Object.keys(S.logs)) if (!d.logs[m]) Sync.dirty.add('m-' + m);
@@ -2927,11 +3027,12 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const b = e.target.dataset && e.target.dataset.bind; if (!b) return;
-  if (b === 'p-name') { S.profile.name = e.target.value.trim(); touchProfile(); }
+  if (b === 'p-name') { S.profile.name = e.target.value.trim().slice(0, 40); touchProfile(); }
   if (b === 'p-note') { S.profile.strengthNote = e.target.value.trim().slice(0, 300); touchProfile(); }
   if (b === 'rem-time' && /^\d{2}:\d{2}$/.test(e.target.value)) { S.prefs.remindTime = e.target.value; touchProfile(); }
   if (b === 'imp-file') {
     const file = e.target.files && e.target.files[0]; if (!file) return;
+    if (file.size > 5e6) { const er = $('#impErr'); if (er) er.textContent = t('importBad'); return; }
     const rd = new FileReader();
     rd.onload = () => { const ta = $('#impTxt'); if (ta) ta.value = String(rd.result || ''); ACT['imp-go'](); };
     rd.readAsText(file);
@@ -3027,6 +3128,7 @@ function checkReminder() {
 }
 
 /* ═════════════════ Boot ═════════════════ */
+S = cleanState(S); lang = S.prefs.lang; saveLocal();
 render();
 setInterval(checkReminder, 30000); setTimeout(checkReminder, 1500);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkReminder(); });
