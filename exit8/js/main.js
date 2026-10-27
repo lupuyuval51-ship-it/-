@@ -573,8 +573,17 @@
   ['#btnSettings', '#btnSettings2'].forEach(id => $(id).addEventListener('click', () => openOverlay('settings')));
   $('#btnCodexBack').addEventListener('click', closeOverlay);
   $('#btnSettingsBack').addEventListener('click', closeOverlay);
+  let resetArmedAt = 0;
   $('#btnCodexReset').addEventListener('click', () => {
-    if (!window.confirm(S.lang === 'he' ? 'לאפס את יומן האנומליות?' : 'Reset the anomaly log?')) return;
+    const btn = $('#btnCodexReset');
+    if (Date.now() - resetArmedAt > 4000) {
+      resetArmedAt = Date.now();
+      btn.textContent = t('resetConfirm');
+      setTimeout(() => { if (resetArmedAt && Date.now() - resetArmedAt >= 4000) btn.textContent = t('resetCodex'); }, 4100);
+      return;
+    }
+    resetArmedAt = 0;
+    btn.textContent = t('resetCodex');
     S.found.clear(); S.newlyFound.clear(); store.set('found', []); renderCodex();
   });
   $('#btnLang').addEventListener('click', () => {

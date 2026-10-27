@@ -53,6 +53,7 @@
       pauseBtn: 'השהיה',
       runBtn: 'ריצה',
       resetCodex: 'אפס יומן',
+      resetConfirm: 'לחץ שוב כדי לאפס',
       codexEmpty: 'עוד לא זיהית אף אנומליה. הן שם — תסתכל טוב.',
       // In-world rules poster
       posterTitle: 'שימו לב',
@@ -112,6 +113,7 @@
       pauseBtn: 'Pause',
       runBtn: 'Run',
       resetCodex: 'Reset log',
+      resetConfirm: 'Click again to reset',
       codexEmpty: "You haven't spotted any anomaly yet. They are there — look closely.",
       posterTitle: 'Notice',
       posterRules: [
