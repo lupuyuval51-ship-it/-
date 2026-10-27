@@ -12,7 +12,8 @@
     "lint": "node scripts/lint.mjs",
     "build": "node scripts/build.mjs",
     "test:dist": "node scripts/smoke-dist.mjs",
-    "test:exit8": "node --test exit8/tests/*.test.js"
+    "test:exit8": "node --test exit8/tests/*.test.js",
+    "build:exit8": "node exit8/build.mjs"
   },
   "engines": { "node": ">=20" }
 }

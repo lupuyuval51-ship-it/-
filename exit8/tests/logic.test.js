@@ -145,3 +145,11 @@ test('route coordinates round-trip', () => {
     assert.ok(Math.abs(E.routeS(lay, p.x, p.z) - s) < 1e-6, `s=${s}`);
   }
 });
+
+test('exit8.html is the up-to-date single-file build', async () => {
+  const fs = await import('node:fs');
+  const { bundle } = await import('../build.mjs');
+  const built = fs.readFileSync(new URL('../exit8.html', import.meta.url), 'utf8');
+  assert.ok(!/<script src=/.test(built), 'every script is inlined');
+  assert.equal(built, bundle(), 'run `npm run build:exit8` after changing the sources');
+});

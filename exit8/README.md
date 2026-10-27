@@ -14,7 +14,15 @@
 
 ## הרצה
 
-אין תלויות ואין build. אפשר פשוט לפתוח את `exit8/index.html` בדפדפן, או להגיש את התיקייה:
+**קובץ אחד:** `exit8/exit8.html` מכיל את כל המשחק (HTML, CSS ו־JS) — אפשר להעתיק אותו לבד לכל מקום, לשלוח אותו או לפתוח אותו ישירות בדפדפן.
+
+הקוד עצמו מפוצל ל־`js/` לנוחות פיתוח. אחרי שינוי בקוד, בונים מחדש את הקובץ היחיד:
+
+```bash
+npm run build:exit8
+```
+
+לפיתוח אפשר גם לפתוח את `exit8/index.html` (טוען את `js/` ישירות), או להגיש את התיקייה:
 
 ```bash
 cd exit8 && python3 -m http.server 8000
@@ -64,4 +72,4 @@ npm run test:exit8
 
 ---
 
-**English:** a first-person loop-horror game inspired by *The Exit 8*. Spot anomalies in a repeating Japanese underground passage: turn back if something is wrong, keep going if nothing is, and reach Exit 8. Dependency-free WebGL2 — open `index.html`, or run `npm run test:exit8` for the tests.
+**English:** a first-person loop-horror game inspired by *The Exit 8*. Spot anomalies in a repeating Japanese underground passage: turn back if something is wrong, keep going if nothing is, and reach Exit 8. Dependency-free WebGL2 — the whole game is the single file `exit8.html` (rebuild it with `npm run build:exit8`); run `npm run test:exit8` for the tests.
