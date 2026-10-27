@@ -31,7 +31,7 @@ export const gameEs: Record<keyof typeof game.en, string> = {
   "hud.points": "+{n}",
   "hud.music": "Música",
   "hud.quality": "Gráficos",
-  "hud.quality.granted": "Tu plan muestra los gráficos en {tier}.",
+  "hud.quality.granted": "El juego se muestra en {tier}.",
   "hud.paused": "En pausa",
   "hud.controls": "Controles",
   "hud.controls.move": "Mover: W A S D / flechas",
