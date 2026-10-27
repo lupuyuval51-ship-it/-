@@ -1,0 +1,29 @@
+name: LUPU Study AI – CI
+
+on:
+  push:
+    paths: ["lupu-study-ai/**", ".github/workflows/lupu-study-ai.yml"]
+  pull_request:
+    paths: ["lupu-study-ai/**", ".github/workflows/lupu-study-ai.yml"]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lupu-study-ai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: lupu-study-ai/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"

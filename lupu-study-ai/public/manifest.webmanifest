@@ -1,0 +1,24 @@
+{
+  "name": "LUPU Study AI",
+  "short_name": "LUPU",
+  "description": "המורה הפרטי הדיגיטלי שלך: הסברים, תרגול, הכנה למבחנים ועוד.",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0e1f",
+  "theme_color": "#5b3df5",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "מורה AI", "url": "/tutor", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "מצב ריכוז", "url": "/focus", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
