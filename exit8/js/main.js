@@ -245,7 +245,8 @@
   }
   document.addEventListener('mousemove', e => {
     if (S.mode !== 'playing') return;
-    if (S.locked) look(e.movementX, e.movementY, 0.0022);
+    // Some browsers report a huge jump on the first event after locking; ignore those spikes.
+    if (S.locked) { if (Math.abs(e.movementX) < 400 && Math.abs(e.movementY) < 400) look(e.movementX, e.movementY, 0.0022); }
     else if (S.drag) { look(e.clientX - S.drag.x, e.clientY - S.drag.y, 0.005); S.drag = { x: e.clientX, y: e.clientY }; }
   });
   canvas.addEventListener('mousedown', e => {
