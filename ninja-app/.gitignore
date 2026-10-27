@@ -6,3 +6,4 @@ shots/
 node_modules/
 tools/lint-target.js
 dist/
+undefined/
