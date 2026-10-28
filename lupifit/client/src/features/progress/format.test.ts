@@ -96,7 +96,7 @@ describe('notification rendering', () => {
     expect(notificationMessage({ kind: 'weekly_goal', data: { weekStart: '2026-10-05', goal: 3, completed: 3 } }, en)).toBe(
       'Weekly goal reached: 3 of 3 workouts this week.',
     );
-    expect(notificationMessage({ kind: 'info', data: {} }, en)).toBe('Update from FITAI');
+    expect(notificationMessage({ kind: 'info', data: {} }, en)).toBe('Update from LUPIFIT');
   });
 
   it('survives malformed data', () => {

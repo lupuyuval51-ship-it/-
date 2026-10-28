@@ -96,12 +96,12 @@ export const config = {
     enabled: bool(env.OPENFOODFACTS_ENABLED, !isTest),
     baseUrl: str(env.OPENFOODFACTS_BASE_URL, 'https://world.openfoodfacts.org'),
     timeoutMs: int(env.OPENFOODFACTS_TIMEOUT_MS, 6000, 1000, 30_000),
-    userAgent: str(env.OPENFOODFACTS_USER_AGENT, 'FITAI/1.0 (self-hosted fitness app)'),
+    userAgent: str(env.OPENFOODFACTS_USER_AGENT, 'LUPIFIT/1.0 (self-hosted fitness app)'),
   },
 
   mail: {
     /** No transactional email provider is bundled; see README. */
-    from: str(env.MAIL_FROM, 'FITAI <no-reply@localhost>'),
+    from: str(env.MAIL_FROM, 'LUPIFIT <no-reply@localhost>'),
   },
 
   logRequests: bool(env.LOG_REQUESTS, !isTest),

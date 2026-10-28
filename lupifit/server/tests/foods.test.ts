@@ -243,7 +243,7 @@ describe('barcode lookup', () => {
   });
 
   const enable = (overrides: Partial<typeof config.openFoodFacts> = {}) =>
-    Object.assign(config.openFoodFacts, { enabled: true, baseUrl: offUrl, userAgent: 'FITAI-test/1.0', timeoutMs: 2000 }, overrides);
+    Object.assign(config.openFoodFacts, { enabled: true, baseUrl: offUrl, userAgent: 'LUPIFIT-test/1.0', timeoutMs: 2000 }, overrides);
 
   it("finds the user's own food first, then global foods, without calling Open Food Facts", async () => {
     enable();
@@ -314,7 +314,7 @@ describe('barcode lookup', () => {
     for (const f of ['product_name', 'product_name_en', 'product_name_he', 'brands', 'nutriments', 'serving_quantity', 'allergens_tags', 'categories_tags']) {
       expect(req.url).toContain(f);
     }
-    expect(req.userAgent).toBe('FITAI-test/1.0');
+    expect(req.userAgent).toBe('LUPIFIT-test/1.0');
 
     // Cached: second lookup (even by another user) is local.
     const count = requests.length;

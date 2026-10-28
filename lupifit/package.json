@@ -1,11 +1,11 @@
 {
-  "name": "fitai",
+  "name": "lupifit",
   "version": "1.0.0",
   "private": true,
-  "description": "FITAI — AI-powered fitness and nutrition application (React + TypeScript, Node.js, PostgreSQL)",
+  "description": "LUPIFIT — AI-powered fitness and nutrition application (React + TypeScript, Node.js, PostgreSQL)",
   "type": "module",
   "engines": {
-    "node": ">=20.12"
+    "node": ">=22.13"
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -40,7 +40,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1",
+    "@playwright/test": "1.63.0",
     "@testing-library/react": "^16.3.0",
     "@types/express": "^5.0.3",
     "@types/node": "^22.18.0",

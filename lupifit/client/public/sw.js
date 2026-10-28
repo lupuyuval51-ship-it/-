@@ -1,5 +1,5 @@
 /*
- * FITAI service worker: makes the app shell available offline (gym basements, bad signal).
+ * LUPIFIT service worker: makes the app shell available offline (gym basements, bad signal).
  * - The build writes /sw-assets.js (list of every built file + a content hash); all of it is
  *   precached on install, so every page and lazy route chunk works offline.
  * - Navigations: network first (always the latest app when online), cached shell when offline.

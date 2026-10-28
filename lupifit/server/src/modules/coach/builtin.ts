@@ -1,7 +1,7 @@
 /**
  * Built-in coach: a deterministic, bilingual (EN/HE) answer generator used when no AI
  * provider is configured or the provider fails. Every fact it states comes from the
- * user's stored data, FITAI's exercise library or the built-in food/meal content —
+ * user's stored data, LUPIFIT's exercise library or the built-in food/meal content —
  * when data is missing it says so instead of guessing.
  */
 import type { DietaryRestriction, DietType, Equipment, InjuryArea, Locale, MealType, Units } from '@shared/constants';
@@ -243,8 +243,8 @@ function alternativesAnswer(e: ExerciseRecord | null, message: string, data: Coa
     lines.push(
       L(
         lang,
-        "Which exercise would you like to replace? Tell me its name (for example: \"What can I do instead of bench press?\") and I'll suggest options from the FITAI library that fit your equipment and injuries.",
-        'איזה תרגיל תרצו להחליף? אפשר לכתוב את שמו (למשל: "מה אפשר לעשות במקום לחיצת חזה?") ואציע חלופות מספריית FITAI שמתאימות לציוד ולפציעות שלך.',
+        "Which exercise would you like to replace? Tell me its name (for example: \"What can I do instead of bench press?\") and I'll suggest options from the LUPIFIT library that fit your equipment and injuries.",
+        'איזה תרגיל תרצו להחליף? אפשר לכתוב את שמו (למשל: "מה אפשר לעשות במקום לחיצת חזה?") ואציע חלופות מספריית LUPIFIT שמתאימות לציוד ולפציעות שלך.',
       ),
     );
     return lines.join('\n');
@@ -271,8 +271,8 @@ function alternativesAnswer(e: ExerciseRecord | null, message: string, data: Coa
   const avoid = areas.length ? areas : injuries.filter((i) => e.contraindications.includes(i));
   const header = L(
     lang,
-    `**Alternatives to ${e.name.en}** from the FITAI library${equipment ? ' that fit your equipment' : ''}${avoid.length ? ` and avoid loading your ${joinList(avoid.map((a) => INJURY_LABELS.en[a]), 'en')}` : ''}:`,
-    `**חלופות ל${e.name.he}** מספריית FITAI${equipment ? ' שמתאימות לציוד שלך' : ''}${avoid.length ? ` ולא מעמיסות על ה${joinList(avoid.map((a) => INJURY_LABELS.he[a]), 'he')}` : ''}:`,
+    `**Alternatives to ${e.name.en}** from the LUPIFIT library${equipment ? ' that fit your equipment' : ''}${avoid.length ? ` and avoid loading your ${joinList(avoid.map((a) => INJURY_LABELS.en[a]), 'en')}` : ''}:`,
+    `**חלופות ל${e.name.he}** מספריית LUPIFIT${equipment ? ' שמתאימות לציוד שלך' : ''}${avoid.length ? ` ולא מעמיסות על ה${joinList(avoid.map((a) => INJURY_LABELS.he[a]), 'he')}` : ''}:`,
   );
   const item = (x: ExerciseRecord, kind: string) => `- **${x.name[lang]}** — ${kind} · ${equipmentText(x.equipment, lang)}`;
   const options = [
@@ -284,8 +284,8 @@ function alternativesAnswer(e: ExerciseRecord | null, message: string, data: Coa
     lines.push(
       L(
         lang,
-        `I couldn't find an alternative to **${e.name.en}** in the FITAI library that fits your equipment${injuries.length ? ' and injuries' : ''}. A physiotherapist or trainer can suggest an individual option.`,
-        `לא מצאתי בספריית FITAI חלופה ל**${e.name.he}** שמתאימה לציוד${injuries.length ? ' ולפציעות' : ''} שלך. פיזיותרפיסט/ית או מאמן/ת יוכלו להציע אפשרות מותאמת אישית.`,
+        `I couldn't find an alternative to **${e.name.en}** in the LUPIFIT library that fits your equipment${injuries.length ? ' and injuries' : ''}. A physiotherapist or trainer can suggest an individual option.`,
+        `לא מצאתי בספריית LUPIFIT חלופה ל**${e.name.he}** שמתאימה לציוד${injuries.length ? ' ולפציעות' : ''} שלך. פיזיותרפיסט/ית או מאמן/ת יוכלו להציע אפשרות מותאמת אישית.`,
       ),
     );
   } else {
@@ -314,8 +314,8 @@ function progressAnswer(data: CoachData, lang: Locale): string {
     lines.push(
       L(
         lang,
-        "I don't see any completed workouts yet, so there is no training progress to analyze — and I won't guess. Once you finish workouts in FITAI, I can show your workouts per week, training volume and personal records.",
-        'עדיין אין אימונים שהושלמו, ולכן אין התקדמות באימונים לנתח – ואני לא אנחש. אחרי שיושלמו אימונים ב-FITAI, אוכל להציג אימונים בשבוע, נפח אימון ושיאים אישיים.',
+        "I don't see any completed workouts yet, so there is no training progress to analyze — and I won't guess. Once you finish workouts in LUPIFIT, I can show your workouts per week, training volume and personal records.",
+        'עדיין אין אימונים שהושלמו, ולכן אין התקדמות באימונים לנתח – ואני לא אנחש. אחרי שיושלמו אימונים ב-LUPIFIT, אוכל להציג אימונים בשבוע, נפח אימון ושיאים אישיים.',
       ),
     );
   } else {
@@ -460,8 +460,8 @@ async function nutritionAnswer(data: CoachData, lang: Locale, loadFoods: () => P
   if (!t) {
     return L(
       lang,
-      "Your nutrition targets aren't available yet. Complete your profile (age, sex, height, weight, activity level and goal) so FITAI can calculate them — then I can compare your food log with them.",
-      'יעדי התזונה שלך עדיין לא זמינים. כדאי להשלים את הפרופיל (גיל, מין, גובה, משקל, רמת פעילות ומטרה) כדי ש-FITAI תחשב אותם – ואז אוכל להשוות אליהם את יומן האכילה.',
+      "Your nutrition targets aren't available yet. Complete your profile (age, sex, height, weight, activity level and goal) so LUPIFIT can calculate them — then I can compare your food log with them.",
+      'יעדי התזונה שלך עדיין לא זמינים. כדאי להשלים את הפרופיל (גיל, מין, גובה, משקל, רמת פעילות ומטרה) כדי ש-LUPIFIT תחשב אותם – ואז אוכל להשוות אליהם את יומן האכילה.',
     );
   }
   lines.push(
@@ -516,8 +516,8 @@ async function nutritionAnswer(data: CoachData, lang: Locale, loadFoods: () => P
       lines.push(
         L(
           lang,
-          `- **Calories:** your average is below the safe minimum FITAI uses for you (${fmtNum(min, lang, 0)} kcal). Eating this little can cost muscle, energy and recovery — please bring it up toward your target, and talk to a professional if eating enough feels hard.`,
-          `- **קלוריות:** הממוצע נמוך מהמינימום הבטוח ש-FITAI מגדירה עבורך (${fmtNum(min, lang, 0)} קק"ל). אכילה מועטה כל כך עלולה לפגוע בשריר, באנרגיה ובהתאוששות – כדאי להתקרב ליעד, ולהתייעץ עם איש/אשת מקצוע אם קשה לאכול מספיק.`,
+          `- **Calories:** your average is below the safe minimum LUPIFIT uses for you (${fmtNum(min, lang, 0)} kcal). Eating this little can cost muscle, energy and recovery — please bring it up toward your target, and talk to a professional if eating enough feels hard.`,
+          `- **קלוריות:** הממוצע נמוך מהמינימום הבטוח ש-LUPIFIT מגדירה עבורך (${fmtNum(min, lang, 0)} קק"ל). אכילה מועטה כל כך עלולה לפגוע בשריר, באנרגיה ובהתאוששות – כדאי להתקרב ליעד, ולהתייעץ עם איש/אשת מקצוע אם קשה לאכול מספיק.`,
         ),
       );
     } else if (avg.kcal < t.calories * 0.85) {
@@ -545,8 +545,8 @@ async function nutritionAnswer(data: CoachData, lang: Locale, loadFoods: () => P
       '',
       L(
         lang,
-        "Because you're under 18, the focus is on eating enough to fuel growth and training — FITAI never sets a calorie deficit for you.",
-        'מתחת לגיל 18 ההתמקדות היא באכילה מספקת שתומכת בגדילה ובאימונים – FITAI לא מגדירה עבורך גירעון קלורי.',
+        "Because you're under 18, the focus is on eating enough to fuel growth and training — LUPIFIT never sets a calorie deficit for you.",
+        'מתחת לגיל 18 ההתמקדות היא באכילה מספקת שתומכת בגדילה ובאימונים – LUPIFIT לא מגדירה עבורך גירעון קלורי.',
       ),
     );
   }
@@ -610,8 +610,8 @@ async function mealIdeasAnswer(message: string, data: CoachData, lang: Locale, l
     lines.push(
       L(
         lang,
-        `**Meal ideas from FITAI's meal library**${summary ? ` (${summary})` : ''}:`,
-        `**רעיונות לארוחות מספריית הארוחות של FITAI**${summary ? ` (${summary})` : ''}:`,
+        `**Meal ideas from LUPIFIT's meal library**${summary ? ` (${summary})` : ''}:`,
+        `**רעיונות לארוחות מספריית הארוחות של LUPIFIT**${summary ? ` (${summary})` : ''}:`,
       ),
     );
     if (typeNote) lines.push(typeNote);
@@ -644,8 +644,8 @@ async function mealIdeasAnswer(message: string, data: CoachData, lang: Locale, l
     lines.push(
       L(
         lang,
-        `I don't have a meal template that fits your preferences${summary ? ` (${summary})` : ''}, but these protein-rich foods from the FITAI food database do — combine one with a whole-grain or starchy side and vegetables:`,
-        `אין לי תבנית ארוחה שמתאימה להעדפות שלך${summary ? ` (${summary})` : ''}, אבל המזונות העשירים בחלבון האלה ממאגר המזון של FITAI מתאימים – אפשר לשלב אחד מהם עם תוספת פחמימה מלאה וירקות:`,
+        `I don't have a meal template that fits your preferences${summary ? ` (${summary})` : ''}, but these protein-rich foods from the LUPIFIT food database do — combine one with a whole-grain or starchy side and vegetables:`,
+        `אין לי תבנית ארוחה שמתאימה להעדפות שלך${summary ? ` (${summary})` : ''}, אבל המזונות העשירים בחלבון האלה ממאגר המזון של LUPIFIT מתאימים – אפשר לשלב אחד מהם עם תוספת פחמימה מלאה וירקות:`,
       ),
       ...picks.map((f) => foodLine(f, lang)),
     );
@@ -653,8 +653,8 @@ async function mealIdeasAnswer(message: string, data: CoachData, lang: Locale, l
   }
   return L(
     lang,
-    "I couldn't find meals or foods in FITAI's database that fit your preferences, so I won't make something up. You can add your own foods and saved meals in Nutrition.",
-    'לא מצאתי במאגר של FITAI ארוחות או מזונות שמתאימים להעדפות שלך, ולכן לא אמציא. אפשר להוסיף מזונות וארוחות שמורות משלך במסך התזונה.',
+    "I couldn't find meals or foods in LUPIFIT's database that fit your preferences, so I won't make something up. You can add your own foods and saved meals in Nutrition.",
+    'לא מצאתי במאגר של LUPIFIT ארוחות או מזונות שמתאימים להעדפות שלך, ולכן לא אמציא. אפשר להוסיף מזונות וארוחות שמורות משלך במסך התזונה.',
   );
 }
 
@@ -788,7 +788,7 @@ function principleText(topic: PrincipleTopic, data: CoachData, lang: Locale): st
           '- Choose a schedule you can keep even in a busy week — three solid sessions every week beat six one week and none the next.',
           '- כדאי לבחור לוח זמנים שאפשר לעמוד בו גם בשבוע עמוס – שלושה אימונים טובים בכל שבוע עדיפים על שישה בשבוע אחד ואף אחד בשבוע שאחריו.',
         ),
-        L(lang, '- Put training days and times in your calendar like appointments; FITAI reminders can help.', '- לקבוע ימים ושעות לאימון ביומן כמו פגישות; התזכורות של FITAI יכולות לעזור.'),
+        L(lang, '- Put training days and times in your calendar like appointments; LUPIFIT reminders can help.', '- לקבוע ימים ושעות לאימון ביומן כמו פגישות; התזכורות של LUPIFIT יכולות לעזור.'),
         L(lang, '- On a bad day, do a shorter version instead of skipping — showing up keeps the habit alive.', '- ביום קשה, עדיף אימון מקוצר על פני ויתור – ההגעה עצמה שומרת על ההרגל.'),
       ];
       const goal = p.weeklyWorkoutGoal;
@@ -818,8 +818,8 @@ function planAnswer(data: CoachData, lang: Locale, exercises: ExerciseRecord[]):
   if (!plan) {
     return L(
       lang,
-      "You don't have an active workout plan yet. Create one in Workouts — FITAI can generate a plan from your profile — and once you've trained with it for a couple of weeks, I can suggest data-based adjustments.",
-      'עדיין אין לך תוכנית אימונים פעילה. אפשר ליצור תוכנית במסך האימונים – FITAI יכולה לבנות תוכנית לפי הפרופיל שלך – ואחרי שבועיים של אימונים לפיה אוכל להציע התאמות על סמך הנתונים.',
+      "You don't have an active workout plan yet. Create one in Workouts — LUPIFIT can generate a plan from your profile — and once you've trained with it for a couple of weeks, I can suggest data-based adjustments.",
+      'עדיין אין לך תוכנית אימונים פעילה. אפשר ליצור תוכנית במסך האימונים – LUPIFIT יכולה לבנות תוכנית לפי הפרופיל שלך – ואחרי שבועיים של אימונים לפיה אוכל להציע התאמות על סמך הנתונים.',
     );
   }
   const byId = new Map(exercises.map((e) => [e.id, e]));
@@ -932,7 +932,7 @@ function fallbackAnswer(lang: Locale): string {
   return L(
     lang,
     [
-      "I'm FITAI's built-in coach: I answer from your own data and FITAI's exercise and food libraries. Try asking:",
+      "I'm LUPIFIT's built-in coach: I answer from your own data and LUPIFIT's exercise and food libraries. Try asking:",
       '- How do I squat with good form?',
       '- My shoulder hurts on bench press — what can I do instead?',
       '- Explain my progress this month',
@@ -942,7 +942,7 @@ function fallbackAnswer(lang: Locale): string {
       '- Should I change my plan?',
     ].join('\n'),
     [
-      'אני המאמן המובנה של FITAI: התשובות שלי מבוססות על הנתונים שלך ועל ספריות התרגילים והמזון של FITAI. אפשר לשאול למשל:',
+      'אני המאמן המובנה של LUPIFIT: התשובות שלי מבוססות על הנתונים שלך ועל ספריות התרגילים והמזון של LUPIFIT. אפשר לשאול למשל:',
       '- איך עושים סקוואט בטכניקה נכונה?',
       '- הכתף כואבת לי בלחיצת חזה – מה אפשר לעשות במקום?',
       '- תסביר לי את ההתקדמות שלי החודש',
@@ -956,7 +956,7 @@ function fallbackAnswer(lang: Locale): string {
 
 // ---------------------------------------------------------------------------- entry point
 
-/** Deterministic reply grounded in the user's data and FITAI's libraries. */
+/** Deterministic reply grounded in the user's data and LUPIFIT's libraries. */
 export async function builtinReply(input: BuiltinInput): Promise<BuiltinResult> {
   const { message, lang, data, exercises, loadFoods } = input;
   const exercise = findExercise(message, exercises, {
@@ -997,8 +997,8 @@ export async function builtinReply(input: BuiltinInput): Promise<BuiltinResult> 
 export function aiUnavailableNote(lang: Locale): string {
   return L(
     lang,
-    "*The AI service is temporarily unavailable, so this answer comes from FITAI's built-in coach.*",
-    '*שירות ה-AI אינו זמין כרגע, ולכן התשובה הזו מגיעה מהמאמן המובנה של FITAI.*',
+    "*The AI service is temporarily unavailable, so this answer comes from LUPIFIT's built-in coach.*",
+    '*שירות ה-AI אינו זמין כרגע, ולכן התשובה הזו מגיעה מהמאמן המובנה של LUPIFIT.*',
   );
 }
 

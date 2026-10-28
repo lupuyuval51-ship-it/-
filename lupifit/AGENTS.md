@@ -1,7 +1,7 @@
-# FITAI engineering notes
+# LUPIFIT engineering notes
 
-FITAI is a bilingual (Hebrew default / RTL, English / LTR) AI fitness & nutrition app.
-Stack: React 19 + TypeScript (Vite) · Node.js 20+ / Express 5 (TypeScript) · PostgreSQL 16 · zod · Anthropic Claude (server-side only) · Vitest · Playwright.
+LUPIFIT is a bilingual (Hebrew default / RTL, English / LTR) AI fitness & nutrition app.
+Stack: React 19 + TypeScript (Vite) · Node.js 22.13+ / Express 5 (TypeScript) · PostgreSQL 16 · zod · Anthropic Claude (server-side only) · Vitest · Playwright.
 
 ## Layout
 - `shared/` — code used by both server and client: enums (`constants.ts`), API DTO types (`types/<module>.ts`), zod request schemas (`schemas/<module>.ts`), pure math (`nutrition.ts`, `training.ts`, `timer.ts`, `dates.ts`, `gamification.ts`). Pure functions only, no I/O.
@@ -33,3 +33,6 @@ npm run test:client    # Vitest + jsdom
 npm run build          # dist/client + dist/server
 npm run test:e2e       # Playwright (builds must exist; uses fitai_e2e DB + fake LLM)
 ```
+
+## Brand vs. persistent identifiers
+The product is **LUPIFIT** (it grew out of FITAI). User-visible text says LUPIFIT, but these identifiers intentionally still say `fitai` because renaming them would log users out or drop unsynced offline sets: the session cookie (`fitai_session`), localStorage keys (`fitai.*`), the service-worker cache prefix (`fitai-shell-`), database names (`fitai`, `fitai_test`, `fitai_e2e`) and applied migrations. Rename them only in a dedicated change with a client-side migration.

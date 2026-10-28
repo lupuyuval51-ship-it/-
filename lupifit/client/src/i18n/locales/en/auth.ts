@@ -21,9 +21,9 @@ const auth = {
     submit: 'Create account',
     haveAccount: 'Already have an account?',
     login: 'Log in',
-    ageNote: 'FITAI is for ages 13 and up. We ask your age in the next step so training and nutrition stay safe for you.',
+    ageNote: 'LUPIFIT is for ages 13 and up. We ask your age in the next step so training and nutrition stay safe for you.',
     emailTakenLogin: 'Log in with this email instead',
-    terms: 'By creating an account you agree to use FITAI for general fitness guidance only.',
+    terms: 'By creating an account you agree to use LUPIFIT for general fitness guidance only.',
   },
   fields: {
     email: 'Email',

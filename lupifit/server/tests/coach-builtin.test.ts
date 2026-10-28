@@ -350,9 +350,9 @@ describe('built-in coach answers (API, no AI provider)', () => {
     const user = await onboardedUser(server.baseUrl);
     expect(await ask(user, 'Should I change my plan?')).toContain("You don't have an active workout plan yet");
     const fallback = await ask(user, 'hello');
-    expect(fallback).toContain("I'm FITAI's built-in coach");
+    expect(fallback).toContain("I'm LUPIFIT's built-in coach");
     expect(fallback).toContain('- What is progressive overload?');
     const he = await registerUser(server.baseUrl, { locale: 'he' });
-    expect(await ask(he, 'שלום')).toContain('אני המאמן המובנה של FITAI');
+    expect(await ask(he, 'שלום')).toContain('אני המאמן המובנה של LUPIFIT');
   });
 });

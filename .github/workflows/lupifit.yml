@@ -1,0 +1,47 @@
+name: LUPIFIT
+
+on:
+  push:
+    paths: ['lupifit/**', '.github/workflows/lupifit.yml']
+  pull_request:
+    paths: ['lupifit/**', '.github/workflows/lupifit.yml']
+
+defaults:
+  run:
+    working-directory: lupifit
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: fitai
+          POSTGRES_PASSWORD: fitai_dev_password
+          POSTGRES_DB: fitai_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fitai" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://fitai:fitai_dev_password@127.0.0.1:5432/fitai_test
+      E2E_DATABASE_URL: postgres://fitai:fitai_dev_password@127.0.0.1:5432/fitai_e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: lupifit/package-lock.json
+      - run: npm ci
+      - name: Create the E2E database
+        run: PGPASSWORD=fitai_dev_password psql -h 127.0.0.1 -U fitai -d fitai_test -c 'CREATE DATABASE fitai_e2e'
+      - run: npm run verify
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: lupifit/e2e/.artifacts

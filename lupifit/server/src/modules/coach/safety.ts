@@ -469,11 +469,11 @@ function eatingDisorderReply(ctx: SafetyContext): string {
       'כך נראית התקדמות בטוחה:',
     ];
     if (isMinor) {
-      lines.push('- **מתחת לגיל 18** הגוף עדיין גדל, ולכן FITAI לא מגדירה גירעון קלורי. ההתמקדות היא בארוחות סדירות, חלבון מספק, אימונים עקביים ושינה טובה.');
+      lines.push('- **מתחת לגיל 18** הגוף עדיין גדל, ולכן LUPIFIT לא מגדירה גירעון קלורי. ההתמקדות היא בארוחות סדירות, חלבון מספק, אימונים עקביים ושינה טובה.');
     } else {
       lines.push(
         `- **ירידה בשומן אצל מבוגרים:** לכל היותר כ-**0.5%–1% ממשקל הגוף בשבוע**${lo && hi ? ` (במקרה שלך, בערך ${fmt(lo, lang)}–${fmt(hi, lang)} ק״ג בשבוע)` : ''}.`,
-        `- **קלוריות:** גירעון מתון בלבד (עד כ-20%, ולא יותר מכ-500 קק״ל ביום)${calorieTarget && minimumCalories ? ` – היעד הנוכחי שלך ב-FITAI הוא ${fmt(calorieTarget, lang)} קק״ל, והאפליקציה לא מגדירה עבורך יעד נמוך מ-${fmt(minimumCalories, lang)} קק״ל` : ''}.`,
+        `- **קלוריות:** גירעון מתון בלבד (עד כ-20%, ולא יותר מכ-500 קק״ל ביום)${calorieTarget && minimumCalories ? ` – היעד הנוכחי שלך ב-LUPIFIT הוא ${fmt(calorieTarget, lang)} קק״ל, והאפליקציה לא מגדירה עבורך יעד נמוך מ-${fmt(minimumCalories, lang)} קק״ל` : ''}.`,
       );
     }
     lines.push(
@@ -492,11 +492,11 @@ function eatingDisorderReply(ctx: SafetyContext): string {
     'What safe progress looks like:',
   ];
   if (isMinor) {
-    lines.push("- **Under 18**, your body is still growing, so FITAI never sets a calorie deficit for you. Focus on regular meals, enough protein, consistent training and good sleep.");
+    lines.push("- **Under 18**, your body is still growing, so LUPIFIT never sets a calorie deficit for you. Focus on regular meals, enough protein, consistent training and good sleep.");
   } else {
     lines.push(
       `- **Fat loss for adults:** at most about **0.5–1% of body weight per week**${lo && hi ? ` (for you, roughly ${fmt(lo, lang)}–${fmt(hi, lang)} kg per week)` : ''}.`,
-      `- **Calories:** only a moderate deficit (up to ~20%, no more than ~500 kcal a day)${calorieTarget && minimumCalories ? ` — your current FITAI target is ${fmt(calorieTarget, lang)} kcal, and the app never sets a target below ${fmt(minimumCalories, lang)} kcal for you` : ''}.`,
+      `- **Calories:** only a moderate deficit (up to ~20%, no more than ~500 kcal a day)${calorieTarget && minimumCalories ? ` — your current LUPIFIT target is ${fmt(calorieTarget, lang)} kcal, and the app never sets a target below ${fmt(minimumCalories, lang)} kcal for you` : ''}.`,
     );
   }
   lines.push(

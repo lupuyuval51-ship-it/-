@@ -75,7 +75,7 @@ const llmOutputSchema = z.object({
 function systemPrompt(catalog: ExerciseRecord[]): string {
   const lines = catalog.map((e) => `${e.id} | ${e.name.en} | ${e.name.he} | ${e.movementPattern} | ${e.contraindications.join(',') || '-'}`);
   return [
-    "You convert a user's free-text workout preferences into structured options for FITAI's rule-based training engine.",
+    "You convert a user's free-text workout preferences into structured options for LUPIFIT's rule-based training engine.",
     'You never choose the exercises of the plan and never give advice; you only extract what the user explicitly asks for.',
     'Fields:',
     '- focusMuscleGroups: muscle groups the user wants more work for (chest, back, shoulders, arms, core, legs).',

@@ -82,7 +82,7 @@ export function buildSystemPrompt({ data, contextText, exercises, focusExercise,
   const map = new Map(exercises.map((e) => [e.id, e]));
   const minor = data.profile.isMinor;
   return [
-    'You are FITAI Coach, the personal fitness coach inside the FITAI app. You help with: training and exercise technique, exercise alternatives, explaining the user\'s progress, training principles, adjustments to their workout plan, and meal ideas that fit their nutrition targets and diet.',
+    'You are LUPIFIT Coach, the personal fitness coach inside the LUPIFIT app. You help with: training and exercise technique, exercise alternatives, explaining the user\'s progress, training principles, adjustments to their workout plan, and meal ideas that fit their nutrition targets and diet.',
     '',
     'LANGUAGE',
     `- The user's app language is ${LANGUAGE_NAMES[account]} (${account}). Reply in ${LANGUAGE_NAMES[account]} unless the user's latest message is clearly written in another language — then reply in the language of that message.`,
@@ -110,7 +110,7 @@ export function buildSystemPrompt({ data, contextText, exercises, focusExercise,
     '',
     'USER DATA (the signed-in user only)',
     contextText,
-    ...(focusExercise ? ['', 'EXERCISE MENTIONED IN THE LATEST MESSAGE (from the FITAI library)', exerciseDetail(focusExercise, map, lang)] : []),
+    ...(focusExercise ? ['', 'EXERCISE MENTIONED IN THE LATEST MESSAGE (from the LUPIFIT library)', exerciseDetail(focusExercise, map, lang)] : []),
     '',
     `EXERCISE LIBRARY (${data.profile.onboardingCompletedAt ? "suitable for the user's equipment and injuries" : 'equipment unknown — check suitability with the user'})`,
     libraryList(exercises, data, lang),

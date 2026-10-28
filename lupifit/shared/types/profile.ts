@@ -116,7 +116,7 @@ export interface SettingsUpdateResponse {
 /** A row of exported user data (camelCase column names, values as stored). */
 export type ExportRecord = Record<string, unknown>;
 
-/** GET /api/account/export — everything FITAI stores about the user, minus secrets. */
+/** GET /api/account/export — everything LUPIFIT stores about the user, minus secrets. */
 export interface AccountExportDTO {
   format: 'fitai-export';
   version: 1;
