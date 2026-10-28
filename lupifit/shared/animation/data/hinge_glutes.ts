@@ -104,6 +104,7 @@ export const animations: ExerciseAnimation[] = [
   {
     // Same hinge with dumbbells in front of the thighs, kept close to the legs.
     id: 'dumbbell_romanian_deadlift',
+    sharedMotionWith: { id: 'romanian_deadlift', differs: 'dumbbells beside the thighs instead of a barbell' },
     durationSec: 3.6,
     props: [{ kind: 'dumbbell', at: 'hands' }],
     keyframes: hingeKeys(114, rdlSteps(122), hangY(122)),

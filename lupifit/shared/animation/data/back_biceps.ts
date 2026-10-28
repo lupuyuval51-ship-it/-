@@ -64,6 +64,7 @@ export const animations: ExerciseAnimation[] = [
   {
     // Band looped on the bar, one knee in the loop: the band stretches at the bottom and helps at the top.
     id: 'band_assisted_pull_up',
+    sharedMotionWith: { id: 'pull_up', differs: 'the resistance band looped over the bar under the knee' },
     durationSec: 3.6,
     camera: HANG_CAM,
     props: [
@@ -243,31 +244,88 @@ export const animations: ExerciseAnimation[] = [
       { t: 1, pose: { hip: [120, STAND_HIP_Y + 2], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
     ],
   },
-  ...curl('barbell_curl', [{ kind: 'barbell', plates: 'small' }]),
-  ...curl('dumbbell_curl', [{ kind: 'dumbbell', at: 'hands' }]),
-  ...curl('hammer_curl', [{ kind: 'dumbbell', at: 'hands' }]),
-  ...curl('cable_biceps_curl', [
-    { kind: 'weightStack', x: 214, y: 70 },
-    { kind: 'cable', anchor: [214, 178], at: 'handNear' },
-  ]),
-  ...curl('band_biceps_curl', [{ kind: 'band', anchor: [124, 186], at: 'hands' }]),
+  ...curls(),
 ];
 
-/** Standing curl: elbows pinned at the sides, only the forearm moves; slower lowering. */
-function curl(id: string, props: ExerciseAnimation['props']): ExerciseAnimation[] {
-  const base = { hip: [116, STAND_HIP_Y] as [number, number], torso: 0, legNear: { target: [118, FA] } as LimbSpec };
-  const down: Pose = { ...base, armNear: { angles: [2, 4] } };
-  const up: Pose = { ...base, armNear: { angles: [10, 150] } };
+/**
+ * Five curl variants that differ in grip, path and view (never copies of one keyframe set):
+ * - barbell: straight bar, supinated grip, elbows pinned, both arms together (side view).
+ * - dumbbell: alternating arms, the resting arm stays down (side view).
+ * - hammer: neutral grip (dumbbells drawn as bars pointing forward), both arms together, lower elbow range.
+ * - cable: low pulley, staggered stance, elbow drifts slightly forward, visible cable line (side view).
+ * - band: stands on the band, short range, band stretches taut at the top (side view).
+ */
+function curls(): ExerciseAnimation[] {
+  const stand = (x: number, rest: Pose) => ({ ...rest, hip: [x, STAND_HIP_Y] as [number, number], torso: rest.torso ?? 0 });
+  const legsAt = (x: number): Pick<Pose, 'legNear'> => ({ legNear: { target: [x + 2, FA] } });
+  const barDown: Pose = stand(116, { hip: [116, 0], torso: 0, ...legsAt(116), armNear: { angles: [2, 4] } });
+  const barUp: Pose = stand(116, { hip: [116, 0], torso: 0, ...legsAt(116), armNear: { angles: [12, 150] } });
+  const alt = (near: LimbSpec, far: LimbSpec): Pose => ({ hip: [116, STAND_HIP_Y], torso: 0, ...legsAt(116), armNear: near, armFar: far });
+  const rest: LimbSpec = { angles: [2, 6] };
+  const curled: LimbSpec = { angles: [10, 146] };
+  const cable = (arm: LimbSpec, torso: number): Pose => ({ hip: [112, STAND_HIP_Y + 2], torso, armNear: arm, legNear: { target: [128, FA] }, legFar: { target: [98, FA] } });
+  const band = (arm: LimbSpec): Pose => ({ hip: [118, STAND_HIP_Y + 2], torso: 0, armNear: arm, legNear: { target: [122, FA] }, legFar: { target: [108, FA] } });
   return [
     {
-      id,
-      durationSec: 3,
-      props,
+      id: 'barbell_curl',
+      durationSec: 3.2,
+      props: [{ kind: 'barbell', plates: 'small' }],
       keyframes: [
-        { t: 0, pose: down },
-        { t: 0.35, pose: up },
-        { t: 0.45, pose: up },
-        { t: 1, pose: down },
+        { t: 0, pose: barDown },
+        { t: 0.4, pose: barUp },
+        { t: 0.5, pose: barUp },
+        { t: 1, pose: barDown },
+      ],
+    },
+    {
+      id: 'dumbbell_curl',
+      durationSec: 4.4,
+      props: [{ kind: 'dumbbell', at: 'hands' }],
+      keyframes: [
+        { t: 0, pose: alt(rest, rest) },
+        { t: 0.2, pose: alt(curled, rest) },
+        { t: 0.27, pose: alt(curled, rest) },
+        { t: 0.5, pose: alt(rest, rest) },
+        { t: 0.7, pose: alt(rest, curled) },
+        { t: 0.77, pose: alt(rest, curled) },
+        { t: 1, pose: alt(rest, rest) },
+      ],
+    },
+    {
+      // Neutral (palms-in) grip: the dumbbells point forward and read as bars, unlike the end-on supinated curl.
+      id: 'hammer_curl',
+      durationSec: 3.6,
+      props: [{ kind: 'dumbbell', at: 'hands', grip: 'neutral' }],
+      keyframes: [
+        { t: 0, pose: { hip: [116, STAND_HIP_Y], torso: 0, ...legsAt(116), armNear: { angles: [-2, 6] } } },
+        { t: 0.34, pose: { hip: [116, STAND_HIP_Y], torso: 0, ...legsAt(116), armNear: { angles: [4, 138] } } },
+        { t: 0.52, pose: { hip: [116, STAND_HIP_Y], torso: 0, ...legsAt(116), armNear: { angles: [4, 138] } } },
+        { t: 1, pose: { hip: [116, STAND_HIP_Y], torso: 0, ...legsAt(116), armNear: { angles: [-2, 6] } } },
+      ],
+    },
+    {
+      id: 'cable_biceps_curl',
+      durationSec: 3.8,
+      props: [
+        { kind: 'weightStack', x: 214, y: 70 },
+        { kind: 'cable', anchor: [200, 182], at: 'handNear' },
+      ],
+      keyframes: [
+        { t: 0, pose: cable({ angles: [-2, 14] }, 3) },
+        { t: 0.36, pose: cable({ angles: [20, 148] }, -2) },
+        { t: 0.46, pose: cable({ angles: [20, 148] }, -2) },
+        { t: 1, pose: cable({ angles: [-2, 14] }, 3) },
+      ],
+    },
+    {
+      id: 'band_biceps_curl',
+      durationSec: 2.8,
+      props: [{ kind: 'band', anchor: [116, 186], at: 'hands' }],
+      keyframes: [
+        { t: 0, pose: band({ angles: [0, 6] }) },
+        { t: 0.45, pose: band({ angles: [6, 128] }) },
+        { t: 0.6, pose: band({ angles: [6, 128] }) },
+        { t: 1, pose: band({ angles: [0, 6] }) },
       ],
     },
   ];

@@ -98,7 +98,7 @@ function lying(arm: LimbSpec, extra: Partial<Pose> = {}): Pose {
 
 /** Incline bench (40°): seat at x=100..160, back-rest rising toward -x from x=106. */
 const INCLINE = 40;
-const INCLINE_BENCH = { kind: 'bench', x: 100, y: 149, w: 60, incline: INCLINE } as const;
+const INCLINE_BENCH = { kind: 'bench', x: 100, y: 149, w: 54, incline: INCLINE } as const;
 const INC_HIP: Vec = [round(106 + 11 * Math.sin(INCLINE * RAD) + 2), round(149 - 11 * Math.cos(INCLINE * RAD))];
 const INC_TORSO = -(90 - INCLINE);
 const INC_SHOULDER: Vec = [INC_HIP[0] - TORSO * Math.sin((90 - INCLINE) * RAD), INC_HIP[1] - TORSO * Math.cos((90 - INCLINE) * RAD)];
@@ -115,12 +115,12 @@ const FLOOR_SHOULDER: Vec = [FLOOR_HIP[0] - TORSO, FLOOR_HIP[1]];
 /* ------------------------------------------------------------ push-up family */
 
 const PU_PIVOT: Vec = [30, TOES_ANKLE];
-const PU_WRIST: Vec = [152, 182];
+const PU_WRIST: Vec = [152, 178];
 const pushTop = plankPose({ pivot: PU_PIVOT, legLen: 82, wrist: PU_WRIST, reach: 56.8, footNear: 40 });
 const pushBottom = plankPose({ pivot: PU_PIVOT, legLen: 82, wrist: PU_WRIST, reach: 19, footNear: 40 });
 
 const KNEE_PIVOT: Vec = [66, 182];
-const KNEE_WRIST: Vec = [154, 182];
+const KNEE_WRIST: Vec = [154, 178];
 const kneeTop = plankPose({ pivot: KNEE_PIVOT, legLen: 42, wrist: KNEE_WRIST, reach: 56.8 });
 const kneeBottom = plankPose({ pivot: KNEE_PIVOT, legLen: 42, wrist: KNEE_WRIST, reach: 19 });
 
@@ -130,7 +130,7 @@ const incPuTop = plankPose({ pivot: INC_PU_PIVOT, legLen: 82, wrist: INC_PU_WRIS
 const incPuBottom = plankPose({ pivot: INC_PU_PIVOT, legLen: 82, wrist: INC_PU_WRIST, reach: 20, footNear: 45 });
 
 const DEC_PIVOT: Vec = [40, 141];
-const DEC_WRIST: Vec = [170, 182];
+const DEC_WRIST: Vec = [170, 180];
 const decTop = plankPose({ pivot: DEC_PIVOT, legLen: 82, wrist: DEC_WRIST, reach: 56.8, footNear: 55 });
 const decBottom = plankPose({ pivot: DEC_PIVOT, legLen: 82, wrist: DEC_WRIST, reach: 23, footNear: 55 });
 
@@ -165,8 +165,8 @@ export const animations: ExerciseAnimation[] = [
     props: [INCLINE_BENCH, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
       [0, incline({ target: [INC_SHOULDER[0] + 1, INC_SHOULDER[1] - 56.5] })],
-      [0.45, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 1] })],
-      [0.52, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 1] })],
+      [0.45, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 7] })],
+      [0.52, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 7] })],
     ),
   },
   {
@@ -176,8 +176,8 @@ export const animations: ExerciseAnimation[] = [
     props: [FLAT_BENCH, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
       [0, lying({ target: [LIE_SHOULDER[0] + 3, 83.2] })],
-      [0.45, lying({ target: [LIE_SHOULDER[0] + 11, 143] })],
-      [0.52, lying({ target: [LIE_SHOULDER[0] + 11, 143] })],
+      [0.45, lying({ target: [LIE_SHOULDER[0] + 13, 126] })],
+      [0.52, lying({ target: [LIE_SHOULDER[0] + 13, 126] })],
     ),
   },
   {
@@ -186,8 +186,8 @@ export const animations: ExerciseAnimation[] = [
     props: [INCLINE_BENCH, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
       [0, incline({ target: [INC_SHOULDER[0] + 2, INC_SHOULDER[1] - 56.5] })],
-      [0.45, incline({ target: [INC_SHOULDER[0] + 13, INC_SHOULDER[1] + 5] })],
-      [0.53, incline({ target: [INC_SHOULDER[0] + 13, INC_SHOULDER[1] + 5] })],
+      [0.45, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 10] })],
+      [0.53, incline({ target: [INC_SHOULDER[0] + 14, INC_SHOULDER[1] - 10] })],
     ),
   },
   {
@@ -223,8 +223,8 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'smithRails', x: LIE_SHOULDER[0] + 10 }, FLAT_BENCH, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
       [0, lying({ target: [LIE_SHOULDER[0] + 10, 83.6] })],
-      [0.45, lying({ target: [LIE_SHOULDER[0] + 10, 134] })],
-      [0.52, lying({ target: [LIE_SHOULDER[0] + 10, 134] })],
+      [0.45, lying({ target: [LIE_SHOULDER[0] + 10, 128] })],
+      [0.52, lying({ target: [LIE_SHOULDER[0] + 10, 128] })],
     ),
   },
   {
@@ -234,9 +234,9 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.4,
     props: [FLAT_BENCH, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
-      [0, lying({ angles: [176, 186] }, { armFar: { angles: [184, 174] } })],
-      [0.45, lying({ angles: [100, 116] }, { armFar: { angles: [260, 244] } })],
-      [0.53, lying({ angles: [100, 116] }, { armFar: { angles: [260, 244] } })],
+      [0, lying({ angles: [176, 186] }, { armFar: { angles: [184, 194] } })],
+      [0.45, lying({ angles: [100, 116] }, { armFar: { angles: [260, 276] } })],
+      [0.53, lying({ angles: [100, 116] }, { armFar: { angles: [260, 276] } })],
     ),
     cues: [
       { t: 0.05, en: 'Open wide, elbows slightly bent', he: 'פתחו לרווחה, מרפקים כפופים מעט' },
@@ -268,7 +268,7 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 2.6,
     props: [{ kind: 'band', anchor: [36, 64], at: 'hands' }],
     keyframes: kf(
-      [0, { hip: [116, 106], torso: 8, armNear: { target: [131, 66] }, legNear: { target: [140, FLOOR_ANKLE] }, legFar: { target: [90, FLOOR_ANKLE] }, footFar: 70 }],
+      [0, { hip: [116, 106], torso: 8, armNear: { target: [139, 70] }, legNear: { target: [140, FLOOR_ANKLE] }, legFar: { target: [90, FLOOR_ANKLE] }, footFar: 70 }],
       [0.4, { hip: [116, 106], torso: 8, armNear: { target: [176, 63] }, legNear: { target: [140, FLOOR_ANKLE] }, legFar: { target: [90, FLOOR_ANKLE] }, footFar: 70 }],
       [0.48, { hip: [116, 106], torso: 8, armNear: { target: [176, 63] }, legNear: { target: [140, FLOOR_ANKLE] }, legFar: { target: [90, FLOOR_ANKLE] }, footFar: 70 }],
     ),

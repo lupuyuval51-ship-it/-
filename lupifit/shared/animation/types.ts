@@ -54,7 +54,7 @@ export type FootRef = 'feet' | 'footNear' | 'footFar';
 export type Prop =
   // Loads carried by the hands
   | { kind: 'barbell'; at?: 'hands'; plates?: 'small' | 'large' }
-  | { kind: 'dumbbell'; at: HandRef }
+  | { kind: 'dumbbell'; at: HandRef; /** Neutral (hammer) grip: in front view the dumbbell is seen end-on. */ grip?: 'neutral' }
   | { kind: 'kettlebell'; at: HandRef }
   | { kind: 'medicineBall'; at?: 'hands' }
   | { kind: 'ezBar'; at?: 'hands' }

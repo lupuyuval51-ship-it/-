@@ -339,8 +339,14 @@ function buildProps(props: Prop[], j: Joints, front: boolean, facing: 1 | -1): P
       }
       case 'dumbbell': {
         const hands = p.at === 'hands' ? [j.handNear, j.handFar] : [handPoint(j, p.at)];
+        const layerOf = (i: number): 'front' | 'back' => (i === 0 ? 'front' : 'back');
         hands.forEach((h, i) => {
-          if (front) {
+          if (p.grip === 'neutral' && !front) {
+            // Hammer grip, side view: the dumbbell points forward along the line of sight of the thumb, so it reads as a bar.
+            const l = layerOf(i);
+            out.push({ type: 'line', a: [h[0] - facing * 6, h[1]], b: [h[0] + facing * 6, h[1]], w: 2.2, tone: 'metal', layer: l });
+            for (const s of [-1, 1]) out.push({ type: 'rect', x: h[0] + facing * s * 8 - 2, y: h[1] - 5.5, w: 4, h: 11, rx: 1.5, tone: 'plate', layer: l });
+          } else if (front) {
             out.push({ type: 'line', a: [h[0] - 7, h[1]], b: [h[0] + 7, h[1]], w: 2.2, tone: 'metal', layer: 'front' });
             out.push({ type: 'rect', x: h[0] - 9, y: h[1] - 5, w: 4, h: 10, rx: 1.5, tone: 'plate', layer: 'front' });
             out.push({ type: 'rect', x: h[0] + 5, y: h[1] - 5, w: 4, h: 10, rx: 1.5, tone: 'plate', layer: 'front' });
@@ -507,25 +513,103 @@ function buildProps(props: Prop[], j: Joints, front: boolean, facing: 1 | -1): P
 
 // ---------------------------------------------------------------- frame
 
-/** Locates the keyframe segment for loop time t (0..1). */
-function segmentAt(kfs: Keyframe[], t: number): { from: Keyframe; to: Keyframe; local: number } {
+/**
+ * Per-keyframe velocity profile. Instead of stopping at every keyframe (robotic stop-and-go), the
+ * progress curve of each segment is a cubic Hermite whose end slopes match the neighbouring segments'
+ * average speeds, so multi-keyframe strokes flow. Velocity is zero wherever the motion truly stops:
+ * at holds (equal poses), at reversals (the next segment goes back) and wherever a keyframe sets
+ * an explicit `ease` hint, which keeps the legacy curve for that segment.
+ */
+interface SegProfile {
+  /** Progress slope (per unit of local time) at the start / end of the segment. */
+  m0: number;
+  m1: number;
+}
+
+const profileCache = new WeakMap<ExerciseAnimation, SegProfile[]>();
+const PROFILE_JOINTS: (keyof Joints)[] = ['hip', 'shoulder', 'wristNear', 'wristFar', 'kneeNear', 'kneeFar', 'ankleNear', 'ankleFar', 'elbowNear'];
+
+function keyframeVector(anim: ExerciseAnimation, k: Keyframe): number[] {
+  const { joints } = buildSkeleton(anim, k.pose, k.pose, 0);
+  return PROFILE_JOINTS.flatMap((n) => joints[n]);
+}
+
+function segmentProfiles(anim: ExerciseAnimation): SegProfile[] {
+  const hit = profileCache.get(anim);
+  if (hit) return hit;
+  const kfs = anim.keyframes;
+  const n = kfs.length - 1;
+  const vecs = kfs.map((k) => keyframeVector(anim, k));
+  const delta = (i: number) => vecs[i + 1]!.map((v, k) => v - vecs[i]![k]!);
+  const norm = (d: number[]) => Math.hypot(...d);
+  const dist = Array.from({ length: n }, (_, i) => norm(delta(i)));
+  const dur = Array.from({ length: n }, (_, i) => kfs[i + 1]!.t - kfs[i]!.t);
+  const speed = dist.map((d, i) => d / (dur[i] || 1));
+  const MOVING = 3;
+  // Speed (distance per loop) at the boundary between segment a and b.
+  const boundary = (a: number, b: number): number => {
+    if (dist[a]! < MOVING || dist[b]! < MOVING) return 0;
+    if (kfs[a]!.ease || kfs[b]!.ease) return 0;
+    const da = delta(a);
+    const db = delta(b);
+    const cos = da.reduce((acc, v, k) => acc + v * db[k]!, 0) / (dist[a]! * dist[b]!);
+    if (cos < 0.2) return 0;
+    return Math.min(speed[a]!, speed[b]!) * cos;
+  };
+  const out: SegProfile[] = [];
+  for (let i = 0; i < n; i++) {
+    const hint = kfs[i]!.ease;
+    if (hint || dist[i]! < 1e-6) {
+      out.push({ m0: NaN, m1: NaN });
+      continue;
+    }
+    // Loop closure: the boundary before the first segment pairs with the last one.
+    const vStart = i === 0 ? boundary(n - 1, 0) : boundary(i - 1, i);
+    const vEnd = i === n - 1 ? boundary(n - 1, 0) : boundary(i, i + 1);
+    const scaleToProgress = dur[i]! / dist[i]!;
+    out.push({ m0: Math.min(2.2, vStart * scaleToProgress), m1: Math.min(2.2, vEnd * scaleToProgress) });
+  }
+  profileCache.set(anim, out);
+  return out;
+}
+
+function hermite(m0: number, m1: number, u: number): number {
+  const u2 = u * u;
+  const u3 = u2 * u;
+  return (-2 * u3 + 3 * u2) + (u3 - 2 * u2 + u) * m0 + (u3 - u2) * m1;
+}
+
+/** Locates the keyframe segment for loop time t (0..1). `local` is the eased progress through the segment. */
+function segmentAt(anim: ExerciseAnimation, t: number): { from: Keyframe; to: Keyframe; local: number } {
+  const kfs = anim.keyframes;
   const tt = ((t % 1) + 1) % 1;
   for (let i = 0; i < kfs.length - 1; i++) {
     const a = kfs[i]!;
     const b = kfs[i + 1]!;
     if (tt >= a.t && tt <= b.t) {
       const span = b.t - a.t || 1;
-      return { from: a, to: b, local: ease(a.ease, (tt - a.t) / span) };
+      const u = (tt - a.t) / span;
+      const prof = segmentProfiles(anim)[i]!;
+      const local = Number.isNaN(prof.m0) ? ease(a.ease, u) : hermite(prof.m0, prof.m1, u);
+      return { from: a, to: b, local };
     }
   }
   const last = kfs[kfs.length - 1]!;
   return { from: last, to: last, local: 0 };
 }
 
+/** Eased progress (0..1) through the keyframe segment containing loop time t (shared with the QA tooling). */
+export function segmentProgress(anim: ExerciseAnimation, t: number): { index: number; local: number } {
+  const kfs = anim.keyframes;
+  const tt = ((t % 1) + 1) % 1;
+  for (let i = 0; i < kfs.length - 1; i++) if (tt >= kfs[i]!.t && tt <= kfs[i + 1]!.t) return { index: i, local: segmentAt(anim, t).local };
+  return { index: kfs.length - 2, local: 0 };
+}
+
 const W = { torsoSide: 17, torsoFront: 24, neck: 7, upperArm: 8.5, forearm: 7, hand: 6, thigh: 12, shin: 9, foot: 6 } as const;
 
 export function computeFrame(anim: ExerciseAnimation, t: number, highlightMuscles: Muscle[] = []): Frame {
-  const { from, to, local } = segmentAt(anim.keyframes, t);
+  const { from, to, local } = segmentAt(anim, t);
   const { joints: j } = buildSkeleton(anim, from.pose, to.pose, local);
   const front = anim.view === 'front';
   const facing = anim.facing ?? 1;

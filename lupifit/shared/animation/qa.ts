@@ -6,7 +6,7 @@
  * negative values are hyperextension. In the front view only unsigned angles are meaningful, so
  * hyperextension is not evaluated there.
  */
-import { BODY, CANVAS, computeFrame, loopTravel, type Joints } from './engine';
+import { BODY, CANVAS, computeFrame, loopTravel, segmentProgress, type Joints } from './engine';
 import type { ExerciseAnimation, LimbSpec, Vec } from './types';
 
 export const QA_VERSION = 1;
@@ -124,15 +124,10 @@ function reachErrors(anim: ExerciseAnimation, samples: number[]): { worst: numbe
   let worst = 0;
   let at = '';
   for (const t of samples) {
-    // Segment bounds
-    let i = 0;
-    while (i < kfs.length - 2 && t >= kfs[i + 1]!.t) i++;
-    const a = kfs[i]!;
-    const b = kfs[i + 1]!;
-    if (t < a.t || t > b.t) continue;
-    const local = (t - a.t) / (b.t - a.t || 1);
-    // Eased fraction as in the engine: reuse by evaluating the frame, and derive the intended target by lerp with the engine's own easing.
-    const eased = easeLocal(a.ease, local);
+    const seg = segmentProgress(anim, t);
+    const a = kfs[seg.index]!;
+    const b = kfs[seg.index + 1]!;
+    const eased = seg.local;
     const j = computeFrame(anim, t).joints;
     for (const limb of ['armNear', 'armFar', 'legNear', 'legFar'] as Limb[]) {
       const sa = limbSpecOf(a.pose, limb, front);
@@ -151,19 +146,6 @@ function reachErrors(anim: ExerciseAnimation, samples: number[]): { worst: numbe
     }
   }
   return { worst, at };
-}
-
-function easeLocal(kind: string | undefined, t: number): number {
-  switch (kind) {
-    case 'linear':
-      return t;
-    case 'in':
-      return t * t;
-    case 'out':
-      return 1 - (1 - t) * (1 - t);
-    default:
-      return 0.5 - Math.cos(Math.PI * t) / 2;
-  }
 }
 
 // ------------------------------------------------------------------ sampling
@@ -225,8 +207,8 @@ function penetration(anim: ExerciseAnimation, times: number[]): { depth: number;
   const props = anim.props ?? [];
   const benches = props.filter((p): p is Extract<typeof p, { kind: 'bench' }> => p.kind === 'bench');
   const boxes = props.filter((p): p is Extract<typeof p, { kind: 'box' }> => p.kind === 'box');
-  const hasMat = props.some((p) => p.kind === 'mat');
-  const floorY = CANVAS.floor - (hasMat ? 2 : 0);
+  // Mats are drawn 3 units thick on top of the floor line; the body is authored against the floor line itself.
+  const floorY = CANVAS.floor;
   const note = (d: number, label: string) => {
     if (d > worst) {
       worst = d;
@@ -307,32 +289,45 @@ export function analyzeAnimation(anim: ExerciseAnimation, exceptions: QaExceptio
 
 // ------------------------------------------------------------------ uniqueness
 
-/** Motion signature: centred joint trajectories over the loop (facing normalised to +x). */
-export function motionSignature(anim: ExerciseAnimation, n = 48): number[] {
+/** Motion signature: centred joint trajectories over the loop (facing normalised to +x) plus the mean pose. */
+export interface MotionSignature {
+  centred: number[];
+  mean: number[];
+}
+
+export function motionSignature(anim: ExerciseAnimation, n = 48): MotionSignature {
   const times = Array.from({ length: n }, (_, i) => i / n);
   const facing = anim.facing ?? 1;
   const traj = trajectory(anim, times);
-  const vec: number[] = [];
   const dims = TRACKED.length * 2;
   const mean = new Array<number>(dims).fill(0);
   for (const frame of traj) frame.forEach((p, k) => { mean[k * 2]! += (p[0] * facing) / n; mean[k * 2 + 1]! += p[1] / n; });
-  for (const frame of traj) frame.forEach((p, k) => { vec.push(p[0] * facing - mean[k * 2]!, p[1] - mean[k * 2 + 1]!); });
-  return vec;
+  const centred: number[] = [];
+  for (const frame of traj) frame.forEach((p, k) => { centred.push(p[0] * facing - mean[k * 2]!, p[1] - mean[k * 2 + 1]!); });
+  return { centred, mean };
 }
 
-export function similarity(a: number[], b: number[]): number {
+/**
+ * Similarity 0..1: cosine of the centred trajectories (same movement shape), damped when the
+ * amplitudes differ, and when the average posture differs by more than ~4 units (a different bench angle,
+ * stance or camera reads as a visibly different demo even if the stroke is the same).
+ */
+export function similarity(a: MotionSignature, b: MotionSignature): number {
   let dot = 0;
   let na = 0;
   let nb = 0;
-  for (let i = 0; i < a.length; i++) {
-    dot += a[i]! * b[i]!;
-    na += a[i]! * a[i]!;
-    nb += b[i]! * b[i]!;
+  for (let i = 0; i < a.centred.length; i++) {
+    dot += a.centred[i]! * b.centred[i]!;
+    na += a.centred[i]! * a.centred[i]!;
+    nb += b.centred[i]! * b.centred[i]!;
   }
-  if (na < 1e-6 || nb < 1e-6) return na < 1e-6 && nb < 1e-6 ? 1 : 0;
-  // Cosine, damped when overall motion amplitude differs a lot.
+  let meanSq = 0;
+  for (let i = 0; i < a.mean.length; i++) meanSq += (a.mean[i]! - b.mean[i]!) ** 2;
+  const rms = Math.sqrt(meanSq / (a.mean.length / 2));
+  const posture = rms <= 4 ? 1 : Math.max(0, 1 - (rms - 4) / 20);
+  if (na < 1e-6 || nb < 1e-6) return na < 1e-6 && nb < 1e-6 ? posture : 0;
   const ratio = Math.min(na, nb) / Math.max(na, nb);
-  return (dot / Math.sqrt(na * nb)) * Math.sqrt(ratio);
+  return (dot / Math.sqrt(na * nb)) * Math.sqrt(ratio) * posture;
 }
 
 export interface SimilarPair {

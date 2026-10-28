@@ -94,11 +94,11 @@ function ohp(wrist: Vec, torso = 0, head = 0, hipX = STAND_HIP[0]): Pose {
 
 /* ------------------------------------------------------------- push-up variants */
 
-const PIKE_WRIST: Vec = [155, 182];
-const PIKE_FEET: LimbSpec = { target: [63, TOES_ANKLE], bend: -1 };
+const PIKE_WRIST: Vec = [155, 178];
+const PIKE_FEET: LimbSpec = { target: [63, TOES_ANKLE], bend: 1 };
 
 /** Wall handstand: wall at x=150, hands ~15 cm from it, body inverted (torso ≈ 180°, chest facing -x). */
-const HS_WRIST: Vec = [134, 182];
+const HS_WRIST: Vec = [134, 178];
 function handstand(shoulder: Vec, torso: number, legAngle: number): Pose {
   const dir: Vec = [Math.sin(torso * RAD), -Math.cos(torso * RAD)];
   return {
@@ -128,7 +128,7 @@ function dip(shoulder: Vec, torso: number, legs: [number, number]): Pose {
   };
 }
 const DIP_TOP = dip([122, DIP_WRIST[1] - 56.9], 8, [-6, -95]);
-const DIP_BOTTOM = dip([135, 82], 24, [-2, -98]);
+const DIP_BOTTOM = dip([129, 79], 24, [-2, -98]);
 
 /* ------------------------------------------------------------- pushdowns */
 
@@ -148,10 +148,10 @@ export const animations: ExerciseAnimation[] = [
     camera: OVERHEAD_CAM,
     props: [{ kind: 'rack', x: 62, hookY: 58 }, { kind: 'barbell', at: 'hands' }],
     keyframes: kf(
-      [0, ohp([OHP_SH[0] + 11, OHP_SH[1] + 8], -3, 0, STAND_HIP[0] + 1)],
+      [0, ohp([OHP_SH[0] + 16, OHP_SH[1] + 8], -3, 0, STAND_HIP[0] + 1)],
       [0.18, ohp([OHP_SH[0] + 9, OHP_SH[1] - 24], -5, -14, STAND_HIP[0] + 2)],
-      [0.38, ohp([OHP_SH[0] + 4, OHP_SH[1] - 56.9], 0, 6)],
-      [0.5, ohp([OHP_SH[0] + 4, OHP_SH[1] - 56.9], 0, 6)],
+      [0.38, ohp([OHP_SH[0] + 11, OHP_SH[1] - 55.8], 0, 6)],
+      [0.5, ohp([OHP_SH[0] + 11, OHP_SH[1] - 55.8], 0, 6)],
       [0.75, ohp([OHP_SH[0] + 9, OHP_SH[1] - 24], -5, -14, STAND_HIP[0] + 2)],
     ),
     cues: [
@@ -165,7 +165,7 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.4,
     props: [SEAT, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
-      [0, seated({ target: [SEAT_SH[0] + 13, SEAT_SH[1] + 3] })],
+      [0, seated({ target: [SEAT_SH[0] + 18, SEAT_SH[1] + 5] })],
       [0.3, seated({ target: [SEAT_SH[0] + 4, SEAT_SH[1] - 56.9] })],
       [0.4, seated({ target: [SEAT_SH[0] + 4, SEAT_SH[1] - 56.9] })],
     ),
@@ -177,10 +177,11 @@ export const animations: ExerciseAnimation[] = [
     props: [SEAT, { kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
       [0, seated({ angles: [28, 172] })],
-      [0.16, seated({ target: [SEAT_SH[0] + 12, SEAT_SH[1] - 6] })],
+      [0.16, seated({ target: [SEAT_SH[0] + 15, SEAT_SH[1] - 8] })],
+      [0.27, seated({ target: [SEAT_SH[0] + 11, SEAT_SH[1] - 30] })],
       [0.38, seated({ target: [SEAT_SH[0] + 4, SEAT_SH[1] - 56.9] })],
       [0.48, seated({ target: [SEAT_SH[0] + 4, SEAT_SH[1] - 56.9] })],
-      [0.76, seated({ target: [SEAT_SH[0] + 12, SEAT_SH[1] - 6] })],
+      [0.76, seated({ target: [SEAT_SH[0] + 15, SEAT_SH[1] - 8] })],
     ),
     cues: [
       { t: 0.05, en: 'Rotate palms out as you press', he: 'סובבו כפות החוצה תוך כדי לחיצה' },
@@ -194,9 +195,9 @@ export const animations: ExerciseAnimation[] = [
     camera: OVERHEAD_CAM,
     props: [{ kind: 'kettlebell', at: 'handNear' }],
     keyframes: kf(
-      [0, { ...ohp([OHP_SH[0] + 9, OHP_SH[1] + 6]), armFar: { angles: [6, 14] } }],
-      [0.36, { ...ohp([OHP_SH[0] + 3, OHP_SH[1] - 56.9]), armFar: { angles: [6, 14] } }],
-      [0.48, { ...ohp([OHP_SH[0] + 3, OHP_SH[1] - 56.9]), armFar: { angles: [6, 14] } }],
+      [0, { ...ohp([OHP_SH[0] + 16, OHP_SH[1] + 8]), armFar: { angles: [6, 14] } }],
+      [0.36, { ...ohp([OHP_SH[0] + 11, OHP_SH[1] - 55.8]), armFar: { angles: [6, 14] } }],
+      [0.48, { ...ohp([OHP_SH[0] + 11, OHP_SH[1] - 55.8]), armFar: { angles: [6, 14] } }],
     ),
   },
   {
@@ -245,14 +246,15 @@ export const animations: ExerciseAnimation[] = [
       { kind: 'cable', anchor: [183, 180], at: 'handNear' },
     ],
     keyframes: kf(
-      [0, front({ angles: [-8, -12] }, { armFar: { target: [178, 98] } })],
-      [0.38, front({ angles: [86, 80] }, { armFar: { target: [178, 98] } })],
-      [0.46, front({ angles: [86, 80] }, { armFar: { target: [178, 98] } })],
+      [0, front({ angles: [-8, -12] }, { armFar: { target: [162, 100] } })],
+      [0.38, front({ angles: [86, 80] }, { armFar: { target: [162, 100] } })],
+      [0.46, front({ angles: [86, 80] }, { armFar: { target: [162, 100] } })],
     ),
   },
   {
     // Standing on the band; both hands raise to shoulder height against the band.
     id: 'band_lateral_raise',
+    sharedMotionWith: { id: 'dumbbell_lateral_raise', differs: 'the resistance band under the feet instead of dumbbells' },
     durationSec: 3,
     view: 'front',
     props: [{ kind: 'band', anchor: [120, 186], at: 'hands' }],
@@ -269,9 +271,9 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3,
     props: [{ kind: 'dumbbell', at: 'hands' }],
     keyframes: kf(
-      [0, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [-4, 4] }, armFar: { angles: [4, -4] }, legNear: { target: [112, FLOOR_ANKLE] } }],
-      [0.38, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [80, 92] }, armFar: { angles: [-80, -92] }, legNear: { target: [112, FLOOR_ANKLE] } }],
-      [0.48, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [80, 92] }, armFar: { angles: [-80, -92] }, legNear: { target: [112, FLOOR_ANKLE] } }],
+      [0, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [-4, 4] }, armFar: { angles: [4, 12] }, legNear: { target: [112, FLOOR_ANKLE] } }],
+      [0.38, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [80, 92] }, armFar: { angles: [-80, -68] }, legNear: { target: [112, FLOOR_ANKLE] } }],
+      [0.48, { hip: [92, 107], torso: 76, head: 0, armNear: { angles: [80, 92] }, armFar: { angles: [-80, -68] }, legNear: { target: [112, FLOOR_ANKLE] } }],
     ),
     cues: [
       { t: 0.05, en: 'Open the arms wide', he: 'פתחו את הידיים לרווחה' },
@@ -320,6 +322,7 @@ export const animations: ExerciseAnimation[] = [
   {
     // Same dip with the shins resting on a band looped across the bars.
     id: 'band_assisted_dip',
+    sharedMotionWith: { id: 'parallel_bar_dip', differs: 'a resistance band looped under the knees for assistance' },
     durationSec: 3,
     props: [DIP_BARS, { kind: 'band', anchor: [96, 106], at: 'footNear' }],
     keyframes: kf([0, DIP_TOP], [0.48, DIP_BOTTOM], [0.55, DIP_BOTTOM]),
@@ -341,8 +344,8 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'seat', x: 78, y: 148, w: 42, back: 44 }, { kind: 'dumbbell', at: 'handNear' }],
     keyframes: kf(
       [0, seated({ angles: [172, 178] }, { torso: 0 })],
-      [0.5, seated({ angles: [168, -32] }, { torso: 0 })],
-      [0.58, seated({ angles: [168, -32] }, { torso: 0 })],
+      [0.5, seated({ angles: [168, -44] }, { torso: 0 })],
+      [0.58, seated({ angles: [168, -44] }, { torso: 0 })],
     ),
   },
   {
@@ -381,6 +384,7 @@ export const animations: ExerciseAnimation[] = [
   {
     // Band anchored at the top of a door; pushdown pattern with the elbows fixed at the sides.
     id: 'band_triceps_extension',
+    sharedMotionWith: { id: 'triceps_pushdown', differs: 'a resistance band anchored high instead of the cable stack' },
     durationSec: 2.6,
     props: [{ kind: 'wall', x: 158 }, { kind: 'band', anchor: [157, 12], at: 'hands' }],
     keyframes: kf([0, pushdown(100)], [0.38, pushdown(4)], [0.46, pushdown(4)]),
