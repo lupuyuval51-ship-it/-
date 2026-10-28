@@ -288,7 +288,9 @@ function orderCandidates(level: LevelContent, lang: Lang, t: Tr): Candidate[] {
         if (steps.length >= 4) {
           const items = base.items as { id: string; text: string }[];
           const { hint: _h, ...rest } = base;
-          out.easier = { ...rest, id: `${id}-easy`, level: 1, title: clip(`${base.title} ${t("(easier)", "(קל יותר)")}`, 80), items: [0, Math.floor((items.length - 1) / 2), items.length - 1].map((i) => items[i]!) };
+          const kept = [0, Math.floor((items.length - 1) / 2), items.length - 1].map((i) => items[i]!);
+          // the explanation follows the puzzle: a step the easier one leaves out is not "explained" after it
+          out.easier = { ...rest, id: `${id}-easy`, level: 1, title: clip(`${base.title} ${t("(easier)", "(קל יותר)")}`, 80), items: kept, explanation: clip(kept.map((i) => i.text).join(" → "), 600) };
         }
         return out;
       },
@@ -414,7 +416,8 @@ export function buildTopicSpec(req: GenerationRequest, entry: TopicEntry, conten
         loreStation("s-1-example", t("Worked example", "דוגמה פתורה"), clip(lesson.title, 70), clip(lesson.example, 420)),
       ]
     : [];
-  const taskBoard: Raw | null = lesson ? loreStation(`s-${groups.length}-task`, t("Try it yourself", "משימה מעשית"), clip(lesson.title, 70), clip(lesson.task, 420)) : null;
+  // the card itself says it is a task (its heading was the chapter title, like every lesson board)
+  const taskBoard: Raw | null = lesson ? loreStation(`s-${groups.length}-task`, t("Try it yourself", "משימה מעשית"), clip(t(`Try it yourself: ${lesson.title}`, `משימה מעשית: ${lesson.title}`), 70), clip(lesson.task, 420)) : null;
 
   const areas: Raw[] = [];
   const missions: Raw[] = [];
