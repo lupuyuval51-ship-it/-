@@ -2,7 +2,7 @@ import type en from '../en/common';
 import type { Translations } from '../types';
 
 const common: Translations<typeof en> = {
-  appName: 'LUPIFIT',
+  appName: 'LUPU-FIT',
   tagline: 'מאמן הכושר והתזונה החכם שלך',
   actions: {
     save: 'שמירה',
@@ -96,7 +96,7 @@ const common: Translations<typeof en> = {
     llmBadge: 'AI',
     builtinBadge: 'מובנה',
   },
-  disclaimer: 'LUPIFIT מספקת הכוונה כללית לכושר ותזונה ואינה מחליפה ייעוץ רפואי. במקרה של פציעה, מצב רפואי, היריון או הפרעת אכילה – יש להתייעץ עם איש מקצוע.',
+  disclaimer: 'LUPU-FIT מספקת הכוונה כללית לכושר ותזונה ואינה מחליפה ייעוץ רפואי. במקרה של פציעה, מצב רפואי, היריון או הפרעת אכילה – יש להתייעץ עם איש מקצוע.',
 };
 
 export default common;

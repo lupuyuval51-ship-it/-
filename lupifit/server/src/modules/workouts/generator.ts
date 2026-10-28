@@ -1,5 +1,5 @@
 /**
- * LUPIFIT training engine — `rules-1.0`.
+ * LUPU-FIT training engine — `rules-1.0`.
  *
  * A pure, deterministic and explainable workout-plan generator. Given resolved inputs
  * (profile + overrides + interpreted preferences) and the exercise catalog it returns a

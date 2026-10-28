@@ -1,5 +1,5 @@
 /**
- * Fetch wrapper for the LUPIFIT API.
+ * Fetch wrapper for the LUPU-FIT API.
  * - Same-origin cookies (HttpOnly session) + `X-CSRF-Token` on mutations.
  * - Typed `ApiError` with stable `code` (maps to i18n `errors.<code>`).
  * - Timeouts and network failures become `network_error` / `timeout`.

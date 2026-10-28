@@ -2,7 +2,7 @@
  * Optional in-app reminders (workout days / meal logging) while the app is open.
  * Owned by the gamification/progress feature.
  *
- * Honest by design: there is no push server — reminders appear only while LUPIFIT is open
+ * Honest by design: there is no push server — reminders appear only while LUPU-FIT is open
  * in a browser tab (an in-app toast, plus a system notification when the user already
  * granted permission). Disabled reminders do nothing.
  */

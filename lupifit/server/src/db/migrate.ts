@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import type pg from 'pg';
 import { db } from './pool';
 
-const LOCK_ID = 74_617_201; // arbitrary constant shared by all LUPIFIT instances
+const LOCK_ID = 74_617_201; // arbitrary constant shared by all LUPU-FIT instances
 
 export function migrationsDir(): string {
   if (process.env.MIGRATIONS_DIR) return process.env.MIGRATIONS_DIR;

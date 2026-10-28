@@ -21,7 +21,7 @@ const workouts = {
     noActiveTitle: 'No active plan',
     noActiveBody: 'Set one of your plans as active to see your next workout here.',
     emptyTitle: 'No workout plans yet',
-    emptyBody: 'Let LUPIFIT build a plan from your profile, equipment and goals, or start one from scratch.',
+    emptyBody: 'Let LUPU-FIT build a plan from your profile, equipment and goals, or start one from scratch.',
     generateFirst: 'Generate your first plan',
     createCustom: 'Create a custom plan',
     newPlan: 'Generate a new plan',
@@ -113,7 +113,7 @@ const workouts = {
     profileHint: 'Pre-filled from your profile. Changes here apply to this plan only.',
     explanationTitle: 'How your plan is built',
     explanation:
-      "LUPIFIT's training engine builds your plan from your profile, equipment and recorded performance; free-text preferences are interpreted by AI when configured.",
+      "LUPU-FIT's training engine builds your plan from your profile, equipment and recorded performance; free-text preferences are interpreted by AI when configured.",
     explanationRules: 'Exercise choice, sets, reps and rest follow evidence-based rules for your goal and experience, and every decision is explained on the plan page.',
     aiAvailable: 'AI interpretation of preferences is available.',
     aiUnavailable: 'AI is not configured on this server, so preferences are matched with keywords.',

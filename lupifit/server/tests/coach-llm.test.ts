@@ -122,7 +122,7 @@ describe('LLM path', () => {
     const req = lastRequest();
     const system = systemOf(req);
     const profile = (await avery.get('/api/profile')).body.profile;
-    expect(system).toContain('You are LUPIFIT Coach');
+    expect(system).toContain('You are LUPU-FIT Coach');
     expect(system).toContain("The user's app language is English (en). Reply in English");
     expect(system).toContain('goal: fat_loss');
     expect(system).toContain(`Daily nutrition targets: ${profile.targets.calories} kcal, protein ${profile.targets.proteinG} g`);

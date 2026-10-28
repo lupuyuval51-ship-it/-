@@ -9,7 +9,7 @@ async function generateFromForm(page: Page) {
   await page.goto('/workouts');
   await page.getByRole('button', { name: 'Generate your first plan' }).click();
   await expect(page).toHaveURL(/tab=generate/);
-  await expect(page.getByText("LUPIFIT's training engine builds your plan from your profile")).toBeVisible();
+  await expect(page.getByText("LUPU-FIT's training engine builds your plan from your profile")).toBeVisible();
   // The quick path shows what will be built; options are behind "Customize".
   await expect(page.getByRole('button', { name: 'Generate my plan' })).toBeVisible();
   await page.getByRole('button', { name: 'Customize' }).click();

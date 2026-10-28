@@ -150,7 +150,7 @@ authRouter.post(
       const link = `${config.appUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
       await sendMail({
         to: user.email,
-        subject: 'LUPIFIT password reset',
+        subject: 'LUPU-FIT password reset',
         text: `Use this link within ${RESET_TTL_MINUTES} minutes to choose a new password:\n${link}\n\nIf you did not request this, ignore this email.`,
       });
     }

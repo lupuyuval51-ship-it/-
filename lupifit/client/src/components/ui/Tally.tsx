@@ -1,5 +1,5 @@
 /**
- * Tally — LUPIFIT's signature progress mark: training-journal tick marks, filled from the inline-start
+ * Tally — LUPU-FIT's signature progress mark: training-journal tick marks, filled from the inline-start
  * (right-to-left in Hebrew). Done = ink, current = orange ("orange is now"), pending = muted.
  * Every mark is real data (a set, a workout this week, an onboarding step), never decoration.
  * Above MAX_MARKS it falls back to a thin meter so it stays legible.

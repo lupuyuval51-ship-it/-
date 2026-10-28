@@ -26,7 +26,7 @@ async function main() {
   }
   const app = createApp();
   const server: Server = app.listen(config.port, config.host, () => {
-    console.log(`LUPIFIT listening on http://${config.host}:${config.port} (${config.env})`);
+    console.log(`LUPU-FIT listening on http://${config.host}:${config.port} (${config.env})`);
     if (!isLlmConfigured()) console.log('[ai] AI_API_KEY not set — coach runs in built-in mode, photo analysis disabled');
   });
   server.keepAliveTimeout = 65_000;
@@ -47,6 +47,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Failed to start LUPIFIT:', err);
+  console.error('Failed to start LUPU-FIT:', err);
   process.exit(1);
 });

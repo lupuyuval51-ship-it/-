@@ -1,5 +1,5 @@
 const common = {
-  appName: 'LUPIFIT',
+  appName: 'LUPU-FIT',
   tagline: 'Your AI fitness & nutrition coach',
   actions: {
     save: 'Save',
@@ -93,7 +93,7 @@ const common = {
     llmBadge: 'AI',
     builtinBadge: 'Built-in',
   },
-  disclaimer: 'LUPIFIT provides general fitness and nutrition guidance, not medical advice. Consult a professional for injuries, medical conditions, pregnancy or eating disorders.',
+  disclaimer: 'LUPU-FIT provides general fitness and nutrition guidance, not medical advice. Consult a professional for injuries, medical conditions, pregnancy or eating disorders.',
 };
 
 export default common;

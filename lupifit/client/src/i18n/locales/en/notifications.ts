@@ -22,7 +22,7 @@ const notifications = {
     personal_record_previous: 'New personal record on {exercise} — {recordType}: {value} (previous {previous})',
     weekly_goal: 'Weekly goal reached: {completed} of {goal} workouts this week.',
     reminder: 'Reminder',
-    info: 'Update from LUPIFIT',
+    info: 'Update from LUPU-FIT',
   },
   relative: {
     justNow: 'Just now',

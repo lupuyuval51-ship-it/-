@@ -1,6 +1,6 @@
-# LUPIFIT engineering notes
+# LUPU-FIT engineering notes
 
-LUPIFIT is a bilingual (Hebrew default / RTL, English / LTR) AI fitness & nutrition app.
+LUPU-FIT is a bilingual (Hebrew default / RTL, English / LTR) AI fitness & nutrition app.
 Stack: React 19 + TypeScript (Vite) · Node.js 22.13+ / Express 5 (TypeScript) · PostgreSQL 16 · zod · Anthropic Claude (server-side only) · Vitest · Playwright.
 
 ## Layout
@@ -35,7 +35,7 @@ npm run test:e2e       # Playwright (builds must exist; uses fitai_e2e DB + fake
 ```
 
 ## Brand vs. persistent identifiers
-The product is **LUPIFIT** (it grew out of FITAI). User-visible text says LUPIFIT, but these identifiers intentionally still say `fitai` because renaming them would log users out or drop unsynced offline sets: the session cookie (`fitai_session`), localStorage keys (`fitai.*`), the service-worker cache prefix (`fitai-shell-`), database names (`fitai`, `fitai_test`, `fitai_e2e`) and applied migrations. Rename them only in a dedicated change with a client-side migration.
+The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-FIT, but these identifiers intentionally still say `fitai` because renaming them would log users out or drop unsynced offline sets: the session cookie (`fitai_session`), localStorage keys (`fitai.*`), the service-worker cache prefix (`fitai-shell-`), database names (`fitai`, `fitai_test`, `fitai_e2e`) and applied migrations. Rename them only in a dedicated change with a client-side migration.
 
 ## Design system (orange × black — see `docs/PLAN.md` §4)
 - Tokens live only in `client/src/styles/global.css` (`:root` + `[data-theme]` blocks). Module CSS uses tokens, never raw hex or px font sizes.

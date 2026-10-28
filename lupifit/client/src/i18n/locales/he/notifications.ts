@@ -24,7 +24,7 @@ const notifications: Translations<typeof en> = {
     personal_record_previous: 'שיא אישי חדש בתרגיל {exercise} — {recordType}: {value} (קודם: {previous})',
     weekly_goal: 'היעד השבועי הושג: {completed} מתוך {goal} אימונים השבוע.',
     reminder: 'תזכורת',
-    info: 'עדכון מ-LUPIFIT',
+    info: 'עדכון מ-LUPU-FIT',
   },
   relative: {
     justNow: 'עכשיו',

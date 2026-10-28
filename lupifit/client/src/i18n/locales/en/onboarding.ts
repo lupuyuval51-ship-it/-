@@ -1,7 +1,7 @@
 /** Owned by the onboarding feature. Hebrew (he/onboarding.ts) must have exactly the same keys. */
 const onboarding = {
   title: 'Set up your profile',
-  subtitle: 'A few questions so LUPIFIT can build workouts and nutrition targets that fit you. It takes about 3 minutes.',
+  subtitle: 'A few questions so LUPU-FIT can build workouts and nutrition targets that fit you. It takes about 3 minutes.',
   redoTitle: 'Update your questionnaire',
   redoSubtitle: 'Review and change any answer. Your plans and history are kept.',
   stepOf: 'Step {current} of {total}',
@@ -108,10 +108,10 @@ const onboarding = {
       'Age, sex, height and weight are used only to estimate your daily energy needs (Mifflin-St Jeor formula). If you prefer not to state your sex, we use an average of both formulas.',
     minorFatLossTitle: 'Healthy habits first',
     minorFatLoss:
-      'Because you are under 18, LUPIFIT won’t set a calorie deficit. Instead we focus on regular balanced meals, enough protein, good sleep and consistent training — the healthiest way to change your body composition while you are still growing.',
+      'Because you are under 18, LUPU-FIT won’t set a calorie deficit. Instead we focus on regular balanced meals, enough protein, good sleep and consistent training — the healthiest way to change your body composition while you are still growing.',
     injuriesTitle: 'Get professional advice for injuries',
     injuries:
-      'If you have pain, a recent injury or a medical condition, please check with a doctor or physiotherapist before starting. LUPIFIT adapts exercises but can’t diagnose or treat injuries.',
+      'If you have pain, a recent injury or a medical condition, please check with a doctor or physiotherapist before starting. LUPU-FIT adapts exercises but can’t diagnose or treat injuries.',
     locationPrefilled: 'We pre-selected typical equipment for this location — adjust it below.',
   },
   review: {

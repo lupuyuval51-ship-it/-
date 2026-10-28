@@ -1,4 +1,4 @@
-/** LUPIFIT mark: four tally strokes crossed by an orange fifth — the "gate of five" from a training log. */
+/** LUPU-FIT mark: four tally strokes crossed by an orange fifth — the "gate of five" from a training log. */
 export function LogoMark({ size = 22 }: { size?: number }) {
   return (
     <svg className="logo-mark" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
