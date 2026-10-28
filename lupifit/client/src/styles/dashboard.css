@@ -3,10 +3,7 @@
 .dashboard,
 .progress-page,
 .notif-page {
-  --accent-grad: linear-gradient(135deg, color-mix(in srgb, var(--primary) 85%, #fff 0%), color-mix(in srgb, var(--info) 80%, var(--primary)));
-  --hero-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, var(--surface)) 0%, var(--surface) 60%);
-  --gold: var(--warning);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --hero-bg: var(--surface);
 }
 
 .dash-layout {
@@ -46,31 +43,6 @@
     grid-column: auto;
   }
 }
-.dash-grid > .card,
-.dash-hero > .card {
-  animation: dash-rise 420ms var(--ease-out) both;
-}
-.dash-hero > .card:nth-child(2) {
-  animation-delay: 70ms;
-}
-.dash-grid > .card:nth-child(2) {
-  animation-delay: 120ms;
-}
-.dash-grid > .card:nth-child(3) {
-  animation-delay: 170ms;
-}
-@keyframes dash-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dash-grid > .card,
-  .dash-hero > .card {
-    animation: none;
-  }
-}
 
 /* Resume banner */
 .resume-banner {
@@ -80,47 +52,30 @@
   flex-wrap: wrap;
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--border));
+  border: 1px solid var(--border-control);
   background: var(--hero-bg);
-  box-shadow: var(--shadow);
 }
 .resume-icon {
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: var(--primary-contrast);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--primary-text);
   flex-shrink: 0;
-  animation: resume-pulse 2.4s ease-in-out infinite;
-}
-@keyframes resume-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 8px transparent;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .resume-icon {
-    animation: none;
-  }
 }
 .resume-body {
   flex: 1;
   min-width: 180px;
 }
 .resume-title {
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 
 /* Next workout (hero) */
 .dash-next {
   background: var(--hero-bg);
-  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -136,16 +91,15 @@
   width: 56px;
   height: 56px;
   flex-shrink: 0;
-  border-radius: 16px;
-  background: var(--primary);
-  color: var(--primary-contrast);
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--primary-text);
 }
 .dash-next-info {
   min-width: 0;
 }
 .dash-next-name {
-  font-size: 22px;
+  font-size: var(--fs-xl);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -155,7 +109,7 @@
 .dash-next-actions .btn-primary {
   min-height: 48px;
   padding-inline: var(--space-6);
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 .dash-last {
   margin-block-start: var(--space-3);
@@ -216,11 +170,11 @@
   min-width: 0;
 }
 .ring-value-lg {
-  font-size: 30px;
+  font-size: var(--fs-3xl);
   line-height: 1;
 }
 .ring-of {
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -229,7 +183,7 @@
   color: var(--text-muted);
 }
 .weekly-count {
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 .weekly-met {
   color: var(--success);
@@ -254,21 +208,21 @@
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-control);
   background: var(--surface-2);
   color: var(--primary-contrast);
-  transition: transform 200ms var(--ease-out);
 }
 .week-dot-done .week-dot-mark {
   background: var(--primary);
   border-color: var(--primary);
 }
 .week-dot-today .week-dot-mark {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 .week-dot-label {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   font-weight: 600;
 }

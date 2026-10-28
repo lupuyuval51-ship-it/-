@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Muscle } from '@shared/constants';
 import { getAnimation } from '@shared/animation/data/index';
 import { CANVAS, computeFrame, floorDash, viewBoxFor, type Frame, type PropShape } from '@shared/animation/engine';
@@ -24,10 +24,6 @@ type Anim = NonNullable<ReturnType<typeof getAnimation>>;
 
 /** The articulated figure itself (shared by the full player and the small thumbnail). */
 function FigureSvg({ anim, frame, label, decorative = false }: { anim: Anim; frame: Frame; label: string; decorative?: boolean }) {
-  // Unique ids: many figures can be on one page (library cards, plan rows).
-  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const bgId = `anim-bg-${uid}`;
-  const glowId = `anim-glow-${uid}`;
   const vb = viewBoxFor(anim, frame);
   const dash = floorDash(anim);
   return (
@@ -39,20 +35,7 @@ function FigureSvg({ anim, frame, label, decorative = false }: { anim: Anim; fra
       className="anim-svg"
       direction="ltr"
     >
-      <defs>
-        <linearGradient id={bgId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" className="anim-bg-top" />
-          <stop offset="100%" className="anim-bg-bottom" />
-        </linearGradient>
-        <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="2.2" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill={`url(#${bgId})`} />
+      <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} className="anim-bg" />
       <line x1={vb.x} y1={CANVAS.floor + 1} x2={vb.x + vb.w} y2={CANVAS.floor + 1} className="anim-floor" strokeWidth={2} strokeDasharray={dash?.dash} />
       <ellipse cx={frame.shadow.cx} cy={frame.shadow.cy} rx={frame.shadow.rx} ry={3} className="anim-shadow" opacity={frame.shadow.opacity} />
       {frame.props.filter((p) => p.layer === 'back').map((p, i) => <Shape key={`b${i}`} p={p} />)}
@@ -66,14 +49,13 @@ function FigureSvg({ anim, frame, label, decorative = false }: { anim: Anim; fra
           strokeWidth={s.w}
           strokeLinecap="round"
           className={`anim-seg anim-${s.side}${s.part === 'torso' || s.part === 'neck' ? ' anim-torso' : ''}${s.highlight && s.side !== 'far' ? ' anim-hl' : ''}`}
-          filter={s.highlight && s.side !== 'far' ? `url(#${glowId})` : undefined}
         />
       ))}
       {frame.overlays.map((o, i) => (
-        <line key={`o${i}`} x1={o.a[0]} y1={o.a[1]} x2={o.b[0]} y2={o.b[1]} strokeWidth={o.w} strokeLinecap="round" className="anim-overlay" filter={`url(#${glowId})`} />
+        <line key={`o${i}`} x1={o.a[0]} y1={o.a[1]} x2={o.b[0]} y2={o.b[1]} strokeWidth={o.w} strokeLinecap="round" className="anim-overlay" />
       ))}
       {frame.overlayDots.map((d, i) => (
-        <circle key={`d${i}`} cx={d.c[0]} cy={d.c[1]} r={d.r} className="anim-overlay-dot" filter={`url(#${glowId})`} />
+        <circle key={`d${i}`} cx={d.c[0]} cy={d.c[1]} r={d.r} className="anim-overlay-dot" />
       ))}
       <circle cx={frame.head.c[0]} cy={frame.head.c[1]} r={frame.head.r} className="anim-head" />
       {frame.props.filter((p) => p.layer === 'front').map((p, i) => <Shape key={`f${i}`} p={p} />)}

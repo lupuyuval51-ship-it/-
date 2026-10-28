@@ -68,7 +68,7 @@ export function Icon({ name, size = 20, label, className }: { name: IconName; si
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={1.75}
       strokeLinecap="round"
       strokeLinejoin="round"
       role={label ? 'img' : undefined}
@@ -76,7 +76,7 @@ export function Icon({ name, size = 20, label, className }: { name: IconName; si
       aria-hidden={label ? undefined : true}
       focusable="false"
     >
-      <path d={PATHS[name]} />
+      <path d={PATHS[name]} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }

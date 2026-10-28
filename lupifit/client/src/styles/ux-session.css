@@ -48,8 +48,8 @@
   max-inline-size: 112px;
 }
 .set-row-current:not(.set-row-done) {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
+  border-color: var(--divider);
+  border-inline-start: 3px solid var(--accent-line);
 }
 
 /* Exercise finished block */
@@ -84,7 +84,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: var(--shadow-lg, 0 8px 24px rgb(0 0 0 / 0.25));
+  box-shadow: var(--shadow-overlay);
   max-inline-size: 480px;
   margin-inline: auto;
 }
@@ -104,12 +104,12 @@
   margin: 0;
 }
 .finish-stats dt {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .finish-stats dd {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--fs-xl);
   font-weight: 800;
 }
 .finish-left {
@@ -150,7 +150,7 @@
   border-radius: 4px;
   background: var(--surface-2);
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 
 /* Dashboard: getting started + today hero */
@@ -180,8 +180,8 @@
   place-items: center;
   flex: 0 0 28px;
   block-size: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-control);
   color: var(--bg);
 }
 .dash-start-item-done .dash-start-mark {

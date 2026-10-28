@@ -4,3 +4,5 @@ export * from './Form';
 export * from './Icon';
 export * from './Overlay';
 export * from './States';
+export * from './Tally';
+export * from './LogoMark';

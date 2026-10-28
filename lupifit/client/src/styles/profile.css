@@ -29,7 +29,7 @@
   padding: 0;
   gap: var(--space-2);
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 .onboarding-steps li {
@@ -60,7 +60,7 @@
   }
 }
 .onboarding-step-title {
-  font-size: 20px;
+  font-size: var(--fs-xl);
   margin: 0 0 var(--space-1);
   outline: none;
 }
@@ -81,8 +81,8 @@
   gap: var(--space-3);
   padding-block: var(--space-3);
   margin-block-end: calc(-1 * var(--space-3));
-  background: linear-gradient(to top, var(--surface) 75%, transparent);
-  border-block-start: 1px solid var(--border);
+  background: var(--surface);
+  border-block-start: 1px solid var(--divider);
 }
 .onboarding-actions .btn {
   min-inline-size: 120px;
@@ -124,7 +124,7 @@
   padding-block-start: var(--space-2);
 }
 .profile-subheading {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   margin: 0 0 var(--space-2);
 }
@@ -151,7 +151,7 @@
   inline-size: 26px;
   block-size: 26px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -177,7 +177,7 @@
   }
 }
 .profile-energy {
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 .profile-notes {
   margin: 0;
@@ -185,13 +185,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 .profile-details summary {
   cursor: pointer;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   padding-block: var(--space-1);
 }
 .profile-details[open] summary {
@@ -280,23 +280,20 @@
   gap: 6px;
 }
 .onboarding-segments span {
-  block-size: 8px;
-  border-radius: 999px;
+  block-size: 4px;
+  border-radius: var(--radius-sm);
   background: var(--surface-3);
   transition: background var(--transition);
 }
 .onboarding-segments span.done {
-  background: var(--primary);
+  background: var(--accent-line);
 }
 .onboarding-segments span.current {
-  background: linear-gradient(90deg, var(--primary) 50%, var(--surface-3) 50%);
-}
-[dir='rtl'] .onboarding-segments span.current {
-  background: linear-gradient(270deg, var(--primary) 50%, var(--surface-3) 50%);
+  background: var(--accent-line);
 }
 .onboarding-progress > p {
   font-weight: 700;
-  color: var(--primary);
+  color: var(--primary-text);
 }
 .onboarding-steps {
   counter-reset: onb;
@@ -314,10 +311,10 @@
   inline-size: 20px;
   block-size: 20px;
   margin-inline-end: 6px;
-  border-radius: 50%;
+  border-radius: var(--radius-xs);
   background: var(--surface-3);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
 }
 .onboarding-steps li.done > *::before {
@@ -326,13 +323,11 @@
   color: var(--primary-contrast);
 }
 .onboarding-steps li.current > *::before {
-  background: var(--primary-soft);
-  color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
 }
 .onboarding-card {
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
   padding: var(--space-5);
 }
 @media (max-width: 480px) {
@@ -341,7 +336,7 @@
   }
 }
 .onboarding-step-title {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   letter-spacing: -0.02em;
 }
 
@@ -352,12 +347,11 @@
   padding-inline-end: calc(var(--space-4) + 28px);
   background: var(--surface);
   border-width: 1.5px;
-  transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+  transition: border-color var(--transition), background var(--transition);
 }
 .onboarding-card .radio-card:hover,
 .settings-page .radio-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
+  border-color: var(--border-control);
 }
 .onboarding-card .radio-card::after,
 .settings-page .radio-card::after {
@@ -368,24 +362,24 @@
   inline-size: 20px;
   block-size: 20px;
   margin-block-start: -10px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  border-radius: 50%; /* design-lint-ignore: radio indicator */
+  border: 2px solid var(--border-control);
   background: var(--surface);
   transition: background var(--transition), border-color var(--transition);
 }
 .onboarding-card .radio-card-active,
 .settings-page .radio-card-active {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+  border-color: var(--accent-line);
 }
 .onboarding-card .radio-card-active::after,
 .settings-page .radio-card-active::after {
   border-color: var(--primary);
-  background: radial-gradient(circle, var(--primary-contrast) 0 3px, var(--primary) 4px);
+  border-width: 6px;
+  background: var(--primary-contrast);
 }
 .onboarding-card .radio-card-title,
 .settings-page .radio-card-title {
-  font-size: 15px;
+  font-size: var(--fs-base);
 }
 .onboarding-actions .btn-primary {
   min-inline-size: 140px;
@@ -401,8 +395,8 @@
   inset-block-start: var(--topbar-h);
   z-index: 4;
   padding-block: var(--space-2);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(8px);
+  background: var(--bg);
+  border-block-end: 1px solid var(--divider);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -412,7 +406,7 @@
 }
 .settings-nav .chip:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-text);
 }
 .settings-section {
   border-radius: var(--radius-lg);
@@ -423,7 +417,7 @@
   border-block-end: 1px solid var(--border);
 }
 .settings-section .card-title {
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 .settings-actions {
   padding-block-start: var(--space-3);

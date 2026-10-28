@@ -23,11 +23,11 @@ Stack: React 19 + TypeScript (Vite) · Node.js 22.13+ / Express 5 (TypeScript) �
 - **Accessibility**: labelled controls, keyboard-operable, focus-visible, `aria-live` for async results, icon-only buttons need `label`.
 - **Migrations**: forward-only, never edit an applied migration; add `server/src/db/migrations/NNNN_description.sql`.
 
-## Commands (run from `fitai/`)
+## Commands (run from `lupifit/`)
 ```
 npm run dev            # API (tsx watch, :3000) + Vite (:5173, proxies /api)
 npm run db:setup       # migrate + seed content
-npm run typecheck && npm run lint && npm run validate:content
+npm run typecheck && npm run lint && npm run validate:content   # lint = security scan + design ratchet + e2e copy lock
 npm run test:server    # Vitest + real PostgreSQL (TEST_DATABASE_URL, default fitai_test)
 npm run test:client    # Vitest + jsdom
 npm run build          # dist/client + dist/server
@@ -36,3 +36,11 @@ npm run test:e2e       # Playwright (builds must exist; uses fitai_e2e DB + fake
 
 ## Brand vs. persistent identifiers
 The product is **LUPIFIT** (it grew out of FITAI). User-visible text says LUPIFIT, but these identifiers intentionally still say `fitai` because renaming them would log users out or drop unsynced offline sets: the session cookie (`fitai_session`), localStorage keys (`fitai.*`), the service-worker cache prefix (`fitai-shell-`), database names (`fitai`, `fitai_test`, `fitai_e2e`) and applied migrations. Rename them only in a dedicated change with a client-side migration.
+
+## Design system (orange × black — see `docs/PLAN.md` §4)
+- Tokens live only in `client/src/styles/global.css` (`:root` + `[data-theme]` blocks). Module CSS uses tokens, never raw hex or px font sizes.
+- Black creates the atmosphere, orange creates the focus: one filled orange action per screen (`.btn-primary` or the current set's `.set-check`); orange as text/icon uses `--primary-text`; thin indicators (active tab bar, current tally mark, progress) use `--accent-line`. Text on orange is black (`--primary-contrast`); white on orange fails WCAG.
+- No gradients, glows, glass/blur, decorative shadows, pills or radii above 8px. Shadows are for overlays only (`--shadow-overlay`). Only switches, status dots, radio indicators and spinners are round (mark the line `design-lint-ignore: <reason>`).
+- Numbers use `.num` (tabular) and `--font-num` (Barlow Condensed) for display figures; UI text is Heebo. Fonts are self-hosted (`@fontsource`, OFL).
+- Progress is shown with `<Tally>` (signature tick marks) rather than new rings.
+- Guards: `scripts/design-lint.mjs` (counts may only go down; `--update` after an improvement), `client/src/styles/tokens.test.ts` (WCAG contrast for every token pair in both themes), `scripts/e2e-strings.mjs` (every string an e2e spec looks up must still exist; `--update` only together with a spec change).

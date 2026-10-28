@@ -37,7 +37,7 @@
   text-align: center;
 }
 .nutri-date-title {
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 .nutri-date-input {
   inline-size: auto;
@@ -64,13 +64,13 @@
 }
 .nutri-ring-value {
   display: block;
-  font-size: 28px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   line-height: 1.1;
 }
 .nutri-ring-sub {
   display: block;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .nutri-remaining {
@@ -156,13 +156,13 @@
   text-align: center;
 }
 .macro-cell dt {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 .macro-cell dd {
   margin: 0;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-base);
 }
 @media (max-width: 420px) {
   .macro-grid {
@@ -293,7 +293,7 @@
 }
 .suggestion-name {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--fs-base);
 }
 .suggestion-items {
   list-style: none;
@@ -321,7 +321,7 @@
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  background: #000;
+  background: rgb(0 0 0); /* camera feed letterbox */
   aspect-ratio: 4 / 3;
 }
 .scanner-video {
@@ -336,7 +336,7 @@
   inset-block: 35%;
   border: 2px solid var(--primary);
   border-radius: var(--radius-sm);
-  box-shadow: 0 0 0 999px rgb(0 0 0 / 0.25);
+  outline: 999px solid var(--scrim); /* camera viewfinder mask */
 }
 
 /* ------------------------------------------------------------------ Photo analysis */
@@ -385,7 +385,8 @@
   position: sticky;
   inset-block-end: calc(var(--bottomnav-h) + env(safe-area-inset-bottom));
   padding: var(--space-3) 0;
-  background: linear-gradient(to top, var(--surface) 75%, transparent);
+  background: var(--surface);
+  border-block-start: 1px solid var(--divider);
 }
 @media (min-width: 900px) {
   .photo-footer {
@@ -395,20 +396,17 @@
 
 /* ================================================================== Visual polish (UI 4) */
 .nutri-overview-card {
-  background: radial-gradient(90% 70% at 0% 0%, var(--primary-soft), transparent 65%), var(--surface);
-}
-.nutri-ring .ring {
-  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--primary) 30%, transparent));
+  background: var(--surface);
 }
 .nutri-ring-value {
-  font-size: 34px;
+  font-size: var(--fs-3xl);
   letter-spacing: -0.02em;
 }
 .nutri-remaining {
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--surface-2);
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .nutri-macros {
   display: grid;
@@ -432,16 +430,16 @@
   gap: 1px;
 }
 .nutri-macro-label {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 .nutri-macro-value {
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 700;
   white-space: nowrap;
 }
 .nutri-macro-pct {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 .nutri-macro-info .ring-fill {
@@ -461,27 +459,11 @@
 }
 
 /* Meal cards: coloured accent per meal */
-.meal-card {
-  --meal-accent: var(--primary);
-  border-inline-start: 4px solid var(--meal-accent);
-}
-.meal-card-breakfast {
-  --meal-accent: #f59e0b;
-}
-.meal-card-lunch {
-  --meal-accent: #22c55e;
-}
-.meal-card-dinner {
-  --meal-accent: #6366f1;
-}
-.meal-card-snack {
-  --meal-accent: #ec4899;
-}
 .meal-card .card-title {
-  font-size: 18px;
+  font-size: var(--fs-lg);
 }
 .meal-entry-kcal {
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 .meal-entry {
   padding-block: var(--space-3);
@@ -492,10 +474,9 @@
 
 /* Date navigator + food lists */
 .nutri-date-nav {
-  box-shadow: var(--shadow);
 }
 .nutri-date-title {
-  font-size: 18px;
+  font-size: var(--fs-lg);
   font-weight: 800;
 }
 .food-item {
@@ -509,5 +490,5 @@
   border: 1px solid var(--border);
 }
 .macro-cell dd {
-  font-size: 17px;
+  font-size: var(--fs-lg);
 }

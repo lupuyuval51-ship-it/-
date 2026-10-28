@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
-import { Icon, LoadingState, type IconName } from '../components/ui';
+import { Icon, LoadingState, LogoMark, type IconName } from '../components/ui';
 import { NotificationBell } from '../features/gamification/NotificationBell';
 import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
 import { ActiveSessionIndicator } from '../features/sessions/ActiveSessionIndicator';
@@ -41,7 +41,7 @@ export function AppShell() {
       <aside className="sidebar" aria-label={t('nav.mainNavigation')}>
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
-            <Icon name="dumbbell" size={22} />
+            <LogoMark size={24} />
           </span>
           <span className="brand-name">{t('common.appName')}</span>
         </div>
@@ -76,7 +76,7 @@ export function AppShell() {
         <header className="topbar">
           <div className="topbar-brand">
             <span className="brand-mark" aria-hidden="true">
-              <Icon name="dumbbell" size={18} />
+              <LogoMark size={22} />
             </span>
             <span className="brand-name">{t('common.appName')}</span>
           </div>

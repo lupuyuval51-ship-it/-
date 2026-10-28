@@ -1,3 +1,6 @@
+// Styles first: the design system (fonts, tokens, primitives) must precede every feature/page stylesheet.
+import './styles/fonts.css';
+import './styles/global.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -6,7 +9,6 @@ import { App } from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { ConfirmProvider, ToastProvider } from './components/ui';
 import { I18nProvider } from './i18n';
-import './styles/global.css';
 
 const queryClient = createQueryClient();
 

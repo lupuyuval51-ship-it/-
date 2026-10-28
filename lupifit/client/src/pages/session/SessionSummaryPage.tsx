@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router';
 import type { SessionSummaryDTO } from '@shared/types';
@@ -126,11 +125,6 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
       <div className="summary-hero">
         <span className="summary-medal" aria-hidden="true">
           <Icon name="trophy" size={34} />
-        </span>
-        <span className="summary-confetti" aria-hidden="true">
-          {Array.from({ length: 12 }, (_, i) => (
-            <i key={i} style={{ '--i': i } as CSSProperties} />
-          ))}
         </span>
       <PageHeader
         title={t('session.summary.title')}

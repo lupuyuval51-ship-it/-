@@ -146,12 +146,6 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
     <figure className="chart" dir="ltr" ref={ref}>
       <svg viewBox={`0 0 ${W} ${height}`} role="img" aria-labelledby={`${id}-t`} className={`chart-svg chart-${tone}`} tabIndex={0} onKeyDown={onKey} onBlur={() => setHover(null)} onMouseLeave={() => setHover(null)}>
         <title id={`${id}-t`}>{title}</title>
-        <defs>
-          <linearGradient id={`${id}-g`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" className="chart-area-stop" stopOpacity="0.32" />
-            <stop offset="100%" className="chart-area-stop" stopOpacity="0" />
-          </linearGradient>
-        </defs>
         {ticks.map((t, i) => (
           <g key={i}>
             <line x1={PAD.left} x2={W - PAD.right} y1={s.y(t)} y2={s.y(t)} className="chart-grid" />
@@ -168,7 +162,7 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
             </text>
           </g>
         )}
-        {points.length > 1 && <path d={area} fill={`url(#${id}-g)`} className="chart-area" />}
+        {points.length > 1 && <path d={area} className="chart-area" />}
         {hover != null && data[hover]?.value != null && <line x1={x(hover)} x2={x(hover)} y1={PAD.top} y2={baseY} className="chart-cursor" />}
         <path d={path} className="chart-line" fill="none" />
         {data.map((d, i) =>
