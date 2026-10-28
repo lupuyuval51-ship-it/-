@@ -153,3 +153,39 @@ test('exit8.html is the up-to-date single-file build', async () => {
   assert.ok(!/<script src=/.test(built), 'every script is inlined');
   assert.equal(built, bundle(), 'run `npm run build:exit8` after changing the sources');
 });
+
+test('every anomaly has a fear rating and the scariest are common enough to matter', () => {
+  for (const a of E.ANOMALIES) assert.ok([1, 2, 3].includes(a.scare), `${a.id}: scare must be 1, 2 or 3`);
+  assert.ok(E.ANOMALIES.length >= 35);
+  assert.ok(E.ANOMALIES.filter(a => a.scare === 3).length >= 8);
+});
+
+test('deeper runs favour the frightening anomalies', () => {
+  const share = intensity => {
+    const rnd = E.mulberry32(99);
+    let n = 0;
+    for (let i = 0; i < 4000; i++) {
+      const id = E.pickAnomaly(rnd, { chance: 1, intensity });
+      if (E.ANOMALIES.find(a => a.id === id).scare === 3) n++;
+    }
+    return n / 4000;
+  };
+  assert.ok(share(1) > share(0) * 1.4, `scare-3 share: ${share(0)} → ${share(1)}`);
+  assert.ok(share(0) > 0.1, 'the scariest ones still appear early');
+});
+
+test('the new horror anomalies build and carry their decorations', () => {
+  const T = E.TEX;
+  const layers = (anomaly) => {
+    const w = E.buildWorld({ anomaly, seed: 4 }), d = w.packed.data, found = new Set();
+    for (let i = 0; i < w.packed.vertices; i++) found.add(d[i * 20 + 8]);
+    return found;
+  };
+  assert.ok(layers('wall_face').has(T.wallFace));
+  assert.ok(layers('wall_eyes').has(T.wallEyes));
+  assert.ok(layers('scrawl').has(T.scrawl));
+  assert.ok(layers('blood_pool').has(T.bloodPool));
+  for (const [an, tex] of [[null, T.wallFace], [null, T.wallEyes], [null, T.scrawl], [null, T.bloodPool]]) {
+    assert.ok(!layers(an).has(tex), 'a normal loop has none of them');
+  }
+});

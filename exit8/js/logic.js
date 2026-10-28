@@ -113,43 +113,49 @@
     return { correct, count: correct ? Math.min(count + 1, MAX_COUNT) : 0 };
   }
 
+  // scare: 1 = unsettling, 2 = creepy, 3 = frightening. Deeper in a run, the frightening ones get likelier.
   const ANOMALIES = [
-    { id: 'lights_off', he: 'האורות כבו', en: 'Lights out' },
-    { id: 'light_red', he: 'מנורה אדומה', en: 'Red lamp' },
-    { id: 'light_flicker', he: 'מנורה מהבהבת', en: 'Flickering lamp' },
-    { id: 'poster_eyes', he: 'העיניים בפוסטר עוקבות אחריך', en: 'The poster is watching' },
-    { id: 'poster_face', he: 'הפנים שלו על פוסטר', en: 'His face on a poster' },
-    { id: 'poster_upside', he: 'פוסטר הפוך', en: 'Upside-down poster' },
-    { id: 'poster_blank', he: 'פוסטר חסר', en: 'Missing poster' },
-    { id: 'door_ajar', he: 'דלת פתוחה לחושך', en: 'Door ajar' },
-    { id: 'door_extra', he: 'דלת שלא הייתה שם', en: 'An extra door' },
-    { id: 'extinguisher_missing', he: 'ארון המטף נעלם', en: 'Missing extinguisher' },
-    { id: 'exit_sign_flip', he: 'שלט יציאת חירום במראה', en: 'Mirrored emergency sign' },
-    { id: 'clock_spin', he: 'השעון משתולל', en: 'Racing clock' },
-    { id: 'vent_eyes', he: 'עיניים בפתח האוורור', en: 'Eyes in the vent' },
-    { id: 'handprints', he: 'טביעות ידיים אדומות', en: 'Red handprints' },
-    { id: 'footprints', he: 'עקבות רטובים לתוך הקיר', en: 'Wet footprints into the wall' },
-    { id: 'ceiling_low', he: 'התקרה ירדה', en: 'Low ceiling' },
-    { id: 'wall_stain', he: 'כתם שחור על הקיר', en: 'Black stain' },
-    { id: 'tactile_veer', he: 'פס ההכוונה סוטה לקיר', en: 'Tactile path veers into the wall' },
-    { id: 'corridor_long', he: 'המסדרון ארוך מדי', en: 'Corridor too long' },
-    { id: 'red_wave', he: 'גל אדום', en: 'Red wave' },
-    { id: 'man_giant', he: 'האיש הענק', en: 'Giant man' },
-    { id: 'man_ceiling', he: 'האיש הולך על התקרה', en: 'Man on the ceiling' },
-    { id: 'man_stare', he: 'האיש לא מוריד ממך את העיניים', en: 'Staring man' },
-    { id: 'man_stop', he: 'האיש עוצר ומסתכל', en: 'Man stops and stares' },
-    { id: 'man_chase', he: 'האיש רודף אחריך', en: 'Man gives chase' },
-    { id: 'man_many', he: 'יותר מדי אנשים', en: 'Too many men' },
-    { id: 'man_follow', he: 'מישהו הולך מאחוריך', en: 'Someone behind you' },
-    { id: 'man_smile', he: 'חיוך מפחיד', en: 'Creepy smile' },
-    { id: 'man_backward', he: 'האיש הולך אחורה', en: 'Walking backward' },
-    { id: 'shadow_figure', he: 'צללית בסוף המסדרון', en: 'Shadow at the end' },
+    { id: 'lights_off', he: 'האורות כבו', en: 'Lights out', scare: 2 },
+    { id: 'light_red', he: 'מנורה אדומה', en: 'Red lamp', scare: 2 },
+    { id: 'light_flicker', he: 'מנורה מהבהבת', en: 'Flickering lamp', scare: 1 },
+    { id: 'poster_eyes', he: 'העיניים בפוסטר עוקבות אחריך', en: 'The poster is watching', scare: 2 },
+    { id: 'poster_face', he: 'הפנים שלו על פוסטר', en: 'His face on a poster', scare: 2 },
+    { id: 'poster_upside', he: 'פוסטר הפוך', en: 'Upside-down poster', scare: 1 },
+    { id: 'poster_blank', he: 'פוסטר חסר', en: 'Missing poster', scare: 1 },
+    { id: 'door_ajar', he: 'דלת פתוחה לחושך', en: 'Door ajar', scare: 2 },
+    { id: 'door_extra', he: 'דלת שלא הייתה שם', en: 'An extra door', scare: 1 },
+    { id: 'extinguisher_missing', he: 'ארון המטף נעלם', en: 'Missing extinguisher', scare: 1 },
+    { id: 'exit_sign_flip', he: 'שלט יציאת חירום במראה', en: 'Mirrored emergency sign', scare: 1 },
+    { id: 'clock_spin', he: 'השעון משתולל', en: 'Racing clock', scare: 1 },
+    { id: 'vent_eyes', he: 'עיניים בפתח האוורור', en: 'Eyes in the vent', scare: 2 },
+    { id: 'handprints', he: 'טביעות ידיים אדומות', en: 'Red handprints', scare: 2 },
+    { id: 'footprints', he: 'עקבות רטובים לתוך הקיר', en: 'Wet footprints into the wall', scare: 2 },
+    { id: 'ceiling_low', he: 'התקרה ירדה', en: 'Low ceiling', scare: 1 },
+    { id: 'wall_stain', he: 'כתם שחור על הקיר', en: 'Black stain', scare: 1 },
+    { id: 'tactile_veer', he: 'פס ההכוונה סוטה לקיר', en: 'Tactile path veers into the wall', scare: 1 },
+    { id: 'corridor_long', he: 'המסדרון ארוך מדי', en: 'Corridor too long', scare: 1 },
+    { id: 'red_wave', he: 'גל אדום', en: 'Red wave', scare: 3 },
+    { id: 'man_giant', he: 'האיש הענק', en: 'Giant man', scare: 2 },
+    { id: 'man_ceiling', he: 'האיש הולך על התקרה', en: 'Man on the ceiling', scare: 3 },
+    { id: 'man_stare', he: 'האיש לא מוריד ממך את העיניים', en: 'Staring man', scare: 2 },
+    { id: 'man_stop', he: 'האיש עוצר ומסתכל', en: 'Man stops and stares', scare: 2 },
+    { id: 'man_chase', he: 'האיש רודף אחריך', en: 'Man gives chase', scare: 3 },
+    { id: 'man_many', he: 'יותר מדי אנשים', en: 'Too many men', scare: 2 },
+    { id: 'man_follow', he: 'מישהו הולך מאחוריך', en: 'Someone behind you', scare: 3 },
+    { id: 'man_smile', he: 'חיוך מפחיד', en: 'Creepy smile', scare: 3 },
+    { id: 'man_backward', he: 'האיש הולך אחורה', en: 'Walking backward', scare: 2 },
+    { id: 'shadow_figure', he: 'צללית בסוף המסדרון', en: 'Shadow at the end', scare: 2 },
+    { id: 'man_crawl', he: 'האיש זוחל על הרצפה', en: 'The man crawls', scare: 3 },
+    { id: 'wall_face', he: 'פנים בתוך הקיר', en: 'A face in the wall', scare: 3 },
+    { id: 'wall_eyes', he: 'עיניים על הקיר', en: 'Eyes on the wall', scare: 3 },
+    { id: 'scrawl', he: 'כתובת אדומה על הקיר', en: 'Red scrawl', scare: 2 },
+    { id: 'blood_pool', he: 'שלולית אדומה מתחת לדלת', en: 'Red pool under the door', scare: 2 },
   ];
   const ANOMALY_IDS = ANOMALIES.map(a => a.id);
 
   /**
    * Picks the anomaly (or null) for the next loop.
-   * opts: { first, chance, recent: [ids], found: Set|Array }
+   * opts: { first, chance, recent: [ids], found: Set|Array, intensity: 0..1 }
    */
   function pickAnomaly(rng, opts) {
     const o = opts || {};
@@ -158,15 +164,18 @@
     if (rng() >= chance) return null;
     const recent = new Set(o.recent || []);
     const found = new Set(o.found || []);
-    let pool = ANOMALY_IDS.filter(id => !recent.has(id));
-    if (!pool.length) pool = ANOMALY_IDS.slice();
-    // Unseen anomalies are twice as likely, so a run keeps surprising the player.
-    const weighted = [];
-    for (const id of pool) {
-      weighted.push(id);
-      if (!found.has(id)) weighted.push(id);
+    const intensity = Math.max(0, Math.min(1, o.intensity || 0));
+    let pool = ANOMALIES.filter(a => !recent.has(a.id));
+    if (!pool.length) pool = ANOMALIES.slice();
+    // Unseen anomalies are twice as likely, so a run keeps surprising the player;
+    // the deeper the run, the more the frightening ones are favoured.
+    const weights = pool.map(a => (found.has(a.id) ? 1 : 2) * (1 + intensity * (a.scare - 1)));
+    let r = rng() * weights.reduce((sum, w) => sum + w, 0);
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i];
+      if (r < 0) return pool[i].id;
     }
-    return weighted[Math.floor(rng() * weighted.length) % weighted.length];
+    return pool[pool.length - 1].id;
   }
 
   function mulberry32(seed) {

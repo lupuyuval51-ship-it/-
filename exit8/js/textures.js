@@ -9,7 +9,7 @@
   E.FONT_JP = JP;
   E.FONT_UI = UI;
   // Every Japanese glyph drawn below; used to request a tiny web-font subset.
-  E.JP_GLYPHS = '出口関係者以外立入禁止消火器非常夏の旅へ行センターらーめん一杯円横丁目健康眼科クリニックまばたきを忘れずに受付夜ラシ市民ホールマナー守ろう車内で通話はご遠慮くださ駅係員より現代美術展笑顔毎日構図在地案';
+  E.JP_GLYPHS = '出口関係者以外立入禁止消火器非常夏の旅へ行センターらーめん一杯円横丁目健康眼科クリニックまばたきを忘れずに受付夜ラシ市民ホールマナー守ろう車内で通話はご遠慮くださ駅係員より現代美術展笑顔毎日構図在地案戻れ助けて';
 
   const DEFS = [];
   function def(name, w, h, draw) { DEFS.push({ name, w, h, draw }); }
@@ -389,7 +389,7 @@
     ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 6; ctx.strokeRect(3, 3, w - 6, h - 6);
     ctx.fillStyle = '#151515'; rrect(ctx, 16, 16, h - 32, h - 32, 10); ctx.fill();
     font(ctx, 900, 128, UI);
-    text(ctx, String(count), 16 + (h - 32) / 2, h / 2 + 4, { align: 'center', base: 'middle', color: '#fff' });
+    text(ctx, String(count), 16 + (h - 32) / 2, h / 2 + 4, { align: 'center', base: 'middle', color: count >= 6 ? '#ff4a3d' : '#fff' });
     font(ctx, 900, 100, JP);
     text(ctx, '出口', 196, 128, { color: '#151515' });
     font(ctx, 800, 76, UI);
@@ -579,6 +579,102 @@
     const g = ctx.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w * 0.75);
     g.addColorStop(0, '#ffffff'); g.addColorStop(0.6, '#fff6e2'); g.addColorStop(1, '#ffe0aa');
     ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  });
+
+
+  // ---------------------------------------------------------------- horror decals (alpha tested)
+  def('wallFace', 256, 320, (ctx, w, h) => {
+    const cx = w / 2;
+    const g = ctx.createRadialGradient(cx, h * 0.42, 12, cx, h * 0.5, h * 0.55);
+    g.addColorStop(0, '#dcd9d2'); g.addColorStop(0.65, '#aaa7a0'); g.addColorStop(1, '#5f5d59');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(cx, h * 0.5, w * 0.41, h * 0.47, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(40,38,36,0.38)';
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(cx + s * w * 0.2, h * 0.62, w * 0.1, h * 0.1, s * -0.4, 0, Math.PI * 2); ctx.fill(); }
+    ctx.strokeStyle = 'rgba(30,26,24,0.55)'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    for (const [x, y, dx, dy] of [[0.28, 0.2, 0.1, 0.1], [0.74, 0.24, -0.08, 0.12], [0.5, 0.12, 0.02, 0.1], [0.33, 0.78, -0.08, 0.1], [0.68, 0.76, 0.07, 0.12]]) {
+      ctx.beginPath(); ctx.moveTo(w * x, h * y); ctx.lineTo(w * (x + dx * 0.5), h * (y + dy * 0.6)); ctx.lineTo(w * (x + dx), h * (y + dy)); ctx.stroke();
+    }
+    for (const s of [-1, 1]) {
+      const ex = cx + s * w * 0.18, ey = h * 0.37;
+      const eg = ctx.createRadialGradient(ex, ey, 2, ex, ey, w * 0.12);
+      eg.addColorStop(0, '#000'); eg.addColorStop(1, '#0d0a0a');
+      ctx.fillStyle = eg;
+      ctx.beginPath(); ctx.ellipse(ex, ey, w * 0.105, h * 0.085, s * 0.25, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f2eee6';
+      ctx.beginPath(); ctx.arc(ex - s * 2, ey + 4, 3.4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(15,12,12,0.85)'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(ex, ey + h * 0.07); ctx.bezierCurveTo(ex + s * 7, ey + h * 0.18, ex - s * 5, ey + h * 0.3, ex + s * 2, ey + h * 0.4); ctx.stroke();
+    }
+    ctx.fillStyle = '#171312';
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.ellipse(cx + s * w * 0.035, h * 0.55, 4, 10, s * 0.25, 0, Math.PI * 2); ctx.fill(); }
+    const mg = ctx.createLinearGradient(0, h * 0.6, 0, h * 0.92);
+    mg.addColorStop(0, '#000'); mg.addColorStop(1, '#210606');
+    ctx.fillStyle = mg;
+    ctx.beginPath(); ctx.ellipse(cx, h * 0.76, w * 0.115, h * 0.155, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(25,18,16,0.7)'; ctx.lineWidth = 3;
+    for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * w * 0.115, h * 0.72); ctx.lineTo(cx + s * w * 0.2, h * 0.62); ctx.stroke(); }
+  });
+
+  def('wallEyes', 512, 512, (ctx, w, h) => {
+    const r = rng(93);
+    ctx.fillStyle = 'rgba(14,10,9,0.98)';
+    for (let i = 0; i < 80; i++) {
+      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.7) * 205;
+      ctx.beginPath(); ctx.arc(256 + Math.cos(a) * d * 1.15, 256 + Math.sin(a) * d * 0.85, 22 + r() * 44, 0, Math.PI * 2); ctx.fill();
+    }
+    const eye = (x, y, s, ang, iris) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+      ctx.fillStyle = '#efe9dc';
+      ctx.beginPath(); ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * 0.95, s, 0); ctx.quadraticCurveTo(0, s * 0.95, -s, 0); ctx.fill();
+      const ig = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 0.5);
+      ig.addColorStop(0, '#000'); ig.addColorStop(0.35, iris); ig.addColorStop(1, '#2a0d08');
+      ctx.fillStyle = ig; ctx.beginPath(); ctx.arc(0, 0, s * 0.46, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, s * 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(-s * 0.14, -s * 0.16, s * 0.07, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#5a1a14'; ctx.lineWidth = Math.max(1.5, s * 0.08);
+      ctx.beginPath(); ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * 0.95, s, 0); ctx.quadraticCurveTo(0, s * 0.95, -s, 0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(160,30,20,0.55)'; ctx.lineWidth = 1;
+      for (let k = 0; k < 5; k++) { const a = r() * Math.PI * 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.55, Math.sin(a) * s * 0.4); ctx.lineTo(Math.cos(a) * s * 0.92, Math.sin(a) * s * 0.7); ctx.stroke(); }
+      ctx.restore();
+    };
+    const irises = ['#8a5a1e', '#4d7a3a', '#b3261e', '#5b7fa6', '#a38a2a'];
+    for (let i = 0; i < 38; i++) {
+      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8) * 200;
+      const x = 256 + Math.cos(a) * d * 1.1, y = 256 + Math.sin(a) * d * 0.8;
+      eye(Math.max(44, Math.min(w - 44, x)), Math.max(44, Math.min(h - 44, y)), 20 + r() * 34, (r() - 0.5) * 1.1, irises[Math.floor(r() * irises.length)]);
+    }
+  });
+
+  def('scrawl', 512, 256, (ctx, w, h) => {
+    const r = rng(95);
+    ctx.fillStyle = '#7d0909'; ctx.strokeStyle = '#7d0909'; ctx.lineCap = 'round';
+    font(ctx, 900, 150, JP);
+    text(ctx, '助けて', w * 0.5, 130, { align: 'center', color: '#7d0909', maxW: w * 0.92 });
+    font(ctx, 900, 100, JP);
+    text(ctx, '戻れ', w * 0.5, 236, { align: 'center', color: '#7d0909', maxW: w * 0.9 });
+    for (let i = 0; i < 16; i++) {
+      const x = 40 + r() * 430, y0 = 60 + r() * 150, len = 18 + r() * 90;
+      ctx.lineWidth = 4 + r() * 6;
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x + (r() - 0.5) * 4, y0 + len); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x, y0 + len, ctx.lineWidth * 0.8, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+
+  def('bloodPool', 256, 256, (ctx, w, h) => {
+    const r = rng(97);
+    const g = ctx.createRadialGradient(128, 128, 5, 128, 128, 128);
+    g.addColorStop(0, '#6e0b0b'); g.addColorStop(0.7, '#4c0707'); g.addColorStop(1, '#2a0303');
+    ctx.fillStyle = g; ctx.strokeStyle = '#4c0707'; ctx.lineCap = 'round';
+    for (let i = 0; i < 46; i++) {
+      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8) * 62;
+      ctx.beginPath(); ctx.arc(128 + Math.cos(a) * d, 128 + Math.sin(a) * d, 20 + r() * 34, 0, Math.PI * 2); ctx.fill();
+    }
+    for (let i = 0; i < 9; i++) {
+      const a = r() * Math.PI * 2, d0 = 60 + r() * 20, len = 22 + r() * 34;
+      ctx.lineWidth = 6 + r() * 9;
+      ctx.beginPath(); ctx.moveTo(128 + Math.cos(a) * d0, 128 + Math.sin(a) * d0); ctx.lineTo(128 + Math.cos(a) * (d0 + len), 128 + Math.sin(a) * (d0 + len)); ctx.stroke();
+    }
   });
 
   // ---------------------------------------------------------------- registry

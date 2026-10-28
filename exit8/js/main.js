@@ -14,7 +14,7 @@
   const S = {
     mode: 'loading',
     lang: store.get('lang', 'he') === 'en' ? 'en' : 'he',
-    settings: Object.assign({ sens: 1, vol: 0.8, reduceFlash: reducedMotion, quality: coarse ? 'low' : 'high' }, store.get('settings', {})),
+    settings: Object.assign({ sens: 1, vol: 0.8, reduceFlash: reducedMotion, quality: coarse ? 'low' : 'high', jumpscares: true }, store.get('settings', {})),
     found: new Set((store.get('found', []) || []).filter(id => E.ANOMALY_IDS.includes(id))),
     best: store.get('best', null),
     run: null, loop: null, pre: { normal: null, exit: null }, recent: [],
@@ -22,6 +22,8 @@
     keys: {}, touch: { move: null, look: null }, touchMode: false, locked: false, dragLook: false, drag: null,
     flash: [0, 0, 0, 0], flick: { next: 0, until: 0, hold: 0, val: 1 }, time: 0, lastT: 0, cam: null, crackleT: 0,
     modeT: 0, returnTo: 'menu', newlyFound: new Set(),
+    // Horror state: dreadSm eases towards how deep the run is; danger/shake/pulse react to what is near.
+    dreadSm: 0, danger: 0, shake: 0, pulse: 0, hbT: 1, ambT: 9, zoom: 0, scare: null, caughtBy: null,
   };
   const t = (k, v) => E.t(S.lang, k, v);
 
@@ -114,7 +116,8 @@
   }
 
   function pickNext() {
-    return E.pickAnomaly(Math.random, { chance: 0.62, recent: S.recent, found: S.found });
+    const depth = S.run ? S.run.count / E.MAX_COUNT : 0;
+    return E.pickAnomaly(Math.random, { chance: 0.55 + 0.25 * depth, intensity: depth, recent: S.recent, found: S.found });
   }
 
   function schedulePrebuild() {
@@ -155,6 +158,7 @@
     setLoop(takeNext(run.count === E.MAX_COUNT));
     updateSign();
     schedulePrebuild();
+    if (!res.correct) { audio.wrong(); S.fadeIn = 0.6; }
   }
 
   function respawn() {
@@ -167,6 +171,7 @@
     audio.setVolume(S.settings.vol);
     S.run = { count: 0, loops: 0, mistakes: 0, timeMs: 0, spotted: [] };
     S.recent = [];
+    Object.assign(S, { dreadSm: 0, danger: 0, shake: 0, pulse: 0, hbT: 1, ambT: 9, zoom: 0, scare: null, caughtBy: null });
     if (S.pre.normal) { R.deleteMesh(S.pre.normal.mesh); S.pre.normal = null; }
     setLoop(makeWorld(null, false));
     updateSign();
@@ -202,6 +207,8 @@
     S.mode = 'menu';
     if (document.pointerLockElement) document.exitPointerLock();
     audio.suspend();
+    audio.setDread(0);
+    Object.assign(S, { dreadSm: 0, danger: 0, shake: 0, pulse: 0, zoom: 0, scare: null });
     S.run = null;
     setLoop(makeWorld(null, false));
     updateSign();
@@ -383,8 +390,9 @@
       if (ev.type === 'step') {
         const c = S.cam || { x: P.x, z: P.z, yaw: P.yaw };
         const dx = ev.x - c.x, dz = ev.z - c.z, d = Math.hypot(dx, dz) || 1;
-        audio.otherStep(d, (dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw)) / d, ev.run);
-      } else if (ev.type === 'caught') caught();
+        const pan = (dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw)) / d;
+        if (ev.crawl) audio.drag(d, pan); else audio.otherStep(d, pan, ev.run);
+      } else if (ev.type === 'caught') caught(ev);
       else if (ev.type === 'stinger' || ev.type === 'waveStart') audio.stinger();
       else if (ev.type === 'vanish') audio.vanish();
     }
@@ -392,26 +400,48 @@
     audio.setRumble(wave ? Math.max(0, Math.min(1, 1 - wave.gap / 26)) * 0.55 : 0);
   }
 
-  function caught() {
+  function caught(ev) {
     if (S.mode !== 'playing') return;
     S.mode = 'caught';
     S.modeT = 0;
-    audio.caught();
+    S.caughtBy = ev && ev.by;
+    S.scare = ev && ev.by === 'man' && S.settings.jumpscares !== false ? { x: ev.x, z: ev.z } : null;
+    if (S.scare) audio.jumpscare(); else audio.caught();
     audio.setRumble(0);
+    audio.setDread(0);
   }
+
+  const wrapAngle = a => { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; };
 
   function updateCaught(dt) {
     S.modeT += dt;
     const a = S.modeT;
-    S.flash = a < 0.25 ? [0.55, 0.02, 0.02, a / 0.25 * 0.85] : [0, 0, 0, Math.min(1, 0.85 + (a - 0.25) * 0.4)];
-    if (a > 1.9) {
+    S.danger = 0;
+    if (S.scare) {
+      // Whip round to face him, zoom into his face and shake. One flash (none in calm mode), then darkness.
+      const P = S.player;
+      P.yaw += wrapAngle(Math.atan2(S.scare.x - P.x, S.scare.z - P.z) - P.yaw) * Math.min(1, dt * 22);
+      const hd = Math.max(0.3, Math.hypot(S.scare.x - P.x, S.scare.z - P.z));
+      P.pitch += (Math.atan2(1.98 - EYE, hd) - P.pitch) * Math.min(1, dt * 22); // look up into his face
+      S.zoom = Math.min(1, a / 0.2);
+      S.shake = 1;
+      for (const m of S.loop.actors.men) if (m.killer) m.headYaw = Math.sin(a * 70) * 0.2; // twitching head
+      if (S.settings.reduceFlash) S.flash = [0.3, 0, 0, Math.min(1, a / 1.2)];
+      else if (a < 0.1) S.flash = [1, 0.96, 0.92, a / 0.1 * 0.9];
+      else if (a < 0.4) S.flash = [0.4, 0.02, 0.02, 0.9 - (a - 0.1) / 0.3 * 0.55];
+      else S.flash = [0, 0, 0, Math.min(1, 0.35 + (a - 0.4) * 0.45)];
+    } else {
+      S.shake = 0.9;
+      S.flash = a < 0.25 ? [0.55, 0.02, 0.02, a / 0.25 * 0.85] : [0, 0, 0, Math.min(1, 0.85 + (a - 0.25) * 0.4)];
+    }
+    if (a > (S.scare ? 2.3 : 1.9)) {
       const run = S.run;
       run.loops++; run.mistakes++; run.count = 0;
       if (S.loop.anomaly) { S.recent.push(S.loop.anomaly); if (S.recent.length > 8) S.recent.shift(); }
       setLoop(takeNext(false));
       updateSign();
       respawn();
-      S.mode = 'playing';
+      Object.assign(S, { mode: 'playing', zoom: 0, shake: 0, scare: null, caughtBy: null, hbT: 1, ambT: 10 });
       S.flash = [0, 0, 0, 1];
       S.fadeIn = 1;
       toast(t('caught'), 1800);
@@ -424,6 +454,7 @@
     S.modeT = 0;
     audio.exitChord();
     audio.setHum(0.2);
+    audio.setDread(0);
   }
   function updateEnding(dt) {
     S.modeT += dt;
@@ -473,6 +504,30 @@
     return F.val;
   }
 
+  // ------------------------------------------------------------------ dread
+  /** Heartbeat: always faint deep into a run, racing when something dangerous is near. */
+  function tickHeart(dt) {
+    const level = Math.max(S.danger, S.dreadSm * 0.45);
+    S.pulse = Math.max(0, S.pulse - dt * 5);
+    if (level < 0.12) return;
+    S.hbT -= dt;
+    if (S.hbT <= 0) {
+      S.hbT = 60 / (52 + level * 95);
+      audio.heartbeat(Math.min(1, 0.25 + level));
+      S.pulse = 1;
+    }
+  }
+
+  /** Paranoia: distant sounds that never mean anything. They happen in normal loops too. */
+  function tickAmbient(dt) {
+    S.ambT -= dt;
+    if (S.ambT > 0) return;
+    S.ambT = (16 - 9 * S.dreadSm) * (0.6 + Math.random() * 0.8);
+    const kinds = ['thump', 'whisper', 'steps', 'scrape'];
+    if (S.dreadSm > 0.35) kinds.push('breath', 'whisper');
+    audio.ambient(kinds[Math.floor(Math.random() * kinds.length)], (Math.random() * 2 - 1) * 0.9);
+  }
+
   // ------------------------------------------------------------------ render
   function dpr() {
     const d = window.devicePixelRatio || 1;
@@ -487,7 +542,13 @@
     } else {
       const bobAmt = reducedMotion ? 0 : Math.min(1, P.moving / 2);
       const bob = (Math.abs(Math.sin(P.bob)) - 0.5) * 0.05 * bobAmt;
-      cam = { x: P.x, y: E.floorY(L.world.lay, P.x, P.z) + EYE + bob, z: P.z, yaw: P.yaw, pitch: P.pitch, fov: FOV };
+      cam = { x: P.x, y: E.floorY(L.world.lay, P.x, P.z) + EYE + bob, z: P.z, yaw: P.yaw, pitch: P.pitch, fov: FOV * (1 - 0.42 * S.zoom) };
+      const sh = S.shake * (reducedMotion || S.settings.reduceFlash ? 0.3 : 1);
+      if (sh > 0.01) {
+        const tt = S.time;
+        cam.yaw += (Math.sin(tt * 47) + Math.sin(tt * 29 + 1)) * 0.012 * sh;
+        cam.pitch += (Math.sin(tt * 53 + 2) + Math.sin(tt * 31)) * 0.01 * sh;
+      }
     }
     S.cam = cam;
     const dyn = dynLevel();
@@ -499,7 +560,15 @@
       S.fadeIn = Math.max(0, S.fadeIn - 1 / 60 * 1.4);
       S.flash = [0, 0, 0, S.fadeIn];
     } else if (S.mode === 'playing' || S.mode === 'menu' || S.mode === 'paused') S.flash = [0, 0, 0, 0];
-    R.begin(cam, { time: S.time, dyn, spec, exposure: 1.32, fog: [0.012, 0.013, 0.015], fogD: 0.009, flash: S.flash, grain: 0.032 });
+    const dr = S.dreadSm, dg = S.danger, pulse = S.pulse * Math.max(dg, dr * 0.45);
+    R.begin(cam, {
+      time: S.time, dyn, spec, flash: S.flash,
+      exposure: 1.32 - 0.36 * dr,
+      fog: [0.010, 0.013 + 0.003 * dr, 0.012], fogD: 0.009 + 0.008 * dr,
+      grain: 0.032 + 0.05 * dr + 0.03 * dg,
+      vig: 0.85 + 0.8 * dr + 0.9 * dg + 0.5 * pulse,
+      desat: 0.05 + 0.42 * dr + 0.25 * dg, grade: [0.86, 1, 0.9],
+    });
     R.drawStatic(L.mesh);
     L.actors.draw(R, meshes, cam, dyn, new Date());
   }
@@ -507,13 +576,24 @@
   function frame(ms) {
     requestAnimationFrame(frame);
     const now = ms / 1000;
-    const dt = Math.min(0.05, Math.max(0, now - (S.lastT || now)));
+    const dt = S.freeze ? 0 : Math.min(0.05, Math.max(0, now - (S.lastT || now)));
     S.lastT = now;
     S.time += dt;
     R.resize(dpr());
     if (S.mode === 'playing') updatePlay(dt);
     else if (S.mode === 'caught') updateCaught(dt);
     else if (S.mode === 'ending') updateEnding(dt);
+    const depth = S.run && (S.mode === 'playing' || S.mode === 'caught') ? S.run.count / E.MAX_COUNT : 0;
+    S.dreadSm += (depth - S.dreadSm) * Math.min(1, dt * 0.6);
+    if (S.mode === 'playing') {
+      S.danger = S.loop.actors.danger(S.player);
+      S.shake = S.danger * S.danger * 0.9;
+      tickHeart(dt);
+      tickAmbient(dt);
+      audio.setDread(S.dreadSm);
+    } else if (S.mode !== 'caught') {
+      S.danger = 0; S.shake = 0; S.pulse = Math.max(0, S.pulse - dt * 4);
+    }
     render();
   }
 
@@ -558,10 +638,12 @@
     $('#optVol').value = st.vol; $('#outVol').textContent = Math.round(st.vol * 100) + '%';
     $('#optQuality').value = st.quality;
     $('#optFlash').checked = !!st.reduceFlash;
+    $('#optScare').checked = st.jumpscares !== false;
   }
   $('#optSens').addEventListener('input', e => { S.settings.sens = +e.target.value; syncSettings(); store.set('settings', S.settings); });
   $('#optVol').addEventListener('input', e => { S.settings.vol = +e.target.value; audio.setVolume(S.settings.vol); syncSettings(); store.set('settings', S.settings); });
   $('#optFlash').addEventListener('change', e => { S.settings.reduceFlash = e.target.checked; store.set('settings', S.settings); });
+  $('#optScare').addEventListener('change', e => { S.settings.jumpscares = e.target.checked; store.set('settings', S.settings); });
   $('#optQuality').addEventListener('change', e => { S.settings.quality = e.target.value; store.set('settings', S.settings); uploadTextures(); });
 
   $('#btnStart').addEventListener('click', startGame);
@@ -625,6 +707,8 @@
         S.keys = {};
       },
       setCount(n) { S.run.count = n; updateSign(); },
+      freeze(v) { S.freeze = !!v; },
+      dread(v) { S.dreadSm = v; },
     };
   }
 

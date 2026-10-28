@@ -486,6 +486,10 @@
           .forEach(([z, y, rot]) => b.panel([RX - 0.006, y, Z(z)], [-1, 0, 0], 0.32, 0.32, hm, { rot }));
       }
       if (an === 'wall_stain') b.panel([LX + 0.006, 1.45, Z(28)], [1, 0, 0], 1.5, 1.5, mat(T.stain, null, { spec: 0.5 }));
+      if (an === 'wall_face') b.panel([LX + 0.012, 1.55, Z(28)], [1, 0, 0], 1.3, 1.62, mat(T.wallFace, null, { spec: 0.2 }));
+      if (an === 'wall_eyes') b.panel([RX - 0.006, 1.3, Z(32.2)], [-1, 0, 0], 2.8, 2.3, mat(T.wallEyes, null, { spec: 0.55 }));
+      if (an === 'scrawl') b.panel([RX - 0.006, 1.55, Z(32.2)], [-1, 0, 0], 2.4, 1.2, mat(T.scrawl, null, { spec: 0.6 }));
+      if (an === 'blood_pool') b.floorDecal(10.1, Z(27), 2.2, 2.8, 0, 1, mat(T.bloodPool, null, { spec: 1.1 }), 0.008);
       if (an === 'footprints') {
         const fm = mat(T.footprint, null, { spec: 0.7 });
         const ax = 9.7 + ox, az = Z(19.5), bx = LX + 0.25, bz = Z(24.8);

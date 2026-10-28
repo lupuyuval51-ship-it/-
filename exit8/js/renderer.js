@@ -73,6 +73,7 @@ uniform vec3 uCam; uniform float uDyn; uniform float uTime; uniform vec2 uRes;
 uniform float uObj; uniform vec3 uObjLight; uniform vec3 uObjDir; uniform vec4 uTintOv;
 uniform vec4 uSpecPos[6]; uniform vec3 uSpecCol[6];
 uniform vec3 uFog; uniform float uFogD; uniform float uExposure; uniform vec4 uFlash; uniform float uGrain;
+uniform float uVig; uniform float uDesat; uniform vec3 uGrade;
 in vec3 vPos; in vec3 vNor; in vec2 vUV; flat in float vLayer;
 in vec3 vLit; in vec3 vDyn; in vec3 vEmis; in vec2 vMat;
 out vec4 o;
@@ -111,8 +112,10 @@ void main() {
   col *= uExposure;
   col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
   col = pow(clamp(col, 0.0, 1.0), vec3(1.0 / 2.2));
+  float lum = dot(col, vec3(0.299, 0.587, 0.114));
+  col = mix(col, vec3(lum) * uGrade, uDesat);
   vec2 q = gl_FragCoord.xy / uRes - 0.5;
-  col *= 1.0 - dot(q, q) * 0.85;
+  col *= clamp(1.0 - dot(q, q) * uVig, 0.0, 1.0);
   col += (hash(gl_FragCoord.xy + fract(uTime * 7.31) * 113.0) - 0.5) * uGrain;
   col = mix(col, uFlash.rgb, uFlash.a);
   o = vec4(col, 1.0);
@@ -137,7 +140,7 @@ void main() {
     gl.useProgram(prog);
     const U = {};
     ['uVP', 'uModel', 'uTex', 'uCam', 'uDyn', 'uTime', 'uRes', 'uObj', 'uObjLight', 'uObjDir', 'uTintOv',
-      'uSpecPos', 'uSpecCol', 'uFog', 'uFogD', 'uExposure', 'uFlash', 'uGrain'].forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
+      'uSpecPos', 'uSpecCol', 'uFog', 'uFogD', 'uExposure', 'uFlash', 'uGrain', 'uVig', 'uDesat', 'uGrade'].forEach(n => { U[n] = gl.getUniformLocation(prog, n); });
     gl.uniform1i(U.uTex, 0);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -220,6 +223,9 @@ void main() {
       gl.uniform1f(U.uExposure, p.exposure);
       gl.uniform4fv(U.uFlash, p.flash);
       gl.uniform1f(U.uGrain, p.grain);
+      gl.uniform1f(U.uVig, p.vig == null ? 0.85 : p.vig);
+      gl.uniform1f(U.uDesat, p.desat || 0);
+      gl.uniform3fv(U.uGrade, p.grade || [1, 1, 1]);
       specPos.fill(0); specCol.fill(0);
       for (let i = 0; i < 6 && i < p.spec.length; i++) {
         const s = p.spec[i];

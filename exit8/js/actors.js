@@ -95,6 +95,7 @@
       if (an === 'man_stare') man.stare = true;
       if (an === 'man_stop') man.stopper = true;
       if (an === 'man_chase') man.chaser = true;
+      if (an === 'man_crawl') { man.crawl = true; man.stare = true; man.speed = 2.1; }
       this.men.push(man);
     }
   };
@@ -136,7 +137,11 @@
         man.x = pt.x; man.z = pt.z;
         man.heading = Math.atan2(pt.dx * dir, pt.dz * dir);
         moving = 2.7;
-        if (Math.hypot(man.x - p.x, man.z - p.z) < 0.85) { this.caught = true; ev.push({ type: 'caught' }); }
+        if (Math.hypot(man.x - p.x, man.z - p.z) < 0.85) {
+          this.caught = true;
+          man.smile = true; man.scale = 1.22; man.killer = true; // the grin, and a lunge
+          ev.push({ type: 'caught', by: 'man', x: man.x, z: man.z });
+        }
       }
       if (man.stare && dist < 16) {
         const rel = wrapAngle(angleTo(man.x, man.z, p.x, p.z) - man.heading);
@@ -146,7 +151,7 @@
         const stride = moving > 2 ? 0.55 : 0.36;
         man.phase += (moving > 2 ? 3.4 : man.speed) * dt / stride;
         man.stepAcc += (moving > 2 ? 3.4 : man.speed) * dt;
-        if (man.stepAcc > (moving > 2 ? 1.0 : 0.72)) { man.stepAcc = 0; ev.push({ type: 'step', x: man.x, z: man.z, run: moving > 2, ceiling: man.ceiling }); }
+        if (man.stepAcc > (moving > 2 ? 1.0 : man.crawl ? 0.5 : 0.72)) { man.stepAcc = 0; ev.push({ type: 'step', x: man.x, z: man.z, run: moving > 2, ceiling: man.ceiling, crawl: !!man.crawl }); }
         man.moving = true;
       } else man.moving = false;
       // Never let the player walk through him.
@@ -198,7 +203,7 @@
       this.wave.t += dt;
       this.wave.s -= Math.min(2.55, 0.8 + this.wave.t * 1.2) * dt;
       this.wave.gap = this.wave.s - sPlayer;
-      if (this.wave.gap < 0.35 && !this.caught) { this.caught = true; ev.push({ type: 'caught' }); }
+      if (this.wave.gap < 0.35 && !this.caught) { this.caught = true; ev.push({ type: 'caught', by: 'wave' }); }
     }
 
     // Shadow at the end of the corridor vanishes when you get close.
@@ -209,7 +214,38 @@
     return ev;
   };
 
+  /**
+   * How threatening the loop is right now (0..1): drives the heartbeat, vignette and camera shake.
+   * Only things the player can already see or hear count, so it never gives an anomaly away.
+   */
+  Actors.prototype.danger = function (p) {
+    let d = 0;
+    for (const man of this.men) {
+      if (!man.alive) continue;
+      const dist = Math.hypot(man.x - p.x, man.z - p.z);
+      if (man.mode === 'chase' || man.mode === 'pause') d = Math.max(d, 1 - dist / 14);
+      else if (man.mode === 'stop') d = Math.max(d, 0.5 * (1 - dist / 8));
+      else if (man.stare || man.crawl || man.smile || man.ceiling) d = Math.max(d, 0.55 * (1 - dist / 9));
+    }
+    if (this.wave) d = Math.max(d, 1 - this.wave.gap / 22);
+    return Math.max(0, Math.min(1, d));
+  };
+
+  /** The man on all fours, head twisted up towards the player. */
+  function drawCrawler(r, M, man, world, dyn) {
+    const sw = Math.sin(man.phase), lift = man.moving ? Math.abs(sw) * 0.03 : 0;
+    const base = M4.chain(M4.translate(man.x, 0.52 + lift, man.z), M4.rotY(man.heading), M4.rotZ(man.moving ? sw * 0.07 : 0), M4.rotX(Math.PI / 2));
+    const light = E.sampleLight(world, man.x, 0.6, man.z, dyn);
+    r.drawObj(M.torso, base, light);
+    r.drawObj(M.head, M4.chain(base, M4.translate(0, 1.53, 0), M4.rotZ(-man.headYaw), M4.rotX(-Math.PI / 2 - 0.55)), light);
+    r.drawObj(M.arm, M4.chain(base, M4.translate(-0.285, 1.46, 0), M4.rotX(Math.PI + 0.8 + sw * 0.5)), light);
+    r.drawObj(M.arm, M4.chain(base, M4.translate(0.285, 1.46, 0), M4.rotX(Math.PI + 0.8 - sw * 0.5)), light);
+    r.drawObj(M.leg, M4.chain(base, M4.translate(-0.1, 0.86, 0), M4.rotX(-0.7 + sw * 0.35)), light);
+    r.drawObj(M.leg, M4.chain(base, M4.translate(0.1, 0.86, 0), M4.rotX(-0.7 - sw * 0.35)), light);
+  }
+
   function drawMan(r, M, man, world, dyn, tintOv) {
+    if (man.crawl) { drawCrawler(r, M, man, world, dyn); return; }
     const sc = man.scale;
     const bob = man.moving ? Math.abs(Math.sin(man.phase)) * 0.03 : 0;
     const base = man.ceiling
