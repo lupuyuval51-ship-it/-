@@ -74,12 +74,12 @@ export function AppShell() {
 
       <div className="main-col">
         <header className="topbar">
-          <div className="topbar-brand">
+          <NavLink to="/" end className="topbar-brand" aria-label={`${t('common.appName')} — ${t('nav.dashboard')}`}>
             <span className="brand-mark" aria-hidden="true">
               <LogoMark size={22} />
             </span>
             <span className="brand-name">{t('common.appName')}</span>
-          </div>
+          </NavLink>
           <div className="topbar-actions">
             <ActiveSessionIndicator />
             <button

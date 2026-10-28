@@ -235,7 +235,7 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
       <NextSteps />
 
       <div className="row summary-actions">
-        <LinkButton to="/" variant="primary" icon="home">
+        <LinkButton to="/" variant="secondary" icon="home">
           {t('session.summary.toDashboard')}
         </LinkButton>
         <LinkButton to="/progress" icon="chart">

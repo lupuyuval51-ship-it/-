@@ -70,7 +70,7 @@ export function NutritionTodayCard({ nutrition }: { nutrition: DashboardDTO['nut
                 ? t('dashboard.nutrition.remaining', { value: formatNumber(diff) })
                 : t('dashboard.nutrition.over', { value: formatNumber(-diff) })}
         </p>
-        <LinkButton to="/nutrition/log" variant="primary" icon="plus" size="sm">
+        <LinkButton to="/nutrition/log" variant="secondary" icon="plus" size="sm">
           {t('dashboard.nutrition.logFood')}
         </LinkButton>
       </div>
