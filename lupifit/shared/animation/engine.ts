@@ -177,8 +177,10 @@ function buildSkeleton(anim: ExerciseAnimation, from: Pose, to: Pose, t: number)
 
   // Body width in front view (perpendicular to the torso).
   const perp: Vec = [-tDir[1], tDir[0]];
-  const shoulderNear: Vec = front ? add(shoulder, scale(perp, -BODY.shoulderHalf)) : shoulder;
-  const shoulderFar: Vec = front ? add(shoulder, scale(perp, BODY.shoulderHalf)) : shoulder;
+  const rise = lerp(from.shoulderRise ?? 0, to.shoulderRise ?? 0, t);
+  const risen = rise ? add(shoulder, scale(tDir, rise)) : shoulder;
+  const shoulderNear: Vec = front ? add(risen, scale(perp, -BODY.shoulderHalf)) : risen;
+  const shoulderFar: Vec = front ? add(risen, scale(perp, BODY.shoulderHalf)) : risen;
   const hipNear: Vec = front ? add(hip, scale(perp, -BODY.hipHalf)) : hip;
   const hipFar: Vec = front ? add(hip, scale(perp, BODY.hipHalf)) : hip;
 

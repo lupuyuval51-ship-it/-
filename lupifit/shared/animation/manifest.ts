@@ -156,14 +156,16 @@ export const VERIFIED: Record<string, string> = Object.fromEntries(
     'medicine_ball_chest_pass',
     'hip_flexor_stretch',
     'band_shoulder_dislocate',
+    'dumbbell_shrug',
+    'box_jump',
   ].map((id) => [id, '2026-10-28']),
 );
 
 
 /**
- * Draft on purpose (QA clean or nearly so, but the contact sheet showed the 2D side/front view cannot show the point
- * of the exercise): dumbbell_shrug (a 2-unit bob is not a shrug), russian_twist (rotation is invisible in profile),
- * cat_cow (the rigid torso cannot flex the spine), box_jump (thigh clips the box on the way down, see QA report).
+ * Draft on purpose (QA clean, but the contact sheet showed that the 2D side view cannot show the point of the exercise):
+ * russian_twist (the rotation is invisible in profile) and cat_cow (a rigid torso cannot flex the spine).
+ * worlds_greatest_stretch is blocked (see status.ts).
  */
 
 // ------------------------------------------------------------------ phase / tempo derivation

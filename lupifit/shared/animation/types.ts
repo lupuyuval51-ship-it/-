@@ -31,6 +31,8 @@ export interface Pose {
   torso: number;
   /** Head tilt relative to the torso (+ = chin down/forward). Default 0. */
   head?: number;
+  /** Shoulder-girdle elevation in units (a shrug): the shoulder joints rise along the torso while torso and head stay put. Default 0. */
+  shoulderRise?: number;
   armNear: LimbSpec;
   armFar?: LimbSpec;
   legNear: LimbSpec;

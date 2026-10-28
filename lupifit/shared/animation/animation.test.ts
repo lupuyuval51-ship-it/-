@@ -82,3 +82,14 @@ describe('animation QA and manifest', () => {
     expect(speed(0.2)).toBeGreaterThan(0.2);
   });
 });
+
+describe('shoulder rise (shrug)', () => {
+  it('raises the shoulder joints and the held dumbbells while the head stays put', () => {
+    const anim = ANIMATIONS.get('dumbbell_shrug')!;
+    const down = computeFrame(anim, 0);
+    const up = computeFrame(anim, 0.5);
+    expect(down.joints.shoulderNear[1] - up.joints.shoulderNear[1]).toBeGreaterThan(5);
+    expect(down.joints.handNear[1] - up.joints.handNear[1]).toBeGreaterThan(5);
+    expect(Math.abs(down.head.c[1] - up.head.c[1])).toBeLessThan(0.5);
+  });
+});
