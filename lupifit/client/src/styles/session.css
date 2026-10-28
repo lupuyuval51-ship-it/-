@@ -152,7 +152,7 @@
 .exercise-card-title {
   min-width: 0;
 }
-.exercise-name {
+.exercise-card .exercise-name {
   font-size: var(--fs-lg);
 }
 .exercise-name-btn {
@@ -665,7 +665,7 @@
 .exercise-card {
   border-radius: var(--radius-lg);
 }
-.exercise-name {
+.exercise-card .exercise-name {
   font-size: var(--fs-xl);
 }
 .exercise-facts dd {

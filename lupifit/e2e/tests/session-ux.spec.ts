@@ -157,3 +157,29 @@ test('workout settings, wake lock and the dashboard resume banner after a reload
   await page.getByText('Workout settings').click();
   await expect(page.getByRole('switch', { name: 'Vibrate when rest ends' })).toHaveAttribute('aria-checked', 'false');
 });
+
+test('a barbell set logged without a weight is flagged, never blocked @mobile', async ({ page }) => {
+  await readyUser(page);
+  await startEmptyWorkout(page);
+  await addExercise(page, 'bench press', 'Barbell Bench Press');
+  await page.getByLabel('Set 1 reps').fill('8');
+  await page.getByRole('button', { name: 'Complete set 1' }).click();
+  await expect(page.getByRole('button', { name: 'Mark set 1 as not done' })).toHaveAttribute('aria-pressed', 'true');
+
+  // Non-blocking flag on the row that jumps to the weight field.
+  const flag = page.getByRole('button', { name: 'Set 1 has no weight — add weight' });
+  await expect(flag).toBeVisible();
+  await expect(flag).toContainText('— kg · add weight');
+
+  // The finish dialog warns but still lets the workout finish.
+  await page.getByRole('button', { name: 'Finish', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Finish workout?' });
+  await expect(dialog).toContainText('1 completed barbell set has no weight');
+  await expect(dialog.getByRole('button', { name: 'Finish workout' })).toBeEnabled();
+  await dialog.getByRole('button', { name: 'Keep training' }).click();
+
+  await flag.click();
+  await expect(page.getByLabel('Set 1 weight (kg)')).toBeFocused();
+  await page.getByLabel('Set 1 weight (kg)').fill('40');
+  await expect(flag).toHaveCount(0);
+});

@@ -578,8 +578,13 @@ a.week-day:focus-visible {
     flex: 0 0 auto;
   }
 }
-.exercise-row:hover .exercise-name {
-  color: var(--primary-text);
+.exercise-row .exercise-name {
+  color: var(--text);
+}
+@media (hover: hover) {
+  .exercise-row:hover .exercise-name {
+    color: var(--primary-text);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

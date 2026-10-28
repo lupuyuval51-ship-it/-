@@ -1826,9 +1826,15 @@ video {
   .coach-suggestions .coach-suggestion {
     min-height: 44px;
   }
-  .exercise-name {
+  .exercise-card .exercise-name {
     display: inline-block;
     padding-block: var(--space-2);
+  }
+  /* Exercise names that link to the exercise page (plan rows) are full-height tap targets. */
+  a.exercise-name {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }
 

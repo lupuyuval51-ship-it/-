@@ -289,6 +289,13 @@
     z-index: 15;
     margin-inline: calc(-1 * var(--space-4));
   }
+  /* Focusing a field (or jumping to the current set) keeps it clear of the sticky strip and the rest dock. */
+  html:has(.session-strip) {
+    scroll-padding-block-start: calc(var(--topbar-h) + 130px);
+  }
+  html:has(.rest-dock) {
+    scroll-padding-block-end: calc(var(--dock-h) + var(--space-4) + env(safe-area-inset-bottom));
+  }
   body:has(.rest-dock) .toasts {
     inset-block-end: calc(var(--dock-h) + var(--space-3) + env(safe-area-inset-bottom));
   }
@@ -670,4 +677,14 @@ html[dir='rtl'] .exercise-facts dd {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Phones: previous/next shrink to chevrons so "Exercise 2 of 6" keeps its full label. */
+@media (max-width: 479px) {
+  .exercise-nav > .btn:not(.btn-ghost) .btn-label {
+    display: none;
+  }
+  .exercise-nav > .btn:not(.btn-ghost) {
+    min-width: 56px;
+  }
 }
