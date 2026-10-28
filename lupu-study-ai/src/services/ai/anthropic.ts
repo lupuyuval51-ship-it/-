@@ -24,6 +24,7 @@ function mapStatus(status: number): AiError {
 
 export class AnthropicProvider implements AiProvider {
   readonly name = "anthropic";
+  readonly vision = true;
   constructor(
     private apiKey: string,
     readonly model: string,

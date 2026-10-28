@@ -320,7 +320,7 @@ export default function TutorClient() {
           )}
           <div className="flex items-end gap-2">
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => void addImages(e.target.files)} aria-label="צירוף תמונה" />
-            <Button type="button" variant="outline" size="icon" aria-label="צרף תמונה" onClick={() => fileRef.current?.click()} disabled={!ai.configured}><ImagePlus /></Button>
+            <Button type="button" variant="outline" size="icon" aria-label="צרף תמונה" onClick={() => fileRef.current?.click()} disabled={!ai.configured || ai.vision === false} title={ai.vision === false ? "המודל המחובר אינו תומך בתמונות" : undefined}><ImagePlus /></Button>
             <textarea
               ref={taRef}
               value={input}

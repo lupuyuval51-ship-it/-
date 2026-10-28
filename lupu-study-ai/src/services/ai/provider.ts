@@ -27,11 +27,13 @@ export interface AiResult {
 export interface AiProvider {
   readonly name: string;
   readonly model: string;
+  /** האם המודל מקבל תמונות */
+  readonly vision: boolean;
   complete(req: AiRequest): Promise<AiResult>;
   stream(req: AiRequest): AsyncGenerator<string, void, void>;
 }
 
-export type AiErrorCode = "not_configured" | "unauthorized" | "rate_limited" | "overloaded" | "bad_request" | "network" | "bad_output" | "upstream" | "timeout";
+export type AiErrorCode = "unsupported" | "not_configured" | "unauthorized" | "rate_limited" | "overloaded" | "bad_request" | "network" | "bad_output" | "upstream" | "timeout";
 
 export class AiError extends Error {
   constructor(
@@ -45,6 +47,7 @@ export class AiError extends Error {
 }
 
 export const AI_ERROR_HE: Record<AiErrorCode, string> = {
+  unsupported: "המודל שנבחר אינו תומך בתמונות. אפשר להקליד את השאלה או לעבור למודל עם תמיכה בתמונות.",
   not_configured: "שירות ה-AI עדיין לא מחובר בשרת (חסר מפתח API).",
   unauthorized: "מפתח ה-API של שירות ה-AI אינו תקין או שפג תוקפו. יש לבדוק את ההגדרה בשרת.",
   rate_limited: "שולחים יותר מדי בקשות. נסה שוב בעוד רגע.",

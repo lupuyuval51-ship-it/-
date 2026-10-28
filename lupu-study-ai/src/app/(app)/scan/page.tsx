@@ -107,6 +107,11 @@ export default function ScanPage() {
     <>
       <PageHeader title="צלם שאלה" description="צלם תרגיל מהמחברת או מהספר וקבל רמז, פתרון מודרך ותשובה סופית לפי בקשה" />
       {ai.loaded && !ai.configured && <div className="mb-4"><AiUnavailable /></div>}
+      {ai.loaded && ai.configured && ai.vision === false && (
+        <p role="status" className="mb-4 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm font-semibold" data-testid="no-vision">
+          המודל המחובר ({ai.model}) אינו תומך בתמונות, ולכן ניתוח תמונה מושבת. אפשר להקליד את השאלה בשיחה עם המורה AI, או לחבר מודל עם תמיכה בתמונות (AI_VISION=true).
+        </p>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -134,7 +139,7 @@ export default function ScanPage() {
               <Button variant="outline" onClick={() => upRef.current?.click()}><ImageUp /> העלה תמונה</Button>
               {file && <Button variant="ghost" onClick={reset}><Trash2 /> הסר</Button>}
             </div>
-            <Button variant="gradient" size="lg" className="w-full" disabled={!file || busy || !ai.configured} onClick={() => void analyze()}>
+            <Button variant="gradient" size="lg" className="w-full" disabled={!file || busy || !ai.configured || ai.vision === false} onClick={() => void analyze()}>
               {busy ? <Loader2 className="animate-spin" /> : <Sparkles />} {busy ? "מנתח…" : "נתח את התרגיל"}
             </Button>
             {error && <p role="alert" className="flex items-start gap-2 text-sm font-semibold text-destructive"><AlertTriangle className="mt-0.5 size-4 shrink-0" />{error}</p>}
