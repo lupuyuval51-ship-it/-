@@ -2,7 +2,7 @@
 
 /* ------------------------------------------------------------------ Header pill */
 .session-pill {
-  min-height: 32px;
+  min-height: 44px;
 }
 .session-pill-paused {
   background: var(--warning-soft);

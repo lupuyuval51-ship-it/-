@@ -63,7 +63,7 @@ export function FoodListItem({ food, onSelect, extra, actions }: { food: FoodDTO
       </div>
       <div className="food-item-actions">
         {actions}
-        <Button size="sm" variant="primary" icon="plus" onClick={() => onSelect(food)} aria-label={t('nutrition.search.addFood', { name })}>
+        <Button size="sm" variant="secondary" icon="plus" onClick={() => onSelect(food)} aria-label={t('nutrition.search.addFood', { name })}>
           {t('nutrition.search.add')}
         </Button>
       </div>

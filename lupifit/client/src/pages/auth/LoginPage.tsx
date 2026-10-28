@@ -99,7 +99,7 @@ export default function LoginPage() {
             dir="ltr"
           />
           <div className="row-between">
-            <Link to="/forgot-password" className="link">
+            <Link to="/forgot-password" className="link link-block">
               {t('auth.login.forgot')}
             </Link>
           </div>
@@ -109,7 +109,7 @@ export default function LoginPage() {
         </form>
         <p className="auth-alt">
           {t('auth.login.noAccount')}{' '}
-          <Link to="/register" className="link">
+          <Link to="/register" className="link link-block">
             {t('auth.login.register')}
           </Link>
         </p>

@@ -132,9 +132,10 @@ export function Stat({ label, value, hint, icon, tone }: { label: ReactNode; val
   );
 }
 
-export function Tabs<T extends string>({ tabs, value, onChange, label }: { tabs: { value: T; label: ReactNode }[]; value: T; onChange(v: T): void; label: string }) {
+/** `wrap` lays many tabs out as a grid on phones instead of a sideways-scrolling strip. */
+export function Tabs<T extends string>({ tabs, value, onChange, label, wrap }: { tabs: { value: T; label: ReactNode }[]; value: T; onChange(v: T): void; label: string; wrap?: boolean }) {
   return (
-    <div className="tabs" role="tablist" aria-label={label}>
+    <div className={`tabs${wrap ? ' tabs-wrap' : ''}`} role="tablist" aria-label={label}>
       {tabs.map((tab) => (
         <button
           key={tab.value}

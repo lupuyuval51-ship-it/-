@@ -3,12 +3,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { onboardViaApi, registerViaUi, useEnglish } from './helpers';
 
 /**
- * Phone-first audit: every screen at a small phone width (360px), Hebrew and English,
- * dark and light. Hard failures: horizontal scrolling. Findings (small tap targets,
- * tiny text) are written to MOBILE_AUDIT_OUT when set, for review.
+ * Phone-first audit: every screen at 360 and 390px wide, Hebrew (dark) and English (light).
+ * Hard failures: horizontal page scrolling (documentElement.scrollWidth > innerWidth) and any
+ * tap target smaller than 44x44 CSS px. Other findings (tiny text, fields under 16px) are written
+ * to MOBILE_AUDIT_OUT when set, for review.
  */
-const WIDTH = 360;
-const MIN_TARGET = 40;
+const WIDTHS = [360, 390];
+const MIN_TARGET = 44;
 const OUT = process.env.MOBILE_AUDIT_OUT;
 
 type Finding = { route: string; locale: string; theme: string; kind: string; detail: string };
@@ -20,12 +21,12 @@ async function api(page: Page, method: 'post' | 'patch' | 'put', url: string, da
   return res.json();
 }
 
-async function audit(page: Page, route: string, locale: string, theme: string): Promise<Finding[]> {
-  await page.goto(route, { waitUntil: 'domcontentloaded' });
+async function audit(page: Page, route: string, locale: string, theme: string, width: number): Promise<Finding[]> {
+  if (!route.includes('#')) await page.goto(route, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(900);
   if (process.env.MOBILE_SHOTS) {
     const name = route.replace(/[^a-z]+/gi, '_').slice(0, 30) || 'home';
-    await page.screenshot({ path: `${process.env.MOBILE_SHOTS}/${locale}-${theme}-${name}.png`, fullPage: false });
+    await page.screenshot({ path: `${process.env.MOBILE_SHOTS}/${locale}-${theme}-${width}-${name}.png`, fullPage: false });
   }
   return page.evaluate(
     ({ route, locale, theme, MIN_TARGET }) => {
@@ -45,22 +46,31 @@ async function audit(page: Page, route: string, locale: string, theme: string): 
         out.push({ route, locale, theme, kind: 'overflow-x', detail: `scrollWidth=${doc.scrollWidth} > ${vw}; ${offenders.join(' | ')}` });
       }
       const seen = new Set<string>();
-      document.querySelectorAll('button, a[href], input:not([type=hidden]), select, textarea, [role=button], [role=tab], [role=radio], [role=switch], [role=checkbox]').forEach((el) => {
+      document.querySelectorAll('button, a[href], input:not([type=hidden]), select, textarea, summary, [role=button], [role=tab], [role=radio], [role=switch], [role=checkbox]').forEach((el) => {
         const r = el.getBoundingClientRect();
         const cs = getComputedStyle(el);
         if (r.width === 0 || r.height === 0 || cs.visibility === 'hidden' || cs.display === 'none') return;
         if (el.closest('.visually-hidden') || el.classList.contains('skip-link')) return;
         // Stretched links (a ::after covering their card) have the whole card as hit area.
         if (getComputedStyle(el, '::after').position === 'absolute') return;
+        // A bare checkbox/radio inside a label whose whole row is a 44px target.
+        if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio') && el.closest('label')) {
+          const lr = el.closest('label')!.getBoundingClientRect();
+          if (lr.width >= MIN_TARGET && lr.height >= MIN_TARGET) return;
+        }
         // Inline links inside running text are exempt from the target-size rule.
         if (el.tagName === 'A' && el.closest('p, li, dd, label') && cs.display === 'inline') return;
-        if (Math.min(r.width, r.height) < MIN_TARGET && r.height < MIN_TARGET) {
+        if (r.width < MIN_TARGET - 0.5 || r.height < MIN_TARGET - 0.5) {
           const key = describe(el);
           if (!seen.has(key)) {
             seen.add(key);
             out.push({ route, locale, theme, kind: 'small-target', detail: `${Math.round(r.width)}x${Math.round(r.height)} ${key}` });
           }
         }
+      });
+      document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea, select').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && parseFloat(getComputedStyle(el).fontSize) < 16) out.push({ route, locale, theme, kind: 'field-font', detail: describe(el) });
       });
       let tiny = 0;
       const tinySamples: string[] = [];
@@ -84,12 +94,28 @@ async function audit(page: Page, route: string, locale: string, theme: string): 
   );
 }
 
-test('phone audit: no horizontal scrolling anywhere; report small targets and tiny text', async ({ page }) => {
-  test.setTimeout(300_000);
+test('phone audit: no horizontal scrolling and 44px tap targets on every screen', async ({ page, browser }) => {
+  test.setTimeout(420_000);
   page.setDefaultTimeout(15_000);
-  await page.setViewportSize({ width: WIDTH, height: 740 });
+  await page.setViewportSize({ width: WIDTHS[0]!, height: 780 });
+  const findings: Finding[] = [];
+
+  // Signed-out screens (a fresh context: the signed-in page below is redirected away from them).
+  const anon = await browser.newContext({ viewport: { width: WIDTHS[0]!, height: 780 }, hasTouch: true, locale: 'he-IL' });
+  const anonPage = await anon.newPage();
+  for (const width of WIDTHS) {
+    await anonPage.setViewportSize({ width, height: 780 });
+    for (const route of ['/login', '/register', '/forgot-password']) findings.push(...(await audit(anonPage, route, 'he', 'dark', width)));
+  }
+  await anon.close();
+
   await useEnglish(page); // the registration helper uses English labels; locales are switched below
   await registerViaUi(page);
+  // Onboarding (step 1) while the profile is still empty.
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 780 });
+    findings.push(...(await audit(page, '/onboarding', 'en', 'light', width)));
+  }
   await onboardViaApi(page);
 
   // Realistic data: an active plan, a finished and an open workout, a few meals, a weigh-in.
@@ -108,16 +134,22 @@ test('phone audit: no horizontal scrolling anywhere; report small targets and ti
     '/', '/workouts', `/workouts/plans/${plan.id}`, '/workouts/session', '/workouts/history', '/exercises', '/exercises/barbell_bench_press',
     '/nutrition', '/nutrition/log', '/coach', '/progress', '/notifications', '/profile',
   ];
-  const findings: Finding[] = [];
-  for (const locale of ['he', 'en']) {
+  for (const [locale, theme] of [['he', 'dark'], ['en', 'light']] as const) {
     await page.addInitScript((l) => window.localStorage.setItem('fitai.locale', JSON.stringify(l)), locale);
-    for (const theme of ['dark', 'light']) {
-      await page.addInitScript((t) => window.localStorage.setItem('fitai.theme', JSON.stringify(t)), theme);
-      await api(page, 'patch', '/api/settings', { locale, theme });
-      for (const route of routes) findings.push(...(await audit(page, route, locale, theme)));
+    await page.addInitScript((t) => window.localStorage.setItem('fitai.theme', JSON.stringify(t)), theme);
+    await api(page, 'patch', '/api/settings', { locale, theme });
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height: 780 });
+      for (const route of routes) findings.push(...(await audit(page, route, locale, theme, width)));
+      // The live workout again with its rest dock showing (logging a set starts the timer).
+      await page.goto('/workouts/session', { waitUntil: 'domcontentloaded' });
+      await page.locator('.set-row-current .set-check').click();
+      await expect(page.locator('.rest-dock')).toBeVisible();
+      findings.push(...(await audit(page, '/workouts/session#rest-dock', locale, theme, width)));
+      await page.getByTestId('undo-strip').getByRole('button').click();
     }
   }
   if (OUT) writeFileSync(OUT, JSON.stringify(findings, null, 1));
-  const overflow = findings.filter((f) => f.kind === 'overflow-x');
-  expect(overflow, JSON.stringify(overflow, null, 1)).toEqual([]);
+  const hard = findings.filter((f) => f.kind === 'overflow-x' || f.kind === 'small-target');
+  expect(hard, JSON.stringify(hard, null, 1)).toEqual([]);
 });

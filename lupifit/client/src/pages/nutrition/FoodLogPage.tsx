@@ -106,7 +106,7 @@ export default function FoodLogPage() {
         )}
       </Card>
 
-      <Tabs<Tab> label={t('nutrition.tabs.label')} value={tab} onChange={(v) => update({ tab: v })} tabs={TABS.map((v) => ({ value: v, label: t(`nutrition.tabs.${v}`) }))} />
+      <Tabs<Tab> wrap label={t('nutrition.tabs.label')} value={tab} onChange={(v) => update({ tab: v })} tabs={TABS.map((v) => ({ value: v, label: t(`nutrition.tabs.${v}`) }))} />
 
       <div role="tabpanel" aria-label={t(`nutrition.tabs.${tab}`)} className="nutri-tabpanel">
         {tab === 'search' && (

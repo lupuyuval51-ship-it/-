@@ -46,6 +46,8 @@ export function ExercisePicker({
           <input
             className="input"
             type="search"
+            enterKeyHint="search"
+            autoComplete="off"
             aria-label={t('exercises.picker.searchLabel')}
             placeholder={t('exercises.picker.searchPlaceholder')}
             value={q}
@@ -85,7 +87,7 @@ export function ExercisePicker({
                   </div>
                   <Button
                     size="sm"
-                    variant="primary"
+                    variant="secondary"
                     onClick={() => {
                       onSelect(e);
                       onClose();

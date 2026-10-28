@@ -149,7 +149,7 @@ export default function RegisterPage() {
         </form>
         <p className="auth-alt">
           {t('auth.register.haveAccount')}{' '}
-          <Link to="/login" className="link">
+          <Link to="/login" className="link link-block">
             {t('auth.register.login')}
           </Link>
         </p>

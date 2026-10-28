@@ -25,6 +25,8 @@ function PickerInner({ onClose, onSelect, initialQuery }: { onClose(): void; onS
         <input
           className="input"
           type="search"
+          enterKeyHint="search"
+          autoComplete="off"
           aria-label={t('nutrition.search.label')}
           placeholder={t('nutrition.search.placeholder')}
           value={q}

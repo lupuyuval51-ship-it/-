@@ -161,6 +161,8 @@ export function NumberField({
           className="input input-number"
           type="text"
           inputMode={inputMode ?? (step < 1 ? 'decimal' : 'numeric')}
+          enterKeyHint="next"
+          autoComplete="off"
           value={text}
           placeholder={placeholder}
           disabled={disabled}

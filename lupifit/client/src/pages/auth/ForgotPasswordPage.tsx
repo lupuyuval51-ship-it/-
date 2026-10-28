@@ -90,7 +90,7 @@ export default function ForgotPasswordPage() {
           </form>
         )}
         <p className="auth-alt">
-          <Link to="/login" className="link">
+          <Link to="/login" className="link link-block">
             {t('auth.forgot.backToLogin')}
           </Link>
         </p>

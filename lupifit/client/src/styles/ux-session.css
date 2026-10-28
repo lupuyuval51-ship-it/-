@@ -570,6 +570,7 @@ html[dir='rtl'] .exercise-facts dd {
 }
 .set-rpe {
   min-height: 44px;
+  font-size: var(--fs-base);
 }
 .set-extra .btn-icon,
 .set-fields .btn-icon {

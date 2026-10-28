@@ -69,7 +69,7 @@ export function MealSuggestionCard({ meal, date, mealType, compact = false }: { 
         />
       )}
       <Button
-        variant="primary"
+        variant="secondary"
         size="sm"
         icon="plus"
         loading={log.isPending}

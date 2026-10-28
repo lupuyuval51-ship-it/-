@@ -32,7 +32,7 @@ export function PlateCalculator({ open, onClose, initialWeightKg }: { open: bool
       <div className="stack plate-calc">
         <label className="field">
           <span className="field-label">{t('session.plates.weight', { unit: weightUnit })}</span>
-          <input className="input" type="text" inputMode="decimal" autoFocus value={text} onChange={(e) => setText(e.target.value)} />
+          <input className="input" type="text" inputMode="decimal" enterKeyHint="done" autoComplete="off" autoFocus value={text} onChange={(e) => setText(e.target.value)} />
         </label>
         <div role="radiogroup" aria-label={t('session.plates.bar')} className="plate-bars">
           {bars.map((b) => (

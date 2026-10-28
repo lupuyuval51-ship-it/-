@@ -70,6 +70,7 @@ export const Composer = forwardRef<ComposerHandle, {
           id={id}
           className="input textarea coach-input"
           rows={1}
+          enterKeyHint="send"
           value={value}
           maxLength={MAX}
           placeholder={t('coach.composer.placeholder')}

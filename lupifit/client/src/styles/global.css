@@ -300,6 +300,11 @@ video {
 .link:hover {
   text-decoration: underline;
 }
+/* Stand-alone link on its own line (auth footers): a full-height tap target. */
+.link-block {
+  display: inline-flex;
+  align-items: center;
+}
 
 /* ------------------------------------------------------------------ Layout helpers */
 .stack {
@@ -1361,6 +1366,23 @@ video {
   margin-block-end: -1px;
   white-space: nowrap;
 }
+.tab {
+  min-height: 44px;
+}
+@media (max-width: 639px) {
+  /* Many tabs (the 9 food-log tabs) wrap into a tidy grid; labels may break onto two lines. */
+  .tabs-wrap {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .tabs-wrap .tab {
+    padding-inline: var(--space-2);
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+  }
+}
 .tab:hover:not(.tab-active) {
   color: var(--text);
 }
@@ -1734,6 +1756,7 @@ video {
 /* Exercise picker (shared by plan editing & live sessions) */
 .picker-list {
   max-height: 52vh;
+  max-height: 52dvh;
   overflow-y: auto;
 }
 .picker-item-body {
@@ -1745,44 +1768,55 @@ video {
 }
 
 /* ------------------------------------------------------------------ Touch targets
-   On touch screens and phone-width layouts every control is at least 40px tall/wide
-   (compact sizes stay on wide pointer-driven layouts). */
+   On touch screens and phone-width layouts every control is at least 44x44px (compact sizes stay on
+   wide pointer-driven layouts). */
 @media (pointer: coarse), (max-width: 639px) {
+  .btn,
   .btn-sm,
   .segment,
   .segmented-sm .segment,
-  .chip {
-    min-height: 40px;
+  .chip,
+  .back-link,
+  .pill,
+  .link-block {
+    min-height: 44px;
   }
+  .btn-icon,
   .btn-icon.btn-sm {
-    width: 40px;
-    min-width: 40px;
+    width: 44px;
+    min-width: 44px;
+  }
+  .segment,
+  .chip {
+    min-width: 44px;
+    justify-content: center;
   }
   .input-addon-btn {
-    width: 40px;
-    inset-block: 2px;
-    inset-inline-end: 2px;
-  }
-  .segment {
-    min-width: 40px;
-  }
-  .back-link {
-    min-height: 40px;
+    width: 44px;
+    inset-block: 0;
+    inset-inline-end: 0;
   }
   .toast-close {
     display: grid;
     place-items: center;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 44px;
+    min-height: 44px;
     margin: -8px;
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  /* 16px+ in fields stops iOS from zooming the page when one is focused. */
+  .input,
+  .select {
+    font-size: var(--fs-base);
   }
 }
 
 /* Phone touch targets: 44px hit areas without changing how things look. */
 @media (max-width: 639px) {
-  .topbar-actions .session-pill {
-    min-height: 40px;
-  }
   .switch::after {
     content: '';
     position: absolute;
@@ -1794,6 +1828,31 @@ video {
   .exercise-name {
     display: inline-block;
     padding-block: var(--space-2);
+  }
+}
+
+/* Taps respond at once (no double-tap-zoom delay) and never highlight; scroll chaining stays inside overlays. */
+a,
+button,
+summary,
+label,
+select,
+[role='button'],
+[role='tab'],
+[role='radio'],
+[role='switch'] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal,
+.modal-content {
+  overscroll-behavior: contain;
+}
+@media (display-mode: standalone) {
+  /* An installed app must not pull-to-refresh away a workout in progress. */
+  html,
+  body {
+    overscroll-behavior-y: contain;
   }
 }
 
