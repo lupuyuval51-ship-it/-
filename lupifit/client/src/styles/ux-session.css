@@ -661,3 +661,13 @@ html[dir='rtl'] .exercise-facts dd {
     color: var(--text-faint);
   }
 }
+
+/* Exercise navigation: long labels shrink with an ellipsis instead of running under the neighbouring buttons. */
+.exercise-nav .btn {
+  min-width: 0;
+}
+.exercise-nav .btn-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

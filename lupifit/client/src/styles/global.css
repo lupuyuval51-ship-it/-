@@ -40,18 +40,18 @@
   --dur: 160ms;
   --dur-progress: 240ms;
   /* Type scale */
-  --fs-xs: 12px;
-  --fs-sm: 14px;
-  --fs-base: 16px;
-  --fs-md: 16px;
-  --fs-lg: 18px;
-  --fs-xl: 22px;
-  --fs-2xl: 28px;
-  --fs-3xl: 32px;
-  --num-md: 24px;
-  --num-lg: 32px;
-  --num-xl: 48px;
-  --num-2xl: 72px;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2rem;
+  --num-md: 1.5rem;
+  --num-lg: 2rem;
+  --num-xl: 3rem;
+  --num-2xl: 4.5rem;
 }
 
 /* Black creates the atmosphere, orange creates the focus. */
@@ -181,6 +181,7 @@ body {
   line-height: 1.55;
   background: var(--bg);
   color: var(--text);
+  overflow-wrap: break-word; /* a very long (Hebrew or English) word wraps instead of widening the page */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }

@@ -170,7 +170,7 @@ export function LineChart({ data, title, height: baseHeight = 220, formatValue =
             <circle key={i} cx={x(i)} cy={s.y(d.value)} r={hover === i ? 5.5 : data.length > 40 ? 0 : 3.5} className={`chart-dot${hover === i ? ' chart-dot-active' : ''}`} />
           ),
         )}
-        {data.map((d, i) => (d.value == null ? null : <rect key={`h${i}`} x={x(i) - Math.max(step, 12) / 2} y={PAD.top} width={Math.max(step, 12)} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} />))}
+        {data.map((d, i) => (d.value == null ? null : <rect key={`h${i}`} x={x(i) - Math.max(step, 12) / 2} y={PAD.top} width={Math.max(step, 12)} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} onPointerDown={() => setHover(i)} />))}
         {data.map((d, i) =>
           showLabel(i, data.length, every) ? (
             <text key={i} x={x(i)} y={height - 8} textAnchor="middle" className="chart-axis">
@@ -225,7 +225,7 @@ export function BarChart({ data, title, height: baseHeight = 200, formatValue = 
           );
         })}
         {data.map((_, i) => (
-          <rect key={`h${i}`} x={PAD.left + i * band} y={PAD.top} width={band} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} />
+          <rect key={`h${i}`} x={PAD.left + i * band} y={PAD.top} width={band} height={s.innerH} fill="transparent" onMouseEnter={() => setHover(i)} onPointerDown={() => setHover(i)} />
         ))}
         {data.map(() => {
           return null;
