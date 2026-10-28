@@ -307,15 +307,15 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.2,
     props: [{ kind: 'mat', x: 14, w: 210 }],
     keyframes: kf(
-      [0, archer(56.8), 'in'],
-      [0.12, archer(48), 'linear'],
-      [0.24, archer(38), 'linear'],
-      [0.36, archer(28), 'out'],
+      [0, archer(56.8)],
+      [0.12, archer(48)],
+      [0.24, archer(38)],
+      [0.36, archer(28)],
       [0.48, archer(20)],
-      [0.56, archer(20), 'in'],
-      [0.67, archer(28), 'linear'],
-      [0.78, archer(38), 'linear'],
-      [0.89, archer(48), 'out'],
+      [0.56, archer(20)],
+      [0.67, archer(28)],
+      [0.78, archer(38)],
+      [0.89, archer(48)],
     ),
     cues: [
       { t: 0.05, en: 'Shift toward the bending arm', he: 'העבירו משקל ליד המתכופפת' },
@@ -339,7 +339,7 @@ export const animations: ExerciseAnimation[] = [
 function archer(reach: number): Pose {
   const pose = plankPose({ pivot: PU_PIVOT, legLen: 82, wrist: PU_WRIST, reach, footNear: 40 });
   const shY = pose.hip[1] - TORSO * Math.cos(pose.torso * RAD);
-  const a = round(Math.acos(Math.min(1, (186 - shY) / 62)) / RAD);
+  const a = round(Math.acos(Math.min(1, (183.5 - shY) / 62)) / RAD);
   pose.armFar = { angles: [a, a] };
   return pose;
 }

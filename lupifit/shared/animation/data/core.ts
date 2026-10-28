@@ -40,7 +40,7 @@ const deadBug = (armNear: LimbSpec, armFar: LimbSpec, legNear: LimbSpec, legFar:
 });
 
 // ---- bird dog: quadruped, hands under shoulders, knees under hips.
-const BD_HAND: LimbSpec = { target: [150, 182] };
+const BD_HAND: LimbSpec = { target: [150, 179] };
 const BD_KNEEL: LimbSpec = { angles: [0, -90] };
 const birdDog = (armNear: LimbSpec, armFar: LimbSpec, legNear: LimbSpec, legFar: LimbSpec): Pose => ({
   hip: [100, 140],
@@ -66,7 +66,7 @@ const behindHead = (hip: [number, number], torso: number): LimbSpec => {
   const sx = hip[0] + 52 * Math.sin(r);
   const sy = hip[1] - 52 * Math.cos(r);
   // Head centre is 16.5 units out along the torso line; the wrist sits just behind it.
-  return { target: [sx + 14 * Math.sin(r), sy - 14 * Math.cos(r)], bend: -1 };
+  return { target: [sx + 17.5 * Math.sin(r), sy - 17.5 * Math.cos(r)], bend: -1 };
 };
 const crunchPose = (torso: number): Pose => ({
   hip: [130, LIE_Y],
@@ -77,7 +77,7 @@ const crunchPose = (torso: number): Pose => ({
 });
 
 const bike = (near: 'in' | 'out', torso: number): Pose => {
-  const tuck: LimbSpec = { angles: [-150, 80] };
+  const tuck: LimbSpec = { angles: [-160, 80] };
   const long: LimbSpec = { angles: [125, 125] };
   return {
     hip: [130, LIE_Y],
@@ -110,9 +110,10 @@ const wheel = (thighDeg: number, torso: number, wrist: [number, number]): Pose =
 };
 
 // ---- mountain climber: high plank, knees drive alternately to the chest.
-const MC_HAND: LimbSpec = { target: [153, 181] };
-const MC_BACK: LimbSpec = { target: [32, 182] };
-const MC_IN: LimbSpec = { target: [108, 160] };
+const MC_HAND: LimbSpec = { target: [153, 178] };
+const MC_BACK: LimbSpec = { angles: [-66, -66] };
+const MC_IN: LimbSpec = { angles: [50, -80] };
+const MC_MID: LimbSpec = { angles: [-8, -92] };
 
 export const animations: ExerciseAnimation[] = [
   {
@@ -156,11 +157,11 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 7,
     keyframes: [
       { t: 0, pose: birdDog(BD_HAND, BD_HAND, BD_KNEEL, BD_KNEEL) },
-      { t: 0.18, pose: birdDog({ angles: [94, 94] }, BD_HAND, BD_KNEEL, { angles: [-92, -92] }) },
-      { t: 0.32, pose: birdDog({ angles: [94, 94] }, BD_HAND, BD_KNEEL, { angles: [-92, -92] }) },
+      { t: 0.18, pose: birdDog({ angles: [94, 94] }, BD_HAND, BD_KNEEL, { angles: [-86, -86] }) },
+      { t: 0.32, pose: birdDog({ angles: [94, 94] }, BD_HAND, BD_KNEEL, { angles: [-86, -86] }) },
       { t: 0.5, pose: birdDog(BD_HAND, BD_HAND, BD_KNEEL, BD_KNEEL) },
-      { t: 0.68, pose: birdDog(BD_HAND, { angles: [94, 94] }, { angles: [-92, -92] }, BD_KNEEL) },
-      { t: 0.82, pose: birdDog(BD_HAND, { angles: [94, 94] }, { angles: [-92, -92] }, BD_KNEEL) },
+      { t: 0.68, pose: birdDog(BD_HAND, { angles: [94, 94] }, { angles: [-86, -86] }, BD_KNEEL) },
+      { t: 0.82, pose: birdDog(BD_HAND, { angles: [94, 94] }, { angles: [-86, -86] }, BD_KNEEL) },
       { t: 1, pose: birdDog(BD_HAND, BD_HAND, BD_KNEEL, BD_KNEEL) },
     ],
   },
@@ -169,9 +170,9 @@ export const animations: ExerciseAnimation[] = [
     id: 'hollow_body_hold',
     durationSec: 3,
     keyframes: [
-      { t: 0, pose: { hip: [135, LIE_Y], torso: -78, head: 12, armNear: { angles: [-104, -104] }, legNear: { angles: [108, 108] }, footNear: 120 } },
-      { t: 0.5, pose: { hip: [135, LIE_Y], torso: -79.5, head: 12, armNear: { angles: [-102, -102] }, legNear: { angles: [106.5, 106.5] }, footNear: 118 } },
-      { t: 1, pose: { hip: [135, LIE_Y], torso: -78, head: 12, armNear: { angles: [-104, -104] }, legNear: { angles: [108, 108] }, footNear: 120 } },
+      { t: 0, pose: { hip: [135, LIE_Y], torso: -78, head: 12, armNear: { angles: [-112, -112] }, legNear: { angles: [108, 108] }, footNear: 120 } },
+      { t: 0.5, pose: { hip: [135, LIE_Y], torso: -79.5, head: 12, armNear: { angles: [-110, -110] }, legNear: { angles: [106.5, 106.5] }, footNear: 118 } },
+      { t: 1, pose: { hip: [135, LIE_Y], torso: -78, head: 12, armNear: { angles: [-112, -112] }, legNear: { angles: [108, 108] }, footNear: 120 } },
     ],
   },
   {
@@ -215,10 +216,10 @@ export const animations: ExerciseAnimation[] = [
     camera: HANG_CAM,
     props: [{ kind: 'pullUpBar', x: BAR_X, y: BAR_Y }],
     keyframes: [
-      { t: 0, pose: { hip: [121, 115], torso: -3, armNear: grip, legNear: { angles: [32, -45] }, footNear: 0 } },
+      { t: 0, pose: { hip: [122, 113], torso: -9, armNear: grip, legNear: { angles: [32, -45] }, footNear: 0 } },
       { t: 0.35, pose: { hip: [125, 110], torso: -14, armNear: grip, legNear: { angles: [132, 28] }, footNear: 70 } },
       { t: 0.45, pose: { hip: [125, 110], torso: -14, armNear: grip, legNear: { angles: [132, 28] }, footNear: 70 } },
-      { t: 1, pose: { hip: [121, 115], torso: -3, armNear: grip, legNear: { angles: [32, -45] }, footNear: 0 } },
+      { t: 1, pose: { hip: [122, 113], torso: -9, armNear: grip, legNear: { angles: [32, -45] }, footNear: 0 } },
     ],
   },
   {
@@ -228,10 +229,10 @@ export const animations: ExerciseAnimation[] = [
     camera: HANG_CAM,
     props: [{ kind: 'pullUpBar', x: BAR_X, y: BAR_Y }],
     keyframes: [
-      { t: 0, pose: { hip: [121, 115], torso: -4, armNear: grip, legNear: { angles: [38, 38] }, footNear: 120 } },
+      { t: 0, pose: { hip: [122, 113], torso: -9, armNear: grip, legNear: { angles: [38, 38] }, footNear: 120 } },
       { t: 0.38, pose: { hip: [126, 108], torso: -16, armNear: grip, legNear: { angles: [112, 112] }, footNear: 200 } },
       { t: 0.48, pose: { hip: [126, 108], torso: -16, armNear: grip, legNear: { angles: [112, 112] }, footNear: 200 } },
-      { t: 1, pose: { hip: [121, 115], torso: -4, armNear: grip, legNear: { angles: [38, 38] }, footNear: 120 } },
+      { t: 1, pose: { hip: [122, 113], torso: -9, armNear: grip, legNear: { angles: [38, 38] }, footNear: 120 } },
     ],
   },
   {
@@ -240,9 +241,9 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 2.4,
     keyframes: [
       { t: 0, pose: twist([120, 140], -45) },
-      { t: 0.25, pose: twist([124, 178], -42, [118, 176]) },
+      { t: 0.25, pose: twist([118, 168], -42, [114, 166]) },
       { t: 0.5, pose: twist([120, 140], -45) },
-      { t: 0.75, pose: twist([92, 170], -49, [96, 172]) },
+      { t: 0.75, pose: twist([100, 168], -49, [102, 170]) },
       { t: 1, pose: twist([120, 140], -45) },
     ],
   },
@@ -256,10 +257,12 @@ export const animations: ExerciseAnimation[] = [
       { kind: 'cable', anchor: [216, 14], at: 'handFar' },
     ],
     keyframes: [
-      { t: 0, pose: { hip: [120, 103.2], torso: 14, head: -6, armNear: { target: [166, 22] }, armFar: { target: [168, 22] }, legNear: { angles: [10, 10] } } },
-      { t: 0.4, pose: { hip: [120, 103.2], torso: -18, head: 8, armNear: { target: [97, 100] }, armFar: { target: [99, 100] }, legNear: { angles: [10, 10] } } },
-      { t: 0.5, pose: { hip: [120, 103.2], torso: -18, head: 8, armNear: { target: [97, 100] }, armFar: { target: [99, 100] }, legNear: { angles: [10, 10] } } },
-      { t: 1, pose: { hip: [120, 103.2], torso: 14, head: -6, armNear: { target: [166, 22] }, armFar: { target: [168, 22] }, legNear: { angles: [10, 10] } } },
+      { t: 0, pose: { hip: [120, 105.2], torso: 14, head: -6, armNear: { target: [160, 26] }, armFar: { target: [162, 26] }, legNear: { target: [103, 184] } } },
+      { t: 0.2, pose: { hip: [120, 105.2], torso: -2, head: 0, armNear: { target: [148, 76] }, armFar: { target: [150, 76] }, legNear: { target: [103, 184] } } },
+      { t: 0.4, pose: { hip: [120, 105.2], torso: -18, head: 8, armNear: { target: [108, 92] }, armFar: { target: [110, 92] }, legNear: { target: [103, 184] } } },
+      { t: 0.5, pose: { hip: [120, 105.2], torso: -18, head: 8, armNear: { target: [108, 92] }, armFar: { target: [110, 92] }, legNear: { target: [103, 184] } } },
+      { t: 0.74, pose: { hip: [120, 105.2], torso: -2, head: 0, armNear: { target: [148, 76] }, armFar: { target: [150, 76] }, legNear: { target: [103, 184] } } },
+      { t: 1, pose: { hip: [120, 105.2], torso: 14, head: -6, armNear: { target: [160, 26] }, armFar: { target: [162, 26] }, legNear: { target: [103, 184] } } },
     ],
   },
   {
@@ -272,8 +275,8 @@ export const animations: ExerciseAnimation[] = [
     ],
     keyframes: [
       { t: 0, pose: { hip: [116, 104], torso: 0, armNear: { target: [126, 76] }, legNear: { target: [122, FA] } } },
-      { t: 0.3, pose: { hip: [116, 104], torso: 0, armNear: { target: [172, 74] }, legNear: { target: [122, FA] } } },
-      { t: 0.6, pose: { hip: [116, 104], torso: 0, armNear: { target: [172, 74] }, legNear: { target: [122, FA] } } },
+      { t: 0.3, pose: { hip: [116, 104], torso: 0, armNear: { target: [168, 64] }, legNear: { target: [122, FA] } } },
+      { t: 0.6, pose: { hip: [116, 104], torso: 0, armNear: { target: [168, 64] }, legNear: { target: [122, FA] } } },
       { t: 1, pose: { hip: [116, 104], torso: 0, armNear: { target: [126, 76] }, legNear: { target: [122, FA] } } },
     ],
   },
@@ -284,10 +287,14 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'abWheel' }, { kind: 'mat', x: 10, w: 100 }],
     keyframes: [
       { t: 0, pose: wheel(-3, 55, [110, 167]) },
+      { t: 0.11, pose: wheel(13, 62, [140, 169]) },
       { t: 0.22, pose: wheel(30, 68, [169, 171]) },
+      { t: 0.335, pose: wheel(45, 74, [189, 169]) },
       { t: 0.45, pose: wheel(60, 80, [207, 168]) },
       { t: 0.55, pose: wheel(60, 80, [207, 168]) },
+      { t: 0.665, pose: wheel(45, 74, [189, 169]) },
       { t: 0.78, pose: wheel(30, 68, [169, 171]) },
+      { t: 0.89, pose: wheel(13, 62, [140, 169]) },
       { t: 1, pose: wheel(-3, 55, [110, 167]) },
     ],
   },
@@ -307,11 +314,11 @@ export const animations: ExerciseAnimation[] = [
     id: 'mountain_climber',
     durationSec: 0.8,
     keyframes: [
-      { t: 0, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
-      { t: 0.25, pose: { hip: [106, 141], torso: 70, armNear: MC_HAND, legNear: { target: [80, 168] }, legFar: { target: [80, 168] }, footNear: 40, footFar: 40 } },
-      { t: 0.5, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_BACK, legFar: MC_IN, footNear: 15, footFar: 60 } },
-      { t: 0.75, pose: { hip: [106, 141], torso: 70, armNear: MC_HAND, legNear: { target: [80, 168] }, legFar: { target: [80, 168] }, footNear: 40, footFar: 40 } },
-      { t: 1, pose: { hip: [106, 144], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
+      { t: 0, pose: { hip: [106, 143], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
+      { t: 0.25, pose: { hip: [106, 140], torso: 70, armNear: MC_HAND, legNear: MC_MID, legFar: MC_MID, footNear: 40, footFar: 40 } },
+      { t: 0.5, pose: { hip: [106, 143], torso: 66, armNear: MC_HAND, legNear: MC_BACK, legFar: MC_IN, footNear: 15, footFar: 60 } },
+      { t: 0.75, pose: { hip: [106, 140], torso: 70, armNear: MC_HAND, legNear: MC_MID, legFar: MC_MID, footNear: 40, footFar: 40 } },
+      { t: 1, pose: { hip: [106, 143], torso: 66, armNear: MC_HAND, legNear: MC_IN, legFar: MC_BACK, footNear: 60, footFar: 15 } },
     ],
   },
 ];

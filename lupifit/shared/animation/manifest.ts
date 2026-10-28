@@ -42,7 +42,9 @@ export interface ManifestEntry {
 export const VERIFIED: Record<string, string> = {};
 
 /** id -> reason. Hidden from the library until fixed. */
-export const BLOCKED: Record<string, string> = {};
+export const BLOCKED: Record<string, string> = {
+  worlds_greatest_stretch: 'Multi-phase flow whose deep lunge, rotation and hamstring phases break joint limits (hip 170+ degrees, shoulder/elbow hyperextension), cause a 13-unit knee pop and sink the thigh into the floor; needs a full rewrite before it can be shown.',
+};
 
 // ------------------------------------------------------------------ phase / tempo derivation
 

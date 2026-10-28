@@ -11,8 +11,8 @@ const BAR_X = 120;
 const HANG_CAM = { cx: 120, cy: 84, zoom: 0.88 };
 const grip: LimbSpec = { target: [BAR_X + 2, BAR_Y + 4], bend: -1 };
 /** Knees softly bent, feet just behind so they clear the floor. */
-const hangBottom: Pose = { hip: [121, 115], torso: -3, armNear: grip, legNear: { angles: [22, -62] }, footNear: -35 };
-const hangTop: Pose = { hip: [121, 55], torso: -12, head: -4, armNear: grip, legNear: { angles: [24, -58] }, footNear: -32 };
+const hangBottom: Pose = { hip: [123, 114], torso: -9, armNear: grip, legNear: { angles: [22, -62] }, footNear: -35 };
+const hangTop: Pose = { hip: [128, 56], torso: -24, head: -6, armNear: grip, legNear: { angles: [24, -58] }, footNear: -32 };
 
 // Muscle-up: zoomed out further so dead hang and straight-arm support both fit.
 // Poses are specified by the shoulder position (the hands never leave the bar) and torso lean;
@@ -41,9 +41,9 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'pullUpBar', x: BAR_X, y: BAR_Y }],
     keyframes: [
       { t: 0, pose: hangBottom },
-      { t: 0.08, pose: hangBottom },
-      { t: 0.4, pose: hangTop },
-      { t: 0.5, pose: hangTop },
+      { t: 0.06, pose: hangBottom },
+      { t: 0.44, pose: hangTop },
+      { t: 0.54, pose: hangTop },
       { t: 1, pose: hangBottom },
     ],
   },
@@ -74,9 +74,9 @@ export const animations: ExerciseAnimation[] = [
     ],
     keyframes: [
       { t: 0, pose: hangBottom },
-      { t: 0.08, pose: hangBottom },
-      { t: 0.4, pose: hangTop },
-      { t: 0.5, pose: hangTop },
+      { t: 0.06, pose: hangBottom },
+      { t: 0.44, pose: hangTop },
+      { t: 0.54, pose: hangTop },
       { t: 1, pose: hangBottom },
     ],
   },
@@ -91,10 +91,10 @@ export const animations: ExerciseAnimation[] = [
     ],
     keyframes: [
       { t: 0, pose: hangTop },
-      { t: 0.1, pose: hangTop, ease: 'linear' },
-      { t: 0.75, pose: hangBottom },
-      { t: 0.8, pose: hangBottom },
-      { t: 0.88, pose: { hip: [112, 92], torso: -6, armNear: grip, legNear: { target: [78, 156] } } },
+      { t: 0.1, pose: hangTop },
+      { t: 0.7, pose: hangBottom },
+      { t: 0.76, pose: hangBottom },
+      { t: 0.87, pose: { hip: [124, 90], torso: -16, head: -4, armNear: grip, legNear: { angles: [26, -42] }, footNear: -25 } },
       { t: 1, pose: hangTop },
     ],
   },
@@ -187,8 +187,8 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'dipBars', x: 106, y: 104 }],
     keyframes: [
       { t: 0, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
-      { t: 0.35, pose: { hip: [145, 143], torso: -61, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
-      { t: 0.45, pose: { hip: [145, 143], torso: -61, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
+      { t: 0.35, pose: { hip: [145, 146], torso: -64, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
+      { t: 0.45, pose: { hip: [145, 146], torso: -64, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 165 } },
       { t: 1, pose: { hip: [136, 168.5], torso: -80, armNear: { target: [106, 108] }, legNear: { target: [216, 182] }, footNear: 175 } },
     ],
   },
@@ -238,10 +238,10 @@ export const animations: ExerciseAnimation[] = [
     view: 'front',
     props: [{ kind: 'dumbbell', at: 'hands' }],
     keyframes: [
-      { t: 0, pose: { hip: [120, STAND_HIP_Y + 2], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
-      { t: 0.35, pose: { hip: [120, STAND_HIP_Y - 0.8], torso: 0, head: 0, armNear: { angles: [4, 4] }, legNear: { angles: [4, 4] } } },
-      { t: 0.6, pose: { hip: [120, STAND_HIP_Y - 0.8], torso: 0, armNear: { angles: [4, 4] }, legNear: { angles: [4, 4] } } },
-      { t: 1, pose: { hip: [120, STAND_HIP_Y + 2], torso: 0, armNear: { angles: [6, 6] }, legNear: { angles: [4, 4] } } },
+      { t: 0, pose: { hip: [120, STAND_HIP_Y + 1.5], torso: 0, armNear: { angles: [6, 6] }, legNear: { target: [111, FA] } } },
+      { t: 0.35, pose: { hip: [120, STAND_HIP_Y - 1], torso: 0, armNear: { angles: [4, 4] }, legNear: { target: [111, FA] } } },
+      { t: 0.6, pose: { hip: [120, STAND_HIP_Y - 1], torso: 0, armNear: { angles: [4, 4] }, legNear: { target: [111, FA] } } },
+      { t: 1, pose: { hip: [120, STAND_HIP_Y + 1.5], torso: 0, armNear: { angles: [6, 6] }, legNear: { target: [111, FA] } } },
     ],
   },
   ...curls(),

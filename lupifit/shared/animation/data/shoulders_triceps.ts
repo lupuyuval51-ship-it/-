@@ -112,7 +112,7 @@ function handstand(shoulder: Vec, torso: number, legAngle: number): Pose {
 }
 
 const DIAMOND_PIVOT: Vec = [28, TOES_ANKLE];
-const DIAMOND_WRIST: Vec = [149, 182];
+const DIAMOND_WRIST: Vec = [143, 178];
 
 /* ------------------------------------------------------------- dips */
 

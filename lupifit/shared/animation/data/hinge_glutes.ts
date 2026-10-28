@@ -203,7 +203,7 @@ export const animations: ExerciseAnimation[] = [
         return {
           hip: [SH[0] + BODY.torso * Math.cos(rad(lift)), SH[1] - BODY.torso * Math.sin(rad(lift))],
           torso,
-          head: lift * 0.6,
+          head: lift * 1.5,
           armNear: { angles: [88, 90] },
           legNear: foot(128),
         };
@@ -221,7 +221,7 @@ export const animations: ExerciseAnimation[] = [
       const p = (lift: number, free: number): Pose => ({
         hip: [SH[0] + BODY.torso * Math.cos(rad(lift)), SH[1] - BODY.torso * Math.sin(rad(lift))],
         torso: -90 - lift,
-        head: lift * 0.6,
+        head: lift * 1.5,
         armNear: { angles: [88, 90] },
         legNear: foot(128),
         legFar: { angles: [free, free] },
@@ -245,7 +245,7 @@ export const animations: ExerciseAnimation[] = [
         // Bar rests on the hip crease, on the front (belly) side of the pelvis.
         const n: Vec = [Math.cos(rad(torso)), Math.sin(rad(torso))];
         const bar: Vec = [hip[0] + n[0] * 12 + 4, hip[1] + n[1] * 12];
-        return { hip, torso, head: drop * 0.4 + 6, armNear: { ...gripAt(hip, torso, bar), bend: 1 }, legNear: foot(144) };
+        return { hip, torso, head: drop * 0.4 + 6, armNear: { ...gripAt(hip, torso, bar), bend: -1 }, legNear: foot(144) };
       };
       return [kf(0, p(34)), kf(0.35, p(2)), kf(0.5, p(2)), kf(0.9, p(34)), kf(1, p(34))];
     })(),
@@ -272,8 +272,8 @@ export const animations: ExerciseAnimation[] = [
       const ready = (lean: number) => rel(lean, 14, 156);
       const out: Keyframe[] = [];
       const desc = [0, 12, 24, 36, 48, 58];
-      desc.forEach((l, i) => out.push(kf(0.1 * i, p(l, ready(l)), 'linear')));
-      out.push(kf(0.56, p(66, { target: [184, 166], bend: -1 }), 'in'));
+      desc.forEach((l, i) => out.push(kf(0.1 * i, p(l, ready(l)))));
+      out.push(kf(0.56, p(66, { target: [184, 166], bend: -1 })));
       out.push(kf(0.64, p(74, { target: [172, 180], bend: -1 })));
       out.push(kf(0.7, p(68, { target: [172, 180], bend: -1 })));
       const asc = [58, 44, 30, 15, 0];
@@ -289,14 +289,14 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'mat', x: 6, w: 228 }],
     keyframes: (() => {
       const p = (lift: number): Pose => ({
-        hip: [96, 179 - lift * 0.15],
+        hip: [96, 178.5 - lift * 0.15],
         torso: 90 - lift,
-        head: 6,
-        armNear: { angles: [90 + lift * 1.2, 90 + lift * 1.3] },
-        legNear: { angles: [-90 - lift * 0.8, -90 - lift * 0.8] },
-        footNear: -95 - lift * 0.8,
+        head: 0,
+        armNear: { angles: [90 + lift * 0.3, 90 + lift * 0.3] },
+        legNear: { angles: [-90 - lift * 0.5, -90 - lift * 0.5] },
+        footNear: -95 - lift * 0.5,
       });
-      return [kf(0, p(0)), kf(0.08, p(0)), kf(0.25, p(11)), kf(0.6, p(11)), kf(0.85, p(0)), kf(1, p(0))];
+      return [kf(0, p(0)), kf(0.08, p(0)), kf(0.25, p(9)), kf(0.6, p(9)), kf(0.85, p(0)), kf(1, p(0))];
     })(),
   },
   {

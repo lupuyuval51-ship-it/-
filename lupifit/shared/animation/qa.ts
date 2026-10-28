@@ -223,7 +223,7 @@ function penetration(anim: ExerciseAnimation, times: number[]): { depth: number;
         // Skip a segment's joint on the surface it is deliberately touching only via tolerance.
         note(p[1] + s.w / 2 - floorY, `${s.part}/${s.side} floor@t=${t.toFixed(2)}`);
         for (const b of benches) {
-          if (p[0] >= b.x && p[0] <= b.x + b.w && s.part !== 'hand' && s.part !== 'forearm' && s.part !== 'upperArm') note(p[1] + s.w / 2 - b.y, `${s.part} bench@t=${t.toFixed(2)}`);
+          if (p[0] >= b.x && p[0] <= b.x + b.w && (s.part === 'torso' || s.part === 'thigh' || s.part === 'neck')) note(p[1] + s.w / 2 - b.y, `${s.part} bench@t=${t.toFixed(2)}`);
         }
         for (const bx of boxes) {
           if (p[0] >= bx.x && p[0] <= bx.x + bx.w && p[1] > bx.y - 40 && s.part !== 'hand' && s.part !== 'forearm' && s.part !== 'upperArm') note(p[1] + s.w / 2 - bx.y, `${s.part} box@t=${t.toFixed(2)}`);

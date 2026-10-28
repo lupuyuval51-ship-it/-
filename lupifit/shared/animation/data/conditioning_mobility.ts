@@ -70,7 +70,7 @@ const lbLand: Pose = {
   armNear: ang(30, 35),
   armFar: ang(5, 20),
   legNear: tgt(74, FA),
-  legFar: tgt(80, 170, -1),
+  legFar: tgt(80, 170),
 };
 const lbHold: Pose = { ...lbLand, hip: [80, 106], torso: -2, armNear: ang(22, 28), armFar: ang(10, 22) };
 const lbLoad: Pose = { ...lbLand, hip: [79, 110], torso: 4, armNear: ang(10, 18), armFar: ang(-8, 8) };
@@ -92,12 +92,13 @@ const lbAir: Pose = {
 };
 
 // ------------------------------------------------------------------ burpee (hands fixed at x 138)
-const BH = tgt(138, 182);
+const BH = tgt(138, 178);
 const bpStand: Pose = { hip: [100, H], torso: 3, armNear: ang(4, 8), legNear: tgt(104, FA) };
-const bpSquat: Pose = { hip: [84, 156], torso: 58, head: -15, armNear: BH, legNear: tgt(104, 182), footNear: 70 };
-const bpPlank: Pose = { hip: [92, 151], torso: 68, armNear: BH, legNear: tgt(16, 182), footNear: 15 };
-const bpBottom: Pose = { hip: [97, 173], torso: 84, armNear: BH, legNear: tgt(16, 182), footNear: 15 };
-const bpKick: Pose = { hip: [92, 144], torso: 64, armNear: BH, legNear: tgt(60, 166), footNear: 40 };
+const bpSquat: Pose = { hip: [90, 146], torso: 68, head: -15, armNear: BH, legNear: tgt(104, 182), footNear: 70 };
+const bpPlank: Pose = { hip: [92, 151], torso: 68, armNear: BH, legNear: ang(-68, -68), footNear: 15 };
+const bpBottom: Pose = { hip: [97, 173], torso: 84, armNear: BH, legNear: ang(-83, -83), footNear: 15 };
+const bpMid: Pose = { hip: [92, 137], torso: 76, armNear: BH, legNear: ang(-30, -100), footNear: 30 };
+const bpKick: Pose = { hip: [92, 140], torso: 72, armNear: BH, legNear: ang(45, -80), footNear: 40 };
 
 // ------------------------------------------------------------------ jumping jack (front)
 const jjIn: Pose = { hip: [120, H], torso: 0, armNear: ang(6, 6), legNear: tgt(111, FA) };
@@ -139,7 +140,7 @@ const wkStrike: Pose = {
   footFar: 55,
 };
 const wkMid: Pose = {
-  hip: [118, 101],
+  hip: [118, 102.5],
   torso: 3,
   armNear: ang(0, 10),
   armFar: ang(0, 15),
@@ -162,7 +163,7 @@ const spContact: Pose = {
   footFar: 45,
 };
 const spPush: Pose = {
-  hip: [118, 99],
+  hip: [118, 101],
   torso: 12,
   head: -8,
   armNear: ang(-55, 30),
@@ -225,9 +226,9 @@ const cpThrow: Pose = { hip: [118, 107], torso: 14, armNear: ang(84, 86), ...cpL
 
 // ------------------------------------------------------------------ cat-cow (quadruped)
 const ccLegs = { legNear: tgt(52, 182, 1), footNear: -88 };
-const ccNeutral: Pose = { hip: [92, 140], torso: 72, armNear: tgt(144, 182), ...ccLegs };
-const ccCow: Pose = { hip: [91, 139], torso: 75, head: -35, armNear: tgt(144, 182), ...ccLegs };
-const ccCat: Pose = { hip: [94, 142], torso: 67, head: 45, armNear: tgt(144, 182), ...ccLegs };
+const ccNeutral: Pose = { hip: [92, 140], torso: 72, armNear: tgt(144, 176), ...ccLegs };
+const ccCow: Pose = { hip: [91, 139], torso: 75, head: -35, armNear: tgt(144, 176), ...ccLegs };
+const ccCat: Pose = { hip: [94, 140], torso: 67, head: 45, armNear: tgt(144, 176), ...ccLegs };
 
 // ------------------------------------------------------------------ world's greatest stretch (near = front/right leg)
 const wgPlank: Pose = { hip: [92, 151], torso: 68, armNear: tgt(140, 182), legNear: tgt(16, 182), footNear: 15 };
@@ -264,10 +265,12 @@ const wgHam: Pose = {
 };
 
 // ------------------------------------------------------------------ kneeling hip flexor stretch (near = kneeling leg)
-const hfBase = { legNear: tgt(68, 182), legFar: tgt(150, FA), footNear: -90 };
-const hfUp: Pose = { hip: [108, 142], torso: 0, armNear: ang(5, 5), armFar: tgt(146, 140), ...hfBase };
-const hfStretch: Pose = { hip: [118, 145], torso: -4, head: 0, armNear: ang(172, 176), armFar: tgt(148, 140), ...hfBase };
-const hfBreath: Pose = { ...hfStretch, hip: [119, 146], torso: -5 };
+const hfFront = tgt(152, FA);
+const hfBase = { legFar: hfFront, footNear: -90 };
+// Kneeling leg by angles (thigh near vertical, shin flat on the mat) so the knee rests on the floor instead of sinking into it.
+const hfUp: Pose = { hip: [110, 139.5], torso: 0, armNear: ang(5, 5), armFar: tgt(142, 136), legNear: ang(2, -90), ...hfBase };
+const hfStretch: Pose = { hip: [120, 139.5], torso: -4, head: 0, armNear: ang(172, 176), armFar: tgt(144, 136), legNear: ang(14, -90), ...hfBase };
+const hfBreath: Pose = { ...hfStretch, hip: [121, 139.5], torso: -5, legNear: ang(15, -90) };
 
 // ------------------------------------------------------------------ band dislocate (front)
 const bdLegs = { legNear: tgt(110, FA) };
@@ -285,8 +288,8 @@ export const animations: ExerciseAnimation[] = [
       { t: 0, pose: jsStand },
       { t: 0.22, pose: jsLoad },
       { t: 0.29, pose: { hip: [104, 118], torso: 22, armNear: ang(45, 55), legNear: tgt(116, FA) } },
-      { t: 0.36, pose: jsTakeoff, ease: 'out' },
-      { t: 0.5, pose: jsAir, ease: 'in' },
+      { t: 0.36, pose: jsTakeoff },
+      { t: 0.5, pose: jsAir },
       { t: 0.62, pose: jsTouch },
       { t: 0.76, pose: jsLand },
       { t: 1, pose: jsStand },
@@ -307,7 +310,9 @@ export const animations: ExerciseAnimation[] = [
       { t: 0.4, pose: { hip: [155, 92], torso: 30, armNear: ang(45, 60), legNear: tgt(168, bjOnBox) } },
       { t: 0.52, pose: { hip: [166, 63], torso: 2, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
       { t: 0.62, pose: { hip: [166, 63], torso: 2, armNear: ang(4, 8), legNear: tgt(168, bjOnBox) } },
+      { t: 0.66, pose: { hip: [162, 70], torso: 4, armNear: ang(6, 10), legNear: tgt(168, bjOnBox), legFar: tgt(150, 134), footFar: 60 } },
       { t: 0.7, pose: { hip: [158, 78], torso: 8, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(128, 152), footFar: 80 } },
+      { t: 0.74, pose: { hip: [150, 90], torso: 10, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(134, 138), footFar: 70 } },
       { t: 0.78, pose: { hip: [140, 108], torso: 12, armNear: ang(8, 12), legNear: tgt(168, bjOnBox), legFar: tgt(118, FA) } },
       { t: 0.85, pose: { hip: [124, 104], torso: 6, armNear: ang(6, 10), legNear: tgt(138, 140), legFar: tgt(118, FA), footNear: 80 } },
       { t: 0.92, pose: { ...bjStand, legFar: tgt(118, FA) } },
@@ -322,7 +327,7 @@ export const animations: ExerciseAnimation[] = [
       { t: 0, pose: brStand(46) },
       { t: 0.1, pose: { hip: [30, 126], torso: 42, armNear: ang(-60, -50), legNear: tgt(46, FA) } },
       { t: 0.14, pose: { hip: [46, 116], torso: 40, armNear: ang(45, 55), legNear: tgt(46, FA) } },
-      { t: 0.18, pose: { hip: [64, 104], torso: 38, armNear: ang(150, 158), legNear: tgt(50, 180), footNear: 40 }, ease: 'out' },
+      { t: 0.18, pose: { hip: [64, 104], torso: 38, armNear: ang(128, 136), legNear: tgt(50, 180), footNear: 40 } },
       { t: 0.27, pose: { hip: [100, 84], torso: 22, armNear: ang(120, 128), legNear: tgt(110, 140), footNear: 80 } },
       { t: 0.34, pose: { hip: [124, 118], torso: 30, armNear: ang(80, 85), legNear: tgt(150, 174), footNear: 110 } },
       { t: 0.4, pose: { hip: [122, 140], torso: 46, armNear: ang(75, 82), legNear: tgt(146, FA) } },
@@ -358,20 +363,22 @@ export const animations: ExerciseAnimation[] = [
   },
   {
     id: 'burpee',
-    durationSec: 3.4,
+    durationSec: 3.6,
     camera: wideCam(100),
     keyframes: [
       { t: 0, pose: bpStand },
-      { t: 0.12, pose: bpSquat },
-      { t: 0.18, pose: bpKick },
-      { t: 0.24, pose: bpPlank },
+      { t: 0.1, pose: bpSquat },
+      { t: 0.15, pose: bpKick },
+      { t: 0.2, pose: bpMid },
+      { t: 0.26, pose: bpPlank },
       { t: 0.37, pose: bpBottom },
-      { t: 0.48, pose: bpPlank },
-      { t: 0.54, pose: bpKick },
-      { t: 0.6, pose: bpSquat },
-      { t: 0.7, pose: { hip: [102, 100], torso: 6, armNear: ang(150, 158), legNear: tgt(105, 178), footNear: 40 }, ease: 'out' },
-      { t: 0.79, pose: { hip: [101, 88], torso: 2, armNear: ang(170, 174), legNear: tgt(104, 166), footNear: 45 }, ease: 'in' },
-      { t: 0.88, pose: { hip: [96, 116], torso: 20, armNear: ang(40, 55), legNear: tgt(104, FA) } },
+      { t: 0.47, pose: bpPlank },
+      { t: 0.52, pose: bpMid },
+      { t: 0.57, pose: bpKick },
+      { t: 0.63, pose: bpSquat },
+      { t: 0.72, pose: { hip: [102, 100], torso: 6, armNear: ang(150, 158), legNear: tgt(105, 178), footNear: 40 } },
+      { t: 0.8, pose: { hip: [101, 88], torso: 2, armNear: ang(170, 174), legNear: tgt(104, 166), footNear: 45 } },
+      { t: 0.89, pose: { hip: [96, 116], torso: 20, armNear: ang(40, 55), legNear: tgt(104, FA) } },
       { t: 1, pose: bpStand },
     ],
   },
@@ -415,8 +422,8 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 1.1,
     keyframes: twoStepCycle(
       [
-        { t: 0, pose: wkStrike, ease: 'linear' },
-        { t: 0.25, pose: wkMid, ease: 'linear' },
+        { t: 0, pose: wkStrike },
+        { t: 0.25, pose: wkMid },
       ],
       swapSides,
     ),
@@ -426,9 +433,9 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 0.7,
     keyframes: twoStepCycle(
       [
-        { t: 0, pose: spContact, ease: 'linear' },
-        { t: 0.15, pose: spPush, ease: 'linear' },
-        { t: 0.32, pose: spFlight, ease: 'linear' },
+        { t: 0, pose: spContact },
+        { t: 0.17, pose: spPush },
+        { t: 0.3, pose: spFlight },
       ],
       swapSides,
     ),

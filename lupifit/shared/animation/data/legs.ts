@@ -3,7 +3,7 @@ import type { ExerciseAnimation, Keyframe, LimbSpec, Pose, Vec } from '../types'
 
 /** Ankle height when the foot is flat on the floor. */
 const FLOOR_ANKLE = 184;
-const S = STAND_HIP_Y;
+const S = STAND_HIP_Y + 1;
 
 /** Arm posed rigidly relative to the torso: b1/b2 are body-frame angles (0 = along the torso toward the hips). */
 const rel = (torso: number, b1: number, b2: number): LimbSpec => ({ angles: [b1 - torso, b2 - torso] });
@@ -197,11 +197,11 @@ export const animations: ExerciseAnimation[] = [
     durationSec: 3.4,
     props: [{ kind: 'bench', x: 22, y: 152, w: 46 }],
     keyframes: [
-      kf(0, { hip: [112, 104], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
+      kf(0, { hip: [112, 105.5], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
       kf(0.48, { hip: [102, 140], torso: 12, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
       kf(0.54, { hip: [102, 140], torso: 12, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
-      kf(0.9, { hip: [112, 104], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
-      kf(1, { hip: [112, 104], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
+      kf(0.9, { hip: [112, 105.5], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
+      kf(1, { hip: [112, 105.5], torso: 6, armNear: { angles: [4, 2] }, legNear: foot(132), legFar: { target: [58, 146] }, footFar: -78 }),
     ],
   },
   {
@@ -212,10 +212,10 @@ export const animations: ExerciseAnimation[] = [
     camera: { cx: 120, cy: 100, zoom: 1, followX: true },
     keyframes: [
       kf(0, { hip: [50, S], torso: 2, armNear: handsOnHips(2), legNear: foot(48), legFar: foot(48) }),
-      kf(0.14, { hip: [64, 104], torso: 3, armNear: handsOnHips(3), legNear: { target: [86, 166] }, legFar: foot(48), footNear: 100 }),
-      kf(0.28, { hip: [82, 112], torso: 4, armNear: handsOnHips(4), legNear: foot(124), legFar: foot(48), footFar: 70 }),
-      kf(0.48, { hip: [88, 140], torso: 4, armNear: handsOnHips(4), legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
-      kf(0.56, { hip: [90, 138], torso: 6, armNear: handsOnHips(6), legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
+      kf(0.2, { hip: [64, 104], torso: 3, armNear: handsOnHips(3), legNear: { target: [86, 166] }, legFar: foot(48), footNear: 100 }),
+      kf(0.32, { hip: [82, 116], torso: 4, armNear: handsOnHips(4), legNear: foot(124), legFar: foot(48), footFar: 70 }),
+      kf(0.48, { hip: [88, 140], torso: 4, armNear: handsOnHips(4), legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
+      kf(0.56, { hip: [90, 138], torso: 6, armNear: handsOnHips(6), legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
       kf(0.74, { hip: [112, 112], torso: 6, armNear: handsOnHips(6), legNear: foot(124), legFar: { target: [86, 166] }, footFar: 40 }),
       kf(0.9, { hip: [126, S], torso: 2, armNear: handsOnHips(2), legNear: foot(124), legFar: foot(124) }),
       kf(1, { hip: [126, S], torso: 2, armNear: handsOnHips(2), legNear: foot(124), legFar: foot(124) }),
@@ -228,9 +228,9 @@ export const animations: ExerciseAnimation[] = [
     keyframes: [
       kf(0, { hip: [126, S], torso: 2, armNear: handsOnHips(2), legNear: foot(124), legFar: foot(124) }),
       kf(0.14, { hip: [118, 106], torso: 4, armNear: handsOnHips(4), legNear: foot(124), legFar: { target: [92, 168] }, footFar: 40 }),
-      kf(0.28, { hip: [102, 120], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
-      kf(0.5, { hip: [92, 140], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
-      kf(0.56, { hip: [92, 140], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
+      kf(0.28, { hip: [102, 120], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
+      kf(0.5, { hip: [92, 140], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
+      kf(0.56, { hip: [92, 140], torso: 5, armNear: handsOnHips(5), legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
       kf(0.74, { hip: [110, 114], torso: 6, armNear: handsOnHips(6), legNear: foot(124), legFar: { target: [86, 166] }, footFar: 40 }),
       kf(0.88, { hip: [126, S], torso: 2, armNear: handsOnHips(2), legNear: foot(124), legFar: foot(124) }),
       kf(1, { hip: [126, S], torso: 2, armNear: handsOnHips(2), legNear: foot(124), legFar: foot(124) }),
@@ -244,9 +244,9 @@ export const animations: ExerciseAnimation[] = [
     keyframes: [
       kf(0, { hip: [126, S], torso: 2, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: foot(124) }),
       kf(0.14, { hip: [118, 106], torso: 4, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: { target: [92, 168] }, footFar: 40 }),
-      kf(0.28, { hip: [102, 120], torso: 5, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
-      kf(0.5, { hip: [92, 140], torso: 5, armNear: { angles: [0, 0] }, legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
-      kf(0.56, { hip: [92, 140], torso: 5, armNear: { angles: [0, 0] }, legNear: foot(124), legFar: { target: [44, 178] }, footFar: 28 }),
+      kf(0.28, { hip: [102, 120], torso: 5, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
+      kf(0.5, { hip: [92, 140], torso: 5, armNear: { angles: [0, 0] }, legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
+      kf(0.56, { hip: [92, 140], torso: 5, armNear: { angles: [0, 0] }, legNear: foot(124), legFar: { target: [62, 178] }, footFar: 28 }),
       kf(0.74, { hip: [110, 114], torso: 6, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: { target: [86, 166] }, footFar: 40 }),
       kf(0.88, { hip: [126, S], torso: 2, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: foot(124) }),
       kf(1, { hip: [126, S], torso: 2, armNear: { angles: [2, 0] }, legNear: foot(124), legFar: foot(124) }),
@@ -260,11 +260,13 @@ export const animations: ExerciseAnimation[] = [
     props: [{ kind: 'box', x: 118, y: 151, w: 58, h: 37 }],
     keyframes: [
       kf(0, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
-      kf(0.12, { hip: [110, 98], torso: 22, armNear: { angles: [14, 20] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
-      kf(0.26, { hip: [126, 82], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [110, 168] }, footFar: 40 }),
+      kf(0.12, { hip: [110, 98], torso: 22, armNear: { angles: [14, 20] }, legNear: { target: [140, 147] }, legFar: { target: [101, 178] }, footFar: 60 }),
+      kf(0.26, { hip: [126, 82], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [111, 158] }, footFar: 50 }),
+      kf(0.33, { hip: [133, 74], torso: 7, armNear: { angles: [5, 8] }, legNear: { target: [140, 147] }, legFar: { target: [116, 137] }, footFar: 50 }),
       kf(0.4, { hip: [139, 66], torso: 2, armNear: { angles: [2, 2] }, legNear: { target: [140, 147] }, legFar: { target: [127, 140] }, footFar: 50 }),
       kf(0.48, { hip: [139, 66], torso: 2, armNear: { angles: [2, 2] }, legNear: { target: [140, 147] }, legFar: { target: [127, 140] }, footFar: 50 }),
-      kf(0.7, { hip: [124, 84], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [108, 170] }, footFar: 45 }),
+      kf(0.59, { hip: [133, 74], torso: 7, armNear: { angles: [4, 6] }, legNear: { target: [140, 147] }, legFar: { target: [118, 139] }, footFar: 50 }),
+      kf(0.7, { hip: [124, 84], torso: 13, armNear: { angles: [8, 12] }, legNear: { target: [140, 147] }, legFar: { target: [108, 162] }, footFar: 50 }),
       kf(0.88, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
       kf(1, { hip: [100, 103], torso: 9, armNear: { angles: [6, 10] }, legNear: { target: [140, 147] }, legFar: foot(98) }),
     ],
@@ -377,14 +379,14 @@ export const animations: ExerciseAnimation[] = [
     id: 'standing_calf_raise',
     durationSec: 3,
     props: [
-      { kind: 'box', x: 128, y: 172, w: 54, h: 16 },
-      { kind: 'wall', x: 196 },
+      { kind: 'box', x: 128, y: 172, w: 44, h: 16 },
+      { kind: 'wall', x: 176 },
     ],
     keyframes: (() => {
       const p = (ankle: Vec, footAngle: number): Pose => ({
         hip: [ankle[0] - 1, ankle[1] - 81.6],
         torso: 2,
-        armNear: { target: [186, ankle[1] - 110] },
+        armNear: { target: [170, ankle[1] - 108] },
         legNear: { target: ankle },
         footNear: footAngle,
       });
@@ -399,14 +401,14 @@ export const animations: ExerciseAnimation[] = [
     id: 'single_leg_calf_raise',
     durationSec: 3.2,
     props: [
-      { kind: 'box', x: 128, y: 172, w: 54, h: 16 },
-      { kind: 'wall', x: 196 },
+      { kind: 'box', x: 128, y: 172, w: 44, h: 16 },
+      { kind: 'wall', x: 176 },
     ],
     keyframes: (() => {
       const p = (ankle: Vec, footAngle: number): Pose => ({
         hip: [ankle[0] - 1, ankle[1] - 81.6],
         torso: 2,
-        armNear: { target: [186, ankle[1] - 110] },
+        armNear: { target: [170, ankle[1] - 108] },
         legNear: { target: ankle },
         legFar: { angles: [6, -62] },
         footNear: footAngle,
