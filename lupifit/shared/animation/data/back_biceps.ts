@@ -1,4 +1,4 @@
-import { STAND_HIP_Y } from '../engine';
+import { BODY, STAND_HIP_Y } from '../engine';
 import type { ExerciseAnimation, LimbSpec, Pose } from '../types';
 
 /** Ankle height when a foot is planted on the floor. */
@@ -15,11 +15,22 @@ const hangBottom: Pose = { hip: [121, 115], torso: -3, armNear: grip, legNear: {
 const hangTop: Pose = { hip: [121, 55], torso: -12, head: -4, armNear: grip, legNear: { angles: [24, -58] }, footNear: -32 };
 
 // Muscle-up: zoomed out further so dead hang and straight-arm support both fit.
+// Poses are specified by the shoulder position (the hands never leave the bar) and torso lean;
+// one elbow bend direction is used throughout so the IK never flips mid-movement.
 const MU_X = 118;
 const MU_Y = 10;
 const MU_CAM = { cx: 120, cy: 56, zoom: 0.72 };
-const MU_HANG: Pose = { hip: [121, 123], torso: -3, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [22, -72] }, footNear: -40 };
-const MU_SUPPORT: Pose = { hip: [115, 0], torso: 10, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [14, 4] } };
+/** Pose from the shoulder position, torso lean and the wrist's height relative to the bar (the grip rolls over the bar). */
+const muPose = (sx: number, sy: number, torso: number, wristDy: number, legs: [number, number], foot?: number): Pose => ({
+  hip: [sx - BODY.torso * Math.sin((torso * Math.PI) / 180), sy + BODY.torso * Math.cos((torso * Math.PI) / 180)],
+  torso,
+  head: torso < 0 ? -4 : 6,
+  armNear: { target: [MU_X, MU_Y + wristDy], bend: -1 },
+  legNear: { angles: legs },
+  ...(foot != null ? { footNear: foot } : {}),
+});
+const MU_HANG = muPose(118, 70, -3, 4, [22, -72], -40);
+const MU_SUPPORT = muPose(114, -51, 8, -5, [14, 4]);
 
 export const animations: ExerciseAnimation[] = [
   {
@@ -89,18 +100,21 @@ export const animations: ExerciseAnimation[] = [
   {
     // Kip swing → explosive pull to the lower chest → lean over the bar → press out to straight-arm support.
     id: 'muscle_up',
-    durationSec: 3.4,
+    durationSec: 3.6,
     camera: MU_CAM,
     props: [{ kind: 'pullUpBar', x: MU_X, y: MU_Y }],
     keyframes: [
       { t: 0, pose: MU_HANG },
-      { t: 0.07, pose: { hip: [122, 119], torso: -14, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [55, -30] } } },
-      { t: 0.14, pose: { hip: [122, 115], torso: -25, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [60, 10] } } },
-      { t: 0.32, pose: { hip: [121, 45], torso: -15, armNear: { target: [MU_X + 2, MU_Y + 4], bend: -1 }, legNear: { angles: [45, 20] } }, ease: 'out' },
-      { t: 0.44, pose: { hip: [102, 37], torso: 30, head: 8, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [30, -20] } } },
-      { t: 0.6, pose: MU_SUPPORT },
-      { t: 0.72, pose: MU_SUPPORT },
-      { t: 0.84, pose: { hip: [104, 40], torso: 26, head: 6, armNear: { target: [MU_X - 2, MU_Y - 5], bend: 1 }, legNear: { angles: [26, -16] } } },
+      { t: 0.08, pose: muPose(124, 67, -14, 4, [55, -30]) },
+      { t: 0.17, pose: muPose(122, 62, -25, 4, [60, 10]) },
+      { t: 0.34, pose: muPose(110, 32, -18, 3, [45, 20]) },
+      { t: 0.4, pose: muPose(100, 17, 4, 2, [44, 12]) },
+      { t: 0.46, pose: muPose(99, 3, 22, 0, [40, 0]) },
+      { t: 0.58, pose: MU_SUPPORT },
+      { t: 0.7, pose: MU_SUPPORT },
+      { t: 0.82, pose: muPose(99, 3, 24, 0, [34, -6]) },
+      { t: 0.88, pose: muPose(100, 17, 4, 2, [38, -10]) },
+      { t: 0.94, pose: muPose(114, 56, -8, 3, [30, -40]) },
       { t: 1, pose: MU_HANG },
     ],
   },
@@ -115,10 +129,10 @@ export const animations: ExerciseAnimation[] = [
       { kind: 'machinePad', at: 'thighs' },
     ],
     keyframes: [
-      { t: 0, pose: { hip: [104, 144], torso: -10, armNear: { target: [122, 34], bend: -1 }, legNear: { target: [146, FA] } } },
-      { t: 0.35, pose: { hip: [104, 144], torso: -16, armNear: { target: [100, 104], bend: -1 }, legNear: { target: [146, FA] } } },
-      { t: 0.45, pose: { hip: [104, 144], torso: -16, armNear: { target: [100, 104], bend: -1 }, legNear: { target: [146, FA] } } },
-      { t: 1, pose: { hip: [104, 144], torso: -10, armNear: { target: [122, 34], bend: -1 }, legNear: { target: [146, FA] } } },
+      { t: 0, pose: { hip: [104, 144], torso: -10, armNear: { target: [118, 46], bend: -1 }, legNear: { target: [146, FA] } } },
+      { t: 0.35, pose: { hip: [104, 144], torso: -16, armNear: { target: [106, 106], bend: -1 }, legNear: { target: [146, FA] } } },
+      { t: 0.45, pose: { hip: [104, 144], torso: -16, armNear: { target: [106, 106], bend: -1 }, legNear: { target: [146, FA] } } },
+      { t: 1, pose: { hip: [104, 144], torso: -10, armNear: { target: [118, 46], bend: -1 }, legNear: { target: [146, FA] } } },
     ],
   },
   {

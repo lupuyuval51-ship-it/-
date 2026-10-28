@@ -95,6 +95,12 @@ export interface ExerciseAnimation {
   props?: Prop[];
   /** Optional camera framing override (centre x/y and zoom); default frames the whole 240×200 canvas. */
   camera?: { cx: number; cy: number; zoom: number; /** Track the hip horizontally (travelling movements such as walking lunges); the floor is drawn dashed so motion stays visible and the loop is seamless. */ followX?: boolean };
+  /**
+   * Declares that this exercise intentionally shares (near-)identical joint motion with another one
+   * (e.g. the same lift with a different implement). `differs` names the visible element that tells
+   * them apart; the QA checks that the props or view really do differ.
+   */
+  sharedMotionWith?: { id: string; differs: string };
   /** Short caption keys shown under the animation per phase (optional). */
   cues?: { t: number; en: string; he: string }[];
 }

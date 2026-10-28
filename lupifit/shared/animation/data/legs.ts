@@ -10,8 +10,8 @@ const rel = (torso: number, b1: number, b2: number): LimbSpec => ({ angles: [b1 
 /** Hands resting on the hips (iliac crest), elbows out behind. */
 const handsOnHips = (torso: number) => rel(torso, -32, 40);
 /** Torso-relative arm angles holding a load. */
-const BACK_BAR: [number, number] = [-25, 173]; // bar on the upper traps, elbows down and back
-const FRONT_RACK: [number, number] = [92, -95]; // elbows high and forward, bar on the front delts
+const BACK_BAR: [number, number] = [-58, 90]; // bar across the upper back, elbows back (the 2D side view cannot fold the elbow beyond ~150° or extend the shoulder beyond ~60°)
+const FRONT_RACK: [number, number] = [90, -122]; // elbows high and forward, bar on the front delts
 const GOBLET: [number, number] = [12, 160]; // dumbbell held vertically against the chest
 
 const foot = (x: number, y = FLOOR_ANKLE): LimbSpec => ({ target: [x, y] });
@@ -80,10 +80,10 @@ export const animations: ExerciseAnimation[] = [
     keyframes: squatKeys(114, [
       { t: 0, shin: 0, thigh: 4, torso: 8 },
       { t: 0.16, shin: 9, thigh: 34 },
-      { t: 0.32, shin: 18, thigh: 66 },
-      { t: 0.48, shin: 24, thigh: 94 },
-      { t: 0.54, shin: 24, thigh: 94 },
-      { t: 0.66, shin: 18, thigh: 66 },
+      { t: 0.32, shin: 18, thigh: 62 },
+      { t: 0.48, shin: 24, thigh: 86 },
+      { t: 0.54, shin: 24, thigh: 86 },
+      { t: 0.66, shin: 18, thigh: 62 },
       { t: 0.78, shin: 9, thigh: 34 },
       { t: 0.9, shin: 0, thigh: 4, torso: 8 },
       { t: 1, shin: 0, thigh: 4, torso: 8 },
@@ -337,8 +337,8 @@ export const animations: ExerciseAnimation[] = [
       { kind: 'legPressSled' },
     ],
     keyframes: (() => {
-      const top: Vec = [146, 84];
-      const bottom: Vec = [114, 112];
+      const top: Vec = [134, 95];
+      const bottom: Vec = [112, 114];
       const p = (f: Vec): Pose => ({ hip: [70, 143], torso: -48, head: 10, armNear: rel(-48, 6, 40), legNear: { target: f, bend: 1 }, footNear: -132 });
       return [kf(0, p(top)), kf(0.45, p(bottom)), kf(0.52, p(bottom)), kf(0.88, p(top)), kf(1, p(top))];
     })(),

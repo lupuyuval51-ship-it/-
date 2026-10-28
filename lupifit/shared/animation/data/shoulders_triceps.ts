@@ -287,9 +287,9 @@ export const animations: ExerciseAnimation[] = [
       { kind: 'cable', anchor: [214, 44], at: 'hands' },
     ],
     keyframes: kf(
-      [0, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [152, 46], bend: 1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
-      [0.38, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [100, 30], bend: 1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
-      [0.5, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [100, 30], bend: 1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
+      [0, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [151, 52], bend: -1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
+      [0.38, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [112, 29], bend: -1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
+      [0.5, { hip: [100, STAND_HIP_Y], torso: -5, armNear: { target: [112, 29], bend: -1 }, legNear: { target: [114, FLOOR_ANKLE] }, legFar: { target: [86, FLOOR_ANKLE] } }],
     ),
   },
   {

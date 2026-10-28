@@ -75,18 +75,22 @@ export const animations: ExerciseAnimation[] = [
       const BAR_X = 120;
       const steps: [number, number, number, number, number][] = [
         // t, shin, thigh, torso, bar y
-        [0, 20, 76, 64, 172],
-        [0.08, 20, 76, 64, 172],
+        [0, 20, 72, 60, 172],
+        [0.08, 20, 72, 60, 172],
         [0.22, 8, 58, 48, 145],
+        [0.3, 5, 32, 24, 128],
         [0.38, 2, 6, 2, 113],
         [0.48, 2, 6, 2, 113],
+        [0.56, 3, 20, 14, 122],
         [0.64, 4, 40, 40, 140],
-        [0.84, 20, 76, 64, 172],
-        [1, 20, 76, 64, 172],
+        [0.84, 20, 72, 60, 172],
+        [1, 20, 72, 60, 172],
       ];
       return steps.map(([t, shin, thigh, torso, y]) => {
         const hip = hipFrom([114, FLOOR_ANKLE], shin, thigh);
-        return kf(t, { hip, torso, head: -torso * 0.25, armNear: gripAt(hip, torso, [BAR_X, y]), legNear: foot(114) });
+        // The bar never leaves the hands: clamp to what straight arms can reach from the shoulder.
+        const reachY = shoulderOf(hip, torso)[1] + BODY.upperArm + BODY.forearm + BODY.hand - 1;
+        return kf(t, { hip, torso, head: -torso * 0.25, armNear: gripAt(hip, torso, [BAR_X, Math.min(y, reachY)]), legNear: foot(114) });
       });
     })(),
   },

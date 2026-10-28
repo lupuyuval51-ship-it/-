@@ -22,11 +22,12 @@
     "typecheck": "tsc -p server/tsconfig.json --noEmit && tsc -p client/tsconfig.json --noEmit",
     "lint": "node scripts/lint.mjs && node scripts/design-lint.mjs && node scripts/e2e-strings.mjs",
     "validate:content": "tsx scripts/validate-content.ts",
+    "animation:qa": "tsx scripts/animation-qa.ts",
     "test": "npm run test:server && npm run test:client",
     "test:server": "vitest run --config server/vitest.config.ts",
     "test:client": "vitest run --config client/vitest.config.ts",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "verify": "npm run typecheck && npm run lint && npm run validate:content && npm test && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run validate:content && npm run animation:qa && npm test && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
