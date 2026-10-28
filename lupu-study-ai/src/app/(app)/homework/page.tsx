@@ -162,9 +162,10 @@ export default function HomeworkPage() {
         title={`למחוק את "${deleting?.title}"?`}
         onConfirm={() => {
           if (deleting) {
-            deleting.attachmentIds.forEach((id) => void deleteFile(id));
-            act.removeHomework(deleting.id);
-            toast.info("המשימה נמחקה");
+            // הקבצים המצורפים נשארים כדי שאפשר יהיה לבטל את המחיקה
+            const removed = deleting;
+            act.removeHomework(removed.id);
+            toast.info("המשימה נמחקה", undefined, { label: "בטל", onClick: () => act.restoreItems("homework", [removed]) });
           }
         }}
       />

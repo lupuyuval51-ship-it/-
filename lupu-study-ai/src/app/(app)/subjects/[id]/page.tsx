@@ -140,7 +140,7 @@ export default function SubjectDetailPage() {
                             <Sparkles />
                           </Link>
                           <Button variant="ghost" size="icon-sm" aria-label={`עריכת ${t.name}`} onClick={() => setEditing({ id: t.id, name: t.name })}><Pencil /></Button>
-                          <Button variant="ghost" size="icon-sm" aria-label={`מחיקת ${t.name}`} onClick={() => { act.removeTopic(t.id); toast.info("הנושא הוסר"); }}><Trash2 className="text-destructive" /></Button>
+                          <Button variant="ghost" size="icon-sm" aria-label={`מחיקת ${t.name}`} onClick={() => { act.removeTopic(t.id); toast.info("הנושא הוסר", undefined, { label: "בטל", onClick: () => act.restoreItems("topics", [t]) }); }}><Trash2 className="text-destructive" /></Button>
                         </div>
                       )}
                     </Card>

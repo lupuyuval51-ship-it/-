@@ -67,6 +67,8 @@ export const act = {
   removeMessage: bind(R.removeMessage),
   clearAiHistory: bind(R.clearAiHistory),
   saveExercise: bind(R.saveExercise),
+  recordTutorResults: bind(R.recordTutorResults),
+  restoreItems: bind(R.restoreItems),
   removeExercise: bind(R.removeExercise),
   addGoal: bind(R.addGoal),
   removeGoal: bind(R.removeGoal),

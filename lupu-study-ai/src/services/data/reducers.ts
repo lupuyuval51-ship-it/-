@@ -1,6 +1,6 @@
 import type {
   AnswerSubmission, AppData, CalendarEvent, Conversation, DateStr, Difficulty, Exam, ExamAttempt, ExamQuestion,
-  Flashcard, Goal, Homework, ID, Message, PersonalGoal, PracticeResult, Priority, SavedExercise, StudyMaterial,
+  CollectionName, Flashcard, Goal, Homework, ID, Message, PersonalGoal, PracticeResult, Priority, SavedExercise, StudyMaterial,
   StudyNote, StudySession, Subject, TimetableSlot, Topic, XpEvent,
 } from "@/types";
 import { buildSubjects, emptyData } from "./defaults";
@@ -195,6 +195,13 @@ export function setHomeworkDone(d: AppData, id: ID, done: boolean): Out {
     homework: d.homework.map((h) => (h.id === id ? { ...h, done, doneAt: done ? nowIso() : null } : h)),
   };
   return done ? grant(next, [{ key: `hw:${id}`, amount: XP.homework, reason: "השלמת שיעורי בית" }]) : ok(next);
+}
+
+/** שחזור פריט שנמחק (ביטול מחיקה). מחזיר גם פריטים תלויים שנמחקו איתו אם הועברו. */
+export function restoreItems(d: AppData, name: CollectionName, items: { id: ID }[]): Out {
+  let list = d[name] as { id: ID }[];
+  for (const it of items) list = upsertBy(list, it);
+  return ok({ ...d, [name]: list } as AppData);
 }
 
 export function removeHomework(d: AppData, id: ID): Out {
@@ -536,6 +543,20 @@ export function removeMessage(d: AppData, id: ID): Out {
 /** מחיקת כל היסטוריית ה-AI (שיחות והודעות) */
 export function clearAiHistory(d: AppData): Out {
   return ok({ ...d, conversations: [], messages: [] });
+}
+
+/** תוצאות שהמורה AI דיווח במצב תרגול/מבחן נרשמות כתוצאות תרגול (מזינות שליטה ודיוק). ללא XP, כדי שלא ניתן יהיה לנפח. */
+export function recordTutorResults(
+  d: AppData,
+  input: { subjectId: ID | null; fallbackTopic: string; verdicts: { points: number; topic: string; difficulty: Difficulty }[] },
+): Out {
+  if (!input.verdicts.length) return ok(d);
+  const at = nowIso();
+  const results: PracticeResult[] = input.verdicts.slice(0, 10).map((v) => ({
+    id: uid(), subjectId: input.subjectId, topic: v.topic || input.fallbackTopic, correct: v.points, total: 1,
+    difficulty: v.difficulty, source: "tutor", at,
+  }));
+  return ok({ ...d, practiceResults: [...d.practiceResults, ...results] });
 }
 
 export function saveExercise(d: AppData, ex: Omit<SavedExercise, "id" | "createdAt">): Out {

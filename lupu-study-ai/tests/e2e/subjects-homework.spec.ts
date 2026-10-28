@@ -129,3 +129,15 @@ test.describe("שיעורי בית", () => {
     await expect(page.getByText("exercise.png")).toBeVisible();
   });
 });
+
+test("ביטול מחיקה: משימה שנמחקה חוזרת בלחיצה על 'בטל'", async ({ page }) => {
+  const R = await import("@/services/data/reducers");
+  await seed(page, onboarded((d) => R.addHomework(d, { subjectId: null, title: "למחיקה ושחזור", description: "", dueDate: addDays(today(), 3), priority: "low" }).data));
+  await page.goto("/homework");
+  await page.getByRole("button", { name: "מחיקת למחיקה ושחזור" }).click();
+  await page.getByRole("button", { name: "מחיקה", exact: true }).click();
+  await expect(page.locator("ul.space-y-3").getByText("למחיקה ושחזור")).toHaveCount(0);
+  await page.getByRole("button", { name: "בטל", exact: true }).click();
+  await expect(page.locator("ul.space-y-3").getByText("למחיקה ושחזור")).toBeVisible();
+  expect((await storeData(page)).homework).toHaveLength(1);
+});

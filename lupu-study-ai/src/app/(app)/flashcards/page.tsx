@@ -192,7 +192,7 @@ function Manage({ cards, onEdit }: { cards: Flashcard[]; onEdit: (c: Flashcard) 
           </li>
         ))}
       </ul>
-      <ConfirmDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)} title="למחוק את הכרטיסייה?" onConfirm={() => { if (deleting) { act.removeFlashcard(deleting.id); toast.info("הכרטיסייה נמחקה"); } }} />
+      <ConfirmDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)} title="למחוק את הכרטיסייה?" onConfirm={() => { if (deleting) { const removed = deleting; act.removeFlashcard(removed.id); toast.info("הכרטיסייה נמחקה", undefined, { label: "בטל", onClick: () => act.restoreItems("flashcards", [removed]) }); } }} />
     </>
   );
 }

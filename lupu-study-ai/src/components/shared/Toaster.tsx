@@ -10,7 +10,7 @@ export function Toaster() {
   useEffect(() => {
     return toastBus.on((t) => {
       setItems((cur) => [...cur.slice(-3), t]);
-      setTimeout(() => setItems((cur) => cur.filter((x) => x.id !== t.id)), t.kind === "error" ? 7000 : 4000);
+      setTimeout(() => setItems((cur) => cur.filter((x) => x.id !== t.id)), t.kind === "error" ? 7000 : t.action ? 8000 : 4000);
     });
   }, []);
   return (
@@ -32,6 +32,11 @@ export function Toaster() {
             <p className="text-sm font-bold">{t.title}</p>
             {t.detail && <p className="mt-0.5 text-sm text-muted-foreground">{t.detail}</p>}
           </div>
+          {t.action && (
+            <button type="button" className="shrink-0 rounded-md bg-primary/10 px-3 py-1 text-sm font-bold text-primary hover:bg-primary/20" onClick={() => { t.action!.onClick(); setItems((c) => c.filter((x) => x.id !== t.id)); }}>
+              {t.action.label}
+            </button>
+          )}
           <button type="button" aria-label="סגירה" className="text-muted-foreground hover:text-foreground" onClick={() => setItems((c) => c.filter((x) => x.id !== t.id))}>
             <X className="size-4" />
           </button>

@@ -8,6 +8,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // בניית "live" (עם Supabase אמיתי) נפרדת, כדי לא לדרוס את ה-build הרגיל של בדיקות המצב המקומי
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   poweredByHeader: false,
   webpack: (config) => {

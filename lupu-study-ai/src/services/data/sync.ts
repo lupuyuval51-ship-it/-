@@ -56,15 +56,15 @@ class SyncEngine {
     this.userId = userId;
     setRemoteFiles(this.remoteFiles());
     this.set({ state: "syncing" });
-    try {
+    // מאזינים לשינויים כבר מההתחלה: שינוי שהמשתמש עושה בזמן שהמשיכה הראשונית רצה לא הולך לאיבוד,
+    // כי עדכוני הדחיפה ממתינים בתור עד שהמיזוג הראשוני מסתיים.
+    this.unsubChange = dataStore.onChange((prev, next) => this.enqueue(() => this.mirror(prev, next)));
+    window.addEventListener("online", this.onOnline);
+    window.addEventListener("offline", this.onOffline);
+    this.enqueue(async () => {
       await this.initialSync();
-      this.unsubChange = dataStore.onChange((prev, next) => this.enqueue(() => this.mirror(prev, next)));
-      window.addEventListener("online", this.onOnline);
-      window.addEventListener("offline", this.onOffline);
       this.set({ state: "synced", lastSyncedAt: new Date().toISOString() });
-    } catch (e) {
-      this.fail(e);
-    }
+    });
   }
 
   stop() {
@@ -128,22 +128,28 @@ class SyncEngine {
 
   private async initialSync() {
     const sb = this.sb!;
-    const local = dataStore.getSnapshot();
-    const { data: profRow, error: pe } = await sb.from("profiles").select("*").eq("id", this.userId).maybeSingle();
-    if (pe) throw new Error(`profiles: ${pe.message}`);
+    const [profileRes, ...pulled] = await Promise.all([
+      sb.from("profiles").select("*").eq("id", this.userId).maybeSingle(),
+      ...COLLECTIONS.map(async ({ name, table }) => ({
+        name,
+        rows: (await this.fetchAll<Record<string, unknown>>(table)).map((r) => normalizeRemote(fromRow<{ id: string }>(r))),
+      })),
+    ] as const);
+    if (profileRes.error) throw new Error(`profiles: ${profileRes.error.message}`);
+    const remoteProfile = profileRes.data ? normalizeRemote(fromRow<NonNullable<AppData["profile"]>>(profileRes.data)) : null;
 
-    const merged: Record<string, unknown> = { ...local };
-    for (const { name, table } of COLLECTIONS) {
-      const remote = (await this.fetchAll<Record<string, unknown>>(table)).map((r) => normalizeRemote(fromRow<{ id: string }>(r)));
-      merged[name] = dedupeKeys(name, mergeById(local[name] as { id: string }[], remote), new Set(remote.map((r) => r.id)));
-    }
-    const remoteProfile = profRow ? normalizeRemote(fromRow<NonNullable<AppData["profile"]>>(profRow)) : null;
-    // פרופיל: השרת מנצח; אחרת הפרופיל המקומי מקבל את מזהה המשתמש המחובר
-    merged.profile = remoteProfile ?? (local.profile ? { ...local.profile, id: this.userId } : null);
-    const next = normalizeData({ ...merged, meta: local.meta });
-    dataStore.replace(next, false);
+    // המיזוג מתבצע על המצב הנוכחי (לא על תמונת מצב ישנה), כדי לא לדרוס שינויים שנעשו בזמן המשיכה
+    dataStore.update((cur) => {
+      const merged: Record<string, unknown> = { ...cur };
+      for (const { name, rows } of pulled) {
+        merged[name] = dedupeKeys(name, mergeById(cur[name] as { id: string }[], rows), new Set(rows.map((r) => r.id)));
+      }
+      // פרופיל: השרת מנצח; אחרת הפרופיל המקומי מקבל את מזהה המשתמש המחובר
+      merged.profile = remoteProfile ?? (cur.profile ? { ...cur.profile, id: this.userId } : null);
+      return normalizeData({ ...merged, meta: cur.meta });
+    }, false);
     await this.pushAll();
-    await this.pushMissingBlobs(next);
+    await this.pushMissingBlobs(dataStore.getSnapshot());
   }
 
   // ───────── דחיפה ─────────

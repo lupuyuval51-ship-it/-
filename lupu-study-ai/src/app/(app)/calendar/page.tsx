@@ -157,7 +157,7 @@ export default function CalendarPage() {
                   {it.href && <Link href={it.href} className="text-xs font-bold text-primary">פתח</Link>}
                   {it.event && <>
                     <Button size="icon-sm" variant="ghost" aria-label="עריכה" onClick={() => { setEditing({ event: it.event, date: it.date }); setDayOpen(null); }}><Pencil /></Button>
-                    <Button size="icon-sm" variant="ghost" aria-label="מחיקה" onClick={() => { act.removeEvent(it.event!.id); toast.info("האירוע נמחק"); }}><Trash2 className="text-destructive" /></Button>
+                    <Button size="icon-sm" variant="ghost" aria-label="מחיקה" onClick={() => { const removed = it.event!; act.removeEvent(removed.id); toast.info("האירוע נמחק", undefined, { label: "בטל", onClick: () => act.restoreItems("calendarEvents", [removed]) }); }}><Trash2 className="text-destructive" /></Button>
                   </>}
                 </li>
               ))}

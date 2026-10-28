@@ -61,14 +61,15 @@ class DataStore {
     this.emit();
   }
 
-  update(fn: (d: AppData) => AppData) {
+  /** notifyChange=false: שינוי שמקורו בענן עצמו (משיכה) ולכן אסור לדחוף אותו חזרה */
+  update(fn: (d: AppData) => AppData, notifyChange = true) {
     const prev = this.data;
     const next = fn(prev);
     if (next === prev) return;
     this.data = next;
     this.scheduleSave();
     this.emit();
-    this.changeListeners.forEach((l) => l(prev, next));
+    if (notifyChange) this.changeListeners.forEach((l) => l(prev, next));
   }
 
   /** מחליף את כל הנתונים (למשל אחרי משיכה מהענן או איפוס) */

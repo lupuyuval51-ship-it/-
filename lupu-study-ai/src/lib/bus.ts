@@ -6,6 +6,7 @@ export interface ToastMsg {
   kind: ToastKind;
   title: string;
   detail?: string;
+  action?: { label: string; onClick: () => void };
 }
 
 type Handler<T> = (v: T) => void;
@@ -27,10 +28,10 @@ export const toastBus = new Bus<ToastMsg>();
 export const rewardBus = new Bus<Reward[]>();
 
 let counter = 0;
-const push = (kind: ToastKind, title: string, detail?: string) => toastBus.emit({ id: ++counter, kind, title, detail });
+const push = (kind: ToastKind, title: string, detail?: string, action?: ToastMsg["action"]) => toastBus.emit({ id: ++counter, kind, title, detail, action });
 
 export const toast = {
   success: (title: string, detail?: string) => push("success", title, detail),
   error: (title: string, detail?: string) => push("error", title, detail),
-  info: (title: string, detail?: string) => push("info", title, detail),
+  info: (title: string, detail?: string, action?: ToastMsg["action"]) => push("info", title, detail, action),
 };

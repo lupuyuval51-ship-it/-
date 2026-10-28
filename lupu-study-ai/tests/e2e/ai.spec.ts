@@ -229,3 +229,25 @@ test.describe("צילום שאלות", () => {
     await expect(page.locator(NL)).toContainText("סוג קובץ לא נתמך");
   });
 });
+
+test("תרגול במורה AI: תוצאת הבדיקה נרשמת בסטטיסטיקות והתגית לא מוצגת; במצב הסבר לא נרשמת", async ({ page }) => {
+  const d = onboarded();
+  await seed(page, d);
+  await page.goto("/tutor?subject=" + d.subjects[0].id);
+  await page.getByRole("tab", { name: "תרגול" }).click();
+  await page.getByLabel("הודעה למורה").fill("MOCK_VERDICT התשובה היא 4");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("msg-ai").first()).toContainText("כל הכבוד", { timeout: 15_000 });
+  expect(await page.getByTestId("msg-ai").first().innerText()).not.toContain("RESULT");
+  let data = await storeData(page);
+  expect(data.practiceResults).toHaveLength(1);
+  expect(data.practiceResults[0]).toMatchObject({ source: "tutor", topic: "משוואות", correct: 1, total: 1 });
+  expect(data.xpEvents).toHaveLength(0);
+
+  await page.getByRole("tab", { name: "הסבר" }).click();
+  await page.getByLabel("הודעה למורה").fill("MOCK_VERDICT הסבר");
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("msg-ai")).toHaveCount(2, { timeout: 15_000 });
+  data = await storeData(page);
+  expect(data.practiceResults).toHaveLength(1);
+});

@@ -18,6 +18,7 @@ import { act } from "@/services/data/actions";
 import { saveFile } from "@/services/data/files";
 import { aiChatStream, AiClientError } from "@/services/ai/client";
 import { buildMaterialContext, resolveCitations } from "@/services/ai/retrieval";
+import { parseVerdicts, stripPartialTag } from "@/services/ai/verdicts";
 import { checkFile, downscaleImage, fileToDataUrl } from "@/lib/files";
 import { toast } from "@/lib/bus";
 import { nowIso, uid } from "@/lib/utils";
@@ -180,13 +181,20 @@ export default function TutorClient() {
           (_c, all) => setStreaming({ convId: convId!, text: all }),
           ctrl.signal,
         );
-        const resolved = resolveCitations(full, map);
+        // במצב תרגול/מבחן ה-AI מדווח תוצאת בדיקה בתגית מכונה: מסירים אותה מהטקסט ורושמים בסטטיסטיקות
+        const parsed = parseVerdicts(full);
+        const verdicts = cur.mode === "explain" ? [] : parsed.verdicts;
+        if (verdicts.length) {
+          act.recordTutorResults({ subjectId: cur.subjectId || null, fallbackTopic: cur.topic || subject?.name || "", verdicts });
+          toast.info(`נרשמו ${verdicts.length} תוצאות בסטטיסטיקות`, "לפי בדיקת המורה AI. זו הערכה ולא ציון רשמי.");
+        }
+        const resolved = resolveCitations(parsed.text, map);
         act.addMessage({ id: uid(), conversationId: convId, role: "assistant", content: resolved.text, imageIds: [], citations: resolved.citations as Citation[], isError: false, createdAt: nowIso() });
       } catch (e) {
         if (e instanceof DOMException && e.name === "AbortError") {
           // עצירה ידנית: שומרים את מה שהתקבל עד כה
           setStreaming((s) => {
-            if (s?.text.trim()) act.addMessage({ id: uid(), conversationId: convId!, role: "assistant", content: `${resolveCitations(s.text, map).text}\n\n*(התשובה נעצרה)*`, imageIds: [], citations: [], isError: false, createdAt: nowIso() });
+            if (s?.text.trim()) act.addMessage({ id: uid(), conversationId: convId!, role: "assistant", content: `${resolveCitations(parseVerdicts(s.text).text, map).text}\n\n*(התשובה נעצרה)*`, imageIds: [], citations: [], isError: false, createdAt: nowIso() });
             return null;
           });
         } else {
@@ -200,7 +208,7 @@ export default function TutorClient() {
         abortRef.current = null;
       }
     },
-    [ai.configured, conversation, cur.level, cur.mode, cur.topic, data.messages, data.studyMaterials, images, materialIds, profile.grade, settings, subject?.name],
+    [ai.configured, conversation, cur.level, cur.mode, cur.subjectId, cur.topic, data.messages, data.studyMaterials, images, materialIds, profile.grade, settings, subject?.name],
   );
 
   const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
@@ -265,7 +273,18 @@ export default function TutorClient() {
               icon={<Lightbulb />}
               title={cur.mode === "explain" ? "במה אפשר לעזור?" : cur.mode === "practice" ? "מוכנים לתרגל?" : "מוכנים למבחן?"}
               description={subject ? `${subject.name}${cur.topic ? ` · ${cur.topic}` : ""}. כתוב שאלה, או התחל מיד.` : "בחר מקצוע ונושא, או פשוט כתוב שאלה בכל מקצוע."}
-              action={ai.configured && <Button variant="gradient" onClick={startPreset}>{cur.mode === "explain" ? "הסבר לי את הנושא" : cur.mode === "practice" ? "התחל תרגול" : "התחל מבחן קצר"}</Button>}
+              action={ai.configured && (
+                <div className="flex flex-col items-center gap-3">
+                  <Button variant="gradient" onClick={startPreset}>{cur.mode === "explain" ? "הסבר לי את הנושא" : cur.mode === "practice" ? "התחל תרגול" : "התחל מבחן קצר"}</Button>
+                  {!cur.topic && topics.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2" aria-label="נושאים מוצעים">
+                      {topics.slice(0, 5).map((t) => (
+                        <button key={t.id} type="button" className="rounded-full border bg-muted/50 px-3 py-1.5 text-xs font-semibold hover:bg-muted" onClick={() => { update({ topic: t.name }); void send(cur.mode === "practice" ? `התחל תרגול בנושא: ${t.name}. שאל אותי שאלה אחת.` : cur.mode === "exam" ? `התחל מבחן קצר של 5 שאלות בנושא: ${t.name}.` : `הסבר לי את הנושא: ${t.name}`); }}>{t.name}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             />
           ) : (
             <>
@@ -273,7 +292,7 @@ export default function TutorClient() {
               {streaming && streaming.convId === activeId && (streaming.text ? (
                 <div className="flex gap-3" data-testid="msg-streaming">
                   <span className="mt-1 size-8 shrink-0 rounded-full bg-gradient-to-br from-primary to-accent" aria-hidden />
-                  <div className="max-w-[88%] rounded-2xl rounded-ts-sm border bg-card px-4 py-3 sm:max-w-[80%]"><Markdown>{streaming.text.replace(/\[\[[^\]]*$/, "")}</Markdown></div>
+                  <div className="max-w-[88%] rounded-2xl rounded-ts-sm border bg-card px-4 py-3 sm:max-w-[80%]"><Markdown>{stripPartialTag(streaming.text)}</Markdown></div>
                 </div>
               ) : <TypingBubble />)}
               {pending && !streaming && <TypingBubble />}

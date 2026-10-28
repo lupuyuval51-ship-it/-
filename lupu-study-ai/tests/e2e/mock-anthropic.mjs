@@ -70,6 +70,8 @@ const server = http.createServer(async (req, res) => {
     ] });
   } else if (system.includes("בודק תשובה פתוחה")) {
     output = JSON.stringify({ score: 80, feedback: "תשובה טובה, חסר רק ציון היחידות." });
+  } else if (text.includes("MOCK_VERDICT")) {
+    output = "נכון, כל הכבוד! הצעד הראשון נכון.\n[[RESULT:correct|topic=משוואות|difficulty=2]]\n[[RESULT:bogus]]";
   } else {
     output = "בוא נפתור יחד. נתחיל בלבודד את $x$:\n\n$$2x+3=7 \\Rightarrow 2x=4$$\n\nמה אפשר לעשות עכשיו? [[M1:p2]] [[M1:p99]] [[M5]]";
   }
