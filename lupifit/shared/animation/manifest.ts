@@ -7,6 +7,7 @@
 import { QA_VERSION } from './qa';
 import { computeFrame, type Joints } from './engine';
 import { ANIMATIONS } from './data/index';
+import { BLOCKED } from './status';
 import type { ExerciseAnimation } from './types';
 
 export type DemoStatus = 'verified' | 'draft' | 'blocked';
@@ -164,11 +165,6 @@ export const VERIFIED: Record<string, string> = Object.fromEntries(
  * of the exercise): dumbbell_shrug (a 2-unit bob is not a shrug), russian_twist (rotation is invisible in profile),
  * cat_cow (the rigid torso cannot flex the spine), box_jump (thigh clips the box on the way down, see QA report).
  */
-
-/** id -> reason. Hidden from the library until fixed. */
-export const BLOCKED: Record<string, string> = {
-  worlds_greatest_stretch: 'Multi-phase flow whose deep lunge, rotation and hamstring phases break joint limits (hip 170+ degrees, shoulder/elbow hyperextension), cause a 13-unit knee pop and sink the thigh into the floor; needs a full rewrite before it can be shown.',
-};
 
 // ------------------------------------------------------------------ phase / tempo derivation
 

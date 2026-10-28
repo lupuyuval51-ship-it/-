@@ -93,6 +93,12 @@ test('detail page: content, animated demonstration, alternatives, back navigatio
   await expect(demo.getByRole('img')).toBeVisible();
   await demo.getByRole('button', { name: 'Pause' }).click();
   await expect(demo.getByRole('button', { name: 'Play' })).toBeVisible();
+  // Restart rewinds and resumes playback; the phase label is shown.
+  await demo.getByRole('button', { name: 'Restart' }).click();
+  await expect(demo.getByRole('button', { name: 'Pause' })).toBeVisible();
+  await expect(demo.locator('.anim-phase')).toBeVisible();
+  await demo.getByRole('button', { name: 'Pause' }).click();
+  await expect(demo.getByRole('button', { name: 'Play' })).toBeVisible();
   await expect(page.locator('main video, main figure img')).toHaveCount(0);
   // Onboarding equipment includes barbell + rack.
   await expect(page.getByText('You have the equipment for this exercise.')).toBeVisible();

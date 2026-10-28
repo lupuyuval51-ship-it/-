@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Muscle } from '@shared/constants';
 import { getAnimation } from '@shared/animation/data/index';
+import { getManifestEntry, phaseAt } from '@shared/animation/manifest';
 import { CANVAS, computeFrame, floorDash, viewBoxFor, type Frame, type PropShape } from '@shared/animation/engine';
 import { Icon } from '../../components/ui';
 import { useI18n } from '../../i18n';
@@ -63,10 +64,14 @@ function FigureSvg({ anim, frame, label, decorative = false }: { anim: Anim; fra
   );
 }
 
+const SPEEDS = [0.25, 0.5, 1] as const;
+const SPEED_LABEL: Record<(typeof SPEEDS)[number], string> = { 0.25: '¼×', 0.5: '½×', 1: '1×' };
+
 /**
  * Animated demonstration of an exercise (articulated figure + equipment, primary muscles
  * highlighted). Renders nothing when the exercise has no animation, so the UI never
- * implies a demonstration exists when it does not.
+ * implies a demonstration exists when it does not — unless `showUnavailable` asks for an
+ * explicit "demo unavailable" state.
  */
 export function ExerciseAnimation({
   exerciseId,
@@ -75,6 +80,7 @@ export function ExerciseAnimation({
   controls = true,
   autoPlay = true,
   label,
+  showUnavailable = false,
 }: {
   exerciseId: string;
   muscles?: Muscle[];
@@ -82,13 +88,18 @@ export function ExerciseAnimation({
   controls?: boolean;
   autoPlay?: boolean;
   label?: string;
+  showUnavailable?: boolean;
 }) {
   const { t } = useI18n();
   const anim = getAnimation(exerciseId);
-  const reduceMotion = useMemo(() => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, []);
+  const manifest = anim ? getManifestEntry(exerciseId) : null;
+  const reduceMotion = useMemo(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches), []);
+  // With reduced motion the demo starts as two still poses; the person opts in to motion.
+  const [motionRequested, setMotionRequested] = useState(false);
+  const stillMode = reduceMotion && !motionRequested;
   const [playing, setPlaying] = useState(autoPlay && !reduceMotion);
-  const [speed, setSpeed] = useState(1);
-  const [time, setTime] = useState(reduceMotion ? 0.5 : 0);
+  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
+  const [time, setTime] = useState(0);
   const raf = useRef<number | null>(null);
   const last = useRef<number | null>(null);
   const holder = useRef<HTMLDivElement>(null);
@@ -101,10 +112,10 @@ export function ExerciseAnimation({
     const io = new IntersectionObserver(([e]) => setVisible(Boolean(e?.isIntersecting)), { rootMargin: '50px' });
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [anim]);
 
   useEffect(() => {
-    if (!anim || !playing || !visible) return;
+    if (!anim || !playing || !visible || stillMode) return;
     const step = (now: number) => {
       if (last.current != null) {
         const dt = (now - last.current) / 1000;
@@ -118,24 +129,93 @@ export function ExerciseAnimation({
       if (raf.current != null) cancelAnimationFrame(raf.current);
       last.current = null;
     };
-  }, [anim, playing, speed, visible]);
+  }, [anim, playing, speed, visible, stillMode]);
 
-  if (!anim) return null;
+  if (!anim) {
+    if (!showUnavailable) return null;
+    return (
+      <div className={`anim anim-stage anim-${size} anim-unavailable`} role="status">
+        <p className="anim-note">
+          <Icon name="info" size={18} />
+          <span>
+            <strong>{t('exercises.animation.unavailable')}</strong> {t('exercises.animation.unavailableNote')}
+          </span>
+        </p>
+      </div>
+    );
+  }
+
+  const figureLabel = label ?? t('exercises.animation.label');
+  const phase = manifest ? phaseAt(manifest, time) : null;
+
+  if (stillMode) {
+    // Start pose and the end of the movement (the peak phase), side by side, plus an opt-in to motion.
+    const peakT = manifest && manifest.phases.length > 2 ? manifest.phases[2]!.t + 0.01 : 0.5;
+    const start = computeFrame(anim, 0, muscles);
+    const end = computeFrame(anim, peakT, muscles);
+    return (
+      <div ref={holder} className={`anim anim-stage anim-${size} anim-still`}>
+        <div className="anim-still-pair">
+          <figure className="anim-still-pose">
+            <FigureSvg anim={anim} frame={start} label={`${figureLabel} — ${t('exercises.animation.startPose')}`} />
+            <figcaption>{t('exercises.animation.startPose')}</figcaption>
+          </figure>
+          <figure className="anim-still-pose">
+            <FigureSvg anim={anim} frame={end} label={`${figureLabel} — ${t('exercises.animation.endPose')}`} />
+            <figcaption>{t('exercises.animation.endPose')}</figcaption>
+          </figure>
+        </div>
+        {controls && (
+          <div className="anim-controls">
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setMotionRequested(true);
+                setPlaying(true);
+              }}
+            >
+              <Icon name="play" size={16} />
+              <span className="btn-label">{t('exercises.animation.showMotion')}</span>
+            </button>
+            <span className="anim-hint">{t('exercises.animation.reducedMotion')}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   const frame = computeFrame(anim, time, muscles);
 
   return (
     <div ref={holder} className={`anim anim-stage anim-${size}`}>
-      <FigureSvg anim={anim} frame={frame} label={label ?? t('exercises.animation.label')} />
+      <FigureSvg anim={anim} frame={frame} label={figureLabel} />
+      {controls && phase && (
+        <p className="anim-phase" data-phase={phase.labelKey}>
+          <span className="anim-phase-label">{t('exercises.animation.phase.title')}</span> <strong>{t(`exercises.animation.phase.${phase.labelKey}`)}</strong>
+        </p>
+      )}
       {controls && (
         <div className="anim-controls">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPlaying((p) => !p)} aria-pressed={playing}>
             <Icon name={playing ? 'pause' : 'play'} size={16} />
             <span className="btn-label">{playing ? t('exercises.animation.pause') : t('exercises.animation.play')}</span>
           </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setTime(0);
+              setPlaying(true);
+            }}
+          >
+            <Icon name="refresh" size={16} />
+            <span className="btn-label">{t('exercises.animation.restart')}</span>
+          </button>
           <div className="segmented segmented-sm" role="radiogroup" aria-label={t('exercises.animation.speed')}>
-            {[0.5, 1].map((s) => (
+            {SPEEDS.map((s) => (
               <button key={s} type="button" role="radio" aria-checked={speed === s} className={`segment${speed === s ? ' segment-active' : ''}`} onClick={() => setSpeed(s)}>
-                {s === 1 ? '1×' : '½×'}
+                {SPEED_LABEL[s]}
               </button>
             ))}
           </div>

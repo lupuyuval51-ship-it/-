@@ -28,6 +28,7 @@ Stack: React 19 + TypeScript (Vite) Â· Node.js 22.13+ / Express 5 (TypeScript) Â
 npm run dev            # API (tsx watch, :3000) + Vite (:5173, proxies /api)
 npm run db:setup       # migrate + seed content
 npm run typecheck && npm run lint && npm run validate:content   # lint = security scan + design ratchet + e2e copy lock
+npm run animation:qa   # exercise animation QA (ROM, IK reach, pops, penetration, uniqueness) -> reports/animation-coverage.md
 npm run test:server    # Vitest + real PostgreSQL (TEST_DATABASE_URL, default fitai_test)
 npm run test:client    # Vitest + jsdom
 npm run build          # dist/client + dist/server

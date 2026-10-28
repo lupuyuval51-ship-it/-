@@ -41,3 +41,13 @@
 .anim-stage .anim-svg { border: 1px solid var(--border); }
 .anim-stage.anim-lg .anim-svg { max-inline-size: 720px; margin-inline: auto; }
 .anim-stage .anim-controls { justify-content: center; }
+
+/* Phase label under the figure, "demo unavailable" note and the reduced-motion still poses. */
+.anim-phase { margin: 0; text-align: center; font-size: var(--fs-sm); color: var(--text-muted); }
+.anim-phase strong { color: var(--text); }
+.anim-hint { font-size: var(--fs-xs); color: var(--text-muted); }
+.anim-note { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); color: var(--text-muted); font-size: var(--fs-sm); }
+.anim-still-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.anim-still-pose { margin: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.anim-still-pose figcaption { text-align: center; font-size: var(--fs-xs); color: var(--text-muted); }
+.anim-still .anim-svg { max-inline-size: none; }
