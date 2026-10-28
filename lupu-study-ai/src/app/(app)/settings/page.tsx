@@ -21,6 +21,7 @@ import { getSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { DAILY_MINUTES_OPTIONS, GRADES } from "@/lib/catalog";
 import { toast } from "@/lib/bus";
+import { emailToUsername } from "@/lib/auth";
 
 export default function SettingsPage() {
   const data = useData();
@@ -95,7 +96,7 @@ export default function SettingsPage() {
           <CardContent className="space-y-3 text-sm">
             {!isSupabaseConfigured() ? <p className="text-muted-foreground">מצב מקומי: הנתונים נשמרים במכשיר בלבד. כדי לאפשר חשבון וסנכרון בין מכשירים יש להגדיר Supabase (ראה README).</p> : auth.status === "signed-in" ? (
               <>
-                <p>מחובר כ-<b dir="ltr">{auth.user.email}</b></p>
+                <p>מחובר כ-<b dir="ltr">{emailToUsername(auth.user.email)}</b></p>
                 <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={async () => { await getSupabase()?.auth.signOut(); toast.info("התנתקת"); router.push("/login"); }}><LogOut /> התנתקות</Button><Button variant="destructive" onClick={() => setConfirm("account")}><Trash2 /> מחיקת החשבון</Button></div>
               </>
             ) : <Link href="/login" className={buttonVariants()}>התחברות / הרשמה</Link>}

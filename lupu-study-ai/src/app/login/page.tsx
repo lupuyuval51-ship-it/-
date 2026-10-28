@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { Loader2, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
@@ -11,13 +11,14 @@ import { Logo } from "@/components/layout/Logo";
 import { getSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { toast } from "@/lib/bus";
+import { usernameToEmail, validateUsername } from "@/lib/auth";
 
 function hebrewAuthError(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes("invalid login")) return "אימייל או סיסמה שגויים.";
-  if (m.includes("already registered") || m.includes("already been registered")) return "כבר קיים חשבון עם האימייל הזה. נסה להתחבר.";
+  if (m.includes("invalid login")) return "שם משתמש או סיסמה שגויים.";
+  if (m.includes("already registered") || m.includes("already been registered")) return "שם המשתמש הזה תפוס. בחר שם אחר או התחבר.";
   if (m.includes("password") && m.includes("characters")) return "הסיסמה קצרה מדי (לפחות 8 תווים).";
-  if (m.includes("email not confirmed")) return "יש לאשר את האימייל דרך ההודעה שנשלחה אליך.";
+  if (m.includes("email not confirmed")) return "החשבון דורש אישור אימייל. יש לכבות Confirm email בהגדרות Supabase (ראה README).";
   if (m.includes("rate limit") || m.includes("too many")) return "יותר מדי ניסיונות. נסה שוב בעוד כמה דקות.";
   if (m.includes("fetch") || m.includes("network")) return "בעיית חיבור לשרת. בדוק את האינטרנט ונסה שוב.";
   return "ההתחברות נכשלה. נסה שוב.";
@@ -26,7 +27,7 @@ function hebrewAuthError(message: string): string {
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +38,9 @@ export default function LoginPage() {
     setInfo("");
     const sb = getSupabase();
     if (!sb) return;
-    if (!/^\S+@\S+\.\S+$/.test(email)) return setError("הזן כתובת אימייל תקינה.");
+    const bad = validateUsername(username);
+    if (bad) return setError(bad);
+    const email = usernameToEmail(username);
     if (password.length < 8) return setError("הסיסמה חייבת להכיל לפחות 8 תווים.");
     setBusy(true);
     try {
@@ -45,7 +48,7 @@ export default function LoginPage() {
         const { data, error: err } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/dashboard` } });
         if (err) throw err;
         if (!data.session) {
-          setInfo("שלחנו אליך אימייל לאישור החשבון. לאחר האישור אפשר להתחבר.");
+          setError("החשבון נוצר אבל דורש אישור אימייל, ובלי אימייל אי אפשר להתחבר. יש לכבות Confirm email בהגדרות Supabase (ראה README).");
           return;
         }
       } else {
@@ -77,10 +80,10 @@ export default function LoginPage() {
             </div>
           ) : (
             <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); void submit(); }} noValidate>
-              <Field label="אימייל" htmlFor="email">
-                <div className="relative"><Mail className="pointer-events-none absolute start-3 top-3.5 size-4 text-muted-foreground" /><Input id="email" type="email" autoComplete="email" dir="ltr" className="ps-10 text-start" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+              <Field label="שם משתמש" htmlFor="username" hint="בלי אימייל ובלי מידע אישי. שם באנגלית (3–20 תווים), למשל noa8.">
+                <div className="relative"><User className="pointer-events-none absolute start-3 top-3.5 size-4 text-muted-foreground" /><Input id="username" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} dir="ltr" className="ps-10 text-start" value={username} onChange={(e) => setUsername(e.target.value)} /></div>
               </Field>
-              <Field label="סיסמה" htmlFor="password" hint={mode === "signup" ? "לפחות 8 תווים" : undefined}>
+              <Field label="סיסמה" htmlFor="password" hint={mode === "signup" ? "לפחות 8 תווים. אין שחזור סיסמה במייל, אז כדאי לזכור אותה." : undefined}>
                 <div className="relative"><Lock className="pointer-events-none absolute start-3 top-3.5 size-4 text-muted-foreground" /><Input id="password" type="password" autoComplete={mode === "signin" ? "current-password" : "new-password"} dir="ltr" className="ps-10 text-start" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
               </Field>
               {error && <p role="alert" className="text-sm font-semibold text-destructive">{error}</p>}

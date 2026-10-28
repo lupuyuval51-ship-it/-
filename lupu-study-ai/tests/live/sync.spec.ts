@@ -18,7 +18,7 @@ const client = async (email: string) => {
 
 async function login(page: Page, email: string) {
   await page.goto("/login");
-  await page.getByLabel("אימייל").fill(email);
+  await page.getByLabel("שם משתמש").fill(email.split("@")[0]);
   await page.getByLabel("סיסמה").fill(PW);
   await page.getByRole("button", { name: "התחברות", exact: true }).click();
   await page.waitForURL(/\/(dashboard|onboarding)/);
