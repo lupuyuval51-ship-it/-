@@ -208,7 +208,7 @@ export const animations: ExerciseAnimation[] = [
           legNear: foot(128),
         };
       };
-      return [kf(0, p(0)), kf(0.14, p(10)), kf(0.3, p(22)), kf(0.55, p(22)), kf(0.75, p(10)), kf(0.92, p(0)), kf(1, p(0))];
+      return [kf(0, p(0)), kf(0.14, p(13)), kf(0.3, p(28)), kf(0.55, p(28)), kf(0.75, p(13)), kf(0.92, p(0)), kf(1, p(0))];
     })(),
   },
   {
@@ -226,7 +226,7 @@ export const animations: ExerciseAnimation[] = [
         legNear: foot(128),
         legFar: { angles: [free, free] },
       });
-      return [kf(0, p(0, 140)), kf(0.14, p(10, 128)), kf(0.3, p(22, 114)), kf(0.55, p(22, 114)), kf(0.75, p(10, 128)), kf(0.92, p(0, 140)), kf(1, p(0, 140))];
+      return [kf(0, p(0, 140)), kf(0.14, p(13, 128)), kf(0.3, p(28, 110)), kf(0.55, p(28, 110)), kf(0.75, p(13, 128)), kf(0.92, p(0, 140)), kf(1, p(0, 140))];
     })(),
   },
   {
