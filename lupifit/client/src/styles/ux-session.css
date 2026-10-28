@@ -70,17 +70,17 @@
   flex-shrink: 0;
 }
 
-/* Undo strip, pinned above the mobile bottom navigation */
+/* Undo bar: hangs directly below the session strip (over the exercise navigation row), never over the current set or the rest dock. */
 .undo-strip {
-  position: fixed;
+  position: absolute;
   inset-inline: var(--space-3);
-  inset-block-end: calc(var(--bottom-nav-height, 64px) + var(--space-3) + env(safe-area-inset-bottom, 0px));
+  inset-block-start: calc(100% + var(--space-1));
   z-index: 40;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -88,13 +88,8 @@
   max-inline-size: 480px;
   margin-inline: auto;
 }
-@media (min-width: 900px) {
-  .undo-strip {
-    inset-block-end: var(--space-4);
-    inset-inline: auto;
-    inset-inline-end: var(--space-4);
-    margin-inline: 0;
-  }
+.undo-strip .btn {
+  min-height: 44px;
 }
 
 /* Finish dialog */
@@ -202,5 +197,466 @@
   .set-check,
   .set-row {
     transition: none;
+  }
+}
+
+/* ================================================================== Phone live workout (390x844 first screen) */
+/* Session strip: title, clock, tally, save state and small neutral Pause / Finish / Discard. */
+.session-strip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-1) var(--space-4);
+  background: var(--bg);
+  border-block-end: 1px solid var(--divider);
+}
+.session-strip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.session-strip-title {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.session-strip-clock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.session-strip .session-clock-value {
+  font-size: var(--num-md);
+}
+.session-strip-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 20px;
+}
+.session-strip-count {
+  font-family: var(--font-num);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.session-strip-progress .sync-status {
+  margin-inline-start: auto;
+  min-width: 0;
+}
+.session-strip-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.session-strip-actions .btn {
+  min-height: 44px;
+}
+.session-strip-actions .session-discard {
+  margin-inline-start: auto;
+  color: var(--danger);
+}
+.session-timer-slot {
+  display: contents;
+}
+
+@media (max-width: 899px) {
+  /* The bottom navigation gives way to the rest dock while a workout is live. */
+  body:has(.session-page) .bottom-nav {
+    display: none;
+  }
+  .main:has(.session-page) {
+    padding-block-start: 0;
+    padding-block-end: calc(var(--space-6) + env(safe-area-inset-bottom));
+  }
+  .session-page {
+    gap: var(--space-1);
+  }
+  .session-page:has(.rest-dock) {
+    padding-block-end: calc(var(--dock-h) + var(--space-4));
+  }
+  .session-strip {
+    position: sticky;
+    inset-block-start: var(--topbar-h);
+    z-index: 15;
+    margin-inline: calc(-1 * var(--space-4));
+  }
+  body:has(.rest-dock) .toasts {
+    inset-block-end: calc(var(--dock-h) + var(--space-3) + env(safe-area-inset-bottom));
+  }
+  /* On a phone the exercise sits directly on the page: no card chrome eating width and height. */
+  .session-page .exercise-card {
+    padding: 0;
+    gap: var(--space-2);
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .session-page .exercise-card-demo .anim-svg {
+    border-radius: var(--radius);
+  }
+}
+/* Short phones (360x780 and below once the dock is up): drop the muscle line, the animation still reads. */
+@media (max-width: 899px) and (max-height: 899px) {
+  .session-page .exercise-card-title > .small {
+    display: none;
+  }
+}
+@media (min-width: 900px) {
+  .session-strip {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+}
+
+/* Rest dock */
+.rest-dock {
+  position: fixed;
+  z-index: 25;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  flex-direction: column;
+  padding-block-end: env(safe-area-inset-bottom);
+  background: var(--surface-2);
+  border-block-start: 1px solid var(--border-control);
+}
+.rest-dock-line {
+  block-size: 3px;
+  background: var(--surface-3);
+}
+.rest-dock-line-fill {
+  display: block;
+  block-size: 100%;
+  background: var(--accent-line);
+  transition: inline-size 250ms linear;
+}
+.rest-dock-finished .rest-dock-line-fill {
+  background: var(--success);
+}
+.rest-dock-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+}
+.rest-dock-time {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline: var(--space-1);
+}
+.rest-dock-clock {
+  font-family: var(--font-num);
+  font-size: var(--num-md);
+  font-weight: 700;
+  line-height: 1;
+  direction: ltr;
+  text-align: start;
+}
+.rest-dock-status {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rest-dock-status[data-status='paused'] {
+  color: var(--warning);
+}
+.rest-dock-status[data-status='finished'] {
+  color: var(--success);
+}
+.rest-dock-btn {
+  flex: 0 0 44px;
+  inline-size: 44px;
+  block-size: 48px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.rest-dock-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.rest-dock-btn:active:not(:disabled) {
+  background: var(--surface);
+}
+.rest-dock-main {
+  border-color: var(--text);
+}
+.rest-dock-transport {
+  display: flex;
+  gap: 2px;
+  direction: ltr;
+}
+.rest-dock-step {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.rest-dock-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.rest-dock-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border-block-end: 1px solid var(--divider);
+  max-block-size: 50dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.rest-dock-options .segmented {
+  inline-size: 100%;
+  flex-wrap: nowrap;
+}
+.rest-dock-options .segment {
+  flex: 1 1 0;
+  min-block-size: 44px;
+  padding-inline: 0;
+}
+.rest-dock-options .btn {
+  min-height: 44px;
+}
+
+/* Exercise header, prescription, stage */
+.exercise-card .exercise-name {
+  margin: 0;
+  padding-block: 0;
+  font-size: var(--fs-lg);
+  line-height: 1.2;
+}
+.exercise-card .exercise-name-btn {
+  padding-block: var(--space-1);
+  min-height: 44px;
+  align-items: center;
+}
+.exercise-card-title > .small {
+  margin: 0;
+}
+.exercise-card-tools {
+  gap: 0;
+}
+.exercise-card-tools .btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.exercise-card-demo {
+  margin-block: 0;
+  display: block;
+}
+.exercise-facts {
+  align-items: center;
+  gap: 0 var(--space-3);
+}
+.exercise-facts > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.exercise-facts dd {
+  font-family: var(--font-num);
+  font-size: var(--fs-base);
+  direction: ltr;
+}
+html[dir='rtl'] .exercise-facts dd {
+  direction: rtl;
+}
+.exercise-rest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  padding-inline: var(--space-2);
+  border: 1px solid var(--border-control);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* Set rows. Compact by default (done / upcoming): one 44px line, steppers and captions hidden. */
+.set-row {
+  grid-template-columns: 28px minmax(0, 1fr) 44px;
+  padding: var(--space-2);
+  row-gap: 0;
+}
+.set-fields {
+  align-items: center;
+  gap: var(--space-1);
+}
+.set-fields .set-unit,
+.set-fields .set-times {
+  align-self: center;
+  padding-block-start: 0;
+}
+.set-cap,
+.set-step-btn {
+  display: none;
+}
+.set-input-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+  min-inline-size: 0;
+}
+.set-input .input {
+  min-height: 44px;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  padding-inline: var(--space-1);
+  font-size: var(--fs-lg);
+}
+.set-row-current .set-input .input {
+  min-height: 52px;
+}
+.set-check {
+  inline-size: 44px;
+  block-size: 44px;
+  gap: var(--space-2);
+  touch-action: manipulation;
+}
+.set-check-text {
+  display: none;
+}
+.set-meta {
+  padding-inline-start: 0;
+  flex-wrap: nowrap;
+}
+.set-hints {
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.set-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.set-row-done .set-hint {
+  display: none;
+}
+.set-meta:not(:has(.set-hint, .set-flag)) .set-hints {
+  display: none;
+}
+.set-rpe {
+  min-height: 44px;
+}
+.set-extra .btn-icon,
+.set-fields .btn-icon {
+  inline-size: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+.set-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--warning);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* The current set: label + hints + RPE/delete, flanking steppers, then the one orange button, full width. */
+.set-row-current:not(.set-row-done) {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: 'num meta' 'fields fields' 'check check';
+  row-gap: var(--space-2);
+}
+.set-row-current .set-num {
+  inline-size: auto;
+  min-inline-size: 28px;
+  padding-inline: var(--space-1);
+  font-size: var(--fs-lg);
+  white-space: nowrap;
+}
+.set-row-current .set-cap {
+  display: block;
+  text-align: center;
+  line-height: 1;
+}
+.set-row-current .set-fields .set-input {
+  flex: 1 1 0;
+  max-inline-size: none;
+  max-width: none;
+}
+.set-row-current .set-input {
+  gap: 2px;
+}
+.set-row-current .set-step-btn {
+  display: grid;
+  flex: 0 0 44px;
+  block-size: 52px;
+}
+.set-row-current .set-input .input {
+  font-family: var(--font-num);
+  font-size: var(--num-md);
+}
+.set-row-current .set-unit,
+.set-row-current .set-times {
+  display: none;
+}
+.set-row-current .set-fields {
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+.set-row-current:not(.set-row-done) .set-check,
+.set-row-current:not(.set-row-done) .set-check:hover {
+  inline-size: 100%;
+  block-size: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.set-row-current:not(.set-row-done) .set-check-text {
+  display: inline;
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+@media (hover: none) {
+  .set-row .set-check:hover {
+    border-color: var(--border-control);
+    color: var(--text-faint);
   }
 }

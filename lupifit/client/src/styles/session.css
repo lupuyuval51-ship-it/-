@@ -51,57 +51,12 @@
   }
 }
 
-/* ------------------------------------------------------------------ Workout header */
-.session-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.session-header-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-.session-title-block {
-  min-width: 0;
-}
-.session-title-block .page-title {
-  font-size: var(--fs-xl);
-  overflow-wrap: anywhere;
-}
-.session-clock {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  flex-shrink: 0;
-}
-.session-clock-value {
-  font-size: var(--fs-2xl);
-  font-weight: 800;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  direction: ltr;
-}
-.session-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-.session-actions .btn {
-  min-height: 48px;
-}
-@media (min-width: 640px) {
-  .session-actions {
-    display: flex;
-    flex-wrap: wrap;
-  }
-}
+/* ------------------------------------------------------------------ Save state */
 .sync-status {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin: 0;
   font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text-muted);
@@ -476,63 +431,6 @@
   align-self: flex-start;
 }
 
-/* ------------------------------------------------------------------ Mobile rest bar */
-.rest-bar {
-  position: fixed;
-  z-index: 25;
-  inset-inline: var(--space-2);
-  inset-block-end: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + var(--space-2));
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface-3);
-  box-shadow: var(--shadow-overlay);
-}
-.rest-bar-main {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 'clock status' 'bar bar';
-  align-items: center;
-  column-gap: var(--space-3);
-  row-gap: 6px;
-}
-.rest-bar-clock {
-  grid-area: clock;
-  font-size: var(--fs-xl);
-  font-weight: 800;
-  direction: ltr;
-}
-.rest-bar-status {
-  grid-area: status;
-  font-weight: 600;
-}
-.rest-bar-main .progress {
-  grid-area: bar;
-}
-.rest-bar-finished .rest-bar-status {
-  color: var(--success);
-}
-.rest-bar-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-1);
-}
-.session-page:has(.rest-bar) {
-  padding-block-end: 120px;
-}
-@media (min-width: 900px) {
-  .rest-bar {
-    display: none;
-  }
-  .session-page:has(.rest-bar) {
-    padding-block-end: 0;
-  }
-}
-
 /* ------------------------------------------------------------------ Exercise instructions modal */
 .exercise-info-list {
   margin: 0;
@@ -642,24 +540,14 @@
 .exercise-card-demo { display: flex; justify-content: center; margin-block: var(--space-2); }
 .exercise-card-demo .anim-sm .anim-svg { max-width: 220px; }
 
-/* Keep toasts above the floating rest bar instead of covering it. */
-@media (max-width: 899px) {
-  body:has(.rest-bar) .toasts {
-    inset-block-end: calc(var(--bottomnav-h) + env(safe-area-inset-bottom) + 96px);
-  }
-}
-
 /* ================================================================== Visual polish (UI 4) */
-/* Workout header: big glanceable clock */
-.session-header {
-  background: var(--surface);
-}
+/* Elapsed clock (workout strip) */
 .session-clock-value {
   font-family: var(--font-num);
-  font-size: var(--num-lg);
-}
-.session-title-block .page-title {
-  font-size: var(--fs-xl);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
 }
 
 /* Current set emphasis */
@@ -771,15 +659,6 @@
     flex-basis: auto;
     width: 100%;
   }
-}
-.rest-bar {
-  background: var(--surface-2);
-  border-color: var(--border-control);
-}
-.rest-bar-clock {
-  font-family: var(--font-num);
-  font-size: var(--num-md);
-  font-variant-numeric: tabular-nums;
 }
 
 /* Exercise card */

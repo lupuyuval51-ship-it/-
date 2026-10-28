@@ -3,7 +3,7 @@ import type { SessionExerciseDTO, SessionHistoryItemDTO, SessionSetDTO } from '@
 import { translate } from '../../i18n';
 import { groupByWeek } from '../../pages/session/SessionHistoryPage';
 import { setDefaults } from './ExerciseCard';
-import { formatDuration, formatSetValues, suggestionParams } from './format';
+import { formatDuration, formatSetTarget, formatSetValues, missingWeightSets, suggestionParams } from './format';
 
 const i18n = {
   locale: 'en' as const,
@@ -25,6 +25,27 @@ const set = (extra: Partial<SessionSetDTO>): SessionSetDTO => ({
   completed: false,
   completedAt: null,
   ...extra,
+});
+
+describe('set target and missing weight', () => {
+  it('shows the prescribed rep range instead of the single derived value', () => {
+    const s = set({ targetReps: 10 });
+    expect(formatSetTarget(s, 'weight_reps', i18n, kg)).toBe('10 reps');
+    expect(formatSetTarget(s, 'weight_reps', i18n, kg, { repMin: 6, repMax: 10 })).toBe('6–10 reps');
+    expect(formatSetTarget(s, 'weight_reps', i18n, kg, { repMin: 8, repMax: 8 })).toBe('10 reps');
+    expect(formatSetTarget(set({ targetReps: 10, targetWeightKg: 60 }), 'weight_reps', i18n, kg, { repMin: 6, repMax: 10 })).toBe('60 kg × 6–10 reps');
+  });
+
+  it('counts completed barbell sets logged without weight (never blocks)', () => {
+    const ex = (equipment: string[], tracking: string, sets: SessionSetDTO[]) =>
+      ({ exercise: { trackingType: tracking, equipment }, sets }) as unknown as SessionExerciseDTO;
+    const exs = [
+      ex(['barbell'], 'weight_reps', [set({ completed: true }), set({ completed: true, weightKg: 60 }), set({ completed: false })]),
+      ex(['dumbbells'], 'weight_reps', [set({ completed: true })]),
+      ex(['barbell'], 'time', [set({ completed: true })]),
+    ];
+    expect(missingWeightSets(exs)).toBe(1);
+  });
 });
 
 describe('session formatting', () => {

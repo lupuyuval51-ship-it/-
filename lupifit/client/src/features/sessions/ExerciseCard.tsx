@@ -4,6 +4,7 @@ import { LIMITS } from '@shared/constants';
 import { formatClock } from '@shared/training';
 import type { SessionExerciseDTO, SessionSetDTO } from '@shared/types';
 import { Badge, Button, Icon, IconButton, NumberField, Switch, TextAreaField } from '../../components/ui';
+import { primeAudio } from './alarm';
 import { PlateCalculator } from './PlateCalculator';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
@@ -61,6 +62,8 @@ export interface ExerciseCardProps {
   nextName: string | null;
   onNext(): void;
   onFinish(): void;
+  /** Start an idle rest timer (offered only while no timer exists). */
+  onStartRest?(): void;
 }
 
 /** The current exercise: prescription, coach suggestion, last performance and the sets table. */
@@ -80,6 +83,7 @@ export function ExerciseCard({
   nextName,
   onNext,
   onFinish,
+  onStartRest,
 }: ExerciseCardProps) {
   const i18n = useI18n();
   const { t, lt, formatDate } = i18n;
@@ -96,6 +100,10 @@ export function ExerciseCard({
   const currentSetId = exercise.sets.find((s) => !s.completed)?.id ?? null;
   const allDone = exercise.sets.length > 0 && currentSetId == null;
   const [platesOpen, setPlatesOpen] = useState(false);
+  const barbellLoad = tracking === 'weight_reps' && exercise.exercise.equipment.includes('barbell');
+  // The set to log next comes first (one-handed use: it sits right under the exercise, never below the done rows).
+  const indexed = exercise.sets.map((s, i) => ({ s, i }));
+  const orderedSets = currentSetId ? [...indexed.filter((x) => x.s.id === currentSetId), ...indexed.filter((x) => x.s.id !== currentSetId)] : indexed;
   const listRef = useRef<HTMLOListElement>(null);
   const firstRender = useRef(true);
 
@@ -141,7 +149,7 @@ export function ExerciseCard({
         </div>
       </header>
       <div className="exercise-card-demo">
-        <ExerciseAnimation exerciseId={exercise.exerciseId} muscles={exercise.exercise.primaryMuscles} size="sm" controls={false} label={name} />
+        <ExerciseAnimation exerciseId={exercise.exerciseId} muscles={exercise.exercise.primaryMuscles} size="hero" controls={false} label={name} />
       </div>
 
       <dl className="exercise-facts">
@@ -152,36 +160,22 @@ export function ExerciseCard({
         <div>
           <dt className="visually-hidden">{t('session.exercise.settings')}</dt>
           <dd className="muted">
-            <Icon name="timer" size={14} /> {t('session.exercise.rest', { time: formatClock(exercise.restSeconds) })}
+            {onStartRest ? (
+              <button type="button" className="exercise-rest-btn" onClick={() => { primeAudio(); onStartRest(); }}>
+                <Icon name="timer" size={16} /> {t('session.exercise.rest', { time: formatClock(exercise.restSeconds) })}
+              </button>
+            ) : (
+              <>
+                <Icon name="timer" size={14} /> {t('session.exercise.rest', { time: formatClock(exercise.restSeconds) })}
+              </>
+            )}
           </dd>
         </div>
       </dl>
 
-      {suggestion && (
-        <div className="exercise-suggestion" role="note">
-          <Badge tone={ACTION_TONE[suggestion.action]} icon="sparkles">
-            {t(`session.progression.actions.${suggestion.action}`)}
-          </Badge>
-          <p className="small">{i18n.tx(`session.progression.reasons.${suggestion.reasonCode}`, suggestionParams(suggestion, i18n, formatWeight), '')}</p>
-        </div>
-      )}
-
-      <div className="exercise-previous small">
-        {exercise.previous ? (
-          <>
-            <strong>{t('session.exercise.lastTime', { date: formatDate(exercise.previous.date) })}: </strong>
-            <span>{formatPrevious(exercise.previous, tracking, i18n, formatWeight)}</span>
-          </>
-        ) : (
-          <span className="muted">{t('session.exercise.noPrevious')}</span>
-        )}
-      </div>
-
-      {tracking !== 'weight_reps' && <Switch label={t('session.exercise.addedWeight')} checked={addedWeight} onChange={setAddedWeight} />}
-
       <h3 className="visually-hidden">{t('session.sets.title')}</h3>
       <ol className="set-list" ref={listRef}>
-        {exercise.sets.map((s, i) => (
+        {orderedSets.map(({ s, i }) => (
           <SetRow
             key={s.id}
             current={s.id === currentSetId}
@@ -190,6 +184,8 @@ export function ExerciseCard({
             showWeight={showWeight}
             previous={exercise.previous?.sets[i] ?? null}
             defaults={defaults[i]!}
+            repRange={{ repMin: exercise.repMin, repMax: exercise.repMax }}
+            flagMissingWeight={s.completed && barbellLoad && !(s.weightKg != null && s.weightKg > 0)}
             onPatch={(patch, opts) => onSetPatch(s, patch, opts)}
             onToggleComplete={() => onToggleComplete(s, defaults[i]!)}
             onDelete={() => onDeleteSet(s)}
@@ -215,6 +211,28 @@ export function ExerciseCard({
       <Button icon="plus" onClick={onAddSet} loading={addSetPending} block>
         {t('session.sets.add')}
       </Button>
+      {suggestion && (
+        <div className="exercise-suggestion" role="note">
+          <Badge tone={ACTION_TONE[suggestion.action]} icon="sparkles">
+            {t(`session.progression.actions.${suggestion.action}`)}
+          </Badge>
+          <p className="small">{i18n.tx(`session.progression.reasons.${suggestion.reasonCode}`, suggestionParams(suggestion, i18n, formatWeight), '')}</p>
+        </div>
+      )}
+
+      <div className="exercise-previous small">
+        {exercise.previous ? (
+          <>
+            <strong>{t('session.exercise.lastTime', { date: formatDate(exercise.previous.date) })}: </strong>
+            <span>{formatPrevious(exercise.previous, tracking, i18n, formatWeight)}</span>
+          </>
+        ) : (
+          <span className="muted">{t('session.exercise.noPrevious')}</span>
+        )}
+      </div>
+
+      {tracking !== 'weight_reps' && <Switch label={t('session.exercise.addedWeight')} checked={addedWeight} onChange={setAddedWeight} />}
+
 
       <details className="exercise-settings">
         <summary>{t('session.exercise.settings')}</summary>

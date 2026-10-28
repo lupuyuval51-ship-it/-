@@ -22,6 +22,7 @@
   --sidebar-w: 240px;
   --topbar-h: 56px;
   --bottomnav-h: 64px;
+  --dock-h: 64px;
   --tap: 44px;
   /* Depth comes from surface steps and dividers. Only overlays (modal, sheet, toast, menu) cast a shadow. */
   --shadow: 0 0 0 transparent;

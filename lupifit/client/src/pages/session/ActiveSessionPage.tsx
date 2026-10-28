@@ -17,7 +17,6 @@ import {
   Modal,
   Notice,
   PageHeader,
-  ProgressBar,
   useConfirm,
   useToast,
 } from '../../components/ui';
@@ -40,12 +39,14 @@ import { serverNow } from '../../features/sessions/clock';
 import { ExerciseCard, type SetDefaults } from '../../features/sessions/ExerciseCard';
 import { ExerciseInfoModal } from '../../features/sessions/ExerciseInfoModal';
 import { FinishDialog } from '../../features/sessions/FinishDialog';
-import { closeActiveSession, setActiveSession, useActiveSession, useSyncStatus } from '../../features/sessions/hooks';
+import { missingWeightSets } from '../../features/sessions/format';
+import { closeActiveSession, setActiveSession, useActiveSession } from '../../features/sessions/hooks';
 import type { ExercisePatch, SetPatch } from '../../features/sessions/queue';
-import { RestTimerBar, RestTimerCard } from '../../features/sessions/RestTimer';
+import { RestDock, RestTimerCard } from '../../features/sessions/RestTimer';
 import { completionOutcome, countSets, nextOpenExercise, unfinishedExercises, volumeKg } from '../../features/sessions/logic';
 import { useSessionPrefs } from '../../features/sessions/prefs';
 import { SessionPrefsPanel } from '../../features/sessions/SessionPrefs';
+import { SessionStrip } from '../../features/sessions/SessionStrip';
 import { useWorkoutShortcuts } from '../../features/sessions/shortcuts';
 import { sessionSync } from '../../features/sessions/sync';
 import { useWakeLock } from '../../features/sessions/wakeLock';
@@ -119,19 +120,6 @@ function NoActiveSession() {
   );
 }
 
-function SyncIndicator() {
-  const { t } = useI18n();
-  const s = useSyncStatus();
-  const state = s.offline ? 'offline' : s.retrying ? 'retrying' : s.pending > 0 || s.saving ? 'saving' : 'saved';
-  const icon = state === 'saved' ? 'check' : state === 'saving' ? 'refresh' : 'warning';
-  return (
-    <p className={`sync-status sync-${state}`} role="status" aria-live="polite">
-      <Icon name={icon} size={14} />
-      <span>{t(`session.sync.${state}`)}</span>
-    </p>
-  );
-}
-
 /** True while the viewport is narrower than the desktop sidebar layout. */
 function useIsMobile(): boolean {
   const query = '(max-width: 899px)';
@@ -180,8 +168,6 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const advanceTimer = useRef<number | null>(null);
   const [prefs] = useSessionPrefs();
   useWakeLock(prefs.wakeLock);
-  const timerRef = useRef<HTMLDivElement>(null);
-  const [timerInView, setTimerInView] = useState(true);
   const isMobile = useIsMobile();
   const sessionId = session.id;
   const onError = (err: unknown) => {
@@ -201,15 +187,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
-  // The slim mobile rest bar is shown only while the full timer card is scrolled out of view.
   const hasTimer = session.restTimer != null;
-  useEffect(() => {
-    const el = timerRef.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([entry]) => setTimerInView(entry?.isIntersecting ?? true));
-    io.observe(el);
-    return () => io.disconnect();
-  }, [hasTimer]);
 
   const setIndex = (i: number) => sessionSync.enqueue({ type: 'state', sessionId, patch: { currentExerciseIndex: i } }, 300);
   const setTimer = (restTimer: WorkoutSessionDTO['restTimer']) => sessionSync.enqueue({ type: 'state', sessionId, patch: { restTimer } }, 800);
@@ -461,56 +439,34 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
 
   return (
     <div className="session-page">
-      <header className="card session-header">
-        <div className="session-header-top">
-          <div className="session-title-block">
-            <h1 className="page-title">{session.name}</h1>
-            <p className="small muted">{t('session.header.progress', { done, total })}</p>
+      <SessionStrip
+        name={session.name}
+        elapsedSeconds={elapsed}
+        paused={paused}
+        done={done}
+        total={total}
+        pausePending={pauseM.isPending}
+        discardPending={discardM.isPending}
+        onPause={() => pauseM.mutate(paused ? 'resume' : 'pause')}
+        onFinish={() => setFinishOpen(true)}
+        onDiscard={onDiscard}
+      >
+        {undo && (
+          <div className="undo-strip" role="status" data-testid="undo-strip">
+            <span>{t('session.sets.logged', { n: undo.set.setNumber })}</span>
+            <Button size="sm" icon="refresh" onClick={onUndo}>
+              {t('session.sets.undo')}
+            </Button>
           </div>
-          <div className="session-clock">
-            <span className="small muted">{t('session.header.elapsed')}</span>
-            <span className="session-clock-value num" role="timer" aria-label={`${t('session.header.elapsed')}: ${formatClock(elapsed)}`}>
-              {formatClock(elapsed)}
-            </span>
-            {paused && <Badge tone="warning">{t('enums.sessionStatus.paused')}</Badge>}
-          </div>
-        </div>
-        <ProgressBar value={done} max={Math.max(1, total)} tone="success" label={t('session.header.progress', { done, total })} />
-        <div className="session-actions" aria-label={t('session.header.actions')} role="group">
-          <Button
-            icon={paused ? 'play' : 'pause'}
-            onClick={() => pauseM.mutate(paused ? 'resume' : 'pause')}
-            loading={pauseM.isPending}
-            aria-label={paused ? t('session.header.resumeLabel') : t('session.header.pauseLabel')}
-          >
-            {paused ? t('session.header.resume') : t('session.header.pause')}
-          </Button>
-          <Button
-            icon="timer"
-            disabled={hasTimer}
-            onClick={() => {
-              primeAudio();
-              setTimer(idleTimer(current?.restSeconds ?? 90, current?.id ?? null));
-            }}
-          >
-            {t('session.header.restTimer')}
-          </Button>
-          <Button variant="primary" icon="check" onClick={() => setFinishOpen(true)}>
-            {t('session.header.finish')}
-          </Button>
-          <Button variant="ghost" icon="close" onClick={onDiscard} loading={discardM.isPending}>
-            {t('session.header.discard')}
-          </Button>
-        </div>
-        <SyncIndicator />
-      </header>
+        )}
+      </SessionStrip>
 
       {paused && <Notice tone="warning">{t('session.header.paused')}</Notice>}
 
       <div className="session-layout">
         <div className="session-main">
-          {session.restTimer && (
-            <div ref={timerRef} className="session-timer-slot">
+          {session.restTimer && !isMobile && (
+            <div className="session-timer-slot">
               <RestTimerCard timer={session.restTimer} onChange={setTimer} />
             </div>
           )}
@@ -545,6 +501,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
                 nextName={nextOpenIndex != null ? lt(exercises[nextOpenIndex]!.exercise.name) : null}
                 onNext={() => nextOpenIndex != null && setIndex(nextOpenIndex)}
                 onFinish={() => setFinishOpen(true)}
+                onStartRest={hasTimer ? undefined : () => setTimer(idleTimer(current.restSeconds || 90, current.id))}
               />
             </>
           ) : (
@@ -577,15 +534,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
         )}
       </div>
 
-      {undo && (
-        <div className="undo-strip" role="status" data-testid="undo-strip">
-          <span>{t('session.sets.logged', { n: undo.set.setNumber })}</span>
-          <Button size="sm" icon="refresh" onClick={onUndo}>
-            {t('session.sets.undo')}
-          </Button>
-        </div>
-      )}
-      {session.restTimer && isMobile && !timerInView && <RestTimerBar timer={session.restTimer} onChange={setTimer} />}
+      {session.restTimer && isMobile && <RestDock timer={session.restTimer} onChange={setTimer} />}
 
       <Modal
         open={overviewOpen}
@@ -616,6 +565,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
         total={total}
         elapsedSeconds={elapsed}
         volumeKg={volumeKg(exercises)}
+        missingWeight={missingWeightSets(exercises)}
         lines={unfinishedExercises(exercises).map((l) => ({ id: l.id, name: lt(l.exercise.exercise.name), done: l.done, total: l.total }))}
         onConfirm={(input) => finishM.mutate(input)}
       />

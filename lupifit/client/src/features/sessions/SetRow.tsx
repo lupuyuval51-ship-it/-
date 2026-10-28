@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { TrackingType } from '@shared/constants';
 import { updateSetSchema } from '@shared/schemas/sessions';
 import { formatClock } from '@shared/training';
@@ -31,8 +31,13 @@ function SetInput({
   fallback,
   decLabel,
   incLabel,
+  unit,
+  enterKeyHint,
 }: {
   label: string;
+  /** Short caption above the field (unit): the current set shows it, compact rows hide it. */
+  unit?: string;
+  enterKeyHint?: 'next' | 'done';
   value: number | null;
   onChange(v: number | null): void;
   decimal?: boolean;
@@ -55,28 +60,35 @@ function SetInput({
   }, [value]);
   return (
     <span className={`set-input${className ? ` ${className}` : ''}`}>
-      <input
-        className="input input-number"
-        type="text"
-        inputMode={decimal ? 'decimal' : 'numeric'}
-        aria-label={label}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-        value={text}
-        placeholder={placeholder}
-        onFocus={(e) => e.target.select()}
-        onChange={(e) => {
-          const raw = e.target.value;
-          if (!(decimal ? /^\d{0,4}([.,]\d{0,2})?$/ : /^\d{0,4}$/).test(raw)) return;
-          setText(raw);
-          const n = raw.trim() === '' ? null : Number(raw.replace(',', '.'));
-          onChange(n == null || Number.isNaN(n) ? null : n);
-        }}
-      />
-      <span className="set-stepper">
+      {unit && (
+        <span className="set-cap small muted" aria-hidden="true">
+          {unit}
+        </span>
+      )}
+      <span className="set-input-row">
         <button type="button" className="set-step-btn" aria-label={decLabel} onClick={() => onChange(stepValue(value ?? fallback, -step))}>
           <Icon name="minus" size={18} />
         </button>
+        <input
+          className="input input-number"
+          type="text"
+          inputMode={decimal ? 'decimal' : 'numeric'}
+          enterKeyHint={enterKeyHint}
+          autoComplete="off"
+          aria-label={label}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          value={text}
+          placeholder={placeholder}
+          onFocus={(e) => e.target.select()}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (!(decimal ? /^\d{0,4}([.,]\d{0,2})?$/ : /^\d{0,4}$/).test(raw)) return;
+            setText(raw);
+            const n = raw.trim() === '' ? null : Number(raw.replace(',', '.'));
+            onChange(n == null || Number.isNaN(n) ? null : n);
+          }}
+        />
         <button type="button" className="set-step-btn" aria-label={incLabel} onClick={() => onChange(stepValue(value ?? fallback, step))}>
           <Icon name="plus" size={18} />
         </button>
@@ -126,14 +138,20 @@ export interface SetRowProps {
   onDelete(): void;
   /** The set to log next (first one not done). */
   current?: boolean;
+  /** The exercise's prescribed rep range, shown instead of the single value a set target was derived from. */
+  repRange?: { repMin: number | null; repMax: number | null };
+  /** Barbell set completed without a weight: flagged (never blocked) so it can be fixed. */
+  flagMissingWeight?: boolean;
 }
 
-export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete, current = false }: SetRowProps) {
+export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch, onToggleComplete, onDelete, current = false, repRange, flagMissingWeight = false }: SetRowProps) {
   const i18n = useI18n();
   const { t } = i18n;
   const { toDisplay, fromDisplay, weightUnit, formatWeight, imperial } = useUnits();
   const [errors, setErrors] = useState<Partial<Record<'weightKg' | 'reps' | 'durationSeconds', string>>>({});
   const n = set.setNumber;
+  const rowRef = useRef<HTMLLIElement>(null);
+  const completeLabel = set.completed ? t('session.sets.uncomplete', { n }) : t('session.sets.complete', { n });
 
   const edit = (field: 'weightKg' | 'reps' | 'durationSeconds', value: number | null) => {
     const parsed = updateSetSchema.safeParse({ [field]: value });
@@ -146,17 +164,17 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
     onPatch({ [field]: value }, { immediate: false });
   };
 
-  const target = formatSetTarget(set, tracking, i18n, formatWeight);
+  const target = formatSetTarget(set, tracking, i18n, formatWeight, repRange);
   const weightPlaceholder = defaults.weightKg != null ? String(toDisplay(defaults.weightKg)) : undefined;
   const repsPlaceholder = defaults.reps != null ? String(defaults.reps) : undefined;
 
   return (
-    <li className={`set-row${set.completed ? ' set-row-done' : ''}${current ? ' set-row-current' : ''}`}
+    <li ref={rowRef} className={`set-row${set.completed ? ' set-row-done' : ''}${current ? ' set-row-current' : ''}`}
       data-testid={`set-row-${n}`}
       aria-current={current ? 'step' : undefined}
     >
       <span className="set-num num" aria-hidden="true">
-        {set.completed ? <Icon name="check" size={14} /> : n}
+        {set.completed ? <Icon name="check" size={14} /> : current ? `${t('session.sets.set')} ${n}` : n}
       </span>
       <div className="set-fields">
         {showWeight && (
@@ -172,6 +190,8 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
             decLabel={t('session.sets.weightDec', { n })}
             incLabel={t('session.sets.weightInc', { n })}
             error={errors.weightKg}
+            unit={weightUnit}
+            enterKeyHint="next"
           />
         )}
         {showWeight && <span className="set-unit small muted">{weightUnit}</span>}
@@ -188,6 +208,8 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
               decLabel={t('session.sets.durationDec', { n })}
               incLabel={t('session.sets.durationInc', { n })}
               error={errors.durationSeconds}
+              unit={t('common.units.sec')}
+              enterKeyHint="done"
             />
             <span className="set-unit small muted">{t('common.units.sec')}</span>
             <Stopwatch n={n} onStop={(seconds) => onPatch({ durationSeconds: seconds }, { immediate: true })} />
@@ -210,6 +232,8 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
               decLabel={t('session.sets.repsDec', { n })}
               incLabel={t('session.sets.repsInc', { n })}
               error={errors.reps}
+              unit={t('common.units.reps')}
+              enterKeyHint="done"
             />
             {!showWeight && <span className="set-unit small muted">{t('common.units.reps')}</span>}
           </>
@@ -219,16 +243,30 @@ export function SetRow({ set, tracking, showWeight, previous, defaults, onPatch,
         type="button"
         className={`set-check${set.completed ? ' set-check-done' : ''}`}
         aria-pressed={set.completed}
-        aria-label={set.completed ? t('session.sets.uncomplete', { n }) : t('session.sets.complete', { n })}
-        title={set.completed ? t('session.sets.uncomplete', { n }) : t('session.sets.complete', { n })}
+        aria-label={completeLabel}
+        title={completeLabel}
         onClick={onToggleComplete}
       >
         <Icon name="check" size={22} />
+        <span className="set-check-text" aria-hidden="true">
+          {completeLabel}
+        </span>
       </button>
       <div className="set-meta small">
         <span className="muted set-hints">
-          {previous && <span>{t('session.sets.previous', { value: formatSetValues(previous, tracking, i18n, formatWeight) })}</span>}
-          {target && <span>{t('session.sets.target', { value: target })}</span>}
+          {flagMissingWeight && (
+            <button
+              type="button"
+              className="set-flag"
+              aria-label={t('session.sets.addWeightLabel', { n })}
+              onClick={() => rowRef.current?.querySelector<HTMLInputElement>('.set-input-weight input')?.focus()}
+            >
+              <Icon name="warning" size={14} />
+              <span>{t('session.sets.addWeight', { unit: weightUnit })}</span>
+            </button>
+          )}
+          {previous && <span className="set-hint">{t('session.sets.previous', { value: formatSetValues(previous, tracking, i18n, formatWeight) })}</span>}
+          {target && <span className="set-hint">{t('session.sets.target', { value: target })}</span>}
         </span>
         <span className="set-extra">
           {tracking !== 'time' && (

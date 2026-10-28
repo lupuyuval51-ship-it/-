@@ -26,6 +26,7 @@ export function FinishDialog({
   elapsedSeconds,
   volumeKg,
   lines,
+  missingWeight = 0,
 }: {
   open: boolean;
   onClose(): void;
@@ -37,6 +38,8 @@ export function FinishDialog({
   volumeKg: number;
   /** Exercises that still have sets not marked done. */
   lines: FinishLine[];
+  /** Completed barbell sets logged without a weight (a warning, never a blocker). */
+  missingWeight?: number;
 }) {
   const { t } = useI18n();
   const { formatWeight } = useUnits();
@@ -82,6 +85,7 @@ export function FinishDialog({
             </ul>
           </Notice>
         ) : null}
+        {missingWeight > 0 && <Notice tone="warning">{t('session.finish.missingWeight', { count: missingWeight })}</Notice>}
         <Segmented<number>
           label={t('session.finish.effort')}
           size="sm"

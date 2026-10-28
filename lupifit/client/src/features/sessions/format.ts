@@ -60,11 +60,35 @@ export function formatPrescription(ex: SessionExerciseDTO, i18n: T, formatWeight
   return parts.join(' · ');
 }
 
-/** Short per-set target used as an input placeholder hint. */
-export function formatSetTarget(s: SessionSetDTO, tracking: TrackingType, i18n: T, formatWeight: FormatWeight): string | null {
+/**
+ * Short per-set target shown next to the inputs. When the exercise prescribes a rep range
+ * (6–10) the range is shown, not the single value it was derived from ("Target: 10" would contradict it).
+ */
+export function formatSetTarget(
+  s: SessionSetDTO,
+  tracking: TrackingType,
+  i18n: T,
+  formatWeight: FormatWeight,
+  range?: { repMin: number | null; repMax: number | null },
+): string | null {
   if (tracking === 'time') return s.targetSeconds != null ? formatSeconds(s.targetSeconds, i18n) : null;
   if (s.targetReps == null) return null;
-  return s.targetWeightKg ? i18n.t('session.format.weightReps', { reps: s.targetReps, weight: formatWeight(s.targetWeightKg) }) : i18n.t('session.format.repsOnly', { count: s.targetReps });
+  const hasRange = range != null && range.repMin != null && range.repMax != null && range.repMin !== range.repMax;
+  const reps = hasRange ? i18n.t('session.format.repRange', { min: range.repMin!, max: range.repMax! }) : null;
+  if (s.targetWeightKg) {
+    return reps ? `${formatWeight(s.targetWeightKg)} × ${reps}` : i18n.t('session.format.weightReps', { reps: s.targetReps, weight: formatWeight(s.targetWeightKg) });
+  }
+  return reps ?? i18n.t('session.format.repsOnly', { count: s.targetReps });
+}
+
+/** Completed weight-bearing sets that were logged without a weight (non-blocking: flagged, never refused). */
+export function missingWeightSets(exercises: SessionExerciseDTO[]): number {
+  let n = 0;
+  for (const ex of exercises) {
+    if (ex.exercise.trackingType !== 'weight_reps' || !ex.exercise.equipment.includes('barbell')) continue;
+    n += ex.sets.filter((s) => s.completed && !(s.weightKg != null && s.weightKg > 0)).length;
+  }
+  return n;
 }
 
 /** Interpolation params for `session.progression.reasons.*` (kg values → user units, localized names). */

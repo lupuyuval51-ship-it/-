@@ -111,6 +111,8 @@ const session: Translations<typeof en> = {
     durationLabel: 'זמן בסט {n} (שניות)',
     rpeLabel: 'RPE בסט {n}',
     rpeNone: 'RPE',
+    addWeight: '— {unit} · הוספת משקל',
+    addWeightLabel: 'בסט {n} לא הוזן משקל — הוספת משקל',
     complete: 'השלמת סט {n}',
     uncomplete: 'סימון סט {n} כלא הושלם',
     delete: 'מחיקת סט {n}',
@@ -166,6 +168,7 @@ const session: Translations<typeof en> = {
     started: 'טיימר מנוחה הופעל: {time}',
     skip: 'דילוג על המנוחה',
     skipLabel: 'דילוג על המנוחה והסתרת הטיימר',
+    options: 'אפשרויות מנוחה',
   },
   finish: {
     title: 'לסיים את האימון?',
@@ -181,6 +184,10 @@ const session: Translations<typeof en> = {
     time: 'זמן',
     volume: 'נפח',
     left: '{name}: {done} מתוך {total} סטים הושלמו',
+    missingWeight: {
+      one: 'בסט מוט אחד שהושלם לא הוזן משקל. אפשר לסיים בכל זאת, אבל הנפח שלו לא ייספר.',
+      other: 'ב-{count} סטי מוט שהושלמו לא הוזן משקל. אפשר לסיים בכל זאת, אבל הנפח שלהם לא ייספר.',
+    },
   },
   discard: {
     title: 'לבטל את האימון?',

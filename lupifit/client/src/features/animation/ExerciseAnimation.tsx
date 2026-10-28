@@ -84,7 +84,7 @@ export function ExerciseAnimation({
 }: {
   exerciseId: string;
   muscles?: Muscle[];
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'hero';
   controls?: boolean;
   autoPlay?: boolean;
   label?: string;

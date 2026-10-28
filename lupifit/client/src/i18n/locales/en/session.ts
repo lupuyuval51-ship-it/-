@@ -109,6 +109,8 @@ const session = {
     durationLabel: 'Set {n} time (seconds)',
     rpeLabel: 'Set {n} RPE',
     rpeNone: 'RPE',
+    addWeight: '— {unit} · add weight',
+    addWeightLabel: 'Set {n} has no weight — add weight',
     complete: 'Complete set {n}',
     uncomplete: 'Mark set {n} as not done',
     delete: 'Delete set {n}',
@@ -164,6 +166,7 @@ const session = {
     started: 'Rest timer started: {time}',
     skip: 'Skip rest',
     skipLabel: 'Skip rest and hide the timer',
+    options: 'Rest options',
   },
   finish: {
     title: 'Finish workout?',
@@ -179,6 +182,10 @@ const session = {
     time: 'Time',
     volume: 'Volume',
     left: '{name}: {done} of {total} sets done',
+    missingWeight: {
+      one: '{count} completed barbell set has no weight. You can still finish, but its volume will not count.',
+      other: '{count} completed barbell sets have no weight. You can still finish, but their volume will not count.',
+    },
   },
   discard: {
     title: 'Discard this workout?',
