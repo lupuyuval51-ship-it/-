@@ -186,6 +186,17 @@ Latest full run (all green): typecheck ✓ · lint ✓ · content validation ✓
 
 ## Production deployment
 
+Ready-made options (step-by-step guides for non-technical owners, in Hebrew):
+
+| Option | Notes | Guide |
+|---|---|---|
+| **One VM with Docker Compose** (Oracle Cloud Always Free, or any Ubuntu/Debian host; amd64 and arm64) | PostgreSQL + app + Caddy with automatic HTTPS; `deploy/oracle/{setup,update,backup}.sh`. The server never sleeps, so phone reminders run. | [docs/deploy-oracle.md](docs/deploy-oracle.md), kit in [deploy/oracle](deploy/oracle) |
+| **Render + Neon** | Blueprint `render.yaml` at the repository root; the free Render instance sleeps and reminders do not run while it sleeps. | [docs/deploy-render.md](docs/deploy-render.md) |
+
+The Android app (Trusted Web Activity) needs either of them first: [docs/android.md](docs/android.md).
+
+Manual steps for any other host:
+
 1. Provision PostgreSQL and create a database/user.
 2. Set environment variables (`NODE_ENV=production`, `DATABASE_URL`, `SESSION_SECRET`, `APP_URL`, optional `AI_API_KEY`, `TRUST_PROXY=true` behind a proxy).
 3. `npm ci && npm run build`

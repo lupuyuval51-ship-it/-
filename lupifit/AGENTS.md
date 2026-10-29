@@ -69,3 +69,7 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - Texts follow `users.locale`; the tag matches the in-app reminders (`fitai-workout`, `fitai-meal:HH:MM`) so they replace each other. `public/sw.js` only opens the paths in its `PUSH_PATHS` list.
 - Client: `features/push`. Permission is requested only from the user's tap. A subscription belongs to the browser, so `fitai.pushOwner` (a user id) records which account turned it on; only that account re-registers the device automatically, logout unregisters it on the server.
 
+
+## Deployment kit (one VM)
+- `deploy/oracle/`: Docker Compose for one Ubuntu/Debian VM (db + app + Caddy HTTPS, amd64 + arm64). `setup.sh` (idempotent, `--dry-run`, never overwrites `.env`), `update.sh`, `backup.sh`; guides `docs/deploy-oracle.md` and `docs/deploy-render.md` (Hebrew). Never commit `.env`.
+- Caddy adds no security headers (the app sends its own CSP/HSTS); the db is never published; NODE_IMAGE/POSTGRES_IMAGE/CADDY_IMAGE in `.env` override the multi-arch image tags. Check changes with `shellcheck -x deploy/oracle/*.sh` and `docker compose config`.

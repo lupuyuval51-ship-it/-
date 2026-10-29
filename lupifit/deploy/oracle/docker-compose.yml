@@ -1,0 +1,130 @@
+# LUPU-FIT on one small VM (Oracle Cloud Always Free or any Ubuntu/Debian host):
+#   db     PostgreSQL 16, data in a named volume, reachable only from the app
+#   app    the LUPU-FIT image built from ../../Dockerfile (web app + API + phone-reminder job)
+#   caddy  HTTPS reverse proxy: free Let's Encrypt certificate for SITE_ADDRESS, only ports 80/443 are published
+#
+# Run from this folder, next to a .env file (setup.sh creates it; the template is .env.example):
+#   docker compose up -d --build
+# Guide (Hebrew): ../../docs/deploy-oracle.md
+#
+# All images below exist for linux/amd64 AND linux/arm64 (Oracle's Ampere A1 VMs are arm64), so the same
+# files work on both. Never run `docker compose down -v`: it deletes the database and the certificates.
+name: lupufit
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:16.15}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fitai
+      POSTGRES_DB: fitai
+      # Only used the first time the data volume is created. Changing it later in .env does NOT change the
+      # database password, so leave it alone once the stack has run.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (setup.sh does this for you)}
+    # Small-VM settings (the 1 GB AMD micro shape included). The app uses at most DATABASE_POOL_MAX=10 connections.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${PG_SHARED_BUFFERS:-64MB}
+      - -c
+      - max_connections=40
+      - -c
+      - work_mem=4MB
+      - -c
+      - maintenance_work_mem=32MB
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      # -h 127.0.0.1 on purpose: during first-time setup the image runs a temporary server that only
+      # listens on the unix socket, so a socket check would report "ready" too early.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U fitai -d fitai"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks: [backend]
+    logging: *logging
+    # No `ports:` here: PostgreSQL is not reachable from the internet, nor from the host.
+
+  app:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      args:
+        # If Docker Hub rate-limits the pull ("429 Too Many Requests"), set
+        # NODE_IMAGE=mirror.gcr.io/library/node:22.23.4-bookworm-slim in .env.
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.23.4-bookworm-slim}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DATABASE_URL: postgres://fitai:${POSTGRES_PASSWORD}@db:5432/fitai
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env (setup.sh does this for you)}
+      # Create the tables and load the exercise/food library on every start (safe to repeat).
+      DB_AUTO_MIGRATE: "true"
+      # Exactly one proxy (Caddy) sits in front: rate limits use the visitor's real IP from X-Forwarded-For.
+      TRUST_PROXY: "true"
+      APP_URL: ${APP_URL:?Set APP_URL in .env, e.g. https://203-0-113-10.sslip.io}
+      # Secure (HTTPS-only) cookies. Only an HTTP-only local test sets this to false.
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      ANDROID_APP_PACKAGE: ${ANDROID_APP_PACKAGE:-}
+      ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-}
+      ANDROID_PLAY_CERT_SHA256: ${ANDROID_PLAY_CERT_SHA256:-}
+      # Optional: leave empty to run without the AI coach and meal-photo analysis.
+      AI_API_KEY: ${AI_API_KEY:-}
+      # Optional contact for the phone-notification services (mailto:you@example.com). Empty = the app URL.
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+      # Keeps Node's memory in check on the 1 GB micro shape; raise it on a bigger VM if you like.
+      NODE_OPTIONS: --max-old-space-size=${NODE_HEAP_MB:-384}
+    # The server writes nothing to disk, so the container can be locked down.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    networks: [backend, frontend]
+    logging: *logging
+    # No `ports:` here: only Caddy talks to the app (app:3000 inside the Docker network).
+
+  caddy:
+    image: ${CADDY_IMAGE:-caddy:2.11}
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      # Host name only (no https://), e.g. 203-0-113-10.sslip.io or app.your-domain.com. Caddy gets and renews
+      # its certificate by itself. ":80" would serve plain HTTP (local tests only).
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set SITE_ADDRESS in .env (setup.sh does this for you)}
+    ports:
+      # 80 is needed for the certificate challenge and the redirect to https, 443 is the site itself.
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # certificates and the ACME account: keep it, Let's Encrypt limits new certificates
+      - caddy_config:/config
+    networks: [frontend]
+    logging: *logging
+
+networks:
+  # app <-> db only; `internal` means the database network has no route to the internet at all.
+  backend:
+    internal: true
+  # caddy <-> app, and the app's way out (AI coach, barcode lookup, phone-notification services).
+  frontend:
+
+volumes:
+  db_data:
+  caddy_data:
+  caddy_config:
