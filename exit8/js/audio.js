@@ -4,7 +4,7 @@
   const E = (root.EXIT8 = root.EXIT8 || {});
 
   E.createAudio = function () {
-    let ctx = null, master = null, noiseBuf = null, rumble = null, hum = null, drone = null, started = false;
+    let ctx = null, master = null, outGain = null, noiseBuf = null, rumble = null, hum = null, drone = null, started = false;
     let volume = 0.8;
 
     function init() {
@@ -13,9 +13,19 @@
       if (!AC) return;
       ctx = new AC();
       started = true;
-      master = ctx.createGain();
-      master.gain.value = volume;
-      master.connect(ctx.destination);
+      outGain = ctx.createGain();
+      outGain.gain.value = volume;
+      outGain.connect(ctx.destination);
+      master = ctx.createGain(); // every sound goes in here: dry to the output, plus a send into the tunnel reverb
+      master.connect(outGain);
+      const irLen = Math.floor(ctx.sampleRate * 1.7), ir = ctx.createBuffer(2, irLen, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = ir.getChannelData(c);
+        for (let i = 0; i < irLen; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / irLen, 3.2);
+      }
+      const conv = ctx.createConvolver(); conv.buffer = ir;
+      const wet = ctx.createGain(); wet.gain.value = 0.32;
+      master.connect(conv); conv.connect(wet); wet.connect(outGain);
       noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
       const d = noiseBuf.getChannelData(0);
       let last = 0;
@@ -107,7 +117,7 @@
     return {
       init,
       get ready() { return !!ctx; },
-      setVolume(v) { volume = v; if (master) master.gain.value = v; },
+      setVolume(v) { volume = v; if (outGain) outGain.gain.value = v; },
       suspend() { if (ctx && ctx.state === 'running') ctx.suspend(); },
       resume() { if (ctx && ctx.state === 'suspended') ctx.resume(); },
       /** Player footstep on tile. */
@@ -169,6 +179,21 @@
         const v = Math.min(0.16, 0.7 / (1 + d * d * 0.1));
         if (v < 0.004) return;
         burst({ vol: v * 3.5, dur: 0.28, freq: 700 + Math.random() * 300, q: 1.2, rate: 0.6, attack: 0.04, pan });
+      },
+      /** A fist on a door from the inside, d metres away. */
+      knock(d, pan) {
+        const v = Math.min(1, 1.6 / (1 + d * d * 0.05));
+        if (v < 0.03) return;
+        burst({ vol: 1.2 * v, dur: 0.16, freq: 140, q: 0.8, filter: 'lowpass', attack: 0.002, pan });
+        burst({ vol: 0.5 * v, dur: 0.05, freq: 1200, q: 1, attack: 0.001, pan });
+        tone(78, 0.14, 0.2 * v, 'sine', 55);
+      },
+      /** The stuttering man's jump: a short digital tear. */
+      glitch(d, pan) {
+        const v = Math.min(1, 1.4 / (1 + d * d * 0.06));
+        if (v < 0.03) return;
+        burst({ vol: 1.4 * v, dur: 0.07, freq: 3200 + Math.random() * 2000, q: 3, attack: 0.001, pan });
+        burst({ vol: 0.5 * v, dur: 0.09, freq: 160, q: 0.8, filter: 'lowpass', attack: 0.001, pan });
       },
       /** A wrong decision: a low, dissonant hit. */
       wrong() {

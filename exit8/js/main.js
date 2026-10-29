@@ -392,6 +392,9 @@
         const dx = ev.x - c.x, dz = ev.z - c.z, d = Math.hypot(dx, dz) || 1;
         const pan = (dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw)) / d;
         if (ev.crawl) audio.drag(d, pan); else audio.otherStep(d, pan, ev.run);
+      } else if (ev.type === 'knock' || ev.type === 'glitch') {
+        const c = S.cam || { x: P.x, z: P.z, yaw: P.yaw }, dx = ev.x - c.x, dz = ev.z - c.z, d = Math.hypot(dx, dz) || 1;
+        audio[ev.type](d, (dx * Math.cos(c.yaw) - dz * Math.sin(c.yaw)) / d);
       } else if (ev.type === 'caught') caught(ev);
       else if (ev.type === 'stinger' || ev.type === 'waveStart') audio.stinger();
       else if (ev.type === 'vanish') audio.vanish();
@@ -436,7 +439,8 @@
     }
     if (a > (S.scare ? 2.3 : 1.9)) {
       const run = S.run;
-      run.loops++; run.mistakes++; run.count = 0;
+      run.loops++; run.mistakes++;
+      run.count = S.loop.world.exit ? E.MAX_COUNT - 1 : 0; // caught on the last stretch: only that stretch is lost
       if (S.loop.anomaly) { S.recent.push(S.loop.anomaly); if (S.recent.length > 8) S.recent.shift(); }
       setLoop(takeNext(false));
       updateSign();
@@ -543,6 +547,12 @@
       const bobAmt = reducedMotion ? 0 : Math.min(1, P.moving / 2);
       const bob = (Math.abs(Math.sin(P.bob)) - 0.5) * 0.05 * bobAmt;
       cam = { x: P.x, y: E.floorY(L.world.lay, P.x, P.z) + EYE + bob, z: P.z, yaw: P.yaw, pitch: P.pitch, fov: FOV * (1 - 0.42 * S.zoom) };
+      if (!(reducedMotion || S.settings.reduceFlash)) {
+        // Unsteady hands: a slow sway that grows with the dread.
+        const sw = 0.0015 + 0.004 * S.dreadSm, tt = S.time;
+        cam.yaw += Math.sin(tt * 1.3) * sw + Math.sin(tt * 2.9 + 1) * sw * 0.5;
+        cam.pitch += Math.sin(tt * 1.7 + 2) * sw + Math.sin(tt * 3.4) * sw * 0.4;
+      }
       const sh = S.shake * (reducedMotion || S.settings.reduceFlash ? 0.3 : 1);
       if (sh > 0.01) {
         const tt = S.time;

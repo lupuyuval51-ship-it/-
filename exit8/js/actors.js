@@ -5,50 +5,90 @@
   const E = (root.EXIT8 = root.EXIT8 || {});
   const M4 = E.M4;
 
-  const SKIN = [0.82, 0.6, 0.46], SHIRT = [0.88, 0.89, 0.9], PANTS = [0.2, 0.21, 0.24];
-  const HAIR = [0.12, 0.11, 0.1], SHOE = [0.04, 0.04, 0.04], TIE = [0.09, 0.12, 0.26], CASE = [0.26, 0.15, 0.08];
+  // Linear-space tints: a dark suit, white shirt, blue tie.
+  const SKIN = [0.62, 0.36, 0.22], SKIN_BACK = [0.59, 0.33, 0.19], SHIRT = [0.78, 0.8, 0.82], JACKET = [0.07, 0.075, 0.095];
+  const TROUSER = [0.045, 0.048, 0.06], HAIR = [0.035, 0.03, 0.028], SHOE = [0.02, 0.02, 0.02], TIE = [0.035, 0.05, 0.16], CASE = [0.2, 0.1, 0.05];
   const WALK = 1.25;
 
   E.createActorMeshes = function (renderer) {
     const T = E.TEX;
     const m = (tint, extra) => Object.assign({ layer: T.white, tint }, extra || {});
     const build = fn => { const b = new E.Builder(); fn(b); return renderer.createMesh(b.pack()); };
-    const head = smile => build(b => {
-      b.box(0, 0.14, 0, 0.21, 0.25, 0.23, m(SKIN), { pz: { layer: smile ? T.faceSmile : T.face, tint: [1, 1, 1] } });
-      b.box(0, 0.17, -0.105, 0.225, 0.17, 0.05, m(HAIR));
-      b.box(0.11, 0.2, -0.02, 0.03, 0.1, 0.18, m(HAIR));
-      b.box(-0.11, 0.2, -0.02, 0.03, 0.1, 0.18, m(HAIR));
-      b.box(0, 0.272, -0.02, 0.2, 0.025, 0.19, m([0.3, 0.26, 0.23]));
-      b.box(0.113, 0.13, 0, 0.03, 0.06, 0.045, m(SKIN));
-      b.box(-0.113, 0.13, 0, 0.03, 0.06, 0.045, m(SKIN));
+    const suit = m(JACKET, { spec: 0.12 });
+    const head = kind => build(b => {
+      const face = { layer: kind === 'killer' ? T.faceKiller : kind === 'smile' ? T.faceSmile : T.face, tint: [1, 1, 1] };
+      // Face on the front (planar-mapped), plain skin round the back, hair like a cap with a hairline.
+      b.ellipsoid(0, 0.14, 0, 0.097, 0.125, 0.108, 14, 18, face, { part: 'front', faceUV: true });
+      b.ellipsoid(0, 0.14, 0, 0.097, 0.125, 0.108, 14, 18, m(SKIN_BACK), { part: 'back' });
+      b.ellipsoid(0, 0.152, -0.008, 0.104, 0.129, 0.115, 12, 18, m(HAIR, { spec: 0.15 }), { part: 'all', keep: (nx, ny, nz) => ny > 0.42 || nz < -0.3 });
+      for (const sx of [-1, 1]) b.ellipsoid(sx * 0.099, 0.13, 0.004, 0.014, 0.034, 0.024, 6, 8, m(SKIN), { part: 'all' });
     });
+    const armGeometry = b => {
+      b.ellipsoid(0, -0.01, 0, 0.062, 0.066, 0.062, 8, 12, suit, { part: 'all' }); // rounded shoulder
+      b.lathe([{ y: 0, rx: 0.062, rz: 0.062 }, { y: -0.27, rx: 0.053, rz: 0.053, oz: 0.01 }, { y: -0.5, rx: 0.045, rz: 0.045, oz: 0.03 }], 10, suit);
+      b.lathe([{ y: -0.5, rx: 0.037, rz: 0.037, oz: 0.03 }, { y: -0.535, rx: 0.037, rz: 0.037, oz: 0.034 }], 8, m(SHIRT)); // cuff
+      b.ellipsoid(0, -0.605, 0.042, 0.036, 0.07, 0.03, 8, 10, m(SKIN), { part: 'all' }); // hand
+    };
     return {
       torso: build(b => {
-        b.box(0, 1.2, 0, 0.44, 0.58, 0.24, m(SHIRT));
-        b.box(0, 1.47, 0.02, 0.3, 0.05, 0.22, m(SHIRT));
-        b.box(0, 1.24, 0.126, 0.07, 0.42, 0.012, m(TIE));
-        b.box(0, 0.92, 0, 0.445, 0.05, 0.245, m([0.06, 0.05, 0.05]));
-        b.box(0, 0.86, 0, 0.4, 0.1, 0.23, m(PANTS));
-        b.box(0, 1.52, 0, 0.1, 0.1, 0.1, m(SKIN));
+        b.lathe([
+          { y: 0.84, rx: 0.185, rz: 0.115 }, { y: 0.98, rx: 0.19, rz: 0.115 }, { y: 1.12, rx: 0.2, rz: 0.12 }, { y: 1.28, rx: 0.225, rz: 0.13 },
+          { y: 1.4, rx: 0.245, rz: 0.12 }, { y: 1.47, rx: 0.2, rz: 0.1 }, { y: 1.5, rx: 0.075, rz: 0.07 },
+        ], 16, suit);
+        b.box(0, 1.33, 0.127, 0.1, 0.3, 0.012, m(SHIRT));      // shirt front
+        b.box(0, 1.3, 0.134, 0.034, 0.3, 0.01, m(TIE));         // tie
+        b.box(0, 1.485, 0.075, 0.13, 0.04, 0.1, m(SHIRT));      // collar
+        b.lathe([{ y: 1.46, rx: 0.052, rz: 0.052 }, { y: 1.58, rx: 0.048, rz: 0.048 }], 10, m(SKIN)); // neck
+        // two jacket buttons
+        for (const [y, z] of [[1.16, 0.12], [1.0, 0.116]]) b.ellipsoid(0, y, z, 0.013, 0.013, 0.007, 6, 8, m([0.01, 0.01, 0.012], { spec: 0.6 }), { part: 'all' });
+        // the name tag, pinned to his right breast and angled to follow the curve of the jacket
+        b.box(0.12, 1.3, 0.106, 0.11, 0.062, 0.006, m([0.85, 0.85, 0.83], { spec: 0.3 }), { pz: { layer: T.nametag, tint: [1, 1, 1], spec: 0.3 } }, 0.36);
       }),
-      head: head(false),
-      headSmile: head(true),
+      head: head('plain'),
+      headSmile: head('smile'),
+      headKiller: head('killer'),
       leg: build(b => {
-        b.box(0, -0.42, 0, 0.15, 0.8, 0.17, m(PANTS));
-        b.box(0, -0.83, 0.04, 0.12, 0.07, 0.27, m(SHOE, { spec: 0.4 }));
+        b.lathe([{ y: 0, rx: 0.088, rz: 0.092 }, { y: -0.2, rx: 0.084, rz: 0.088 }, { y: -0.44, rx: 0.068, rz: 0.072 }, { y: -0.7, rx: 0.052, rz: 0.056 }, { y: -0.79, rx: 0.05, rz: 0.054 }], 12, m(TROUSER, { spec: 0.05 }));
+        b.ellipsoid(0, -0.815, 0.045, 0.055, 0.04, 0.13, 8, 12, m(SHOE, { spec: 0.5 }), { part: 'all' });
       }),
-      arm: build(b => {
-        b.box(0, -0.26, 0, 0.12, 0.56, 0.13, m(SHIRT));
-        b.box(0, -0.6, 0, 0.08, 0.1, 0.09, m(SKIN));
+      thigh: build(b => {
+        b.lathe([{ y: 0, rx: 0.088, rz: 0.092 }, { y: -0.2, rx: 0.084, rz: 0.088 }, { y: -0.44, rx: 0.068, rz: 0.072 }], 12, m(TROUSER, { spec: 0.05 }));
+        b.ellipsoid(0, -0.44, 0.004, 0.07, 0.058, 0.074, 8, 12, m(TROUSER, { spec: 0.05 }), { part: 'all' }); // knee
       }),
+      shin: build(b => { // origin at the knee
+        b.lathe([{ y: 0, rx: 0.068, rz: 0.072 }, { y: -0.26, rx: 0.052, rz: 0.056 }, { y: -0.35, rx: 0.05, rz: 0.054 }], 12, m(TROUSER, { spec: 0.05 }));
+        b.ellipsoid(0, -0.375, 0.045, 0.055, 0.04, 0.13, 8, 12, m(SHOE, { spec: 0.5 }), { part: 'all' });
+      }),
+      upperArm: build(b => {
+        b.ellipsoid(0, -0.01, 0, 0.062, 0.066, 0.062, 8, 12, suit, { part: 'all' });
+        b.lathe([{ y: 0, rx: 0.062, rz: 0.062 }, { y: -0.27, rx: 0.053, rz: 0.053, oz: 0.01 }], 10, suit);
+        b.ellipsoid(0, -0.27, 0.01, 0.054, 0.05, 0.054, 8, 10, suit, { part: 'all' }); // elbow
+      }),
+      foreArm: build(b => { // origin at the elbow
+        b.lathe([{ y: 0, rx: 0.053, rz: 0.053 }, { y: -0.23, rx: 0.045, rz: 0.045, oz: 0.02 }], 10, suit);
+        b.lathe([{ y: -0.23, rx: 0.037, rz: 0.037, oz: 0.02 }, { y: -0.265, rx: 0.037, rz: 0.037, oz: 0.024 }], 8, m(SHIRT));
+        b.ellipsoid(0, -0.335, 0.032, 0.036, 0.07, 0.03, 8, 10, m(SKIN), { part: 'all' });
+      }),
+      foreArmCase: build(b => {
+        b.lathe([{ y: 0, rx: 0.053, rz: 0.053 }, { y: -0.23, rx: 0.045, rz: 0.045, oz: 0.02 }], 10, suit);
+        b.lathe([{ y: -0.23, rx: 0.037, rz: 0.037, oz: 0.02 }, { y: -0.265, rx: 0.037, rz: 0.037, oz: 0.024 }], 8, m(SHIRT));
+        b.ellipsoid(0, -0.335, 0.032, 0.036, 0.07, 0.03, 8, 10, m(SKIN), { part: 'all' });
+        b.box(0, -0.41, 0.035, 0.02, 0.05, 0.1, m([0.02, 0.02, 0.02]));
+        b.box(0, -0.57, 0.035, 0.075, 0.28, 0.4, m(CASE, { spec: 0.35 }));
+      }),
+      arm: build(armGeometry),
       armCase: build(b => {
-        b.box(0, -0.26, 0, 0.12, 0.56, 0.13, m(SHIRT));
-        b.box(0, -0.6, 0, 0.08, 0.1, 0.09, m(SKIN));
-        b.box(0, -0.68, 0, 0.02, 0.05, 0.1, m([0.05, 0.04, 0.03]));
-        b.box(0, -0.85, 0, 0.08, 0.28, 0.4, m(CASE, { spec: 0.35 }));
+        armGeometry(b);
+        b.box(0, -0.68, 0.045, 0.02, 0.05, 0.1, m([0.02, 0.02, 0.02]));
+        b.box(0, -0.84, 0.045, 0.075, 0.28, 0.4, m(CASE, { spec: 0.35 }));
+      }),
+      door: build(b => {
+        // A door leaf of its own, so it can be pounded from the inside. The hinge is at local z = +0.5.
+        b.box(0, 1.05, 0, 0.05, 2.1, 1.0, m([0.5, 0.52, 0.55], { spec: 0.3 }), { nx: { layer: T.door, tint: [1, 1, 1], spec: 0.18 } });
+        b.box(-0.04, 1.0, -0.36, 0.06, 0.04, 0.14, m([0.8, 0.82, 0.84], { spec: 0.6 }));
       }),
       cube: build(b => b.box(0, 0, 0, 1, 1, 1, m([0.13, 0.0, 0.003], { spec: 1.6, emis: [0.012, 0, 0] }))),
-      pupil: build(b => b.disc([0, 0, 0], [1, 0, 0], 0.036, 0.006, 14, m([0.05, 0.04, 0.04], { spec: 0.6 }))),
+      pupil: build(b => b.disc([0, 0, 0], [1, 0, 0], 0.036, 0.006, 14, m([0.004, 0.003, 0.003], { spec: 0.6 }))),
       hourHand: build(b => b.box(0, 0.045, 0, 0.022, 0.13, 0.006, m([0.06, 0.06, 0.06]))),
       minuteHand: build(b => b.box(0, 0.075, 0, 0.015, 0.2, 0.006, m([0.06, 0.06, 0.06]))),
       secondHand: build(b => {
@@ -73,6 +113,7 @@
     this.shadow = world.decor.shadow ? Object.assign({ alive: true }, world.decor.shadow) : null;
     this.time = 0;
     this.caught = false;
+    this.knockState = world.decor.knock ? { t: 1.2, left: 0, shake: 0 } : null;
   }
 
   function newMan(x, z, heading) {
@@ -96,6 +137,7 @@
       if (an === 'man_stop') man.stopper = true;
       if (an === 'man_chase') man.chaser = true;
       if (an === 'man_crawl') { man.crawl = true; man.stare = true; man.speed = 2.1; }
+      if (an === 'man_glitch') { man.glitch = true; man.gT = 0; }
       this.men.push(man);
     }
   };
@@ -117,10 +159,22 @@
         if (man.stopper && inHall && dist < 7 && man.z > p.z) { man.mode = 'stop'; }
         else if (man.chaser && inHall && dist < 8.5 && man.z > p.z) { man.mode = 'pause'; man.timer = 0.8; ev.push({ type: 'stinger' }); }
         else {
-          const step = man.speed * dt;
+          let step = man.speed * dt;
+          if (man.glitch) {
+            // Stop-motion: he freezes mid-stride, then jumps ahead, his head snapping towards you.
+            man.gT += dt;
+            if (man.gT < 0.42) step = 0;
+            else {
+              step = man.speed * man.gT; man.gT = 0;
+              man.phase += 1 + Math.random() * 2;
+              const rel = wrapAngle(angleTo(man.x, man.z, p.x, p.z) - man.heading);
+              man.headYaw = Math.max(-1.6, Math.min(1.6, rel + (Math.random() - 0.5) * 0.5));
+              ev.push({ type: 'glitch', x: man.x, z: man.z });
+            }
+          }
           if (man.z > 13.7) { man.z = Math.max(13.7, man.z - step); if (!man.backward) man.heading = Math.PI; }
           else { man.x -= step; if (!man.backward) man.heading = -Math.PI / 2; else man.heading = Math.PI / 2; }
-          moving = 1;
+          moving = man.glitch ? (step > 0 ? 1 : 0) : 1;
           const passed = man.z < p.z - 2.5 || man.x < 7.5;
           if ((passed && !ctx.inView(man.x, 1.2, man.z)) || man.x < 4.8) { man.alive = false; continue; }
         }
@@ -194,16 +248,41 @@
       }
     }
 
-    // Red wave.
+    // A door being pounded from inside: bursts of knocks, then a long, held silence.
+    const kd = this.world.decor.knock, K = this.knockState;
+    if (kd && K && ctx.armed) {
+      K.shake = Math.max(0, K.shake - dt * 5);
+      K.t -= dt;
+      if (K.t <= 0) {
+        if (K.left <= 0) K.left = 2 + Math.floor(Math.random() * 4);
+        K.left--;
+        K.shake = 1;
+        ev.push({ type: 'knock', x: kd.x - 0.3, z: kd.z });
+        K.t = K.left > 0 ? 0.2 + Math.random() * 0.25 : 2.2 + Math.random() * 2.6;
+      }
+    }
+
+    // Red wave. In the exit corridor it comes from behind instead, and only stops when you reach the stairs.
     if (this.an === 'red_wave' && !this.wave && inHall && p.z > 21) {
-      this.wave = { s: E.routeS(lay, 9, hl + 13), t: 0 };
+      this.wave = { s: E.routeS(lay, 9, hl + 13), t: 0, dir: -1 };
+      ev.push({ type: 'waveStart' });
+    } else if (this.world.exit && !this.wave && !this.finaleDone && inHall && p.z > 22 && p.z < 44) {
+      this.wave = { s: E.routeS(lay, 9, 14.5), t: 0, dir: 1 };
       ev.push({ type: 'waveStart' });
     }
     if (this.wave) {
-      this.wave.t += dt;
-      this.wave.s -= Math.min(2.55, 0.8 + this.wave.t * 1.2) * dt;
-      this.wave.gap = this.wave.s - sPlayer;
-      if (this.wave.gap < 0.35 && !this.caught) { this.caught = true; ev.push({ type: 'caught', by: 'wave' }); }
+      const W = this.wave;
+      W.t += dt;
+      if (W.dir === 1) {
+        if (!W.done) W.s = Math.min(W.s + Math.min(3.5, 2.4 + W.t * 0.35) * dt, E.routeS(lay, 9, hl + 13) - 0.2);
+        W.gap = sPlayer - W.s;
+        if (!W.done && p.z > 46) { W.done = true; W.doneT = 0; this.finaleDone = true; ev.push({ type: 'vanish' }); }
+        if (W.done) { W.doneT += dt; if (W.doneT > 2.5) this.wave = null; }
+      } else {
+        W.s -= Math.min(2.55, 0.8 + W.t * 1.2) * dt;
+        W.gap = W.s - sPlayer;
+      }
+      if (this.wave && !W.done && W.gap < 0.35 && !this.caught) { this.caught = true; ev.push({ type: 'caught', by: 'wave' }); }
     }
 
     // Shadow at the end of the corridor vanishes when you get close.
@@ -225,9 +304,9 @@
       const dist = Math.hypot(man.x - p.x, man.z - p.z);
       if (man.mode === 'chase' || man.mode === 'pause') d = Math.max(d, 1 - dist / 14);
       else if (man.mode === 'stop') d = Math.max(d, 0.5 * (1 - dist / 8));
-      else if (man.stare || man.crawl || man.smile || man.ceiling) d = Math.max(d, 0.55 * (1 - dist / 9));
+      else if (man.stare || man.crawl || man.smile || man.ceiling || man.glitch) d = Math.max(d, 0.55 * (1 - dist / 9));
     }
-    if (this.wave) d = Math.max(d, 1 - this.wave.gap / 22);
+    if (this.wave && !this.wave.done) d = Math.max(d, 1 - this.wave.gap / 22);
     return Math.max(0, Math.min(1, d));
   };
 
@@ -238,8 +317,8 @@
     const light = E.sampleLight(world, man.x, 0.6, man.z, dyn);
     r.drawObj(M.torso, base, light);
     r.drawObj(M.head, M4.chain(base, M4.translate(0, 1.53, 0), M4.rotZ(-man.headYaw), M4.rotX(-Math.PI / 2 - 0.55)), light);
-    r.drawObj(M.arm, M4.chain(base, M4.translate(-0.285, 1.46, 0), M4.rotX(Math.PI + 0.8 + sw * 0.5)), light);
-    r.drawObj(M.arm, M4.chain(base, M4.translate(0.285, 1.46, 0), M4.rotX(Math.PI + 0.8 - sw * 0.5)), light);
+    r.drawObj(M.arm, M4.chain(base, M4.translate(-0.262, 1.46, 0), M4.rotX(Math.PI + 0.8 + sw * 0.5)), light);
+    r.drawObj(M.arm, M4.chain(base, M4.translate(0.262, 1.46, 0), M4.rotX(Math.PI + 0.8 - sw * 0.5)), light);
     r.drawObj(M.leg, M4.chain(base, M4.translate(-0.1, 0.86, 0), M4.rotX(-0.7 + sw * 0.35)), light);
     r.drawObj(M.leg, M4.chain(base, M4.translate(0.1, 0.86, 0), M4.rotX(-0.7 - sw * 0.35)), light);
   }
@@ -247,19 +326,38 @@
   function drawMan(r, M, man, world, dyn, tintOv) {
     if (man.crawl) { drawCrawler(r, M, man, world, dyn); return; }
     const sc = man.scale;
-    const bob = man.moving ? Math.abs(Math.sin(man.phase)) * 0.03 : 0;
-    const base = man.ceiling
+    const walking = !!(man.moving || man.glitch); // the stuttering man holds his pose between jumps
+    const ph = walking ? man.phase || 0 : 0, sg = man.backward ? -1 : 1;
+    const s = Math.sin(ph) * sg, c = Math.cos(ph) * sg;
+    const bob = walking ? Math.abs(Math.sin(ph)) * 0.03 : 0;
+    const origin = man.ceiling
       ? M4.chain(M4.translate(man.x, E.CEIL, man.z), M4.rotY(man.heading), M4.scale(sc, -sc, sc))
       : M4.chain(M4.translate(man.x, 0, man.z), M4.rotY(man.heading), M4.scale(sc, sc, sc));
+    const base = M4.mul(origin, M4.translate(0, bob, 0));
     const light = tintOv ? { col: [0, 0, 0], dir: [0, 1, 0] } : E.sampleLight(world, man.x, man.ceiling ? 2.0 : 1.3, man.z, dyn);
-    const dirSign = man.backward ? -1 : 1;
-    const swing = man.moving ? Math.sin(man.phase) * 0.5 * dirSign : 0;
-    r.drawObj(M.torso, M4.mul(base, M4.translate(0, bob, 0)), light, tintOv);
-    r.drawObj(man.smile ? M.headSmile : M.head, M4.chain(base, M4.translate(0, 1.53 + bob, 0), M4.rotY(man.headYaw)), light, tintOv);
-    r.drawObj(M.leg, M4.chain(base, M4.translate(-0.1, 0.86 + bob, 0), M4.rotX(swing)), light, tintOv);
-    r.drawObj(M.leg, M4.chain(base, M4.translate(0.1, 0.86 + bob, 0), M4.rotX(-swing)), light, tintOv);
-    r.drawObj(M.arm, M4.chain(base, M4.translate(-0.285, 1.46 + bob, 0), M4.rotX(-swing * 0.7)), light, tintOv);
-    r.drawObj(M.armCase, M4.chain(base, M4.translate(0.285, 1.46 + bob, 0), M4.rotX(swing * 0.25)), light, tintOv);
+
+    // Hips and shoulders counter-twist, with a slight forward lean and sway.
+    const twist = -s * 0.07, roll = Math.sin(ph) * sg * 0.02, lean = walking ? 0.05 : 0;
+    const upper = M4.chain(base, M4.translate(0, 0.9, 0), M4.rotX(lean), M4.rotY(twist), M4.rotZ(roll), M4.translate(0, -0.9, 0));
+    r.drawObj(M.torso, upper, light, tintOv);
+    r.drawObj(man.killer ? M.headKiller : man.smile ? M.headSmile : M.head, M4.chain(upper, M4.translate(0, 1.53, 0), M4.rotY(man.headYaw - twist * 0.8), M4.rotZ(-roll * 0.6)), light, tintOv);
+
+    // Legs: the knee bends while the leg swings forward.
+    const legA = s * 0.55, legB = -legA, kneeA = 0.85 * Math.max(0, -c), kneeB = 0.85 * Math.max(0, c);
+    for (const [x, hip, knee] of [[-0.1, legA, kneeA], [0.1, legB, kneeB]]) {
+      const h = M4.chain(base, M4.translate(x, 0.86, 0), M4.rotX(hip));
+      r.drawObj(M.thigh, h, light, tintOv);
+      r.drawObj(M.shin, M4.chain(h, M4.translate(0, -0.44, 0), M4.rotX(knee)), light, tintOv);
+    }
+
+    // Arms: the free arm swings against its leg and bends at the elbow on the forward swing; the other holds the case.
+    const armA = -s * 0.42, elbowA = 0.2 + 0.9 * Math.max(0, -armA), armB = s * 0.1;
+    const sa = M4.chain(upper, M4.translate(-0.262, 1.46, 0), M4.rotX(armA));
+    r.drawObj(M.upperArm, sa, light, tintOv);
+    r.drawObj(M.foreArm, M4.chain(sa, M4.translate(0, -0.27, 0.01), M4.rotX(-elbowA)), light, tintOv);
+    const sb = M4.chain(upper, M4.translate(0.262, 1.46, 0), M4.rotX(armB));
+    r.drawObj(M.upperArm, sb, light, tintOv);
+    r.drawObj(M.foreArmCase, M4.chain(sb, M4.translate(0, -0.27, 0.01), M4.rotX(-(0.1 + armB * 0.4))), light, tintOv);
   }
 
   /** cam: camera position for the poster eyes; dyn: flicker level; now: Date for the clock. */
@@ -295,6 +393,24 @@
       r.drawObj(M.pupil, M4.translate(eye.x + 0.004, eye.y + oy, eye.z + oz), light);
     }
 
+    const kd = world.decor.knock;
+    if (kd && this.knockState) {
+      const sh = this.knockState.shake;
+      const light = E.sampleLight(world, kd.x - 0.5, 1.2, kd.z, dyn);
+      r.drawObj(M.door, M4.chain(M4.translate(kd.x - 0.012 - 0.04 * sh, 0, kd.z + 0.5), M4.rotY(Math.sin(this.time * 70) * 0.09 * sh), M4.translate(0, 0, -0.5)), light);
+    }
+
+    const we = world.decor.wallEyes;
+    if (we.length) {
+      const light = E.sampleLight(world, we[0].x - 0.6, we[0].y, we[0].z, dyn);
+      for (const e of we) {
+        const dx = cam.x - e.x, dy = cam.y - e.y, dz = cam.z - e.z, d = Math.hypot(dx, dy, dz) || 1;
+        const oy = Math.max(-e.maxY, Math.min(e.maxY, dy / d * e.maxY * 1.6));
+        const oz = Math.max(-e.maxZ, Math.min(e.maxZ, dz / d * e.maxZ * 1.6));
+        r.drawObj(M.pupil, M4.chain(M4.translate(e.x - 0.004, e.y + oy, e.z + oz), M4.scale(1, e.ky, e.kz)), light);
+      }
+    }
+
     if (this.wave) this.drawWave(r, M, dyn);
   };
 
@@ -310,6 +426,16 @@
     const draw = (x0, x1, z0, z1, h) => {
       r.drawObj(M.cube, M4.chain(M4.translate((x0 + x1) / 2, h / 2, (z0 + z1) / 2), M4.scale(x1 - x0, h, z1 - z0)), light);
     };
+    if (this.wave.dir === 1) {
+      // Coming from behind: the body trails back along the hall, the ragged crest leans forward.
+      const zf = 14.5 + (s - sH0);
+      draw(7.5, 10.5, 13, zf, H);
+      for (let i = 0; i < 10; i++) {
+        const w = 0.3, x = 7.5 + i * w, wob = Math.sin(t * 7 + i * 1.7) * 0.3 + Math.sin(t * 11 + i * 0.6) * 0.12 + 0.35;
+        draw(x, x + w, zf - 0.15, zf + 0.15 + wob, H * (0.8 + 0.2 * Math.sin(t * 5 + i * 1.3)));
+      }
+      return;
+    }
     if (s >= sH0) {
       const zf = 14.5 + (s - sH0);
       draw(7.5, 10.5, zf, hl + 13, H);

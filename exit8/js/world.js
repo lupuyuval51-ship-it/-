@@ -110,6 +110,58 @@
       }
     }
   };
+  /** Smooth surface of revolution. rings: bottom to top [{y, rx, rz, ox, oz}]; both ends are capped. */
+  Builder.prototype.lathe = function (rings, sides, m) {
+    const n = rings.length, base = this.count;
+    for (let i = 0; i < n; i++) {
+      const R = rings[i], P = rings[Math.max(0, i - 1)], Q = rings[Math.min(n - 1, i + 1)];
+      const slope = ((Q.rx + Q.rz) - (P.rx + P.rz)) / 2 / ((Q.y - P.y) || 1e-3);
+      for (let k = 0; k <= sides; k++) {
+        const a = (k / sides) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+        const hx = c / R.rx, hz = sn / R.rz, hl = Math.hypot(hx, hz) || 1;
+        const nx = hx / hl, nz = hz / hl, ny = -slope, nl = Math.hypot(nx, ny, nz);
+        this.vertex((R.ox || 0) + R.rx * c, R.y, (R.oz || 0) + R.rz * sn, nx / nl, ny / nl, nz / nl, k / sides, i / (n - 1), m);
+      }
+    }
+    for (let i = 0; i < n - 1; i++) for (let k = 0; k < sides; k++) {
+      const a = base + i * (sides + 1) + k, b = a + 1, c = a + sides + 1, d = c + 1;
+      this.idx.push(a, b, d, a, d, c);
+    }
+    for (const [R, ny] of [[rings[0], -1], [rings[n - 1], 1]]) {
+      const ctr = this.vertex(R.ox || 0, R.y, R.oz || 0, 0, ny, 0, 0.5, 0.5, m);
+      const ring = k => this.vertex((R.ox || 0) + R.rx * Math.cos(k / sides * Math.PI * 2), R.y, (R.oz || 0) + R.rz * Math.sin(k / sides * Math.PI * 2), 0, ny, 0, 0, 0, m);
+      let prev = ring(0);
+      for (let k = 1; k <= sides; k++) { const cur = ring(k); this.idx.push(ctr, prev, cur); prev = cur; }
+    }
+  };
+  /**
+   * Ellipsoid with smooth normals. o.part: 'front' (z >= 0), 'back' (z < 0) or 'all'.
+   * o.faceUV maps the front planar onto a face texture; o.keep(nx, ny, nz) drops quads whose normal fails it.
+   */
+  Builder.prototype.ellipsoid = function (cx, cy, cz, rx, ry, rz, lat, lon, m, o) {
+    const opt = o || {};
+    const p0 = opt.part === 'back' ? Math.PI / 2 : opt.part === 'all' ? -Math.PI : -Math.PI / 2;
+    const p1 = opt.part === 'back' ? Math.PI * 1.5 : opt.part === 'all' ? Math.PI : Math.PI / 2;
+    const base = this.count;
+    for (let i = 0; i <= lat; i++) {
+      const th = -Math.PI / 2 + (i / lat) * Math.PI, ct = Math.cos(th), st = Math.sin(th);
+      for (let k = 0; k <= lon; k++) {
+        const ph = p0 + (k / lon) * (p1 - p0);
+        const x = rx * ct * Math.sin(ph), y = ry * st, z = rz * ct * Math.cos(ph);
+        const nx = x / (rx * rx), ny = y / (ry * ry), nz = z / (rz * rz), nl = Math.hypot(nx, ny, nz) || 1;
+        const u = opt.faceUV ? 0.5 - x / (2 * rx) : k / lon, v = opt.faceUV ? 0.5 - y / (2 * ry) : i / lat;
+        this.vertex(cx + x, cy + y, cz + z, nx / nl, ny / nl, nz / nl, u, v, m);
+      }
+    }
+    for (let i = 0; i < lat; i++) for (let k = 0; k < lon; k++) {
+      const a = base + i * (lon + 1) + k, b = a + 1, c = a + lon + 1, d = c + 1;
+      if (opt.keep) {
+        const mx = (this.n[a * 3] + this.n[d * 3]) / 2, my = (this.n[a * 3 + 1] + this.n[d * 3 + 1]) / 2, mz = (this.n[a * 3 + 2] + this.n[d * 3 + 2]) / 2;
+        if (!opt.keep(mx, my, mz)) continue;
+      }
+      this.idx.push(a, b, d, a, d, c);
+    }
+  };
   /** Packs into the interleaved vertex format. lit/dyn default to tint / 0 (for lit-at-runtime objects). */
   Builder.prototype.pack = function (lit, dyn) {
     const N = this.count, d = new Float32Array(N * STRIDE);
@@ -282,7 +334,7 @@
     const T = E.TEX;
     const b = new Builder();
     const lights = [];
-    const decor = { hl, eyes: [], clock: null, doors: [], men: {}, shadow: null };
+    const decor = { hl, eyes: [], wallEyes: [], knock: null, clock: null, doors: [], men: {}, shadow: null };
 
     const mat = (layer, tint, extra) => Object.assign({ layer, tint: tint || [1, 1, 1] }, extra || {});
     const MAT = {
@@ -413,8 +465,10 @@
       b.box(x + n[0] * 0.03 + r[0] * 0.56, 1.1, z + n[2] * 0.03 + r[2] * 0.56, n[0] ? 0.06 : 0.08, 2.2, n[0] ? 0.08 : 0.06, MAT.frame);
       b.box(x + n[0] * 0.03 - r[0] * 0.56, 1.1, z + n[2] * 0.03 - r[2] * 0.56, n[0] ? 0.06 : 0.08, 2.2, n[0] ? 0.08 : 0.06, MAT.frame);
       b.box(x + n[0] * 0.03, 2.16, z + n[2] * 0.03, n[0] ? 0.06 : 1.2, 0.08, n[0] ? 1.2 : 0.06, MAT.frame);
+      if (opt.skip) return; // the leaf is drawn live so it can shake
       if (opt.ajar) {
         b.panel([x + n[0] * 0.012, 1.06, z + n[2] * 0.012], n, 1.04, 2.12, MAT.dark);
+        if (opt.eyes) b.panel([x + n[0] * 0.016, 1.62, z + n[2] * 0.016], n, 0.95, 0.475, mat(T.ventEyes, null, { emis: [2.8, 2.8, 2.8] }));
         // Hinged on the far side and swung past 90°, so the dark doorway faces the approaching player.
         const a = 1.75;
         const hx = x + n[0] * 0.02 - r[0] * 0.5, hz = z + n[2] * 0.02 - r[2] * 0.5;
@@ -460,7 +514,10 @@
       if (an === 'door_extra') door(LX, Z(34.4), [1, 0, 0]);
       // Right wall: doors, extinguisher, emergency sign, clock, vent.
       [21, 27, 34].forEach((dz, i) => {
-        door(RX, Z(dz), [-1, 0, 0], { ajar: an === 'door_ajar' && i === doorPick });
+        const ajarHere = (an === 'door_ajar' || an === 'door_eyes') && i === doorPick;
+        const knockHere = main && an === 'door_knock' && i === doorPick;
+        door(RX, Z(dz), [-1, 0, 0], { ajar: ajarHere, eyes: an === 'door_eyes' && ajarHere, skip: knockHere });
+        if (knockHere) decor.knock = { x: RX, z: Z(dz) };
         if (main) decor.doors.push({ x: RX, z: Z(dz) });
       });
       if (an !== 'extinguisher_missing') {
@@ -487,7 +544,18 @@
       }
       if (an === 'wall_stain') b.panel([LX + 0.006, 1.45, Z(28)], [1, 0, 0], 1.5, 1.5, mat(T.stain, null, { spec: 0.5 }));
       if (an === 'wall_face') b.panel([LX + 0.012, 1.55, Z(28)], [1, 0, 0], 1.3, 1.62, mat(T.wallFace, null, { spec: 0.2 }));
-      if (an === 'wall_eyes') b.panel([RX - 0.006, 1.3, Z(32.2)], [-1, 0, 0], 2.8, 2.3, mat(T.wallEyes, null, { spec: 0.55 }));
+      if (an === 'wall_eyes') {
+        const Wd = 2.8, Hd = 2.3, yc = 1.3, zc = Z(32.2);
+        b.panel([RX - 0.006, yc, zc], [-1, 0, 0], Wd, Hd, mat(T.wallEyes, null, { spec: 0.55 }));
+        for (const e of E.WALL_EYES) {
+          if (!e.tracked) continue;
+          decor.wallEyes.push({
+            x: RX - 0.012, y: yc + Hd / 2 - e.y / 512 * Hd, z: zc + Wd / 2 - e.x / 512 * Wd,
+            ky: 0.2 * e.s * (Hd / 512) / 0.036, kz: 0.2 * e.s * (Wd / 512) / 0.036,
+            maxY: 0.26 * e.s * (Hd / 512) * 0.85, maxZ: 0.26 * e.s * (Wd / 512) * 0.85,
+          });
+        }
+      }
       if (an === 'scrawl') b.panel([RX - 0.006, 1.55, Z(32.2)], [-1, 0, 0], 2.4, 1.2, mat(T.scrawl, null, { spec: 0.6 }));
       if (an === 'blood_pool') b.floorDecal(10.1, Z(27), 2.2, 2.8, 0, 1, mat(T.bloodPool, null, { spec: 1.1 }), 0.008);
       if (an === 'footprints') {

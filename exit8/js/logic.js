@@ -150,6 +150,9 @@
     { id: 'wall_eyes', he: 'עיניים על הקיר', en: 'Eyes on the wall', scare: 3 },
     { id: 'scrawl', he: 'כתובת אדומה על הקיר', en: 'Red scrawl', scare: 2 },
     { id: 'blood_pool', he: 'שלולית אדומה מתחת לדלת', en: 'Red pool under the door', scare: 2 },
+    { id: 'door_knock', he: 'מישהו דופק על הדלת מבפנים', en: 'Pounding from inside a door', scare: 3 },
+    { id: 'man_glitch', he: 'האיש מקרטע', en: 'The stuttering man', scare: 3 },
+    { id: 'door_eyes', he: 'עיניים בחשכה שבדלת', en: 'Eyes in the dark doorway', scare: 3 },
   ];
   const ANOMALY_IDS = ANOMALIES.map(a => a.id);
 
@@ -191,7 +194,9 @@
 
   /** Main walking route used by chasers: lobby → C1 → hallway centre lines. */
   function route(lay) {
-    return [[0, 0], [0, 14.5], [9, 14.5], [9, lay.hl + 13]];
+    const pts = [[0, 0], [0, 14.5], [9, 14.5], [9, lay.hl + 13]];
+    if (lay.exit) pts.push([9, lay.hl + 13 + STAIRS]);
+    return pts;
   }
 
   /** Arc-length coordinate of (x, z) projected on the route. */

@@ -524,8 +524,120 @@
     }
   });
 
-  def('face', 256, 300, (ctx, w, h) => drawFace(ctx, 0, 0, w, h, false));
+  // The walking man's face: tired, ordinary, a little too still.
+  def('face', 256, 300, (ctx, w, h) => {
+    const r = rng(121);
+    const g = ctx.createRadialGradient(w * 0.5, h * 0.42, w * 0.08, w * 0.5, h * 0.5, w * 0.78);
+    g.addColorStop(0, '#e2bb98'); g.addColorStop(0.7, '#c9a07c'); g.addColorStop(1, '#a37b5c');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    // forehead lines, hollow cheeks, sagging eye bags
+    ctx.strokeStyle = 'rgba(120,80,55,0.28)'; ctx.lineWidth = w * 0.012; ctx.lineCap = 'round';
+    for (let i = 0; i < 2; i++) { ctx.beginPath(); ctx.moveTo(w * 0.3, h * (0.15 + i * 0.05)); ctx.quadraticCurveTo(w * 0.5, h * (0.13 + i * 0.05), w * 0.7, h * (0.15 + i * 0.05)); ctx.stroke(); }
+    ctx.fillStyle = 'rgba(95,55,40,0.22)';
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(w * (0.5 + sg * 0.19), h * 0.5, w * 0.1, h * 0.03, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(90,55,42,0.16)';
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(w * (0.5 + sg * 0.3), h * 0.68, w * 0.08, h * 0.12, sg * -0.25, 0, Math.PI * 2); ctx.fill(); }
+    // heavy, slightly lowered brows
+    ctx.strokeStyle = '#2b201b'; ctx.lineWidth = w * 0.036;
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(w * (0.5 + sg * 0.09), h * 0.335); ctx.quadraticCurveTo(w * (0.5 + sg * 0.21), h * 0.305, w * (0.5 + sg * 0.33), h * 0.345); ctx.stroke(); }
+    // almond eyes with lids
+    for (const sg of [-1, 1]) {
+      const cx = w * (0.5 + sg * 0.19), cy = h * 0.425, ew = w * 0.085, eh = h * 0.036;
+      ctx.fillStyle = '#ece4d8';
+      ctx.beginPath(); ctx.moveTo(cx - ew, cy + eh * 0.2); ctx.quadraticCurveTo(cx, cy - eh * 1.6, cx + ew, cy + eh * 0.2); ctx.quadraticCurveTo(cx, cy + eh * 1.4, cx - ew, cy + eh * 0.2); ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.moveTo(cx - ew, cy + eh * 0.2); ctx.quadraticCurveTo(cx, cy - eh * 1.6, cx + ew, cy + eh * 0.2); ctx.quadraticCurveTo(cx, cy + eh * 1.4, cx - ew, cy + eh * 0.2); ctx.clip();
+      ctx.fillStyle = '#3a2417'; ctx.beginPath(); ctx.arc(cx, cy, w * 0.036, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0c0807'; ctx.beginPath(); ctx.arc(cx, cy, w * 0.017, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.beginPath(); ctx.arc(cx - w * 0.012, cy - h * 0.008, w * 0.006, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(120,80,60,0.32)'; ctx.fillRect(cx - ew, cy - eh * 1.7, ew * 2, eh * 1.15); // heavy upper lid
+      ctx.restore();
+      ctx.strokeStyle = '#2a1b15'; ctx.lineWidth = w * 0.011;
+      ctx.beginPath(); ctx.moveTo(cx - ew, cy + eh * 0.2); ctx.quadraticCurveTo(cx, cy - eh * 1.6, cx + ew, cy + eh * 0.2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(100,65,48,0.4)'; ctx.lineWidth = w * 0.008;
+      ctx.beginPath(); ctx.moveTo(cx - ew * 0.9, cy - eh * 1.9); ctx.quadraticCurveTo(cx, cy - eh * 2.9, cx + ew * 0.9, cy - eh * 1.7); ctx.stroke();
+    }
+    // nose: shaded side, nostrils
+    ctx.fillStyle = 'rgba(100,62,44,0.2)'; ctx.beginPath(); ctx.moveTo(w * 0.51, h * 0.45); ctx.lineTo(w * 0.57, h * 0.6); ctx.lineTo(w * 0.51, h * 0.6); ctx.fill();
+    ctx.strokeStyle = 'rgba(100,62,44,0.45)'; ctx.lineWidth = w * 0.014;
+    ctx.beginPath(); ctx.moveTo(w * 0.47, h * 0.6); ctx.quadraticCurveTo(w * 0.5, h * 0.625, w * 0.53, h * 0.6); ctx.stroke();
+    ctx.fillStyle = 'rgba(40,22,16,0.55)';
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.ellipse(w * (0.5 + sg * 0.03), h * 0.605, w * 0.012, h * 0.01, 0, 0, Math.PI * 2); ctx.fill(); }
+    // lips: a flat, slightly downturned mouth
+    ctx.fillStyle = '#a8625a';
+    ctx.beginPath(); ctx.moveTo(w * 0.38, h * 0.752); ctx.quadraticCurveTo(w * 0.5, h * 0.728, w * 0.62, h * 0.752); ctx.quadraticCurveTo(w * 0.5, h * 0.762, w * 0.38, h * 0.752); ctx.fill();
+    ctx.fillStyle = '#bd7770';
+    ctx.beginPath(); ctx.moveTo(w * 0.39, h * 0.755); ctx.quadraticCurveTo(w * 0.5, h * 0.792, w * 0.61, h * 0.755); ctx.quadraticCurveTo(w * 0.5, h * 0.76, w * 0.39, h * 0.755); ctx.fill();
+    ctx.strokeStyle = '#5a2a26'; ctx.lineWidth = w * 0.01;
+    ctx.beginPath(); ctx.moveTo(w * 0.37, h * 0.758); ctx.quadraticCurveTo(w * 0.5, h * 0.752, w * 0.63, h * 0.758); ctx.stroke();
+    ctx.strokeStyle = 'rgba(100,62,44,0.3)'; ctx.lineWidth = w * 0.012;
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(w * (0.5 + sg * 0.17), h * 0.62); ctx.quadraticCurveTo(w * (0.5 + sg * 0.19), h * 0.7, w * (0.5 + sg * 0.15), h * 0.77); ctx.stroke(); }
+    // end-of-day stubble round the jaw
+    ctx.fillStyle = 'rgba(40,28,22,0.32)';
+    for (let i = 0; i < 700; i++) {
+      const x = w * (0.2 + r() * 0.6), y = h * (0.64 + r() * 0.32);
+      const inJaw = (x - w * 0.5) ** 2 / (w * 0.3) ** 2 + (y - h * 0.62) ** 2 / (h * 0.34) ** 2 < 1;
+      if (inJaw && !(y < h * 0.8 && Math.abs(x - w * 0.5) < w * 0.14 && y > h * 0.72)) ctx.fillRect(x, y, 1.2, 1.2);
+    }
+  });
+
+  E.NAME_TAG = { title: 'שם עובד', name: 'שלומי' };
+  def('nametag', 256, 140, (ctx, w, h) => {
+    ctx.fillStyle = '#f3f1ea'; rrect(ctx, 0, 0, w, h, 10); ctx.fill();
+    ctx.save(); rrect(ctx, 0, 0, w, h, 10); ctx.clip();
+    ctx.fillStyle = '#1b3b6f'; ctx.fillRect(0, 0, w, 46);
+    ctx.restore();
+    ctx.strokeStyle = '#9a9a96'; ctx.lineWidth = 4; rrect(ctx, 2, 2, w - 4, h - 4, 10); ctx.stroke();
+    font(ctx, 700, 27, UI);
+    text(ctx, E.NAME_TAG.title, w / 2, 34, { align: 'center', dir: 'rtl', color: '#fff' });
+    font(ctx, 900, 64, UI);
+    text(ctx, E.NAME_TAG.name, w / 2, 112, { align: 'center', dir: 'rtl', color: '#141414', maxW: w - 30 });
+  });
   def('faceSmile', 256, 300, (ctx, w, h) => drawFace(ctx, 0, 0, w, h, true));
+
+  // The face he wears when he catches you.
+  def('faceKiller', 256, 300, (ctx, w, h) => {
+    const r = rng(111);
+    const g = ctx.createRadialGradient(w * 0.5, h * 0.45, w * 0.08, w * 0.5, h * 0.5, w * 0.75);
+    g.addColorStop(0, '#d8c3af'); g.addColorStop(1, '#8c7565');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    // sunken sockets, hollow cheeks, forehead creases
+    ctx.fillStyle = 'rgba(40,22,20,0.5)';
+    for (const cx of [0.3, 0.7]) { ctx.beginPath(); ctx.ellipse(w * cx, h * 0.43, w * 0.17, h * 0.1, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = 'rgba(60,35,30,0.3)';
+    for (const cx of [0.2, 0.8]) { ctx.beginPath(); ctx.ellipse(w * cx, h * 0.7, w * 0.1, h * 0.14, cx < 0.5 ? -0.3 : 0.3, 0, Math.PI * 2); ctx.fill(); }
+    ctx.strokeStyle = 'rgba(70,45,38,0.55)'; ctx.lineWidth = w * 0.014; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(w * 0.28, h * (0.13 + i * 0.045)); ctx.quadraticCurveTo(w * 0.5, h * (0.1 + i * 0.045), w * 0.72, h * (0.13 + i * 0.045)); ctx.stroke(); }
+    // raised, arched brows
+    ctx.strokeStyle = '#1d1512'; ctx.lineWidth = w * 0.05;
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(w * (0.5 + sg * 0.1), h * 0.3); ctx.quadraticCurveTo(w * (0.5 + sg * 0.24), h * 0.22, w * (0.5 + sg * 0.4), h * 0.3); ctx.stroke(); }
+    // huge, unblinking eyes: tiny pupils, bloodshot whites
+    for (const cx of [0.3, 0.7]) {
+      ctx.fillStyle = '#f2ece2'; ctx.beginPath(); ctx.ellipse(w * cx, h * 0.43, w * 0.14, h * 0.075, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(170,25,20,0.7)'; ctx.lineWidth = 1.4;
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2 + cx;
+        ctx.beginPath(); ctx.moveTo(w * cx + Math.cos(a) * w * 0.135, h * 0.43 + Math.sin(a) * h * 0.072); ctx.lineTo(w * cx + Math.cos(a) * w * 0.05, h * 0.43 + Math.sin(a) * h * 0.025); ctx.stroke();
+      }
+      ctx.fillStyle = '#0b0807'; ctx.beginPath(); ctx.arc(w * cx, h * 0.43, w * 0.02, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#2a1b17'; ctx.lineWidth = w * 0.012; ctx.beginPath(); ctx.ellipse(w * cx, h * 0.43, w * 0.14, h * 0.075, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(70,40,32,0.6)'; ctx.lineWidth = w * 0.02;
+    ctx.beginPath(); ctx.moveTo(w * 0.5, h * 0.47); ctx.lineTo(w * 0.46, h * 0.6); ctx.lineTo(w * 0.54, h * 0.62); ctx.stroke();
+    // a mouth stretched past the cheeks, crowded with uneven teeth
+    ctx.fillStyle = '#1a0505';
+    ctx.beginPath(); ctx.moveTo(w * 0.02, h * 0.64); ctx.quadraticCurveTo(w * 0.5, h * 1.08, w * 0.98, h * 0.64); ctx.quadraticCurveTo(w * 0.5, h * 0.74, w * 0.02, h * 0.64); ctx.fill();
+    ctx.fillStyle = '#e8e0cd';
+    for (let i = 0; i < 17; i++) {
+      const t = 0.06 + (i / 16) * 0.88, x = w * t, e = t * (1 - t);
+      const up = (0.64 + 0.4 * e) * h, low = (0.64 + 1.76 * e) * h;
+      ctx.fillRect(x - w * 0.014, up, w * 0.027, h * (0.025 + r() * 0.045));
+      ctx.fillRect(x - w * 0.013 + (r() - 0.5) * 3, low - h * (0.025 + r() * 0.05), w * 0.026, h * (0.025 + r() * 0.05));
+    }
+    ctx.strokeStyle = '#6a1210'; ctx.lineWidth = w * 0.014;
+    ctx.beginPath(); ctx.moveTo(w * 0.02, h * 0.64); ctx.quadraticCurveTo(w * 0.5, h * 1.08, w * 0.98, h * 0.64); ctx.stroke();
+    ctx.strokeStyle = 'rgba(70,40,32,0.6)'; ctx.lineWidth = w * 0.016;
+    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.moveTo(w * (0.5 + sg * 0.48), h * 0.64); ctx.quadraticCurveTo(w * (0.5 + sg * 0.5), h * 0.58, w * (0.5 + sg * 0.43), h * 0.52); ctx.stroke(); }
+  });
 
   // ---------------------------------------------------------------- decals (alpha tested)
   def('handprint', 512, 512, (ctx, w, h) => {
@@ -616,33 +728,54 @@
     for (const s of [-1, 1]) { ctx.beginPath(); ctx.moveTo(cx + s * w * 0.115, h * 0.72); ctx.lineTo(cx + s * w * 0.2, h * 0.62); ctx.stroke(); }
   });
 
-  def('wallEyes', 512, 512, (ctx, w, h) => {
-    const r = rng(93);
-    ctx.fillStyle = 'rgba(14,10,9,0.98)';
-    for (let i = 0; i < 80; i++) {
-      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.7) * 205;
-      ctx.beginPath(); ctx.arc(256 + Math.cos(a) * d * 1.15, 256 + Math.sin(a) * d * 0.85, 22 + r() * 44, 0, Math.PI * 2); ctx.fill();
+  // Where the wall's eyes are. world.js puts a moving pupil on each of the biggest ones.
+  E.WALL_EYES = (() => {
+    const r = rng(93), list = [];
+    for (let i = 0; i < 48; i++) {
+      const s = 22 + r() * 40;
+      let best = null;
+      for (let tries = 0; tries < 40; tries++) {
+        const a = r() * Math.PI * 2, d = Math.pow(r(), 0.75) * 215;
+        const c = { x: Math.max(56, Math.min(456, 256 + Math.cos(a) * d * 1.12)), y: Math.max(56, Math.min(456, 256 + Math.sin(a) * d * 0.9)), s, ang: (r() - 0.5) * 1.1, iris: Math.floor(r() * 5) };
+        best = c;
+        if (list.every(o => Math.hypot(o.x - c.x, o.y - c.y) > (o.s + c.s) * 0.8)) break;
+      }
+      list.push(best);
     }
-    const eye = (x, y, s, ang, iris) => {
-      ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+    list.slice().sort((p, q) => q.s - p.s).forEach((e, i) => { e.tracked = i < 14; });
+    return list;
+  })();
+
+  def('wallEyes', 512, 512, (ctx, w, h) => {
+    const r = rng(94);
+    // The dark growth the eyes sit in, creeping out around each one and dripping.
+    ctx.fillStyle = 'rgba(14,10,9,0.98)'; ctx.strokeStyle = 'rgba(14,10,9,0.98)'; ctx.lineCap = 'round';
+    for (const e of E.WALL_EYES) {
+      ctx.beginPath(); ctx.arc(e.x, e.y, e.s * 1.4 + r() * 12, 0, Math.PI * 2); ctx.fill();
+      for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.arc(e.x + (r() - 0.5) * e.s * 2.4, e.y + (r() - 0.5) * e.s * 2, 10 + r() * 22, 0, Math.PI * 2); ctx.fill(); }
+    }
+    for (let i = 0; i < 16; i++) {
+      const e = E.WALL_EYES[Math.floor(r() * E.WALL_EYES.length)];
+      const x = e.x + (r() - 0.5) * e.s * 2, y0 = e.y + e.s * 0.9, len = 30 + r() * 80;
+      ctx.lineWidth = 5 + r() * 8;
+      ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x + (r() - 0.5) * 4, Math.min(h - 6, y0 + len)); ctx.stroke();
+    }
+    const irises = ['#8a5a1e', '#4d7a3a', '#b3261e', '#5b7fa6', '#a38a2a'];
+    for (const e of E.WALL_EYES) {
+      const s = e.s;
+      ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ang);
       ctx.fillStyle = '#efe9dc';
       ctx.beginPath(); ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * 0.95, s, 0); ctx.quadraticCurveTo(0, s * 0.95, -s, 0); ctx.fill();
+      const iris = irises[e.iris];
       const ig = ctx.createRadialGradient(0, 0, 1, 0, 0, s * 0.5);
-      ig.addColorStop(0, '#000'); ig.addColorStop(0.35, iris); ig.addColorStop(1, '#2a0d08');
+      ig.addColorStop(0, e.tracked ? iris : '#000'); ig.addColorStop(0.35, iris); ig.addColorStop(1, '#2a0d08');
       ctx.fillStyle = ig; ctx.beginPath(); ctx.arc(0, 0, s * 0.46, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, s * 0.2, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(-s * 0.14, -s * 0.16, s * 0.07, 0, Math.PI * 2); ctx.fill();
+      if (!e.tracked) { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, s * 0.2, 0, Math.PI * 2); ctx.fill(); }
       ctx.strokeStyle = '#5a1a14'; ctx.lineWidth = Math.max(1.5, s * 0.08);
       ctx.beginPath(); ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * 0.95, s, 0); ctx.quadraticCurveTo(0, s * 0.95, -s, 0); ctx.stroke();
-      ctx.strokeStyle = 'rgba(160,30,20,0.55)'; ctx.lineWidth = 1;
-      for (let k = 0; k < 5; k++) { const a = r() * Math.PI * 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.55, Math.sin(a) * s * 0.4); ctx.lineTo(Math.cos(a) * s * 0.92, Math.sin(a) * s * 0.7); ctx.stroke(); }
+      ctx.strokeStyle = 'rgba(160,30,20,0.6)'; ctx.lineWidth = 1;
+      for (let k = 0; k < 6; k++) { const a = r() * Math.PI * 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.55, Math.sin(a) * s * 0.4); ctx.lineTo(Math.cos(a) * s * 0.92, Math.sin(a) * s * 0.7); ctx.stroke(); }
       ctx.restore();
-    };
-    const irises = ['#8a5a1e', '#4d7a3a', '#b3261e', '#5b7fa6', '#a38a2a'];
-    for (let i = 0; i < 38; i++) {
-      const a = r() * Math.PI * 2, d = Math.pow(r(), 0.8) * 200;
-      const x = 256 + Math.cos(a) * d * 1.1, y = 256 + Math.sin(a) * d * 0.8;
-      eye(Math.max(44, Math.min(w - 44, x)), Math.max(44, Math.min(h - 44, y)), 20 + r() * 34, (r() - 0.5) * 1.1, irises[Math.floor(r() * irises.length)]);
     }
   });
 
