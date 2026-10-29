@@ -152,9 +152,10 @@ const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T): T
 /**
  * A stored draft, checked field by field: anything unexpected falls back to a default rather than breaking the screen.
  * `fallbackLanguage` is the content language of the app's interface now. A draft whose game language was only the
- * default of the interface it was saved under (`ui`) does not keep it once the interface language changed: it takes the
- * language of its notes, or the interface's (otherwise switching the app to English left a Hebrew game language behind,
- * and an English library topic picked from an English list was built in Hebrew). A language the learner chose stays.
+ * default of the interface it was saved under (`ui`) does not keep it once the interface language changed: an untouched
+ * example turns into the same example in the new language, other text takes the language of its notes, or the
+ * interface's (otherwise switching the app to English left a Hebrew game language behind, and an English library topic
+ * picked from an English list was built in Hebrew). A language the learner chose stays.
  */
 export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLanguage: ContentLang): CreateFormValues | null {
   if (!raw) return null;
@@ -174,7 +175,11 @@ export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLangua
     language: oneOf(["he", "en"] as const, o.language, fallbackLanguage),
   };
   const ui = (data as { ui?: unknown }).ui;
-  if ((ui === "he" || ui === "en") && form.language === ui && ui !== fallbackLanguage) form.language = detectScript(form.material) ?? fallbackLanguage;
+  if ((ui === "he" || ui === "en") && form.language === ui && ui !== fallbackLanguage) {
+    const example = findExample(form.subject, form.material)?.example[fallbackLanguage];
+    if (example) Object.assign(form, { subject: example.subject, material: example.notes });
+    form.language = example ? fallbackLanguage : detectScript(form.material) ?? fallbackLanguage;
+  }
   return isBlankForm(form) ? null : fitToTier(form, tier);
 }
 
@@ -190,15 +195,30 @@ const isUntouchedExample = (f: CreateFormValues): boolean => !f.goal.trim() && i
  * Stores the form, or forgets the draft when nothing was typed. An untouched example never takes the place of the
  * learner's own unfinished text (`#/create?example=1` opens on the example while the draft waits behind "Bring back
  * my text", which lives only as long as the screen): that text stays stored for the next visit, and the example is one
- * tap away. `ui` is the content language of the interface the form is shown in (see `parseDraft`). Never throws: a
- * draft is a convenience.
+ * tap away. `ui` is the content language of the interface the form is shown in: it is stored as the interface whose
+ * default the game language is (see `parseDraft`) unless the stored draft already has the same language under another
+ * interface, so a language the learner chose there is not taken for this interface's default. Never throws: a draft is
+ * a convenience.
  */
 export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now(), ui?: ContentLang): void {
   if (!storage) return;
   try {
     if (isBlankForm(form)) storage.removeItem(DRAFT_KEY);
-    else if (!(isUntouchedExample(form) && storedOwnText(storage))) storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, ...(ui ? { ui } : {}), form }));
+    else if (!(isUntouchedExample(form) && storedOwnText(storage))) {
+      const from = ui && (storedUi(storage, form.language) ?? ui);
+      storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, ...(from ? { ui: from } : {}), form }));
+    }
   } catch { /* storage full or blocked: the draft is simply not kept */ }
+}
+
+/** The interface the stored draft was saved under, when its game language is still `language`. */
+function storedUi(storage: DraftStorage, language: ContentLang): ContentLang | undefined {
+  try {
+    const d = JSON.parse(storage.getItem(DRAFT_KEY) ?? "null") as { ui?: unknown; form?: { language?: unknown } } | null;
+    return (d?.ui === "he" || d?.ui === "en") && d.form?.language === language ? d.ui : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** The stored draft holds text the learner wrote (not blank, not an example). */

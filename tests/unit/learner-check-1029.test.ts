@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "@/components/I18nProvider";
 import { DICTIONARIES, type Locale } from "@/lib/i18n";
 import { DRAFT_KEY, emptyForm, loadDraft, parseDraft, saveDraft, type CreateFormValues, type DraftStorage } from "../../mobile/src/pages/createForm";
+import { EXAMPLES } from "../../mobile/src/pages/examples";
 
 /**
  * Learner check of 2026-10-29: a Hebrew draft (subject "היסטוריה") was left on the New game screen, the app was switched
@@ -45,6 +46,36 @@ describe("a draft's game language after the interface language changed", () => {
     expect(loadDraft(s, "A", "en")?.language).toBe("en");
     expect(loadDraft(s, "A", "he")?.language).toBe("en");
     saveDraft(s, form({ language: "he" }), 2, "en");
+    expect(loadDraft(s, "A", "en")?.language).toBe("he");
+  });
+
+  it("an untouched example becomes the same example in the new language (the welcome's example, left unbuilt)", () => {
+    const s = memory();
+    const ex = EXAMPLES[0]!;
+    saveDraft(s, form({ subject: ex.he.subject, material: ex.he.notes, language: "he" }), 1, "he");
+    expect(loadDraft(s, "A", "en")).toMatchObject({ subject: ex.en.subject, material: ex.en.notes, language: "en" });
+    // a language chosen for the example stays, and so does the example
+    saveDraft(s, form({ subject: ex.he.subject, material: ex.he.notes, language: "en" }), 2, "he");
+    expect(loadDraft(s, "A", "en")).toMatchObject({ subject: ex.he.subject, language: "en" });
+  });
+
+  it("a chosen language survives being saved again under the other interface (the screen saves on every visit)", () => {
+    const s = memory();
+    saveDraft(s, form({ language: "en" }), 1, "he"); // chosen in the Hebrew app
+    const inEnglish = loadDraft(s, "A", "en")!;
+    expect(inEnglish.language).toBe("en");
+    saveDraft(s, inEnglish, 2, "en"); // the English visit saves it again
+    expect(loadDraft(s, "A", "he")?.language).toBe("en");
+    expect(loadDraft(s, "A", "en")?.language).toBe("en");
+    // a default that gave way is the new interface's default from then on, both ways
+    saveDraft(s, form({ language: "he" }), 3, "he");
+    const moved = loadDraft(s, "A", "en")!;
+    saveDraft(s, moved, 4, "en");
+    expect(loadDraft(s, "A", "he")?.language).toBe("he");
+    // and a language changed on the screen counts as chosen, through a visit in the other interface too
+    saveDraft(s, { ...moved, language: "he" }, 5, "en");
+    const back = loadDraft(s, "A", "he")!;
+    saveDraft(s, back, 6, "he");
     expect(loadDraft(s, "A", "en")?.language).toBe("he");
   });
 
