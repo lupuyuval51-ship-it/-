@@ -1,5 +1,5 @@
 /**
- * Writes docs/menu-foods.md: every dish of the daily menu by meal (Hebrew), with nutrition and photo,
+ * Writes docs/menu-foods.md and docs/menu-photos-needed.csv: every dish of the daily menu by meal (Hebrew), with nutrition and photo,
  * plus the ingredients that appear most across dishes. Run with `npm run docs:dishes`.
  */
 import fs from 'node:fs';
@@ -55,5 +55,13 @@ out.push('## מרכיבים נפוצים (מה כדאי שיהיה במטבח)',
 for (const [, e] of Array.from(counts).sort((a, b) => b[1].dishes - a[1].dishes).slice(0, 60)) out.push(`| ${e.he} | ${e.dishes} |`);
 out.push('');
 
-fs.writeFileSync(path.resolve(import.meta.dirname, '..', 'docs', 'menu-foods.md'), out.join('\n'));
+const docs = path.resolve(import.meta.dirname, '..', 'docs');
+fs.writeFileSync(path.join(docs, 'menu-foods.md'), out.join('\n'));
+
+// One row per dish for whoever sources the photos; BOM so Excel opens the Hebrew correctly.
+const csvCell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+const rows = [['file', 'id', 'meal', 'name_he', 'name_en', 'ingredients_he', 'ingredients_en', 'kcal']].concat(
+  DISHES.map((d) => [`${d.id}.webp`, d.id, TITLES[d.category], d.name.he, d.name.en, d.ingredients.he, d.ingredients.en, String(d.kcal)]),
+);
+fs.writeFileSync(path.join(docs, 'menu-photos-needed.csv'), '\ufeff' + rows.map((r) => r.map(csvCell).join(',')).join('\r\n') + '\r\n');
 console.log(`docs/menu-foods.md: ${DISHES.length} dishes, ${counts.size} distinct ingredients`);
