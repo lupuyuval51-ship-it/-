@@ -120,7 +120,7 @@ const settings = {
     weights: { one: '{count} weigh-in', other: '{count} weigh-ins' },
     foods: { one: '{count} food diary entry (restored as a quick entry with its saved nutrients)', other: '{count} food diary entries (restored as quick entries with their saved nutrients)' },
     outbox: { one: '{count} change that was waiting to sync on the device', other: '{count} changes that were waiting to sync on the device' },
-    prefs: 'Workout settings from the backup',
+    prefs: 'Workout settings from the backup (they replace your current ones)',
     skipped: '{there} already in your account, {bad} could not be used (future dates or invalid values).',
     notRestored: 'Plans, workout history, records and coach conversations stay in the file as an archive; they are not restored.',
     nothingNew: 'This backup has nothing your account is missing.',

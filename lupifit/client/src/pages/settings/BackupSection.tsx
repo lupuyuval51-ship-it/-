@@ -43,7 +43,7 @@ export function BackupSection() {
       if (!parsed.ok) throw new Error(parsed.reason);
       const server = await fetchAccountExport();
       const ids = new Set(outboxSync.getSnapshot().entries.map((e) => e.id));
-      return planRestore(parsed.backup, server, ids, todayIn(user?.timezone));
+      return planRestore(parsed.backup, server, ids, todayIn(user?.timezone), currentWorkoutPrefs());
     },
     onSuccess: (p) => {
       setResult(null);
@@ -109,9 +109,12 @@ export function BackupSection() {
               <Button onClick={close} disabled={restore.isPending}>
                 {t('common.actions.cancel')}
               </Button>
-              <Button variant="primary" loading={restore.isPending} disabled={!plan} onClick={() => plan && restore.mutate(plan)}>
-                {t('settings.backup.confirm')}
-              </Button>
+              {/* Nothing to restore: no button that could still apply the file's settings. */}
+              {plan && !planIsEmpty(plan) && (
+                <Button variant="primary" loading={restore.isPending} onClick={() => restore.mutate(plan)}>
+                  {t('settings.backup.confirm')}
+                </Button>
+              )}
             </>
           )
         }
@@ -132,7 +135,7 @@ export function BackupSection() {
                   <li className="list-item">{t('settings.backup.weights', { count: plan.weights.length })}</li>
                   <li className="list-item">{t('settings.backup.foods', { count: plan.foods.length })}</li>
                   {plan.outbox.length > 0 && <li className="list-item">{t('settings.backup.outbox', { count: plan.outbox.length })}</li>}
-                  <li className="list-item">{t('settings.backup.prefs')}</li>
+                  {plan.workoutPrefs && <li className="list-item">{t('settings.backup.prefs')}</li>}
                 </ul>
                 {(plan.alreadyThere > 0 || plan.unreadable > 0) && <p className="small faint">{t('settings.backup.skipped', { there: plan.alreadyThere, bad: plan.unreadable })}</p>}
                 <p className="small muted">{t('settings.backup.notRestored')}</p>
