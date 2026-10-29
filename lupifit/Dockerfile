@@ -4,7 +4,8 @@
 #   docker run -p 3000:3000 -e DATABASE_URL=postgres://... -e SESSION_SECRET=<32+ random chars> \
 #     -e DB_AUTO_MIGRATE=true -e APP_URL=https://your-domain lupu-fit
 #
-# Render builds this file from the Blueprint at the repository root (../render.yaml); see docs/deploy.md.
+# Render builds this file from the Blueprint at the repository root (../render.yaml); see docs/deploy-render.md.
+# deploy/oracle builds it too (Docker Compose + HTTPS on one small VM); see docs/deploy-oracle.md.
 # The image holds no secrets: everything is configured through environment variables at run time.
 # If Docker Hub rate-limits the pull, use its mirror:
 #   --build-arg NODE_IMAGE=mirror.gcr.io/library/node:22.23.4-bookworm-slim

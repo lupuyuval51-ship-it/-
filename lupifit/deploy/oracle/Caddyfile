@@ -1,0 +1,32 @@
+# Caddy in front of LUPU-FIT. {$SITE_ADDRESS} comes from .env through docker-compose.yml:
+#   a host name  -> automatic HTTPS (free Let's Encrypt certificate, renewed by Caddy; port 80 redirects to https)
+#   ":80"        -> plain HTTP, for local tests only
+#   "localhost"  -> HTTPS with Caddy's own local certificate, for local tests only
+#
+# Caddy adds NO security headers on purpose. The app already sends its own (Content-Security-Policy,
+# Strict-Transport-Security, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, ...) and they pass
+# through untouched: do not add `header` rules for them here, they would be duplicated or override the app's.
+{
+	# Only TCP 80/443 are opened (UDP 443 would be needed for HTTP/3), so do not advertise HTTP/3.
+	servers {
+		protocols h1 h2
+	}
+}
+
+{$SITE_ADDRESS} {
+	# Compress text responses (HTML, JS, CSS, JSON, SVG). Images and other binaries are left alone.
+	encode zstd gzip
+
+	# Do not announce the proxy software.
+	header -Server
+
+	# X-Forwarded-For / -Proto / -Host and the original Host header are sent to the app by default
+	# (TRUST_PROXY=true makes Express use them: client IP for rate limits, https for secure cookies).
+	reverse_proxy app:3000 {
+		transport http {
+			# The Node server closes idle connections after 65 s: close Caddy's idle connections to it sooner,
+			# so a request never lands on a connection the app has just closed.
+			keepalive 30s
+		}
+	}
+}

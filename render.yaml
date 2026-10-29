@@ -1,5 +1,6 @@
 # Render Blueprint for LUPU-FIT (the app lives in lupifit/). Render reads this file from the repository root.
-# Step-by-step guide (plain language): lupifit/docs/deploy.md
+# Step-by-step guide (plain language, Hebrew): lupifit/docs/deploy-render.md
+# Alternative on one free VM with Docker Compose (Oracle Cloud Always Free): lupifit/docs/deploy-oracle.md
 # Reference: https://render.com/docs/blueprint-spec
 #
 # Creates ONE web service that builds lupifit/Dockerfile and serves the web app + API over HTTPS at
