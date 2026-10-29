@@ -58,7 +58,7 @@ import {
   type TrainingLocation,
 } from '@shared/constants';
 import type { WorkoutFocus } from '@shared/schemas/workouts';
-import { ageBand, ageRules, type AgeBand } from '@shared/age';
+import { ageBand, ageRules, isHighImpact, type AgeBand } from '@shared/age';
 import { chooseSplit, type SplitChoice } from '@shared/split';
 import type { AbilityBenchmarks, GenerationNote, PlanGenerationInput, PreferenceIntensity, PreferenceInterpreter } from '@shared/types';
 import type { ExerciseRecord } from '../exercises/repository';
@@ -567,7 +567,7 @@ function prescribe(e: ExerciseRecord, slot: Slot, ctx: Ctx): Prescription {
   }
   if (e.unilateral) noteParts.push(rx.targetSeconds != null ? t.perSideTime : t.perSide);
 
-  applyModifiers(rx, ctx.input);
+  applyModifiers(rx, ctx.input, e.trackingType);
 
   // %1RM starting weight for adults with a matching benchmark. Computed after the modifiers so
   // the load matches the final rep target and RPE (e.g. an "easier" plan lowers RPE → lighter load).
@@ -586,7 +586,7 @@ function prescribe(e: ExerciseRecord, slot: Slot, ctx: Ctx): Prescription {
 }
 
 /** Intensity preference, short sessions, beginner and minor caps, DB bounds — always applied last. */
-function applyModifiers(rx: Prescription, input: GeneratorInput) {
+function applyModifiers(rx: Prescription, input: GeneratorInput, trackingType: ExerciseRecord['trackingType']) {
   if (input.intensity === 'easier') {
     rx.sets = Math.max(2, rx.sets - 1);
     if (rx.targetRpe != null) rx.targetRpe = Math.max(5, rx.targetRpe - 1);
@@ -611,8 +611,10 @@ function applyModifiers(rx: Prescription, input: GeneratorInput) {
   const age = ageRules(ageBand(input.ageYears));
   if (age.rpeCap != null && rx.targetRpe != null) rx.targetRpe = Math.min(age.rpeCap, rx.targetRpe);
   if (age.setsCap != null) rx.sets = Math.min(rx.sets, age.setsCap);
-  if (age.repMinFloor != null && rx.repMin != null) {
-    rx.repMin = Math.max(age.repMinFloor, rx.repMin);
+  // The rep floor is for externally loaded sets only (more reps → lighter load); on bodyweight reps it would make
+  // the set harder, e.g. 8 × 8 pull-ups for someone whose benchmark max is 3.
+  if (age.loadedRepMinFloor != null && trackingType === 'weight_reps' && rx.repMin != null) {
+    rx.repMin = Math.max(age.loadedRepMinFloor, rx.repMin);
     rx.repMax = Math.max(rx.repMin, rx.repMax ?? rx.repMin);
   }
   rx.restSeconds += age.restBonusSeconds;
@@ -686,7 +688,7 @@ export function buildPool(input: GeneratorInput, catalog: ExerciseRecord[]): Poo
     if (e.movementPattern === 'mobility' || e.category === 'mobility') continue;
     if (!e.equipment.every((q) => equipment.has(q))) continue;
     if ((input.isMinor || ageRulesOf(input).excludeAdvanced) && e.difficulty === 'advanced') continue;
-    if (ageRulesOf(input).excludePlyometric && e.category === 'plyometric') continue;
+    if (ageRulesOf(input).excludeHighImpact && isHighImpact(e)) continue;
     const conflicts = e.contraindications.filter((c) => input.injuries.includes(c));
     if (conflicts.length) {
       for (const c of conflicts) injuryExclusions.set(c, (injuryExclusions.get(c) ?? 0) + 1);

@@ -173,6 +173,15 @@ describe('progression — bodyweight reps', () => {
     expect(squat.targetWeightKg! - 40).toBeLessThanOrEqual(ex('barbell_back_squat').loadIncrementKg!);
   });
 
+  it('65+ never gets a jumping variation (jump squat) as the next step', () => {
+    const squats = [hist([set(20), set(20)])];
+    const senior = decide(rx('bodyweight_squat', { repMin: 10, repMax: 20 }), squats, { ...ADULT, conservative: true, noHighImpact: true });
+    expect(senior).toMatchObject({ action: 'increase_reps', reasonCode: 'raise_rep_target', harderVariationId: null });
+    // With dumbbells the loaded, low-impact goblet squat is still offered.
+    const withDumbbells = decide(rx('bodyweight_squat', { repMin: 10, repMax: 20 }), squats, { ...ADULT, conservative: true, noHighImpact: true, equipment: ['dumbbells'] });
+    expect(withDumbbells.harderVariationId).toBe('goblet_squat');
+  });
+
   it('raises rep targets by 2 (cumulatively, capped at 30)', () => {
     // Last time the targets were already raised to 10–17: progress continues from there.
     const s = decide(rx('superman', { repMin: 8, repMax: 15 }), [hist([set(17), set(18)], { repMin: 10, repMax: 17 })]);
@@ -303,6 +312,17 @@ describe('suggestProgressions (recorded history)', () => {
     expect(adult).toMatchObject({ action: 'try_harder_variation', harderVariationId: 'muscle_up' });
   });
 
+  it('a 65+ profile gets no jumping variation', async () => {
+    const user = await onboardedUser(server.baseUrl, { age_years: 70, equipment: [] });
+    await seedSession(user.userId!, { endedMinutesAgo: 30, exercises: [{ exerciseId: 'bodyweight_squat', repMin: 10, repMax: 20, sets: [{ reps: 20 }, { reps: 20 }] }] });
+    const [s] = await suggestProgressions(db, user.userId!, [rx('bodyweight_squat', { repMin: 10, repMax: 20 })]);
+    expect(s).toMatchObject({ action: 'increase_reps', reasonCode: 'raise_rep_target' });
+    expect(s!.harderVariationId ?? null).toBeNull();
+    await setProfile(user.userId!, { age_years: 40, equipment: [] });
+    const [younger] = await suggestProgressions(db, user.userId!, [rx('bodyweight_squat', { repMin: 10, repMax: 20 })]);
+    expect(younger).toMatchObject({ action: 'try_harder_variation', harderVariationId: 'jump_squat' });
+  });
+
   it('progresses timed holds from recorded durations', async () => {
     const user = await onboardedUser(server.baseUrl);
     await seedSession(user.userId!, {
@@ -329,6 +349,20 @@ describe('holdSuggestion (easier readiness day)', () => {
     expect(holdSuggestion(time)).toMatchObject({ action: 'maintain', targetSeconds: 30 });
     const harder = { ...base, action: 'try_harder_variation' as const, targetWeightKg: null, harderVariationId: 'diamond_push_up', reasonCode: 'mastered_try_harder' };
     expect(holdSuggestion(harder)).toMatchObject({ action: 'maintain', harderVariationId: null });
+  });
+
+  it('keeps last time\'s bodyweight rep range instead of the raised one', () => {
+    // Every set at the top of 8–12 and no harder variation → normally the range moves up to 10–14.
+    const raised = decide(rx('superman', { repMin: 8, repMax: 12 }), [hist([set(12), set(12), set(12)])]);
+    expect(raised).toMatchObject({ action: 'increase_reps', repMin: 10, repMax: 14, reasonCode: 'raise_rep_target' });
+    const held = holdSuggestion(raised);
+    expect(held).toMatchObject({ action: 'maintain', repMin: 8, repMax: 12, reasonCode: 'readiness_hold' });
+    // The session's set target (targetReps, else repMax) is what the user did last time, not more.
+    expect(held.targetReps ?? held.repMax).toBe(12);
+    // Also next to the 30-rep cap, where the raise is not a plain +2.
+    const nearCap = holdSuggestion(decide(rx('superman', { repMin: 20, repMax: 29 }), [hist([set(29), set(29)], { repMin: 20, repMax: 29 })]));
+    expect(nearCap).toMatchObject({ action: 'maintain', repMin: 20, repMax: 29 });
+    expect(nearCap.targetReps ?? nearCap.repMax).toBe(29);
   });
 
   it('leaves holds, deloads and first-time targets alone — it never raises anything', () => {

@@ -1,6 +1,6 @@
 /** Age-based adaptation: bands, generator caps, pool exclusions, notes. Pure: built-in dataset, no database. */
 import { describe, expect, it } from 'vitest';
-import { ageBand, ageRules } from '@shared/age';
+import { ageBand, ageRules, isHighImpact } from '@shared/age';
 import { DEFAULT_EQUIPMENT_BY_LOCATION, EXPERIENCE_LEVELS, GOALS } from '@shared/constants';
 import { EXERCISE_LIBRARY } from '../src/data/exercises';
 import type { ExerciseRecord } from '../src/modules/exercises/repository';
@@ -34,6 +34,20 @@ function input(over: Partial<GeneratorInput> = {}): GeneratorInput {
   };
 }
 const all = (p: GeneratedPlan) => p.workouts.flatMap((w) => w.exercises);
+/** Every plyometric, jumping, hopping, bounding or sprinting exercise in the built-in library (checked by hand). */
+const JUMPING_IDS = new Set([
+  'jump_squat',
+  'box_jump',
+  'broad_jump',
+  'lateral_bound',
+  'burpee',
+  'jumping_jack',
+  'jump_rope_skipping',
+  'high_knees',
+  'sprint_intervals',
+  'medicine_ball_slam',
+  'medicine_ball_chest_pass',
+]);
 const hasNote = (p: GeneratedPlan, code: string) => p.notes.some((n) => n.code === code);
 
 describe('age bands', () => {
@@ -53,7 +67,22 @@ describe('age bands', () => {
     expect(s.rpeCap!).toBeLessThan(m.rpeCap!);
     expect(s.restBonusSeconds).toBeGreaterThan(m.restBonusSeconds);
     expect(m.restBonusSeconds).toBeGreaterThan(a.restBonusSeconds);
-    expect(s.excludePlyometric && s.excludeAdvanced && s.singleStepProgression).toBe(true);
+    expect(s.excludeHighImpact && s.excludeAdvanced && s.singleStepProgression).toBe(true);
+    expect(a.excludeHighImpact || m.excludeHighImpact || a.loadedRepMinFloor != null || m.loadedRepMinFloor != null).toBe(false);
+  });
+});
+
+describe('high-impact exercises', () => {
+  it('flags exactly the jumping / plyometric / sprinting exercises of the built-in library', () => {
+    expect(catalog.filter(isHighImpact).map((e) => e.id).sort()).toEqual([...JUMPING_IDS].sort());
+  });
+
+  it('also catches a new jumping exercise by its id or name', () => {
+    const base = { category: 'bodyweight', movementPattern: 'conditioning' } as const;
+    expect(isHighImpact({ ...base, id: 'skater_hop', name: { en: 'Skater Hops', he: 'החלקות מחליק' } })).toBe(true);
+    expect(isHighImpact({ ...base, id: 'star_drill', name: { en: 'Star Jumps', he: 'כוכב' } })).toBe(true);
+    expect(isHighImpact({ ...base, id: 'tuck_drill', name: { en: 'Tuck drill', he: 'קפיצות ברכיים לחזה' } })).toBe(true);
+    expect(isHighImpact({ ...base, id: 'march_in_place', name: { en: 'March in Place', he: 'צעידה במקום' } })).toBe(false);
   });
 });
 
@@ -84,7 +113,7 @@ describe('plans for older adults', () => {
     for (const x of shared) expect(x.restSeconds, x.exerciseId).toBe(baseRest.get(x.exerciseId)! + 15);
   });
 
-  it('65+: RPE ≤ 7.5, ≤ 4 sets, reps ≥ 8, no advanced or plyometric exercises, rests 30 s longer', () => {
+  it('65+: RPE ≤ 7.5, ≤ 4 sets, loaded lifts ≥ 8 reps, no advanced, plyometric or other jumping exercises, rests 30 s longer', () => {
     for (const goal of GOALS) {
       for (const experience of EXPERIENCE_LEVELS) {
         const p = plan(70, { goal, experience });
@@ -93,10 +122,74 @@ describe('plans for older adults', () => {
           const e = byId.get(x.exerciseId)!;
           if (x.targetRpe != null) expect(x.targetRpe).toBeLessThanOrEqual(7.5);
           expect(x.sets).toBeLessThanOrEqual(4);
-          if (x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
+          if (e.trackingType === 'weight_reps' && x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
           expect(e.difficulty).not.toBe('advanced');
           expect(e.category).not.toBe('plyometric');
+          expect(JUMPING_IDS.has(e.id), e.id).toBe(false);
           expect(x.restSeconds).toBeLessThanOrEqual(600);
+        }
+      }
+    }
+  });
+
+  it('65+: the rep floor is for loaded lifts only — benchmark-based bodyweight targets are never raised', () => {
+    // 3 pull-ups / 10 push-ups max → 60–70 % of the max (2 and 6–7 reps), exactly as for a younger adult, not 8 × 8.
+    const ability = { ...NO_ABILITY, pullUpsMax: 3, pushUpsMax: 10 };
+    const expected: Record<string, [number, number]> = { pull_up: [2, 2], chin_up: [2, 2], push_up: [6, 7] };
+    const seen = new Set<string>();
+    for (const goal of GOALS) {
+      for (const experience of ['intermediate', 'advanced'] as const) {
+        const over = { goal, experience, ability, location: 'outdoor' as const, equipment: DEFAULT_EQUIPMENT_BY_LOCATION.outdoor, likes: 'pull-up push-up' };
+        for (const x of all(plan(70, over))) {
+          const range = expected[x.exerciseId];
+          if (!range) continue;
+          seen.add(x.exerciseId);
+          expect([x.repMin, x.repMax], `${goal}/${experience}: ${x.exerciseId}`).toEqual(range);
+        }
+      }
+    }
+    expect(seen.has('push_up') && (seen.has('pull_up') || seen.has('chin_up'))).toBe(true);
+  });
+
+  it('65+: bodyweight rep targets are never higher than a younger adult\'s; loaded lifts keep 8+ reps', () => {
+    for (const goal of GOALS) {
+      for (const experience of EXPERIENCE_LEVELS) {
+        for (const location of ['home', 'outdoor'] as const) {
+          const over = { goal, experience, location, equipment: DEFAULT_EQUIPMENT_BY_LOCATION[location] };
+          // Same day + exercise in both plans → compare the prescriptions.
+          const young = new Map(plan(40, over).workouts.flatMap((w, d) => w.exercises.map((x) => [`${d}:${x.exerciseId}:${x.role}`, x] as const)));
+          for (const [d, w] of plan(70, over).workouts.entries()) {
+            for (const x of w.exercises) {
+              const e = byId.get(x.exerciseId)!;
+              if (e.trackingType === 'weight_reps' && x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
+              const y = young.get(`${d}:${x.exerciseId}:${x.role}`);
+              if (e.trackingType !== 'reps' || !y || x.repMax == null) continue;
+              expect(x.repMax, `${goal}/${experience}/${location}: ${x.exerciseId}`).toBeLessThanOrEqual(y.repMax!);
+              expect(x.repMin!, `${goal}/${experience}/${location}: ${x.exerciseId}`).toBeLessThanOrEqual(y.repMin!);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  it('65+: no jumping or high-impact exercise in any plan (gym, home, outdoor; every goal, experience and seed)', () => {
+    const locations = [
+      ['gym', DEFAULT_EQUIPMENT_BY_LOCATION.gym],
+      ['home', DEFAULT_EQUIPMENT_BY_LOCATION.home],
+      ['outdoor', DEFAULT_EQUIPMENT_BY_LOCATION.outdoor],
+    ] as const;
+    for (const [location, equipment] of locations) {
+      for (const goal of GOALS) {
+        for (const experience of EXPERIENCE_LEVELS) {
+          for (const variationSeed of [0, 1, 2, 3, 4]) {
+            for (const daysPerWeek of [3, 5]) {
+              const p = plan(70, { goal, experience, location, equipment, variationSeed, daysPerWeek, sessionMinutes: 45 });
+              for (const x of all(p)) {
+                expect(JUMPING_IDS.has(x.exerciseId), `${location}/${goal}/${experience}/seed ${variationSeed}/${daysPerWeek}d: ${x.exerciseId}`).toBe(false);
+              }
+            }
+          }
         }
       }
     }
@@ -106,12 +199,15 @@ describe('plans for older adults', () => {
     for (const x of all(plan(70, { intensity: 'harder' }))) if (x.targetRpe != null) expect(x.targetRpe).toBeLessThanOrEqual(7.5);
   });
 
-  it('the pool leaves out plyometrics and advanced lifts only from 65', () => {
+  it('the pool leaves out plyometrics, other jumping exercises and advanced lifts only from 65', () => {
     const adultPool = buildPool(input({ ageYears: 40 }), catalog).pool;
     const seniorPool = buildPool(input({ ageYears: 70 }), catalog).pool;
     expect(adultPool.some((e) => e.category === 'plyometric')).toBe(true);
     expect(adultPool.some((e) => e.difficulty === 'advanced')).toBe(true);
-    expect(seniorPool.some((e) => e.category === 'plyometric' || e.difficulty === 'advanced')).toBe(false);
+    expect(adultPool.filter((e) => JUMPING_IDS.has(e.id)).length).toBe(JUMPING_IDS.size);
+    expect(seniorPool.some((e) => e.category === 'plyometric' || e.difficulty === 'advanced' || JUMPING_IDS.has(e.id))).toBe(false);
+    // A gentle conditioning finisher is still available without any equipment.
+    expect(buildPool(input({ ageYears: 70, location: 'home', equipment: [] }), catalog).pool.some((e) => e.movementPattern === 'conditioning')).toBe(true);
     expect(buildPool(input({ ageYears: 55 }), catalog).pool.length).toBe(adultPool.length);
   });
 
