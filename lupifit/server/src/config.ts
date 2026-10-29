@@ -33,7 +33,33 @@ const bool = (v: string | undefined, d: boolean) => (v == null || v === '' ? d :
 
 const DEV_DATABASE_URL = 'postgres://fitai:fitai_dev_password@127.0.0.1:5432/fitai';
 const DEV_SESSION_SECRET = 'dev-only-session-secret-change-me';
+const DEFAULT_APP_URL = 'http://localhost:3000';
+const DEFAULT_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173';
 const secureCookie = bool(env.COOKIE_SECURE, isProduction);
+
+export type AppUrlSource = 'APP_URL' | 'RENDER_EXTERNAL_URL' | 'default';
+
+/**
+ * The app's public URL (password-reset links, Origin checks, the push contact). `APP_URL` wins;
+ * without it the address Render gives the service (`RENDER_EXTERNAL_URL`, e.g.
+ * https://lupu-fit.onrender.com) is used, so nothing has to be typed in on Render. The Render
+ * address stays an allowed Origin after `APP_URL` is moved to a custom domain.
+ */
+export function resolveAppUrl(e: NodeJS.ProcessEnv): { appUrl: string; source: AppUrlSource; allowedOrigins: string[] } {
+  const explicit = str(e.APP_URL, '');
+  const render = str(e.RENDER_EXTERNAL_URL, '');
+  const extra = str(e.ALLOWED_ORIGINS, DEFAULT_ALLOWED_ORIGINS)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return {
+    appUrl: explicit || render || DEFAULT_APP_URL,
+    source: explicit ? 'APP_URL' : render ? 'RENDER_EXTERNAL_URL' : 'default',
+    allowedOrigins: [...new Set(render ? [...extra, render] : extra)],
+  };
+}
+
+const publicUrl = resolveAppUrl(env);
 
 export const config = {
   env: nodeEnv,
@@ -42,12 +68,11 @@ export const config = {
   version: '1.0.0',
   host: str(env.HOST, '0.0.0.0'),
   port: int(env.PORT, 3000, 1, 65535),
-  appUrl: str(env.APP_URL, 'http://localhost:3000'),
+  appUrl: publicUrl.appUrl,
+  /** Where `appUrl` came from (logged at startup). */
+  appUrlSource: publicUrl.source,
   /** Extra allowed Origins for state-changing requests (comma separated), e.g. the Vite dev server. */
-  allowedOrigins: str(env.ALLOWED_ORIGINS, 'http://localhost:5173,http://127.0.0.1:5173')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean),
+  allowedOrigins: publicUrl.allowedOrigins,
   trustProxy: bool(env.TRUST_PROXY, false),
 
   databaseUrl: str(env.DATABASE_URL, isProduction ? '' : DEV_DATABASE_URL),
@@ -102,8 +127,12 @@ export const config = {
   android: {
     /** Android app (Trusted Web Activity) package, e.g. com.lupufit.app; empty = no assetlinks.json. */
     packageId: str(env.ANDROID_APP_PACKAGE, ''),
-    /** SHA-256 fingerprints of the upload key and Play's app signing key, comma separated. */
-    certSha256: str(env.ANDROID_CERT_SHA256, ''),
+    /**
+     * SHA-256 fingerprints of the upload key and Play's app signing key, comma separated.
+     * `ANDROID_PLAY_CERT_SHA256` is added to `ANDROID_CERT_SHA256`, so Play's fingerprint can be
+     * set on its own later (on Render a Blueprint sync would overwrite an edited `ANDROID_CERT_SHA256`).
+     */
+    certSha256: [str(env.ANDROID_CERT_SHA256, ''), str(env.ANDROID_PLAY_CERT_SHA256, '')].filter(Boolean).join(','),
   },
 
   mail: {
@@ -112,16 +141,18 @@ export const config = {
   },
 
   /**
-   * Phone notifications (Web Push with VAPID). All three values are needed; without them
-   * push is disabled (the app hides the option and the reminder job does nothing).
-   * Generate a key pair once with `npx web-push generate-vapid-keys` and keep it: a new pair
-   * invalidates every existing subscription. Never log these values.
+   * Phone notifications (Web Push with VAPID). Keys from the environment always win. Without
+   * them the server creates a key pair on its first start and keeps it in the database
+   * (`server_settings`, see modules/push/vapid.ts) unless `PUSH_AUTO_VAPID=false`. A new pair
+   * invalidates every existing subscription, so keep whichever pair is in use. Never log keys.
    */
   push: {
     vapidPublicKey: str(env.VAPID_PUBLIC_KEY, ''),
     vapidPrivateKey: str(env.VAPID_PRIVATE_KEY, ''),
-    /** Contact for the push services: `mailto:you@example.com` or an `https://` URL. */
+    /** Contact for the push services: `mailto:you@example.com` or an `https://` URL. Defaults to the app URL when that is https. */
     vapidSubject: str(env.VAPID_SUBJECT, ''),
+    /** Create and store a key pair when the VAPID keys are not set (`PUSH_AUTO_VAPID=false` turns this off). */
+    autoVapid: !['false', '0', 'no', 'off'].includes((env.PUSH_AUTO_VAPID ?? '').trim().toLowerCase()),
     /**
      * Push-service hosts the server will deliver to (a host or any subdomain of it). Endpoints
      * come from browsers, so this keeps the server from posting to arbitrary URLs.
@@ -140,13 +171,31 @@ export const config = {
 
 export const aiConfigured = () => config.ai.provider === 'anthropic' && config.ai.apiKey.length > 0;
 
+const isHttpUrl = (value: string) => {
+  try {
+    return ['http:', 'https:'].includes(new URL(value).protocol);
+  } catch {
+    return false;
+  }
+};
+
+type ProductionChecked = Pick<typeof config, 'databaseUrl' | 'appUrl'> & { session: Pick<typeof config.session, 'secret'> };
+
+/** Reasons the configuration is unsafe for production (empty when it is fine). */
+export function productionConfigProblems(c: ProductionChecked = config): string[] {
+  const problems: string[] = [];
+  if (!c.databaseUrl) problems.push('DATABASE_URL is required in production');
+  if (c.session.secret === DEV_SESSION_SECRET || c.session.secret.length < 32) {
+    problems.push('SESSION_SECRET must be set to a random string of at least 32 characters in production');
+  }
+  // An unparsable URL would make every Origin check fail. RENDER_EXTERNAL_URL always passes.
+  if (!isHttpUrl(c.appUrl)) problems.push('APP_URL must be an http(s) URL such as https://app.example.com');
+  return problems;
+}
+
 /** Fail fast on unsafe production configuration. */
 export function assertProductionConfig(): void {
   if (!config.isProduction) return;
-  const problems: string[] = [];
-  if (!config.databaseUrl) problems.push('DATABASE_URL is required in production');
-  if (config.session.secret === DEV_SESSION_SECRET || config.session.secret.length < 32) {
-    problems.push('SESSION_SECRET must be set to a random string of at least 32 characters in production');
-  }
+  const problems = productionConfigProblems();
   if (problems.length) throw new Error(`Invalid production configuration:\n- ${problems.join('\n- ')}`);
 }

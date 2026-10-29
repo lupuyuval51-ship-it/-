@@ -59,13 +59,43 @@ function makeSql(q: Queryable): Sql {
   };
 }
 
+/**
+ * node-postgres options for a hosted database URL such as Neon's
+ * `postgresql://…@ep-x.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`.
+ * - `sslmode=require|prefer|verify-ca` become `verify-full`: node-postgres 8 already treats them that
+ *   way (encrypted, certificate and host name checked against the public CAs) but prints a
+ *   "SECURITY WARNING" for each start; pg 9 would weaken them to libpq's meaning. Behaviour is unchanged.
+ *   `uselibpqcompat=true` URLs are left alone.
+ * - `channel_binding=require|prefer` turns on SCRAM-SHA-256-PLUS, which node-postgres otherwise ignores.
+ */
+export function connectionOptions(connectionString: string): { connectionString: string; enableChannelBinding: boolean } {
+  const query = connectionString.includes('?') ? connectionString.slice(connectionString.indexOf('?')) : '';
+  const libpqCompat = /[?&]uselibpqcompat=true(&|$)/.test(query);
+  return {
+    connectionString: libpqCompat ? connectionString : connectionString.replace(/([?&]sslmode=)(require|prefer|verify-ca)(?=&|$)/, '$1verify-full'),
+    enableChannelBinding: /[?&]channel_binding=(require|prefer)(&|$)/.test(query),
+  };
+}
+
+/**
+ * True for a transaction-mode pooler address (Neon's `-pooler` host name). The migration runner holds
+ * a session-level advisory lock, which such poolers do not support: use the direct connection string.
+ */
+export function isTransactionPoolerUrl(connectionString: string): boolean {
+  try {
+    return /-pooler\./i.test(new URL(connectionString).hostname);
+  } catch {
+    return false;
+  }
+}
+
 let poolInstance: pg.Pool | null = null;
 
 function getPool(): pg.Pool {
   if (!poolInstance) {
     if (!config.databaseUrl) throw new Error('DATABASE_URL is not configured');
     poolInstance = new pg.Pool({
-      connectionString: config.databaseUrl,
+      ...connectionOptions(config.databaseUrl),
       max: config.databasePoolMax,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,

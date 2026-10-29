@@ -3,9 +3,10 @@ import { createApp } from './app';
 import { isLlmConfigured } from './ai/llm';
 import { assertProductionConfig, config } from './config';
 import { migrate } from './db/migrate';
-import { db } from './db/pool';
+import { db, isTransactionPoolerUrl } from './db/pool';
 import { seedContent } from './db/seed';
 import { startReminderScheduler } from './modules/push/scheduler';
+import { loadVapidKeys } from './modules/push/vapid';
 
 async function maintenance() {
   try {
@@ -20,12 +21,24 @@ async function maintenance() {
 
 async function main() {
   assertProductionConfig();
+  if (config.appUrlSource === 'RENDER_EXTERNAL_URL') console.log(`[config] app URL ${config.appUrl} (from RENDER_EXTERNAL_URL)`);
+  else if (config.appUrlSource === 'default' && config.isProduction) {
+    console.warn(`[config] APP_URL is not set: reset links and the push contact use ${config.appUrl}; set APP_URL to the public https address`);
+  }
+  if (isTransactionPoolerUrl(config.databaseUrl)) {
+    console.warn('[db] DATABASE_URL is a pooled (-pooler) address: use the direct connection string (Neon: Connect > Connection pooling off). Migrations need a session lock that the pooler does not keep.');
+  }
   if (config.autoMigrate) {
     const m = await migrate((msg) => console.log(`[db] ${msg}`));
     if (m.applied.length) console.log(`[db] applied ${m.applied.length} migration(s)`);
     const s = await seedContent();
     if (!s.skipped) console.log(`[db] seeded ${s.exercises} exercises, ${s.foods} foods, ${s.mealTemplates} meal templates`);
   }
+  // Phone notifications: VAPID keys from the environment, else the pair kept in the database.
+  const vapid = await loadVapidKeys(db);
+  if (vapid.error) console.error(`[push] could not load the stored VAPID key pair: ${vapid.error}`);
+  else if (vapid.created) console.log('[push] created a VAPID key pair and stored it in the database (set VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY to use your own)');
+  else if (vapid.source === 'database') console.log('[push] using the VAPID key pair stored in the database');
   const app = createApp();
   const server: Server = app.listen(config.port, config.host, () => {
     console.log(`LUPU-FIT listening on http://${config.host}:${config.port} (${config.env})`);
