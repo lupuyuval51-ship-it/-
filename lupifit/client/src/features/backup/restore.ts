@@ -52,7 +52,10 @@ export async function runRestore(plan: RestorePlan, onProgress: (done: number, t
       result.failed++;
     }
   }
-  applyServerPrefs(plan.workoutPrefs);
-  markPrefsDirty(); // share the restored settings with the account
+  // Only when the preview listed them (the file's settings differ from this device's).
+  if (plan.workoutPrefs) {
+    applyServerPrefs(plan.workoutPrefs);
+    markPrefsDirty(); // share the restored settings with the account
+  }
   return result;
 }

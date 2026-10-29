@@ -5,7 +5,7 @@
  * Restoring is deliberately limited to things that can be re-created safely through the app's normal,
  * validated create endpoints without overwriting anything newer: weigh-ins for days that have none,
  * food-diary entries that are not there yet (re-created as quick entries with their saved nutrients) and
- * the device's unsynced changes and workout settings. Plans, workout history, records and coach
+ * the device's unsynced changes and workout settings (when they differ). Plans, workout history, records and coach
  * conversations stay in the file as an archive.
  */
 import { LIMITS } from '@shared/constants';
@@ -67,9 +67,11 @@ export function parseBackup(text: string, sizeBytes: number = text.length): Pars
   };
 }
 
+const PREF_KEYS = ['wakeLock', 'vibrate', 'autoAdvance', 'restSound'] as const;
+
 function pickBooleans(o: Record<string, unknown>): Partial<WorkoutPrefsDTO> {
   const out: Partial<WorkoutPrefsDTO> = {};
-  for (const k of ['wakeLock', 'vibrate', 'autoAdvance', 'restSound'] as const) if (typeof o[k] === 'boolean') out[k] = o[k];
+  for (const k of PREF_KEYS) if (typeof o[k] === 'boolean') out[k] = o[k];
   return out;
 }
 
@@ -87,7 +89,8 @@ export interface RestorePlan {
   foods: RestoreFood[];
   /** The device's unsynced changes that the account does not have yet. */
   outbox: OutboxEntry[];
-  workoutPrefs: WorkoutPrefsDTO;
+  /** The file's workout settings, only when they differ from this device's current ones (else null: nothing to change). */
+  workoutPrefs: WorkoutPrefsDTO | null;
   /** Entries in the file that were skipped because they already exist. */
   alreadyThere: number;
   /** Entries that could not be read or are not valid (future dates, out-of-range values …). */
@@ -100,14 +103,16 @@ const foodSignature = (date: string, meal: string, kcal: number, name: string) =
 const localizedName = (v: unknown): string => (isRecord(v) ? String(v.en || v.he || '') : '');
 
 /**
- * Compares the file with what the account has now (`server`) and lists only what is missing. Running a
- * restore twice therefore adds nothing the second time.
+ * Compares the file with what the account has now (`server`) and lists only what is missing, and the file's
+ * workout settings only when they differ from `currentPrefs`. Running a restore twice therefore changes
+ * nothing the second time.
  */
 export function planRestore(
   backup: BackupFile,
   server: Pick<AccountExportDTO, 'bodyWeights' | 'foodLog'>,
   currentOutboxIds: ReadonlySet<string>,
   today: string,
+  currentPrefs: WorkoutPrefsDTO,
 ): RestorePlan {
   let alreadyThere = 0;
   let unreadable = 0;
@@ -171,7 +176,10 @@ export function planRestore(
     return (haveFood.get(foodSignature(op.input.date, op.input.mealType, kcal, name)) ?? 0) === 0;
   });
 
-  return { weights, foods, outbox, workoutPrefs: backup.device.workoutPrefs, alreadyThere, unreadable };
+  const filePrefs = backup.device.workoutPrefs;
+  const workoutPrefs = PREF_KEYS.some((k) => filePrefs[k] !== currentPrefs[k]) ? filePrefs : null;
+
+  return { weights, foods, outbox, workoutPrefs, alreadyThere, unreadable };
 }
 
 function keyFor(prefix: string, id: string): string {
@@ -179,4 +187,4 @@ function keyFor(prefix: string, id: string): string {
   return SAFE_KEY.test(k) ? k : `${prefix}-${id.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 60).padEnd(8, '0')}`;
 }
 
-export const planIsEmpty = (p: RestorePlan) => p.weights.length === 0 && p.foods.length === 0 && p.outbox.length === 0;
+export const planIsEmpty = (p: RestorePlan) => p.weights.length === 0 && p.foods.length === 0 && p.outbox.length === 0 && p.workoutPrefs == null;
