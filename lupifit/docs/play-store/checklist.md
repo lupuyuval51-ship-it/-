@@ -34,8 +34,10 @@ dark), `icon-512.png` (512×512, 32-bit PNG, full square), `feature-graphic-he.p
       account when onboarding refuses it.
 - [ ] **Parental consent (13–17):** the app does not collect it. Decide with a lawyer whether a consent step
       is needed (see `target-audience.md`).
-- [ ] **Reminders only work while the app is open** (no push server). Do not advertise reminders, or add push
-      notifications later.
+- [ ] **Phone notifications (web push) are built** (`server/src/modules/push`): set `VAPID_PUBLIC_KEY`,
+      `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` on the server (`npx web-push generate-vapid-keys`, keep the pair).
+      Without them reminders only show while the app is open. They were tested with a stand-in push service
+      only; send a real test notification from Profile › Reminders on a phone before advertising them.
 - [ ] **Encryption at rest** is up to the hosting provider (the app does not encrypt stored data itself).
       Choose a host with encrypted disks and backups and describe it in the privacy policy.
 - [ ] **Open Food Facts:** set `OPENFOODFACTS_USER_AGENT` to include a contact, and keep the attribution
@@ -62,13 +64,13 @@ dark), `icon-512.png` (512×512, 32-bit PNG, full square), `feature-graphic-he.p
 - [ ] **Signing:** use Play App Signing. Keep the upload keystore of the TWA project safe (losing it means
       a key-reset request). Copy the **SHA-256 of the app signing key** from Play Console › App integrity
       (and of the upload key, for local test builds).
-- [ ] **Digital Asset Links:** publish `https://<domain>/.well-known/assetlinks.json` with the TWA package
-      name and both SHA-256 fingerprints. In this repo the file belongs in
-      `client/public/.well-known/assetlinks.json` (Vite copies it to `dist/client`; the server serves
-      dot-directories). Without it the app shows a browser address bar. If the file is missing, the SPA
-      fallback answers with the HTML shell instead of a 404, so check that the URL returns JSON.
-- [ ] **TWA build:** current Play target API level (it rises every year), package name, start URL `/`,
-      splash and theme colour `#0b0b0d`, notification delegation if reminders should show notifications.
+- [ ] **Digital Asset Links:** the server serves `https://<domain>/.well-known/assetlinks.json` from the env
+      vars `ANDROID_APP_PACKAGE=com.lupufit.app` and `ANDROID_CERT_SHA256=<upload key SHA-256>,<app signing key SHA-256>`
+      (it answers 404 JSON while they are unset). Without it the app shows a browser address bar. Check the
+      URL returns both fingerprints after the first upload.
+- [ ] **TWA build:** done in `android/` (target SDK 36, package `com.lupufit.app`, splash and theme `#0b0b0d`,
+      notification delegation). Rebuild with the real domain: `android/build-aab.sh --host <domain>`
+      (see `docs/android.md`); raise `--version-code` for every upload.
 - [ ] **Store listing:** texts from `listing-he.md` (default) and `listing-en.md`; icon; feature graphic;
       2–8 phone screenshots; category **Health & Fitness**; a public contact email; website; privacy policy
       URL `https://<domain>/privacy`.

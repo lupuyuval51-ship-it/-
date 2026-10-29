@@ -84,7 +84,7 @@ privacy-policy wording, provider terms).
 
 - **"AI-generated workout plans"**: plans come from the rule-based training engine. AI (when enabled) only
   reads free-text preferences.
-- **Push reminders**: reminders appear only while the app is open (`ReminderScheduler`); there is no push server.
+- **Push reminders**: built (web push) but only tested with a stand-in push service. Advertise them only after a real phone received one with the production VAPID keys.
 - **"Free"**: the app has no payments today, but the price is a Play Console setting; decide it there.
 - **Exercise videos**: the library has built-in animations, not videos.
 - **Allergen-safe menus**: the dishes have no allergen data.

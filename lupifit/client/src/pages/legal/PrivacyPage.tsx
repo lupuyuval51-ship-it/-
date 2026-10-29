@@ -21,6 +21,7 @@ export default function PrivacyPage() {
         'legal.privacy.collect.motivation',
         'legal.privacy.collect.usage',
         'legal.privacy.collect.signIn',
+        'legal.privacy.collect.push',
       ],
       after: ['legal.privacy.collect.notCollected'],
     },
@@ -59,6 +60,7 @@ export default function PrivacyPage() {
         'legal.privacy.sharing.hosting',
         'legal.privacy.sharing.ai',
         'legal.privacy.sharing.openFoodFacts',
+        'legal.privacy.sharing.push',
         'legal.privacy.sharing.email',
         'legal.privacy.sharing.law',
       ],
@@ -70,6 +72,7 @@ export default function PrivacyPage() {
       list: [
         'legal.privacy.retention.account',
         'legal.privacy.retention.sessions',
+        'legal.privacy.retention.push',
         'legal.privacy.retention.reset',
         'legal.privacy.retention.duplicates',
         'legal.privacy.retention.usage',

@@ -36,6 +36,7 @@ const legal = {
       motivation: 'Motivation: points (XP), achievements and in-app notifications.',
       usage: 'Usage counters: the time of each coach message and meal-photo analysis, used for daily limits. They do not contain the message or the photo.',
       signIn: 'Sign-in records: for each device where you are signed in, the server keeps your IP address and browser identification (user agent) so sessions can be checked and ended. Short-lived records that prevent duplicate submissions keep a copy of the server’s reply for 24 hours.',
+      push: 'Phone notifications (only if you turn them on for a device): the address your browser’s push service gave that device, its encryption keys and browser identification, and a record of which reminders were sent (kept 30 days).',
       notCollected: 'We do not collect your location, contacts or microphone. The app has no advertising and no third-party analytics or tracking code.',
     },
     health: {
@@ -83,6 +84,7 @@ const legal = {
       hosting: 'Hosting: [hosting provider], which runs the server and database for us.',
       ai: 'AI service: Anthropic, PBC, only for the AI features described above and only when they are enabled.',
       openFoodFacts: 'Open Food Facts: barcode numbers only, as described above.',
+      push: 'Push service: reminders you turned on are delivered through your browser’s push service (Google Firebase Cloud Messaging for Chrome and the Android app; Mozilla or Apple for other browsers). It receives the encrypted notification and the device address, not your account details.',
       email: 'Email: password-reset emails are sent through [email provider], which receives your email address and the reset link. [Fill in once email delivery is set up.]',
       law: 'Authorities, if the law requires it.',
       never: 'Nothing is shared with advertisers, data brokers or other users. There are no public profiles, no chat between users and no location sharing.',
@@ -91,6 +93,7 @@ const legal = {
       title: 'How long we keep it',
       account: 'Your account and everything in it: until you delete the item or the account.',
       sessions: 'Sign-in records (IP address, browser identification): until you log out, or until the session expires after 30 days without use; expired records are removed automatically within an hour.',
+      push: 'Phone-notification subscriptions: until you turn notifications off on that device, log out of all devices or delete the account; sent-reminder records: 30 days.',
       reset: 'Password-reset links: valid for 30 minutes and removed one day after they expire.',
       duplicates: 'Duplicate-submission records: 24 hours.',
       usage: 'Usage counters: until the account is deleted. Coach-message counters older than 3 days are removed whenever you send a new message.',

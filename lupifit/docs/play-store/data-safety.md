@@ -41,10 +41,11 @@ user-data sharing.
 | Messages › Other in-app messages | Yes | No (see above) | No | Optional | App functionality | Coach conversations (`coach_messages`), only if the user uses the coach. |
 | Photos and videos › Photos | **Decide:** Yes only if AI is enabled | No (see above) | **Yes** | Optional | App functionality | Meal photo, resized on the device, sent once to the AI provider and not stored (`server/src/modules/nutrition/photo.ts`). Without AI the feature is unavailable and nothing is collected. |
 | App activity › Other user-generated content | Yes | No | No | Optional | App functionality | Notes on workouts and food entries, free-text plan preferences, custom foods, saved meals, plan names. |
+| Device or other IDs | **Decide:** Yes if push is enabled (VAPID keys set) | No | No | Optional | App functionality | Phone-notification subscription per device the user turned on: push-service endpoint URL, encryption keys, browser user agent (`push_subscriptions`), plus which reminders were sent (`push_deliveries`, purged after 30 days). Removed on turn-off, logout from all devices and account deletion. Delivered through the browser's push service (Google FCM for Chrome / the Android app). |
 | App activity › App interactions | Yes | No | No | Required | App functionality, Fraud prevention / security | Times of coach messages and photo analyses for daily limits (`coach_usage`, `ai_usage_events`); points and achievements derived from use. |
 
 Not collected: location (the server sends `Permissions-Policy: geolocation=()`), contacts, calendar,
-audio, files, web browsing, financial info, payment info, advertising ID or other device IDs, crash logs
+audio, files, web browsing, financial info, payment info, advertising ID, crash logs
 or diagnostics (no crash or analytics SDK; the server's request log has no user id, IP address, body or
 cookies, `server/src/middleware/context.ts`).
 

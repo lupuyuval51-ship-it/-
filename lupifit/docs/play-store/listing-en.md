@@ -79,7 +79,7 @@ Full description with the AI section instead of the plain one: **2387 characters
 
 ## Do not claim
 
-See the same list in `listing-he.md` (no "AI-generated plans", no push reminders, no videos, no
+See the same list in `listing-he.md` (no "AI-generated plans", no push reminders until verified on a real phone, no videos, no
 allergen-safe menus, no medical claims; price is a Play Console setting).
 
 ## Graphics
