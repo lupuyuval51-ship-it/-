@@ -1,7 +1,7 @@
 /** Age-based adaptation: bands, generator caps, pool exclusions, notes. Pure: built-in dataset, no database. */
 import { describe, expect, it } from 'vitest';
-import { ageBand, ageRules, isHighImpact } from '@shared/age';
-import { DEFAULT_EQUIPMENT_BY_LOCATION, EXPERIENCE_LEVELS, GOALS } from '@shared/constants';
+import { ageBand, ageRules, isExternallyLoaded, isHighImpact } from '@shared/age';
+import { DEFAULT_EQUIPMENT_BY_LOCATION, EXPERIENCE_LEVELS, GOALS, type Equipment, type TrainingLocation } from '@shared/constants';
 import { EXERCISE_LIBRARY } from '../src/data/exercises';
 import type { ExerciseRecord } from '../src/modules/exercises/repository';
 import { buildPool, generatePlan, type GeneratedPlan, type GeneratorInput } from '../src/modules/workouts/generator';
@@ -86,6 +86,19 @@ describe('high-impact exercises', () => {
   });
 });
 
+describe('externally loaded exercises', () => {
+  it('are the weighted lifts and the band exercises; bodyweight and calisthenics (even band-assisted) are not', () => {
+    const loaded = catalog.filter(isExternallyLoaded);
+    expect(loaded.filter((e) => e.trackingType !== 'weight_reps').map((e) => e.id).sort()).toEqual(
+      ['band_biceps_curl', 'band_chest_press', 'band_lateral_raise', 'band_pull_apart', 'band_row', 'band_triceps_extension'],
+    );
+    expect(catalog.filter((e) => e.trackingType === 'weight_reps').every(isExternallyLoaded)).toBe(true);
+    for (const id of ['push_up', 'pull_up', 'chin_up', 'band_assisted_pull_up', 'band_assisted_dip', 'ring_row', 'suspension_trainer_row', 'ab_wheel_rollout', 'plank']) {
+      expect(isExternallyLoaded(byId.get(id)!), id).toBe(false);
+    }
+  });
+});
+
 describe('plans for older adults', () => {
   const plan = (age: number | null, over: Partial<GeneratorInput> = {}) => generatePlan(input({ ageYears: age, ...over }), catalog);
 
@@ -113,7 +126,7 @@ describe('plans for older adults', () => {
     for (const x of shared) expect(x.restSeconds, x.exerciseId).toBe(baseRest.get(x.exerciseId)! + 15);
   });
 
-  it('65+: RPE ≤ 7.5, ≤ 4 sets, loaded lifts ≥ 8 reps, no advanced, plyometric or other jumping exercises, rests 30 s longer', () => {
+  it('65+: RPE ≤ 7.5, ≤ 4 sets, loaded exercises ≥ 8 reps, no advanced, plyometric or other jumping exercises, rests 30 s longer', () => {
     for (const goal of GOALS) {
       for (const experience of EXPERIENCE_LEVELS) {
         const p = plan(70, { goal, experience });
@@ -122,7 +135,7 @@ describe('plans for older adults', () => {
           const e = byId.get(x.exerciseId)!;
           if (x.targetRpe != null) expect(x.targetRpe).toBeLessThanOrEqual(7.5);
           expect(x.sets).toBeLessThanOrEqual(4);
-          if (e.trackingType === 'weight_reps' && x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
+          if (isExternallyLoaded(e) && x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
           expect(e.difficulty).not.toBe('advanced');
           expect(e.category).not.toBe('plyometric');
           expect(JUMPING_IDS.has(e.id), e.id).toBe(false);
@@ -132,7 +145,7 @@ describe('plans for older adults', () => {
     }
   });
 
-  it('65+: the rep floor is for loaded lifts only — benchmark-based bodyweight targets are never raised', () => {
+  it('65+: the rep floor is for loaded exercises only — benchmark-based bodyweight targets are never raised', () => {
     // 3 pull-ups / 10 push-ups max → 60–70 % of the max (2 and 6–7 reps), exactly as for a younger adult, not 8 × 8.
     const ability = { ...NO_ABILITY, pullUpsMax: 3, pushUpsMax: 10 };
     const expected: Record<string, [number, number]> = { pull_up: [2, 2], chin_up: [2, 2], push_up: [6, 7] };
@@ -151,19 +164,24 @@ describe('plans for older adults', () => {
     expect(seen.has('push_up') && (seen.has('pull_up') || seen.has('chin_up'))).toBe(true);
   });
 
-  it('65+: bodyweight rep targets are never higher than a younger adult\'s; loaded lifts keep 8+ reps', () => {
+  it('65+: bodyweight rep targets are never higher than a younger adult\'s; loaded exercises keep 8+ reps', () => {
+    const setups: [TrainingLocation, Equipment[]][] = [
+      ['home', DEFAULT_EQUIPMENT_BY_LOCATION.home],
+      ['outdoor', DEFAULT_EQUIPMENT_BY_LOCATION.outdoor],
+      ['home', ['resistance_bands']],
+    ];
     for (const goal of GOALS) {
       for (const experience of EXPERIENCE_LEVELS) {
-        for (const location of ['home', 'outdoor'] as const) {
-          const over = { goal, experience, location, equipment: DEFAULT_EQUIPMENT_BY_LOCATION[location] };
+        for (const [location, equipment] of setups) {
+          const over = { goal, experience, location, equipment };
           // Same day + exercise in both plans → compare the prescriptions.
           const young = new Map(plan(40, over).workouts.flatMap((w, d) => w.exercises.map((x) => [`${d}:${x.exerciseId}:${x.role}`, x] as const)));
           for (const [d, w] of plan(70, over).workouts.entries()) {
             for (const x of w.exercises) {
               const e = byId.get(x.exerciseId)!;
-              if (e.trackingType === 'weight_reps' && x.repMin != null) expect(x.repMin).toBeGreaterThanOrEqual(8);
+              if (isExternallyLoaded(e) && x.repMin != null) expect(x.repMin, `${goal}/${experience}/${location}: ${x.exerciseId}`).toBeGreaterThanOrEqual(8);
               const y = young.get(`${d}:${x.exerciseId}:${x.role}`);
-              if (e.trackingType !== 'reps' || !y || x.repMax == null) continue;
+              if (e.trackingType !== 'reps' || isExternallyLoaded(e) || !y || x.repMax == null) continue;
               expect(x.repMax, `${goal}/${experience}/${location}: ${x.exerciseId}`).toBeLessThanOrEqual(y.repMax!);
               expect(x.repMin!, `${goal}/${experience}/${location}: ${x.exerciseId}`).toBeLessThanOrEqual(y.repMin!);
             }
@@ -171,6 +189,23 @@ describe('plans for older adults', () => {
         }
       }
     }
+  });
+
+  it('65+: band exercises are externally loaded too — a bands-only plan keeps them at 8+ reps (a lighter band)', () => {
+    const seen = new Set<string>();
+    for (const goal of GOALS) {
+      for (const experience of EXPERIENCE_LEVELS) {
+        const over = { goal, experience, location: 'home' as const, equipment: ['resistance_bands' as const] };
+        for (const x of all(plan(70, over))) {
+          if (byId.get(x.exerciseId)!.category !== 'band' || x.repMin == null) continue;
+          seen.add(x.exerciseId);
+          expect(x.repMin, `${goal}/${experience}: ${x.exerciseId} ${x.repMin}-${x.repMax}`).toBeGreaterThanOrEqual(8);
+          expect(x.repMax!).toBeGreaterThanOrEqual(x.repMin);
+        }
+      }
+    }
+    // The strength / athletic mains (5 × 5, 4–6, 3–6 for a younger adult) are band rows and band chest presses here.
+    expect(seen.has('band_row') && seen.has('band_chest_press')).toBe(true);
   });
 
   it('65+: no jumping or high-impact exercise in any plan (gym, home, outdoor; every goal, experience and seed)', () => {

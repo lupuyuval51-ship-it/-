@@ -3,7 +3,7 @@
  * gentler: lower top effort, longer rests, fewer sets, no jumping or other high-impact work from 65. These are
  * general conservative defaults, not medical advice, and they only ever make a plan easier, never harder.
  */
-import { ADULT_AGE, type ExerciseCategory, type MovementPattern } from './constants';
+import { ADULT_AGE, type ExerciseCategory, type MovementPattern, type TrackingType } from './constants';
 
 export type AgeBand = 'minor' | 'adult' | 'mature' | 'senior';
 
@@ -26,9 +26,10 @@ export interface AgeRules {
   /** Most sets of one exercise. */
   setsCap: number | null;
   /**
-   * Lowest rep count of an externally loaded set (`weight_reps`): heavy low-rep work stresses joints and tendons
-   * more, and more reps mean a lighter load. Never applied to bodyweight reps, where more reps only make a set
-   * harder (benchmark-based targets such as 2 pull-ups stay as they are).
+   * Lowest rep count of an externally loaded set (weights, machines, cables and bands; see `isExternallyLoaded`):
+   * heavy low-rep work stresses joints and tendons more, and more reps mean a lighter weight or band. Never applied
+   * to bodyweight or calisthenics reps, where more reps only make a set harder (benchmark-based targets such as
+   * 2 pull-ups stay as they are).
    */
   loadedRepMinFloor: number | null;
   /** Leave out advanced exercises. */
@@ -59,6 +60,24 @@ export function ageRules(band: AgeBand): AgeRules {
     default:
       return NONE;
   }
+}
+
+/** Training categories whose resistance is a load the user picks: a weight, a machine stack, a cable or a band. */
+const LOADED_CATEGORIES: ReadonlySet<ExerciseCategory> = new Set<ExerciseCategory>(['free_weight', 'machine', 'cable', 'band']);
+
+export interface LoadFields {
+  trackingType: TrackingType;
+  category: ExerciseCategory;
+}
+
+/**
+ * Externally loaded rep work: anything tracked with a weight (`weight_reps`), plus free-weight, machine, cable and
+ * band exercises tracked as plain reps (a band has no kg to record). More reps there mean a lighter weight or band.
+ * Bodyweight and calisthenics reps (including band-assisted pull-ups and dips, where the band helps) are not, and
+ * neither are plyometric, cardio or mobility work: there more reps only make a set harder.
+ */
+export function isExternallyLoaded(e: LoadFields): boolean {
+  return e.trackingType === 'weight_reps' || (e.trackingType === 'reps' && LOADED_CATEGORIES.has(e.category));
 }
 
 /** Built-in jumping / running-impact exercises that are not tagged plyometric. */
