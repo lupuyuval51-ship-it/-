@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { addDays, todayInTimeZone } from '@shared/dates';
 import { db } from '../src/db/pool';
+import { VALID_ONBOARDING } from './helpers/fixtures';
 import { seedBodyWeight } from './helpers/progressSeed';
 import { TestClient, onboardedUser, startTestServer, type TestServer } from './helpers/server';
 
@@ -80,5 +81,74 @@ describe('weight-trend calorie suggestion', () => {
     expect((await other.post('/api/profile/targets/adjustment', { offsetKcal: -100 })).status).toBe(409);
     expect((await owner.get('/api/profile/targets/suggestion')).body.suggestion).not.toBeNull();
     expect((await new TestClient(server.baseUrl).get('/api/profile/targets/suggestion')).status).toBe(401);
+  });
+});
+
+/** Adjustment state and the stored calorie target as kept in the profile row. */
+const adjustmentState = (userId: string) =>
+  db.one<{ calorie_adjustment: number; calorie_adjusted_on: string | null; adjustment_dismissed_until: string | null; calorie_target: number | null }>(
+    `SELECT calorie_adjustment, calorie_adjusted_on::text, adjustment_dismissed_until::text, calorie_target FROM profiles WHERE user_id = $1`,
+    [userId],
+  );
+
+describe('calorie adjustment after a goal change', () => {
+  it('a new goal on the profile page drops the old adjustment and its cooldown', async () => {
+    const c = await stalledUser();
+    expect((await c.post('/api/profile/targets/adjustment', { offsetKcal: -100 })).status).toBe(200);
+
+    // The same goal again, or other answers, keep the approved adjustment.
+    const same = await c.patch('/api/profile', { goal: 'fat_loss', sleepHours: 8 });
+    expect(same.status).toBe(200);
+    expect(same.body.profile.targets.adjustmentKcal).toBe(-100);
+
+    // "Loss too slow" (-100 kcal) must not cut a muscle-gain surplus.
+    const res = await c.patch('/api/profile', { goal: 'muscle_gain' });
+    expect(res.status).toBe(200);
+    const targets = res.body.profile.targets;
+    expect(targets).toMatchObject({ adjustmentKcal: 0, custom: false });
+    expect(targets.computed.notes).not.toContain('user_adjustment');
+    expect(await adjustmentState(c.userId!)).toEqual({
+      calorie_adjustment: 0,
+      calorie_adjusted_on: null,
+      adjustment_dismissed_until: null,
+      calorie_target: targets.calories,
+    });
+
+    // The four-week wait belonged to the old goal's adjustment.
+    const suggestion = (await c.get('/api/profile/targets/suggestion')).body;
+    expect(suggestion.adjustmentKcal).toBe(0);
+    expect(suggestion.reason).not.toBe('recently_adjusted');
+  });
+
+  it('a new goal drops a "not now" given to the old goal\'s suggestion', async () => {
+    const c = await stalledUser();
+    await c.post('/api/profile/targets/adjustment/dismiss', {});
+    expect((await c.get('/api/profile/targets/suggestion')).body.reason).toBe('dismissed');
+
+    expect((await c.patch('/api/profile', { goal: 'muscle_gain' })).status).toBe(200);
+    expect((await adjustmentState(c.userId!)).adjustment_dismissed_until).toBeNull();
+    expect((await c.get('/api/profile/targets/suggestion')).body.reason).not.toBe('dismissed');
+  });
+
+  it('re-running onboarding with another goal drops the adjustment; the same goal keeps it', async () => {
+    const c = await stalledUser();
+    expect((await c.post('/api/profile/targets/adjustment', { offsetKcal: -100 })).status).toBe(200);
+
+    const same = await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, weightKg: 80, goal: 'fat_loss' });
+    expect(same.status).toBe(200);
+    expect(same.body.profile.targets.adjustmentKcal).toBe(-100);
+
+    const res = await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, weightKg: 80, goal: 'muscle_gain' });
+    expect(res.status).toBe(200);
+    const targets = res.body.profile.targets;
+    expect(targets).toMatchObject({ adjustmentKcal: 0, custom: false });
+    expect(targets.computed.notes).not.toContain('user_adjustment');
+    expect(await adjustmentState(c.userId!)).toEqual({
+      calorie_adjustment: 0,
+      calorie_adjusted_on: null,
+      adjustment_dismissed_until: null,
+      calorie_target: targets.calories,
+    });
+    expect((await c.get('/api/profile/targets/suggestion')).body.reason).not.toBe('recently_adjusted');
   });
 });

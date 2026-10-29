@@ -36,9 +36,21 @@ async function upsertBodyWeight(sql: Sql, userId: string, date: string, weightKg
 }
 
 /**
+ * A weight-trend calorie adjustment, its cooldown and a "not now" belong to the goal they were
+ * offered for (a -100 kcal "loss too slow" step must not cut a new muscle-gain surplus).
+ */
+async function clearCalorieAdjustment(sql: Sql, userId: string) {
+  await sql.exec(
+    'UPDATE profiles SET calorie_adjustment = 0, calorie_adjusted_on = NULL, adjustment_dismissed_until = NULL WHERE user_id = $1',
+    [userId],
+  );
+}
+
+/**
  * Saves the complete onboarding questionnaire. Re-running onboarding updates the
  * answers but keeps the original completion timestamp. The answered weight is also
  * recorded as today's body-weight entry so progress tracking starts immediately.
+ * A different goal drops the calorie adjustment approved for the old one.
  */
 export async function saveOnboarding(sql: Sql, userId: string, input: OnboardingInput): Promise<ProfileDTO> {
   const row = await lockProfileRow(sql, userId);
@@ -98,6 +110,7 @@ export async function saveOnboarding(sql: Sql, userId: string, input: Onboarding
     );
   }
   await upsertBodyWeight(sql, userId, today, weightKg);
+  if (input.goal !== row.goal) await clearCalorieAdjustment(sql, userId);
   await enforceCustomTargetSafety(sql, userId);
   await syncStoredTargets(sql, userId);
   return getProfile(sql, userId);
@@ -150,6 +163,7 @@ function assignments(key: unknown) {
  * Partial profile update from the profile page. Only provided fields change.
  * - A changed weight is also logged as today's body-weight entry (user time zone).
  * - A changed age restarts the age clock (`age_recorded_on` = today).
+ * - A changed goal drops the calorie adjustment approved for the old goal.
  * - Computed targets are re-synced; custom targets that became unsafe are reset.
  */
 export async function updateProfile(sql: Sql, userId: string, input: ProfileUpdateInput): Promise<ProfileUpdateResponse> {
@@ -180,6 +194,7 @@ export async function updateProfile(sql: Sql, userId: string, input: ProfileUpda
     await sql.exec('UPDATE profiles SET ' + a.sets.join(', ') + ' WHERE user_id = $1', a.values);
   }
   if (newWeight != null && weightChanged) await upsertBodyWeight(sql, userId, today, newWeight);
+  if (input.goal !== undefined && input.goal !== row.goal) await clearCalorieAdjustment(sql, userId);
 
   const customTargetsReset = await enforceCustomTargetSafety(sql, userId);
   await syncStoredTargets(sql, userId);
