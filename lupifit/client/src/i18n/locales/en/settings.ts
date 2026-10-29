@@ -109,6 +109,10 @@ const settings = {
     logoutAllConfirmBody: 'You will need to log in again on every device.',
     loggedOutAll: 'You were logged out of all devices.',
   },
+  workout: {
+    title: 'Workout settings',
+    subtitle: 'Saved to your account, so they follow you to every device.',
+  },
   privacy: {
     title: 'Privacy & data',
     subtitle: 'Your data belongs to you.',

@@ -12,6 +12,7 @@ import { RemindersSection } from './RemindersSection';
 import { PageGuardContext } from './sectionForm';
 import { SecuritySection } from './SecuritySection';
 import { TargetsSection } from './TargetsSection';
+import { WorkoutPrefsSection } from './WorkoutPrefsSection';
 import '../../styles/profile.css';
 
 const SECTIONS: { id: string; label: TKey }[] = [
@@ -21,6 +22,7 @@ const SECTIONS: { id: string; label: TKey }[] = [
   { id: 'settings-nutrition', label: 'settings.nutrition.title' },
   { id: 'settings-targets', label: 'settings.targets.title' },
   { id: 'settings-reminders', label: 'settings.reminders.title' },
+  { id: 'settings-workout', label: 'settings.workout.title' },
   { id: 'settings-security', label: 'settings.security.title' },
   { id: 'settings-privacy', label: 'settings.privacy.title' },
 ];
@@ -103,6 +105,7 @@ export default function ProfileSettingsPage() {
             <RemindersSection profile={profile.data} />
           </>
         )}
+        <WorkoutPrefsSection />
         <SecuritySection />
         <PrivacySection />
       </div>

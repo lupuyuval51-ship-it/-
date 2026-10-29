@@ -4,6 +4,7 @@
  * The rest-timer sound has its own mute flag in `storage.ts`.
  */
 import { useCallback, useSyncExternalStore } from 'react';
+import { markPrefsDirty } from '../../lib/prefsDirty';
 import { storage } from '../../lib/storage';
 
 export const SESSION_PREFS_KEY = 'fitai.sessionPrefs';
@@ -30,10 +31,12 @@ export function readPrefs(): SessionPrefs {
   return cache;
 }
 
-export function writePrefs(patch: Partial<SessionPrefs>): void {
+/** `fromServer` applies the account's copy without marking it as an unsynced local change. */
+export function writePrefs(patch: Partial<SessionPrefs>, opts: { fromServer?: boolean } = {}): void {
   cache = { ...readPrefs(), ...patch };
   storage.set(SESSION_PREFS_KEY, cache);
   listeners.forEach((l) => l());
+  if (!opts.fromServer) markPrefsDirty();
 }
 
 /** Test helper: forget the in-memory copy so the next read goes to storage. */

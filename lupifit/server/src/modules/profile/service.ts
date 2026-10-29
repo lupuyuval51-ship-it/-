@@ -204,6 +204,9 @@ export async function updateSettings(sql: Sql, userId: string, input: SettingsUp
     // Assignments come from the fixed column maps above; every value is a bound parameter.
     await sql.exec('UPDATE users SET ' + a.sets.join(', ') + ' WHERE id = $1', a.values);
   }
+  if (input.workoutPrefs !== undefined) {
+    await sql.exec(`UPDATE users SET workout_prefs = COALESCE(workout_prefs, '{}'::jsonb) || $2::jsonb WHERE id = $1`, [userId, JSON.stringify(input.workoutPrefs)]);
+  }
   if (input.reminders !== undefined) {
     await lockProfileRow(sql, userId);
     await sql.exec('UPDATE profiles SET reminders = $2 WHERE user_id = $1', [userId, JSON.stringify(input.reminders)]);

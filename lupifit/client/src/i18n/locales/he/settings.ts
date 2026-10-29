@@ -111,6 +111,10 @@ const settings: Translations<typeof en> = {
     logoutAllConfirmBody: 'יהיה צורך להתחבר מחדש בכל מכשיר.',
     loggedOutAll: 'בוצעה התנתקות מכל המכשירים.',
   },
+  workout: {
+    title: 'הגדרות אימון',
+    subtitle: 'נשמרות בחשבון, ולכן מלוות אתכם בכל מכשיר.',
+  },
   privacy: {
     title: 'פרטיות ונתונים',
     subtitle: 'הנתונים שלך שייכים לך.',

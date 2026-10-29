@@ -20,6 +20,36 @@ const REMINDERS = {
   mealTimes: ['19:00', '08:15', '19:00', '12:45'],
 };
 
+describe('PATCH /api/settings — workout settings', () => {
+  it('starts as null and keeps what each device sends, merged into the account', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    expect((await c.get('/api/auth/me')).body.user.workoutPrefs).toBeNull();
+
+    const first = await c.patch('/api/settings', { workoutPrefs: { wakeLock: false } });
+    expect(first.status).toBe(200);
+    expect(first.body.user.workoutPrefs).toEqual({ wakeLock: false, vibrate: true, autoAdvance: true, restSound: true });
+
+    const second = await c.patch('/api/settings', { workoutPrefs: { restSound: false, autoAdvance: false } });
+    expect(second.body.user.workoutPrefs).toEqual({ wakeLock: false, vibrate: true, autoAdvance: false, restSound: false });
+    expect((await c.get('/api/auth/me')).body.user.workoutPrefs).toEqual(second.body.user.workoutPrefs);
+  });
+
+  it('rejects empty, unknown-typed and non-boolean values', async () => {
+    const c = await onboardedUser(server.baseUrl);
+    for (const bad of [{}, { wakeLock: 'yes' }, { vibrate: null }]) {
+      const res = await c.patch('/api/settings', { workoutPrefs: bad });
+      expect(res.status, JSON.stringify(bad)).toBe(400);
+    }
+  });
+
+  it('is private to the account', async () => {
+    const a = await onboardedUser(server.baseUrl);
+    const b = await onboardedUser(server.baseUrl);
+    await a.patch('/api/settings', { workoutPrefs: { vibrate: false } });
+    expect((await b.get('/api/auth/me')).body.user.workoutPrefs).toBeNull();
+  });
+});
+
 describe('PATCH /api/settings', () => {
   it('updates account preferences and returns the user and profile', async () => {
     const c = await onboardedUser(server.baseUrl);

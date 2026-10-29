@@ -7,6 +7,7 @@ import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
 import { OutboxIndicator } from '../features/offline/OutboxIndicator';
 import { useOutboxSync } from '../features/offline/hooks';
 import { ActiveSessionIndicator } from '../features/sessions/ActiveSessionIndicator';
+import { useWorkoutPrefsSync } from '../features/sessions/prefsSync';
 import { useOnline } from '../hooks/useOnline';
 import { useI18n, type TKey } from '../i18n';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -26,6 +27,7 @@ export function AppShell() {
   const { user, logout } = useAuth();
   const online = useOnline();
   useOutboxSync();
+  useWorkoutPrefsSync();
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);

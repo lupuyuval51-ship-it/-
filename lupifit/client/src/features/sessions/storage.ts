@@ -6,6 +6,7 @@
  */
 import { isValidTimerState } from '@shared/timer';
 import type { WorkoutSessionDTO } from '@shared/types';
+import { markPrefsDirty } from '../../lib/prefsDirty';
 import { storage } from '../../lib/storage';
 import { isQueueEntry, type QueueEntry } from './queue';
 
@@ -85,6 +86,7 @@ export function readTimerMuted(): boolean {
   return storage.get<boolean>(TIMER_MUTED_KEY) === true;
 }
 
-export function writeTimerMuted(muted: boolean): void {
+export function writeTimerMuted(muted: boolean, opts: { fromServer?: boolean } = {}): void {
   storage.set(TIMER_MUTED_KEY, muted);
+  if (!opts.fromServer) markPrefsDirty();
 }

@@ -86,6 +86,12 @@ export const profileUpdateSchema = onboardingSchema.partial().extend({
 });
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 
+/** Any subset of the workout settings; the server merges it into what the account already has. */
+export const workoutPrefsSchema = z
+  .object({ wakeLock: z.boolean(), vibrate: z.boolean(), autoAdvance: z.boolean(), restSound: z.boolean() })
+  .partial()
+  .refine((p) => Object.keys(p).length > 0, 'empty');
+
 export const settingsUpdateSchema = z.object({
   displayName: requiredText(60).optional(),
   locale: z.enum(LOCALES).optional(),
@@ -93,6 +99,7 @@ export const settingsUpdateSchema = z.object({
   units: z.enum(UNITS).optional(),
   timezone: timeZone.optional(),
   reminders: remindersSchema.optional(),
+  workoutPrefs: workoutPrefsSchema.optional(),
 });
 export type SettingsUpdateInput = z.infer<typeof settingsUpdateSchema>;
 
