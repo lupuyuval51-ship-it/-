@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
+import { dayOfWeek } from '@shared/dates';
 import type { DashboardDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
@@ -113,15 +114,21 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | '
         </div>
       </div>
       <p className="dash-today-reason small" aria-live="polite" data-testid="today-reason">
-        {t(`dashboard.today.reason.${today.reason}`, { count: today.outlook.daysLeft, days: today.outlook.daysLeft })}
+        {t(`dashboard.today.reason.${today.reason}`, {
+          count: today.outlook.daysLeft,
+          days: today.outlook.daysLeft,
+          weekday: nextWorkout.schedule.nextTrainingDate ? i18n.tx(`common.time.weekdays.${dayOfWeek(nextWorkout.schedule.nextTrainingDate)}`) : '',
+          focus: nextFocus,
+          skipped: nextWorkout.schedule.skippedFocus ? focusLabel(nextWorkout.schedule.skippedFocus, i18n) : '',
+        })}
       </p>
       <div className="row dash-next-actions">
         {activeSession ? (
           // The resume banner above is the single primary action while a workout is open.
           <span className="small muted">{t('dashboard.today.finishFirst')}</span>
         ) : (
-          <Button variant={today.kind === 'trained' ? 'secondary' : 'primary'} icon="play" loading={start.isPending} onClick={() => start.mutate(nextWorkout.workoutId)}>
-            {today.kind === 'trained' ? t('dashboard.today.startAnyway') : t('dashboard.nextWorkout.start')}
+          <Button variant={today.kind === 'trained' || today.restDay ? 'secondary' : 'primary'} icon="play" loading={start.isPending} onClick={() => start.mutate(nextWorkout.workoutId)}>
+            {today.kind === 'trained' ? t('dashboard.today.startAnyway') : today.restDay ? t('dashboard.today.trainAnyway') : t('dashboard.nextWorkout.start')}
           </Button>
         )}
         <LinkButton to={`/workouts/plans/${nextWorkout.planId}`} variant="ghost">

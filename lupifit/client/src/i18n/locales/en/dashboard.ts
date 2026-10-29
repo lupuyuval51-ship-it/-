@@ -33,6 +33,7 @@ const dashboard = {
   today: {
     finishFirst: 'Finish or resume your current workout first.',
     startAnyway: 'Train again anyway',
+    trainAnyway: 'Train anyway',
     reason: {
       resume: 'You have a workout open — pick up where you left off.',
       relaxed: 'Right on pace for your weekly goal. Today is a good day to train.',
@@ -46,6 +47,8 @@ const dashboard = {
       trainedTodayMet: 'You trained today and reached your weekly goal. Rest up.',
       noPlan: 'A plan tells you exactly what to do each day.',
       emptyPlan: 'Add workouts to your plan to see what to do today.',
+      restDayScheduled: 'Today is a rest day on your preferred schedule — your next workout is on {weekday}. You can still train today.',
+      avoidBackToBack: 'You trained similar muscles yesterday, so today suggests {focus} instead of {skipped}.',
     },
   },
   start: {

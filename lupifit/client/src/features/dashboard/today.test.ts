@@ -10,7 +10,7 @@ function dash(over: Partial<Pick<DashboardDTO, 'today' | 'activePlan' | 'nextWor
   return {
     today: '2026-10-06',
     activePlan: { id: 'p', name: 'Plan' },
-    nextWorkout: { planId: 'p', workoutId: 'w', name: 'Push', focus: 'push', exerciseCount: 5, estimatedMinutes: 45 },
+    nextWorkout: { planId: 'p', workoutId: 'w', name: 'Push', focus: 'push', exerciseCount: 5, estimatedMinutes: 45, schedule: { code: 'rotation', skippedFocus: null, nextTrainingDate: null } },
     activeSession: null,
     weeklyGoal: goal(3, 0, false),
     weekDays: days('2026-10-06'),
@@ -54,6 +54,14 @@ describe('todayPlan', () => {
     expect(todayPlan(dash()).reason).toBe('relaxed');
     expect(todayPlan(dash({ today: '2026-10-09', weekDays: days('2026-10-09'), weeklyGoal: goal(3, 1, false) })).reason).toBe('tight');
     expect(todayPlan(dash({ weeklyGoal: goal(2, 2, true) })).reason).toBe('goalMet');
+  });
+  it('explains a planned rest day but keeps training available', () => {
+    const rest = dash({ nextWorkout: { ...dash().nextWorkout!, schedule: { code: 'rest_day_scheduled', skippedFocus: null, nextTrainingDate: '2026-10-08' } } });
+    expect(todayPlan(rest)).toMatchObject({ kind: 'start', restDay: true, reason: 'restDayScheduled' });
+  });
+  it('mentions the swap when yesterday\'s muscles would be trained again', () => {
+    const swap = dash({ nextWorkout: { ...dash().nextWorkout!, schedule: { code: 'avoid_back_to_back', skippedFocus: 'upper_b', nextTrainingDate: null } } });
+    expect(todayPlan(swap)).toMatchObject({ restDay: false, reason: 'avoidBackToBack' });
   });
 });
 

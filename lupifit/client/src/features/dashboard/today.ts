@@ -31,8 +31,21 @@ export type TodayKind = 'resume' | 'start' | 'trained' | 'no_plan' | 'empty_plan
 
 export interface TodayPlan {
   kind: TodayKind;
+  /** The day is a planned rest day (preferred training days); training stays available as the secondary action. */
+  restDay: boolean;
   /** i18n key suffix under `dashboard.today.reason.*` explaining the suggestion. */
-  reason: 'resume' | 'tight' | 'relaxed' | 'goalMet' | 'trainedToday' | 'trainedTodayMet' | 'noPlan' | 'emptyPlan' | 'outOfReach';
+  reason:
+    | 'resume'
+    | 'tight'
+    | 'relaxed'
+    | 'goalMet'
+    | 'trainedToday'
+    | 'trainedTodayMet'
+    | 'noPlan'
+    | 'emptyPlan'
+    | 'outOfReach'
+    | 'restDayScheduled'
+    | 'avoidBackToBack';
   outlook: WeekOutlook;
 }
 
@@ -40,19 +53,23 @@ export interface TodayPlan {
  * Single recommendation for today:
  * - an open workout always wins (resume);
  * - after a workout today the answer is "recover / eat well", with the next one one tap away;
- * - otherwise start the next plan day, and say why (goal pace, or goal already met).
+ * - otherwise start the suggested plan day, and say why: a planned rest day (preferred days), a day chosen to
+ *   avoid loading yesterday's muscles again, the goal pace, or the goal already being met.
  */
 export function todayPlan(data: TodayInput): TodayPlan {
   const outlook = weekOutlook(data);
   const met = outlook.status === 'met';
-  if (data.activeSession) return { kind: 'resume', reason: 'resume', outlook };
-  if (!data.activePlan) return { kind: 'no_plan', reason: 'noPlan', outlook };
-  if (!data.nextWorkout) return { kind: 'empty_plan', reason: 'emptyPlan', outlook };
-  if (outlook.trainedToday) return { kind: 'trained', reason: met ? 'trainedTodayMet' : 'trainedToday', outlook };
-  if (met) return { kind: 'start', reason: 'goalMet', outlook };
-  if (outlook.status === 'tight') return { kind: 'start', reason: 'tight', outlook };
-  if (outlook.status === 'out_of_reach') return { kind: 'start', reason: 'outOfReach', outlook };
-  return { kind: 'start', reason: 'relaxed', outlook };
+  if (data.activeSession) return { kind: 'resume', restDay: false, reason: 'resume', outlook };
+  if (!data.activePlan) return { kind: 'no_plan', restDay: false, reason: 'noPlan', outlook };
+  if (!data.nextWorkout) return { kind: 'empty_plan', restDay: false, reason: 'emptyPlan', outlook };
+  if (outlook.trainedToday) return { kind: 'trained', restDay: false, reason: met ? 'trainedTodayMet' : 'trainedToday', outlook };
+  if (met) return { kind: 'start', restDay: false, reason: 'goalMet', outlook };
+  const schedule = data.nextWorkout.schedule.code;
+  if (schedule === 'rest_day_scheduled') return { kind: 'start', restDay: true, reason: 'restDayScheduled', outlook };
+  if (outlook.status === 'tight') return { kind: 'start', restDay: false, reason: 'tight', outlook };
+  if (outlook.status === 'out_of_reach') return { kind: 'start', restDay: false, reason: 'outOfReach', outlook };
+  if (schedule === 'avoid_back_to_back') return { kind: 'start', restDay: false, reason: 'avoidBackToBack', outlook };
+  return { kind: 'start', restDay: false, reason: 'relaxed', outlook };
 }
 
 export interface StartStep {

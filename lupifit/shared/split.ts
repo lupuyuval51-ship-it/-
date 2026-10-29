@@ -38,3 +38,32 @@ export function chooseSplit(daysPerWeek: number, experience: ExperienceLevel, go
   }
 }
 
+
+export type BodyRegion = 'push' | 'pull' | 'legs';
+
+/**
+ * Coarse muscle regions a plan day loads (template level, enough to tell "same region two days
+ * in a row"). Full-body days load everything; unknown focuses are treated as full body.
+ */
+export function focusRegions(focus: string): ReadonlySet<BodyRegion> {
+  const m = /^(full_body|upper|lower|push|pull|legs)/.exec(focus);
+  switch (m?.[1]) {
+    case 'upper':
+      return new Set<BodyRegion>(['push', 'pull']);
+    case 'lower':
+    case 'legs':
+      return new Set<BodyRegion>(['legs']);
+    case 'push':
+      return new Set<BodyRegion>(['push']);
+    case 'pull':
+      return new Set<BodyRegion>(['pull']);
+    default:
+      return new Set<BodyRegion>(['push', 'pull', 'legs']);
+  }
+}
+
+export function regionsOverlap(a: string, b: string): boolean {
+  const ra = focusRegions(a);
+  for (const r of focusRegions(b)) if (ra.has(r)) return true;
+  return false;
+}

@@ -1,6 +1,8 @@
 /** Home-screen summary assembled from the user's own records (nothing is invented). */
+import { dateInTimeZone } from '@shared/dates';
 import { levelInfo } from '@shared/gamification';
 import { ZERO_MACROS, round1 } from '@shared/nutrition';
+import { futureDatesOfWeek, recommendToday } from '@shared/schedule';
 import type { DashboardDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
 import { unreadCount } from '../gamification/notifications';
@@ -12,7 +14,17 @@ import { computeOverview } from '../progress/overview';
 /** Rough duration for a plan day when the plan has no estimate: work (~40 s per rep-based set) + rest per set. */
 const DEFAULT_SET_WORK_SECONDS = 40;
 
-async function nextWorkout(sql: Sql, userId: string): Promise<Pick<DashboardDTO, 'activePlan' | 'nextWorkout'>> {
+/** What the schedule logic needs to know about the week and the previous workout (see `recommendToday`). */
+interface ScheduleContext {
+  today: string;
+  preferredDays: number[];
+  weekRemaining: number;
+  futureWeekDates: string[];
+  trainedToday: boolean;
+  last: { date: string; focus: string | null } | null;
+}
+
+async function nextWorkout(sql: Sql, userId: string, sched: ScheduleContext): Promise<Pick<DashboardDTO, 'activePlan' | 'nextWorkout'>> {
   const plan = await sql.maybeOne<{ id: string; name: string; next_workout_index: number }>(
     `SELECT id, name, next_workout_index FROM workout_plans WHERE user_id = $1 AND status = 'active'
       ORDER BY updated_at DESC LIMIT 1`,
@@ -39,8 +51,8 @@ async function nextWorkout(sql: Sql, userId: string): Promise<Pick<DashboardDTO,
   );
   const activePlan = { id: plan.id, name: plan.name };
   if (!days.length) return { activePlan, nextWorkout: null };
-  const index = ((plan.next_workout_index % days.length) + days.length) % days.length;
-  const day = days[index]!;
+  const rec = recommendToday({ ...sched, days, nextIndex: plan.next_workout_index });
+  const day = days[rec.workoutIndex]!;
   const estimated =
     day.estimated_minutes != null
       ? Number(day.estimated_minutes)
@@ -56,23 +68,31 @@ async function nextWorkout(sql: Sql, userId: string): Promise<Pick<DashboardDTO,
       focus: day.focus,
       exerciseCount: Number(day.exercise_count),
       estimatedMinutes: estimated,
+      schedule: { code: rec.code, skippedFocus: rec.skippedFocus, nextTrainingDate: rec.nextTrainingDate },
     },
   };
 }
 
 export async function getDashboard(sql: Sql, ctx: UserContext): Promise<DashboardDTO> {
   const { userId } = ctx;
-  const plan = await nextWorkout(sql, userId);
 
   const active = await sql.maybeOne<{ id: string; name: string; status: 'in_progress' | 'paused'; started_at: Date }>(
     `SELECT id, name, status, started_at FROM workout_sessions
       WHERE user_id = $1 AND status IN ('in_progress', 'paused') ORDER BY started_at DESC LIMIT 1`,
     [userId],
   );
-  const last = await sql.maybeOne<{ id: string; name: string; ended_at: Date | null; started_at: Date; duration_seconds: number | null }>(
-    `SELECT id, name, ended_at, started_at, duration_seconds FROM workout_sessions
-      WHERE user_id = $1 AND status = 'completed'
-      ORDER BY COALESCE(ended_at, started_at) DESC LIMIT 1`,
+  const last = await sql.maybeOne<{
+    id: string;
+    name: string;
+    ended_at: Date | null;
+    started_at: Date;
+    duration_seconds: number | null;
+    focus: string | null;
+  }>(
+    `SELECT s.id, s.name, s.ended_at, s.started_at, s.duration_seconds, pw.focus
+       FROM workout_sessions s LEFT JOIN plan_workouts pw ON pw.id = s.plan_workout_id AND pw.user_id = s.user_id
+      WHERE s.user_id = $1 AND s.status = 'completed'
+      ORDER BY COALESCE(s.ended_at, s.started_at) DESC LIMIT 1`,
     [userId],
   );
 
@@ -88,6 +108,15 @@ export async function getDashboard(sql: Sql, ctx: UserContext): Promise<Dashboar
   const workouts = await loadCompletedWorkouts(sql, ctx);
   const status = weeklyStatus(ctx, workouts);
   const overview = await computeOverview(sql, ctx, 30, workouts);
+  const weekDays = currentWeekDays(ctx, workouts);
+  const plan = await nextWorkout(sql, userId, {
+    today: ctx.today,
+    preferredDays: profile.preferredDays,
+    weekRemaining: Math.max(0, status.weeklyGoal.target - status.weeklyGoal.completed),
+    futureWeekDates: futureDatesOfWeek(ctx.today, status.weeklyGoal.weekStart),
+    trainedToday: weekDays.some((d) => d.date === ctx.today && d.workouts > 0),
+    last: last ? { date: dateInTimeZone(last.ended_at ?? last.started_at, ctx.timezone), focus: last.focus } : null,
+  });
 
   return {
     today: ctx.today,
@@ -119,7 +148,7 @@ export async function getDashboard(sql: Sql, ctx: UserContext): Promise<Dashboar
       lastLoggedAt: food.last_at ? new Date(food.last_at).toISOString() : null,
     },
     weeklyGoal: status.weeklyGoal,
-    weekDays: currentWeekDays(ctx, workouts),
+    weekDays,
     streakWeeks: status.streak.currentWeeks,
     level: levelInfo(await totalXp(sql, userId)),
     recentRecords: await loadRecentRecords(sql, userId, 3),

@@ -422,6 +422,8 @@ export function formatSet(s: SetInfo): string {
   return `${s.reps ?? '?'} reps`;
 }
 
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 /** Compact, human-readable description of the user's data for the system prompt. */
 export function formatContext(data: CoachData, lang: Locale): string {
   const p = data.profile;
@@ -437,6 +439,13 @@ export function formatContext(data: CoachData, lang: Locale): string {
   lines.push(
     `- Schedule: ${p.daysPerWeek ?? '?'} days/week, ${p.sessionMinutes ?? '?'} min/session; weekly workout goal: ${p.weeklyWorkoutGoal ?? 'not set'}`,
   );
+  if (p.preferredDays.length) {
+    lines.push(`- Preferred training days: ${p.preferredDays.map((d) => WEEKDAY_NAMES[d] ?? '?').join(', ')} (the home screen suggests rest on the other days when the weekly goal allows)`);
+  }
+  if (p.focusMuscleGroups.length) lines.push(`- Wants extra focus on: ${p.focusMuscleGroups.join(', ')}`);
+  const bench = Object.entries(p.ability).filter(([, v]) => v != null).map(([k, v]) => `${k}=${v}`);
+  if (bench.length) lines.push(`- Self-reported benchmarks: ${bench.join(', ')}`);
+  if (p.mealsPerDay) lines.push(`- Meals per day: ${p.mealsPerDay}`);
   const injuries = p.injuries.length ? p.injuries.join(', ') : 'none reported';
   lines.push(`- Injuries: ${injuries}${p.injuryNotes ? `; notes: ${quote(p.injuryNotes)}` : ''}${p.limitations ? `; limitations: ${quote(p.limitations)}` : ''}`);
   if (p.exerciseLikes || p.exerciseDislikes) {

@@ -16,6 +16,14 @@ export interface DashboardDTO {
     focus: string;
     exerciseCount: number;
     estimatedMinutes: number | null;
+    /** Why this plan day is suggested today (see `recommendToday` in shared/schedule.ts). */
+    schedule: {
+      code: 'rotation' | 'preferred_day' | 'rest_day_scheduled' | 'avoid_back_to_back';
+      /** Focus of the rotation day that was skipped (`avoid_back_to_back`). */
+      skippedFocus: string | null;
+      /** Next preferred training date this week (`rest_day_scheduled`). */
+      nextTrainingDate: ISODate | null;
+    };
   } | null;
   activeSession: { id: string; name: string; status: 'in_progress' | 'paused'; startedAt: ISODateTime } | null;
   lastWorkout: { id: string; name: string; endedAt: ISODateTime; durationSeconds: number | null } | null;

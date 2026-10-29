@@ -43,6 +43,19 @@ describe('onboarding', () => {
     expect(stored.calorie_target).toBe(p.targets.calories);
   });
 
+  it('uses the preferred training days for reminders, without overriding days the user chose', async () => {
+    const c = await registerUser(server.baseUrl);
+    await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, preferredDays: [5, 1, 3] });
+    const seeded = (await c.get('/api/profile')).body.profile.reminders;
+    expect(seeded.workoutDays).toEqual([1, 3, 5]);
+    expect(seeded.enabled).toBe(false); // seeding picks days only; notifications stay off until the user opts in
+
+    const own = await registerUser(server.baseUrl);
+    await own.patch('/api/settings', { reminders: { enabled: true, workoutDays: [2], workoutTime: '07:00', mealLogging: false, mealTimes: ['08:00'] } });
+    await own.put('/api/profile/onboarding', { ...VALID_ONBOARDING, preferredDays: [4, 6] });
+    expect((await own.get('/api/profile')).body.profile.reminders.workoutDays).toEqual([2]);
+  });
+
   it('treats minors safely (no deficit)', async () => {
     const c = await registerUser(server.baseUrl);
     const res = await c.put('/api/profile/onboarding', { ...VALID_ONBOARDING, ageYears: 15, goal: 'fat_loss' });

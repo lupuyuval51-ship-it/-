@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { addDays, startOfWeek, todayInTimeZone } from '@shared/dates';
+import { addDays, dayOfWeek, startOfWeek, todayInTimeZone } from '@shared/dates';
+import { futureDatesOfWeek } from '@shared/schedule';
 import { db } from '../src/db/pool';
 import { onWorkoutCompleted } from '../src/modules/gamification/hooks';
 import { seedFood, seedPlan, seedPr, seedSession, sets } from './helpers/progressSeed';
@@ -89,7 +90,7 @@ describe('GET /api/dashboard', () => {
     const body = res.body;
     expect(body.activePlan).toEqual({ id: planId, name: 'Upper / lower' });
     // 3 exercises × 3 sets × (40 s + 90 s rest) = 1170 s ≈ 20 min (rounded to 5).
-    expect(body.nextWorkout).toEqual({ planId, workoutId: workoutIds[1], name: 'Lower A', focus: 'Legs', exerciseCount: 3, estimatedMinutes: 20 });
+    expect(body.nextWorkout).toEqual({ planId, workoutId: workoutIds[1], name: 'Lower A', focus: 'Legs', exerciseCount: 3, estimatedMinutes: 20, schedule: { code: 'rotation', skippedFocus: null, nextTrainingDate: null } });
     expect(body.activeSession).toEqual({ id: activeId, name: 'Lower A', status: 'paused', startedAt: expect.any(String) });
     expect(body.lastWorkout).toEqual({ id: sessionIds[1], name: 'Morning 07', endedAt: new Date(`${today}T07:00:00Z`).toISOString(), durationSeconds: 2700 });
     expect(body.nutritionToday.totals).toEqual({ kcal: 1151, proteinG: 75.2, carbsG: 130, fatG: 32.3, fiberG: 15.5 });
@@ -113,6 +114,56 @@ describe('GET /api/dashboard', () => {
     await db.exec('UPDATE workout_plans SET next_workout_index = 0 WHERE id = $1', [planId]);
     const next = (await c.get('/api/dashboard')).body.nextWorkout;
     expect(next).toMatchObject({ workoutId: workoutIds[0], name: 'Upper A', exerciseCount: 2, estimatedMinutes: 50 });
+  });
+
+  it('suggests a different day instead of loading yesterday\'s muscles again', async () => {
+    const c = await onboardedUser(server.baseUrl, {}, { timezone: 'UTC' });
+    const today = todayInTimeZone('UTC');
+    const { planId, workoutIds } = await seedPlan(c.userId!, {
+      nextWorkoutIndex: 2, // Upper B is next in the rotation
+      workouts: [
+        { name: 'Upper A', focus: 'upper_a', exercises: ['push_up'] },
+        { name: 'Lower A', focus: 'lower_a', exercises: ['barbell_back_squat'] },
+        { name: 'Upper B', focus: 'upper_b', exercises: ['pull_up'] },
+        { name: 'Lower B', focus: 'lower_b', exercises: ['plank'] },
+      ],
+    });
+    await seedSession(c.userId!, {
+      endedAt: new Date(`${addDays(today, -1)}T12:00:00Z`),
+      name: 'Upper A',
+      planId,
+      planWorkoutId: workoutIds[0],
+      sets: sets(3, { exerciseId: 'push_up', reps: 12 }),
+    });
+    const next = (await c.get('/api/dashboard')).body.nextWorkout;
+    expect(next).toMatchObject({ workoutId: workoutIds[3], name: 'Lower B', schedule: { code: 'avoid_back_to_back', skippedFocus: 'upper_b' } });
+
+    // Two days after the same workout nothing needs avoiding: the rotation applies unchanged.
+    await db.exec('UPDATE workout_sessions SET started_at = started_at - interval \'1 day\', ended_at = ended_at - interval \'1 day\' WHERE user_id = $1', [c.userId]);
+    const later = (await c.get('/api/dashboard')).body.nextWorkout;
+    expect(later).toMatchObject({ workoutId: workoutIds[2], schedule: { code: 'rotation' } });
+  });
+
+  it('plans a rest day only when preferred days remain to reach the weekly goal', async () => {
+    const today = todayInTimeZone('UTC');
+    const future = futureDatesOfWeek(today, startOfWeek(today, 1));
+    const onlyFuture = [...new Set(future.map(dayOfWeek))];
+    const c = await onboardedUser(server.baseUrl, { weekly_workout_goal: 1, preferred_days: onlyFuture.length ? onlyFuture : [dayOfWeek(today)] }, { timezone: 'UTC', locale: 'en' });
+    const { workoutIds } = await seedPlan(c.userId!, { workouts: [{ name: 'Full', focus: 'full_body_a', exercises: ['push_up'] }] });
+    const next = (await c.get('/api/dashboard')).body.nextWorkout;
+    expect(next.workoutId).toBe(workoutIds[0]);
+    if (future.length) {
+      expect(next.schedule).toEqual({ code: 'rest_day_scheduled', skippedFocus: null, nextTrainingDate: future[0] });
+    } else {
+      expect(next.schedule.code).toBe('preferred_day'); // last day of the week: today is the only day left
+    }
+    // Nothing to rest for once the goal is met.
+    const met = await onboardedUser(server.baseUrl, { weekly_workout_goal: 1, preferred_days: onlyFuture.length ? onlyFuture : [dayOfWeek(today)] }, { timezone: 'UTC', locale: 'en' });
+    await seedPlan(met.userId!, { workouts: [{ name: 'Full', focus: 'full_body_a', exercises: ['push_up'] }] });
+    const endedAt = new Date(`${today}T05:00:00Z`);
+    const id = await seedSession(met.userId!, { endedAt, name: 'Done', sets: sets(4, { exerciseId: 'push_up', reps: 12 }) });
+    await db.tx((tx) => onWorkoutCompleted(tx, { userId: met.userId!, sessionId: id, date: today, endedAt, durationSeconds: 2700, completedSets: 4, totalVolumeKg: 0, personalRecordIds: [] }));
+    expect((await met.get('/api/dashboard')).body.nextWorkout.schedule.code).not.toBe('rest_day_scheduled');
   });
 
   it("is scoped to the signed-in user and requires authentication", async () => {

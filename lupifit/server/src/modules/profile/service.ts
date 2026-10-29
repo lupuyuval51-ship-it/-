@@ -88,6 +88,15 @@ export async function saveOnboarding(sql: Sql, userId: string, input: Onboarding
       input.weeklyWorkoutGoal ?? input.daysPerWeek,
     ],
   );
+  // The form promises "we schedule workouts on these days": reminders use the same days unless the user already chose some.
+  if (input.preferredDays.length) {
+    await sql.exec(
+      `UPDATE profiles
+          SET reminders = COALESCE(reminders, '{}'::jsonb) || jsonb_build_object('workoutDays', $2::jsonb)
+        WHERE user_id = $1 AND jsonb_array_length(COALESCE(reminders->'workoutDays', '[]'::jsonb)) = 0`,
+      [userId, JSON.stringify([...input.preferredDays].sort((a, b) => a - b))],
+    );
+  }
   await upsertBodyWeight(sql, userId, today, weightKg);
   await enforceCustomTargetSafety(sql, userId);
   await syncStoredTargets(sql, userId);

@@ -35,6 +35,7 @@ const dashboard: Translations<typeof en> = {
   today: {
     finishFirst: 'קודם מסיימים או ממשיכים את האימון הפתוח.',
     startAnyway: 'להתאמן שוב בכל זאת',
+    trainAnyway: 'להתאמן בכל זאת',
     reason: {
       resume: 'יש אימון פתוח — אפשר להמשיך מאיפה שעצרתם.',
       relaxed: 'אתם בקצב טוב ליעד השבועי. היום יום טוב להתאמן.',
@@ -49,6 +50,8 @@ const dashboard: Translations<typeof en> = {
       trainedTodayMet: 'התאמנתם היום והשגתם את היעד השבועי. נוחו.',
       noPlan: 'תוכנית אומרת לכם בדיוק מה לעשות בכל יום.',
       emptyPlan: 'הוסיפו אימונים לתוכנית כדי לראות מה לעשות היום.',
+      restDayScheduled: 'היום יום מנוחה לפי ימי האימון שבחרתם — האימון הבא ביום {weekday}. אפשר גם להתאמן היום.',
+      avoidBackToBack: 'אתמול עבדתם על שרירים דומים, ולכן היום מוצע {focus} במקום {skipped}.',
     },
   },
   start: {
