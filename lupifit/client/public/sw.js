@@ -2,7 +2,8 @@
  * LUPU-FIT service worker: makes the app shell available offline (gym basements, bad signal).
  * - The build writes /sw-assets.js (list of every built file + a content hash); all of it is
  *   precached on install, so every page and lazy route chunk works offline.
- * - Navigations: network first (always the latest app when online), cached shell when offline.
+ * - Navigations: network first (always the latest app when online), cached shell when offline or
+ *   when the network takes longer than NAV_TIMEOUT_MS (weak signal must not hang the launch).
  * - /assets/*: cache first (content-hashed, immutable).
  * - /dishes/*.webp (menu photos): not precached (8 MB); cached the first time they are viewed.
  * - /api/*: never touched by the worker — private data is never cached here; the app's own
@@ -16,6 +17,7 @@ importScripts('/sw-assets.js');
 const VERSION = self.__SW_VERSION__ || 'dev';
 const CACHE = `fitai-shell-${VERSION}`;
 const SHELL = '/index.html';
+const NAV_TIMEOUT_MS = 3500;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -46,18 +48,31 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
 
   if (req.mode === 'navigate') {
+    // Network first, but a weak gym connection must not hang the launch: after NAV_TIMEOUT_MS the
+    // cached shell is shown, and the network response (if it still arrives) refreshes the cache.
+    const network = fetch(req).then(async (fresh) => {
+      if (fresh.ok && fresh.headers.get('content-type')?.includes('text/html')) {
+        const cache = await caches.open(CACHE);
+        await cache.put(SHELL, fresh.clone());
+      }
+      return fresh;
+    });
+    event.waitUntil(network.then(() => undefined, () => undefined));
     event.respondWith(
       (async () => {
-        try {
-          const fresh = await fetch(req);
-          if (fresh.ok && fresh.headers.get('content-type')?.includes('text/html')) {
-            const cache = await caches.open(CACHE);
-            cache.put(SHELL, fresh.clone());
+        const cached = await caches.match(SHELL);
+        if (!cached) {
+          try {
+            return await network;
+          } catch {
+            return new Response('Offline', { status: 503, headers: { 'content-type': 'text/plain' } });
           }
-          return fresh;
+        }
+        const timeout = new Promise((resolve) => setTimeout(() => resolve(null), NAV_TIMEOUT_MS));
+        try {
+          return (await Promise.race([network, timeout])) || cached;
         } catch {
-          const cached = await caches.match(SHELL);
-          return cached || new Response('Offline', { status: 503, headers: { 'content-type': 'text/plain' } });
+          return cached;
         }
       })(),
     );
