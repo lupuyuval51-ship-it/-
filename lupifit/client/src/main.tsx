@@ -5,9 +5,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createQueryClient } from './api/queryClient';
-import { App } from './App';
+import { App, router } from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { ConfirmProvider, ToastProvider } from './components/ui';
+import { listenForPushNavigation } from './features/push/hooks';
 import { I18nProvider } from './i18n';
 
 const queryClient = createQueryClient();
@@ -36,3 +37,6 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     });
   });
 }
+
+// A tapped phone notification routes an already open window in place (see public/sw.js).
+listenForPushNavigation((path) => void router.navigate(path));

@@ -48,4 +48,5 @@ export const qk = {
   bodyWeight: (period: number) => ['progress', 'body-weight', period] as const,
   gamification: ['gamification'] as const,
   notifications: ['notifications'] as const,
+  push: ['push'] as const,
 };

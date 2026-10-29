@@ -7,6 +7,8 @@
  * - /dishes/*.webp (menu photos): not precached (8 MB); cached the first time they are viewed.
  * - /api/*: never touched by the worker — private data is never cached here; the app's own
  *   offline queue handles workout sets.
+ * - Push (phone notifications): shows the reminder the server sent; tapping it focuses an open
+ *   LUPU-FIT window and routes it in-app (no reload), or opens a new one.
  */
 /* global self, caches, importScripts, URL, Response */
 importScripts('/sw-assets.js');
@@ -76,6 +78,58 @@ self.addEventListener('fetch', (event) => {
       } catch {
         return new Response('', { status: 504 });
       }
+    })(),
+  );
+});
+
+// ---------------------------------------------------------------- Phone notifications (Web Push)
+// Pages a notification may open. Anything else falls back to the dashboard.
+const PUSH_PATHS = ['/', '/workouts', '/nutrition/log', '/profile'];
+const safePath = (value) => (typeof value === 'string' && PUSH_PATHS.includes(value) ? value : '/');
+const text = (value, max) => (typeof value === 'string' ? value.slice(0, max) : '');
+
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+  const lang = data.lang === 'en' ? 'en' : 'he';
+  // Browsers require a visible notification for every push, so there is always a title.
+  const title = text(data.title, 120) || 'LUPU-FIT';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: text(data.body, 300),
+      tag: text(data.tag, 64) || undefined,
+      icon: '/icon-192.png',
+      lang,
+      dir: lang === 'he' ? 'rtl' : 'ltr',
+      data: { url: safePath(data.url) },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const path = safePath(event.notification.data && event.notification.data.url);
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const open = windows.filter((c) => new URL(c.url).origin === self.location.origin);
+      // Prefer the window the user saw last (focused or visible) so unsaved work is not reloaded.
+      const client = open.find((c) => c.focused) || open.find((c) => c.visibilityState === 'visible') || open[0];
+      if (client) {
+        // The app routes in place and keeps its state (listenForPushNavigation, features/push/hooks.ts).
+        client.postMessage({ type: 'fitai:navigate', path });
+        try {
+          await client.focus();
+        } catch {
+          /* focusing can be refused; the message still routes the app */
+        }
+        return;
+      }
+      await self.clients.openWindow(path);
     })(),
   );
 });

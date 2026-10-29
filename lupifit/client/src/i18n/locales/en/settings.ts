@@ -92,6 +92,29 @@ const settings = {
       grantedToast: 'Notifications enabled',
       deniedToast: 'Notifications were not allowed',
     },
+    push: {
+      label: 'Phone notifications',
+      offHint: 'Get your reminders on this phone even when LUPU-FIT is closed.',
+      enable: 'Turn on phone notifications',
+      on: 'Phone notifications are on for this device. Reminders arrive even when LUPU-FIT is closed.',
+      devices: {
+        one: 'Your reminders go to {count} device.',
+        other: 'Your reminders go to {count} devices.',
+      },
+      remindersOff: 'Reminders are switched off above, so nothing is sent until you turn them on and save.',
+      test: 'Send a test notification',
+      disable: 'Turn off on this device',
+      enabledToast: 'Phone notifications are on',
+      disabledToast: 'Phone notifications are off on this device',
+      dismissedToast: 'Notifications were not allowed',
+      testSent: 'Test notification sent — it should arrive within a few seconds.',
+      testFailed: 'The test notification could not be delivered. Turn phone notifications off and on again, then try once more.',
+      failed: 'Phone notifications could not be turned on. Check your connection and try again.',
+      denied: 'Notifications are blocked for LUPU-FIT, so they can’t be turned on from here.',
+      deniedHelp:
+        'To allow them again: in the installed app, open Android Settings → Apps → LUPU-FIT → Notifications. In a browser, tap the icon next to the address, open Permissions (or Site settings) and allow Notifications. Then come back to this page.',
+      unsupported: 'This browser can’t get notifications while LUPU-FIT is closed. Reminders still show while it’s open.',
+    },
   },
   security: {
     title: 'Security',
@@ -168,6 +191,10 @@ const settings = {
     invalid_current_password: 'The password is incorrect.',
     onboarding_required: 'Complete your profile questionnaire first.',
     rate_limited: 'Too many attempts. Please wait a few minutes and try again.',
+    push_disabled: 'Phone notifications aren’t available right now.',
+    push_endpoint_not_allowed: 'This browser’s notification service isn’t supported.',
+    push_subscription_not_found: 'This device isn’t registered for phone notifications anymore. Turn them off and on again.',
+    push_not_subscribed: 'No device has phone notifications turned on.',
   },
 };
 

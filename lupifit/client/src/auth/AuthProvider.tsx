@@ -4,6 +4,7 @@ import type { LoginInput, RegisterInput } from '@shared/schemas/auth';
 import type { AuthResponse, MeResponse, UserDTO } from '@shared/types';
 import { ApiError, api, onUnauthorized, setCsrfToken } from '../api/client';
 import { qk } from '../api/queryClient';
+import { releasePushOnLogout } from '../features/push/push';
 import { useI18n } from '../i18n';
 import { clearAllDrafts } from '../lib/drafts';
 import { storage } from '../lib/storage';
@@ -105,6 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register: async (input) => setSession(await api<AuthResponse>('/auth/register', { method: 'POST', body: input })),
       logout: async () => {
         try {
+          // This device stops getting the user's phone notifications (best effort, never blocks logout for long).
+          if (user) await releasePushOnLogout(user.id);
           await api('/auth/logout', { method: 'POST', body: {} });
         } finally {
           // Shared devices: drop cached health data (the onboarding draft holds weight and
