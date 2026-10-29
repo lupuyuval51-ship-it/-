@@ -6,6 +6,7 @@ import type { HealthResponse } from '@shared/types';
 import { isLlmConfigured, llmModel } from './ai/llm';
 import { config } from './config';
 import { db } from './db/pool';
+import { assetLinks, parseFingerprints } from './lib/assetLinks';
 import { csrfProtection, loadSession, requireAuth } from './middleware/auth';
 import { requestContext } from './middleware/context';
 import { apiNotFound, errorHandler } from './middleware/errors';
@@ -91,6 +92,14 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
   api.use(apiNotFound);
   api.use(errorHandler);
   app.use('/api', api);
+
+  // Digital Asset Links for the Android app: served even without the client build, never cached for long.
+  const links = assetLinks(config.android.packageId, parseFingerprints(config.android.certSha256));
+  app.get('/.well-known/assetlinks.json', (_req, res) => {
+    if (!links) return res.status(404).json({ error: { code: 'not_found', message: 'Android app is not configured' } });
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json(links);
+  });
 
   // ---------------------------------------------------------------- Client (production build)
   const staticDir = options.serveClient === false ? null : resolveStaticDir();

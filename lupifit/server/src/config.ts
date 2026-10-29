@@ -99,6 +99,13 @@ export const config = {
     userAgent: str(env.OPENFOODFACTS_USER_AGENT, 'LUPU-FIT/1.0 (self-hosted fitness app)'),
   },
 
+  android: {
+    /** Android app (Trusted Web Activity) package, e.g. com.lupufit.app; empty = no assetlinks.json. */
+    packageId: str(env.ANDROID_APP_PACKAGE, ''),
+    /** SHA-256 fingerprints of the upload key and Play's app signing key, comma separated. */
+    certSha256: str(env.ANDROID_CERT_SHA256, ''),
+  },
+
   mail: {
     /** No transactional email provider is bundled; see README. */
     from: str(env.MAIL_FROM, 'LUPU-FIT <no-reply@localhost>'),
