@@ -347,6 +347,8 @@ const workouts = {
     focus_group: 'Extra focus – {group}: more work is added where it fits your session time.',
     likes_considered: 'Exercises matching your likes were preferred, and ones you dislike were avoided where possible.',
     minor_safety: 'Under 18: no maximal lifts. Loads are chosen by feel (RPE 7 or lower) and every set stays at 6+ reps. Learning technique with a qualified coach is recommended.',
+    age_mature: '50+: effort is capped at RPE 8 and rests are 15 seconds longer. Warm up well and stop a set when form slips.',
+    age_senior: '65+: effort is capped at RPE 7.5, rests are 30 seconds longer, sets are limited to 4, reps stay at 8 or more, and advanced or jumping exercises are left out. Warm up well; this is general guidance, not medical advice.',
     one_rm_used: 'Starting weights for {count} lifts are calculated from your reported 1RM.',
     benchmarks_used: 'Bodyweight targets use your push-up, pull-up and plank benchmarks.',
     choose_weight_by_rpe: 'For lifts without a starting weight, choose a load you could lift 2–3 more times at the end of each set (the target RPE).',

@@ -58,6 +58,7 @@ import {
   type TrainingLocation,
 } from '@shared/constants';
 import type { WorkoutFocus } from '@shared/schemas/workouts';
+import { ageBand, ageRules, type AgeBand } from '@shared/age';
 import { chooseSplit, type SplitChoice } from '@shared/split';
 import type { AbilityBenchmarks, GenerationNote, PlanGenerationInput, PreferenceIntensity, PreferenceInterpreter } from '@shared/types';
 import type { ExerciseRecord } from '../exercises/repository';
@@ -76,6 +77,8 @@ export interface GeneratorInput {
   goal: Goal;
   experience: ExperienceLevel;
   isMinor: boolean;
+  /** Age in years (null when unknown): adults from 50 get a gentler plan, see shared/age.ts. */
+  ageYears?: number | null;
   location: TrainingLocation;
   equipment: Equipment[];
   /** Requested days per week (1–7). */
@@ -604,6 +607,15 @@ function applyModifiers(rx: Prescription, input: GeneratorInput) {
     }
     rx.targetWeightKg = null;
   }
+  // Adults from 50: only ever easier (applied after the intensity preference so "harder" cannot undo it).
+  const age = ageRules(ageBand(input.ageYears));
+  if (age.rpeCap != null && rx.targetRpe != null) rx.targetRpe = Math.min(age.rpeCap, rx.targetRpe);
+  if (age.setsCap != null) rx.sets = Math.min(rx.sets, age.setsCap);
+  if (age.repMinFloor != null && rx.repMin != null) {
+    rx.repMin = Math.max(age.repMinFloor, rx.repMin);
+    rx.repMax = Math.max(rx.repMin, rx.repMax ?? rx.repMin);
+  }
+  rx.restSeconds += age.restBonusSeconds;
   rx.sets = clamp(rx.sets, 1, 10);
   rx.restSeconds = clamp(rx.restSeconds, 0, 600);
   if (rx.targetRpe != null) rx.targetRpe = clamp(rx.targetRpe, 1, 10);
@@ -673,7 +685,8 @@ export function buildPool(input: GeneratorInput, catalog: ExerciseRecord[]): Poo
   for (const e of catalog) {
     if (e.movementPattern === 'mobility' || e.category === 'mobility') continue;
     if (!e.equipment.every((q) => equipment.has(q))) continue;
-    if (input.isMinor && e.difficulty === 'advanced') continue;
+    if ((input.isMinor || ageRulesOf(input).excludeAdvanced) && e.difficulty === 'advanced') continue;
+    if (ageRulesOf(input).excludePlyometric && e.category === 'plyometric') continue;
     const conflicts = e.contraindications.filter((c) => input.injuries.includes(c));
     if (conflicts.length) {
       for (const c of conflicts) injuryExclusions.set(c, (injuryExclusions.get(c) ?? 0) + 1);
@@ -688,6 +701,8 @@ export function buildPool(input: GeneratorInput, catalog: ExerciseRecord[]): Poo
   }
   return { pool, injuryExclusions, avoidListExclusions };
 }
+
+const ageRulesOf = (input: Pick<GeneratorInput, 'ageYears'>) => ageRules(ageBand(input.ageYears));
 
 function allowedDifficulties(experience: ExperienceLevel, isMinor: boolean, relaxed: boolean): Difficulty[] {
   if (experience === 'beginner') return relaxed ? ['beginner', 'intermediate'] : ['beginner'];
@@ -1007,6 +1022,9 @@ export function generatePlan(input: GeneratorInput, catalog: ExerciseRecord[]): 
   for (const g of input.focusMuscleGroups) notes.add('focus_group', { group: g });
   if (input.likes.trim() || input.dislikes.trim()) notes.add('likes_considered');
   if (input.isMinor) notes.add('minor_safety');
+  const band: AgeBand = ageBand(input.ageYears);
+  if (band === 'mature') notes.add('age_mature');
+  if (band === 'senior') notes.add('age_senior');
   if (notes.oneRmUsed > 0) notes.add('one_rm_used', { count: notes.oneRmUsed });
   const hasBenchmarks = input.ability.pushUpsMax != null || input.ability.pullUpsMax != null || input.ability.plankSeconds != null;
   if (hasBenchmarks) notes.add('benchmarks_used');

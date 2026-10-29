@@ -7,6 +7,7 @@
  * the exercise, the user's last two performances and their profile context, so every
  * branch can be unit-tested without a database.
  */
+import { ageBand, ageRules } from '@shared/age';
 import { ADULT_AGE, type Equipment, type InjuryArea } from '@shared/constants';
 import type { ProgressionSuggestionDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
@@ -41,6 +42,8 @@ export interface HistorySession {
 
 export interface ProgressionContext {
   isMinor: boolean;
+  /** Conservative progression: advanced variations are skipped and weight rises by one increment at most (minors, 65+). */
+  conservative?: boolean;
   equipment: Equipment[];
   injuries: InjuryArea[];
   avoidExerciseIds: string[];
@@ -110,7 +113,7 @@ export function findHarderVariation(
     if (!alt.equipment.every((q) => ctx.equipment.includes(q))) continue;
     if (alt.contraindications.some((c) => ctx.injuries.includes(c))) continue;
     if (ctx.avoidExerciseIds.includes(alt.id)) continue;
-    if (ctx.isMinor && alt.difficulty === 'advanced') continue;
+    if ((ctx.isMinor || ctx.conservative) && alt.difficulty === 'advanced') continue;
     return alt;
   }
   return null;
@@ -146,7 +149,7 @@ function decideWeightReps(input: PrescriptionInput, exercise: ExerciseRecord, hi
   if (allTop && effortOk) {
     // Always exactly one increment; minors are explicitly clamped so a rounding step can never exceed it.
     let toKg = roundToStep(working + increment, 0.25);
-    if (ctx.isMinor) toKg = Math.min(toKg, round2(working + increment));
+    if (ctx.isMinor || ctx.conservative) toKg = Math.min(toKg, round2(working + increment));
     return {
       ...out,
       action: 'increase_weight',
@@ -353,6 +356,7 @@ export async function loadProgressionContext(sql: Sql, userId: string): Promise<
   const age = row ? currentAge(row) : null;
   return {
     isMinor: age != null && age < ADULT_AGE,
+    conservative: ageRules(ageBand(age)).singleStepProgression,
     equipment: row?.equipment ?? [],
     injuries: row?.injuries ?? [],
     avoidExerciseIds: row?.avoid_exercise_ids ?? [],

@@ -164,6 +164,15 @@ describe('progression — bodyweight reps', () => {
     expect(avoided.action).toBe('increase_reps');
   });
 
+  it('conservative progression (65+) skips advanced variations and never jumps more than one increment', () => {
+    const pullUps = [hist([set(12), set(12)], { repMin: 6, repMax: 12 })];
+    const senior = decide(rx('pull_up', { repMin: 6, repMax: 12 }), pullUps, { ...ADULT, equipment: ['pull_up_bar'], conservative: true });
+    expect(senior.harderVariationId ?? null).toBeNull();
+    expect(senior.action).toBe('increase_reps');
+    const squat = decide(rx('barbell_back_squat'), [hist([set(15, 40), set(15, 40), set(15, 40)])], { ...ADULT, conservative: true });
+    expect(squat.targetWeightKg! - 40).toBeLessThanOrEqual(ex('barbell_back_squat').loadIncrementKg!);
+  });
+
   it('raises rep targets by 2 (cumulatively, capped at 30)', () => {
     // Last time the targets were already raised to 10–17: progress continues from there.
     const s = decide(rx('superman', { repMin: 8, repMax: 15 }), [hist([set(17), set(18)], { repMin: 10, repMax: 17 })]);

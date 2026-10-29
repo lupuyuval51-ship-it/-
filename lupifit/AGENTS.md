@@ -59,3 +59,6 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - `shared/menu.ts` is pure and deterministic (seed = date); the menu is rebuilt from the profile each time and only swaps / "logged" marks are stored on the device (draft key `menu.<date>`). Logging a dish is a quick add through `sendOrQueue` (works offline).
 - Dish photos are not precached by the service worker (8 MB); they are cached on first view. `npm run docs:dishes` regenerates `docs/menu-foods.md`.
 
+## Age-based training
+- `shared/age.ts` defines the bands: under 18 (own minor rules in the generator), 18–49 (unchanged), 50–64 (RPE cap 8, +15 s rest), 65+ (RPE cap 7.5, +30 s rest, at most 4 sets, 8+ reps, no advanced or plyometric exercises, one-increment progression). Rules only ever make a plan easier; `intensity: harder` cannot lift past the cap. They are general conservative defaults, not medical advice, and every plan that uses them says so in a generation note (`age_mature`, `age_senior`).
+
