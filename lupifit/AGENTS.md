@@ -52,3 +52,10 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - **Workout settings** are local-first and synced to `users.workout_prefs`; the account copy is adopted unless this device has an unsynced change (`lib/prefsDirty.ts`).
 - **Backup file** (`features/backup`): account export + device state. Restore only re-creates things through the normal validated create endpoints and only what is missing (idempotent); plans/history/records/coach chats are archive-only.
 - Keys use the `fitai.*` prefix (see "Brand vs. persistent identifiers"). New per-user device data must be scoped by user id and cleaned up on logout when it holds health data.
+
+## Daily menu and ready dishes
+- The 300 dishes (`shared/dishes/data.ts`) and their photos (`client/public/dishes/`) were imported from the NINJA app; **photo source/licence is unknown** (see `docs/dishes-source.md`). Never describe them as licensed. Nutrition values are estimates and must be labelled so.
+- The dishes have **no allergen data**. `shared/dishes/safety.ts` hides dishes by broad keyword rules on names and ingredients and errs toward hiding. It is not an allergen guarantee: the menu page must keep its "check the ingredients yourself" notice (stronger when the user listed allergies). When adding a keyword, add it for English and Hebrew and extend `shared/menu.test.ts`.
+- `shared/menu.ts` is pure and deterministic (seed = date); the menu is rebuilt from the profile each time and only swaps / "logged" marks are stored on the device (draft key `menu.<date>`). Logging a dish is a quick add through `sendOrQueue` (works offline).
+- Dish photos are not precached by the service worker (8 MB); they are cached on first view. `npm run docs:dishes` regenerates `docs/menu-foods.md`.
+

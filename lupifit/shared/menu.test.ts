@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ALLERGENS, DIETARY_RESTRICTIONS } from './constants';
 import { DISH_CATEGORIES, DISHES, dishById, dishImageUrl } from './dishes';
 import { dishAllergens, dishFilter, dislikedKeywords, fitsDiet, NO_PREFERENCES } from './dishes/safety';
-import { buildDailyMenu, ingredientNames, menuSlots, menuTotals, shoppingList, SCALE_MAX, SCALE_MIN, withDish } from './menu';
+import { buildDailyMenu, SNACK_MAX_KCAL, ingredientNames, menuSlots, menuTotals, shoppingList, SCALE_MAX, SCALE_MIN, withDish } from './menu';
 
 const TARGETS = { calories: 2200, proteinG: 150, carbsG: 240, fatG: 70 };
 const day = (n: number) => `2026-10-${String(n).padStart(2, '0')}`;
@@ -131,6 +131,21 @@ describe('daily menu', () => {
     }
   });
 
+  it('keeps the day\'s macro mix reasonably close to the targets', () => {
+    let worstProtein = 0;
+    let worstCarbs = 0;
+    for (const calories of [1800, 2200, 2600, 3000]) {
+      const targets = { calories, proteinG: Math.round((calories * 0.28) / 4), carbsG: Math.round((calories * 0.42) / 4), fatG: Math.round((calories * 0.3) / 9) };
+      for (let i = 1; i <= 15; i++) {
+        const { totals } = buildDailyMenu({ seed: day(i), targets, mealsPerDay: 4 });
+        worstProtein = Math.max(worstProtein, Math.abs(totals.proteinG - targets.proteinG) / targets.proteinG);
+        worstCarbs = Math.max(worstCarbs, Math.abs(totals.carbsG - targets.carbsG) / targets.carbsG);
+      }
+    }
+    expect(worstProtein).toBeLessThan(0.3);
+    expect(worstCarbs).toBeLessThan(0.3);
+  });
+
   it('keeps portions within bounds and totals consistent with the items', () => {
     const m = buildDailyMenu({ seed: day(3), targets: TARGETS });
     for (const it of m.items) {
@@ -140,6 +155,14 @@ describe('daily menu', () => {
       expect(it.kcal).toBe(Math.round(d.kcal * it.scale));
     }
     expect(m.totals).toEqual(menuTotals(m.items));
+  });
+
+  it('only offers small dishes as snacks', () => {
+    for (let i = 1; i <= 20; i++) {
+      for (const it of buildDailyMenu({ seed: day(i), targets: { ...TARGETS, calories: 3000 }, mealsPerDay: 5 }).items.filter((x) => x.mealType === 'snack')) {
+        expect(dishById(it.dishId)!.kcal).toBeLessThanOrEqual(SNACK_MAX_KCAL);
+      }
+    }
   });
 
   it('never repeats a dish within a day', () => {

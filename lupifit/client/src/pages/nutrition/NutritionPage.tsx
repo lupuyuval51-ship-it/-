@@ -10,6 +10,7 @@ import { outboxSync } from '../../features/offline/sync';
 import { isPendingEntry, PENDING_PREFIX } from '../../features/offline/pending';
 import { entryToRestoreInput } from '../../features/nutrition/undo';
 import { newIdempotencyKey } from '../../lib/ids';
+import { MenuTeaser } from '../../features/menu/MenuTeaser';
 import { DateNavigator } from '../../features/nutrition/DateNavigator';
 import { DayOverview } from '../../features/nutrition/DayOverview';
 import { EditEntryModal } from '../../features/nutrition/EditEntryModal';
@@ -79,6 +80,7 @@ export default function NutritionPage() {
         <div className="nutri-main stack">
           {/* Quiet unless the weight trend calls for a change; first, so it is seen before the long day overview. */}
           {date === today && <TargetSuggestionCard />}
+          <MenuTeaser date={date} />
           <QueryState query={day}>
             {(d) => {
               const count = MEAL_TYPES.reduce((n, m) => n + d.meals[m].entries.length, 0);

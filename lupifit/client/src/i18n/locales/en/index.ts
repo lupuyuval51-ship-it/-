@@ -11,6 +11,7 @@ import workouts from './workouts';
 import session from './session';
 import exercises from './exercises';
 import nutrition from './nutrition';
+import menu from './menu';
 import coach from './coach';
 import progress from './progress';
 import achievements from './achievements';
@@ -29,6 +30,7 @@ export const en = {
   session,
   exercises,
   nutrition,
+  menu,
   coach,
   progress,
   achievements,

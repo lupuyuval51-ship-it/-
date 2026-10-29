@@ -22,6 +22,7 @@
     "typecheck": "tsc -p server/tsconfig.json --noEmit && tsc -p client/tsconfig.json --noEmit",
     "lint": "node scripts/lint.mjs && node scripts/design-lint.mjs && node scripts/e2e-strings.mjs",
     "validate:content": "tsx scripts/validate-content.ts",
+    "docs:dishes": "tsx scripts/dishes-doc.ts",
     "animation:qa": "tsx scripts/animation-qa.ts",
     "test": "npm run test:server && npm run test:client",
     "test:server": "vitest run --config server/vitest.config.ts",

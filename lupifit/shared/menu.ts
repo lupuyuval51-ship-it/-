@@ -57,6 +57,9 @@ export interface MenuInput {
   swaps?: Readonly<Record<number, number>>;
 }
 
+/** A snack is small: pre/post-workout dishes include whole meals, which must not show up as a snack. */
+export const SNACK_MAX_KCAL = 350;
+
 export const SCALE_STEP = 0.25;
 export const SCALE_MIN = 0.5;
 export const SCALE_MAX = 1.75;
@@ -128,15 +131,18 @@ export function menuTotals(items: readonly Pick<MenuItem, 'kcal' | 'proteinG' | 
   );
 }
 
-/** How badly a dish at `scale` misses the slot: calorie miss plus a penalty for too little protein. */
-function fitCost(dish: Dish, scale: number, slotKcal: number, proteinShare: number): number {
+/**
+ * How badly a dish at `scale` misses the slot: the calorie miss plus how far the dish's macro mix
+ * (share of calories from protein / carbs / fat) is from the day's target mix, in both directions.
+ */
+function fitCost(dish: Dish, scale: number, slotKcal: number, mix: { p: number; c: number; f: number }): number {
   const kcal = dish.kcal * scale;
   const calorieMiss = Math.abs(kcal - slotKcal) / Math.max(slotKcal, 1);
-  const proteinPerKcal = (dish.proteinG * scale) / Math.max(kcal, 1);
-  const proteinMiss = Math.max(0, proteinShare - proteinPerKcal) / Math.max(proteinShare, 0.001);
+  const k = Math.max(dish.kcal, 1);
+  const mixMiss = (Math.abs((dish.proteinG * 4) / k - mix.p) + Math.abs((dish.carbsG * 4) / k - mix.c) + Math.abs((dish.fatG * 9) / k - mix.f)) / 2;
   // A dish that needs a stretched portion to fit is a worse pick than one that fits as listed.
   const stretch = Math.abs(scale - 1) * 0.15;
-  return calorieMiss + proteinMiss * 0.5 + stretch;
+  return calorieMiss + mixMiss * 0.9 + stretch;
 }
 
 const RANK_POOL = 12;
@@ -145,7 +151,8 @@ export function buildDailyMenu(input: MenuInput): DailyMenu {
   const slots = menuSlots(input.mealsPerDay);
   const allowed = dishFilter(input.preferences ?? NO_PREFERENCES);
   const { targets } = input;
-  const proteinShare = (targets.proteinG * 4) / Math.max(targets.calories, 1);
+  const kcalOfMacros = Math.max(targets.proteinG * 4 + targets.carbsG * 4 + targets.fatG * 9, 1);
+  const mix = { p: (targets.proteinG * 4) / kcalOfMacros, c: (targets.carbsG * 4) / kcalOfMacros, f: (targets.fatG * 9) / kcalOfMacros };
   const used = new Set<string>();
   const picked: { slot: number; mealType: MealType; dish: Dish; scale: number }[] = [];
   const emptySlots: number[] = [];
@@ -153,11 +160,11 @@ export function buildDailyMenu(input: MenuInput): DailyMenu {
   slots.forEach((slot, index) => {
     const categories = SLOT_CATEGORIES[slot.mealType];
     const slotKcal = targets.calories * slot.share;
-    const ranked = DISHES.filter((d) => categories.includes(d.category) && !used.has(d.id) && allowed(d))
+    const ranked = DISHES.filter((d) => categories.includes(d.category) && !used.has(d.id) && (slot.mealType !== 'snack' || d.kcal <= SNACK_MAX_KCAL) && allowed(d))
       .map((dish) => {
         const scale = roundScale(slotKcal / Math.max(dish.kcal, 1));
         // The seeded jitter varies the menu from day to day without ever beating a clearly better fit.
-        const cost = fitCost(dish, scale, slotKcal, proteinShare) + unitHash(`${input.seed}|${index}|${dish.id}`) * 0.35;
+        const cost = fitCost(dish, scale, slotKcal, mix) + unitHash(`${input.seed}|${index}|${dish.id}`) * 0.35;
         return { dish, scale, cost };
       })
       .sort((a, b) => a.cost - b.cost || a.dish.id.localeCompare(b.dish.id));

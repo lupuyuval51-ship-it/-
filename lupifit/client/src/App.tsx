@@ -19,6 +19,7 @@ const ExerciseLibraryPage = lazy(() => import('./pages/exercises/ExerciseLibrary
 const ExerciseDetailPage = lazy(() => import('./pages/exercises/ExerciseDetailPage'));
 const NutritionPage = lazy(() => import('./pages/nutrition/NutritionPage'));
 const FoodLogPage = lazy(() => import('./pages/nutrition/FoodLogPage'));
+const MenuPage = lazy(() => import('./pages/nutrition/MenuPage'));
 const CoachPage = lazy(() => import('./pages/coach/CoachPage'));
 const ProgressPage = lazy(() => import('./pages/progress/ProgressPage'));
 const NotificationsPage = lazy(() => import('./pages/progress/NotificationsPage'));
@@ -38,6 +39,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
  *  /exercises, /exercises/:id   exercise library
  *  /nutrition           nutrition dashboard
  *  /nutrition/log       food search & meal logging
+ *  /nutrition/menu      daily menu of ready dishes
  *  /coach               AI coach
  *  /progress            progress & analytics
  *  /notifications       notifications
@@ -71,6 +73,7 @@ export const router = createBrowserRouter([
       { path: '/exercises/:exerciseId', element: <ExerciseDetailPage /> },
       { path: '/nutrition', element: <NutritionPage /> },
       { path: '/nutrition/log', element: <FoodLogPage /> },
+      { path: '/nutrition/menu', element: <MenuPage /> },
       { path: '/coach', element: <CoachPage /> },
       { path: '/progress', element: <ProgressPage /> },
       { path: '/notifications', element: <NotificationsPage /> },

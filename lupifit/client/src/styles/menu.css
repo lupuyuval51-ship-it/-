@@ -1,0 +1,130 @@
+/* Daily menu — built for a phone held in one hand; logical properties only (RTL-safe). */
+
+.menu-list {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 760px) {
+  .menu-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ------------------------------------------------------------------ Summary */
+.menu-summary-kcal {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-lg);
+}
+.menu-summary .progress {
+  margin-block-end: var(--space-2);
+}
+.menu-summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+}
+.menu-summary-actions .btn {
+  min-block-size: 44px;
+  flex: 1 1 160px;
+}
+
+/* ------------------------------------------------------------------ Dish card */
+.menu-dish {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-areas:
+    'photo body'
+    'actions actions'
+    'logged logged'
+    'details details';
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.menu-dish-photo {
+  grid-area: photo;
+  inline-size: 96px;
+  block-size: 96px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--surface-3);
+}
+.menu-dish-body {
+  grid-area: body;
+  min-inline-size: 0;
+}
+.menu-dish-meal,
+.menu-dish-portion {
+  margin: 0;
+}
+.menu-dish-name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--fs-base);
+  overflow-wrap: anywhere;
+}
+.menu-dish-macros {
+  display: block;
+  font-size: var(--fs-sm);
+}
+.menu-dish-actions {
+  grid-area: actions;
+  display: flex;
+  gap: var(--space-2);
+}
+.menu-dish-actions .btn {
+  min-block-size: 44px;
+  flex: 1 1 0;
+}
+.menu-dish-logged {
+  grid-area: logged;
+  margin: 0;
+  color: var(--text-muted);
+}
+.menu-dish-details {
+  grid-area: details;
+}
+.menu-dish-details summary {
+  cursor: pointer;
+  min-block-size: 32px;
+  display: flex;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.menu-dish-details p {
+  margin: var(--space-1) 0 0;
+}
+
+/* ------------------------------------------------------------------ Shopping list */
+.menu-shopping {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.menu-shopping-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: 44px;
+  border-block-end: 1px solid var(--border-subtle);
+}
+.menu-shopping-row input {
+  inline-size: 20px;
+  block-size: 20px;
+  flex: none;
+}
+.menu-shopping-row > span:first-of-type {
+  flex: 1;
+  min-inline-size: 0;
+}
+.menu-shopping-done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
