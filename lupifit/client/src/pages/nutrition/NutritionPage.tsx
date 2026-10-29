@@ -73,13 +73,14 @@ export default function NutritionPage() {
       <DateNavigator date={date} onChange={setDate} />
       <div className="nutri-layout">
         <div className="nutri-main stack">
+          {/* Quiet unless the weight trend calls for a change; first, so it is seen before the long day overview. */}
+          {date === today && <TargetSuggestionCard />}
           <QueryState query={day}>
             {(d) => {
               const count = MEAL_TYPES.reduce((n, m) => n + d.meals[m].entries.length, 0);
               return (
                 <>
                   <DayOverview day={d} profile={profile.data} isToday={date === today} />
-                  {date === today && <TargetSuggestionCard />}
                   {count === 0 && (
                     <EmptyState
                       icon="apple"

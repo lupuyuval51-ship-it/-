@@ -58,7 +58,8 @@ test.beforeEach(async ({ page }) => {
   await useEnglish(page);
 });
 
-const toast = (page: Page, text: string | RegExp) => page.locator('.toasts').getByText(text);
+/** A toast with this text (the previous toast with the same text may still be fading out, so take the first). */
+const toast = (page: Page, text: string | RegExp) => page.locator('.toasts').getByText(text).first();
 
 test('search, preview, log, edit, correct and delete a food', async ({ page }) => {
   await readyUser(page);
