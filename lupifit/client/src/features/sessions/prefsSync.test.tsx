@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { WorkoutPrefsDTO } from '@shared/types';
+import { DEFAULT_WORKOUT_PREFS, type WorkoutPrefsDTO } from '@shared/types';
 
 const api = vi.fn();
 const setUser = vi.fn();
@@ -81,5 +81,98 @@ describe('useWorkoutPrefsSync', () => {
     writePrefs({ autoAdvance: false }, { fromServer: true });
     writeTimerMuted(true, { fromServer: true });
     expect(currentWorkoutPrefs()).toEqual({ wakeLock: true, vibrate: true, autoAdvance: false, restSound: false });
+  });
+});
+
+describe('useWorkoutPrefsSync on a device shared by two accounts', () => {
+  const settle = () => act(async () => void (await vi.advanceTimersByTimeAsync(1000)));
+
+  /** Account `id` flips a switch while offline and signs out before the change reaches the account. */
+  async function offlineChangeThenSignOut(id: string, patch: Parameters<typeof writePrefs>[0]) {
+    user = { id, workoutPrefs: server() };
+    api.mockRejectedValue(new Error('offline'));
+    const hook = renderHook(() => useWorkoutPrefsSync());
+    act(() => writePrefs(patch));
+    await settle();
+    hook.unmount();
+    api.mockReset().mockResolvedValue({});
+  }
+
+  it("never uploads another account's unsynced change, in either direction", async () => {
+    await offlineChangeThenSignOut('a', { vibrate: false });
+
+    user = { id: 'b', workoutPrefs: server({ wakeLock: false }) };
+    const b = renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).not.toHaveBeenCalled();
+    expect(currentWorkoutPrefs()).toEqual(server({ wakeLock: false })); // B gets B's own settings
+    b.unmount();
+
+    // A's change was replaced on this device by B's settings, so A's next sign-in must not upload B's.
+    user = { id: 'a', workoutPrefs: server() };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).not.toHaveBeenCalled();
+    expect(currentWorkoutPrefs()).toEqual(server());
+  });
+
+  it("does not share another account's choices with an account that has none yet", async () => {
+    user = { id: 'a', workoutPrefs: null };
+    const a = renderHook(() => useWorkoutPrefsSync());
+    act(() => writePrefs({ wakeLock: false }));
+    await settle();
+    expect(api).toHaveBeenCalledTimes(1); // A's change reached A's account
+    a.unmount();
+    api.mockClear();
+
+    user = { id: 'b', workoutPrefs: null };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).not.toHaveBeenCalled();
+    expect(currentWorkoutPrefs()).toEqual(DEFAULT_WORKOUT_PREFS); // B starts from the defaults, not from A's choices
+    expect(isPrefsDirty()).toBe(false);
+  });
+
+  it('treats an unsynced mark from before marks were per account as not dirty and adopts the account copy', async () => {
+    window.localStorage.setItem('fitai.sessionPrefs', JSON.stringify({ wakeLock: false, vibrate: false, autoAdvance: true }));
+    window.localStorage.setItem('fitai.sessionPrefs.dirty', JSON.stringify(Date.now()));
+    resetPrefsCache();
+    user = { id: 'b', workoutPrefs: server({ autoAdvance: false }) };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).not.toHaveBeenCalled();
+    expect(currentWorkoutPrefs()).toEqual(server({ autoAdvance: false }));
+    expect(isPrefsDirty()).toBe(false);
+  });
+
+  it("does not hand an upload that finishes after another account signed in to that account", async () => {
+    user = { id: 'a', workoutPrefs: server() };
+    let finish!: (v: unknown) => void;
+    api.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    const a = renderHook(() => useWorkoutPrefsSync());
+    act(() => writePrefs({ vibrate: false }));
+    await settle(); // A's upload is still on its way
+    a.unmount();
+
+    user = { id: 'b', workoutPrefs: server({ wakeLock: false }) };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    await act(async () => {
+      finish({});
+      await vi.advanceTimersByTimeAsync(10);
+    });
+    expect(setUser).not.toHaveBeenCalled(); // A's values never become B's "account copy"
+    expect(api).toHaveBeenCalledTimes(1);
+    expect(currentWorkoutPrefs()).toEqual(server({ wakeLock: false }));
+  });
+
+  it("still uploads the same account's offline change after it signs out and back in", async () => {
+    await offlineChangeThenSignOut('a', { vibrate: false });
+    user = { id: 'a', workoutPrefs: server() }; // the account still has the older copy
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(readPrefs().vibrate).toBe(false);
+    expect(api).toHaveBeenCalledWith('/settings', { method: 'PATCH', body: { workoutPrefs: expect.objectContaining({ vibrate: false }) } });
+    expect(isPrefsDirty()).toBe(false);
   });
 });
