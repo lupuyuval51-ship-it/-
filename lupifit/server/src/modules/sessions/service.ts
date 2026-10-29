@@ -15,6 +15,7 @@ import {
   type UpdateSetInput,
 } from '@shared/schemas/sessions';
 import { easierRpe, easierSets, readinessLevel, type ReadinessCheckin, type ReadinessLevel } from '@shared/readiness';
+import { advanceRotation } from '@shared/schedule';
 import { MAX_REST_SECONDS, isValidTimerState, type RestTimerState } from '@shared/timer';
 import type { ProgressionSuggestionDTO, SessionSetDTO, SessionSummaryDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
@@ -407,7 +408,8 @@ export async function updateExercise(sql: Sql, userId: string, sessionId: string
 
 /**
  * Completes the workout in one transaction: closes an open pause, computes duration and
- * totals from completed sets, detects personal records, advances the plan, grants rewards.
+ * totals from completed sets, detects personal records, advances the plan rotation (only when
+ * its next day was done, see `advanceRotation`), grants rewards.
  * Finishing an already completed session returns its stored summary.
  */
 export async function finishSession(sql: Sql, user: SessionUser, sessionId: string, input: FinishSessionInput): Promise<SessionSummaryDTO> {
@@ -430,14 +432,21 @@ export async function finishSession(sql: Sql, user: SessionUser, sessionId: stri
   const recordIds = await insertRecords(sql, user.id, sessionId, endedAt, detectRecords(sets, tracking, previousBests));
 
   if (row.plan_workout_id && row.plan_id) {
+    // Lock the plan first (as plan edits do) so the pointer and the day order are read consistently.
+    const plan = await sql.maybeOne<{ next_workout_index: number }>(
+      'SELECT next_workout_index FROM workout_plans WHERE id = $1 AND user_id = $2 FOR UPDATE',
+      [row.plan_id, user.id],
+    );
     const days = await sql.many<{ id: string }>(
       `SELECT pw.id FROM plan_workouts pw JOIN workout_plans wp ON wp.id = pw.plan_id
         WHERE pw.plan_id = $1 AND wp.user_id = $2 ORDER BY pw.position, pw.created_at`,
       [row.plan_id, user.id],
     );
     const idx = days.findIndex((d) => d.id === row.plan_workout_id);
-    if (idx >= 0 && days.length > 0) {
-      await sql.exec('UPDATE workout_plans SET next_workout_index = $3 WHERE id = $1 AND user_id = $2', [row.plan_id, user.id, (idx + 1) % days.length]);
+    if (plan && idx >= 0 && days.length > 0) {
+      // A stand-in day (e.g. suggested to avoid yesterday's muscles) keeps the skipped day next.
+      const next = advanceRotation(plan.next_workout_index, idx, days.length);
+      await sql.exec('UPDATE workout_plans SET next_workout_index = $3 WHERE id = $1 AND user_id = $2', [row.plan_id, user.id, next]);
     }
   }
 

@@ -38,10 +38,13 @@ async function nextWorkout(sql: Sql, userId: string, sched: ScheduleContext): Pr
     estimated_minutes: number | null;
     exercise_count: number;
     est_seconds: number;
+    last_done_at: Date | null;
   }>(
     `SELECT w.id, w.name, w.focus, w.estimated_minutes,
             COUNT(e.id)::int AS exercise_count,
-            COALESCE(SUM(e.sets * (COALESCE(e.target_seconds, $3) + e.rest_seconds)), 0)::int AS est_seconds
+            COALESCE(SUM(e.sets * (COALESCE(e.target_seconds, $3) + e.rest_seconds)), 0)::int AS est_seconds,
+            (SELECT MAX(COALESCE(s.ended_at, s.started_at)) FROM workout_sessions s
+              WHERE s.user_id = w.user_id AND s.plan_workout_id = w.id AND s.status = 'completed') AS last_done_at
        FROM plan_workouts w
        LEFT JOIN plan_exercises e ON e.workout_id = w.id AND e.user_id = w.user_id
       WHERE w.plan_id = $1 AND w.user_id = $2
@@ -51,7 +54,11 @@ async function nextWorkout(sql: Sql, userId: string, sched: ScheduleContext): Pr
   );
   const activePlan = { id: plan.id, name: plan.name };
   if (!days.length) return { activePlan, nextWorkout: null };
-  const rec = recommendToday({ ...sched, days, nextIndex: plan.next_workout_index });
+  const rec = recommendToday({
+    ...sched,
+    days: days.map((d) => ({ focus: d.focus, lastDoneAt: d.last_done_at ? new Date(d.last_done_at).toISOString() : null })),
+    nextIndex: plan.next_workout_index,
+  });
   const day = days[rec.workoutIndex]!;
   const estimated =
     day.estimated_minutes != null
