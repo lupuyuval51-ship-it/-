@@ -71,10 +71,14 @@ export function CreatePage() {
   const [now] = useState(() => Date.now());
   const tracks = useMemo(() => loadTracks(localStorageOrNull(), now), [now]);
   const storage = useMemo(() => draftStorage(), []);
+  // the interface's content language, stored with the draft (a later visit in another language does not keep its default)
+  const ui = contentLangOf(locale);
+  const uiRef = useRef(ui);
+  useEffect(() => { uiRef.current = ui; }, [ui]);
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
   const [state, dispatch] = useReducer(createReducer, undefined, () =>
-    startState(loadDraft(storage, tier, contentLangOf(locale)), { locale: contentLangOf(locale), tier, example: hashQuery(window.location.hash).get("example") === "1", mode: suggestedMode(tier) }));
+    startState(loadDraft(storage, tier, ui), { locale: ui, tier, example: hashQuery(window.location.hash).get("example") === "1", mode: suggestedMode(tier) }));
   const { form, restored, undo, problem } = state;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
@@ -108,11 +112,11 @@ export function CreatePage() {
   }, []);
   useEffect(() => {
     if (finished.current) return;
-    const id = window.setTimeout(() => saveDraft(storage, form), DRAFT_DEBOUNCE_MS);
+    const id = window.setTimeout(() => saveDraft(storage, form, Date.now(), ui), DRAFT_DEBOUNCE_MS);
     return () => window.clearTimeout(id);
-  }, [form, storage]);
+  }, [form, storage, ui]);
   useEffect(() => {
-    const flush = () => { if (!finished.current) saveDraft(storage, latest.current); };
+    const flush = () => { if (!finished.current) saveDraft(storage, latest.current, Date.now(), uiRef.current); };
     const onHide = () => { if (document.visibilityState === "hidden") flush(); };
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", onHide);

@@ -149,7 +149,13 @@ export function draftStorage(): DraftStorage | null {
 const str = (v: unknown, max: number): string => (typeof v === "string" ? cutAt(cleanPastedText(v), max) : "");
 const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T): T => (typeof v === "string" && (list as readonly string[]).includes(v) ? (v as T) : fallback);
 
-/** A stored draft, checked field by field: anything unexpected falls back to a default rather than breaking the screen. */
+/**
+ * A stored draft, checked field by field: anything unexpected falls back to a default rather than breaking the screen.
+ * `fallbackLanguage` is the content language of the app's interface now. A draft whose game language was only the
+ * default of the interface it was saved under (`ui`) does not keep it once the interface language changed: it takes the
+ * language of its notes, or the interface's (otherwise switching the app to English left a Hebrew game language behind,
+ * and an English library topic picked from an English list was built in Hebrew). A language the learner chose stays.
+ */
 export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLanguage: ContentLang): CreateFormValues | null {
   if (!raw) return null;
   let data: unknown;
@@ -167,6 +173,8 @@ export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLangua
     gameType: oneOf(GAME_TYPES, o.gameType, "adventure"),
     language: oneOf(["he", "en"] as const, o.language, fallbackLanguage),
   };
+  const ui = (data as { ui?: unknown }).ui;
+  if ((ui === "he" || ui === "en") && form.language === ui && ui !== fallbackLanguage) form.language = detectScript(form.material) ?? fallbackLanguage;
   return isBlankForm(form) ? null : fitToTier(form, tier);
 }
 
@@ -182,13 +190,14 @@ const isUntouchedExample = (f: CreateFormValues): boolean => !f.goal.trim() && i
  * Stores the form, or forgets the draft when nothing was typed. An untouched example never takes the place of the
  * learner's own unfinished text (`#/create?example=1` opens on the example while the draft waits behind "Bring back
  * my text", which lives only as long as the screen): that text stays stored for the next visit, and the example is one
- * tap away. Never throws: a draft is a convenience.
+ * tap away. `ui` is the content language of the interface the form is shown in (see `parseDraft`). Never throws: a
+ * draft is a convenience.
  */
-export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now()): void {
+export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now(), ui?: ContentLang): void {
   if (!storage) return;
   try {
     if (isBlankForm(form)) storage.removeItem(DRAFT_KEY);
-    else if (!(isUntouchedExample(form) && storedOwnText(storage))) storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, form }));
+    else if (!(isUntouchedExample(form) && storedOwnText(storage))) storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, ...(ui ? { ui } : {}), form }));
   } catch { /* storage full or blocked: the draft is simply not kept */ }
 }
 
