@@ -1,11 +1,11 @@
 /** Owned by the workouts feature. Hebrew (he/workouts.ts) must have exactly the same keys. */
 const workouts = {
   title: 'Workouts',
-  subtitle: 'Your training plans and the AI workout generator',
+  subtitle: 'Your training plans and the smart workout generator',
   tabs: {
     label: 'Workout sections',
     plans: 'My plans',
-    generate: 'AI workout generator',
+    generate: 'Smart workout generator',
   },
   links: {
     history: 'Workout history',
@@ -32,7 +32,8 @@ const workouts = {
     moreActions: 'More actions for {name}',
   },
   source: {
-    generated: 'AI generated',
+    // The rule-based training engine builds every plan; AI (when configured) only reads free-text preferences.
+    generated: 'Auto-generated',
     custom: 'Custom',
     duplicate: 'Copy',
   },

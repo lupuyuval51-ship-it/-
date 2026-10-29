@@ -391,7 +391,7 @@ function PlanHeader({ plan }: { plan: WorkoutPlanDTO }) {
       )}
       <div className="row">
         <Badge tone={STATUS_TONE[plan.status]}>{t(`enums.planStatus.${plan.status}`)}</Badge>
-        <Badge tone={plan.source === 'generated' ? 'primary' : 'neutral'} icon={plan.source === 'generated' ? 'sparkles' : undefined}>
+        <Badge tone={plan.source === 'generated' ? 'primary' : 'neutral'}>
           {t(`workouts.source.${plan.source}`)}
         </Badge>
       </div>
