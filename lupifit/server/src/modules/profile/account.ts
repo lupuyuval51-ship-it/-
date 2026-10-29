@@ -36,6 +36,8 @@ export const EXPORTED_TABLES = [
   'notifications',
   'ai_usage_events',
   'coach_usage',
+  'push_subscriptions',
+  'push_deliveries',
 ] as const;
 
 /** Tables with per-user rows that are deliberately NOT exported (secrets / internal bookkeeping). */
@@ -182,6 +184,15 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
     ...(await q(`SELECT kind, created_at FROM ai_usage_events WHERE user_id = $1`)),
     ...(await q(`SELECT 'coach_message' AS kind, created_at FROM coach_usage WHERE user_id = $1`)),
   ].sort((x, y) => new Date(x.createdAt as Date).getTime() - new Date(y.createdAt as Date).getTime());
+  // Devices with phone notifications: the push service host only. The endpoint and keys are
+  // per-device secrets (anyone holding them could message the device), so they stay out.
+  const pushSubscriptions = await q(
+    `SELECT id, split_part(endpoint, '/', 3) AS push_service, user_agent, created_at, updated_at, last_success_at, failure_count
+       FROM push_subscriptions WHERE user_id = $1 ORDER BY created_at`,
+  );
+  const pushDeliveries = await q(
+    `SELECT kind, local_date, slot, status, sent_count, created_at FROM push_deliveries WHERE user_id = $1 ORDER BY created_at, local_date, slot`,
+  );
 
   return {
     format: 'fitai-export',
@@ -203,5 +214,7 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
     achievements,
     notifications,
     aiUsage,
+    pushSubscriptions,
+    pushDeliveries,
   };
 }

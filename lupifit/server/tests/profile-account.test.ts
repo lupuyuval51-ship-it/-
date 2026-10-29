@@ -26,6 +26,16 @@ async function userTables(): Promise<{ table: string; column: string }[]> {
   );
 }
 
+/** Deterministic, per-user fake push subscription (endpoint and keys must never be exported). */
+function pushKeys(tag: string, userId: string) {
+  const h = (s: string) => sha256(`${tag}-${userId}-${s}`);
+  return {
+    endpoint: `https://fcm.googleapis.com/fcm/send/${h('endpoint')}`,
+    p256dh: (h('p256dh') + h('p256dh-2')).slice(0, 87),
+    auth: h('auth').slice(0, 22),
+  };
+}
+
 /**
  * Seeds one row (or a small tree) in every user-data table, tagged with `tag` so leaks from
  * other users are easy to spot in the export.
@@ -92,6 +102,15 @@ async function seedEverything(userId: string, tag: string) {
     userId,
     sha256(`${tag}-${userId}-reset-token`),
   ]);
+  const push = pushKeys(tag, userId);
+  await db.exec(`INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent) VALUES ($1, $2, $3, $4, $5)`, [
+    userId,
+    push.endpoint,
+    push.p256dh,
+    push.auth,
+    `${tag} phone`,
+  ]);
+  await db.exec(`INSERT INTO push_deliveries (user_id, kind, local_date, slot, status, sent_count) VALUES ($1, 'meal', '2026-01-02', '13:00', 'sent', 1)`, [userId]);
   return { planId: plan.id, sessionId: session.id, foodId: food.id, threadId: thread.id };
 }
 
@@ -142,13 +161,16 @@ describe('GET /api/account/export', () => {
     expect(data.xpEvents).toEqual([expect.objectContaining({ sourceType: 'workout', sourceKey: 'ALPHA-session', xp: 50 })]);
     expect(data.achievements).toEqual([expect.objectContaining({ achievementId: 'ALPHA_badge' })]);
     expect(data.notifications).toEqual([expect.objectContaining({ kind: 'info', data: { tag: 'ALPHA' } })]);
+    expect(data.pushSubscriptions).toEqual([expect.objectContaining({ pushService: 'fcm.googleapis.com', userAgent: 'ALPHA phone', failureCount: 0 })]);
+    expect(data.pushDeliveries).toEqual([expect.objectContaining({ kind: 'meal', localDate: '2026-01-02', slot: '13:00', status: 'sent' })]);
 
     // No secrets and nothing from other users.
     const raw = JSON.stringify(data);
     const secrets = await db.one<{ password_hash: string }>('SELECT password_hash FROM users WHERE id = $1', [a.userId]);
     const sessionRows = await db.many<{ token_hash: string; csrf_token: string }>('SELECT token_hash, csrf_token FROM auth_sessions WHERE user_id = $1', [a.userId]);
     expect(sessionRows.length).toBeGreaterThan(0);
-    for (const s of [secrets.password_hash, ...sessionRows.flatMap((r) => [r.token_hash, r.csrf_token]), sha256(`ALPHA-${a.userId}-reset-token`), 'export-test-key-123', a.csrfToken!]) {
+    const push = pushKeys('ALPHA', a.userId!);
+    for (const s of [secrets.password_hash, ...sessionRows.flatMap((r) => [r.token_hash, r.csrf_token]), sha256(`ALPHA-${a.userId}-reset-token`), 'export-test-key-123', a.csrfToken!, push.endpoint, push.p256dh, push.auth]) {
       expect(raw).not.toContain(s);
     }
     expect(raw).not.toMatch(/password|token_?hash|csrf|idempotency|scrypt\$/i);
@@ -161,7 +183,7 @@ describe('GET /api/account/export', () => {
     const c = await onboardedUser(server.baseUrl);
     const res = await c.get('/api/account/export');
     expect(res.status).toBe(200);
-    for (const key of ['workoutPlans', 'workoutSessions', 'personalRecords', 'customFoods', 'foodLog', 'savedMeals', 'coachThreads', 'xpEvents', 'achievements', 'notifications']) {
+    for (const key of ['workoutPlans', 'workoutSessions', 'personalRecords', 'customFoods', 'foodLog', 'savedMeals', 'coachThreads', 'xpEvents', 'achievements', 'notifications', 'pushSubscriptions', 'pushDeliveries']) {
       expect(res.body[key], key).toEqual([]);
     }
   });

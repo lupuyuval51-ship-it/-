@@ -155,4 +155,8 @@ export interface AccountExportDTO {
   achievements: ExportRecord[];
   aiUsage: ExportRecord[];
   notifications: ExportRecord[];
+  /** Devices with phone notifications (push service host only; endpoint and keys are never exported). */
+  pushSubscriptions: ExportRecord[];
+  /** Reminder log: which phone-notification reminders were sent or skipped. */
+  pushDeliveries: ExportRecord[];
 }

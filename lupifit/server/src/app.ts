@@ -20,6 +20,7 @@ import { gamificationRouter } from './modules/gamification/routes';
 import { nutritionRouter } from './modules/nutrition/routes';
 import { profileRouter } from './modules/profile/routes';
 import { progressRouter } from './modules/progress/routes';
+import { pushRouter } from './modules/push/routes';
 import { sessionsRouter } from './modules/sessions/routes';
 import { workoutsRouter } from './modules/workouts/routes';
 
@@ -86,6 +87,7 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
   authed.use(gamificationRouter);
   authed.use(dashboardRouter);
   authed.use(coachRouter);
+  authed.use(pushRouter);
   api.use(authed);
 
   api.use(apiNotFound);
