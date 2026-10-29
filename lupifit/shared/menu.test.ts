@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { ALLERGENS, DIETARY_RESTRICTIONS } from './constants';
 import { DISH_CATEGORIES, DISHES, dishById, dishImageUrl } from './dishes';
-import { dishAllergens, dishFilter, dislikedKeywords, fitsDiet, NO_PREFERENCES } from './dishes/safety';
+import { dishAllergens, dishFilter, dislikedKeywords, fitsDiet, NO_PREFERENCES, normalizeText, textAllergens } from './dishes/safety';
 import { buildDailyMenu, SNACK_MAX_KCAL, ingredientNames, menuSlots, menuTotals, shoppingList, SCALE_MAX, SCALE_MIN, withDish } from './menu';
 
 const TARGETS = { calories: 2200, proteinG: 150, carbsG: 240, fatG: 70 };
@@ -69,7 +69,7 @@ describe('dish safety filter', () => {
     expect(vegan.length).toBeGreaterThan(20);
     for (const d of vegan) {
       expect(d.tags).toContain('vg');
-      expect(d.ingredients.en).not.toMatch(/\b(eggs?|milk|cheese|yogh?urt|butter|honey|tuna|salmon|chicken)\b/i);
+      expect(d.ingredients.en).not.toMatch(/\b(eggs?|cheese|yogh?urt|honey|tuna|salmon|chicken)\b|(?<!almond |soy |oat |coconut |cashew |rice )\bmilk|(?<!peanut |almond |nut )\bbutter/i);
       expect(dishAllergens(d)).not.toContain('fish');
     }
     const veg = DISHES.filter((d) => fitsDiet(d, 'vegetarian'));
@@ -97,6 +97,93 @@ describe('dish safety filter', () => {
     expect(dislikedKeywords('tuna, פטריות; Olives')).toEqual(expect.arrayContaining(['tuna', 'פטריות', 'olives', 'olive', 'פטרי']));
     const ok = dishFilter({ ...NO_PREFERENCES, dislikedFoods: 'tuna, תרד' });
     for (const d of DISHES.filter((x) => /tuna|spinach/i.test(x.ingredients.en))) expect(ok(d), d.id).toBe(false);
+  });
+});
+
+describe('dish safety filter: cases found in the independent review', () => {
+  const flags = (text: string) => textAllergens(text);
+  const asDish = (en: string, he = 'מנה', tags: string[] = []) => ({ ...dishById('b01')!, name: { he, en: 'x' }, ingredients: { he, en }, tags: tags as never });
+
+  it('flags nuts and sesame in baked / cereal foods', () => {
+    expect(flags('granola, yogurt')).toEqual(expect.arrayContaining(['peanut', 'tree_nut']));
+    expect(flags('muesli, apple')).toEqual(expect.arrayContaining(['peanut', 'tree_nut']));
+    expect(flags('cheese bourekas')).toContain('sesame');
+    expect(flags('challah slices')).toContain('sesame');
+    expect(flags('salmon poke bowl, rice')).toEqual(expect.arrayContaining(['gluten', 'sesame', 'fish']));
+    expect(flags('homemade sushi')).toEqual(expect.arrayContaining(['soy', 'gluten', 'fish']));
+    expect(flags('teriyaki tofu bowl')).toEqual(expect.arrayContaining(['sesame', 'soy', 'gluten']));
+    expect(flags('moussaka')).toContain('egg');
+    expect(flags('chicken curry, rice')).toContain('dairy');
+    expect(flags('pasta, tomato sauce')).toContain('egg');
+  });
+
+  it('copes with Hebrew geresh, final letters and plurals', () => {
+    expect(normalizeText("ג'חנון וצ׳יפס")).toBe('גחנון וציפס');
+    expect(flags("ג'חנון")).toEqual(expect.arrayContaining(['gluten', 'dairy']));
+    expect(flags('שומשומים')).toContain('sesame');
+    expect(flags('בוטן')).toContain('peanut');
+    expect(flags('בוטנים')).toContain('peanut');
+    expect(flags('סרטנים')).toContain('shellfish');
+    expect(flags('סרדינים')).toContain('fish');
+    expect(flags('תמנונים')).toContain('shellfish');
+    expect(flags('טורטייה')).toContain('gluten');
+    expect(flags('חביתת ירק')).toContain('egg');
+    expect(flags('שקשוקת ירקות')).toContain('egg');
+    expect(flags('קישוא')).not.toContain('egg');
+    expect(flags('תמרים')).not.toContain('soy');
+  });
+
+  it('copes with English plurals and word forms', () => {
+    for (const w of ['tortillas', 'bagels', 'buns', 'sandwiches', 'pizzas', 'croissants', 'pastries', 'baguettes', 'cakes', 'toasts', 'breads']) expect(flags(w), w).toContain('gluten');
+    for (const w of ['cheeses', 'yoghurts', 'creams', 'milkshake', 'buttermilk', 'cheesecake', 'cheddar', 'mascarpone', 'carbonara']) expect(flags(w), w).toContain('dairy');
+    for (const w of ['haddock', 'halibut', 'surimi', 'fish sauce']) expect(flags(w), w).toContain('fish');
+    for (const w of ['seafood', 'paella', 'cuttlefish']) expect(flags(w), w).toContain('shellfish');
+    for (const w of ['ramen', 'gnocchi', 'matzo', 'breadcrumbs', 'tempura']) expect(flags(w), w).toContain('gluten');
+  });
+
+  it('does not call plant milks and butters dairy', () => {
+    expect(flags('almond milk, oats')).not.toContain('dairy');
+    expect(flags('peanut butter, bread')).not.toContain('dairy');
+    expect(flags('soy milk')).not.toContain('dairy');
+    expect(flags('milk, oats')).toContain('dairy');
+    expect(flags('butter, bread')).toContain('dairy');
+  });
+
+  it('meat, pork and beef restrictions', () => {
+    const noBeef = dishFilter({ ...NO_PREFERENCES, dietaryRestrictions: ['no_beef'] });
+    const noPork = dishFilter({ ...NO_PREFERENCES, dietaryRestrictions: ['no_pork'] });
+    expect(noBeef(asDish('burger patty, bun'))).toBe(false);
+    expect(noBeef(asDish('rib eye steak'))).toBe(false);
+    expect(noBeef(asDish('ground beef, rice'))).toBe(false);
+    expect(noBeef(asDish('chicken shawarma, pita'))).toBe(true);
+    expect(noBeef(asDish('turkey burger, bun'))).toBe(true);
+    expect(noBeef(asDish('x', 'עגל בתנור'))).toBe(false);
+    expect(noPork(asDish('sausage, eggs'))).toBe(false);
+    expect(noPork(asDish('pepperoni pizza'))).toBe(false);
+    expect(noPork(asDish('chicken, rice'))).toBe(true);
+  });
+
+  it('vegetarian, vegan and pescatarian rules look past the dataset tags', () => {
+    const veg = (en: string, tags: string[]) => fitsDiet(asDish(en, 'מנה', tags), 'vegetarian');
+    expect(veg('lentils, gelatin dessert', ['v'])).toBe(false);
+    expect(veg('rice, lard', ['v'])).toBe(false);
+    expect(veg('pepperoni, bread', ['v'])).toBe(false);
+    expect(veg('lentils, rice', ['v'])).toBe(true);
+    const vegan = (en: string) => fitsDiet(asDish(en, 'מנה', ['vg']), 'vegan');
+    expect(vegan('mozzarella pizza')).toBe(false);
+    expect(vegan('rice, feta')).toBe(false);
+    expect(vegan('rice, honey')).toBe(false);
+    expect(vegan('oats, almond milk, peanut butter')).toBe(true);
+    const pesc = (en: string) => fitsDiet(asDish(en), 'pescatarian');
+    expect(pesc('kebab, rice')).toBe(false);
+    expect(pesc('liver pate')).toBe(false);
+    expect(pesc('salmon, rice')).toBe(true);
+  });
+
+  it('alcohol restriction', () => {
+    const noAlcohol = dishFilter({ ...NO_PREFERENCES, dietaryRestrictions: ['no_alcohol'] });
+    for (const w of ['mirin glaze', 'red wine sauce', 'whisky cake', 'sake', 'ויסקי', 'מירין']) expect(noAlcohol(asDish(w, w)), w).toBe(false);
+    expect(noAlcohol(asDish('rice, chicken'))).toBe(true);
   });
 });
 

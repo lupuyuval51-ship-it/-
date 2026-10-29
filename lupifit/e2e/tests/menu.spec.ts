@@ -90,7 +90,7 @@ test('daily menu: hides dishes that conflict with diet and allergies, and warns 
   expect(count).toBeGreaterThanOrEqual(3);
   for (let swap = 0; swap < 3; swap++) {
     for (const details of await dishes.locator('summary').all()) await details.click();
-    const text = (await dishes.locator('.menu-dish-details p:first-of-type').allTextContents()).join(' | ').toLowerCase();
+    const text = (await dishes.locator('.menu-dish-details p:first-of-type').allTextContents()).join(' | ').toLowerCase().replace(/almond milk/g, ''); // plant milk is fine for this user (no tree-nut allergy)
     for (const banned of ['egg', 'milk', 'cheese', 'yogurt', 'honey', 'chicken', 'tuna', 'salmon', 'beef', 'peanut', 'tahini', 'sesame', 'hummus', 'tofu', 'soy', 'mushroom']) {
       expect(text, `swap ${swap}: ${banned}`).not.toContain(banned);
     }

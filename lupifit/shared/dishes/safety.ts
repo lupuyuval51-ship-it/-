@@ -6,68 +6,104 @@
  * a false "contains" costs the user one alternative, a false "safe" could cost far more. It can still miss
  * hidden ingredients (a sauce, a coating), so the UI must say the check is name-based and never present a
  * dish as allergen-free.
+ *
+ * Writing patterns (text is normalized first, see normalizeText):
+ * - English: `\b…\b` with optional plural endings; hyphens and apostrophes are already gone.
+ * - Hebrew: `\b` does not work on Hebrew letters and prefixes (ב ה ל ו ש מ כ) attach to the word, so patterns are
+ *   plain substrings. End a stem one letter early when the word ends in a final form (ן ם ץ ף ך), because
+ *   plurals use the regular letter (שומשום → שומשומ). No geresh in patterns: it is stripped from the text.
  */
 import type { Allergen, DietaryRestriction, DietType } from '../constants';
 import type { Dish } from './index';
 
-/** Lower-cases, strips Hebrew niqqud / Latin diacritics and punctuation, collapses spaces. */
+/** Lower-cases, strips Hebrew niqqud / Latin diacritics, geresh and apostrophes, turns other punctuation into spaces. */
 export function normalizeText(s: string): string {
   return s
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[֑-ׇ]/g, '')
     .replace(/[̀-ͯ]/g, '')
-    .replace(/[\-_'"׳״`´,.;:()[\]{}/\\|!?*+&#@~^=<>]/g, ' ')
+    .replace(/['"׳״`´]/g, '')
+    .replace(/[\-_,.;:()[\]{}/\\|!?*+&#@~^=<>]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// `\b` does not work on Hebrew letters in JS regexes; Hebrew prefixes (ב ה ל ו ש מ כ) attach to the word, so Hebrew patterns are plain substrings.
 const rx = (...parts: string[]) => new RegExp(parts.join('|'));
+/** English words: whole words, optional plural. */
+const en = (words: string) => `\\b(?:${words})\\b`;
+
+const NOT_CHICKEN_OR_TURKEY = '(?<!chicken )(?<!turkey )';
+const PLANT_BASED_PREFIX = '(?<!peanut )(?<!almond )(?<!nut )(?<!soy )(?<!oat )(?<!coconut )(?<!cashew )(?<!rice )';
 
 const MEAT = rx(
-  '\\b(?:chicken|beef|turkey|meat|lamb|steak|sirloin|rib-?eye|shawarma|schnitzel|nuggets?|meatballs?|burger|sausage|bacon|ham|pork|wings?|veal|duck|salami|prosciutto)\\b',
-  'עוף|חזה|הודו|בקר|בשר|כבש|סטייק|אנטריקוט|שווארמה|שניצל|נאגטס|קציצות (?:עוף|הודו|בקר|בשר)|קציצות בשר|נקניק|בייקון|חזיר|כנפיים|המבורגר',
+  en(
+    'chicken|beef|turkey|meat|lamb|steak|sirloin|rib ?eye|shawarma|schnitzel|nuggets?|meatballs?|meatloaf|burgers?|hamburgers?|sausages?|bacon|ham|pork|wings?|veal|duck|goose|salami|prosciutto|pepperoni|hot ?dogs?|kebabs?|kofta|gyros?|pastrami|liver|mortadella|jerky|mutton|goat|rabbit|ribs|oxtail|chorizo|pancetta|lard|bone broth|brisket|bolognese',
+  ),
+  'עוף|חזה|הודו|בקר|בשר|כבש|סטייק|אנטריקוט|שווארמה|שניצל|נאגטס|קציצות (?:עוף|הודו|בקר|בשר)|קציצת (?:עוף|הודו|בקר|בשר)|נקניק|בייקון|חזיר|כנפיים|המבורגר|פרגית|פרגיות|עגל|טלה|כבד|קבב|קובה|צלי|אווז|ברווז|לשון',
 );
-const PORK = rx('\\b(?:pork|bacon|ham|prosciutto|pancetta|lard|chorizo)\\b', 'חזיר|בייקון|פרושוטו');
+const PORK = rx(en('pork|bacon|ham|prosciutto|pancetta|lard|chorizo|sausages?|pepperoni|salami|hot ?dogs?|mortadella|gelatin'), 'חזיר|בייקון|פרושוטו|נקניק|פפרוני|סלמי|גלטין');
 const BEEF = rx(
-  '\\b(?:beef|steak|sirloin|rib-?eye|veal|brisket|ground meat|minced meat|meat|bolognese|salami)\\b',
-  'בקר|סטייק|אנטריקוט|בשר|בולונז',
+  en('beef|steak|sirloin|rib ?eye|veal|brisket|ground meat|minced meat|meat|bolognese|salami|meatloaf|ribs|oxtail|pastrami') +
+    '|' +
+    NOT_CHICKEN_OR_TURKEY +
+    en('burgers?|hamburgers?|meatballs?|kebabs?|kofta|shawarma|patt(?:y|ies)'),
+  'בקר|סטייק|אנטריקוט|בשר|בולונז|עגל|המבורגר|קבב',
 );
-const ALCOHOL = rx('\\b(?:wine|beer|vodka|whisk(?:e)?y|rum|liqueur|alcohol|brandy|gin|cider)\\b', 'יין|בירה|וודקה|וויסקי|ליקר|אלכוהול|ברנדי');
+const ALCOHOL = rx(en('wine|beer|vodka|whisk(?:e)?y|rum|liqueur|alcohol|brandy|gin|cider|mirin|sake|champagne|tequila|amaretto|sherry|marsala'), 'יין|בירה|וודקה|וויסקי|ויסקי|ליקר|אלכוהול|ברנדי|מירין|סאקה|שמפניה|ערק|קוניאק');
 
 const FISH = rx(
-  '\\b(?:fish|tuna|salmon|cod|tilapia|sardines?|anchov(?:y|ies)|mackerel|herring|trout|sea ?bass|sushi|caesar|worcestershire|lox|gefilte)\\b',
-  'דג(?!ן|נ)|טונה|סלמון|בקלה|אמנון|סרדין|אנשובי|הרינג|פורל|לברק|סושי|קיסר|גפילטע',
+  en(
+    'fish|tuna|salmon|cod|tilapia|sardines?|anchov(?:y|ies)|mackerel|herring|trout|sea ?bass|sushi|poke|caesar|worcestershire|lox|gefilte|haddock|halibut|sole|bream|mullet|pollock|snapper|carp|swordfish|eel|roe|caviar|surimi|dashi|bonito|fish sauce',
+  ),
+  'דג(?!ן|נ)|טונה|סלמון|בקלה|אמנון|סרדינ|אנשובי|הרינג|פורל|לברק|סושי|פוקה|קיסר|גפילטע|לוקוס|דניס|מוסר|לוקס|נילוס',
 );
 const SHELLFISH = rx(
-  '\\b(?:shrimps?|prawns?|crab|lobster|crayfish|clams?|mussels?|oysters?|scallops?|squid|calamari|octopus|shellfish)\\b',
-  'שרימפס|סרטן|לובסטר|צדפות|קלמארי|תמנון|פירות ים',
+  en('shrimps?|prawns?|crabs?|lobsters?|crayfish|clams?|mussels?|oysters?|scallops?|squid|calamari|octopus|shellfish|seafood|paella|langoustines?|cuttlefish|krill'),
+  'שרימפס|סרט[נן]|לובסטר|צדפ|קלמארי|תמנונ|תמנון|פירות ים|חסילון|מולים|דיונון',
 );
 const DAIRY = rx(
-  '\\b(?:milk|cheese|yogh?urt|butter|cream|kefir|labneh|labane|whey|mozzarella|feta|parmesan|ricotta|halloumi|cottage|bechamel|béchamel|ghee|custard|ice cream|latte|cappuccino|tzatziki|quiche|lasagn[ae]|pesto|bourekas|malawach|jachnun|chocolate|cocoa|pancakes?|waffles?|crepes?|croissant|pastry|cookies?|cake|granola bar|cereal bar|protein powder|protein pudding|protein yogh?urt|white cheese|cheese sandwich|string cheese|caesar|mashed|mash)\\b',
-  'חלב(?!ון|ה)|גבינ|יוגורט|חמאה|שמנת|קפיר|מוצרלה|פטה|פרמזן|ריקוטה|חלומי|קוטג|בשמל|גלידה|לאטה|קפוצ|צזיקי|קיש|לזניה|פסטו|בורקס|מלוואח|מלאווח|ג׳חנון|גחנון|שוקולד|קקאו|פנקייק|וופל|קרפ|קרואסון|מאפה|עוגי|עוגה|אבקת חלבון|פודינג|פירה|מחית',
+  en(
+    'cheeses?|yogh?urts?|creams?|kefir|labneh|labane|whey|mozzarella|feta|parmesan|ricotta|halloumi|cottage|bechamel|ghee|custard|ice cream|latte|cappuccino|tzatziki|quiche|lasagn[ae]|pesto|bourekas|malawach|jachnun|chocolate|cocoa|pancakes?|waffles?|crepes?|croissants?|pastry|pastries|cookies?|cake|cakes|cheesecake|granola bar|cereal bar|protein powder|protein pudding|protein yogh?urt|white cheese|cheese sandwich|string cheese|caesar|mashed|mash|milkshake|buttermilk|cheddar|gouda|skyr|quark|mascarpone|burrata|paneer|alfredo|carbonara|gelato|tiramisu|mousse|muffins?|brownies?|donuts?|doughnuts?|curry',
+  ) +
+    '|' +
+    PLANT_BASED_PREFIX +
+    en('milk|butter'),
+  'חלב(?!ון|ה)|גבינ|יוגורט|חמאה|שמנת|קפיר|לאבנה|מוצרלה|פטה|פרמזן|ריקוטה|חלומי|קוטג|בשמל|גלידה|לאטה|קפוצ|צזיקי|קיש(?!ו)|לזניה|פסטו|בורקס|מלוואח|מלאווח|גחנון|שוקולד|שוקו|קקאו|פנקייק|וופל|קרפ|קרואסון|מאפה|עוגי|עוג(?:ה|ת)|אבקת חלבון|פודינג|פירה|מחית|מילקשייק|צפתית|קשקבל|קארי',
 );
 const EGG = rx(
-  '\\b(?:eggs?|omelet+e?|(?<!tofu )shakshuka|mayo|mayonnaise|quiche|pancakes?|waffles?|crepes?|challah|brioche|cookies?|cake|pastry|croissant|noodles?|lasagn[ae]|bourekas|malawach|jachnun|caesar|meringue|custard|egg ?salad|protein pancakes?|batter|dough|schnitzel|nuggets?|meatballs?|patt(?:y|ies))\\b',
-  'ביצ|חביתה|שקשוקה(?! עם טופו)|מיונז|קיש|פנקייק|וופל|קרפ|חלה|בריוש|עוגי|עוגה|מאפה|קרואסון|אטריות|לזניה|בורקס|מלוואח|מלאווח|ג׳חנון|גחנון|קיסר|מרנג|בצק|שניצל|נאגטס|קציצות',
+  en(
+    'eggs?|omelet+e?|(?<!tofu )shakshuka|mayo|mayonnaise|quiche|pancakes?|waffles?|crepes?|challah|brioche|cookies?|cake|cakes|pastry|pastries|croissants?|noodles?|lasagn[ae]|bourekas|malawach|jachnun|caesar|meringue|custard|egg ?salad|batter|dough|schnitzel|nuggets?|meatballs?|patt(?:y|ies)|moussaka|musaka|bechamel|aioli|pasta|spaghetti|macaroni|gnocchi|ravioli|tortellini|muffins?|brownies?|donuts?|doughnuts?|mousse|tiramisu|carbonara',
+  ),
+  'ביצ|חבית|שקשוק(?!ה עם טופו)|מיונז|קיש(?!ו)|פנקייק|וופל|קרפ|חלה|חלות|בריוש|עוגי|עוג(?:ה|ת)|מאפה|קרואסון|אטריות|לזניה|בורקס|מלוואח|מלאווח|גחנון|קיסר|מרנג|בצק|שניצל|נאגטס|קציצ|מוסקה|בשמל|איולי|חלמון|פסטה|ספגטי|ניוקי|רביולי|מקרוני',
 );
-const PEANUT = rx('\\b(?:peanuts?|satay|chocolate spread|nut butter|mixed nuts?|nuts)\\b', 'בוטנ|סאטה|ממרח שוקולד|חמאת אגוזים|אגוזים');
+const PEANUT = rx(
+  en(
+    'peanuts?|groundnuts?|satay|chocolate spread|nut butter|mixed nuts?|nuts|granola|muesli|cereal bar|granola bar|protein bar|energy bar|trail mix|nutella|biscotti|amaretto|frangipane|pad thai|bamba',
+  ),
+  'בוטנ|בוטן|סאטה|ממרח שוקולד|חמאת אגוזים|אגוזים|גרנולה|מוזלי|נוטלה|במבה',
+);
 const TREE_NUT = rx(
-  '\\b(?:almonds?|walnuts?|cashews?|pistachios?|hazelnuts?|pecans?|macadamia|pine nuts?|brazil nuts?|nuts|granola|pesto|chocolate spread|nut butter|marzipan|praline|nougat|cereal bar|granola bar|baklava|halva)\\b',
-  'שקד|אגוז|קשיו|פיסטוק|לוז|פקאן|מקדמיה|צנובר|גרנולה|פסטו|ממרח שוקולד|חמאת אגוזים|מרציפן|פרלין|נוגט|חטיף דגנים|בקלאווה|חלבה',
+  en(
+    'almonds?|walnuts?|cashews?|pistachios?|hazelnuts?|pecans?|macadamia|pine nuts?|brazil nuts?|nuts?|nut milk|granola|pesto|chocolate spread|nut butter|marzipan|praline|nougat|cereal bar|granola bar|baklava|halva|muesli|trail mix|energy bar|protein bar|nutella|biscotti|amaretto|frangipane',
+  ),
+  'שקד|אגוז|קשיו|פיסטוק|לוז|פקאן|מקדמיה|צנובר|גרנולה|פסטו|ממרח שוקולד|חמאת אגוזים|מרציפן|פרלין|נוגט|חטיף דגנים|בקלאווה|חלבה|מוזלי|נוטלה',
 );
 const SOY = rx(
-  '\\b(?:soy|soya|tofu|edamame|tempeh|miso|teriyaki|tamari|seitan|soy ?sauce|soy ?milk|soy ?drink|soy yogh?urt|protein powder|protein bar|vegetarian (?:patty|patties|burger))\\b',
-  'סויה|טופו|אדממה|טמפה|מיסו|טריאקי|תמרי|סייטן|משקה סויה|אבקת חלבון',
+  en('soy|soya|tofu|edamame|tempeh|miso|teriyaki|tamari|seitan|soy ?sauce|soy ?milk|soy ?drink|soy yogh?urt|protein powder|protein bar|sushi|vegetarian (?:patty|patties|burger)'),
+  'סויה|טופו|אדממה|טמפה|מיסו|טריאקי|סייטן|משקה סויה|אבקת חלבון|סושי',
 );
 const SESAME = rx(
-  '\\b(?:sesame|tahini|tahina|hummus|houmous|halva|halvah|falafel|za.?atar|bagel|bun|burger|shawarma|pita chips|sushi|sambusak)\\b',
-  'שומשום|טחינה|טחינ|חומוס|חלבה|פלאפל|זעתר|בייגל|לחמניה|המבורגר|שווארמה|סושי|סמבוסק',
+  en(
+    'sesame|tahini|tahina|hummus|houmous|halva|halvah|falafel|zaatar|bagels?|buns?|burgers?|shawarma|pita chips|sushi|sambusak|bourekas|malawach|challah|rolls?|poke|teriyaki',
+  ),
+  'שומשומ|טחינ|חומוס|חלבה|פלאפל|זעתר|בייגל|לחמני|המבורגר|שווארמה|סושי|סמבוסק|בורקס|מלוואח|מלאווח|חלה|חלות|לחמניות|פוקה|טריאקי',
 );
 const GLUTEN = rx(
-  '\\b(?:bread|toast|pitas?|pita chips|bagel|bun|rolls?|challah|sourdough|baguette|brioche|tortilla|wraps?|sandwich|croutons?|crackers?|rice crackers? with|pasta|spaghetti|macaroni|noodles?|lasagn[ae]|couscous|bulgur|ptitim|semolina|oats?|oatmeal|granola|cereal|cornflakes|muesli|wheat|wholewheat|wholegrain|flour|dough|batter|pancakes?|waffles?|crepes?|croissant|pastry|bourekas|malawach|jachnun|pizza|cookies?|cake|schnitzel|nuggets?|meatballs?|patt(?:y|ies)|burger|falafel|dumplings?|seitan|soy ?sauce|teriyaki|bechamel|béchamel|breaded|barley|rye|spelt|freekeh|beer|cereal bar|granola bar|malt)\\b',
-  'לחם|טוסט|פיתה|פיתות|בייגל|לחמניה|חלה|מחמצת|באגט|בריוש|טורטיה|לאפה|כריך|סנדוויץ|קרוטונ|קרקר|פסטה|ספגטי|מקרוני|אטריות|לזניה|קוסקוס|בורגול|פתיתים|סולת|שיבולת|גרנולה|דגני בוקר|קורנפלקס|מוזלי|חיטה|קמח|בצק|פנקייק|וופל|קרפ|קרואסון|מאפה|בורקס|מלוואח|מלאווח|ג׳חנון|גחנון|פיצה|עוגי|עוגה|שניצל|נאגטס|קציצות|המבורגר|פלאפל|כופתא|סייטן|רוטב סויה|טריאקי|בשמל|שעורה|שיפון|כוסמין|פריקה|בירה|חטיף',
+  en(
+    'breads?|toasts?|pitas?|pita chips|bagels?|buns?|rolls?|challah|sourdough|baguettes?|brioche|tortillas?|wraps?|sandwich(?:es)?|croutons?|crackers?|pasta|spaghetti|macaroni|noodles?|lasagn[ae]|couscous|bulgur|ptitim|semolina|oats?|oatmeal|granola|cereal|cornflakes|muesli|wheat|wholewheat|wholegrain|flour|dough|batter|pancakes?|waffles?|crepes?|croissants?|pastry|pastries|bourekas|malawach|jachnun|pizzas?|cookies?|cakes?|schnitzel|nuggets?|meatballs?|patt(?:y|ies)|burgers?|falafel|dumplings?|seitan|soy ?sauce|teriyaki|bechamel|breaded|barley|rye|spelt|freekeh|beer|cereal bar|granola bar|malt|poke|sushi|muffins?|brownies?|donuts?|doughnuts?|pies?|tarts?|strudel|wafers?|biscuits?|bran|laffa|naan|matzo|matzah|orzo|ramen|udon|soba|gnocchi|ravioli|tortellini|panko|breadcrumbs?|tempura|kibbeh|kubba|moussaka|musaka',
+  ),
+  'לחם|טוסט|פיתה|פיתות|בייגל|לחמני|חלה|חלות|מחמצת|באגט|בריוש|טורטי|לאפ|כריך|סנדוויץ|קרוטונ|קרקר|פסטה|ספגטי|מקרוני|אטריות|נודלס|לזניה|קוסקוס|בורגול|פתיתים|סולת|שיבולת|גרנולה|דגני בוקר|קורנפלקס|מוזלי|חיטה|קמח|בצק|פנקייק|וופל|קרפ|קרואסון|מאפה|בורקס|מלוואח|מלאווח|גחנון|פיצה|עוגי|עוג(?:ה|ת)|שניצל|נאגטס|קציצ|המבורגר|פלאפל|כופתא|סייטן|רוטב סויה|טריאקי|בשמל|שעורה|שיפון|כוסמין|פריקה|בירה|חטיף|ניוקי|מצה|בגט|פשטידה|פנקו|טמפורה|סושי|פוקה|מוסקה|רביולי',
 );
 
 const ALLERGEN_RULES: Record<Allergen, RegExp> = {
@@ -93,30 +129,39 @@ export function dishAllergens(dish: Dish): Allergen[] {
   return (Object.keys(ALLERGEN_RULES) as Allergen[]).filter((a) => ALLERGEN_RULES[a].test(text));
 }
 
-const ANIMAL_NON_MEAT = rx('\\b(?:egg|eggs|milk|cheese|yogh?urt|butter|cream|honey|gelatin|whey|kefir|labneh|mayo)\\b', 'ביצ|חלב|גבינ|יוגורט|חמאה|שמנת|דבש|ג׳לטין|קפיר|לבנה|מיונז');
+/** Animal-derived ingredients other than meat/fish (vegan check). Plant "milks" and "butters" are not animal-derived. */
+const ANIMAL_NON_MEAT = rx(
+  en('eggs?|cheeses?|yogh?urts?|creams?|honey|gelatin|whey|kefir|labneh|mayo|mozzarella|feta|parmesan|ricotta|halloumi|cottage|pesto|tzatziki|ghee|custard|casein|milk chocolate|aioli|meringue') +
+    '|' +
+    PLANT_BASED_PREFIX +
+    en('milk|butter'),
+  'ביצ|חלב(?!ון|ה)|גבינ|יוגורט|חמאה|שמנת|דבש|גלטין|קפיר|לאבנה|מיונז|מוצרלה|פטה|פרמזן|ריקוטה|חלומי|קוטג|פסטו|צזיקי',
+);
+/** Not meat as such, but not vegetarian either. */
+const NOT_VEGETARIAN = rx(en('gelatin|lard|tallow|rennet|bone broth|fish sauce|anchov(?:y|ies)'), 'גלטין');
 
 /** Whether the dish fits the diet type (meat/fish use keywords and the dataset's own vegetarian/vegan tags). */
 export function fitsDiet(dish: Dish, diet: DietType | null): boolean {
   if (!diet || diet === 'omnivore') return true;
   const text = dishText(dish);
-  const meat = MEAT.test(text);
+  const meat = MEAT.test(text) || PORK.test(text);
   switch (diet) {
     case 'vegetarian':
-      return !meat && !FISH.test(text) && !SHELLFISH.test(text) && (dish.tags.includes('v') || dish.tags.includes('vg'));
+      return !meat && !FISH.test(text) && !SHELLFISH.test(text) && !NOT_VEGETARIAN.test(text) && (dish.tags.includes('v') || dish.tags.includes('vg'));
     case 'vegan':
-      return dish.tags.includes('vg') && !meat && !FISH.test(text) && !SHELLFISH.test(text) && !ANIMAL_NON_MEAT.test(text);
+      return dish.tags.includes('vg') && !meat && !FISH.test(text) && !SHELLFISH.test(text) && !NOT_VEGETARIAN.test(text) && !ANIMAL_NON_MEAT.test(text);
     case 'pescatarian':
-      return !meat && !PORK.test(text);
+      return !meat;
   }
 }
 
-const RESTRICTION_RULES: Record<DietaryRestriction, (dish: Dish, text: string) => boolean> = {
-  no_pork: (_d, text) => !PORK.test(text),
-  no_beef: (_d, text) => !BEEF.test(text),
-  no_shellfish: (_d, text) => !SHELLFISH.test(text),
-  no_alcohol: (_d, text) => !ALCOHOL.test(text),
-  lactose_free: (_d, text) => !DAIRY.test(text),
-  gluten_free: (_d, text) => !GLUTEN.test(text),
+const RESTRICTION_RULES: Record<DietaryRestriction, (text: string) => boolean> = {
+  no_pork: (text) => !PORK.test(text),
+  no_beef: (text) => !BEEF.test(text),
+  no_shellfish: (text) => !SHELLFISH.test(text),
+  no_alcohol: (text) => !ALCOHOL.test(text),
+  lactose_free: (text) => !DAIRY.test(text),
+  gluten_free: (text) => !GLUTEN.test(text),
 };
 
 /** Keywords from the free-text "disliked foods" answer (EN/HE), with naive singular stems. */
@@ -157,7 +202,13 @@ export function dishFilter(prefs: DishPreferences): (dish: Dish) => boolean {
     if (!fitsDiet(dish, prefs.dietType)) return false;
     const text = dishText(dish);
     if (allergies.some((a) => ALLERGEN_RULES[a].test(text))) return false;
-    if (restrictions.some((r) => !RESTRICTION_RULES[r](dish, text))) return false;
+    if (restrictions.some((r) => !RESTRICTION_RULES[r](text))) return false;
     return !mentionsDisliked(dish, disliked);
   };
+}
+
+/** Allergens flagged in free text (ingredient names) — used by tests and tooling. */
+export function textAllergens(text: string): Allergen[] {
+  const n = normalizeText(text);
+  return (Object.keys(ALLERGEN_RULES) as Allergen[]).filter((a) => ALLERGEN_RULES[a].test(n));
 }
