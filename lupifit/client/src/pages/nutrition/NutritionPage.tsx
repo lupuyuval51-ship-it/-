@@ -15,6 +15,7 @@ import { useNutritionInvalidation, useUserToday } from '../../features/nutrition
 import { MealSection } from '../../features/nutrition/MealSection';
 import { NextMealCard } from '../../features/nutrition/NextMealCard';
 import { clampLogDate } from '../../features/nutrition/portion';
+import { TargetSuggestionCard } from '../../features/nutrition/TargetSuggestionCard';
 import { WeeklySummary } from '../../features/nutrition/WeeklySummary';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
@@ -78,6 +79,7 @@ export default function NutritionPage() {
               return (
                 <>
                   <DayOverview day={d} profile={profile.data} isToday={date === today} />
+                  {date === today && <TargetSuggestionCard />}
                   {count === 0 && (
                     <EmptyState
                       icon="apple"

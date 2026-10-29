@@ -17,7 +17,7 @@ import {
   rankTemplate,
 } from '../src/modules/nutrition/suggestions';
 
-const TARGETS: NutritionTargetsDTO = { calories: 2400, proteinG: 150, carbsG: 280, fatG: 75, fiberG: 34, custom: false, computed: null };
+const TARGETS: NutritionTargetsDTO = { calories: 2400, proteinG: 150, carbsG: 280, fatG: 75, fiberG: 34, custom: false, adjustmentKcal: 0, computed: null };
 const omnivore = { dietType: 'omnivore' as const, allergies: [], restrictions: [] };
 
 function dayWith(logged: Partial<Record<MealType, number>>, totals: Partial<Macros> = {}) {

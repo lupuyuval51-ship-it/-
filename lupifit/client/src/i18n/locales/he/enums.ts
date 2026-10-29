@@ -194,6 +194,7 @@ const enums: Translations<typeof en> = {
     sex_unspecified_average: 'המין לא צוין: נעשה שימוש בממוצע של הנוסחאות לגברים ולנשים.',
     protein_reference_weight: 'כמות החלבון מחושבת לפי משקל ייחוס המתאים לגובה שלך.',
     carb_minimum_applied: 'הפחמימות נשמרות ברמה של 130 גר׳ ביום לפחות.',
+    user_adjustment: 'כולל את התאמת הקלוריות הקטנה שאישרתם לפי מגמת המשקל.',
   },
   prType: {
     max_weight: 'המשקל הכבד ביותר',

@@ -176,6 +176,26 @@ describe('ranking', () => {
     expect(res.foods[0]?.reason).toBe('protein_gap');
   });
 
+  it('nudges foods the user already logs often up the single-food list, without changing what qualifies', async () => {
+    const c = await onboardedUser(server.baseUrl, { meals_per_day: 3 });
+    const list = async () => (await c.get(`/api/nutrition/suggestions?date=${today}&mealType=lunch`)).body.foods as NutritionSuggestionsDTO['foods'];
+    const before = await list();
+    expect(before.length).toBeGreaterThan(1);
+    const last = before[before.length - 1]!;
+    // Logged on past days (so today's remaining targets, and with them the nutrient gap, stay the same).
+    for (let d = 1; d <= 5; d++) {
+      await db.exec(
+        `INSERT INTO food_log_entries (user_id, logged_on, meal_type, food_id, food_name, grams, kcal, protein_g, source)
+         VALUES ($1, $2::date - $3::int, 'lunch', $4, $5, 100, 100, 5, 'quick_add')`,
+        [c.userId, today, d, last.food.id, JSON.stringify(last.food.name)],
+      );
+    }
+    const after = await list();
+    expect(after.map((f) => f.food.id)).toContain(last.food.id);
+    expect(after.findIndex((f) => f.food.id === last.food.id)).toBeLessThanOrEqual(before.length - 1);
+    for (const f of after) expect(f.food.conflicts).toEqual([]);
+  });
+
   it('stops favouring protein once protein needs are covered', async () => {
     const c = await onboardedUser(server.baseUrl, { meals_per_day: 3 });
     await c.post('/api/nutrition/logs', { date: today, mealType: 'breakfast', foodId: await idOf('chicken_breast_cooked'), grams: 600 });

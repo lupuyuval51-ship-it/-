@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  adjustmentApplySchema,
   deleteAccountSchema,
   onboardingSchema,
   profileUpdateSchema,
@@ -12,6 +13,7 @@ import type {
   ProfileResponse,
   ProfileUpdateResponse,
   SettingsUpdateResponse,
+  TargetSuggestionResponse,
   UserDTO,
 } from '@shared/types';
 import { db } from '../../db/pool';
@@ -23,6 +25,7 @@ import { rateLimit } from '../../middleware/rateLimit';
 import { parseBody } from '../../middleware/validate';
 import { getUserDTO } from '../auth/users';
 import { buildAccountExport } from './account';
+import { applyAdjustment, dismissSuggestion, getTargetSuggestion, resetAdjustment } from './adjustment';
 import { getProfile } from './repository';
 import { saveOnboarding, updateProfile, updateSettings, updateTargets } from './service';
 
@@ -53,6 +56,31 @@ profileRouter.put('/profile/targets', async (req, res) => {
   const input = parseBody(targetsUpdateSchema, req);
   const id = userId(req);
   const body: ProfileResponse = { profile: await db.tx((tx) => updateTargets(tx, id, input)) };
+  res.json(body);
+});
+
+profileRouter.get('/profile/targets/suggestion', async (req, res) => {
+  const body: TargetSuggestionResponse = await getTargetSuggestion(db, userId(req));
+  res.json(body);
+});
+
+profileRouter.post('/profile/targets/adjustment', async (req, res) => {
+  const { offsetKcal } = parseBody(adjustmentApplySchema, req);
+  const id = userId(req);
+  const body: ProfileResponse = { profile: await db.tx((tx) => applyAdjustment(tx, id, offsetKcal)) };
+  res.json(body);
+});
+
+profileRouter.post('/profile/targets/adjustment/dismiss', async (req, res) => {
+  const id = userId(req);
+  await db.tx((tx) => dismissSuggestion(tx, id));
+  const body: OkResponse = { ok: true };
+  res.json(body);
+});
+
+profileRouter.delete('/profile/targets/adjustment', async (req, res) => {
+  const id = userId(req);
+  const body: ProfileResponse = { profile: await db.tx((tx) => resetAdjustment(tx, id)) };
   res.json(body);
 });
 

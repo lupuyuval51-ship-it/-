@@ -24,6 +24,7 @@ export function createQueryClient() {
 export const qk = {
   me: ['me'] as const,
   profile: ['profile'] as const,
+  targetSuggestion: ['profile', 'target-suggestion'] as const,
   dashboard: ['dashboard'] as const,
   exercises: (params?: unknown) => ['exercises', params ?? {}] as const,
   exercise: (id: string) => ['exercise', id] as const,

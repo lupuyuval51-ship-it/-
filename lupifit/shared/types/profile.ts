@@ -14,6 +14,7 @@ import type {
   TrainingLocation,
 } from '../constants';
 import type { ComputedTargets } from '../nutrition';
+import type { NoSuggestionReason, TargetSuggestion } from '../nutritionAdapt';
 import type { UserDTO } from './auth';
 import type { ISODate, ISODateTime } from './common';
 
@@ -44,6 +45,8 @@ export interface NutritionTargetsDTO {
   fiberG: number;
   /** True when the user overrode the computed targets. */
   custom: boolean;
+  /** User-approved calorie adjustment from the weight-trend check (kcal, 0 = none). Already included in `calories`. */
+  adjustmentKcal: number;
   /** The evidence-based computation (null if the profile is incomplete). */
   computed: ComputedTargets | null;
 }
@@ -85,6 +88,20 @@ export interface ProfileDTO {
   reminders: ReminderSettings;
   onboardingCompletedAt: ISODateTime | null;
   updatedAt: ISODateTime | null;
+}
+
+/** A weight-trend based calorie suggestion the user can accept or postpone (see shared/nutritionAdapt.ts). */
+export interface TargetSuggestionDTO extends TargetSuggestion {
+  currentCalories: number;
+  proposedTargets: { calories: number; proteinG: number; carbsG: number; fatG: number };
+}
+
+export interface TargetSuggestionResponse {
+  suggestion: TargetSuggestionDTO | null;
+  /** Why there is no suggestion (null while there is one). */
+  reason: NoSuggestionReason | 'incomplete_profile' | null;
+  /** The adjustment currently applied to the computed targets (kcal). */
+  adjustmentKcal: number;
 }
 
 export interface ProfileResponse {

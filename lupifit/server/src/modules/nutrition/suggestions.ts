@@ -188,6 +188,10 @@ const templateCompatible = (t: ResolvedTemplate, prefs: DietPreferences, dislike
 /** Foods never suggested on their own (they are ingredients, not something to add to a meal). */
 const NOT_STANDALONE: FoodCategory[] = ['condiments_sauces', 'fats_oils', 'beverages'];
 
+/** Ranking nudge per past log of the same food (capped), so habits help but never override the nutrient gap. */
+const HABIT_BONUS = 0.5;
+const HABIT_BONUS_MAX_LOGS = 5;
+
 export type Gap = 'protein' | 'fiber' | 'carbs' | 'fat';
 
 /**
@@ -216,6 +220,16 @@ const GAP_FIELD: Record<Gap, keyof Pick<FoodRow, 'protein_g' | 'fiber_g' | 'carb
 
 async function foodSuggestions(sql: Sql, userId: string, prefs: DietPreferences, disliked: string[], gap: Gap, hasTargets: boolean): Promise<FoodSuggestionDTO[]> {
   const rows = await sql.many<FoodRow>(`SELECT f.* FROM foods f WHERE f.source = 'builtin' AND f.owner_user_id IS NULL`);
+  // Foods the user already logs often are more likely to actually get eaten: a small, capped nudge.
+  const habit = new Map(
+    (
+      await sql.many<{ food_id: string; n: number }>(
+        `SELECT food_id, COUNT(*)::int AS n FROM food_log_entries
+          WHERE user_id = $1 AND food_id IS NOT NULL AND logged_on > CURRENT_DATE - 60 GROUP BY food_id`,
+        [userId],
+      )
+    ).map((r) => [r.food_id, r.n]),
+  );
   const field = GAP_FIELD[gap];
   const ranked = rows
     .filter((f) => !NOT_STANDALONE.includes(f.category))
@@ -228,7 +242,7 @@ async function foodSuggestions(sql: Sql, userId: string, prefs: DietPreferences,
       // Density per 100 kcal, with a bonus for a meaningful amount per serving.
       const perServing = gap === 'protein' ? nutrients.proteinG : gap === 'fiber' ? nutrients.fiberG : gap === 'carbs' ? nutrients.carbsG : nutrients.fatG;
       const density = (Number(f[field]) / Number(f.kcal)) * 100;
-      return { dto, grams, nutrients, score: density + perServing / 10 };
+      return { dto, grams, nutrients, score: density + perServing / 10 + HABIT_BONUS * Math.min(habit.get(f.id) ?? 0, HABIT_BONUS_MAX_LOGS) };
     })
     .sort((a, b) => b.score - a.score || a.dto.name.en.localeCompare(b.dto.name.en));
   const perCategory = new Map<string, number>();

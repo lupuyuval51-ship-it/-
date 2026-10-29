@@ -30,6 +30,7 @@ import type {
   ProfileResponse,
   SavedMealResponse,
   SavedMealsResponse,
+  TargetSuggestionResponse,
 } from '@shared/types';
 import { api, apiDelete, apiGet, apiPatch, apiPost } from '../../api/client';
 import { qk } from '../../api/queryClient';
@@ -100,3 +101,9 @@ export const analyzePhoto = (input: PhotoAnalysisInput, key: string) => apiPost<
 export const fetchHealth = () => api<HealthResponse>('/health');
 export const fetchProfile = () => apiGet<ProfileResponse>('/profile').then((r) => r.profile);
 
+
+/** Weight-trend calorie suggestion (profile module). Nothing changes until the user accepts it. */
+export const fetchTargetSuggestion = (signal?: AbortSignal) => apiGet<TargetSuggestionResponse>('/profile/targets/suggestion', undefined, signal);
+export const applyTargetAdjustment = (offsetKcal: number, key: string) => apiPost<ProfileResponse>('/profile/targets/adjustment', { offsetKcal }, key).then((r) => r.profile);
+export const dismissTargetAdjustment = () => apiPost<OkResponse>('/profile/targets/adjustment/dismiss', {});
+export const resetTargetAdjustment = () => apiDelete<ProfileResponse>('/profile/targets/adjustment').then((r) => r.profile);

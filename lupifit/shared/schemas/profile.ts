@@ -106,6 +106,10 @@ export const customTargetsSchema = z.object({
 export type CustomTargetsInput = z.infer<typeof customTargetsSchema>;
 
 /** Custom nutrition targets, or `{ reset: true }` to go back to the computed targets. */
+/** Accepts the calorie suggestion that is currently offered (the server re-checks that it still is the offered one). */
+export const adjustmentApplySchema = z.object({ offsetKcal: z.number().int().min(-150).max(150) });
+export type AdjustmentApplyInput = z.infer<typeof adjustmentApplySchema>;
+
 export const targetsUpdateSchema = z.union([customTargetsSchema, z.object({ reset: z.literal(true) })]);
 export type TargetsUpdateInput = z.infer<typeof targetsUpdateSchema>;
 

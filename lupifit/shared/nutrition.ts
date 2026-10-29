@@ -138,6 +138,8 @@ export interface TargetInput {
   weightKg: number;
   activityLevel: ActivityLevel;
   goal: Goal;
+  /** User-approved calorie adjustment from the weight-trend check (kcal, applied before the safety floor). */
+  calorieOffset?: number;
 }
 
 /** Machine-readable explanation codes rendered through i18n (`nutrition.targetNotes.<code>`). */
@@ -151,7 +153,8 @@ export type TargetNoteCode =
   | 'floor_applied'
   | 'sex_unspecified_average'
   | 'protein_reference_weight'
-  | 'carb_minimum_applied';
+  | 'carb_minimum_applied'
+  | 'user_adjustment';
 
 export interface ComputedTargets {
   bmr: number;
@@ -226,6 +229,14 @@ export function computeNutritionTargets(input: TargetInput): ComputedTargets {
       break;
     default:
       notes.push('maintenance');
+  }
+
+  // An approved adjustment moves the target before the floor is checked, so it can never go below it.
+  // Minors are never moved below the computed (no-deficit) target.
+  const offset = isMinor ? Math.max(0, input.calorieOffset ?? 0) : (input.calorieOffset ?? 0);
+  if (offset !== 0) {
+    calories += offset;
+    notes.push('user_adjustment');
   }
 
   const minimumCalories = isMinor ? Math.round(tdee * 0.95) : Math.round(Math.max(bmr, ADULT_CALORIE_FLOOR[input.sex]));

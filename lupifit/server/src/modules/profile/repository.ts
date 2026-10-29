@@ -46,6 +46,9 @@ export interface ProfileRow {
   carbs_target_g: number | null;
   fat_target_g: number | null;
   targets_custom: boolean;
+  calorie_adjustment: number;
+  calorie_adjusted_on: string | null;
+  adjustment_dismissed_until: string | null;
   reminders: ReminderSettings | null;
   onboarding_completed_at: Date | null;
   updated_at: Date | null;
@@ -77,7 +80,7 @@ export function currentAge(row: Pick<ProfileRow, 'age_years' | 'age_recorded_on'
 }
 
 /** Evidence-based targets from the profile, or null when required fields are missing. */
-export function computedTargetsFor(row: ProfileRow): ComputedTargets | null {
+export function computedTargetsFor(row: ProfileRow, calorieOffset: number = row.calorie_adjustment ?? 0): ComputedTargets | null {
   const age = currentAge(row);
   if (age == null || !row.sex || !row.height_cm || !row.weight_kg || !row.activity_level || !row.goal) return null;
   return computeNutritionTargets({
@@ -87,6 +90,7 @@ export function computedTargetsFor(row: ProfileRow): ComputedTargets | null {
     weightKg: Number(row.weight_kg),
     activityLevel: row.activity_level,
     goal: row.goal,
+    calorieOffset,
   });
 }
 
@@ -100,6 +104,7 @@ export function targetsFor(row: ProfileRow): NutritionTargetsDTO | null {
       fatG: row.fat_target_g,
       fiberG: Math.round((row.calorie_target / 1000) * 14),
       custom: true,
+      adjustmentKcal: 0,
       computed,
     };
   }
@@ -111,6 +116,7 @@ export function targetsFor(row: ProfileRow): NutritionTargetsDTO | null {
     fatG: computed.fatG,
     fiberG: computed.fiberG,
     custom: false,
+    adjustmentKcal: row.calorie_adjustment ?? 0,
     computed,
   };
 }

@@ -192,6 +192,7 @@ const enums = {
     sex_unspecified_average: 'Sex not specified: an average of the male and female formulas is used.',
     protein_reference_weight: 'Protein is based on a reference weight for your height.',
     carb_minimum_applied: 'Carbohydrates are kept at or above 130 g/day.',
+    user_adjustment: 'Includes the small calorie adjustment you approved from your weight trend.',
   },
   prType: {
     max_weight: 'Heaviest weight',

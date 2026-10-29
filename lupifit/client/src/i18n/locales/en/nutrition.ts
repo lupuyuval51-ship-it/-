@@ -383,6 +383,22 @@ const nutrition = {
     pickerTitle: 'Choose a food',
   },
 
+  adjust: {
+    title: 'Calorie check',
+    basis: 'Based on {weighIns} weigh-ins over the last 4 weeks. Nothing changes unless you apply it.',
+    apply: 'Apply: {proposed} kcal',
+    later: 'Not now',
+    applied: 'Calorie target updated',
+    codes: {
+      loss_too_slow: 'Your weight has barely moved in 4 weeks (trend {rate} kg/week). A small cut of {delta} kcal a day, to {proposed} kcal, can restart progress.',
+      loss_too_fast: 'Your weight is falling faster than planned (about {rate} kg/week). Adding {delta} kcal a day, to {proposed} kcal, helps protect muscle and energy.',
+      gain_too_slow: 'Your weight is not rising as planned (trend {rate} kg/week). Adding {delta} kcal a day, to {proposed} kcal, can help.',
+      gain_too_fast: 'Your weight is rising faster than planned (about {rate} kg/week). Trimming {delta} kcal a day, to {proposed} kcal, limits extra fat gain.',
+      drifting_down: 'Your weight keeps drifting down (about {rate} kg/week). Adding {delta} kcal a day, to {proposed} kcal, can steady it.',
+      drifting_up: 'Your weight keeps drifting up (about {rate} kg/week). Trimming {delta} kcal a day, to {proposed} kcal, can steady it.',
+    },
+  },
+
   weekly: {
     title: 'Trends',
     period: 'Period',
