@@ -1,7 +1,9 @@
 {
   "name": "LUPU-FIT",
   "short_name": "LUPU-FIT",
-  "description": "AI fitness & nutrition coach",
+  "description": "מאמן כושר ותזונה: תוכנית אימונים אישית, אימון חי עם טיימר מנוחה, יומן אוכל ותפריט יומי",
+  "lang": "he",
+  "dir": "rtl",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -9,14 +11,72 @@
   "orientation": "portrait",
   "background_color": "#0b0b0d",
   "theme_color": "#0b0b0d",
+  "categories": [
+    "health",
+    "fitness",
+    "food",
+    "lifestyle"
+  ],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ],
   "shortcuts": [
-    { "name": "Workout", "url": "/workouts", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Log food", "url": "/nutrition/log", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "אימון",
+      "short_name": "אימון",
+      "url": "/workouts",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "רישום אוכל",
+      "short_name": "רישום אוכל",
+      "url": "/nutrition/log",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "התפריט היומי",
+      "short_name": "תפריט",
+      "url": "/nutrition/menu",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }
