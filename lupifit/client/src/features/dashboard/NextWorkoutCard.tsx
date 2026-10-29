@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { dayOfWeek } from '@shared/dates';
@@ -11,10 +12,11 @@ import { errorMessage } from '../../lib/errors';
 import { relativeTimeText, useFmt } from '../progress/format';
 import { focusLabel } from '../workouts/format';
 import { startPlanWorkout } from './api';
+import { ReadinessCheck, completeReadiness, type ReadinessDraft } from './ReadinessCheck';
 import { todayPlan } from './today';
 
 /** Next plan day with a one-tap start, or a clear path to creating a plan. */
-export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | 'activePlan' | 'nextWorkout' | 'activeSession' | 'lastWorkout' | 'weeklyGoal' | 'weekDays'> }) {
+export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | 'activePlan' | 'nextWorkout' | 'activeSession' | 'lastWorkout' | 'weeklyGoal' | 'weekDays' | 'insights'> }) {
   const i18n = useI18n();
   const { t, formatDate } = i18n;
   const fmt = useFmt();
@@ -23,7 +25,8 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | '
   const queryClient = useQueryClient();
   const { activePlan, nextWorkout, activeSession, lastWorkout } = data;
 
-  const start = useIdempotentMutation((planWorkoutId: string, key: string) => startPlanWorkout(planWorkoutId, key), {
+  const [readiness, setReadiness] = useState<ReadinessDraft>({});
+  const start = useIdempotentMutation((planWorkoutId: string, key: string) => startPlanWorkout(planWorkoutId, key, completeReadiness(readiness)), {
     onSuccess: async () => {
       toast.success(t('dashboard.nextWorkout.started'));
       await Promise.all([
@@ -122,6 +125,9 @@ export function NextWorkoutCard({ data }: { data: Pick<DashboardDTO, 'today' | '
           skipped: nextWorkout.schedule.skippedFocus ? focusLabel(nextWorkout.schedule.skippedFocus, i18n) : '',
         })}
       </p>
+      {!activeSession && (
+        <ReadinessCheck value={readiness} onChange={setReadiness} suggestEasier={data.insights.some((i) => i.code === 'rest_needed')} />
+      )}
       <div className="row dash-next-actions">
         {activeSession ? (
           // The resume banner above is the single primary action while a workout is open.

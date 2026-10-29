@@ -55,6 +55,7 @@ function session(sets: SessionSetDTO[], extra: Partial<WorkoutSessionDTO> = {}):
     restTimer: null,
     notes: '',
     perceivedExertion: null,
+    readiness: null,
     exercises: [exercise, second],
     serverTime: '2026-10-09T10:00:00.000Z',
     ...extra,

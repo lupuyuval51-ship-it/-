@@ -19,6 +19,8 @@ const session = {
     finish: 'Finish',
     discard: 'Discard',
     paused: 'Workout paused — the clock is stopped.',
+    readinessAdjusted: 'Adjusted for today from your check-in: one set fewer, lower effort and no load increases.',
+    useFullPlan: 'Use the full plan',
     progress: '{done} of {total} sets done',
     restTimer: 'Rest timer',
     exercises: 'Exercises',

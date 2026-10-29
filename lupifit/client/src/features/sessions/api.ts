@@ -30,6 +30,10 @@ export const startEmptySession = (name: string, key: string) =>
 export const startPlanSession = (planWorkoutId: string, key: string) =>
   timed(() => apiPost<SessionResponse>('/sessions', { planWorkoutId }, key)).then((r) => r.session);
 
+/** "Use the full plan": rebuilds an easier (readiness-adjusted) session while it is still untouched. */
+export const revertReadiness = (id: string, key: string) =>
+  timed(() => apiPost<SessionResponse>(`/sessions/${id}/readiness/revert`, {}, key)).then((r) => r.session);
+
 export const pauseSession = (id: string, body: Record<string, unknown>) =>
   timed(() => apiPatch<SessionResponse>(`/sessions/${id}/state`, { action: 'pause', ...body })).then((r) => r.session);
 

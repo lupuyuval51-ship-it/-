@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { LIMITS, SESSION_STATUSES } from '../constants';
+import { READINESS_ENERGY, READINESS_SLEEP, READINESS_SORENESS } from '../readiness';
 import { MAX_REST_SECONDS } from '../timer';
 import { cleanText, slugId, uuid } from './common';
 
@@ -12,8 +13,15 @@ export const SESSION_LIMITS = {
   historyPageMax: 50,
 } as const;
 
+/** Optional pre-workout check-in: three taps, each answer required only if the check-in is sent. */
+export const readinessSchema = z.object({
+  energy: z.enum(READINESS_ENERGY),
+  soreness: z.enum(READINESS_SORENESS),
+  sleep: z.enum(READINESS_SLEEP),
+});
+
 export const startSessionSchema = z.union([
-  z.object({ planWorkoutId: uuid }),
+  z.object({ planWorkoutId: uuid, readiness: readinessSchema.optional() }),
   z.object({ empty: z.literal(true), name: cleanText(LIMITS.textShortMax).optional() }),
 ]);
 export type StartSessionInput = z.infer<typeof startSessionSchema>;

@@ -230,6 +230,35 @@ function decideTime(input: PrescriptionInput, history: HistorySession[]): Progre
   return { ...out, action: 'increase_time', targetSeconds: to, reasonCode: 'time_target_hit', params: { fromSeconds: target, toSeconds: to } };
 }
 
+/**
+ * On an "easier" readiness day nothing is increased: weight, reps, time and harder variations are held at
+ * what the user did last time. Holds, deloads and first-time targets are already conservative and unchanged.
+ */
+export function holdSuggestion(s: ProgressionSuggestionDTO): ProgressionSuggestionDTO {
+  switch (s.action) {
+    case 'increase_weight': {
+      const from = typeof s.params?.fromKg === 'number' ? s.params.fromKg : s.targetWeightKg;
+      return { ...s, action: 'maintain', targetWeightKg: from, targetReps: s.repMin, reasonCode: 'readiness_hold', params: {} };
+    }
+    case 'increase_reps':
+      return {
+        ...s,
+        action: 'maintain',
+        targetReps: s.targetReps != null ? Math.max(s.repMin ?? 1, s.targetReps - 1) : null,
+        reasonCode: 'readiness_hold',
+        params: {},
+      };
+    case 'increase_time': {
+      const from = typeof s.params?.fromSeconds === 'number' ? s.params.fromSeconds : s.targetSeconds;
+      return { ...s, action: 'maintain', targetSeconds: from, reasonCode: 'readiness_hold', params: {} };
+    }
+    case 'try_harder_variation':
+      return { ...s, action: 'maintain', harderVariationId: null, reasonCode: 'readiness_hold', params: {} };
+    default:
+      return s;
+  }
+}
+
 /** Pure decision for one exercise. `history` is newest first (only the last two sessions are used). */
 export function decideProgression(
   input: PrescriptionInput,

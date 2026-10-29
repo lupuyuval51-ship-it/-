@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { db } from '../src/db/pool';
 import { getExerciseMap, type ExerciseRecord } from '../src/modules/exercises/repository';
 import {
+  holdSuggestion,
   decideProgression,
   suggestProgressions,
   type HistorySession,
@@ -301,5 +302,30 @@ describe('suggestProgressions (recorded history)', () => {
     });
     const [s] = await suggestProgressions(db, user.userId!, [rx('plank', { repMin: null, repMax: null, targetSeconds: 45 })]);
     expect(s).toMatchObject({ action: 'increase_time', targetSeconds: 50 });
+  });
+});
+
+describe('holdSuggestion (easier readiness day)', () => {
+  const base = { exerciseId: 'barbell_bench_press', repMin: 6, repMax: 10, targetSeconds: null, harderVariationId: null, targetReps: null, params: {} };
+
+  it('turns a weight increase back into last time\'s load', () => {
+    const inc = { ...base, action: 'increase_weight' as const, targetWeightKg: 62.5, targetReps: 6, reasonCode: 'hit_top_of_range', params: { fromKg: 60, toKg: 62.5 } };
+    expect(holdSuggestion(inc)).toMatchObject({ action: 'maintain', targetWeightKg: 60, targetReps: 6, reasonCode: 'readiness_hold' });
+  });
+
+  it('holds reps, time and harder variations', () => {
+    const reps = { ...base, action: 'increase_reps' as const, targetWeightKg: 60, targetReps: 9, reasonCode: 'within_range' };
+    expect(holdSuggestion(reps)).toMatchObject({ action: 'maintain', targetReps: 8, targetWeightKg: 60, reasonCode: 'readiness_hold' });
+    const time = { ...base, repMin: null, repMax: null, action: 'increase_time' as const, targetWeightKg: null, targetSeconds: 40, reasonCode: 'time_target_hit', params: { fromSeconds: 30, toSeconds: 40 } };
+    expect(holdSuggestion(time)).toMatchObject({ action: 'maintain', targetSeconds: 30 });
+    const harder = { ...base, action: 'try_harder_variation' as const, targetWeightKg: null, harderVariationId: 'diamond_push_up', reasonCode: 'mastered_try_harder' };
+    expect(holdSuggestion(harder)).toMatchObject({ action: 'maintain', harderVariationId: null });
+  });
+
+  it('leaves holds, deloads and first-time targets alone — it never raises anything', () => {
+    for (const action of ['maintain', 'deload', 'first_time'] as const) {
+      const s = { ...base, action, targetWeightKg: 55, reasonCode: 'x' };
+      expect(holdSuggestion(s)).toEqual(s);
+    }
   });
 });

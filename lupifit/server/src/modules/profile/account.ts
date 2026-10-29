@@ -23,6 +23,7 @@ export const EXPORTED_TABLES = [
   'workout_sessions',
   'session_exercises',
   'session_sets',
+  'readiness_checkins',
   'personal_records',
   'foods',
   'food_log_entries',
@@ -109,7 +110,7 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
   const sessions = await q(
     `SELECT id, plan_id, plan_workout_id, name, status, started_at, paused_at, paused_seconds, ended_at, duration_seconds,
             current_exercise_index, rest_timer, total_volume_kg, total_sets, total_reps, perceived_exertion, notes,
-            xp_awarded, rewards, created_at, updated_at
+            readiness, readiness_adjusted, xp_awarded, rewards, created_at, updated_at
        FROM workout_sessions WHERE user_id = $1 ORDER BY started_at`,
   );
   const sessionExercises = await q(
@@ -131,6 +132,11 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
       sets: (setsByExercise.get(e.id) ?? []).map((set) => without(set, 'sessionExerciseId')),
     })),
   }));
+
+  const readinessCheckins = await q(
+    `SELECT id, checked_on, energy, soreness, sleep, created_at, updated_at
+       FROM readiness_checkins WHERE user_id = $1 ORDER BY checked_on`,
+  );
 
   const personalRecords = await q(
     `SELECT id, exercise_id, record_type, value, previous_value, weight_kg, reps, duration_seconds, session_id, set_id,
@@ -187,6 +193,7 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
     bodyWeights,
     workoutPlans,
     workoutSessions,
+    readinessCheckins,
     personalRecords,
     customFoods,
     foodLog,

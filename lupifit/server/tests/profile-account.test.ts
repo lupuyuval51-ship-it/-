@@ -33,6 +33,7 @@ async function userTables(): Promise<{ table: string; column: string }[]> {
 async function seedEverything(userId: string, tag: string) {
   const name = (s: string) => JSON.stringify({ en: `${tag} ${s}`, he: `${tag} ${s}` });
   await db.exec(`INSERT INTO body_weight_entries (user_id, measured_on, weight_kg, note) VALUES ($1, '2026-01-02', 81.5, $2)`, [userId, `${tag} weigh-in`]);
+  await db.exec(`INSERT INTO readiness_checkins (user_id, checked_on, energy, soreness, sleep) VALUES ($1, '2026-01-02', 'low', 'high', 'ok')`, [userId]);
   const plan = await db.one<{ id: string }>(
     `INSERT INTO workout_plans (user_id, name, status, source, goal) VALUES ($1, $2, 'active', 'custom', 'strength') RETURNING id`,
     [userId, `${tag} plan`],

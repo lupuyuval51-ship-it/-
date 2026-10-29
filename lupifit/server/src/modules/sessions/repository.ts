@@ -42,6 +42,8 @@ export interface SessionRow {
   total_sets: number | null;
   total_reps: number | null;
   perceived_exertion: number | null;
+  readiness: { energy: string; soreness: string; sleep: string } | null;
+  readiness_adjusted: boolean;
   notes: string;
   xp_awarded: number;
   rewards: RewardResultDTO | null;
@@ -275,6 +277,7 @@ export async function loadSessionDTO(sql: Sql, userId: string, row: SessionRow, 
     restTimer: isOpen(row.status) ? restTimerOf(row.rest_timer) : null,
     notes: row.notes,
     perceivedExertion: row.perceived_exertion,
+    readiness: row.readiness ? ({ ...row.readiness, adjusted: row.readiness_adjusted } as WorkoutSessionDTO['readiness']) : null,
     exercises: exerciseDTOs,
     serverTime: new Date().toISOString(),
   };

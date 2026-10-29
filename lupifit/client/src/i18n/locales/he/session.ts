@@ -21,6 +21,8 @@ const session: Translations<typeof en> = {
     finish: 'סיום',
     discard: 'ביטול אימון',
     paused: 'האימון מושהה — השעון עצר.',
+    readinessAdjusted: 'הותאם להיום לפי הבדיקה שלכם: סט אחד פחות, מאמץ נמוך יותר וללא העלאת משקל.',
+    useFullPlan: 'לחזור לתוכנית המלאה',
     progress: '{done} מתוך {total} סטים הושלמו',
     restTimer: 'טיימר מנוחה',
     exercises: 'תרגילים',

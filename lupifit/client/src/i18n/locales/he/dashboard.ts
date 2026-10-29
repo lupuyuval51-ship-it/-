@@ -54,6 +54,14 @@ const dashboard: Translations<typeof en> = {
       avoidBackToBack: 'אתמול עבדתם על שרירים דומים, ולכן היום מוצע {focus} במקום {skipped}.',
     },
   },
+  readiness: {
+    title: 'איך אתם מרגישים היום? (לא חובה)',
+    hint: 'שני סימנים נמוכים ומעלה הופכים את האימון של היום לקל יותר: סט אחד פחות, מאמץ נמוך יותר וללא העלאת משקל. התוכנית עצמה לא משתנה.',
+    suggestEasier: 'התאמנתם הרבה ימים ברצף. אולי כדאי היום אימון קל יותר.',
+    energy: { label: 'אנרגיה', low: 'נמוכה', normal: 'רגילה', high: 'גבוהה' },
+    soreness: { label: 'כאבי שרירים', none: 'אין', some: 'קלים', high: 'חזקים' },
+    sleep: { label: 'שינה', poor: 'גרועה', ok: 'סבירה', good: 'טובה' },
+  },
   start: {
     title: 'צעדים ראשונים',
     progress: '{done} מתוך {total} צעדים הושלמו',

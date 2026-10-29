@@ -277,3 +277,21 @@
 .dash-grid .card-header .card-title {
   flex: 1 1 auto;
 }
+
+/* Optional readiness check-in (collapsed by default) */
+.readiness {
+  margin-block-start: var(--space-4);
+  border-block-start: 1px solid var(--divider);
+  padding-block-start: var(--space-2);
+}
+.readiness summary {
+  cursor: pointer;
+  min-block-size: var(--tap);
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.readiness-body {
+  padding-block: var(--space-2) var(--space-1);
+}

@@ -66,6 +66,14 @@ export interface SessionExerciseDTO {
   suggestion: ProgressionSuggestionDTO | null;
 }
 
+/** The readiness check-in a workout was started with, and whether it made the session easier. */
+export interface SessionReadinessDTO {
+  energy: 'low' | 'normal' | 'high';
+  soreness: 'none' | 'some' | 'high';
+  sleep: 'poor' | 'ok' | 'good';
+  adjusted: boolean;
+}
+
 export interface WorkoutSessionDTO {
   id: string;
   planId: string | null;
@@ -81,6 +89,7 @@ export interface WorkoutSessionDTO {
   restTimer: RestTimerState | null;
   notes: string;
   perceivedExertion: number | null;
+  readiness: SessionReadinessDTO | null;
   exercises: SessionExerciseDTO[];
   /** Server clock at response time — clients use it to correct clock skew for timers. */
   serverTime: ISODateTime;

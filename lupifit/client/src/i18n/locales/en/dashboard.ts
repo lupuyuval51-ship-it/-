@@ -51,6 +51,14 @@ const dashboard = {
       avoidBackToBack: 'You trained similar muscles yesterday, so today suggests {focus} instead of {skipped}.',
     },
   },
+  readiness: {
+    title: 'How are you feeling today? (optional)',
+    hint: 'Two or more low signals make today a little easier: one set fewer, lower effort, no load increases. Your plan is not changed.',
+    suggestEasier: 'You have trained many days in a row. An easier session may be a good idea today.',
+    energy: { label: 'Energy', low: 'Low', normal: 'Normal', high: 'High' },
+    soreness: { label: 'Muscle soreness', none: 'None', some: 'Some', high: 'High' },
+    sleep: { label: 'Sleep', poor: 'Poor', ok: 'OK', good: 'Good' },
+  },
   start: {
     title: 'Getting started',
     progress: '{done} of {total} steps done',

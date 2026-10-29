@@ -128,6 +128,7 @@ export interface AccountExportDTO {
   bodyWeights: ExportRecord[];
   workoutPlans: (ExportRecord & { workouts: (ExportRecord & { exercises: ExportRecord[] })[] })[];
   workoutSessions: (ExportRecord & { exercises: (ExportRecord & { sets: ExportRecord[] })[] })[];
+  readinessCheckins: ExportRecord[];
   personalRecords: ExportRecord[];
   customFoods: ExportRecord[];
   foodLog: ExportRecord[];

@@ -117,6 +117,8 @@ export interface CoachData {
   prs: PrInfo[];
   nutrition: NutritionInfo;
   weight: WeightInfo;
+  /** Latest pre-workout check-in from the last 3 days (optional taps the user chose to give). */
+  readiness?: { date: string; energy: string; soreness: string; sleep: string } | null;
 }
 
 export const NUTRITION_WINDOW_DAYS = 7;
@@ -350,13 +352,18 @@ export async function loadCoachData(sql: Sql, userId: string): Promise<CoachData
   const today = todayInTimeZone(user.timezone);
   const names = await getExerciseMap();
   const profile = await getProfile(sql, userId);
-  const [plan, recentSessions, stats, prs, nutrition, weight] = await Promise.all([
+  const [plan, recentSessions, stats, prs, nutrition, weight, readiness] = await Promise.all([
     loadPlan(sql, userId, names),
     loadRecentSessions(sql, userId, user.timezone, names),
     loadStats(sql, userId, user.timezone),
     loadPrs(sql, userId, user.timezone, names),
     loadNutrition(sql, userId, today),
     loadWeight(sql, userId, today),
+    sql.maybeOne<{ checked_on: string; energy: string; soreness: string; sleep: string }>(
+      `SELECT checked_on::text, energy, soreness, sleep FROM readiness_checkins
+        WHERE user_id = $1 AND checked_on >= ($2::date - 2) ORDER BY checked_on DESC LIMIT 1`,
+      [userId, today],
+    ),
   ]);
   return {
     displayName: user.display_name,
@@ -372,6 +379,7 @@ export async function loadCoachData(sql: Sql, userId: string): Promise<CoachData
     prs,
     nutrition,
     weight,
+    readiness: readiness ? { date: readiness.checked_on, energy: readiness.energy, soreness: readiness.soreness, sleep: readiness.sleep } : null,
   };
 }
 
@@ -461,6 +469,11 @@ export function formatContext(data: CoachData, lang: Locale): string {
     );
   } else {
     lines.push('- Daily nutrition targets: not available (profile incomplete).');
+  }
+
+  if (data.readiness) {
+    const r = data.readiness;
+    lines.push(`- Latest pre-workout check-in (${r.date}): energy ${r.energy}, soreness ${r.soreness}, sleep ${r.sleep}. Two or more negative signals make the session easier (one set fewer, lower effort, no load increases).`);
   }
 
   lines.push('', 'ACTIVE WORKOUT PLAN');

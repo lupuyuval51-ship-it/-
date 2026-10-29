@@ -33,6 +33,7 @@ import {
   finishSession,
   removeExercise,
   replaceExercise,
+  revertReadiness,
   startSession,
   updateExercise,
   updateSet,
@@ -61,6 +62,16 @@ sessionsRouter.post('/sessions', async (req, res) => {
   const user = sessionUser(req);
   const body = await db.tx(async (tx) => sessionResponse(tx, user, await startSession(tx, user, input)));
   res.status(201).json(body);
+});
+
+sessionsRouter.post('/sessions/:id/readiness/revert', async (req, res) => {
+  const { id } = parseParams(sessionParams, req);
+  const user = sessionUser(req);
+  const body = await db.tx(async (tx) => {
+    await revertReadiness(tx, user, id);
+    return sessionResponse(tx, user, id);
+  });
+  res.json(body);
 });
 
 sessionsRouter.get('/sessions', async (req, res) => {

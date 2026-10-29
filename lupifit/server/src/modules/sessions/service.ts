@@ -14,13 +14,14 @@ import {
   type UpdateSessionExerciseInput,
   type UpdateSetInput,
 } from '@shared/schemas/sessions';
+import { easierRpe, easierSets, readinessLevel, type ReadinessCheckin, type ReadinessLevel } from '@shared/readiness';
 import { MAX_REST_SECONDS, isValidTimerState, type RestTimerState } from '@shared/timer';
 import type { ProgressionSuggestionDTO, SessionSetDTO, SessionSummaryDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
 import { badRequest, conflict, notFound } from '../../lib/errors';
 import { getExercise, type ExerciseRecord } from '../exercises/repository';
 import { onWorkoutCompleted } from '../gamification/hooks';
-import { suggestProgressions } from './progression';
+import { holdSuggestion, suggestProgressions } from './progression';
 import { insertRecords, loadPreviousBests, detectRecords } from './records';
 import {
   buildSummary,
@@ -129,6 +130,30 @@ export async function startSession(sql: Sql, user: SessionUser, input: StartSess
     [input.planWorkoutId, user.id],
   );
   if (!workout) throw notFound('plan_workout_not_found', 'Workout not found');
+
+  // An optional check-in is remembered for the day; it can only make today's session easier.
+  const readiness = input.readiness ?? null;
+  const level: ReadinessLevel = readiness ? readinessLevel(readiness) : 'normal';
+  if (readiness) await saveCheckin(sql, user, readiness);
+  const session = await sql.one<{ id: string }>(
+    `INSERT INTO workout_sessions (user_id, plan_id, plan_workout_id, name, readiness, readiness_adjusted)
+     VALUES ($1, $2, $3, $4, $5::jsonb, $6) RETURNING id`,
+    [user.id, workout.plan_id, workout.id, workout.name, readiness ? JSON.stringify(readiness) : null, level === 'easier'],
+  );
+  await seedFromPlan(sql, user.id, session.id, workout.id, level);
+  return session.id;
+}
+
+async function saveCheckin(sql: Sql, user: SessionUser, c: ReadinessCheckin) {
+  await sql.exec(
+    `INSERT INTO readiness_checkins (user_id, checked_on, energy, soreness, sleep) VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (user_id, checked_on) DO UPDATE SET energy = EXCLUDED.energy, soreness = EXCLUDED.soreness, sleep = EXCLUDED.sleep`,
+    [user.id, dateInTimeZone(new Date(), user.timezone), c.energy, c.soreness, c.sleep],
+  );
+}
+
+/** Copies a plan day into the session (exercises, sets, progression targets); `easier` trims volume and effort and holds loads. */
+async function seedFromPlan(sql: Sql, userId: string, sessionId: string, planWorkoutId: string, level: ReadinessLevel) {
   const planExercises = await sql.many<{
     exercise_id: string;
     sets: number;
@@ -142,11 +167,11 @@ export async function startSession(sql: Sql, user: SessionUser, input: StartSess
   }>(
     `SELECT exercise_id, sets, rep_min, rep_max, target_seconds, rest_seconds, target_rpe, target_weight_kg, notes
        FROM plan_exercises WHERE workout_id = $1 AND user_id = $2 ORDER BY position, created_at`,
-    [workout.id, user.id],
+    [planWorkoutId, userId],
   );
   const suggestions = await suggestProgressions(
     sql,
-    user.id,
+    userId,
     planExercises.map((p) => ({
       exerciseId: p.exercise_id,
       repMin: p.rep_min,
@@ -155,22 +180,40 @@ export async function startSession(sql: Sql, user: SessionUser, input: StartSess
       targetWeightKg: p.target_weight_kg != null ? Number(p.target_weight_kg) : null,
     })),
   );
-  const session = await sql.one<{ id: string }>(
-    'INSERT INTO workout_sessions (user_id, plan_id, plan_workout_id, name) VALUES ($1, $2, $3, $4) RETURNING id',
-    [user.id, workout.plan_id, workout.id, workout.name],
-  );
+  const easier = level === 'easier';
   for (const [i, p] of planExercises.entries()) {
-    await insertSessionExercise(sql, user.id, session.id, {
+    const rpe = p.target_rpe != null ? Number(p.target_rpe) : null;
+    await insertSessionExercise(sql, userId, sessionId, {
       exercise: await exerciseRecord(p.exercise_id),
       position: i,
-      sets: p.sets,
+      sets: easier ? easierSets(p.sets) : p.sets,
       restSeconds: p.rest_seconds,
-      targetRpe: p.target_rpe != null ? Number(p.target_rpe) : null,
+      targetRpe: easier ? easierRpe(rpe) : rpe,
       notes: p.notes,
-      suggestion: suggestions[i]!,
+      suggestion: easier ? holdSuggestion(suggestions[i]!) : suggestions[i]!,
     });
   }
-  return session.id;
+}
+
+/**
+ * "Use the full plan": rebuilds an easier session from the plan day. Only allowed while it is still
+ * untouched (no logged set, no exercise added or removed), so nothing the user did is lost.
+ */
+export async function revertReadiness(sql: Sql, user: SessionUser, sessionId: string): Promise<void> {
+  const row = await requireOpenSession(sql, user.id, sessionId);
+  if (!row.readiness_adjusted || !row.plan_workout_id) throw conflict('readiness_not_adjusted', 'This workout was not made easier');
+  const stats = await sql.one<{ done: number; have: number; planned: number }>(
+    `SELECT (SELECT COUNT(*) FROM session_sets WHERE session_id = $1 AND user_id = $2 AND completed)::int AS done,
+            (SELECT COUNT(*) FROM session_exercises WHERE session_id = $1 AND user_id = $2)::int AS have,
+            (SELECT COUNT(*) FROM plan_exercises WHERE workout_id = $3 AND user_id = $2)::int AS planned`,
+    [sessionId, user.id, row.plan_workout_id],
+  );
+  if (stats.done > 0 || stats.have !== stats.planned) {
+    throw conflict('readiness_revert_unavailable', 'The workout has already been changed, so the full plan can no longer be restored');
+  }
+  await sql.exec('DELETE FROM session_exercises WHERE session_id = $1 AND user_id = $2', [sessionId, user.id]);
+  await seedFromPlan(sql, user.id, sessionId, row.plan_workout_id, 'normal');
+  await sql.exec('UPDATE workout_sessions SET readiness_adjusted = false, current_exercise_index = 0 WHERE id = $1 AND user_id = $2', [sessionId, user.id]);
 }
 
 /** A timer state is accepted only if it is internally consistent and not absurdly far in the future. */

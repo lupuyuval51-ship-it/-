@@ -32,6 +32,7 @@ import {
   removeExercise,
   replaceExercise,
   resumeSession,
+  revertReadiness,
   sessionKeys,
   startEmptySession,
 } from '../../features/sessions/api';
@@ -253,6 +254,14 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     }
   };
 
+  const revertReadinessM = useIdempotentMutation(
+    async (_: void, key: string) => {
+      await sessionSync.settle();
+      return revertReadiness(sessionId, key);
+    },
+    { onSuccess: (s) => setActiveSession(qc, s), onError },
+  );
+
   const addSetM = useIdempotentMutation(
     async (sessionExerciseId: string, key: string) => {
       await sessionSync.settle();
@@ -462,6 +471,20 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
       </SessionStrip>
 
       {paused && <Notice tone="warning">{t('session.header.paused')}</Notice>}
+
+      {session.readiness?.adjusted && (
+        <Notice tone="info">
+          {t('session.header.readinessAdjusted')}
+          {!exercises.some((e) => e.sets.some((x) => x.completed)) && (
+            <>
+              {' '}
+              <Button size="sm" variant="ghost" loading={revertReadinessM.isPending} onClick={() => revertReadinessM.mutate()}>
+                {t('session.header.useFullPlan')}
+              </Button>
+            </>
+          )}
+        </Notice>
+      )}
 
       <div className="session-layout">
         <div className="session-main">

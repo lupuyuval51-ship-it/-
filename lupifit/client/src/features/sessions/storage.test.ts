@@ -30,6 +30,7 @@ const session = (extra: Partial<WorkoutSessionDTO> = {}): WorkoutSessionDTO => (
   restTimer: startTimer(90, NOW, 'se1'),
   notes: '',
   perceivedExertion: null,
+  readiness: null,
   exercises: [],
   serverTime: '2026-10-09T10:00:00.000Z',
   ...extra,
