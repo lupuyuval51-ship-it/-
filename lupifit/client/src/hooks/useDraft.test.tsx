@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { readDraft } from '../lib/drafts';
+import { readDraft, writeDraft } from '../lib/drafts';
 import { useDraft } from './useDraft';
 
 let userId: string | undefined = 'u1';
@@ -32,6 +32,40 @@ describe('useDraft', () => {
     act(() => result.current[2]());
     expect(result.current[0]).toBe('');
     expect(readDraft('u1', 'note')).toBeNull();
+  });
+
+  it('loads the stored draft of the new key when the key changes, without overwriting or deleting either key', () => {
+    writeDraft('u1', 'menu.2026-03-01', { logged: { 0: 'shakshuka' } });
+    const { result, rerender } = renderHook(({ k }) => useDraft(k, { logged: {} }), { wrapper, initialProps: { k: 'menu.2026-03-02' } });
+    expect(result.current[0]).toEqual({ logged: {} });
+
+    // e.g. "previous day": the old day's stored state must be shown, not deleted because today's was empty.
+    rerender({ k: 'menu.2026-03-01' });
+    expect(result.current[0]).toEqual({ logged: { 0: 'shakshuka' } });
+    expect(readDraft('u1', 'menu.2026-03-01')).toEqual({ logged: { 0: 'shakshuka' } });
+    expect(readDraft('u1', 'menu.2026-03-02')).toBeNull();
+
+    // And back: the old day's state is never carried over and written under the new key.
+    rerender({ k: 'menu.2026-03-02' });
+    expect(result.current[0]).toEqual({ logged: {} });
+    expect(readDraft('u1', 'menu.2026-03-02')).toBeNull();
+    expect(readDraft('u1', 'menu.2026-03-01')).toEqual({ logged: { 0: 'shakshuka' } });
+  });
+
+  it('keeps edits made under each key apart', () => {
+    const { result, rerender } = renderHook(({ k }) => useDraft(k, ''), { wrapper, initialProps: { k: 'a' } });
+    act(() => result.current[1]('for a'));
+    rerender({ k: 'b' });
+    expect(result.current[0]).toBe('');
+    act(() => result.current[1]((prev) => `${prev}for b`));
+    expect(readDraft('u1', 'b')).toBe('for b');
+    expect(readDraft('u1', 'a')).toBe('for a');
+    rerender({ k: 'a' });
+    expect(result.current[0]).toBe('for a');
+    act(() => result.current[2]());
+    expect(result.current[0]).toBe('');
+    expect(readDraft('u1', 'a')).toBeNull();
+    expect(readDraft('u1', 'b')).toBe('for b');
   });
 
   it('is a plain state when disabled, and never shares a draft between users', () => {
