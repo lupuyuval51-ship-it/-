@@ -2,7 +2,9 @@
  * Duplicate-submission protection. When an authenticated mutating request carries an
  * `Idempotency-Key` header, the first response (status < 500) is stored and replayed
  * for any retry with the same key; concurrent duplicates get 409 `request_in_progress`.
- * Server errors release the key so the client can safely retry.
+ * Server errors release the key so the client can safely retry. The response is recorded
+ * when the handler sends it, even if the client already disconnected, so an aborted request
+ * that still commits is replayed rather than run twice.
  */
 import type { NextFunction, Request, Response } from 'express';
 import { db } from '../db/pool';
@@ -53,14 +55,19 @@ export async function idempotency(req: Request, res: Response, next: NextFunctio
           ]);
     op.catch((err) => console.error('[idempotency] store failed', (err as Error).message));
   };
+  // Record the response when the handler produces it (res.json / res.end), not when the socket
+  // finishes. A client that gives up mid-request (timeout, network switch) does not stop the
+  // handler, which may still commit; the key therefore stays "in progress" (retries get 409)
+  // until the handler's real response is stored. A dropped connection never releases the key.
   const originalJson = res.json.bind(res);
   res.json = (body: unknown) => {
     store(res.statusCode, body);
     return originalJson(body);
   };
-  res.on('finish', () => store(res.statusCode, undefined));
-  res.on('close', () => {
-    if (!res.writableFinished) store(500, undefined);
-  });
+  const originalEnd = res.end as (this: Response, ...args: unknown[]) => Response;
+  res.end = function (this: Response, ...args: unknown[]) {
+    store(res.statusCode, undefined);
+    return originalEnd.apply(this, args);
+  } as Response['end'];
   next();
 }
