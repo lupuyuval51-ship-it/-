@@ -73,6 +73,25 @@ describe('starting a workout with a readiness check-in', () => {
     expect(easier.body.session.exercises[0].suggestion).toMatchObject({ action: 'maintain', targetWeightKg: 60, reasonCode: 'readiness_hold' });
   });
 
+  it('never raises bodyweight reps: an easier day keeps last time\'s rep range and target', async () => {
+    const c = await onboardedUser(server.baseUrl, {}, { timezone: 'UTC' });
+    const { workoutIds } = await seedPlan(c.userId!, { workouts: [{ name: 'Core', focus: 'full_body', exercises: ['superman'] }] });
+    const workoutId = workoutIds[0]!;
+    // Last time every set hit the top of the plan's 8–12 range and superman has no harder variation → normally 10–14.
+    await seedSession(c.userId!, { endedAt: noonUtc(addDays(todayInTimeZone('UTC'), -3)), name: 'Core', sets: sets(3, { exerciseId: 'superman', reps: 12 }) });
+    const normal = await c.post('/api/sessions', { planWorkoutId: workoutId });
+    const n = normal.body.session.exercises[0];
+    expect(n.suggestion).toMatchObject({ action: 'increase_reps', repMin: 10, repMax: 14, reasonCode: 'raise_rep_target' });
+    expect(n.sets[0].targetReps).toBe(14);
+    await c.post(`/api/sessions/${normal.body.session.id}/abandon`, {});
+
+    const easier = await c.post('/api/sessions', { planWorkoutId: workoutId, readiness: LOW });
+    const e = easier.body.session.exercises[0];
+    expect(e.suggestion).toMatchObject({ action: 'maintain', repMin: 8, repMax: 12, reasonCode: 'readiness_hold' });
+    expect([e.repMin, e.repMax]).toEqual([8, 12]);
+    expect(e.sets.map((s: { targetReps: number | null }) => s.targetReps)).toEqual([12, 12]);
+  });
+
   it('rejects an invalid or partial check-in', async () => {
     const { c, workoutId } = await planUser();
     expect((await c.post('/api/sessions', { planWorkoutId: workoutId, readiness: { energy: 'low' } })).status).toBe(400);

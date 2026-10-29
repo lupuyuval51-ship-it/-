@@ -7,7 +7,7 @@
  * the exercise, the user's last two performances and their profile context, so every
  * branch can be unit-tested without a database.
  */
-import { ageBand, ageRules } from '@shared/age';
+import { ageBand, ageRules, isHighImpact } from '@shared/age';
 import { ADULT_AGE, type Equipment, type InjuryArea } from '@shared/constants';
 import type { ProgressionSuggestionDTO } from '@shared/types';
 import type { Sql } from '../../db/pool';
@@ -44,6 +44,8 @@ export interface ProgressionContext {
   isMinor: boolean;
   /** Conservative progression: advanced variations are skipped and weight rises by one increment at most (minors, 65+). */
   conservative?: boolean;
+  /** 65+: no jumping or other high-impact variations (see `isHighImpact`). */
+  noHighImpact?: boolean;
   equipment: Equipment[];
   injuries: InjuryArea[];
   avoidExerciseIds: string[];
@@ -101,7 +103,7 @@ function repRange(range: { repMin: number | null; repMax: number | null }, fallb
   return { repMin, repMax };
 }
 
-/** First harder alternative the user can actually do (equipment, injuries, avoid list, minors). */
+/** First harder alternative the user can actually do (equipment, injuries, avoid list, minors, 65+). */
 export function findHarderVariation(
   exercise: ExerciseRecord,
   catalog: Map<string, ExerciseRecord>,
@@ -114,6 +116,7 @@ export function findHarderVariation(
     if (alt.contraindications.some((c) => ctx.injuries.includes(c))) continue;
     if (ctx.avoidExerciseIds.includes(alt.id)) continue;
     if ((ctx.isMinor || ctx.conservative) && alt.difficulty === 'advanced') continue;
+    if (ctx.noHighImpact && isHighImpact(alt)) continue;
     return alt;
   }
   return null;
@@ -202,7 +205,15 @@ function decideReps(
     }
     const newMin = Math.min(MAX_BODYWEIGHT_REPS, repMin + 2);
     const newMax = Math.min(MAX_BODYWEIGHT_REPS, repMax + 2);
-    return { ...out, action: 'increase_reps', repMin: newMin, repMax: newMax, reasonCode: 'raise_rep_target', params: { repMin: newMin, repMax: newMax } };
+    // The previous range travels along so a readiness hold can restore it (`holdSuggestion`).
+    return {
+      ...out,
+      action: 'increase_reps',
+      repMin: newMin,
+      repMax: newMax,
+      reasonCode: 'raise_rep_target',
+      params: { repMin: newMin, repMax: newMax, fromRepMin: repMin, fromRepMax: repMax },
+    };
   }
   if (sets.some((s) => (s.reps ?? 0) < repMin)) {
     return { ...out, action: 'maintain', targetReps: repMin, reasonCode: 'below_range_reps', params: { repMin } };
@@ -234,8 +245,8 @@ function decideTime(input: PrescriptionInput, history: HistorySession[]): Progre
 }
 
 /**
- * On an "easier" readiness day nothing is increased: weight, reps, time and harder variations are held at
- * what the user did last time. Holds, deloads and first-time targets are already conservative and unchanged.
+ * On an "easier" readiness day nothing is increased: weight, reps, rep ranges, time and harder variations are
+ * held at what the user did last time. Holds, deloads and first-time targets are already conservative and unchanged.
  */
 export function holdSuggestion(s: ProgressionSuggestionDTO): ProgressionSuggestionDTO {
   switch (s.action) {
@@ -243,14 +254,21 @@ export function holdSuggestion(s: ProgressionSuggestionDTO): ProgressionSuggesti
       const from = typeof s.params?.fromKg === 'number' ? s.params.fromKg : s.targetWeightKg;
       return { ...s, action: 'maintain', targetWeightKg: from, targetReps: s.repMin, reasonCode: 'readiness_hold', params: {} };
     }
-    case 'increase_reps':
+    case 'increase_reps': {
+      // A raised bodyweight range (`raise_rep_target`) goes back to last time's range; the set target then
+      // falls back to its top, which every set reached last time.
+      const repMin = typeof s.params?.fromRepMin === 'number' ? s.params.fromRepMin : s.repMin;
+      const repMax = typeof s.params?.fromRepMax === 'number' ? s.params.fromRepMax : s.repMax;
       return {
         ...s,
         action: 'maintain',
-        targetReps: s.targetReps != null ? Math.max(s.repMin ?? 1, s.targetReps - 1) : null,
+        repMin,
+        repMax,
+        targetReps: s.targetReps != null ? Math.max(repMin ?? 1, s.targetReps - 1) : null,
         reasonCode: 'readiness_hold',
         params: {},
       };
+    }
     case 'increase_time': {
       const from = typeof s.params?.fromSeconds === 'number' ? s.params.fromSeconds : s.targetSeconds;
       return { ...s, action: 'maintain', targetSeconds: from, reasonCode: 'readiness_hold', params: {} };
@@ -354,9 +372,11 @@ export async function loadProgressionContext(sql: Sql, userId: string): Promise<
     [userId],
   );
   const age = row ? currentAge(row) : null;
+  const rules = ageRules(ageBand(age));
   return {
     isMinor: age != null && age < ADULT_AGE,
-    conservative: ageRules(ageBand(age)).singleStepProgression,
+    conservative: rules.singleStepProgression,
+    noHighImpact: rules.excludeHighImpact,
     equipment: row?.equipment ?? [],
     injuries: row?.injuries ?? [],
     avoidExerciseIds: row?.avoid_exercise_ids ?? [],

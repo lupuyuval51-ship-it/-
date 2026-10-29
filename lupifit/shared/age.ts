@@ -1,9 +1,9 @@
 /**
  * Age bands for training. Under 18 keeps its own (stricter) rules in the generator; from 50 the plan gets
- * gentler: lower top effort, longer rests, fewer sets, no explosive work from 65. These are general
- * conservative defaults, not medical advice, and they only ever make a plan easier, never harder.
+ * gentler: lower top effort, longer rests, fewer sets, no jumping or other high-impact work from 65. These are
+ * general conservative defaults, not medical advice, and they only ever make a plan easier, never harder.
  */
-import { ADULT_AGE } from './constants';
+import { ADULT_AGE, type ExerciseCategory, type MovementPattern, type TrackingType } from './constants';
 
 export type AgeBand = 'minor' | 'adult' | 'mature' | 'senior';
 
@@ -25,17 +25,30 @@ export interface AgeRules {
   restBonusSeconds: number;
   /** Most sets of one exercise. */
   setsCap: number | null;
-  /** Lowest rep count of a set (heavy low-rep work stresses joints and tendons more). */
-  repMinFloor: number | null;
+  /**
+   * Lowest rep count of an externally loaded set (weights, machines, cables and bands; see `isExternallyLoaded`):
+   * heavy low-rep work stresses joints and tendons more, and more reps mean a lighter weight or band. Never applied
+   * to bodyweight or calisthenics reps, where more reps only make a set harder (benchmark-based targets such as
+   * 2 pull-ups stay as they are).
+   */
+  loadedRepMinFloor: number | null;
   /** Leave out advanced exercises. */
   excludeAdvanced: boolean;
-  /** Leave out plyometric (jumping, explosive) exercises. */
-  excludePlyometric: boolean;
+  /** Leave out jumping and other high-impact exercises (see `isHighImpact`). */
+  excludeHighImpact: boolean;
   /** Move up weight by at most one increment per suggestion (progression). */
   singleStepProgression: boolean;
 }
 
-const NONE: AgeRules = { rpeCap: null, restBonusSeconds: 0, setsCap: null, repMinFloor: null, excludeAdvanced: false, excludePlyometric: false, singleStepProgression: false };
+const NONE: AgeRules = {
+  rpeCap: null,
+  restBonusSeconds: 0,
+  setsCap: null,
+  loadedRepMinFloor: null,
+  excludeAdvanced: false,
+  excludeHighImpact: false,
+  singleStepProgression: false,
+};
 
 /** Minors are handled by the generator's dedicated minor rules (and are not repeated here). */
 export function ageRules(band: AgeBand): AgeRules {
@@ -43,8 +56,56 @@ export function ageRules(band: AgeBand): AgeRules {
     case 'mature':
       return { ...NONE, rpeCap: 8, restBonusSeconds: 15 };
     case 'senior':
-      return { rpeCap: 7.5, restBonusSeconds: 30, setsCap: 4, repMinFloor: 8, excludeAdvanced: true, excludePlyometric: true, singleStepProgression: true };
+      return { rpeCap: 7.5, restBonusSeconds: 30, setsCap: 4, loadedRepMinFloor: 8, excludeAdvanced: true, excludeHighImpact: true, singleStepProgression: true };
     default:
       return NONE;
   }
+}
+
+/** Training categories whose resistance is a load the user picks: a weight, a machine stack, a cable or a band. */
+const LOADED_CATEGORIES: ReadonlySet<ExerciseCategory> = new Set<ExerciseCategory>(['free_weight', 'machine', 'cable', 'band']);
+
+export interface LoadFields {
+  trackingType: TrackingType;
+  category: ExerciseCategory;
+}
+
+/**
+ * Externally loaded rep work: anything tracked with a weight (`weight_reps`), plus free-weight, machine, cable and
+ * band exercises tracked as plain reps (a band has no kg to record). More reps there mean a lighter weight or band.
+ * Bodyweight and calisthenics reps (including band-assisted pull-ups and dips, where the band helps) are not, and
+ * neither are plyometric, cardio or mobility work: there more reps only make a set harder.
+ */
+export function isExternallyLoaded(e: LoadFields): boolean {
+  return e.trackingType === 'weight_reps' || (e.trackingType === 'reps' && LOADED_CATEGORIES.has(e.category));
+}
+
+/** Built-in jumping / running-impact exercises that are not tagged plyometric. */
+const HIGH_IMPACT_IDS = new Set(['burpee', 'jumping_jack', 'jump_rope_skipping', 'high_knees', 'sprint_intervals']);
+const HIGH_IMPACT_EN = /\b(jumps?|jumping|hops?|hopping|bounds?|bounding|burpees?|skips?|skipping|sprints?|sprinting|plyo\w*)\b/i;
+/** Hebrew stems: קפיצ (jump), ניתור (bound / leap), ברפי (burpee), ספרינט (sprint). */
+const HIGH_IMPACT_HE = /קפיצ|ניתור|ברפי|ספרינט/;
+
+export interface ImpactFields {
+  id: string;
+  name: { en: string; he: string };
+  category: ExerciseCategory;
+  movementPattern: MovementPattern;
+}
+
+/**
+ * Jumping and other high-impact exercises: every plyometric or `jump`-pattern exercise, the known jumping and
+ * running conditioning moves (burpees, jumping jacks, jump rope, high knees, sprints), and any exercise whose id or
+ * name says it jumps, hops, bounds, skips or sprints, so a new exercise is caught by its name as well. Errs toward
+ * "high impact": it is only used to leave exercises out.
+ */
+export function isHighImpact(e: ImpactFields): boolean {
+  return (
+    e.category === 'plyometric' ||
+    e.movementPattern === 'jump' ||
+    HIGH_IMPACT_IDS.has(e.id) ||
+    HIGH_IMPACT_EN.test(e.id.replace(/_/g, ' ')) ||
+    HIGH_IMPACT_EN.test(e.name.en) ||
+    HIGH_IMPACT_HE.test(e.name.he)
+  );
 }
