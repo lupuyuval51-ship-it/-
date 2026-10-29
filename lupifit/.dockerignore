@@ -1,0 +1,23 @@
+# Keep the Docker build context small and free of secrets. The image is built from package*.json,
+# tsconfig*.json, shared/, server/, client/ and scripts/ only (see Dockerfile).
+.env
+.env.*
+**/.env
+**/.env.*
+node_modules
+**/node_modules
+dist
+coverage
+test-results
+playwright-report
+reports
+e2e
+android
+docs
+server/tests
+**/*.log
+**/__pycache__
+.git
+.gitignore
+Dockerfile
+.dockerignore
