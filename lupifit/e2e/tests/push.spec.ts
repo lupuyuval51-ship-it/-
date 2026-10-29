@@ -21,6 +21,14 @@ async function fakePushService(page: Page) {
           return true;
         },
       }) as unknown as PushSubscription;
+    // Headless Chromium can report notifications as blocked even after grantPermissions: stand in for the
+    // permission prompt too (the real one only ever runs on the user's tap, which this test performs).
+    let permission: NotificationPermission = 'default';
+    Object.defineProperty(Notification, 'permission', { configurable: true, get: () => permission });
+    Notification.requestPermission = async () => {
+      permission = 'granted';
+      return permission;
+    };
     PushManager.prototype.getSubscription = async function () {
       return current;
     };
