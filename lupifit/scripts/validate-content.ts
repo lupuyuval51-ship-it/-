@@ -1,6 +1,6 @@
 /**
  * Validates the built-in content datasets. Run with `npm run validate:content`.
- * Optional: `--only=exercises|foods|meals` and `--file=<group>` to restrict output
+ * Optional: `--only=exercises|foods|meals|dishes` and `--file=<group>` to restrict output
  * (cross-reference checks still use the whole library).
  */
 import {
@@ -21,6 +21,9 @@ import type { ExerciseSeed, FoodSeed, MealTemplateSeed } from '../shared/content
 import { EXERCISE_LIBRARY } from '../server/src/data/exercises/index';
 import { FOOD_DATABASE } from '../server/src/data/foods/index';
 import { MEAL_TEMPLATES } from '../server/src/data/meal-templates';
+import fs from 'node:fs';
+import path from 'node:path';
+import { DISHES, dishImageUrl } from '../shared/dishes';
 
 const args = new Map(
   process.argv.slice(2).map((a) => {
@@ -176,18 +179,36 @@ function validateMeals(list: MealTemplateSeed[], foodSlugs: Set<string>) {
   }
 }
 
+/** Ready dishes behind the daily menu: ids, bilingual text, macros that roughly add up, and a photo each. */
+function validateDishes() {
+  const ids = new Set<string>();
+  const publicDir = path.resolve(import.meta.dirname, '..', 'client', 'public');
+  for (const d of DISHES) {
+    const ctx = `dish ${d.id}`;
+    if (ids.has(d.id)) errors.push(`${ctx}: duplicate id`);
+    ids.add(d.id);
+    checkLocalized(ctx, 'name', d.name);
+    checkLocalized(ctx, 'ingredients', d.ingredients, 3);
+    if (!(d.kcal > 0 && d.kcal <= 800)) errors.push(`${ctx}: kcal ${d.kcal} out of range`);
+    const fromMacros = d.proteinG * 4 + d.carbsG * 4 + d.fatG * 9;
+    if (d.kcal >= 100 && Math.abs(fromMacros - d.kcal) / d.kcal > 0.2) warnings.push(`${ctx}: macros give ${fromMacros} kcal, listed ${d.kcal}`);
+    if (!fs.existsSync(path.join(publicDir, dishImageUrl(d.id)))) errors.push(`${ctx}: missing photo ${dishImageUrl(d.id)}`);
+  }
+}
+
 let exerciseIds = new Set<string>();
 let foodSlugs = new Set<string>();
 if (!only || only === 'exercises') exerciseIds = validateExercises(EXERCISE_LIBRARY);
 if (!only || only === 'foods' || only === 'meals') foodSlugs = validateFoods(FOOD_DATABASE);
 if (!only || only === 'meals') validateMeals(MEAL_TEMPLATES, foodSlugs);
+if (!only || only === 'dishes') validateDishes();
 
 const filter = args.get('file');
 const show = (list: string[]) => (filter ? list.filter((l) => l.includes(filter)) : list);
 for (const w of show(warnings)) console.warn(`warn: ${w}`);
 for (const e of show(errors)) console.error(`error: ${e}`);
 console.log(
-  `content: ${EXERCISE_LIBRARY.length} exercises, ${FOOD_DATABASE.length} foods, ${MEAL_TEMPLATES.length} meal templates — ` +
+  `content: ${EXERCISE_LIBRARY.length} exercises, ${FOOD_DATABASE.length} foods, ${MEAL_TEMPLATES.length} meal templates, ${DISHES.length} dishes — ` +
     `${errors.length} error(s), ${warnings.length} warning(s)`,
 );
 if (exerciseIds.size === 0 && (!only || only === 'exercises')) console.warn('warn: exercise library is empty');

@@ -4,6 +4,7 @@
  *   precached on install, so every page and lazy route chunk works offline.
  * - Navigations: network first (always the latest app when online), cached shell when offline.
  * - /assets/*: cache first (content-hashed, immutable).
+ * - /dishes/*.webp (menu photos): not precached (8 MB); cached the first time they are viewed.
  * - /api/*: never touched by the worker — private data is never cached here; the app's own
  *   offline queue handles workout sets.
  */
@@ -67,7 +68,7 @@ self.addEventListener('fetch', (event) => {
       if (cached) return cached;
       try {
         const fresh = await fetch(req);
-        if (fresh.ok && (url.pathname.startsWith('/assets/') || /\.(?:png|svg|webmanifest|ico|woff2?)$/.test(url.pathname))) {
+        if (fresh.ok && (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/dishes/') || /\.(?:png|svg|webmanifest|ico|woff2?)$/.test(url.pathname))) {
           const cache = await caches.open(CACHE);
           cache.put(req, fresh.clone());
         }

@@ -6,12 +6,14 @@ import path from 'node:path';
 
 const dir = path.resolve(import.meta.dirname, '..', 'dist', 'client');
 const skip = new Set(['sw.js', 'sw-assets.js', 'index.html']);
+// Dish photos (~8 MB) are cached by the service worker when first viewed, not on install.
+const lazyDirs = ['dishes/'];
 const files = [];
 (function walk(d) {
   for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
     const full = path.join(d, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (!skip.has(path.relative(dir, full)) && !entry.name.endsWith('.map')) files.push('/' + path.relative(dir, full).split(path.sep).join('/'));
+    else if (!skip.has(path.relative(dir, full)) && !entry.name.endsWith('.map') && !lazyDirs.some((d) => path.relative(dir, full).split(path.sep).join('/').startsWith(d))) files.push('/' + path.relative(dir, full).split(path.sep).join('/'));
   }
 })(dir);
 files.sort();
