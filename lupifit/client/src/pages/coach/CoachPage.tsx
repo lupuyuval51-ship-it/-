@@ -14,6 +14,7 @@ import { RenameThreadModal } from '../../features/coach/RenameThreadModal';
 import { ThreadList } from '../../features/coach/ThreadList';
 import { appendMessages, emptyMessages } from '../../features/coach/useThreadMessages';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
+import { useDraft } from '../../hooks/useDraft';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
@@ -41,7 +42,8 @@ export default function CoachPage() {
   const [params, setParams] = useSearchParams();
   const threadParam = params.get('thread');
   // `/coach?q=…` (e.g. from an exercise page) pre-fills a new conversation; it is never sent automatically.
-  const [draft, setDraft] = useState(() => (params.get('q') ?? '').slice(0, LIMITS.coachMessageMaxChars));
+  // An unsent message survives a reload (a link with ?q= prefills it instead and is not stored).
+  const [draft, setDraft] = useDraft('coach.message', (params.get('q') ?? '').slice(0, LIMITS.coachMessageMaxChars), { enabled: !params.has('q') });
   const [newMode, setNewMode] = useState(() => params.has('q'));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [renaming, setRenaming] = useState<CoachThreadDTO | null>(null);

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import type { MealType } from '@shared/constants';
 import { quickAddSchema, type QuickAddInput } from '@shared/schemas/nutrition';
 import { Button, Card, NumberField, TextField, useToast } from '../../../components/ui';
+import { useDraft } from '../../../hooks/useDraft';
 import { useIdempotentMutation } from '../../../hooks/useIdempotentMutation';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
@@ -18,7 +19,7 @@ export function QuickAddTab({ date, mealType }: { date: string; mealType: MealTy
   const { t } = i18n;
   const toast = useToast();
   const invalidate = useNutritionInvalidation();
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm, clearForm] = useDraft('nutrition.quickAdd', EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const mealName = t(`enums.mealType.${mealType}`);
 
@@ -28,13 +29,13 @@ export function QuickAddTab({ date, mealType }: { date: string; mealType: MealTy
     onSuccess: (r, { vars }) => {
       if (r.queued) {
         toast.show(t('nutrition.offline.saved', { name: vars.name, meal: t(`enums.mealType.${vars.mealType}`) }), 'info');
-        setForm(EMPTY);
+        clearForm();
         return;
       }
       const res = r.res;
       invalidate(res.day);
       toast.success(t('nutrition.quick.added', { name: vars.name, meal: t(`enums.mealType.${res.entry.mealType}`) }));
-      setForm(EMPTY);
+      clearForm();
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'nutrition')),
   });

@@ -5,6 +5,7 @@ import type { AuthResponse, MeResponse, UserDTO } from '@shared/types';
 import { ApiError, api, onUnauthorized, setCsrfToken } from '../api/client';
 import { qk } from '../api/queryClient';
 import { useI18n } from '../i18n';
+import { clearAllDrafts } from '../lib/drafts';
 import { storage } from '../lib/storage';
 
 /** Last known signed-in user, used only when the network is unreachable. Cleared on logout. */
@@ -111,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // on the next sign-in.
           storage.remove('fitai.activeSession');
           storage.remove('fitai.onboardingDraft');
+          clearAllDrafts();
           storage.remove(ME_CACHE_KEY);
           clearSession();
         }

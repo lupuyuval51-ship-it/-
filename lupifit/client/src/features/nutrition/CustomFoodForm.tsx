@@ -4,6 +4,7 @@ import { customFoodSchema, type CustomFoodInput } from '@shared/schemas/nutritio
 import type { FoodDTO } from '@shared/types';
 import { ApiError } from '../../api/client';
 import { Button, ChipGroup, Notice, NumberField, SelectField, TextField } from '../../components/ui';
+import { useDraft } from '../../hooks/useDraft';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { serverFieldErrors, zodFieldErrors } from './forms';
@@ -103,7 +104,8 @@ export function CustomFoodForm({
 }) {
   const i18n = useI18n();
   const { t } = i18n;
-  const [s, setS] = useState<FormState>(() => initialState(food, prefillBarcode));
+  // A new food keeps its unfinished form on this device; editing an existing food or a barcode prefill does not.
+  const [s, setS] = useDraft<FormState>('nutrition.customFood', initialState(food, prefillBarcode), { enabled: !food && !prefillBarcode });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const set = <K extends keyof FormState>(k: K) => (v: FormState[K]) => setS((cur) => ({ ...cur, [k]: v }));
 

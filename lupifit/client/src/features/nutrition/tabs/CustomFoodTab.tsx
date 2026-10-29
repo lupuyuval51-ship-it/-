@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { CustomFoodInput } from '@shared/schemas/nutrition';
 import type { FoodDTO } from '@shared/types';
 import { Card, EmptyState, IconButton, Modal, QueryState, useConfirm, useToast } from '../../../components/ui';
+import { useClearDraft } from '../../../hooks/useDraft';
 import { useIdempotentMutation } from '../../../hooks/useIdempotentMutation';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
@@ -18,6 +19,7 @@ export function CustomFoodTab({ onSelect, prefillBarcode }: { onSelect(food: Foo
   const toast = useToast();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
+  const clearDraft = useClearDraft();
   const invalidate = useNutritionInvalidation();
   const [formKey, setFormKey] = useState(0);
   const [editing, setEditing] = useState<FoodDTO | null>(null);
@@ -29,6 +31,7 @@ export function CustomFoodTab({ onSelect, prefillBarcode }: { onSelect(food: Foo
     onSuccess: (food) => {
       refreshFoods();
       toast.success(t('nutrition.custom.created', { name: lt(food.name) }));
+      clearDraft('nutrition.customFood');
       setFormKey((k) => k + 1);
       onSelect(food);
     },

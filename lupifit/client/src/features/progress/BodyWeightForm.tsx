@@ -7,6 +7,7 @@ import type { ZodIssue } from 'zod';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, NumberField, TextField, useToast } from '../../components/ui';
+import { useDraft } from '../../hooks/useDraft';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
@@ -27,8 +28,8 @@ export function BodyWeightForm({ onSaved, autoFocus }: { onSaved?(res: BodyWeigh
   const queryClient = useQueryClient();
   const maxDate = today(user?.timezone);
   const [date, setDate] = useState(maxDate);
-  const [weight, setWeight] = useState<number | null>(null);
-  const [note, setNote] = useState('');
+  const [weight, setWeight] = useDraft<number | null>('progress.weight', null);
+  const [note, setNote] = useDraft('progress.weightNote', '');
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
 
   const rangeMessage = t('progress.bodyWeight.weightRange', {
