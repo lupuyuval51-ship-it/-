@@ -34,7 +34,7 @@ const workouts: Translations<typeof en> = {
     moreActions: 'פעולות נוספות עבור {name}',
   },
   source: {
-    generated: 'נוצרה ב-AI',
+    generated: 'נוצרה אוטומטית',
     custom: 'מותאמת אישית',
     duplicate: 'עותק',
   },

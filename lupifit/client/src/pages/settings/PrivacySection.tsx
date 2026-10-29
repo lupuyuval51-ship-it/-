@@ -1,12 +1,13 @@
 /** Data export, redo onboarding and account deletion. */
 import { useMutation } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { DELETE_CONFIRMATION, deleteAccountSchema } from '@shared/schemas/profile';
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, Card, LinkButton, Modal, Notice, PasswordField, TextField, useToast } from '../../components/ui';
 import { deleteAccount, downloadJson, fetchAccountExport } from '../../features/profile/api';
+import { LEGAL_PAGES } from '../../features/legal/links';
 import { ONBOARDING_DRAFT_KEY } from '../../features/profile/draft';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
@@ -135,6 +136,18 @@ export function PrivacySection() {
   return (
     <Card id="settings-privacy" title={t('settings.privacy.title')} subtitle={t('settings.privacy.subtitle')} className="settings-section">
       <div className="stack">
+        <nav aria-label={t('legal.nav.label')}>
+          <ul className="settings-legal-links">
+            {LEGAL_PAGES.map((p) => (
+              <li key={p.to}>
+                <Link to={p.to} className="link link-block">
+                  {t(p.label)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <hr className="divider" />
         <div className="row-between">
           <div>
             <h3 className="section-title">{t('settings.privacy.exportTitle')}</h3>

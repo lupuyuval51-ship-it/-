@@ -16,6 +16,7 @@ import coach from './coach';
 import progress from './progress';
 import achievements from './achievements';
 import notifications from './notifications';
+import legal from './legal';
 
 export const he: Dictionary = {
   common,
@@ -35,4 +36,5 @@ export const he: Dictionary = {
   progress,
   achievements,
   notifications,
+  legal,
 };

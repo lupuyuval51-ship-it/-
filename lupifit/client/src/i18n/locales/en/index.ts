@@ -16,6 +16,7 @@ import coach from './coach';
 import progress from './progress';
 import achievements from './achievements';
 import notifications from './notifications';
+import legal from './legal';
 
 export const en = {
   common,
@@ -35,6 +36,7 @@ export const en = {
   progress,
   achievements,
   notifications,
+  legal,
 };
 
 export type Dictionary = Translations<typeof en>;
