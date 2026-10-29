@@ -11,6 +11,7 @@ import { ONBOARDING_DRAFT_KEY } from '../../features/profile/draft';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { storage } from '../../lib/storage';
+import { BackupSection } from './BackupSection';
 import { usePageGuard } from './sectionForm';
 
 function DeleteAccountModal({ open, onClose }: { open: boolean; onClose(): void }) {
@@ -143,6 +144,8 @@ export function PrivacySection() {
             {t('settings.privacy.export')}
           </Button>
         </div>
+        <hr className="divider" />
+        <BackupSection />
         <hr className="divider" />
         <div className="row-between">
           <div>

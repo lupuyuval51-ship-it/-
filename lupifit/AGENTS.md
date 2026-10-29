@@ -45,3 +45,10 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - Numbers use `.num` (tabular) and `--font-num` (Barlow Condensed) for display figures; UI text is Heebo. Fonts are self-hosted (`@fontsource`, OFL).
 - Progress is shown with `<Tally>` (signature tick marks) rather than new rings.
 - Guards: `scripts/design-lint.mjs` (counts may only go down; `--update` after an improvement), `client/src/styles/tokens.test.ts` (WCAG contrast for every token pair in both themes), `scripts/e2e-strings.mjs` (every string an e2e spec looks up must still exist; `--update` only together with a spec change).
+
+## Data kept on the device (offline-first rules)
+- **Outbox** (`client/src/features/offline`): only *creates* (food log, quick add, weigh-in) are queued, with the same `Idempotency-Key` as the original attempt (the server remembers keys for 24 h; older entries are flagged). Mutations that use `sendOrQueue` must set `networkMode: 'always'` — TanStack Query otherwise pauses them while offline. Entries the server rejects stay visible as "Rejected" until discarded; they are never dropped silently. Edits and deletes stay online-only.
+- **Drafts** (`useDraft`): unfinished forms, per user, 3-day TTL, emptied on submit and wiped on logout. Never store secrets or anything that must be reliable.
+- **Workout settings** are local-first and synced to `users.workout_prefs`; the account copy is adopted unless this device has an unsynced change (`lib/prefsDirty.ts`).
+- **Backup file** (`features/backup`): account export + device state. Restore only re-creates things through the normal validated create endpoints and only what is missing (idempotent); plans/history/records/coach chats are archive-only.
+- Keys use the `fitai.*` prefix (see "Brand vs. persistent identifiers"). New per-user device data must be scoped by user id and cleaned up on logout when it holds health data.
