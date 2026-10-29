@@ -7,6 +7,7 @@ import { Badge, Button, EmptyState, ErrorState, LoadingState, Modal, Notice, Num
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
+import { sendOrQueue } from '../offline/hooks';
 import { fetchAlternatives, logFood, nk } from './api';
 import { ConflictBadges, useServingLabel } from './FoodBits';
 import { useNutritionInvalidation, useUserToday } from './hooks';
@@ -68,15 +69,32 @@ function PortionDialogInner({ food, open, onClose, date, mealType, source = 'man
   const name = lt(current.name);
   const hasAllergen = current.conflicts.some((c) => c.type === 'allergen');
 
-  const mutation = useIdempotentMutation((vars: CreateLogEntryInput, key: string) => logFood(vars, key), {
-    onSuccess: (res) => {
+  // Without a usable connection the entry is kept on this device (with its nutrient preview) and synced later.
+  const mutation = useIdempotentMutation(
+    (vars: CreateLogEntryInput, key: string) =>
+      sendOrQueue(
+        { type: 'food_log', input: vars, preview: { name: current.name, grams: 'grams' in vars ? (vars.grams ?? null) : null, servings: 'servings' in vars ? (vars.servings ?? null) : null, ...preview } },
+        key,
+        () => logFood(vars, key),
+      ),
+    {
+    // Run even without a connection: sendOrQueue keeps the entry on this device instead of the mutation pausing.
+    networkMode: 'always',
+    onSuccess: (r, { vars }) => {
+      if (r.queued) {
+        toast.show(t('nutrition.offline.saved', { name, meal: t(`enums.mealType.${vars.mealType}`) }), 'info');
+        onClose();
+        return;
+      }
+      const res = r.res;
       invalidate(res.day);
       toast.success(t('nutrition.portion.logged', { name, meal: t(`enums.mealType.${res.entry.mealType}`) }));
       onLogged?.(res);
       onClose();
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'nutrition')),
-  });
+    },
+  );
 
   const switchFood = (alt: FoodDTO) => {
     setCurrent(alt);

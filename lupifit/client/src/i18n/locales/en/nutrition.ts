@@ -399,6 +399,12 @@ const nutrition = {
     },
   },
 
+  offline: {
+    saved: 'No connection: {name} was saved on this device and will sync to {meal} when you are back online.',
+    pending: 'Not synced yet',
+    discard: 'Remove',
+  },
+
   weekly: {
     title: 'Trends',
     period: 'Period',

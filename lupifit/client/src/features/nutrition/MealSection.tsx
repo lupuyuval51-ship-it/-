@@ -3,6 +3,7 @@ import type { MealType } from '@shared/constants';
 import type { FoodLogEntryDTO, MealGroupDTO } from '@shared/types';
 import { Badge, Card, IconButton, LinkButton } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import { isPendingEntry } from '../offline/pending';
 import { CopyMealModal } from './CopyMealModal';
 import { MacroLine, useMacroFormat } from './Macros';
 import { RepeatYesterdayButton } from './RepeatYesterdayButton';
@@ -67,13 +68,15 @@ export function MealSection({
         <ul className="list" aria-label={mealName}>
           {group.entries.map((e) => {
             const name = lt(e.foodName);
+            const pending = isPendingEntry(e);
             return (
-              <li key={e.id} className="list-item meal-entry">
+              <li key={e.id} className={`list-item meal-entry${pending ? ' meal-entry-pending' : ''}`}>
                 <div className="meal-entry-body">
                   <div className="row meal-entry-title">
                     <span className="meal-entry-name">{name}</span>
                     {e.isCorrected && <Badge tone="info">{t('nutrition.meals.corrected')}</Badge>}
-                    {e.foodId == null && e.grams != null && <Badge>{t('nutrition.meals.estimate')}</Badge>}
+                    {pending && <Badge tone="warning">{t('nutrition.offline.pending')}</Badge>}
+                    {!pending && e.foodId == null && e.grams != null && <Badge>{t('nutrition.meals.estimate')}</Badge>}
                   </div>
                   <span className="small muted num">
                     {[amountLabel(e), f.macroShort(e)].filter(Boolean).join(' · ')}
@@ -81,8 +84,8 @@ export function MealSection({
                 </div>
                 <span className="meal-entry-kcal num">{f.kcalText(e.kcal)}</span>
                 <div className="meal-entry-actions">
-                  <IconButton icon="edit" size="sm" label={t('nutrition.meals.edit', { name })} onClick={() => onEdit(e)} />
-                  <IconButton icon="trash" size="sm" label={t('nutrition.meals.delete', { name })} onClick={() => onDelete(e)} />
+                  {!pending && <IconButton icon="edit" size="sm" label={t('nutrition.meals.edit', { name })} onClick={() => onEdit(e)} />}
+                  <IconButton icon="trash" size="sm" label={pending ? t('nutrition.offline.discard') : t('nutrition.meals.delete', { name })} onClick={() => onDelete(e)} />
                 </div>
               </li>
             );

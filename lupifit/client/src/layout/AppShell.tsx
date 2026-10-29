@@ -4,6 +4,8 @@ import { useAuth } from '../auth/AuthProvider';
 import { Icon, LoadingState, LogoMark, type IconName } from '../components/ui';
 import { NotificationBell } from '../features/gamification/NotificationBell';
 import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
+import { OutboxIndicator } from '../features/offline/OutboxIndicator';
+import { useOutboxSync } from '../features/offline/hooks';
 import { ActiveSessionIndicator } from '../features/sessions/ActiveSessionIndicator';
 import { useOnline } from '../hooks/useOnline';
 import { useI18n, type TKey } from '../i18n';
@@ -23,6 +25,7 @@ export function AppShell() {
   const { t, locale, setLocale } = useI18n();
   const { user, logout } = useAuth();
   const online = useOnline();
+  useOutboxSync();
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
@@ -82,6 +85,7 @@ export function AppShell() {
           </NavLink>
           <div className="topbar-actions">
             <ActiveSessionIndicator />
+            <OutboxIndicator />
             <button
               type="button"
               className="btn btn-ghost btn-sm lang-toggle"

@@ -12,6 +12,7 @@ import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { today } from '../../lib/dates';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
+import { sendOrQueue } from '../offline/hooks';
 import { invalidateAfterBodyWeight, progressApi } from './api';
 
 type Field = 'date' | 'weightKg' | 'note';
@@ -40,8 +41,17 @@ export function BodyWeightForm({ onSaved, autoFocus }: { onSaved?(res: BodyWeigh
     return fieldErrorMessage(issue.message, i18n) ?? t('errors.fields.invalid');
   };
 
-  const mutation = useIdempotentMutation((input: BodyWeightInput, key: string) => progressApi.logBodyWeight(input, key), {
-    onSuccess: async (res) => {
+  const mutation = useIdempotentMutation((input: BodyWeightInput, key: string) => sendOrQueue({ type: 'weight', input }, key, () => progressApi.logBodyWeight(input, key)), {
+    // Run even without a connection: sendOrQueue keeps the entry on this device instead of the mutation pausing.
+    networkMode: 'always',
+    onSuccess: async (r) => {
+      if (r.queued) {
+        toast.show(t('progress.bodyWeight.savedOffline'), 'info');
+        setWeight(null);
+        setNote('');
+        return;
+      }
+      const res = r.res;
       toast.success(res.rewards.xpAwarded > 0 ? t('progress.bodyWeight.savedXp', { xp: res.rewards.xpAwarded }) : t('progress.bodyWeight.saved'));
       // Ready for the next entry (the date stays, so back-filling several days is quick).
       setWeight(null);

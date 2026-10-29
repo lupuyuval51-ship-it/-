@@ -1,11 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { MEAL_TYPES, type MealType } from '@shared/constants';
 import type { FoodDTO } from '@shared/types';
 import { Card, LinkButton, PageHeader, SelectField, Tabs, TextField } from '../../components/ui';
-import { fetchDay, nk } from '../../features/nutrition/api';
-import { mealForHour, useMealLabel, useUserHour, useUserToday } from '../../features/nutrition/hooks';
+import { mealForHour, useDayQuery, useMealLabel, useUserHour, useUserToday } from '../../features/nutrition/hooks';
 import { useMacroFormat } from '../../features/nutrition/Macros';
 import { PortionDialog, type PortionSource } from '../../features/nutrition/PortionDialog';
 import { RepeatYesterdayButton } from '../../features/nutrition/RepeatYesterdayButton';
@@ -57,7 +55,7 @@ export default function FoodLogPage() {
       { replace: true },
     );
 
-  const day = useQuery({ queryKey: nk.day(date), queryFn: ({ signal }) => fetchDay(date, signal) });
+  const day = useDayQuery(date);
   const mealGroup = day.data?.meals[meal];
   const select = (food: FoodDTO, source: PortionSource = 'manual', initialGrams?: number) => setPortion({ food, source, initialGrams });
 

@@ -99,6 +99,8 @@ const progress: Translations<typeof en> = {
     weightRange: 'יש להזין משקל בין {min} ל-{max}.',
     save: 'שמירת משקל',
     saved: 'המשקל נשמר',
+    pending: 'ממתין לסנכרון',
+    savedOffline: 'אין חיבור: המשקל נשמר במכשיר ויסונכרן כשתחזרו לרשת.',
     savedXp: 'המשקל נשמר · ‎+{xp} XP',
     hint: 'רישום אחד ליום — שמירה נוספת לאותו תאריך מעדכנת אותו.',
     entries: 'רישומים',

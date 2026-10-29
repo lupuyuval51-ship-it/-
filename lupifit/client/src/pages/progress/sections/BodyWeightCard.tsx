@@ -3,7 +3,9 @@ import { useState } from 'react';
 import { TREND_PERIODS, type TrendPeriod } from '@shared/schemas/progress';
 import { qk } from '../../../api/queryClient';
 import { LineChart } from '../../../components/charts/Charts';
-import { Button, Card, ErrorState, IconButton, LoadingState, Segmented, Stat, useConfirm, useToast } from '../../../components/ui';
+import { Badge, Button, Card, ErrorState, IconButton, LoadingState, Segmented, Stat, useConfirm, useToast } from '../../../components/ui';
+import { usePendingWeights } from '../../../features/offline/hooks';
+import { outboxSync } from '../../../features/offline/sync';
 import { BodyWeightForm } from '../../../features/progress/BodyWeightForm';
 import { invalidateAfterBodyWeight, progressApi } from '../../../features/progress/api';
 import { signedWeightText, useFmt } from '../../../features/progress/format';
@@ -25,6 +27,7 @@ export function BodyWeightCard() {
   const queryClient = useQueryClient();
   const [range, setRange] = useUrlState<TrendPeriod>('bw', oneOf(TREND_PERIODS), 90);
   const [showAll, setShowAll] = useState(false);
+  const pendingWeights = usePendingWeights();
   const query = useQuery({ queryKey: qk.bodyWeight(range), queryFn: () => progressApi.bodyWeight(range), placeholderData: keepPreviousData });
   const remove = useMutation({
     mutationFn: (id: string) => progressApi.deleteBodyWeight(id),
@@ -90,6 +93,26 @@ export function BodyWeightCard() {
                   emptyMessage={t('progress.bodyWeight.empty')}
                 />
               </div>
+              {pendingWeights.length > 0 && (
+                <div>
+                  <h3 className="section-title">{t('progress.bodyWeight.pending')}</h3>
+                  <ul className="list bw-entries">
+                    {pendingWeights.map((w) => {
+                      const dateText = formatDate(w.date, { day: 'numeric', month: 'short', year: 'numeric' });
+                      return (
+                        <li key={w.id} className="list-item meal-entry-pending">
+                          <div className="bw-entry-body">
+                            <strong className="num">{units.formatWeight(w.weightKg)}</strong>
+                            <span className="muted small">{dateText}</span>
+                          </div>
+                          <Badge tone="warning">{t('nutrition.offline.pending')}</Badge>
+                          <IconButton icon="trash" size="sm" label={t('nutrition.offline.discard')} onClick={() => outboxSync.discard(w.id)} />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               {entries.length > 0 && (
                 <div>
                   <h3 className="section-title">{t('progress.bodyWeight.entries')}</h3>

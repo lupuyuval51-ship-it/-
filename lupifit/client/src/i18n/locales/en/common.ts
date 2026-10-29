@@ -94,6 +94,16 @@ const common = {
     builtinBadge: 'Built-in',
   },
   disclaimer: 'LUPU-FIT provides general fitness and nutrition guidance, not medical advice. Consult a professional for injuries, medical conditions, pregnancy or eating disorders.',
+  offline: {
+    title: 'Unsynced changes',
+    indicatorLabel: '{count} changes saved on this device, not synced yet',
+    statusOffline: 'You are offline. {count} saved on this device; they will sync when the connection returns.',
+    statusSyncing: '{count} waiting to sync.',
+    rejected: 'Rejected',
+    retry: 'Try again',
+    mayDuplicate: 'Saved more than a day ago: if it was already stored, remove this one instead of syncing it.',
+    kinds: { weight: 'Weight' },
+  },
 };
 
 export default common;

@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { MealType } from '@shared/constants';
 import type { DayNutritionDTO } from '@shared/types';
@@ -6,7 +6,9 @@ import { qk } from '../../api/queryClient';
 import { useAuth } from '../../auth/AuthProvider';
 import { useI18n } from '../../i18n';
 import { today as todayIn } from '../../lib/dates';
-import { nk } from './api';
+import { usePendingFoods } from '../offline/hooks';
+import { mergePendingIntoDay } from '../offline/pending';
+import { fetchDay, nk } from './api';
 
 /** Today's date in the signed-in user's time zone (falls back to the browser's). */
 export function useUserToday(): string {
@@ -71,4 +73,14 @@ export function mealForHour(hour: number): MealType {
   if (hour < 16) return 'lunch';
   if (hour < 21) return 'dinner';
   return 'snack';
+}
+
+/** The day view with entries still waiting in the offline outbox merged in. */
+export function useDayQuery(date: string) {
+  const pending = usePendingFoods(date);
+  return useQuery({
+    queryKey: nk.day(date),
+    queryFn: ({ signal }) => fetchDay(date, signal),
+    select: (d) => mergePendingIntoDay(d, pending),
+  });
 }

@@ -97,6 +97,16 @@ const common: Translations<typeof en> = {
     builtinBadge: 'מובנה',
   },
   disclaimer: 'LUPU-FIT מספקת הכוונה כללית לכושר ותזונה ואינה מחליפה ייעוץ רפואי. במקרה של פציעה, מצב רפואי, היריון או הפרעת אכילה – יש להתייעץ עם איש מקצוע.',
+  offline: {
+    title: 'שינויים שלא סונכרנו',
+    indicatorLabel: '{count} שינויים נשמרו במכשיר ועדיין לא סונכרנו',
+    statusOffline: 'אין חיבור. {count} נשמרו במכשיר ויסונכרנו כשהחיבור יחזור.',
+    statusSyncing: '{count} ממתינים לסנכרון.',
+    rejected: 'נדחה',
+    retry: 'ניסיון חוזר',
+    mayDuplicate: 'נשמר לפני יותר מיום: אם הוא כבר נשמר בשרת, עדיף להסיר אותו ולא לסנכרן.',
+    kinds: { weight: 'משקל' },
+  },
 };
 
 export default common;

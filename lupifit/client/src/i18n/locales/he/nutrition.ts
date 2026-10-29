@@ -401,6 +401,12 @@ const nutrition: Translations<typeof en> = {
     },
   },
 
+  offline: {
+    saved: 'אין חיבור: {name} נשמר במכשיר ויסונכרן ל{meal} כשתחזרו לרשת.',
+    pending: 'עדיין לא סונכרן',
+    discard: 'הסרה',
+  },
+
   weekly: {
     title: 'מגמות',
     period: 'תקופה',

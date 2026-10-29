@@ -5,13 +5,15 @@ import { MEAL_TYPES } from '@shared/constants';
 import type { FoodLogEntryDTO } from '@shared/types';
 import { qk } from '../../api/queryClient';
 import { EmptyState, LinkButton, PageHeader, QueryState, useToast } from '../../components/ui';
-import { deleteEntry, fetchDay, fetchProfile, nk, restoreEntry } from '../../features/nutrition/api';
+import { deleteEntry, fetchProfile, restoreEntry } from '../../features/nutrition/api';
+import { outboxSync } from '../../features/offline/sync';
+import { isPendingEntry, PENDING_PREFIX } from '../../features/offline/pending';
 import { entryToRestoreInput } from '../../features/nutrition/undo';
 import { newIdempotencyKey } from '../../lib/ids';
 import { DateNavigator } from '../../features/nutrition/DateNavigator';
 import { DayOverview } from '../../features/nutrition/DayOverview';
 import { EditEntryModal } from '../../features/nutrition/EditEntryModal';
-import { useNutritionInvalidation, useUserToday } from '../../features/nutrition/hooks';
+import { useDayQuery, useNutritionInvalidation, useUserToday } from '../../features/nutrition/hooks';
 import { MealSection } from '../../features/nutrition/MealSection';
 import { NextMealCard } from '../../features/nutrition/NextMealCard';
 import { clampLogDate } from '../../features/nutrition/portion';
@@ -34,7 +36,7 @@ export default function NutritionPage() {
   const setDate = (d: string) => setParams(d === today ? {} : { date: d }, { replace: true });
   const [editing, setEditing] = useState<FoodLogEntryDTO | null>(null);
 
-  const day = useQuery({ queryKey: nk.day(date), queryFn: ({ signal }) => fetchDay(date, signal) });
+  const day = useDayQuery(date);
   const profile = useQuery({ queryKey: qk.profile, queryFn: fetchProfile, staleTime: 5 * 60_000 });
 
   // Deleting is immediate and undoable: no confirm dialog to tap through, and a mis-tap costs one tap to fix.
@@ -56,6 +58,8 @@ export default function NutritionPage() {
   });
 
   const onDelete = (entry: FoodLogEntryDTO) => {
+    // Entries not synced yet only exist on this device: removing one just drops it from the outbox.
+    if (isPendingEntry(entry)) return outboxSync.discard(entry.id.slice(PENDING_PREFIX.length));
     if (!remove.isPending) remove.mutate(entry);
   };
 

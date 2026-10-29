@@ -97,6 +97,8 @@ const progress = {
     weightRange: 'Enter a weight between {min} and {max}.',
     save: 'Save weight',
     saved: 'Weight saved',
+    pending: 'Waiting to sync',
+    savedOffline: 'No connection: your weight was saved on this device and will sync when you are back online.',
     savedXp: 'Weight saved · +{xp} XP',
     hint: 'One entry per day — saving again for the same date updates it.',
     entries: 'Entries',

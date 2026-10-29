@@ -1916,3 +1916,28 @@ select,
     background: Highlight;
   }
 }
+
+/* ------------------------------------------------------------------ Offline outbox (changes kept on this device) */
+.outbox-pill {
+  cursor: pointer;
+  min-block-size: var(--tap);
+}
+.outbox-pill-failed {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.meal-entry-pending {
+  border-inline-start: 3px solid var(--warning);
+}
+.outbox-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.outbox-entry-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}

@@ -5,6 +5,7 @@ import { Button, Card, NumberField, TextField, useToast } from '../../../compone
 import { useIdempotentMutation } from '../../../hooks/useIdempotentMutation';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
+import { sendOrQueue } from '../../offline/hooks';
 import { quickAdd } from '../api';
 import { zodFieldErrors } from '../forms';
 import { useNutritionInvalidation } from '../hooks';
@@ -21,8 +22,16 @@ export function QuickAddTab({ date, mealType }: { date: string; mealType: MealTy
   const [errors, setErrors] = useState<Record<string, string>>({});
   const mealName = t(`enums.mealType.${mealType}`);
 
-  const mutation = useIdempotentMutation((input: QuickAddInput, key: string) => quickAdd(input, key), {
-    onSuccess: (res, { vars }) => {
+  const mutation = useIdempotentMutation((input: QuickAddInput, key: string) => sendOrQueue({ type: 'quick_add', input }, key, () => quickAdd(input, key)), {
+    // Run even without a connection: sendOrQueue keeps the entry on this device instead of the mutation pausing.
+    networkMode: 'always',
+    onSuccess: (r, { vars }) => {
+      if (r.queued) {
+        toast.show(t('nutrition.offline.saved', { name: vars.name, meal: t(`enums.mealType.${vars.mealType}`) }), 'info');
+        setForm(EMPTY);
+        return;
+      }
+      const res = r.res;
       invalidate(res.day);
       toast.success(t('nutrition.quick.added', { name: vars.name, meal: t(`enums.mealType.${res.entry.mealType}`) }));
       setForm(EMPTY);
