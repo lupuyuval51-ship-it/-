@@ -6,6 +6,7 @@ import { DELETE_CONFIRMATION, deleteAccountSchema } from '@shared/schemas/profil
 import { ApiError } from '../../api/client';
 import { useAuth } from '../../auth/AuthProvider';
 import { Button, Card, LinkButton, Modal, Notice, PasswordField, TextField, useToast } from '../../components/ui';
+import { clearOutbox } from '../../features/offline/sync';
 import { deleteAccount, downloadJson, fetchAccountExport } from '../../features/profile/api';
 import { ONBOARDING_DRAFT_KEY } from '../../features/profile/draft';
 import { useI18n } from '../../i18n';
@@ -19,7 +20,7 @@ function DeleteAccountModal({ open, onClose }: { open: boolean; onClose(): void 
   const { t } = i18n;
   const toast = useToast();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { allowLeave } = usePageGuard();
   const [password, setPassword] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -31,6 +32,8 @@ function DeleteAccountModal({ open, onClose }: { open: boolean; onClose(): void 
     mutationFn: deleteAccount,
     onSuccess: async () => {
       storage.remove(ONBOARDING_DRAFT_KEY);
+      // Unsynced food log / weigh-ins of a deleted account can never sync: remove them from the device.
+      if (user) clearOutbox(user.id);
       allowLeave();
       // The server already ended the session; logout() only clears local state (ignore its request failing).
       await logout().catch(() => undefined);

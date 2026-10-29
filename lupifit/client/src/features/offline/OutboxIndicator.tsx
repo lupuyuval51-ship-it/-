@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Badge, Button, Icon, Modal } from '../../components/ui';
+import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { useOutbox } from './hooks';
 import { mayDuplicate, type OutboxEntry } from './outbox';
@@ -7,9 +8,10 @@ import { outboxSync } from './sync';
 
 function useEntryLabel() {
   const { t, lt, formatDate, tx } = useI18n();
+  const { formatWeight } = useUnits();
   return (e: OutboxEntry): { title: string; detail: string } => {
     const op = e.op;
-    if (op.type === 'weight') return { title: t('common.offline.kinds.weight'), detail: `${op.input.weightKg} · ${formatDate(op.input.date, { day: 'numeric', month: 'short' })}` };
+    if (op.type === 'weight') return { title: t('common.offline.kinds.weight'), detail: `${formatWeight(op.input.weightKg)} · ${formatDate(op.input.date, { day: 'numeric', month: 'short' })}` };
     const meal = tx(`enums.mealType.${op.input.mealType}`);
     const name = op.type === 'quick_add' ? op.input.name : lt(op.preview.name);
     return { title: name, detail: `${meal} · ${formatDate(op.input.date, { day: 'numeric', month: 'short' })}` };

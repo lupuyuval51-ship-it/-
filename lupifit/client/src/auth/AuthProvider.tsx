@@ -108,8 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await api('/auth/logout', { method: 'POST', body: {} });
         } finally {
           // Shared devices: drop cached health data (the onboarding draft holds weight and
-          // injury notes). Unsynced set edits are kept — they are tied to the user and sync
-          // on the next sign-in.
+          // injury notes). Unsynced set edits and the offline outbox (food log, weigh-ins under
+          // `fitai.outbox.<userId>`) are kept: they are tied to the user, never shown to another
+          // account, and sync on that user's next sign-in.
           storage.remove('fitai.activeSession');
           storage.remove('fitai.onboardingDraft');
           clearAllDrafts();

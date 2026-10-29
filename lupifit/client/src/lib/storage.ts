@@ -11,11 +11,13 @@ export const storage = {
       return null;
     }
   },
-  set(key: string, value: unknown): void {
+  /** Returns false when the value could not be stored (quota, disabled storage). */
+  set(key: string, value: unknown): boolean {
     try {
       window.localStorage.setItem(key, JSON.stringify(value));
+      return true;
     } catch {
-      /* ignore */
+      return false;
     }
   },
   remove(key: string): void {
