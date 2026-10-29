@@ -144,6 +144,48 @@ describe('GET /api/dashboard', () => {
     expect(later).toMatchObject({ workoutId: workoutIds[2], schedule: { code: 'rotation' } });
   });
 
+  it('a day swapped in to avoid yesterday\'s muscles does not drop the skipped day from the rotation', async () => {
+    const c = await onboardedUser(server.baseUrl, {}, { timezone: 'UTC' });
+    const today = todayInTimeZone('UTC');
+    // 5-day split: full body loads every region, so it overlaps the leg day before it.
+    const { planId, workoutIds } = await seedPlan(c.userId!, {
+      nextWorkoutIndex: 2,
+      workouts: [
+        { name: 'Upper A', focus: 'upper_a', exercises: ['push_up'] },
+        { name: 'Lower A', focus: 'lower_a', exercises: ['barbell_back_squat'] },
+        { name: 'Full body', focus: 'full_body', exercises: ['plank'] },
+        { name: 'Upper B', focus: 'upper_b', exercises: ['pull_up'] },
+        { name: 'Lower B', focus: 'lower_b', exercises: ['romanian_deadlift'] },
+      ],
+    });
+    await seedSession(c.userId!, { endedAt: new Date(`${addDays(today, -1)}T12:00:00Z`), name: 'Lower A', planId, planWorkoutId: workoutIds[1], sets: sets(3, { exerciseId: 'barbell_back_squat', reps: 8, weightKg: 60 }) });
+    const nextIndex = async () => (await c.get(`/api/plans/${planId}`)).body.plan.nextWorkoutIndex as number;
+    const dayLater = () => db.exec(`UPDATE workout_sessions SET started_at = started_at - interval '1 day', ended_at = ended_at - interval '1 day' WHERE user_id = $1`, [c.userId]);
+    /** Starts and finishes today's suggested workout (as the "Start workout" button does). */
+    const trainSuggested = async () => {
+      const next = (await c.get('/api/dashboard')).body.nextWorkout;
+      const started = await c.post('/api/sessions', { planWorkoutId: next.workoutId });
+      expect(started.status, JSON.stringify(started.body)).toBe(201);
+      expect((await c.post(`/api/sessions/${started.body.session.id}/finish`, {})).status).toBe(200);
+      return next;
+    };
+
+    // Day 1: Upper B replaces Full body; finishing it must not move the rotation past Full body.
+    expect(await trainSuggested()).toMatchObject({ workoutId: workoutIds[3], schedule: { code: 'avoid_back_to_back', skippedFocus: 'full_body' } });
+    expect(await nextIndex()).toBe(2);
+    // Day 2: Full body still overlaps (upper yesterday), so another day stands in; the rotation keeps waiting.
+    await dayLater();
+    expect(await trainSuggested()).toMatchObject({ workoutId: workoutIds[4], schedule: { code: 'avoid_back_to_back', skippedFocus: 'full_body' } });
+    expect(await nextIndex()).toBe(2);
+    // Day 3: stand-ins take turns from yesterday's day (Lower B → Upper A) instead of repeating Upper B.
+    await dayLater();
+    expect((await c.get('/api/dashboard')).body.nextWorkout).toMatchObject({ workoutId: workoutIds[0], schedule: { code: 'avoid_back_to_back', skippedFocus: 'full_body' } });
+    // After a rest day the skipped Full body day comes up, and finishing it moves on as usual.
+    await dayLater();
+    expect(await trainSuggested()).toMatchObject({ workoutId: workoutIds[2], schedule: { code: 'rotation' } });
+    expect(await nextIndex()).toBe(3);
+  });
+
   it('plans a rest day only when preferred days remain to reach the weekly goal', async () => {
     const today = todayInTimeZone('UTC');
     const future = futureDatesOfWeek(today, startOfWeek(today, 1));
