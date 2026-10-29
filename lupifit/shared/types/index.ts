@@ -9,3 +9,4 @@ export * from './nutrition';
 export * from './coach';
 export * from './progress';
 export * from './dashboard';
+export * from './push';

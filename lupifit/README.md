@@ -104,6 +104,7 @@ All configuration is environment-based (`.env` is loaded automatically; see `.en
 | `OPENFOODFACTS_ENABLED` | `true` | Barcode lookups against the public Open Food Facts API |
 | `DB_AUTO_MIGRATE` | `true` outside production | Migrate + seed on startup |
 | `TRUST_PROXY` | `false` | Set behind a reverse proxy so rate limits see client IPs |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | – | Phone notifications (Web Push). Generate once with `npx web-push generate-vapid-keys`; subject is `mailto:…` or `https://…`. Without them push is off and the option is hidden |
 
 ---
 
@@ -150,7 +151,7 @@ Request pipeline: request id → security headers (CSP, frame/sniff protection) 
 
 ## Data model & migrations
 
-PostgreSQL schema (`server/src/db/migrations/0001_init.sql` and later files): users, auth sessions, password-reset tokens, idempotency keys, profiles, body weight, exercises, workout plans / plan workouts / plan exercises, workout sessions / session exercises / sets, personal records, foods, food log entries (nutrient snapshots), saved meals, meal templates, coach threads/messages, XP events, achievements, notifications.
+PostgreSQL schema (`server/src/db/migrations/0001_init.sql` and later files): users, auth sessions, password-reset tokens, idempotency keys, profiles, body weight, exercises, workout plans / plan workouts / plan exercises, workout sessions / session exercises / sets, personal records, foods, food log entries (nutrient snapshots), saved meals, meal templates, coach threads/messages, XP events, achievements, notifications, push subscriptions and the reminder delivery log.
 
 - Migrations are forward-only SQL files `NNNN_description.sql`, applied in order inside transactions, recorded with checksums in `schema_migrations`; editing an applied migration aborts startup. A Postgres advisory lock prevents concurrent runners.
 - `npm run db:migrate` (or `node dist/server/db-cli.js migrate` in production) applies pending migrations; `db:status` lists them.
@@ -203,7 +204,7 @@ The app is stateless apart from PostgreSQL and in-memory rate-limit counters; fo
 | Anthropic API (LLM) | Integrated; requires a key | Set `AI_API_KEY`. Without it: built-in coach, keyword preference parser, photo analysis disabled with an explanation. |
 | Open Food Facts (barcodes) | Integrated (public API, no key) | Optionally set a contact in `OPENFOODFACTS_USER_AGENT`; outbound HTTPS must be allowed. |
 | Transactional email | Not bundled | Password-reset emails are logged in development. Plug a provider into `server/src/lib/mailer.ts` (`setMailTransport`). |
-| Push notifications | Not included | Reminders and milestone notifications appear in-app (and as browser notifications while the app is open). |
+| Push notifications | Integrated (Web Push); requires VAPID keys | Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. Users turn on "Phone notifications" under Settings → Reminders; workout and meal reminders then arrive even when the app is closed (in the Android app as normal notifications). Outbound HTTPS to the push services (`fcm.googleapis.com` etc.) must be allowed. Without keys, reminders appear in-app only. |
 | Exercise demonstrations | Built-in animations for all 119 exercises (`shared/animation`) | Real videos are optional: `exercises.media_url/media_type` columns are ready and the UI shows a video when one is set. |
 
 ---

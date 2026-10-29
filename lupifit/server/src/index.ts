@@ -5,12 +5,14 @@ import { assertProductionConfig, config } from './config';
 import { migrate } from './db/migrate';
 import { db } from './db/pool';
 import { seedContent } from './db/seed';
+import { startReminderScheduler } from './modules/push/scheduler';
 
 async function maintenance() {
   try {
     await db.exec('DELETE FROM auth_sessions WHERE expires_at < now()');
     await db.exec("DELETE FROM idempotency_keys WHERE created_at < now() - interval '24 hours'");
     await db.exec("DELETE FROM password_reset_tokens WHERE expires_at < now() - interval '1 day'");
+    await db.exec("DELETE FROM push_deliveries WHERE created_at < now() - interval '30 days'");
   } catch (err) {
     console.error('[maintenance] failed', (err as Error).message);
   }
@@ -33,10 +35,13 @@ async function main() {
   const timer = setInterval(maintenance, 60 * 60 * 1000);
   timer.unref();
   void maintenance();
+  // Phone-notification reminders (in-process; tests drive runReminderTick directly instead).
+  const stopReminders = config.env === 'test' ? () => undefined : startReminderScheduler();
 
   const shutdown = (signal: string) => {
     console.log(`${signal} received, shutting down`);
     clearInterval(timer);
+    stopReminders();
     server.close(() => {
       db.close().finally(() => process.exit(0));
     });

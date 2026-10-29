@@ -62,3 +62,10 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 ## Age-based training
 - `shared/age.ts` defines the bands: under 18 (own minor rules in the generator), 18–49 (unchanged), 50–64 (RPE cap 8, +15 s rest), 65+ (RPE cap 7.5, +30 s rest, at most 4 sets, 8+ reps, no advanced or plyometric exercises, one-increment progression). Rules only ever make a plan easier; `intensity: harder` cannot lift past the cap. They are general conservative defaults, not medical advice, and every plan that uses them says so in a generation note (`age_mature`, `age_senior`).
 
+## Phone notifications (Web Push)
+- Server: `server/src/modules/push` (`web-push`, VAPID from `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`). Without valid keys push is off: `GET /api/push/public-key` says `enabled: false`, the settings hide the option and the reminder job does not start. Never crash on bad keys and never log keys, endpoints or `p256dh`/`auth` (log the push-service host and row id).
+- Endpoints come from browsers, so the server only delivers to known push-service hosts (`PUSH_ENDPOINT_HOSTS`). 404/410 from a push service deletes the subscription.
+- Reminder job (`scheduler.ts`): `dueReminders` is pure; `runReminderTick` claims each slot in `push_deliveries` (user, kind, local date, slot) before sending, so a reminder goes out at most once, from its time until 10 minutes later. The server entry starts it outside tests; tests call `runReminderTick` with a fixed time and mock `web-push`.
+- Texts follow `users.locale`; the tag matches the in-app reminders (`fitai-workout`, `fitai-meal:HH:MM`) so they replace each other. `public/sw.js` only opens the paths in its `PUSH_PATHS` list.
+- Client: `features/push`. Permission is requested only from the user's tap. A subscription belongs to the browser, so `fitai.pushOwner` (a user id) records which account turned it on; only that account re-registers the device automatically, logout unregisters it on the server.
+

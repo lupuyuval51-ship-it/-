@@ -1,4 +1,20 @@
+import crypto from 'node:crypto';
 import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Throwaway VAPID key pair so phone notifications are enabled in the E2E server. The push spec
+ * stands in for the browser's push service, so no real push service is ever contacted.
+ */
+function vapidKeys() {
+  const ecdh = crypto.createECDH('prime256v1');
+  ecdh.generateKeys();
+  const priv = ecdh.getPrivateKey();
+  return {
+    publicKey: ecdh.getPublicKey().toString('base64url'),
+    privateKey: Buffer.concat([Buffer.alloc(32 - priv.length), priv]).toString('base64url'),
+  };
+}
+const VAPID = vapidKeys();
 
 const PORT = Number(process.env.E2E_PORT ?? 4010);
 const LLM_PORT = Number(process.env.FAKE_LLM_PORT ?? 4011);
@@ -53,6 +69,9 @@ export default defineConfig({
         OPENFOODFACTS_ENABLED: 'false',
         RATE_LIMIT_MULTIPLIER: '50',
         LOG_REQUESTS: 'false',
+        VAPID_PUBLIC_KEY: VAPID.publicKey,
+        VAPID_PRIVATE_KEY: VAPID.privateKey,
+        VAPID_SUBJECT: 'mailto:e2e@example.com',
       },
     },
   ],

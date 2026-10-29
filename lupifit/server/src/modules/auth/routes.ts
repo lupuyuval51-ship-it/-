@@ -113,6 +113,8 @@ authRouter.post('/logout', async (req, res) => {
 
 authRouter.post('/logout-all', requireAuth, async (req, res) => {
   await db.exec('DELETE FROM auth_sessions WHERE user_id = $1', [userId(req)]);
+  // Signed-out devices stop getting phone notifications too (they re-register on the next sign-in).
+  await db.exec('DELETE FROM push_subscriptions WHERE user_id = $1', [userId(req)]);
   await destroySession(req, res);
   const body: OkResponse = { ok: true };
   res.json(body);

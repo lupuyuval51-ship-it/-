@@ -55,7 +55,7 @@ export interface ProfileRow {
   timezone: string;
 }
 
-const DEFAULT_REMINDERS: ReminderSettings = {
+export const DEFAULT_REMINDERS: ReminderSettings = {
   enabled: false,
   workoutDays: [],
   workoutTime: '18:00',

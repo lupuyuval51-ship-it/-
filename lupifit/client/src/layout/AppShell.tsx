@@ -6,6 +6,7 @@ import { NotificationBell } from '../features/gamification/NotificationBell';
 import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
 import { OutboxIndicator } from '../features/offline/OutboxIndicator';
 import { useOutboxSync } from '../features/offline/hooks';
+import { usePushSync } from '../features/push/hooks';
 import { ActiveSessionIndicator } from '../features/sessions/ActiveSessionIndicator';
 import { useWorkoutPrefsSync } from '../features/sessions/prefsSync';
 import { useOnline } from '../hooks/useOnline';
@@ -28,6 +29,7 @@ export function AppShell() {
   const online = useOnline();
   useOutboxSync();
   useWorkoutPrefsSync();
+  usePushSync(user?.id);
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);

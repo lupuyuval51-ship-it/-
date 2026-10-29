@@ -111,6 +111,29 @@ export const config = {
     from: str(env.MAIL_FROM, 'LUPU-FIT <no-reply@localhost>'),
   },
 
+  /**
+   * Phone notifications (Web Push with VAPID). All three values are needed; without them
+   * push is disabled (the app hides the option and the reminder job does nothing).
+   * Generate a key pair once with `npx web-push generate-vapid-keys` and keep it: a new pair
+   * invalidates every existing subscription. Never log these values.
+   */
+  push: {
+    vapidPublicKey: str(env.VAPID_PUBLIC_KEY, ''),
+    vapidPrivateKey: str(env.VAPID_PRIVATE_KEY, ''),
+    /** Contact for the push services: `mailto:you@example.com` or an `https://` URL. */
+    vapidSubject: str(env.VAPID_SUBJECT, ''),
+    /**
+     * Push-service hosts the server will deliver to (a host or any subdomain of it). Endpoints
+     * come from browsers, so this keeps the server from posting to arbitrary URLs.
+     */
+    endpointHosts: str(env.PUSH_ENDPOINT_HOSTS, 'fcm.googleapis.com,android.googleapis.com,push.services.mozilla.com,push.apple.com,notify.windows.com')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+    /** How often the reminder job looks for due reminders. */
+    schedulerIntervalMs: int(env.PUSH_SCHEDULER_INTERVAL_MS, 60_000, 15_000, 10 * 60_000),
+  },
+
   logRequests: bool(env.LOG_REQUESTS, !isTest),
   staticDir: str(env.STATIC_DIR, ''),
 };

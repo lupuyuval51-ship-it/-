@@ -2,9 +2,9 @@
  * Optional in-app reminders (workout days / meal logging) while the app is open.
  * Owned by the gamification/progress feature.
  *
- * Honest by design: there is no push server — reminders appear only while LUPU-FIT is open
- * in a browser tab (an in-app toast, plus a system notification when the user already
- * granted permission). Disabled reminders do nothing.
+ * While the app is open: an in-app toast, plus a system notification when the user already
+ * granted permission — unless this device has phone notifications (Web Push) on, which the
+ * server sends even when the app is closed (server/src/modules/push). Disabled reminders do nothing.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -16,6 +16,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { useToast } from '../../components/ui';
 import { useI18n } from '../../i18n';
 import { fetchDashboard } from '../dashboard/api';
+import { isPushOnForUser } from '../push/push';
 import { dayStateFromDashboard, dueCandidates, loadHandled, localClock, resolveReminders, saveHandled, type Reminder } from './reminders';
 
 const CHECK_INTERVAL_MS = 60_000;
@@ -51,6 +52,9 @@ export function ReminderScheduler() {
       const body = tr(r.kind === 'workout' ? 'notifications.reminders.workoutBody' : 'notifications.reminders.mealBody');
       const path = r.kind === 'workout' ? '/' : '/nutrition/log';
       toaster.show(`${title} — ${body}`, 'info', { label: tr('notifications.reminders.open'), onClick: () => go(path) });
+      // With phone notifications on, this device already gets the same reminder as a push
+      // (same tag); a second system notification would only repeat it.
+      if (isPushOnForUser(userId)) return;
       try {
         if (typeof window.Notification === 'function' && window.Notification.permission === 'granted') {
           const n = new window.Notification(title, { body, tag: `fitai-${r.key}` });

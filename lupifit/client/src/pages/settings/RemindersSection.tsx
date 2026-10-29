@@ -1,14 +1,21 @@
-/** Reminder preferences (PATCH /api/settings) and browser notification permission. */
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * Reminder preferences (PATCH /api/settings) and how reminders reach the user: phone
+ * notifications (Web Push) when the server has them configured, otherwise in-app reminders
+ * with optional browser notifications while the app is open.
+ */
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useRef, useState } from 'react';
 import { MAX_MEAL_REMINDERS, remindersSchema } from '@shared/schemas/profile';
 import type { ProfileDTO, ReminderSettings } from '@shared/types';
 import { ApiError } from '../../api/client';
+import { qk } from '../../api/queryClient';
 import { Button, ChipGroup, IconButton, Notice, Switch, TextField, useToast } from '../../components/ui';
 import { applyProfileChange, updateSettings } from '../../features/profile/api';
 import { firstInvalidField, validate } from '../../features/profile/draft';
 import { FieldSlot, useWeekdayOptions } from '../../features/profile/fields';
 import { focusField, localizeIssues, serverFieldErrors, type FieldErrors } from '../../features/profile/validation';
+import { fetchPushConfig } from '../../features/push/push';
+import { PushNotificationsControl } from '../../features/push/PushNotificationsControl';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { SectionCard, useSectionForm } from './sectionForm';
@@ -82,6 +89,7 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
   const [formError, setFormError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const r = form.values;
+  const push = useQuery({ queryKey: qk.push, queryFn: fetchPushConfig, staleTime: 5 * 60_000 });
 
   const mutation = useMutation({
     mutationFn: ({ reminders }: { reminders: ReminderSettings; submitted: ReminderSettings }) => updateSettings({ reminders }),
@@ -187,10 +195,21 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
           )}
         </div>
       )}
-      <NotificationPermissionControl />
-      <Notice tone="info" icon="info">
-        {t('settings.reminders.honestNote')}
-      </Notice>
+      {push.isPending ? null : push.data?.enabled ? (
+        <PushNotificationsControl
+          config={push.data}
+          remindersOn={profile.reminders.enabled}
+          // Without push, notifications can still show while the app is open in a tab.
+          unsupportedExtra={currentPermission() === 'unsupported' ? null : <NotificationPermissionControl />}
+        />
+      ) : (
+        <>
+          <NotificationPermissionControl />
+          <Notice tone="info" icon="info">
+            {t('settings.reminders.honestNote')}
+          </Notice>
+        </>
+      )}
     </SectionCard>
   );
 }
