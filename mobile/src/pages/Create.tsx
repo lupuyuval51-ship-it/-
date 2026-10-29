@@ -21,7 +21,7 @@ import { getSettings, store } from "../app-state";
 import { showPlans } from "../features";
 import { modeForMinutes } from "@/lib/offline/first-run";
 import {
-  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, decodeTextFile, detectScript, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
+  anyLocked, classifyGenerationError, classifySaveError, cleanPastedText, clearDraft, createReducer, decodeTextFile, detectScript, draftLanguageChosen, draftStorage, isBlankForm, loadDraft, MAX_FILE_BYTES, materialFromFileText, saveDraft, startState, subjectFromFileName,
   type ContentLang, type CreateAction, type CreateFormValues,
 } from "./createForm";
 import { EXAMPLES } from "./examples";
@@ -73,13 +73,11 @@ export function CreatePage() {
   const storage = useMemo(() => draftStorage(), []);
   // the interface's content language, stored with the draft (a later visit in another language does not keep its default)
   const ui = contentLangOf(locale);
-  const uiRef = useRef(ui);
-  useEffect(() => { uiRef.current = ui; }, [ui]);
 
   // Start from the unfinished draft, if any; `#/create?example=1` (from the welcome / empty library) opens with the example notes.
   const [state, dispatch] = useReducer(createReducer, undefined, () =>
-    startState(loadDraft(storage, tier, ui), { locale: ui, tier, example: hashQuery(window.location.hash).get("example") === "1", mode: suggestedMode(tier) }));
-  const { form, restored, undo, problem } = state;
+    startState(loadDraft(storage, tier, ui), { locale: ui, tier, example: hashQuery(window.location.hash).get("example") === "1", mode: suggestedMode(tier), languageChosen: draftLanguageChosen(storage) }));
+  const { form, restored, undo, problem, languageChosen } = state;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ percent: number; stage: OfflineStage }>({ percent: 0, stage: "reading" });
   const [langKept, setLangKept] = useState<ContentLang | null>(null);
@@ -101,8 +99,8 @@ export function CreatePage() {
   const alertBox = useRef<HTMLDivElement>(null);
 
   // ── the draft: written while typing, when the app is hidden and when the screen is left; dropped once a game exists
-  const latest = useRef(form);
-  useEffect(() => { latest.current = form; }, [form]);
+  const latest = useRef({ form, language: { ui, chosen: languageChosen } });
+  useEffect(() => { latest.current = { form, language: { ui, chosen: languageChosen } }; }, [form, ui, languageChosen]);
   const finished = useRef(false);
   // Leaving the screen while a game is being built cancels it: nothing is saved and nobody is navigated away from where they went.
   const alive = useRef(true);
@@ -112,11 +110,11 @@ export function CreatePage() {
   }, []);
   useEffect(() => {
     if (finished.current) return;
-    const id = window.setTimeout(() => saveDraft(storage, form, Date.now(), ui), DRAFT_DEBOUNCE_MS);
+    const id = window.setTimeout(() => saveDraft(storage, form, Date.now(), { ui, chosen: languageChosen }), DRAFT_DEBOUNCE_MS);
     return () => window.clearTimeout(id);
-  }, [form, storage, ui]);
+  }, [form, storage, ui, languageChosen]);
   useEffect(() => {
-    const flush = () => { if (!finished.current) saveDraft(storage, latest.current, Date.now(), uiRef.current); };
+    const flush = () => { if (!finished.current) saveDraft(storage, latest.current.form, Date.now(), latest.current.language); };
     const onHide = () => { if (document.visibilityState === "hidden") flush(); };
     window.addEventListener("pagehide", flush);
     document.addEventListener("visibilitychange", onHide);
@@ -328,7 +326,7 @@ export function CreatePage() {
           <p>{t(script === "en" ? "mob.create.langHint.en" : "mob.create.langHint.he")}</p>
           <div className="flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => change("language", script)}>{t("mob.create.langHint.apply")}</Button>
-            <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => setLangKept(script)}>{t("mob.create.langHint.keep")}</Button>
+            <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => { setLangKept(script); dispatch({ type: "keepLanguage" }); }}>{t("mob.create.langHint.keep")}</Button>
           </div>
         </Alert>
       )}

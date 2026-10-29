@@ -219,7 +219,7 @@ describe("the screen's state", () => {
     const withDraft = startState(own, { locale: "en", tier: "A", example: true });
     expect(withDraft.form.subject).toBe("The water cycle");
     expect(withDraft.form.goal).toBe("");
-    expect(withDraft.undo).toEqual({ form: own, reason: "example" });
+    expect(withDraft.undo).toEqual({ form: own, reason: "example", languageChosen: false });
     expect(withDraft.restored).toBe(false);
     const exDraft = filled({ subject: EXAMPLES[1]!.en.subject, material: EXAMPLES[1]!.en.notes });
     expect(startState(exDraft, { locale: "en", tier: "A", example: true }).undo).toBeNull();
@@ -254,11 +254,11 @@ describe("the screen's state", () => {
 
   it("an example never silently destroys the learner's text: it can be brought back", () => {
     const afterExample = createReducer(fresh({ form: own }), { type: "example", id: "water" });
-    expect(afterExample.undo).toEqual({ form: own, reason: "example" });
+    expect(afterExample.undo).toEqual({ form: own, reason: "example", languageChosen: false });
     expect(afterExample.form.subject).toBe("The water cycle");
     // another example on top of an example keeps the original text behind undo
     const second = createReducer(afterExample, { type: "example", id: "fractions" });
-    expect(second.undo).toEqual({ form: own, reason: "example" });
+    expect(second.undo).toEqual({ form: own, reason: "example", languageChosen: false });
     expect(second.form.subject).toBe("Fractions");
     const back = createReducer(second, { type: "undo" });
     expect(back.form).toEqual(own);
@@ -337,7 +337,7 @@ describe("a text file as the study material", () => {
   it("loading a file over the learner's own notes can be taken back; over an example it cannot (nothing was lost)", () => {
     const own = filled({ subject: "Mine", material: "My own notes about cells." });
     const s = createReducer({ ...startState(null, { locale: "en", tier: "A", example: false }), form: own }, { type: "file", text: "File notes", subject: "F" });
-    expect(s.undo).toEqual({ form: own, reason: "file" });
+    expect(s.undo).toEqual({ form: own, reason: "file", languageChosen: false });
     expect(createReducer(s, { type: "undo" }).form).toEqual(own);
     const onExample = createReducer(startState(null, { locale: "en", tier: "A", example: true }), { type: "file", text: "File notes", subject: "F" });
     expect(onExample.undo).toBeNull();

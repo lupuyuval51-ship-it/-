@@ -151,11 +151,12 @@ const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T): T
 
 /**
  * A stored draft, checked field by field: anything unexpected falls back to a default rather than breaking the screen.
- * `fallbackLanguage` is the content language of the app's interface now. A draft whose game language was only the
- * default of the interface it was saved under (`ui`) does not keep it once the interface language changed: an untouched
- * example turns into the same example in the new language, other text takes the language of its notes, or the
- * interface's (otherwise switching the app to English left a Hebrew game language behind, and an English library topic
- * picked from an English list was built in Hebrew). A language the learner chose stays.
+ * `fallbackLanguage` is the content language of the app's interface now. A draft whose game language the learner did
+ * not choose (no `chosen`) was only the default of the interface it was saved under (`ui`), and does not keep it once
+ * the interface language changed: an untouched example turns into the same example in the new language, other text
+ * takes the language of its notes, or the interface's (otherwise switching the app to English left a Hebrew game
+ * language behind, and an English library topic picked from an English list was built in Hebrew). A language the
+ * learner chose stays, and so does every language of a draft saved before `ui` was stored.
  */
 export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLanguage: ContentLang): CreateFormValues | null {
   if (!raw) return null;
@@ -174,8 +175,8 @@ export function parseDraft(raw: string | null, tier: FeatureTier, fallbackLangua
     gameType: oneOf(GAME_TYPES, o.gameType, "adventure"),
     language: oneOf(["he", "en"] as const, o.language, fallbackLanguage),
   };
-  const ui = (data as { ui?: unknown }).ui;
-  if ((ui === "he" || ui === "en") && form.language === ui && ui !== fallbackLanguage) {
+  const { ui, chosen } = data as { ui?: unknown; chosen?: unknown };
+  if ((ui === "he" || ui === "en") && chosen !== true && ui !== fallbackLanguage) {
     const example = findExample(form.subject, form.material)?.example[fallbackLanguage];
     if (example) Object.assign(form, { subject: example.subject, material: example.notes });
     form.language = example ? fallbackLanguage : detectScript(form.material) ?? fallbackLanguage;
@@ -188,6 +189,15 @@ export function loadDraft(storage: DraftStorage | null, tier: FeatureTier, fallb
   try { return parseDraft(storage.getItem(DRAFT_KEY), tier, fallbackLanguage); } catch { return null; }
 }
 
+/** The stored draft's game language was chosen by the learner (see `parseDraft`). */
+export function draftLanguageChosen(storage: DraftStorage | null): boolean {
+  try {
+    return (JSON.parse(storage?.getItem(DRAFT_KEY) ?? "null") as { chosen?: unknown } | null)?.chosen === true;
+  } catch {
+    return false;
+  }
+}
+
 /** An example exactly as its button filled it in (no goal typed either): nothing of the learner's own is in the form. */
 const isUntouchedExample = (f: CreateFormValues): boolean => !f.goal.trim() && isExampleText(f.subject, f.material);
 
@@ -195,30 +205,18 @@ const isUntouchedExample = (f: CreateFormValues): boolean => !f.goal.trim() && i
  * Stores the form, or forgets the draft when nothing was typed. An untouched example never takes the place of the
  * learner's own unfinished text (`#/create?example=1` opens on the example while the draft waits behind "Bring back
  * my text", which lives only as long as the screen): that text stays stored for the next visit, and the example is one
- * tap away. `ui` is the content language of the interface the form is shown in: it is stored as the interface whose
- * default the game language is (see `parseDraft`) unless the stored draft already has the same language under another
- * interface, so a language the learner chose there is not taken for this interface's default. Never throws: a draft is
- * a convenience.
+ * tap away. `language` says which interface the form is shown in and whether the learner chose its game language (see
+ * `parseDraft`). Never throws: a draft is a convenience.
  */
-export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now(), ui?: ContentLang): void {
+export function saveDraft(storage: DraftStorage | null, form: CreateFormValues, now = Date.now(), language?: { ui: ContentLang; chosen: boolean }): void {
   if (!storage) return;
   try {
     if (isBlankForm(form)) storage.removeItem(DRAFT_KEY);
     else if (!(isUntouchedExample(form) && storedOwnText(storage))) {
-      const from = ui && (storedUi(storage, form.language) ?? ui);
-      storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, ...(from ? { ui: from } : {}), form }));
+      const meta = language ? { ui: language.ui, ...(language.chosen ? { chosen: true } : {}) } : {};
+      storage.setItem(DRAFT_KEY, JSON.stringify({ v: 1, savedAt: now, ...meta, form }));
     }
   } catch { /* storage full or blocked: the draft is simply not kept */ }
-}
-
-/** The interface the stored draft was saved under, when its game language is still `language`. */
-function storedUi(storage: DraftStorage, language: ContentLang): ContentLang | undefined {
-  try {
-    const d = JSON.parse(storage.getItem(DRAFT_KEY) ?? "null") as { ui?: unknown; form?: { language?: unknown } } | null;
-    return (d?.ui === "he" || d?.ui === "en") && d.form?.language === language ? d.ui : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 /** The stored draft holds text the learner wrote (not blank, not an example). */
@@ -277,7 +275,7 @@ export const classifySaveError = (err: unknown): CreateProblem => (isStorageFull
 // ───────────────────────────── the screen's state ─────────────────────────────
 
 /** What the learner had before a button replaced it, so one tap brings it back. */
-export interface Undo { form: CreateFormValues; reason: "example" | "cleared" | "file" }
+export interface Undo { form: CreateFormValues; reason: "example" | "cleared" | "file"; languageChosen: boolean }
 
 export interface CreateState {
   form: CreateFormValues;
@@ -285,6 +283,11 @@ export interface CreateState {
   restored: boolean;
   undo: Undo | null;
   problem: CreateProblem | null;
+  /**
+   * The learner chose the game language (the select, or Apply / Keep on the language hint). Otherwise it is the
+   * interface's default, which a stored draft does not keep when the interface language changes (`parseDraft`).
+   */
+  languageChosen: boolean;
 }
 
 export type CreateAction =
@@ -293,6 +296,8 @@ export type CreateAction =
   | { type: "file"; text: string; subject: string }
   | { type: "clear" }
   | { type: "undo" }
+  /** "Keep" on the language hint: the game language stays as it is, on purpose */
+  | { type: "keepLanguage" }
   | { type: "problem"; problem: CreateProblem | null };
 
 /** Text the learner wrote themselves: not blank and not one of the ready-made examples. */
@@ -302,7 +307,7 @@ export const hasOwnText = (f: CreateFormValues): boolean => !isBlankForm(f) && !
  * The form when the screen opens: the saved draft if there is one, or the default example for `#/create?example=1`
  * (a draft the learner wrote themselves is then kept behind "Bring back my text").
  */
-export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean; mode?: "FAST" | "FULL" }): CreateState {
+export function startState(saved: CreateFormValues | null, opts: { locale: ContentLang; tier: FeatureTier; example: boolean; mode?: "FAST" | "FULL"; languageChosen?: boolean }): CreateState {
   // a fresh form starts in the mode suggested by the first-run answers (how much time a day); a saved draft keeps its own
   // (only when the tier has it: a suggestion never opens the form on a locked choice)
   const fresh = (): CreateFormValues => ({ ...emptyForm(opts.locale, opts.tier), ...(opts.mode ? { mode: pickMode(opts.tier, opts.mode) } : {}) });
@@ -311,11 +316,12 @@ export function startState(saved: CreateFormValues | null, opts: { locale: Conte
     return {
       form: { ...fresh(), subject: ex.subject, material: ex.notes },
       restored: false,
-      undo: saved && hasOwnText(saved) ? { form: saved, reason: "example" } : null,
+      undo: saved && hasOwnText(saved) ? { form: saved, reason: "example", languageChosen: opts.languageChosen ?? false } : null,
       problem: null,
+      languageChosen: false,
     };
   }
-  return { form: saved ?? fresh(), restored: Boolean(saved), undo: null, problem: null };
+  return { form: saved ?? fresh(), restored: Boolean(saved), undo: null, problem: null, languageChosen: Boolean(saved) && (opts.languageChosen ?? false) };
 }
 
 export function createReducer(state: CreateState, action: CreateAction): CreateState {
@@ -333,7 +339,7 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
         const shown = findExample(state.form.subject, state.form.material);
         if (shown && shown.lang !== action.value) form = { ...form, subject: shown.example[action.value].subject, material: shown.example[action.value].notes };
       }
-      return { ...state, form, restored: false, problem: solved ? null : problem };
+      return { ...state, form, restored: false, problem: solved ? null : problem, languageChosen: state.languageChosen || action.key === "language" };
     }
     case "example": {
       const ex = exampleById(action.id)?.[state.form.language];
@@ -341,8 +347,9 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
       return {
         form: { ...state.form, subject: ex.subject, material: ex.notes, goal: "" },
         restored: false,
-        undo: hasOwnText(state.form) ? { form: state.form, reason: "example" } : state.undo,
+        undo: hasOwnText(state.form) ? { form: state.form, reason: "example", languageChosen: state.languageChosen } : state.undo,
         problem: null,
+        languageChosen: state.languageChosen,
       };
     }
     case "file": {
@@ -356,19 +363,23 @@ export function createReducer(state: CreateState, action: CreateAction): CreateS
       return {
         form: { ...f, material: action.text, subject: subjectless ? action.subject : f.subject },
         restored: false,
-        undo: replaces ? { form: f, reason: "file" } : state.undo,
+        undo: replaces ? { form: f, reason: "file", languageChosen: state.languageChosen } : state.undo,
         problem: solved ? null : state.problem,
+        languageChosen: state.languageChosen,
       };
     }
     case "clear":
       return {
         form: { ...state.form, subject: "", goal: "", material: "" },
         restored: false,
-        undo: hasOwnText(state.form) ? { form: state.form, reason: "cleared" } : state.undo,
+        undo: hasOwnText(state.form) ? { form: state.form, reason: "cleared", languageChosen: state.languageChosen } : state.undo,
         problem: null,
+        languageChosen: state.languageChosen,
       };
     case "undo":
-      return state.undo ? { form: state.undo.form, restored: false, undo: null, problem: null } : state;
+      return state.undo ? { form: state.undo.form, restored: false, undo: null, problem: null, languageChosen: state.undo.languageChosen } : state;
+    case "keepLanguage":
+      return { ...state, languageChosen: true };
     case "problem":
       return { ...state, problem: action.problem };
   }
