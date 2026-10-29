@@ -627,12 +627,25 @@ video {
   margin-inline: auto;
   padding: var(--space-4);
 }
+.public-brand {
+  min-height: 44px;
+}
 .public-footer {
   padding: var(--space-4);
   font-size: var(--fs-xs);
   text-align: center;
   max-width: 720px;
   margin-inline: auto;
+}
+.public-footer-links {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-5);
+  font-size: var(--fs-sm);
 }
 .auth-page {
   display: grid;

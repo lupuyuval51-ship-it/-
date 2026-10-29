@@ -1,7 +1,9 @@
 /**
- * Database CLI: `tsx server/src/db/cli.ts <migrate|seed|setup|status>`
- * (also available as `npm run db:migrate|db:seed|db:setup|db:status`).
+ * Database CLI: `tsx server/src/db/cli.ts <migrate|seed|setup|status|delete-account>`
+ * (also available as `npm run db:migrate|db:seed|db:setup|db:status`; in production
+ * `node dist/server/db-cli.js <command>`).
  */
+import { deleteAccountByEmail } from '../modules/profile/account';
 import { migrate, migrationStatus } from './migrate';
 import { db } from './pool';
 import { seedContent } from './seed';
@@ -31,8 +33,20 @@ async function main() {
       for (const s of await migrationStatus()) log(`${s.applied ? '✔' : '✗'} ${s.name}${s.appliedAt ? ` (${s.appliedAt})` : ''}`);
       break;
     }
+    case 'delete-account': {
+      // Deletion request from someone who cannot sign in (see /account-deletion). Verify the request first.
+      const email = process.argv[3];
+      if (!email || !email.includes('@') || !process.argv.includes('--yes')) {
+        console.error('Usage: delete-account <email> --yes   (permanently deletes the account and all of its data)');
+        process.exitCode = 2;
+        break;
+      }
+      const deleted = await deleteAccountByEmail(db, email);
+      log(deleted ? `account deleted with all of its data: ${email}` : `no account with the email ${email}`);
+      break;
+    }
     default:
-      console.error(`Unknown command "${cmd}". Use migrate | seed | setup | status.`);
+      console.error(`Unknown command "${cmd}". Use migrate | seed | setup | status | delete-account.`);
       process.exitCode = 2;
   }
 }

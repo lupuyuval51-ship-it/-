@@ -69,6 +69,17 @@ const without = (row: ExportRecord, key: string): ExportRecord => {
 };
 
 /**
+ * Deletes an account by email address, for deletion requests from people who cannot sign in
+ * (operator CLI: `node dist/server/db-cli.js delete-account <email> --yes`). Every user-owned table
+ * references users(id) ON DELETE CASCADE, exactly as for DELETE /api/account. Returns whether an
+ * account with that email existed.
+ */
+export async function deleteAccountByEmail(sql: Sql, email: string): Promise<boolean> {
+  const row = await sql.maybeOne<{ id: string }>('DELETE FROM users WHERE lower(email) = lower($1) RETURNING id', [email.trim()]);
+  return row != null;
+}
+
+/**
  * Everything stored for the user. Runs in one REPEATABLE READ transaction (pass a
  * `db.tx` handle) so the export is a consistent snapshot.
  */

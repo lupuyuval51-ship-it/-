@@ -8,6 +8,9 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
+const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
+const AccountDeletionPage = lazy(() => import('./pages/legal/AccountDeletionPage'));
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const WorkoutsPage = lazy(() => import('./pages/workouts/WorkoutsPage'));
@@ -29,6 +32,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 /**
  * Route map (all sections are fully connected):
  *  /login /register /forgot-password /reset-password   public
+ *  /privacy /terms /account-deletion                   public, signed in or not (store listing URLs)
  *  /onboarding                                          signed in
  *  /                    dashboard
  *  /workouts            plans + AI generator
@@ -53,6 +57,9 @@ export const router = createBrowserRouter([
       { path: '/register', element: <PublicOnly><RegisterPage /></PublicOnly> },
       { path: '/forgot-password', element: <PublicOnly><ForgotPasswordPage /></PublicOnly> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/privacy', element: <PrivacyPage /> },
+      { path: '/terms', element: <TermsPage /> },
+      { path: '/account-deletion', element: <AccountDeletionPage /> },
       { path: '/onboarding', element: <RequireAuth onboarded={false}><OnboardingPage /></RequireAuth> },
     ],
   },

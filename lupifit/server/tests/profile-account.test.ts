@@ -4,7 +4,7 @@ import { config } from '../src/config';
 import { db } from '../src/db/pool';
 import { sha256 } from '../src/lib/crypto';
 import { resetRateLimits } from '../src/middleware/rateLimit';
-import { EXCLUDED_TABLES, EXPORTED_TABLES } from '../src/modules/profile/account';
+import { EXCLUDED_TABLES, EXPORTED_TABLES, deleteAccountByEmail } from '../src/modules/profile/account';
 import { TestClient, onboardedUser, startTestServer, type TestServer } from './helpers/server';
 
 let server: TestServer;
@@ -279,5 +279,27 @@ describe('DELETE /api/account', () => {
 
   it('requires authentication', async () => {
     expect((await new TestClient(server.baseUrl).delete('/api/account', { password: 'x', confirm: 'DELETE' })).status).toBe(401);
+  });
+});
+
+describe('deleteAccountByEmail (operator CLI for people who cannot sign in)', () => {
+  it('deletes the account and every row it owns, matching the email case-insensitively', async () => {
+    const victim = await onboardedUser(server.baseUrl);
+    const other = await onboardedUser(server.baseUrl);
+    await seedEverything(victim.userId!, 'CLI-GONE');
+    await seedEverything(other.userId!, 'CLI-KEPT');
+
+    expect(await deleteAccountByEmail(db, `  ${victim.email!.toUpperCase()} `)).toBe(true);
+    expect(await db.maybeOne('SELECT 1 FROM users WHERE id = $1', [victim.userId])).toBeNull();
+    for (const { table, column } of await userTables()) {
+      const left = await db.one<{ n: number }>(`SELECT count(*)::int AS n FROM ${table} WHERE ${column} = $1`, [victim.userId]);
+      expect(left.n, `${table}.${column}`).toBe(0);
+    }
+    expect((await victim.get('/api/profile')).status).toBe(401);
+    expect((await other.get('/api/profile')).status).toBe(200);
+  });
+
+  it('reports when no account has that email', async () => {
+    expect(await deleteAccountByEmail(db, 'nobody-here@example.invalid')).toBe(false);
   });
 });
