@@ -51,7 +51,8 @@ export const clearPrefsDirty = () => storage.remove(KEY);
  * - `own`: they already belong to this account;
  * - `claimed`: nobody's yet (a new device, or values from before settings had an owner). A change made
  *   before any account signed in becomes this account's; a device-wide mark from the older format is
- *   dropped, so the account's copy is adopted;
+ *   dropped. Values from before settings had an owner may be another account's, so they must not be
+ *   shared either: the account's copy (or, without one, the defaults) is adopted;
  * - `foreign`: another account's. Its unsynced mark is dropped (this account replaces the values) and the
  *   values must not be shared with this account.
  */

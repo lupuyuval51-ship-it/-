@@ -70,11 +70,12 @@ export function useWorkoutPrefsSync(): void {
     if (serverPrefs) {
       const server = { ...DEFAULT_WORKOUT_PREFS, ...serverPrefs };
       if (JSON.stringify(server) !== JSON.stringify(currentWorkoutPrefs())) applyServerPrefs(server);
-    } else if (claim === 'foreign') {
-      // The device's choices are another account's and this one has none yet: it starts from the defaults.
-      applyServerPrefs(DEFAULT_WORKOUT_PREFS);
+    } else if (claim !== 'own') {
+      // This account has none yet and the device's choices are another account's, or from before they had an
+      // owner (whose cannot be told): never share them; this account starts from the defaults.
+      if (hasLocalChoices()) applyServerPrefs(DEFAULT_WORKOUT_PREFS);
     } else if (hasLocalChoices() && uploadedFor.current !== userId) {
-      // First device to customise anything: the account has nothing yet, so share these choices.
+      // First device to customise anything: the account has nothing yet, so share this account's choices.
       uploadedFor.current = userId;
       markPrefsDirty();
       void push();

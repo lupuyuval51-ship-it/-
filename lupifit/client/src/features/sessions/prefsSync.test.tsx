@@ -70,6 +70,7 @@ describe('useWorkoutPrefsSync', () => {
   });
 
   it('shares the choices of the first device when the account has none yet', async () => {
+    window.localStorage.setItem('fitai.sessionPrefs.owner', JSON.stringify('u1')); // this account's choices
     window.localStorage.setItem('fitai.sessionPrefs', JSON.stringify({ wakeLock: false, vibrate: true, autoAdvance: true }));
     resetPrefsCache();
     renderHook(() => useWorkoutPrefsSync());
@@ -142,6 +143,34 @@ describe('useWorkoutPrefsSync on a device shared by two accounts', () => {
     await settle();
     expect(api).not.toHaveBeenCalled();
     expect(currentWorkoutPrefs()).toEqual(server({ autoAdvance: false }));
+    expect(isPrefsDirty()).toBe(false);
+  });
+
+  it.each([
+    ['without an unsynced mark', null],
+    ['with an unsynced mark from before marks were per account', JSON.stringify(Date.now())],
+  ])("does not share settings from before they had an owner with an account that has none yet (%s)", async (_, mark) => {
+    // Updated device: A's choices are still stored, but nothing says whose they are (A signed out before the update).
+    window.localStorage.setItem('fitai.sessionPrefs', JSON.stringify({ wakeLock: false, vibrate: false, autoAdvance: false }));
+    window.localStorage.setItem('fitai.restTimer.muted', 'true');
+    if (mark) window.localStorage.setItem('fitai.sessionPrefs.dirty', mark);
+    resetPrefsCache();
+    user = { id: 'b', workoutPrefs: null };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).not.toHaveBeenCalled();
+    expect(currentWorkoutPrefs()).toEqual(DEFAULT_WORKOUT_PREFS); // B starts from the defaults, not from A's choices
+    expect(isPrefsDirty()).toBe(false);
+  });
+
+  it('shares a change made before any account signed in with the first account', async () => {
+    window.localStorage.setItem('fitai.sessionPrefs', JSON.stringify({ wakeLock: false, vibrate: true, autoAdvance: true }));
+    window.localStorage.setItem('fitai.sessionPrefs.dirty', JSON.stringify({ v: 1, userId: null, at: Date.now() }));
+    resetPrefsCache();
+    user = { id: 'b', workoutPrefs: null };
+    renderHook(() => useWorkoutPrefsSync());
+    await settle();
+    expect(api).toHaveBeenCalledWith('/settings', { method: 'PATCH', body: { workoutPrefs: expect.objectContaining({ wakeLock: false }) } });
     expect(isPrefsDirty()).toBe(false);
   });
 
