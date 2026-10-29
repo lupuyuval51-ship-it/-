@@ -25,7 +25,7 @@ export interface ScheduleInput {
    * Plan days in rotation order, with when each was last completed (ISO timestamp; null/absent =
    * never or unknown).
    */
-  days: { focus: string; lastDoneAt?: string | null }[];
+  days: { focus: string; lastDoneAt?: string | null; /** False for a day with no exercises (it is never suggested as a stand-in). */ startable?: boolean }[];
   nextIndex: number;
   /** Last completed workout: its date in the user's time zone and the plan day's focus (null if unknown/empty session). */
   last: { date: string; focus: string | null } | null;
@@ -63,7 +63,7 @@ export function recommendToday(input: ScheduleInput): ScheduleRecommendation {
     let best = -1;
     for (let step = 1; step < n; step++) {
       const j = (base + step) % n;
-      if (regionsOverlap(yesterdayFocus, input.days[j]!.focus)) continue;
+      if (input.days[j]!.startable === false || regionsOverlap(yesterdayFocus, input.days[j]!.focus)) continue;
       if (best < 0 || (input.days[j]!.lastDoneAt ?? '') < (input.days[best]!.lastDoneAt ?? '')) best = j;
     }
     if (best >= 0) {

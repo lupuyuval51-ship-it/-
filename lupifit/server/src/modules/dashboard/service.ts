@@ -56,7 +56,7 @@ async function nextWorkout(sql: Sql, userId: string, sched: ScheduleContext): Pr
   if (!days.length) return { activePlan, nextWorkout: null };
   const rec = recommendToday({
     ...sched,
-    days: days.map((d) => ({ focus: d.focus, lastDoneAt: d.last_done_at ? new Date(d.last_done_at).toISOString() : null })),
+    days: days.map((d) => ({ focus: d.focus, startable: d.exercise_count > 0, lastDoneAt: d.last_done_at ? new Date(d.last_done_at).toISOString() : null })),
     nextIndex: plan.next_workout_index,
   });
   const day = days[rec.workoutIndex]!;

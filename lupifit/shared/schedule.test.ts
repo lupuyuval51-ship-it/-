@@ -75,6 +75,16 @@ describe('recommendToday', () => {
     expect(recommendToday({ ...waiting, days: days.map((d, i) => (i === 3 ? done(d.focus, null) : d)) }).workoutIndex).toBe(3);
     expect(recommendToday({ ...waiting, days: FIVE_DAY }).workoutIndex).toBe(3);
   });
+
+  it('never suggests a day without exercises as the stand-in', () => {
+    // Same week as above, but Upper B is an empty day the user just added: the next best day wins.
+    const done = (focus: string, lastDoneAt: string | null, startable = true) => ({ focus, lastDoneAt, startable });
+    const days = [done('upper_a', '2026-10-21T18:00:00.000Z'), done('lower_a', '2026-10-24T18:00:00.000Z'), done('full_body', '2026-10-17T18:00:00.000Z'), done('upper_b', null, false), done('lower_b', '2026-10-27T18:00:00.000Z')];
+    const waiting: ScheduleInput = { ...base, days, nextIndex: 2, last: { date: '2026-10-27', focus: 'lower_b' } };
+    expect(recommendToday(waiting)).toMatchObject({ workoutIndex: 0, code: 'avoid_back_to_back' });
+    // Without the flag nothing changes (older callers).
+    expect(recommendToday({ ...waiting, days: days.map(({ focus, lastDoneAt }) => ({ focus, lastDoneAt })) }).workoutIndex).toBe(3);
+  });
 });
 
 describe('advanceRotation', () => {
