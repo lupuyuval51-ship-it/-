@@ -33,7 +33,7 @@ export const blocks: SportBlockSeed[] = [
       { exerciseId: 'pop_up', sets: 2, reps: [6, 8], restSeconds: 20 },
       { exerciseId: 'band_external_rotation', sets: 2, reps: [12, 15], restSeconds: 20 },
       { exerciseId: 'dumbbell_woodchop', sets: 2, reps: [10, 12], restSeconds: 20 },
-      { exerciseId: 'side_plank', sets: 2, seconds: 20, restSeconds: 20 },
+      { exerciseId: 'side_plank', sets: 2, seconds: 20, restSeconds: 15 },
     ],
   },
   {
@@ -49,7 +49,7 @@ export const blocks: SportBlockSeed[] = [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'box_squat', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'bird_dog', sets: 2, reps: [6, 8], restSeconds: 20 },
-      { exerciseId: 'march_in_place', sets: 2, seconds: 40, restSeconds: 20 },
+      { exerciseId: 'march_in_place', sets: 2, seconds: 30, restSeconds: 20 },
       { exerciseId: 'dead_bug', sets: 2, reps: [8, 10], restSeconds: 20 },
     ],
   },
@@ -103,7 +103,7 @@ export const blocks: SportBlockSeed[] = [
       { exerciseId: 'incline_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'dead_bug', sets: 2, reps: [8, 10], restSeconds: 20 },
       { exerciseId: 'bird_dog', sets: 2, reps: [6, 8], restSeconds: 20 },
-      { exerciseId: 'plank', sets: 2, seconds: 40, restSeconds: 20 },
+      { exerciseId: 'plank', sets: 2, seconds: 30, restSeconds: 20 },
     ],
   },
 
