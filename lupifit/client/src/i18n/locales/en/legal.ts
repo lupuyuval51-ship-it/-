@@ -2,6 +2,10 @@
  * Public legal pages: privacy policy, terms of use and account deletion (needed for Google Play).
  * Every statement describes what the code does today. Text in [square brackets] is a placeholder the
  * operator must fill in; the pages highlight it. Hebrew (he/legal.ts) must have exactly the same keys.
+ *
+ * Two sets of texts: `privacy` / `terms` / `deletion` describe the hosted service (server mode); `device`
+ * describes the app that runs entirely on the phone (device mode, the Android app). Which keys each page
+ * uses in each mode is in features/legal/documents.ts (texts true in both modes are shared).
  */
 const legal = {
   nav: {
@@ -9,6 +13,7 @@ const legal = {
     privacy: 'Privacy policy',
     terms: 'Terms of use',
     deletion: 'Delete account',
+    deletionDevice: 'Delete your data',
   },
   draft: {
     title: 'Draft: legal review required before launch',
@@ -223,6 +228,161 @@ const legal = {
     partial: {
       title: 'Delete only some data',
       body: 'You can delete single food log entries, weigh-ins, workouts, plans, custom foods, saved meals and coach conversations in the app without deleting your account.',
+    },
+  },
+
+  /**
+   * Device mode: the app with its server inside (the Android app). No account, no LUPU-FIT server, the data
+   * stays on the phone; the only thing that goes online is the barcode lookup (Open Food Facts). Android
+   * backup as configured in android/app/src/main/res/xml/{data_extraction_rules,backup_rules}.xml.
+   * Facts: client/src/device/README.md and docs/device-mode.md.
+   */
+  device: {
+    privacy: {
+      intro: 'This privacy policy is for the LUPU-FIT app that works entirely on your phone. It explains what the app keeps, where, what leaves the phone and how you can back it up or delete it.',
+      summary: {
+        title: 'In short',
+        local: 'Everything you enter is stored only on your phone, inside the app. There is no account to create, no sign-in and no LUPU-FIT server, so we (the operator) do not receive, see or store your data.',
+        online: 'The app goes online for one thing only: when you look up a barcode, it sends the barcode number to Open Food Facts, a public product database.',
+        copies: 'Copies of your data exist only if you make them: a backup file you save, or Android’s own backup if it is turned on in your phone’s settings.',
+        none: 'This version has no AI features, no advertising and no analytics or tracking code.',
+      },
+      stored: {
+        title: 'What the app keeps on your phone',
+        intro: 'The app keeps what you enter and what it needs to work. All of it stays on your phone:',
+        name: 'Name and settings: the name you enter on the first screen (a nickname is fine), language, theme, units and time zone. The app never asks for your email address, phone number or a password.',
+        coach: 'Coach conversations: your messages and the built-in coach’s replies.',
+        internal: 'An internal profile record: on first launch the app creates a record with a random identifier and a random key, so its built-in engine can keep your data together. You never see or type it, it is not linked to you outside the app, and the key is never written to a backup file.',
+        technical: 'Technical records the app needs: the time of each coach message, an internal session record and short-lived records that stop the same entry from being saved twice. They contain no IP address and no phone identifiers.',
+        reminders: 'Reminders: if you turn them on and allow notifications, the app schedules them as notifications on your phone, up to 14 days ahead. Nothing is sent to a server for this.',
+        local: 'Small settings in the app’s storage: language, theme, workout settings, drafts of unfinished forms (removed after 3 days or when you submit them) and when a backup file was last saved.',
+        notCollected: 'The Android app has no permission to use your location, contacts, camera, microphone or photos. The app reads a file only when you choose a backup file to restore.',
+      },
+      health: {
+        body1: 'Much of this information is about your health: weight, height, injuries, nutrition, sleep, stress and training load. The app uses it on your phone, only to provide its features to you. It is not sent to us or to anyone else.',
+      },
+      use: {
+        legalBasis: 'Legal basis (where the GDPR applies): [Lawyer: confirm whether the operator processes personal data at all when the data never leaves the phone, and the basis for the barcode lookup].',
+      },
+      storage: {
+        phone: 'Your data is stored in a database inside the app, in the app’s private storage on your phone. Android does not let other apps read it.',
+        protection: 'The app does not add its own encryption or its own lock. How well the data is protected depends on your phone: use a screen lock (PIN, pattern, password or fingerprint) and keep Android up to date.',
+        access: 'Anyone who can unlock and use your phone can open LUPU-FIT and see your data.',
+        noSync: 'Nothing is copied to other devices: there is no sync, and the data cannot be opened on a website.',
+      },
+      backups: {
+        title: 'Backups',
+        file: 'Backup file: when you tap “{save}”, the app creates one file with all your data (health information included) and hands it to your phone’s save or share screen. You choose where it goes, for example your files, Google Drive or an email to yourself; that service’s own terms apply there.',
+        fileCare: 'The backup file is a readable text (JSON) file and is not encrypted: anyone who gets the file can read it. Keep it somewhere private. It does not contain the app’s internal key.',
+        androidWhat: 'Android’s own backup: the app allows Android to back up its data, limited to the database and the app’s settings (no caches). Android does this by itself, only if backup is turned on in your phone’s settings, under your Google account. We cannot read these copies.',
+        androidCloud: 'On Android 9 and newer, the copy in your Google account is made only when it can be end-to-end encrypted with your phone’s screen lock. Android skips it while the app’s data is larger than 25 MB, so a copy is not guaranteed.',
+        androidOld: 'On Android 7 and 8, Android cannot encrypt backups that way: if backup is turned on there, the copy in your Google account is protected by Google but is not end-to-end encrypted.',
+        androidTransfer: 'When you set up a new phone by copying from the old one (by cable or Wi-Fi), the same data can be moved to the new phone.',
+        androidControl: 'A copy can be restored when you install the app again on a phone that uses the same Google account. You can turn Android backup off, or delete your phone’s backup, in your phone’s and your Google account’s backup settings.',
+      },
+      barcode: {
+        body1: 'You type the barcode number of a product. In a browser that supports scanning, the camera can read it instead; the image is processed on the device and never leaves it.',
+        body2: 'The app then asks Open Food Facts (openfoodfacts.org), a free public product database, for that barcode number, directly from your phone over an encrypted connection (HTTPS). Like any website, Open Food Facts also receives your phone’s internet (IP) address and standard technical details of the request, such as the Android and browser engine version. Nothing else is sent: no name and no health or diary data. Its own privacy policy applies to what it receives. The product details it returns are saved in the food database on your phone.',
+        only: 'This is the only feature that uses the internet. Apart from it, the app makes no internet connections of its own (Android and Google Play may connect for their own purposes, such as app updates).',
+      },
+      ai: {
+        body: 'This version has no AI features and sends nothing to any AI service. The coach answers from built-in rules, the exercise library and your own data on the phone; free-text plan preferences are read with keywords on the phone; meal-photo analysis is not included.',
+      },
+      sharing: {
+        openFoodFacts: 'Open Food Facts: barcode numbers you look up, with your phone’s IP address, as described above.',
+        yourChoice: 'Wherever you choose to save or send a backup file.',
+        google: 'Google: Android’s own backup, if it is on (see “Backups”), and Google Play for installing and updating the app. If you allowed your phone to share usage and diagnostics data, Google may give us statistics and crash reports about the app (Android vitals); they do not include what you record in LUPU-FIT.',
+        us: 'We, the operator, receive none of the data in the app.',
+      },
+      retention: {
+        data: 'Your data stays on your phone until you delete it in the app, erase all data or uninstall the app.',
+        technical: 'The app removes technical records by itself: records against double saving after 24 hours, coach-message times older than 3 days, and expired session records.',
+        files: 'Backup files: for as long as you keep them.',
+        android: 'Copies made by Android’s backup: as set by Google and your Google account’s backup settings.',
+      },
+      rights: {
+        export: 'See and take your data: {profile} → {section} → “{save}” gives you one readable file with all of it.',
+        delete: 'Delete: you can delete single items, erase everything with “{erase}” in {profile} → {section}, or uninstall the app. See “Delete your data”.',
+        permissions: 'Notifications are used only after you allow them (Android asks when you tap the button in the reminder settings). You can turn them off at any time in Android’s settings.',
+        law: 'Because we do not receive your data, we cannot look it up, correct it or delete it for you: you can do all of this yourself in the app. Depending on where you live you may have further rights, for example under Israeli privacy law or the GDPR. For any question, write to [contact email address].',
+      },
+      minors: {
+        under13: 'If you are under 13, please do not use LUPU-FIT. Nothing is sent to us, so we hold no data about children; a parent can erase the data in the app or uninstall it.',
+        rules: 'For users under 18 the app automatically applies stricter rules: no calorie deficit, no maximum-effort lifts or loads based on a one-repetition maximum, no advanced exercises, lower effort targets, and the coach’s answers take the age into account.',
+      },
+      changes: {
+        body: 'If this policy changes, the new version comes with an app update, and this page and its date are updated. [Describe how users are told about significant changes, e.g. a notice in the app.]',
+      },
+    },
+
+    terms: {
+      intro: 'These terms apply to the LUPU-FIT app that works entirely on your phone, published by [operator name / business name]. By using the app you agree to them and to the privacy policy.',
+      medical: {
+        estimates: 'Calorie and nutrient values, including those from barcodes and the daily menu, are estimates. Dishes in the daily menu have no allergen information: if you have an allergy, always check the ingredients yourself.',
+        coach: 'The coach’s answers are produced automatically from built-in rules and your data and can be wrong or incomplete.',
+      },
+      data: {
+        title: 'Your data on your phone',
+        keep: 'Your data is stored only on your phone, and keeping it is up to you: save a backup file from time to time and keep it somewhere safe. We have no copy, so we cannot restore data that is lost (for example when the app is uninstalled or the phone is lost, reset or broken).',
+        lock: 'Anyone who can use your phone can open the app. Protect the phone with a screen lock.',
+      },
+      use: {
+        body: 'Use the app lawfully. Do not misuse the outside service it relies on (for example by sending automated mass barcode lookups to Open Food Facts).',
+      },
+      content: {
+        yours: 'Your data belongs to you. You can save it to a backup file or erase it at any time (see the privacy policy).',
+      },
+      service: {
+        body: 'The app is provided “as is”. We try to keep it working and accurate but cannot guarantee it. Features may change with app updates. The barcode lookup depends on Open Food Facts and on an internet connection and may be unavailable.',
+      },
+      liability: {
+        body: 'To the extent the law allows, [operator name / business name] is not liable for injury, health problems, lost data or other damage resulting from using the app, including from following a plan, target or coach answer. [Lawyer: adapt to Israeli consumer protection law.]',
+      },
+      ending: {
+        body: 'You can stop using LUPU-FIT at any time: erase all data in the app or uninstall it.',
+      },
+      changes: {
+        body: 'We may update these terms; a new version comes with an app update, and the date at the top shows the current version. [Describe how users are told about significant changes before they apply.]',
+      },
+    },
+
+    deletion: {
+      title: 'Delete your LUPU-FIT data',
+      intro: 'LUPU-FIT on your phone has no account and no server: all of its data is stored only on your phone. You can delete it yourself at any time, in the app or by uninstalling the app. Deleting cannot be undone.',
+      inApp: {
+        title: 'Erase everything in the app',
+        open: 'Open LUPU-FIT.',
+        profile: 'Open {profile}: tap the person icon at the top of the screen (on a wide screen, choose {profile} in the side menu).',
+        section: 'The “{section}” section is at the top of the page.',
+        backup: 'Optional: tap “{save}” first to keep a copy of your data in a backup file.',
+        erase: 'Tap “{erase}”, then “{continue}”.',
+        confirm: 'Tap “{confirm}”.',
+        done: 'Everything the app stored on the phone is deleted, and the app starts again as if it had just been installed.',
+      },
+      uninstall: {
+        title: 'Or uninstall the app',
+        body: 'Uninstalling LUPU-FIT also deletes all of its data from the phone: Android removes the app’s storage together with the app, and its scheduled reminders.',
+      },
+      deleted: {
+        intro: 'Both ways delete from your phone:',
+        name: 'Your name and settings, and the app’s internal profile record.',
+        technical: 'Technical records (coach-message times, the internal session record, records against double saving).',
+        local: 'Settings and drafts in the app’s storage (language, theme, workout settings).',
+        reminders: 'Reminders scheduled on the phone (after erasing in the app: when it starts again).',
+      },
+      kept: {
+        files: 'Backup files you saved, wherever you put them (your files, Google Drive, email…). Delete them there.',
+        cache: 'After erasing in the app (not after uninstalling): the last backup file you saved stays in the app’s private cache folder, which other apps cannot read, until you save another one, Android clears the cache or you uninstall the app.',
+        android: 'A copy made by Android’s backup, if it is on: Google keeps it with your Google account. Turn Android backup off, or delete your phone’s backup, in your phone’s and Google account’s settings; otherwise Android’s next backup replaces the copy.',
+        openFoodFacts: 'Barcode numbers you looked up were received by Open Food Facts; its own privacy policy applies.',
+      },
+      us: {
+        title: 'Why we cannot delete it for you',
+        body: 'We never receive your data, so there is nothing on our side to delete and no account to close. For any question, write to [contact email address].',
+      },
+      partial: {
+        body: 'You can delete single food log entries, weigh-ins, workouts, plans, custom foods, saved meals and coach conversations in the app without erasing everything.',
+      },
     },
   },
 };

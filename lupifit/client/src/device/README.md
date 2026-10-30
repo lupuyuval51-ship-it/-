@@ -126,16 +126,20 @@ message channel and the safe-area values arrive through `evaluateJavascript`, no
 (On a WebView too old for `addDocumentStartJavaScript`, Capacitor would inject an inline script instead, which
 the CSP blocks; not checked on such a device.)
 
-## Limits of device mode (surfaced in the UI and in `docs/android.md`)
+## Limits of device mode (surfaced in the UI, the legal pages and `docs/device-mode.md`)
 
 - The data lives only on this phone. It is lost when the app is uninstalled or the phone is lost,
   unless a backup file was saved. There is no sync between devices. Android's own backup may restore app
   data on a new phone (`allowBackup` with data extraction rules that include only the WebView's IndexedDB
-  and Local Storage, cloud copies only when end-to-end encrypted, plus phone-to-phone transfer), but that
-  depends on the phone's settings and on the data's size; the UI says it is not guaranteed.
+  and Local Storage, cloud copies only when end-to-end encrypted on Android 9+ (Android 7–8 ignore that
+  requirement), plus phone-to-phone transfer), but that depends on the phone's settings and on the data's
+  size; the UI says it is not guaranteed.
 - The AI coach and meal-photo analysis need a server-side API key and are not available; the built-in
   coach works.
-- Barcode lookup needs internet; it sends only the barcode to Open Food Facts.
+- Barcode lookup needs internet; it sends only the barcode to Open Food Facts (which, like any web request,
+  also sees the phone's IP address and the WebView's user agent).
+- The legal pages (`/privacy`, `/terms`, `/account-deletion`) show the device-mode texts in this build
+  (`features/legal/documents.ts`, `legal.device` keys); `npm run legal:static` publishes them as static HTML.
 - Web Push needs a server; in the Android app reminders are the phone's local notifications instead (in the
   device build in a browser they show only while the app is open).
 

@@ -1,37 +1,23 @@
 /**
- * Layout for the public legal pages (privacy policy, terms of use, account deletion).
- * Text comes from the `legal` i18n module; anything in [square brackets] is an operator
- * placeholder and is highlighted so an unfinished draft is never mistaken for final text.
+ * Layout for the public legal pages (privacy policy, terms of use, account / data deletion).
+ * What they say is in ./documents.ts (per mode: hosted server or device mode) and the `legal` i18n module;
+ * anything in [square brackets] is an operator placeholder and is highlighted so an unfinished draft is
+ * never mistaken for final text.
  */
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { Notice } from '../../components/ui';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import { useI18n, type TKey, type TParams } from '../../i18n';
+import { useI18n, type TKey } from '../../i18n';
+import { isDeviceMode } from '../../platform';
+import { LEGAL_UPDATED, legalDocument, splitPlaceholders, type LegalDocName, type LegalMode, type LegalSection, type LegalText } from './documents';
 import '../../styles/legal.css';
 
-/** Date of the current draft (shown as "Last updated"). Change it whenever the text changes. */
-export const LEGAL_UPDATED = '2026-10-29';
+export { LEGAL_UPDATED, splitPlaceholders };
+export type { LegalSection, LegalText };
 
-export type LegalText = TKey | { key: TKey; params: TParams };
-
-export interface LegalSection {
-  id: string;
-  title: TKey;
-  body?: LegalText[];
-  list?: LegalText[];
-  /** Numbered steps instead of bullets. */
-  ordered?: boolean;
-  after?: LegalText[];
-}
-
-/** Splits `[placeholder]` parts out of a sentence so they can be marked. */
-export function splitPlaceholders(text: string): { text: string; placeholder: boolean }[] {
-  return text
-    .split(/(\[[^\]]+\])/g)
-    .filter(Boolean)
-    .map((part) => ({ text: part, placeholder: /^\[[^\]]+\]$/.test(part) }));
-}
+/** The texts this build shows: device mode describes the app on the phone, otherwise the hosted service. */
+export const LEGAL_MODE: LegalMode = isDeviceMode ? 'device' : 'server';
 
 function Rich({ text }: { text: string }) {
   return (
@@ -49,7 +35,7 @@ function Rich({ text }: { text: string }) {
   );
 }
 
-export function LegalDocument({ title, intro, sections, toc = false }: { title: TKey; intro: TKey; sections: LegalSection[]; toc?: boolean }) {
+export function LegalDocument({ title, intro, sections, toc = false, updated = LEGAL_UPDATED[LEGAL_MODE] }: { title: TKey; intro: TKey; sections: LegalSection[]; toc?: boolean; updated?: string }) {
   const { t, formatDate } = useI18n();
   const { pathname, hash } = useLocation();
   const heading = t(title);
@@ -69,7 +55,7 @@ export function LegalDocument({ title, intro, sections, toc = false }: { title: 
     <article className="legal-page">
       <header className="legal-header">
         <h1 className="page-title">{heading}</h1>
-        <p className="legal-updated">{t('legal.updated', { date: formatDate(LEGAL_UPDATED, { year: 'numeric', month: 'long', day: 'numeric' }) })}</p>
+        <p className="legal-updated">{t('legal.updated', { date: formatDate(updated, { year: 'numeric', month: 'long', day: 'numeric' }) })}</p>
       </header>
       <Notice tone="warning" title={t('legal.draft.title')}>
         <Rich text={t('legal.draft.body')} />
@@ -114,4 +100,11 @@ export function LegalDocument({ title, intro, sections, toc = false }: { title: 
       })}
     </article>
   );
+}
+
+/** One legal page in this build's mode, with the UI labels it quotes in the current language. */
+export function LegalPage({ name }: { name: LegalDocName }) {
+  const { t } = useI18n();
+  const doc = legalDocument(name, LEGAL_MODE, (key) => t(key));
+  return <LegalDocument {...doc} />;
 }

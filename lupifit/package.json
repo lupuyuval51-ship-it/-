@@ -16,6 +16,7 @@
     "build:device": "vite build --config client/vite.config.ts --mode device && node scripts/build-sw-assets.mjs dist/device",
     "build:server": "node scripts/build-server.mjs",
     "android:release": "bash android/build-release.sh",
+    "legal:static": "tsx scripts/legal-static.mjs",
     "start": "node dist/server/index.js",
     "db:migrate": "tsx server/src/db/cli.ts migrate",
     "db:seed": "tsx server/src/db/cli.ts seed",
