@@ -5,7 +5,7 @@
 import { setTransport } from '../../api/client';
 import { initialLocale, translate } from '../../i18n';
 import { storage } from '../../lib/storage';
-import { isNativeApp } from '../../platform';
+import { isNativeApp, platform } from '../../platform';
 import { connectDevice, type DeviceConnection } from './connection';
 import { ERASE_FLAG, setDeviceControl } from './control';
 
@@ -72,6 +72,9 @@ export function startDevice(): DeviceConnection {
     },
   );
   setTransport(connection.transport);
+  // Storing a change failed (storage full): try again whenever the app comes back, e.g. after the person
+  // freed up space in another app.
+  platform.onResume(() => connection.retrySave());
   setDeviceControl({ erase: () => connection.erase() });
   void requestPersistentStorage();
   // Start-up time, for measurements (`performance.getEntriesByName('lupufit:device-ready')`).

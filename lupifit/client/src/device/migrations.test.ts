@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { migrationFile, migrationsFromSources, readMigrations } from '../../../server/src/db/migrate';
 import { DEVICE_MIGRATIONS } from './migrations';
 import { createHash } from './shims/crypto';
+import shipped from '../../../server/src/db/migration-checksums.json';
 
 describe('device migrations', () => {
   it('match readMigrations() of the server, with the same checksums', () => {
@@ -26,5 +27,17 @@ describe('device migrations', () => {
     expect(list.map((m) => m.name)).toEqual(['0001_first', '0002_second']);
     expect(list[0]).toEqual(migrationFile('0001_first.sql', 'SELECT 1;'));
     expect(() => migrationsFromSources({ '/a/0001_x.sql': 'a', '/b/0001_x.sql': 'b' })).toThrow(/listed twice/);
+  });
+
+  it('keep the checksum of every migration that has shipped (server/src/db/migration-checksums.json)', () => {
+    // A changed checksum stops the app at start-up on every phone, and nobody can repair it remotely.
+    // Never change an entry; add one for each new migration.
+    const current = Object.fromEntries(DEVICE_MIGRATIONS.map((m) => [m.name, m.checksum]));
+    for (const [name, checksum] of Object.entries(shipped.checksums)) expect(current[name], `${name} was changed or removed`).toBe(checksum);
+    expect(Object.keys(current).filter((name) => !(name in shipped.checksums)), 'new migrations need a line in migration-checksums.json').toEqual([]);
+  });
+
+  it('get the same checksum with CRLF line endings (a Windows checkout)', () => {
+    for (const m of DEVICE_MIGRATIONS) expect(migrationFile(`${m.name}.sql`, m.sql.replace(/\n/g, '\r\n')).checksum).toBe(m.checksum);
   });
 });

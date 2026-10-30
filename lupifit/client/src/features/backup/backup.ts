@@ -46,8 +46,8 @@ export type ParseResult = { ok: true; backup: BackupFile } | { ok: false; reason
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 
-export function parseBackup(text: string, sizeBytes: number = text.length): ParseResult {
-  if (sizeBytes > MAX_BACKUP_BYTES) return { ok: false, reason: 'too_large' };
+export function parseBackup(text: string, sizeBytes: number = text.length, maxBytes: number = MAX_BACKUP_BYTES): ParseResult {
+  if (sizeBytes > maxBytes) return { ok: false, reason: 'too_large' };
   let raw: unknown;
   try {
     raw = JSON.parse(text);

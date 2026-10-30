@@ -1,0 +1,18 @@
+{
+  "_comment": "SHA-256 of every migration that has shipped. Never change an entry: a changed migration stops the app on every phone (AGENTS.md). Add one line per new migration.",
+  "checksums": {
+    "0001_init": "b1239a5090c7c667351691725a0472eea7669606cb2baf239fb91cde33106153",
+    "0030_session_suggestions_rewards": "e8efb4b15c3ac20f9eb0af1117f6882ab2912daffd29db79ce3312f906524663",
+    "0040_ai_usage": "358f1dd2e6e17f7314dc2ee1be8c23a211961c41d6756b9297f321c9fb949028",
+    "0041_nutrition_indexes": "0da7ad4f006dfa157104a83fc6080a716e02f0f334dfac17ac7ae1b2f1a28f86",
+    "0060_coach_usage": "a724d93fc1fe98bcf30d0753d3f35e7ef1486298c54a83e6df4545d17ba9dcd9",
+    "0070_week_start": "2cb327fd830402b554e2f973150e81ee3a4e9c6263ac32872f935d39b22488e0",
+    "0080_saved_meal_corrections": "c2ec7baa3849149d80895b0b9dd527bc0287cc4c8d8505c98587b5595566dce1",
+    "0081_coach_activity_safety": "7b3b0886d091c9903814a3aec84b2da65f83fb30282f80135d8b9ea5ac88eb81",
+    "0090_readiness": "88c6e41331da8467617bd42a1fc68efa540cebd0e10cc9c6a85aa572a7d81bbe",
+    "0091_calorie_adjustment": "f5d758e97af5738e4fd904fe6710bfb828c6a20703ee7834daa76cc7b269f794",
+    "0092_workout_prefs": "1f7d844897be1824e2261acaa20a23be90f20ac8e5008aea56c7819840d1b23d",
+    "0093_push_notifications": "7605b33d50157480bdc5c0e2f2b67e45d510b93c5587f3c707a4aae5c2025855",
+    "0094_server_settings": "10ea7c67638a71fee5d817375cfdb211a3af7be45078481f464876a489da6a64"
+  }
+}

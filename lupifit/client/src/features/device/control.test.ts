@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AccountExportDTO } from '@shared/types';
 import { buildBackup } from '../backup/backup';
 import { readDeviceBackup } from './backup';
+import { installPlatform, resetPlatform } from '../../platform';
 import { ERASE_FLAG, eraseThisPhone, isWelcomed, markWelcomed, reloadAfterRestore, setDeviceControl, takeRestoredNote } from './control';
 
 const ls = () => Object.keys(window.localStorage).sort();
@@ -26,7 +27,10 @@ beforeEach(() => {
   window.sessionStorage.setItem('fitai.something', '1');
 });
 
-afterEach(() => setDeviceControl(null));
+afterEach(() => {
+  setDeviceControl(null);
+  resetPlatform();
+});
 
 describe('erase all data on this phone', () => {
   it('deletes the database through the worker, then every app key, and starts again', async () => {
@@ -37,6 +41,16 @@ describe('erase all data on this phone', () => {
     expect(erase).toHaveBeenCalledTimes(1);
     expect(ls()).toEqual(['other.app']); // not the app's: left alone
     expect(window.sessionStorage.length).toBe(0);
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('also deletes the last backup file the app prepared for saving (Android cache folder)', async () => {
+    const clearSavedFiles = vi.fn(async () => undefined);
+    installPlatform({ clearSavedFiles });
+    setDeviceControl({ erase: async () => undefined });
+    const reload = vi.fn();
+    await eraseThisPhone(reload);
+    expect(clearSavedFiles).toHaveBeenCalledTimes(1);
     expect(reload).toHaveBeenCalledTimes(1);
   });
 

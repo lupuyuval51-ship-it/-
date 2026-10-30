@@ -34,6 +34,13 @@ const device = {
     retry: 'Try again',
     details: 'Technical details',
   },
+  /** Storing a change failed while the app was running (storage full): the changes are only in memory. */
+  unsaved: {
+    title: "Your latest changes aren't stored yet",
+    storage_full: "The phone's storage is full, so LUPU-FIT can't store your latest changes. Free up some space (for example delete photos, videos or apps you don't need), then tap Try again.",
+    storage: "LUPU-FIT couldn't store your latest changes on this phone. Tap Try again.",
+    keepOpen: "Keep LUPU-FIT open until it works: closing it now loses the changes that aren't stored yet. Everything stored earlier is safe.",
+  },
   welcome: {
     title: 'Welcome to LUPU-FIT',
     body: 'Workout plans, live workouts, a food diary and a coach, all on this phone. No account, no sign-in.',
@@ -57,13 +64,16 @@ const device = {
     onlyHere:
       'Everything you record in LUPU-FIT is stored only on this phone. There is no account and no server, so nothing is copied to other devices.',
     lossWarning:
-      'If the app is uninstalled, or the phone is lost or reset, the data is gone, unless you have a backup file. Save one from time to time and keep it somewhere safe, such as Google Drive, your e-mail or a computer.',
+      'If the app is uninstalled, or the phone is lost or reset, the data is gone, unless you have a backup file. Save one from time to time and keep it somewhere private and safe, such as your own Google Drive or computer.',
     androidBackup:
       "Android's own backup may also bring the app's data back on a new phone, but that depends on the phone's backup settings and on how much data there is, so it is not guaranteed. A backup file is the reliable way.",
     backupTitle: 'Backup file',
     backupHint: 'One readable file (JSON) with everything: profile, plans, workout history, records, food diary, saved meals, coach conversations and achievements.',
+    backupPrivate: 'The file holds your health information and is not encrypted: anyone who gets it can read it. Keep it private and don’t send it in chats or shared folders.',
     saveBackup: 'Save backup file',
     lastBackup: 'Last backup file saved: {date}.',
+    lastShared: 'Last backup file sent to another app: {date}. Check that it arrived (for example in your Drive or Files): the phone can’t confirm it.',
+    backupTooLarge: "The backup file is larger than this version of LUPU-FIT can restore, so it doesn't count as a backup. Keep it anyway, and contact us so we can help.",
     noBackupYet: 'No backup file has been saved on this phone yet.',
     backupSaved: 'Backup file saved',
     backupShared: 'Backup file handed over for saving',
@@ -72,13 +82,13 @@ const device = {
     restore: 'Restore from a backup file',
     legalTitle: 'Privacy and terms',
     eraseTitle: 'Erase all data on this phone',
-    eraseHint: 'Deletes everything LUPU-FIT stored on this phone and starts over, like a new install.',
+    eraseHint: 'Deletes everything LUPU-FIT stored on this phone and starts over, like a new install. Backup files you saved elsewhere are not deleted.',
     erase: 'Erase all data',
   },
   erase: {
     step1Title: 'Erase all data on this phone?',
     step1Body:
-      'This deletes your profile, plans, workout history, records, food diary, saved meals, coach conversations and achievements from this phone. There is no copy anywhere else.',
+      "This deletes your profile, plans, workout history, records, food diary, saved meals, coach conversations and achievements from this phone. Backup files you saved (in Drive, Files, e-mail…) are not deleted, and neither is a copy in Android's own backup, if it is on; delete those yourself if you want them gone.",
     backupFirst: 'Save a backup file first',
     continue: 'Continue',
     step2Title: 'Last check',
@@ -115,7 +125,13 @@ const device = {
     title: 'Coach',
     notice: 'The coach works on this phone: its answers come from your own data and the LUPU-FIT exercise library. AI conversations are not part of this version.',
   },
+  dashboard: {
+    /** Getting-started card, meal step: no meal photos on the phone. */
+    mealStepBody: 'Search a food or look up a barcode.',
+  },
   nutrition: {
+    /** Android app: the camera is not used, so the barcode number is typed in. */
+    barcodeType: 'Type the number printed under the barcode.',
     dayEmptyBody: 'Search foods, scan a barcode or reuse a saved meal.',
     barcodeInternet: 'Barcode lookup needs internet. Only the barcode number is sent, to Open Food Facts (a free product database).',
     barcodeOffline: "You're offline, so barcodes can't be looked up right now. Search the built-in foods or add the food yourself; barcode lookup works again once you're connected.",

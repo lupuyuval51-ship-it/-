@@ -1,0 +1,3 @@
+# Migration checksums are taken over the file text: a checkout with CRLF line endings would change them
+# and stop the app at start-up on every phone (see AGENTS.md, "Never edit an applied migration").
+*.sql text eol=lf

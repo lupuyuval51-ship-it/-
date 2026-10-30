@@ -39,13 +39,18 @@ export interface MigrationFile {
 
 const MIGRATION_FILE = /^\d{4}_[a-z0-9_]+\.sql$/;
 
-/** A migration from its file name (`NNNN_description.sql`) and SQL text. */
+/**
+ * A migration from its file name (`NNNN_description.sql`) and SQL text. Line endings are normalized to
+ * LF before hashing, so a checkout with CRLF line endings (Windows) gives the same checksum
+ * (.gitattributes also pins `*.sql` to LF); for LF files this changes nothing.
+ */
 export function migrationFile(file: string, sql: string): MigrationFile {
+  const text = sql.replace(/\r\n/g, '\n');
   return {
     version: file.slice(0, 4),
     name: file.replace(/\.sql$/, ''),
-    sql,
-    checksum: crypto.createHash('sha256').update(sql).digest('hex'),
+    sql: text,
+    checksum: crypto.createHash('sha256').update(text).digest('hex'),
   };
 }
 

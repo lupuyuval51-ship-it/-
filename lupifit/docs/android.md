@@ -44,8 +44,12 @@ default language and English works too; the app name is the same in both, so the
   cookie are not copied (the app rebuilds them).
 - **Google account backup** (cloud): Android does it by itself about once a day when the phone is idle,
   charging and on Wi‑Fi, if the person turned on backup in Android settings. It is limited to **25 MB per app**:
-  above that Android skips the cloud backup until the data is smaller again. A fresh database is about 16 MB, so
-  there is room, but a large history can exceed it. Android stops the app while it copies its files, so the
+  above that Android skips the cloud backup until the data is smaller again. The database's size is mostly
+  PostgreSQL's own files plus its write-ahead log: before this release the log kept several old 16 MB segment
+  files (single-user Postgres never checkpoints by itself), which alone could pass 25 MB. The app now starts
+  Postgres with `wal_recycle=off` and checkpoints regularly, so the log stays at one or two segments (see
+  device-mode.md, "Write-ahead log"); whether a given phone's data stays under 25 MB has **not been measured on a
+  phone**. A backup file does not depend on this limit. Android stops the app while it copies its files, so the
   copy is consistent.
 - **Encryption of the cloud copy, by Android version** (exactly what the two rule files do):
   - Android 12 and newer: `data_extraction_rules.xml`, `<cloud-backup disableIfNoEncryptionCapabilities="true">`:
@@ -75,9 +79,15 @@ default language and English works too; the app name is the same in both, so the
   removes `SCHEDULE_EXACT_ALARM` (which the plugin declares) and never declares `USE_EXACT_ALARM`.
 - Android 13+ asks for the notification permission only when the person taps **Allow notifications** in
   Settings → Reminders. Without permission nothing is scheduled.
-- Scheduled reminders survive a restart of the phone (`RECEIVE_BOOT_COMPLETED`). If the app is "force
-  stopped", Android drops its alarms; the next time the app opens they are scheduled again. If the app is not
-  opened for 14 days, reminders stop until it is opened again.
+- Scheduled reminders survive a restart of the phone (`RECEIVE_BOOT_COMPLETED`). If the phone was switched off
+  while reminders were due, the plugin re-arms the missed one-off reminders about 15 seconds after start-up, so
+  they pop up together, including ones already done that day (the app has not run yet to cancel them; the next
+  start of the app removes satisfied ones). If the app is "force stopped", Android drops its alarms; the next
+  time the app opens they are scheduled again. If the app is not opened for 14 days, reminders stop until it is
+  opened again.
+- **Rest over**: during a live workout the end of each rest is also scheduled as a one-off local notification
+  (same channel, inexact, only when notifications are allowed), so it arrives with the screen off or another app
+  open; skipping, changing or finishing the rest cancels it.
 - Notification texts follow the app language (`notifications.reminders.*`), channel "Reminders" / "תזכורות".
 
 ## Other native behaviour
@@ -118,7 +128,13 @@ SDK levels, permissions) and fails if an exact-alarm permission slipped in. Outp
 `android/app/build/outputs/bundle/release/app-release.aab` (Google Play) and
 `android/app/build/outputs/apk/release/app-release.apk` (direct install), copied to `--out` as
 `LUPU-FIT-device.aab` / `LUPU-FIT-device.apk` (about 18 MB each: PostgreSQL in WebAssembly is most of it,
-the dish photos 8.7 MB). The APK is signed with APK Signature Scheme v2 (enough from Android 7.0, the minimum).
+the dish photos 8.7 MB), plus `LUPU-FIT-device.source.txt` with the git commit they were built from. The APK is
+signed with APK Signature Scheme v2 (enough from Android 7.0, the minimum).
+The script also checks that every file of `dist/device` is in the APK under its own name: Android's packager
+unpacks `.gz` assets and drops the suffix, which once removed PGlite's `pg_trgm` bundle (the database could not
+start). The device build therefore names such files `*.gz.bin` (`deviceAssetName` in `client/vite.config.ts`), and
+`npm run build:device` fails if a file Android would rename appears. Relative `LUPUFIT_KEYSTORE` /
+`LUPUFIT_KEYSTORE_PASSWORD_FILE` paths are relative to the folder the script was started from.
 
 - Signing comes only from the environment: `LUPUFIT_KEYSTORE`, the password in `LUPUFIT_KEYSTORE_PASSWORD` or in
   the file named by `LUPUFIT_KEYSTORE_PASSWORD_FILE`, optional `LUPUFIT_KEY_ALIAS` (default `upload`) and
@@ -172,9 +188,12 @@ release, on at least one real phone (ideally Android 13+ and one older version):
   from Play, check the data came back.
 
 ## Known gaps
-- **Camera barcode scanning**: the app has no `CAMERA` permission. If the phone's WebView offers `BarcodeDetector`
-  (not checked on a phone), the barcode tab shows the scan button and the camera request is then refused (the
-  person can still type the number).
-  Either add the camera permission (and update the privacy texts and Data safety) or hide the button in the
-  native app.
+- **Camera barcode scanning**: the app has no `CAMERA` permission, so the barcode tab hides the camera scan in
+  the native app and asks for the number printed under the barcode. Adding scanning means adding the camera
+  permission (requested from the tap) and updating the privacy texts and Data safety.
+- **Keep the screen on** during a workout uses the Screen Wake Lock API, which Android System WebView may not
+  offer; then the setting does nothing (not checked on a phone). A native keep-awake would need a plugin.
+- **Not tested on a phone or emulator** in this environment: first launch, migrations, backup/restore, reminders
+  and the rest notification are covered by Node/Chromium tests only. Before a release, install the APK on an
+  emulator or phone and check that the first launch reaches the welcome screen.
 - Android 7–8 cloud backups are not end-to-end encrypted (see "Android backup of the app's data").

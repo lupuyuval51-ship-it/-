@@ -9,9 +9,11 @@
  *   unless the Android app installed its own (./native, loaded by features/device/start only inside the app).
  */
 import { webPlatform } from './web';
+
+export { useBackHandler } from './backHandlers';
 import type { Platform } from './types';
 
-export type { NotificationPermission, Platform, ReminderSyncContext, Reminders, SaveFileResult } from './types';
+export type { NotificationPermission, Platform, ReminderSyncContext, Reminders, RestAlarm, SaveFileResult } from './types';
 
 export const isDeviceMode: boolean = import.meta.env.MODE === 'device';
 
@@ -45,11 +47,16 @@ export const platform: Platform = {
     sync: (settings, ctx) => current.reminders.sync(settings, ctx),
   },
   onResume: (listener) => current.onResume(listener),
+  restAlarm: {
+    schedule: (at, texts) => current.restAlarm.schedule(at, texts),
+    cancel: () => current.restAlarm.cancel(),
+  },
+  clearSavedFiles: () => current.clearSavedFiles(),
 };
 
 /** The Android app calls this once at start-up with its native implementations (missing parts stay web). */
 export function installPlatform(impl: Partial<Platform>): void {
-  current = { ...current, ...impl, reminders: impl.reminders ?? current.reminders };
+  current = { ...current, ...impl, reminders: impl.reminders ?? current.reminders, restAlarm: impl.restAlarm ?? current.restAlarm };
 }
 
 /** Tests: back to the web implementations. */

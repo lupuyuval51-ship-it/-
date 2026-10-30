@@ -37,7 +37,12 @@ export type BootState =
   | { state: 'locked' }
   /** `bootMs`: from the worker's start to ready; `steps`: time spent in each boot step (ms). */
   | { state: 'ready'; bootMs: number; steps: Partial<Record<BootStep, number>> }
-  | { state: 'failed'; reason: BootFailure; detail: string };
+  /**
+   * `unsaved`: the app was running and storing a change failed (storage full, IndexedDB error): the changes
+   * since the last successful store are only in memory. The page asks to free up space and try again
+   * (`retry-save`), never to close the app.
+   */
+  | { state: 'failed'; reason: BootFailure; detail: string; unsaved?: boolean };
 
 export interface InitMessage {
   type: 'init';
@@ -69,7 +74,12 @@ export interface RequestMessage {
   body: string | null;
 }
 
-export type PageMessage = InitMessage | RequestMessage | EraseMessage;
+/** After a `failed` state with `unsaved`: store again; the worker answers with `ready` or `failed` again. */
+export interface RetrySaveMessage {
+  type: 'retry-save';
+}
+
+export type PageMessage = InitMessage | RequestMessage | EraseMessage | RetrySaveMessage;
 
 export interface StateMessage {
   type: 'state';

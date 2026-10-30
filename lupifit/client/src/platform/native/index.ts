@@ -5,20 +5,24 @@
  * - saveFile: cache folder + Android share sheet (./files.ts).
  * - reminders: local notifications for the next 14 days (./reminders.ts).
  * - onResume: the app came back to the foreground (the next reminder sync then schedules everything again).
+ * - restAlarm: "Rest over" as a local notification during a live workout (./restAlarm.ts).
+ * - clearSavedFiles: deletes the last file handed to the share sheet (part of "Erase all data").
  * - Back button: close a dialog, go back, leave the app at the start page (./back.ts).
  * - A tapped reminder opens its page; the status/navigation bar icons follow the app's theme.
  */
 import { App } from '@capacitor/app';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
-import { Filesystem } from '@capacitor/filesystem';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Share } from '@capacitor/share';
 import type { Locale } from '@shared/constants';
 import { initialLocale, translate, type TKey } from '../../i18n';
 import { installPlatform } from '../index';
+import { runBackHandlers } from '../backHandlers';
 import { backAction, closeDialog, topDialog } from './back';
-import { createNativeSaveFile } from './files';
+import { SHARE_DIR, createNativeSaveFile } from './files';
 import { createNativeReminders, reminderPath, type ReminderTexts } from './reminders';
+import { createNativeRestAlarm } from './restAlarm';
 
 export interface NativeOptions {
   /** In-app navigation (the router). */
@@ -71,6 +75,11 @@ export async function installNativePlatform({ navigate }: NativeOptions): Promis
       resumeListeners.add(listener);
       return () => resumeListeners.delete(listener);
     },
+    restAlarm: createNativeRestAlarm({ plugin: LocalNotifications, channel: () => reminderTexts(initialLocale()).channel }),
+    clearSavedFiles: () => Filesystem.rmdir({ path: SHARE_DIR, directory: Directory.Cache, recursive: true }).then(
+      () => undefined,
+      () => undefined, // nothing saved yet
+    ),
   });
 
   await App.addListener('resume', () => {
@@ -81,6 +90,8 @@ export async function installNativePlatform({ navigate }: NativeOptions): Promis
 
   await App.addListener('backButton', ({ canGoBack }) => {
     const dialog = topDialog();
+    // A screen that handles back itself (a questionnaire step goes to the previous one).
+    if (!dialog && runBackHandlers()) return;
     switch (backAction({ pathname: window.location.pathname, dialogOpen: dialog !== null, canGoBack })) {
       case 'close-dialog':
         if (dialog) closeDialog(dialog);

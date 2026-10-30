@@ -7,7 +7,7 @@ import { Button, Card, Notice, TextField } from '../../../components/ui';
 import { useNetworkOnline } from '../../../hooks/useOnline';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
-import { isDeviceMode } from '../../../platform';
+import { isDeviceMode, isNativeApp } from '../../../platform';
 import { lookupBarcode } from '../api';
 import { BarcodeScanner, barcodeScanningSupported } from '../BarcodeScanner';
 
@@ -22,7 +22,10 @@ export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO)
   const [code, setCode] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
-  const canScan = barcodeScanningSupported();
+  // The Android app has no camera permission (nothing leaves the phone but the barcode number), so the
+  // WebView's camera request would always be refused: the number is typed in instead.
+  const native = isNativeApp();
+  const canScan = !native && barcodeScanningSupported();
   const network = useNetworkOnline();
   const offline = isDeviceMode && !network;
 
@@ -93,7 +96,7 @@ export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO)
             {t('nutrition.barcode.scan')}
           </Button>
         ) : (
-          <Notice tone="info">{t('nutrition.barcode.unsupported')}</Notice>
+          <Notice tone="info">{t(native ? 'device.nutrition.barcodeType' : 'nutrition.barcode.unsupported')}</Notice>
         )}
         <div aria-live="polite">
           {lookup.isError && !offline && (

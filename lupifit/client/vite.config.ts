@@ -57,9 +57,25 @@ function withoutDeviceRuntime(): Plugin {
 }
 
 /**
+ * Asset file names in the device build. Android's packager (aapt) unpacks `.gz` assets and drops the
+ * suffix, so a file named `*.gz` is not in the APK under the name the code asks for (PGlite's `pg_trgm`
+ * bundle, `pg_trgm.tar.gz`, would be missing and the database could not start). Such files keep their
+ * gzip content under a `.bin` name; PGlite decompresses what it fetches either way.
+ * android/build-release.sh checks that every dist/device file is in the APK under its own name.
+ */
+export function deviceAssetName(asset: { names?: readonly string[]; name?: string }): string {
+  const name = asset.names?.[0] ?? asset.name ?? '';
+  if (/\.gz$/i.test(name)) return `assets/${name.replace(/\.[^/]*$/, '').replace(/[^\w-]+/g, '_')}-[hash].gz.bin`;
+  return 'assets/[name]-[hash][extname]';
+}
+
+/**
  * Device mode has no server to send security headers, so the page carries its CSP as a meta tag (the same
  * policy as the hosted app's header, see server/src/middleware/security.ts). WebAssembly needs
- * 'wasm-unsafe-eval'; Open Food Facts is the only remote host (barcode lookup, from the worker).
+ * 'wasm-unsafe-eval'. A meta CSP covers the page only, not the device worker (a dedicated worker loaded from
+ * its own URL, and the Android app's local server sends no CSP header): the worker, where the barcode
+ * lookup to Open Food Facts runs, enforces the same connect-src itself (src/device/network-guard.ts, whose
+ * test checks that both lists match).
  */
 export const DEVICE_CSP = [
   "default-src 'self'",
@@ -107,7 +123,9 @@ export default defineConfig(({ mode }) => {
       ? {
           format: 'es' as const,
           plugins: () => [deviceAliases()],
-          rollupOptions: { output: { entryFileNames: 'assets/device-worker-[hash].js', chunkFileNames: 'assets/device-[name]-[hash].js' } },
+          rollupOptions: {
+            output: { entryFileNames: 'assets/device-worker-[hash].js', chunkFileNames: 'assets/device-[name]-[hash].js', assetFileNames: deviceAssetName },
+          },
         }
       : undefined,
     build: {
@@ -116,6 +134,7 @@ export default defineConfig(({ mode }) => {
       // Device build: no source maps in the app package (they would double its size).
       sourcemap: !device,
       chunkSizeWarningLimit: device ? 3000 : 700,
+      ...(device ? { rollupOptions: { output: { assetFileNames: deviceAssetName } } } : {}),
     },
   };
 });

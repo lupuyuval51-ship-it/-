@@ -1,5 +1,5 @@
 /** Web implementations of the platform contract (browser, installed web app, device-mode web build). */
-import type { Platform, Reminders } from './types';
+import type { Platform, Reminders, RestAlarm } from './types';
 
 function toBlob(data: string | Blob | Uint8Array, mime: string): Blob {
   if (data instanceof Blob) return data;
@@ -38,4 +38,13 @@ export function onResumeWeb(listener: () => void): () => void {
   return () => document.removeEventListener('visibilitychange', onVisible);
 }
 
-export const webPlatform: Platform = { saveFile: saveFileWeb, reminders: webReminders, onResume: onResumeWeb };
+/** The web build shows "Rest over" itself (Notification API, features/sessions/alarm.ts). */
+export const webRestAlarm: RestAlarm = { schedule: async () => undefined, cancel: async () => undefined };
+
+export const webPlatform: Platform = {
+  saveFile: saveFileWeb,
+  reminders: webReminders,
+  onResume: onResumeWeb,
+  restAlarm: webRestAlarm,
+  clearSavedFiles: async () => undefined,
+};

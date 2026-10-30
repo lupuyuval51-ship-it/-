@@ -8,6 +8,7 @@
  * both; a restore replaces the database and drops the local copies that described the old data.
  */
 import { storage } from '../../lib/storage';
+import { platform } from '../../platform';
 
 export interface DeviceControl {
   /** Closes the device database and deletes its storage (see worker/runtime.ts `erase`). */
@@ -26,6 +27,8 @@ export const ERASE_FLAG = 'fitai.device.eraseOnStart';
 export const RESTORED_FLAG = 'lupufit.device.restored';
 const WELCOMED_KEY = 'fitai.device.welcomed';
 const LAST_BACKUP_KEY = 'fitai.device.lastBackup';
+/** 'shared' when the last backup went to Android's share sheet (whether the receiving app kept it is unknown). */
+const LAST_BACKUP_HOW_KEY = 'fitai.device.lastBackupHow';
 
 const APP_PREFIXES = ['fitai.', 'lupufit.'];
 
@@ -53,11 +56,12 @@ export function clearLocalAppData(keep: readonly string[] = []): void {
 }
 
 /** UI choices kept when a restore replaces the data (they are about this phone, not about the data). */
-const DEVICE_CHOICES = ['fitai.locale', 'fitai.theme', 'fitai.restTimer.muted', 'fitai.nutrition.trendPeriod', 'fitai.nutrition.compatibleOnly', LAST_BACKUP_KEY];
+const DEVICE_CHOICES = ['fitai.locale', 'fitai.theme', 'fitai.restTimer.muted', 'fitai.nutrition.trendPeriod', 'fitai.nutrition.compatibleOnly', LAST_BACKUP_KEY, LAST_BACKUP_HOW_KEY];
 
 /**
- * "Erase all data on this phone": deletes the database (or, if the worker could not, the next start does)
- * and everything the app keeps in localStorage, then starts the app again: a first launch.
+ * "Erase all data on this phone": deletes the database (or, if the worker could not, the next start does),
+ * everything the app keeps in localStorage and the last file it prepared for saving (Android), then starts
+ * the app again: a first launch. Backup files saved elsewhere and Android's own backup copy are not touched.
  */
 export async function eraseThisPhone(reload: () => void = () => window.location.replace('/')): Promise<void> {
   storage.set(ERASE_FLAG, true);
@@ -71,6 +75,8 @@ export async function eraseThisPhone(reload: () => void = () => window.location.
     // The flag stays: the next start deletes the database before it opens it.
   }
   clearLocalAppData(erased ? [] : [ERASE_FLAG]);
+  // The last backup file handed to Android's share sheet is still in the app's cache folder: a full copy.
+  await platform.clearSavedFiles().catch(() => undefined);
   reload();
 }
 
@@ -102,4 +108,9 @@ export const markWelcomed = (userId: string) => void storage.set(WELCOMED_KEY, u
 
 /** When the last backup file was saved on this phone (ISO time), or null. */
 export const lastBackupAt = () => storage.get<string>(LAST_BACKUP_KEY);
-export const markBackupSaved = (at: Date = new Date()) => void storage.set(LAST_BACKUP_KEY, at.toISOString());
+/** True when the last backup file was handed to the share sheet rather than written by the app itself. */
+export const lastBackupShared = () => storage.get<string>(LAST_BACKUP_HOW_KEY) === 'shared';
+export const markBackupSaved = (at: Date = new Date(), how: 'saved' | 'shared' = 'saved') => {
+  storage.set(LAST_BACKUP_KEY, at.toISOString());
+  storage.set(LAST_BACKUP_HOW_KEY, how);
+};

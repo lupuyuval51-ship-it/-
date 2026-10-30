@@ -48,11 +48,26 @@ Android app (Capacitor 8 WebView, origin https://localhost)
 - **One open copy per device.** The worker holds the Web Lock `lupufit-device-db` for its whole life; a second
   tab shows "open in another tab". The page asks once for persistent storage (`navigator.storage.persist()`).
 - **Durability.** After every write request the worker flushes the database to IndexedDB before the page gets the
-  answer: a change the app confirms is stored.
+  answer: a change the app confirms is stored. If that store fails (phone storage full, IndexedDB error), the
+  request is answered `503 storage_full` / `storage_failed` (never a network error, so nothing says "saved,
+  will sync"), the start-up screen replaces the app ("Your latest changes aren't stored yet … free up space, then
+  Try again; keep the app open"), later writes are refused before they run and reads keep working. "Try again"
+  and the app coming back to the foreground store again; once that works the app returns.
+- **Write-ahead log.** PGlite runs Postgres in single-user mode, which never checkpoints by itself, and Postgres
+  keeps old 16 MB WAL segments for reuse: memory and IndexedDB grew by several 16 MB files with use. The device
+  database starts with `wal_recycle=off` (and `min_wal_size=32MB`), and the worker runs `CHECKPOINT` after
+  start-up and before a flush once the log has grown by 8 MB (`checkpointDeviceDatabase` in
+  `client/src/device/shims/pg.ts`), so `pg_wal` stays at one or two segments (tested in `pg.test.ts`).
 - **Security headers.** There is no server to send them: the page carries its CSP as a meta tag
   (`client/vite.config.ts`, `DEVICE_CSP`), the hosted policy plus `'wasm-unsafe-eval'` for WebAssembly, with
-  `connect-src 'self' https://world.openfoodfacts.org`. Adding a host there means the privacy texts and the Data
-  safety answers change too.
+  `connect-src 'self' https://world.openfoodfacts.org`. A meta CSP does not cover the device worker (a dedicated
+  worker loaded from its own URL; the Android app's local server sends no CSP header), and the worker is where the
+  server code and the barcode lookup run. The worker therefore enforces the same rule itself
+  (`client/src/device/network-guard.ts`, installed before any server module loads): `fetch` reaches only the
+  app's own origin and Open Food Facts, anything else is refused before a request is made, and XMLHttpRequest,
+  WebSocket, EventSource and importScripts are removed. A test checks that this list and the CSP's connect-src
+  match. It does not stop a dynamic `import()` of a remote module (nothing in the worker does that). Adding a
+  host means the privacy texts and the Data safety answers change too.
 
 ## Where the data lives
 
@@ -63,7 +78,7 @@ Android app (Capacitor 8 WebView, origin https://localhost)
 | Session cookie | In the worker's memory and in that row | The page never sees it |
 | Small settings: language, theme, drafts (3 days), workout settings, last backup time, welcome flag | `localStorage` keys `fitai.*` | Same keys as the website |
 | Scheduled reminders | Android's notification schedule (14 days ahead) | Rebuilt by the app; cancelled when a reminder is no longer needed |
-| Last backup file handed to the share sheet | App's private cache folder (`cache/share/`) | Replaced by the next one; Android may clear it |
+| Last backup file handed to the share sheet | App's private cache folder (`cache/share/`) | Replaced by the next one; deleted by "Erase all data"; Android may clear it |
 
 What leaves the phone: **only the barcode lookup**. The worker requests
 `https://world.openfoodfacts.org/api/v2/product/<barcode>.json?fields=…` directly from the phone; Open Food Facts
@@ -74,8 +89,14 @@ table like any food.
 ### Backups, erase, uninstall
 - **Backup file** (Settings → Your data on this phone → Save backup file): the website's backup format (readable
   account export, hidden e-mail left out) plus `device.snapshot`, every row of the person's tables as stored
-  (`client/src/device/worker/snapshot.ts`). It is plain, unencrypted JSON; the person chooses where it goes
-  through the share sheet. **Restore** (same section, or on the first-run welcome) replaces everything on the
+  (`client/src/device/worker/snapshot.ts`). It is plain, unencrypted JSON (the settings say so next to the
+  button); the person chooses where it goes through the share sheet. It is written without indentation and the
+  phone reads backup files up to 200 MB (`MAX_DEVICE_BACKUP_BYTES`; the website's own limit is 25 MB): about 0.5 KB
+  per diary entry or set in each of the two copies, so years of heavy daily use stay far below it (a test saves
+  five years of synthetic history and reads it back). Saving checks the size: a file above the limit is reported
+  ("larger than this version can restore") and not counted as a backup. On Android the share sheet cannot tell
+  whether the receiving app kept the file, so the settings then say "sent to another app … check that it arrived"
+  instead of "saved". **Restore** (same section, or on the first-run welcome) replaces everything on the
   phone in one transaction (all or nothing). A backup made by a newer app version is refused ("update the app").
   A backup made by the website cannot be restored on the phone (no snapshot).
 - **Android backup** (`allowBackup` with `res/xml/data_extraction_rules.xml` and `backup_rules.xml`): only the
@@ -84,8 +105,10 @@ table like any food.
   guaranteed. Phone-to-phone transfer: same files. Details: [android.md](android.md#android-backup-of-the-apps-data).
   Not verified on a phone.
 - **Erase all data** (two confirmations): the worker deletes the database while it holds the lock, then every
-  `fitai.*` key goes and the app starts again as a first launch (scheduled reminders are cancelled then). If the
-  database could not be deleted, the next start does it first. The cached last backup file is not deleted.
+  `fitai.*` key goes, the Android app deletes the last backup file it prepared (`cache/share/`,
+  `platform.clearSavedFiles`), and the app starts again as a first launch (scheduled reminders are cancelled
+  then). If the database could not be deleted, the next start does it first. Backup files saved elsewhere and a
+  copy in Android's own backup are not deleted (the confirmation says so).
 - **Uninstall**: Android deletes the app's whole private storage (database, settings, cache, scheduled reminders).
   Backup files the person saved elsewhere and a copy in their Google backup stay.
 
@@ -98,7 +121,7 @@ its data: the database belongs to the origin `https://localhost`, which never ch
 On the first start after an update:
 1. The worker opens the existing database (start-up screen "Opening your data on this phone…").
 2. `migrate()` runs the SQL migrations bundled into the app (`server/src/db/migrations/*.sql` via `import.meta.glob`
-   `?raw`, same names and SHA-256 checksums as on disk) that this database has not applied yet, each in its own
+   `?raw`, same names and SHA-256 checksums as on disk; line endings are normalized to LF before hashing) that this database has not applied yet, each in its own
    transaction, recorded in `schema_migrations`. The start-up screen says "Updating your data for the new
    version… Your data is kept."
 3. `seedContent()` updates the built-in exercises, foods and dishes (skipped when the content hash is unchanged;
@@ -110,11 +133,20 @@ Your data is kept; try again", and nothing is deleted; a fixed app update can th
 
 Rules for every change that ships to phones:
 - **Never edit an applied migration.** A changed checksum stops the start-up on every phone that ran it (there is
-  no operator who could repair it by hand). Add a new `NNNN_*.sql` instead.
+  no operator who could repair it by hand). Add a new `NNNN_*.sql` instead, and add its checksum to
+  `server/src/db/migration-checksums.json`: `client/src/device/migrations.test.ts` fails when a shipped
+  migration's checksum changes or a new one is missing there. `.gitattributes` pins `*.sql` to LF.
+- **Restoring older backups.** A restore writes the snapshot's rows straight into the current tables
+  (`worker/snapshot.ts`); later migrations are not replayed on those rows. That is right only for migrations that
+  add tables, or add columns whose default is the correct value for old rows. A migration that rewrites existing
+  rows (backfills, unit or format changes) or adds a NOT NULL column without a default must also change the
+  restore (convert older snapshots the same way, or refuse them with a clear message), with a test that restores a
+  snapshot from before it.
 - Migrations must run on PGlite: `npm run test:server:device` runs the whole server suite, migrations included,
   on PGlite. Keep them quick: they run on phones, while the person waits on the start-up screen.
 - A new per-user table goes into `SNAPSHOT_TABLES` (backup file) or `NOT_IN_SNAPSHOT` with a reason (a test checks
-  the coverage). Backups from older versions restore into the new schema (missing columns get their defaults).
+  the coverage). Backups from older versions restore into the new schema (missing columns get their defaults,
+  which is correct only under the rule above).
 - Raise `versionCode` in `android/version.properties` for every Play upload. People cannot go back to an older
   version from Play; Android refuses an APK with a lower `versionCode` over the installed one.
 - Upgrading `@electric-sql/pglite`: read its release notes for changes to the stored data format (like a
@@ -129,9 +161,13 @@ Rules for every change that ships to phones:
   person's data and the exercise library; free-text plan preferences are matched with keywords.
 - The **barcode lookup needs internet** and sends the barcode number to Open Food Facts.
 - **Reminders** are local notifications, inexact (a few minutes late is possible), scheduled 14 days ahead; if the
-  app is not opened for 14 days they stop until it is opened again. In a browser (device build without the
+  app is not opened for 14 days they stop until it is opened again. If the phone was switched off while reminders
+  were due, Android shows the missed ones together shortly after it starts again (also ones already done that
+  day: the app has not run yet to cancel them). The live workout's "Rest over" is a local notification too
+  (inexact, so it can come a little late on a dozing phone; shown only when notifications are allowed). In a browser (device build without the
   Android app) reminders show only while the app is open.
-- **No camera permission** in the Android app (barcodes are typed; see android.md "Known gaps").
+- **No camera permission** in the Android app: the barcode tab offers no camera scan there and asks for the number
+  (see android.md "Known gaps").
 - Anyone who can use the unlocked phone can open the app: there is no app lock.
 
 ## Build and test

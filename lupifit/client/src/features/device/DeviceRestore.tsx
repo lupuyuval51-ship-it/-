@@ -32,7 +32,7 @@ export function DeviceRestoreButton({
   const [error, setError] = useState<string | null>(null);
 
   const read = useMutation({
-    mutationFn: readDeviceBackup,
+    mutationFn: (file: File) => readDeviceBackup(file),
     onSuccess: (r) => {
       if (r.ok) {
         setError(null);

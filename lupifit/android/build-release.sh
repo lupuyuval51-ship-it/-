@@ -16,6 +16,11 @@
 # (default "upload") and LUPUFIT_KEY_PASSWORD (default: the keystore password). Create an upload key once
 # with ../android-twa/build-aab.sh --create-keystore (the same key signs both apps).
 set -euo pipefail
+# Relative signing paths mean "relative to where the script was started" (Gradle would otherwise read them
+# relative to android/app/): make them absolute before changing folder.
+abs_path() { [[ -z "$1" || "$1" == /* ]] && printf '%s' "$1" || printf '%s/%s' "$PWD" "$1"; }
+[[ -n "${LUPUFIT_KEYSTORE:-}" ]] && LUPUFIT_KEYSTORE="$(abs_path "$LUPUFIT_KEYSTORE")"
+[[ -n "${LUPUFIT_KEYSTORE_PASSWORD_FILE:-}" ]] && LUPUFIT_KEYSTORE_PASSWORD_FILE="$(abs_path "$LUPUFIT_KEYSTORE_PASSWORD_FILE")"
 cd "$(dirname "$0")"
 APP_DIR="$(cd .. && pwd)"
 
@@ -102,6 +107,19 @@ echo "  jar verified."
 AAB_SHA="$(keytool -printcert -jarfile "$AAB" | awk '/SHA256:/{print $2; exit}')"
 [[ "$AAB_SHA" == "$EXPECTED_SHA256" ]] || { echo "AAB is not signed with the upload key" >&2; exit 1; }
 
+# Every file of the web app must be in the APK under its own name: Android's packager renames some
+# (it unpacks `.gz` files and drops the suffix), and a missing file can stop the app at start-up.
+echo "Web app files in the APK:"
+EXPECTED_FILES="$(cd "$APP_DIR/dist/device" && find . -type f ! -name '*.map' | sed 's|^\./|assets/public/|' | sort)"
+APK_FILES="$(unzip -Z1 "$APK" | grep '^assets/public/' | sort)"
+MISSING="$(comm -23 <(echo "$EXPECTED_FILES") <(echo "$APK_FILES"))"
+if [[ -n "$MISSING" ]]; then
+  echo "$MISSING" | sed 's/^/  missing: /' >&2
+  echo "the APK does not contain every file of dist/device under its own name" >&2
+  exit 1
+fi
+echo "  $(echo "$EXPECTED_FILES" | wc -l) files, all present."
+
 echo "Merged manifest (from the APK):"
 BADGING="$("$BUILD_TOOLS/aapt2" dump badging "$APK")"
 echo "$BADGING" | grep -E "^package:|^(sdkVersion|targetSdkVersion|minSdkVersion):|^uses-permission:|^application-label:" | sed 's/^/  /'
@@ -116,4 +134,8 @@ if [[ -n "$OUT" ]]; then
   cp "$APK" "$OUT/LUPU-FIT-device.apk"
   echo "Copied to $OUT: LUPU-FIT-device.aab, LUPU-FIT-device.apk"
 fi
+SOURCE="$(git -C "$APP_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+git -C "$APP_DIR" diff --quiet HEAD -- . 2>/dev/null || SOURCE="$SOURCE + uncommitted changes"
+echo "Built from source: $SOURCE"
+if [[ -n "$OUT" ]]; then echo "$SOURCE" > "$OUT/LUPU-FIT-device.source.txt"; fi
 echo "Done: $AAB (Google Play) and $APK (direct install)."

@@ -39,6 +39,17 @@ export interface Reminders {
   sync(settings: ReminderSettings, ctx: ReminderSyncContext): Promise<void>;
 }
 
+/** The end of a live-workout rest as a phone notification (the Android app; the web build uses its own). */
+export interface RestAlarm {
+  /**
+   * Shows "Rest over" at `at` (epoch ms, this phone's clock) even when the app is in the background or the
+   * screen is off; replaces an earlier one. Does nothing without notification permission (never asks).
+   */
+  schedule(at: number, texts: { title: string; body: string }): Promise<void>;
+  /** Cancels it (rest skipped, changed or finished) and removes it from the notification shade. */
+  cancel(): Promise<void>;
+}
+
 export interface Platform {
   /** Saves a file the app produced (backup, export). */
   saveFile(fileName: string, mime: string, data: string | Blob | Uint8Array): Promise<SaveFileResult>;
@@ -48,4 +59,10 @@ export interface Platform {
    * Android: the app is resumed). Returns the unsubscribe function.
    */
   onResume(listener: () => void): () => void;
+  restAlarm: RestAlarm;
+  /**
+   * Deletes the files the app wrote for saving (Android: the last backup/export handed to the share sheet,
+   * kept in the app's cache folder). Web: nothing to delete (downloads belong to the browser).
+   */
+  clearSavedFiles(): Promise<void>;
 }

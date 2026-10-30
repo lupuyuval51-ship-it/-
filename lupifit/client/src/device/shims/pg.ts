@@ -186,6 +186,17 @@ $clock$;
 SET search_path TO "$user", public, pg_catalog;
 `;
 
+/**
+ * Write-ahead log (WAL) on a phone. PGlite runs Postgres in single-user mode, which never checkpoints by
+ * itself, and Postgres keeps (recycles) old 16 MB WAL segment files for reuse. In memory and in IndexedDB
+ * that meant several 16 MB files of old log per start, growing with use. With `wal_recycle=off` a finished
+ * segment is deleted at the next checkpoint instead, and `checkpointDeviceDatabase()` (called by the worker
+ * after boot and between write requests) checkpoints once the log has grown by `CHECKPOINT_AFTER_BYTES`:
+ * pg_wal then stays at one or two segments.
+ */
+export const DEVICE_START_PARAMS: readonly string[] = [...PGlite.defaultStartParams, '-c', 'wal_recycle=off', '-c', 'min_wal_size=32MB'];
+export const CHECKPOINT_AFTER_BYTES = 8 * 1024 * 1024;
+
 const BEGIN = /^\s*(BEGIN|START\s+TRANSACTION)(\s+(WORK|TRANSACTION))?\s*;?\s*$/i;
 const COMMIT = /^\s*(COMMIT|END)(\s+(WORK|TRANSACTION))?\s*;?\s*$/i;
 const ROLLBACK = /^\s*(ROLLBACK|ABORT)(\s+(WORK|TRANSACTION))?\s*;?\s*$/i;
@@ -252,7 +263,8 @@ class Connection {
       const created = (async () => {
         const manual = settings.flush === 'manual' && this.dataDir.startsWith('idb://');
         const storage = manual ? { fs: new ManualIdbFs(this.dataDir.slice('idb://'.length)) } : { dataDir: this.dataDir };
-        const db = new PGlite({ ...settings.pglite, ...storage, extensions: { pg_trgm }, parsers: currentParsers() });
+        const startParams = settings.pglite.startParams ?? [...DEVICE_START_PARAMS];
+        const db = new PGlite({ ...settings.pglite, startParams, ...storage, extensions: { pg_trgm }, parsers: currentParsers() });
         await db.waitReady;
         // Parsers registered while PGlite was starting.
         Object.assign(db.parsers, currentParsers());
@@ -531,6 +543,23 @@ export async function flushDeviceDatabase(dataDir?: string): Promise<void> {
     if (db.fs instanceof ManualIdbFs) await db.fs.flushNow();
     else await db.fs?.syncToFs(false);
   });
+}
+
+/**
+ * Runs CHECKPOINT when the write-ahead log has grown by at least `minBytes` since the last checkpoint (0:
+ * always), so that old WAL segments are removed (see `DEVICE_START_PARAMS`). Call it between requests,
+ * never while a transaction is open. Returns whether it checkpointed.
+ */
+export async function checkpointDeviceDatabase(minBytes: number = CHECKPOINT_AFTER_BYTES, dataDir?: string): Promise<boolean> {
+  const db = await onlyConnection(dataDir).database();
+  if (minBytes > 0) {
+    const { rows } = await db.query<{ behind: string | number | null }>(
+      'SELECT (pg_current_wal_lsn() - checkpoint_lsn)::bigint::text AS behind FROM pg_control_checkpoint()',
+    );
+    if (Number(rows[0]?.behind ?? 0) < minBytes) return false;
+  }
+  await db.exec('CHECKPOINT');
+  return true;
 }
 
 /** Closes PGlite (flushes storage). The next query opens it again. */

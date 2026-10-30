@@ -47,6 +47,18 @@ describe('connectDevice', () => {
     expect(conn.getState()).toMatchObject({ state: 'failed' });
   });
 
+  it('asks the worker to store again only after storing failed while the app ran', () => {
+    const worker = new FakeWorker();
+    const conn = connectDevice(worker, ACCOUNT);
+    conn.retrySave();
+    worker.emit({ type: 'state', boot: { state: 'failed', reason: 'storage_full', detail: 'quota' } }); // a start-up failure: reload instead
+    conn.retrySave();
+    expect(worker.sent.filter((m) => m.type === 'retry-save')).toHaveLength(0);
+    worker.emit({ type: 'state', boot: { state: 'failed', reason: 'storage_full', detail: 'quota', unsaved: true } });
+    conn.retrySave();
+    expect(worker.sent.filter((m) => m.type === 'retry-save')).toHaveLength(1);
+  });
+
   it('erases through the worker ("Erase all data on this phone"), and asks for an unfinished erase at start', async () => {
     const worker = new FakeWorker();
     const conn = connectDevice(worker, ACCOUNT);

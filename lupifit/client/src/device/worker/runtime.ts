@@ -13,6 +13,14 @@
  * consistent snapshot, and waits for it before the page gets the response, so every change the app
  * confirms is stored. What a read request writes on the side (the session's last-seen time) and the
  * idempotency record a handler writes after answering are stored by the next write request's flush.
+ * Before that flush it checkpoints when the write-ahead log has grown (shims/pg.ts `checkpointDeviceDatabase`),
+ * so old log files do not pile up in memory and IndexedDB.
+ *
+ * When storing fails (the phone's storage is full, IndexedDB refuses), the change is only in memory: the
+ * request is answered 503 `storage_full` / `storage_failed` (not a network error, so the page never says
+ * "saved, will sync"), the page is told (`failed` with `unsaved: true`, the start-up screen asks to free up
+ * space and try again), every later write request is refused the same way before it runs, and reads keep
+ * working. `retrySave()` (the page's "Try again", or the app coming back) stores again and lifts that.
  *
  * Device routes (protocol.ts): the full backup snapshot and its restore are answered here (worker/snapshot.ts),
  * in the same queue. `erase()` closes the database and deletes its storage after the queued requests.
@@ -29,7 +37,7 @@ import { DEVICE_MIGRATIONS } from '../migrations';
 import { DEVICE_ENV } from '../env';
 import { createDispatcher, type Application, type DispatchResponse } from '../shims/express';
 import { randomBytes, randomUUID } from '../shims/crypto';
-import { closeDeviceDatabase, configureDeviceDatabase, flushDeviceDatabase } from '../shims/pg';
+import { checkpointDeviceDatabase, closeDeviceDatabase, configureDeviceDatabase, flushDeviceDatabase } from '../shims/pg';
 import { createAccountStore } from './account-store';
 import { DEVICE_RESTORE_PATH, DEVICE_SNAPSHOT_PATH, type BootFailure, type BootState } from './protocol';
 import { DeviceSession, DeviceSessionError, type AccountProfile, type PageRequest } from './session';
@@ -52,6 +60,11 @@ const READ_ONLY = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 export interface DeviceRuntime {
   handle(request: PageRequest): Promise<DispatchResponse>;
+  /**
+   * After storing failed (see the module comment): stores everything again. Resolves when it worked (writes
+   * are accepted again); rejects, and reports the failure again, when it did not.
+   */
+  retrySave(): Promise<void>;
   /**
    * "Erase all data on this phone": after the requests already queued, closes the database and deletes
    * its storage. Every later request fails (the page reloads and the next start is a first launch).
@@ -106,8 +119,10 @@ class BootError extends Error {
   }
 }
 
+const errorDetail = (err: unknown) => (err instanceof Error ? `${err.name}: ${err.message}` : String(err)).slice(0, 400);
+
 export function classifyBootError(err: unknown): { reason: BootFailure; detail: string } {
-  const detail = (err instanceof Error ? `${err.name}: ${err.message}` : String(err)).slice(0, 400);
+  const detail = errorDetail(err);
   if (err instanceof BootError) return { reason: err.reason, detail };
   if (/quota/i.test(detail)) return { reason: 'storage_full', detail };
   if (/indexeddb|idb|InvalidStateError|UnknownError|SecurityError/i.test(detail)) return { reason: 'storage', detail };
@@ -151,6 +166,7 @@ export async function bootDeviceRuntime(report: (state: BootState) => void, prof
   } catch (err) {
     throw new BootError('account', err instanceof DeviceSessionError ? new Error(`${err.message} ${err.code ?? ''}`.trim()) : err);
   }
+  await checkpointDeviceDatabase(0).catch((err: unknown) => console.warn('[device] checkpoint failed', errorDetail(err)));
   await flushDeviceDatabase();
 
   // One request at a time. After each one the worker yields a macrotask, so that writes a handler started
@@ -158,19 +174,64 @@ export async function bootDeviceRuntime(report: (state: BootState) => void, prof
   // everything before answering.
   let tail: Promise<unknown> = Promise.resolve();
   const yieldTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
-  const settle = async (method: string) => {
+  /** Why the last store failed, while changes are only in memory (null: everything is stored). */
+  let unsaved: { reason: 'storage_full' | 'storage'; detail: string } | null = null;
+  const storeAll = async () => {
+    // A failed checkpoint only means the log stays longer: never a reason to fail the request.
+    await checkpointDeviceDatabase().catch((err: unknown) => console.warn('[device] checkpoint failed', errorDetail(err)));
+    await flushDeviceDatabase();
+  };
+  const markUnsaved = (err: unknown) => {
+    const { reason, detail } = classifyBootError(err);
+    unsaved = { reason: reason === 'storage_full' ? 'storage_full' : 'storage', detail };
+    console.error('[device] storing the data failed', detail);
+    report({ state: 'failed', reason: unsaved.reason, detail, unsaved: true });
+  };
+  const unsavedResponse = () =>
+    unsaved?.reason === 'storage_full'
+      ? errorResponse(503, 'storage_full', "The phone's storage is full: the change could not be stored")
+      : errorResponse(503, 'storage_failed', 'The change could not be stored on this phone');
+  /** Stores after a write request; false when that failed (the runtime is then `unsaved`). */
+  const settle = async (method: string): Promise<boolean> => {
     await yieldTask();
-    if (!READ_ONLY.has(method.toUpperCase())) await flushDeviceDatabase();
+    if (READ_ONLY.has(method.toUpperCase())) return true;
+    try {
+      await storeAll();
+      return true;
+    } catch (err) {
+      markUnsaved(err);
+      return false;
+    }
   };
   let erased = false;
   return {
     handle(request) {
       const run = tail.then(async () => {
         if (erased) throw new Error('The data on this phone was erased');
+        // Nothing more is changed in memory while earlier changes could not be stored.
+        if (unsaved && !READ_ONLY.has(request.method.toUpperCase())) return unsavedResponse();
+        let outcome: { ok: true; response: DispatchResponse } | { ok: false; error: unknown };
         try {
-          return (await deviceRoute(session, request)) ?? (await session.handle(request));
-        } finally {
-          await settle(request.method);
+          outcome = { ok: true, response: (await deviceRoute(session, request)) ?? (await session.handle(request)) };
+        } catch (error) {
+          outcome = { ok: false, error };
+        }
+        if (!(await settle(request.method))) return unsavedResponse();
+        if (!outcome.ok) throw outcome.error;
+        return outcome.response;
+      });
+      tail = run.catch(() => undefined);
+      return run;
+    },
+    retrySave() {
+      const run = tail.then(async () => {
+        if (erased) throw new Error('The data on this phone was erased');
+        try {
+          await storeAll();
+          unsaved = null;
+        } catch (err) {
+          markUnsaved(err);
+          throw err;
         }
       });
       tail = run.catch(() => undefined);

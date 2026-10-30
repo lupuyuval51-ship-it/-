@@ -12,6 +12,8 @@ import '../../styles/device.css';
 export interface BootSource {
   getState(): BootState;
   subscribe(listener: () => void): () => void;
+  /** After storing failed while the app ran (`failed` with `unsaved`): store again instead of reloading. */
+  retrySave?(): void;
 }
 
 /** Start-up steps in order (each one a tick of the progress tally). */
@@ -65,9 +67,9 @@ export function DeviceStartScreen({ boot, onRetry }: { boot: Exclude<BootState, 
       )}
       {boot.state === 'failed' && (
         <section className="device-start-body" role="alert">
-          <h1 className="device-start-title">{t('device.failed.title')}</h1>
-          <p>{t(FAILURE_TEXT[boot.reason])}</p>
-          <p className="muted small">{t('device.failed.keepTrying')}</p>
+          <h1 className="device-start-title">{t(boot.unsaved ? 'device.unsaved.title' : 'device.failed.title')}</h1>
+          <p>{t(boot.unsaved ? (boot.reason === 'storage_full' ? 'device.unsaved.storage_full' : 'device.unsaved.storage') : FAILURE_TEXT[boot.reason])}</p>
+          <p className="muted small">{t(boot.unsaved ? 'device.unsaved.keepOpen' : 'device.failed.keepTrying')}</p>
           <Button variant="primary" icon="refresh" onClick={onRetry}>
             {t('device.failed.retry')}
           </Button>
@@ -92,5 +94,7 @@ export function DeviceStartScreen({ boot, onRetry }: { boot: Exclude<BootState, 
 export function DeviceGate({ source, children }: { source: BootSource; children: ReactNode }) {
   const boot = useSyncExternalStore(source.subscribe, source.getState);
   if (boot.state === 'ready') return <>{children}</>;
-  return <DeviceStartScreen boot={boot} onRetry={() => window.location.reload()} />;
+  // Changes that are only in memory would be lost by a reload: store them again instead.
+  const retry = boot.state === 'failed' && boot.unsaved && source.retrySave ? () => source.retrySave?.() : () => window.location.reload();
+  return <DeviceStartScreen boot={boot} onRetry={retry} />;
 }

@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { Button, Card, LinkButton, Modal, Notice, Spinner, useToast } from '../../components/ui';
 import { saveDeviceBackup } from '../../features/device/backup';
-import { eraseThisPhone, lastBackupAt } from '../../features/device/control';
+import { eraseThisPhone, lastBackupAt, lastBackupShared } from '../../features/device/control';
 import { DeviceRestoreButton } from '../../features/device/DeviceRestore';
 import { LEGAL_PAGES } from '../../features/legal/links';
 import { useI18n } from '../../i18n';
@@ -20,16 +20,22 @@ function useSaveBackup() {
   const { t } = i18n;
   const toast = useToast();
   const [last, setLast] = useState(lastBackupAt);
+  const [shared, setShared] = useState(lastBackupShared);
   const save = useMutation({
     mutationFn: () => saveDeviceBackup(),
-    onSuccess: (result) => {
+    onSuccess: ({ result, restorable }) => {
       if (result === 'cancelled') return;
+      if (!restorable) {
+        toast.error(t('device.settings.backupTooLarge'));
+        return;
+      }
       setLast(lastBackupAt());
+      setShared(lastBackupShared());
       toast.success(t(result === 'shared' ? 'device.settings.backupShared' : 'device.settings.backupSaved'));
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'settings')),
   });
-  return { save, last };
+  return { save, last, shared };
 }
 
 function EraseDialog({ open, onClose, onBackup, backingUp }: { open: boolean; onClose(): void; onBackup(): void; backingUp: boolean }) {
@@ -97,9 +103,11 @@ function EraseDialog({ open, onClose, onBackup, backingUp }: { open: boolean; on
 
 export function DeviceDataSection() {
   const { t, formatDate } = useI18n();
-  const { save, last } = useSaveBackup();
+  const { save, last, shared } = useSaveBackup();
   const [eraseOpen, setEraseOpen] = useState(false);
-  const lastText = last ? t('device.settings.lastBackup', { date: formatDate(last, { day: 'numeric', month: 'long', year: 'numeric' }) }) : t('device.settings.noBackupYet');
+  const lastDate = last ? formatDate(last, { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  // Android cannot tell whether the app picked in the share sheet really kept the file.
+  const lastText = last ? t(shared ? 'device.settings.lastShared' : 'device.settings.lastBackup', { date: lastDate }) : t('device.settings.noBackupYet');
 
   return (
     <Card id="settings-data" title={t('device.settings.dataTitle')} subtitle={t('device.settings.dataSubtitle')} className="settings-section device-data">
@@ -115,6 +123,7 @@ export function DeviceDataSection() {
             {t('device.settings.backupTitle')}
           </h3>
           <p className="small muted">{t('device.settings.backupHint')}</p>
+          <p className="small">{t('device.settings.backupPrivate')}</p>
           <p className={`small ${last ? 'muted' : 'device-data-attention'}`} aria-live="polite">
             {lastText}
           </p>

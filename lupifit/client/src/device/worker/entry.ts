@@ -91,7 +91,20 @@ scope.addEventListener('message', (event) => {
     else pending.push(msg);
   }
   if (msg?.type === 'erase') void erase(msg);
+  if (msg?.type === 'retry-save') void retrySave();
 });
+
+/** The page's "Try again" after storing failed (see runtime.ts): back to `ready` once it is stored. */
+let lastReady: BootState | null = null;
+async function retrySave(): Promise<void> {
+  if (!runtime || current.state !== 'failed' || !current.unsaved) return;
+  try {
+    await (await runtime).retrySave();
+    if (lastReady) report(lastReady);
+  } catch {
+    // The runtime reported the failure again.
+  }
+}
 
 function unsupported(): string | null {
   if (typeof WebAssembly !== 'object') return 'WebAssembly is not available';
@@ -128,7 +141,8 @@ async function holdLockAndRun(): Promise<void> {
     try {
       await runtime;
       endStep();
-      report({ state: 'ready', bootMs: Math.round(performance.now() - started), steps: { ...steps } });
+      lastReady = { state: 'ready', bootMs: Math.round(performance.now() - started), steps: { ...steps } };
+      report(lastReady);
     } catch (err) {
       const { classifyBootError } = await import('./runtime').catch(() => ({ classifyBootError: null }));
       const failure = classifyBootError

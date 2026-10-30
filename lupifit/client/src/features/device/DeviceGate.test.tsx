@@ -67,4 +67,25 @@ describe('DeviceGate', () => {
     expect(screen.getByText('Technical details').closest('details')?.open).toBe(false);
     expect(screen.getByText('QuotaExceededError: x').getAttribute('dir')).toBe('ltr');
   });
+
+  it('when storing failed while the app ran: asks to free up space, keep the app open, and retries without reloading', () => {
+    const src = source({ state: 'ready', bootMs: 10, steps: {} });
+    const retrySave = vi.fn();
+    render(
+      <I18nProvider locale="en">
+        <DeviceGate source={{ ...src, retrySave }}>
+          <p>the app</p>
+        </DeviceGate>
+      </I18nProvider>,
+    );
+    act(() => src.set({ state: 'failed', reason: 'storage_full', detail: 'QuotaExceededError', unsaved: true }));
+    expect(screen.queryByText('the app')).toBeNull();
+    expect(screen.getByRole('heading', { name: "Your latest changes aren't stored yet" })).toBeTruthy();
+    expect(screen.getByRole('alert').textContent).toContain('Free up some space');
+    expect(screen.getByRole('alert').textContent).toContain('Keep LUPU-FIT open');
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(retrySave).toHaveBeenCalledTimes(1);
+    act(() => src.set({ state: 'ready', bootMs: 10, steps: {} }));
+    expect(screen.getByText('the app')).toBeTruthy();
+  });
 });

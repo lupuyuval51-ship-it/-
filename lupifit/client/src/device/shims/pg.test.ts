@@ -4,7 +4,18 @@
  * queries with server/src/db/pool.ts's parsers (TimeZone UTC).
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import pg, { Pool, closeDeviceDatabase, configureDeviceDatabase, dataDirFor, deviceDatabase, deviceDatabaseStats, type QueryResult } from './pg';
+import pg, {
+  CHECKPOINT_AFTER_BYTES,
+  DEVICE_START_PARAMS,
+  Pool,
+  checkpointDeviceDatabase,
+  closeDeviceDatabase,
+  configureDeviceDatabase,
+  dataDirFor,
+  deviceDatabase,
+  deviceDatabaseStats,
+  type QueryResult,
+} from './pg';
 
 const DATA_DIR = 'memory://pg-shim-test';
 let pool: Pool;
@@ -350,5 +361,38 @@ describe('pools and data directories', () => {
     await pool.query('CREATE EXTENSION IF NOT EXISTS pg_trgm');
     const { rows } = await pool.query('SELECT similarity($1, $2) > 0.3 AS close', ['chicken breast', 'chiken brest']);
     expect(rows[0]!.close).toBe(true);
+  });
+});
+
+describe('write-ahead log', () => {
+  const WAL_DIR = 'memory://pg-shim-wal-test';
+  let walPool: Pool;
+  const segments = async () =>
+    (await walPool.query<{ n: number }>("SELECT count(*)::int AS n FROM pg_ls_waldir() WHERE name ~ '^[0-9A-F]{24}$'")).rows[0]!.n;
+
+  beforeAll(async () => {
+    walPool = new Pool({ connectionString: WAL_DIR });
+    await walPool.query('CREATE TABLE wal_fill (id int PRIMARY KEY, v text NOT NULL)');
+  });
+  afterAll(async () => {
+    await walPool.end();
+    await closeDeviceDatabase(WAL_DIR);
+  });
+
+  it('starts Postgres without WAL recycling', async () => {
+    expect(DEVICE_START_PARAMS).toEqual(expect.arrayContaining(['wal_recycle=off']));
+    expect((await walPool.query('SHOW wal_recycle')).rows[0]).toEqual({ wal_recycle: 'off' });
+  });
+
+  it('checkpoints only after the log has grown, and old segments are removed (not kept for reuse)', async () => {
+    await checkpointDeviceDatabase(0, WAL_DIR);
+    expect(await checkpointDeviceDatabase(CHECKPOINT_AFTER_BYTES, WAL_DIR)).toBe(false);
+    // About 45 MB of log: three 16 MB segment boundaries.
+    for (let round = 0; round < 3; round++) {
+      await walPool.query(`INSERT INTO wal_fill SELECT g + ${round * 10_000}, repeat('x', 1200) FROM generate_series(1, 10000) g`);
+      await walPool.query('UPDATE wal_fill SET v = v');
+    }
+    expect(await checkpointDeviceDatabase(CHECKPOINT_AFTER_BYTES, WAL_DIR)).toBe(true);
+    expect(await segments()).toBeLessThanOrEqual(2);
   });
 });

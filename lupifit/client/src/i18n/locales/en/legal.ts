@@ -369,10 +369,10 @@ const legal = {
         technical: 'Technical records (coach-message times, the internal session record, records against double saving).',
         local: 'Settings and drafts in the app’s storage (language, theme, workout settings).',
         reminders: 'Reminders scheduled on the phone (after erasing in the app: when it starts again).',
+        cache: 'The last backup file the app prepared for saving, from its private cache folder.',
       },
       kept: {
         files: 'Backup files you saved, wherever you put them (your files, Google Drive, email…). Delete them there.',
-        cache: 'After erasing in the app (not after uninstalling): the last backup file you saved stays in the app’s private cache folder, which other apps cannot read, until you save another one, Android clears the cache or you uninstall the app.',
         android: 'A copy made by Android’s backup, if it is on: Google keeps it with your Google account. Turn Android backup off, or delete your phone’s backup, in your phone’s and Google account’s settings; otherwise Android’s next backup replaces the copy.',
         openFoodFacts: 'Barcode numbers you looked up were received by Open Food Facts; its own privacy policy applies.',
       },

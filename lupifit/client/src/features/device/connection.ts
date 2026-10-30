@@ -20,6 +20,8 @@ export interface DeviceConnection {
   subscribe(listener: () => void): () => void;
   /** Asks the worker to close the database and delete its storage; rejects when it could not. */
   erase(): Promise<void>;
+  /** After storing failed (`failed` with `unsaved`): asks the worker to store again (the state follows). */
+  retrySave(): void;
 }
 
 export interface ConnectOptions {
@@ -109,6 +111,9 @@ export function connectDevice(worker: WorkerLike, account: InitMessage['account'
         erasing.set(id, { resolve, reject });
         worker.postMessage({ type: 'erase', id });
       }),
+    retrySave() {
+      if (state.state === 'failed' && state.unsaved) worker.postMessage({ type: 'retry-save' });
+    },
     getState: () => state,
     subscribe(listener) {
       listeners.add(listener);

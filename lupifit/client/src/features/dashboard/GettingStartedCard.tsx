@@ -1,6 +1,7 @@
 import type { DashboardDTO } from '@shared/types';
 import { Card, Icon, LinkButton } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 import { gettingStarted, type StartStep } from './today';
 
 const TARGETS: Record<StartStep['key'], string> = {
@@ -25,7 +26,7 @@ export function GettingStartedCard({ data }: { data: Pick<DashboardDTO, 'activeP
             </span>
             <div className="dash-start-item-body">
               <strong className="dash-start-title">{t(`dashboard.start.steps.${s.key}.title`)}</strong>
-              <p className="small muted">{t(`dashboard.start.steps.${s.key}.body`)}</p>
+              <p className="small muted">{t(isDeviceMode && s.key === 'meal' ? 'device.dashboard.mealStepBody' : `dashboard.start.steps.${s.key}.body`)}</p>
             </div>
             {s.done ? (
               <span className="visually-hidden">{t('dashboard.start.done')}</span>
