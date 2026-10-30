@@ -4,6 +4,9 @@
  * - Each file runs in its own transaction and is recorded in `schema_migrations` with a checksum.
  * - Applied migrations are immutable: a checksum mismatch aborts startup.
  * - A Postgres advisory lock prevents concurrent runners (multiple instances starting at once).
+ * - Where the files come from is separate from running them: the server reads the directory
+ *   (`readMigrations`); device mode passes the same files bundled into the app (`migrationsFromSources`).
+ *   The checksum is the SHA-256 of the file text either way.
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -34,20 +37,40 @@ export interface MigrationFile {
   checksum: string;
 }
 
+const MIGRATION_FILE = /^\d{4}_[a-z0-9_]+\.sql$/;
+
+/** A migration from its file name (`NNNN_description.sql`) and SQL text. */
+export function migrationFile(file: string, sql: string): MigrationFile {
+  return {
+    version: file.slice(0, 4),
+    name: file.replace(/\.sql$/, ''),
+    sql,
+    checksum: crypto.createHash('sha256').update(sql).digest('hex'),
+  };
+}
+
+/** Server mode: the migration files in the migrations directory, in order. */
 export function readMigrations(dir = migrationsDir()): MigrationFile[] {
   return fs
     .readdirSync(dir)
-    .filter((f) => /^\d{4}_[a-z0-9_]+\.sql$/.test(f))
+    .filter((f) => MIGRATION_FILE.test(f))
     .sort()
-    .map((file) => {
-      const sql = fs.readFileSync(path.join(dir, file), 'utf8');
-      return {
-        version: file.slice(0, 4),
-        name: file.replace(/\.sql$/, ''),
-        sql,
-        checksum: crypto.createHash('sha256').update(sql).digest('hex'),
-      };
-    });
+    .map((file) => migrationFile(file, fs.readFileSync(path.join(dir, file), 'utf8')));
+}
+
+/**
+ * Device mode: migrations given as `{ path: sql }` (e.g. Vite's `import.meta.glob('…/*.sql', { query: '?raw' })`).
+ * Only the file name counts, so the result is the same as `readMigrations` on that directory.
+ */
+export function migrationsFromSources(sources: Readonly<Record<string, string>>): MigrationFile[] {
+  const byFile = new Map<string, string>();
+  for (const [p, sql] of Object.entries(sources)) {
+    const file = p.slice(p.lastIndexOf('/') + 1);
+    if (!MIGRATION_FILE.test(file)) continue;
+    if (byFile.has(file)) throw new Error(`Migration ${file} is listed twice`);
+    byFile.set(file, sql);
+  }
+  return [...byFile.keys()].sort().map((file) => migrationFile(file, byFile.get(file)!));
 }
 
 async function ensureTable(client: pg.PoolClient) {
@@ -65,8 +88,8 @@ export interface MigrationResult {
   alreadyApplied: number;
 }
 
-export async function migrate(log: (msg: string) => void = () => undefined): Promise<MigrationResult> {
-  const files = readMigrations();
+/** Applies the pending migrations: by default the files in the migrations directory. */
+export async function migrate(log: (msg: string) => void = () => undefined, files: readonly MigrationFile[] = readMigrations()): Promise<MigrationResult> {
   const client = await db.pool().connect();
   try {
     await client.query('SELECT pg_advisory_lock($1)', [LOCK_ID]);
@@ -103,8 +126,9 @@ export async function migrate(log: (msg: string) => void = () => undefined): Pro
   }
 }
 
-export async function migrationStatus(): Promise<{ name: string; applied: boolean; appliedAt: string | null }[]> {
-  const files = readMigrations();
+export async function migrationStatus(
+  files: readonly MigrationFile[] = readMigrations(),
+): Promise<{ name: string; applied: boolean; appliedAt: string | null }[]> {
   const exists = await db.maybeOne<{ t: string | null }>("SELECT to_regclass('public.schema_migrations')::text AS t");
   const rows = exists?.t
     ? await db.many<{ version: string; applied_at: Date }>('SELECT version, applied_at FROM schema_migrations')
