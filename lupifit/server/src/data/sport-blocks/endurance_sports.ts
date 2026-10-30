@@ -9,7 +9,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Running: single-leg strength and calves', he: 'ריצה: כוח רגל אחת ושוקיים' },
     description: {
       en: 'Running-form skipping, single-leg hinge, calf strength, glute bridge and plank. Trains the legs and trunk with little heavy lower-body fatigue.',
-      he: 'דילוגי A לטכניקת ריצה, כפיפת ירך על רגל אחת, חיזוק שוקיים, גשר ישבן ופלאנק. עבודה לרגליים ולטרנק בלי עייפות רגליים כבדה.',
+      he: 'סקיפ A לטכניקת ריצה, דדליפט רומני על רגל אחת, חיזוק שוקיים, גשר ישבן ופלאנק. עבודה לרגליים ולליבה בלי עייפות רגליים כבדה.',
     },
     items: [
       { exerciseId: 'a_skip', sets: 2, seconds: 40, restSeconds: 15 },
@@ -26,7 +26,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Running: loaded hinge, calves and carry', he: 'ריצה: כפיפת ירך עם משקל, שוקיים ונשיאה' },
     description: {
       en: 'Running-form skipping, dumbbell single-leg hinge, calf raises, hip thrust and a farmer carry. Light loads for the posterior chain, calves and trunk.',
-      he: 'דילוגי A, כפיפת ירך על רגל אחת עם משקולת, הרמות עקב, הרמת אגן ונשיאת משקולות. עומס קל לשרשרת האחורית, לשוקיים ולטרנק.',
+      he: 'סקיפ A, דדליפט רומני על רגל אחת עם משקולת, הרמות עקבים, היפ טראסט והליכת חקלאי. עומס קל לשרשרת האחורית, לשוקיים ולליבה.',
     },
     items: [
       { exerciseId: 'a_skip', sets: 2, seconds: 40, restSeconds: 15 },
@@ -40,10 +40,10 @@ export const blocks: SportBlockSeed[] = [
     id: 'running_gentle',
     sport: 'running',
     variant: 'gentle',
-    name: { en: 'Running: gentle low-impact legs and trunk', he: 'ריצה: רגליים וטרנק בעצימות נמוכה' },
+    name: { en: 'Running: gentle low-impact legs and trunk', he: 'ריצה: רגליים וליבה בעצימות נמוכה' },
     description: {
       en: 'Brisk walking rhythm, calf raises, wall sit, glute bridge marches and a side plank. Low impact work for the muscles that support running.',
-      he: 'קצב הליכה מהירה, הרמות עקב, ישיבת קיר, צעדי גשר ישבן ופלאנק צד. עבודה בעצימות נמוכה לשרירים התומכים בריצה.',
+      he: 'קצב הליכה מהירה, הרמות עקבים, כיסא על הקיר, גשר ישבן עם צעידה ופלאנק צידי. עבודה בעצימות נמוכה לשרירים התומכים בריצה.',
     },
     items: [
       { exerciseId: 'brisk_walk_jog', sets: 2, seconds: 40, restSeconds: 15 },
@@ -62,7 +62,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Cycling: leg endurance, back and posture', he: 'רכיבה: סיבולת רגליים, גב ויציבה' },
     description: {
       en: 'Wall sit, single-leg bridge, superman, prone Y raise and plank. Trains quad and glute endurance, hip extension, lower back and upper-back posture.',
-      he: 'ישיבת קיר, גשר ישבן על רגל אחת, סופרמן, הרמות Y בשכיבה ופלאנק. עבודה לסיבולת ארבע ראשי וישבן, פשיטת ירך, גב תחתון ויציבת גב עליון.',
+      he: 'כיסא על הקיר, גשר ישבן על רגל אחת, סופרמן, הרמות Y בשכיבה על הבטן ופלאנק. עבודה לסיבולת ארבע ראשי וישבן, פשיטת ירך, גב תחתון ויציבת גב עליון.',
     },
     items: [
       { exerciseId: 'wall_sit', sets: 2, seconds: 40, restSeconds: 15 },
@@ -79,7 +79,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Cycling: loaded legs, hinge and upper back', he: 'רכיבה: רגליים עם משקל, כפיפת ירך וגב עליון' },
     description: {
       en: 'Goblet squat, single-leg dumbbell hinge, hip thrust, band row and plank. Builds quad, glute and hamstring endurance plus upper-back posture and trunk.',
-      he: 'סקוואט גביע, כפיפת ירך על רגל אחת עם משקולת, הרמת אגן, חתירה בגומייה ופלאנק. סיבולת לארבע ראשי, לישבן ולירכיים האחוריות, יציבת גב עליון וטרנק.',
+      he: 'גובלט סקוואט, דדליפט רומני על רגל אחת עם משקולת, היפ טראסט, חתירה בגומייה ופלאנק. סיבולת לארבע ראשי, לישבן ולירכיים האחוריות, יציבת גב עליון וליבה.',
     },
     items: [
       { exerciseId: 'goblet_squat', sets: 2, reps: [10, 12], restSeconds: 15 },
@@ -93,10 +93,10 @@ export const blocks: SportBlockSeed[] = [
     id: 'cycling_gentle',
     sport: 'cycling',
     variant: 'gentle',
-    name: { en: 'Cycling: gentle legs, posture and trunk', he: 'רכיבה: רגליים, יציבה וטרנק בעצימות נמוכה' },
+    name: { en: 'Cycling: gentle legs, posture and trunk', he: 'רכיבה: רגליים, יציבה וליבה בעצימות נמוכה' },
     description: {
       en: 'Box squat, glute bridge, scapular push-up, bird dog and plank. Low impact work for leg endurance, hip extension, upper-back posture and trunk control.',
-      he: 'סקוואט לקופסה, גשר ישבן, שכיבת סמיכה לשכמות, ציפור-כלב ופלאנק. עבודה בעצימות נמוכה לסיבולת רגליים, פשיטת ירך, יציבת גב עליון ושליטה בטרנק.',
+      he: 'סקוואט לכיסא, גשר ישבן, שכיבת סמיכה לשכמות, בירד דוג ופלאנק. עבודה בעצימות נמוכה לסיבולת רגליים, פשיטת ירך, יציבת גב עליון ושליטה בליבה.',
     },
     items: [
       { exerciseId: 'box_squat', sets: 2, reps: [10, 12], restSeconds: 15 },
@@ -112,10 +112,10 @@ export const blocks: SportBlockSeed[] = [
     id: 'swimming_bodyweight',
     sport: 'swimming',
     variant: 'bodyweight',
-    name: { en: 'Swimming: dry-land shoulders and streamline', he: 'שחייה: כתפיים ויציבת זרימה על היבשה' },
+    name: { en: 'Swimming: dry-land shoulders and streamline', he: 'שחייה: כתפיים וסטרימליין על היבשה' },
     description: {
       en: 'Scapular push-up, prone swimmer, side plank, dolphin kick and streamline hold. Dry-land shoulder stability, upper-back endurance and trunk control.',
-      he: 'שכיבת סמיכה לשכמות, שחיין בשכיבה, פלאנק צד, בעיטת דולפין וקו זרימה. יציבות כתפיים, סיבולת גב עליון ושליטה בטרנק על היבשה.',
+      he: 'שכיבת סמיכה לשכמות, שחיין בשכיבה על הבטן, פלאנק צידי, בעיטת דולפין והחזקת סטרימליין. יציבות כתפיים, סיבולת גב עליון ושליטה בליבה על היבשה.',
     },
     items: [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [10, 12], restSeconds: 15 },
@@ -132,7 +132,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Swimming: band lats and shoulder stability', he: 'שחייה: גב רחב בגומייה ויציבות כתפיים' },
     description: {
       en: 'Band row, dumbbell Y raise, band pull-apart, dolphin kick and streamline hold. Trains lats, scapular stabilisers, upper-back endurance and trunk line.',
-      he: 'חתירה בגומייה, הרמות Y עם משקולות, פתיחת גומייה, בעיטת דולפין וקו זרימה. עבודה לגב רחב, למייצבי השכמות, לסיבולת גב עליון ולקו הטרנק.',
+      he: 'חתירה בגומייה, הרמות Y עם משקולות, פתיחת גומייה לצדדים, בעיטת דולפין והחזקת סטרימליין. עבודה לגב רחב, למייצבי השכמות, לסיבולת גב עליון ולקו הגוף בסטרימליין.',
     },
     items: [
       { exerciseId: 'band_row', sets: 2, reps: [12, 15], restSeconds: 25 },
@@ -146,10 +146,10 @@ export const blocks: SportBlockSeed[] = [
     id: 'swimming_gentle',
     sport: 'swimming',
     variant: 'gentle',
-    name: { en: 'Swimming: gentle shoulders, glutes and trunk', he: 'שחייה: כתפיים, ישבן וטרנק בעצימות נמוכה' },
+    name: { en: 'Swimming: gentle shoulders, glutes and trunk', he: 'שחייה: כתפיים, ישבן וליבה בעצימות נמוכה' },
     description: {
       en: 'Scapular push-up, wall push-up, donkey kick, glute bridge and plank. Low impact shoulder-blade control, kick-related glute work and a stable trunk.',
-      he: 'שכיבת סמיכה לשכמות, שכיבת סמיכה על הקיר, בעיטת חמור, גשר ישבן ופלאנק. עבודה בעצימות נמוכה לשליטה בשכמות, לישבן הקשור לבעיטה ולטרנק יציב.',
+      he: 'שכיבת סמיכה לשכמות, שכיבת סמיכה על הקיר, בעיטת חמור, גשר ישבן ופלאנק. עבודה בעצימות נמוכה לשליטה בשכמות, לישבן הקשור לבעיטה ולליבה יציבה.',
     },
     items: [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [10, 12], restSeconds: 15 },

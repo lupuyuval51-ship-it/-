@@ -28,7 +28,7 @@ test('search, filter by muscle group and difficulty, URL sync, reload and back/f
   await expect(page).toHaveURL(/group=legs/);
   await page.getByRole('radiogroup', { name: 'Difficulty' }).getByRole('radio', { name: /^Beginner/ }).click();
   await expect(page).toHaveURL(/\?q=squat&group=legs&difficulty=beginner$/);
-  await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
+  await expect(results(page).getByRole('link', { name: 'Goblet Squat', exact: true })).toBeVisible();
   // Intermediate exercises are filtered out.
   await expect(results(page).getByRole('link', { name: 'Barbell Back Squat' })).toHaveCount(0);
 
@@ -37,7 +37,7 @@ test('search, filter by muscle group and difficulty, URL sync, reload and back/f
   await expect(searchBox(page)).toHaveValue('squat');
   await expect(page.getByRole('radio', { name: /^Legs & glutes/ })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('radio', { name: /^Beginner/ })).toHaveAttribute('aria-checked', 'true');
-  await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
+  await expect(results(page).getByRole('link', { name: 'Goblet Squat', exact: true })).toBeVisible();
 
   // Filter chips replace the history entry: Back leaves the filtered view in one step
   // (to the page before the search began), Forward returns to it.
@@ -66,7 +66,7 @@ test('Hebrew search after switching the language, and an empty state', async ({ 
   await expect(page).toHaveURL(/q=%D7%A1%D7%A7%D7%95%D7%95%D7%90%D7%98/);
   const list = page.getByRole('list', { name: 'תרגילים' });
   await expect(list.getByRole('link', { name: 'סקוואט עם מוט' })).toBeVisible();
-  await expect(list.getByRole('link', { name: 'גובלט סקוואט' })).toBeVisible();
+  await expect(list.getByRole('link', { name: 'גובלט סקוואט', exact: true })).toBeVisible();
 
   await search.fill('zzzzqqq');
   await expect(page.getByText('לא נמצאו תרגילים')).toBeVisible();
@@ -113,7 +113,7 @@ test('detail page: content, animated demonstration, alternatives, back navigatio
   );
 
   // Easier alternative.
-  await page.getByRole('region', { name: 'Easier options' }).getByRole('link', { name: 'Goblet Squat' }).click();
+  await page.getByRole('region', { name: 'Easier options' }).getByRole('link', { name: 'Goblet Squat', exact: true }).click();
   await expect(page).toHaveURL(/\/exercises\/goblet_squat$/);
   await expect(page.getByRole('heading', { level: 1, name: 'Goblet Squat' })).toBeVisible();
 
@@ -153,7 +153,10 @@ test('personal fit warnings, equipment toggle, load more and not-found', async (
   await expect(page).toHaveURL(/\?available=1$/);
   await expect(page.getByText(/^\d+ exercises$/)).not.toHaveText(`${TOTAL} exercises`);
   await expect(results(page).getByText('Needs equipment you don’t have')).toHaveCount(0);
-  await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
+  // A dumbbell exercise stays in the filtered list (searched, since the library is larger than one page).
+  await searchBox(page).fill('goblet squat');
+  await expect(results(page).getByRole('link', { name: 'Goblet Squat', exact: true })).toBeVisible();
+  await expect(results(page).getByText('Needs equipment you don’t have')).toHaveCount(0);
 
   await page.goto('/exercises/not_a_real_exercise');
   await expect(page.getByText('Exercise not found')).toBeVisible();

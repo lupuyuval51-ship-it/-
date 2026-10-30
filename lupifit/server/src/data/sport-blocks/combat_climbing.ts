@@ -62,7 +62,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Grappling: hips, sprawls and trunk', he: 'היאבקות וגריפה: אגן, ספרול וליבה' },
     description: {
       en: 'Five stations for hip escapes, sprawl speed, bear-crawl locomotion, bridging hip drive and a hollow hold for trunk tension.',
-      he: 'חמש תחנות לבריחות אגן, מהירות ספרול, תנועת זחילת דוב, דחיפת אגן בגשר וקשיחות הליבה בהחזקת חלול.',
+      he: 'חמש תחנות לבריחות אגן, מהירות ספרול, תנועת זחילת דוב, דחיפת אגן בגשר וקשיחות הליבה בהחזקת הולו בודי.',
     },
     items: [
       { exerciseId: 'hip_escape', sets: 2, reps: [8, 10], restSeconds: 20 },
@@ -79,7 +79,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Grappling: grip, pull and hip drive', he: 'היאבקות וגריפה: אחיזה, משיכה והנעת אגן' },
     description: {
       en: 'Kettlebell swings for hip drive, sprawls, one-arm band rows, dead hangs for grip endurance and a hollow hold to finish.',
-      he: 'נדנודי קטלבל להנעת אגן, ספרול, חתירה ביד אחת עם גומייה, תלייה במתח לסיבולת אחיזה והחזקת חלול לסיום.',
+      he: 'נדנודי קטלבל להנעת אגן, ספרול, חתירה ביד אחת עם גומייה, תלייה במתח לסיבולת אחיזה והחזקת הולו בודי לסיום.',
     },
     items: [
       { exerciseId: 'kettlebell_swing', sets: 2, reps: [12, 15], restSeconds: 20 },
@@ -115,7 +115,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Climbing: shoulders, pushing and trunk', he: 'טיפוס: כתפיים, דחיפה וליבה' },
     description: {
       en: 'No bar needed: scapular control, pike push-ups as antagonist work, upper-back raises, a hollow hold and side planks for climbing-style body tension.',
-      he: 'בלי מתקן: שליטה בשכמות, שכיבות סמיכה בפייק כעבודת נגד, הרמות לגב העליון, החזקת חלול ופלאנק צידי למתח גוף כמו בטיפוס.',
+      he: 'בלי מתקן: שליטה בשכמות, שכיבות סמיכה בפייק כעבודת נגד, הרמות לגב העליון, החזקת הולו בודי ופלאנק צידי למתח גוף כמו בטיפוס.',
     },
     items: [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
@@ -149,7 +149,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Climbing: gentle shoulders and trunk', he: 'טיפוס: כתפיים וליבה בעדינות' },
     description: {
       en: 'Low-impact version: dead bugs for trunk tension, scapular push-ups, wide push-ups for antagonist work, side planks and a plank for body tension.',
-      he: 'גרסה בעומס נמוך: חרק מת למתח בליבה, שכיבות סמיכה לשכמות, שכיבות סמיכה רחבות כעבודת נגד, פלאנק צידי ופלאנק למתח גוף.',
+      he: 'גרסה בעומס נמוך: דד באג למתח בליבה, שכיבות סמיכה לשכמות, שכיבות סמיכה רחבות כעבודת נגד, פלאנק צידי ופלאנק למתח גוף.',
     },
     items: [
       { exerciseId: 'dead_bug', sets: 2, reps: [8, 10], restSeconds: 20 },

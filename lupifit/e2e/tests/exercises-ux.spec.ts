@@ -51,7 +51,7 @@ test('zero results explain themselves and offer the next step', async ({ page })
   await expect(page).toHaveURL(/\/exercises\?q=zzzzqqq$/);
   await page.getByRole('region', { name: 'Try searching for' }).getByRole('button', { name: 'squat' }).click();
   await expect(page).toHaveURL(/\/exercises\?q=squat$/);
-  await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
+  await expect(results(page).getByRole('link', { name: 'Goblet Squat', exact: true })).toBeVisible();
 });
 
 test('filters replace history entries and have an accessible radio-group keyboard model', async ({ page }) => {

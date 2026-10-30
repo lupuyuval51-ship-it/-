@@ -365,7 +365,11 @@ describe('generator targeted rules', () => {
     const weak = generatePlan(input({ location: 'home', equipment: [], experience: 'beginner', daysPerWeek: 2, ability: { ...NO_ABILITY, pushUpsMax: 2 } }), catalog);
     const pushes = allExercises(weak).filter((x) => byId.get(x.exerciseId)!.movementPattern === 'horizontal_push').map((x) => x.exerciseId);
     expect(pushes.length).toBeGreaterThan(0);
-    expect(pushes.every((id) => id === 'knee_push_up' || id === 'incline_push_up')).toBe(true);
+    // Someone who manages 2 push-ups gets only beginner-level pushing (wall, knee or incline push-ups, scapular push-ups),
+    // never the full push-up or anything harder.
+    expect(pushes).not.toContain('push_up');
+    for (const id of pushes) expect(byId.get(id)!.difficulty, id).toBe('beginner');
+    expect(pushes.some((id) => ['wall_push_up', 'knee_push_up', 'incline_push_up'].includes(id))).toBe(true);
   });
 
   it('computes %1RM loads (8 reps @ RPE 8 ≈ 75 %) and rounds to increments', () => {
@@ -454,9 +458,14 @@ describe('generator targeted rules', () => {
   });
 
   it('explains missing pulling equipment and suggests nothing it cannot honour', () => {
-    const plan = generatePlan(input({ location: 'home', equipment: ['dumbbells'], experience: 'beginner', goal: 'general_fitness', daysPerWeek: 2 }), catalog);
-    // one-arm dumbbell row needs a bench → no pulling option with dumbbells only
+    // No equipment at all: the library has no bodyweight row or pull-up without a bar, rings or a suspension trainer.
+    const plan = generatePlan(input({ location: 'home', equipment: [], experience: 'beginner', goal: 'general_fitness', daysPerWeek: 2 }), catalog);
     expect(hasNote(plan, 'no_pulling_equipment')).toBe(true);
+    expect(allExercises(plan).some((x) => ['horizontal_pull', 'vertical_pull'].includes(byId.get(x.exerciseId)!.movementPattern))).toBe(false);
+    // Dumbbells alone are enough for a bench-free bent-over row.
+    const dumbbells = generatePlan(input({ location: 'home', equipment: ['dumbbells'], experience: 'beginner', goal: 'general_fitness', daysPerWeek: 2 }), catalog);
+    expect(hasNote(dumbbells, 'no_pulling_equipment')).toBe(false);
+    expect(allExercises(dumbbells).some((x) => x.exerciseId === 'bent_over_dumbbell_row')).toBe(true);
     const withBands = generatePlan(input({ location: 'home', equipment: ['dumbbells', 'resistance_bands'], experience: 'beginner', goal: 'general_fitness', daysPerWeek: 2 }), catalog);
     expect(hasNote(withBands, 'no_pulling_equipment')).toBe(false);
     expect(allExercises(withBands).some((x) => ['horizontal_pull', 'vertical_pull'].includes(byId.get(x.exerciseId)!.movementPattern))).toBe(true);

@@ -155,8 +155,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'legs_bands_single_leg_strength',
     name: { en: 'Single-Leg Strength with Bands', he: 'כוח ברגל אחת עם גומייה' },
     description: {
-      en: 'Shrimp squats and Nordic curls for heavy single-leg work, backed by band squats, single-leg Romanian deadlifts, band bridges and lateral walks. Suits people with a solid squat and hinge.',
-      he: 'שרימפ סקוואט ונורדיק קרל לעבודה כבדה על רגל אחת, ולצדם סקוואט עם גומייה, דדליפט רומני על רגל אחת, גשר ישבן והליכות צידיות. מתאים כשיש בסיס כוח טוב בסקוואט ובציר ירך.',
+      en: 'Shrimp squats for heavy single-leg work and Nordic curls for the hamstrings, backed by band squats, single-leg Romanian deadlifts, band bridges and lateral walks. Suits people with a solid squat and hinge.',
+      he: 'שרימפ סקוואט לעבודה כבדה על רגל אחת ונורדיק קרל לירך האחורית, ולצדם סקוואט עם גומייה, דדליפט רומני על רגל אחת, גשר ישבן והליכות צידיות. מתאים כשיש בסיס כוח טוב בסקוואט ובציר ירך.',
     },
     focus: 'legs',
     mode: 'weights',
@@ -296,7 +296,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     level: 'intermediate',
     places: ['home', 'outdoor', 'gym'],
     items: [
-      { exerciseId: 'kettlebell_swing', sets: 4, reps: [12, 15], restSeconds: 60 },
+      { exerciseId: 'kettlebell_swing', sets: 3, reps: [12, 15], restSeconds: 60 },
       { exerciseId: 'kettlebell_deadlift', sets: 4, reps: [8, 10], restSeconds: 75 },
       {
         exerciseId: 'kettlebell_clean', sets: 3, reps: [5, 6], restSeconds: 60,
@@ -398,8 +398,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'upper_body_kettlebell_press_chin_up_row',
     name: { en: 'Kettlebell Press, Chin-up and Row', he: 'לחיצת קטלבל, מתח וחתירה' },
     description: {
-      en: 'Chin-ups and a kettlebell press lead, followed by decline push-ups, a one-arm band row, a band fly and a triceps extension. Pushing and pulling stay balanced. Needs a kettlebell, a band and a pull-up bar.',
-      he: 'מתח באחיזה הפוכה ולחיצת קטלבל פותחים, ואחריהם שכיבות סמיכה ברגליים מוגבהות, חתירה ביד אחת, פרפר ופשיטת מרפקים עם גומייה. דחיפה ומשיכה נשארות מאוזנות. נדרשים קטלבל, גומייה ומוט מתח.',
+      en: 'Chin-ups and a kettlebell press lead, followed by decline push-ups, a one-arm band row, a face pull and a triceps extension. Pushing and pulling stay balanced. Needs a kettlebell, a band and a pull-up bar.',
+      he: 'מתח באחיזה הפוכה ולחיצת קטלבל פותחים, ואחריהם שכיבות סמיכה ברגליים מוגבהות, חתירה ביד אחת, פייס פול ופשיטת מרפקים עם גומייה. דחיפה ומשיכה נשארות מאוזנות. נדרשים קטלבל, גומייה ומוט מתח.',
     },
     focus: 'upper_body',
     mode: 'weights',
@@ -416,7 +416,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         exerciseId: 'single_arm_band_row', sets: 3, reps: [10, 12], restSeconds: 45,
         cue: { en: 'Pull the elbow back past the ribs and keep the trunk still.', he: 'למשוך את המרפק אחורה עד לצד הצלעות; הגו נשאר יציב.' },
       },
-      { exerciseId: 'band_chest_fly', sets: 3, reps: [12, 15], restSeconds: 45 },
+      { exerciseId: 'band_face_pull', sets: 3, reps: [12, 15], restSeconds: 45 },
       { exerciseId: 'band_triceps_extension', sets: 2, reps: [12, 15], restSeconds: 30 },
     ],
   },

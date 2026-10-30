@@ -26,14 +26,14 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Surfing: band paddle and rotation', he: 'גלישה: חתירה עם גומייה וסיבוב גו' },
     description: {
       en: 'Band pulling for paddle strength, rotator cuff endurance, the pop-up pattern, a loaded trunk rotation and a controlled side plank.',
-      he: 'משיכות בגומייה לכוח חתירה, סיבולת של השרוול המסובב, תבנית הקימה על הלוח, סיבוב גו עם משקולת ופלאנק צד מבוקר.',
+      he: 'משיכות בגומייה לכוח חתירה, סיבולת של השרוול המסובב, תבנית הקימה על הלוח, סיבוב גו עם משקולת ופלאנק צידי מבוקר.',
     },
     items: [
       { exerciseId: 'band_straight_arm_pulldown', sets: 2, reps: [12, 15], restSeconds: 20 },
       { exerciseId: 'pop_up', sets: 2, reps: [6, 8], restSeconds: 20 },
       { exerciseId: 'band_external_rotation', sets: 2, reps: [12, 15], restSeconds: 20 },
       { exerciseId: 'dumbbell_woodchop', sets: 2, reps: [10, 12], restSeconds: 20 },
-      { exerciseId: 'side_plank', sets: 2, seconds: 20, restSeconds: 15 },
+      { exerciseId: 'side_plank', sets: 1, seconds: 30, restSeconds: 20 },
     ],
   },
   {
@@ -48,7 +48,7 @@ export const blocks: SportBlockSeed[] = [
     items: [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'box_squat', sets: 2, reps: [8, 12], restSeconds: 20 },
-      { exerciseId: 'bird_dog', sets: 2, reps: [6, 8], restSeconds: 20 },
+      { exerciseId: 'bird_dog', sets: 1, reps: [8, 10], restSeconds: 20 },
       { exerciseId: 'march_in_place', sets: 2, seconds: 30, restSeconds: 20 },
       { exerciseId: 'dead_bug', sets: 2, reps: [8, 10], restSeconds: 20 },
     ],
@@ -79,7 +79,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Calisthenics: pull-up bar basics', he: 'קליסתניקס: יסודות על מתח' },
     description: {
       en: 'Pull-up bar work for street workout: scapular pulls, negatives, hanging knee raises as an L-sit base, balanced by pike pushing, ending in a dead hang.',
-      he: 'עבודה על מתח לסטריט וורקאאוט: משיכות שכמות, שליליות, הרמות ברכיים בתלייה כבסיס ל-L-sit, מאוזנות בדחיפת פייק, ובסיום תלייה.',
+      he: 'עבודה על מתח לסטריט וורקאאוט: משיכות שכמות, עליות מתח שליליות, הרמות ברכיים בתלייה כבסיס ל-L-sit, מאוזנות בדחיפת פייק, ובסיום תלייה.',
     },
     items: [
       { exerciseId: 'scapular_pull_up', sets: 2, reps: [6, 10], restSeconds: 20 },
@@ -96,13 +96,13 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'Calisthenics: gentle body control', he: 'קליסתניקס: שליטה בגוף בעדינות' },
     description: {
       en: 'Beginner pushing and trunk control without impact: scapular push-ups, incline push-ups, hollow-style dead bugs, bird dogs and a plank.',
-      he: 'דחיפה ושליטה בגו ברמת מתחילים ללא קפיצות: שכיבות סמיכה לשכמות, שכיבות סמיכה בשיפוע, דד באג בסגנון גוף חלול, ציפור-כלב ופלאנק.',
+      he: 'דחיפה ושליטה בגו ברמת מתחילים ללא קפיצות: שכיבת סמיכה לשכמות, שכיבות סמיכה בשיפוע, דד באג בסגנון גוף חלול, בירד דוג ופלאנק.',
     },
     items: [
       { exerciseId: 'scapular_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'incline_push_up', sets: 2, reps: [8, 12], restSeconds: 20 },
       { exerciseId: 'dead_bug', sets: 2, reps: [8, 10], restSeconds: 20 },
-      { exerciseId: 'bird_dog', sets: 2, reps: [6, 8], restSeconds: 20 },
+      { exerciseId: 'bird_dog', sets: 1, reps: [8, 10], restSeconds: 20 },
       { exerciseId: 'plank', sets: 2, seconds: 30, restSeconds: 20 },
     ],
   },
@@ -149,7 +149,7 @@ export const blocks: SportBlockSeed[] = [
     name: { en: 'All-round athlete: gentle conditioning', he: 'ספורטאי רב-תחומי: כושר בעדינות' },
     description: {
       en: 'Low impact all-round work: step jacks for conditioning, squats, incline push-ups, glute bridge marches and a side plank.',
-      he: 'עבודה עדינה לכל הגוף: ג׳ק בצעדים לכושר, סקוואט, שכיבות סמיכה בשיפוע, צעידות בגשר ישבן ופלאנק צד.',
+      he: 'עבודה עדינה לכל הגוף: פיסוק בצעידה לכושר, סקוואט, שכיבות סמיכה בשיפוע, גשר ישבן עם צעידה ופלאנק צידי.',
     },
     items: [
       { exerciseId: 'step_jack', sets: 2, seconds: 40, restSeconds: 20 },

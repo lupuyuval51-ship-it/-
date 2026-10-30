@@ -68,7 +68,7 @@ test('Hebrew / RTL dashboard and live workout @mobile', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.getByRole('button', { name: 'הוספת תרגיל' }).first().click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('searchbox').fill('bench');
+  await dialog.getByRole('searchbox').fill('barbell bench press');
   await dialog.getByRole('button', { name: /^בחירה: / }).first().click();
   await expect(page.getByRole('button', { name: 'סט 1: יותר משקל' })).toBeVisible();
   await page.getByRole('button', { name: 'סט 1: עוד חזרות' }).click();
