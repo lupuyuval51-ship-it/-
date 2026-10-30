@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { EXERCISE_LIBRARY } from '../../server/src/data/exercises/index';
 import { readyUser, useEnglish } from './helpers';
+
+/** The whole library, so the counts below follow the data instead of a hard-coded number. */
+const TOTAL = EXERCISE_LIBRARY.length;
 
 test.beforeEach(async ({ page }) => {
   await useEnglish(page);
@@ -129,7 +133,7 @@ test('personal fit warnings, equipment toggle, load more and not-found', async (
   await expect(page.getByText('You’re missing: Barbell and Squat rack.')).toBeVisible();
 
   await page.goto('/exercises');
-  await expect(page.getByText('119 exercises')).toBeVisible();
+  await expect(page.getByText(`${TOTAL} exercises`)).toBeVisible();
   await expect(results(page).getByRole('listitem')).toHaveCount(24);
   await page.getByRole('button', { name: 'Load more' }).click();
   await expect(page).toHaveURL(/\?page=2$/);
@@ -139,15 +143,15 @@ test('personal fit warnings, equipment toggle, load more and not-found', async (
 
   // A shared link asking for more pages than exist shows everything, without a "Load more".
   await page.goto('/exercises?page=40');
-  await expect(results(page).getByRole('listitem')).toHaveCount(119);
-  await expect(page.getByText('Showing 119 of 119')).toBeVisible();
+  await expect(results(page).getByRole('listitem')).toHaveCount(TOTAL);
+  await expect(page.getByText(`Showing ${TOTAL} of ${TOTAL}`)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Load more' })).toHaveCount(0);
   await page.goto('/exercises?page=2');
   await expect(results(page).getByRole('listitem')).toHaveCount(48);
 
   await page.getByRole('switch', { name: 'Only exercises I can do with my equipment' }).click();
   await expect(page).toHaveURL(/\?available=1$/);
-  await expect(page.getByText(/^\d+ exercises$/)).not.toHaveText('119 exercises');
+  await expect(page.getByText(/^\d+ exercises$/)).not.toHaveText(`${TOTAL} exercises`);
   await expect(results(page).getByText('Needs equipment you don’t have')).toHaveCount(0);
   await expect(results(page).getByRole('link', { name: 'Goblet Squat' })).toBeVisible();
 
