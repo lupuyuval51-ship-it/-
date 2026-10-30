@@ -24,6 +24,7 @@ import {
 } from '../../components/ui';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 import { errorMessage, fieldErrorMessage } from '../../lib/errors';
 import { activatePlan, fetchHealth, fetchPlans, fetchProfile, generatePlan, workoutKeys } from './api';
 import { PlanPreview } from './PlanPreview';
@@ -75,8 +76,9 @@ function ExplanationCard() {
     <Card className="generator-explainer" title={t('workouts.generator.explanationTitle')}>
       <div className="stack-sm">
         <p>{t('workouts.generator.explanation')}</p>
-        <p className="muted small">{t('workouts.generator.explanationRules')}</p>
-        {configured != null && (
+        <p className="muted small">{t(isDeviceMode ? 'device.workouts.explanationRules' : 'workouts.generator.explanationRules')}</p>
+        {/* Device mode never has AI: the rules text above already says how preferences are read. */}
+        {configured != null && !isDeviceMode && (
           <p className="inline-note small">
             <Icon name={configured ? 'sparkles' : 'info'} size={16} />
             <span>{configured ? t('workouts.generator.aiAvailable') : t('workouts.generator.aiUnavailable')}</span>

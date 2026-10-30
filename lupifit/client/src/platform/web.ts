@@ -1,0 +1,50 @@
+/** Web implementations of the platform contract (browser, installed web app, device-mode web build). */
+import type { Platform, Reminders, RestAlarm } from './types';
+
+function toBlob(data: string | Blob | Uint8Array, mime: string): Blob {
+  if (data instanceof Blob) return data;
+  // Copy into a plain ArrayBuffer-backed view: a Uint8Array over a SharedArrayBuffer is not a BlobPart.
+  return new Blob([typeof data === 'string' ? data : new Uint8Array(data)], { type: mime });
+}
+
+/** A temporary object URL clicked as a download link. Browsers give no "cancelled" signal, so it is 'saved'. */
+export async function saveFileWeb(fileName: string, mime: string, data: string | Blob | Uint8Array) {
+  const url = URL.createObjectURL(toBlob(data, mime));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return 'saved' as const;
+}
+
+/** No phone notifications from the web build: the in-app reminders (and Web Push in server mode) stay as today. */
+export const webReminders: Reminders = {
+  supported: () => false,
+  permission: async () => 'denied',
+  request: async () => 'denied',
+  sync: async () => undefined,
+};
+
+/** The tab (or installed web app) became visible again. */
+export function onResumeWeb(listener: () => void): () => void {
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') listener();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  return () => document.removeEventListener('visibilitychange', onVisible);
+}
+
+/** The web build shows "Rest over" itself (Notification API, features/sessions/alarm.ts). */
+export const webRestAlarm: RestAlarm = { schedule: async () => undefined, cancel: async () => undefined };
+
+export const webPlatform: Platform = {
+  saveFile: saveFileWeb,
+  reminders: webReminders,
+  onResume: onResumeWeb,
+  restAlarm: webRestAlarm,
+  clearSavedFiles: async () => undefined,
+};

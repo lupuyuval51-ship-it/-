@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LUPU-FIT</string>
+    <string name="title_activity_main">LUPU-FIT</string>
+    <string name="package_name">com.lupufit.app</string>
+    <string name="custom_url_scheme">com.lupufit.app</string>
+</resources>

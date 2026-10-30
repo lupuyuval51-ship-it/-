@@ -5,5 +5,5 @@
     "types": ["node"],
     "paths": { "@shared/*": ["shared/*"] }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts", "../shared/**/*.ts", "../scripts/**/*.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts", "vitest.device.config.ts", "../shared/**/*.ts", "../scripts/**/*.ts"]
 }

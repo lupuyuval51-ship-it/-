@@ -14,7 +14,7 @@ const achievements = {
   food_log_7_days: { title: 'Mindful eating', description: 'Log food on 7 different days.' },
   protein_target_7_days: { title: 'Protein on point', description: 'Reach your protein target on 7 days.' },
   body_weight_4_weeks: { title: 'Weigh-in habit', description: 'Log your body weight in 4 different weeks.' },
-  coach_first_question: { title: 'Curious mind', description: 'Ask the AI coach your first question.' },
+  coach_first_question: { title: 'Curious mind', description: 'Ask the coach your first question.' },
   categories: {
     workouts: 'Workouts',
     consistency: 'Consistency',

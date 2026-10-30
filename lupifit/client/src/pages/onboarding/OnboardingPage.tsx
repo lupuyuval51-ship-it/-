@@ -37,6 +37,7 @@ import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { storage } from '../../lib/storage';
+import { isDeviceMode, useBackHandler } from '../../platform';
 import { ReviewStep } from './ReviewStep';
 import '../../styles/profile.css';
 import '../../styles/ux-onboarding.css';
@@ -231,6 +232,20 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
     setStep(0);
   };
 
+  // Android back button: the previous question first; when redoing the questionnaire, back to the profile
+  // (like "Cancel"); on the first question of the first run it leaves the app (the start page).
+  useBackHandler(() => {
+    if (step > 0) {
+      goTo(step - 1);
+      return true;
+    }
+    if (redo) {
+      navigate('/profile');
+      return true;
+    }
+    return false;
+  });
+
   const current = ONBOARDING_STEPS[step] ?? ONBOARDING_STEPS[0];
   const hasErrors = Object.keys(errors).length > 0;
 
@@ -245,7 +260,7 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
           <LinkButton to="/profile" variant="ghost" size="sm" icon="chevronLeft">
             {t('onboarding.actions.cancel')}
           </LinkButton>
-        ) : (
+        ) : isDeviceMode ? null : (
           <Button
             variant="ghost"
             size="sm"

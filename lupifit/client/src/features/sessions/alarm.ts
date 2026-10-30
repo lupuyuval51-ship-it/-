@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import { timerStatus, type RestTimerState } from '@shared/timer';
 import type { WorkoutSessionDTO } from '@shared/types';
 import { useI18n } from '../../i18n';
+import { platform } from '../../platform';
 import { serverNow } from './clock';
 import { prefersReducedMotion, readPrefs } from './prefs';
 import { readTimerMuted } from './storage';
@@ -106,12 +107,21 @@ export function useRestAlarm(session: WorkoutSessionDTO | null | undefined): voi
   useEffect(() => {
     if (!timer || !endsAt || timerStatus(timer, serverNow()) !== 'running') return;
     const delay = Date.parse(endsAt) - serverNow();
+    // The Android app: also a phone notification at the end, which arrives with the screen off or another
+    // app open (this page's timers stop in the background). Web: nothing (signalRestOver notifies).
+    void platform.restAlarm.schedule(Date.now() + delay, texts.current);
     const id = window.setTimeout(() => {
       if (fired.current === endsAt) return;
       fired.current = endsAt;
       signalRestOver(texts.current);
+      // Signalled here while the app is open: the notification would only repeat it.
+      if (document.visibilityState === 'visible') void platform.restAlarm.cancel();
     }, Math.max(0, delay));
-    return () => window.clearTimeout(id);
+    return () => {
+      window.clearTimeout(id);
+      // Skipped, changed or finished (or the workout screen closed): no "Rest over" any more.
+      if (fired.current !== endsAt) void platform.restAlarm.cancel();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [endsAt]);
 }

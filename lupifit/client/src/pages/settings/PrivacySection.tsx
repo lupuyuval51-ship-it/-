@@ -128,10 +128,12 @@ export function PrivacySection() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   const exportMutation = useMutation({
-    mutationFn: fetchAccountExport,
-    onSuccess: (data) => {
-      downloadJson(data, `fitai-export-${data.exportDate}.json`);
-      toast.success(t('settings.privacy.exported'));
+    mutationFn: async () => {
+      const data = await fetchAccountExport();
+      return downloadJson(data, `fitai-export-${data.exportDate}.json`);
+    },
+    onSuccess: (result) => {
+      if (result !== 'cancelled') toast.success(t('settings.privacy.exported'));
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'settings')),
   });

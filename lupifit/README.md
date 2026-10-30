@@ -4,20 +4,28 @@ LUPU-FIT is a full-stack, bilingual (Hebrew 🇮🇱 RTL by default, English LTR
 
 > LUPU-FIT provides general fitness and nutrition guidance, not medical advice.
 
+**Two ways to run it, one codebase.** The **Android app runs in device mode**: the server code and a real
+PostgreSQL database (PGlite, WebAssembly) run inside the app, so there is **no server or database to host or pay
+for**, no account, and the data stays on the phone ([docs/device-mode.md](docs/device-mode.md); owner's guide in
+Hebrew: [docs/device-mode-he.md](docs/device-mode-he.md)). The **hosted mode** described in most of this README
+(Node.js server + PostgreSQL, accounts, optional AI and Web Push) stays available for a website or a future sync
+service.
+
 ---
 
 ## Contents
 1. [Features](#features)
-2. [Quick start](#quick-start)
-3. [Configuration](#configuration)
-4. [AI integration](#ai-integration)
-5. [Architecture](#architecture)
-6. [Data model & migrations](#data-model--migrations)
-7. [Security & privacy](#security--privacy)
-8. [Testing](#testing)
-9. [Production deployment](#production-deployment)
-10. [External services & remaining configuration](#external-services--remaining-configuration)
-11. [Known limitations](#known-limitations)
+2. [Device mode (Android app, no server)](#device-mode-android-app-no-server)
+3. [Quick start](#quick-start)
+4. [Configuration](#configuration)
+5. [AI integration](#ai-integration)
+6. [Architecture](#architecture)
+7. [Data model & migrations](#data-model--migrations)
+8. [Security & privacy](#security--privacy)
+9. [Testing](#testing)
+10. [Production deployment](#production-deployment)
+11. [External services & remaining configuration](#external-services--remaining-configuration)
+12. [Known limitations](#known-limitations)
 
 ---
 
@@ -35,6 +43,32 @@ LUPU-FIT is a full-stack, bilingual (Hebrew 🇮🇱 RTL by default, English LTR
 | **AI coach** | Chat with context from your profile, plan, workouts, records and nutrition; safety screening; daily limits; built-in data-grounded mode when no LLM is configured. |
 | **Progress** | 7/30/90-day analytics: workout frequency, volume, consistency, streaks, muscle-group balance, strength progression charts, personal records, body-weight history, nutrition adherence, insights from real data only. |
 | **Motivation** | XP & levels, achievements, weekly goals, streaks, milestone notifications, optional reminders — rewarding consistency, not excess. |
+
+---
+
+## Device mode (Android app, no server)
+
+| | Device mode (the Android app) | Hosted mode (website) |
+|---|---|---|
+| Server / database to host | **None**: `server/src` runs in a Web Worker on PGlite (IndexedDB) | Node.js + PostgreSQL |
+| Account | None (hidden, inside the app) | E-mail + password |
+| Data | Only on the phone; backup file to keep or move it | On the server |
+| Internet | Only the barcode lookup (Open Food Facts) | Always |
+| AI coach / meal photos | Not available (built-in coach) | With `AI_API_KEY` |
+| Reminders | Local notifications on the phone | Web Push |
+
+```bash
+npm run build:device            # dist/device: the app with its server inside
+npm run test:server:device      # the whole server suite on PGlite (no PostgreSQL needed)
+npm run test:e2e:device         # Playwright against the static dist/device
+./android/build-release.sh --out ~/lupufit-release   # signed AAB (Google Play) + APK (direct install)
+npm run legal:static            # privacy policy / terms / data deletion as static HTML for the Play listing
+```
+
+Details: [docs/device-mode.md](docs/device-mode.md) (architecture, where the data lives, app updates and
+migrations, limits), [docs/android.md](docs/android.md) (Capacitor build, signing, release),
+[docs/play-store/](docs/play-store/) (listing, Data safety, checklist), `client/src/device/README.md` (file map).
+The legal pages in the app describe the mode the build runs in (`client/src/features/legal/documents.ts`).
 
 ---
 
@@ -193,7 +227,9 @@ Ready-made options (step-by-step guides for non-technical owners, in Hebrew):
 | **One VM with Docker Compose** (Oracle Cloud Always Free, or any Ubuntu/Debian host; amd64 and arm64) | PostgreSQL + app + Caddy with automatic HTTPS; `deploy/oracle/{setup,update,backup}.sh`. The server never sleeps, so phone reminders run. | [docs/deploy-oracle.md](docs/deploy-oracle.md), kit in [deploy/oracle](deploy/oracle) |
 | **Render + Neon** | Blueprint `render.yaml` at the repository root; the free Render instance sleeps and reminders do not run while it sleeps. | [docs/deploy-render.md](docs/deploy-render.md) |
 
-The Android app (Trusted Web Activity) needs either of them first: [docs/android.md](docs/android.md).
+The Android app on Google Play is the device-mode app (`android/`, Capacitor): it needs **none** of this,
+everything runs and is stored on the phone ([docs/android.md](docs/android.md)). Only the hosted-mode Android
+wrapper (Trusted Web Activity, `android-twa/`, [docs/android-twa.md](docs/android-twa.md)) needs a deployed site.
 
 Manual steps for any other host:
 

@@ -18,10 +18,13 @@ import { SearchTab } from '../../features/nutrition/tabs/SearchTab';
 import { SuggestionsTab } from '../../features/nutrition/tabs/SuggestionsTab';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 import '../../styles/nutrition.css';
 
-const TABS = ['search', 'recent', 'frequent', 'saved', 'suggestions', 'custom', 'quick', 'barcode', 'photo'] as const;
-type Tab = (typeof TABS)[number];
+const ALL_TABS = ['search', 'recent', 'frequent', 'saved', 'suggestions', 'custom', 'quick', 'barcode', 'photo'] as const;
+type Tab = (typeof ALL_TABS)[number];
+/** Device mode has no meal-photo analysis (it needs an AI provider on a server). */
+const TABS: readonly Tab[] = isDeviceMode ? ALL_TABS.filter((tab) => tab !== 'photo') : ALL_TABS;
 
 interface PortionState {
   food: FoodDTO;

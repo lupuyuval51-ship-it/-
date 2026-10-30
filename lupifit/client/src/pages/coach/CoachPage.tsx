@@ -18,6 +18,7 @@ import { useDraft } from '../../hooks/useDraft';
 import { useIdempotentMutation } from '../../hooks/useIdempotentMutation';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
+import { isDeviceMode } from '../../platform';
 import '../../styles/coach.css';
 import '../../styles/ux-coach.css';
 
@@ -35,7 +36,9 @@ interface SendResult {
 export default function CoachPage() {
   const i18n = useI18n();
   const { t } = i18n;
-  useDocumentTitle(t('coach.title'));
+  // Device mode: the built-in coach only (no AI provider on a phone), so it is not called an AI coach.
+  const title = t(isDeviceMode ? 'device.coach.title' : 'coach.title');
+  useDocumentTitle(title);
   const toast = useToast();
   const confirm = useConfirm();
   const queryClient = useQueryClient();
@@ -183,7 +186,8 @@ export default function CoachPage() {
   };
 
   const quotaReached = status.data != null && status.data.remainingToday <= 0;
-  const subtitle = status.isPending ? (
+  const subtitle = status.isPending || isDeviceMode ? (
+    // Device mode has no daily quota worth counting (the built-in coach costs nothing).
     t('coach.subtitle')
   ) : status.isError ? (
     <>
@@ -202,8 +206,8 @@ export default function CoachPage() {
 
   return (
     <div className="coach-page">
-      <PageHeader title={t('coach.title')} subtitle={<span className="coach-remaining">{subtitle}</span>} />
-      {status.data && !status.data.llmConfigured && (
+      <PageHeader title={title} subtitle={<span className="coach-remaining">{subtitle}</span>} />
+      {status.data && !status.data.llmConfigured && !isDeviceMode && (
         <Notice tone="info" icon="info">
           {t('coach.builtinMode')}
         </Notice>
@@ -213,7 +217,7 @@ export default function CoachPage() {
           <Badge tone={status.data.llmConfigured ? 'primary' : 'info'} icon={status.data.llmConfigured ? 'sparkles' : 'dumbbell'}>
             {status.data.llmConfigured ? t('coach.modeAi') : t('coach.modeBuiltin')}
           </Badge>
-          <span>{status.data.llmConfigured ? t('coach.modeAiHint') : t('coach.modeBuiltinHint')}</span>
+          <span>{status.data.llmConfigured ? t('coach.modeAiHint') : t(isDeviceMode ? 'device.coach.notice' : 'coach.modeBuiltinHint')}</span>
         </p>
       )}
       {status.data?.provider === 'gemini' && (

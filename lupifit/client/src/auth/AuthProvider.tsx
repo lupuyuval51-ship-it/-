@@ -7,6 +7,7 @@ import { qk } from '../api/queryClient';
 import { releasePushOnLogout } from '../features/push/push';
 import { clearAllReadyPrefs } from '../features/ready/prefs';
 import { useI18n } from '../i18n';
+import { isDeviceMode } from '../platform';
 import { clearAllDrafts } from '../lib/drafts';
 import { storage } from '../lib/storage';
 
@@ -64,6 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Theme: explicit dark/light, or follow the OS.
   useEffect(() => {
+    // Device mode shows a start-up screen before the account is known: it reads the last theme from here.
+    if (isDeviceMode && user?.theme) storage.set('fitai.theme', user.theme);
     const pref = user?.theme ?? storage.get<string>('fitai.theme') ?? 'system';
     const media = window.matchMedia?.('(prefers-color-scheme: light)');
     const apply = () => {
@@ -91,7 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storage.remove(ME_CACHE_KEY);
     queryClient.cancelQueries();
     queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
-    queryClient.setQueryData<MeResponse>(qk.me, { user: null, csrfToken: null });
+    // Device mode is never signed out: the device worker signs in again (or, after the account was
+    // deleted, creates a fresh device account), so the user is fetched again instead.
+    if (isDeviceMode) void queryClient.resetQueries({ queryKey: qk.me });
+    else queryClient.setQueryData<MeResponse>(qk.me, { user: null, csrfToken: null });
   }, [queryClient]);
 
   useEffect(() => {

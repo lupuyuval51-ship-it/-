@@ -5,6 +5,9 @@
 מדריך קצר לאדם לא טכני. התוצאה: כתובת `https://….onrender.com` שעובדת בטלפון, בלי שרת לנהל.
 הקבצים שהמדריך משתמש בהם כבר קיימים ב-repo: `render.yaml` (בשורש) ו-`lupifit/Dockerfile`.
 
+> **לא נחוץ לאפליקציה לאנדרואיד.** האפליקציה שמתפרסמת ב-Google Play עובדת היום כולה בתוך הטלפון (מצב מכשיר), בלי שרת
+> ובלי מסד נתונים לשלם עליהם: [device-mode-he.md](device-mode-he.md). המדריך הזה נחוץ רק אם רוצים להפעיל את האתר עם שרת.
+
 > **חשוב לדעת לפני שמתחילים.** בתוכנית החינמית של Render המופע **נרדם** אחרי 15 דקות בלי כניסות, והכניסה הבאה
 > מחכה בערך דקה עד שהוא מתעורר. התזכורות לטלפון רצות בתוך השרת, ולכן **כשהמופע ישן הן לא נשלחות**
 > (תזכורת שהגיע זמנה בזמן שינה לא תישלח אחר כך). לבדיקות זה בסדר; להשקה צריך מופע שלא נרדם
@@ -80,11 +83,15 @@
 
 ## 7. אפליקציית האנדרואיד
 
-האפליקציה ב-Google Play היא קליפה שפותחת את האתר שלכם במסך מלא, ולכן היא צריכה את כתובת ה-`onrender.com` הקבועה.
+> יש שתי אפליקציות אנדרואיד. האפליקציה של **מצב המכשיר** (`android/`) לא צריכה שרת בכלל: הנתונים נשמרים בטלפון,
+> ואין צורך בשום חלק מהמדריך הזה כדי לבנות אותה (ראו [device-mode-he.md](device-mode-he.md) ו-[android.md](android.md)).
+> החלק הזה מתאים רק לאפליקציה שפותחת את האתר (`android-twa/`, [android-twa.md](android-twa.md)).
+
+אפליקציית האתר ב-Google Play היא קליפה שפותחת את האתר שלכם במסך מלא, ולכן היא צריכה את כתובת ה-`onrender.com` הקבועה.
 
 1. בונים את האפליקציה עם הכתובת (בלי `https://`):
-   `./android/build-aab.sh --host lupu-fit-….onrender.com …`
-   (כל השלבים והדרישות ב-[android.md](android.md)).
+   `./android-twa/build-aab.sh --host lupu-fit-….onrender.com …`
+   (כל השלבים והדרישות ב-[android-twa.md](android-twa.md)).
 2. אחרי ההעלאה הראשונה ל-Google Play מעתיקים את טביעת ה-SHA-256 של **App signing key certificate**
    (Play Console → Test and release → App integrity) ומוסיפים אותה ב-Render:
    **Dashboard → lupu-fit → Environment → Add Environment Variable**, שם: `ANDROID_PLAY_CERT_SHA256`, ערך: הטביעה. שומרים.
@@ -113,7 +120,7 @@ Claude אם משנים את `AI_PROVIDER` ל-`anthropic`), שומרים. השי�
 ## 10. עדכון גרסה
 
 Render בונה ומעלה גרסה חדשה לבד בכל פעם שמתעדכנים קבצים תחת `lupifit/` בענף שבחרתם
-(שינויים בתיקיות `android`, `docs` ו-`e2e` לא מפעילים בנייה).
+(שינויים בתיקיות `android`, `android-twa`, `docs` ו-`e2e` לא מפעילים בנייה).
 אפשר גם להפעיל ידנית: **Dashboard → lupu-fit → Manual Deploy → Deploy latest commit**.
 
 ## אם משהו לא עובד

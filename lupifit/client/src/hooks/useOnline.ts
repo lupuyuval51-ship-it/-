@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { isDeviceMode } from '../platform';
 
-export function useOnline(): boolean {
+/** Whether this device has a network connection (the browser's own signal, `navigator.onLine`). */
+export function useNetworkOnline(): boolean {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   useEffect(() => {
     const on = () => setOnline(true);
@@ -13,4 +15,13 @@ export function useOnline(): boolean {
     };
   }, []);
   return online;
+}
+
+/**
+ * Whether the app can reach its API. Always true in device mode (the server is inside the app); use
+ * `useNetworkOnline` for the few things that need the internet there (the barcode lookup).
+ */
+export function useOnline(): boolean {
+  const online = useNetworkOnline();
+  return isDeviceMode || online;
 }

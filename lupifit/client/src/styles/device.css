@@ -1,0 +1,137 @@
+/* Device mode: start-up screen (features/device/DeviceGate.tsx), first-run welcome (pages/device/WelcomePage.tsx)
+   and the "data on this phone" settings. Tokens only, logical properties only. */
+.device-start {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 480px;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  /* The Android app draws under the system bars. */
+  padding-block: calc(var(--space-6) + var(--safe-top)) calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+.device-start-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-lg);
+}
+.device-start-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.device-start-title {
+  font-size: var(--fs-xl);
+  margin: 0;
+}
+.device-start-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+.device-start-details {
+  width: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.device-start-details code {
+  display: block;
+  margin-block-start: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.device-start-local,
+.welcome-local {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+}
+.device-start-local svg,
+.welcome-local svg {
+  flex: none;
+  margin-block-start: 2px;
+}
+
+/* A short busy line inside a dialog (restoring, erasing). */
+.device-inline-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+/* First-run welcome */
+.welcome {
+  width: 100%;
+  max-width: 440px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding-block: var(--space-4) var(--space-8);
+}
+.welcome-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.welcome-title {
+  font-size: var(--fs-2xl);
+  line-height: 1.2;
+  margin: 0;
+}
+.welcome-lead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+}
+.welcome-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.welcome-restore {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-block-start: var(--space-5);
+  border-block-start: 1px solid var(--divider);
+}
+.welcome-restore .section-title,
+.welcome-restore p {
+  margin: 0;
+}
+
+/* Settings: your data on this phone */
+.device-data-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.device-data-block .section-title,
+.device-data-block p {
+  margin: 0;
+}
+.device-data .notice p {
+  margin: 0;
+}
+.device-data .notice p + p {
+  margin-block-start: var(--space-2);
+}
+.device-data-attention {
+  color: var(--warning);
+}
+@media (min-width: 640px) {
+  .device-data-block .btn-block {
+    inline-size: auto;
+    align-self: flex-start;
+  }
+}

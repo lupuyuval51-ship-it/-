@@ -66,6 +66,12 @@ export const config = {
   env: nodeEnv,
   isProduction,
   isTest,
+  /**
+   * Device mode (`DEVICE_MODE=true`): this code runs inside the app on the phone, in a Web Worker with
+   * PGlite as the database (see client/src/device). Set only by the device build; read it only where
+   * behaviour must differ from the hosted server.
+   */
+  deviceMode: bool(env.DEVICE_MODE, false),
   version: '1.0.0',
   host: str(env.HOST, '0.0.0.0'),
   port: int(env.PORT, 3000, 1, 65535),

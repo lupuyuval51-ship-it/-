@@ -80,6 +80,8 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding-block: var(--space-3);
+  /* Clear of the navigation bar where the page draws under it (Android app). */
+  padding-block-end: calc(var(--space-3) + env(safe-area-inset-bottom));
   margin-block-end: calc(-1 * var(--space-3));
   background: var(--surface);
   border-block-start: 1px solid var(--divider);

@@ -5,6 +5,8 @@
  * - Timeouts and network failures become `network_error` / `timeout`.
  * - Optional `Idempotency-Key` for duplicate-safe submissions.
  * - One automatic retry after refreshing the CSRF token.
+ * - Requests go through a transport: `fetch` (server mode), or the device worker in device mode, where
+ *   the server runs inside the app (see features/device). Callers never notice the difference.
  */
 import type { ApiErrorBody, MeResponse } from '@shared/types';
 
@@ -31,6 +33,17 @@ export class ApiError extends Error {
   get isNetwork() {
     return this.code === 'network_error' || this.code === 'timeout';
   }
+}
+
+/** fetch's shape, for what this client sends: a method, headers, a string body and a signal. */
+export type Transport = (url: string, init?: RequestInit) => Promise<Response>;
+
+const fetchTransport: Transport = (url, init) => fetch(url, init);
+let transport: Transport = fetchTransport;
+
+/** Device mode installs the worker transport before the app renders; `null` restores fetch. */
+export function setTransport(next: Transport | null) {
+  transport = next ?? fetchTransport;
 }
 
 let csrfToken: string | null = null;
@@ -63,7 +76,7 @@ function buildUrl(path: string, query?: ApiOptions['query']): string {
 }
 
 async function refreshCsrf(): Promise<void> {
-  const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+  const res = await transport('/api/auth/me', { credentials: 'same-origin' });
   if (res.ok) {
     const me = (await res.json()) as MeResponse;
     csrfToken = me.csrfToken;
@@ -79,7 +92,7 @@ async function doFetch(path: string, opts: ApiOptions): Promise<Response> {
   const timeout = AbortSignal.timeout(opts.timeoutMs ?? 20_000);
   const signal = opts.signal ? AbortSignal.any([opts.signal, timeout]) : timeout;
   try {
-    return await fetch(buildUrl(path, opts.query), {
+    return await transport(buildUrl(path, opts.query), {
       method,
       headers,
       credentials: 'same-origin',

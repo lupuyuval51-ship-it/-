@@ -16,7 +16,7 @@ const achievements: Translations<typeof en> = {
   food_log_7_days: { title: 'אכילה מודעת', description: 'תיעוד מזון ב-7 ימים שונים.' },
   protein_target_7_days: { title: 'חלבון בול', description: 'עמידה ביעד החלבון ב-7 ימים.' },
   body_weight_4_weeks: { title: 'הרגל שקילה', description: 'רישום משקל גוף ב-4 שבועות שונים.' },
-  coach_first_question: { title: 'סקרנות', description: 'שאלה ראשונה למאמן ה-AI.' },
+  coach_first_question: { title: 'סקרנות', description: 'שאלה ראשונה למאמן.' },
   categories: {
     workouts: 'אימונים',
     consistency: 'עקביות',

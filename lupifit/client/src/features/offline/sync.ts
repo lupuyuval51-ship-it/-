@@ -19,6 +19,7 @@ import { storage } from '../../lib/storage';
 import { invalidateAfterBodyWeight } from '../progress/api';
 import { classifyFailure } from '../sessions/queue';
 import { backoffMs, isOutboxEntry, requestFor, type OutboxEntry, type OutboxOp } from './outbox';
+import { apiOffline } from '../../platform';
 
 /** Old single-key outbox (one user per device). Moved to its owner's own key when they next sign in. */
 export const OUTBOX_KEY = 'fitai.outbox';
@@ -186,7 +187,7 @@ export class OutboxSync {
   private emit() {
     const pending = this.entries.filter((e) => e.status === 'pending').length;
     const failed = this.entries.length - pending;
-    const offline = typeof navigator !== 'undefined' && (navigator.onLine === false || (this.lastFailure === 'network' && pending > 0));
+    const offline = typeof navigator !== 'undefined' && (apiOffline() || (this.lastFailure === 'network' && pending > 0));
     const next: OutboxSnapshot = { entries: this.entries, pending, failed, saving: this.inFlight != null, offline };
     const s = this.snapshot;
     if (s.entries === next.entries && s.saving === next.saving && s.offline === next.offline) return;

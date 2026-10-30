@@ -5,6 +5,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import type { OutboxEntry, OutboxOp } from './outbox';
 import { pendingFoods, pendingWeights } from './outbox';
 import { outboxSync, type OutboxSnapshot } from './sync';
+import { apiOffline, isDeviceMode } from '../../platform';
 
 /** Binds the outbox to the signed-in user for as long as the component is mounted (app shell). */
 export function useOutboxSync(): void {
@@ -41,11 +42,13 @@ export type SendResult<T> = { queued: false; res: T } | { queued: true; entry: O
  */
 export async function sendOrQueue<T>(op: OutboxOp, key: string, send: () => Promise<T>): Promise<SendResult<T>> {
   const queue = (): SendResult<T> => ({ queued: true, entry: outboxSync.enqueue(op, key) });
-  if (outboxSync.ready && typeof navigator !== 'undefined' && navigator.onLine === false) return queue();
+  if (outboxSync.ready && apiOffline()) return queue();
   try {
     return { queued: false, res: await send() };
   } catch (err) {
-    if (outboxSync.ready && err instanceof ApiError && err.isNetwork) return queue();
+    // Device mode: the API is inside the app, so a "network" error means the phone itself failed, and
+    // "saved on this device, will sync" would be untrue: the error is shown instead.
+    if (!isDeviceMode && outboxSync.ready && err instanceof ApiError && err.isNetwork) return queue();
     throw err;
   }
 }

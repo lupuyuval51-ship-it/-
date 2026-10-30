@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the cache sub-folder share/ can be shared: the backup / export file the app just wrote there
+     (SHARE_DIR in client/src/platform/native/files.ts). -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="shared_files" path="share/" />
+</paths>
