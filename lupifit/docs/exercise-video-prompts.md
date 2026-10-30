@@ -1,12 +1,23 @@
 # Exercise technique video prompts (Gemini / Veo)
 
-119 prompts, one per exercise, generated from the exercise library (`npm run docs:video-prompts`). File names to use: `<id>.mp4`.
+179 prompts, one per exercise, generated from the exercise library (`npm run docs:video-prompts`). File names to use: `<id>.mp4`.
+
+## Where to start (priority)
+
+Every exercise has a priority from how many ready workouts and sport finishers use it:
+
+- **A** (5 videos): used 8 or more times. Make these first: they cover most of the app.
+- **B** (44 videos): used 3 to 7 times.
+- **C** (42 videos): used 1 or 2 times.
+- **D** (88 videos): not used by a ready workout yet (they appear in plans, swaps and the library).
+
+The prompts below are sorted A, B, C, D (and by use inside each group). The CSV has the same order and the columns `priority`, `used_in_workouts`, `used_in_sport_blocks`.
 
 ## How to use
 
 1. Open Gemini (Veo video generation). Paste ONE prompt per video. Generate several takes and pick the best.
 2. For one consistent look across all videos, use the same first-frame image of the demonstrator (generate one still of the character in the studio and attach it as the reference/start image for every prompt, if your Gemini plan allows it).
-3. Watch every video before using it. AI video often gets exercise form wrong (joints bending the wrong way, wrong grip, extra limbs, reps that do not match). Reject anything that shows incorrect or unsafe technique. The prompts ask for correct form, but they do not guarantee it.
+3. Watch every video before using it. AI video often gets exercise form wrong (joints bending the wrong way, wrong grip, extra limbs, reps that do not match). Reject anything that shows incorrect or unsafe technique. The prompts ask for correct form, but they do not guarantee it. Exercises marked RISKY below (advanced, jumping, impact) are the ones most likely to come out wrong or unsafe: check them twice.
 4. Videos are short (the prompts ask for 8 seconds). Save as `<id>.mp4`, ideally 720p portrait or square, under about 3 MB each.
 
 ## Shared style (already included at the start of every prompt)
@@ -15,425 +26,9 @@ Photorealistic fitness instruction video, one athletic adult demonstrator with a
 
 ## Prompts
 
-### Barbell Bench Press (לחיצת חזה במוט)
-
-File: `barbell_bench_press.mp4` · category: free_weight · equipment: barbell+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Bench Press" using an Olympic barbell with plates and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and your glutes, upper back and head in contact with the bench. 2) Grip the bar slightly wider than shoulder width, squeeze your shoulder blades together and down, and keep a slight natural arch in your lower back. 3) Unrack the bar with straight arms and hold it directly over your shoulders. 4) Inhale and brace, then lower the bar under control to your lower chest (around nipple line), elbows at roughly 45–70 degrees from your torso. 5) Touch the chest lightly without bouncing, then press the bar up and slightly back toward your shoulders while driving your feet into the floor. 6) Exhale near the top, lock out without losing your shoulder-blade position, and rack the bar after the final rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Bench Press" using an Olympic barbell with plates and a flat training bench. Show: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and your glutes, upper back and head in contact with the bench. 2) Grip the bar slightly wider than shoulder width, squeeze your shoulder blades together and down, and keep a slight natural arch in your lower back. 3) Unrack the bar with straight arms and hold it directly over your shoulders. Correct, safe form only. Duration 8 seconds.
-```
-
-### Incline Barbell Bench Press (לחיצת חזה בשיפוע חיובי במוט)
-
-File: `incline_barbell_bench_press.mp4` · category: free_weight · equipment: barbell+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Barbell Bench Press" using an Olympic barbell with plates and an adjustable bench set to a 30-45 degree incline. Target muscles: chest. Technique to show, in order: 1) Set an adjustable bench to 30–45 degrees and lie back with your eyes roughly under the bar and your feet planted. 2) Grip the bar slightly wider than shoulder width and pull your shoulder blades back and down into the bench. 3) Unrack the bar and hold it with straight arms directly over your shoulders. 4) Inhale and lower the bar under control to your upper chest, just below the collarbones, keeping your forearms vertical. 5) Press the bar back up in a straight line over your shoulders, exhaling as you pass the hardest part of the rep. 6) Keep your hips and upper back on the bench throughout, then rack the bar carefully after the set. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Barbell Bench Press" using an Olympic barbell with plates and an adjustable bench set to a 30-45 degree incline. Show: 1) Set an adjustable bench to 30–45 degrees and lie back with your eyes roughly under the bar and your feet planted. 2) Grip the bar slightly wider than shoulder width and pull your shoulder blades back and down into the bench. 3) Unrack the bar and hold it with straight arms directly over your shoulders. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Bench Press (לחיצת חזה במשקולות יד)
-
-File: `dumbbell_bench_press.mp4` · category: free_weight · equipment: dumbbells+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Bench Press" using a pair of dumbbells and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Sit on the end of a flat bench with the dumbbells resting on your thighs, then lie back and use your knees to help bring them up to your chest. 2) With the dumbbells at your chest, plant your feet, pull your shoulder blades back and down, and keep your glutes and upper back on the bench. 3) Press the dumbbells up over your chest, palms facing forward or slightly inward. 4) Inhale and lower the dumbbells slowly to the sides of your chest until you feel a stretch, elbows at roughly 45 degrees from your body. 5) Press back up, bringing the dumbbells toward each other over your chest, and exhale near the top. 6) After the last rep, bring the dumbbells to your chest, lift your knees and sit up with control as the dumbbells return to your thighs. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Bench Press" using a pair of dumbbells and a flat training bench. Show: 1) Sit on the end of a flat bench with the dumbbells resting on your thighs, then lie back and use your knees to help bring them up to your chest. 2) With the dumbbells at your chest, plant your feet, pull your shoulder blades back and down, and keep your glutes and upper back on the bench. 3) Press the dumbbells up over your chest, palms facing forward or slightly inward. Correct, safe form only. Duration 8 seconds.
-```
-
-### Incline Dumbbell Press (לחיצת חזה בשיפוע חיובי במשקולות יד)
-
-File: `incline_dumbbell_press.mp4` · category: free_weight · equipment: dumbbells+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Dumbbell Press" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Target muscles: chest. Technique to show, in order: 1) Set the bench to 30–45 degrees, sit with the dumbbells on your thighs and lie back, using your knees to bring them up to shoulder level. 2) Press the dumbbells up over your upper chest with your shoulder blades back and down and your feet firmly on the floor. 3) Inhale and lower the dumbbells slowly to the sides of your upper chest, elbows slightly tucked and forearms vertical. 4) Pause briefly at a comfortable stretch, then press up and slightly inward so the dumbbells finish over your collarbones. 5) Exhale through the top of the press and keep your back against the bench on every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Dumbbell Press" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Show: 1) Set the bench to 30–45 degrees, sit with the dumbbells on your thighs and lie back, using your knees to bring them up to shoulder level. 2) Press the dumbbells up over your upper chest with your shoulder blades back and down and your feet firmly on the floor. 3) Inhale and lower the dumbbells slowly to the sides of your upper chest, elbows slightly tucked and forearms vertical. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Floor Press (לחיצת חזה מהרצפה במשקולות יד)
-
-File: `dumbbell_floor_press.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Floor Press" using a pair of dumbbells. Target muscles: chest, triceps. Technique to show, in order: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand at chest level. 2) Press the dumbbells up over your chest, palms facing forward or toward each other, with your shoulder blades pulled back. 3) Inhale and lower the dumbbells slowly until your upper arms rest lightly on the floor, elbows about 45 degrees from your torso. 4) Pause briefly with the elbows on the floor while keeping tension in your arms. 5) Exhale and press the dumbbells back up until your arms are straight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Floor Press" using a pair of dumbbells. Show: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand at chest level. 2) Press the dumbbells up over your chest, palms facing forward or toward each other, with your shoulder blades pulled back. 3) Inhale and lower the dumbbells slowly until your upper arms rest lightly on the floor, elbows about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
-```
-
-### Machine Chest Press (לחיצת חזה במכונה)
-
-File: `machine_chest_press.mp4` · category: machine · equipment: chest_press_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Machine Chest Press" using chest press machine. Target muscles: chest. Technique to show, in order: 1) Adjust the seat so the handles line up with your mid-chest when you sit back. 2) Sit with your back and head against the pad and feet flat on the floor, and grip the handles with straight wrists. 3) Pull your shoulder blades back and down, then exhale and press the handles forward until your arms are almost straight. 4) Avoid locking the elbows hard, and keep your shoulders back against the pad. 5) Inhale and let the handles return slowly until you feel a light stretch in the chest, without letting the weight stack touch down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Machine Chest Press" using chest press machine. Show: 1) Adjust the seat so the handles line up with your mid-chest when you sit back. 2) Sit with your back and head against the pad and feet flat on the floor, and grip the handles with straight wrists. 3) Pull your shoulder blades back and down, then exhale and press the handles forward until your arms are almost straight. Correct, safe form only. Duration 8 seconds.
-```
-
-### Smith Machine Bench Press (לחיצת חזה במכונת סמית׳)
-
-File: `smith_machine_bench_press.mp4` · category: machine · equipment: smith_machine+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Smith Machine Bench Press" using smith machine and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below the point where the bar touches your chest. 2) Lie down, plant your feet and grip the bar slightly wider than shoulder width with your shoulder blades pulled back and down. 3) Rotate the bar to release it from the hooks and hold it with straight arms. 4) Inhale and lower the bar under control to your lower chest, elbows at about 45–70 degrees from your torso. 5) Exhale and press the bar back up to straight arms. 6) After the last rep, rotate the bar to lock it back onto the hooks. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Smith Machine Bench Press" using smith machine and a flat training bench. Show: 1) Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below the point where the bar touches your chest. 2) Lie down, plant your feet and grip the bar slightly wider than shoulder width with your shoulder blades pulled back and down. 3) Rotate the bar to release it from the hooks and hold it with straight arms. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Fly (פרפר במשקולות יד)
-
-File: `dumbbell_fly.mp4` · category: free_weight · equipment: dumbbells+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Fly" using a pair of dumbbells and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Lie back on a flat bench with a dumbbell in each hand (bring them up with your knees as for a dumbbell press), feet planted, arms extended over your chest and palms facing each other. 2) Bend your elbows slightly and keep that angle fixed throughout the set. 3) Inhale and open your arms in a wide arc, lowering the dumbbells until they are about level with your chest and you feel a stretch. 4) Keep your shoulder blades pulled back and your chest up at the bottom. 5) Exhale and squeeze your chest to bring the dumbbells back up along the same arc, as if hugging a large tree. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Fly" using a pair of dumbbells and a flat training bench. Show: 1) Lie back on a flat bench with a dumbbell in each hand (bring them up with your knees as for a dumbbell press), feet planted, arms extended over your chest and palms facing each other. 2) Bend your elbows slightly and keep that angle fixed throughout the set. 3) Inhale and open your arms in a wide arc, lowering the dumbbells until they are about level with your chest and you feel a stretch. Correct, safe form only. Duration 8 seconds.
-```
-
-### Cable Chest Fly (פרפר בכבלים (קרוס אובר))
-
-File: `cable_chest_fly.mp4` · category: cable · equipment: cable_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Chest Fly" using a cable machine. Target muscles: chest. Technique to show, in order: 1) Set both pulleys at about shoulder height, take a handle in each hand and step forward into a staggered stance. 2) Lean slightly forward with a neutral spine, arms open to the sides and elbows slightly bent. 3) Exhale and bring the handles together in a wide arc in front of your chest, keeping the elbow angle fixed. 4) Squeeze your chest for a second when your hands meet. 5) Inhale and let your arms open slowly along the same arc until you feel a light stretch in the chest. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Chest Fly" using a cable machine. Show: 1) Set both pulleys at about shoulder height, take a handle in each hand and step forward into a staggered stance. 2) Lean slightly forward with a neutral spine, arms open to the sides and elbows slightly bent. 3) Exhale and bring the handles together in a wide arc in front of your chest, keeping the elbow angle fixed. Correct, safe form only. Duration 8 seconds.
-```
-
-### Resistance Band Chest Press (לחיצת חזה עם גומייה)
-
-File: `band_chest_press.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Chest Press" using a resistance band. Target muscles: chest. Technique to show, in order: 1) Anchor the band securely at chest height behind you (or wrap it around your upper back) and hold one end in each hand. 2) Step forward until there is light tension in the band, stand in a staggered stance and brace your core. 3) Start with your hands beside your chest and your elbows at about 45 degrees from your torso. 4) Exhale and press your hands forward until your arms are straight, bringing them slightly together in front of your chest. 5) Inhale and return slowly to the start position, resisting the pull of the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Chest Press" using a resistance band. Show: 1) Anchor the band securely at chest height behind you (or wrap it around your upper back) and hold one end in each hand. 2) Step forward until there is light tension in the band, stand in a staggered stance and brace your core. 3) Start with your hands beside your chest and your elbows at about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
-```
-
-### Knee Push-Up (שכיבות סמיכה על הברכיים)
-
-File: `knee_push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Knee Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Kneel on a mat and place your hands on the floor slightly wider than shoulder width, under or just outside your shoulders. 2) Walk your hands forward until your body forms a straight line from knees to head, then tighten your glutes and abs. 3) Inhale and bend your elbows to lower your chest toward the floor, elbows angled about 45 degrees from your body. 4) Lower until your chest is just above the floor, keeping your hips in line with your torso. 5) Exhale and press the floor away to straighten your arms, keeping your body rigid. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Knee Push-Up" using no equipment (bodyweight only). Show: 1) Kneel on a mat and place your hands on the floor slightly wider than shoulder width, under or just outside your shoulders. 2) Walk your hands forward until your body forms a straight line from knees to head, then tighten your glutes and abs. 3) Inhale and bend your elbows to lower your chest toward the floor, elbows angled about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
-```
-
-### Incline Push-Up (שכיבות סמיכה בידיים מוגבהות)
-
-File: `incline_push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Place your hands slightly wider than shoulder width on a sturdy raised surface such as a bench, kitchen counter or wall. 2) Step your feet back until your body forms a straight line from head to heels, and brace your abs and glutes. 3) Inhale and bend your elbows to lower your chest toward the edge, elbows about 45 degrees from your body. 4) Lower until your chest nearly touches the surface. 5) Exhale and push back to straight arms, keeping your body in one line. 6) As you get stronger, progress to a lower surface. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Push-Up" using no equipment (bodyweight only). Show: 1) Place your hands slightly wider than shoulder width on a sturdy raised surface such as a bench, kitchen counter or wall. 2) Step your feet back until your body forms a straight line from head to heels, and brace your abs and glutes. 3) Inhale and bend your elbows to lower your chest toward the edge, elbows about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
-```
-
-### Push-Up (שכיבות סמיכה)
-
-File: `push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands slightly wider than shoulder width, fingers spread and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, elbows angled about 45 degrees from your torso. 4) Descend until your chest is a few centimeters from the floor. 5) Exhale and press the floor away until your arms are straight, without letting your hips sag. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands slightly wider than shoulder width, fingers spread and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, elbows angled about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
-```
-
-### Decline Push-Up (שכיבות סמיכה ברגליים מוגבהות)
-
-File: `decline_push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Decline Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start on all fours, place your hands on the floor slightly wider than shoulder width, then place your feet one at a time on a sturdy bench, chair or step. 2) Adjust your hands so your wrists are under your shoulders and your body is straight from head to heels, then brace your abs and glutes. 3) Inhale and lower your chest toward the floor, elbows at about 45 degrees from your torso. 4) Keep your head in line with your spine and do not let your hips sag as you descend. 5) Exhale and press back up to straight arms. 6) Start with a low step and raise your feet higher as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Decline Push-Up" using no equipment (bodyweight only). Show: 1) Start on all fours, place your hands on the floor slightly wider than shoulder width, then place your feet one at a time on a sturdy bench, chair or step. 2) Adjust your hands so your wrists are under your shoulders and your body is straight from head to heels, then brace your abs and glutes. 3) Inhale and lower your chest toward the floor, elbows at about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
-```
-
-### Archer Push-Up (שכיבות סמיכה קשת (ארצ׳ר))
-
-File: `archer_push_up.mp4` · category: calisthenics · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Archer Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands about twice shoulder width apart, fingers pointing forward or slightly out. 2) Brace your core and glutes so your body stays in a straight line from head to heels. 3) Inhale and shift your weight toward one hand, bending that elbow and lowering your chest toward it while the other arm straightens out to the side. 4) Lower until your chest is just above the working hand, keeping your hips square to the floor. 5) Exhale and press back up, mainly through the bent arm, to the center. 6) Complete all reps on one side or alternate sides, keeping the number of reps equal on each side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Archer Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands about twice shoulder width apart, fingers pointing forward or slightly out. 2) Brace your core and glutes so your body stays in a straight line from head to heels. 3) Inhale and shift your weight toward one hand, bending that elbow and lowering your chest toward it while the other arm straightens out to the side. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Ring Push-Up (שכיבות סמיכה על טבעות)
-
-File: `ring_push_up.mp4` · category: calisthenics · equipment: gymnastic_rings
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ring Push-Up" using gymnastic rings. Target muscles: chest. Technique to show, in order: 1) Set the rings a few centimeters off the floor (higher to make it easier) and hold them with a neutral grip in a high plank, arms straight. 2) Keep the rings close to your sides and brace your core and glutes so your body is straight from head to heels. 3) Inhale and lower slowly, keeping the rings tight to your body and your elbows close to your torso. 4) Descend until the rings are at chest level, without letting them drift outward. 5) Exhale and press back to straight arms, turning your palms slightly forward at the top for extra stability. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ring Push-Up" using gymnastic rings. Show: 1) Set the rings a few centimeters off the floor (higher to make it easier) and hold them with a neutral grip in a high plank, arms straight. 2) Keep the rings close to your sides and brace your core and glutes so your body is straight from head to heels. 3) Inhale and lower slowly, keeping the rings tight to your body and your elbows close to your torso. Correct, safe form only. Duration 8 seconds.
-```
-
-### Barbell Overhead Press (לחיצת כתפיים עם מוט)
-
-File: `barbell_overhead_press.mp4` · category: free_weight · equipment: barbell+squat_rack
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Overhead Press" using an Olympic barbell with plates and a squat rack. Target muscles: shoulders, triceps. Technique to show, in order: 1) Set the bar in the rack at upper-chest height, grip it just outside shoulder width and unrack it so it rests on the front of your shoulders, elbows slightly in front of the bar. 2) Take one or two steps back, stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down. 3) Take a breath, hold it, and press the bar straight up, moving your head slightly back so the bar clears your chin. 4) As the bar passes your forehead, bring your head forward "through the window" and lock out with the bar over mid-foot and your arms beside your ears. 5) Exhale at the top, take a fresh breath and brace, then lower the bar under control to your upper chest, moving your head back again. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Overhead Press" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at upper-chest height, grip it just outside shoulder width and unrack it so it rests on the front of your shoulders, elbows slightly in front of the bar. 2) Take one or two steps back, stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down. 3) Take a breath, hold it, and press the bar straight up, moving your head slightly back so the bar clears your chin. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Shoulder Press (לחיצת כתפיים עם משקולות יד)
-
-File: `dumbbell_shoulder_press.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Shoulder Press" using a pair of dumbbells. Target muscles: shoulders, triceps. Technique to show, in order: 1) Sit on a bench with back support or stand tall, holding a dumbbell in each hand at shoulder height, palms facing forward and elbows slightly in front of your torso. 2) Brace your abs, keeping your ribs down and your back neutral. 3) Exhale and press the dumbbells up and slightly inward until your arms are straight overhead, without banging them together. 4) Pause briefly at the top with your arms close to your ears. 5) Inhale and lower the dumbbells slowly, over about 2–3 seconds, back to shoulder height. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Shoulder Press" using a pair of dumbbells. Show: 1) Sit on a bench with back support or stand tall, holding a dumbbell in each hand at shoulder height, palms facing forward and elbows slightly in front of your torso. 2) Brace your abs, keeping your ribs down and your back neutral. 3) Exhale and press the dumbbells up and slightly inward until your arms are straight overhead, without banging them together. Correct, safe form only. Duration 8 seconds.
-```
-
-### Arnold Press (לחיצת ארנולד)
-
-File: `arnold_press.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Arnold Press" using a pair of dumbbells. Target muscles: shoulders. Technique to show, in order: 1) Sit on a bench with back support or stand tall, holding the dumbbells in front of your shoulders with palms facing you and elbows in front of your body, as at the top of a curl. 2) Brace your core and keep your back neutral. 3) Exhale and press the dumbbells up while rotating your palms outward and letting your elbows move out to the sides, so your palms face forward as your arms reach the top. 4) Finish with your arms straight overhead and the dumbbells stacked above your shoulders. 5) Inhale and reverse the movement slowly, rotating your palms back toward you as you lower to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Arnold Press" using a pair of dumbbells. Show: 1) Sit on a bench with back support or stand tall, holding the dumbbells in front of your shoulders with palms facing you and elbows in front of your body, as at the top of a curl. 2) Brace your core and keep your back neutral. 3) Exhale and press the dumbbells up while rotating your palms outward and letting your elbows move out to the sides, so your palms face forward as your arms reach the top. Correct, safe form only. Duration 8 seconds.
-```
-
-### Kettlebell Overhead Press (לחיצת כתפיים עם קטלבל)
-
-File: `kettlebell_overhead_press.mp4` · category: free_weight · equipment: kettlebell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kettlebell Overhead Press" using a kettlebell. Target muscles: shoulders, triceps. Technique to show, in order: 1) Clean the kettlebell to the rack position: handle in your palm, bell resting on the outside of your forearm, wrist straight and elbow tucked close to your ribs. 2) Stand with feet hip-width apart, squeeze your glutes and brace your abs; make a fist with your free hand to increase full-body tension. 3) Exhale and press the kettlebell straight up, keeping your forearm vertical and letting your palm turn slightly forward as it rises. 4) Lock out with the arm straight, biceps near your ear and the kettlebell stacked over your shoulder. 5) Inhale and lower the kettlebell under control back to the rack position; complete all reps before switching sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kettlebell Overhead Press" using a kettlebell. Show: 1) Clean the kettlebell to the rack position: handle in your palm, bell resting on the outside of your forearm, wrist straight and elbow tucked close to your ribs. 2) Stand with feet hip-width apart, squeeze your glutes and brace your abs; make a fist with your free hand to increase full-body tension. 3) Exhale and press the kettlebell straight up, keeping your forearm vertical and letting your palm turn slightly forward as it rises. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Pike Push-Up (שכיבות סמיכה פייק)
-
-File: `pike_push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pike Push-Up" using no equipment (bodyweight only). Target muscles: shoulders, triceps. Technique to show, in order: 1) Start in a push-up position, then walk your feet toward your hands and raise your hips until your body forms an inverted V. 2) Place your hands slightly wider than shoulder width with fingers spread, and keep your head between your arms. 3) Inhale and bend your elbows to lower the top of your head toward a point slightly in front of your hands, keeping your elbows at about 45 degrees from your body. 4) Stop when your head is just above the floor, keeping your hips high. 5) Exhale and press back up to straight arms, pushing the floor away. 6) To make it harder, place your feet on a chair or step. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pike Push-Up" using no equipment (bodyweight only). Show: 1) Start in a push-up position, then walk your feet toward your hands and raise your hips until your body forms an inverted V. 2) Place your hands slightly wider than shoulder width with fingers spread, and keep your head between your arms. 3) Inhale and bend your elbows to lower the top of your head toward a point slightly in front of your hands, keeping your elbows at about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
-```
-
-### Wall Handstand Push-Up (שכיבות סמיכה בעמידת ידיים על הקיר)
-
-File: `wall_handstand_push_up.mp4` · category: calisthenics · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wall Handstand Push-Up" using no equipment (bodyweight only). Target muscles: shoulders, triceps. Technique to show, in order: 1) Place your hands on the floor shoulder-width apart, about 10–20 cm from a wall, and kick up into a handstand with your heels resting against the wall. 2) Make your body one straight line: squeeze your glutes, brace your abs and tuck your ribs so your lower back does not over-arch. 3) Inhale and slowly bend your elbows to lower your head toward the floor, aiming the top of your head slightly in front of your hands to form a triangle. 4) Touch your head lightly to a folded mat or towel without resting your weight on it. 5) Exhale and press back up to straight arms, pushing the floor away. 6) To finish, bring one leg down at a time with control. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wall Handstand Push-Up" using no equipment (bodyweight only). Show: 1) Place your hands on the floor shoulder-width apart, about 10–20 cm from a wall, and kick up into a handstand with your heels resting against the wall. 2) Make your body one straight line: squeeze your glutes, brace your abs and tuck your ribs so your lower back does not over-arch. 3) Inhale and slowly bend your elbows to lower your head toward the floor, aiming the top of your head slightly in front of your hands to form a triangle. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Lateral Raise (הרחקה לצדדים עם משקולות יד)
-
-File: `dumbbell_lateral_raise.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Lateral Raise" using a pair of dumbbells. Target muscles: shoulders. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing your body and elbows slightly bent. 2) Brace your abs, lean forward slightly from the hips and keep your shoulders down, away from your ears. 3) Exhale and raise the dumbbells out to the sides and slightly forward (about 20–30 degrees in front of your body), leading with your elbows, until your arms are roughly parallel to the floor. 4) Pause briefly at the top without shrugging. 5) Inhale and lower the dumbbells slowly, over 2–3 seconds, to the starting position. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Lateral Raise" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing your body and elbows slightly bent. 2) Brace your abs, lean forward slightly from the hips and keep your shoulders down, away from your ears. 3) Exhale and raise the dumbbells out to the sides and slightly forward (about 20–30 degrees in front of your body), leading with your elbows, until your arms are roughly parallel to the floor. Correct, safe form only. Duration 8 seconds.
-```
-
-### Cable Lateral Raise (הרחקה לצד בכבל)
-
-File: `cable_lateral_raise.mp4` · category: cable · equipment: cable_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Lateral Raise" using a cable machine. Target muscles: shoulders. Technique to show, in order: 1) Attach a single handle to the lowest pulley position and stand side-on to the machine. 2) Grab the handle with the hand farther from the machine so the cable runs in front of your body, and hold the machine with your other hand for support. 3) Brace your core, keep a slight bend in the elbow and keep your shoulder down. 4) Exhale and raise your arm out to the side until it is roughly parallel to the floor. 5) Inhale and lower slowly, resisting the cable, until your hand is in front of your hip. 6) Complete all reps on one side before switching. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Lateral Raise" using a cable machine. Show: 1) Attach a single handle to the lowest pulley position and stand side-on to the machine. 2) Grab the handle with the hand farther from the machine so the cable runs in front of your body, and hold the machine with your other hand for support. 3) Brace your core, keep a slight bend in the elbow and keep your shoulder down. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Band Lateral Raise (הרחקה לצדדים עם גומייה)
-
-File: `band_lateral_raise.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Lateral Raise" using a resistance band. Target muscles: shoulders. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides. 2) Keep a slight bend in your elbows, brace your core and keep your shoulders down. 3) Exhale and raise your arms out to the sides and slightly forward until your hands reach about shoulder height. 4) Pause briefly at the top. 5) Inhale and lower slowly, keeping tension on the band all the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Lateral Raise" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides. 2) Keep a slight bend in your elbows, brace your core and keep your shoulders down. 3) Exhale and raise your arms out to the sides and slightly forward until your hands reach about shoulder height. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Rear Delt Fly (פרפר הפוך עם משקולות יד)
-
-File: `rear_delt_fly.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Rear Delt Fly" using a pair of dumbbells. Target muscles: rear delts. Technique to show, in order: 1) Hold a dumbbell in each hand, hinge at the hips until your torso is nearly parallel to the floor and let the dumbbells hang below your shoulders, palms facing each other. 2) Keep your back flat, knees soft and neck neutral, with a slight bend in the elbows. 3) Exhale and raise the dumbbells out to the sides in a wide arc until your arms are about level with your shoulders. 4) Lightly squeeze your shoulder blades at the top and pause for a moment. 5) Inhale and lower the dumbbells slowly to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Rear Delt Fly" using a pair of dumbbells. Show: 1) Hold a dumbbell in each hand, hinge at the hips until your torso is nearly parallel to the floor and let the dumbbells hang below your shoulders, palms facing each other. 2) Keep your back flat, knees soft and neck neutral, with a slight bend in the elbows. 3) Exhale and raise the dumbbells out to the sides in a wide arc until your arms are about level with your shoulders. Correct, safe form only. Duration 8 seconds.
-```
-
 ### Face Pull (פייס פול בכבל)
 
-File: `face_pull.mp4` · category: cable · equipment: cable_machine
+File: `face_pull.mp4` · priority A (used 13x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
@@ -447,665 +42,9 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Face Pull" using a cable machine. Show: 1) Attach a rope to a pulley set between upper-chest and eye level and grab both ends with an overhand or neutral grip. 2) Step back until your arms are straight, stand tall with a hip-width or staggered stance and brace your core. 3) Exhale and pull the rope toward your face, driving your elbows out and back and pulling the rope ends apart. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Band Pull-Apart (פתיחת גומייה לצדדים)
-
-File: `band_pull_apart.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Pull-Apart" using a resistance band. Target muscles: rear delts, upper back. Technique to show, in order: 1) Stand tall and hold a light band in front of you at shoulder height with straight arms, hands about shoulder-width apart and palms facing down. 2) Brace your core and set your shoulders down, away from your ears. 3) Exhale and pull the band apart by moving your hands out to the sides until the band touches your chest. 4) Squeeze your shoulder blades together for a second at the end. 5) Inhale and return slowly to the start, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Pull-Apart" using a resistance band. Show: 1) Stand tall and hold a light band in front of you at shoulder height with straight arms, hands about shoulder-width apart and palms facing down. 2) Brace your core and set your shoulders down, away from your ears. 3) Exhale and pull the band apart by moving your hands out to the sides until the band touches your chest. Correct, safe form only. Duration 8 seconds.
-```
-
-### Parallel Bar Dip (מקבילים)
-
-File: `parallel_bar_dip.mp4` · category: calisthenics · equipment: dip_bars
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Parallel Bar Dip" using parallel dip bars. Target muscles: triceps, chest. Technique to show, in order: 1) Grip the bars, jump or step up and support yourself on straight arms, shoulders pressed down away from your ears. 2) Brace your core and keep your legs together, slightly bent or crossed behind you. 3) Inhale and lower your body by bending your elbows, keeping them pointing back rather than out, with a slight forward lean. 4) Descend until your upper arms are about parallel to the floor or slightly lower, as far as your shoulders comfortably allow. 5) Exhale and press back up to straight arms without slamming the elbows into lockout. 6) An upright torso emphasises the triceps; leaning forward shifts more of the work to the chest. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Parallel Bar Dip" using parallel dip bars. Show: 1) Grip the bars, jump or step up and support yourself on straight arms, shoulders pressed down away from your ears. 2) Brace your core and keep your legs together, slightly bent or crossed behind you. 3) Inhale and lower your body by bending your elbows, keeping them pointing back rather than out, with a slight forward lean. Correct, safe form only. Duration 8 seconds.
-```
-
-### Band-Assisted Dip (מקבילים בעזרת גומייה)
-
-File: `band_assisted_dip.mp4` · category: calisthenics · equipment: dip_bars+resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band-Assisted Dip" using parallel dip bars and a resistance band. Target muscles: triceps, chest. Technique to show, in order: 1) Loop a resistance band across the two bars and secure it so it forms a firm platform between them. 2) Grip the bars, step up and place your knees (or shins) on the band, then support yourself on straight arms with your shoulders down. 3) Inhale and lower your body by bending your elbows, keeping them pointing back and your torso leaning slightly forward. 4) Descend until your upper arms are about parallel to the floor, or as far as is comfortable for your shoulders. 5) Exhale and press back up to straight arms. 6) Progress by switching to a thinner band as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band-Assisted Dip" using parallel dip bars and a resistance band. Show: 1) Loop a resistance band across the two bars and secure it so it forms a firm platform between them. 2) Grip the bars, step up and place your knees (or shins) on the band, then support yourself on straight arms with your shoulders down. 3) Inhale and lower your body by bending your elbows, keeping them pointing back and your torso leaning slightly forward. Correct, safe form only. Duration 8 seconds.
-```
-
-### Triceps Pushdown (פשיטת מרפקים בפולי עליון)
-
-File: `triceps_pushdown.mp4` · category: cable · equipment: cable_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Triceps Pushdown" using a cable machine. Target muscles: triceps. Technique to show, in order: 1) Attach a straight bar or rope to a high pulley, grab it and stand close to the machine with feet hip-width apart. 2) Lean forward slightly, brace your core and pin your elbows to your sides with your forearms about parallel to the floor. 3) Exhale and push the handle down until your arms are fully straight, squeezing the triceps at the bottom. 4) Keep your upper arms still throughout; only your forearms should move. 5) Inhale and let the handle rise slowly until your forearms are slightly above parallel, then repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Triceps Pushdown" using a cable machine. Show: 1) Attach a straight bar or rope to a high pulley, grab it and stand close to the machine with feet hip-width apart. 2) Lean forward slightly, brace your core and pin your elbows to your sides with your forearms about parallel to the floor. 3) Exhale and push the handle down until your arms are fully straight, squeezing the triceps at the bottom. Correct, safe form only. Duration 8 seconds.
-```
-
-### Overhead Dumbbell Triceps Extension (פשיטת מרפקים מעל הראש עם משקולת יד)
-
-File: `overhead_dumbbell_triceps_extension.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Overhead Dumbbell Triceps Extension" using a pair of dumbbells. Target muscles: triceps. Technique to show, in order: 1) Sit or stand tall and hold one dumbbell with both hands, palms cupping the underside of the top plate. 2) Press the dumbbell overhead until your arms are straight, with your upper arms close to your ears. 3) Brace your abs to keep your ribs down and your back neutral. 4) Inhale and slowly bend your elbows to lower the dumbbell behind your head, keeping your elbows pointing forward. 5) Lower until you feel a stretch in the triceps, then exhale and straighten your elbows to return to the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Overhead Dumbbell Triceps Extension" using a pair of dumbbells. Show: 1) Sit or stand tall and hold one dumbbell with both hands, palms cupping the underside of the top plate. 2) Press the dumbbell overhead until your arms are straight, with your upper arms close to your ears. 3) Brace your abs to keep your ribs down and your back neutral. Correct, safe form only. Duration 8 seconds.
-```
-
-### EZ-Bar Skull Crusher (סקאל קראשר עם מוט EZ)
-
-File: `ez_bar_skull_crusher.mp4` · category: free_weight · equipment: ez_bar+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "EZ-Bar Skull Crusher" using ez bar and a flat training bench. Target muscles: triceps. Technique to show, in order: 1) Sit on the end of a flat bench with the EZ bar on your thighs, grip the inner angled handles with an overhand grip and lie back with your feet flat on the floor. 2) Press the bar up over your chest, then let your arms angle slightly back so the bar is above your forehead. 3) Inhale and bend only at the elbows to lower the bar slowly toward your forehead or just behind the top of your head. 4) Keep your elbows pointing toward the ceiling and about shoulder-width apart. 5) Exhale and straighten your elbows to return the bar to the start, keeping your upper arms still. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "EZ-Bar Skull Crusher" using ez bar and a flat training bench. Show: 1) Sit on the end of a flat bench with the EZ bar on your thighs, grip the inner angled handles with an overhand grip and lie back with your feet flat on the floor. 2) Press the bar up over your chest, then let your arms angle slightly back so the bar is above your forehead. 3) Inhale and bend only at the elbows to lower the bar slowly toward your forehead or just behind the top of your head. Correct, safe form only. Duration 8 seconds.
-```
-
-### Close-Grip Bench Press (לחיצת חזה באחיזה צרה)
-
-File: `close_grip_bench_press.mp4` · category: free_weight · equipment: barbell+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Close-Grip Bench Press" using an Olympic barbell with plates and a flat training bench. Target muscles: triceps, chest. Technique to show, in order: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and shoulder blades pulled together and down. 2) Grip the bar with your hands about shoulder-width apart and your thumbs wrapped around it, then unrack it to straight arms above your shoulders. 3) Inhale, brace and lower the bar under control to your lower chest, keeping your elbows close to your body at roughly 30–45 degrees. 4) Touch your chest lightly without bouncing. 5) Exhale and press the bar back up to full lockout, keeping your wrists straight and stacked over your elbows. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Close-Grip Bench Press" using an Olympic barbell with plates and a flat training bench. Show: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and shoulder blades pulled together and down. 2) Grip the bar with your hands about shoulder-width apart and your thumbs wrapped around it, then unrack it to straight arms above your shoulders. 3) Inhale, brace and lower the bar under control to your lower chest, keeping your elbows close to your body at roughly 30–45 degrees. Correct, safe form only. Duration 8 seconds.
-```
-
-### Diamond Push-Up (שכיבות סמיכה יהלום)
-
-File: `diamond_push_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Diamond Push-Up" using no equipment (bodyweight only). Target muscles: triceps. Technique to show, in order: 1) Start in a high plank and place your hands together under your chest, touching thumbs and index fingers to form a diamond. 2) Brace your core and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your chest toward your hands, keeping your elbows close to your sides and pointing back. 4) Lower until your chest is just above your hands. 5) Exhale and press back up to straight arms. 6) If needed, perform it with your knees on the floor or your hands on a raised surface. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Diamond Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank and place your hands together under your chest, touching thumbs and index fingers to form a diamond. 2) Brace your core and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your chest toward your hands, keeping your elbows close to your sides and pointing back. Correct, safe form only. Duration 8 seconds.
-```
-
-### Band Triceps Extension (פשיטת מרפקים עם גומייה)
-
-File: `band_triceps_extension.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Triceps Extension" using a resistance band. Target muscles: triceps. Technique to show, in order: 1) Anchor the middle of the band securely at a high point, such as with a door anchor at the top of a closed door, and hold one end in each hand. 2) Stand facing the anchor with feet hip-width apart, lean forward slightly and tuck your elbows at your sides with your forearms about parallel to the floor. 3) Exhale and push your hands down until your arms are fully straight, squeezing the triceps. 4) Keep your upper arms still so that only your forearms move. 5) Inhale and let your hands rise slowly back to the start, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Triceps Extension" using a resistance band. Show: 1) Anchor the middle of the band securely at a high point, such as with a door anchor at the top of a closed door, and hold one end in each hand. 2) Stand facing the anchor with feet hip-width apart, lean forward slightly and tuck your elbows at your sides with your forearms about parallel to the floor. 3) Exhale and push your hands down until your arms are fully straight, squeezing the triceps. Correct, safe form only. Duration 8 seconds.
-```
-
-### Pull-Up (עליות מתח)
-
-File: `pull_up.mp4` · category: calisthenics · equipment: pull_up_bar
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pull-Up" using a pull-up bar. Target muscles: lats, upper back. Technique to show, in order: 1) Grip the bar with your palms facing away, hands slightly wider than shoulder width, and hang with your arms fully straight. 2) Draw your shoulder blades slightly down and back, brace your core and squeeze your glutes so your legs stay still. 3) Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. 4) Keep your chest up and your neck neutral; do not crane your chin forward to reach the bar. 5) Lower yourself under control over 2–3 seconds to a full hang, inhaling on the way down. 6) Settle briefly at the bottom without swinging before starting the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pull-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away, hands slightly wider than shoulder width, and hang with your arms fully straight. 2) Draw your shoulder blades slightly down and back, brace your core and squeeze your glutes so your legs stay still. 3) Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
-```
-
-### Chin-Up (עליות מתח באחיזה הפוכה)
-
-File: `chin_up.mp4` · category: calisthenics · equipment: pull_up_bar
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Chin-Up" using a pull-up bar. Target muscles: lats, biceps. Technique to show, in order: 1) Grip the bar with your palms facing you, hands about shoulder-width apart, and hang with straight arms. 2) Set your shoulder blades down, brace your core and keep your legs together and slightly in front of you. 3) Pull your elbows down and back toward your sides, bringing your upper chest toward the bar, and exhale as you rise. 4) Continue until your chin is clearly above the bar, pausing briefly at the top. 5) Lower yourself under control to a full hang, inhaling on the way down, before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Chin-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing you, hands about shoulder-width apart, and hang with straight arms. 2) Set your shoulder blades down, brace your core and keep your legs together and slightly in front of you. 3) Pull your elbows down and back toward your sides, bringing your upper chest toward the bar, and exhale as you rise. Correct, safe form only. Duration 8 seconds.
-```
-
-### Band-Assisted Pull-Up (עליות מתח בעזרת גומייה)
-
-File: `band_assisted_pull_up.mp4` · category: calisthenics · equipment: pull_up_bar+resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band-Assisted Pull-Up" using a pull-up bar and a resistance band. Target muscles: lats, upper back. Technique to show, in order: 1) Loop a resistance band around the middle of the bar and pull one end through the other so it is secure. 2) Grip the bar slightly wider than shoulder width, then place one knee or foot into the band loop, stepping up on a sturdy chair if needed. 3) Lower into a full hang with the band stretched, set your shoulder blades down and brace your core. 4) Pull your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. 5) Lower yourself slowly over 2–3 seconds to a full hang, inhaling on the way down. 6) After the set, carefully take your foot out of the band, and move to a lighter band as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band-Assisted Pull-Up" using a pull-up bar and a resistance band. Show: 1) Loop a resistance band around the middle of the bar and pull one end through the other so it is secure. 2) Grip the bar slightly wider than shoulder width, then place one knee or foot into the band loop, stepping up on a sturdy chair if needed. 3) Lower into a full hang with the band stretched, set your shoulder blades down and brace your core. Correct, safe form only. Duration 8 seconds.
-```
-
-### Negative Pull-Up (עליות מתח שליליות)
-
-File: `negative_pull_up.mp4` · category: calisthenics · equipment: pull_up_bar
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Negative Pull-Up" using a pull-up bar. Target muscles: lats, upper back. Technique to show, in order: 1) Place a sturdy chair or step under the bar so you can reach the top position. 2) Grip the bar with your palms facing away, slightly wider than shoulder width, and jump or step up until your chin is above the bar. 3) Brace your core, keep your elbows tucked toward your ribs and take your feet off the support. 4) Lower yourself slowly over 3–5 seconds, breathing steadily and resisting all the way down. 5) Reach a full hang with straight arms, then step back onto the support and reset for the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Negative Pull-Up" using a pull-up bar. Show: 1) Place a sturdy chair or step under the bar so you can reach the top position. 2) Grip the bar with your palms facing away, slightly wider than shoulder width, and jump or step up until your chin is above the bar. 3) Brace your core, keep your elbows tucked toward your ribs and take your feet off the support. Correct, safe form only. Duration 8 seconds.
-```
-
-### Muscle-Up (מאסל-אפ)
-
-File: `muscle_up.mp4` · category: calisthenics · equipment: pull_up_bar
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Muscle-Up" using a pull-up bar. Target muscles: lats, upper back, triceps. Technique to show, in order: 1) Grip the bar with your palms facing away, hands about shoulder-width apart, and hang with your body tight and legs together. 2) Build a small, controlled kip: swing forward into a slight arch, then snap back into a hollow-body position. 3) As you snap into the hollow position, pull explosively toward your lower chest or upper stomach, driving the bar down toward your hips. 4) As the bar reaches your chest, quickly lean your chest forward over the bar and rotate your wrists on top of it. 5) Press down into a straight-bar dip until your arms are fully locked out, exhaling as you finish. 6) Lower back down under control through the dip and the transition to a full hang before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Muscle-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away, hands about shoulder-width apart, and hang with your body tight and legs together. 2) Build a small, controlled kip: swing forward into a slight arch, then snap back into a hollow-body position. 3) As you snap into the hollow position, pull explosively toward your lower chest or upper stomach, driving the bar down toward your hips. Correct, safe form only. Duration 8 seconds.
-```
-
-### Lat Pulldown (פולי עליון (לאט פולדאון))
-
-File: `lat_pulldown.mp4` · category: machine · equipment: lat_pulldown_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lat Pulldown" using a lat pulldown machine. Target muscles: lats. Technique to show, in order: 1) Adjust the thigh pad so your legs are locked in snugly, then grip the bar slightly wider than shoulder width with your palms facing away. 2) Sit down with your arms extended overhead, chest up and a slight backward lean of about 10–20 degrees. 3) Start by pulling your shoulder blades down, then drive your elbows down and back to bring the bar to your upper chest, exhaling as you pull. 4) Squeeze your back briefly at the bottom without leaning further back. 5) Let the bar rise under control until your arms are straight and you feel a stretch in your lats, inhaling on the way up. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lat Pulldown" using a lat pulldown machine. Show: 1) Adjust the thigh pad so your legs are locked in snugly, then grip the bar slightly wider than shoulder width with your palms facing away. 2) Sit down with your arms extended overhead, chest up and a slight backward lean of about 10–20 degrees. 3) Start by pulling your shoulder blades down, then drive your elbows down and back to bring the bar to your upper chest, exhaling as you pull. Correct, safe form only. Duration 8 seconds.
-```
-
-### Barbell Bent-Over Row (חתירה במוט בהטיה קדימה)
-
-File: `barbell_bent_over_row.mp4` · category: free_weight · equipment: barbell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Bent-Over Row" using an Olympic barbell with plates. Target muscles: upper back, lats. Technique to show, in order: 1) Deadlift the bar from the floor or take it from a rack, standing with feet hip-width apart and an overhand grip slightly wider than shoulder width. 2) Soften your knees and hinge at the hips until your torso is about 30–45 degrees above horizontal, with a flat back and the bar hanging below your shoulders. 3) Brace your core and take a breath before each rep. 4) Row the bar toward your lower ribs or upper stomach by driving your elbows back, squeezing your shoulder blades together at the top. 5) Exhale as you finish the pull, then lower the bar under control to straight arms without changing your torso angle. 6) When the set is finished, stand up tall before returning the bar to the floor or rack with a flat back. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Bent-Over Row" using an Olympic barbell with plates. Show: 1) Deadlift the bar from the floor or take it from a rack, standing with feet hip-width apart and an overhand grip slightly wider than shoulder width. 2) Soften your knees and hinge at the hips until your torso is about 30–45 degrees above horizontal, with a flat back and the bar hanging below your shoulders. 3) Brace your core and take a breath before each rep. Correct, safe form only. Duration 8 seconds.
-```
-
-### One-Arm Dumbbell Row (חתירה חד-ידית במשקולת יד)
-
-File: `one_arm_dumbbell_row.mp4` · category: free_weight · equipment: dumbbells+bench
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "One-Arm Dumbbell Row" using a pair of dumbbells and a flat training bench. Target muscles: lats, upper back. Technique to show, in order: 1) Place your left knee and left hand on a flat bench, with your right foot on the floor slightly out to the side. 2) Hold a dumbbell in your right hand with the arm hanging straight below your shoulder, your back flat and roughly parallel to the floor. 3) Brace your core and row the dumbbell toward your hip, driving the elbow back close to your body and exhaling as you pull. 4) Squeeze your shoulder blade toward your spine at the top without twisting your torso open. 5) Lower the dumbbell under control until your arm is straight and you feel a stretch in your back, inhaling on the way down. 6) Complete all reps on one side, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "One-Arm Dumbbell Row" using a pair of dumbbells and a flat training bench. Show: 1) Place your left knee and left hand on a flat bench, with your right foot on the floor slightly out to the side. 2) Hold a dumbbell in your right hand with the arm hanging straight below your shoulder, your back flat and roughly parallel to the floor. 3) Brace your core and row the dumbbell toward your hip, driving the elbow back close to your body and exhaling as you pull. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Seated Cable Row (חתירה בפולי תחתון)
-
-File: `seated_cable_row.mp4` · category: cable · equipment: cable_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Seated Cable Row" using a cable machine. Target muscles: upper back, lats. Technique to show, in order: 1) Attach a close-grip (V) handle, sit on the seat and place your feet on the foot plates with your knees slightly bent. 2) Grab the handle and sit tall with your chest up, back neutral and torso roughly vertical, arms extended in front of you. 3) Pull the handle toward your lower ribs by driving your elbows back close to your body, exhaling as you pull. 4) Squeeze your shoulder blades together for a moment at the end of the pull. 5) Extend your arms under control, letting your shoulder blades move forward slightly without rounding your lower back, and inhale. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Seated Cable Row" using a cable machine. Show: 1) Attach a close-grip (V) handle, sit on the seat and place your feet on the foot plates with your knees slightly bent. 2) Grab the handle and sit tall with your chest up, back neutral and torso roughly vertical, arms extended in front of you. 3) Pull the handle toward your lower ribs by driving your elbows back close to your body, exhaling as you pull. Correct, safe form only. Duration 8 seconds.
-```
-
-### Inverted Row (מתח אוסטרלי)
-
-File: `inverted_row.mp4` · category: calisthenics · equipment: dip_bars
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Inverted Row" using parallel dip bars. Target muscles: upper back, lats. Technique to show, in order: 1) Lie on your back under the bar: between parallel bars, grip one bar in each hand with palms facing each other; under a single sturdy waist-height bar, use an overhand grip about shoulder-width apart. 2) Straighten your body in one line from head to heels, with only your heels on the ground, and squeeze your glutes and abs. 3) Pull your chest toward the bar by driving your elbows back and squeezing your shoulder blades together, exhaling as you rise. 4) Pause briefly when your chest is close to the bar, keeping your body rigid. 5) Lower yourself under control to straight arms, inhaling on the way down. 6) To make it easier, bend your knees and plant your feet flat; to make it harder, elevate your feet. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Inverted Row" using parallel dip bars. Show: 1) Lie on your back under the bar: between parallel bars, grip one bar in each hand with palms facing each other; under a single sturdy waist-height bar, use an overhand grip about shoulder-width apart. 2) Straighten your body in one line from head to heels, with only your heels on the ground, and squeeze your glutes and abs. 3) Pull your chest toward the bar by driving your elbows back and squeezing your shoulder blades together, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
-```
-
-### Suspension Trainer Row (חתירה ברצועות השעיה (TRX))
-
-File: `suspension_trainer_row.mp4` · category: calisthenics · equipment: suspension_trainer
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Suspension Trainer Row" using suspension trainer. Target muscles: upper back, lats. Technique to show, in order: 1) Anchor the straps securely to a high point and adjust them to mid-length. 2) Hold a handle in each hand, face the anchor and walk your feet forward while leaning back until your arms are straight and your body forms a straight line. 3) Brace your core and squeeze your glutes to keep your hips from sagging. 4) Pull your chest toward the handles by driving your elbows back and squeezing your shoulder blades, exhaling as you pull. 5) Lower yourself under control until your arms are straight, inhaling on the way back. 6) Walk your feet further forward to make it harder, or step back toward upright to make it easier. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Suspension Trainer Row" using suspension trainer. Show: 1) Anchor the straps securely to a high point and adjust them to mid-length. 2) Hold a handle in each hand, face the anchor and walk your feet forward while leaning back until your arms are straight and your body forms a straight line. 3) Brace your core and squeeze your glutes to keep your hips from sagging. Correct, safe form only. Duration 8 seconds.
-```
-
-### Ring Row (חתירה בטבעות)
-
-File: `ring_row.mp4` · category: calisthenics · equipment: gymnastic_rings
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ring Row" using gymnastic rings. Target muscles: upper back, lats. Technique to show, in order: 1) Hang the rings securely at about waist to chest height. 2) Grip the rings with your palms facing each other, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels. 3) Brace your core and glutes, then pull your chest toward the rings, driving your elbows back close to your sides and letting the rings rotate naturally; exhale as you pull. 4) Squeeze your shoulder blades together at the top with the rings close to your ribs. 5) Lower yourself under control to straight arms, inhaling on the way down. 6) Adjust the difficulty with your foot position: a more upright body is easier, a more horizontal body is harder. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ring Row" using gymnastic rings. Show: 1) Hang the rings securely at about waist to chest height. 2) Grip the rings with your palms facing each other, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels. 3) Brace your core and glutes, then pull your chest toward the rings, driving your elbows back close to your sides and letting the rings rotate naturally; exhale as you pull. Correct, safe form only. Duration 8 seconds.
-```
-
-### Resistance Band Row (חתירה עם גומייה)
-
-File: `band_row.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Row" using a resistance band. Target muscles: upper back, lats. Technique to show, in order: 1) Anchor the band securely at chest height (for example in a door anchor or around a sturdy post), or loop it around your feet while sitting with your legs extended. 2) Hold the ends with your arms extended in front of you and step back (or shorten your grip when seated) until the band has light tension. 3) Stand or sit tall, brace your core and pull your elbows back past your torso, squeezing your shoulder blades together; exhale as you pull. 4) Hold the squeeze for a moment with your shoulders down and away from your ears. 5) Return slowly to straight arms, resisting the pull of the band, and inhale. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Row" using a resistance band. Show: 1) Anchor the band securely at chest height (for example in a door anchor or around a sturdy post), or loop it around your feet while sitting with your legs extended. 2) Hold the ends with your arms extended in front of you and step back (or shorten your grip when seated) until the band has light tension. 3) Stand or sit tall, brace your core and pull your elbows back past your torso, squeezing your shoulder blades together; exhale as you pull. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Shrug (הרמת כתפיים במשקולות יד (שראגס))
-
-File: `dumbbell_shrug.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Shrug" using a pair of dumbbells. Target muscles: traps. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your body. 2) Keep your arms straight, chest up and chin neutral. 3) Lift your shoulders straight up toward your ears as high as possible, exhaling as you rise. 4) Hold the top position for 1–2 seconds while squeezing your traps. 5) Lower your shoulders slowly to a full stretch, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Shrug" using a pair of dumbbells. Show: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your body. 2) Keep your arms straight, chest up and chin neutral. 3) Lift your shoulders straight up toward your ears as high as possible, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
-```
-
-### Barbell Curl (כפיפת מרפקים במוט)
-
-File: `barbell_curl.mp4` · category: free_weight · equipment: barbell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Curl" using an Olympic barbell with plates. Target muscles: biceps. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding the bar with an underhand, shoulder-width grip and arms extended. 2) Pin your elbows close to your sides and brace your core. 3) Curl the bar up toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top without letting your elbows drift forward. 5) Lower the bar slowly over 2–3 seconds to full arm extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Curl" using an Olympic barbell with plates. Show: 1) Stand tall with feet hip-width apart, holding the bar with an underhand, shoulder-width grip and arms extended. 2) Pin your elbows close to your sides and brace your core. 3) Curl the bar up toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Curl (כפיפת מרפקים במשקולות יד)
-
-File: `dumbbell_curl.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Curl" using a pair of dumbbells. Target muscles: biceps. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward or toward your thighs. 2) Keep your elbows close to your torso and your shoulders back. 3) Curl the dumbbells up, turning your palms to face up and toward your shoulders as you lift; exhale on the way up. 4) Squeeze your biceps at the top while keeping your elbows in place. 5) Lower the dumbbells slowly to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Curl" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward or toward your thighs. 2) Keep your elbows close to your torso and your shoulders back. 3) Curl the dumbbells up, turning your palms to face up and toward your shoulders as you lift; exhale on the way up. Correct, safe form only. Duration 8 seconds.
-```
-
-### Hammer Curl (כפיפת מרפקים באחיזת פטיש (פטישים))
-
-File: `hammer_curl.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hammer Curl" using a pair of dumbbells. Target muscles: biceps, forearms. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides with your palms facing your thighs. 2) Keep your elbows close to your torso and your wrists straight. 3) Curl the dumbbells up toward your shoulders without rotating your palms, exhaling as you lift. 4) Pause briefly at the top with your thumbs pointing up. 5) Lower slowly to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hammer Curl" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides with your palms facing your thighs. 2) Keep your elbows close to your torso and your wrists straight. 3) Curl the dumbbells up toward your shoulders without rotating your palms, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
-```
-
-### Cable Biceps Curl (כפיפת מרפקים בכבל)
-
-File: `cable_biceps_curl.mp4` · category: cable · equipment: cable_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Biceps Curl" using a cable machine. Target muscles: biceps. Technique to show, in order: 1) Attach a straight bar or EZ handle to a low pulley and grip it with your palms facing up, hands about shoulder-width apart. 2) Stand tall about one step back from the machine with your elbows at your sides and arms extended. 3) Curl the handle toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top for a moment. 5) Lower the handle under control until your arms are fully straight, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Biceps Curl" using a cable machine. Show: 1) Attach a straight bar or EZ handle to a low pulley and grip it with your palms facing up, hands about shoulder-width apart. 2) Stand tall about one step back from the machine with your elbows at your sides and arms extended. 3) Curl the handle toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
-```
-
-### Resistance Band Biceps Curl (כפיפת מרפקים עם גומייה)
-
-File: `band_biceps_curl.mp4` · category: band · equipment: resistance_bands
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Biceps Curl" using a resistance band. Target muscles: biceps. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart and hold the ends or handles with your palms facing forward. 2) Stand tall with your elbows at your sides and arms extended; hold the band lower down if you need more tension. 3) Curl your hands up toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top for a moment. 5) Lower slowly against the pull of the band to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Biceps Curl" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart and hold the ends or handles with your palms facing forward. 2) Stand tall with your elbows at your sides and arms extended; hold the band lower down if you need more tension. 3) Curl your hands up toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
-```
-
-### Barbell Back Squat (סקוואט עם מוט)
-
-File: `barbell_back_squat.mp4` · category: free_weight · equipment: barbell+squat_rack
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Back Squat" using an Olympic barbell with plates and a squat rack. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar in the rack at about mid-chest height and the safety pins just below the lowest point of your squat. 2) Step under the bar, place it on your upper back (on the traps, not the neck), grip it just outside your shoulders and pull your elbows down to tighten your upper back. 3) Stand up to unrack, take two or three short steps back and set your feet about shoulder width apart with the toes turned out slightly. 4) Take a big breath into your belly and brace your core, then sit down and back by bending your hips and knees together, keeping your knees tracking over your toes. 5) Descend under control until your thighs are at least parallel to the floor (or as deep as you can while keeping a neutral spine), with your whole foot planted. 6) Drive through the whole foot to stand up, keeping your chest up so your hips and shoulders rise at the same rate, and exhale near the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Back Squat" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at about mid-chest height and the safety pins just below the lowest point of your squat. 2) Step under the bar, place it on your upper back (on the traps, not the neck), grip it just outside your shoulders and pull your elbows down to tighten your upper back. 3) Stand up to unrack, take two or three short steps back and set your feet about shoulder width apart with the toes turned out slightly. Correct, safe form only. Duration 8 seconds.
-```
-
-### Front Squat (סקוואט קדמי)
-
-File: `front_squat.mp4` · category: free_weight · equipment: barbell+squat_rack
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Front Squat" using an Olympic barbell with plates and a squat rack. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar in the rack at upper-chest height and the safety pins just below your bottom position. 2) Step under the bar and rest it on the front of your shoulders, close to your throat; hold it with a clean grip (fingertips under the bar) or with crossed arms, and lift your elbows high. 3) Unrack the bar, step back and set your feet about shoulder width apart with the toes slightly out. 4) Breathe in and brace hard, then squat straight down between your heels, keeping your torso upright and your elbows pointing forward. 5) Descend until your thighs are at least parallel to the floor without letting the elbows drop. 6) Drive up through the whole foot, leading with your elbows and chest, and exhale as you approach the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Front Squat" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at upper-chest height and the safety pins just below your bottom position. 2) Step under the bar and rest it on the front of your shoulders, close to your throat; hold it with a clean grip (fingertips under the bar) or with crossed arms, and lift your elbows high. 3) Unrack the bar, step back and set your feet about shoulder width apart with the toes slightly out. Correct, safe form only. Duration 8 seconds.
-```
-
-### Smith Machine Squat (סקוואט במכונת סמית׳)
-
-File: `smith_machine_squat.mp4` · category: machine · equipment: smith_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Smith Machine Squat" using smith machine. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar at about shoulder height and the safety stops just below the bottom of your squat. 2) Step under the bar, rest it on your upper back and grip it just outside shoulder width. 3) Place your feet about shoulder width apart and slightly in front of the bar, toes turned out a little. 4) Rotate the bar to unhook it, take a breath and brace your core. 5) Bend your hips and knees to lower yourself under control until your thighs are about parallel to the floor, keeping your knees in line with your toes. 6) Push through the whole foot to stand up, exhale near the top, and rotate the bar back onto the hooks after the last rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Smith Machine Squat" using smith machine. Show: 1) Set the bar at about shoulder height and the safety stops just below the bottom of your squat. 2) Step under the bar, rest it on your upper back and grip it just outside shoulder width. 3) Place your feet about shoulder width apart and slightly in front of the bar, toes turned out a little. Correct, safe form only. Duration 8 seconds.
-```
-
-### Goblet Squat (גובלט סקוואט)
-
-File: `goblet_squat.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Goblet Squat" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Hold one dumbbell vertically with both hands cupping its top end, close against your chest just under your chin. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace, then sit down between your heels, bending your hips and knees together. 4) Keep your chest up and your elbows inside your knees, pushing the knees out in line with your toes. 5) Lower until your thighs are at least parallel to the floor, or as deep as you can with a neutral back. 6) Drive through the whole foot to stand back up, exhaling as you finish the rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Goblet Squat" using a pair of dumbbells. Show: 1) Hold one dumbbell vertically with both hands cupping its top end, close against your chest just under your chin. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace, then sit down between your heels, bending your hips and knees together. Correct, safe form only. Duration 8 seconds.
-```
-
-### Bodyweight Squat (סקוואט במשקל גוף)
-
-File: `bodyweight_squat.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bodyweight Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and your arms by your sides or extended in front of you. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself. 3) Keep your chest up, your heels down and your knees tracking over your toes. 4) Go down until your thighs are about parallel to the floor, or as deep as you comfortably can with a neutral back. 5) Press through the whole foot to stand up, squeezing your glutes at the top and exhaling as you rise. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bodyweight Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and your arms by your sides or extended in front of you. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself. 3) Keep your chest up, your heels down and your knees tracking over your toes. Correct, safe form only. Duration 8 seconds.
-```
-
-### Box Squat (Sit-to-Stand) (סקוואט לכיסא (בוקס סקוואט))
-
-File: `box_squat.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Box Squat (Sit-to-Stand)" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Place a sturdy chair or box against a wall so it cannot slide, and stand in front of it with your feet about shoulder width apart. 2) Extend your arms forward for balance, inhale and brace your core. 3) Push your hips back and bend your knees to lower yourself slowly toward the seat, keeping your chest up. 4) Touch the seat lightly with your glutes without fully relaxing or dropping onto it. 5) Lean slightly forward, press through your whole foot and stand back up, exhaling and squeezing your glutes at the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Box Squat (Sit-to-Stand)" using no equipment (bodyweight only). Show: 1) Place a sturdy chair or box against a wall so it cannot slide, and stand in front of it with your feet about shoulder width apart. 2) Extend your arms forward for balance, inhale and brace your core. 3) Push your hips back and bend your knees to lower yourself slowly toward the seat, keeping your chest up. Correct, safe form only. Duration 8 seconds.
-```
-
-### Bulgarian Split Squat (סקוואט בולגרי)
-
-File: `bulgarian_split_squat.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bulgarian Split Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand about one long stride in front of a sturdy chair or bench and place the top of your rear foot on the seat. 2) Set your front foot so that, at the bottom, your front shin is roughly vertical or slightly forward, and keep your hips square. 3) Inhale and brace, then lower straight down by bending the front knee until the front thigh is about parallel to the floor. 4) Keep most of the weight on the front foot, with your torso tall or leaning slightly forward and the front knee tracking over the toes. 5) Drive through the front heel and midfoot to stand back up, exhaling as you rise. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bulgarian Split Squat" using no equipment (bodyweight only). Show: 1) Stand about one long stride in front of a sturdy chair or bench and place the top of your rear foot on the seat. 2) Set your front foot so that, at the bottom, your front shin is roughly vertical or slightly forward, and keep your hips square. 3) Inhale and brace, then lower straight down by bending the front knee until the front thigh is about parallel to the floor. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Walking Lunge (מכרעים בהליכה)
-
-File: `walking_lunge.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Walking Lunge" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall with your feet hip width apart and your hands on your hips or by your sides, with clear space in front of you. 2) Take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright and your front knee tracking over your toes, with the weight on the front foot. 4) Push through the front heel and bring the back leg forward, stepping straight into the next lunge on the other side. 5) Breathe in as you lower and out as you drive forward, and keep alternating for the target number of reps per leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Walking Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip width apart and your hands on your hips or by your sides, with clear space in front of you. 2) Take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright and your front knee tracking over your toes, with the weight on the front foot. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Reverse Lunge (מכרע לאחור)
-
-File: `reverse_lunge.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Reverse Lunge" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall with your feet hip width apart and your core braced. 2) Step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower your back knee toward the floor until both knees are bent to about 90 degrees, keeping your torso upright. 4) Keep the front knee tracking over the toes and your weight spread over the front heel and midfoot. 5) Push through the front foot to return to standing, exhaling as you bring the back foot forward. 6) Alternate legs, or complete all reps on one side before switching. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Reverse Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip width apart and your core braced. 2) Step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower your back knee toward the floor until both knees are bent to about 90 degrees, keeping your torso upright. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Reverse Lunge (מכרע לאחור עם משקולות יד)
-
-File: `dumbbell_reverse_lunge.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Reverse Lunge" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, feet hip width apart and shoulders back. 2) Brace your core and step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower until both knees are bent to about 90 degrees, with the back knee just above the floor and your torso upright. 4) Keep the dumbbells hanging straight down and the front knee tracking over the toes. 5) Drive through the front heel to return to standing, exhaling on the way up. 6) Alternate legs or complete all reps on one side, keeping the same number of reps per leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Reverse Lunge" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, feet hip width apart and shoulders back. 2) Brace your core and step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower until both knees are bent to about 90 degrees, with the back knee just above the floor and your torso upright. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Step-Up (עליות על מדרגה (סטפ-אפ))
-
-File: `step_up.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Step-Up" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand facing a sturdy step or stair that is roughly knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward and press through the whole foot of the top leg to stand up onto the step, exhaling as you rise. 4) Stand fully upright on top without pushing off with the bottom foot. 5) Inhale and lower yourself slowly back down under control, keeping the working foot on the step. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Step-Up" using no equipment (bodyweight only). Show: 1) Stand facing a sturdy step or stair that is roughly knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward and press through the whole foot of the top leg to stand up onto the step, exhaling as you rise. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Cossack Squat (סקוואט קוזאקי)
-
-File: `cossack_squat.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cossack Squat" using no equipment (bodyweight only). Target muscles: adductors, quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about twice shoulder width apart, toes turned out slightly. 2) Shift your weight to one side, bending that knee and pushing your hips back while the other leg straightens. 3) Lower as deep as your mobility allows, keeping the heel of the bent leg on the floor and letting the toes of the straight leg point up. 4) Keep your chest up and your arms extended in front of you for balance. 5) Push through the bent leg to return to the center, exhaling as you rise. 6) Alternate sides with control for the target number of reps per side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cossack Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about twice shoulder width apart, toes turned out slightly. 2) Shift your weight to one side, bending that knee and pushing your hips back while the other leg straightens. 3) Lower as deep as your mobility allows, keeping the heel of the bent leg on the floor and letting the toes of the straight leg point up. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Pistol Squat (פיסטול סקוואט)
-
-File: `pistol_squat.mp4` · category: calisthenics · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pistol Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand on one leg with the other leg lifted slightly in front of you and your arms extended forward for balance. 2) Brace your core and push your hips back as you bend the standing knee, lifting the free leg higher as you descend. 3) Lower slowly, keeping the standing heel on the floor and the knee tracking over the toes. 4) Go as deep as you can control, ideally until the back of your thigh meets your calf, with the free leg held straight off the floor. 5) Drive through the whole standing foot to rise back up without letting the knee cave in, exhaling as you stand. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pistol Squat" using no equipment (bodyweight only). Show: 1) Stand on one leg with the other leg lifted slightly in front of you and your arms extended forward for balance. 2) Brace your core and push your hips back as you bend the standing knee, lifting the free leg higher as you descend. 3) Lower slowly, keeping the standing heel on the floor and the knee tracking over the toes. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
 ### Leg Press (לחיצת רגליים (לג פרס))
 
-File: `leg_press.mp4` · category: machine · equipment: leg_press_machine
+File: `leg_press.mp4` · priority A (used 9x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: leg_press_machine
 
 Full prompt:
 
@@ -1119,169 +58,57 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Leg Press" using a leg press machine. Show: 1) Sit in the machine with your back and hips flat against the pad and your head resting back. 2) Place your feet on the middle of the platform about shoulder width apart, toes turned out slightly. 3) Press the platform up a little and release the safety handles, keeping a slight bend in the knees. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Leg Extension (פשיטת ברכיים במכונה)
-
-File: `leg_extension.mp4` · category: machine · equipment: leg_extension_machine
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Leg Extension" using leg extension machine. Target muscles: quadriceps. Technique to show, in order: 1) Adjust the seat so your knees line up with the pivot point of the machine and your back is fully supported. 2) Set the shin pad just above your ankles and hold the side handles. 3) Exhale and straighten your knees in a smooth motion until your legs are almost fully extended. 4) Squeeze your quads for a brief moment at the top. 5) Inhale and lower the weight slowly under control, without letting the weight stack crash. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Leg Extension" using leg extension machine. Show: 1) Adjust the seat so your knees line up with the pivot point of the machine and your back is fully supported. 2) Set the shin pad just above your ankles and hold the side handles. 3) Exhale and straighten your knees in a smooth motion until your legs are almost fully extended. Correct, safe form only. Duration 8 seconds.
-```
-
 ### Lying Leg Curl (כפיפת ברכיים בשכיבה)
 
-File: `lying_leg_curl.mp4` · category: machine · equipment: leg_curl_machine
+File: `lying_leg_curl.mp4` · priority A (used 9x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: leg_curl_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lying Leg Curl" using leg curl machine. Target muscles: hamstrings. Technique to show, in order: 1) Lie face down on the machine with your knees just off the edge of the pad, lined up with the pivot point. 2) Position the ankle pad on your lower calves, just above your heels, and hold the handles. 3) Press your hips into the bench and brace your core. 4) Exhale and curl your heels toward your glutes as far as you can without lifting your hips. 5) Pause briefly, then inhale and lower the weight slowly until your legs are almost straight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lying Leg Curl" using a lying leg curl machine. Target muscles: hamstrings. Technique to show, in order: 1) Lie face down on the machine with your knees just off the edge of the pad, lined up with the pivot point. 2) Position the ankle pad on your lower calves, just above your heels, and hold the handles. 3) Press your hips into the bench and brace your core. 4) Exhale and curl your heels toward your glutes as far as you can without lifting your hips. 5) Pause briefly, then inhale and lower the weight slowly until your legs are almost straight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lying Leg Curl" using leg curl machine. Show: 1) Lie face down on the machine with your knees just off the edge of the pad, lined up with the pivot point. 2) Position the ankle pad on your lower calves, just above your heels, and hold the handles. 3) Press your hips into the bench and brace your core. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lying Leg Curl" using a lying leg curl machine. Show: 1) Lie face down on the machine with your knees just off the edge of the pad, lined up with the pivot point. 2) Position the ankle pad on your lower calves, just above your heels, and hold the handles. 3) Press your hips into the bench and brace your core. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Standing Calf Raise (הרמות עקבים בעמידה)
+### Seated Cable Row (חתירה בפולי תחתון)
 
-File: `standing_calf_raise.mp4` · category: bodyweight · equipment: none
+File: `seated_cable_row.mp4` · priority A (used 9x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Standing Calf Raise" using no equipment (bodyweight only). Target muscles: calves. Technique to show, in order: 1) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart, holding a wall or railing for balance. 2) If using a step, let your heels sink slightly below the step to stretch the calves. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. 4) Pause for a second at the top and squeeze your calves. 5) Inhale and lower your heels slowly back to the starting position. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Seated Cable Row" using a cable machine. Target muscles: upper back, lats. Technique to show, in order: 1) Attach a close-grip (V) handle, sit on the seat and place your feet on the foot plates with your knees slightly bent. 2) Grab the handle and sit tall with your chest up, back neutral and torso roughly vertical, arms extended in front of you. 3) Pull the handle toward your lower ribs by driving your elbows back close to your body, exhaling as you pull. 4) Squeeze your shoulder blades together for a moment at the end of the pull. 5) Extend your arms under control, letting your shoulder blades move forward slightly without rounding your lower back, and inhale. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Standing Calf Raise" using no equipment (bodyweight only). Show: 1) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart, holding a wall or railing for balance. 2) If using a step, let your heels sink slightly below the step to stretch the calves. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Seated Cable Row" using a cable machine. Show: 1) Attach a close-grip (V) handle, sit on the seat and place your feet on the foot plates with your knees slightly bent. 2) Grab the handle and sit tall with your chest up, back neutral and torso roughly vertical, arms extended in front of you. 3) Pull the handle toward your lower ribs by driving your elbows back close to your body, exhaling as you pull. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Single-Leg Calf Raise (הרמות עקבים על רגל אחת)
+### Lat Pulldown (פולי עליון (לאט פולדאון))
 
-File: `single_leg_calf_raise.mp4` · category: bodyweight · equipment: none
+File: `lat_pulldown.mp4` · priority A (used 8x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: lat_pulldown_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Calf Raise" using no equipment (bodyweight only). Target muscles: calves. Technique to show, in order: 1) Stand on one foot with the ball of the foot on the edge of a step, holding a wall or railing lightly for balance. 2) Bend the other leg and keep it clear of the step. 3) Lower your heel slowly below the level of the step until you feel a stretch in the calf. 4) Exhale and rise as high as you can onto the ball of the foot, keeping the knee straight but not locked. 5) Pause at the top, then lower slowly; complete all reps before switching legs. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lat Pulldown" using a lat pulldown machine. Target muscles: lats. Technique to show, in order: 1) Adjust the thigh pad so your legs are locked in snugly, then grip the bar slightly wider than shoulder width with your palms facing away. 2) Sit down with your arms extended overhead, chest up and a slight backward lean of about 10–20 degrees. 3) Start by pulling your shoulder blades down, then drive your elbows down and back to bring the bar to your upper chest, exhaling as you pull. 4) Squeeze your back briefly at the bottom without leaning further back. 5) Let the bar rise under control until your arms are straight and you feel a stretch in your lats, inhaling on the way up. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Calf Raise" using no equipment (bodyweight only). Show: 1) Stand on one foot with the ball of the foot on the edge of a step, holding a wall or railing lightly for balance. 2) Bend the other leg and keep it clear of the step. 3) Lower your heel slowly below the level of the step until you feel a stretch in the calf. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Wall Sit (כיסא על הקיר)
-
-File: `wall_sit.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wall Sit" using no equipment (bodyweight only). Target muscles: quadriceps. Technique to show, in order: 1) Stand with your back flat against a wall and your feet about hip width apart, roughly two foot-lengths out from the wall. 2) Slide down the wall until your knees are bent to about 90 degrees, or to a higher, comfortable angle. 3) Adjust your feet so your knees are directly above your ankles and in line with your toes. 4) Keep your back and head against the wall and your weight in your heels, with your arms relaxed or crossed. 5) Breathe steadily throughout the hold, then slide back up the wall to finish. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wall Sit" using no equipment (bodyweight only). Show: 1) Stand with your back flat against a wall and your feet about hip width apart, roughly two foot-lengths out from the wall. 2) Slide down the wall until your knees are bent to about 90 degrees, or to a higher, comfortable angle. 3) Adjust your feet so your knees are directly above your ankles and in line with your toes. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
-```
-
-### Deadlift (דדליפט)
-
-File: `deadlift.mp4` · category: free_weight · equipment: barbell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Deadlift" using an Olympic barbell with plates. Target muscles: glutes, hamstrings, lower back. Technique to show, in order: 1) Stand with your mid-foot under the bar, feet about hip-width apart and toes pointing slightly out. 2) Push your hips back and bend your knees to grip the bar just outside your legs, with your shins touching or almost touching the bar. 3) Flatten your back, lift your chest and keep your shoulders slightly in front of the bar; take a deep breath into your belly and brace your core hard. 4) Push the floor away through your whole foot, keeping the bar in contact with your legs as it rises, and drive your hips forward until you stand tall. 5) Finish with your hips and knees fully locked out and your glutes squeezed, without leaning back. 6) Lower the bar by sending your hips back first and bending your knees once the bar passes them; exhale at the top or after setting the bar down, and re-brace before every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Deadlift" using an Olympic barbell with plates. Show: 1) Stand with your mid-foot under the bar, feet about hip-width apart and toes pointing slightly out. 2) Push your hips back and bend your knees to grip the bar just outside your legs, with your shins touching or almost touching the bar. 3) Flatten your back, lift your chest and keep your shoulders slightly in front of the bar; take a deep breath into your belly and brace your core hard. Correct, safe form only. Duration 8 seconds.
-```
-
-### Romanian Deadlift (דדליפט רומני)
-
-File: `romanian_deadlift.mp4` · category: free_weight · equipment: barbell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Romanian Deadlift" using an Olympic barbell with plates. Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand tall holding a barbell with an overhand grip just outside your thighs, feet hip-width apart; take the bar from a rack or deadlift it up from the floor. 2) Unlock your knees slightly, pull your shoulders back and brace your core with a deep breath. 3) Push your hips straight back and let the bar slide down your thighs, keeping it close to your legs and your back flat. 4) Lower until you feel a strong stretch in your hamstrings, usually between knee and mid-shin height, without letting your back round. 5) Drive your hips forward and squeeze your glutes to return to standing, exhaling as you finish. 6) Keep the same slight knee bend throughout and use a controlled tempo of about 2–3 seconds on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Romanian Deadlift" using an Olympic barbell with plates. Show: 1) Stand tall holding a barbell with an overhand grip just outside your thighs, feet hip-width apart; take the bar from a rack or deadlift it up from the floor. 2) Unlock your knees slightly, pull your shoulders back and brace your core with a deep breath. 3) Push your hips straight back and let the bar slide down your thighs, keeping it close to your legs and your back flat. Correct, safe form only. Duration 8 seconds.
-```
-
-### Dumbbell Romanian Deadlift (דדליפט רומני עם משקולות יד)
-
-File: `dumbbell_romanian_deadlift.mp4` · category: free_weight · equipment: dumbbells
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Romanian Deadlift" using a pair of dumbbells. Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand in front of your thighs with your palms facing you. 2) Soften your knees slightly, set your shoulders back and brace your core. 3) Push your hips back and lower the dumbbells along the front of your legs, keeping them close and your back flat. 4) Stop when you feel a strong hamstring stretch, typically between knee and mid-shin height. 5) Drive your hips forward and squeeze your glutes to stand tall, exhaling on the way up. 6) Lower over 2–3 seconds and keep the same slight knee bend on every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Romanian Deadlift" using a pair of dumbbells. Show: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand in front of your thighs with your palms facing you. 2) Soften your knees slightly, set your shoulders back and brace your core. 3) Push your hips back and lower the dumbbells along the front of your legs, keeping them close and your back flat. Correct, safe form only. Duration 8 seconds.
-```
-
-### Single-Leg Romanian Deadlift (דדליפט רומני על רגל אחת)
-
-File: `single_leg_romanian_deadlift.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Romanian Deadlift" using no equipment (bodyweight only). Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand on one leg with a slight bend in the knee and your arms by your sides or reaching forward; lightly hold a wall or chair if you need help balancing. 2) Brace your core and keep your hips square to the floor throughout the movement. 3) Hinge forward at the hip and let your free leg extend straight behind you as your torso lowers, so your body moves like a seesaw. 4) Lower until your torso is nearly parallel to the floor or you feel a strong stretch in the standing hamstring, keeping your back flat. 5) Drive the standing hip forward and squeeze that glute to return upright, exhaling as you rise. 6) Complete all reps on one side, then switch; to progress, hold a dumbbell in the hand opposite the standing leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Romanian Deadlift" using no equipment (bodyweight only). Show: 1) Stand on one leg with a slight bend in the knee and your arms by your sides or reaching forward; lightly hold a wall or chair if you need help balancing. 2) Brace your core and keep your hips square to the floor throughout the movement. 3) Hinge forward at the hip and let your free leg extend straight behind you as your torso lowers, so your body moves like a seesaw. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Kettlebell Swing (קטלבל סווינג)
-
-File: `kettlebell_swing.mp4` · category: free_weight · equipment: kettlebell
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kettlebell Swing" using a kettlebell. Target muscles: glutes, hamstrings. Technique to show, in order: 1) Stand with your feet slightly wider than hip-width and the kettlebell on the floor about 30 cm in front of you. 2) Hinge at the hips with a flat back, grip the handle with both hands and tilt the bell toward you. 3) Hike the kettlebell back between your thighs, keeping your forearms close to your inner thighs. 4) Snap your hips forward and squeeze your glutes to stand tall, letting the bell float up to about chest height with relaxed arms; exhale sharply at the top. 5) Keep your core braced and ribs down at the top so your body forms a straight line without leaning back. 6) Let the bell fall and hinge to receive it, keeping it high between your thighs rather than letting it drop toward your knees. 7) To finish, hike the bell back one last time and park it on the floor in front of you. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kettlebell Swing" using a kettlebell. Show: 1) Stand with your feet slightly wider than hip-width and the kettlebell on the floor about 30 cm in front of you. 2) Hinge at the hips with a flat back, grip the handle with both hands and tilt the bell toward you. 3) Hike the kettlebell back between your thighs, keeping your forearms close to your inner thighs. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lat Pulldown" using a lat pulldown machine. Show: 1) Adjust the thigh pad so your legs are locked in snugly, then grip the bar slightly wider than shoulder width with your palms facing away. 2) Sit down with your arms extended overhead, chest up and a slight backward lean of about 10–20 degrees. 3) Start by pulling your shoulder blades down, then drive your elbows down and back to bring the bar to your upper chest, exhaling as you pull. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Cable Pull-Through (פול ת׳רו בכבל)
 
-File: `cable_pull_through.mp4` · category: cable · equipment: cable_machine
+File: `cable_pull_through.mp4` · priority B (used 7x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
@@ -1295,73 +122,217 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Pull-Through" using a cable machine. Show: 1) Attach a rope to a low cable pulley, face away from the machine and grab the rope between your legs with both hands. 2) Walk forward two or three steps until the cable is under tension, and stand with your feet slightly wider than hip-width. 3) Push your hips back with soft knees and a flat back, letting the rope travel back between your legs until you feel a hamstring stretch. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Glute Bridge (גשר ישבן)
+### Chin-Up (עליות מתח באחיזה הפוכה)
 
-File: `glute_bridge.mp4` · category: bodyweight · equipment: none
+File: `chin_up.mp4` · priority B (used 7x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: pull_up_bar
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Glute Bridge" using no equipment (bodyweight only). Target muscles: glutes. Technique to show, in order: 1) Lie on your back with your knees bent, feet flat on the floor hip-width apart and heels about a hand length from your glutes. 2) Rest your arms on the floor by your sides and gently brace your core so your lower back stays neutral. 3) Press through your heels and squeeze your glutes to lift your hips until your body forms a straight line from shoulders to knees, exhaling as you lift. 4) Hold the top for one to two seconds with your ribs down, without arching your lower back. 5) Lower your hips slowly to the floor, inhaling on the way down, and repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Chin-Up" using a pull-up bar. Target muscles: lats, biceps. Technique to show, in order: 1) Grip the bar with your palms facing you, hands about shoulder-width apart, and hang with straight arms. 2) Set your shoulder blades down, brace your core and keep your legs together and slightly in front of you. 3) Pull your elbows down and back toward your sides, bringing your upper chest toward the bar, and exhale as you rise. 4) Continue until your chin is clearly above the bar, pausing briefly at the top. 5) Lower yourself under control to a full hang, inhaling on the way down, before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Glute Bridge" using no equipment (bodyweight only). Show: 1) Lie on your back with your knees bent, feet flat on the floor hip-width apart and heels about a hand length from your glutes. 2) Rest your arms on the floor by your sides and gently brace your core so your lower back stays neutral. 3) Press through your heels and squeeze your glutes to lift your hips until your body forms a straight line from shoulders to knees, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Chin-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing you, hands about shoulder-width apart, and hang with straight arms. 2) Set your shoulder blades down, brace your core and keep your legs together and slightly in front of you. 3) Pull your elbows down and back toward your sides, bringing your upper chest toward the bar, and exhale as you rise. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Single-Leg Glute Bridge (גשר ישבן על רגל אחת)
+### Dumbbell Reverse Lunge (מכרע לאחור עם משקולות יד)
 
-File: `single_leg_glute_bridge.mp4` · category: bodyweight · equipment: none
+File: `dumbbell_reverse_lunge.mp4` · priority B (used 7x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Glute Bridge" using no equipment (bodyweight only). Target muscles: glutes. Technique to show, in order: 1) Lie on your back with both knees bent and feet flat on the floor, then lift one foot and either straighten that leg or hug that knee toward your chest. 2) Keep the working foot flat under its knee and rest your arms on the floor by your sides. 3) Brace your core, press through the heel of the working foot and squeeze that glute to lift your hips, exhaling as you rise. 4) Rise until your shoulders, hips and knee form a straight line, keeping your pelvis level without dropping to one side. 5) Pause for a second at the top, then lower slowly to the floor. 6) Complete all reps on one side before switching legs. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Reverse Lunge" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, feet hip width apart and shoulders back. 2) Brace your core and step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower until both knees are bent to about 90 degrees, with the back knee just above the floor and your torso upright. 4) Keep the dumbbells hanging straight down and the front knee tracking over the toes. 5) Drive through the front heel to return to standing, exhaling on the way up. 6) Alternate legs or complete all reps on one side, keeping the same number of reps per leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Glute Bridge" using no equipment (bodyweight only). Show: 1) Lie on your back with both knees bent and feet flat on the floor, then lift one foot and either straighten that leg or hug that knee toward your chest. 2) Keep the working foot flat under its knee and rest your arms on the floor by your sides. 3) Brace your core, press through the heel of the working foot and squeeze that glute to lift your hips, exhaling as you rise. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Reverse Lunge" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, feet hip width apart and shoulders back. 2) Brace your core and step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower until both knees are bent to about 90 degrees, with the back knee just above the floor and your torso upright. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Barbell Hip Thrust (היפ טראסט עם מוט)
+### Romanian Deadlift (דדליפט רומני)
 
-File: `barbell_hip_thrust.mp4` · category: free_weight · equipment: barbell+bench
+File: `romanian_deadlift.mp4` · priority B (used 7x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Hip Thrust" using an Olympic barbell with plates and a flat training bench. Target muscles: glutes. Technique to show, in order: 1) Sit on the floor with your upper back, just below the shoulder blades, against the long side of a stable bench and a padded barbell over your hip crease. 2) Bend your knees and place your feet flat about hip-width apart, so that your shins will be vertical at the top. 3) Hold the bar with both hands to keep it steady, tuck your chin slightly and brace your core. 4) Drive through your heels and squeeze your glutes to lift the bar until your torso and thighs are parallel to the floor, exhaling as you lift. 5) At the top keep your ribs down and your pelvis slightly tucked, and pause for one to two seconds without arching your back. 6) Lower your hips under control until your glutes nearly touch the floor, then repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Romanian Deadlift" using an Olympic barbell with plates. Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand tall holding a barbell with an overhand grip just outside your thighs, feet hip-width apart; take the bar from a rack or deadlift it up from the floor. 2) Unlock your knees slightly, pull your shoulders back and brace your core with a deep breath. 3) Push your hips straight back and let the bar slide down your thighs, keeping it close to your legs and your back flat. 4) Lower until you feel a strong stretch in your hamstrings, usually between knee and mid-shin height, without letting your back round. 5) Drive your hips forward and squeeze your glutes to return to standing, exhaling as you finish. 6) Keep the same slight knee bend throughout and use a controlled tempo of about 2–3 seconds on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Hip Thrust" using an Olympic barbell with plates and a flat training bench. Show: 1) Sit on the floor with your upper back, just below the shoulder blades, against the long side of a stable bench and a padded barbell over your hip crease. 2) Bend your knees and place your feet flat about hip-width apart, so that your shins will be vertical at the top. 3) Hold the bar with both hands to keep it steady, tuck your chin slightly and brace your core. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Romanian Deadlift" using an Olympic barbell with plates. Show: 1) Stand tall holding a barbell with an overhand grip just outside your thighs, feet hip-width apart; take the bar from a rack or deadlift it up from the floor. 2) Unlock your knees slightly, pull your shoulders back and brace your core with a deep breath. 3) Push your hips straight back and let the bar slide down your thighs, keeping it close to your legs and your back flat. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Nordic Hamstring Curl (נורדיק קרל)
+### Triceps Pushdown (פשיטת מרפקים בפולי עליון)
 
-File: `nordic_hamstring_curl.mp4` · category: bodyweight · equipment: none
+File: `triceps_pushdown.mp4` · priority B (used 7x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Nordic Hamstring Curl" using no equipment (bodyweight only). Target muscles: hamstrings. Technique to show, in order: 1) Kneel on a soft mat with your ankles securely anchored under a sturdy sofa or held firmly by a partner. 2) Keep your body in a straight line from knees to head, with your hips extended, glutes squeezed and hands ready in front of your chest. 3) Slowly lean forward from the knees, resisting with your hamstrings to lower as slowly as possible, and breathe steadily throughout. 4) Keep a straight line from knees to shoulders; do not bend at the hips as you lower. 5) When you can no longer control the descent, catch yourself with your hands in a push-up position. 6) Push lightly off the floor with your hands and pull with your hamstrings to return to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Triceps Pushdown" using a cable machine. Target muscles: triceps. Technique to show, in order: 1) Attach a straight bar or rope to a high pulley, grab it and stand close to the machine with feet hip-width apart. 2) Lean forward slightly, brace your core and pin your elbows to your sides with your forearms about parallel to the floor. 3) Exhale and push the handle down until your arms are fully straight, squeezing the triceps at the bottom. 4) Keep your upper arms still throughout; only your forearms should move. 5) Inhale and let the handle rise slowly until your forearms are slightly above parallel, then repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Nordic Hamstring Curl" using no equipment (bodyweight only). Show: 1) Kneel on a soft mat with your ankles securely anchored under a sturdy sofa or held firmly by a partner. 2) Keep your body in a straight line from knees to head, with your hips extended, glutes squeezed and hands ready in front of your chest. 3) Slowly lean forward from the knees, resisting with your hamstrings to lower as slowly as possible, and breathe steadily throughout. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Triceps Pushdown" using a cable machine. Show: 1) Attach a straight bar or rope to a high pulley, grab it and stand close to the machine with feet hip-width apart. 2) Lean forward slightly, brace your core and pin your elbows to your sides with your forearms about parallel to the floor. 3) Exhale and push the handle down until your arms are fully straight, squeezing the triceps at the bottom. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Bench Press (לחיצת חזה במוט)
+
+File: `barbell_bench_press.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Bench Press" using an Olympic barbell with plates and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and your glutes, upper back and head in contact with the bench. 2) Grip the bar slightly wider than shoulder width, squeeze your shoulder blades together and down, and keep a slight natural arch in your lower back. 3) Unrack the bar with straight arms and hold it directly over your shoulders. 4) Inhale and brace, then lower the bar under control to your lower chest (around nipple line), elbows at roughly 45–70 degrees from your torso. 5) Touch the chest lightly without bouncing, then press the bar up and slightly back toward your shoulders while driving your feet into the floor. 6) Exhale near the top, lock out without losing your shoulder-blade position, and rack the bar after the final rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Bench Press" using an Olympic barbell with plates and a flat training bench. Show: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and your glutes, upper back and head in contact with the bench. 2) Grip the bar slightly wider than shoulder width, squeeze your shoulder blades together and down, and keep a slight natural arch in your lower back. 3) Unrack the bar with straight arms and hold it directly over your shoulders. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Bent-Over Row (חתירה במוט בהטיה קדימה)
+
+File: `barbell_bent_over_row.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Bent-Over Row" using an Olympic barbell with plates. Target muscles: upper back, lats. Technique to show, in order: 1) Deadlift the bar from the floor or take it from a rack, standing with feet hip-width apart and an overhand grip slightly wider than shoulder width. 2) Soften your knees and hinge at the hips until your torso is about 30–45 degrees above horizontal, with a flat back and the bar hanging below your shoulders. 3) Brace your core and take a breath before each rep. 4) Row the bar toward your lower ribs or upper stomach by driving your elbows back, squeezing your shoulder blades together at the top. 5) Exhale as you finish the pull, then lower the bar under control to straight arms without changing your torso angle. 6) When the set is finished, stand up tall before returning the bar to the floor or rack with a flat back. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Bent-Over Row" using an Olympic barbell with plates. Show: 1) Deadlift the bar from the floor or take it from a rack, standing with feet hip-width apart and an overhand grip slightly wider than shoulder width. 2) Soften your knees and hinge at the hips until your torso is about 30–45 degrees above horizontal, with a flat back and the bar hanging below your shoulders. 3) Brace your core and take a breath before each rep. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Shrug (הרמת כתפיים במשקולות יד (שראגס))
+
+File: `dumbbell_shrug.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Shrug" using a pair of dumbbells. Target muscles: traps. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your body. 2) Keep your arms straight, chest up and chin neutral. 3) Lift your shoulders straight up toward your ears as high as possible, exhaling as you rise. 4) Hold the top position for 1–2 seconds while squeezing your traps. 5) Lower your shoulders slowly to a full stretch, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Shrug" using a pair of dumbbells. Show: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your body. 2) Keep your arms straight, chest up and chin neutral. 3) Lift your shoulders straight up toward your ears as high as possible, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
+```
+
+### Incline Dumbbell Press (לחיצת חזה בשיפוע חיובי במשקולות יד)
+
+File: `incline_dumbbell_press.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Dumbbell Press" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Target muscles: chest. Technique to show, in order: 1) Set the bench to 30–45 degrees, sit with the dumbbells on your thighs and lie back, using your knees to bring them up to shoulder level. 2) Press the dumbbells up over your upper chest with your shoulder blades back and down and your feet firmly on the floor. 3) Inhale and lower the dumbbells slowly to the sides of your upper chest, elbows slightly tucked and forearms vertical. 4) Pause briefly at a comfortable stretch, then press up and slightly inward so the dumbbells finish over your collarbones. 5) Exhale through the top of the press and keep your back against the bench on every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Dumbbell Press" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Show: 1) Set the bench to 30–45 degrees, sit with the dumbbells on your thighs and lie back, using your knees to bring them up to shoulder level. 2) Press the dumbbells up over your upper chest with your shoulder blades back and down and your feet firmly on the floor. 3) Inhale and lower the dumbbells slowly to the sides of your upper chest, elbows slightly tucked and forearms vertical. Correct, safe form only. Duration 8 seconds.
+```
+
+### Kettlebell Swing (קטלבל סווינג)
+
+File: `kettlebell_swing.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: kettlebell
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kettlebell Swing" using a kettlebell. Target muscles: glutes, hamstrings. Technique to show, in order: 1) Stand with your feet slightly wider than hip-width and the kettlebell on the floor about 30 cm in front of you. 2) Hinge at the hips with a flat back, grip the handle with both hands and tilt the bell toward you. 3) Hike the kettlebell back between your thighs, keeping your forearms close to your inner thighs. 4) Snap your hips forward and squeeze your glutes to stand tall, letting the bell float up to about chest height with relaxed arms; exhale sharply at the top. 5) Keep your core braced and ribs down at the top so your body forms a straight line without leaning back. 6) Let the bell fall and hinge to receive it, keeping it high between your thighs rather than letting it drop toward your knees. 7) To finish, hike the bell back one last time and park it on the floor in front of you. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kettlebell Swing" using a kettlebell. Show: 1) Stand with your feet slightly wider than hip-width and the kettlebell on the floor about 30 cm in front of you. 2) Hinge at the hips with a flat back, grip the handle with both hands and tilt the bell toward you. 3) Hike the kettlebell back between your thighs, keeping your forearms close to your inner thighs. Correct, safe form only. Duration 8 seconds.
+```
+
+### Leg Extension (פשיטת ברכיים במכונה)
+
+File: `leg_extension.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: leg_extension_machine
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Leg Extension" using a leg extension machine. Target muscles: quadriceps. Technique to show, in order: 1) Adjust the seat so your knees line up with the pivot point of the machine and your back is fully supported. 2) Set the shin pad just above your ankles and hold the side handles. 3) Exhale and straighten your knees in a smooth motion until your legs are almost fully extended. 4) Squeeze your quads for a brief moment at the top. 5) Inhale and lower the weight slowly under control, without letting the weight stack crash. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Leg Extension" using a leg extension machine. Show: 1) Adjust the seat so your knees line up with the pivot point of the machine and your back is fully supported. 2) Set the shin pad just above your ankles and hold the side handles. 3) Exhale and straighten your knees in a smooth motion until your legs are almost fully extended. Correct, safe form only. Duration 8 seconds.
+```
+
+### Machine Chest Press (לחיצת חזה במכונה)
+
+File: `machine_chest_press.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: chest_press_machine
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Machine Chest Press" using a seated chest press machine. Target muscles: chest. Technique to show, in order: 1) Adjust the seat so the handles line up with your mid-chest when you sit back. 2) Sit with your back and head against the pad and feet flat on the floor, and grip the handles with straight wrists. 3) Pull your shoulder blades back and down, then exhale and press the handles forward until your arms are almost straight. 4) Avoid locking the elbows hard, and keep your shoulders back against the pad. 5) Inhale and let the handles return slowly until you feel a light stretch in the chest, without letting the weight stack touch down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Machine Chest Press" using a seated chest press machine. Show: 1) Adjust the seat so the handles line up with your mid-chest when you sit back. 2) Sit with your back and head against the pad and feet flat on the floor, and grip the handles with straight wrists. 3) Pull your shoulder blades back and down, then exhale and press the handles forward until your arms are almost straight. Correct, safe form only. Duration 8 seconds.
+```
+
+### Parallel Bar Dip (מקבילים)
+
+File: `parallel_bar_dip.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: dip_bars
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Parallel Bar Dip" using parallel dip bars. Target muscles: triceps, chest. Technique to show, in order: 1) Grip the bars, jump or step up and support yourself on straight arms, shoulders pressed down away from your ears. 2) Brace your core and keep your legs together, slightly bent or crossed behind you. 3) Inhale and lower your body by bending your elbows, keeping them pointing back rather than out, with a slight forward lean. 4) Descend until your upper arms are about parallel to the floor or slightly lower, as far as your shoulders comfortably allow. 5) Exhale and press back up to straight arms without slamming the elbows into lockout. 6) An upright torso emphasises the triceps; leaning forward shifts more of the work to the chest. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Parallel Bar Dip" using parallel dip bars. Show: 1) Grip the bars, jump or step up and support yourself on straight arms, shoulders pressed down away from your ears. 2) Brace your core and keep your legs together, slightly bent or crossed behind you. 3) Inhale and lower your body by bending your elbows, keeping them pointing back rather than out, with a slight forward lean. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Rear Delt Fly (פרפר הפוך עם משקולות יד)
+
+File: `rear_delt_fly.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Rear Delt Fly" using a pair of dumbbells. Target muscles: rear delts. Technique to show, in order: 1) Hold a dumbbell in each hand, hinge at the hips until your torso is nearly parallel to the floor and let the dumbbells hang below your shoulders, palms facing each other. 2) Keep your back flat, knees soft and neck neutral, with a slight bend in the elbows. 3) Exhale and raise the dumbbells out to the sides in a wide arc until your arms are about level with your shoulders. 4) Lightly squeeze your shoulder blades at the top and pause for a moment. 5) Inhale and lower the dumbbells slowly to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Rear Delt Fly" using a pair of dumbbells. Show: 1) Hold a dumbbell in each hand, hinge at the hips until your torso is nearly parallel to the floor and let the dumbbells hang below your shoulders, palms facing each other. 2) Keep your back flat, knees soft and neck neutral, with a slight bend in the elbows. 3) Exhale and raise the dumbbells out to the sides in a wide arc until your arms are about level with your shoulders. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Superman (סופרמן)
 
-File: `superman.mp4` · category: bodyweight · equipment: none
+File: `superman.mp4` · priority B (used 5x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
 
 Full prompt:
 
@@ -1375,153 +346,121 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Superman" using no equipment (bodyweight only). Show: 1) Lie face down on a mat with your arms extended overhead and your legs straight behind you. 2) Gently squeeze your glutes and brace your core; keep your gaze on the floor so your neck stays neutral. 3) Exhale and lift your arms, chest and legs a few centimetres off the floor at the same time. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Farmer's Carry (הליכת חקלאי)
+### Arnold Press (לחיצת ארנולד)
 
-File: `farmer_carry.mp4` · category: free_weight · equipment: dumbbells
+File: `arnold_press.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Farmer's Carry" using a pair of dumbbells. Target muscles: forearms, traps. Technique to show, in order: 1) Place a pair of heavy dumbbells at your sides and pick them up with a proper hip hinge, keeping your back flat. 2) Stand tall with your shoulders pulled down and back, chest up and arms straight at your sides. 3) Brace your core and grip the handles hard. 4) Walk forward with short, controlled steps, keeping your torso upright and the dumbbells from swinging; breathe steadily while staying braced. 5) Walk for the set time or distance, turning around carefully if you run out of space. 6) Stop, then hinge at the hips to set the dumbbells down under control. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Arnold Press" using a pair of dumbbells. Target muscles: shoulders. Technique to show, in order: 1) Sit on a bench with back support or stand tall, holding the dumbbells in front of your shoulders with palms facing you and elbows in front of your body, as at the top of a curl. 2) Brace your core and keep your back neutral. 3) Exhale and press the dumbbells up while rotating your palms outward and letting your elbows move out to the sides, so your palms face forward as your arms reach the top. 4) Finish with your arms straight overhead and the dumbbells stacked above your shoulders. 5) Inhale and reverse the movement slowly, rotating your palms back toward you as you lower to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Farmer's Carry" using a pair of dumbbells. Show: 1) Place a pair of heavy dumbbells at your sides and pick them up with a proper hip hinge, keeping your back flat. 2) Stand tall with your shoulders pulled down and back, chest up and arms straight at your sides. 3) Brace your core and grip the handles hard. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Arnold Press" using a pair of dumbbells. Show: 1) Sit on a bench with back support or stand tall, holding the dumbbells in front of your shoulders with palms facing you and elbows in front of your body, as at the top of a curl. 2) Brace your core and keep your back neutral. 3) Exhale and press the dumbbells up while rotating your palms outward and letting your elbows move out to the sides, so your palms face forward as your arms reach the top. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Plank (פלאנק)
+### Cable Biceps Curl (כפיפת מרפקים בכבל)
 
-File: `plank.mp4` · category: bodyweight · equipment: none
+File: `cable_biceps_curl.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Plank" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Place your forearms on the floor with your elbows directly under your shoulders and your hands shoulder-width apart or lightly clasped. 2) Step your feet back one at a time so you rest on your toes, feet about hip-width apart. 3) Form a straight line from head to heels: tuck your pelvis slightly, squeeze your glutes and brace your abs as if preparing for a light punch. 4) Push the floor away with your forearms so your upper back does not sag between the shoulder blades, and keep your neck neutral with your eyes on the floor. 5) Hold the position while breathing slowly and steadily; do not hold your breath. 6) End the set when you can no longer keep the straight line, then lower your knees to the floor. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Biceps Curl" using a cable machine. Target muscles: biceps. Technique to show, in order: 1) Attach a straight bar or EZ handle to a low pulley and grip it with your palms facing up, hands about shoulder-width apart. 2) Stand tall about one step back from the machine with your elbows at your sides and arms extended. 3) Curl the handle toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top for a moment. 5) Lower the handle under control until your arms are fully straight, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Plank" using no equipment (bodyweight only). Show: 1) Place your forearms on the floor with your elbows directly under your shoulders and your hands shoulder-width apart or lightly clasped. 2) Step your feet back one at a time so you rest on your toes, feet about hip-width apart. 3) Form a straight line from head to heels: tuck your pelvis slightly, squeeze your glutes and brace your abs as if preparing for a light punch. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Biceps Curl" using a cable machine. Show: 1) Attach a straight bar or EZ handle to a low pulley and grip it with your palms facing up, hands about shoulder-width apart. 2) Stand tall about one step back from the machine with your elbows at your sides and arms extended. 3) Curl the handle toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Side Plank (פלאנק צידי)
+### Cable Lateral Raise (הרחקה לצד בכבל)
 
-File: `side_plank.mp4` · category: bodyweight · equipment: none
+File: `cable_lateral_raise.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Side Plank" using no equipment (bodyweight only). Target muscles: obliques. Technique to show, in order: 1) Lie on your side with your elbow directly under your shoulder, forearm on the floor, and legs straight with the feet stacked (or the top foot in front of the bottom foot for more stability). 2) Brace your abs and squeeze your glutes before you lift. 3) Press your forearm into the floor and lift your hips until your body forms a straight line from head to feet. 4) Keep your hips pushed slightly forward, your chest facing straight ahead and your head in line with your spine; rest your free hand on your hip or reach it upward. 5) Hold while breathing steadily, then lower your hips with control and repeat on the other side. Show the repetitions on one side, then briefly the other side. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Lateral Raise" using a cable machine. Target muscles: shoulders. Technique to show, in order: 1) Attach a single handle to the lowest pulley position and stand side-on to the machine. 2) Grab the handle with the hand farther from the machine so the cable runs in front of your body, and hold the machine with your other hand for support. 3) Brace your core, keep a slight bend in the elbow and keep your shoulder down. 4) Exhale and raise your arm out to the side until it is roughly parallel to the floor. 5) Inhale and lower slowly, resisting the cable, until your hand is in front of your hip. 6) Complete all reps on one side before switching. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Side Plank" using no equipment (bodyweight only). Show: 1) Lie on your side with your elbow directly under your shoulder, forearm on the floor, and legs straight with the feet stacked (or the top foot in front of the bottom foot for more stability). 2) Brace your abs and squeeze your glutes before you lift. 3) Press your forearm into the floor and lift your hips until your body forms a straight line from head to feet. Show the repetitions on one side, then briefly the other side. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Lateral Raise" using a cable machine. Show: 1) Attach a single handle to the lowest pulley position and stand side-on to the machine. 2) Grab the handle with the hand farther from the machine so the cable runs in front of your body, and hold the machine with your other hand for support. 3) Brace your core, keep a slight bend in the elbow and keep your shoulder down. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Dead Bug (דד באג)
+### Deadlift (דדליפט)
 
-File: `dead_bug.mp4` · category: bodyweight · equipment: none
+File: `deadlift.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dead Bug" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your arms pointing straight up toward the ceiling and your hips and knees bent to 90 degrees, shins parallel to the floor. 2) Exhale fully and gently flatten your lower back toward the floor by bracing your abs; keep this contact throughout the set. 3) Slowly extend one arm overhead and the opposite leg forward until both hover just above the floor. 4) Pause briefly without letting your lower back arch or your ribs flare. 5) Return the arm and leg to the start and repeat with the other side; that is one rep per side. 6) Move slowly (about 2–3 seconds out and back) and breathe out as you extend. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Deadlift" using an Olympic barbell with plates. Target muscles: glutes, hamstrings, lower back. Technique to show, in order: 1) Stand with your mid-foot under the bar, feet about hip-width apart and toes pointing slightly out. 2) Push your hips back and bend your knees to grip the bar just outside your legs, with your shins touching or almost touching the bar. 3) Flatten your back, lift your chest and keep your shoulders slightly in front of the bar; take a deep breath into your belly and brace your core hard. 4) Push the floor away through your whole foot, keeping the bar in contact with your legs as it rises, and drive your hips forward until you stand tall. 5) Finish with your hips and knees fully locked out and your glutes squeezed, without leaning back. 6) Lower the bar by sending your hips back first and bending your knees once the bar passes them; exhale at the top or after setting the bar down, and re-brace before every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dead Bug" using no equipment (bodyweight only). Show: 1) Lie on your back with your arms pointing straight up toward the ceiling and your hips and knees bent to 90 degrees, shins parallel to the floor. 2) Exhale fully and gently flatten your lower back toward the floor by bracing your abs; keep this contact throughout the set. 3) Slowly extend one arm overhead and the opposite leg forward until both hover just above the floor. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Deadlift" using an Olympic barbell with plates. Show: 1) Stand with your mid-foot under the bar, feet about hip-width apart and toes pointing slightly out. 2) Push your hips back and bend your knees to grip the bar just outside your legs, with your shins touching or almost touching the bar. 3) Flatten your back, lift your chest and keep your shoulders slightly in front of the bar; take a deep breath into your belly and brace your core hard. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Bird Dog (בירד דוג)
+### Dumbbell Romanian Deadlift (דדליפט רומני עם משקולות יד)
 
-File: `bird_dog.mp4` · category: bodyweight · equipment: none
+File: `dumbbell_romanian_deadlift.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bird Dog" using no equipment (bodyweight only). Target muscles: lower back, abs. Technique to show, in order: 1) Start on all fours with your hands under your shoulders, knees under your hips and your spine in a neutral position. 2) Brace your abs lightly so your back stays flat, as if a glass of water were balanced on it. 3) Slowly reach one arm forward and the opposite leg back until both are roughly parallel to the floor, pushing the heel back and squeezing the glute. 4) Hold for 2–3 seconds without letting your hips rotate or your lower back arch. 5) Return the arm and leg to the floor under control and repeat with the other side. 6) Breathe steadily throughout and exhale as you extend. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Romanian Deadlift" using a pair of dumbbells. Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand in front of your thighs with your palms facing you. 2) Soften your knees slightly, set your shoulders back and brace your core. 3) Push your hips back and lower the dumbbells along the front of your legs, keeping them close and your back flat. 4) Stop when you feel a strong hamstring stretch, typically between knee and mid-shin height. 5) Drive your hips forward and squeeze your glutes to stand tall, exhaling on the way up. 6) Lower over 2–3 seconds and keep the same slight knee bend on every rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bird Dog" using no equipment (bodyweight only). Show: 1) Start on all fours with your hands under your shoulders, knees under your hips and your spine in a neutral position. 2) Brace your abs lightly so your back stays flat, as if a glass of water were balanced on it. 3) Slowly reach one arm forward and the opposite leg back until both are roughly parallel to the floor, pushing the heel back and squeezing the glute. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Romanian Deadlift" using a pair of dumbbells. Show: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand in front of your thighs with your palms facing you. 2) Soften your knees slightly, set your shoulders back and brace your core. 3) Push your hips back and lower the dumbbells along the front of your legs, keeping them close and your back flat. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Hollow Body Hold (החזקת הולו בודי)
+### Dumbbell Shoulder Press (לחיצת כתפיים עם משקולות יד)
 
-File: `hollow_body_hold.mp4` · category: bodyweight · equipment: none
+File: `dumbbell_shoulder_press.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hollow Body Hold" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your arms extended overhead and your legs straight and together. 2) Press your lower back firmly into the floor by bracing your abs and tilting your pelvis slightly back. 3) Lift your shoulders, arms and legs off the floor at the same time, keeping your lower back in contact with the floor. 4) Find the lowest arm and leg position in which your lower back still stays down; point your toes and keep your chin slightly tucked. 5) Hold while taking short, controlled breaths without losing the shape. 6) End the set as soon as your lower back starts to lift, then lower your limbs to the floor. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Shoulder Press" using a pair of dumbbells. Target muscles: shoulders, triceps. Technique to show, in order: 1) Sit on a bench with back support or stand tall, holding a dumbbell in each hand at shoulder height, palms facing forward and elbows slightly in front of your torso. 2) Brace your abs, keeping your ribs down and your back neutral. 3) Exhale and press the dumbbells up and slightly inward until your arms are straight overhead, without banging them together. 4) Pause briefly at the top with your arms close to your ears. 5) Inhale and lower the dumbbells slowly, over about 2–3 seconds, back to shoulder height. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hollow Body Hold" using no equipment (bodyweight only). Show: 1) Lie on your back with your arms extended overhead and your legs straight and together. 2) Press your lower back firmly into the floor by bracing your abs and tilting your pelvis slightly back. 3) Lift your shoulders, arms and legs off the floor at the same time, keeping your lower back in contact with the floor. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Shoulder Press" using a pair of dumbbells. Show: 1) Sit on a bench with back support or stand tall, holding a dumbbell in each hand at shoulder height, palms facing forward and elbows slightly in front of your torso. 2) Brace your abs, keeping your ribs down and your back neutral. 3) Exhale and press the dumbbells up and slightly inward until your arms are straight overhead, without banging them together. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Crunch (כפיפות בטן)
+### Glute Bridge (גשר ישבן)
 
-File: `crunch.mp4` · category: bodyweight · equipment: none
+File: `glute_bridge.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Crunch" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your knees bent and feet flat on the floor about hip-width apart. 2) Place your fingertips lightly behind your ears or cross your arms over your chest, keeping your elbows wide. 3) Exhale and curl your ribcage toward your pelvis, lifting your head and shoulder blades off the floor. 4) Keep your lower back on the floor and about a fist-width of space between your chin and chest. 5) Pause and squeeze your abs briefly at the top. 6) Inhale as you lower slowly until your shoulder blades touch the floor. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Glute Bridge" using no equipment (bodyweight only). Target muscles: glutes. Technique to show, in order: 1) Lie on your back with your knees bent, feet flat on the floor hip-width apart and heels about a hand length from your glutes. 2) Rest your arms on the floor by your sides and gently brace your core so your lower back stays neutral. 3) Press through your heels and squeeze your glutes to lift your hips until your body forms a straight line from shoulders to knees, exhaling as you lift. 4) Hold the top for one to two seconds with your ribs down, without arching your lower back. 5) Lower your hips slowly to the floor, inhaling on the way down, and repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Crunch" using no equipment (bodyweight only). Show: 1) Lie on your back with your knees bent and feet flat on the floor about hip-width apart. 2) Place your fingertips lightly behind your ears or cross your arms over your chest, keeping your elbows wide. 3) Exhale and curl your ribcage toward your pelvis, lifting your head and shoulder blades off the floor. Correct, safe form only. Duration 8 seconds.
-```
-
-### Bicycle Crunch (כפיפות בטן אופניים)
-
-File: `bicycle_crunch.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bicycle Crunch" using no equipment (bodyweight only). Target muscles: abs, obliques. Technique to show, in order: 1) Lie on your back with your fingertips lightly behind your ears, lower back pressed into the floor and knees lifted to 90 degrees. 2) Curl your head and shoulder blades off the floor and keep them up for the whole set. 3) Exhale and rotate your torso to bring one elbow toward the opposite knee while extending the other leg out at about 45 degrees. 4) Switch sides in a slow pedaling motion, rotating through the ribcage rather than just moving the elbows. 5) Count each side as one rep and keep the tempo controlled, about one second per side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bicycle Crunch" using no equipment (bodyweight only). Show: 1) Lie on your back with your fingertips lightly behind your ears, lower back pressed into the floor and knees lifted to 90 degrees. 2) Curl your head and shoulder blades off the floor and keep them up for the whole set. 3) Exhale and rotate your torso to bring one elbow toward the opposite knee while extending the other leg out at about 45 degrees. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
-```
-
-### Lying Leg Raise (הרמות רגליים בשכיבה)
-
-File: `lying_leg_raise.mp4` · category: bodyweight · equipment: none
-
-Full prompt:
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lying Leg Raise" using no equipment (bodyweight only). Target muscles: abs, hip flexors. Technique to show, in order: 1) Lie on your back with your legs straight and together and your arms along your sides, palms down (or hands under your hips for support). 2) Brace your abs and press your lower back into the floor. 3) Exhale and raise your legs, keeping them straight, until they point roughly at the ceiling. 4) At the top, you may curl your hips slightly off the floor to engage the lower abs more. 5) Inhale and lower your legs slowly over 2–3 seconds, stopping just before your lower back starts to arch. 6) Keep your neck relaxed and your head on the floor throughout. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
-```
-
-Short prompt (if the full one is too long or the clip rushes):
-
-```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lying Leg Raise" using no equipment (bodyweight only). Show: 1) Lie on your back with your legs straight and together and your arms along your sides, palms down (or hands under your hips for support). 2) Brace your abs and press your lower back into the floor. 3) Exhale and raise your legs, keeping them straight, until they point roughly at the ceiling. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Glute Bridge" using no equipment (bodyweight only). Show: 1) Lie on your back with your knees bent, feet flat on the floor hip-width apart and heels about a hand length from your glutes. 2) Rest your arms on the floor by your sides and gently brace your core so your lower back stays neutral. 3) Press through your heels and squeeze your glutes to lift your hips until your body forms a straight line from shoulders to knees, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Hanging Knee Raise (הרמות ברכיים בתלייה)
 
-File: `hanging_knee_raise.mp4` · category: calisthenics · equipment: pull_up_bar
+File: `hanging_knee_raise.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: pull_up_bar
 
 Full prompt:
 
@@ -1535,41 +474,169 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hanging Knee Raise" using a pull-up bar. Show: 1) Grip the pull-up bar slightly wider than shoulder width with an overhand grip and hang with straight arms. 2) Pull your shoulders slightly down away from your ears and brace your abs to stop any swinging. 3) Exhale and raise your knees toward your chest, curling your pelvis up at the top so your lower back rounds slightly. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Hanging Leg Raise (הרמות רגליים בתלייה)
+### Plank (פלאנק)
 
-File: `hanging_leg_raise.mp4` · category: calisthenics · equipment: pull_up_bar
+File: `plank.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hanging Leg Raise" using a pull-up bar. Target muscles: abs, hip flexors. Technique to show, in order: 1) Hang from a pull-up bar with an overhand, shoulder-width grip, arms straight and shoulders pulled slightly down. 2) Brace your abs and squeeze your legs together, tilting your pelvis slightly back to stop any swing. 3) Exhale and raise your straight legs in a controlled arc until your feet reach at least hip height, ideally higher. 4) At the top, curl your pelvis up toward your ribs to fully engage the abs. 5) Inhale and lower your legs slowly, stopping any swing before you start the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Plank" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Place your forearms on the floor with your elbows directly under your shoulders and your hands shoulder-width apart or lightly clasped. 2) Step your feet back one at a time so you rest on your toes, feet about hip-width apart. 3) Form a straight line from head to heels: tuck your pelvis slightly, squeeze your glutes and brace your abs as if preparing for a light punch. 4) Push the floor away with your forearms so your upper back does not sag between the shoulder blades, and keep your neck neutral with your eyes on the floor. 5) Hold the position while breathing slowly and steadily; do not hold your breath. 6) End the set when you can no longer keep the straight line, then lower your knees to the floor. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hanging Leg Raise" using a pull-up bar. Show: 1) Hang from a pull-up bar with an overhand, shoulder-width grip, arms straight and shoulders pulled slightly down. 2) Brace your abs and squeeze your legs together, tilting your pelvis slightly back to stop any swing. 3) Exhale and raise your straight legs in a controlled arc until your feet reach at least hip height, ideally higher. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Plank" using no equipment (bodyweight only). Show: 1) Place your forearms on the floor with your elbows directly under your shoulders and your hands shoulder-width apart or lightly clasped. 2) Step your feet back one at a time so you rest on your toes, feet about hip-width apart. 3) Form a straight line from head to heels: tuck your pelvis slightly, squeeze your glutes and brace your abs as if preparing for a light punch. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Russian Twist (טוויסט רוסי)
+### Single-Leg Glute Bridge (גשר ישבן על רגל אחת)
 
-File: `russian_twist.mp4` · category: bodyweight · equipment: none
+File: `single_leg_glute_bridge.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Russian Twist" using no equipment (bodyweight only). Target muscles: obliques. Technique to show, in order: 1) Sit on the floor with your knees bent and heels on the floor, holding your hands together in front of your chest. 2) Lean back to about 45 degrees with a long, neutral spine and braced abs. 3) Exhale and rotate your torso to one side, moving your shoulders and ribcage together so your hands travel beside your hip. 4) Return through the center under control and rotate to the other side; count each side as one rep. 5) To progress, lift your feet a few centimeters off the floor or hold a light weight. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Glute Bridge" using no equipment (bodyweight only). Target muscles: glutes. Technique to show, in order: 1) Lie on your back with both knees bent and feet flat on the floor, then lift one foot and either straighten that leg or hug that knee toward your chest. 2) Keep the working foot flat under its knee and rest your arms on the floor by your sides. 3) Brace your core, press through the heel of the working foot and squeeze that glute to lift your hips, exhaling as you rise. 4) Rise until your shoulders, hips and knee form a straight line, keeping your pelvis level without dropping to one side. 5) Pause for a second at the top, then lower slowly to the floor. 6) Complete all reps on one side before switching legs. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Russian Twist" using no equipment (bodyweight only). Show: 1) Sit on the floor with your knees bent and heels on the floor, holding your hands together in front of your chest. 2) Lean back to about 45 degrees with a long, neutral spine and braced abs. 3) Exhale and rotate your torso to one side, moving your shoulders and ribcage together so your hands travel beside your hip. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Glute Bridge" using no equipment (bodyweight only). Show: 1) Lie on your back with both knees bent and feet flat on the floor, then lift one foot and either straighten that leg or hug that knee toward your chest. 2) Keep the working foot flat under its knee and rest your arms on the floor by your sides. 3) Brace your core, press through the heel of the working foot and squeeze that glute to lift your hips, exhaling as you rise. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Smith Machine Squat (סקוואט במכונת סמית׳)
+
+File: `smith_machine_squat.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: smith_machine
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Smith Machine Squat" using a Smith machine. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar at about shoulder height and the safety stops just below the bottom of your squat. 2) Step under the bar, rest it on your upper back and grip it just outside shoulder width. 3) Place your feet about shoulder width apart and slightly in front of the bar, toes turned out a little. 4) Rotate the bar to unhook it, take a breath and brace your core. 5) Bend your hips and knees to lower yourself under control until your thighs are about parallel to the floor, keeping your knees in line with your toes. 6) Push through the whole foot to stand up, exhale near the top, and rotate the bar back onto the hooks after the last rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Smith Machine Squat" using a Smith machine. Show: 1) Set the bar at about shoulder height and the safety stops just below the bottom of your squat. 2) Step under the bar, rest it on your upper back and grip it just outside shoulder width. 3) Place your feet about shoulder width apart and slightly in front of the bar, toes turned out a little. Correct, safe form only. Duration 8 seconds.
+```
+
+### Standing Calf Raise (הרמות עקבים בעמידה)
+
+File: `standing_calf_raise.mp4` · priority B (used 4x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Standing Calf Raise" using no equipment (bodyweight only). Target muscles: calves. Technique to show, in order: 1) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart, holding a wall or railing for balance. 2) If using a step, let your heels sink slightly below the step to stretch the calves. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. 4) Pause for a second at the top and squeeze your calves. 5) Inhale and lower your heels slowly back to the starting position. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Standing Calf Raise" using no equipment (bodyweight only). Show: 1) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart, holding a wall or railing for balance. 2) If using a step, let your heels sink slightly below the step to stretch the calves. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Pull-Apart (פתיחת גומייה לצדדים)
+
+File: `band_pull_apart.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Pull-Apart" using a resistance band. Target muscles: rear delts, upper back. Technique to show, in order: 1) Stand tall and hold a light band in front of you at shoulder height with straight arms, hands about shoulder-width apart and palms facing down. 2) Brace your core and set your shoulders down, away from your ears. 3) Exhale and pull the band apart by moving your hands out to the sides until the band touches your chest. 4) Squeeze your shoulder blades together for a second at the end. 5) Inhale and return slowly to the start, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Pull-Apart" using a resistance band. Show: 1) Stand tall and hold a light band in front of you at shoulder height with straight arms, hands about shoulder-width apart and palms facing down. 2) Brace your core and set your shoulders down, away from your ears. 3) Exhale and pull the band apart by moving your hands out to the sides until the band touches your chest. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Back Squat (סקוואט עם מוט)
+
+File: `barbell_back_squat.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+squat_rack
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Back Squat" using an Olympic barbell with plates and a squat rack. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar in the rack at about mid-chest height and the safety pins just below the lowest point of your squat. 2) Step under the bar, place it on your upper back (on the traps, not the neck), grip it just outside your shoulders and pull your elbows down to tighten your upper back. 3) Stand up to unrack, take two or three short steps back and set your feet about shoulder width apart with the toes turned out slightly. 4) Take a big breath into your belly and brace your core, then sit down and back by bending your hips and knees together, keeping your knees tracking over your toes. 5) Descend under control until your thighs are at least parallel to the floor (or as deep as you can while keeping a neutral spine), with your whole foot planted. 6) Drive through the whole foot to stand up, keeping your chest up so your hips and shoulders rise at the same rate, and exhale near the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Back Squat" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at about mid-chest height and the safety pins just below the lowest point of your squat. 2) Step under the bar, place it on your upper back (on the traps, not the neck), grip it just outside your shoulders and pull your elbows down to tighten your upper back. 3) Stand up to unrack, take two or three short steps back and set your feet about shoulder width apart with the toes turned out slightly. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Overhead Press (לחיצת כתפיים עם מוט)
+
+File: `barbell_overhead_press.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+squat_rack
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Overhead Press" using an Olympic barbell with plates and a squat rack. Target muscles: shoulders, triceps. Technique to show, in order: 1) Set the bar in the rack at upper-chest height, grip it just outside shoulder width and unrack it so it rests on the front of your shoulders, elbows slightly in front of the bar. 2) Take one or two steps back, stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down. 3) Take a breath, hold it, and press the bar straight up, moving your head slightly back so the bar clears your chin. 4) As the bar passes your forehead, bring your head forward "through the window" and lock out with the bar over mid-foot and your arms beside your ears. 5) Exhale at the top, take a fresh breath and brace, then lower the bar under control to your upper chest, moving your head back again. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Overhead Press" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at upper-chest height, grip it just outside shoulder width and unrack it so it rests on the front of your shoulders, elbows slightly in front of the bar. 2) Take one or two steps back, stand with feet hip-width apart, squeeze your glutes and brace your abs so your ribs stay down. 3) Take a breath, hold it, and press the bar straight up, moving your head slightly back so the bar clears your chin. Correct, safe form only. Duration 8 seconds.
+```
+
+### Box Jump (קפיצה על ארגז)
+
+File: `box_jump.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: plyo_box · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Box Jump" using a plyo box. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Place a stable plyo box on a non-slip floor and stand about a foot-length away from it, feet hip- to shoulder-width apart. 2) Swing your arms back as you dip quickly into a quarter squat, keeping your chest up and your core braced. 3) Swing your arms forward and up and jump explosively, driving through your hips, knees and ankles and pulling your knees up toward the box. 4) Land softly with your whole foot in the centre of the box in a partial squat, knees in line with your toes. 5) Stand up tall on the box to finish the rep, exhaling as you stabilise. 6) Step down one foot at a time rather than jumping backward, then reset fully before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Box Jump" using a plyo box. Show: 1) Place a stable plyo box on a non-slip floor and stand about a foot-length away from it, feet hip- to shoulder-width apart. 2) Swing your arms back as you dip quickly into a quarter squat, keeping your chest up and your core braced. 3) Swing your arms forward and up and jump explosively, driving through your hips, knees and ankles and pulling your knees up toward the box. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bulgarian Split Squat (סקוואט בולגרי)
+
+File: `bulgarian_split_squat.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bulgarian Split Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand about one long stride in front of a sturdy chair or bench and place the top of your rear foot on the seat. 2) Set your front foot so that, at the bottom, your front shin is roughly vertical or slightly forward, and keep your hips square. 3) Inhale and brace, then lower straight down by bending the front knee until the front thigh is about parallel to the floor. 4) Keep most of the weight on the front foot, with your torso tall or leaning slightly forward and the front knee tracking over the toes. 5) Drive through the front heel and midfoot to stand back up, exhaling as you rise. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bulgarian Split Squat" using no equipment (bodyweight only). Show: 1) Stand about one long stride in front of a sturdy chair or bench and place the top of your rear foot on the seat. 2) Set your front foot so that, at the bottom, your front shin is roughly vertical or slightly forward, and keep your hips square. 3) Inhale and brace, then lower straight down by bending the front knee until the front thigh is about parallel to the floor. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Cable Chest Fly (פרפר בכבלים (קרוס אובר))
+
+File: `cable_chest_fly.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cable Chest Fly" using a cable machine. Target muscles: chest. Technique to show, in order: 1) Set both pulleys at about shoulder height, take a handle in each hand and step forward into a staggered stance. 2) Lean slightly forward with a neutral spine, arms open to the sides and elbows slightly bent. 3) Exhale and bring the handles together in a wide arc in front of your chest, keeping the elbow angle fixed. 4) Squeeze your chest for a second when your hands meet. 5) Inhale and let your arms open slowly along the same arc until you feel a light stretch in the chest. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Chest Fly" using a cable machine. Show: 1) Set both pulleys at about shoulder height, take a handle in each hand and step forward into a staggered stance. 2) Lean slightly forward with a neutral spine, arms open to the sides and elbows slightly bent. 3) Exhale and bring the handles together in a wide arc in front of your chest, keeping the elbow angle fixed. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Cable Woodchop (וודצ׳ופ בכבל)
 
-File: `cable_woodchop.mp4` · category: cable · equipment: cable_machine
+File: `cable_woodchop.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
@@ -1583,9 +650,121 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cable Woodchop" using a cable machine. Show: 1) Set the cable pulley at the top position with a single handle or rope, and stand side-on to the machine with your feet a little wider than shoulder width. 2) Reach up and grab the handle with both hands, arms nearly straight, so the cable runs diagonally across your body. 3) Brace your abs, then pull the handle down and across your body toward the opposite hip, rotating through your torso and hips. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
+### Dumbbell Curl (כפיפת מרפקים במשקולות יד)
+
+File: `dumbbell_curl.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Curl" using a pair of dumbbells. Target muscles: biceps. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward or toward your thighs. 2) Keep your elbows close to your torso and your shoulders back. 3) Curl the dumbbells up, turning your palms to face up and toward your shoulders as you lift; exhale on the way up. 4) Squeeze your biceps at the top while keeping your elbows in place. 5) Lower the dumbbells slowly to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Curl" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward or toward your thighs. 2) Keep your elbows close to your torso and your shoulders back. 3) Curl the dumbbells up, turning your palms to face up and toward your shoulders as you lift; exhale on the way up. Correct, safe form only. Duration 8 seconds.
+```
+
+### Front Squat (סקוואט קדמי)
+
+File: `front_squat.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · advanced · category: free_weight · equipment: barbell+squat_rack · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Front Squat" using an Olympic barbell with plates and a squat rack. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Set the bar in the rack at upper-chest height and the safety pins just below your bottom position. 2) Step under the bar and rest it on the front of your shoulders, close to your throat; hold it with a clean grip (fingertips under the bar) or with crossed arms, and lift your elbows high. 3) Unrack the bar, step back and set your feet about shoulder width apart with the toes slightly out. 4) Breathe in and brace hard, then squat straight down between your heels, keeping your torso upright and your elbows pointing forward. 5) Descend until your thighs are at least parallel to the floor without letting the elbows drop. 6) Drive up through the whole foot, leading with your elbows and chest, and exhale as you approach the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Front Squat" using an Olympic barbell with plates and a squat rack. Show: 1) Set the bar in the rack at upper-chest height and the safety pins just below your bottom position. 2) Step under the bar and rest it on the front of your shoulders, close to your throat; hold it with a clean grip (fingertips under the bar) or with crossed arms, and lift your elbows high. 3) Unrack the bar, step back and set your feet about shoulder width apart with the toes slightly out. Correct, safe form only. Duration 8 seconds.
+```
+
+### Goblet Squat (גובלט סקוואט)
+
+File: `goblet_squat.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Goblet Squat" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Hold one dumbbell vertically with both hands cupping its top end, close against your chest just under your chin. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace, then sit down between your heels, bending your hips and knees together. 4) Keep your chest up and your elbows inside your knees, pushing the knees out in line with your toes. 5) Lower until your thighs are at least parallel to the floor, or as deep as you can with a neutral back. 6) Drive through the whole foot to stand back up, exhaling as you finish the rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Goblet Squat" using a pair of dumbbells. Show: 1) Hold one dumbbell vertically with both hands cupping its top end, close against your chest just under your chin. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace, then sit down between your heels, bending your hips and knees together. Correct, safe form only. Duration 8 seconds.
+```
+
+### Hammer Curl (כפיפת מרפקים באחיזת פטיש (פטישים))
+
+File: `hammer_curl.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hammer Curl" using a pair of dumbbells. Target muscles: biceps, forearms. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides with your palms facing your thighs. 2) Keep your elbows close to your torso and your wrists straight. 3) Curl the dumbbells up toward your shoulders without rotating your palms, exhaling as you lift. 4) Pause briefly at the top with your thumbs pointing up. 5) Lower slowly to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hammer Curl" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides with your palms facing your thighs. 2) Keep your elbows close to your torso and your wrists straight. 3) Curl the dumbbells up toward your shoulders without rotating your palms, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
+```
+
+### Incline Barbell Bench Press (לחיצת חזה בשיפוע חיובי במוט)
+
+File: `incline_barbell_bench_press.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Barbell Bench Press" using an Olympic barbell with plates and an adjustable bench set to a 30-45 degree incline. Target muscles: chest. Technique to show, in order: 1) Set an adjustable bench to 30–45 degrees and lie back with your eyes roughly under the bar and your feet planted. 2) Grip the bar slightly wider than shoulder width and pull your shoulder blades back and down into the bench. 3) Unrack the bar and hold it with straight arms directly over your shoulders. 4) Inhale and lower the bar under control to your upper chest, just below the collarbones, keeping your forearms vertical. 5) Press the bar back up in a straight line over your shoulders, exhaling as you pass the hardest part of the rep. 6) Keep your hips and upper back on the bench throughout, then rack the bar carefully after the set. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Barbell Bench Press" using an Olympic barbell with plates and an adjustable bench set to a 30-45 degree incline. Show: 1) Set an adjustable bench to 30–45 degrees and lie back with your eyes roughly under the bar and your feet planted. 2) Grip the bar slightly wider than shoulder width and pull your shoulder blades back and down into the bench. 3) Unrack the bar and hold it with straight arms directly over your shoulders. Correct, safe form only. Duration 8 seconds.
+```
+
+### One-Arm Dumbbell Row (חתירה חד-ידית במשקולת יד)
+
+File: `one_arm_dumbbell_row.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "One-Arm Dumbbell Row" using a pair of dumbbells and a flat training bench. Target muscles: lats, upper back. Technique to show, in order: 1) Place your left knee and left hand on a flat bench, with your right foot on the floor slightly out to the side. 2) Hold a dumbbell in your right hand with the arm hanging straight below your shoulder, your back flat and roughly parallel to the floor. 3) Brace your core and row the dumbbell toward your hip, driving the elbow back close to your body and exhaling as you pull. 4) Squeeze your shoulder blade toward your spine at the top without twisting your torso open. 5) Lower the dumbbell under control until your arm is straight and you feel a stretch in your back, inhaling on the way down. 6) Complete all reps on one side, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "One-Arm Dumbbell Row" using a pair of dumbbells and a flat training bench. Show: 1) Place your left knee and left hand on a flat bench, with your right foot on the floor slightly out to the side. 2) Hold a dumbbell in your right hand with the arm hanging straight below your shoulder, your back flat and roughly parallel to the floor. 3) Brace your core and row the dumbbell toward your hip, driving the elbow back close to your body and exhaling as you pull. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Overhead Dumbbell Triceps Extension (פשיטת מרפקים מעל הראש עם משקולת יד)
+
+File: `overhead_dumbbell_triceps_extension.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Overhead Dumbbell Triceps Extension" using a pair of dumbbells. Target muscles: triceps. Technique to show, in order: 1) Sit or stand tall and hold one dumbbell with both hands, palms cupping the underside of the top plate. 2) Press the dumbbell overhead until your arms are straight, with your upper arms close to your ears. 3) Brace your abs to keep your ribs down and your back neutral. 4) Inhale and slowly bend your elbows to lower the dumbbell behind your head, keeping your elbows pointing forward. 5) Lower until you feel a stretch in the triceps, then exhale and straighten your elbows to return to the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Overhead Dumbbell Triceps Extension" using a pair of dumbbells. Show: 1) Sit or stand tall and hold one dumbbell with both hands, palms cupping the underside of the top plate. 2) Press the dumbbell overhead until your arms are straight, with your upper arms close to your ears. 3) Brace your abs to keep your ribs down and your back neutral. Correct, safe form only. Duration 8 seconds.
+```
+
 ### Pallof Press (פאלוף פרס)
 
-File: `pallof_press.mp4` · category: cable · equipment: cable_machine
+File: `pallof_press.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: cable · equipment: cable_machine
 
 Full prompt:
 
@@ -1599,126 +778,510 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pallof Press" using a cable machine. Show: 1) Set the cable pulley at about chest height with a single handle and stand side-on to the machine, one step away so the cable is under tension. 2) Hold the handle with both hands at the center of your chest, feet shoulder-width apart and knees slightly bent. 3) Brace your abs and squeeze your glutes so your hips and shoulders stay square to the front. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Ab Wheel Rollout (גלגלת בטן (רול-אאוט))
+### Single-Leg Romanian Deadlift (דדליפט רומני על רגל אחת)
 
-File: `ab_wheel_rollout.mp4` · category: bodyweight · equipment: ab_wheel
+File: `single_leg_romanian_deadlift.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ab Wheel Rollout" using ab wheel. Target muscles: abs. Technique to show, in order: 1) Kneel on a mat holding the ab wheel handles, with the wheel on the floor under your shoulders and your arms straight. 2) Tuck your pelvis slightly, brace your abs and squeeze your glutes so your back is flat or slightly rounded. 3) Inhale and slowly roll the wheel forward, letting your hips and arms extend together while you keep the brace. 4) Roll out only as far as you can without your lower back sagging or arching. 5) Exhale and pull the wheel back toward your knees by contracting your abs, keeping your arms straight. 6) Reset your brace in the starting position before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Romanian Deadlift" using no equipment (bodyweight only). Target muscles: hamstrings, glutes. Technique to show, in order: 1) Stand on one leg with a slight bend in the knee and your arms by your sides or reaching forward; lightly hold a wall or chair if you need help balancing. 2) Brace your core and keep your hips square to the floor throughout the movement. 3) Hinge forward at the hip and let your free leg extend straight behind you as your torso lowers, so your body moves like a seesaw. 4) Lower until your torso is nearly parallel to the floor or you feel a strong stretch in the standing hamstring, keeping your back flat. 5) Drive the standing hip forward and squeeze that glute to return upright, exhaling as you rise. 6) Complete all reps on one side, then switch; to progress, hold a dumbbell in the hand opposite the standing leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ab Wheel Rollout" using ab wheel. Show: 1) Kneel on a mat holding the ab wheel handles, with the wheel on the floor under your shoulders and your arms straight. 2) Tuck your pelvis slightly, brace your abs and squeeze your glutes so your back is flat or slightly rounded. 3) Inhale and slowly roll the wheel forward, letting your hips and arms extend together while you keep the brace. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Romanian Deadlift" using no equipment (bodyweight only). Show: 1) Stand on one leg with a slight bend in the knee and your arms by your sides or reaching forward; lightly hold a wall or chair if you need help balancing. 2) Brace your core and keep your hips square to the floor throughout the movement. 3) Hinge forward at the hip and let your free leg extend straight behind you as your torso lowers, so your body moves like a seesaw. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### L-Sit (אל-סיט)
+### Walking Lunge (מכרעים בהליכה)
 
-File: `l_sit.mp4` · category: calisthenics · equipment: dip_bars
+File: `walking_lunge.mp4` · priority B (used 3x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "L-Sit" using parallel dip bars. Target muscles: abs, hip flexors. Technique to show, in order: 1) Grip the parallel bars and press up into a support position with your arms locked straight. 2) Push down through your hands to draw your shoulders away from your ears, and lean your torso very slightly forward. 3) Brace your abs and lift your legs, straight and together, until they are parallel to the floor. 4) Point your toes, lock your knees and keep your chest up while holding the position. 5) Breathe in short, controlled breaths and hold for the target time. 6) Lower your legs under control and step down from the bars. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Walking Lunge" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall with your feet hip width apart and your hands on your hips or by your sides, with clear space in front of you. 2) Take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright and your front knee tracking over your toes, with the weight on the front foot. 4) Push through the front heel and bring the back leg forward, stepping straight into the next lunge on the other side. 5) Breathe in as you lower and out as you drive forward, and keep alternating for the target number of reps per leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "L-Sit" using parallel dip bars. Show: 1) Grip the parallel bars and press up into a support position with your arms locked straight. 2) Push down through your hands to draw your shoulders away from your ears, and lean your torso very slightly forward. 3) Brace your abs and lift your legs, straight and together, until they are parallel to the floor. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Walking Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip width apart and your hands on your hips or by your sides, with clear space in front of you. 2) Take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright and your front knee tracking over your toes, with the weight on the front foot. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Archer Push-Up (שכיבות סמיכה קשת (ארצ׳ר))
+
+File: `archer_push_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Archer Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands about twice shoulder width apart, fingers pointing forward or slightly out. 2) Brace your core and glutes so your body stays in a straight line from head to heels. 3) Inhale and shift your weight toward one hand, bending that elbow and lowering your chest toward it while the other arm straightens out to the side. 4) Lower until your chest is just above the working hand, keeping your hips square to the floor. 5) Exhale and press back up, mainly through the bent arm, to the center. 6) Complete all reps on one side or alternate sides, keeping the number of reps equal on each side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Archer Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands about twice shoulder width apart, fingers pointing forward or slightly out. 2) Brace your core and glutes so your body stays in a straight line from head to heels. 3) Inhale and shift your weight toward one hand, bending that elbow and lowering your chest toward it while the other arm straightens out to the side. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band-Assisted Dip (מקבילים בעזרת גומייה)
+
+File: `band_assisted_dip.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: dip_bars+resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band-Assisted Dip" using parallel dip bars and a resistance band. Target muscles: triceps, chest. Technique to show, in order: 1) Loop a resistance band across the two bars and secure it so it forms a firm platform between them. 2) Grip the bars, step up and place your knees (or shins) on the band, then support yourself on straight arms with your shoulders down. 3) Inhale and lower your body by bending your elbows, keeping them pointing back and your torso leaning slightly forward. 4) Descend until your upper arms are about parallel to the floor, or as far as is comfortable for your shoulders. 5) Exhale and press back up to straight arms. 6) Progress by switching to a thinner band as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band-Assisted Dip" using parallel dip bars and a resistance band. Show: 1) Loop a resistance band across the two bars and secure it so it forms a firm platform between them. 2) Grip the bars, step up and place your knees (or shins) on the band, then support yourself on straight arms with your shoulders down. 3) Inhale and lower your body by bending your elbows, keeping them pointing back and your torso leaning slightly forward. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Curl (כפיפת מרפקים במוט)
+
+File: `barbell_curl.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: barbell
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Curl" using an Olympic barbell with plates. Target muscles: biceps. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding the bar with an underhand, shoulder-width grip and arms extended. 2) Pin your elbows close to your sides and brace your core. 3) Curl the bar up toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top without letting your elbows drift forward. 5) Lower the bar slowly over 2–3 seconds to full arm extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Curl" using an Olympic barbell with plates. Show: 1) Stand tall with feet hip-width apart, holding the bar with an underhand, shoulder-width grip and arms extended. 2) Pin your elbows close to your sides and brace your core. 3) Curl the bar up toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
+```
+
+### Barbell Hip Thrust (היפ טראסט עם מוט)
+
+File: `barbell_hip_thrust.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Barbell Hip Thrust" using an Olympic barbell with plates and a flat training bench. Target muscles: glutes. Technique to show, in order: 1) Sit on the floor with your upper back, just below the shoulder blades, against the long side of a stable bench and a padded barbell over your hip crease. 2) Bend your knees and place your feet flat about hip-width apart, so that your shins will be vertical at the top. 3) Hold the bar with both hands to keep it steady, tuck your chin slightly and brace your core. 4) Drive through your heels and squeeze your glutes to lift the bar until your torso and thighs are parallel to the floor, exhaling as you lift. 5) At the top keep your ribs down and your pelvis slightly tucked, and pause for one to two seconds without arching your back. 6) Lower your hips under control until your glutes nearly touch the floor, then repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Barbell Hip Thrust" using an Olympic barbell with plates and a flat training bench. Show: 1) Sit on the floor with your upper back, just below the shoulder blades, against the long side of a stable bench and a padded barbell over your hip crease. 2) Bend your knees and place your feet flat about hip-width apart, so that your shins will be vertical at the top. 3) Hold the bar with both hands to keep it steady, tuck your chin slightly and brace your core. Correct, safe form only. Duration 8 seconds.
+```
+
+### Cardio Machine Intervals (אינטרוולים על מכשיר אירובי)
+
+File: `cardio_machine_intervals.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: cardio · equipment: cardio_machine
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cardio Machine Intervals" using a cardio machine. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Choose a machine and set it up correctly, for example adjusting the bike seat so your knee stays slightly bent at the bottom of the pedal stroke. 2) Warm up for 5 minutes at an easy, comfortable pace. 3) Perform a work interval, for example 30–60 seconds, at a hard but sustainable effort where talking is difficult. 4) Follow it with an equal or longer recovery period at an easy pace, breathing deeply to bring your heart rate down. 5) Repeat for the planned number of intervals, keeping the work effort consistent from the first to the last. 6) Cool down for 5 minutes at an easy pace before getting off the machine. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cardio Machine Intervals" using a cardio machine. Show: 1) Choose a machine and set it up correctly, for example adjusting the bike seat so your knee stays slightly bent at the bottom of the pedal stroke. 2) Warm up for 5 minutes at an easy, comfortable pace. 3) Perform a work interval, for example 30–60 seconds, at a hard but sustainable effort where talking is difficult. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dead Bug (דד באג)
+
+File: `dead_bug.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dead Bug" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your arms pointing straight up toward the ceiling and your hips and knees bent to 90 degrees, shins parallel to the floor. 2) Exhale fully and gently flatten your lower back toward the floor by bracing your abs; keep this contact throughout the set. 3) Slowly extend one arm overhead and the opposite leg forward until both hover just above the floor. 4) Pause briefly without letting your lower back arch or your ribs flare. 5) Return the arm and leg to the start and repeat with the other side; that is one rep per side. 6) Move slowly (about 2–3 seconds out and back) and breathe out as you extend. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dead Bug" using no equipment (bodyweight only). Show: 1) Lie on your back with your arms pointing straight up toward the ceiling and your hips and knees bent to 90 degrees, shins parallel to the floor. 2) Exhale fully and gently flatten your lower back toward the floor by bracing your abs; keep this contact throughout the set. 3) Slowly extend one arm overhead and the opposite leg forward until both hover just above the floor. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Bench Press (לחיצת חזה במשקולות יד)
+
+File: `dumbbell_bench_press.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Bench Press" using a pair of dumbbells and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Sit on the end of a flat bench with the dumbbells resting on your thighs, then lie back and use your knees to help bring them up to your chest. 2) With the dumbbells at your chest, plant your feet, pull your shoulder blades back and down, and keep your glutes and upper back on the bench. 3) Press the dumbbells up over your chest, palms facing forward or slightly inward. 4) Inhale and lower the dumbbells slowly to the sides of your chest until you feel a stretch, elbows at roughly 45 degrees from your body. 5) Press back up, bringing the dumbbells toward each other over your chest, and exhale near the top. 6) After the last rep, bring the dumbbells to your chest, lift your knees and sit up with control as the dumbbells return to your thighs. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Bench Press" using a pair of dumbbells and a flat training bench. Show: 1) Sit on the end of a flat bench with the dumbbells resting on your thighs, then lie back and use your knees to help bring them up to your chest. 2) With the dumbbells at your chest, plant your feet, pull your shoulder blades back and down, and keep your glutes and upper back on the bench. 3) Press the dumbbells up over your chest, palms facing forward or slightly inward. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Fly (פרפר במשקולות יד)
+
+File: `dumbbell_fly.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Fly" using a pair of dumbbells and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Lie back on a flat bench with a dumbbell in each hand (bring them up with your knees as for a dumbbell press), feet planted, arms extended over your chest and palms facing each other. 2) Bend your elbows slightly and keep that angle fixed throughout the set. 3) Inhale and open your arms in a wide arc, lowering the dumbbells until they are about level with your chest and you feel a stretch. 4) Keep your shoulder blades pulled back and your chest up at the bottom. 5) Exhale and squeeze your chest to bring the dumbbells back up along the same arc, as if hugging a large tree. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Fly" using a pair of dumbbells and a flat training bench. Show: 1) Lie back on a flat bench with a dumbbell in each hand (bring them up with your knees as for a dumbbell press), feet planted, arms extended over your chest and palms facing each other. 2) Bend your elbows slightly and keep that angle fixed throughout the set. 3) Inhale and open your arms in a wide arc, lowering the dumbbells until they are about level with your chest and you feel a stretch. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Lateral Raise (הרחקה לצדדים עם משקולות יד)
+
+File: `dumbbell_lateral_raise.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Lateral Raise" using a pair of dumbbells. Target muscles: shoulders. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing your body and elbows slightly bent. 2) Brace your abs, lean forward slightly from the hips and keep your shoulders down, away from your ears. 3) Exhale and raise the dumbbells out to the sides and slightly forward (about 20–30 degrees in front of your body), leading with your elbows, until your arms are roughly parallel to the floor. 4) Pause briefly at the top without shrugging. 5) Inhale and lower the dumbbells slowly, over 2–3 seconds, to the starting position. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Lateral Raise" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing your body and elbows slightly bent. 2) Brace your abs, lean forward slightly from the hips and keep your shoulders down, away from your ears. 3) Exhale and raise the dumbbells out to the sides and slightly forward (about 20–30 degrees in front of your body), leading with your elbows, until your arms are roughly parallel to the floor. Correct, safe form only. Duration 8 seconds.
+```
+
+### EZ-Bar Skull Crusher (סקאל קראשר עם מוט EZ)
+
+File: `ez_bar_skull_crusher.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: ez_bar+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "EZ-Bar Skull Crusher" using an EZ curl bar and a flat training bench. Target muscles: triceps. Technique to show, in order: 1) Sit on the end of a flat bench with the EZ bar on your thighs, grip the inner angled handles with an overhand grip and lie back with your feet flat on the floor. 2) Press the bar up over your chest, then let your arms angle slightly back so the bar is above your forehead. 3) Inhale and bend only at the elbows to lower the bar slowly toward your forehead or just behind the top of your head. 4) Keep your elbows pointing toward the ceiling and about shoulder-width apart. 5) Exhale and straighten your elbows to return the bar to the start, keeping your upper arms still. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "EZ-Bar Skull Crusher" using an EZ curl bar and a flat training bench. Show: 1) Sit on the end of a flat bench with the EZ bar on your thighs, grip the inner angled handles with an overhand grip and lie back with your feet flat on the floor. 2) Press the bar up over your chest, then let your arms angle slightly back so the bar is above your forehead. 3) Inhale and bend only at the elbows to lower the bar slowly toward your forehead or just behind the top of your head. Correct, safe form only. Duration 8 seconds.
+```
+
+### Inverted Row (מתח אוסטרלי)
+
+File: `inverted_row.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: dip_bars
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Inverted Row" using parallel dip bars. Target muscles: upper back, lats. Technique to show, in order: 1) Lie on your back under the bar: between parallel bars, grip one bar in each hand with palms facing each other; under a single sturdy waist-height bar, use an overhand grip about shoulder-width apart. 2) Straighten your body in one line from head to heels, with only your heels on the ground, and squeeze your glutes and abs. 3) Pull your chest toward the bar by driving your elbows back and squeezing your shoulder blades together, exhaling as you rise. 4) Pause briefly when your chest is close to the bar, keeping your body rigid. 5) Lower yourself under control to straight arms, inhaling on the way down. 6) To make it easier, bend your knees and plant your feet flat; to make it harder, elevate your feet. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Inverted Row" using parallel dip bars. Show: 1) Lie on your back under the bar: between parallel bars, grip one bar in each hand with palms facing each other; under a single sturdy waist-height bar, use an overhand grip about shoulder-width apart. 2) Straighten your body in one line from head to heels, with only your heels on the ground, and squeeze your glutes and abs. 3) Pull your chest toward the bar by driving your elbows back and squeezing your shoulder blades together, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Mountain Climber (מטפס הרים)
 
-File: `mountain_climber.mp4` · category: bodyweight · equipment: none
+File: `mountain_climber.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Mountain Climber" using no equipment (bodyweight only). Target muscles: abs, hip flexors. Technique to show, in order: 1) Start in a high plank with your hands under your shoulders, arms straight and your body in a straight line from head to heels. 2) Brace your abs and keep your hips level with your shoulders. 3) Drive one knee toward your chest, then bring it back as you drive the other knee forward. 4) Keep alternating legs in a smooth running rhythm, landing lightly on the balls of your feet. 5) Breathe rhythmically and keep the pace for the target time, slowing down if your form breaks. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Mountain Climber" using no equipment (bodyweight only). Target muscles: abs, hip flexors. Technique to show, in order: 1) Start in a high plank with your hands under your shoulders, arms straight and your body in a straight line from head to heels. 2) Brace your abs and keep your hips level with your shoulders. 3) Drive one knee toward your chest, then bring it back as you drive the other knee forward. 4) Keep alternating legs in a smooth running rhythm, landing lightly on the balls of your feet. 5) Breathe rhythmically and keep the pace for the target time, slowing down if your form breaks. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Mountain Climber" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands under your shoulders, arms straight and your body in a straight line from head to heels. 2) Brace your abs and keep your hips level with your shoulders. 3) Drive one knee toward your chest, then bring it back as you drive the other knee forward. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Mountain Climber" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands under your shoulders, arms straight and your body in a straight line from head to heels. 2) Brace your abs and keep your hips level with your shoulders. 3) Drive one knee toward your chest, then bring it back as you drive the other knee forward. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Jump Squat (סקוואט קפיצה)
+### Muscle-Up (מאסל-אפ)
 
-File: `jump_squat.mp4` · category: plyometric · equipment: none
+File: `muscle_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: pull_up_bar · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jump Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about shoulder-width apart, toes turned slightly out and arms relaxed at your sides. 2) Brace your core and sit your hips back and down into a quarter- to half-squat, swinging your arms back. 3) Drive hard through your whole foot and swing your arms up to jump straight up, fully extending your hips, knees and ankles. 4) Land softly on the balls of your feet and roll onto your whole foot, bending your hips and knees to absorb the landing with your knees tracking over your toes. 5) Reset your stance for a moment, or flow straight into the next rep only once your landings are consistently quiet and controlled. 6) Exhale as you jump and inhale as you land and reload; end the set when your jump height or landing quality drops. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Muscle-Up" using a pull-up bar. Target muscles: lats, upper back, triceps. Technique to show, in order: 1) Grip the bar with your palms facing away, hands about shoulder-width apart, and hang with your body tight and legs together. 2) Build a small, controlled kip: swing forward into a slight arch, then snap back into a hollow-body position. 3) As you snap into the hollow position, pull explosively toward your lower chest or upper stomach, driving the bar down toward your hips. 4) As the bar reaches your chest, quickly lean your chest forward over the bar and rotate your wrists on top of it. 5) Press down into a straight-bar dip until your arms are fully locked out, exhaling as you finish. 6) Lower back down under control through the dip and the transition to a full hang before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jump Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about shoulder-width apart, toes turned slightly out and arms relaxed at your sides. 2) Brace your core and sit your hips back and down into a quarter- to half-squat, swinging your arms back. 3) Drive hard through your whole foot and swing your arms up to jump straight up, fully extending your hips, knees and ankles. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Muscle-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away, hands about shoulder-width apart, and hang with your body tight and legs together. 2) Build a small, controlled kip: swing forward into a slight arch, then snap back into a hollow-body position. 3) As you snap into the hollow position, pull explosively toward your lower chest or upper stomach, driving the bar down toward your hips. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Box Jump (קפיצה על ארגז)
+### Nordic Hamstring Curl (נורדיק קרל)
 
-File: `box_jump.mp4` · category: plyometric · equipment: plyo_box
+File: `nordic_hamstring_curl.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · advanced · category: bodyweight · equipment: none · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Box Jump" using plyo box. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Place a stable plyo box on a non-slip floor and stand about a foot-length away from it, feet hip- to shoulder-width apart. 2) Swing your arms back as you dip quickly into a quarter squat, keeping your chest up and your core braced. 3) Swing your arms forward and up and jump explosively, driving through your hips, knees and ankles and pulling your knees up toward the box. 4) Land softly with your whole foot in the centre of the box in a partial squat, knees in line with your toes. 5) Stand up tall on the box to finish the rep, exhaling as you stabilise. 6) Step down one foot at a time rather than jumping backward, then reset fully before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Nordic Hamstring Curl" using no equipment (bodyweight only). Target muscles: hamstrings. Technique to show, in order: 1) Kneel on a soft mat with your ankles securely anchored under a sturdy sofa or held firmly by a partner. 2) Keep your body in a straight line from knees to head, with your hips extended, glutes squeezed and hands ready in front of your chest. 3) Slowly lean forward from the knees, resisting with your hamstrings to lower as slowly as possible, and breathe steadily throughout. 4) Keep a straight line from knees to shoulders; do not bend at the hips as you lower. 5) When you can no longer control the descent, catch yourself with your hands in a push-up position. 6) Push lightly off the floor with your hands and pull with your hamstrings to return to the start. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Box Jump" using plyo box. Show: 1) Place a stable plyo box on a non-slip floor and stand about a foot-length away from it, feet hip- to shoulder-width apart. 2) Swing your arms back as you dip quickly into a quarter squat, keeping your chest up and your core braced. 3) Swing your arms forward and up and jump explosively, driving through your hips, knees and ankles and pulling your knees up toward the box. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Nordic Hamstring Curl" using no equipment (bodyweight only). Show: 1) Kneel on a soft mat with your ankles securely anchored under a sturdy sofa or held firmly by a partner. 2) Keep your body in a straight line from knees to head, with your hips extended, glutes squeezed and hands ready in front of your chest. 3) Slowly lean forward from the knees, resisting with your hamstrings to lower as slowly as possible, and breathe steadily throughout. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Broad Jump (קפיצה לרוחק מהמקום)
+### Pike Push-Up (שכיבות סמיכה פייק)
 
-File: `broad_jump.mp4` · category: plyometric · equipment: none
+File: `pike_push_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Broad Jump" using no equipment (bodyweight only). Target muscles: glutes, quadriceps. Technique to show, in order: 1) Stand behind a line with your feet hip-width apart and plenty of clear space in front of you. 2) Swing your arms back as you push your hips back and bend your knees into a quarter squat, keeping your back flat. 3) Swing your arms forward forcefully and drive your hips forward to jump out and slightly up, at roughly a 45-degree angle. 4) Bring your knees forward under you in the air and reach your feet out in front for the landing. 5) Land on both feet with your hips back and knees bent, and stick the landing without stepping or falling forward. 6) Hold the landing for a second and exhale, then walk back and reset fully before the next jump. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pike Push-Up" using no equipment (bodyweight only). Target muscles: shoulders, triceps. Technique to show, in order: 1) Start in a push-up position, then walk your feet toward your hands and raise your hips until your body forms an inverted V. 2) Place your hands slightly wider than shoulder width with fingers spread, and keep your head between your arms. 3) Inhale and bend your elbows to lower the top of your head toward a point slightly in front of your hands, keeping your elbows at about 45 degrees from your body. 4) Stop when your head is just above the floor, keeping your hips high. 5) Exhale and press back up to straight arms, pushing the floor away. 6) To make it harder, place your feet on a chair or step. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Broad Jump" using no equipment (bodyweight only). Show: 1) Stand behind a line with your feet hip-width apart and plenty of clear space in front of you. 2) Swing your arms back as you push your hips back and bend your knees into a quarter squat, keeping your back flat. 3) Swing your arms forward forcefully and drive your hips forward to jump out and slightly up, at roughly a 45-degree angle. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pike Push-Up" using no equipment (bodyweight only). Show: 1) Start in a push-up position, then walk your feet toward your hands and raise your hips until your body forms an inverted V. 2) Place your hands slightly wider than shoulder width with fingers spread, and keep your head between your arms. 3) Inhale and bend your elbows to lower the top of your head toward a point slightly in front of your hands, keeping your elbows at about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Lateral Bound (ניתורים לצדדים)
+### Pistol Squat (פיסטול סקוואט)
 
-File: `lateral_bound.mp4` · category: plyometric · equipment: none
+File: `pistol_squat.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lateral Bound" using no equipment (bodyweight only). Target muscles: glutes, quadriceps. Technique to show, in order: 1) Stand on your right leg with a slight bend in the hip and knee, left foot off the floor and arms ready to swing. 2) Sink slightly into your right hip, then push explosively off your right foot to bound sideways to the left, swinging your arms across. 3) Land softly on the ball of your left foot and roll onto the whole foot, bending your hip and knee to absorb the landing. 4) Keep the landing knee in line with your toes and your chest up, and hold the landing for 1–2 seconds to stabilise. 5) Push off your left leg to bound back to the right, and keep alternating sides. 6) Exhale on each push-off; start with short bounds and increase the distance only while your landings stay stable. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pistol Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand on one leg with the other leg lifted slightly in front of you and your arms extended forward for balance. 2) Brace your core and push your hips back as you bend the standing knee, lifting the free leg higher as you descend. 3) Lower slowly, keeping the standing heel on the floor and the knee tracking over the toes. 4) Go as deep as you can control, ideally until the back of your thigh meets your calf, with the free leg held straight off the floor. 5) Drive through the whole standing foot to rise back up without letting the knee cave in, exhaling as you stand. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lateral Bound" using no equipment (bodyweight only). Show: 1) Stand on your right leg with a slight bend in the hip and knee, left foot off the floor and arms ready to swing. 2) Sink slightly into your right hip, then push explosively off your right foot to bound sideways to the left, swinging your arms across. 3) Land softly on the ball of your left foot and roll onto the whole foot, bending your hip and knee to absorb the landing. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pistol Squat" using no equipment (bodyweight only). Show: 1) Stand on one leg with the other leg lifted slightly in front of you and your arms extended forward for balance. 2) Brace your core and push your hips back as you bend the standing knee, lifting the free leg higher as you descend. 3) Lower slowly, keeping the standing heel on the floor and the knee tracking over the toes. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Pull-Up (עליות מתח)
+
+File: `pull_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: pull_up_bar
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pull-Up" using a pull-up bar. Target muscles: lats, upper back. Technique to show, in order: 1) Grip the bar with your palms facing away, hands slightly wider than shoulder width, and hang with your arms fully straight. 2) Draw your shoulder blades slightly down and back, brace your core and squeeze your glutes so your legs stay still. 3) Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. 4) Keep your chest up and your neck neutral; do not crane your chin forward to reach the bar. 5) Lower yourself under control over 2–3 seconds to a full hang, inhaling on the way down. 6) Settle briefly at the bottom without swinging before starting the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pull-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away, hands slightly wider than shoulder width, and hang with your arms fully straight. 2) Draw your shoulder blades slightly down and back, brace your core and squeeze your glutes so your legs stay still. 3) Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
+```
+
+### Push-Up (שכיבות סמיכה)
+
+File: `push_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands slightly wider than shoulder width, fingers spread and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, elbows angled about 45 degrees from your torso. 4) Descend until your chest is a few centimeters from the floor. 5) Exhale and press the floor away until your arms are straight, without letting your hips sag. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands slightly wider than shoulder width, fingers spread and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, elbows angled about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
+```
+
+### Reverse Lunge (מכרע לאחור)
+
+File: `reverse_lunge.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Reverse Lunge" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall with your feet hip width apart and your core braced. 2) Step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower your back knee toward the floor until both knees are bent to about 90 degrees, keeping your torso upright. 4) Keep the front knee tracking over the toes and your weight spread over the front heel and midfoot. 5) Push through the front foot to return to standing, exhaling as you bring the back foot forward. 6) Alternate legs, or complete all reps on one side before switching. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Reverse Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip width apart and your core braced. 2) Step one foot back about a long stride, landing on the ball of the foot. 3) Inhale and lower your back knee toward the floor until both knees are bent to about 90 degrees, keeping your torso upright. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Single-Leg Calf Raise (הרמות עקבים על רגל אחת)
+
+File: `single_leg_calf_raise.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Leg Calf Raise" using no equipment (bodyweight only). Target muscles: calves. Technique to show, in order: 1) Stand on one foot with the ball of the foot on the edge of a step, holding a wall or railing lightly for balance. 2) Bend the other leg and keep it clear of the step. 3) Lower your heel slowly below the level of the step until you feel a stretch in the calf. 4) Exhale and rise as high as you can onto the ball of the foot, keeping the knee straight but not locked. 5) Pause at the top, then lower slowly; complete all reps before switching legs. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Leg Calf Raise" using no equipment (bodyweight only). Show: 1) Stand on one foot with the ball of the foot on the edge of a step, holding a wall or railing lightly for balance. 2) Bend the other leg and keep it clear of the step. 3) Lower your heel slowly below the level of the step until you feel a stretch in the calf. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Smith Machine Bench Press (לחיצת חזה במכונת סמית׳)
+
+File: `smith_machine_bench_press.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: machine · equipment: smith_machine+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Smith Machine Bench Press" using a Smith machine and a flat training bench. Target muscles: chest. Technique to show, in order: 1) Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below the point where the bar touches your chest. 2) Lie down, plant your feet and grip the bar slightly wider than shoulder width with your shoulder blades pulled back and down. 3) Rotate the bar to release it from the hooks and hold it with straight arms. 4) Inhale and lower the bar under control to your lower chest, elbows at about 45–70 degrees from your torso. 5) Exhale and press the bar back up to straight arms. 6) After the last rep, rotate the bar to lock it back onto the hooks. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Smith Machine Bench Press" using a Smith machine and a flat training bench. Show: 1) Place a flat bench under the Smith bar so that, lying down, the bar lines up with your lower chest, and set the safety stops just below the point where the bar touches your chest. 2) Lie down, plant your feet and grip the bar slightly wider than shoulder width with your shoulder blades pulled back and down. 3) Rotate the bar to release it from the hooks and hold it with straight arms. Correct, safe form only. Duration 8 seconds.
+```
+
+### Step-Up (עליות על מדרגה (סטפ-אפ))
+
+File: `step_up.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Step-Up" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand facing a sturdy step or stair that is roughly knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward and press through the whole foot of the top leg to stand up onto the step, exhaling as you rise. 4) Stand fully upright on top without pushing off with the bottom foot. 5) Inhale and lower yourself slowly back down under control, keeping the working foot on the step. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Step-Up" using no equipment (bodyweight only). Show: 1) Stand facing a sturdy step or stair that is roughly knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward and press through the whole foot of the top leg to stand up onto the step, exhaling as you rise. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Wall Sit (כיסא על הקיר)
+
+File: `wall_sit.mp4` · priority C (used 2x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wall Sit" using no equipment (bodyweight only). Target muscles: quadriceps. Technique to show, in order: 1) Stand with your back flat against a wall and your feet about hip width apart, roughly two foot-lengths out from the wall. 2) Slide down the wall until your knees are bent to about 90 degrees, or to a higher, comfortable angle. 3) Adjust your feet so your knees are directly above your ankles and in line with your toes. 4) Keep your back and head against the wall and your weight in your heels, with your arms relaxed or crossed. 5) Breathe steadily throughout the hold, then slide back up the wall to finish. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wall Sit" using no equipment (bodyweight only). Show: 1) Stand with your back flat against a wall and your feet about hip width apart, roughly two foot-lengths out from the wall. 2) Slide down the wall until your knees are bent to about 90 degrees, or to a higher, comfortable angle. 3) Adjust your feet so your knees are directly above your ankles and in line with your toes. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Ab Wheel Rollout (גלגלת בטן (רול-אאוט))
+
+File: `ab_wheel_rollout.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: ab_wheel
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ab Wheel Rollout" using an ab wheel. Target muscles: abs. Technique to show, in order: 1) Kneel on a mat holding the ab wheel handles, with the wheel on the floor under your shoulders and your arms straight. 2) Tuck your pelvis slightly, brace your abs and squeeze your glutes so your back is flat or slightly rounded. 3) Inhale and slowly roll the wheel forward, letting your hips and arms extend together while you keep the brace. 4) Roll out only as far as you can without your lower back sagging or arching. 5) Exhale and pull the wheel back toward your knees by contracting your abs, keeping your arms straight. 6) Reset your brace in the starting position before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ab Wheel Rollout" using an ab wheel. Show: 1) Kneel on a mat holding the ab wheel handles, with the wheel on the floor under your shoulders and your arms straight. 2) Tuck your pelvis slightly, brace your abs and squeeze your glutes so your back is flat or slightly rounded. 3) Inhale and slowly roll the wheel forward, letting your hips and arms extend together while you keep the brace. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band-Assisted Pull-Up (עליות מתח בעזרת גומייה)
+
+File: `band_assisted_pull_up.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: pull_up_bar+resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band-Assisted Pull-Up" using a pull-up bar and a resistance band. Target muscles: lats, upper back. Technique to show, in order: 1) Loop a resistance band around the middle of the bar and pull one end through the other so it is secure. 2) Grip the bar slightly wider than shoulder width, then place one knee or foot into the band loop, stepping up on a sturdy chair if needed. 3) Lower into a full hang with the band stretched, set your shoulder blades down and brace your core. 4) Pull your elbows down toward your ribs until your chin clears the bar, exhaling as you rise. 5) Lower yourself slowly over 2–3 seconds to a full hang, inhaling on the way down. 6) After the set, carefully take your foot out of the band, and move to a lighter band as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band-Assisted Pull-Up" using a pull-up bar and a resistance band. Show: 1) Loop a resistance band around the middle of the bar and pull one end through the other so it is secure. 2) Grip the bar slightly wider than shoulder width, then place one knee or foot into the band loop, stepping up on a sturdy chair if needed. 3) Lower into a full hang with the band stretched, set your shoulder blades down and brace your core. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Biceps Curl (כפיפת מרפקים עם גומייה)
+
+File: `band_biceps_curl.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Biceps Curl" using a resistance band. Target muscles: biceps. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart and hold the ends or handles with your palms facing forward. 2) Stand tall with your elbows at your sides and arms extended; hold the band lower down if you need more tension. 3) Curl your hands up toward your shoulders by bending only at the elbows, exhaling as you lift. 4) Squeeze your biceps at the top for a moment. 5) Lower slowly against the pull of the band to full extension, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Biceps Curl" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart and hold the ends or handles with your palms facing forward. 2) Stand tall with your elbows at your sides and arms extended; hold the band lower down if you need more tension. 3) Curl your hands up toward your shoulders by bending only at the elbows, exhaling as you lift. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Lateral Raise (הרחקה לצדדים עם גומייה)
+
+File: `band_lateral_raise.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Lateral Raise" using a resistance band. Target muscles: shoulders. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides. 2) Keep a slight bend in your elbows, brace your core and keep your shoulders down. 3) Exhale and raise your arms out to the sides and slightly forward until your hands reach about shoulder height. 4) Pause briefly at the top. 5) Inhale and lower slowly, keeping tension on the band all the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Lateral Raise" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides. 2) Keep a slight bend in your elbows, brace your core and keep your shoulders down. 3) Exhale and raise your arms out to the sides and slightly forward until your hands reach about shoulder height. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bodyweight Squat (סקוואט במשקל גוף)
+
+File: `bodyweight_squat.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bodyweight Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and your arms by your sides or extended in front of you. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself. 3) Keep your chest up, your heels down and your knees tracking over your toes. 4) Go down until your thighs are about parallel to the floor, or as deep as you comfortably can with a neutral back. 5) Press through the whole foot to stand up, squeezing your glutes at the top and exhaling as you rise. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bodyweight Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and your arms by your sides or extended in front of you. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself. 3) Keep your chest up, your heels down and your knees tracking over your toes. Correct, safe form only. Duration 8 seconds.
+```
+
+### Brisk Walk / Jog (הליכה מהירה / ריצה קלה)
+
+File: `brisk_walk_jog.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: cardio · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Brisk Walk / Jog" using no equipment (bodyweight only). Target muscles: quadriceps, glutes, calves. Technique to show, in order: 1) Start with 3–5 minutes of easy walking to warm up. 2) Increase to a brisk walk or easy jog at a pace where you can still talk in short sentences. 3) Stand tall with relaxed shoulders, swing your arms naturally and take short, quick steps that land under your body. 4) Hold a steady pace for the planned time, breathing rhythmically. 5) Finish with 3–5 minutes of easy walking to cool down. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Brisk Walk / Jog" using no equipment (bodyweight only). Show: 1) Start with 3–5 minutes of easy walking to warm up. 2) Increase to a brisk walk or easy jog at a pace where you can still talk in short sentences. 3) Stand tall with relaxed shoulders, swing your arms naturally and take short, quick steps that land under your body. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Burpee (ברפי)
 
-File: `burpee.mp4` · category: bodyweight · equipment: none
+File: `burpee.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Burpee" using no equipment (bodyweight only). Target muscles: quadriceps, glutes, chest. Technique to show, in order: 1) Stand with your feet shoulder-width apart, then squat down and place your hands flat on the floor just in front of your feet. 2) Jump or step both feet back into a high plank, with your body in a straight line and your core braced. 3) Do a push-up, lowering your chest toward the floor with your elbows at about 45 degrees, then press back up; drop to your knees if needed. 4) Jump or step your feet back in toward your hands, landing in a squat with your chest up. 5) Drive through your feet and jump up, reaching your arms overhead, and land softly with bent knees. 6) Breathe rhythmically, exhaling on the push-up and the jump, and keep a pace you can sustain for the whole set. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Burpee" using no equipment (bodyweight only). Target muscles: quadriceps, glutes, chest. Technique to show, in order: 1) Stand with your feet shoulder-width apart, then squat down and place your hands flat on the floor just in front of your feet. 2) Jump or step both feet back into a high plank, with your body in a straight line and your core braced. 3) Do a push-up, lowering your chest toward the floor with your elbows at about 45 degrees, then press back up; drop to your knees if needed. 4) Jump or step your feet back in toward your hands, landing in a squat with your chest up. 5) Drive through your feet and jump up, reaching your arms overhead, and land softly with bent knees. 6) Breathe rhythmically, exhaling on the push-up and the jump, and keep a pace you can sustain for the whole set. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
@@ -1727,137 +1290,505 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Burpee" using no equipment (bodyweight only). Show: 1) Stand with your feet shoulder-width apart, then squat down and place your hands flat on the floor just in front of your feet. 2) Jump or step both feet back into a high plank, with your body in a straight line and your core braced. 3) Do a push-up, lowering your chest toward the floor with your elbows at about 45 degrees, then press back up; drop to your knees if needed. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Jumping Jack (קפיצות פיסוק)
+### Close-Grip Bench Press (לחיצת חזה באחיזה צרה)
 
-File: `jumping_jack.mp4` · category: cardio · equipment: none
+File: `close_grip_bench_press.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: barbell+bench
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jumping Jack" using no equipment (bodyweight only). Target muscles: calves, shoulders. Technique to show, in order: 1) Stand tall with your feet together, arms by your sides and knees slightly soft. 2) Jump your feet out to slightly wider than shoulder-width while sweeping your arms out to the sides and up overhead. 3) Land lightly on the balls of your feet with your knees slightly bent. 4) Jump your feet back together while bringing your arms back down to your sides. 5) Keep a steady, rhythmic pace for the set time, breathing continuously rather than holding your breath. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Close-Grip Bench Press" using an Olympic barbell with plates and a flat training bench. Target muscles: triceps, chest. Technique to show, in order: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and shoulder blades pulled together and down. 2) Grip the bar with your hands about shoulder-width apart and your thumbs wrapped around it, then unrack it to straight arms above your shoulders. 3) Inhale, brace and lower the bar under control to your lower chest, keeping your elbows close to your body at roughly 30–45 degrees. 4) Touch your chest lightly without bouncing. 5) Exhale and press the bar back up to full lockout, keeping your wrists straight and stacked over your elbows. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jumping Jack" using no equipment (bodyweight only). Show: 1) Stand tall with your feet together, arms by your sides and knees slightly soft. 2) Jump your feet out to slightly wider than shoulder-width while sweeping your arms out to the sides and up overhead. 3) Land lightly on the balls of your feet with your knees slightly bent. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Close-Grip Bench Press" using an Olympic barbell with plates and a flat training bench. Show: 1) Lie on the bench with your eyes under the bar, feet flat on the floor and shoulder blades pulled together and down. 2) Grip the bar with your hands about shoulder-width apart and your thumbs wrapped around it, then unrack it to straight arms above your shoulders. 3) Inhale, brace and lower the bar under control to your lower chest, keeping your elbows close to your body at roughly 30–45 degrees. Correct, safe form only. Duration 8 seconds.
+```
+
+### Cossack Squat (סקוואט קוזאקי)
+
+File: `cossack_squat.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cossack Squat" using no equipment (bodyweight only). Target muscles: adductors, quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about twice shoulder width apart, toes turned out slightly. 2) Shift your weight to one side, bending that knee and pushing your hips back while the other leg straightens. 3) Lower as deep as your mobility allows, keeping the heel of the bent leg on the floor and letting the toes of the straight leg point up. 4) Keep your chest up and your arms extended in front of you for balance. 5) Push through the bent leg to return to the center, exhaling as you rise. 6) Alternate sides with control for the target number of reps per side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cossack Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about twice shoulder width apart, toes turned out slightly. 2) Shift your weight to one side, bending that knee and pushing your hips back while the other leg straightens. 3) Lower as deep as your mobility allows, keeping the heel of the bent leg on the floor and letting the toes of the straight leg point up. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Decline Push-Up (שכיבות סמיכה ברגליים מוגבהות)
+
+File: `decline_push_up.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Decline Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start on all fours, place your hands on the floor slightly wider than shoulder width, then place your feet one at a time on a sturdy bench, chair or step. 2) Adjust your hands so your wrists are under your shoulders and your body is straight from head to heels, then brace your abs and glutes. 3) Inhale and lower your chest toward the floor, elbows at about 45 degrees from your torso. 4) Keep your head in line with your spine and do not let your hips sag as you descend. 5) Exhale and press back up to straight arms. 6) Start with a low step and raise your feet higher as you get stronger. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Decline Push-Up" using no equipment (bodyweight only). Show: 1) Start on all fours, place your hands on the floor slightly wider than shoulder width, then place your feet one at a time on a sturdy bench, chair or step. 2) Adjust your hands so your wrists are under your shoulders and your body is straight from head to heels, then brace your abs and glutes. 3) Inhale and lower your chest toward the floor, elbows at about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Floor Press (לחיצת חזה מהרצפה במשקולות יד)
+
+File: `dumbbell_floor_press.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Floor Press" using a pair of dumbbells. Target muscles: chest, triceps. Technique to show, in order: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand at chest level. 2) Press the dumbbells up over your chest, palms facing forward or toward each other, with your shoulder blades pulled back. 3) Inhale and lower the dumbbells slowly until your upper arms rest lightly on the floor, elbows about 45 degrees from your torso. 4) Pause briefly with the elbows on the floor while keeping tension in your arms. 5) Exhale and press the dumbbells back up until your arms are straight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Floor Press" using a pair of dumbbells. Show: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand at chest level. 2) Press the dumbbells up over your chest, palms facing forward or toward each other, with your shoulder blades pulled back. 3) Inhale and lower the dumbbells slowly until your upper arms rest lightly on the floor, elbows about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
+```
+
+### Farmer's Carry (הליכת חקלאי)
+
+File: `farmer_carry.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Farmer's Carry" using a pair of dumbbells. Target muscles: forearms, traps. Technique to show, in order: 1) Place a pair of heavy dumbbells at your sides and pick them up with a proper hip hinge, keeping your back flat. 2) Stand tall with your shoulders pulled down and back, chest up and arms straight at your sides. 3) Brace your core and grip the handles hard. 4) Walk forward with short, controlled steps, keeping your torso upright and the dumbbells from swinging; breathe steadily while staying braced. 5) Walk for the set time or distance, turning around carefully if you run out of space. 6) Stop, then hinge at the hips to set the dumbbells down under control. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Farmer's Carry" using a pair of dumbbells. Show: 1) Place a pair of heavy dumbbells at your sides and pick them up with a proper hip hinge, keeping your back flat. 2) Stand tall with your shoulders pulled down and back, chest up and arms straight at your sides. 3) Brace your core and grip the handles hard. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Hanging Leg Raise (הרמות רגליים בתלייה)
+
+File: `hanging_leg_raise.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: pull_up_bar · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hanging Leg Raise" using a pull-up bar. Target muscles: abs, hip flexors. Technique to show, in order: 1) Hang from a pull-up bar with an overhand, shoulder-width grip, arms straight and shoulders pulled slightly down. 2) Brace your abs and squeeze your legs together, tilting your pelvis slightly back to stop any swing. 3) Exhale and raise your straight legs in a controlled arc until your feet reach at least hip height, ideally higher. 4) At the top, curl your pelvis up toward your ribs to fully engage the abs. 5) Inhale and lower your legs slowly, stopping any swing before you start the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hanging Leg Raise" using a pull-up bar. Show: 1) Hang from a pull-up bar with an overhand, shoulder-width grip, arms straight and shoulders pulled slightly down. 2) Brace your abs and squeeze your legs together, tilting your pelvis slightly back to stop any swing. 3) Exhale and raise your straight legs in a controlled arc until your feet reach at least hip height, ideally higher. Correct, safe form only. Duration 8 seconds.
+```
+
+### Incline Push-Up (שכיבות סמיכה בידיים מוגבהות)
+
+File: `incline_push_up.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Place your hands slightly wider than shoulder width on a sturdy raised surface such as a bench, kitchen counter or wall. 2) Step your feet back until your body forms a straight line from head to heels, and brace your abs and glutes. 3) Inhale and bend your elbows to lower your chest toward the edge, elbows about 45 degrees from your body. 4) Lower until your chest nearly touches the surface. 5) Exhale and push back to straight arms, keeping your body in one line. 6) As you get stronger, progress to a lower surface. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Push-Up" using no equipment (bodyweight only). Show: 1) Place your hands slightly wider than shoulder width on a sturdy raised surface such as a bench, kitchen counter or wall. 2) Step your feet back until your body forms a straight line from head to heels, and brace your abs and glutes. 3) Inhale and bend your elbows to lower your chest toward the edge, elbows about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Jump Rope (קפיצה בחבל)
 
-File: `jump_rope_skipping.mp4` · category: cardio · equipment: jump_rope
+File: `jump_rope_skipping.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: cardio · equipment: jump_rope · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jump Rope" using jump rope. Target muscles: calves. Technique to show, in order: 1) Adjust the rope so the handles reach about armpit height when you stand on the middle of the rope. 2) Stand tall with your elbows close to your sides and your hands just in front of your hips, holding the handles lightly. 3) Turn the rope with small circles of your wrists rather than big movements of your arms. 4) Jump only high enough for the rope to pass under your feet, about 2–3 cm, landing softly on the balls of your feet with slightly bent knees. 5) Find a steady rhythm and breathe continuously; once comfortable, try alternating feet like a light jog. 6) Work in timed intervals, for example 30–60 seconds of skipping followed by rest, and build up the duration gradually. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jump Rope" using a jump rope. Target muscles: calves. Technique to show, in order: 1) Adjust the rope so the handles reach about armpit height when you stand on the middle of the rope. 2) Stand tall with your elbows close to your sides and your hands just in front of your hips, holding the handles lightly. 3) Turn the rope with small circles of your wrists rather than big movements of your arms. 4) Jump only high enough for the rope to pass under your feet, about 2–3 cm, landing softly on the balls of your feet with slightly bent knees. 5) Find a steady rhythm and breathe continuously; once comfortable, try alternating feet like a light jog. 6) Work in timed intervals, for example 30–60 seconds of skipping followed by rest, and build up the duration gradually. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jump Rope" using jump rope. Show: 1) Adjust the rope so the handles reach about armpit height when you stand on the middle of the rope. 2) Stand tall with your elbows close to your sides and your hands just in front of your hips, holding the handles lightly. 3) Turn the rope with small circles of your wrists rather than big movements of your arms. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jump Rope" using a jump rope. Show: 1) Adjust the rope so the handles reach about armpit height when you stand on the middle of the rope. 2) Stand tall with your elbows close to your sides and your hands just in front of your hips, holding the handles lightly. 3) Turn the rope with small circles of your wrists rather than big movements of your arms. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
-### High Knees (הרמות ברכיים במקום)
+### Jumping Jack (קפיצות פיסוק)
 
-File: `high_knees.mp4` · category: cardio · equipment: none
+File: `jumping_jack.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · beginner · category: cardio · equipment: none · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "High Knees" using no equipment (bodyweight only). Target muscles: hip flexors, quadriceps. Technique to show, in order: 1) Stand tall with your feet hip-width apart, core lightly braced and elbows bent to about 90 degrees. 2) Drive one knee up toward hip height while the opposite arm swings forward. 3) Switch legs quickly, landing lightly on the ball of your foot as the other knee drives up. 4) Keep your torso upright and avoid leaning back as the knees rise. 5) Maintain a quick, rhythmic pace for the set time while breathing steadily. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jumping Jack" using no equipment (bodyweight only). Target muscles: calves, shoulders. Technique to show, in order: 1) Stand tall with your feet together, arms by your sides and knees slightly soft. 2) Jump your feet out to slightly wider than shoulder-width while sweeping your arms out to the sides and up overhead. 3) Land lightly on the balls of your feet with your knees slightly bent. 4) Jump your feet back together while bringing your arms back down to your sides. 5) Keep a steady, rhythmic pace for the set time, breathing continuously rather than holding your breath. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "High Knees" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip-width apart, core lightly braced and elbows bent to about 90 degrees. 2) Drive one knee up toward hip height while the opposite arm swings forward. 3) Switch legs quickly, landing lightly on the ball of your foot as the other knee drives up. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jumping Jack" using no equipment (bodyweight only). Show: 1) Stand tall with your feet together, arms by your sides and knees slightly soft. 2) Jump your feet out to slightly wider than shoulder-width while sweeping your arms out to the sides and up overhead. 3) Land lightly on the balls of your feet with your knees slightly bent. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Brisk Walk / Jog (הליכה מהירה / ריצה קלה)
+### Kettlebell Overhead Press (לחיצת כתפיים עם קטלבל)
 
-File: `brisk_walk_jog.mp4` · category: cardio · equipment: none
+File: `kettlebell_overhead_press.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: kettlebell
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Brisk Walk / Jog" using no equipment (bodyweight only). Target muscles: quadriceps, glutes, calves. Technique to show, in order: 1) Start with 3–5 minutes of easy walking to warm up. 2) Increase to a brisk walk or easy jog at a pace where you can still talk in short sentences. 3) Stand tall with relaxed shoulders, swing your arms naturally and take short, quick steps that land under your body. 4) Hold a steady pace for the planned time, breathing rhythmically. 5) Finish with 3–5 minutes of easy walking to cool down. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kettlebell Overhead Press" using a kettlebell. Target muscles: shoulders, triceps. Technique to show, in order: 1) Clean the kettlebell to the rack position: handle in your palm, bell resting on the outside of your forearm, wrist straight and elbow tucked close to your ribs. 2) Stand with feet hip-width apart, squeeze your glutes and brace your abs; make a fist with your free hand to increase full-body tension. 3) Exhale and press the kettlebell straight up, keeping your forearm vertical and letting your palm turn slightly forward as it rises. 4) Lock out with the arm straight, biceps near your ear and the kettlebell stacked over your shoulder. 5) Inhale and lower the kettlebell under control back to the rack position; complete all reps before switching sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Brisk Walk / Jog" using no equipment (bodyweight only). Show: 1) Start with 3–5 minutes of easy walking to warm up. 2) Increase to a brisk walk or easy jog at a pace where you can still talk in short sentences. 3) Stand tall with relaxed shoulders, swing your arms naturally and take short, quick steps that land under your body. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kettlebell Overhead Press" using a kettlebell. Show: 1) Clean the kettlebell to the rack position: handle in your palm, bell resting on the outside of your forearm, wrist straight and elbow tucked close to your ribs. 2) Stand with feet hip-width apart, squeeze your glutes and brace your abs; make a fist with your free hand to increase full-body tension. 3) Exhale and press the kettlebell straight up, keeping your forearm vertical and letting your palm turn slightly forward as it rises. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Sprint Intervals (אינטרוולים של ספרינטים)
+### L-Sit (אל-סיט)
 
-File: `sprint_intervals.mp4` · category: cardio · equipment: none
+File: `l_sit.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: dip_bars · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Sprint Intervals" using no equipment (bodyweight only). Target muscles: glutes, hamstrings, quadriceps. Technique to show, in order: 1) Warm up for at least 10 minutes with easy jogging, dynamic stretches and a few progressively faster strides. 2) Mark out a straight, flat sprint distance, for example 40–100 metres, or plan a fixed sprint time of 10–30 seconds. 3) Start from a staggered stance, lean slightly forward and drive powerfully with your arms and legs. 4) Run tall with quick, powerful strides that land under your hips, keeping your shoulders and hands relaxed. 5) Slow down gradually after each sprint rather than stopping abruptly. 6) Walk or jog slowly for 1–3 minutes to recover, breathing deeply, until you are ready for the next sprint. 7) Finish with 5–10 minutes of easy walking or jogging to cool down. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "L-Sit" using parallel dip bars. Target muscles: abs, hip flexors. Technique to show, in order: 1) Grip the parallel bars and press up into a support position with your arms locked straight. 2) Push down through your hands to draw your shoulders away from your ears, and lean your torso very slightly forward. 3) Brace your abs and lift your legs, straight and together, until they are parallel to the floor. 4) Point your toes, lock your knees and keep your chest up while holding the position. 5) Breathe in short, controlled breaths and hold for the target time. 6) Lower your legs under control and step down from the bars. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Sprint Intervals" using no equipment (bodyweight only). Show: 1) Warm up for at least 10 minutes with easy jogging, dynamic stretches and a few progressively faster strides. 2) Mark out a straight, flat sprint distance, for example 40–100 metres, or plan a fixed sprint time of 10–30 seconds. 3) Start from a staggered stance, lean slightly forward and drive powerfully with your arms and legs. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "L-Sit" using parallel dip bars. Show: 1) Grip the parallel bars and press up into a support position with your arms locked straight. 2) Push down through your hands to draw your shoulders away from your ears, and lean your torso very slightly forward. 3) Brace your abs and lift your legs, straight and together, until they are parallel to the floor. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Cardio Machine Intervals (אינטרוולים על מכשיר אירובי)
+### Wall Handstand Push-Up (שכיבות סמיכה בעמידת ידיים על הקיר)
 
-File: `cardio_machine_intervals.mp4` · category: cardio · equipment: cardio_machine
+File: `wall_handstand_push_up.mp4` · priority C (used 1x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cardio Machine Intervals" using cardio machine. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Choose a machine and set it up correctly, for example adjusting the bike seat so your knee stays slightly bent at the bottom of the pedal stroke. 2) Warm up for 5 minutes at an easy, comfortable pace. 3) Perform a work interval, for example 30–60 seconds, at a hard but sustainable effort where talking is difficult. 4) Follow it with an equal or longer recovery period at an easy pace, breathing deeply to bring your heart rate down. 5) Repeat for the planned number of intervals, keeping the work effort consistent from the first to the last. 6) Cool down for 5 minutes at an easy pace before getting off the machine. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wall Handstand Push-Up" using no equipment (bodyweight only). Target muscles: shoulders, triceps. Technique to show, in order: 1) Place your hands on the floor shoulder-width apart, about 10–20 cm from a wall, and kick up into a handstand with your heels resting against the wall. 2) Make your body one straight line: squeeze your glutes, brace your abs and tuck your ribs so your lower back does not over-arch. 3) Inhale and slowly bend your elbows to lower your head toward the floor, aiming the top of your head slightly in front of your hands to form a triangle. 4) Touch your head lightly to a folded mat or towel without resting your weight on it. 5) Exhale and press back up to straight arms, pushing the floor away. 6) To finish, bring one leg down at a time with control. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cardio Machine Intervals" using cardio machine. Show: 1) Choose a machine and set it up correctly, for example adjusting the bike seat so your knee stays slightly bent at the bottom of the pedal stroke. 2) Warm up for 5 minutes at an easy, comfortable pace. 3) Perform a work interval, for example 30–60 seconds, at a hard but sustainable effort where talking is difficult. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wall Handstand Push-Up" using no equipment (bodyweight only). Show: 1) Place your hands on the floor shoulder-width apart, about 10–20 cm from a wall, and kick up into a handstand with your heels resting against the wall. 2) Make your body one straight line: squeeze your glutes, brace your abs and tuck your ribs so your lower back does not over-arch. 3) Inhale and slowly bend your elbows to lower your head toward the floor, aiming the top of your head slightly in front of your hands to form a triangle. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Medicine Ball Slam (הטחת כדור כוח)
+### Archer Pull-Up (עליות מתח קשת (ארצ׳ר))
 
-File: `medicine_ball_slam.mp4` · category: plyometric · equipment: medicine_ball
+File: `archer_pull_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: pull_up_bar · RISKY: check the form twice
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Medicine Ball Slam" using medicine ball. Target muscles: lats, abs, shoulders. Technique to show, in order: 1) Use a non-bouncing slam ball or a soft medicine ball and stand with your feet shoulder-width apart, holding the ball at your chest. 2) Inhale as you lift the ball overhead, rising onto your toes and extending your whole body. 3) Brace your core and slam the ball forcefully into the floor just in front of your feet, pulling down with your lats and abs as you push your hips back and bend your knees. 4) Exhale sharply as you slam, keeping your back flat rather than rounded. 5) Squat down with a flat back to pick up the ball, then stand up tall and repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Archer Pull-Up" using a pull-up bar. Target muscles: lats. Technique to show, in order: 1) Grip the bar with a very wide overhand grip, well beyond shoulder-width, and hang with straight arms. 2) Draw your shoulder blades down, brace your core and keep your legs still. 3) Pull yourself up and toward your right hand by bending the right elbow, while the left arm stays as straight as you can keep it. 4) Rise until your chin is level with the bar at your right hand, then pause briefly. 5) Lower yourself under control to a full hang, inhaling on the way down. 6) Alternate sides, or finish all reps on one side and then switch, so both sides get the same work. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Medicine Ball Slam" using medicine ball. Show: 1) Use a non-bouncing slam ball or a soft medicine ball and stand with your feet shoulder-width apart, holding the ball at your chest. 2) Inhale as you lift the ball overhead, rising onto your toes and extending your whole body. 3) Brace your core and slam the ball forcefully into the floor just in front of your feet, pulling down with your lats and abs as you push your hips back and bend your knees. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Archer Pull-Up" using a pull-up bar. Show: 1) Grip the bar with a very wide overhand grip, well beyond shoulder-width, and hang with straight arms. 2) Draw your shoulder blades down, brace your core and keep your legs still. 3) Pull yourself up and toward your right hand by bending the right elbow, while the left arm stays as straight as you can keep it. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Medicine Ball Chest Pass (מסירת חזה עם כדור כוח)
+### Resistance Band Chest Fly (פרפר חזה עם גומייה)
 
-File: `medicine_ball_chest_pass.mp4` · category: plyometric · equipment: medicine_ball
+File: `band_chest_fly.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Medicine Ball Chest Pass" using medicine ball. Target muscles: chest, triceps. Technique to show, in order: 1) Stand facing a solid wall about 2–3 metres away, or facing a partner, with your feet shoulder-width apart in an athletic stance. 2) Hold the medicine ball at your chest with your hands on the sides of the ball and your elbows pointing down and slightly out. 3) Brace your core, shift your weight forward and explosively push the ball straight out from your chest until your arms are fully extended. 4) Exhale sharply on the throw and follow through with your hands toward the target. 5) Catch the rebound or the return pass with soft elbows, absorbing the ball back toward your chest. 6) Reset your stance and repeat, keeping every throw fast and crisp. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Chest Fly" using a resistance band. Target muscles: chest. Technique to show, in order: 1) Anchor the band securely behind you at chest height (a sturdy post, a door anchor or a rail), take one end in each hand and turn to face away from the anchor. 2) Step forward into a staggered stance until the band has light tension, brace your core and raise your arms out to the sides at chest height with slightly bent elbows. 3) Exhale and bring your hands together in a wide arc in front of your chest, keeping the elbow bend fixed. 4) Squeeze your chest for a second when your hands meet. 5) Inhale and let your arms open slowly along the same arc, resisting the pull of the band, until your hands are in line with your shoulders. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Medicine Ball Chest Pass" using medicine ball. Show: 1) Stand facing a solid wall about 2–3 metres away, or facing a partner, with your feet shoulder-width apart in an athletic stance. 2) Hold the medicine ball at your chest with your hands on the sides of the ball and your elbows pointing down and slightly out. 3) Brace your core, shift your weight forward and explosively push the ball straight out from your chest until your arms are fully extended. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Chest Fly" using a resistance band. Show: 1) Anchor the band securely behind you at chest height (a sturdy post, a door anchor or a rail), take one end in each hand and turn to face away from the anchor. 2) Step forward into a staggered stance until the band has light tension, brace your core and raise your arms out to the sides at chest height with slightly bent elbows. 3) Exhale and bring your hands together in a wide arc in front of your chest, keeping the elbow bend fixed. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Chest Press (לחיצת חזה עם גומייה)
+
+File: `band_chest_press.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Chest Press" using a resistance band. Target muscles: chest. Technique to show, in order: 1) Anchor the band securely at chest height behind you (or wrap it around your upper back) and hold one end in each hand. 2) Step forward until there is light tension in the band, stand in a staggered stance and brace your core. 3) Start with your hands beside your chest and your elbows at about 45 degrees from your torso. 4) Exhale and press your hands forward until your arms are straight, bringing them slightly together in front of your chest. 5) Inhale and return slowly to the start position, resisting the pull of the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Chest Press" using a resistance band. Show: 1) Anchor the band securely at chest height behind you (or wrap it around your upper back) and hold one end in each hand. 2) Step forward until there is light tension in the band, stand in a staggered stance and brace your core. 3) Start with your hands beside your chest and your elbows at about 45 degrees from your torso. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Face Pull (פייס פול עם גומייה)
+
+File: `band_face_pull.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Face Pull" using a resistance band. Target muscles: rear delts, upper back. Technique to show, in order: 1) Anchor a resistance band between chest and eye height, for example around a sturdy post or in a door anchor, and hold one end in each hand with an overhand grip. 2) Step back until your arms are straight and the band is under light tension; stand tall with your feet hip-width apart and your core braced. 3) Exhale and pull the ends of the band toward your face, driving your elbows out and back at about shoulder height and moving your hands apart. 4) Finish with your hands beside your ears and your forearms rotated up, and squeeze your shoulder blades together for a second. 5) Inhale and return slowly to straight arms, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Face Pull" using a resistance band. Show: 1) Anchor a resistance band between chest and eye height, for example around a sturdy post or in a door anchor, and hold one end in each hand with an overhand grip. 2) Step back until your arms are straight and the band is under light tension; stand tall with your feet hip-width apart and your core braced. 3) Exhale and pull the ends of the band toward your face, driving your elbows out and back at about shoulder height and moving your hands apart. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Hammer Curl (כפיפת פטיש עם גומייה)
+
+File: `band_hammer_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Hammer Curl" using a resistance band. Target muscles: biceps, forearms. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides, palms facing each other and thumbs pointing forward. 2) Keep your elbows close to your torso and your wrists straight. 3) Exhale and curl both hands toward your shoulders without rotating your palms, so your thumbs point up at the top. 4) Squeeze briefly at the top. 5) Inhale and lower slowly to straight arms, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Hammer Curl" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart and hold one end in each hand at your sides, palms facing each other and thumbs pointing forward. 2) Keep your elbows close to your torso and your wrists straight. 3) Exhale and curl both hands toward your shoulders without rotating your palms, so your thumbs point up at the top. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Lat Pulldown (משיכת פולי עליון עם גומייה)
+
+File: `band_lat_pulldown.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Lat Pulldown" using a resistance band. Target muscles: lats. Technique to show, in order: 1) Secure a long resistance band high above you, for example in a door anchor at the top of a closed door or looped over a sturdy overhead bar, and hold one end in each hand. 2) Kneel or stand a step or two back, facing the anchor, with your arms reaching up slightly wider than your shoulders and the band under light tension. 3) Sit or stand tall with your ribs down and your core braced. 4) Exhale and pull the band down by driving your elbows toward your ribs until your hands are level with your chin or upper chest, keeping your torso still. 5) Squeeze your lats and shoulder blades for a second. 6) Inhale and let your arms rise slowly back up against the pull of the band until they are straight again. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Lat Pulldown" using a resistance band. Show: 1) Secure a long resistance band high above you, for example in a door anchor at the top of a closed door or looped over a sturdy overhead bar, and hold one end in each hand. 2) Kneel or stand a step or two back, facing the anchor, with your arms reaching up slightly wider than your shoulders and the band under light tension. 3) Sit or stand tall with your ribs down and your core braced. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Overhead Press (לחיצת כתפיים עם גומייה)
+
+File: `band_overhead_press.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Overhead Press" using a resistance band. Target muscles: shoulders, triceps. Technique to show, in order: 1) Stand on the middle of the band with feet hip-width apart, holding one end in each hand at shoulder height, palms facing forward and elbows slightly in front of your body. 2) Brace your abs and squeeze your glutes so your ribs stay down. 3) Exhale and press your hands straight up until your arms are straight overhead, without leaning back. 4) Pause briefly at the top with your arms close to your ears. 5) Inhale and lower your hands slowly back to shoulder height, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Overhead Press" using a resistance band. Show: 1) Stand on the middle of the band with feet hip-width apart, holding one end in each hand at shoulder height, palms facing forward and elbows slightly in front of your body. 2) Brace your abs and squeeze your glutes so your ribs stay down. 3) Exhale and press your hands straight up until your arms are straight overhead, without leaning back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Overhead Triceps Extension (פשיטת מרפקים מעל הראש עם גומייה)
+
+File: `band_overhead_triceps_extension.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Overhead Triceps Extension" using a resistance band. Target muscles: triceps. Technique to show, in order: 1) Stand in a staggered stance with the front foot on one end of the band and the other foot a step behind, and hold the other end of the band in both hands. 2) Raise your hands over your head and bend your elbows so your hands rest behind your head, with the band running down your back and your elbows pointing up and close to your ears. 3) Brace your abs and keep your ribs down. 4) Exhale and straighten your elbows until your arms are straight overhead, keeping your upper arms still. 5) Inhale and bend your elbows slowly back behind your head, controlling the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Overhead Triceps Extension" using a resistance band. Show: 1) Stand in a staggered stance with the front foot on one end of the band and the other foot a step behind, and hold the other end of the band in both hands. 2) Raise your hands over your head and bend your elbows so your hands rest behind your head, with the band running down your back and your elbows pointing up and close to your ears. 3) Brace your abs and keep your ribs down. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Row (חתירה עם גומייה)
+
+File: `band_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Row" using a resistance band. Target muscles: upper back, lats. Technique to show, in order: 1) Anchor the band securely at chest height (for example in a door anchor or around a sturdy post), or loop it around your feet while sitting with your legs extended. 2) Hold the ends with your arms extended in front of you and step back (or shorten your grip when seated) until the band has light tension. 3) Stand or sit tall, brace your core and pull your elbows back past your torso, squeezing your shoulder blades together; exhale as you pull. 4) Hold the squeeze for a moment with your shoulders down and away from your ears. 5) Return slowly to straight arms, resisting the pull of the band, and inhale. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Row" using a resistance band. Show: 1) Anchor the band securely at chest height (for example in a door anchor or around a sturdy post), or loop it around your feet while sitting with your legs extended. 2) Hold the ends with your arms extended in front of you and step back (or shorten your grip when seated) until the band has light tension. 3) Stand or sit tall, brace your core and pull your elbows back past your torso, squeezing your shoulder blades together; exhale as you pull. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Shoulder Dislocate (סיבובי כתפיים עם גומייה)
+
+File: `band_shoulder_dislocate.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: mobility · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Shoulder Dislocate" using a resistance band. Target muscles: shoulders. Technique to show, in order: 1) Stand tall holding a light resistance band in front of your hips with a wide overhand grip, well beyond shoulder-width. 2) Brace your core and keep your arms straight as you slowly raise the band in front of you and overhead. 3) Continue the arc until the band reaches behind your back, letting the band stretch rather than forcing your shoulders. 4) Reverse the movement slowly along the same path back to the start. 5) Breathe steadily, and over time narrow your grip only as long as the movement stays smooth and pain-free. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Shoulder Dislocate" using a resistance band. Show: 1) Stand tall holding a light resistance band in front of your hips with a wide overhand grip, well beyond shoulder-width. 2) Brace your core and keep your arms straight as you slowly raise the band in front of you and overhead. 3) Continue the arc until the band reaches behind your back, letting the band stretch rather than forcing your shoulders. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band-Resisted Squat (סקוואט עם גומיית התנגדות)
+
+File: `band_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band-Resisted Squat" using a resistance band. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand on the middle of a long resistance band with your feet about shoulder width apart and your toes turned out slightly. 2) Hold the band ends or handles at shoulder height with your elbows bent and pointing down and forward, so the band is already under light tension. 3) Inhale and brace your core, then push your hips back and bend your knees to lower yourself, keeping your chest up and your knees over your toes. 4) Lower until your thighs are about parallel to the floor, or as deep as you comfortably can, keeping your hands at shoulder height. 5) Exhale and press through the whole foot to stand up against the pull of the band, squeezing your glutes at the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band-Resisted Squat" using a resistance band. Show: 1) Stand on the middle of a long resistance band with your feet about shoulder width apart and your toes turned out slightly. 2) Hold the band ends or handles at shoulder height with your elbows bent and pointing down and forward, so the band is already under light tension. 3) Inhale and brace your core, then push your hips back and bend your knees to lower yourself, keeping your chest up and your knees over your toes. Correct, safe form only. Duration 8 seconds.
+```
+
+### Resistance Band Straight-Arm Pulldown (משיכת גומייה מלמעלה בידיים ישרות)
+
+File: `band_straight_arm_pulldown.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Resistance Band Straight-Arm Pulldown" using a resistance band. Target muscles: lats. Technique to show, in order: 1) Anchor a resistance band high above you, for example in a door anchor at the top of a closed door or over a sturdy overhead bar, and hold one end in each hand. 2) Step back until the band is under light tension with your arms straight and reaching up and forward; stand with your feet hip-width apart or staggered, a slight hinge at the hips and your core braced. 3) Keeping your elbows almost straight, exhale and sweep your hands down in an arc toward your thighs by pulling with your lats. 4) Squeeze your lats for a second at the bottom, with your shoulders away from your ears. 5) Inhale and let your hands rise slowly back up against the band, keeping your ribs down. 6) Keep your torso still; the movement comes only from the shoulders. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Resistance Band Straight-Arm Pulldown" using a resistance band. Show: 1) Anchor a resistance band high above you, for example in a door anchor at the top of a closed door or over a sturdy overhead bar, and hold one end in each hand. 2) Step back until the band is under light tension with your arms straight and reaching up and forward; stand with your feet hip-width apart or staggered, a slight hinge at the hips and your core braced. 3) Keeping your elbows almost straight, exhale and sweep your hands down in an arc toward your thighs by pulling with your lats. Correct, safe form only. Duration 8 seconds.
+```
+
+### Band Triceps Extension (פשיטת מרפקים עם גומייה)
+
+File: `band_triceps_extension.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Triceps Extension" using a resistance band. Target muscles: triceps. Technique to show, in order: 1) Anchor the middle of the band securely at a high point, such as with a door anchor at the top of a closed door, and hold one end in each hand. 2) Stand facing the anchor with feet hip-width apart, lean forward slightly and tuck your elbows at your sides with your forearms about parallel to the floor. 3) Exhale and push your hands down until your arms are fully straight, squeezing the triceps. 4) Keep your upper arms still so that only your forearms move. 5) Inhale and let your hands rise slowly back to the start, keeping tension on the band. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Triceps Extension" using a resistance band. Show: 1) Anchor the middle of the band securely at a high point, such as with a door anchor at the top of a closed door, and hold one end in each hand. 2) Stand facing the anchor with feet hip-width apart, lean forward slightly and tuck your elbows at your sides with your forearms about parallel to the floor. 3) Exhale and push your hands down until your arms are fully straight, squeezing the triceps. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bench Dip (מקבילים על ספסל)
+
+File: `bench_dip.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bench Dip" using a flat training bench. Target muscles: triceps. Technique to show, in order: 1) Sit on the edge of a stable bench or chair and place your hands on the edge beside your hips, fingers pointing forward and gripping the edge. 2) Walk your feet forward and slide your hips off the edge so your weight rests on your hands; keep your knees bent at 90 degrees (easier) or straighten your legs with your heels on the floor (harder). 3) Keep your chest up, your shoulders down and away from your ears, and your back close to the bench. 4) Inhale and lower your body by bending your elbows straight back until they reach about 90 degrees, and no deeper. 5) Exhale and press through your palms back to straight arms, without slamming the elbows into lockout. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bench Dip" using a flat training bench. Show: 1) Sit on the edge of a stable bench or chair and place your hands on the edge beside your hips, fingers pointing forward and gripping the edge. 2) Walk your feet forward and slide your hips off the edge so your weight rests on your hands; keep your knees bent at 90 degrees (easier) or straighten your legs with your heels on the floor (harder). 3) Keep your chest up, your shoulders down and away from your ears, and your back close to the bench. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bent-Over Dumbbell Row (חתירה בהטיית גו במשקולות יד)
+
+File: `bent_over_dumbbell_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bent-Over Dumbbell Row" using a pair of dumbbells. Target muscles: upper back, lats. Technique to show, in order: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand with your palms facing your thighs. 2) Soften your knees and hinge forward at the hips, pushing your hips back until your torso is at roughly 45 degrees to the floor or lower, with your back flat and your neck in line with your spine. 3) Let the dumbbells hang straight below your shoulders with your arms extended and your core braced. 4) Exhale and row the dumbbells toward your lower ribs and hips, driving your elbows back close to your body. 5) Squeeze your shoulder blades together for a second at the top without lifting your torso. 6) Lower the dumbbells under control until your arms are straight, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bent-Over Dumbbell Row" using a pair of dumbbells. Show: 1) Stand with your feet hip-width apart, holding a dumbbell in each hand with your palms facing your thighs. 2) Soften your knees and hinge forward at the hips, pushing your hips back until your torso is at roughly 45 degrees to the floor or lower, with your back flat and your neck in line with your spine. 3) Let the dumbbells hang straight below your shoulders with your arms extended and your core braced. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bicycle Crunch (כפיפות בטן אופניים)
+
+File: `bicycle_crunch.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bicycle Crunch" using no equipment (bodyweight only). Target muscles: abs, obliques. Technique to show, in order: 1) Lie on your back with your fingertips lightly behind your ears, lower back pressed into the floor and knees lifted to 90 degrees. 2) Curl your head and shoulder blades off the floor and keep them up for the whole set. 3) Exhale and rotate your torso to bring one elbow toward the opposite knee while extending the other leg out at about 45 degrees. 4) Switch sides in a slow pedaling motion, rotating through the ribcage rather than just moving the elbows. 5) Count each side as one rep and keep the tempo controlled, about one second per side. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bicycle Crunch" using no equipment (bodyweight only). Show: 1) Lie on your back with your fingertips lightly behind your ears, lower back pressed into the floor and knees lifted to 90 degrees. 2) Curl your head and shoulder blades off the floor and keep them up for the whole set. 3) Exhale and rotate your torso to bring one elbow toward the opposite knee while extending the other leg out at about 45 degrees. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bird Dog (בירד דוג)
+
+File: `bird_dog.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bird Dog" using no equipment (bodyweight only). Target muscles: lower back, abs. Technique to show, in order: 1) Start on all fours with your hands under your shoulders, knees under your hips and your spine in a neutral position. 2) Brace your abs lightly so your back stays flat, as if a glass of water were balanced on it. 3) Slowly reach one arm forward and the opposite leg back until both are roughly parallel to the floor, pushing the heel back and squeezing the glute. 4) Hold for 2–3 seconds without letting your hips rotate or your lower back arch. 5) Return the arm and leg to the floor under control and repeat with the other side. 6) Breathe steadily throughout and exhale as you extend. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bird Dog" using no equipment (bodyweight only). Show: 1) Start on all fours with your hands under your shoulders, knees under your hips and your spine in a neutral position. 2) Brace your abs lightly so your back stays flat, as if a glass of water were balanced on it. 3) Slowly reach one arm forward and the opposite leg back until both are roughly parallel to the floor, pushing the heel back and squeezing the glute. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Box Squat (Sit-to-Stand) (סקוואט לכיסא (בוקס סקוואט))
+
+File: `box_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Box Squat (Sit-to-Stand)" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Place a sturdy chair or box against a wall so it cannot slide, and stand in front of it with your feet about shoulder width apart. 2) Extend your arms forward for balance, inhale and brace your core. 3) Push your hips back and bend your knees to lower yourself slowly toward the seat, keeping your chest up. 4) Touch the seat lightly with your glutes without fully relaxing or dropping onto it. 5) Lean slightly forward, press through your whole foot and stand back up, exhaling and squeezing your glutes at the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Box Squat (Sit-to-Stand)" using no equipment (bodyweight only). Show: 1) Place a sturdy chair or box against a wall so it cannot slide, and stand in front of it with your feet about shoulder width apart. 2) Extend your arms forward for balance, inhale and brace your core. 3) Push your hips back and bend your knees to lower yourself slowly toward the seat, keeping your chest up. Correct, safe form only. Duration 8 seconds.
+```
+
+### Broad Jump (קפיצה לרוחק מהמקום)
+
+File: `broad_jump.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Broad Jump" using no equipment (bodyweight only). Target muscles: glutes, quadriceps. Technique to show, in order: 1) Stand behind a line with your feet hip-width apart and plenty of clear space in front of you. 2) Swing your arms back as you push your hips back and bend your knees into a quarter squat, keeping your back flat. 3) Swing your arms forward forcefully and drive your hips forward to jump out and slightly up, at roughly a 45-degree angle. 4) Bring your knees forward under you in the air and reach your feet out in front for the landing. 5) Land on both feet with your hips back and knees bent, and stick the landing without stepping or falling forward. 6) Hold the landing for a second and exhale, then walk back and reset fully before the next jump. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Broad Jump" using no equipment (bodyweight only). Show: 1) Stand behind a line with your feet hip-width apart and plenty of clear space in front of you. 2) Swing your arms back as you push your hips back and bend your knees into a quarter squat, keeping your back flat. 3) Swing your arms forward forcefully and drive your hips forward to jump out and slightly up, at roughly a 45-degree angle. Correct, safe form only. Duration 8 seconds.
 ```
 
 ### Cat-Cow (חתול-פרה)
 
-File: `cat_cow.mp4` · category: mobility · equipment: none
+File: `cat_cow.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: mobility · equipment: none
 
 Full prompt:
 
@@ -1871,9 +1802,1049 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cat-Cow" using no equipment (bodyweight only). Show: 1) Start on your hands and knees with your hands under your shoulders and your knees under your hips. 2) For the cow, inhale as you let your belly sink toward the floor, lifting your chest and tailbone and looking slightly forward. 3) For the cat, exhale as you round your back up toward the ceiling, tucking your tailbone and letting your head drop toward your chest. Correct, safe form only. Duration 8 seconds.
 ```
 
+### Chest Dip (מקבילים לחזה (הטיה קדימה))
+
+File: `chest_dip.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: dip_bars
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Chest Dip" using parallel dip bars. Target muscles: chest, triceps. Technique to show, in order: 1) Grip the bars and lift yourself onto straight arms (use a step if the bars are high), with your shoulders pressed down away from your ears. 2) Cross your ankles behind you with your knees slightly bent and lean your torso forward by about 30 degrees, chest leading. 3) Inhale and lower your body by bending your elbows, letting them angle slightly out to the sides, while keeping the forward lean. 4) Descend until your upper arms are about parallel to the floor, or only as deep as your shoulders comfortably allow. 5) Exhale and press back up to straight arms, keeping the forward lean and without slamming into elbow lockout. 6) If you cannot yet do full dips, use a band for assistance or lower yourself slowly. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Chest Dip" using parallel dip bars. Show: 1) Grip the bars and lift yourself onto straight arms (use a step if the bars are high), with your shoulders pressed down away from your ears. 2) Cross your ankles behind you with your knees slightly bent and lean your torso forward by about 30 degrees, chest leading. 3) Inhale and lower your body by bending your elbows, letting them angle slightly out to the sides, while keeping the forward lean. Correct, safe form only. Duration 8 seconds.
+```
+
+### Chest-Supported Dumbbell Row (חתירה בתמיכת חזה במשקולות יד)
+
+File: `chest_supported_dumbbell_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Chest-Supported Dumbbell Row" using a pair of dumbbells and a flat training bench. Target muscles: upper back. Technique to show, in order: 1) Set an adjustable bench to an incline of about 30 to 45 degrees and pick up a dumbbell in each hand. 2) Lie face down with your chest supported by the upper part of the bench, your head just clear of the top and your feet planted on the floor. 3) Let your arms hang straight down with the dumbbells beside the bench and your palms facing each other. 4) Exhale and row the dumbbells up toward your hips, driving your elbows back and squeezing your shoulder blades together. 5) Pause for a second at the top without lifting your chest off the bench. 6) Lower the dumbbells slowly until your arms are straight, inhaling on the way down. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Chest-Supported Dumbbell Row" using a pair of dumbbells and a flat training bench. Show: 1) Set an adjustable bench to an incline of about 30 to 45 degrees and pick up a dumbbell in each hand. 2) Lie face down with your chest supported by the upper part of the bench, your head just clear of the top and your feet planted on the floor. 3) Let your arms hang straight down with the dumbbells beside the bench and your palms facing each other. Correct, safe form only. Duration 8 seconds.
+```
+
+### Clap Push-Up (שכיבות סמיכה עם מחיאת כף)
+
+File: `clap_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Clap Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands slightly wider than shoulder width, your body in a straight line from head to heels and your abs and glutes braced. 2) Inhale and lower under control until your chest is a few centimeters above the floor. 3) Exhale and drive up explosively, straightening your arms fast enough that both hands leave the floor. 4) Clap your hands together quickly in front of your chest while in the air, keeping your body rigid. 5) Return your hands to shoulder width and land gently on slightly bent elbows, then flow straight into the next controlled lowering. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Clap Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands slightly wider than shoulder width, your body in a straight line from head to heels and your abs and glutes braced. 2) Inhale and lower under control until your chest is a few centimeters above the floor. 3) Exhale and drive up explosively, straightening your arms fast enough that both hands leave the floor. Correct, safe form only. Duration 8 seconds.
+```
+
+### Close-Grip Push-Up (שכיבות סמיכה באחיזה צרה)
+
+File: `close_grip_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Close-Grip Push-Up" using no equipment (bodyweight only). Target muscles: triceps, chest. Technique to show, in order: 1) Start in a high plank with your hands directly under your shoulders or slightly narrower, fingers spread and pointing forward. 2) Squeeze your glutes and brace your abs so your body forms a straight line from head to heels. 3) Inhale and bend your elbows to lower your chest, keeping your elbows pointing back and close to your ribs. 4) Lower until your chest is a few centimetres from the floor. 5) Exhale and press the floor away until your arms are straight. 6) If needed, do it from your knees or with your hands on a raised surface such as a sturdy table or bench. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Close-Grip Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands directly under your shoulders or slightly narrower, fingers spread and pointing forward. 2) Squeeze your glutes and brace your abs so your body forms a straight line from head to heels. 3) Inhale and bend your elbows to lower your chest, keeping your elbows pointing back and close to your ribs. Correct, safe form only. Duration 8 seconds.
+```
+
+### Concentration Curl (כפיפת ריכוז במשקולת יד)
+
+File: `concentration_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Concentration Curl" using a pair of dumbbells. Target muscles: biceps. Technique to show, in order: 1) Sit on the edge of a bench or sturdy chair with your feet wide apart and flat on the floor. 2) Hold a dumbbell in one hand, lean forward slightly and rest the back of that upper arm against the inside of your thigh, just above the knee, with the arm hanging straight. 3) Place your free hand on your other thigh for support and keep your back flat. 4) Exhale and curl the dumbbell toward your shoulder, turning your palm up as you lift, without moving the upper arm. 5) Squeeze the biceps for a second at the top. 6) Inhale and lower the dumbbell slowly to a full stretch; finish all reps on one arm, then switch. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Concentration Curl" using a pair of dumbbells. Show: 1) Sit on the edge of a bench or sturdy chair with your feet wide apart and flat on the floor. 2) Hold a dumbbell in one hand, lean forward slightly and rest the back of that upper arm against the inside of your thigh, just above the knee, with the arm hanging straight. 3) Place your free hand on your other thigh for support and keep your back flat. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Cross-Body Hammer Curl (כפיפת פטיש חוצה גוף)
+
+File: `cross_body_hammer_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Cross-Body Hammer Curl" using a pair of dumbbells. Target muscles: biceps, forearms. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your thighs. 2) Keep your elbows close to your torso and your shoulders down. 3) Exhale and curl one dumbbell diagonally across your body toward the opposite shoulder, keeping your palm facing inward the whole time. 4) Pause briefly at the top, then inhale and lower the dumbbell slowly back to your side. 5) Alternate arms, or finish all reps on one arm before switching. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Cross-Body Hammer Curl" using a pair of dumbbells. Show: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand at your sides with palms facing your thighs. 2) Keep your elbows close to your torso and your shoulders down. 3) Exhale and curl one dumbbell diagonally across your body toward the opposite shoulder, keeping your palm facing inward the whole time. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Crunch (כפיפות בטן)
+
+File: `crunch.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Crunch" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your knees bent and feet flat on the floor about hip-width apart. 2) Place your fingertips lightly behind your ears or cross your arms over your chest, keeping your elbows wide. 3) Exhale and curl your ribcage toward your pelvis, lifting your head and shoulder blades off the floor. 4) Keep your lower back on the floor and about a fist-width of space between your chin and chest. 5) Pause and squeeze your abs briefly at the top. 6) Inhale as you lower slowly until your shoulder blades touch the floor. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Crunch" using no equipment (bodyweight only). Show: 1) Lie on your back with your knees bent and feet flat on the floor about hip-width apart. 2) Place your fingertips lightly behind your ears or cross your arms over your chest, keeping your elbows wide. 3) Exhale and curl your ribcage toward your pelvis, lifting your head and shoulder blades off the floor. Correct, safe form only. Duration 8 seconds.
+```
+
+### Curtsy Lunge (מכרע קורטסי)
+
+File: `curtsy_lunge.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Curtsy Lunge" using no equipment (bodyweight only). Target muscles: glutes, quadriceps. Technique to show, in order: 1) Stand tall with your feet hip width apart, your hands together in front of your chest and your core braced. 2) Shift your weight onto one leg, then step the other foot diagonally back and across behind it, as if curtsying. 3) Bend both knees and lower until the front thigh is about parallel to the floor, keeping your chest up and your hips facing forward. 4) Keep most of your weight on the front leg, with the front knee tracking over the toes. 5) Push through the front foot to stand back up, bringing the back leg to the starting position. 6) Complete all reps on one side and then switch, or alternate sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Curtsy Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip width apart, your hands together in front of your chest and your core braced. 2) Shift your weight onto one leg, then step the other foot diagonally back and across behind it, as if curtsying. 3) Bend both knees and lower until the front thigh is about parallel to the floor, keeping your chest up and your hips facing forward. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dead Hang (תלייה על מוט (דד האנג))
+
+File: `dead_hang.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: pull_up_bar
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dead Hang" using a pull-up bar. Target muscles: forearms, lats. Technique to show, in order: 1) Stand under a sturdy bar and grip it with your palms facing away and your hands about shoulder-width apart; use a step or chair to reach it if needed. 2) Step off the support and hang with your arms straight, your legs together and slightly in front of you. 3) Hold a firm grip with your thumbs around the bar and keep your body still; for an active hang, gently draw your shoulder blades down away from your ears. 4) Breathe slowly and steadily for the whole hold. 5) Step back onto the support before your grip gives out, and rest between holds. 6) To make it easier, keep your toes on the support so it carries part of your weight. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dead Hang" using a pull-up bar. Show: 1) Stand under a sturdy bar and grip it with your palms facing away and your hands about shoulder-width apart; use a step or chair to reach it if needed. 2) Step off the support and hang with your arms straight, your legs together and slightly in front of you. 3) Hold a firm grip with your thumbs around the bar and keep your body still; for an active hang, gently draw your shoulder blades down away from your ears. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Diamond Push-Up (שכיבות סמיכה יהלום)
+
+File: `diamond_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Diamond Push-Up" using no equipment (bodyweight only). Target muscles: triceps. Technique to show, in order: 1) Start in a high plank and place your hands together under your chest, touching thumbs and index fingers to form a diamond. 2) Brace your core and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your chest toward your hands, keeping your elbows close to your sides and pointing back. 4) Lower until your chest is just above your hands. 5) Exhale and press back up to straight arms. 6) If needed, perform it with your knees on the floor or your hands on a raised surface. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Diamond Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank and place your hands together under your chest, touching thumbs and index fingers to form a diamond. 2) Brace your core and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your chest toward your hands, keeping your elbows close to your sides and pointing back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Bulgarian Split Squat (סקוואט בולגרי עם משקולות יד)
+
+File: `dumbbell_bulgarian_split_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Bulgarian Split Squat" using a pair of dumbbells and a flat training bench. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Hold a dumbbell in each hand at your sides and stand about one long stride in front of a flat bench, facing away from it. 2) Place the top of one rear foot on the bench and set your front foot far enough forward that, at the bottom, your front shin is roughly vertical. 3) Brace your core and keep your torso tall or leaning slightly forward, with your hips square. 4) Lower straight down by bending the front knee until the front thigh is about parallel to the floor, with the dumbbells hanging beside you. 5) Drive through the front heel and midfoot to stand back up, exhaling as you rise. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Bulgarian Split Squat" using a pair of dumbbells and a flat training bench. Show: 1) Hold a dumbbell in each hand at your sides and stand about one long stride in front of a flat bench, facing away from it. 2) Place the top of one rear foot on the bench and set your front foot far enough forward that, at the bottom, your front shin is roughly vertical. 3) Brace your core and keep your torso tall or leaning slightly forward, with your hips square. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Calf Raise (הרמות עקבים עם משקולות יד)
+
+File: `dumbbell_calf_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Calf Raise" using a pair of dumbbells. Target muscles: calves. Technique to show, in order: 1) Hold a dumbbell in each hand at your sides, or one dumbbell in one hand while the other hand lightly holds a wall for balance. 2) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart; if you use a step, let your heels sink slightly below it. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. 4) Pause for a second at the top and squeeze your calves. 5) Inhale and lower your heels slowly back to the start, stretching the calves at the bottom. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Calf Raise" using a pair of dumbbells. Show: 1) Hold a dumbbell in each hand at your sides, or one dumbbell in one hand while the other hand lightly holds a wall for balance. 2) Stand with the balls of your feet on the edge of a step or on the floor, feet hip width apart; if you use a step, let your heels sink slightly below it. 3) Exhale and rise onto the balls of your feet as high as possible, keeping your knees straight but not locked. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Floor Fly (פרפר במשקולות יד על הרצפה)
+
+File: `dumbbell_floor_fly.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Floor Fly" using a pair of dumbbells. Target muscles: chest. Technique to show, in order: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand with your arms extended over your chest and palms facing each other. 2) Pull your shoulder blades back and down, bend your elbows slightly and keep that angle fixed for the whole set. 3) Inhale and open your arms in a wide arc until your upper arms lightly touch the floor. 4) Pause for a moment without relaxing completely, keeping tension in the chest. 5) Exhale and squeeze your chest to bring the dumbbells back along the same arc until they almost touch above your chest. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Floor Fly" using a pair of dumbbells. Show: 1) Lie on your back on the floor with knees bent and feet flat, holding a dumbbell in each hand with your arms extended over your chest and palms facing each other. 2) Pull your shoulder blades back and down, bend your elbows slightly and keep that angle fixed for the whole set. 3) Inhale and open your arms in a wide arc until your upper arms lightly touch the floor. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Front Raise (הרמה קדמית עם משקולות יד)
+
+File: `dumbbell_front_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Front Raise" using a pair of dumbbells. Target muscles: shoulders. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand in front of your thighs with palms facing your body. 2) Keep a slight bend in your elbows, brace your abs and keep your shoulders down and back. 3) Exhale and raise your arms straight forward in a smooth arc, together or one at a time, until your hands reach about shoulder height. 4) Pause briefly at the top without letting your shoulders rise toward your ears. 5) Inhale and lower the dumbbells slowly, over about 2–3 seconds, back to the front of your thighs. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Front Raise" using a pair of dumbbells. Show: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand in front of your thighs with palms facing your body. 2) Keep a slight bend in your elbows, brace your abs and keep your shoulders down and back. 3) Exhale and raise your arms straight forward in a smooth arc, together or one at a time, until your hands reach about shoulder height. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Front Squat (סקוואט קדמי עם משקולות יד)
+
+File: `dumbbell_front_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Front Squat" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Pick up two dumbbells and bring them to your shoulders, resting their top ends on the front of your shoulders with your palms facing each other. 2) Stand with your feet about shoulder width apart, toes turned out slightly, with your elbows pointing forward and slightly up and your upper back tight. 3) Inhale and brace your core, then sit down between your heels, bending your hips and knees together and keeping your torso upright. 4) Lower until your thighs are at least parallel to the floor, or as deep as you can with a neutral back, without letting your elbows drop. 5) Drive through the whole foot to stand up, exhaling as you near the top. 6) After the last rep, lower the dumbbells to the floor with a straight back. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Front Squat" using a pair of dumbbells. Show: 1) Pick up two dumbbells and bring them to your shoulders, resting their top ends on the front of your shoulders with your palms facing each other. 2) Stand with your feet about shoulder width apart, toes turned out slightly, with your elbows pointing forward and slightly up and your upper back tight. 3) Inhale and brace your core, then sit down between your heels, bending your hips and knees together and keeping your torso upright. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Triceps Kickback (פשיטת מרפק לאחור במשקולת יד (קיקבק))
+
+File: `dumbbell_kickback.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Triceps Kickback" using a pair of dumbbells. Target muscles: triceps. Technique to show, in order: 1) Stand next to a bench or sturdy chair with a dumbbell in your right hand. Hinge forward at the hips with a flat back and rest your left hand on the bench, with your knees slightly bent. 2) Lift your right elbow to torso height and keep your upper arm tight against your side, parallel to the floor, with the forearm hanging down at about 90 degrees. 3) Exhale and straighten your elbow, moving the dumbbell back and slightly up until your arm is in line with your torso. 4) Squeeze the triceps for a second at the end of the movement. 5) Inhale and bend your elbow slowly back to 90 degrees, keeping the upper arm still. 6) Finish all reps on one side, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Triceps Kickback" using a pair of dumbbells. Show: 1) Stand next to a bench or sturdy chair with a dumbbell in your right hand. Hinge forward at the hips with a flat back and rest your left hand on the bench, with your knees slightly bent. 2) Lift your right elbow to torso height and keep your upper arm tight against your side, parallel to the floor, with the forearm hanging down at about 90 degrees. 3) Exhale and straighten your elbow, moving the dumbbell back and slightly up until your arm is in line with your torso. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Pullover (פולאובר במשקולת יד)
+
+File: `dumbbell_pullover.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Pullover" using a pair of dumbbells and a flat training bench. Target muscles: chest, lats. Technique to show, in order: 1) Lie lengthwise on a flat bench with your head near the end, feet flat on the floor and your upper back and hips supported. Hold one dumbbell upright with both palms under the top plate. 2) Press the dumbbell up over your chest with your arms almost straight and a slight bend in the elbows. 3) Brace your abs and keep your lower back and ribs down. 4) Inhale and lower the dumbbell in an arc behind your head, keeping the elbow bend fixed, until you feel a stretch in the chest and the sides of the back. 5) Stop when your arms are about level with your head, or earlier if your lower back starts to arch. 6) Exhale and bring the dumbbell back over your chest along the same arc, squeezing the chest and lats. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Pullover" using a pair of dumbbells and a flat training bench. Show: 1) Lie lengthwise on a flat bench with your head near the end, feet flat on the floor and your upper back and hips supported. Hold one dumbbell upright with both palms under the top plate. 2) Press the dumbbell up over your chest with your arms almost straight and a slight bend in the elbows. 3) Brace your abs and keep your lower back and ribs down. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Push Press (פוש פרס עם משקולות יד)
+
+File: `dumbbell_push_press.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Push Press" using a pair of dumbbells. Target muscles: shoulders, triceps. Technique to show, in order: 1) Hold a dumbbell in each hand at shoulder height, palms facing each other or forward, elbows slightly in front of your body. 2) Stand with feet hip-width apart, brace your abs and squeeze your glutes. 3) Dip by bending your knees a few centimetres, keeping your torso upright and your heels down. 4) Immediately drive through your feet and straighten your legs while pressing the dumbbells overhead, exhaling as you go. 5) Lock out with your arms straight beside your ears and the dumbbells over your shoulders. 6) Inhale and lower the dumbbells under control to shoulder height, softening your knees to absorb the weight, then reset before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Push Press" using a pair of dumbbells. Show: 1) Hold a dumbbell in each hand at shoulder height, palms facing each other or forward, elbows slightly in front of your body. 2) Stand with feet hip-width apart, brace your abs and squeeze your glutes. 3) Dip by bending your knees a few centimetres, keeping your torso upright and your heels down. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Skull Crusher (סקאל קראשר עם משקולות יד)
+
+File: `dumbbell_skull_crusher.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Skull Crusher" using a pair of dumbbells and a flat training bench. Target muscles: triceps. Technique to show, in order: 1) Sit on the end of a flat bench with a dumbbell on each thigh, then lie back, using your knees to help bring the dumbbells up to your chest one at a time, with your feet flat on the floor. 2) Press the dumbbells straight up over your shoulders with your palms facing each other and your upper arms vertical. 3) Keeping your upper arms still and your elbows pointing at the ceiling, inhale and bend your elbows to lower the dumbbells toward the sides of your head, just beside your ears. 4) Lower until you feel a stretch in the triceps, without letting your elbows flare out or your lower back leave the bench. 5) Exhale and straighten your elbows to bring the dumbbells back over your shoulders, moving only at the elbows. 6) To finish, bend your elbows to bring the dumbbells to your chest, lower them to your thighs and sit up. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Skull Crusher" using a pair of dumbbells and a flat training bench. Show: 1) Sit on the end of a flat bench with a dumbbell on each thigh, then lie back, using your knees to help bring the dumbbells up to your chest one at a time, with your feet flat on the floor. 2) Press the dumbbells straight up over your shoulders with your palms facing each other and your upper arms vertical. 3) Keeping your upper arms still and your elbows pointing at the ceiling, inhale and bend your elbows to lower the dumbbells toward the sides of your head, just beside your ears. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Squeeze Press (לחיצת חזה במשקולות צמודות)
+
+File: `dumbbell_squeeze_press.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Squeeze Press" using a pair of dumbbells. Target muscles: chest. Technique to show, in order: 1) Lie on your back on the floor (or on a bench) with knees bent and feet flat, holding two dumbbells with a neutral grip, pressed together at chest level. 2) Squeeze the dumbbells firmly against each other and keep that squeeze for the entire set. 3) Exhale and press the dumbbells straight up over your chest until your arms are straight. 4) Inhale and lower them slowly toward your chest, elbows about 45 degrees from your torso, until your upper arms lightly touch the floor. 5) Keep your shoulder blades pulled back and your wrists straight throughout. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Squeeze Press" using a pair of dumbbells. Show: 1) Lie on your back on the floor (or on a bench) with knees bent and feet flat, holding two dumbbells with a neutral grip, pressed together at chest level. 2) Squeeze the dumbbells firmly against each other and keep that squeeze for the entire set. 3) Exhale and press the dumbbells straight up over your chest until your arms are straight. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Step-Up (עליות על מדרגה עם משקולות יד)
+
+File: `dumbbell_step_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Step-Up" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Hold a dumbbell in each hand at your sides and stand facing a sturdy step, stair or low bench that is about knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward, press through the whole foot of the top leg and stand up tall on the step, exhaling as you rise. 4) Bring the other foot up beside it, or hold it just off the step, without pushing off with the bottom foot. 5) Inhale and lower yourself slowly back down under control, keeping the working foot on the step. 6) Complete all reps on one leg, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Step-Up" using a pair of dumbbells. Show: 1) Hold a dumbbell in each hand at your sides and stand facing a sturdy step, stair or low bench that is about knee height or lower. 2) Place one whole foot on the step, with the knee in line with the toes. 3) Lean slightly forward, press through the whole foot of the top leg and stand up tall on the step, exhaling as you rise. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Sumo Squat (סקוואט סומו עם משקולת יד)
+
+File: `dumbbell_sumo_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Sumo Squat" using a pair of dumbbells. Target muscles: adductors, quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about one and a half times shoulder width apart and your toes turned out about 30 to 45 degrees. 2) Hold one dumbbell vertically, cupping its top end with both hands, and let it hang between your legs with your arms straight. 3) Inhale and brace your core, then bend your knees and lower your hips straight down between your feet, keeping your chest tall. 4) Push your knees out over your toes and lower until your thighs are about parallel to the floor, or as deep as you can with a neutral back, keeping the dumbbell close to your body. 5) Exhale and press through the whole foot, squeezing your glutes and inner thighs to stand back up. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Sumo Squat" using a pair of dumbbells. Show: 1) Stand with your feet about one and a half times shoulder width apart and your toes turned out about 30 to 45 degrees. 2) Hold one dumbbell vertically, cupping its top end with both hands, and let it hang between your legs with your arms straight. 3) Inhale and brace your core, then bend your knees and lower your hips straight down between your feet, keeping your chest tall. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Upright Row (חתירה אנכית במשקולות יד)
+
+File: `dumbbell_upright_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Upright Row" using a pair of dumbbells. Target muscles: shoulders, traps. Technique to show, in order: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand in front of your thighs with an overhand grip, hands about shoulder-width apart. 2) Keep the dumbbells close to your body, brace your abs and keep your shoulders down. 3) Exhale and pull the dumbbells up along your torso by lifting your elbows out to the sides, so the elbows stay higher than the wrists. 4) Stop when your elbows reach about shoulder height or the dumbbells reach your lower chest, whichever comes first; do not go higher. 5) Pause briefly, then inhale and lower the dumbbells slowly back in front of your thighs until your arms are straight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Upright Row" using a pair of dumbbells. Show: 1) Stand tall with feet hip-width apart, holding a dumbbell in each hand in front of your thighs with an overhand grip, hands about shoulder-width apart. 2) Keep the dumbbells close to your body, brace your abs and keep your shoulders down. 3) Exhale and pull the dumbbells up along your torso by lifting your elbows out to the sides, so the elbows stay higher than the wrists. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Walking Lunge (מכרעים בהליכה עם משקולות יד)
+
+File: `dumbbell_walking_lunge.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Walking Lunge" using a pair of dumbbells. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand tall with a dumbbell in each hand at your sides and your feet hip width apart, with a clear path ahead of you. 2) Brace your core, take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright, the dumbbells hanging straight down and the front knee tracking over your toes. 4) Push through the front heel and bring the back leg forward, stepping straight into the next lunge on the other side. 5) Breathe in as you lower and out as you drive forward, and keep alternating for the target number of reps per leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Walking Lunge" using a pair of dumbbells. Show: 1) Stand tall with a dumbbell in each hand at your sides and your feet hip width apart, with a clear path ahead of you. 2) Brace your core, take a long step forward and lower your hips until both knees are bent to about 90 degrees, the back knee hovering just above the floor. 3) Keep your torso upright, the dumbbells hanging straight down and the front knee tracking over your toes. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Dumbbell Y Raise (הרמת Y עם משקולות יד בהטיית גו)
+
+File: `dumbbell_y_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Y Raise" using a pair of dumbbells. Target muscles: shoulders, traps. Technique to show, in order: 1) Pick up two very light dumbbells, stand with feet hip-width apart, soften your knees and hinge forward at the hips until your torso is at about 45 degrees with a flat back. 2) Let your arms hang down with thumbs pointing forward, and keep your neck in line with your spine, eyes on the floor a little ahead of your feet. 3) Brace your abs and draw your shoulder blades gently down and back. 4) Exhale and raise both arms diagonally forward and out in a Y shape, thumbs pointing up, until your arms are roughly in line with your torso; go only as high as you can without arching your back or shrugging. 5) Pause for a second, then inhale and lower the dumbbells slowly back to the start. 6) Choose a weight that lets you keep your shoulders away from your ears on every rep; for most people 1–3 kg is enough. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Y Raise" using a pair of dumbbells. Show: 1) Pick up two very light dumbbells, stand with feet hip-width apart, soften your knees and hinge forward at the hips until your torso is at about 45 degrees with a flat back. 2) Let your arms hang down with thumbs pointing forward, and keep your neck in line with your spine, eyes on the floor a little ahead of your feet. 3) Brace your abs and draw your shoulder blades gently down and back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Explosive Push-Up (שכיבות סמיכה מתפרצות)
+
+File: `explosive_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Explosive Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands slightly wider than shoulder width and your body in a straight line from head to heels. 2) Brace your abs and glutes. Inhale and lower yourself under control, over about a second, until your chest is a few centimeters above the floor. 3) Exhale and push the floor away as fast as you can, aiming to straighten your arms with speed. 4) At first just press up quickly; only when your body stays rigid through the whole movement let your hands come slightly off the floor. 5) If your hands left the floor, land gently on slightly bent elbows and go straight into the next controlled lowering. 6) Rest when your form slips, and end the set as soon as the push becomes slow. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Explosive Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands slightly wider than shoulder width and your body in a straight line from head to heels. 2) Brace your abs and glutes. Inhale and lower yourself under control, over about a second, until your chest is a few centimeters above the floor. 3) Exhale and push the floor away as fast as you can, aiming to straighten your arms with speed. Correct, safe form only. Duration 8 seconds.
+```
+
+### High Knees (הרמות ברכיים במקום)
+
+File: `high_knees.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: cardio · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "High Knees" using no equipment (bodyweight only). Target muscles: hip flexors, quadriceps. Technique to show, in order: 1) Stand tall with your feet hip-width apart, core lightly braced and elbows bent to about 90 degrees. 2) Drive one knee up toward hip height while the opposite arm swings forward. 3) Switch legs quickly, landing lightly on the ball of your foot as the other knee drives up. 4) Keep your torso upright and avoid leaning back as the knees rise. 5) Maintain a quick, rhythmic pace for the set time while breathing steadily. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "High Knees" using no equipment (bodyweight only). Show: 1) Stand tall with your feet hip-width apart, core lightly braced and elbows bent to about 90 degrees. 2) Drive one knee up toward hip height while the opposite arm swings forward. 3) Switch legs quickly, landing lightly on the ball of your foot as the other knee drives up. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Hindu Push-Up (שכיבות סמיכה הינדיות)
+
+File: `hindu_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hindu Push-Up" using no equipment (bodyweight only). Target muscles: chest, shoulders. Technique to show, in order: 1) Start in a pike (an inverted V): hands slightly wider than shoulder width, feet wider than hip width, hips high, and arms and back straight. 2) Bend your elbows and dive your head and chest down and forward in a smooth arc, skimming close to the floor between your hands. 3) As you glide forward, let your hips lower and press through your hands into a gentle upward arch, with straight arms, an open chest and your gaze forward. 4) Reverse the path: push the floor away, lift your hips back up and return to the pike along the same arc, keeping the movement smooth. 5) Start with a small arch and a wide stance, and deepen the movement only as far as your shoulders and lower back allow. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hindu Push-Up" using no equipment (bodyweight only). Show: 1) Start in a pike (an inverted V): hands slightly wider than shoulder width, feet wider than hip width, hips high, and arms and back straight. 2) Bend your elbows and dive your head and chest down and forward in a smooth arc, skimming close to the floor between your hands. 3) As you glide forward, let your hips lower and press through your hands into a gentle upward arch, with straight arms, an open chest and your gaze forward. Correct, safe form only. Duration 8 seconds.
+```
+
+### Kneeling Hip Flexor Stretch (מתיחת מכופפי ירך בכריעה)
+
+File: `hip_flexor_stretch.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: mobility · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kneeling Hip Flexor Stretch" using no equipment (bodyweight only). Target muscles: hip flexors. Technique to show, in order: 1) Kneel on your right knee on a mat or cushion with your left foot flat on the floor in front of you, both knees at about 90 degrees. 2) Lift your torso tall and squeeze your right glute, gently tucking your pelvis under. 3) Shift your hips slowly forward until you feel a stretch at the front of your right hip, without arching your lower back. 4) For a deeper stretch, raise your right arm overhead and lean slightly to the left. 5) Hold for the set time, breathing slowly and deeply, then switch sides. Show the repetitions on one side, then briefly the other side. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kneeling Hip Flexor Stretch" using no equipment (bodyweight only). Show: 1) Kneel on your right knee on a mat or cushion with your left foot flat on the floor in front of you, both knees at about 90 degrees. 2) Lift your torso tall and squeeze your right glute, gently tucking your pelvis under. 3) Shift your hips slowly forward until you feel a stretch at the front of your right hip, without arching your lower back. Show the repetitions on one side, then briefly the other side. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Hollow Body Hold (החזקת הולו בודי)
+
+File: `hollow_body_hold.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Hollow Body Hold" using no equipment (bodyweight only). Target muscles: abs. Technique to show, in order: 1) Lie on your back with your arms extended overhead and your legs straight and together. 2) Press your lower back firmly into the floor by bracing your abs and tilting your pelvis slightly back. 3) Lift your shoulders, arms and legs off the floor at the same time, keeping your lower back in contact with the floor. 4) Find the lowest arm and leg position in which your lower back still stays down; point your toes and keep your chin slightly tucked. 5) Hold while taking short, controlled breaths without losing the shape. 6) End the set as soon as your lower back starts to lift, then lower your limbs to the floor. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Hollow Body Hold" using no equipment (bodyweight only). Show: 1) Lie on your back with your arms extended overhead and your legs straight and together. 2) Press your lower back firmly into the floor by bracing your abs and tilting your pelvis slightly back. 3) Lift your shoulders, arms and legs off the floor at the same time, keeping your lower back in contact with the floor. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Incline Dumbbell Curl (כפיפת מרפקים על ספסל משופע)
+
+File: `incline_dumbbell_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells+bench
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Incline Dumbbell Curl" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Target muscles: biceps. Technique to show, in order: 1) Set an adjustable bench to an incline of about 45–60 degrees and sit back with your head, upper back and glutes against the pad and your feet flat on the floor. 2) Let your arms hang straight down beside the bench, a dumbbell in each hand with palms facing forward and your shoulders resting back against the pad. 3) Without moving your upper arms, exhale and curl both dumbbells toward your shoulders, keeping your palms facing up. 4) Squeeze the biceps at the top; your elbows should keep pointing toward the floor and not drift forward. 5) Inhale and lower slowly, over about 3 seconds, to a full stretch, staying in control of the dumbbells. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Incline Dumbbell Curl" using a pair of dumbbells and an adjustable bench set to a 30-45 degree incline. Show: 1) Set an adjustable bench to an incline of about 45–60 degrees and sit back with your head, upper back and glutes against the pad and your feet flat on the floor. 2) Let your arms hang straight down beside the bench, a dumbbell in each hand with palms facing forward and your shoulders resting back against the pad. 3) Without moving your upper arms, exhale and curl both dumbbells toward your shoulders, keeping your palms facing up. Correct, safe form only. Duration 8 seconds.
+```
+
+### Alternating Jump Lunge (מכרע בקפיצה לסירוגין)
+
+File: `jump_lunge.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Alternating Jump Lunge" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Start in a lunge with both knees bent, the front thigh about parallel to the floor and your torso upright, with plenty of clear space around you. 2) Bend a little deeper, then push explosively through both legs to jump straight up, swinging your arms to help. 3) Switch your legs in the air so the back leg comes forward and the front leg goes back. 4) Land softly on the balls of your feet and sink straight into a lunge on the opposite side, with the front knee over your toes. 5) Keep alternating at a steady, controlled rhythm and count the reps for each leg. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Alternating Jump Lunge" using no equipment (bodyweight only). Show: 1) Start in a lunge with both knees bent, the front thigh about parallel to the floor and your torso upright, with plenty of clear space around you. 2) Bend a little deeper, then push explosively through both legs to jump straight up, swinging your arms to help. 3) Switch your legs in the air so the back leg comes forward and the front leg goes back. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Jump Squat (סקוואט קפיצה)
+
+File: `jump_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Jump Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about shoulder-width apart, toes turned slightly out and arms relaxed at your sides. 2) Brace your core and sit your hips back and down into a quarter- to half-squat, swinging your arms back. 3) Drive hard through your whole foot and swing your arms up to jump straight up, fully extending your hips, knees and ankles. 4) Land softly on the balls of your feet and roll onto your whole foot, bending your hips and knees to absorb the landing with your knees tracking over your toes. 5) Reset your stance for a moment, or flow straight into the next rep only once your landings are consistently quiet and controlled. 6) Exhale as you jump and inhale as you land and reload; end the set when your jump height or landing quality drops. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Jump Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about shoulder-width apart, toes turned slightly out and arms relaxed at your sides. 2) Brace your core and sit your hips back and down into a quarter- to half-squat, swinging your arms back. 3) Drive hard through your whole foot and swing your arms up to jump straight up, fully extending your hips, knees and ankles. Correct, safe form only. Duration 8 seconds.
+```
+
+### Kettlebell Goblet Squat (גובלט סקוואט עם קטלבל)
+
+File: `kettlebell_goblet_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: kettlebell
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kettlebell Goblet Squat" using a kettlebell. Target muscles: quadriceps, glutes. Technique to show, in order: 1) Hold a kettlebell by the horns (the sides of the handle) with both hands, the bell hanging down against your chest and your elbows tucked in. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace your core, then sit down between your heels, bending your hips and knees together. 4) Keep your chest up and your elbows inside your knees, pushing the knees out in line with your toes. 5) Lower until your thighs are at least parallel to the floor, or as deep as you can with a neutral back, keeping the bell close to your chest. 6) Drive through the whole foot to stand back up, exhaling as you finish the rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kettlebell Goblet Squat" using a kettlebell. Show: 1) Hold a kettlebell by the horns (the sides of the handle) with both hands, the bell hanging down against your chest and your elbows tucked in. 2) Stand with your feet slightly wider than shoulder width and your toes turned out a little. 3) Take a breath and brace your core, then sit down between your heels, bending your hips and knees together. Correct, safe form only. Duration 8 seconds.
+```
+
+### Knee Push-Up (שכיבות סמיכה על הברכיים)
+
+File: `knee_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Knee Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Kneel on a mat and place your hands on the floor slightly wider than shoulder width, under or just outside your shoulders. 2) Walk your hands forward until your body forms a straight line from knees to head, then tighten your glutes and abs. 3) Inhale and bend your elbows to lower your chest toward the floor, elbows angled about 45 degrees from your body. 4) Lower until your chest is just above the floor, keeping your hips in line with your torso. 5) Exhale and press the floor away to straighten your arms, keeping your body rigid. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Knee Push-Up" using no equipment (bodyweight only). Show: 1) Kneel on a mat and place your hands on the floor slightly wider than shoulder width, under or just outside your shoulders. 2) Walk your hands forward until your body forms a straight line from knees to head, then tighten your glutes and abs. 3) Inhale and bend your elbows to lower your chest toward the floor, elbows angled about 45 degrees from your body. Correct, safe form only. Duration 8 seconds.
+```
+
+### Lateral Bound (ניתורים לצדדים)
+
+File: `lateral_bound.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lateral Bound" using no equipment (bodyweight only). Target muscles: glutes, quadriceps. Technique to show, in order: 1) Stand on your right leg with a slight bend in the hip and knee, left foot off the floor and arms ready to swing. 2) Sink slightly into your right hip, then push explosively off your right foot to bound sideways to the left, swinging your arms across. 3) Land softly on the ball of your left foot and roll onto the whole foot, bending your hip and knee to absorb the landing. 4) Keep the landing knee in line with your toes and your chest up, and hold the landing for 1–2 seconds to stabilise. 5) Push off your left leg to bound back to the right, and keep alternating sides. 6) Exhale on each push-off; start with short bounds and increase the distance only while your landings stay stable. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lateral Bound" using no equipment (bodyweight only). Show: 1) Stand on your right leg with a slight bend in the hip and knee, left foot off the floor and arms ready to swing. 2) Sink slightly into your right hip, then push explosively off your right foot to bound sideways to the left, swinging your arms across. 3) Land softly on the ball of your left foot and roll onto the whole foot, bending your hip and knee to absorb the landing. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Lateral Lunge (מכרע צידי)
+
+File: `lateral_lunge.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lateral Lunge" using no equipment (bodyweight only). Target muscles: adductors, quadriceps, glutes. Technique to show, in order: 1) Stand tall with your feet together or hip width apart and your hands in front of your chest. 2) Take a big step out to one side, landing with your foot pointing forward or turned out only slightly. 3) Push your hips back and bend the stepping knee, shifting your weight onto that leg while the other leg stays straight. 4) Lower until the bent thigh is about parallel to the floor, or as deep as feels comfortable, keeping your chest up and the heel of the working leg flat. 5) Push firmly through the whole foot of the bent leg to return to standing. 6) Complete all reps on one side and then switch, or alternate sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lateral Lunge" using no equipment (bodyweight only). Show: 1) Stand tall with your feet together or hip width apart and your hands in front of your chest. 2) Take a big step out to one side, landing with your foot pointing forward or turned out only slightly. 3) Push your hips back and bend the stepping knee, shifting your weight onto that leg while the other leg stays straight. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Lying Leg Raise (הרמות רגליים בשכיבה)
+
+File: `lying_leg_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Lying Leg Raise" using no equipment (bodyweight only). Target muscles: abs, hip flexors. Technique to show, in order: 1) Lie on your back with your legs straight and together and your arms along your sides, palms down (or hands under your hips for support). 2) Brace your abs and press your lower back into the floor. 3) Exhale and raise your legs, keeping them straight, until they point roughly at the ceiling. 4) At the top, you may curl your hips slightly off the floor to engage the lower abs more. 5) Inhale and lower your legs slowly over 2–3 seconds, stopping just before your lower back starts to arch. 6) Keep your neck relaxed and your head on the floor throughout. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Lying Leg Raise" using no equipment (bodyweight only). Show: 1) Lie on your back with your legs straight and together and your arms along your sides, palms down (or hands under your hips for support). 2) Brace your abs and press your lower back into the floor. 3) Exhale and raise your legs, keeping them straight, until they point roughly at the ceiling. Correct, safe form only. Duration 8 seconds.
+```
+
+### Medicine Ball Chest Pass (מסירת חזה עם כדור כוח)
+
+File: `medicine_ball_chest_pass.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: medicine_ball · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Medicine Ball Chest Pass" using a medicine ball. Target muscles: chest, triceps. Technique to show, in order: 1) Stand facing a solid wall about 2–3 metres away, or facing a partner, with your feet shoulder-width apart in an athletic stance. 2) Hold the medicine ball at your chest with your hands on the sides of the ball and your elbows pointing down and slightly out. 3) Brace your core, shift your weight forward and explosively push the ball straight out from your chest until your arms are fully extended. 4) Exhale sharply on the throw and follow through with your hands toward the target. 5) Catch the rebound or the return pass with soft elbows, absorbing the ball back toward your chest. 6) Reset your stance and repeat, keeping every throw fast and crisp. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Medicine Ball Chest Pass" using a medicine ball. Show: 1) Stand facing a solid wall about 2–3 metres away, or facing a partner, with your feet shoulder-width apart in an athletic stance. 2) Hold the medicine ball at your chest with your hands on the sides of the ball and your elbows pointing down and slightly out. 3) Brace your core, shift your weight forward and explosively push the ball straight out from your chest until your arms are fully extended. Correct, safe form only. Duration 8 seconds.
+```
+
+### Medicine Ball Slam (הטחת כדור כוח)
+
+File: `medicine_ball_slam.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: plyometric · equipment: medicine_ball · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Medicine Ball Slam" using a medicine ball. Target muscles: lats, abs, shoulders. Technique to show, in order: 1) Use a non-bouncing slam ball or a soft medicine ball and stand with your feet shoulder-width apart, holding the ball at your chest. 2) Inhale as you lift the ball overhead, rising onto your toes and extending your whole body. 3) Brace your core and slam the ball forcefully into the floor just in front of your feet, pulling down with your lats and abs as you push your hips back and bend your knees. 4) Exhale sharply as you slam, keeping your back flat rather than rounded. 5) Squat down with a flat back to pick up the ball, then stand up tall and repeat. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Medicine Ball Slam" using a medicine ball. Show: 1) Use a non-bouncing slam ball or a soft medicine ball and stand with your feet shoulder-width apart, holding the ball at your chest. 2) Inhale as you lift the ball overhead, rising onto your toes and extending your whole body. 3) Brace your core and slam the ball forcefully into the floor just in front of your feet, pulling down with your lats and abs as you push your hips back and bend your knees. Correct, safe form only. Duration 8 seconds.
+```
+
+### Negative Pull-Up (עליות מתח שליליות)
+
+File: `negative_pull_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: pull_up_bar
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Negative Pull-Up" using a pull-up bar. Target muscles: lats, upper back. Technique to show, in order: 1) Place a sturdy chair or step under the bar so you can reach the top position. 2) Grip the bar with your palms facing away, slightly wider than shoulder width, and jump or step up until your chin is above the bar. 3) Brace your core, keep your elbows tucked toward your ribs and take your feet off the support. 4) Lower yourself slowly over 3–5 seconds, breathing steadily and resisting all the way down. 5) Reach a full hang with straight arms, then step back onto the support and reset for the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Negative Pull-Up" using a pull-up bar. Show: 1) Place a sturdy chair or step under the bar so you can reach the top position. 2) Grip the bar with your palms facing away, slightly wider than shoulder width, and jump or step up until your chin is above the bar. 3) Brace your core, keep your elbows tucked toward your ribs and take your feet off the support. Correct, safe form only. Duration 8 seconds.
+```
+
+### Pause Squat (סקוואט עם עצירה)
+
+File: `pause_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Pause Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and extend your arms in front of you for balance. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself under control. 3) Go down until your thighs are about parallel to the floor, or as deep as you comfortably can with a neutral back. 4) Pause for two full seconds at the bottom, keeping your chest up, your heels down and your knees over your toes, without relaxing into the position. 5) Exhale and press through the whole foot to stand up, squeezing your glutes at the top. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Pause Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about shoulder width apart, toes turned out slightly, and extend your arms in front of you for balance. 2) Inhale and brace your core, then push your hips back and bend your knees to lower yourself under control. 3) Go down until your thighs are about parallel to the floor, or as deep as you comfortably can with a neutral back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Prone T Raise (הרמת ידיים בצורת T בשכיבה על הבטן)
+
+File: `prone_t_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Prone T Raise" using no equipment (bodyweight only). Target muscles: upper back, rear delts. Technique to show, in order: 1) Lie face down on a mat with your legs straight and your forehead resting lightly on the floor or on a folded towel. 2) Extend your arms out to the sides at shoulder height to form a T, with your thumbs pointing up toward the ceiling. 3) Keep your neck long and your gaze on the floor, and gently squeeze your glutes to steady your pelvis. 4) Exhale and squeeze your shoulder blades together and down to lift your arms a few centimetres off the floor; your chest stays on the floor or comes only slightly off it. 5) Hold for one to two seconds at the top, reaching out through your fingertips. 6) Lower your arms slowly to the floor as you inhale and relax before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Prone T Raise" using no equipment (bodyweight only). Show: 1) Lie face down on a mat with your legs straight and your forehead resting lightly on the floor or on a folded towel. 2) Extend your arms out to the sides at shoulder height to form a T, with your thumbs pointing up toward the ceiling. 3) Keep your neck long and your gaze on the floor, and gently squeeze your glutes to steady your pelvis. Correct, safe form only. Duration 8 seconds.
+```
+
+### Prone Y Raise (הרמת ידיים בצורת Y בשכיבה על הבטן)
+
+File: `prone_y_raise.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Prone Y Raise" using no equipment (bodyweight only). Target muscles: upper back, rear delts. Technique to show, in order: 1) Lie face down on a mat with your legs straight and your forehead resting lightly on the floor or on a folded towel. 2) Reach both arms overhead and slightly apart to form a Y, with your thumbs pointing up toward the ceiling. 3) Keep your neck long and your gaze on the floor, and gently squeeze your glutes and brace your abs. 4) Exhale and draw your shoulder blades down and back, then lift your arms a few centimetres off the floor without shrugging. 5) Hold for one to two seconds, reaching long through your fingertips while your chest stays low. 6) Lower your arms slowly as you inhale and relax before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Prone Y Raise" using no equipment (bodyweight only). Show: 1) Lie face down on a mat with your legs straight and your forehead resting lightly on the floor or on a folded towel. 2) Reach both arms overhead and slightly apart to form a Y, with your thumbs pointing up toward the ceiling. 3) Keep your neck long and your gaze on the floor, and gently squeeze your glutes and brace your abs. Correct, safe form only. Duration 8 seconds.
+```
+
+### Low Push-Up Hold (החזקת שכיבת סמיכה בחצי ירידה)
+
+File: `push_up_hold.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Low Push-Up Hold" using no equipment (bodyweight only). Target muscles: chest, triceps. Technique to show, in order: 1) Start in a high plank on your toes (or on your knees to make it easier), hands slightly wider than shoulder width and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels (or to the knees). 3) Inhale and bend your elbows slowly to about 90 degrees, roughly halfway to the floor, with your elbows about 45 degrees from your torso. 4) Hold this position, breathing calmly and steadily, and press lightly into the floor so your upper back does not sag between the shoulder blades. 5) When the time is up, or as soon as your hips start to sag, press back up to straight arms. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Low Push-Up Hold" using no equipment (bodyweight only). Show: 1) Start in a high plank on your toes (or on your knees to make it easier), hands slightly wider than shoulder width and wrists under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels (or to the knees). 3) Inhale and bend your elbows slowly to about 90 degrees, roughly halfway to the floor, with your elbows about 45 degrees from your torso. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Push-Up with Shoulder Tap (שכיבות סמיכה עם נגיעה בכתף)
+
+File: `push_up_shoulder_tap.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Push-Up with Shoulder Tap" using no equipment (bodyweight only). Target muscles: chest, abs. Technique to show, in order: 1) Start in a high plank with your feet wider than hip width for a stable base and your hands under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower into a push-up, keeping your hips level and parallel to the floor. 4) Exhale and press back up to straight arms. 5) At the top, shift a little weight onto one arm, lift the other hand, tap the opposite shoulder and place the hand back down quietly. 6) Keep your hips and shoulders square to the floor during the tap and alternate the tapping hand on each rep. One push-up with one tap counts as one rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Push-Up with Shoulder Tap" using no equipment (bodyweight only). Show: 1) Start in a high plank with your feet wider than hip width for a stable base and your hands under your shoulders. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower into a push-up, keeping your hips level and parallel to the floor. Correct, safe form only. Duration 8 seconds.
+```
+
+### Renegade Row (חתירת רנגייד (חתירה בפלאנק גבוה))
+
+File: `renegade_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Renegade Row" using a pair of dumbbells. Target muscles: lats, abs. Technique to show, in order: 1) Place two dumbbells with flat or hexagonal heads on the floor, shoulder-width apart and parallel to each other, so that they cannot roll. 2) Get into a high plank with each hand gripping a dumbbell handle, wrists straight, shoulders over your hands and feet wider than hip-width for balance. 3) Squeeze your glutes and brace your abs so your body forms a straight line from head to heels. 4) Shift a little weight onto your left arm and row the right dumbbell toward your ribs, driving the elbow back along your side while keeping your hips and shoulders square to the floor. 5) Lower the dumbbell back to the floor under control without letting your hips twist, then repeat with the left arm. 6) Alternate sides until you finish the planned reps for each arm. To make it easier, do the exercise from your knees or place your feet even wider. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Renegade Row" using a pair of dumbbells. Show: 1) Place two dumbbells with flat or hexagonal heads on the floor, shoulder-width apart and parallel to each other, so that they cannot roll. 2) Get into a high plank with each hand gripping a dumbbell handle, wrists straight, shoulders over your hands and feet wider than hip-width for balance. 3) Squeeze your glutes and brace your abs so your body forms a straight line from head to heels. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Reverse Snow Angel (מלאך שלג הפוך בשכיבה על הבטן)
+
+File: `reverse_snow_angel.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Reverse Snow Angel" using no equipment (bodyweight only). Target muscles: upper back, rear delts. Technique to show, in order: 1) Lie face down on a mat with your legs straight, your arms by your sides and your forehead resting lightly on the floor. 2) Gently squeeze your glutes and brace your abs, keeping your neck long with your gaze on the floor. 3) Exhale and lift your arms a few centimetres off the floor with your thumbs pointing up, drawing your shoulder blades down and back. 4) Keeping your arms straight and off the floor, sweep them slowly out to the sides and up overhead in a wide arc, as if making a snow angel. 5) Pause when your hands are overhead, then sweep them back along the same arc to your sides. 6) Rest your arms on the floor between reps if you need to, and breathe steadily. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Reverse Snow Angel" using no equipment (bodyweight only). Show: 1) Lie face down on a mat with your legs straight, your arms by your sides and your forehead resting lightly on the floor. 2) Gently squeeze your glutes and brace your abs, keeping your neck long with your gaze on the floor. 3) Exhale and lift your arms a few centimetres off the floor with your thumbs pointing up, drawing your shoulder blades down and back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Ring Push-Up (שכיבות סמיכה על טבעות)
+
+File: `ring_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: gymnastic_rings · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ring Push-Up" using gymnastic rings hanging from a bar. Target muscles: chest. Technique to show, in order: 1) Set the rings a few centimeters off the floor (higher to make it easier) and hold them with a neutral grip in a high plank, arms straight. 2) Keep the rings close to your sides and brace your core and glutes so your body is straight from head to heels. 3) Inhale and lower slowly, keeping the rings tight to your body and your elbows close to your torso. 4) Descend until the rings are at chest level, without letting them drift outward. 5) Exhale and press back to straight arms, turning your palms slightly forward at the top for extra stability. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ring Push-Up" using gymnastic rings hanging from a bar. Show: 1) Set the rings a few centimeters off the floor (higher to make it easier) and hold them with a neutral grip in a high plank, arms straight. 2) Keep the rings close to your sides and brace your core and glutes so your body is straight from head to heels. 3) Inhale and lower slowly, keeping the rings tight to your body and your elbows close to your torso. Correct, safe form only. Duration 8 seconds.
+```
+
+### Ring Row (חתירה בטבעות)
+
+File: `ring_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: gymnastic_rings
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Ring Row" using gymnastic rings hanging from a bar. Target muscles: upper back, lats. Technique to show, in order: 1) Hang the rings securely at about waist to chest height. 2) Grip the rings with your palms facing each other, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels. 3) Brace your core and glutes, then pull your chest toward the rings, driving your elbows back close to your sides and letting the rings rotate naturally; exhale as you pull. 4) Squeeze your shoulder blades together at the top with the rings close to your ribs. 5) Lower yourself under control to straight arms, inhaling on the way down. 6) Adjust the difficulty with your foot position: a more upright body is easier, a more horizontal body is harder. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Ring Row" using gymnastic rings hanging from a bar. Show: 1) Hang the rings securely at about waist to chest height. 2) Grip the rings with your palms facing each other, lean back with straight arms and walk your feet forward so your body forms a straight line from head to heels. 3) Brace your core and glutes, then pull your chest toward the rings, driving your elbows back close to your sides and letting the rings rotate naturally; exhale as you pull. Correct, safe form only. Duration 8 seconds.
+```
+
+### Russian Twist (טוויסט רוסי)
+
+File: `russian_twist.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Russian Twist" using no equipment (bodyweight only). Target muscles: obliques. Technique to show, in order: 1) Sit on the floor with your knees bent and heels on the floor, holding your hands together in front of your chest. 2) Lean back to about 45 degrees with a long, neutral spine and braced abs. 3) Exhale and rotate your torso to one side, moving your shoulders and ribcage together so your hands travel beside your hip. 4) Return through the center under control and rotate to the other side; count each side as one rep. 5) To progress, lift your feet a few centimeters off the floor or hold a light weight. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Russian Twist" using no equipment (bodyweight only). Show: 1) Sit on the floor with your knees bent and heels on the floor, holding your hands together in front of your chest. 2) Lean back to about 45 degrees with a long, neutral spine and braced abs. 3) Exhale and rotate your torso to one side, moving your shoulders and ribcage together so your hands travel beside your hip. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Scapular Pull-Up (משיכת שכמות בתלייה (סקפולר פול-אפ))
+
+File: `scapular_pull_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: pull_up_bar
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Scapular Pull-Up" using a pull-up bar. Target muscles: lats, upper back. Technique to show, in order: 1) Grip the bar with your palms facing away and your hands slightly wider than shoulder-width, and hang with straight arms, letting your shoulders rise toward the bar. 2) Without bending your elbows, draw your shoulder blades down and back so your body rises a few centimetres. 3) Pause for a second with your shoulders away from your ears and your chest slightly lifted. 4) Let your shoulder blades rise again slowly until you are back in a full hang, keeping your elbows straight. 5) Keep your legs still and breathe steadily; the movement is small by design. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Scapular Pull-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away and your hands slightly wider than shoulder-width, and hang with straight arms, letting your shoulders rise toward the bar. 2) Without bending your elbows, draw your shoulder blades down and back so your body rises a few centimetres. 3) Pause for a second with your shoulders away from your ears and your chest slightly lifted. Correct, safe form only. Duration 8 seconds.
+```
+
+### Shrimp Squat (שרימפ סקוואט)
+
+File: `shrimp_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Shrimp Squat" using no equipment (bodyweight only). Target muscles: quadriceps, glutes. Technique to show, in order: 1) Stand on one leg next to a wall or pole for light support, bend the other knee and bring that foot up behind you. 2) Reach back and hold the raised foot or ankle with one hand, and extend the other arm forward for balance. 3) Brace your core and lower slowly by bending the standing knee, letting your torso lean forward as your hips go back and down. 4) Keep the standing foot flat and the standing knee in line with your toes while the raised knee travels toward the floor. 5) Touch the back knee lightly to the floor or to a folded mat, without dropping onto it. 6) Press through the whole standing foot to rise back up with control, and complete all reps before switching legs. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Shrimp Squat" using no equipment (bodyweight only). Show: 1) Stand on one leg next to a wall or pole for light support, bend the other knee and bring that foot up behind you. 2) Reach back and hold the raised foot or ankle with one hand, and extend the other arm forward for balance. 3) Brace your core and lower slowly by bending the standing knee, letting your torso lean forward as your hips go back and down. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Side Plank (פלאנק צידי)
+
+File: `side_plank.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Side Plank" using no equipment (bodyweight only). Target muscles: obliques. Technique to show, in order: 1) Lie on your side with your elbow directly under your shoulder, forearm on the floor, and legs straight with the feet stacked (or the top foot in front of the bottom foot for more stability). 2) Brace your abs and squeeze your glutes before you lift. 3) Press your forearm into the floor and lift your hips until your body forms a straight line from head to feet. 4) Keep your hips pushed slightly forward, your chest facing straight ahead and your head in line with your spine; rest your free hand on your hip or reach it upward. 5) Hold while breathing steadily, then lower your hips with control and repeat on the other side. Show the repetitions on one side, then briefly the other side. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Side Plank" using no equipment (bodyweight only). Show: 1) Lie on your side with your elbow directly under your shoulder, forearm on the floor, and legs straight with the feet stacked (or the top foot in front of the bottom foot for more stability). 2) Brace your abs and squeeze your glutes before you lift. 3) Press your forearm into the floor and lift your hips until your body forms a straight line from head to feet. Show the repetitions on one side, then briefly the other side. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Single-Arm Resistance Band Row (חתירה חד-ידית עם גומייה)
+
+File: `single_arm_band_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Single-Arm Resistance Band Row" using a resistance band. Target muscles: lats, upper back. Technique to show, in order: 1) Anchor a resistance band between waist and chest height, for example around a sturdy post or in a door anchor, and hold the end (or a handle) in your right hand. 2) Step back until your arm is straight and the band is under light tension; stand with your feet hip-width apart or one foot slightly forward, knees soft and core braced. 3) Keep your shoulders square to the anchor and your torso still, with your left hand resting on your hip. 4) Exhale and row your right elbow back past your torso, squeezing your shoulder blade toward your spine. 5) Hold the squeeze for a moment, then return slowly to a straight arm, resisting the pull of the band. 6) Complete all reps on one side, then switch sides. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Single-Arm Resistance Band Row" using a resistance band. Show: 1) Anchor a resistance band between waist and chest height, for example around a sturdy post or in a door anchor, and hold the end (or a handle) in your right hand. 2) Step back until your arm is straight and the band is under light tension; stand with your feet hip-width apart or one foot slightly forward, knees soft and core braced. 3) Keep your shoulders square to the anchor and your torso still, with your left hand resting on your hip. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Sissy Squat (סיסי סקוואט)
+
+File: `sissy_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Sissy Squat" using no equipment (bodyweight only). Target muscles: quadriceps. Technique to show, in order: 1) Stand next to a wall, pole or door frame and hold it lightly with one hand, with your feet about hip width apart. 2) Rise onto the balls of both feet and brace your core, keeping a straight line from your knees through your hips to your shoulders. 3) Push your knees forward and down toward the floor while your torso leans back, keeping your hips extended instead of folding them back. 4) Go only as low as you can control, usually a shallow range at first, and pause briefly at the bottom. 5) Press your knees back and straighten your legs to return to the start, using your quads to rise rather than pulling with your hand. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Sissy Squat" using no equipment (bodyweight only). Show: 1) Stand next to a wall, pole or door frame and hold it lightly with one hand, with your feet about hip width apart. 2) Rise onto the balls of both feet and brace your core, keeping a straight line from your knees through your hips to your shoulders. 3) Push your knees forward and down toward the floor while your torso leans back, keeping your hips extended instead of folding them back. Correct, safe form only. Duration 8 seconds.
+```
+
+### Spanish Squat (סקוואט ספרדי עם גומייה)
+
+File: `spanish_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: band · equipment: resistance_bands
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Spanish Squat" using a resistance band. Target muscles: quadriceps. Technique to show, in order: 1) Fix a long, wide resistance band to a sturdy immovable anchor at about knee height, such as a post, a rack upright or a door anchor on a closed door that opens away from you. 2) Stand facing the anchor, loop the band around the back of your knees and walk backward until the band is taut. 3) Place your feet about hip width apart and extend your arms straight in front of you for balance. 4) Lean back against the band and sit down until your knees are bent to about 90 degrees, keeping your shins vertical. 5) Hold the position with your weight on your heels and your thighs working, breathing steadily, for the target time. 6) Stand up slowly and step toward the anchor to take the tension off before you unhook the band. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Spanish Squat" using a resistance band. Show: 1) Fix a long, wide resistance band to a sturdy immovable anchor at about knee height, such as a post, a rack upright or a door anchor on a closed door that opens away from you. 2) Stand facing the anchor, loop the band around the back of your knees and walk backward until the band is taut. 3) Place your feet about hip width apart and extend your arms straight in front of you for balance. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Spider-Man Push-Up (שכיבות סמיכה ספיידרמן)
+
+File: `spiderman_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Spider-Man Push-Up" using no equipment (bodyweight only). Target muscles: chest, obliques. Technique to show, in order: 1) Start in a high plank with your hands slightly wider than shoulder width and your body in a straight line from head to heels. 2) Brace your core and squeeze your glutes. 3) Inhale and begin lowering into a push-up while lifting one foot off the floor and drawing that knee out to the side toward the elbow on the same side. 4) Lower until your chest is a few centimeters above the floor and the knee is close to your elbow without resting on it, keeping your hips low and in line with your torso. 5) Exhale, press back up and return the leg to the plank position. 6) Alternate legs on each rep. One push-up with one knee drive counts as one rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Spider-Man Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands slightly wider than shoulder width and your body in a straight line from head to heels. 2) Brace your core and squeeze your glutes. 3) Inhale and begin lowering into a push-up while lifting one foot off the floor and drawing that knee out to the side toward the elbow on the same side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Sprint Intervals (אינטרוולים של ספרינטים)
+
+File: `sprint_intervals.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: cardio · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Sprint Intervals" using no equipment (bodyweight only). Target muscles: glutes, hamstrings, quadriceps. Technique to show, in order: 1) Warm up for at least 10 minutes with easy jogging, dynamic stretches and a few progressively faster strides. 2) Mark out a straight, flat sprint distance, for example 40–100 metres, or plan a fixed sprint time of 10–30 seconds. 3) Start from a staggered stance, lean slightly forward and drive powerfully with your arms and legs. 4) Run tall with quick, powerful strides that land under your hips, keeping your shoulders and hands relaxed. 5) Slow down gradually after each sprint rather than stopping abruptly. 6) Walk or jog slowly for 1–3 minutes to recover, breathing deeply, until you are ready for the next sprint. 7) Finish with 5–10 minutes of easy walking or jogging to cool down. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Land softly and quietly, knees tracking over the toes, no stiff-legged landings. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Sprint Intervals" using no equipment (bodyweight only). Show: 1) Warm up for at least 10 minutes with easy jogging, dynamic stretches and a few progressively faster strides. 2) Mark out a straight, flat sprint distance, for example 40–100 metres, or plan a fixed sprint time of 10–30 seconds. 3) Start from a staggered stance, lean slightly forward and drive powerfully with your arms and legs. This is a timed drill or hold: perform it steadily for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+```
+
+### Bodyweight Sumo Squat (סקוואט סומו)
+
+File: `sumo_squat.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Bodyweight Sumo Squat" using no equipment (bodyweight only). Target muscles: adductors, quadriceps, glutes. Technique to show, in order: 1) Stand with your feet about one and a half times shoulder width apart and turn your toes out about 30 to 45 degrees. 2) Bring your hands together in front of your chest or extend them forward for balance, and keep your chest tall. 3) Inhale and brace your core, then bend your knees and lower your hips straight down between your feet. 4) Push your knees out over your toes the whole way and go down until your thighs are about parallel to the floor, or as deep as you comfortably can. 5) Exhale and press through the whole foot, squeezing your glutes and inner thighs to stand back up. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Bodyweight Sumo Squat" using no equipment (bodyweight only). Show: 1) Stand with your feet about one and a half times shoulder width apart and turn your toes out about 30 to 45 degrees. 2) Bring your hands together in front of your chest or extend them forward for balance, and keep your chest tall. 3) Inhale and brace your core, then bend your knees and lower your hips straight down between your feet. Correct, safe form only. Duration 8 seconds.
+```
+
+### Suspension Trainer Row (חתירה ברצועות השעיה (TRX))
+
+File: `suspension_trainer_row.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: calisthenics · equipment: suspension_trainer
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Suspension Trainer Row" using a suspension trainer (straps hanging from an anchor). Target muscles: upper back, lats. Technique to show, in order: 1) Anchor the straps securely to a high point and adjust them to mid-length. 2) Hold a handle in each hand, face the anchor and walk your feet forward while leaning back until your arms are straight and your body forms a straight line. 3) Brace your core and squeeze your glutes to keep your hips from sagging. 4) Pull your chest toward the handles by driving your elbows back and squeezing your shoulder blades, exhaling as you pull. 5) Lower yourself under control until your arms are straight, inhaling on the way back. 6) Walk your feet further forward to make it harder, or step back toward upright to make it easier. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Suspension Trainer Row" using a suspension trainer (straps hanging from an anchor). Show: 1) Anchor the straps securely to a high point and adjust them to mid-length. 2) Hold a handle in each hand, face the anchor and walk your feet forward while leaning back until your arms are straight and your body forms a straight line. 3) Brace your core and squeeze your glutes to keep your hips from sagging. Correct, safe form only. Duration 8 seconds.
+```
+
+### Typewriter Push-Up (שכיבות סמיכה טייפרייטר (החלקה לצדדים))
+
+File: `typewriter_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · advanced · category: calisthenics · equipment: none · RISKY: check the form twice
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Typewriter Push-Up" using no equipment (bodyweight only). Target muscles: chest, shoulders. Technique to show, in order: 1) Start in a high plank with your hands about twice shoulder width apart and your body in a straight line from head to heels. 2) Brace your core and glutes. Inhale and bend one elbow to lower toward that hand while the other arm stays almost straight out to the side. 3) At the bottom, with your chest just above the floor, slide your body slowly across toward the other hand, bending the second elbow as the first one straightens, and keep your chest low. 4) Exhale and press up through the arm you slid toward until both arms are straight and you are back in the high plank. 5) Start the next rep by lowering toward the side you just finished on, so the direction alternates on every rep. Do the same number of passes in both directions. 6) Keep your hips square and parallel to the floor throughout. Show the repetitions on one side, then briefly the other side. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Typewriter Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands about twice shoulder width apart and your body in a straight line from head to heels. 2) Brace your core and glutes. Inhale and bend one elbow to lower toward that hand while the other arm stays almost straight out to the side. 3) At the bottom, with your chest just above the floor, slide your body slowly across toward the other hand, bending the second elbow as the first one straightens, and keep your chest low. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
+```
+
+### Wall Push-Up (שכיבות סמיכה על הקיר)
+
+File: `wall_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wall Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Stand facing a wall at arm length and place your palms on it at chest height, slightly wider than shoulder width, with your fingers pointing up or slightly inward. 2) Walk your feet back until your body leans toward the wall in a straight line from head to heels, then lightly brace your abs and glutes. 3) Inhale and bend your elbows to bring your chest toward the wall, elbows about 45 degrees from your torso and your feet staying in place. 4) Lower until your chest is a few centimeters from the wall, without bending at the hips or arching your lower back. 5) Exhale and push the wall away until your arms are straight. 6) To make it harder, place your feet further from the wall. When 15 clean reps feel easy, move on to incline push-ups with your hands on a bench or counter. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wall Push-Up" using no equipment (bodyweight only). Show: 1) Stand facing a wall at arm length and place your palms on it at chest height, slightly wider than shoulder width, with your fingers pointing up or slightly inward. 2) Walk your feet back until your body leans toward the wall in a straight line from head to heels, then lightly brace your abs and glutes. 3) Inhale and bend your elbows to bring your chest toward the wall, elbows about 45 degrees from your torso and your feet staying in place. Correct, safe form only. Duration 8 seconds.
+```
+
+### Wide-Grip Pull-Up (עליות מתח באחיזה רחבה)
+
+File: `wide_grip_pull_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: calisthenics · equipment: pull_up_bar
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wide-Grip Pull-Up" using a pull-up bar. Target muscles: lats. Technique to show, in order: 1) Grip the bar with your palms facing away and your hands about one and a half times shoulder-width apart, and hang with your arms straight. 2) Draw your shoulder blades down and back, brace your core, squeeze your glutes and keep your legs still. 3) Pull yourself up by driving your elbows down and out toward your sides, exhaling as you rise. 4) Continue until your chin is above the bar or your upper chest is close to it, keeping your chest up and your neck neutral. 5) Lower yourself under control over 2–3 seconds to a full hang, inhaling on the way down. 6) Settle briefly at the bottom without swinging before the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wide-Grip Pull-Up" using a pull-up bar. Show: 1) Grip the bar with your palms facing away and your hands about one and a half times shoulder-width apart, and hang with your arms straight. 2) Draw your shoulder blades down and back, brace your core, squeeze your glutes and keep your legs still. 3) Pull yourself up by driving your elbows down and out toward your sides, exhaling as you rise. Correct, safe form only. Duration 8 seconds.
+```
+
+### Wide Push-Up (שכיבות סמיכה בפיסוק ידיים רחב)
+
+File: `wide_push_up.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: bodyweight · equipment: none
+
+Full prompt:
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Wide Push-Up" using no equipment (bodyweight only). Target muscles: chest. Technique to show, in order: 1) Start in a high plank with your hands about one and a half times shoulder width apart and your fingers pointing forward or slightly outward. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, letting your elbows angle out to about 60 degrees from your torso. 4) Lower until your chest is a few centimeters above the floor, keeping your hips in line with your torso. 5) Exhale and press the floor away until your arms are straight, without letting your hips sag. 6) If the wide position is too hard, do the reps on your knees or with your hands on a raised surface. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+```
+
+Short prompt (if the full one is too long or the clip rushes):
+
+```
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Wide Push-Up" using no equipment (bodyweight only). Show: 1) Start in a high plank with your hands about one and a half times shoulder width apart and your fingers pointing forward or slightly outward. 2) Brace your abs and squeeze your glutes so your body forms a straight line from head to heels. 3) Inhale and lower your body as one unit, letting your elbows angle out to about 60 degrees from your torso. Correct, safe form only. Duration 8 seconds.
+```
+
 ### World's Greatest Stretch (המתיחה הטובה בעולם)
 
-File: `worlds_greatest_stretch.mp4` · category: mobility · equipment: none
+File: `worlds_greatest_stretch.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: mobility · equipment: none
 
 Full prompt:
 
@@ -1887,34 +2858,34 @@ Short prompt (if the full one is too long or the clip rushes):
 Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "World's Greatest Stretch" using no equipment (bodyweight only). Show: 1) From a high plank, step your right foot forward to the outside of your right hand into a deep lunge, keeping your left leg long behind you. 2) Lower your right elbow toward the inside of your right foot, feeling a stretch in your left hip flexor and right groin. 3) Plant your left hand on the floor inside your right foot, then rotate your chest open to the right and reach your right arm toward the ceiling, following it with your eyes. Show the repetitions on one side, then briefly the other side. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Kneeling Hip Flexor Stretch (מתיחת מכופפי ירך בכריעה)
+### Dumbbell Wrist Curl (כפיפת שורשי כפות הידיים עם משקולות יד)
 
-File: `hip_flexor_stretch.mp4` · category: mobility · equipment: none
+File: `wrist_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · beginner · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Kneeling Hip Flexor Stretch" using no equipment (bodyweight only). Target muscles: hip flexors. Technique to show, in order: 1) Kneel on your right knee on a mat or cushion with your left foot flat on the floor in front of you, both knees at about 90 degrees. 2) Lift your torso tall and squeeze your right glute, gently tucking your pelvis under. 3) Shift your hips slowly forward until you feel a stretch at the front of your right hip, without arching your lower back. 4) For a deeper stretch, raise your right arm overhead and lean slightly to the left. 5) Hold for the set time, breathing slowly and deeply, then switch sides. Show the repetitions on one side, then briefly the other side. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Dumbbell Wrist Curl" using a pair of dumbbells. Target muscles: forearms. Technique to show, in order: 1) Sit on a bench or sturdy chair holding a dumbbell in each hand, and rest your forearms on your thighs with palms facing up and wrists just past your knees. 2) Let your wrists bend down under the weight until you feel a stretch in the forearms, keeping a secure grip with your thumbs wrapped around the handles. 3) Exhale and curl the dumbbells up by closing your wrists, lifting your knuckles toward the ceiling while your forearms stay on your thighs. 4) Squeeze for a second at the top. 5) Inhale and lower slowly back to the stretched position. 6) For the back of the forearms, turn your palms down and repeat with a much lighter weight. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Kneeling Hip Flexor Stretch" using no equipment (bodyweight only). Show: 1) Kneel on your right knee on a mat or cushion with your left foot flat on the floor in front of you, both knees at about 90 degrees. 2) Lift your torso tall and squeeze your right glute, gently tucking your pelvis under. 3) Shift your hips slowly forward until you feel a stretch at the front of your right hip, without arching your lower back. Show the repetitions on one side, then briefly the other side. This is a timed hold: get into position, hold it steady for the whole clip with calm breathing. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Dumbbell Wrist Curl" using a pair of dumbbells. Show: 1) Sit on a bench or sturdy chair holding a dumbbell in each hand, and rest your forearms on your thighs with palms facing up and wrists just past your knees. 2) Let your wrists bend down under the weight until you feel a stretch in the forearms, keeping a secure grip with your thumbs wrapped around the handles. 3) Exhale and curl the dumbbells up by closing your wrists, lifting your knuckles toward the ceiling while your forearms stay on your thighs. Correct, safe form only. Duration 8 seconds.
 ```
 
-### Band Shoulder Dislocate (סיבובי כתפיים עם גומייה)
+### Zottman Curl (כפיפת זוטמן במשקולות יד)
 
-File: `band_shoulder_dislocate.mp4` · category: mobility · equipment: resistance_bands
+File: `zottman_curl.mp4` · priority D (used 0x in workouts, 0x in sport finishers) · intermediate · category: free_weight · equipment: dumbbells
 
 Full prompt:
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Band Shoulder Dislocate" using a resistance band. Target muscles: shoulders. Technique to show, in order: 1) Stand tall holding a light resistance band in front of your hips with a wide overhand grip, well beyond shoulder-width. 2) Brace your core and keep your arms straight as you slowly raise the band in front of you and overhead. 3) Continue the arc until the band reaches behind your back, letting the band stretch rather than forcing your shoulders. 4) Reverse the movement slowly along the same path back to the start. 5) Breathe steadily, and over time narrow your grip only as long as the movement stays smooth and pain-free. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs the exercise "Zottman Curl" using a pair of dumbbells. Target muscles: biceps, forearms. Technique to show, in order: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward and elbows close to your torso. 2) Brace your abs and curl both dumbbells toward your shoulders with your palms up, exhaling as you lift. 3) At the top, rotate your wrists so your palms face down, keeping your elbows still. 4) Lower the dumbbells slowly with the overhand grip, taking about 3 seconds, until your arms are straight. 5) At the bottom, rotate your palms back to face forward and start the next rep. Do not show any dangerous or sloppy form: no rounded lower back, no knees caving in, no jerking, no bouncing. Duration 8 seconds.
 ```
 
 Short prompt (if the full one is too long or the clip rushes):
 
 ```
-Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Band Shoulder Dislocate" using a resistance band. Show: 1) Stand tall holding a light resistance band in front of your hips with a wide overhand grip, well beyond shoulder-width. 2) Brace your core and keep your arms straight as you slowly raise the band in front of you and overhead. 3) Continue the arc until the band reaches behind your back, letting the band stretch rather than forcing your shoulders. Correct, safe form only. Duration 8 seconds.
+Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, filmed in a bright minimal studio with a light grey floor and wall, soft even lighting, camera locked on a tripod at a steady 3/4 side angle at hip height, full body always in frame, smooth natural speed, calm controlled tempo, three clean repetitions with perfect technique. No text, no captions, no logos, no watermark, no music, no other people, no cuts, no camera movement. The demonstrator performs "Zottman Curl" using a pair of dumbbells. Show: 1) Stand tall holding a dumbbell in each hand at your sides, palms facing forward and elbows close to your torso. 2) Brace your abs and curl both dumbbells toward your shoulders with your palms up, exhaling as you lift. 3) At the top, rotate your wrists so your palms face down, keeping your elbows still. Correct, safe form only. Duration 8 seconds.
 ```
