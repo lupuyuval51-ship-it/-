@@ -1,9 +1,10 @@
 /**
  * Tooling for authoring the ready workouts and sport blocks. Run from lupifit/:
  *
- *   npx tsx scripts/ready-tools.ts ex [--muscle=chest] [--equipment=none|dumbbells,bench] [--max-difficulty=beginner]
+ *   npx tsx scripts/ready-tools.ts ex [--original] [--muscle=chest] [--equipment=none|dumbbells,bench] [--max-difficulty=beginner]
  *                                     [--category=bodyweight] [--pattern=core] [--track=time] [--q=push]
  *       Lists library exercises (id | primary muscles | equipment | difficulty | tracking | flags).
+ *       --original keeps only the first 119 exercises (the library before the *_extra files were added).
  *       --equipment=none means exercises with no equipment; a list means exercises doable with ONLY that gear.
  *   npx tsx scripts/ready-tools.ts check [--bucket=chest] [--blocks=team_sports]
  *       Validates ready workouts (one authoring file, or all) and sport blocks; prints errors, warnings and the
@@ -51,6 +52,8 @@ for (const a of rest) {
   } else positional.push(a);
 }
 const lookup = lookupOf(EXERCISE_LIBRARY);
+/** The library had this many exercises before the *_extra files were appended to it. */
+const ORIGINAL_EXERCISES = 119;
 const pad = (s: string, n: number) => (s.length >= n ? s : s + ' '.repeat(n - s.length));
 
 function exerciseList() {
@@ -62,7 +65,8 @@ function exerciseList() {
   const track = flags.get('track');
   const q = flags.get('q')?.toLowerCase();
   const allowed = equipment && equipment !== 'none' ? (equipment.split(',') as Equipment[]) : [];
-  const rows = EXERCISE_LIBRARY.filter((e) => {
+  const pool = flags.has('original') ? EXERCISE_LIBRARY.slice(0, ORIGINAL_EXERCISES) : EXERCISE_LIBRARY;
+  const rows = pool.filter((e) => {
     if (muscle && !e.primaryMuscles.includes(muscle as never) && !e.secondaryMuscles.includes(muscle as never)) return false;
     if (equipment === 'none' && e.equipment.length) return false;
     if (equipment && equipment !== 'none' && !e.equipment.every((x) => allowed.includes(x))) return false;
@@ -77,7 +81,7 @@ function exerciseList() {
     const f = [e.unilateral ? 'one-sided' : '', e.isCompound ? 'compound' : '', isExternallyLoaded(e) ? 'loaded' : '', isHighImpact(e) ? 'high-impact' : ''].filter(Boolean).join(',');
     console.log(`${pad(e.id, 34)} | ${pad(e.primaryMuscles.join('+'), 28)} | ${pad(e.equipment.join('+') || '-', 22)} | ${pad(e.difficulty, 12)} | ${pad(e.trackingType, 11)} | ${pad(e.category, 12)} | ${f}`);
   }
-  console.log(`\n${rows.length} of ${EXERCISE_LIBRARY.length} exercises`);
+  console.log(`\n${rows.length} of ${pool.length} exercises`);
 }
 
 function describeWorkout(w: (typeof READY_WORKOUTS)[number]) {

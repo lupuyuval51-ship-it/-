@@ -1,35 +1,31 @@
 import type { ReadyWorkoutSeed } from '@shared/content';
-import { workouts as chest } from './chest';
-import { workouts as back } from './back';
-import { workouts as shoulders } from './shoulders';
-import { workouts as arms } from './arms';
-import { workouts as core } from './core';
-import { workouts as glutes } from './glutes';
-import { workouts as quadsHamstrings } from './quads_hamstrings';
-import { workouts as legs } from './legs';
-import { workouts as upperBody } from './upper_body';
-import { workouts as fullBody } from './full_body';
-import { workouts as cardio } from './cardio';
+import { workouts as gymUpper } from './gym_upper';
+import { workouts as gymLowerCore } from './gym_lower_core';
+import { workouts as gymFullCardio } from './gym_full_cardio';
+import { workouts as bodyweightUpper } from './bodyweight_upper';
+import { workouts as bodyweightLower } from './bodyweight_lower';
+import { workouts as bodyweightCoreFull } from './bodyweight_core_full';
+import { workouts as cardioHome } from './cardio_home';
+import { workouts as dumbbellUpper } from './dumbbell_upper';
+import { workouts as dumbbellLowerCore } from './dumbbell_lower_core';
+import { workouts as dumbbellFullCardio } from './dumbbell_full_cardio';
 import { workouts as park } from './park';
 import { workouts as bandsKettlebell } from './bands_kettlebell';
-import { workouts as gymClassics } from './gym_classics';
 
 /** The ready workouts by authoring file (used by the tooling to check one file at a time). */
 export const READY_BUCKETS: Record<string, ReadyWorkoutSeed[]> = {
-  chest: chest,
-  back: back,
-  shoulders: shoulders,
-  arms: arms,
-  core: core,
-  glutes: glutes,
-  quadsHamstrings: quadsHamstrings,
-  legs: legs,
-  upperBody: upperBody,
-  fullBody: fullBody,
-  cardio: cardio,
+  gym_upper: gymUpper,
+  gym_lower_core: gymLowerCore,
+  gym_full_cardio: gymFullCardio,
+  bodyweight_upper: bodyweightUpper,
+  bodyweight_lower: bodyweightLower,
+  bodyweight_core_full: bodyweightCoreFull,
+  cardio_home: cardioHome,
+  dumbbell_upper: dumbbellUpper,
+  dumbbell_lower_core: dumbbellLowerCore,
+  dumbbell_full_cardio: dumbbellFullCardio,
   park: park,
-  bandsKettlebell: bandsKettlebell,
-  gymClassics: gymClassics,
+  bands_kettlebell: bandsKettlebell,
 };
 
 /** Every ready-made workout. */

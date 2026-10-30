@@ -23,7 +23,7 @@ export const readinessSchema = z.object({
 
 export const startSessionSchema = z.union([
   z.object({ planWorkoutId: uuid, readiness: readinessSchema.optional() }),
-  z.object({ ...startReadyWorkoutFields, readiness: readinessSchema.optional() }),
+  z.object(startReadyWorkoutFields),
   z.object({ empty: z.literal(true), name: cleanText(LIMITS.textShortMax).optional() }),
 ]);
 export type StartSessionInput = z.infer<typeof startSessionSchema>;
