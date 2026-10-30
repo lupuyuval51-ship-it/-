@@ -83,6 +83,19 @@ precache (the Android app does not register the service worker). Server code is 
   the worker runtime (boot steps, device account created / reused / recovered / re-signed-in / deleted,
   one request at a time).
 
+## The Android app
+
+`dist/device` is the Capacitor app's web content (`capacitor.config.ts`, native project `android/`, build
+`android/build-release.sh`, docs `docs/android.md`). Inside the app `main.tsx` does not register the service
+worker, and `features/device/start.ts → installNative` loads `platform/native/` (only when `isNativeApp()`):
+saving files through the share sheet, phone reminders as local notifications (synced by
+`features/gamification/PhoneReminderSync`), `platform.onResume`, the back button and the bar icon colours.
+The page's CSP meta tag needs nothing extra for Capacitor: where the WebView supports it (any current Android
+System WebView) Capacitor adds its bridge script with `addDocumentStartJavaScript`, plugin calls go through a
+message channel and the safe-area values arrive through `evaluateJavascript`, none of which the CSP restricts.
+(On a WebView too old for `addDocumentStartJavaScript`, Capacitor would inject an inline script instead, which
+the CSP blocks; not checked on such a device.)
+
 ## Limits of device mode (to surface in the UI and docs)
 
 - The data lives only on this phone. It is lost when the app is uninstalled or the phone is lost,
@@ -90,4 +103,5 @@ precache (the Android app does not register the service worker). Server code is 
 - The AI coach and meal-photo analysis need a server-side API key and are not available; the built-in
   coach works.
 - Barcode lookup needs internet; it sends only the barcode to Open Food Facts.
-- Web Push needs a server; reminders use the phone's local notifications instead.
+- Web Push needs a server; in the Android app reminders are the phone's local notifications instead (in the
+  device build in a browser they show only while the app is open).

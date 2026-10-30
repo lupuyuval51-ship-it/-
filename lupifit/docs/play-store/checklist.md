@@ -68,9 +68,15 @@ dark), `icon-512.png` (512×512, 32-bit PNG, full square), `feature-graphic-he.p
       vars `ANDROID_APP_PACKAGE=com.lupufit.app` and `ANDROID_CERT_SHA256=<upload key SHA-256>,<app signing key SHA-256>`
       (it answers 404 JSON while they are unset). Without it the app shows a browser address bar. Check the
       URL returns both fingerprints after the first upload.
-- [ ] **TWA build:** done in `android/` (target SDK 36, package `com.lupufit.app`, splash and theme `#0b0b0d`,
-      notification delegation). Rebuild with the real domain: `android/build-aab.sh --host <domain>`
-      (see `docs/android.md`); raise `--version-code` for every upload.
+- [ ] **Which app:** both Android projects use the package `com.lupufit.app`, so only one of them can be the
+      Play listing (see `docs/android.md`):
+  - **Device mode (`android/`, Capacitor):** no server, data only on the phone. `android/build-release.sh`
+    builds the signed `.aab` and `.apk` (target SDK 36); raise `versionCode` in `android/version.properties`
+    for every upload. The Digital Asset Links step above is not needed for it. Data safety: nothing is
+    collected by the developer; the barcode lookup sends the barcode to Open Food Facts.
+  - **Hosted mode (`android-twa/`, Trusted Web Activity):** target SDK 36, splash and theme `#0b0b0d`,
+    notification delegation. Rebuild with the real domain: `android-twa/build-aab.sh --host <domain>`;
+    raise `--version-code` for every upload.
 - [ ] **Store listing:** texts from `listing-he.md` (default) and `listing-en.md`; icon; feature graphic;
       2–8 phone screenshots; category **Health & Fitness**; a public contact email; website; privacy policy
       URL `https://<domain>/privacy`.

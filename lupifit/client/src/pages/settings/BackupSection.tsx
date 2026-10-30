@@ -29,9 +29,9 @@ export function BackupSection() {
 
   const save = useMutation({
     mutationFn: fetchAccountExport,
-    onSuccess: (account) => {
-      downloadJson(buildBackup(account, deviceState()), `lupu-fit-backup-${account.exportDate}.json`);
-      toast.success(t('settings.backup.saved'));
+    onSuccess: async (account) => {
+      const result = await downloadJson(buildBackup(account, deviceState()), `lupu-fit-backup-${account.exportDate}.json`);
+      if (result !== 'cancelled') toast.success(t('settings.backup.saved'));
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'settings')),
   });

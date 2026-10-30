@@ -115,6 +115,18 @@ const settings = {
         'To allow them again: in the installed app, open Android Settings → Apps → LUPU-FIT → Notifications. In a browser, tap the icon next to the address, open Permissions (or Site settings) and allow Notifications. Then come back to this page.',
       unsupported: 'This browser can’t get notifications while LUPU-FIT is closed. Reminders still show while it’s open.',
     },
+    /** The Android app: reminders are scheduled on the phone itself (no server). */
+    phone: {
+      label: 'Phone notifications',
+      prompt: 'Allow notifications to get your reminders on this phone even when LUPU-FIT is closed.',
+      allow: 'Allow notifications',
+      on: 'Reminders arrive as notifications on this phone, even when LUPU-FIT is closed. They can come a few minutes after the set time.',
+      remindersOff: 'Reminders are switched off above, so no notifications are scheduled until you turn them on and save.',
+      denied: 'Notifications are turned off for LUPU-FIT. Reminders still show while the app is open.',
+      deniedHelp: 'To turn them on: Android Settings → Apps → LUPU-FIT → Notifications. Then come back to this page.',
+      grantedToast: 'Notifications are on',
+      deniedToast: 'Notifications were not allowed',
+    },
   },
   security: {
     title: 'Security',

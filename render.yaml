@@ -22,6 +22,8 @@ services:
         - lupifit/**
       ignoredPaths:
         - lupifit/android/**
+        - lupifit/android-twa/**
+        - lupifit/capacitor.config.ts
         - lupifit/docs/**
         - lupifit/e2e/**
     region: frankfurt
@@ -50,7 +52,7 @@ services:
         value: "true"
       # APP_URL is not needed: the server uses RENDER_EXTERNAL_URL (https://<name>.onrender.com).
       # Set APP_URL in the Dashboard only after adding your own domain.
-      # Android app (Trusted Web Activity): served as /.well-known/assetlinks.json.
+      # Android app (Trusted Web Activity, lupifit/android-twa): served as /.well-known/assetlinks.json.
       - key: ANDROID_APP_PACKAGE
         value: com.lupufit.app
       # SHA-256 of the upload key (a public fingerprint, not a secret). Add Google Play's app-signing

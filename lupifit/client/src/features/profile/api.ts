@@ -10,6 +10,7 @@ import type {
   SettingsUpdateResponse,
 } from '@shared/types';
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from '../../api/client';
+import { platform, type SaveFileResult } from '../../platform';
 import { qk } from '../../api/queryClient';
 
 export const fetchProfile = (signal?: AbortSignal) => apiGet<ProfileResponse>('/profile', undefined, signal).then((r) => r.profile);
@@ -36,18 +37,12 @@ export const deleteAccount = (input: DeleteAccountInput) => apiDelete<OkResponse
 
 export const fetchAccountExport = () => apiGet<AccountExportDTO>('/account/export');
 
-/** Saves the export as `fitai-export-YYYY-MM-DD.json` via a temporary object URL. */
-export function downloadJson(data: unknown, fileName: string) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.rel = 'noopener';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+/**
+ * Saves data as a JSON file (export, backup): a download in a browser, Android's share sheet in the app
+ * (`platform.saveFile`). 'cancelled' when the share sheet was closed without saving.
+ */
+export function downloadJson(data: unknown, fileName: string): Promise<SaveFileResult> {
+  return platform.saveFile(fileName, 'application/json', JSON.stringify(data, null, 2));
 }
 
 /**

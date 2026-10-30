@@ -1,7 +1,7 @@
 /**
- * Reminder preferences (PATCH /api/settings) and how reminders reach the user: phone
- * notifications (Web Push) when the server has them configured, otherwise in-app reminders
- * with optional browser notifications while the app is open.
+ * Reminder preferences (PATCH /api/settings) and how reminders reach the user: in the Android app,
+ * notifications scheduled on the phone; otherwise phone notifications (Web Push) when the server has
+ * them configured, or in-app reminders with optional browser notifications while the app is open.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useRef, useState } from 'react';
@@ -14,10 +14,12 @@ import { applyProfileChange, updateSettings } from '../../features/profile/api';
 import { firstInvalidField, validate } from '../../features/profile/draft';
 import { FieldSlot, useWeekdayOptions } from '../../features/profile/fields';
 import { focusField, localizeIssues, serverFieldErrors, type FieldErrors } from '../../features/profile/validation';
+import { PhoneRemindersControl } from '../../features/gamification/PhoneRemindersControl';
 import { fetchPushConfig } from '../../features/push/push';
 import { PushNotificationsControl } from '../../features/push/PushNotificationsControl';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
+import { platform } from '../../platform';
 import { SectionCard, useSectionForm } from './sectionForm';
 
 type Permission = NotificationPermission | 'unsupported';
@@ -89,7 +91,8 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
   const [formError, setFormError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const r = form.values;
-  const push = useQuery({ queryKey: qk.push, queryFn: fetchPushConfig, staleTime: 5 * 60_000 });
+  const phoneReminders = platform.reminders.supported();
+  const push = useQuery({ queryKey: qk.push, queryFn: fetchPushConfig, staleTime: 5 * 60_000, enabled: !phoneReminders });
 
   const mutation = useMutation({
     mutationFn: ({ reminders }: { reminders: ReminderSettings; submitted: ReminderSettings }) => updateSettings({ reminders }),
@@ -195,7 +198,10 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
           )}
         </div>
       )}
-      {push.isPending ? null : push.data?.enabled ? (
+      {phoneReminders ? (
+        // Android app: reminders are scheduled on the phone itself.
+        <PhoneRemindersControl remindersOn={profile.reminders.enabled} />
+      ) : push.isPending ? null : push.data?.enabled ? (
         <PushNotificationsControl
           config={push.data}
           remindersOn={profile.reminders.enabled}

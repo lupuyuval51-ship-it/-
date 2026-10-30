@@ -129,9 +129,9 @@ export function PrivacySection() {
 
   const exportMutation = useMutation({
     mutationFn: fetchAccountExport,
-    onSuccess: (data) => {
-      downloadJson(data, `fitai-export-${data.exportDate}.json`);
-      toast.success(t('settings.privacy.exported'));
+    onSuccess: async (data) => {
+      const result = await downloadJson(data, `fitai-export-${data.exportDate}.json`);
+      if (result !== 'cancelled') toast.success(t('settings.privacy.exported'));
     },
     onError: (err) => toast.error(errorMessage(err, i18n, 'settings')),
   });

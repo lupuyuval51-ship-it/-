@@ -77,6 +77,14 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - The device account is hidden: no login/register/password screens in device mode (guards redirect; the worker answers those routes `not_available_on_device`). Never store its credentials anywhere but the worker's `device.account` row.
 - `npm run test:e2e:device` (after `build:device`): static `dist/device`, Pixel 7, port 4620 (`E2E_DEVICE_PORT`).
 
+## Android app (device mode, Capacitor: `android/`)
+- `capacitor.config.ts` (appId `com.lupufit.app`, webDir `dist/device`, `https://localhost`: never change the scheme or host, the IndexedDB database belongs to that origin). `android/build-release.sh` = device build + `cap sync` + signed `.aab` and `.apk` + signature/manifest checks; signing only from `LUPUFIT_KEYSTORE*` env vars. Version only in `android/version.properties`. Docs: `docs/android.md`. The Trusted Web Activity for hosted mode lives in `android-twa/` (same package id: only one can be the Play listing).
+- Native code is `client/src/platform/native/` only, loaded with a dynamic import from `features/device/start` when `isNativeApp()`; features use `platform` (`saveFile`, `reminders`, `onResume`), never `@capacitor/*` directly. Web and server builds must work without any Capacitor plugin.
+- Reminders: one-off local notifications for 14 days, ids from day + slot, synced by `PhoneReminderSync` (start, resume, settings, after any successful mutation). **Inexact only**: never add `USE_EXACT_ALARM`; the manifest removes `SCHEDULE_EXACT_ALARM` and the build fails if one appears. Notification permission is requested only from a tap (`PhoneRemindersControl`); `sync` never schedules without permission (the plugin would ask by itself).
+- Android backup rules (`res/xml/data_extraction_rules.xml`, `backup_rules.xml`) include only the WebView's IndexedDB and Local Storage, encrypted cloud copies only. Keep both files in step.
+- Page layout under the system bars: use `--safe-top` / `--topbar-h` (it includes the status bar) and `env(safe-area-inset-bottom)`; full-screen layouts need both.
+- Icons: `node scripts/make-android-icons.mjs` (from `client/public/favicon.svg`).
+
 ## Deployment kit (one VM)
 - `deploy/oracle/`: Docker Compose for one Ubuntu/Debian VM (db + app + Caddy HTTPS, amd64 + arm64). `setup.sh` (idempotent, `--dry-run`, never overwrites `.env`), `update.sh`, `backup.sh`; guides `docs/deploy-oracle.md` and `docs/deploy-render.md` (Hebrew). Never commit `.env`.
 - Caddy adds no security headers (the app sends its own CSP/HSTS); the db is never published; NODE_IMAGE/POSTGRES_IMAGE/CADDY_IMAGE in `.env` override the multi-arch image tags. Check changes with `shellcheck -x deploy/oracle/*.sh` and `docker compose config`.

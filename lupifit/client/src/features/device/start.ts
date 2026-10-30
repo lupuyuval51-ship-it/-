@@ -4,9 +4,25 @@
  */
 import { setTransport } from '../../api/client';
 import { initialLocale, translate } from '../../i18n';
+import { isNativeApp } from '../../platform';
 import { connectDevice, type DeviceConnection } from './connection';
 
 export { DeviceGate } from './DeviceGate';
+
+/**
+ * Inside the Android app: installs the native platform (share sheet, phone reminders, back button…).
+ * Elsewhere (the device build in a browser) nothing happens and no Capacitor code is loaded. Never throws:
+ * without it the app still works with the web implementations.
+ */
+export async function installNative(options: { navigate(path: string, opts?: { replace?: boolean }): void }): Promise<void> {
+  if (!isNativeApp()) return;
+  try {
+    const { installNativePlatform } = await import('../../platform/native');
+    await installNativePlatform(options);
+  } catch (err) {
+    console.error('LUPU-FIT: native platform not available', err);
+  }
+}
 
 function timeZone(): string {
   try {

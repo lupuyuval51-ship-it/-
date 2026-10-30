@@ -27,6 +27,9 @@ const device: Translations<typeof en> = {
     retry: 'נסו שוב',
     details: 'פרטים טכניים',
   },
+  saveFile: {
+    dialogTitle: 'שמירה או שליחה של הקובץ',
+  },
 };
 
 export default device;

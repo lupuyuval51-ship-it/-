@@ -26,6 +26,10 @@ const device = {
     retry: 'Try again',
     details: 'Technical details',
   },
+  /** Android app: Android's share sheet opened to save a file (backup, export). */
+  saveFile: {
+    dialogTitle: 'Save or send the file',
+  },
 };
 
 export default device;

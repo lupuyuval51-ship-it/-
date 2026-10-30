@@ -13,6 +13,8 @@ playwright-report
 reports
 e2e
 android
+android-twa
+capacitor.config.ts
 deploy
 docs
 server/tests

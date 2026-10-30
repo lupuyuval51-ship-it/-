@@ -51,7 +51,7 @@ function withoutDeviceRuntime(): Plugin {
     },
     load(id) {
       if (id !== STUB) return null;
-      return "export function startDevice() { throw new Error('This build has no device mode'); }\nexport function DeviceGate() { return null; }\n";
+      return "export function startDevice() { throw new Error('This build has no device mode'); }\nexport function DeviceGate() { return null; }\nexport async function installNative() {}\n";
     },
   };
 }
