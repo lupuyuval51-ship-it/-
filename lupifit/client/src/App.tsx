@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
 import { AppShell } from './layout/AppShell';
-import { PublicOnly, RequireAuth } from './layout/guards';
+import { NotOnDevice, PublicOnly, RequireAuth } from './layout/guards';
 import { PublicLayout } from './layout/PublicLayout';
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -31,7 +31,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 /**
  * Route map (all sections are fully connected):
- *  /login /register /forgot-password /reset-password   public
+ *  /login /register /forgot-password /reset-password   public (device mode: none, redirect to /)
  *  /privacy /terms /account-deletion                   public, signed in or not (store listing URLs)
  *  /onboarding                                          signed in
  *  /                    dashboard
@@ -56,7 +56,7 @@ export const router = createBrowserRouter([
       { path: '/login', element: <PublicOnly><LoginPage /></PublicOnly> },
       { path: '/register', element: <PublicOnly><RegisterPage /></PublicOnly> },
       { path: '/forgot-password', element: <PublicOnly><ForgotPasswordPage /></PublicOnly> },
-      { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/reset-password', element: <NotOnDevice><ResetPasswordPage /></NotOnDevice> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/terms', element: <TermsPage /> },
       { path: '/account-deletion', element: <AccountDeletionPage /> },

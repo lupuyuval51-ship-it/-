@@ -6,6 +6,7 @@ import { ApiError, api, onUnauthorized, setCsrfToken } from '../api/client';
 import { qk } from '../api/queryClient';
 import { releasePushOnLogout } from '../features/push/push';
 import { useI18n } from '../i18n';
+import { isDeviceMode } from '../platform';
 import { clearAllDrafts } from '../lib/drafts';
 import { storage } from '../lib/storage';
 
@@ -90,7 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storage.remove(ME_CACHE_KEY);
     queryClient.cancelQueries();
     queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
-    queryClient.setQueryData<MeResponse>(qk.me, { user: null, csrfToken: null });
+    // Device mode is never signed out: the device worker signs in again (or, after the account was
+    // deleted, creates a fresh device account), so the user is fetched again instead.
+    if (isDeviceMode) void queryClient.resetQueries({ queryKey: qk.me });
+    else queryClient.setQueryData<MeResponse>(qk.me, { user: null, csrfToken: null });
   }, [queryClient]);
 
   useEffect(() => {

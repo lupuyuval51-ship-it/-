@@ -15,7 +15,9 @@
  *   for other commands). PGlite's `affectedRows` is not used: it is 0 for SELECT.
  * - `BEGIN` / `COMMIT` / `ROLLBACK` on a client run through PGlite's own transaction API, so PGlite does
  *   not flush its storage after every statement inside a transaction; the shim flushes once after COMMIT
- *   (`syncToFs`), which makes a committed transaction durable before COMMIT returns.
+ *   (`syncToFs`), which makes a committed transaction durable before COMMIT returns. In 'manual' flush mode
+   (the app, see `FlushMode` and worker/runtime.ts) storage is written only by `flushDeviceDatabase()`,
+   which the worker calls after each write request.
  * - `types.setTypeParser(oid, parser)`: registered parsers apply to every result (server/src/db/pool.ts
  *   registers NUMERIC → number, BIGINT → number, DATE → 'YYYY-MM-DD'). As in node-postgres, BIGINT is a
  *   string unless a parser is registered. Other types use PGlite's parsers, which match node-postgres for
@@ -44,7 +46,7 @@
  *   path it covers does that, and for those paths shared mode behaves exactly like Postgres. Waiting
  *   longer than `leaseWarnMs` logs a warning with the waiting call's stack.
  */
-import { PGlite, type PGliteOptions, type Results, type Transaction } from '@electric-sql/pglite';
+import { IdbFs, PGlite, type PGliteOptions, type Results, type Transaction } from '@electric-sql/pglite';
 import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm';
 
 export type TypeParser = (value: string) => unknown;
@@ -106,25 +108,51 @@ export interface QueryConfig {
 
 export type LeaseMode = 'shared' | 'exclusive';
 
+/**
+ * When an IndexedDB database is written:
+ * - 'auto' (PGlite's default): after every statement outside a transaction and after every COMMIT,
+ *   and PGlite waits for it.
+ * - 'manual': only when `flushDeviceDatabase()` is called (the app calls it after every write request).
+ *   Each flush runs in PGlite's query queue, so no statement changes the files while they are written:
+ *   every flush is a consistent snapshot in one IndexedDB transaction. (PGlite's `relaxedDurability`
+ *   would also stop waiting, but its background flushes run beside later statements and can store files
+ *   from different moments.) Only for `idb://` data directories.
+ */
+export type FlushMode = 'auto' | 'manual';
+
 export interface DeviceDatabaseOptions {
-  /** PGlite options other than the data directory, extensions and parsers (e.g. `relaxedDurability`, `debug`). */
-  pglite?: Omit<PGliteOptions, 'dataDir' | 'extensions' | 'parsers'>;
+  /** PGlite options other than the data directory, file system, extensions and parsers (e.g. `debug`). */
+  pglite?: Omit<PGliteOptions, 'dataDir' | 'fs' | 'extensions' | 'parsers'>;
   leaseMode?: LeaseMode;
   /** Exclusive mode: warn when a caller has waited this long for the connection. */
   leaseWarnMs?: number;
+  flush?: FlushMode;
 }
 
-const settings: { pglite: NonNullable<DeviceDatabaseOptions['pglite']>; leaseMode: LeaseMode; leaseWarnMs: number } = {
+const settings: { pglite: NonNullable<DeviceDatabaseOptions['pglite']>; leaseMode: LeaseMode; leaseWarnMs: number; flush: FlushMode } = {
   pglite: {},
   leaseMode: 'shared',
   leaseWarnMs: 5_000,
+  flush: 'auto',
 };
+
+/** IndexedDB storage that PGlite's own flushes leave alone; `flushNow()` writes it (see `FlushMode`). */
+class ManualIdbFs extends IdbFs {
+  override async syncToFs(_relaxedDurability?: boolean): Promise<void> {
+    // PGlite calls this after statements and COMMITs: the app flushes per request instead.
+  }
+
+  flushNow(): Promise<void> {
+    return super.syncToFs(false);
+  }
+}
 
 /** Call before the first query (PGlite options only apply to databases created afterwards). */
 export function configureDeviceDatabase(options: DeviceDatabaseOptions): void {
   if (options.pglite) settings.pglite = { ...options.pglite };
   if (options.leaseMode) settings.leaseMode = options.leaseMode;
   if (options.leaseWarnMs != null) settings.leaseWarnMs = options.leaseWarnMs;
+  if (options.flush) settings.flush = options.flush;
 }
 
 export interface DeviceDatabaseStats {
@@ -222,7 +250,9 @@ class Connection {
   database(): Promise<PGlite> {
     if (!this.#db) {
       const created = (async () => {
-        const db = new PGlite(this.dataDir, { ...settings.pglite, extensions: { pg_trgm }, parsers: currentParsers() });
+        const manual = settings.flush === 'manual' && this.dataDir.startsWith('idb://');
+        const storage = manual ? { fs: new ManualIdbFs(this.dataDir.slice('idb://'.length)) } : { dataDir: this.dataDir };
+        const db = new PGlite({ ...settings.pglite, ...storage, extensions: { pg_trgm }, parsers: currentParsers() });
         await db.waitReady;
         // Parsers registered while PGlite was starting.
         Object.assign(db.parsers, currentParsers());
@@ -487,6 +517,20 @@ export function deviceDatabase(dataDir?: string): Promise<PGlite> {
 
 export function deviceDatabaseStats(dataDir?: string): DeviceDatabaseStats {
   return { ...onlyConnection(dataDir).stats };
+}
+
+/**
+ * Writes everything PGlite holds in memory to its storage (IndexedDB) and waits until it is stored (the
+ * only writes in 'manual' flush mode). Runs in PGlite's query queue, so it covers every statement sent
+ * before it and none runs while the files are written. Call it between requests, never while a
+ * transaction is open.
+ */
+export async function flushDeviceDatabase(dataDir?: string): Promise<void> {
+  const db = await onlyConnection(dataDir).database();
+  await db.runExclusive(async () => {
+    if (db.fs instanceof ManualIdbFs) await db.fs.flushNow();
+    else await db.fs?.syncToFs(false);
+  });
 }
 
 /** Closes PGlite (flushes storage). The next query opens it again. */

@@ -10,6 +10,7 @@ const errors = {
   forbidden: "You don't have access to this.",
   not_found: 'Not found.',
   route_not_found: 'Not found.',
+  not_available_on_device: 'This is not available in the app version that runs on this phone.',
   rate_limited: 'Too many requests. Please wait a moment and try again.',
   csrf_invalid: 'Your session needs to be refreshed. Please try again.',
   origin_not_allowed: 'Request blocked for security reasons.',

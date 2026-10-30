@@ -70,6 +70,13 @@ The product is **LUPU-FIT** (it grew out of FITAI). User-visible text says LUPU-
 - Client: `features/push`. Permission is requested only from the user's tap. A subscription belongs to the browser, so `fitai.pushOwner` (a user id) records which account turned it on; only that account re-registers the device automatically, logout unregisters it on the server.
 
 
+## Device mode (no server, no database service)
+- `npm run build:device` builds the app with the server inside it: `server/src` runs unchanged in a Web Worker on PGlite (PostgreSQL in WebAssembly, IndexedDB). Details and file map: `client/src/device/README.md`. The hosted server mode is unchanged.
+- `isDeviceMode` / `isNativeApp()` / `platform` (saveFile, reminders) come from `client/src/platform`; features never check Capacitor or the build mode any other way. Device-only code is loaded through `features/device/start` (server builds stub it out). Decide "offline → queue or wait" with `apiOffline()`, never `navigator.onLine`: in device mode the API is inside the app and always reachable (only the barcode lookup needs the internet).
+- One database connection, one request at a time: never call `db.*` (pool) inside a `db.tx` callback; pass `tx` down. `npm run test:server:device` (server suite on PGlite + shims + worker flows) must stay green; skips only with a written reason in `client/src/device/testing/pglite-skips.ts`.
+- The device account is hidden: no login/register/password screens in device mode (guards redirect; the worker answers those routes `not_available_on_device`). Never store its credentials anywhere but the worker's `device.account` row.
+- `npm run test:e2e:device` (after `build:device`): static `dist/device`, Pixel 7, port 4620 (`E2E_DEVICE_PORT`).
+
 ## Deployment kit (one VM)
 - `deploy/oracle/`: Docker Compose for one Ubuntu/Debian VM (db + app + Caddy HTTPS, amd64 + arm64). `setup.sh` (idempotent, `--dry-run`, never overwrites `.env`), `update.sh`, `backup.sh`; guides `docs/deploy-oracle.md` and `docs/deploy-render.md` (Hebrew). Never commit `.env`.
 - Caddy adds no security headers (the app sends its own CSP/HSTS); the db is never published; NODE_IMAGE/POSTGRES_IMAGE/CADDY_IMAGE in `.env` override the multi-arch image tags. Check changes with `shellcheck -x deploy/oracle/*.sh` and `docker compose config`.

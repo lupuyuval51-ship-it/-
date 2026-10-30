@@ -17,6 +17,7 @@ import progress from './progress';
 import achievements from './achievements';
 import notifications from './notifications';
 import legal from './legal';
+import device from './device';
 
 export const en = {
   common,
@@ -37,6 +38,7 @@ export const en = {
   achievements,
   notifications,
   legal,
+  device,
 };
 
 export type Dictionary = Translations<typeof en>;

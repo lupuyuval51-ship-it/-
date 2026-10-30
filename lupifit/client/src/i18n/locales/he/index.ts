@@ -17,6 +17,7 @@ import progress from './progress';
 import achievements from './achievements';
 import notifications from './notifications';
 import legal from './legal';
+import device from './device';
 
 export const he: Dictionary = {
   common,
@@ -37,4 +38,5 @@ export const he: Dictionary = {
   achievements,
   notifications,
   legal,
+  device,
 };

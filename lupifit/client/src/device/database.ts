@@ -15,8 +15,13 @@ export interface DeviceDatabaseReady {
   seed: SeedResult;
 }
 
-export async function prepareDeviceDatabase(log: (msg: string) => void = () => undefined): Promise<DeviceDatabaseReady> {
+export async function prepareDeviceDatabase(
+  log: (msg: string) => void = () => undefined,
+  /** Called when the migrations are done and the content step begins (boot progress). */
+  onContent: () => void = () => undefined,
+): Promise<DeviceDatabaseReady> {
   const migrations = await migrate(log, DEVICE_MIGRATIONS);
+  onContent();
   const seed = await seedContent();
   await getAllExercises();
   return { migrations, seed };

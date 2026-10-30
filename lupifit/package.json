@@ -13,6 +13,7 @@
     "dev:client": "vite --config client/vite.config.ts",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --config client/vite.config.ts && node scripts/build-sw-assets.mjs",
+    "build:device": "vite build --config client/vite.config.ts --mode device && node scripts/build-sw-assets.mjs dist/device",
     "build:server": "node scripts/build-server.mjs",
     "start": "node dist/server/index.js",
     "db:migrate": "tsx server/src/db/cli.ts migrate",
@@ -29,7 +30,8 @@
     "test:server:device": "vitest run --config server/vitest.device.config.ts",
     "test:client": "vitest run --config client/vitest.config.ts",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
-    "verify": "npm run typecheck && npm run lint && npm run validate:content && npm run animation:qa && npm test && npm run build"
+    "test:e2e:device": "playwright test --config e2e/playwright.device.config.ts",
+    "verify": "npm run typecheck && npm run lint && npm run validate:content && npm run animation:qa && npm test && npm run test:server:device && npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

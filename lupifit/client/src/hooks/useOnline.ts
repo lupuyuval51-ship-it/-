@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { isDeviceMode } from '../platform';
 
+/** Whether the app can reach its API. Always true in device mode (the server is inside the app). */
 export function useOnline(): boolean {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
   useEffect(() => {
@@ -12,5 +14,5 @@ export function useOnline(): boolean {
       window.removeEventListener('offline', off);
     };
   }, []);
-  return online;
+  return isDeviceMode || online;
 }

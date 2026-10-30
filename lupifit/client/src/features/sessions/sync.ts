@@ -28,6 +28,7 @@ import {
   type QueueEntry,
 } from './queue';
 import { readQueue, writeCachedSession, writeQueue } from './storage';
+import { apiOffline } from '../../platform';
 
 export interface SyncSnapshot {
   /** Edits not yet acknowledged by the server. */
@@ -206,7 +207,7 @@ export class SessionSync {
   }
 
   private emit() {
-    const offline = (typeof navigator !== 'undefined' && navigator.onLine === false) || this.lastFailure === 'network';
+    const offline = apiOffline() || this.lastFailure === 'network';
     const next: SyncSnapshot = {
       pending: this.queue.length,
       saving: this.inFlight != null,
@@ -242,7 +243,7 @@ export class SessionSync {
       if (wait != null) this.schedule(wait);
       return;
     }
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (apiOffline()) {
       this.lastFailure = 'network';
       this.emit();
       this.schedule(OFFLINE_RECHECK_MS);

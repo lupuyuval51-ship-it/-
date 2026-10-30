@@ -34,6 +34,43 @@ exactly like PostgreSQL. The exercise catalog cache is filled at start-up for th
 loads it lazily through the pool, which the first workout or reward transaction would otherwise do).
 A request that never ends would hold up the ones after it; the server's handlers always answer or fail.
 
+## The device worker (`worker/`) and the page side (`features/device/`)
+
+| File | Runs in | What it does |
+| --- | --- | --- |
+| `worker/entry.ts` | worker | Waits for `init`, takes the Web Lock `lupufit-device-db` for its whole life (one open copy of the database per device; a second tab shows "open in another tab" and continues by itself when the first closes), then loads `runtime.ts` as a separate chunk. Reports boot states. |
+| `worker/runtime.ts` | worker | `install-globals` first, then: PGlite (`idb://lupufit-device`), migrations, content seed, exercise catalog, the hourly maintenance deletes of `server/src/index.ts` (once per start), `createApp({ serveClient: false })`, the device account. Requests are handled **one at a time**, with a macrotask between two requests (the idempotency record a handler writes after answering lands first). |
+| `worker/session.ts` | worker | The hidden device account: created through the server's own register route on first launch (random `device-<uuid>@device.lupufit` and password), session cookie and CSRF token attached to every request, `Set-Cookie` absorbed (the page never sees the cookie), one re-sign-in and retry when the session is gone. Login/register/password routes answer `not_available_on_device`; sign-out is a no-op; account deletion gets the password added here and is followed by a fresh account. |
+| `worker/account-store.ts` | worker | The credentials: one row in `device.account` inside the PGlite database (IndexedDB), never localStorage. Not a migration: the hosted server never has this table. |
+| `worker/protocol.ts` | both | Message types (no runtime code, so the page bundle never pulls in server code). |
+| `features/device/connection.ts` | page | fetch-shaped `transport` for `api/client.ts` (returns real `Response`s, honours `AbortSignal`) and the boot-state store. |
+| `features/device/DeviceGate.tsx` | page | Start-up screen: booting (with the first-launch note), locked by another tab, failed (reason, retry, technical detail). Renders the app once ready; there is no login screen. |
+| `features/device/start.ts` | page | Starts the worker, installs the transport, asks once for persistent storage (`navigator.storage.persist()`), marks `lupufit:device-ready` (boot timings). |
+
+Durability and speed: PGlite flushes its in-memory files to IndexedDB after every statement and waits for
+it. In Chromium that made reads 90–500 ms and writes 200–300 ms per request. The app runs the pg shim in
+'manual' flush mode: PGlite's own flushes do nothing, and the worker calls `flushDeviceDatabase()` after every
+write request (POST/PUT/PATCH/DELETE), waiting for it before the page gets the answer: a change the app
+confirms is stored. The flush runs in PGlite's query queue, so it is one consistent snapshot (one IndexedDB
+transaction) that PostgreSQL recovers from like a crash snapshot. Reads take 5–50 ms; a write about 200 ms.
+(PGlite's `relaxedDurability` is not used: its background flushes run beside later statements and can
+store files from different moments.)
+
+Boot states: `booting` (`database` → `migrating` (first launch or upgrade) → `content` → `account`), `locked`,
+`ready`, `failed` (`unsupported`, `storage_full`, `storage`, `migration`, `account`, `unknown`).
+
+## Build (`npm run build:device` → `dist/device`)
+
+`vite build --mode device` (same `client/vite.config.ts`): the worker bundle gets the aliases of `aliases.ts`
+(only for imports from `server/`, `shared/` and this folder) and `process.env` is read at run time from the
+`process` global (Vite would otherwise inline an empty object). The page gets a CSP meta tag (the hosted app's
+policy plus `'wasm-unsafe-eval'`). PGlite's `pglite.wasm`, `pglite.data`, `initdb.wasm` and the `pg_trgm`
+bundle are emitted as assets; `scripts/build-sw-assets.mjs dist/device` lists them for the service worker
+precache (the Android app does not register the service worker). Server code is only in the
+`device-runtime-*.js` chunk; server-mode builds resolve the device start module to an empty module.
+`npm run test:e2e:device` serves `dist/device` as static files (no app server, no PostgreSQL) and runs
+`e2e/device/` at Pixel 7 size.
+
 ## Tests (`npm run test:server:device`, no PostgreSQL needed)
 
 - **server-on-pglite**: the whole existing server suite (`server/tests`) with `pg` aliased to the shim.
@@ -42,7 +79,9 @@ A request that never ends would hold up the ones after it; the server's handlers
 - **device-units**: the shims against Node (`node:crypto`, `Buffer`, `node:path`, `node:url`), against
   real Express 5 (same app, same requests, same responses) and against node-postgres' result shapes.
 - **device-flows** (`api.flow.test.ts`): API flows through the Express shim without HTTP, with every
-  alias and the device environment, the way the worker will call the app.
+  alias and the device environment, the way the worker will call the app. `worker/session.flow.test.ts`:
+  the worker runtime (boot steps, device account created / reused / recovered / re-signed-in / deleted,
+  one request at a time).
 
 ## Limits of device mode (to surface in the UI and docs)
 

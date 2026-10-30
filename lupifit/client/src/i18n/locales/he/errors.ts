@@ -12,6 +12,7 @@ const errors: Translations<typeof en> = {
   forbidden: 'אין לך הרשאה לפעולה זו.',
   not_found: 'לא נמצא.',
   route_not_found: 'לא נמצא.',
+  not_available_on_device: 'האפשרות הזו לא זמינה בגרסה שפועלת על הטלפון.',
   rate_limited: 'יותר מדי בקשות. המתינו רגע ונסו שוב.',
   csrf_invalid: 'יש לרענן את ההתחברות. נסו שוב.',
   origin_not_allowed: 'הבקשה נחסמה מטעמי אבטחה.',
