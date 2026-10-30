@@ -5,10 +5,10 @@ export const workouts: ReadyWorkoutSeed[] = [
   // ------------------------------------------------------------------ glutes
   {
     id: 'glutes_gym_machine_starter',
-    name: { en: 'Glute Starter on Machines', he: 'התחלה לישבן עם מכונות' },
+    name: { en: 'Glute Starter on Machines', he: 'צעדים ראשונים לישבן עם מכונות' },
     description: {
-      en: 'A gentle glute session for newcomers: leg press, cable pull-through, step-ups and a bridge. Straight sets with generous rest so the form stays clean.',
-      he: 'אימון ישבן עדין למתחילים: לחיצת רגליים, פול ת׳רו בכבל, עליות על מדרגה וגשר ישבן. סטים רגילים עם מנוחות נוחות כדי לשמור על טכניקה נקייה.',
+      en: 'A gentle glute session for newcomers: leg press, cable pull-through, step-ups and a bridge. Straight sets with moderate rest so the form stays clean.',
+      he: 'אימון ישבן עדין למתחילים: לחיצת רגליים, פול ת׳רו בכבל, עליות על מדרגה וגשר ישבן. סטים רגילים עם מנוחות בינוניות כדי לשמור על טכניקה נקייה.',
     },
     focus: 'glutes',
     mode: 'weights',
@@ -97,7 +97,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'glutes_gym_hip_thrust_builder',
     name: { en: 'Hip Thrust Builder', he: 'בניית ישבן עם היפ טראסט' },
     description: {
-      en: 'A glute session led by the barbell hip thrust, followed by a Romanian deadlift, split squats, a cable pull-through and single-leg bridges. Straight sets, 45-90 s rest.',
+      en: 'A glute session led by the barbell hip thrust, followed by a Romanian deadlift, Bulgarian split squats, a cable pull-through and single-leg bridges. Straight sets, 45-90 s rest.',
       he: 'אימון ישבן שמתחיל בהיפ טראסט עם מוט, ממשיך בדדליפט רומני, סקוואט בולגרי ופול ת׳רו בכבל ונגמר בגשר ישבן על רגל אחת. סטים רגילים עם מנוחות של 45-90 שניות.',
     },
     focus: 'glutes',
@@ -112,7 +112,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         restSeconds: 90,
         cue: {
           en: 'Chin tucked, ribs down, pause one second at the top.',
-          he: 'סנטר מכווץ, הצלעות למטה, עצירה של שנייה למעלה.',
+          he: 'הסנטר מוכנס מעט, הצלעות למטה, עצירה של שנייה למעלה.',
         },
       },
       {
@@ -143,8 +143,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'glutes_gym_press_and_swing',
     name: { en: 'Leg Press and Swing Glutes', he: 'ישבן עם לחיצת רגליים וסווינג' },
     description: {
-      en: 'Glute work from three angles: leg press with high feet, kettlebell swings for hip power and single-leg hinges, with a bridge to finish. Moderate rest, steady pace.',
-      he: 'עבודה לישבן משלוש זוויות: לחיצת רגליים עם רגליים גבוהות, קטלבל סווינג לכוח ירכיים ודדליפט רומני על רגל אחת, ובסוף גשר ישבן. מנוחות בינוניות וקצב יציב.',
+      en: 'Glute work from several angles: leg press with high feet, kettlebell swings for hip power, loaded reverse lunges and single-leg hinges, with a bridge to finish. Moderate rest, steady pace.',
+      he: 'עבודה לישבן מכמה זוויות: לחיצת רגליים עם רגליים גבוהות, קטלבל סווינג לכוח ירכיים, מכרעים לאחור עם משקולות ודדליפט רומני על רגל אחת, ובסוף גשר ישבן. מנוחות בינוניות וקצב יציב.',
     },
     focus: 'glutes',
     mode: 'weights',
@@ -309,10 +309,10 @@ export const workouts: ReadyWorkoutSeed[] = [
   },
   {
     id: 'quads_gym_tempo_single_leg',
-    name: { en: 'Tempo Squat and Single-Leg Quads', he: 'ארבע-ראשי: סקוואט בקצב ועבודה על רגל אחת' },
+    name: { en: 'Tempo Squat and Single-Leg Quads', he: 'ארבע-ראשי: סקוואט בקצב מבוקר ועבודה על רגל אחת' },
     description: {
-      en: 'Quad work built on a slow-lowering Smith squat, then single-leg lunges, step-ups and Cossack squats, with leg extensions to finish. Moderate loads and a controlled tempo.',
-      he: 'עבודה לארבע-ראשי שמתחילה בסקוואט סמית׳ עם ירידה איטית, ממשיכה במכרעים, עליות על מדרגה וסקוואט קוזאקי על רגל אחת, ונגמרת בפשיטת ברכיים. משקלים בינוניים וקצב מבוקר.',
+      en: 'Quad work built on a slow-lowering Smith squat, then dumbbell reverse lunges, step-ups and Cossack squats, with leg extensions to finish. Moderate loads and a controlled tempo.',
+      he: 'עבודה לארבע-ראשי שמתחילה בסקוואט סמית׳ עם ירידה איטית, ממשיכה במכרע לאחור עם משקולות, עליות על מדרגה וסקוואט קוזאקי, ונגמרת בפשיטת ברכיים. משקלים בינוניים וקצב מבוקר.',
     },
     focus: 'quads',
     mode: 'weights',
@@ -348,8 +348,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'quads_gym_front_squat_power',
     name: { en: 'Front Squat and Jump Power', he: 'סקוואט קדמי וכוח קפיצה' },
     description: {
-      en: 'An advanced quad session: a few box jumps while fresh, heavy front squats, leg press, pistol squats and leg extensions. Long rests, and every set stops short of failure.',
-      he: 'אימון ארבע-ראשי למתקדמים: כמה קפיצות ארגז כשהגוף רענן, סקוואט קדמי כבד, לחיצת רגליים, פיסטול סקוואט ופשיטת ברכיים. מנוחות ארוכות, וכל סט נעצר לפני כשל.',
+      en: 'An advanced quad session: a few box jumps while fresh, heavy front squats, pistol squats, leg press and leg extensions. Long rests, and every set stops short of failure.',
+      he: 'אימון ארבע-ראשי למתקדמים: כמה קפיצות ארגז כשהגוף רענן, סקוואט קדמי כבד, פיסטול סקוואט, לחיצת רגליים ופשיטת ברכיים. מנוחות ארוכות, וכל סט נעצר לפני כשל.',
     },
     focus: 'quads',
     mode: 'weights',
@@ -376,7 +376,6 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'מרפקים גבוהים, פלג גוף זקוף, ברכיים החוצה.',
         },
       },
-      { exerciseId: 'leg_press', sets: 4, reps: [10, 12], restSeconds: 90 },
       {
         exerciseId: 'pistol_squat',
         sets: 3,
@@ -387,6 +386,7 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'להחזיק עמוד של מתקן לשיווי משקל, או לשבת על ספסל אם צריך.',
         },
       },
+      { exerciseId: 'leg_press', sets: 4, reps: [10, 12], restSeconds: 90 },
       { exerciseId: 'leg_extension', sets: 3, reps: [15, 20], restSeconds: 45 },
     ],
   },
@@ -433,8 +433,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'hamstrings_gym_rdl_single_leg',
     name: { en: 'Romanian Deadlift and Single-Leg Hinge', he: 'דדליפט רומני וציר ירך על רגל אחת' },
     description: {
-      en: 'A hamstring session built on the barbell Romanian deadlift, a single-leg hinge for balance, machine leg curls, a cable pull-through and single-leg bridges.',
-      he: 'אימון לירך האחורית שבנוי על דדליפט רומני עם מוט, דדליפט רומני על רגל אחת לשיווי משקל, כפיפת ברכיים במכונה, פול ת׳רו בכבל וגשר ישבן על רגל אחת.',
+      en: 'A hamstring session built on the barbell Romanian deadlift, a single-leg hinge for balance, a cable pull-through and single-leg bridges, with machine leg curls to finish.',
+      he: 'אימון לירך האחורית שבנוי על דדליפט רומני עם מוט, דדליפט רומני על רגל אחת לשיווי משקל, פול ת׳רו בכבל וגשר ישבן על רגל אחת, ובסיום כפיפת ברכיים במכונה.',
     },
     focus: 'hamstrings',
     mode: 'weights',
@@ -470,8 +470,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'hamstrings_gym_deadlift_swing_curl',
     name: { en: 'Deadlift, Swing and Curl', he: 'דדליפט, סווינג וכפיפות ברכיים' },
     description: {
-      en: 'A posterior-chain day: deadlift for strength, kettlebell swings for hip speed, leg curls and long-stride lunges, with a floor extension to finish. Moderate to long rests.',
-      he: 'יום לשרשרת האחורית: דדליפט לכוח, קטלבל סווינג למהירות ירכיים, כפיפת ברכיים ומכרעים בצעד ארוך, ובסיום סופרמן. מנוחות בינוניות עד ארוכות.',
+      en: 'A posterior-chain day: deadlift for strength, then leg curls, kettlebell swings for hip speed and long-stride lunges, with a floor extension to finish. Moderate to long rests.',
+      he: 'יום לשרשרת האחורית: דדליפט לכוח, ואחריו כפיפת ברכיים, קטלבל סווינג למהירות ירכיים ומכרעים בצעד ארוך, ובסיום סופרמן. מנוחות בינוניות עד ארוכות.',
     },
     focus: 'hamstrings',
     mode: 'weights',
@@ -488,6 +488,7 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'קודם לנעול את הבטן, המוט צמוד לרגליים, לדחוף את הרצפה.',
         },
       },
+      { exerciseId: 'lying_leg_curl', sets: 4, reps: [8, 12], restSeconds: 60 },
       {
         exerciseId: 'kettlebell_swing',
         sets: 4,
@@ -498,7 +499,6 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'תנועת ציר ירך ולא סקוואט: הירכיים נדחפות קדימה והזרועות רק מחזיקות.',
         },
       },
-      { exerciseId: 'lying_leg_curl', sets: 4, reps: [8, 12], restSeconds: 60 },
       {
         exerciseId: 'walking_lunge',
         sets: 3,
@@ -666,8 +666,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'legs_gym_single_leg_strength',
     name: { en: 'Single-Leg Strength Legs', he: 'רגליים: כוח על רגל אחת' },
     description: {
-      en: 'A leg session that leans on one-leg work: reverse lunges, split squats and single-leg hinges, plus a cable pull-through, leg curls and single-leg calf raises. Good for balance and symmetry.',
-      he: 'אימון רגליים שנשען על עבודה ברגל אחת: מכרע לאחור עם משקולות, סקוואט בולגרי ודדליפט רומני על רגל אחת, לצד פול ת׳רו בכבל, כפיפת ברכיים והרמות עקבים על רגל אחת. טוב לשיווי משקל ולסימטריה.',
+      en: 'A leg session that leans on one-leg work: reverse lunges, Bulgarian split squats and single-leg hinges, plus a cable pull-through, leg curls and single-leg calf raises. Each leg works on its own.',
+      he: 'אימון רגליים שנשען על עבודה ברגל אחת: מכרע לאחור עם משקולות, סקוואט בולגרי ודדליפט רומני על רגל אחת, לצד פול ת׳רו בכבל, כפיפת ברכיים והרמות עקבים על רגל אחת. כל רגל עובדת בנפרד.',
     },
     focus: 'legs',
     mode: 'weights',
@@ -681,8 +681,8 @@ export const workouts: ReadyWorkoutSeed[] = [
         reps: [8, 10],
         restSeconds: 60,
         cue: {
-          en: 'Front foot far enough forward that the heel stays down.',
-          he: 'כף הרגל הקדמית רחוקה מספיק כדי שהעקב יישאר על הרצפה.',
+          en: 'Front heel stays down. Hold a dumbbell in each hand once bodyweight feels easy.',
+          he: 'העקב הקדמי נשאר על הרצפה. אפשר להוסיף משקולת בכל יד כשמשקל הגוף קל.',
         },
       },
       {
@@ -691,8 +691,8 @@ export const workouts: ReadyWorkoutSeed[] = [
         reps: [8, 10],
         restSeconds: 60,
         cue: {
-          en: 'Hips stay level as the back leg reaches behind you.',
-          he: 'האגן נשאר ישר בזמן שהרגל האחורית נמתחת לאחור.',
+          en: 'Hips stay level as the back leg reaches behind you. Hold a dumbbell once bodyweight feels easy.',
+          he: 'האגן נשאר ישר בזמן שהרגל האחורית נמתחת לאחור. אפשר להוסיף משקולת כשמשקל הגוף קל.',
         },
       },
       { exerciseId: 'cable_pull_through', sets: 3, reps: [12, 15], restSeconds: 60 },
@@ -808,8 +808,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'core_gym_anti_rotation_wheel',
     name: { en: 'Anti-Rotation and Wheel Core', he: 'ליבה: נגד סיבוב וגלגלת בטן' },
     description: {
-      en: 'An intermediate core session: Pallof presses and woodchops for the obliques, then ab wheel rollouts and hanging knee raises for the abs. Four sets each, short rests.',
-      he: 'אימון ליבה לרמה בינונית: פאלוף פרס ווודצ׳ופ לשרירים האלכסוניים, ואחריהם גלגלת בטן והרמות ברכיים בתלייה לשרירי הבטן. ארבעה סטים לכל תרגיל ומנוחות קצרות.',
+      en: 'An intermediate core session: ab wheel rollouts first while fresh, then Pallof presses and woodchops for the obliques, and hanging knee raises for the abs to finish. Four sets each, short rests.',
+      he: 'אימון ליבה לרמה בינונית: קודם גלגלת בטן כשהגוף רענן, ואחריה פאלוף פרס ווודצ׳ופ לשרירים האלכסוניים, ובסיום הרמות ברכיים בתלייה לשרירי הבטן. ארבעה סטים לכל תרגיל ומנוחות קצרות.',
     },
     focus: 'core',
     mode: 'weights',

@@ -12,6 +12,7 @@ import session from './session';
 import exercises from './exercises';
 import nutrition from './nutrition';
 import menu from './menu';
+import ready from './ready';
 import coach from './coach';
 import progress from './progress';
 import achievements from './achievements';
@@ -32,6 +33,7 @@ export const he: Dictionary = {
   exercises,
   nutrition,
   menu,
+  ready,
   coach,
   progress,
   achievements,

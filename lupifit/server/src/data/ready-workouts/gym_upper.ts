@@ -44,7 +44,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'smith_machine_bench_press', sets: 3, reps: [8, 12], restSeconds: 75,
-        cue: { en: 'Set the safety stops before the first set and lower to mid-chest.', he: 'לקבוע את הבלמים לפני הסט הראשון ולהוריד עד אמצע החזה.' },
+        cue: { en: 'Set the safety stops before the first set and lower to mid-chest.', he: 'לקבוע את עוצרי הבטיחות לפני הסט הראשון ולהוריד עד אמצע החזה.' },
       },
       { exerciseId: 'push_up', sets: 3, reps: [6, 12], restSeconds: 60 },
       {
@@ -61,8 +61,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'chest_gym_barbell_incline_builder',
     name: { en: 'Barbell and Incline Builder', he: 'לחיצת מוט ושיפוע חיובי' },
     description: {
-      en: 'Intermediate chest day led by a barbell bench press, followed by an incline dumbbell press, a dumbbell fly and a push-up burnout. Straight sets with moderate to heavy loads.',
-      he: 'יום חזה בינוני שנפתח בלחיצת חזה במוט, ממשיך בלחיצה בשיפוע חיובי במשקולות יד ופרפר, ונסגר בשכיבות סמיכה עד קושי. סטים רגילים עם משקלים בינוניים עד כבדים.',
+      en: 'Intermediate chest day led by a barbell bench press, followed by an incline dumbbell press, a dumbbell fly and a push-up finisher. Straight sets with moderate to heavy loads.',
+      he: 'יום חזה בינוני שנפתח בלחיצת חזה במוט, ממשיך בלחיצה בשיפוע חיובי במשקולות יד ופרפר, ונסגר בשכיבות סמיכה. סטים רגילים עם משקלים בינוניים עד כבדים.',
     },
     focus: 'chest',
     mode: 'weights',
@@ -71,7 +71,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'barbell_bench_press', sets: 4, reps: [6, 10], restSeconds: 90,
-        cue: { en: 'Shoulder blades pinched, feet planted; use the safeties or a spotter.', he: 'השכמות צמודות, כפות הרגליים יציבות; להשתמש בבלמים או במאבטח.' },
+        cue: { en: 'Shoulder blades pinched, feet planted; use the safeties or a spotter.', he: 'השכמות צמודות, כפות הרגליים יציבות; להשתמש במוטות בטיחות או בעוזר (ספוטר).' },
       },
       { exerciseId: 'incline_dumbbell_press', sets: 4, reps: [8, 12], restSeconds: 75 },
       { exerciseId: 'dumbbell_fly', sets: 3, reps: [12, 15], restSeconds: 45 },
@@ -120,7 +120,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'barbell_bench_press', sets: 5, reps: [5, 8], restSeconds: 120,
-        cue: { en: 'Use the safeties or a spotter and stop one rep before your form changes.', he: 'להשתמש בבלמים או במאבטח ולעצור חזרה אחת לפני שהטכניקה משתנה.' },
+        cue: { en: 'Use the safeties or a spotter and stop one rep before your form changes.', he: 'להשתמש במוטות בטיחות או בעוזר (ספוטר) ולעצור חזרה אחת לפני שהטכניקה משתנה.' },
       },
       { exerciseId: 'incline_dumbbell_press', sets: 4, reps: [6, 10], restSeconds: 90 },
       { exerciseId: 'parallel_bar_dip', sets: 4, reps: [8, 12], restSeconds: 90 },
@@ -165,7 +165,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'back_gym_assisted_pull_up_intro',
     name: { en: 'Assisted Pull-up Introduction', he: 'היכרות עם מתח בעזרת גומייה' },
     description: {
-      en: 'A beginner session that builds toward the first pull-up: band-assisted pull-ups and inverted rows, with face pulls, rear delt flys and shrugs for shoulder-blade control.',
+      en: 'A beginner session that builds toward the first pull-up: band-assisted pull-ups and inverted rows, with face pulls, rear delt flies and shrugs for shoulder-blade control.',
       he: 'אימון למתחילים שבונה את הדרך למתח הראשון: עליות מתח בעזרת גומייה ומתח אוסטרלי, עם פייס פול, פרפר הפוך והרמת כתפיים לשליטה בשכמות.',
     },
     focus: 'back',
@@ -212,7 +212,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'back_gym_barbell_row_lat_volume',
     name: { en: 'Barbell Row and Lat Volume', he: 'חתירה במוט וגב רחב' },
     description: {
-      en: 'A higher-volume back session: barbell rows, lat pulldowns and inverted rows for width and thickness, then rear delt flys and supermans for the rear shoulders and lower back.',
+      en: 'A higher-volume back session: barbell rows, lat pulldowns and inverted rows for width and thickness, then rear delt flies and supermans for the rear shoulders and lower back.',
       he: 'אימון גב עם נפח גבוה יותר: חתירה במוט, פולי עליון ומתח אוסטרלי לרוחב ולעובי הגב, ואז פרפר הפוך וסופרמן לכתף האחורית ולגב התחתון.',
     },
     focus: 'back',
@@ -243,7 +243,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     places: ['gym'],
     items: [
       {
-        exerciseId: 'deadlift', sets: 3, reps: [6, 8], restSeconds: 90,
+        exerciseId: 'deadlift', sets: 3, reps: [6, 8], restSeconds: 120,
         cue: { en: 'Bar over mid-foot and a flat back; end the set if your back starts to round.', he: 'המוט מעל אמצע כף הרגל וגב ישר; לסיים את הסט אם הגב מתחיל להתעגל.' },
       },
       { exerciseId: 'chin_up', sets: 3, reps: [6, 10], restSeconds: 90 },
@@ -283,7 +283,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'shoulders_gym_press_basics',
     name: { en: 'Shoulder Press Basics', he: 'יסודות לחיצת כתפיים' },
     description: {
-      en: 'A beginner shoulder session: a dumbbell press, cable lateral raises, rear delt flys and shrugs. Light to moderate loads, three sets or fewer and moderate rest.',
+      en: 'A beginner shoulder session: a dumbbell press, cable lateral raises, rear delt flies and shrugs. Light to moderate loads, three sets or fewer and moderate rest.',
       he: 'אימון כתפיים למתחילים: לחיצת כתפיים במשקולות יד, הרחקה לצד בכבל, פרפר הפוך והרמת כתפיים. משקלים קלים עד בינוניים, עד שלושה סטים לתרגיל ומנוחה בינונית.',
     },
     focus: 'shoulders',
@@ -328,7 +328,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'shoulders_gym_barbell_overhead_day',
     name: { en: 'Barbell Overhead Press Day', he: 'יום לחיצת כתפיים עם מוט' },
     description: {
-      en: 'Intermediate shoulder session led by the standing barbell overhead press, followed by lateral raises, rear delt flys, face pulls and shrugs for the side and rear shoulders and the traps.',
+      en: 'Intermediate shoulder session led by the standing barbell overhead press, followed by lateral raises, rear delt flies, face pulls and shrugs for the side and rear shoulders and the traps.',
       he: 'אימון כתפיים בינוני שנפתח בלחיצת כתפיים עם מוט בעמידה, וממשיך בהרחקות לצדדים, פרפר הפוך, פייס פול והרמת כתפיים לכתף הצדדית והאחורית ולטרפז.',
     },
     focus: 'shoulders',
@@ -350,7 +350,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'shoulders_gym_arnold_cable_raises',
     name: { en: 'Arnold Press and Cable Raises', he: 'לחיצת ארנולד והרחקות בכבל' },
     description: {
-      en: 'Intermediate shoulder session with the Arnold press and pike push-ups for pressing volume, then cable lateral raises, face pulls and rear delt flys. Moderate rest and a controlled tempo.',
+      en: 'Intermediate shoulder session with the Arnold press and pike push-ups for pressing volume, then cable lateral raises, face pulls and rear delt flies. Moderate rest and a controlled tempo.',
       he: 'אימון כתפיים בינוני עם לחיצת ארנולד ושכיבות סמיכה פייק לנפח לחיצות, ואחריהן הרחקות לצד בכבל, פייס פול ופרפר הפוך. מנוחה בינונית וקצב מבוקר.',
     },
     focus: 'shoulders',
@@ -384,7 +384,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     places: ['gym'],
     items: [
       {
-        exerciseId: 'kettlebell_overhead_press', sets: 4, reps: [6, 10], restSeconds: 75,
+        exerciseId: 'kettlebell_overhead_press', sets: 4, reps: [8, 12], restSeconds: 75,
         cue: { en: 'Press straight up with a straight wrist, a tight core and no leaning back.', he: 'ללחוץ ישר למעלה עם שורש כף יד ישר, בטן מכווצת ובלי להישען אחורה.' },
       },
       { exerciseId: 'pike_push_up', sets: 3, reps: [8, 12], restSeconds: 45 },
@@ -603,7 +603,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'barbell_bench_press', sets: 4, reps: [6, 10], restSeconds: 90,
-        cue: { en: 'Feet planted and shoulder blades pinched; use the safeties or a spotter.', he: 'כפות הרגליים יציבות והשכמות צמודות; להשתמש בבלמים או במאבטח.' },
+        cue: { en: 'Feet planted and shoulder blades pinched; use the safeties or a spotter.', he: 'כפות הרגליים יציבות והשכמות צמודות; להשתמש במוטות בטיחות או בעוזר (ספוטר).' },
       },
       {
         exerciseId: 'barbell_bent_over_row', sets: 4, reps: [6, 10], restSeconds: 90,
@@ -652,7 +652,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'barbell_bench_press', sets: 5, reps: [5, 8], restSeconds: 120,
-        cue: { en: 'Use the safeties or a spotter and stop one rep before your form changes.', he: 'להשתמש בבלמים או במאבטח ולעצור חזרה אחת לפני שהטכניקה משתנה.' },
+        cue: { en: 'Use the safeties or a spotter and stop one rep before your form changes.', he: 'להשתמש במוטות בטיחות או בעוזר (ספוטר) ולעצור חזרה אחת לפני שהטכניקה משתנה.' },
       },
       {
         exerciseId: 'barbell_bent_over_row', sets: 5, reps: [5, 8], restSeconds: 120,

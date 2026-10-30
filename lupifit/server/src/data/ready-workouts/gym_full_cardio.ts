@@ -151,8 +151,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'full_body_gym_barbell_essentials',
     name: { en: 'Barbell Essentials', he: 'יסודות המוט' },
     description: {
-      en: 'A classic barbell session: squat, bench press, bent-over row and overhead press for the whole body, then hanging knee raises. Three to four sets of 8-10 reps with full rests; suits lifters who already know the lifts.',
-      he: 'אימון קלאסי עם מוט: סקוואט, לחיצת חזה, חתירה בהטיה ולחיצת כתפיים לכל הגוף, ובסוף הרמות ברכיים בתלייה. שלושה עד ארבעה סטים של 8–10 חזרות ומנוחות מלאות. מתאים למי שכבר מכיר את התרגילים.',
+      en: 'A classic barbell session: squat, bench press, bent-over row and overhead press for the whole body, then hanging knee raises. Three to four sets of 8-10 reps with 75-90 seconds of rest; suits lifters who already know the lifts.',
+      he: 'אימון קלאסי עם מוט: סקוואט, לחיצת חזה, חתירה בהטיה ולחיצת כתפיים לכל הגוף, ובסוף הרמות ברכיים בתלייה. שלושה עד ארבעה סטים של 8–10 חזרות עם מנוחות של 75–90 שניות. מתאים למי שכבר מכיר את התרגילים.',
     },
     focus: 'full_body',
     mode: 'weights',
@@ -198,7 +198,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     name: { en: 'Hinge and Lunge Day', he: 'יום ציר ירך ומכרעים' },
     description: {
       en: 'Built around the Romanian deadlift and reverse lunges for the legs and hips, with an incline press, a pulldown and two core moves. Straight sets of 8-12 reps with the heaviest work first.',
-      he: 'בנוי סביב דדליפט רומני ומכרעים לאחור לרגליים ולאגן, עם לחיצה בשיפוע חיובי, משיכה עליונה ושני תרגילי ליבה. סטים של 8–12 חזרות, כשהעבודה הכבדה ביותר ראשונה.',
+      he: 'בנוי סביב דדליפט רומני ומכרעים לאחור לרגליים ולאגן, עם לחיצה בשיפוע חיובי, פולי עליון ושני תרגילי ליבה. סטים של 8–12 חזרות, כשהעבודה הכבדה ביותר ראשונה.',
     },
     focus: 'full_body',
     mode: 'weights',
@@ -224,7 +224,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         restSeconds: 60,
         cue: {
           en: 'Step back with an upright torso, front knee over the ankle.',
-          he: 'צעד לאחור כשפלג הגוף העליון זקוף, הברך הקדמית מעל הקרסול.',
+          he: 'לצעוד לאחור כשפלג הגוף העליון זקוף, הברך הקדמית מעל הקרסול.',
         },
       },
       { exerciseId: 'cable_woodchop', sets: 3, reps: [10, 12], restSeconds: 45 },
@@ -276,8 +276,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'full_body_gym_front_squat_strength',
     name: { en: 'Front Squat Strength Day', he: 'יום כוח עם סקוואט קדמי' },
     description: {
-      en: 'Heavy full-body strength for experienced lifters: front squat, incline barbell press, pull-ups, Romanian deadlift and hanging leg raises. Four sets of 6-8 reps on the big lifts with long rests; end every set short of failure.',
-      he: 'אימון כוח כבד לכל הגוף למתאמנים מנוסים: סקוואט קדמי, לחיצת חזה בשיפוע חיובי במוט, עליות מתח, דדליפט רומני והרמות רגליים בתלייה. ארבעה סטים של 6–8 חזרות בתרגילים הגדולים ומנוחות ארוכות; לסיים כל סט לפני כישלון.',
+      en: 'Heavy full-body strength for experienced lifters: front squat, incline barbell press, pull-ups, Romanian deadlift and hanging leg raises. Four sets of 6-10 reps on the big lifts with 90-120 seconds of rest; end every set short of failure.',
+      he: 'אימון כוח כבד לכל הגוף למתאמנים מנוסים: סקוואט קדמי, לחיצת חזה בשיפוע חיובי במוט, עליות מתח, דדליפט רומני והרמות רגליים בתלייה. ארבעה סטים של 6–10 חזרות בתרגילים הגדולים ומנוחות של 90–120 שניות; לסיים כל סט לפני כישלון.',
     },
     focus: 'full_body',
     mode: 'weights',
@@ -294,7 +294,7 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'מרפקים גבוהים ופלג גוף עליון זקוף; להקטין משקל אם המרפקים מתחילים לצנוח.',
         },
       },
-      { exerciseId: 'incline_barbell_bench_press', sets: 4, reps: [6, 8], restSeconds: 105 },
+      { exerciseId: 'incline_barbell_bench_press', sets: 4, reps: [6, 8], restSeconds: 120 },
       {
         exerciseId: 'pull_up',
         sets: 4,
@@ -337,7 +337,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         restSeconds: 120,
         cue: {
           en: 'Bar over mid-foot, lats tight, push the floor away; end the set if the back rounds.',
-          he: 'המוט מעל אמצע כף הרגל, הלטים מתוחים, לדחוף את הרצפה; לסיים את הסט אם הגב מתעגל.',
+          he: 'המוט מעל אמצע כף הרגל, שרירי הגב הרחבים מתוחים, לדחוף את הרצפה; לסיים את הסט אם הגב מתעגל.',
         },
       },
       { exerciseId: 'parallel_bar_dip', sets: 4, reps: [8, 12], restSeconds: 90 },
@@ -376,8 +376,8 @@ export const workouts: ReadyWorkoutSeed[] = [
         seconds: 60,
         restSeconds: 60,
         cue: {
-          en: 'Hard but controlled, on a treadmill, bike or rower. Slow to an easy pace in the rest.',
-          he: 'מאמץ גבוה אך מבוקר, על הליכון, אופניים או מכשיר חתירה. במנוחה להאט לקצב קל.',
+          en: 'Brisk but controlled on a treadmill, bike or rower; short sentences should still be possible. Easy pace in the rest.',
+          he: 'מאמץ נמרץ אך מבוקר על הליכון, אופניים או מכשיר חתירה; עדיין אפשר לדבר במשפטים קצרים. במנוחה לעבור לקצב קל.',
         },
       },
       { exerciseId: 'jumping_jack', sets: 3, seconds: 30, restSeconds: 45 },
@@ -400,24 +400,14 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'cardio_gym_machine_box_rope',
     name: { en: 'Machine, Box and Rope Intervals', he: 'אינטרוולים: מכשיר, ארגז וחבל' },
     description: {
-      en: 'Four 90-second efforts on a cardio machine, then box jumps, burpees, rope skipping and mountain climbers in short work blocks, closed with hanging knee raises. High-impact: for people who are used to jumping.',
-      he: 'ארבעה מאמצים של 90 שניות על מכשיר אירובי, ואחריהם קפיצות על ארגז, ברפי, קפיצה בחבל ומטפס הרים בבלוקי עבודה קצרים, ובסיום הרמות ברכיים בתלייה. עומס גבוה על המפרקים: מתאים למי שרגיל לקפוץ.',
+      en: 'Box jumps first, while the legs are fresh, then four 90-second efforts on a cardio machine, burpees, mountain climbers and jump rope in short work blocks, closed with hanging knee raises. High-impact: for people used to jumping.',
+      he: 'קפיצות על ארגז בהתחלה, כשהרגליים רעננות, אחר כך ארבעה מאמצים של 90 שניות על מכשיר אירובי, ברפי, מטפס הרים וקפיצה בחבל בבלוקי עבודה קצרים, ובסיום הרמות ברכיים בתלייה. עומס גבוה על המפרקים: מתאים למי שרגיל לקפוץ.',
     },
     focus: 'cardio',
     mode: 'bodyweight',
     level: 'intermediate',
     places: ['gym'],
     items: [
-      {
-        exerciseId: 'cardio_machine_intervals',
-        sets: 4,
-        seconds: 90,
-        restSeconds: 60,
-        cue: {
-          en: 'Push hard but stay in control; in the rest slow to an easy pace.',
-          he: 'מאמץ גבוה אך מבוקר; במנוחה להאט לקצב קל.',
-        },
-      },
       {
         exerciseId: 'box_jump',
         sets: 3,
@@ -428,9 +418,19 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'נחיתה רכה עם ברכיים כפופות, לרדת מהארגז בצעד ולא בקפיצה.',
         },
       },
+      {
+        exerciseId: 'cardio_machine_intervals',
+        sets: 4,
+        seconds: 90,
+        restSeconds: 60,
+        cue: {
+          en: 'Push hard but stay in control; in the rest slow to an easy pace.',
+          he: 'מאמץ גבוה אך מבוקר; במנוחה להאט לקצב קל.',
+        },
+      },
       { exerciseId: 'burpee', sets: 3, reps: [8, 10], restSeconds: 60 },
-      { exerciseId: 'jump_rope_skipping', sets: 4, seconds: 40, restSeconds: 30 },
       { exerciseId: 'mountain_climber', sets: 3, seconds: 40, restSeconds: 30 },
+      { exerciseId: 'jump_rope_skipping', sets: 4, seconds: 40, restSeconds: 30 },
       { exerciseId: 'hanging_knee_raise', sets: 3, reps: [10, 15], restSeconds: 45 },
     ],
   },
