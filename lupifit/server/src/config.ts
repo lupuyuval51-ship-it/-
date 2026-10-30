@@ -36,6 +36,7 @@ const DEV_SESSION_SECRET = 'dev-only-session-secret-change-me';
 const DEFAULT_APP_URL = 'http://localhost:3000';
 const DEFAULT_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173';
 const secureCookie = bool(env.COOKIE_SECURE, isProduction);
+const aiProvider = str(env.AI_PROVIDER, 'anthropic').toLowerCase();
 
 export type AppUrlSource = 'APP_URL' | 'RENDER_EXTERNAL_URL' | 'default';
 
@@ -103,11 +104,12 @@ export const config = {
   },
 
   ai: {
-    provider: str(env.AI_PROVIDER, 'anthropic').toLowerCase(),
-    apiKey: str(env.AI_API_KEY, str(env.ANTHROPIC_API_KEY, '')),
-    model: str(env.AI_MODEL, 'claude-opus-5-5'),
-    /** Optional override (proxies, local test doubles). Defaults to the official API. */
-    baseUrl: str(env.AI_BASE_URL, 'https://api.anthropic.com'),
+    /** 'anthropic' (Claude, paid per use) or 'gemini' (Google Gemini API; its free tier may use prompts to improve Google's products). */
+    provider: aiProvider,
+    apiKey: str(env.AI_API_KEY, aiProvider === 'gemini' ? str(env.GEMINI_API_KEY, '') : str(env.ANTHROPIC_API_KEY, '')),
+    model: str(env.AI_MODEL, aiProvider === 'gemini' ? 'gemini-flash-latest' : 'claude-opus-5-5'),
+    /** Optional override (proxies, local test doubles). Defaults to the provider's official API. */
+    baseUrl: str(env.AI_BASE_URL, aiProvider === 'gemini' ? 'https://generativelanguage.googleapis.com' : 'https://api.anthropic.com'),
     effort: (['low', 'medium', 'high'].includes(env.AI_EFFORT ?? '') ? env.AI_EFFORT : 'medium') as 'low' | 'medium' | 'high',
     timeoutMs: int(env.AI_TIMEOUT_MS, 90_000, 5_000, 600_000),
     maxRetries: int(env.AI_MAX_RETRIES, 2, 0, 5),
@@ -169,7 +171,8 @@ export const config = {
   staticDir: str(env.STATIC_DIR, ''),
 };
 
-export const aiConfigured = () => config.ai.provider === 'anthropic' && config.ai.apiKey.length > 0;
+export const AI_PROVIDERS = ['anthropic', 'gemini'] as const;
+export const aiConfigured = () => (AI_PROVIDERS as readonly string[]).includes(config.ai.provider) && config.ai.apiKey.length > 0;
 
 const isHttpUrl = (value: string) => {
   try {

@@ -1,5 +1,6 @@
 /**
- * Server-side LLM adapter (Anthropic Claude via the official SDK). The API key lives
+ * Server-side LLM adapter: Anthropic Claude via the official SDK (AI_PROVIDER=anthropic, default) or Google Gemini
+ * through its REST API (AI_PROVIDER=gemini, see `createGemini`). The API key lives
  * only in server config. Every caller gets typed results or an `LlmError` with a
  * stable `kind`, so features can degrade gracefully (built-in coach, manual entry).
  *
@@ -134,13 +135,16 @@ function toParams(messages: ChatTurn[], image?: ImageInput): Anthropic.Beta.Mess
   return params;
 }
 
-async function create(opts: {
+interface CreateOptions {
   system: string;
   messages: ChatTurn[];
   image?: ImageInput;
   maxTokens: number;
   jsonSchema?: Record<string, unknown>;
-}): Promise<{ text: string } & LlmUsage> {
+}
+
+async function create(opts: CreateOptions): Promise<{ text: string } & LlmUsage> {
+  if (config.ai.provider === 'gemini') return createGemini(opts);
   const c = getClient();
   try {
     const body: Anthropic.Beta.Messages.MessageCreateParamsNonStreaming = {
@@ -174,6 +178,101 @@ async function create(opts: {
   } catch (err) {
     throw mapError(err);
   }
+}
+
+// ---------------------------------------------------------------- Google Gemini (REST)
+
+/** Gemini output cap: its models accept far fewer output tokens than the Claude defaults used by callers. */
+const GEMINI_MAX_OUTPUT_TOKENS = 8192;
+
+interface GeminiResponse {
+  candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
+  promptFeedback?: { blockReason?: string };
+  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+  modelVersion?: string;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * One `generateContent` call. Same contract as the Claude path: typed `LlmError`s, JSON mode when a schema is given
+ * (the caller still validates the result with zod), refusals (safety blocks) reported as `refused`.
+ */
+async function createGemini(opts: CreateOptions): Promise<{ text: string } & LlmUsage> {
+  if (!aiConfigured()) throw new LlmError('not_configured', 'No AI provider is configured (set AI_API_KEY)');
+  const turns = toParams(opts.messages, opts.image);
+  const contents = turns.map((t) => ({
+    role: t.role === 'assistant' ? 'model' : 'user',
+    parts:
+      typeof t.content === 'string'
+        ? [{ text: t.content }]
+        : (t.content as Content[]).map((b) =>
+            b.type === 'image' && b.source.type === 'base64'
+              ? { inlineData: { mimeType: b.source.media_type, data: b.source.data } }
+              : { text: (b as { text: string }).text },
+          ),
+  }));
+  const body = {
+    systemInstruction: { parts: [{ text: opts.system }] },
+    contents,
+    generationConfig: {
+      maxOutputTokens: Math.min(opts.maxTokens, GEMINI_MAX_OUTPUT_TOKENS),
+      ...(opts.jsonSchema ? { responseMimeType: 'application/json', responseJsonSchema: opts.jsonSchema } : {}),
+    },
+  };
+  const url = `${config.ai.baseUrl.replace(/\/+$/, '')}/v1beta/models/${encodeURIComponent(config.ai.model)}:generateContent`;
+
+  let lastError: LlmError | null = null;
+  for (let attempt = 0; attempt <= config.ai.maxRetries; attempt++) {
+    if (attempt > 0) await sleep(Math.min(8000, 500 * 2 ** attempt));
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': config.ai.apiKey },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(config.ai.timeoutMs),
+      });
+    } catch (err) {
+      const name = (err as Error)?.name;
+      lastError = name === 'TimeoutError' || name === 'AbortError' ? new LlmError('timeout', 'The AI provider timed out') : new LlmError('unavailable', 'Could not reach the AI provider');
+      if (lastError.kind === 'timeout') throw lastError;
+      continue;
+    }
+    if (!res.ok) {
+      const status = res.status;
+      if (status === 401 || status === 403) throw new LlmError('auth', 'The AI provider rejected the configured credentials');
+      if (status === 400 || status === 404 || status === 422) throw new LlmError('invalid_request', `The AI provider rejected the request (${status})`);
+      if (status === 429) {
+        const ra = Number(res.headers.get('retry-after'));
+        lastError = new LlmError('rate_limited', 'The AI provider is rate limiting requests', Number.isFinite(ra) && ra > 0 ? ra : null);
+      } else {
+        lastError = new LlmError('unavailable', `AI provider error (${status})`);
+      }
+      continue;
+    }
+    let data: GeminiResponse;
+    try {
+      data = (await res.json()) as GeminiResponse;
+    } catch {
+      throw new LlmError('bad_response', 'The AI provider returned an unreadable response');
+    }
+    if (data.promptFeedback?.blockReason) throw new LlmError('refused', 'The model declined this request');
+    const candidate = data.candidates?.[0];
+    const finish = candidate?.finishReason ?? '';
+    if (['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII'].includes(finish)) throw new LlmError('refused', 'The model declined this request');
+    const text = (candidate?.content?.parts ?? []).map((p) => p.text ?? '').join('').trim();
+    if (!text) throw new LlmError('bad_response', 'The model returned an empty response');
+    if (finish === 'MAX_TOKENS' && opts.jsonSchema) throw new LlmError('bad_response', 'The model response was truncated');
+    return {
+      text,
+      model: data.modelVersion ?? config.ai.model,
+      inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
+      outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
+      usedFallback: false,
+    };
+  }
+  throw lastError ?? new LlmError('unavailable', 'Unknown AI error');
 }
 
 /** Free-form text completion (coach chat). */

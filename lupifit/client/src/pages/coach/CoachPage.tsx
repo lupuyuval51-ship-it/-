@@ -216,6 +216,11 @@ export default function CoachPage() {
           <span>{status.data.llmConfigured ? t('coach.modeAiHint') : t('coach.modeBuiltinHint')}</span>
         </p>
       )}
+      {status.data?.provider === 'gemini' && (
+        <Notice tone="warning" icon="info">
+          {t('coach.geminiNotice')}
+        </Notice>
+      )}
       <div className="coach-layout">
         <aside className="coach-sidebar">{threadList}</aside>
         <section className="coach-chat" aria-labelledby="coach-chat-title">

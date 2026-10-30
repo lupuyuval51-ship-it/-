@@ -81,6 +81,7 @@ services:
       ANDROID_CERT_SHA256: ${ANDROID_CERT_SHA256:-}
       ANDROID_PLAY_CERT_SHA256: ${ANDROID_PLAY_CERT_SHA256:-}
       # Optional: leave empty to run without the AI coach and meal-photo analysis.
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
       AI_API_KEY: ${AI_API_KEY:-}
       # Optional contact for the phone-notification services (mailto:you@example.com). Empty = the app URL.
       VAPID_SUBJECT: ${VAPID_SUBJECT:-}

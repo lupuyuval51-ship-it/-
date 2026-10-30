@@ -212,6 +212,7 @@ export async function coachStatus(sql: Sql, userId: string): Promise<CoachStatus
   const dailyLimit = config.ai.coachDailyLimit;
   return {
     llmConfigured: isLlmConfigured(),
+    provider: isLlmConfigured() ? (config.ai.provider === 'gemini' ? 'gemini' : 'anthropic') : null,
     model: llmModel(),
     dailyLimit,
     usedToday: used,

@@ -65,12 +65,12 @@ const legal = {
     },
     ai: {
       title: 'AI features',
-      intro: 'Some features can use an external AI service provided by Anthropic, PBC (USA). They work only when the operator has configured an AI key. Without it, the coach answers from built-in rules, plan preferences are read by a keyword parser and meal-photo analysis is not available. [State whether AI features are enabled in the published app.]',
+      intro: 'Some features can use an external AI service: Anthropic, PBC (USA) or Google LLC (USA, Gemini API), whichever the operator configured. They work only when the operator has configured an AI key. Without it, the coach answers from built-in rules, plan preferences are read by a keyword parser and meal-photo analysis is not available. [State whether AI features are enabled in the published app.]',
       coach: 'Coach: your message, up to the last 12 messages of the same conversation (each shortened to about 2,000 characters) and a summary of your data: your name, an age group (not your exact age), sex, height, weight, goal, experience, training setup and schedule, strength benchmarks, injuries and limitation notes, exercise likes and dislikes, diet type, allergies, restrictions and food dislikes, sleep and stress, nutrition targets, your active plan, your last 5 workouts, 30-day training totals, personal records from the last 90 days, food log averages for the last 7 days and today, your 30-day weight trend, your latest check-in from the last 3 days, time zone and units. Your email address and password are never sent.',
       photo: 'Meal photos: the photo you choose (reduced on your device to at most 1280 pixels and saved again as JPEG, which drops embedded details such as location), the meal type and your language. The photo is not stored on our server. Nothing is added to your log until you review it.',
       plan: 'Workout plan preferences: only the text you type when creating a plan.',
       safety: 'Messages caught by the safety check get a fixed reply without an AI request. They can still be included as earlier context if you keep writing in the same conversation.',
-      provider: 'Anthropic processes this data to produce the answer. How long it keeps the data and whether it may use it for anything else is set by its terms and privacy policy: [summarise the AI provider’s data retention and use terms for this account].',
+      provider: 'The AI provider processes this data to produce the answer. With the free tier of Google Gemini, Google may keep prompts and answers and use them, including human review, to improve its products; your name and email are not sent to it. How long it keeps the data and whether it may use it for anything else is set by its terms and privacy policy: [summarise the AI provider’s data retention and use terms for this account].',
       transfer: 'Using AI features means this data is transferred to servers outside Israel (in the USA). [Lawyer: confirm the transfer basis.]',
       accuracy: 'AI answers and photo estimates can be wrong. They are general guidance, not medical advice.',
     },
@@ -82,7 +82,7 @@ const legal = {
     sharing: {
       title: 'Who else receives data',
       hosting: 'Hosting: [hosting provider], which runs the server and database for us.',
-      ai: 'AI service: Anthropic, PBC, only for the AI features described above and only when they are enabled.',
+      ai: 'AI service: Anthropic, PBC or Google LLC (Gemini API), only for the AI features described above and only when they are enabled.',
       openFoodFacts: 'Open Food Facts: barcode numbers only, as described above.',
       push: 'Push service: reminders you turned on are delivered through your browser’s push service (Google Firebase Cloud Messaging for Chrome and the Android app; Mozilla or Apple for other browsers). It receives the encrypted notification and the device address, not your account details.',
       email: 'Email: password-reset emails are sent through [email provider], which receives your email address and the reset link. [Fill in once email delivery is set up.]',

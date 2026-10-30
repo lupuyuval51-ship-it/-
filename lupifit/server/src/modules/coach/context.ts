@@ -4,6 +4,7 @@
  * The structured `CoachData` feeds the built-in coach; `formatContext` turns it into
  * a compact text block for the model (no email, no ids, no exact birth data).
  */
+import { config } from '../../config';
 import { ADULT_AGE, type Locale, type PrType, type Units } from '@shared/constants';
 import type { LocalizedText } from '@shared/content';
 import { addDays, dateInTimeZone, diffDays, todayInTimeZone } from '@shared/dates';
@@ -438,7 +439,8 @@ export function formatContext(data: CoachData, lang: Locale): string {
   const lines: string[] = [];
   lines.push(`Today: ${data.today} (time zone ${data.timezone}). Preferred units: ${data.units === 'imperial' ? 'imperial (show weights in lb)' : 'metric (kg)'}.`);
   lines.push('', 'PROFILE');
-  lines.push(`- Name: ${quote(data.displayName, 60)}`);
+  // The Gemini free tier may keep prompts to improve Google's products, so the name stays out of it.
+  if (config.ai.provider !== 'gemini') lines.push(`- Name: ${quote(data.displayName, 60)}`);
   if (!p.onboardingCompletedAt) lines.push('- The user has not completed the onboarding questionnaire; most profile fields are missing.');
   lines.push(`- Age group: ${ageGroup(p.currentAge) ?? 'unknown'}${p.isMinor ? ' — MINOR: no calorie deficit, no max-effort lifting' : ''}`);
   lines.push(`- Sex: ${p.sex ?? 'unknown'}; height: ${p.heightCm != null ? `${p.heightCm} cm` : 'unknown'}; profile weight: ${p.weightKg != null ? kg(p.weightKg) : 'unknown'}`);

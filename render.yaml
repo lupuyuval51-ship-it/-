@@ -58,6 +58,10 @@ services:
       - key: ANDROID_CERT_SHA256
         value: 25:2D:51:18:6C:86:EB:ED:57:D9:CC:34:45:B0:63:AF:4A:A7:34:C1:63:98:10:27:AD:3C:B4:14:9A:7B:83:3B
       # Optional Anthropic API key for the AI coach and meal-photo analysis. Leave empty to run without AI.
+      # AI coach: gemini (Google's free tier; Google may use the conversations to improve its products, the app tells
+      # users so) or anthropic (Claude, paid per use).
+      - key: AI_PROVIDER
+        value: gemini
       - key: AI_API_KEY
         sync: false
 

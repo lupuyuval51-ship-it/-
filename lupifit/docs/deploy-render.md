@@ -51,8 +51,11 @@
 4. Render קורא את `render.yaml` ומציג שירות אחד בשם `lupu-fit`. נותנים שם ל-Blueprint (למשל `lupu-fit`).
 5. ממלאים את המשתנים שה-Blueprint מבקש:
    - **`DATABASE_URL`**: מדביקים את כתובת ה-Direct מ-Neon (שלב 2).
-   - **`AI_API_KEY`**: מפתח של Anthropic לאימון ה-AI ולניתוח תמונות אוכל. **אפשר להשאיר ריק**: האפליקציה עובדת גם בלי AI
+   - **`AI_API_KEY`**: מפתח Gemini למאמן ה-AI ולניתוח תמונות אוכל (`AI_PROVIDER` כבר מוגדר ל-`gemini`). מקבלים אותו בחינם
+     ב-[Google AI Studio](https://aistudio.google.com) → **Get API key**. **אפשר להשאיר ריק**: האפליקציה עובדת גם בלי AI
      (מצב "מאמן מובנה"). אפשר להוסיף מפתח אחר כך (שלב 8).
+     שימו לב: בגרסה החינמית Google עשויה להשתמש בשיחות לשיפור המוצרים שלה (כולל קריאה על ידי אנשים). האפליקציה לא שולחת
+     את השם או המייל, ומציגה למשתמשים הודעה על כך. לפרטיות מלאה: `AI_PROVIDER=anthropic` עם מפתח Claude בתשלום.
    - את `SESSION_SECRET` Render יוצר לבד, ולא צריך לגעת בו.
 6. לוחצים **Apply** / **Deploy Blueprint**.
 
@@ -92,7 +95,8 @@
 
 ## 8. הוספת מפתח AI אחר כך
 
-**Dashboard → lupu-fit → Environment**, עורכים את `AI_API_KEY`, מדביקים את המפתח, שומרים. השירות מתחיל מחדש לבד.
+**Dashboard → lupu-fit → Environment**, עורכים את `AI_API_KEY`, מדביקים את המפתח (Gemini מ-aistudio.google.com, או
+Claude אם משנים את `AI_PROVIDER` ל-`anthropic`), שומרים. השירות מתחיל מחדש לבד.
 
 ## 9. מעבר לתוכנית בתשלום (שרת שלא נרדם)
 

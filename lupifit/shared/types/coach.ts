@@ -26,6 +26,8 @@ export type CoachSafetyCategory = 'self_harm' | 'medical_red_flag' | 'eating_dis
 
 export interface CoachStatusDTO {
   llmConfigured: boolean;
+  /** Which AI service answers ('gemini' = Google's free tier may use conversations to improve its products). */
+  provider: 'anthropic' | 'gemini' | null;
   model: string | null;
   dailyLimit: number;
   usedToday: number;
