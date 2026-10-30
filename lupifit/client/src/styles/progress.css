@@ -1,0 +1,670 @@
+/* Progress, achievements and notifications (also loaded by the header bell). Logical properties only. */
+
+/* ------------------------------------------------------------------ Header bell */
+.notif-bell {
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  outline: 2px solid var(--bg);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ Shared pieces */
+.chart-heading {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-block-end: var(--space-2);
+}
+.streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.streak-pill-empty {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  white-space: normal;
+}
+.ring-value {
+  display: block;
+  font-size: var(--fs-xl);
+  font-weight: 800;
+}
+.ring-sub {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  max-width: 84px;
+}
+.is-refreshing {
+  opacity: 0.6;
+  transition: opacity var(--transition);
+}
+
+/* Insights */
+.insight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.insight {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border-inline-start: 3px solid var(--border);
+  font-size: var(--fs-sm);
+}
+.insight-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.insight-positive {
+  border-inline-start-color: var(--success);
+}
+.insight-positive .insight-icon {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.insight-neutral {
+  border-inline-start-color: var(--info);
+}
+.insight-neutral .insight-icon {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.insight-attention {
+  border-inline-start-color: var(--warning);
+}
+.insight-attention .insight-icon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* Personal records */
+.record-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.record-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.record-value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: end;
+  flex-shrink: 0;
+}
+
+/* Level & achievements */
+.level-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--info-soft);
+  color: var(--info);
+  font-weight: 800;
+  font-size: var(--fs-sm);
+}
+.ach-header {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+@media (min-width: 640px) {
+  .ach-header {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+.achievement-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 560px) {
+  .achievement-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1100px) {
+  .achievement-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.achievement {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  min-width: 0;
+}
+.achievement-unlocked {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success-soft) 60%, var(--surface-2));
+}
+.achievement-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  font-size: var(--fs-xl);
+}
+.achievement-locked .achievement-icon {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+.achievement-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.achievement-title {
+  font-size: var(--fs-sm);
+}
+.achievement-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.achievement-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-block-start: 2px;
+}
+
+/* ------------------------------------------------------------------ Progress page */
+.progress-page .page-actions .segmented {
+  max-width: 100%;
+}
+.summary-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 900px) {
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-block-start: 2px;
+}
+.trend-up .icon {
+  color: var(--success);
+}
+.trend-down .icon {
+  color: var(--warning);
+}
+.trend-same .icon {
+  color: var(--text-faint);
+}
+.progress-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .progress-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.consistency {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+.consistency-rule {
+  margin-block-start: var(--space-3);
+}
+.muscle-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.muscle-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 7rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.muscle-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+.muscle-count {
+  min-width: 4.5rem;
+  text-align: end;
+}
+.nutrition-stats {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.strength-controls {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+  align-items: end;
+}
+@media (min-width: 640px) {
+  .strength-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+/* Body weight */
+.bw-layout {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .bw-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr);
+  }
+}
+.bw-stats {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.bw-form-panel {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  align-self: start;
+}
+.bw-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.bw-form-fields {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+.bw-entries .list-item {
+  padding-block: var(--space-2);
+}
+.bw-entry-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ Notifications page */
+.notif-summary {
+  padding: var(--space-3) var(--space-4) 0;
+}
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-2) 0;
+}
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-block-end: 1px solid var(--border);
+}
+.notif-item:last-child {
+  border-block-end: 0;
+}
+.notif-unread {
+  background: color-mix(in srgb, var(--primary-soft) 55%, transparent);
+}
+.notif-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.notif-icon-achievement,
+.notif-icon-personal_record {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+.notif-icon-level_up {
+  background: var(--info-soft);
+  color: var(--info);
+}
+.notif-icon-weekly_goal {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.notif-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: start;
+  font-size: var(--fs-sm);
+}
+button.notif-main {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.notif-unread .notif-text {
+  font-weight: 700;
+}
+.notif-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%; /* design-lint-ignore: unread dot */
+  background: var(--accent-line);
+}
+.record-name {
+  overflow-wrap: anywhere;
+}
+
+
+/* ================================================================== Visual polish (UI 2) */
+
+/* ---- Charts: palette, area fill, tooltips (overrides the base chart rules) */
+.chart {
+  --series: var(--primary);
+}
+.chart .chart-info,
+.chart-svg.chart-info {
+  --series: var(--info);
+}
+.chart-svg {
+  font-variant-numeric: tabular-nums;
+  border-radius: var(--radius-sm);
+}
+.chart-svg:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+}
+.chart-area {
+  fill: var(--series);
+  fill-opacity: 0.08;
+}
+.chart-svg .chart-line {
+  stroke: var(--series);
+  stroke-width: 2.5;
+}
+.chart-svg .chart-dot {
+  fill: var(--series);
+  stroke: var(--surface);
+  transition: r 120ms ease;
+}
+.chart-svg .chart-dot-active {
+  stroke-width: 3;
+}
+.chart-cursor {
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.chart-svg .chart-bar {
+  fill: var(--series);
+  opacity: 0.7;
+  transition: opacity 120ms ease;
+}
+.chart-svg .chart-bar-met {
+  fill: var(--success);
+  opacity: 0.95;
+}
+.chart-svg .chart-bar-hover {
+  opacity: 1;
+}
+.chart-svg .chart-axis {
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.chart-svg .chart-grid {
+  stroke-dasharray: 2 4;
+}
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-overlay);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+.chart-tip-label {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.chart-tip-value {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+}
+.chart-empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.chart-heading {
+  letter-spacing: 0.02em;
+}
+.progress-page .card .num,
+.progress-page .stat-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Summary stats */
+.progress-summary .stat {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.progress-summary .stat-value {
+  font-size: var(--fs-xl);
+}
+.trend-up {
+  color: var(--success);
+}
+.trend-down {
+  color: var(--warning);
+}
+
+/* ---- Streak pill & rings */
+.ring-fill {
+  transition: stroke-dashoffset var(--dur-progress) var(--ease);
+}
+.consistency .ring-value {
+  font-size: var(--fs-xl);
+}
+
+/* ---- Level medal & XP bar */
+.level-progress {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+.level-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.level-medal {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-num);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-control);
+}
+.level-badge {
+  background: none;
+  padding: 0;
+  color: var(--text);
+}
+.level-progress .progress {
+  height: 4px;
+}
+
+/* ---- Insights & records */
+.insight {
+  border-block-end: 1px solid var(--divider);
+}
+.record-icon {
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--primary-text);
+}
+.record-value strong {
+  font-variant-numeric: tabular-nums;
+}
+.record-list .list-item {
+  align-items: center;
+}
+
+/* ---- Muscle bars */
+.progress-muscles .progress {
+  height: 6px;
+}
+
+/* ---- Achievements */
+.ach-header {
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--hero-bg, var(--surface-2));
+  border: 1px solid var(--border);
+}
+.achievement {
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--dur) ease;
+}
+.achievement-unlocked {
+  border-color: var(--border-control);
+  background: var(--surface);
+}
+.achievement-unlocked .achievement-icon {
+  background: var(--surface-2);
+  color: var(--primary-text);
+  border-radius: var(--radius-sm);
+}
+.achievement-locked {
+  border-style: dashed;
+  background: var(--surface);
+}
+.achievement-locked .achievement-icon {
+  border-radius: var(--radius-sm);
+}
+
+/* ---- Notifications */
+.notif-item {
+  transition: background 150ms ease;
+}
+.notif-item:hover {
+  background: var(--surface-2);
+}
+.notif-unread {
+  border-inline-start: 3px solid var(--accent-line);
+  padding-inline-start: calc(var(--space-4) - 3px);
+}
+.notif-icon {
+  width: 40px;
+  height: 40px;
+}
+.notif-badge {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}

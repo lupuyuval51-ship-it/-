@@ -1,0 +1,110 @@
+import type { MouseEventHandler } from 'react';
+import { Link } from 'react-router';
+import { hasAnimation } from '@shared/animation/data/index';
+import type { Difficulty } from '@shared/constants';
+import type { ExerciseListItemDTO } from '@shared/types';
+import { Badge, Icon } from '../../components/ui';
+import { useI18n } from '../../i18n';
+import { ExerciseThumb } from '../animation/ExerciseAnimation';
+import { formatList, highlightParts } from './format';
+import type { LibraryNavState } from './navigation';
+
+export const DIFFICULTY_TONE: Record<Difficulty, 'success' | 'info' | 'warning'> = {
+  beginner: 'success',
+  intermediate: 'info',
+  advanced: 'warning',
+};
+
+/**
+ * Library result card. The whole card is clickable through the title link (stretched
+ * over the card), so the link's accessible name is just the exercise name. The preview
+ * tile is decorative and only shows a figure when a built-in animation exists.
+ */
+export function ExerciseCard({
+  exercise,
+  navState,
+  index,
+  onNavigate,
+  headingLevel = 'h3',
+  highlight = '',
+}: {
+  exercise: ExerciseListItemDTO;
+  navState?: LibraryNavState;
+  /** Position in the result list (used to move focus to newly loaded results). */
+  index?: number;
+  onNavigate?: MouseEventHandler<HTMLAnchorElement>;
+  headingLevel?: 'h3' | 'h4';
+  /** Search text whose matches are marked in the exercise name. */
+  highlight?: string;
+}) {
+  const { t, lt, intlLocale } = useI18n();
+  const Heading = headingLevel;
+  const ctx = exercise.userContext;
+  const equipment =
+    exercise.equipment.length > 0 ? formatList(exercise.equipment.map((q) => t(`enums.equipment.${q}`)), intlLocale) : t('exercises.card.noEquipment');
+  const injuries = ctx ? formatList(ctx.injuryConflicts.map((a) => t(`enums.injury.${a}`)), intlLocale) : '';
+  return (
+    <article className="card ex-card">
+      <div className="ex-card-tile" aria-hidden="true">
+        {hasAnimation(exercise.id) ? (
+          <ExerciseThumb exerciseId={exercise.id} muscles={exercise.primaryMuscles} />
+        ) : (
+          <span className="anim-thumb ex-card-tile-fallback">
+            <Icon name="dumbbell" size={28} />
+          </span>
+        )}
+      </div>
+      <div className="ex-card-body">
+        <div className="ex-card-head">
+          <Heading className="ex-card-title">
+            <Link to={`/exercises/${exercise.id}`} state={navState} className="ex-card-link" data-index={index} onClick={onNavigate}>
+              {highlightParts(lt(exercise.name), highlight).map((part, i) =>
+                part.match ? (
+                  <mark key={i} className="ex-mark">
+                    {part.text}
+                  </mark>
+                ) : (
+                  part.text
+                ),
+              )}
+            </Link>
+          </Heading>
+          <Badge tone={DIFFICULTY_TONE[exercise.difficulty]}>{t(`enums.difficulty.${exercise.difficulty}`)}</Badge>
+        </div>
+        <p className="ex-card-muscles">
+          {exercise.primaryMuscles.map((m) => (
+            <span key={m} className="ex-chip ex-chip-muscle">
+              {t(`enums.muscle.${m}`)}
+            </span>
+          ))}
+        </p>
+        <dl className="ex-card-meta">
+          <div className="ex-card-meta-item">
+            <dt>
+              <Icon name="dumbbell" size={14} />
+              <span className="visually-hidden">{t('exercises.card.equipment')}</span>
+            </dt>
+            <dd>{equipment}</dd>
+          </div>
+          <div className="ex-card-meta-item">
+            <dt>
+              <Icon name="target" size={14} />
+              <span className="visually-hidden">{t('exercises.card.category')}</span>
+            </dt>
+            <dd>{t(`enums.category.${exercise.category}`)}</dd>
+          </div>
+        </dl>
+        {ctx && (!ctx.hasRequiredEquipment || ctx.injuryConflicts.length > 0) && (
+          <div className="ex-card-fit">
+            {!ctx.hasRequiredEquipment && <Badge icon="info">{t('exercises.card.missingEquipment')}</Badge>}
+            {ctx.injuryConflicts.length > 0 && (
+              <Badge tone="warning" icon="warning">
+                {t('exercises.card.injuryCaution', { areas: injuries })}
+              </Badge>
+            )}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}

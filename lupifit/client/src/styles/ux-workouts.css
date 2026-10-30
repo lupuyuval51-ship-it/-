@@ -1,0 +1,167 @@
+/* UX additions for workouts & exercises (quick generate, steppers, undo, drag, search help). Logical properties only (RTL). */
+
+.ux-custom-form[hidden] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ Generator preview */
+.ux-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.ux-preview-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ux-preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+.ux-preview-row dt {
+  min-inline-size: 7.5em;
+  color: var(--text-muted);
+}
+.ux-preview-row dd {
+  margin: 0;
+  font-weight: 600;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.ux-preview-note {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin: 0;
+}
+.ux-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.ux-quick-actions > :first-child {
+  flex: 1 1 14em;
+}
+
+/* ------------------------------------------------------------------ Plan page */
+.ux-today {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+}
+.ux-why {
+  margin-block: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.ux-why > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-weight: 600;
+  min-block-size: 44px;
+}
+.ux-why[open] > summary {
+  margin-block-end: var(--space-2);
+}
+.exercise-row .ux-swap {
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------------ Editor */
+.ux-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+.ux-stepper-btns {
+  display: flex;
+  gap: var(--space-2);
+}
+.ux-stepper-btns .btn {
+  min-inline-size: 44px;
+  min-block-size: 44px;
+}
+.ux-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 36px;
+  color: var(--text-faint);
+  cursor: grab;
+  touch-action: none;
+}
+.ux-grip:active {
+  cursor: grabbing;
+}
+.editor-row.ux-dragging {
+  opacity: 0.5;
+}
+.editor-row.ux-drop-target {
+  outline: 2px dashed var(--primary);
+  outline-offset: 2px;
+}
+.ux-undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--info-soft);
+  border: 1px solid color-mix(in srgb, var(--info) 40%, var(--border));
+}
+
+/* ------------------------------------------------------------------ Exercise library */
+.ux-recent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+.ux-recent-title {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.ux-chip-row {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ux-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+.ux-no-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ex-mark {
+  background: var(--warning-soft);
+  color: inherit;
+  border-radius: 3px;
+  padding-inline: 1px;
+  text-decoration: underline;
+  text-decoration-color: var(--warning);
+  text-underline-offset: 3px;
+}

@@ -1,0 +1,56 @@
+.anim { display: flex; flex-direction: column; gap: var(--space-2); }
+.anim-svg { width: 100%; height: auto; display: block; border-radius: var(--radius); background: var(--surface-2); }
+.anim-sm .anim-svg { max-inline-size: 160px; }
+.anim-md .anim-svg { max-inline-size: 420px; }
+.anim-lg .anim-svg { max-inline-size: 640px; }
+/* Flat stage: one surface so the figure reads with effects off. */
+.anim-bg { fill: var(--surface-2); }
+.anim-floor { stroke: var(--border-control); }
+.anim-shadow { fill: var(--anim-shadow); }
+.anim-seg { stroke: var(--anim-body); }
+.anim-far { stroke: var(--anim-body-far); }
+.anim-torso { stroke: var(--anim-torso); }
+.anim-hl, .anim-overlay { stroke: var(--accent-line); }
+.anim-overlay-dot { fill: var(--accent-line); }
+.anim-head { fill: var(--anim-body); }
+.anim-stroke { fill: none; }
+/* Equipment stays in steel/neutral tones: orange is reserved for the target muscles. */
+.anim-tone-metal { stroke: var(--anim-metal); fill: var(--anim-metal); }
+.anim-tone-plate { stroke: var(--anim-plate); fill: var(--anim-plate); }
+.anim-tone-pad { stroke: var(--anim-pad); fill: var(--anim-pad); }
+.anim-tone-wood { stroke: var(--anim-wood); fill: var(--anim-wood); }
+.anim-tone-band { stroke: var(--anim-band); fill: var(--anim-band); }
+.anim-tone-cable { stroke: var(--anim-cable); fill: var(--anim-cable); }
+.anim-tone-rubber { stroke: var(--anim-rubber); fill: var(--anim-rubber); }
+.anim-tone-frame { stroke: var(--anim-frame); fill: var(--anim-frame); }
+.anim-tone-ball { stroke: var(--anim-ball); fill: var(--anim-ball); }
+.anim-tone-floorMark { stroke: var(--anim-floor-mark); fill: var(--anim-floor-mark); }
+.anim-stroke.anim-tone-metal, .anim-stroke.anim-tone-plate, .anim-stroke.anim-tone-pad, .anim-stroke.anim-tone-wood,
+.anim-stroke.anim-tone-band, .anim-stroke.anim-tone-cable, .anim-stroke.anim-tone-rubber, .anim-stroke.anim-tone-frame,
+.anim-stroke.anim-tone-ball, .anim-stroke.anim-tone-floorMark { fill: none; }
+.anim-fill { stroke: none; }
+.anim-controls { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.anim-legend { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--text-muted); }
+.anim-legend-dot { width: 12px; height: 3px; background: var(--accent-line); }
+
+/* Thumbnail tile used in plan rows and library cards (decorative, plays on hover). */
+.anim-thumb { inline-size: 72px; aspect-ratio: 1; flex: none; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); background: var(--surface-2); }
+.anim-thumb .anim-svg { inline-size: 100%; block-size: 100%; max-inline-size: none; border-radius: 0; }
+.anim-thumb-lg { inline-size: 96px; }
+/* Hero player: framed flat stage. */
+.anim-stage .anim-svg { border: 1px solid var(--border); }
+.anim-stage.anim-lg .anim-svg { max-inline-size: 720px; margin-inline: auto; }
+.anim-stage .anim-controls { justify-content: center; }
+
+/* Phase label under the figure, "demo unavailable" note and the reduced-motion still poses. */
+.anim-phase { margin: 0; text-align: center; font-size: var(--fs-sm); color: var(--text-muted); }
+.anim-phase strong { color: var(--text); }
+.anim-hint { font-size: var(--fs-xs); color: var(--text-muted); }
+.anim-note { display: flex; align-items: flex-start; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); color: var(--text-muted); font-size: var(--fs-sm); }
+.anim-still-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.anim-still-pose { margin: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.anim-still-pose figcaption { text-align: center; font-size: var(--fs-xs); color: var(--text-muted); }
+.anim-still .anim-svg { max-inline-size: none; }
+
+/* Live-workout stage: fills the column and stays 220-300px tall so the figure reads at arm's length. */
+.anim-hero .anim-svg { inline-size: 100%; max-inline-size: none; block-size: clamp(170px, calc(100dvh - 612px), 300px); }

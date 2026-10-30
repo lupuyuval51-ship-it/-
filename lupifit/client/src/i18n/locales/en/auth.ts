@@ -1,0 +1,68 @@
+const auth = {
+  login: {
+    title: 'Welcome back',
+    subtitle: 'Log in to continue your training',
+    submit: 'Log in',
+    noAccount: "Don't have an account?",
+    register: 'Create one',
+    forgot: 'Forgot password?',
+    lockedFor: {
+      one: 'Too many failed attempts. To keep your account safe, try again in {count} minute — or reset your password.',
+      other: 'Too many failed attempts. To keep your account safe, try again in {count} minutes — or reset your password.',
+    },
+    rateLimitedFor: {
+      one: 'Too many attempts from this device. Please wait {count} minute and try again.',
+      other: 'Too many attempts from this device. Please wait {count} minutes and try again.',
+    },
+  },
+  register: {
+    title: 'Create your account',
+    subtitle: 'Personalized training and nutrition in minutes',
+    submit: 'Create account',
+    haveAccount: 'Already have an account?',
+    login: 'Log in',
+    ageNote: 'LUPU-FIT is for ages 13 and up. We ask your age in the next step so training and nutrition stay safe for you.',
+    emailTakenLogin: 'Log in with this email instead',
+    terms: 'By creating an account you agree to use LUPU-FIT for general fitness guidance only.',
+  },
+  fields: {
+    email: 'Email',
+    password: 'Password',
+    newPassword: 'New password',
+    currentPassword: 'Current password',
+    displayName: 'Name',
+    passwordHint: 'At least 8 characters, including a letter and a number.',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
+  },
+  password: {
+    strengthLabel: 'Strength',
+    level: { weak: 'Not there yet', fair: 'Good', strong: 'Strong' },
+    rules: { length: '8+ characters', letter: 'A letter', number: 'A number' },
+    met: 'done',
+    unmet: 'missing',
+  },
+  forgot: {
+    title: 'Reset your password',
+    subtitle: "Enter your email and we'll send you a reset link.",
+    submit: 'Send reset link',
+    sent: 'If an account exists for that email, a reset link has been sent. It is valid for 30 minutes.',
+    emailNotConfigured: 'Note: email delivery must be configured by the server administrator.',
+    sentTo: 'Check your inbox',
+    useOther: 'Use a different email',
+    backToLogin: 'Back to log in',
+  },
+  reset: {
+    title: 'Choose a new password',
+    submit: 'Update password',
+    success: 'Your password was updated. You can log in now.',
+    missingToken: 'This reset link is incomplete. Request a new one.',
+    invalidLink: 'This reset link has expired or was already used.',
+    requestNew: 'Request a new link',
+    goLogin: 'Log in',
+  },
+  loggedOut: 'You have been logged out.',
+  sessionExpired: 'Your session expired. Please log in again.',
+};
+
+export default auth;

@@ -1,0 +1,61 @@
+/* Public legal pages (privacy policy, terms of use, account deletion): open sections, long-form reading. */
+.legal-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 720px;
+  margin-inline: auto;
+  padding-block-end: var(--space-6);
+}
+.legal-updated {
+  margin-block-start: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+}
+.legal-intro {
+  font-size: var(--fs-lg);
+  line-height: 1.6;
+}
+.legal-toc-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-block-end: var(--space-1);
+}
+.legal-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.legal-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: 1px solid var(--divider);
+  scroll-margin-block-start: var(--space-4);
+  line-height: 1.65;
+}
+.legal-section h2 {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+.legal-list {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.legal-list li::marker {
+  color: var(--text-muted);
+}
+/* Operator placeholders ([…]) stay visibly unfinished until they are filled in. */
+.legal-placeholder {
+  background: var(--warning-soft);
+  color: var(--text);
+  border-block-end: 1px dashed var(--warning);
+  padding-inline: var(--space-1);
+}

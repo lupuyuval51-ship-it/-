@@ -1,0 +1,444 @@
+/* Onboarding wizard & profile/settings page. Logical properties only (RTL-safe). */
+
+/* ------------------------------------------------------------------ Onboarding */
+.onboarding {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+}
+.onboarding-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.onboarding-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.onboarding-progress > p {
+  margin: 0;
+}
+.onboarding-steps {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.onboarding-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.onboarding-steps li + li::before {
+  content: '';
+  inline-size: 12px;
+  block-size: 1px;
+  background: var(--border);
+}
+.onboarding-steps li.current {
+  color: var(--text);
+  font-weight: 700;
+}
+.onboarding-steps .link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+@media (min-width: 720px) {
+  .onboarding-steps {
+    display: flex;
+  }
+}
+.onboarding-step-title {
+  font-size: var(--fs-xl);
+  margin: 0 0 var(--space-1);
+  outline: none;
+}
+.onboarding-step-title:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+.onboarding-card {
+  overflow: visible;
+}
+.onboarding-actions {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+  margin-block-end: calc(-1 * var(--space-3));
+  background: var(--surface);
+  border-block-start: 1px solid var(--divider);
+}
+.onboarding-actions .btn {
+  min-inline-size: 120px;
+}
+.onboarding-review {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 760px) {
+  .onboarding-review {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.onboarding-review-section,
+.onboarding-targets {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  min-inline-size: 0;
+}
+.onboarding-review-section .section-title,
+.onboarding-targets .section-title {
+  margin: 0;
+}
+.onboarding-review-section .kv {
+  margin-block-start: var(--space-2);
+}
+.profile-kv-row {
+  display: contents;
+}
+.profile-kv-row dd {
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------ Shared field bits */
+.profile-subsection {
+  padding-block-start: var(--space-2);
+}
+.profile-subheading {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  margin: 0 0 var(--space-2);
+}
+.profile-height-imperial {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.profile-chip-tools {
+  margin-block-start: var(--space-2);
+}
+.profile-avoid-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-avoid-chip {
+  cursor: default;
+  padding-inline-end: var(--space-1);
+}
+.profile-chip-remove {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.profile-chip-remove:hover,
+.profile-chip-remove:focus-visible {
+  background: var(--surface-3);
+}
+.profile-target-stats {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.profile-target-stats > :first-child {
+  grid-column: 1 / -1;
+}
+@media (min-width: 640px) {
+  .profile-target-stats {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .profile-target-stats > :first-child {
+    grid-column: auto;
+  }
+}
+.profile-energy {
+  font-size: var(--fs-sm);
+}
+.profile-notes {
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+.profile-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  padding-block: var(--space-1);
+}
+.profile-details[open] summary {
+  margin-block-end: var(--space-2);
+}
+.profile-macro-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.profile-macro-check p {
+  margin: 0;
+}
+.profile-macro-check.is-off {
+  background: var(--warning-soft);
+}
+.profile-time-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.profile-time-list .row {
+  align-items: flex-end;
+  flex-wrap: nowrap;
+}
+.profile-time-field {
+  max-inline-size: 220px;
+}
+
+/* ------------------------------------------------------------------ Settings page */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.settings-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.settings-nav .chip {
+  text-decoration: none;
+}
+.settings-section {
+  scroll-margin-block-start: calc(var(--topbar-h) + var(--space-4));
+}
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.settings-prefs {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .settings-prefs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ================================================================== Visual polish (UI 4) */
+.onboarding {
+  max-inline-size: 760px;
+  margin-inline: auto;
+  inline-size: 100%;
+}
+.onboarding-header .page-title,
+.onboarding-header h1 {
+  letter-spacing: -0.02em;
+}
+.onboarding-segments {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+}
+.onboarding-segments span {
+  block-size: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  transition: background var(--transition);
+}
+.onboarding-segments span.done {
+  background: var(--accent-line);
+}
+.onboarding-segments span.current {
+  background: var(--accent-line);
+}
+.onboarding-progress > p {
+  font-weight: 700;
+  color: var(--primary-text);
+}
+.onboarding-steps {
+  counter-reset: onb;
+}
+.onboarding-steps li {
+  counter-increment: onb;
+}
+.onboarding-steps li::after {
+  display: none;
+}
+.onboarding-steps li > *::before {
+  content: counter(onb);
+  display: inline-grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  margin-inline-end: 6px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.onboarding-steps li.done > *::before {
+  content: '\2713';
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.onboarding-steps li.current > *::before {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+.onboarding-card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+@media (max-width: 480px) {
+  .onboarding-card {
+    padding: var(--space-4);
+  }
+}
+.onboarding-step-title {
+  font-size: var(--fs-2xl);
+  letter-spacing: -0.02em;
+}
+
+/* Choice cards */
+.onboarding-card .radio-card,
+.settings-page .radio-card {
+  position: relative;
+  padding-inline-end: calc(var(--space-4) + 28px);
+  background: var(--surface);
+  border-width: 1.5px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.onboarding-card .radio-card:hover,
+.settings-page .radio-card:hover {
+  border-color: var(--border-control);
+}
+.onboarding-card .radio-card::after,
+.settings-page .radio-card::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  inset-block-start: 50%;
+  inline-size: 20px;
+  block-size: 20px;
+  margin-block-start: -10px;
+  border-radius: 50%; /* design-lint-ignore: radio indicator */
+  border: 2px solid var(--border-control);
+  background: var(--surface);
+  transition: background var(--transition), border-color var(--transition);
+}
+.onboarding-card .radio-card-active,
+.settings-page .radio-card-active {
+  border-color: var(--accent-line);
+}
+.onboarding-card .radio-card-active::after,
+.settings-page .radio-card-active::after {
+  border-color: var(--primary);
+  border-width: 6px;
+  background: var(--primary-contrast);
+}
+.onboarding-card .radio-card-title,
+.settings-page .radio-card-title {
+  font-size: var(--fs-base);
+}
+.onboarding-actions .btn-primary {
+  min-inline-size: 140px;
+}
+.onboarding-review-section,
+.onboarding-targets {
+  border-radius: var(--radius-lg);
+}
+
+/* Settings: sticky section nav, tidy sections */
+.settings-nav {
+  position: sticky;
+  inset-block-start: var(--topbar-h);
+  z-index: 4;
+  padding-block: var(--space-2);
+  background: var(--bg);
+  border-block-end: 1px solid var(--divider);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.settings-nav .chips {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.settings-nav .chip:hover {
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+.settings-section {
+  border-radius: var(--radius-lg);
+}
+.settings-section > .card-header,
+.settings-section .card-header {
+  padding-block-end: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+.settings-section .card-title {
+  font-size: var(--fs-lg);
+}
+.settings-actions {
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+}
+/* Links to the public privacy policy, terms and account-deletion pages. */
+.settings-legal-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+}
+.profile-target-stats .stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-card .radio-card:hover,
+  .settings-page .radio-card:hover {
+    transform: none;
+  }
+}

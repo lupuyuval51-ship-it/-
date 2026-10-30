@@ -1,0 +1,6 @@
+{
+  "note": "Exercises that still have animation QA findings. Only shrink this list (run animation-qa --update after fixing).",
+  "failing": [
+    "worlds_greatest_stretch"
+  ]
+}

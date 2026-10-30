@@ -1,0 +1,23 @@
+/* UX additions for the AI coach (flows only; the visual language comes from coach.css / global.css). */
+.coach-msg-safety .coach-bubble {
+  background: var(--warning-soft);
+  border-color: var(--warning);
+}
+.coach-safety-note {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+.coach-copy {
+  margin-inline-start: auto;
+}
+.coach-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.coach-welcome-safety {
+  max-width: 60ch;
+  margin-inline: auto;
+  text-align: start;
+}

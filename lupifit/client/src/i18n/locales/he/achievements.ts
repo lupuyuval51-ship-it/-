@@ -1,0 +1,58 @@
+import type en from '../en/achievements';
+import type { Translations } from '../types';
+
+const achievements: Translations<typeof en> = {
+  title: 'הישגים',
+  first_workout: { title: 'אימון ראשון', description: 'השלמת האימון הראשון.' },
+  workouts_5: { title: 'יוצאים לדרך', description: 'השלמת 5 אימונים.' },
+  workouts_25: { title: 'בונים הרגל', description: 'השלמת 25 אימונים.' },
+  workouts_100: { title: 'מועדון המאה', description: 'השלמת 100 אימונים.' },
+  weekly_goal_1: { title: 'היעד הושג', description: 'עמידה ביעד האימונים השבועי.' },
+  streak_4_weeks: { title: 'רצף של ארבעה שבועות', description: 'עמידה ביעד השבועי 4 שבועות ברציפות.' },
+  streak_12_weeks: { title: 'רצף של שנים־עשר שבועות', description: 'עמידה ביעד השבועי 12 שבועות ברציפות.' },
+  first_pr: { title: 'שיא אישי ראשון', description: 'שבירה של אחד השיאים הקודמים שלך.' },
+  prs_10: { title: 'עשרה שיאים', description: 'קביעת 10 שיאים אישיים.' },
+  first_food_log: { title: 'ארוחה ראשונה תועדה', description: 'תיעוד מזון בפעם הראשונה.' },
+  food_log_7_days: { title: 'אכילה מודעת', description: 'תיעוד מזון ב-7 ימים שונים.' },
+  protein_target_7_days: { title: 'חלבון בול', description: 'עמידה ביעד החלבון ב-7 ימים.' },
+  body_weight_4_weeks: { title: 'הרגל שקילה', description: 'רישום משקל גוף ב-4 שבועות שונים.' },
+  coach_first_question: { title: 'סקרנות', description: 'שאלה ראשונה למאמן ה-AI.' },
+  categories: {
+    workouts: 'אימונים',
+    consistency: 'עקביות',
+    strength: 'כוח',
+    nutrition: 'תזונה',
+    habits: 'הרגלים',
+  },
+  rewardNotes: {
+    too_short: 'אימונים קצרים מ-10 דקות או עם פחות מ-3 סטים שהושלמו נשמרים, אבל לא מזכים ב-XP.',
+    daily_workout_cap: 'XP ניתן על אימון אחד ביום — אימונים נוספים נשמרים ללא XP.',
+    rest_matters: 'היעד השבועי כבר הושג — גם מנוחה חשובה, ולכן אימונים נוספים השבוע לא מזכים ב-XP.',
+    outside_reward_window: 'XP ניתן רק על תיעוד של היום ושני הימים הקודמים.',
+    weekly_weigh_in_cap: 'XP על שקילה ניתן פעם בשבוע.',
+  },
+  xpSources: {
+    workout: 'אימון',
+    personal_record: 'שיא אישי',
+    weekly_goal: 'יעד שבועי',
+    food_day: 'תיעוד מזון',
+    protein_day: 'יעד חלבון',
+    body_weight: 'שקילה',
+  },
+  level: 'רמה {level}',
+  totalXp: '{xp} XP',
+  xpProgress: '{current} / {next} XP',
+  xpToNext: 'עוד {xp} XP לרמה {level}',
+  levelLabel: 'התקדמות לרמה הבאה',
+  unlockedOn: 'נפתח ב-{date}',
+  locked: 'נעול',
+  progress: '{current} / {target}',
+  progressLabel: '{title}: {current} מתוך {target}',
+  summary: '{unlocked} מתוך {total} נפתחו',
+  longestStreak: { one: 'הרצף הארוך ביותר: שבוע אחד', two: 'הרצף הארוך ביותר: שבועיים', other: 'הרצף הארוך ביותר: {count} שבועות' },
+  recentXp: 'XP אחרון',
+  xpGained: '‎+{xp} XP',
+  howItWorks: 'XP מתגמל עקביות, לא הגזמה: אימון אחד מתוגמל ביום, ללא XP מעבר ליעד השבועי + 1, ושקילה פעם בשבוע.',
+};
+
+export default achievements;
