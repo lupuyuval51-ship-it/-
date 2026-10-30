@@ -193,7 +193,9 @@ Ready-made options (step-by-step guides for non-technical owners, in Hebrew):
 | **One VM with Docker Compose** (Oracle Cloud Always Free, or any Ubuntu/Debian host; amd64 and arm64) | PostgreSQL + app + Caddy with automatic HTTPS; `deploy/oracle/{setup,update,backup}.sh`. The server never sleeps, so phone reminders run. | [docs/deploy-oracle.md](docs/deploy-oracle.md), kit in [deploy/oracle](deploy/oracle) |
 | **Render + Neon** | Blueprint `render.yaml` at the repository root; the free Render instance sleeps and reminders do not run while it sleeps. | [docs/deploy-render.md](docs/deploy-render.md) |
 
-The Android app (Trusted Web Activity) needs either of them first: [docs/android.md](docs/android.md).
+The Android app in hosted mode (Trusted Web Activity, `android-twa/`) needs either of them first. The device-mode
+Android app (`android/`, Capacitor) needs no server at all: everything runs and is stored on the phone.
+Both: [docs/android.md](docs/android.md).
 
 Manual steps for any other host:
 

@@ -35,6 +35,8 @@ const notifications: Translations<typeof en> = {
     mealTitle: 'זמן לתעד ארוחה',
     mealBody: 'תיעוד עכשיו עוזר לשמור על התזונה במסלול.',
     open: 'פתיחה',
+    channelName: 'תזכורות',
+    channelDescription: 'תזכורות לאימון ולתיעוד ארוחות שהוגדרו ב-LUPU-FIT.',
   },
 };
 

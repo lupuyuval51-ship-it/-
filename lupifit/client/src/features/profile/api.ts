@@ -38,8 +38,8 @@ export const deleteAccount = (input: DeleteAccountInput) => apiDelete<OkResponse
 export const fetchAccountExport = () => apiGet<AccountExportDTO>('/account/export');
 
 /**
- * Saves data as a JSON file through the platform (web: a download; Android: saved or shared). Resolves with
- * what happened, so a cancelled save is not reported as saved.
+ * Saves data as a JSON file (export, backup): a download in a browser, Android's share sheet in the app
+ * (`platform.saveFile`). 'cancelled' when the share sheet was closed without saving.
  */
 export function downloadJson(data: unknown, fileName: string): Promise<SaveFileResult> {
   return platform.saveFile(fileName, 'application/json', JSON.stringify(data, null, 2));

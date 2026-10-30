@@ -225,12 +225,14 @@ docker compose logs --tail 50 caddy   # יומן ה-HTTPS (הנפקת תעודה
 
 ## חלק 7. אפליקציית האנדרואיד
 
-הסבר מלא בבניית האפליקציה ובהעלאה ל-Google Play ב-[android.md](android.md). כאן החלקים שקשורים לשרת:
+הסבר מלא בבניית האפליקציה ובהעלאה ל-Google Play ב-[android.md](android.md). החלק הזה מתאים לאפליקציה שפותחת את האתר
+(`android-twa/`). האפליקציה של **מצב המכשיר** (`android/`) לא צריכה את השרת הזה בכלל: הנתונים נשמרים בטלפון.
+כאן החלקים שקשורים לשרת:
 
 1. **בנייה עם הכתובת שלכם** (במחשב שבו מותקנים כלי האנדרואיד, מתוך התיקייה `lupifit`), הכתובת בלי `https://`:
 
 ```
-./android/build-aab.sh --host 129-151-7-42.sslip.io --fetch-sdk
+./android-twa/build-aab.sh --host 129-151-7-42.sslip.io --fetch-sdk
 ```
 
    (עם משתני `LUPUFIT_KEYSTORE` ו-`LUPUFIT_KEYSTORE_PASSWORD` כמתואר ב-android.md.) לגבי כתובת קבועה ראו את ההחלטה בראש המדריך.

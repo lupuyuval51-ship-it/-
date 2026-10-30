@@ -33,6 +33,9 @@ const notifications = {
     mealTitle: 'Time to log your meal',
     mealBody: 'Logging now keeps your nutrition on track.',
     open: 'Open',
+    /** Android notification channel (shown in the phone's notification settings). */
+    channelName: 'Reminders',
+    channelDescription: 'Workout and meal-logging reminders you set in LUPU-FIT.',
   },
 };
 

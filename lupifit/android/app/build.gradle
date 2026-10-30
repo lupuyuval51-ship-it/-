@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+
+// Version: android/version.properties (the only place it is set); one build can override it with
+// -PlupufitVersionCode=N -PlupufitVersionName=X.Y.Z (build-release.sh --version-code / --version-name).
+def versionProps = new Properties()
+rootProject.file('version.properties').withInputStream { versionProps.load(it) }
+def lupufitVersionCode = (project.findProperty('lupufitVersionCode') ?: versionProps.getProperty('versionCode')) as Integer
+def lupufitVersionName = (project.findProperty('lupufitVersionName') ?: versionProps.getProperty('versionName')) as String
+if (lupufitVersionCode == null || lupufitVersionCode < 1) throw new GradleException('version.properties: versionCode must be a positive number')
+if (!(lupufitVersionName ==~ /^\d+\.\d+\.\d+$/)) throw new GradleException("versionName must look like 1.2.3 (got \"$lupufitVersionName\")")
+
+// Release signing from environment variables only: the keystore and its passwords never live in the repo.
+def keystorePath = System.getenv('LUPUFIT_KEYSTORE')
+
+android {
+    namespace = "com.lupufit.app"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.lupufit.app"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode lupufitVersionCode
+        versionName lupufitVersionName
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+
+    signingConfigs {
+        if (keystorePath) {
+            release {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv('LUPUFIT_KEYSTORE_PASSWORD')
+                keyAlias = System.getenv('LUPUFIT_KEY_ALIAS') ?: 'upload'
+                keyPassword = System.getenv('LUPUFIT_KEY_PASSWORD') ?: System.getenv('LUPUFIT_KEYSTORE_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            // The app's code is the web bundle; shrinking the few Java classes would only risk breaking
+            // Capacitor's plugin reflection.
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePath) signingConfig = signingConfigs.release
+        }
+    }
+
+    lint {
+        // Release builds stop on fatal lint problems (lintVitalRelease); the full report is `./gradlew lint`.
+        abortOnError = true
+        checkReleaseBuilds = true
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.activity:activity:$androidxActivityVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'

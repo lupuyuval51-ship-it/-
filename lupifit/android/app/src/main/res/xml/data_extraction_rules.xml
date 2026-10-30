@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ backup rules (android:dataExtractionRules). Android 11 and lower: backup_rules.xml (keep both
+  in step).
+
+  All of LUPU-FIT's data lives in the WebView's storage under the app's private folder:
+  - app_webview/Default/IndexedDB: the PGlite (PostgreSQL) database: profile, plans, workouts, food log,
+    weight, the hidden device account.
+  - app_webview/Default/Local Storage: app settings on this phone (language, theme, drafts, workout settings).
+  (Older WebView versions kept them directly under app_webview/; both places are listed.)
+  Nothing else is backed up: WebView caches, the reminder schedule (rebuilt on the next start) and the
+  cookie (the app signs in again by itself) are not needed.
+
+  Cloud backup (the person's Google account): only when the backup can be end-to-end encrypted (a screen
+  lock is set), and Android stops it while the data is over 25 MB (it continues when it is under again).
+  Phone-to-phone transfer has no such limit.
+-->
+<data-extraction-rules>
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <include domain="root" path="app_webview/Default/IndexedDB/" />
+        <include domain="root" path="app_webview/Default/Local Storage/" />
+        <include domain="root" path="app_webview/IndexedDB/" />
+        <include domain="root" path="app_webview/Local Storage/" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="root" path="app_webview/Default/IndexedDB/" />
+        <include domain="root" path="app_webview/Default/Local Storage/" />
+        <include domain="root" path="app_webview/IndexedDB/" />
+        <include domain="root" path="app_webview/Local Storage/" />
+    </device-transfer>
+</data-extraction-rules>

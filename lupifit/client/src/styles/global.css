@@ -20,7 +20,9 @@
   --space-10: 40px;
   --space-12: 48px;
   --sidebar-w: 240px;
-  --topbar-h: 56px;
+  /* Includes the status bar when the page draws under it (Android app edge-to-edge, iOS standalone); 0 elsewhere. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --topbar-h: calc(56px + var(--safe-top));
   --bottomnav-h: 64px;
   --dock-h: 64px;
   --tap: 44px;
@@ -393,6 +395,8 @@ video {
   justify-content: space-between;
   gap: var(--space-3);
   padding-inline: var(--space-4);
+  /* The bar's own background continues behind the status bar. */
+  padding-block-start: var(--safe-top);
   background: var(--bg);
   border-block-end: 1px solid var(--divider);
 }
@@ -613,6 +617,7 @@ video {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  padding-block: var(--safe-top) env(safe-area-inset-bottom);
 }
 .public-header {
   display: flex;
@@ -1480,7 +1485,7 @@ video {
   background: var(--surface);
   color: var(--text);
   width: calc(100% - 24px);
-  max-height: calc(100dvh - 48px);
+  max-height: calc(100dvh - 48px - var(--safe-top));
   box-shadow: var(--shadow-overlay);
 }
 .modal[open] {

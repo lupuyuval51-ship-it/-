@@ -102,8 +102,8 @@ precache (the Android app does not register the service worker). Server code is 
   "Download my data" is not offered separately: the backup file is the readable export.
 - **Reminders**: `platform.reminders` (the Android app's local notifications: permission asked only from a
   tap, how to allow them when blocked) where supported, otherwise the in-app reminders as on the website.
-  `PhoneReminderSync` (AppShell) re-syncs the phone's schedule on start, on resume, when the settings change
-  and when today's data changes (finished workout, logged meal). No Web Push UI or calls.
+  `PhoneReminderSync` (mounted in `main.tsx`) re-syncs the phone's schedule on start, on resume, when the
+  settings change and after any successful change (finished workout, logged meal). No Web Push UI or calls.
 - **Coach**: "Coach", not "AI coach"; one line says the answers come from the person's data and the
   exercise library and that AI conversations are not part of this version; no daily message counter (the
   built-in coach costs nothing; `COACH_DAILY_MESSAGE_LIMIT` is 10000 in the device env).
@@ -113,16 +113,31 @@ precache (the Android app does not register the service worker). Server code is 
   connection".
 - Every file the app saves goes through `platform.saveFile` (backup, website export).
 
-## Limits of device mode (surfaced in the UI; docs follow)
+## The Android app
+
+`dist/device` is the Capacitor app's web content (`capacitor.config.ts`, native project `android/`, build
+`android/build-release.sh`, docs `docs/android.md`). Inside the app `main.tsx` does not register the service
+worker, and `features/device/start.ts → installNative` loads `platform/native/` (only when `isNativeApp()`):
+saving files through the share sheet, phone reminders as local notifications (synced by
+`features/gamification/PhoneReminderSync`), `platform.onResume`, the back button and the bar icon colours.
+The page's CSP meta tag needs nothing extra for Capacitor: where the WebView supports it (any current Android
+System WebView) Capacitor adds its bridge script with `addDocumentStartJavaScript`, plugin calls go through a
+message channel and the safe-area values arrive through `evaluateJavascript`, none of which the CSP restricts.
+(On a WebView too old for `addDocumentStartJavaScript`, Capacitor would inject an inline script instead, which
+the CSP blocks; not checked on such a device.)
+
+## Limits of device mode (surfaced in the UI and in `docs/android.md`)
 
 - The data lives only on this phone. It is lost when the app is uninstalled or the phone is lost,
   unless a backup file was saved. There is no sync between devices. Android's own backup may restore app
-  data on a new phone, but that depends on the phone's settings and on the data's size (the Android stage
-  decides `allowBackup` / data extraction rules); the UI says it is not guaranteed.
+  data on a new phone (`allowBackup` with data extraction rules that include only the WebView's IndexedDB
+  and Local Storage, cloud copies only when end-to-end encrypted, plus phone-to-phone transfer), but that
+  depends on the phone's settings and on the data's size; the UI says it is not guaranteed.
 - The AI coach and meal-photo analysis need a server-side API key and are not available; the built-in
   coach works.
 - Barcode lookup needs internet; it sends only the barcode to Open Food Facts.
-- Web Push needs a server; reminders use the phone's local notifications instead.
+- Web Push needs a server; in the Android app reminders are the phone's local notifications instead (in the
+  device build in a browser they show only while the app is open).
 
 ## E2E (`npm run test:e2e:device`)
 

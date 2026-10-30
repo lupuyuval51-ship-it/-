@@ -3,7 +3,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { Icon, LoadingState, LogoMark, type IconName } from '../components/ui';
 import { NotificationBell } from '../features/gamification/NotificationBell';
-import { PhoneReminderSync } from '../features/gamification/PhoneReminderSync';
 import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
 import { OutboxIndicator } from '../features/offline/OutboxIndicator';
 import { useOutboxSync } from '../features/offline/hooks';
@@ -31,7 +30,7 @@ export function AppShell() {
   const online = useOnline();
   useOutboxSync();
   useWorkoutPrefsSync();
-  // Web Push needs a server: device mode has none (the phone's own notifications are PhoneReminderSync).
+  // Web Push needs a server: device mode has none (the phone's own notifications are PhoneReminderSync, in main.tsx).
   usePushSync(isDeviceMode ? undefined : user?.id);
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,7 +135,6 @@ export function AppShell() {
         ))}
       </nav>
       <ReminderScheduler />
-      <PhoneReminderSync />
     </div>
   );
 }

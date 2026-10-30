@@ -21,10 +21,12 @@ export interface ReminderSyncContext {
   locale: Locale;
   /** The user's local date, YYYY-MM-DD. */
   today: string;
-  /** A workout was finished today: today's workout reminder is not needed. */
+  /** A workout was finished today (or one started today is still open): today's workout reminder is not needed. */
   workoutDoneToday: boolean;
   /** Meal times (HH:MM from the settings) already covered by a logged meal today. */
   loggedMealTimes: string[];
+  /** IANA time zone the times and `today` are in (the account's). Default: the phone's own time zone. */
+  timeZone?: string;
 }
 
 export interface Reminders {
@@ -41,4 +43,9 @@ export interface Platform {
   /** Saves a file the app produced (backup, export). */
   saveFile(fileName: string, mime: string, data: string | Blob | Uint8Array): Promise<SaveFileResult>;
   reminders: Reminders;
+  /**
+   * Calls `listener` whenever the app comes back to the foreground (web: the tab becomes visible again;
+   * Android: the app is resumed). Returns the unsubscribe function.
+   */
+  onResume(listener: () => void): () => void;
 }

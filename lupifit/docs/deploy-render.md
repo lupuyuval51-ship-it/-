@@ -77,10 +77,14 @@
 
 ## 7. אפליקציית האנדרואיד
 
-האפליקציה ב-Google Play היא קליפה שפותחת את האתר שלכם במסך מלא, ולכן היא צריכה את כתובת ה-`onrender.com` הקבועה.
+> יש שתי אפליקציות אנדרואיד. האפליקציה של **מצב המכשיר** (`android/`) לא צריכה שרת בכלל: הנתונים נשמרים בטלפון,
+> ואין צורך בשום חלק מהמדריך הזה כדי לבנות אותה (ראו [android.md](android.md)). החלק הזה מתאים רק לאפליקציה
+> שפותחת את האתר (`android-twa/`).
+
+אפליקציית האתר ב-Google Play היא קליפה שפותחת את האתר שלכם במסך מלא, ולכן היא צריכה את כתובת ה-`onrender.com` הקבועה.
 
 1. בונים את האפליקציה עם הכתובת (בלי `https://`):
-   `./android/build-aab.sh --host lupu-fit-….onrender.com …`
+   `./android-twa/build-aab.sh --host lupu-fit-….onrender.com …`
    (כל השלבים והדרישות ב-[android.md](android.md)).
 2. אחרי ההעלאה הראשונה ל-Google Play מעתיקים את טביעת ה-SHA-256 של **App signing key certificate**
    (Play Console → Test and release → App integrity) ומוסיפים אותה ב-Render:
@@ -109,7 +113,7 @@
 ## 10. עדכון גרסה
 
 Render בונה ומעלה גרסה חדשה לבד בכל פעם שמתעדכנים קבצים תחת `lupifit/` בענף שבחרתם
-(שינויים בתיקיות `android`, `docs` ו-`e2e` לא מפעילים בנייה).
+(שינויים בתיקיות `android`, `android-twa`, `docs` ו-`e2e` לא מפעילים בנייה).
 אפשר גם להפעיל ידנית: **Dashboard → lupu-fit → Manual Deploy → Deploy latest commit**.
 
 ## אם משהו לא עובד

@@ -29,4 +29,13 @@ export const webReminders: Reminders = {
   sync: async () => undefined,
 };
 
-export const webPlatform: Platform = { saveFile: saveFileWeb, reminders: webReminders };
+/** The tab (or installed web app) became visible again. */
+export function onResumeWeb(listener: () => void): () => void {
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') listener();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  return () => document.removeEventListener('visibilitychange', onVisible);
+}
+
+export const webPlatform: Platform = { saveFile: saveFileWeb, reminders: webReminders, onResume: onResumeWeb };

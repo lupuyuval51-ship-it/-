@@ -111,16 +111,6 @@ const device = {
       snapshot_invalid: 'This backup file holds values the app cannot use. Nothing on this phone was changed.',
     },
   },
-  reminders: {
-    phoneLabel: 'Phone notifications',
-    granted: 'Reminders arrive as notifications on this phone, even when LUPU-FIT is closed. No internet is needed.',
-    prompt: 'Allow notifications so your reminders can arrive while LUPU-FIT is closed.',
-    allow: 'Allow notifications',
-    denied: 'Notifications are off for LUPU-FIT. To get reminders, open Android Settings → Apps → LUPU-FIT → Notifications and allow them.',
-    grantedToast: 'Notifications allowed',
-    deniedToast: 'Notifications were not allowed',
-    remindersOff: 'Reminders are switched off above, so no notifications are set.',
-  },
   coach: {
     title: 'Coach',
     notice: 'The coach works on this phone: its answers come from your own data and the LUPU-FIT exercise library. AI conversations are not part of this version.',
@@ -136,6 +126,10 @@ const device = {
   },
   errors: {
     network: 'Something went wrong on this phone. Try again; if it keeps happening, close LUPU-FIT and open it again.',
+  },
+  /** Android app: Android's share sheet opened to save a file (backup, export). */
+  saveFile: {
+    dialogTitle: 'Save or send the file',
   },
 };
 

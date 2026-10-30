@@ -5,7 +5,8 @@
  *   server, no database service, one hidden account, data only on this device. A build-time constant,
  *   so server-mode builds drop every device-only branch.
  * - `isNativeApp()`: running inside the Android app (Capacitor), not in a browser tab.
- * - `platform`: saving files and phone reminders; web implementations unless the native app installed its own.
+ * - `platform`: saving files, phone reminders and "the app came back" (`onResume`); web implementations
+ *   unless the Android app installed its own (./native, loaded by features/device/start only inside the app).
  */
 import { webPlatform } from './web';
 import type { Platform } from './types';
@@ -43,6 +44,7 @@ export const platform: Platform = {
     request: () => current.reminders.request(),
     sync: (settings, ctx) => current.reminders.sync(settings, ctx),
   },
+  onResume: (listener) => current.onResume(listener),
 };
 
 /** The Android app calls this once at start-up with its native implementations (missing parts stay web). */

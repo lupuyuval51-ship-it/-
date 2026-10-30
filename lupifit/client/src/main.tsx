@@ -8,6 +8,7 @@ import { createQueryClient } from './api/queryClient';
 import { App, router } from './App';
 import { AuthProvider } from './auth/AuthProvider';
 import { ConfirmProvider, ToastProvider } from './components/ui';
+import { PhoneReminderSync } from './features/gamification/PhoneReminderSync';
 import { listenForPushNavigation } from './features/push/hooks';
 import { I18nProvider } from './i18n';
 import { isDeviceMode, isNativeApp } from './platform';
@@ -21,6 +22,9 @@ const app = (
       <ConfirmProvider>
         <AuthProvider>
           <App />
+          {/* Android app: keeps the phone's scheduled reminders in step (no-op elsewhere). Outside the
+              router's signed-in shell so a fresh account (after deleting one) also clears them. */}
+          <PhoneReminderSync />
         </AuthProvider>
       </ConfirmProvider>
     </ToastProvider>
@@ -37,8 +41,10 @@ const render = (content: ReactNode) =>
 if (isDeviceMode) {
   // Device mode (a build-time constant): the server runs inside the app, in a worker. The app renders once
   // it is ready; until then the gate shows what it is doing. Server-mode builds drop this branch.
-  void import('./features/device/start').then(({ startDevice, DeviceGate }) => {
+  void import('./features/device/start').then(async ({ startDevice, DeviceGate, installNative }) => {
     const device = startDevice();
+    // The Android app's native parts (no-op in a browser), installed before the first render uses them.
+    await installNative({ navigate: (path, opts) => void router.navigate(path, opts) });
     render(<DeviceGate source={device}>{app}</DeviceGate>);
   });
 } else {

@@ -1,0 +1,39 @@
+// Top-level build file. The app module is app/; Capacitor and its plugins are included from node_modules
+// (capacitor.settings.gradle, written by `npx cap sync`).
+
+buildscript {
+    repositories {
+        google()
+        // Google's mirror of Maven Central first: Maven Central itself rate-limits busy build machines (HTTP 429).
+        maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.0'
+    }
+}
+
+apply from: "variables.gradle"
+
+allprojects {
+    repositories {
+        google()
+        maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
+        mavenCentral()
+    }
+}
+
+// Capacitor and its plugins (in node_modules) declare their own build-script repositories (google(),
+// mavenCentral()). This runs before their build files, so the mirror comes first for them too.
+subprojects {
+    buildscript {
+        repositories {
+            google()
+            maven { url 'https://maven-central.storage-download.googleapis.com/maven2/' }
+        }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}
