@@ -9,8 +9,10 @@
  * 3. Loads the server (a separate chunk, so a locked or unsupported copy never downloads it), boots it
  *    and answers requests. Requests that arrive while it boots wait.
  */
-import { DEVICE_LOCK, type BootState, type BootStep, type InitMessage, type PageMessage, type RequestMessage, type WorkerMessage } from './protocol';
+import { DEVICE_ENV } from '../env';
+import { DEVICE_LOCK, type BootState, type BootStep, type EraseMessage, type InitMessage, type PageMessage, type RequestMessage, type WorkerMessage } from './protocol';
 import type { DeviceRuntime } from './runtime';
+import { deleteDeviceStorage, idbDataDir } from './storage';
 
 /** The dedicated worker scope (the client tsconfig has the DOM lib, not the webworker one). */
 const scope = self as unknown as {
@@ -55,6 +57,25 @@ async function answer(msg: RequestMessage): Promise<void> {
 
 const pending: RequestMessage[] = [];
 
+const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
+/** The stored database, deleted while this worker holds the lock and nothing has it open. */
+async function deleteStorage(): Promise<void> {
+  const dataDir = idbDataDir(DEVICE_ENV.DATABASE_URL ?? '');
+  if (dataDir) await deleteDeviceStorage(dataDir);
+}
+
+async function erase(msg: EraseMessage): Promise<void> {
+  try {
+    if (runtime) await (await runtime).erase();
+    // Not started (another tab has it open, or the start failed): there is no open copy here to close.
+    else throw new Error('The device database is not open here');
+    post({ type: 'erased', id: msg.id, ok: true });
+  } catch (err) {
+    post({ type: 'erased', id: msg.id, ok: false, message: errorText(err) });
+  }
+}
+
 scope.addEventListener('message', (event) => {
   const msg = event.data;
   if (msg?.type === 'init') {
@@ -69,6 +90,7 @@ scope.addEventListener('message', (event) => {
     if (runtime) void answer(msg);
     else pending.push(msg);
   }
+  if (msg?.type === 'erase') void erase(msg);
 });
 
 function unsupported(): string | null {
@@ -88,6 +110,17 @@ async function holdLockAndRun(): Promise<void> {
     const started = performance.now();
     report({ state: 'booting', step: 'database', firstLaunch: false });
     const message = await initReceived;
+    if (message.erase) {
+      // An erase the last session asked for but could not finish: nothing is open yet, so delete now.
+      try {
+        await deleteStorage();
+        post({ type: 'erased', id: 0, ok: true });
+      } catch (err) {
+        post({ type: 'erased', id: 0, ok: false, message: errorText(err) });
+        report({ state: 'failed', reason: 'storage', detail: errorText(err) });
+        return;
+      }
+    }
     runtime = import('./runtime').then(({ bootDeviceRuntime }) =>
       bootDeviceRuntime(report, () => message.account),
     );

@@ -43,6 +43,20 @@ export interface InitMessage {
   type: 'init';
   /** Used only when the device account is created on first launch. */
   account: { locale: Locale; timezone: string; displayName: string };
+  /**
+   * "Erase all data on this phone" could not finish last time (see `EraseMessage`): delete the stored
+   * database before opening it, then start fresh. The worker answers with `erased` (id 0).
+   */
+  erase?: boolean;
+}
+
+/**
+ * "Erase all data on this phone": after the requests already sent, the worker closes the database and
+ * deletes its storage (IndexedDB); it answers nothing else afterwards, and the page reloads.
+ */
+export interface EraseMessage {
+  type: 'erase';
+  id: number;
 }
 
 export interface RequestMessage {
@@ -55,7 +69,7 @@ export interface RequestMessage {
   body: string | null;
 }
 
-export type PageMessage = InitMessage | RequestMessage;
+export type PageMessage = InitMessage | RequestMessage | EraseMessage;
 
 export interface StateMessage {
   type: 'state';
@@ -77,7 +91,51 @@ export interface RequestFailedMessage {
   message: string;
 }
 
-export type WorkerMessage = StateMessage | ResponseMessage | RequestFailedMessage;
+/** Answer to `erase` (`id` of the message), or `id` 0 for the erase asked for in `init`. */
+export interface ErasedMessage {
+  type: 'erased';
+  id: number;
+  ok: boolean;
+  message?: string;
+}
+
+export type WorkerMessage = StateMessage | ResponseMessage | RequestFailedMessage | ErasedMessage;
 
 /** Web Locks name held by the worker for its whole life: one open copy of the database per device. */
 export const DEVICE_LOCK = 'lupufit-device-db';
+
+/**
+ * Device routes, answered by the worker itself (not by the server code; the hosted server has no such
+ * routes): the whole device database of the device account as a snapshot, and restoring one.
+ */
+export const DEVICE_SNAPSHOT_PATH = '/api/device/snapshot';
+export const DEVICE_RESTORE_PATH = '/api/device/restore';
+
+export const SNAPSHOT_FORMAT = 'lupu-fit-device-data';
+
+/**
+ * Everything stored for the device account, as database rows (column names as in the database). It goes
+ * into the backup file (`device.snapshot`) next to the readable account export, and a restore puts it back
+ * exactly, replacing what is on the phone (see worker/snapshot.ts).
+ */
+export interface DeviceSnapshot {
+  format: typeof SNAPSHOT_FORMAT;
+  version: 1;
+  /** The newest database migration of the app that made it (a newer one cannot be restored by an older app). */
+  schema: string;
+  createdAt: string;
+  /** Name and preferences (never the e-mail address or password of the hidden account). */
+  user: Record<string, unknown>;
+  /** Rows per table, e.g. `workout_sessions`. */
+  tables: Record<string, Record<string, unknown>[]>;
+  /** Shared foods (built-in, Open Food Facts) that the diary and saved meals point to, matched again on restore. */
+  sharedFoods: Record<string, unknown>[];
+}
+
+export interface RestoreSummary {
+  plans: number;
+  workouts: number;
+  foods: number;
+  weights: number;
+  coachThreads: number;
+}

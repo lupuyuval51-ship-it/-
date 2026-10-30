@@ -1,5 +1,6 @@
 import { ApiError } from '../api/client';
 import type { I18nValue } from '../i18n';
+import { isDeviceMode } from '../platform';
 
 /**
  * Human-readable, localized message for any thrown error. Looks up
@@ -8,6 +9,8 @@ import type { I18nValue } from '../i18n';
  */
 export function errorMessage(err: unknown, i18n: Pick<I18nValue, 'tx' | 't'>, namespace?: string): string {
   if (err instanceof ApiError) {
+    // Device mode: the server runs inside the app, so a "network" error is the app itself failing, not the connection.
+    if (isDeviceMode && err.isNetwork) return i18n.t('device.errors.network');
     const generic = i18n.t('errors.generic');
     const global = i18n.tx(`errors.${err.code}`, undefined, generic);
     return namespace ? i18n.tx(`${namespace}.errors.${err.code}`, undefined, global) : global;

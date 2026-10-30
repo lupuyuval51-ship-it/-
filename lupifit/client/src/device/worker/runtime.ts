@@ -14,6 +14,9 @@
  * confirms is stored. What a read request writes on the side (the session's last-seen time) and the
  * idempotency record a handler writes after answering are stored by the next write request's flush.
  *
+ * Device routes (protocol.ts): the full backup snapshot and its restore are answered here (worker/snapshot.ts),
+ * in the same queue. `erase()` closes the database and deletes its storage after the queued requests.
+ *
  * `./install-globals` must stay the first import: the server modules read `process.env` when they load.
  */
 import '../install-globals';
@@ -23,12 +26,15 @@ import { migrationStatus } from '../../../../server/src/db/migrate';
 import { db } from '../../../../server/src/db/pool';
 import { prepareDeviceDatabase } from '../database';
 import { DEVICE_MIGRATIONS } from '../migrations';
+import { DEVICE_ENV } from '../env';
 import { createDispatcher, type Application, type DispatchResponse } from '../shims/express';
 import { randomBytes, randomUUID } from '../shims/crypto';
-import { configureDeviceDatabase, flushDeviceDatabase } from '../shims/pg';
+import { closeDeviceDatabase, configureDeviceDatabase, flushDeviceDatabase } from '../shims/pg';
 import { createAccountStore } from './account-store';
-import type { BootFailure, BootState } from './protocol';
+import { DEVICE_RESTORE_PATH, DEVICE_SNAPSHOT_PATH, type BootFailure, type BootState } from './protocol';
 import { DeviceSession, DeviceSessionError, type AccountProfile, type PageRequest } from './session';
+import { createSnapshot, restoreSnapshot, SnapshotError } from './snapshot';
+import { deleteDeviceStorage, idbDataDir } from './storage';
 
 /** What `server/src/index.ts` deletes every hour; the app runs it once per start. */
 export async function deviceMaintenance(): Promise<void> {
@@ -46,6 +52,48 @@ const READ_ONLY = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 export interface DeviceRuntime {
   handle(request: PageRequest): Promise<DispatchResponse>;
+  /**
+   * "Erase all data on this phone": after the requests already queued, closes the database and deletes
+   * its storage. Every later request fails (the page reloads and the next start is a first launch).
+   */
+  erase(): Promise<void>;
+}
+
+function jsonResponse(status: number, body: unknown): DispatchResponse {
+  return { status, headers: [['content-type', 'application/json; charset=utf-8'], ['cache-control', 'no-store']], body: JSON.stringify(body) };
+}
+
+const errorResponse = (status: number, code: string, message: string) => jsonResponse(status, { error: { code, message } });
+
+/** PostgreSQL refused a value (constraint, type, foreign key): the file's data, not the app, is at fault. */
+const isDataError = (err: unknown) => typeof (err as { code?: unknown })?.code === 'string' && /^(22|23)/.test((err as { code: string }).code);
+
+/** The device routes (protocol.ts): answered here, with the device account's id, not by the server code. */
+async function deviceRoute(session: DeviceSession, request: PageRequest): Promise<DispatchResponse | null> {
+  const path = request.url.split('?')[0];
+  const method = request.method.toUpperCase();
+  if (path !== DEVICE_SNAPSHOT_PATH && path !== DEVICE_RESTORE_PATH) return null;
+  await session.ensure();
+  const userId = session.userId;
+  if (!userId) return errorResponse(401, 'unauthorized', 'No device account');
+  if (path === DEVICE_SNAPSHOT_PATH && method === 'GET') return jsonResponse(200, await db.tx((tx) => createSnapshot(tx, userId)));
+  if (path === DEVICE_RESTORE_PATH && method === 'POST') {
+    let body: unknown;
+    try {
+      body = JSON.parse(request.body ?? '');
+    } catch {
+      return errorResponse(400, 'not_a_snapshot', 'The body is not JSON');
+    }
+    try {
+      const restored = await db.tx((tx) => restoreSnapshot(tx, userId, body));
+      return jsonResponse(200, { ok: true, restored });
+    } catch (err) {
+      if (err instanceof SnapshotError) return errorResponse(400, err.code, err.message);
+      if (isDataError(err)) return errorResponse(400, 'snapshot_invalid', (err as Error).message.slice(0, 200));
+      throw err;
+    }
+  }
+  return errorResponse(405, 'method_not_allowed', 'Method not allowed');
 }
 
 class BootError extends Error {
@@ -114,14 +162,26 @@ export async function bootDeviceRuntime(report: (state: BootState) => void, prof
     await yieldTask();
     if (!READ_ONLY.has(method.toUpperCase())) await flushDeviceDatabase();
   };
+  let erased = false;
   return {
     handle(request) {
       const run = tail.then(async () => {
+        if (erased) throw new Error('The data on this phone was erased');
         try {
-          return await session.handle(request);
+          return (await deviceRoute(session, request)) ?? (await session.handle(request));
         } finally {
           await settle(request.method);
         }
+      });
+      tail = run.catch(() => undefined);
+      return run;
+    },
+    erase() {
+      const run = tail.then(async () => {
+        erased = true;
+        await closeDeviceDatabase();
+        const dataDir = idbDataDir(DEVICE_ENV.DATABASE_URL ?? '');
+        if (dataDir) await deleteDeviceStorage(dataDir);
       });
       tail = run.catch(() => undefined);
       return run;

@@ -4,12 +4,18 @@ import { barcodeSchema } from '@shared/schemas/nutrition';
 import type { FoodDTO } from '@shared/types';
 import { ApiError } from '../../../api/client';
 import { Button, Card, Notice, TextField } from '../../../components/ui';
+import { useNetworkOnline } from '../../../hooks/useOnline';
 import { useI18n } from '../../../i18n';
 import { errorMessage } from '../../../lib/errors';
+import { isDeviceMode } from '../../../platform';
 import { lookupBarcode } from '../api';
 import { BarcodeScanner, barcodeScanningSupported } from '../BarcodeScanner';
 
-/** Barcode lookup: typed manually or scanned with the camera (when the browser supports it). */
+/**
+ * Barcode lookup: typed manually or scanned with the camera (when the browser supports it). In device mode
+ * the lookup is the one thing that needs the internet (the app asks Open Food Facts directly, sending only
+ * the barcode), so it says so, and says clearly when the phone is offline.
+ */
 export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO): void; onCreateCustom(barcode: string): void }) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -17,6 +23,8 @@ export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO)
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const canScan = barcodeScanningSupported();
+  const network = useNetworkOnline();
+  const offline = isDeviceMode && !network;
 
   const lookup = useMutation({
     mutationFn: (c: string) => lookupBarcode(c),
@@ -52,10 +60,19 @@ export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO)
   };
 
   const notFound = lookup.error instanceof ApiError && (lookup.error.code === 'barcode_not_found' || lookup.error.code === 'barcode_incomplete');
+  const unreachable = isDeviceMode && lookup.error instanceof ApiError && lookup.error.code === 'barcode_lookup_failed';
 
   return (
     <Card title={t('nutrition.barcode.title')} subtitle={t('nutrition.barcode.intro')}>
       <div className="stack">
+        {isDeviceMode && <p className="small muted">{t('device.nutrition.barcodeInternet')}</p>}
+        <div aria-live="polite">
+          {offline && (
+            <Notice tone="warning" icon="warning">
+              {t('device.nutrition.barcodeOffline')}
+            </Notice>
+          )}
+        </div>
         <form className="nutri-barcode-form" onSubmit={submit} noValidate>
           <TextField
             label={t('nutrition.barcode.code')}
@@ -67,21 +84,21 @@ export function BarcodeTab({ onFound, onCreateCustom }: { onFound(food: FoodDTO)
             error={fieldError}
             name="barcode"
           />
-          <Button type="submit" variant="primary" icon="search" loading={lookup.isPending}>
+          <Button type="submit" variant="primary" icon="search" loading={lookup.isPending} disabled={offline}>
             {t('nutrition.barcode.lookup')}
           </Button>
         </form>
         {canScan ? (
-          <Button icon="camera" onClick={() => setScanning(true)}>
+          <Button icon="camera" onClick={() => setScanning(true)} disabled={offline}>
             {t('nutrition.barcode.scan')}
           </Button>
         ) : (
           <Notice tone="info">{t('nutrition.barcode.unsupported')}</Notice>
         )}
         <div aria-live="polite">
-          {lookup.isError && (
+          {lookup.isError && !offline && (
             <Notice tone={notFound ? 'warning' : 'danger'}>
-              <p>{errorMessage(lookup.error, i18n, 'nutrition')}</p>
+              <p>{unreachable ? t('device.nutrition.barcodeFailed') : errorMessage(lookup.error, i18n, 'nutrition')}</p>
               {notFound && (
                 <Button size="sm" icon="plus" onClick={() => onCreateCustom(code)}>
                   {t('nutrition.barcode.createCustom')}

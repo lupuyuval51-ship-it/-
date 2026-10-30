@@ -14,6 +14,7 @@ import { focusField, localizeIssues, serverFieldErrors, type FieldErrors } from 
 import { useI18n, translate } from '../../i18n';
 import { browserTimeZone } from '../../lib/dates';
 import { errorMessage } from '../../lib/errors';
+import { isDeviceMode } from '../../platform';
 import { SectionCard, useSectionForm } from './sectionForm';
 
 /** Used when the browser cannot list its supported time zones. */
@@ -110,8 +111,8 @@ export function AccountSection({ user }: { user: UserDTO }) {
   return (
     <SectionCard
       id="settings-account"
-      title={t('settings.account.title')}
-      subtitle={t('settings.account.subtitle')}
+      title={t(isDeviceMode ? 'device.settings.preferencesTitle' : 'settings.account.title')}
+      subtitle={t(isDeviceMode ? 'device.settings.preferencesSubtitle' : 'settings.account.subtitle')}
       dirty={form.dirty}
       saving={mutation.isPending}
       error={formError}
@@ -136,7 +137,8 @@ export function AccountSection({ user }: { user: UserDTO }) {
             name="displayName"
           />
         </FieldSlot>
-        <TextField label={t('settings.account.email')} value={user.email} readOnly dir="ltr" hint={t('settings.account.emailHint')} name="email" />
+        {/* Device mode: the hidden device account's address is not the person's; there is nothing to show. */}
+        {!isDeviceMode && <TextField label={t('settings.account.email')} value={user.email} readOnly dir="ltr" hint={t('settings.account.emailHint')} name="email" />}
       </div>
       <div className="settings-prefs">
         <FieldSlot name="locale">

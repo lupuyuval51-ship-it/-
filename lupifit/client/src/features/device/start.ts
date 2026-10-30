@@ -4,7 +4,9 @@
  */
 import { setTransport } from '../../api/client';
 import { initialLocale, translate } from '../../i18n';
+import { storage } from '../../lib/storage';
 import { connectDevice, type DeviceConnection } from './connection';
+import { ERASE_FLAG, setDeviceControl } from './control';
 
 export { DeviceGate } from './DeviceGate';
 
@@ -31,15 +33,30 @@ export async function requestPersistentStorage(): Promise<boolean> {
   }
 }
 
+/** The start-up screen uses the theme of the last session (AuthProvider applies the account's once it is known). */
+function applyLastTheme(): void {
+  const pref = storage.get<string>('fitai.theme') ?? 'system';
+  const light = window.matchMedia?.('(prefers-color-scheme: light)').matches ?? false;
+  document.documentElement.dataset.theme = pref === 'light' || pref === 'dark' ? pref : light ? 'light' : 'dark';
+}
+
 export function startDevice(): DeviceConnection {
+  applyLastTheme();
   const worker = new Worker(new URL('../../device/worker/entry.ts', import.meta.url), { type: 'module', name: 'lupufit-device' });
   const locale = initialLocale();
-  const connection = connectDevice(worker, {
-    locale,
-    timezone: timeZone(),
-    displayName: translate(locale, 'device.defaultName') ?? 'LUPU-FIT',
-  });
+  const connection = connectDevice(
+    worker,
+    { locale, timezone: timeZone(), displayName: translate(locale, 'device.defaultName') ?? 'LUPU-FIT' },
+    {
+      // "Erase all data on this phone" that the last session could not finish: the worker deletes first.
+      eraseFirst: storage.get<boolean>(ERASE_FLAG) === true,
+      onErasedAtStart: (ok) => {
+        if (ok) storage.remove(ERASE_FLAG);
+      },
+    },
+  );
   setTransport(connection.transport);
+  setDeviceControl({ erase: () => connection.erase() });
   void requestPersistentStorage();
   // Start-up time, for measurements (`performance.getEntriesByName('lupufit:device-ready')`).
   const unsubscribe = connection.subscribe(() => {

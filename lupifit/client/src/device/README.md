@@ -42,10 +42,17 @@ A request that never ends would hold up the ones after it; the server's handlers
 | `worker/runtime.ts` | worker | `install-globals` first, then: PGlite (`idb://lupufit-device`), migrations, content seed, exercise catalog, the hourly maintenance deletes of `server/src/index.ts` (once per start), `createApp({ serveClient: false })`, the device account. Requests are handled **one at a time**, with a macrotask between two requests (the idempotency record a handler writes after answering lands first). |
 | `worker/session.ts` | worker | The hidden device account: created through the server's own register route on first launch (random `device-<uuid>@device.lupufit` and password), session cookie and CSRF token attached to every request, `Set-Cookie` absorbed (the page never sees the cookie), one re-sign-in and retry when the session is gone. Login/register/password routes answer `not_available_on_device`; sign-out is a no-op; account deletion gets the password added here and is followed by a fresh account. |
 | `worker/account-store.ts` | worker | The credentials: one row in `device.account` inside the PGlite database (IndexedDB), never localStorage. Not a migration: the hosted server never has this table. |
-| `worker/protocol.ts` | both | Message types (no runtime code, so the page bundle never pulls in server code). |
+| `worker/snapshot.ts` | worker | Full backup and restore of the device database: `GET /api/device/snapshot` (every row of the device account's user tables, as stored, plus the shared foods they point to) and `POST /api/device/restore` (replaces the phone's data with a snapshot in ONE transaction: all or nothing). Answered by `runtime.ts` itself, not by the server code (the hosted server has no such routes). Only known tables and existing columns are written; the account keeps its id, e-mail and password; built-in foods are matched by slug, Open Food Facts products by barcode. `NOT_IN_SNAPSHOT` lists what is left out and why (sessions, reset tokens, idempotency records, Web Push). |
+| `worker/storage.ts` | worker | The database's IndexedDB storage (`/pglite/lupufit-device`): deleted by "Erase all data on this phone" while the worker holds the lock and the database is closed. |
+| `worker/summary.ts` | both | What a snapshot holds (plans, finished workouts, food entries, weigh-ins, coach conversations). Pure. |
+| `worker/protocol.ts` | both | Message types (no runtime code apart from constants, so the page bundle never pulls in server code). `erase` / `erased` messages; `init.erase` asks the next start to delete the database first when an erase could not finish. |
 | `features/device/connection.ts` | page | fetch-shaped `transport` for `api/client.ts` (returns real `Response`s, honours `AbortSignal`) and the boot-state store. |
 | `features/device/DeviceGate.tsx` | page | Start-up screen: booting (with the first-launch note), locked by another tab, failed (reason, retry, technical detail). Renders the app once ready; there is no login screen. |
-| `features/device/start.ts` | page | Starts the worker, installs the transport, asks once for persistent storage (`navigator.storage.persist()`), marks `lupufit:device-ready` (boot timings). |
+| `features/device/start.ts` | page | Starts the worker, installs the transport, asks once for persistent storage (`navigator.storage.persist()`), applies the last theme (so the start-up screen matches the app), marks `lupufit:device-ready` (boot timings). |
+| `features/device/control.ts` | page | `eraseThisPhone()` (the worker deletes the database, then every `fitai.*` key goes, then the app restarts as a first launch; if the worker could not delete it, `fitai.device.eraseOnStart` makes the next start do it before opening it), `reloadAfterRestore()`, the welcome flag (`fitai.device.welcomed` = device account id) and the last backup time. In every build (tiny); the device start module plugs the worker in. |
+| `features/device/backup.ts`, `DeviceRestore.tsx` | page | The backup file (the website's format: readable account export + `device.snapshot`, the hidden account's e-mail left out), saved with `platform.saveFile`; reading one and restoring it (confirmation lists what it holds and, in the settings, that it replaces what is on the phone). A website backup (no snapshot) is refused with an explanation. |
+| `pages/device/WelcomePage.tsx` | page | First run: asks only for a name (and takes the language chosen on the screen), then the questionnaire; or restore a backup file. `/onboarding` redirects here until it is done (`RequireWelcome`). |
+| `pages/settings/DeviceDataSection.tsx` | page | Settings in device mode: "Your data on this phone" (what that means, backup file, restore, erase with two confirmations) instead of the account, security and privacy cards; privacy/terms links and the questionnaire re-run in their own card. |
 
 Durability and speed: PGlite flushes its in-memory files to IndexedDB after every statement and waits for
 it. In Chromium that made reads 90–500 ms and writes 200–300 ms per request. The app runs the pg shim in
@@ -83,11 +90,44 @@ precache (the Android app does not register the service worker). Server code is 
   the worker runtime (boot steps, device account created / reused / recovered / re-signed-in / deleted,
   one request at a time).
 
-## Limits of device mode (to surface in the UI and docs)
+## Screens in device mode (what differs from the website)
+
+- **First run**: start-up screen (steps as tally marks; "first launch takes a little longer"; "updating
+  your data" after an app update), then the welcome (name only), then the questionnaire. "Open in another
+  tab" and start-up failures explain what to do; nothing is deleted when the app fails to start.
+- **No account**: no login, register, password, "log out of all devices", e-mail or sign-out anywhere
+  (sidebar and questionnaire included).
+- **Settings**: "Your data on this phone" comes first: the data is only here, what loses it, Android's own
+  backup is not guaranteed, the backup file (with the last time one was saved), restore, erase all.
+  "Download my data" is not offered separately: the backup file is the readable export.
+- **Reminders**: `platform.reminders` (the Android app's local notifications: permission asked only from a
+  tap, how to allow them when blocked) where supported, otherwise the in-app reminders as on the website.
+  `PhoneReminderSync` (AppShell) re-syncs the phone's schedule on start, on resume, when the settings change
+  and when today's data changes (finished workout, logged meal). No Web Push UI or calls.
+- **Coach**: "Coach", not "AI coach"; one line says the answers come from the person's data and the
+  exercise library and that AI conversations are not part of this version; no daily message counter (the
+  built-in coach costs nothing; `COACH_DAILY_MESSAGE_LIMIT` is 10000 in the device env).
+- **Food log**: no meal-photo tab. The barcode tab says it needs internet and sends only the barcode to
+  Open Food Facts, and says so clearly when the phone is offline (`useNetworkOnline`).
+- **Errors**: a network error means the app itself failed (`device.errors.network`), never "check your
+  connection".
+- Every file the app saves goes through `platform.saveFile` (backup, website export).
+
+## Limits of device mode (surfaced in the UI; docs follow)
 
 - The data lives only on this phone. It is lost when the app is uninstalled or the phone is lost,
-  unless a backup file was saved. There is no sync between devices.
+  unless a backup file was saved. There is no sync between devices. Android's own backup may restore app
+  data on a new phone, but that depends on the phone's settings and on the data's size (the Android stage
+  decides `allowBackup` / data extraction rules); the UI says it is not guaranteed.
 - The AI coach and meal-photo analysis need a server-side API key and are not available; the built-in
   coach works.
 - Barcode lookup needs internet; it sends only the barcode to Open Food Facts.
 - Web Push needs a server; reminders use the phone's local notifications instead.
+
+## E2E (`npm run test:e2e:device`)
+
+`e2e/device/device.spec.ts` (start-up, reload, airplane mode, second tab, restart, erase all) and
+`e2e/device/ux.spec.ts` (welcome → questionnaire → plan → today's workout logged and finished, daily menu,
+food log without photo tab, barcode offline, weigh-in, progress, coach, settings, all at 390 px with no
+sideways scroll; backup file → erase → restore round trip; Hebrew first launch). With
+`DEVICE_SHOTS=<dir>` they save Hebrew (RTL) screenshots of the main screens.

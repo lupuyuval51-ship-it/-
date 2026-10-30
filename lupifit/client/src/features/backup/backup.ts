@@ -13,6 +13,7 @@ import { quickAddSchema, type QuickAddInput } from '@shared/schemas/nutrition';
 import { bodyWeightSchema, type BodyWeightInput } from '@shared/schemas/progress';
 import type { AccountExportDTO, WorkoutPrefsDTO } from '@shared/types';
 import { DEFAULT_WORKOUT_PREFS } from '@shared/types';
+import type { DeviceSnapshot } from '../../device/worker/protocol';
 import { isOutboxEntry, type OutboxEntry } from '../offline/outbox';
 
 export const BACKUP_FORMAT = 'lupu-fit-backup';
@@ -22,6 +23,11 @@ export const MAX_BACKUP_BYTES = 25 * 1024 * 1024;
 export interface DeviceState {
   outbox: OutboxEntry[];
   workoutPrefs: WorkoutPrefsDTO;
+  /**
+   * Device mode only: the exact copy of everything on the phone (database rows), which a device-mode restore
+   * puts back in full. Checked by the device worker; server mode ignores it.
+   */
+  snapshot?: DeviceSnapshot;
 }
 
 export interface BackupFile {
@@ -62,6 +68,7 @@ export function parseBackup(text: string, sizeBytes: number = text.length): Pars
       device: {
         outbox: Array.isArray(device.outbox) ? device.outbox.filter(isOutboxEntry) : [],
         workoutPrefs: isRecord(device.workoutPrefs) ? { ...DEFAULT_WORKOUT_PREFS, ...pickBooleans(device.workoutPrefs) } : DEFAULT_WORKOUT_PREFS,
+        ...(isRecord(device.snapshot) ? { snapshot: device.snapshot as unknown as DeviceSnapshot } : {}),
       },
     },
   };

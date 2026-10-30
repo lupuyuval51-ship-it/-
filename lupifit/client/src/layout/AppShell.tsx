@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { Icon, LoadingState, LogoMark, type IconName } from '../components/ui';
 import { NotificationBell } from '../features/gamification/NotificationBell';
+import { PhoneReminderSync } from '../features/gamification/PhoneReminderSync';
 import { ReminderScheduler } from '../features/gamification/ReminderScheduler';
 import { OutboxIndicator } from '../features/offline/OutboxIndicator';
 import { useOutboxSync } from '../features/offline/hooks';
@@ -11,6 +12,7 @@ import { ActiveSessionIndicator } from '../features/sessions/ActiveSessionIndica
 import { useWorkoutPrefsSync } from '../features/sessions/prefsSync';
 import { useOnline } from '../hooks/useOnline';
 import { useI18n, type TKey } from '../i18n';
+import { isDeviceMode } from '../platform';
 import { ErrorBoundary } from './ErrorBoundary';
 
 const NAV: { to: string; label: TKey; icon: IconName; end?: boolean; mobile: boolean }[] = [
@@ -29,7 +31,8 @@ export function AppShell() {
   const online = useOnline();
   useOutboxSync();
   useWorkoutPrefsSync();
-  usePushSync(user?.id);
+  // Web Push needs a server: device mode has none (the phone's own notifications are PhoneReminderSync).
+  usePushSync(isDeviceMode ? undefined : user?.id);
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
@@ -65,17 +68,20 @@ export function AppShell() {
             <Icon name="user" size={18} />
             <span className="truncate">{user?.displayName}</span>
           </div>
-          <button
-            type="button"
-            className="side-link"
-            onClick={async () => {
-              await logout();
-              navigate('/login', { replace: true });
-            }}
-          >
-            <Icon name="logout" />
-            <span>{t('nav.logout')}</span>
-          </button>
+          {/* Device mode has no account to sign out of. */}
+          {!isDeviceMode && (
+            <button
+              type="button"
+              className="side-link"
+              onClick={async () => {
+                await logout();
+                navigate('/login', { replace: true });
+              }}
+            >
+              <Icon name="logout" />
+              <span>{t('nav.logout')}</span>
+            </button>
+          )}
         </div>
       </aside>
 
@@ -130,6 +136,7 @@ export function AppShell() {
         ))}
       </nav>
       <ReminderScheduler />
+      <PhoneReminderSync />
     </div>
   );
 }

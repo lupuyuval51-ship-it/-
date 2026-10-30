@@ -21,6 +21,8 @@ export const DEVICE_ENV: Readonly<Record<string, string>> = Object.freeze({
   PASSWORD_SCRYPT_N: '1024',
   AI_API_KEY: '',
   ANTHROPIC_API_KEY: '',
+  /** The daily coach quota limits AI cost on a server; the built-in coach on the phone costs nothing. */
+  COACH_DAILY_MESSAGE_LIMIT: '10000',
   PUSH_AUTO_VAPID: 'false',
   VAPID_PUBLIC_KEY: '',
   VAPID_PRIVATE_KEY: '',

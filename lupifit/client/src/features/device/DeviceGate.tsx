@@ -1,12 +1,12 @@
 /**
  * Device mode start-up: until the server inside the app is ready, this shows what it is doing (or why it
- * cannot start) instead of the app. Once ready it renders the app; nobody signs in (the worker owns the
- * hidden device account), so there is no login screen.
+ * cannot start, and what to do) instead of the app. Once ready it renders the app; nobody signs in (the
+ * worker owns the hidden device account), so there is no login screen.
  */
 import { useSyncExternalStore, type ReactNode } from 'react';
-import { Button, LogoMark, Spinner } from '../../components/ui';
+import { Button, Icon, LogoMark, Spinner, Tally } from '../../components/ui';
 import { useI18n, type TKey } from '../../i18n';
-import type { BootFailure, BootState } from '../../device/worker/protocol';
+import type { BootFailure, BootState, BootStep } from '../../device/worker/protocol';
 import '../../styles/device.css';
 
 export interface BootSource {
@@ -14,7 +14,10 @@ export interface BootSource {
   subscribe(listener: () => void): () => void;
 }
 
-const STEP_TEXT: Record<Extract<BootState, { state: 'booting' }>['step'], TKey> = {
+/** Start-up steps in order (each one a tick of the progress tally). */
+const STEPS: BootStep[] = ['database', 'migrating', 'content', 'account'];
+
+const STEP_TEXT: Record<BootStep, TKey> = {
   database: 'device.boot.database',
   migrating: 'device.boot.migrating',
   content: 'device.boot.content',
@@ -32,6 +35,7 @@ const FAILURE_TEXT: Record<BootFailure, TKey> = {
 
 export function DeviceStartScreen({ boot, onRetry }: { boot: Exclude<BootState, { state: 'ready' }>; onRetry(): void }) {
   const { t } = useI18n();
+  const index = boot.state === 'booting' ? STEPS.indexOf(boot.step) : 0;
   return (
     <main id="main" className="device-start" data-boot={boot.state}>
       <div className="device-start-brand">
@@ -41,23 +45,29 @@ export function DeviceStartScreen({ boot, onRetry }: { boot: Exclude<BootState, 
       {boot.state === 'booting' && (
         <section className="device-start-body" role="status" aria-live="polite">
           <h1 className="device-start-title">{t('device.boot.title')}</h1>
+          <Tally total={STEPS.length} done={index} size="md" label={t('device.boot.progress', { current: index + 1, total: STEPS.length })} />
           <p className="device-start-step">
             <Spinner size={18} />
             <span>{t(boot.step === 'migrating' && boot.firstLaunch ? 'device.boot.firstLaunch' : STEP_TEXT[boot.step])}</span>
           </p>
-          <p className="muted">{t('device.boot.local')}</p>
+          {boot.step === 'migrating' && !boot.firstLaunch && <p className="muted small">{t('device.boot.migratingNote')}</p>}
         </section>
       )}
       {boot.state === 'locked' && (
         <section className="device-start-body" role="alert">
           <h1 className="device-start-title">{t('device.locked.title')}</h1>
           <p>{t('device.locked.body')}</p>
+          <p className="device-start-step muted">
+            <Spinner size={18} />
+            <span>{t('device.locked.waiting')}</span>
+          </p>
         </section>
       )}
       {boot.state === 'failed' && (
         <section className="device-start-body" role="alert">
           <h1 className="device-start-title">{t('device.failed.title')}</h1>
           <p>{t(FAILURE_TEXT[boot.reason])}</p>
+          <p className="muted small">{t('device.failed.keepTrying')}</p>
           <Button variant="primary" icon="refresh" onClick={onRetry}>
             {t('device.failed.retry')}
           </Button>
@@ -68,6 +78,12 @@ export function DeviceStartScreen({ boot, onRetry }: { boot: Exclude<BootState, 
             </details>
           )}
         </section>
+      )}
+      {boot.state !== 'failed' && (
+        <p className="device-start-local small muted">
+          <Icon name="info" size={16} />
+          <span>{t('device.boot.local')}</span>
+        </p>
       )}
     </main>
   );

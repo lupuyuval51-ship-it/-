@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { ErrorState, LoadingState } from '../components/ui';
+import { isWelcomed } from '../features/device/control';
 import { isDeviceMode } from '../platform';
 
 /** Requires a signed-in user; optionally requires completed onboarding. */
@@ -34,5 +35,21 @@ export function PublicOnly({ children }: { children: ReactNode }) {
 /** Pages that need a password or an e-mail address (password reset): not in device mode. */
 export function NotOnDevice({ children }: { children: ReactNode }) {
   if (isDeviceMode) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+/** Pages that exist only in device mode (the first-run welcome). */
+export function DeviceOnly({ children }: { children: ReactNode }) {
+  if (!isDeviceMode) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+/**
+ * Device mode: the first onboarding starts with the welcome screen (it asks for the name). A re-run of the
+ * questionnaire from the settings, and server mode, go straight to it.
+ */
+export function RequireWelcome({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  if (isDeviceMode && user && !user.onboardingCompleted && !isWelcomed(user.id)) return <Navigate to="/welcome" replace />;
   return <>{children}</>;
 }
