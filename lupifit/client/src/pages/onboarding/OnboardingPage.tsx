@@ -37,6 +37,7 @@ import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
 import { storage } from '../../lib/storage';
+import { isDeviceMode } from '../../platform';
 import { ReviewStep } from './ReviewStep';
 import '../../styles/profile.css';
 import '../../styles/ux-onboarding.css';
@@ -245,7 +246,7 @@ function OnboardingWizard({ profile }: { profile: ProfileDTO }) {
           <LinkButton to="/profile" variant="ghost" size="sm" icon="chevronLeft">
             {t('onboarding.actions.cancel')}
           </LinkButton>
-        ) : (
+        ) : isDeviceMode ? null : (
           <Button
             variant="ghost"
             size="sm"

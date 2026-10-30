@@ -64,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Theme: explicit dark/light, or follow the OS.
   useEffect(() => {
+    // Device mode shows a start-up screen before the account is known: it reads the last theme from here.
+    if (isDeviceMode && user?.theme) storage.set('fitai.theme', user.theme);
     const pref = user?.theme ?? storage.get<string>('fitai.theme') ?? 'system';
     const media = window.matchMedia?.('(prefers-color-scheme: light)');
     const apply = () => {

@@ -5,6 +5,7 @@ import { wakeLockSupported } from '../../features/sessions/wakeLock';
 import { readTimerMuted, writeTimerMuted } from '../../features/sessions/storage';
 import { useState } from 'react';
 import { useI18n } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 
 export function WorkoutPrefsSection() {
   const { t } = useI18n();
@@ -12,7 +13,7 @@ export function WorkoutPrefsSection() {
   const [muted, setMuted] = useState(readTimerMuted);
   const supported = wakeLockSupported();
   return (
-    <Card id="settings-workout" title={t('settings.workout.title')} subtitle={t('settings.workout.subtitle')} className="settings-section">
+    <Card id="settings-workout" title={t('settings.workout.title')} subtitle={t(isDeviceMode ? 'device.settings.workoutSubtitle' : 'settings.workout.subtitle')} className="settings-section">
       <div className="stack-sm">
         <Switch
           label={t('session.prefs.wakeLock')}

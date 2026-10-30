@@ -22,6 +22,7 @@ import { TargetSuggestionCard } from '../../features/nutrition/TargetSuggestionC
 import { WeeklySummary } from '../../features/nutrition/WeeklySummary';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 import { errorMessage } from '../../lib/errors';
 import '../../styles/nutrition.css';
 
@@ -91,7 +92,7 @@ export default function NutritionPage() {
                     <EmptyState
                       icon="apple"
                       title={date === today ? t('nutrition.meals.dayEmptyToday') : t('nutrition.meals.dayEmptyOther')}
-                      body={t('nutrition.meals.dayEmptyBody')}
+                      body={t(isDeviceMode ? 'device.nutrition.dayEmptyBody' : 'nutrition.meals.dayEmptyBody')}
                     />
                   )}
                   {MEAL_TYPES.map((m) => (

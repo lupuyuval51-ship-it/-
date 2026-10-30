@@ -5,7 +5,9 @@ import { ErrorState, LoadingState, PageHeader, useConfirm } from '../../componen
 import { useProfile } from '../../features/profile/api';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useI18n, type TKey } from '../../i18n';
+import { isDeviceMode } from '../../platform';
 import { AccountSection } from './AccountSection';
+import { DeviceDataSection, DevicePrivacySection } from './DeviceDataSection';
 import { PrivacySection } from './PrivacySection';
 import { BodySection, NutritionSection, TrainingSection } from './ProfileSections';
 import { RemindersSection } from './RemindersSection';
@@ -15,17 +17,30 @@ import { TargetsSection } from './TargetsSection';
 import { WorkoutPrefsSection } from './WorkoutPrefsSection';
 import '../../styles/profile.css';
 
-const SECTIONS: { id: string; label: TKey }[] = [
-  { id: 'settings-account', label: 'settings.account.title' },
-  { id: 'settings-body', label: 'settings.body.title' },
-  { id: 'settings-training', label: 'settings.training.title' },
-  { id: 'settings-nutrition', label: 'settings.nutrition.title' },
-  { id: 'settings-targets', label: 'settings.targets.title' },
-  { id: 'settings-reminders', label: 'settings.reminders.title' },
-  { id: 'settings-workout', label: 'settings.workout.title' },
-  { id: 'settings-security', label: 'settings.security.title' },
-  { id: 'settings-privacy', label: 'settings.privacy.title' },
-];
+const SECTIONS: { id: string; label: TKey }[] = isDeviceMode
+  ? // Device mode: no account, password or sign-in; the data on this phone comes first.
+    [
+      { id: 'settings-data', label: 'device.settings.dataTitle' },
+      { id: 'settings-account', label: 'device.settings.preferencesTitle' },
+      { id: 'settings-body', label: 'settings.body.title' },
+      { id: 'settings-training', label: 'settings.training.title' },
+      { id: 'settings-nutrition', label: 'settings.nutrition.title' },
+      { id: 'settings-targets', label: 'settings.targets.title' },
+      { id: 'settings-reminders', label: 'settings.reminders.title' },
+      { id: 'settings-workout', label: 'settings.workout.title' },
+      { id: 'settings-privacy', label: 'device.settings.legalTitle' },
+    ]
+  : [
+      { id: 'settings-account', label: 'settings.account.title' },
+      { id: 'settings-body', label: 'settings.body.title' },
+      { id: 'settings-training', label: 'settings.training.title' },
+      { id: 'settings-nutrition', label: 'settings.nutrition.title' },
+      { id: 'settings-targets', label: 'settings.targets.title' },
+      { id: 'settings-reminders', label: 'settings.reminders.title' },
+      { id: 'settings-workout', label: 'settings.workout.title' },
+      { id: 'settings-security', label: 'settings.security.title' },
+      { id: 'settings-privacy', label: 'settings.privacy.title' },
+    ];
 
 /** Tracks unsaved sections and confirms before leaving the page with changes. */
 function usePageGuardState() {
@@ -79,7 +94,7 @@ export default function ProfileSettingsPage() {
   return (
     <PageGuardContext.Provider value={guard}>
       <div className="settings-page">
-        <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
+        <PageHeader title={t('settings.title')} subtitle={t(isDeviceMode ? 'device.settings.subtitle' : 'settings.subtitle')} />
         <nav className="settings-nav" aria-label={t('settings.sectionsNav')}>
           <ul className="chips">
             {SECTIONS.map((s) => (
@@ -91,6 +106,7 @@ export default function ProfileSettingsPage() {
             ))}
           </ul>
         </nav>
+        {isDeviceMode && <DeviceDataSection />}
         {user && <AccountSection user={user} />}
         {profile.isPending ? (
           <LoadingState />
@@ -106,8 +122,14 @@ export default function ProfileSettingsPage() {
           </>
         )}
         <WorkoutPrefsSection />
-        <SecuritySection />
-        <PrivacySection />
+        {isDeviceMode ? (
+          <DevicePrivacySection />
+        ) : (
+          <>
+            <SecuritySection />
+            <PrivacySection />
+          </>
+        )}
       </div>
     </PageGuardContext.Provider>
   );

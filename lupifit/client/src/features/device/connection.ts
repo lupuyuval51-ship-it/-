@@ -18,6 +18,15 @@ export interface DeviceConnection {
   transport: Transport;
   getState(): BootState;
   subscribe(listener: () => void): () => void;
+  /** Asks the worker to close the database and delete its storage; rejects when it could not. */
+  erase(): Promise<void>;
+}
+
+export interface ConnectOptions {
+  /** Delete the stored database before opening it (an erase that did not finish last time). */
+  eraseFirst?: boolean;
+  /** Called when the erase asked for with `eraseFirst` is done (ok) or failed. */
+  onErasedAtStart?(ok: boolean): void;
 }
 
 /** Statuses whose Response must not have a body (the Response constructor throws otherwise). */
@@ -34,7 +43,7 @@ function headerRecord(headers: HeadersInit | undefined): Record<string, string> 
 
 const abortReason = (signal: AbortSignal) => signal.reason ?? new DOMException('The operation was aborted.', 'AbortError');
 
-export function connectDevice(worker: WorkerLike, account: InitMessage['account']): DeviceConnection {
+export function connectDevice(worker: WorkerLike, account: InitMessage['account'], options: ConnectOptions = {}): DeviceConnection {
   let state: BootState = { state: 'booting', step: 'database', firstLaunch: false };
   const listeners = new Set<() => void>();
   const setState = (next: BootState) => {
@@ -43,10 +52,19 @@ export function connectDevice(worker: WorkerLike, account: InitMessage['account'
   };
   let nextId = 1;
   const waiting = new Map<number, { resolve(res: Response): void; reject(err: unknown): void }>();
+  const erasing = new Map<number, { resolve(): void; reject(err: unknown): void }>();
 
   worker.addEventListener('message', (event) => {
     const msg = event.data;
     if (msg.type === 'state') return setState(msg.boot);
+    if (msg.type === 'erased') {
+      if (msg.id === 0) return options.onErasedAtStart?.(msg.ok);
+      const entry = erasing.get(msg.id);
+      erasing.delete(msg.id);
+      if (msg.ok) entry?.resolve();
+      else entry?.reject(new Error(msg.message ?? 'The data could not be erased'));
+      return;
+    }
     const entry = waiting.get(msg.id);
     if (!entry) return; // aborted meanwhile
     waiting.delete(msg.id);
@@ -59,8 +77,10 @@ export function connectDevice(worker: WorkerLike, account: InitMessage['account'
     if (state.state !== 'failed') setState({ state: 'failed', reason: 'unknown', detail: 'The device worker stopped' });
     for (const entry of waiting.values()) entry.reject(new TypeError('Failed to fetch'));
     waiting.clear();
+    for (const entry of erasing.values()) entry.reject(new Error('The device worker stopped'));
+    erasing.clear();
   });
-  worker.postMessage({ type: 'init', account });
+  worker.postMessage({ type: 'init', account, ...(options.eraseFirst ? { erase: true } : {}) });
 
   const transport: Transport = (url, init = {}) =>
     new Promise<Response>((resolve, reject) => {
@@ -83,6 +103,12 @@ export function connectDevice(worker: WorkerLike, account: InitMessage['account'
 
   return {
     transport,
+    erase: () =>
+      new Promise<void>((resolve, reject) => {
+        const id = nextId++;
+        erasing.set(id, { resolve, reject });
+        worker.postMessage({ type: 'erase', id });
+      }),
     getState: () => state,
     subscribe(listener) {
       listeners.add(listener);

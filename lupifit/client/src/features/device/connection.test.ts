@@ -47,6 +47,26 @@ describe('connectDevice', () => {
     expect(conn.getState()).toMatchObject({ state: 'failed' });
   });
 
+  it('erases through the worker ("Erase all data on this phone"), and asks for an unfinished erase at start', async () => {
+    const worker = new FakeWorker();
+    const conn = connectDevice(worker, ACCOUNT);
+    const done = conn.erase();
+    const msg = worker.sent.at(-1) as Extract<PageMessage, { type: 'erase' }>;
+    expect(msg.type).toBe('erase');
+    worker.emit({ type: 'erased', id: msg.id, ok: true });
+    await expect(done).resolves.toBeUndefined();
+    const failing = conn.erase();
+    worker.emit({ type: 'erased', id: (worker.sent.at(-1) as { id: number }).id, ok: false, message: 'blocked' });
+    await expect(failing).rejects.toThrow('blocked');
+
+    const next = new FakeWorker();
+    const atStart = vi.fn();
+    connectDevice(next, ACCOUNT, { eraseFirst: true, onErasedAtStart: atStart });
+    expect(next.sent).toEqual([{ type: 'init', account: ACCOUNT, erase: true }]);
+    next.emit({ type: 'erased', id: 0, ok: true });
+    expect(atStart).toHaveBeenCalledWith(true);
+  });
+
   it('turns a request into a message and the answer into a real Response', async () => {
     const worker = new FakeWorker();
     const { transport } = connectDevice(worker, ACCOUNT);

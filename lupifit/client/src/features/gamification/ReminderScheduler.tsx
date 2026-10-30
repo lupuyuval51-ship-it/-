@@ -5,6 +5,8 @@
  * While the app is open: an in-app toast, plus a system notification when the user already
  * granted permission — unless this device has phone notifications (Web Push) on, which the
  * server sends even when the app is closed (server/src/modules/push). Disabled reminders do nothing.
+ * Where the platform has its own phone notifications (the Android app) and they are allowed, the phone
+ * shows the reminders (PhoneReminderSync) and this does nothing.
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -15,6 +17,7 @@ import { qk } from '../../api/queryClient';
 import { useAuth } from '../../auth/AuthProvider';
 import { useToast } from '../../components/ui';
 import { useI18n } from '../../i18n';
+import { platform } from '../../platform';
 import { fetchDashboard } from '../dashboard/api';
 import { isPushOnForUser } from '../push/push';
 import { dayStateFromDashboard, dueCandidates, loadHandled, localClock, resolveReminders, saveHandled, type Reminder } from './reminders';
@@ -73,6 +76,8 @@ export function ReminderScheduler() {
       if (running || disposed) return;
       running = true;
       try {
+        // The phone shows these reminders itself (local notifications, see PhoneReminderSync).
+        if (platform.reminders.supported() && (await platform.reminders.permission()) === 'granted') return;
         const clock = localClock(new Date(), timeZone);
         const handled = loadHandled(userId, clock.date);
         const candidates = dueCandidates(settings, clock, handled);

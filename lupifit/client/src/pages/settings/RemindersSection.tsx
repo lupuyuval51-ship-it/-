@@ -1,10 +1,12 @@
 /**
  * Reminder preferences (PATCH /api/settings) and how reminders reach the user: phone
  * notifications (Web Push) when the server has them configured, otherwise in-app reminders
- * with optional browser notifications while the app is open.
+ * with optional browser notifications while the app is open. Device mode has no server (no Web Push):
+ * the phone's own notifications where the platform has them (the Android app, `platform.reminders`),
+ * otherwise the in-app reminders.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_MEAL_REMINDERS, remindersSchema } from '@shared/schemas/profile';
 import type { ProfileDTO, ReminderSettings } from '@shared/types';
 import { ApiError } from '../../api/client';
@@ -18,6 +20,7 @@ import { fetchPushConfig } from '../../features/push/push';
 import { PushNotificationsControl } from '../../features/push/PushNotificationsControl';
 import { useI18n } from '../../i18n';
 import { errorMessage } from '../../lib/errors';
+import { isDeviceMode, platform, type NotificationPermission as PhonePermission } from '../../platform';
 import { SectionCard, useSectionForm } from './sectionForm';
 
 type Permission = NotificationPermission | 'unsupported';
@@ -77,6 +80,63 @@ function NotificationPermissionControl() {
   );
 }
 
+/** Phone notifications of the Android app (local, scheduled on the phone; no server, no internet). */
+function PhoneNotificationsControl({ remindersOn }: { remindersOn: boolean }) {
+  const { t } = useI18n();
+  const toast = useToast();
+  const [permission, setPermission] = useState<PhonePermission | null>(null);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    const read = () =>
+      void platform.reminders
+        .permission()
+        .then((p) => live && setPermission(p))
+        .catch(() => live && setPermission('denied'));
+    read();
+    // Allowed in the phone's settings meanwhile: read it again when the app comes back.
+    const onVisible = () => document.visibilityState === 'visible' && read();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      live = false;
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
+  const request = async () => {
+    setPending(true);
+    try {
+      const result = await platform.reminders.request();
+      setPermission(result);
+      if (result === 'granted') toast.success(t('device.reminders.grantedToast'));
+      else toast.info(t('device.reminders.deniedToast'));
+    } catch {
+      setPermission(await platform.reminders.permission().catch(() => 'denied' as const));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  if (permission == null) return null;
+  return (
+    <div className="stack-sm">
+      <span className="field-label">{t('device.reminders.phoneLabel')}</span>
+      <p className="small muted" aria-live="polite">
+        {permission === 'granted' ? t('device.reminders.granted') : permission === 'denied' ? t('device.reminders.denied') : t('device.reminders.prompt')}
+      </p>
+      {permission === 'prompt' && (
+        <div>
+          <Button size="sm" icon="bell" onClick={request} loading={pending}>
+            {t('device.reminders.allow')}
+          </Button>
+        </div>
+      )}
+      {permission === 'granted' && !remindersOn && <p className="small faint">{t('device.reminders.remindersOff')}</p>}
+    </div>
+  );
+}
+
 export function RemindersSection({ profile }: { profile: ProfileDTO }) {
   const i18n = useI18n();
   const { t } = i18n;
@@ -89,7 +149,7 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
   const [formError, setFormError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const r = form.values;
-  const push = useQuery({ queryKey: qk.push, queryFn: fetchPushConfig, staleTime: 5 * 60_000 });
+  const push = useQuery({ queryKey: qk.push, queryFn: fetchPushConfig, staleTime: 5 * 60_000, enabled: !isDeviceMode });
 
   const mutation = useMutation({
     mutationFn: ({ reminders }: { reminders: ReminderSettings; submitted: ReminderSettings }) => updateSettings({ reminders }),
@@ -195,7 +255,18 @@ export function RemindersSection({ profile }: { profile: ProfileDTO }) {
           )}
         </div>
       )}
-      {push.isPending ? null : push.data?.enabled ? (
+      {isDeviceMode ? (
+        platform.reminders.supported() ? (
+          <PhoneNotificationsControl remindersOn={profile.reminders.enabled} />
+        ) : (
+          <>
+            <NotificationPermissionControl />
+            <Notice tone="info" icon="info">
+              {t('settings.reminders.honestNote')}
+            </Notice>
+          </>
+        )
+      ) : push.isPending ? null : push.data?.enabled ? (
         <PushNotificationsControl
           config={push.data}
           remindersOn={profile.reminders.enabled}

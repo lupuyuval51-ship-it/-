@@ -1,8 +1,10 @@
 import { lazy } from 'react';
 import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import { DeviceNotes } from './features/device/DeviceNotes';
 import { AppShell } from './layout/AppShell';
-import { NotOnDevice, PublicOnly, RequireAuth } from './layout/guards';
+import { DeviceOnly, NotOnDevice, PublicOnly, RequireAuth, RequireWelcome } from './layout/guards';
 import { PublicLayout } from './layout/PublicLayout';
+import { isDeviceMode } from './platform';
 
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
@@ -12,6 +14,8 @@ const PrivacyPage = lazy(() => import('./pages/legal/PrivacyPage'));
 const TermsPage = lazy(() => import('./pages/legal/TermsPage'));
 const AccountDeletionPage = lazy(() => import('./pages/legal/AccountDeletionPage'));
 const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
+// Device mode only (a build-time constant: server builds do not contain the page).
+const WelcomePage = isDeviceMode ? lazy(() => import('./pages/device/WelcomePage')) : () => null;
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const WorkoutsPage = lazy(() => import('./pages/workouts/WorkoutsPage'));
 const PlanDetailPage = lazy(() => import('./pages/workouts/PlanDetailPage'));
@@ -33,7 +37,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
  * Route map (all sections are fully connected):
  *  /login /register /forgot-password /reset-password   public (device mode: none, redirect to /)
  *  /privacy /terms /account-deletion                   public, signed in or not (store listing URLs)
- *  /onboarding                                          signed in
+ *  /welcome                                             device mode only: first run, asks for a name
+ *  /onboarding                                          signed in (device mode: after /welcome)
  *  /                    dashboard
  *  /workouts            plans + AI generator
  *  /workouts/plans/:id  plan details & editing
@@ -60,7 +65,8 @@ export const router = createBrowserRouter([
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/terms', element: <TermsPage /> },
       { path: '/account-deletion', element: <AccountDeletionPage /> },
-      { path: '/onboarding', element: <RequireAuth onboarded={false}><OnboardingPage /></RequireAuth> },
+      { path: '/welcome', element: <RequireAuth onboarded={false}><DeviceOnly><WelcomePage /></DeviceOnly></RequireAuth> },
+      { path: '/onboarding', element: <RequireAuth onboarded={false}><RequireWelcome><OnboardingPage /></RequireWelcome></RequireAuth> },
     ],
   },
   {
@@ -92,5 +98,10 @@ export const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <DeviceNotes />
+      <RouterProvider router={router} />
+    </>
+  );
 }
