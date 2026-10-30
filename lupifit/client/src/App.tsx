@@ -15,6 +15,7 @@ const OnboardingPage = lazy(() => import('./pages/onboarding/OnboardingPage'));
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'));
 const WorkoutsPage = lazy(() => import('./pages/workouts/WorkoutsPage'));
 const PlanDetailPage = lazy(() => import('./pages/workouts/PlanDetailPage'));
+const ReadyDetailPage = lazy(() => import('./pages/workouts/ReadyDetailPage'));
 const ActiveSessionPage = lazy(() => import('./pages/session/ActiveSessionPage'));
 const SessionSummaryPage = lazy(() => import('./pages/session/SessionSummaryPage'));
 const SessionHistoryPage = lazy(() => import('./pages/session/SessionHistoryPage'));
@@ -37,6 +38,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
  *  /                    dashboard
  *  /workouts            plans + AI generator
  *  /workouts/plans/:id  plan details & editing
+ *  /workouts/ready/:readyId  ready workout details & start
  *  /workouts/session    active workout session
  *  /workouts/sessions/:id  session summary
  *  /workouts/history    workout history
@@ -73,6 +75,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <DashboardPage /> },
       { path: '/workouts', element: <WorkoutsPage /> },
       { path: '/workouts/plans/:planId', element: <PlanDetailPage /> },
+      { path: '/workouts/ready/:readyId', element: <ReadyDetailPage /> },
       { path: '/workouts/session', element: <ActiveSessionPage /> },
       { path: '/workouts/sessions/:sessionId', element: <SessionSummaryPage /> },
       { path: '/workouts/history', element: <SessionHistoryPage /> },

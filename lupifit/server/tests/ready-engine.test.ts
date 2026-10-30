@@ -25,6 +25,7 @@ import {
 } from '../src/modules/ready/adapt';
 import { buildCatalog, compareEntries, countByFocus, filterCatalog, fitsPlaceAndGear } from '../src/modules/ready/catalog';
 import {
+  RESISTANCE_GEAR,
   deriveEquipment,
   deriveMuscles,
   effectiveEquipment,
@@ -71,6 +72,7 @@ const SENIOR: Partial<AdaptContext> = { ageBand: 'senior' };
 const byId = (items: { exerciseId: string }[]) => items.map((i) => i.exerciseId);
 const adapt = (w: ReadyWorkoutSeed, c: AdaptContext = ctxOf()) => adaptWorkout(w, lookup, c);
 const noteCodes = (notes: { code: string }[]) => notes.map((n) => n.code);
+const nameEn = (id: string) => lookup.get(id)!.name.en;
 
 const HEBREW = /[֐-׿]/;
 
@@ -303,7 +305,8 @@ describe('catalog ordering', () => {
       expect(order(shuffled, 'intermediate')).toEqual(reference);
     }
     expect(entries.map((e) => e.id)).toEqual(before);
-    expect(reference).toEqual(['b_int', 'g_int', 'd_int_gear', 'e_beg', 'c_adv', 'a_beg_gear', 'f_adv_gear']);
+    // intermediate first (no gear before gear), then the beginner / advanced tie by gear and id, geared ones last
+    expect(reference).toEqual(['b_int', 'g_int', 'd_int_gear', 'c_adv', 'e_beg', 'a_beg_gear', 'f_adv_gear']);
     const cmp = compareEntries('intermediate');
     const [x, y] = [entries[0]!, entries[1]!];
     expect(Math.sign(cmp(x, y))).toBe(-Math.sign(cmp(y, x)));
@@ -361,6 +364,15 @@ describe('unsuitable exercises', () => {
   it('reports every reason at once', () => {
     expect(unsuitableReasons(e('sprint_intervals'), ctxOf({ ...SENIOR, injuries: ['knee'] }))).toEqual(['injury', 'advanced', 'high_impact']);
     expect(unsuitableReasons(e('front_squat'), ctxOf({ ...MINOR, injuries: ['wrist'], equipment: NONE }))).toEqual(['equipment', 'injury', 'advanced']);
+    expect(unsuitableReasons(e('front_squat'), ctxOf({ ...MINOR, injuries: ['wrist'], equipment: NONE, avoid: ['front_squat'] }))).toEqual(['equipment', 'injury', 'advanced', 'avoided']);
+  });
+
+  it('flags an exercise the person asked never to get (the profile avoid list), and only that one', () => {
+    expect(unsuitableReasons(e('push_up'), ctxOf({ avoid: ['push_up'] }))).toEqual(['avoided']);
+    expect(unsuitableReasons(e('push_up'), ctxOf({ avoid: ['pull_up', 'plank'] }))).toEqual([]);
+    expect(unsuitableReasons(e('push_up'), ctxOf({ avoid: [] }))).toEqual([]);
+    expect(unsuitableReasons(e('push_up'), ctxOf())).toEqual([]);
+    expect(isSuitable(e('push_up'), ctxOf({ avoid: ['push_up'] }))).toBe(false);
   });
 });
 
@@ -443,6 +455,21 @@ describe('finding a substitute', () => {
     expect(find([bad('o', ['hard']), syn('hard', { difficulty: 'intermediate' })], 'o')).toBeNull();
   });
 
+  it('keeps a bodyweight workout bodyweight: no loaded exercise and no resistance gear as the substitute', () => {
+    const loaded = syn('loaded', { category: 'free_weight', trackingType: 'weight_reps', equipment: ['dumbbells'] });
+    const banded = syn('banded', { category: 'calisthenics', equipment: ['resistance_bands'] });
+    const list = [bad('o', ['loaded', 'banded', 'ok']), loaded, banded, syn('ok')];
+    const has = ctxOf({ injuries: ['knee'], equipment: ['dumbbells', 'resistance_bands'] });
+    const pickFor = (mode?: 'bodyweight' | 'weights') => findSubstitute(list[0]!, lookupOf(list), has, new Set(['o']), mode)?.id ?? null;
+    expect(pickFor('bodyweight')).toBe('ok');
+    expect(pickFor('weights')).toBe('loaded');
+    expect(pickFor()).toBe('loaded');
+    // a loaded alternative is walked through: its own easier alternative may be a bodyweight one
+    const deep = [bad('o', ['loaded']), { ...loaded, easierAlternatives: ['ok'] }, syn('ok')];
+    expect(findSubstitute(deep[0]!, lookupOf(deep), has, new Set(['o']), 'bodyweight')?.id).toBe('ok');
+    expect(findSubstitute(deep[0]!, lookupOf(deep), has, new Set(['o']), 'weights')?.id).toBe('loaded');
+  });
+
   it('survives loops and alternatives that are missing from the library', () => {
     expect(find([bad('o', ['a']), bad('a', ['o', 'a'])], 'o')).toBeNull();
     expect(find([bad('o', ['ghost', 's']), syn('s')], 'o')).toBe('s');
@@ -486,9 +513,12 @@ describe('adapting a workout: injuries', () => {
     expect(byId(r.items)).toEqual(['bodyweight_squat', 'box_squat', 'dumbbell_romanian_deadlift', 'lying_leg_curl', 'standing_calf_raise', 'plank']);
     expect(r.items.map((i) => i.substitutedFrom)).toEqual(['barbell_back_squat', 'leg_press', null, null, null, null]);
     expect(r.changed).toBe(2);
+    // weight-tracked squat (6-10 reps, 4 sets, 120 s) became a body-weight one: the tracking type changed, so the
+    // default 8-12 reps apply while sets and rest stay as designed
+    expect(r.items[0]).toMatchObject({ sets: 4, repMin: 8, repMax: 12, restSeconds: 120, cue: null });
     expect(r.notes).toEqual([
-      { code: 'substituted', params: { from: 'Barbell back squat', to: 'Bodyweight squat' } },
-      { code: 'substituted', params: { from: 'Leg press', to: 'Box squat' } },
+      { code: 'substituted', params: { from: nameEn('barbell_back_squat'), to: nameEn('bodyweight_squat') } },
+      { code: 'substituted', params: { from: nameEn('leg_press'), to: nameEn('box_squat') } },
     ]);
   });
 
@@ -507,7 +537,7 @@ describe('adapting a workout: injuries', () => {
   });
 
   it('uses 8-12 reps or 30 seconds when the substitute is tracked differently', () => {
-    const toReps = adapt(seed('carry', { items: [{ exerciseId: 'farmer_carry', sets: 4, seconds: 45, restSeconds: 70 }, ...filler(3)] }), ctxOf({ injuries: ['wrist'] }));
+    const toReps = adapt(seed('carry', { mode: 'weights', items: [{ exerciseId: 'farmer_carry', sets: 4, seconds: 45, restSeconds: 70 }, ...filler(3)] }), ctxOf({ injuries: ['wrist'] }));
     expect(toReps.items[0]).toMatchObject({ exerciseId: 'dumbbell_shrug', substitutedFrom: 'farmer_carry', sets: 4, restSeconds: 70, repMin: 8, repMax: 12, targetSeconds: null });
     const toTime = adapt(seed('twist', { items: [reps('russian_twist', 3, [12, 20], 50), ...filler(3)] }), ctxOf({ injuries: ['lower_back'] }));
     expect(toTime.items[0]).toMatchObject({ exerciseId: 'side_plank', substitutedFrom: 'russian_twist', sets: 3, restSeconds: 50, repMin: null, repMax: null, targetSeconds: 30, targetRpe: null });
@@ -527,6 +557,20 @@ describe('adapting a workout: injuries', () => {
     expect(gym.items[0]!.exerciseId).toBe('machine_chest_press');
   });
 
+  it('keeps a bodyweight workout bodyweight when it swaps an exercise, even for a person who has the gear', () => {
+    // decline push-up under a wrist complaint: the only easier alternative left is a dumbbell press
+    const items = [reps('decline_push_up', 3, [6, 10]), ...filler(4)];
+    const weights = adapt(seed('w_wrist', { mode: 'weights', level: 'intermediate', items }), ctxOf({ injuries: ['wrist'] }));
+    expect(weights.items[0]).toMatchObject({ exerciseId: 'incline_dumbbell_press', substitutedFrom: 'decline_push_up' });
+    const bodyweight = adapt(seed('bw_wrist', { mode: 'bodyweight', level: 'intermediate', items }), ctxOf({ injuries: ['wrist'] }));
+    expect(byId(bodyweight.items)).toEqual(FILLER);
+    expect(bodyweight.notes).toEqual([{ code: 'dropped', params: { name: nameEn('decline_push_up') } }]);
+    // a bodyweight swap is still a swap: advanced -> the next bodyweight alternative, not the leg curl machine
+    const minor = (mode: 'bodyweight' | 'weights') => adapt(seed(`nordic_${mode}`, { mode, level: 'advanced', items: [reps('nordic_hamstring_curl', 3, [4, 6]), ...filler(4)] }), ctxOf(MINOR));
+    expect(minor('weights').items[0]).toMatchObject({ exerciseId: 'lying_leg_curl', substitutedFrom: 'nordic_hamstring_curl' });
+    expect(minor('bodyweight').items[0]).toMatchObject({ exerciseId: 'single_leg_romanian_deadlift', substitutedFrom: 'nordic_hamstring_curl' });
+  });
+
   it('drops an exercise nothing can replace', () => {
     // push-up: both easier variants are wrist exercises too
     const w = seed('wrist', { items: [reps('push_up'), ...filler(4)] });
@@ -534,15 +578,37 @@ describe('adapting a workout: injuries', () => {
     expect(r.available).toBe(true);
     expect(byId(r.items)).toEqual(FILLER);
     expect(r.changed).toBe(1);
-    expect(r.notes).toEqual([{ code: 'dropped', params: { name: 'Push-up' } }]);
+    expect(r.notes).toEqual([{ code: 'dropped', params: { name: nameEn('push_up') } }]);
   });
 
-  it('drops an exercise whose replacement is an exercise of another muscle only', () => {
-    // pull-up -> band-assisted pull-up needs bands (not owned) -> negative pull-up (bar) works
+  it('drops an exercise when the person has no gear for any of its easier variations', () => {
+    // nothing to hang from: every easier pull-up variation needs the bar or a machine that is not there
     const w = seed('pull', { focus: 'back', items: [reps('pull_up', 3, [4, 8]), ...filler(4)] });
     const noBar = adapt(w, ctxOf({ equipment: NONE }));
     expect(noBar.changed).toBe(1);
-    expect(noBar.notes).toEqual([{ code: 'dropped', params: { name: 'Pull-up' } }]);
+    expect(noBar.notes).toEqual([{ code: 'dropped', params: { name: nameEn('pull_up') } }]);
+  });
+
+  it('swaps an exercise from the avoid list for an easier one, and never brings an avoided one back as the substitute', () => {
+    const r = adapt(legs, ctxOf({ avoid: ['barbell_back_squat'] }));
+    expect(byId(r.items)).toEqual(['goblet_squat', 'leg_press', 'dumbbell_romanian_deadlift', 'lying_leg_curl', 'standing_calf_raise', 'plank']);
+    expect(r.items[0]).toMatchObject({ substitutedFrom: 'barbell_back_squat', sets: 4, repMin: 6, repMax: 10, restSeconds: 120, cue: null });
+    expect(r.notes).toEqual([{ code: 'substituted', params: { from: nameEn('barbell_back_squat'), to: nameEn('goblet_squat') } }]);
+    // the first easier alternative is avoided as well: the next one in listed order is taken
+    const second = adapt(legs, ctxOf({ avoid: ['barbell_back_squat', 'goblet_squat'] }));
+    expect(second.items[0]!.exerciseId).toBe('smith_machine_squat');
+    for (const avoid of [['barbell_back_squat', 'goblet_squat'], ['leg_press', 'plank', 'lying_leg_curl']]) {
+      for (const it of adapt(legs, ctxOf({ avoid })).items) expect(avoid, it.exerciseId).not.toContain(it.exerciseId);
+    }
+    // nothing on the list: nothing changes
+    expect(adapt(legs, ctxOf({ avoid: [] })).changed).toBe(0);
+  });
+
+  it('drops an avoided exercise when every easier alternative is avoided too', () => {
+    const w = seed('avoid_drop', { items: [reps('push_up'), ...filler(4)] });
+    const r = adapt(w, ctxOf({ avoid: ['push_up', 'knee_push_up', 'incline_push_up'] }));
+    expect(byId(r.items)).toEqual(FILLER);
+    expect(r.notes).toEqual([{ code: 'dropped', params: { name: nameEn('push_up') } }]);
   });
 
   it('treats an exercise missing from the library as unsafe and drops it', () => {
@@ -574,14 +640,15 @@ describe('adapting a workout: injuries', () => {
   });
 
   it('knows the substitutes for the common areas', () => {
-    const mixed = (items: ReadyItemSeed[]) => seed('single', { items: [...items, ...filler(3)] });
-    const first = (ids: ReadyItemSeed[], area: InjuryArea) => adapt(mixed(ids), ctxOf({ injuries: [area] })).items[0]!.exerciseId;
-    expect(first([reps('barbell_bench_press', 3, [6, 10])], 'shoulder')).toBe('machine_chest_press');
-    expect(first([reps('triceps_pushdown')], 'elbow')).toBe('band_triceps_extension');
-    expect(first([reps('crunch')], 'neck')).toBe('dead_bug');
-    expect(first([reps('single_leg_calf_raise')], 'ankle')).toBe('standing_calf_raise');
-    expect(first([reps('deadlift', 3, [5, 8])], 'lower_back')).toBe('cable_pull_through');
-    expect(first([reps('cossack_squat')], 'hip')).toBe('reverse_lunge');
+    // the other three exercises never collide with a substitute
+    const others = ['glute_bridge', 'bird_dog', 'box_squat'].map((id) => reps(id));
+    const first = (item: ReadyItemSeed, area: InjuryArea) => adapt(seed('single', { mode: 'weights', items: [item, ...others] }), ctxOf({ injuries: [area] })).items[0]!.exerciseId;
+    expect(first(reps('barbell_bench_press', 3, [6, 10]), 'shoulder')).toBe('machine_chest_press');
+    expect(first(reps('triceps_pushdown'), 'elbow')).toBe('band_triceps_extension');
+    expect(first(reps('crunch'), 'neck')).toBe('dead_bug');
+    expect(first(reps('single_leg_calf_raise'), 'ankle')).toBe('standing_calf_raise');
+    expect(first(reps('deadlift', 3, [5, 8]), 'lower_back')).toBe('cable_pull_through');
+    expect(first(reps('cossack_squat'), 'hip')).toBe('reverse_lunge');
   });
 });
 
@@ -816,14 +883,14 @@ describe('adapting a workout: prescription', () => {
 });
 
 describe('adapting a workout: notes', () => {
-  const sub = seed('notes', { items: [reps('push_up'), reps('crunch'), ...filler(3)] });
+  const sub = seed('notes', { items: [reps('push_up'), reps('crunch'), reps('glute_bridge'), reps('bird_dog'), reps('box_squat')] });
 
   it('writes the exercise names in the language of the user', () => {
     const he = adapt(sub, ctxOf({ injuries: ['wrist', 'neck'], locale: 'he' }));
     const en = adapt(sub, ctxOf({ injuries: ['wrist', 'neck'], locale: 'en' }));
     expect(en.notes).toEqual([
-      { code: 'dropped', params: { name: 'Push-up' } },
-      { code: 'substituted', params: { from: 'Crunch', to: 'Dead bug' } },
+      { code: 'dropped', params: { name: nameEn('push_up') } },
+      { code: 'substituted', params: { from: nameEn('crunch'), to: nameEn('dead_bug') } },
     ]);
     const heNames = he.notes.flatMap((n) => Object.values(n.params ?? {}).map(String));
     expect(heNames).toHaveLength(3);
@@ -894,6 +961,11 @@ describe('adapting a workout: invariants over every injury combination and age b
       level: 'intermediate',
       items: [reps('dumbbell_bench_press', 4, [5, 8], 75), reps('one_arm_dumbbell_row', 4, [5, 8], 75), reps('goblet_squat', 3, [5, 8], 75), reps('burpee', 3, [6, 8], 60), reps('push_up', 3, [3, 6], 60), hold('mountain_climber', 40, 3, 30)],
     }),
+    seed('inv_bw_upper', {
+      focus: 'upper_body',
+      level: 'advanced',
+      items: [reps('decline_push_up', 3, [6, 10]), reps('pike_push_up', 3, [5, 8]), reps('diamond_push_up', 3, [5, 8]), reps('pull_up', 3, [3, 6]), reps('nordic_hamstring_curl', 3, [3, 5]), hold('plank')],
+    }),
     seed('inv_bw', {
       focus: 'abs',
       level: 'beginner',
@@ -931,6 +1003,10 @@ describe('adapting a workout: invariants over every injury combination and age b
               expect(e.contraindications.some((x) => injuries.includes(x)), `${label} injury ${e.id}`).toBe(false);
               if (minor || rules.excludeAdvanced) expect(e.difficulty, `${label} advanced ${e.id}`).not.toBe('advanced');
               if (rules.excludeHighImpact) expect(isHighImpact(e), `${label} impact ${e.id}`).toBe(false);
+              if (f.mode === 'bodyweight' && it.substitutedFrom != null) {
+                expect(isExternallyLoaded(e), `${label} loaded substitute ${e.id}`).toBe(false);
+                expect(e.equipment.filter((q) => RESISTANCE_GEAR.includes(q)), `${label} resistance gear ${e.id}`).toEqual([]);
+              }
               if (it.targetRpe != null) {
                 if (minor) expect(it.targetRpe, label).toBeLessThanOrEqual(7);
                 if (rules.rpeCap != null) expect(it.targetRpe, label).toBeLessThanOrEqual(rules.rpeCap);
@@ -964,7 +1040,7 @@ describe('adapting a workout: invariants over every injury combination and age b
 // ---------------------------------------------------------------- Sport finisher
 
 describe('sport finisher', () => {
-  const item = (id: string): ReadyItemSeed => (lookup.get(id)!.trackingType === 'time' ? hold(id, 30, 2, 20) : reps(id, 2, [10, 15], 20));
+  const item = (id: string): ReadyItemSeed => (lookup.get(id)?.trackingType === 'time' ? hold(id, 30, 2, 20) : reps(id, 2, [10, 15], 20));
   const block = (variant: SportBlockSeed['variant'], ids: string[], sport: SportBlockSeed['sport'] = 'soccer'): SportBlockSeed => ({
     id: `${sport}_${variant}`,
     sport,
@@ -1052,6 +1128,14 @@ describe('sport finisher', () => {
       const r = pick({ injuries: ['wrist'] }, 'bodyweight');
       expect(r.block?.variant).toBe('gentle');
       expect(r.notes).toEqual([{ code: 'sport_gentle' }]);
+    });
+
+    it('skips a block that contains an exercise the person asked never to get', () => {
+      const r = pick({ avoid: ['jumping_jack'] }, 'bodyweight');
+      expect(r.block?.variant).toBe('gentle');
+      expect(r.notes).toEqual([{ code: 'sport_gentle' }]);
+      expect(pick({ avoid: ['jumping_jack', 'dead_bug'] }, 'bodyweight').block).toBeNull();
+      expect(variant({ avoid: [] }, 'bodyweight')).toBe('bodyweight');
     });
 
     it('says sport_gentle only when the gentle block was a fall-back', () => {
@@ -1181,15 +1265,16 @@ describe('sport finisher', () => {
     it('never returns a block with an exercise that is unsafe for the person', () => {
       let chosen = 0;
       let none = 0;
-      for (const band of [{}, MINOR, MATURE, SENIOR] as Partial<AdaptContext>[]) {
+      // the full set always has a gentle block for anyone; without it there are people nothing fits
+      for (const list of [blocks, [blocks[0]!, blocks[1]!]]) for (const band of [{}, MINOR, MATURE, SENIOR] as Partial<AdaptContext>[]) {
         for (const mode of ['bodyweight', 'weights'] as const) {
           for (const equipment of [NONE, gearAll, GYM]) {
             for (const injuries of subsets) {
               const c = ctxOf({ ...band, injuries, equipment });
               const rules = ageRules(band.ageBand ?? 'adult');
-              const r = pickSportBlock('soccer', blocks, lookup, c, mode);
-              const label = `${band.ageBand ?? 'adult'} ${mode} ${injuries.join('+') || 'none'} ${equipment.length}`;
-              expect(pickSportBlock('soccer', blocks, lookup, c, mode), label).toEqual(r);
+              const r = pickSportBlock('soccer', list, lookup, c, mode);
+              const label = `${list.length} ${band.ageBand ?? 'adult'} ${mode} ${injuries.join('+') || 'none'} ${equipment.length}`;
+              expect(pickSportBlock('soccer', list, lookup, c, mode), label).toEqual(r);
               if (!r.block) {
                 none++;
                 expect(r.items, label).toEqual([]);

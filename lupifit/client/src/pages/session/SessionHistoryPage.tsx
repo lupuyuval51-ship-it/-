@@ -6,6 +6,7 @@ import { qk } from '../../api/queryClient';
 import { Badge, Button, Card, EmptyState, ErrorState, Icon, IconButton, LinkButton, LoadingState, PageHeader, useConfirm, useToast } from '../../components/ui';
 import { deleteSession, fetchSessionHistory, sessionKeys } from '../../features/sessions/api';
 import { formatDuration } from '../../features/sessions/format';
+import { SportFinisherLine } from '../../features/sessions/SportSection';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
@@ -114,7 +115,7 @@ export default function SessionHistoryPage() {
           padded
         >
           <ul className="list history-list">
-            {g.items.map((s) => (
+            {g.items.map((s: SessionHistoryItemDTO) => (
               <li key={s.id} className="list-item history-item">
                 <Link to={`/workouts/sessions/${s.id}`} className="history-link" aria-label={t('session.history.open', { name: s.name })}>
                   <span className="history-date">
@@ -133,6 +134,7 @@ export default function SessionHistoryPage() {
                       <span>{t('session.history.exercises', { count: s.exerciseCount })}</span>
                       <span>{t('session.history.sets', { count: s.totalSets })}</span>
                       {s.totalVolumeKg > 0 && <span>{formatWeight(s.totalVolumeKg)}</span>}
+                      {s.sport && <SportFinisherLine sport={s.sport} />}
                     </span>
                   </span>
                   {s.prCount > 0 && (

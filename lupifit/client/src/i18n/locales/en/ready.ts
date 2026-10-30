@@ -30,7 +30,7 @@ const ready = {
     title: 'Workouts',
     count: { one: '{count} workout', other: '{count} workouts' },
     shown: 'Showing {shown} of {total}',
-    updating: 'Updating the list…',
+    moreFailed: 'Could not load more workouts. Check your connection and try again.',
   },
   card: {
     exercises: { one: '{count} exercise', other: '{count} exercises' },
@@ -69,7 +69,6 @@ const ready = {
     exercisesTitle: 'Exercises',
     swapped: 'Swapped for you',
     start: 'Start workout',
-    startSummary: 'Total time {time}',
   },
   sport: {
     question: 'Do you train a specific sport?',
@@ -90,7 +89,7 @@ const ready = {
     substituted: '{from} was swapped for {to} to fit your age, injuries or equipment.',
     dropped: '{name} was left out to fit your age, injuries or equipment.',
     sport_gentle: 'The sport finisher is a lower-impact version.',
-    sport_none_fit: 'No {sport} finisher fits your age, injuries or equipment, so this workout has no sport finisher.',
+    sport_none_fit: 'No finisher for {sport} fits your age, injuries or equipment, so this workout has no sport finisher.',
   },
   errors: {
     ready_workout_not_found: 'This workout was not found.',

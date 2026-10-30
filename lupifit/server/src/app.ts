@@ -22,6 +22,7 @@ import { nutritionRouter } from './modules/nutrition/routes';
 import { profileRouter } from './modules/profile/routes';
 import { progressRouter } from './modules/progress/routes';
 import { pushRouter } from './modules/push/routes';
+import { readyRouter } from './modules/ready/routes';
 import { sessionsRouter } from './modules/sessions/routes';
 import { workoutsRouter } from './modules/workouts/routes';
 
@@ -82,6 +83,7 @@ export function createApp(options: { serveClient?: boolean } = {}): Express {
   authed.use(profileRouter);
   authed.use(exercisesRouter);
   authed.use(workoutsRouter);
+  authed.use(readyRouter);
   authed.use(sessionsRouter);
   authed.use(nutritionRouter);
   authed.use(progressRouter);

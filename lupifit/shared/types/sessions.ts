@@ -125,6 +125,8 @@ export interface SessionSummaryDTO {
   rewards: RewardResultDTO;
   /** Same plan workout's previous completion for comparison, if any. */
   previous: { sessionId: string; date: ISODate; volumeKg: number; durationSeconds: number } | null;
+  /** The sport of the workout's finisher block (ready workouts), or null. */
+  sport: SportId | null;
 }
 
 export interface SessionHistoryItemDTO {
@@ -138,6 +140,8 @@ export interface SessionHistoryItemDTO {
   totalVolumeKg: number;
   exerciseCount: number;
   prCount: number;
+  /** The sport of the workout's finisher block (ready workouts), or null. */
+  sport: SportId | null;
 }
 
 export interface SessionResponse {

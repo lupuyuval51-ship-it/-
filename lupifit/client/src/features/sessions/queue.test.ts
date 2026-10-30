@@ -38,8 +38,8 @@ const set = (id: string, extra: Partial<SessionSetDTO> = {}): SessionSetDTO => (
 });
 
 function session(sets: SessionSetDTO[], extra: Partial<WorkoutSessionDTO> = {}): WorkoutSessionDTO {
-  const exercise = { id: 'se1', exerciseId: 'push_up', restSeconds: 60, notes: '', sets } as unknown as SessionExerciseDTO;
-  const second = { id: 'se2', exerciseId: 'plank', restSeconds: 45, notes: '', sets: [] } as unknown as SessionExerciseDTO;
+  const exercise = { id: 'se1', exerciseId: 'push_up', restSeconds: 60, notes: '', sport: null, sets } as unknown as SessionExerciseDTO;
+  const second = { id: 'se2', exerciseId: 'plank', restSeconds: 45, notes: '', sport: 'soccer', sets: [] } as unknown as SessionExerciseDTO;
   return {
     id: 's1',
     planId: null,
@@ -205,5 +205,31 @@ describe('optimistic application', () => {
     expect(isQueueEntry({ ...entry, op: { type: 'set', sessionId: 's1', patch: {} } })).toBe(false);
     expect(isQueueEntry({ ...entry, key: 1 })).toBe(false);
     expect(isQueueEntry(null)).toBe(false);
+  });
+});
+
+describe('sport finisher exercises', () => {
+  // The finisher is the second exercise (sport: 'soccer'); edits must never drop that field.
+  const sportOfAll = (s: WorkoutSessionDTO) => s.exercises.map((e) => e.sport);
+
+  it('keeps the sport of every exercise when set, exercise and state edits are applied', () => {
+    const base = session([set('a')]);
+    const withSet = applyOp(base, { type: 'set', sessionId: 's1', setId: 'a', patch: { reps: 8, completed: true } });
+    const withExercise = applyOp(base, { type: 'exercise', sessionId: 's1', sessionExerciseId: 'se2', patch: { restSeconds: 30, notes: 'x' } });
+    const withState = applyOp(base, { type: 'state', sessionId: 's1', patch: { currentExerciseIndex: 1, restTimer: startTimer(30, 0, 'se2') } });
+    for (const s of [withSet, withExercise, withState]) expect(sportOfAll(s)).toEqual([null, 'soccer']);
+    expect(withExercise.exercises[1]).toMatchObject({ restSeconds: 30, notes: 'x', sport: 'soccer' });
+  });
+
+  it('keeps the sport when pending edits are re-applied on top of the server state and when a set is replaced', () => {
+    const server = session([set('a')]);
+    const q = enqueue([], { type: 'exercise', sessionId: 's1', sessionExerciseId: 'se2', patch: { restSeconds: 20 } }, opts(0));
+    expect(sportOfAll(reconcile(server, q))).toEqual([null, 'soccer']);
+    expect(sportOfAll(replaceSet(server, set('a', { reps: 9 })))).toEqual([null, 'soccer']);
+  });
+
+  it('sends edits of a finisher exercise like any other (no sport in the request)', () => {
+    const op: PendingOp = { type: 'exercise', sessionId: 's1', sessionExerciseId: 'se2', patch: { restSeconds: 20 } };
+    expect(requestFor(op)).toEqual({ path: '/sessions/s1/exercises/se2', body: { restSeconds: 20 } });
   });
 });

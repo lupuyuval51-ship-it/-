@@ -7,11 +7,9 @@ import type { SessionExerciseDTO, SessionSetDTO, WorkoutSessionDTO } from '@shar
 import { ApiError } from '../../api/client';
 import { qk } from '../../api/queryClient';
 import {
-  Badge,
   Button,
   EmptyState,
   ErrorState,
-  Icon,
   LinkButton,
   LoadingState,
   Modal,
@@ -39,15 +37,17 @@ import {
 import { serverNow } from '../../features/sessions/clock';
 import { ExerciseCard, type SetDefaults } from '../../features/sessions/ExerciseCard';
 import { ExerciseInfoModal } from '../../features/sessions/ExerciseInfoModal';
+import { ExerciseOverview } from '../../features/sessions/ExerciseOverview';
 import { FinishDialog } from '../../features/sessions/FinishDialog';
-import { missingWeightSets } from '../../features/sessions/format';
+import { missingWeightSets, sportLabel } from '../../features/sessions/format';
 import { closeActiveSession, setActiveSession, useActiveSession } from '../../features/sessions/hooks';
 import type { ExercisePatch, SetPatch } from '../../features/sessions/queue';
 import { RestDock, RestTimerCard } from '../../features/sessions/RestTimer';
-import { completionOutcome, countSets, nextOpenExercise, unfinishedExercises, volumeKg } from '../../features/sessions/logic';
+import { completionOutcome, countSets, enteredFinisher, finisherProgress, nextOpenExercise, unfinishedExercises, volumeKg } from '../../features/sessions/logic';
 import { useSessionPrefs } from '../../features/sessions/prefs';
 import { SessionPrefsPanel } from '../../features/sessions/SessionPrefs';
 import { SessionStrip } from '../../features/sessions/SessionStrip';
+import { FinisherBanner } from '../../features/sessions/SportSection';
 import { useWorkoutShortcuts } from '../../features/sessions/shortcuts';
 import { sessionSync } from '../../features/sessions/sync';
 import { useWakeLock } from '../../features/sessions/wakeLock';
@@ -159,6 +159,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const current = exercises[index] ?? null;
   const { done, total } = countSets(exercises);
   const nextOpenIndex = nextOpenExercise(exercises, index);
+  const finisher = finisherProgress(exercises, index);
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
@@ -191,6 +192,18 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   const hasTimer = session.restTimer != null;
 
   const setIndex = (i: number) => sessionSync.enqueue({ type: 'state', sessionId, patch: { currentExerciseIndex: i } }, 300);
+  /** Announcement for arriving at exercise `to`; entering the sport finisher says so. */
+  const arrivedMessage = (from: number, to: number) => {
+    const target = exercises[to];
+    if (!target) return '';
+    const name = lt(target.exercise.name);
+    return target.sport && enteredFinisher(exercises, from, to) ? t('session.sportSection.entered', { sport: sportLabel(i18n, target.sport), name }) : t('session.exercise.movedOn', { name });
+  };
+  /** Moves the stepper; only a move into the sport finisher is announced (other moves are visible and unchanged). */
+  const goTo = (i: number) => {
+    setIndex(i);
+    if (enteredFinisher(exercises, index, i)) setAnnouncement(arrivedMessage(index, i));
+  };
   const setTimer = (restTimer: WorkoutSessionDTO['restTimer']) => sessionSync.enqueue({ type: 'state', sessionId, patch: { restTimer } }, 800);
   const patchSet = (set: SessionSetDTO, patch: SetPatch, opts: { immediate: boolean }) =>
     sessionSync.enqueue({ type: 'set', sessionId, setId: set.id, patch }, opts.immediate ? 0 : 700);
@@ -249,7 +262,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
       advanceTimer.current = window.setTimeout(() => {
         advanceTimer.current = null;
         setIndex(advanceTo);
-        setAnnouncement(t('session.exercise.movedOn', { name: lt(exercises[advanceTo]!.exercise.name) }));
+        setAnnouncement(arrivedMessage(exercises.indexOf(ex), advanceTo));
       }, 1200);
     }
   };
@@ -408,8 +421,8 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
   useWorkoutShortcuts((action) => {
     if (action === 'complete') document.querySelector<HTMLButtonElement>('.set-row-current .set-check')?.click();
     else if (action === 'undo') onUndo();
-    else if (action === 'previous') index > 0 && setIndex(index - 1);
-    else if (action === 'next') index < exercises.length - 1 && setIndex(index + 1);
+    else if (action === 'previous') index > 0 && goTo(index - 1);
+    else if (action === 'next') index < exercises.length - 1 && goTo(index + 1);
     else if (action === 'pause') pauseM.mutate(paused ? 'resume' : 'pause');
     else if (action === 'rest') {
       if (session.restTimer) setTimer(null);
@@ -417,34 +430,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
     }
   });
 
-  const overview = (
-    <ol className="session-overview">
-      {exercises.map((ex, i) => {
-        const exDone = ex.sets.filter((s) => s.completed).length;
-        const complete = ex.sets.length > 0 && exDone === ex.sets.length;
-        return (
-          <li key={ex.id}>
-            <button
-              type="button"
-              className={`session-overview-item${i === index ? ' is-current' : ''}`}
-              aria-current={i === index ? 'step' : undefined}
-              onClick={() => {
-                setIndex(i);
-                setOverviewOpen(false);
-              }}
-            >
-              <span className={`session-overview-dot${complete ? ' is-done' : ''}`} aria-hidden="true">
-                {complete ? <Icon name="check" size={14} /> : i + 1}
-              </span>
-              <span className="session-overview-name">{lt(ex.exercise.name)}</span>
-              <span className="small muted num">{t('session.overview.setsDone', { done: exDone, total: ex.sets.length })}</span>
-              {complete ? <Badge tone="success">{t('session.overview.complete')}</Badge> : i === index ? <Badge tone="primary">{t('session.overview.current')}</Badge> : null}
-            </button>
-          </li>
-        );
-      })}
-    </ol>
-  );
+  const overview = <ExerciseOverview exercises={exercises} index={index} onSelect={(i) => { goTo(i); setOverviewOpen(false); }} />;
 
   return (
     <div className="session-page">
@@ -497,16 +483,17 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
           {current ? (
             <>
               <nav className="exercise-nav" aria-label={t('session.header.exercises')}>
-                <Button icon="chevronLeft" onClick={() => setIndex(index - 1)} disabled={index === 0} aria-label={t('session.nav.previousLabel')}>
+                <Button icon="chevronLeft" onClick={() => goTo(index - 1)} disabled={index === 0} aria-label={t('session.nav.previousLabel')}>
                   {t('session.nav.previous')}
                 </Button>
                 <Button variant="ghost" iconEnd="list" onClick={() => setOverviewOpen(true)} aria-haspopup="dialog" aria-label={`${t('session.nav.overview')} — ${t('session.nav.position', { current: index + 1, total: exercises.length })}`}>
                   {t('session.nav.position', { current: index + 1, total: exercises.length })}
                 </Button>
-                <Button iconEnd="chevronRight" onClick={() => setIndex(index + 1)} disabled={index >= exercises.length - 1} aria-label={t('session.nav.nextLabel')}>
+                <Button iconEnd="chevronRight" onClick={() => goTo(index + 1)} disabled={index >= exercises.length - 1} aria-label={t('session.nav.nextLabel')}>
                   {t('session.nav.next')}
                 </Button>
               </nav>
+              {finisher && <FinisherBanner key={`finisher-${current.id}`} sport={finisher.sport} position={finisher.position} total={finisher.total} />}
               <ExerciseCard
                 key={current.id}
                 exercise={current}
@@ -522,7 +509,7 @@ function LiveWorkout({ session }: { session: WorkoutSessionDTO }) {
                 onSwap={() => setSwapFor(current)}
                 swapDisabled={current.sets.some((s) => s.completed)}
                 nextName={nextOpenIndex != null ? lt(exercises[nextOpenIndex]!.exercise.name) : null}
-                onNext={() => nextOpenIndex != null && setIndex(nextOpenIndex)}
+                onNext={() => nextOpenIndex != null && goTo(nextOpenIndex)}
                 onFinish={() => setFinishOpen(true)}
                 onStartRest={hasTimer ? undefined : () => setTimer(idleTimer(current.restSeconds || 90, current.id))}
               />

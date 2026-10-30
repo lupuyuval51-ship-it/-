@@ -21,6 +21,7 @@ import {
 import { deleteSession, fetchSessionSummary, sessionKeys } from '../../features/sessions/api';
 import { NextSteps } from '../../features/sessions/NextSteps';
 import { formatDuration, formatRecordValue, formatSetValues } from '../../features/sessions/format';
+import { SportFinisherLine } from '../../features/sessions/SportSection';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import { useUnits } from '../../hooks/useUnits';
 import { useI18n } from '../../i18n';
@@ -108,6 +109,7 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
   const confirm = useConfirm();
   const navigate = useNavigate();
   const { session, totals, rewards, previous } = summary;
+  const finisher = summary.sport ?? null;
 
   const del = useMutation({
     mutationFn: () => deleteSession(session.id),
@@ -132,6 +134,7 @@ function SummaryView({ summary }: { summary: SessionSummaryDTO }) {
         backTo="/workouts/history"
         backLabel={t('session.history.title')}
       />
+      {finisher && <SportFinisherLine sport={finisher} className="summary-finisher small muted" />}
       </div>
 
       <section className="summary-stats grid-4" aria-label={t('session.summary.pageTitle')}>

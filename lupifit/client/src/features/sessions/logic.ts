@@ -1,4 +1,5 @@
 /** Pure helpers for the live workout (kept free of React so they are easy to test). */
+import type { SportId } from '@shared/constants';
 import type { SessionExerciseDTO } from '@shared/types';
 
 export function countSets(exercises: SessionExerciseDTO[]): { total: number; done: number } {
@@ -56,3 +57,73 @@ export function completionOutcome(exercises: SessionExerciseDTO[], index: number
   if (exerciseDone && !workoutDone) advanceTo = nextOpenExercise(exercises, index, doneAfter);
   return { exerciseDone, workoutDone, advanceTo };
 }
+
+// ------------------------------------------------------------------ sport finisher
+
+/**
+ * Sport of the finisher an exercise belongs to, or null for an ordinary exercise. A session cached on the
+ * device before the field existed has no `sport` at all, which counts as none.
+ */
+export function sportOf(exercise: Pick<SessionExerciseDTO, 'sport'>): SportId | null {
+  return exercise.sport ?? null;
+}
+
+/** A run of neighbouring exercises that belong together: the main workout, or one sport finisher. */
+export interface ExerciseSection {
+  /** Sport of the finisher, or null for ordinary exercises. */
+  sport: SportId | null;
+  /** Ordinary exercises that come after a finisher (added during the workout), so they are not mistaken for it. */
+  afterFinisher: boolean;
+  /** The exercises with their index in the whole workout (the stepper works with that index). */
+  items: { exercise: SessionExerciseDTO; index: number }[];
+}
+
+/**
+ * Splits the workout into sections without reordering anything: neighbours with the same `sport` form one
+ * section, so a ready workout gives "main workout" then "sport finisher". Exercises added later land at the
+ * end and become a trailing ordinary section. A workout without a finisher is one section.
+ */
+export function groupBySport(exercises: SessionExerciseDTO[]): ExerciseSection[] {
+  const sections: ExerciseSection[] = [];
+  let seenFinisher = false;
+  exercises.forEach((exercise, index) => {
+    const sport = sportOf(exercise);
+    const last = sections[sections.length - 1];
+    if (last && last.sport === sport) {
+      last.items.push({ exercise, index });
+      return;
+    }
+    sections.push({ sport, afterFinisher: sport == null && seenFinisher, items: [{ exercise, index }] });
+    if (sport != null) seenFinisher = true;
+  });
+  return sections;
+}
+
+/** Sport of the first finisher exercise, or null when the workout has none. */
+export function finisherSport(exercises: Pick<SessionExerciseDTO, 'sport'>[]): SportId | null {
+  for (const e of exercises) {
+    const sport = sportOf(e);
+    if (sport) return sport;
+  }
+  return null;
+}
+
+/** Where the exercise at `index` sits inside its finisher ("2 of 5"), or null when it is not a finisher exercise. */
+export function finisherProgress(exercises: SessionExerciseDTO[], index: number): { sport: SportId; position: number; total: number } | null {
+  const target = exercises[index];
+  const sport = target ? sportOf(target) : null;
+  if (!sport) return null;
+  const section = groupBySport(exercises).find((s) => s.sport === sport && s.items.some((x) => x.index === index));
+  if (!section) return null;
+  return { sport, position: section.items.findIndex((x) => x.index === index) + 1, total: section.items.length };
+}
+
+/** True when moving from `from` to `to` crosses into a sport finisher (so the move is worth announcing). */
+export function enteredFinisher(exercises: Pick<SessionExerciseDTO, 'sport'>[], from: number, to: number): boolean {
+  const target = exercises[to];
+  const sport = target ? sportOf(target) : null;
+  if (!sport) return false;
+  const before = exercises[from];
+  return !before || sportOf(before) !== sport;
+}
+

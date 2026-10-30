@@ -113,7 +113,15 @@ describe('searchExercises', () => {
 
   it('requires every term to match', () => {
     const ids = search('dumbbell row').ids;
-    expect(ids).toEqual(['one_arm_dumbbell_row']);
+    expect(ids).toContain('one_arm_dumbbell_row');
+    // Every term must match: each hit has "dumbbell" and "row" in its name or equipment, and nothing that has only one of them is returned.
+    const text = (id: string) => `${byId(id).name.en} ${byId(id).equipment.join(' ')}`.toLowerCase();
+    for (const id of ids) {
+      expect(text(id), id).toContain('dumbbell');
+      expect(text(id), id).toMatch(/\brow/);
+    }
+    const expected = LIBRARY.filter((e) => /dumbbell/.test(text(e.id)) && /\brow/.test(text(e.id))).map((e) => e.id);
+    expect([...ids].sort()).toEqual(expected.sort());
   });
 
   it('does not match very short terms inside unrelated words', () => {

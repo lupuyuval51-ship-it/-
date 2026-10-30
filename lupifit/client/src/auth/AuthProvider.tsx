@@ -5,6 +5,7 @@ import type { AuthResponse, MeResponse, UserDTO } from '@shared/types';
 import { ApiError, api, onUnauthorized, setCsrfToken } from '../api/client';
 import { qk } from '../api/queryClient';
 import { releasePushOnLogout } from '../features/push/push';
+import { clearAllReadyPrefs } from '../features/ready/prefs';
 import { useI18n } from '../i18n';
 import { clearAllDrafts } from '../lib/drafts';
 import { storage } from '../lib/storage';
@@ -117,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           storage.remove('fitai.activeSession');
           storage.remove('fitai.onboardingDraft');
           clearAllDrafts();
+          clearAllReadyPrefs();
           storage.remove(ME_CACHE_KEY);
           clearSession();
         }

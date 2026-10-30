@@ -1,0 +1,273 @@
+/* Ready workouts: the filters and result cards on /workouts?tab=ready and the workout page.
+   Built for a phone held in one hand; logical properties only (RTL-safe), tokens only. */
+
+.ready-intro {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ Layout */
+.ready-layout {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .ready-layout {
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+/* ------------------------------------------------------------------ Filters */
+.ready-filters {
+  min-inline-size: 0;
+}
+/* Single-choice groups span the card; every choice is a 44px tap target. */
+.ready-seg .segmented {
+  inline-size: 100%;
+}
+.ready-seg .segment {
+  flex: 1 1 auto;
+  min-block-size: var(--tap);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
+.ready-seg .field-hint {
+  margin: 0;
+}
+.ready-filters .chip,
+.ready-filters .ready-focus .chip,
+.ready-more .btn {
+  min-block-size: var(--tap);
+}
+.ready-gym-note {
+  margin: 0;
+}
+.ready-more-panel[hidden] {
+  display: none;
+}
+.ready-more {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+/* The muscle chips come from the exercise library's ChoiceChips; its count badge is styled here too. */
+.ready-focus .ex-chip-count {
+  min-inline-size: 20px;
+  padding-inline: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.ready-focus .chip-active .ex-chip-count {
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
+
+/* ------------------------------------------------------------------ Results */
+.ready-results {
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ready-results-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+.ready-results-head .section-title,
+.ready-count {
+  margin: 0;
+}
+.ready-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 640px) {
+  .ready-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ready-list-busy {
+  opacity: 0.6;
+}
+.ready-more-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+}
+.ready-more-results .btn {
+  min-block-size: var(--tap);
+  min-inline-size: 200px;
+}
+
+/* ------------------------------------------------------------------ Card (the title link is stretched over the card) */
+.ready-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  block-size: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.ready-card:hover {
+  border-color: var(--border-control);
+}
+.ready-card:has(.ready-card-link:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.ready-card-title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ready-card-link {
+  color: var(--text);
+  text-decoration: none;
+}
+.ready-card-link:focus-visible {
+  outline: none;
+}
+.ready-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.ready-card-desc {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+.ready-card-tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.ready-card-gear {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+}
+.ready-card .ready-card-gear {
+  margin-block-start: auto;
+}
+.ready-card-gear .icon {
+  margin-block-start: 3px;
+}
+
+/* ------------------------------------------------------------------ Workout page */
+.ready-detail {
+  inline-size: 100%;
+  max-inline-size: 820px;
+  margin-inline: auto;
+}
+.ready-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+.ready-facts > div {
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.ready-facts dt {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.ready-facts dd {
+  margin: var(--space-1) 0 0;
+  font-size: var(--fs-xl);
+}
+/* The card title already asks the sport question; the chip group keeps it as its accessible name. */
+.ready-sport .field-label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.ready-sport .chip,
+.ready-sport .ex-choice-chips .chip {
+  min-block-size: var(--tap);
+}
+.ready-notes {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.ready-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .ready-item .exercise-name {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--tap);
+  }
+}
+.ready-block-name {
+  display: block;
+  margin-block-end: var(--space-1);
+}
+.ready-start {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.ready-start-summary {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.ready-start .btn {
+  flex: 1 1 auto;
+  min-block-size: var(--tap);
+}
+@media (min-width: 640px) {
+  .ready-start .btn {
+    flex: 0 0 auto;
+    min-inline-size: 240px;
+  }
+}

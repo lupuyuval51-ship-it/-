@@ -23,7 +23,7 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Stand facing a wall at arm length and place your palms on it at chest height, slightly wider than shoulder width, with your fingers pointing up or slightly inward.',
+        'Stand facing a wall at arm length and place your palms on it at chest height, slightly wider than shoulder width, with your fingers pointing up or slightly outward.',
         'Walk your feet back until your body leans toward the wall in a straight line from head to heels, then lightly brace your abs and glutes.',
         'Inhale and bend your elbows to bring your chest toward the wall, elbows about 45 degrees from your torso and your feet staying in place.',
         'Lower until your chest is a few centimeters from the wall, without bending at the hips or arching your lower back.',
@@ -31,7 +31,7 @@ export const exercises: ExerciseSeed[] = [
         'To make it harder, place your feet further from the wall. When 15 clean reps feel easy, move on to incline push-ups with your hands on a bench or counter.',
       ],
       he: [
-        'עמדו מול קיר במרחק זרוע והניחו את כפות הידיים עליו בגובה החזה, מעט רחב מרוחב הכתפיים, כשהאצבעות מצביעות למעלה או מעט פנימה.',
+        'עמדו מול קיר במרחק זרוע והניחו את כפות הידיים עליו בגובה החזה, מעט רחב מרוחב הכתפיים, כשהאצבעות מצביעות למעלה או מעט החוצה.',
         'התרחקו מעט עם הרגליים עד שהגוף נשען לעבר הקיר בקו ישר מהראש ועד העקבים, וכווצו קלות את הבטן והישבן.',
         'שאפו וכופפו את המרפקים כדי לקרב את החזה לקיר, כשהמרפקים בזווית של כ-45 מעלות מהגוף וכפות הרגליים נשארות במקומן.',
         'רדו עד שהחזה נמצא כמה סנטימטרים מהקיר, בלי כיפוף באגן ובלי הקשתת הגב התחתון.',
@@ -137,7 +137,7 @@ export const exercises: ExerciseSeed[] = [
   },
   {
     id: 'push_up_hold',
-    name: { en: 'Low Push-Up Hold', he: 'החזקת שכיבת סמיכה בחצי ירידה' },
+    name: { en: 'Halfway Push-Up Hold', he: 'החזקת שכיבת סמיכה בחצי ירידה' },
     description: {
       en: 'An isometric push-up hold at the halfway point, with the elbows bent to about 90 degrees. Holding a demanding point of the push-up builds strength and control in the chest, triceps and shoulders and teaches a solid body line.',
       he: 'החזקה סטטית בשכיבת סמיכה בנקודת האמצע של הירידה, כשהמרפקים כפופים לכ-90 מעלות. החזקה של נקודה תובענית בתנועה בונה כוח ושליטה בחזה, בטרייספס ובכתפיים, ומלמדת קו גוף יציב.',
@@ -216,18 +216,14 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Start in a high plank with your feet wider than hip width for a stable base and your hands under your shoulders.',
-        'Brace your abs and squeeze your glutes so your body forms a straight line from head to heels.',
-        'Inhale and lower into a push-up, keeping your hips level and parallel to the floor.',
-        'Exhale and press back up to straight arms.',
+        'Start in a high plank with your feet wider than hip width for a stable base and your hands under your shoulders. Brace your abs and squeeze your glutes so your body forms a straight line from head to heels.',
+        'Inhale and lower into a push-up, keeping your hips level and parallel to the floor, then exhale and press back up to straight arms.',
         'At the top, shift a little weight onto one arm, lift the other hand, tap the opposite shoulder and place the hand back down quietly.',
         'Keep your hips and shoulders square to the floor during the tap and alternate the tapping hand on each rep. One push-up with one tap counts as one rep.',
       ],
       he: [
-        'התחילו בתנוחת פלאנק על ידיים ישרות, כשכפות הרגליים בפיסוק רחב מרוחב האגן לבסיס יציב וכפות הידיים מתחת לכתפיים.',
-        'נעלו את שרירי הבטן וכווצו את הישבן כך שהגוף יוצר קו ישר מהראש ועד העקבים.',
-        'שאפו והורידו את הגוף לשכיבת סמיכה, תוך שמירה על האגן ישר ומקביל לרצפה.',
-        'נשפו ודחפו חזרה עד ליישור הידיים.',
+        'התחילו בתנוחת פלאנק על ידיים ישרות, כשכפות הרגליים בפיסוק רחב מרוחב האגן לבסיס יציב וכפות הידיים מתחת לכתפיים. נעלו את שרירי הבטן וכווצו את הישבן כך שהגוף יוצר קו ישר מהראש ועד העקבים.',
+        'שאפו והורידו את הגוף לשכיבת סמיכה, תוך שמירה על האגן ישר ומקביל לרצפה, ואז נשפו ודחפו חזרה עד ליישור הידיים.',
         'בחלק העליון העבירו מעט משקל ליד אחת, הרימו את היד השנייה, געו בכתף הנגדית והחזירו את היד לרצפה בשקט.',
         'שמרו על האגן והכתפיים מקבילים לרצפה בזמן הנגיעה, והחליפו יד בכל חזרה. שכיבת סמיכה אחת עם נגיעה אחת נספרת כחזרה אחת.',
       ],
@@ -388,7 +384,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: ['wrist', 'shoulder', 'lower_back'],
     easierAlternatives: ['push_up', 'knee_push_up'],
-    harderAlternatives: ['typewriter_push_up'],
+    harderAlternatives: ['decline_push_up'],
     loadIncrementKg: null,
   },
   {
@@ -480,14 +476,14 @@ export const exercises: ExerciseSeed[] = [
         'Inhale and lower under control until your chest is a few centimeters above the floor.',
         'Exhale and drive up explosively, straightening your arms fast enough that both hands leave the floor.',
         'Clap your hands together quickly in front of your chest while in the air, keeping your body rigid.',
-        'Return your hands to shoulder width and land gently on slightly bent elbows, then flow straight into the next controlled lowering.',
+        'Spread your hands back to their starting position and land gently on slightly bent elbows, then flow straight into the next controlled lowering.',
       ],
       he: [
         'התחילו בתנוחת פלאנק על ידיים ישרות, כשכפות הידיים מעט רחב מרוחב הכתפיים, הגוף בקו ישר מהראש ועד העקבים והבטן והישבן נעולים.',
         'שאפו והורידו את הגוף בשליטה עד שהחזה כמה סנטימטרים מעל הרצפה.',
         'נשפו ודחפו בפיצוץ כלפי מעלה, תוך יישור מהיר של הידיים עד ששתי כפות הידיים מתנתקות מהרצפה.',
         'מחאו כף במהירות מול החזה בזמן שאתם באוויר, כשהגוף נשאר נוקשה.',
-        'החזירו את הידיים לרוחב הכתפיים ונחתו בעדינות על מרפקים כפופים מעט, ועברו ישר לירידה הבאה בשליטה.',
+        'פתחו את הידיים חזרה למיקום ההתחלתי ונחתו בעדינות על מרפקים כפופים מעט, ועברו ישר לירידה הבאה בשליטה.',
       ],
     },
     mistakes: {
@@ -592,8 +588,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'dumbbell_floor_fly',
     name: { en: 'Dumbbell Floor Fly', he: 'פרפר במשקולות יד על הרצפה' },
     description: {
-      en: 'A chest fly performed lying on the floor, with no bench. The floor stops your upper arms when they reach it, which limits the stretch and spares the shoulders, making it a simple chest exercise for home.',
-      he: 'תרגיל פרפר בשכיבה על הרצפה, בלי ספסל. הרצפה עוצרת את הזרועות כשהן מגיעות אליה, ולכן היא מגבילה את המתיחה וחוסכת עומס מהכתפיים – תרגיל פשוט לחזה בבית.',
+      en: 'A chest fly performed lying on the floor, with no bench. The floor stops your upper arms when they reach it, which limits the stretch and reduces the load on the shoulders, making it a simple chest exercise for home.',
+      he: 'תרגיל פרפר בשכיבה על הרצפה, בלי ספסל. הרצפה עוצרת את הזרועות כשהן מגיעות אליה, ולכן היא מגבילה את המתיחה ומפחיתה את העומס על הכתפיים – תרגיל פשוט לחזה בבית.',
     },
     primaryMuscles: ['chest'],
     secondaryMuscles: ['shoulders'],
@@ -655,8 +651,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'dumbbell_squeeze_press',
     name: { en: 'Dumbbell Squeeze Press', he: 'לחיצת חזה במשקולות צמודות' },
     description: {
-      en: 'A dumbbell press in which the two dumbbells are pressed against each other for the whole set. The constant squeeze keeps the chest working hard even with light weights, and it needs only a floor or a bench.',
-      he: 'לחיצת חזה במשקולות יד שבה שתי המשקולות צמודות זו לזו לאורך כל הסט. הלחיצה הקבועה שומרת על עבודה אינטנסיבית של החזה גם במשקלים קלים, ודורשת רק רצפה או ספסל.',
+      en: 'A dumbbell press in which the two dumbbells are pressed against each other for the whole set. The constant squeeze keeps the chest working hard even with light weights, and it needs only dumbbells and a floor.',
+      he: 'לחיצת חזה במשקולות יד שבה שתי המשקולות צמודות זו לזו לאורך כל הסט. הלחיצה הקבועה שומרת על עבודה אינטנסיבית של החזה גם במשקלים קלים, ודורשת רק משקולות יד ורצפה.',
     },
     primaryMuscles: ['chest'],
     secondaryMuscles: ['triceps', 'shoulders'],
@@ -669,14 +665,14 @@ export const exercises: ExerciseSeed[] = [
     isCompound: true,
     instructions: {
       en: [
-        'Lie on your back on the floor (or on a bench) with knees bent and feet flat, holding two dumbbells with a neutral grip, pressed together at chest level.',
+        'Lie on your back on the floor with knees bent and feet flat, holding two dumbbells with a neutral grip, pressed together at chest level.',
         'Squeeze the dumbbells firmly against each other and keep that squeeze for the entire set.',
         'Exhale and press the dumbbells straight up over your chest until your arms are straight.',
         'Inhale and lower them slowly toward your chest, elbows about 45 degrees from your torso, until your upper arms lightly touch the floor.',
         'Keep your shoulder blades pulled back and your wrists straight throughout.',
       ],
       he: [
-        'שכבו על הגב על הרצפה (או על ספסל) עם ברכיים כפופות וכפות רגליים על הרצפה, ואחזו שתי משקולות יד באחיזה ניטרלית, צמודות זו לזו בגובה החזה.',
+        'שכבו על הגב על הרצפה עם ברכיים כפופות וכפות רגליים על הרצפה, ואחזו שתי משקולות יד באחיזה ניטרלית, צמודות זו לזו בגובה החזה.',
         'לחצו את המשקולות זו לזו בחוזקה ושמרו על הלחיצה הזו לאורך כל הסט.',
         'נשפו ודחפו את המשקולות ישר למעלה מעל החזה עד ליישור הידיים.',
         'שאפו והורידו אותן לאט לכיוון החזה, כשהמרפקים בזווית של כ-45 מעלות מהגוף, עד שהזרועות נוגעות קלות ברצפה.',
@@ -735,16 +731,14 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Lie lengthwise on a flat bench with your head near the end, feet flat on the floor and your upper back and hips supported. Hold one dumbbell upright with both palms under the top plate.',
-        'Press the dumbbell up over your chest with your arms almost straight and a slight bend in the elbows.',
-        'Brace your abs and keep your lower back and ribs down.',
+        'Press the dumbbell up over your chest with your arms almost straight and a slight bend in the elbows, and brace your abs so your lower back and ribs stay down.',
         'Inhale and lower the dumbbell in an arc behind your head, keeping the elbow bend fixed, until you feel a stretch in the chest and the sides of the back.',
         'Stop when your arms are about level with your head, or earlier if your lower back starts to arch.',
         'Exhale and bring the dumbbell back over your chest along the same arc, squeezing the chest and lats.',
       ],
       he: [
         'שכבו לאורך ספסל שטוח כשהראש קרוב לקצהו, כפות הרגליים על הרצפה והגב העליון והאגן נתמכים. אחזו משקולת יד אחת במאונך, כששתי כפות הידיים מתחת ללוח המשקל העליון.',
-        'דחפו את המשקולת מעל החזה כשהידיים כמעט ישרות והמרפקים כפופים מעט.',
-        'נעלו את שרירי הבטן ושמרו על הגב התחתון והצלעות צמודים למטה.',
+        'דחפו את המשקולת מעל החזה כשהידיים כמעט ישרות והמרפקים כפופים מעט, ונעלו את שרירי הבטן כך שהגב התחתון והצלעות נשארים צמודים למטה.',
         'שאפו והורידו את המשקולת בקשת אל מאחורי הראש, תוך שמירה על זווית מרפק קבועה, עד לתחושת מתיחה בחזה ובצדי הגב.',
         'עצרו כשהזרועות בערך בגובה הראש, או מוקדם יותר אם הגב התחתון מתחיל להיכנס לקשת.',
         'נשפו והחזירו את המשקולת מעל החזה לאורך אותה קשת, תוך כיווץ החזה והגב הרחב.',
@@ -850,7 +844,7 @@ export const exercises: ExerciseSeed[] = [
     id: 'chest_dip',
     name: { en: 'Chest Dip', he: 'מקבילים לחזה (הטיה קדימה)' },
     description: {
-      en: 'A dip on parallel bars with the torso leaned well forward and the elbows allowed to flare slightly. The forward lean shifts more of the work to the chest than an upright dip, which puts more emphasis on the triceps.',
+      en: 'A dip on parallel bars with the torso leaned well forward and the elbows allowed to flare slightly. An upright dip puts more emphasis on the triceps; the forward lean shifts more of the work to the chest.',
       he: 'מקבילים עם הטיה בולטת של הגו קדימה ופתיחה קלה של המרפקים. ההטיה מעבירה יותר מהעבודה לחזה בהשוואה למקבילים בגו זקוף, שמדגישים יותר את הטרייספס.',
     },
     primaryMuscles: ['chest', 'triceps'],

@@ -34,7 +34,11 @@ function input(over: Partial<GeneratorInput> = {}): GeneratorInput {
   };
 }
 const all = (p: GeneratedPlan) => p.workouts.flatMap((w) => w.exercises);
-/** Every plyometric, jumping, hopping, bounding or sprinting exercise in the built-in library (checked by hand). */
+/**
+ * Every plyometric, jumping, hopping, bounding, skipping or sprinting exercise in the built-in library (checked by
+ * hand against the names, categories and movement patterns). Plyometric throws and push-ups count: they are
+ * explosive, impact-loaded work, like the medicine ball slam.
+ */
 const JUMPING_IDS = new Set([
   'jump_squat',
   'box_jump',
@@ -47,6 +51,16 @@ const JUMPING_IDS = new Set([
   'sprint_intervals',
   'medicine_ball_slam',
   'medicine_ball_chest_pass',
+  'medicine_ball_rotational_throw',
+  'explosive_push_up',
+  'clap_push_up',
+  'jump_lunge',
+  'split_squat_jump',
+  'tuck_jump',
+  'pogo_hop',
+  'single_leg_hop_and_stick',
+  'plank_jack',
+  'a_skip',
 ]);
 const hasNote = (p: GeneratedPlan, code: string) => p.notes.some((n) => n.code === code);
 
@@ -89,9 +103,30 @@ describe('high-impact exercises', () => {
 describe('externally loaded exercises', () => {
   it('are the weighted lifts and the band exercises; bodyweight and calisthenics (even band-assisted) are not', () => {
     const loaded = catalog.filter(isExternallyLoaded);
-    expect(loaded.filter((e) => e.trackingType !== 'weight_reps').map((e) => e.id).sort()).toEqual(
-      ['band_biceps_curl', 'band_chest_press', 'band_lateral_raise', 'band_pull_apart', 'band_row', 'band_triceps_extension'],
-    );
+    // Every resistance-band exercise of the library that is tracked as plain reps (checked by hand; the isometric
+    // Spanish squat is timed, so it is not rep work).
+    const bandIds = [
+      'band_biceps_curl',
+      'band_chest_fly',
+      'band_chest_press',
+      'band_external_rotation',
+      'band_face_pull',
+      'band_glute_bridge',
+      'band_hammer_curl',
+      'band_lat_pulldown',
+      'band_lateral_raise',
+      'band_overhead_press',
+      'band_overhead_triceps_extension',
+      'band_pull_apart',
+      'band_row',
+      'band_squat',
+      'band_straight_arm_pulldown',
+      'band_triceps_extension',
+      'banded_clamshell',
+      'banded_lateral_walk',
+      'single_arm_band_row',
+    ];
+    expect(loaded.filter((e) => e.trackingType !== 'weight_reps').map((e) => e.id).sort()).toEqual(bandIds);
     expect(catalog.filter((e) => e.trackingType === 'weight_reps').every(isExternallyLoaded)).toBe(true);
     for (const id of ['push_up', 'pull_up', 'chin_up', 'band_assisted_pull_up', 'band_assisted_dip', 'ring_row', 'suspension_trainer_row', 'ab_wheel_rollout', 'plank']) {
       expect(isExternallyLoaded(byId.get(id)!), id).toBe(false);
@@ -149,10 +184,24 @@ describe('plans for older adults', () => {
     // 3 pull-ups / 10 push-ups max → 60–70 % of the max (2 and 6–7 reps), exactly as for a younger adult, not 8 × 8.
     const ability = { ...NO_ABILITY, pullUpsMax: 3, pushUpsMax: 10 };
     const expected: Record<string, [number, number]> = { pull_up: [2, 2], chin_up: [2, 2], push_up: [6, 7] };
+    // The library has many push-up and pull-up variations (diamond, decline, wide-grip…) that are a better fit than the
+    // plain exercises for an intermediate or advanced user. The benchmark applies to push_up, pull_up and chin_up only,
+    // so the variations are left out here to keep those three in the plan.
+    const benchmarked = new Set(Object.keys(expected));
+    const variations = catalog.filter((e) => /push_up|pull_up|chin_up/.test(e.id) && !benchmarked.has(e.id)).map((e) => e.id);
+    expect(variations.length).toBeGreaterThan(0);
     const seen = new Set<string>();
     for (const goal of GOALS) {
       for (const experience of ['intermediate', 'advanced'] as const) {
-        const over = { goal, experience, ability, location: 'outdoor' as const, equipment: DEFAULT_EQUIPMENT_BY_LOCATION.outdoor, likes: 'pull-up push-up' };
+        const over = {
+          goal,
+          experience,
+          ability,
+          location: 'outdoor' as const,
+          equipment: DEFAULT_EQUIPMENT_BY_LOCATION.outdoor,
+          likes: 'pull-up push-up',
+          avoidExerciseIds: variations,
+        };
         for (const x of all(plan(70, over))) {
           const range = expected[x.exerciseId];
           if (!range) continue;
@@ -193,19 +242,29 @@ describe('plans for older adults', () => {
 
   it('65+: band exercises are externally loaded too — a bands-only plan keeps them at 8+ reps (a lighter band)', () => {
     const seen = new Set<string>();
+    const raised = new Set<string>();
     for (const goal of GOALS) {
       for (const experience of EXPERIENCE_LEVELS) {
         const over = { goal, experience, location: 'home' as const, equipment: ['resistance_bands' as const] };
-        for (const x of all(plan(70, over))) {
-          if (byId.get(x.exerciseId)!.category !== 'band' || x.repMin == null) continue;
-          seen.add(x.exerciseId);
-          expect(x.repMin, `${goal}/${experience}: ${x.exerciseId} ${x.repMin}-${x.repMax}`).toBeGreaterThanOrEqual(8);
-          expect(x.repMax!).toBeGreaterThanOrEqual(x.repMin);
+        // Same day + exercise + role in the younger plan → what the floor changed.
+        const young = new Map(plan(40, over).workouts.flatMap((w, d) => w.exercises.map((x) => [`${d}:${x.exerciseId}:${x.role}`, x] as const)));
+        for (const [d, w] of plan(70, over).workouts.entries()) {
+          for (const x of w.exercises) {
+            if (byId.get(x.exerciseId)!.category !== 'band' || x.repMin == null) continue;
+            seen.add(x.exerciseId);
+            expect(x.repMin, `${goal}/${experience}: ${x.exerciseId} ${x.repMin}-${x.repMax}`).toBeGreaterThanOrEqual(8);
+            expect(x.repMax!).toBeGreaterThanOrEqual(x.repMin);
+            const y = young.get(`${d}:${x.exerciseId}:${x.role}`);
+            if (y?.repMin != null && y.repMin < 8) raised.add(x.exerciseId);
+          }
         }
       }
     }
-    // The strength / athletic mains (5 × 5, 4–6, 3–6 for a younger adult) are band rows and band chest presses here.
-    expect(seen.has('band_row') && seen.has('band_chest_press')).toBe(true);
+    // Band exercises really are in these plans, and for the strength / athletic mains (5 × 5, 4–6, 3–6 for a younger
+    // adult) the floor lifts the reps: the check above is not vacuous. Which band exercises the generator picks depends on
+    // the library, so the guard names no particular exercise.
+    expect(seen.size).toBeGreaterThan(0);
+    expect(raised.size).toBeGreaterThan(0);
   });
 
   it('65+: no jumping or high-impact exercise in any plan (gym, home, outdoor; every goal, experience and seed)', () => {

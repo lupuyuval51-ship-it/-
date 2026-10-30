@@ -154,7 +154,7 @@ export const exercises: ExerciseSeed[] = [
       he: [
         'עמדו ליד קיר, עמוד או משקוף והחזיקו בו קלות ביד אחת, כשהרגליים ברוחב האגן בערך.',
         'עלו על כריות כפות שתי הרגליים ונעלו את שרירי המרכז, תוך שמירה על קו ישר מהברכיים דרך האגן עד הכתפיים.',
-        'דחפו את הברכיים קדימה ומטה לכיוון הרצפה בזמן שהגו נשען לאחור, ושמרו על האגן פשוט במקום לקפל אותו לאחור.',
+        'דחפו את הברכיים קדימה ומטה לכיוון הרצפה בזמן שהגו נשען לאחור, ושמרו על מפרקי הירך פשוטים במקום לקפל אותם לאחור.',
         'רדו רק עד העומק שבו אתם שולטים בתנועה, בדרך כלל טווח קצר בהתחלה, ועצרו לרגע בתחתית.',
         'דחפו את הברכיים לאחור ויישרו את הרגליים כדי לחזור להתחלה, כשהארבע-ראשי מבצע את העלייה ולא משיכה בעזרת היד.',
       ],
@@ -197,7 +197,7 @@ export const exercises: ExerciseSeed[] = [
     name: { en: 'Spanish Squat', he: 'סקוואט ספרדי עם גומייה' },
     description: {
       en: 'A squat hold in which a resistance band anchored in front of you wraps behind your knees, letting you lean back and keep your shins vertical. It loads the quads hard with little help from the hips or the calves.',
-      he: 'החזקה בסקוואט שבה גומיית התנגדות המעוגנת לפניכם עוטפת את גב הברכיים, ומאפשרת להישען לאחור ולשמור על שוקיים אנכיות. מעמיסה חזק על הארבע-ראשי, עם מעט עזרה מהירכיים ומהתאומים.',
+      he: 'החזקה בסקוואט שבה גומיית התנגדות המעוגנת לפניכם עוטפת את גב הברכיים, ומאפשרת להישען לאחור ולשמור על שוקיים אנכיות. מעמיסה חזק על הארבע-ראשי, עם מעט עזרה ממפרקי הירך ומהתאומים.',
     },
     primaryMuscles: ['quadriceps'],
     secondaryMuscles: ['glutes'],
@@ -213,15 +213,15 @@ export const exercises: ExerciseSeed[] = [
         'Fix a long, wide resistance band to a sturdy immovable anchor at about knee height, such as a post, a rack upright or a door anchor on a closed door that opens away from you.',
         'Stand facing the anchor, loop the band around the back of your knees and walk backward until the band is taut.',
         'Place your feet about hip width apart and extend your arms straight in front of you for balance.',
-        'Lean back against the band and sit down until your knees are bent to about 90 degrees, keeping your shins vertical.',
+        'Lean back against the band and lower yourself under control into a seated position until your knees are bent to about 90 degrees, keeping your shins vertical.',
         'Hold the position with your weight on your heels and your thighs working, breathing steadily, for the target time.',
         'Stand up slowly and step toward the anchor to take the tension off before you unhook the band.',
       ],
       he: [
-        'קבעו גומיית התנגדות ארוכה ורחבה לנקודת עיגון יציבה שאינה זזה בגובה הברכיים בערך, כמו עמוד, עמוד של מתקן או עוגן דלת בדלת סגורה שנפתחת הרחק מכם.',
+        'קבעו גומיית התנגדות ארוכה ורחבה לנקודת עיגון יציבה שאינה זזה בגובה הברכיים בערך, כמו עמוד קבוע, עמוד של מתקן כוח או עוגן דלת בדלת סגורה שנפתחת הרחק מכם.',
         'עמדו עם הפנים לנקודת העיגון, העבירו את הגומייה מאחורי הברכיים וצעדו אחורה עד שהגומייה מתוחה.',
         'העמידו את הרגליים ברוחב האגן בערך והושיטו את הידיים ישר קדימה לשיווי משקל.',
-        'הישענו לאחור על הגומייה וצנחו לישיבה עד שהברכיים כפופות לכ-90 מעלות, כשהשוקיים נשארות אנכיות.',
+        'הישענו לאחור על הגומייה ורדו לישיבה בשליטה עד שהברכיים כפופות לכ-90 מעלות, כשהשוקיים נשארות אנכיות.',
         'החזיקו בתנוחה כשהמשקל על העקבים והירכיים עובדות, ונשמו בקצב קבוע, למשך הזמן הרצוי.',
         'קומו לאט וצעדו לכיוון נקודת העיגון כדי להפחית את המתח לפני שאתם משחררים את הגומייה.',
       ],
@@ -278,7 +278,7 @@ export const exercises: ExerciseSeed[] = [
     instructions: {
       en: [
         'Stand tall with your feet together or hip width apart and your hands in front of your chest.',
-        'Take a big step out to one side, landing with your foot pointing forward or turned out only slightly.',
+        'Take a big step out to one side, planting your foot pointing forward or turned out only slightly.',
         'Push your hips back and bend the stepping knee, shifting your weight onto that leg while the other leg stays straight.',
         'Lower until the bent thigh is about parallel to the floor, or as deep as feels comfortable, keeping your chest up and the heel of the working leg flat.',
         'Push firmly through the whole foot of the bent leg to return to standing.',
@@ -286,7 +286,7 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'עמדו זקופים, רגליים צמודות או ברוחב האגן והידיים לפני החזה.',
-        'צעדו צעד גדול הצידה, ונחתו עם כף הרגל פונה קדימה או מעט החוצה בלבד.',
+        'צעדו צעד גדול הצידה, והציבו את כף הרגל כשהיא פונה קדימה או מעט החוצה בלבד.',
         'שלחו את האגן לאחור וכופפו את הברך של רגל הצעד, תוך העברת המשקל לרגל הזו בזמן שהרגל השנייה נשארת ישרה.',
         'רדו עד שהירך הכפופה בערך מקבילה לרצפה, או עמוק ככל שנוח, כשהחזה פתוח ועקב הרגל העובדת צמוד לרצפה.',
         'דחפו בכוח דרך כל כף הרגל של הרגל הכפופה כדי לחזור לעמידה.',
@@ -415,9 +415,9 @@ export const exercises: ExerciseSeed[] = [
       ],
       he: [
         'התחילו במכרע כששתי הברכיים כפופות, הירך הקדמית בערך מקבילה לרצפה והגו זקוף, עם הרבה מקום פנוי סביבכם.',
-        'כופפו עוד קצת, ואז דחפו בפיצוץ דרך שתי הרגליים כדי לקפוץ ישר למעלה, תוך נדנוד הידיים לעזרה.',
+        'כופפו עוד קצת, ואז דחפו בפיצוץ דרך שתי הרגליים כדי לקפוץ ישר למעלה, תוך הנפת הידיים לעזרה.',
         'החליפו את הרגליים באוויר, כך שהרגל האחורית באה קדימה והרגל הקדמית הולכת אחורה.',
-        'נחתו בעדינות על כרית כף הרגל וצללו ישר למכרע בצד ההפוך, כשהברך הקדמית מעל קצות האצבעות.',
+        'נחתו בעדינות על כרית כף הרגל ושקעו ישר למכרע בצד ההפוך, כשהברך הקדמית מעל קצות האצבעות.',
         'המשיכו לסירוגין בקצב יציב ומבוקר, וספרו את החזרות בכל רגל.',
       ],
     },
@@ -521,8 +521,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'dumbbell_step_up',
     name: { en: 'Dumbbell Step-Up', he: 'עליות על מדרגה עם משקולות יד' },
     description: {
-      en: 'Stepping up onto a sturdy step, stair or low bench with a dumbbell in each hand. The added load makes this single-leg movement a strong builder of the quads and glutes that carries over directly to climbing and hiking.',
-      he: 'עלייה על מדרגה, מדרגת בית או ספסל נמוך ויציב עם משקולת יד בכל יד. המשקל הנוסף הופך את התנועה על רגל אחת לבונה חזק של הארבע-ראשי והישבן, ותורם ישירות לטיפוס ולהליכה בשטח.',
+      en: 'Stepping up onto a sturdy step, stair or low bench with a dumbbell in each hand. The added load makes this single-leg movement a strong builder of the quads and glutes that resembles the effort of climbing stairs or hills.',
+      he: 'עלייה על מדרגה, מדרגת בית או ספסל נמוך ויציב עם משקולת יד בכל יד. המשקל הנוסף הופך את התנועה על רגל אחת לבונה חזק של הארבע-ראשי והישבן, ודומה במאמץ שלה לעלייה במדרגות או בגבעה.',
     },
     primaryMuscles: ['quadriceps', 'glutes'],
     secondaryMuscles: ['hamstrings', 'calves', 'forearms'],
@@ -586,8 +586,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'dumbbell_bulgarian_split_squat',
     name: { en: 'Dumbbell Bulgarian Split Squat', he: 'סקוואט בולגרי עם משקולות יד' },
     description: {
-      en: 'A single-leg squat with the rear foot elevated on a bench and a dumbbell in each hand. It loads the quads and glutes one leg at a time, corrects side-to-side imbalances and challenges balance.',
-      he: 'סקוואט על רגל אחת כשכף הרגל האחורית מונחת על ספסל ומשקולת יד בכל יד. מעמיס על הארבע-ראשי והישבן בכל רגל בנפרד, מתקן חוסר איזון בין הצדדים ומאתגר את שיווי המשקל.',
+      en: 'A single-leg squat with the rear foot elevated on a bench and a dumbbell in each hand. It loads the quads and glutes one leg at a time, helps even out side-to-side differences and challenges balance.',
+      he: 'סקוואט על רגל אחת כשכף הרגל האחורית מונחת על ספסל ומשקולת יד בכל יד. מעמיס על הארבע-ראשי והישבן בכל רגל בנפרד, עוזר לאזן הבדלים בין הצדדים ומאתגר את שיווי המשקל.',
     },
     primaryMuscles: ['quadriceps', 'glutes'],
     secondaryMuscles: ['hamstrings', 'adductors', 'abs', 'forearms'],
@@ -608,7 +608,7 @@ export const exercises: ExerciseSeed[] = [
         'Complete all reps on one leg, then switch sides.',
       ],
       he: [
-        'החזיקו משקולת יד בכל יד לצד הגוף ועמדו כצעד ארוך אחד לפני ספסל שטוח, כשהגב אל הספסל.',
+        'החזיקו משקולת יד בכל יד לצד הגוף ועמדו במרחק צעד ארוך אחד מספסל שטוח, כשהגב אל הספסל.',
         'הניחו את גב כף הרגל האחורית על הספסל, ומקמו את הרגל הקדמית רחוק מספיק קדימה כך שבתחתית השוק הקדמית אנכית בערך.',
         'נעלו את שרירי המרכז ושמרו על גו זקוף או נוטה מעט קדימה, כשהאגן ישר.',
         'רדו ישר מטה בכיפוף הברך הקדמית עד שהירך הקדמית בערך מקבילה לרצפה, כשהמשקולות תלויות לצידכם.',
@@ -827,12 +827,12 @@ export const exercises: ExerciseSeed[] = [
     },
     safety: {
       en: [
-        'Use a stable step and keep a hand free to hold a support, so you cannot slip off the edge.',
+        'Use a stable, non-slip step, and if you hold a dumbbell in each hand, stand next to a wall or rail you can grab, or train on the floor instead.',
         'Choose dumbbells you can hold securely and increase the load gradually, especially if your calves or Achilles tendons feel tight.',
         'Stop if you feel sharp pain in the Achilles tendon or ankle.',
       ],
       he: [
-        'השתמשו במדרגה יציבה ושמרו יד פנויה לתמיכה, כדי שלא תחליקו מהקצה.',
+        'השתמשו במדרגה יציבה ולא חלקה, ואם אתם מחזיקים משקולת בכל יד, עמדו ליד קיר או מעקה שאפשר לאחוז בהם, או עבדו על הרצפה במקום.',
         'בחרו משקולות שתוכלו להחזיק בבטחה והגדילו את המשקל בהדרגה, במיוחד אם התאומים או גידי אכילס תפוסים.',
         'הפסיקו אם אתם מרגישים כאב חד בגיד אכילס או בקרסול.',
       ],
@@ -850,7 +850,7 @@ export const exercises: ExerciseSeed[] = [
       he: 'סקוואט על רגל אחת, שבו כף הרגל האחורית מוחזקת מאחוריכם והברך האחורית יורדת עד נגיעה ברצפה. בונה ארבע-ראשי וישבן חזקים ושיווי משקל על רגל אחת, עם דרישת ניידות קרסול נמוכה מפיסטול סקוואט, אך תובעני לברך.',
     },
     primaryMuscles: ['quadriceps', 'glutes'],
-    secondaryMuscles: ['abs', 'hip_flexors', 'calves'],
+    secondaryMuscles: ['hamstrings', 'abs', 'calves'],
     equipment: [],
     category: 'calisthenics',
     movementPattern: 'squat',
@@ -1035,6 +1035,6 @@ export const exercises: ExerciseSeed[] = [
     contraindications: ['knee'],
     easierAlternatives: ['bodyweight_squat', 'box_squat'],
     harderAlternatives: ['dumbbell_front_squat', 'barbell_back_squat'],
-    loadIncrementKg: 2,
+    loadIncrementKg: 4,
   },
 ];

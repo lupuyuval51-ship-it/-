@@ -50,6 +50,14 @@ const session: Translations<typeof en> = {
     current: 'נוכחי',
     addExercise: 'הוספת תרגיל',
   },
+  sportSection: {
+    title: 'סיום לספורט - {sport}',
+    duration: 'כ-{minutes} דקות',
+    position: 'תרגיל סיום {current} מתוך {total}',
+    entered: 'סיום לספורט: {sport}. עברנו ל{name}',
+    line: 'סיום לספורט: {sport}',
+    added: 'תרגילים נוספים',
+  },
   plates: {
     open: 'מחשבון פלטות',
     title: 'מחשבון פלטות',

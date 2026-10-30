@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { DIFFICULTIES, EQUIPMENT, EXERCISE_CATEGORIES, MUSCLE_GROUPS, MUSCLES } from '@shared/constants';
 import type { ExerciseFacetsDTO, ExerciseListItemDTO, ExerciseListResponse } from '@shared/types';
+import { EXERCISE_LIBRARY } from '../src/data/exercises/index';
 import { db } from '../src/db/pool';
 import { onboardedUser, registerUser, setProfile, startTestServer, TestClient, type TestServer } from './helpers/server';
 
@@ -63,7 +64,10 @@ describe('GET /api/exercises — search, filters and ordering', () => {
     for (const e of none.items) expect(e.equipment).toEqual([]);
 
     const kb = await list(gymUser, 'equipment=kettlebell&pageSize=100');
-    expect(ids(kb.items).sort()).toEqual(['kettlebell_overhead_press', 'kettlebell_swing']);
+    expect(ids(kb.items)).toEqual(expect.arrayContaining(['kettlebell_overhead_press', 'kettlebell_swing']));
+    for (const e of kb.items) expect(e.equipment, e.id).toContain('kettlebell');
+    // The filter returns exactly the library's kettlebell exercises (no more, no fewer).
+    expect(ids(kb.items).sort()).toEqual(EXERCISE_LIBRARY.filter((e) => e.equipment.includes('kettlebell')).map((e) => e.id).sort());
   });
 
   it('combines filters with AND semantics', async () => {

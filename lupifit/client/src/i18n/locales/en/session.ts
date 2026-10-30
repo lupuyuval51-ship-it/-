@@ -48,6 +48,14 @@ const session = {
     current: 'Current',
     addExercise: 'Add exercise',
   },
+  sportSection: {
+    title: 'Sport finisher - {sport}',
+    duration: 'About {minutes} minutes',
+    position: 'Finisher exercise {current} of {total}',
+    entered: 'Sport finisher: {sport}. Moved on to {name}',
+    line: 'Sport finisher: {sport}',
+    added: 'Other exercises',
+  },
   plates: {
     open: 'Plate calculator',
     title: 'Plate calculator',

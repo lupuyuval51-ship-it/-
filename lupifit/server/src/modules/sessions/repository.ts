@@ -413,6 +413,10 @@ export async function buildSummary(sql: Sql, userId: string, row: SessionRow, ti
       bestSet: best ? { reps: best.reps, weightKg: best.weightKg, durationSeconds: best.durationSeconds } : null,
     };
   });
+  const finisher = await sql.maybeOne<{ sport: SportId }>(
+    'SELECT sport FROM session_exercises WHERE session_id = $1 AND user_id = $2 AND sport IS NOT NULL ORDER BY position LIMIT 1',
+    [row.id, userId],
+  );
   let previous: SessionSummaryDTO['previous'] = null;
   if (row.plan_workout_id) {
     const prev = await sql.maybeOne<{ id: string; ended_at: Date; total_volume_kg: number | null; duration_seconds: number | null }>(
@@ -449,6 +453,7 @@ export async function buildSummary(sql: Sql, userId: string, row: SessionRow, ti
       notes: Array.isArray(rewards.notes) ? rewards.notes : [],
     },
     previous,
+    sport: finisher?.sport ?? null,
   };
 }
 
@@ -468,6 +473,7 @@ export async function listHistory(
     total_volume_kg: number;
     exercise_count: number;
     pr_count: number;
+    sport: SportId | null;
     cursor: string;
   }>(
     `SELECT ws.id, ws.name, ws.status, ws.started_at, ws.ended_at, ws.duration_seconds,
@@ -477,6 +483,7 @@ export async function listHistory(
               WHERE se.session_id = ws.id
                 AND EXISTS (SELECT 1 FROM session_sets ss WHERE ss.session_exercise_id = se.id AND ss.completed))::int AS exercise_count,
             (SELECT count(*) FROM personal_records pr WHERE pr.session_id = ws.id)::int AS pr_count,
+            (SELECT se.sport FROM session_exercises se WHERE se.session_id = ws.id AND se.sport IS NOT NULL ORDER BY se.position LIMIT 1) AS sport,
             to_char(ws.started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor
        FROM workout_sessions ws
       WHERE ws.user_id = $1 AND ws.status = $2 AND ($3::timestamptz IS NULL OR ws.started_at < $3::timestamptz)
@@ -497,6 +504,7 @@ export async function listHistory(
       totalVolumeKg: Number(r.total_volume_kg),
       exerciseCount: r.exercise_count,
       prCount: r.pr_count,
+      sport: r.sport ?? null,
     })),
     nextCursor: rows.length > query.limit ? (page[page.length - 1]?.cursor ?? null) : null,
   };

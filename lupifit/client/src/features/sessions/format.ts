@@ -1,5 +1,5 @@
 /** Display helpers for sets, prescriptions, records and durations (unit- and locale-aware). */
-import type { PrType, TrackingType } from '@shared/constants';
+import type { PrType, SportId, TrackingType } from '@shared/constants';
 import { formatClock } from '@shared/training';
 import type { PreviousPerformanceDTO, ProgressionSuggestionDTO, SessionExerciseDTO, SessionSetDTO } from '@shared/types';
 import type { I18nValue } from '../../i18n';
@@ -115,4 +115,9 @@ export function formatRecordValue(type: PrType, value: number | null, i18n: T, f
     default:
       return formatWeight(value);
   }
+}
+
+/** Name of a sport in the UI language; a sport this client does not know yet reads as the general one. */
+export function sportLabel(i18n: Pick<I18nValue, 't' | 'tx'>, sport: SportId): string {
+  return i18n.tx(`enums.sport.${sport}`, undefined, i18n.t('enums.sport.general'));
 }

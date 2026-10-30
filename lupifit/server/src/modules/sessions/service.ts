@@ -3,7 +3,7 @@
  * locks the session row first (`requireOpenSession` → SELECT … FOR UPDATE) so concurrent
  * edits never interleave with finishing the workout.
  */
-import type { Locale } from '@shared/constants';
+import type { Locale, SportId } from '@shared/constants';
 import { dateInTimeZone } from '@shared/dates';
 import {
   SESSION_LIMITS,
@@ -22,6 +22,7 @@ import type { Sql } from '../../db/pool';
 import { badRequest, conflict, notFound } from '../../lib/errors';
 import { getExercise, type ExerciseRecord } from '../exercises/repository';
 import { onWorkoutCompleted } from '../gamification/hooks';
+import { planReadySession, type ReadySessionRow } from '../ready/service';
 import { holdSuggestion, suggestProgressions } from './progression';
 import { insertRecords, loadPreviousBests, detectRecords } from './records';
 import {
@@ -74,6 +75,8 @@ interface NewSessionExercise {
   targetRpe: number | null;
   notes: string;
   suggestion: ProgressionSuggestionDTO;
+  /** Sport of the ready-workout finisher this exercise belongs to; absent or null for a normal exercise. */
+  sport?: SportId | null;
 }
 
 /** Snapshots one exercise into the session (targets from the suggestion) and pre-creates its sets. */
@@ -84,8 +87,8 @@ async function insertSessionExercise(sql: Sql, userId: string, sessionId: string
   const targetSeconds = tracking === 'time' ? s.targetSeconds : null;
   const row = await sql.one<{ id: string }>(
     `INSERT INTO session_exercises
-       (session_id, user_id, exercise_id, position, rep_min, rep_max, target_seconds, rest_seconds, target_rpe, target_weight_kg, notes, suggestion)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb) RETURNING id`,
+       (session_id, user_id, exercise_id, position, rep_min, rep_max, target_seconds, rest_seconds, target_rpe, target_weight_kg, notes, suggestion, sport)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb, $13) RETURNING id`,
     [
       sessionId,
       userId,
@@ -99,6 +102,7 @@ async function insertSessionExercise(sql: Sql, userId: string, sessionId: string
       s.targetWeightKg,
       x.notes,
       JSON.stringify(s),
+      x.sport ?? null,
     ],
   );
   await sql.exec(
@@ -109,7 +113,10 @@ async function insertSessionExercise(sql: Sql, userId: string, sessionId: string
   return row.id;
 }
 
-/** Starts a session from a plan day (snapshot + progression targets) or an empty one. Returns the id. */
+/**
+ * Starts a session from a plan day (snapshot + progression targets), a ready-made workout (adapted to the person,
+ * optionally ending with a sport block) or an empty one. Returns the id.
+ */
 export async function startSession(sql: Sql, user: SessionUser, input: StartSessionInput): Promise<string> {
   await lockUser(sql, user.id);
   const open = await sql.maybeOne<{ id: string }>(
@@ -118,7 +125,13 @@ export async function startSession(sql: Sql, user: SessionUser, input: StartSess
   );
   if (open) throw conflict('session_already_active', 'A workout is already in progress', { sessionId: open.id });
 
-  if ('readyWorkoutId' in input) throw notFound('ready_workout_not_found', 'Ready workout not found');
+  if ('readyWorkoutId' in input) {
+    // Same checks as the preview (404 unknown, 409 not for this place / gear / person). No readiness step here.
+    const plan = await planReadySession(sql, user, input);
+    const session = await sql.one<{ id: string }>('INSERT INTO workout_sessions (user_id, name) VALUES ($1, $2) RETURNING id', [user.id, plan.name]);
+    await seedFromReady(sql, user.id, session.id, plan.rows);
+    return session.id;
+  }
   if (!('planWorkoutId' in input)) {
     const name = input.name?.trim() || DEFAULT_EMPTY_NAME[user.locale];
     const row = await sql.one<{ id: string }>('INSERT INTO workout_sessions (user_id, name) VALUES ($1, $2) RETURNING id', [user.id, name]);
@@ -193,6 +206,31 @@ async function seedFromPlan(sql: Sql, userId: string, sessionId: string, planWor
       targetRpe: easier ? easierRpe(rpe) : rpe,
       notes: p.notes,
       suggestion: easier ? holdSuggestion(suggestions[i]!) : suggestions[i]!,
+    });
+  }
+}
+
+/**
+ * Writes the rows of a ready workout into the session: main exercises first (positions 0..n-1), then the sport
+ * block (tagged with its sport). Targets come from the person's history like they do for a plan day, so a returning
+ * user gets weight / rep suggestions; a first time keeps the prescription of the workout.
+ */
+async function seedFromReady(sql: Sql, userId: string, sessionId: string, rows: ReadySessionRow[]) {
+  const suggestions = await suggestProgressions(
+    sql,
+    userId,
+    rows.map((r) => ({ exerciseId: r.exerciseId, repMin: r.repMin, repMax: r.repMax, targetSeconds: r.targetSeconds, targetWeightKg: null })),
+  );
+  for (const [i, r] of rows.entries()) {
+    await insertSessionExercise(sql, userId, sessionId, {
+      exercise: await exerciseRecord(r.exerciseId),
+      position: i,
+      sets: r.sets,
+      restSeconds: r.restSeconds,
+      targetRpe: r.targetRpe,
+      notes: r.notes,
+      suggestion: suggestions[i]!,
+      sport: r.sport,
     });
   }
 }
@@ -387,7 +425,9 @@ export async function replaceExercise(sql: Sql, userId: string, sessionId: strin
   );
   if (stats.done > 0) throw conflict('exercise_has_progress', 'Sets of this exercise are already logged');
   const newId = await addExercise(sql, userId, sessionId, { exerciseId, sets: Math.max(1, stats.total) });
-  await sql.exec('UPDATE session_exercises SET position = $2 WHERE id = $1', [newId, old.position]);
+  // The new exercise takes over the place of the old one, including its section: a swap inside a ready workout's
+  // sport finisher stays in the finisher (otherwise the finisher would be split in two by a "main workout" row).
+  await sql.exec('UPDATE session_exercises SET position = $2, sport = $3 WHERE id = $1 AND user_id = $4', [newId, old.position, old.sport ?? null, userId]);
   await sql.exec('DELETE FROM session_exercises WHERE id = $1', [old.id]);
   await sql.exec(
     `UPDATE session_exercises s SET position = r.rn

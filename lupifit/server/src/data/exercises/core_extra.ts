@@ -68,8 +68,8 @@ export const exercises: ExerciseSeed[] = [
     id: 'flutter_kicks',
     name: { en: 'Flutter Kicks', he: 'בעיטות רפרוף (פלאטר קיקס)' },
     description: {
-      en: 'A floor exercise in which you hold both straight legs just above the floor and kick them up and down in small alternating movements. It trains the lower part of the abdominal wall and the hip flexors to keep the pelvis steady, and builds endurance for longer core sessions.',
-      he: 'תרגיל על הרצפה שבו מחזיקים את שתי הרגליים הישרות מעט מעל הרצפה ומניעים אותן מעלה ומטה בתנועות קטנות לסירוגין. מאמן את החלק התחתון של דופן הבטן ואת מכופפי הירך לשמור על אגן יציב, ובונה סיבולת לאימוני ליבה ארוכים יותר.',
+      en: 'A floor exercise in which you hold both straight legs off the floor and kick them up and down in small alternating movements. It trains the abdominal wall and the hip flexors to keep the pelvis steady, and builds endurance for longer core sessions.',
+      he: 'תרגיל על הרצפה שבו מחזיקים את שתי הרגליים הישרות מעל הרצפה ומניעים אותן מעלה ומטה בתנועות קטנות לסירוגין. מאמן את שרירי הבטן ואת מכופפי הירך לשמור על אגן יציב, ובונה סיבולת לאימוני ליבה ארוכים יותר.',
     },
     primaryMuscles: ['abs', 'hip_flexors'],
     secondaryMuscles: ['quadriceps', 'obliques'],
@@ -119,7 +119,7 @@ export const exercises: ExerciseSeed[] = [
         'Stop if you feel pain in the lower back or hips.',
       ],
       he: [
-        'הגבירו את גובה הרגליים או כופפו מעט את הברכיים אם הגב התחתון מתחיל להתרומם.',
+        'הגביהו את הרגליים או כופפו מעט את הברכיים אם הגב התחתון מתחיל להתרומם.',
         'השתמשו במזרן, והניחו את הידיים מתחת לאגן לתמיכה אם זה נוח לכם.',
         'הפסיקו אם אתם מרגישים כאב בגב התחתון או במפרקי הירך.',
       ],
@@ -361,13 +361,13 @@ export const exercises: ExerciseSeed[] = [
         'Rolling the chest toward the floor or the ceiling instead of staying stacked.',
         'Bouncing the hip off the floor instead of turning around under control.',
         'Pushing the hips back so the body folds at the waist.',
-        'Letting the supporting shoulder sink up toward the ear.',
+        'Shrugging the supporting shoulder up toward the ear.',
       ],
       he: [
         'גלגול החזה לכיוון הרצפה או התקרה במקום לשמור על הגוף ישר על הצד.',
         'הקפצת האגן מהרצפה במקום שינוי כיוון מבוקר.',
         'דחיפת האגן לאחור כך שהגוף מתקפל במותן.',
-        'מתן לכתף התומכת לשקוע ולעלות לכיוון האוזן.',
+        'הרמת הכתף התומכת לכיוון האוזן.',
       ],
     },
     safety: {
@@ -743,7 +743,7 @@ export const exercises: ExerciseSeed[] = [
         'נעלו את הבטן ושמרו על הצלעות מעל האגן ועל הכתפיים בגובה אחד, בלי להישען לכיוון המשקל.',
         'צעדו קדימה בצעדים קצרים ויציבים, כשהמשקולת לא מתנדנדת, ונשמו באופן קבוע.',
         'הלכו למשך הזמן שנקבע, והסתובבו בזהירות אם נגמר לכם המקום.',
-        'הניחו את המשקולת בציר ירך זהה, ואז חזרו על התרגיל עם המשקולת ביד השנייה לאותו משך זמן.',
+        'הניחו את המשקולת בתנועת ציר ירך זהה, ואז חזרו על התרגיל עם המשקולת ביד השנייה לאותו משך זמן.',
       ],
     },
     mistakes: {
@@ -772,7 +772,7 @@ export const exercises: ExerciseSeed[] = [
         'שאו לאותו משך זמן בשני הצדדים, והפסיקו אם אתם מרגישים כאב חד בגב, בשורשי כפות הידיים או בכתפיים.',
       ],
     },
-    contraindications: ['wrist'],
+    contraindications: ['wrist', 'lower_back'],
     easierAlternatives: ['farmer_carry', 'side_plank'],
     harderAlternatives: [],
     loadIncrementKg: 2,
@@ -839,7 +839,7 @@ export const exercises: ExerciseSeed[] = [
     },
     contraindications: ['shoulder', 'lower_back'],
     easierAlternatives: ['hanging_knee_raise', 'bicycle_crunch'],
-    harderAlternatives: ['toes_to_bar', 'hanging_leg_raise'],
+    harderAlternatives: ['hanging_leg_raise', 'toes_to_bar'],
     loadIncrementKg: null,
   },
   {

@@ -12,7 +12,7 @@ import { ageRules, isExternallyLoaded, isHighImpact, type AgeBand } from '@share
 import type { Difficulty, Equipment, InjuryArea, Locale, SportBlockVariant, SportId, TrainingMode } from '@shared/constants';
 import type { LocalizedText, ReadyItemSeed, ReadyWorkoutSeed, SportBlockSeed } from '@shared/content';
 import type { GenerationNote } from '@shared/types';
-import { READY_MIN_ITEMS, type ExerciseFacts, type ExerciseLookup } from './rules';
+import { READY_MIN_ITEMS, RESISTANCE_GEAR, type ExerciseFacts, type ExerciseLookup } from './rules';
 import { clamp, pickLocale } from './util';
 
 export interface AdaptContext {
@@ -23,6 +23,11 @@ export interface AdaptContext {
   /** Gear the person has: what they ticked at home / in the park, everything at the gym (`effectiveEquipment`). */
   equipment: readonly Equipment[];
   locale: Locale;
+  /**
+   * Exercises the person asked never to get (the "avoid" list of their profile, as the plan generator reads it).
+   * They are treated like a contraindication: swapped for an easier alternative or left out, never in a sport block.
+   */
+  avoid?: readonly string[];
 }
 
 /** One exercise of an adapted workout or sport block, ready to be shown or written to a session. */
@@ -79,7 +84,7 @@ export const READY_NOTE_CODES = ['minor', 'age_mature', 'age_senior', 'substitut
 
 // ---------------------------------------------------------------- Suitability
 
-export type UnsuitableReason = 'equipment' | 'injury' | 'advanced' | 'high_impact';
+export type UnsuitableReason = 'equipment' | 'injury' | 'advanced' | 'high_impact' | 'avoided';
 
 const minorOf = (ctx: Pick<AdaptContext, 'isMinor' | 'ageBand'>) => ctx.isMinor || ctx.ageBand === 'minor';
 
@@ -91,6 +96,7 @@ export function unsuitableReasons(e: ExerciseFacts, ctx: AdaptContext): Unsuitab
   if (e.contraindications.some((c) => ctx.injuries.includes(c))) out.push('injury');
   if ((minorOf(ctx) || rules.excludeAdvanced) && e.difficulty === 'advanced') out.push('advanced');
   if (rules.excludeHighImpact && isHighImpact(e)) out.push('high_impact');
+  if (ctx.avoid?.includes(e.id)) out.push('avoided');
   return out;
 }
 
@@ -100,14 +106,24 @@ export const isSuitable = (e: ExerciseFacts, ctx: AdaptContext): boolean => unsu
 
 const DIFFICULTY_RANK: readonly Difficulty[] = ['beginner', 'intermediate', 'advanced'];
 
+/** No external load and no resistance gear: what `validateReadyWorkout` demands of a bodyweight workout. */
+const staysBodyweight = (e: ExerciseFacts): boolean => !isExternallyLoaded(e) && !e.equipment.some((q) => RESISTANCE_GEAR.includes(q));
+
 /**
  * The first suitable exercise on the "easier alternative" tree of `original`, searched breadth first (depth up to
  * `SUBSTITUTE_MAX_DEPTH`, listed order within a level). It must also work at least one of the same primary muscles,
  * must not already be part of the workout and must not be harder than the exercise it replaces (a mislabelled
- * "easier" alternative never makes a workout harder). Unsuitable alternatives are walked through (their own easier
- * alternatives may be fine) but never chosen.
+ * "easier" alternative never makes a workout harder). In a bodyweight workout it must stay bodyweight: no external
+ * load and no resistance gear (the rule the data is held to), so the "bodyweight" the person chose is still true.
+ * Unsuitable alternatives are walked through (their own easier alternatives may be fine) but never chosen.
  */
-export function findSubstitute(original: ExerciseFacts, lookup: ExerciseLookup, ctx: AdaptContext, taken: ReadonlySet<string>): ExerciseFacts | null {
+export function findSubstitute(
+  original: ExerciseFacts,
+  lookup: ExerciseLookup,
+  ctx: AdaptContext,
+  taken: ReadonlySet<string>,
+  mode?: TrainingMode,
+): ExerciseFacts | null {
   const seen = new Set<string>([original.id]);
   const ceiling = DIFFICULTY_RANK.indexOf(original.difficulty);
   let level: ExerciseFacts[] = [original];
@@ -123,6 +139,7 @@ export function findSubstitute(original: ExerciseFacts, lookup: ExerciseLookup, 
           !taken.has(id) &&
           DIFFICULTY_RANK.indexOf(alt.difficulty) <= ceiling &&
           isSuitable(alt, ctx) &&
+          (mode !== 'bodyweight' || staysBodyweight(alt)) &&
           alt.primaryMuscles.some((m) => original.primaryMuscles.includes(m));
         if (fits) return alt;
         next.push(alt);
@@ -251,7 +268,7 @@ export function adaptWorkout(seed: ReadyWorkoutSeed, lookup: ExerciseLookup, ctx
       continue;
     }
     changed++;
-    const substitute = exercise ? findSubstitute(exercise, lookup, ctx, taken) : null;
+    const substitute = exercise ? findSubstitute(exercise, lookup, ctx, taken, seed.mode) : null;
     if (!exercise || !substitute) {
       addNote(changes, 'dropped', { name: exercise ? pickLocale(exercise.name, ctx.locale) : item.exerciseId });
       continue;
