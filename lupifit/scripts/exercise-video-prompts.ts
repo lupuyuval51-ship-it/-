@@ -10,6 +10,7 @@ import { EXERCISE_LIBRARY } from '../server/src/data/exercises/index';
 import { READY_WORKOUTS } from '../server/src/data/ready-workouts/index';
 import { SPORT_BLOCKS } from '../server/src/data/sport-blocks/index';
 import { isHighImpact } from '../shared/age';
+import { hasAnimation } from '../shared/animation/data/index';
 
 const STYLE =
   'Photorealistic fitness instruction video, one athletic adult demonstrator with a neutral build in plain black fitted sportswear and clean training shoes, ' +
@@ -95,6 +96,7 @@ const rows = EXERCISE_LIBRARY.map((e) => {
     usedInWorkouts: u.workouts,
     usedInBlocks: u.blocks,
     priority: priorityOf(used),
+    animated: hasAnimation(e.id),
     risky: e.difficulty === 'advanced' || e.category === 'plyometric' || isHighImpact(e),
     prompt,
     short,
@@ -161,3 +163,23 @@ const csv = [['file', 'id', 'priority', 'used_in_workouts', 'used_in_sport_block
 );
 fs.writeFileSync(path.join(docs, 'exercise-video-prompts.csv'), '﻿' + csv.map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n');
 console.log(`docs/exercise-video-prompts.{md,csv}: ${rows.length} prompts (A ${count('A')}, B ${count('B')}, C ${count('C')}, D ${count('D')})`);
+
+// A plain checklist (Hebrew first) of every video to make, in priority order.
+const CAT_HE: Record<string, string> = { free_weight: 'משקולות חופשיות', machine: 'מכונה', cable: 'כבל', bodyweight: 'משקל גוף', calisthenics: 'קליסטניקס', band: 'גומייה', plyometric: 'פליאומטרי', cardio: 'קרדיו', mobility: 'מוביליטי' };
+const checklist: string[] = [
+  '# רשימת הסרטונים שצריך (Exercise videos checklist)',
+  '',
+  `${rows.length} סרטונים, אחד לכל תרגיל. שם הקובץ: \`<id>.mp4\`. הסדר לפי עדיפות: A קודם (התרגילים שהכי הרבה אימונים משתמשים בהם).`,
+  '',
+  `- A: ${count('A')} · B: ${count('B')} · C: ${count('C')} · D: ${count('D')}`,
+  `- ${rows.filter((r) => r.animated).length} תרגילים כבר מוצגים באפליקציה עם אנימציה מובנית (עמודה "אנימציה"): אפשר לדחות אותם לסוף.`,
+  '- "בדיקה כפולה" = תרגיל מתקדם או קפיצתי: לבדוק את הביצוע בסרטון פעמיים.',
+  '- הפרומפטים המלאים לכל סרטון: docs/exercise-video-prompts.md',
+  '',
+  '| # | ✓ | עדיפות | קובץ | שם בעברית | English | ציוד | סוג | אנימציה | בדיקה כפולה |',
+  '|---|---|---|---|---|---|---|---|---|---|',
+  ...rows.map((r, i) => `| ${i + 1} | ☐ | ${r.priority} | \`${r.id}.mp4\` | ${r.nameHe} | ${r.name} | ${r.equipment === 'none' ? 'ללא' : r.equipment.replace(/\+/g, ', ').replace(/_/g, ' ')} | ${CAT_HE[r.category] ?? r.category} | ${r.animated ? 'יש' : '-'} | ${r.risky ? 'כן' : '-'} |`),
+  '',
+];
+fs.writeFileSync(path.join(docs, 'exercise-video-list.md'), checklist.join('\n'));
+console.log(`docs/exercise-video-list.md: ${rows.length} videos, ${rows.filter((r) => r.animated).length} already animated`);
