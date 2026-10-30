@@ -15,8 +15,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'full_body_park_bench_bar_basics',
     name: { en: 'Bench and Row Starter', he: 'התחלה עם ספסל ומתח אוסטרלי' },
     description: {
-      en: 'A first park session for the whole body: step-ups and a hip hinge for the legs, incline push-ups, bar rows and a plank. Straight sets, three at most, with a minute of rest.',
-      he: 'אימון ראשון בפארק לכל הגוף: עליות לספסל וגוד מורנינג לרגליים, שכיבות סמיכה בידיים מוגבהות, מתח אוסטרלי ופלאנק. סטים רגילים, עד שלושה, עם דקת מנוחה.',
+      en: 'A first park session for the whole body: step-ups and a hip hinge for the legs, incline push-ups, bar rows and a plank. Straight sets, three at most, with about a minute of rest.',
+      he: 'אימון ראשון בפארק לכל הגוף: עליות לספסל וגוד מורנינג לרגליים, שכיבות סמיכה בידיים מוגבהות, מתח אוסטרלי ופלאנק. סטים רגילים, עד שלושה, עם כדקה של מנוחה.',
     },
     focus: 'full_body',
     mode: 'bodyweight',
@@ -166,7 +166,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         sets: 4,
         reps: [5, 8],
         restSeconds: 75,
-        cue: { en: 'Palms facing you, full hang at the bottom, chest to the bar.', he: 'כפות הידיים פונות פנימה, תלייה מלאה בתחתית, החזה למוט.' },
+        cue: { en: 'Palms facing you, full hang at the bottom, chest to the bar.', he: 'כפות הידיים פונות לגוף, תלייה מלאה בתחתית, החזה למוט.' },
       },
       {
         exerciseId: 'decline_push_up',
@@ -299,7 +299,7 @@ export const workouts: ReadyWorkoutSeed[] = [
         sets: 3,
         reps: [8, 10],
         restSeconds: 45,
-        cue: { en: 'Bench or low wall, whole foot on top, alternate the leading leg each set.', he: 'ספסל או קיר נמוך, כל כף הרגל למעלה, להחליף רגל מובילה בכל סט.' },
+        cue: { en: 'Bench or low wall, whole foot on top. Same number of reps on each leg.', he: 'ספסל או קיר נמוך, כל כף הרגל למעלה. אותה כמות חזרות בכל רגל.' },
       },
       { exerciseId: 'jump_rope_skipping', sets: 3, seconds: 45, restSeconds: 45 },
       { exerciseId: 'lateral_shuffle', sets: 3, seconds: 30, restSeconds: 30 },
@@ -317,8 +317,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'cardio_park_stair_intervals_burpees',
     name: { en: 'Stair Intervals and Burpees', he: 'אינטרוולים במדרגות וברפי' },
     description: {
-      en: 'Five stair-run intervals, then broad jumps, lateral bounds, burpees and crawling drills. Walk down between efforts, warm up well and choose dry, even stairs.',
-      he: 'חמישה אינטרוולים של ריצה במדרגות, ואחריהם קפיצות לרוחק, ניתורים לצדדים, ברפי ותרגילי זחילה. ללכת למטה בין המאמצים, להתחמם היטב ולבחור מדרגות יבשות ואחידות.',
+      en: 'Five stair-run intervals, then broad jumps, lateral bounds, burpees, bear crawls and high knees. Walk down between efforts, warm up well and choose dry, even stairs.',
+      he: 'חמישה אינטרוולים של ריצה במדרגות, ואחריהם קפיצות לרוחק, ניתורים לצדדים, ברפי, זחילת דוב והרמות ברכיים. ללכת למטה בין המאמצים, להתחמם היטב ולבחור מדרגות יבשות ואחידות.',
     },
     focus: 'cardio',
     mode: 'bodyweight',
@@ -343,11 +343,11 @@ export const workouts: ReadyWorkoutSeed[] = [
     ],
   },
   {
-    id: 'cardio_park_sprints_and_pull_up_breaks',
-    name: { en: 'Sprints and Pull-Up Breaks', he: 'ספרינטים והפסקות מתח' },
+    id: 'cardio_park_sprint_shuttles_pull_ups',
+    name: { en: 'Sprint Shuttles and Pull-Ups', he: 'ספרינטים הלוך וחזור ועליות מתח' },
     description: {
-      en: 'Short shuttle sprints at a fast but controlled pace, with tuck jumps, pull-ups and burpees in between to keep the heart rate high. For an advanced level that already runs and jumps regularly.',
-      he: 'ספרינטים קצרים הלוך וחזור בקצב מהיר אך מבוקר, עם קפיצות ברכיים לחזה, עליות מתח וברפי ביניהם כדי לשמור על דופק גבוה. מתאים לרמה מתקדמת שכבר רצה וקופצת באופן קבוע.',
+      en: 'Short shuttle sprints at a fast but controlled pace, then tuck jumps, pull-ups, burpees and bounds to keep the heart rate high. For an advanced level that already runs and jumps regularly.',
+      he: 'ספרינטים קצרים הלוך וחזור בקצב מהיר אך מבוקר, ואחריהם קפיצות ברכיים לחזה, עליות מתח, ברפי וניתורים כדי לשמור על דופק גבוה. מתאים לרמה מתקדמת עם רקע קבוע בריצה ובקפיצות.',
     },
     focus: 'cardio',
     mode: 'bodyweight',
@@ -563,8 +563,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     ],
   },
   {
-    id: 'core_park_hanging_core_builder',
-    name: { en: 'Hanging Core Builder', he: 'בניית ליבה בתלייה' },
+    id: 'core_park_hang_and_hold_core',
+    name: { en: 'Hang and Hold Core', he: 'ליבה: תלייה והחזקות' },
     description: {
       en: 'Hanging knee raises and oblique raises on the bar, then hollow holds, side plank hip dips and supermans on the ground for the whole trunk. Controlled reps, no swinging.',
       he: 'הרמות ברכיים והרמות ברכיים לצד בתלייה על המוט, ואחר כך החזקות הולו בודי, פלאנק צידי עם הורדת אגן וסופרמן על הקרקע לכל הגו. חזרות מבוקרות, בלי נדנוד.',
@@ -599,8 +599,8 @@ export const workouts: ReadyWorkoutSeed[] = [
 
   // ------------------------------------------------------------------ upper body
   {
-    id: 'upper_body_park_pull_push_basics',
-    name: { en: 'Pull and Push Basics', he: 'יסודות משיכה ודחיפה' },
+    id: 'upper_body_park_hang_row_push_basics',
+    name: { en: 'Hang, Row and Push Basics', he: 'יסודות תלייה, מתח אוסטרלי ושכיבות סמיכה' },
     description: {
       en: 'Push-ups, bar rows and scapular pull-ups, a scapular push-up for shoulder control and a dead hang to finish. A gentle way to learn the basic pushing and pulling patterns.',
       he: 'שכיבות סמיכה, מתח אוסטרלי ומשיכות שכמות בתלייה, שכיבת סמיכה לשכמות לשליטה בכתף ותלייה על המוט לסיום. דרך עדינה ללמוד את דפוסי הדחיפה והמשיכה הבסיסיים.',
@@ -643,7 +643,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     name: { en: 'Chin-Ups with Decline and Pike Push-Ups', he: 'מתח באחיזה הפוכה עם שכיבות בשיפוע ופייק' },
     description: {
       en: 'Chin-ups and bar rows for the back and biceps, with decline and pike push-ups that change the angle for chest and shoulders, and a prone T raise for the rear shoulders. Straight sets, moderate rest.',
-      he: 'מתח באחיזה הפוכה ומתח אוסטרלי לגב ולדו ראשי, עם שכיבות סמיכה בשיפוע ופייק ששונות בזווית לחזה ולכתפיים, והרמת T על הבטן לכתפיים האחוריות. סטים רגילים, מנוחה בינונית.',
+      he: 'מתח באחיזה הפוכה ומתח אוסטרלי לגב ולדו ראשי, עם שכיבות סמיכה בשיפוע ושכיבות פייק שמשנות את זווית העבודה לחזה ולכתפיים, והרמת T על הבטן לכתפיים האחוריות. סטים רגילים, מנוחה בינונית.',
     },
     focus: 'upper_body',
     mode: 'bodyweight',
@@ -710,8 +710,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'upper_body_park_archer_strength',
     name: { en: 'Archer Pull-Ups and Push-Ups', he: 'עליות מתח ושכיבות סמיכה קשת (ארצ׳ר)' },
     description: {
-      en: 'Archer pull-ups and archer push-ups load one arm at a time, backed by dips, chin-ups and a prone Y raise for the shoulder blades. For an advanced level with strong pull-ups and push-ups; stop each set before form breaks.',
-      he: 'עליות מתח ושכיבות סמיכה קשת (ארצ׳ר) מעמיסות על זרוע אחת בכל פעם, בתוספת מקבילים, מתח באחיזה הפוכה והרמת Y על הבטן לשכמות. מתאים לרמה מתקדמת עם בסיס חזק במתח ובשכיבות סמיכה; לסיים כל סט לפני שהטכניקה נשברת.',
+      en: 'Archer pull-ups and archer push-ups shift most of the load onto one arm at a time, backed by dips, chin-ups and a prone Y raise for the shoulder blades. For an advanced level; end each set before form breaks.',
+      he: 'עליות מתח ושכיבות סמיכה קשת (ארצ׳ר) מעבירות את רוב העומס לזרוע אחת בכל פעם, בתוספת מקבילים, מתח באחיזה הפוכה והרמת Y על הבטן לשכמות. מתאים לרמה מתקדמת; לסיים כל סט לפני שהטכניקה נשברת.',
     },
     focus: 'upper_body',
     mode: 'bodyweight',
