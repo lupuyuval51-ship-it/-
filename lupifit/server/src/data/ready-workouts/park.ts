@@ -4,8 +4,9 @@ import type { ReadyWorkoutSeed } from '@shared/content';
  * Park / street-workout sessions (18): ground, a fixed pull-up bar, dip bars, a bench or low wall, stairs and open space.
  * Everything is bodyweight mode. Places are listed from the gear: a workout that needs only a pull-up bar, a bench or no
  * equipment is also offered at home and in the gym; dip bars add the gym but not home.
- * The jogging, stair and sprint sessions are outdoor only on purpose: the running itself needs open space or a flight of
- * stairs, so the "could also be offered in" notes for those few are expected.
+ * The three cardio sessions and the sprint legs session are outdoor only on purpose: the jogging, stair intervals and
+ * sprints are the session and need open space or a flight of stairs, so the "could also be offered in" notes for those
+ * four are expected.
  * Counts: full_body 6, cardio 3, legs 3, core 2, upper_body 4.
  */
 export const workouts: ReadyWorkoutSeed[] = [
@@ -275,8 +276,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'cardio_park_jog_rope_bench_intervals',
     name: { en: 'Easy Jog, Rope and Bench Intervals', he: 'אינטרוולים קלים: ריצה, חבל וספסל' },
     description: {
-      en: 'Jog-and-walk intervals, a jump-rope round, bench step-ups and light footwork drills. Work and rest are even and nothing is all-out, so it suits a first cardio session outdoors.',
-      he: 'אינטרוולים של ריצה קלה והליכה, סבב קפיצות בחבל, עליות לספסל ותרגילי רגליים קלים. העבודה והמנוחה שווים ושום דבר לא במאמץ מרבי, כך שזה מתאים לאימון קרדיו ראשון בחוץ.',
+      en: 'Three jog-and-walk intervals, a jump-rope round, bench step-ups and light footwork drills. Work and rest are even and nothing is all-out, so it suits a first cardio session outdoors.',
+      he: 'שלושה אינטרוולים של ריצה קלה והליכה, סבב קפיצות בחבל, עליות לספסל ותרגילי רגליים קלים. העבודה והמנוחה שווים ושום דבר לא במאמץ מרבי, כך שזה מתאים לאימון קרדיו ראשון בחוץ.',
     },
     focus: 'cardio',
     mode: 'bodyweight',
@@ -285,7 +286,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     items: [
       {
         exerciseId: 'brisk_walk_jog',
-        sets: 5,
+        sets: 3,
         seconds: 60,
         restSeconds: 60,
         cue: {
@@ -302,6 +303,7 @@ export const workouts: ReadyWorkoutSeed[] = [
       },
       { exerciseId: 'jump_rope_skipping', sets: 3, seconds: 45, restSeconds: 45 },
       { exerciseId: 'lateral_shuffle', sets: 3, seconds: 30, restSeconds: 30 },
+      { exerciseId: 'a_skip', sets: 3, seconds: 30, restSeconds: 30 },
       {
         exerciseId: 'mountain_climber',
         sets: 3,
