@@ -42,7 +42,7 @@ export const blocks: SportBlockSeed[] = [
     variant: 'gentle',
     name: { en: 'Striking: gentle rounds and trunk', he: 'אומנויות לחימה: סבבים עדינים וליבה' },
     description: {
-      en: 'Low-impact version: easy shadow-boxing, close-grip push-ups for pushing endurance, step jacks, standing-free trunk rotation and scapular control.',
+      en: 'Low-impact version: easy shadow-boxing, close-grip push-ups for pushing endurance, step jacks, heel touches for trunk rotation and scapular control.',
       he: 'גרסה בעומס נמוך: איגרוף בצל קל, שכיבות סמיכה בפיסוק צר לסיבולת דחיפה, ג\'מפינג ג\'ק בצעדים, סיבוב ליבה ושליטה בשכמות.',
     },
     items: [
