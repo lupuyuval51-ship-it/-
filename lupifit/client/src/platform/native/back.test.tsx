@@ -14,6 +14,7 @@ describe('backAction', () => {
   it('leaves the app at its start pages', () => {
     expect(backAction({ pathname: '/', dialogOpen: false, canGoBack: true })).toBe('leave');
     expect(backAction({ pathname: '/onboarding', dialogOpen: false, canGoBack: false })).toBe('leave');
+    expect(backAction({ pathname: '/welcome', dialogOpen: false, canGoBack: false })).toBe('leave');
   });
 
   it('goes back inside the app, or to the start page when there is no history', () => {

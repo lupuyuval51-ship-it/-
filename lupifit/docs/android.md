@@ -21,10 +21,11 @@ The app is the device build of the web app (`npm run build:device` → `dist/dev
 appName `LUPU-FIT`, webDir `dist/device`, served from `https://localhost` inside the app). Hebrew (RTL) is the
 default language and English works too; the app name is the same in both, so there is no separate Hebrew label.
 
-### What the person should know (the app should say this too)
+### What the person should know (the app says this too)
 - **The data lives only on this phone.** It is lost when the app is uninstalled or the phone is lost, unless a
-  backup file was saved (Settings → Backup → share sheet → Files / Drive / e-mail). Android's own backup may
-  also keep a copy (next section). There is **no sync** between devices.
+  backup file was saved (Settings → Your data on this phone → Save backup file → share sheet → Files / Drive /
+  e-mail). The same section restores a backup file (also offered on the first-run welcome) and erases
+  everything. Android's own backup may also keep a copy (next section). There is **no sync** between devices.
 - The **AI coach and the meal-photo analysis are not available** (they need a server-side key); the built-in
   coach works.
 - The **barcode lookup needs internet**; it sends only the barcode number to Open Food Facts. Everything else
@@ -69,7 +70,7 @@ default language and English works too; the app name is the same in both, so the
 
 ### Other native behaviour
 - **Back button / gesture**: closes an open dialog first, otherwise goes back in the app; at the start page
-  (`/`, onboarding) it leaves the app to the home screen (the app stays ready in the background, like Android's
+  (`/`, the first-run welcome, onboarding) it leaves the app to the home screen (the app stays ready in the background, like Android's
   own back at an app's start). Opened directly on an inner page (e.g. from a reminder), back goes to the start page.
 - **Edge-to-edge**: the app draws behind the status and navigation bars and keeps its content clear of them with
   `env(safe-area-inset-*)` (Capacitor's SystemBars plugin). The bar icons follow the app's light/dark theme.

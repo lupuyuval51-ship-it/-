@@ -6,8 +6,8 @@
 
 export type BackAction = 'close-dialog' | 'back' | 'home' | 'leave';
 
-/** Start pages: back leaves the app from here. */
-export const ROOT_PATHS: readonly string[] = ['/', '/onboarding'];
+/** Start pages: back leaves the app from here (`/welcome` is the device-mode first run, before the questionnaire). */
+export const ROOT_PATHS: readonly string[] = ['/', '/welcome', '/onboarding'];
 
 export function backAction(state: { pathname: string; dialogOpen: boolean; canGoBack: boolean }): BackAction {
   if (state.dialogOpen) return 'close-dialog';
