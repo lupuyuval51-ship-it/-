@@ -185,10 +185,10 @@ export const workouts: ReadyWorkoutSeed[] = [
   },
   {
     id: 'quads_dumbbell_thruster_pistol',
-    name: { en: 'Thruster, Split Squat and Pistol', he: 'ת׳ראסטר, סקוואט בולגרי ופיסטול' },
+    name: { en: 'Front Squat, Split Squat and Pistol', he: 'סקוואט קדמי, סקוואט בולגרי ופיסטול' },
     description: {
-      en: 'An advanced quad session: dumbbell thrusters, Bulgarian split squats, assisted pistol squats and reverse lunges, with single-leg calf raises to finish. Long rests, demanding on the knees, so keep the form strict.',
-      he: 'אימון ארבע-ראשי למתקדמים: ת׳ראסטר עם משקולות, סקוואט בולגרי, פיסטול סקוואט בעזרת משענת ומכרעים לאחור, ובסיום הרמות עקבים על רגל אחת. מנוחות ארוכות; תובעני לברכיים, לכן הטכניקה קפדנית.',
+      en: 'An advanced quad session: dumbbell front squats, Bulgarian split squats, assisted pistol squats and reverse lunges, with single-leg calf raises to finish. Long rests, demanding on the knees, so keep the form strict.',
+      he: 'אימון ארבע-ראשי למתקדמים: סקוואט קדמי עם משקולות, סקוואט בולגרי, פיסטול סקוואט בעזרת משענת ומכרעים לאחור, ובסיום הרמות עקבים על רגל אחת. מנוחות ארוכות; תובעני לברכיים, לכן הטכניקה קפדנית.',
     },
     focus: 'quads',
     mode: 'weights',
@@ -196,8 +196,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     places: ['gym', 'home', 'outdoor'],
     items: [
       {
-        exerciseId: 'dumbbell_thruster', sets: 4, reps: [8, 10], restSeconds: 75,
-        cue: { en: 'Drive out of the squat straight into the press with a braced core.', he: 'לצאת מהסקוואט ישר ללחיצה מעל הראש, עם ליבה מכווצת.' },
+        exerciseId: 'dumbbell_front_squat', sets: 4, reps: [6, 8], restSeconds: 90,
+        cue: { en: 'Dumbbells rest on the front of the shoulders, elbows up, torso upright.', he: 'המשקולות נחות על חזית הכתפיים, המרפקים למעלה, פלג הגוף זקוף.' },
       },
       { exerciseId: 'dumbbell_bulgarian_split_squat', sets: 4, reps: [6, 8], restSeconds: 90 },
       {

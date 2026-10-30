@@ -376,8 +376,6 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'ירידה איטית של 3 שניות, גב שטוח, והברך של רגל התמיכה כפופה מעט.',
         },
       },
-      { exerciseId: 'single_leg_glute_bridge', sets: 3, reps: [10, 12], restSeconds: 45 },
-      { exerciseId: 'bodyweight_good_morning', sets: 3, reps: [12, 15], restSeconds: 45 },
       {
         exerciseId: 'slider_hamstring_curl',
         sets: 3,
@@ -388,6 +386,8 @@ export const workouts: ReadyWorkoutSeed[] = [
           he: 'האגן נשאר גבוה; 3 שניות בהחלקה החוצה ומשיכה חזרה בעזרת העקבים.',
         },
       },
+      { exerciseId: 'single_leg_glute_bridge', sets: 3, reps: [10, 12], restSeconds: 45 },
+      { exerciseId: 'bodyweight_good_morning', sets: 3, reps: [12, 15], restSeconds: 45 },
       { exerciseId: 'butt_kicks', sets: 3, seconds: 30, restSeconds: 30 },
     ],
   },

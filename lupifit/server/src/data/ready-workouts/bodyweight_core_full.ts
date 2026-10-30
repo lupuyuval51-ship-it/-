@@ -79,8 +79,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'abs_bodyweight_short_rest_burn',
     name: { en: 'Short-Rest Abs', he: 'בטן עם מנוחות קצרות' },
     description: {
-      en: 'A dense abs session with only 20 to 30 seconds between sets: climbers, flutter kicks, reverse crunches, a high plank and bicycle crunches. Keep the pace steady and the form clean.',
-      he: 'אימון בטן צפוף עם 20 עד 30 שניות בלבד בין הסטים: מטפס הרים, בעיטות רפרוף, כפיפות הפוכות, פלאנק גבוה וכפיפות אופניים. לשמור על קצב יציב וטכניקה נקייה.',
+      en: 'A dense abs session with only 20 to 30 seconds between sets: climbers, reverse crunches, flutter kicks, bicycle crunches, V-ups and a high plank. Keep the pace steady and the form clean.',
+      he: 'אימון בטן צפוף עם 20 עד 30 שניות בלבד בין הסטים: מטפס הרים, כפיפות הפוכות, בעיטות רפרוף, כפיפות אופניים, וי-אפ ופלאנק גבוה. לשמור על קצב יציב וטכניקה נקייה.',
     },
     focus: 'abs',
     mode: 'bodyweight',
@@ -146,10 +146,10 @@ export const workouts: ReadyWorkoutSeed[] = [
   // ------------------------------------------------------------------ Abs, hanging
   {
     id: 'abs_bar_hanging_knee_ladder',
-    name: { en: 'Hanging Knee Raise Ladder', he: 'סולם הרמות ברכיים בתלייה' },
+    name: { en: 'Hanging Knee Raise Abs', he: 'בטן עם הרמות ברכיים בתלייה' },
     description: {
-      en: 'Abs from a pull-up bar: hanging knee raises and oblique knee raises, followed by floor work for the lower belly. A bar at home or in the park is all you need.',
-      he: 'אימון בטן על מתח: הרמות ברכיים בתלייה והרמות ברכיים לצד, ואחריהן עבודה על הרצפה לבטן התחתונה. מספיק מתח בבית או בפארק.',
+      en: 'Abs from a pull-up bar: hanging knee raises and oblique knee raises, followed by reverse crunches, a hollow hold and a plank on the floor. A bar at home or in the park is all you need.',
+      he: 'אימון בטן על מתח: הרמות ברכיים בתלייה והרמות ברכיים לצד, ואחריהן כפיפות הפוכות, החזקת הולו ופלאנק על הרצפה. מספיק מתח בבית או בפארק.',
     },
     focus: 'abs',
     mode: 'bodyweight',
@@ -217,7 +217,7 @@ export const workouts: ReadyWorkoutSeed[] = [
     name: { en: 'Waist and Lower Back Mix', he: 'מותניים וגב תחתון' },
     description: {
       en: 'A beginner core mix that trains the waist and the lower back as well as the belly: climbers, heel touches, a dolphin kick, a side plank and a hip-hinge good morning.',
-      he: 'מיקס ליבה למתחילים שמחזק את המותניים ואת הגב התחתון לצד הבטן: מטפס הרים, נגיעות עקב, בעיטת דולפין, פלאנק צידי וגוד מורנינג בשיפוף האגן.',
+      he: 'מיקס ליבה למתחילים שמחזק את המותניים ואת הגב התחתון לצד הבטן: מטפס הרים, נגיעות עקב, בעיטת דולפין, פלאנק צידי וגוד מורנינג עם כיפוף מהמותניים.',
     },
     focus: 'core',
     mode: 'bodyweight',
@@ -308,8 +308,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'full_body_bodyweight_starter',
     name: { en: 'Full Body Starter', he: 'התחלה לכל הגוף' },
     description: {
-      en: 'A first full-body session: squat, incline push-up, glute bridge, a reverse snow angel and a dead bug. Easy exercises, three sets or fewer and a full minute of rest, to learn the basic patterns.',
-      he: 'אימון ראשון לכל הגוף: סקוואט, שכיבות סמיכה בידיים מוגבהות, גשר ישבן, מלאך שלג הפוך ודד באג. תרגילים קלים, עד שלושה סטים ומנוחה של דקה, ללימוד דפוסי התנועה הבסיסיים.',
+      en: 'A first full-body session: squat, incline push-up, glute bridge, a reverse snow angel and a dead bug. Easy exercises, three sets or fewer and 45 to 60 seconds of rest, to learn the basic patterns.',
+      he: 'אימון ראשון לכל הגוף: סקוואט, שכיבות סמיכה בידיים מוגבהות, גשר ישבן, מלאך שלג הפוך ודד באג. תרגילים קלים, עד שלושה סטים ומנוחה של 45 עד 60 שניות, ללימוד דפוסי התנועה הבסיסיים.',
     },
     focus: 'full_body',
     mode: 'bodyweight',
@@ -389,7 +389,10 @@ export const workouts: ReadyWorkoutSeed[] = [
         exerciseId: 'bulgarian_split_squat', sets: 3, reps: [8, 10], restSeconds: 75,
         cue: { en: 'Rear foot on a bench or step; most of the weight on the front leg.', he: 'כף הרגל האחורית על ספסל או מדרגה; רוב המשקל על הרגל הקדמית.' },
       },
-      { exerciseId: 'decline_push_up', sets: 3, reps: [8, 12], restSeconds: 75 },
+      {
+        exerciseId: 'decline_push_up', sets: 3, reps: [8, 12], restSeconds: 75,
+        cue: { en: 'Feet on a bench or step; keep the body in one line and do not let the lower back sag.', he: 'כפות הרגליים על ספסל או מדרגה; הגוף בקו אחד ובלי לתת לגב התחתון לצנוח.' },
+      },
       { exerciseId: 'single_leg_romanian_deadlift', sets: 3, reps: [8, 10], restSeconds: 60 },
       { exerciseId: 'prone_y_raise', sets: 3, reps: [12, 15], restSeconds: 45 },
       { exerciseId: 'hollow_body_hold', sets: 3, seconds: 30, restSeconds: 45 },
@@ -418,8 +421,8 @@ export const workouts: ReadyWorkoutSeed[] = [
     id: 'full_body_bodyweight_one_sided',
     name: { en: 'One-Sided Strength', he: 'כוח חד-צדדי' },
     description: {
-      en: 'Single-leg and shoulder-focused full-body work: Cossack squats, pike push-ups, single-leg hip thrusts, a reverse snow angel and side plank hip dips. Shows and fixes left and right differences.',
-      he: 'עבודה חד-צדדית ועבודת כתפיים לכל הגוף: סקוואט קוזאקי, שכיבות סמיכה פייק, היפ טראסט על רגל אחת, מלאך שלג הפוך ופלאנק צידי עם הורדת אגן. חושף ומאזן הבדלים בין ימין לשמאל.',
+      en: 'Single-leg and shoulder-focused full-body work: Cossack squats, pike push-ups, single-leg hip thrusts, a reverse snow angel and side plank hip dips. Makes left and right differences easy to notice.',
+      he: 'עבודה חד-צדדית ועבודת כתפיים לכל הגוף: סקוואט קוזאקי, שכיבות סמיכה פייק, היפ טראסט על רגל אחת, מלאך שלג הפוך ופלאנק צידי עם הורדת אגן. מאפשר להבחין בהבדלים בין ימין לשמאל.',
     },
     focus: 'full_body',
     mode: 'bodyweight',
@@ -448,11 +451,14 @@ export const workouts: ReadyWorkoutSeed[] = [
     level: 'advanced',
     places: ['home', 'outdoor', 'gym'],
     items: [
-      { exerciseId: 'pistol_squat', sets: 4, reps: [3, 5], restSeconds: 90 },
+      {
+        exerciseId: 'pistol_squat', sets: 4, reps: [3, 5], restSeconds: 90,
+        cue: { en: 'Hold a wall or pole lightly for balance and lower under control; stop at a depth you can control.', he: 'להיאחז קלות בקיר או בעמוד לשיווי משקל ולהוריד בשליטה; לעצור בעומק שבו יש שליטה.' },
+      },
       { exerciseId: 'archer_push_up', sets: 4, reps: [4, 6], restSeconds: 90 },
       {
         exerciseId: 'nordic_hamstring_curl', sets: 3, reps: [4, 6], restSeconds: 90,
-        cue: { en: 'Anchor the heels under a sofa or with a partner; lower as slowly as you can.', he: 'לעגן את העקבים מתחת לספה או עם בן זוג; להוריד לאט ככל האפשר.' },
+        cue: { en: 'Anchor the heels under a sofa or with a partner; lower slowly, catch yourself with your hands, stop on sharp pain.', he: 'לעגן את העקבים מתחת לספה או עם בן זוג; להוריד לאט, להיעצר עם הידיים, להפסיק בכאב חד.' },
       },
       { exerciseId: 'prone_y_raise', sets: 3, reps: [12, 15], restSeconds: 45 },
       { exerciseId: 'hollow_body_hold', sets: 4, seconds: 45, restSeconds: 60 },
@@ -475,7 +481,10 @@ export const workouts: ReadyWorkoutSeed[] = [
         exerciseId: 'tuck_jump', sets: 4, reps: [6, 8], restSeconds: 75,
         cue: { en: 'Land softly on the whole foot and reset between jumps.', he: 'לנחות בעדינות על כל כף הרגל ולהתאפס בין הקפיצות.' },
       },
-      { exerciseId: 'shrimp_squat', sets: 3, reps: [3, 5], restSeconds: 90 },
+      {
+        exerciseId: 'shrimp_squat', sets: 3, reps: [3, 5], restSeconds: 90,
+        cue: { en: 'Use a wall or pole for balance and lower under control; skip any depth you cannot control.', he: 'להיעזר בקיר או בעמוד לשיווי משקל ולהוריד בשליטה; לוותר על עומק שאין בו שליטה.' },
+      },
       { exerciseId: 'prone_t_raise', sets: 3, reps: [12, 15], restSeconds: 45 },
       { exerciseId: 'hollow_rock', sets: 3, reps: [12, 18], restSeconds: 60 },
     ],
