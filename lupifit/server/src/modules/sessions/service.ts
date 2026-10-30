@@ -118,6 +118,7 @@ export async function startSession(sql: Sql, user: SessionUser, input: StartSess
   );
   if (open) throw conflict('session_already_active', 'A workout is already in progress', { sessionId: open.id });
 
+  if ('readyWorkoutId' in input) throw notFound('ready_workout_not_found', 'Ready workout not found');
   if (!('planWorkoutId' in input)) {
     const name = input.name?.trim() || DEFAULT_EMPTY_NAME[user.locale];
     const row = await sql.one<{ id: string }>('INSERT INTO workout_sessions (user_id, name) VALUES ($1, $2) RETURNING id', [user.id, name]);

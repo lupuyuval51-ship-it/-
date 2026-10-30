@@ -1,4 +1,4 @@
-import type { PrType, SessionStatus, TrackingType } from '../constants';
+import type { PrType, SessionStatus, SportId, TrackingType } from '../constants';
 import type { RestTimerState } from '../timer';
 import type { ISODate, ISODateTime, LocalizedText } from './common';
 import type { ExerciseSummaryDTO } from './exercises';
@@ -64,6 +64,8 @@ export interface SessionExerciseDTO {
   sets: SessionSetDTO[];
   previous: PreviousPerformanceDTO | null;
   suggestion: ProgressionSuggestionDTO | null;
+  /** Set for the exercises of a ready workout's sport finisher (the live workout shows them as their own section). */
+  sport: SportId | null;
 }
 
 /** The readiness check-in a workout was started with, and whether it made the session easier. */

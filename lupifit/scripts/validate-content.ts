@@ -1,6 +1,6 @@
 /**
  * Validates the built-in content datasets. Run with `npm run validate:content`.
- * Optional: `--only=exercises|foods|meals|dishes` and `--file=<group>` to restrict output
+ * Optional: `--only=exercises|foods|meals|dishes|ready` and `--file=<group>` to restrict output
  * (cross-reference checks still use the whole library).
  */
 import {
@@ -24,6 +24,9 @@ import { MEAL_TEMPLATES } from '../server/src/data/meal-templates';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DISHES, dishImageUrl } from '../shared/dishes';
+import { READY_WORKOUTS } from '../server/src/data/ready-workouts/index';
+import { SPORT_BLOCKS } from '../server/src/data/sport-blocks/index';
+import { lookupOf, validateReadyCatalog } from '../server/src/modules/ready/rules';
 
 const args = new Map(
   process.argv.slice(2).map((a) => {
@@ -196,19 +199,27 @@ function validateDishes() {
   }
 }
 
+/** Ready workouts and sport blocks: every exercise exists, gear/places/level/focus/length add up, no near-duplicates. */
+function validateReady() {
+  const r = validateReadyCatalog(READY_WORKOUTS, SPORT_BLOCKS, lookupOf(EXERCISE_LIBRARY));
+  errors.push(...r.errors);
+  warnings.push(...r.warnings);
+}
+
 let exerciseIds = new Set<string>();
 let foodSlugs = new Set<string>();
 if (!only || only === 'exercises') exerciseIds = validateExercises(EXERCISE_LIBRARY);
 if (!only || only === 'foods' || only === 'meals') foodSlugs = validateFoods(FOOD_DATABASE);
 if (!only || only === 'meals') validateMeals(MEAL_TEMPLATES, foodSlugs);
 if (!only || only === 'dishes') validateDishes();
+if (!only || only === 'ready') validateReady();
 
 const filter = args.get('file');
 const show = (list: string[]) => (filter ? list.filter((l) => l.includes(filter)) : list);
 for (const w of show(warnings)) console.warn(`warn: ${w}`);
 for (const e of show(errors)) console.error(`error: ${e}`);
 console.log(
-  `content: ${EXERCISE_LIBRARY.length} exercises, ${FOOD_DATABASE.length} foods, ${MEAL_TEMPLATES.length} meal templates, ${DISHES.length} dishes — ` +
+  `content: ${EXERCISE_LIBRARY.length} exercises, ${FOOD_DATABASE.length} foods, ${MEAL_TEMPLATES.length} meal templates, ${DISHES.length} dishes, ${READY_WORKOUTS.length} ready workouts, ${SPORT_BLOCKS.length} sport blocks — ` +
     `${errors.length} error(s), ${warnings.length} warning(s)`,
 );
 if (exerciseIds.size === 0 && (!only || only === 'exercises')) console.warn('warn: exercise library is empty');

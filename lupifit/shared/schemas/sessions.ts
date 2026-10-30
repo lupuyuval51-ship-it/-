@@ -3,6 +3,7 @@ import { LIMITS, SESSION_STATUSES } from '../constants';
 import { READINESS_ENERGY, READINESS_SLEEP, READINESS_SORENESS } from '../readiness';
 import { MAX_REST_SECONDS } from '../timer';
 import { cleanText, slugId, uuid } from './common';
+import { startReadyWorkoutFields } from './ready';
 
 /** Upper bounds for a single live session (the DB allows a little more headroom). */
 export const SESSION_LIMITS = {
@@ -22,6 +23,7 @@ export const readinessSchema = z.object({
 
 export const startSessionSchema = z.union([
   z.object({ planWorkoutId: uuid, readiness: readinessSchema.optional() }),
+  z.object({ ...startReadyWorkoutFields, readiness: readinessSchema.optional() }),
   z.object({ empty: z.literal(true), name: cleanText(LIMITS.textShortMax).optional() }),
 ]);
 export type StartSessionInput = z.infer<typeof startSessionSchema>;

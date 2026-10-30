@@ -2,7 +2,7 @@
  * Read side of the sessions module: row types, ownership-checked loaders and DTO
  * assembly (live session, summary, history). Every query is scoped by user_id.
  */
-import type { PrType, SessionStatus } from '@shared/constants';
+import type { PrType, SessionStatus, SportId } from '@shared/constants';
 import { dateInTimeZone } from '@shared/dates';
 import { isValidTimerState, type RestTimerState } from '@shared/timer';
 import { estimateOneRepMax, setVolumeKg } from '@shared/training';
@@ -62,6 +62,8 @@ export interface SessionExerciseRow {
   target_weight_kg: number | null;
   notes: string;
   suggestion: ProgressionSuggestionDTO | null;
+  /** Sport id when the exercise belongs to a ready workout's sport finisher, else null. */
+  sport: SportId | null;
 }
 
 export interface SessionSetRow {
@@ -261,6 +263,7 @@ export async function loadSessionDTO(sql: Sql, userId: string, row: SessionRow, 
     sets: sets.filter((s) => s.session_exercise_id === e.id).map(toSetDTO),
     previous: previous.get(e.exercise_id) ?? null,
     suggestion: storedSuggestion(e.suggestion),
+    sport: e.sport ?? null,
   }));
   return {
     id: row.id,

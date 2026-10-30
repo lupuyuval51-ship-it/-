@@ -128,7 +128,7 @@ export async function buildAccountExport(sql: Sql, userId: string, now = new Dat
   );
   const sessionExercises = await q(
     `SELECT id, session_id, exercise_id, position, rep_min, rep_max, target_seconds, rest_seconds, target_rpe,
-            target_weight_kg, notes, suggestion, created_at, updated_at
+            target_weight_kg, notes, suggestion, sport, created_at, updated_at
        FROM session_exercises WHERE user_id = $1 ORDER BY session_id, position`,
   );
   const sessionSets = await q(

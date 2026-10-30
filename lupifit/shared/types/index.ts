@@ -10,3 +10,4 @@ export * from './coach';
 export * from './progress';
 export * from './dashboard';
 export * from './push';
+export * from './ready';

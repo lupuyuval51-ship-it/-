@@ -15,7 +15,12 @@ import type {
   MealType,
   MovementPattern,
   Muscle,
+  ReadyFocus,
+  SportBlockVariant,
+  SportId,
   TrackingType,
+  TrainingLocation,
+  TrainingMode,
 } from './constants';
 
 export interface LocalizedText {
@@ -94,4 +99,45 @@ export interface MealTemplateSeed {
   /** Ingredients referencing FoodSeed slugs. */
   items: { foodSlug: string; grams: number }[];
   prepMinutes: number;
+}
+
+/** One exercise of a ready workout or sport block. Rep-tracked exercises use `reps`, timed ones use `seconds`. */
+export interface ReadyItemSeed {
+  exerciseId: string;
+  sets: number;
+  /** [min, max] reps per set (per side for unilateral exercises). Omit for timed exercises. */
+  reps?: [number, number];
+  /** Seconds per set for `trackingType: 'time'` exercises. Omit for rep-tracked exercises. */
+  seconds?: number;
+  restSeconds: number;
+  /** One short coaching cue shown with the exercise in this workout. */
+  cue?: LocalizedText;
+}
+
+/** A curated, ready-to-start workout. Equipment, muscles and length are derived from the items, never typed in. */
+export interface ReadyWorkoutSeed {
+  /** Stable snake_case slug, e.g. `chest_home_bodyweight_push_basics`. Never rename once shipped. */
+  id: string;
+  name: LocalizedText;
+  /** 1-2 sentences: what it trains and who it suits. */
+  description: LocalizedText;
+  focus: ReadyFocus;
+  mode: TrainingMode;
+  level: Difficulty;
+  /** Places the workout works in; `outdoor` is the park / street-workout area. */
+  places: TrainingLocation[];
+  /** 4-9 exercises in the order they are done. */
+  items: ReadyItemSeed[];
+}
+
+/** A 10-minute block at the end of a workout that prepares the body for one sport. */
+export interface SportBlockSeed {
+  /** Stable snake_case slug, e.g. `soccer_bodyweight`. */
+  id: string;
+  sport: SportId;
+  variant: SportBlockVariant;
+  name: LocalizedText;
+  description: LocalizedText;
+  /** 4-6 stations that add up to about 10 minutes. */
+  items: ReadyItemSeed[];
 }

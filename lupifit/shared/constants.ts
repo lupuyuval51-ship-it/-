@@ -50,6 +50,61 @@ export const EQUIPMENT = [
 ] as const;
 export type Equipment = (typeof EQUIPMENT)[number];
 
+/**
+ * Ready-made workouts. `bodyweight` = your own body (a pull-up bar, dip bars or a bench may be used, no external
+ * load); `weights` = any external resistance (dumbbells, kettlebell, barbell, machines, cables, bands).
+ */
+export const TRAINING_MODES = ['bodyweight', 'weights'] as const;
+export type TrainingMode = (typeof TRAINING_MODES)[number];
+
+/** The muscle (or muscle family) a ready workout is built around. Labels: `enums.readyFocus.<value>`. */
+export const READY_FOCUSES = [
+  'chest',
+  'back',
+  'shoulders',
+  'biceps',
+  'triceps',
+  'arms',
+  'abs',
+  'core',
+  'glutes',
+  'quads',
+  'hamstrings',
+  'legs',
+  'upper_body',
+  'full_body',
+  'cardio',
+] as const;
+export type ReadyFocus = (typeof READY_FOCUSES)[number];
+
+/**
+ * Sports that can get a 10-minute finisher at the end of a workout. `general` is the fallback for a sport that is
+ * not listed. Labels: `enums.sport.<value>`; every sport has blocks in `server/src/data/sport-blocks/`.
+ */
+export const SPORTS = [
+  'soccer',
+  'basketball',
+  'volleyball',
+  'tennis_padel',
+  'running',
+  'cycling',
+  'swimming',
+  'striking',
+  'grappling',
+  'climbing',
+  'surfing',
+  'calisthenics',
+  'general',
+] as const;
+export type SportId = (typeof SPORTS)[number];
+
+/** Three ways to build the same sport block: no gear, with light gear, and a low-impact version. */
+export const SPORT_BLOCK_VARIANTS = ['bodyweight', 'gear', 'gentle'] as const;
+export type SportBlockVariant = (typeof SPORT_BLOCK_VARIANTS)[number];
+
+/** Length of the sport finisher. */
+export const SPORT_BLOCK_MINUTES = 10;
+
 /** Equipment pre-selected in onboarding for each location (users can change it). */
 export const DEFAULT_EQUIPMENT_BY_LOCATION: Record<TrainingLocation, Equipment[]> = {
   gym: [
