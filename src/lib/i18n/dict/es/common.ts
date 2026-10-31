@@ -53,7 +53,7 @@ export const commonEs: Record<keyof typeof common.en, string> = {
   "mode.FAST": "Juego rápido",
   "mode.FULL": "Aventura completa",
   "mode.EXTEND": "Ampliar un juego existente",
-  "plan.FREE": "Free",
+  "plan.FREE": "Gratis",
   "plan.PLUS": "Plus",
   "plan.PRO": "Pro",
   "env.neon-city": "Ciudad de neón",
