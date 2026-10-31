@@ -1,8 +1,7 @@
-# LUPU-FIT: Master Build Prompt (video edition)
+# LUPU-FIT: Master Build Prompt
 
 > Paste everything below the line into your AI app builder (Claude, Gemini, Lovable, Bolt, Cursor...). It describes the
-> complete LUPU-FIT app as it exists today, with one deliberate change: **every exercise is demonstrated by a real video,
-> not by an animation.** Build it in the phases of section 11 and do not skip the acceptance checks.
+> complete LUPU-FIT app. Build it in the phases of section 11 and do not skip the acceptance checks.
 
 ---
 
@@ -143,9 +142,9 @@ resumes the live session from anywhere, and a language switch (עב / EN).
   rows), personal records, readiness check-ins, XP events, achievements, notifications, food logs, custom foods,
   body weight, coach threads/messages/usage, push subscriptions/deliveries, idempotency keys, server settings.
 
-## 7. EXERCISE VIDEOS (replaces every animation)
+## 7. Exercise videos
 
-Every place that showed an animated figure now shows a **real technique video**.
+Every exercise is demonstrated by a **real technique video**, wherever the exercise appears in the app.
 
 **Assets**
 - One clip per exercise: `<exerciseId>.mp4` (H.264 video, **no audio track**, `+faststart` so it starts playing before it fully downloads), 6-10 s, a seamless loop of
@@ -160,14 +159,12 @@ Every place that showed an animated figure now shows a **real technique video**.
 - **Every clip is reviewed by a qualified person before release.** A clip with wrong or unsafe form is rejected. High
   impact and advanced exercises are marked "check twice".
 
-**Replace, do not keep:** the old SVG stick-figure engine (`ExerciseAnimation`, `ExerciseThumb`, the `shared/animation`
-engine/manifest/QA) is removed. Its call sites become `ExerciseVideo` (sizes sm / md / lg / hero, same props: exerciseId,
-label, controls, autoPlay, showUnavailable) and `ExerciseVideoThumb`: library cards, live-workout exercise card and info
-modal, plan exercise rows, the exercise detail page, ready-workout previews and the alternatives / picker lists.
+**Components:** `ExerciseVideo` (sizes sm / md / lg / hero; props: exerciseId, label, controls, autoPlay,
+showUnavailable) and `ExerciseVideoThumb` (poster thumbnail that plays on tap). Used on the library cards, the
+live-workout exercise card and its info modal, plan exercise rows, the exercise detail page, ready-workout previews and
+the alternatives / exercise-picker lists.
 
 **Data and delivery**
-- The schema already has `media_type 'video' | 'animation' | 'image'`: keep `'video'` only, and fix the one place that
-  hard-codes `hasMedia: false` in workout-plan DTOs so plans show videos too.
 - `exercise.media = { type: 'video', url, posterUrl, durationSec, width, height, sizeBytes, sha256, credit,
   reviewedAt, reviewedBy } | null`. `hasMedia` in every summary DTO is true only when a reviewed video is attached.
   An admin-only upload/attach tool validates container, codec, duration, size and dimensions, computes the hash and
@@ -194,7 +191,7 @@ modal, plan exercise rows, the exercise detail page, ready-workout previews and 
 
 **Tests for videos**: DTO `hasMedia` true only with a reviewed video; the attach tool rejects wrong codec/size/
 duration; the player respects reduced motion and data saver; offline fallback renders steps; e2e asserts that a
-video element with a poster is visible on an exercise page and that no animation component remains.
+video element with a poster is visible on the exercise page, the live workout and the ready-workout preview.
 
 ## 8. Features in detail
 
@@ -341,7 +338,7 @@ to end, live workout, food log, menu, push, coach, backup, offline). Never weake
    sport blocks with their validators.
 3. Training: generator, plans, ready workouts + finisher, live workout, history, records, progression, age/injury
    safety layer.
-4. Videos: player component, caching, data saver, bundled A-set, every former animation replaced; e2e proves it.
+4. Videos: player component, caching, data saver, bundled A-set, a video on every exercise screen; e2e proves it.
 5. Nutrition: targets, log, barcode, photo, daily menu, shopping list, allergen notice.
 6. Coach, notifications, gamification.
 7. Offline, backup/restore, device mode (PGlite worker), Capacitor Android APK/AAB, hosted deployment.
