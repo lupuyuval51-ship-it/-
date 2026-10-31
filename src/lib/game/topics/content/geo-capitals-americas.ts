@@ -1,0 +1,75 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Capital city", "the city where a country's leaders and government work, which is not always the biggest city", "עיר בירה", "העיר שבה פועלים ראשי המדינה והממשלה, ולא תמיד היא העיר הגדולה ביותר"],
+      ["North America", "the continent that is home to Canada, the United States and Mexico", "צפון אמריקה", "היבשת שבה נמצאות קנדה, ארצות הברית ומקסיקו"],
+      ["South America", "the continent that is home to Brazil, Argentina and Peru", "דרום אמריקה", "היבשת שבה נמצאות ברזיל, ארגנטינה ופרו"],
+      ["Oceania", "the region made up of Australia, New Zealand and thousands of islands in the Pacific Ocean", "אוקיאניה", "האזור שכולל את אוסטרליה, ניו זילנד ואלפי איים באוקיינוס השקט"],
+    ],
+    q: [
+      [["Which city is the capital of Canada?", "Ottawa", ["Toronto", "Montreal", "Washington, D.C."], "Ottawa is the capital of Canada. Toronto is its largest city, Montreal is another big city, and Washington, D.C. is the capital of the United States."],
+        ["איזו עיר היא בירת קנדה?", "אוטווה", ["טורונטו", "מונטריאול", "וושינגטון די.סי."], "אוטווה היא בירת קנדה. טורונטו היא העיר הגדולה ביותר בקנדה ומונטריאול היא עיר גדולה נוספת, ואילו וושינגטון היא בירת ארצות הברית."]],
+      [["What is the capital of Brazil?", "Brasília", ["Rio de Janeiro", "São Paulo", "Buenos Aires"], "Brasília became the capital in 1960, in a city built for this purpose. Rio de Janeiro was the capital before that, São Paulo is the largest city, and Buenos Aires is the capital of Argentina."],
+        ["מהי בירת ברזיל?", "ברזיליה", ["ריו דה ז׳נרו", "סאו פאולו", "בואנוס איירס"], "ברזיליה הפכה לבירה ב־1960, בעיר שנבנתה במיוחד למטרה הזאת. ריו דה ז׳נרו הייתה הבירה לפני כן, סאו פאולו היא העיר הגדולה ביותר, ובואנוס איירס היא בירת ארגנטינה."]],
+      [["Which city is the capital of Australia?", "Canberra", ["Sydney", "Melbourne", "Wellington"], "Canberra is the capital of Australia. Sydney and Melbourne are bigger and better-known cities, and Wellington is the capital of New Zealand."],
+        ["איזו עיר היא בירת אוסטרליה?", "קנברה", ["סידני", "מלבורן", "וולינגטון"], "קנברה היא בירת אוסטרליה. סידני ומלבורן הן ערים גדולות ומוכרות יותר, ואילו וולינגטון היא בירת ניו זילנד."]],
+    ],
+    s: [[["Capitals from north to south", "Ottawa (Canada)", "Washington, D.C. (United States)", "Mexico City (Mexico)", "Bogotá (Colombia)", "Buenos Aires (Argentina)"],
+      ["בירות מצפון לדרום", "אוטווה (קנדה)", "וושינגטון די.סי. (ארצות הברית)", "מקסיקו סיטי (מקסיקו)", "בוגוטה (קולומביה)", "בואנוס איירס (ארגנטינה)"]]],
+  },
+  i: {
+    t: [
+      ["Mexico City", "the capital of Mexico, built where the Aztec capital Tenochtitlan once stood", "מקסיקו סיטי", "בירת מקסיקו, שנבנתה במקום שבו עמדה פעם טנוצ׳טיטלן, בירת האצטקים"],
+      ["Buenos Aires", "the capital of Argentina, a port on the wide estuary of the Río de la Plata", "בואנוס איירס", "בירת ארגנטינה, עיר נמל על שפך הנהר הרחב ריו דה לה פלטה"],
+      ["Lima", "the capital of Peru, on the dry desert coast of the Pacific Ocean", "לימה", "בירת פרו, על החוף המדברי והיבש של האוקיינוס השקט"],
+      ["Wellington", "the capital of New Zealand, at the southern tip of the North Island", "וולינגטון", "בירת ניו זילנד, בקצה הדרומי של האי הצפוני"],
+      ["Havana", "the capital of Cuba, the largest island in the Caribbean Sea", "הוואנה", "בירת קובה, האי הגדול ביותר בים הקריבי"],
+    ],
+    q: [
+      [["What is the capital of Chile?", "Santiago", ["Valparaíso", "Lima", "Buenos Aires"], "Santiago is the capital and largest city of Chile. Chile's parliament meets in the port city of Valparaíso, but the capital is Santiago. Lima is the capital of Peru and Buenos Aires of Argentina."],
+        ["מהי בירת צ׳ילה?", "סנטיאגו", ["ולפראיסו", "לימה", "בואנוס איירס"], "סנטיאגו היא הבירה והעיר הגדולה ביותר של צ׳ילה. הפרלמנט של צ׳ילה יושב בעיר הנמל ולפראיסו, אבל הבירה היא סנטיאגו. לימה היא בירת פרו ובואנוס איירס היא בירת ארגנטינה."]],
+      [["Bogotá lies high in the Andes mountains, about 2,600 metres above the sea. Which country is it the capital of?", "Colombia", ["Venezuela", "Ecuador", "Bolivia"], "Bogotá is the capital of Colombia. Venezuela's capital is Caracas, Ecuador's is Quito, and Bolivia's government sits in La Paz."],
+        ["בוגוטה שוכנת גבוה בהרי האנדים, כ־2,600 מטר מעל פני הים. בירת איזו מדינה היא?", "קולומביה", ["ונצואלה", "אקוודור", "בוליביה"], "בוגוטה היא בירת קולומביה. הבירה של ונצואלה היא קראקס, של אקוודור היא קיטו, והממשלה של בוליביה יושבת בלה פאס."]],
+      [["Which city is the capital of Venezuela?", "Caracas", ["Maracaibo", "Bogotá", "Quito"], "Caracas, in a valley near the Caribbean coast, is the capital of Venezuela. Maracaibo is its second-largest city, Bogotá is the capital of Colombia and Quito of Ecuador."],
+        ["איזו עיר היא בירת ונצואלה?", "קראקס", ["מרקאיבו", "בוגוטה", "קיטו"], "קראקס, בעמק סמוך לחוף הים הקריבי, היא בירת ונצואלה. מרקאיבו היא העיר השנייה בגודלה בה, בוגוטה היא בירת קולומביה וקיטו היא בירת אקוודור."]],
+      [["What is the capital of Jamaica, an island in the Caribbean Sea?", "Kingston", ["Montego Bay", "Havana", "Nassau"], "Kingston is the capital and largest city of Jamaica. Montego Bay is a well-known Jamaican holiday town, Havana is the capital of Cuba and Nassau of the Bahamas."],
+        ["מהי בירת ג׳מייקה, אי בים הקריבי?", "קינגסטון", ["מונטגו ביי", "הוואנה", "נסאו"], "קינגסטון היא הבירה והעיר הגדולה ביותר של ג׳מייקה. מונטגו ביי היא עיירת נופש מוכרת בג׳מייקה, הוואנה היא בירת קובה ונסאו היא בירת איי בהאמה."]],
+      [["Toronto is Canada's largest city and Sydney is Australia's. Why are they not the capitals?", "The capitals were chosen as compromises between rival cities, so other cities got the job", ["Big cities are not allowed to be capitals", "They are too far from the sea", "They were founded only a few years ago"], "Ottawa was picked partly as a middle ground between English-speaking and French-speaking Canada, and Canberra was built between the rivals Sydney and Melbourne."],
+        ["טורונטו היא העיר הגדולה ביותר בקנדה וסידני היא הגדולה ביותר באוסטרליה. למה הן לא הבירות?", "הבירות נבחרו כפשרה בין ערים יריבות, ולכן ערים אחרות קיבלו את התפקיד", ["לערים גדולות אסור להיות בירות", "הן רחוקות מדי מהים", "הן נוסדו רק לפני כמה שנים"], "אוטווה נבחרה בין השאר כדרך ביניים בין קנדה דוברת האנגלית לקנדה דוברת הצרפתית, וקנברה נבנתה בין שתי היריבות סידני ומלבורן."]],
+    ],
+    n: [[5, ["In winter, clocks in New York are 7 hours behind clocks in Israel. When it is 12:00 noon in Jerusalem, what hour is it in New York?", "", "12 − 7 = 5, so it is 5:00 in the morning in New York."],
+      ["בחורף השעון בניו יורק מפגר ב־7 שעות אחרי השעון בישראל. כשהשעה בירושלים 12:00 בצהריים, מה השעה בניו יורק?", "", "12 − 7 = 5, כלומר בניו יורק השעה 5:00 בבוקר."]]],
+    s: [[["Capitals from west to east", "Mexico City (Mexico)", "Lima (Peru)", "Caracas (Venezuela)", "Buenos Aires (Argentina)", "Brasília (Brazil)"],
+      ["בירות ממערב למזרח", "מקסיקו סיטי (מקסיקו)", "לימה (פרו)", "קראקס (ונצואלה)", "בואנוס איירס (ארגנטינה)", "ברזיליה (ברזיל)"]]],
+  },
+  a: {
+    t: [
+      ["La Paz", "the seat of Bolivia's government, about 3,600 m above sea level, while the official capital is Sucre", "לה פאס", "מקום מושב הממשלה של בוליביה, כ־3,600 מטר מעל פני הים, בעוד שהבירה הרשמית היא סוקרה"],
+      ["Quito", "the capital of Ecuador, high in the Andes and very close to the equator", "קיטו", "בירת אקוודור, גבוה בהרי האנדים וקרוב מאוד לקו המשווה"],
+      ["Panama City", "the capital of Panama, near the Pacific entrance of the Panama Canal", "פנמה סיטי", "בירת פנמה, סמוך לכניסה של תעלת פנמה מצד האוקיינוס השקט"],
+      ["Montevideo", "the capital of Uruguay, across the Río de la Plata from Buenos Aires", "מונטווידאו", "בירת אורוגוואי, מול בואנוס איירס מעבר לריו דה לה פלטה"],
+      ["Planned capital", "a capital city designed from scratch for the job, such as Brasília, Canberra or Washington, D.C.", "בירה מתוכננת", "עיר בירה שתוכננה מראש במיוחד לתפקיד, כמו ברזיליה, קנברה או וושינגטון"],
+    ],
+    q: [
+      [["Why was Canberra built as Australia's capital?", "Sydney and Melbourne both wanted to be the capital, so a new city was planned between them", ["It was already Australia's biggest city", "It was the place where the first Europeans landed", "It is the only city on the coast"], "The rivals Sydney and Melbourne could not agree, so a site between them was chosen in 1908 and a new city was planned. Parliament moved there from Melbourne in 1927."],
+        ["למה נבנתה קנברה כבירת אוסטרליה?", "גם סידני וגם מלבורן רצו להיות הבירה, ולכן תוכננה עיר חדשה ביניהן", ["היא כבר הייתה העיר הגדולה ביותר באוסטרליה", "זה המקום שבו נחתו האירופים הראשונים", "זו העיר היחידה לחוף הים"], "היריבות סידני ומלבורן לא הצליחו להסכים, ולכן ב־1908 נבחר אתר ביניהן ותוכננה עיר חדשה. הפרלמנט עבר אליה ממלבורן ב־1927."]],
+      [["Bolivia's government sits in La Paz. Which city is Bolivia's official capital, named in its constitution?", "Sucre", ["Santa Cruz", "Lima", "Quito"], "Sucre is the constitutional capital and home of Bolivia's highest court, while the president and parliament work in La Paz. Santa Cruz is Bolivia's largest city."],
+        ["הממשלה של בוליביה יושבת בלה פאס. איזו עיר היא הבירה הרשמית של בוליביה, לפי החוקה?", "סוקרה", ["סנטה קרוס", "לימה", "קיטו"], "סוקרה היא הבירה לפי החוקה ובה יושב בית המשפט העליון של בוליביה, ואילו הנשיא והפרלמנט פועלים בלה פאס. סנטה קרוס היא העיר הגדולה ביותר בבוליביה."]],
+      [["Cusco, high in the Andes of Peru, was once the capital of which empire?", "The Inca Empire", ["The Aztec Empire", "The Maya", "The Roman Empire"], "Cusco was the heart of the Inca Empire, and the ruins of Machu Picchu are not far from it. The Aztec capital was Tenochtitlan, where Mexico City stands today."],
+        ["קוסקו, גבוה בהרי האנדים של פרו, הייתה פעם בירתה של איזו אימפריה?", "האימפריה של האינקה", ["האימפריה של האצטקים", "המאיה", "האימפריה הרומית"], "קוסקו הייתה הלב של האימפריה של האינקה, ושרידי מאצ׳ו פיצ׳ו נמצאים לא רחוק ממנה. בירת האצטקים הייתה טנוצ׳טיטלן, במקום שבו עומדת היום מקסיקו סיטי."]],
+      [["Why did Brazil move its capital from Rio de Janeiro to Brasília?", "To develop the empty interior of the country, far from the crowded coast", ["Rio de Janeiro had been flooded by the sea", "Brasília is on the coast, so it is easier to defend", "The national football team asked for it"], "Most Brazilians lived near the coast. A new capital in the middle of the country was meant to draw people and roads inland. Its plan, seen from above, looks like an aeroplane or a bird."],
+        ["למה ברזיל העבירה את הבירה שלה מריו דה ז׳נרו לברזיליה?", "כדי לפתח את פנים הארץ הריק, רחוק מהחוף הצפוף", ["ריו דה ז׳נרו הוצפה בידי הים", "ברזיליה שוכנת לחוף הים, ולכן קל יותר להגן עליה", "נבחרת הכדורגל ביקשה זאת"], "רוב תושבי ברזיל גרו קרוב לחוף. בירה חדשה במרכז המדינה נועדה למשוך אנשים וכבישים פנימה. מלמעלה, התוכנית של העיר נראית כמו מטוס או ציפור."]],
+      [["Which country of Oceania has Port Moresby as its capital?", "Papua New Guinea", ["Fiji", "Samoa", "New Zealand"], "Port Moresby is the capital of Papua New Guinea, on the eastern half of the island of New Guinea. Fiji's capital is Suva and New Zealand's is Wellington."],
+        ["לאיזו מדינה באוקיאניה פורט מורסבי היא הבירה?", "פפואה גינאה החדשה", ["פיג׳י", "סמואה", "ניו זילנד"], "פורט מורסבי היא בירת פפואה גינאה החדשה, בחציו המזרחי של האי גינאה החדשה. הבירה של פיג׳י היא סובה, ושל ניו זילנד היא וולינגטון."]],
+      [["What do the letters “D.C.” in Washington, D.C. stand for?", "District of Columbia", ["Department of Capitals", "Delaware County", "Downtown Centre"], "Washington is in the District of Columbia, a federal district that belongs to no state, so that the national government does not depend on any single state."],
+        ["מה פירוש האותיות ״D.C.״ בשם וושינגטון די.סי.?", "מחוז קולומביה", ["מחלקת הבירות", "מחוז דלאוור", "מרכז העיר"], "וושינגטון נמצאת במחוז קולומביה, מחוז פדרלי שאינו שייך לאף מדינה, כדי שהממשלה הלאומית לא תהיה תלויה באף מדינה אחת."]],
+    ],
+    n: [[10, ["How many provinces does Canada have? (Not counting its 3 territories.)", "provinces", "Canada has 10 provinces and 3 territories. Its capital, Ottawa, is in the province of Ontario."],
+      ["כמה פרובינציות יש בקנדה? (בלי 3 הטריטוריות שלה.)", "פרובינציות", "בקנדה יש 10 פרובינציות ו־3 טריטוריות. הבירה שלה, אוטווה, נמצאת בפרובינציה אונטריו."]]],
+    s: [[["Capitals from north to south, from the Caribbean to New Zealand", "Havana (Cuba)", "Panama City (Panama)", "Quito (Ecuador)", "La Paz (Bolivia)", "Santiago (Chile)", "Wellington (New Zealand)"],
+      ["בירות מצפון לדרום, מהים הקריבי ועד ניו זילנד", "הוואנה (קובה)", "פנמה סיטי (פנמה)", "קיטו (אקוודור)", "לה פאס (בוליביה)", "סנטיאגו (צ׳ילה)", "וולינגטון (ניו זילנד)"]]],
+  },
+};
+export default c;

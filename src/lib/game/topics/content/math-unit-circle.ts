@@ -1,0 +1,91 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Unit circle", "a circle with radius 1 whose centre is at the origin (0, 0)", "מעגל היחידה", "מעגל שהרדיוס שלו 1 והמרכז שלו בראשית הצירים"],
+      ["Radian", "the angle at the centre of a circle that cuts off an arc exactly as long as the radius", "רדיאן", "הזווית שבמרכז מעגל שנשענת על קשת שאורכה בדיוק כאורך הרדיוס"],
+      ["Degree", "a unit for measuring angles: one full turn is divided into 360 of them", "מעלה", "יחידה למדידת זוויות: סיבוב שלם מחולק ל־360 יחידות כאלה"],
+      ["Quadrant", "one of the four parts into which the x-axis and the y-axis divide the plane", "רביע", "אחד מארבעת החלקים שציר x וציר y מחלקים אליהם את המישור"],
+    ],
+    q: [
+      [["How many degrees are there in one full turn?", "360°", ["180°", "90°", "100°"], "A full turn around a point is 360°. Half a turn is 180°, and a quarter turn, a right angle, is 90°."],
+        ["כמה מעלות יש בסיבוב שלם אחד?", "360°", ["180°", "90°", "100°"], "סיבוב שלם סביב נקודה הוא 360°. חצי סיבוב הוא 180°, ורבע סיבוב, כלומר זווית ישרה, הוא 90°."]],
+      [["How many radians are there in half a turn (180°)?", "π", ["2π", "π/2", "180"], "A full turn is 2π radians, so half a turn, 180°, is π radians, about 3.14."],
+        ["כמה רדיאנים יש בחצי סיבוב (180°)?", "π", ["2π", "π/2", "180"], "סיבוב שלם הוא 2π רדיאנים, ולכן חצי סיבוב, 180°, הוא π רדיאנים, בערך 3.14."]],
+      [["A point P on the unit circle is at angle θ, measured from the positive x-axis. What are its coordinates?", "(cos θ, sin θ)", ["(sin θ, cos θ)", "(tan θ, 1)", "(θ, 1)"], "On the unit circle the x-coordinate of the point is cos θ and the y-coordinate is sin θ, because the radius, which is the hypotenuse of the triangle, has length 1."],
+        ["נקודה P על מעגל היחידה נמצאת בזווית θ, שנמדדת מהכיוון החיובי של ציר x. מהם השיעורים שלה?", "(cos θ, sin θ)", ["(sin θ, cos θ)", "(tan θ, 1)", "(θ, 1)"], "על מעגל היחידה שיעור ה־x של הנקודה הוא cos θ ושיעור ה־y שלה הוא sin θ, כי הרדיוס, שהוא היתר במשולש, אורכו 1."]],
+      [["What is sin 90°?", "1", ["0", "−1", "90"], "At 90° the point on the unit circle is (0, 1), straight above the centre. Its y-coordinate, sin 90°, is 1."],
+        ["כמה זה sin 90°?", "1", ["0", "−1", "90"], "בזווית 90° הנקודה על מעגל היחידה נמצאת בדיוק מעל המרכז, בגובה 1. שיעור ה־y שלה, sin 90°, הוא 1."]],
+      [["What is cos 180°?", "−1", ["1", "0", "180"], "At 180° the point is (−1, 0), on the left side of the circle. Its x-coordinate, cos 180°, is −1."],
+        ["כמה זה cos 180°?", "−1", ["1", "0", "180"], "בזווית 180° הנקודה נמצאת בצד השמאלי של המעגל, במרחק 1 משמאל למרכז. שיעור ה־x שלה, cos 180°, הוא −1."]],
+      [["In which quadrant does an angle of 120° end?", "The second", ["The first", "The third", "The fourth"], "The second quadrant holds the angles between 90° and 180°, so at 120° the point is up and to the left of the centre."],
+        ["באיזה רביע נמצאת זווית של 120°?", "השני", ["הראשון", "השלישי", "הרביעי"], "ברביע השני נמצאות הזוויות שבין 90° ל־180°, ולכן בזווית של 120° הנקודה נמצאת למעלה ומשמאל למרכז."]],
+    ],
+    n: [
+      [90, ["An angle of π/2 radians is how many degrees?", "degrees", "π radians are 180°, so π/2 radians are half of that: 180 ÷ 2 = 90 degrees."],
+        ["כמה מעלות יש בזווית של π/2 רדיאנים?", "מעלות", "π רדיאנים הם 180°, ולכן π/2 רדיאנים הם חצי מזה: 180 ÷ 2 = 90 מעלות."]],
+      [6.28, ["How many radians are there in a full turn? Round to two decimal places.", "radians", "A full turn is 2π radians, and 2 × 3.14159… ≈ 6.28."],
+        ["כמה רדיאנים יש בסיבוב שלם? עגלו לשתי ספרות אחרי הנקודה העשרונית.", "רדיאנים", "סיבוב שלם הוא 2π רדיאנים, ו־2 × 3.14159… ≈ 6.28."], 0.01],
+    ],
+    s: [[["Going once around the unit circle, anticlockwise from the positive x-axis", "The first quadrant: from 0° to 90°", "The second quadrant: from 90° to 180°", "The third quadrant: from 180° to 270°", "The fourth quadrant: from 270° to 360°"],
+      ["סיבוב אחד סביב מעגל היחידה, נגד כיוון השעון, מהכיוון החיובי של ציר x", "הרביע הראשון: מ־0° עד 90°", "הרביע השני: מ־90° עד 180°", "הרביע השלישי: מ־180° עד 270°", "הרביע הרביעי: מ־270° עד 360°"]]],
+  },
+  i: {
+    t: [
+      ["Period", "the length of one full cycle, after which the graph of a function repeats itself", "מחזור", "האורך של סבב שלם אחד, שאחריו הגרף של פונקציה חוזר על עצמו"],
+      ["Amplitude", "half the distance between the highest and the lowest values of a wave-shaped graph", "משרעת", "חצי מהמרחק בין הערך הגבוה ביותר לערך הנמוך ביותר בגרף שצורתו גל"],
+      ["Tangent of an angle", "tan θ = sin θ ÷ cos θ, the slope of the radius drawn at angle θ", "טנגנס של זווית", "היחס sin θ ÷ cos θ, כלומר השיפוע של הרדיוס שנמתח בזווית θ"],
+    ],
+    q: [
+      [["Convert 60° to radians.", "π/3", ["π/6", "π/4", "3π"], "Multiply by π/180: 60 × π/180 = π/3. The tempting π/6 is 30°, only half as much."],
+        ["המירו 60° לרדיאנים.", "π/3", ["π/6", "π/4", "3π"], "כופלים ב־π/180: 60 × π/180 = π/3. התשובה המפתה π/6 היא 30°, רק חצי מזה."]],
+      [["What is the period of y = sin x?", "2π (360°)", ["π (180°)", "π/2 (90°)", "1"], "After one full turn, 2π radians, the point on the unit circle is back where it started, so the values of sine repeat every 2π."],
+        ["מהו המחזור של y = sin x?", "2π (360°)", ["π (180°)", "π/2 (90°)", "1"], "אחרי סיבוב שלם, 2π רדיאנים, הנקודה על מעגל היחידה חוזרת למקום שבו התחילה, ולכן ערכי הסינוס חוזרים על עצמם כל 2π."]],
+      [["Which angle has the same sine as 30°?", "150°", ["210°", "330°", "60°"], "The points at 30° and at 150° are mirror images in the y-axis, so they are at the same height: sin 150° = sin(180° − 30°) = sin 30° = 1/2."],
+        ["לאיזו זווית יש אותו סינוס כמו לזווית של 30°?", "150°", ["210°", "330°", "60°"], "הנקודות בזוויות 30° ו־150° הן תמונת ראי זו של זו ביחס לציר y, ולכן הן באותו גובה: sin 150° = sin(180° − 30°) = sin 30° = 1/2."]],
+      [["What is cos 60°?", "1/2", ["√3/2", "√2/2", "2"], "Cut an equilateral triangle in half: the side next to the 60° angle is half of the hypotenuse, so cos 60° = 1/2. √3/2 is cos 30°."],
+        ["כמה זה cos 60°?", "1/2", ["√3/2", "√2/2", "2"], "חוצים משולש שווה צלעות: הניצב שליד הזווית של 60° הוא חצי מהיתר, ולכן cos 60° = 1/2. הערך √3/2 שייך ל־cos 30°."]],
+      [["In which quadrants is cos θ negative?", "The second and the third", ["The third and the fourth", "The first and the second", "Only the fourth"], "cos θ is the x-coordinate of the point, and x is negative on the left half of the plane: in the second and third quadrants. It is sine that is negative in the third and fourth."],
+        ["באילו רביעים cos θ שלילי?", "השני והשלישי", ["השלישי והרביעי", "הראשון והשני", "רק הרביעי"], "הערך cos θ הוא שיעור ה־x של הנקודה, ו־x שלילי בחצי השמאלי של המישור: ברביע השני וברביע השלישי. הסינוס הוא זה ששלילי ברביע השלישי וברביע הרביעי."]],
+      [["What is tan 45°?", "1", ["√2/2", "0", "It is not defined"], "At 45° the point on the unit circle has equal coordinates, sin 45° = cos 45°, so tan 45° = sin 45° ÷ cos 45° = 1."],
+        ["כמה זה tan 45°?", "1", ["√2/2", "0", "לא מוגדר"], "בזווית 45° לנקודה על מעגל היחידה יש שיעורים שווים, sin 45° = cos 45°, ולכן tan 45° = sin 45° ÷ cos 45° = 1."]],
+    ],
+    n: [
+      [57, ["1 radian is about how many degrees? Round to a whole number of degrees.", "degrees", "1 radian = 180°/π ≈ 57.3°, which rounds to 57."],
+        ["כמה מעלות יש בערך ברדיאן אחד? עגלו למספר שלם של מעלות.", "מעלות", "רדיאן אחד = 180°/π ≈ 57.3°, ובעיגול למספר שלם 57."]],
+      [4, ["What is the largest value that y = 4 sin x can reach?", "", "sin x is never more than 1, so 4 sin x is never more than 4 × 1 = 4. That is the amplitude of the graph."],
+        ["מהו הערך הגדול ביותר שהפונקציה y = 4 sin x יכולה לקבל?", "", "הערך sin x אף פעם לא גדול מ־1, ולכן 4 sin x אף פעם לא גדול מ־4 × 1 = 4. זו המשרעת של הגרף."]],
+    ],
+    s: [[["From the smallest value to the largest", "cos 180°", "cos 120°", "cos 90°", "cos 60°", "cos 0°"],
+      ["מהערך הקטן ביותר לגדול ביותר", "cos 180°", "cos 120°", "cos 90°", "cos 60°", "cos 0°"]]],
+  },
+  a: {
+    t: [
+      ["Arc length", "the distance along a circle between two points on it; for an angle θ in radians it is r × θ", "אורך קשת", "המרחק לאורך המעגל בין שתי נקודות עליו; בזווית θ ברדיאנים הוא r × θ"],
+      ["Pythagorean identity", "sin²θ + cos²θ = 1 for every angle θ, because every point of the unit circle is at distance 1 from the centre", "הזהות הפיתגורית", "הסכום sin²θ + cos²θ שווה 1 לכל זווית θ, כי כל נקודה של מעגל היחידה נמצאת במרחק 1 מהמרכז"],
+      ["Sector", "the part of a disc between two radii and the arc that joins their ends", "גזרה", "החלק של עיגול שבין שני רדיוסים לבין הקשת שמחברת את קצותיהם"],
+    ],
+    q: [
+      [["θ is an angle in the second quadrant with sin θ = 3/5. What is cos θ?", "−4/5", ["4/5", "−3/5", "5/3"], "cos²θ = 1 − sin²θ = 1 − 9/25 = 16/25, so cos θ = 4/5 or −4/5. In the second quadrant x is negative, so cos θ = −4/5."],
+        ["הזווית θ נמצאת ברביע השני ו־sin θ = 3/5. כמה זה cos θ?", "−4/5", ["4/5", "−3/5", "5/3"], "לפי הזהות הפיתגורית cos²θ = 1 − sin²θ = 1 − 9/25 = 16/25, ולכן cos θ = 4/5 או −4/5. ברביע השני x שלילי, ולכן cos θ = −4/5."]],
+      [["What is the period of y = sin(2x)?", "π", ["2π", "4π", "π/2"], "As x runs from 0 to π, 2x runs from 0 to 2π, one full cycle of sine. So the graph repeats every 2π ÷ 2 = π."],
+        ["מהו המחזור של y = sin(2x)?", "π", ["2π", "4π", "π/2"], "כש־x עובר מ־0 עד π, הביטוי 2x עובר מ־0 עד 2π, סבב שלם אחד של סינוס. לכן הגרף חוזר על עצמו כל 2π ÷ 2 = π."]],
+      [["How many solutions does sin x = 1/2 have in one full turn, for x from 0 up to (but not including) 2π?", "2", ["1", "4", "Infinitely many"], "In one full turn the height 1/2 is reached twice: at π/6 (30°) and at 5π/6 (150°), which are mirror images in the y-axis."],
+        ["כמה פתרונות יש למשוואה sin x = 1/2 בסיבוב שלם אחד, כש־x בין 0 ל־2π (לא כולל 2π)?", "2", ["1", "4", "אינסוף"], "בסיבוב שלם אחד הגובה 1/2 מתקבל פעמיים: ב־π/6 (30°) וב־5π/6 (150°), שהן תמונת ראי זו של זו ביחס לציר y."]],
+      [["The angles are in radians: which is larger, sin 1 or sin 2?", "sin 2", ["sin 1", "They are equal", "It cannot be decided"], "2 radians is about 115°, nearer to 90° than 1 radian (about 57°) is, so its point is higher on the circle. Indeed sin 2 ≈ 0.91 and sin 1 ≈ 0.84."],
+        ["הזוויות ברדיאנים: מה גדול יותר, sin 1 או sin 2?", "sin 2", ["sin 1", "הם שווים", "אי אפשר לדעת"], "2 רדיאנים הם בערך 115°, קרוב יותר ל־90° מרדיאן אחד (בערך 57°), ולכן הנקודה שלו גבוהה יותר על המעגל. ואכן sin 2 ≈ 0.91 ו־sin 1 ≈ 0.84."]],
+      [["At which angle between 0° and 360° are sin θ and cos θ equal and both negative?", "225°", ["135°", "315°", "45°"], "sin θ = cos θ where the point lies on the line y = x: at 45° and at 225°. At 225°, in the third quadrant, both are equal to −√2/2."],
+        ["באיזו זווית בין 0° ל־360° הערכים sin θ ו־cos θ שווים ושניהם שליליים?", "225°", ["135°", "315°", "45°"], "השוויון sin θ = cos θ מתקיים כשהנקודה נמצאת על הישר y = x: ב־45° וב־225°. ב־225°, ברביע השלישי, שניהם שווים ל־−√2/2."]],
+    ],
+    n: [
+      [240, ["What is the smallest positive angle, in degrees, with cos θ = −1/2 and sin θ negative?", "degrees", "cos θ = −1/2 at 120° and at 240°. Only at 240°, in the third quadrant, is the y-coordinate negative."],
+        ["מהי הזווית החיובית הקטנה ביותר, במעלות, שבה cos θ = −1/2 ו־sin θ שלילי?", "מעלות", "הערך cos θ שווה −1/2 בזווית 120° ובזווית 240°. רק ב־240°, ברביע השלישי, שיעור ה־y שלילי."]],
+      [3, ["A bicycle wheel with radius 0.3 m turns through 10 radians without slipping. How far does the bicycle move?", "m", "The distance is the arc length r × θ = 0.3 × 10 = 3 m, because each radian of turning rolls out one radius along the ground."],
+        ["גלגל אופניים שהרדיוס שלו 0.3 מטר מסתובב 10 רדיאנים בלי להחליק. כמה מטרים נוסעים האופניים?", "מטר", "המרחק הוא אורך הקשת r × θ = 0.3 × 10 = 3 מטר, כי כל רדיאן של סיבוב מגלגל על הקרקע אורך של רדיוס אחד."]],
+    ],
+    s: [[["From the smallest angle to the largest", "1 radian", "60°", "π/2 radians", "2 radians", "3π/4 radians"],
+      ["מהזווית הקטנה ביותר לגדולה ביותר", "רדיאן אחד", "60°", "π/2 רדיאנים", "2 רדיאנים", "3π/4 רדיאנים"]]],
+  },
+};
+export default c;

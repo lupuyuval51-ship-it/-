@@ -1,0 +1,82 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Dot", "the short signal in Morse code: a quick beep, flash or tap", "נקודה", "האות הקצר בקוד מורס: צפצוף, הבזק או נקישה מהירים"],
+      ["Dash", "the long signal in Morse code, like a longer beep or flash", "קו", "האות הארוך בקוד מורס, כמו צפצוף או הבזק ארוכים"],
+      ["Telegraph", "a machine that sends messages along a wire as pulses of electricity", "טלגרף", "מכונה ששולחת הודעות לאורך חוט כפולסים של חשמל"],
+    ],
+    q: [
+      [["What is SOS in Morse code?", "Three dots, three dashes, three dots", ["Three dashes, three dots, three dashes", "Nine dots in a row", "One long dash that lasts a minute"], "S is three dots and O is three dashes, so SOS is dot-dot-dot, dash-dash-dash, dot-dot-dot. It was chosen as the call for help because it is simple to send and hard to mistake."],
+        ["איך נראה SOS בקוד מורס?", "שלוש נקודות, שלושה קווים, שלוש נקודות", ["שלושה קווים, שלוש נקודות, שלושה קווים", "תשע נקודות ברצף", "קו ארוך אחד שנמשך דקה"], "האות S היא שלוש נקודות והאות O היא שלושה קווים, ולכן SOS הוא נקודה־נקודה־נקודה, קו־קו־קו, נקודה־נקודה־נקודה. בחרו בו כקריאה לעזרה כי קל לשדר אותו וקשה לטעות בו."]],
+      [["The code of dots and dashes is named after which inventor?", "Samuel Morse", ["Alexander Graham Bell", "Thomas Edison", "Isaac Newton"], "Samuel Morse, an American painter who became an inventor, worked on the electric telegraph and its code in the 1830s and 1840s, together with his partner Alfred Vail. Alexander Graham Bell invented the telephone later, in 1876."],
+        ["על שם איזה ממציא נקרא הקוד של נקודות וקווים?", "סמואל מורס", ["אלכסנדר גרהם בל", "תומאס אדיסון", "אייזק ניוטון"], "סמואל מורס, צייר אמריקאי שהפך לממציא, פיתח את הטלגרף החשמלי ואת הקוד שלו בשנות ה־30 וה־40 של המאה ה־19, יחד עם השותף שלו אלפרד וייל. אלכסנדר גרהם בל המציא את הטלפון מאוחר יותר, ב־1876."]],
+      [["In Morse code the letter E is a single dot. Why did E get the shortest code?", "E is the most common letter in English", ["E is the very first letter of the alphabet", "E was Morse's favourite letter", "E is the easiest sound to hear"], "Giving the most used letters the shortest codes makes messages quicker to send. T, another very common letter, is a single dash."],
+        ["בקוד מורס האות E היא נקודה אחת בלבד. למה E קיבלה את הקוד הקצר ביותר?", "היא האות הנפוצה ביותר באנגלית", ["היא האות הראשונה באלפבית האנגלי", "היא הייתה האות האהובה על מורס", "קל במיוחד לשמוע את הצליל שלה"], "כשנותנים לאותיות הנפוצות ביותר את הקודים הקצרים ביותר, שולחים הודעות מהר יותר. גם T, עוד אות נפוצה מאוד, היא קו אחד בלבד."]],
+      [["In which century was Morse code first used to send messages by telegraph?", "The 19th century (the 1800s)", ["The 20th century (the 1900s)", "The 17th century (the 1600s)", "The 21st century (the 2000s)"], "In 1844 Samuel Morse sent a famous long-distance telegraph message in the USA. Within a few years, telegraph wires linked cities across America and Europe."],
+        ["באיזו מאה השתמשו לראשונה בקוד מורס כדי לשלוח הודעות בטלגרף?", "במאה ה־19 (שנות ה־1800)", ["במאה ה־20 (שנות ה־1900)", "במאה ה־17 (שנות ה־1600)", "במאה ה־21 (שנות ה־2000)"], "ב־1844 שלח סמואל מורס הודעת טלגרף מפורסמת למרחק רב בארצות הברית. בתוך שנים ספורות חיברו חוטי טלגרף ערים בכל רחבי אמריקה ואירופה."]],
+      [["Ships sometimes flash Morse code with a lamp. What makes a signal a dot or a dash?", "How long the light stays on", ["The colour of the light that is shown", "How bright the light is", "Which way the lamp points"], "A short flash is a dot and a longer flash is a dash. The same code works with sound, light or taps; only the timing matters."],
+        ["אוניות מהבהבות לפעמים קוד מורס בעזרת פנס. מה קובע אם אות הוא נקודה או קו?", "כמה זמן האור דולק", ["הצבע של האור שמוצג", "כמה חזק האור", "לאיזה כיוון מופנה הפנס"], "הבזק קצר הוא נקודה והבזק ארוך יותר הוא קו. אותו קוד עובד בצליל, באור או בנקישות; רק התזמון חשוב."]],
+    ],
+    n: [
+      [3, ["In Morse code a dash lasts as long as how many dots?", "dots", "A dash is three times as long as a dot. So if a dot lasts 1 second, a dash lasts 3 seconds."],
+        ["בקוד מורס, קו נמשך כמו כמה נקודות?", "נקודות", "קו ארוך פי שלושה מנקודה. לכן אם נקודה נמשכת שנייה אחת, קו נמשך 3 שניות."]],
+    ],
+    s: [
+      [["Sending a telegram in the 1800s", "You write your message on a form at the telegraph office", "The operator taps it out in Morse code with a key", "Pulses of electricity travel along the wire to another town", "An operator there listens to the clicks and writes down the letters", "A messenger takes the written message to the person's door"],
+        ["שליחת מברק במאה ה־19", "כותבים את ההודעה על טופס בסניף הטלגרף", "המפעיל מקיש אותה בקוד מורס בעזרת מפתח", "פולסים של חשמל עוברים לאורך החוט לעיר אחרת", "מפעיל שם מקשיב לנקישות ורושם את האותיות", "שליח מביא את ההודעה הכתובה עד לדלת של הנמען"]],
+    ],
+  },
+  i: {
+    t: [
+      ["Telegraph key", "a springy switch that an operator presses to send short and long pulses", "מפתח טלגרף", "מתג קפיצי שהמפעיל לוחץ עליו כדי לשלוח פולסים קצרים וארוכים"],
+      ["Letter space", "the pause, as long as three dots, between two letters of a word", "רווח בין אותיות", "השקט, באורך של שלוש נקודות, בין שתי אותיות באותה מילה"],
+      ["Signal lamp", "a lamp with shutters that ships use to flash messages in Morse code", "פנס איתות", "פנס עם תריסים שאוניות משתמשות בו כדי להבהב הודעות בקוד מורס"],
+    ],
+    q: [
+      [["The first famous long-distance telegraph message, in 1844, was sent between which two cities?", "Washington and Baltimore", ["Philadelphia and New York", "London and Paris", "Tel Aviv and Jerusalem"], "On 24 May 1844 Morse sent the words 'What hath God wrought', a line from the Bible, from Washington to Baltimore, about 60 km away. It showed that the electric telegraph really worked over long distances."],
+        ["בין אילו שתי ערים נשלחה ב־1844 הודעת הטלגרף המפורסמת הראשונה למרחק רב?", "וושינגטון ובולטימור", ["פילדלפיה וניו יורק", "לונדון ופריז", "תל אביב וירושלים"], "ב־24 במאי 1844 שלח מורס את המילים ״מה פעל אל״, מתוך ספר במדבר, מוושינגטון לבולטימור, מרחק של כ־60 ק״מ. ההודעה הוכיחה שהטלגרף החשמלי באמת עובד למרחקים ארוכים."]],
+      [["Why does an operator leave a longer pause between words than between letters?", "So the receiver can tell where one word ends and the next begins", ["To give the battery time to recharge", "Because the telegraph wire needs a moment to cool down after each word", "So that the message costs less to send"], "Morse code has no symbol for a space, so the gaps do that job: a short gap inside a letter, a longer one between letters and the longest between words."],
+        ["למה המפעיל משאיר הפסקה ארוכה יותר בין מילים מאשר בין אותיות?", "כדי שהמקבל יבין איפה מילה אחת נגמרת והבאה מתחילה", ["כדי לתת לסוללה זמן להיטען", "כי חוט הטלגרף צריך רגע קצר כדי להתקרר אחרי כל מילה ומילה", "כדי שההודעה תעלה פחות כסף"], "בקוד מורס אין סימן לרווח, ולכן ההפסקות עושות את העבודה הזאת: הפסקה קצרה בתוך אות, ארוכה יותר בין אותיות, והארוכה ביותר בין מילים."]],
+      [["In 1999 ships stopped using Morse code as their main way to call for help. What replaced it?", "Satellite and digital radio distress systems", ["Carrier pigeons kept in a cage on every ship", "Coloured signal flags only", "Smoke signals from the deck"], "The new Global Maritime Distress and Safety System can send a ship's position automatically by satellite and digital radio, even if nobody on board knows Morse code."],
+        ["ב־1999 הפסיקו אוניות להשתמש בקוד מורס כדרך העיקרית לקרוא לעזרה. מה בא במקומו?", "מערכות מצוקה של לוויינים ושל רדיו דיגיטלי", ["יוני דואר שמוחזקות בכלוב בכל אונייה", "דגלי איתות צבעוניים בלבד", "אותות עשן מהסיפון"], "המערכת העולמית החדשה למצוקה ולבטיחות בים יכולה לשלוח את המיקום של אונייה באופן אוטומטי דרך לוויין ורדיו דיגיטלי, גם אם אף אחד על הסיפון לא יודע קוד מורס."]],
+      [["Each digit in Morse code has five signals, and 5 is five dots. What is 0?", "Five dashes", ["Five dots", "One dash", "No signal at all"], "The digits follow a pattern: 1 is one dot and four dashes, 2 is two dots and three dashes, and so on up to 5, which is five dots. Then dashes come in from the front, until 0 is five dashes."],
+        ["כל ספרה בקוד מורס בנויה מחמישה אותות, ו־5 היא חמש נקודות. מהי 0?", "חמישה קווים", ["חמש נקודות", "קו אחד", "שום אות"], "הספרות בנויות לפי סדר: 1 היא נקודה אחת וארבעה קווים, 2 היא שתי נקודות ושלושה קווים, וכך הלאה עד 5, שהיא חמש נקודות. אחר כך נכנסים קווים מההתחלה, עד ש־0 היא חמישה קווים."]],
+      [["Which letter is dot-dash in Morse code?", "A", ["N", "E", "T"], "A is dot-dash. N is the opposite, dash-dot, while E is a single dot and T is a single dash."],
+        ["איזו אות היא נקודה־קו בקוד מורס?", "האות A", ["האות N", "האות E", "האות T"], "האות A היא נקודה־קו. האות N היא ההפך, קו־נקודה, ואילו E היא נקודה אחת ו־T היא קו אחד."]],
+      [["How did telegraph messages first cross the Atlantic Ocean for good, from 1866?", "Through a cable laid on the sea floor", ["By radio waves bounced off the Moon", "By light flashes passed from ship to ship", "By pigeons that flew across the ocean"], "After a cable that worked for only a few weeks in 1858, a lasting one was laid in 1866 by the giant steamship Great Eastern. Messages between Europe and America that had taken about ten days by ship now took minutes."],
+        ["איך חצו הודעות טלגרף את האוקיינוס האטלנטי באופן קבוע, החל מ־1866?", "בכבל שהונח על קרקעית הים", ["בגלי רדיו שהוחזרו מהירח", "בהבזקי אור שעברו מאונייה לאונייה", "ביונים שעפו מעל האוקיינוס"], "אחרי כבל שעבד רק כמה שבועות ב־1858, הניחה אוניית הקיטור הענקית ״גרייט איסטרן״ ב־1866 כבל שהחזיק מעמד. הודעות בין אירופה לאמריקה, שלקחו באונייה כעשרה ימים, הגיעו עכשיו בתוך דקות."]],
+    ],
+    n: [
+      [7, ["The pause between two words lasts as long as how many dots?", "dots", "Inside a letter the gap is 1 dot long, between letters it is 3 dots, and between words it is 7 dots."],
+        ["ההפסקה בין שתי מילים נמשכת כמו כמה נקודות?", "נקודות", "בתוך אות ההפסקה היא באורך נקודה אחת, בין אותיות היא באורך 3 נקודות, ובין מילים היא באורך 7 נקודות."]],
+    ],
+  },
+  a: {
+    t: [
+      ["Words per minute", "a measure of Morse speed, based on how many times a standard word can be sent in one minute", "מילים לדקה", "מדד למהירות שידור במורס, לפי מספר הפעמים שאפשר לשלוח מילה תקנית בדקה אחת"],
+      ["Variable-length code", "a code in which some symbols are shorter than others, usually the most common ones", "קוד באורך משתנה", "קוד שבו חלק מהסימנים קצרים מאחרים, ובדרך כלל אלה הנפוצים ביותר"],
+      ["Encoding", "turning a message into an agreed set of signals or symbols", "קידוד", "הפיכה של הודעה לאוסף מוסכם של אותות או סימנים"],
+    ],
+    q: [
+      [["A receiver hears three dots, a gap as long as one dot, then a dash. Is that one letter or two?", "One letter, V, because a one-dot gap stays inside a letter", ["Two letters, S and T, because a gap means a new letter", "Three letters, because each pause starts a letter", "It cannot be Morse code, which never mixes dots and dashes"], "Between letters the gap must be three dots long. A gap of just one dot is the normal space between signals inside one letter, so dot-dot-dot-dash is the single letter V."],
+        ["מקלט שומע שלוש נקודות, הפסקה באורך נקודה אחת, ואז קו. האם זו אות אחת או שתיים?", "אות אחת, V, כי הפסקה של נקודה אחת נשארת בתוך האות", ["שתי אותיות, S ו־T, כי כל הפסקה פירושה אות חדשה", "שלוש אותיות, כי כל הפסקה פותחת אות", "זה לא יכול להיות קוד מורס, כי בו אף פעם לא מערבבים נקודות וקווים"], "בין אותיות ההפסקה חייבת להיות באורך שלוש נקודות. הפסקה של נקודה אחת היא הרווח הרגיל בין אותות בתוך אותה אות, ולכן נקודה־נקודה־נקודה־קו היא האות V לבדה."]],
+      [["Why is SOS sent as one unbroken pattern, with no gaps between its letters?", "So it stands out as a single signal that cannot be mistaken", ["Because SOS stands for 'Save Our Ship' and has to be sent quickly", "Because gaps are not allowed anywhere in Morse code", "To save electricity on a sinking ship"], "SOS is sent as one block of nine signals. The letters do not stand for any words: the pattern was chosen in the early 1900s because it is easy to send and to recognise. 'Save Our Ship' was made up later."],
+        ["למה משדרים SOS כרצף אחד, בלי הפסקות בין האותיות?", "כדי שיבלוט כאות אחד שאי אפשר לטעות בו", ["כי SOS הם ראשי תיבות של ״הצילו את הספינה שלנו״ וצריך לשדר אותם מהר", "כי בקוד מורס אסור להשאיר הפסקות בכלל", "כדי לחסוך בחשמל בספינה שטובעת"], "את SOS משדרים כגוש אחד של תשעה אותות. האותיות לא מייצגות שום מילים: הדוגמה נבחרה בתחילת המאה ה־20 כי קל לשדר אותה ולזהות אותה. הפירוש ״הצילו את הספינה שלנו״ הומצא מאוחר יותר."]],
+      [["Why can Morse code by radio often get through heavy noise when a voice would not?", "A simple on-off tone is easy to pick out, even when it is faint", ["Morse signals travel through the air much faster than voices do", "Noise cannot affect any signal made of dots", "Radios turn Morse code into pictures"], "A Morse signal is a single tone switched on and off, so a listener or receiver can focus on that one narrow tone and ignore the rest. Speech spreads over many tones, so noise covers it much more easily."],
+        ["למה קוד מורס ברדיו עובר לעיתים קרובות גם ברעש חזק, כשדיבור לא היה עובר?", "קל לזהות צליל פשוט שנדלק וכבה, גם כשהוא חלש", ["אותות מורס עוברים באוויר מהר הרבה יותר מקולות", "רעש לא יכול להשפיע על אות שעשוי מנקודות", "מכשירי רדיו הופכים קוד מורס לתמונות"], "אות מורס הוא צליל אחד שנדלק וכבה, ולכן מאזין או מקלט יכולים להתמקד בצליל הצר הזה ולהתעלם מכל השאר. דיבור מתפרש על פני הרבה צלילים, ולכן רעש מכסה אותו הרבה יותר בקלות."]],
+      [["Morse code and binary both use two kinds of marks. Why is Morse code more than just two symbols?", "The gaps of different lengths also carry meaning", ["Dots come in two different colours", "Every letter uses exactly the same number of signals", "Dashes can be sent backwards"], "Besides dots and dashes, Morse code uses three lengths of silence: inside letters, between letters and between words. Without the gaps, dot-dot-dot could mean S, or I and E, or E and I, or three Es."],
+        ["גם קוד מורס וגם הבסיס הבינארי משתמשים בשני סוגי סימנים. למה קוד מורס הוא יותר משני סימנים בלבד?", "גם להפסקות באורכים שונים יש משמעות", ["לנקודות יש שני צבעים שונים", "בכל אות יש בדיוק אותו מספר של אותות", "אפשר לשדר קווים מהסוף להתחלה"], "חוץ מנקודות וקווים, קוד מורס משתמש בשלושה אורכים של שקט: בתוך אות, בין אותיות ובין מילים. בלי ההפסקות, נקודה־נקודה־נקודה יכולה להיות S, או I ואחריה E, או E ואחריה I, או שלוש פעמים E."]],
+    ],
+    n: [
+      [27, ["Count a dot as 1 unit, a dash as 3, a gap inside a letter as 1 and a gap between letters as 3. How many units long is SOS sent as three separate letters, from the first signal to the last?", "units", "S = 1 + 1 + 1 + 1 + 1 = 5 units (three dots and two gaps), O = 3 + 1 + 3 + 1 + 3 = 11, and S = 5 again. The two letter gaps add 3 + 3 = 6, so 5 + 11 + 5 + 6 = 27 units.", "Work out S and O first, then add the gaps between the letters."],
+        ["נקודה שווה ליחידה אחת, קו ל־3, הפסקה בתוך אות ל־1 והפסקה בין אותיות ל־3. כמה יחידות אורך SOS כשמשדרים אותו כשלוש אותיות נפרדות, מהאות הראשון ועד האחרון?", "יחידות", "S = 1 + 1 + 1 + 1 + 1 = 5 יחידות (שלוש נקודות ושתי הפסקות), O = 3 + 1 + 3 + 1 + 3 = 11, ושוב S = 5. שתי ההפסקות בין האותיות מוסיפות 3 + 3 = 6, ולכן 5 + 11 + 5 + 6 = 27 יחידות.", "חשבו קודם את S ואת O, ואז הוסיפו את ההפסקות בין האותיות."]],
+      [60, ["The standard word PARIS takes exactly 50 dot-lengths, including the gap after it. At 20 words per minute, how many milliseconds is one dot-length? (1 minute = 60,000 ms)", "milliseconds", "20 words × 50 = 1,000 dot-lengths each minute, and 60,000 ÷ 1,000 = 60 milliseconds for each dot."],
+        ["המילה התקנית PARIS נמשכת בדיוק 50 אורכי נקודה, כולל ההפסקה שאחריה. בקצב של 20 מילים לדקה, כמה אלפיות שנייה נמשך אורך נקודה אחד? (בדקה יש 60,000 אלפיות שנייה)", "אלפיות שנייה", "20 מילים × 50 = 1,000 אורכי נקודה בכל דקה, ו־60,000 ÷ 1,000 = 60 אלפיות שנייה לכל נקודה."]],
+      [700, ["At 12 words per minute a dot lasts 100 milliseconds. How many milliseconds is the gap between two words?", "milliseconds", "The gap between words is 7 dots long, so it lasts 7 × 100 = 700 milliseconds."],
+        ["בקצב של 12 מילים לדקה נקודה נמשכת 100 אלפיות שנייה. כמה אלפיות שנייה נמשכת ההפסקה בין שתי מילים?", "אלפיות שנייה", "ההפסקה בין מילים היא באורך 7 נקודות, ולכן היא נמשכת 7 × 100 = 700 אלפיות שנייה."]],
+    ],
+  },
+};
+export default c;

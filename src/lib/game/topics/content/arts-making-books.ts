@@ -1,0 +1,77 @@
+import type { TopicContent } from "../types";
+
+const c: TopicContent = {
+  b: {
+    t: [
+      ["Author", "the person who writes the words of a book", "מחבר", "האדם שכותב את המילים של הספר"],
+      ["Illustrator", "the artist who draws or paints the pictures for a book", "מאייר", "האמן שמצייר את התמונות לספר"],
+      ["Spine", "the narrow back edge of a book, which shows the title when the book stands on a shelf", "שדרה", "הצד הצר של הספר, שעליו רואים את שם הספר כשהוא עומד על המדף"],
+      ["Cover", "the strong outer part that protects the pages of a book", "כריכה", "החלק החיצוני והחזק שמגן על דפי הספר"],
+    ],
+    q: [
+      [["Who reads an author's writing closely and suggests changes to make the book better?", "The editor", ["The printer", "The bookseller", "The librarian"], "The editor works with the author on the story or the facts, the order and the words, long before the book is printed."],
+        ["מי קורא בעיון את מה שהסופר כתב ומציע שינויים כדי שהספר יהיה טוב יותר?", "העורך", ["המדפיס", "המוכר בחנות הספרים", "הספרן"], "העורך עובד עם הסופר על הסיפור או על העובדות, על הסדר ועל המילים, הרבה לפני שהספר מודפס."]],
+      [["What do we call the short text on the back cover that tells you what a book is about?", "The blurb", ["The index", "The spine", "The footnote"], "The blurb is a short, tempting description of the book, usually on the back cover. It helps readers decide whether they want to read it."],
+        ["איך נקרא הטקסט הקצר על הכריכה האחורית, שמספר על מה הספר?", "התקציר", ["המפתח שבסוף הספר", "השדרה", "הערת השוליים"], "התקציר בגב הספר הוא תיאור קצר ומסקרן של הספר, בדרך כלל על הכריכה האחורית. הוא עוזר לקוראים להחליט אם הם רוצים לקרוא אותו."]],
+      [["Where in a book would you look to find the page on which each chapter begins?", "The table of contents", ["The back cover of the book", "The spine", "The very last page"], "The table of contents, near the front of the book, lists the chapters in order with the page number where each one starts."],
+        ["איפה בספר תחפשו כדי למצוא באיזה עמוד מתחיל כל פרק?", "בתוכן העניינים", ["בכריכה האחורית של הספר", "בשדרה", "בעמוד האחרון ממש"], "תוכן העניינים, בתחילת הספר, מונה את הפרקים לפי הסדר עם מספר העמוד שבו כל פרק מתחיל."]],
+      [["Which company decides to make a book, pays for it to be printed and sells it to shops?", "The publisher", ["The library", "The post office", "The school"], "A publisher chooses which books to make, pays editors, designers and printers, and sells the books to shops. A library lends books but does not make them."],
+        ["איזו חברה מחליטה להוציא ספר, משלמת על הדפסתו ומוכרת אותו לחנויות?", "ההוצאה לאור", ["הספרייה העירונית", "הדואר", "בית הספר"], "ההוצאה לאור בוחרת אילו ספרים להוציא, משלמת לעורכים, למעצבים ולמדפיסים ומוכרת את הספרים לחנויות. ספרייה משאילה ספרים אבל לא מוציאה אותם."]],
+      [["Before printing came to Europe, how were books made there?", "Copied out by hand, one at a time", ["Typed on typewriters, one page at a time", "Printed by computers in big factories", "Painted on the walls of houses"], "In the Middle Ages, scribes copied each book by hand, often in monasteries. One book could take months, so books were rare and expensive."],
+        ["לפני שהדפוס הגיע לאירופה, איך הכינו בה ספרים?", "העתיקו אותם ביד, ספר אחר ספר", ["הקלידו אותם במכונות כתיבה, עמוד אחר עמוד", "הדפיסו אותם במחשבים במפעלים גדולים", "ציירו אותם על קירות הבתים"], "בימי הביניים סופרים העתיקו כל ספר ביד, לעיתים קרובות במנזרים. ספר אחד יכול היה לקחת חודשים, ולכן ספרים היו נדירים ויקרים."]],
+    ],
+    n: [[13, ["A modern ISBN, the number that identifies a book, has how many digits?", "", "Since 2007, every new ISBN has 13 digits; older ones had 10."],
+      ["למסת״ב מודרני, המספר שמזהה ספר, יש כמה ספרות?", "", "מאז 2007 לכל מסת״ב חדש יש 13 ספרות; לישנים יותר היו 10."]]],
+    s: [[["From idea to bookshop", "The author writes the story", "The editor helps to improve it", "The printer prints and binds the pages", "The books are sent to shops and libraries", "A reader takes the book home"],
+      ["מהרעיון ועד חנות הספרים", "הסופר כותב את הסיפור", "העורך עוזר לשפר אותו", "בית הדפוס מדפיס וכורך את הדפים", "הספרים נשלחים לחנויות ולספריות", "קורא לוקח את הספר הביתה"]]],
+  },
+  i: {
+    t: [
+      ["ISBN", "a unique number that identifies one edition of a book, used by shops and libraries", "מסת״ב", "מספר ייחודי שמזהה מהדורה אחת של ספר, ומשמש חנויות וספריות"],
+      ["Paperback", "a book with a soft, thin card cover, usually cheaper and lighter", "כריכה רכה", "ספר עם עטיפה דקה וגמישה מקרטון, בדרך כלל זול וקל יותר"],
+      ["Hardcover", "a book with stiff boards covered in cloth or paper, made to last a long time", "כריכה קשה", "ספר עם לוחות קשיחים שמצופים בבד או בנייר, ונועד להחזיק מעמד זמן רב"],
+      ["Manuscript", "the author's own text of a book before it is printed", "כתב יד", "הטקסט של המחבר לפני שהוא מודפס כספר"],
+    ],
+    q: [
+      [["What did Johannes Gutenberg bring to Europe in the 1400s that changed how books were made?", "A printing press with movable metal type", ["The very first sheets of paper ever made", "The first typewriter for writing books", "Electric lamps for reading at night"], "Gutenberg combined metal letters that could be rearranged with a press, so many copies could be printed quickly. Paper had been invented in China long before."],
+        ["מה הביא יוהנס גוטנברג לאירופה במאה ה־15 ששינה את דרך הכנת הספרים?", "מכונת דפוס עם אותיות מתכת ניידות", ["את גיליונות הנייר הראשונים שנוצרו אי־פעם", "את מכונת הכתיבה הראשונה", "מנורות חשמל לקריאה בלילה"], "גוטנברג חיבר אותיות מתכת שאפשר לסדר מחדש עם מכבש, וכך אפשר היה להדפיס עותקים רבים במהירות. הנייר הומצא בסין הרבה קודם."]],
+      [["Where was paper first invented?", "China", ["Egypt", "Greece", "Germany"], "Paper was made in China about 2,000 years ago; tradition credits the official Cai Lun, around the year 105. Egyptian papyrus is older, but it is made from pressed plant strips, not true paper."],
+        ["איפה הומצא הנייר לראשונה?", "בסין", ["במצרים", "ביוון", "בגרמניה"], "נייר הכינו בסין לפני כ־2,000 שנה; המסורת מייחסת אותו לפקיד צאי לון, בסביבות שנת 105. הפפירוס המצרי עתיק יותר, אבל הוא עשוי רצועות צמח דחוסות ואינו נייר של ממש."]],
+      [["What is a proofreader's job?", "Checking the pages for mistakes before printing", ["Deciding how much the book will cost in the shops", "Drawing the pictures for the book", "Driving the books to the shops"], "A proofreader reads a trial copy of the pages, called a proof, and marks spelling, punctuation and layout errors so they can be fixed before thousands of copies are printed."],
+        ["מה התפקיד של מגיה?", "לבדוק את העמודים ולמצוא טעויות לפני ההדפסה", ["להחליט כמה הספר יעלה בחנויות ובכמה עותקים ידפיסו אותו", "לצייר את התמונות לספר", "להסיע את הספרים לחנויות"], "המגיה קורא עותק ניסיון של העמודים ומסמן שגיאות כתיב, פיסוק ועימוד, כדי שיתקנו אותן לפני שמדפיסים אלפי עותקים."]],
+      [["In a non-fiction book, what is the index at the back for?", "Finding the pages where a word or subject appears", ["Reading a short summary of every chapter in the book", "Seeing pictures of the author and the illustrator", "Writing your own notes"], "An index lists important words and subjects in alphabetical order, with the page numbers where each one appears. The table of contents at the front lists chapters instead."],
+        ["בספר עיון, בשביל מה המפתח שבסוף הספר?", "כדי למצוא באילו עמודים מופיעים מילה או נושא", ["כדי לקרוא סיכום קצר של כל אחד מהפרקים בספר", "כדי לראות תמונות של הסופר ושל המאייר", "כדי לכתוב הערות משלכם"], "המפתח מונה מילים ונושאים חשובים לפי סדר האלף־בית, עם מספרי העמודים שבהם כל אחד מופיע. תוכן העניינים שבתחילת הספר מונה את הפרקים."]],
+      [["Most full-colour pictures in books are printed with four inks: cyan, magenta, yellow and what?", "Black", ["Green", "White", "Gold"], "Printers mix tiny dots of cyan, magenta, yellow and black (CMYK) to make all the other colours. The white usually comes from the paper itself."],
+        ["רוב התמונות הצבעוניות בספרים מודפסות בארבעה צבעי דיו: ציאן, מג׳נטה, צהוב ומה?", "שחור", ["ירוק", "לבן", "זהב"], "בבית הדפוס מערבבים נקודות זעירות של ציאן, מג׳נטה, צהוב ושחור כדי ליצור את כל שאר הצבעים. הלבן מגיע בדרך כלל מהנייר עצמו."]],
+      [["Before books with pages, many long texts were written on what?", "Long scrolls that were rolled up", ["Thin plates made of glass", "Stacks of metal coins", "Plastic cards"], "Ancient texts were often written on long scrolls of papyrus or parchment. The codex, a book of pages bound along one edge, slowly replaced the scroll because it is easier to use."],
+        ["לפני שהיו ספרים עם דפים, על מה נכתבו טקסטים ארוכים רבים?", "על מגילות ארוכות מגוללות", ["על לוחות דקים מזכוכית", "על ערימות של מטבעות מתכת", "על כרטיסי פלסטיק"], "טקסטים עתיקים נכתבו לעיתים קרובות על מגילות ארוכות של פפירוס או קלף. הקודקס, ספר של דפים שכרוכים לאורך צד אחד, החליף בהדרגה את המגילה כי קל יותר להשתמש בו."]],
+    ],
+    n: [[1455, ["In about which year was the Gutenberg Bible, the first major book printed with movable type in Europe, finished?", "", "The Gutenberg Bible was finished in Mainz in about 1455."],
+      ["בסביבות איזו שנה הושלמה ביבליית גוטנברג, הספר הגדול הראשון שהודפס באירופה באותיות ניידות?", "", "ביבליית גוטנברג הושלמה בעיר מיינץ בסביבות 1455."], 5]],
+  },
+  a: {
+    t: [
+      ["Signature", "a large printed sheet folded into a group of pages, which is then sewn or glued into the book", "קונטרס", "גיליון מודפס גדול שמקופל לקבוצת עמודים, ואחר כך נתפר או מודבק לספר"],
+      ["Typeface", "a family of letter designs, for example one with small 'feet' on the letters or one without", "גופן", "משפחה של עיצובי אותיות, למשל עם ״רגליים״ קטנות בקצות האותיות או בלעדיהן"],
+      ["Royalty", "money paid to the author for each copy sold, usually a share of the book's price", "תמלוגים", "כסף שמשלמים לסופר על כל עותק שנמכר, בדרך כלל חלק ממחיר הספר"],
+      ["Print run", "the number of copies of a book that are printed at one time", "כמות ההדפסה", "מספר העותקים של ספר שמדפיסים בפעם אחת"],
+    ],
+    q: [
+      [["Why does the total number of pages (counting blank ones) in many printed books come out as a multiple of 8, 16 or 32?", "Pages are printed on big sheets that are folded into groups of 8, 16 or 32", ["Because a law says that every printed book must have exactly that many pages", "Because readers prefer books with an even number of pages", "Because printing machines can only count up to 32"], "A big sheet carries many pages on both sides; folded and trimmed, it becomes a signature of, say, 16 pages. Books are built from whole signatures, so blank pages are sometimes left at the end."],
+        ["למה המספר הכולל של העמודים (כולל הריקים) ברבים מהספרים המודפסים הוא כפולה של 8, של 16 או של 32?", "העמודים מודפסים על גיליונות גדולים שמקופלים לקבוצות של 8, 16 או 32", ["כי חוק קובע שבכל ספר מודפס חייב להיות בדיוק מספר כזה של עמודים, לא פחות", "כי קוראים מעדיפים ספרים עם מספר זוגי של עמודים", "כי מכונות הדפוס יודעות לספור רק עד 32"], "על גיליון גדול מודפסים עמודים רבים משני הצדדים; אחרי קיפול וחיתוך הוא הופך לקונטרס של, למשל, 16 עמודים. ספרים בנויים מקונטרסים שלמים, ולכן לפעמים נשארים עמודים ריקים בסוף."]],
+      [["Why was movable type faster than carving a whole wooden block for every page?", "The same letters could be rearranged and reused for page after page", ["Each letter was carved fresh for every page, which took far less time", "The metal letters could print without needing any ink", "Books printed with it did not need any paper"], "With a woodblock, every page must be carved from scratch. Movable type is made once; the letters are set into lines, printed, then taken apart and used again."],
+        ["למה אותיות ניידות היו מהירות יותר מגילוף לוח עץ שלם לכל עמוד?", "אפשר היה לסדר מחדש את אותן אותיות ולהשתמש בהן שוב בעמוד אחר עמוד", ["כל אות גולפה מחדש בשביל כל עמוד ועמוד, וזה לקח הרבה פחות זמן מגילוף לוח", "אותיות המתכת הדפיסו בלי צורך בדיו", "ספרים שהודפסו כך לא היו צריכים נייר"], "בלוח עץ צריך לגלף כל עמוד מההתחלה. אותיות ניידות מכינים פעם אחת; מסדרים אותן בשורות, מדפיסים, ואז מפרקים ומשתמשים בהן שוב."]],
+      [["Long before Gutenberg, who made movable type from baked clay in China, around the 1040s?", "Bi Sheng", ["Cai Lun", "Confucius", "Marco Polo"], "The Chinese writer Shen Kuo recorded that a craftsman named Bi Sheng made movable type from baked clay around 1040. Cai Lun is linked with the invention of paper, much earlier."],
+        ["הרבה לפני גוטנברג, מי הכין בסין אותיות ניידות מחימר שרוף, בסביבות שנות ה־40 של המאה ה־11?", "בי שנג", ["צאי לון", "קונפוציוס", "מרקו פולו"], "הכותב הסיני שן קואו תיעד שאומן בשם בי שנג הכין אותיות ניידות מחימר שרוף בסביבות 1040. צאי לון קשור להמצאת הנייר, הרבה קודם."]],
+      [["The Diamond Sutra of 868 is the oldest dated printed book known today. How was it printed?", "With carved wooden blocks", ["With movable metal type", "On an electric printing press", "By an early photocopier"], "The Diamond Sutra, found in a cave near Dunhuang in China, was printed from carved wooden blocks, one block for each panel of text and pictures."],
+        ["״סוטרת היהלום״ משנת 868 היא הספר המודפס המתוארך העתיק ביותר שמוכר היום. איך היא הודפסה?", "בעזרת לוחות עץ מגולפים", ["בעזרת אותיות מתכת ניידות", "במכונת דפוס חשמלית", "במכונת צילום מוקדמת"], "״סוטרת היהלום״, שנמצאה במערה ליד דונהואנג שבסין, הודפסה מלוחות עץ מגולפים, לוח אחד לכל קטע של טקסט ותמונות."]],
+    ],
+    n: [[7, ["An ISBN starts 978-0-306-40615-x. Multiply its 12 digits by 1, 3, 1, 3 and so on, and add them up. The last digit x makes the total a multiple of 10. What is x?", "", "9 + 21 + 8 + 0 + 3 + 0 + 6 + 12 + 0 + 18 + 1 + 15 = 93, and 93 + 7 = 100, so x is 7."],
+      ["מסת״ב מתחיל ב־978-0-306-40615-x. כופלים את 12 הספרות שלו לסירוגין ב־1 וב־3 ומחברים. הספרה האחרונה x משלימה את הסכום לכפולה של 10. מהו x?", "", "9 + 21 + 8 + 0 + 3 + 0 + 6 + 12 + 0 + 18 + 1 + 15 = 93, ו־93 + 7 = 100, ולכן x הוא 7."]],
+      [24000, ["An author earns a royalty of 10% of a book's price. The book costs 80 shekels and 3,000 copies are sold. How many shekels does the author earn?", "shekels", "10% of 80 is 8 shekels per copy, and 8 × 3,000 = 24,000 shekels."],
+        ["סופרת מקבלת תמלוגים של 10% ממחיר הספר. הספר עולה 80 שקלים, ונמכרו 3,000 עותקים. כמה שקלים היא מרוויחה?", "שקלים", "10% מ־80 הם 8 שקלים לעותק, ו־8 × 3,000 = 24,000 שקלים."]]],
+    s: [[["Binding a printed book", "Print the large sheets of pages", "Fold each sheet into a signature", "Gather the signatures in the right order", "Sew or glue the signatures together along the spine", "Fix the cover around the bound pages"],
+      ["כורכים ספר מודפס", "מדפיסים את גיליונות העמודים הגדולים", "מקפלים כל גיליון לקונטרס", "אוספים את הקונטרסים לפי הסדר הנכון", "תופרים או מדביקים את הקונטרסים יחד לאורך השדרה", "מצמידים את הכריכה סביב הדפים הכרוכים"]]],
+  },
+};
+export default c;

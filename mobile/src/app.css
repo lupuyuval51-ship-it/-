@@ -1,0 +1,18 @@
+@import "../../src/app/globals.css";
+@source "../../src";
+@source "./";
+
+/* Phone app: respect the notch / gesture bar, no rubber-band scrolling behind the 3D view. */
+/* Pinch-zoom stays available (no user-scalable=no); touch-action only removes the double-tap delay. */
+body { touch-action: manipulation; overscroll-behavior: none; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+
+/* A field that gets the focus (or a scrollIntoView) is scrolled clear of the sticky action bar and the tab bar at the bottom. */
+html { scroll-padding-bottom: 9rem; }
+
+/* Headings that script focuses (after a route change, after Skip/Delete) are there for the screen reader, not controls: no ring. */
+h1[tabindex="-1"], h2[tabindex="-1"] { outline: none; }
+
+/* The loading spinner of a screen fades in after a short delay, so a chunk that loads at once shows nothing at all. */
+@keyframes lu-delayed { from { opacity: 0; } to { opacity: 1; } }
+.lu-delayed { animation: lu-delayed 0.2s ease-out 0.3s both; }
+@media (prefers-reduced-motion: reduce) { .lu-delayed { animation-duration: 0.01s; } }

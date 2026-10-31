@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The learner's data (games, progress, settings, the plan Google Play reported) lives in the WebView's local storage, inside the app's
+  data directory ("root" domain). Android's own backup keeps it, so it survives a reinstall and moves to a new phone: Auto Backup to the
+  user's Google account (encrypted, only if the user has Android backup switched on) and device-to-device transfer.
+  Only caches are left out. https://developer.android.com/identity/data/autobackup
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="root" path="." />
+        <exclude domain="root" path="app_webview/Default/Cache" />
+        <exclude domain="root" path="app_webview/Default/Code Cache" />
+        <exclude domain="root" path="app_webview/Default/GPUCache" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="root" path="." />
+        <exclude domain="root" path="app_webview/Default/Cache" />
+        <exclude domain="root" path="app_webview/Default/Code Cache" />
+        <exclude domain="root" path="app_webview/Default/GPUCache" />
+    </device-transfer>
+</data-extraction-rules>

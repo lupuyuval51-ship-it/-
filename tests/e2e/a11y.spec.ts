@@ -1,0 +1,89 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, test } from "./fixtures";
+import { createGameViaApi, registerViaApi, setLocaleCookie } from "./helpers";
+import { getGameSpec } from "./db";
+import { goNear, openGame } from "./play-helpers";
+
+/** Automated accessibility audit (axe-core, WCAG 2.1 A/AA rules). Fails on any serious or critical finding. */
+async function audit(page: import("@playwright/test").Page, label: string, scope?: string) {
+  // Modal overlays are audited on their own: the page behind them is a live, translucent-blurred 3D canvas whose pixels axe cannot measure reliably.
+  const builder = new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]);
+  const results = await (scope ? builder.include(scope) : builder).analyze();
+  const bad = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  expect(
+    bad.map((v) => `${label}: ${v.id} (${v.impact}) — ${v.help} — ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`),
+    `${label}: accessibility violations`,
+  ).toEqual([]);
+}
+
+for (const locale of ["en", "he"] as const) {
+  test.describe(`accessibility (${locale})`, () => {
+    for (const theme of ["dark", "light"] as const) {
+      test(`public pages (${theme} theme)`, async ({ page, context, baseURL }) => {
+        // page-enter fades are skipped (what a reduced-motion user gets), so axe never measures half-transparent text
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await context.addCookies([{ name: "lu-theme", value: theme, url: baseURL! }]);
+        await setLocaleCookie(page, locale);
+        for (const path of ["/", "/pricing", "/about", "/login", "/register", "/missing-page"]) {
+          await page.goto(path);
+          await expect(page.locator("main")).toBeVisible();
+          await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          await audit(page, `${locale} ${theme} ${path}`);
+        }
+      });
+
+      test(`signed-in pages (${theme} theme)`, async ({ page, context, baseURL }) => {
+        test.setTimeout(120_000);
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await context.addCookies([{ name: "lu-theme", value: theme, url: baseURL! }]);
+        await setLocaleCookie(page, locale);
+        await registerViaApi(page, { locale });
+        await page.goto("/games");
+        await expect(page.getByTestId("lib-empty")).toBeVisible(); // illustrated empty state
+        await audit(page, `${locale} ${theme} /games (empty)`);
+        const gameId = await createGameViaApi(page, { contentLanguage: locale });
+        for (const path of ["/dashboard", "/create", "/create?mode=EXTEND", "/games", `/games/${gameId}`, "/account"]) {
+          await page.goto(path);
+          await expect(page.locator("main")).toBeVisible();
+          await audit(page, `${locale} ${theme} ${path}`);
+        }
+      });
+    }
+
+    test("play screen: HUD, pause menu, dialogue and a challenge panel", async ({ page }) => {
+      test.setTimeout(180_000);
+      // fade-in animations are skipped (this is what a reduced-motion user gets), so axe never measures half-transparent text
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await setLocaleCookie(page, locale);
+      await registerViaApi(page, { locale });
+      const gameId = await createGameViaApi(page, { contentLanguage: locale });
+      const spec = await getGameSpec(gameId);
+      await openGame(page, gameId);
+      const settle = () => page.waitForTimeout(500); // let the fade-in animations finish: axe would otherwise measure contrast on half-transparent text
+      await settle();
+      await audit(page, `${locale} play HUD`);
+      await page.getByTestId("pause-button").click();
+      await expect(page.getByTestId("pause-menu")).toBeVisible();
+      await settle();
+      await audit(page, `${locale} pause menu`, '[data-testid="pause-menu"]');
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("pause-menu")).toBeHidden();
+      const npc = spec.areas[0]!.npcs[0];
+      if (npc) {
+        await goNear(page, "npc", npc.id);
+        await page.keyboard.press("KeyE");
+        await expect(page.getByTestId("dialogue")).toBeVisible();
+        await settle();
+        await audit(page, `${locale} dialogue`, '[data-testid="dialogue"]');
+        await page.keyboard.press("Escape");
+        await expect(page.getByTestId("dialogue")).toBeHidden();
+      }
+      const station = spec.areas[0]!.stations.find((st) => st.kind === "challenge")!;
+      await goNear(page, "station", station.id);
+      await page.keyboard.press("KeyE");
+      await expect(page.getByTestId("challenge-panel")).toBeVisible();
+      await settle();
+      await audit(page, `${locale} challenge panel`, '[data-testid="challenge-panel"]');
+    });
+  });
+}

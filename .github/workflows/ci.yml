@@ -1,0 +1,75 @@
+# Continuous integration. NOTE: this workflow was written but could not be executed from the build
+# environment (no GitHub Actions runner there); the same commands were run locally.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TEST_DATABASE_URL: postgresql://levelup:levelup@127.0.0.1:54329/levelup_test
+  DATABASE_URL: postgresql://levelup:levelup@127.0.0.1:54329/levelup_test
+
+jobs:
+  check:
+    name: Typecheck, lint, unit + integration
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: levelup
+          POSTGRES_PASSWORD: levelup
+          POSTGRES_DB: levelup_test
+        ports: ["54329:5432"]
+        options: >-
+          --health-cmd "pg_isready -U levelup -d levelup_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  e2e:
+    name: Playwright end-to-end
+    runs-on: ubuntu-latest
+    needs: check
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: levelup
+          POSTGRES_PASSWORD: levelup
+          POSTGRES_DB: levelup_test
+        ports: ["54329:5432"]
+        options: >-
+          --health-cmd "pg_isready -U levelup -d levelup_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7

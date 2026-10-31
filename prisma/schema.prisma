@@ -1,0 +1,425 @@
+// LEVEL UP — PostgreSQL schema (Prisma 7, driver adapter: @prisma/adapter-pg).
+// Hand-written SQL that Prisma cannot express (partial unique indexes, CHECK constraints) lives in the
+// migration files next to the generated DDL. Do not delete it when regenerating migrations.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PlanId {
+  FREE
+  PLUS
+  PRO
+}
+
+enum GraphicsTier {
+  A
+  B
+  C
+}
+
+enum GenerationMode {
+  FAST
+  FULL
+  EXTEND
+}
+
+enum EditStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum AllowanceSource {
+  FREE
+  SUBSCRIPTION
+}
+
+enum UsageKind {
+  RESERVE
+  COMMIT
+  RELEASE
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+enum BillingProvider {
+  STRIPE
+  DEV
+}
+
+enum PlaySessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum ProfileVisibility {
+  PRIVATE
+}
+
+enum WebhookStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+// ───────────────────────────── accounts ─────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique // always stored lower-cased
+  passwordHash String // "scrypt$…" for password accounts; NO_PASSWORD_HASH ("!") for accounts that only sign in with a provider
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile      UserProfile?
+  sessions     Session[]
+  identities   AuthIdentity[]
+  subscription Subscription?
+  allowances   AllowancePeriod[]
+  usage        UsageRecord[]
+  jobs         GenerationJob[]
+  games        Game[]
+  progress     GameProgress[]
+  playSessions PlaySession[]
+  devCheckouts DevCheckoutSession[]
+  aiEdits      AiEdit[]
+}
+
+model UserProfile {
+  userId             String            @id
+  displayName        String
+  locale             String            @default("he") // UI language: he | en
+  country            String? // ISO 3166-1 alpha-2, chosen by the user (billing region). Never precise location.
+  graphicsPreference GraphicsTier? // null = automatic (the plan's default tier); always clamped server-side to the plan's allowed tiers
+  soundEnabled       Boolean           @default(true)
+  musicEnabled       Boolean           @default(false)
+  visibility         ProfileVisibility @default(PRIVATE) // all profiles are private; there is no public surface
+  updatedAt          DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique // SHA-256 of the cookie token; the raw token is never stored
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  lastUsedAt DateTime  @default(now())
+  userAgent  String?
+  reauthAt   DateTime? // set when this session re-authenticated through the provider (confirms account deletion for password-less accounts)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// A sign-in method other than the password (today: Google). Keyed by the provider's stable subject id, never by email.
+model AuthIdentity {
+  id        String   @id @default(cuid())
+  provider  String // "google"
+  subject   String // Google's `sub`
+  userId    String
+  email     String // the provider's email at link time (display only; never used to find an account)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, subject])
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model RateLimitBucket {
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+}
+
+// ───────────────────────── billing & entitlements ─────────────────────────
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String             @unique
+  provider               BillingProvider
+  providerCustomerId     String
+  providerSubscriptionId String             @unique
+  providerPriceId        String?
+  plan                   PlanId
+  status                 SubscriptionStatus
+  currency               String? // lower-case ISO code of the charged currency
+  unitAmount             Int? // minor units (cents / agorot)
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean            @default(false)
+  canceledAt             DateTime?
+  // Set when the invoice that paid the current period was fully refunded: entitlements are suspended
+  // for that period only (compared with currentPeriodStart), and resume automatically at renewal.
+  revokedPeriodStart     DateTime?
+  lastPaidInvoiceId      String?
+  lastEventAt            DateTime // provider event time of the newest event applied (ordering guard)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([providerCustomerId])
+}
+
+model AllowancePeriod {
+  id             String          @id @default(cuid())
+  userId         String
+  source         AllowanceSource
+  plan           PlanId
+  periodStart    DateTime
+  periodEnd      DateTime
+  subscriptionId String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quotas AllowanceQuota[]
+  usage  UsageRecord[]
+  jobs   GenerationJob[]
+
+  @@unique([userId, source, periodStart])
+  @@index([userId, periodEnd])
+}
+
+// One level's own quota inside an allowance period (every level is counted separately: using one never reduces another).
+model AllowanceQuota {
+  allowancePeriodId String
+  level             GraphicsTier // the game level (feature tier) this count is for (same letters as the graphics tiers, a separate setting)
+  limit             Int? // games per period at this level, refreshed from the plan config; NULL = unlimited, 0 = not on the plan
+  used              Int          @default(0) // committed games: validated games of this level were delivered
+  reserved          Int          @default(0) // games of this level held by generation jobs that are still in flight
+  updatedAt         DateTime     @updatedAt
+
+  allowancePeriod AllowancePeriod @relation(fields: [allowancePeriodId], references: [id], onDelete: Cascade)
+
+  @@id([allowancePeriodId, level])
+}
+
+// Append-only ledger of allowance movements (audit trail; also enforces settle-once per job).
+model UsageRecord {
+  id                String    @id @default(cuid())
+  userId            String
+  allowancePeriodId String
+  jobId             String
+  kind              UsageKind
+  note              String?
+  createdAt         DateTime  @default(now())
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allowancePeriod AllowancePeriod @relation(fields: [allowancePeriodId], references: [id], onDelete: Cascade)
+  job             GenerationJob   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, kind])
+  @@index([userId, createdAt])
+}
+
+model WebhookEvent {
+  id          String          @id // the provider's event id: duplicates are rejected by the primary key
+  provider    BillingProvider
+  type        String
+  status      WebhookStatus   @default(RECEIVED)
+  error       String?
+  eventTime   DateTime
+  receivedAt  DateTime        @default(now())
+  processedAt DateTime?
+  payload     Json
+
+  @@index([type, receivedAt])
+}
+
+// Development-only checkout simulator (PAYMENTS_MODE=dev outside production). Never used with real money.
+model DevCheckoutSession {
+  id          String    @id @default(cuid())
+  userId      String
+  plan        PlanId
+  currency    String
+  unitAmount  Int
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ───────────────────────────── generation ─────────────────────────────
+
+model GenerationJob {
+  id                String         @id @default(cuid())
+  userId            String
+  mode              GenerationMode
+  status            JobStatus      @default(PENDING)
+  stage             String         @default("queued")
+  idempotencyKey    String
+  request           Json // validated creation request (subject, goal, difficulty, mode, ...)
+  featureTier       GraphicsTier   @default(A) // the game's level (feature tier), decided by the server within the plan when the job starts; the job holds one game of THIS level's quota, and commit and release move exactly that one
+  allowancePeriodId String?
+  targetGameId      String? // EXTEND: the game being extended
+  gameId            String? // set when a validated game was delivered (EXTEND jobs point at the game they extended)
+  providerId        String?
+  model             String?
+  attempts          Int            @default(0)
+  warnings          Json? // non-fatal notes from validation/repair, shown to the user
+  errorCode         String?
+  errorMessage      String? // safe, user-facing text only
+  deadlineAt        DateTime
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  allowancePeriod AllowancePeriod? @relation(fields: [allowancePeriodId], references: [id])
+  usage           UsageRecord[]
+  game            Game?            @relation("JobGame", fields: [gameId], references: [id])
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+  @@index([status, deadlineAt])
+  @@index([gameId])
+}
+
+// ───────────────────────────── games & progress ─────────────────────────────
+
+model Game {
+  id                String         @id @default(cuid())
+  ownerId           String
+  title             String
+  subject           String
+  gameType          String
+  difficulty        String
+  language          String
+  createdVia        GenerationMode
+  generatorKind     String // "ai" | "demo" — demo games are never presented as AI-generated
+  generatorProvider String
+  generatorModel    String
+  specVersion       Int            @default(1)
+  revision          Int            @default(1) // increments on every extension or edit that changes the spec
+  spec              Json // full validated spec INCLUDING solutions: never sent to the browser as-is
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  deletedAt         DateTime?
+
+  owner        User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  revisions    GameRevision[]
+  progress     GameProgress[]
+  playSessions PlaySession[]
+  jobs         GenerationJob[] @relation("JobGame")
+  aiEdits      AiEdit[]
+
+  @@index([ownerId, deletedAt, createdAt])
+}
+
+model GameRevision {
+  id        String   @id @default(cuid())
+  gameId    String
+  revision  Int
+  reason    String // create | extend | edit | restore
+  note      String? // the instruction (edit) or the restored revision number (restore)
+  spec      Json
+  createdAt DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, revision])
+}
+
+model GameProgress {
+  id           String   @id @default(cuid())
+  userId       String
+  gameId       String
+  bestScore    Int      @default(0)
+  bestStars    Int      @default(0)
+  completions  Int      @default(0)
+  achievements String[]
+  lastPlayedAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gameId])
+}
+
+model PlaySession {
+  id         String            @id @default(cuid())
+  gameId     String
+  userId     String
+  revision   Int
+  status     PlaySessionStatus @default(ACTIVE)
+  tier       GraphicsTier // tier granted by the server when the session started
+  state      Json // server-validated progress (solved challenges, collected items, position snapshot, ...)
+  score      Int               @default(0)
+  maxScore   Int               @default(0)
+  stars      Int               @default(0)
+  eventSeq   Int               @default(0)
+  startedAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  finishedAt DateTime?
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, gameId, status])
+}
+
+// One AI edit request. A PENDING row IS the reservation of one edit from the plan's quota (released when it
+// FAILS, kept when it SUCCEEDS). A partial unique index (see migration) allows one PENDING edit per user.
+model AiEdit {
+  id             String     @id @default(cuid())
+  userId         String
+  gameId         String
+  instruction    String
+  idempotencyKey String
+  status         EditStatus @default(PENDING)
+  plan           PlanId
+  periodStart    DateTime
+  baseRevision   Int
+  resultRevision Int?
+  summary        String?
+  model          String?
+  attempts       Int        @default(0)
+  errorCode      String?
+  errorMessage   String?
+  deadlineAt     DateTime
+  createdAt      DateTime   @default(now())
+  finishedAt     DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, periodStart, status])
+  @@index([gameId, createdAt])
+}
