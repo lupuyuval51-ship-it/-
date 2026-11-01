@@ -1,0 +1,32 @@
+/* Visual polish layer: sharper industrial character, still inside the design rules (no gradients/glows/pills, tokens only). */
+
+/* Page titles: heavier, with a solid marker tick (the tally-stroke motif). */
+.main > h1, .page-head h1 { font-size: var(--fs-28); font-weight: 800; line-height: 1.1; padding-inline-start: 0.75rem; border-inline-start: 5px solid var(--text); }
+:lang(en) .main > h1, :lang(en) .page-head h1 { font-family: var(--font-num); font-size: 2.25rem; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1; }
+:lang(en) .card > h2, :lang(en) .card > h3:first-child { font-family: var(--font-num); text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--fs-22); }
+
+/* Cards: registration-mark corner notch, like stamped steel. */
+.card, .hero-card { position: relative; }
+.card::before { content: ''; position: absolute; inset-block-start: -1px; inset-inline-start: -1px; inline-size: 0.75rem; block-size: 0.75rem; border-block-start: 2px solid var(--text-muted); border-inline-start: 2px solid var(--text-muted); border-start-start-radius: var(--radius); pointer-events: none; }
+.card-flat::before, .stat-tile::before, .list-link::before { content: none; }
+
+/* Big numerals: scoreboard feel. */
+.stat-tile .num-lg, .stat-tile .num-hero { font-size: 2.5rem; font-weight: 800; }
+.stat-tile { border-block-start: 3px solid var(--border); }
+.hero-card { border-inline-start-width: 6px; }
+.hero-card h2 { font-size: var(--fs-22); font-weight: 800; }
+
+/* Buttons: heavier and more tactile; English labels in condensed caps. */
+.btn { min-block-size: 3rem; font-weight: 700; }
+.btn-primary { min-block-size: 3.5rem; font-size: var(--fs-18); font-weight: 800; }
+:lang(en) .btn-primary { font-family: var(--font-num); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--fs-22); }
+.btn:active { transform: translateY(1px) scale(0.985); }
+
+/* Motion: content rises in, staggered. Disabled for reduced motion. */
+@keyframes pol-rise { from { opacity: 0; transform: translateY(10px); } }
+.main > * { animation: pol-rise 220ms ease-out both; }
+.main > *:nth-child(2) { animation-delay: 40ms; } .main > *:nth-child(3) { animation-delay: 80ms; }
+.main > *:nth-child(4) { animation-delay: 120ms; } .main > *:nth-child(5) { animation-delay: 160ms; }
+.main > *:nth-child(n+6) { animation-delay: 200ms; }
+.bar > i { transition: inline-size 600ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) { .main > * { animation: none; } .btn:active { transform: none; } }
