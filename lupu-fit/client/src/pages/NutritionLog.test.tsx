@@ -3,7 +3,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, NetworkError } from '../api/client.ts';
-import { PROFILE, profileResponse, renderWith } from '../components/nutrition/testHarness.tsx';
+import { profileResponse, renderWith } from '../components/nutrition/testHarness.tsx';
 import { FOODS } from '../data/content.ts';
 
 const h = vi.hoisted(() => ({ handler: (_m: string, _p: string, _b?: unknown, _q?: unknown): unknown => ({}), calls: [] as { m: string; p: string; b?: unknown }[] }));
@@ -169,6 +169,5 @@ describe('quick add and custom food', () => {
     await user.type(screen.getByLabelText('Protein (g)'), '60');
     await user.type(screen.getByLabelText('Carbs (g)'), '60');
     expect(screen.getByRole('button', { name: 'Save food' })).toBeDisabled();
-    expect(PROFILE.language).toBe('en');
   });
 });

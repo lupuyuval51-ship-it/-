@@ -137,6 +137,14 @@ describe('LiveSession', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toMatchObject({ rpe: 7 }));
   });
 
+  it('keeps the minor RPE cap when the profile cannot be loaded (last known age bucket)', async () => {
+    localStorage.setItem('lf_live_age_bucket', 'minor');
+    setup({ extra: (c) => (c.path === '/api/profile' ? new NetworkError() : undefined) }); view();
+    const select = await screen.findByLabelText('RPE');
+    expect(select).toHaveValue('7');
+    expect(within(select).getAllByRole('option').at(-1)).toHaveValue('7');
+  });
+
   it('plate calculator shows plates per side and applies the achieved weight', async () => {
     setup(); view();
     fireEvent.click(await screen.findByRole('button', { name: 'מחשבון פלטות' }));

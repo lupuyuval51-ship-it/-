@@ -102,14 +102,16 @@ export function Banner({ tone, children }: { tone?: 'warn' | 'danger' | 'ok'; ch
 /** Modal bottom sheet. Traps focus loosely (focus moves in, Escape closes, scrim click closes). */
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }): ReactNode {
   const ref = useRef<HTMLDivElement>(null); const t = useT(); const titleId = useId();
+  // Keep the latest onClose in a ref so an inline callback does not re-run the effect (which would steal focus from inputs on every render).
+  const closeRef = useRef(onClose); closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRef.current(); };
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('keydown', onKey); prev?.focus?.(); };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <>
