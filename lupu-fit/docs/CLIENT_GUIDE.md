@@ -37,3 +37,6 @@ Write Vitest + Testing Library tests for your pages' real logic (mock `../api/cl
 
 ## Final answer
 Reply with a short report: files created, routes/behaviour implemented, tests added and results, anything you could not finish (be honest), and any shared change you made.
+
+## Custom (machine-translated) languages
+`useLang()` also returns `custom` (`{code,name,dir}` or null) and `activateCustom`; `lang` stays `'he' | 'en'` (it is `'en'` while a custom language is active). Never branch UI on `lang === 'he'` for direction: use CSS logical properties and `dir`. Add strings only through `features/*.ts` as usual; translations are generated from the English tree, so keep `{placeholders}` simple and avoid markup in strings. Code in `client/src/i18n/custom/`.

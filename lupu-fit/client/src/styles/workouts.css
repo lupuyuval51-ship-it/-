@@ -7,7 +7,7 @@
 .wk-neutral { color: var(--text-muted); }
 .wk-danger { color: var(--danger); }
 .wk-sticky-row { display: flex; gap: 0.5rem; }
-.wk-sticky-row > * { flex: 1 1 0; min-inline-size: 0; }
+.wk-sticky-row > * { flex: 1 1 0; min-inline-size: fit-content; }
 .wk-sticky-row > .btn-primary, .wk-sticky-row > .btn[class*='primary'] { flex: 2 1 0; }
 
 /* Wizard: choice cards */
