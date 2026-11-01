@@ -3,6 +3,7 @@ import type { Deps } from '../core/types.ts';
 import { accountRoutes } from './account.ts';
 import { coachRoutes } from './coach.ts';
 import { exerciseHistoryRoutes } from './exerciseHistory.ts';
+import { i18nRoutes } from './i18n.ts';
 import { foodRoutes } from './food.ts';
 import { mediaRoutes } from './media.ts';
 import { nutritionRoutes } from './nutrition.ts';
@@ -15,5 +16,5 @@ import { weightRoutes } from './weights.ts';
 
 /** Domain route modules (order matters only for overlapping patterns, e.g. /sessions/active before /sessions/:id). */
 export const extraRoutes: ((r: Router, d: Deps) => void)[] = [
-  profileRoutes, exerciseHistoryRoutes, weightRoutes, readinessRoutes, planRoutes, sessionRoutes, foodRoutes, progressRoutes, coachRoutes, nutritionRoutes, accountRoutes, mediaRoutes,
+  profileRoutes, exerciseHistoryRoutes, weightRoutes, readinessRoutes, planRoutes, sessionRoutes, foodRoutes, progressRoutes, coachRoutes, i18nRoutes, nutritionRoutes, accountRoutes, mediaRoutes,
 ];

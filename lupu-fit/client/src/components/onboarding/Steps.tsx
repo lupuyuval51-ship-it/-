@@ -5,7 +5,7 @@ import {
 import type { ReactNode } from 'react';
 import { fmt, useLang, useT } from '../../i18n/index.tsx';
 import { setTheme } from '../../lib/theme.ts';
-import { Banner, Button, Card, ChipGroup, NumberStepper, ProgressBar, Segmented, Select, TextInput, Toggle } from '../../ui/kit.tsx';
+import { Banner, Button, Card, ChipGroup, NumberStepper, ProgressBar, Segmented, TextInput, Toggle } from '../../ui/kit.tsx';
 import { ChoiceCards } from './Choice.tsx';
 import { DEFAULT_EQUIPMENT, GEAR_OPTIONS, type DraftData, type FieldErrors, type StepId } from './model.ts';
 
@@ -20,21 +20,21 @@ export function AboutStep({ d, set, errors }: StepProps): ReactNode {
       <TextInput label={t('onboarding.about.name')} hint={t('onboarding.about.nameHint')} autoComplete="nickname" maxLength={60} value={d.displayName} onChange={(e) => set({ displayName: e.target.value })} />
       <div className="stack-sm">
         <span className="field-label">{t('onboarding.about.sex')}</span>
-        <Segmented label={t('onboarding.about.sex')} value={d.sex} options={SEXES.map((s) => ({ value: s, label: t(`label.sex.${s}`) }))} onChange={(sex) => set({ sex })} />
+        <ChoiceCards label={t('onboarding.about.sex')} value={d.sex} options={SEXES.map((s) => ({ value: s, label: t(`label.sex.${s}`) }))} onChange={(sex) => set({ sex })} />
         <span className="hint">{t('onboarding.about.sexHint')}</span>
       </div>
       <div className="onb-grid">
         <div className="onb-field">
-          <NumberStepper large label={t('onboarding.about.age')} suffix={t('unit.years')} value={d.age} min={0} max={150} onChange={(age) => set({ age })} />
-          <span className={errors.age ? 'field-error' : 'hint'} role={errors.age ? 'alert' : undefined}>{errors.age ? t(errors.age, { min: LIMITS.age.min, max: LIMITS.age.max }) : t('onboarding.about.range', { min: LIMITS.age.min, max: LIMITS.age.max })}</span>
+          <NumberStepper large label={t('onboarding.about.age')} msgId="onb-age-msg" invalid={!!errors.age} suffix={t('unit.years')} value={d.age} min={0} max={150} onChange={(age) => set({ age })} />
+          <span id="onb-age-msg" className={errors.age ? 'field-error' : 'hint'} role={errors.age ? 'alert' : undefined}>{errors.age ? t(errors.age, { min: LIMITS.age.min, max: LIMITS.age.max }) : t('onboarding.about.range', { min: LIMITS.age.min, max: LIMITS.age.max })}</span>
         </div>
         <div className="onb-field">
-          <NumberStepper large label={t('onboarding.about.height')} suffix={t('unit.cm')} value={d.heightCm} min={0} max={300} onChange={(heightCm) => set({ heightCm })} />
-          <span className={errors.heightCm ? 'field-error' : 'hint'} role={errors.heightCm ? 'alert' : undefined}>{errors.heightCm ? t(errors.heightCm, { min: LIMITS.heightCm.min, max: LIMITS.heightCm.max }) : t('onboarding.about.range', { min: LIMITS.heightCm.min, max: LIMITS.heightCm.max })}</span>
+          <NumberStepper large label={t('onboarding.about.height')} msgId="onb-heightCm-msg" invalid={!!errors.heightCm} suffix={t('unit.cm')} value={d.heightCm} min={0} max={300} onChange={(heightCm) => set({ heightCm })} />
+          <span id="onb-heightCm-msg" className={errors.heightCm ? 'field-error' : 'hint'} role={errors.heightCm ? 'alert' : undefined}>{errors.heightCm ? t(errors.heightCm, { min: LIMITS.heightCm.min, max: LIMITS.heightCm.max }) : t('onboarding.about.range', { min: LIMITS.heightCm.min, max: LIMITS.heightCm.max })}</span>
         </div>
         <div className="onb-field">
-          <NumberStepper large label={t('onboarding.about.weight')} suffix={t('unit.kg')} value={d.weightKg} min={0} max={500} step={0.5} decimals={1} onChange={(weightKg) => set({ weightKg })} />
-          <span className={errors.weightKg ? 'field-error' : 'hint'} role={errors.weightKg ? 'alert' : undefined}>{errors.weightKg ? t(errors.weightKg, { min: LIMITS.weightKg.min, max: LIMITS.weightKg.max }) : t('onboarding.about.range', { min: LIMITS.weightKg.min, max: LIMITS.weightKg.max })}</span>
+          <NumberStepper large label={t('onboarding.about.weight')} msgId="onb-weightKg-msg" invalid={!!errors.weightKg} suffix={t('unit.kg')} value={d.weightKg} min={0} max={500} step={0.5} decimals={1} onChange={(weightKg) => set({ weightKg })} />
+          <span id="onb-weightKg-msg" className={errors.weightKg ? 'field-error' : 'hint'} role={errors.weightKg ? 'alert' : undefined}>{errors.weightKg ? t(errors.weightKg, { min: LIMITS.weightKg.min, max: LIMITS.weightKg.max }) : t('onboarding.about.range', { min: LIMITS.weightKg.min, max: LIMITS.weightKg.max })}</span>
         </div>
       </div>
       {minor ? <Banner>{t('onboarding.about.minorNotice')}</Banner> : null}
@@ -89,12 +89,12 @@ export function TrainingStep({ d, set, errors }: StepProps): ReactNode {
       ) : <p className="hint">{t('onboarding.training.gymHint')}</p>}
       <div className="onb-grid">
         <div className="onb-field">
-          <NumberStepper large label={t('onboarding.training.days')} suffix={t('unit.perWeek')} value={d.daysPerWeek} min={0} max={14} onChange={(v) => set({ daysPerWeek: v ?? 0 })} />
-          {errors.daysPerWeek ? <span className="field-error" role="alert">{t(errors.daysPerWeek, { min: LIMITS.daysPerWeek.min, max: LIMITS.daysPerWeek.max })}</span> : null}
+          <NumberStepper large label={t('onboarding.training.days')} msgId="onb-daysPerWeek-msg" invalid={!!errors.daysPerWeek} suffix={t('unit.perWeek')} value={d.daysPerWeek} min={0} max={14} onChange={(v) => set({ daysPerWeek: v ?? 0 })} />
+          {errors.daysPerWeek ? <span id="onb-daysPerWeek-msg" className="field-error" role="alert">{t(errors.daysPerWeek, { min: LIMITS.daysPerWeek.min, max: LIMITS.daysPerWeek.max })}</span> : null}
         </div>
         <div className="onb-field">
-          <NumberStepper large label={t('onboarding.training.minutes')} suffix={t('unit.min')} value={d.sessionMinutes} min={0} max={300} step={5} onChange={(v) => set({ sessionMinutes: v ?? 0 })} />
-          {errors.sessionMinutes ? <span className="field-error" role="alert">{t(errors.sessionMinutes, { min: LIMITS.sessionMinutes.min, max: LIMITS.sessionMinutes.max })}</span> : <span className="hint">{t('onboarding.about.range', { min: LIMITS.sessionMinutes.min, max: LIMITS.sessionMinutes.max })}</span>}
+          <NumberStepper large label={t('onboarding.training.minutes')} msgId="onb-sessionMinutes-msg" invalid={!!errors.sessionMinutes} suffix={t('unit.min')} value={d.sessionMinutes} min={0} max={300} step={5} onChange={(v) => set({ sessionMinutes: v ?? 0 })} />
+          {errors.sessionMinutes ? <span id="onb-sessionMinutes-msg" className="field-error" role="alert">{t(errors.sessionMinutes, { min: LIMITS.sessionMinutes.min, max: LIMITS.sessionMinutes.max })}</span> : <span id="onb-sessionMinutes-msg" className="hint">{t('onboarding.about.range', { min: LIMITS.sessionMinutes.min, max: LIMITS.sessionMinutes.max })}</span>}
         </div>
       </div>
       {d.daysPerWeek === LIMITS.daysPerWeek.max ? <Banner>{t('onboarding.training.sevenDays', { n: LIMITS.maxLiftingDays })}</Banner> : null}
@@ -128,8 +128,14 @@ export function NutritionStep({ d, set, errors, kcalNow }: StepProps & { kcalNow
   const minor = d.age !== null && d.age >= LIMITS.age.min && d.age <= 17;
   return (
     <div className="stack">
-      <Select label={t('onboarding.nutrition.activity')} value={d.activityLevel} onChange={(e) => set({ activityLevel: e.target.value as DraftData['activityLevel'] })} options={ACTIVITY_LEVELS.map((x) => ({ value: x, label: t(`label.activity.${x}`) }))} />
-      <Select label={t('onboarding.nutrition.diet')} value={d.diet} onChange={(e) => set({ diet: e.target.value as DraftData['diet'] })} options={DIET_TYPES.map((x) => ({ value: x, label: t(`label.diet.${x}`) }))} />
+      <div className="stack-sm">
+        <span className="field-label">{t('onboarding.nutrition.activity')}</span>
+        <ChoiceCards label={t('onboarding.nutrition.activity')} value={d.activityLevel} options={ACTIVITY_LEVELS.map((x) => ({ value: x, label: t(`label.activity.${x}`), desc: t(`onboarding.nutrition.activityDesc.${x}`) }))} onChange={(activityLevel) => set({ activityLevel })} />
+      </div>
+      <div className="stack-sm">
+        <span className="field-label">{t('onboarding.nutrition.diet')}</span>
+        <ChoiceCards cols={2} label={t('onboarding.nutrition.diet')} value={d.diet} options={DIET_TYPES.map((x) => ({ value: x, label: t(`label.diet.${x}`) }))} onChange={(diet) => set({ diet })} />
+      </div>
       <div className="stack-sm">
         <span className="field-label">{t('onboarding.nutrition.allergies')}</span>
         <ChipGroup label={t('onboarding.nutrition.allergies')} options={ALLERGENS.map((x) => ({ value: x, label: t(`label.allergen.${x}`) }))} selected={d.allergies} onToggle={(x) => set({ allergies: toggleIn(d.allergies, x) })} />
@@ -143,7 +149,7 @@ export function NutritionStep({ d, set, errors, kcalNow }: StepProps & { kcalNow
         <Toggle label={t('onboarding.nutrition.custom')} checked={d.customKcal !== null} onChange={(on) => set({ customKcal: on ? (kcalNow ?? 2000) : null })} />
         {d.customKcal !== null ? (
           <>
-            <NumberStepper large label={t('onboarding.nutrition.customKcal')} suffix={t('unit.kcal')} value={d.customKcal} min={0} max={10000} step={50} onChange={(customKcal) => set({ customKcal })} />
+            <NumberStepper large label={t('onboarding.nutrition.customKcal')} msgId="onb-customKcal-msg" invalid={!!errors.customKcal} suffix={t('unit.kcal')} value={d.customKcal} min={0} max={10000} step={50} onChange={(customKcal) => set({ customKcal })} />
             {errors.customKcal ? <span className="field-error" role="alert">{t(errors.customKcal)}</span> : null}
             <span className="hint">{minor ? t('onboarding.nutrition.floorMinor') : t('onboarding.nutrition.floor', { floor: fmt.num(KCAL_FLOOR[d.sex]) })}</span>
           </>

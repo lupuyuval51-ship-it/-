@@ -72,12 +72,11 @@ export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNo
 }
 
 /** Section "Preferences": language and theme apply at once; name and units are saved with the page Save button. */
-export function PreferenceFields({ value, onChange, onLanguage, onTheme, errors }: FormProps & { onLanguage: (l: 'he' | 'en') => void; onTheme: (th: 'dark' | 'light' | 'system') => void }): ReactNode {
+export function PreferenceFields({ value, onChange, onTheme, errors }: FormProps & { onTheme: (th: 'dark' | 'light' | 'system') => void }): ReactNode {
   const t = useT();
   const set = useSet(value, onChange);
   return (
     <div className="stack">
-      <Segmented label={t('profile.f.language')} value={value.language} onChange={onLanguage} options={[{ value: 'he', label: t('profile.lang.he') }, { value: 'en', label: t('profile.lang.en') }]} />
       <Segmented label={t('profile.f.theme')} value={value.theme} onChange={onTheme} options={[{ value: 'dark', label: t('profile.theme.dark') }, { value: 'light', label: t('profile.theme.light') }, { value: 'system', label: t('profile.theme.system') }]} />
       <span className="small muted">{t('profile.nu.instantHint')}</span>
       <Segmented label={t('profile.f.units')} value={value.units} onChange={(v) => set('units', v)} options={[{ value: 'metric', label: t('profile.units.metric') }, { value: 'imperial', label: t('profile.units.imperial') }]} />

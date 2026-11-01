@@ -165,7 +165,19 @@ export const SavedMealLogBodySchema = z.object({ loggedDate: IsoDateSchema, slot
 export const PhotoEstimateBodySchema = z.object({ jpegBase64: z.string().min(100).max(11_000_000), lang: z.enum(LANGUAGES).default('he') });
 
 export const CoachThreadBodySchema = z.object({ title: z.string().trim().min(1).max(120).optional() });
-export const CoachMessageBodySchema = z.object({ text: z.string().trim().min(1).max(2000), lang: z.enum(LANGUAGES).default('he') });
+/** A user-chosen UI language: BCP-47-ish code (or x-<slug> for free text) + a display name restricted to letters/marks/digits/space so it is safe to embed in a prompt. */
+export const UiLanguageSchema = z.object({
+  code: z.string().regex(/^(?:[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8}){0,3}|x-[a-z0-9-]{1,40})$/),
+  name: z.string().trim().min(1).max(60).regex(/^[\p{L}\p{M}\p{N} .'()\-]+$/u),
+});
+export type UiLanguage = z.infer<typeof UiLanguageSchema>;
+export const TRANSLATE_MAX_KEYS = 150;
+export const TranslateBodySchema = z.object({
+  target: UiLanguageSchema,
+  keys: z.record(z.string().min(1).max(120), z.string().max(600)).refine((o) => { const n = Object.keys(o).length; return n >= 1 && n <= TRANSLATE_MAX_KEYS; }, 'keys_count'),
+});
+export type TranslateBody = z.infer<typeof TranslateBodySchema>;
+export const CoachMessageBodySchema = z.object({ text: z.string().trim().min(1).max(2000), lang: z.enum(LANGUAGES).default('he'), uiLanguage: UiLanguageSchema.optional() });
 
 export const AccountDeleteBodySchema = z.object({ confirm: z.literal('DELETE') });
 export const ProfilePatchSchema = ProfileInputSchema.partial();

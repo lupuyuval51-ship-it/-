@@ -1,7 +1,8 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { ApiApp } from '../core/app.ts';
+import { staticGzip } from './staticGzip.ts';
 
 export interface ExpressOpts {
   /** Express `trust proxy` value. Production behind one proxy: 1. Local/device: false. */
@@ -88,6 +89,7 @@ export function createExpressApp(api: ApiApp, o: ExpressOpts): express.Express {
   });
 
   if (o.staticDir && existsSync(o.staticDir)) {
+    app.use(staticGzip(resolve(o.staticDir)));
     app.use(express.static(o.staticDir, { maxAge: '1h', setHeaders: (res, p) => { if (p.endsWith('index.html') || p.endsWith('sw.js')) res.setHeader('Cache-Control', 'no-cache'); } }));
     app.get('/{*splat}', (req, res, next) => { if (req.path.startsWith('/api')) { next(); return; } res.sendFile(join(o.staticDir as string, 'index.html')); });
   }

@@ -3,7 +3,7 @@ import { defineFeature } from '../core.ts';
 export default defineFeature({
   workouts: {
     title: 'Workouts',
-    tabs: { label: 'Workout sections', plans: 'My plans', generator: 'Plan generator', ready: 'Ready workouts' },
+    tabs: { label: 'Workout sections', plans: 'My plans', generator: 'Plan generator', ready: 'Ready-made' },
     historyLink: 'Workout history',
     day: { full_a: 'Full body A', full_b: 'Full body B', full_c: 'Full body C', upper: 'Upper body', lower: 'Lower body', push: 'Push', pull: 'Pull', legs: 'Legs', n: 'Day {n}' },
     presc: {
@@ -72,7 +72,7 @@ export default defineFeature({
       readinessTitle: 'Readiness check-in', sleep: 'Sleep', energy: 'Energy', soreness: 'Soreness', pain: 'Pain today', scale: '1 low, 5 high', saveCheckin: 'Save check-in',
       checkinSaved: 'Check-in saved', state: 'Today: {state}', checkinPrompt: 'A short check-in adjusts the workout to how you feel.',
       sportLabel: 'Train for a specific sport? You can add a 10-minute finisher at the end of the workout', sportNone: 'No finisher', sportPick: 'Sport',
-      variantLabel: 'Finisher style', recommended: 'Recommended', needsGear: 'Needs gear you did not list: {gear}', finisherTitle: 'Sport finisher',
+      variantLabel: 'Finisher style', recommended: 'Recommended', needsGear: 'Needs gear you did not list: {gear}', finisherTitle: 'Sport finisher', addFinisher: 'Add a sport finisher', finisherSelected: 'Finisher: {sport}',
       rounds: '{n} rounds', workRest: '{work} sec work, {rest} sec rest', finisherNote: 'This is general physical preparation, not sport-skill training.',
       minutesEstimate: 'About {n} min', estimate: 'Estimated time',
       start: 'Start workout', starting: 'Starting…', inProgress: 'A workout is already in progress.', resume: 'Resume it', startFailed: 'Could not start the workout.',
@@ -189,7 +189,7 @@ export default defineFeature({
       readinessTitle: 'בדיקת מוכנות', sleep: 'שינה', energy: 'אנרגיה', soreness: 'כאבי שרירים', pain: 'כאב היום', scale: '1 נמוך, 5 גבוה', saveCheckin: 'שמירת בדיקה',
       checkinSaved: 'הבדיקה נשמרה', state: 'היום: {state}', checkinPrompt: 'בדיקה קצרה מתאימה את האימון למצב שלך.',
       sportLabel: 'מתאמנים בענף ספורט מסוים? אפשר להוסיף סיומת של 10 דקות בסוף האימון', sportNone: 'בלי סיומת', sportPick: 'ענף ספורט',
-      variantLabel: 'סגנון הסיומת', recommended: 'מומלץ', needsGear: 'נדרש ציוד שלא סומן: {gear}', finisherTitle: 'סיומת ספורט',
+      variantLabel: 'סגנון הסיומת', recommended: 'מומלץ', needsGear: 'נדרש ציוד שלא סומן: {gear}', finisherTitle: 'סיומת ספורט', addFinisher: 'הוספת סיומת ספורט', finisherSelected: 'סיומת: {sport}',
       rounds: '{n} סבבים', workRest: '{work} שנ׳ עבודה, {rest} שנ׳ מנוחה', finisherNote: 'זו הכנה גופנית כללית ולא אימון מיומנות בענף.',
       minutesEstimate: 'בערך {n} דק׳', estimate: 'זמן משוער',
       start: 'להתחיל אימון', starting: 'מתחילים…', inProgress: 'כבר יש אימון פעיל.', resume: 'חזרה אליו', startFailed: 'לא הצלחנו להתחיל את האימון.',

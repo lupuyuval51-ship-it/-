@@ -17,7 +17,7 @@ import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
 import { PlanNotes } from '../components/workouts/PlanPreview.tsx';
 import { AddSheet, EditSheet, SwapSheet } from '../components/workouts/PlanSheets.tsx';
-import { PLANS_KEY, usePlans, useRecentSessions } from '../components/workouts/plansApi.ts';
+import { PLANS_KEY, isPlanDayDone, usePlans, useRecentSessions } from '../components/workouts/plansApi.ts';
 import { weekStartOf } from '../components/workouts/weekUtil.ts';
 import '../styles/workouts.css';
 
@@ -107,9 +107,8 @@ export default function PlanDetail(): ReactNode {
   const editEx = edit !== null ? day.exercises[edit] : undefined;
 
   const weekStart = weekStartOf(localDateStr(), lang);
-  const doneNames = new Set((recent.data ?? []).filter((x) => x.localDate >= weekStart).map((x) => x.name));
   const dayName = (d: GeneratedPlan['days'][number]): string => t(`workouts.day.${d.day}`);
-  const isDone = (d: GeneratedPlan['days'][number]): boolean => doneNames.has(`${row.name}: ${dayName(d)}`);
+  const isDone = (d: GeneratedPlan['days'][number]): boolean => isPlanDayDone(recent.data ?? [], weekStart, row.id, plan.days.indexOf(d), `${row.name}: ${dayName(d)}`);
   const doneCount = plan.days.filter(isDone).length;
 
   return (

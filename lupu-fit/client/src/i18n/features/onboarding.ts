@@ -49,7 +49,7 @@ export default defineFeature({
       units: 'Units', unitNames: { metric: 'Metric', imperial: 'Imperial' }, unitsHint: 'The questions here use kg and cm.',
     },
     nutrition: {
-      activity: 'Daily activity level', diet: 'Diet', allergies: 'Allergies', restrictions: 'Dietary restrictions',
+      activity: 'Daily activity level', activityDesc: { sedentary: 'Desk job, little walking', light: 'On your feet some of the day', moderate: 'Active job or daily walks', active: 'Physical job or very active days', very_active: 'Heavy labour or two-a-day training' }, diet: 'Diet', allergies: 'Allergies', restrictions: 'Dietary restrictions',
       custom: 'Set my own calorie target', customKcal: 'Calorie target', customOff: 'Off: the target is calculated for your goal.',
       floor: 'A target below {floor} kcal is not allowed for your profile; it is raised to the safe minimum.', floorMinor: 'Under 18 the target is never set below your maintenance calories.',
     },
@@ -121,7 +121,7 @@ export default defineFeature({
       units: 'יחידות', unitNames: { metric: 'מטרי', imperial: 'אימפריאלי' }, unitsHint: 'השאלות כאן במדידה של ק״ג וס״מ.',
     },
     nutrition: {
-      activity: 'רמת פעילות יומית', diet: 'תפריט', allergies: 'אלרגיות', restrictions: 'הגבלות תזונה',
+      activity: 'רמת פעילות יומית', activityDesc: { sedentary: 'עבודה מול מסך, מעט הליכה', light: 'על הרגליים חלק מהיום', moderate: 'עבודה פעילה או הליכה יומית', active: 'עבודה פיזית או ימים פעילים מאוד', very_active: 'עבודת כפיים קשה או שני אימונים ביום' }, diet: 'תפריט', allergies: 'אלרגיות', restrictions: 'הגבלות תזונה',
       custom: 'קביעת יעד קלוריות משלי', customKcal: 'יעד קלוריות', customOff: 'כבוי: היעד מחושב לפי המטרה.',
       floor: 'יעד הנמוך מ-{floor} קק״ל אינו מותר עבור הפרופיל הזה, והוא מועלה למינימום הבטוח.', floorMinor: 'מתחת לגיל 18 היעד אף פעם לא נקבע מתחת לקלוריות התחזוקה.',
     },

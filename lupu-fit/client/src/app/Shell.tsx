@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
+import { useOnline } from '../components/live/OfflineBanner.tsx';
 import { api } from '../api/client.ts';
 import { useLang, useT } from '../i18n/index.tsx';
 import { Brand } from '../ui/BrandMark.tsx';
@@ -28,6 +29,8 @@ const navLinks = (items: readonly (typeof MAIN[number] | typeof MORE[number])[],
 
 export function Shell(): ReactNode {
   const t = useT();
+  const online = useOnline();
+  const onLive = useLocation().pathname === '/workouts/session';
   const active = useQuery({ queryKey: qk.activeSession, queryFn: () => api.get<{ session: { id: string } | null }>('/api/sessions/active'), refetchOnWindowFocus: true, staleTime: 15_000 });
   return (
     <div className="shell">
@@ -46,6 +49,7 @@ export function Shell(): ReactNode {
       </aside>
       <div className="shell-body">
         {active.data?.session ? <Link to="/workouts/session" className="resume"><span className="resume-dot" aria-hidden="true" /><span className="grow">{t('nav.activeWorkout')}</span><IconChevron className="flip-rtl" width={20} height={20} /></Link> : null}
+        {!online && !onLive ? <div className="offline-strip" role="status">{t('app.offline')}</div> : null}
         <main id="main" className="main" tabIndex={-1}><Outlet /></main>
       </div>
       <nav className="bottomnav" aria-label={t('nav.menu')}>{navLinks(MAIN, t)}</nav>

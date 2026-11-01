@@ -8,6 +8,7 @@ import { applyTheme, getTheme } from './lib/theme.ts';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/polish.css';
+import './styles/update.css';
 
 applyTheme(getTheme());
 const root = createRoot(document.getElementById('root') as HTMLElement);

@@ -24,7 +24,7 @@ export class GeminiProvider implements AiProvider {
     throw last instanceof Error ? last : new Error('gemini_unavailable');
   }
   complete(i: Parameters<AiProvider['complete']>[0]): Promise<string> {
-    return this.run({ systemInstruction: { parts: [{ text: i.system }] }, contents: i.messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })) });
+    return this.run({ systemInstruction: { parts: [{ text: i.system }] }, contents: i.messages.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })), ...(i.json || i.maxTokens ? { generationConfig: { ...(i.json ? { responseMimeType: 'application/json' } : {}), ...(i.maxTokens ? { maxOutputTokens: i.maxTokens } : {}) } } : {}) });
   }
   describeImage(i: { system: string; prompt: string; jpegBase64: string }): Promise<string> {
     return this.run({ systemInstruction: { parts: [{ text: i.system }] }, contents: [{ role: 'user', parts: [{ text: i.prompt }, { inlineData: { mimeType: 'image/jpeg', data: i.jpegBase64 } }] }] });
@@ -41,7 +41,7 @@ export class ClaudeProvider implements AiProvider {
     return (j.content ?? []).filter((c) => c.type === 'text').map((c) => c.text ?? '').join('');
   }
   complete(i: Parameters<AiProvider['complete']>[0]): Promise<string> {
-    return this.call({ model: this.model, max_tokens: 700, system: i.system, messages: i.messages });
+    return this.call({ model: this.model, max_tokens: i.maxTokens ?? 700, system: i.system, messages: i.messages });
   }
   describeImage(i: { system: string; prompt: string; jpegBase64: string }): Promise<string> {
     return this.call({ model: this.model, max_tokens: 700, system: i.system, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: i.jpegBase64 } }, { type: 'text', text: i.prompt }] }] });

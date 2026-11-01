@@ -5,3 +5,19 @@ client/public/media/
 dist-device/
 client/dist-device/
 client/dist/
+
+# Android build output, signing material, bundles
+android/keystore/
+android/local.properties
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/
+*.jks
+*.keystore
+*.aab
+*.apk
+keystore.properties

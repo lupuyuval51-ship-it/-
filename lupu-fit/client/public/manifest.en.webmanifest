@@ -1,0 +1,47 @@
+{
+  "name": "LUPU-FIT",
+  "short_name": "LUPU-FIT",
+  "description": "Know exactly what to train today.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0B0D",
+  "theme_color": "#0B0B0D",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/",
+  "shortcuts": [
+    {
+      "name": "Today's workout",
+      "url": "/workouts"
+    },
+    {
+      "name": "Log food",
+      "url": "/nutrition/log"
+    }
+  ],
+  "categories": [
+    "health",
+    "fitness",
+    "sports"
+  ]
+}

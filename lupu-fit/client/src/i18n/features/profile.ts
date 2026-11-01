@@ -3,6 +3,14 @@ import { defineFeature } from '../core.ts';
 export default defineFeature({
   profile: {
     nu: { body: 'Body and goals', prefs: 'Preferences', storage: 'Videos and storage', day: 'day', moreSetup: 'Equipment, injuries and restrictions', advancedKcal: 'Advanced: custom calorie target', instantHint: 'Language and theme apply immediately. Name and units are saved with Save.', redoHint: 'Update your goals and details step by step', saved: 'No changes to save', danger: 'Danger zone', deleteHint: 'Deleting your account removes all your data. You will be asked to confirm on the next screen.', exportHint: 'Download everything as a JSON file', shareHint: 'Send the backup file to another app', restoreHint: 'Replace current data with a backup file' },
+    ml: {
+      title: 'Language', more: 'Translate the app to another language', moreHint: 'Any language. Done once with machine translation, then saved on this device.', note: 'Machine translation may be imperfect; content names (exercises, foods) stay in English/Hebrew unless translated. Legal pages stay in their original language.',
+      sheetTitle: 'Translate the app', search: 'Search languages', noMatch: 'No matching language', other: 'Other language', otherHint: 'Type any language name, in any script', otherGo: 'Translate', otherBad: 'Enter a language name (letters only).',
+      downloaded: 'On this device', use: 'Use', del: 'Delete', delLabel: 'Delete {lang} to free space', deleted: '{lang} removed from this device', active: 'In use', now: 'Showing: {lang} (machine translated)', switched: 'App language: {lang}',
+      progress: 'Translating {lang}: part {n} of {total}', preparing: 'Preparing…', cancel: 'Cancel', cancelled: 'Cancelled. Finished parts are saved, so you can continue later.', cached: 'Loaded from this device. No internet needed.',
+      partial: '{n} strings could not be translated and stay in English.', needAi: 'Translation needs an internet connection and an AI service.', busy: 'The translation service is busy. Try again in a moment.', quota: 'Translation limit reached for now. Try again later.', failed: 'Translation failed. Finished parts are saved; retry to continue.',
+      strings: '{n} strings', rtl: 'Right-to-left',
+    },
     title: 'Profile', redo: 'Redo the questionnaire', needOnboarding: 'Finish the questionnaire to see your profile.', saved: 'Profile saved', saving: 'Saving…', details: 'Your details',
     targets: 'Daily targets', bmr: 'BMR (kcal)', tdee: 'TDEE (kcal)', dailyKcal: 'Target (kcal)', targetsNote: 'Estimates from standard formulas. Safety floors always apply.',
     clamped: 'You asked for {asked} kcal, but the safe target for you is {got} kcal. Targets never go below the safety floor for your age and sex.',
@@ -34,6 +42,14 @@ export default defineFeature({
 }, {
   profile: {
     nu: { body: 'גוף ומטרות', prefs: 'העדפות', storage: 'סרטונים ואחסון', day: 'יום', moreSetup: 'ציוד, פציעות והגבלות', advancedKcal: 'מתקדם: יעד קלוריות מותאם', instantHint: 'שפה וערכת נושא משתנות מיד. שם ויחידות נשמרים עם כפתור השמירה.', redoHint: 'עדכון המטרות והפרטים צעד אחר צעד', saved: 'אין שינויים לשמירה', danger: 'אזור רגיש', deleteHint: 'מחיקת החשבון מסירה את כל הנתונים שלכם. במסך הבא תתבקשו לאשר.', exportHint: 'הורדת כל הנתונים כקובץ JSON', shareHint: 'שליחת קובץ הגיבוי לאפליקציה אחרת', restoreHint: 'החלפת הנתונים הנוכחיים בקובץ גיבוי' },
+    ml: {
+      title: 'שפה', more: 'לתרגם את האפליקציה לשפה אחרת', moreHint: 'כל שפה. תרגום מכונה חד-פעמי, ואז נשמר במכשיר הזה.', note: 'תרגום מכונה עלול להיות לא מדויק; שמות תכנים (תרגילים, מזונות) נשארים באנגלית או בעברית אלא אם תורגמו. דפי המשפטים נשארים בשפת המקור.',
+      sheetTitle: 'תרגום האפליקציה', search: 'חיפוש שפה', noMatch: 'לא נמצאה שפה מתאימה', other: 'שפה אחרת', otherHint: 'אפשר להקליד שם של כל שפה, בכל כתב', otherGo: 'לתרגם', otherBad: 'יש להזין שם שפה (אותיות בלבד).',
+      downloaded: 'במכשיר הזה', use: 'להשתמש', del: 'למחוק', delLabel: 'מחיקת {lang} לפינוי מקום', deleted: '{lang} הוסרה מהמכשיר', active: 'בשימוש', now: 'מוצגת: {lang} (תרגום מכונה)', switched: 'שפת האפליקציה: {lang}',
+      progress: 'מתרגמים {lang}: חלק {n} מתוך {total}', preparing: 'מתכוננים…', cancel: 'ביטול', cancelled: 'בוטל. החלקים שהסתיימו נשמרו, אפשר להמשיך אחר כך.', cached: 'נטען מהמכשיר. לא צריך אינטרנט.',
+      partial: '{n} מחרוזות לא תורגמו ונשארות באנגלית.', needAi: 'תרגום דורש חיבור לאינטרנט ושירות AI.', busy: 'שירות התרגום עמוס. כדאי לנסות שוב בעוד רגע.', quota: 'הגעת למגבלת התרגום כרגע. כדאי לנסות שוב מאוחר יותר.', failed: 'התרגום נכשל. החלקים שהסתיימו נשמרו; אפשר לנסות שוב כדי להמשיך.',
+      strings: '{n} מחרוזות', rtl: 'ימין לשמאל',
+    },
     title: 'פרופיל', redo: 'מילוי השאלון מחדש', needOnboarding: 'כדי לראות פרופיל צריך להשלים את השאלון.', saved: 'הפרופיל נשמר', saving: 'שומר…', details: 'הפרטים שלכם',
     targets: 'יעדים יומיים', bmr: 'BMR (קק״ל)', tdee: 'TDEE (קק״ל)', dailyKcal: 'יעד (קק״ל)', targetsNote: 'הערכות לפי נוסחאות סטנדרטיות. רצפות הבטיחות תמיד חלות.',
     clamped: 'ביקשתם {asked} קק״ל, אבל היעד הבטוח עבורכם הוא {got} קק״ל. היעד אף פעם לא יורד מתחת לרצפת הבטיחות לפי הגיל והמין.',

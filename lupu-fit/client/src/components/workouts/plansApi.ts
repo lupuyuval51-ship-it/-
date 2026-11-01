@@ -11,7 +11,14 @@ export function usePlans() {
 
 export const splitDayKey = (d: string): string => `workouts.day.${d}`;
 
-export interface WeekSession { id: string; name: string; localDate: string; finishedAt: string | null }
+export interface WeekSession { id: string; name: string; localDate: string; finishedAt: string | null; source?: string; sourceId?: string | null }
+/**
+ * Was this plan day finished this week? Sessions started from a plan day carry `sourceId = "<planId>:<dayIndex>"`, which is
+ * authoritative. Sessions saved before that (no sourceId) still match by their generated name.
+ */
+export function isPlanDayDone(sessions: readonly WeekSession[], weekStart: string, planId: string, dayIdx: number, legacyName: string): boolean {
+  return sessions.some((s) => s.localDate >= weekStart && (s.sourceId ? s.sourceId === `${planId}:${dayIdx}` : s.name === legacyName));
+}
 /** Finished workouts of the recent past; the plans screens use it to show progress for this week. */
 export function useRecentSessions() {
   return useQuery({

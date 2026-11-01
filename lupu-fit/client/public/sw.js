@@ -13,7 +13,7 @@ const DEFAULT_BUDGET_MB = 300;
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const shell = await caches.open(SHELL);
-    await shell.addAll(['/', '/manifest.webmanifest']).catch(() => undefined);
+    await shell.addAll(['/', '/manifest.webmanifest', '/manifest.en.webmanifest']).catch(() => undefined);
     try {
       const res = await fetch('/media/exercises/media-manifest.json');
       if (res.ok) {
@@ -22,7 +22,7 @@ self.addEventListener('install', (e) => {
         for (const id of m.priorityA || []) { await vc.add(`/media/exercises/${id}.mp4`).catch(() => undefined); await vc.add(`/media/exercises/${id}.jpg`).catch(() => undefined); }
       }
     } catch { /* offline install is fine */ }
-    await self.skipWaiting();
+    // No skipWaiting here: the page offers the new version calmly and sends 'skip-waiting' when the user agrees.
   })());
 });
 self.addEventListener('activate', (e) => e.waitUntil((async () => {
@@ -102,7 +102,8 @@ self.addEventListener('fetch', (e) => {
 
 self.addEventListener('message', (e) => {
   const d = e.data || {}; const reply = (m) => e.ports[0] && e.ports[0].postMessage(m);
-  if (d.type === 'clear-video-cache') e.waitUntil(caches.delete(VIDEO).then(() => reply({ ok: true })));
+  if (d.type === 'skip-waiting') self.skipWaiting();
+  else if (d.type === 'clear-video-cache') e.waitUntil(caches.delete(VIDEO).then(() => reply({ ok: true })));
   else if (d.type === 'set-video-budget') e.waitUntil(caches.open(META).then((c) => c.put('/__budget', new Response(String(d.mb)))).then(() => reply({ ok: true })));
   else if (d.type === 'video-cache-size') e.waitUntil(videoUsage().then((bytes) => reply({ bytes })));
 });

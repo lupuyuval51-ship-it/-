@@ -154,3 +154,8 @@
 .wk-readiness .btn { white-space: nowrap; flex: none; }
 .wk-plan-top .stack-sm { align-items: flex-start; }
 .wk-sticky-row .btn { white-space: nowrap; }
+
+/* Finisher picker lives behind a disclosure inside its card */
+.wk-finisher { border: 0; padding: 0; background: transparent; }
+.wk-finisher > summary { gap: 0.75rem; }
+.wk-finisher > summary > span:first-child { font-size: var(--fs-18); font-weight: 700; flex: 1; min-inline-size: 0; }

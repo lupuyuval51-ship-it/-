@@ -32,9 +32,23 @@ import { useToast } from '../ui/toast.tsx';
 
 type ActiveResponse = { session: LiveSessionData | null };
 
+/** Last known active session, so reopening the app offline mid-workout (cold start, no network) still shows the workout and queues sets. */
+const LIVE_CACHE = 'lf_live_session';
+const old2 = (old: ActiveResponse | undefined, fn: (s: LiveSessionData) => LiveSessionData): ActiveResponse | undefined => (old?.session ? { session: fn(old.session) } : old);
+function readLiveCache(): ActiveResponse | null {
+  try { const raw = localStorage.getItem(LIVE_CACHE); return raw ? ({ session: JSON.parse(raw) as LiveSessionData }) : null; } catch { return null; }
+}
+function writeLiveCache(r: ActiveResponse): void {
+  try { if (r.session) localStorage.setItem(LIVE_CACHE, JSON.stringify(r.session)); else localStorage.removeItem(LIVE_CACHE); } catch { /* storage unavailable */ }
+}
+async function fetchActive(): Promise<ActiveResponse> {
+  try { const r = await api.get<ActiveResponse>('/api/sessions/active'); writeLiveCache(r); return r; }
+  catch (e) { if (e instanceof NetworkError) { const c = readLiveCache(); if (c) return c; } throw e; }
+}
+
 export default function LiveSession(): ReactNode {
   const t = useT();
-  const q = useQuery({ queryKey: qk.activeSession, queryFn: () => api.get<ActiveResponse>('/api/sessions/active'), networkMode: 'always', staleTime: 0 });
+  const q = useQuery({ queryKey: qk.activeSession, queryFn: fetchActive, networkMode: 'always', staleTime: 0 });
   const profileQ = useProfile();
   if (q.isLoading) return <Loading />;
   if (q.isError && !q.data) return <ErrorState error={q.error} onRetry={() => { void q.refetch(); }} />;
@@ -88,7 +102,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const totalSets = session.exercises.reduce((a, e) => a + countFor(e), 0);
 
   // When queued items leave the outbox (synced / discarded) reload the authoritative session.
-  const queuedCount = pend.length + deleted.size;
+  const queuedCount = sessionOutboxItems(outboxItems, session.id).length;
   const prevQueued = useRef(queuedCount);
   useEffect(() => {
     if (queuedCount < prevQueued.current) void qc.invalidateQueries({ queryKey: qk.activeSession });
@@ -110,7 +124,9 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const showWeight = !!cur && !timed && (!!curDef?.externallyLoaded || cur.planned.loadKg !== null || (last?.weightKg ?? 0) > 0);
 
   const setData = (fn: (s: LiveSessionData) => LiveSessionData): void => {
-    qc.setQueryData<ActiveResponse>(qk.activeSession, (old) => (old?.session ? { session: fn(old.session) } : old));
+    const next = old2(qc.getQueryData<ActiveResponse>(qk.activeSession), fn);
+    qc.setQueryData<ActiveResponse>(qk.activeSession, next);
+    if (next?.session) writeLiveCache(next);
   };
 
   async function logSet(ex: LiveExercise, v: LoggedValues, startRest = true): Promise<void> {
@@ -144,10 +160,17 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
     } catch (e) { toast(errorMessage(e, t), 'error'); } finally { setBusy(false); }
   }
 
-  /* ---- structure edits (need the server; offline they fail with a clear toast) ---- */
+  /* ---- structure edits: applied locally and queued when offline (adding needs a server-made id, so it needs a connection) ---- */
   async function edit(run: () => Promise<LiveSessionData>): Promise<void> {
-    try { const s = await run(); qc.setQueryData<ActiveResponse>(qk.activeSession, { session: s }); }
+    try { const s = await run(); qc.setQueryData<ActiveResponse>(qk.activeSession, { session: s }); writeLiveCache({ session: s }); }
     catch (e) { toast(e instanceof ApiRequestError && e.code === 'exercise_has_sets' ? t('live.structure.replaceLocked') : errorMessage(e, t), 'error'); }
+  }
+  async function editQueued(r: { method: 'PUT' | 'PATCH' | 'DELETE'; path: string; body?: unknown; label: string }, apply: (s: LiveSessionData) => LiveSessionData): Promise<void> {
+    try {
+      const res = await callOrQueue<LiveSessionData>(r);
+      if (res.queued) { setData(apply); toast(t('outbox.queued')); }
+      else { qc.setQueryData<ActiveResponse>(qk.activeSession, { session: res.data }); writeLiveCache({ session: res.data }); }
+    } catch (e) { toast(e instanceof ApiRequestError && e.code === 'exercise_has_sets' ? t('live.structure.replaceLocked') : errorMessage(e, t), 'error'); }
   }
   const base = `/api/sessions/${session.id}`;
   const curLocked = cur ? countFor(cur) > 0 : true;
@@ -159,16 +182,25 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
     const ids = session.exercises.map((e) => e.id); const i = ids.indexOf(id); const j = i + dir;
     if (i < 0 || j < 0 || j >= ids.length) return;
     [ids[i], ids[j]] = [ids[j] as string, ids[i] as string];
-    void edit(() => api.put<LiveSessionData>(`${base}/order`, { ids }));
+    void editQueued({ method: 'PUT', path: `${base}/order`, body: { ids }, label: t('live.structure.queuedOrder') }, (s) => ({ ...s, exercises: ids.map((x) => s.exercises.find((e) => e.id === x)).filter((e): e is LiveExercise => !!e) }));
   };
-  const removeEx = (id: string): void => { if (window.confirm(t('live.structure.confirmRemove'))) void edit(() => api.delete<LiveSessionData>(`${base}/exercises/${id}`)); };
+  const removeEx = (id: string): void => {
+    const target = session.exercises.find((e) => e.id === id);
+    if (target && countFor(target) > 0) { toast(t('live.structure.replaceLocked'), 'error'); return; }
+    if (!window.confirm(t('live.structure.confirmRemove'))) return;
+    void editQueued({ method: 'DELETE', path: `${base}/exercises/${id}`, label: t('live.structure.queuedRemove') }, (s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== id) }));
+  };
   const addEx = (exerciseId: string): void => {
     const d = EXERCISE_BY_ID.get(exerciseId);
     const planned = defaultPlanned(d ? isTimedExercise(d.category, defaultPlanned(false, minor)) : false, minor);
     setAddOpen(false);
     void edit(() => api.post<LiveSessionData>(`${base}/exercises`, { exerciseId, planned, isFinisher: false }));
   };
-  const replaceEx = (exerciseId: string): void => { if (!cur) return; setReplaceOpen(false); void edit(() => api.patch<LiveSessionData>(`${base}/exercises/${cur.id}`, { exerciseId })); };
+  const replaceEx = (exerciseId: string): void => {
+    if (!cur) return; setReplaceOpen(false);
+    const id = cur.id;
+    void editQueued({ method: 'PATCH', path: `${base}/exercises/${id}`, body: { exerciseId }, label: t('live.structure.queuedReplace') }, (s) => ({ ...s, exercises: s.exercises.map((e) => (e.id === id ? { ...e, exerciseId } : e)) }));
+  };
 
   /* ---- finish / discard ---- */
   async function finish(): Promise<void> {
@@ -180,7 +212,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
       await outbox.flush(); // queued sets must reach the server before it computes PRs / XP
       if (outbox.list().some((i) => i.status === 'pending' && i.path.startsWith(`/api/sessions/${session.id}`))) { setFinishMsg(t('live.finishNeedsConnection')); return; }
       const res = await api.post<FinishResponse>(`${base}/finish`, {});
-      saveRestEnd(session.id, null);
+      saveRestEnd(session.id, null); writeLiveCache({ session: null });
       nav(`/workouts/sessions/${session.id}`, { state: { finish: res } });
       void qc.invalidateQueries({ queryKey: qk.activeSession });
       void qc.invalidateQueries({ queryKey: qk.stats });
@@ -191,7 +223,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
     try {
       await api.delete(base);
       for (const i of sessionOutboxItems(outbox.list(), session.id)) await outbox.remove(i.id);
-      saveRestEnd(session.id, null);
+      saveRestEnd(session.id, null); writeLiveCache({ session: null });
       toast(t('live.discarded'));
       nav('/workouts');
       void qc.invalidateQueries({ queryKey: qk.activeSession });

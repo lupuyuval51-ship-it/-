@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router';
 import { api, ApiRequestError } from '../api/client.ts';
 import { Message } from '../components/coach/Message.tsx';
 import { ck, type CoachStatus, type ThreadDetail, type ThreadRow } from '../components/coach/types.ts';
-import { fmt, useLang, useT } from '../i18n/index.tsx';
+import { fmt, uiLanguageHint, useLang, useT } from '../i18n/index.tsx';
 import { Banner, Button, ErrorState, errorMessage, IconButton, Sheet, TextArea, TextInput } from '../ui/kit.tsx';
 import { IconChat, IconPlus, IconTrash, IconWarn } from '../ui/icons.tsx';
 import { SkeletonList } from '../ui/patterns.tsx';
@@ -74,7 +74,7 @@ export default function Coach(): ReactNode {
     try {
       if (!id) { id = (await createThread.mutateAsync(text)).id; selectThread(id); }
       setPending(text); setDraft('');
-      await api.post(`/api/coach/threads/${id}/messages`, { text, lang });
+      await api.post(`/api/coach/threads/${id}/messages`, { text, lang, ...uiLanguageHint() });
       await Promise.all([qc.invalidateQueries({ queryKey: ck.thread(id) }), qc.invalidateQueries({ queryKey: ck.threads })]);
     } catch (e) {
       setDraft(text);

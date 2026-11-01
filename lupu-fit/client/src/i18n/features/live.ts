@@ -38,6 +38,7 @@ export default defineFeature({
     discarded: 'Workout discarded',
     finisher: { header: 'Sport finisher — {sport} (about {min} min)', start: 'Start timer', stop: 'Stop timer', round: 'Round {n} of {total}', work: 'Work', done: 'Finisher complete', roundsDone: '{done} of {total} rounds', idle: 'Ready', plan: 'Work {work} sec · rest {rest} sec' },
     structure: {
+      queuedOrder: 'Reorder exercises', queuedRemove: 'Remove exercise', queuedReplace: 'Replace exercise',
       add: 'Add exercise', remove: 'Remove exercise', replace: 'Replace exercise', replaceLocked: 'Replacing is possible only before the first set.',
       replaceNone: 'No safe alternatives for this profile.', replaceHint: 'Alternatives that fit your injuries, equipment and age.', moveUp: 'Move up', moveDown: 'Move down',
       search: 'Search exercise', none: 'No matching exercises', confirmRemove: 'Remove this exercise from the workout?', menu: 'Edit workout', failed: 'The change could not be saved.',
@@ -81,6 +82,7 @@ export default defineFeature({
     discarded: 'האימון בוטל',
     finisher: { header: 'סיומת ספורט — {sport} (כ-{min} דק׳)', start: 'הפעלת טיימר', stop: 'עצירת הטיימר', round: 'סבב {n} מתוך {total}', work: 'עבודה', done: 'הסיומת הושלמה', roundsDone: '{done} מתוך {total} סבבים', idle: 'מוכנים', plan: 'עבודה {work} שנ׳ · מנוחה {rest} שנ׳' },
     structure: {
+      queuedOrder: 'שינוי סדר התרגילים', queuedRemove: 'הסרת תרגיל', queuedReplace: 'החלפת תרגיל',
       add: 'הוספת תרגיל', remove: 'הסרת התרגיל', replace: 'החלפת תרגיל', replaceLocked: 'אפשר להחליף רק לפני הסט הראשון.',
       replaceNone: 'אין חלופות בטוחות לפרופיל הזה.', replaceHint: 'חלופות שמתאימות לפציעות, לציוד ולגיל.', moveUp: 'הזזה למעלה', moveDown: 'הזזה למטה',
       search: 'חיפוש תרגיל', none: 'אין תרגילים מתאימים', confirmRemove: 'להסיר את התרגיל הזה מהאימון?', menu: 'עריכת האימון', failed: 'לא ניתן היה לשמור את השינוי.',

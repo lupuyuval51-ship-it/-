@@ -15,9 +15,10 @@
     "typecheck": "tsc --noEmit -p shared/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json && tsc --noEmit -p server/tsconfig.json",
     "lint": "node scripts/design-lint.mjs && node scripts/contrast-check.mjs && node scripts/security-scan.mjs && tsx scripts/copy-lock.ts",
     "test:shared": "vitest run --root shared",
-    "gates": "npm run typecheck && npm run lint && npm run validate:content && npm run test:shared && npm run test:tools && npm run test:server",
+    "gates": "npm run typecheck && npm run lint && npm run validate:content && npm run audit:english && npm run test:shared && npm run test:tools && npm run test:server",
     "test:tools": "vitest run --root scripts",
     "validate:content": "tsx scripts/validate-content.ts",
+    "audit:english": "tsx scripts/audit-english.ts",
     "gen:workouts": "tsx scripts/gen-ready-workouts.ts",
     "gen:docs": "tsx scripts/gen-video-docs.ts",
     "gen:videos": "tsx scripts/gen-videos.ts",
@@ -33,6 +34,9 @@
     "dev:pglite": "tsx server/src/devServer.ts"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/cli": "^7.6.10",
+    "@capacitor/core": "^7.6.10",
     "@fontsource-variable/heebo": "^5.3.0",
     "@fontsource/barlow-condensed": "^5.3.0",
     "@napi-rs/canvas": "^1.1.0",

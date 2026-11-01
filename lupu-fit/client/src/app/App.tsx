@@ -6,6 +6,8 @@ import { IS_DEVICE } from '../env.ts';
 import { LangProvider } from '../i18n/index.tsx';
 import { ErrorState, Loading } from '../ui/kit.tsx';
 import { ToastProvider } from '../ui/toast.tsx';
+import { UpdatePrompt } from '../ui/UpdatePrompt.tsx';
+import { RouteEffects } from './RouteEffects.tsx';
 import { PublicLayout, Shell } from './Shell.tsx';
 import { useMe } from './session.ts';
 
@@ -45,6 +47,7 @@ export function AppRoutes(): ReactNode {
   return (
     <Suspense fallback={<Loading />}>
       <Gate>
+        <RouteEffects />
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<p.Login />} /><Route path="/register" element={<p.Register />} />
@@ -70,7 +73,7 @@ export function App({ client }: { client?: QueryClient }): ReactNode {
   const qc = useMemo(() => client ?? makeQueryClient(), [client]);
   return (
     <QueryClientProvider client={qc}>
-      <LangProvider><ToastProvider><BrowserRouter><AppRoutes /></BrowserRouter></ToastProvider></LangProvider>
+      <LangProvider><ToastProvider><BrowserRouter><AppRoutes /></BrowserRouter><UpdatePrompt /></ToastProvider></LangProvider>
     </QueryClientProvider>
   );
 }

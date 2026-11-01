@@ -30,7 +30,7 @@ export default defineFeature({
     log: {
       title: 'Log food', backToDay: 'Back to day', target: 'Logging for: {date}', slot: 'Meal', modes: 'Ways to add',
       mode: { search: 'Search', barcode: 'Barcode', photo: 'Photo', quick: 'Quick add', custom: 'New food' },
-      searchLabel: 'Search foods, dishes and meals', searchPlaceholder: 'Chicken, rice, חומוס…', results: 'Results',
+      searchLabel: 'Search foods, dishes and meals', searchPlaceholder: 'Chicken, rice, hummus…', results: 'Results',
       noResults: 'Nothing found', noResultsHint: 'Try another spelling, or add it with quick add or as a new food.', startTyping: 'Start typing to search. Recent items will show up here after you log.',
       recent: 'Recent and frequent', per100: 'per 100 g', perServing: 'per serving', presets: 'Amount presets', grams: 'Amount (g)', serving: 'Serving: {name} ({g} g)',
       add: 'Add to log', added: 'Added to log',
@@ -99,7 +99,7 @@ export default defineFeature({
     log: {
       title: 'תיעוד אוכל', backToDay: 'חזרה ליום', target: 'תיעוד ליום: {date}', slot: 'ארוחה', modes: 'דרכי הוספה',
       mode: { search: 'חיפוש', barcode: 'ברקוד', photo: 'תמונה', quick: 'הוספה מהירה', custom: 'מאכל חדש' },
-      searchLabel: 'חיפוש מאכלים, מנות וארוחות', searchPlaceholder: 'עוף, אורז, hummus…', results: 'תוצאות',
+      searchLabel: 'חיפוש מאכלים, מנות וארוחות', searchPlaceholder: 'עוף, אורז, חומוס…', results: 'תוצאות',
       noResults: 'לא נמצא כלום', noResultsHint: 'כדאי לנסות כתיב אחר, או להוסיף בהוספה מהירה או כמאכל חדש.', startTyping: 'להתחיל להקליד כדי לחפש. פריטים אחרונים יופיעו כאן אחרי התיעוד.',
       recent: 'אחרונים ותכופים', per100: 'ל-100 ג׳', perServing: 'למנה', presets: 'כמויות מוכנות', grams: 'כמות (ג׳)', serving: 'מנה: {name} ({g} ג׳)',
       add: 'הוספה ליומן', added: 'נוסף ליומן',

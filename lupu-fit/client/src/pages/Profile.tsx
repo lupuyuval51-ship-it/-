@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import { api } from '../api/client.ts';
 import { qk, useProfile, type ProfileResponse } from '../app/session.ts';
 import { AccountPanel } from '../components/profile/AccountPanel.tsx';
+import { LanguagePanel } from '../components/profile/LanguagePanel.tsx';
 import { BackupPanel } from '../components/profile/BackupPanel.tsx';
 import { OutboxPanel } from '../components/profile/OutboxPanel.tsx';
 import { BodyGoalsFields, PreferenceFields, validateProfile } from '../components/profile/ProfileForm.tsx';
@@ -80,9 +81,14 @@ export default function Profile(): ReactNode {
       </Card>
 
       <Card className="stack pf-section">
+        <h2 className="section-title">{t('profile.ml.title')}</h2>
+        {/* Custom (machine-translated) languages keep the server-side profile language at 'en' so generated plans/menus stay valid. */}
+        <LanguagePanel onBuiltIn={(l) => { setLang(l); persistPref({ language: l }); }} onCustomActivated={() => persistPref({ language: 'en' })} />
+      </Card>
+
+      <Card className="stack pf-section">
         <h2 className="section-title">{t('profile.nu.prefs')}</h2>
         <PreferenceFields value={form} onChange={setForm} errors={errors}
-          onLanguage={(l) => { setLang(l); persistPref({ language: l }); }}
           onTheme={(th) => { setTheme(th); persistPref({ theme: th }); }} />
       </Card>
 

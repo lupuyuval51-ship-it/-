@@ -1,4 +1,4 @@
-import { ageBucket, classifySafety, CoachMessageBodySchema, CoachThreadBodySchema, rulesCoachReply, safetyResponse, smoothWeights, type CoachSnapshot, type Language } from '@lupu-fit/shared';
+import { ageBucket, classifySafety, CoachMessageBodySchema, CoachThreadBodySchema, rulesCoachReply, safetyResponse, smoothWeights, type CoachSnapshot, type Language, type UiLanguage } from '@lupu-fit/shared';
 import { EXERCISES } from '@lupu-fit/shared/content';
 import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
@@ -36,16 +36,17 @@ export async function buildSnapshot(ctx: Ctx, lang: Language): Promise<CoachSnap
   };
 }
 
-const SYSTEM = (lang: Language) => `You are the LUPU-FIT coach: a concise, evidence-based strength and nutrition coach. Reply in ${lang === 'he' ? 'Hebrew (gender-neutral phrasing: infinitives and noun phrases)' : 'English'}. Use ONLY numbers present in the provided snapshot; if data is missing say there is not enough data. Never diagnose, never give medical advice, never advise calorie intake below safe limits, never discuss steroid/PED dosing. Keep answers under 150 words. For any pain, injury or health concern recommend stopping and seeing a professional.`;
+const SYSTEM = (lang: Language, ui?: UiLanguage) => `You are the LUPU-FIT coach: a concise, evidence-based strength and nutrition coach. Reply in ${ui ? `${ui.name} (language code ${ui.code})` : lang === 'he' ? 'Hebrew (gender-neutral phrasing: infinitives and noun phrases)' : 'English'}. Use ONLY numbers present in the provided snapshot; if data is missing say there is not enough data. Never diagnose, never give medical advice, never advise calorie intake below safe limits, never discuss steroid/PED dosing. Keep answers under 150 words. For any pain, injury or health concern recommend stopping and seeing a professional.`;
 
 async function usage(ctx: Ctx, kind: string): Promise<{ minute: number; day: number }> {
   const since = (ms: number) => new Date(ctx.now.getTime() - ms).toISOString();
   const q = async (ms: number) => Number((await ctx.db.query<{ c: number }>('SELECT COUNT(*)::int AS c FROM coach_usage WHERE user_id = $1 AND kind = $2 AND used_at > $3', [uid(ctx), kind, since(ms)]))[0]?.c ?? 0);
   return { minute: await q(60_000), day: await q(86_400_000) };
 }
-export const assertQuota = async (ctx: Ctx, kind: 'message' | 'photo'): Promise<void> => {
+export const TRANSLATE_LIMITS = { perMinute: 20, perDay: 400 } as const;
+export const assertQuota = async (ctx: Ctx, kind: 'message' | 'photo' | 'translate'): Promise<void> => {
   const u = await usage(ctx, kind);
-  const lim = kind === 'message' ? COACH_LIMITS : { perMinute: 6, perDay: 20 };
+  const lim = kind === 'message' ? COACH_LIMITS : kind === 'translate' ? TRANSLATE_LIMITS : { perMinute: 6, perDay: 20 };
   if (u.minute >= lim.perMinute) throw new ApiError(429, 'quota_exceeded', { window: 'minute' }, { 'retry-after': '30' });
   if (u.day >= lim.perDay) throw new ApiError(429, 'quota_exceeded', { window: 'day' }, { 'retry-after': '3600' });
 };
@@ -113,7 +114,7 @@ export function coachRoutes(r: Router, d: Deps): void {
     if (d.ai && snap) {
       try {
         const history = (await ctx.db.query<{ role: 'user' | 'assistant'; content: string }>('SELECT role, content FROM coach_messages WHERE thread_id = $1 ORDER BY created_at DESC, id DESC LIMIT 12', [t.id])).reverse();
-        text = await d.ai.complete({ system: `${SYSTEM(b.lang)}\n\nSnapshot (JSON): ${JSON.stringify(snap)}`, messages: history });
+        text = await d.ai.complete({ system: `${SYSTEM(b.lang, b.uiLanguage)}\n\nSnapshot (JSON): ${JSON.stringify(snap)}`, messages: history });
         provider = d.ai.name;
       } catch { text = null; } // provider down / rate limited: fall back to the deterministic coach
     }

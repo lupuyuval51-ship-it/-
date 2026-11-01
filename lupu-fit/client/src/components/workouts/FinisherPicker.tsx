@@ -40,8 +40,13 @@ export function FinisherPicker({ sport, onSport, variant, onVariant, finishers, 
   const chosen = sport ? forSport(variant) : null;
 
   return (
-    <Card className="stack">
-      <div className="row-between"><h2>{t('workouts.detail.finisherTitle')}</h2><Tag>{t('workouts.detail.optional')}</Tag></div>
+    <Card>
+      <details className="disclosure wk-finisher" {...(sport ? { open: true } : {})}>
+        <summary>
+          <span>{sport ? t('workouts.detail.finisherSelected', { sport: t(`label.sport.${sport}`) }) : t('workouts.detail.addFinisher')}</span>
+          <Tag>{t('workouts.detail.optional')}</Tag>
+        </summary>
+        <div className="stack" style={{ marginBlockStart: '0.75rem' }}>
       <p className="small muted">{t('workouts.detail.sportLabel')}</p>
       <div className="wk-sports" role="group" aria-label={t('workouts.detail.sportLabel')}>
         <button type="button" className="chip" aria-pressed={sport === null} onClick={() => onSport(null)}>{t('label.sport.none')}</button>
@@ -77,6 +82,8 @@ export function FinisherPicker({ sport, onSport, variant, onVariant, finishers, 
           ) : null}
         </>
       ) : null}
+        </div>
+      </details>
     </Card>
   );
 }

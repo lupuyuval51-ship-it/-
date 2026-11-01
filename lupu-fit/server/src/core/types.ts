@@ -19,7 +19,7 @@ export interface ApiResponse { status: number; body?: unknown; headers?: Record<
 export interface AiProvider {
   readonly name: string;
   /** Returns plain text. Implementations must never log prompts. */
-  complete(input: { system: string; messages: { role: 'user' | 'assistant'; content: string }[] }): Promise<string>;
+  complete(input: { system: string; messages: { role: 'user' | 'assistant'; content: string }[]; /** optional: larger output budget (default ~700 tokens) */ maxTokens?: number; /** optional: ask the model for JSON-only output */ json?: boolean }): Promise<string>;
   /** Optional: structured meal estimate from a JPEG (base64). */
   describeImage?(input: { system: string; prompt: string; jpegBase64: string }): Promise<string>;
 }
