@@ -38,7 +38,7 @@ describe('Home', () => {
     handlers['GET /api/sessions'] = () => ({ sessions: [{ id: 's1', name: 'x', source: 'plan', sourceId: 'p1', localDate: today }] });
     renderPage(<Home />, { lang: 'en' });
     expect(await screen.findByText('Lower body')).toBeInTheDocument();
-    expect(screen.getByText('Day 2 of 3 in your plan')).toBeInTheDocument();
+    expect(screen.getByText(/Day 2 of 3 in your plan/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Open workout' })).toHaveAttribute('href', '/workouts/plans/p1');
   });
   it('shows the resume card as the only primary action when a session is active', async () => {
@@ -46,13 +46,13 @@ describe('Home', () => {
     renderPage(<Home />, { lang: 'he' });
     expect(await screen.findByText('Chest day')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'המשך אימון' })).toHaveAttribute('href', '/workouts/session');
-    await screen.findByText('האימון של היום');
+    expect(screen.queryByText('האימון של היום')).toBeNull();
     expect(primaryButtons()).toHaveLength(1);
   });
   it('submits the readiness check-in and shows the resulting state label', async () => {
     handlers['POST /api/readiness'] = () => ({ state: 'easier' });
     renderPage(<Home />, { lang: 'he' });
-    fireEvent.click(await screen.findByRole('button', { name: 'שמירת בדיקה' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'בסדר' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')?.body).toMatchObject({ localDate: today, sleep: 3, energy: 3, soreness: 2, pain: false }));
     expect(await screen.findByText('כדאי אימון קל יותר')).toBeInTheDocument();
   });

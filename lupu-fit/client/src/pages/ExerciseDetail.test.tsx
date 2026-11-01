@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { handlers, renderPage, resetApi, withProfile } from './test-harness.tsx';
 
 vi.mock('../api/client.ts', async (orig) => ({ ...(await orig<typeof import('../api/client.ts')>()), api: (await import('./test-harness.tsx')).apiStub }));
@@ -7,20 +7,23 @@ const { default: ExerciseDetail } = await import('./ExerciseDetail.tsx');
 
 const record = { maxWeight: 40, est1rm: 52.3, maxReps: 10, maxVolume: 400, maxDuration: null, updatedAt: '2026-10-01T10:00:00Z' };
 const history = { exerciseId: 'push_up', history: [{ sessionId: 's1', date: '2026-10-01', sets: [{ setNo: 1, reps: 10, weightKg: 40, durationSec: null, rpe: 8 }] }], record };
-const open = (lang: 'he' | 'en' = 'en', id = 'push_up') => renderPage(<ExerciseDetail />, { lang, route: `/exercises/${id}`, path: '/exercises/:id' });
+const open = (lang: 'he' | 'en' = 'en', id = 'push_up', tab = 'history') => renderPage(<ExerciseDetail />, { lang, route: `/exercises/${id}?tab=${tab}`, path: '/exercises/:id' });
 
 beforeEach(() => { resetApi(); handlers['GET /api/exercises/push_up/history'] = () => history; });
 
 describe('ExerciseDetail', () => {
-  it('shows steps, cues, mistakes, safety, illustration label and shows 1RM for adults', async () => {
+  it('shows the illustration label and 1RM for adults, with steps, cues and mistakes in tabs', async () => {
     handlers['GET /api/profile'] = () => withProfile({ age: 30 });
     open();
     expect(screen.getByRole('heading', { level: 1, name: 'Push-Up' })).toBeInTheDocument();
     expect(screen.getByText('Schematic illustration, not filmed footage')).toBeInTheDocument();
-    expect(screen.getByText('How to do it')).toBeInTheDocument();
-    expect(screen.getByText('Common mistakes')).toBeInTheDocument();
     expect(await screen.findByText('Estimated 1RM')).toBeInTheDocument();
     expect(screen.getByText('52.3')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Mistakes' }));
+    expect(await screen.findByText('Common mistakes')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Steps' }));
+    expect(await screen.findByText('How to do it')).toBeInTheDocument();
+    expect(screen.getByText(/^Safety:/)).toBeInTheDocument();
   });
   it('never shows 1RM estimates for minors', async () => {
     handlers['GET /api/profile'] = () => withProfile({ age: 15 });

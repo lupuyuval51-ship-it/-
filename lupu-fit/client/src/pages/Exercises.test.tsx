@@ -24,7 +24,7 @@ describe('Exercises page', () => {
   });
   it('filters by muscle', async () => {
     renderPage(<Exercises />, { lang: 'en' });
-    fireEvent.change(screen.getByLabelText('Muscle'), { target: { value: 'calves' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Calves' }));
     await waitFor(() => expect(screen.getByText(/^\d+ exercises$/)).toBeInTheDocument());
     const n = Number(/(\d+)/.exec(screen.getByText(/^\d+ exercises$/).textContent ?? '')?.[1]);
     expect(n).toBeGreaterThan(0); expect(n).toBeLessThan(244);
@@ -33,10 +33,18 @@ describe('Exercises page', () => {
     renderPage(<Exercises />, { lang: 'en' });
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'push-up' } });
     await waitFor(() => expect(screen.getAllByRole('link').some((a) => a.getAttribute('href') === '/exercises/push_up')).toBe(true));
-    const toggle = await screen.findByRole('switch', { name: /Safe for me/ });
+    const toggle = await screen.findByRole('button', { name: 'Safe for me' });
     fireEvent.click(toggle);
     await waitFor(() => expect(screen.getAllByRole('link').some((a) => a.getAttribute('href') === '/exercises/push_up')).toBe(false));
     expect(screen.getByText(/hidden because of your injuries/)).toBeInTheDocument();
+  });
+  it('puts the four selects behind a Filters sheet and shows the active count', async () => {
+    renderPage(<Exercises />, { lang: 'en' });
+    expect(screen.queryByLabelText('Equipment')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+    fireEvent.change(await screen.findByLabelText('Equipment'), { target: { value: 'barbell' } });
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Filters (1)' }).length).toBeGreaterThan(0));
+    expect(screen.getByLabelText('Difficulty')).toBeInTheDocument();
   });
   it('renders only the first 60 results then offers more', async () => {
     renderPage(<Exercises />, { lang: 'en' });
