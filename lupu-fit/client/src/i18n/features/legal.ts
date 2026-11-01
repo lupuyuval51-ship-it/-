@@ -24,7 +24,7 @@ export default defineFeature({
         b3: 'Food log: meals and foods you log, with their calories and macros.',
         b4: 'Body weight entries.',
         b5: 'Coach chats: only if you choose to use the optional AI coach.',
-        b6: 'Account details (Hosted only): your e-mail address and a salted hash of your password. The password itself is never stored.',
+        b6: 'Account details (Hosted only): the username you chose and a salted hash of your password. No e-mail address or phone number is collected. The password itself is never stored, and because there is no e-mail there is no password recovery.',
       },
       s3: {
         h: 'Why the data is used',
@@ -37,7 +37,7 @@ export default defineFeature({
       },
       s5: {
         h: 'The AI coach',
-        p1: 'The coach is optional. When you send a message, only an anonymised snapshot of your data is sent to the AI provider: an age bracket instead of your exact age, plus training and nutrition context. Your name, e-mail address and password are never sent.',
+        p1: 'The coach is optional. When you send a message, only an anonymised snapshot of your data is sent to the AI provider: an age bracket instead of your exact age, plus training and nutrition context. Your name, username and password are never sent.',
         p2: 'Depending on how the operator configured the app, the coach uses Google Gemini or Anthropic Claude. On the free tier of Gemini, Google may use prompts to improve its products. Requests sent to Claude are handled privately under the provider API terms. If you do not want this, do not use the coach.',
       },
       s6: {
@@ -157,7 +157,7 @@ export default defineFeature({
         b3: 'יומן אוכל: ארוחות ומזונות שנרשמו, עם הקלוריות והמקרו שלהם.',
         b4: 'רישומי משקל גוף.',
         b5: 'שיחות עם המאמן: רק אם בוחרים להשתמש במאמן ה-AI האופציונלי.',
-        b6: 'פרטי חשבון (במצב מתארח בלבד): כתובת האימייל ותקציר מומלח (hash) של הסיסמה. הסיסמה עצמה אינה נשמרת לעולם.',
+        b6: 'פרטי חשבון (במצב מתארח בלבד): שם המשתמש שבחרתם ותקציר מומלח (hash) של הסיסמה. לא נאספת כתובת אימייל או מספר טלפון. הסיסמה עצמה אינה נשמרת לעולם, ומכיוון שאין אימייל אין גם שחזור סיסמה.',
       },
       s3: {
         h: 'למה משתמשים בנתונים',
@@ -170,7 +170,7 @@ export default defineFeature({
       },
       s5: {
         h: 'מאמן ה-AI',
-        p1: 'המאמן הוא אופציונלי. בעת שליחת הודעה נשלח לספק ה-AI רק תקציר אנונימי של הנתונים: טווח גילאים במקום הגיל המדויק, יחד עם הקשר של אימון ותזונה. השם, כתובת האימייל והסיסמה אינם נשלחים לעולם.',
+        p1: 'המאמן הוא אופציונלי. בעת שליחת הודעה נשלח לספק ה-AI רק תקציר אנונימי של הנתונים: טווח גילאים במקום הגיל המדויק, יחד עם הקשר של אימון ותזונה. השם, שם המשתמש והסיסמה אינם נשלחים לעולם.',
         p2: 'בהתאם להגדרת המפעיל, המאמן משתמש ב-Google Gemini או ב-Anthropic Claude. במסלול החינמי של Gemini, גוגל עשויה להשתמש בהנחיות לשיפור המוצרים שלה. בקשות שנשלחות ל-Claude מטופלות באופן פרטי לפי תנאי ה-API של הספק. מי שאינם מעוניינים בכך יכולים שלא להשתמש במאמן.',
       },
       s6: {

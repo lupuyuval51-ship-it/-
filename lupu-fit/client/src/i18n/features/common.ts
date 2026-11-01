@@ -12,8 +12,8 @@ export default defineFeature({
   unit: { kg: 'kg', cm: 'cm', kcal: 'kcal', g: 'g', min: 'min', sec: 'sec', reps: 'reps', sets: 'sets', years: 'years', perWeek: '/week', percent: '%', m: 'm' },
   date: { today: 'Today', yesterday: 'Yesterday', tomorrow: 'Tomorrow', days: { d7: '7 days', d30: '30 days', d90: '90 days' } },
   error: {
-    network: 'No connection. Check your network and try again.', unauthorized: 'Please sign in again.', invalid_credentials: 'Wrong e-mail or password.', too_many_attempts: 'Too many attempts. Try again in a while.',
-    email_taken: 'This e-mail is already registered.', validation_error: 'Some fields are not valid.', quota_exceeded: 'You reached the message limit. Try again later.', rate_limited: 'Too many requests. Slow down a little.',
+    network: 'No connection. Check your network and try again.', unauthorized: 'Please sign in again.', invalid_credentials: 'Wrong username or password.', too_many_attempts: 'Too many attempts. Try again in a while.',
+    username_taken: 'This username is already taken. Try another one.', validation_error: 'Some fields are not valid.', quota_exceeded: 'You reached the message limit. Try again later.', rate_limited: 'Too many requests. Slow down a little.',
     not_found: 'Not found.', internal_error: 'Server error. Try again.', payload_too_large: 'The file is too large.', ai_unavailable: 'AI is not available right now.', csrf_invalid: 'Session expired. Reload the page.',
     session_in_progress: 'A workout is already in progress.', lookup_failed: 'Lookup failed. Check your connection.', product_not_found: 'Product not found.', generic: 'Request failed.',
   },
@@ -30,8 +30,8 @@ export default defineFeature({
   unit: { kg: 'ק״ג', cm: 'ס״מ', kcal: 'קק״ל', g: 'ג׳', min: 'דק׳', sec: 'שנ׳', reps: 'חזרות', sets: 'סטים', years: 'שנים', perWeek: 'בשבוע', percent: '%', m: 'מ׳' },
   date: { today: 'היום', yesterday: 'אתמול', tomorrow: 'מחר', days: { d7: '7 ימים', d30: '30 יום', d90: '90 יום' } },
   error: {
-    network: 'אין חיבור. כדאי לבדוק את הרשת ולנסות שוב.', unauthorized: 'כדאי להתחבר מחדש.', invalid_credentials: 'האימייל או הסיסמה שגויים.', too_many_attempts: 'יותר מדי ניסיונות. כדאי לנסות שוב בעוד זמן מה.',
-    email_taken: 'האימייל הזה כבר רשום.', validation_error: 'חלק מהשדות אינם תקינים.', quota_exceeded: 'הגעתם למכסת ההודעות. כדאי לנסות מאוחר יותר.', rate_limited: 'יותר מדי בקשות. כדאי להאט מעט.',
+    network: 'אין חיבור. כדאי לבדוק את הרשת ולנסות שוב.', unauthorized: 'כדאי להתחבר מחדש.', invalid_credentials: 'שם המשתמש או הסיסמה שגויים.', too_many_attempts: 'יותר מדי ניסיונות. כדאי לנסות שוב בעוד זמן מה.',
+    username_taken: 'שם המשתמש הזה כבר תפוס. כדאי לנסות אחר.', validation_error: 'חלק מהשדות אינם תקינים.', quota_exceeded: 'הגעתם למכסת ההודעות. כדאי לנסות מאוחר יותר.', rate_limited: 'יותר מדי בקשות. כדאי להאט מעט.',
     not_found: 'לא נמצא.', internal_error: 'שגיאת שרת. כדאי לנסות שוב.', payload_too_large: 'הקובץ גדול מדי.', ai_unavailable: 'ה-AI אינו זמין כרגע.', csrf_invalid: 'פג תוקף ההפעלה. כדאי לרענן את הדף.',
     session_in_progress: 'כבר יש אימון פעיל.', lookup_failed: 'החיפוש נכשל. כדאי לבדוק את החיבור.', product_not_found: 'המוצר לא נמצא.', generic: 'הבקשה נכשלה.',
   },

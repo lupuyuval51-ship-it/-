@@ -7,14 +7,13 @@ import {
 const intIn = (min: number, max: number) => z.number().int().min(min).max(max);
 const numIn = (min: number, max: number) => z.number().min(min).max(max);
 
-export const EmailSchema = z.string().trim().toLowerCase().email().max(254);
+/** Login name: 3-24 chars, lowercase letters/digits/_ . -, starting with a letter or digit. Case-insensitive (lowercased). */
+export const UsernameSchema = z.string().trim().toLowerCase().min(3).max(24).regex(/^[a-z0-9][a-z0-9_.-]*$/);
 export const PasswordSchema = z.string().min(10).max(200);
 export const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-export const RegisterBodySchema = z.object({ email: EmailSchema, password: PasswordSchema });
-export const LoginBodySchema = z.object({ email: EmailSchema, password: z.string().min(1).max(200) });
-export const ForgotPasswordBodySchema = z.object({ email: EmailSchema });
-export const ResetPasswordBodySchema = z.object({ token: z.string().min(16).max(200), password: PasswordSchema });
+export const RegisterBodySchema = z.object({ username: UsernameSchema, password: PasswordSchema });
+export const LoginBodySchema = z.object({ username: UsernameSchema, password: z.string().min(1).max(200) });
 
 export const ProfileInputSchema = z.object({
   displayName: z.string().trim().max(60).optional(),

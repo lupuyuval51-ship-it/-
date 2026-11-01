@@ -45,10 +45,12 @@ async function raw(req: TransportRequest, auth = true): Promise<TransportRespons
 }
 
 async function provision(db: PgliteAdapter, force = false): Promise<void> {
-  const meta = force ? [] : await db.query<{ value: { email: string; password: string } }>("SELECT value FROM app_meta WHERE key = 'device_credential'");
-  let cred = meta[0]?.value;
+  const meta = force ? [] : await db.query<{ value: { username?: string; email?: string; password: string } }>("SELECT value FROM app_meta WHERE key = 'device_credential'");
+  const stored = meta[0]?.value;
+  // Older devices stored device-<hex>@lupu-fit.local; migration 0003 turned that account into device_<hex>.
+  let cred = stored ? { username: stored.username ?? `device_${(stored.email ?? '').slice(7).split('@')[0]}`, password: stored.password } : undefined;
   if (!cred) {
-    cred = { email: `device-${randomHex(8)}@lupu-fit.local`, password: randomHex(24) };
+    cred = { username: `device_${randomHex(8)}`, password: randomHex(24) };
     const reg = await raw({ method: 'POST', path: '/api/auth/register', body: cred }, false);
     if (reg.status !== 201) throw new Error(`device_register_failed:${reg.status}`);
     await db.query("INSERT INTO app_meta (key, value) VALUES ('device_credential', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", [JSON.stringify(cred)]);

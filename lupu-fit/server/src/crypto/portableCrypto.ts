@@ -51,6 +51,6 @@ export async function verifyPassword(password: string, stored: string, targetIte
   return { ok, needsRehash: ok && iterations < targetIterations };
 }
 
-/** A hash computed once per process and used to burn the same CPU time for unknown emails (no user enumeration). */
+/** A hash computed once per process and used to burn the same CPU time for unknown usernames (no user enumeration). */
 let dummy: Promise<string> | undefined;
 export function dummyHash(iterations = PBKDF2_ITERATIONS): Promise<string> { return (dummy ??= hashPassword('lupu-fit-dummy-password', iterations)); }

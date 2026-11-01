@@ -16,7 +16,7 @@ export function validateForm<T>(schema: Parser<T>, input: Record<string, string>
     const field = String(issue.path[0] ?? '');
     if (!field || errors[field]) continue;
     const empty = (input[field] ?? '').trim() === '';
-    errors[field] = empty ? t('state.required') : field === 'email' ? t('auth.err.email') : field === 'password' && issue.code === 'too_small' ? t('auth.err.passwordShort') : field === 'token' ? t('auth.err.tokenInvalid') : t('state.invalid');
+    errors[field] = empty ? t('state.required') : field === 'username' ? (issue.code === 'too_small' || issue.code === 'too_big' ? t('auth.err.usernameLength') : t('auth.err.usernameChars')) : field === 'password' && issue.code === 'too_small' ? t('auth.err.passwordShort') : t('state.invalid');
   }
   return { data: null, errors };
 }
@@ -30,9 +30,8 @@ export type ServerFailure =
 export function describeFailure(e: unknown, t: TFn): ServerFailure {
   if (e instanceof ApiRequestError) {
     if (e.code === 'too_many_attempts' || e.status === 429) return { kind: 'rate', seconds: e.retryAfterSec, message: t('error.too_many_attempts') };
-    if (e.code === 'email_taken') return { kind: 'field', field: 'email', message: t('error.email_taken') };
+    if (e.code === 'username_taken') return { kind: 'field', field: 'username', message: t('error.username_taken') };
     if (e.code === 'invalid_credentials') return { kind: 'form', message: t('error.invalid_credentials') };
-    if (e.code === 'invalid_or_expired_token') return { kind: 'form', message: t('auth.err.tokenInvalid') };
     if (e.code === 'validation_error') return { kind: 'form', message: t('error.validation_error') };
   }
   return { kind: 'form', message: errorMessage(e, t) };
@@ -55,7 +54,7 @@ export function PasswordField({ label, value, onChange, error, autoComplete, hin
     <Field label={label} {...(hint ? { hint } : {})} error={error}>
       {(id, d) => (
         <div className="pw-wrap">
-          <input id={id} className={cx('input')} type={shown ? 'text' : 'password'} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} autoCapitalize="none" spellCheck={false} aria-describedby={d} aria-invalid={error ? true : undefined} />
+          <input id={id} className={cx('input')} type={shown ? 'text' : 'password'} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby={d} aria-invalid={error ? true : undefined} />
           <button type="button" className="btn btn-ghost btn-sm" aria-pressed={shown} onClick={() => setShown((s) => !s)}>{t('auth.showPassword')}</button>
         </div>
       )}

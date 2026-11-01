@@ -28,7 +28,7 @@ vi.mock('../../api/client.ts', async (orig) => {
 });
 
 const PROFILE = { language: 'he', theme: 'system', units: 'metric', sex: 'male', age: 30, heightCm: 180, weightKg: 80, goal: 'general_fitness', experience: 'intermediate', place: 'home', equipment: [], injuries: [], daysPerWeek: 3, sessionMinutes: 60, activityLevel: 'moderate', diet: 'omnivore', allergies: [], restrictions: [] };
-const ME = { user: { id: 'u1', email: 'a@b.co', role: 'user' }, csrfToken: 'x', onboarded: true, mode: 'hosted' };
+const ME = { user: { id: 'u1', username: 'abc', role: 'user' }, csrfToken: 'x', onboarded: true, mode: 'hosted' };
 let profile = { ...PROFILE } as Record<string, unknown>;
 
 function base(): void {

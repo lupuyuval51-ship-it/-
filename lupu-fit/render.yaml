@@ -1,4 +1,4 @@
-# UNTESTED draft. Set DATABASE_URL, ADMIN_EMAILS and AI keys in the dashboard.
+# UNTESTED draft. Set DATABASE_URL, ADMIN_USERNAMES and AI keys in the dashboard.
 services:
   - type: web
     name: lupu-fit
@@ -11,5 +11,5 @@ services:
         value: "1"
       - key: DATABASE_URL
         sync: false
-      - key: ADMIN_EMAILS
+      - key: ADMIN_USERNAMES
         sync: false

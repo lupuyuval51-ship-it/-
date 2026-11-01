@@ -5,8 +5,8 @@ import { COACH_LIMITS } from '../src/routes/coach.ts';
 
 const D = '2026-11-02';
 const presc = { sets: 3, repsMin: 8, repsMax: 10, rpe: 7, restSec: 90, loadKg: null, durationSec: null };
-async function onboard(t: TestCtx, email = 'a@example.com', ip = '10.0.0.1', profile: Record<string, unknown> = {}) {
-  const c = await register(t, email, ip);
+async function onboard(t: TestCtx, username = 'user_a', ip = '10.0.0.1', profile: Record<string, unknown> = {}) {
+  const c = await register(t, username, ip);
   expect((await call(t, c, 'PUT', '/api/profile', { ...PROFILE, ...profile })).status).toBe(200);
   return c;
 }
@@ -34,7 +34,7 @@ describe('profile', () => {
     expect((await call(t, c, 'GET', '/api/auth/me')).json.onboarded).toBe(true);
   });
   it('a minor with fat_loss never gets a deficit', async () => {
-    const t = await makeApp(); const c = await onboard(t, 'kid@example.com', '10.0.0.9', { age: 15, goal: 'fat_loss' });
+    const t = await makeApp(); const c = await onboard(t, 'kid', '10.0.0.9', { age: 15, goal: 'fat_loss' });
     const p = await call(t, c, 'GET', '/api/profile');
     expect(p.json.targets.kcal).toBeGreaterThanOrEqual(p.json.targets.tdee); expect(p.json.targets.notes).toContain('minor_no_deficit');
   });
@@ -100,7 +100,7 @@ describe('exercise history', () => {
 
 describe('isolation and idempotency', () => {
   it("another user's resources are 404, never 403, on every user-owned route", async () => {
-    const t = await makeApp(); const a = await onboard(t, 'a@example.com', '10.0.0.1'); const b = await onboard(t, 'b@example.com', '10.0.0.2');
+    const t = await makeApp(); const a = await onboard(t, 'user_a', '10.0.0.1'); const b = await onboard(t, 'user_b', '10.0.0.2');
     const w = await workout(t, a, 60);
     const plan = await call(t, a, 'POST', '/api/plans', { name: 'P', plan: { days: [] } });
     const meal = await call(t, a, 'POST', '/api/saved-meals', { name: 'M', slot: 'lunch', items: [{ name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 }] });
@@ -158,7 +158,7 @@ describe('nutrition log, XP rules, weights', () => {
 
 describe('plans, progress, readiness', () => {
   it('generates a deterministic plan respecting injuries, then saves/activates/duplicates it', async () => {
-    const t = await makeApp(); const c = await onboard(t, 'p@example.com', '10.0.0.3', { injuries: ['knee', 'lower_back'] });
+    const t = await makeApp(); const c = await onboard(t, 'user_p', '10.0.0.3', { injuries: ['knee', 'lower_back'] });
     const g1 = await call(t, c, 'POST', '/api/plans/generate', { seed: 7 }); const g2 = await call(t, c, 'POST', '/api/plans/generate', { seed: 7 }); const g3 = await call(t, c, 'POST', '/api/plans/generate', { seed: 99 });
     expect(g1.json.plan).toEqual(g2.json.plan); expect(JSON.stringify(g3.json.plan.days)).not.toBe(JSON.stringify(g1.json.plan.days));
     const byId = new Map(EXERCISES.map((e) => [e.id, e]));
@@ -207,10 +207,10 @@ describe('coach', () => {
     t.now.t = new Date(t.now.t.getTime() + 61_000);
     expect((await call(t, c, 'POST', `/api/coach/threads/${th}/messages`, { text: 'hi', lang: 'en' })).status).toBe(201);
   });
-  it('uses the AI provider with an anonymised snapshot (no e-mail, no exact age) and falls back when it fails', async () => {
+  it('uses the AI provider with an anonymised snapshot (no username, no exact age) and falls back when it fails', async () => {
     let seen = ''; let fail = false;
     const t = await makeApp({ ai: { name: 'fake', complete: async (i) => { if (fail) throw new Error('down'); seen = i.system; return 'AI answer'; } } });
-    const c = await onboard(t, 'secret.person@example.com', '10.0.0.4', { age: 33 });
+    const c = await onboard(t, 'secret.person', '10.0.0.4', { age: 33 });
     const th = (await call(t, c, 'POST', '/api/coach/threads', {})).json.id;
     expect((await call(t, c, 'POST', `/api/coach/threads/${th}/messages`, { text: 'plan my week', lang: 'en' })).json.assistant.provider).toBe('fake');
     expect(seen).not.toContain('secret.person'); expect(seen).not.toContain('"age"'); expect(seen).toContain('"ageBucket":"adult"');
@@ -251,7 +251,7 @@ describe('account: export, restore, delete', () => {
     await call(t, c, 'POST', '/api/food-log', { loggedDate: D, slot: 'lunch', name: 'Rice', grams: 100, kcal: 130, proteinG: 3, carbsG: 28, fatG: 0 });
     const ex = (await call(t, c, 'GET', '/api/export')).json;
     expect(ex.backup.version).toBe(1); expect(ex.backup.sessions).toHaveLength(1); expect(ex.backup.bodyWeight).toHaveLength(1); expect(ex.backup.foodLog).toHaveLength(1);
-    const c2 = await onboard(t, 'fresh@example.com', '10.0.0.7');
+    const c2 = await onboard(t, 'fresh', '10.0.0.7');
     const rs = await call(t, c2, 'POST', '/api/device/restore', ex.backup);
     expect(rs.status, JSON.stringify(rs.json)).toBe(200); expect(rs.json.restored.sessions).toBe(1);
     expect((await call(t, c2, 'GET', `/api/food-log?date=${D}`)).json.entries).toHaveLength(1);
@@ -259,7 +259,7 @@ describe('account: export, restore, delete', () => {
     expect((await call(t, c, 'DELETE', '/api/account', { confirm: 'nope' })).status).toBe(400);
     expect((await call(t, c, 'DELETE', '/api/account', { confirm: 'DELETE' })).status).toBe(200);
     const gone: [string, string][] = [
-      ['users', "SELECT COUNT(*)::int AS c FROM users WHERE email = 'a@example.com'"],
+      ['users', "SELECT COUNT(*)::int AS c FROM users WHERE username = 'user_a'"],
       ['profiles', "SELECT COUNT(*)::int AS c FROM profiles WHERE user_id NOT IN (SELECT id FROM users)"],
       ['workout_sessions', "SELECT COUNT(*)::int AS c FROM workout_sessions WHERE user_id NOT IN (SELECT id FROM users)"],
       ['session_sets', "SELECT COUNT(*)::int AS c FROM session_sets WHERE session_exercise_id NOT IN (SELECT id FROM session_exercises)"],
@@ -269,7 +269,7 @@ describe('account: export, restore, delete', () => {
       ['auth_sessions', "SELECT COUNT(*)::int AS c FROM auth_sessions WHERE user_id NOT IN (SELECT id FROM users)"],
     ];
     for (const [name, sql] of gone) expect(Number((await t.db.query<{ c: number }>(sql))[0]?.c), name).toBe(0);
-    const owned = await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM workout_sessions s JOIN users u ON u.id = s.user_id WHERE u.email = 'a@example.com'");
+    const owned = await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM workout_sessions s JOIN users u ON u.id = s.user_id WHERE u.username = 'user_a'");
     expect(Number(owned[0]?.c)).toBe(0);
     expect((await call(t, c, 'GET', '/api/auth/me')).status).toBe(401);
   });
@@ -287,8 +287,8 @@ describe('account: export, restore, delete', () => {
 
 describe('media: hasMedia only for validated + reviewed records', () => {
   it('non-admins cannot attach; invalid mp4 is rejected', async () => {
-    const t = await makeApp({ adminEmails: ['boss@example.com'] });
-    const user = await onboard(t, 'u@example.com', '10.0.0.1'); const admin = await onboard(t, 'boss@example.com', '10.0.0.2');
+    const t = await makeApp({ adminUsernames: ['boss'] });
+    const user = await onboard(t, 'user_u', '10.0.0.1'); const admin = await onboard(t, 'boss', '10.0.0.2');
     expect((await call(t, user, 'POST', '/api/admin/exercises/push_up/media', { mp4Base64: 'A'.repeat(200), url: '/media/exercises/push_up.mp4' })).status).toBe(404);
     const bad = await call(t, admin, 'POST', '/api/admin/exercises/push_up/media', { mp4Base64: btoa('x'.repeat(200)), url: '/media/exercises/push_up.mp4' });
     expect(bad.status).toBe(422);

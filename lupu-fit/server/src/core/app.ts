@@ -60,11 +60,11 @@ export function createApiApp(deps: Deps, router: Router): ApiApp {
     let user: Ctx['user'] = null; let session: Ctx['session'] = null;
     const token = parseCookies(req.headers['cookie'])[SESSION_COOKIE];
     if (token && /^[0-9a-f]{64}$/.test(token)) {
-      const rows = await deps.db.query<{ sid: string; csrf: string; uid: string; email: string; role: 'user' | 'admin' }>(
-        'SELECT s.id AS sid, s.csrf_token AS csrf, u.id AS uid, u.email, u.role FROM auth_sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2',
+      const rows = await deps.db.query<{ sid: string; csrf: string; uid: string; username: string; role: 'user' | 'admin' }>(
+        'SELECT s.id AS sid, s.csrf_token AS csrf, u.id AS uid, u.username, u.role FROM auth_sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2',
         [await sha256Hex(token), now.toISOString()]);
       const r = rows[0];
-      if (r) { user = { id: r.uid, email: r.email, role: r.role }; session = { id: r.sid, csrf: r.csrf }; }
+      if (r) { user = { id: r.uid, username: r.username, role: r.role }; session = { id: r.sid, csrf: r.csrf }; }
     }
     if (needsAuth && !user) throw new ApiError(401, 'unauthorized');
 

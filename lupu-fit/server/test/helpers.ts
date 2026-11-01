@@ -5,18 +5,17 @@ import { extraRoutes } from '../src/routes/index.ts';
 import type { ApiApp } from '../src/core/app.ts';
 import type { ApiResponse, Deps } from '../src/core/types.ts';
 
-export interface TestCtx { app: ApiApp; db: PgliteAdapter; now: { t: Date }; resets: { email: string; token: string }[] }
+export interface TestCtx { app: ApiApp; db: PgliteAdapter; now: { t: Date } }
 
 export async function makeApp(over: Partial<Deps> = {}): Promise<TestCtx> {
   const db = await PgliteAdapter.create();
   await migrate(db);
   const now = { t: new Date('2026-11-02T08:00:00Z') };
-  const resets: { email: string; token: string }[] = [];
   const app = buildApp({
     db, mode: 'hosted', clock: () => now.t, pbkdf2Iterations: 1000, secureCookies: false, sessionTtlDays: 30,
-    onPasswordReset: (email, token) => { resets.push({ email, token }); }, ...over,
+    ...over,
   }, extraRoutes);
-  return { app, db, now, resets };
+  return { app, db, now };
 }
 
 export interface Client { cookie: string; csrf: string; ip: string }
@@ -37,9 +36,9 @@ export async function call(t: TestCtx, c: Client, method: string, path: string, 
   return { ...res, json: res.body };
 }
 
-export async function register(t: TestCtx, email = 'a@example.com', ip = '10.0.0.1'): Promise<Client> {
+export async function register(t: TestCtx, username = 'user_a', ip = '10.0.0.1'): Promise<Client> {
   const c = anon(ip);
-  const r = await call(t, c, 'POST', '/api/auth/register', { email, password: 'correct-horse-battery' });
+  const r = await call(t, c, 'POST', '/api/auth/register', { username, password: 'correct-horse-battery' });
   if (r.status !== 201) throw new Error(`register failed ${r.status} ${JSON.stringify(r.body)}`);
   return c;
 }

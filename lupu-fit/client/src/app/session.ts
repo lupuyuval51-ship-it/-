@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Language, NutritionTargets, ProfileInput } from '@lupu-fit/shared';
 import { api, ApiRequestError } from '../api/client.ts';
 
-export interface Me { user: { id: string; email: string; role: 'user' | 'admin' }; csrfToken: string; onboarded: boolean; mode: 'hosted' | 'device' }
+export interface Me { user: { id: string; username: string; role: 'user' | 'admin' }; csrfToken: string; onboarded: boolean; mode: 'hosted' | 'device' }
 export interface ProfileResponse { profile: ProfileInput; targets: NutritionTargets }
 
 export const qk = {

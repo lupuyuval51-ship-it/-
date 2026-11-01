@@ -9,9 +9,15 @@ export const MIGRATIONS: { name: string; sql: string; sha256: string }[] = [
     "name": "0002_auth_attempts.sql",
     "sql": "-- DB-backed brute-force protection: survives restarts and works across instances.\n-- Keyed by (scope, identifier) where identifier is a salted SHA-256 of the normalised email or of the client IP.\nCREATE TABLE auth_attempts (\n  scope TEXT NOT NULL,\n  identifier TEXT NOT NULL,\n  fail_count INTEGER NOT NULL DEFAULT 0,\n  first_failed_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n  locked_until TIMESTAMPTZ,\n  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),\n  PRIMARY KEY (scope, identifier)\n);\n",
     "sha256": "16ba447bd9d1defcccde1ccbab60bd9e565efd0bbf191606ef22acc5e249b7e6"
+  },
+  {
+    "name": "0003_username.sql",
+    "sql": "-- Login uses a username chosen by the user instead of an e-mail address.\n-- password_reset_tokens is intentionally kept but is now UNUSED (there is no recovery channel without e-mail).\nALTER TABLE users RENAME COLUMN email TO username;\nDROP INDEX users_email_lower_idx;\n-- Device Mode accounts were generated as device-<hex>@lupu-fit.local; keep them valid as device_<hex>.\nUPDATE users SET username = 'device_' || substr(split_part(username, '@', 1), 8) WHERE username LIKE 'device-%@lupu-fit.local';\nCREATE UNIQUE INDEX users_username_lower_idx ON users (lower(username));\n-- Old counters were keyed by hashed e-mail addresses and are meaningless now.\nDELETE FROM auth_attempts;\n",
+    "sha256": "4f1bbc27d130b5b70cc898bed72ee23426838778d66cfaa757a98d8965ce4161"
   }
 ];
 export const PINNED_CHECKSUMS: Record<string, string> = {
   "0001_initial.sql": "010bea8f9d9b1529bce159aa4956bce0748550f46b4a2f00909018f648bf2fb1",
-  "0002_auth_attempts.sql": "16ba447bd9d1defcccde1ccbab60bd9e565efd0bbf191606ef22acc5e249b7e6"
+  "0002_auth_attempts.sql": "16ba447bd9d1defcccde1ccbab60bd9e565efd0bbf191606ef22acc5e249b7e6",
+  "0003_username.sql": "4f1bbc27d130b5b70cc898bed72ee23426838778d66cfaa757a98d8965ce4161"
 };

@@ -10,7 +10,7 @@ import { PublicLayout, Shell } from './Shell.tsx';
 import { useMe } from './session.ts';
 
 const p = {
-  Login: lazy(() => import('../pages/Login.tsx')), Register: lazy(() => import('../pages/Register.tsx')), Forgot: lazy(() => import('../pages/ForgotPassword.tsx')), Reset: lazy(() => import('../pages/ResetPassword.tsx')),
+  Login: lazy(() => import('../pages/Login.tsx')), Register: lazy(() => import('../pages/Register.tsx')),
   Welcome: lazy(() => import('../pages/Welcome.tsx')), Onboarding: lazy(() => import('../pages/Onboarding.tsx')), Home: lazy(() => import('../pages/Home.tsx')),
   Workouts: lazy(() => import('../pages/WorkoutsHub.tsx')), Plan: lazy(() => import('../pages/PlanDetail.tsx')), Ready: lazy(() => import('../pages/ReadyDetail.tsx')), History: lazy(() => import('../pages/History.tsx')),
   Live: lazy(() => import('../pages/LiveSession.tsx')), Summary: lazy(() => import('../pages/SessionSummary.tsx')), Exercises: lazy(() => import('../pages/Exercises.tsx')), Exercise: lazy(() => import('../pages/ExerciseDetail.tsx')),
@@ -19,7 +19,7 @@ const p = {
   Privacy: lazy(() => import('../pages/Privacy.tsx')), Terms: lazy(() => import('../pages/Terms.tsx')), Deletion: lazy(() => import('../pages/AccountDeletion.tsx')),
 };
 
-const PUBLIC = ['/login', '/register', '/forgot-password', '/reset-password'];
+const PUBLIC = ['/login', '/register'];
 const LEGAL = ['/privacy', '/terms', '/account-deletion'];
 const ONBOARD = ['/welcome', '/onboarding'];
 
@@ -47,7 +47,7 @@ export function AppRoutes(): ReactNode {
       <Gate>
         <Routes>
           <Route element={<PublicLayout />}>
-            <Route path="/login" element={<p.Login />} /><Route path="/register" element={<p.Register />} /><Route path="/forgot-password" element={<p.Forgot />} /><Route path="/reset-password" element={<p.Reset />} />
+            <Route path="/login" element={<p.Login />} /><Route path="/register" element={<p.Register />} />
             <Route path="/welcome" element={<p.Welcome />} /><Route path="/onboarding" element={<p.Onboarding />} />
             <Route path="/privacy" element={<p.Privacy />} /><Route path="/terms" element={<p.Terms />} /><Route path="/account-deletion" element={<p.Deletion />} />
           </Route>

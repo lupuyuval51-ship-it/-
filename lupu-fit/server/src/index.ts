@@ -15,8 +15,7 @@ const prod = process.env['NODE_ENV'] === 'production';
 const api = buildApp({
   db, mode: 'hosted', clock: () => new Date(), ...DEFAULT_DEPS, secureCookies: prod,
   ...(providersFromEnv(process.env) ? { ai: providersFromEnv(process.env) } : {}),
-  adminEmails: (process.env['ADMIN_EMAILS'] ?? '').split(',').map((x) => x.trim()).filter(Boolean),
-  onPasswordReset: (email) => { console.log(`[auth] password reset requested for ${email.slice(0, 2)}***`); },
+  adminUsernames: (process.env['ADMIN_USERNAMES'] ?? '').split(',').map((x) => x.trim()).filter(Boolean),
 }, extraRoutes);
 const trust = process.env['TRUST_PROXY'];
 const app = createExpressApp(api, {

@@ -31,11 +31,9 @@ export interface Deps {
   pbkdf2Iterations: number;
   secureCookies: boolean;
   sessionTtlDays: number;
-  /** called with the plain reset token so the host can e-mail it; the API never returns it */
-  onPasswordReset?: (email: string, token: string) => void | Promise<void>;
   ai?: AiProvider;
-  /** e-mails that register as admin (hosted: ADMIN_EMAILS env) */
-  adminEmails?: string[];
+  /** usernames that register as admin (hosted: ADMIN_USERNAMES env) */
+  adminUsernames?: string[];
   /** injectable for tests; defaults to global fetch */
   fetch?: typeof fetch;
 }
@@ -47,7 +45,7 @@ export interface Ctx {
   params: Record<string, string>;
   body: unknown;
   now: Date;
-  user: { id: string; email: string; role: 'user' | 'admin' } | null;
+  user: { id: string; username: string; role: 'user' | 'admin' } | null;
   session: { id: string; csrf: string } | null;
 }
 

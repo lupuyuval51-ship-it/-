@@ -34,7 +34,7 @@ describe('Express adapter', () => {
   });
   it('JSON bodies over 100 KB are rejected with 413', async () => {
     const s = await serve({ trustProxy: false });
-    const r = await fetch(`${s.url}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'a@b.co', password: 'x'.repeat(150_000) }) });
+    const r = await fetch(`${s.url}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'abc', password: 'x'.repeat(150_000) }) });
     expect(r.status).toBe(413); expect((await r.json()).error).toBe('payload_too_large');
     await s.close();
   });
@@ -55,7 +55,7 @@ describe('Express adapter', () => {
   });
   it('sets a session cookie with HttpOnly + SameSite over real HTTP', async () => {
     const s = await serve({ trustProxy: false });
-    const r = await fetch(`${s.url}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'h@example.com', password: 'correct-horse-battery' }) });
+    const r = await fetch(`${s.url}/api/auth/register`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: 'user_h', password: 'correct-horse-battery' }) });
     expect(r.status).toBe(201); expect(r.headers.get('set-cookie')).toMatch(/lf_session=[0-9a-f]{64}; HttpOnly; SameSite=Lax/);
     await s.close();
   });

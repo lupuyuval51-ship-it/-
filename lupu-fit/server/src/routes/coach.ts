@@ -12,7 +12,7 @@ import { addDays, isoDate, loadProfile, uid } from './util.ts';
 const EX = new Map(EXERCISES.map((e) => [e.id, e]));
 export const COACH_LIMITS = { perMinute: 6, perDay: 50 } as const;
 
-/** Structured, anonymised snapshot: age BRACKET (never exact age), no name/e-mail, only numbers that exist in the DB. */
+/** Structured, anonymised snapshot: age BRACKET (never exact age), no name/username, only numbers that exist in the DB. */
 export async function buildSnapshot(ctx: Ctx, lang: Language): Promise<CoachSnapshot | null> {
   const p = await loadProfile(ctx.db, uid(ctx));
   if (!p) return null;

@@ -11,7 +11,7 @@ const { default: Privacy } = await import('./Privacy.tsx');
 const { default: Terms } = await import('./Terms.tsx');
 const { default: AccountDeletion } = await import('./AccountDeletion.tsx');
 
-const ME = { user: { id: 'u1', email: 'a@b.com', role: 'user' }, csrfToken: 'c', onboarded: true, mode: 'hosted' };
+const ME = { user: { id: 'u1', username: 'abc', role: 'user' }, csrfToken: 'c', onboarded: true, mode: 'hosted' };
 beforeEach(() => { Object.values(m).forEach((f) => f.mockReset()); delete process.env['VITE_SUPPORT_EMAIL']; localStorage.clear(); });
 
 describe('legal pages', () => {

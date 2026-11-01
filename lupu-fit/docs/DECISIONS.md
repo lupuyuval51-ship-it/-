@@ -84,3 +84,6 @@ The service worker keeps a last-known copy of `GET /api/auth/me` and `/api/profi
 
 ## D14 — Second UX pass
 Per-screen redesign by five parallel owners following `docs/UX_GUIDE.md` (one primary action per screen, sticky action bars on phones, skeletons, collapsed secondary content). Orange is reserved for the primary action and active states.
+
+## D15 — Username + user-chosen password, no e-mail
+Accounts use a username (3-24 chars: a-z 0-9 _ . -, case-insensitive) and a password the user picks. No e-mail is collected, so password reset was removed (migration 0003 renames users.email -> users.username; password_reset_tokens kept, unused). Trade-off: a forgotten password cannot be recovered. A one-time recovery key shown at registration is the suggested follow-up if recovery is wanted.

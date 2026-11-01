@@ -33,7 +33,7 @@ export function mediaRoutes(r: Router, _d: Deps): void {
 
   r.post('/api/admin/exercises/:id/media/review', async (ctx) => {
     if (ctx.user?.role !== 'admin') throw new ApiError(404, 'not_found');
-    const up = await ctx.db.query('UPDATE exercise_media SET reviewed_at = $1, reviewed_by = $2 WHERE exercise_id = $3 RETURNING exercise_id', [ctx.now.toISOString(), ctx.user.email, ctx.params['id']]);
+    const up = await ctx.db.query('UPDATE exercise_media SET reviewed_at = $1, reviewed_by = $2 WHERE exercise_id = $3 RETURNING exercise_id', [ctx.now.toISOString(), ctx.user.username, ctx.params['id']]);
     if (up.length === 0) throw new ApiError(404, 'not_found');
     return { json: { ok: true } };
   });

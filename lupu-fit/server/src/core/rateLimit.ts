@@ -6,12 +6,10 @@ export interface LimitPolicy { threshold: number; baseLockSec: number; maxLockSe
 export const POLICIES: Record<string, LimitPolicy> = {
   login: { threshold: 5, baseLockSec: 30, maxLockSec: 3600, windowSec: 3600 },
   register: { threshold: 10, baseLockSec: 60, maxLockSec: 3600, windowSec: 3600 },
-  forgot: { threshold: 5, baseLockSec: 60, maxLockSec: 3600, windowSec: 3600 },
-  reset: { threshold: 5, baseLockSec: 60, maxLockSec: 3600, windowSec: 3600 },
 };
 
-/** Identifiers are hashes, so the table never stores raw e-mails or IPs. */
-export async function ident(kind: 'email' | 'ip', value: string): Promise<{ scopeKind: string; id: string }> {
+/** Identifiers are hashes, so the table never stores raw usernames or IPs. */
+export async function ident(kind: 'username' | 'ip', value: string): Promise<{ scopeKind: string; id: string }> {
   return { scopeKind: kind, id: await sha256Hex(`lupu-fit:${kind}:${value.trim().toLowerCase()}`) };
 }
 

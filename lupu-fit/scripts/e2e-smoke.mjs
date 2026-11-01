@@ -5,7 +5,7 @@ const ctx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:
 const page=await ctx.newPage();
 const errs=[]; page.on('pageerror',e=>errs.push(String(e)));
 await page.addInitScript(()=>localStorage.setItem('lf_lang','he'));
-const r=await ctx.request.post(BASE+'/api/auth/register',{data:{email:`e2e${Date.now()}@example.com`,password:'correct-horse-battery'}});
+const r=await ctx.request.post(BASE+'/api/auth/register',{data:{username:`e2e_${Date.now()}`,password:'correct-horse-battery'}});
 const {csrfToken}=await r.json();
 await ctx.request.put(BASE+'/api/profile',{headers:{'x-csrf-token':csrfToken},data:{language:'he',theme:'dark',units:'metric',sex:'male',age:29,heightCm:180,weightKg:80,goal:'muscle_gain',experience:'intermediate',place:'home',equipment:[],injuries:[],daysPerWeek:4,sessionMinutes:60,activityLevel:'moderate',diet:'omnivore',allergies:[],restrictions:[]}});
 const step=async(n,f)=>{try{await f();console.log('OK  ',n)}catch(e){console.log('FAIL',n,String(e).split('\n')[0]);await page.screenshot({path:`/tmp/e2e-fail-${n.replace(/\W+/g,'_')}.png`})}};
