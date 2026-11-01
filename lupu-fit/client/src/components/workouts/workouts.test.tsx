@@ -221,7 +221,9 @@ describe('ReadyDetail', () => {
     expect(await screen.findByRole('link', { name: 'Resume it' })).toHaveAttribute('href', '/workouts/session');
   });
   it('a check-in posts to /api/readiness and re-personalises', async () => {
-    routes.set('POST /api/readiness', () => ({ state: 'easier' }));
+    let saved: unknown = null;
+    routes.set('POST /api/readiness', (b) => { saved = { ...(b as object), state: 'easier' }; return { state: 'easier' }; });
+    routes.set('GET /api/readiness', () => ({ checkin: saved }));
     const u = userEvent.setup();
     await open('en');
     await u.click(await screen.findByRole('button', { name: 'Save check-in' }));

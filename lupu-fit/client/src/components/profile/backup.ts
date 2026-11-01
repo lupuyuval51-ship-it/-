@@ -26,3 +26,14 @@ export function downloadJson(filename: string, data: unknown): File {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   return file;
 }
+
+/** Blob.text() with a FileReader fallback for older engines. */
+export function readFileText(f: Blob): Promise<string> {
+  if (typeof f.text === 'function') return f.text();
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result ?? ''));
+    r.onerror = () => reject(r.error ?? new Error('read_failed'));
+    r.readAsText(f);
+  });
+}

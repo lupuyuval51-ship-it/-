@@ -37,7 +37,10 @@ export const outbox = {
   async retryRejected(id: string): Promise<void> { const it = await get<OutboxItem>(id, store()); if (it) { await set(id, { ...it, status: 'pending' }, store()); await reload(); } },
   /** Replays pending items oldest-first; stops at the first network failure so ordering is preserved. */
   flush(): Promise<void> {
-    flushing ??= (async () => {
+    if (flushing) return flushing;
+    // NOTE: reset in .finally on the returned promise. Resetting inside the async body is wrong: with nothing to send the body
+    // finishes synchronously, before `flushing` is assigned, which would leave a settled promise cached forever.
+    const p: Promise<void> = (async () => {
       try {
         for (const it of [...cache].filter((x) => x.status === 'pending')) {
           try {
@@ -50,9 +53,10 @@ export const outbox = {
             await set(it.id, { ...it, status: 'rejected', error: code } satisfies OutboxItem, store());
           }
         }
-      } finally { flushing = null; await reload(); }
-    })();
-    return flushing;
+      } finally { await reload(); }
+    })().finally(() => { if (flushing === p) flushing = null; });
+    flushing = p;
+    return p;
   },
   subscribe(f: () => void): () => void { subs.add(f); return () => { subs.delete(f); }; },
 };

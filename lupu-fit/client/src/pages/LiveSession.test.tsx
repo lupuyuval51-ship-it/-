@@ -206,7 +206,7 @@ describe('LiveSession', () => {
     setup({ extra: (c) => (c.method === 'POST' && c.path.endsWith('/sets') ? new ApiRequestError(400, 'validation_error', {}, {}) : undefined) });
     await outbox.enqueue({ method: 'POST', path: '/api/sessions/s1/sets', body: { sessionExerciseId: 'e1', reps: 8 }, label: 'bad set' });
     view();
-    await act(async () => { await outbox.flush(); await outbox.flush(); }); // the first may join an in-flight flush started by the online event
+    await act(async () => { await outbox.flush(); });
     expect(await screen.findByText('לא התקבלו בשרת')).toBeInTheDocument();
     expect(screen.getByText('bad set')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'לנסות שוב' })).toBeInTheDocument();

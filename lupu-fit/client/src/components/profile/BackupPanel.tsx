@@ -5,7 +5,7 @@ import { IS_DEVICE } from '../../env.ts';
 import { fmt, useT } from '../../i18n/index.tsx';
 import { Banner, Button, errorMessage, Sheet } from '../../ui/kit.tsx';
 import { useToast } from '../../ui/toast.tsx';
-import { downloadJson, parseBackupText, type BackupCounts, type ParsedBackup } from './backup.ts';
+import { downloadJson, parseBackupText, readFileText, type BackupCounts, type ParsedBackup } from './backup.ts';
 
 const MAX_BYTES = IS_DEVICE ? 200 * 1024 * 1024 : 8 * 1024 * 1024;
 const FILENAME = 'lupu-fit-export.json';
@@ -38,7 +38,7 @@ export function BackupPanel(): ReactNode {
     if (!f) return;
     if (f.size > MAX_BYTES) { setErr(t('error.payload_too_large')); return; }
     let text: string;
-    try { text = await f.text(); } catch { setErr(t('profile.backup.unreadable')); return; }
+    try { text = await readFileText(f); } catch { setErr(t('profile.backup.unreadable')); return; }
     const parsed = parseBackupText(text);
     if (!parsed.ok) { setErr(parsed.reason === 'json' ? t('profile.backup.notJson') : t('profile.backup.invalid', { path: parsed.path ?? '—' })); return; }
     setStaged(parsed);

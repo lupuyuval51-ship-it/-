@@ -45,4 +45,12 @@ describe('outbox', () => {
     behaviour = () => new ApiRequestError(400, 'validation_error', {});
     await expect(callOrQueue({ method: 'POST', path: '/api/z', body: {}, label: 'z' })).rejects.toBeInstanceOf(ApiRequestError);
   });
+  it('an empty flush does not wedge later flushes', async () => {
+    await outbox.flush();
+    behaviour = () => new NetworkError();
+    await callOrQueue({ method: 'POST', path: '/api/late', body: {}, label: 'late' });
+    calls.length = 0; behaviour = () => ({ ok: true });
+    await outbox.flush();
+    expect(calls.map((c) => c.path)).toEqual(['/api/late']); expect(outbox.list()).toHaveLength(0);
+  });
 });
