@@ -146,7 +146,7 @@ export default function Progress(): ReactNode {
                   <li key={id} className={got ? 'ach unlocked' : 'ach'}>
                     <strong className="small">{t(`label.achievement.${id}`)}</strong>
                     <span className="tiny muted">{got ? fmt.date(got.unlockedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' }) : t('progress.ach.locked')}</span>
-                    <span className="sr-only">{got ? t('progress.ach.unlockedSr') : t('progress.ach.lockedSr')}</span>
+                    {got ? <span className="sr-only">{t('progress.ach.unlockedSr')}</span> : null}
                   </li>
                 );
               })}

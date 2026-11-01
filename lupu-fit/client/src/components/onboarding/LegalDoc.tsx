@@ -11,7 +11,7 @@ function collect(lang: 'he' | 'en', base: string, prefix: string): string[] {
 }
 
 export function supportEmail(): string | undefined {
-  const v = (import.meta.env['VITE_supportEmail'] as string | undefined)?.trim();
+  const v = (import.meta.env as Record<string, string | undefined>).VITE_SUPPORT_EMAIL?.trim();
   return v ? v : undefined;
 }
 

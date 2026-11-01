@@ -18,7 +18,7 @@ export default defineFeature({
     nutrition: { title: 'Nutrition adherence', loggedDays: 'Days logged', proteinDays: 'Days on protein target', avgKcal: 'Average calories', avgProtein: 'Average protein (g)', target: '(target {n})' },
     prs: { title: 'Personal records', est1rm: 'Est. 1RM' },
     xp: { title: 'Level and XP', level: 'Level', xp: 'XP', bar: '{a} of {b} XP in this level', toNext: '{n} XP to the next level' },
-    ach: { title: 'Achievements', locked: 'Locked', unlockedSr: 'Unlocked', lockedSr: 'Locked' },
+    ach: { title: 'Achievements', locked: 'Locked', unlockedSr: 'Unlocked' },
     glossary: {
       title: 'Glossary',
       rpe: { term: 'RPE', def: 'Rate of perceived exertion, 1 to 10. RPE 8 means about two reps left in the tank.' },
@@ -53,7 +53,7 @@ export default defineFeature({
     nutrition: { title: 'עמידה ביעדי תזונה', loggedDays: 'ימי תיעוד', proteinDays: 'ימים ביעד החלבון', avgKcal: 'ממוצע קלוריות', avgProtein: 'ממוצע חלבון (ג׳)', target: '(יעד {n})' },
     prs: { title: 'שיאים אישיים', est1rm: 'הערכת 1RM' },
     xp: { title: 'רמה ו-XP', level: 'רמה', xp: 'XP', bar: '{a} מתוך {b} XP ברמה הזו', toNext: '{n} XP לרמה הבאה' },
-    ach: { title: 'הישגים', locked: 'נעול', unlockedSr: 'נפתח', lockedSr: 'נעול' },
+    ach: { title: 'הישגים', locked: 'נעול', unlockedSr: 'נפתח' },
     glossary: {
       title: 'מילון מונחים',
       rpe: { term: 'RPE', def: 'דירוג מאמץ נתפס, 1 עד 10. RPE 8 אומר שנשארו בערך שתי חזרות במאגר.' },

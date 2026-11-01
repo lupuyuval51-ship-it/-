@@ -1,0 +1,4 @@
+/* Profile. */
+.profile-page { min-inline-size: 0; }
+.profile-page .section-title { font-size: var(--fs-18); }
+.profile-page .btn { text-decoration: none; }

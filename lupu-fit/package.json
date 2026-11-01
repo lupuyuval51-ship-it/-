@@ -29,7 +29,8 @@
     "build:hosted": "vite build --config client/vite.config.ts --mode hosted client",
     "build:device": "vite build --config client/vite.config.ts --mode device client",
     "build": "npm run gen:migrations && npm run build:hosted && npm run build:device",
-    "test:client": "vitest run --root client"
+    "test:client": "vitest run --root client",
+    "dev:pglite": "tsx server/src/devServer.ts"
   },
   "devDependencies": {
     "@fontsource-variable/heebo": "^5.3.0",

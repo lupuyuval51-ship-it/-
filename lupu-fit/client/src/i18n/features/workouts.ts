@@ -74,7 +74,7 @@ export default defineFeature({
     plan: {
       back: 'Back to my plans', notFound: 'This plan does not exist.', activeBadge: 'Active', archivedBadge: 'Archived', daysTab: 'Plan days', dayTitle: 'Day {n}: {name}',
       estimate: 'About {n} min', startDay: 'Start this day', starting: 'Starting…', empty: 'This day has no exercises.',
-      easier: 'Easier alternative', harder: 'Harder alternative', noAlternative: 'No alternatives for this exercise', swapTo: 'Swap to {name}',
+      swap: 'Swap', easier: 'Easier alternative', harder: 'Harder alternative', noAlternative: 'No alternatives for this exercise', swapTo: 'Swap to {name}',
       swapTitle: 'Swap {name}', swapped: 'Exercise swapped',
       reason: { injury: 'Unsafe for your injuries', age: 'Not suitable for your age', equipment: 'You do not have the gear', difficulty: 'Above your level', avoid: 'On your avoid list', mode: 'Needs gear in a bodyweight plan', unknown: 'Unavailable' },
       moveUp: 'Move up', moveDown: 'Move down', remove: 'Remove exercise', removeLast: 'A day needs at least one exercise', edit: 'Edit sets and reps', sets: 'Sets', repsMin: 'Min reps', repsMax: 'Max reps', seconds: 'Seconds', load: 'Weight (kg)',
@@ -181,7 +181,7 @@ export default defineFeature({
     plan: {
       back: 'חזרה לתוכניות שלי', notFound: 'התוכנית הזו לא קיימת.', activeBadge: 'פעילה', archivedBadge: 'בארכיון', daysTab: 'ימי התוכנית', dayTitle: 'יום {n}: {name}',
       estimate: 'בערך {n} דק׳', startDay: 'להתחיל את היום הזה', starting: 'מתחילים…', empty: 'אין תרגילים ביום הזה.',
-      easier: 'חלופה קלה יותר', harder: 'חלופה קשה יותר', noAlternative: 'אין חלופות לתרגיל הזה', swapTo: 'החלפה ל{name}',
+      swap: 'החלפה', easier: 'חלופה קלה יותר', harder: 'חלופה קשה יותר', noAlternative: 'אין חלופות לתרגיל הזה', swapTo: 'החלפה ל{name}',
       swapTitle: 'החלפת {name}', swapped: 'התרגיל הוחלף',
       reason: { injury: 'לא בטוח לפציעות שלך', age: 'לא מתאים לגיל', equipment: 'אין לך את הציוד', difficulty: 'מעל הרמה שלך', avoid: 'ברשימת ההימנעות שלך', mode: 'דורש ציוד בתוכנית משקל גוף', unknown: 'לא זמין' },
       moveUp: 'הזזה למעלה', moveDown: 'הזזה למטה', remove: 'הסרת תרגיל', removeLast: 'ביום חייב להישאר תרגיל אחד לפחות', edit: 'עריכת סטים וחזרות', sets: 'סטים', repsMin: 'חזרות מינימום', repsMax: 'חזרות מקסימום', seconds: 'שניות', load: 'משקל (ק״ג)',
