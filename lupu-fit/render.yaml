@@ -1,0 +1,15 @@
+# UNTESTED draft. Set DATABASE_URL, ADMIN_EMAILS and AI keys in the dashboard.
+services:
+  - type: web
+    name: lupu-fit
+    runtime: docker
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false

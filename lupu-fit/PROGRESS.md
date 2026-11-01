@@ -15,7 +15,7 @@
 ## Not done / honest limitations
 - Playwright E2E is a smoke script only: no en/LTR, no desktop, no finish -> PR/XP -> history assertions, no CI wiring.
 - Offline reload verified only for a user without a profile (lands on Welcome); with a full profile not re-verified.
-- Capacitor / TWA / Docker / render.yaml / Caddy configs NOT written.
+- Dockerfile, render.yaml, Caddyfile and capacitor.config.ts are UNTESTED drafts; no android/ project or TWA package exists.
 - Videos are schematic and unreviewed (`reviewed:false`); 59 are approximate.
 - Browser-only paths untested: wake lock, vibration, chime, camera barcode, Web Share.
 - Hebrew legal copy and microcopy not reviewed by a native speaker or lawyer.
