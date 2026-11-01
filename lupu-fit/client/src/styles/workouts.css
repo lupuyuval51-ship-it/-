@@ -66,7 +66,7 @@
 .wk-ex > a { display: flex; flex: none; }
 .wk-ex-no { flex: none; inline-size: 1.25rem; text-align: center; color: var(--text-muted); font-size: var(--fs-18); }
 .wk-ex-body { display: flex; flex-direction: column; gap: 0.125rem; min-inline-size: 0; flex: 1; }
-.wk-ex-name { color: var(--text); font-weight: 600; text-decoration: none; }
+.wk-ex-name { color: var(--text); font-weight: 600; text-decoration: none; display: flex; align-items: center; min-block-size: var(--tap); }
 .wk-ex-name:hover { text-decoration: underline; }
 .wk-presc { display: flex; flex-direction: column; gap: 0; }
 .wk-presc-main { font-size: var(--fs-16); }

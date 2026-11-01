@@ -40,7 +40,7 @@
 .coach .composer-wrap { flex: none; display: flex; flex-direction: column; gap: 0.5rem; padding-block-start: 0.5rem; border-block-start: 1px solid var(--border); background: var(--bg); }
 .coach .prompt-chips { display: flex; gap: 0.5rem; overflow-x: auto; padding-block-end: 0.125rem; scrollbar-width: none; }
 .coach .prompt-chips::-webkit-scrollbar { display: none; }
-.coach .prompt-chips .chip { flex: none; white-space: nowrap; min-block-size: 2.5rem; }
+.coach .prompt-chips .chip { flex: none; white-space: nowrap; min-block-size: var(--tap); }
 .coach .composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem; align-items: end; }
 .coach .composer .field > label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .coach .composer .hint { display: none; }
