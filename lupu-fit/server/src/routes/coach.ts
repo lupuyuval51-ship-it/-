@@ -43,7 +43,7 @@ async function usage(ctx: Ctx, kind: string): Promise<{ minute: number; day: num
   const q = async (ms: number) => Number((await ctx.db.query<{ c: number }>('SELECT COUNT(*)::int AS c FROM coach_usage WHERE user_id = $1 AND kind = $2 AND used_at > $3', [uid(ctx), kind, since(ms)]))[0]?.c ?? 0);
   return { minute: await q(60_000), day: await q(86_400_000) };
 }
-export const TRANSLATE_LIMITS = { perMinute: 20, perDay: 400 } as const;
+export const TRANSLATE_LIMITS = { perMinute: 30, perDay: 150 } as const;
 export const assertQuota = async (ctx: Ctx, kind: 'message' | 'photo' | 'translate'): Promise<void> => {
   const u = await usage(ctx, kind);
   const lim = kind === 'message' ? COACH_LIMITS : kind === 'translate' ? TRANSLATE_LIMITS : { perMinute: 6, perDay: 20 };

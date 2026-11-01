@@ -80,7 +80,7 @@ describe('POST /api/i18n/translate', () => {
     const t = await makeApp({ ai: busy }); const c = await register(t);
     const r = await call(t, c, 'POST', '/api/i18n/translate', body);
     expect(r.status).toBe(429); expect(r.json.error).toBe('ai_busy');
-    for (let i = 0; i < 19; i++) await call(t, c, 'POST', '/api/i18n/translate', body);
+    for (let i = 0; i < 29; i++) await call(t, c, 'POST', '/api/i18n/translate', body);
     const q = await call(t, c, 'POST', '/api/i18n/translate', body);
     expect(q.status).toBe(429); expect(q.json.error).toBe('quota_exceeded'); expect(q.headers?.['retry-after']).toBeDefined();
   });
