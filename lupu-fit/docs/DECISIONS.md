@@ -72,3 +72,15 @@ Larger figure (far cable/band anchors no longer shrink the camera), hands, a flo
 motions for movements that previously looked identical (assisted/regular/shrimp pistol, single-leg/elevated/banded bridge,
 sumo vs conventional deadlift). Specific-fidelity clips rose from 182 to 185; the rest remain labelled `approximate` and
 nothing is human-reviewed (`reviewed: false`).
+
+## D11 — Portable API core instead of Express in the worker
+`createApiApp(deps, router).handle(ApiRequest)` is framework-agnostic; Express is an adapter. Device Mode runs the same core in a Web Worker over PGlite. JSON bodies are canonicalised by a JSON round trip. Deviation from literally running Express in the worker.
+
+## D12 — No pg_trgm; content lives in code
+Search is client-side over static content in `shared/src/content`. Dishes/templates derive macros/allergens from foods.
+
+## D13 — Offline identity cache
+The service worker keeps a last-known copy of `GET /api/auth/me` and `/api/profile` only, served only when the network fails; wiped on logout or 401. All other API calls are never cached.
+
+## D14 — Second UX pass
+Per-screen redesign by five parallel owners following `docs/UX_GUIDE.md` (one primary action per screen, sticky action bars on phones, skeletons, collapsed secondary content). Orange is reserved for the primary action and active states.

@@ -67,10 +67,27 @@ async function videoFetch(request) {
   return range ? rangeResponse(hit, range) : hit;
 }
 
+// Offline boot: only the identity + profile reads keep a last-known copy, served ONLY when the network is unreachable.
+const SESSION = 'lupu-session-v1';
+const SESSION_PATHS = ['/api/auth/me', '/api/profile'];
+async function sessionFetch(req) {
+  const cache = await caches.open(SESSION);
+  try {
+    const res = await fetch(req);
+    if (res.ok) await cache.put(req.url, res.clone());
+    else if (res.status === 401) await caches.delete(SESSION);
+    return res;
+  } catch {
+    return (await cache.match(req.url)) || new Response(JSON.stringify({ error: 'network' }), { status: 503, headers: { 'content-type': 'application/json' } });
+  }
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request; const url = new URL(req.url);
+  if (url.origin === self.location.origin && url.pathname === '/api/auth/logout') e.waitUntil(caches.delete(SESSION)); // wipe the offline identity copy
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return; // never cache API calls
+  if (SESSION_PATHS.includes(url.pathname)) { e.respondWith(sessionFetch(req)); return; }
+  if (url.pathname.startsWith('/api/')) return; // never cache other API calls
   if (url.pathname.startsWith('/media/exercises/') && /\.(mp4|webm)$/.test(url.pathname)) { e.respondWith(videoFetch(req)); return; }
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then((r) => { const c = r.clone(); caches.open(SHELL).then((s) => s.put('/', c)); return r; }).catch(async () => (await caches.match('/')) || new Response('offline', { status: 503 })));
