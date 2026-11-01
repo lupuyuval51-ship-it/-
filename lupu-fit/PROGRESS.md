@@ -19,7 +19,14 @@
 - Videos are schematic and unreviewed (`reviewed:false`); 59 are approximate.
 - Browser-only paths untested: wake lock, vibration, chime, camera barcode, Web Share.
 - Hebrew legal copy and microcopy not reviewed by a native speaker or lawyer.
-- Known UX gaps: sex segmented control wraps in he at 390px; activity level and diet are still dropdowns;
-  Nutrition sticky "Log food" overlays last content; Notifications screen not visually reviewed;
-  LiveSession cold-load offline and structure edits are not queued; 13-sport finisher grid is tall on phones.
-- Plan "day done" marks rely on session-name matching (session rows carry no plan id).
+- English audit (`npm run audit:english`, part of `npm run gates`) scans every `*En`/`en` content field, the `en` side of every
+  dictionary, English server strings (safety replies, rules coach, error codes) and the English manifest. It cannot see text that
+  is composed from non-dictionary sources at runtime or user-entered data; the Playwright walk covered en at 390 and 1280 only for
+  a seeded gym user (no minor profile, no injuries).
+- Adding an exercise during a live workout still needs a connection (the server creates the row id); reorder, remove and replace
+  are queued offline. The cached live session sits in localStorage key `lf_live_session` (workout data only, cleared on finish/discard).
+- The 1 MB `content` chunk is still one chunk (all routes share the synchronous content API); only its wire size is fixed (gzip).
+- Legacy plan sessions without `source_id` still match "day done" by name.
+- The new-version prompt (`ui/UpdatePrompt.tsx`, sw.js no longer calls skipWaiting on install) is unit-tested with a fake service
+  worker only; not exercised against two real deployed builds.
+- Profile selects (sex, diet, activity) are still dropdowns (profile components belong to the languages work).
