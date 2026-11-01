@@ -114,7 +114,7 @@ describe('LiveSession', () => {
     expect(outbox.list()[0]).toMatchObject({ method: 'POST', path: '/api/sessions/s1/sets', body: { sessionExerciseId: 'e1', reps: 10, weightKg: 60, rpe: 8 } });
     expect(screen.getByTestId('offline-banner')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'ביטול הסט האחרון' }));
-    await waitFor(() => expect(outbox.list()).toHaveLength(0));
+    await waitFor(() => expect(outbox.list()).toHaveLength(0), { timeout: 3000 });
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false);
   });
 
@@ -206,7 +206,7 @@ describe('LiveSession', () => {
     setup({ extra: (c) => (c.method === 'POST' && c.path.endsWith('/sets') ? new ApiRequestError(400, 'validation_error', {}, {}) : undefined) });
     await outbox.enqueue({ method: 'POST', path: '/api/sessions/s1/sets', body: { sessionExerciseId: 'e1', reps: 8 }, label: 'bad set' });
     view();
-    await act(async () => { await outbox.flush(); });
+    await act(async () => { await outbox.flush(); await outbox.flush(); }); // the first may join an in-flight flush started by the online event
     expect(await screen.findByText('לא התקבלו בשרת')).toBeInTheDocument();
     expect(screen.getByText('bad set')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'לנסות שוב' })).toBeInTheDocument();

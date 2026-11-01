@@ -2,3 +2,6 @@ node_modules
 dist
 *.log
 client/public/media/
+dist-device/
+client/dist-device/
+client/dist/
