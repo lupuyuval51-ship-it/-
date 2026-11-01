@@ -86,3 +86,87 @@ export const BackupPayloadSchema = z.object({
   })).max(20000),
 }).strict();
 export type BackupPayload = z.infer<typeof BackupPayloadSchema>;
+
+/* ------------------------------------------------------------------ API bodies (shared by server and client) */
+import { MEAL_SLOTS as _SLOTS } from './enums.js';
+
+export const PrescriptionSchema = z.object({
+  sets: intIn(LIMITS.sets.min, LIMITS.sets.max),
+  repsMin: intIn(0, LIMITS.reps.max), repsMax: intIn(0, LIMITS.reps.max),
+  rpe: numIn(LIMITS.rpe.min, LIMITS.rpe.max),
+  restSec: intIn(LIMITS.restSec.min, LIMITS.restSec.max),
+  loadKg: numIn(0, 1000).nullable(),
+  durationSec: intIn(0, 7200).nullable(),
+});
+
+export const SessionStartSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  source: z.enum(['ready', 'plan', 'custom']),
+  sourceId: z.string().max(120).optional(),
+  sport: z.enum(SPORTS).nullable().optional(),
+  localDate: IsoDateSchema,
+  readiness: z.enum(['normal', 'easier', 'rest']).optional(),
+  exercises: z.array(z.object({
+    exerciseId: z.string().min(1).max(80),
+    isFinisher: z.boolean().default(false),
+    sport: z.enum(SPORTS).nullable().optional(),
+    planned: PrescriptionSchema,
+  })).min(1).max(LIMITS.maxExercisesPerWorkout + 10),
+});
+
+export const SetBodySchema = z.object({
+  sessionExerciseId: z.string().min(1).max(80),
+  reps: intIn(0, LIMITS.reps.max).optional(),
+  weightKg: numIn(0, 1000).optional(),
+  durationSec: intIn(0, 7200).optional(),
+  rpe: numIn(LIMITS.rpe.min, LIMITS.rpe.max).refine((v) => Number.isInteger(v * 2), 'rpe_step').optional(),
+}).refine((b) => b.reps !== undefined || b.durationSec !== undefined, { message: 'reps_or_duration_required' });
+
+export const SessionExerciseAddSchema = z.object({
+  exerciseId: z.string().min(1).max(80), planned: PrescriptionSchema, isFinisher: z.boolean().default(false), sport: z.enum(SPORTS).nullable().optional(),
+});
+export const SessionExerciseReplaceSchema = z.object({ exerciseId: z.string().min(1).max(80) });
+export const SessionOrderSchema = z.object({ ids: z.array(z.string().min(1).max(80)).min(1).max(40) });
+
+export const WeightBodySchema = z.object({ loggedDate: IsoDateSchema, weightKg: numIn(LIMITS.weightKg.min, LIMITS.weightKg.max), note: z.string().trim().max(300).optional() });
+export const ReadinessBodySchema = z.object({
+  localDate: IsoDateSchema,
+  sleep: intIn(1, 5), energy: intIn(1, 5), soreness: intIn(1, 5), pain: z.boolean(),
+});
+
+export const GeneratePlanBodySchema = z.object({
+  seed: z.number().int().min(0).max(2 ** 31).default(1),
+  daysPerWeek: intIn(LIMITS.daysPerWeek.min, LIMITS.daysPerWeek.max).optional(),
+  sessionMinutes: intIn(LIMITS.sessionMinutes.min, LIMITS.sessionMinutes.max).optional(),
+  mode: z.enum(WORKOUT_MODES).optional(),
+  avoidIds: z.array(z.string().max(80)).max(60).default([]),
+});
+export const SavePlanBodySchema = z.object({ name: z.string().trim().min(1).max(120), plan: z.record(z.string(), z.unknown()), activate: z.boolean().default(false) });
+export const PlanPatchSchema = z.object({ name: z.string().trim().min(1).max(120).optional(), archived: z.boolean().optional() });
+
+export const FoodLogBodySchema = z.object({
+  loggedDate: IsoDateSchema,
+  slot: z.enum(_SLOTS),
+  foodId: z.string().max(80).optional(), dishId: z.string().max(80).optional(),
+  name: z.string().trim().min(1).max(160),
+  grams: numIn(0.1, 5000), kcal: numIn(0, 5000), proteinG: numIn(0, 500), carbsG: numIn(0, 1000), fatG: numIn(0, 500),
+  estimated: z.boolean().default(false),
+});
+export const FoodCopyBodySchema = z.object({ fromDate: IsoDateSchema, toDate: IsoDateSchema });
+export const CustomFoodBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  kcal: numIn(0, 900), proteinG: numIn(0, 100), carbsG: numIn(0, 100), fatG: numIn(0, 100), servingG: numIn(1, 1000).default(100),
+  barcode: z.string().regex(/^\d{8,14}$/).optional(),
+});
+export const SavedMealBodySchema = z.object({
+  name: z.string().trim().min(1).max(120), slot: z.enum(_SLOTS),
+  items: z.array(z.object({ foodId: z.string().max(80).optional(), name: z.string().trim().min(1).max(160), grams: numIn(0.1, 5000), kcal: numIn(0, 5000), proteinG: numIn(0, 500), carbsG: numIn(0, 1000), fatG: numIn(0, 500) })).min(1).max(40),
+});
+export const SavedMealLogBodySchema = z.object({ loggedDate: IsoDateSchema, slot: z.enum(_SLOTS).optional() });
+export const PhotoEstimateBodySchema = z.object({ jpegBase64: z.string().min(100).max(11_000_000), lang: z.enum(LANGUAGES).default('he') });
+
+export const CoachThreadBodySchema = z.object({ title: z.string().trim().min(1).max(120).optional() });
+export const CoachMessageBodySchema = z.object({ text: z.string().trim().min(1).max(2000), lang: z.enum(LANGUAGES).default('he') });
+
+export const AccountDeleteBodySchema = z.object({ confirm: z.literal('DELETE') });
+export const ProfilePatchSchema = ProfileInputSchema.partial();

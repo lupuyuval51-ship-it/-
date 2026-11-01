@@ -1,1 +1,16 @@
-{ "name": "@lupu-fit/server", "version": "0.1.0", "private": true, "type": "module" }
+{
+  "name": "@lupu-fit/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@lupu-fit/shared": "*",
+    "express": "^5.1.0",
+    "pg": "^8.13.0",
+    "@electric-sql/pglite": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/pg": "^8.11.0"
+  }
+}

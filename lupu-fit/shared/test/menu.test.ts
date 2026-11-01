@@ -45,6 +45,9 @@ describe('morphological allergen filter', () => {
     expect(has('חלב שקדים', 'dairy')).toBe(false);
     expect(has('חלב שקדים', 'tree_nut')).toBe(true);
     expect(has('peanut butter', 'dairy')).toBe(false);
+    expect(has('חומוס גרגרים צלוי', 'sesame')).toBe(true); // bare חומוס stays conservative (hummus)
+    expect(has('בטטה עם גרגרי חומוס', 'sesame')).toBe(false); // chickpeas are not hummus
+    expect(has('גרגירי חומוס', 'sesame')).toBe(false);
   });
 });
 

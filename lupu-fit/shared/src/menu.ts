@@ -92,6 +92,8 @@ export function detectAllergensInText(text: string): Set<Allergen> {
           const isMilkLike = a === 'dairy' && (cand.startsWith(normalizeText('חלב')) || cand.startsWith(normalizeText('חמא')));
           if (isMilkLike && next && HE_PLANT_NEXT.some((p) => hebrewCandidates(next).some((c) => c.startsWith(p)))) continue;
           if (cand === normalizeText('חלבון')) continue; // "protein", not milk
+          // "גרגרי חומוס" are chickpeas, not the tahini-based spread (a bare "חומוס" still counts as sesame, conservatively)
+          if (a === 'sesame' && cand.startsWith(normalizeText('חומוס')) && prev && hebrewCandidates(prev).some((c) => c.startsWith(normalizeText('גרגר')) || c.startsWith(normalizeText('גרגיר')))) continue;
           found.add(a);
         }
       } else {

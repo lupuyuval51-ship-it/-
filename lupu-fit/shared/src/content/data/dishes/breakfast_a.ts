@@ -274,15 +274,15 @@ export const BREAKFAST_A_DISHES: DishRaw[] = [
     prepMinutes: 15,
   },
   {
-    id: 'bfa_polenta_tomato_feta', nameHe: 'פולנטה עם עגבניות, תרד וגבינה בולגרית', nameEn: 'Polenta with Tomatoes, Spinach and Feta', slots: ['breakfast'],
+    id: 'bfa_polenta_tomato_feta', nameHe: 'פולנטה עם עגבניות, תרד, גבינה בולגרית וביצת עין', nameEn: 'Polenta with Tomatoes, Spinach, Feta and Fried Egg', slots: ['breakfast'],
     ingredients: [
       { foodId: 'polenta_cooked', grams: 250 }, { foodId: 'tomato_raw', grams: 120 }, { foodId: 'feta_bulgarian_cheese', grams: 40 },
-      { foodId: 'olive_oil', grams: 8 }, { foodId: 'spinach_raw', grams: 50 },
+      { foodId: 'olive_oil', grams: 8 }, { foodId: 'spinach_raw', grams: 50 }, { foodId: 'egg_whole_raw', grams: 55 },
     ],
     prepMinutes: 15,
   },
   {
-    id: 'bfa_quesadilla_beans_cheese', nameHe: 'קסדייה שעועית שחורה וגבינה צהובה', nameEn: 'Black Bean and Cheese Quesadilla', slots: ['breakfast', 'lunch'],
+    id: 'bfa_quesadilla_beans_cheese', nameHe: 'קסדיה שעועית שחורה וגבינה צהובה', nameEn: 'Black Bean and Cheese Quesadilla', slots: ['breakfast', 'lunch'],
     ingredients: [
       { foodId: 'tortilla_flour', grams: 70 }, { foodId: 'yellow_cheese_gouda_type', grams: 40 }, { foodId: 'black_beans_cooked', grams: 80 },
       { foodId: 'bell_pepper_red_raw', grams: 60 }, { foodId: 'olive_oil', grams: 5 },
