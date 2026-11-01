@@ -80,7 +80,7 @@ describe('Coach', () => {
     expect(container.textContent).toContain('<script>alert(1)</script>');
   });
   it('renders safety replies distinctly with role=alert and the helpline text as returned', async () => {
-    const helpline = 'You are not alone. Call ER'AN 1201 (Israel) or your local emergency number.';
+    const helpline = 'You are not alone. Call ERAN 1201 (Israel) or your local emergency number.';
     messages = [msg('m1', 'user', 'I want to hurt myself', { safetyCategory: 'self_harm' }), msg('m2', 'assistant', helpline, { provider: 'safety', safetyCategory: 'self_harm' })];
     renderWith(<Coach />, { route: '/coach?thread=t1' });
     const alert = await screen.findByTestId('safety-message');

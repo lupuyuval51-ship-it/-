@@ -179,7 +179,7 @@ describe('ReadyDetail', () => {
     const { unmount } = await open();
     const label = await screen.findByLabelText('מתאמנים בענף ספורט מסוים? אפשר להוסיף סיומת של 10 דקות בסוף האימון');
     await u.selectOptions(label, 'soccer');
-    expect(await screen.findByRole('button', { name: 'ללא ציוד' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findByRole('button', { name: 'בלי ציוד' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'עם ציוד' })).toBeDisabled();
     expect(screen.getByText('זו הכנה גופנית כללית ולא אימון מיומנות בענף.', { exact: false })).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('lf_sport')!)).toEqual({ u1: 'soccer' });
@@ -225,8 +225,8 @@ describe('ReadyDetail', () => {
     const u = userEvent.setup();
     await open('en');
     await u.click(await screen.findByRole('button', { name: 'Save check-in' }));
-    await waitFor(() => expect(calls.find((c) => c.path === '/api/readiness')).toBeTruthy());
-    const b = calls.find((c) => c.path === '/api/readiness')!.body as { localDate: string; pain: boolean };
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')).toBeTruthy());
+    const b = calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')!.body as { localDate: string; pain: boolean };
     expect(b.localDate).toMatch(/^\d{4}-\d{2}-\d{2}$/); expect(b.pain).toBe(false);
     expect(await screen.findByText('Today: Take it easier')).toBeInTheDocument();
   });
