@@ -40,7 +40,7 @@ describe('Coach', () => {
     renderWith(<Coach />, { route: '/coach' });
     expect(await screen.findByTestId('provider-label')).toHaveTextContent('Rules-based coach');
     expect(screen.getByText('Ask your coach')).toBeInTheDocument();
-    for (const k of ['What should I train today?', 'Am I hitting my protein target?', 'How is my weight trend?', 'Any recovery tips?']) expect(screen.getByRole('button', { name: k })).toBeInTheDocument();
+    for (const k of ['What should I train today?', 'Is my protein target on track?', 'How is my weight trend?', 'Any recovery tips?']) expect(screen.getByRole('button', { name: k })).toBeInTheDocument();
     expect(screen.queryByTestId('message-assistant')).toBeNull();
     expect(screen.queryByText(/Google/)).toBeNull();
   });
@@ -53,10 +53,10 @@ describe('Coach', () => {
   it('a suggested prompt creates a thread and sends the message with the UI language', async () => {
     renderWith(<Coach />, { route: '/coach' });
     const user = userEvent.setup();
-    await user.click(await screen.findByRole('button', { name: 'Am I hitting my protein target?' }));
+    await user.click(await screen.findByRole('button', { name: 'Is my protein target on track?' }));
     await waitFor(() => expect(sends()).toHaveLength(1));
-    expect(sends()[0]).toEqual({ p: '/api/coach/threads/new1/messages', b: { text: 'Am I hitting my protein target?', lang: 'en' } });
-    expect(h.calls.find((c) => c.m === 'POST' && c.p === '/api/coach/threads')?.b).toMatchObject({ title: 'Am I hitting my protein target?' });
+    expect(sends()[0]).toEqual({ p: '/api/coach/threads/new1/messages', b: { text: 'Is my protein target on track?', lang: 'en' } });
+    expect(h.calls.find((c) => c.m === 'POST' && c.p === '/api/coach/threads')?.b).toMatchObject({ title: 'Is my protein target on track?' });
   });
   it('Enter sends, Shift+Enter inserts a newline', async () => {
     messages = [msg('m1', 'assistant', 'Hello')];

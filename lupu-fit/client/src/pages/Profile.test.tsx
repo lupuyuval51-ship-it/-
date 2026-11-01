@@ -30,7 +30,7 @@ beforeEach(async () => {
     return {};
   };
 });
-const view = (lang: 'he' | 'en' = 'en') => renderWith(<Routes><Route path="/profile" element={<Profile />} /><Route path="/login" element={<div>LOGIN PAGE</div>} /></Routes>, { route: '/profile', lang });
+const view = (lang: 'he' | 'en' = 'en') => renderWith(<Routes><Route path="/profile" element={<Profile />} /><Route path="/login" element={<div>{'login-route'}</div>} /></Routes>, { route: '/profile', lang });
 const validBackup = { version: 1, exportedAt: '2026-05-01T00:00:00Z', profile: null, bodyWeight: [{ loggedDate: '2026-05-01', weightKg: 80 }], foodLog: [{ loggedDate: '2026-05-01', slot: 'lunch', name: 'Rice', grams: 100, kcal: 130, proteinG: 2, carbsG: 28, fatG: 0.3 }], sessions: [] };
 const json = (o: unknown) => new File([JSON.stringify(o)], 'backup.json', { type: 'application/json' });
 
@@ -181,7 +181,7 @@ describe('Logout', () => {
     await screen.findByText('Daily targets');
     expect(qc.getQueryCache().getAll().length).toBeGreaterThan(0);
     await user.click(screen.getByRole('button', { name: 'Log out' }));
-    expect(await screen.findByText('LOGIN PAGE')).toBeInTheDocument();
+    expect(await screen.findByText('login-route')).toBeInTheDocument();
     expect(h.calls.some((c) => c.m === 'POST' && c.p === '/api/auth/logout')).toBe(true);
     expect(qc.getQueryCache().getAll().filter((q) => q.state.data !== undefined)).toHaveLength(0);
   });

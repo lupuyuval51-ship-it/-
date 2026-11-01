@@ -113,8 +113,10 @@ describe('LiveSession', () => {
     expect(outbox.list()).toHaveLength(1);
     expect(outbox.list()[0]).toMatchObject({ method: 'POST', path: '/api/sessions/s1/sets', body: { sessionExerciseId: 'e1', reps: 10, weightKg: 60, rpe: 8 } });
     expect(screen.getByTestId('offline-banner')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'ביטול הסט האחרון' }));
-    await waitFor(() => expect(outbox.list()).toHaveLength(0), { timeout: 3000 });
+    const undoBtn = screen.getByRole('button', { name: 'ביטול הסט האחרון' });
+    await waitFor(() => expect(undoBtn).toBeEnabled()); // enabled again once the logging call settled
+    fireEvent.click(undoBtn);
+    await waitFor(() => expect(outbox.list()).toHaveLength(0));
     expect(calls.some((c) => c.method === 'DELETE')).toBe(false);
   });
 
@@ -209,8 +211,9 @@ describe('LiveSession', () => {
     await act(async () => { await outbox.flush(); });
     expect(await screen.findByText('לא התקבלו בשרת')).toBeInTheDocument();
     expect(screen.getByText('bad set')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'לנסות שוב' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'להסיר' }));
+    const row = screen.getByText('bad set').closest('li') as HTMLElement;
+    expect(within(row).getByRole('button', { name: 'לנסות שוב' })).toBeInTheDocument();
+    fireEvent.click(within(row).getByRole('button', { name: 'להסיר' }));
     await waitFor(() => expect(outbox.list()).toHaveLength(0));
   });
 });
