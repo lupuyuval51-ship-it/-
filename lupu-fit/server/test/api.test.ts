@@ -87,6 +87,17 @@ describe('workout sessions, PRs, XP, achievements', () => {
   });
 });
 
+describe('exercise history', () => {
+  it('returns the last sessions for an exercise (newest first) plus the stored record; 404 for unknown ids', async () => {
+    const t = await makeApp(); const c = await onboard(t);
+    await workout(t, c, 60); await workout(t, c, 70, '2026-11-03', 24 * 3600_000);
+    const h = (await call(t, c, 'GET', `/api/exercises/${bench}/history?limit=5`)).json;
+    expect(h.history).toHaveLength(2); expect(h.history[0].date).toBe('2026-11-03'); expect(h.history[0].sets[0].weightKg).toBe(70); expect(h.record.maxWeight).toBe(70);
+    expect((await call(t, c, 'GET', '/api/exercises/nope/history')).status).toBe(404);
+    expect((await call(t, c, 'GET', '/api/exercises/squat_nothing/history')).status).toBe(404);
+  });
+});
+
 describe('isolation and idempotency', () => {
   it("another user's resources are 404, never 403, on every user-owned route", async () => {
     const t = await makeApp(); const a = await onboard(t, 'a@example.com', '10.0.0.1'); const b = await onboard(t, 'b@example.com', '10.0.0.2');
@@ -247,10 +258,19 @@ describe('account: export, restore, delete', () => {
     expect((await call(t, c2, 'GET', '/api/progress?range=30d')).json.prs.length).toBeGreaterThan(0);
     expect((await call(t, c, 'DELETE', '/api/account', { confirm: 'nope' })).status).toBe(400);
     expect((await call(t, c, 'DELETE', '/api/account', { confirm: 'DELETE' })).status).toBe(200);
-    for (const tbl of ['users', 'profiles', 'workout_sessions', 'session_sets', 'food_log_entries', 'body_weight_entries', 'xp_events', 'auth_sessions']) {
-      const n = Number((await t.db.query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM ${tbl} WHERE ${tbl === 'users' ? "email = 'a@example.com'" : tbl === 'session_sets' ? '1=0' : "user_id IN (SELECT id FROM users WHERE email = 'a@example.com')"}`))[0]?.c);
-      expect(n, tbl).toBe(0);
-    }
+    const gone: [string, string][] = [
+      ['users', "SELECT COUNT(*)::int AS c FROM users WHERE email = 'a@example.com'"],
+      ['profiles', "SELECT COUNT(*)::int AS c FROM profiles WHERE user_id NOT IN (SELECT id FROM users)"],
+      ['workout_sessions', "SELECT COUNT(*)::int AS c FROM workout_sessions WHERE user_id NOT IN (SELECT id FROM users)"],
+      ['session_sets', "SELECT COUNT(*)::int AS c FROM session_sets WHERE session_exercise_id NOT IN (SELECT id FROM session_exercises)"],
+      ['food_log_entries', "SELECT COUNT(*)::int AS c FROM food_log_entries WHERE user_id NOT IN (SELECT id FROM users)"],
+      ['body_weight_entries', "SELECT COUNT(*)::int AS c FROM body_weight_entries WHERE user_id NOT IN (SELECT id FROM users)"],
+      ['xp_events', "SELECT COUNT(*)::int AS c FROM xp_events WHERE user_id NOT IN (SELECT id FROM users)"],
+      ['auth_sessions', "SELECT COUNT(*)::int AS c FROM auth_sessions WHERE user_id NOT IN (SELECT id FROM users)"],
+    ];
+    for (const [name, sql] of gone) expect(Number((await t.db.query<{ c: number }>(sql))[0]?.c), name).toBe(0);
+    const owned = await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM workout_sessions s JOIN users u ON u.id = s.user_id WHERE u.email = 'a@example.com'");
+    expect(Number(owned[0]?.c)).toBe(0);
     expect((await call(t, c, 'GET', '/api/auth/me')).status).toBe(401);
   });
   it('restore cap is mode dependent: hosted 8 MB (413), device accepts larger; schema caps reject absurd collections', async () => {

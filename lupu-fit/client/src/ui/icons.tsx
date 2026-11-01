@@ -1,0 +1,37 @@
+import type { ReactNode, SVGProps } from 'react';
+
+type P = SVGProps<SVGSVGElement>;
+const base = (d: ReactNode) => function Icon(p: P): ReactNode {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false" {...p}>{d}</svg>;
+};
+export const IconHome = base(<><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></>);
+export const IconDumbbell = base(<><path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12" /></>);
+export const IconFork = base(<><path d="M7 3v8a2 2 0 0 0 2 2v8M5 3v6M9 3v6M17 3c-2 2-2 6 0 8v10" /></>);
+export const IconChat = base(<><path d="M4 5h16v11H9l-5 4z" /></>);
+export const IconChart = base(<><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" /></>);
+export const IconBook = base(<><path d="M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6" /></>);
+export const IconUser = base(<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 4-6 8-6s8 2 8 6" /></>);
+export const IconBell = base(<><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4zM10 21h4" /></>);
+export const IconPlay = base(<path d="M7 4l13 8-13 8z" />);
+export const IconPause = base(<path d="M7 4v16M17 4v16" />);
+export const IconCheck = base(<path d="M4 12l5 5L20 6" />);
+export const IconPlus = base(<path d="M12 5v14M5 12h14" />);
+export const IconMinus = base(<path d="M5 12h14" />);
+export const IconX = base(<path d="M6 6l12 12M18 6L6 18" />);
+export const IconChevron = base(<path d="M9 5l7 7-7 7" />);
+export const IconUndo = base(<><path d="M9 14L4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 0 12h-3" /></>);
+export const IconInfo = base(<><circle cx="12" cy="12" r="9" /><path d="M12 11v6M12 7.5v.01" /></>);
+export const IconWarn = base(<><path d="M12 3l10 18H2z" /><path d="M12 10v5M12 18v.01" /></>);
+export const IconSearch = base(<><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>);
+export const IconFlip = base(<><path d="M12 3v18M8 7L3 12l5 5zM16 7l5 5-5 5z" /></>);
+export const IconSlow = base(<><circle cx="12" cy="13" r="8" /><path d="M12 8v5l3 2M9 2h6" /></>);
+export const IconFullscreen = base(<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />);
+export const IconCamera = base(<><path d="M4 8h3l2-3h6l2 3h3v12H4z" /><circle cx="12" cy="13" r="4" /></>);
+export const IconBarcode = base(<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M21 5v14" />);
+export const IconTrash = base(<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />);
+export const IconCopy = base(<><rect x="8" y="8" width="12" height="12" /><path d="M4 16V4h12" /></>);
+export const IconTimer = base(<><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M9 2h6" /></>);
+export const IconFlame = base(<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" />);
+export const IconStar = base(<path d="M12 3l3 6 6 1-4.500 4.500 1 6.500L12 18l-5.500 3 1-6.500L3 10l6-1z" />);
+export const IconShield = base(<><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z" /><path d="M9 12l2 2 4-4" /></>);
+export const IconSettings = base(<><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></>);

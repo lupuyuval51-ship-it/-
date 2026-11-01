@@ -76,7 +76,7 @@ async function main(): Promise<void> {
     try { const prev = JSON.parse(readFileSync(join(OUT, 'media-manifest.json'), 'utf8')) as { items: Entry[] }; const fresh = new Set(entries.map((e) => e.id)); entries.push(...prev.items.filter((e) => !fresh.has(e.id))); } catch { /* first run */ }
   }
   entries.sort((a, b) => a.id.localeCompare(b.id));
-  const manifest = { generator: 'procedural-schematic-v1', note: 'Schematic stick-figure animations generated in code; not filmed footage. Not human-reviewed.', count: entries.length, items: entries };
+  const manifest = { generator: 'procedural-schematic-v1', priorityA: EXERCISES_ALL.filter((e) => e.videoPriority === 'A').map((e) => e.id), note: 'Schematic stick-figure animations generated in code; not filmed footage. Not human-reviewed.', count: entries.length, items: entries };
   writeFileSync(join(OUT, 'media-manifest.json'), JSON.stringify(manifest, null, 1));
   const total = entries.reduce((a, e) => a + e.sizeBytes, 0);
   const by = (k: 'fidelity') => entries.reduce<Record<string, number>>((m, e) => ({ ...m, [e[k]]: (m[e[k]] ?? 0) + 1 }), {});

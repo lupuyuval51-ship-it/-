@@ -23,7 +23,13 @@
     "gen:videos": "tsx scripts/gen-videos.ts",
     "verify:videos": "tsx scripts/verify-videos.ts",
     "gen:migrations": "tsx scripts/gen-migrations.ts",
-    "test:server": "vitest run --root server"
+    "test:server": "vitest run --root server",
+    "dev:client": "vite --config client/vite.config.ts client",
+    "dev:server": "tsx --env-file-if-exists=.env server/src/index.ts",
+    "build:hosted": "vite build --config client/vite.config.ts --mode hosted client",
+    "build:device": "vite build --config client/vite.config.ts --mode device client",
+    "build": "npm run gen:migrations && npm run build:hosted && npm run build:device",
+    "test:client": "vitest run --root client"
   },
   "devDependencies": {
     "@fontsource-variable/heebo": "^5.3.0",

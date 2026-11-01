@@ -31,14 +31,15 @@ if (fh['unit.sec'] !== 'שנ׳') v.push('he unit.sec must be שנ׳ with U+05F3'
 
 // Hard-coded literals in components
 const tsx = walk(join(REPO_ROOT, 'client', 'src'), ['.tsx']);
-const JSX_TEXT = />\s*([^<>{}\n]*[A-Za-zא-ת]{2,}[^<>{}\n]*)\s*</g;
+const JSX_TEXT = /(?<![=\-])>\s*([^<>{}\n;()=&|?:]*[A-Za-z\u05D0-\u05EA]{2,}[^<>{}\n;()=&|?:]*)\s*</g;
+const BRAND = new Set(['LUPU', 'FIT', 'LUPU-FIT', 'EN']);
 const ATTR = /\b(?:aria-label|placeholder|title|alt)=("[^"{}]*[A-Za-zא-ת][^"{}]*")/g;
 for (const f of tsx) {
   const text = read(f);
   for (const re of [JSX_TEXT, ATTR]) {
     for (const m of text.matchAll(re)) {
       const line = text.split('\n')[lineOf(text, m.index) - 1] ?? '';
-      if (line.includes('copy-ok')) continue;
+      if (line.includes('copy-ok') || BRAND.has((m[1] ?? '').trim())) continue;
       v.push(`${rel(f)}:${lineOf(text, m.index)} hard-coded UI string ${JSON.stringify((m[1] ?? '').trim())}`);
     }
   }

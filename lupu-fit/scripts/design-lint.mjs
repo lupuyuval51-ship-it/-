@@ -11,7 +11,7 @@ const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^
 const CSS_RULES = [
   ['gradient', /(?:linear|radial|conic)-gradient\s*\(/g],
   ['glass/blur', /backdrop-filter|filter\s*:\s*blur|-webkit-backdrop-filter/g],
-  ['decorative shadow', /(?:box|text|drop)-shadow\s*:\s*(?!var\(--overlay-shadow\)|none)/g],
+  ['decorative shadow', /(?:box|text|drop)-shadow\s*:\s*(?!var\(--overlay-shadow\)|none)\S/g],
   ['drop-shadow filter', /drop-shadow\s*\(/g],
   ['pill radius', /border-radius\s*:[^;]*\b9999/g],
   ['physical margin/padding', /\b(?:margin|padding)-(?:left|right)\s*:/g],

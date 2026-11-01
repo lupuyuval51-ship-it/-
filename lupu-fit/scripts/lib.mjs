@@ -3,7 +3,7 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const REPO_ROOT = resolve(process.env.LINT_ROOT ?? join(fileURLToPath(new URL('.', import.meta.url)), '..'));
-const SKIP = new Set(['node_modules', 'dist', '.git', 'android', 'coverage', 'playwright-report']);
+const SKIP = new Set(['node_modules', 'dist', 'dist-device', 'dist-hosted', '.git', 'android', 'coverage', 'playwright-report', 'test-results', 'media']);
 
 export function walk(dir, exts, out = []) {
   if (!existsSync(dir)) return out;

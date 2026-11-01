@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "jsx": "react-jsx", "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker"], "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"], "allowImportingTsExtensions": true },
+  "include": ["src", "vite.config.ts", "../server/src/db", "../server/src/core", "../server/src/routes", "../server/src/crypto", "../server/src/media", "../server/src/createApp.ts"],
+  "exclude": ["../server/src/index.ts"]
+}
