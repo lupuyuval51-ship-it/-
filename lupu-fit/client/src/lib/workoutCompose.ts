@@ -4,7 +4,7 @@
  */
 import {
   ageBucket, BODYWEIGHT_APPARATUS, EQUIPMENT, defaultFinisherVariant, isExerciseAllowedForAge, FOCUS_MUSCLES, isExerciseSafe, isHighImpact, nextProgression, estimateMinutes,
-  type Difficulty, type Equipment, type ExerciseDef, type FinisherContent, type FinisherVariant, type GeneratedPlan, type InjuryArea, type Muscle,
+  type Difficulty, type Equipment, type ExerciseDef, type FinisherContent, type FinisherVariant, type GeneratedPlan, type InjuryArea,
   type PersonProfile, type PlannedDay, type Place, type Prescription, type ReadinessState, type ReadyFilter, type ReadyWorkoutContent, type SessionPerformance,
   type Sport, type SwapContext, type WorkoutFocus, type WorkoutMode, LIMITS,
 } from '@lupu-fit/shared';
@@ -291,7 +291,7 @@ export function alternativesFor(ex: ExerciseDef, kind: 'easier' | 'harder', cata
 /** A swapped-in exercise keeps sets/rest/RPE; the rep scheme follows the new exercise (timed vs reps) and the old load is cleared. */
 export function prescriptionForSwap(old: Prescription, to: ExerciseDef): Prescription {
   const timed = to.category === 'duration' || to.category === 'isometric' || to.category === 'mobility' || to.category === 'stretch';
-  if (timed) return { ...old, repsMin: 0, repsMax: 0, loadKg: null, durationSec: old.durationSec ?? 30 };
+  if (timed) return { ...old, repsMin: 1, repsMax: 1, loadKg: null, durationSec: old.durationSec ?? 30 };
   const reps = old.repsMax > 0 ? { repsMin: old.repsMin, repsMax: old.repsMax } : { repsMin: 8, repsMax: 12 };
   return { ...old, ...reps, loadKg: null, durationSec: null };
 }
@@ -335,4 +335,3 @@ export function prDescription(kind: string): 'weight' | 'est_1rm' | 'reps' | 'du
   return kind === 'weight' || kind === 'est_1rm' || kind === 'reps' || kind === 'duration' ? kind : null;
 }
 
-export type { Muscle };

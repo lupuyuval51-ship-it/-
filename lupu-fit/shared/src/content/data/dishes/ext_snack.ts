@@ -355,8 +355,8 @@ export const EXT_SNACK_DISHES: DishRaw[] = [
   },
   {
     id: 'xsn_soy_yogurt_blueberry_flax',
-    nameHe: 'מעדן סויה עם אוכמניות וזרעי פשתן',
-    nameEn: 'Soy Pudding Cup with Blueberries and Flaxseed',
+    nameHe: 'כוס סויה עם אוכמניות וזרעי פשתן',
+    nameEn: 'Soy Cup with Blueberries and Flaxseed',
     slots: ['snack'],
     ingredients: [{ foodId: 'soy_yogurt_plain', grams: 150 }, { foodId: 'blueberries_raw', grams: 80 }, { foodId: 'flaxseed_ground', grams: 8 }],
     prepMinutes: 3,
