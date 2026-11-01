@@ -63,7 +63,7 @@ export function sessionRoutes(r: Router, _d: Deps): void {
     const limit = Math.min(Math.max(Number(ctx.req.query['limit'] ?? 30) || 30, 1), 200);
     const rows = await ctx.db.query<SessRow & { sets: number; finishers: number }>(`SELECT s.*, (SELECT COUNT(*)::int FROM session_sets t JOIN session_exercises e ON e.id = t.session_exercise_id WHERE e.session_id = s.id) AS sets,
       (SELECT COUNT(*)::int FROM session_exercises e WHERE e.session_id = s.id AND e.is_finisher) AS finishers FROM workout_sessions s WHERE s.user_id = $1 AND s.finished_at IS NOT NULL ORDER BY s.started_at DESC LIMIT $2`, [uid(ctx), limit]);
-    return { json: { sessions: rows.map((s) => ({ id: s.id, name: s.name, sport: s.sport, startedAt: s.started_at, finishedAt: s.finished_at, durationSec: s.duration_sec, localDate: s.local_date, xpAwarded: s.xp_awarded, sets: s.sets, hasFinisher: s.finishers > 0 })) } };
+    return { json: { sessions: rows.map((s) => ({ id: s.id, name: s.name, source: s.source, sourceId: s.source_id, sport: s.sport, startedAt: s.started_at, finishedAt: s.finished_at, durationSec: s.duration_sec, localDate: s.local_date, xpAwarded: s.xp_awarded, sets: s.sets, hasFinisher: s.finishers > 0 })) } };
   });
 
   r.get('/api/sessions/:id', async (ctx) => ({ json: await loadSession(ctx.db, uid(ctx), ctx.params['id'] as string) }));

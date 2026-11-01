@@ -5,7 +5,7 @@ import { FPS } from './encode.ts';
 
 export const DURATION_SEC = 8;
 export const FRAMES = DURATION_SEC * FPS;
-const REPS = 4;
+export const REPS = 4;
 
 export interface PhaseSample { s: number; u: number; side: 0 | 1 }
 
@@ -14,7 +14,8 @@ export function phaseAt(mode: ClipMode, t: number, unilateral: boolean): PhaseSa
   const side: 0 | 1 = unilateral && t >= 0.5 ? 1 : 0;
   if (mode === 'rep') {
     const u = (t * REPS) % 1;
-    return { s: 0.5 - 0.5 * Math.cos(2 * Math.PI * u), u, side };
+    const tri = u < 0.5 ? u * 2 : (1 - u) * 2;               // 0 -> 1 -> 0
+    return { s: smooth(Math.min(1, Math.max(0, (tri - 0.1) / 0.8))), u, side }; // brief hold at both ends
   }
   if (mode === 'cycle') {
     const u = (t * REPS) % 1;

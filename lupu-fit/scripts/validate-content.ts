@@ -26,7 +26,7 @@ const warnings: string[] = [];
 const err = (m: string): void => { errors.push(m); };
 const warn = (m: string): void => { warnings.push(m); };
 
-const EXPECT = { exercises: 244, readyMin: 250, finishers: 39, foods: 198, mealTemplates: 36, dishes: 300, videoA: [50, 62] as const };
+const EXPECT = { exercises: 244, readyMin: 250, finishers: 39, foods: 198, mealTemplates: 36, dishes: 500, videoA: [50, 62] as const };
 const HE = /[א-ת]/;
 const LATIN = /^[\x20-\x7E–—°×’]+$/;
 const SNAKE = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;

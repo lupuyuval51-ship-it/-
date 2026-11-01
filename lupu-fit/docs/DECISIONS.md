@@ -65,3 +65,10 @@ start/end poses are shown as a faint ghost. This is a stylised illustration, NOT
   with the repo's own MP4 validator AND ffprobe and checks sha256 against the manifest.
 - IK bend side is chosen once per limb (at its most flexed sample) and locked for the clip. Choosing per frame from a
   world-space preference made elbows/knees flip mid-motion; the invariant test caught it.
+
+### D10 addendum: v1.1 improvements
+Larger figure (far cable/band anchors no longer shrink the camera), hands, a floor surface with a contact shadow, a rep counter
+(4 dots) for rep/cycle clips and a progress bar for holds/stretches, a short pause at both ends of every rep, and distinct
+motions for movements that previously looked identical (assisted/regular/shrimp pistol, single-leg/elevated/banded bridge,
+sumo vs conventional deadlift). Specific-fidelity clips rose from 182 to 185; the rest remain labelled `approximate` and
+nothing is human-reviewed (`reviewed: false`).

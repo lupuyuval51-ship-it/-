@@ -1,4 +1,4 @@
-import { EQUIPMENT, generatePlan, GeneratePlanBodySchema, PlanPatchSchema, SavePlanBodySchema, type Equipment } from '@lupu-fit/shared';
+import { EQUIPMENT, generatePlan, GeneratePlanBodySchema, LIMITS, PlanPatchSchema, PrescriptionSchema, SavePlanBodySchema, type Equipment } from '@lupu-fit/shared';
 import { EXERCISES } from '@lupu-fit/shared/content';
 import { z } from 'zod';
 import { randomId } from '../crypto/portableCrypto.ts';
@@ -6,6 +6,19 @@ import { ApiError } from '../core/errors.ts';
 import type { Router } from '../core/router.ts';
 import type { Deps } from '../core/types.ts';
 import { requireProfile, uid } from './util.ts';
+
+const EX_IDS = new Set(EXERCISES.map((e) => e.id));
+/** Edited plan JSON: same shape as a GeneratedPlan; every exercise must exist and every prescription must be valid. */
+export const PlanEditBodySchema = z.object({
+  plan: z.object({
+    days: z.array(z.object({
+      day: z.string().min(1).max(40),
+      exercises: z.array(z.object({ exerciseId: z.string().min(1).max(80), prescription: PrescriptionSchema })).max(LIMITS.maxExercisesPerWorkout),
+      estimatedMinutes: z.number().int().min(0).max(600),
+    })).min(1).max(LIMITS.maxDaysPerPlan),
+    notes: z.array(z.record(z.string(), z.unknown())).max(100).default([]),
+  }),
+});
 
 export function planRoutes(r: Router, _d: Deps): void {
   // Deterministic rules-based generator: same profile + same seed => same plan; a new seed gives fresh valid variety.
@@ -51,6 +64,14 @@ export function planRoutes(r: Router, _d: Deps): void {
     await ctx.db.query('INSERT INTO workout_plans (id, user_id, name, plan) VALUES ($1,$2,$3,$4)', [id, uid(ctx), `${src.name} (copy)`, JSON.stringify(src.plan)]);
     return { json: { id }, status: 201 };
   });
+
+  r.put('/api/plans/:id/plan', async (ctx) => {
+    const b = ctx.body as z.infer<typeof PlanEditBodySchema>;
+    for (const d of b.plan.days) for (const e of d.exercises) if (!EX_IDS.has(e.exerciseId)) throw new ApiError(400, 'unknown_exercise', { exerciseId: e.exerciseId });
+    const up = await ctx.db.query('UPDATE workout_plans SET plan = $1 WHERE id = $2 AND user_id = $3 RETURNING id', [JSON.stringify(b.plan), ctx.params['id'], uid(ctx)]);
+    if (up.length === 0) throw new ApiError(404, 'not_found'); // another user's plan is indistinguishable from a missing one
+    return { json: { ok: true } };
+  }, { body: PlanEditBodySchema });
 
   r.patch('/api/plans/:id', async (ctx) => {
     const b = ctx.body as z.infer<typeof PlanPatchSchema>;

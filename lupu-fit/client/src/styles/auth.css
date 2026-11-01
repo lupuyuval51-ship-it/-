@@ -1,0 +1,6 @@
+.auth { padding-block: 1rem; }
+.auth-links { display: flex; flex-direction: column; gap: 0.5rem; font-size: var(--fs-14); }
+.pw-wrap { display: flex; align-items: stretch; gap: 0.5rem; }
+.pw-wrap .input { flex: 1 1 auto; min-inline-size: 0; }
+.pw-wrap .btn { flex: none; min-block-size: var(--tap); }
+.welcome-points { margin: 0; padding-inline-start: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }

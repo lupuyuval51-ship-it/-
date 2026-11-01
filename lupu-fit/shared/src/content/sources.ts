@@ -24,10 +24,14 @@ import { DINNER_A_DISHES } from './data/dishes/dinner_a.js';
 import { DINNER_B_DISHES } from './data/dishes/dinner_b.js';
 import { SNACK_A_DISHES } from './data/dishes/snack_a.js';
 import { SNACK_B_DISHES } from './data/dishes/snack_b.js';
+import { EXT_BREAKFAST_DISHES } from './data/dishes/ext_breakfast.js';
+import { EXT_LUNCH_DISHES } from './data/dishes/ext_lunch.js';
+import { EXT_DINNER_DISHES } from './data/dishes/ext_dinner.js';
+import { EXT_SNACK_DISHES } from './data/dishes/ext_snack.js';
 import { FINISHERS_A } from './data/finishers/a.js';
 import { FINISHERS_B } from './data/finishers/b.js';
 
 export const EXERCISES_ALL = [...CHEST_EXERCISES, ...BACK_A_EXERCISES, ...BACK_B_EXERCISES, ...SHOULDERS_EXERCISES, ...ARMS_A_EXERCISES, ...ARMS_B_EXERCISES, ...CORE_A_EXERCISES, ...CORE_B_EXERCISES, ...LEGS_A_EXERCISES, ...LEGS_B_EXERCISES, ...FULLBODY_EXERCISES];
 export const FOODS_ALL = [...PROTEINS_FOODS, ...DAIRY_EGGS_FOODS, ...GRAINS_LEGUMES_FOODS, ...PRODUCE_FOODS, ...FATS_NUTS_FOODS, ...PACKAGED_FOODS];
-export const DISHES_RAW_ALL = [...BREAKFAST_A_DISHES, ...BREAKFAST_B_DISHES, ...LUNCH_A_DISHES, ...LUNCH_B_DISHES, ...DINNER_A_DISHES, ...DINNER_B_DISHES, ...SNACK_A_DISHES, ...SNACK_B_DISHES];
+export const DISHES_RAW_ALL = [...BREAKFAST_A_DISHES, ...BREAKFAST_B_DISHES, ...LUNCH_A_DISHES, ...LUNCH_B_DISHES, ...DINNER_A_DISHES, ...DINNER_B_DISHES, ...SNACK_A_DISHES, ...SNACK_B_DISHES, ...EXT_BREAKFAST_DISHES, ...EXT_LUNCH_DISHES, ...EXT_DINNER_DISHES, ...EXT_SNACK_DISHES];
 export const FINISHERS_ALL = [...FINISHERS_A, ...FINISHERS_B];

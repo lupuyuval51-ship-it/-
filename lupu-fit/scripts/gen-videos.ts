@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 import { EXERCISES_ALL } from '../shared/src/content/sources.ts';
 import { validateMp4 } from '../server/src/media/mp4Validator.ts';
 import { classify } from './video/classify.ts';
-import { buildClip, FRAMES } from './video/clip.ts';
+import { buildClip, FRAMES, REPS } from './video/clip.ts';
 import { encodeMp4 } from './video/encode.ts';
 import { drawFrame, fitCamera, makeCanvas } from './video/render.ts';
 
@@ -34,8 +34,8 @@ async function renderOne(id: string): Promise<Entry> {
   const cam = fitCamera([...clip.frames, ...clip.ghosts]);
   const { canvas, ctx } = makeCanvas();
   const mp4 = join(OUT, `${id}.mp4`); const jpg = join(OUT, `${id}.jpg`);
-  await encodeMp4(mp4, FRAMES, ctx, (i) => drawFrame(ctx, cam, clip.frames[i]!, ex.primary, clip.ghosts));
-  drawFrame(ctx, cam, clip.poster, ex.primary, clip.ghosts);
+  await encodeMp4(mp4, FRAMES, ctx, (i) => drawFrame(ctx, cam, clip.frames[i]!, ex.primary, clip.ghosts, plan.mode === 'rep' || plan.mode === 'cycle' ? { kind: 'reps', rep: Math.floor((i / FRAMES) * REPS), reps: REPS } : { kind: 'time', t: i / FRAMES }));
+  drawFrame(ctx, cam, clip.poster, ex.primary, clip.ghosts, plan.mode === 'rep' || plan.mode === 'cycle' ? { kind: 'reps', rep: 0, reps: REPS } : { kind: 'time', t: 0.5 });
   let q = 80; let buf = canvas.toBuffer('image/jpeg', q);
   while (buf.length > 58_000 && q > 30) { q -= 8; buf = canvas.toBuffer('image/jpeg', q); }
   writeFileSync(jpg, buf);

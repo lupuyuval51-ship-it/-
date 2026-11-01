@@ -31,7 +31,7 @@ function held(imp: Implement, wrist: V, extra: Prop[] = []): Prop[] {
 }
 
 /* ---------------------------------------------------------------- squat */
-export interface SquatCfg { load: 'none' | 'goblet' | 'back' | 'front' | 'smith'; imp?: Implement; depth?: number; wide?: boolean; pause?: boolean; box?: number; wall?: boolean; single?: boolean; lean?: number; band?: boolean }
+export interface SquatCfg { load: 'none' | 'goblet' | 'back' | 'front' | 'smith'; imp?: Implement; depth?: number; wide?: boolean; pause?: boolean; box?: number; wall?: boolean; single?: boolean; assist?: boolean; shrimp?: boolean; lean?: number; band?: boolean }
 export function squat(c: SquatCfg): Motion {
   const depthY = c.depth ?? 0.30;
   return ({ s }) => {
@@ -50,12 +50,18 @@ export function squat(c: SquatCfg): Motion {
     } else if (c.load === 'front') {
       const wr = add(sh, v(0.075, 0.0)); arm = { to: wr, pref: v(0.6, 1) };
       props = barbell(add(sh, v(0.075, 0.015)));
+    } else if (c.assist) {
+      arm = { to: v(0.34, lerp(sh[1] - 0.05, sh[1] - 0.02, s)), pref: PREF_DOWN };
+    } else if (c.shrimp) {
+      arm = { to: v(lerp(-0.2, -0.3, s), lerp(0.4, 0.2, s) + 0.05), pref: PREF_BACK };
     } else {
       arm = { fk: [lerp(10, 88, s), lerp(14, 90, s)] };
     }
-    const legF: Leg = c.single ? { to: v(lerp(0.34, 0.42, s), lerp(0.47, 0.3, s)), pref: PREF_DOWN, foot: 100 } : flatLeg(ankleF);
+    const legF: Leg = c.shrimp ? { to: v(lerp(-0.2, -0.3, s), lerp(0.4, 0.2, s)), pref: PREF_BACK, foot: -60 }
+      : c.single ? { to: v(lerp(0.34, 0.42, s), lerp(0.47, 0.3, s)), pref: PREF_DOWN, foot: 100 } : flatLeg(ankleF);
     const rig = sideRig({ hip, torso: c.lean !== undefined ? lerp(4, c.lean, s) : torso, head: -8, armN: arm, legN: flatLeg(ankleN), legF });
     const extra: Prop[] = [];
+    if (c.assist) extra.push({ k: 'line', a: v(0.34, 0), b: v(0.34, 1.0), w: 0.03, layer: 'back' }); // support pole
     if (c.band) extra.push({ k: 'line', a: add(rig.pts['kneeN'] as V, v(0, 0)), b: v(0.5, rig.pts['kneeN']![1]), w: 0.012, dash: true, layer: 'back' });
     if (c.box) extra.push(...box(-0.34, -0.1, c.box));
     if (c.wall) extra.push({ k: 'line', a: v(-0.25, 0), b: v(-0.25, 1.0), w: 0.02, layer: 'back' });
@@ -71,12 +77,12 @@ export const wallSit: Motion = ({ s }) => {
 };
 
 /* ---------------------------------------------------------------- hinge */
-export interface HingeCfg { imp: Implement; bend?: number; fromFloor?: boolean; bodyweight?: boolean; singleLeg?: boolean; goodMorning?: boolean; swing?: boolean }
+export interface HingeCfg { sumo?: boolean; imp: Implement; bend?: number; fromFloor?: boolean; bodyweight?: boolean; singleLeg?: boolean; goodMorning?: boolean; swing?: boolean }
 export function hinge(c: HingeCfg): Motion {
   const bend = c.bend ?? 78;
   return ({ s, side }) => {
-    const hip: V = v(lerp(0, c.fromFloor ? -0.15 : -0.17, s), lerp(HIP0, c.fromFloor ? 0.38 : 0.495, s));
-    const torso = lerp(3, c.fromFloor ? 52 : bend, s);
+    const hip: V = v(lerp(0, c.fromFloor ? (c.sumo ? -0.08 : -0.15) : -0.17, s), lerp(HIP0, c.fromFloor ? (c.sumo ? 0.34 : 0.38) : 0.495, s));
+    const torso = lerp(3, c.fromFloor ? (c.sumo ? 34 : 52) : bend, s);
     const sh = shoulderOf(hip, torso);
     const ankleN = v(0, ANKLE_H); const ankleF = v(-0.03, ANKLE_H);
     let legN: Leg = flatLeg(ankleN); let legF: Leg = flatLeg(ankleF);
@@ -460,16 +466,21 @@ export function crunch(kind: 'crunch' | 'situp' | 'reverse' | 'legraise' | 'vup'
   };
 }
 
-export function bridge(thrust: boolean, imp: Implement): Motion {
+export interface BridgeOpt { single?: boolean; elevated?: boolean; band?: boolean }
+export function bridge(thrust: boolean, imp: Implement, o: BridgeOpt = {}): Motion {
   return ({ s }) => {
     const hipY = lerp(0.075, thrust ? 0.34 : 0.3, s);
     const hip = v(0, hipY);
     // shoulders stay on the floor / bench edge: choose the torso angle that keeps them at that height
     const shY = thrust ? 0.34 : 0.075;
     const torso = -(Math.acos(clamp((shY - hipY) / L.torso, -1, 1)) * 180) / Math.PI;
-    const ankleN = v(0.30, ANKLE_H); const ankleF = v(0.27, ANKLE_H);
-    const rig = sideRig({ hip, torso, head: 0, armN: { fk: [92, 92] }, legN: { to: ankleN, pref: PREF_FWD, foot: FOOT_FLAT }, legF: { to: ankleF, pref: PREF_FWD, foot: FOOT_FLAT } });
+    const base = o.elevated ? 0.3 : 0;
+    const ankleN = v(0.30, ANKLE_H + base); const ankleF = o.single ? v(0.36, lerp(0.2, 0.58, s)) : v(0.27, ANKLE_H + base);
+    const farLeg: Leg = o.single ? { to: ankleF, pref: PREF_FWD, foot: 90 } : { to: ankleF, pref: PREF_FWD, foot: FOOT_FLAT };
+    const rig = sideRig({ hip, torso, head: 0, armN: { fk: [92, 92] }, legN: { to: ankleN, pref: PREF_FWD, foot: FOOT_FLAT }, legF: farLeg });
     const props: Prop[] = [];
+    if (o.elevated) props.push(...box(0.14, 0.46, base));
+    if (o.band) { const k = rig.pts['kneeN'] as V; props.push({ k: 'rect', c: k, w: 0.05, h: 0.1, fill: true, layer: 'front' }); }
     if (thrust) props.push(...bench(-0.62, -0.3, 0.3));
     if (imp === 'barbell') props.push(...barbell(add(hip, v(0.05, 0.09))));
     return { rig, props };

@@ -2,8 +2,8 @@ import type { V } from './geom.ts';
 import type { Rig } from './rig.ts';
 
 export type Prop =
-  | { k: 'circle'; c: V; r: number; fill?: boolean; layer?: 'back' | 'front' }
-  | { k: 'line'; a: V; b: V; w?: number; dash?: boolean; layer?: 'back' | 'front' }
+  | { k: 'circle'; c: V; r: number; fill?: boolean; layer?: 'back' | 'front'; far?: boolean }
+  | { k: 'line'; a: V; b: V; w?: number; dash?: boolean; layer?: 'back' | 'front'; far?: boolean }
   | { k: 'rect'; c: V; w: number; h: number; ang?: number; fill?: boolean; layer?: 'back' | 'front' };
 
 export interface Frame { rig: Rig; props: Prop[] }
@@ -24,6 +24,6 @@ export const bench = (x0: number, x1: number, top: number): Prop[] => [
 export const box = (x0: number, x1: number, top: number): Prop[] => [{ k: 'rect', c: [(x0 + x1) / 2, top / 2], w: x1 - x0, h: top, fill: false, layer: 'back' }];
 /** Pull-up / dip bar drawn as a short horizontal bar with a centre cap, stylised for the side view. */
 export const hangBar = (c: V): Prop[] => [{ k: 'line', a: [c[0] - 0.16, c[1]], b: [c[0] + 0.16, c[1]], w: 0.03, layer: 'back' }, { k: 'circle', c, r: 0.022, fill: true, layer: 'back' }];
-export const cable = (hand: V, anchor: V): Prop[] => [{ k: 'line', a: hand, b: anchor, w: 0.008, layer: 'back' }, { k: 'circle', c: anchor, r: 0.03, layer: 'back' }];
-export const band = (hand: V, anchor: V): Prop[] => [{ k: 'line', a: hand, b: anchor, w: 0.012, dash: true, layer: 'back' }];
+export const cable = (hand: V, anchor: V): Prop[] => [{ k: 'line', a: hand, b: anchor, w: 0.008, layer: 'back', far: true }, { k: 'circle', c: anchor, r: 0.03, layer: 'back', far: true }];
+export const band = (hand: V, anchor: V): Prop[] => [{ k: 'line', a: hand, b: anchor, w: 0.012, dash: true, layer: 'back', far: true }];
 export const wheel = (c: V): Prop[] => [{ k: 'circle', c, r: 0.05, layer: 'front' }];

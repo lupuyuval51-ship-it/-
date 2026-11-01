@@ -1,0 +1,90 @@
+/**
+ * Offline outbox (IndexedDB). Mutations that fail because the network is down are queued with their ORIGINAL
+ * Idempotency-Key and replayed oldest-first, so a retry can never create a duplicate. Items the server rejects
+ * (validation / conflict) are kept as `rejected` and shown to the user — never silently dropped.
+ *
+ *   const r = await callOrQueue({ method: 'POST', path: '/api/food-log', body, label: 'Rice 150 g' });
+ *   if (r.queued) toast(t('outbox.queued')); else use(r.data);
+ */
+import { del, entries, get, set, createStore } from 'idb-keyval';
+import { useSyncExternalStore } from 'react';
+import { api, ApiRequestError, NetworkError } from '../api/client.ts';
+
+export interface OutboxItem {
+  id: string; method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; path: string; body: unknown; idempotencyKey: string;
+  createdAt: number; label: string; status: 'pending' | 'rejected'; error?: string;
+}
+
+const store = () => createStore('lupu-fit-outbox', 'items');
+let cache: OutboxItem[] = [];
+const subs = new Set<() => void>();
+const emit = () => subs.forEach((f) => f());
+let flushing: Promise<void> | null = null;
+
+async function reload(): Promise<void> {
+  try { cache = (await entries<string, OutboxItem>(store())).map(([, v]) => v).sort((a, b) => a.createdAt - b.createdAt); } catch { cache = []; }
+  emit();
+}
+void reload();
+
+export const outbox = {
+  list: (): OutboxItem[] => cache,
+  async enqueue(i: Omit<OutboxItem, 'id' | 'createdAt' | 'status' | 'idempotencyKey'> & { idempotencyKey?: string }): Promise<OutboxItem> {
+    const item: OutboxItem = { ...i, id: crypto.randomUUID(), idempotencyKey: i.idempotencyKey ?? crypto.randomUUID(), createdAt: Date.now(), status: 'pending' };
+    await set(item.id, item, store()); await reload(); return item;
+  },
+  async remove(id: string): Promise<void> { await del(id, store()); await reload(); },
+  async retryRejected(id: string): Promise<void> { const it = await get<OutboxItem>(id, store()); if (it) { await set(id, { ...it, status: 'pending' }, store()); await reload(); } },
+  /** Replays pending items oldest-first; stops at the first network failure so ordering is preserved. */
+  flush(): Promise<void> {
+    flushing ??= (async () => {
+      try {
+        for (const it of [...cache].filter((x) => x.status === 'pending')) {
+          try {
+            await replay(it);
+            await del(it.id, store());
+          } catch (e) {
+            if (e instanceof NetworkError) break;
+            if (e instanceof ApiRequestError && (e.status >= 500 || e.status === 429)) break; // transient: try again later
+            const code = e instanceof ApiRequestError ? e.code : 'error';
+            await set(it.id, { ...it, status: 'rejected', error: code } satisfies OutboxItem, store());
+          }
+        }
+      } finally { flushing = null; await reload(); }
+    })();
+    return flushing;
+  },
+  subscribe(f: () => void): () => void { subs.add(f); return () => { subs.delete(f); }; },
+};
+
+function replay(it: OutboxItem): Promise<unknown> {
+  const o = { idempotencyKey: it.idempotencyKey };
+  switch (it.method) {
+    case 'POST': return api.post(it.path, it.body, o);
+    case 'PUT': return api.put(it.path, it.body, o);
+    case 'PATCH': return api.patch(it.path, it.body, o);
+    case 'DELETE': return api.delete(it.path, it.body, o);
+  }
+}
+
+export type QueuedResult<T> = { queued: false; data: T } | { queued: true; item: OutboxItem };
+
+/** Try the call now; if the network is unreachable, queue it for replay (same Idempotency-Key). Other errors propagate. */
+export async function callOrQueue<T>(r: { method: OutboxItem['method']; path: string; body?: unknown; label: string }): Promise<QueuedResult<T>> {
+  const key = crypto.randomUUID();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return { queued: true, item: await outbox.enqueue({ method: r.method, path: r.path, body: r.body, label: r.label, idempotencyKey: key }) };
+  try {
+    const data = await (r.method === 'POST' ? api.post<T>(r.path, r.body, { idempotencyKey: key }) : r.method === 'PUT' ? api.put<T>(r.path, r.body, { idempotencyKey: key }) : r.method === 'PATCH' ? api.patch<T>(r.path, r.body, { idempotencyKey: key }) : api.delete<T>(r.path, r.body, { idempotencyKey: key }));
+    return { queued: false, data };
+  } catch (e) {
+    if (e instanceof NetworkError) return { queued: true, item: await outbox.enqueue({ method: r.method, path: r.path, body: r.body, label: r.label, idempotencyKey: key }) };
+    throw e;
+  }
+}
+
+export function useOutbox(): OutboxItem[] { return useSyncExternalStore(outbox.subscribe, outbox.list, outbox.list); }
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => { void outbox.flush(); });
+  setInterval(() => { if (cache.some((x) => x.status === 'pending')) void outbox.flush(); }, 30_000);
+}
