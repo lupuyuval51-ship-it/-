@@ -931,6 +931,11 @@ html, body {
 /* hud.js declutter: a label that would overlap a neighbour (or the pin) flips above its dot */
 .gr-poi.is-above { transform: translate(-50%, calc(-100% - 6px)); }
 .gr-poi.is-above::after { top: auto; bottom: -9px; }
+/* A drop-select label may also sit beside its dot (the drop map is direction: ltr, so these are physical). */
+.gr-poi.is-right { transform: translate(6px, -50%); }
+.gr-poi.is-right::after { left: -12px; top: 50%; margin: -4px 0 0; }
+.gr-poi.is-left { transform: translate(calc(-100% - 6px), -50%); }
+.gr-poi.is-left::after { left: auto; right: -12px; top: 50%; margin: -4px 0 0; }
 /* Phone-sized maps (drop-select or full map under ~420 px: phones, portrait tablets, small windows) use
    smaller label text. The POI tap target stays 50 px tall (32 px min-height + the ::before extension);
    the touch full map is smaller still (0.68rem, touch HUD below). */
@@ -7150,6 +7155,17 @@ function fireShot(game, ch, w, def) {
   const o = muzzlePos(ch, SCR_MUZZLE);   // muzzle flash + 'shot' event position
   let from = o, dir = null;              // where the bolt starts; its direction when fixed below
   {
+    // a raised barrel (jump + look up under a roof) must not poke up through a slab: a vertical sweep
+    // from inside the body to the muzzle height clamps the muzzle below the first ceiling / floor slab
+    const by = ch.pos[1] + 1.4, up = o[1] - by;
+    if (Math.abs(up) > 0.05) {
+      SCR_MO[0] = ch.pos[0]; SCR_MO[1] = by; SCR_MO[2] = ch.pos[2];
+      SCR_MD[0] = 0; SCR_MD[1] = up > 0 ? 1 : -1; SCR_MD[2] = 0;
+      const t = obstacleT(game, SCR_MO, SCR_MD, Math.abs(up));
+      if (t < Math.abs(up)) o[1] = by + SCR_MD[1] * Math.max(0, t - 0.05);
+    }
+  }
+  {
     // the barrel must not poke through a wall / Prism Barrier: start the bolt at the obstacle
     SCR_MO[0] = ch.pos[0]; SCR_MO[1] = o[1]; SCR_MO[2] = ch.pos[2];
     const mx = o[0] - SCR_MO[0], mz = o[2] - SCR_MO[2], ml = Math.hypot(mx, mz);
@@ -11842,7 +11858,7 @@ function createHud(root, opts = {}) {
     playOn: false, full: false, streak: 0, streakAt: 0, vaultToastAt: -1e9, emptyToastAt: -1e9,
     settings: null, settingsCb: null, menu: null, pause: null, drop: null, end: null,
     difficulty: 'normal', bestKnown: null, confirmQuit: false, confirmAt: -1e9, clickBlockUntil: 0,
-    guardAt: 0, lastDownAt: -1e9     // the tap that armed the click guard / the latest pointerdown anywhere
+    guardAt: 0, guardX: 0, guardY: 0, lastDownAt: -1e9, lastDownX: 0, lastDownY: 0,     // the tap that armed the click guard / the latest pointerdown anywhere
   };
 
   const bind = (el, key, attr) => {
@@ -11873,7 +11889,7 @@ function createHud(root, opts = {}) {
   // el._downAt (every pointer type) lets fn tell a press that began on el from a stray click.
   function onTap(el, fn, accept) {
     el.addEventListener('pointerdown', e => {
-      if (accept && !accept(e)) return;
+      if (el.disabled || (accept && !accept(e))) return;
       el._downAt = inputAt(e);
       if (e.pointerType === 'mouse') return;
       el._tap = { id: e.pointerId, x: e.clientX, y: e.clientY };
@@ -11887,13 +11903,13 @@ function createHud(root, opts = {}) {
       const p = el._tap;
       if (e.pointerType === 'mouse' || !p || p.id !== e.pointerId) return;
       el._tap = null;
-      if (accept && !accept(e)) return;
+      if (el.disabled || (accept && !accept(e))) return;
       const r = el.getBoundingClientRect();
       if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
       if (Math.hypot(e.clientX - p.x, e.clientY - p.y) > TAP_SLOP) return;
       el._tapAt = inputAt(e);
       S.clickBlockUntil = el._tapAt + TAP_GUARD;
-      S.guardAt = el._tapAt;
+      S.guardAt = el._tapAt; S.guardX = e.clientX; S.guardY = e.clientY;
       fn(e, true);
     });
     el.addEventListener('click', e => {
@@ -11905,9 +11921,12 @@ function createHud(root, opts = {}) {
   // The arming tap's trailing click has no pointerdown of its own, and neither has the click of a
   // finger that went down before it (multi-touch): both are swallowed. A real second tap (a settings
   // option 300 ms after Settings) or a mouse click starts with a new pointerdown and goes through.
-  const onAnyDown = e => { S.lastDownAt = inputAt(e); };
+  // A second tap on the same spot (an accidental double tap) is still swallowed.
+  const onAnyDown = e => { S.lastDownAt = inputAt(e); S.lastDownX = e.clientX; S.lastDownY = e.clientY; };
   const onClickGuard = e => {
-    if (e.detail !== 0 && inputAt(e) < S.clickBlockUntil && !(S.lastDownAt > S.guardAt)) { e.preventDefault(); e.stopPropagation(); }
+    if (e.detail === 0 || !(inputAt(e) < S.clickBlockUntil)) return;
+    const fresh = S.lastDownAt > S.guardAt && Math.hypot(S.lastDownX - S.guardX, S.lastDownY - S.guardY) > TAP_SLOP;
+    if (!fresh) { e.preventDefault(); e.stopPropagation(); }
   };
   window.addEventListener('pointerdown', onAnyDown, true);
   window.addEventListener('click', onClickGuard, true);
@@ -13146,6 +13165,7 @@ function createHud(root, opts = {}) {
     openBase({ name: 'pause', kind: 'pause', full: false, render: renderPause, esc: () => resumeFromPause() });
   }
   function resumeFromPause() {
+    if (S.pause && S.pause.notice) return;   // the 3D view is lost: Resume (button, Esc, pad) waits
     const cb = S.pause && S.pause.onResume;
     closeScreens();
     if (cb) cb();
@@ -14148,6 +14168,7 @@ function pause() {
 
 function resume() {
   if (mode !== 'paused') return;
+  if (renderer && renderer.contextLost) return;   // never resume into a lost 3D view
   hud.hidePause();
   mode = 'playing';
   input.setEnabled(true);
@@ -14180,6 +14201,7 @@ function recordMatch(r) {
 function applySettings(s) {
   settings = { ...settings, ...s };
   applyLocale(settings.locale);
+  if (mode === 'paused' && gfxNotice && hud.setPauseNotice) hud.setPauseNotice(t('pause.gfxLost'));
   input.setSettings({ sensitivity: settings.sensitivity, invertY: settings.invertY });
   audio.setVolume(settings.volume);
   root.classList.toggle('reduce-motion', !!settings.reduceMotion);
