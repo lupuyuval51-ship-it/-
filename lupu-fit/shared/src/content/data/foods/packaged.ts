@@ -14,19 +14,19 @@ export const PACKAGED_FOODS: FoodContent[] = [
     allergens: ['dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
   },
   {
-    id: 'peanut_puffed_corn_snack', nameHe: 'חטיף תירס מנופח בוטנים', nameEn: 'Peanut Puffed Corn Snack', category: 'snacks_sweets',
+    id: 'peanut_puffed_corn_snack', nameHe: 'חטיף תירס מנופח עם בוטנים', nameEn: 'Peanut Puffed Corn Snack', category: 'snacks_sweets',
     kcal: 540, proteinG: 15, carbsG: 52, fatG: 30, fiberG: 3,
     servingG: 30, servingNameHe: 'שקית קטנה', servingNameEn: '1 small bag',
     allergens: ['peanut'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
-    id: 'potato_chips', nameHe: 'צ׳יפס תפוצ׳יפס מלוח', nameEn: 'Potato Chips, Salted', category: 'snacks_sweets',
+    id: 'potato_chips', nameHe: 'חטיף תפוחי אדמה מלוח', nameEn: 'Potato Chips, Salted', category: 'snacks_sweets',
     kcal: 536, proteinG: 7, carbsG: 53, fatG: 34, fiberG: 4.8,
     servingG: 30, servingNameHe: 'שקית קטנה', servingNameEn: '1 small bag',
     allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
-    id: 'popcorn_air_popped', nameHe: 'פופקורן מאודה באוויר ללא מלח', nameEn: 'Popcorn, Air-Popped, Unsalted', category: 'snacks_sweets',
+    id: 'popcorn_air_popped', nameHe: 'פופקורן מוכן באוויר חם ללא מלח', nameEn: 'Popcorn, Air-Popped, Unsalted', category: 'snacks_sweets',
     kcal: 387, proteinG: 13, carbsG: 78, fatG: 4.5, fiberG: 14.5,
     servingG: 24, servingNameHe: '3 כוסות', servingNameEn: '3 cups',
     allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
@@ -38,21 +38,21 @@ export const PACKAGED_FOODS: FoodContent[] = [
     allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
-    id: 'protein_bar_whey', nameHe: 'חטיף חלבון עם חלבון מי גבינה', nameEn: 'Protein Bar, Whey-Based', category: 'snacks_sweets',
+    id: 'protein_bar_whey', nameHe: 'חטיף חלבון על בסיס מי גבינה', nameEn: 'Protein Bar, Whey-Based', category: 'snacks_sweets',
     kcal: 370, proteinG: 33, carbsG: 38, fatG: 11, fiberG: 8,
     servingG: 60, servingNameHe: 'חטיף', servingNameEn: '1 bar',
     allergens: ['dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher'], kosherClass: 'dairy',
   },
   {
-    id: 'granola_bar_oat_honey', nameHe: 'חטיף גרנולה שיבולת שועל ודבש', nameEn: 'Granola Bar, Oat and Honey', category: 'snacks_sweets',
+    id: 'granola_bar_oat_honey', nameHe: 'חטיף גרנולה עם שיבולת שועל ודבש', nameEn: 'Granola Bar, Oat and Honey', category: 'snacks_sweets',
     kcal: 420, proteinG: 7, carbsG: 65, fatG: 15, fiberG: 5,
     servingG: 35, servingNameHe: 'חטיף', servingNameEn: '1 bar',
     allergens: ['gluten'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
-    id: 'energy_gel_carb', nameHe: 'ג׳ל אנרגיה לפחמימות', nameEn: 'Energy Gel, Carbohydrate', category: 'snacks_sweets',
+    id: 'energy_gel_carb', nameHe: 'ג׳ל אנרגיה מבוסס פחמימות', nameEn: 'Energy Gel, Carbohydrate', category: 'snacks_sweets',
     kcal: 280, proteinG: 0, carbsG: 70, fatG: 0, fiberG: 0,
-    servingG: 40, servingNameHe: 'שקיק ג׳ל', servingNameEn: '1 gel packet',
+    servingG: 35, servingNameHe: 'שקיק ג׳ל', servingNameEn: '1 gel packet',
     allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
@@ -74,16 +74,16 @@ export const PACKAGED_FOODS: FoodContent[] = [
     allergens: ['sesame'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
-    id: 'rice_crackers_plain', nameHe: 'קרקרים מאורז', nameEn: 'Rice Crackers, Plain', category: 'snacks_sweets',
+    id: 'rice_crackers_plain', nameHe: 'פריכיות אורז טבעיות', nameEn: 'Rice Cakes, Puffed, Plain', category: 'snacks_sweets',
     kcal: 385, proteinG: 7, carbsG: 84, fatG: 2.5, fiberG: 1,
-    servingG: 25, servingNameHe: '5 קרקרים', servingNameEn: '5 crackers',
+    servingG: 27, servingNameHe: '3 פריכיות', servingNameEn: '3 rice cakes',
     allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
     id: 'wafer_cream_filled', nameHe: 'וופל במילוי קרם', nameEn: 'Wafer, Cream-Filled', category: 'snacks_sweets',
     kcal: 520, proteinG: 5, carbsG: 65, fatG: 27, fiberG: 2,
     servingG: 30, servingNameHe: '3 אצבעות וופל', servingNameEn: '3 wafer fingers',
-    allergens: ['gluten', 'dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+    allergens: ['gluten', 'dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher'], kosherClass: 'dairy',
   },
   {
     id: 'orange_juice', nameHe: 'מיץ תפוזים טבעי', nameEn: 'Orange Juice, 100% Fruit', category: 'drinks',
@@ -136,7 +136,7 @@ export const PACKAGED_FOODS: FoodContent[] = [
   {
     id: 'creatine_monohydrate', nameHe: 'קריאטין מונוהידראט', nameEn: 'Creatine Monohydrate', category: 'supplements',
     kcal: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0,
-    servingG: 5, servingNameHe: 'כפית מדידה', servingNameEn: '1 scoop (5 g)',
+    servingG: 5, servingNameHe: 'כפית שטוחה', servingNameEn: '1 level tsp (5 g)',
     allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
   },
   {

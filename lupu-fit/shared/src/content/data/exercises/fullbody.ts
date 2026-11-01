@@ -202,7 +202,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
   {
     id: 'half_kneeling_hip_flexor_stretch', nameHe: 'מתיחת מכופפי הירך בפסיעה על ברך', nameEn: 'Half-Kneeling Hip Flexor Stretch',
     category: 'stretch', difficulty: 'beginner', pattern: 'stretch',
-    primary: ['quads', 'glutes'], secondary: ['abs', 'adductors'],
+    primary: ['quads'], secondary: ['glutes', 'abs'],
     equipment: ['none'], contraindications: ['knee', 'hip'],
     easierAlternatives: [], harderAlternatives: ['world_greatest_stretch'],
     externallyLoaded: false, unilateral: true,
@@ -272,7 +272,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     category: 'mobility', difficulty: 'intermediate', pattern: 'mobility',
     primary: ['glutes', 'adductors'], secondary: ['hamstrings', 'quads'],
     equipment: ['none'], contraindications: ['knee', 'hip'],
-    easierAlternatives: ['half_kneeling_hip_flexor_stretch', 'supine_hamstring_stretch'], harderAlternatives: [],
+    easierAlternatives: ['supine_hamstring_stretch'], harderAlternatives: [],
     externallyLoaded: false, unilateral: true,
     stepsHe: [
       'לשבת על הרצפה עם שתי הברכיים כפופות ב-90 מעלות, רגל אחת לפנים והשנייה לצד, והגו זקוף',
@@ -430,8 +430,8 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
       'Lifting the hips too high',
       'Taking wide steps that twist the pelvis',
     ],
-    safetyHe: 'לזחול על משטח נקי וחלק, ובכאב בפרק כף היד או בכתף לעבור למטפסי הרים בקצב איטי.',
-    safetyEn: 'Crawl on a clean, even surface, and with wrist or shoulder pain move to slow mountain climbers.',
+    safetyHe: 'לזחול על משטח נקי ובעל אחיזה טובה, ובכאב בפרק כף היד או בכתף לעבור למטפסי הרים בקצב איטי.',
+    safetyEn: 'Crawl on a clean surface with good grip, and with wrist or shoulder pain move to slow mountain climbers.',
     videoPriority: 'C',
   },
   {
@@ -504,7 +504,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     id: 'burpee', nameHe: 'בורפי', nameEn: 'Burpee',
     category: 'cardio', difficulty: 'intermediate', pattern: 'locomotion',
     primary: ['quads', 'chest', 'abs'], secondary: ['triceps', 'front_delts', 'glutes', 'hamstrings'],
-    equipment: ['none'], contraindications: ['wrist', 'shoulder', 'knee', 'lower_back'],
+    equipment: ['none'], contraindications: ['wrist', 'shoulder', 'knee', 'ankle', 'lower_back'],
     easierAlternatives: ['mountain_climbers', 'jumping_jacks'], harderAlternatives: [],
     externallyLoaded: false, unilateral: false,
     stepsHe: [
@@ -642,7 +642,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
   },
   {
     id: 'broad_jump', nameHe: 'קפיצה לרוחק', nameEn: 'Broad Jump',
-    category: 'plyometric', difficulty: 'advanced', pattern: 'jump',
+    category: 'plyometric', difficulty: 'intermediate', pattern: 'jump',
     primary: ['glutes', 'quads', 'hamstrings'], secondary: ['calves', 'abs', 'lower_back'],
     equipment: ['none'], contraindications: ['knee', 'ankle', 'hip'],
     easierAlternatives: ['jump_squat'], harderAlternatives: [],
@@ -680,7 +680,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     category: 'weight_reps', difficulty: 'intermediate', pattern: 'hinge',
     primary: ['glutes', 'hamstrings'], secondary: ['lower_back', 'abs', 'forearms', 'front_delts', 'traps'],
     equipment: ['kettlebell'], contraindications: ['lower_back', 'shoulder'],
-    easierAlternatives: ['inchworm'], harderAlternatives: ['thruster'],
+    easierAlternatives: ['inchworm'], harderAlternatives: [],
     externallyLoaded: true, unilateral: false,
     stepsHe: [
       'לעמוד עם רגליים מעט רחבות מהכתפיים וקטלבל על הרצפה כמה ס״מ לפני הרגליים',
@@ -787,7 +787,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     category: 'carry', difficulty: 'beginner', pattern: 'carry',
     primary: ['forearms', 'traps', 'abs'], secondary: ['glutes', 'hamstrings', 'obliques', 'upper_back'],
     equipment: ['dumbbell'], contraindications: ['wrist', 'lower_back'],
-    easierAlternatives: [], harderAlternatives: ['sled_push'],
+    easierAlternatives: [], harderAlternatives: [],
     externallyLoaded: true, unilateral: false,
     stepsHe: [
       'לעמוד בין שתי משקולות ולהתכופף עם ירכיים לאחור וגב ישר כדי לאחוז בהן באחיזה חזקה',
@@ -860,7 +860,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     easierAlternatives: ['mountain_climbers', 'cat_cow'], harderAlternatives: [],
     externallyLoaded: true, unilateral: false,
     stepsHe: [
-      'לעמוד עם רגליים ברוחב הכתפיים ולהחזיק כדור כוח ללא קפיצה בשתי ידיים בגובה החזה',
+      'לעמוד עם רגליים ברוחב הכתפיים ולהחזיק בשתי ידיים בגובה החזה כדור כוח כבד שאינו קופץ (דד-באונס)',
       'להרים את הכדור מעל הראש תוך עמידה על קצות האצבעות ופתיחת החזה',
       'לכווץ את הבטן ולהטיח את הכדור לרצפה בכוח, כשהירכיים נדחפות אחורה והגו מתכופף',
       'להרים את הכדור בשליטה בסקווט קצר ולחזור לעמידה לקראת החזרה הבאה',
@@ -875,13 +875,13 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     cuesEn: ['Use the whole body to slam', 'Exhale sharply on the slam'],
     mistakesHe: [
       'הטחה בידיים בלבד בלי שימוש בבטן וברגליים',
-      'שימוש בכדי קופץ שעלול לחזור אל הפנים',
+      'שימוש בכדור קופץ שעלול לחזור אל הפנים',
     ],
     mistakesEn: [
       'Slamming with the arms only, without the abs and legs',
       'Using a bouncy ball that can rebound into the face',
     ],
-    safetyHe: 'לבחור כדור של 3 עד 6 ק״ג ללא קפיצה, ובכאב בכתף או בגב התחתון להנמיך את הגובה ולהפחית עוצמה.',
+    safetyHe: 'לבחור כדור כוח של 3 עד 6 ק״ג שאינו קופץ, ובכאב בכתף או בגב התחתון להנמיך את הגובה ולהפחית עוצמה.',
     safetyEn: 'Choose a 3 to 6 kg dead-bounce ball, and with shoulder or lower back pain lower the overhead height and reduce intensity.',
     videoPriority: 'C',
   },
@@ -928,13 +928,13 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
     easierAlternatives: [], harderAlternatives: ['rowing_machine'],
     externallyLoaded: false, unilateral: false,
     stepsHe: [
-      'להתאים את גובה האוכף כך שהברך כמעט ישרה כשהדוושה בנקודה התחתונה',
+      'להתאים את גובה האוכף כך שהברך כפופה מעט (כ-25 עד 30 מעלות) כשהדוושה בנקודה התחתונה',
       'לשבת זקוף, לאחוז בהגה בקלילות ולהניח את כפות הרגליים על הדוושות',
       'לדווש בקצב קבוע ובהתנגדות נוחה כשהברכיים נעות בקו ישר מעל כפות הרגליים',
       'לשמור על נשימה רציפה ולהעלות התנגדות או קצב בהדרגה לפי הצורך',
     ],
     stepsEn: [
-      'Set the saddle height so the knee is almost straight when the pedal is at its lowest point',
+      'Set the saddle height so the knee keeps a slight bend (about 25 to 30 degrees) when the pedal is at its lowest point',
       'Sit tall, hold the handlebars lightly and place the feet on the pedals',
       'Pedal at a steady cadence and comfortable resistance with the knees tracking in line over the feet',
       'Keep breathing continuous and raise resistance or cadence gradually as needed',
@@ -951,7 +951,7 @@ export const FULLBODY_EXERCISES: ExerciseContent[] = [
       'Leaning heavily on the handlebars',
       'High resistance at too slow a cadence',
     ],
-    safetyHe: 'לוודא שהאוכף גבוה מספיק כדי שהברכיים לא ייכופפו עמוק, ובכאב חד לעצור ולהפחית התנגדות.',
+    safetyHe: 'לוודא שהאוכף גבוה מספיק כדי שהברכיים לא יהיו כפופות עמוק מדי, ובכאב חד לעצור ולהפחית התנגדות.',
     safetyEn: 'Make sure the saddle is high enough that the knees do not fold deeply, and with sharp pain stop and lower the resistance.',
     videoPriority: 'B',
   },

@@ -53,9 +53,9 @@ const STYLE_LABEL: Record<WorkoutStyle, { en: string; he: string }> = {
   density: { en: 'Density', he: 'צפיפות' },
 };
 const LEVEL_LABEL: Record<Difficulty, { en: string; he: string }> = {
-  beginner: { en: 'Foundations', he: 'בסיס' },
-  intermediate: { en: 'Builder', he: 'בנייה' },
-  advanced: { en: 'Max', he: 'מתקדמים' },
+  beginner: { en: 'Beginner', he: 'מתחילים' },
+  intermediate: { en: 'Intermediate', he: 'בינוני' },
+  advanced: { en: 'Advanced', he: 'מתקדמים' },
 };
 
 /** Generic per-style prescription used ONLY for nominal duration; the real one is personalised per user. */
@@ -128,7 +128,12 @@ function select(pool: readonly ExerciseContent[], focus: WorkoutFocus, n: number
     if (!lead) return null;
     take(lead);
     while (chosen.length < n) {
-      const cands = shuffle(onFocus.filter((e) => !chosen.includes(e) && (patternCount.get(e.pattern) ?? 0) < 2), rand);
+      // prefer variety (≤2 per movement pattern); relax only when the focus has too few patterns (e.g. bodyweight chest = push-up variations)
+      let cands: ExerciseContent[] = [];
+      for (const cap of [2, 3, 4, 5]) {
+        cands = shuffle(onFocus.filter((e) => !chosen.includes(e) && (patternCount.get(e.pattern) ?? 0) < cap), rand);
+        if (cands.length > 0) break;
+      }
       if (cands.length === 0) return null;
       // prefer exercises that hit focus muscles not yet covered, so the session is balanced
       const fresh = cands.filter((e) => e.primary.some((m) => fm.includes(m) && !covered.has(m)));
@@ -192,6 +197,7 @@ export function generateReadyWorkouts(exercises: readonly ExerciseContent[]): Ge
             const hardest = Math.max(...sel.map((e) => RANK[e.difficulty]));
             if (hardest > RANK[level]) continue;
             const actual = (['beginner', 'intermediate', 'advanced'] as const)[hardest] as Difficulty; // label honestly by hardest exercise
+            if (focus === 'full_body' && new Set(sel.flatMap((e) => e.primary.map((m) => MUSCLE_TO_GROUP[m]))).size < 4) continue; // full body must span ≥4 muscle groups
             const ids = sel.map((e) => e.id);
             if (!overlapOk(focus, ids)) continue;
             const minutes = nominalMinutes(sel, style);
@@ -199,8 +205,8 @@ export function generateReadyWorkouts(exercises: readonly ExerciseContent[]): Ge
             const need = [...new Set(sel.flatMap((e) => e.equipment.filter((q) => q !== 'none')))].sort() as Equipment[];
             const lead = sel[0] as ExerciseContent;
             const f = FOCUS_LABEL[focus]; const s = STYLE_LABEL[style]; const lv = LEVEL_LABEL[actual];
-            let nameEn = `${f.en} ${s.en} ${lv.en}: ${lead.nameEn} (${tier.labelEn})`;
-            let nameHe = `${f.he} ${s.he} ${lv.he}: ${lead.nameHe} (${tier.labelHe})`;
+            let nameEn = `${f.en} ${s.en}, ${lv.en}: ${lead.nameEn} (${tier.labelEn})`;
+            let nameHe = `אימון ${f.he}, ${s.he}, ${lv.he}: ${lead.nameHe} (${tier.labelHe})`;
             if (names.has(nameEn.toLowerCase())) { nameEn = `${nameEn} ${k + 1}`; nameHe = `${nameHe} ${k + 1}`; }
             names.add(nameEn.toLowerCase());
             made = {
@@ -214,6 +220,5 @@ export function generateReadyWorkouts(exercises: readonly ExerciseContent[]): Ge
       }
     });
   });
-  void MUSCLE_TO_GROUP;
   return { workouts: out, skipped };
 }

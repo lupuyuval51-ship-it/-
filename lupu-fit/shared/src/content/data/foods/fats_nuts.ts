@@ -63,7 +63,7 @@ export const FATS_NUTS_FOODS: FoodContent[] = [
     id: 'almond_butter', nameHe: 'חמאת שקדים', nameEn: 'Almond Butter', category: 'spreads_sauces',
     kcal: 614, proteinG: 21, carbsG: 19, fatG: 56, fiberG: 10,
     servingG: 16, servingNameHe: 'כף', servingNameEn: '1 tbsp',
-    allergens: ['tree_nut'], diets: VEGAN, restrictionTags: PLANT_LOW_NA_TAGS, kosherClass: 'pareve',
+    allergens: ['tree_nut'], diets: VEGAN, restrictionTags: PLANT_TAGS, kosherClass: 'pareve',
   },
   // ---- Sesame and seeds ----
   {
@@ -138,7 +138,7 @@ export const FATS_NUTS_FOODS: FoodContent[] = [
     id: 'chocolate_hazelnut_spread', nameHe: 'ממרח שוקולד אגוזי לוז', nameEn: 'Chocolate-Hazelnut Spread', category: 'spreads_sauces',
     kcal: 539, proteinG: 6.3, carbsG: 57.5, fatG: 30.9, fiberG: 3.4,
     servingG: 20, servingNameHe: 'כף', servingNameEn: '1 tbsp',
-    allergens: ['tree_nut', 'dairy'], diets: VEGETARIAN, restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+    allergens: ['tree_nut', 'dairy', 'soy'], diets: VEGETARIAN, restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
   },
   {
     id: 'honey', nameHe: 'דבש', nameEn: 'Honey', category: 'spreads_sauces',
@@ -167,7 +167,7 @@ export const FATS_NUTS_FOODS: FoodContent[] = [
   {
     id: 'mustard_prepared', nameHe: 'חרדל', nameEn: 'Mustard, Prepared', category: 'spreads_sauces',
     kcal: 66, proteinG: 4.4, carbsG: 5.8, fatG: 4, fiberG: 3.3,
-    servingG: 10, servingNameHe: 'כפית', servingNameEn: '1 tsp',
+    servingG: 5, servingNameHe: 'כפית', servingNameEn: '1 tsp',
     allergens: [], diets: VEGAN, restrictionTags: ['no_pork', 'kosher', 'lactose_free'], kosherClass: 'pareve',
   },
   {
@@ -179,7 +179,7 @@ export const FATS_NUTS_FOODS: FoodContent[] = [
   {
     id: 'tahini_sauce_ready', nameHe: 'רוטב טחינה מוכן', nameEn: 'Tahini Sauce, Ready-Made', category: 'spreads_sauces',
     kcal: 255, proteinG: 7, carbsG: 9, fatG: 22, fiberG: 3.5,
-    servingG: 30, servingNameHe: 'כף גדושה', servingNameEn: '2 tbsp',
+    servingG: 30, servingNameHe: 'שתי כפות', servingNameEn: '2 tbsp',
     allergens: ['sesame'], diets: VEGAN, restrictionTags: PLANT_TAGS, kosherClass: 'pareve',
   },
 ];

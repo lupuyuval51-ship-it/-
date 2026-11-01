@@ -1,24 +1,24 @@
 # LUPU-FIT — Progress (honest status)
 
-Last verified: `npm run gates` → exit 0 (typecheck, 4 linters, 123 shared tests, 28 tooling tests).
+## Verified by command (exit 0)
+- `npx tsc --noEmit` for `shared` and `scripts`; `npm run lint` (4 linters); `npm run test:shared` (130 tests);
+  `npm run test:tools` (274 tests: linters + 244 technique-clip geometry checks); `npm run verify:videos` (244 clips, ffprobe + own validator).
 
-## Phase 1 — Monorepo, shared core math, CI linters: PARTIAL
+## Done
+| Area | State |
+|---|---|
+| Shared engines (age, training, nutrition, menu, gamification, coachRules, readyWorkouts) | done, property-tested |
+| Exercises | **244** authored + independently reviewed; validator 0 errors; swap coverage 95% |
+| Foods | **198** authored + reviewed; validator 0 errors |
+| Ready workouts | **376** generated (≥250 required), validator 0 errors, <60% Jaccard overlap within a focus; personalised at runtime (age, goal, level, injuries, equipment, readiness, time); 130 tests incl. every workout × 180 profiles |
+| Technique videos | 244 schematic procedural clips + posters (not filmed, not human-reviewed — see DECISIONS D10) |
+| Design tokens + linters | done; contrast fixes in DECISIONS D2 |
 
-Done and verified by `npm run gates`:
-- npm workspaces monorepo (`shared`, `server`, `client` scaffolds), strict TS (`noUncheckedIndexedAccess`).
-- `shared`: `enums`, `age`, `training` (Epley, plates, readiness, progression, swap engine, deterministic plan
-  generator with time budget), `nutrition` (Mifflin-St Jeor, floors, carb floor, BMI>30 protein, trend ±150),
-  `menu` (morphological he+en allergen filter, daily menu, shopping list), `gamification`, `coachRules`
-  (pre-LLM classifier + data-driven rules coach), seed `i18n` (he/en).
-- `tokens.css` + self-hosted Heebo and Barlow Condensed (OFL).
-- Linters: `design-lint`, `contrast-check`, `security-scan`, `copy-lock` — each self-tested against violating fixtures.
-- Exhaustive monotonicity matrix, nutrition grid (>5000 cases), allergen, coach table tests.
+## In progress (content workflow still running when this was written)
+- 300 dishes (macros are *derived* from foods), 36 meal templates, 39 sport finishers. `npm run validate:content` is
+  expected to fail on these counts until they land; do not treat it as green before then.
 
-NOT done in Phase 1:
-- `schemas.ts` covers auth, profile, set input, generator query, food log and backup only — not every API body.
-- `i18n` is a seed dictionary (~60 keys), not the full UI string set.
-- Property tests use a 33-exercise fixture catalog; the real 244-exercise catalog arrives in Phase 2.
-
-## Phases 2–9: NOT STARTED
-Content (244/213/39/198/36/300), PG/PGlite DB + auth, Express API, React client, training/nutrition UI,
-Device Mode worker, Android shells, E2E. No claim is made about any of them.
+## NOT started
+Phases 3–9 of the original plan: PG/PGlite DB + migrations + auth/security hardening, Express API, React client
+(shell, ExerciseVideo, onboarding, workouts UI, live session, nutrition UI, coach UI), Device Mode worker, Capacitor/TWA
+shells, deployment configs, E2E. `schemas.ts` and `i18n` are still seed-level. No claim is made about any of these.

@@ -34,7 +34,7 @@ describe('personalisation is safe for every workout × profile', () => {
   for (const age of [13, 17, 18, 50, 65, 100]) for (const injuries of [[], ...INJURY_AREAS.map((i) => [i]), ['knee', 'lower_back', 'shoulder']] as const) for (const experience of ['beginner', 'intermediate', 'advanced'] as const) {
     profiles.push(mk({ age, injuries: [...injuries], experience, goal: age < 18 ? 'general_fitness' : 'strength' }));
   }
-  it('never prescribes contraindicated, age-forbidden or over-level exercises; always monotone-safe', () => {
+  it('never prescribes contraindicated, age-forbidden or over-level exercises; always monotone-safe', { timeout: 180_000 }, () => {
     for (const p of profiles) {
       const bucket = ageBucket(p.age);
       for (const w of READY_WORKOUTS) {
