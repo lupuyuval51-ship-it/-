@@ -20,7 +20,7 @@ export function AboutStep({ d, set, errors }: StepProps): ReactNode {
       <TextInput label={t('onboarding.about.name')} hint={t('onboarding.about.nameHint')} autoComplete="nickname" maxLength={60} value={d.displayName} onChange={(e) => set({ displayName: e.target.value })} />
       <div className="stack-sm">
         <span className="field-label">{t('onboarding.about.sex')}</span>
-        <ChoiceCards label={t('onboarding.about.sex')} value={d.sex} options={SEXES.map((s) => ({ value: s, label: t(`label.sex.${s}`) }))} onChange={(sex) => set({ sex })} />
+        <ChoiceCards dense label={t('onboarding.about.sex')} value={d.sex} options={SEXES.map((s) => ({ value: s, label: t(`label.sex.${s}`) }))} onChange={(sex) => set({ sex })} />
         <span className="hint">{t('onboarding.about.sexHint')}</span>
       </div>
       <div className="onb-grid">
@@ -134,7 +134,7 @@ export function NutritionStep({ d, set, errors, kcalNow }: StepProps & { kcalNow
       </div>
       <div className="stack-sm">
         <span className="field-label">{t('onboarding.nutrition.diet')}</span>
-        <ChoiceCards cols={2} label={t('onboarding.nutrition.diet')} value={d.diet} options={DIET_TYPES.map((x) => ({ value: x, label: t(`label.diet.${x}`) }))} onChange={(diet) => set({ diet })} />
+        <ChoiceCards dense cols={2} label={t('onboarding.nutrition.diet')} value={d.diet} options={DIET_TYPES.map((x) => ({ value: x, label: t(`label.diet.${x}`) }))} onChange={(diet) => set({ diet })} />
       </div>
       <div className="stack-sm">
         <span className="field-label">{t('onboarding.nutrition.allergies')}</span>

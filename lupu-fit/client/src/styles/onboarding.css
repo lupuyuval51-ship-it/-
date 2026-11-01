@@ -53,3 +53,6 @@
 .legal-tabs a { display: inline-flex; align-items: center; min-block-size: var(--tap); padding-inline: 0.875rem; color: var(--text-muted); font-weight: 600; font-size: var(--fs-14); white-space: nowrap; border-block-end: 3px solid transparent; text-decoration: none; }
 .legal-tabs a[aria-current='page'] { color: var(--text); border-block-end-color: var(--primary); }
 .legal-section { padding-block-start: 1rem; border-block-start: 1px solid var(--border); }
+/* Dense choice cards: short single-line options (sex, diet). Two columns even on phones. */
+.choice-grid.dense .choice { min-block-size: var(--tap); padding-block: 0.5rem; }
+.choice-grid.dense.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
