@@ -67,7 +67,7 @@ describe('Profile basics', () => {
     await user.clear(age); await user.type(age, '5');
     await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(h.calls.some((c) => c.m === 'PUT')).toBe(false);
-    expect(await screen.findByText('Invalid value')).toBeInTheDocument();
+    expect((await screen.findAllByText('Invalid value')).some((x) => x.className === 'field-error')).toBe(true);
   });
   it('switching language applies instantly and persists profile.language', async () => {
     view();
@@ -99,12 +99,8 @@ describe('Videos and outbox', () => {
     expect(await screen.findByTestId('no-sw')).toBeInTheDocument();
   });
   it('lists pending and rejected outbox items with retry / discard', async () => {
-    const a = await outbox.enqueue({ method: 'POST', path: '/api/x', body: {}, label: 'Pending item' });
-    const b = await outbox.enqueue({ method: 'POST', path: '/api/y', body: {}, label: 'Rejected item' });
-    await outbox.flush(); // handler returns {} for both => both succeed and are removed; re-add a rejected one explicitly
-    void a; void b;
     const c = await outbox.enqueue({ method: 'POST', path: '/api/z', body: {}, label: 'Will be rejected' });
-    h.handler = (m, p, bb) => (p === '/api/z' ? new ApiRequestError(400, 'validation_error', {}) : p === '/api/profile' ? current : (bb, {}));
+    h.handler = (_m, p) => (p === '/api/z' ? new ApiRequestError(400, 'validation_error', {}) : p === '/api/profile' ? current : {});
     await outbox.flush();
     expect(outbox.list().find((i) => i.id === c.id)?.status).toBe('rejected');
     view();
