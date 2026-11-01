@@ -25,6 +25,13 @@ export function safeBucket(age: number | undefined, fn: (n: number) => AgeBucket
   try { return fn(age); } catch { return null; }
 }
 
+const BUCKET_KEY = 'lf_live_age_bucket';
+/** The last known age bucket, kept so a minor who opens the workout offline (profile not loaded) still gets the RPE cap / no load increases. */
+export function loadStoredBucket(): AgeBucket | null {
+  try { const v = localStorage.getItem(BUCKET_KEY); return v === 'minor' || v === 'adult' || v === 'master' || v === 'senior' ? v : null; } catch { return null; }
+}
+export function storeBucket(b: AgeBucket | null): void { try { if (b) localStorage.setItem(BUCKET_KEY, b); } catch { /* ignore */ } }
+
 export const readinessOf = (s: string | null | undefined): ReadinessState => (s === 'easier' || s === 'rest' ? s : 'normal');
 
 /** API history is newest-first; the shared engine wants oldest-first. Sessions without a logged set are skipped. */

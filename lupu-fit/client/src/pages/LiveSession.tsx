@@ -18,7 +18,7 @@ import { useProfile, qk } from '../app/session.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import {
   defaultPlanned, defaultsFor, deletedSetIds, finisherMinutes, isTimedExercise, lastPerformance, maxRpeFor, pendingSets, progressionFor,
-  readinessOf, replacementOptions, safeBucket, sessionOutboxItems, setsPath, swapContextFor,
+  loadStoredBucket, readinessOf, replacementOptions, storeBucket, safeBucket, sessionOutboxItems, setsPath, swapContextFor,
   type HistoryResponse, type LiveExercise, type LiveSessionData, type LiveSet,
 } from '../lib/liveSession.ts';
 import { callOrQueue, outbox, useOutbox } from '../lib/outbox.ts';
@@ -51,7 +51,9 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const outboxItems = useOutbox();
   useWakeLock(true);
 
-  const bucket = safeBucket(profile?.age, ageBucket);
+  const liveBucket = safeBucket(profile?.age, ageBucket);
+  const bucket = liveBucket ?? loadStoredBucket();
+  useEffect(() => { storeBucket(liveBucket); }, [liveBucket]);
   const minor = bucket === 'minor';
   const maxRpe = maxRpeFor(bucket);
   const readiness = readinessOf(session.readiness);
