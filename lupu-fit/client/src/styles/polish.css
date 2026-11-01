@@ -30,3 +30,9 @@
 .main > *:nth-child(n+6) { animation-delay: 200ms; }
 .bar > i { transition: inline-size 600ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 @media (prefers-reduced-motion: reduce) { .main > * { animation: none; } .btn:active { transform: none; } }
+
+/* Subtle film grain on the page background (static 160px tile, ~3% max alpha). Cards stay solid, so text contrast is unaffected. */
+:root { --grain: url('/grain-dark.png'); }
+:root[data-theme='light'] { --grain: url('/grain-light.png'); }
+@media (prefers-color-scheme: light) { :root:not([data-theme='dark']):not([data-theme='light']) { --grain: url('/grain-light.png'); } }
+body { background-image: var(--grain); background-size: 160px 160px; background-repeat: repeat; }
