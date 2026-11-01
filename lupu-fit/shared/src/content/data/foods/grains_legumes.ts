@@ -1,3 +1,222 @@
 import type { FoodContent } from '../../types.js';
 
-export const GRAINS_LEGUMES_FOODS: FoodContent[] = [];
+/* Grains, bread, starchy sides and legumes. Values per 100 g of the food as named (cooked values assume no added salt). */
+
+export const GRAINS_LEGUMES_FOODS: FoodContent[] = [
+  {
+    id: 'white_rice_cooked', nameHe: 'אורז לבן מבושל', nameEn: 'White Rice, Cooked', category: 'grains_bread',
+    kcal: 130, proteinG: 2.7, carbsG: 28.2, fatG: 0.3, fiberG: 0.4,
+    servingG: 150, servingNameHe: 'כוס אורז מבושל', servingNameEn: '1 cup cooked',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'brown_rice_cooked', nameHe: 'אורז מלא מבושל', nameEn: 'Brown Rice, Cooked', category: 'grains_bread',
+    kcal: 112, proteinG: 2.3, carbsG: 23.5, fatG: 0.8, fiberG: 1.8,
+    servingG: 150, servingNameHe: 'כוס אורז מבושל', servingNameEn: '1 cup cooked',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'basmati_rice_cooked', nameHe: 'אורז בסמטי מבושל', nameEn: 'Basmati Rice, Cooked', category: 'grains_bread',
+    kcal: 121, proteinG: 3.5, carbsG: 25.2, fatG: 0.4, fiberG: 0.4,
+    servingG: 150, servingNameHe: 'כוס אורז מבושל', servingNameEn: '1 cup cooked',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'quinoa_cooked', nameHe: 'קינואה מבושלת', nameEn: 'Quinoa, Cooked', category: 'grains_bread',
+    kcal: 120, proteinG: 4.4, carbsG: 21.3, fatG: 1.9, fiberG: 2.8,
+    servingG: 150, servingNameHe: 'כוס קינואה מבושלת', servingNameEn: '1 cup cooked',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'couscous_cooked', nameHe: 'קוסקוס מבושל', nameEn: 'Couscous, Cooked', category: 'grains_bread',
+    kcal: 112, proteinG: 3.8, carbsG: 23.2, fatG: 0.2, fiberG: 1.4,
+    servingG: 150, servingNameHe: 'כוס קוסקוס מבושל', servingNameEn: '1 cup cooked',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'bulgur_cooked', nameHe: 'בורגול מבושל', nameEn: 'Bulgur, Cooked', category: 'grains_bread',
+    kcal: 83, proteinG: 3.1, carbsG: 18.6, fatG: 0.2, fiberG: 4.5,
+    servingG: 150, servingNameHe: 'כוס בורגול מבושל', servingNameEn: '1 cup cooked',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'pasta_white_cooked', nameHe: 'פסטה לבנה מבושלת', nameEn: 'White Pasta, Cooked', category: 'grains_bread',
+    kcal: 158, proteinG: 5.8, carbsG: 30.9, fatG: 0.9, fiberG: 1.8,
+    servingG: 140, servingNameHe: 'כוס פסטה מבושלת', servingNameEn: '1 cup cooked',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'pasta_whole_wheat_cooked', nameHe: 'פסטה מחיטה מלאה מבושלת', nameEn: 'Whole Wheat Pasta, Cooked', category: 'grains_bread',
+    kcal: 124, proteinG: 5.3, carbsG: 26.5, fatG: 0.5, fiberG: 3.9,
+    servingG: 140, servingNameHe: 'כוס פסטה מבושלת', servingNameEn: '1 cup cooked',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'rolled_oats_dry', nameHe: 'שיבולת שועל מגולגלת יבשה', nameEn: 'Rolled Oats, Dry', category: 'grains_bread',
+    kcal: 379, proteinG: 13.2, carbsG: 67.7, fatG: 6.5, fiberG: 10.1,
+    servingG: 40, servingNameHe: 'חצי כוס יבשה', servingNameEn: '1/2 cup dry',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'cornflakes', nameHe: 'קורנפלקס', nameEn: 'Cornflakes', category: 'grains_bread',
+    kcal: 357, proteinG: 7.5, carbsG: 84, fatG: 0.4, fiberG: 3.3,
+    servingG: 30, servingNameHe: 'כוס קורנפלקס', servingNameEn: '1 cup',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'granola', nameHe: 'גרנולה עם דבש ואגוזים', nameEn: 'Granola with Honey and Nuts', category: 'grains_bread',
+    kcal: 471, proteinG: 10.1, carbsG: 64.7, fatG: 20.3, fiberG: 5.3,
+    servingG: 40, servingNameHe: 'שליש כוס', servingNameEn: '1/3 cup',
+    allergens: ['gluten', 'tree_nut'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'pita_white', nameHe: 'פיתה לבנה', nameEn: 'White Pita', category: 'grains_bread',
+    kcal: 275, proteinG: 9.1, carbsG: 55.7, fatG: 1.2, fiberG: 2.2,
+    servingG: 80, servingNameHe: 'פיתה בינונית', servingNameEn: '1 medium pita',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'pita_whole_wheat', nameHe: 'פיתה מחיטה מלאה', nameEn: 'Whole Wheat Pita', category: 'grains_bread',
+    kcal: 266, proteinG: 10.9, carbsG: 55, fatG: 1.7, fiberG: 7.4,
+    servingG: 80, servingNameHe: 'פיתה בינונית', servingNameEn: '1 medium pita',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'bread_whole_wheat', nameHe: 'לחם מחיטה מלאה', nameEn: 'Whole Wheat Bread', category: 'grains_bread',
+    kcal: 252, proteinG: 12.5, carbsG: 42.7, fatG: 3.5, fiberG: 6,
+    servingG: 30, servingNameHe: 'פרוסה', servingNameEn: '1 slice',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'bread_white', nameHe: 'לחם לבן', nameEn: 'White Bread', category: 'grains_bread',
+    kcal: 266, proteinG: 8.9, carbsG: 50.6, fatG: 3.3, fiberG: 2.4,
+    servingG: 30, servingNameHe: 'פרוסה', servingNameEn: '1 slice',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'sourdough_bread', nameHe: 'לחם שאור', nameEn: 'Sourdough Bread', category: 'grains_bread',
+    kcal: 270, proteinG: 10, carbsG: 52, fatG: 2, fiberG: 2.4,
+    servingG: 45, servingNameHe: 'פרוסה', servingNameEn: '1 slice',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'tortilla_flour', nameHe: 'טורטייה מקמח חיטה', nameEn: 'Flour Tortilla', category: 'grains_bread',
+    kcal: 310, proteinG: 8.3, carbsG: 50.3, fatG: 7.5, fiberG: 3.3,
+    servingG: 45, servingNameHe: 'טורטייה בינונית', servingNameEn: '1 medium tortilla',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'rice_cakes', nameHe: 'פריכיות אורז', nameEn: 'Rice Cakes', category: 'grains_bread',
+    kcal: 387, proteinG: 8.2, carbsG: 81.5, fatG: 2.8, fiberG: 4.2,
+    servingG: 9, servingNameHe: 'פריכית', servingNameEn: '1 rice cake',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'crackers_plain', nameHe: 'קרקרים פשוטים', nameEn: 'Plain Crackers', category: 'grains_bread',
+    kcal: 421, proteinG: 9.5, carbsG: 72, fatG: 10, fiberG: 2.9,
+    servingG: 15, servingNameHe: '4 קרקרים', servingNameEn: '4 crackers',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'bagel_plain', nameHe: 'בייגל רגיל', nameEn: 'Plain Bagel', category: 'grains_bread',
+    kcal: 257, proteinG: 10, carbsG: 50.9, fatG: 1.6, fiberG: 2.3,
+    servingG: 95, servingNameHe: 'בייגל', servingNameEn: '1 bagel',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'challah', nameHe: 'חלה', nameEn: 'Challah', category: 'grains_bread',
+    kcal: 290, proteinG: 9, carbsG: 50, fatG: 5.5, fiberG: 2.2,
+    servingG: 50, servingNameHe: 'פרוסה', servingNameEn: '1 slice',
+    allergens: ['gluten', 'egg'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'freekeh_cooked', nameHe: 'פריקה מבושלת', nameEn: 'Freekeh, Cooked', category: 'grains_bread',
+    kcal: 115, proteinG: 4.4, carbsG: 23.5, fatG: 0.9, fiberG: 4.8,
+    servingG: 150, servingNameHe: 'כוס פריקה מבושלת', servingNameEn: '1 cup cooked',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'millet_cooked', nameHe: 'דוחן מבושל', nameEn: 'Millet, Cooked', category: 'grains_bread',
+    kcal: 119, proteinG: 3.5, carbsG: 23.7, fatG: 1, fiberG: 1.3,
+    servingG: 150, servingNameHe: 'כוס דוחן מבושל', servingNameEn: '1 cup cooked',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'potato_boiled', nameHe: 'תפוח אדמה מבושל', nameEn: 'Potato, Boiled', category: 'grains_bread',
+    kcal: 87, proteinG: 1.9, carbsG: 20.1, fatG: 0.1, fiberG: 1.8,
+    servingG: 150, servingNameHe: 'תפוח אדמה בינוני', servingNameEn: '1 medium potato',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'sweet_potato_baked', nameHe: 'בטטה אפויה', nameEn: 'Sweet Potato, Baked', category: 'grains_bread',
+    kcal: 90, proteinG: 2, carbsG: 20.7, fatG: 0.2, fiberG: 3.3,
+    servingG: 130, servingNameHe: 'בטטה בינונית', servingNameEn: '1 medium sweet potato',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'polenta_cooked', nameHe: 'פולנטה מבושלת', nameEn: 'Polenta, Cooked', category: 'grains_bread',
+    kcal: 70, proteinG: 1.6, carbsG: 15, fatG: 0.3, fiberG: 1,
+    servingG: 150, servingNameHe: 'מנה', servingNameEn: '1 serving',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'chickpeas_cooked', nameHe: 'גרגירי חומוס מבושלים', nameEn: 'Chickpeas, Cooked', category: 'legumes',
+    kcal: 164, proteinG: 8.9, carbsG: 27.4, fatG: 2.6, fiberG: 7.6,
+    servingG: 80, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'lentils_green_cooked', nameHe: 'עדשים ירוקות מבושלות', nameEn: 'Green Lentils, Cooked', category: 'legumes',
+    kcal: 113, proteinG: 9, carbsG: 20.1, fatG: 0.4, fiberG: 7.9,
+    servingG: 100, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'lentils_red_cooked', nameHe: 'עדשים כתומות מבושלות', nameEn: 'Red Lentils, Cooked', category: 'legumes',
+    kcal: 105, proteinG: 7.6, carbsG: 17.9, fatG: 0.4, fiberG: 3.7,
+    servingG: 100, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'black_beans_cooked', nameHe: 'שעועית שחורה מבושלת', nameEn: 'Black Beans, Cooked', category: 'legumes',
+    kcal: 127, proteinG: 8.9, carbsG: 23.7, fatG: 0.5, fiberG: 8.7,
+    servingG: 90, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'white_beans_cooked', nameHe: 'שעועית לבנה מבושלת', nameEn: 'White Beans, Cooked', category: 'legumes',
+    kcal: 118, proteinG: 8.3, carbsG: 21.1, fatG: 0.5, fiberG: 4.9,
+    servingG: 90, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'kidney_beans_cooked', nameHe: 'שעועית אדומה מבושלת', nameEn: 'Kidney Beans, Cooked', category: 'legumes',
+    kcal: 127, proteinG: 8.7, carbsG: 22.8, fatG: 0.5, fiberG: 6.4,
+    servingG: 90, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'hummus_spread', nameHe: 'חומוס ממרח', nameEn: 'Hummus Spread', category: 'legumes',
+    kcal: 166, proteinG: 7.9, carbsG: 14.3, fatG: 9.6, fiberG: 6,
+    servingG: 30, servingNameHe: '2 כפות', servingNameEn: '2 tbsp',
+    allergens: ['sesame'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'falafel_baked', nameHe: 'כדורי פלאפל אפויים', nameEn: 'Baked Falafel Balls', category: 'legumes',
+    kcal: 205, proteinG: 10, carbsG: 26, fatG: 7.5, fiberG: 7,
+    servingG: 50, servingNameHe: '3 כדורים', servingNameEn: '3 balls',
+    allergens: ['sesame'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'green_peas_cooked', nameHe: 'אפונה ירוקה מבושלת', nameEn: 'Green Peas, Cooked', category: 'legumes',
+    kcal: 80, proteinG: 5.4, carbsG: 15.6, fatG: 0.2, fiberG: 5.5,
+    servingG: 80, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+  {
+    id: 'fava_beans_cooked', nameHe: 'פול מבושל', nameEn: 'Fava Beans, Cooked', category: 'legumes',
+    kcal: 110, proteinG: 7.6, carbsG: 19.7, fatG: 0.4, fiberG: 5.4,
+    servingG: 90, servingNameHe: 'חצי כוס', servingNameEn: '1/2 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'no_shellfish', 'halal', 'kosher', 'lactose_free', 'low_sodium'], kosherClass: 'pareve',
+  },
+];

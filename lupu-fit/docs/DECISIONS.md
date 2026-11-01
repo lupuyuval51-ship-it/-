@@ -46,3 +46,22 @@ Node and live in `scripts/` with their own tsconfig (`npm run test:tools`).
 ## D9. Dependency advisory
 `npm audit` reports a moderate advisory on `vitest@3` (`@vitest/mocker`, dev-only; affects the vitest dev server
 mock-redirect feature, not shipped code). Upgrading to vitest 5 is a breaking change; deferred, not hidden.
+
+## D10. Technique videos are generated in code (schematic, not filmed)
+`npm run gen:videos` renders every exercise as a silent, seamless 8 s loop (720x720, H.264 High, +faststart, ~30 fps,
+poster JPG ≤ 60 KB) from a parametric skeleton: forward kinematics + two-bone IK, motion programs per movement family
+(`scripts/video/motions*.ts`), ids mapped by `scripts/video/classify.ts`. The primary muscle is highlighted and the
+start/end poses are shown as a faint ghost. This is a stylised illustration, NOT footage of a person.
+- Each clip carries `fidelity` in `media-manifest.json`: `specific` (a motion written for that movement, 182),
+  `approximate` (nearest family; a variant looks like its sibling, 62) or `generic` (pattern fallback, 0).
+- All manifest entries have `reviewed: false`. Nothing here is human-reviewed; a coach should review before the UI
+  presents a clip as an authoritative demonstration. The spec rule "never claim a video exists unless a validated,
+  reviewed record exists" therefore still applies: set `reviewed` only after human review.
+- Known limits: side view only (movements in the frontal plane, e.g. flies, wipers, clamshells, are approximated or shown
+  from the front); no hands or fingers; equipment is drawn as simple symbols; unilateral exercises alternate sides.
+- Generated media is not committed (`client/public/media/` is git-ignored, ~41 MB). Build pipelines run `gen:videos`.
+- Quality gates: `scripts/video.test.ts` checks for every exercise that bone lengths never change, nothing sinks through
+  the floor, no joint teleports between frames and the loop is seamless; `npm run verify:videos` re-validates every file
+  with the repo's own MP4 validator AND ffprobe and checks sha256 against the manifest.
+- IK bend side is chosen once per limb (at its most flexed sample) and locked for the clip. Choosing per frame from a
+  world-space preference made elbows/knees flip mid-motion; the invariant test caught it.

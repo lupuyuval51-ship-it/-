@@ -1,3 +1,154 @@
 import type { FoodContent } from '../../types.js';
 
-export const PACKAGED_FOODS: FoodContent[] = [];
+export const PACKAGED_FOODS: FoodContent[] = [
+  {
+    id: 'dark_chocolate_70', nameHe: 'שוקולד מריר 70%', nameEn: 'Dark Chocolate, 70% Cocoa', category: 'snacks_sweets',
+    kcal: 598, proteinG: 7.8, carbsG: 45.9, fatG: 42.6, fiberG: 10.9,
+    servingG: 20, servingNameHe: '2 קוביות', servingNameEn: '2 squares',
+    allergens: ['soy'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'milk_chocolate', nameHe: 'שוקולד חלב', nameEn: 'Milk Chocolate', category: 'snacks_sweets',
+    kcal: 535, proteinG: 7.7, carbsG: 59.4, fatG: 29.7, fiberG: 3.4,
+    servingG: 25, servingNameHe: '3 קוביות', servingNameEn: '3 squares',
+    allergens: ['dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+  },
+  {
+    id: 'peanut_puffed_corn_snack', nameHe: 'חטיף תירס מנופח בוטנים', nameEn: 'Peanut Puffed Corn Snack', category: 'snacks_sweets',
+    kcal: 540, proteinG: 15, carbsG: 52, fatG: 30, fiberG: 3,
+    servingG: 30, servingNameHe: 'שקית קטנה', servingNameEn: '1 small bag',
+    allergens: ['peanut'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'potato_chips', nameHe: 'צ׳יפס תפוצ׳יפס מלוח', nameEn: 'Potato Chips, Salted', category: 'snacks_sweets',
+    kcal: 536, proteinG: 7, carbsG: 53, fatG: 34, fiberG: 4.8,
+    servingG: 30, servingNameHe: 'שקית קטנה', servingNameEn: '1 small bag',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'popcorn_air_popped', nameHe: 'פופקורן מאודה באוויר ללא מלח', nameEn: 'Popcorn, Air-Popped, Unsalted', category: 'snacks_sweets',
+    kcal: 387, proteinG: 13, carbsG: 78, fatG: 4.5, fiberG: 14.5,
+    servingG: 24, servingNameHe: '3 כוסות', servingNameEn: '3 cups',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'pretzels_salted', nameHe: 'בייגלה מלוח', nameEn: 'Pretzels, Salted', category: 'snacks_sweets',
+    kcal: 380, proteinG: 10, carbsG: 79, fatG: 3, fiberG: 3,
+    servingG: 30, servingNameHe: 'חופן', servingNameEn: '1 handful',
+    allergens: ['gluten'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'protein_bar_whey', nameHe: 'חטיף חלבון עם חלבון מי גבינה', nameEn: 'Protein Bar, Whey-Based', category: 'snacks_sweets',
+    kcal: 370, proteinG: 33, carbsG: 38, fatG: 11, fiberG: 8,
+    servingG: 60, servingNameHe: 'חטיף', servingNameEn: '1 bar',
+    allergens: ['dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher'], kosherClass: 'dairy',
+  },
+  {
+    id: 'granola_bar_oat_honey', nameHe: 'חטיף גרנולה שיבולת שועל ודבש', nameEn: 'Granola Bar, Oat and Honey', category: 'snacks_sweets',
+    kcal: 420, proteinG: 7, carbsG: 65, fatG: 15, fiberG: 5,
+    servingG: 35, servingNameHe: 'חטיף', servingNameEn: '1 bar',
+    allergens: ['gluten'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'energy_gel_carb', nameHe: 'ג׳ל אנרגיה לפחמימות', nameEn: 'Energy Gel, Carbohydrate', category: 'snacks_sweets',
+    kcal: 280, proteinG: 0, carbsG: 70, fatG: 0, fiberG: 0,
+    servingG: 40, servingNameHe: 'שקיק ג׳ל', servingNameEn: '1 gel packet',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'ice_cream_vanilla', nameHe: 'גלידת וניל', nameEn: 'Ice Cream, Vanilla', category: 'snacks_sweets',
+    kcal: 207, proteinG: 3.5, carbsG: 23.6, fatG: 11, fiberG: 0.7,
+    servingG: 70, servingNameHe: 'כדור גלידה', servingNameEn: '1 scoop',
+    allergens: ['dairy', 'egg'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+  },
+  {
+    id: 'cookies_chocolate_chip', nameHe: 'עוגיות שוקולד צ׳יפס', nameEn: 'Cookies, Chocolate Chip', category: 'snacks_sweets',
+    kcal: 480, proteinG: 5, carbsG: 65, fatG: 23, fiberG: 2.5,
+    servingG: 30, servingNameHe: '2 עוגיות', servingNameEn: '2 cookies',
+    allergens: ['gluten', 'egg', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'halva_tahini', nameHe: 'חלווה טחינה', nameEn: 'Halva, Tahini (Sesame)', category: 'snacks_sweets',
+    kcal: 470, proteinG: 12.5, carbsG: 50, fatG: 26, fiberG: 5,
+    servingG: 30, servingNameHe: 'פרוסה', servingNameEn: '1 slice',
+    allergens: ['sesame'], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'rice_crackers_plain', nameHe: 'קרקרים מאורז', nameEn: 'Rice Crackers, Plain', category: 'snacks_sweets',
+    kcal: 385, proteinG: 7, carbsG: 84, fatG: 2.5, fiberG: 1,
+    servingG: 25, servingNameHe: '5 קרקרים', servingNameEn: '5 crackers',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'wafer_cream_filled', nameHe: 'וופל במילוי קרם', nameEn: 'Wafer, Cream-Filled', category: 'snacks_sweets',
+    kcal: 520, proteinG: 5, carbsG: 65, fatG: 27, fiberG: 2,
+    servingG: 30, servingNameHe: '3 אצבעות וופל', servingNameEn: '3 wafer fingers',
+    allergens: ['gluten', 'dairy', 'soy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+  },
+  {
+    id: 'orange_juice', nameHe: 'מיץ תפוזים טבעי', nameEn: 'Orange Juice, 100% Fruit', category: 'drinks',
+    kcal: 45, proteinG: 0.7, carbsG: 10.4, fatG: 0.2, fiberG: 0.2,
+    servingG: 250, servingNameHe: 'כוס', servingNameEn: '1 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'cola_regular', nameHe: 'קולה רגילה', nameEn: 'Cola, Regular', category: 'drinks',
+    kcal: 42, proteinG: 0, carbsG: 10.6, fatG: 0, fiberG: 0,
+    servingG: 330, servingNameHe: 'פחית', servingNameEn: '1 can',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'sports_drink', nameHe: 'משקה ספורט איזוטוני', nameEn: 'Sports Drink, Isotonic', category: 'drinks',
+    kcal: 26, proteinG: 0, carbsG: 6.4, fatG: 0, fiberG: 0,
+    servingG: 500, servingNameHe: 'בקבוק', servingNameEn: '1 bottle',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'coffee_black', nameHe: 'קפה שחור ללא סוכר', nameEn: 'Coffee, Black, Unsweetened', category: 'drinks',
+    kcal: 1, proteinG: 0.1, carbsG: 0, fatG: 0, fiberG: 0,
+    servingG: 240, servingNameHe: 'כוס', servingNameEn: '1 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'tea_unsweetened', nameHe: 'תה ללא סוכר', nameEn: 'Tea, Brewed, Unsweetened', category: 'drinks',
+    kcal: 1, proteinG: 0, carbsG: 0.3, fatG: 0, fiberG: 0,
+    servingG: 240, servingNameHe: 'כוס', servingNameEn: '1 cup',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'coconut_water', nameHe: 'מי קוקוס', nameEn: 'Coconut Water', category: 'drinks',
+    kcal: 19, proteinG: 0.7, carbsG: 3.7, fatG: 0.2, fiberG: 1.1,
+    servingG: 330, servingNameHe: 'קופסה', servingNameEn: '1 carton',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'protein_shake_ready_to_drink', nameHe: 'שייק חלבון מוכן לשתייה', nameEn: 'Protein Shake, Ready-to-Drink', category: 'drinks',
+    kcal: 50, proteinG: 8, carbsG: 3, fatG: 0.8, fiberG: 0.5,
+    servingG: 330, servingNameHe: 'בקבוק', servingNameEn: '1 bottle',
+    allergens: ['dairy'], diets: ['vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium'], kosherClass: 'dairy',
+  },
+  {
+    id: 'energy_drink_sugar_free', nameHe: 'משקה אנרגיה ללא סוכר', nameEn: 'Energy Drink, Sugar-Free', category: 'drinks',
+    kcal: 2, proteinG: 0, carbsG: 0.3, fatG: 0, fiberG: 0,
+    servingG: 250, servingNameHe: 'פחית', servingNameEn: '1 can',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'creatine_monohydrate', nameHe: 'קריאטין מונוהידראט', nameEn: 'Creatine Monohydrate', category: 'supplements',
+    kcal: 0, proteinG: 0, carbsG: 0, fatG: 0, fiberG: 0,
+    servingG: 5, servingNameHe: 'כפית מדידה', servingNameEn: '1 scoop (5 g)',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'bcaa_powder', nameHe: 'אבקת חומצות אמינו מסועפות (BCAA)', nameEn: 'BCAA Powder', category: 'supplements',
+    kcal: 350, proteinG: 85, carbsG: 3, fatG: 0, fiberG: 0,
+    servingG: 7, servingNameHe: 'מנה אחת', servingNameEn: '1 scoop (7 g)',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'low_sodium', 'lactose_free'], kosherClass: 'pareve',
+  },
+  {
+    id: 'electrolyte_tablet', nameHe: 'טבליית אלקטרוליטים להמסה', nameEn: 'Electrolyte Tablet, Effervescent', category: 'supplements',
+    kcal: 40, proteinG: 0, carbsG: 10, fatG: 0, fiberG: 0,
+    servingG: 4, servingNameHe: 'טבליה', servingNameEn: '1 tablet',
+    allergens: [], diets: ['vegan', 'vegetarian', 'pescatarian', 'kosher'], restrictionTags: ['no_pork', 'halal', 'kosher', 'lactose_free'], kosherClass: 'pareve',
+  },
+];
