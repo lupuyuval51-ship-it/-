@@ -1,0 +1,33 @@
+/** Aggregates the authored slice files. Add new slice files here. */
+import { CHEST_EXERCISES } from './data/exercises/chest.js';
+import { BACK_A_EXERCISES } from './data/exercises/back_a.js';
+import { BACK_B_EXERCISES } from './data/exercises/back_b.js';
+import { SHOULDERS_EXERCISES } from './data/exercises/shoulders.js';
+import { ARMS_A_EXERCISES } from './data/exercises/arms_a.js';
+import { ARMS_B_EXERCISES } from './data/exercises/arms_b.js';
+import { CORE_A_EXERCISES } from './data/exercises/core_a.js';
+import { CORE_B_EXERCISES } from './data/exercises/core_b.js';
+import { LEGS_A_EXERCISES } from './data/exercises/legs_a.js';
+import { LEGS_B_EXERCISES } from './data/exercises/legs_b.js';
+import { FULLBODY_EXERCISES } from './data/exercises/fullbody.js';
+import { PROTEINS_FOODS } from './data/foods/proteins.js';
+import { DAIRY_EGGS_FOODS } from './data/foods/dairy_eggs.js';
+import { GRAINS_LEGUMES_FOODS } from './data/foods/grains_legumes.js';
+import { PRODUCE_FOODS } from './data/foods/produce.js';
+import { FATS_NUTS_FOODS } from './data/foods/fats_nuts.js';
+import { PACKAGED_FOODS } from './data/foods/packaged.js';
+import { BREAKFAST_A_DISHES } from './data/dishes/breakfast_a.js';
+import { BREAKFAST_B_DISHES } from './data/dishes/breakfast_b.js';
+import { LUNCH_A_DISHES } from './data/dishes/lunch_a.js';
+import { LUNCH_B_DISHES } from './data/dishes/lunch_b.js';
+import { DINNER_A_DISHES } from './data/dishes/dinner_a.js';
+import { DINNER_B_DISHES } from './data/dishes/dinner_b.js';
+import { SNACK_A_DISHES } from './data/dishes/snack_a.js';
+import { SNACK_B_DISHES } from './data/dishes/snack_b.js';
+import { FINISHERS_A } from './data/finishers/a.js';
+import { FINISHERS_B } from './data/finishers/b.js';
+
+export const EXERCISES_ALL = [...CHEST_EXERCISES, ...BACK_A_EXERCISES, ...BACK_B_EXERCISES, ...SHOULDERS_EXERCISES, ...ARMS_A_EXERCISES, ...ARMS_B_EXERCISES, ...CORE_A_EXERCISES, ...CORE_B_EXERCISES, ...LEGS_A_EXERCISES, ...LEGS_B_EXERCISES, ...FULLBODY_EXERCISES];
+export const FOODS_ALL = [...PROTEINS_FOODS, ...DAIRY_EGGS_FOODS, ...GRAINS_LEGUMES_FOODS, ...PRODUCE_FOODS, ...FATS_NUTS_FOODS, ...PACKAGED_FOODS];
+export const DISHES_RAW_ALL = [...BREAKFAST_A_DISHES, ...BREAKFAST_B_DISHES, ...LUNCH_A_DISHES, ...LUNCH_B_DISHES, ...DINNER_A_DISHES, ...DINNER_B_DISHES, ...SNACK_A_DISHES, ...SNACK_B_DISHES];
+export const FINISHERS_ALL = [...FINISHERS_A, ...FINISHERS_B];

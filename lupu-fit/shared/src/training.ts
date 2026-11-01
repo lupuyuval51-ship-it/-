@@ -98,6 +98,9 @@ export interface SwapContext {
   maxDifficulty: Difficulty;
 }
 
+/** Fixed apparatus that does not make a workout "weights" mode. */
+export const BODYWEIGHT_APPARATUS: readonly Equipment[] = ['pullup_bar', 'dip_station'];
+
 const DIFF_RANK: Record<Difficulty, number> = { beginner: 0, intermediate: 1, advanced: 2 };
 
 export function isExerciseSafe(ex: ExerciseDef, ctx: SwapContext): boolean {
@@ -106,7 +109,8 @@ export function isExerciseSafe(ex: ExerciseDef, ctx: SwapContext): boolean {
   if (!isExerciseAllowedForAge(ex, ctx.bucket)) return false;
   if (DIFF_RANK[ex.difficulty] > DIFF_RANK[ctx.maxDifficulty]) return false;
   const needed = ex.equipment.filter((e) => e !== 'none');
-  if (ctx.mode === 'bodyweight' && needed.length > 0) return false;
+  // Bodyweight mode never receives gear. Fixed park apparatus (pull-up bar, dip station) is allowed only if owned/available.
+  if (ctx.mode === 'bodyweight' && needed.some((e) => !BODYWEIGHT_APPARATUS.includes(e))) return false;
   return needed.every((e) => ctx.available.includes(e));
 }
 

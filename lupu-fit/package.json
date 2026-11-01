@@ -16,7 +16,10 @@
     "lint": "node scripts/design-lint.mjs && node scripts/contrast-check.mjs && node scripts/security-scan.mjs && tsx scripts/copy-lock.ts",
     "test:shared": "vitest run --root shared",
     "gates": "npm run typecheck && npm run lint && npm run test:shared && npm run test:tools",
-    "test:tools": "vitest run --root scripts"
+    "test:tools": "vitest run --root scripts",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "gen:workouts": "tsx scripts/gen-ready-workouts.ts",
+    "gen:docs": "tsx scripts/gen-video-docs.ts"
   },
   "devDependencies": {
     "@fontsource-variable/heebo": "^5.3.0",
