@@ -15,10 +15,14 @@ const PLAN: Record<string, { label: string; he: string; target: number }> = {
   lunch_a: { label: 'Lunch A', he: 'צהריים א׳ (עוף, הודו, בקר)', target: 40 }, lunch_b: { label: 'Lunch B', he: 'צהריים ב׳ (דגים, צמחוני, טבעוני)', target: 40 },
   dinner_a: { label: 'Dinner A', he: 'ערב א׳ (בשר ועוף)', target: 40 }, dinner_b: { label: 'Dinner B', he: 'ערב ב׳ (דגים, צמחוני, קל)', target: 40 },
   snack_a: { label: 'Snack A', he: 'נשנוש א׳ (מלוח וחלבוני)', target: 35 }, snack_b: { label: 'Snack B', he: 'נשנוש ב׳ (מתוק, פירות, אגוזים)', target: 35 },
+  ext_breakfast: { label: 'Breakfast +', he: 'ארוחות בוקר נוספות', target: 40 }, ext_lunch: { label: 'Lunch +', he: 'ארוחות צהריים נוספות', target: 50 },
+  ext_dinner: { label: 'Dinner +', he: 'ארוחות ערב נוספות', target: 60 }, ext_snack: { label: 'Snack +', he: 'נשנושים נוספים', target: 50 },
 };
-let md = '# רשימת המנות / Dishes list\n\nערכי קלוריות ומקרו **מחושבים אוטומטית** מהמזונות והכמויות (לא מוקלדים ידנית). מנה אחת = מנה אחת למבוגר.\n\n';
+const onlyExtra = process.argv.includes('--extra');
+let md = `# ${onlyExtra ? 'המנות החדשות (200 נוספות)' : 'רשימת המנות'} / Dishes list\n\nערכי קלוריות ומקרו **מחושבים אוטומטית** מהמזונות והכמויות (לא מוקלדים ידנית). מנה אחת = מנה אחת למבוגר.\n\n`;
 let have = 0; let want = 0;
 for (const [key, meta] of Object.entries(PLAN)) {
+  if (onlyExtra && !key.startsWith('ext_')) continue;
   want += meta.target;
   let raws: DishRaw[] = [];
   try { const m = (await import(pathToFileURL(join(dir, `${key}.ts`)).href)) as Record<string, DishRaw[]>; raws = Object.values(m).find(Array.isArray) ?? []; } catch { /* still being written */ }
@@ -36,5 +40,5 @@ for (const [key, meta] of Object.entries(PLAN)) {
   md += '\n';
 }
 md = md.replace('\n\nערכי', `\n\n**נכתבו ${have} מתוך ${want} מנות.**\n\nערכי`);
-writeFileSync(join(root, 'docs/dishes-list.md'), md);
+writeFileSync(join(root, onlyExtra ? 'docs/dishes-extra-200.md' : 'docs/dishes-list.md'), md);
 console.log(`dishes written: ${have}/${want}`);

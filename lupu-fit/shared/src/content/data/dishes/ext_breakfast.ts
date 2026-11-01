@@ -73,7 +73,7 @@ export const EXT_BREAKFAST_DISHES: DishRaw[] = [
     prepMinutes: 10,
   },
   {
-    id: 'xbf_soy_yogurt_berry_oat_bowl', nameHe: 'קערת יוגורט סויה עם אוכמניות, בננה ושיבולת שועל', nameEn: 'Soy Yogurt Bowl with Blueberries, Banana and Oats', slots: ['breakfast'],
+    id: 'xbf_soy_yogurt_berry_oat_bowl', nameHe: 'קערת שיבולת שועל על בסיס סויה עם אוכמניות, בננה ופשתן', nameEn: 'Plant-Based Oat Bowl with Blueberries, Banana and Flaxseed', slots: ['breakfast'],
     ingredients: [
       { foodId: 'soy_yogurt_plain', grams: 200 }, { foodId: 'blueberries_raw', grams: 100 }, { foodId: 'banana_raw', grams: 100 }, { foodId: 'rolled_oats_dry', grams: 40 }, { foodId: 'flaxseed_ground', grams: 15 },
     ],

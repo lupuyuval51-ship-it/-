@@ -1,0 +1,100 @@
+import { useState, type ReactNode } from 'react';
+import { Link } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ageBucket, type TrendSuggestion } from '@lupu-fit/shared';
+import { api } from '../../api/client.ts';
+import { callOrQueue } from '../../lib/outbox.ts';
+import { fmt, useLang } from '../../i18n/index.tsx';
+import { useProfile } from '../../app/session.ts';
+import { Banner, Button, Card, ErrorState, Loading, NumberStepper, Sheet, errorMessage } from '../../ui/kit.tsx';
+import { IconTrash } from '../../ui/icons.tsx';
+import { useToast } from '../../ui/toast.tsx';
+import { addDaysIso, localIso } from '../home/dates.ts';
+import { LineChart } from './LineChart.tsx';
+import '../../styles/progress.css';
+
+interface WeightEntry { id: string; loggedDate: string; weightKg: number; note: string | null }
+interface WeightsResponse { entries: WeightEntry[]; smoothed: { date: string; weightKg: number }[]; suggestion: TrendSuggestion | null }
+
+/** Body-weight card: add (offline-safe), delete, smoothed trend chart and the suggest-only calorie nudge. */
+export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
+  const { t, lang } = useLang();
+  const toast = useToast();
+  const qc = useQueryClient();
+  const profile = useProfile().data;
+  const fetchDays = Math.max(rangeDays, 30);
+  const q = useQuery({ queryKey: ['weights', fetchDays], queryFn: () => api.get<WeightsResponse>('/api/weights', { days: fetchDays }) });
+  const [kg, setKg] = useState<number | null | undefined>(undefined);
+  const [toDelete, setToDelete] = useState<WeightEntry | null>(null);
+  const today = localIso();
+  const from = addDaysIso(today, -rangeDays);
+
+  const refresh = () => { void qc.invalidateQueries({ queryKey: ['weights'] }); void qc.invalidateQueries({ queryKey: ['progress'] }); void qc.invalidateQueries({ queryKey: ['stats'] }); };
+  const add = useMutation({
+    mutationFn: (w: number) => callOrQueue({ method: 'POST', path: '/api/weights', body: { loggedDate: today, weightKg: w }, label: `${w} ${t('unit.kg')}` }),
+    onSuccess: (r) => { toast(r.queued ? t('outbox.queued') : t('progress.weight.saved'), 'ok'); if (!r.queued) refresh(); },
+    onError: (e) => toast(errorMessage(e, t), 'error'),
+  });
+  const del = useMutation({
+    mutationFn: (e: WeightEntry) => callOrQueue({ method: 'DELETE', path: `/api/weights/${e.id}`, label: `${e.loggedDate} ${e.weightKg} ${t('unit.kg')}` }),
+    onSuccess: (r) => { setToDelete(null); toast(r.queued ? t('outbox.queued') : t('state.deleted'), 'ok'); if (!r.queued) refresh(); },
+    onError: (e) => toast(errorMessage(e, t), 'error'),
+  });
+
+  if (q.isLoading) return <Loading />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
+  const all = q.data?.entries ?? [];
+  const entries = all.filter((e) => e.loggedDate >= from);
+  const smoothed = (q.data?.smoothed ?? []).filter((p) => p.date >= from);
+  const start = kg === undefined ? (all[all.length - 1]?.weightKg ?? profile?.profile.weightKg ?? 70) : kg;
+  const minor = profile ? ageBucket(profile.profile.age) === 'minor' : false;
+  const sug = q.data?.suggestion ?? null;
+  const showSug = sug !== null && !(minor && sug.deltaKcal < 0);
+  const kcal = profile?.targets.kcal;
+  const summary = entries.length >= 2 ? t('progress.weight.aria', { n: entries.length, from: String(entries[0]?.weightKg), to: String(entries[entries.length - 1]?.weightKg) }) : t('state.noData');
+
+  return (
+    <Card>
+      <h2>{t('progress.weight.title')}</h2>
+      <div className="stack">
+        <div className="weight-add">
+          <NumberStepper label={t('progress.weight.today')} value={start} onChange={setKg} step={0.1} decimals={1} min={30} max={300} suffix={t('unit.kg')} />
+          <Button disabled={add.isPending || start === null} onClick={() => start !== null && add.mutate(start)}>{t('progress.weight.add')}</Button>
+        </div>
+        <LineChart
+          series={[{ id: 'raw', label: t('progress.weight.raw'), tone: 'accent', dotsOnly: true, points: entries.map((e) => ({ x: e.loggedDate, y: e.weightKg })) }, { id: 'trend', label: t('progress.weight.trend'), points: smoothed.map((p) => ({ x: p.date, y: p.weightKg })) }]}
+          ariaLabel={summary} caption={t('progress.weight.title')} xHeader={t('progress.date')} unit={t('unit.kg')} decimals={1}
+        />
+        {entries.length < 2 ? <p className="small muted">{t('progress.weight.needMore')}</p> : null}
+        {showSug && sug ? (
+          <Banner tone="warn">
+            <div className="stack-sm">
+              <strong>{t('progress.weight.suggestionTitle')}</strong>
+              <span>{t(`progress.weight.reason.${sug.reason}`)}</span>
+              {kcal !== undefined ? <span className="small">{t('progress.weight.suggestionKcal', { from: String(kcal), to: String(kcal + sug.deltaKcal), delta: `${sug.deltaKcal > 0 ? '+' : ''}${sug.deltaKcal}` })}</span> : <span className="num">{sug.deltaKcal > 0 ? '+' : ''}{sug.deltaKcal} {t('unit.kcal')}</span>}
+              <span className="small muted">{t('progress.weight.suggestionOnly')} <Link to="/profile">{t('progress.weight.editTarget')}</Link></span>
+            </div>
+          </Banner>
+        ) : null}
+        {entries.length > 0 ? (
+          <ul className="list">
+            {[...entries].reverse().slice(0, 8).map((e) => (
+              <li key={e.id}>
+                <span className="grow"><span className="num">{fmt.date(e.loggedDate, lang)}</span></span>
+                <span className="strong"><span className="num">{fmt.num(e.weightKg, 1)}</span> {t('unit.kg')}</span>
+                <button type="button" className="icon-btn" aria-label={t('progress.weight.deleteEntry', { date: e.loggedDate })} onClick={() => setToDelete(e)}><IconTrash /></button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+      <Sheet open={toDelete !== null} onClose={() => setToDelete(null)} title={t('progress.weight.deleteTitle')}>
+        <p>{toDelete ? t('progress.weight.deleteBody', { date: toDelete.loggedDate, kg: String(toDelete.weightKg) }) : null}</p>
+        <div className="row-wrap">
+          <Button variant="danger" disabled={del.isPending} onClick={() => toDelete && del.mutate(toDelete)}>{t('action.delete')}</Button>
+          <Button onClick={() => setToDelete(null)}>{t('action.cancel')}</Button>
+        </div>
+      </Sheet>
+    </Card>
+  );
+}
