@@ -13,7 +13,7 @@ const time = (x: string): number => Date.parse(x.length === 10 ? `${x}T12:00:00Z
  * series it renders the honest empty state instead. Accessible: role="img" + aria-label summary, and a visually
  * hidden table with the exact data.
  */
-export function LineChart({ series, ariaLabel, caption, xHeader, unit, minPoints = 2, decimals = 1 }: { series: readonly LineSeries[]; ariaLabel: string; caption: string; xHeader: string; unit?: string; minPoints?: number; decimals?: number }): ReactNode {
+export function LineChart({ series, ariaLabel, caption, xHeader, unit, minPoints = 2, decimals = 1, formatX }: { series: readonly LineSeries[]; ariaLabel: string; caption: string; xHeader: string; unit?: string; minPoints?: number; decimals?: number; formatX?: (x: string) => string }): ReactNode {
   const t = useT();
   const usable = series.filter((s) => s.points.length >= minPoints || (s.dotsOnly && s.points.length >= 1));
   const lineSeries = series.filter((s) => s.points.length >= minPoints);
@@ -27,24 +27,31 @@ export function LineChart({ series, ariaLabel, caption, xHeader, unit, minPoints
   const py = (y: number) => H - PAD - ((y - y0) / (y1 - y0)) * (H - 2 * PAD);
   const fmtN = (n: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: decimals }).format(n);
   const dates = [...new Set(all.map((p) => p.x))].sort();
-  const firstX = dates[0] ?? ''; const lastX = dates[dates.length - 1] ?? '';
+  const fx = formatX ?? ((x: string) => x);
+  const firstX = fx(dates[0] ?? ''); const lastX = fx(dates[dates.length - 1] ?? '');
+  const ymin = Math.min(...ys); const ymaxV = Math.max(...ys);
   return (
     <figure className="chart">
-      <div className="chart-ymax tiny muted num">{fmtN(Math.max(...ys))}{unit ? ` ${unit}` : ''}</div>
-      <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} className="chart-svg" focusable="false">
-        {[0, 1, 2, 3].map((i) => <line key={i} className="chart-grid" x1={PAD} x2={W - PAD} y1={PAD + (i * (H - 2 * PAD)) / 3} y2={PAD + (i * (H - 2 * PAD)) / 3} />)}
-        {usable.map((s) => {
-          const cls = s.tone === 'accent' ? 'chart-line accent' : 'chart-line';
-          const pts = [...s.points].sort((a, b) => time(a.x) - time(b.x));
-          return (
-            <g key={s.id} aria-hidden="true">
-              {!s.dotsOnly && pts.length >= minPoints ? <polyline className={cls} points={pts.map((p) => `${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ')} /> : null}
-              {pts.map((p) => <circle key={p.x} className={`chart-dot${s.tone === 'accent' ? ' accent' : ''}`} cx={px(p.x)} cy={py(p.y)} r={s.dotsOnly ? 2.5 : 3} />)}
-            </g>
-          );
-        })}
-      </svg>
-      <div className="chart-xs tiny muted"><span className="num">{firstX}</span><span className="num">{lastX}</span></div>
+      <div className="chart-plot">
+        <div className="chart-yaxis tiny muted num" aria-hidden="true"><span>{fmtN(ymaxV)}</span><span>{fmtN((ymaxV + ymin) / 2)}</span><span>{fmtN(ymin)}</span></div>
+        <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} className="chart-svg" focusable="false">
+          {[0, 1, 2, 3].map((i) => <line key={i} className="chart-grid" x1={PAD} x2={W - PAD} y1={PAD + (i * (H - 2 * PAD)) / 3} y2={PAD + (i * (H - 2 * PAD)) / 3} />)}
+          {usable.map((s) => {
+            const cls = s.tone === 'accent' ? 'chart-line accent' : 'chart-line';
+            const pts = [...s.points].sort((a, b) => time(a.x) - time(b.x));
+            const last = pts[pts.length - 1];
+            return (
+              <g key={s.id} aria-hidden="true">
+                {!s.dotsOnly && pts.length >= minPoints ? <polyline className={cls} points={pts.map((p) => `${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(' ')} /> : null}
+                {s.dotsOnly ? pts.map((p) => <circle key={p.x} className="chart-dot muted-dot" cx={px(p.x)} cy={py(p.y)} r={2.5} />) : null}
+                {!s.dotsOnly && last ? <circle className="chart-dot accent" cx={px(last.x)} cy={py(last.y)} r={4} /> : null}
+              </g>
+            );
+          })}
+        </svg>
+        <div className="chart-xs tiny muted num" aria-hidden="true"><span>{firstX}</span><span>{lastX}</span></div>
+      </div>
+      {unit ? <span className="tiny muted chart-unit">{unit}</span> : null}
       <table className="sr-only">
         <caption>{caption}</caption>
         <thead><tr><th scope="col">{xHeader}</th>{usable.map((s) => <th scope="col" key={s.id}>{s.label}</th>)}</tr></thead>

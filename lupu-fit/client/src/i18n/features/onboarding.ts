@@ -8,8 +8,10 @@ export default defineFeature({
     point3: 'Progress tracking for your weight, sets and personal records.',
     deviceData: 'Your data stays on this device. It is stored in the browser database and is not uploaded to a server.',
     cta: 'Set up my profile', legalPrefix: 'By continuing you agree to the',
+    v1: 'Today\'s workout, fitted to your gear and time', v2: 'Nutrition targets with safety floors built in', v3: 'Weight, sets and records in one place', setupTime: 'Setup takes about two minutes.', brandLabel: 'LUPU-FIT training log',
   },
   onboarding: {
+    done: { title: 'Your plan is ready', lead: 'Taking you to your first workout.' },
     stepLabel: 'Step', progress: 'Setup progress', startOver: 'Start over', save: 'Save and start',
     injuryDisclaimer: 'Training is adjusted to avoid the areas you mark, but this is not medical advice. If you have an injury or a health condition, check with a doctor or physiotherapist before training.',
     steps: {
@@ -39,7 +41,7 @@ export default defineFeature({
     },
     training: {
       place: 'Where you train', equipment: 'Available equipment', noGear: 'Nothing selected: workouts will be bodyweight only.', gearHint: 'Workouts use only what is selected.',
-      gymHint: 'A gym is assumed to have standard equipment.', days: 'Days per week', minutes: 'Minutes per session',
+      gymHint: 'A gym is assumed to have standard equipment.', placeDesc: { gym: 'Full set of machines and weights.', home: 'Your own gear, even if it is just a mat.', park: 'Outdoor bars and bodyweight training.' }, days: 'Days per week', minutes: 'Minutes per session',
       sevenDays: 'Seven days are possible, but the plan uses at most {n} lifting days and keeps one day for recovery.',
     },
     prefs: {
@@ -54,7 +56,7 @@ export default defineFeature({
     review: {
       goal: 'Goal', place: 'Place', schedule: 'Schedule', level: 'Experience', targets: 'Daily targets', bmr: 'BMR', tdee: 'TDEE', target: 'Target', protein: 'Protein', carbs: 'Carbs', fat: 'Fat',
       units: 'Energy in {kcal}, macros in {g}. BMR is resting energy, TDEE is energy with your activity.',
-      needBasics: 'Targets appear once age, height and weight are valid.', fixFirst: 'Some answers are not valid. Go back and fix them to save.',
+      plan: 'Your plan', perDay: 'a day', needBasics: 'Targets appear once age, height and weight are valid.', fixFirst: 'Some answers are not valid. Go back and fix them to save.',
     },
     note: {
       minor_no_deficit: 'Healthy habits and growth come first at your age, so no calorie deficit is set. Your target is at least your maintenance level (TDEE).',
@@ -78,8 +80,10 @@ export default defineFeature({
     point3: 'מעקב התקדמות אחר משקל, סטים ושיאים אישיים.',
     deviceData: 'הנתונים נשארים על המכשיר הזה. הם נשמרים במסד הנתונים של הדפדפן ואינם מועלים לשרת.',
     cta: 'הגדרת הפרופיל שלי', legalPrefix: 'בהמשך מאשרים את',
+    v1: 'אימון להיום, מותאם לציוד ולזמן', v2: 'יעדי תזונה עם רצפות בטיחות מובנות', v3: 'משקל, סטים ושיאים במקום אחד', setupTime: 'ההגדרה לוקחת כשתי דקות.', brandLabel: 'יומן האימונים של LUPU-FIT',
   },
   onboarding: {
+    done: { title: 'התוכנית מוכנה', lead: 'עוברים לאימון הראשון.' },
     stepLabel: 'שלב', progress: 'התקדמות ההגדרה', startOver: 'התחלה מחדש', save: 'שמירה והתחלה',
     injuryDisclaimer: 'האימונים מותאמים כך שיימנעו מהאזורים שסומנו, אך זה אינו ייעוץ רפואי. עם פציעה או מצב בריאותי, כדאי להתייעץ עם רופא או פיזיותרפיסט לפני האימון.',
     steps: {
@@ -109,7 +113,7 @@ export default defineFeature({
     },
     training: {
       place: 'מקום האימון', equipment: 'ציוד זמין', noGear: 'לא נבחר דבר: האימונים יהיו במשקל גוף בלבד.', gearHint: 'האימונים משתמשים רק בציוד שנבחר.',
-      gymHint: 'בחדר כושר מניחים שיש ציוד סטנדרטי.', days: 'ימים בשבוע', minutes: 'דקות לאימון',
+      gymHint: 'בחדר כושר מניחים שיש ציוד סטנדרטי.', placeDesc: { gym: 'מכונות ומשקולות במלואן.', home: 'הציוד שיש בבית, גם אם זה רק מזרן.', park: 'מתקנים בחוץ ואימון במשקל גוף.' }, days: 'ימים בשבוע', minutes: 'דקות לאימון',
       sevenDays: 'שבעה ימים אפשריים, אבל התוכנית כוללת לכל היותר {n} ימי אימון עם משקולות ושומרת יום אחד להתאוששות.',
     },
     prefs: {
@@ -124,7 +128,7 @@ export default defineFeature({
     review: {
       goal: 'מטרה', place: 'מקום', schedule: 'לוח זמנים', level: 'ניסיון', targets: 'יעדים יומיים', bmr: 'BMR', tdee: 'TDEE', target: 'יעד', protein: 'חלבון', carbs: 'פחמימות', fat: 'שומן',
       units: 'אנרגיה ב{kcal}, מקרו ב{g}. BMR היא האנרגיה במנוחה, ו-TDEE היא האנרגיה כולל הפעילות.',
-      needBasics: 'היעדים יופיעו כשהגיל, הגובה והמשקל תקינים.', fixFirst: 'חלק מהתשובות אינן תקינות. צריך לחזור ולתקן כדי לשמור.',
+      plan: 'התוכנית שלכם', perDay: 'ביום', needBasics: 'היעדים יופיעו כשהגיל, הגובה והמשקל תקינים.', fixFirst: 'חלק מהתשובות אינן תקינות. צריך לחזור ולתקן כדי לשמור.',
     },
     note: {
       minor_no_deficit: 'בגילים האלה הרגלים בריאים וצמיחה קודמים לכול, ולכן לא נקבע גירעון קלורי. היעד הוא לפחות רמת התחזוקה (TDEE).',

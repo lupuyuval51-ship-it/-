@@ -6,7 +6,8 @@ import { api } from '../../api/client.ts';
 import { callOrQueue } from '../../lib/outbox.ts';
 import { fmt, useLang } from '../../i18n/index.tsx';
 import { useProfile } from '../../app/session.ts';
-import { Banner, Button, Card, ErrorState, Loading, NumberStepper, Sheet, errorMessage } from '../../ui/kit.tsx';
+import { Banner, Button, Card, ErrorState, NumberStepper, Sheet, errorMessage } from '../../ui/kit.tsx';
+import { Disclosure, SkeletonCard } from '../../ui/patterns.tsx';
 import { IconTrash } from '../../ui/icons.tsx';
 import { useToast } from '../../ui/toast.tsx';
 import { addDaysIso, localIso } from '../home/dates.ts';
@@ -41,7 +42,7 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
     onError: (e) => toast(errorMessage(e, t), 'error'),
   });
 
-  if (q.isLoading) return <Loading />;
+  if (q.isLoading) return <SkeletonCard />;
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const all = q.data?.entries ?? [];
   const entries = all.filter((e) => e.loggedDate >= from);
@@ -51,11 +52,13 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
   const sug = q.data?.suggestion ?? null;
   const showSug = sug !== null && !(minor && sug.deltaKcal < 0);
   const kcal = profile?.targets.kcal;
+  const trend = smoothed.length >= 2 ? Math.round(((smoothed[smoothed.length - 1]?.weightKg ?? 0) - (smoothed[0]?.weightKg ?? 0)) * 10) / 10 : null;
   const summary = entries.length >= 2 ? t('progress.weight.aria', { n: entries.length, from: String(entries[0]?.weightKg), to: String(entries[entries.length - 1]?.weightKg) }) : t('state.noData');
 
   return (
     <Card>
       <h2>{t('progress.weight.title')}</h2>
+      {trend !== null ? <p className="prog-sec-take">{t('progress.take.weightTrend', { d: `${trend > 0 ? '+' : ''}${fmt.num(trend, 1)}` })}</p> : null}
       <div className="stack">
         <div className="weight-add">
           <NumberStepper label={t('progress.weight.today')} value={start} onChange={setKg} step={0.1} decimals={1} min={30} max={300} suffix={t('unit.kg')} />
@@ -63,7 +66,7 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
         </div>
         <LineChart
           series={[{ id: 'raw', label: t('progress.weight.raw'), tone: 'accent', dotsOnly: true, points: entries.map((e) => ({ x: e.loggedDate, y: e.weightKg })) }, { id: 'trend', label: t('progress.weight.trend'), points: smoothed.map((p) => ({ x: p.date, y: p.weightKg })) }]}
-          ariaLabel={summary} caption={t('progress.weight.title')} xHeader={t('progress.date')} unit={t('unit.kg')} decimals={1}
+          ariaLabel={summary} caption={t('progress.weight.title')} xHeader={t('progress.date')} unit={t('unit.kg')} decimals={1} formatX={(x) => fmt.date(x, lang)}
         />
         {entries.length < 2 ? <p className="small muted">{t('progress.weight.needMore')}</p> : null}
         {showSug && sug ? (
@@ -76,17 +79,26 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
             </div>
           </Banner>
         ) : null}
-        {entries.length > 0 ? (
-          <ul className="list">
-            {[...entries].reverse().slice(0, 8).map((e) => (
+        {entries.length > 0 ? (() => {
+          const rev = [...entries].reverse();
+          const row = (e: WeightEntry, i: number) => {
+            const prev = rev[i + 1]; const d = prev ? Math.round((e.weightKg - prev.weightKg) * 10) / 10 : null;
+            return (
               <li key={e.id}>
                 <span className="grow"><span className="num">{fmt.date(e.loggedDate, lang)}</span></span>
+                {d !== null && d !== 0 ? <span className="tiny muted num">{d > 0 ? '+' : ''}{fmt.num(d, 1)}</span> : null}
                 <span className="strong"><span className="num">{fmt.num(e.weightKg, 1)}</span> {t('unit.kg')}</span>
                 <button type="button" className="icon-btn" aria-label={t('progress.weight.deleteEntry', { date: e.loggedDate })} onClick={() => setToDelete(e)}><IconTrash /></button>
               </li>
-            ))}
-          </ul>
-        ) : null}
+            );
+          };
+          return (
+            <>
+              <ul className="list">{rev.slice(0, 3).map((e, i) => row(e, i))}</ul>
+              {rev.length > 3 ? <Disclosure summary={t('progress.moreWeighIns', { n: rev.length - 3 })}><ul className="list">{rev.slice(3, 12).map((e, i) => row(e, i + 3))}</ul></Disclosure> : null}
+            </>
+          );
+        })() : null}
       </div>
       <Sheet open={toDelete !== null} onClose={() => setToDelete(null)} title={t('progress.weight.deleteTitle')}>
         <p>{toDelete ? t('progress.weight.deleteBody', { date: toDelete.loggedDate, kg: String(toDelete.weightKg) }) : null}</p>

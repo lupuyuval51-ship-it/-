@@ -3,7 +3,8 @@ import { FINISHER_VARIANTS, SPORTS, type Equipment, type FinisherContent, type F
 import { EXERCISE_BY_ID } from '../../data/content.ts';
 import { useLang } from '../../i18n/index.tsx';
 import { hasLowerBodyInjury, missingFinisherGear, SPORT_STORE } from '../../lib/workoutCompose.ts';
-import { Card, ChipGroup, Select } from '../../ui/kit.tsx';
+import { Card, Tag } from '../../ui/kit.tsx';
+import { Disclosure } from '../../ui/patterns.tsx';
 import { ExerciseLine } from './ExerciseLine.tsx';
 
 /** Remembered sport per user: `lf_sport` holds a { [userId]: sport } map (a plain legacy value is accepted too). */
@@ -40,19 +41,27 @@ export function FinisherPicker({ sport, onSport, variant, onVariant, finishers, 
 
   return (
     <Card className="stack">
-      <Select label={t('workouts.detail.sportLabel')} value={sport ?? ''} onChange={(e) => onSport(e.target.value ? (e.target.value as Sport) : null)}
-        options={[{ value: '', label: t('label.sport.none') }, ...SPORTS.map((s) => ({ value: s, label: t(`label.sport.${s}`) }))]} />
+      <div className="row-between"><h2>{t('workouts.detail.finisherTitle')}</h2><Tag>{t('workouts.detail.optional')}</Tag></div>
+      <p className="small muted">{t('workouts.detail.sportLabel')}</p>
+      <div className="wk-sports" role="group" aria-label={t('workouts.detail.sportLabel')}>
+        <button type="button" className="chip" aria-pressed={sport === null} onClick={() => onSport(null)}>{t('label.sport.none')}</button>
+        {SPORTS.map((x) => <button type="button" key={x} className="chip" aria-pressed={sport === x} onClick={() => onSport(sport === x ? null : x)}>{t(`label.sport.${x}`)}</button>)}
+      </div>
       {sport ? (
         <>
           <div className="stack-sm">
             <span className="field-label">{t('workouts.detail.variantLabel')}</span>
-            <ChipGroup label={t('workouts.detail.variantLabel')} selected={[variant]} onToggle={onVariant}
-              options={FINISHER_VARIANTS.map((v) => ({ value: v, label: `${t(`label.variant.${v}`)}${v === 'gentle' && recommendGentle ? ` · ${t('workouts.detail.recommended')}` : ''}`, disabled: v === 'gear' && gearMissing('gear').length > 0 }))} />
+            <div className="wk-seg" role="group" aria-label={t('workouts.detail.variantLabel')}>
+              {FINISHER_VARIANTS.map((v) => (
+                <button type="button" key={v} aria-pressed={variant === v} disabled={v === 'gear' && gearMissing('gear').length > 0} onClick={() => onVariant(v)}>
+                  {t(`label.variant.${v}`)}{v === 'gentle' && recommendGentle ? <span className="tiny"> · {t('workouts.detail.recommended')}</span> : null}
+                </button>
+              ))}
+            </div>
             {gearMissing('gear').length > 0 ? <span className="small muted">{t('workouts.detail.needsGear', { gear: gearList })}</span> : null}
           </div>
           {chosen ? (
-            <div className="stack-sm">
-              <h3>{lang === 'he' ? chosen.nameHe : chosen.nameEn}</h3>
+            <Disclosure summary={t('workouts.detail.previewFinisher', { name: lang === 'he' ? chosen.nameHe : chosen.nameEn })}>
               <p className="small">{lang === 'he' ? chosen.descriptionHe : chosen.descriptionEn}</p>
               <span className="small muted">{t('workouts.detail.rounds', { n: chosen.rounds })} · {t('workouts.detail.finisherNote')}</span>
               <ul className="wk-ex-list">
@@ -64,7 +73,7 @@ export function FinisherPicker({ sport, onSport, variant, onVariant, finishers, 
                   </li>
                 ))}
               </ul>
-            </div>
+            </Disclosure>
           ) : null}
         </>
       ) : null}

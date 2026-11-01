@@ -9,11 +9,12 @@ import { useLang } from '../i18n/index.tsx';
 import {
   buildSessionPayload, defaultVariant, localDateStr, lastWorkingLoad, missingFinisherGear, personProfile, pickFinisher, type ExerciseHistory,
 } from '../lib/workoutCompose.ts';
-import { Banner, Button, Card, ErrorState, LinkButton, Loading, errorMessage } from '../ui/kit.tsx';
+import { Banner, Button, Card, ErrorState, LinkButton, Loading, Tag, errorMessage } from '../ui/kit.tsx';
+import { Disclosure, StatTile, StickyAction } from '../ui/patterns.tsx';
+import { IconChevron } from '../ui/icons.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
 import { FinisherPicker, readSport, writeSport } from '../components/workouts/FinisherPicker.tsx';
-import { noteText } from '../components/workouts/PlanPreview.tsx';
 import { ReadinessCheckin, readinessKey, type Checkin } from '../components/workouts/ReadinessCheckin.tsx';
 import '../styles/workouts.css';
 
@@ -107,61 +108,56 @@ export default function ReadyDetail(): ReactNode {
   }
 
   const finisherMinutes = finisher ? Math.round(finisher.items.reduce((a, it) => a + (it.workSec + it.restSec) * finisher.rounds, 0) / 60) : 0;
+  const swappedFrom = new Map<string, string>();
+  const topTags: string[] = [];
+  for (const n of personal.notes) {
+    if (n.code === 'exercise_swapped') swappedFrom.set(n.to, n.from);
+    else if (n.code === 'exercise_dropped') topTags.push(t('workouts.detail.tagDropped', { from: nameOfExercise(n.from, lang) }));
+    else if (n.code === 'time_trimmed') { if (n.removed > 0) topTags.push(t('workouts.detail.tagTrimmed', { n: profile.sessionMinutes })); }
+  }
+  const totalSets = personal.items.reduce((a, it) => a + it.prescription.sets, 0);
+  const totalMin = personal.estimatedMinutes + finisherMinutes;
 
   return (
     <div className="stack">
-      <Link to="/workouts?tab=ready">{t('workouts.detail.back')}</Link>
-      <div className="stack-sm">
+      <Link to="/workouts?tab=ready" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.detail.back')}</Link>
+
+      <section className="card hero-card stack">
+        <div className="wk-tags"><Tag>{t(`label.focus.${workout.focus}`)}</Tag><Tag>{t(`label.difficulty.${workout.level}`)}</Tag><Tag>{t(`label.style.${workout.style}`)}</Tag></div>
         <h1>{name}</h1>
-        <div className="row-wrap small muted">
-          <span>{t(`label.focus.${workout.focus}`)}</span>·<span>{t(`label.difficulty.${workout.level}`)}</span>·<span>{t(`label.style.${workout.style}`)}</span>
-          ·<span>{t('workouts.detail.minutesEstimate', { n: personal.estimatedMinutes + finisherMinutes })}</span>
+        <div className="grid-stats">
+          <StatTile label={t('workouts.detail.statTime')} value={<span className="num">{totalMin}</span>} unit={t('unit.min')} hint={finisherMinutes > 0 ? t('workouts.detail.statFinisher', { n: finisherMinutes }) : t('workouts.detail.estimate')} />
+          <StatTile label={t('workouts.detail.exercises')} value={<span className="num">{personal.items.length}</span>} />
+          <StatTile label={t('workouts.detail.statSets')} value={<span className="num">{totalSets}</span>} />
         </div>
-      </div>
+        {topTags.length > 0 ? <div className="wk-tags" aria-label={t('workouts.detail.adaptations')}>{topTags.map((x) => <Tag key={x}>{x}</Tag>)}</div> : null}
+      </section>
 
       <ReadinessCheckin key={checkin?.state ?? 'none'} date={date} current={checkin} />
 
-      <Card className="stack-sm">
-        <h2>{t('workouts.detail.warmup')}</h2>
-        <p className="small">{t('workouts.detail.warmupText')}</p>
-      </Card>
-
-      {personal.notes.length > 0 ? (
-        <Card className="stack-sm">
-          <h2>{t('workouts.detail.adaptations')}</h2>
-          <ul className="wk-note-list small">
-            {personal.notes.map((n, i) => (
-              <li key={i}>
-                {n.code === 'exercise_swapped' ? t('workouts.detail.swapped', { from: nameOfExercise(n.from, lang), to: nameOfExercise(n.to, lang) })
-                  : n.code === 'exercise_dropped' ? t('workouts.detail.dropped', { from: nameOfExercise(n.from, lang) })
-                    : n.code === 'time_trimmed' && n.removed > 0 ? t('workouts.detail.timeTrimmed', { n: profile.sessionMinutes }) : noteText(n, t, lang)}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+      <Disclosure summary={t('workouts.detail.warmup')}><p className="small">{t('workouts.detail.warmupText')}</p></Disclosure>
 
       <Card className="stack">
-        <h2>{t('workouts.detail.exercises')}</h2>
+        <div className="row-between"><h2>{t('workouts.detail.exercises')}</h2><span className="small muted">{t('workouts.detail.rpeHint')}</span></div>
         <ul className="wk-ex-list">
           {personal.items.map((it, i) => (
             <li key={`${it.exerciseId}-${i}`}>
-              <ExerciseLine exerciseId={it.exerciseId}>
+              <ExerciseLine exerciseId={it.exerciseId} large index={i + 1}>
                 <PrescriptionLine p={it.prescription} />
                 {lastLoads.get(it.exerciseId) !== undefined && it.prescription.loadKg !== null ? <span className="small muted">{t('workouts.presc.lastLoad', { kg: lastLoads.get(it.exerciseId) as number })}</span> : null}
+                {swappedFrom.has(it.exerciseId) ? <span className="wk-tags"><Tag tone="warning">{t('workouts.detail.tagSwapped', { from: nameOfExercise(swappedFrom.get(it.exerciseId) as string, lang) })}</Tag></span> : null}
               </ExerciseLine>
             </li>
           ))}
         </ul>
-        <span className="small muted">{t('workouts.detail.rpeHint')}</span>
       </Card>
 
       <FinisherPicker sport={sport} onSport={setSport} variant={variant} onVariant={setVariantChoice} finishers={FINISHERS} owned={owned} injuries={profile.injuries} />
 
       {conflict ? <Banner tone="warn">{t('workouts.detail.inProgress')} <Link to="/workouts/session">{t('workouts.detail.resume')}</Link></Banner> : null}
-      <div>
+      <StickyAction>
         <Button variant="primary" block disabled={start.isPending} onClick={() => { setConflict(false); start.mutate(); }}>{start.isPending ? t('workouts.detail.starting') : t('workouts.detail.start')}</Button>
-      </div>
+      </StickyAction>
     </div>
   );
 }

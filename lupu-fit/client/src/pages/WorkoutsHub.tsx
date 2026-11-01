@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router';
 import { useLang } from '../i18n/index.tsx';
-import { LinkButton, Loading, Tabs } from '../ui/kit.tsx';
+import { LinkButton, Tabs } from '../ui/kit.tsx';
+import { PageHeader, SkeletonList } from '../ui/patterns.tsx';
 import { GeneratorTab } from '../components/workouts/GeneratorTab.tsx';
 import { PlansTab } from '../components/workouts/PlansTab.tsx';
 import { ReadyTab } from '../components/workouts/ReadyTab.tsx';
@@ -22,15 +23,12 @@ export default function WorkoutsHub(): ReactNode {
 
   return (
     <div className="stack">
-      <div className="wk-head">
-        <h1>{t('workouts.title')}</h1>
-        <LinkButton to="/workouts/history" size="sm">{t('workouts.historyLink')}</LinkButton>
-      </div>
+      <PageHeader title={t('workouts.title')} action={<LinkButton to="/workouts/history" size="sm">{t('workouts.historyLink')}</LinkButton>} />
       <Tabs<Tab> label={t('workouts.tabs.label')} value={tab ?? 'ready'} onChange={go} tabs={[
         { value: 'plans', label: t('workouts.tabs.plans') }, { value: 'generator', label: t('workouts.tabs.generator') }, { value: 'ready', label: t('workouts.tabs.ready') },
       ]} />
       <div className="wk-panel" role="tabpanel">
-        {tab === null ? <Loading /> : tab === 'plans' ? <PlansTab /> : tab === 'generator' ? <GeneratorTab /> : <ReadyTab />}
+        {tab === null ? <SkeletonList rows={3} /> : tab === 'plans' ? <PlansTab /> : tab === 'generator' ? <GeneratorTab /> : <ReadyTab />}
       </div>
     </div>
   );

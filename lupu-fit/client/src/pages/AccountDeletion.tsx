@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { api } from '../api/client.ts';
 import { useMe } from '../app/session.ts';
-import { supportEmail } from '../components/onboarding/LegalDoc.tsx';
+import { LegalTabs, supportEmail } from '../components/onboarding/LegalDoc.tsx';
 import { IS_DEVICE } from '../env.ts';
 import { useT } from '../i18n/index.tsx';
 import { clearOnboardingDraft } from '../lib/onboardingDraft.ts';
@@ -30,6 +30,7 @@ export default function AccountDeletion(): ReactNode {
   const signedIn = !!me.data;
   return (
     <article className="stack-lg legal">
+      <LegalTabs />
       <header className="stack-sm"><h1>{t('legal.deletion.title')}</h1><p>{t('legal.deletion.intro')}</p></header>
       <section className="stack-sm">
         <h2>{t('legal.deletion.pathH')}</h2>
@@ -59,9 +60,6 @@ export default function AccountDeletion(): ReactNode {
           {email ? <p>{t('legal.contact.withEmail')} <a href={`mailto:${email}`}>{email}</a></p> : <p>{t('legal.contact.noEmail')}</p>}
         </section>
       )}
-      <nav className="row-wrap small" aria-label={t('legal.navLabel')}>
-        <Link to="/privacy">{t('legal.privacy.nav')}</Link><Link to="/terms">{t('legal.terms.nav')}</Link>
-      </nav>
       <Sheet open={open} onClose={close} title={t('legal.deletion.sheetTitle')}>
         <form className="stack" onSubmit={submit}>
           <p>{t('legal.deletion.sheetBody')}</p>

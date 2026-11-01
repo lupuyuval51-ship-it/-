@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { fmt, useT } from '../../i18n/index.tsx';
 import type { LiveExercise } from '../../lib/liveSession.ts';
+import { IconCheck } from '../../ui/icons.tsx';
 import { Button } from '../../ui/kit.tsx';
 
 type Phase = { kind: 'idle' } | { kind: 'work' | 'rest'; round: number; endsAt: number };
@@ -32,16 +33,26 @@ export function FinisherTimer({ ex, onRound }: { ex: LiveExercise; onRound: (dur
     } else setPhase({ kind: 'work', round: phase.round + 1, endsAt: t0 + work * 1000 });
   }, [now, phase, rounds, rest, work]);
 
-  if (done && phase.kind === 'idle') return <span className="success">{t('live.finisher.done')}</span>;
+  if (done && phase.kind === 'idle') return <span className="success lv-fin-done"><IconCheck />{t('live.finisher.done')}</span>;
   const start = () => { const t0 = Date.now(); setNow(t0); setPhase({ kind: 'work', round: Math.min(rounds, ex.sets.length + 1), endsAt: t0 + work * 1000 }); };
-  if (phase.kind === 'idle') return <Button onClick={start}>{t('live.finisher.start')}</Button>;
-  return (
-    <div className="stack-sm" aria-live="off">
-      <div className="row-between">
-        <span>{t('live.finisher.round', { n: phase.round, total: rounds })} · <strong>{phase.kind === 'work' ? t('live.finisher.work') : t('live.rest.title')}</strong></span>
-        <span className="num-lg" role="timer">{fmt.duration(Math.max(0, Math.ceil((phase.endsAt - now) / 1000)))}</span>
+  if (phase.kind === 'idle') {
+    return (
+      <div className="lv-fin-idle">
+        <span className="small muted">{t('live.finisher.roundsDone', { done: Math.min(ex.sets.length, rounds), total: rounds })} · {t('live.finisher.plan', { work, rest })}</span>
+        <Button block className="lv-fin-start" onClick={start}>{t('live.finisher.start')}</Button>
       </div>
-      <Button size="sm" variant="ghost" onClick={() => setPhase({ kind: 'idle' })}>{t('live.finisher.stop')}</Button>
+    );
+  }
+  const isWork = phase.kind === 'work';
+  return (
+    <div className={`lv-fin-run ${isWork ? 'work' : 'rest'}`} aria-live="off">
+      <div className="lv-fin-phase">
+        <strong>{isWork ? t('live.finisher.work') : t('live.rest.title')}</strong>
+        <span className="small muted">{t('live.finisher.round', { n: phase.round, total: rounds })}</span>
+      </div>
+      <span className="num-timer lv-fin-time" role="timer">{fmt.duration(Math.max(0, Math.ceil((phase.endsAt - now) / 1000)))}</span>
+      <div className="lv-dots" aria-hidden="true">{Array.from({ length: rounds }, (_, i) => <i key={i} className={i < phase.round - (isWork ? 1 : 0) ? 'done' : i === phase.round - 1 ? 'now' : ''} />)}</div>
+      <Button block variant="ghost" onClick={() => setPhase({ kind: 'idle' })}>{t('live.finisher.stop')}</Button>
     </div>
   );
 }

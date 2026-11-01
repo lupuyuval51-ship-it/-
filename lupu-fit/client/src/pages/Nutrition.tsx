@@ -4,25 +4,17 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { api } from '../api/client.ts';
 import { entryToPayload, nk, postFoodLog, useFoodDay, useFoodRange, useSavedMeals, type SavedMeal } from '../components/nutrition/data.ts';
-import { addDaysIso, adherenceOf, barTone, groupBySlot, isIsoDate, SLOTS, todayIso, type FoodEntry } from '../components/nutrition/logic.ts';
+import { addDaysIso, adherenceOf, groupBySlot, isIsoDate, SLOTS, todayIso, type FoodEntry } from '../components/nutrition/logic.ts';
 import { useProfile } from '../app/session.ts';
 import { callOrQueue } from '../lib/outbox.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
-import { Banner, Button, Card, EmptyState, ErrorState, errorMessage, IconButton, LinkButton, Loading, ProgressBar, Sheet, TextInput } from '../ui/kit.tsx';
-import { IconChevron, IconPlus, IconTrash } from '../ui/icons.tsx';
+import { DayHero } from '../components/nutrition/DayHero.tsx';
+import { SlotCard } from '../components/nutrition/SlotCard.tsx';
+import { Banner, Button, Card, EmptyState, ErrorState, errorMessage, IconButton, LinkButton, Sheet, TextInput } from '../ui/kit.tsx';
+import { Skeleton, StickyAction } from '../ui/patterns.tsx';
+import { IconChevron, IconPlus, IconTrash, IconUndo } from '../ui/icons.tsx';
 import { useToast } from '../ui/toast.tsx';
 import '../styles/nutrition.css';
-
-function Macro({ label, value, target, flagOver }: { label: string; value: number; target: number | undefined; flagOver?: boolean }): ReactNode {
-  const t = useT();
-  const tone = target ? barTone(value, target, !!flagOver) : undefined;
-  return (
-    <div className="stack-sm macro-row">
-      <div className="row-between"><span>{label}</span><span><span className="num">{fmt.num(value)}</span>{target ? <span className="muted"> / <span className="num">{fmt.num(target)}</span></span> : null}</span></div>
-      {target ? <ProgressBar value={value} max={target} label={label} {...(tone ? { tone } : {})} /> : <span className="small muted">{t('nutrition.noTarget')}</span>}
-    </div>
-  );
-}
 
 export default function Nutrition(): ReactNode {
   const t = useT(); const { lang } = useLang(); const toast = useToast(); const qc = useQueryClient();
@@ -94,11 +86,8 @@ export default function Nutrition(): ReactNode {
   const adh = adherenceOf(range.data ?? []);
 
   return (
-    <div className="stack nutrition-page">
-      <div className="row-between">
-        <h1>{t('nutrition.hub.title')}</h1>
-        <LinkButton variant="primary" to={`/nutrition/log?date=${date}`}><IconPlus aria-label={t('nutrition.hub.logFood')} /> {t('nutrition.hub.logFood')}</LinkButton>
-      </div>
+    <div className="stack nutrition-page nu-hub">
+      <header className="page-head"><h1>{t('nutrition.hub.title')}</h1></header>
 
       <nav className="row-between date-nav" aria-label={t('nutrition.hub.dateNav')}>
         <IconButton label={t('nutrition.hub.prevDay')} onClick={() => go(addDaysIso(date, -1))}><IconChevron className="flip-180" /></IconButton>
@@ -108,68 +97,36 @@ export default function Nutrition(): ReactNode {
 
       {profile.data === null ? <Banner tone="warn">{t('nutrition.hub.noProfile')} <Link to="/onboarding">{t('profile.redo')}</Link></Banner> : null}
       {undo ? (
-        <div className="banner" role="status" data-testid="undo-bar">
+        <div className="banner nu-undo" role="status" data-testid="undo-bar">
           <div className="grow">{t('nutrition.hub.deletedNamed', { name: undo.name })}</div>
-          <Button size="sm" onClick={() => restore.mutate(undo)} disabled={restore.isPending}>{t('action.undo')}</Button>
+          <Button size="sm" onClick={() => restore.mutate(undo)} disabled={restore.isPending}><IconUndo aria-hidden="true" /> {t('action.undo')}</Button>
         </div>
       ) : null}
 
-      <Card className="stack" >
-        <h2 className="section-title">{t('nutrition.hub.todayVs')}</h2>
-        {day.isPending ? <Loading /> : day.isError ? <ErrorState error={day.error} onRetry={() => void day.refetch()} /> : (
-          <>
-            <Macro label={t('unit.kcal')} value={totals.kcal} target={targets?.kcal} flagOver />
-            <Macro label={t('nutrition.protein')} value={totals.proteinG} target={targets?.proteinG} />
-            <Macro label={t('nutrition.carbs')} value={totals.carbsG} target={targets?.carbsG} />
-            <Macro label={t('nutrition.fat')} value={totals.fatG} target={targets?.fatG} />
-            <span className="small muted">{t('nutrition.hub.unitsNote')}</span>
-          </>
-        )}
-      </Card>
+      {day.isPending ? <div className="card" role="status" aria-busy="true"><Skeleton lines={3} height="1.5rem" /></div> : day.isError ? <ErrorState error={day.error} onRetry={() => void day.refetch()} /> : <DayHero totals={totals} targets={targets} />}
 
-      {!day.isPending && !day.isError && entries.length === 0 ? <EmptyState title={t('nutrition.hub.empty')} hint={t('nutrition.hub.emptyHint')} /> : null}
+      {!day.isPending && !day.isError && entries.length === 0 ? (
+        <EmptyState title={t('nutrition.hub.empty')} hint={t('nutrition.hub.emptyHint')} action={yesterdayLogged ? <Button size="sm" onClick={() => copy.mutate()} disabled={copy.isPending}>{t('nutrition.hub.copyYesterday')}</Button> : undefined} />
+      ) : null}
 
-      {SLOTS.map((slot) => {
-        const list = groups[slot];
-        const sub = list.reduce((s, e) => s + e.kcal, 0);
-        return (
-          <Card key={slot} className="stack-sm" >
-            <div className="row-between">
-              <h2 className="section-title">{t(`label.slot.${slot}`)}</h2>
-              <span className="small muted"><span className="num">{fmt.num(sub)}</span> {t('unit.kcal')}</span>
-            </div>
-            {list.length > 0 ? (
-              <ul className="list">
-                {list.map((e) => (
-                  <li key={e.id}>
-                    <div className="grow"><strong>{e.name}</strong>{e.estimated ? <> <span className="tag warning">{t('nutrition.estimated')}</span></> : null}<br />
-                      <span className="small muted"><span className="num">{fmt.num(e.grams, 1)}</span> {t('unit.g')} · <span className="num">{fmt.num(e.kcal)}</span> {t('unit.kcal')} · {t('nutrition.proteinShort')} <span className="num">{fmt.num(e.proteinG, 1)}</span></span></div>
-                    <IconButton label={t('nutrition.hub.deleteEntry', { name: e.name })} onClick={() => del.mutate(e)} disabled={del.isPending}><IconTrash /></IconButton>
-                  </li>
-                ))}
-              </ul>
-            ) : <span className="small muted">{t('nutrition.hub.slotEmpty')}</span>}
-            <div className="row-wrap">
-              <LinkButton size="sm" to={`/nutrition/log?slot=${slot}&date=${date}`}><IconPlus aria-label={t('nutrition.hub.quickAdd')} /> {t('nutrition.hub.quickAddSlot', { slot: t(`label.slot.${slot}`) })}</LinkButton>
-              {list.length > 0 ? <Button size="sm" variant="ghost" onClick={() => { setSaving({ slot, entries: list }); setMealName(''); }}>{t('nutrition.hub.saveMeal')}</Button> : null}
-            </div>
-          </Card>
-        );
-      })}
+      {!day.isPending && !day.isError ? SLOTS.map((slot) => (
+        <SlotCard key={`${date}-${slot}`} slot={slot} entries={groups[slot]} date={date} busy={del.isPending}
+          onDelete={(e) => del.mutate(e)} onSave={(s, es) => { setSaving({ slot: s, entries: es }); setMealName(''); }} />
+      )) : null}
 
-      <Card className="stack-sm">
+      <Card className="stack-sm nu-shortcuts">
         <h2 className="section-title">{t('nutrition.hub.shortcuts')}</h2>
-        <div className="row-wrap">
-          <Button onClick={() => copy.mutate()} disabled={!yesterdayLogged || copy.isPending}>{t('nutrition.hub.copyYesterday')}</Button>
-          <LinkButton to={`/nutrition/menu?date=${date}`}>{t('nutrition.hub.menuLink')}</LinkButton>
-          <LinkButton to={`/nutrition/log?date=${date}`} variant="ghost">{t('nutrition.hub.logLink')}</LinkButton>
+        <div>
+          <button type="button" className="list-link nu-linkbtn" onClick={() => copy.mutate()} disabled={!yesterdayLogged || copy.isPending}>
+            <span className="grow start"><strong>{t('nutrition.hub.copyYesterday')}</strong>{!yesterdayLogged && !range.isPending ? <><br /><span className="small muted">{t('nutrition.hub.copyDisabled')}</span></> : null}</span>
+          </button>
+          <Link className="list-link" to={`/nutrition/menu?date=${date}`}><span className="grow"><strong>{t('nutrition.hub.menuLink')}</strong><br /><span className="small muted">{t('nutrition.nu.menuHint')}</span></span><IconChevron className="chev" /></Link>
         </div>
-        {!yesterdayLogged && !range.isPending ? <span className="small muted">{t('nutrition.hub.copyDisabled')}</span> : null}
       </Card>
 
       <Card className="stack-sm">
         <h2 className="section-title">{t('nutrition.hub.savedMeals')}</h2>
-        {saved.isPending ? <Loading /> : saved.isError ? <ErrorState error={saved.error} onRetry={() => void saved.refetch()} /> : saved.data.length === 0 ? <span className="small muted">{t('nutrition.hub.savedEmpty')}</span> : (
+        {saved.isPending ? <Skeleton lines={2} /> : saved.isError ? <ErrorState error={saved.error} onRetry={() => void saved.refetch()} /> : saved.data.length === 0 ? <span className="small muted">{t('nutrition.hub.savedEmpty')}</span> : (
           <ul className="list">
             {saved.data.map((m) => (
               <li key={m.id}>
@@ -182,19 +139,21 @@ export default function Nutrition(): ReactNode {
         )}
       </Card>
 
-      <Card className="stack-sm" >
+      <Card className="stack-sm">
         <h2 className="section-title">{t('nutrition.hub.weekly')}</h2>
-        {range.isPending ? <Loading /> : range.isError ? <ErrorState error={range.error} onRetry={() => void range.refetch()} /> : adh.daysLogged === 0 ? <span className="small muted">{t('state.noData')}</span> : (
+        {range.isPending ? <Skeleton lines={2} /> : range.isError ? <ErrorState error={range.error} onRetry={() => void range.refetch()} /> : adh.daysLogged === 0 ? <span className="small muted">{t('state.noData')}</span> : (
           <div className="grid-3">
             <div className="kpi"><span className="label">{t('nutrition.hub.daysLogged')}</span><span className="num-lg">{adh.daysLogged}<span className="muted">/7</span></span></div>
-            <div className="kpi"><span className="label">{t('nutrition.hub.avgKcal')}</span><span className="num-lg">{fmt.num(adh.avgKcal ?? 0)}</span>{targets ? <span className="small muted">{t('nutrition.hub.ofTarget', { n: fmt.num(targets.kcal) })}</span> : null}</div>
-            <div className="kpi"><span className="label">{t('nutrition.hub.avgProtein')}</span><span className="num-lg">{fmt.num(adh.avgProteinG ?? 0)}</span>{targets ? <span className="small muted">{t('nutrition.hub.ofTarget', { n: fmt.num(targets.proteinG) })}</span> : null}</div>
+            <div className="kpi"><span className="label">{t('nutrition.hub.avgKcal')}</span><span className="num-lg">{fmt.num(adh.avgKcal ?? 0)}</span>{targets ? <span className="tiny muted">{t('nutrition.hub.ofTarget', { n: fmt.num(targets.kcal) })}</span> : null}</div>
+            <div className="kpi"><span className="label">{t('nutrition.hub.avgProtein')}</span><span className="num-lg">{fmt.num(adh.avgProteinG ?? 0)}</span>{targets ? <span className="tiny muted">{t('nutrition.hub.ofTarget', { n: fmt.num(targets.proteinG) })}</span> : null}</div>
           </div>
         )}
         <span className="small muted">{t('nutrition.hub.weeklyNote')}</span>
       </Card>
 
       <p className="small muted" role="note">{t('disclaimer.allergen')}</p>
+
+      <StickyAction><LinkButton variant="primary" block to={`/nutrition/log?date=${date}`}><IconPlus aria-hidden="true" /> {t('nutrition.hub.logFood')}</LinkButton></StickyAction>
 
       <Sheet open={!!saving} onClose={() => setSaving(null)} title={t('nutrition.hub.saveMealTitle')}>
         <TextInput label={t('nutrition.hub.mealName')} value={mealName} maxLength={120} onChange={(e) => setMealName(e.target.value)} />

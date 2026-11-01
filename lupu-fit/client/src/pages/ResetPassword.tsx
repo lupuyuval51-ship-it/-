@@ -54,7 +54,7 @@ export default function ResetPassword(): ReactNode {
   return (
     <div className="stack-lg auth">
       <div className="stack-sm"><h1>{t('auth.reset.title')}</h1><p className="muted">{t('auth.reset.intro')}</p></div>
-      <form className="stack" onSubmit={submit} noValidate>
+      <form className="stack auth-form" onSubmit={submit} noValidate>
         <FailureBanner failure={failure} left={cd.left} />
         <PasswordField label={t('auth.reset.newPassword')} value={password} onChange={setPassword} autoComplete="new-password" error={errors['password']} hint={t('auth.passwordHint')} />
         <Button type="submit" variant="primary" block disabled={reset.isPending || cd.left > 0}>{t('auth.reset.submit')}</Button>

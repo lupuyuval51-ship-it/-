@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ageBucket, EQUIPMENT, LIMITS, type ExerciseDef, type GeneratedPlan, type SwapContext } from '@lupu-fit/shared';
 import { api, ApiRequestError } from '../api/client.ts';
@@ -10,13 +10,15 @@ import {
   addExercise, applyProgression, buildSessionPayload, editPrescription, localDateStr, moveExercise, planToSessionItems, prescriptionForSwap, removeExercise, swapExercise,
   type ExerciseHistory, type ProgressionChange,
 } from '../lib/workoutCompose.ts';
-import { Banner, Button, Card, EmptyState, ErrorState, IconButton, Loading, Tabs, Tag, errorMessage } from '../ui/kit.tsx';
-import { IconChevron, IconTrash } from '../ui/icons.tsx';
+import { Banner, Button, Card, EmptyState, ErrorState, IconButton, Tag, errorMessage } from '../ui/kit.tsx';
+import { SkeletonList, StickyAction } from '../ui/patterns.tsx';
+import { IconCheck, IconChevron, IconTrash } from '../ui/icons.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
 import { PlanNotes } from '../components/workouts/PlanPreview.tsx';
 import { AddSheet, EditSheet, SwapSheet } from '../components/workouts/PlanSheets.tsx';
-import { PLANS_KEY, usePlans } from '../components/workouts/plansApi.ts';
+import { PLANS_KEY, usePlans, useRecentSessions } from '../components/workouts/plansApi.ts';
+import { weekStartOf } from '../components/workouts/weekUtil.ts';
 import '../styles/workouts.css';
 
 const CATALOG = EXERCISE_BY_ID as ReadonlyMap<string, ExerciseDef>;
@@ -29,7 +31,10 @@ export default function PlanDetail(): ReactNode {
   const toast = useToast();
   const plans = usePlans();
   const prof = useProfile();
-  const [dayIdx, setDayIdx] = useState(0);
+  const [params, setParams] = useSearchParams();
+  const recent = useRecentSessions();
+  const dayIdx = Math.max(0, (Number(params.get('day')) || 1) - 1);
+  const setDayIdx = (i: number) => setParams({ day: String(i + 1) }, { replace: true });
   const [draft, setDraft] = useState<GeneratedPlan | null>(null);
   const [swap, setSwap] = useState<number | null>(null);
   const [edit, setEdit] = useState<number | null>(null);
@@ -91,7 +96,7 @@ export default function PlanDetail(): ReactNode {
     onError: (e) => { if (e instanceof ApiRequestError && e.status === 409 && e.code === 'session_in_progress') setConflict(true); else toast(errorMessage(e, t), 'error'); },
   });
 
-  if (plans.isLoading || prof.isLoading) return <Loading />;
+  if (plans.isLoading || prof.isLoading) return <SkeletonList rows={3} />;
   if (plans.isError) return <ErrorState error={plans.error} onRetry={() => void plans.refetch()} />;
   if (!row || !plan) return <div className="stack"><Link to="/workouts">{t('workouts.plan.back')}</Link><ErrorState error={{ code: 'not_found' }} /></div>;
 
@@ -101,71 +106,92 @@ export default function PlanDetail(): ReactNode {
   const swapEx = swap !== null ? day.exercises[swap] : undefined;
   const editEx = edit !== null ? day.exercises[edit] : undefined;
 
+  const weekStart = weekStartOf(localDateStr(), lang);
+  const doneNames = new Set((recent.data ?? []).filter((x) => x.localDate >= weekStart).map((x) => x.name));
+  const dayName = (d: GeneratedPlan['days'][number]): string => t(`workouts.day.${d.day}`);
+  const isDone = (d: GeneratedPlan['days'][number]): boolean => doneNames.has(`${row.name}: ${dayName(d)}`);
+  const doneCount = plan.days.filter(isDone).length;
+
   return (
     <div className="stack">
-      <Link to="/workouts">{t('workouts.plan.back')}</Link>
-      <div className="wk-head">
-        <h1>{row.name}</h1>
+      <Link to="/workouts" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.plan.back')}</Link>
+      <section className={`card stack${row.active ? ' hero-card' : ''}`}>
         <div className="row-wrap">{row.active ? <Tag tone="success">{t('workouts.plan.activeBadge')}</Tag> : null}{row.archived ? <Tag>{t('workouts.plan.archivedBadge')}</Tag> : null}</div>
-      </div>
-      <div className="wk-actions">
-        {row.archived ? <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('restore')}>{t('workouts.plan.restore')}</Button> : (
-          <>
-            {row.active ? null : <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('activate')}>{t('workouts.plan.activate')}</Button>}
-            <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('archive')}>{t('workouts.plan.archive')}</Button>
-          </>
-        )}
-        <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('duplicate')}>{t('workouts.plan.duplicate')}</Button>
-        <Button size="sm" disabled={prog.isPending || !plan.days.length} onClick={() => prog.mutate()}>{prog.isPending ? t('workouts.plan.progressionBusy') : t('workouts.plan.progression')}</Button>
-      </div>
+        <h1>{row.name}</h1>
+        {recent.data ? <span className="small muted">{t('workouts.plans.weekProgress', { done: doneCount, total: plan.days.length })}</span> : null}
+        <div className="wk-actions wk-actions-quiet">
+          {row.archived ? <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('restore')}>{t('workouts.plan.restore')}</Button> : (
+            <>
+              {row.active ? null : <Button size="sm" disabled={act.isPending} onClick={() => act.mutate('activate')}>{t('workouts.plan.activate')}</Button>}
+              <Button size="sm" variant="ghost" className="wk-neutral" disabled={act.isPending} onClick={() => act.mutate('archive')}>{t('workouts.plan.archive')}</Button>
+            </>
+          )}
+          <Button size="sm" variant="ghost" className="wk-neutral" disabled={act.isPending} onClick={() => act.mutate('duplicate')}>{t('workouts.plan.duplicate')}</Button>
+          <Button size="sm" variant="ghost" className="wk-neutral" disabled={prog.isPending || !plan.days.length} onClick={() => prog.mutate()}>{prog.isPending ? t('workouts.plan.progressionBusy') : t('workouts.plan.progression')}</Button>
+        </div>
+      </section>
 
       {progress ? <ProgressionResult progress={progress} /> : null}
       {!profile ? <Banner tone="warn">{t('workouts.plan.needProfile')}</Banner> : null}
 
-      <Tabs label={t('workouts.plan.daysTab')} value={String(di)} onChange={(v) => setDayIdx(Number(v))} tabs={plan.days.map((_, i) => ({ value: String(i), label: t('workouts.day.n', { n: i + 1 }) }))} />
+      <div className="wk-daystrip" role="tablist" aria-label={t('workouts.plan.daysTab')}>
+        {plan.days.map((d, i) => (
+          <button key={i} type="button" role="tab" id={`wk-day-${i}`} aria-selected={i === di} aria-controls="wk-day-panel" className="wk-daycard" onClick={() => setDayIdx(i)}>
+            <span className="wk-daycard-top"><strong>{t('workouts.day.n', { n: i + 1 })}</strong>{isDone(d) ? <IconCheck className="wk-done" aria-label={t('workouts.plan.dayDone')} /> : null}</span>
+            <span className="small">{dayName(d)}</span>
+            <span className="tiny muted"><span className="num">{d.exercises.length}</span> {t('workouts.plan.exercisesShort')} · <span className="num">{d.estimatedMinutes}</span> {t('unit.min')}</span>
+          </button>
+        ))}
+      </div>
+
       <Card className="wk-day">
-        <div className="wk-day-title">
-          <h2>{t('workouts.plan.dayTitle', { n: di + 1, name: t(`workouts.day.${day.day}`) })}</h2>
-          <span className="small muted">{t('workouts.plan.estimate', { n: day.estimatedMinutes })}</span>
-        </div>
-        {day.exercises.length === 0 ? <EmptyState title={t('workouts.plan.empty')} /> : (
-          <ul className="wk-ex-list">
-            {day.exercises.map((e, i) => (
-              <li key={`${e.exerciseId}-${i}`}>
-                <ExerciseLine exerciseId={e.exerciseId} actions={(
-                  <div className="wk-ex-tools">
+        <div id="wk-day-panel" role="tabpanel" aria-labelledby={`wk-day-${di}`} className="stack">
+          <div className="wk-day-title">
+            <h2>{t('workouts.plan.dayTitle', { n: di + 1, name: dayName(day) })}</h2>
+            <span className="small muted">{t('workouts.plan.estimate', { n: day.estimatedMinutes })}</span>
+          </div>
+          {day.exercises.length === 0 ? <EmptyState title={t('workouts.plan.empty')} /> : (
+            <ul className="wk-ex-list">
+              {day.exercises.map((e, i) => (
+                <li key={`${e.exerciseId}-${i}`} className="wk-li-reorder">
+                  <ExerciseLine exerciseId={e.exerciseId} index={i + 1} actions={(
+                    <div className="wk-ex-tools">
+                      <Button size="sm" variant="ghost" className="wk-neutral" disabled={!ctx} onClick={() => setSwap(i)}>{t('workouts.plan.swap')}</Button>
+                      <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => setEdit(i)}>{t('workouts.plan.edit')}</Button>
+                      <IconButton label={`${t('workouts.plan.remove')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={day.exercises.length <= 1} title={day.exercises.length <= 1 ? t('workouts.plan.removeLast') : t('workouts.plan.remove')} onClick={() => edit1((p) => removeExercise(p, di, i))}><IconTrash /></IconButton>
+                    </div>
+                  )}>
+                    <PrescriptionLine p={e.prescription} />
+                  </ExerciseLine>
+                  <div className="wk-reorder">
                     <IconButton label={`${t('workouts.plan.moveUp')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={i === 0} onClick={() => edit1((p) => moveExercise(p, di, i, i - 1))}><IconChevron className="rot-up" /></IconButton>
                     <IconButton label={`${t('workouts.plan.moveDown')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={i === day.exercises.length - 1} onClick={() => edit1((p) => moveExercise(p, di, i, i + 1))}><IconChevron className="rot-down" /></IconButton>
-                    <Button size="sm" disabled={!ctx} onClick={() => setSwap(i)}>{t('workouts.plan.swap')}</Button>
-                    <Button size="sm" onClick={() => setEdit(i)}>{t('workouts.plan.edit')}</Button>
-                    <IconButton label={`${t('workouts.plan.remove')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={day.exercises.length <= 1} title={day.exercises.length <= 1 ? t('workouts.plan.removeLast') : t('workouts.plan.remove')} onClick={() => edit1((p) => removeExercise(p, di, i))}><IconTrash /></IconButton>
                   </div>
-                )}>
-                  <PrescriptionLine p={e.prescription} />
-                </ExerciseLine>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="wk-actions">
-          <Button disabled={!ctx || day.exercises.length >= LIMITS.maxExercisesPerWorkout} onClick={() => setAdding(true)}>{day.exercises.length >= LIMITS.maxExercisesPerWorkout ? t('workouts.plan.maxReached') : t('workouts.plan.addExercise')}</Button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div><Button disabled={!ctx || day.exercises.length >= LIMITS.maxExercisesPerWorkout} onClick={() => setAdding(true)}>{day.exercises.length >= LIMITS.maxExercisesPerWorkout ? t('workouts.plan.maxReached') : t('workouts.plan.addExercise')}</Button></div>
         </div>
       </Card>
 
       {conflict ? <Banner tone="warn">{t('workouts.detail.inProgress')} <Link to="/workouts/session">{t('workouts.detail.resume')}</Link></Banner> : null}
       <PlanNotes notes={plan.notes} />
 
-      {draft ? (
-        <div className="wk-savebar" role="status">
-          <span>{t('workouts.plan.unsaved')}</span>
-          <div className="wk-actions">
-            <Button disabled={persist.isPending} onClick={() => persist.mutate(draft, { onSuccess: () => toast(t('workouts.plan.savedToast'), 'ok') })}>{t('workouts.plan.saveChanges')}</Button>
-            <Button variant="ghost" disabled={persist.isPending} onClick={() => setDraft(null)}>{t('workouts.plan.discard')}</Button>
-          </div>
+      <StickyAction>
+        <div className="stack-sm">
+          {draft ? (
+            <div className="wk-savebar" role="status">
+              <span>{t('workouts.plan.unsaved')}</span>
+              <div className="wk-actions">
+                <Button size="sm" disabled={persist.isPending} onClick={() => persist.mutate(draft, { onSuccess: () => toast(t('workouts.plan.savedToast'), 'ok') })}>{t('workouts.plan.saveChanges')}</Button>
+                <Button size="sm" variant="ghost" className="wk-neutral" disabled={persist.isPending} onClick={() => setDraft(null)}>{t('workouts.plan.discard')}</Button>
+              </div>
+            </div>
+          ) : null}
+          <Button variant="primary" block disabled={start.isPending || day.exercises.length === 0} onClick={() => { setConflict(false); start.mutate(); }}>{start.isPending ? t('workouts.plan.starting') : t('workouts.plan.startDay')}</Button>
         </div>
-      ) : null}
-
-      <div><Button variant="primary" block disabled={start.isPending || day.exercises.length === 0} onClick={() => { setConflict(false); start.mutate(); }}>{start.isPending ? t('workouts.plan.starting') : t('workouts.plan.startDay')}</Button></div>
+      </StickyAction>
 
       {ctx ? <SwapSheet open={swap !== null} onClose={() => setSwap(null)} exerciseId={swapEx?.exerciseId ?? null} ctx={ctx} onSwap={(id) => {
         const to = CATALOG.get(id); const from = swapEx;

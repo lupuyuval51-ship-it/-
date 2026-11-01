@@ -3,6 +3,8 @@ import type { GeneratedPlan, GenerationNote } from '@lupu-fit/shared';
 import { nameOfExercise } from '../../data/content.ts';
 import { useLang } from '../../i18n/index.tsx';
 import { Card } from '../../ui/kit.tsx';
+import { Disclosure } from '../../ui/patterns.tsx';
+import { ExerciseVideoThumb } from '../ExerciseVideo.tsx';
 import { ExerciseLine, PrescriptionLine } from './ExerciseLine.tsx';
 
 /** Translate a generation note code into a sentence; exercise ids become localized names. */
@@ -29,17 +31,29 @@ export function PlanNotes({ notes }: { notes: readonly GenerationNote[] }): Reac
 }
 
 export function PlanPreview({ plan }: { plan: GeneratedPlan }): ReactNode {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   return (
     <div className="stack">
-      {plan.days.map((d, i) => (
-        <Card key={i} as="article" className="wk-day">
-          <div className="wk-day-title"><h3>{t('workouts.plan.dayTitle', { n: i + 1, name: t(`workouts.day.${d.day}`) })}</h3><span className="small muted">{t('workouts.unit.minutes', { n: d.estimatedMinutes })}</span></div>
-          <ul className="wk-ex-list">
-            {d.exercises.map((e, j) => <li key={j}><ExerciseLine exerciseId={e.exerciseId}><PrescriptionLine p={e.prescription} /></ExerciseLine></li>)}
-          </ul>
-        </Card>
-      ))}
+      {plan.days.map((d, i) => {
+        const thumbs = d.exercises.slice(0, 5);
+        return (
+          <Card key={i} as="article" className="wk-day">
+            <div className="wk-day-title">
+              <h3>{t('workouts.plan.dayTitle', { n: i + 1, name: t(`workouts.day.${d.day}`) })}</h3>
+              <span className="small muted"><span className="num">{d.estimatedMinutes}</span> {t('unit.min')} · {t('workouts.ready.exerciseCount', { n: d.exercises.length })}</span>
+            </div>
+            <div className="wk-thumbs">
+              {thumbs.map((e, j) => <ExerciseVideoThumb key={j} exerciseId={e.exerciseId} alt={nameOfExercise(e.exerciseId, lang)} />)}
+              {d.exercises.length > thumbs.length ? <span className="wk-more num">+{d.exercises.length - thumbs.length}</span> : null}
+            </div>
+            <Disclosure summary={t('workouts.gen.dayDetails')}>
+              <ul className="wk-ex-list">
+                {d.exercises.map((e, j) => <li key={j}><ExerciseLine exerciseId={e.exerciseId}><PrescriptionLine p={e.prescription} /></ExerciseLine></li>)}
+              </ul>
+            </Disclosure>
+          </Card>
+        );
+      })}
       <PlanNotes notes={plan.notes} />
     </div>
   );

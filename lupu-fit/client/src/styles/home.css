@@ -1,7 +1,15 @@
 /* Home screen. Tokens only, logical properties only. */
 .home-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: start; }
 @media (min-width: 60rem) { .home-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.home-resume { border-color: var(--warning); }
+.home-hero h2 { font-size: var(--fs-22); }
+.home-eyebrow { font-size: var(--fs-12); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+[lang='he'] .home-eyebrow { letter-spacing: 0; text-transform: none; font-size: var(--fs-14); }
+.home-thumbs { display: flex; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+.home-thumbs .xthumb { inline-size: 3.5rem; block-size: 3.5rem; }
+.home-kpis .stat-tile { background: var(--surface); border: 1px solid var(--border); }
+.home-menu { border-block-start: 1px solid var(--border); padding-block-start: 0.75rem; }
+.home-xp { display: flex; flex-direction: column; gap: 0.5rem; }
+.home-quick .list-link { padding-inline: 0; }
 .check { display: inline-grid; place-items: center; inline-size: 1.5rem; block-size: 1.5rem; flex: none; border: 2px solid var(--border); border-radius: 0.25rem; }
 .check.done { border-color: var(--success); color: var(--success); }
 .check svg { inline-size: 1rem; block-size: 1rem; }

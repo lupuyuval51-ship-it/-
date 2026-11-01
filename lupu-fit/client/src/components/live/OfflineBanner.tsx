@@ -6,6 +6,7 @@ import { Banner, Button } from '../../ui/kit.tsx';
 const subscribe = (f: () => void): (() => void) => { window.addEventListener('online', f); window.addEventListener('offline', f); return () => { window.removeEventListener('online', f); window.removeEventListener('offline', f); }; };
 export function useOnline(): boolean { return useSyncExternalStore(subscribe, () => navigator.onLine !== false, () => true); }
 
+/** Slim, persistent connection strip (only while offline or while sets wait to sync) plus a banner for items the server rejected. */
 export function OfflineBanner(): ReactNode {
   const t = useT(); const online = useOnline(); const items = useOutbox();
   const pending = items.filter((i) => i.status === 'pending');
@@ -13,13 +14,16 @@ export function OfflineBanner(): ReactNode {
   if (online && pending.length === 0 && rejected.length === 0) return null;
   return (
     <div className="stack-sm" data-testid="offline-banner">
-      <Banner tone="warn">
-        <div className="stack-sm">
-          {!online ? <span>{t('live.offline.banner')}</span> : null}
-          {pending.length > 0 ? <span>{t('live.offline.pending', { n: pending.length })}</span> : null}
+      {!online || pending.length > 0 ? (
+        <div className={`lv-sync ${online ? 'syncing' : 'offline'}`} role="status">
+          <i className="lv-sync-dot" aria-hidden="true" />
+          <span className="lv-sync-text">
+            {!online ? <span>{t('live.offline.banner')}</span> : null}
+            {pending.length > 0 ? <span className="lv-sync-n">{t('live.offline.pending', { n: pending.length })}</span> : null}
+          </span>
           {online && pending.length > 0 ? <Button size="sm" onClick={() => { void outbox.flush(); }}>{t('outbox.syncNow')}</Button> : null}
         </div>
-      </Banner>
+      ) : null}
       {rejected.length > 0 ? (
         <Banner tone="danger">
           <div className="stack-sm">

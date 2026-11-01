@@ -2,6 +2,12 @@ import { defineFeature } from '../core.ts';
 
 export default defineFeature({
   progress: {
+    take: {
+      empty: 'Finish a workout and your progress will show up here.', sessions: 'In this range: {n} workouts, {g} planned.', sessionsNoGoal: 'In this range: {n} workouts.', weight: 'Body weight changed by {d} kg ({from} to {to}).', prs: 'Personal records set: {n}.',
+      volume: 'Most work went to {group}: {n} sets.', strength: 'Estimated 1RM {from} to {to} kg ({d})', weightTrend: 'Trend: {d} kg in this range',
+    },
+    kpi: { workouts: 'Workouts', sets: 'Sets', prs: 'New records', weight: 'Weight change' },
+    chartAxis: 'Chart axis: {a} to {b}', showAll: 'Show all ({n})', prsRecent: 'New', prsReps: '{n} reps best', prsHold: '{n} s hold', unlocked: '{a} of {b} unlocked', lockedAria: 'Locked achievement', moreWeighIns: 'Earlier weigh-ins ({n})',
     range: 'Time range', date: 'Date', week: 'Week', workouts: 'Workouts', group: 'Muscle group',
     consistency: { title: 'Consistency', sessions: '{n} workouts in this range', aria: '{done} workouts out of {total} planned in this range', none: 'No workouts logged in this range.', goal: 'Weekly goal: {n} workouts', weeks: 'Workouts per week', weeksAria: 'Bar chart of workouts per week' },
     volume: { title: 'Sets per muscle group', hint: 'Counts every logged set by the main muscle group it trains.', aria: 'Bar chart of logged sets per muscle group' },
@@ -32,11 +38,17 @@ export default defineFeature({
     },
   },
   notifications: {
-    generic: 'Notification', markAll: 'Mark all as read', empty: 'No notifications yet', emptyHint: 'Unlocked achievements show up here.', unread: 'Unread',
+    generic: 'Notification', unreadCount: '{n} unread', group: { today: 'Today', week: 'Earlier this week', earlier: 'Earlier' }, markAll: 'Mark all as read', empty: 'No notifications yet', emptyHint: 'Unlocked achievements show up here.', unread: 'Unread',
     localReminders: 'Workout and meal reminders are local: they are scheduled on this device and are not sent from a server.',
   },
 }, {
   progress: {
+    take: {
+      empty: 'אחרי האימון הראשון ההתקדמות תופיע כאן.', sessions: 'בטווח הזה: {n} אימונים, {g} מתוכננים.', sessionsNoGoal: 'בטווח הזה: {n} אימונים.', weight: 'משקל הגוף השתנה ב-{d} ק״ג ({from} עד {to}).', prs: 'שיאים אישיים שנקבעו: {n}.',
+      volume: 'רוב העבודה הלכה על {group}: {n} סטים.', strength: 'הערכת 1RM {from} עד {to} ק״ג ({d})', weightTrend: 'מגמה: {d} ק״ג בטווח הזה',
+    },
+    kpi: { workouts: 'אימונים', sets: 'סטים', prs: 'שיאים חדשים', weight: 'שינוי משקל' },
+    chartAxis: 'ציר התרשים: {a} עד {b}', showAll: 'להצגת הכול ({n})', prsRecent: 'חדש', prsReps: 'שיא {n} חזרות', prsHold: 'החזקה {n} שנ׳', unlocked: '{a} מתוך {b} נפתחו', lockedAria: 'הישג נעול', moreWeighIns: 'שקילות קודמות ({n})',
     range: 'טווח זמן', date: 'תאריך', week: 'שבוע', workouts: 'אימונים', group: 'קבוצת שרירים',
     consistency: { title: 'עקביות', sessions: '{n} אימונים בטווח הזה', aria: '{done} אימונים מתוך {total} מתוכננים בטווח הזה', none: 'לא תועדו אימונים בטווח הזה.', goal: 'יעד שבועי: {n} אימונים', weeks: 'אימונים בכל שבוע', weeksAria: 'תרשים עמודות של אימונים לפי שבוע' },
     volume: { title: 'סטים לפי קבוצת שרירים', hint: 'כל סט שתועד נספר לפי קבוצת השרירים הראשית שהוא מאמן.', aria: 'תרשים עמודות של סטים שתועדו לפי קבוצת שרירים' },
@@ -67,7 +79,7 @@ export default defineFeature({
     },
   },
   notifications: {
-    generic: 'התראה', markAll: 'סימון הכול כנקרא', empty: 'אין התראות עדיין', emptyHint: 'הישגים שנפתחו יופיעו כאן.', unread: 'לא נקרא',
+    generic: 'התראה', unreadCount: '{n} שלא נקראו', group: { today: 'היום', week: 'מוקדם יותר השבוע', earlier: 'קודם' }, markAll: 'סימון הכול כנקרא', empty: 'אין התראות עדיין', emptyHint: 'הישגים שנפתחו יופיעו כאן.', unread: 'לא נקרא',
     localReminders: 'תזכורות לאימון ולארוחות הן מקומיות: הן נקבעות במכשיר הזה ולא נשלחות משרת.',
   },
 });

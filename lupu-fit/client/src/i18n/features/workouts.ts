@@ -12,6 +12,7 @@ export default defineFeature({
     },
     unit: { minutes: '{n} min', exercises: '{n} exercises', days: '{n} days', sets: '{n} sets', kg: '{n} kg' },
     plans: {
+      weekProgress: '{done} of {total} workouts this week', continue: 'Continue: day {day}', avgMinutes: 'Average session length',
       loadFailed: 'Could not load your plans.',
       emptyTitle: 'No plans yet', emptyHint: 'Generate a plan from your profile in a few taps.', toGenerator: 'Create a plan',
       active: 'Active', archivedHeading: 'Archived', created: 'Created {date}',
@@ -21,6 +22,7 @@ export default defineFeature({
       actionsFor: 'Actions for {name}',
     },
     gen: {
+      advanced: 'Exercises to avoid and preferences', dayDetails: 'Exercise details',
       params: 'Plan settings', days: 'Days per week', daysNote7: 'Seven days means six lifting days plus a recovery day.', minutes: 'Session length', mode: 'Training mode',
       avoidTitle: 'Exercises to avoid', avoidSearch: 'Search exercises to avoid', avoidNone: 'No exercises excluded', avoidRemove: 'Remove {name} from the list',
       avoidAdd: 'Avoid {name}', noResults: 'No exercise found',
@@ -45,6 +47,9 @@ export default defineFeature({
       slot_unfilled: 'No suitable exercise was found for one slot on {day}.',
     },
     ready: {
+      placeHint: { gym: 'Full equipment', home: 'Little or no gear', park: 'Bars and open air' }, modeHint: { bodyweight: 'No weights needed', weights: 'Dumbbells, bars, bands' },
+      stepOf: 'Step {n} of {total}', equipCount: '{n} items of gear', noneHint: 'Bodyweight only', clear: 'Clear {name}', summaryLabel: 'Your choices', workoutsWord: 'workouts',
+      moreFilters: 'Level and duration', clearFilters: 'Clear filters',
       step1: 'Where do you train?', step2: 'What equipment do you have?', step3: 'Bodyweight or weights?', step4: 'Which muscle?',
       equipHint: 'Prefilled from your profile. No selection means bodyweight with no gear.', equipNext: 'Continue', equipNone: 'No gear selected: bodyweight only',
       level: 'Level', anyLevel: 'Any level', maxMinutes: 'Max duration', anyDuration: 'Any duration', reset: 'Start over', change: 'Change',
@@ -57,6 +62,8 @@ export default defineFeature({
       loadFailed: 'Could not load your profile.',
     },
     detail: {
+      checkinOpen: 'Check in', checkinEdit: 'Update', optional: 'Optional', previewFinisher: 'Preview: {name}', statTime: 'Time', statSets: 'Sets', statFinisher: 'incl. {n} min finisher',
+      tagSwapped: 'Replaces {from}', tagDropped: 'Dropped: {from}', tagTrimmed: 'Trimmed to {n} min',
       back: 'Back to ready workouts', notFound: 'This workout does not exist.', notVisibleTitle: 'This workout is not shown for you',
       notVisibleHint: 'Too many of its exercises are unsuitable for your age or injuries, so it is hidden instead of being watered down.', notVisibleLink: 'Find another workout',
       warmup: 'Warm-up', warmupText: 'Start with 5 to 7 minutes of easy movement: joint circles, light cardio and one or two light sets of the first exercise.',
@@ -72,6 +79,7 @@ export default defineFeature({
       noProfile: 'Complete your profile first to personalise this workout.', exerciseLink: 'Open {name}', rpeHint: 'RPE is how hard a set feels, from 1 to 10.',
     },
     plan: {
+      dayDone: 'Done this week', exercisesShort: 'exercises',
       back: 'Back to my plans', notFound: 'This plan does not exist.', activeBadge: 'Active', archivedBadge: 'Archived', daysTab: 'Plan days', dayTitle: 'Day {n}: {name}',
       estimate: 'About {n} min', startDay: 'Start this day', starting: 'Starting…', empty: 'This day has no exercises.',
       swap: 'Swap', easier: 'Easier alternative', harder: 'Harder alternative', noAlternative: 'No alternatives for this exercise', swapTo: 'Swap to {name}',
@@ -89,11 +97,13 @@ export default defineFeature({
       notes: 'Generation notes', loadFailed: 'Could not load this plan.', needProfile: 'Complete your profile to swap exercises safely.',
     },
     history: {
+      thisWeek: 'This week', lastWeek: 'Last week', workoutsWord: 'workouts', setsWord: 'sets',
       title: 'Workout history', back: 'Back to workouts', emptyTitle: 'No finished workouts yet', emptyHint: 'Finished workouts appear here with their sets and XP.', toWorkouts: 'Pick a workout',
       finisherChip: 'Sport finisher: {sport}', finisherNoSport: 'Sport finisher', duration: '{n} min', sets: '{n} sets', xp: '+{n} XP', more: 'Show more', openSummary: 'Open summary of {name}',
       delete: 'Delete', deleteTitle: 'Delete this workout?', deleteWarn: 'This permanently deletes {name} with all its sets. It cannot be undone and your XP stays as awarded.', deleted: 'Workout deleted', cancel: 'Keep it', loadFailed: 'Could not load your history.',
     },
     summary: {
+      levelBar: 'Progress to level {level}', levelBarText: '{have} of {need} XP to level {next}', done: 'Done',
       title: 'Workout summary', back: 'Back to history', notFound: 'This workout does not exist.', loadFailed: 'Could not load this workout.',
       duration: 'Duration', sets: 'Sets', volume: 'Volume', xp: 'XP', date: 'Date', exercises: 'Exercises', noSets: 'No sets were logged for this exercise.',
       colSet: 'Set', colReps: 'Reps', colWeight: 'Weight', colTime: 'Time', colRpe: 'RPE', finisherSection: 'Sport finisher: {sport}', finisherSectionNoSport: 'Sport finisher',
@@ -119,6 +129,7 @@ export default defineFeature({
     },
     unit: { minutes: '{n} דק׳', exercises: '{n} תרגילים', days: '{n} ימים', sets: '{n} סטים', kg: '{n} ק״ג' },
     plans: {
+      weekProgress: '{done} מתוך {total} אימונים השבוע', continue: 'להמשיך: יום {day}', avgMinutes: 'משך אימון ממוצע',
       loadFailed: 'לא הצלחנו לטעון את התוכניות.',
       emptyTitle: 'אין תוכניות עדיין', emptyHint: 'אפשר ליצור תוכנית לפי הפרופיל בכמה לחיצות.', toGenerator: 'יצירת תוכנית',
       active: 'פעילה', archivedHeading: 'בארכיון', created: 'נוצרה ב־{date}',
@@ -128,6 +139,7 @@ export default defineFeature({
       actionsFor: 'פעולות עבור {name}',
     },
     gen: {
+      advanced: 'תרגילים להימנע מהם והעדפות', dayDetails: 'פרטי התרגילים',
       params: 'הגדרות התוכנית', days: 'ימי אימון בשבוע', daysNote7: 'שבעה ימים משמעותם שישה ימי אימון ועוד יום התאוששות.', minutes: 'משך אימון', mode: 'סוג אימון',
       avoidTitle: 'תרגילים להימנע מהם', avoidSearch: 'חיפוש תרגילים להימנע מהם', avoidNone: 'לא הוחרג אף תרגיל', avoidRemove: 'הסרת {name} מהרשימה',
       avoidAdd: 'להימנע מ{name}', noResults: 'לא נמצא תרגיל',
@@ -152,6 +164,9 @@ export default defineFeature({
       slot_unfilled: 'לא נמצא תרגיל מתאים לאחד המקומות ביום {day}.',
     },
     ready: {
+      placeHint: { gym: 'ציוד מלא', home: 'מעט ציוד או בלי', park: 'מתח ומקבילים' }, modeHint: { bodyweight: 'בלי משקולות', weights: 'משקולות, מוט או גומיות' },
+      stepOf: 'שלב {n} מתוך {total}', equipCount: '{n} פריטי ציוד', noneHint: 'משקל גוף בלבד', clear: 'ניקוי: {name}', summaryLabel: 'הבחירות שלך', workoutsWord: 'אימונים',
+      moreFilters: 'רמה ומשך', clearFilters: 'ניקוי סינון',
       step1: 'איפה מתאמנים?', step2: 'איזה ציוד יש לך?', step3: 'משקל גוף או משקולות?', step4: 'איזה שריר?',
       equipHint: 'מולא מראש לפי הפרופיל. בלי בחירה מדובר במשקל גוף בלי ציוד.', equipNext: 'המשך', equipNone: 'לא נבחר ציוד: משקל גוף בלבד',
       level: 'רמה', anyLevel: 'כל רמה', maxMinutes: 'משך מקסימלי', anyDuration: 'כל משך', reset: 'התחלה מחדש', change: 'שינוי',
@@ -164,6 +179,8 @@ export default defineFeature({
       loadFailed: 'לא הצלחנו לטעון את הפרופיל.',
     },
     detail: {
+      checkinOpen: 'מילוי בדיקה', checkinEdit: 'עדכון', optional: 'רשות', previewFinisher: 'תצוגה מקדימה: {name}', statTime: 'זמן', statSets: 'סטים', statFinisher: 'כולל {n} דק׳ סיומת',
+      tagSwapped: 'במקום {from}', tagDropped: 'הוסר: {from}', tagTrimmed: 'קוצר ל־{n} דק׳',
       back: 'חזרה לאימונים מוכנים', notFound: 'האימון הזה לא קיים.', notVisibleTitle: 'האימון הזה לא מוצג עבורך',
       notVisibleHint: 'יותר מדי מהתרגילים בו לא מתאימים לגיל או לפציעות שלך, ולכן הוא מוסתר במקום להיות מדולל.', notVisibleLink: 'חיפוש אימון אחר',
       warmup: 'חימום', warmupText: 'מתחילים עם 5 עד 7 דקות של תנועה קלה: סיבובי מפרקים, אירובי קל וסט או שניים קלים של התרגיל הראשון.',
@@ -179,6 +196,7 @@ export default defineFeature({
       noProfile: 'כדאי להשלים קודם את הפרופיל כדי להתאים את האימון.', exerciseLink: 'פתיחת {name}', rpeHint: 'RPE מודד כמה קשה סט מרגיש, בסקאלה מ־1 עד 10.',
     },
     plan: {
+      dayDone: 'הושלם השבוע', exercisesShort: 'תרגילים',
       back: 'חזרה לתוכניות שלי', notFound: 'התוכנית הזו לא קיימת.', activeBadge: 'פעילה', archivedBadge: 'בארכיון', daysTab: 'ימי התוכנית', dayTitle: 'יום {n}: {name}',
       estimate: 'בערך {n} דק׳', startDay: 'להתחיל את היום הזה', starting: 'מתחילים…', empty: 'אין תרגילים ביום הזה.',
       swap: 'החלפה', easier: 'חלופה קלה יותר', harder: 'חלופה קשה יותר', noAlternative: 'אין חלופות לתרגיל הזה', swapTo: 'החלפה ל{name}',
@@ -196,11 +214,13 @@ export default defineFeature({
       notes: 'הערות יצירה', loadFailed: 'לא הצלחנו לטעון את התוכנית.', needProfile: 'כדאי להשלים את הפרופיל כדי להחליף תרגילים בבטחה.',
     },
     history: {
+      thisWeek: 'השבוע', lastWeek: 'שבוע שעבר', workoutsWord: 'אימונים', setsWord: 'סטים',
       title: 'היסטוריית אימונים', back: 'חזרה לאימונים', emptyTitle: 'עוד אין אימונים שהסתיימו', emptyHint: 'אימונים שהסתיימו יופיעו כאן עם הסטים וה־XP שלהם.', toWorkouts: 'בחירת אימון',
       finisherChip: 'סיומת ספורט — {sport}', finisherNoSport: 'סיומת ספורט', duration: '{n} דק׳', sets: '{n} סטים', xp: '{n} נק׳ XP', more: 'עוד', openSummary: 'פתיחת סיכום של {name}',
       delete: 'מחיקה', deleteTitle: 'למחוק את האימון?', deleteWarn: 'פעולה זו מוחקת לצמיתות את {name} על כל הסטים שלו. אי אפשר לבטל, וה־XP שהוענק נשאר.', deleted: 'האימון נמחק', cancel: 'להשאיר', loadFailed: 'לא הצלחנו לטעון את ההיסטוריה.',
     },
     summary: {
+      levelBar: 'התקדמות לרמה {level}', levelBarText: '{have} מתוך {need} XP עד רמה {next}', done: 'סיום',
       title: 'סיכום אימון', back: 'חזרה להיסטוריה', notFound: 'האימון הזה לא קיים.', loadFailed: 'לא הצלחנו לטעון את האימון.',
       duration: 'משך', sets: 'סטים', volume: 'נפח', xp: 'ניסיון XP', date: 'תאריך', exercises: 'תרגילים', noSets: 'לא נרשמו סטים לתרגיל הזה.',
       colSet: 'סט', colReps: 'חזרות', colWeight: 'משקל', colTime: 'זמן', colRpe: 'RPE', finisherSection: 'סיומת ספורט — {sport}', finisherSectionNoSport: 'סיומת ספורט',

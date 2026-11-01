@@ -30,20 +30,29 @@ export function ReadinessCheckin({ date, current }: { date: string; current: Che
     },
     onError: (e) => toast(errorMessage(e, t), 'error'),
   });
+  const [open, setOpen] = useState(false);
   const opts = LEVELS.map((l) => ({ value: l, label: l }));
   return (
     <Card className="wk-readiness">
       <div className="row-between">
-        <h2>{t('workouts.detail.readinessTitle')}</h2>
-        {current ? <span className="small">{t('workouts.detail.state', { state: t(`label.readiness.${current.state}`) })}</span> : null}
+        <div className="stack-sm">
+          <h2>{t('workouts.detail.readinessTitle')}</h2>
+          {current ? <span className="small">{t('workouts.detail.state', { state: t(`label.readiness.${current.state}`) })}</span> : <span className="small muted">{t('workouts.detail.checkinPrompt')}</span>}
+        </div>
+        <Button size="sm" aria-expanded={open} onClick={() => setOpen((o) => !o)}>{open ? t('action.close') : current ? t('workouts.detail.checkinEdit') : t('workouts.detail.checkinOpen')}</Button>
       </div>
-      {current ? null : <span className="small muted">{t('workouts.detail.checkinPrompt')}</span>}
-      <span className="small muted">{t('workouts.detail.scale')}</span>
-      <div className="stack-sm"><span className="field-label">{t('workouts.detail.sleep')}</span><Segmented<Level> label={t('workouts.detail.sleep')} value={sleep} options={opts} onChange={setSleep} /></div>
-      <div className="stack-sm"><span className="field-label">{t('workouts.detail.energy')}</span><Segmented<Level> label={t('workouts.detail.energy')} value={energy} options={opts} onChange={setEnergy} /></div>
-      <div className="stack-sm"><span className="field-label">{t('workouts.detail.soreness')}</span><Segmented<Level> label={t('workouts.detail.soreness')} value={soreness} options={opts} onChange={setSoreness} /></div>
-      <Toggle label={t('workouts.detail.pain')} checked={pain} onChange={setPain} />
-      <div><Button disabled={save.isPending} onClick={() => save.mutate()}>{t('workouts.detail.saveCheckin')}</Button></div>
+      {open ? (
+        <div className="stack">
+          <span className="small muted">{t('workouts.detail.scale')}</span>
+          <div className="wk-readiness-grid">
+            <div className="stack-sm"><span className="field-label">{t('workouts.detail.sleep')}</span><Segmented<Level> label={t('workouts.detail.sleep')} value={sleep} options={opts} onChange={setSleep} /></div>
+            <div className="stack-sm"><span className="field-label">{t('workouts.detail.energy')}</span><Segmented<Level> label={t('workouts.detail.energy')} value={energy} options={opts} onChange={setEnergy} /></div>
+            <div className="stack-sm"><span className="field-label">{t('workouts.detail.soreness')}</span><Segmented<Level> label={t('workouts.detail.soreness')} value={soreness} options={opts} onChange={setSoreness} /></div>
+          </div>
+          <Toggle label={t('workouts.detail.pain')} checked={pain} onChange={setPain} />
+          <div><Button disabled={save.isPending} onClick={() => save.mutate()}>{t('workouts.detail.saveCheckin')}</Button></div>
+        </div>
+      ) : null}
     </Card>
   );
 }

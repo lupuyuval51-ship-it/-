@@ -1,6 +1,20 @@
-.auth { padding-block: 1rem; }
-.auth-links { display: flex; flex-direction: column; gap: 0.5rem; font-size: var(--fs-14); }
+.auth { max-inline-size: 26rem; margin-inline: auto; padding-block: 1.25rem; inline-size: 100%; }
+.auth-form { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.auth-links { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-size: var(--fs-14); text-align: center; }
+.auth-links a { display: inline-flex; align-items: center; min-block-size: var(--tap); }
 .pw-wrap { display: flex; align-items: stretch; gap: 0.5rem; }
 .pw-wrap .input { flex: 1 1 auto; min-inline-size: 0; }
-.pw-wrap .btn { flex: none; min-block-size: var(--tap); }
-.welcome-points { margin: 0; padding-inline-start: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.pw-wrap .btn { flex: none; min-block-size: var(--tap); color: var(--text-muted); }
+.lockout-num { font-size: var(--fs-22); font-weight: 700; }
+
+/* Welcome */
+.welcome { display: flex; flex-direction: column; justify-content: space-between; gap: 2rem; min-block-size: calc(100dvh - 3.5rem - 3rem); padding-block: 0.5rem 1rem; }
+.welcome-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; padding-block-start: 1.5rem; }
+.welcome-hero h1 { font-size: var(--fs-28); }
+.welcome-lead { font-size: var(--fs-18); max-inline-size: 28ch; margin-inline: auto; }
+.value-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.value-list li { display: flex; align-items: center; gap: 0.875rem; padding: 0.75rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); font-weight: 600; }
+.value-icon { flex: none; display: grid; place-items: center; inline-size: 2.5rem; block-size: 2.5rem; border-radius: var(--radius); background: var(--surface-2); color: var(--text); }
+.value-icon svg { inline-size: 1.375rem; block-size: 1.375rem; }
+.welcome-cta { padding-block-start: 0.5rem; }
+@media (max-height: 700px) { .welcome { gap: 1rem; } .welcome-hero { gap: 1rem; padding-block-start: 0.5rem; } .welcome-mark { inline-size: 5rem; block-size: 5rem; } }

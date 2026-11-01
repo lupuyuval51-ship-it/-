@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.ts';
 import { fmt, useLang } from '../i18n/index.tsx';
-import { Banner, Button, Card, EmptyState, ErrorState, Loading, errorMessage } from '../ui/kit.tsx';
+import { Banner, Button, EmptyState, ErrorState, errorMessage } from '../ui/kit.tsx';
+import { PageHeader, SkeletonList } from '../ui/patterns.tsx';
+import { localIso, addDaysIso } from '../components/home/dates.ts';
 import { useToast } from '../ui/toast.tsx';
 import { IconBell, IconStar } from '../ui/icons.tsx';
 import '../styles/progress.css';
@@ -28,22 +30,23 @@ export default function Notifications(): ReactNode {
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['notifications'] }); },
     onError: (e) => toast(errorMessage(e, t), 'error'),
   });
-  if (q.isLoading) return <Loading />;
+  if (q.isLoading) return <SkeletonList rows={3} />;
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const list = q.data?.notifications ?? [];
   const unread = list.filter((n) => !n.read).length;
+  const today = localIso(); const weekAgo = addDaysIso(today, -7);
+  const bucket = (n: Notification): 'today' | 'week' | 'earlier' => { const d = n.createdAt.slice(0, 10); return d >= today ? 'today' : d >= weekAgo ? 'week' : 'earlier'; };
+  const groups = (['today', 'week', 'earlier'] as const).map((g) => ({ g, items: list.filter((n) => bucket(n) === g) })).filter((x) => x.items.length > 0);
   return (
     <div className="stack">
-      <div className="row-between">
-        <h1>{t('nav.notifications')}</h1>
-        {unread > 0 ? <Button size="sm" disabled={markAll.isPending} onClick={() => markAll.mutate()}>{t('notifications.markAll')}</Button> : null}
-      </div>
-      {list.length === 0 ? <EmptyState icon={<IconBell />} title={t('notifications.empty')} hint={t('notifications.emptyHint')} /> : (
-        <Card>
-          <ul className="list">
-            {list.map((n) => (
+      <PageHeader title={t('nav.notifications')} {...(unread > 0 ? { subtitle: t('notifications.unreadCount', { n: unread }), action: <Button size="sm" disabled={markAll.isPending} onClick={() => markAll.mutate()}>{t('notifications.markAll')}</Button> } : {})} />
+      {list.length === 0 ? <EmptyState icon={<IconBell />} title={t('notifications.empty')} hint={t('notifications.emptyHint')} /> : groups.map(({ g, items }) => (
+        <section key={g} className="notif-group" aria-label={t(`notifications.group.${g}`)}>
+          <h2 className="small muted">{t(`notifications.group.${g}`)}</h2>
+          <ul className="notif-list">
+            {items.map((n) => (
               <li key={n.id} className={n.read ? 'notif' : 'notif unread'}>
-                <IconStar />
+                <span className="notif-icon" aria-hidden="true"><IconStar /></span>
                 <span className="grow stack-sm">
                   <strong>{titleOf(n, t)}</strong>
                   <span className="tiny muted num">{fmt.date(n.createdAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
@@ -52,8 +55,8 @@ export default function Notifications(): ReactNode {
               </li>
             ))}
           </ul>
-        </Card>
-      )}
+        </section>
+      ))}
       <Banner>{t('notifications.localReminders')}</Banner>
     </div>
   );

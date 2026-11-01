@@ -7,7 +7,10 @@ import { useProfile } from '../../app/session.ts';
 import { EXERCISES, exName } from '../../data/content.ts';
 import { useLang } from '../../i18n/index.tsx';
 import { localDateStr, mergeAvoidIds, parsePreferences } from '../../lib/workoutCompose.ts';
-import { Banner, Button, Card, Chip, ErrorState, Loading, NumberStepper, Segmented, TextArea, TextInput, Toggle, Tag, errorMessage } from '../../ui/kit.tsx';
+import { Banner, Button, Card, Chip, ErrorState, NumberStepper, TextArea, TextInput, Toggle, Tag, errorMessage } from '../../ui/kit.tsx';
+import { Disclosure, SkeletonList, StickyAction } from '../../ui/patterns.tsx';
+import { ChoiceCards } from './ChoiceCards.tsx';
+import { IconBody, IconKettle } from './wkIcons.tsx';
 import { useToast } from '../../ui/toast.tsx';
 import { PLANS_KEY } from './plansApi.ts';
 import { PlanNotes, PlanPreview } from './PlanPreview.tsx';
@@ -15,7 +18,7 @@ import { PlanNotes, PlanPreview } from './PlanPreview.tsx';
 export function GeneratorTab(): ReactNode {
   const { t, lang } = useLang();
   const prof = useProfile();
-  if (prof.isLoading) return <Loading />;
+  if (prof.isLoading) return <SkeletonList rows={3} />;
   if (prof.isError) return <ErrorState error={prof.error} onRetry={() => void prof.refetch()} />;
   if (!prof.data) return <Banner tone="warn">{t('workouts.ready.profileMissing')}</Banner>;
   const p = prof.data.profile;
@@ -74,8 +77,12 @@ function GeneratorForm({ defaults }: { defaults: { days: number; minutes: number
         {days === 7 ? <Banner>{t('workouts.gen.daysNote7')}</Banner> : null}
         <div className="stack-sm">
           <span className="field-label">{t('workouts.gen.mode')}</span>
-          <Segmented label={t('workouts.gen.mode')} value={mode} onChange={setMode} options={[{ value: 'bodyweight', label: t('label.mode.bodyweight') }, { value: 'weights', label: t('label.mode.weights') }]} />
+          <ChoiceCards cols={2} label={t('workouts.gen.mode')} value={mode} onPick={setMode} options={[
+            { value: 'bodyweight', label: t('label.mode.bodyweight'), hint: t('workouts.ready.modeHint.bodyweight'), icon: <IconBody /> },
+            { value: 'weights', label: t('label.mode.weights'), hint: t('workouts.ready.modeHint.weights'), icon: <IconKettle /> },
+          ]} />
         </div>
+        <Disclosure summary={t('workouts.gen.advanced')} open={avoid.length > 0 || prefs.length > 0}>
         <div className="stack-sm">
           <TextInput label={t('workouts.gen.avoidSearch')} type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
           {query.trim() && matches.length === 0 ? <span className="small muted">{t('workouts.gen.noResults')}</span> : null}
@@ -104,6 +111,7 @@ function GeneratorForm({ defaults }: { defaults: { days: number; minutes: number
             {merged.truncated ? <Banner tone="warn">{t('workouts.gen.truncated', { n: merged.ids.length })}</Banner> : null}
           </div>
         ) : null}
+        </Disclosure>
       </Card>
 
       {generated ? (
@@ -120,12 +128,14 @@ function GeneratorForm({ defaults }: { defaults: { days: number; minutes: number
         </Card>
       ) : null}
 
-      <div className="wk-actions">
-        {showSave
-          ? <Button variant="primary" disabled={busy} onClick={() => save.mutate()}>{t('workouts.gen.save')}</Button>
-          : <Button variant="primary" disabled={busy} onClick={() => gen.mutate(generated ? seed : 1)}>{gen.isPending ? t('workouts.gen.generating') : t('workouts.gen.generate')}</Button>}
-        {generated ? <Button disabled={busy} onClick={() => gen.mutate(seed + 1)}>{t('workouts.gen.regenerate')}</Button> : null}
-      </div>
+      <StickyAction>
+        <div className="wk-sticky-row">
+          {showSave
+            ? <Button variant="primary" disabled={busy} onClick={() => save.mutate()}>{t('workouts.gen.save')}</Button>
+            : <Button variant="primary" disabled={busy} onClick={() => gen.mutate(generated ? seed : 1)}>{gen.isPending ? t('workouts.gen.generating') : t('workouts.gen.generate')}</Button>}
+          {generated ? <Button disabled={busy} onClick={() => gen.mutate(seed + 1)}>{t('workouts.gen.regenerate')}</Button> : null}
+        </div>
+      </StickyAction>
     </div>
   );
 }

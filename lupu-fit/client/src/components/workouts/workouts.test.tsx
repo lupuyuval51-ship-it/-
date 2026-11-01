@@ -177,23 +177,21 @@ describe('ReadyDetail', () => {
     profile = { ...PROFILE, place: 'home', equipment: [] };
     const u = userEvent.setup();
     const { unmount } = await open();
-    const label = await screen.findByLabelText('מתאמנים בענף ספורט מסוים? אפשר להוסיף סיומת של 10 דקות בסוף האימון');
-    await u.selectOptions(label, 'soccer');
+    await u.click(await screen.findByRole('button', { name: 'כדורגל' }));
     expect(await screen.findByRole('button', { name: 'בלי ציוד' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'עם ציוד' })).toBeDisabled();
     expect(screen.getByText('זו הכנה גופנית כללית ולא אימון מיומנות בענף.', { exact: false })).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('lf_sport')!)).toEqual({ u1: 'soccer' });
     unmount();
     await open();
-    const again = await screen.findByLabelText('מתאמנים בענף ספורט מסוים? אפשר להוסיף סיומת של 10 דקות בסוף האימון');
-    await waitFor(() => expect((again as HTMLSelectElement).value).toBe('soccer'));
+    await waitFor(async () => expect(await screen.findByRole('button', { name: 'כדורגל' })).toHaveAttribute('aria-pressed', 'true'));
   });
   it('English label is exact too, seniors start gentle, gear is enabled for a gym', async () => {
     profile = { ...PROFILE, age: 70, place: 'gym', equipment: [] };
     const u = userEvent.setup();
     await open('en');
-    const sel = await screen.findByLabelText('Train for a specific sport? You can add a 10-minute finisher at the end of the workout');
-    await u.selectOptions(sel, 'running');
+    expect(await screen.findByRole('group', { name: 'Train for a specific sport? You can add a 10-minute finisher at the end of the workout' })).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Running' }));
     expect(await screen.findByRole('button', { name: 'Gentle' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'With gear' })).toBeEnabled();
   });
@@ -202,7 +200,7 @@ describe('ReadyDetail', () => {
     routes.set('POST /api/sessions', () => ({ id: 's1' }));
     const u = userEvent.setup();
     await open();
-    await u.selectOptions(await screen.findByLabelText(/מתאמנים בענף ספורט מסוים/), 'soccer');
+    await u.click(await screen.findByRole('button', { name: 'כדורגל' }));
     await u.click(screen.getByRole('button', { name: 'להתחיל אימון' }));
     await waitFor(() => expect(calls.some((c) => c.path === '/api/sessions')).toBe(true));
     const body = calls.find((c) => c.path === '/api/sessions')!.body as { source: string; sourceId: string; sport: string; localDate: string; exercises: { isFinisher: boolean; sport?: string; planned: { durationSec: number | null } }[] };
@@ -226,6 +224,7 @@ describe('ReadyDetail', () => {
     routes.set('GET /api/readiness', () => ({ checkin: saved }));
     const u = userEvent.setup();
     await open('en');
+    await u.click(await screen.findByRole('button', { name: 'Check in' }));
     await u.click(await screen.findByRole('button', { name: 'Save check-in' }));
     await waitFor(() => expect(calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')).toBeTruthy());
     const b = calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')!.body as { localDate: string; pain: boolean };
@@ -353,8 +352,8 @@ describe('PlanDetail', () => {
     for (const b of within(dlg).getAllByRole('button', { name: /^Swap to / })) { const row = b.closest('.wk-alt')!; if (row.getAttribute('data-unsafe') === 'true') expect(b).toBeDisabled(); else expect(b).toBeEnabled(); }
     await u.click(within(dlg).getByRole('button', { name: 'Close' }));
     await u.click(screen.getByRole('button', { name: 'Start this day' }));
-    await waitFor(() => expect(calls.some((c) => c.path === '/api/sessions')).toBe(true));
-    const body = calls.find((c) => c.path === '/api/sessions')!.body as { source: string; sourceId: string };
+    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.path === '/api/sessions')).toBe(true));
+    const body = calls.find((c) => c.method === 'POST' && c.path === '/api/sessions')!.body as { source: string; sourceId: string };
     expect(body.source).toBe('plan'); expect(body.sourceId).toBe('p1:0');
   });
 });

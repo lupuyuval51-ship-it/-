@@ -127,12 +127,15 @@ describe('LiveSession', () => {
     await waitFor(() => expect(calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/sessions/s1/sets/set9'));
   });
 
-  it('caps the RPE selector at 7 for minors and never offers a load increase', async () => {
+  it('caps the RPE chips at 7 for minors and never offers a load increase', async () => {
     setup({ prof: profile({ age: 15 }), history: topTwice }); view();
-    const select = await screen.findByLabelText('RPE');
-    await waitFor(() => expect(within(select).getAllByRole('option').at(-1)).toHaveValue('7'));
-    expect(within(select).queryByRole('option', { name: '7.5' })).not.toBeInTheDocument();
-    expect(select).toHaveValue('7'); // planned RPE 8 is clamped to 7
+    const group = await screen.findByRole('group', { name: 'RPE' });
+    await waitFor(() => expect(within(group).queryByRole('button', { name: '8' })).not.toBeInTheDocument());
+    expect(within(group).getByRole('button', { name: '7' })).toHaveAttribute('aria-pressed', 'true'); // planned RPE 8 is clamped to 7
+    fireEvent.click(within(group).getByRole('button', { name: 'חצאי דרגה' }));
+    const grid = screen.getAllByRole('group', { name: 'חצאי דרגה' })[0] as HTMLElement;
+    expect(within(grid).queryByRole('button', { name: '7.5' })).not.toBeInTheDocument();
+    expect(within(grid).getAllByRole('button').at(-1)).toHaveTextContent('7');
     expect(await screen.findByText('בראש הטווח: לשמור על טכניקה נקייה')).toBeInTheDocument();
     expect(screen.queryByText(/מומלץ: \+/)).not.toBeInTheDocument();
     fireEvent.click(await finishSet());
@@ -142,9 +145,90 @@ describe('LiveSession', () => {
   it('keeps the minor RPE cap when the profile cannot be loaded (last known age bucket)', async () => {
     localStorage.setItem('lf_live_age_bucket', 'minor');
     setup({ extra: (c) => (c.path === '/api/profile' ? new NetworkError() : undefined) }); view();
-    const select = await screen.findByLabelText('RPE');
-    expect(select).toHaveValue('7');
-    expect(within(select).getAllByRole('option').at(-1)).toHaveValue('7');
+    const group = await screen.findByRole('group', { name: 'RPE' });
+    expect(within(group).getByRole('button', { name: '7' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(group).queryByRole('button', { name: '8' })).not.toBeInTheDocument();
+  });
+
+  it('RPE quick chips: one tap selects a whole step, the "..." chip reveals half steps, and the choice is logged', async () => {
+    setup(); view();
+    const group = await screen.findByRole('group', { name: 'RPE' });
+    expect(within(group).getAllByRole('button').map((b) => b.textContent)).toEqual(['6', '7', '8', '9', '10', '…']);
+    expect(within(group).getByRole('button', { name: '8' })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(within(group).getByRole('button', { name: '9' }));
+    fireEvent.click(within(group).getByRole('button', { name: 'חצאי דרגה' }));
+    fireEvent.click(within(screen.getAllByRole('group', { name: 'חצאי דרגה' })[0] as HTMLElement).getByRole('button', { name: '9.5' }));
+    expect(within(group).getByRole('button', { name: 'חצאי דרגה' })).toHaveTextContent('9.5');
+    fireEvent.click(await finishSet());
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toMatchObject({ rpe: 9.5 }));
+  });
+
+  it('steppers: plus / minus change the number, typing a decimal keeps the dot, and the number is the logged value', async () => {
+    setup(); view();
+    const weight = await screen.findByRole('textbox', { name: 'משקל' });
+    fireEvent.click(screen.getByRole('button', { name: 'משקל +' }));
+    expect(weight).toHaveValue('62.5');
+    fireEvent.click(screen.getByRole('button', { name: 'חזרות −' }));
+    expect(screen.getByRole('textbox', { name: 'חזרות' })).toHaveValue('9');
+    fireEvent.focus(weight); fireEvent.change(weight, { target: { value: '70.' } });
+    expect(weight).toHaveValue('70.');
+    fireEvent.change(weight, { target: { value: '70.5' } });
+    fireEvent.blur(weight);
+    fireEvent.click(await finishSet());
+    await waitFor(() => expect(calls.find((c) => c.method === 'POST')?.body).toMatchObject({ reps: 9, weightKg: 70.5 }));
+  });
+
+  it('gives haptic feedback when a set is finished (guarded)', async () => {
+    const vibrate = vi.fn(); Object.defineProperty(navigator, 'vibrate', { value: vibrate, configurable: true });
+    setup(); view(); fireEvent.click(await finishSet());
+    expect(vibrate).toHaveBeenCalledWith(10);
+    Object.defineProperty(navigator, 'vibrate', { value: undefined, configurable: true });
+  });
+
+  it('shows the technique video collapsed by default on phones and lets the user expand it', async () => {
+    setup(); view();
+    const btn = await screen.findByRole('button', { name: 'הצגת טכניקה', expanded: false });
+    expect(document.querySelector('.lv-video')).toBeNull();
+    fireEvent.click(btn);
+    expect(document.querySelector('.lv-video')).not.toBeNull();
+    expect(localStorage.getItem('lf_live_video_open')).toBe('1');
+  });
+
+  it('rest card previews the next set, never blocks logging, and the last planned set moves on to the next exercise', async () => {
+    const base = mkSession();
+    const exercises = base.exercises.map((e, i) => (i === 0 ? { ...e, planned: { ...planned, sets: 2 } } : e));
+    setup({ session: mkSession({ exercises }) }); view();
+    fireEvent.click(await finishSet());
+    expect(await screen.findByTestId('rest-readout')).toBeInTheDocument();
+    expect(screen.getByTestId('rest-next')).toHaveTextContent('לחיצת חזה במוט'); // still the same exercise: set 2
+    expect(screen.getByTestId('rest-next')).toHaveTextContent('סט 2');
+    expect(screen.getByRole('button', { name: 'סיום סט' })).toBeEnabled(); // logging is never blocked by the rest
+    await waitFor(() => expect(screen.getByRole('button', { name: 'סיום סט' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'סיום סט' }));
+    await waitFor(() => expect(screen.getByTestId('stepper-pos')).toHaveTextContent('תרגיל 2 מתוך 2'));
+    expect(screen.getByTestId('rest-next')).toHaveTextContent('סט 1');
+  });
+
+  it('the single primary button is the finish-set action until every set is done, then it becomes finish workout', async () => {
+    const sets = (id: string, n: number) => Array.from({ length: n }, (_, i) => ({ id: `${id}${i}`, sessionExerciseId: id, setNo: i + 1, reps: 8, weightKg: null, durationSec: null, rpe: 8 }));
+    const base = mkSession();
+    const exercises = base.exercises.map((e) => ({ ...e, sets: sets(e.id, e.planned.sets) }));
+    setup({ session: mkSession({ exercises }) }); const { container } = view();
+    await finishSet();
+    const primaries = container.querySelectorAll('.btn-primary');
+    expect(primaries).toHaveLength(1);
+    expect(primaries[0]).toHaveTextContent('סיום אימון');
+  });
+
+  it('discard lives in the more menu and asks for confirmation first', async () => {
+    setup(); view(); vi.mocked(window.confirm).mockReturnValue(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'עוד' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'ביטול האימון' }));
+    expect(window.confirm).toHaveBeenCalledWith('לבטל את האימון ולמחוק את כל הסטים שלו?');
+    expect(calls.some((c) => c.method === 'DELETE')).toBe(false);
+    vi.mocked(window.confirm).mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: 'ביטול האימון' }));
+    await waitFor(() => expect(calls.find((c) => c.method === 'DELETE')?.path).toBe('/api/sessions/s1'));
   });
 
   it('plate calculator shows plates per side and applies the achieved weight', async () => {
@@ -191,6 +275,7 @@ describe('LiveSession', () => {
   it('allows replacing only before the first set (safe alternatives), and locks it afterwards', async () => {
     setup({ session: mkSession(), prof: profile({ equipment: ['barbell', 'bench', 'dumbbell'] }), extra: (c) => (c.method === 'PATCH' ? mkSession() : undefined) }); view();
     await waitFor(() => expect(JSON.stringify(calls)).toContain('/api/profile'));
+    fireEvent.click(await screen.findByRole('button', { name: 'עוד' }));
     fireEvent.click(await screen.findByRole('button', { name: 'החלפת תרגיל' }));
     const dlg = await screen.findByRole('dialog');
     fireEvent.click(await within(dlg).findByRole('button', { name: 'לחיצת חזה עם משקולות יד' }));
@@ -199,6 +284,7 @@ describe('LiveSession', () => {
   it('locks replacement once a set exists', async () => {
     const set = { id: 'set9', sessionExerciseId: 'e1', setNo: 1, reps: 8, weightKg: 60, durationSec: null, rpe: 8 };
     setup({ session: mkSession({}, [set]) }); view();
+    fireEvent.click(await screen.findByRole('button', { name: 'עוד' }));
     expect(await screen.findByRole('button', { name: 'החלפת תרגיל' })).toBeDisabled();
     expect(screen.getByTestId('replace-locked')).toHaveTextContent('אפשר להחליף רק לפני הסט הראשון.');
     expect(calls.some((c) => c.method === 'PATCH')).toBe(false);

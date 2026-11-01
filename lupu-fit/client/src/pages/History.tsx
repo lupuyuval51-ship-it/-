@@ -1,12 +1,15 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client.ts';
 import { qk } from '../app/session.ts';
 import { fmt, useLang } from '../i18n/index.tsx';
-import { Button, Card, EmptyState, ErrorState, LinkButton, Loading, Sheet, Tag, errorMessage } from '../ui/kit.tsx';
-import { IconDumbbell } from '../ui/icons.tsx';
+import { localDateStr } from '../lib/workoutCompose.ts';
+import { Button, Card, EmptyState, ErrorState, IconButton, LinkButton, Sheet, Tag, errorMessage } from '../ui/kit.tsx';
+import { IconChevron, IconDumbbell, IconTrash } from '../ui/icons.tsx';
+import { SkeletonList } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
+import { groupByWeek, weeksAgo } from '../components/workouts/weekUtil.ts';
 import '../styles/workouts.css';
 
 export interface HistoryRow { id: string; name: string; sport: string | null; startedAt: string; finishedAt: string | null; durationSec: number | null; localDate: string; xpAwarded: number; sets: number; hasFinisher: boolean }
@@ -26,37 +29,70 @@ export default function History(): ReactNode {
     onError: (e) => { toast(errorMessage(e, t), 'error'); setDel(null); },
   });
 
-  if (q.isLoading) return <Loading />;
-  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const rows = q.data ?? [];
+  const weeks = useMemo(() => groupByWeek(rows, lang), [rows, lang]);
+
+  if (q.isLoading) return <SkeletonList rows={5} />;
+  if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const sportLabel = (s: string | null) => (s ? t(`label.sport.${s}`) : null);
+  const today = localDateStr();
+  const weekTitle = (start: string, end: string): string => {
+    const ago = weeksAgo(start, today, lang);
+    if (ago === 0) return t('workouts.history.thisWeek');
+    if (ago === 1) return t('workouts.history.lastWeek');
+    return `${fmt.date(start, lang, { day: 'numeric', month: 'short' })} – ${fmt.date(end, lang, { day: 'numeric', month: 'short' })}`;
+  };
 
   return (
     <div className="stack">
-      <Link to="/workouts">{t('workouts.history.back')}</Link>
+      <Link to="/workouts" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.history.back')}</Link>
       <h1>{t('workouts.history.title')}</h1>
       {rows.length === 0 ? (
-        <EmptyState icon={<IconDumbbell />} title={t('workouts.history.emptyTitle')} hint={t('workouts.history.emptyHint')} action={<LinkButton to="/workouts">{t('workouts.history.toWorkouts')}</LinkButton>} />
+        <EmptyState icon={<IconDumbbell />} title={t('workouts.history.emptyTitle')} hint={t('workouts.history.emptyHint')} action={<LinkButton to="/workouts" variant="primary">{t('workouts.history.toWorkouts')}</LinkButton>} />
       ) : (
-        <div className="stack">
-          {rows.map((r) => (
-            <Card key={r.id} as="article">
-              <div className="wk-hist-row">
-                <div className="wk-hist-main">
-                  <Link to={`/workouts/sessions/${r.id}`} className="wk-plan-name" aria-label={t('workouts.history.openSummary', { name: r.name })}>{r.name}</Link>
-                  <div className="wk-meta">
-                    <span>{fmt.date(r.localDate, lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                    {r.durationSec !== null ? <span>{t('workouts.history.duration', { n: Math.max(1, Math.round(r.durationSec / 60)) })}</span> : null}
-                    <span>{t('workouts.history.sets', { n: r.sets })}</span>
-                    <span>{t('workouts.history.xp', { n: r.xpAwarded })}</span>
+        <div className="stack-lg">
+          {weeks.map((w) => {
+            const minutes = w.rows.reduce((a, r) => a + (r.durationSec !== null ? Math.max(1, Math.round(r.durationSec / 60)) : 0), 0);
+            const sets = w.rows.reduce((a, r) => a + r.sets, 0);
+            const xp = w.rows.reduce((a, r) => a + r.xpAwarded, 0);
+            return (
+              <section key={w.start} className="stack-sm" aria-label={weekTitle(w.start, w.end)}>
+                <div className="wk-week-head">
+                  <h2>{weekTitle(w.start, w.end)}</h2>
+                  <div className="wk-week-stats small">
+                    <span><span className="num">{w.rows.length}</span> {t('workouts.history.workoutsWord')}</span>
+                    <span><span className="num">{sets}</span> {t('workouts.history.setsWord')}</span>
+                    {minutes > 0 ? <span><span className="num">{minutes}</span> {t('unit.min')}</span> : null}
+                    <span><span className="num">{xp}</span> XP</span>
                   </div>
-                  {r.hasFinisher ? <div className="wk-tags"><Tag>{r.sport ? t('workouts.history.finisherChip', { sport: sportLabel(r.sport) ?? '' }) : t('workouts.history.finisherNoSport')}</Tag></div> : null}
                 </div>
-                <Button size="sm" variant="danger" aria-label={`${t('workouts.history.delete')}: ${r.name}`} onClick={() => setDel(r)}>{t('workouts.history.delete')}</Button>
-              </div>
-            </Card>
-          ))}
-          {rows.length >= limit && limit < MAX ? <div><Button disabled={q.isFetching} onClick={() => setLimit((n) => Math.min(MAX, n + STEP))}>{t('workouts.history.more')}</Button></div> : null}
+                <Card className="wk-hist-card">
+                  <ul className="wk-hist-list">
+                    {w.rows.map((r) => (
+                      <li key={r.id} className="wk-hist-row">
+                        <div className="wk-date" aria-hidden="true">
+                          <span className="num">{new Date(`${r.localDate}T12:00:00`).getDate()}</span>
+                          <span className="tiny muted">{fmt.date(r.localDate, lang, { weekday: 'short' })}</span>
+                        </div>
+                        <div className="wk-hist-main">
+                          <Link to={`/workouts/sessions/${r.id}`} className="wk-plan-name" aria-label={t('workouts.history.openSummary', { name: r.name })}>{r.name}</Link>
+                          <div className="wk-meta">
+                            <span className="sr-only">{fmt.date(r.localDate, lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            {r.durationSec !== null ? <span>{t('workouts.history.duration', { n: Math.max(1, Math.round(r.durationSec / 60)) })}</span> : null}
+                            <span>{t('workouts.history.sets', { n: r.sets })}</span>
+                            <span>{t('workouts.history.xp', { n: r.xpAwarded })}</span>
+                          </div>
+                          {r.hasFinisher ? <div className="wk-tags"><Tag>{r.sport ? t('workouts.history.finisherChip', { sport: sportLabel(r.sport) ?? '' }) : t('workouts.history.finisherNoSport')}</Tag></div> : null}
+                        </div>
+                        <IconButton label={`${t('workouts.history.delete')}: ${r.name}`} onClick={() => setDel(r)}><IconTrash /></IconButton>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              </section>
+            );
+          })}
+          {rows.length >= limit && limit < MAX ? <div><Button block disabled={q.isFetching} onClick={() => setLimit((n) => Math.min(MAX, n + STEP))}>{t('workouts.history.more')}</Button></div> : null}
         </div>
       )}
       <Sheet open={del !== null} onClose={() => setDel(null)} title={t('workouts.history.deleteTitle')}>
@@ -69,4 +105,3 @@ export default function History(): ReactNode {
     </div>
   );
 }
-

@@ -38,7 +38,7 @@ export default function Register(): ReactNode {
   return (
     <div className="stack-lg auth">
       <div className="stack-sm"><h1>{t('auth.register.title')}</h1><p className="muted">{t('auth.register.intro')}</p></div>
-      <form className="stack" onSubmit={submit} noValidate>
+      <form className="stack auth-form" onSubmit={submit} noValidate>
         <FailureBanner failure={failure} left={cd.left} />
         <TextInput label={t('auth.email')} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} error={errors['email']} />
         <PasswordField label={t('auth.password')} value={password} onChange={setPassword} autoComplete="new-password" error={errors['password']} hint={t('auth.passwordHint')} />

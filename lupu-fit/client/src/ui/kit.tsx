@@ -41,14 +41,14 @@ export function Select({ label, hint, error, options, ...p }: SelectHTMLAttribut
 }
 
 /** Numeric stepper with hold-free ± buttons. `value` null = empty. Always shows Latin digits (.num). */
-export function NumberStepper({ label, value, onChange, step = 1, min = 0, max = 9999, decimals = 0, suffix }: { label: string; value: number | null; onChange: (v: number | null) => void; step?: number; min?: number; max?: number; decimals?: number; suffix?: string }): ReactNode {
+export function NumberStepper({ label, value, onChange, step = 1, min = 0, max = 9999, decimals = 0, suffix, large }: { label: string; value: number | null; onChange: (v: number | null) => void; step?: number; min?: number; max?: number; decimals?: number; suffix?: string; large?: boolean }): ReactNode {
   const t = useT();
   const round = (n: number) => Math.round(n * 10 ** decimals) / 10 ** decimals;
   const clamp = (n: number) => Math.min(max, Math.max(min, round(n)));
   return (
     <div className="field">
       <span className="field-label">{label}{suffix ? <span className="muted"> ({suffix})</span> : null}</span>
-      <div className="stepper" role="group" aria-label={label}>
+      <div className={cx('stepper', large && 'stepper-lg')} role="group" aria-label={label}>
         <button type="button" aria-label={`${label} −`} onClick={() => onChange(clamp((value ?? min) - step))}><IconMinus aria-label={t('action.remove')} /></button>
         <input className="num" inputMode="decimal" aria-label={label} value={value ?? ''} onChange={(e) => { const v = e.target.value.replace(',', '.'); if (v === '') onChange(null); else if (!Number.isNaN(Number(v))) onChange(Math.min(max, Math.max(min, Number(v)))); }} />
         <button type="button" aria-label={`${label} +`} onClick={() => onChange(clamp((value ?? min) + step))}><IconPlus aria-label={t('action.add')} /></button>

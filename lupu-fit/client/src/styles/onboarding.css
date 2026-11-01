@@ -1,10 +1,55 @@
-.onb { padding-block: 1rem; }
-.onb-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
-.onb-nav { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-block-start: 0.5rem; border-block-start: 1px solid var(--border); }
-.onb-summary { margin: 0; display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); }
-.onb-summary dd { margin: 0; }
+.onb { display: flex; flex-direction: column; min-block-size: calc(100dvh - 3.5rem - 3rem); margin-block-end: -2rem; padding-block-start: 0.25rem; }
+.onb-body { flex: 1 1 auto; padding-block-end: 1.5rem; }
 .onb h1:focus { outline: none; }
+.onb .btn-ghost { color: var(--text-muted); }
+.onb .btn-ghost:hover { color: var(--text); }
+.onb-dots { gap: 0.25rem; }
+.onb-dots i { block-size: 0.375rem; }
+.onb-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
+.onb-field { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.875rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+
+/* sticky bottom bar: Back + Skip + the one primary action, always in thumb reach */
+.onb-bar { position: sticky; inset-block-end: 0; z-index: 15; margin-inline: -1rem; padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom)); background: var(--bg); border-block-start: 1px solid var(--border); }
+.onb-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.onb-bar-end { gap: 0.25rem; margin-inline-start: auto; }
+.onb-primary { min-inline-size: 8rem; min-block-size: 3rem; }
+@media (min-width: 60rem) { .onb-bar { margin-inline: 0; } }
+
+/* big choice cards */
+.choice-grid { display: grid; gap: 0.625rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 40rem) { .choice-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.choice { display: flex; align-items: center; gap: 0.75rem; min-block-size: 4rem; padding: 0.75rem 1rem; text-align: start; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 120ms, background-color 120ms; }
+.choice:hover { border-color: var(--text-muted); }
+.choice:active { transform: translateY(1px); }
+.choice-text { display: flex; flex-direction: column; gap: 0.125rem; flex: 1 1 auto; min-inline-size: 0; }
+.choice-title { font-size: var(--fs-16); font-weight: 700; }
+.choice-desc { font-size: var(--fs-14); color: var(--text-muted); }
+.choice-check { flex: none; display: grid; place-items: center; inline-size: 1.5rem; block-size: 1.5rem; border-radius: 50%; border: 1px solid var(--border); color: var(--on-primary); }
+.choice-check svg { inline-size: 0.875rem; block-size: 0.875rem; stroke-width: 3; }
+.choice[aria-pressed='true'], .choice[aria-checked='true'] { border-color: var(--primary-text); border-inline-start-width: 4px; padding-inline-start: calc(1rem - 3px); background: var(--surface-2); }
+.choice[aria-pressed='true'] .choice-check, .choice[aria-checked='true'] .choice-check { background: var(--primary); border-color: var(--primary); }
+@media (prefers-reduced-motion: reduce) { .choice { transition: none; } .choice:active { transform: none; } }
+
+/* review: "your plan" */
+.plan-card { display: flex; flex-direction: column; gap: 1.25rem; border-inline-start: 4px solid var(--primary); }
+.plan-eyebrow { font-size: var(--fs-12); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+[lang='he'] .plan-eyebrow { letter-spacing: 0; }
+.plan-hero { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+.plan-hero .num-hero { font-size: var(--fs-timer); }
+.plan-macros { gap: 0.875rem; }
+.plan-macro { display: flex; flex-direction: column; gap: 0.375rem; }
+.onb-summary { margin: 0; display: grid; gap: 0.25rem 1rem; grid-template-columns: minmax(0, 1fr); }
+.onb-summary dd { margin: 0; }
+.onb-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding-block: 0.375rem; border-block-end: 1px solid var(--border); }
+.onb-summary-row:last-child { border-block-end: 0; }
+.onb-done { min-block-size: 60dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* legal */
 .legal { padding-block: 1rem; }
 .legal h2 { font-size: var(--fs-18); }
 .legal p, .legal li { max-inline-size: 65ch; }
 .legal ul { margin: 0; padding-inline-start: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
+.legal-tabs { display: flex; gap: 0.25rem; border-block-end: 1px solid var(--border); overflow-x: auto; }
+.legal-tabs a { display: inline-flex; align-items: center; min-block-size: var(--tap); padding-inline: 0.875rem; color: var(--text-muted); font-weight: 600; font-size: var(--fs-14); white-space: nowrap; border-block-end: 3px solid transparent; text-decoration: none; }
+.legal-tabs a[aria-current='page'] { color: var(--text); border-block-end-color: var(--primary); }
+.legal-section { padding-block-start: 1rem; border-block-start: 1px solid var(--border); }

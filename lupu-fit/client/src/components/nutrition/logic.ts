@@ -82,3 +82,20 @@ export function roundGrams(g: number): number {
 }
 export const shoppingText = (lines: readonly ShoppingLine[], lang: 'he' | 'en', unit: string): string =>
   lines.map((l) => `- ${lang === 'he' ? l.nameHe : l.nameEn}: ${l.grams} ${unit}`).join('\n');
+
+/* ---- shopping list grouping (derived from the food category of each line; unknown items fall into "other") */
+export type ShopGroup = 'produce' | 'protein' | 'grains' | 'other';
+export const SHOP_GROUPS: readonly ShopGroup[] = ['produce', 'protein', 'grains', 'other'];
+export function shopGroupOf(category: string | undefined): ShopGroup {
+  switch (category) {
+    case 'vegetables': case 'fruits': return 'produce';
+    case 'meat_poultry': case 'fish_seafood': case 'eggs_dairy': case 'legumes': case 'plant_protein': return 'protein';
+    case 'grains_bread': return 'grains';
+    default: return 'other';
+  }
+}
+export function groupShopping<T extends { key: string }>(lines: readonly T[], categoryOf: (key: string) => string | undefined): { group: ShopGroup; lines: T[] }[] {
+  const by: Record<ShopGroup, T[]> = { produce: [], protein: [], grains: [], other: [] };
+  for (const l of lines) by[shopGroupOf(categoryOf(l.key))].push(l);
+  return SHOP_GROUPS.filter((g) => by[g].length > 0).map((g) => ({ group: g, lines: by[g] }));
+}

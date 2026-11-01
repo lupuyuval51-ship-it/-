@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ageBucket } from '@lupu-fit/shared';
 import { EXERCISE_BY_ID, exById } from '../data/content.ts';
 import {
-  clampRpe, defaultsFor, deletedSetIds, finisherMinutes, isTimedExercise, lastPerformance, maxRpeFor, pendingSets, progressionFor, replacementOptions, rpeOptions, safeBucket, swapContextFor,
-  type HistoryEntry, type Planned,
+  clampRpe, defaultsFor, deletedSetIds, finisherMinutes, isTimedExercise, lastPerformance, maxRpeFor, nextUp, pendingSets, progressionFor, replacementOptions, rpeOptions, safeBucket, swapContextFor,
+  type HistoryEntry, type LiveExercise, type Planned,
 } from './liveSession.ts';
 import type { OutboxItem } from './outbox.ts';
 
@@ -76,5 +76,21 @@ describe('helpers', () => {
     const hurt = swapContextFor({ equipment: [], injuries: ['wrist', 'shoulder'], experience: 'advanced', age: 30 } as never, 'adult');
     expect(replacementOptions(push, hurt, EXERCISE_BY_ID).map((e) => e.id)).toEqual(['wall_push_up']);
     expect(safeBucket(15, ageBucket)).toBe('minor'); expect(safeBucket(3, ageBucket)).toBeNull(); expect(safeBucket(undefined, ageBucket)).toBeNull();
+  });
+});
+
+describe('nextUp', () => {
+  const ex = (id: string, isFinisher = false, sets = 2): LiveExercise => ({ id, exerciseId: 'push_up', isFinisher, sport: null, planned: { ...planned, sets }, sets: [] });
+  const list = [ex('a'), ex('b'), ex('f', true)];
+  it('stays on the same exercise while planned sets remain', () => {
+    expect(nextUp(list, 'a', new Map([['a', 1]]))).toMatchObject({ kind: 'set', setNo: 2, exercise: { id: 'a' } });
+  });
+  it('moves to the next unfinished exercise, then to finishers', () => {
+    expect(nextUp(list, 'a', new Map([['a', 2]]))).toMatchObject({ kind: 'exercise', setNo: 1, exercise: { id: 'b' } });
+    expect(nextUp(list, 'b', new Map([['a', 2], ['b', 2]]))).toMatchObject({ kind: 'exercise', exercise: { id: 'f' } });
+  });
+  it('wraps back to an earlier unfinished exercise and returns null when everything is done', () => {
+    expect(nextUp(list, 'b', new Map([['b', 2], ['f', 2]]))).toMatchObject({ exercise: { id: 'a' } });
+    expect(nextUp(list, 'f', new Map([['a', 2], ['b', 2], ['f', 2]]))).toBeNull();
   });
 });

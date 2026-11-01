@@ -1,7 +1,7 @@
 import { MEAL_SLOTS, type Allergen, type MealSlot } from '@lupu-fit/shared';
 import { useQueries } from '@tanstack/react-query';
 import { useMemo, useState, type ReactNode } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { api } from '../api/client.ts';
 import { BarcodePanel } from '../components/nutrition/BarcodePanel.tsx';
 import { LogSheet } from '../components/nutrition/LogSheet.tsx';
@@ -13,8 +13,11 @@ import { DISHES, FOODS, FOOD_BY_ID, DISH_BY_ID, MEAL_TEMPLATES } from '../data/c
 import { useProfile } from '../app/session.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import { allergenHits, deriveRecents, fromCustom, fromDish, fromFood, fromTemplate, searchLoggables, type Loggable } from '../lib/foodSearch.ts';
-import { Banner, Card, EmptyState, Segmented, Tabs, TextInput, Tag } from '../ui/kit.tsx';
-import { IconSearch } from '../ui/icons.tsx';
+import { Button, Chip, EmptyState, Segmented, TextInput } from '../ui/kit.tsx';
+import { IconBarcode, IconCamera, IconFork, IconPlus, IconSearch, IconWarn } from '../ui/icons.tsx';
+import { PageHeader } from '../ui/patterns.tsx';
+import { kcalLine, ResultRow } from '../components/nutrition/ResultRow.tsx';
+import { LogEditor } from '../components/nutrition/LogEditor.tsx';
 import '../styles/nutrition.css';
 
 type Mode = 'search' | 'barcode' | 'photo' | 'quick' | 'custom';
@@ -33,6 +36,8 @@ export default function NutritionLog(): ReactNode {
   const [mode, setMode] = useState<Mode>('search');
   const [query, setQuery] = useState('');
   const [picked, setPicked] = useState<Loggable | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const profile = useProfile();
   const allergies: readonly Allergen[] = profile.data?.profile.allergies ?? [];
 
@@ -46,53 +51,63 @@ export default function NutritionLog(): ReactNode {
   const hasQuery = query.trim() !== '';
   const name = (i: Loggable) => (lang === 'he' ? i.nameHe : i.nameEn);
 
-  const row = (i: Loggable): ReactNode => {
-    const hits = allergenHits(i, allergies);
-    const per = i.kind === 'dish' || i.kind === 'template' ? { kcal: Math.round((i.per100.kcal * i.servingG) / 100), label: t('nutrition.log.perServing') } : { kcal: Math.round(i.per100.kcal), label: t('nutrition.log.per100') };
-    return (
-      <li key={i.key}>
-        <button type="button" className="result-row" onClick={() => setPicked(i)}>
-          <span className="grow start"><strong>{name(i)}</strong><br /><span className="small muted"><span className="num">{fmt.num(per.kcal)}</span> {t('unit.kcal')} · {per.label}</span></span>
-          <span className="row-wrap">
-            {hits.length > 0 ? <Tag tone="danger">{t('nutrition.allergen.tag')}</Tag> : null}
-            <Tag>{t(`nutrition.kind.${i.kind}`)}</Tag>
-          </span>
-        </button>
-      </li>
-    );
-  };
+  const dayLabel = date === todayIso() ? t('date.today') : fmt.date(date, lang, { weekday: 'short', day: 'numeric', month: 'short' });
+  const toggleOpen = (k: string) => setOpen((cur) => (cur === k ? null : k));
+  const chips = recents.slice(0, 8);
+  const openRecent = chips.find((r) => r.key === open) ?? null;
+  const TILES: { mode: Exclude<Mode, 'search'>; icon: ReactNode; label: string; hint: string }[] = [
+    { mode: 'barcode', icon: <IconBarcode />, label: t('nutrition.log.mode.barcode'), hint: t('nutrition.nu.tile.barcode') },
+    { mode: 'photo', icon: <IconCamera />, label: t('nutrition.log.mode.photo'), hint: t('nutrition.nu.tile.photo') },
+    { mode: 'quick', icon: <IconPlus />, label: t('nutrition.log.mode.quick'), hint: t('nutrition.nu.tile.quick') },
+    { mode: 'custom', icon: <IconFork />, label: t('nutrition.log.mode.custom'), hint: t('nutrition.nu.tile.custom') },
+  ];
 
   return (
-    <div className="stack nutrition-page">
-      <div className="row-between">
-        <h1>{t('nutrition.log.title')}</h1>
-        <Link to={`/nutrition?date=${date}`} className="small">{t('nutrition.log.backToDay')}</Link>
-      </div>
-      <p className="small muted">{t('nutrition.log.target', { date: date === todayIso() ? t('date.today') : fmt.date(date, lang) })}</p>
+    <div className="stack nutrition-page nu-log">
+      <PageHeader back={`/nutrition?date=${date}`} title={t('nutrition.log.title')} subtitle={t('nutrition.log.target', { date: dayLabel })} />
       <Segmented label={t('nutrition.log.slot')} value={slot} onChange={setSlot} options={SLOTS.map((s) => ({ value: s, label: t(`label.slot.${s}`) }))} />
-      <Tabs<Mode> label={t('nutrition.log.modes')} value={mode} onChange={setMode} tabs={[
-        { value: 'search', label: t('nutrition.log.mode.search') }, { value: 'barcode', label: t('nutrition.log.mode.barcode') }, { value: 'photo', label: t('nutrition.log.mode.photo') },
-        { value: 'quick', label: t('nutrition.log.mode.quick') }, { value: 'custom', label: t('nutrition.log.mode.custom') },
-      ]} />
+      {allergies.length > 0 ? <div className="banner warn nu-compact" role="note"><IconWarn /><div className="grow">{t('nutrition.allergen.profile', { list: allergies.map((a) => t(`label.allergen.${a}`)).join(', ') })}</div></div> : null}
+
+      <div className="nu-search">
+        <TextInput label={t('nutrition.log.searchLabel')} type="search" placeholder={t('nutrition.log.searchPlaceholder')} value={query} autoFocus
+          onChange={(e) => { setQuery(e.target.value); setShowAll(false); if (mode !== 'search') setMode('search'); }} autoComplete="off" />
+      </div>
+
+      {!hasQuery || mode !== 'search' ? (
+      <section className="stack-sm nu-ways" aria-label={t('nutrition.log.modes')}>
+        <div className="nu-tiles">
+          {TILES.map((x) => (
+            <button key={x.mode} type="button" className="nu-tile" aria-pressed={mode === x.mode} onClick={() => setMode(mode === x.mode ? 'search' : x.mode)}>
+              {x.icon}<strong>{x.label}</strong><span className="tiny muted">{x.hint}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+      ) : null}
 
       {mode === 'search' ? (
-        <Card className="stack">
-          <TextInput label={t('nutrition.log.searchLabel')} type="search" placeholder={t('nutrition.log.searchPlaceholder')} value={query} onChange={(e) => setQuery(e.target.value)} autoComplete="off" />
-          {hasQuery ? (
-            results.length > 0
-              ? <ul className="list" aria-label={t('nutrition.log.results')}>{results.map(row)}</ul>
-              : <EmptyState icon={<IconSearch aria-label={t('action.search')} />} title={t('nutrition.log.noResults')} hint={t('nutrition.log.noResultsHint')} />
-          ) : recents.length > 0 ? (
-            <div className="stack-sm"><h2 className="section-title">{t('nutrition.log.recent')}</h2><ul className="list">{recents.map(row)}</ul></div>
-          ) : <p className="small muted">{t('nutrition.log.startTyping')}</p>}
-        </Card>
+        hasQuery ? (
+          results.length > 0
+            ? <><ul className="list nu-results" aria-label={t('nutrition.log.results')}>{(showAll ? results : results.slice(0, 12)).map((i) => <ResultRow key={i.key} item={i} open={open === i.key} onToggle={() => toggleOpen(i.key)} date={date} slot={slot} allergies={allergies} />)}</ul>{!showAll && results.length > 12 ? <Button variant="ghost" onClick={() => setShowAll(true)}>{t('nutrition.nu.showAll', { n: results.length })}</Button> : null}</>
+            : <EmptyState icon={<IconSearch aria-label={t('action.search')} />} title={t('nutrition.log.noResults')} hint={t('nutrition.log.noResultsHint')} />
+        ) : chips.length > 0 ? (
+          <section className="stack-sm" aria-label={t('nutrition.log.recent')}>
+            <h2 className="section-title">{t('nutrition.log.recent')}</h2>
+            <div className="row-wrap nu-chips">
+              {chips.map((r) => { const k = kcalLine(r); const hit = allergenHits(r, allergies).length > 0; return (
+                <Chip key={r.key} pressed={open === r.key} onClick={() => toggleOpen(r.key)}>{name(r)} <span className="muted tiny"><span className="num">{fmt.num(k.kcal)}</span></span>{hit ? <span className="danger tiny"> !</span> : null}</Chip>
+              ); })}
+            </div>
+            {openRecent ? <div className="card nu-inline"><strong>{name(openRecent)}</strong><LogEditor item={openRecent} date={date} slot={slot} allergies={allergies} onDone={() => setOpen(null)} /></div> : <span className="small muted">{t('nutrition.nu.recentHint')}</span>}
+          </section>
+        ) : <p className="small muted">{t('nutrition.log.startTyping')}</p>
       ) : null}
-      {mode === 'barcode' ? <Card><BarcodePanel onFound={setPicked} /></Card> : null}
-      {mode === 'photo' ? <Card><PhotoPanel date={date} slot={slot} allergies={allergies} /></Card> : null}
-      {mode === 'quick' ? <Card><QuickAddPanel date={date} slot={slot} /></Card> : null}
-      {mode === 'custom' ? <Card><CustomFoodPanel onCreated={() => setMode('search')} /></Card> : null}
 
-      {allergies.length > 0 ? <Banner tone="warn">{t('nutrition.allergen.profile', { list: allergies.map((a) => t(`label.allergen.${a}`)).join(', ') })}</Banner> : null}
+      {mode === 'barcode' ? <div className="card"><BarcodePanel onFound={setPicked} /></div> : null}
+      {mode === 'photo' ? <div className="card"><PhotoPanel date={date} slot={slot} allergies={allergies} /></div> : null}
+      {mode === 'quick' ? <div className="card"><QuickAddPanel date={date} slot={slot} /></div> : null}
+      {mode === 'custom' ? <div className="card"><CustomFoodPanel onCreated={() => setMode('search')} /></div> : null}
+
       <p className="small muted" role="note">{t('disclaimer.allergen')}</p>
       <LogSheet item={picked} onClose={() => setPicked(null)} date={date} slot={slot} onSlot={setSlot} allergies={allergies} />
     </div>

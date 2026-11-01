@@ -4,7 +4,8 @@ import { ageBucket } from '@lupu-fit/shared';
 import { api } from '../../api/client.ts';
 import { fmt, useLang } from '../../i18n/index.tsx';
 import { useProfile } from '../../app/session.ts';
-import { Card, ErrorState, Loading } from '../../ui/kit.tsx';
+import { ErrorState } from '../../ui/kit.tsx';
+import { SkeletonCard, StatTile } from '../../ui/patterns.tsx';
 
 interface HistorySet { setNo: number; reps: number | null; weightKg: number | null; durationSec: number | null; rpe: number | null }
 export interface ExerciseHistoryResponse {
@@ -21,7 +22,7 @@ export function ExerciseHistory({ exerciseId }: { exerciseId: string }): ReactNo
   const age = profile.data?.profile.age;
   const allow1rm = age !== undefined && ageBucket(age) !== 'minor';
 
-  if (q.isLoading) return <Loading />;
+  if (q.isLoading) return <SkeletonCard />;
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   const data = q.data;
   const rec = data?.record ?? null;
@@ -32,19 +33,20 @@ export function ExerciseHistory({ exerciseId }: { exerciseId: string }): ReactNo
     if (s.reps !== null) return `${s.reps} ${t('unit.reps')}`;
     return '—';
   };
+  const kpi = (label: string, value: string, unit?: string) => <StatTile key={label} label={label} value={value} {...(unit ? { unit } : {})} />;
   return (
-    <Card>
-      <h2>{t('exercises.history.title')}</h2>
+    <section className="stack" aria-label={t('exercises.history.title')}>
+      <h2 className="sr-only">{t('exercises.history.title')}</h2>
       {!hasAny ? <p className="muted">{t('exercises.history.empty')}</p> : (
-        <div className="stack">
+        <>
           {rec ? (
-            <dl className="ex-kpis">
-              {rec.maxWeight !== null ? <div className="kpi"><dt className="label">{t('exercises.history.maxWeight')}</dt><dd><span className="num">{fmt.num(rec.maxWeight, 2)}</span> {t('unit.kg')}</dd></div> : null}
-              {rec.maxReps !== null ? <div className="kpi"><dt className="label">{t('exercises.history.maxReps')}</dt><dd><span className="num">{rec.maxReps}</span></dd></div> : null}
-              {rec.maxVolume !== null ? <div className="kpi"><dt className="label">{t('exercises.history.maxVolume')}</dt><dd><span className="num">{fmt.num(rec.maxVolume)}</span> {t('unit.kg')}</dd></div> : null}
-              {rec.maxDuration !== null ? <div className="kpi"><dt className="label">{t('exercises.history.maxDuration')}</dt><dd><span className="num">{rec.maxDuration}</span> {t('unit.sec')}</dd></div> : null}
-              {allow1rm && rec.est1rm !== null ? <div className="kpi"><dt className="label">{t('exercises.history.est1rm')}</dt><dd><span className="num">{fmt.num(rec.est1rm, 1)}</span> {t('unit.kg')}</dd></div> : null}
-            </dl>
+            <div className="ex-kpis">
+              {rec.maxWeight !== null ? kpi(t('exercises.history.maxWeight'), fmt.num(rec.maxWeight, 2), t('unit.kg')) : null}
+              {rec.maxReps !== null ? kpi(t('exercises.history.maxReps'), String(rec.maxReps)) : null}
+              {rec.maxVolume !== null ? kpi(t('exercises.history.maxVolume'), fmt.num(rec.maxVolume), t('unit.kg')) : null}
+              {rec.maxDuration !== null ? kpi(t('exercises.history.maxDuration'), String(rec.maxDuration), t('unit.sec')) : null}
+              {allow1rm && rec.est1rm !== null ? kpi(t('exercises.history.est1rm'), fmt.num(rec.est1rm, 1), t('unit.kg')) : null}
+            </div>
           ) : null}
           {!allow1rm && age !== undefined ? <p className="small muted">{t('exercises.history.noOneRmMinor')}</p> : null}
           {data && data.history.length > 0 ? (
@@ -57,8 +59,8 @@ export function ExerciseHistory({ exerciseId }: { exerciseId: string }): ReactNo
               ))}
             </ul>
           ) : null}
-        </div>
+        </>
       )}
-    </Card>
+    </section>
   );
 }

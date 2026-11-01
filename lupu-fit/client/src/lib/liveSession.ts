@@ -139,3 +139,17 @@ export function deletedSetIds(items: readonly OutboxItem[], sessionId: string): 
   return new Set(items.filter((i) => i.method === 'DELETE' && i.path.startsWith(prefix)).map((i) => i.path.slice(prefix.length)));
 }
 export const sessionOutboxItems = (items: readonly OutboxItem[], sessionId: string): OutboxItem[] => items.filter((i) => i.path.startsWith(`/api/sessions/${sessionId}`));
+
+/** What comes after the set that was just logged: another set of the same exercise, or the next unfinished exercise (mains first, then finishers). */
+export interface NextUp { kind: 'set' | 'exercise'; exercise: LiveExercise; setNo: number }
+export function nextUp(exercises: readonly LiveExercise[], currentId: string | undefined, counts: ReadonlyMap<string, number>): NextUp | null {
+  const ordered = [...exercises.filter((e) => !e.isFinisher), ...exercises.filter((e) => e.isFinisher)];
+  const cur = ordered.find((e) => e.id === currentId);
+  if (cur && (counts.get(cur.id) ?? 0) < cur.planned.sets) return { kind: 'set', exercise: cur, setNo: (counts.get(cur.id) ?? 0) + 1 };
+  const start = cur ? ordered.indexOf(cur) + 1 : 0;
+  for (let k = 0; k < ordered.length; k++) {
+    const e = ordered[(start + k) % ordered.length] as LiveExercise;
+    if (e.id !== currentId && (counts.get(e.id) ?? 0) < e.planned.sets) return { kind: 'exercise', exercise: e, setNo: (counts.get(e.id) ?? 0) + 1 };
+  }
+  return null;
+}

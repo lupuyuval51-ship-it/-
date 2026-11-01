@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ageBucket, isExerciseSafe, type ProfileInput } from '@lupu-fit/shared';
 import { api, ApiRequestError, NetworkError } from '../api/client.ts';
 import { ExerciseListSheet, type ListItem } from '../components/live/ExerciseListSheet.tsx';
+import { ExerciseVideoThumb } from '../components/ExerciseVideo.tsx';
 import { ExercisePanel } from '../components/live/ExercisePanel.tsx';
 import { PrescriptionChips } from '../components/live/ExercisePanel.tsx';
 import { FinisherTimer } from '../components/live/FinisherTimer.tsx';
@@ -12,19 +13,20 @@ import { OfflineBanner, useOnline } from '../components/live/OfflineBanner.tsx';
 import { AddExerciseSheet, ReplaceSheet } from '../components/live/Pickers.tsx';
 import { RestTimerCard } from '../components/live/RestTimerCard.tsx';
 import { SetLogger, SetRows, type LoggedValues, type RowData } from '../components/live/SetLogger.tsx';
+import { IconMore } from '../components/live/LiveIcons.tsx';
 import { setSummary } from '../components/live/format.ts';
 import { EXERCISES, EXERCISE_BY_ID, exById, exName } from '../data/content.ts';
 import { useProfile, qk } from '../app/session.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import {
   defaultPlanned, defaultsFor, deletedSetIds, finisherMinutes, isTimedExercise, lastPerformance, maxRpeFor, pendingSets, progressionFor,
-  loadStoredBucket, readinessOf, replacementOptions, storeBucket, safeBucket, sessionOutboxItems, setsPath, swapContextFor,
+  loadStoredBucket, nextUp, readinessOf, replacementOptions, storeBucket, safeBucket, sessionOutboxItems, setsPath, swapContextFor,
   type HistoryResponse, type LiveExercise, type LiveSessionData, type LiveSet,
 } from '../lib/liveSession.ts';
 import { callOrQueue, outbox, useOutbox } from '../lib/outbox.ts';
 import { alertRestEnd, saveRestEnd, useRestTimer } from '../lib/restTimer.ts';
 import { useWakeLock } from '../lib/wakeLock.ts';
-import { IconChevron, IconSettings } from '../ui/icons.tsx';
+import { IconCheck, IconChevron } from '../ui/icons.tsx';
 import { Banner, Button, EmptyState, ErrorState, IconButton, Loading, LinkButton, Tag, errorMessage } from '../ui/kit.tsx';
 import { useToast } from '../ui/toast.tsx';
 
@@ -70,6 +72,8 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const [listOpen, setListOpen] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [dockEl, setDockEl] = useState<HTMLElement | null>(null);
+  const [platesSignal, setPlatesSignal] = useState(0);
 
   const rest = useRestTimer(session.id, () => { setAnnounce(t('live.rest.over')); alertRestEnd(t('live.rest.notifTitle'), t('live.rest.notifBody')); });
 
@@ -111,12 +115,17 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
 
   async function logSet(ex: LiveExercise, v: LoggedValues, startRest = true): Promise<void> {
     const name = exById(ex.exerciseId) ? exName(exById(ex.exerciseId) as { nameHe: string; nameEn: string }, lang) : ex.exerciseId;
+    try { navigator.vibrate?.(10); } catch { /* haptics are optional */ }
     setBusy(true);
     try {
       const body = { sessionExerciseId: ex.id, ...v };
       const r = await callOrQueue<LiveSet>({ method: 'POST', path: setsPath(session.id), body, label: t('live.offline.queuedSet', { name, summary: setSummary({ reps: v.reps ?? null, weightKg: v.weightKg ?? null, durationSec: v.durationSec ?? null }, t) }) });
       if (r.queued) toast(t('outbox.queued'));
       else setData((s) => ({ ...s, exercises: s.exercises.map((e) => (e.id === ex.id ? { ...e, sets: [...e.sets, r.data] } : e)) }));
+      if (startRest && !ex.isFinisher && countFor(ex) + 1 >= ex.planned.sets) { // exercise complete: move on to the next unfinished one so the logger is ready
+        const j = mains.findIndex((m, k) => k > idx && countFor(m) < m.planned.sets);
+        if (j >= 0) setIdx(j);
+      }
       if (startRest && ex.planned.restSec > 0) { rest.start(ex.planned.restSec); setAnnounce(t('live.rest.started', { sec: ex.planned.restSec })); }
     } catch (e) { toast(errorMessage(e, t), 'error'); } finally { setBusy(false); }
   }
@@ -193,71 +202,87 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const sport = finishers.find((f) => f.sport)?.sport ?? session.sport;
   const doneSets = session.exercises.reduce((a, e) => a + Math.min(countFor(e), e.planned.sets), 0);
   const plannedSets = session.exercises.reduce((a, e) => a + e.planned.sets, 0);
+  const allDone = plannedSets > 0 && doneSets >= plannedSets;
+  const counts = new Map(session.exercises.map((e) => [e.id, countFor(e)]));
+  const upNext = nextUp(session.exercises, cur?.id, counts);
+  const pos = Math.min(idx, Math.max(0, mains.length - 1));
+  const finishLabel = finishing ? t('live.finishing') : t('live.finishWorkout');
+  const finisherDone = finishers.reduce((a, f) => a + Math.min(countFor(f), f.planned.sets), 0);
+  const finisherRounds = finishers.reduce((a, f) => a + f.planned.sets, 0);
 
   return (
-    <div className="live stack">
-      <header className="row-between">
-        <div className="stack-sm">
-          <h1 className="live-title">{session.name}</h1>
-          <span className="small muted">{t('live.setsDone', { done: doneSets, total: plannedSets })}</span>
+    <div className="live lv">
+      <header className="lv-head">
+        <div className="lv-head-top">
+          <h1 className="live-title lv-title">{session.name}</h1>
+          <Button size="sm" className="lv-more" aria-haspopup="dialog" onClick={() => setListOpen(true)}><IconMore />{t('live.more.title')}</Button>
         </div>
-        <IconButton label={t('live.allExercises')} onClick={() => setListOpen(true)}><IconSettings /></IconButton>
+        {cur ? (
+          <div className="lv-pos">
+            <IconButton label={t('live.previous')} disabled={idx <= 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}><IconChevron className="live-back" /></IconButton>
+            <button type="button" className="lv-pos-main" onClick={() => setListOpen(true)}>
+              <span className="strong" data-testid="stepper-pos">{t('live.exerciseOf', { n: pos + 1, total: mains.length })}</span>
+              <span className="small muted">{t('live.setsDone', { done: doneSets, total: plannedSets })}</span>
+            </button>
+            <IconButton label={t('live.next')} disabled={idx >= mains.length - 1} onClick={() => setIdx((i) => Math.min(mains.length - 1, i + 1))}><IconChevron className="flip-rtl" /></IconButton>
+          </div>
+        ) : <span className="small muted">{t('live.setsDone', { done: doneSets, total: plannedSets })}</span>}
+        <div className="lv-segs" role="progressbar" aria-label={t('live.setsDone', { done: doneSets, total: plannedSets })} aria-valuemin={0} aria-valuemax={plannedSets} aria-valuenow={doneSets}>
+          {session.exercises.map((e) => <i key={e.id} className={`${e.id === cur?.id ? 'now ' : ''}${e.isFinisher ? 'fin' : ''}`}><b style={{ inlineSize: `${Math.min(100, (countFor(e) / Math.max(1, e.planned.sets)) * 100)}%` }} /></i>)}
+        </div>
       </header>
 
       <OfflineBanner />
-      <RestTimerCard remaining={rest.remaining} announce={announce} onAdjust={rest.adjust} onSkip={rest.skip} />
-      {finishMsg ? <Banner tone="danger">{finishMsg}</Banner> : null}
+      <RestTimerCard remaining={rest.remaining} announce={announce} next={upNext} onAdjust={rest.adjust} onSkip={rest.skip} />
 
       {cur ? (
-        <section className="stack" aria-label={t('live.title')}>
-          <div className="row-between">
-            <IconButton label={t('live.previous')} disabled={idx <= 0} onClick={() => setIdx((i) => Math.max(0, i - 1))}><IconChevron className="live-back" /></IconButton>
-            <span className="small strong" data-testid="stepper-pos">{t('live.exerciseOf', { n: Math.min(idx, mains.length - 1) + 1, total: mains.length })}</span>
-            <IconButton label={t('live.next')} disabled={idx >= mains.length - 1} onClick={() => setIdx((i) => Math.min(mains.length - 1, i + 1))}><IconChevron className="flip-rtl" /></IconButton>
-          </div>
-          <ExercisePanel
-            ex={cur} rows={curRows} timed={timed} showWeight={showWeight} last={last} badge={progression.badge} defaults={defaults} maxRpe={maxRpe}
-            primary busy={busy} canUndo={curRows.length > 0 && !busy} onLog={(v) => { void logSet(cur, v); }} onUndo={() => { void undo(cur); }}
-          />
-          <div className="row-wrap">
-            <Button size="sm" disabled={curLocked} onClick={() => setReplaceOpen(true)}>{t('live.structure.replace')}</Button>
-            <Button size="sm" variant="ghost" onClick={() => setAddOpen(true)}>{t('live.structure.add')}</Button>
-            <Button size="sm" variant="ghost" onClick={() => removeEx(cur.id)}>{t('live.structure.remove')}</Button>
-          </div>
-          {curLocked && countFor(cur) > 0 ? <span className="small muted" data-testid="replace-locked">{t('live.structure.replaceLocked')}</span> : null}
-        </section>
+        <ExercisePanel
+          ex={cur} rows={curRows} timed={timed} showWeight={showWeight} last={last} badge={progression.badge} defaults={defaults} maxRpe={maxRpe}
+          primary={!allDone} busy={busy} canUndo={curRows.length > 0 && !busy} dock={allDone ? null : dockEl} platesSignal={platesSignal}
+          onLog={(v) => { void logSet(cur, v); }} onUndo={() => { void undo(cur); }}
+        />
       ) : null}
 
       {finishers.length > 0 ? (
-        <section id="live-finisher" className="card live-finisher stack" aria-labelledby="live-finisher-h">
-          <h2 id="live-finisher-h" className="live-finisher-h">{t('live.finisher.header', { sport: sport ? t(`label.sport.${sport}`) : t('label.sport.general'), min: finisherMinutes(finishers.map((f) => f.planned)) })}</h2>
+        <section id="live-finisher" className="lv-finisher stack" aria-labelledby="live-finisher-h">
+          <div className="lv-fin-head">
+            <h2 id="live-finisher-h" className="live-finisher-h">{t('live.finisher.header', { sport: sport ? t(`label.sport.${sport}`) : t('label.sport.general'), min: finisherMinutes(finishers.map((f) => f.planned)) })}</h2>
+            <span className="small muted">{t('live.finisher.roundsDone', { done: finisherDone, total: finisherRounds })}</span>
+          </div>
           {finishers.map((f, k) => {
             const def = exById(f.exerciseId); const rows = rowsFor(f); const ftimed = isTimedExercise(def?.category, f.planned);
             return (
-              <article key={f.id} className="stack live-finisher-row">
+              <article key={f.id} className="stack-sm live-finisher-row lv-fin-row">
                 <div className="row-between">
-                  <h3><Link to={`/exercises/${f.exerciseId}`}>{nameOf(f, lang)}</Link></h3>
+                  <div className="lv-fin-name"><ExerciseVideoThumb exerciseId={f.exerciseId} alt="" /><h3><Link to={`/exercises/${f.exerciseId}`}>{nameOf(f, lang)}</Link></h3></div>
                   {f.sport ? <Tag>{t(`label.sport.${f.sport}`)}</Tag> : null}
                 </div>
                 <PrescriptionChips ex={f} timed={ftimed} />
-                <SetRows rows={rows} plannedSets={f.planned.sets} plannedLabel={ftimed ? t('live.set.plannedSec', { sec: f.planned.durationSec ?? 0 }) : t('live.set.plannedReps', { reps: f.planned.repsMax })} />
+                <SetRows rows={rows} plannedSets={f.planned.sets} />
                 {f.planned.durationSec ? <FinisherTimer ex={{ ...f, sets: f.sets.filter((s) => !deleted.has(s.id)).concat(rows.filter((r) => r.state !== 'done').map((r) => ({ id: r.key, sessionExerciseId: f.id, setNo: 0, reps: r.reps, weightKg: r.weightKg, durationSec: r.durationSec, rpe: r.rpe }))) }} onRound={(sec) => logSet(f, { durationSec: sec, rpe: Math.min(f.planned.rpe, maxRpe) }, false)} />
-                  : <SetLogger key={f.id} timed={ftimed} showWeight={false} defaults={defaultsFor({ planned: f.planned, progression: { badge: { kind: 'none' }, loadKg: null }, last: null, ownSets: rows, maxRpe })} maxRpe={maxRpe} primary={!cur && k === 0} busy={busy} canUndo={rows.length > 0 && !busy} onLog={(v) => { void logSet(f, v); }} onUndo={() => { void undo(f); }} />}
+                  : <SetLogger key={f.id} timed={ftimed} showWeight={false} defaults={defaultsFor({ planned: f.planned, progression: { badge: { kind: 'none' }, loadKg: null }, last: null, ownSets: rows, maxRpe })} maxRpe={maxRpe} primary={!cur && !allDone && k === 0} busy={busy} canUndo={rows.length > 0 && !busy} onLog={(v) => { void logSet(f, v); }} onUndo={() => { void undo(f); }} />}
               </article>
             );
           })}
         </section>
       ) : null}
 
-      <footer className="stack">
-        <Button block disabled={finishing} onClick={() => { void finish(); }}>{finishing ? t('live.finishing') : t('live.finishWorkout')}</Button>
-        <Button block variant="ghost" onClick={() => { void discard(); }}>{t('live.discard')}</Button>
-      </footer>
+      {allDone ? null : <Button block className="lv-end" disabled={finishing} onClick={() => { void finish(); }}>{finishLabel}</Button>}
+
+      <div className="lv-dock">
+        {finishMsg ? <Banner tone="danger">{finishMsg}</Banner> : null}
+        <div className="lv-dock-slot" ref={setDockEl} />
+        {allDone ? <Button variant="primary" block className="lv-finish" disabled={finishing} onClick={() => { void finish(); }}><IconCheck />{finishLabel}</Button> : null}
+      </div>
 
       <ExerciseListSheet
         open={listOpen} onClose={() => setListOpen(false)} items={items}
+        canReplace={!!cur && !curLocked} replaceLocked={!!cur && curLocked && countFor(cur) > 0} showPlates={!!cur && showWeight}
         onSelect={(id) => { const i = mains.findIndex((m) => m.id === id); setListOpen(false); if (i >= 0) setIdx(i); else document.getElementById('live-finisher')?.scrollIntoView?.(); }}
         onMove={moveTo} onRemove={removeEx} onAdd={() => { setListOpen(false); setAddOpen(true); }}
+        onReplace={() => { setListOpen(false); setReplaceOpen(true); }}
+        onPlates={() => { setListOpen(false); setPlatesSignal((n) => n + 1); }}
+        onDiscard={() => { void discard(); }}
       />
       <ReplaceSheet open={replaceOpen} onClose={() => setReplaceOpen(false)} options={replaceOptions} onPick={replaceEx} />
       <AddExerciseSheet open={addOpen} onClose={() => setAddOpen(false)} candidates={addCandidates} onPick={addEx} />

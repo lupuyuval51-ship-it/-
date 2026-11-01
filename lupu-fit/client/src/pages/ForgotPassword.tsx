@@ -45,7 +45,7 @@ export default function ForgotPassword(): ReactNode {
   return (
     <div className="stack-lg auth">
       <div className="stack-sm"><h1>{t('auth.forgot.title')}</h1><p className="muted">{t('auth.forgot.intro')}</p></div>
-      <form className="stack" onSubmit={submit} noValidate>
+      <form className="stack auth-form" onSubmit={submit} noValidate>
         <FailureBanner failure={failure} left={cd.left} />
         <TextInput label={t('auth.email')} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} error={errors['email']} />
         <Button type="submit" variant="primary" block disabled={forgot.isPending || cd.left > 0}>{t('auth.forgot.submit')}</Button>

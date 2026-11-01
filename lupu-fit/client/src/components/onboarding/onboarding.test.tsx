@@ -243,3 +243,31 @@ describe('both languages', () => {
     expect(screen.getByRole('link', { name: 'הגדרת הפרופיל שלי' })).toHaveAttribute('href', '/onboarding');
   });
 });
+
+describe('second-pass design behaviours', () => {
+  it('goal, place and experience are choice cards with exactly one selected', async () => {
+    await start();
+    next(); expect(screen.getAllByRole('radio').filter((r) => r.getAttribute('aria-checked') === 'true')).toHaveLength(1);
+    next(); expect(screen.getByRole('group', { name: 'Main goal' }).querySelectorAll('[aria-pressed="true"]')).toHaveLength(1);
+    next(); fireEvent.click(screen.getByRole('radio', { name: 'Park' }));
+    expect(screen.getByRole('radio', { name: 'Park' })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('radio', { name: 'Gym' })).toHaveAttribute('aria-checked', 'false');
+  });
+  it('review leads with the calorie hero number and macro bars, and the bar is sticky', async () => {
+    const { container } = await start(); toReview();
+    expect(screen.getByTestId('target').className).toContain('num-hero');
+    expect(screen.getAllByRole('progressbar').length).toBeGreaterThanOrEqual(4);
+    expect(container.querySelector('.onb-bar')).not.toBeNull();
+  });
+  it('shows a calm completion state after saving, then goes home', async () => {
+    m.put.mockResolvedValueOnce({ ok: true });
+    await start(); toReview();
+    fireEvent.click(screen.getByRole('button', { name: 'Save and start' }));
+    expect(await screen.findByText('Your plan is ready')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId('path').textContent).toBe('/'));
+  });
+  it('Welcome lists three compact value points', () => {
+    const { container } = renderScreen(<Welcome />, { route: '/welcome' });
+    expect(container.querySelectorAll('.value-list li')).toHaveLength(3);
+  });
+});

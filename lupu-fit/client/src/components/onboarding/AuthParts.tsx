@@ -69,7 +69,7 @@ export function FailureBanner({ failure, left }: { failure: ServerFailure | null
   if (!failure || failure.kind === 'field') return null;
   if (failure.kind === 'rate' && failure.seconds !== null) {
     if (left <= 0) return null;
-    return <Banner tone="warn"><span>{t('auth.retryPrefix')} <span className="num">{left}</span> {t('unit.sec')}</span></Banner>;
+    return <Banner tone="warn"><span role="status">{t('auth.retryPrefix')} <span className="num lockout-num">{left}</span> {t('unit.sec')}</span></Banner>;
   }
   return <Banner tone="danger">{failure.message}</Banner>;
 }

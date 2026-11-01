@@ -10,7 +10,11 @@ import {
   availableEquipment, EMPTY_FILTER, filterStep, needsEquipmentStep, personProfile, READY_FILTER_STORE, recentFocusFromSessions, sanitizeFilter, toReadyFilter,
   type ReadyFilterState,
 } from '../../lib/workoutCompose.ts';
-import { Banner, Button, Card, ChipGroup, EmptyState, ErrorState, Loading, Select, Tag } from '../../ui/kit.tsx';
+import { Banner, Button, ChipGroup, EmptyState, ErrorState, Loading } from '../../ui/kit.tsx';
+import { Disclosure, StepDots } from '../../ui/patterns.tsx';
+import { IconX } from '../../ui/icons.tsx';
+import { ChoiceCards } from './ChoiceCards.tsx';
+import { IconBody, IconGym, IconHouse, IconKettle, IconNone, IconTree } from './wkIcons.tsx';
 import { ExerciseVideoThumb } from '../ExerciseVideo.tsx';
 
 const PAGE = 12;
@@ -34,8 +38,11 @@ export function ReadyTab(): ReactNode {
 
 function ReadyFlow({ profile }: { profile: NonNullable<ReturnType<typeof useProfile>['data']>['profile'] }): ReactNode {
   const { t, lang } = useLang();
-  const [s, setS] = useState<ReadyFilterState>(() => loadStored() ?? { ...EMPTY_FILTER, equipment: profile.equipment.filter((e): e is Equipment => (ALL_EQUIPMENT_FOR_PICKER as readonly string[]).includes(e)) });
+  const initial = (): ReadyFilterState => ({ ...EMPTY_FILTER, equipment: profile.equipment.filter((e): e is Equipment => (ALL_EQUIPMENT_FOR_PICKER as readonly string[]).includes(e)) });
+  const [s, setS] = useState<ReadyFilterState>(() => loadStored() ?? initial());
   const [shown, setShown] = useState(PAGE);
+  /** A finished step the person reopened from the summary bar. */
+  const [editing, setEditing] = useState<1 | 2 | 3 | null>(null);
   useEffect(() => { try { localStorage.setItem(READY_FILTER_STORE, JSON.stringify(s)); } catch { /* preference only */ } }, [s]);
   useEffect(() => { setShown(PAGE); }, [s]);
 
@@ -44,7 +51,13 @@ function ReadyFlow({ profile }: { profile: NonNullable<ReturnType<typeof useProf
 
   const step = filterStep(s);
   const update = (patch: Partial<ReadyFilterState>) => setS((x) => ({ ...x, ...patch }));
-  const pickPlace = (place: Place) => update({ place, equipmentDone: place === 'gym', equipment: place === 'gym' ? [] : s.equipment, mode: null, focus: null });
+  const pickPlace = (place: Place) => {
+    setEditing(null);
+    if (place === s.place) return;
+    update({ place, equipmentDone: place === 'gym', equipment: place === 'gym' ? [] : s.equipment, mode: null, focus: null });
+  };
+  const pickMode = (mode: WorkoutMode) => { setEditing(null); if (mode !== s.mode) update({ mode, focus: null }); };
+  const toggleEquip = (e: Equipment) => update({ equipment: s.equipment.includes(e) ? s.equipment.filter((x) => x !== e) : [...s.equipment, e], ...(s.equipmentDone ? {} : { mode: null, focus: null }) });
 
   const baseFilter = useMemo(() => toReadyFilter(s, false), [s]);
   const counts = useMemo(() => (step >= 4 ? focusCounts(READY_WORKOUTS, baseFilter) : new Map<WorkoutFocus, number>()), [step, baseFilter]);
@@ -56,78 +69,128 @@ function ReadyFlow({ profile }: { profile: NonNullable<ReturnType<typeof useProf
   }, [step, s, profile, recent]);
 
   const foci = (Object.keys(FOCUS_MUSCLES) as WorkoutFocus[]).filter((f) => (counts.get(f) ?? 0) > 0);
+  const totalFoci = foci.reduce((a, f) => a + (counts.get(f) ?? 0), 0);
+  const stepList: number[] = s.place && !needsEquipmentStep(s.place) ? [1, 3, 4] : [1, 2, 3, 4];
+  const shownStep = editing ?? step;
+
+  const equipLabel = s.equipment.length === 0 ? t('label.equipment.none') : s.equipment.length <= 2 ? s.equipment.map((e) => t(`label.equipment.${e}`)).join(' + ') : t('workouts.ready.equipCount', { n: s.equipment.length });
+  const edit = (n: 1 | 2 | 3) => setEditing((cur) => (cur === n ? null : n));
+  const chip = (n: 1 | 2 | 3, label: string): ReactNode => (
+    <button key={n} type="button" className="wk-sumchip" aria-pressed={editing === n} aria-label={`${t('workouts.ready.change')}: ${label}`} onClick={() => edit(n)}>{label}</button>
+  );
+  const clearChip = (key: string, label: string, onClear: () => void): ReactNode => (
+    <button key={key} type="button" className="wk-sumchip" aria-label={t('workouts.ready.clear', { name: label })} onClick={onClear}>{label}<IconX /></button>
+  );
+  const chips: ReactNode[] = [];
+  if (s.place && step > 1) chips.push(chip(1, t(`label.place.${s.place}`)));
+  if (s.place && needsEquipmentStep(s.place) && s.equipmentDone) chips.push(chip(2, equipLabel));
+  if (s.mode && step >= 4) chips.push(chip(3, t(`label.mode.${s.mode}`)));
+  if (step >= 4) {
+    chips.push(s.focus ? clearChip('focus', t(`label.focus.${s.focus}`), () => update({ focus: null })) : <span key="all" className="wk-sumchip static">{t('workouts.ready.allMuscles')}</span>);
+    if (s.level) chips.push(clearChip('level', t(`label.difficulty.${s.level}`), () => update({ level: null })));
+    if (s.maxMinutes) chips.push(clearChip('mins', t('workouts.unit.minutes', { n: s.maxMinutes }), () => update({ maxMinutes: null })));
+  }
+
+  const placeOptions = PLACES.map((p) => ({ value: p, label: t(`label.place.${p}`), hint: t(`workouts.ready.placeHint.${p}`), icon: p === 'gym' ? <IconGym /> : p === 'home' ? <IconHouse /> : <IconTree /> }));
+  const modeOptions = MODES.map((m) => ({ value: m, label: t(`label.mode.${m}`), hint: t(`workouts.ready.modeHint.${m}`), icon: m === 'bodyweight' ? <IconBody /> : <IconKettle /> }));
+
+  const stepTitle = (n: number, key: string): ReactNode => <h2 className="wk-step-title"><span className="wk-step-no num">{n}</span>{t(key)}</h2>;
 
   return (
     <div className="stack">
-      <section className={`wk-step${step > 1 ? ' done' : ''}`}>
-        <h2 className="wk-step-title"><span className="wk-step-no num">1</span>{t('workouts.ready.step1')}</h2>
-        <ChipGroup label={t('workouts.ready.step1')} selected={s.place ? [s.place] : []} onToggle={pickPlace} options={PLACES.map((p) => ({ value: p, label: t(`label.place.${p}`) }))} />
-      </section>
+      {step < 4 ? <div className="wk-progress"><StepDots current={Math.max(0, stepList.indexOf(step))} total={stepList.length} label={t('workouts.ready.stepOf', { n: Math.max(1, stepList.indexOf(step) + 1), total: stepList.length })} /><span className="small muted">{t('workouts.ready.stepOf', { n: Math.max(1, stepList.indexOf(step) + 1), total: stepList.length })}</span></div> : null}
 
-      {s.place && needsEquipmentStep(s.place) ? (
-        <section className={`wk-step${step > 2 ? ' done' : ''}`}>
-          <h2 className="wk-step-title"><span className="wk-step-no num">2</span>{t('workouts.ready.step2')}</h2>
-          <span className="small muted">{t('workouts.ready.equipHint')}</span>
-          <ChipGroup label={t('workouts.ready.step2')} selected={s.equipment} onToggle={(e) => update({ equipment: s.equipment.includes(e) ? s.equipment.filter((x) => x !== e) : [...s.equipment, e], equipmentDone: false, mode: null, focus: null })}
-            options={ALL_EQUIPMENT_FOR_PICKER.map((e) => ({ value: e, label: t(`label.equipment.${e}`) }))} />
-          {s.equipment.length === 0 ? <span className="small muted">{t('workouts.ready.equipNone')}</span> : null}
-          {!s.equipmentDone ? <div><Button onClick={() => update({ equipmentDone: true })}>{t('workouts.ready.equipNext')}</Button></div> : null}
+      {chips.length > 0 || step >= 4 ? (
+        <div className="wk-summary" role="region" aria-label={t('workouts.ready.summaryLabel')}>
+          <div className="wk-sum-chips">{chips}</div>
+          <div className="wk-sum-foot">
+            {result ? <strong className="wk-sum-count" aria-live="polite"><span className="num">{result.ranked.length}</span> {t('workouts.ready.workoutsWord')}</strong> : <span />}
+            <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => { setEditing(null); setS(initial()); }}>{t('workouts.ready.reset')}</Button>
+          </div>
+        </div>
+      ) : null}
+
+      {shownStep === 1 ? (
+        <section className="wk-step">
+          {stepTitle(1, 'workouts.ready.step1')}
+          <ChoiceCards cols={3} label={t('workouts.ready.step1')} value={s.place} onPick={pickPlace} options={placeOptions} />
         </section>
       ) : null}
 
-      {step >= 3 ? (
-        <section className={`wk-step${step > 3 ? ' done' : ''}`}>
-          <h2 className="wk-step-title"><span className="wk-step-no num">3</span>{t('workouts.ready.step3')}</h2>
-          <ChipGroup label={t('workouts.ready.step3')} selected={s.mode ? [s.mode] : []} onToggle={(mode) => update({ mode, focus: null })} options={MODES.map((m) => ({ value: m, label: t(`label.mode.${m}`) }))} />
+      {shownStep === 2 && s.place && needsEquipmentStep(s.place) ? (
+        <section className="wk-step">
+          {stepTitle(2, 'workouts.ready.step2')}
+          <span className="small muted">{t('workouts.ready.equipHint')}</span>
+          <button type="button" className="wk-choice wk-choice-wide" aria-pressed={s.equipment.length === 0 && s.equipmentDone} aria-label={t('label.equipment.none')} onClick={() => { update({ equipment: [], equipmentDone: true }); setEditing(null); }}>
+            <IconNone /><strong>{t('label.equipment.none')}</strong><span className="small muted">{t('workouts.ready.noneHint')}</span>
+          </button>
+          <div className="wk-eq" role="group" aria-label={t('workouts.ready.step2')}>
+            {ALL_EQUIPMENT_FOR_PICKER.map((e) => <button type="button" key={e} className="chip" aria-pressed={s.equipment.includes(e)} onClick={() => toggleEquip(e)}>{t(`label.equipment.${e}`)}</button>)}
+          </div>
+          {s.equipment.length === 0 ? <span className="small muted">{t('workouts.ready.equipNone')}</span> : null}
+          {!s.equipmentDone || editing === 2 ? <div><Button variant="primary" block onClick={() => { update({ equipmentDone: true }); setEditing(null); }}>{t('workouts.ready.equipNext')}</Button></div> : null}
+        </section>
+      ) : null}
+
+      {shownStep === 3 ? (
+        <section className="wk-step">
+          {stepTitle(3, 'workouts.ready.step3')}
+          <ChoiceCards cols={2} label={t('workouts.ready.step3')} value={s.mode} onPick={pickMode} options={modeOptions} />
         </section>
       ) : null}
 
       {step >= 4 ? (
         <section className="wk-step">
-          <h2 className="wk-step-title"><span className="wk-step-no num">4</span>{t('workouts.ready.step4')}</h2>
-          <ChipGroup label={t('workouts.ready.step4')} selected={s.focus ? [s.focus] : []} onToggle={(f) => update({ focus: s.focus === f ? null : f })}
-            options={foci.map((f) => ({ value: f, label: t(`label.focus.${f}`), count: counts.get(f) ?? 0 }))} />
-          <div className="grid-2">
-            <Select label={t('workouts.ready.level')} value={s.level ?? ''} onChange={(e) => update({ level: e.target.value ? (e.target.value as ReadyFilterState['level']) : null })}
-              options={[{ value: '', label: t('workouts.ready.anyLevel') }, ...DIFFICULTIES.map((d) => ({ value: d, label: t(`label.difficulty.${d}`) }))]} />
-            <Select label={t('workouts.ready.maxMinutes')} value={s.maxMinutes === null ? '' : String(s.maxMinutes)} onChange={(e) => update({ maxMinutes: e.target.value ? Number(e.target.value) : null })}
-              options={[{ value: '', label: t('workouts.ready.anyDuration') }, ...DURATIONS.map((m) => ({ value: String(m), label: t('workouts.unit.minutes', { n: m }) }))]} />
-          </div>
+          {stepTitle(4, 'workouts.ready.step4')}
+          <ChipGroup<WorkoutFocus | 'all'> label={t('workouts.ready.step4')} selected={[s.focus ?? 'all']} onToggle={(f) => update({ focus: f === 'all' || s.focus === f ? null : f })}
+            options={[{ value: 'all', label: t('workouts.ready.allMuscles'), count: totalFoci }, ...foci.map((f) => ({ value: f as WorkoutFocus | 'all', label: t(`label.focus.${f}`), count: counts.get(f) ?? 0 }))]} />
+          <Disclosure summary={t('workouts.ready.moreFilters')} open={s.level !== null || s.maxMinutes !== null}>
+            <div className="stack-sm"><span className="field-label">{t('workouts.ready.level')}</span>
+              <ChipGroup<string> label={t('workouts.ready.level')} selected={[s.level ?? '']} onToggle={(v) => update({ level: v ? (v as ReadyFilterState['level']) : null })}
+                options={[{ value: '', label: t('workouts.ready.anyLevel') }, ...DIFFICULTIES.map((d) => ({ value: d as string, label: t(`label.difficulty.${d}`) }))]} /></div>
+            <div className="stack-sm"><span className="field-label">{t('workouts.ready.maxMinutes')}</span>
+              <ChipGroup<string> label={t('workouts.ready.maxMinutes')} selected={[s.maxMinutes === null ? '' : String(s.maxMinutes)]} onToggle={(v) => update({ maxMinutes: v ? Number(v) : null })}
+                options={[{ value: '', label: t('workouts.ready.anyDuration') }, ...DURATIONS.map((m) => ({ value: String(m), label: t('workouts.unit.minutes', { n: m }) }))]} /></div>
+          </Disclosure>
         </section>
       ) : null}
 
-      <div><Button size="sm" variant="ghost" onClick={() => setS({ ...EMPTY_FILTER, equipment: profile.equipment.filter((e): e is Equipment => (ALL_EQUIPMENT_FOR_PICKER as readonly string[]).includes(e)) })}>{t('workouts.ready.reset')}</Button></div>
-
-      {result === null ? <p className="muted">{t('workouts.ready.pickStep')}</p> : (
+      {result === null ? null : (
         <section className="stack" aria-live="polite">
           {result.hiddenCount > 0 ? <Banner>{t('workouts.ready.hidden', { n: result.hiddenCount })}</Banner> : null}
           {result.ranked.length === 0 ? (
-            <EmptyState title={t('workouts.ready.noMatchTitle')} hint={noMatchHint(s, result.matched, t)} />
+            <EmptyState title={t('workouts.ready.noMatchTitle')} hint={noMatchHint(s, result.matched, t)} action={<Button onClick={() => setS((x) => ({ ...x, focus: null, level: null, maxMinutes: null }))}>{t('workouts.ready.clearFilters')}</Button>} />
           ) : (
             <>
-              <strong>{t('workouts.ready.results', { n: result.ranked.length })}</strong>
               <div className="wk-cards">
                 {result.ranked.slice(0, shown).map(({ workout: w, personal }) => {
                   const name = lang === 'he' ? w.nameHe : w.nameEn;
+                  const lvl = DIFFICULTIES.indexOf(w.level) + 1;
+                  const thumbs = personal.items.slice(0, 4);
                   return (
                     <Link key={w.id} to={`/workouts/ready/${w.id}`} className="card card-link wk-card" aria-label={t('workouts.ready.openWorkout', { name })}>
-                      <h3>{name}</h3>
-                      <div className="wk-tags">
-                        <Tag>{t(`label.focus.${w.focus}`)}</Tag><Tag>{t(`label.difficulty.${w.level}`)}</Tag><Tag>{t(`label.style.${w.style}`)}</Tag>
-                        {w.equipment.length === 0 ? <Tag>{t('label.equipment.none')}</Tag> : w.equipment.map((q) => <Tag key={q}>{t(`label.equipment.${q}`)}</Tag>)}
+                      <div className="wk-card-top">
+                        <h3>{name}</h3>
+                        <span className="wk-card-min"><span className="num">{personal.estimatedMinutes}</span><span className="small muted"> {t('unit.min')}</span></span>
                       </div>
-                      <span className="small muted"><span className="num">{personal.estimatedMinutes}</span> {t('unit.min')} · {t('workouts.ready.exerciseCount', { n: personal.items.length })}</span>
+                      <div className="wk-card-meta small">
+                        <span>{t(`label.focus.${w.focus}`)}</span>
+                        <span className="wk-level" role="img" aria-label={t(`label.difficulty.${w.level}`)}>{DIFFICULTIES.map((d, i) => <i key={d} className={i < lvl ? 'on' : ''} />)}<span className="muted">{t(`label.difficulty.${w.level}`)}</span></span>
+                        <span className="muted">{t('workouts.ready.exerciseCount', { n: personal.items.length })}</span>
+                      </div>
                       <div className="wk-thumbs">
-                        {personal.items.slice(0, 3).map((it) => {
+                        {thumbs.map((it) => {
                           const e = EXERCISE_BY_ID.get(it.exerciseId);
                           return <ExerciseVideoThumb key={it.exerciseId} exerciseId={it.exerciseId} alt={e ? exName(e, lang) : it.exerciseId} />;
                         })}
+                        {personal.items.length > thumbs.length ? <span className="wk-more num">+{personal.items.length - thumbs.length}</span> : null}
                       </div>
+                      <div className="small muted">{w.equipment.length === 0 ? t('label.equipment.none') : w.equipment.map((q) => t(`label.equipment.${q}`)).join(' · ')}</div>
                     </Link>
                   );
                 })}
               </div>
-              {shown < result.ranked.length ? <div><Button onClick={() => setShown((n) => n + PAGE)}>{t('action.more')}</Button></div> : null}
+              {shown < result.ranked.length ? <div><Button block onClick={() => setShown((n) => n + PAGE)}>{t('action.more')}</Button></div> : null}
             </>
           )}
         </section>

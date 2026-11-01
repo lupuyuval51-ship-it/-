@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
+import { NavLink } from 'react-router';
 import { lookup, useLang, useT } from '../../i18n/index.tsx';
 import '../../styles/onboarding.css';
 
@@ -15,6 +15,16 @@ export function supportEmail(): string | undefined {
   return v ? v : undefined;
 }
 
+/** Privacy / Terms / Account deletion switcher; the current page is marked with aria-current. */
+export function LegalTabs(): ReactNode {
+  const t = useT();
+  return (
+    <nav className="legal-tabs" aria-label={t('legal.navLabel')}>
+      <NavLink to="/privacy">{t('legal.privacy.nav')}</NavLink><NavLink to="/terms">{t('legal.terms.nav')}</NavLink><NavLink to="/account-deletion">{t('legal.deletion.nav')}</NavLink>
+    </nav>
+  );
+}
+
 export function LegalDoc({ base, children }: { base: 'legal.privacy' | 'legal.terms'; children?: ReactNode }): ReactNode {
   const t = useT(); const { lang } = useLang();
   const sections: ReactNode[] = [];
@@ -24,7 +34,7 @@ export function LegalDoc({ base, children }: { base: 'legal.privacy' | 'legal.te
     if (h === undefined) break;
     const ps = collect(lang, key, 'p'); const bs = collect(lang, key, 'b');
     sections.push(
-      <section key={key} className="stack-sm">
+      <section key={key} className="stack-sm legal-section">
         <h2>{h}</h2>
         {ps.map((p, n) => <p key={`p${n}`}>{p}</p>)}
         {bs.length ? <ul>{bs.map((b, n) => <li key={`b${n}`}>{b}</li>)}</ul> : null}
@@ -34,16 +44,14 @@ export function LegalDoc({ base, children }: { base: 'legal.privacy' | 'legal.te
   const email = supportEmail();
   return (
     <article className="stack-lg legal">
+      <LegalTabs />
       <header className="stack-sm"><h1>{t(`${base}.title`)}</h1><p className="muted small">{t('legal.updated')}</p><p>{t(`${base}.intro`)}</p></header>
       {sections}
-      <section className="stack-sm">
+      <section className="stack-sm legal-section">
         <h2>{t('legal.contact.h')}</h2>
         {email ? <p>{t('legal.contact.withEmail')} <a href={`mailto:${email}`}>{email}</a></p> : <p>{t('legal.contact.noEmail')}</p>}
       </section>
       {children}
-      <nav className="row-wrap small" aria-label={t('legal.navLabel')}>
-        <Link to="/privacy">{t('legal.privacy.nav')}</Link><Link to="/terms">{t('legal.terms.nav')}</Link><Link to="/account-deletion">{t('legal.deletion.nav')}</Link>
-      </nav>
     </article>
   );
 }
