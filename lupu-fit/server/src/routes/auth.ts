@@ -7,9 +7,9 @@ import { assertNotLocked, clearFailures, ident, recordFailure } from '../core/ra
 import type { Router } from '../core/router.ts';
 import type { Ctx, Deps } from '../core/types.ts';
 
-async function startSession(ctx: Ctx, userId: string): Promise<{ token: string; csrf: string }> {
+async function startSession(ctx: Ctx, userId: string, remember = true): Promise<{ token: string; csrf: string }> {
   const token = randomHex(32); const csrf = randomHex(24);
-  const expires = new Date(ctx.now.getTime() + ctx.deps.sessionTtlDays * 86400_000);
+  const expires = new Date(ctx.now.getTime() + (remember ? ctx.deps.sessionTtlDays * 86400_000 : 12 * 3600_000));
   await ctx.db.query('INSERT INTO auth_sessions (id, user_id, token_hash, csrf_token, expires_at, user_agent, ip_hint) VALUES ($1,$2,$3,$4,$5,$6,$7)',
     [randomId(), userId, await sha256Hex(token), csrf, expires.toISOString(), (ctx.req.headers['user-agent'] ?? '').slice(0, 200), (await sha256Hex(ctx.req.ip)).slice(0, 12)]);
   return { token, csrf };
@@ -33,7 +33,7 @@ export function authRoutes(r: Router, deps: Deps): void {
   }, { auth: false, body: RegisterBodySchema });
 
   r.post('/api/auth/login', async (ctx) => {
-    const { username, password } = ctx.body as z.infer<typeof LoginBodySchema>;
+    const { username, password, remember } = ctx.body as z.infer<typeof LoginBodySchema>;
     const keys = await keysFor(ctx, username);
     await assertNotLocked(ctx.db, 'login', keys, ctx.now);
     const rows = await ctx.db.query<{ id: string; username: string; role: 'user' | 'admin'; password_hash: string }>('SELECT id, username, role, password_hash FROM users WHERE lower(username) = $1', [username]);
@@ -46,8 +46,8 @@ export function authRoutes(r: Router, deps: Deps): void {
     }
     await clearFailures(ctx.db, 'login', keys[0] as { scopeKind: string; id: string });
     if (verdict.needsRehash) await ctx.db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [await hashPassword(password, deps.pbkdf2Iterations), u.id]);
-    const s = await startSession(ctx, u.id);
-    return { json: { user: { id: u.id, username: u.username, role: u.role }, csrfToken: s.csrf }, setCookies: [sessionCookie(deps, s.token)] };
+    const s = await startSession(ctx, u.id, remember !== false);
+    return { json: { user: { id: u.id, username: u.username, role: u.role }, csrfToken: s.csrf }, setCookies: [sessionCookie(deps, s.token, remember !== false)] };
   }, { auth: false, body: LoginBodySchema });
 
   r.post('/api/auth/logout', async (ctx) => {

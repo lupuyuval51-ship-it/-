@@ -13,7 +13,7 @@ export const PasswordSchema = z.string().min(10).max(200);
 export const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 export const RegisterBodySchema = z.object({ username: UsernameSchema, password: PasswordSchema });
-export const LoginBodySchema = z.object({ username: UsernameSchema, password: z.string().min(1).max(200) });
+export const LoginBodySchema = z.object({ username: UsernameSchema, password: z.string().min(1).max(200), /** false = this browser session only (shared device) */ remember: z.boolean().optional() });
 
 export const ProfileInputSchema = z.object({
   displayName: z.string().trim().max(60).optional(),

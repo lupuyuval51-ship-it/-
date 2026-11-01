@@ -46,9 +46,25 @@ describe('Login', () => {
     const spy = vi.spyOn(qc, 'invalidateQueries');
     type('USERNAME', 'Yuval_L'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(path()).toBe('/nutrition'));
-    expect(m.post).toHaveBeenCalledWith('/api/auth/login', { username: 'yuval_l', password: 'x' });
+    expect(m.post).toHaveBeenCalledWith('/api/auth/login', { username: 'yuval_l', password: 'x', remember: true });
+    expect(localStorage.getItem('lf_username')).toBe('yuval_l');
     const keys = spy.mock.calls.map((c) => JSON.stringify(c[0]?.queryKey));
     expect(keys).toContain(JSON.stringify(['me'])); expect(keys).toContain(JSON.stringify(['profile']));
+  });
+  it('with "keep me signed in" off it sends remember=false and forgets the saved username', async () => {
+    localStorage.setItem('lf_username', 'old_name');
+    m.post.mockResolvedValueOnce({ ok: true });
+    renderScreen(<Login />, { route: '/login' });
+    fireEvent.click(screen.getByRole('switch'));
+    type('USERNAME', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    await waitFor(() => expect(path()).toBe('/'));
+    expect(m.post).toHaveBeenCalledWith('/api/auth/login', { username: 'abc', password: 'x', remember: false });
+    expect(localStorage.getItem('lf_username')).toBeNull();
+  });
+  it('prefills the username remembered on this device', () => {
+    localStorage.setItem('lf_username', 'saved_user');
+    renderScreen(<Login />, { route: '/login' });
+    expect((screen.getByLabelText('USERNAME') as HTMLInputElement).value).toBe('saved_user');
   });
   it('goes to / when there is no from state', async () => {
     m.post.mockResolvedValueOnce({ ok: true });

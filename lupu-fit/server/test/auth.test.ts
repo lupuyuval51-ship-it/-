@@ -135,3 +135,14 @@ describe('CSRF, auth-gating, idempotency', () => {
     expect(big.status).toBe(413);
   });
 });
+
+describe('remember me', () => {
+  it('login with remember=false sets a browser-session cookie (no Max-Age); default keeps Max-Age', async () => {
+    const t = await makeApp();
+    await call(t, anon(), 'POST', '/api/auth/register', { username: 'remember_me', password: 'correct-horse-battery' });
+    const off = await call(t, anon(), 'POST', '/api/auth/login', { username: 'remember_me', password: 'correct-horse-battery', remember: false });
+    const on = await call(t, anon(), 'POST', '/api/auth/login', { username: 'remember_me', password: 'correct-horse-battery' });
+    expect((off.setCookies ?? []).join(';')).not.toMatch(/Max-Age/);
+    expect((on.setCookies ?? []).join(';')).toMatch(/Max-Age=\d+/);
+  });
+});

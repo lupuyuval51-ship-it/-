@@ -19,9 +19,9 @@ export function parseCookies(header: string | undefined): Record<string, string>
   return out;
 }
 
-export function sessionCookie(deps: Deps, token: string): string {
-  const max = deps.sessionTtlDays * 86400;
-  return `${SESSION_COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${max}${deps.secureCookies ? '; Secure' : ''}`;
+export function sessionCookie(deps: Deps, token: string, remember = true): string {
+  const max = remember ? `; Max-Age=${deps.sessionTtlDays * 86400}` : ""; // no Max-Age = dies when the browser closes
+  return `${SESSION_COOKIE}=${token}; HttpOnly; SameSite=Lax; Path=/${max}${deps.secureCookies ? '; Secure' : ''}`;
 }
 export function clearedCookie(deps: Deps): string {
   return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${deps.secureCookies ? '; Secure' : ''}`;
