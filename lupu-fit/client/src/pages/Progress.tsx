@@ -34,7 +34,9 @@ export interface StatsResponse { xp: number; level: { level: number; xpIntoLevel
 
 interface WeightsLite { entries: { loggedDate: string; weightKg: number }[] }
 const weekLabel = (w: string): string => w.replace(/^\d{4}-/, '').replace(/-\d{4}$/, '');
-const signed = (n: number, d = 1): string => `${n > 0 ? '+' : ''}${fmt.num(n, d)}`;
+/** Numbers inside Hebrew sentences are isolated so signs and decimals keep their left-to-right order. */
+const ltr = (s: string): string => `\u2066${s}\u2069`;
+const signed = (n: number, d = 1): string => ltr(`${n > 0 ? '+' : ''}${fmt.num(n, d)}`);
 
 export default function Progress(): ReactNode {
   const { t, lang } = useLang();
@@ -62,9 +64,9 @@ export default function Progress(): ReactNode {
 
   const takeaway: string[] = [];
   if (p) {
-    if (p.consistency.sessions > 0) takeaway.push(plannedTotal > 0 ? t('progress.take.sessions', { n: p.consistency.sessions, g: plannedTotal }) : t('progress.take.sessionsNoGoal', { n: p.consistency.sessions }));
-    if (wDelta !== null && wFirst !== undefined && wLast !== undefined) takeaway.push(t('progress.take.weight', { d: signed(wDelta), from: fmt.num(wFirst, 1), to: fmt.num(wLast, 1) }));
-    if (newPrs.length > 0) takeaway.push(t('progress.take.prs', { n: newPrs.length }));
+    if (p.consistency.sessions > 0) takeaway.push(plannedTotal > 0 ? t('progress.take.sessions', { n: ltr(String(p.consistency.sessions)), g: ltr(String(plannedTotal)) }) : t('progress.take.sessionsNoGoal', { n: ltr(String(p.consistency.sessions)) }));
+    if (wDelta !== null && wFirst !== undefined && wLast !== undefined) takeaway.push(t('progress.take.weight', { d: signed(wDelta), from: ltr(fmt.num(wFirst, 1)), to: ltr(fmt.num(wLast, 1)) }));
+    if (newPrs.length > 0) takeaway.push(t('progress.take.prs', { n: ltr(String(newPrs.length)) }));
   }
   const headline = takeaway[0];
   const sorted = stats.data ? [...stats.data.allAchievementIds].sort((a, b) => {
@@ -78,8 +80,8 @@ export default function Progress(): ReactNode {
     const d = Math.round((last - first) * 10) / 10;
     return (
       <div key={s.exerciseId} className="stack-sm">
-        <div className="prog-str"><Link to={`/exercises/${s.exerciseId}`} className="strong">{nm}</Link><span><span className="num-lg">{fmt.num(last, 1)}</span> <small className="muted small">{t('unit.kg')}</small></span></div>
-        <p className="prog-sec-take">{t('progress.take.strength', { from: fmt.num(first, 1), to: fmt.num(last, 1), d: signed(d) })}</p>
+        <div className="prog-str"><Link to={`/exercises/${s.exerciseId}`} className="strong prog-link">{nm}</Link><span><span className="num-lg">{fmt.num(last, 1)}</span> <small className="muted small">{t('unit.kg')}</small></span></div>
+        <p className="prog-sec-take">{t('progress.take.strength', { from: ltr(fmt.num(first, 1)), to: ltr(fmt.num(last, 1)), d: signed(d) })}</p>
         <LineChart series={[{ id: s.exerciseId, label: nm, points: s.points.map((x) => ({ x: x.date, y: x.est1rm })) }]} ariaLabel={t('progress.strength.aria', { name: nm, from: String(s.points[0]?.est1rm), to: String(s.points[s.points.length - 1]?.est1rm) })} caption={nm} xHeader={t('progress.date')} unit={t('unit.kg')} formatX={(x) => fmt.date(x, lang)} />
       </div>
     );
@@ -106,7 +108,7 @@ export default function Progress(): ReactNode {
             <h2>{t('progress.consistency.title')}</h2>
             {p.consistency.sessions === 0 && goalTotal === 0 ? <p className="muted">{t('state.noData')}</p> : (
               <div className="stack">
-                <div className="row-wrap"><span className="num-lg">{p.consistency.sessions}</span><span>{t('progress.consistency.sessions', { n: p.consistency.sessions })}</span></div>
+                <div className="row-wrap"><span className="num-lg">{p.consistency.sessions}</span><span>{t('progress.consistency.sessions')}</span></div>
                 <TallyMarks total={goalTotal} done={p.consistency.sessions} label={t('progress.consistency.aria', { done: p.consistency.sessions, total: goalTotal })} />
                 {p.consistency.sessions === 0 ? <p className="small muted">{t('progress.consistency.none')}</p> : null}
                 {p.consistency.weeklyGoal ? <p className="small muted">{t('progress.consistency.goal', { n: p.consistency.weeklyGoal })}</p> : null}
@@ -135,7 +137,7 @@ export default function Progress(): ReactNode {
 
           <Card>
             <h2>{t('progress.volume.title')}</h2>
-            <p className="prog-sec-take">{topGroup ? t('progress.take.volume', { group: t(`label.group.${topGroup}`), n: p.setsByGroup[topGroup] ?? 0 }) : t('progress.volume.hint')}</p>
+            <p className="prog-sec-take">{topGroup ? t('progress.take.volume', { group: t(`label.group.${topGroup}`), n: ltr(String(p.setsByGroup[topGroup] ?? 0)) }) : t('progress.volume.hint')}</p>
             <BarChart items={p.hasSets ? [...GROUPS].sort((a, b) => (p.setsByGroup[b] ?? 0) - (p.setsByGroup[a] ?? 0)).map((g) => ({ id: g, label: t(`label.group.${g}`), value: p.setsByGroup[g] ?? 0 })) : []} ariaLabel={t('progress.volume.aria')} caption={t('progress.volume.title')} labelHeader={t('progress.group')} valueHeader={t('unit.sets')} unit={t('unit.sets')} />
           </Card>
 
@@ -156,13 +158,13 @@ export default function Progress(): ReactNode {
             {p.prs.length === 0 ? <p className="muted">{t('state.noData')}</p> : (() => {
               const row = (r: ProgressResponse['prs'][number]): ReactNode => {
                 const main = r.maxWeight !== null ? <><span>{fmt.num(r.maxWeight, 2)}</span> <small>{t('unit.kg')}</small></> : r.maxReps !== null ? <><span>{r.maxReps}</span> <small>{t('unit.reps')}</small></> : r.maxDuration !== null ? <><span>{r.maxDuration}</span> <small>{t('unit.sec')}</small></> : null;
-                const subs = [r.maxWeight !== null && r.maxReps !== null ? t('progress.prsReps', { n: r.maxReps }) : null, r.maxReps === null && r.maxDuration !== null && r.maxWeight !== null ? t('progress.prsHold', { n: r.maxDuration }) : null, !minor && r.est1rm !== null ? `${t('progress.prs.est1rm')} ${fmt.num(r.est1rm, 1)}` : null].filter(Boolean) as string[];
+                const subs = [r.maxWeight !== null && r.maxReps !== null ? t('progress.prsReps', { n: ltr(String(r.maxReps)) }) : null, r.maxReps === null && r.maxDuration !== null && r.maxWeight !== null ? t('progress.prsHold', { n: ltr(String(r.maxDuration)) }) : null, !minor && r.est1rm !== null ? `${t('progress.prs.est1rm')} ${ltr(fmt.num(r.est1rm, 1))}` : null].filter(Boolean) as string[];
                 return (
                   <Link key={r.exerciseId} to={`/exercises/${r.exerciseId}`} className="list-link pr-row">
-                    <span className="grow stack-sm"><span className="strong">{nameOfExercise(r.exerciseId, lang)}</span>{subs.length ? <span className="tiny muted num">{subs.join(' · ')}</span> : null}</span>
+                    <span className="grow stack-sm"><span className="strong">{nameOfExercise(r.exerciseId, lang)}</span>{subs.length ? <span className="row-wrap tiny muted prog-subs">{subs.map((x) => <span key={x}>{x}</span>)}</span> : null}</span>
                     {r.updatedAt.slice(0, 10) >= from ? <span className="tag">{t('progress.prsRecent')}</span> : null}
                     {main ? <span className="pr-main">{main}</span> : null}
-                    <IconChevron className="flip-rtl chev" />
+                    <span className="chev"><IconChevron /></span>
                   </Link>
                 );
               };

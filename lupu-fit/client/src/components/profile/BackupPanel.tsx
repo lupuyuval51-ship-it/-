@@ -4,6 +4,7 @@ import { api, ApiRequestError } from '../../api/client.ts';
 import { IS_DEVICE } from '../../env.ts';
 import { fmt, useT } from '../../i18n/index.tsx';
 import { Banner, Button, errorMessage, Sheet } from '../../ui/kit.tsx';
+import { IconChevron } from '../../ui/icons.tsx';
 import { useToast } from '../../ui/toast.tsx';
 import { downloadJson, parseBackupText, readFileText, type BackupCounts, type ParsedBackup } from './backup.ts';
 
@@ -64,10 +65,10 @@ export function BackupPanel(): ReactNode {
   return (
     <div className="stack">
       <p className="small muted">{t('profile.backup.hint')}</p>
-      <div className="row-wrap">
-        <Button onClick={() => void doExport()} disabled={busy}>{t('profile.backup.export')}</Button>
-        {canShare ? <Button onClick={() => void doShare()} disabled={busy}>{t('action.share')}</Button> : null}
-        <Button onClick={() => fileInput.current?.click()} disabled={busy}>{t('profile.backup.restore')}</Button>
+      <div>
+        <button type="button" className="list-link pf-rowbtn" onClick={() => void doExport()} disabled={busy}><span className="grow start"><strong>{t('profile.backup.export')}</strong><br /><span className="small muted">{t('profile.nu.exportHint')}</span></span><IconChevron className="chev" /></button>
+        {canShare ? <button type="button" className="list-link pf-rowbtn" onClick={() => void doShare()} disabled={busy}><span className="grow start"><strong>{t('action.share')}</strong><br /><span className="small muted">{t('profile.nu.shareHint')}</span></span><IconChevron className="chev" /></button> : null}
+        <button type="button" className="list-link pf-rowbtn" onClick={() => fileInput.current?.click()} disabled={busy}><span className="grow start"><strong>{t('profile.backup.restore')}</strong><br /><span className="small muted">{t('profile.nu.restoreHint')}</span></span><IconChevron className="chev" /></button>
         <input ref={fileInput} className="sr-only" type="file" accept=".json,application/json" aria-label={t('profile.backup.pick')} onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />
       </div>
       {err ? <Banner tone="danger">{err}</Banner> : null}

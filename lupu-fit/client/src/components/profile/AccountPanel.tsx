@@ -5,6 +5,7 @@ import { api } from '../../api/client.ts';
 import { IS_DEVICE, RUN_MODE } from '../../env.ts';
 import { useT } from '../../i18n/index.tsx';
 import { Banner, Button, errorMessage } from '../../ui/kit.tsx';
+import { IconChevron } from '../../ui/icons.tsx';
 import pkg from '../../../package.json';
 
 /** onboardingDraft.ts is owned by another author: load it defensively (absent module => nothing to clear). */
@@ -31,12 +32,11 @@ export function AccountPanel(): ReactNode {
   };
   return (
     <div className="stack">
-      <div className="row-between"><span>{t('profile.account.mode')}</span><strong>{t(RUN_MODE === 'device' ? 'profile.account.modeDevice' : 'profile.account.modeHosted')}</strong></div>
-      <div className="row-between"><span>{t('profile.account.version')}</span><span className="num">{pkg.version}</span></div>
-      <div className="row-wrap">
-        <Link className="btn" to="/privacy">{t('profile.account.privacy')}</Link>
-        <Link className="btn" to="/terms">{t('profile.account.terms')}</Link>
-        <Link className="btn btn-danger" to="/account-deletion">{t('profile.account.delete')}</Link>
+      <div>
+        <div className="stat-row pf-row"><span className="muted">{t('profile.account.mode')}</span><strong>{t(RUN_MODE === 'device' ? 'profile.account.modeDevice' : 'profile.account.modeHosted')}</strong></div>
+        <div className="stat-row pf-row"><span className="muted">{t('profile.account.version')}</span><span className="num">{pkg.version}</span></div>
+        <Link className="list-link" to="/privacy"><span className="grow">{t('profile.account.privacy')}</span><IconChevron className="chev" /></Link>
+        <Link className="list-link" to="/terms"><span className="grow">{t('profile.account.terms')}</span><IconChevron className="chev" /></Link>
       </div>
       {IS_DEVICE ? <span className="small muted">{t('profile.account.deviceNote')}</span> : (
         <>
@@ -44,6 +44,11 @@ export function AccountPanel(): ReactNode {
           {err ? <Banner tone="danger">{err}</Banner> : null}
         </>
       )}
+      <div className="pf-danger stack-sm">
+        <h3>{t('profile.nu.danger')}</h3>
+        <span className="small muted">{t('profile.nu.deleteHint')}</span>
+        <Link className="btn btn-danger" to="/account-deletion">{t('profile.account.delete')}</Link>
+      </div>
     </div>
   );
 }

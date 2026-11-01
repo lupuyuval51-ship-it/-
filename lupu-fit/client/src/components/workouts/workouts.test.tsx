@@ -134,6 +134,35 @@ describe('Ready workouts filter', () => {
   });
 });
 
+describe('Ready wizard summary bar', () => {
+  it('collapses finished steps into chips that reopen the step in one tap, and Start over resets', async () => {
+    const { default: Hub } = await import('../../pages/WorkoutsHub.tsx');
+    const u = userEvent.setup();
+    await mount(<Hub />, '/workouts?tab=ready', 'en');
+    await u.click(await screen.findByRole('button', { name: 'Gym' }));
+    await u.click(screen.getByRole('button', { name: 'Bodyweight' }));
+    const summary = screen.getByRole('region', { name: 'Your choices' });
+    expect(within(summary).getByRole('button', { name: 'Change: Gym' })).toBeInTheDocument();
+    expect(within(summary).getByRole('button', { name: 'Change: Bodyweight' })).toBeInTheDocument();
+    expect(screen.getByText('Which muscle?')).toBeInTheDocument();
+    await u.click(within(summary).getByRole('button', { name: 'Change: Bodyweight' }));
+    expect(screen.getByText('Bodyweight or weights?')).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Weights' }));
+    expect(screen.queryByText('Bodyweight or weights?')).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('lf_ready_filter')!)).toMatchObject({ place: 'gym', mode: 'weights' });
+    await u.click(screen.getByRole('button', { name: 'Start over' }));
+    expect(await screen.findByText('Where do you train?')).toBeInTheDocument();
+  });
+  it('the no-equipment card moves on without the Continue button', async () => {
+    const { default: Hub } = await import('../../pages/WorkoutsHub.tsx');
+    const u = userEvent.setup();
+    await mount(<Hub />, '/workouts?tab=ready', 'en');
+    await u.click(await screen.findByRole('button', { name: 'Park' }));
+    await u.click(screen.getByRole('button', { name: 'No equipment' }));
+    expect(screen.getByText('Bodyweight or weights?')).toBeInTheDocument();
+  });
+});
+
 describe('Generator tab', () => {
   it('parses free text into avoidIds, warns for 7 days, regenerates with a new seed and saves', async () => {
     const plan = { days: [{ day: 'full_a', estimatedMinutes: 40, exercises: [{ exerciseId: 'push_up', prescription: { sets: 3, repsMin: 8, repsMax: 12, rpe: 7, restSec: 60, loadKg: null, durationSec: null } }] }], notes: [{ code: 'exercise_swapped', from: 'barbell_bench_press', to: 'push_up' }, { code: 'recovery_day_added' }] };
@@ -230,6 +259,22 @@ describe('ReadyDetail', () => {
     const b = calls.find((c) => c.method === 'POST' && c.path === '/api/readiness')!.body as { localDate: string; pain: boolean };
     expect(b.localDate).toMatch(/^\d{4}-\d{2}-\d{2}$/); expect(b.pain).toBe(false);
     expect(await screen.findByText('Today: Take it easier')).toBeInTheDocument();
+  });
+});
+
+describe('History weeks', () => {
+  it('groups sessions by week with a weekly summary', async () => {
+    routes.set('GET /api/sessions', () => ({ sessions: [
+      { id: 'a', name: 'A', sport: null, startedAt: '', finishedAt: 'x', durationSec: 1800, localDate: '2026-11-02', xpAwarded: 40, sets: 9, hasFinisher: false },
+      { id: 'b', name: 'B', sport: null, startedAt: '', finishedAt: 'x', durationSec: 1800, localDate: '2026-11-03', xpAwarded: 30, sets: 6, hasFinisher: false },
+      { id: 'c', name: 'C', sport: null, startedAt: '', finishedAt: 'x', durationSec: 1200, localDate: '2026-10-01', xpAwarded: 20, sets: 5, hasFinisher: false },
+    ] }));
+    const { default: History } = await import('../../pages/History.tsx');
+    await mount(<History />, '/workouts/history', 'en');
+    const weeks = await screen.findAllByRole('region');
+    expect(weeks).toHaveLength(2);
+    expect(within(weeks[0]!).getByText('15')).toBeInTheDocument(); // 9 + 6 sets
+    expect(within(weeks[0]!).getByText('70')).toBeInTheDocument(); // 40 + 30 XP
   });
 });
 

@@ -32,6 +32,7 @@ export function LineChart({ series, ariaLabel, caption, xHeader, unit, minPoints
   const ymin = Math.min(...ys); const ymaxV = Math.max(...ys);
   return (
     <figure className="chart">
+      {unit ? <span className="tiny muted chart-unit">{unit}</span> : null}
       <div className="chart-plot">
         <div className="chart-yaxis tiny muted num" aria-hidden="true"><span>{fmtN(ymaxV)}</span><span>{fmtN((ymaxV + ymin) / 2)}</span><span>{fmtN(ymin)}</span></div>
         <svg role="img" aria-label={ariaLabel} viewBox={`0 0 ${W} ${H}`} className="chart-svg" focusable="false">
@@ -51,7 +52,6 @@ export function LineChart({ series, ariaLabel, caption, xHeader, unit, minPoints
         </svg>
         <div className="chart-xs tiny muted num" aria-hidden="true"><span>{firstX}</span><span>{lastX}</span></div>
       </div>
-      {unit ? <span className="tiny muted chart-unit">{unit}</span> : null}
       <table className="sr-only">
         <caption>{caption}</caption>
         <thead><tr><th scope="col">{xHeader}</th>{usable.map((s) => <th scope="col" key={s.id}>{s.label}</th>)}</tr></thead>

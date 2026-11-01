@@ -93,7 +93,7 @@ describe('barcode', () => {
     h.handler = (m, p) => (p.startsWith('/api/nutrition/barcode/') ? new ApiRequestError(404, 'product_not_found', {}) : base(m, p));
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'Barcode' }));
+    await user.click(screen.getByRole('button', { name: /^Barcode/ }));
     const input = screen.getByRole('textbox', { name: /barcode number/i });
     const btn = screen.getByRole('button', { name: 'Look up' });
     expect(btn).toBeDisabled();
@@ -107,7 +107,7 @@ describe('barcode', () => {
     h.handler = (m, p) => (p === '/api/nutrition/barcode/7290000000001' ? { barcode: '7290000000001', name: 'Test Bar', per100g: { kcal: 400, proteinG: 10, carbsG: 50, fatG: 15 }, servingG: 40, source: 'open_food_facts' } : base(m, p));
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'Barcode' }));
+    await user.click(screen.getByRole('button', { name: /^Barcode/ }));
     await user.type(screen.getByRole('textbox', { name: /barcode number/i }), '7290000000001');
     await user.click(screen.getByRole('button', { name: 'Look up' }));
     expect(await screen.findByRole('dialog', { name: 'Test Bar' })).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('photo estimate', () => {
     h.handler = (m, p) => (p === '/api/nutrition/photo-estimate' ? estimate : base(m, p));
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'Photo' }));
+    await user.click(screen.getByRole('button', { name: /^Photo/ }));
     expect(screen.getByText(/rough guess, not a measurement/)).toBeInTheDocument();
     await user.upload(screen.getByLabelText('Take or choose a photo'), new File(['x'], 'meal.jpg', { type: 'image/jpeg' }));
     expect(await screen.findByText('ESTIMATE')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('photo estimate', () => {
     h.handler = (m, p) => (p === '/api/nutrition/photo-estimate' ? new ApiRequestError(503, 'ai_unavailable', {}) : base(m, p));
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'Photo' }));
+    await user.click(screen.getByRole('button', { name: /^Photo/ }));
     await user.upload(screen.getByLabelText('Take or choose a photo'), new File(['x'], 'meal.jpg', { type: 'image/jpeg' }));
     expect(await screen.findByText(/AI estimates are not available right now/)).toBeInTheDocument();
     h.handler = (m, p) => (p === '/api/nutrition/photo-estimate' ? new ApiRequestError(429, 'quota_exceeded', { window: 'day' }) : base(m, p));
@@ -153,7 +153,7 @@ describe('quick add and custom food', () => {
   it('quick-adds an entry with the given macros', async () => {
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'Quick add' }));
+    await user.click(screen.getByRole('button', { name: /^Quick add/ }));
     await user.type(screen.getByLabelText('Name'), 'Protein shake');
     await user.type(screen.getByLabelText('kcal'), '180');
     await user.type(screen.getByLabelText('Protein (g)'), '30');
@@ -163,7 +163,7 @@ describe('quick add and custom food', () => {
   it('rejects custom foods whose macros exceed 100 g per 100 g', async () => {
     renderWith(<NutritionLog />, { route: ROUTE });
     const user = userEvent.setup();
-    await user.click(screen.getByRole('tab', { name: 'New food' }));
+    await user.click(screen.getByRole('button', { name: /^New food/ }));
     await user.type(screen.getByLabelText('Name'), 'Odd');
     await user.type(screen.getByLabelText('kcal per 100 g'), '300');
     await user.type(screen.getByLabelText('Protein (g)'), '60');

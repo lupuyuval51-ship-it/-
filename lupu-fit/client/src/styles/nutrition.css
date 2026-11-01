@@ -95,3 +95,7 @@
 .nutrition-page .nu-group-head { display: flex !important; justify-content: space-between; padding-block: 0.5rem 0.25rem !important; border-block-end: 1px solid var(--border); text-transform: none; letter-spacing: 0.04em; }
 .nutrition-page .nu-checklist > li { padding-block: 0.125rem; }
 .nutrition-page .check-row input { flex: none; }
+@media (min-width: 60rem) {
+  .nu-hub > .page-head { order: -2; }
+  .nu-hub > .sticky-cta { order: -1; align-self: flex-start; inline-size: 16rem; }
+}

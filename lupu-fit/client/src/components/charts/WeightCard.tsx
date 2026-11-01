@@ -58,7 +58,7 @@ export function WeightCard({ rangeDays }: { rangeDays: number }): ReactNode {
   return (
     <Card>
       <h2>{t('progress.weight.title')}</h2>
-      {trend !== null ? <p className="prog-sec-take">{t('progress.take.weightTrend', { d: `${trend > 0 ? '+' : ''}${fmt.num(trend, 1)}` })}</p> : null}
+      {trend !== null ? <p className="prog-sec-take">{t('progress.take.weightTrend', { d: `\u2066${trend > 0 ? '+' : ''}${fmt.num(trend, 1)}\u2069` })}</p> : null}
       <div className="stack">
         <div className="weight-add">
           <NumberStepper label={t('progress.weight.today')} value={start} onChange={setKg} step={0.1} decimals={1} min={30} max={300} suffix={t('unit.kg')} />

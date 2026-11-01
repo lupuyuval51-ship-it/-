@@ -2,13 +2,14 @@ import { type ReactNode } from 'react';
 import { fmt, useLang, useT } from '../../i18n/index.tsx';
 import { outbox, useOutbox } from '../../lib/outbox.ts';
 import { Button, Tag } from '../../ui/kit.tsx';
+import { Disclosure } from '../../ui/patterns.tsx';
 
 export function OutboxPanel(): ReactNode {
   const t = useT(); const { lang } = useLang();
   const items = useOutbox();
   const pending = items.filter((i) => i.status === 'pending').length;
   return (
-    <div className="stack">
+    <Disclosure summary={`${t('outbox.title')}${items.length > 0 ? ` (${items.length})` : ''}`} open={items.length > 0}>
       {items.length === 0 ? <span className="small muted">{t('outbox.empty')}</span> : (
         <ul className="list">
           {items.map((i) => (
@@ -26,6 +27,6 @@ export function OutboxPanel(): ReactNode {
         </ul>
       )}
       <Button onClick={() => void outbox.flush()} disabled={pending === 0}>{t('outbox.syncNow')}</Button>
-    </div>
+    </Disclosure>
   );
 }

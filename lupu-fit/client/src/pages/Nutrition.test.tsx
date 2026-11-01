@@ -40,7 +40,7 @@ describe('Nutrition hub', () => {
     expect(screen.getByText('Oats')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Log food/ })).toHaveAttribute('href', '/nutrition/log?date=2026-05-01');
     expect(screen.getByRole('link', { name: /Add to Dinner/ })).toHaveAttribute('href', '/nutrition/log?slot=dinner&date=2026-05-01');
-    expect(screen.getByRole('link', { name: 'Daily menu' })).toHaveAttribute('href', '/nutrition/menu?date=2026-05-01');
+    expect(screen.getByRole('link', { name: /^Daily menu/ })).toHaveAttribute('href', '/nutrition/menu?date=2026-05-01');
     expect(await screen.findByText('Days logged')).toBeInTheDocument();
     expect(screen.getByText('2', { selector: '.num-lg' })).toBeInTheDocument();
     expect(screen.getByText('1,500', { selector: '.num-lg' })).toBeInTheDocument(); // avg of 2000 and 1000

@@ -94,6 +94,7 @@ function ReadyFlow({ profile }: { profile: NonNullable<ReturnType<typeof useProf
   const placeOptions = PLACES.map((p) => ({ value: p, label: t(`label.place.${p}`), hint: t(`workouts.ready.placeHint.${p}`), icon: p === 'gym' ? <IconGym /> : p === 'home' ? <IconHouse /> : <IconTree /> }));
   const modeOptions = MODES.map((m) => ({ value: m, label: t(`label.mode.${m}`), hint: t(`workouts.ready.modeHint.${m}`), icon: m === 'bodyweight' ? <IconBody /> : <IconKettle /> }));
 
+  const resetBtn = <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => { setEditing(null); setS(initial()); }}>{t('workouts.ready.reset')}</Button>;
   const stepTitle = (n: number, key: string): ReactNode => <h2 className="wk-step-title"><span className="wk-step-no num">{n}</span>{t(key)}</h2>;
 
   return (
@@ -102,11 +103,13 @@ function ReadyFlow({ profile }: { profile: NonNullable<ReturnType<typeof useProf
 
       {chips.length > 0 || step >= 4 ? (
         <div className="wk-summary" role="region" aria-label={t('workouts.ready.summaryLabel')}>
-          <div className="wk-sum-chips">{chips}</div>
-          <div className="wk-sum-foot">
-            {result ? <strong className="wk-sum-count" aria-live="polite"><span className="num">{result.ranked.length}</span> {t('workouts.ready.workoutsWord')}</strong> : <span />}
-            <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => { setEditing(null); setS(initial()); }}>{t('workouts.ready.reset')}</Button>
-          </div>
+          <div className="wk-sum-chips">{chips}{result ? null : resetBtn}</div>
+          {result ? (
+            <div className="wk-sum-foot">
+              <strong className="wk-sum-count" aria-live="polite"><span className="num">{result.ranked.length}</span> {t('workouts.ready.workoutsWord')}</strong>
+              {resetBtn}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

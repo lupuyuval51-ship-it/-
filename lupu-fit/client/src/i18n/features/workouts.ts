@@ -103,7 +103,7 @@ export default defineFeature({
       delete: 'Delete', deleteTitle: 'Delete this workout?', deleteWarn: 'This permanently deletes {name} with all its sets. It cannot be undone and your XP stays as awarded.', deleted: 'Workout deleted', cancel: 'Keep it', loadFailed: 'Could not load your history.',
     },
     summary: {
-      levelBar: 'Progress to level {level}', levelBarText: '{have} of {need} XP to level {next}', done: 'Done',
+      xpUnit: 'XP', levelBar: 'Progress to level {level}', levelBarText: '{have} of {need} XP to level {next}', done: 'Done',
       title: 'Workout summary', back: 'Back to history', notFound: 'This workout does not exist.', loadFailed: 'Could not load this workout.',
       duration: 'Duration', sets: 'Sets', volume: 'Volume', xp: 'XP', date: 'Date', exercises: 'Exercises', noSets: 'No sets were logged for this exercise.',
       colSet: 'Set', colReps: 'Reps', colWeight: 'Weight', colTime: 'Time', colRpe: 'RPE', finisherSection: 'Sport finisher: {sport}', finisherSectionNoSport: 'Sport finisher',
@@ -220,7 +220,7 @@ export default defineFeature({
       delete: 'מחיקה', deleteTitle: 'למחוק את האימון?', deleteWarn: 'פעולה זו מוחקת לצמיתות את {name} על כל הסטים שלו. אי אפשר לבטל, וה־XP שהוענק נשאר.', deleted: 'האימון נמחק', cancel: 'להשאיר', loadFailed: 'לא הצלחנו לטעון את ההיסטוריה.',
     },
     summary: {
-      levelBar: 'התקדמות לרמה {level}', levelBarText: '{have} מתוך {need} XP עד רמה {next}', done: 'סיום',
+      xpUnit: 'XP', levelBar: 'התקדמות לרמה {level}', levelBarText: '{have} מתוך {need} XP עד רמה {next}', done: 'סיום',
       title: 'סיכום אימון', back: 'חזרה להיסטוריה', notFound: 'האימון הזה לא קיים.', loadFailed: 'לא הצלחנו לטעון את האימון.',
       duration: 'משך', sets: 'סטים', volume: 'נפח', xp: 'ניסיון XP', date: 'תאריך', exercises: 'תרגילים', noSets: 'לא נרשמו סטים לתרגיל הזה.',
       colSet: 'סט', colReps: 'חזרות', colWeight: 'משקל', colTime: 'זמן', colRpe: 'RPE', finisherSection: 'סיומת ספורט — {sport}', finisherSectionNoSport: 'סיומת ספורט',

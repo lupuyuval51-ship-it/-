@@ -25,13 +25,14 @@ export function VideoPanel(): ReactNode {
 
   return (
     <div className="stack">
+      <h3 className="pf-sub">{t('profile.video.title')}</h3>
       <Toggle label={t('profile.video.wifiOnly')} checked={wifi} onChange={(v) => { videoPrefs.wifiOnly = v; setWifi(v); }} />
       <span className="small muted">{t('profile.video.wifiHint')}</span>
       {mb === undefined ? null : mb === null ? <span className="small muted" data-testid="no-sw">{t('profile.video.noSw')}</span> : (
         <>
           <div className="row-between"><span>{t('profile.video.cacheSize')}</span><span><span className="num">{fmt.num(mb, 1)}</span> {t('profile.video.mb')}</span></div>
           <Select label={t('profile.video.budget')} value={String(budget)} onChange={(e) => void changeBudget(Number(e.target.value))} options={BUDGETS_MB.map((b) => ({ value: String(b), label: `${b} ${t('profile.video.mb')}` }))} />
-          <Button onClick={() => void clear()} disabled={mb === 0}>{t('profile.video.clear')}</Button>
+          <Button className="pf-secondary" onClick={() => void clear()} disabled={mb === 0}>{t('profile.video.clear')}</Button>
         </>
       )}
     </div>

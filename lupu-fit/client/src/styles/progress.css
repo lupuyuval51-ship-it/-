@@ -17,7 +17,10 @@
 .chart-dot.muted-dot { fill: var(--text-muted); }
 .chart-dot.accent { fill: var(--tally-active); }
 .chart-xs { grid-column: 2; display: flex; justify-content: space-between; direction: ltr; }
-.chart-unit { text-align: end; }
+.chart-unit { direction: ltr; text-align: start; }
+.prog-link, .prog-link:hover { color: var(--text); }
+.prog-subs { gap: 0.25rem 0.75rem; }
+.weight-add .btn { inline-size: 100%; }
 .chart-empty { padding: 1rem; border: 1px dashed var(--border); border-radius: var(--radius); text-align: center; }
 .bars { display: flex; flex-direction: column; gap: 0.5rem; }
 .bar-row { display: grid; grid-template-columns: minmax(4.5rem, 6.5rem) 1fr 3.25rem; align-items: center; gap: 0.75rem; }
@@ -54,3 +57,4 @@
 .notif-icon { flex: none; display: inline-grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem; border-radius: var(--radius); border: 1px solid var(--border); }
 .notif-icon svg { inline-size: 1.25rem; block-size: 1.25rem; }
 .notif-dot { inline-size: 0.625rem; block-size: 0.625rem; border-radius: 50%; background: var(--tally-active); flex: none; }
+.list-link .chev svg { inline-size: 1.25rem; block-size: 1.25rem; display: block; }

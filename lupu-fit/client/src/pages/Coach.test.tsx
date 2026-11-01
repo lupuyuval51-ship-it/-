@@ -118,11 +118,13 @@ describe('Coach', () => {
   it('renames and deletes (with confirm) threads', async () => {
     renderWith(<Coach />, { route: '/coach' });
     const user = userEvent.setup();
+    await user.click(await screen.findByRole('button', { name: 'Chats' }));
     await user.click(await screen.findByRole('button', { name: 'Edit' }));
     const field = screen.getByLabelText('Chat name');
     await user.clear(field); await user.type(field, 'Renamed');
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' }));
     await waitFor(() => expect(h.calls.find((c) => c.m === 'PATCH')).toMatchObject({ p: '/api/coach/threads/t1', b: { title: 'Renamed' } }));
+    await user.click(screen.getByRole('button', { name: 'Chats' }));
     await user.click(screen.getByRole('button', { name: 'Delete chat Protein chat' }));
     expect(h.calls.some((c) => c.m === 'DELETE')).toBe(false);
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));

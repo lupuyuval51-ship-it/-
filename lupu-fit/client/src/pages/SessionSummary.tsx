@@ -55,7 +55,7 @@ function Celebration({ finish, finSport }: { finish: FinishResult; finSport: str
       <div className="wk-xp">
         <span className="num-hero" aria-hidden="true">+{shown}</span>
         <span className="sr-only">{t('workouts.summary.xpTotal', { n: finish.xpTotal })}</span>
-        <span className="wk-xp-unit muted">XP</span>
+        <span className="wk-xp-unit muted">{t('workouts.summary.xpUnit')}</span>
       </div>
       <div className="stack-sm">
         <strong>{finish.levelAfter > finish.levelBefore ? t('workouts.summary.levelUp', { from: finish.levelBefore, to: finish.levelAfter }) : t('workouts.summary.levelSame', { level: finish.levelAfter })}</strong>

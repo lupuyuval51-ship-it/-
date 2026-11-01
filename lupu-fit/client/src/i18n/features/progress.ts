@@ -9,7 +9,7 @@ export default defineFeature({
     kpi: { workouts: 'Workouts', sets: 'Sets', prs: 'New records', weight: 'Weight change' },
     chartAxis: 'Chart axis: {a} to {b}', showAll: 'Show all ({n})', prsRecent: 'New', prsReps: '{n} reps best', prsHold: '{n} s hold', unlocked: '{a} of {b} unlocked', lockedAria: 'Locked achievement', moreWeighIns: 'Earlier weigh-ins ({n})',
     range: 'Time range', date: 'Date', week: 'Week', workouts: 'Workouts', group: 'Muscle group',
-    consistency: { title: 'Consistency', sessions: '{n} workouts in this range', aria: '{done} workouts out of {total} planned in this range', none: 'No workouts logged in this range.', goal: 'Weekly goal: {n} workouts', weeks: 'Workouts per week', weeksAria: 'Bar chart of workouts per week' },
+    consistency: { title: 'Consistency', sessions: 'workouts in this range', aria: '{done} workouts out of {total} planned in this range', none: 'No workouts logged in this range.', goal: 'Weekly goal: {n} workouts', weeks: 'Workouts per week', weeksAria: 'Bar chart of workouts per week' },
     volume: { title: 'Sets per muscle group', hint: 'Counts every logged set by the main muscle group it trains.', aria: 'Bar chart of logged sets per muscle group' },
     strength: { title: 'Strength curves', hint: 'Estimated one-rep max per session, for exercises with at least two logged days.', minor: 'Strength estimates are not shown for users under 18.', aria: '{name}: estimated 1RM from {from} to {to} kg' },
     weight: {
@@ -50,7 +50,7 @@ export default defineFeature({
     kpi: { workouts: 'אימונים', sets: 'סטים', prs: 'שיאים חדשים', weight: 'שינוי משקל' },
     chartAxis: 'ציר התרשים: {a} עד {b}', showAll: 'להצגת הכול ({n})', prsRecent: 'חדש', prsReps: 'שיא {n} חזרות', prsHold: 'החזקה {n} שנ׳', unlocked: '{a} מתוך {b} נפתחו', lockedAria: 'הישג נעול', moreWeighIns: 'שקילות קודמות ({n})',
     range: 'טווח זמן', date: 'תאריך', week: 'שבוע', workouts: 'אימונים', group: 'קבוצת שרירים',
-    consistency: { title: 'עקביות', sessions: '{n} אימונים בטווח הזה', aria: '{done} אימונים מתוך {total} מתוכננים בטווח הזה', none: 'לא תועדו אימונים בטווח הזה.', goal: 'יעד שבועי: {n} אימונים', weeks: 'אימונים בכל שבוע', weeksAria: 'תרשים עמודות של אימונים לפי שבוע' },
+    consistency: { title: 'עקביות', sessions: 'אימונים בטווח הזה', aria: '{done} אימונים מתוך {total} מתוכננים בטווח הזה', none: 'לא תועדו אימונים בטווח הזה.', goal: 'יעד שבועי: {n} אימונים', weeks: 'אימונים בכל שבוע', weeksAria: 'תרשים עמודות של אימונים לפי שבוע' },
     volume: { title: 'סטים לפי קבוצת שרירים', hint: 'כל סט שתועד נספר לפי קבוצת השרירים הראשית שהוא מאמן.', aria: 'תרשים עמודות של סטים שתועדו לפי קבוצת שרירים' },
     strength: { title: 'עקומות כוח', hint: 'הערכת מקסימום חזרה אחת לכל אימון, לתרגילים עם לפחות שני ימי תיעוד.', minor: 'הערכות כוח לא מוצגות למתחת לגיל 18.', aria: '{name}: הערכת 1RM מ-{from} עד {to} ק״ג' },
     weight: {

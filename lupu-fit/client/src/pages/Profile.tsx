@@ -8,11 +8,13 @@ import { qk, useProfile, type ProfileResponse } from '../app/session.ts';
 import { AccountPanel } from '../components/profile/AccountPanel.tsx';
 import { BackupPanel } from '../components/profile/BackupPanel.tsx';
 import { OutboxPanel } from '../components/profile/OutboxPanel.tsx';
-import { ProfileForm, validateProfile } from '../components/profile/ProfileForm.tsx';
+import { BodyGoalsFields, PreferenceFields, validateProfile } from '../components/profile/ProfileForm.tsx';
 import { VideoPanel } from '../components/profile/VideoPanel.tsx';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import { setTheme } from '../lib/theme.ts';
-import { Banner, Card, EmptyState, ErrorState, errorMessage, Loading } from '../ui/kit.tsx';
+import { Banner, Button, Card, EmptyState, ErrorState, errorMessage } from '../ui/kit.tsx';
+import { IconChevron } from '../ui/icons.tsx';
+import { PageHeader, SkeletonList } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import '../styles/profile.css';
 
@@ -44,47 +46,52 @@ export default function Profile(): ReactNode {
     if (base) api.put<ProfileResponse>('/api/profile', { ...base, ...patch }).then((r) => qc.setQueryData(qk.profile, r)).catch((e) => toast(errorMessage(e, t), 'error'));
   };
 
-  if (q.isPending) return <Loading />;
+  if (q.isPending) return <SkeletonList rows={4} />;
   if (q.isError) return <ErrorState error={q.error} onRetry={() => void q.refetch()} />;
   if (!q.data || !form) return <EmptyState title={t('profile.needOnboarding')} action={<Link className="btn" to="/onboarding">{t('profile.redo')}</Link>} />;
   const tg = q.data.targets;
   const clamped = notes && notes.requested !== undefined && notes.requested !== notes.effective;
+  const dirty = JSON.stringify(form) !== JSON.stringify(q.data.profile);
+  const name = form.displayName?.trim();
 
   return (
-    <div className="stack profile-page">
-      <div className="row-between">
-        <h1>{t('profile.title')}</h1>
-        <Link className="btn" to="/onboarding">{t('profile.redo')}</Link>
-      </div>
+    <form className="stack profile-page" onSubmit={(e) => { e.preventDefault(); save(); }} noValidate>
+      <PageHeader title={t('profile.title')} subtitle={name || undefined} />
 
       {clamped ? <Banner tone="warn"><span data-testid="clamp-note">{t('profile.clamped', { asked: fmt.num(notes.requested!), got: fmt.num(notes.effective) })}</span></Banner> : null}
       {notes && notes.notes.length > 0 ? <Banner>{notes.notes.map((n) => t(`profile.note.${n}`)).join(' ')}</Banner> : null}
 
-      <Card className="stack">
+      <section className="card hero-card pf-targets" aria-label={t('profile.targets')}>
         <h2 className="section-title">{t('profile.targets')}</h2>
-        <div className="grid-3">
-          <div className="kpi"><span className="label">{t('profile.bmr')}</span><span className="num-lg">{fmt.num(tg.bmr)}</span></div>
-          <div className="kpi"><span className="label">{t('profile.tdee')}</span><span className="num-lg">{fmt.num(tg.tdee)}</span></div>
-          <div className="kpi"><span className="label">{t('profile.dailyKcal')}</span><span className="num-lg">{fmt.num(tg.kcal)}</span></div>
-          <div className="kpi"><span className="label">{t('nutrition.protein')}</span><span className="num-lg">{fmt.num(tg.proteinG)}</span></div>
-          <div className="kpi"><span className="label">{t('nutrition.carbs')}</span><span className="num-lg">{fmt.num(tg.carbsG)}</span></div>
-          <div className="kpi"><span className="label">{t('nutrition.fat')}</span><span className="num-lg">{fmt.num(tg.fatG)}</span></div>
+        <div className="pf-kcal"><span className="num-hero" data-testid="target-kcal">{fmt.num(tg.kcal)}</span><span className="muted small"> {t('unit.kcal')} / {t('profile.nu.day')}</span></div>
+        <div className="grid-3 pf-macros">
+          <div className="kpi"><span className="label">{t('nutrition.nu.protein')}</span><span className="num-lg">{fmt.num(tg.proteinG)}<small className="muted small"> {t('unit.g')}</small></span></div>
+          <div className="kpi"><span className="label">{t('nutrition.nu.carbs')}</span><span className="num-lg">{fmt.num(tg.carbsG)}<small className="muted small"> {t('unit.g')}</small></span></div>
+          <div className="kpi"><span className="label">{t('nutrition.nu.fat')}</span><span className="num-lg">{fmt.num(tg.fatG)}<small className="muted small"> {t('unit.g')}</small></span></div>
         </div>
+        <div className="row-wrap small muted pf-meta"><span>{t('profile.bmr')}: <span className="num">{fmt.num(tg.bmr)}</span></span><span>{t('profile.tdee')}: <span className="num">{fmt.num(tg.tdee)}</span></span></div>
         <span className="small muted">{t('profile.targetsNote')}</span>
+      </section>
+
+      <Card className="stack pf-section">
+        <h2 className="section-title">{t('profile.nu.body')}</h2>
+        <BodyGoalsFields value={form} onChange={setForm} errors={errors} />
+        <Link className="list-link pf-redo" to="/onboarding"><span className="grow"><strong>{t('profile.redo')}</strong><br /><span className="small muted">{t('profile.nu.redoHint')}</span></span><IconChevron className="chev" /></Link>
       </Card>
 
-      <Card className="stack">
-        <h2 className="section-title">{t('profile.details')}</h2>
-        <ProfileForm value={form} onChange={setForm} errors={errors} saving={put.isPending} onSave={save}
+      <Card className="stack pf-section">
+        <h2 className="section-title">{t('profile.nu.prefs')}</h2>
+        <PreferenceFields value={form} onChange={setForm} errors={errors}
           onLanguage={(l) => { setLang(l); persistPref({ language: l }); }}
           onTheme={(th) => { setTheme(th); persistPref({ theme: th }); }} />
       </Card>
 
-      <Card className="stack"><h2 className="section-title">{t('profile.video.title')}</h2><VideoPanel /></Card>
-      <Card className="stack"><h2 className="section-title">{t('outbox.title')}</h2><OutboxPanel /></Card>
-      <Card className="stack"><h2 className="section-title">{t('profile.backup.title')}</h2><BackupPanel /></Card>
-      <Card className="stack"><h2 className="section-title">{t('profile.account.title')}</h2><AccountPanel /></Card>
+      <div className={dirty ? 'sticky-cta' : undefined}><Button type="submit" variant="primary" block disabled={put.isPending || !dirty}>{put.isPending ? t('profile.saving') : dirty ? t('action.save') : t('profile.nu.saved')}</Button></div>
+
+      <Card className="stack pf-section"><h2 className="section-title">{t('profile.nu.storage')}</h2><VideoPanel /><OutboxPanel /></Card>
+      <Card className="stack pf-section"><h2 className="section-title">{t('profile.backup.title')}</h2><BackupPanel /></Card>
+      <Card className="stack pf-section"><h2 className="section-title">{t('profile.account.title')}</h2><AccountPanel /></Card>
       <p className="small muted">{t('disclaimer.health')}</p>
-    </div>
+    </form>
   );
 }

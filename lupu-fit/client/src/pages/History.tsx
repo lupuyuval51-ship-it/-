@@ -63,7 +63,7 @@ export default function History(): ReactNode {
                     <span><span className="num">{w.rows.length}</span> {t('workouts.history.workoutsWord')}</span>
                     <span><span className="num">{sets}</span> {t('workouts.history.setsWord')}</span>
                     {minutes > 0 ? <span><span className="num">{minutes}</span> {t('unit.min')}</span> : null}
-                    <span><span className="num">{xp}</span> XP</span>
+                    <span><span className="num">{xp}</span> {t('workouts.summary.xpUnit')}</span>
                   </div>
                 </div>
                 <Card className="wk-hist-card">

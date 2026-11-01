@@ -115,11 +115,14 @@ export function KpiStrip({ goal, sessions, today, targets }: { goal: number; ses
   return (
     <div className="stack-sm">
       <div className="grid-stats home-kpis">
-        <StatTile label={t('home.kpi.workouts')} value={<>{done}<small className="muted small"> / {goal}</small></>} {...(done >= goal ? { tone: 'success' as const } : {})} />
+        <div className="stat-tile">
+          <span className="tiny muted">{t('home.kpi.workouts')}</span>
+          <span className={done >= goal ? 'num-lg success' : 'num-lg'}>{done}<small className="muted small"> / {goal}</small></span>
+          <TallyMarks total={Math.max(goal, done)} done={done} label={t('home.week.aria', { done, total: goal })} />
+        </div>
         <StatTile label={t('home.kpi.kcal')} value={fmt.num(totals.kcal)} hint={t('home.kpi.of', { n: fmt.num(targets.kcal) })} {...(toneClass(upperTone(totals.kcal, targets.kcal)) ? { tone: toneClass(upperTone(totals.kcal, targets.kcal))! } : {})} />
         <StatTile label={t('home.kpi.protein')} value={fmt.num(totals.proteinG)} unit={t('unit.g')} hint={t('home.kpi.of', { n: fmt.num(targets.proteinG) })} {...(toneClass(proteinTone(totals.proteinG, targets.proteinG)) ? { tone: toneClass(proteinTone(totals.proteinG, targets.proteinG))! } : {})} />
       </div>
-      <TallyMarks total={Math.max(goal, done)} done={done} label={t('home.week.aria', { done, total: goal })} />
       <p className="small muted">{sessions === undefined ? t('app.loading') : done === 0 ? t('home.week.none') : done >= goal ? t('home.week.goalHit') : t('home.week.left', { n: goal - done })}</p>
     </div>
   );
@@ -191,7 +194,7 @@ export function NutritionCard({ today, targets, children }: { today: string; tar
             {empty ? <p className="small muted">{t('home.nutrition.none')}</p> : null}
             {rows.map((r) => (
               <div key={r.key} className="stack-sm">
-                <div className="row-between"><span className="small strong">{t(`home.nutrition.${r.key}`)}</span><span className="small"><span className="num">{fmt.num(r.value)}</span> / <span className="num">{fmt.num(r.target)}</span> {r.unit}</span></div>
+                <div className="row-between"><span className="small strong">{t(`home.nutrition.${r.key}`)}</span><span className="small"><span className="num">{fmt.num(r.value)} / {fmt.num(r.target)}</span> {r.unit}</span></div>
                 <ProgressBar value={r.value} max={r.target} label={t(`home.nutrition.${r.key}`)} {...(r.tone ? { tone: r.tone } : {})} />
               </div>
             ))}
@@ -245,8 +248,8 @@ export function QuickActions(): ReactNode {
     <Card>
       <h2>{t('home.quick.title')}</h2>
       <nav className="home-quick" aria-label={t('home.quick.title')}>
-        <Link className="list-link" to="/progress">{t('home.quick.weigh')}<span className="chev"><Chev /></span></Link>
-        <Link className="list-link" to="/coach">{t('home.quick.coach')}<span className="chev"><Chev /></span></Link>
+        <Link className="list-link" to="/progress">{t('home.quick.weigh')}<span className="chev"><IconChevron /></span></Link>
+        <Link className="list-link" to="/coach">{t('home.quick.coach')}<span className="chev"><IconChevron /></span></Link>
       </nav>
     </Card>
   );

@@ -38,9 +38,9 @@ describe('Profile basics', () => {
   it('shows the targets summary, run mode, version and links', async () => {
     view();
     expect(await screen.findByText('Daily targets')).toBeInTheDocument();
-    expect(screen.getByText('2,500', { selector: '.num-lg' })).toBeInTheDocument();
+    expect(screen.getByText('2,500', { selector: '.num-hero' })).toBeInTheDocument();
     expect(screen.getByText('Hosted account')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Redo the questionnaire' })).toHaveAttribute('href', '/onboarding');
+    expect(screen.getByRole('link', { name: /Redo the questionnaire/ })).toHaveAttribute('href', '/onboarding');
     expect(screen.getByRole('link', { name: 'Delete account' })).toHaveAttribute('href', '/account-deletion');
     expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
     expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
@@ -118,7 +118,7 @@ describe('Backup and restore', () => {
     const names: string[] = [];
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { names.push(this.download); });
     view();
-    await userEvent.setup().click(await screen.findByRole('button', { name: 'Export data' }));
+    await userEvent.setup().click(await screen.findByRole('button', { name: /^Export data/ }));
     await waitFor(() => expect(names).toEqual(['lupu-fit-export.json']));
     expect(h.calls.some((c) => c.p === '/api/export')).toBe(true);
   });

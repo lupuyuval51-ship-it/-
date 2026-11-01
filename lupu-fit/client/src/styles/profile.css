@@ -1,4 +1,16 @@
-/* Profile. */
+/* Profile: hero targets, grouped sections, list rows. Tokens + logical properties only. */
 .profile-page { min-inline-size: 0; }
 .profile-page .section-title { font-size: var(--fs-18); }
 .profile-page .btn { text-decoration: none; }
+.profile-page .pf-kcal { display: flex; align-items: baseline; gap: 0.25rem; }
+.profile-page .pf-targets { display: flex; flex-direction: column; gap: 0.75rem; }
+.profile-page .pf-macros .kpi { padding: 0.5rem 0.75rem; background: var(--surface-2); border-radius: var(--radius); }
+.profile-page .pf-meta { gap: 0.25rem 1rem; }
+.profile-page .pf-section > .section-title { padding-block-end: 0.5rem; border-block-end: 1px solid var(--border); }
+.profile-page .pf-row { padding-block: 0.625rem; border-block-end: 1px solid var(--border); }
+.profile-page .pf-rowbtn { inline-size: 100%; background: transparent; border-inline: 0; border-block-start: 0; color: var(--text); font: inherit; text-align: start; }
+.profile-page .pf-redo { border-block-start: 1px solid var(--border); border-block-end: 0; }
+.profile-page .list-link .chev { inline-size: 1.25rem; block-size: 1.25rem; flex: none; }
+.profile-page .pf-sub { font-size: var(--fs-16); }
+.profile-page .pf-danger { margin-block-start: 0.5rem; padding: 0.75rem; border: 1px solid var(--danger); border-radius: var(--radius); }
+.profile-page .pf-danger h3 { font-size: var(--fs-16); color: var(--danger); }

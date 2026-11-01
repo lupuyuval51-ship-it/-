@@ -122,10 +122,10 @@ export default function ReadyDetail(): ReactNode {
     <div className="stack">
       <Link to="/workouts?tab=ready" className="wk-back"><IconChevron className="flip-rtl-back" />{t('workouts.detail.back')}</Link>
 
-      <section className="card hero-card stack">
+      <section className="card hero-card wk-hero stack">
         <div className="wk-tags"><Tag>{t(`label.focus.${workout.focus}`)}</Tag><Tag>{t(`label.difficulty.${workout.level}`)}</Tag><Tag>{t(`label.style.${workout.style}`)}</Tag></div>
         <h1>{name}</h1>
-        <div className="grid-stats">
+        <div className="grid-stats wk-hero-stats">
           <StatTile label={t('workouts.detail.statTime')} value={<span className="num">{totalMin}</span>} unit={t('unit.min')} hint={finisherMinutes > 0 ? t('workouts.detail.statFinisher', { n: finisherMinutes }) : t('workouts.detail.estimate')} />
           <StatTile label={t('workouts.detail.exercises')} value={<span className="num">{personal.items.length}</span>} />
           <StatTile label={t('workouts.detail.statSets')} value={<span className="num">{totalSets}</span>} />

@@ -2,6 +2,7 @@ import { ACTIVITY_LEVELS, ALLERGENS, DIET_TYPES, DIETARY_RESTRICTIONS, DIFFICULT
 import { useEffect, useState, type ReactNode } from 'react';
 import { fmt, useT } from '../../i18n/index.tsx';
 import { Button, ChipGroup, Segmented, Select, TextInput } from '../../ui/kit.tsx';
+import { Disclosure } from '../../ui/patterns.tsx';
 
 const toggle = <T,>(arr: readonly T[], v: T): T[] => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 const opts = <T extends string>(vals: readonly T[], t: (k: string) => string, ns: string) => vals.map((v) => ({ value: v, label: t(`label.${ns}.${v}`) }));
@@ -27,21 +28,18 @@ function NumField({ label, value, onChange, error, suffix, optional }: { label: 
   );
 }
 
-export function ProfileForm({ value, onChange, onLanguage, onTheme, onSave, saving, errors }: {
-  value: ProfileInput; onChange: (p: ProfileInput) => void; onLanguage: (l: 'he' | 'en') => void; onTheme: (th: 'dark' | 'light' | 'system') => void;
-  onSave: () => void; saving: boolean; errors: string[];
-}): ReactNode {
+interface FormProps { value: ProfileInput; onChange: (p: ProfileInput) => void; errors: string[] }
+const useSet = (value: ProfileInput, onChange: (p: ProfileInput) => void) => <K extends keyof ProfileInput>(k: K, v: ProfileInput[K]) => onChange({ ...value, [k]: v });
+
+/** Section "Body and goals": measurements, goal and training setup; food-related safety fields stay visible, the rest is one tap away. */
+export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNode {
   const t = useT();
-  const set = <K extends keyof ProfileInput>(k: K, v: ProfileInput[K]) => onChange({ ...value, [k]: v });
+  const set = useSet(value, onChange);
   const err = (k: string) => (errors.includes(k) ? t('state.invalid') : undefined);
   const lb = Math.round(value.weightKg * 2.20462 * 10) / 10;
   const totalIn = Math.round(value.heightCm / 2.54);
   return (
-    <form className="stack" onSubmit={(e) => { e.preventDefault(); onSave(); }} noValidate>
-      <TextInput label={t('profile.f.displayName')} value={value.displayName ?? ''} maxLength={60} onChange={(e) => set('displayName', e.target.value)} error={err('displayName')} />
-      <Segmented label={t('profile.f.language')} value={value.language} onChange={onLanguage} options={[{ value: 'he', label: t('profile.lang.he') }, { value: 'en', label: t('profile.lang.en') }]} />
-      <Segmented label={t('profile.f.theme')} value={value.theme} onChange={onTheme} options={[{ value: 'dark', label: t('profile.theme.dark') }, { value: 'light', label: t('profile.theme.light') }, { value: 'system', label: t('profile.theme.system') }]} />
-      <Segmented label={t('profile.f.units')} value={value.units} onChange={(v) => set('units', v)} options={[{ value: 'metric', label: t('profile.units.metric') }, { value: 'imperial', label: t('profile.units.imperial') }]} />
+    <div className="stack">
       <Select label={t('profile.f.sex')} value={value.sex} onChange={(e) => set('sex', e.target.value as ProfileInput['sex'])} options={opts(SEXES, t, 'sex')} />
       <div className="grid-3">
         <NumField label={t('profile.f.age')} value={value.age} onChange={(n) => set('age', n as number)} error={err('age')} />
@@ -57,17 +55,33 @@ export function ProfileForm({ value, onChange, onLanguage, onTheme, onSave, savi
         <NumField label={t('profile.f.minutes')} suffix={t('unit.min')} value={value.sessionMinutes} onChange={(n) => set('sessionMinutes', n as number)} error={err('sessionMinutes')} />
       </div>
       <Select label={t('profile.f.activity')} value={value.activityLevel} onChange={(e) => set('activityLevel', e.target.value as ProfileInput['activityLevel'])} options={opts(ACTIVITY_LEVELS, t, 'activity')} />
-      <ChipGroup label={t('profile.f.equipment')} options={opts(EQUIPMENT, t, 'equipment')} selected={value.equipment} onToggle={(v) => set('equipment', toggle(value.equipment, v))} />
-      <ChipGroup label={t('profile.f.injuries')} options={opts(INJURY_AREAS, t, 'injury')} selected={value.injuries} onToggle={(v) => set('injuries', toggle(value.injuries, v))} />
       <Select label={t('profile.f.diet')} value={value.diet} onChange={(e) => set('diet', e.target.value as ProfileInput['diet'])} options={opts(DIET_TYPES, t, 'diet')} />
       <ChipGroup label={t('profile.f.allergies')} options={opts(ALLERGENS, t, 'allergen')} selected={value.allergies} onToggle={(v) => set('allergies', toggle(value.allergies, v))} />
-      <ChipGroup label={t('profile.f.restrictions')} options={opts(DIETARY_RESTRICTIONS, t, 'restriction')} selected={value.restrictions} onToggle={(v) => set('restrictions', toggle(value.restrictions, v))} />
-      <div className="stack-sm">
+      <Disclosure summary={t('profile.nu.moreSetup')}>
+        <ChipGroup label={t('profile.f.equipment')} options={opts(EQUIPMENT, t, 'equipment')} selected={value.equipment} onToggle={(v) => set('equipment', toggle(value.equipment, v))} />
+        <ChipGroup label={t('profile.f.injuries')} options={opts(INJURY_AREAS, t, 'injury')} selected={value.injuries} onToggle={(v) => set('injuries', toggle(value.injuries, v))} />
+        <ChipGroup label={t('profile.f.restrictions')} options={opts(DIETARY_RESTRICTIONS, t, 'restriction')} selected={value.restrictions} onToggle={(v) => set('restrictions', toggle(value.restrictions, v))} />
+      </Disclosure>
+      <Disclosure summary={t('profile.nu.advancedKcal')}>
         <NumField optional label={t('profile.f.customKcal')} suffix={t('unit.kcal')} value={value.customKcal} onChange={(n) => set('customKcal', n)} error={err('customKcal')} />
         <span className="small muted">{t('profile.customKcalHint')}</span>
         {value.customKcal !== undefined ? <Button size="sm" variant="ghost" onClick={() => set('customKcal', undefined)}>{t('profile.clearCustomKcal')}</Button> : null}
-      </div>
-      <Button type="submit" variant="primary" disabled={saving}>{saving ? t('profile.saving') : t('action.save')}</Button>
-    </form>
+      </Disclosure>
+    </div>
+  );
+}
+
+/** Section "Preferences": language and theme apply at once; name and units are saved with the page Save button. */
+export function PreferenceFields({ value, onChange, onLanguage, onTheme, errors }: FormProps & { onLanguage: (l: 'he' | 'en') => void; onTheme: (th: 'dark' | 'light' | 'system') => void }): ReactNode {
+  const t = useT();
+  const set = useSet(value, onChange);
+  return (
+    <div className="stack">
+      <Segmented label={t('profile.f.language')} value={value.language} onChange={onLanguage} options={[{ value: 'he', label: t('profile.lang.he') }, { value: 'en', label: t('profile.lang.en') }]} />
+      <Segmented label={t('profile.f.theme')} value={value.theme} onChange={onTheme} options={[{ value: 'dark', label: t('profile.theme.dark') }, { value: 'light', label: t('profile.theme.light') }, { value: 'system', label: t('profile.theme.system') }]} />
+      <span className="small muted">{t('profile.nu.instantHint')}</span>
+      <Segmented label={t('profile.f.units')} value={value.units} onChange={(v) => set('units', v)} options={[{ value: 'metric', label: t('profile.units.metric') }, { value: 'imperial', label: t('profile.units.imperial') }]} />
+      <TextInput label={t('profile.f.displayName')} value={value.displayName ?? ''} maxLength={60} onChange={(e) => set('displayName', e.target.value)} error={errors.includes('displayName') ? t('state.invalid') : undefined} />
+    </div>
   );
 }

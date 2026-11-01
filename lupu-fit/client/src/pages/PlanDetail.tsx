@@ -11,7 +11,7 @@ import {
   type ExerciseHistory, type ProgressionChange,
 } from '../lib/workoutCompose.ts';
 import { Banner, Button, Card, EmptyState, ErrorState, IconButton, Tag, errorMessage } from '../ui/kit.tsx';
-import { SkeletonList, StickyAction } from '../ui/patterns.tsx';
+import { Disclosure, SkeletonList, StickyAction } from '../ui/patterns.tsx';
 import { IconCheck, IconChevron, IconTrash } from '../ui/icons.tsx';
 import { useToast } from '../ui/toast.tsx';
 import { ExerciseLine, PrescriptionLine } from '../components/workouts/ExerciseLine.tsx';
@@ -154,18 +154,17 @@ export default function PlanDetail(): ReactNode {
             <ul className="wk-ex-list">
               {day.exercises.map((e, i) => (
                 <li key={`${e.exerciseId}-${i}`} className="wk-li-reorder">
-                  <ExerciseLine exerciseId={e.exerciseId} index={i + 1} actions={(
-                    <div className="wk-ex-tools">
-                      <Button size="sm" variant="ghost" className="wk-neutral" disabled={!ctx} onClick={() => setSwap(i)}>{t('workouts.plan.swap')}</Button>
-                      <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => setEdit(i)}>{t('workouts.plan.edit')}</Button>
-                      <IconButton label={`${t('workouts.plan.remove')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={day.exercises.length <= 1} title={day.exercises.length <= 1 ? t('workouts.plan.removeLast') : t('workouts.plan.remove')} onClick={() => edit1((p) => removeExercise(p, di, i))}><IconTrash /></IconButton>
-                    </div>
-                  )}>
+                  <ExerciseLine exerciseId={e.exerciseId} index={i + 1}>
                     <PrescriptionLine p={e.prescription} />
                   </ExerciseLine>
                   <div className="wk-reorder">
                     <IconButton label={`${t('workouts.plan.moveUp')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={i === 0} onClick={() => edit1((p) => moveExercise(p, di, i, i - 1))}><IconChevron className="rot-up" /></IconButton>
                     <IconButton label={`${t('workouts.plan.moveDown')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={i === day.exercises.length - 1} onClick={() => edit1((p) => moveExercise(p, di, i, i + 1))}><IconChevron className="rot-down" /></IconButton>
+                  </div>
+                  <div className="wk-ex-tools wk-tools-row">
+                    <Button size="sm" variant="ghost" className="wk-neutral" disabled={!ctx} onClick={() => setSwap(i)}>{t('workouts.plan.swap')}</Button>
+                    <Button size="sm" variant="ghost" className="wk-neutral" onClick={() => setEdit(i)}>{t('workouts.plan.edit')}</Button>
+                    <IconButton label={`${t('workouts.plan.remove')}: ${nameOfExercise(e.exerciseId, lang)}`} disabled={day.exercises.length <= 1} title={day.exercises.length <= 1 ? t('workouts.plan.removeLast') : t('workouts.plan.remove')} onClick={() => edit1((p) => removeExercise(p, di, i))}><IconTrash /></IconButton>
                   </div>
                 </li>
               ))}
@@ -176,7 +175,7 @@ export default function PlanDetail(): ReactNode {
       </Card>
 
       {conflict ? <Banner tone="warn">{t('workouts.detail.inProgress')} <Link to="/workouts/session">{t('workouts.detail.resume')}</Link></Banner> : null}
-      <PlanNotes notes={plan.notes} />
+      {plan.notes.length > 0 ? <Disclosure summary={t('workouts.plan.notes')}><PlanNotes notes={plan.notes} /></Disclosure> : null}
 
       <StickyAction>
         <div className="stack-sm">

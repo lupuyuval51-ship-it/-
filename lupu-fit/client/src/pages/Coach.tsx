@@ -5,10 +5,24 @@ import { api, ApiRequestError } from '../api/client.ts';
 import { Message } from '../components/coach/Message.tsx';
 import { ck, type CoachStatus, type ThreadDetail, type ThreadRow } from '../components/coach/types.ts';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
-import { Banner, Button, Card, EmptyState, ErrorState, errorMessage, IconButton, Loading, Sheet, TextArea, TextInput } from '../ui/kit.tsx';
-import { IconPlus, IconTrash } from '../ui/icons.tsx';
+import { Banner, Button, ErrorState, errorMessage, IconButton, Sheet, TextArea, TextInput } from '../ui/kit.tsx';
+import { IconChat, IconPlus, IconTrash, IconWarn } from '../ui/icons.tsx';
+import { SkeletonList } from '../ui/patterns.tsx';
 import { useToast } from '../ui/toast.tsx';
 import '../styles/coach.css';
+
+/** True from the two-pane breakpoint up. jsdom / SSR default to the phone layout. */
+function useWide(): boolean {
+  const q = '(min-width: 48rem)';
+  const [w, setW] = useState(() => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(q).matches : false));
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const m = window.matchMedia(q); const f = () => setW(m.matches);
+    m.addEventListener('change', f); f();
+    return () => m.removeEventListener('change', f);
+  }, []);
+  return w;
+}
 
 const PROMPT_KEYS = ['workout', 'protein', 'weight', 'recovery'] as const;
 interface Quota { window: 'minute' | 'day'; retry: number | null }
@@ -17,7 +31,7 @@ export default function Coach(): ReactNode {
   const t = useT(); const { lang } = useLang(); const toast = useToast(); const qc = useQueryClient();
   const [sp, setSp] = useSearchParams();
   const threadId = sp.get('thread');
-  const selectThread = (id: string | null) => setSp(id ? { thread: id } : {}, { replace: true });
+  const selectThread = (id: string | null) => { setSp(id ? { thread: id } : {}, { replace: true }); setListOpen(false); };
 
   const status = useQuery({ queryKey: ck.status, queryFn: () => api.get<CoachStatus>('/api/coach/status'), staleTime: 60_000 });
   const threads = useQuery({ queryKey: ck.threads, queryFn: async () => (await api.get<{ threads: ThreadRow[] }>('/api/coach/threads')).threads });
@@ -31,6 +45,8 @@ export default function Coach(): ReactNode {
   const [renameText, setRenameText] = useState('');
   const [deleting, setDeleting] = useState<ThreadRow | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const wide = useWide();
+  const [listOpen, setListOpen] = useState(false);
 
   const messages = detail.data?.messages ?? [];
   useEffect(() => { const el = scroller.current; if (el) el.scrollTop = el.scrollHeight; }, [messages.length, pending]);
@@ -74,63 +90,77 @@ export default function Coach(): ReactNode {
 
   const providerText = status.data ? (status.data.provider === 'rules' ? t('coach.provider.rules') : t('coach.provider.aiNamed', { name: status.data.provider })) : null;
   const list = threads.data ?? [];
+  const empty = (!threadId || (detail.isSuccess && messages.length === 0)) && pending === null;
+  const newChat = () => createThread.mutate(undefined, { onSuccess: (r) => selectThread(r.id), onError: (e) => toast(errorMessage(e, t), 'error') });
+
+  const threadList = (
+    <div className="stack-sm coach-threads-inner">
+      <Button block onClick={newChat} disabled={createThread.isPending}><IconPlus aria-hidden="true" /> {t('coach.newChat')}</Button>
+      {threads.isPending ? <SkeletonList rows={3} /> : threads.isError ? <ErrorState error={threads.error} onRetry={() => void threads.refetch()} /> : list.length === 0 ? <span className="small muted">{t('coach.noThreads')}</span> : (
+        <ul className="list thread-list">
+          {list.map((th) => (
+            <li key={th.id} className={th.id === threadId ? 'active' : undefined}>
+              <button type="button" className="thread-btn grow start" aria-current={th.id === threadId ? 'true' : undefined} onClick={() => selectThread(th.id)}><strong>{th.title}</strong><br /><span className="small muted">{fmt.date(th.updatedAt, lang)}</span></button>
+              <Button size="sm" variant="ghost" className="nu-muted-btn" onClick={() => { setListOpen(false); setRenaming(th); setRenameText(th.title); }}>{t('action.edit')}</Button>
+              <IconButton label={t('coach.deleteThread', { name: th.title })} onClick={() => { setListOpen(false); setDeleting(th); }}><IconTrash /></IconButton>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 
   return (
-    <div className={`coach ${threadId ? 'has-thread' : ''}`}>
-      <aside className="coach-threads stack-sm" aria-label={t('coach.threads')}>
-        <div className="row-between">
-          <h1>{t('coach.title')}</h1>
-          <IconButton label={t('coach.newChat')} onClick={() => createThread.mutate(undefined, { onSuccess: (r) => selectThread(r.id), onError: (e) => toast(errorMessage(e, t), 'error') })} disabled={createThread.isPending}><IconPlus /></IconButton>
-        </div>
-        {threads.isPending ? <Loading /> : threads.isError ? <ErrorState error={threads.error} onRetry={() => void threads.refetch()} /> : list.length === 0 ? <span className="small muted">{t('coach.noThreads')}</span> : (
-          <ul className="list thread-list">
-            {list.map((th) => (
-              <li key={th.id} className={th.id === threadId ? 'active' : undefined}>
-                <button type="button" className="thread-btn grow start" aria-current={th.id === threadId ? 'true' : undefined} onClick={() => selectThread(th.id)}><strong>{th.title}</strong><br /><span className="small muted">{fmt.date(th.updatedAt, lang)}</span></button>
-                <Button size="sm" variant="ghost" onClick={() => { setRenaming(th); setRenameText(th.title); }}>{t('action.edit')}</Button>
-                <IconButton label={t('coach.deleteThread', { name: th.title })} onClick={() => setDeleting(th)}><IconTrash /></IconButton>
-              </li>
-            ))}
-          </ul>
-        )}
-      </aside>
+    <div className="coach">
+      {wide ? <aside className="coach-threads" aria-label={t('coach.threads')}>{threadList}</aside> : null}
 
-      <section className="coach-chat stack" aria-label={t('coach.chat')}>
-        <div className="row-between">
-          <Button size="sm" variant="ghost" className="back-to-list" onClick={() => selectThread(null)}>{t('coach.backToList')}</Button>
-          {providerText ? <span className="tag" data-testid="provider-label">{providerText}</span> : null}
-        </div>
+      <section className="coach-chat" aria-label={t('coach.chat')}>
+        <header className="coach-head">
+          <div className="grow" style={{ minInlineSize: 0 }}>
+            <h1>{t('coach.title')}</h1>
+            {providerText ? <span className="tag" data-testid="provider-label">{providerText}</span> : null}
+          </div>
+          {!wide ? <Button size="sm" onClick={() => setListOpen(true)} aria-haspopup="dialog"><IconChat aria-hidden="true" /> {t('coach.chats')}</Button> : null}
+          {!wide ? <IconButton label={t('coach.newChat')} onClick={newChat} disabled={createThread.isPending}><IconPlus /></IconButton> : null}
+        </header>
         {status.data?.freeTierNotice ? <Banner tone="warn">{t('coach.freeTier')}</Banner> : null}
-        <p className="small muted">{t('disclaimer.health')}</p>
 
         <div className="chat-scroll" ref={scroller} role="log" aria-live="polite" aria-label={t('coach.messages')}>
-          {threadId && detail.isPending ? <Loading /> : null}
+          <p className="tiny muted coach-disclaimer">{t('disclaimer.health')}</p>
+          {threadId && detail.isPending ? <SkeletonList rows={2} /> : null}
           {threadId && detail.isError ? <ErrorState error={detail.error} onRetry={() => void detail.refetch()} /> : null}
-          {(!threadId || (detail.isSuccess && messages.length === 0)) && pending === null ? (
-            <Card className="stack">
-              <EmptyState title={t('coach.emptyTitle')} hint={t('coach.emptyHint')} />
-              <div className="stack-sm" role="group" aria-label={t('coach.suggested')}>
-                {PROMPT_KEYS.map((k) => <Button key={k} className="start" onClick={() => void send(t(`coach.prompts.${k}`))} disabled={pending !== null || createThread.isPending}>{t(`coach.prompts.${k}`)}</Button>)}
-              </div>
-            </Card>
+          {empty ? (
+            <div className="coach-empty">
+              <IconChat aria-hidden="true" />
+              <strong>{t('coach.emptyTitle')}</strong>
+              <span className="small muted">{t('coach.emptyHint')}</span>
+            </div>
           ) : null}
           {messages.map((m) => <Message key={m.id} m={m} onCopy={(x) => void copy(x)} />)}
           {pending !== null ? (
             <>
               <div className="msg msg-user" data-testid="message-pending">{pending}</div>
-              <div className="msg msg-assistant" role="status" aria-label={t('coach.thinking')}><span className="muted">{t('coach.thinking')}</span></div>
+              <div className="msg msg-assistant msg-typing" role="status" aria-label={t('coach.thinking')}><span className="dots" aria-hidden="true"><i /><i /><i /></span><span className="small muted">{t('coach.thinking')}</span></div>
             </>
           ) : null}
         </div>
 
-        {quota ? <Banner tone="warn">{quota.window === 'day' ? t('coach.quota.day') : t('coach.quota.minute', { s: quota.retry ?? 30 })}</Banner> : null}
-        {sendErr ? <ErrorState error={sendErr} /> : null}
-        <form className="composer stack-sm" onSubmit={(e) => { e.preventDefault(); void send(draft); }}>
-          <TextArea label={t('coach.inputLabel')} hint={t('coach.inputHint')} value={draft} maxLength={2000} rows={3} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} />
-          <Button type="submit" variant="primary" disabled={draft.trim() === '' || pending !== null}>{t('coach.send')}</Button>
-        </form>
+        <div className="composer-wrap">
+          {quota ? (
+            <div className="banner warn coach-quota" role="status"><IconWarn aria-hidden="true" /><div className="grow"><strong>{quota.window === 'day' ? t('coach.quotaDayTitle') : t('coach.quotaTitle')}</strong><br />{quota.window === 'day' ? t('coach.quota.day') : t('coach.quota.minute', { s: quota.retry ?? 30 })} {t('coach.draftKept')}</div></div>
+          ) : null}
+          {sendErr ? <ErrorState error={sendErr} /> : null}
+          <div className="prompt-chips" role="group" aria-label={t('coach.suggested')}>
+            {PROMPT_KEYS.map((k) => <button type="button" key={k} className="chip" onClick={() => void send(t(`coach.prompts.${k}`))} disabled={pending !== null || createThread.isPending}>{t(`coach.prompts.${k}`)}</button>)}
+          </div>
+          <form className="composer" onSubmit={(e) => { e.preventDefault(); void send(draft); }}>
+            <TextArea label={t('coach.inputLabel')} hint={t('coach.inputHint')} placeholder={t('coach.composerHint')} value={draft} maxLength={2000} rows={1} onChange={(e) => setDraft(e.target.value)} onKeyDown={onKey} />
+            <Button type="submit" variant="primary" disabled={draft.trim() === '' || pending !== null}>{t('coach.send')}</Button>
+          </form>
+        </div>
       </section>
 
+      <Sheet open={!wide && listOpen} onClose={() => setListOpen(false)} title={t('coach.threads')}>{threadList}</Sheet>
       <Sheet open={!!renaming} onClose={() => setRenaming(null)} title={t('coach.renameTitle')}>
         <TextInput label={t('coach.renameLabel')} value={renameText} maxLength={120} onChange={(e) => setRenameText(e.target.value)} />
         <Button disabled={renameText.trim() === '' || rename.isPending} onClick={() => renaming && rename.mutate({ id: renaming.id, title: renameText.trim() })}>{t('action.save')}</Button>
