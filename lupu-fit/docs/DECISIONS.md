@@ -100,3 +100,13 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 
 ## D17 — Configurable Gemini model chain
 `GEMINI_MODELS="model-a,model-b"` (server env, first = preferred, falls back on 429/503) overrides the default `gemma-4-31b-it, gemma-4-26b-a4b-it, gemini-2.5-flash, gemini-2.5-flash-lite` (Gemma 4 IDs per ai.google.dev/gemma/docs/core/gemma_on_gemini_api; JSON mode is not documented for Gemma, so responseMimeType is dropped for gemma-* and output is validated server-side). The API key stays in `GEMINI_API_KEY` (server env only, never in the repo or client). Verify any new model supports `systemInstruction` and JSON mode on the Gemini API before using it for translation/coach; the code does not check that.
+
+
+## D18 - Optional on-device Gemma 4 (LiteRT-LM), cloud stays default
+- **Why LiteRT-LM**: it is the documented runtime for Gemma 4 `.litertlm` files with a stable Kotlin Android API on Google Maven (`litertlm-android:0.19.0`, minSdk 24, arm64-v8a + x86_64). The model card calls the MediaPipe route maintenance-mode; AICore/Gemini Nano is device-dependent and not version-pinnable (a possible future provider).
+- **Not bundled**: the model (2,588,147,712 bytes) is downloaded after install on explicit user action, resumable, SHA-256 verified before it is marked installed. The default source is the public, non-gated `litert-community/gemma-4-E2B-it-litert-lm` file pinned to a commit; `VITE_LOCAL_MODEL_URL/SHA256/SIZE` override it. No credential exists in the repo or app.
+- **Placement**: a decorator at the `AiProvider` seam inside the Device Mode worker (`LocalFirstAiProvider`), bridged to the native plugin through the main thread. All routes keep their own safety shield, quotas, anonymised snapshot, minors caps and rules fallback; the local path cannot bypass them. Deviation: `main.tsx` gets one call (`attachLocalAiBridge`) and `deviceWorker.ts` builds `deps.ai` through a getter so AI stays "unconfigured" (rules coach / 503 translate) unless a proxy exists or local is selected.
+- **Policy**: Auto (local only if installed and the user downloaded it, cloud fallback), Cloud only, On-device only (never contacts the cloud; failure ends in the rules coach). 30 s first-token budget, 150-word clamp, hard token caps (coach 320, translate 1024).
+- **CPU only, arm64 only, ~6 GB RAM**: GPU is skipped because a native driver crash cannot be caught; supported=false carries a human reason.
+- **Packaging**: Kotlin Gradle plugin added for the plugin; ABIs not filtered (Play splits per ABI); `ACCESS_NETWORK_STATE` added for Wi-Fi-only; no foreground service.
+- **Unverified on a device** (see docs/ANDROID.md).

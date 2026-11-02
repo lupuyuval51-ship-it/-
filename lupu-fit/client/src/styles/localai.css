@@ -1,0 +1,6 @@
+/* Profile > AI card. Tokens + logical properties only. */
+.localai .la-status { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding-block: 0.5rem; border-block-end: 1px solid var(--border); }
+.localai .la-bar { padding-block: 0.25rem; }
+.localai .la-notes { margin: 0; padding-inline-start: 1.25rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.localai .la-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.localai .la-license { display: inline-flex; align-items: center; min-block-size: var(--tap); color: var(--primary-text); }

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createDeviceTransport } from './api/client.ts';
 import { App } from './app/App.tsx';
 import { IS_DEVICE } from './env.ts';
+import { attachLocalAiBridge } from './ai/local/bridge.ts';
 import { LangProvider, useT } from './i18n/index.tsx';
 import { applyTheme, getTheme } from './lib/theme.ts';
 import './styles/tokens.css';
@@ -26,6 +27,7 @@ function start(): void {
   if (IS_DEVICE) {
     const worker = new Worker(new URL('./device/deviceWorker.ts', import.meta.url), { type: 'module' });
     const tr = createDeviceTransport(worker);
+    attachLocalAiBridge(worker); // optional on-device AI (Android app only); a no-op on the stub
     tr.ready.catch((e: Error) => root.render(<LangProvider><Fatal message={e.message} /></LangProvider>));
   }
   root.render(<StrictMode><App /></StrictMode>);

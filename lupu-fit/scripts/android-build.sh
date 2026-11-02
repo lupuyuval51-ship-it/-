@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # One-command Android release build: device web build -> icons -> cap sync -> signed bundleRelease -> store-assets/LUPU-FIT-<ver>.aab
-# Usage: scripts/android-build.sh [--debug-apk]   (env: VITE_AI_PROXY_URL baked into the web build if set)
+# Usage: scripts/android-build.sh [--debug-apk]   (env baked into the web build if set: VITE_AI_PROXY_URL; optional on-device model override:
+#   VITE_LOCAL_MODEL_URL + VITE_LOCAL_MODEL_SHA256 + VITE_LOCAL_MODEL_SIZE [+ VITE_LOCAL_MODEL_ID]; defaults to the public Gemma 4 E2B file, see docs/ANDROID.md)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"

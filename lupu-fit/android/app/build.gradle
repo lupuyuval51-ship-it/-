@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 // Release signing: reads android/keystore/keystore.properties (git-ignored). Absent => release AAB is unsigned.
 def keystorePropsFile = rootProject.file('keystore/keystore.properties')
@@ -12,8 +13,8 @@ android {
         applicationId "app.lupufit"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 2
+        versionName "0.2.0"
         resourceConfigurations += ["en", "iw", "he"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -22,6 +23,11 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    kotlinOptions { jvmTarget = '21' }
     signingConfigs {
         if (keystorePropsFile.exists()) {
             release {
@@ -53,6 +59,8 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    // On-device Gemma (optional download, never bundled). Pure Kotlin API + arm64-v8a/x86_64 JNI libs (~49 MB uncompressed).
+    implementation 'com.google.ai.edge.litertlm:litertlm-android:0.19.0'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"

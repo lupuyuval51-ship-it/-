@@ -12,6 +12,9 @@ import { PgliteAdapter } from '../../../server/src/db/pgliteAdapter.ts';
 import { extraRoutes } from '../../../server/src/routes/index.ts';
 import type { ApiApp } from '../../../server/src/core/app.ts';
 import type { TransportRequest, TransportResponse } from '../api/transport.ts';
+import { LocalFirstAiProvider } from '../ai/local/workerProvider.ts';
+import type { BridgeRes, BridgeState } from '../ai/local/bridge.ts';
+import type { Deps } from '../../../server/src/core/types.ts';
 import { ProxyAiProvider } from './proxyAi.ts';
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
@@ -28,6 +31,9 @@ export function makeGuardedFetch(aiProxy: string | undefined, base: typeof fetch
 }
 
 let app: ApiApp;
+/** On-device AI bridge (optional): decides local vs the proxy; routes keep their own safety shield. See src/ai/local. */
+let localAi: LocalFirstAiProvider | null = null;
+let pendingLocalState: BridgeState | null = null;
 let jar = { cookie: '', csrf: '' };
 let queue: Promise<unknown> = Promise.resolve();
 
@@ -65,16 +71,22 @@ async function init(): Promise<void> {
   await migrate(db);
   const aiProxy = (import.meta.env['VITE_AI_PROXY_URL'] as string | undefined) || undefined;
   const f = makeGuardedFetch(aiProxy);
-  app = buildApp({
+  localAi = new LocalFirstAiProvider(aiProxy ? new ProxyAiProvider(aiProxy, f) : undefined, (m) => ctx.postMessage(m));
+  if (pendingLocalState) localAi.handle(pendingLocalState);
+  const ai = localAi;
+  const deps: Deps = {
     db, mode: 'device', clock: () => new Date(), ...DEFAULT_DEPS, sessionTtlDays: 3650, secureCookies: false, fetch: f,
-    ...(aiProxy ? { ai: new ProxyAiProvider(aiProxy, f) } : {}),
-  }, extraRoutes);
+    // Getter: `ai` is undefined (=> rules coach / 503 for translate, exactly as before) unless a proxy exists or local AI is selected+installed.
+    get ai() { return ai.available ? ai : undefined; },
+  };
+  app = buildApp(deps, extraRoutes);
   await provision(db);
   (ctx as unknown as { __db: PgliteAdapter }).__db = db;
 }
 
-ctx.onmessage = (e: MessageEvent<{ type: 'init' } | { type: 'req'; id: number; req: TransportRequest }>) => {
+ctx.onmessage = (e: MessageEvent<{ type: 'init' } | { type: 'req'; id: number; req: TransportRequest } | BridgeRes | BridgeState>) => {
   const m = e.data;
+  if (m.type === 'localai.state' || m.type === 'localai.res') { if (m.type === 'localai.state') pendingLocalState = m; localAi?.handle(m); return; }
   if (m.type === 'init') {
     init().then(() => ctx.postMessage({ type: 'ready' }), (err: unknown) => ctx.postMessage({ type: 'fatal', message: err instanceof Error ? err.message : String(err) }));
     return;
