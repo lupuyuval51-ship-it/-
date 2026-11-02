@@ -221,6 +221,7 @@
     <div class="btns">
       <button class="btn" id="startBtn" data-i18n="start"></button>
       <button class="btn alt langToggle" data-i18n="langBtn"></button>
+      <button class="btn alt" id="storyBtn" data-i18n="storyMode"></button>
     </div>
     <p class="note" data-i18n="desktopNote"></p>
     <p class="note"><span data-i18n="best"></span>: <b class="bestVal">0</b></p>
@@ -372,6 +373,7 @@
       resume: 'המשך',
       restart: 'התחלה מחדש',
       langBtn: 'English',
+      storyMode: 'מצב סיפור: הפנס התשיעי',
       desktopNote: 'המשחק מיועד למחשב שולחני עם מקלדת ועכבר.',
       paused: 'המשחק מושהה',
       pausedHint: 'הסוהרסנים ממתינים בצללים. לחצו "המשך" כדי לחזור לחצר.',
@@ -422,6 +424,7 @@
       resume: 'Resume',
       restart: 'Restart',
       langBtn: 'עברית',
+      storyMode: 'Story mode: The Ninth Lantern',
       desktopNote: 'This game is designed for a desktop with keyboard and mouse.',
       paused: 'Paused',
       pausedHint: 'The Dementors wait in the shadows. Press "Resume" to return to the courtyard.',
@@ -2121,6 +2124,7 @@
   // 22. EVENT LISTENERS
   // =====================================================================
   $('startBtn').addEventListener('click', startGame);
+  $('storyBtn').addEventListener('click', function () { window.location.href = 'story.html'; });
   $('resumeBtn').addEventListener('click', resumeGame);
   $('restartBtn1').addEventListener('click', startGame);
   $('restartBtn2').addEventListener('click', startGame);
