@@ -152,6 +152,7 @@ export default function Nutrition(): ReactNode {
       </Card>
 
       <p className="small muted" role="note">{t('disclaimer.allergen')}</p>
+      <p className="small muted" role="note">{t('nutrition.menu.photoNote')}</p>
 
       <StickyAction><LinkButton variant="primary" block to={`/nutrition/log?date=${date}`}><IconPlus aria-hidden="true" /> {t('nutrition.hub.logFood')}</LinkButton></StickyAction>
 

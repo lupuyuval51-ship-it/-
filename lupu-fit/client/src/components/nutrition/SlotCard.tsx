@@ -1,4 +1,5 @@
 import type { MealSlot } from '@lupu-fit/shared';
+import { DishPhoto } from './DishPhoto.tsx';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { fmt, useT } from '../../i18n/index.tsx';
@@ -28,6 +29,7 @@ export function SlotCard({ slot, entries, date, onDelete, onSave, busy }: { slot
           <ul className="list nu-entries">
             {entries.map((e) => (
               <li key={e.id}>
+                <DishPhoto dishId={e.dishId} size="thumb" />
                 <div className="grow">
                   <div className="nu-entry-name"><strong>{e.name}</strong>{e.estimated ? <span className="tag warning">{t('nutrition.estimated')}</span> : null}</div>
                   <span className="small muted"><span className="num">{fmt.num(e.grams, 1)}</span> {t('unit.g')} · <span className="num">{fmt.num(e.kcal)}</span> {t('unit.kcal')} · {t('nutrition.proteinShort')} <span className="num">{fmt.num(e.proteinG, 1)}</span></span>

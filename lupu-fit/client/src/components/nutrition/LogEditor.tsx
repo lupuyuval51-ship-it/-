@@ -1,4 +1,5 @@
 import type { Allergen, MealSlot } from '@lupu-fit/shared';
+import { DishPhoto } from './DishPhoto.tsx';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { fmt, useLang, useT } from '../../i18n/index.tsx';
 import { allergenHits, macrosFor, servingPresets, type Loggable } from '../../lib/foodSearch.ts';
@@ -28,6 +29,7 @@ export function LogEditor({ item, date, slot, allergies, onDone }: { item: Logga
   };
   return (
     <div className="stack nu-editor">
+      <DishPhoto dishId={item.dishId} alt={name} />
       <div className="row-wrap" role="group" aria-label={t('nutrition.log.presets')}>
         {servingPresets(item).map((p) => <Chip key={p} pressed={g === p} onClick={() => setGrams(p)}><span className="num">{fmt.num(p)}</span> {t('unit.g')}</Chip>)}
       </div>

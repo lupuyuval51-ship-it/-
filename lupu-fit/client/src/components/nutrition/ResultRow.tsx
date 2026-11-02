@@ -7,6 +7,7 @@ import { IconCheck, IconPlus } from '../../ui/icons.tsx';
 import { useToast } from '../../ui/toast.tsx';
 import { useLogFood } from './data.ts';
 import { LogEditor } from './LogEditor.tsx';
+import { DishPhoto } from './DishPhoto.tsx';
 
 /** kcal + label for one default serving (dishes/meals) or per 100 g (foods). */
 export function kcalLine(i: Loggable): { kcal: number; perServing: boolean } {
@@ -31,6 +32,7 @@ export function ResultRow({ item, open, onToggle, date, slot, allergies }: { ite
     <li className={`nu-result${open ? ' open' : ''}`}>
       <div className="nu-result-head">
         <button type="button" className="result-row" aria-expanded={open} onClick={onToggle}>
+          <DishPhoto dishId={item.dishId} size="thumb" />
           <span className="grow start">
             <strong>{name}</strong>
             <span className="small muted nu-result-sub"><span className="num">{fmt.num(per.kcal)}</span> {t('unit.kcal')} · {per.perServing ? t('nutrition.log.perServing') : t('nutrition.log.per100')}</span>

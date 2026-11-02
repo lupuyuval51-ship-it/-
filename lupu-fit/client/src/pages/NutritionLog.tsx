@@ -109,6 +109,7 @@ export default function NutritionLog(): ReactNode {
       {mode === 'custom' ? <div className="card"><CustomFoodPanel onCreated={() => setMode('search')} /></div> : null}
 
       <p className="small muted" role="note">{t('disclaimer.allergen')}</p>
+      <p className="small muted" role="note">{t('nutrition.menu.photoNote')}</p>
       <LogSheet item={picked} onClose={() => setPicked(null)} date={date} slot={slot} onSlot={setSlot} allergies={allergies} />
     </div>
   );

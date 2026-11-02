@@ -101,3 +101,6 @@
 }
 
 .nutrition-page .nu-photo { inline-size: 100%; block-size: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+
+.nutrition-page .nu-thumb { flex: none; inline-size: 3.5rem; block-size: 3.5rem; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }
+.nutrition-page .nu-entries > li { align-items: center; gap: 0.75rem; }
