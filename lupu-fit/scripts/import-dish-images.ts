@@ -43,9 +43,10 @@ for (const dir of readdirSync(src).sort()) {
 // Gallery pages: <article ...><img src="data:image/jpeg;base64,..."> ... <h3>NNN · he</h3><div class="en">en</div>
 for (const g of galleries) {
   const html = readFileSync(g, 'utf8');
-  for (const a of html.matchAll(/<article class="card"[^>]*>\s*<img src="data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)"[^>]*>.*?<h3>(\d+) · ([^<]*)<\/h3><div class="en">([^<]*)<\/div>/gs)) {
-    const n = Number(a[2]); const he = norm(a[3] as string); const en = norm(a[4] as string); const d = DISHES[n - 1];
-    if (!d || (norm(d.nameHe) !== he && norm(d.nameEn) !== en)) { bad.push(`gallery #${n} "${a[3]}" / "${a[4]}" vs ${d ? `"${d.nameHe}"` : 'none'}`); skipped++; continue; }
+  // Two layouts: full cards (<h3>NNN · he</h3><div class="en">en</div>) or minimal cards (<h2>NNN · he</h2>, Hebrew name only).
+  for (const a of html.matchAll(/<article class="card"[^>]*>\s*<img src="data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)"[^>]*>.*?<h[23]>(\d+) · ([^<]*)<\/h[23]>(?:<div class="en">([^<]*)<\/div>)?/gs)) {
+    const n = Number(a[2]); const he = norm(a[3] as string); const en = norm((a[4] as string | undefined) ?? ''); const d = DISHES[n - 1];
+    if (!d || (norm(d.nameHe) !== he && (en === '' || norm(d.nameEn) !== en))) { bad.push(`gallery #${n} "${a[3]}" / "${a[4] ?? ''}" vs ${d ? `"${d.nameHe}"` : 'none'}`); skipped++; continue; }
     if (known.has(d.id) || seen.has(d.id)) continue; // keep the already imported (zip) photo
     seen.add(d.id);
     const img = await loadImage(Buffer.from(a[1] as string, 'base64'));
