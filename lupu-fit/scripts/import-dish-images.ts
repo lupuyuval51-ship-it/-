@@ -3,7 +3,8 @@
  * Each index.html carries "NNN · Hebrew name" + English name; NNN is the 1-based position in DISHES (docs/dishes-list.md).
  * A photo is accepted ONLY if the Hebrew or English name matches DISHES[NNN-1]; mismatches are reported and skipped.
  * Output: client/public/media/dishes/<dishId>.webp (640 px wide, q72) + shared/src/content/data/dishImages.generated.ts (id list).
- * Usage: npx tsx scripts/import-dish-images.ts /tmp/dishes-raw
+ * Also accepts self-contained gallery pages (embedded base64 JPEGs): pass .html file paths as extra args; those only fill dishes that have no photo yet.
+ * Usage: npx tsx scripts/import-dish-images.ts /tmp/dishes-raw [gallery1.html gallery2.html]
  */
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import { mkdirSync, readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
@@ -16,6 +17,7 @@ const GEN = resolve('shared/src/content/data/dishImages.generated.ts');
 mkdirSync(OUT, { recursive: true });
 
 const norm = (s: string): string => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/[\s"'׳״’`]+/g, ' ').trim().toLowerCase();
+const galleries = process.argv.slice(3).map((x) => resolve(x));
 const known = new Set<string>(existsSync(GEN) ? [...readFileSync(GEN, 'utf8').matchAll(/'([a-z0-9_]+)'/g)].map((m) => m[1] as string) : []);
 let added = 0; let skipped = 0; const bad: string[] = []; const seen = new Set<string>();
 
@@ -33,6 +35,22 @@ for (const dir of readdirSync(src).sort()) {
     const img = await loadImage(join(src, dir, 'images', `${file}.png`));
     const w = 640; const h = Math.round((img.height / img.width) * w);
     const c = createCanvas(w, h); const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
+    writeFileSync(join(OUT, `${d.id}.webp`), c.toBuffer('image/webp', 72));
+    known.add(d.id); added++;
+  }
+}
+
+// Gallery pages: <article ...><img src="data:image/jpeg;base64,..."> ... <h3>NNN · he</h3><div class="en">en</div>
+for (const g of galleries) {
+  const html = readFileSync(g, 'utf8');
+  for (const a of html.matchAll(/<article class="card"[^>]*>\s*<img src="data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)"[^>]*>.*?<h3>(\d+) · ([^<]*)<\/h3><div class="en">([^<]*)<\/div>/gs)) {
+    const n = Number(a[2]); const he = norm(a[3] as string); const en = norm(a[4] as string); const d = DISHES[n - 1];
+    if (!d || (norm(d.nameHe) !== he && norm(d.nameEn) !== en)) { bad.push(`gallery #${n} "${a[3]}" / "${a[4]}" vs ${d ? `"${d.nameHe}"` : 'none'}`); skipped++; continue; }
+    if (known.has(d.id) || seen.has(d.id)) continue; // keep the already imported (zip) photo
+    seen.add(d.id);
+    const img = await loadImage(Buffer.from(a[1] as string, 'base64'));
+    const w = Math.min(640, img.width); const h = Math.round((img.height / img.width) * w);
+    const c = createCanvas(w, h); c.getContext('2d').drawImage(img, 0, 0, w, h);
     writeFileSync(join(OUT, `${d.id}.webp`), c.toBuffer('image/webp', 72));
     known.add(d.id); added++;
   }
