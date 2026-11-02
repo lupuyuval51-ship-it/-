@@ -10,8 +10,9 @@ describe('DishPhoto', () => {
     const thumb = container.querySelector('img.nu-thumb');
     expect(thumb?.getAttribute('src')).toBe(`/media/dishes/${id}.webp`);
     expect(thumb?.getAttribute('alt')).toBe('');
-    rerender(<DishPhoto dishId={id} alt="Shakshuka" />);
-    expect(container.querySelector('img.nu-photo')?.getAttribute('alt')).toBe('Shakshuka');
+    const label = DISHES[0]!.nameEn;
+    rerender(<DishPhoto dishId={id} alt={label} />);
+    expect(container.querySelector('img.nu-photo')?.getAttribute('alt')).toBe(label);
   });
   it('renders nothing for missing/unknown ids and after a load error', () => {
     const { container, rerender } = render(<DishPhoto dishId={null} size="thumb" />);
