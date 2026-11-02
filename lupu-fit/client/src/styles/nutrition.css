@@ -99,3 +99,5 @@
   .nu-hub > .page-head { order: -2; }
   .nu-hub > .sticky-cta { order: -1; align-self: flex-start; inline-size: 16rem; }
 }
+
+.nutrition-page .nu-photo { inline-size: 100%; block-size: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface-2); }

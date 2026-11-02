@@ -7,6 +7,7 @@ import { postFoodLog } from '../components/nutrition/data.ts';
 import { addDaysIso, dishLogPayload, groupShopping, isIsoDate, menuFor, roundGrams, shoppingFor, shoppingText, spanDates, todayIso, type MenuChoice } from '../components/nutrition/logic.ts';
 import { loadChecked, loadChoice, saveChecked, saveChoice } from '../components/nutrition/menuStore.ts';
 import { DISHES, DISH_BY_ID, FOOD_BY_ID } from '../data/content.ts';
+import { DishPhoto } from '../components/nutrition/DishPhoto.tsx';
 import { fmt, useLang, useT } from '../i18n/index.tsx';
 import { DayHero } from '../components/nutrition/DayHero.tsx';
 import { Banner, Button, Card, EmptyState, errorMessage, IconButton, ProgressBar, Segmented } from '../ui/kit.tsx';
@@ -76,6 +77,7 @@ export default function NutritionMenu(): ReactNode {
           <span className="tag">{t(`label.slot.${item.slot}`)}</span>
           <span className="small muted">{t('nutrition.menu.portion')} <span className="num">{fmt.num(item.portion, 2)}×</span></span>
         </div>
+        <DishPhoto dishId={dish.id} alt={dishName(dish)} />
         <h3>{dishName(dish)}</h3>
         <div className="nu-macros small">
           <span><span className="num strong">{fmt.num(item.kcal)}</span> <span className="muted">{t('unit.kcal')}</span></span>
@@ -110,6 +112,7 @@ export default function NutritionMenu(): ReactNode {
         <IconButton label={t('nutrition.hub.nextDay')} onClick={() => go(addDaysIso(date, 1))}><IconChevron className="flip-rtl" /></IconButton>
       </nav>
 
+      <p className="small muted" role="note">{t('nutrition.menu.photoNote')}</p>
       <p className="small muted nu-disclaimer" role="note" data-testid="allergen-disclaimer"><IconShield aria-hidden="true" /><span>{t('disclaimer.allergen')}</span></p>
 
       {profile.isPending ? <SkeletonList rows={3} /> : !p || !targets ? (

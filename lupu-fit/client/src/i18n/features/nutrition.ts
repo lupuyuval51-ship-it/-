@@ -61,7 +61,7 @@ export default defineFeature({
       details: 'Ingredients and portion', allergenLine: 'Allergen filtering is automatic. Verify ingredients yourself.',
     },
     menu: {
-      title: 'Daily menu', mealCount: 'Meals per day', meals: '{n} meals', regenerate: 'Generate again', basis: 'Based on {kcal} kcal per day',
+      title: 'Daily menu', photoNote: 'Dish photos are AI-generated illustrations, not the actual meal. Nutrition values come from the ingredients.', mealCount: 'Meals per day', meals: '{n} meals', regenerate: 'Generate again', basis: 'Based on {kcal} kcal per day',
       missing: 'No suitable dish was found for: {slots}. Your allergies, diet or restrictions may be too narrow for this slot.', none: 'No menu could be built', noneHint: 'No dishes match your diet, restrictions and allergies.',
       needProfile: 'A menu needs your profile and targets.', portion: 'Portion', ingredients: 'Ingredients', swap: 'Swap dish', logDish: 'Log this dish', loggedOne: 'Logged', logged: 'Logged {n} dishes',
       dayTotals: 'Day totals vs targets', engineNote: 'Snacks are capped at 350 kcal and portions range from 0.5× to 1.75×.', logAll: 'Log the whole day',
@@ -130,7 +130,7 @@ export default defineFeature({
       details: 'רכיבים וכמות', allergenLine: 'סינון האלרגנים אוטומטי. תמיד כדאי לוודא את הרכיבים בעצמכם.',
     },
     menu: {
-      title: 'תפריט יומי', mealCount: 'ארוחות ביום', meals: '{n} ארוחות', regenerate: 'יצירה מחדש', basis: 'מבוסס על {kcal} קק״ל ליום',
+      title: 'תפריט יומי', photoNote: 'תמונות המנות נוצרו בבינה מלאכותית להמחשה בלבד ואינן המנה בפועל. הערכים התזונתיים מחושבים מהמרכיבים.', mealCount: 'ארוחות ביום', meals: '{n} ארוחות', regenerate: 'יצירה מחדש', basis: 'מבוסס על {kcal} קק״ל ליום',
       missing: 'לא נמצאה מנה מתאימה עבור: {slots}. ייתכן שהאלרגיות, התזונה או ההגבלות מצמצמות מדי את האפשרויות.', none: 'לא ניתן היה לבנות תפריט', noneHint: 'אין מנות שמתאימות לתזונה, להגבלות ולאלרגיות.',
       needProfile: 'תפריט דורש פרופיל ויעדים.', portion: 'מנה', ingredients: 'רכיבים', swap: 'החלפת מנה', logDish: 'תיעוד המנה', loggedOne: 'תועד', logged: 'תועדו {n} מנות',
       dayTotals: 'סיכום היום מול יעדים', engineNote: 'נשנושים מוגבלים ל-350 קק״ל ומנות נעות בין 0.5× ל-1.75×.', logAll: 'תיעוד כל היום',

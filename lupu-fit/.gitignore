@@ -1,7 +1,8 @@
 node_modules
 dist
 *.log
-client/public/media/
+client/public/media/*
+!client/public/media/dishes/
 dist-device/
 client/dist-device/
 client/dist/
