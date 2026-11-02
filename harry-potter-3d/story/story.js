@@ -363,6 +363,8 @@
   function crowd(out, n) {
     for (let i = 1; i <= n; i++) out.push({ who: 'student', anchor: 'seat' + i, decor: true, pose: 'sit', opts: { variant: (i * 5) % 12, pose: 'sit' } });
   }
+  // the Great Hall dais collider stops the player ~2.9 m (XZ) short of Orla/Dov: widen their talk radius
+  const DAIS_R = 3.6;
   // castFor(areaId) -> NPC placements for the current chapter / step / flags
   function castFor(areaId) {
     const c = R.chapter, s = stepId(), f = R.flags, out = [];
@@ -381,8 +383,8 @@
         break;
       case 'greathall':
         if (c === 1 && (s === 'noa' || s === 'toHall' || s === 'feast')) {
-          add('orla', 'orla', { fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
-          add('dov', 'dov', { fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
+          add('orla', 'orla', { radius: DAIS_R, fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
+          add('dov', 'dov', { radius: DAIS_R, fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
           add('noa', 'noa', { fb: { x: -0.6, y: 0, z: 3 } });
           // Tal strolls over to the new student's seat to taunt: a few steps up the aisle, off the line of
           // sight to the dais (at the 'tal' anchor he would stand right in front of the Headmistress's speech)
@@ -390,13 +392,13 @@
           else add('tal', 'tal', { fb: { x: 0.7, y: 0, z: -5 } });
           crowd(out, 20);
         } else if (c === 1) {
-          add('orla', 'orla', { fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
-          add('dov', 'dov', { fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
+          add('orla', 'orla', { radius: DAIS_R, fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
+          add('dov', 'dov', { radius: DAIS_R, fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
         } else if (c >= 2 && c <= 6) {
           crowd(out, 8);
         } else if (c === 7) {
-          add('orla', 'orla', { fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
-          add('dov', 'dov', { fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
+          add('orla', 'orla', { radius: DAIS_R, fb: { x: 0, y: 0.5, z: -17.5, yaw: PI } });
+          add('dov', 'dov', { radius: DAIS_R, fb: { x: -3.5, y: 0.5, z: -17.5, yaw: PI } });
           add('noa', 'noa', { fb: { x: -0.6, y: 0, z: 3 } });
           add('tal', 'tal', { fb: { x: 0.7, y: 0, z: -5 } });
           add('pebble', 'pebble_feast', { fb: { x: -0.7, y: 0, z: -12 } });
@@ -591,6 +593,10 @@
       { from: 4, lines: [
         T('אני מעודד מכאן! זה התפקיד הכי חשוב בקרב. אחרי כל השאר.', "I'm cheering from up here! The most important job in any battle. After all the others."),
         T('צללים בחצר שלי! פעם, האופל לפחות היה דופק בשער.', 'Shades in my courtyard! In the old days, the Gloom at least knocked at the gate.')
+      ] },
+      { from: 7, lines: [
+        T('הכרית פה רכה מדי. אני לא סומך על כריות.', "The cushions in here are far too soft. I don't trust cushions."),
+        T('עוגת שזיפים בדבש! אמרתי לך שמדברים עליה בשלושה מגדלים.', 'Honey-plum cake! I told you they talk about it in three towers.')
       ] }
     ],
     noa: [
@@ -756,11 +762,17 @@
     for (const k in sp) if (sp[k]) { try { ELD.spells.unlock(k, true); } catch (e) { /* ignore */ } }
   }
 
-  function setupStep(ci, step) {
+  function setupStep(ci, step, resumed) {
     const f = R.flags;
     if (ELD.area && ELD.area.id) f.visited[ELD.area.id] = 1;
     applyDoorPolicy(step);
     applySpells();
+    // the crypt is near-black and only 'dark' asks for Lumos: a run resumed past it (Continue / goto /
+    // retry — the session reset turned the wand light off) relights it; later steps just remind
+    if (step.area === 'crypt' && step.id !== 'dark' && f.spells && f.spells.lumos && ELD.spells && !ELD.spells.lumosOn) {
+      if (resumed && typeof ELD.spells.setLumos === 'function') { try { ELD.spells.setLumos(true); } catch (e) { /* ignore */ } }
+      if (!ELD.spells.lumosOn) ui('toast', G('חשוך כאן מאוד — הדלק את השרביט (L)', 'חשוך כאן מאוד — הדליקי את השרביט (L)', 'It is pitch dark here — light your wand (L)'), 3400);
+    }
     // a new chapter starts with a clean objective (the last one belonged to the previous chapter)
     if (CHAPTERS[ci] && CHAPTERS[ci].steps[0] === step) { R.objective = null; ui('setObjective', null); }
     ui('showHealth', ci >= 4 && ci <= 6);
@@ -1249,6 +1261,10 @@
         await S.waitArea('greathall');
       } },
       { id: 'feast', area: 'greathall', spawn: 'fromEntrance', lock: { 'greathall.toEntrance': T('המשתה רק התחיל — ונועה שמרה לך מקום!', 'The feast has only just begun — and Noa saved you a seat!') }, run: async function (S) {
+        // before the lantern goes out (and before Tal introduces himself) the chapter-1 ambient pools would be out of order
+        S.hint('tal', [L('tal', AMB.tal[0].lines[0])]);
+        S.hint('orla', [L('orla', AMB.orla[0].lines[0])]);
+        S.hint('dov', [L('dov', AMB.dov[0].lines[0])]);
         await S.talkTo('noa', [
           L('noa', G('הנה אתה! שמרתי לך מקום. נאלצתי להילחם בשלושה תלמידי שנה שנייה ובמגש אחד של לחמניות.', 'הנה את! שמרתי לך מקום. נאלצתי להילחם בשלושה תלמידי שנה שנייה ובמגש אחד של לחמניות.', 'There you are! I saved you a seat. I had to fight off three second-years and one tray of bread rolls.')),
           L('noa', T('ששש — המנהלת קמה. אומרים שהיא סופרת כוכבים בעיניים עצומות.', 'Shh — the Headmistress is standing up. They say she can count stars with her eyes closed.'))
@@ -1286,6 +1302,7 @@
           }
           S.api('setLanternLit', 9, false);
           S.flag('lanternOut', 1);
+          S.hint('tal', null); S.hint('orla', null); S.hint('dov', null);
           S.sfx('shadeSpawn');
           S.toast(T('הפנס התשיעי כבה!', 'The Ninth Lantern has gone out!'), 3000);
           await S.wait(1200);
@@ -1462,7 +1479,14 @@
           L('tik', T('קריייק! (בטון של שמש)', 'Skreek! (in a sunny sort of tone)'))
         ]);
         S.hint('elkan', [L('elkan', T('אני לא חוזר על עצמי. ...טוב. פעם אחת.', 'I do not repeat myself. ...Fine. Once.'))].concat(RIDDLE));
-        S.mark({ anchor: 'candle3', fb: { x: 0, y: 1.1, z: -7 }, lift: 0.9 });
+        // guide to the approach of the candle row, not onto a specific (decoy) candle; drop it on arrival
+        S.mark({ pos: { x: 0, y: 1.8, z: -4.5 } });
+        const stopRowMark = S.onTick(function () {
+          const P = player();
+          if (!P || !P.pos || !ELD.area || ELD.area.id !== 'library') return;
+          const dx = P.pos.x, dz = P.pos.z + 5.5;
+          if (dx * dx + dz * dz <= 16) { stopRowMark(); setGoal(null); }
+        });
         const SEQ = [2, 4, 5];
         let idx = 0, busy = false, grumble = 0;
         const lit = {};
@@ -1500,6 +1524,7 @@
           }
           w.cleanup = function () { ELD.off('areaLoaded', onArea); defs.forEach(unregIA); };
         });
+        stopRowMark();
         S.mark(null);
         S.hint('noa', null); S.hint('elkan', null);
         S.api('openSecretShelf');
@@ -1745,7 +1770,12 @@
         for (let i = 0; i < rest.length; i++) if (rest[i].alive && rest[i].tag === 'bshade') { try { ELD.combat.kill(rest[i]); } catch (e) { /* ignore */ } }
         S.flag('bossDone', 1);
         S.objective(null);
-        await S.wait(1200);
+        // the fight is won: bolts still in flight must not down the player (that would replay the fight)
+        S.heal();
+        await S.wait(600); // let the death animations (0.55 s) finish before sweeping the field
+        S.clearCombat(); // also clears enemy bolts
+        S.heal();
+        await S.wait(600);
       } },
       { id: 'mercy', area: 'crypt', spawn: 'chamber', lockExits: true, exitMsg: T('לא עכשיו. הפנס מחכה.', 'Not now. The lantern is waiting.'), run: async function (S) {
         S.refreshCast();
@@ -2046,7 +2076,7 @@
           });
         }
         if (tok.aborted) return;
-        setupStep(R.chapter, step);
+        setupStep(R.chapter, step, first);
         if (R.step === 0 && !(first && opts.retry)) await S.card(chap.title, chap.subtitle);
         first = false;
         await step.run(S);
@@ -2067,9 +2097,12 @@
     const ch = R.chapter, st = R.step;
     abortRun();
     try { if (ELD.combat) ELD.combat.clear(); } catch (e) { /* ignore */ }
+    // a quit-to-title or a fresh start/Continue during the death fade supersedes this recovery
+    const gen = R.gen;
     try {
       if (withToast) {
         await Promise.resolve(ui('fade', true, 600));
+        if (!R.active || R.gen !== gen || ELD.state === 'title') return;
         ui('toast', TXT.down, 3400);
       }
       const P = player();
