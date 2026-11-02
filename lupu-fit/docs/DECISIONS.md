@@ -134,3 +134,6 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 - **State**: `localStorage` key `lf_automation_v1:<userId>` (settings), `lf_auto_checkin_seen`, `lf_auto_backup`. Settings are per account so a shared browser does not inherit another user's reminders; logout cancels all pending notifications.
 - **Shared files touched (additively)**: `App.tsx` (mounts `AutomationRuntime`), `Profile.tsx` (one import + one card), `Home.tsx` (one import + one banner line), `LiveSession.tsx` (reads the toggle), `BackupPanel.tsx` (records a successful export), `restTimer.ts` (uses the shared notifier).
 - **Unverified on a device**: see docs/ANDROID.md.
+
+## D20 - Real E2E suite, dev-server proxy switch
+`e2e/` (Playwright) covers the main flows in he-RTL mobile, en-LTR mobile and en desktop (docs/E2E.md). `server/src/devServer.ts` (dev/E2E only) gained `TRUST_PROXY=1` so each test can present its own client IP; the production per-IP registration limit is unchanged. The suite fails on unexpected browser console errors.

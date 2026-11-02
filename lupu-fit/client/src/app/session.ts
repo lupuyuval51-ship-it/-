@@ -18,9 +18,9 @@ export function useMe() {
 }
 
 /** `null` = onboarding not finished (404 profile_required). */
-export function useProfile() {
+export function useProfile(enabled = true) {
   return useQuery({
-    queryKey: qk.profile, retry: false, staleTime: 60_000,
+    queryKey: qk.profile, retry: false, staleTime: 60_000, enabled,
     queryFn: async (): Promise<ProfileResponse | null> => { try { return await api.get<ProfileResponse>('/api/profile'); } catch (e) { if (e instanceof ApiRequestError && e.status === 404) return null; throw e; } },
   });
 }

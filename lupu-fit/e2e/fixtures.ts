@@ -33,9 +33,6 @@ const IGNORED = [
   // 401 on /api/auth/me = signed out, 404 on /api/profile = account without a profile yet (before onboarding).
   /status of 401 \(Unauthorized\) @ \S+\/api\/auth\/me$/,
   /status of 404 \(Not Found\) @ \S+\/api\/profile$/,
-  // KNOWN, reported: client/src/automation/runtime.tsx calls useProfile() before it knows the user is signed in, so signed-out pages log a
-  // 401 on /api/profile. Delete this line once the runtime gates the query on useMe().
-  /status of 401 \(Unauthorized\) @ \S+\/api\/profile$/,
 ];
 
 let ipCounter = 0;

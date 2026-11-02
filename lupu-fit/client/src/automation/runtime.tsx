@@ -19,7 +19,7 @@ const tzNow = (): string => { try { return Intl.DateTimeFormat().resolvedOptions
 export function AutomationRuntime(): ReactNode {
   const { t } = useLang();
   const navigate = useNavigate();
-  const me = useMe(); const profile = useProfile();
+  const me = useMe(); const profile = useProfile(!!me.data);
   const { settings } = useAutomationSettings();
   const [tick, setTick] = useState(0);
   const tz = useRef(tzNow());
