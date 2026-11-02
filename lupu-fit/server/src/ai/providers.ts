@@ -1,7 +1,16 @@
 import type { AiProvider } from '../core/types.ts';
 
 type Env = Record<string, string | undefined>;
-const DEFAULT_GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+/** Google Gemma 4 first (documented IDs on the Gemini API), Gemini as fallback when Gemma is rate limited/unavailable. */
+const DEFAULT_GEMINI_MODELS = ['gemma-4-31b-it', 'gemma-4-26b-a4b-it', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+/** Gemma's docs do not list JSON mode, so for gemma-* the responseMimeType hint is dropped (the prompt + server validation enforce JSON). */
+function forModel(model: string, body: unknown): unknown {
+  if (!/^gemma/i.test(model) || typeof body !== 'object' || body === null) return body;
+  const b = body as { generationConfig?: Record<string, unknown> };
+  if (!b.generationConfig || !('responseMimeType' in b.generationConfig)) return body;
+  const { responseMimeType: _drop, ...rest } = b.generationConfig;
+  return { ...b, generationConfig: rest };
+}
 /** GEMINI_MODELS="model-a,model-b" (comma separated, first = preferred) overrides the default chain; only [a-z0-9._-] names are accepted. */
 export function geminiModelsFromEnv(raw: string | undefined): string[] {
   const list = (raw ?? '').split(',').map((x) => x.trim()).filter((x) => /^[a-z0-9][a-z0-9._-]{1,60}$/i.test(x));
@@ -14,7 +23,7 @@ export class GeminiProvider implements AiProvider {
   private cooldown = new Map<string, number>();
   constructor(private readonly key: string, private readonly f: typeof fetch = fetch, private readonly models: string[] = DEFAULT_GEMINI_MODELS) {}
   private async call(model: string, body: unknown): Promise<string> {
-    const r = await this.f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(body) });
+    const r = await this.f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(forModel(model, body)) });
     if (r.status === 429 || r.status === 503) { this.cooldown.set(model, Date.now() + 60_000); throw new Error(`gemini_busy_${r.status}`); }
     if (!r.ok) throw new Error(`gemini_http_${r.status}`);
     const j = (await r.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
