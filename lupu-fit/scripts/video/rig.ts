@@ -2,6 +2,7 @@ import { add, fromDown, fromUp, ik, mul, type V } from './geom.ts';
 
 /** Segment lengths, in units of body height (H = 1). */
 export const L = { torso: 0.30, neck: 0.045, headR: 0.062, upperArm: 0.17, foreArm: 0.16, thigh: 0.245, shank: 0.245, foot: 0.096 } as const;
+export const clampStats = { n: 0 };
 export const FOOT_FLAT = 62; // degrees from down: toe on the floor, ankle 0.045 above it
 export const ANKLE_H = 0.045;
 
@@ -28,19 +29,25 @@ export interface SideInput {
 
 function arm(shoulder: V, a: Arm): { elbow: V; wrist: V } {
   if ('fk' in a) {
+    // angles are from straight down, counter-clockwise positive: elbow flexion means the forearm angle is >= the upper arm angle
+    if (a.fk[1] < a.fk[0] - 5) clampStats.n++;
+    const fk: readonly [number, number] = [a.fk[0], Math.max(a.fk[1], a.fk[0])];
+    a = { fk };
     const elbow = add(shoulder, mul(fromDown(a.fk[0]), L.upperArm));
     return { elbow, wrist: add(elbow, mul(fromDown(a.fk[1]), L.foreArm)) };
   }
-  const r = ik(shoulder, a.to, L.upperArm, L.foreArm, a.pref);
+  const r = ik(shoulder, a.to, L.upperArm, L.foreArm, a.pref, 'elbow');
   return { elbow: r.mid, wrist: r.end };
 }
 function leg(hip: V, l: Leg): { knee: V; ankle: V; toe: V } {
   let knee: V; let ankle: V;
   if ('fk' in l) {
+    if (l.fk[1] > l.fk[0] + 5) clampStats.n++;
+    l = { ...l, fk: [l.fk[0], Math.min(l.fk[1], l.fk[0])] as const }; // knee flexion: shank angle <= thigh angle
     knee = add(hip, mul(fromDown(l.fk[0]), L.thigh));
     ankle = add(knee, mul(fromDown(l.fk[1]), L.shank));
   } else {
-    const r = ik(hip, l.to, L.thigh, L.shank, l.pref);
+    const r = ik(hip, l.to, L.thigh, L.shank, l.pref, 'knee');
     knee = r.mid; ankle = r.end;
   }
   return { knee, ankle, toe: add(ankle, mul(fromDown(l.foot), L.foot)) };

@@ -183,7 +183,7 @@ export function curl(c: CurlCfg): Motion {
 /* -------------------------------------------------------------- triceps */
 export function tricepsOverhead(imp: Implement): Motion {
   return ({ s }) => {
-    const rig = sideRig({ hip: v(0, HIP0), torso: 0, head: 0, armN: { fk: [172, lerp(-10, 172, s)] }, legN: flatLeg(v(0, ANKLE_H)), legF: flatLeg(v(-0.03, ANKLE_H)) });
+    const rig = sideRig({ hip: v(0, HIP0), torso: 0, head: 0, armN: { fk: [172, lerp(350, 172, s)] }, legN: flatLeg(v(0, ANKLE_H)), legF: flatLeg(v(-0.03, ANKLE_H)) });
     const wr = rig.pts['wristN'] as V;
     return { rig, props: imp === 'cable' ? cable(wr, v(-0.2, 0.05)) : held(imp, wr) };
   };
@@ -206,7 +206,7 @@ export function kickback(imp: Implement): Motion {
 export function skullCrusher(): Motion {
   return ({ s }) => {
     const hipY = 0.32;
-    const rig = sideRig({ hip: v(0.4, hipY), torso: -90, head: 0, armN: { fk: [180, lerp(135, 180, s)] }, legN: { fk: [71, 4], foot: 70 }, legF: { fk: [71, 4], foot: 70 } });
+    const rig = sideRig({ hip: v(0.4, hipY), torso: -90, head: 0, armN: { fk: [180, lerp(225, 180, s)] }, legN: { fk: [71, 4], foot: 70 }, legF: { fk: [71, 4], foot: 70 } });
     return { rig, props: [...bench(-0.4, 0.5, 0.29), ...barbell(rig.pts['wristN'] as V)] };
   };
 }
@@ -331,11 +331,11 @@ export function pulldown(c: PulldownCfg): Motion {
 }
 
 /* ----------------------------------------------------- push-ups / planks */
-export interface PushCfg { prop?: 'rings' | 'blocks'; handH?: number; footH?: number; kneel?: boolean; wall?: boolean; tempo?: boolean; hold?: boolean; wide?: boolean; elbowsBack?: boolean; forearm?: boolean }
+export interface PushCfg { deep?: boolean; prop?: 'rings' | 'blocks'; handH?: number; footH?: number; kneel?: boolean; wall?: boolean; tempo?: boolean; hold?: boolean; wide?: boolean; elbowsBack?: boolean; forearm?: boolean }
 export function pushUp(c: PushCfg): Motion {
   const hh = c.handH ?? 0; const fh = c.footH ?? 0;
   return ({ s }) => {
-    const reach = lerp(0.31, 0.12, c.hold ? 0 : s);
+    const reach = lerp(0.31, c.deep ? 0.02 : 0.12, c.hold ? 0 : s);
     const D = c.kneel ? L.thigh + L.torso : LEG + L.torso;
     let pivot: V; let ankle: V; let kneeFixed: V | null = null;
     if (c.kneel) { pivot = v(0, 0.035); kneeFixed = pivot; ankle = v(-L.shank, 0.045); }
@@ -419,7 +419,7 @@ export function benchDip(): Motion {
 }
 
 /* ------------------------------------------------------------ supine/prone */
-export function crunch(kind: 'crunch' | 'situp' | 'reverse' | 'legraise' | 'vup' | 'bicycle' | 'deadbug' | 'hollow'): Motion {
+export function crunch(kind: 'crunch' | 'situp' | 'reverse' | 'legraise' | 'vup' | 'bicycle' | 'deadbug' | 'hollow' | 'hollowRock'): Motion {
   // Supine, head toward -x. Limb angles are measured from straight down: 90 = along the floor toward +x, 180 = straight up.
   const hip: V = v(0.0, 0.075);
   const bent: Leg = { fk: [135, 15], foot: 70 };
@@ -459,6 +459,10 @@ export function crunch(kind: 'crunch' | 'situp' | 'reverse' | 'legraise' | 'vup'
         armN: { fk: [lerp(180, 262, a), lerp(180, 262, a)] }, armF: { fk: [lerp(180, 262, b), lerp(180, 262, b)] },
         legN: { fk: [lerp(180, 100, b), lerp(90, 98, b)], foot: 70 }, legF: { fk: [lerp(180, 100, a), lerp(90, 98, a)], foot: 70 },
       });
+      return { rig, props: [] };
+    }
+    if (kind === 'hollowRock') { // banana shape rocking on the lower back: shoulders and legs lift alternately
+      const rig = sideRig({ hip, torso: -lerp(86, 72, s), head: 4, armN: { fk: [-100, -100] }, legN: { fk: [lerp(124, 98, s), lerp(124, 98, s)], foot: 80 }, legF: { fk: [lerp(124, 98, s), lerp(124, 98, s)], foot: 80 } });
       return { rig, props: [] };
     }
     const rig = sideRig({ hip, torso: -lerp(84, 80, s), head: 4, armN: { fk: [-100, -100] }, legN: { fk: [100, 100], foot: 80 }, legF: { fk: [100, 100], foot: 80 } });

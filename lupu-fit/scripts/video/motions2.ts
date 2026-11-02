@@ -1,8 +1,8 @@
 /** Second batch of motion programs: hanging, floor, machine, front-view and cyclic movements. */
 import { add, clamp, fromDown, fromUp, ik, lerp, mul, norm, sub, v, type V } from './geom.ts';
 import { ANKLE_H, FOOT_FLAT, L, frontRig, sideRig, type Leg, type Rig, type Seg } from './rig.ts';
-import { HIP0, type Implement, type Motion } from './motions.ts';
-import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, wheel, type Frame, type Prop } from './scene.ts';
+import { hinge, HIP0, type Implement, type Motion } from './motions.ts';
+import { band, barbell, bench, box, cable, dumbbell, hangBar, kettlebell, medBall, wheel, type Frame, type Prop } from './scene.ts';
 
 const LEG = L.thigh + L.shank;
 const PREF_FWD: V = v(1, 0); const PREF_BACK: V = v(-1, 0); const PREF_DOWN: V = v(0, -1);
@@ -55,14 +55,17 @@ export function wipers(): Motion {
     return { rig, props: [] };
   };
 }
+/** Prone (face-down, head toward +x). 'y' lifts straight arms overhead; the others are labelled approximate (frontal-plane moves). */
 export function proneRaise(mode: 'y' | 't' | 'superman' | 'snow' | 'pull'): Motion {
   return ({ s }) => {
     const hip = v(0, 0.1);
-    const lift = lerp(0, 30, s);
-    const torso = mode === 'superman' ? -(90 - lerp(0, 14, s)) : -90;
-    const arm = mode === 'pull' ? { fk: [-100 - lerp(0, 40, s), -100 + lerp(0, 70, s)] as const } : { fk: [-95 - lift, -95 - lift] as const };
-    const legs: Leg = { fk: [90 + (mode === 'superman' ? lerp(0, 14, s) : 0), 90 + (mode === 'superman' ? lerp(0, 14, s) : 0)], foot: 5 };
-    const rig = sideRig({ hip, torso, head: 0, armN: arm, legN: legs, legF: legs });
+    const sup = mode === 'superman';
+    const torso = 90 - (sup ? lerp(0, 16, s) : mode === 'y' ? lerp(0, 8, s) : mode === 'pull' ? lerp(0, 12, s) : 0);
+    const lift = mode === 'pull' ? lerp(0, -10, s) : lerp(0, mode === 'y' ? 45 : sup ? 22 : 30, s);
+    const arm = { fk: [90 + lift, 90 + lift] as const };
+    const th = -90 - (sup ? lerp(0, 14, s) : 0);
+    const legs: Leg = { fk: [th, th], foot: -100 };
+    const rig = sideRig({ hip, torso, head: sup || mode === 'y' ? lerp(0, -12, s) : 0, armN: arm, legN: legs, legF: legs });
     return { rig, props: [] };
   };
 }
@@ -78,8 +81,8 @@ export function sideLying(which: 'top' | 'bottom' | 'clam'): Motion {
 export function lyingCurl(machine: boolean): Motion {
   return ({ s }) => {
     const hip = v(0, 0.14);
-    const sh = lerp(92, 168, s);
-    const rig = sideRig({ hip, torso: -90, head: 0, armN: { fk: [-100, -100] }, legN: { fk: [90, sh], foot: 90 }, legF: { fk: [90, sh], foot: 90 } });
+    const sh = -90 - lerp(0, 80, s); // heel toward the glutes
+    const rig = sideRig({ hip, torso: 90, head: 0, armN: { fk: [100, 100] }, legN: { fk: [-90, sh], foot: -100 }, legF: { fk: [-90, sh], foot: -100 } });
     return { rig, props: machine ? bench(-0.5, 0.45, 0.1) : [] };
   };
 }
@@ -248,15 +251,30 @@ export function standingFly(imp: Implement, low = false, high = false): Motion {
     return { rig, props: imp === 'band' ? band(w, v(-0.5, sh[1] + 0.1)) : cable(w, v(-0.5, low ? 0.15 : 1.35)) };
   };
 }
-export function wristCurl(): Motion {
+/** Forearm resting on the thigh; the hand (drawn as a short segment) flexes/extends at the wrist. */
+export function wristCurl(reverse = false): Motion {
   return ({ s }) => {
     const hip = v(0, 0.3);
     const rig = sideRig({ hip, torso: 18, head: 0, armN: { fk: [30, 88] }, legN: { fk: [90, 2], foot: 80 }, legF: { fk: [90, 2], foot: 80 } });
-    return { rig, props: dumbbell(add(rig.pts['wristN'] as V, v(0.07, lerp(-0.03, 0.06, s)))) };
+    const w = rig.pts['wristN'] as V;
+    const a = reverse ? lerp(78, 128, s) : lerp(60, 122, s); // hand direction, degrees from down
+    const end = add(w, mul(fromDown(a), 0.065));
+    return { rig, props: [{ k: 'line', a: w, b: end, w: 0.03, layer: 'front' }, ...dumbbell(add(end, mul(fromDown(a), 0.02)), 90 - a)] };
   };
 }
-
-/* ------------------------------------------------------------- front view */
+/** Isometric curl against a towel under the foot or the underside of a table (the arm barely moves). */
+export function isoCurl(kind: 'towel' | 'table'): Motion {
+  return ({ s }) => {
+    const hip = v(0, HIP0);
+    const f = 95 + 3 * s;
+    const rig = sideRig({ hip, torso: 0, head: 0, armN: { fk: [5, f] }, legN: flat(v(0, ANKLE_H)), legF: flat(v(-0.03, ANKLE_H)) });
+    const w = rig.pts['wristN'] as V;
+    const props: Prop[] = kind === 'towel'
+      ? [{ k: 'line', a: w, b: v(0.1, ANKLE_H + 0.02), w: 0.012, layer: 'front', far: true }, { k: 'circle', c: v(0.1, ANKLE_H + 0.02), r: 0.015, fill: true, layer: 'front', far: true }]
+      : [{ k: 'rect', c: v(w[0] + 0.12, w[1] + 0.075), w: 0.5, h: 0.04, fill: true, layer: 'back' }, { k: 'line', a: v(w[0] + 0.34, w[1] + 0.055), b: v(w[0] + 0.34, 0), w: 0.02, layer: 'back' }];
+    return { rig, props };
+  };
+}
 export function sideBend(): Motion {
   return ({ s }) => {
     const rig = frontRig({ hip: v(0, HIP0), tilt: lerp(-3, 22, s), armL: { out: [4, 4] }, legOut: [2, 2] });
@@ -403,7 +421,7 @@ export function swing(imp: Implement): Motion {
 export function carry(imp: Implement, suitcase = false): Motion {
   return ({ u }) => {
     const a = u * Math.PI * 2; const hipY = HIP0 - 0.01 + 0.01 * Math.abs(Math.sin(a));
-    const swingLeg = (ph: number): Leg => ({ fk: [26 * Math.sin(ph), -6 + 24 * Math.max(0, -Math.sin(ph))], foot: 62 });
+    const swingLeg = (ph: number): Leg => ({ fk: [26 * Math.sin(ph), 26 * Math.sin(ph) - 6 - 24 * Math.max(0, -Math.sin(ph))], foot: 62 });
     const rig = sideRig({ hip: v(0, hipY), torso: suitcase ? 2 : 0, head: 0, armN: { fk: [3, 3] }, armF: { fk: [3, 3] }, legN: swingLeg(a), legF: swingLeg(a + Math.PI) });
     return { rig, props: [...held(imp, rig.pts['wristN'] as V), ...(suitcase ? [] : held(imp, rig.pts['wristF'] as V))] };
   };
@@ -499,7 +517,7 @@ export function turkishGetUp(): Motion {
     const ankle = v(lerp(A.ankle[0], B.ankle[0], e), lerp(A.ankle[1], B.ankle[1], e));
     const sh = shoulderOf(hip, torso);
     // weight stays locked overhead on the supporting side
-    const rig = sideRig({ hip, torso, head: 0, armN: { to: v(sh[0] + 0.0, sh[1] + 0.32), pref: PREF_BACK }, armF: { to: v(sh[0] + 0.1, Math.max(0.03, sh[1] - 0.3)), pref: v(0, 1) }, legN: { to: ankle, pref: v(0.3, 1), foot: 70 }, legF: { to: ankle, pref: v(0.3, 1), foot: 70 } });
+    const rig = sideRig({ hip, torso, head: 0, armN: { to: v(sh[0] + 0.0, sh[1] + 0.32), pref: PREF_BACK }, armF: { to: v(sh[0] + 0.3, Math.max(0.06, sh[1] - 0.2)), pref: v(0, 1) }, legN: { to: ankle, pref: v(0.3, 1), foot: 70 }, legF: { to: ankle, pref: v(0.3, 1), foot: 70 } });
     return { rig, props: kettlebell(rig.pts['wristN'] as V) };
   };
 }
@@ -512,5 +530,108 @@ export function sledPush(): Motion {
     const rig = sideRig({ hip, torso, head: -12, armN: { to: v(sh[0] + 0.3, sh[1] - 0.04), pref: PREF_DOWN }, armF: { to: v(sh[0] + 0.3, sh[1] - 0.05), pref: PREF_DOWN }, legN: drive(a), legF: drive(a + Math.PI) });
     const w = rig.pts['wristN'] as V;
     return { rig, props: [{ k: 'rect', c: v(w[0] + 0.14, 0.12), w: 0.34, h: 0.2, fill: false, layer: 'back' }, { k: 'line', a: v(w[0] + 0.0, w[1]), b: v(w[0] + 0.0, 0.2), w: 0.02, layer: 'back' }] };
+  };
+}
+
+/* ------------------------------------------------------------ v2 additions */
+const smoothstep2 = (x: number): number => { const t = clamp(x, 0, 1); return t * t * (3 - 2 * t); };
+
+/** Sissy squat: heels raised, hips pushed forward-under, torso leaning back, knees travelling far past the toes. */
+export function sissySquat(): Motion {
+  return ({ s }) => {
+    const ankle = v(0, 0.095);
+    const hip: V = v(lerp(0.0, -0.13, s), lerp(ankle[1] + LEG * 0.995, 0.40, s));
+    const torso = lerp(2, -24, s);
+    const rig = sideRig({ hip, torso, head: 6, armN: { fk: [lerp(8, 82, s), lerp(10, 86, s)] }, legN: { to: ankle, pref: PREF_FWD, foot: 30 }, legF: { to: add(ankle, v(-0.03, 0)), pref: PREF_FWD, foot: 30 } });
+    return { rig, props: [] };
+  };
+}
+/** Machine hack squat: back against a slanted pad that slides, shoulders under pads, feet forward on the platform. */
+export function hackSquat(): Motion {
+  const lean = 28; const t = Math.tan((lean * Math.PI) / 180);
+  return ({ s }) => {
+    const y = lerp(HIP0, 0.36, s);
+    const hip: V = v(-0.2 + (HIP0 - y) * t, y);
+    const ankle = v(0.12, ANKLE_H);
+    const rig = sideRig({ hip, torso: -lean, head: 0, armN: { fk: [6, 12] }, legN: flat(ankle), legF: flat(add(ankle, v(-0.03, 0))) });
+    const a: V = v(-0.27 + (HIP0 - 0.95) * t, 0.95); const b: V = v(-0.27 + (HIP0 - 0.25) * t, 0.25);
+    return { rig, props: [{ k: 'line', a, b, w: 0.05, layer: 'back' }, { k: 'line', a: v(0.0, 0.0), b: v(0.3, 0.0), w: 0.03, layer: 'back' }] };
+  };
+}
+/** Spanish squat: band behind the knees anchored in front, shins vertical, hips far back, torso leaning back. */
+export function spanishSquat(): Motion {
+  return ({ s }) => {
+    const hip: V = v(lerp(0, -0.2, s), lerp(HIP0, 0.34, s));
+    const rig = sideRig({ hip, torso: lerp(2, -16, s), head: 0, armN: { fk: [lerp(8, 88, s), lerp(10, 90, s)] }, legN: flat(v(0, ANKLE_H)), legF: flat(v(-0.03, ANKLE_H)) });
+    const k = rig.pts['kneeN'] as V;
+    return { rig, props: [{ k: 'line', a: k, b: v(0.62, k[1] + 0.02), w: 0.012, dash: true, layer: 'back' }, { k: 'line', a: v(0.62, 0), b: v(0.62, 0.6), w: 0.03, layer: 'back' }] };
+  };
+}
+/** Cable pull-through: hinge with straight arms, hands between the legs, rope to a low pulley behind. */
+export function pullThrough(): Motion {
+  const base = hinge({ imp: 'none' });
+  return (p) => { const f = base(p); return { rig: f.rig, props: [...f.props, ...cable(f.rig.pts['wristN'] as V, v(-0.8, 0.1))] }; };
+}
+/** Medicine-ball slam: ball overhead (top) to the floor in front of the feet (bottom). */
+export function ballSlam(): Motion {
+  return ({ s }) => {
+    const hip: V = v(lerp(-0.14, 0.0, s), lerp(0.55, HIP0, s)); const torso = lerp(58, 2, s);
+    const sh = shoulderOf(hip, torso);
+    const target = v(lerp(0.3, sh[0] + 0.03, s), lerp(0.14, sh[1] + 0.32, s));
+    const rig = sideRig({ hip, torso, head: -10, armN: { to: target, pref: PREF_BACK }, legN: flat(v(0, ANKLE_H)), legF: flat(v(-0.03, ANKLE_H)) });
+    const w = rig.pts['wristN'] as V;
+    return { rig, props: medBall(add(w, v(0.02, 0.085))) };
+  };
+}
+/** Dumbbell thruster: front squat at the bottom, drive up and press overhead at the top. */
+export function thruster(): Motion {
+  return ({ s }) => {
+    const dep = 1 - smoothstep2(s / 0.55); const press = smoothstep2((s - 0.5) / 0.5);
+    const hip: V = v(lerp(0, -0.12, dep), lerp(HIP0, 0.3, dep)); const torso = lerp(3, 34, dep);
+    const sh = shoulderOf(hip, torso);
+    const target = v(lerp(sh[0] + 0.06, sh[0] + 0.03, press), lerp(sh[1] + 0.0, sh[1] + 0.325, press));
+    const rig = sideRig({ hip, torso, head: -4, armN: { to: target, pref: PREF_DOWN }, legN: flat(v(0, ANKLE_H)), legF: flat(v(-0.03, ANKLE_H)) });
+    return { rig, props: dumbbell(add(rig.pts['wristN'] as V, v(0, 0.035)), 90) };
+  };
+}
+/** Back extension on a 45 degree machine: hips on the pad, body hinges from folded to a straight line. */
+export function backExtensionMachine(): Motion {
+  return ({ s }) => {
+    const hip = v(0, 0.64); const ankle = v(-0.33, 0.33);
+    const torso = lerp(118, 46, s);
+    const sh = shoulderOf(hip, torso);
+    const rig = sideRig({ hip, torso, head: lerp(10, -4, s), armN: { to: add(sh, v(0.07, -0.07)), pref: PREF_DOWN }, legN: { to: ankle, pref: PREF_FWD, foot: FOOT_FLAT }, legF: { to: ankle, pref: PREF_FWD, foot: FOOT_FLAT } });
+    return { rig, props: [{ k: 'line', a: v(-0.3, 0.3), b: v(0.04, 0.57), w: 0.06, layer: 'back' }, { k: 'line', a: v(-0.3, 0.0), b: v(-0.3, 0.24), w: 0.03, layer: 'back' }, { k: 'line', a: v(0.1, 0.0), b: v(0.1, 0.5), w: 0.03, layer: 'back' }] };
+  };
+}
+/** Wall angel / wall slide (front view): arms from a "W" (elbows at shoulder height) up to a "Y". */
+export function wallAngel(slide = false): Motion {
+  return ({ s }) => {
+    const hip = v(0, HIP0);
+    const arm: readonly [number, number] = slide ? [lerp(40, 120, s), lerp(120, 155, s)] : [lerp(88, 150, s), lerp(172, 158, s)];
+    const rig = frontRig({ hip, armL: { out: arm }, legOut: [3, 3] });
+    return { rig, props: [{ k: 'rect', c: v(0, 0.75), w: 0.9, h: 1.6, fill: false, layer: 'back', far: true }] };
+  };
+}
+/** Inchworm: feet planted, hands walk from the folded position out to a plank and back. */
+export function inchworm(): Motion {
+  const circ = (p0: V, r0: number, p1: V, r1: number): V => {
+    const d = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]); const a = (r0 * r0 - r1 * r1 + d * d) / (2 * d); const h = Math.sqrt(Math.max(0, r0 * r0 - a * a));
+    const ux = (p1[0] - p0[0]) / d; const uy = (p1[1] - p0[1]) / d;
+    const c1: V = [p0[0] + ux * a - uy * h, p0[1] + uy * a + ux * h]; const c2: V = [p0[0] + ux * a + uy * h, p0[1] + uy * a - ux * h];
+    return c1[1] >= c2[1] ? c1 : c2;
+  };
+  return ({ s }) => {
+    const ankle = v(0, lerp(ANKLE_H, 0.095, s));
+    const th = (lerp(10, 80, s) * Math.PI) / 180;
+    const hip: V = v(ankle[0] + LEG * 0.995 * Math.sin(th), ankle[1] + LEG * 0.995 * Math.cos(th));
+    const hand = v(lerp(0.14, 0.76, s), 0.02);
+    const reach = L.upperArm + L.foreArm - 0.004;
+    const dist = Math.hypot(hand[0] - hip[0], hand[1] - hip[1]);
+    const h2: V = dist > L.torso + reach - 0.01 ? v(hip[0], hip[1]) : hip;
+    const sh = circ(h2, L.torso, hand, reach);
+    const torso = (Math.atan2(sh[0] - hip[0], sh[1] - hip[1]) * 180) / Math.PI;
+    const rig = sideRig({ hip, torso, head: -8, armN: { to: hand, pref: PREF_BACK }, legN: { to: ankle, pref: PREF_FWD, foot: lerp(FOOT_FLAT, 30, s) }, legF: { to: ankle, pref: PREF_FWD, foot: lerp(FOOT_FLAT, 30, s) } });
+    return { rig, props: [] };
   };
 }

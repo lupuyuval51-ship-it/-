@@ -29,7 +29,7 @@ export const ikSession: { mode: 'free' | 'record' | 'lock'; idx: number; rec: { 
  * Two-bone IK. Returns the middle joint and the ACTUAL end point (clamped to reach so bone lengths stay constant).
  * `pref` is the world direction the joint should bend toward; used to choose the mirror solution (see ikSession).
  */
-export function ik(base: V, target: V, l1: number, l2: number, pref: V): { mid: V; end: V } {
+export function ik(base: V, target: V, l1: number, l2: number, pref: V, joint?: 'knee' | 'elbow'): { mid: V; end: V } {
   const d0 = sub(target, base);
   const reach = l1 + l2 - 1e-4;
   const dMin = Math.abs(l1 - l2) + 1e-4;
@@ -38,11 +38,13 @@ export function ik(base: V, target: V, l1: number, l2: number, pref: V): { mid: 
   const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
   const h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
   const perp: V = [-u[1], u[0]];
-  const natural: 1 | -1 = dot(perp, pref) >= 0 ? 1 : -1;
+  // Anatomy beats the caller's preference: a figure facing +x flexes its knee with the joint on the LEFT of base->end and
+  // its elbow on the RIGHT (cross(upper, lower) = -h*s*d), so neither can ever bend backwards.
+  const natural: 1 | -1 = joint === 'knee' ? 1 : joint === 'elbow' ? -1 : dot(perp, pref) >= 0 ? 1 : -1;
   let sign = natural;
   const i = ikSession.idx++;
   if (ikSession.mode === 'record') ikSession.rec[i] = { sign: natural, h };
-  else if (ikSession.mode === 'lock' && ikSession.locked[i] !== undefined) sign = ikSession.locked[i] as 1 | -1;
+  else if (!joint && ikSession.mode === 'lock' && ikSession.locked[i] !== undefined) sign = ikSession.locked[i] as 1 | -1;
   const mid = add(add(base, mul(u, a)), mul(perp, h * sign));
   const end = add(base, mul(u, d));
   return { mid, end };

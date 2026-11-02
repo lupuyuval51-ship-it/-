@@ -5,6 +5,8 @@ import { classify } from './video/classify.ts';
 import { buildClip, FRAMES, phaseAt } from './video/clip.ts';
 import type { Frame } from './video/scene.ts';
 import type { Part } from './video/rig.ts';
+import { worstHyperextension } from './video/invariants.ts';
+import { repsFor } from './video/clip.ts';
 
 const pts = (f: Frame): [number, number][] => [...f.rig.segs.flatMap((s) => [s.a, s.b]), f.rig.head.c].map((p) => [p[0], p[1]] as [number, number]);
 const segLen = (a: readonly [number, number], b: readonly [number, number]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
@@ -43,11 +45,43 @@ describe('procedural technique clips: geometry invariants for every exercise', (
       const seam = steps[FRAMES - 1] as number;
       expect(seam, 'loop seam is not seamless').toBeLessThan(Math.max(0.03, maxStep * 1.6));
 
+      // knees and elbows never bend backwards (side-view rigs face +x)
+      const hyp = worstHyperextension(clip.frames);
+      expect(hyp.knee, 'knee hyperextension').toBeLessThan(0.01);
+      expect(hyp.elbow, 'elbow hyperextension').toBeLessThan(0.01);
+
+      // no text/counter overlay is rendered and rep clips pause at both ends (at least 3 identical frames at the top)
+      if (plan.mode === 'rep') {
+        const ss = clip.frames.map((_, i) => phaseAt('rep', i / FRAMES, ex.unilateral).s);
+        expect(ss.filter((x) => x === 1).length, 'top pause').toBeGreaterThanOrEqual(10);
+        expect(ss.filter((x) => x === 0).length, 'bottom pause').toBeGreaterThanOrEqual(5);
+      }
+
       // t=1 must equal t=0 (loop closes exactly)
       const a = plan.motion(phaseAt(plan.mode, 0, ex.unilateral)); const b = plan.motion(phaseAt(plan.mode, 0.999999, false));
       if (!ex.unilateral) expect(step(a, b)).toBeLessThan(0.01);
     });
   }
+});
+
+describe('rep timing', () => {
+  it('uses 2 slow reps for bilateral and 4 for unilateral rep clips', () => {
+    expect(repsFor('rep', false)).toBe(2);
+    expect(repsFor('rep', true)).toBe(4);
+  });
+  it('profile is continuous (no jump between frames)', () => {
+    let prev = phaseAt('rep', 0, false).s;
+    for (let i = 1; i <= 240; i++) { const s = phaseAt('rep', (i % 240) / 240, false).s; expect(Math.abs(s - prev)).toBeLessThan(0.08); prev = s; }
+  });
+});
+
+describe('anatomical IK', () => {
+  it('flexes knee and elbow the right way regardless of the caller preference', async () => {
+    const { sideRig } = await import('./video/rig.ts');
+    const rig = sideRig({ hip: [0, 0.5], torso: 0, armN: { to: [0.05, 0.6], pref: [-1, 0] }, legN: { to: [0.1, 0.1], pref: [-1, 0], foot: 60 } });
+    expect(worstHyperextension([{ rig, props: [] }]).knee).toBeLessThan(0.01);
+    expect(worstHyperextension([{ rig, props: [] }]).elbow).toBeLessThan(0.01);
+  });
 });
 
 describe('mp4 validator', () => {

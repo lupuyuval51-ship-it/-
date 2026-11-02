@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 import { EXERCISES_ALL } from '../shared/src/content/sources.ts';
 import { validateMp4 } from '../server/src/media/mp4Validator.ts';
 import { classify } from './video/classify.ts';
-import { buildClip, FRAMES, REPS } from './video/clip.ts';
+import { buildClip, FRAMES } from './video/clip.ts';
 import { encodeMp4 } from './video/encode.ts';
 import { drawFrame, fitCamera, makeCanvas } from './video/render.ts';
 
@@ -34,8 +34,8 @@ async function renderOne(id: string): Promise<Entry> {
   const cam = fitCamera([...clip.frames, ...clip.ghosts]);
   const { canvas, ctx } = makeCanvas();
   const mp4 = join(OUT, `${id}.mp4`); const jpg = join(OUT, `${id}.jpg`);
-  await encodeMp4(mp4, FRAMES, ctx, (i) => drawFrame(ctx, cam, clip.frames[i]!, ex.primary, clip.ghosts, plan.mode === 'rep' || plan.mode === 'cycle' ? { kind: 'reps', rep: Math.floor((i / FRAMES) * REPS), reps: REPS } : { kind: 'time', t: i / FRAMES }));
-  drawFrame(ctx, cam, clip.poster, ex.primary, clip.ghosts, plan.mode === 'rep' || plan.mode === 'cycle' ? { kind: 'reps', rep: 0, reps: REPS } : { kind: 'time', t: 0.5 });
+  await encodeMp4(mp4, FRAMES, ctx, (i) => drawFrame(ctx, cam, clip.frames[i]!, ex.primary, clip.ghosts, clip.trail));
+  drawFrame(ctx, cam, clip.poster, ex.primary, clip.ghosts, clip.trail);
   let q = 80; let buf = canvas.toBuffer('image/jpeg', q);
   while (buf.length > 58_000 && q > 30) { q -= 8; buf = canvas.toBuffer('image/jpeg', q); }
   writeFileSync(jpg, buf);
@@ -45,7 +45,7 @@ async function renderOne(id: string): Promise<Entry> {
   return {
     id, file: `/media/exercises/${id}.mp4`, poster: `/media/exercises/${id}.jpg`, sha256: createHash('sha256').update(bytes).digest('hex'),
     sizeBytes: bytes.length, posterBytes: buf.length, durationSec: rep.durationSec ?? 0, width: rep.width ?? 0, height: rep.height ?? 0,
-    rule: plan.rule, fidelity: plan.fidelity, mode: plan.mode, generator: 'procedural-schematic-v1', reviewed: false,
+    rule: plan.rule, fidelity: plan.fidelity, mode: plan.mode, generator: 'procedural-schematic-v2', reviewed: false,
   };
 }
 
@@ -76,7 +76,7 @@ async function main(): Promise<void> {
     try { const prev = JSON.parse(readFileSync(join(OUT, 'media-manifest.json'), 'utf8')) as { items: Entry[] }; const fresh = new Set(entries.map((e) => e.id)); entries.push(...prev.items.filter((e) => !fresh.has(e.id))); } catch { /* first run */ }
   }
   entries.sort((a, b) => a.id.localeCompare(b.id));
-  const manifest = { generator: 'procedural-schematic-v1', priorityA: EXERCISES_ALL.filter((e) => e.videoPriority === 'A').map((e) => e.id), note: 'Schematic stick-figure animations generated in code; not filmed footage. Not human-reviewed.', count: entries.length, items: entries };
+  const manifest = { generator: 'procedural-schematic-v2', priorityA: EXERCISES_ALL.filter((e) => e.videoPriority === 'A').map((e) => e.id), note: 'Schematic stick-figure animations generated in code; not filmed footage. Not human-reviewed.', count: entries.length, items: entries };
   writeFileSync(join(OUT, 'media-manifest.json'), JSON.stringify(manifest, null, 1));
   const total = entries.reduce((a, e) => a + e.sizeBytes, 0);
   const by = (k: 'fidelity') => entries.reduce<Record<string, number>>((m, e) => ({ ...m, [e[k]]: (m[e[k]] ?? 0) + 1 }), {});
