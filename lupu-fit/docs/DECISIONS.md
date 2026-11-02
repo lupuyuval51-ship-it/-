@@ -118,3 +118,8 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 - **CPU only, arm64 only, ~6 GB RAM**: GPU is skipped because a native driver crash cannot be caught; supported=false carries a human reason.
 - **Packaging**: Kotlin Gradle plugin added for the plugin; ABIs not filtered (Play splits per ABI); `ACCESS_NETWORK_STATE` added for Wi-Fi-only; no foreground service.
 - **Unverified on a device** (see docs/ANDROID.md).
+
+## D19 - On-device model removed; AI is cloud only and automatic
+- **Decision (user request)**: the optional on-device Gemma 4 (LiteRT-LM) feature of D18 is removed end to end (JS `client/src/ai/local`, Profile AI card, `ai.mode` and "translate locally" settings, `LocalAiPlugin.kt`, the LiteRT-LM dependency, the Kotlin Gradle plugin, `ACCESS_NETWORK_STATE`, `VITE_LOCAL_MODEL_*`). Git history keeps D18 for reference.
+- **AI now**: no user-facing AI settings. The hosted server uses the Gemma 4 -> Gemini fallback chain configured by `GEMINI_MODELS` / `GEMINI_API_KEY` (D17). Device Mode uses the optional `VITE_AI_PROXY_URL` proxy exactly as before D18. When no AI is configured the existing `aiAvailable` / `ai_unavailable` handling shows an honest message and the deterministic rules coach answers. Coach safety shields and the "more languages" translation (D16) are unchanged.
+- **Size**: the AAB no longer carries the ~49 MB of LiteRT-LM JNI libraries and the Kotlin runtime, so it is smaller.

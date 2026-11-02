@@ -6,7 +6,6 @@ import { Link } from 'react-router';
 import { api } from '../api/client.ts';
 import { qk, useProfile, type ProfileResponse } from '../app/session.ts';
 import { AccountPanel } from '../components/profile/AccountPanel.tsx';
-import { LocalAiCard } from '../components/profile/LocalAiCard.tsx';
 import { LanguagePanel } from '../components/profile/LanguagePanel.tsx';
 import { BackupPanel } from '../components/profile/BackupPanel.tsx';
 import { OutboxPanel } from '../components/profile/OutboxPanel.tsx';
@@ -95,7 +94,6 @@ export default function Profile(): ReactNode {
 
       <div className={dirty ? 'sticky-cta' : undefined}><Button type="submit" variant="primary" block disabled={put.isPending || !dirty}>{put.isPending ? t('profile.saving') : dirty ? t('action.save') : t('profile.nu.saved')}</Button></div>
 
-      <Card className="stack pf-section"><h2 className="section-title">{t('localai.title')}</h2><LocalAiCard /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.nu.storage')}</h2><VideoPanel /><OutboxPanel /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.backup.title')}</h2><BackupPanel /></Card>
       <Card className="stack pf-section"><h2 className="section-title">{t('profile.account.title')}</h2><AccountPanel /></Card>
