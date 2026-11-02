@@ -13,3 +13,7 @@ services:
         sync: false
       - key: ADMIN_USERNAMES
         sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODELS   # optional, e.g. model-a,model-b
+        sync: false

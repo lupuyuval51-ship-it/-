@@ -97,3 +97,6 @@ Settings > Language keeps Hebrew (RTL, default) and English as the only built-in
 - **Server copy**: `profile.language` stays `he|en` (set to `en` while custom is active). The coach request accepts an optional `uiLanguage {code,name}` (name restricted to letters/digits/space) and the coach prompt then replies in that language; omitting it is unchanged. The deterministic rules-coach fallback and safety messages stay English/Hebrew.
 - **Numbers/dates**: `fmt.date` uses the custom BCP-47 locale when the browser supports it; numbers stay Latin digits by design.
 - **Limitations**: quality is machine quality and unreviewed (shown in the UI); content names (exercises, foods, dishes) and server-generated plan/menu text are not translated; no per-language fonts are bundled (system fonts render scripts).
+
+## D17 — Configurable Gemini model chain
+`GEMINI_MODELS="model-a,model-b"` (server env, first = preferred, falls back on 429/503) overrides the default `gemini-2.5-flash, gemini-2.5-flash-lite`. The API key stays in `GEMINI_API_KEY` (server env only, never in the repo or client). Verify any new model supports `systemInstruction` and JSON mode on the Gemini API before using it for translation/coach; the code does not check that.

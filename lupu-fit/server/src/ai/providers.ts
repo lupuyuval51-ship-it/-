@@ -1,13 +1,18 @@
 import type { AiProvider } from '../core/types.ts';
 
 type Env = Record<string, string | undefined>;
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const DEFAULT_GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+/** GEMINI_MODELS="model-a,model-b" (comma separated, first = preferred) overrides the default chain; only [a-z0-9._-] names are accepted. */
+export function geminiModelsFromEnv(raw: string | undefined): string[] {
+  const list = (raw ?? '').split(',').map((x) => x.trim()).filter((x) => /^[a-z0-9][a-z0-9._-]{1,60}$/i.test(x));
+  return list.length > 0 ? list : DEFAULT_GEMINI_MODELS;
+}
 
 /** Gemini free tier with automatic fallback to a lighter model when one is rate limited (cooldown 60 s). */
 export class GeminiProvider implements AiProvider {
   readonly name = 'gemini';
   private cooldown = new Map<string, number>();
-  constructor(private readonly key: string, private readonly f: typeof fetch = fetch) {}
+  constructor(private readonly key: string, private readonly f: typeof fetch = fetch, private readonly models: string[] = DEFAULT_GEMINI_MODELS) {}
   private async call(model: string, body: unknown): Promise<string> {
     const r = await this.f(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': this.key }, body: JSON.stringify(body) });
     if (r.status === 429 || r.status === 503) { this.cooldown.set(model, Date.now() + 60_000); throw new Error(`gemini_busy_${r.status}`); }
@@ -17,7 +22,7 @@ export class GeminiProvider implements AiProvider {
   }
   private async run(body: unknown): Promise<string> {
     let last: unknown;
-    for (const m of GEMINI_MODELS) {
+    for (const m of this.models) {
       if ((this.cooldown.get(m) ?? 0) > Date.now()) continue;
       try { return await this.call(m, body); } catch (e) { last = e; }
     }
@@ -51,6 +56,6 @@ export class ClaudeProvider implements AiProvider {
 /** Keys live only in server environment variables. Claude is preferred (private); Gemini free tier is the fallback. */
 export function providersFromEnv(env: Env): AiProvider | undefined {
   if (env['ANTHROPIC_API_KEY']) return new ClaudeProvider(env['ANTHROPIC_API_KEY']);
-  if (env['GEMINI_API_KEY']) return new GeminiProvider(env['GEMINI_API_KEY']);
+  if (env['GEMINI_API_KEY']) return new GeminiProvider(env['GEMINI_API_KEY'], fetch, geminiModelsFromEnv(env['GEMINI_MODELS']));
   return undefined;
 }
