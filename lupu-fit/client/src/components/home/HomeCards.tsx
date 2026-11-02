@@ -60,7 +60,8 @@ export function TodayWorkoutCard({ profile, primary, today }: { profile: Profile
   }, [profile]);
 
   if (plans.isLoading || sessions.isLoading) return <SkeletonCard />;
-  if (plans.isError) return <Card><ErrorState error={plans.error} onRetry={() => void plans.refetch()} /></Card>;
+  // Offline / server down: the plan list is unavailable, but a ready workout is computed locally from the profile, so keep the hero useful.
+  if (plans.isError && !suggestion) return <Card><ErrorState error={plans.error} onRetry={() => void plans.refetch()} /></Card>;
   const plan = activePlan(plans.data?.plans ?? []);
   const next = plan ? nextPlanDay(plan, sessions.data?.sessions ?? [], today) : null;
   const doneToday = (sessions.data?.sessions ?? []).some((s) => s.localDate === today);

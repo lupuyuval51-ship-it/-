@@ -4,6 +4,7 @@ import { useProfile } from '../app/session.ts';
 import { ErrorState } from '../ui/kit.tsx';
 import { PageHeader, SkeletonCard } from '../ui/patterns.tsx';
 import { localIso } from '../components/home/dates.ts';
+import { AutomationBanners } from '../automation/Banners.tsx';
 import { Checklist, KpiStrip, MenuTeaser, NutritionCard, QuickActions, ReadinessCard, ResumeCard, TodayWorkoutCard, XpStrip, useActiveSession, useChecklist, useSessionList } from '../components/home/HomeCards.tsx';
 import '../styles/home.css';
 
@@ -25,6 +26,7 @@ export default function Home(): ReactNode {
   return (
     <div className="stack">
       <PageHeader title={profile.displayName ? t('home.greetingName', { name: profile.displayName }) : t('home.greeting')} />
+      <AutomationBanners profile={profile} />
       {activeSession ? <ResumeCard session={activeSession} /> : active.isLoading ? <SkeletonCard /> : null}
       {activeSession ? null : <TodayWorkoutCard profile={profile} today={today} primary={!active.isLoading} />}
       <KpiStrip goal={profile.daysPerWeek} sessions={sessions.data?.sessions} today={today} targets={targets} />

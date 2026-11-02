@@ -12,6 +12,10 @@
 - Smoke E2E (`scripts/e2e-smoke.mjs`, needs devServer on :8090): ready-workouts wizard -> start -> log a set works on a mobile viewport (he).
 - Offline: app shell and last-known identity/profile reads are cached by `client/public/sw.js`.
 
+## Automations (D20)
+- Opt-in local reminders (workout days, meals, weigh-in, streak-at-risk, rest-day tip, quiet hours; minors without calorie/weight reminders), Android via `@capacitor/local-notifications` (inexact alarms), web only while the app is open; auto-rest toggle, Home weekly check-in, Device Mode monthly backup reminder. Unit and component tests cover the pure scheduler (incl. DST), the card (one permission request, denied, minors, web/none modes), the runtime (schedule/cancel/logout/deep link) and the banners. AAB built and `bundletool validate` passes.
+- Not verified: any real notification delivery on a device (see docs/ANDROID.md); Hebrew copy not reviewed by a native speaker.
+
 ## Not done / honest limitations
 - Playwright E2E is a smoke script only: no en/LTR, no desktop, no finish -> PR/XP -> history assertions, no CI wiring.
 - Offline reload verified only for a user without a profile (lands on Welcome); with a full profile not re-verified.

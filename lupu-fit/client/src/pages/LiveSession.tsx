@@ -24,6 +24,7 @@ import {
   type HistoryResponse, type LiveExercise, type LiveSessionData, type LiveSet,
 } from '../lib/liveSession.ts';
 import { callOrQueue, outbox, useOutbox } from '../lib/outbox.ts';
+import { useAutoRest } from '../automation/settings.ts';
 import { alertRestEnd, saveRestEnd, useRestTimer } from '../lib/restTimer.ts';
 import { useWakeLock } from '../lib/wakeLock.ts';
 import { IconCheck, IconChevron } from '../ui/icons.tsx';
@@ -89,6 +90,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
   const [dockEl, setDockEl] = useState<HTMLElement | null>(null);
   const [platesSignal, setPlatesSignal] = useState(0);
 
+  const autoRest = useAutoRest();
   const rest = useRestTimer(session.id, () => { setAnnounce(t('live.rest.over')); alertRestEnd(t('live.rest.notifTitle'), t('live.rest.notifBody')); });
 
   /* ---- sets = server rows (minus queued deletions) + queued POSTs from the outbox ---- */
@@ -142,7 +144,7 @@ function LiveWorkout({ session, profile }: { session: LiveSessionData; profile: 
         const j = mains.findIndex((m, k) => k > idx && countFor(m) < m.planned.sets);
         if (j >= 0) setIdx(j);
       }
-      if (startRest && ex.planned.restSec > 0) { rest.start(ex.planned.restSec); setAnnounce(t('live.rest.started', { sec: ex.planned.restSec })); }
+      if (startRest && autoRest && ex.planned.restSec > 0) { rest.start(ex.planned.restSec); setAnnounce(t('live.rest.started', { sec: ex.planned.restSec })); }
     } catch (e) { toast(errorMessage(e, t), 'error'); } finally { setBusy(false); }
   }
 

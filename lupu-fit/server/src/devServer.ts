@@ -9,6 +9,6 @@ import { extraRoutes } from './routes/index.ts';
 const db = await PgliteAdapter.create(process.env['PGLITE_DIR']);
 await migrate(db);
 const api = buildApp({ db, mode: 'hosted', clock: () => new Date(), ...DEFAULT_DEPS, pbkdf2Iterations: Number(process.env['PBKDF2_ITERATIONS'] ?? 600_000), secureCookies: false }, extraRoutes);
-const app = createExpressApp(api, { mode: 'hosted', trustProxy: false, staticDir: resolve(process.env['STATIC_DIR'] ?? 'client/dist'), globalLimitPerMin: 100000 });
+const app = createExpressApp(api, { mode: 'hosted', trustProxy: process.env['TRUST_PROXY'] === '1', staticDir: resolve(process.env['STATIC_DIR'] ?? 'client/dist'), globalLimitPerMin: 100000 });
 const port = Number(process.env['PORT'] ?? 8080);
 app.listen(port, () => console.log(`dev server on :${port}`));

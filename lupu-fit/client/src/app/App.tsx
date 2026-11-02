@@ -7,6 +7,7 @@ import { LangProvider } from '../i18n/index.tsx';
 import { ErrorState, Loading } from '../ui/kit.tsx';
 import { ToastProvider } from '../ui/toast.tsx';
 import { UpdatePrompt } from '../ui/UpdatePrompt.tsx';
+import { AutomationRuntime } from '../automation/runtime.tsx';
 import { RouteEffects } from './RouteEffects.tsx';
 import { PublicLayout, Shell } from './Shell.tsx';
 import { useMe } from './session.ts';
@@ -73,7 +74,7 @@ export function App({ client }: { client?: QueryClient }): ReactNode {
   const qc = useMemo(() => client ?? makeQueryClient(), [client]);
   return (
     <QueryClientProvider client={qc}>
-      <LangProvider><ToastProvider><BrowserRouter><AppRoutes /></BrowserRouter><UpdatePrompt /></ToastProvider></LangProvider>
+      <LangProvider><ToastProvider><BrowserRouter><AppRoutes /><AutomationRuntime /></BrowserRouter><UpdatePrompt /></ToastProvider></LangProvider>
     </QueryClientProvider>
   );
 }

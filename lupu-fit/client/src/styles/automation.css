@@ -1,0 +1,7 @@
+/* Automation card and Home banners. Tokens + logical properties only. */
+.auto-card .auto-row { display: flex; flex-direction: column; gap: 0.25rem; padding-block: 0.75rem; border-block-end: 1px solid var(--border); }
+.auto-card .auto-fields { display: flex; flex-direction: column; gap: 0.75rem; padding-block-start: 0.5rem; padding-inline-start: 1rem; border-inline-start: 2px solid var(--border); }
+.auto-card .auto-sub { font-size: var(--fs-16); padding-block-start: 0.5rem; }
+.auto-card .chip { min-block-size: var(--tap); }
+.auto-banner { min-inline-size: 0; }
+.auto-banner .btn { text-decoration: none; }

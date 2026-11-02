@@ -1,5 +1,6 @@
 /** Rest timer: wall-clock based (survives reload / background throttling) and persisted per workout in localStorage. */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { notifyNow } from '../automation/delivery.ts';
 import { videoStore } from './videoState.ts';
 
 export const restKey = (id: string): string => `lf_rest_${id}`;
@@ -33,23 +34,10 @@ function chime(): void {
   } catch { /* audio blocked or unsupported */ }
 }
 
-async function notify(title: string, body: string): Promise<void> {
-  try {
-    const spec = '@capacitor/local-notifications'; // not installed on web: the import fails and we fall through
-    const mod = (await import(/* @vite-ignore */ spec)) as { LocalNotifications: { schedule: (o: unknown) => Promise<unknown> } };
-    await mod.LocalNotifications.schedule({ notifications: [{ id: Math.floor(Date.now() % 2_000_000_000), title, body }] });
-    return;
-  } catch { /* fall back to the web API */ }
-  try {
-    // Never prompt automatically: only use the Notification API when permission was already granted.
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') new Notification(title, { body });
-  } catch { /* ignore */ }
-}
-
 export function alertRestEnd(title: string, body: string): void {
   try { navigator.vibrate?.([200, 100, 200]); } catch { /* ignore */ }
   chime();
-  void notify(title, body);
+  void notifyNow(title, body);
 }
 
 export interface RestTimer { remaining: number | null; start: (sec: number) => void; adjust: (deltaSec: number) => void; skip: () => void }

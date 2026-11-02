@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="false"
@@ -39,9 +40,15 @@
         </provider>
     </application>
 
-    <!-- Permissions: INTERNET only for the optional AI proxy; CAMERA only for the optional barcode scanner (getUserMedia in BarcodePanel). -->
+    <!-- Permissions: INTERNET only for the optional AI proxy; CAMERA only for the optional barcode scanner (getUserMedia in BarcodePanel); notifications below. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Local reminders (@capacitor/local-notifications). POST_NOTIFICATIONS is the Android 13+ runtime permission, asked only when the user turns a reminder on.
+         RECEIVE_BOOT_COMPLETED lets the plugin re-arm alarms after a reboot; WAKE_LOCK is used by its alarm receiver. Reminders use inexact alarms, so the
+         exact-alarm permissions are explicitly NOT requested (removed even if a library adds them). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:node="remove" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 </manifest>

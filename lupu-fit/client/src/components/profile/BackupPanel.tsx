@@ -6,6 +6,7 @@ import { fmt, useT } from '../../i18n/index.tsx';
 import { Banner, Button, errorMessage, Sheet } from '../../ui/kit.tsx';
 import { IconChevron } from '../../ui/icons.tsx';
 import { useToast } from '../../ui/toast.tsx';
+import { markBackupDone } from '../../automation/checkin.ts';
 import { downloadJson, parseBackupText, readFileText, type BackupCounts, type ParsedBackup } from './backup.ts';
 
 const MAX_BYTES = IS_DEVICE ? 200 * 1024 * 1024 : 8 * 1024 * 1024;
@@ -22,15 +23,15 @@ export function BackupPanel(): ReactNode {
   const fetchExport = () => api.get<unknown>('/api/export');
   const doExport = async () => {
     setBusy(true); setErr(null);
-    try { const data = await fetchExport(); downloadJson(FILENAME, data); toast(t('profile.backup.exported'), 'ok'); } catch (e) { setErr(errorMessage(e, t)); } finally { setBusy(false); }
+    try { const data = await fetchExport(); downloadJson(FILENAME, data); markBackupDone(); toast(t('profile.backup.exported'), 'ok'); } catch (e) { setErr(errorMessage(e, t)); } finally { setBusy(false); }
   };
   const doShare = async () => {
     setBusy(true); setErr(null);
     try {
       const data = await fetchExport();
       const file = new File([JSON.stringify(data, null, 2)], FILENAME, { type: 'application/json' });
-      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: FILENAME });
-      else { downloadJson(FILENAME, data); toast(t('profile.backup.exported'), 'ok'); }
+      if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: FILENAME }); markBackupDone(); }
+      else { downloadJson(FILENAME, data); markBackupDone(); toast(t('profile.backup.exported'), 'ok'); }
     } catch (e) { if ((e as { name?: string }).name !== 'AbortError') setErr(errorMessage(e, t)); } finally { setBusy(false); }
   };
 

@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { fmt, useT } from '../../i18n/index.tsx';
 import { Button, ChipGroup, Segmented, Select, TextInput } from '../../ui/kit.tsx';
 import { Disclosure } from '../../ui/patterns.tsx';
+import { ChoiceCards } from '../onboarding/Choice.tsx';
 
 const toggle = <T,>(arr: readonly T[], v: T): T[] => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 const opts = <T extends string>(vals: readonly T[], t: (k: string) => string, ns: string) => vals.map((v) => ({ value: v, label: t(`label.${ns}.${v}`) }));
@@ -40,7 +41,10 @@ export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNo
   const totalIn = Math.round(value.heightCm / 2.54);
   return (
     <div className="stack">
-      <Select label={t('profile.f.sex')} value={value.sex} onChange={(e) => set('sex', e.target.value as ProfileInput['sex'])} options={opts(SEXES, t, 'sex')} />
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.sex')}</span>
+        <ChoiceCards dense label={t('profile.f.sex')} value={value.sex} options={opts(SEXES, t, 'sex')} onChange={(v) => set('sex', v)} />
+      </div>
       <div className="grid-3">
         <NumField label={t('profile.f.age')} value={value.age} onChange={(n) => set('age', n as number)} error={err('age')} />
         <NumField label={t('profile.f.height')} suffix={t('unit.cm')} value={value.heightCm} onChange={(n) => set('heightCm', n as number)} error={err('heightCm')} />
@@ -54,8 +58,14 @@ export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNo
         <NumField label={t('profile.f.days')} value={value.daysPerWeek} onChange={(n) => set('daysPerWeek', n as number)} error={err('daysPerWeek')} />
         <NumField label={t('profile.f.minutes')} suffix={t('unit.min')} value={value.sessionMinutes} onChange={(n) => set('sessionMinutes', n as number)} error={err('sessionMinutes')} />
       </div>
-      <Select label={t('profile.f.activity')} value={value.activityLevel} onChange={(e) => set('activityLevel', e.target.value as ProfileInput['activityLevel'])} options={opts(ACTIVITY_LEVELS, t, 'activity')} />
-      <Select label={t('profile.f.diet')} value={value.diet} onChange={(e) => set('diet', e.target.value as ProfileInput['diet'])} options={opts(DIET_TYPES, t, 'diet')} />
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.activity')}</span>
+        <ChoiceCards label={t('profile.f.activity')} value={value.activityLevel} options={ACTIVITY_LEVELS.map((x) => ({ value: x, label: t(`label.activity.${x}`), desc: t(`onboarding.nutrition.activityDesc.${x}`) }))} onChange={(v) => set('activityLevel', v)} />
+      </div>
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.diet')}</span>
+        <ChoiceCards dense cols={2} label={t('profile.f.diet')} value={value.diet} options={opts(DIET_TYPES, t, 'diet')} onChange={(v) => set('diet', v)} />
+      </div>
       <ChipGroup label={t('profile.f.allergies')} options={opts(ALLERGENS, t, 'allergen')} selected={value.allergies} onToggle={(v) => set('allergies', toggle(value.allergies, v))} />
       <Disclosure summary={t('profile.nu.moreSetup')}>
         <ChipGroup label={t('profile.f.equipment')} options={opts(EQUIPMENT, t, 'equipment')} selected={value.equipment} onToggle={(v) => set('equipment', toggle(value.equipment, v))} />
