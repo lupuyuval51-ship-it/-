@@ -21,7 +21,7 @@ describe('Login', () => {
     renderScreen(<Login />);
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect((await screen.findAllByText('Required')).length).toBe(2);
-    type('USERNAME', 'a b'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'a b'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByText('Use only letters a-z, digits, _ . - and start with a letter or digit.')).toBeInTheDocument();
     expect(m.post).not.toHaveBeenCalled();
   });
@@ -32,7 +32,7 @@ describe('Login', () => {
   });
   it('uses correct autocomplete attributes and a show/hide password toggle', () => {
     renderScreen(<Login />);
-    const u = screen.getByLabelText('USERNAME');
+    const u = screen.getByLabelText('Username');
     expect(u).toHaveAttribute('autocomplete', 'username'); expect(u).toHaveAttribute('inputmode', 'text');
     expect(u).toHaveAttribute('autocapitalize', 'off'); expect(u).toHaveAttribute('autocorrect', 'off'); expect(u).toHaveAttribute('spellcheck', 'false');
     const pw = screen.getByLabelText('Password');
@@ -44,7 +44,7 @@ describe('Login', () => {
     m.post.mockResolvedValueOnce({ ok: true });
     const { qc } = renderScreen(<Login />, { state: { from: '/nutrition' } });
     const spy = vi.spyOn(qc, 'invalidateQueries');
-    type('USERNAME', 'Yuval_L'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'Yuval_L'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(path()).toBe('/nutrition'));
     expect(m.post).toHaveBeenCalledWith('/api/auth/login', { username: 'yuval_l', password: 'x', remember: true });
     expect(localStorage.getItem('lf_username')).toBe('yuval_l');
@@ -56,7 +56,7 @@ describe('Login', () => {
     m.post.mockResolvedValueOnce({ ok: true });
     renderScreen(<Login />, { route: '/login' });
     fireEvent.click(screen.getByRole('switch'));
-    type('USERNAME', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(path()).toBe('/'));
     expect(m.post).toHaveBeenCalledWith('/api/auth/login', { username: 'abc', password: 'x', remember: false });
     expect(localStorage.getItem('lf_username')).toBeNull();
@@ -64,18 +64,18 @@ describe('Login', () => {
   it('prefills the username remembered on this device', () => {
     localStorage.setItem('lf_username', 'saved_user');
     renderScreen(<Login />, { route: '/login' });
-    expect((screen.getByLabelText('USERNAME') as HTMLInputElement).value).toBe('saved_user');
+    expect((screen.getByLabelText('Username') as HTMLInputElement).value).toBe('saved_user');
   });
   it('goes to / when there is no from state', async () => {
     m.post.mockResolvedValueOnce({ ok: true });
     renderScreen(<Login />, { route: '/login' });
-    type('USERNAME', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(path()).toBe('/'));
   });
   it('maps invalid_credentials and network errors to friendly messages', async () => {
     m.post.mockRejectedValueOnce(new ApiRequestError(401, 'invalid_credentials', {}));
     renderScreen(<Login />);
-    type('USERNAME', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     expect(await screen.findByText('Wrong username or password.')).toBeInTheDocument();
     m.post.mockRejectedValueOnce(new NetworkError());
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -85,7 +85,7 @@ describe('Login', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     m.post.mockRejectedValueOnce(new ApiRequestError(429, 'too_many_attempts', {}, { 'retry-after': '3' }));
     renderScreen(<Login />);
-    type('USERNAME', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+    type('Username', 'abc'); type('Password', 'x'); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     const banner = await screen.findByText(/Too many attempts/);
     expect(banner.textContent).toContain('3');
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeDisabled();
@@ -108,38 +108,38 @@ describe('Register', () => {
     renderScreen(<Register />);
     expect(screen.getByText(/3-24 characters: letters a-z, digits/)).toBeInTheDocument();
     expect(screen.getByLabelText('Choose a password')).toHaveAttribute('autocomplete', 'new-password');
-    type('USERNAME', 'ab'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'ab'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('The username must be 3 to 24 characters.')).toBeInTheDocument();
-    type('USERNAME', 'bad name!'); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'bad name!'); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('Use only letters a-z, digits, _ . - and start with a letter or digit.')).toBeInTheDocument();
     expect(m.post).not.toHaveBeenCalled();
   });
   it('requires a 10 character password with a friendly message', async () => {
     renderScreen(<Register />);
     expect(screen.getByLabelText('Choose a password')).toHaveAttribute('autocomplete', 'new-password');
-    type('USERNAME', 'abc'); type('Choose a password', 'short'); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'abc'); type('Choose a password', 'short'); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('The password must be at least 10 characters.')).toBeInTheDocument();
     expect(m.post).not.toHaveBeenCalled();
   });
   it('registers and navigates to /welcome', async () => {
     m.post.mockResolvedValueOnce({ ok: true });
     renderScreen(<Register />, { route: '/register' });
-    type('USERNAME', 'New_User'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'New_User'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => expect(path()).toBe('/welcome'));
     expect(m.post).toHaveBeenCalledWith('/api/auth/register', { username: 'new_user', password: GOOD_PW });
   });
   it('maps username_taken onto the username field', async () => {
     m.post.mockRejectedValueOnce(new ApiRequestError(409, 'username_taken', {}));
     renderScreen(<Register />);
-    type('USERNAME', 'abc'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'abc'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('This username is already taken. Try another one.')).toBeInTheDocument();
-    expect(screen.getByLabelText('USERNAME')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Username')).toHaveAttribute('aria-invalid', 'true');
   });
   it('maps validation_error and links to the legal pages', async () => {
     m.post.mockRejectedValueOnce(new ApiRequestError(400, 'validation_error', {}));
     renderScreen(<Register />);
     expect(screen.getByRole('link', { name: 'Privacy policy' })).toHaveAttribute('href', '/privacy');
-    type('USERNAME', 'abc'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    type('Username', 'abc'); type('Choose a password', GOOD_PW); fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(await screen.findByText('Some fields are not valid.')).toBeInTheDocument();
   });
 });

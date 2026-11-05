@@ -55,7 +55,7 @@ export function PasswordField({ label, value, onChange, error, autoComplete, hin
       {(id, d) => (
         <div className="pw-wrap">
           <input id={id} className={cx('input')} type={shown ? 'text' : 'password'} value={value} onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete} autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby={d} aria-invalid={error ? true : undefined} />
-          <button type="button" className="btn btn-ghost btn-sm" aria-pressed={shown} onClick={() => setShown((s) => !s)}>{t('auth.showPassword')}</button>
+          <button type="button" className="pw-toggle" aria-label={t('auth.showPassword')} aria-pressed={shown} onClick={() => setShown((s) => !s)}>{shown ? t('auth.pwHide') : t('auth.pwShow')}</button>
         </div>
       )}
     </Field>

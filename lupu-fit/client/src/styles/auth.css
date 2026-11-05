@@ -2,9 +2,11 @@
 .auth-form { padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .auth-links { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; font-size: var(--fs-14); text-align: center; }
 .auth-links a { display: inline-flex; align-items: center; min-block-size: var(--tap); }
-.pw-wrap { display: flex; align-items: stretch; gap: 0.5rem; }
-.pw-wrap .input { flex: 1 1 auto; min-inline-size: 0; }
-.pw-wrap .btn { flex: none; min-block-size: var(--tap); color: var(--text-muted); }
+/* The show/hide toggle lives inside the field so it is as wide as the other inputs. */
+.pw-wrap { position: relative; }
+.pw-wrap .input { padding-inline-end: 4.75rem; }
+.pw-toggle { position: absolute; inset-block: 0; inset-inline-end: 0; min-inline-size: 4.25rem; padding-inline: 0.75rem; background: transparent; border: 0; border-radius: var(--radius); color: var(--text-muted); font: inherit; font-size: var(--fs-14); font-weight: 600; cursor: pointer; }
+.pw-toggle:hover, .pw-toggle[aria-pressed='true'] { color: var(--text); }
 .lockout-num { font-size: var(--fs-22); font-weight: 700; }
 
 /* Welcome */
