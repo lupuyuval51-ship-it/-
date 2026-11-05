@@ -79,6 +79,14 @@ describe('AutomationRuntime', () => {
     expect(ids).not.toContain(401 + d.getDay()); // streak id = 400 + weekday + 1
   });
 
+  it('an unfinished workout left open from an earlier day does not count as "trained today"', async () => {
+    h.active = { id: 'old', localDate: '2020-01-01' };
+    saveSettings('u1', { ...DEFAULT_SETTINGS, quiet: { on: false, start: '22:00', end: '07:00' }, streak: { on: true, time: '23:59' }, workout: { on: false, time: '18:00', days: [0, 1, 2, 3, 4, 5, 6] } });
+    mount();
+    await waitFor(() => expect(h.schedule).toHaveBeenCalled());
+    expect(last()!.notifications).toHaveLength(7); // today's nudge is still there
+  });
+
   it('opens the right screen when a reminder is tapped, and ignores unknown routes', async () => {
     mount();
     await waitFor(() => expect(h.listeners.length).toBe(1));

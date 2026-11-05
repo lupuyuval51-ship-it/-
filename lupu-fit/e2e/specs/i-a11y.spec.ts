@@ -75,3 +75,19 @@ test('a11y smoke: signed-out pages fit 360px and have named controls', async ({ 
   }
   expect(problems).toEqual([]);
 });
+
+test('a new screen opens at the top and Back restores the scroll offset', async ({ app: page, seed }) => {
+  await seed();
+  await page.goto('/exercises');
+  const rows = page.locator('a[href^="/exercises/"]');
+  await expect(rows.first()).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 700));
+  const y = await page.evaluate(() => window.scrollY);
+  expect(y).toBeGreaterThan(300);
+  await rows.nth(Math.min(9, (await rows.count()) - 1)).evaluate((el: HTMLElement) => el.click());
+  await expect(page).toHaveURL(/\/exercises\/[^/]+$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/exercises$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+});

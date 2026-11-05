@@ -12,7 +12,7 @@ const VIDEO = 'lupu-video-cache';
 const META = 'lupu-meta';
 const SESSION = 'lupu-session-v1';
 const DEFAULT_BUDGET_MB = 300;
-const SHELL_MAX_ENTRIES = 120; // hashed assets of old deployments would otherwise pile up forever
+const SHELL_MAX_BUILD_FILES = 150; // hashed build files (/assets) of old deployments would otherwise pile up forever; dish photos, fonts and icons are bounded by the content itself
 
 const isMedia = (res) => res.status === 200 && /^(video|image)\//i.test(res.headers.get('content-type') || '');
 /** Something other than a page (script, style, font, image, clip...) must never be an HTML document: that is the SPA fallback of a missing file. */
@@ -129,7 +129,10 @@ async function sessionFetch(req) {
 }
 
 // ---- app shell ---------------------------------------------------------------------------------------------------------------------
-async function trim(cache) { const keys = await cache.keys(); for (let i = 0; i < keys.length - SHELL_MAX_ENTRIES; i++) await cache.delete(keys[i]); }
+async function trim(cache) {
+  const build = (await cache.keys()).filter((k) => new URL(k.url).pathname.startsWith('/assets/'));
+  for (let i = 0; i < build.length - SHELL_MAX_BUILD_FILES; i++) await cache.delete(build[i]); // oldest first
+}
 const cacheable = (req, res) => res.ok && res.status === 200 && res.type !== 'opaque' && (req.mode === 'navigate' || req.destination === 'document' || !isHtml(res));
 
 self.addEventListener('fetch', (e) => {

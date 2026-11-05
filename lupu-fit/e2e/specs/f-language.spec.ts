@@ -33,6 +33,13 @@ test('language switch he <-> en persists across reload and sets html lang/dir; "
   await expect(html).toHaveAttribute('lang', other);
   expect(await page.evaluate(() => localStorage.getItem('lf_lang_custom'))).toBeNull();
 
+  // The browser/Android Back button closes the sheet instead of leaving the profile screen.
+  await page.goBack();
+  await expect(sheet).toBeHidden();
+  await expect(page).toHaveURL(/\/profile$/);
+  await page.locator('.ml-open').click();
+  await expect(sheet).toBeVisible();
+
   // Back to the project language.
   await page.keyboard.press('Escape');
   await page.goto('/');

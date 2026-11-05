@@ -48,44 +48,59 @@ let webTimers: ReturnType<typeof setTimeout>[] = [];
 let webRoute: ((route: string) => void) | null = null;
 const clearWeb = (): void => { webTimers.forEach(clearTimeout); webTimers = []; };
 
+/**
+ * Calls are serialised and the newest one wins: two overlapping runs (settings changed twice, or a sign-out while a schedule is being
+ * written) must not interleave their native calls, and a run that was overtaken must not schedule anything after a newer run or a
+ * `cancelAll` (logout) has decided what should be pending.
+ */
+let generation = 0;
+let chain: Promise<unknown> = Promise.resolve();
+const enqueue = <T>(job: () => Promise<T>): Promise<T> => { const run = chain.then(job); chain = run.catch(() => undefined); return run; };
+
 /** Replaces every pending reminder with `triggers` (idempotent: the same input yields the same pending set). */
-export async function applySchedule(triggers: readonly Trigger[], textFor: TextFor, channel: ChannelText, now: Date = new Date()): Promise<void> {
-  const mode = deliveryMode();
-  if (mode === 'native') {
-    await cancelNative();
-    if (triggers.length === 0) return;
-    try { await LocalNotifications.createChannel({ id: CHANNEL_ID, name: channel.name, description: channel.description, importance: 3, visibility: 0, vibration: true }); } catch { /* channel already exists */ }
-    await LocalNotifications.schedule({
-      notifications: triggers.map((t) => ({
-        id: t.id, ...textFor(t.kind), channelId: CHANNEL_ID, smallIcon: SMALL_ICON, extra: { route: t.route },
-        schedule: t.repeats
-          ? { on: t.weekday === null ? { hour: t.hour, minute: t.minute } : { weekday: t.weekday + 1, hour: t.hour, minute: t.minute }, allowWhileIdle: true }
-          : { at: new Date(t.at as number), allowWhileIdle: true },
-      })),
-    });
-    return;
-  }
-  clearWeb();
-  if (mode !== 'web' || Notification.permission !== 'granted') return;
-  const horizon = now.getTime() + 24 * 3_600_000;
-  for (const t of triggers) {
-    const at = nextFire(t, now);
-    if (!at || at.getTime() > horizon) continue;
-    const text = textFor(t.kind);
-    webTimers.push(setTimeout(() => {
-      try { const n = new Notification(text.title, { body: text.body, tag: `lf-${t.id}` }); n.onclick = () => { window.focus(); webRoute?.(t.route); n.close(); }; } catch { /* blocked */ }
-    }, Math.max(0, at.getTime() - now.getTime())));
-  }
+export function applySchedule(triggers: readonly Trigger[], textFor: TextFor, channel: ChannelText, now: Date = new Date()): Promise<void> {
+  const mine = ++generation;
+  return enqueue(async () => {
+    if (mine !== generation) return; // overtaken while waiting
+    const mode = deliveryMode();
+    if (mode === 'native') {
+      await cancelNative();
+      if (mine !== generation || triggers.length === 0) return;
+      try { await LocalNotifications.createChannel({ id: CHANNEL_ID, name: channel.name, description: channel.description, importance: 3, visibility: 0, vibration: true }); } catch { /* channel already exists */ }
+      if (mine !== generation) return;
+      await LocalNotifications.schedule({
+        notifications: triggers.map((t) => ({
+          id: t.id, ...textFor(t.kind), channelId: CHANNEL_ID, smallIcon: SMALL_ICON, extra: { route: t.route },
+          schedule: t.repeats
+            ? { on: t.weekday === null ? { hour: t.hour, minute: t.minute } : { weekday: t.weekday + 1, hour: t.hour, minute: t.minute }, allowWhileIdle: true }
+            : { at: new Date(t.at as number), allowWhileIdle: true },
+        })),
+      });
+      return;
+    }
+    clearWeb();
+    if (mode !== 'web' || Notification.permission !== 'granted') return;
+    const horizon = now.getTime() + 24 * 3_600_000;
+    for (const t of triggers) {
+      const at = nextFire(t, now);
+      if (!at || at.getTime() > horizon) continue;
+      const text = textFor(t.kind);
+      webTimers.push(setTimeout(() => {
+        try { const n = new Notification(text.title, { body: text.body, tag: `lf-${t.id}` }); n.onclick = () => { window.focus(); webRoute?.(t.route); n.close(); }; } catch { /* blocked */ }
+      }, Math.max(0, at.getTime() - now.getTime())));
+    }
+  });
 }
 
 async function cancelNative(): Promise<void> {
   try { const { notifications } = await LocalNotifications.getPending(); if (notifications.length > 0) await LocalNotifications.cancel({ notifications: notifications.map((n) => ({ id: n.id })) }); } catch { /* nothing pending / plugin unavailable */ }
 }
 
-/** Logout, or every reminder switched off. */
-export async function cancelAll(): Promise<void> {
+/** Logout, or every reminder switched off. Also cancels any schedule run that is still waiting or half way. */
+export function cancelAll(): Promise<void> {
+  generation++;
   clearWeb();
-  if (deliveryMode() === 'native') await cancelNative();
+  return enqueue(async () => { clearWeb(); if (deliveryMode() === 'native') await cancelNative(); });
 }
 
 /** Opens a screen when a reminder is tapped (native tap, or a web notification click). Returns an unsubscribe. */

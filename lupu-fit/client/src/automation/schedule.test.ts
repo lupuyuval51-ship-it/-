@@ -25,6 +25,12 @@ describe('defaults', () => {
     expect(trainingDays(withS({ workout: { on: true, time: '18:00', days: null } }), { age: 30, daysPerWeek: 4 })).toEqual([0, 1, 3, 4]);
     expect(trainingDays(withS({ workout: { on: true, time: '18:00', days: [6] } }), { age: 30, daysPerWeek: 4 })).toEqual([6]);
   });
+  it('an explicit empty choice of training days is respected (the Settings card shows none selected): no workout or streak reminders, rest tip every day', () => {
+    const s = withS({ workout: { on: true, time: '18:00', days: [] }, streak: { on: true, time: '20:00' }, rest: { on: true, time: '10:00' } });
+    expect(trainingDays(s, { age: 30, daysPerWeek: 3 })).toEqual([]);
+    const k = kinds(computeTriggers({ ...input(), settings: s }));
+    expect(k.filter((x) => x === 'workout')).toHaveLength(0); expect(k.filter((x) => x === 'streak')).toHaveLength(0); expect(k.filter((x) => x === 'rest')).toHaveLength(7);
+  });
 });
 
 describe('triggers', () => {

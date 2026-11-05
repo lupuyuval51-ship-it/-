@@ -54,3 +54,37 @@ describe('outbox', () => {
     expect(calls.map((c) => c.path)).toEqual(['/api/late']); expect(outbox.list()).toHaveLength(0);
   });
 });
+
+describe('outbox on a shared device', () => {
+  const asUser = (id: string) => ({ status: 200, body: { user: { id, username: id, role: 'user' }, csrfToken: 'c', onboarded: true, mode: 'hosted' }, headers: {} });
+  async function signIn(id: string) {
+    const real = await vi.importActual<typeof import('../api/client.ts')>('../api/client.ts');
+    real.setTransport({ request: async () => asUser(id) });
+    await real.api.post('/api/auth/login', { username: id, password: 'x' });
+  }
+
+  it("never shows or replays another person's queued items; they are still there when that person returns", async () => {
+    await signIn('A');
+    behaviour = () => new NetworkError();
+    await callOrQueue({ method: 'POST', path: '/api/food-log', body: { name: "A's secret rice" }, label: "A's secret rice" });
+    expect(outbox.list().map((i) => i.label)).toEqual(["A's secret rice"]);
+    await signIn('B');
+    expect(outbox.list()).toEqual([]);
+    calls.length = 0; behaviour = () => ({ ok: true });
+    await outbox.flush();
+    expect(calls).toEqual([]); // nothing of A's was sent into B's account
+    await signIn('A');
+    expect(outbox.list()).toHaveLength(1);
+    await outbox.flush();
+    expect(calls.map((c) => c.path)).toEqual(['/api/food-log']); expect(outbox.list()).toHaveLength(0);
+  });
+
+  it('a signed-out (401) replay waits instead of being marked rejected', async () => {
+    await signIn('A');
+    behaviour = () => new NetworkError();
+    await callOrQueue({ method: 'POST', path: '/api/weights', body: {}, label: 'weigh-in' });
+    behaviour = () => new ApiRequestError(401, 'unauthorized', null);
+    await outbox.flush();
+    expect(outbox.list().map((i) => i.status)).toEqual(['pending']);
+  });
+});

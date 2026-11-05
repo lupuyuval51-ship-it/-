@@ -263,7 +263,7 @@ export function Checklist({ items }: { items: ChecklistItem[] }): ReactNode {
   const doneN = items.filter((i) => i.done).length;
   return (
     <Card>
-      <div className="row-between"><h2>{t('home.start.title')}</h2><span className="small muted num">{t('home.start.progress', { a: doneN, b: items.length })}</span></div>
+      <div className="row-between"><h2>{t('home.start.title')}</h2><span className="small muted">{t('home.start.progress', { a: doneN, b: items.length })}</span></div>
       <ul className="list">
         {items.map((i) => (
           <li key={i.id}>

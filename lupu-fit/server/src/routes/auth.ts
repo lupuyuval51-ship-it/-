@@ -3,6 +3,7 @@ import { LoginBodySchema, RegisterBodySchema } from '@lupu-fit/shared';
 import { dummyHash, hashPassword, randomHex, randomId, sha256Hex, verifyPassword } from '../crypto/portableCrypto.ts';
 import { clearedCookie, sessionCookie } from '../core/app.ts';
 import { ApiError } from '../core/errors.ts';
+import { maybeHousekeeping } from '../core/housekeeping.ts';
 import { assertNotLocked, clearFailures, ident, POLICIES, recordFailure } from '../core/rateLimit.ts';
 import type { Router } from '../core/router.ts';
 import type { Ctx, Deps } from '../core/types.ts';
@@ -36,6 +37,7 @@ export function authRoutes(r: Router, deps: Deps): void {
     try { await ctx.db.query('INSERT INTO users (id, username, password_hash, role) VALUES ($1,$2,$3,$4)', [id, username, await hashPassword(password, deps.pbkdf2Iterations), role]); }
     catch (e) { if ((e as { code?: string }).code === '23505') throw new ApiError(409, 'username_taken'); throw e; } // lost a race with a parallel registration of the same name
     const s = await startSession(ctx, id);
+    await maybeHousekeeping(ctx.db, ctx.now);
     return { json: { user: { id, username, role }, csrfToken: s.csrf }, status: 201, setCookies: [sessionCookie(deps, s.token)] };
   }, { auth: false, body: RegisterBodySchema });
 
@@ -57,6 +59,7 @@ export function authRoutes(r: Router, deps: Deps): void {
     await clearFailures(ctx.db, 'login', keys[0] as { scopeKind: string; id: string });
     if (verdict.needsRehash) await ctx.db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [await hashPassword(password, deps.pbkdf2Iterations), u.id]);
     const s = await startSession(ctx, u.id, remember !== false);
+    await maybeHousekeeping(ctx.db, ctx.now);
     return { json: { user: { id: u.id, username: u.username, role: u.role }, csrfToken: s.csrf }, setCookies: [sessionCookie(deps, s.token, remember !== false)] };
   }, { auth: false, body: LoginBodySchema });
 

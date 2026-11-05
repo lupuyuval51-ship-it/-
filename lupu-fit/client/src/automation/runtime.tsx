@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
-import { api } from '../api/client.ts';
+import { api, onUserChange } from '../api/client.ts';
 import { qk, useMe, useProfile } from '../app/session.ts';
 import { localIso } from '../components/home/dates.ts';
 import { useLang } from '../i18n/index.tsx';
@@ -26,7 +26,7 @@ export function AutomationRuntime(): ReactNode {
   const needsWorkoutState = settings.workout.on || settings.streak.on;
   const signedIn = !!me.data; const p = profile.data?.profile;
   const sessions = useQuery({ queryKey: ['sessions', 'list'], enabled: signedIn && !!p && needsWorkoutState, queryFn: () => api.get<{ sessions: { localDate: string }[] }>('/api/sessions', { limit: 100 }) });
-  const active = useQuery({ queryKey: qk.activeSession, enabled: signedIn && !!p && needsWorkoutState, queryFn: () => api.get<{ session: unknown | null }>('/api/sessions/active') });
+  const active = useQuery({ queryKey: qk.activeSession, enabled: signedIn && !!p && needsWorkoutState, queryFn: () => api.get<{ session: { localDate?: string } | null }>('/api/sessions/active') });
 
   useEffect(() => onReminderOpen((route) => navigate(route)), [navigate]);
 
@@ -41,9 +41,13 @@ export function AutomationRuntime(): ReactNode {
 
   // Signed out: cancel everything.
   useEffect(() => { if (me.data === null) void cancelAll(); }, [me.data]);
+  // The API layer knows about every sign-out, expired session and change of person, even when the `me` query has not caught up (offline, cleared cache):
+  // the previous person's reminders must not outlive them.
+  useEffect(() => onUserChange((e) => { if (e.to === null || (e.from !== null && e.from !== e.to)) void cancelAll(); }), []);
 
   const today = localIso();
-  const doneToday = !!active.data?.session || !!sessions.data?.sessions.some((s) => s.localDate === today);
+  const open = active.data?.session; // an unfinished workout from an earlier day that was never closed does not count as "trained today"
+  const doneToday = (!!open && (open.localDate === undefined || open.localDate === today)) || !!sessions.data?.sessions.some((s) => s.localDate === today);
   const stateReady = !needsWorkoutState || (!sessions.isPending && !active.isPending) || sessions.isError || active.isError;
   const anyOn = settings.workout.on || settings.meals.on || settings.weigh.on || settings.streak.on || settings.rest.on;
   const age = p?.age; const days = p?.daysPerWeek;

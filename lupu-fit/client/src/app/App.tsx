@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense, useMemo, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router';
-import { ApiRequestError } from '../api/client.ts';
+import { ApiRequestError, onUserChange } from '../api/client.ts';
 import { IS_DEVICE } from '../env.ts';
 import { LangProvider } from '../i18n/index.tsx';
 import { ErrorState, Loading } from '../ui/kit.tsx';
@@ -41,7 +41,16 @@ function Gate({ children }: { children: ReactNode }): ReactNode {
 }
 
 export function makeQueryClient(): QueryClient {
-  return new QueryClient({ defaultOptions: { queries: { retry: (n, e) => !(e instanceof ApiRequestError && e.status < 500) && n < 2, refetchOnWindowFocus: false, staleTime: 10_000 }, mutations: { retry: false } } });
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: (n, e) => !(e instanceof ApiRequestError && e.status < 500) && n < 2, refetchOnWindowFocus: false, staleTime: 10_000 }, mutations: { retry: false } } });
+  // A different person signed in on this device (e.g. after a session expired): nothing cached for the previous one may be shown to them,
+  // not even for the moment before the refetch. `me` stays: the sign-in screen refreshes it itself.
+  // (`me` itself is in flight when this fires for the first sign-in answer: it must never be cancelled.)
+  onUserChange((e) => {
+    if (e.from === null || e.to === null || e.from === e.to) return;
+    const other = (q: { queryKey: readonly unknown[] }): boolean => q.queryKey[0] !== 'me';
+    void qc.cancelQueries({ predicate: other }); qc.removeQueries({ predicate: other });
+  });
+  return qc;
 }
 
 export function AppRoutes(): ReactNode {

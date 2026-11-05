@@ -8,29 +8,44 @@
  */
 import { del, entries, get, set, createStore } from 'idb-keyval';
 import { useSyncExternalStore } from 'react';
-import { api, ApiRequestError, NetworkError } from '../api/client.ts';
+import { api, ApiRequestError, getCurrentUserId, NetworkError, onUserChange } from '../api/client.ts';
 
 export interface OutboxItem {
   id: string; method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; path: string; body: unknown; idempotencyKey: string;
   createdAt: number; label: string; status: 'pending' | 'rejected'; error?: string;
+  /** Who queued it. An item is only shown to, and only ever replayed for, that person (a shared device must not move A's food log into B's account). Absent on items queued by older versions. */
+  userId?: string;
 }
 
 const store = () => createStore('lupu-fit-outbox', 'items');
 let cache: OutboxItem[] = [];
+/** What the current person may see and replay (stable reference between changes, as useSyncExternalStore requires). */
+let view: OutboxItem[] = [];
+const mine = (i: OutboxItem): boolean => !i.userId || i.userId === getCurrentUserId();
+const refresh = (): void => { view = cache.filter(mine); };
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 let flushing: Promise<void> | null = null;
 
 async function reload(): Promise<void> {
   try { cache = (await entries<string, OutboxItem>(store())).map(([, v]) => v).sort((a, b) => a.createdAt - b.createdAt); } catch { cache = []; }
-  emit();
+  refresh(); emit();
 }
 void reload();
+/** Whoever is signed in changed: re-filter. A deleted account takes its queued items with it. */
+onUserChange((e) => {
+  if (e.reason === 'deleted') {
+    const doomed = cache.filter((i) => !i.userId || i.userId === e.from);
+    void Promise.all(doomed.map((i) => del(i.id, store()).catch(() => undefined))).then(reload);
+  }
+  refresh(); emit();
+});
 
 export const outbox = {
-  list: (): OutboxItem[] => cache,
+  list: (): OutboxItem[] => view,
   async enqueue(i: Omit<OutboxItem, 'id' | 'createdAt' | 'status' | 'idempotencyKey'> & { idempotencyKey?: string }): Promise<OutboxItem> {
-    const item: OutboxItem = { ...i, id: crypto.randomUUID(), idempotencyKey: i.idempotencyKey ?? crypto.randomUUID(), createdAt: Date.now(), status: 'pending' };
+    const uid = getCurrentUserId();
+    const item: OutboxItem = { ...i, id: crypto.randomUUID(), idempotencyKey: i.idempotencyKey ?? crypto.randomUUID(), createdAt: Date.now(), status: 'pending', ...(uid ? { userId: uid } : {}) };
     await set(item.id, item, store()); await reload(); return item;
   },
   async remove(id: string): Promise<void> { await del(id, store()); await reload(); },
@@ -42,13 +57,13 @@ export const outbox = {
     // finishes synchronously, before `flushing` is assigned, which would leave a settled promise cached forever.
     const p: Promise<void> = (async () => {
       try {
-        for (const it of [...cache].filter((x) => x.status === 'pending')) {
+        for (const it of cache.filter((x) => x.status === 'pending' && mine(x))) {
           try {
             await replay(it);
             await del(it.id, store());
           } catch (e) {
             if (e instanceof NetworkError) break;
-            if (e instanceof ApiRequestError && (e.status >= 500 || e.status === 429)) break; // transient: try again later
+            if (e instanceof ApiRequestError && (e.status >= 500 || e.status === 429 || e.status === 401)) break; // transient (or: signed out, they wait for the same person to sign in again): try again later
             const code = e instanceof ApiRequestError ? e.code : 'error';
             await set(it.id, { ...it, status: 'rejected', error: code } satisfies OutboxItem, store());
           }
@@ -90,5 +105,5 @@ export function useOutbox(): OutboxItem[] { return useSyncExternalStore(outbox.s
 
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => { void outbox.flush(); });
-  setInterval(() => { if (cache.some((x) => x.status === 'pending')) void outbox.flush(); }, 30_000);
+  setInterval(() => { if (view.some((x) => x.status === 'pending')) void outbox.flush(); }, 30_000);
 }

@@ -180,7 +180,7 @@ export default function Progress(): ReactNode {
             <div className="row-between"><span><span className="muted">{t('progress.xp.level')}</span> <span className="num-lg">{stats.data.level.level}</span></span><span className="small"><span className="num">{stats.data.xp}</span> {t('progress.xp.xp')}</span></div>
             <ProgressBar value={stats.data.level.xpIntoLevel} max={stats.data.level.xpForNext} label={t('progress.xp.bar', { a: stats.data.level.xpIntoLevel, b: stats.data.level.xpForNext })} />
             <p className="small muted">{t('progress.xp.toNext', { n: Math.max(0, stats.data.level.xpForNext - stats.data.level.xpIntoLevel) })}</p>
-            <div className="row-between"><h3>{t('progress.ach.title')}</h3><span className="small muted num">{t('progress.unlocked', { a: stats.data.achievements.length, b: stats.data.allAchievementIds.length })}</span></div>
+            <div className="row-between"><h3>{t('progress.ach.title')}</h3><span className="small muted">{t('progress.unlocked', { a: stats.data.achievements.length, b: stats.data.allAchievementIds.length })}</span></div>
             <ul className="ach-grid">
               {sorted.map((id) => {
                 const got = stats.data?.achievements.find((a) => a.id === id);

@@ -9,10 +9,15 @@ export function flatten(tree: Tree, prefix = '', out: Record<string, string> = {
   for (const [k, v] of Object.entries(tree)) { const p = prefix ? `${prefix}.${k}` : k; if (typeof v === 'string') out[p] = v; else flatten(v, p, out); }
   return out;
 }
+/** Path segments that would reach Object.prototype: a stored (IndexedDB) or tampered entry must never be able to write there. */
+const UNSAFE_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype']);
 export function unflatten(flat: Record<string, string>): Tree {
   const root: Tree = {};
   for (const [path, v] of Object.entries(flat)) {
-    const parts = path.split('.'); let cur = root;
+    if (typeof v !== 'string') continue; // only text is ever rendered
+    const parts = path.split('.');
+    if (parts.some((p) => UNSAFE_SEGMENTS.has(p))) continue;
+    let cur = root;
     parts.forEach((part, i) => { if (i === parts.length - 1) cur[part] = v; else { const n = cur[part]; cur = typeof n === 'object' ? n : (cur[part] = {}); } });
   }
   return root;

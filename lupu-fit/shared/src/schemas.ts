@@ -10,7 +10,10 @@ const numIn = (min: number, max: number) => z.number().min(min).max(max);
 /** Login name: 3-24 chars, lowercase letters/digits/_ . -, starting with a letter or digit. Case-insensitive (lowercased). */
 export const UsernameSchema = z.string().trim().toLowerCase().min(3).max(24).regex(/^[a-z0-9][a-z0-9_.-]*$/);
 export const PasswordSchema = z.string().min(10).max(200);
-export const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** A real calendar date: `2026-02-31` and `2026-13-45` have the right shape but are not dates (the database would refuse them). */
+export const IsoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((s) => { const t = Date.parse(`${s}T00:00:00Z`); return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === s; }, 'invalid_date');
+/** A timestamp from a backup file: parseable and in a sane range (a crafted `+275760-09-13` year would otherwise reach the database). */
+const BackupInstant = z.string().max(40).refine((s) => { const t = Date.parse(s); return Number.isFinite(t) && t >= Date.UTC(2000, 0, 1) && t < Date.UTC(2100, 0, 1); }, 'invalid_timestamp');
 
 export const RegisterBodySchema = z.object({ username: UsernameSchema, password: PasswordSchema });
 export const LoginBodySchema = z.object({ username: UsernameSchema, password: z.string().min(1).max(200), /** false = this browser session only (shared device) */ remember: z.boolean().optional() });
@@ -74,8 +77,8 @@ export const BackupPayloadSchema = z.object({
   foodLog: z.array(FoodLogInputSchema).max(100000),
   sessions: z.array(z.object({
     id: z.string().max(80),
-    startedAt: z.string().max(40),
-    finishedAt: z.string().max(40).nullable(),
+    startedAt: BackupInstant,
+    finishedAt: BackupInstant.nullable(),
     exercises: z.array(z.object({
       exerciseId: z.string().max(80),
       sport: z.enum(SPORTS).nullable(),

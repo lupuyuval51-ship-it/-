@@ -37,7 +37,8 @@ export function suggestWeekdays(daysPerWeek: number): Weekday[] {
   const table: Record<number, Weekday[]> = { 1: [2], 2: [1, 4], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
   return table[n] as Weekday[];
 }
-export const trainingDays = (s: AutomationSettings, p: ScheduleProfile): Weekday[] => (s.workout.days && s.workout.days.length > 0 ? s.workout.days : suggestWeekdays(p.daysPerWeek));
+/** `null` = suggest from the profile; an explicit EMPTY list is a choice ("no training days") and is respected, matching what the Settings card shows. */
+export const trainingDays = (s: AutomationSettings, p: ScheduleProfile): Weekday[] => (s.workout.days !== null ? s.workout.days : suggestWeekdays(p.daysPerWeek));
 
 /** True when a local time of day (minutes since midnight) is inside quiet hours; the window may wrap midnight. */
 export function inQuietHours(minuteOfDay: number, q: AutomationSettings['quiet']): boolean {

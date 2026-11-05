@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
 import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/createApp.ts';
+import { housekeeping, maybeHousekeeping, RETENTION } from '../src/core/housekeeping.ts';
 import { ident, recordFailure } from '../src/core/rateLimit.ts';
 import type { AiProvider } from '../src/core/types.ts';
 import type { DbAdapter } from '../src/db/adapter.ts';
@@ -29,7 +30,7 @@ const fakeAi = (reply = '{}'): AiProvider & { systems: string[]; maxTokens: (num
 const networked = (db: DbAdapter): DbAdapter => {
   const pause = () => new Promise<void>((r) => setImmediate(r));
   const wrap = (inner: DbAdapter): DbAdapter => ({
-    query: async (sql, params) => { const rows = await inner.query(sql, params); await pause(); return rows; },
+    query: async <T>(sql: string, params?: readonly unknown[]) => { const rows = await inner.query<T>(sql, params); await pause(); return rows; },
     transaction: (fn) => inner.transaction((tx) => fn(wrap(tx))),
   });
   return wrap(db);
@@ -68,7 +69,7 @@ describe('account deletion', () => {
     // every table that carries a user_id is empty for this user; the person-keyed counters are gone; the other user is untouched
     const tables = (await t.db.query<{ table_name: string }>("SELECT DISTINCT table_name FROM information_schema.columns WHERE table_schema = 'public' AND column_name = 'user_id'")).map((r) => r.table_name);
     expect(tables).toEqual(expect.arrayContaining(['auth_sessions', 'idempotency_keys', 'coach_usage', 'profiles', 'food_log_entries', 'coach_threads']));
-    for (const name of tables) expect(Number((await t.db.query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM ${name} WHERE user_id = $1`, [uid]))[0]!.c), name).toBe(0);
+    for (const name of tables) expect(Number((await t.db.query<{ c: number }>(`SELECT COUNT(*)::int AS c FROM ${name} WHERE user_id = $1`, [uid]))[0]!.c), name).toBe(0); // scan-ok: table names come from information_schema, not from input
     expect(Number((await t.db.query<{ c: number }>('SELECT COUNT(*)::int AS c FROM auth_attempts WHERE identifier = $1', [hash]))[0]!.c)).toBe(0);
     expect(Number((await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM users WHERE username = 'stays'"))[0]!.c)).toBe(1);
     expect((await call(t, other, 'GET', '/api/auth/me')).status).toBe(200);
@@ -87,6 +88,12 @@ describe('request handling', () => {
     const rs = await Promise.all(ok(4).map((i) => call(t, anon(`10.1.0.${i}`), 'POST', '/api/auth/register', { username: 'race_user', password: 'correct-horse-battery' })));
     expect(rs.map((r) => r.status).sort()).toEqual([201, 409, 409, 409]);
     expect(rs.filter((r) => r.status === 409).every((r) => r.json.error === 'username_taken')).toBe(true);
+  });
+  it('a crafted backup (garbage or out-of-range timestamps) is refused with 400 before it can touch the database', async () => {
+    const t = await makeApp(); const c = await onboard(t);
+    const bk = (startedAt: string) => ({ version: 1, exportedAt: 'x', profile: null, bodyWeight: [], foodLog: [], sessions: [{ id: 's', startedAt, finishedAt: null, exercises: [] }] });
+    for (const bad of ['garbage', '+275760-09-13T00:00:00.000Z']) expect((await call(t, c, 'POST', '/api/device/restore', bk(bad))).status, bad).toBe(400);
+    expect((await call(t, c, 'POST', '/api/device/restore', bk('2026-11-02T08:00:00.000Z'))).status).toBe(200);
   });
   it('impossible dates and out-of-range values are 400, not 500', async () => {
     const t = await makeApp(); const c = await onboard(t);
@@ -111,13 +118,13 @@ describe('brute-force counters under concurrency', () => {
     // Simulates the guesses that finish while this request is still hashing: right after the account row is read, the name gets locked.
     const lockAfterRead: DbAdapter = {
       transaction: (fn) => t.db.transaction(fn),
-      query: async (sql, params) => {
-        const rows = await t.db.query(sql, params);
+      query: async <T>(sql: string, params?: readonly unknown[]) => {
+        const rows = await t.db.query<T>(sql, params);
         if (/password_hash FROM users/.test(sql)) {
           const id = (await ident('username', 'target_user')).id;
           await t.db.query("INSERT INTO auth_attempts (scope, identifier, fail_count, first_failed_at, locked_until) VALUES ('login:username', $1, 9, $2, $3) ON CONFLICT (scope, identifier) DO UPDATE SET locked_until = EXCLUDED.locked_until", [id, t.now.t.toISOString(), new Date(t.now.t.getTime() + 600_000).toISOString()]);
         }
-        return rows as never;
+        return rows;
       },
     };
     const app = buildApp({ db: lockAfterRead, mode: 'hosted', clock: () => t.now.t, pbkdf2Iterations: 1000, secureCookies: false, sessionTtlDays: 30 }, extraRoutes);
@@ -241,6 +248,32 @@ describe('isolation and minors', () => {
     const post = (url: string) => call(t, u, 'POST', '/api/admin/exercises/push_up/media', { mp4Base64: 'A'.repeat(200), url });
     for (const bad of ['https://evil.example/x.mp4', '//evil.example/x.mp4', 'javascript:alert(1)', '/media/../x.mp4']) expect((await post(bad)).status, bad).toBe(400);
     expect((await post('/media/exercises/push_up.mp4')).status).toBe(404); // valid path, but not an admin
+  });
+});
+
+describe('append-only tables stay bounded', () => {
+  it('removes expired sessions, old replay records and idle counters, and nothing that is still needed', async () => {
+    const t = await makeApp(); await register(t, 'keeper');
+    const uid = (await t.db.query<{ id: string }>("SELECT id FROM users WHERE username = 'keeper'"))[0]!.id;
+    const ago = (ms: number) => new Date(t.now.t.getTime() - ms).toISOString();
+    const later = (ms: number) => new Date(t.now.t.getTime() + ms).toISOString();
+    await t.db.query("INSERT INTO auth_sessions (id, user_id, token_hash, csrf_token, expires_at) VALUES ('old', $1, 'h-old', 'c', $2), ('live', $1, 'h-live', 'c', $3)", [uid, ago(RETENTION.sessionsMs * 2), later(3600_000)]);
+    await t.db.query("INSERT INTO idempotency_keys (user_id, key, method, path, status_code, created_at) VALUES ($1, 'k-old', 'POST', '/x', 200, $2), ($1, 'k-new', 'POST', '/x', 200, $3)", [uid, ago(RETENTION.idempotencyMs * 2), ago(1000)]);
+    await t.db.query("INSERT INTO auth_attempts (scope, identifier, fail_count, first_failed_at, locked_until, updated_at) VALUES ('login:ip', 'idle', 1, $1, NULL, $1), ('login:ip', 'locked', 9, $1, $2, $1), ('login:ip', 'fresh', 1, $3, NULL, $3)", [ago(RETENTION.attemptsMs * 3), later(600_000), ago(1000)]);
+    await housekeeping(t.db, t.now.t);
+    expect((await t.db.query<{ id: string }>("SELECT id FROM auth_sessions WHERE id IN ('old','live') ORDER BY id")).map((r) => r.id)).toEqual(['live']);
+    expect((await t.db.query<{ key: string }>('SELECT key FROM idempotency_keys ORDER BY key')).map((r) => r.key)).toEqual(['k-new']);
+    expect((await t.db.query<{ identifier: string }>("SELECT identifier FROM auth_attempts WHERE identifier IN ('idle','locked','fresh') ORDER BY identifier")).map((r) => r.identifier)).toEqual(['fresh', 'locked']);
+  });
+  it('runs for about one sign-in in twenty and can never fail a sign-in', async () => {
+    const t = await makeApp();
+    await t.db.query("INSERT INTO auth_attempts (scope, identifier, fail_count, first_failed_at, updated_at) VALUES ('login:ip', 'idle', 1, '2020-01-01', '2020-01-01')");
+    await maybeHousekeeping(t.db, t.now.t, () => 0.5);
+    expect(Number((await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM auth_attempts WHERE identifier = 'idle'"))[0]!.c)).toBe(1);
+    await maybeHousekeeping(t.db, t.now.t, () => 0.01);
+    expect(Number((await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM auth_attempts WHERE identifier = 'idle'"))[0]!.c)).toBe(0);
+    const broken: DbAdapter = { query: async () => { throw new Error('db down'); }, transaction: async (fn) => fn(broken) };
+    await expect(maybeHousekeeping(broken, t.now.t, () => 0)).resolves.toBeUndefined();
   });
 });
 
