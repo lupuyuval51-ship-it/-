@@ -4,7 +4,8 @@
  * Supabase keys are resolved in this order:
  *   1. env SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY;
  *   2. `supabase status -o json` (when the test runs with --allow-run=supabase, e.g. `deno task test`);
- *   3. the Supabase CLI's documented, public local-development defaults (loopback URL only).
+ *   3. the Supabase CLI's public local-development defaults, re-signed from the default local JWT secret
+ *      (or SUPABASE_JWT_SECRET) — loopback URL only.
  * Set SKIP_SUPABASE_INTEGRATION=1 to skip the integration suite explicitly.
  */
 import type { AddressInfo } from 'node:net';
@@ -21,12 +22,29 @@ export interface LocalStack {
 }
 
 const DEFAULT_URL = 'http://127.0.0.1:54321';
-// Public defaults printed by every `supabase start` that uses the default local JWT secret
-// (issuer "supabase-demo"). They only work against a local stack; they are not secrets.
-const LOCAL_DEMO_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
-const LOCAL_DEMO_SERVICE_ROLE_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+/** Default JWT secret of every `supabase start` (public; only valid for a local stack). */
+const LOCAL_DEFAULT_JWT_SECRET = 'super-secret-jwt-token-with-at-least-32-characters-long';
+
+function base64url(bytes: Uint8Array): string {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/**
+ * Re-creates the CLI's local demo API key for `role` (HS256, issuer "supabase-demo", the CLI's fixed
+ * expiry), i.e. exactly the ANON_KEY / SERVICE_ROLE_KEY that `supabase status` prints by default.
+ */
+export async function localDemoKey(role: 'anon' | 'service_role', secret = LOCAL_DEFAULT_JWT_SECRET): Promise<string> {
+  const enc = new TextEncoder();
+  const header = base64url(enc.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
+  const payload = base64url(enc.encode(JSON.stringify({ iss: 'supabase-demo', role, exp: 1983812996 })));
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, [
+    'sign',
+  ]);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(`${header}.${payload}`)));
+  return `${header}.${payload}.${base64url(sig)}`;
+}
 
 function env(name: string): string | undefined {
   const v = Deno.env.get(name)?.trim();
@@ -65,7 +83,13 @@ export async function resolveLocalStack(): Promise<LocalStack> {
   if (host !== '127.0.0.1' && host !== 'localhost') {
     throw new Error(`SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are required for non-local SUPABASE_URL ${url}`);
   }
-  return { url, anonKey: LOCAL_DEMO_ANON_KEY, serviceRoleKey: LOCAL_DEMO_SERVICE_ROLE_KEY, source: 'local defaults' };
+  const secret = env('SUPABASE_JWT_SECRET');
+  return {
+    url,
+    anonKey: await localDemoKey('anon', secret),
+    serviceRoleKey: await localDemoKey('service_role', secret),
+    source: 'local defaults',
+  };
 }
 
 export async function assertStackReachable(stack: LocalStack): Promise<void> {
