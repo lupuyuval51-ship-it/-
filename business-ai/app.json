@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Business AI",
+    "slug": "business-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "businessai",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FAFAF7",
+    "ios": {
+      "bundleIdentifier": "com.businessai.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.businessai.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FAFAF7",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAFAF7",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76,
+          "dark": { "backgroundColor": "#111311" }
+        }
+      ],
+      ["expo-localization", { "supportsRTL": true }],
+      "expo-sharing",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
