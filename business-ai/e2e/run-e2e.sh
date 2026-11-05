@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ART=e2e/artifacts
+ART=${ART:-e2e/artifacts}
 mkdir -p "$ART"
 FAKE_PORT=${FAKE_PORT:-8787}
 WEB_PORT=${WEB_PORT:-4173}
@@ -39,8 +39,10 @@ supabase functions serve --env-file supabase/functions/.env.e2e > "$ART/function
 FN_PID=$!
 
 # 3. Web build pointed at the local stack
-EXPO_PUBLIC_SUPABASE_URL="$API_URL" EXPO_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
-  npx expo export --platform web --output-dir dist-e2e > "$ART/export.log" 2>&1
+if [[ "${SKIP_EXPORT:-0}" != "1" ]]; then
+  EXPO_PUBLIC_SUPABASE_URL="$API_URL" EXPO_PUBLIC_SUPABASE_ANON_KEY="$ANON_KEY" \
+    npx expo export --platform web --output-dir dist-e2e > "$ART/export.log" 2>&1
+fi
 node e2e/static-server.mjs dist-e2e "$WEB_PORT" > "$ART/web.log" 2>&1 &
 WEB_PID=$!
 
@@ -51,4 +53,4 @@ for i in $(seq 1 60); do
 done
 
 # 4. Playwright flow (Definition of Done)
-BASE_URL="http://127.0.0.1:${WEB_PORT}" SUPABASE_URL="$API_URL" node e2e/dod-flow.mjs
+BASE_URL="http://127.0.0.1:${WEB_PORT}" SUPABASE_URL="$API_URL" ART="$ART" node e2e/dod-flow.mjs

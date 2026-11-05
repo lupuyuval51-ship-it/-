@@ -4,21 +4,11 @@
  * with the real token counts and cost — success or error — via `finalize_ai_usage`.
  * Both RPCs are service-role only.
  */
-import type { Db } from "./auth.ts";
-import {
-  type AiFeature,
-  limitsFor,
-  type Tier,
-  type TierLimits,
-} from "./domain/entitlements.ts";
-import {
-  AppError,
-  fromPostgrestError,
-  logError,
-  toAppError,
-} from "./errors.ts";
-import { AiCallError } from "./ai/errors.ts";
-import { addUsage, type UsageTotals, ZERO_USAGE } from "./ai/pricing.ts";
+import type { Db } from './auth.ts';
+import { type AiFeature, limitsFor, type Tier, type TierLimits } from './domain/entitlements.ts';
+import { AppError, fromPostgrestError, logError, toAppError } from './errors.ts';
+import { AiCallError } from './ai/errors.ts';
+import { addUsage, type UsageTotals, ZERO_USAGE } from './ai/pricing.ts';
 
 export interface UsageScope {
   /** Service-role client (reserve/finalize are not executable by `authenticated`). */
@@ -70,9 +60,9 @@ export class UsageMeter {
 export async function loadTierLimits(
   db: Db,
 ): Promise<{ tier: Tier; limits: TierLimits }> {
-  const { data, error } = await db.rpc("current_tier");
-  if (error) throw fromPostgrestError(error, "rpc:current_tier");
-  const tier: Tier = data === "pro" ? "pro" : "free";
+  const { data, error } = await db.rpc('current_tier');
+  if (error) throw fromPostgrestError(error, 'rpc:current_tier');
+  const tier: Tier = data === 'pro' ? 'pro' : 'free';
   return { tier, limits: limitsFor(tier) };
 }
 
@@ -90,16 +80,16 @@ export async function releaseStaleReservations(
 ): Promise<number> {
   const cutoff = new Date(now.getTime() - STALE_RESERVATION_MS).toISOString();
   const { data, error } = await svc
-    .from("ai_usage_records")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("status", "reserved")
-    .lt("created_at", cutoff)
+    .from('ai_usage_records')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('status', 'reserved')
+    .lt('created_at', cutoff)
     .limit(20);
   if (error) {
     logError(
-      "usage.release_stale",
-      fromPostgrestError(error, "ai_usage_records.select_stale"),
+      'usage.release_stale',
+      fromPostgrestError(error, 'ai_usage_records.select_stale'),
     );
     return 0;
   }
@@ -107,9 +97,9 @@ export async function releaseStaleReservations(
     await finalizeUsage(
       svc,
       row.id,
-      "error",
+      'error',
       { ...ZERO_USAGE },
-      "stale_reservation",
+      'stale_reservation',
     );
   }
   return data?.length ?? 0;
@@ -117,7 +107,7 @@ export async function releaseStaleReservations(
 
 export async function reserveUsage(scope: UsageScope): Promise<string> {
   await releaseStaleReservations(scope.svc, scope.userId);
-  const { data, error } = await scope.svc.rpc("reserve_ai_usage", {
+  const { data, error } = await scope.svc.rpc('reserve_ai_usage', {
     p_user: scope.userId,
     // The SQL function accepts null for usage not tied to a business; generated types say string.
     p_business: scope.businessId as string,
@@ -126,10 +116,10 @@ export async function reserveUsage(scope: UsageScope): Promise<string> {
     p_cost_cap_micros: scope.limits.monthlyCostCapMicros,
     p_model: scope.model.slice(0, 100),
   });
-  if (error) throw fromPostgrestError(error, "rpc:reserve_ai_usage");
-  if (typeof data !== "string") {
-    throw new AppError("internal", undefined, {
-      details: { op: "rpc:reserve_ai_usage" },
+  if (error) throw fromPostgrestError(error, 'rpc:reserve_ai_usage');
+  if (typeof data !== 'string') {
+    throw new AppError('internal', undefined, {
+      details: { op: 'rpc:reserve_ai_usage' },
     });
   }
   return data;
@@ -139,12 +129,12 @@ export async function reserveUsage(scope: UsageScope): Promise<string> {
 export async function finalizeUsage(
   svc: Db,
   reservationId: string,
-  status: "success" | "error",
+  status: 'success' | 'error',
   usage: UsageTotals,
   errorCode: string | null,
 ): Promise<void> {
   try {
-    const { error } = await svc.rpc("finalize_ai_usage", {
+    const { error } = await svc.rpc('finalize_ai_usage', {
       p_id: reservationId,
       p_status: status,
       p_input: clampInt(
@@ -156,12 +146,12 @@ export async function finalizeUsage(
     });
     if (error) {
       logError(
-        "usage.finalize",
-        fromPostgrestError(error, "rpc:finalize_ai_usage"),
+        'usage.finalize',
+        fromPostgrestError(error, 'rpc:finalize_ai_usage'),
       );
     }
   } catch (err) {
-    logError("usage.finalize", err);
+    logError('usage.finalize', err);
   }
 }
 
@@ -191,11 +181,11 @@ export async function runReserved<T>(
   fn: (meter: UsageMeter) => Promise<T>,
 ): Promise<T> {
   const meter = new UsageMeter();
-  let status: "success" | "error" = "error";
-  let errorCode: string | null = "internal";
+  let status: 'success' | 'error' = 'error';
+  let errorCode: string | null = 'internal';
   try {
     const result = await fn(meter);
-    status = "success";
+    status = 'success';
     errorCode = null;
     return result;
   } catch (err) {

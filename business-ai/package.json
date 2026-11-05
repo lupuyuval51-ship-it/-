@@ -58,7 +58,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:functions": "cd supabase/functions && deno test --allow-env --allow-net --allow-read",
+    "test:functions": "cd supabase/functions && deno test --allow-env --allow-net --allow-read --allow-run=supabase",
     "check:functions": "cd supabase/functions && deno check ai/index.ts advisor/index.ts",
     "test:db": "supabase test db",
     "db:reset": "supabase db reset",
@@ -79,6 +79,9 @@
       "^@/(.*)$": "<rootDir>/src/$1",
       "^@domain/(.*)$": "<rootDir>/supabase/functions/_shared/domain/$1",
       "^@db$": "<rootDir>/supabase/functions/_shared/database.types.ts"
-    }
+    },
+    "setupFiles": [
+      "<rootDir>/src/test/jest-setup.ts"
+    ]
   }
 }

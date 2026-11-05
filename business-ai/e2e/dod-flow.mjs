@@ -39,6 +39,7 @@ async function step(name, fn) {
   await page.screenshot({ path: `${ART}/${String(results.length).padStart(2, '0')}-${name}.png` }).catch(() => {});
 }
 const btn = (name) => page.getByRole('button', { name, exact: false }).first();
+const exactBtn = (name) => page.getByRole('button', { name, exact: true }).first();
 
 await step('sign-up', async () => {
   await page.goto(BASE);
@@ -64,10 +65,13 @@ await step('onboarding', async () => {
   await page.getByRole('textbox').first().fill('40000');
   await btn('Continue').click();
   // remaining questions: skip until the review step appears
-  for (let i = 0; i < 8; i += 1) {
-    if (await btn('Create my business plan').isVisible().catch(() => false)) break;
+  const create = page.getByRole('button', { name: 'Create my business plan' });
+  const skip = page.getByRole('button', { name: 'Skip', exact: true });
+  for (let i = 0; i < 10; i += 1) {
+    await create.or(skip).first().waitFor({ timeout: 15000 });
+    if (await create.isVisible()) break;
     const before = await page.getByText(/Step \d of 8/).first().textContent().catch(() => '');
-    await btn('Skip').click({ timeout: 10000 });
+    await skip.click();
     await page.waitForFunction((prev) => !document.body.innerText.includes(prev || '§'), before, { timeout: 10000 }).catch(() => {});
   }
   await btn('Create my business plan').click({ timeout: 15000 });
