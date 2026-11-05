@@ -59,7 +59,7 @@ await step('onboarding', async () => {
   // country
   const search = page.getByRole('textbox').first();
   await search.fill('Israel');
-  await page.getByText('Israel', { exact: true }).first().click();
+  await page.getByRole('radio', { name: 'Israel' }).first().click();
   await btn('Continue').click();
   // budget
   await page.getByRole('textbox').first().fill('40000');
