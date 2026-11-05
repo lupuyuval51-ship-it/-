@@ -120,7 +120,9 @@ await step('finance-add-revenue', async () => {
   await boxes.nth(1).fill('28');
   await boxes.nth(2).fill('9');
   await boxes.nth(3).fill('600');
-  await btn('Save').click();
+  await boxes.nth(4).fill('5');
+  await exactBtn('Add').click();
+  await page.waitForTimeout(1500);
   await page.goto(`${BASE}/finance`);
   await page.getByText(/break-even/i).first().waitFor({ timeout: 20000 });
 });
@@ -135,7 +137,8 @@ await step('reload-persistence', async () => {
 await step('hebrew-rtl', async () => {
   await page.goto(`${BASE}/settings`);
   await page.getByText('עברית').first().click({ timeout: 20000 });
-  await btn('Switch and restart').click({ timeout: 10000 });
+  // native asks to restart (layout direction); web switches in place
+  await btn('Switch and restart').click({ timeout: 3000 }).catch(() => {});
   await page.waitForTimeout(4000);
   for (const path of ['/', '/plan', '/roadmap', '/finance', '/advisor', '/workspace']) {
     await page.goto(`${BASE}${path}`);

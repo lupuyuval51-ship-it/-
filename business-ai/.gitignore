@@ -54,3 +54,4 @@ e2e/artifacts/
 dist-e2e/
 supabase/functions/.env.e2e
 supabase/functions/.env.test
+business-ai/e2e/artifacts*/
