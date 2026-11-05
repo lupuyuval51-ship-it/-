@@ -242,3 +242,4 @@ The latest results are recorded in [`docs/TESTING.md`](docs/TESTING.md).
 - **Offline is read-only.** Cached data is readable offline; writes are disabled until the device is back online (no offline write queue).
 - **Some device-local state is not synced across devices:** accepted/skipped finance-proposal items and the onboarding draft.
 - **Advisor "Stop":** a reply stopped by the user is shown as "not completed".
+- **Onboarding typing race:** text typed into the first onboarding field within about a second of opening the screen can be reset when the saved draft finishes loading. E2E found it; it is not fixed yet.

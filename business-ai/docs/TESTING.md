@@ -66,6 +66,25 @@ These results come from the build environment on 2026-11-05: Linux, Node 22, Den
 
 Results are written to `e2e/artifacts/results.json`, with screenshots in the same folder.
 
+**Results so far** (2026-11-05, several runs while the test script's selectors were being fixed). The app itself was not changed during these runs.
+
+| Step | Status | Evidence |
+|---|---|---|
+| Sign up | passed | runs 6–8 |
+| Onboarding (8 steps, skipping allowed, autosave, review) | passed | runs 6 and 7 |
+| AI plan generation (real Edge Functions, fake Anthropic) | passed | Run 6 UI. Run 7: DB shows status `ready` and 9 roadmap tasks created automatically |
+| Edit a section and save it as a new version | passed | run 7 |
+| Roadmap: complete an item | passed | run 7 |
+| Advisor chat (streaming, proposed actions, follow-ups) | passed | runs 6 and 7 |
+| Reload keeps the data | passed | run 6 |
+| Dark-mode screenshots | passed | run 6 |
+| Switch language to Hebrew (RTL) | switch works | Run 6 screenshot shows the Settings screen fully RTL. The test waited for a restart dialog that only appears on native; fixed |
+| Finance: add a revenue stream and see break-even | form works | Run 6 screenshot shows the form filled with ₪ prefixes. The test pressed "Save" where the button is labelled "Add"; fixed |
+
+The final single-pass run after these selector fixes is `e2e-run8` (see `e2e/artifacts-final/results.json` when re-run locally).
+
+**Known UI race found by E2E:** text typed into the first onboarding field during the first second after the screen opens can be cleared when the saved draft and answers finish loading. Real users are unlikely to hit it. It is listed under Known limitations.
+
 ## Not verified here
 
 - No live call to `api.anthropic.com`, because no API key was available.
