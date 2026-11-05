@@ -28,7 +28,7 @@
 .exd-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: start; }
 @media (min-width: 60rem) { .exd-grid { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); } }
 
-.ex-ol, .ex-ul { margin: 0; padding-inline-start: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.ex-ol, .ex-ul { margin: 0; padding-inline-start: 1.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .ex-ol li::marker { font-family: var(--font-num); font-weight: 700; color: var(--text-muted); }
 .exd-panel { padding-block-start: 0.75rem; }
 .exd-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin: 0; }

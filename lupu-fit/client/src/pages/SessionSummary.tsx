@@ -133,7 +133,7 @@ export default function SessionSummary(): ReactNode {
 
   const summaryText = (): string => {
     const lines = [t('workouts.summary.textHeader', { name: s.name, date: dateText })];
-    lines.push(t('workouts.summary.textLine', { duration: minutes ?? 0, sets: totalSets, volume }));
+    lines.push(t('workouts.summary.textLine', { duration: minutes ?? 0, sets: totalSets, volume: fmt.num(volume) }));
     if (finish) {
       lines.push(t('workouts.summary.textXp', { n: finish.xpTotal }));
       for (const p of finish.prs) lines.push(t('workouts.summary.textPr', { name: nameOfExercise(p.exerciseId, lang), previous: p.previous, value: p.value, unit: PR_KINDS.includes(p.kind) ? t(`workouts.summary.prUnit.${p.kind}`) : '' }));
@@ -181,7 +181,7 @@ export default function SessionSummary(): ReactNode {
       <div className="grid-stats">
         <StatTile label={t('workouts.summary.duration')} value={minutes !== null ? <span className="num">{minutes}</span> : <span className="muted small">{t('state.noData')}</span>} {...(minutes !== null ? { unit: t('unit.min') } : {})} />
         <StatTile label={t('workouts.summary.sets')} value={<span className="num">{totalSets}</span>} />
-        <StatTile label={t('workouts.summary.volume')} value={<span className="num">{volume}</span>} unit={t('unit.kg')} />
+        <StatTile label={t('workouts.summary.volume')} value={<span className="num">{fmt.num(volume)}</span>} unit={t('unit.kg')} />
         {s.finishedAt !== null && !finish ? <StatTile label={t('workouts.summary.xp')} value={<span className="num">{s.xpAwarded}</span>} /> : null}
       </div>
 

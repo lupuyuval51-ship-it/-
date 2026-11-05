@@ -1,9 +1,19 @@
 import { ACTIVITY_LEVELS, ALLERGENS, DIET_TYPES, DIETARY_RESTRICTIONS, DIFFICULTIES, EQUIPMENT, GOALS, INJURY_AREAS, PLACES, ProfileInputSchema, SEXES, type ProfileInput } from '@lupu-fit/shared';
 import { useEffect, useState, type ReactNode } from 'react';
 import { fmt, useT } from '../../i18n/index.tsx';
-import { Button, ChipGroup, Segmented, Select, TextInput } from '../../ui/kit.tsx';
+import { Button, ChipGroup, Segmented, TextInput } from '../../ui/kit.tsx';
 import { Disclosure } from '../../ui/patterns.tsx';
 import { ChoiceCards } from '../onboarding/Choice.tsx';
+
+/** Chip group with a visible caption (the kit ChipGroup only carries an aria-label). */
+function ChipField<T extends string>({ label, options, selected, onToggle }: { label: string; options: { value: T; label: string }[]; selected: readonly T[]; onToggle: (v: T) => void }): ReactNode {
+  return (
+    <div className="stack-sm">
+      <span className="field-label">{label}</span>
+      <ChipGroup label={label} options={options} selected={selected} onToggle={onToggle} />
+    </div>
+  );
+}
 
 const toggle = <T,>(arr: readonly T[], v: T): T[] => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 const opts = <T extends string>(vals: readonly T[], t: (k: string) => string, ns: string) => vals.map((v) => ({ value: v, label: t(`label.${ns}.${v}`) }));
@@ -51,9 +61,18 @@ export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNo
         <NumField label={t('profile.f.weight')} suffix={t('unit.kg')} value={value.weightKg} onChange={(n) => set('weightKg', n as number)} error={err('weightKg')} />
       </div>
       {value.units === 'imperial' && Number.isFinite(lb) && Number.isFinite(totalIn) ? <span className="small muted">{t('profile.imperialHint', { lb: fmt.num(lb, 1), ft: Math.floor(totalIn / 12), inch: totalIn % 12 })}</span> : null}
-      <Select label={t('profile.f.goal')} value={value.goal} onChange={(e) => set('goal', e.target.value as ProfileInput['goal'])} options={opts(GOALS, t, 'goal')} />
-      <Select label={t('profile.f.experience')} value={value.experience} onChange={(e) => set('experience', e.target.value as ProfileInput['experience'])} options={opts(DIFFICULTIES, t, 'difficulty')} />
-      <Select label={t('profile.f.place')} value={value.place} onChange={(e) => set('place', e.target.value as ProfileInput['place'])} options={opts(PLACES, t, 'place')} />
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.goal')}</span>
+        <ChoiceCards label={t('profile.f.goal')} value={value.goal} options={GOALS.map((x) => ({ value: x, label: t(`label.goal.${x}`), desc: t(`onboarding.goal.desc.${x}`) }))} onChange={(v) => set('goal', v)} />
+      </div>
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.experience')}</span>
+        <ChoiceCards label={t('profile.f.experience')} value={value.experience} options={DIFFICULTIES.map((x) => ({ value: x, label: t(`label.difficulty.${x}`), desc: t(`onboarding.experience.desc.${x}`) }))} onChange={(v) => set('experience', v)} />
+      </div>
+      <div className="stack-sm">
+        <span className="field-label">{t('profile.f.place')}</span>
+        <ChoiceCards label={t('profile.f.place')} value={value.place} options={PLACES.map((x) => ({ value: x, label: t(`label.place.${x}`), desc: t(`onboarding.training.placeDesc.${x}`) }))} onChange={(v) => set('place', v)} />
+      </div>
       <div className="grid-2">
         <NumField label={t('profile.f.days')} value={value.daysPerWeek} onChange={(n) => set('daysPerWeek', n as number)} error={err('daysPerWeek')} />
         <NumField label={t('profile.f.minutes')} suffix={t('unit.min')} value={value.sessionMinutes} onChange={(n) => set('sessionMinutes', n as number)} error={err('sessionMinutes')} />
@@ -66,11 +85,11 @@ export function BodyGoalsFields({ value, onChange, errors }: FormProps): ReactNo
         <span className="field-label">{t('profile.f.diet')}</span>
         <ChoiceCards dense cols={2} label={t('profile.f.diet')} value={value.diet} options={opts(DIET_TYPES, t, 'diet')} onChange={(v) => set('diet', v)} />
       </div>
-      <ChipGroup label={t('profile.f.allergies')} options={opts(ALLERGENS, t, 'allergen')} selected={value.allergies} onToggle={(v) => set('allergies', toggle(value.allergies, v))} />
+      <ChipField label={t('profile.f.allergies')} options={opts(ALLERGENS, t, 'allergen')} selected={value.allergies} onToggle={(v) => set('allergies', toggle(value.allergies, v))} />
       <Disclosure summary={t('profile.nu.moreSetup')}>
-        <ChipGroup label={t('profile.f.equipment')} options={opts(EQUIPMENT, t, 'equipment')} selected={value.equipment} onToggle={(v) => set('equipment', toggle(value.equipment, v))} />
-        <ChipGroup label={t('profile.f.injuries')} options={opts(INJURY_AREAS, t, 'injury')} selected={value.injuries} onToggle={(v) => set('injuries', toggle(value.injuries, v))} />
-        <ChipGroup label={t('profile.f.restrictions')} options={opts(DIETARY_RESTRICTIONS, t, 'restriction')} selected={value.restrictions} onToggle={(v) => set('restrictions', toggle(value.restrictions, v))} />
+        <ChipField label={t('profile.f.equipment')} options={opts(EQUIPMENT, t, 'equipment')} selected={value.equipment} onToggle={(v) => set('equipment', toggle(value.equipment, v))} />
+        <ChipField label={t('profile.f.injuries')} options={opts(INJURY_AREAS, t, 'injury')} selected={value.injuries} onToggle={(v) => set('injuries', toggle(value.injuries, v))} />
+        <ChipField label={t('profile.f.restrictions')} options={opts(DIETARY_RESTRICTIONS, t, 'restriction')} selected={value.restrictions} onToggle={(v) => set('restrictions', toggle(value.restrictions, v))} />
       </Disclosure>
       <Disclosure summary={t('profile.nu.advancedKcal')}>
         <NumField optional label={t('profile.f.customKcal')} suffix={t('unit.kcal')} value={value.customKcal} onChange={(n) => set('customKcal', n)} error={err('customKcal')} />

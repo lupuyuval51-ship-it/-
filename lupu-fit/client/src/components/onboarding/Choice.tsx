@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { IconCheck } from '../../ui/icons.tsx';
+import '../../styles/choice.css';
 
 export interface ChoiceOption<T extends string> { value: T; label: string; desc?: string; icon?: ReactNode }
 

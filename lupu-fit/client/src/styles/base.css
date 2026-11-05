@@ -153,6 +153,9 @@ button { cursor: pointer; }
 .tab { border: 0; background: transparent; padding: 0.625rem 1rem; min-block-size: var(--tap); color: var(--text-muted); font-weight: 600; border-block-end: 3px solid transparent; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; }
 .tab[aria-selected='true'], .tab[aria-current='page'] { color: var(--text); border-block-end-color: var(--primary); }
 .tab:hover { text-decoration: none; color: var(--text); }
+/* Tabs share the row; on narrow phones tighter padding keeps three Hebrew labels fully visible instead of clipping the last one. */
+.tabs > .tab { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 26rem) { .tab { padding-inline: 0.5rem; font-size: var(--fs-14); } }
 
 .bar { block-size: 0.5rem; border-radius: 0.25rem; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
 .bar > i { display: block; block-size: 100%; background: var(--text); }

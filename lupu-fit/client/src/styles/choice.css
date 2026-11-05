@@ -1,0 +1,17 @@
+/* Choice cards (onboarding steps, profile, workout generator). Imported by components/onboarding/Choice.tsx so every screen that renders them gets the styles. */
+.choice-grid { display: grid; gap: 0.625rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 40rem) { .choice-grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.choice { display: flex; align-items: center; gap: 0.75rem; min-block-size: 4rem; padding: 0.75rem 1rem; text-align: start; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 120ms, background-color 120ms; }
+.choice:hover { border-color: var(--text-muted); }
+.choice:active { transform: translateY(1px); }
+.choice-text { display: flex; flex-direction: column; gap: 0.125rem; flex: 1 1 auto; min-inline-size: 0; }
+.choice-title { font-size: var(--fs-16); font-weight: 700; }
+.choice-desc { font-size: var(--fs-14); color: var(--text-muted); }
+.choice-check { flex: none; display: grid; place-items: center; inline-size: 1.5rem; block-size: 1.5rem; border-radius: 50%; border: 1px solid var(--border); color: var(--on-primary); }
+.choice-check svg { inline-size: 0.875rem; block-size: 0.875rem; stroke-width: 3; }
+.choice[aria-pressed='true'], .choice[aria-checked='true'] { border-color: var(--primary-text); border-inline-start-width: 4px; padding-inline-start: calc(1rem - 3px); background: var(--surface-2); }
+.choice[aria-pressed='true'] .choice-check, .choice[aria-checked='true'] .choice-check { background: var(--primary); border-color: var(--primary); }
+@media (prefers-reduced-motion: reduce) { .choice { transition: none; } .choice:active { transform: none; } }
+/* Dense choice cards: short single-line options (sex, diet). Two columns even on phones. */
+.choice-grid.dense .choice { min-block-size: var(--tap); padding-block: 0.5rem; }
+.choice-grid.dense.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

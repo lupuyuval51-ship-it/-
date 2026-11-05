@@ -19,6 +19,8 @@
 .chart-xs { grid-column: 2; display: flex; justify-content: space-between; direction: ltr; }
 .chart-unit { direction: ltr; text-align: start; }
 .prog-link, .prog-link:hover { color: var(--text); }
+.prog-link { position: relative; }
+.prog-link::after { content: ''; position: absolute; inset-block: -0.75rem; inset-inline: -0.25rem; }
 .prog-subs { gap: 0.25rem 0.75rem; }
 .weight-add .btn { inline-size: 100%; }
 .chart-empty { padding: 1rem; border: 1px dashed var(--border); border-radius: var(--radius); text-align: center; }
