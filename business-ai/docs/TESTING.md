@@ -77,7 +77,7 @@ The previous two-request flow (insert, then a separate "mark applied" update) co
 
 Results are written to `e2e/artifacts/results.json`, with screenshots in the same folder.
 
-**Final result (2026-11-05, run 8): all 10 steps passed in one run.**
+**Final result: all 10 steps passed in one run.** Run 8 passed, and run 9 passed again after the atomic-writes change, using a fresh database reset and a fresh web export. In run 9 the roadmap is written through `persist_ai_roadmap`.
 
 Sign-up → onboarding → AI plan generation (real Edge Functions + fake Anthropic) → section edit saved as a new version → roadmap item completed → streaming advisor chat with proposed actions → finance revenue stream with break-even → reload keeps the data → switch to Hebrew (document `dir=rtl`, RTL screenshots of Home, Plan, Roadmap, Finance, Advisor and Workspace) → dark-mode screenshots.
 
