@@ -115,6 +115,15 @@ with the same `with check`.
   `cost_cap_reached` (SQLSTATE 'P0001', message = code) or inserts a `reserved` row and returns its id.
 - `finalize_ai_usage(p_id uuid, p_status text, p_input int, p_output int, p_cost bigint, p_error text)` — service_role only.
 - `ai_usage_summary() returns table(feature text, used int)` — security invoker; current user's usage this month (for UI).
+- `apply_advisor_action(p_message_id uuid, p_action_id text, p_today date default null) returns jsonb` — applies one advisor
+  proposal **atomically and exactly once**: the row (built from the stored proposal) and the `applied_action_ids` marker are
+  written in the same transaction under a row lock; repeats return `already_applied`.
+- `set_task_dependencies(p_task_id uuid, p_depends_on uuid[])` — replaces a task's dependency set in one transaction.
+- `persist_ai_roadmap(p_business_id uuid, p_mode text, p_payload jsonb) returns jsonb` — the `ai` function writes a generated
+  roadmap in one transaction (all or nothing; create-mode conflict check inside the transaction).
+
+**Rule:** any user action that writes more than one row, or turns a proposal into data, goes through a single transaction
+(an RPC) or an idempotency key (`source_ref`) — never two independent requests.
 
 ## 5. Edge Functions
 

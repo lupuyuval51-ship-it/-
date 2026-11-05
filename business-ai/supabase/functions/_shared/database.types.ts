@@ -205,14 +205,14 @@ isOneToOne: false
                   ]
                 },"milestones": {
                   Row: {
-                    "achieved_at": string | null,"business_id": string,"created_at": string,"id": string,"phase": string,"sort_order": number,"source": string,"target_date": string | null,"title": string,"updated_at": string
+                    "achieved_at": string | null,"business_id": string,"created_at": string,"id": string,"phase": string,"sort_order": number,"source": string,"source_ref": string | null,"target_date": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "achieved_at"?: string | null,"business_id": string,"created_at"?: string,"id"?: string,"phase": string,"sort_order"?: number,"source"?: string,"target_date"?: string | null,"title": string,"updated_at"?: string
+                    "achieved_at"?: string | null,"business_id": string,"created_at"?: string,"id"?: string,"phase": string,"sort_order"?: number,"source"?: string,"source_ref"?: string | null,"target_date"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "achieved_at"?: string | null,"business_id"?: string,"created_at"?: string,"id"?: string,"phase"?: string,"sort_order"?: number,"source"?: string,"target_date"?: string | null,"title"?: string,"updated_at"?: string
+                    "achieved_at"?: string | null,"business_id"?: string,"created_at"?: string,"id"?: string,"phase"?: string,"sort_order"?: number,"source"?: string,"source_ref"?: string | null,"target_date"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -311,14 +311,14 @@ isOneToOne: false
                   ]
                 },"recurring_expenses": {
                   Row: {
-                    "basis": string,"business_id": string,"category": string,"created_at": string,"id": string,"label": string,"monthly_amount_minor": number,"sort_order": number,"updated_at": string
+                    "basis": string,"business_id": string,"category": string,"created_at": string,"id": string,"label": string,"monthly_amount_minor": number,"sort_order": number,"source_ref": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "basis"?: string,"business_id": string,"category"?: string,"created_at"?: string,"id"?: string,"label": string,"monthly_amount_minor"?: number,"sort_order"?: number,"updated_at"?: string
+                    "basis"?: string,"business_id": string,"category"?: string,"created_at"?: string,"id"?: string,"label": string,"monthly_amount_minor"?: number,"sort_order"?: number,"source_ref"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "basis"?: string,"business_id"?: string,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string,"monthly_amount_minor"?: number,"sort_order"?: number,"updated_at"?: string
+                    "basis"?: string,"business_id"?: string,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string,"monthly_amount_minor"?: number,"sort_order"?: number,"source_ref"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -331,14 +331,14 @@ isOneToOne: false
                   ]
                 },"revenue_streams": {
                   Row: {
-                    "basis": string,"business_id": string,"created_at": string,"id": string,"label": string,"monthly_growth_pct": number,"monthly_units": number,"sort_order": number,"unit_price_minor": number,"unit_variable_cost_minor": number,"updated_at": string
+                    "basis": string,"business_id": string,"created_at": string,"id": string,"label": string,"monthly_growth_pct": number,"monthly_units": number,"sort_order": number,"source_ref": string | null,"unit_price_minor": number,"unit_variable_cost_minor": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "basis"?: string,"business_id": string,"created_at"?: string,"id"?: string,"label": string,"monthly_growth_pct"?: number,"monthly_units"?: number,"sort_order"?: number,"unit_price_minor"?: number,"unit_variable_cost_minor"?: number,"updated_at"?: string
+                    "basis"?: string,"business_id": string,"created_at"?: string,"id"?: string,"label": string,"monthly_growth_pct"?: number,"monthly_units"?: number,"sort_order"?: number,"source_ref"?: string | null,"unit_price_minor"?: number,"unit_variable_cost_minor"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "basis"?: string,"business_id"?: string,"created_at"?: string,"id"?: string,"label"?: string,"monthly_growth_pct"?: number,"monthly_units"?: number,"sort_order"?: number,"unit_price_minor"?: number,"unit_variable_cost_minor"?: number,"updated_at"?: string
+                    "basis"?: string,"business_id"?: string,"created_at"?: string,"id"?: string,"label"?: string,"monthly_growth_pct"?: number,"monthly_units"?: number,"sort_order"?: number,"source_ref"?: string | null,"unit_price_minor"?: number,"unit_variable_cost_minor"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -371,14 +371,14 @@ isOneToOne: false
                   ]
                 },"startup_costs": {
                   Row: {
-                    "amount_minor": number,"basis": string,"business_id": string,"category": string,"created_at": string,"id": string,"label": string,"sort_order": number,"updated_at": string
+                    "amount_minor": number,"basis": string,"business_id": string,"category": string,"created_at": string,"id": string,"label": string,"sort_order": number,"source_ref": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_minor"?: number,"basis"?: string,"business_id": string,"category"?: string,"created_at"?: string,"id"?: string,"label": string,"sort_order"?: number,"updated_at"?: string
+                    "amount_minor"?: number,"basis"?: string,"business_id": string,"category"?: string,"created_at"?: string,"id"?: string,"label": string,"sort_order"?: number,"source_ref"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "amount_minor"?: number,"basis"?: string,"business_id"?: string,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string,"sort_order"?: number,"updated_at"?: string
+                    "amount_minor"?: number,"basis"?: string,"business_id"?: string,"category"?: string,"created_at"?: string,"id"?: string,"label"?: string,"sort_order"?: number,"source_ref"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -431,14 +431,14 @@ isOneToOne: false
                   ]
                 },"tasks": {
                   Row: {
-                    "business_id": string,"completed_at": string | null,"created_at": string,"description": string,"due_date": string | null,"id": string,"milestone_id": string | null,"phase": string | null,"priority": string,"sort_order": number,"source": string,"status": string,"title": string,"updated_at": string
+                    "business_id": string,"completed_at": string | null,"created_at": string,"description": string,"due_date": string | null,"id": string,"milestone_id": string | null,"phase": string | null,"priority": string,"sort_order": number,"source": string,"source_ref": string | null,"status": string,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "business_id": string,"completed_at"?: string | null,"created_at"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"phase"?: string | null,"priority"?: string,"sort_order"?: number,"source"?: string,"status"?: string,"title": string,"updated_at"?: string
+                    "business_id": string,"completed_at"?: string | null,"created_at"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"phase"?: string | null,"priority"?: string,"sort_order"?: number,"source"?: string,"source_ref"?: string | null,"status"?: string,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "business_id"?: string,"completed_at"?: string | null,"created_at"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"phase"?: string | null,"priority"?: string,"sort_order"?: number,"source"?: string,"status"?: string,"title"?: string,"updated_at"?: string
+                    "business_id"?: string,"completed_at"?: string | null,"created_at"?: string,"description"?: string,"due_date"?: string | null,"id"?: string,"milestone_id"?: string | null,"phase"?: string | null,"priority"?: string,"sort_order"?: number,"source"?: string,"source_ref"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -491,6 +491,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "feature": string,"used": number
             }[]
+                           },
+"apply_advisor_action":
+{ Args: { "p_action_id": string,"p_message_id": string,"p_today"?: string }; Returns: Json
                            },
 "assert_business_access":
 { Args: { "p_business_id": string }; Returns: undefined
@@ -556,6 +559,9 @@ isOneToOne: false
 "owns_task":
 { Args: { "p_task_id": string }; Returns: boolean
                            },
+"persist_ai_roadmap":
+{ Args: { "p_business_id": string,"p_mode": string,"p_payload": Json }; Returns: Json
+                           },
 "replace_ai_roadmap":
 { Args: { "p_business_id": string }; Returns: undefined
                            },
@@ -567,6 +573,9 @@ isOneToOne: false
                            },
 "save_plan_section":
 { Args: { "p_business_id": string,"p_content": Json,"p_note"?: string,"p_origin"?: string,"p_section_key": string }; Returns: string
+                           },
+"set_task_dependencies":
+{ Args: { "p_depends_on": (string)[],"p_task_id": string }; Returns: undefined
                            },
 "tier_limits":
 { Args: { "p_tier": string }; Returns: {

@@ -224,8 +224,8 @@ select throws_ok($$select public.save_plan_section('aaaaaaaa-1111-4000-8000-0000
 select lives_ok($$delete from public.businesses where id = 'aaaaaaaa-1111-4000-8000-000000000001'$$,
   'owner can delete a business that has ready plan versions');
 select tests.clear_authentication();
-select is((select count(*)::int from public.plan_versions), 0, 'plan versions cascade-deleted');
-select is((select count(*)::int from public.plan_sections), 0, 'plan sections cascade-deleted');
+select is((select count(*)::int from public.plan_versions where plan_id = 'aaaaaaaa-3333-4000-8000-000000000001'), 0, 'plan versions cascade-deleted');
+select is((select count(*)::int from public.plan_sections where plan_version_id = 'aaaaaaaa-4444-4000-8000-000000000001'), 0, 'plan sections cascade-deleted');
 
 -- Account deletion (auth.users) with a ready, current plan also cascades cleanly
 -- (created_by set-null and section deletes must not trip the immutability guards).

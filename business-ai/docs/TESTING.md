@@ -7,8 +7,8 @@ These results come from the build environment on 2026-11-05: Linux, Node 22, Den
 | TypeScript (strict, whole app) | `npm run typecheck` | **0 errors** |
 | ESLint (eslint-config-expo) | `npm run lint` | **0 errors, 0 warnings** |
 | Jest (app + shared domain) | `npm test` | **39 suites, 625 tests passed** |
-| pgTAP (RLS, privileges, triggers, RPCs) | `npm run test:db` | **7 files, 373 assertions passed** |
-| Deno (Edge Functions) | `npm run check:functions` and `npm run test:functions` | **type check OK; 39 tests passed (one integration test with 22 steps, against the real local stack and the fake Anthropic server)** |
+| pgTAP (RLS, privileges, triggers, RPCs) | `npm run test:db` | **8 files, 407 assertions passed** |
+| Deno (Edge Functions) | `npm run check:functions` and `npm run test:functions` | **type check OK; 41 tests passed (one integration test with 22 steps, against the real local stack and the fake Anthropic server)** |
 | Web export | `npx expo export --platform web` | builds |
 | Android JS bundle | `npx expo export --platform android` | builds (Hermes bytecode) |
 | E2E (Playwright, web build + local stack + real functions + fake Anthropic) | `bash e2e/run-e2e.sh` | **10/10 steps passed** |
@@ -36,6 +36,7 @@ These results come from the build environment on 2026-11-05: Linux, Node 22, Den
 - Task dependencies: no self-dependencies, no cross-business links, no cycles.
 - AI quota and cost-cap reservation.
 - Account deletion cascades.
+- Exactly-once proposal application (`08_atomic_writes`): applying the same advisor action twice or after a lost "applied" marker creates one row; a failed apply records nothing; another user gets `not_found`; dependency replacement and AI roadmap writes are all-or-nothing.
 
 **Deno** covers:
 
@@ -48,6 +49,16 @@ These results come from the build environment on 2026-11-05: Linux, Node 22, Den
   - free quota exhausted, then `quota_exceeded`;
   - the advisor SSE stream with its persisted messages;
   - a missing API key returns `not_configured`.
+
+## Concurrency check (exactly-once proposals)
+
+`apply_advisor_action` was called **20 times in parallel** (10× for an expense proposal, 10× for a task proposal) by the same user against the local stack:
+
+- 2 calls returned `applied` and 18 returned `already_applied`.
+- The database ended with exactly **1 expense** and **1 task**.
+- `applied_action_ids` = `["r1","t1"]`.
+
+The previous two-request flow (insert, then a separate "mark applied" update) could create duplicates under the same conditions.
 
 ## E2E (definition of done)
 

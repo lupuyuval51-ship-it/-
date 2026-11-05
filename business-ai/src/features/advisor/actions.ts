@@ -1,14 +1,14 @@
 /**
  * Proposed advisor actions → exactly the rows the app will write when the user confirms. Pure.
  *
- * The advisor only PROPOSES (AdvisorAction). Nothing here touches the network; `useApplyAction`
- * in ./api.ts performs the write through RLS after an explicit tap, using these builders, so the
- * confirm sheet can show precisely what is about to be saved.
+ * The advisor only PROPOSES (AdvisorAction). Nothing here touches the network. After an explicit
+ * tap, `useApplyAction` in ./api.ts calls the `apply_advisor_action` RPC, which builds the row from
+ * the proposal stored on the message with the SAME rules as `previewAction` (trim + clip lengths,
+ * clamp amounts, due date = today + dueInDays) and records it as applied in one transaction.
  */
 import type { AdvisorAction } from '@domain/ai-api';
 import { FINANCE_LIMITS } from '@domain/finance';
 import type { RoadmapPhase, TaskPriority } from '@domain/plan';
-import type { InsertRow } from '@/lib/database';
 import { toISODate } from '@/i18n/format';
 
 export type WriteAction = Exclude<AdvisorAction, { type: 'open_plan_section' }>;
@@ -141,63 +141,6 @@ export function previewAction(action: WriteAction, today: Date = new Date()): Ac
   }
 }
 
-export type ActionInsert =
-  | { table: 'tasks'; row: InsertRow<'tasks'> }
-  | { table: 'milestones'; row: InsertRow<'milestones'> }
-  | { table: 'recurring_expenses'; row: InsertRow<'recurring_expenses'> }
-  | { table: 'startup_costs'; row: InsertRow<'startup_costs'> };
-
-/** The insert the app performs (through RLS) for a confirmed preview. */
-export function buildActionInsert(businessId: string, preview: ActionPreview): ActionInsert {
-  switch (preview.kind) {
-    case 'task':
-      return {
-        table: 'tasks',
-        row: {
-          business_id: businessId,
-          title: preview.title,
-          description: preview.description,
-          phase: preview.phase,
-          priority: preview.priority,
-          due_date: preview.dueDate,
-          status: 'todo',
-          source: 'advisor',
-        },
-      };
-    case 'milestone':
-      return {
-        table: 'milestones',
-        row: {
-          business_id: businessId,
-          title: preview.title,
-          phase: preview.phase,
-          target_date: preview.targetDate,
-          source: 'advisor',
-        },
-      };
-    case 'recurring_expense':
-      return {
-        table: 'recurring_expenses',
-        row: {
-          business_id: businessId,
-          label: preview.label,
-          monthly_amount_minor: preview.monthlyAmountMinor,
-          basis: preview.basis,
-        },
-      };
-    case 'startup_cost':
-      return {
-        table: 'startup_costs',
-        row: {
-          business_id: businessId,
-          label: preview.label,
-          amount_minor: preview.amountMinor,
-          basis: preview.basis,
-        },
-      };
-  }
-}
-
 /** Query keys to invalidate after an action wrote another feature's data. */
 export function invalidationKeysFor(businessId: string, action: AdvisorAction): (readonly unknown[])[] {
   switch (actionTarget(action)) {
@@ -210,10 +153,19 @@ export function invalidationKeysFor(businessId: string, action: AdvisorAction): 
   }
 }
 
-/** New applied-id list: union, order preserved, only ids that exist in `actions`. */
-export function mergeAppliedIds(current: readonly string[], add: string, actions: readonly AdvisorAction[]): string[] {
-  const valid = new Set(actions.map((a) => a.id));
-  const next = current.filter((id) => valid.has(id));
-  if (valid.has(add) && !next.includes(add)) next.push(add);
-  return next;
+/** Result of the `apply_advisor_action` RPC. */
+export interface ApplyRpcResult {
+  status: 'applied' | 'already_applied';
+  appliedActionIds: string[];
+}
+
+/** Parses the RPC's jsonb result defensively; null when the shape is unexpected. */
+export function parseApplyResult(data: unknown): ApplyRpcResult | null {
+  if (!data || typeof data !== 'object') return null;
+  const record = data as Record<string, unknown>;
+  const status = record.status;
+  const ids = record.applied_action_ids;
+  if (status !== 'applied' && status !== 'already_applied') return null;
+  if (!Array.isArray(ids) || !ids.every((id): id is string => typeof id === 'string')) return null;
+  return { status, appliedActionIds: ids };
 }

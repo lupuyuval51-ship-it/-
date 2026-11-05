@@ -247,7 +247,8 @@ select is((select sum(used)::int from public.ai_usage_summary()), 0, 'ai_usage_s
 select tests.clear_authentication();
 select is((select name from public.businesses where id = 'aaaaaaaa-1111-4000-8000-000000000001'), 'A business', 'A business unchanged');
 select is((select count(*)::int from public.tasks where business_id = 'aaaaaaaa-1111-4000-8000-000000000001'), 2, 'A tasks intact');
-select is((select count(*)::int from public.task_dependencies), 1, 'A dependency intact');
+select is((select count(*)::int from public.task_dependencies td join public.tasks t on t.id = td.task_id
+           where t.business_id = 'aaaaaaaa-1111-4000-8000-000000000001'), 1, 'A dependency intact');
 select is((select title from public.ai_conversations where id = 'aaaaaaaa-eeee-4000-8000-000000000001'), 'Pricing', 'A conversation unchanged');
 
 -- ---------------------------------------------------------------------------

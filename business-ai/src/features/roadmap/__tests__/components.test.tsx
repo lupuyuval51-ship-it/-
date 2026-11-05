@@ -12,6 +12,7 @@ function makeTask(partial: Partial<TaskRowData> = {}): TaskRowData {
   return {
     id: 't1',
     business_id: 'b1',
+    source_ref: null,
     title: 'Open a business bank account',
     description: '',
     phase: 'days_30',

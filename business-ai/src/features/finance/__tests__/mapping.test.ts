@@ -34,6 +34,7 @@ import {
   pendingProposalItems,
   proposalCapitalMinor,
   proposalItemToDraft,
+  proposalSourceRef,
   proposalItems,
   reformatMoneyText,
   scenarioFormDefaults,
@@ -72,6 +73,7 @@ function startupRow(overrides: Partial<StartupCostRow> = {}): StartupCostRow {
   return {
     id: 's1',
     business_id: 'b1',
+    source_ref: null,
     label: 'Equipment',
     amount_minor: 2_000_000,
     category: 'equipment',
@@ -87,6 +89,7 @@ function expenseRow(overrides: Partial<RecurringExpenseRow> = {}): RecurringExpe
   return {
     id: 'e1',
     business_id: 'b1',
+    source_ref: null,
     label: 'Rent',
     monthly_amount_minor: 400_000,
     category: 'rent',
@@ -102,6 +105,7 @@ function revenueRow(overrides: Partial<RevenueStreamRow> = {}): RevenueStreamRow
   return {
     id: 'r1',
     business_id: 'b1',
+    source_ref: null,
     label: 'Coffee',
     unit_price_minor: 2_000,
     unit_variable_cost_minor: 800,
@@ -525,9 +529,23 @@ describe('AI proposals', () => {
       amountMinor: 1_500_000,
       category: 'equipment',
       basis: 'ai_estimate',
+      sourceRef: `proposal:${startup!.key}`,
     });
     expect(proposalItemToDraft(expense!, 'AI suggestion')).toMatchObject({ kind: 'expense', label: 'AI suggestion', basis: 'ai_estimate' });
     expect(proposalItemToDraft(revenue!, 'AI suggestion')).toMatchObject({ kind: 'revenue', monthlyUnits: 1200.46, basis: 'ai_estimate' });
+  });
+
+  it('gives every accepted proposal line a stable idempotency key (source_ref)', () => {
+    const [, startup, expense, revenue] = proposalItems(proposal);
+    const again = proposalItems(proposal);
+    for (const [i, item] of [startup!, expense!, revenue!].entries()) {
+      const ref = proposalItemToDraft(item, 'AI suggestion')?.sourceRef;
+      expect(ref).toBe(proposalSourceRef(item));
+      expect(ref!.length).toBeLessThanOrEqual(200);
+      // The same proposal (e.g. copied into a later plan version) yields the same key → no duplicates.
+      expect(proposalItemToDraft(again[i + 1]!, 'AI suggestion')?.sourceRef).toBe(ref);
+    }
+    expect(new Set([startup, expense, revenue].map((i) => proposalSourceRef(i!))).size).toBe(3);
   });
 
   it('hashes deterministically', () => {

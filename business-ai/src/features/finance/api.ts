@@ -159,23 +159,26 @@ function isDraftOf<K extends LineKind>(kind: K) {
 async function insertLines(businessId: string, drafts: readonly LineDraft[], cached: FinanceLines | undefined): Promise<string[]> {
   const ids: string[] = [];
   const order = (kind: LineKind) => (cached ? nextSortOrder(linesOfKind(cached, kind)) : 0);
+  // Lines with a sourceRef come from a proposal: ON CONFLICT (business_id, source_ref) DO NOTHING
+  // makes accepting the same item again a no-op. Ordinary lines (sourceRef null) always insert.
+  const idempotent = { onConflict: 'business_id,source_ref', ignoreDuplicates: true } as const;
   const startup = drafts.filter(isDraftOf('startup'));
   if (startup.length > 0) {
     const start = order('startup');
-    const rows = startup.map((d, i) => ({ ...draftToRow(d), business_id: businessId, sort_order: start + i }));
-    ids.push(...unwrap(await supabase.from('startup_costs').insert(rows).select('id')).map((r) => r.id));
+    const rows = startup.map((d, i) => ({ ...draftToRow(d), business_id: businessId, source_ref: d.sourceRef ?? null, sort_order: start + i }));
+    ids.push(...unwrap(await supabase.from('startup_costs').upsert(rows, idempotent).select('id')).map((r) => r.id));
   }
   const expense = drafts.filter(isDraftOf('expense'));
   if (expense.length > 0) {
     const start = order('expense');
-    const rows = expense.map((d, i) => ({ ...draftToRow(d), business_id: businessId, sort_order: start + i }));
-    ids.push(...unwrap(await supabase.from('recurring_expenses').insert(rows).select('id')).map((r) => r.id));
+    const rows = expense.map((d, i) => ({ ...draftToRow(d), business_id: businessId, source_ref: d.sourceRef ?? null, sort_order: start + i }));
+    ids.push(...unwrap(await supabase.from('recurring_expenses').upsert(rows, idempotent).select('id')).map((r) => r.id));
   }
   const revenue = drafts.filter(isDraftOf('revenue'));
   if (revenue.length > 0) {
     const start = order('revenue');
-    const rows = revenue.map((d, i) => ({ ...draftToRow(d), business_id: businessId, sort_order: start + i }));
-    ids.push(...unwrap(await supabase.from('revenue_streams').insert(rows).select('id')).map((r) => r.id));
+    const rows = revenue.map((d, i) => ({ ...draftToRow(d), business_id: businessId, source_ref: d.sourceRef ?? null, sort_order: start + i }));
+    ids.push(...unwrap(await supabase.from('revenue_streams').upsert(rows, idempotent).select('id')).map((r) => r.id));
   }
   return ids;
 }

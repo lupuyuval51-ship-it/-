@@ -1,12 +1,11 @@
 import type { AdvisorAction } from '@domain/ai-api';
 import {
   actionTarget,
-  buildActionInsert,
   dueDateFromDays,
   invalidationKeysFor,
   isActionComplete,
   isWriteAction,
-  mergeAppliedIds,
+  parseApplyResult,
   previewAction,
   type WriteAction,
 } from '../actions';
@@ -44,10 +43,9 @@ describe('dueDateFromDays', () => {
   });
 });
 
-describe('previewAction + buildActionInsert', () => {
-  it('builds an advisor-sourced task with a due date', () => {
-    const preview = previewAction(task as WriteAction, TODAY);
-    expect(preview).toEqual({
+describe('previewAction (mirrors what apply_advisor_action writes)', () => {
+  it('previews an advisor task with a trimmed title and a due date', () => {
+    expect(previewAction(task as WriteAction, TODAY)).toEqual({
       kind: 'task',
       title: 'Call three suppliers',
       description: 'Ask for minimum order quantities.',
@@ -55,37 +53,15 @@ describe('previewAction + buildActionInsert', () => {
       priority: 'high',
       dueDate: '2026-11-12',
     });
-    expect(buildActionInsert('b1', preview)).toEqual({
-      table: 'tasks',
-      row: {
-        business_id: 'b1',
-        title: 'Call three suppliers',
-        description: 'Ask for minimum order quantities.',
-        phase: 'days_30',
-        priority: 'high',
-        due_date: '2026-11-12',
-        status: 'todo',
-        source: 'advisor',
-      },
-    });
   });
 
-  it('builds an advisor-sourced milestone', () => {
-    expect(buildActionInsert('b1', previewAction(milestone as WriteAction, TODAY))).toEqual({
-      table: 'milestones',
-      row: { business_id: 'b1', title: 'First 10 customers', phase: 'days_60', target_date: null, source: 'advisor' },
-    });
+  it('previews a milestone without a due date', () => {
+    expect(previewAction(milestone as WriteAction, TODAY)).toEqual({ kind: 'milestone', title: 'First 10 customers', phase: 'days_60', targetDate: null });
   });
 
   it('labels finance items as AI estimates', () => {
-    expect(buildActionInsert('b1', previewAction(expense as WriteAction))).toEqual({
-      table: 'recurring_expenses',
-      row: { business_id: 'b1', label: 'Hosting', monthly_amount_minor: 4900, basis: 'ai_estimate' },
-    });
-    expect(buildActionInsert('b1', previewAction(cost as WriteAction))).toEqual({
-      table: 'startup_costs',
-      row: { business_id: 'b1', label: 'Espresso machine', amount_minor: 1_250_000, basis: 'ai_estimate' },
-    });
+    expect(previewAction(expense as WriteAction)).toEqual({ kind: 'recurring_expense', label: 'Hosting', monthlyAmountMinor: 4900, basis: 'ai_estimate' });
+    expect(previewAction(cost as WriteAction)).toEqual({ kind: 'startup_cost', label: 'Espresso machine', amountMinor: 1_250_000, basis: 'ai_estimate' });
   });
 });
 
@@ -105,12 +81,18 @@ describe('action helpers', () => {
     expect(isActionComplete({ ...expense, expenseLabel: '' } as AdvisorAction)).toBe(false);
   });
 
-  it('merges applied ids as a subset of the message actions', () => {
-    const actions = [task, milestone, expense];
-    expect(mergeAppliedIds([], 'a1', actions)).toEqual(['a1']);
-    expect(mergeAppliedIds(['a1'], 'a1', actions)).toEqual(['a1']);
-    expect(mergeAppliedIds(['a1', 'gone'], 'a3', actions)).toEqual(['a1', 'a3']);
-    expect(mergeAppliedIds(['a1'], 'unknown', actions)).toEqual(['a1']);
+  it('parses the apply RPC result and rejects unexpected shapes', () => {
+    expect(parseApplyResult({ status: 'applied', table: 'recurring_expenses', row_id: 'r1', applied_action_ids: ['a1'] })).toEqual({
+      status: 'applied',
+      appliedActionIds: ['a1'],
+    });
+    expect(parseApplyResult({ status: 'already_applied', applied_action_ids: ['a1', 'a2'] })).toEqual({
+      status: 'already_applied',
+      appliedActionIds: ['a1', 'a2'],
+    });
+    expect(parseApplyResult(null)).toBeNull();
+    expect(parseApplyResult({ status: 'done', applied_action_ids: [] })).toBeNull();
+    expect(parseApplyResult({ status: 'applied', applied_action_ids: [1] })).toBeNull();
   });
 });
 

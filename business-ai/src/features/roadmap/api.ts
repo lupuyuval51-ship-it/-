@@ -17,7 +17,7 @@ import { invokeAi } from '@/lib/functions';
 import { qk } from '@/lib/queryKeys';
 import { supabase } from '@/lib/supabase';
 import { dueDateFromOffset, todayISO, type ISODate } from './dates';
-import { computeProgress, dependencyIdsOf, dependentIdsOf, diffDependencies, isRoadmapPhase, tasksDueThrough } from './logic';
+import { computeProgress, dependencyIdsOf, dependentIdsOf, isRoadmapPhase, tasksDueThrough } from './logic';
 import type {
   ItemSource,
   MilestoneRow,
@@ -314,9 +314,14 @@ export interface NewTaskInput {
   dueInDays?: number | null;
   /** Default 'user'. Use 'advisor' for tasks accepted from AI suggestions. */
   source?: ItemSource;
+  /**
+   * Idempotency key for tasks created from a proposal (e.g. `suggestion:<id>`). Unique per
+   * business in the database: adding the same proposal twice resolves with the existing task.
+   */
+  sourceRef?: string;
 }
 
-/** Creates a task; resolves with the saved row. */
+/** Creates a task; resolves with the saved row (or the existing row for a repeated `sourceRef`). */
 export function useCreateTask(businessId: BusinessId) {
   const qc = useQueryClient();
   return useMutation({
@@ -336,11 +341,21 @@ export function useCreateTask(businessId: BusinessId) {
           status: input.status ?? 'todo',
           due_date: input.dueDate !== undefined ? input.dueDate : dueDateFromOffset(input.dueInDays),
           source: input.source ?? 'user',
+          source_ref: input.sourceRef ?? null,
           sort_order: cached ? nextSortOrder(cached.tasks, phase) : 0,
         })
         .select()
         .single();
-      if (error) fail(error);
+      if (error) {
+        // Same proposal added again (double tap, retry after a lost response, another device):
+        // the unique (business_id, source_ref) key rejected the duplicate — return the original.
+        if (input.sourceRef && (error as { code?: string }).code === '23505') {
+          const existing = await supabase.from('tasks').select().eq('business_id', bid).eq('source_ref', input.sourceRef).single();
+          if (existing.error) fail(existing.error);
+          return narrowTask(existing.data);
+        }
+        fail(error);
+      }
       return narrowTask(data);
     },
     onSuccess: (task) => {
@@ -437,26 +452,12 @@ export function useSetDependencies(businessId: BusinessId) {
   return useMutation({
     mutationFn: async ({ taskId, dependsOn }: SetDependenciesInput): Promise<TaskDependencyRow[]> => {
       requireBusiness(businessId);
-      const current = await supabase.from('task_dependencies').select('task_id, depends_on_task_id').eq('task_id', taskId);
-      if (current.error) fail(current.error);
-      const { add, remove } = diffDependencies(
-        current.data.map((d) => d.depends_on_task_id),
-        dependsOn,
-      );
-      if (remove.length > 0) {
-        const { error } = await supabase.from('task_dependencies').delete().eq('task_id', taskId).in('depends_on_task_id', remove);
-        if (error) fail(error);
-      }
-      if (add.length > 0) {
-        const { error } = await supabase.from('task_dependencies').insert(add.map((id) => ({ task_id: taskId, depends_on_task_id: id })));
-        if (error) {
-          if (remove.length > 0) {
-            await supabase.from('task_dependencies').insert(remove.map((id) => ({ task_id: taskId, depends_on_task_id: id })));
-          }
-          fail(error);
-        }
-      }
-      return dependsOn.map((id) => ({ task_id: taskId, depends_on_task_id: id }));
+      // One transaction (`set_task_dependencies`): the old set is removed and the new set inserted
+      // together, and any rule violation (self, cross-business, cycle) leaves the old set intact.
+      const wanted = [...new Set(dependsOn)];
+      const { error } = await supabase.rpc('set_task_dependencies', { p_task_id: taskId, p_depends_on: wanted });
+      if (error) fail(error);
+      return wanted.map((id) => ({ task_id: taskId, depends_on_task_id: id }));
     },
     onSuccess: (rows, { taskId }) => {
       if (!businessId) return;

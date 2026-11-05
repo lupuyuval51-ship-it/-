@@ -14,16 +14,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AdvisorAction } from '@domain/ai-api';
-import type { RoadmapPhase } from '@domain/plan';
+import { toISODate } from '@/i18n/format';
 import { useLocale } from '@/i18n/I18nProvider';
 import { AppErrorException, makeAppError, toAppError } from '@/lib/errors';
 import { qk } from '@/lib/queryKeys';
 import { supabase } from '@/lib/supabase';
 import { unwrap, unwrapMaybe } from '@/lib/supabaseResult';
 import { useAiUsage, useEntitlement } from '@/features/settings/api';
-import { buildActionInsert, invalidationKeysFor, mergeAppliedIds, type ActionPreview, type WriteAction } from './actions';
+import { invalidationKeysFor, parseApplyResult, type ActionPreview, type WriteAction } from './actions';
 import { MESSAGE_MAX_LENGTH, parseMessage, TITLE_MAX_LENGTH, type AdvisorMessage, type Conversation, type PendingExchange } from './conversation';
-import { sanitizeActions } from './events';
 import { streamAdvisor } from './sse';
 
 export const advisorKeys = {
@@ -362,87 +361,29 @@ export interface ApplyActionResult {
   alreadyApplied: boolean;
 }
 
-async function nextSortOrder(table: 'tasks' | 'milestones' | 'recurring_expenses' | 'startup_costs', businessId: string, phase?: RoadmapPhase): Promise<number> {
-  try {
-    let result: { data: { sort_order: number }[] | null };
-    switch (table) {
-      case 'tasks':
-        result = await supabase.from('tasks').select('sort_order').eq('business_id', businessId).eq('phase', phase ?? '').order('sort_order', { ascending: false }).limit(1);
-        break;
-      case 'milestones':
-        result = await supabase.from('milestones').select('sort_order').eq('business_id', businessId).eq('phase', phase ?? '').order('sort_order', { ascending: false }).limit(1);
-        break;
-      case 'recurring_expenses':
-        result = await supabase.from('recurring_expenses').select('sort_order').eq('business_id', businessId).order('sort_order', { ascending: false }).limit(1);
-        break;
-      case 'startup_costs':
-        result = await supabase.from('startup_costs').select('sort_order').eq('business_id', businessId).order('sort_order', { ascending: false }).limit(1);
-        break;
-    }
-    const max = result.data?.[0]?.sort_order;
-    return typeof max === 'number' ? max + 1 : 0;
-  } catch {
-    return 0; // ordering is cosmetic; never block the write on it
-  }
-}
-
-async function insertPreview(businessId: string, preview: ActionPreview): Promise<void> {
-  const insert = buildActionInsert(businessId, preview);
-  switch (insert.table) {
-    case 'tasks': {
-      const sort_order = await nextSortOrder('tasks', businessId, preview.kind === 'task' ? preview.phase : undefined);
-      unwrap(await supabase.from('tasks').insert({ ...insert.row, sort_order }).select('id').single());
-      return;
-    }
-    case 'milestones': {
-      const sort_order = await nextSortOrder('milestones', businessId, preview.kind === 'milestone' ? preview.phase : undefined);
-      unwrap(await supabase.from('milestones').insert({ ...insert.row, sort_order }).select('id').single());
-      return;
-    }
-    case 'recurring_expenses': {
-      const sort_order = await nextSortOrder('recurring_expenses', businessId);
-      unwrap(await supabase.from('recurring_expenses').insert({ ...insert.row, sort_order }).select('id').single());
-      return;
-    }
-    case 'startup_costs': {
-      const sort_order = await nextSortOrder('startup_costs', businessId);
-      unwrap(await supabase.from('startup_costs').insert({ ...insert.row, sort_order }).select('id').single());
-      return;
-    }
-  }
-}
-
 /**
- * Performs a proposed action after the user confirmed it: verifies the action belongs to the
- * persisted message and wasn't applied yet, inserts the row through RLS (source 'advisor' /
- * basis 'ai_estimate'), records the id in `ai_messages.applied_action_ids`, and invalidates the
- * affected feature (['b', id, 'roadmap'] or ['b', id, 'finance']).
+ * Performs a proposed action after the user confirmed it, in ONE database transaction
+ * (`apply_advisor_action`): the row is built from the proposal stored on the message (not from
+ * client input), inserted through RLS (source 'advisor' / basis 'ai_estimate'), and the action id
+ * is recorded in `ai_messages.applied_action_ids` together with it. A repeat — double tap, retry
+ * after a lost response, a second device — returns `already_applied` and writes nothing, so the
+ * same expense or task can never be created twice.
  */
 export function useApplyAction(businessId: string | null | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ messageId, action, preview }: ApplyActionInput): Promise<ApplyActionResult> => {
+    mutationFn: async ({ messageId, action }: ApplyActionInput): Promise<ApplyActionResult> => {
       if (!businessId) throw new AppErrorException(makeAppError('not_found', 'No active business'));
-      const message = unwrap(await supabase.from('ai_messages').select('id, actions, applied_action_ids').eq('id', messageId).single());
-      const actions = sanitizeActions(message.actions);
-      if (!actions.some((a) => a.id === action.id && a.type === action.type)) {
-        throw new AppErrorException(makeAppError('not_found', 'Action is not part of this message'));
-      }
-      const applied = message.applied_action_ids ?? [];
-      if (applied.includes(action.id)) {
-        return { messageId, actionId: action.id, appliedActionIds: applied, alreadyApplied: true };
-      }
-
-      await insertPreview(businessId, preview);
-
-      const next = mergeAppliedIds(applied, action.id, actions);
-      // The row is written; recording "applied" is retried once and never reported as a failure
-      // of the action itself (the cache below still marks it, so it can't be added twice here).
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const { error } = await supabase.from('ai_messages').update({ applied_action_ids: next }).eq('id', messageId).select('id').single();
-        if (!error) break;
-      }
-      return { messageId, actionId: action.id, appliedActionIds: next, alreadyApplied: false };
+      const data = unwrap(
+        await supabase.rpc('apply_advisor_action', {
+          p_message_id: messageId,
+          p_action_id: action.id,
+          p_today: toISODate(new Date()),
+        }),
+      );
+      const result = parseApplyResult(data);
+      if (!result) throw new AppErrorException(makeAppError('unknown', 'Unexpected apply_advisor_action result'));
+      return { messageId, actionId: action.id, appliedActionIds: result.appliedActionIds, alreadyApplied: result.status === 'already_applied' };
     },
     onSuccess: (result, input) => {
       if (!businessId) return;

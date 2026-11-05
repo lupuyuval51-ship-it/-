@@ -188,13 +188,6 @@ export function wouldCreateCycle(taskId: string, candidateId: string, dependenci
   return false;
 }
 
-/** Diff between the current and desired dependency sets of one task. */
-export function diffDependencies(current: readonly string[], desired: readonly string[]): { add: string[]; remove: string[] } {
-  const cur = new Set(current);
-  const want = new Set(desired);
-  return { add: [...want].filter((id) => !cur.has(id)), remove: [...cur].filter((id) => !want.has(id)) };
-}
-
 /* ------------------------------------------------------------------ */
 /* Sorting                                                             */
 /* ------------------------------------------------------------------ */

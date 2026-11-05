@@ -207,10 +207,16 @@ export function nextSortOrder(items: readonly { sortOrder: number }[]): number {
 /* Line drafts (parsed form values) → DB payloads                                                 */
 /* ============================================================================================== */
 
-export type StartupCostDraft = { kind: 'startup'; label: string; amountMinor: number; category: string; basis: Basis };
-export type RecurringExpenseDraft = { kind: 'expense'; label: string; monthlyAmountMinor: number; category: string; basis: Basis };
+/**
+ * `sourceRef` (insert only): idempotency key for a line created from a proposal, e.g.
+ * `proposal:<item key>`. Unique per business in the database, so accepting the same proposal
+ * item twice (double tap, retry, second device) never creates a second line.
+ */
+export type StartupCostDraft = { kind: 'startup'; label: string; amountMinor: number; category: string; basis: Basis; sourceRef?: string };
+export type RecurringExpenseDraft = { kind: 'expense'; label: string; monthlyAmountMinor: number; category: string; basis: Basis; sourceRef?: string };
 export type RevenueStreamDraft = {
   kind: 'revenue';
+  sourceRef?: string;
   label: string;
   unitPriceMinor: number;
   unitVariableCostMinor: number;
@@ -846,11 +852,19 @@ export function pendingProposalItems(p: FinanceProposal | null | undefined, revi
 export function proposalItemToDraft(item: ProposalItem, fallbackLabel: string): LineDraft | null {
   const label = (raw: string) => cleanLabel(raw) || cleanLabel(fallbackLabel);
   const int = (n: number) => Math.min(FINANCE_LIMITS.maxAmountMinor, Math.max(0, Math.round(n)));
+  const sourceRef = proposalSourceRef(item);
   switch (item.kind) {
     case 'capital':
       return null;
     case 'startup':
-      return { kind: 'startup', label: label(item.item.label), amountMinor: int(item.item.amountMinor), category: cleanCategory(item.item.category), basis: 'ai_estimate' };
+      return {
+        kind: 'startup',
+        label: label(item.item.label),
+        amountMinor: int(item.item.amountMinor),
+        category: cleanCategory(item.item.category),
+        basis: 'ai_estimate',
+        sourceRef,
+      };
     case 'expense':
       return {
         kind: 'expense',
@@ -858,6 +872,7 @@ export function proposalItemToDraft(item: ProposalItem, fallbackLabel: string): 
         monthlyAmountMinor: int(item.item.monthlyAmountMinor),
         category: cleanCategory(item.item.category),
         basis: 'ai_estimate',
+        sourceRef,
       };
     case 'revenue':
       return {
@@ -868,8 +883,14 @@ export function proposalItemToDraft(item: ProposalItem, fallbackLabel: string): 
         monthlyUnits: Math.min(FINANCE_LIMITS.maxMonthlyUnits, Math.max(0, round2(item.item.monthlyUnits))),
         monthlyGrowthPct: Math.min(FINANCE_LIMITS.maxGrowthPct, Math.max(FINANCE_LIMITS.minGrowthPct, round2(item.item.monthlyGrowthPct))),
         basis: 'ai_estimate',
+        sourceRef,
       };
   }
+}
+
+/** Idempotency key stored in `source_ref` for a line accepted from a proposal (≤ 200 chars). */
+export function proposalSourceRef(item: ProposalItem): string {
+  return `proposal:${item.key}`.slice(0, 200);
 }
 
 export function proposalCapitalMinor(item: ProposalItem): number | null {

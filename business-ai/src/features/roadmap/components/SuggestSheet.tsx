@@ -52,6 +52,7 @@ export function SuggestSheet({ businessId, visible, onClose }: SuggestSheetProps
         priority: s.priority,
         dueDate: dueDateFromOffset(s.dueInDays),
         source: 'advisor',
+        sourceRef: `suggestion:${s.id}`,
       });
       setAdded((prev) => new Set(prev).add(s.id));
       notice.show({ message: t('roadmap.suggest.addedNotice', { phase: t(`roadmap.phase.${s.phase}`) }) });

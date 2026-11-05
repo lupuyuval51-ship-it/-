@@ -11,6 +11,7 @@ Generated TS types: `supabase/functions/_shared/database.types.ts` (`npm run db:
 | `20261105000004_finance.sql` | `financial_models`, `startup_costs`, `recurring_expenses`, `revenue_streams`, `transactions`, `business_goals`, forecast cap trigger, `ensure_financial_model` |
 | `20261105000005_ai.sql` | `ai_conversations`, `ai_messages`, `ai_usage_records`, `reserve_ai_usage`, `finalize_ai_usage`, `ai_usage_summary` |
 | `20261105000006_workspace.sql` | `marketing_assets`, `launch_checklist_items`, final anon/PUBLIC revoke sweep |
+| `20261106000001_atomic_writes.sql` | `source_ref` idempotency keys (unique per business) on `tasks`, `milestones`, `startup_costs`, `recurring_expenses`, `revenue_streams`; `apply_advisor_action`, `set_task_dependencies`, `persist_ai_roadmap` |
 
 ## Conventions
 
@@ -76,6 +77,13 @@ Generated TS types: `supabase/functions/_shared/database.types.ts` (`npm run db:
 
 `save_plan_section` and `restore_plan_version` perform 1–4 atomically under the caller's RLS.
 
+## Idempotency keys (`source_ref`)
+
+Rows created *from a proposal* carry `source_ref` (nullable, unique per business): advisor actions
+`advisor:<message id>:<action id>`, roadmap suggestions `suggestion:<id>`, finance proposal items
+`proposal:<item key>`. Applying the same proposal twice — double tap, retry after a lost response,
+a second device — can never create a second row. Ordinary rows keep `source_ref = null`.
+
 ## RPCs
 
 All functions `set search_path = ''`. Errors use SQLSTATE `P0001`, `message` = code, `details` = context.
@@ -90,6 +98,9 @@ All functions `set search_path = ''`. Errors use SQLSTATE `P0001`, `message` = c
 | `restore_plan_version(p_version_id uuid)` | invoker | authenticated, service_role | `uuid` of a new `restored` version copying a ready version; `not_found`, `precondition_failed` |
 | `replace_ai_roadmap(p_business_id uuid)` | invoker | authenticated, service_role | `void`; deletes AI tasks with status ≠ done and AI milestones with `achieved_at is null` |
 | `ensure_financial_model(p_business_id uuid)` | invoker | authenticated, service_role | `financial_models` row (default row inserted if missing) |
+| `apply_advisor_action(p_message_id uuid, p_action_id text, p_today date default null)` | invoker | authenticated, service_role | `jsonb {status: applied\|already_applied, table, row_id, applied_action_ids}`. **One transaction:** locks the advisor message (`FOR UPDATE`), builds the row from the proposal *stored on the message*, inserts it with `source_ref = advisor:<message>:<action>` and appends the id to `applied_action_ids`. Repeats/concurrent calls apply exactly once. `not_found`, `invalid_request` (navigation-only action, `p_today` not within ±1 day of the server date) |
+| `set_task_dependencies(p_task_id uuid, p_depends_on uuid[])` | invoker | authenticated, service_role | `void`; replaces a task's prerequisite set in one transaction (max 50; dependency triggers still apply — any violation keeps the old set) |
+| `persist_ai_roadmap(p_business_id uuid, p_mode text, p_payload jsonb)` | invoker | authenticated, service_role | `jsonb {phases, milestones, tasks}`; writes phases, milestones, tasks and dependencies in one transaction, serialised per business (advisory xact lock); `create` → `conflict` if AI tasks exist, `replace_ai_items` → calls `replace_ai_roadmap` first |
 | `reserve_ai_usage(p_user uuid, p_business uuid, p_feature text, p_monthly_limit int, p_cost_cap_micros bigint, p_model text)` | definer | **service_role only** | `uuid` of a `reserved` row; per-user advisory xact lock; counts this UTC month's reserved+success rows of the feature, sums all cost; `quota_exceeded`, `cost_cap_reached`, `forbidden` (business not owned by p_user), `invalid_request` |
 | `finalize_ai_usage(p_id uuid, p_status text, p_input int, p_output int, p_cost bigint, p_error text default null)` | definer | **service_role only** | `void`; `p_status` success\|error; once per reservation (`conflict`), `not_found` |
 | `ai_usage_summary()` | invoker | authenticated, service_role | `table(feature text, used int)` — all 7 features in AI_FEATURES order, this UTC month, reserved+success |

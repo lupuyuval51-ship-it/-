@@ -5,7 +5,6 @@ import {
   currentPhase,
   dependencyIdsOf,
   dependentIdsOf,
-  diffDependencies,
   filterTasks,
   groupByPhase,
   groupTasks,
@@ -26,6 +25,7 @@ function task(partial: Partial<TaskRow> & { id: string }): TaskRow {
   seq += 1;
   return {
     business_id: 'b1',
+    source_ref: null,
     title: partial.id,
     description: '',
     phase: 'days_30',
@@ -147,11 +147,6 @@ describe('dependencies', () => {
     expect(wouldCreateCycle('a', 'd', deps)).toBe(true); // d → b → a
     expect(wouldCreateCycle('d', 'a', deps)).toBe(false); // d → a is just redundant
     expect(wouldCreateCycle('c', 'a', deps)).toBe(false);
-  });
-
-  it('diffs desired dependency sets', () => {
-    expect(diffDependencies(['a', 'b'], ['b', 'c'])).toEqual({ add: ['c'], remove: ['a'] });
-    expect(diffDependencies([], [])).toEqual({ add: [], remove: [] });
   });
 });
 
