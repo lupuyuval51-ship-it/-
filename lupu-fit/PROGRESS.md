@@ -16,6 +16,10 @@
 - Opt-in local reminders (workout days, meals, weigh-in, streak-at-risk, rest-day tip, quiet hours; minors without calorie/weight reminders), Android via `@capacitor/local-notifications` (inexact alarms), web only while the app is open; auto-rest toggle, Home weekly check-in, Device Mode monthly backup reminder. Unit and component tests cover the pure scheduler (incl. DST), the card (one permission request, denied, minors, web/none modes), the runtime (schedule/cancel/logout/deep link) and the banners. AAB built and `bundletool validate` passes.
 - Not verified: any real notification delivery on a device (see docs/ANDROID.md); Hebrew copy not reviewed by a native speaker.
 
+## Hardening pass (D21)
+- Final security/bug review of the auth, translate, service worker, static server, coach safety, automations and account/backup code; every fix has a test that failed first (`server/test/hardening.test.ts`, `client/src/sw/sw.test.ts`, `client/src/api/identity.test.ts`, `client/src/automation/delivery.test.ts`, extended shared/client suites, `e2e/specs/k-shared-device.spec.ts`). Details and residual risks: `docs/DECISIONS.md` D21.
+- Most important: account deletion no longer returns 500 (Idempotency-Key FK), the coach safety shield resists spacing/accents/leetspeak/earlier negations, AI quotas and login locks hold under parallel requests, the hosted server sends a strict CSP and returns 404 for missing build files, the service worker no longer leaks or caches the wrong thing between people on one device.
+
 ## Not done / honest limitations
 - E2E has no CI wiring yet and runs only against the in-memory PGlite dev server (hosted build); Device Mode (PGlite worker) and the Android shell are not covered. Offline is covered for reload of Home; offline set logging in the live workout is not.
 - Dockerfile, render.yaml, Caddyfile and capacitor.config.ts are UNTESTED drafts; no android/ project or TWA package exists.

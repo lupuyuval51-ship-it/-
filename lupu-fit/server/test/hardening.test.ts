@@ -95,6 +95,16 @@ describe('request handling', () => {
     for (const bad of ['garbage', '+275760-09-13T00:00:00.000Z']) expect((await call(t, c, 'POST', '/api/device/restore', bk(bad))).status, bad).toBe(400);
     expect((await call(t, c, 'POST', '/api/device/restore', bk('2026-11-02T08:00:00.000Z'))).status).toBe(200);
   });
+  it('look-alike characters cannot make a second account: every accepted name folds to plain ASCII, and anything else is refused', async () => {
+    const t = await makeApp(); await register(t, 'kevin', '10.1.1.1');
+    const reg = (username: string, ip: string) => call(t, anon(ip), 'POST', '/api/auth/register', { username, password: 'correct-horse-battery' });
+    expect((await reg('\u212Aevin', '10.1.1.2')).status).toBe(409); // KELVIN SIGN lower-cases to "k": the same name, not a new one
+    for (const [i, lookalike] of ['kеvin' /* Cyrillic е */, 'ｋevin' /* fullwidth k */, 'kevin\u200b', 'kev\u0131n' /* dotless i */, 'ke\u0301vin'].entries()) {
+      const r = await reg(lookalike, `10.1.2.${i}`);
+      expect([400, 409], lookalike).toContain(r.status);
+    }
+    expect(Number((await t.db.query<{ c: number }>("SELECT COUNT(*)::int AS c FROM users WHERE lower(username) LIKE 'k%vin%'"))[0]!.c)).toBe(1);
+  });
   it('impossible dates and out-of-range values are 400, not 500', async () => {
     const t = await makeApp(); const c = await onboard(t);
     expect((await call(t, c, 'GET', '/api/readiness?date=not-a-date')).status).toBe(400);
