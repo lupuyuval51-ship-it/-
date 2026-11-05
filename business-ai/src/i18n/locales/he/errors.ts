@@ -1,0 +1,51 @@
+/**
+ * Error messages (Hebrew). Keys are referenced by `toAppError()` in src/lib/errors.ts
+ * (`messageKey`) and by zod schemas (`errors.field.*`). Never show raw server messages.
+ */
+const messages = {
+  unknown: 'אירעה שגיאה לא צפויה. אפשר לנסות שוב.',
+  network: 'אין חיבור לשרת. כדאי לבדוק את החיבור לרשת ולנסות שוב.',
+  offline: 'אין חיבור לרשת. הפעולה תהיה זמינה כשהחיבור יחזור.',
+  sessionExpired: 'פג תוקף ההתחברות. יש להתחבר מחדש.',
+  forbidden: 'אין הרשאה לבצע את הפעולה הזו.',
+  notFound: 'הפריט לא נמצא. ייתכן שהוא נמחק.',
+  conflict: 'הפריט כבר קיים או השתנה בינתיים. כדאי לרענן ולנסות שוב.',
+  invalidRequest: 'חלק מהפרטים אינם תקינים. כדאי לבדוק אותם ולנסות שוב.',
+  preconditionFailed: 'אי אפשר לבצע את הפעולה כרגע. ייתכן ששלב קודם עוד לא הושלם.',
+  quotaExceeded: 'הגעת למכסת השימוש החודשית בפעולה הזו. המכסה מתחדשת בתחילת החודש.',
+  costCapReached: 'הגעת לתקרת השימוש החודשית ב-AI. התקרה מתחדשת בתחילת החודש.',
+  rateLimited: 'נשלחו יותר מדי בקשות בזמן קצר. כדאי להמתין רגע ולנסות שוב.',
+  aiUnavailable: 'שירות ה-AI אינו זמין כרגע. אפשר לנסות שוב בעוד כמה דקות.',
+  aiRefused: 'ה-AI לא יכול לעזור בבקשה הזו. אפשר לנסח אותה אחרת.',
+  aiInvalidOutput: 'התשובה שהתקבלה לא הייתה שלמה. אפשר לנסות שוב.',
+  notConfigured: 'השירות עדיין לא הוגדר בשרת.',
+  businessLimitReached: 'הגעת למספר העסקים המרבי במסלול הנוכחי. אפשר להעביר עסק לארכיון כדי לפנות מקום.',
+  forecastLimitExceeded: 'טווח התחזית ארוך מהמותר במסלול הנוכחי.',
+  planVersionImmutable: 'גרסה זו של התוכנית נעולה. שינויים נשמרים כגרסה חדשה.',
+  dependencyCycle: 'התלות הזו יוצרת מעגל בין משימות.',
+  dependencySelf: 'משימה לא יכולה להיות תלויה בעצמה.',
+  dependencyCrossBusiness: 'אפשר לקשר רק משימות של אותו עסק.',
+  immutableColumn: 'אי אפשר לשנות את השדה הזה.',
+  invalidCredentials: 'האימייל או הסיסמה שגויים.',
+  emailNotConfirmed: 'צריך לאשר את כתובת האימייל לפני הכניסה. קישור האישור נשלח לתיבת הדואר.',
+  userAlreadyExists: 'כבר קיים חשבון עם האימייל הזה. אפשר להיכנס אליו.',
+  weakPassword: 'הסיסמה חלשה מדי. כדאי לבחור סיסמה ארוכה יותר.',
+  samePassword: 'הסיסמה החדשה זהה לסיסמה הקודמת.',
+  emailRateLimited: 'נשלחו יותר מדי אימיילים. כדאי להמתין כמה דקות ולנסות שוב.',
+  signupDisabled: 'ההרשמה סגורה כרגע.',
+  recoveryLinkInvalid: 'הקישור לאיפוס הסיסמה פג תוקף או שכבר נעשה בו שימוש.',
+  field: {
+    required: 'שדה חובה',
+    emailInvalid: 'כתובת האימייל אינה תקינה',
+    passwordTooShort: 'לפחות {min} תווים',
+    passwordTooLong: 'עד {max} תווים',
+    passwordNeedsLetterAndNumber: 'צריך לכלול לפחות אות אחת וספרה אחת',
+    passwordsDontMatch: 'הסיסמאות אינן תואמות',
+    tooLong: 'עד {max} תווים',
+    amountInvalid: 'יש להזין סכום תקין',
+    amountTooLarge: 'הסכום גדול מדי',
+    numberInvalid: 'יש להזין מספר תקין',
+  },
+} as const;
+
+export default messages;

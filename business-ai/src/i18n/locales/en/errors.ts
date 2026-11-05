@@ -1,0 +1,51 @@
+import type { Messages } from '../../types';
+import type he from '../he/errors';
+
+/** Error messages (English). */
+const messages: Messages<typeof he> = {
+  unknown: 'Something unexpected happened. Please try again.',
+  network: 'Can’t reach the server. Check your connection and try again.',
+  offline: 'You’re offline. This will be available when you reconnect.',
+  sessionExpired: 'Your session has expired. Please sign in again.',
+  forbidden: 'You don’t have permission to do that.',
+  notFound: 'We couldn’t find that. It may have been deleted.',
+  conflict: 'This already exists or was changed in the meantime. Refresh and try again.',
+  invalidRequest: 'Some details aren’t valid. Check them and try again.',
+  preconditionFailed: 'This can’t be done yet. A previous step may not be complete.',
+  quotaExceeded: 'You’ve reached this month’s limit for this action. It resets at the start of next month.',
+  costCapReached: 'You’ve reached this month’s AI usage cap. It resets at the start of next month.',
+  rateLimited: 'Too many requests in a short time. Wait a moment and try again.',
+  aiUnavailable: 'The AI service is unavailable right now. Try again in a few minutes.',
+  aiRefused: 'The AI can’t help with this request. Try phrasing it differently.',
+  aiInvalidOutput: 'The response came back incomplete. Please try again.',
+  notConfigured: 'This service isn’t configured on the server yet.',
+  businessLimitReached: 'You’ve reached the number of businesses your plan allows. Archive one to make room.',
+  forecastLimitExceeded: 'That forecast is longer than your plan allows.',
+  planVersionImmutable: 'This plan version is locked. Changes are saved as a new version.',
+  dependencyCycle: 'This dependency would create a loop between tasks.',
+  dependencySelf: 'A task can’t depend on itself.',
+  dependencyCrossBusiness: 'Only tasks of the same business can be linked.',
+  immutableColumn: 'This field can’t be changed.',
+  invalidCredentials: 'Incorrect email or password.',
+  emailNotConfirmed: 'Confirm your email address before signing in. We sent the link to your inbox.',
+  userAlreadyExists: 'An account with this email already exists. You can sign in to it.',
+  weakPassword: 'That password is too weak. Try a longer one.',
+  samePassword: 'The new password is the same as the old one.',
+  emailRateLimited: 'Too many emails were sent. Wait a few minutes and try again.',
+  signupDisabled: 'Sign-ups are closed right now.',
+  recoveryLinkInvalid: 'This password reset link has expired or was already used.',
+  field: {
+    required: 'Required',
+    emailInvalid: 'Enter a valid email address',
+    passwordTooShort: 'At least {min} characters',
+    passwordTooLong: 'Up to {max} characters',
+    passwordNeedsLetterAndNumber: 'Include at least one letter and one number',
+    passwordsDontMatch: 'Passwords don’t match',
+    tooLong: 'Up to {max} characters',
+    amountInvalid: 'Enter a valid amount',
+    amountTooLarge: 'That amount is too large',
+    numberInvalid: 'Enter a valid number',
+  },
+};
+
+export default messages;

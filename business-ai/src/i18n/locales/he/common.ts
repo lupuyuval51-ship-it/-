@@ -1,0 +1,92 @@
+/** Shared UI strings (Hebrew, default). */
+const messages = {
+  appName: 'Business AI',
+  actions: {
+    save: 'שמירה',
+    saving: 'בשמירה…',
+    cancel: 'ביטול',
+    continue: 'המשך',
+    back: 'חזרה',
+    done: 'סיום',
+    retry: 'ניסיון נוסף',
+    close: 'סגירה',
+    edit: 'עריכה',
+    delete: 'מחיקה',
+    confirm: 'אישור',
+    add: 'הוספה',
+    remove: 'הסרה',
+    next: 'הבא',
+    skip: 'דילוג',
+    dismiss: 'הסתרה',
+  },
+  states: {
+    loading: 'בטעינה…',
+    offlineBanner: 'אין חיבור לרשת. מוצגים הנתונים השמורים במכשיר.',
+    offlineTitle: 'אין חיבור לרשת',
+    offlineBody: 'הנתונים ייטענו ברגע שהחיבור יחזור.',
+    errorTitle: 'משהו השתבש',
+    emptyTitle: 'אין כאן עדיין כלום',
+  },
+  tabs: {
+    home: 'בית',
+    plan: 'תוכנית',
+    advisor: 'יועץ',
+    finance: 'כספים',
+    workspace: 'מרחב עבודה',
+  },
+  language: {
+    label: 'שפה',
+    he: 'עברית',
+    en: 'English',
+  },
+  theme: {
+    system: 'לפי המכשיר',
+    light: 'בהיר',
+    dark: 'כהה',
+  },
+  basis: {
+    user_provided: 'מידע שמסרת',
+    assumption: 'הנחה',
+    ai_estimate: 'הערכת AI',
+    verified: 'מאומת',
+  },
+  basisA11y: 'מקור המידע: {basis}',
+  estimate: 'הערכה',
+  due: {
+    overdue: { one: 'באיחור של יום', two: 'באיחור של יומיים', other: 'באיחור של {count} ימים' },
+    today: 'להיום',
+    tomorrow: 'למחר',
+    inDays: { one: 'בעוד יום', two: 'בעוד יומיים', other: 'בעוד {count} ימים' },
+  },
+  a11y: {
+    showPassword: 'הצגת הסיסמה',
+    hidePassword: 'הסתרת הסיסמה',
+    loading: 'בטעינה',
+    progress: '{value} אחוזים',
+    dismissNotice: 'סגירת ההודעה',
+    closeSheet: 'סגירה',
+    goBack: 'חזרה',
+    settings: 'הגדרות',
+  },
+  confirm: {
+    title: 'להמשיך?',
+    confirm: 'אישור',
+    cancel: 'ביטול',
+  },
+  notFound: {
+    title: 'הדף לא נמצא',
+    body: 'ייתכן שהקישור שגוי או שהדף הועבר.',
+    home: 'למסך הבית',
+  },
+  config: {
+    title: 'האפליקציה עדיין לא הוגדרה',
+    body: 'חסרים משתני הסביבה EXPO_PUBLIC_SUPABASE_URL ו-EXPO_PUBLIC_SUPABASE_ANON_KEY. יש להוסיף אותם לקובץ ‎.env ולהפעיל את האפליקציה מחדש.',
+  },
+  boot: {
+    errorTitle: 'לא הצלחנו לטעון את החשבון',
+    offlineBody: 'כדי להיכנס בפעם הראשונה במכשיר הזה צריך חיבור לרשת.',
+    signOut: 'יציאה מהחשבון',
+  },
+} as const;
+
+export default messages;

@@ -1,0 +1,12 @@
+-- Local-only seed for `supabase db reset`.
+--
+-- Intentionally empty: BUSINESS AI ships no fake business data. Every user gets
+-- a profile and a free entitlement from the auth.users trigger
+-- (public.handle_new_user); create a local account through the app's sign-up
+-- screen (or Supabase Studio at http://127.0.0.1:54323) to start testing.
+--
+-- To try Pro limits locally, upgrade an account with the service role, e.g.:
+--   update public.subscription_entitlements
+--   set tier = 'pro', status = 'active', source = 'manual', current_period_end = null
+--   where user_id = '<auth user id>';
+select 1;
