@@ -83,7 +83,8 @@ await step('onboarding', async () => {
 
 await step('plan-generated', async () => {
   // ready state shows the version line ("Version 1 · …"); the generating view also lists section titles
-  await page.getByText(/Version 1/).first().waitFor({ timeout: 180000 });
+  // numbers are wrapped in Unicode bidi isolates (U+2068…U+2069) for RTL safety
+  await page.getByText(/Version\s*\u2068?1\u2069?\s*·/).first().waitFor({ timeout: 180000 });
 });
 
 await step('edit-section', async () => {
