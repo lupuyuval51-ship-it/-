@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router/js-tabs';
 import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Text, type IconName } from '@/components/ui';
 import { useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/translate';
@@ -25,6 +26,9 @@ export default function TabsLayout() {
   const t = useT();
   const { colors } = useTheme();
   const reduceMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
+  // Icon (22) + label (14) + spacing must fit: the default bar height clipped the labels.
+  const bottomPad = Math.max(insets.bottom, 8);
   return (
     <Tabs
       screenOptions={{
@@ -37,6 +41,8 @@ export default function TabsLayout() {
           borderTopWidth: StyleSheet.hairlineWidth,
           elevation: 0,
           shadowOpacity: 0,
+          height: 56 + bottomPad,
+          paddingBottom: bottomPad,
         },
         tabBarItemStyle: styles.item,
         sceneStyle: { backgroundColor: colors.background },
