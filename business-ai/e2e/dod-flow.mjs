@@ -54,10 +54,15 @@ await step('sign-up', async () => {
 await step('onboarding', async () => {
   const idea = page.getByRole('textbox').first();
   await idea.waitFor({ timeout: 15000 });
+  // Let the saved-draft hydration settle before typing (known race: typing in the first second can be reset).
+  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForTimeout(1500);
   await idea.fill('A neighbourhood bakery in Haifa selling sourdough bread and pastries, with weekly subscription boxes for offices.');
   await btn('Continue').click();
   // country
   const search = page.getByRole('textbox').first();
+  await search.waitFor({ timeout: 15000 });
+  await page.waitForTimeout(1000);
   await search.fill('Israel');
   await page.getByRole('radio', { name: 'Israel' }).first().click();
   await btn('Continue').click();
