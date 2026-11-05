@@ -270,7 +270,8 @@ export function searchCountries(query: string, locale: Locale, list: readonly Co
     });
     for (const alias of country.aliases ?? []) {
       const s = matchScore(normalizeSearchText(alias), q);
-      consider(s === null ? null : Math.max(s, 0) + 3);
+      // An exact alias ("UK", "USA", "ארה״ב") is as good as a name; partial alias matches rank lower.
+      consider(s === null ? null : s === 0 ? 0.75 : s + 2);
     }
     if (q.length === 2 && country.code.toLowerCase() === q) consider(0.25);
     if (best !== null) scored.push({ country, score: best, order });

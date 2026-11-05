@@ -22,10 +22,6 @@ const messages: Messages<typeof he> = {
     roadmap_30_60_90: '30/60/90-day plan',
   },
   basis: {
-    user_provided: 'Your input',
-    assumption: 'Assumption',
-    ai_estimate: 'AI estimate',
-    verified: 'Verified',
     verifiedWithSource: 'Verified · {source}',
   },
   basisCount: {
@@ -78,7 +74,7 @@ const messages: Messages<typeof he> = {
     costCapReached: 'You’ve reached this month’s AI usage limit. It renews at the start of next month.',
     aiRefused: 'The AI couldn’t write a plan from the details provided. Review your business description and try again.',
     preconditionFailed: 'Some business details are missing, so a plan can’t be written yet. You can complete them in your business settings.',
-    generic: 'Something went wrong while writing. You can try again — it won’t be counted twice.',
+    generic: 'Something went wrong while writing. You can try again.',
     retry: 'Try again',
     previousVersion: 'The previous version of your plan is still available.',
     showCurrent: 'Back to the current version',
@@ -247,6 +243,8 @@ const messages: Messages<typeof he> = {
     noBusinessTitle: 'No business set up yet',
     noBusinessBody: 'To write a business plan, first tell us about your business.',
     offlineAction: 'You’re offline. This will be available once you’re back online.',
+    aiNotConfigured: 'The AI service hasn’t been configured on the server yet, so AI writing isn’t available right now. This isn’t a problem with your account.',
+    sectionQuota: 'You’ve used all your section rewrites for this month. Your allowance renews at the start of next month.',
   },
   a11y: {
     sectionRow: '{title}. {preview}',

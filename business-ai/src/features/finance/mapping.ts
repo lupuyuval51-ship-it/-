@@ -20,6 +20,7 @@ import {
 } from '@domain/finance';
 import { BASIS_VALUES, type Basis } from '@domain/plan';
 import { parseMoneyInput } from '@/i18n/format';
+import { fieldMessage } from '@/lib/forms';
 import type { TranslationKey } from '@/i18n/translate';
 import { intlLocale, type Locale } from '@/i18n/types';
 
@@ -220,11 +221,28 @@ export type RevenueStreamDraft = {
 };
 export type LineDraft = StartupCostDraft | RecurringExpenseDraft | RevenueStreamDraft;
 
-type LinePayload = {
-  startup: Omit<TablesUpdate<'startup_costs'>, 'business_id' | 'id'>;
-  expense: Omit<TablesUpdate<'recurring_expenses'>, 'business_id' | 'id'>;
-  revenue: Omit<TablesUpdate<'revenue_streams'>, 'business_id' | 'id'>;
-};
+/** Editable columns per line table (assignable to both the Insert and Update row types). */
+export interface StartupCostColumns {
+  label: string;
+  amount_minor: number;
+  category: string;
+  basis: Basis;
+}
+export interface RecurringExpenseColumns {
+  label: string;
+  monthly_amount_minor: number;
+  category: string;
+  basis: Basis;
+}
+export interface RevenueStreamColumns {
+  label: string;
+  unit_price_minor: number;
+  unit_variable_cost_minor: number;
+  monthly_units: number;
+  monthly_growth_pct: number;
+  basis: Basis;
+}
+type LinePayload = { startup: StartupCostColumns; expense: RecurringExpenseColumns; revenue: RevenueStreamColumns };
 
 export function cleanLabel(label: string): string {
   return label.replace(/\s+/g, ' ').trim().slice(0, LABEL_MAX);
@@ -262,8 +280,11 @@ export function draftToRow(draft: LineDraft): LinePayload[LineKind] {
   }
 }
 
+/** 2-decimal rounding, half away from zero, robust to binary representation (1.005 → 1.01). */
 function round2(n: number): number {
-  return Math.round(n * 100) / 100;
+  if (!Number.isFinite(n)) return 0;
+  const r = (Math.sign(n) * Math.round(Math.abs(n) * 100 + 1e-6)) / 100;
+  return r === 0 ? 0 : r;
 }
 
 /**
@@ -306,21 +327,66 @@ export interface ParseDecimalOptions {
   integer?: boolean;
 }
 
+/** "1,234,567" style grouping: 1–3 leading digits then groups of exactly 3. */
+function isGrouped(text: string, sep: string): boolean {
+  const [first, ...rest] = text.split(sep);
+  return first !== undefined && /^\d{1,3}$/.test(first) && rest.length > 0 && rest.every((g) => /^\d{3}$/.test(g));
+}
+
 /**
  * Parses a user-typed quantity or percentage with up to 2 decimals ("12.5", "12,5", "1,200",
- * "15%", Arabic-Indic digits, bidi marks). Returns null when invalid or outside [min, max].
- * Uses the same tokenizer as `parseMoneyInput` so every numeric field accepts the same formats.
+ * "1,200.5", "15%", Arabic-Indic digits, bidi marks). Returns null when invalid or outside
+ * [min, max]. Unlike money, a lone "." is always the decimal point ("1.234" is invalid, not 1234).
  */
 export function parseDecimalInput(text: string, opts: ParseDecimalOptions = {}): number | null {
   const min = opts.min ?? 0;
   const max = opts.max ?? FINANCE_LIMITS.maxMonthlyUnits;
-  const hundredths = parseMoneyInput(text, 'XXX', {
-    allowNegative: min < 0,
-    maxMinor: Math.round(Math.max(Math.abs(min), Math.abs(max)) * 100),
-  });
-  if (hundredths === null) return null;
-  const value = hundredths / 100;
-  if (value < min || value > max) return null;
+  if (typeof text !== 'string') return null;
+  let s = text
+    .replace(/[؜‎‏‪-‮⁦-⁩]/g, '')
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[\s   ]/g, '')
+    .replace(/[−‒–—]/g, '-')
+    .replace(/%$/, '');
+  let negative = false;
+  if (s.startsWith('-')) {
+    negative = true;
+    s = s.slice(1);
+  }
+  if (!/^[\d.,]+$/.test(s)) return null;
+
+  let integerPart = s;
+  let fractionPart = '';
+  const lastDot = s.lastIndexOf('.');
+  const lastComma = s.lastIndexOf(',');
+  if (lastDot >= 0 && lastComma >= 0) {
+    const decimalSep = lastDot > lastComma ? '.' : ',';
+    const groupSep = decimalSep === '.' ? ',' : '.';
+    const parts = s.split(decimalSep);
+    if (parts.length !== 2 || !isGrouped(parts[0] ?? '', groupSep)) return null;
+    integerPart = (parts[0] ?? '').split(groupSep).join('');
+    fractionPart = parts[1] ?? '';
+  } else if (lastDot >= 0) {
+    const parts = s.split('.');
+    if (parts.length !== 2) return null;
+    integerPart = parts[0] ?? '';
+    fractionPart = parts[1] ?? '';
+  } else if (lastComma >= 0) {
+    const parts = s.split(',');
+    if (parts.length === 2 && (parts[1] ?? '').length <= 2) {
+      integerPart = parts[0] ?? '';
+      fractionPart = parts[1] ?? '';
+    } else if (isGrouped(s, ',')) integerPart = parts.join('');
+    else return null;
+  }
+  if (integerPart === '' && fractionPart === '') return null;
+  if (!/^\d*$/.test(integerPart) || !/^\d{0,2}$/.test(fractionPart)) return null;
+  const digits = (integerPart || '0').replace(/^0+(?=\d)/, '') + fractionPart.padEnd(2, '0');
+  if (digits.length > 15) return null;
+  const hundredths = Number(digits);
+  const value = (negative ? -hundredths : hundredths) / 100;
+  if (!Number.isFinite(value) || value < min || value > max) return null;
   if (opts.integer && !Number.isInteger(value)) return null;
   return value === 0 ? 0 : value;
 }
@@ -358,8 +424,7 @@ export function reformatMoneyText(text: string, currency: string, locale: Locale
 /** Quantity / percent → editable text (up to 2 decimals, no grouping). */
 export function formatDecimalInputText(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return '';
-  const r = Math.round(value * 100) / 100;
-  return String(r === 0 ? 0 : r);
+  return String(round2(value));
 }
 
 /* ============================================================================================== */
@@ -498,7 +563,8 @@ export function horizonFormSchema(maxMonths: number) {
   return z.object({ forecastMonths: z.string() }).superRefine((v, ctx) => {
     const months = parseDecimalInput(v.forecastMonths, { min: FINANCE_LIMITS.minForecastMonths, max: FINANCE_LIMITS.maxForecastMonths, integer: true });
     if (months === null) ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: K.forecastMonthsInvalid });
-    else if (months > maxMonths) ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: 'finance.horizon.overLimit' });
+    else if (months > maxMonths)
+      ctx.addIssue({ code: 'custom', path: ['forecastMonths'], message: fieldMessage('finance.horizon.overLimit', { max: maxMonths }) });
   });
 }
 

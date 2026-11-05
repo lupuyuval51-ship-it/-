@@ -119,5 +119,5 @@ const styles = StyleSheet.create({
   hug: { alignSelf: 'flex-start' },
   content: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
   hidden: { opacity: 0 },
-  spinner: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
+  spinner: { position: 'absolute', top: 0, bottom: 0, start: 0, end: 0, alignItems: 'center', justifyContent: 'center' },
 });

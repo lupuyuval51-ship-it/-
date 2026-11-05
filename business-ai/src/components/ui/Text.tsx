@@ -65,17 +65,17 @@ export function Text({
   const type = typography[variant];
   const latin = locale === 'en';
 
+  const color = toneColor(colors, tone);
   const base: TextStyle = {
     ...fontStyleFor(locale, weight ?? type.weight, fontsAvailable),
     fontSize: type.fontSize,
     lineHeight: type.lineHeight,
     letterSpacing: latin ? type.letterSpacingLatin : 0,
     textAlign: align === 'center' ? 'center' : align === 'end' ? textAlign.end : textAlign.start,
+    ...(color ? { color } : null),
+    ...(latin && type.uppercaseLatin ? { textTransform: 'uppercase' as const } : null),
+    ...(numeric ? { fontVariant: ['tabular-nums' as const] } : null),
   };
-  const color = toneColor(colors, tone);
-  if (color) base.color = color;
-  if (latin && type.uppercaseLatin) base.textTransform = 'uppercase';
-  if (numeric) base.fontVariant = ['tabular-nums'];
 
   return (
     <RNText accessibilityRole={accessibilityRole ?? (HEADER_VARIANTS.has(variant) ? 'header' : undefined)} style={[base, style]} {...rest}>

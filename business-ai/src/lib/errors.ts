@@ -126,7 +126,7 @@ const AUTH_CODES: Readonly<Record<string, AppErrorCode>> = {
 
 const AI_CODES: ReadonlySet<string> = new Set(AI_ERROR_CODES);
 
-export function makeAppError(code: AppErrorCode, message = code, status?: number): AppError {
+export function makeAppError(code: AppErrorCode, message: string = code, status?: number): AppError {
   return { code, messageKey: MESSAGE_KEYS[code], message, status, retryable: RETRYABLE.has(code) };
 }
 

@@ -4,9 +4,10 @@ import {
   StyleSheet,
   TextInput,
   View,
-  type NativeSyntheticEvent,
   type StyleProp,
-  type TextInputFocusEventData,
+  type TextInputBlurEvent,
+  type TextInputFocusEvent,
+  type TextInputInstance,
   type TextInputProps,
   type ViewStyle,
 } from 'react-native';
@@ -38,7 +39,7 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style' | 'editable
   disabled?: boolean;
   /** Small control on the label row, at the end (e.g. a "Forgot password?" link). */
   labelAccessory?: ReactNode;
-  ref?: Ref<TextInput>;
+  ref?: Ref<TextInputInstance>;
   containerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -85,11 +86,11 @@ export function TextField({
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
-  const handleFocus = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleFocus = (e: TextInputFocusEvent) => {
     setFocused(true);
     onFocus?.(e);
   };
-  const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleBlur = (e: TextInputBlurEvent) => {
     setFocused(false);
     onBlur?.(e);
   };
