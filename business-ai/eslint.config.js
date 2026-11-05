@@ -18,4 +18,11 @@ module.exports = defineConfig([
       'supabase/functions/**',
     ],
   },
+  {
+    // jest.mock() factories must use require() (they are hoisted above imports).
+    files: ['**/__tests__/**', '**/*.test.{ts,tsx}', 'src/test/**'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ]);

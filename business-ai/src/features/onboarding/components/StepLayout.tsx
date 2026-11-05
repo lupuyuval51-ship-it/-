@@ -108,7 +108,7 @@ export function StepLayout({
   );
 
   return (
-    <Screen footer={footer} gap={spacing[8]} edges={edges} testID={testID}>
+    <Screen footer={footer} gap={spacing[8]} edges={edges} offlineBanner={false} testID={testID}>
       <View style={styles.progress}>
         <Text variant="caption" tone="secondary" numeric accessibilityLabel={progress.isReview ? progressLabel : t('onboarding.a11y.progress', { current: progress.current, total: progress.total })}>
           {progressLabel}

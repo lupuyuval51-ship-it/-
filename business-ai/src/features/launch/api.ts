@@ -88,7 +88,7 @@ export function useSeedLaunchTemplates(businessId: BusinessId) {
   });
 }
 
-export interface CreateLaunchItemInput extends LaunchItemPatch {}
+export type CreateLaunchItemInput = LaunchItemPatch;
 
 /** Creates a custom item (template_key null), placed after the existing items of its category. */
 export function useCreateLaunchItem(businessId: BusinessId) {

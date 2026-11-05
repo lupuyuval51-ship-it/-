@@ -163,7 +163,7 @@ export default function ConversationScreen() {
         appliedIds={applied}
         showFollowUps={index === followUpIndex}
         online={online}
-        busy={isStreaming || !canSend}
+        canSend={canSend}
         onAction={onAction}
         onFollowUp={send}
         onRetry={send}
@@ -256,6 +256,7 @@ export default function ConversationScreen() {
           data={items}
           keyExtractor={(item) => item.key}
           renderItem={renderItem}
+          extraData={renderItem}
           ListHeaderComponent={listHeader}
           ItemSeparatorComponent={Separator}
           contentContainerStyle={styles.listContent}

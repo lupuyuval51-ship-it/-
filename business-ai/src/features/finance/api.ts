@@ -375,6 +375,7 @@ export function useUpdateFinancialModel(businessId: string | null | undefined) {
 export interface PlanFinanceProposal {
   proposal: FinanceProposal;
   planVersionId: string;
+  createdAt: string;
 }
 
 async function fetchPlanProposal(businessId: string): Promise<PlanFinanceProposal | null> {
@@ -384,7 +385,7 @@ async function fetchPlanProposal(businessId: string): Promise<PlanFinanceProposa
   if (!plan) return null;
   const versionResult = await supabase
     .from('plan_versions')
-    .select('id, finance_proposal')
+    .select('id, finance_proposal, created_at')
     .eq('plan_id', plan.id)
     .eq('status', 'ready')
     .not('finance_proposal', 'is', null)
@@ -395,7 +396,7 @@ async function fetchPlanProposal(businessId: string): Promise<PlanFinanceProposa
   const version = versionResult.data;
   const proposal = version ? parseFinanceProposal(version.finance_proposal) : null;
   if (!version || !proposal || isProposalEmpty(proposal)) return null;
-  return { proposal, planVersionId: version.id };
+  return { proposal, planVersionId: version.id, createdAt: version.created_at };
 }
 
 /** The AI finance proposal saved with the latest ready plan version (from plan generation), or null. */
@@ -408,6 +409,7 @@ export function useFinanceProposal(businessId: string | null | undefined) {
   return {
     proposal: query.data?.proposal ?? null,
     planVersionId: query.data?.planVersionId ?? null,
+    createdAt: query.data?.createdAt ?? null,
     isLoading: query.isLoading,
     error: query.error,
     refetch: query.refetch,
@@ -451,11 +453,13 @@ export interface ActiveProposal {
   refetch: () => Promise<unknown>;
 }
 
-/** The proposal to review: the latest fresh AI call on this device, else the plan's proposal. */
+/** The proposal to review: whichever is newer of the last fresh AI call on this device and the plan's proposal. */
 export function useActiveProposal(businessId: string | null | undefined): ActiveProposal {
   const plan = useFinanceProposal(businessId);
-  const fresh = useFreshProposal(businessId);
+  const storedFresh = useFreshProposal(businessId);
   const reviewed = useReviewedKeys(businessId);
+  const planIsNewer = !!plan.proposal && !!storedFresh && !!plan.createdAt && Date.parse(plan.createdAt) > Date.parse(storedFresh.receivedAt);
+  const fresh = planIsNewer ? undefined : storedFresh;
   const proposal = fresh?.proposal ?? plan.proposal;
   const source = fresh ? 'fresh' : plan.proposal ? 'plan' : null;
   const pending = useMemo(() => pendingProposalItems(proposal, reviewed), [proposal, reviewed]);

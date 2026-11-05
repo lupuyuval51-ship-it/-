@@ -18,14 +18,14 @@ export interface AssistantMessageProps {
   appliedIds: ReadonlySet<string>;
   showFollowUps: boolean;
   online: boolean;
-  /** Another reply is streaming: follow-ups can't be sent yet. */
-  busy: boolean;
+  /** A new message can be sent now (online, nothing streaming, quota left): follow-ups and retry. */
+  canSend: boolean;
   onAction: (action: AdvisorAction, messageId: string) => void;
   onFollowUp: (text: string) => void;
   onRetry: (text: string) => void;
 }
 
-function ErrorNotice({ item, onRetry }: { item: AssistantItem; onRetry: (text: string) => void }) {
+function ErrorNotice({ item, canRetry, onRetry }: { item: AssistantItem; canRetry: boolean; onRetry: (text: string) => void }) {
   const t = useT();
   const error = item.error;
   if (!error) return null;
@@ -41,7 +41,7 @@ function ErrorNotice({ item, onRetry }: { item: AssistantItem; onRetry: (text: s
       tone="error"
       title={t('advisor.chat.sendFailedTitle')}
       message={t(error.messageKey)}
-      action={retryText && error.retryable ? { label: t('advisor.chat.retry'), onPress: () => onRetry(retryText) } : undefined}
+      action={retryText && error.retryable && canRetry ? { label: t('advisor.chat.retry'), onPress: () => onRetry(retryText) } : undefined}
     />
   );
 }
@@ -132,7 +132,7 @@ function FollowUps({ followUps, disabled, onFollowUp }: { followUps: string[]; d
 }
 
 /** An advisor reply: full-width editorial text (no bubble) with a small label. */
-function AssistantMessageImpl({ item, appliedIds, showFollowUps, online, busy, onAction, onFollowUp, onRetry }: AssistantMessageProps) {
+function AssistantMessageImpl({ item, appliedIds, showFollowUps, online, canSend, onAction, onFollowUp, onRetry }: AssistantMessageProps) {
   const t = useT();
   const streaming = item.state === 'streaming';
   const hasText = item.text.trim().length > 0;
@@ -157,9 +157,9 @@ function AssistantMessageImpl({ item, appliedIds, showFollowUps, online, busy, o
           {t('advisor.chat.incomplete')}
         </Text>
       ) : null}
-      {item.state === 'error' ? <ErrorNotice item={item} onRetry={onRetry} /> : null}
+      {item.state === 'error' ? <ErrorNotice item={item} canRetry={canSend} onRetry={onRetry} /> : null}
       {item.actions.length > 0 && item.state !== 'error' ? <ActionList item={item} appliedIds={appliedIds} online={online} onAction={onAction} /> : null}
-      {showFollowUps && item.followUps.length > 0 ? <FollowUps followUps={item.followUps} disabled={busy || !online} onFollowUp={onFollowUp} /> : null}
+      {showFollowUps && item.followUps.length > 0 ? <FollowUps followUps={item.followUps} disabled={!canSend} onFollowUp={onFollowUp} /> : null}
     </View>
   );
 }

@@ -51,7 +51,7 @@ const messages: Messages<typeof he> = {
     dark: 'Dark',
   },
   basis: {
-    user_provided: 'From you',
+    user_provided: 'Your input',
     assumption: 'Assumption',
     ai_estimate: 'AI estimate',
     verified: 'Verified',
