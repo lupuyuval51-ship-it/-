@@ -53,9 +53,11 @@ export function authRoutes(r: Router, deps: Deps): void {
       await recordFailure(ctx.db, 'login', keys, ctx.now);
       throw new ApiError(401, 'invalid_credentials');
     }
-    // Parallel guesses all passed the check above before any of them was counted. Look again now: if the others have
-    // locked this name or IP in the meantime, even a correct password is refused (the user simply retries after the lock).
-    await assertNotLocked(ctx.db, 'login', keys, ctx.now);
+    // Parallel guesses all passed the check above before any of them was counted. Look again now: if the others have locked this
+    // name or IP in the meantime, no session is issued. The answer is the SAME 401 a wrong password gets (a 429 here would tell an
+    // attacker which of the parallel guesses was the right one); the person simply signs in again after the lock.
+    try { await assertNotLocked(ctx.db, 'login', keys, ctx.now); }
+    catch (e) { if (e instanceof ApiError && e.status === 429) throw new ApiError(401, 'invalid_credentials'); throw e; }
     await clearFailures(ctx.db, 'login', keys[0] as { scopeKind: string; id: string });
     if (verdict.needsRehash) await ctx.db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [await hashPassword(password, deps.pbkdf2Iterations), u.id]);
     const s = await startSession(ctx, u.id, remember !== false);

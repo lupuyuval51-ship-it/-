@@ -122,7 +122,7 @@ describe('brute-force counters under concurrency', () => {
     const row = (await t.db.query<{ fail_count: number }>("SELECT fail_count FROM auth_attempts WHERE scope = 'login:username'"))[0]!;
     expect(row.fail_count).toBe(15);
   });
-  it('a correct password is refused when, while it was being checked, parallel guesses locked the name', async () => {
+  it('a correct password is refused, with the answer a wrong one gets, when parallel guesses locked the name while it was being checked', async () => {
     const t = await makeApp();
     await register(t, 'target_user', '10.5.0.1');
     // Simulates the guesses that finish while this request is still hashing: right after the account row is read, the name gets locked.
@@ -139,7 +139,7 @@ describe('brute-force counters under concurrency', () => {
     };
     const app = buildApp({ db: lockAfterRead, mode: 'hosted', clock: () => t.now.t, pbkdf2Iterations: 1000, secureCookies: false, sessionTtlDays: 30 }, extraRoutes);
     const r = await app.handle({ method: 'POST', path: '/api/auth/login', query: {}, headers: {}, body: { username: 'target_user', password: 'correct-horse-battery' }, ip: '10.5.0.2' });
-    expect(r.status).toBe(429);
+    expect(r.status).toBe(401); expect(r.body).toEqual({ error: 'invalid_credentials' }); // not 429: that would single out the right guess
     expect(r.setCookies).toBeUndefined();
   });
   it('a burst of registrations from one address cannot exceed the per-address limit', async () => {
@@ -148,10 +148,10 @@ describe('brute-force counters under concurrency', () => {
     expect(rs.filter((r) => r.status === 201).length).toBe(10);
     expect(rs.filter((r) => r.status === 429).length).toBe(6);
   });
-  it('a correct password that arrives inside a burst of guesses is refused once the burst has locked the name', async () => {
+  it('a correct password that arrives inside a burst of guesses gets no session and is indistinguishable from the wrong ones', async () => {
     const t = await makeApp(); await register(t, 'guessed', '10.7.0.1'); const app = overNetwork(t);
     const rs = await Promise.all(ok(30).map((i) => hit(app, anon('10.7.0.2'), '/api/auth/login', { username: 'guessed', password: i === 25 ? 'correct-horse-battery' : `wrong-guess-${i}` })));
-    expect(rs[25]!.status).toBe(429);
+    expect(rs[25]!.status).toBe(401); expect(rs[25]!.body).toEqual(rs[24]!.body);
     expect(rs.some((r) => r.setCookies?.length)).toBe(false);
     const lock = (await t.db.query<{ locked_until: string | null }>("SELECT locked_until FROM auth_attempts WHERE scope = 'login:username'"))[0]!;
     expect(lock.locked_until).not.toBeNull();
