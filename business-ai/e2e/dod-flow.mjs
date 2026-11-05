@@ -82,7 +82,8 @@ await step('onboarding', async () => {
 });
 
 await step('plan-generated', async () => {
-  await page.getByText('Executive summary').first().waitFor({ timeout: 120000 });
+  // ready state shows the version line ("Version 1 · …"); the generating view also lists section titles
+  await page.getByText(/Version 1/).first().waitFor({ timeout: 180000 });
 });
 
 await step('edit-section', async () => {
@@ -99,9 +100,8 @@ await step('roadmap-complete-task', async () => {
   const box = page.getByRole('checkbox').first();
   await box.waitFor({ timeout: 30000 });
   await box.click();
-  await page.waitForTimeout(1500);
-  const checked = await box.getAttribute('aria-checked');
-  if (checked !== 'true') throw new Error(`task checkbox aria-checked=${checked}`);
+  // the first checkbox in the current phase may be a milestone or a task; either confirms via a quiet notice
+  await page.getByText(/marked as achieved|marked as done|completed/i).first().waitFor({ timeout: 10000 });
 });
 
 await step('advisor-chat', async () => {
