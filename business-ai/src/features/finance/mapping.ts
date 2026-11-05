@@ -722,6 +722,11 @@ export function monthCostsMinor(month: Pick<ForecastMonth, 'variableCostsMinor' 
   return month.variableCostsMinor + month.fixedCostsMinor;
 }
 
+/** Σ monthly costs over the forecast (table total row). */
+export function forecastTotalCostsMinor(months: readonly Pick<ForecastMonth, 'variableCostsMinor' | 'fixedCostsMinor'>[]): number {
+  return months.reduce((sum, m) => sum + monthCostsMinor(m), 0);
+}
+
 /** Calendar month of forecast month `month` (1-based), month 1 = the month of `start`. */
 export function calendarMonthFor(start: Date, month: number): Date {
   return new Date(start.getFullYear(), start.getMonth() + month - 1, 1);

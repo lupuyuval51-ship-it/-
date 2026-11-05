@@ -27,6 +27,9 @@ const messages = {
     errorTitle: 'משהו השתבש',
     emptyTitle: 'אין כאן עדיין כלום',
   },
+  screens: {
+    onboarding: 'בואו נתחיל',
+  },
   tabs: {
     home: 'בית',
     plan: 'תוכנית',
@@ -80,7 +83,7 @@ const messages = {
   },
   config: {
     title: 'האפליקציה עדיין לא הוגדרה',
-    body: 'חסרים משתני הסביבה EXPO_PUBLIC_SUPABASE_URL ו-EXPO_PUBLIC_SUPABASE_ANON_KEY. יש להוסיף אותם לקובץ ‎.env ולהפעיל את האפליקציה מחדש.',
+    body: 'חסרים משתני הסביבה EXPO_PUBLIC_SUPABASE_URL ו-EXPO_PUBLIC_SUPABASE_ANON_KEY. יש להוסיף אותם לקובץ \u200e.env ולהפעיל את האפליקציה מחדש.',
   },
   boot: {
     errorTitle: 'לא הצלחנו לטעון את החשבון',

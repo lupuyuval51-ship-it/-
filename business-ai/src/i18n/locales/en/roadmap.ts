@@ -50,12 +50,14 @@ const messages: Messages<typeof he> = {
     noRoadmapTitle: 'No roadmap yet',
     noRoadmapBody: 'Turn your business plan into a 90-day work plan with three phases, milestones and tasks. You can edit everything afterwards.',
     create: 'Create roadmap from my plan',
+    creating: 'Building your roadmap from the plan. This can take about a minute.',
     createdNotice: 'Your roadmap is ready',
     alreadyExists: 'A roadmap already exists. Reloading it.',
+    partialBody: 'These tasks were added by hand. You can also build phases, milestones and dated tasks from your business plan.',
   },
   rebuild: {
     title: 'Rebuild the roadmap?',
-    body: 'The AI rebuilds the tasks and milestones it created, based on your current business plan. Tasks you added yourself, completed tasks and achieved milestones stay exactly as they are.',
+    body: 'The AI replaces the open tasks and milestones it created with a new version based on your current business plan. Changes made to those tasks are not kept. Tasks you added yourself, completed tasks and achieved milestones stay exactly as they are.',
     confirm: 'Rebuild',
     pending: 'Rebuilding your roadmap…',
     done: 'Roadmap rebuilt',
@@ -164,7 +166,6 @@ const messages: Messages<typeof he> = {
     save: 'Save changes',
     saved: 'Changes saved',
     created: 'Task added',
-    unsavedHint: 'You have unsaved changes',
     delete: {
       action: 'Delete task',
       title: 'Delete this task?',

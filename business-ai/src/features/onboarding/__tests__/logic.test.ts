@@ -188,6 +188,7 @@ describe('countries & currencies', () => {
     expect(budgetCurrencyOptions('JPY')).toEqual(['JPY', 'ILS', 'USD', 'EUR', 'GBP', 'CAD', 'AUD']);
     expect(budgetCurrencyOptions('USD', 'chf')).toEqual(['USD', 'ILS', 'EUR', 'GBP', 'CAD', 'AUD', 'CHF']);
     expect(budgetCurrencyOptions(null)).toHaveLength(6);
+    expect(budgetCurrencyOptions('ILS', 'ILS', 'chf', 'bad!', null)).toEqual(['ILS', 'USD', 'EUR', 'GBP', 'CAD', 'AUD', 'CHF']);
   });
 
   it('countryName localizes and falls back to the code', () => {

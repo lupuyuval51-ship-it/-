@@ -13,6 +13,9 @@ import { BASIS_VALUES, PLAN_SECTION_KEYS, type Basis, type PlanSectionContent, t
 import { formatDate } from '@/i18n/format';
 import { translate, type TranslationKey } from '@/i18n/translate';
 import { isRTLLocale, type Locale, type TranslateVars } from '@/i18n/types';
+import { safeHttpUrl } from './logic';
+
+export { safeHttpUrl };
 
 export interface PlanExportInput {
   locale: Locale;
@@ -36,13 +39,6 @@ export function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch] ?? ch);
 }
 
-/** Only absolute http(s) URLs are linked; anything else (javascript:, data:, relative) is not. */
-export function safeHttpUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-  const trimmed = url.trim();
-  if (!/^https?:\/\/[^\s]+$/i.test(trimmed)) return null;
-  return trimmed;
-}
 
 /** Escaped text with paragraphs (blank lines) and line breaks preserved. */
 function paragraphs(text: string, className?: string): string {

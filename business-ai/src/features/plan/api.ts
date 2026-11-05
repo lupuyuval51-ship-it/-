@@ -294,7 +294,9 @@ export function usePlanState(businessId: string | null | undefined): PlanState {
   });
 
   const data = query.data;
-  const now = Date.now();
+  // Reference time for stale detection: the last successful fetch (refreshed by every poll),
+  // which keeps render pure and is never later than "now".
+  const now = query.dataUpdatedAt;
   const latest = data?.latest ?? null;
   const current = data?.current ?? null;
   const isGenerating = generatingLatest(data, now);

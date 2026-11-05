@@ -42,6 +42,18 @@ const messages: Messages<typeof he> = {
     validUntil: 'Valid until {date}',
     upgradeUnavailable: 'Upgrading isn’t available in this version yet.',
   },
+  subscriptionScreen: {
+    title: 'Subscription',
+    compareHeading: 'Compare plans',
+    compareA11y: '{label}: Free {free}, Pro {pro}',
+    currentColumn: 'Current plan',
+    aiHeading: 'AI actions per month, per action type',
+    costCapNote: 'A total monthly AI cost ceiling also applies, so usage may pause before you reach an individual action’s limit.',
+    inactive: 'Your subscription isn’t active right now, so Free limits apply.',
+    unavailableTitle: 'No in-app purchases',
+    unavailableBody: 'Subscriptions can’t be purchased in the app in this version. Pro is granted by the team on request.',
+    usageA11y: '{feature}: {used} of {limit}',
+  },
   usage: {
     of: '{used} of {limit}',
     resets: 'Limits reset at the start of each month.',

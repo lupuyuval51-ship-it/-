@@ -1,11 +1,11 @@
 import { resources, type Resources } from './locales';
-import { intlLocale, type LeafPaths, type Locale, type PluralCategory, type PluralForms, type TranslateVars } from './types';
+import { intlLocale, isPluralForms, type LeafPaths, type Locale, type PluralCategory, type PluralForms, type TranslateVars } from './types';
 
 /** Every valid translation key, e.g. `'common.actions.save'`, `'errors.network'`. */
 export type TranslationKey = LeafPaths<Resources>;
 
-const FSI = '⁨';
-const PDI = '⁩';
+const FSI = '\u2068';
+const PDI = '\u2069';
 
 /**
  * CLDR cardinal plural category for the supported locales (Hermes has no Intl.PluralRules).
@@ -25,10 +25,6 @@ export function selectPlural(locale: Locale, count: number, forms: PluralForms):
   if (count === 0 && forms.zero !== undefined) return forms.zero;
   const category = pluralCategory(locale, count);
   return forms[category] ?? forms.other;
-}
-
-function isPluralForms(value: unknown): value is PluralForms {
-  return typeof value === 'object' && value !== null && typeof (value as { other?: unknown }).other === 'string';
 }
 
 function lookup(tree: unknown, key: string): string | PluralForms | undefined {

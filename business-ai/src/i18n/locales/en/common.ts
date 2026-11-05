@@ -30,6 +30,9 @@ const messages: Messages<typeof he> = {
     errorTitle: 'Something went wrong',
     emptyTitle: 'Nothing here yet',
   },
+  screens: {
+    onboarding: 'Let’s get started',
+  },
   tabs: {
     home: 'Home',
     plan: 'Plan',

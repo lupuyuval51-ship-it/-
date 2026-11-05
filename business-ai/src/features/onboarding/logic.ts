@@ -188,10 +188,11 @@ export function suggestCurrency(countryCode: string | null | undefined): string 
 }
 
 /**
- * Currency choices for the budget step: the business currency first (it is what the plan and the
- * financial model use), then the standard set; `selected` is kept if it is something else.
+ * Currency choices: the business currency first (it is what the plan and the financial model
+ * use), then the standard set, then any `extra` codes (current selection, country suggestion).
+ * Invalid codes and duplicates are dropped.
  */
-export function budgetCurrencyOptions(businessCurrency: string | null | undefined, selected?: string | null): string[] {
+export function budgetCurrencyOptions(businessCurrency: string | null | undefined, ...extra: (string | null | undefined)[]): string[] {
   const out: string[] = [];
   const push = (c: string | null | undefined) => {
     const code = c?.toUpperCase();
@@ -199,7 +200,7 @@ export function budgetCurrencyOptions(businessCurrency: string | null | undefine
   };
   push(businessCurrency);
   BUDGET_CURRENCIES.forEach(push);
-  push(selected);
+  extra.forEach(push);
   return out;
 }
 

@@ -64,6 +64,7 @@ export const ICON_NAMES = [
   'book-open',
   'shield',
   'link',
+  'compass',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];
 

@@ -7,6 +7,7 @@ import {
   findLine,
   formatDecimalInputText,
   formatMoneyInputText,
+  forecastTotalCostsMinor,
   hashString,
   horizonFormSchema,
   inputsWithDraft,
@@ -459,6 +460,13 @@ describe('validation path mapping', () => {
 describe('forecast helpers', () => {
   it('sums the costs of a month', () => {
     expect(monthCostsMinor({ variableCostsMinor: 240_000, fixedCostsMinor: 450_000 })).toBe(690_000);
+    expect(
+      forecastTotalCostsMinor([
+        { variableCostsMinor: 1, fixedCostsMinor: 2 },
+        { variableCostsMinor: 3, fixedCostsMinor: 4 },
+      ]),
+    ).toBe(10);
+    expect(forecastTotalCostsMinor([])).toBe(0);
   });
 
   it('maps forecast months to calendar months starting with the current month', () => {

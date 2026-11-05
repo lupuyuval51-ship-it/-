@@ -50,12 +50,12 @@ const messages = {
     },
     nextTask: {
       title: '{title}',
-      dueToday: 'מתוכננת להיום.',
-      dueTomorrow: 'מתוכננת למחר.',
+      dueToday: 'תאריך היעד הוא היום.',
+      dueTomorrow: 'תאריך היעד הוא מחר.',
       dueInDays: {
-        one: 'מתוכננת לעוד יום.',
-        two: 'מתוכננת לעוד יומיים.',
-        other: 'מתוכננת לעוד {count} ימים.',
+        one: 'תאריך היעד בעוד יום.',
+        two: 'תאריך היעד בעוד יומיים.',
+        other: 'תאריך היעד בעוד {count} ימים.',
       },
       milestone: 'מקדמת את אבן הדרך {milestone}.',
       noDate: 'המשימה הבאה במפת הדרכים, לפי תאריך ועדיפות.',
@@ -179,7 +179,7 @@ const messages = {
     },
     subscription: {
       title: 'מסלול',
-      description: 'המגבלות של המסלול והשימוש החודש',
+      description: 'מגבלות המסלול והשימוש החודש',
     },
     settings: {
       title: 'הגדרות',

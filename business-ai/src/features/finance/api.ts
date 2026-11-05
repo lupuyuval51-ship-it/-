@@ -11,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FinanceProposal } from '@domain/ai-api';
 import { compareScenarios, summarize, type FinanceInputs, type FinanceSummary, type Forecast, type ScenarioKey } from '@domain/finance';
 import type { Basis } from '@domain/plan';
+import { useBusinesses } from '@/features/business/api';
 import { useLocale } from '@/i18n/I18nProvider';
 import { AppErrorException, toAppError, type AppError } from '@/lib/errors';
 import { invokeAi } from '@/lib/functions';
@@ -108,13 +109,15 @@ export function useFinanceInputs(businessId: string | null | undefined): Finance
     queryFn: () => fetchFinanceData(businessId as string),
     enabled: !!businessId,
   });
+  // The business list reflects currency changes made in settings immediately.
+  const listed = useBusinesses().data?.find((b) => b.id === businessId)?.currency;
   const data = query.data;
   const inputs = useMemo(() => (data ? toFinanceInputs(data.model, data.lines) : undefined), [data]);
   return {
     inputs,
     model: data?.model,
     lines: data?.lines,
-    currency: data?.currency ?? 'ILS',
+    currency: listed ?? data?.currency ?? 'ILS',
     isLoading: query.isLoading,
     isRefetching: query.isRefetching,
     error: query.error,

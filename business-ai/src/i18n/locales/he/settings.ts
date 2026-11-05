@@ -39,6 +39,18 @@ const messages = {
     validUntil: 'בתוקף עד {date}',
     upgradeUnavailable: 'שדרוג המסלול עדיין לא זמין בגרסה הזו.',
   },
+  subscriptionScreen: {
+    title: 'מסלול',
+    compareHeading: 'השוואת מסלולים',
+    compareA11y: '{label}: בחינמי {free}, ב-Pro {pro}',
+    currentColumn: 'המסלול הנוכחי',
+    aiHeading: 'פעולות AI בחודש, לכל סוג פעולה',
+    costCapNote: 'בנוסף חלה תקרה חודשית כוללת לעלות השימוש ב-AI, כך שהשימוש עשוי להיעצר לפני שמגיעים למכסה של כל פעולה.',
+    inactive: 'המנוי אינו פעיל כרגע, ולכן חלות מגבלות המסלול החינמי.',
+    unavailableTitle: 'אין רכישה בתוך האפליקציה',
+    unavailableBody: 'בגרסה הזו אי אפשר לרכוש מנוי בתוך האפליקציה. מסלול Pro ניתן על ידי הצוות לפי בקשה.',
+    usageA11y: '{feature}: {used} מתוך {limit}',
+  },
   usage: {
     of: '{used} מתוך {limit}',
     resets: 'המכסות מתחדשות בתחילת כל חודש.',

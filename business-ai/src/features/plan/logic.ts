@@ -350,6 +350,14 @@ export function normalizeUrl(input: string): string {
   return `https://${trimmed.replace(/^\/+/, '')}`;
 }
 
+/** Only absolute http(s) URLs are linked; anything else (javascript:, data:, relative) is not. */
+export function safeHttpUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (!/^https?:\/\/[^\s]+$/i.test(trimmed)) return null;
+  return trimmed;
+}
+
 function isHttpUrl(value: string): boolean {
   if (!/^https?:\/\/[^\s/?#]+\.[^\s/?#]+/i.test(value)) return false;
   return z.url().safeParse(value).success;

@@ -10,8 +10,8 @@ import { FINANCE_LIMITS } from '@domain/finance';
 import type { TranslationKey } from './translate';
 import { intlLocale, type Locale } from './types';
 
-export const FSI = '⁨';
-export const PDI = '⁩';
+export const FSI = '\u2068';
+export const PDI = '\u2069';
 /** Minor units per major unit for every supported currency. */
 export const MINOR_PER_MAJOR = 100;
 
@@ -23,7 +23,7 @@ export function isolate(text: string): string {
 
 /** Removes isolates and bidi marks (for comparisons, clipboard, tests). */
 export function stripBidi(text: string): string {
-  return text.replace(/[⁦-⁩‎‏؜‪-‮]/g, '');
+  return text.replace(/[\u2066-\u2069\u200e\u200f\u061c\u202a-\u202e]/g, '');
 }
 
 /* ------------------------------------------------------------------ */

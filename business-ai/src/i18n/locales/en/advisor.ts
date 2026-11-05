@@ -31,6 +31,7 @@ const messages: Messages<typeof he> = {
     },
     noBusinessTitle: 'No active business yet',
     noBusinessBody: 'The advisor answers based on your business, so set one up first.',
+    noBusinessAction: 'Set up a business',
     manage: {
       open: 'Options for {title}',
       sheetTitle: 'Conversation options',
@@ -67,6 +68,7 @@ const messages: Messages<typeof he> = {
     composerTooLong: 'Up to {max} characters',
     send: 'Send',
     stop: 'Stop the reply',
+    stopShort: 'Stop',
     writing: 'The advisor is writing…',
     stopped: 'The reply was stopped before it finished.',
     incomplete: 'This reply wasn’t completed.',
@@ -81,7 +83,6 @@ const messages: Messages<typeof he> = {
     notFoundTitle: 'Conversation not found',
     notFoundBody: 'It may have been deleted, or it belongs to another business.',
     backToList: 'All conversations',
-    otherBusiness: 'This conversation belongs to a different business than the active one.',
   },
   actions: {
     heading: 'Suggested actions',

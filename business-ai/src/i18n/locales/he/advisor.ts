@@ -33,6 +33,7 @@ const messages = {
     },
     noBusinessTitle: 'עוד אין עסק פעיל',
     noBusinessBody: 'היועץ עונה על סמך הנתונים של העסק, ולכן צריך קודם להגדיר עסק.',
+    noBusinessAction: 'הגדרת עסק',
     manage: {
       open: 'אפשרויות לשיחה {title}',
       sheetTitle: 'אפשרויות לשיחה',
@@ -69,6 +70,7 @@ const messages = {
     composerTooLong: 'אפשר לשלוח עד {max} תווים',
     send: 'שליחה',
     stop: 'עצירת התשובה',
+    stopShort: 'עצירה',
     writing: 'היועץ כותב…',
     stopped: 'התשובה נעצרה לפני שהסתיימה.',
     incomplete: 'התשובה הזו לא הושלמה.',
@@ -83,7 +85,6 @@ const messages = {
     notFoundTitle: 'השיחה לא נמצאה',
     notFoundBody: 'ייתכן שהיא נמחקה, או שהיא שייכת לעסק אחר.',
     backToList: 'לכל השיחות',
-    otherBusiness: 'השיחה הזו שייכת לעסק אחר מהעסק הפעיל.',
   },
   actions: {
     heading: 'הצעות לפעולה',
